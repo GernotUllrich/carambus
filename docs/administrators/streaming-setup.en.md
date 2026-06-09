@@ -2,7 +2,7 @@
 
 ## 📋 Overview
 
-The Carambus system supports live streaming of billiard games directly to YouTube. It uses the existing Scoreboard Raspberry Pis to cost-effectively stream each table individually.
+The Carambus system supports live streaming of billiard games. It uses the existing Scoreboard Raspberry Pis to cost-effectively stream each table individually. Three stream destinations (`stream_destination`) are available: **`youtube`** (directly to YouTube), **`local`** (local RTMP server, e.g. for OBS integration) and **`custom`** (custom RTMP endpoint). This guide mostly describes the YouTube path.
 
 ### Architecture
 
@@ -137,9 +137,22 @@ All tests should pass with ✅.
 **Table:**
 - Select location and table
 
-**YouTube Configuration:**
+**Stream Destination (`stream_destination`):**
+- **`youtube`**: Stream directly to YouTube (default)
+- **`local`**: Local RTMP server (e.g. Mac mini/laptop with Docker, for OBS integration)
+- **`custom`**: Custom RTMP endpoint
+
+**YouTube Configuration (when `stream_destination = youtube`):**
 - **Stream Key**: Copy from YouTube
 - **Channel ID**: (optional) For direct link
+
+**Local RTMP Server (when `stream_destination = local`):**
+- **RTMP Server IP**: IP of the machine running the RTMP server (e.g. `192.168.2.150`)
+- Stream URL is generated automatically: `rtmp://<IP>:1935/stream/table<TABLE_ID>`
+
+**Custom RTMP Endpoint (when `stream_destination = custom`):**
+- **Custom RTMP URL**: Full base URL of the RTMP server
+- **Custom RTMP Key**: (optional) Appended to the URL
 
 ### 3. Camera Settings
 
@@ -323,7 +336,7 @@ telnet a.rtmp.youtube.com 1935
    ```
 3. Scoreboard URL reachable?
    ```bash
-   curl http://localhost/locations/xxx/scoreboard_overlay?table=1
+   curl http://localhost/locations/xxx/scoreboard_overlay?table_id=1
    ```
 4. Xvfb running?
    ```bash
@@ -537,7 +550,7 @@ sudo journalctl -u carambus-stream@1.service -f
 
 ```
 Stream Management:  /admin/stream_configurations
-Overlay Preview:    /locations/:md5/scoreboard_overlay?table=1
+Overlay Preview:    /locations/:md5/scoreboard_overlay?table_id=1
 ```
 
 ### Files on Raspi

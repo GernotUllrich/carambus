@@ -12,7 +12,21 @@
 @environment  ||= ENV.fetch("RAILS_ENV", "production")
 @path         ||= "/var/www/carambus_api/current"
 @scenarioname ||= "carambus_api"
-@location_id  ||= "1"
+# Plan 21-11 (Cleanup): @location_id-Default entfernt — wurde nur von der
+# carambus:retrieve_updates-Cron-Line genutzt, die jetzt auch ohne Arg läuft
+# (Task signature `task retrieve_updates: :environment do` akzeptiert keine
+# Rake-Args; Region kommt aus Carambus.config.context).
+
+# Plan 21-08 (Region-Generalisierung): aktive Regionen für Phase-21-Cluster-Cron-Jobs.
+# ENV-driven Operations-Konfig (D-21-08-A/B); Default = NBV → kein Verhaltens-Change
+# bei Deploy ohne neuen Setup. Hebt D-21-06-D (NBV-Pilot) auf.
+# Setzen via systemd Environment="ACTIVE_SCRAPE_REGIONS=NBV,BBBV,BVBW" oder ENV-Var.
+# Whitespace + Case werden normalisiert.
+@active_scrape_regions ||= ENV.fetch("ACTIVE_SCRAPE_REGIONS", "NBV")
+                              .split(",")
+                              .map { |r| r.strip.upcase }
+                              .reject(&:empty?)
+                              .freeze
 
 set :output, "log/cron.log"
 set :environment, @environment
@@ -33,7 +47,7 @@ job_type :runner,
 # - Auto-tags videos (players, content type, quality)
 # - Discovers tournaments
 # - Translates titles (if configured)
-every 1.day, at: "2:00 am", roles: [:app] do
+every 1.day, at: "2:00 am", roles: [:api] do
   rake "international:daily_scrape"
 end
 
@@ -43,7 +57,7 @@ end
 # - Finds new tournament IDs
 # - Auto-fixes missing organizers (ensures all have UMB as organizer)
 # - Updates recent tournaments with results
-every 1.day, at: "3:00 am", roles: [:app] do
+every 1.day, at: "3:00 am", roles: [:api] do
   rake "umb:update"
 end
 
@@ -51,7 +65,7 @@ end
 # Runs at 4:00 AM every day
 # - Syncs recent/active tournaments from cuesco.net
 # - Resolves game participations and maps to videos
-every 1.day, at: "4:00 am", roles: [:app] do
+every 1.day, at: "4:00 am", roles: [:api] do
   rake "cuesco:scrape_live"
 end
 
@@ -59,18 +73,87 @@ end
 # Runs every Sunday at 5:00 AM (after daily_update at 4am)
 # - Ensures no videos are left unprocessed
 # - Catches any videos that were skipped during daily runs
-every :sunday, at: "5:00 am", roles: [:app] do
+every :sunday, at: "5:00 am", roles: [:api] do
   rake "international:process_untagged_videos"
 end
 
 # ============================================================================
-# REGIONAL/LOCAL SCRAPING (if enabled)
+# REGIONAL/LOCAL SCRAPING (Authority-only, monitored)
 # ============================================================================
 
-# Uncomment if you want to sync regional ClubCloud data daily
-# every 1.day, at: '5:00 am' do
-#   rake "scrape:optimized_daily_update"
-# end
+# Daily ClubCloud-Pull mit ScrapingMonitor-Instrumentierung
+# (lib/tasks/scrape_monitored.rake):
+#   Region → Locations → Clubs/Players → Tournaments → Leagues
+# Schreibt ScrapingLog-Einträge (Counts + Errors + Duration);
+# `rake scrape:stats` / `scrape:check_health` lesen daraus.
+# Plan 21-11 T2 hat den Season[16]-Hardcode in scrape.rake gefixt → safe to enable.
+#
+# Slot 04:00 daily: Long-Running (bis ~2h). Zeitliche Überlappungen sind gewollt
+# bzw. unkritisch:
+# - 04:00 cuesco:scrape_live: andere Quelle, kein Daten-Konflikt
+# - 04:30/05:30/06:30 Phase-21-Cluster (scrape_admin_params/player_class/heuristic):
+#   arbeitet auf den von daily_update_monitored frisch gepullten Records →
+#   Reihenfolge ist fachlich richtig (erst Datenpull, dann Anreicherung).
+every 1.day, at: "4:00 am", roles: [:api] do
+  rake "scrape:daily_update_monitored"
+end
+
+# ============================================================================
+# PHASE 21 CLUBCLOUD-ADMIN-SCRAPING (Plan 21-06 Slice E + 21-08 Region-Generalisierung)
+# ============================================================================
+# Cron-Verdrahtung der Phase-21-Cluster-Operations. Alle Jobs laufen mit
+# roles: [:api] = NUR auf carambus_api (Authority-only Sub-Property von :app,
+# D-21-10-G; D-21-06-A überholt durch 21-10 Role-Semantik-Fix); carambus_gu
+# pullt Daten via existierendem Sync-Layer ([[project_clubcloud_scraping_authority_only]]).
+#
+# Multi-Region (D-21-08-A/B): aktive Regionen aus @active_scrape_regions oben (Default
+# ["NBV"], via ENV ACTIVE_SCRAPE_REGIONS=NBV,BBBV,... erweiterbar).
+# Hebt D-21-06-D (NBV-Pilot) auf — Phase-21-Cluster-Cron ist nicht mehr NBV-only by design.
+# Aktivierung weiterer Regionen: systemd Environment="ACTIVE_SCRAPE_REGIONS=NBV,BBBV,BVBW"
+# + cap production deploy (cron-update via cap-Whenever-Hook).
+#
+# Frequency-Staffelung (D-21-06-B / D-21-08-D): alle Regionen einer Operation teilen
+# denselben Zeitslot (sequentielle Cron-Lines, kein Per-Region-Offset).
+#
+# Per-Operation-Doku:
+# - Meldeliste-Sync 2h: zeit-sensitiv (Status/Deadline/Qualifying-Date wechseln
+#   stuendlich kurz vor Meldeschluss). Quelle: ExternalTournament-App liest dies via
+#   Endpoint 16 (Plan 21-05). Plan 21-06 T2 (Rake-Wrapper) + 21-06 T1 (Status-Bug-Fix).
+# - TournamentCc-Admin-Parameter 04:30: Shot-Clock, points_to_win, best_of_sets,
+#   tournament_plan_cc_id. Plan 21-03 Slice A.
+# - PlayerRanking.player_class_id 05:30: PlayerClassCalculator (max GD aus 2 abgeschl.
+#   Vorsaisons, STO-BTK §1.4). Plan 21-01.
+# - Player age_class + gender 06:30: PlayerAgeClassGenderHeuristic (MAX(category_cc.min_age)
+#   + juengste seedings.sex). Plan 21-04 Slice C.
+
+@active_scrape_regions.each do |region|
+  # Plan 25-01 T1 (2026-06-02): clubcloud:sync_meldelisten-Cron entfernt.
+  # TournamentCc.meldeliste_cc_id wird seit Phase 24 T3 vom Resolver
+  # cc_lookup_meldeliste_for_tournament lazy on-demand aufgeloest + gecached.
+  # Bulk-Sync war 95% Verschwendung + zusaetzliche Fehlerquelle (base_url-Drift
+  # 2026-06-02). Public-Daten (Meldeschluss etc.) kommen via PublicCcScraper.
+
+  # Plan 21-14 Re-Activation (2026-05-29): scrape_admin_params ist nach Pre-Existing-
+  # Bug-Fixes (a) context-aware cc_id-Lookup `find_or_initialize_by(cc_id:, context:)`
+  # + (b) m[0]→m[1] für showMeisterschaft-Detail-Call wieder produktiv (Commit
+  # 665de0a1). Live-Verify NBV 2025/2026 zeigt delta=+32 (best_of=+32, plan=+32,
+  # plan_records=+1) ohne Cross-Context-Pollution (0 Updates auf bvbw/bvnr/blmr).
+  # Concerns für Slice 21-15 dokumentiert: 7 NBV-Karambol-Records untouched trotz
+  # Pre-Plan-Spike-Befund (cc_id=834/835/836), shot_clock/points_to_win blieben
+  # +0 trotz „60 Minuten"-Werten im HTML — alle 3 Concerns sind Pre-Existing-Edge-
+  # Cases außerhalb 21-14-Scope.
+  every 1.day, at: "4:30 am", roles: [:api] do
+    rake "clubcloud:scrape_admin_params[#{region}]"
+  end
+
+  every 1.day, at: "5:30 am", roles: [:api] do
+    rake "player_class:calculate[#{region}]"
+  end
+
+  every 1.day, at: "6:30 am", roles: [:api] do
+    rake "players:heuristic_age_class_gender[#{region}]"
+  end
+end
 
 # ============================================================================
 # MAINTENANCE TASKS
@@ -78,13 +161,13 @@ end
 
 # Weekly: Clean up old logs (keep last 90 days)
 # Runs every Sunday at 6:00 AM
-every :sunday, at: "6:00 am", roles: [:app] do
+every :sunday, at: "6:00 am", roles: [:api] do
   rake "scrape:cleanup_logs[90]"
 end
 
 # Monthly: Update video statistics and tag counts
 # Runs on the 1st of each month at 7:00 AM
-every "0 7 1 * *", roles: [:app] do
+every "0 7 1 * *", roles: [:api] do
   rake "international:update_statistics"
 end
 
@@ -92,11 +175,20 @@ end
 # LOCAL SERVER TASKS
 # ============================================================================
 
-# Every hour, or any desired interval for local sync tasks
+# Every hour, or any desired interval for local sync tasks.
+# Plan 21-11 (Cleanup): Task akzeptiert keine Rake-Args (`task retrieve_updates:
+# :environment do` ohne args); Region kommt aus Carambus.config.context (z.B. NBV
+# auf carambus_gu via config/carambus.yml). Frühere `[#{@location_id}]`-Param
+# wurde von der Task IGNORIERT (kosmetischer Cleanup, Funktion unverändert).
 every 1.hour, roles: [:local] do
-  # Updates local data from the central API server.
-  # the scenario and location are passed via Capistrano variables.
-  rake "carambus:retrieve_updates[#{@location_id}]"
+  rake "carambus:retrieve_updates"
+end
+
+# Plan 17-05 (Vision N): Mitternachts-Auto-Abbruch für App-getriebene lokale Turniere.
+# Safety-Net: gibt über Nacht hängende Tischbindungen lokaler App-Turniere
+# (id>=MIN_ID + manual_assignment) frei. Idempotent.
+every 1.day, at: "12:01 am", roles: [:local] do
+  rake "external_tournament:release_stale_local_tables"
 end
 
 # ============================================================================

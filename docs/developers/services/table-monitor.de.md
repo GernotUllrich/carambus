@@ -73,7 +73,7 @@ TableMonitor::ResultRecorder.switch_to_next_set(table_monitor: tm)
   "Aufnahmen2"   => Integer,         # Anzahl Aufnahmen Spieler B
   "Höchstserie1" => Integer,         # Höchstserie Spieler A
   "Höchstserie2" => Integer,         # Höchstserie Spieler B
-  "Tischnummer"  => Integer          # Tisch-ID
+  "Tischnummer"  => Integer          # Tischnummer (game.table_no)
 }
 ```
 
@@ -92,6 +92,10 @@ Die AASM-Events (`end_of_set!`, `finish_match!`, `acknowledge_result!`) werden a
 ### c. Keine direkten Broadcast-Aufrufe
 
 Keiner der Services ruft CableReady oder ActionCable direkt auf. Broadcasts erfolgen über `after_update_commit`-Hooks am `TableMonitor`-Modell — die Services bleiben damit frei von Präsentationslogik.
+
+### d. set_over ⟹ panel_state "protocol_final" (before_save-Invariante)
+
+Solange der AASM-Zustand `set_over` ist ("Partie beendet"), erzwingt die before_save-Invariante `enforce_protocol_final_panel_at_set_over`, dass `panel_state = "protocol_final"` ist. Dadurch zeigt das Scoreboard am Spielende **immer direkt** den ProtokollEditor (final-mode, „Fertig" = `confirm_result` → `evaluate_result` schaltet den Zustand weiter) — statt des seltenen Umwegs über das „…OK?"/alte `innings_list`-Panel. Hintergrund: diverse Pfade überschreiben `panel_state` nach dem `set_over`-Eintritt (Karambol-Eingabe-Modus `"inputs"`, `key_a`/`key_b` `"pointer_mode"`, App-/Bridge-Spiele); die Invariante ist der eine pfad-unabhängige Chokepoint. `current_element` bleibt unangetastet (Tiebreak setzt `"tiebreak_winner_choice"`). Der `"…OK?"`-Status selbst ist die TL-Bestätigung bei `!player_controlled?` (siehe `locked_scoreboard`).
 
 ## Querverweise
 

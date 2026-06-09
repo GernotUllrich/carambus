@@ -15,6 +15,18 @@ module McpServer
     TTL_SECONDS = 30 * 60
     MOCK_FLAG = "CARAMBUS_MCP_MOCK"
 
+    # Plan 24-01 T2 (Phase-23-Nachzieher): Auto-Logout-Stub-Detection für expired
+    # PHPSESSID. CC liefert in diesem Fall HTTP 200 mit `<body onLoad='goOut()'>` +
+    # Auto-Submit-Form nach `phpUtilities/sessionLogout/index2.php` — bisher als
+    # Empty-Response interpretiert (stillschweigend 0 Treffer). Regex deckt beide
+    # Marker ab; Live-Capture als Fixture in test/fixtures/cc/auto_logout_stub.html.
+    AUTO_LOGOUT_REGEX = %r{<body[^>]*onLoad=['"]?goOut\(\)|sessionLogout/index2\.php}i
+
+    # Plan 24-01 T2: strukturierter Fehler, wenn das with_session_recovery-Single-Retry
+    # nicht greift (Login-Trigger fail ODER zweite Response erneut Auto-Logout-Stub).
+    # Tools fangen das und liefern eine klare Error-Message statt „0 Treffer".
+    class SessionRecoveryFailed < StandardError; end
+
     class << self
       attr_accessor :session_id, :session_started_at, :_client_override
 
@@ -92,24 +104,84 @@ module McpServer
         true
       end
 
+      # Plan 24-01 T2 (Phase-23-Nachzieher): erkennt das CC-Auto-Logout-Stub-HTML,
+      # das bei expired PHPSESSID statt der erwarteten Response geliefert wird.
+      # Akzeptiert String (raw body), Net::HTTPResponse-like Object (.body), oder
+      # Nokogiri-Doc (.to_html). Defensiv: false bei nil/blank/non-matching.
+      def session_expired?(response_or_body_or_doc)
+        body = case response_or_body_or_doc
+        when nil then return false
+        when String then response_or_body_or_doc
+        else
+          if response_or_body_or_doc.respond_to?(:body)
+            response_or_body_or_doc.body.to_s
+          elsif response_or_body_or_doc.respond_to?(:to_html)
+            response_or_body_or_doc.to_html.to_s
+          else
+            response_or_body_or_doc.to_s
+          end
+        end
+        return false if body.empty?
+        body.match?(AUTO_LOGOUT_REGEX)
+      end
+
+      # Plan 24-01 T2: Block-Helper für CC-Calls mit lazy Auto-Logout-Recovery.
+      # Caller-Block bekommt (client, session_id) und liefert [res, doc] zurück
+      # (analog client.get / client.post Return-Konvention).
+      #
+      # Verhalten:
+      #   - 1. Aufruf: Block ausführen → wenn Response NICHT Auto-Logout → return [res, doc].
+      #   - Sonst: Setting.login_to_cc + reset! → Block GENAU EINMAL wiederholen.
+      #   - 2. Aufruf liefert noch immer Auto-Logout → raise SessionRecoveryFailed.
+      #   - Login-Trigger raised → raise SessionRecoveryFailed.
+      #
+      # Symmetrisch zur existierenden Setting.login_to_cc-Architektur (Decision Q1 in
+      # Phase-24-CONTEXT: lazy statt eager). Heute live als manueller Recovery-Pfad
+      # via curl + frische SID verifiziert.
+      def with_session_recovery(server_context: nil)
+        client = client_for(server_context)
+        res, doc = yield(client, cookie)
+        return [res, doc] unless session_expired?(res)
+
+        Rails.logger.warn "[CcSession.with_session_recovery] expired session detected, triggering re-login"
+        begin
+          reset!
+          cookie  # erzwingt login! — raises bei Login-Fail
+        rescue => e
+          raise SessionRecoveryFailed, "re-login failed after Auto-Logout-Stub: #{e.class}: #{e.message}"
+        end
+
+        client = client_for(server_context)  # neuer Client mit fresh SID
+        res2, doc2 = yield(client, cookie)
+        if session_expired?(res2)
+          raise SessionRecoveryFailed, "second response still Auto-Logout-Stub after re-login (PHPSESSID #{cookie[0, 8]}…)"
+        end
+        [res2, doc2]
+      end
+
       # Plan 14-02.3 / F-5 + D-14-02-A Helper A: Live-CC-Meldeliste-Overview via
       # editMeldelisteCheck.php. Liefert die meldeliste_cc_id + Clubs-Liste aus
       # der CC-Übersicht. Source-of-truth-Pfad (DB-Mirror veraltet/inkomplett).
+      #
+      # Plan 24-01 T2: nutzt with_session_recovery für Auto-Logout-Recovery.
+      # SessionRecoveryFailed propagiert nach oben — Caller (Resolver) liefert
+      # strukturierten error statt stillschweigend „0 Treffer".
       #
       # Returnt Hash {meldeliste_cc_id: Integer, clubs: Hash[club_cc_id => name], source: "live-cc-overview"}
       # oder nil bei:
       #   - Network-Error
       #   - HTTP-Status != 200
       #   - Parse-Failure (kein meldeliste_cc_id extrahierbar)
-      # Defensive: alle Fehler → nil + Rails.logger.warn (KEIN Exception-Raise).
+      # Defensive: alle nicht-Auth-Fehler → nil + Rails.logger.warn (KEIN Exception-Raise).
       def fetch_meldeliste_overview(tournament_cc_id, server_context: nil)
         return nil if tournament_cc_id.blank?
-        client = client_for(server_context)
-        res, doc = client.get(
-          "editMeldelisteCheck",
-          {meisterschaftsId: tournament_cc_id},
-          {session_id: cookie}
-        )
+        res, doc = with_session_recovery(server_context: server_context) do |client, sid|
+          client.get(
+            "editMeldelisteCheck",
+            {meisterschaftsId: tournament_cc_id},
+            {session_id: sid}
+          )
+        end
         return nil if res.nil? || res.code != "200" || doc.nil?
 
         meldeliste_cc_id = parse_meldeliste_cc_id(doc)
@@ -120,6 +192,8 @@ module McpServer
           clubs: parse_clubs_overview(doc),
           source: "live-cc-overview"
         }
+      rescue SessionRecoveryFailed
+        raise  # propagiert nach oben — Resolver liefert structured error
       rescue => e
         Rails.logger.warn "[CcSession.fetch_meldeliste_overview] #{e.class}: #{e.message}"
         nil

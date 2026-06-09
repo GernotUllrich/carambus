@@ -1,0 +1,212 @@
+# config valid only for current version of Capistrano
+lock "3.19.2"
+
+set :application, "carambus"
+set :repo_url, "git@github.com:GernotUllrich/#{fetch(:application)}.git"
+set :deploy_to, -> { "/var/www/#{fetch(:basename)}" }  # Plan 21-10: lambda, :basename set in production.rb (stage-file)
+
+# Default branch is :master
+# ask :branch, `git rev-parse --abbrev-ref HEAD`.chomp
+set :branch, "master"
+
+# Default value for :linked_files is []
+append :linked_files, "config/database.yml", "config/cable.yml", "config/carambus.yml", "config/nginx.conf", "config/puma.rb", "config/environments/production.rb", "config/env.production"
+
+# Default value for linked_dirs is []
+append :linked_dirs, "log", "tmp/pids", "tmp/cache", "tmp/sockets", "public/system", "storage", "config/credentials", "bundle"
+
+# Default value for keep_releases is 5
+set :keep_releases, 5
+
+# Bundler optimizations
+set :bundle_path, -> { shared_path.join('bundle') }
+set :bundle_without, %w{development test}.join(' ')
+set :bundle_jobs, 4
+set :bundle_flags, '--quiet'
+
+# Uncomment the following to require manually verifying the host key before first deploy.
+# set :ssh_options, verify_host_key: :secure
+
+# Verify Node.js is available
+namespace :deploy do
+  desc "Verify Node.js and yarn are available"
+  task :verify_node do
+    on roles(:app) do
+      execute :node, "--version"
+      execute :yarn, "--version"
+    end
+  end
+end
+
+# Hook into the default asset compilation process
+namespace :deploy do
+  namespace :assets do
+    # Check if assets have changed - shared helper
+    task :check_changes do
+      on roles(:app) do
+        # Check if previous release exists
+        previous_release = capture(:ls, "-t", "#{deploy_to}/releases", "2>/dev/null || echo ''").split("\n")[1]
+        
+        if previous_release.nil? || previous_release.empty? || ENV['FORCE_ASSETS']
+          set :assets_changed, true
+          if ENV['FORCE_ASSETS']
+            info "🔨 FORCE_ASSETS=1 - will compile assets"
+          else
+            info "📦 First deployment - will compile assets"
+          end
+        else
+          # Compare asset-relevant files between current and previous release
+          previous_path = "#{deploy_to}/releases/#{previous_release}"
+          
+          # Check for differences in asset-related files
+          assets_differ = false
+          asset_paths = %w[
+            app/javascript
+            app/assets
+            app/views
+            config/locales
+            package.json
+            yarn.lock
+            esbuild.config.mjs
+            tailwind.config.js
+          ]
+          
+          asset_paths.each do |path|
+            if test("[ -e #{release_path}/#{path} ]") && test("[ -e #{previous_path}/#{path} ]")
+              # Both exist, check for differences
+              if test("! diff -rq #{release_path}/#{path} #{previous_path}/#{path} >/dev/null 2>&1")
+                assets_differ = true
+                break
+              end
+            elsif test("[ -e #{release_path}/#{path} ]") || test("[ -e #{previous_path}/#{path} ]")
+              # One exists, one doesn't - that's a change
+              assets_differ = true
+              break
+            end
+          end
+          
+          set :assets_changed, assets_differ
+          
+          if assets_differ
+            info "✅ Asset files changed since last deployment - will compile assets"
+          else
+            info "⏭️  No asset changes detected - skipping compilation (saves ~45 seconds)"
+            info "💡 Use FORCE_ASSETS=1 to force asset compilation if needed"
+          end
+        end
+      end
+    end
+    
+    desc "Install yarn dependencies before asset compilation"
+    task :install_dependencies do
+      on roles(:app) do
+        within release_path do
+          if fetch(:assets_changed, true)
+            # Install JavaScript dependencies
+            execute :yarn, :install
+          end
+        end
+      end
+    end
+
+    desc "Build JavaScript and CSS assets before Rails precompilation"
+    task :build_frontend_assets do
+      on roles(:app) do
+        within release_path do
+          with rails_env: fetch(:rails_env) do
+            if fetch(:assets_changed, true)
+              # Build JavaScript assets
+              execute :yarn, :build
+              
+              # Build CSS assets
+              execute :yarn, "build:css"
+
+              # Ensure the builds directory exists for Rails asset pipeline
+              execute :mkdir, "-p app/assets/builds"
+            end
+          end
+        end
+      end
+    end
+
+    desc "Verify manifest was created properly"
+    task :verify_manifest do
+      on roles(:app) do
+        within release_path do
+          # Only verify if assets were actually compiled
+          if fetch(:assets_changed, true)
+            execute :ls, "-la public/assets/"
+            execute :find, "public/assets", "-name '*.json'", "-o", "-name 'manifest*'"
+          else
+            info "Skipping manifest verification (assets were not recompiled)"
+          end
+        end
+      end
+    end
+    
+    desc "Precompile Rails assets"
+    task :precompile do
+      on roles(:app) do
+        within release_path do
+          with rails_env: fetch(:rails_env) do
+            if fetch(:assets_changed, true)
+              info "Running Rails asset precompilation..."
+              execute :bundle, :exec, :rails, "assets:precompile"
+            else
+              info "Skipping Rails asset precompilation"
+            end
+          end
+        end
+      end
+    end
+  end
+end
+
+# Hook into the custom asset compilation process
+before "deploy:assets:precompile", "deploy:assets:check_changes"
+before "deploy:assets:precompile", "deploy:verify_node"
+before "deploy:assets:precompile", "deploy:assets:install_dependencies"
+before "deploy:assets:precompile", "deploy:assets:build_frontend_assets"
+
+# Ensure manifest is properly handled after precompilation
+after "deploy:assets:precompile", "deploy:assets:verify_manifest"
+
+# Hook asset precompilation into the deployment process
+before "deploy:symlink:release", "deploy:assets:precompile"
+
+# Ensure current symlink exists after database reset
+namespace :deploy do
+  desc "Ensure current symlink exists"
+  task :ensure_current_symlink do
+    on roles(:app) do
+      # Check if current symlink exists and is valid
+      if test("[ ! -L #{deploy_to}/current ]") || test("[ ! -e #{deploy_to}/current ]")
+        # Find the latest release
+        latest_release = capture(:ls, "-t", "#{deploy_to}/releases").split.first
+        if latest_release
+          execute :ln, "-sf", "#{deploy_to}/releases/#{latest_release}", "#{deploy_to}/current"
+          puts "   ✅ Recreated current symlink to #{latest_release}"
+        else
+          puts "   ⚠️  No releases found to symlink"
+        end
+      else
+        puts "   ✅ Current symlink already exists"
+      end
+    end
+  end
+end
+
+# Run symlink check before asset precompilation
+before "deploy:assets:precompile", "deploy:ensure_current_symlink"
+
+# Puma restart configuration
+after 'deploy:publishing', 'puma:restart'
+
+namespace :puma do
+  desc "Restart application"
+  task :restart do
+    on roles(:app) do
+      execute "sudo #{current_path}/bin/manage-puma.sh #{fetch(:basename)}"
+    end
+  end
+end

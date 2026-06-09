@@ -170,15 +170,22 @@ User.find_by(email: "sportwart@verein.de").update!(jti: SecureRandom.uuid)
 
 ## 5. Authority-Layer (Sportwart-Wirkbereich + TL-FK)
 
-Authority entscheidet pro User, welche der 22 MCP-Tools sichtbar + ausführbar sind.
-Statt eines globalen Rollen-Enums hängt Authority an konkreten **Wirkbereichen**:
+Alle 23 MCP-Tools sind für **jeden authentifizierten User** sichtbar + auflistbar
+(`ToolRegistry.tools_for` liefert die einheitliche `ALL_TOOLS`-Liste, Plan 14-G.2 /
+D-14-G6 — kein Per-Persona-Ausblenden mehr). Die Authority-Prüfung passiert
+**beim Aufruf** (`BaseTool.authorize!`), nicht beim Tool-Listing, und hängt an
+konkreten **Wirkbereichen**:
 
-| Persona | Authority-Felder | Tool-Subset |
-|---------|------------------|-------------|
-| **Sportwart** | `user.sportwart_location_ids = [...]`<br>`user.sportwart_discipline_ids = [...]` | **16 Tools** (Anmeldungs-Lebenszyklus vor Turnier; ohne Akkreditierung am Turniertag) |
-| **Turnierleiter** | `tournament.turnier_leiter_user_id = user.id` (pro Turnier; Single-FK) | **19 Tools** (Akkreditierung am Turniertag; ohne Pre-Tournament-Setup) |
-| **Landessportwart (LSW)** | `user.admin?` (Bypass aller Wirkbereich-Checks) | **22 Tools** (volle Suite) |
+| Persona | Authority-Felder | Effektive Aktionen |
+|---------|------------------|--------------------|
+| **Sportwart** | `user.sportwart_location_ids = [...]`<br>`user.sportwart_discipline_ids = [...]` | Anmeldungs-Lebenszyklus vor Turnier für Locations/Disziplinen im Wirkbereich |
+| **Turnierleiter** | `tournament.turnier_leiter_user_id = user.id` (pro Turnier; Single-FK) | Akkreditierung am Turniertag für zugewiesene Turniere |
+| **Landessportwart (LSW)** | `user.admin?` (Bypass aller Wirkbereich-Checks) | volle Suite ohne Wirkbereich-Einschränkung |
 | **SysAdmin** | `user.super_user?` | volle Suite + Override |
+
+> **Hinweis:** Alle Personae sehen dieselben **23 Tools** im Tool-Listing. Der
+> Unterschied liegt darin, welche Write-Aktionen der Server pro User durchlässt —
+> nicht in der Anzahl gelisteter Tools.
 
 ### 5.1 Authority-Hook
 
@@ -210,9 +217,11 @@ user.update!(admin: true)
 
 ### 5.3 Verifikation aus User-Sicht
 
-Der User fragt in Claude: „Welche carambus-remote Tools hast Du?" — die Tool-Anzahl
-muss dem erwarteten Subset entsprechen (16 / 19 / 22). Falls nicht: Wirkbereich
-stimmt nicht. Details für den User selbst in
+Der User fragt in Claude: „Welche carambus-remote Tools hast Du?" — erwartet sind
+**23 Tools** (die volle Suite, für jeden authentifizierten User identisch). Ist die
+Liste **leer (0 Tools)**, ist der Login-Token nicht korrekt verbunden — nicht der
+Wirkbereich. Der Wirkbereich entscheidet erst beim Aufruf, welche Write-Aktionen
+durchgehen (siehe 5.1). Details für den User selbst in
 [Cloud-Quickstart §Tool-Anzahl](clubcloud-mcp-cloud-quickstart.de.md#smoke-test-in-claude-code).
 
 ---
@@ -231,7 +240,8 @@ stimmt nicht. Details für den User selbst in
 3. **Wirkbereich setzen** (Sektion 5.2).
 4. **User auf [Cloud-Quickstart](clubcloud-mcp-cloud-quickstart.de.md) verweisen** —
    Setup-Helper-UI führt durch den Rest.
-5. **Verifikation** durch erstes Tool-Listing in Claude Code (16 / 19 / 22).
+5. **Verifikation** durch erstes Tool-Listing in Claude Code (**23 Tools**;
+   bei 0 Tools → Login-Token nicht verbunden).
 
 **Account-Off-Boarding:**
 
@@ -347,7 +357,7 @@ cap production deploy    # carambus.de (zentrale Master-API)
 | Sportwart sieht im Login-Token-Banner Restlaufzeit „expired" | Token >90 Tage alt | Sportwart re-loginnen + neuen Setup-Befehl pasten |
 | `claude mcp get carambus-remote` → 401 trotz frischem Token | JWT-Secret-Inkonsistenz Server / Lokal | `RAILS_MASTER_KEY` + `devise_jwt_secret_key` in production-Credentials prüfen; Per-Region eigene Secrets verwenden |
 | Tool-Liste leer (0 Tools) trotz erfolgreichem Connect | Wirkbereich nicht konfiguriert | Sektion 5.2 — `sportwart_location_ids` / `sportwart_discipline_ids` setzen oder TL-FK zuweisen |
-| Tool-Anzahl falsch (z.B. 16 statt 22 für LSW) | `user.admin = false` | `user.update!(admin: true)` für LSW |
+| Write-Aktion abgelehnt trotz 23 gelisteter Tools | Wirkbereich deckt Location/Disziplin nicht ab, oder LSW-Flag fehlt | `sportwart_location_ids` / `sportwart_discipline_ids` setzen (Sektion 5.2) bzw. `user.update!(admin: true)` für LSW |
 | `tools/list` 406 Not Acceptable | `Accept`-Header fehlt | Setup-Helper-UI generiert `Accept: application/json, text/event-stream` automatisch — alte manuell gebaute Configs prüfen |
 | `Authorization`-Header leer im Login-Response | devise-jwt-Dispatch-Regex matched Login-Route nicht | `dispatch_requests` in `config/initializers/devise.rb` prüfen — muss `^/login$` matchen |
 | Sportwart sieht falsche Region im Tool-Output | Falsches Per-Region-Scenario / falsche Domain | User auf richtige Region-Domain (z.B. `nbv.carambus.de`) verweisen — jede Region ist eigene Carambus-Instanz |

@@ -119,14 +119,15 @@ These are the basis for automated tournament and table management (TournamentMon
 - 🛠️ **As needed** - Admin can trigger scraping via UI
 
 **Workflow:**
-```ruby
-# Automatic (Cron job):
-rake regions:scrape_all  # All regions at 4:00 AM
+```text
+# Automatic (Cron job, runs at 4:00 AM on the API server):
+rake scrape:daily_update_monitored
 
 # Manual (via UI):
-Region.find_by(shortname: 'NBV').reload_from_cc
-Tournament.find(123).reload_from_cc  # Only one tournament
-League.find(456).reload_from_cc_with_details  # League with details
+# On the Region, Tournament, League or Club page, click the
+# "Reload from CC" or "Reload from CC with details" buttons
+# (visible to admins only). These trigger the controller actions
+# reload_from_cc / reload_from_cc_with_details.
 ```
 
 ---

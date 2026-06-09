@@ -26,13 +26,13 @@ Choose your deployment variant:
 **Setup time**: 2-4 hours  
 **Difficulty**: ⭐⭐ Medium
 
-➡️ **[Installation Overview - Cloud Setup](installation-overview.en.md#cloud-hosting)**
+➡️ **[Installation Overview - Cloud Setup](installation-overview.en.md)**
 
 ### Option 3: On-Premise Server
 **Setup time**: 1-2 days  
 **Difficulty**: ⭐⭐⭐ Demanding
 
-➡️ **[Installation Overview - On-Premise](installation-overview.en.md#on-premise)**
+➡️ **[Installation Overview - On-Premise](installation-overview.en.md)**
 
 ## 📚 Main Topics
 
@@ -111,7 +111,7 @@ Choose your deployment variant:
 - Log monitoring
 - Penetration tests
 
-➡️ **[Security Best Practices](installation-overview.en.md#security)**
+➡️ **[Security Best Practices](installation-overview.en.md)**
 
 ### 6. Monitoring & Troubleshooting
 
@@ -203,7 +203,7 @@ Choose your deployment variant:
 9. Configure backup
 10. Set up monitoring
 
-➡️ **[Cloud Installation Guide](installation-overview.en.md#cloud-hosting)**
+➡️ **[Cloud Installation Guide](installation-overview.en.md)**
 
 ### On-Premise Server
 
@@ -212,7 +212,7 @@ Choose your deployment variant:
 - **Standard**: Intel NUC or mini PC (~400 EUR)
 - **Premium**: Tower server with RAID (~1,500 EUR)
 
-➡️ **[On-Premise Installation Guide](installation-overview.en.md#on-premise)**
+➡️ **[On-Premise Installation Guide](installation-overview.en.md)**
 
 ## 🔧 Maintenance Checklist
 

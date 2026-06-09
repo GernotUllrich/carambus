@@ -349,4 +349,116 @@ class DisciplineTest < ActiveSupport::TestCase
     assert_equal [50, 60, 70], parsed["ballziel_choices"],
       "T-P5-bk2kombi: ballziel_choices must remain [50, 60, 70] (D-13 contract)"
   end
+
+  # ---------------------------------------------------------------------
+  # Plan 21-01: STO-BTK §1.4.1 Klasseneinteilung + class_from_val Edge-Case
+  # ---------------------------------------------------------------------
+  # Kanonische STO-Tabelle (Stand 06/2019, Norddeutscher Billard Verband e.V.).
+  # Quelle der Wahrheit für DISCIPLINE_CLASS_LIMITS. Falls die STO sich aendert
+  # ODER neue Disziplinen aufgenommen werden, diese Tabelle UND die Konstante
+  # synchron halten.
+  #
+  # BEKANNTE CODE↔STO-DIVERGENZ (T1-Defer, separater Plan): Die MB-Disziplinen
+  # Cadre 47/2, Cadre 71/2, Einband groß, Dreiband groß tragen im Code arabische
+  # Klassen-Namen ("1"/"2"/"3") statt der STO §1.4.1-konformen roemischen
+  # ("I"/"II"/"III"). Eine Umstellung braucht einen koordinierten Fix mit dem
+  # Bestand (DTP-Eintraege, Tournament.player_class-Werte) und ist daher NICHT
+  # Teil von Plan 21-01 T1. Diese Tabelle spiegelt deshalb fuer diese 4
+  # Disziplinen den aktuellen CODE-Stand, nicht die reine STO. "Freie Partie groß"
+  # wurde in T1 explizit angeglichen (STO-konform I/II/III).
+  STO_BTK_141 = {
+    "Freie Partie klein" => {"1" => 25.0, "2" => 16.0, "3" => 10.0, "4" => 7.0, "5" => 4.0, "6" => 2.0, "7" => 0.0},
+    "Freie Partie groß" => {"I" => 10.0, "II" => 5.0, "III" => 0.0},
+    "Cadre 35/2" => {"1" => 6.0, "2" => 0.0},
+    "Cadre 52/2" => {"1" => 5.0, "2" => 0.0},
+    "Cadre 47/2" => {"1" => 7.0, "2" => 0.0},
+    "Cadre 71/2" => {"1" => 5.0, "2" => 0.0},
+    "Einband klein" => {"1" => 2.5, "2" => 0.0},
+    "Einband groß" => {"1" => 3.0, "2" => 0.0},
+    "Dreiband klein" => {"1" => 0.8, "2" => 0.0},
+    "Dreiband groß" => {"1" => 0.7, "2" => 0.5, "3" => 0.0}  # +Mindestballzahl §1.4.3 (65/45) im Calculator separat
+  }.freeze
+
+  test "T-21-01-A1: DISCIPLINE_CLASS_LIMITS deckt jede STO-Disziplin mit korrekten GD-Werten je Klasse ab" do
+    STO_BTK_141.each do |disc_name, classes|
+      limits = Discipline::DISCIPLINE_CLASS_LIMITS[disc_name]
+      assert_not_nil limits, "DISCIPLINE_CLASS_LIMITS fehlt fuer #{disc_name}"
+      classes.each do |cls, expected_gd|
+        actual = limits[cls]
+        actual_gd = Array(actual)[0]
+        assert_equal expected_gd, actual_gd,
+          "#{disc_name} Klasse #{cls}: Code=#{actual_gd.inspect}, STO=#{expected_gd} (§1.4.1)"
+      end
+    end
+  end
+
+  test "T-21-01-A2: Dreiband gross Klasse I/II tragen Mindestballzahlen 65/45 (STO §1.4.3; vorher 66)" do
+    limits = Discipline::DISCIPLINE_CLASS_LIMITS["Dreiband groß"]
+    assert_equal [0.7, 65], limits["1"], "Dreiband gross Klasse I = [GD-Min 0.7, Ball-Min 65]"
+    assert_equal [0.5, 45], limits["2"], "Dreiband gross Klasse II = [GD-Min 0.5, Ball-Min 45]"
+  end
+
+  test "T-21-01-A3: Freie Partie gross hat MB-Klassen I/II/III (vorher faelschlich TB-Werte 1..7)" do
+    limits = Discipline::DISCIPLINE_CLASS_LIMITS["Freie Partie groß"]
+    assert_equal({"I" => 10.0, "II" => 5.0, "III" => 0.0}, limits,
+      "Freie Partie gross MUSS MB I/II/III enthalten, NICHT TB 1..7")
+    assert_nil limits["1"], "TB-Klasse '1' darf bei Freie Partie gross NICHT existieren"
+  end
+
+  test "T-21-01-A4: class_from_val ist inklusiv an Klassengrenzen (>=, nicht >)" do
+    # Dreiband klein: { "1" => 0.8, "2" => 0.0 } — Walk in Insertion-Order, erste passende Klasse.
+    d = Discipline.new(name: "Dreiband klein")
+    assert_equal "1", d.class_from_val(0.8), "GD exakt 0.8 => Klasse 1 (Grenze inklusiv)"
+    assert_equal "1", d.class_from_val(1.0), "GD 1.0 ueber 0.8 => Klasse 1"
+    assert_equal "2", d.class_from_val(0.799), "GD knapp unter 0.8 => Klasse 2"
+    assert_equal "2", d.class_from_val(0.0), "GD 0.0 => Klasse 2 (UNTERSTE Klasse mit Grenze 0; vorher faelschlich '')"
+    assert_equal "", d.class_from_val(-0.1), "Negativer GD => leer (Fallback)"
+  end
+
+  test "T-21-01-A5: class_from_val liefert fuer jede STO-Disziplin an jeder Grenze die zugehoerige Klasse" do
+    STO_BTK_141.each do |disc_name, classes|
+      d = Discipline.new(name: disc_name)
+      classes.each do |cls, gd_min|
+        actual = d.class_from_val(gd_min)
+        assert_equal cls, actual,
+          "#{disc_name}: GD exakt #{gd_min} sollte Klasse #{cls} liefern, war: #{actual.inspect}"
+      end
+    end
+  end
+
+  test "T-21-01-A6: class_from_val fuer Disziplin ohne LIMITS-Eintrag (Pool, Snooker) liefert leer" do
+    %w[8-Ball 9-Ball 10-Ball Pool Snooker].each do |name|
+      d = Discipline.new(name: name)
+      assert_equal "", d.class_from_val(5.0),
+        "#{name} ist nicht in DISCIPLINE_CLASS_LIMITS => leer (STO-BTK ist Karambol-only)"
+    end
+  end
+
+  # ---------------------------------------------------------------------
+  # Plan 23-01 T4: root_chain für transitiven Permission-Check
+  # ---------------------------------------------------------------------
+
+  test "root_chain liefert self bei root-Discipline (kein super_discipline)" do
+    root = Discipline.create!(name: "T4-Root")
+    chain = root.root_chain
+    assert_equal [root.id], chain.map(&:id)
+  end
+
+  test "root_chain liefert [self, super, ..., root] für 3-stufige Hierarchie" do
+    root = Discipline.create!(name: "T4-Karambol")
+    mid = Discipline.create!(name: "T4-Dreiband", super_discipline: root)
+    leaf = Discipline.create!(name: "T4-Dreiband-groß", super_discipline: mid)
+
+    chain = leaf.root_chain
+    assert_equal [leaf.id, mid.id, root.id], chain.map(&:id),
+      "root_chain muss leaf-first, root-last sein"
+  end
+
+  test "root_chain ist zyklen-defensive (kein Hang bei Self-Reference)" do
+    d = Discipline.create!(name: "T4-Cycle-A")
+    # Forciere zyklische Beziehung: d.super_discipline = d
+    d.update_column(:super_discipline_id, d.id)
+    chain = d.root_chain
+    assert_equal [d.id], chain.map(&:id), "Self-Cycle wird nach erstem Element abgebrochen"
+  end
 end

@@ -15,7 +15,7 @@ This guide walks you through testing all three streaming destinations.
 - OBS Studio installed
 
 ### On Raspberry Pi:
-- Streaming software installed (via `rake streaming:setup_raspi`)
+- Streaming software installed (via `rake streaming:setup[RASPI_IP]`)
 - USB camera connected
 - Network connectivity to Mac mini
 
@@ -95,7 +95,7 @@ ifconfig | grep "inet " | grep -v 127.0.0.1
 
 3. Configure:
    - ❌ Uncheck "Local File"
-   - Input: `rtmp://localhost:1935/live/table2` (use your table ID!)
+   - Input: `rtmp://localhost:1935/stream/table2` (use your table ID!)
    - ✓ Check "Restart playback when source becomes active"
    - ✓ Check "Close file when inactive"
    - Click **OK**
@@ -135,7 +135,7 @@ docker logs rtmp-server
 # 2025/01/09 21:00:00 [info] client connected '192.168.1.100'
 
 # Test RTMP URL manually
-ffplay rtmp://localhost:1935/live/table2
+ffplay rtmp://localhost:1935/stream/table2
 ```
 
 **Overlay not updating:**
@@ -289,8 +289,8 @@ Test streaming from multiple Raspberry Pis to OBS simultaneously.
 
 | Raspi | Table | RTMP URL | OBS Source Name |
 |-------|-------|----------|-----------------|
-| 192.168.1.100 | Table 1 (ID: 2) | rtmp://192.168.1.105:1935/live/table2 | Camera Table 1 |
-| 192.168.1.101 | Table 2 (ID: 3) | rtmp://192.168.1.105:1935/live/table3 | Camera Table 2 |
+| 192.168.1.100 | Table 1 (ID: 2) | rtmp://192.168.1.105:1935/stream/table2 | Camera Table 1 |
+| 192.168.1.101 | Table 2 (ID: 3) | rtmp://192.168.1.105:1935/stream/table3 | Camera Table 2 |
 
 **Test Steps:**
 
@@ -517,7 +517,7 @@ ssh pi@192.168.1.100 'systemctl status carambus-stream@1.service'
 ssh pi@192.168.1.100 'ps aux | grep ffmpeg'
 
 # Test RTMP URL manually
-ffplay rtmp://192.168.1.105:1935/live/table2
+ffplay rtmp://192.168.1.105:1935/stream/table2
 
 # If that works, issue is with OBS configuration
 ```

@@ -26,6 +26,8 @@ class StreamControlJob < ApplicationJob
       handle_stop
     when 'restart'
       handle_restart
+    when 'deploy'
+      handle_deploy
     else
       raise ArgumentError, "Unknown action: #{action}"
     end
@@ -36,7 +38,14 @@ class StreamControlJob < ApplicationJob
   end
   
   private
-  
+
+  # Deploy the configuration file to the Raspberry Pi without (re)starting the
+  # stream. Mirrors `rake streaming:deploy` and is used by StreamDeployJob.
+  def handle_deploy
+    deploy_config_file
+    Rails.logger.info "[StreamControl] Configuration deployed for Table ID #{@table_id}"
+  end
+
   def handle_start
     # Check if stream is already running
     if stream_running?

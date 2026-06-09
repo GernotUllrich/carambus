@@ -196,12 +196,40 @@ Stream-Schlüssel: [von YouTube Live Dashboard]
    - Name des Kommentators
    - Aktueller Spielstand
 
-## Overlay-Anpassungen für OBS
+## Overlay für OBS
 
-### Neue Controller-Action für OBS-Overlays
+### Aktuelle Overlay-Action
+
+Die App stellt bereits eine fertige Overlay-Action bereit, die als OBS Browser
+Source verwendet werden kann:
 
 ```ruby
-# app/controllers/locations_controller.rb
+# app/controllers/locations_controller.rb -> scoreboard_overlay
+# Route (member auf locations): get :scoreboard_overlay
+```
+
+**Overlay-URL (funktioniert heute):**
+```
+http://localhost:3000/locations/[MD5]/scoreboard_overlay?table_id=1
+```
+- Kompletter Scoreboard im Layout `streaming_overlay`
+- Spieler, Score, Durchschnitt, Höchste Serie
+- Pflichtparameter: `table_id` (Tisch-ID, NICHT die Tischnummer)
+
+> **Hinweis:** Die `scoreboard_overlay`-Action kennt aktuell **keinen**
+> `layout`-Parameter. Es gibt genau ein Overlay-Layout (Full). Die unten
+> beschriebenen Modi *Minimal* und *Multi* sind ein Ausbauvorschlag und noch
+> **nicht** implementiert.
+
+### Geplant (noch nicht implementiert): Layout-Modi
+
+Ein erweiterter Endpunkt mit umschaltbaren Layouts (`full` / `minimal` /
+`multi`) ist als zukünftige Erweiterung angedacht. Eine mögliche
+Implementierung:
+
+```ruby
+# VORSCHLAG - app/controllers/locations_controller.rb
+# Diese Action existiert noch NICHT.
 
 def streaming_overlay_obs
   @table_id = params[:table_id]
@@ -209,39 +237,18 @@ def streaming_overlay_obs
   @table_monitor = @table.table_monitor
   @game = @table_monitor&.current_game
   @layout_mode = params[:layout] || 'full'  # 'full', 'minimal', 'multi'
-  
+
   render layout: 'streaming_overlay'
 end
 ```
 
-**Routes:**
 ```ruby
-# config/routes.rb
+# VORSCHLAG - config/routes.rb
 get 'locations/:md5/streaming_overlay_obs', to: 'locations#streaming_overlay_obs'
 ```
 
-### Layout-Modi
-
-**1. Full (Standard)**
-```
-http://localhost:3000/locations/[MD5]/streaming_overlay_obs?table_id=1&layout=full
-```
-- Kompletter Scoreboard (200px Höhe)
-- Spieler, Score, Durchschnitt, Höchste Serie
-
-**2. Minimal (für Nahaufnahmen)**
-```
-http://localhost:3000/locations/[MD5]/streaming_overlay_obs?table_id=1&layout=minimal
-```
-- Nur Score (80px Höhe)
-- Spielername + Punkte
-
-**3. Multi (für 2x2 Grid)**
-```
-http://localhost:3000/locations/[MD5]/streaming_overlay_obs?layout=multi
-```
-- Alle Tische gleichzeitig
-- Kompakte Darstellung
+Bis dahin gilt für alle OBS Browser Sources die heute funktionierende URL
+`.../scoreboard_overlay?table_id=<ID>`.
 
 ## iPhone Setup
 
@@ -316,7 +323,7 @@ cd /Users/gullrich/DEV/carambus/carambus_master
 rails s -p 3000
 
 # 2. Overlay-URLs testen
-open http://localhost:3000/locations/[MD5]/streaming_overlay_obs?table_id=1
+open http://localhost:3000/locations/[MD5]/scoreboard_overlay?table_id=1
 
 # 3. OBS starten
 # 4. Kameras verbinden (iPhone, USB)
@@ -507,7 +514,7 @@ client.set_source_visibility(source_name: 'Overlay Table 1', visible: true)
 # Rechtsklick auf Browser Source → "Refresh Cache"
 
 # Oder URL testen im normalen Browser
-open http://localhost:3000/locations/[MD5]/streaming_overlay_obs?table_id=1
+open http://localhost:3000/locations/[MD5]/scoreboard_overlay?table_id=1
 ```
 
 ### iPhone wird nicht erkannt

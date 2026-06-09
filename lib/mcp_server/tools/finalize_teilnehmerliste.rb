@@ -38,7 +38,7 @@ module McpServer
         return err if err
 
         # Plan 14-G.4 / F5-B: Authority-Integration. Defensiv-Skip bei unauflösbar.
-        # meldeliste_id in finalize ist die CC meldelisteId (=cc_id von RegistrationListCc).
+        # meldeliste_id in finalize ist die CC meldelisteId (= TournamentCc.meldeliste_cc_id seit Phase 23 T1b).
         resolved_tournament = resolve_tournament(
           meldeliste_cc_id: meldeliste_id, server_context: server_context
         )

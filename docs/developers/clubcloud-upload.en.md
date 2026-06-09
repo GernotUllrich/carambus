@@ -30,7 +30,7 @@ add_column :tournaments, :auto_upload_to_cc, :boolean, default: true, null: fals
 
 ### Upload Logic
 
-The upload occurs in `lib/tournament_monitor_state.rb` after game completion:
+The upload occurs in `app/services/tournament_monitor/result_processor.rb` after game completion:
 
 ```ruby
 def finalize_game_result(table_monitor)
@@ -80,14 +80,28 @@ def self.upload_game_to_cc(table_monitor)
   group_item_id = find_group_item_id(tournament, cc_group_name)
   
   # 6. Create POST request to ClubCloud
+  # Note: form keys are symbols and match the ClubCloud createErgebnisSave.php API
   url = "#{region_cc.base_url}/admin/einzel/meisterschaft/createErgebnisSave.php"
   form_data = {
-    "groupItemId" => group_item_id,
-    "sportlerOneId" => player1.cc_id,
-    "sportlerTwoId" => player2.cc_id,
-    "resultOne" => ba_results["Ergebnis1"],
-    "resultTwo" => ba_results["Ergebnis2"],
-    # ... more fields ...
+    fedId: region.cc_id,
+    branchId: branch_cc.cc_id,
+    disciplinId: "*",
+    season: tournament.season.name,
+    catId: "*",
+    meisterTypeId: tournament_cc.championship_type_cc&.cc_id || "",
+    meisterschaftsId: tournament_cc.cc_id,
+    teilnehmerId: "*",
+    groupItemId: group_item_id,
+    partieNumber: partie_number.to_s,
+    setNumber: set_number.to_s,
+    sportlerOne: (player1.cc_id || player1.ba_id).to_s,
+    sportlerTwo: (player2.cc_id || player2.ba_id).to_s,
+    homescore: (ba_results["Ergebnis1"]).to_s,
+    visitorscore: (ba_results["Ergebnis2"]).to_s,
+    homeinning: (ba_results["Aufnahmen1"]).to_s,
+    visitorinning: (ba_results["Aufnahmen2"]).to_s,
+    homebreak: (ba_results["Höchstserie1"]).to_s,
+    visitorbreak: (ba_results["Höchstserie2"]).to_s
   }
   
   # 7. Send request and process response
@@ -274,8 +288,8 @@ tournament_cc.group_cc.data["positions"]  # Group mappings
 ```ruby
 # Region requires ClubCloud credentials:
 region_cc.base_url                    # e.g. "https://ndbv.de"
-region_cc.login_username              # Admin login
-region_cc.login_password              # Admin password
+region_cc.username                    # Admin login
+region_cc.userpw                      # Admin password
 ```
 
 ### Player Identification
@@ -437,8 +451,8 @@ player.update(cc_id: player.ba_id)
 ```ruby
 # Check region credentials:
 region_cc = tournament.organizer.region_cc
-region_cc.login_username  # => "admin@example.com"
-region_cc.login_password  # => "***"
+region_cc.username  # => "admin@example.com"
+region_cc.userpw    # => "***"
 
 # Test login:
 session_id = Setting.ensure_logged_in

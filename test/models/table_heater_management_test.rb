@@ -15,8 +15,12 @@ class TableHeaterManagementTest < ActiveSupport::TestCase
     
     @table_kind_karambol = TableKind.find_or_create_by!(name: "Karambol")
     @table_kind_snooker = TableKind.find_or_create_by!(name: "Snooker")
-    @table_kind_match = TableKind.find_or_create_by!(name: "Match")
-    @table_kind_billard = TableKind.find_or_create_by!(name: "Billard")
+    # Reale TableKind-Namen (siehe TableKind::TABLE_KINDS): "Match Billard" und
+    # "Half Match Billard" sind die großen Karambol-Tische. Es gibt kein
+    # eigenständiges "Match" oder "Billard".
+    @table_kind_match_billard = TableKind.find_or_create_by!(name: "Match Billard")
+    @table_kind_half_match_billard = TableKind.find_or_create_by!(name: "Half Match Billard")
+    @table_kind_small_billard = TableKind.find_or_create_by!(name: "Small Billard")
     @table_kind_pool = TableKind.find_or_create_by!(name: "Pool")
     
     # Use explicit id < MIN_ID so LOCAL_METHODS delegates to table_local
@@ -65,20 +69,27 @@ class TableHeaterManagementTest < ActiveSupport::TestCase
     assert_equal 4, @table.pre_heating_time_in_hours
   end
 
-  test "pre_heating_time_in_hours returns 4 for Match tables" do
-    @table.update!(table_kind: @table_kind_match)
+  test "pre_heating_time_in_hours returns 4 for Match Billard tables" do
+    @table.update!(table_kind: @table_kind_match_billard)
     assert_equal 4, @table.pre_heating_time_in_hours
   end
 
-  test "pre_heating_time_in_hours returns 4 for Billard tables" do
-    @table.update!(table_kind: @table_kind_billard)
-    assert_equal 4, @table.pre_heating_time_in_hours
+  test "pre_heating_time_in_hours returns 2 for Half Match Billard tables" do
+    # Konsistent mit check_heater_on, das nur ["Snooker", "Match Billard"] als
+    # große Tische behandelt.
+    @table.update!(table_kind: @table_kind_half_match_billard)
+    assert_equal 2, @table.pre_heating_time_in_hours
   end
-  
+
+  test "pre_heating_time_in_hours returns 2 for Small Billard tables" do
+    @table.update!(table_kind: @table_kind_small_billard)
+    assert_equal 2, @table.pre_heating_time_in_hours
+  end
+
   test "pre_heating_time_in_hours returns 2 for Karambol tables" do
     assert_equal 2, @table.pre_heating_time_in_hours
   end
-  
+
   test "pre_heating_time_in_hours returns 2 for Pool tables" do
     @table.update!(table_kind: @table_kind_pool)
     assert_equal 2, @table.pre_heating_time_in_hours

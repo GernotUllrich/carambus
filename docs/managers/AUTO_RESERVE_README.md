@@ -36,12 +36,14 @@ crontab -e
 
 Ein Turnier wird berücksichtigt, wenn:
 
-1. ✅ `single_or_league = 'single'`
-2. ✅ `location_id` vorhanden
-3. ✅ `discipline_id` vorhanden
-4. ✅ `date` liegt in der Zukunft
-5. ✅ `accredation_end` (Meldeschluss) in letzten 7 Tagen
-6. ✅ Mindestens 1 Teilnehmer gemeldet
+1. ✅ `location_id` vorhanden
+2. ✅ `discipline_id` vorhanden
+3. ✅ `date` liegt in der Zukunft
+4. ✅ `accredation_end` (Meldeschluss) gesetzt und in letzten 7 Tagen
+5. ✅ Mindestens 1 Teilnehmer gemeldet (pro Turnier geprüft)
+
+> Hinweis: Es gibt aktuell **keinen** technischen `single_or_league = 'single'`-Filter
+> im Task – die Auswahl erfolgt allein über die obigen Kriterien.
 
 ## Tischberechnung
 

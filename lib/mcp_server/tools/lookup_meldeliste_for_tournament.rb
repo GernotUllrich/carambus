@@ -8,8 +8,8 @@
 # cc_unregister_for_tournament / cc_update_tournament_deadline brauchen meldeliste_cc_id —
 # dieses Tool liefert die Auflösung mit Disambiguation-Rückfrage bei N:1 (D-08-E).
 #
-# DB-first via TournamentCc → registration_list_cc → cc_id (1:1-Beziehung in Carambus-DB,
-# kann N:1 sein wenn mehrere RegistrationListCc auf dasselbe Tournament verweisen).
+# DB-first via TournamentCc.meldeliste_cc_id (direkt-Feld seit Phase 23 T1b — vorher
+# über die RegistrationListCc-Zwischentabelle, die wurde ersatzlos gedroppt).
 # Falls DB-Lookup leer ODER force_refresh:true → Live-CC via showMeldelistenList Action.
 #
 # Plan 09-02 (v0.2.1-Spec-Issue konsolidiert): Tool akzeptiert jetzt 5 optionale Scope-Filter-Params
@@ -37,7 +37,7 @@ module McpServer
         Use BEFORE cc_register_for_tournament / cc_unregister_for_tournament / cc_update_tournament_deadline if meldeliste_cc_id unknown.
         One Tournament may have N Meldelisten (Quali-Listen pro Region etc.).
         Returns single meldeliste_cc_id if unambiguous; otherwise candidates-array for User-Disambiguation.
-        DB-first via TournamentCc.registration_list_cc; falls DB empty or force_refresh:true, queries CC showMeldelistenList live.
+        DB-first via TournamentCc.meldeliste_cc_id (direkt-Feld seit Phase 23); falls DB empty or force_refresh:true, queries CC showMeldelistenList live.
         Read-only — no armed-flag needed.
       DESC
       input_schema(
@@ -244,23 +244,32 @@ module McpServer
             Pick one meldeliste_cc_id from the candidates list and use it explicitly in subsequent tool calls.
           OUT
         end
+      rescue McpServer::CcSession::SessionRecoveryFailed => e
+        # Plan 24-01 T3: lazy Re-Login-Recovery hat trotz Single-Retry nicht funktioniert
+        # (Login-Trigger raised ODER zweite Response erneut Auto-Logout-Stub). Klarer
+        # Error-Output statt stillschweigend „0 Treffer".
+        Rails.logger.warn "[LookupMeldelistе] session recovery failed: #{e.message}"
+        error(
+          "MCP-Server-Session zur CC ist expired, automatischer Re-Login fehlgeschlagen: " \
+          "#{e.message}. " \
+          "Action: CC-Credentials in Rails-Credentials prüfen (config/credentials/#{Rails.env}.yml.enc) " \
+          "oder Setting.login_to_cc manuell triggern. Detail in Rails.logger."
+        )
       rescue => e
         error("Tool exception: #{e.class.name} (details suppressed; check Rails.logger on stderr).")
       end
 
-      # DB-first Lookup via TournamentCc → registration_list_cc-Beziehung.
-      # Defensiv: rescue StandardError für fehlende Models / fehlende Records / nil-Werte.
+      # DB-first Lookup via TournamentCc.meldeliste_cc_id (Plan 23-01 T3d).
+      # Vorher: belongs_to :registration_list_cc → cc_id; neu: direkter Feldzugriff.
+      # Defensiv: rescue StandardError für fehlende Records / nil-Werte.
       def self.fetch_from_db(tournament_cc_id)
         tcc = TournamentCc.find_by(cc_id: tournament_cc_id)
         return [] unless tcc
-
-        # Erste Quelle: belongs_to :registration_list_cc (1:1)
-        rl = tcc.registration_list_cc
-        return [] unless rl
+        return [] if tcc.meldeliste_cc_id.blank?
 
         [{
-          meldeliste_cc_id: rl.cc_id,
-          name: (rl.respond_to?(:name) ? rl.name : nil) || "Meldeliste #{rl.cc_id}",
+          meldeliste_cc_id: tcc.meldeliste_cc_id,
+          name: tcc.name || "Meldeliste #{tcc.meldeliste_cc_id}",
           source: "db"
         }]
       rescue => e
@@ -276,11 +285,20 @@ module McpServer
       # (Plan 08-03 Live-Test AC-1 Limited PASS — Spec-Issue konsolidiert).
       # Backwards-Compat: ohne Scope-Filter wird der bisherige meisterschaftsId-Pfad genutzt
       # (Plan 08-02 Mock-Tests bleiben grün).
+      #
+      # Plan 24-01 T3 (Phase-23-Nachzieher): Anchor-Pattern auf Pipe-Format
+      # `href='showMeldeliste.php?p=20|10|*|*|2025/2026|1312&'` umgestellt
+      # (real-CC-Format seit Plan 21-13 D-EXEC-A — Syncer wurde gefixt, Resolver
+      # blieb auf alten `meldelisteId=N`-Query-Pattern). Plus Title-Match-Logik
+      # gegen TournamentCc.name (sonst landeten alle ~40 NBV-Karambol-Meldelisten
+      # als Candidates). Plus with_session_recovery für Auto-Logout-Recovery —
+      # bei expired SID wird Setting.login_to_cc getriggert + Single-Retry.
+      # SessionRecoveryFailed propagiert nach oben → strukturierter Error.
       def self.fetch_from_cc(tournament_cc_id, fed_cc_id: nil, branch_cc_id: nil,
         season: nil, disciplin_id: nil, cat_id: nil, server_context: nil)
-        client = cc_session.client_for(server_context)
         payload = if scope_filter_given?(fed_cc_id, branch_cc_id, season, disciplin_id, cat_id)
           {
+            meisterschaftsId: tournament_cc_id,
             fedId: fed_cc_id,
             branchId: branch_cc_id,
             season: season,
@@ -291,15 +309,18 @@ module McpServer
           {meisterschaftsId: tournament_cc_id}
         end
 
-        res, doc = client.post(
-          "showMeldelistenList",
-          payload,
-          {armed: true, session_id: cc_session.cookie}
-        )
+        res, doc = cc_session.with_session_recovery(server_context: server_context) do |client, sid|
+          client.post(
+            "showMeldelistenList",
+            payload,
+            {armed: true, session_id: sid}
+          )
+        end
         return [] if res.nil? || res.code != "200" || doc.nil?
 
         # Hybrid-HTML-Parser (Phase 6/7 Pattern)
-        # Variante A: Mock-HTML5 mit data-Attributen
+        # Variante A: Mock-HTML5 mit data-Attributen (Mock-Backwards-Compat,
+        # Plan 24-01 ändert hier nichts).
         rows = doc.css("tr[data-meldeliste-cc-id]")
         if rows.any?
           return rows.map do |row|
@@ -311,10 +332,70 @@ module McpServer
           end
         end
 
-        # Variante B: Anchor-Tags mit meldelisteId-Query-Param (Real-CC-Heuristik)
-        anchors = doc.css("a[href*='meldelisteId=']")
-        anchors.map do |a|
-          m = a["href"].to_s.match(/meldelisteId=(\d+)/)
+        # Variante B (Plan 24-01 T3): Pipe-Anchor-Parser für real-CC LSW-Pfad.
+        # Primär: `<a class='cc_bluelink' href='showMeldeliste.php?p=20|10|*|*|2025/2026|1312&'>Name</a>`
+        # Fallback: Alt-Pattern `meldelisteId=N` (für Mocks, die noch nicht migriert sind).
+        raw_candidates = parse_pipe_anchors(doc) + parse_meldelisteid_anchors(doc)
+        return [] if raw_candidates.empty?
+
+        # Plan 24-01 T3: Title-Match gegen TournamentCc.name (Context-Pflicht laut
+        # D-14-02-D — cc_id ist regions-eindeutig). Logik analog
+        # fetch_from_sportwart_list:391-416 (DRY-Refactor ist Out-of-Scope für 24-01).
+        context = effective_cc_region(server_context).to_s.downcase
+        tcc = begin
+          if context.present?
+            TournamentCc.find_by(cc_id: tournament_cc_id, context: context)
+          else
+            TournamentCc.find_by(cc_id: tournament_cc_id)
+          end
+        rescue StandardError
+          nil
+        end
+        return raw_candidates unless tcc
+
+        tournament_name = tcc.name.to_s.strip
+        return raw_candidates if tournament_name.blank?
+
+        # Exact-Match (case-insensitive)
+        exact_matches = raw_candidates.select { |c| c[:name].to_s.casecmp?(tournament_name) }
+        return exact_matches if exact_matches.any?
+
+        # Substring-Match (case-insensitive, beidseitig)
+        raw_candidates.select do |c|
+          name = c[:name].to_s.downcase
+          tn = tournament_name.downcase
+          name.include?(tn) || tn.include?(name)
+        end
+      rescue McpServer::CcSession::SessionRecoveryFailed
+        raise  # propagiert nach oben → self.call rescue-Klausel
+      rescue => e
+        Rails.logger.warn "[LookupMeldelisteForTournament.fetch_from_cc] #{e.class}: #{e.message}"
+        []
+      end
+
+      # Plan 24-01 T3: Real-CC Pipe-Pattern-Anchor-Parser (Live-Format seit Plan 21-13).
+      # Selector erfasst `<a href='showMeldeliste.php?p=…|N&'>` (Single-Quotes), Klasse
+      # cc_bluelink ist Bonus-Filter aber nicht hart erforderlich (HTML-Klassen drift gerne).
+      def self.parse_pipe_anchors(doc)
+        doc.css("a[href*='showMeldeliste.php?p=']").map do |a|
+          href = a["href"].to_s
+          m = href.match(/\|(\d+)(?:&|$)/)
+          next nil unless m
+          {
+            meldeliste_cc_id: m[1].to_i,
+            name: a.text.strip,
+            source: "cc-live"
+          }
+        end.compact
+      end
+
+      # Mock-Backwards-Compat: alte `?meldelisteId=N`-Query-Pattern.
+      # Wenn Pipe-Pattern bereits Treffer lieferte, gibt es redundante Anchors —
+      # aber Tests in Plan-08-02 nutzen dieses Format und sollen weiter grün bleiben.
+      def self.parse_meldelisteid_anchors(doc)
+        doc.css("a[href*='meldelisteId=']").map do |a|
+          href = a["href"].to_s
+          m = href.match(/meldelisteId=(\d+)/)
           next nil unless m
           {
             meldeliste_cc_id: m[1].to_i,
@@ -322,9 +403,6 @@ module McpServer
             source: "cc-live"
           }
         end.compact
-      rescue => e
-        Rails.logger.warn "[LookupMeldelisteForTournament.fetch_from_cc] #{e.class}: #{e.message}"
-        []
       end
 
       # Plan 09-02: true wenn mind. einer der 5 Scope-Filter-Params nicht-nil ist.

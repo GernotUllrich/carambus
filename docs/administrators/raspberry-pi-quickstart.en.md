@@ -78,15 +78,26 @@ ssh pi@<IP-ADDRESS>
 
 ### 2.1 Initial Server Setup
 
-Run Ansible playbook to configure the Raspberry Pi as a server:
+Base provisioning of the Raspberry Pi (packages, Ruby/rbenv, PostgreSQL, Nginx, www-data user) is done via the setup script or the Ansible roles in the `carambus_master` checkout:
 
 ```bash
 cd carambus_master
-ansible-playbook -i ansible/inventory/production.yml \
-  ansible/playbooks/raspberry_pi_server.yml \
-  --extra-vars "target_host=raspberrypi.local" \
-  --ask-become-pass
+
+# Option A: run the setup script directly on the Raspberry Pi
+#   (copy it to the Pi first via scp/git)
+sh bin/setup-raspberry-pi.sh
+
+# Option B: Ansible roles from the ansible/ directory
+#   Add your host to ansible/hosts, then:
+cd ansible
+ansible-playbook -i hosts master.yml
 ```
+
+> Note: The exact provisioning procedure (SSH hardening, rbenv, PostgreSQL,
+> Nginx) is documented in `ansible/RUNBOOK`. There is **no**
+> `ansible/playbooks/raspberry_pi_server.yml` and **no**
+> `ansible/inventory/production.yml`; the inventory lives in `ansible/hosts`,
+> and the playbooks are `ansible/master.yml` / `ansible/migrate.yml`.
 
 This will:
 - ✅ Update system packages
@@ -142,54 +153,40 @@ environments:
 
 ### 3.2 Run Complete Deployment
 
-Use the automated deployment workflow:
+Run the deployment workflow step by step. There is **no** single `deploy_complete` task; deployment is composed of the following rake tasks:
 
 ```bash
 cd carambus_master
-rake "scenario:deploy_complete[carambus_bcw]"
+
+# 1. Prepare deployment files (configs, credentials, Nginx/Puma)
+rake "scenario:prepare_deploy[carambus_bcw]"
+
+# 2. Server deployment (Capistrano + database restore + service management)
+rake "scenario:deploy[carambus_bcw]"
+
+# 3. Set up Raspberry Pi client (packages, kiosk user, systemd service)
+rake "scenario:setup_raspberry_pi_client[carambus_bcw]"
+
+# 4. Deploy client configuration (scoreboard URL, autostart, kiosk service)
+rake "scenario:deploy_raspberry_pi_client[carambus_bcw]"
+
+# 5. Test the client
+rake "scenario:test_raspberry_pi_client[carambus_bcw]"
 ```
 
-This comprehensive task will:
+Together these tasks will:
 
-1. **Generate Configuration Files**
-   - Database configuration
-   - Nginx configuration
-   - Puma service files
-   - Credentials
-
-2. **Create Database Dump**
-   - Export development database
-   - Compress for transfer
-
-3. **Deploy to Server**
-   - Upload database dump
-   - Restore on production server
-   - Upload configuration files
-   - Deploy application code (via Capistrano)
-
-4. **Setup Raspberry Pi Client**
-   - Install required packages (Chromium, wmctrl, xdotool)
-   - Configure kiosk user
-   - Create systemd service
-
-5. **Deploy Client Configuration**
-   - Upload scoreboard URL
-   - Install autostart script
-   - Enable and start kiosk service
-
-6. **Test Everything**
-   - Verify SSH connection
-   - Check systemd service
-   - Confirm browser is running
+1. **Generate Configuration Files** (database, Nginx, Puma, credentials)
+2. **Deploy to Server** (application code via Capistrano, database restore)
+3. **Set up Raspberry Pi Client** (Chromium, wmctrl, xdotool; kiosk user; systemd service)
+4. **Deploy Client Configuration** (scoreboard URL, autostart script, enable/start kiosk service)
+5. **Test Everything** (SSH connection, systemd service, browser is running)
 
 **Duration:** ~10 minutes
 
-**Expected Output:**
-```
-🎉 COMPLETE WORKFLOW SUCCESSFUL!
-================================
-Scenario 'carambus_bcw' is now fully deployed and operational
+After a successful deployment:
 
+```
 Access Information:
   - Web Interface: http://192.168.178.107:3131
   - SSH Access: ssh -p 8910 www-data@192.168.178.107
@@ -300,7 +297,7 @@ ssh -p 8910 www-data@192.168.178.107 'sudo reboot'
 **Update Application Code:**
 ```bash
 cd carambus_master
-rake "scenario:deploy[carambus_bcw,production]"
+rake "scenario:deploy[carambus_bcw]"
 ```
 
 **Update System Packages:**

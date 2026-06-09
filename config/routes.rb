@@ -72,11 +72,6 @@ Rails.application.routes.draw do
       end
     end
 
-    # Plan 14-G.14: Regional→API meldeliste_cc_id-Link-Push (devise-jwt-authentifiziert)
-    patch "tournament_ccs/:id/registration_list_link",
-          to: "tournament_ccs#link_registration_list",
-          as: :tournament_cc_registration_list_link
-
     # Plan 15-02: External-Tournament-Bridge Seeding-Endpoint (devise-jwt-authentifiziert)
     # D-15-01-A: Service-Account-Pattern analog G.14 (2band-{region}-bridge@carambus.de).
     get "external_tournament/seeding",
@@ -101,6 +96,62 @@ Rails.application.routes.draw do
     get "external_tournament/tables",
         to: "external_tournaments#tables",
         as: :external_tournament_tables
+
+    # Plan 17-02: App-driven Local Tournament Lifecycle — lokale Turnier-Anlage (no plan)
+    # + App-getriebener Tisch-Lock via TournamentMonitor-Bindung (table_monitor.tournament_monitor_id).
+    post "external_tournament/tournament",
+         to: "external_tournaments#tournament",
+         as: :external_tournament_tournament
+    post "external_tournament/lock_table",
+         to: "external_tournaments#lock_table",
+         as: :external_tournament_lock_table
+
+    # Plan 17-03 (B1): App-getriebener Spielstart mit per-Spiel/Spieler-Disziplinen
+    # (ersetzt round_start im App-Lifecycle). Erzeugt Game + Warmup.
+    post "external_tournament/start_game",
+         to: "external_tournaments#start_game",
+         as: :external_tournament_start_game
+    # Plan 17-04 (Vision J): App ruft erfasstes Ergebnis ab + gibt Tisch frei (Result-Hold + Pull).
+    post "external_tournament/acknowledge_result",
+         to: "external_tournaments#acknowledge_result",
+         as: :external_tournament_acknowledge_result
+    # Plan 17-05 (Vision L): App meldet Turnierende → alle Tische frei + TournamentMonitor closed.
+    post "external_tournament/end_tournament",
+         to: "external_tournaments#end_tournament",
+         as: :external_tournament_end_tournament
+    # Plan 17-06 (Vision C/D): App-Teilnehmerliste gegen Carambus-lokal reconcilen (dbu_nr-Rueckgabe).
+    post "external_tournament/player_reconcile",
+         to: "external_tournaments#player_reconcile",
+         as: :external_tournament_player_reconcile
+    # Plan 18-01 (Club/Player-Discovery): Read-Endpoints fuer die App-Spielerzuordnung.
+    # clubs = Clubs der Region (Picker); club_players = in der laufenden Saison
+    # spielberechtigte (status active) Spieler eines Clubs, je cc_id + dbu_nr.
+    get "external_tournament/clubs",
+        to: "external_tournaments#clubs",
+        as: :external_tournament_clubs
+    get "external_tournament/club_players",
+        to: "external_tournaments#club_players",
+        as: :external_tournament_club_players
+    # Plan 19-01 (Ranking-Setzliste): Spielerliste nach Disziplin-Ranking sortiert
+    # (bestes Ranking = Setzplatz 1) fuer App-Setzlisten wie Doppel-KO.
+    get "external_tournament/player_rankings",
+        to: "external_tournaments#player_rankings",
+        as: :external_tournament_player_rankings
+    # Plan 20-01 (Setup-Discovery F3): region-relevante Disziplinen + TournamentPlan-Matrix
+    # fuer den App-Disziplin-Selektor (carambus.disciplines/v1).
+    get "external_tournament/disciplines",
+        to: "external_tournaments#disciplines",
+        as: :external_tournament_disciplines
+    # Plan 20-02 (Setup-Discovery F4): Kategorie-/Klassen-Listen (player_classes + age_classes +
+    # genders + categories[]) fuer den App-Kategorie-Selektor (carambus.categories/v1).
+    get "external_tournament/categories",
+        to: "external_tournaments#categories",
+        as: :external_tournament_categories
+    # Plan 21-05 (v0.6 Slice B): Meldelisten-Discovery (deadline/status/category/discipline
+    # + optionale tournament_cc-Verknuepfung) fuer die App; carambus.registration_lists/v1.
+    get "external_tournament/registration_lists",
+        to: "external_tournaments#registration_lists",
+        as: :external_tournament_registration_lists
   end
 
   # Debug routes (development only)
@@ -141,8 +192,6 @@ Rails.application.routes.draw do
       get :synchronize
     end
   end
-  resources :registration_list_ccs
-  resources :registration_ccs
   resources :group_ccs
   resources :championship_type_ccs
   resources :category_ccs
@@ -354,6 +403,14 @@ Rails.application.routes.draw do
     end
   end
   resources :countries
+
+  # Sportwart Chat-UI (Phase 28 v0.8)
+  scope "/sportwart" do
+    resource :spielleiter_chat, only: %i[show create destroy],
+             path: "chat", controller: "spielleiter_chat" do
+      get :print, on: :member
+    end
+  end
 
   scope controller: :static do
     get :start

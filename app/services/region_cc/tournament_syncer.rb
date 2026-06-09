@@ -32,6 +32,39 @@ class RegionCc::TournamentSyncer < ApplicationService
 
   private
 
+  # Phase 21-03 T3 follow-up: Session-Recovery für lange Sync-Läufe.
+  #
+  # ClubCloud-PHPSESSID läuft schnell ab (mehrere Sekunden / einige sequentielle
+  # Calls); ohne Recovery bricht ein Multi-Branch-Sync nach den ersten N Calls ab
+  # mit Stub-Response "Sitzung ist ausgelaufen". Existierte als pre-existing
+  # Infrastruktur-Lücke, wurde durch 21-03 (erster Live-Lauf seit Auskommentieren
+  # der Cron) erstmals sichtbar.
+  #
+  # Verhalten: ruft action via @client.send(verb, ...). Erkennt Session-Expired
+  # via input[name="errMsg"] → re-login via Setting.login_to_cc → 1× retry.
+  # Updated @opts[:session_id] für nachfolgende Calls. Behält [response, doc]-
+  # Tuple-Signatur, sodass bestehende Caller (inkl. der line-111-errMsg-Check)
+  # unverändert weiterarbeiten.
+  SESSION_EXPIRED_MARKER = "Sitzung ist ausgelaufen"
+  private_constant :SESSION_EXPIRED_MARKER
+
+  def with_session_recovery(verb, action, params)
+    response, doc = @client.public_send(verb, action, params, @opts)
+    return [response, doc] unless session_expired?(doc)
+
+    Rails.logger.warn "[TournamentSyncer] Session expired during #{verb.upcase} #{action} — re-logging in"
+    new_session_id = Setting.login_to_cc
+    raise "ClubCloud re-login failed (Setting.login_to_cc returned blank)" if new_session_id.blank?
+    @opts[:session_id] = new_session_id
+
+    @client.public_send(verb, action, params, @opts)
+  end
+
+  def session_expired?(doc)
+    err = doc.css('input[name="errMsg"]')[0]&.attr("value").to_s
+    err.include?(SESSION_EXPIRED_MARKER)
+  end
+
   def sync_tournaments
     region = Region.find_by_shortname(@opts[:context].upcase)
     season_name = @opts[:season_name]
@@ -89,6 +122,19 @@ class RegionCc::TournamentSyncer < ApplicationService
     [[], e.to_s]
   end
 
+  # Plan 21-14 Pre-Existing-Bug-Fix (2026-05-29): zwei kritische Layer-5-Bugs
+  # behoben (analog Memory project_cc_id_not_unique für Player):
+  #   (a) TournamentCc.cc_id NICHT global eindeutig (1000+ Dupes empirisch via
+  #       Pre-Plan-Spike /tmp/probe_21_14.rb; 39/39 NBV-Karambol 2025/2026
+  #       Cross-Context-Collisions z.B. cc_id=834 → [bvnr, blmr, nbv, bvbw]) →
+  #       find_or_initialize_by erweitert um context-Scope, dead id-Lookup
+  #       TournamentCc[cc_id] entfernt
+  #   (b) showMeisterschaft Detail-Call nutzte m[0] (Full-Match-String
+  #       "showMeisterschaft.php?p=20-...") statt m[1] (Capture-Group p-Wert
+  #       "20-...") → Mojibake-URL → kein Detail-HTML → args[:name] blank →
+  #       outer guard `args[:name].present?` false → kein Update lief
+  # Atomic-Commit-Disziplin: BEIDE Fixes gemeinsam, weil (b) isoliert Wrong-Context-
+  # Updates triggern würde solange (a) noch context-blind ist.
   def sync_tournament_ccs
     region = Region.find_by_shortname(@opts[:context].upcase)
     season_name = @opts[:season_name]
@@ -99,15 +145,15 @@ class RegionCc::TournamentSyncer < ApplicationService
     region_cc.branch_ccs.each do |branch_cc|
       next if branch_cc.name == "Pool" || branch_cc.name == "Snooker" # TODO: remove restriction on branch
 
-      _, doc = @client.post("showMeisterschaftenList", {
-                              fedId: region_cc.cc_id,
-                              branchId: branch_cc.cc_id,
-                              disciplinId: "*",
-                              catId: "*",
-                              meisterTypeId: "*",
-                              season: season.name,
-                              t: 1
-                            }, @opts)
+      _, doc = with_session_recovery(:post, "showMeisterschaftenList", {
+        fedId: region_cc.cc_id,
+        branchId: branch_cc.cc_id,
+        disciplinId: "*",
+        catId: "*",
+        meisterTypeId: "*",
+        season: season.name,
+        t: 1
+      })
       if (msg = doc.css('input[name="errMsg"]')[0].andand["value"]).present?
         RegionCc.logger.error msg
         return [[], msg]
@@ -118,11 +164,12 @@ class RegionCc::TournamentSyncer < ApplicationService
           cc_id = m[1].split("-")[6].to_i
           args = {}
           pos_hash = {}
-          tournament_cc = TournamentCc[cc_id]
-          next if tournament_cc.present? && !@opts[:update_from_cc]
+          # Plan 21-14: context-aware Lookup (cc_id ist NICHT global eindeutig)
+          tournament_cc = TournamentCc.find_or_initialize_by(cc_id: cc_id, context: @opts[:context])
+          next if tournament_cc.persisted? && !@opts[:update_from_cc]
 
-          tournament_cc = TournamentCc.find_or_initialize_by(cc_id: cc_id)
-          _, doc_cat = @client.get("showMeisterschaft", { p: m[0] }, @opts)
+          # Plan 21-14: m[1] = Capture-Group p-Wert (zuvor fälschlich m[0] = Full-Match-String)
+          _, doc_cat = with_session_recovery(:get, "showMeisterschaft", {p: m[1]})
           lines = doc_cat.css("tr.tableContent > td > table > tr")
           lines.each do |tr|
             if /Meldungen/.match?(tr.css("td")[0].text.strip)
@@ -141,7 +188,13 @@ class RegionCc::TournamentSyncer < ApplicationService
                 ts_name = tr.css("td")[2].text.gsub(/\u00A0/, "").strip
                 tournament_series_cc = TournamentSeriesCc.where(name: ts_name, branch_cc_id: branch_cc.id,
                                                                 season: season.name).first
-                args.merge!(tournament_series_cc_id: tournament_series_cc.id)
+                # Plan 21-15: andand f\u00FCr nil-safety (analog Pattern Z.194/208/213/219).
+                # Pre-Plan-Spike 2026-05-29 empirisch: cc_id=834/835/836 (Karambol Vorgabepokal/
+                # Grand Prix/NordCup) haben Turnier-Serie-Wert aber kein matching
+                # TournamentSeriesCc-Record in DB \u2192 tournament_series_cc=nil \u2192 alter Code
+                # `nil.id` raised NoMethodError \u2192 silent rescue Z.279 schluckt (production.log
+                # 30\u00D7 Errror-Eintr\u00E4ge in 24h). 7+ Karambol-Records pro Cron-Run untouched.
+                args.merge!(tournament_series_cc_id: tournament_series_cc.andand.id)
               end
             elsif /Disziplin/.match?(tr.css("td")[0].text.strip)
               d_name = tr.css("td")[2].text.strip.gsub("(großes Billard)", "groß").gsub("(kleines Billard)", "klein")
@@ -177,6 +230,39 @@ class RegionCc::TournamentSyncer < ApplicationService
               args.merge!(location_text: tr.css("td")[2].inner_html.strip)
             elsif /Status/.match?(tr.css("td")[0].text.strip)
               args.merge!(status: tr.css("td")[2].text.strip.gsub(/^\u00A0/, "").strip)
+            elsif /^Turnierplan$/.match?(tr.css("td")[0].text.strip)
+              # Plan 21-03 T3 / Slice A: TurnierPlan-Name in <b>...</b> in td[2].
+              # Bei NBV durchweg leer (siehe 21-03-SNIFF-FINDINGS.md); idempotenter
+              # find_or_create_by-Lookup auf TournamentPlanCc (D-21-03-DISC-B).
+              plan_name = tr.css("td")[2].css("b").text.strip
+              if plan_name.present?
+                tournament_plan_cc = TournamentPlanCc.find_or_create_by!(
+                  name: plan_name, context: @opts[:context]
+                )
+                args.merge!(tournament_plan_cc_id: tournament_plan_cc.id)
+              end
+            elsif /^Shot-Clock-Schwellenwert$/.match?(tr.css("td")[0].text.strip)
+              # Plan 21-03 T3 / Slice A: "$INT Minuten" in <strong>. 0 = nicht konfiguriert \u2192 NULL.
+              # Plan 21-16: NBSP-Strip vor Regex (analog Pattern Z.187/188/210/211). ClubCloud-V2-UI
+              # liefert "60\u00a0Minuten" (NBSP zwischen Ziffer und Unit); Ruby-Regex `\s*` matched
+              # \u00a0 NICHT \u2192 Regex-Failure \u2192 Block-Body geskippt \u2192 shot_clock_minutes nie persistiert.
+              # Pre-Plan-Spike 2026-05-29 (cc_id=837): bytes=[54,48,194,160,77,...] empirisch verifiziert.
+              raw = tr.css("td")[2].css("strong").text.gsub(/\u00a0/, "").strip
+              if (m = raw.match(/\A(\d+)\s*Minuten/))
+                val = m[1].to_i
+                args.merge!(shot_clock_minutes: val.positive? ? val : nil)
+              end
+            elsif /^Ausspielziel$/.match?(tr.css("td")[0].text.strip)
+              # Plan 21-03 T3 / Slice A: ClubCloud-Konvention: 0 = "keine Begrenzung" \u2192 NULL.
+              raw = tr.css("td")[2].css("strong").text.strip
+              if /\A\d+\z/.match?(raw)
+                val = raw.to_i
+                args.merge!(points_to_win: val.positive? ? val : nil)
+              end
+            elsif /^S\u00E4tze \(Best-of-#\)$/.match?(tr.css("td")[0].text.strip)
+              # Plan 21-03 T3 / Slice A: Integer in <b>. Auch "1" (default best-of-1) ist legitim.
+              raw = tr.css("td")[2].css("b").text.strip
+              args.merge!(best_of_sets: raw.to_i) if /\A\d+\z/.match?(raw)
             end
           end
           if args[:name].present?
@@ -188,12 +274,21 @@ class RegionCc::TournamentSyncer < ApplicationService
               derived = Season.season_from_date(args[:tournament_start].to_date)
               season_name = derived&.name
             end
-            tournament_cc.update(args.merge(cc_id: cc_id, season: season_name, branch_cc_id: branch_cc.id))
+            if @opts[:only_admin_params]
+              # Plan 21-03 T3 / Slice A: nur die 4 neuen Admin-Felder anfassen,
+              # bestehende Felder (name/shortname/discipline/etc.) bleiben unverändert.
+              # Greift nur auf BESTEHENDE TournamentCc-Records (kein neuer Eintrag).
+              admin_only = args.slice(:shot_clock_minutes, :points_to_win, :best_of_sets, :tournament_plan_cc_id)
+              tournament_cc.update(admin_only) if tournament_cc.persisted? && admin_only.any?
+            else
+              tournament_cc.update(args.merge(cc_id: cc_id, season: season_name, branch_cc_id: branch_cc.id))
+            end
             tournament_cc.attributes
           end
         end
       rescue StandardError => e
-        Rails.logger.error "Errror: #{e} #{e.backtrace.join("\n")}"
+        # Plan 21-15: Typo-Fix "Errror" → "Error" für grep-bare Production-Log-Audit-Trail.
+        Rails.logger.error "Error: #{e} #{e.backtrace.join("\n")}"
       end
     end
   end
@@ -296,20 +391,7 @@ class RegionCc::TournamentSyncer < ApplicationService
       tournament_cc = TournamentCc.find_by(tournament_id: tournament.id)
       if tournament_cc.present?
         branch_cc = tournament.discipline.root.branch_cc
-        registration_list_ccs = RegistrationListCc.where(
-          name: tournament.title,
-          context: @region_cc.region.shortname.downcase,
-          discipline_id: tournament.discipline_id,
-          season_id: tournament.season_id
-        )
-        registration_list_cc = nil
-        if registration_list_ccs.count == 1
-          registration_list_cc = registration_list_ccs.first
-        elsif registration_list_ccs.count > 1
-          Rails.logger.info "Error: Ambiguity Problem"
-        else
-          Rails.logger.info "Error: No RegistrationList for Tournament"
-        end
+        # Plan 23-01 T3e: meldeliste_cc_id lebt direkt auf TCc (war RL-Lookup).
         type_found = nil
         begin
           TournamentCc::TYPE_MAP_REV[branch_cc.cc_id].keys.each do |type_name|
@@ -343,7 +425,7 @@ class RegionCc::TournamentSyncer < ApplicationService
           firstEntry: 1,
           meisterName: tournament.title,
           meisterShortName: tournament.shortname.presence || tournament.title,
-          meldeListId: registration_list_cc.cc_id,
+          meldeListId: tournament_cc.meldeliste_cc_id,
           mr: 1,
           meisterTypeId: type_found.to_s,
           groupId: 10, # NBV History is good for all

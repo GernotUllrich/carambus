@@ -306,7 +306,7 @@ module McpServer
       # zeigen via super_discipline_id auf ihre Branch.
       #
       # Resolver-Reihenfolge:
-      #   1. Branch-Match (case-insensitive ILIKE) → alle Sub-Disciplines liefern
+      #   1. Branch-Match (case-insensitive ILIKE) → rekursiv alle Sub-Disciplines liefern
       #   2. Discipline-Match (case-insensitive ILIKE) → einzelne Discipline
       #   3. Numerische Discipline-ID-Fallback
       #
@@ -318,16 +318,22 @@ module McpServer
         return [nil, nil] if filter_string.blank?
         f = filter_string.to_s.strip
 
-        # Pfad 1: Branch-Match (STI: Discipline.where(type: 'Branch'))
+        # Pfad 1: Branch-Match — rekursiv alle Ebenen des Subtrees (DEFER-28-02-1).
+        # Pre-Fix: nur 1 Ebene tief → Karambol lieferte Dreiband/Cadre aber NICHT
+        # Dreiband-groß/Cadre-35/2 (wo Turniere tatsächlich hängen).
         branch = Branch.find_by("name ILIKE ?", f)
         if branch
-          discipline_ids = Discipline.where(super_discipline_id: branch.id).pluck(:id)
+          discipline_ids = collect_subtree_ids(branch.id)
           return [discipline_ids, branch.name] if discipline_ids.any?
         end
 
-        # Pfad 2: Discipline-Match
+        # Pfad 2: Discipline-Match — auch Zwischen-Knoten ("Cadre") liefern Subtree.
+        # Für Blatt-Disziplinen ("Cadre 35/2") gibt collect_subtree_ids [] zurück → [id].
         discipline = Discipline.find_by("name ILIKE ?", f)
-        return [[discipline.id], nil] if discipline
+        if discipline
+          sub_ids = collect_subtree_ids(discipline.id)
+          return [([discipline.id] + sub_ids).uniq, nil]
+        end
 
         # Pfad 3: numerische Discipline-ID
         if f.match?(/\A\d+\z/) && Discipline.exists?(f.to_i)
@@ -338,6 +344,23 @@ module McpServer
       rescue => e
         Rails.logger.warn "[BaseTool.resolve_discipline_or_branch] #{e.class}: #{e.message}"
         [nil, nil]
+      end
+
+      # Iterativer BFS-Subtree-Collector — liefert alle Discipline-IDs unterhalb
+      # von parent_id (unbegrenzte Tiefe, zyklus-defensiv).
+      def self.collect_subtree_ids(parent_id)
+        collected = []
+        seen = []
+        queue = [parent_id]
+        until queue.empty?
+          current = queue.shift
+          next if seen.include?(current)
+          seen << current
+          children = Discipline.where(super_discipline_id: current).pluck(:id)
+          collected.concat(children)
+          queue.concat(children)
+        end
+        collected.uniq
       end
 
       # Plan 14-G.2 / D-14-G4 + D-14-G5: Authority-Helper für Write-Tools.
@@ -380,20 +403,16 @@ module McpServer
       end
 
       # Plan 14-G.4 / F5-A: Tournament-Resolver für Authority-Integration in Write-Tools.
-      # Sucht Tournament-Record via RegistrationListCc-Chain (wenn meldeliste_cc_id gegeben;
-      # die "Meldeliste" in CC entspricht RegistrationListCc in Carambus-DB)
-      # ODER TournamentCc-Chain (wenn tournament_cc_id gegeben).
+      # Sucht Tournament-Record via TournamentCc — entweder über meldeliste_cc_id
+      # (TCc-Feld seit Plan 23-01 T1a) oder tournament_cc_id direkt.
       # Defensiv: returnt nil bei unauflöslichen Inputs (kein Crash).
       def self.resolve_tournament(meldeliste_cc_id: nil, tournament_cc_id: nil, server_context: nil)
         context = effective_cc_region(server_context).to_s.downcase
         return nil if context.blank?
 
         if meldeliste_cc_id.present?
-          rlc = RegistrationListCc.find_by(cc_id: meldeliste_cc_id.to_i, context: context)
-          if rlc
-            tcc = TournamentCc.find_by(registration_list_cc_id: rlc.id, context: context)
-            return tcc.tournament if tcc&.tournament
-          end
+          tcc = TournamentCc.find_by(meldeliste_cc_id: meldeliste_cc_id.to_i, context: context)
+          return tcc.tournament if tcc&.tournament
         end
 
         if tournament_cc_id.present?
@@ -475,6 +494,32 @@ module McpServer
         [nil, error("Authority-Check (club_cc_id) fehlgeschlagen (defensive): #{e.class.name}")]
       end
 
+      # Plan 23-01 T4: Transitive Discipline-Permission-Check.
+      # Prüft, ob ein Tournament (oder direkt eine discipline_id) im Sportwart-
+      # Wirkbereich des Users liegt — bezogen auf die Discipline-Hierarchie.
+      # Beispiel: User-sportwart_disciplines=[Karambol(50)], Tournament-Discipline=
+      # Dreiband-groß(31) → erlaubt, weil Karambol in der root_chain liegt.
+      #
+      # Returns true wenn überschneidung in der Hierarchie, false sonst.
+      # Defensive: missing user / missing discipline / Errors → false.
+      def self.discipline_permission?(user, discipline_or_tournament)
+        return false unless user.respond_to?(:sportwart_disciplines)
+
+        discipline = if discipline_or_tournament.respond_to?(:discipline)
+          discipline_or_tournament.discipline
+        else
+          discipline_or_tournament
+        end
+        return false if discipline.nil?
+
+        chain_ids = discipline.root_chain.map(&:id)
+        allowed_ids = user.sportwart_disciplines.pluck(:id)
+        (chain_ids & allowed_ids).any?
+      rescue => e
+        Rails.logger.warn "[BaseTool.discipline_permission?] #{e.class}: #{e.message}"
+        false
+      end
+
       # Plan 14-G.13.1 Task 1: Per-Tool-Call-Cache für idempotente Read-Endpoints
       # (showCommittedMeldeliste). Cache lebt für die Dauer EINES Tool-Calls via
       # Thread.current; Tools, die den Cache nutzen, müssen `cc_cache_reset!` am
@@ -502,6 +547,38 @@ module McpServer
 
       def self.cc_cache_reset!
         Thread.current[:cc_cache] = nil
+      end
+
+      # Plan 22-01 T3 Foundation: resolved-Echo-Hash für strukturierte Tool-Responses.
+      #
+      # Wird in Phase 22-03 in bestehende Lookup/Register-Tool-Responses integriert
+      # (jedes Tool spiegelt seine aufgelöste Entität explizit zurück), in 22-01 nur
+      # als Helper bereitgestellt + Test.
+      #
+      # Beispiel: { resolved: { tournament_id: 17421, tournament_cc_id: 889,
+      #                         region: "nbv", matched_by: "cc_id", ambiguous: false } }
+      #
+      # Defensive: rescue StandardError → {resolved: nil}; tolerant für nil/unsupported
+      # Entity-Klassen.
+      def self.resolved_echo(entity:, matched_by: nil)
+        case entity
+        when TournamentCc
+          {resolved: {
+            tournament_id: entity.tournament_id,
+            tournament_cc_id: entity.cc_id,
+            meldeliste_cc_id: entity.meldeliste_cc_id,
+            region: entity.context,
+            matched_by: matched_by&.to_s,
+            ambiguous: false
+          }}
+        when nil
+          {resolved: nil}
+        else
+          {resolved: {error: "resolved_echo: unsupported entity class #{entity.class.name}"}}
+        end
+      rescue => e
+        Rails.logger.warn "[BaseTool.resolved_echo] #{e.class}: #{e.message}"
+        {resolved: nil}
       end
     end
   end

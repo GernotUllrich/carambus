@@ -34,20 +34,24 @@ Searches in:
 - CC-ID (numeric)
 
 #### Club Search
-Searches in:
-- Club name (full and short name)
+Free-text searches in:
+- Region short name (via relationship)
 - Address
+- Club short name
 - Email
-- Homepage
-- Region (via relationship)
-- CC-ID, BA-ID (numeric)
+- CC-ID (numeric)
+
+(Homepage is available as a field filter, e.g. `homepage:billard`, not as part
+of the free-text search.)
 
 #### Tournament Search
-Searches in:
+Free-text searches in:
 - Tournament title
 - Short name
 - Season
-- Region/Organizer
+- BA-ID (numeric)
+
+(Region/Organizer is a structured filter, not part of the free-text search.)
 
 ### Intelligent Relationships
 The search automatically uses relationships between tables:

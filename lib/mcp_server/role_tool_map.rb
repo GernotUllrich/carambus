@@ -10,7 +10,12 @@ module McpServer
   # einzige „all"-Liste reduziert (keine mcp_role-Differenzierung mehr).
   module RoleToolMap
     # Read-only Tools
+    # Plan 22-01 T2-Mount-Fix (2026-05-31): CcWhoami hinzugefügt — Tool war im
+    # collect_tools (Stdio-Pfad) bereits enthalten, aber HTTP-Pfad (McpController)
+    # nutzt diese hardcoded Liste statt collect_tools. Ohne Eintrag hier ist
+    # cc_whoami im HTTP-MCP-Client-Tool-List unsichtbar.
     BASE_READ_TOOLS = %i[
+      CcWhoami
       LookupRegion
       LookupClub
       LookupLeague

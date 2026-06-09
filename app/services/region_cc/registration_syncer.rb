@@ -1,7 +1,23 @@
 # frozen_string_literal: true
 
 # Syncer fuer Meldelisten-Daten aus dem ClubCloud-System.
-# Extrahiert aus RegionCc: sync_registration_list_ccs und sync_registration_list_ccs_detail.
+#
+# Plan 23-01 T2 (Seeding-Unification): Schrieb bis 23-01 RegistrationListCc-
+# Header-Records (mit name/status/deadline/qualifying_date/branch/discipline/
+# category). Diese Tabelle wird in T1b gedroppt; die CC-System-IDs leben jetzt
+# direkt auf TournamentCc (meldeliste_cc_id, meldeliste_deadline,
+# meldeliste_qualifying_date — Migration T1a).
+#
+# Verbleibende Aufgabe: Pro CC-Meldeliste das matching TournamentCc finden
+# und seine meldeliste_*-Felder setzen. Match-Strategie: (context, name)
+# wie bisher in link_and_push_if_match. Wenn kein TCc gefunden → skip + log
+# (Meldeliste ohne Carambus-Tournament hat keinen DB-Anker).
+#
+# Status wird zum Release-Trigger evaluiert, aber nicht mehr persistiert.
+# (Bestand: kein MCP-Tool und kein Workflow-Code liest RL.status.)
+#
+# Plan 14-G.14 Push (Local→Authority) ist entfallen: API-Endpoint wird in
+# T3c gelöscht; Meldungen leben Authority-zentral.
 #
 # Verwendung:
 #   RegionCc::RegistrationSyncer.call(
@@ -47,214 +63,116 @@ class RegionCc::RegistrationSyncer < ApplicationService
     context = @opts[:context]
     _, doc = @client.post("showMeldelistenList",
       {fedId: @region_cc.cc_id, branchId: branch_cc.cc_id, disciplinId: "*", catId: "*", season: season.name}, @opts)
-    options = doc.css("select[name=\"meldelisteId\"] > option")
-    options.each do |option|
-      cc_id_ml = option["value"].to_i
-      name = option.text.strip
-      status = ""
-      deadline = Date.today
-      qualifying_date = Date.today
-      discipline_id = nil
-      category_cc_id = nil
-      pos_hash = {}
-      registration_list_cc = RegistrationListCc.find_or_initialize_by(cc_id: cc_id_ml)
-      # if branch_cc.cc_id == 10 && season.name == "2010/2011"
-      #   _, doc_cat = @client.post('deleteMeldeliste', { branchId: 10, fedId: @region_cc.cc_id, season: season.name, meldelisteId: cc_id_ml }, @opts)
-      #   next
-      # end
-      next if !registration_list_cc.new_record? && @opts[:update_from_cc].blank?
 
-      _, doc_cat = @client.post("showMeldeliste",
-        {fedId: @region_cc.cc_id, branchId: branch_cc.cc_id, disciplinId: "*", meldelisteId: cc_id_ml, catId: "*", season: season.name}, @opts)
-      lines = doc_cat.css("tr.tableContent > td > table > tr")
+    rows = extract_meldeliste_rows(doc)
+    rows.each do |row|
+      cc_id_ml = row[:cc_id]
+      next if cc_id_ml.blank? || cc_id_ml < 1
+
+      name = row[:name]
+      status = row[:status].to_s.gsub(/^ /, "").strip
+      deadline = parse_german_date(row[:deadline_raw]) || Date.today
+      qualifying_date = parse_german_date(row[:qualifying_date_raw]) || Date.today
+
       begin
-        lines.each do |tr|
-          if /Meldungen/.match?(tr.css("td")[0].text.strip)
-            positions = tr.css("td > table > tr")
-            positions.each do |position|
-              pos = position.css("td").andand[0].andand.text.andand.to_i
-              val = position.css("td").andand[1].andand.text
-              pos_hash[pos.to_i] = val if pos.present?
-            end
-          elsif /Meldeliste/.match?(tr.css("td")[0].text.strip)
-            name = tr.css("td")[2].text.strip
-          elsif /Disziplin/.match?(tr.css("td")[0].text.strip)
-            d_name = tr.css("td")[2].text.strip.gsub("(großes Billard)", "groß").gsub("(kleines Billard)", "klein").gsub("5-Kegel", "5 Kegel").gsub("14/1 endlos", "14.1 endlos").gsub("15-reds", "Snooker").gsub(
-              "Billard Kegeln", "Billard-Kegeln"
-            )
-            discipline_id = Discipline.find_by_name(d_name).andand.id
-          elsif /Kategorie/.match?(tr.css("td")[0].text.strip)
-            k_name = tr.css("td")[2].text.strip
-            m = k_name.match(/(.*) \(\d+-\d+\)/)
-            category_cc_id = CategoryCc.where(context: context, branch_cc_id: branch_cc.id, name: m[1]).first.andand.id
-          elsif /Meldeschluss/.match?(tr.css("td")[0].text.strip)
-            deadline = tr.css("td")[2].text.strip
-            deadline = Date.parse(deadline) if /\d\d\.\d\d\.\d\d\d\d/.match?(deadline)
-          elsif /Stichtag/.match?(tr.css("td")[0].text.strip)
-            qualifying_date = tr.css("td")[2].text.strip
-            if m = qualifying_date.match(/(\d\d\.\d\d\.\d\d\d\d).*/)
-              qualifying_date = Date.parse(m[1])
-            end
-          elsif /Status/.match?(tr.css("td")[0].text.strip)
-            status = tr.css("td")[2].text.strip.gsub(/^\u00A0/, "").strip
-          end
-        end
         if @opts[:release] && status != "Freigegeben"
-          _, doc = @client.post("releaseMeldeliste",
-            {branchId: branch_cc.cc_id, fedId: branch_cc.region_cc.cc_id, season: season.name, meldelisteId: registration_list_cc.cc_id, release: ""}, @opts)
+          @client.post("releaseMeldeliste",
+            {branchId: branch_cc.cc_id, fedId: branch_cc.region_cc.cc_id, season: season.name, meldelisteId: cc_id_ml, release: ""}, @opts)
         end
-        registration_list_cc.update(season_id: season.id, discipline_id: discipline_id, category_cc_id: category_cc_id,
-          context: context, branch_cc_id: branch_cc.id, name: name, status: "Freigegeben", deadline: deadline, qualifying_date: qualifying_date)
 
-        # Plan 14-G.14 Task 4b: Auto-Wire — finde matching TournamentCc by name+context und triggere API-Push.
-        # Idempotent: nur push wenn registration_list_cc_id geändert wurde (Avoidet Push-Storm bei Re-Scraping).
-        link_and_push_if_match(registration_list_cc, context)
+        update_tournament_cc_meldeliste_fields(cc_id_ml, name, context, season, deadline, qualifying_date)
       rescue => e
-        Rails.logger.error "Error: #{e.message}"
+        Rails.logger.error "[RegistrationSyncer] cc_id=#{cc_id_ml} name=#{name.inspect}: #{e.class}: #{e.message}"
       end
     end
   end
 
-  def link_and_push_if_match(registration_list_cc, context)
-    return unless registration_list_cc.persisted? && registration_list_cc.name.present?
+  # Plan 23-01 T2: matching TournamentCc finden und meldeliste_*-Felder direkt
+  # setzen. Idempotent (update_columns ist write-all-or-nothing, kein Trigger
+  # auf gleiche Werte). Match-Strategie: (context, name) — wie bisher in
+  # link_and_push_if_match. Bei Ambiguität (2+ TCcs): alle updaten (theoretisch
+  # selten; Tournament-Name + Context sollten in der Praxis eindeutig sein).
+  # Bei 0 Treffern: skip + log (kein Carambus-Tournament für diese Meldeliste).
+  def update_tournament_cc_meldeliste_fields(cc_id_ml, name, context, season, deadline, qualifying_date)
+    return if name.blank?
 
-    candidates = TournamentCc.where(context: context, name: registration_list_cc.name)
-    candidates.each do |tc|
-      next if tc.registration_list_cc_id == registration_list_cc.id  # already linked, skip
-      next unless tc.tournament&.region  # need region for push payload
+    candidates = TournamentCc.where(context: context, name: name)
+    candidates = candidates.where(season: season.name) if season&.name.present?
 
-      tc.update_columns(registration_list_cc_id: registration_list_cc.id)
-      self.class.push_link_to_api(tc, registration_list_cc)
+    if candidates.none?
+      Rails.logger.info "[RegistrationSyncer] No matching TournamentCc for cc_id=#{cc_id_ml} name=#{name.inspect} context=#{context}"
+      return
     end
-  rescue => e
-    Rails.logger.warn "[Syncer] link_and_push_if_match failed: #{e.class}: #{e.message}"
+
+    candidates.find_each do |tcc|
+      tcc.update_columns(
+        meldeliste_cc_id: cc_id_ml,
+        meldeliste_deadline: deadline,
+        meldeliste_qualifying_date: qualifying_date
+      )
+    end
   end
 
-  class << self
-    # Plan 14-G.14 Task 4: Regional→API meldeliste_cc_id-Link-Push
-    #
-    # Triggert PATCH /api/tournament_ccs/:id/registration_list_link auf carambus_master,
-    # damit andere Regional-Server die Verknüpfung via PaperTrail-Pull mitbekommen.
-    # Direct-Response-Pattern: API-Antwort wird lokal mit unprotected:true persistiert,
-    # umgeht LocalProtector für globale Records (id < MIN_ID).
-    #
-    # Best-effort: bei Netzwerk-/4xx/5xx-Fehlern log + skip (kein Retry-Storm).
-    # Bei 401: Token-Cache invalidieren, 1× Retry mit fresh Token.
-    def push_link_to_api(tournament_cc, registration_list_cc)
-      return unless Carambus.config.carambus_api_url.present?
+  # Plan 21-13 T3 Helper: Extract Meldeliste-Rows aus showMeldelistenList-HTML.
+  # ClubCloud V2 UI Heuristik: das Datentabelle ist die letzte <table> mit > 5 Rows.
+  # Defensive: gibt [] zurück wenn keine passende Tabelle gefunden.
+  #
+  # Plan 21-13 D-EXEC-A Deviation (2026-05-29 checkpoint:human-verify):
+  # Live-Body-Inspect via /tmp/probe_meldelisten.rb gegen production zeigte zwei
+  # Diskrepanzen zum Browser-Trace 2026-05-28, der dem Plan-CONTEXT D-K zugrunde lag:
+  #   1. Daten-Rows haben 8 Cells, nicht 7. Cell[0] ist Laufnummer (im Trace übersehen).
+  #      Alle Cell-Indizes für Name/Disz/Datum/Kat/Datum/Status verschieben sich um +1.
+  #   2. cc_id-Link sitzt in Cell[1] (Name-Cell) als <a class="cc_bluelink"> und nutzt
+  #      Param `?p=<fed>|<branch>|<disz>|<kat>|<season>|<cc_id>&` (Pipe-separated, letztes
+  #      Segment = cc_id) statt der angenommenen Patterns `meldelisteId=N` / `id=N`.
+  # Defensive Fallback-Patterns (meldelisteId=, id=) bleiben für Mixed-State-Tolerance.
+  def extract_meldeliste_rows(doc)
+    candidate_tables = doc.css("table").select { |t| t.css("tr").length > 5 }
+    data_table = candidate_tables.last
+    return [] unless data_table
 
-      token = api_token
-      if token.blank?
-        Rails.logger.warn "[Syncer] No API token (api_syncer_email/password missing in credentials?), skipping push"
-        return
+    data_table.css("tr").drop(1).filter_map do |tr|
+      cells = tr.css("td")
+      next nil if cells.length < 8  # Daten-Row hat 8 Cells (Laufnr/Name/Disz/Dl/Kat/Qd/Status/Dashboard)
+
+      # cc_id aus dem Name-Link in Cell[1]; primär Pipe-Pattern (V2 UI 2026-05-29),
+      # Fallbacks für ältere Patterns.
+      name_link = cells[1].css('a[href*="showMeldeliste.php"]').first
+      cc_id = nil
+      if name_link
+        href = name_link["href"].to_s
+        if (m = href.match(/\|(\d+)(?:&|$)/))
+          cc_id = m[1].to_i
+        elsif (m = href.match(/[?&]meldelisteId=(\d+)/))
+          cc_id = m[1].to_i
+        elsif (m = href.match(/[?&]id=(\d+)/))
+          cc_id = m[1].to_i
+        end
       end
+      next nil unless cc_id
 
-      body = {
-        registration_list_link: {
-          meldeliste_cc_id: registration_list_cc.cc_id,
-          registration_list_name: registration_list_cc.name,
-          region_shortname: tournament_cc.tournament&.region&.shortname,
-          branch_cc_id: registration_list_cc.branch_cc_id,
-          season: registration_list_cc.season&.name,
-          discipline_id: registration_list_cc.discipline_id,
-          category_cc_id: registration_list_cc.category_cc_id
-        }
+      # Cell-Mapping (Live-Body 2026-05-29 verifiziert):
+      # [0] Laufnummer | [1] Name+Link | [2] Disziplin | [3] Deadline
+      # [4] Kategorie  | [5] Qualifying-Date | [6] Status | [7] Dashboard-Icon
+      {
+        cc_id: cc_id,
+        name: cells[1].text.strip,
+        discipline_text: cells[2].text.strip,
+        deadline_raw: cells[3].text.strip,
+        category_text: cells[4].text.strip,
+        qualifying_date_raw: cells[5].text.strip,
+        status: cells[6].text.strip
       }
-
-      response = http_patch(api_url(tournament_cc), body, token)
-
-      # 401-Retry mit fresh Token (Token expired / revoked via JTIMatcher)
-      if response.code == "401"
-        Rails.logger.warn "[Syncer] API push 401, refreshing token + retry"
-        reset_api_token!
-        token = api_token
-        response = http_patch(api_url(tournament_cc), body, token) if token.present?
-      end
-
-      case response.code
-      when "200"
-        apply_response_unprotected(JSON.parse(response.body))
-        Rails.logger.info "[Syncer] API push 200 for tournament_cc_id=#{tournament_cc.id} → registration_list_cc_id=#{registration_list_cc.id}"
-      when "401"
-        Rails.logger.error "[Syncer] API push 401 (even after retry) — credentials may be invalid"
-      when "422"
-        Rails.logger.error "[Syncer] API push 422: #{response.body}"
-      else
-        Rails.logger.error "[Syncer] API push unexpected #{response.code}: #{response.body}"
-      end
-    rescue => e
-      Rails.logger.error "[Syncer] push_link_to_api crashed: #{e.class}: #{e.message}"
     end
+  end
 
-    def api_token
-      @api_token ||= fetch_api_token
-    end
-
-    def reset_api_token!
-      @api_token = nil
-    end
-
-    private
-
-    def fetch_api_token
-      email = Rails.application.credentials.api_syncer_email
-      password = Rails.application.credentials.api_syncer_password
-      return nil if email.blank? || password.blank?
-
-      uri = URI("#{Carambus.config.carambus_api_url}/login")
-      http = Net::HTTP.new(uri.host, uri.port)
-      http.use_ssl = (uri.scheme == "https")
-      req = Net::HTTP::Post.new(uri.request_uri, {
-        "Content-Type" => "application/json",
-        "Accept" => "application/json"
-      })
-      req.body = {user: {email: email, password: password}}.to_json
-      res = http.request(req)
-      return nil unless res.is_a?(Net::HTTPSuccess)
-      res["Authorization"].to_s.sub(/\ABearer\s+/, "").presence
-    rescue => e
-      Rails.logger.error "[Syncer] fetch_api_token crashed: #{e.class}: #{e.message}"
-      nil
-    end
-
-    def api_url(tournament_cc)
-      "#{Carambus.config.carambus_api_url}/api/tournament_ccs/#{tournament_cc.id}/registration_list_link"
-    end
-
-    def http_patch(url, body, token)
-      uri = URI.parse(url)
-      http = Net::HTTP.new(uri.host, uri.port)
-      http.use_ssl = (uri.scheme == "https")
-      req = Net::HTTP::Patch.new(uri.request_uri, {
-        "Content-Type" => "application/json",
-        "Authorization" => "Bearer #{token}"
-      })
-      req.body = body.to_json
-      http.request(req)
-    end
-
-    # Direct-Persist-Pattern aus version.rb:344, 396-398 — Response-Records mit
-    # unprotected:true persistieren, umgeht ApiProtector für globale Records
-    def apply_response_unprotected(response_json)
-      tc_json = response_json["tournament_cc"]
-      rl_json = response_json["registration_list_cc"]
-
-      ActiveRecord::Base.transaction do
-        if rl_json.present?
-          rl = RegistrationListCc.find_or_initialize_by(id: rl_json["id"])
-          rl.unprotected = true
-          rl.assign_attributes(rl_json.except("id", "created_at", "updated_at"))
-          rl.save!
-        end
-
-        if tc_json.present?
-          tc = TournamentCc.find_by(id: tc_json["id"])
-          if tc
-            tc.unprotected = true
-            tc.update!(registration_list_cc_id: tc_json["registration_list_cc_id"])
-          end
-        end
-      end
-    end
+  # Plan 21-13 T3 Helper: defensive German-Date-Parsing.
+  # Akzeptiert "DD.MM.YYYY" überall in einem Text-Snippet; gibt nil bei Parse-Fehler.
+  def parse_german_date(raw)
+    return nil unless raw.is_a?(String)
+    return nil unless (m = raw.match(/(\d\d\.\d\d\.\d\d\d\d)/))
+    Date.parse(m[1])
+  rescue Date::Error
+    nil
   end
 end

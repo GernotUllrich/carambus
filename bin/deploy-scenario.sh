@@ -240,7 +240,7 @@ step_zero_cleanup() {
     log "=========================="
     
     warning "This will completely remove:"
-    warning "  - Scenario root folder: $CARAMBUS_BASE/$SCENARIO_NAME"
+    warning "  - Scenario root folder: $CARAMBUS_BASE/$SCENARIO_NAME (PRESERVED if it is a git checkout)"
     if [ "$SCENARIO_NAME" = "carambus_api" ]; then
         warning "  - Database: ${SCENARIO_NAME}_development (SKIPPED - API server database)"
     else
@@ -260,9 +260,25 @@ step_zero_cleanup() {
     fi
     
     # Clean up local scenario root folder
-    info "Removing local scenario root folder..."
-    if [ -d "$CARAMBUS_BASE/$SCENARIO_NAME" ]; then
-        rm -rf "$CARAMBUS_BASE/$SCENARIO_NAME"
+    #
+    # IMPORTANT: A bare "rm -rf" only makes sense for a brand-new scenario.
+    # An already-checked-out scenario folder may contain LOCAL, NON-REPO data
+    # that must never be destroyed by a recreate:
+    #   - .paul/ (Paul planning state + handoffs), paul/ (cloned tooling repo)
+    #   - .idea/, .claude/worktrees, other untracked/ignored local files
+    #   - local-only git branches that were never pushed
+    # The development DB is still dropped/rebuilt below and prepare_development
+    # refreshes configs + filtered data IN PLACE, so deleting the checkout is
+    # unnecessary. Therefore: preserve any existing git checkout.
+    local scenario_root="$CARAMBUS_BASE/$SCENARIO_NAME"
+    if [ -d "$scenario_root/.git" ]; then
+        warning "Scenario root is an existing git checkout - PRESERVING it."
+        info "  Keeping local non-repo data (.paul/, paul/, .idea/, local branches, ...)."
+        info "  Skipping 'rm -rf $scenario_root' (recreate-from-scratch only applies to new scenarios)."
+        info "  Development DB is still rebuilt; prepare_development refreshes configs in place."
+    elif [ -d "$scenario_root" ]; then
+        info "Removing local scenario root folder (not a git checkout)..."
+        rm -rf "$scenario_root"
         log "✅ Local scenario root folder removed"
     else
         info "Local scenario root folder not found (already clean)"

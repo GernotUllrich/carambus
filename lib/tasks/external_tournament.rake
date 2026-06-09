@@ -104,7 +104,7 @@ namespace :external_tournament do
     end
     rs_doc = JSON.parse(body)
     games_count = rs_doc["games"]&.size || 0
-    puts "✓ Step 4: POST /round_start → #{code} (#{code == "201" ? "neu erstellt" : "idempotent"}), games=#{games_count}"
+    puts "✓ Step 4: POST /round_start → #{code} (#{(code == "201") ? "neu erstellt" : "idempotent"}), games=#{games_count}"
 
     # Step 5: GET /round_result
     rr_url = "#{base_url}/api/external_tournament/round_result?tournament_cc_id=#{tcc.cc_id}&round_no=1&region=#{shortname}"
@@ -118,10 +118,51 @@ namespace :external_tournament do
     results_count = rr_doc["results"]&.size || 0
     puts "✓ Step 5: GET /round_result → 200, schema=#{rr_doc["schema"]}, results=#{results_count}"
 
+    # Step 6: POST /player_reconcile (Plan 17-06) — Teilnehmer der ersten Setzliste reconcilen.
+    reconcile_body = ExternalTournamentSmokeTest.build_player_reconcile_body(shortname, seeding_doc)
+    code, body = ExternalTournamentSmokeTest.http_post(
+      "#{base_url}/api/external_tournament/player_reconcile", jwt, reconcile_body
+    )
+    if code == "200"
+      pr_doc = JSON.parse(body)
+      matched = (pr_doc["results"] || []).count { |r| r["matched"] }
+      puts "✓ Step 6: POST /player_reconcile → 200, schema=#{pr_doc["schema"]}, matched=#{matched}/#{pr_doc["results"]&.size || 0}"
+    else
+      puts "⚠ Step 6: POST /player_reconcile → HTTP #{code} (nicht-fatal): #{body.to_s[0..150]}"
+    end
+
     puts ""
     puts "═══════════════════════════════════════════"
-    puts "✓ SMOKE-TEST PASSED — alle 3 Endpoints funktional"
+    puts "✓ SMOKE-TEST PASSED — Bridge-Endpoints funktional"
+    puts "  (Seeding/Round-Start/Round-Result + Player-Reconcile)"
     puts "═══════════════════════════════════════════"
+  end
+
+  # Plan 17-05 (Vision M): Sysadmin-Fallback — gibt alle Tische eines lokalen App-Turniers
+  # frei + schließt es (force, auch unbestätigte Hold-Ergebnisse).
+  # zsh: Task-Namen quoten! Usage: rake "external_tournament:end[<tournament_id>]"
+  desc "Sysadmin: lokales App-Turnier beenden + Tische freigeben. Usage: rake \"external_tournament:end[<tournament_id>]\""
+  task :end, [:tournament_id] => :environment do |_, args|
+    t = Tournament.find_by(id: args[:tournament_id])
+    abort "Tournament #{args[:tournament_id].inspect} not found" if t.nil?
+    r = ExternalTournament::TableReleaser.release_tournament(t)
+    puts "✓ Tournament #{t.id} (#{t.external_id}): #{r.released} Tisch(e) freigegeben " \
+         "(#{r.unacknowledged} unbestätigt), TournamentMonitor=#{r.tournament_monitor_state}"
+  end
+
+  # Plan 17-05 (Vision N): Mitternachts-Auto-Abbruch — Safety-Net für über Nacht hängende
+  # lokale App-Turnier-Tischbindungen (id>=MIN_ID + manual_assignment). Idempotent.
+  # Via whenever in config/schedule.rb täglich getriggert.
+  #
+  # Plan 16-01 (D-16-GC-A): Nach dem Release zusätzlich der Teardown-GC — alle abgeschlossenen
+  # lokalen App-Turniere (+ ihre Marker-Games) werden abgeräumt. release_stale_local schließt
+  # zuerst hängende Turniere, die dann hier gesweept werden. Idempotent; managed/global unberührt.
+  desc "Mitternachts-Auto-Abbruch + GC: hängende lokale App-Turnier-Tische freigeben + abgeschlossene App-Turniere abräumen. Usage: rake external_tournament:release_stale_local_tables"
+  task release_stale_local_tables: :environment do
+    res = ExternalTournament::TableReleaser.release_stale_local
+    puts "✓ Stale-Release: #{res[:released]} Tisch(e) freigegeben, #{res[:tournaments_closed]} Turnier(e) geschlossen"
+    gc = ExternalTournament::AppTournamentCleaner.sweep_closed_local
+    puts "✓ Teardown-GC: #{gc[:tournaments_deleted]} App-Turnier(e) gelöscht, #{gc[:games_deleted]} Marker-Game(s) gelöscht"
   end
 end
 
@@ -156,6 +197,16 @@ module ExternalTournamentSmokeTest
     req.body = JSON.dump(body)
     res = Net::HTTP.start(uri.hostname, uri.port, use_ssl: uri.scheme == "https") { |h| h.request(req) }
     [res.code, res.body]
+  end
+
+  # Plan 17-06: Baut ein player_reconcile-Payload aus den Spielern der ersten Setzliste.
+  def self.build_player_reconcile_body(region_shortname, seeding_doc)
+    players = seeding_doc.dig("teams", 0, "players") || []
+    participants = players.map.with_index(1) do |p, i|
+      {ref: "p#{i}", cc_id: p["cc_id"], dbu_nr: p["dbu_nr"], firstname: p["firstname"], lastname: p["lastname"]}
+    end
+    participants = [{ref: "p1", firstname: "Test", lastname: "PlayerA"}] if participants.empty?
+    {region: {shortname: region_shortname}, participants: participants}
   end
 
   # Baut ein round_start/v1-Payload basierend auf der Seeding-Response.

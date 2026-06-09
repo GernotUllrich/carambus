@@ -741,33 +741,14 @@ namespace :scenario do
 
   def generate_deploy_files(scenario_config, env_config, env_dir)
     # Generate deploy files for all environments
-
-    # Generate deploy.rb from template
-    generate_deploy_rb(scenario_config, env_config, env_dir)
+    # Plan 21-10: deploy.rb wird NICHT MEHR generiert (ist tracked-repo-file,
+    # universal content, Variants leben in production.rb stage-file).
 
     # Generate production.rb from template (only for production)
     if File.basename(env_dir) == 'production'
       generate_production_rb(scenario_config, env_config, env_dir)
     end
 
-    true
-  end
-
-  def generate_deploy_rb(scenario_config, env_config, env_dir)
-    template_file = File.join(templates_path, 'deploy', 'deploy_rb.erb')
-    unless File.exist?(template_file)
-      puts "Error: Deploy template not found: #{template_file}"
-      return false
-    end
-
-    template = ERB.new(File.read(template_file))
-    @scenario = scenario_config['scenario']
-    @config = env_config
-    @environment = File.basename(env_dir)
-
-    content = template.result(binding)
-    File.write(File.join(env_dir, 'deploy.rb'), content)
-    puts "   Generated: #{File.join(env_dir, 'deploy.rb')}"
     true
   end
 
@@ -1111,6 +1092,24 @@ Rails.application.configure do
   # Set default URL options for redirects and link generation
   config.action_controller.default_url_options = { host: "#{webserver_host}"#{port_clause} }
   config.action_mailer.default_url_options = { host: "#{webserver_host}"#{port_clause} }
+
+  # Configure SMTP for email delivery (Gmail). Credentials are provided at
+  # runtime via the systemd EnvironmentFile (/etc/<basename>.env -> ENV).
+  config.action_mailer.delivery_method = :smtp
+  config.action_mailer.smtp_settings = {
+    address: "smtp.gmail.com",
+    port: 587,
+    domain: "carambus.de",
+    user_name: ENV["SMTP_USERNAME"],
+    password: ENV["SMTP_PASSWORD"],
+    authentication: "plain",
+    enable_starttls_auto: true,
+    open_timeout: 5,
+    read_timeout: 5
+  }
+  config.action_mailer.perform_deliveries = true
+  config.action_mailer.raise_delivery_errors = true
+  config.action_mailer.default_options = { from: ENV["SMTP_USERNAME"] || "no-reply@carambus.de" }
 
   # Include generic and useful information about system operation, but avoid logging too much
   # information to avoid inadvertent exposure of personally identifiable information (PII).
@@ -2587,10 +2586,11 @@ ENV
     # Step 5: Copy deployment files
     puts "\n🚀 Step 5: Copying deployment files..."
     deploy_dir = File.join(scenarios_path, scenario_name, 'production')
-    if File.exist?(File.join(deploy_dir, 'deploy.rb'))
-      FileUtils.cp(File.join(deploy_dir, 'deploy.rb'), File.join(rails_root, 'config', 'deploy.rb'))
-      puts "   ✅ deploy.rb copied"
-    end
+    # Plan 21-10: deploy.rb is a tracked, universal repo file (config/deploy.rb).
+    # It must NOT be overwritten by a per-scenario copy - doing so reintroduced
+    # stale linked_files (e.g. a missing config/cable.yml). The tracked
+    # config/deploy.rb already carries the complete, correct linked_files list.
+    puts "   ℹ️  Using tracked config/deploy.rb (per-scenario copy intentionally skipped, Plan 21-10)"
 
     if Dir.exist?(File.join(deploy_dir, 'deploy'))
       # Copy individual files from deploy subdirectory
@@ -3072,12 +3072,16 @@ ENV
 
             # Verify database was restored correctly
             puts "   🔍 Verifying database restore..."
-            verify_cmd = "sudo -u postgres psql #{production_database} -c \"SELECT COUNT(*) FROM regions;\" 2>&1"
+            # -tA => tuples-only, unaligned: psql returns just the number (no
+            # header/separator/"(1 row)"), locale-independent and robust.
+            verify_cmd = "sudo -u postgres psql -tA #{production_database} -c \"SELECT COUNT(*) FROM regions;\" 2>&1"
             verify_output = `ssh -p #{ssh_port} www-data@#{ssh_host} '#{verify_cmd}'`
+            region_count = verify_output[/\d+/].to_i
 
-            # Check for 21 regions (locale-independent - works with both "1 row" and "1 Zeile")
-            if verify_output.include?("19") && (verify_output.include?("(1 row)") || verify_output.include?("(1 Zeile)"))
-              puts "   ✅ Database verification successful - 21 regions found"
+            # A successful global-data restore must contain regions. Don't hardcode
+            # the exact count (it changes over time) - just require > 0.
+            if region_count > 0
+              puts "   ✅ Database verification successful - #{region_count} regions found"
 
               # Note: Sequence reset not needed - production DB is a copy of development DB with correct sequences
               # Note: Local data already included in development database - no separate restore needed
@@ -3180,6 +3184,10 @@ ENV
     # Upload nginx.conf
     nginx_conf_path = File.join(production_dir, 'nginx.conf')
     return false unless upload_config_file(nginx_conf_path, shared_config_dir, 'nginx.conf', ssh_host, ssh_port, required: true)
+
+    # Upload cable.yml (Action Cable / Redis - scenario-specific channel_prefix)
+    cable_yml_path = File.join(production_dir, 'cable.yml')
+    return false unless upload_config_file(cable_yml_path, shared_config_dir, 'cable.yml', ssh_host, ssh_port, required: true)
 
     # Upload puma.service
     puma_service_path = File.join(production_dir, 'puma.service')
@@ -3292,10 +3300,11 @@ ENV
     # Step 3: Copy deployment files
     puts "\n🚀 Step 3: Copying deployment files..."
     deploy_dir = File.join(scenarios_path, scenario_name, 'production')
-    if File.exist?(File.join(deploy_dir, 'deploy.rb'))
-      FileUtils.cp(File.join(deploy_dir, 'deploy.rb'), File.join(rails_root, 'config', 'deploy.rb'))
-      puts "   ✅ deploy.rb copied"
-    end
+    # Plan 21-10: deploy.rb is a tracked, universal repo file (config/deploy.rb).
+    # It must NOT be overwritten by a per-scenario copy - doing so reintroduced
+    # stale linked_files (e.g. a missing config/cable.yml). The tracked
+    # config/deploy.rb already carries the complete, correct linked_files list.
+    puts "   ℹ️  Using tracked config/deploy.rb (per-scenario copy intentionally skipped, Plan 21-10)"
 
     if Dir.exist?(File.join(deploy_dir, 'deploy'))
       # Copy individual files from deploy subdirectory

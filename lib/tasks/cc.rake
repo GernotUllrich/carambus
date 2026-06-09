@@ -1,3 +1,27 @@
+# ============================================================================
+# ⚠️ DEPRECATED — Plan 21-11 T3 (D-21-06-E-Aufhebung):
+# ============================================================================
+# Diese Rake-Tasks rufen RegionCcAction-Methoden auf (synchronize_*_structure /
+# sync_*_structure / scrape_*) die NICHT (mehr) in app/models/region_cc_action.rb
+# existieren. Aufruf einer dieser Tasks führt zu NoMethodError.
+#
+# Status: Legacy-Layer aus früherer Carambus-API-Sync-Architektur, wurde
+# inhaltlich abgelöst durch:
+#   - RegionCc::TournamentSyncer (Plan 21-03/21-06)
+#   - RegistrationSyncer (Plan 14-G.14)
+#   - PlayerClassCalculator (Plan 21-01)
+#   - PlayerAgeClassGenderHeuristic (Plan 21-04)
+#   - ChampionshipTypeCc / TournamentPlanCc Sync-Layer
+#
+# Die Tasks werden NIRGENDS aufgerufen (kein Cron, kein anderer Code-Path).
+# Bewusst NICHT gelöscht (historisch wertvoll für Reverse-Engineering der
+# alten Sync-Architektur), aber Anti-Cron — KEIN Re-Enable ohne Re-Implementation
+# der zugrundeliegenden RegionCcAction-Methoden.
+#
+# Falls Funktionalität benötigt wird: neue Slice/Plan basierend auf den oben
+# gelisteten aktuellen Sync-Services.
+# ============================================================================
+
 require "#{Rails.root}/app/helpers/application_helper"
 require "open-uri"
 require "uri"
@@ -7,7 +31,7 @@ require "csv"
 include ApplicationHelper
 
 namespace :cc do
-  desc "login"
+  desc "[DEPRECATED Plan 21-11] login"
   task login_to_cc: :environment do
     Setting.login_to_cc
   end

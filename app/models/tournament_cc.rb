@@ -5,6 +5,7 @@
 # Table name: tournament_ccs
 #
 #  id                        :bigint           not null, primary key
+#  best_of_sets              :integer
 #  branch_cc_name            :string
 #  category_cc_name          :string
 #  championship_type_cc_name :string
@@ -15,12 +16,16 @@
 #  league_climber_quote      :integer
 #  location_text             :string
 #  max_players               :integer
+#  meldeliste_deadline       :datetime
+#  meldeliste_qualifying_date :datetime
 #  name                      :string
+#  points_to_win             :integer
 #  poster                    :string
 #  ranking_list              :string
 #  registration_rule         :integer
 #  season                    :string
 #  shortname                 :string
+#  shot_clock_minutes        :integer
 #  starting_at               :time
 #  status                    :string
 #  successor_list            :string
@@ -36,25 +41,27 @@
 #  discipline_id             :integer
 #  group_cc_id               :integer
 #  location_id               :integer
-#  registration_list_cc_id   :integer
+#  meldeliste_cc_id          :integer
 #  tournament_id             :integer
+#  tournament_plan_cc_id     :bigint
 #  tournament_series_cc_id   :integer
 #
 # Indexes
 #
-#  index_tournament_ccs_on_cc_id_and_context  (cc_id,context) UNIQUE
-#  index_tournament_ccs_on_tournament_id      (tournament_id) UNIQUE
+#  index_tournament_ccs_on_cc_id_and_context        (cc_id,context) UNIQUE
+#  index_tournament_ccs_on_tournament_id            (tournament_id) UNIQUE
+#  index_tournament_ccs_on_tournament_plan_cc_id    (tournament_plan_cc_id)
 #
 class TournamentCc < ApplicationRecord
   include LocalProtector
   belongs_to :branch_cc, optional: true
   belongs_to :location, optional: true
-  belongs_to :registration_list_cc, optional: true
   belongs_to :discipline, optional: true
   belongs_to :group_cc, optional: true
   belongs_to :championship_type_cc, optional: true
   belongs_to :category_cc, optional: true
   belongs_to :tournament_series_cc, optional: true
+  belongs_to :tournament_plan_cc, optional: true
   belongs_to :tournament, optional: true
 
   # Plan 14-G.7 / Task 3 / F11: Season-Resolution mit Fallback aus tournament_start.
@@ -165,20 +172,6 @@ class TournamentCc < ApplicationRecord
   def self.create_from_ba(tournament, opts)
     region = tournament.organizer
     region_cc = region.region_cc
-    registration_list_ccs = RegistrationListCc.where(
-      name: tournament.title,
-      context: region.shortname.downcase,
-      discipline_id: tournament.discipline_id,
-      season_id: tournament.season_id
-    )
-    registration_list_cc = nil
-    if registration_list_ccs.count == 1
-      registration_list_cc = registration_list_ccs.first
-    elsif registration_list_ccs.count > 1
-      Rails.logger.info "Error: Ambiguity Problem"
-    else
-      Rails.logger.info "Error: No RegistrationList for Tournament"
-    end
     type_found = nil
     branch_cc = tournament.discipline.root.branch_cc
     begin
@@ -193,7 +186,8 @@ class TournamentCc < ApplicationRecord
       return
     end
     tournament_cc = TournamentCc.where(name: tournament.title, discipline_id: tournament.discipline_id,
-                                       branch_cc_id: branch_cc.id, season: opts[:season_name]).first
+      branch_cc_id: branch_cc.id, season: opts[:season_name]).first
+    # Plan 23-01 T3e: meldeListId liest direkt aus TCc.meldeliste_cc_id (war RL-Lookup).
     begin
       args = {
         fedId: region.cc_id,
@@ -201,7 +195,7 @@ class TournamentCc < ApplicationRecord
         season: opts[:season_name],
         meisterName: tournament.title,
         meisterShortName: tournament.shortname.presence || "NDM",
-        meldeListId: registration_list_cc&.cc_id,
+        meldeListId: tournament_cc&.meldeliste_cc_id,
         mr: 1,
         meisterTypeId: type_found.to_s,
         groupId: 10,

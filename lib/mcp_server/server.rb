@@ -12,6 +12,61 @@ module McpServer
   class Server
     SERVER_NAME = "carambus_clubcloud"
 
+    # Plan 22-01 T3: Top-Level-Anleitung für LLM-Caller. Wird beim MCP-Initialize-
+    # Handshake an den Client gesendet (MCP-Protokoll-Version >= 2025-03-26).
+    # Zweck: Caller weiß sofort, dass cc_whoami der First-Call sein soll —
+    # eliminates "dumme Rückfragen" wie „Welche cc_id für den Verein?" bei
+    # Regionsmeisterschaften (Wurzel W1 der Halluzinations-Episode 2026-05-31,
+    # siehe Phase 22 CONTEXT.md). Plus DB-first-Hinweis + cc_id-region-Scope-
+    # Warnung als Sicherheits-Anker für die 4 bare-cc_id-Lookups (Memory
+    # project_cc_id_not_unique). Klares Phase-22-Permission-Modell statt
+    # club_cc_id-Allowlist (Memory project_mcp_sportwart_scope_leaky_abstraction).
+    SERVER_INSTRUCTIONS = <<~TXT.strip.freeze
+      Welcome to the Carambus MCP Server.
+
+      Use `cc_whoami` first (or read MCP Resource `context://current`) to learn
+      your full session scope: region, sportwart_locations, sportwart_disciplines,
+      default_season, and which Local-Server scenario you're connected to.
+
+      Data primer:
+      - All global Carambus data (regions, tournaments, players, meldelisten) is
+        mirrored on this Local-Server via sync from the Authority — DB-first is
+        primary; live-CC calls are only for writes or force-refresh.
+      - `cc_id` (ClubCloud-ID) is REGION-SCOPED, not globally unique — context
+        filter required for any cc_id-based lookup.
+      - Tournament entity chain: Tournament (DB) → TournamentCc (CC-Mirror
+        mit meldeliste_cc_id / meldeliste_deadline / meldeliste_qualifying_date
+        direkt auf TCc; RegistrationListCc wurde in Phase 23 T1b ersatzlos
+        gedroppt).
+
+      Permission model (Phase 22+):
+      - Your effective scope is `(sportwart_location_ids, sportwart_discipline_ids,
+        region)` — not Club. Tools verify your scope server-side; you don't need
+        to pass `club_cc_id` for region-wide tournaments.
+
+      Endnutzer-Sprache (Plan 26-01 T2, 2026-06-03 — Demo-1-Lehre):
+      Wenn du dem Sportwart etwas erklärst (z.B. warum eine Aktion gewartet hat
+      oder warum sie abgebrochen wurde), vermeide IT-Jargon. Folgende Begriffe
+      NICHT verwenden in Erklärungen an den Sportwart:
+        "Flapping", "Eventual Consistency", "Caching", "Caching-Effekt",
+        "Race-Condition", "Buffer", "Edit-Buffer", "Polling", "Stale Read",
+        "PUT-Replace", "Token", "Cache-Miss".
+      Stattdessen Alltagssprache:
+      - Statt "Eventual-Consistency-Effekt im Backend" / "Caching-Effekt":
+          "Die ClubCloud braucht einen Moment, bis sie den neuen Stand übernimmt."
+      - Statt "Race-Condition" / "Buffer-Flapping":
+          "Hier sind sich gerade zwei Bearbeitungsschritte in die Quere gekommen
+           — ich gleiche das wieder aus."
+      - Statt "Stale Read" / "Edit-Buffer war stale":
+          "Der vorherige Stand war noch nicht ganz angekommen, ich habe kurz
+           gewartet."
+      - Statt "PUT-Replace würde die Liste überschreiben":
+          "Ein Schreibvorgang jetzt würde die anderen Einträge verlieren."
+      Diese Regel gilt nur für die Sportwart-zugewandte Erklärung in der Antwort.
+      Tool-Output-Felder dürfen technisch bleiben (z.B. `persisted_truth_source`,
+      `read_back_match`) — das ist Diagnose-Telemetrie, kein Sportwart-Text.
+    TXT
+
     # Build the server with auto-registered tools and resources.
     # Plans 02..05 add files; this method picks them up via constant enumeration.
     def self.build
@@ -23,6 +78,7 @@ module McpServer
 
       server = MCP::Server.new(
         name: SERVER_NAME,
+        instructions: SERVER_INSTRUCTIONS,
         tools: tools,
         resources: resources
       )
@@ -39,11 +95,13 @@ module McpServer
 
     def self.collect_resources
       # Resources::*.all returns Array<MCP::Resource> (Plans 02-03 implement .all)
+      # Plan 22-01: ContextCurrent added (context://current — Server-Kontext-Snapshot).
       collected = []
       [
         ("McpServer::Resources::WorkflowScenarios" if defined?(McpServer::Resources::WorkflowScenarios)),
         ("McpServer::Resources::WorkflowMeta" if defined?(McpServer::Resources::WorkflowMeta)),
-        ("McpServer::Resources::ApiSurface" if defined?(McpServer::Resources::ApiSurface))
+        ("McpServer::Resources::ApiSurface" if defined?(McpServer::Resources::ApiSurface)),
+        ("McpServer::Resources::ContextCurrent" if defined?(McpServer::Resources::ContextCurrent))
       ].compact.each do |const_name|
         klass = const_name.constantize
         collected.concat(klass.all) if klass.respond_to?(:all)
@@ -78,6 +136,14 @@ module McpServer
           if defined?(McpServer::Resources::ApiSurface)
             result = McpServer::Resources::ApiSurface.read(action: $~[:action])
             content, mime_type = normalize_resource_result(result, default_mime: "text/markdown")
+            [{uri: uri, mimeType: mime_type, text: content}]
+          end
+        when %r{\Acontext://current\z}
+          # Plan 22-01: Server-Kontext-Snapshot (minimal-Form, ohne user-scope).
+          # Für user-scope-Felder (sportwart_locations/disciplines) cc_whoami-Tool nutzen.
+          if defined?(McpServer::Resources::ContextCurrent)
+            result = McpServer::Resources::ContextCurrent.read(uri: uri)
+            content, mime_type = normalize_resource_result(result, default_mime: "application/json")
             [{uri: uri, mimeType: mime_type, text: content}]
           end
         else

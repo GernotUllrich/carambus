@@ -95,18 +95,27 @@ Diese Dokumentation beschreibt die technische Implementierung des YouTube-Live-S
 # db/migrate/XXXXXX_create_stream_configurations.rb
 create_table :stream_configurations do |t|
   # Beziehungen
+  # Nur :table. Die Location wird NICHT direkt referenziert, sondern
+  # über die Table erreicht (has_one :location, through: :table).
   t.references :table, null: false, foreign_key: true, index: false
-  t.references :location, null: false, foreign_key: true, index: false
+  
+  # Stream-Ziel (youtube | local | custom)
+  t.string :stream_destination, default: 'youtube', null: false
   
   # YouTube
   t.string :youtube_stream_key      # encrypted!
   t.string :youtube_channel_id
   
+  # Lokaler RTMP-Server / Custom-RTMP-Ziel
+  t.string :local_rtmp_server_ip
+  t.string :custom_rtmp_url
+  t.string :custom_rtmp_key         # encrypted!
+  
   # Kamera
   t.string :camera_device, default: '/dev/video0'
-  t.integer :camera_width, default: 1280
-  t.integer :camera_height, default: 720
-  t.integer :camera_fps, default: 60
+  t.integer :camera_width, default: 640
+  t.integer :camera_height, default: 360
+  t.integer :camera_fps, default: 30
   
   # Overlay
   t.boolean :overlay_enabled, default: true
@@ -123,24 +132,50 @@ create_table :stream_configurations do |t|
   # Netzwerk
   t.string :raspi_ip
   t.integer :raspi_ssh_port, default: 22
+  t.string :raspi_ssh_user, default: 'pi'
   
   # Qualität
-  t.integer :video_bitrate, default: 2000
+  t.integer :video_bitrate, default: 1000
   t.integer :audio_bitrate, default: 128
+  
+  # Perspektiv-Korrektur (Keystone) und Kamera-Tuning (V4L2)
+  t.boolean :perspective_enabled, default: false
+  t.string :perspective_coords
+  t.integer :focus_auto, default: 0
+  t.integer :exposure_auto, default: 1
+  t.integer :focus_absolute
+  t.integer :exposure_absolute
+  t.integer :brightness
+  t.integer :contrast
+  t.integer :saturation
   
   t.timestamps
 end
 
 # Indizes
 add_index :stream_configurations, :table_id, unique: true
-add_index :stream_configurations, :location_id
+add_index :stream_configurations, :stream_destination
 add_index :stream_configurations, :status
 ```
 
+> ℹ️ **Schema-Snapshot (Stand: aktueller `db/schema.rb`):** Die obigen Spalten und
+> Defaults entsprechen dem aktuellen Schema. Über die ursprüngliche Streaming-Migration
+> hinaus kamen per späteren Migrationen hinzu: `raspi_ssh_user`, `stream_destination`,
+> `custom_rtmp_url`, `custom_rtmp_key`, `local_rtmp_server_ip` sowie die Kamera-/
+> Perspektiv-Tuning-Spalten (`perspective_enabled`, `perspective_coords`, `focus_auto`,
+> `exposure_auto`, `focus_absolute`, `exposure_absolute`, `brightness`, `contrast`,
+> `saturation`). Hinweis: Die Camera-Defaults sind aktuell 640×360 @ 30 fps und
+> `video_bitrate` 1000 (nicht 1280×720 @ 60 fps / 2000); die FFmpeg-Beispiele weiter
+> unten verwenden zur Illustration weiterhin 720p60.
+
 **Wichtige Constraints:**
 - `table_id` unique: Nur ein Stream pro Tisch
-- `youtube_stream_key` verschlüsselt via Rails 7 `encrypts`
+- `youtube_stream_key` und `custom_rtmp_key` verschlüsselt via Rails 7 `encrypts`
 - Status-Maschine: `inactive → starting → active → stopping → inactive|error`
+- **Keine `location_id`-Spalte**: Eine frühere `location`-Referenz wurde per Migration
+  `remove_location_id_from_stream_configurations` entfernt. Die Location wird über
+  `has_one :location, through: :table` erreicht. Im Model verhindert
+  `self.ignored_columns = ["location_id"]` Fehler bei Deployments mit alter DB-Spalte.
 
 #### 1.2 Model-Layer
 
@@ -148,12 +183,20 @@ add_index :stream_configurations, :status
 
 ```ruby
 class StreamConfiguration < ApplicationRecord
-  # Verschlüsselung
+  # Spalte location_id wurde entfernt; Shim verhindert Fehler bei
+  # alter DB-Spalte während Deployments.
+  self.ignored_columns = ["location_id"]
+  
+  # Verschlüsselung (zwei verschlüsselte Keys)
   encrypts :youtube_stream_key, deterministic: false
+  encrypts :custom_rtmp_key, deterministic: false
   
   # Beziehungen
   belongs_to :table
-  belongs_to :location
+  has_one :location, through: :table   # KEIN belongs_to :location
+  
+  # Stream-Ziel-Validierung
+  validates :stream_destination, inclusion: { in: %w[youtube local custom] }, presence: true
   
   # Status-Helpers
   def inactive?; status == 'inactive'; end
@@ -174,16 +217,30 @@ class StreamConfiguration < ApplicationRecord
   
   # URL-Generierung
   def scoreboard_overlay_url
-    # Generiert: http://localhost:80/locations/:md5/scoreboard_overlay?table=N
+    # Generiert: http://localhost:80/locations/:md5/scoreboard_overlay?table_id=<id>
+    # (Tisch wird über die DB-ID adressiert, nicht über die Tischnummer)
   end
   
+  # RTMP-Ziel hängt von stream_destination ab:
+  #   youtube → rtmp://a.rtmp.youtube.com/live2/<youtube_stream_key>
+  #   local   → rtmp://<local_rtmp_server_ip>:1935/stream/table<table_id>
+  #   custom  → <custom_rtmp_url>[/<custom_rtmp_key>]
   def rtmp_url
-    # Generiert: rtmp://a.rtmp.youtube.com/live2/:stream_key
+    case stream_destination
+    when 'youtube' then youtube_rtmp_url
+    when 'local'   then local_rtmp_url
+    when 'custom'  then custom_rtmp_url_complete
+    end
   end
 end
 ```
 
 **Design-Entscheidungen:**
+- Drei Stream-Ziele: `youtube`, `local` (Docker-RTMP-Server im LAN, z.B. Mac mini),
+  `custom` (frei konfigurierbare RTMP-URL + optionaler Key)
+- `rtmp_url` schaltet anhand `stream_destination` zwischen den Zielen um (nicht
+  fest auf YouTube verdrahtet)
+- Location über `has_one :location, through: :table` statt direkter Referenz
 - Asynchrone Job-Ausführung (verhindert HTTP-Timeouts bei langsamen SSH-Operationen)
 - URL-Generierung im Model (Single Source of Truth)
 - Deterministic false encryption (höhere Sicherheit, keine Suche nach Keys möglich)
@@ -200,8 +257,17 @@ POST /admin/stream_configurations/:id/start       # Stream starten
 POST /admin/stream_configurations/:id/stop        # Stream stoppen
 POST /admin/stream_configurations/:id/restart     # Neustart
 POST /admin/stream_configurations/:id/health_check # Health-Check
-POST /admin/stream_configurations/deploy_all      # Alle deployen
+POST /admin/stream_configurations/deploy_all      # Alle deployen (siehe Caveat)
 ```
+
+> ⚠️ **Caveat `deploy_all`:** Die Route und die Controller-Action existieren,
+> aber die Action ruft `StreamDeployJob.perform_later(config.id)` auf — und
+> **`StreamDeployJob` existiert im Code nicht** (kein `app/jobs/stream_deploy_job.rb`).
+> Beim Aufruf von `deploy_all` schlägt die Job-Einreihung daher fehl. Für das
+> tatsächliche Starten/Stoppen wird **`StreamControlJob`** verwendet (siehe
+> `start_streaming` / `stop_streaming` im Model). `deploy_all` ist derzeit defekt,
+> bis `StreamDeployJob` implementiert oder die Action auf `StreamControlJob`
+> umgestellt wird.
 
 **`app/controllers/locations_controller.rb`**
 
@@ -286,78 +352,133 @@ end
 
 **Overlay-View (`app/views/locations/scoreboard_overlay.html.erb`)**
 
+> ℹ️ **Schematisch.** Das untenstehende Snippet ist eine vereinfachte Darstellung.
+> Die reale View liest die Spieler-/Score-Daten **nicht** aus `@game.player_a` /
+> `@game.score_a`, sondern aus dem `TableMonitor`-Options-Hash
+> (`@table_monitor.get_options!` bzw. `local_assigns[:options]`). Die Spieler-
+> Orientierung (links/rechts) folgt `options[:current_left_player]`, die Scores
+> werden aus `result` plus laufendem Inning berechnet. Das Markup nutzt Tailwind-
+> Utility-Klassen (kein `.overlay-container`) und setzt
+> `data-controller="streaming-overlay"` mit
+> `data-streaming-overlay-table-id-value="<%= @table&.id %>"`.
+
 ```erb
-<% if @game.present? %>
-  <div class="overlay-container">
-    <div class="player-section">
-      <%= @game.player_a.display_name %>
-      <%= @game.score_a %>
+<% # options stammen aus dem TableMonitor (Live-Update oder Polling)
+   if local_assigns[:options].present?
+     options = local_assigns[:options]
+   elsif @table_monitor.present?
+     @table_monitor.get_options!(I18n.locale)
+     options = @table_monitor.options
+   end %>
+
+<% if @game.present? && options.present? %>
+  <% left_player  = options[:current_left_player] == "playera" ? options[:player_a] : options[:player_b]
+     right_player = options[:current_left_player] == "playera" ? options[:player_b] : options[:player_a] %>
+
+  <div class="w-full px-2 py-1 flex flex-col gap-1 bg-black/80"
+       data-controller="streaming-overlay"
+       data-streaming-overlay-table-id-value="<%= @table&.id %>">
+    <div class="flex items-center gap-1.5 ...">
+      <span><%= left_player[:firstname].presence || left_player[:lastname] %></span>
+      <span data-streaming-overlay-target="scoreA"><%= left_score %></span>
     </div>
-    <div class="vs-section">VS</div>
-    <div class="player-section">
-      <%= @game.player_b.display_name %>
-      <%= @game.score_b %>
+    <div class="flex items-center gap-1.5 ...">
+      <span><%= right_player[:firstname].presence || right_player[:lastname] %></span>
+      <span data-streaming-overlay-target="scoreB"><%= right_score %></span>
     </div>
   </div>
 <% else %>
-  <div class="no-game">Kein aktives Spiel</div>
+  <div class="w-full p-2 text-center ...">Tisch <%= @table&.number %> • Kein Spiel</div>
 <% end %>
 ```
 
-**Layout: `app/views/layouts/streaming_overlay.html.erb`**
+**Layout: `app/views/layouts/streaming_overlay.html.erb`** (verkürzt — der reale
+Body-Hintergrund ist opakes Schwarz `#000000`, gerendert über Tailwind/Importmap):
 
 ```erb
 <html>
 <head>
+  <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
   <style>
-    body { background: rgba(0, 0, 0, 0.75); }
-    /* Fixed 1920x200 Overlay-Dimensionen */
+    @keyframes pulse-dot { 0%, 100% { opacity: 1; transform: scale(1); }
+                           50% { opacity: 0.5; transform: scale(0.85); } }
+    .live-indicator { animation: pulse-dot 2s infinite; }
+    .overlay-gradient {
+      background: linear-gradient(135deg, rgba(0, 97, 120, 0.95) 0%,
+                                          rgba(0, 60, 80, 0.95) 100%);
+    }
   </style>
+  <%= javascript_importmap_tags %>
+  <%= action_cable_meta_tag %>
 </head>
-<body><%= yield %></body>
+<body class="w-full h-full m-0 p-0 font-sans text-white overflow-hidden antialiased"
+      style="background-color: #000000;">
+  <%= yield %>
+</body>
 </html>
 ```
 
 **Design-Entscheidungen:**
-- Fixed Dimensions (1920x200): FFmpeg erwartet konsistente Größe
-- Transparenter Hintergrund (alpha channel)
-- Inline CSS (keine External Assets, schnelleres Rendering)
-- Kein JavaScript im Overlay (statische Captures alle 2s)
+- Opaker schwarzer Body-Hintergrund (`#000000`); die Score-Karte selbst nutzt
+  `bg-black/80` (transluzent) bzw. die `.overlay-gradient`-Klasse
+- Das Layout setzt keine festen 1920×200-Maße; der Body ist `w-full h-full`,
+  die FFmpeg/Chromium-Capture-Größe wird beim Start vorgegeben
+- Tailwind-CSS + Importmap-Assets statt reinem Inline-CSS
+- Der Overlay-Stimulus-Controller lädt die Seite per Polling alle 3s neu; FFmpeg/
+  Chromium captured den jeweils gerenderten Stand
 
 #### 1.6 Frontend (Stimulus)
 
 **`app/javascript/controllers/streaming_overlay_controller.js`**
 
+> ℹ️ **Aktueller Stand: Polling, nicht ActionCable.** Der Controller lädt im
+> `connect()` die Seite per `setInterval` alle 3 Sekunden neu
+> (`window.location.reload()`). Das ist die bewusst gewählte „Phase 1"-Lösung
+> für OBS-Browser-Sources. Der ActionCable-Pfad (`subscribeToTableMonitor()`,
+> `handleUpdate()`) ist im Code vorhanden, aber **auskommentiert/ungenutzt** und
+> als „Phase 2"-Zukunftsoptimierung markiert.
+
 ```javascript
+import { Controller } from "@hotwired/stimulus"
+import consumer from "../channels/consumer"
+
 export default class extends Controller {
+  static targets = ["scoreA", "scoreB"]
+  static values = { tableId: Number }
+
   connect() {
-    this.subscribeToTableMonitor()
+    // PHASE 1: Einfaches Polling für OBS-Browser-Source —
+    // Seite alle 3s neu laden, um frische Scores zu holen.
+    this.pollInterval = setInterval(() => {
+      window.location.reload()
+    }, 3000)
+
+    // PHASE 2 (Zukunft, derzeit ungenutzt): Echtzeit via ActionCable
+    // this.subscribeToTableMonitor()
   }
-  
+
+  disconnect() {
+    if (this.pollInterval) clearInterval(this.pollInterval)
+    if (this.subscription) this.subscription.unsubscribe()
+  }
+
+  // PHASE 2 (noch nicht aktiv): ActionCable-Subscription auf TableMonitorChannel
   subscribeToTableMonitor() {
-    consumer.subscriptions.create(
+    this.subscription = consumer.subscriptions.create(
       { channel: "TableMonitorChannel" },
-      {
-        received: (data) => {
-          if (data.type === "score_update") {
-            this.updateScores(data)
-          }
-        }
-      }
+      { received: (data) => this.handleUpdate(data) }
     )
-  }
-  
-  updateScores(data) {
-    // Animierte Score-Updates
-    // Flash-Effekt bei Änderung
   }
 }
 ```
 
 **Design-Entscheidungen:**
-- ActionCable für Echtzeit-Updates
-- Nur im Browser-Overlay aktiv (nicht in FFmpeg-Captures)
-- Fallback auf Page-Reload bei größeren Änderungen (Spielerwechsel)
+- **Polling per Page-Reload (3s)** ist der aktuelle Mechanismus — simpel und
+  robust für FFmpeg-/OBS-Captures
+- ActionCable-Echtzeit-Updates sind vorbereitet, aber noch nicht aktiviert
+  (Phase 2)
+- Controller läuft im Browser-Overlay (Chromium-Capture greift den gerenderten
+  Stand)
 
 ---
 
@@ -466,7 +587,7 @@ CAMERA_WIDTH=1280
 CAMERA_HEIGHT=720
 CAMERA_FPS=60
 OVERLAY_ENABLED=true
-OVERLAY_URL=http://localhost:80/locations/abc123/scoreboard_overlay?table=1
+OVERLAY_URL=http://localhost:80/locations/abc123/scoreboard_overlay?table_id=42
 OVERLAY_POSITION=bottom
 OVERLAY_HEIGHT=200
 VIDEO_BITRATE=2000
@@ -657,7 +778,8 @@ Total Latency              ~6s      (Typisch)
 
 ```
 1. HTTP Request → Rails Server
-   GET /locations/:md5/scoreboard_overlay?table=1
+   GET /locations/:md5/scoreboard_overlay?table_id=<id>
+   (Tisch über DB-ID; `?table=N` mit Tischnummer ist Legacy-Fallback)
    
 2. Rails Controller
    locations_controller.rb#scoreboard_overlay
@@ -741,6 +863,13 @@ def execute_ssh_command(command)
   end
 end
 ```
+
+> **SSH-User-Auflösung:** `ssh_user` in `StreamControlJob` ist
+> `@config.raspi_ssh_user.presence || ENV['RASPI_SSH_USER'] || 'pi'` —
+> der Konfigurationswert `raspi_ssh_user` (DB-Default `'pi'`) hat Vorrang,
+> dann die Umgebungsvariable `RASPI_SSH_USER`, sonst der Fallback `'pi'`.
+> Hinweis: `StreamHealthJob#ssh_user` nutzt denselben Override-Mechanismus,
+> aber mit Fallback `'www-data'` statt `'pi'`.
 
 **Security-Considerations:**
 
@@ -905,6 +1034,7 @@ end
 ```ruby
 class StreamConfiguration < ApplicationRecord
   encrypts :youtube_stream_key, deterministic: false
+  encrypts :custom_rtmp_key, deterministic: false
 end
 ```
 
@@ -912,6 +1042,9 @@ end
 - AES-256-GCM
 - Key-Rotation unterstützt
 - Key-Storage: `config/credentials.yml.enc`
+- **Zwei verschlüsselte Felder:** `youtube_stream_key` (YouTube-Ziel) und
+  `custom_rtmp_key` (Custom-RTMP-Ziel). Beim `local`-Ziel wird kein Key
+  benötigt (Stream-Name = `table<ID>`).
 
 **Key-Derivation:**
 ```ruby
@@ -1063,20 +1196,26 @@ Central Load: Nur Rails-App + DB (vernachlässigbar)
 
 ## 🧪 Testing-Strategie
 
+> ℹ️ **Hinweis:** Das Carambus-Projekt nutzt **Minitest** (nicht RSpec). Die
+> folgenden Beispiele sind als Minitest-Tests formuliert. Sie sind illustrativ —
+> Methoden-/Factory-Namen ggf. an den tatsächlichen Code anpassen.
+
 ### Unit-Tests
 
 ```ruby
-# spec/models/stream_configuration_spec.rb
-RSpec.describe StreamConfiguration do
-  it "generates correct RTMP URL" do
+# test/models/stream_configuration_test.rb
+require "test_helper"
+
+class StreamConfigurationTest < ActiveSupport::TestCase
+  test "generates correct RTMP URL" do
     config = create(:stream_configuration, youtube_stream_key: "test-key")
-    expect(config.rtmp_url).to eq("rtmp://a.rtmp.youtube.com/live2/test-key")
+    assert_equal "rtmp://a.rtmp.youtube.com/live2/test-key", config.rtmp_url
   end
-  
-  it "transitions status correctly" do
-    config = create(:stream_configuration, status: 'inactive')
+
+  test "transitions status correctly" do
+    config = create(:stream_configuration, status: "inactive")
     config.start_streaming
-    expect(config.status).to eq('starting')
+    assert_equal "starting", config.status
   end
 end
 ```
@@ -1084,17 +1223,19 @@ end
 ### Integration-Tests
 
 ```ruby
-# spec/jobs/stream_control_job_spec.rb
-RSpec.describe StreamControlJob do
-  it "deploys config and starts service" do
+# test/jobs/stream_control_job_test.rb
+require "test_helper"
+
+class StreamControlJobTest < ActiveJob::TestCase
+  test "deploys config and starts service" do
     config = create(:stream_configuration)
-    
-    expect_any_instance_of(Net::SSH::Connection::Session)
-      .to receive(:exec!).with(/systemctl start/).and_return("")
-    
-    described_class.new.perform(config.id, 'start')
-    
-    expect(config.reload.status).to eq('active')
+
+    Net::SSH::Connection::Session.any_instance
+      .expects(:exec!).with(regexp_matches(/systemctl start/)).returns("")
+
+    StreamControlJob.new.perform(config.id, "start")
+
+    assert_equal "active", config.reload.status
   end
 end
 ```
@@ -1102,17 +1243,19 @@ end
 ### System-Tests (E2E)
 
 ```ruby
-# spec/system/admin/streaming_spec.rb
-RSpec.describe "Admin Streaming", type: :system do
-  it "admin can start stream" do
+# test/system/admin/streaming_test.rb
+require "application_system_test_case"
+
+class Admin::StreamingTest < ApplicationSystemTestCase
+  test "admin can start stream" do
     config = create(:stream_configuration)
-    
+
     visit admin_stream_configurations_path
     click_button "Start"
-    
-    expect(page).to have_content("Starting")
-    # WebMock: Mock SSH-Call
-    # Eventually: have_content("Active")
+
+    assert_text "Starting"
+    # WebMock: SSH-Call mocken
+    # Eventually: assert_text "Active"
   end
 end
 ```
@@ -1293,7 +1436,7 @@ DISPLAY=:1 chromium \
   --headless \
   --screenshot=/tmp/test.png \
   --window-size=1920,200 \
-  "http://localhost/locations/xxx/scoreboard_overlay?table=1"
+  "http://localhost/locations/xxx/scoreboard_overlay?table_id=42"
 
 # PNG anschauen (auf Desktop-PC)
 scp pi@192.168.1.100:/tmp/test.png .

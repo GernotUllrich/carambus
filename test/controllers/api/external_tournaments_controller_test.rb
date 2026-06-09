@@ -53,7 +53,8 @@ module Api
       Table.where(name: %w[5 6]).where(location: locations(:one)).destroy_all
       # Plan 15-06: Tisch-Naming-Tests erzeugen "Tisch N"-Tische + cc_id auf locations(:one)
       Table.where(location: locations(:one)).where("name LIKE ?", "Tisch %").destroy_all
-      Location.where(id: locations(:one).id).update_all(cc_id: nil)
+      Location.where(id: locations(:one).id).update_all(cc_id: nil, region_id: nil)
+      Location.where(name: "Kollision andere Region").destroy_all
       TableMonitor.where(name: %w[TM-RS-A TM-RS-B TM-06-A]).destroy_all
 
       TournamentCc.where(cc_id: 999_201).delete_all
@@ -332,7 +333,7 @@ module Api
     # AC-1: Happy-Path via location_cc_id — echte Tisch-Namen + table_kind + has_monitor
     test "tables happy path returns carambus.tables/v1 with real names and kinds" do
       loc = locations(:one)
-      loc.update_columns(cc_id: 11)
+      loc.update_columns(cc_id: 11, region_id: @nbv.id)
       tk = table_kinds(:one)
       Table.create!(name: "Tisch 5", location: loc, table_kind: tk) # ohne Monitor
       Table.create!(name: "Tisch 6", location: loc, table_kind: tk)
@@ -380,12 +381,30 @@ module Api
       assert_match(/Location not found/i, body["error"].to_s)
     end
 
+    # === Plan 15-07: location_cc_id Region-Scope (Bugfix aus 15-06-Live-Test) ===
+
+    # AC-1: location_cc_id ist region-scoped — kollidierende cc_id in 2 Regionen
+    test "tables location_cc_id is region-scoped — returns the region-correct location" do
+      nbv_loc = locations(:one)
+      nbv_loc.update_columns(cc_id: 11, region_id: @nbv.id)
+      # gleichnamige cc_id in einer ANDEREN Region (Kollision)
+      other = Location.create!(name: "Kollision andere Region", cc_id: 11, region_id: regions(:bbv).id)
+
+      get_tables(location_cc_id: 11, region: "NBV", jwt: login_jwt)
+      assert_response :ok
+      body = JSON.parse(response.body)
+      assert_equal nbv_loc.id, body.dig("location", "id")
+      assert_not_equal other.id, body.dig("location", "id")
+    ensure
+      Location.where(name: "Kollision andere Region").destroy_all
+    end
+
     # === Plan 15-06: round_start location + table_name (R2) ===
 
     # AC-4: table_name + explizite location.cc_id (auch wenn tournament.location_id nil)
     test "round_start resolves table via table_name and explicit location cc_id" do
       loc = locations(:one)
-      loc.update_columns(cc_id: 11)
+      loc.update_columns(cc_id: 11, region_id: @nbv.id)
       @tournament.update_columns(location_id: nil) # beweist: explizite location wird genutzt
       tk = table_kinds(:one)
       tm = TableMonitor.create!(state: "new", name: "TM-06-A")
@@ -428,7 +447,7 @@ module Api
     # AC-6: TableMonitor wird automatisch angelegt (table.table_monitor!) auf local_server
     test "round_start auto-creates TableMonitor when table has none (local_server)" do
       loc = locations(:one)
-      loc.update_columns(cc_id: 11)
+      loc.update_columns(cc_id: 11, region_id: @nbv.id)
       @tournament.update!(location: loc)
       tk = table_kinds(:one)
       table = Table.create!(name: "Tisch 5", location: loc, table_kind: tk) # KEIN Monitor
@@ -463,7 +482,7 @@ module Api
     # AC-8: seeding liefert tournament.location als {id, cc_id, name}
     test "seeding returns tournament.location as object" do
       loc = locations(:one)
-      loc.update_columns(cc_id: 11)
+      loc.update_columns(cc_id: 11, region_id: @nbv.id)
       @tournament.update!(location: loc)
       Seeding.create!(tournament: @tournament, player: @player, position: 1)
 

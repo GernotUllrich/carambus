@@ -54,12 +54,36 @@ JWT lifetime: **90 days** (long-lived; via D-14-G7 +
 
 ### Endpoints
 
-| Method | URL | Auth | Purpose |
-|--------|-----|------|---------|
-| `GET`  | `/api/external_tournament/tables?location_cc_id=X&region=R` | Bearer | Tables of a location (`carambus.tables/v1`; Plan 15-06) |
-| `GET`  | `/api/external_tournament/seeding?tournament_cc_id=X&region=R` | Bearer | Seeding list (`carambus.seeding/v1`) |
-| `POST` | `/api/external_tournament/round_start` | Bearer | Table pairings (`carambus.round_start/v1`; accepts `location` + `table_name`, Plan 15-06) → Game + GameParticipation + TableMonitor |
-| `GET`  | `/api/external_tournament/round_result?tournament_cc_id=X&round_no=N&region=R` | Bearer | Results per round (`carambus.round_result/v1`) |
+All endpoints are mounted under `/api/external_tournament/` and require a Bearer
+JWT. The bridge has grown well beyond the original read-only trio; the table
+below reflects the routes in `config/routes.rb` and the actions in
+`app/controllers/api/external_tournaments_controller.rb`.
+
+**Read / discovery (GET):**
+
+| Method | URL | Purpose |
+|--------|-----|---------|
+| `GET`  | `/api/external_tournament/seeding?tournament_cc_id=X&region=R` | Seeding list (`carambus.seeding/v1`) |
+| `GET`  | `/api/external_tournament/round_result?tournament_cc_id=X&round_no=N&region=R` | Results per round (`carambus.round_result/v1`) |
+| `GET`  | `/api/external_tournament/tables?location_cc_id=X&region=R` | Tables of a location (`carambus.tables/v1`; Plan 15-06) |
+| `GET`  | `/api/external_tournament/clubs` | Clubs of the region for the player picker (Plan 18-01) |
+| `GET`  | `/api/external_tournament/club_players` | Players eligible (active) for a club in the running season, with `cc_id` + `dbu_nr` (Plan 18-01) |
+| `GET`  | `/api/external_tournament/player_rankings` | Players sorted by discipline ranking for app seeding lists (Plan 19-01) |
+| `GET`  | `/api/external_tournament/disciplines` | Region-relevant disciplines + TournamentPlan matrix (`carambus.disciplines/v1`; Plan 20-01) |
+| `GET`  | `/api/external_tournament/categories` | Player/age classes, genders, categories (`carambus.categories/v1`; Plan 20-02) |
+| `GET`  | `/api/external_tournament/registration_lists` | Meldelisten discovery: deadline/status/category/discipline (`carambus.registration_lists/v1`; Plan 21-05) |
+
+**Write / lifecycle (POST):**
+
+| Method | URL | Purpose |
+|--------|-----|---------|
+| `POST` | `/api/external_tournament/round_start` | Table pairings (`carambus.round_start/v1`; accepts `location` + `table_name`, Plan 15-06) → Game + GameParticipation + TableMonitor |
+| `POST` | `/api/external_tournament/tournament` | Create a local tournament + bind TournamentMonitor (Plan 17-02) |
+| `POST` | `/api/external_tournament/lock_table` | App-driven table lock via TournamentMonitor binding (Plan 17-02) |
+| `POST` | `/api/external_tournament/start_game` | Start a game with per-game/per-player disciplines; creates Game + warmup (Plan 17-03) |
+| `POST` | `/api/external_tournament/acknowledge_result` | Pull the captured result + release the table (result hold + pull, Plan 17-04) |
+| `POST` | `/api/external_tournament/end_tournament` | End the tournament: release all tables + close the TournamentMonitor (Plan 17-05) |
+| `POST` | `/api/external_tournament/player_reconcile` | Reconcile an app participant list against Carambus-local players (returns `dbu_nr`, Plan 17-06) |
 
 ### Error codes (shared)
 
@@ -87,9 +111,39 @@ Development: http://localhost:3000
 Production: https://carambus.de
 ```
 
+## Planned JSON:API Contract (not yet implemented)
+
+> **⚠️ Planned / future design — NOT yet implemented.**
+>
+> The sections below (**Response Format**, **Error Responses**, **Core
+> Endpoints** for Tournaments / Players / Leagues / Parties / Table Monitors,
+> the **Data Synchronization API**, **Rate Limiting**, **Pagination metadata**,
+> and the **SDK** examples) describe an *aspirational* JSON:API-style contract.
+> They are **not** backed by live routes today.
+>
+> **What actually exists today:**
+> - The public tournament resource is **server-rendered HTML / Turbo**, not a
+>   JSON:API endpoint. `/tournaments` (index) and `/tournaments/:id` (show)
+>   render HTML/Turbo Streams. Tournament lifecycle actions are custom member
+>   routes (`select_modus`, `finalize_modus`, `start`, `reset`,
+>   `define_participants`, `add_team`, `placement`, …) that also operate on
+>   HTML/Turbo, **not** JSON envelopes.
+> - There is **no** `POST/PATCH/DELETE /tournaments` JSON:API, **no**
+>   `GET /api/tournaments`, and **no** JSON list/get endpoints for players or
+>   parties.
+> - The only implemented JSON APIs under `/api` are: AI search
+>   (`POST /api/ai_search`, `POST /api/ai_docs`), autocomplete
+>   (`GET /api/players/autocomplete`, `GET /api/locations/autocomplete`), and
+>   the **External Tournament Bridge** (devise-JWT) documented above.
+>
+> Treat everything in this "Planned JSON:API Contract" block as a design
+> sketch, not a working API.
+
 ## Response Format
 
-All API responses are in JSON format:
+> Planned / future design — see the note above.
+
+In the planned design, API responses would be in JSON format:
 
 ```json
 {
@@ -127,7 +181,12 @@ All API responses are in JSON format:
 }
 ```
 
-## Core Endpoints
+## Core Endpoints (Planned)
+
+> **⚠️ Planned / future design — NOT yet implemented.** See the note in
+> "Planned JSON:API Contract" above. Today `/tournaments` and
+> `/tournaments/:id` render HTML/Turbo, and there is no JSON CRUD for
+> tournaments, players, or parties.
 
 ### Tournaments
 
@@ -244,7 +303,10 @@ PATCH /tournaments/{id}
 DELETE /tournaments/{id}
 ```
 
-### Tournament Actions
+### Tournament Actions (implemented — HTML/Turbo)
+
+> These member routes **do** exist on `resources :tournaments`. They are
+> HTML/Turbo actions (redirects / Turbo Streams), not JSON:API endpoints.
 
 #### Start Tournament
 ```http
@@ -256,10 +318,16 @@ POST /tournaments/{id}/start
 POST /tournaments/{id}/reset
 ```
 
-#### Generate Game Plan
+#### Mode / Game-Plan Selection
+There is **no** `generate_game_plan` action. The game plan (Turnierplan /
+modus) is chosen via these real member routes:
+
 ```http
-POST /tournaments/{id}/generate_game_plan
+GET  /tournaments/{id}/finalize_modus   # show proposed plan(s) + grouping
+POST /tournaments/{id}/select_modus     # apply a chosen tournament_plan_id
 ```
+
+`POST /tournaments/{id}/recalculate_groups` re-runs the grouping algorithm.
 
 ### Players
 
@@ -394,20 +462,14 @@ GET /table_monitors/{id}
 }
 ```
 
-#### Update Table Monitor
+#### Set Balls
 ```http
-PATCH /table_monitors/{id}
+POST /table_monitors/{id}/set_balls
 ```
 
-**Request Body:**
-```json
-{
-  "table_monitor": {
-    "balls_a": 16,
-    "balls_b": 12
-  }
-}
-```
+Sets the ball count for the active player. The score is mutated through this
+member action (and the increment/decrement actions below), not through a
+`PATCH /table_monitors/{id}` update.
 
 ### Table Monitor Actions
 
@@ -507,21 +569,35 @@ const scoreboardSubscription = consumer.subscriptions.create(
 }
 ```
 
-## Data Synchronization API
+## Data Synchronization
 
-### External Data Sources
+> There are **no** `POST /api/sync/ba/*` or `POST /api/sync/cc/*` HTTP
+> endpoints. Synchronization with external data sources is performed by
+> **scraper services** triggered by **scheduled rake tasks**, not by an
+> inbound REST API.
 
-#### BA (Billiards Association) Sync
-```http
-POST /api/sync/ba/players
-POST /api/sync/ba/tournaments
+### Scraper Services
+
+External data is collected by service objects (see `app/services/`):
+`UmbScraperV2`, `CuescoScraper`, `SoopliveScraper`, `KozoomScraper`,
+`YoutubeScraper`.
+
+### Scheduled Sync Tasks
+
+The main synchronization entry points are rake tasks (run via cron / whenever):
+
+```bash
+rake scrape:daily_update              # daily regional/club/tournament/league sync
+rake scrape:daily_update_monitored    # monitored variant (cron @ 04:00 daily)
+rake scrape:update_seasons
+rake scrape:scrape_clubs
+rake scrape:scrape_tournaments_optimized
+rake scrape:scrape_leagues_optimized
 ```
 
-#### CC (Competition Center) Sync
-```http
-POST /api/sync/cc/competitions
-POST /api/sync/cc/results
-```
+Additional source-specific tasks live under the `umb:`, `cuesco:`,
+`youtube:`, and `international:` namespaces (e.g.
+`rake international:scrape_all`, `rake youtube:scrape_all`).
 
 ### Region Management
 
@@ -668,6 +744,9 @@ tournament = client.tournaments.create(
 
 ### Complete Tournament Workflow
 
+> **⚠️ Planned / future design.** This SDK sketch is illustrative only; no
+> `carambus-api-client` package or JSON tournament CRUD exists today.
+
 ```javascript
 // 1. Create tournament
 const tournament = await api.tournaments.create({
@@ -683,8 +762,9 @@ for (const player of players) {
   await api.tournaments.addParticipant(tournament.id, player.id)
 }
 
-// 3. Generate game plan
-await api.tournaments.generateGamePlan(tournament.id)
+// 3. Select the tournament mode / game plan
+//    (real HTML/Turbo actions: finalize_modus → select_modus)
+await api.tournaments.selectModus(tournament.id, { tournament_plan_id: planId })
 
 // 4. Start tournament
 await api.tournaments.start(tournament.id)

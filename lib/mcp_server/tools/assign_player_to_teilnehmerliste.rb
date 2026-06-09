@@ -109,11 +109,25 @@ module McpServer
 
         # DB-first-Resolver (Best-Effort, NBV-only-Optimization)
         scope = resolve_scope_filters(tournament_cc_id, fed_cc_id, branch_cc_id, season, disciplin_id, cat_id)
-
-        # Pre-Read via editTeilnehmerlisteCheck → parse state
         client = cc_session.client_for(server_context)
+
+        # Plan 26-01 T1b (2026-06-03 — Demo-2-Bugfix): REIHENFOLGE KRITISCH.
+        # showTeilnehmerliste MUSS vor editTeilnehmerlisteCheck dla=1 aufgerufen werden.
+        # T1-Fehler (Demo-2-Befund 2026-06-03): showTeilnehmerliste-GET NACH editTeilnehmerlisteCheck
+        # setzt den CC-Session-Edit-Buffer als Seiteneffekt zurück — assignPlayer fügt dann zu
+        # leerem Buffer hinzu, Save schreibt nur den neuen Spieler (live: 4 → 1 statt 4).
+        # Korrekte Reihenfolge entspricht dem CC-Web-UI-HAR-Flow: showTeilnehmerliste → editTeilnehmerlisteCheck.
+        persisted_result = McpServer::Tools::LookupTeilnehmerliste.fetch_teilnehmerliste_persisted(client, tournament_cc_id, scope)
+
+        # Pre-Read via editTeilnehmerlisteCheck → parse state (NACH showTeilnehmerliste!)
         pre_read = pre_read_teilnehmerliste(client, tournament_cc_id, scope)
         return pre_read if pre_read.is_a?(MCP::Tool::Response)  # error envelope
+
+        # Buffer-Sync-Guard mit vorab abgerufenem persisted_result (kein internes Fetch mehr).
+        sync = ensure_buffer_synced_with_persisted!(client, tournament_cc_id, scope, pre_read, persisted_result)
+        return sync[:error] if sync[:error]
+        pre_read = sync[:pre_read]
+        persisted_truth_source = sync[:persisted_truth_source]
 
         # Pre-Validation: alle player_cc_ids in meldungId-Available?
         available_ids = pre_read[:available_in_meldeliste].map { |opt| opt[:cc_id] }
@@ -160,6 +174,7 @@ module McpServer
             pre_read_verified: #{pre_read_status[:pre_read_verified]}
             pre_read_source: #{pre_read_status[:pre_read_source]}
             pre_read_warning: #{pre_read_status[:pre_read_warning]}
+            persisted_truth_source: #{persisted_truth_source}
             Pass armed:true to actually perform this assignment.
           DRY_RUN
         end
@@ -200,18 +215,24 @@ module McpServer
         return error("CC rejected at editTeilnehmerlisteSave: #{save_parsed}") if save_parsed && save_parsed != "(no error)"
 
         # Optional Read-Back (Schicht 4 Verify): re-read teilnehmerliste, verify all player_cc_ids now present.
+        # Plan 26-01 T1b: zusätzlich prüfen, ob Bestandsteilnehmer unbeabsichtigt entfernt wurden
+        # (Demo-2-Befund: alter read_back war False-Positive — prüfte nur neue Spieler, nicht Bestand).
         read_back_match = :skipped
         if read_back
           rb = pre_read_teilnehmerliste(client, tournament_cc_id, scope)
           if rb.is_a?(Hash)
             actual_ids = rb[:current_teilnehmer].map { |opt| opt[:cc_id] }
             missing_after_save = player_cc_ids - actual_ids
-            read_back_match = missing_after_save.empty?
+            pre_existing_ids = pre_read[:current_teilnehmer].map { |o| o[:cc_id] }
+            unintended_removals = pre_existing_ids - actual_ids
+            read_back_match = missing_after_save.empty? && unintended_removals.empty?
             unless read_back_match
+              problem_parts = []
+              problem_parts << "fehlende neue Spieler: #{missing_after_save.inspect}" if missing_after_save.any?
+              problem_parts << "unbeabsichtigt entfernte Bestandsteilnehmer: #{unintended_removals.inspect}" if unintended_removals.any?
               return error(
-                "Read-back mismatch: expected players #{player_cc_ids.inspect} in Teilnehmerliste, " \
-                "but #{missing_after_save.inspect} missing. Save may have failed silently. " \
-                "Inspect CC UI manually (cleanup may be needed)."
+                "Read-back mismatch: #{problem_parts.join("; ")}. " \
+                "Save hat möglicherweise unvollständige Daten geschrieben. Bitte CC-UI prüfen und ggf. bereinigen."
               )
             end
           else
@@ -241,6 +262,7 @@ module McpServer
           pre_read_verified: #{pre_read_status[:pre_read_verified]}
           pre_read_source: #{pre_read_status[:pre_read_source]}
           pre_read_warning: #{pre_read_status[:pre_read_warning]}
+          persisted_truth_source: #{persisted_truth_source}
         OUT
       rescue => e
         error("Tool exception: #{e.class.name} (details suppressed; check Rails.logger on stderr).")
@@ -274,6 +296,59 @@ module McpServer
         # CC-API hat keinen klaren finalized-Marker für Teilnehmerliste (Phase-7-Befund: kein finalize-State).
         # Defensive: assume non-finalized (CC selbst rejected falls Teilnehmerliste finalized).
         {name: "non_finalized", ok: true}
+      end
+
+      # Plan 26-01 T1 (2026-06-03): Buffer-Sync-Guard gegen Edit-Buffer 1-3s eventual nach Writes.
+      # Plan 26-01 T1b-Fix (2026-06-03): persisted_teilnehmer MUSS vorab (vor pre_read_teilnehmerliste!)
+      # abgerufen worden sein und wird als Parameter übergeben. Internes Fetchen würde den CC-Session-
+      # Edit-Buffer zurücksetzen (Demo-2-Befund: showTeilnehmerliste GET NACH editTeilnehmerlisteCheck
+      # setzt Session-State → leerer Buffer → nur neuer Spieler gespeichert).
+      # Liefert {pre_read:, persisted_truth_source:, error: nil} bei Sync oder Degrade-Graceful;
+      # {error: MCP-Response} wenn Buffer dauerhaft stale ist (kein Save → kein Datenverlust).
+      def self.ensure_buffer_synced_with_persisted!(client, tournament_cc_id, scope, pre_read, persisted_teilnehmer)
+        unless persisted_teilnehmer.is_a?(Array)
+          # Persisted-Read nicht verfügbar → Degrade-Graceful auf Edit-Buffer (T3b-Pattern).
+          Rails.logger.info "[assign_player_to_teilnehmerliste] persisted truth-source unavailable; falling back to edit_buffer for tournament_cc_id=#{tournament_cc_id}"
+          return {pre_read: pre_read, persisted_truth_source: "edit_buffer (persisted unavailable)", error: nil}
+        end
+
+        persisted_count = persisted_teilnehmer.size
+        edit_buffer_count = pre_read[:current_teilnehmer].size
+
+        if persisted_count <= edit_buffer_count
+          # Edit-Buffer mindestens so aktuell wie persisted → keine Aktion.
+          return {pre_read: pre_read, persisted_truth_source: "showTeilnehmerliste", error: nil}
+        end
+
+        # Edit-Buffer ist stale (Bug-Fall aus Demo-1). Einmalig warten + re-read.
+        Rails.logger.info "[assign_player_to_teilnehmerliste] edit_buffer stale (count=#{edit_buffer_count}) vs persisted (count=#{persisted_count}) for tournament_cc_id=#{tournament_cc_id}; waiting #{edit_buffer_resync_wait_seconds}s before retry"
+        sleep edit_buffer_resync_wait_seconds
+        retry_pre_read = pre_read_teilnehmerliste(client, tournament_cc_id, scope)
+        return {error: retry_pre_read} if retry_pre_read.is_a?(MCP::Tool::Response)
+
+        if persisted_count > retry_pre_read[:current_teilnehmer].size
+          # Buffer weiterhin stale → abort statt Datenverlust riskieren.
+          Rails.logger.warn "[assign_player_to_teilnehmerliste] edit_buffer remains stale after wait (count=#{retry_pre_read[:current_teilnehmer].size} vs persisted=#{persisted_count}); aborting for tournament_cc_id=#{tournament_cc_id}"
+          return {error: error(
+            "Die ClubCloud braucht einen Moment, bis sie den neuen Stand übernimmt. " \
+            "Bitte gleich erneut versuchen. " \
+            "(Hintergrund: Es sind bereits #{persisted_count} Eintrag(e) in der Teilnehmerliste, " \
+            "das Bearbeitungsformular sieht aber nur #{retry_pre_read[:current_teilnehmer].size} davon — " \
+            "ein Schreibvorgang jetzt würde die anderen Einträge verlieren.)"
+          )}
+        end
+
+        # Nach Wait synced — proceed mit korrigiertem pre_read.
+        {pre_read: retry_pre_read, persisted_truth_source: "showTeilnehmerliste (synced after wait)", error: nil}
+      end
+
+      # Wartezeit zwischen erstem Stale-Detect und Re-Read. Klassen-Methode + Setter für Test-Override.
+      def self.edit_buffer_resync_wait_seconds
+        @edit_buffer_resync_wait_seconds ||= 1.5
+      end
+
+      class << self
+        attr_writer :edit_buffer_resync_wait_seconds
       end
 
       # Resolve scope filters from DB (TournamentCc) + Override-Params (Best-Effort, NBV-only-Constraint).
@@ -324,17 +399,28 @@ module McpServer
         # firstEntry: 1 raus, dla/foundpid/etlbu/akkpid rein (HAR-Initial-Pattern)
         payload = base_payload(tournament_cc_id, scope).except(:firstEntry)
           .merge(dla: 1, foundpid: "", etlbu: "", akkpid: "")
-        res, doc = client.post("editTeilnehmerlisteCheck", payload, {armed: true, session_id: cc_session.cookie})
-        if cc_session.reauth_if_needed!(doc)
+        # CC-Flakiness-Retry: transienter HTTP-Fehler beim ersten Versuch → einmal wiederholen.
+        # Claude muss keinen Retry mehr machen — der Fehler taucht nie nach oben auf.
+        # retry ist in Ruby nur in rescue gültig — non-200 wird daher als Exception behandelt.
+        attempt = 0
+        begin
+          attempt += 1
           res, doc = client.post("editTeilnehmerlisteCheck", payload, {armed: true, session_id: cc_session.cookie})
+          if cc_session.reauth_if_needed!(doc)
+            res, doc = client.post("editTeilnehmerlisteCheck", payload, {armed: true, session_id: cc_session.cookie})
+          end
+          raise "HTTP #{res&.code}" unless res&.code == "200"
+          parsed = parse_teilnehmerliste_state(doc)
+          return parsed unless parsed.is_a?(Hash)
+          parsed
+        rescue => e
+          if attempt < 2
+            Rails.logger.warn "[pre_read_teilnehmerliste] attempt #{attempt} failed: #{e.message}, retrying in 300ms"
+            sleep(0.3)
+            retry
+          end
+          error("Pre-Read failed: #{e.message}")
         end
-        return error("Pre-Read failed: editTeilnehmerlisteCheck returned HTTP #{res&.code}") if res.nil? || res&.code != "200"
-
-        parsed = parse_teilnehmerliste_state(doc)
-        return parsed unless parsed.is_a?(Hash)
-        parsed
-      rescue => e
-        error("Pre-Read parse failed: #{e.class.name} (#{e.message})")
       end
 
       # Parse Tournament-Name + Teilnehmerliste-Options + Meldeliste-Options from editTeilnehmerlisteCheck HTML.

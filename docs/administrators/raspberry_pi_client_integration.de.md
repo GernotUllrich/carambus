@@ -144,14 +144,15 @@ Das System generiert automatisch die korrekte Scoreboard-URL:
 ```ruby
 location_id = scenario_config['scenario']['location_id']
 location_md5 = Digest::MD5.hexdigest(location_id.to_s)
-scoreboard_url = "http://#{webserver_host}:#{webserver_port}/locations/#{location_md5}?sb_state=welcome"
+sb_state = pi_config['sb_state'] || 'welcome'
+scoreboard_url = "http://#{webserver_host}:#{webserver_port}/locations/#{location_md5}/scoreboard?sb_state=#{sb_state}&locale=de"
 ```
 
 ### Beispiel
 
 Für `location_id: 2459`:
 - MD5-Hash: `a1b2c3d4e5f6...`
-- URL: `http://192.168.178.107:81/locations/a1b2c3d4e5f6...?sb_state=welcome`
+- URL: `http://192.168.178.107:3131/locations/a1b2c3d4e5f6.../scoreboard?sb_state=welcome&locale=de`
 
 ## Systemd-Service
 

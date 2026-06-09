@@ -26,7 +26,6 @@ class CategoryCc < ApplicationRecord
     "weiblich" => "F",
     "unisex (beide Geschlechter)" => "U"
   }
-  has_many :registration_list_ccs
   has_many :tournament_ccs
   belongs_to :branch_cc
 

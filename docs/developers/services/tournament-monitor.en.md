@@ -21,11 +21,11 @@ The namespace consists of **4 services** in `app/services/tournament_monitor/`.
 
 ```ruby
 TournamentMonitor::PlayerGroupDistributor.distribute_to_group(players, ngroups)
-  # → Hash { group_no => [player_ids] }
+  # → Hash { "group1" => [player_ids], "group2" => [player_ids], … }
   # Distributes players (Array of Integer) to ngroups groups via zig-zag
 
 TournamentMonitor::PlayerGroupDistributor.distribute_with_sizes(players, ngroups, sizes)
-  # → Hash { group_no => [player_ids] }
+  # → Hash { "group1" => [player_ids], "group2" => [player_ids], … }
   # Distributes players to ngroups groups with explicit group sizes
 ```
 
@@ -37,7 +37,7 @@ TournamentMonitor::PlayerGroupDistributor.distribute_with_sizes(players, ngroups
 | `ngroups` | `Integer` | Number of groups |
 | `sizes` | `Array<Integer>` | Explicit group sizes (only for `distribute_with_sizes`) |
 
-**Output:** `Hash { Integer => Array<Integer> }` — group number → list of player IDs.
+**Output:** `Hash { String => Array<Integer> }` — group key (`"group1"`, `"group2"`, …) → list of player IDs.
 
 ### RankingResolver
 
@@ -57,7 +57,7 @@ resolver.player_id_from_ranking(rule_str, opts = {})
 | `"g1.2"` | Player ranked 2nd in group 1 |
 | `"g1.rk4"` | Player ranked 4th in group 1 (explicit `rk` prefix) |
 | `"(g1.rk4 + g2.rk4).rk2"` | Composite rule: rank 2 among all rank-4 players from groups 1 and 2 |
-| `"fin.w"` | Winner of the final (KO bracket reference) |
+| `"fin.rk1"` | Rank 1 of the final game — i.e. the winner of the final (KO bracket reference) |
 | `"sl.rk1"` | Rank 1 in the small final (consolation bracket) |
 
 **Input (constructor):**
@@ -82,17 +82,23 @@ processor.accumulate_results
 processor.update_ranking
   # → updates rankings after result processing
 
-processor.update_game_participations
+processor.update_game_participations(tabmon)
   # → updates GameParticipation records
+  # → delegates to update_game_participations_for_game(tabmon.game, tabmon.data)
 ```
 
 **DB lock scope:**
 
 ```ruby
 game.with_lock do
-  # Covers exactly: write_game_result_data + finish_match!
-  # Pessimistic lock prevents race conditions on concurrent results
+  # Inside the lock: reload table_monitor + game, write_game_result_data,
+  # reload both again (to refresh the table_monitor.game association the
+  # AASM callback reads), then a guarded finish_match! (if may_finish_match?).
+  # Pessimistic lock prevents race conditions on concurrent results.
 end
+
+# The ClubCloud upload (finalize_game_result) runs OUTSIDE the lock,
+# after it is released, to avoid holding the lock during the network call.
 ```
 
 **Input (constructor):**

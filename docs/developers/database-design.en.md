@@ -19,7 +19,7 @@ The `Seeding` model serves two distinct purposes in the system:
 
 ```ruby
 class Seeding < ApplicationRecord
-  belongs_to :player, optional: true
+  belongs_to :player
   belongs_to :tournament, polymorphic: true, optional: true
   belongs_to :league_team, optional: true
   # ...

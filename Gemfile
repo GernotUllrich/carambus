@@ -22,6 +22,9 @@ gem "pg"
 # Use the Puma web server [https://github.com/puma/puma]
 gem "puma", "~> 6.6"
 
+# CORS for the external tournament app SPA (Plan 19-01 / v0.6) — scoped to the bridge API + /login
+gem "rack-cors", "~> 2.0"
+
 # Hotwire's SPA-like page accelerator [https://turbo.hotwired.dev]
 gem "turbo-rails", "~> 2.0.11"
 
@@ -167,8 +170,11 @@ gem 'cancancan', '~> 3.5'
 # Syntax highlighting for code blocks
 gem 'rouge', '~> 3.26'
 
-# OpenAI API integration for AI-powered search
+# OpenAI API integration (deprecated in v0.8 — kept for rollback)
 gem 'ruby-openai', '~> 7.3'
+
+# Anthropic Claude API (v0.8 — ersetzt OpenAI als primäre AI-Integration)
+gem 'anthropic'
 
 # PDF text extraction for tournament invitation parsing
 gem 'pdf-reader', '~> 2.12'

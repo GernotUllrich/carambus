@@ -78,15 +78,26 @@ ssh pi@<IP-ADRESSE>
 
 ### 2.1 Initiales Server-Setup
 
-Ansible Playbook ausführen, um Raspberry Pi als Server zu konfigurieren:
+Die Basis-Provisionierung des Raspberry Pi (Pakete, Ruby/rbenv, PostgreSQL, Nginx, www-data-Benutzer) erfolgt über das Setup-Skript bzw. die Ansible-Rollen im `carambus_master`-Checkout:
 
 ```bash
 cd carambus_master
-ansible-playbook -i ansible/inventory/production.yml \
-  ansible/playbooks/raspberry_pi_server.yml \
-  --extra-vars "target_host=raspberrypi.local" \
-  --ask-become-pass
+
+# Variante A: Setup-Skript direkt auf dem Raspberry Pi ausführen
+#   (vorher per scp/git auf den Pi übertragen)
+sh bin/setup-raspberry-pi.sh
+
+# Variante B: Ansible-Rollen aus dem ansible/-Verzeichnis
+#   Hosts in ansible/hosts eintragen, dann:
+cd ansible
+ansible-playbook -i hosts master.yml
 ```
+
+> Hinweis: Die genaue Provisionierungs-Prozedur (SSH-Härtung, rbenv, PostgreSQL,
+> Nginx) ist in `ansible/RUNBOOK` dokumentiert. Es gibt **kein**
+> `ansible/playbooks/raspberry_pi_server.yml` und **kein**
+> `ansible/inventory/production.yml`; das Inventar liegt in `ansible/hosts`,
+> die Playbooks in `ansible/master.yml` / `ansible/migrate.yml`.
 
 Dies wird:
 - ✅ System-Pakete aktualisieren
@@ -142,54 +153,40 @@ environments:
 
 ### 3.2 Vollständiges Deployment ausführen
 
-Automatisierten Deployment-Workflow verwenden:
+Den Deployment-Workflow Schritt für Schritt ausführen. Es gibt **keine** einzelne `deploy_complete`-Aufgabe; das Deployment setzt sich aus den folgenden Rake-Tasks zusammen:
 
 ```bash
 cd carambus_master
-rake "scenario:deploy_complete[carambus_bcw]"
+
+# 1. Deployment-Dateien vorbereiten (Configs, Credentials, Nginx/Puma)
+rake "scenario:prepare_deploy[carambus_bcw]"
+
+# 2. Server-Deployment (Capistrano + Datenbank-Restore + Service-Management)
+rake "scenario:deploy[carambus_bcw]"
+
+# 3. Raspberry Pi Client einrichten (Pakete, Kiosk-Benutzer, Systemd-Service)
+rake "scenario:setup_raspberry_pi_client[carambus_bcw]"
+
+# 4. Client-Konfiguration deployen (Scoreboard-URL, Autostart, Kiosk-Service)
+rake "scenario:deploy_raspberry_pi_client[carambus_bcw]"
+
+# 5. Client testen
+rake "scenario:test_raspberry_pi_client[carambus_bcw]"
 ```
 
-Diese umfassende Aufgabe wird:
+Diese Aufgaben erledigen zusammen:
 
-1. **Konfigurationsdateien generieren**
-   - Datenbank-Konfiguration
-   - Nginx-Konfiguration
-   - Puma Service-Dateien
-   - Credentials
-
-2. **Datenbank-Dump erstellen**
-   - Development-Datenbank exportieren
-   - Für Übertragung komprimieren
-
-3. **Auf Server deployen**
-   - Datenbank-Dump hochladen
-   - Auf Production-Server wiederherstellen
-   - Konfigurationsdateien hochladen
-   - Anwendungscode deployen (via Capistrano)
-
-4. **Raspberry Pi Client einrichten**
-   - Erforderliche Pakete installieren (Chromium, wmctrl, xdotool)
-   - Kiosk-Benutzer konfigurieren
-   - Systemd-Service erstellen
-
-5. **Client-Konfiguration deployen**
-   - Scoreboard-URL hochladen
-   - Autostart-Skript installieren
-   - Kiosk-Service aktivieren und starten
-
-6. **Alles testen**
-   - SSH-Verbindung überprüfen
-   - Systemd-Service prüfen
-   - Browser-Ausführung bestätigen
+1. **Konfigurationsdateien generieren** (Datenbank, Nginx, Puma, Credentials)
+2. **Auf Server deployen** (Anwendungscode via Capistrano, Datenbank-Restore)
+3. **Raspberry Pi Client einrichten** (Chromium, wmctrl, xdotool; Kiosk-Benutzer; Systemd-Service)
+4. **Client-Konfiguration deployen** (Scoreboard-URL, Autostart-Skript, Kiosk-Service aktivieren/starten)
+5. **Alles testen** (SSH-Verbindung, Systemd-Service, Browser-Ausführung)
 
 **Dauer:** ~10 Minuten
 
-**Erwartete Ausgabe:**
-```
-🎉 VOLLSTÄNDIGER WORKFLOW ERFOLGREICH!
-====================================
-Szenario 'carambus_bcw' ist jetzt vollständig deployed und betriebsbereit
+Nach erfolgreichem Deployment:
 
+```
 Zugriffsinformationen:
   - Web-Interface: http://192.168.178.107:3131
   - SSH-Zugriff: ssh -p 8910 www-data@192.168.178.107
@@ -300,7 +297,7 @@ ssh -p 8910 www-data@192.168.178.107 'sudo reboot'
 **Anwendungscode aktualisieren:**
 ```bash
 cd carambus_master
-rake "scenario:deploy[carambus_bcw,production]"
+rake "scenario:deploy[carambus_bcw]"
 ```
 
 **System-Pakete aktualisieren:**

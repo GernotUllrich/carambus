@@ -2,30 +2,89 @@
 
 ## Übersicht
 
-Dieses System befasst sich mit dem Problem von doppelten Turnieren mit unterschiedlichen `cc_id` Werten während des Scrapings. Wenn die Quelle mehrere Turniere mit demselben Namen, Datum und derselben Disziplin, aber unterschiedlichen `cc_id` Werten enthält, erkennt und behandelt dieses System sie automatisch, um das Hin- und Herwechseln zwischen verschiedenen Versionen zu verhindern.
+Dieses System befasst sich mit dem Problem von doppelten Turnieren mit unterschiedlichen `cc_id` Werten während des Scrapings. Die Quelle (ClubCloud) stellt dasselbe Turnier (gleicher Name, Saison, Veranstalter) manchmal unter mehr als einer `cc_id` bereit. Ohne Behandlung würden wiederholte Scraping-Läufe zwischen den verschiedenen `cc_id`-Versionen hin- und herwechseln. Dieses System markiert die überholte `cc_id` als verlassen, sodass zukünftige Läufe sie überspringen.
 
 ## Wie es funktioniert
 
-### 1. Duplikat-Erkennung
-- Während des Scrapings werden Turniere nach Namen gruppiert
-- Wenn mehrere Turniere denselben Namen haben, werden sie als Duplikate identifiziert
-- Das System analysiert jedes Duplikat, um zu bestimmen, welches behalten werden soll
+### 1. Inkrementelle Deduplizierung pro Zeile (Live-Scrape-Pfad)
 
-### 2. Auswahllogik
-Das System priorisiert Turniere in dieser Reihenfolge:
-1. **Hat Spiele** - Dies ist die definitive Version, das Turnier ist aktiv und wird verwendet
-2. **Hat Setzlisten** - Turniermanager haben begonnen, an dieser Version zu arbeiten (Vor-Turnier-Setup)
-3. **Keine Setzlisten und keine Spiele** - Saubere Turniere (niedrigste Priorität)
-4. **Höchste cc_id** - Wenn alle denselben Datenstatus haben, ist die höchste cc_id normalerweise die richtige
+Die Deduplizierung erfolgt **inkrementell, Zeile für Zeile**, innerhalb von
+`Region#scrape_single_tournament_public(season, opts = {})`
+(`app/models/region.rb`). Im Live-Scrape gibt es **keinen vorgelagerten
+Gruppierungs-Durchlauf nach Namen**; jede Turnierzeile aus der ClubCloud-Liste
+wird der Reihe nach verarbeitet:
+
+1. Die `cc_id` der aktuellen Zeile wird aus dem Turnier-Link gelesen.
+2. Wenn diese `cc_id` bereits auf der Überspringliste der verlassenen Einträge
+   steht (`AbandonedTournamentCcSimple.is_abandoned?(cc_id, context)`), wird die
+   Zeile vollständig übersprungen.
+3. Andernfalls sucht der Scraper nach einem **bestehenden** `TournamentCc`,
+   dessen zugehöriges `Tournament` denselben **Titel, dieselbe Saison und
+   denselben Veranstalter**, aber eine **andere `cc_id`** hat:
+
+   ```ruby
+   existing_tc_for_tournament = TournamentCc.joins(:tournament)
+     .where(tournaments: { title: name, season: season, organizer: self })
+     .where.not(cc_id: cc_id)
+     .first
+   ```
+
+4. Existiert ein solcher Datensatz, wird er als veraltetes Duplikat behandelt:
+   seine `old_cc_id` wird als verlassen markiert, und der Scraper fährt mit der
+   **aktuell gescrapten `cc_id`** fort und erstellt/aktualisiert dafür ein
+   `TournamentCc`.
+
+### 2. Auswahlverhalten
+
+Das **implementierte** Verhalten ist einfach: **die aktuell gescrapte `cc_id`
+behalten und die vorherige** mit demselben Turniertitel gefundene verlassen.
+Die „aktuelle Zeile gewinnt", weil die ClubCloud-Liste die maßgebliche Quelle
+dafür ist, was gerade live ist.
+
+> **Noch nicht implementiert (Design-Ziel):** Eine reichere Auswahllogik —
+> *hat Spiele > hat Setzlisten > höchste `cc_id`* — wurde als zukünftige
+> Verbesserung skizziert, ist aber **kein** Teil des Live-Scrape-Pfads. Die
+> vorhandene teilweise Setzlisten-/Spiele-Prüfung
+> (`Region#check_tournament_status`) wird nur von der diagnostischen
+> `analyze_duplicates`-Berichtsaufgabe verwendet, nicht zur automatischen
+> Auswahl.
 
 ### 3. Verlassenheits-Verfolgung
-- Verlassene `cc_id` Werte werden in der `abandoned_tournament_ccs` Tabelle gespeichert
-- Zukünftige Scraping-Läufe überspringen diese verlassenen `cc_id` Werte
-- Dies verhindert das Hin- und Herwechseln, das Sie erlebt haben
 
-## Datenbankschema
+Verlassene `cc_id`-Werte werden festgehalten, damit zukünftige Läufe sie
+überspringen. Daran sind zwei verschiedene Modelle beteiligt — siehe
+[Datenbankmodelle](#datenbankmodelle).
 
-### AbandonedTournamentCc Modell
+## Datenbankmodelle
+
+Es gibt **zwei getrennte Modelle** mit unterschiedlichen Rollen:
+
+### `AbandonedTournamentCcSimple` — Überspringliste des Live-Scrapes
+
+`app/models/abandoned_tournament_cc_simple.rb`, Tabelle
+`abandoned_tournament_cc_simples`. Dies ist das schlanke Modell, das der
+**Live-Scraper tatsächlich schreibt und liest**. Es speichert nur das, was
+nötig ist, um eine `cc_id` bei folgenden Läufen zu überspringen:
+
+| Spalte         | Beschreibung                                  |
+|----------------|-----------------------------------------------|
+| `cc_id`        | Die verlassene Turnier-`cc_id`                |
+| `context`      | Der Regions-Kontext (z.B. `dbu`, `nbv`)       |
+| `abandoned_at` | Wann es als verlassen markiert wurde          |
+
+Klassenmethoden:
+- `is_abandoned?(cc_id, context)` — Überspringliste prüfen.
+- `mark_abandoned!(cc_id, context)` — zur Überspringliste hinzufügen (no-op bei Duplikat).
+
+### `AbandonedTournamentCc` — manuelles / diagnostisches Modell
+
+`app/models/abandoned_tournament_cc.rb`, Tabelle `abandoned_tournament_ccs`.
+Dies ist das **reichere Audit-Modell**, das von den manuellen/diagnostischen
+Rake-Aufgaben verwendet wird (`analyze_duplicates`,
+`list_abandoned_tournaments`, `mark_tournament_abandoned`,
+`cleanup_abandoned_tournaments`). Der Live-Scrape-Pfad schreibt **nicht** in
+dieses Modell.
+
 ```ruby
 # Felder:
 - cc_id: Die verlassene Turnier-cc_id
@@ -39,13 +98,29 @@ Das System priorisiert Turniere in dieser Reihenfolge:
 - replaced_by_tournament_id: Welches Turnier es ersetzt hat
 ```
 
+Klassenmethoden:
+- `is_abandoned?(cc_id, context)` — prüft, ob eine cc_id verlassen ist.
+- `mark_abandoned!(cc_id, context, region_shortname, season_name, tournament_name, reason:, replaced_by_cc_id:, replaced_by_tournament_id:)` — legt einen reichen Verlassenheits-Eintrag an/aktualisiert ihn.
+- `for_region_season(region_shortname, season_name)` — Scope für die Auflistung.
+- `find_duplicate_tournaments(region_shortname, season_name, tournament_name)` — geordnete Duplikat-Suche.
+- `analyze_duplicates(region_shortname, season_name)` — gruppiert die Live-ClubCloud-Liste nach Namen und meldet doppelte `cc_id`s mit ihrem Setzlisten-/Spiele-/Verlassen-Status.
+- `cleanup_old_records(days = 365)` — entfernt alte Datensätze (positionales `days`).
+
 ## Verwendung
 
 ### Automatische Behandlung
-Das System funktioniert automatisch, wenn Sie ausführen:
-```bash
-rake scrape:tournaments_optimized
-```
+Die inkrementelle Deduplizierung läuft automatisch als Teil des öffentlichen
+Turnier-Scrapes (`Season#scrape_single_tournaments_public_cc` →
+`Region#scrape_single_tournament_public`), der von den regulären
+Scraping-Aufgaben aufgerufen wird (z.B. `scrape:daily_update`).
+
+> **Hinweis zu `scrape:scrape_tournaments_optimized`:** Es existiert eine
+> separate Rake-Aufgabe `scrape:scrape_tournaments_optimized`, die
+> `Season#scrape_tournaments_optimized` aufruft, das wiederum
+> `Region#scrape_tournaments_optimized(season, opts)` aufruft. **Diese
+> Region-Methode ist derzeit nicht definiert**, daher ist diese Aufgabe kein
+> funktionierender Einstiegspunkt für die oben beschriebene Deduplizierung. Der
+> funktionierende Dedup-Pfad ist `Region#scrape_single_tournament_public`.
 
 ### Manuelle Verwaltung
 
@@ -59,7 +134,7 @@ rake scrape:analyze_duplicates REGION=NBV SEASON=2023/2024
 rake scrape:list_abandoned_tournaments REGION=NBV SEASON=2023/2024
 ```
 
-#### Manuell als verlassen markieren
+#### Manuell als verlassen markieren (reiches Modell)
 ```bash
 rake scrape:mark_tournament_abandoned \
   CC_ID=123 \
@@ -69,6 +144,11 @@ rake scrape:mark_tournament_abandoned \
   TOURNAMENT="Turniername" \
   REASON="Manuelle Bereinigung" \
   REPLACED_BY_CC_ID=456
+```
+
+#### Eine cc_id als verlassen markieren (einfache Überspringliste)
+```bash
+rake scrape:mark_abandoned_simple CC_ID=123 CONTEXT=nbv
 ```
 
 #### Alte Datensätze bereinigen
@@ -82,22 +162,20 @@ rake scrape:cleanup_abandoned_tournaments DAYS=180
 
 ## Implementierungsdetails
 
-### Modifizierte Methoden
+### Wo die Deduplizierung liegt
 
-#### Region#scrape_tournaments_optimized
-- Gruppiert jetzt Turniere nach Namen vor der Verarbeitung
-- Erkennt Duplikate und wendet Auswahllogik an
-- Markiert verlassene cc_ids für zukünftige Läufe
+- **Einstieg (funktionierender Pfad):**
+  `Season#scrape_single_tournaments_public_cc(opts)` iteriert über alle
+  Regionen und ruft `Region#scrape_single_tournament_public(season, opts)` auf.
+- **Dedup-Logik:** innerhalb von `Region#scrape_single_tournament_public`
+  (`app/models/region.rb`, etwa Zeilen 505–545). Sie prüft die
+  Überspringliste, sucht ein bestehendes `TournamentCc` mit gleichem Titel und
+  anderer `cc_id`, verlässt die alte über `AbandonedTournamentCcSimple` und
+  behält die aktuelle `cc_id`.
 
-#### Neue private Methoden
-- `process_single_tournament`: Behandelt einzelne Turniere
-- `process_duplicate_tournaments`: Behandelt Duplikatgruppen
-
-### AbandonedTournamentCc Modell
-- `is_abandoned?`: Überprüft, ob eine cc_id verlassen ist
-- `mark_abandoned!`: Markiert eine cc_id als verlassen
-- `analyze_duplicates`: Analysiert Duplikate für eine Region/Saison
-- `cleanup_old_records`: Entfernt alte verlassene Datensätze
+Es gibt **keine** Hilfsmethoden `process_single_tournament` oder
+`process_duplicate_tournaments` — die Logik steht inline in
+`scrape_single_tournament_public`.
 
 ## Erweiterte Funktionen
 
@@ -105,15 +183,11 @@ rake scrape:cleanup_abandoned_tournaments DAYS=180
 
 #### Automatische Erkennung
 ```ruby
-# Duplikate für eine Region/Saison analysieren
-duplicates = AbandonedTournamentCc.analyze_duplicates('NBV', '2023/2024')
-
-duplicates.each do |duplicate|
-  puts "Turnier: #{duplicate.tournament_name}"
-  puts "Verlassene cc_id: #{duplicate.cc_id}"
-  puts "Ersetzt durch: #{duplicate.replaced_by_cc_id}"
-  puts "Grund: #{duplicate.reason}"
-end
+# Duplikate für eine Region/Saison analysieren.
+# Achtung: analyze_duplicates gibt einen menschenlesbaren STRING-Bericht
+# zurück (kein Array von Datensätzen) und scrapet die Live-ClubCloud-Liste.
+report = AbandonedTournamentCc.analyze_duplicates('NBV', '2023/2024')
+puts report
 ```
 
 #### Manuelle Überprüfung
@@ -137,11 +211,11 @@ AbandonedTournamentCc.mark_abandoned!(
 # Standard: 365 Tage
 AbandonedTournamentCc.cleanup_old_records
 
-# Benutzerdefiniert: 180 Tage
-AbandonedTournamentCc.cleanup_old_records(days: 180)
+# Benutzerdefiniert: 180 Tage (positionales Argument, kein Keyword)
+AbandonedTournamentCc.cleanup_old_records(180)
 
 # Sehr aggressiv: 90 Tage
-AbandonedTournamentCc.cleanup_old_records(days: 90)
+AbandonedTournamentCc.cleanup_old_records(90)
 ```
 
 #### Regionsbasierte Bereinigung
@@ -211,11 +285,10 @@ Rails.logger.debug "Verarbeite Duplikatgruppe: #{duplicate_group.inspect}"
 
 #### Manuelle Überprüfung
 ```bash
-# Duplikate für eine bestimmte Region analysieren
+# Duplikate für eine bestimmte Region/Saison analysieren (Live-ClubCloud-Liste)
 rails console
-region = Region.find_by(shortname: 'NBV')
-duplicates = region.analyze_tournament_duplicates('2023/2024')
-puts duplicates.inspect
+report = AbandonedTournamentCc.analyze_duplicates('NBV', '2023/2024')
+puts report
 ```
 
 ## Best Practices

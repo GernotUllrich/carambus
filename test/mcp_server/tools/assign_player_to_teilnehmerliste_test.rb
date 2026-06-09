@@ -319,4 +319,92 @@ class McpServer::Tools::AssignPlayerToTeilnehmerlisteTest < ActiveSupport::TestC
     tools = McpServer::Server.collect_tools.map { |t| t.respond_to?(:tool_name) ? t.tool_name : nil }.compact
     assert_includes tools, "cc_assign_player_to_teilnehmerliste"
   end
+
+  # --- Plan 26-01 T1 (2026-06-03): Race-Fix gegen Edit-Buffer-Stale-Bug aus Demo-1 ---
+
+  test "Plan 26-01 T1: edit_buffer matches persisted (beide leer) → no override, no wait, persisted_truth_source=showTeilnehmerliste" do
+    # Default-Setup: Edit-Buffer initial leer (teilnehmer=[]), persisted via Default-MockClient.get
+    # liefert HTML ohne cc_bluelink-Anchor → fetch_teilnehmerliste_persisted = [].
+    # Erwartung: 0 ≤ 0 → kein Stale, normaler Pfad, persisted_truth_source: "showTeilnehmerliste".
+    response = McpServer::Tools::AssignPlayerToTeilnehmerliste.call(
+      tournament_cc_id: 890, player_cc_ids: [11683],
+      fed_cc_id: 20, branch_cc_id: 8, season: "2025/2026",
+      armed: true, server_context: nil
+    )
+    refute response.error?, "Expected success, got: #{response.content.first[:text]}"
+    text = response.content.first[:text]
+    assert_match(/persisted_truth_source: showTeilnehmerliste\b/, text)
+    refute_match(/synced after wait/, text)
+    refute_match(/persisted unavailable/, text)
+    # showTeilnehmerliste muss exakt 1x via GET aufgerufen worden sein (initial sync check, kein retry).
+    show_calls = @mock.calls.select { |verb, action, _, _| verb == :get && action == "showTeilnehmerliste" }
+    assert_equal 1, show_calls.size, "fetch_teilnehmerliste_persisted muss 1x aufgerufen werden — got #{show_calls.size}"
+    # Genau 2 Pre-Reads (1 initial + 1 read-back); KEIN Retry-Pre-Read nach Sleep.
+    pre_read_calls = @mock.calls.select { |verb, action, _, _| verb == :post && action == "editTeilnehmerlisteCheck" }
+    assert_equal 3, pre_read_calls.size, "1 initial + 1 re-render + 1 read-back — got #{pre_read_calls.size}"
+  end
+
+  test "Plan 26-01 T1: edit_buffer permanent stale (persisted=3, buffer=0) → abort vor Save mit Sportwart-Sprache" do
+    # Worst-Case aus Demo-1: editTeilnehmerlisteCheck liefert teilnehmer=[] (stale leer),
+    # showTeilnehmerliste liefert 3 persistierte Spieler.
+    # Erwartung: Wait + Re-Read → immer noch stale → abort mit deutscher Nachricht; KEIN Schreibvorgang.
+    persisted_body = <<~HTML
+      <html><body>
+        <a href="showTeilnehmer.php?p=20-8-x-2025/2026-x--890-3-10413" title="Auel, Wilfried (10413)" class="cc_bluelink">Auel</a>
+        <a href="showTeilnehmer.php?p=20-8-x-2025/2026-x--890-3-10227" title="Jahn, Wilfried (10227)" class="cc_bluelink">Jahn</a>
+        <a href="showTeilnehmer.php?p=20-8-x-2025/2026-x--890-3-10934" title="Weiss, Jeffrey (10934)" class="cc_bluelink">Weiss</a>
+      </body></html>
+    HTML
+
+    helper = self.class
+    meldung_initial = [[11683, "Nachtmann, Georg (11683)"], [10024, "Schröder, Hans-Jörg (10024)"]]
+    stale_mock = McpServer::Tools::MockClient.new
+    stale_mock.define_singleton_method(:get) do |action, params, opts|
+      @calls << [:get, action, params, opts]
+      if action == "showTeilnehmerliste"
+        [Struct.new(:code, :message, :body).new("200", "OK", persisted_body), Nokogiri::HTML(persisted_body)]
+      else
+        [Struct.new(:code, :message, :body).new("200", "OK", ""), Nokogiri::HTML("")]
+      end
+    end
+    stale_mock.define_singleton_method(:post) do |action, params, opts|
+      @calls << [:post, action, params, opts]
+      if action == "editTeilnehmerlisteCheck"
+        # Edit-Buffer-View bleibt stale (teilnehmer leer) bei JEDEM Re-Read.
+        body = helper.build_check_html(teilnehmer_options: [], meldung_options: meldung_initial, tournament_name: "TEST Stale Buffer")
+        [Struct.new(:code, :message, :body).new("200", "OK", body), Nokogiri::HTML(body)]
+      else
+        [Struct.new(:code, :message, :body).new("200", "OK", ""), Nokogiri::HTML("<html></html>")]
+      end
+    end
+    McpServer::CcSession._client_override = stale_mock
+    # Test-Beschleunigung: 0s Wait statt 1.5s.
+    McpServer::Tools::AssignPlayerToTeilnehmerliste.edit_buffer_resync_wait_seconds = 0
+
+    response = McpServer::Tools::AssignPlayerToTeilnehmerliste.call(
+      tournament_cc_id: 890, player_cc_ids: [11683],
+      fed_cc_id: 20, branch_cc_id: 8, season: "2025/2026",
+      armed: true, server_context: nil
+    )
+
+    # Reset Wait-Konstante für andere Tests.
+    McpServer::Tools::AssignPlayerToTeilnehmerliste.edit_buffer_resync_wait_seconds = 1.5
+
+    assert response.error?, "Expected abort, got: #{response.content.first[:text]}"
+    text = response.content.first[:text]
+    assert_match(/ClubCloud braucht einen Moment/, text)
+    assert_match(/gleich erneut versuchen/, text)
+    assert_match(/3 Eintrag\(e\) in der Teilnehmerliste/, text)
+    assert_match(/Schreibvorgang jetzt würde die anderen Einträge verlieren/, text)
+    # CRITICAL: KEIN assignPlayer und KEIN editTeilnehmerlisteSave aufgerufen.
+    write_calls = stale_mock.calls.select { |verb, action, _, _| verb == :post && %w[assignPlayer editTeilnehmerlisteSave].include?(action) }
+    assert write_calls.empty?, "Abort darf NICHT in CC schreiben — got #{write_calls.inspect}"
+    # 2 Pre-Reads (initial + 1 Retry nach Wait).
+    pre_read_calls = stale_mock.calls.select { |verb, action, _, _| verb == :post && action == "editTeilnehmerlisteCheck" }
+    assert_equal 2, pre_read_calls.size, "Sync-Guard: initial + 1 retry-after-wait — got #{pre_read_calls.size}"
+    # AC-3 Sportwart-Sprache: KEINE Verbots-Begriffe in Fehler-Nachricht.
+    %w[Flapping Eventual Caching Race-Condition Buffer Stale].each do |verboten|
+      refute_match(/#{verboten}/, text, "Sportwart-Fehler darf '#{verboten}' nicht enthalten")
+    end
+  end
 end

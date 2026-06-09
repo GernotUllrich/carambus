@@ -395,11 +395,12 @@ module McpServer
       end
 
       # Plan 10-05.1 Task 2 (D-10-04-G Constraint 1/7): Meldeliste-Existenz via DB-Lookup.
+      # Plan 23-01 T3e: Quelle ist jetzt TournamentCc.meldeliste_cc_id (war RL).
       # Defensive: bei unklarer DB-State → ok:true (keine False-Negative-Blockade).
       def self._validate_meldeliste_exists(meldeliste_cc_id)
         return {name: "meldeliste_exists", ok: false, reason: "meldeliste_cc_id missing"} if meldeliste_cc_id.blank?
-        RegistrationListCc.find_by(cc_id: meldeliste_cc_id) if defined?(RegistrationListCc)
-        # Defensive: wenn Model nicht existiert oder Lookup-Empty → assume OK (CC-Pre-Read in armed:true-Workflow verifiziert)
+        TournamentCc.find_by(meldeliste_cc_id: meldeliste_cc_id)
+        # Defensive: wenn TCc-Lookup empty → assume OK (CC-Pre-Read in armed:true-Workflow verifiziert)
         {name: "meldeliste_exists", ok: true}
       rescue => e
         Rails.logger.warn "[cc_register._validate_meldeliste_exists] #{e.class}: #{e.message}"
@@ -415,10 +416,9 @@ module McpServer
 
       # Constraint 3/7: Deadline-offen (accredation_end >= today).
       def self._validate_deadline_offen(meldeliste_cc_id)
-        # DB-Lookup via TournamentCc.registration_list_cc → Tournament.accredation_end
-        registration_list = RegistrationListCc.find_by(cc_id: meldeliste_cc_id) if defined?(RegistrationListCc)
-        tournament_cc = registration_list&.tournament_cc if registration_list.respond_to?(:tournament_cc)
-        tournament = tournament_cc&.tournament if tournament_cc
+        # Plan 23-01 T3e: TCc-direct (war RL → tournament_cc → tournament-Chain).
+        tournament_cc = TournamentCc.find_by(meldeliste_cc_id: meldeliste_cc_id)
+        tournament = tournament_cc&.tournament
         if tournament&.accredation_end
           if tournament.accredation_end < Date.today
             return {name: "deadline_offen", ok: false, reason: "accredation_end=#{tournament.accredation_end.iso8601} ist in der Vergangenheit (today=#{Date.today.iso8601})"}

@@ -3,8 +3,6 @@ require 'uri'
 require 'json'
 
 class AiTranslationService
-  ANTHROPIC_API_URL = "https://api.anthropic.com/v1/messages"
-  
   # Billard-Kontext für bessere Übersetzungen
   BILLIARD_CONTEXT = <<~CONTEXT
     Du bist ein Experte für Carambolage-Billard (französisches Billard ohne Taschen).
@@ -27,16 +25,15 @@ class AiTranslationService
     - Sei präzise bei technischen Beschreibungen
   CONTEXT
   
-  def initialize(provider: :openai)
+  def initialize(provider: :anthropic)
     @provider = provider
-    
+
     case @provider
     when :anthropic
-      @api_key = Rails.application.credentials.dig(:anthropic_key)
+      @api_key = Rails.application.credentials.dig(:anthropic, :api_key)
       raise "Anthropic API key not found" unless @api_key
     when :openai
-      @api_key = Rails.application.credentials.dig(:openai, :api_key)
-      raise "OpenAI API key not found" unless @api_key
+      raise "OpenAI provider deprecated in v0.8 — use :anthropic"
     end
   end
   
@@ -88,34 +85,15 @@ class AiTranslationService
   end
   
   def call_claude_api(prompt)
-    uri = URI.parse(ANTHROPIC_API_URL)
-    request = Net::HTTP::Post.new(uri)
-    request["Content-Type"] = "application/json"
-    request["x-api-key"] = @api_key
-    request["anthropic-version"] = "2023-06-01"
-    
-    request.body = {
-      model: "claude-3-sonnet-20240229",
+    client = Anthropic::Client.new(api_key: @api_key)
+    client.messages.create(
+      model: "claude-haiku-4-5-20251001",
       max_tokens: 2048,
-      messages: [
-        {
-          role: "user",
-          content: prompt
-        }
-      ]
-    }.to_json
-    
-    response = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) do |http|
-      http.read_timeout = 30
-      http.request(request)
-    end
-    
-    if response.is_a?(Net::HTTPSuccess)
-      JSON.parse(response.body)
-    else
-      Rails.logger.error("Claude API Error: #{response.code} - #{response.body}")
-      nil
-    end
+      messages: [{role: "user", content: prompt}]
+    )
+  rescue => e
+    Rails.logger.error("Claude API Error: #{e.message}")
+    nil
   end
   
   def call_openai_api(prompt)
@@ -151,20 +129,13 @@ class AiTranslationService
   
   def extract_translation(response, provider)
     return nil unless response
-    
-    case provider
+
+    content = case provider
     when :anthropic
-      # Claude gibt die Antwort im "content" Array zurück
-      content = response.dig("content", 0, "text")
-    when :openai
-      # OpenAI gibt die Antwort in "choices" zurück
-      content = response.dig("choices", 0, "message", "content")
+      response.content&.first&.text
     end
-    
-    return nil unless content
-    
-    # Entferne eventuelle Markdown-Formatierung oder Erklärungen
-    content.strip
+
+    content&.strip
   end
   
   def language_name(code)

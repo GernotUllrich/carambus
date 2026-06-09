@@ -73,7 +73,7 @@ TableMonitor::ResultRecorder.switch_to_next_set(table_monitor: tm)
   "Aufnahmen2"   => Integer,         # number of innings player B
   "Höchstserie1" => Integer,         # highest run player A
   "Höchstserie2" => Integer,         # highest run player B
-  "Tischnummer"  => Integer          # table ID
+  "Tischnummer"  => Integer          # table number (game.table_no)
 }
 ```
 
@@ -92,6 +92,10 @@ AASM events (`end_of_set!`, `finish_match!`, `acknowledge_result!`) are fired on
 ### c. No direct broadcast calls
 
 Neither service calls CableReady or ActionCable directly. Broadcasts happen via `after_update_commit` hooks on the `TableMonitor` model — the services remain free of presentation logic.
+
+### d. set_over ⟹ panel_state "protocol_final" (before_save invariant)
+
+While the AASM state is `set_over` ("game finished"), the before_save invariant `enforce_protocol_final_panel_at_set_over` forces `panel_state = "protocol_final"`. As a result, at game end the scoreboard **always goes straight** to the protocol editor (final mode, "Fertig"/Done = `confirm_result` → `evaluate_result` advances the state) — instead of the rare detour through the "…OK?"/legacy `innings_list` panel. Rationale: several paths overwrite `panel_state` after entering `set_over` (karambol input mode `"inputs"`, `key_a`/`key_b` `"pointer_mode"`, app/bridge games); the invariant is the single path-independent chokepoint. `current_element` is left untouched (tiebreak sets `"tiebreak_winner_choice"`). The `"…OK?"` status itself is the tournament-director confirmation when `!player_controlled?` (see `locked_scoreboard`).
 
 ## Cross-References
 

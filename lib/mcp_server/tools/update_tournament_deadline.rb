@@ -282,15 +282,14 @@ module McpServer
         end
       end
 
-      # DB-first-Resolver: tournament_cc.registration_list_cc.cc_id (Phase 5 Plan 05-01 pattern).
-      # Best-Effort — kein Block bei DB-Lücke (NBV-only-Boundary; CC-only-Mode überspringt das).
-      # Plan 14-02.1 / D-14-02-D: TournamentCc-Lookup via BaseTool-Helper mit (cc_id, context)-Tuple.
-      # Note: RegistrationListCc-Chain ist stale (D-14-02-A); wird in Plan 14-02.4 durch
-      # Live-CC-API-Fetch (CcSession#fetch_meldeliste_overview) ersetzt.
+      # DB-first-Resolver: tournament_cc.meldeliste_cc_id (Plan 23-01 T3d).
+      # Vorher: registration_list_cc-Chain; jetzt direkt aus TCc-Feld.
+      # Best-Effort — kein Block bei DB-Lücke; Live-CC-API-Fetch ist alternative
+      # Quelle (CcSession#fetch_meldeliste_overview).
       def self.resolve_meldeliste_cc_id(tournament_cc_id, server_context: nil)
         return nil unless tournament_cc_id
         tournament_cc = resolve_tournament_cc(cc_id: tournament_cc_id, server_context: server_context)
-        tournament_cc&.registration_list_cc&.cc_id
+        tournament_cc&.meldeliste_cc_id
       rescue => e
         Rails.logger.warn "[UpdateTournamentDeadline.resolve_meldeliste_cc_id] DB-resolver failed: #{e.class}"
         nil

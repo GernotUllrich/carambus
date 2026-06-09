@@ -152,9 +152,60 @@ module McpServer
         client = cc_session.client_for(server_context)
         params = {fedId: fed_id, meisterschaftId: meisterschaft_id}
         params[:season] = season if season.present?
-        res, _doc = client.get("showMeisterschaft", params, {session_id: cc_session.cookie})
+        res, doc = client.get("showMeisterschaft", params, {session_id: cc_session.cookie})
         return error("CC live-lookup failed: HTTP #{res&.code}") if res&.code != "200"
-        text("CC live response for showMeisterschaft (meisterschaft_id=#{meisterschaft_id}, status #{res.code})")
+        return error("CC live-lookup: leere Response") if doc.nil?
+
+        parsed = parse_meisterschaft_html(doc)
+        return error("CC live-lookup: konnte Turnierdaten nicht aus HTML parsen") if parsed.nil?
+
+        # DB-Mirror quick-refresh (analog T3a-Pattern aus Phase 25)
+        context = effective_cc_region(server_context)&.to_s&.downcase
+        tournament_cc = context.present? ?
+          TournamentCc.find_by(cc_id: meisterschaft_id, context: context) :
+          TournamentCc.find_by(cc_id: meisterschaft_id)
+        if tournament_cc && (parsed[:name].present? || parsed[:season].present?)
+          tournament_cc.update(
+            name: parsed[:name] || tournament_cc.name,
+            season: parsed[:season] || tournament_cc.season
+          )
+        end
+
+        text(JSON.generate(parsed.merge(meisterschaft_id: meisterschaft_id, source: "cc-live")))
+      rescue => e
+        Rails.logger.warn "[cc_lookup_tournament] live_lookup failed: #{e.class}: #{e.message}"
+        error("CC live-lookup failed: #{e.class.name} (defensive)")
+      end
+
+      def self.parse_meisterschaft_html(doc)
+        find_td = lambda do |label|
+          doc.css("tr").each do |tr|
+            first_td = tr.css("td").first
+            next unless first_td && first_td.text.strip == label
+            white_td = tr.css("td.white").first
+            return white_td if white_td
+          end
+          nil
+        end
+
+        status_td = find_td.call("Status")
+        date_td = find_td.call("Datum (von - bis)")
+        location_td = find_td.call("Location")
+
+        {
+          name: find_td.call("Meisterschaft")&.css("strong")&.text&.strip,
+          shortname: find_td.call("Kurzbezeichner")&.text&.strip,
+          branch_name: find_td.call("Sparte")&.text&.strip,
+          season: find_td.call("Saison")&.text&.strip,
+          status: status_td&.css("img")&.first&.attr("title"),
+          date_from: date_td&.css("b")&.first&.text&.strip,
+          location_text: location_td&.css("b")&.first&.text&.strip,
+          discipline: find_td.call("Disziplin")&.text&.strip,
+          category: find_td.call("Kategorie")&.text&.strip
+        }
+      rescue => e
+        Rails.logger.warn "[cc_lookup_tournament] parse_meisterschaft_html failed: #{e.class}: #{e.message}"
+        nil
       end
 
       def self.format_tournament_cc(tournament_cc, with_committed_list: false, meldeliste_cc_id_override: nil, fed_id: nil, server_context: nil)
@@ -193,9 +244,9 @@ module McpServer
       # Liest bereits-angemeldete Player-cc_ids via showCommittedMeldeliste.
       # Defensives Pattern (analog Phase-2 force_refresh): Sync-/Parse-Fehler erzeugen
       # nil + meta-Warnung statt Exception. meldeliste_cc_id-Auflösung primär aus
-      # tournament_cc.registration_list_cc; Override-Param erlaubt Fallback.
+      # tournament_cc.meldeliste_cc_id (Plan 23-01 T3d); Override-Param erlaubt Fallback.
       def self.read_committed_players(tournament_cc:, meldeliste_cc_id_override:, fed_id:, meta:, server_context: nil)
-        meldeliste_cc_id = meldeliste_cc_id_override.presence || tournament_cc.registration_list_cc&.cc_id
+        meldeliste_cc_id = meldeliste_cc_id_override.presence || tournament_cc.meldeliste_cc_id
         if meldeliste_cc_id.blank?
           # Plan 14-02.3 / F-6: Sportwart-Vokabular.
           meta[:committed_list_warning] = "Daten-Lücke: Das Turnier ist in Carambus, aber die Meldeliste-Verknüpfung fehlt. Bitte LSW informieren — oder meldeliste_cc_id direkt setzen (Override-Parameter)."

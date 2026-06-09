@@ -25,6 +25,7 @@ processor.report_result(table_monitor)
 
 processor.accumulate_results
   # → nil; aggregiert GameParticipation-Ergebnisse in @party_monitor.data["rankings"]
+  #   und persistiert sie via @party_monitor.save! (Seiteneffekt)
 
 processor.finalize_round
   # → nil; schließt alle TableMonitor-Records und akkumuliert Ergebnisse
@@ -72,7 +73,7 @@ populator.reset_party_monitor
 populator.initialize_table_monitors
   # → nil; weist TableMonitors den Party-Tischen zu
 
-populator.do_placement(game, r_no, t_no)
+populator.do_placement(game, r_no, t_no, row = nil, row_nr = nil)
   # → platziert ein einzelnes Spiel auf einem Tisch (Runden-Nr. r_no, Tisch-Nr. t_no)
 ```
 
@@ -83,6 +84,8 @@ populator.do_placement(game, r_no, t_no)
 | `game` | `Game` | Das zu platzierende Spiel |
 | `r_no` | `Integer` | Runden-Nummer |
 | `t_no` | `Integer` | Tisch-Nummer |
+| `row` | `Hash` | Optional. Ergebnis-Zeile für die Platzierung (Default `nil`) |
+| `row_nr` | `Integer` | Optional. Zeilen-Index für die Platzierung (Default `nil`) |
 
 ## Architektur-Entscheidungen
 
@@ -92,11 +95,11 @@ Beide Services sind POROs (keine `ApplicationService`-Unterklasse), da sie mehre
 
 ### b. AASM-Events auf dem Modell, nicht im Service
 
-Alle AASM-Events (z. B. `finish_match!`, `close_match!`) werden auf `@party_monitor` bzw. dem jeweiligen `table_monitor`-Record ausgelöst, nicht vom Service selbst. Dies stellt sicher, dass `after_enter`-Callbacks korrekt über die Modellreferenz ausgeführt werden.
+AASM-Events wie `finish_match!` und `close_match!` werden auf dem `table_monitor`-Record (einem `TableMonitor`) ausgelöst, nicht im Service / nicht auf `@party_monitor`. Dies stellt sicher, dass `after_enter`-Callbacks korrekt über die Modellreferenz ausgeführt werden.
 
 ### c. cattr_accessor-Muster
 
-Der `cattr_accessor`-Wert `allow_change_tables` wird als `PartyMonitor.allow_change_tables` (Klassen-Level) abgerufen — nicht als `TournamentMonitor.allow_change_tables`. Dies spiegelt den eigenständigen Namespace des PartyMonitors wider.
+`allow_change_tables` ist als `cattr_accessor` auf dem `PartyMonitor`-Modell deklariert (`party_monitor.rb:~35`). Die tatsächliche Lese-/Schreib-Nutzung liegt jedoch im `table_populator` des `TournamentMonitor` (über `TournamentMonitor.allow_change_tables`), nicht in einem PartyMonitor-Service. Die Deklaration existiert auf dem Modell, wird aber von den hier dokumentierten PartyMonitor-Services nicht verwendet.
 
 ### d. Paralleles Muster zu TournamentMonitor::
 

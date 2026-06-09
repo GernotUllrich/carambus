@@ -47,13 +47,18 @@ user.save!
 
 ### Checking Permissions
 ```ruby
-# In the application
-if current_user.can_create_tournaments?
+# In the application (CanCanCan permissions via Ability)
+if can? :create, Tournament
   # Allow tournament creation
 end
 
-if current_user.is_system_admin?
+# Role checks (enum predicates on User)
+if current_user.system_admin?
   # Show system functions
+end
+
+if current_user.admin?        # true for club_admin OR system_admin
+  # Show admin functions
 end
 ```
 

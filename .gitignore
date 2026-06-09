@@ -7,6 +7,9 @@
 # Ignore bundler config.
 /.bundle
 
+# Ignore graphify knowledge-graph output (graph, drift findings, caches).
+/graphify-out
+
 # Ignore all logfiles and tempfiles.
 /log/*
 /tmp/*
@@ -95,6 +98,10 @@ Thumbs.db
 # Ignore scenario-specific generated files (generated from carambus_data/*/config.yml)
 /config/deploy/production.rb
 /config/environments/development.rb
+
+# Plan 21-10: deploy.rb committed as tracked-repo-file (universal content,
+# Variants leben in production.rb stage-file). Overrides ~/.gitignore_global Z.3.
+!/config/deploy.rb
 /config/scoreboard_url
 /env.development
 /doc/doc-local/**/*.log

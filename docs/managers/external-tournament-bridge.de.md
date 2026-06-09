@@ -73,9 +73,9 @@ Verifiziere die Anbindung vor dem ersten echten Turnier:
 SERVICE_ACCOUNT_PASSWORD="<password>" rake external_tournament:smoke_test[NBV]
 ```
 
-Erfolgreicher Output zeigt 5 Schritte mit `✓` (Login → Tournament-Lookup →
-Seeding → Round-Start → Round-Result). Bei Fehler siehe Abschnitt
-"Was läuft schief?" weiter unten.
+Erfolgreicher Output zeigt 6 Schritte mit `✓` (Login → Tournament-Lookup →
+Seeding → Round-Start → Round-Result → Player-Reconcile). Bei Fehler siehe
+Abschnitt "Was läuft schief?" weiter unten.
 
 ## Deployment-Topologie
 

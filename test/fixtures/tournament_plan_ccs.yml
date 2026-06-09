@@ -1,0 +1,26 @@
+# Phase 21-03 T2: TournamentPlanCc Fixtures
+#
+# Hinweise:
+#   - id < 50_000_000 (= Carambus.MIN_ID): globale Records (LocalProtector schützt).
+#   - cc_id nullable (showMeisterschaft.php liefert ggf. nur Plan-Namen, keine cc_id).
+#   - (context, name)-Lookup ist Primärschlüssel-Ersatz für name-only-Funde.
+
+nbv_einzel_einfach:
+  cc_id: 101
+  name: Einzel-K.o.
+  context: nbv
+
+nbv_doppel_endrunde:
+  cc_id: 102
+  name: Endrunde 16er
+  context: nbv
+
+nbv_name_only_sample:
+  cc_id:
+  name: Round-Robin-Standard
+  context: nbv
+
+bbbv_other_region:
+  cc_id: 201
+  name: Einzel-K.o.
+  context: bbbv

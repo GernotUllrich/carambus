@@ -65,20 +65,9 @@ cd carambus_master
 
 ---
 
-### `install-scoreboard-client.sh`
-**Zweck**: Installiert Scoreboard-Client-Software
-
-**Verwendung**:
-```bash
-./bin/install-scoreboard-client.sh
-```
-
-**Was wird gemacht**:
-- Installiert Client-Dependencies
-- Konfiguriert Browser für Fullscreen
-- Richtet Autostart ein
-
----
+> **Hinweis:** Die Scoreboard-Client-Software wird über `install-client-only.sh`
+> installiert (siehe oben). Ein separates `install-scoreboard-client.sh` Script
+> gibt es nicht.
 
 ### `setup-phillips-table-ssh.sh`
 **Zweck**: SSH-Zugang für Phillips Table einrichten

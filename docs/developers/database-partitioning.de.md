@@ -50,8 +50,8 @@ module RegionTaggable
   extend ActiveSupport::Concern
 
   included do
-    after_save :update_region_tagging
-    after_destroy :update_region_tagging
+    after_save :update_version_region_data
+    after_destroy :update_version_region_data
   end
 
   def find_associated_region_id
@@ -67,7 +67,7 @@ end
 ### Versions-Scope
 ```ruby
 scope :for_region, ->(region_id) {
-  where("region_id IS NULL OR region_id = ?", region_id)
+  where("region_id IS NULL OR region_id = ? OR global_context = TRUE", region_id)
 }
 ```
 
@@ -76,7 +76,7 @@ scope :for_region, ->(region_id) {
 ### Rake Tasks
 ```bash
 # Region-IDs für alle Modelle aktualisieren
-rails region_taggings:update_all_region_ids
+rails region_taggings:update_all_region_id
 
 # Region-Tagging für alle Modelle aktualisieren
 rails region_taggings:update_all
@@ -107,10 +107,10 @@ bin/check_database_sync.sh carambus_bcw
 Environment-Override:
 - `CARAMBUS_DATA_DIR=/pfad/zu/carambus_data bin/check_database_sync.sh carambus_bcw`
 
-### Modelle mit RegionTaggable
-- Region, Club, Tournament, League, Party
-- Location, LeagueTeam, Game, PartyGame, GameParticipation
-- Player, SeasonParticipation, Seeding
+### Modelle mit RegionTaggable (16 Modelle)
+- Region, Club, ClubLocation, Tournament, League, Party
+- Location, LeagueTeam, Game, GamePlan, PartyGame, GameParticipation
+- Player, SeasonParticipation, Seeding, Table
 
 ## Migration von altem System
 

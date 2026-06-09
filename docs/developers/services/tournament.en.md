@@ -51,7 +51,11 @@ return if Carambus.config.carambus_api_url.present?
 calculator = Tournament::RankingCalculator.new(tournament)
 
 calculator.calculate_and_cache_rankings
-  # → nil (updates the tournament's data hash with calculated rankings)
+  # → nil; writes the result into tournament.data["player_rankings"]
+  #   (player_id => rank). Guarded — returns early (no-op) unless ALL hold:
+  #     - tournament.organizer is a Region
+  #     - tournament.discipline is present
+  #     - tournament is local (id present and id >= MIN_ID)
 
 calculator.reorder_seedings
   # → nil (renumbers seedings after competition)

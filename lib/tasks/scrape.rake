@@ -34,8 +34,12 @@ namespace :scrape do
 
     # Update seasons if needed
     Season.update_seasons if Season.find_by_name("#{Date.today.year}/#{Date.today.year + 1}").blank?
+    # Plan 21-11 T2 (D-21-06-F-Aufhebung): `season = Season[16]` Hardcode entfernt
+    # (überschrieb fälschlich Season.current_season mit fest-codiertem Index 16 →
+    # auf älteren DBs die falsche Saison, auf neueren u.U. nil). Hebt
+    # D-21-06-F-Defer auf (scrape:optimized_daily_update bleibt aber in
+    # schedule.rb auskommentiert — Re-Enable = Operations-Entscheidung).
     season = Season.current_season
-    season = Season[16]
 
     Rails.logger.info "##-##-##-##-##-## UPDATE REGIONS (NEW ONLY) ##-##-##-##-##-##"
     Region.scrape_regions_optimized

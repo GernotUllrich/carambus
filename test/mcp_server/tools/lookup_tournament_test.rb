@@ -323,6 +323,49 @@ class McpServer::Tools::LookupTournamentTest < ActiveSupport::TestCase
     end
   end
 
+  # DEFER-25-1/3: live_lookup parst showMeisterschaft HTML → strukturiertes JSON
+  test "DEFER-25-1/3: parse_meisterschaft_html extrahiert alle 9 Felder aus Fixture" do
+    fixture_path = Rails.root.join("test/fixtures/region_cc/show_meisterschaft_nbv.html")
+    skip "Fixture nicht gefunden" unless File.exist?(fixture_path)
+    doc = Nokogiri::HTML(File.read(fixture_path))
+
+    result = McpServer::Tools::LookupTournament.parse_meisterschaft_html(doc)
+    assert_not_nil result, "Parser soll Hash zurückgeben, nicht nil"
+    assert_equal "NDM Freie Partie Klasse I", result[:name]
+    assert_equal "NDM FP Kl I", result[:shortname]
+    assert_equal "Karambol", result[:branch_name]
+    assert_equal "2022/2023", result[:season]
+    assert_equal "Veröffentlicht", result[:status]
+    assert_equal "20.11.2022", result[:date_from]
+    assert_equal "Vereinsheim: BG Hamburg", result[:location_text]
+    assert_equal "Freie Partie (großes Billard)", result[:discipline]
+    assert_equal "NDM (0-999)", result[:category]
+  end
+
+  test "DEFER-25-1/3: force_refresh:true mit Mock-HTML liefert strukturiertes JSON (kein Status-String)" do
+    fixture_path = Rails.root.join("test/fixtures/region_cc/show_meisterschaft_nbv.html")
+    skip "Fixture nicht gefunden" unless File.exist?(fixture_path)
+    html = File.read(fixture_path)
+    # mock_mode (ENV=1) gibt immer MockClient.new — _client_override wird ignoriert.
+    # Kurz deaktivieren damit _client_override greift.
+    ENV["CARAMBUS_MCP_MOCK"] = nil
+    @mock.define_singleton_method(:get) do |action, params, opts|
+      @calls << [:get, action, params, opts]
+      [Struct.new(:code, :message, :body).new("200", "OK", html), Nokogiri::HTML(html)]
+    end
+
+    response = McpServer::Tools::LookupTournament.call(
+      meisterschaft_id: 51, fed_id: 20, force_refresh: true,
+      server_context: {cc_region: "NBV"}
+    )
+    refute response.error?, "force_refresh mit gültiger HTML soll kein Error sein; got: #{response.content.first[:text]}"
+    body = JSON.parse(response.content.first[:text])
+    assert_equal "NDM Freie Partie Klasse I", body["name"]
+    assert_equal "cc-live", body["source"]
+    refute_match(/CC live response for showMeisterschaft/, response.content.first[:text],
+      "Darf keinen Status-String mehr enthalten")
+  end
+
   # Plan 14-02.3 / F-7: explicit season-override.
   test "F-7 Season-Override: explicit season-Parameter wechselt Filter" do
     skip "Season fixtures fehlen" if Season.count < 2

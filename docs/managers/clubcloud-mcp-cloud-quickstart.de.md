@@ -75,15 +75,15 @@ carambus-remote:
 - Starte eine **neue Claude-Code-Session**
 - Frage: **„Welche carambus-remote Tools hast Du?"**
 
-Erwartete Tool-Anzahl je nach Deiner Rolle:
+Erwartet: **23 Tools** (die volle Suite). Jeder authentifizierte User sieht
+dieselben 23 Tools — die Rechte-Prüfung passiert nicht über das Ausblenden von
+Tools, sondern beim Aufruf: Liegt eine Aktion außerhalb Deines Wirkbereichs
+(Sportwart-Locations + -Disziplinen bzw. Turnierleiter-Zuweisung), lehnt der
+Server sie mit klarer Meldung ab — Claude erklärt dann, wen Du kontaktieren
+musst. Details in [`cc-roles`](clubcloud-scenarios/cc-roles.de.md).
 
-| Rolle | Anzahl Tools |
-|-------|--------------|
-| Landessportwart (LSW) | **22 Tools** (volle Suite) |
-| Turnierleiter (TL) | **19 Tools** (Akkreditierung am Turniertag) |
-| Sportwart (SW) | **16 Tools** (Anmeldungs-Lebenszyklus vor Turnier) |
-
-Wenn falsche Anzahl → Carambus-Admin Bescheid sagen; Dein Wirkbereich (Sportwart-Locations + -Disziplinen bzw. Turnierleiter-Zuweisung) muss noch konfiguriert werden. Details in [`cc-roles`](clubcloud-scenarios/cc-roles.de.md).
+Wenn die Tool-Liste **leer (0 Tools)** ist → Carambus-Admin Bescheid sagen;
+Dein Login-Token ist noch nicht korrekt verbunden.
 
 ---
 

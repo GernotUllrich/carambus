@@ -36,15 +36,18 @@ The table heaters are automatically controlled based on calendar entries and act
 
 The heaters are automatically activated:
 
-1. **2 hours (3 hours for match billards) before a reservation**
+1. **2 hours before a reservation (4 hours for Match Billard / Snooker tables)**
 2. **At the latest within 5 minutes**, when a game is recognized on the **Scoreboard**
 
 ### Deactivation (OFF)
 
 The heaters are automatically deactivated:
 
-1. **After reservation start**: If no activity is recognized on the **Scoreboard** for one hour
-2. **Without running reservation**: If no reservation is running and no activity is recognized on the **Scoreboard** for one hour
+1. **After reservation start**: If the **Scoreboard** is not switched on within 30 minutes after the event start (no activity recognized)
+2. **Without running reservation**: If no reservation is running and the **Scoreboard** is switched off (no activity recognized)
+3. **After reservation end**: When the event has finished, the heater is switched off immediately, even if the Scoreboard is still on
+
+> **Note**: Reservations whose title contains `(!)` are *protected* — the heater stays ON for the entire reservation period regardless of Scoreboard activity (it is still switched off once the event ends).
 
 ## Technical Integration
 

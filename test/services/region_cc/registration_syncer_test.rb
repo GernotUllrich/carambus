@@ -2,68 +2,18 @@
 
 require "test_helper"
 
-# Unit tests fuer RegionCc::RegistrationSyncer.
-# Alle HTTP-Aufrufe werden via Minitest::Mock abgefangen.
-# Kein VCR — reine Unit-Tests mit injizierten Client-Doubles.
+# Unit tests für RegionCc::RegistrationSyncer post Plan 23-01 T2.
+# Syncer schreibt jetzt TournamentCc.meldeliste_*-Felder direkt, nicht mehr
+# RegistrationListCc. Tests testen die Match-Logik (context+name → TCc) und
+# das HTML-Parsing der V2-UI-Tabelle.
 class RegionCc::RegistrationSyncerTest < ActiveSupport::TestCase
   setup do
     @region_cc = RegionCc.new(cc_id: 20, shortname: "NBV")
     @client = Minitest::Mock.new
-    @season = Season.new(id: 5, name: "2023/2024")
+    @season = Season.new(id: 5, name: "2025/2026")
     @branch_cc = BranchCc.new(cc_id: 10, id: 1)
   end
 
-  # ---------------------------------------------------------------------------
-  # Test 1: sync_registration_list_ccs_detail erstellt RegistrationListCc-Records
-  # ---------------------------------------------------------------------------
-  test "sync_registration_list_ccs_detail creates RegistrationListCc from HTML response" do
-    list_html = <<~HTML
-      <html><body>
-        <select name="meldelisteId">
-          <option value="66">5. Petit Prix Einband</option>
-        </select>
-      </body></html>
-    HTML
-
-    detail_html = <<~HTML
-      <html><body>
-        <table><tr class="tableContent"><td><table><tr>
-          <td>Meldeliste</td><td></td><td>Test Meldeliste</td>
-        </tr></table></td></tr></table>
-      </body></html>
-    HTML
-
-    @client.expect(:post, [OpenStruct.new(message: "OK"), Nokogiri::HTML(list_html)],
-      ["showMeldelistenList", Hash, Hash])
-    @client.expect(:post, [OpenStruct.new(message: "OK"), Nokogiri::HTML(detail_html)],
-      ["showMeldeliste", Hash, Hash])
-
-    registration_list_cc = RegistrationListCc.new
-    registration_list_cc.define_singleton_method(:new_record?) { true }
-    registration_list_cc.define_singleton_method(:update) { |_args| true }
-    registration_list_cc.define_singleton_method(:cc_id) { 66 }
-
-    RegistrationListCc.stub(:find_or_initialize_by, registration_list_cc) do
-      result = nil
-      assert_nothing_raised do
-        result = RegionCc::RegistrationSyncer.call(
-          region_cc: @region_cc, client: @client,
-          operation: :sync_registration_list_ccs_detail,
-          season: @season, branch_cc: @branch_cc,
-          context: "nbv", update_from_cc: true
-        )
-      end
-      # Beide HTTP-Aufrufe (showMeldelistenList + showMeldeliste) wurden abgesetzt;
-      # @client.verify bestätigt, dass genau diese Aufrufe gemacht wurden
-      assert_not_nil result
-    end
-
-    @client.verify
-  end
-
-  # ---------------------------------------------------------------------------
-  # Test 2: Unbekannte Operation wirft ArgumentError
-  # ---------------------------------------------------------------------------
   test "raises ArgumentError for unknown operation" do
     assert_raises(ArgumentError) do
       RegionCc::RegistrationSyncer.call(
@@ -73,122 +23,104 @@ class RegionCc::RegistrationSyncerTest < ActiveSupport::TestCase
     end
   end
 
-  # ===========================================================================
-  # Plan 14-G.14 Task 4: push_link_to_api Tests
-  # ===========================================================================
-  class PushLinkToApiTest < ActiveSupport::TestCase
-    setup do
-      RegionCc::RegistrationSyncer.reset_api_token!
+  test "updates matching TournamentCc with meldeliste_cc_id + deadline + qualifying_date" do
+    html = build_meldelisten_html([
+      {cc_id: 777, name: "Test Meldeliste 23-01", deadline: "15.06.2025", qualifying_date: "01.01.2025", status: "Gemeldet"}
+    ])
 
-      @api_url = "https://api.example.test"
-      @api_origin = Carambus.config.respond_to?(:carambus_api_url) ? Carambus.config.carambus_api_url : nil
-      # Carambus.config.carambus_api_url ist OpenStruct — wir stubben via Stub
-      Carambus.config.define_singleton_method(:carambus_api_url) { "https://api.example.test" } unless Carambus.config.carambus_api_url
+    @client.expect(:post, [OpenStruct.new(message: "OK"), Nokogiri::HTML(html)],
+      ["showMeldelistenList", Hash, Hash])
 
-      @tournament_cc = Minitest::Mock.new
-      @tournament_cc.expect(:id, 12345)
-      def @tournament_cc.tournament
-        OpenStruct.new(region: OpenStruct.new(shortname: "NBV"))
-      end
+    tcc_attrs = nil
+    tcc_stub = Object.new
+    tcc_stub.define_singleton_method(:update_columns) { |attrs| tcc_attrs = attrs }
 
-      @registration_list_cc = OpenStruct.new(
-        cc_id: 999_001, name: "Test Meldeliste",
-        branch_cc_id: 8, season: OpenStruct.new(name: "2025/2026"),
-        discipline_id: 58, category_cc_id: nil
-      )
-    end
-
-    teardown do
-      RegionCc::RegistrationSyncer.reset_api_token!
-    end
-
-    test "push_link_to_api with no carambus_api_url configured does nothing" do
-      Carambus.config.stub(:carambus_api_url, nil) do
-        assert_nothing_raised do
-          RegionCc::RegistrationSyncer.push_link_to_api(@tournament_cc, @registration_list_cc)
-        end
-      end
-    end
-
-    test "push_link_to_api with no credentials configured logs warn and skips" do
-      Rails.application.credentials.stub(:api_syncer_email, nil) do
-        Rails.application.credentials.stub(:api_syncer_password, nil) do
-          assert_nothing_raised do
-            RegionCc::RegistrationSyncer.push_link_to_api(@tournament_cc, @registration_list_cc)
-          end
-        end
-      end
-    end
-
-    test "push_link_to_api with 200 response triggers apply_response_unprotected" do
-      stub_request(:post, "https://api.example.test/login")
-        .to_return(status: 200, headers: {"Authorization" => "Bearer test-jwt"})
-
-      stub_request(:patch, "https://api.example.test/api/tournament_ccs/12345/registration_list_link")
-        .with(headers: {"Authorization" => "Bearer test-jwt"})
-        .to_return(
-          status: 200,
-          body: {tournament_cc: {id: 12345, registration_list_cc_id: 9999}, registration_list_cc: {id: 9999, cc_id: 999_001, name: "X"}}.to_json,
-          headers: {"Content-Type" => "application/json"}
+    TournamentCc.stub(:where, ->(*) {
+      relation = Object.new
+      relation.define_singleton_method(:where) { |*| relation }
+      relation.define_singleton_method(:none?) { false }
+      relation.define_singleton_method(:find_each) { |&block| block.call(tcc_stub) }
+      relation
+    }) do
+      assert_nothing_raised do
+        RegionCc::RegistrationSyncer.call(
+          region_cc: @region_cc, client: @client,
+          operation: :sync_registration_list_ccs_detail,
+          season: @season, branch_cc: @branch_cc,
+          context: "nbv"
         )
-
-      Rails.application.credentials.stub(:api_syncer_email, "syncer@test.de") do
-        Rails.application.credentials.stub(:api_syncer_password, "secret") do
-          RegionCc::RegistrationSyncer.stub(:apply_response_unprotected, ->(_json) { :applied }) do
-            assert_nothing_raised do
-              RegionCc::RegistrationSyncer.push_link_to_api(@tournament_cc, @registration_list_cc)
-            end
-          end
-        end
       end
     end
 
-    test "push_link_to_api with 401 retries once with fresh token" do
-      RegionCc::RegistrationSyncer.reset_api_token!
+    assert_not_nil tcc_attrs, "TournamentCc.update_columns muss aufgerufen worden sein"
+    assert_equal 777, tcc_attrs[:meldeliste_cc_id]
+    assert_equal Date.new(2025, 6, 15), tcc_attrs[:meldeliste_deadline]
+    assert_equal Date.new(2025, 1, 1), tcc_attrs[:meldeliste_qualifying_date]
+    @client.verify
+  end
 
-      login_count = 0
-      stub_request(:post, "https://api.example.test/login")
-        .to_return do
-          login_count += 1
-          {status: 200, headers: {"Authorization" => "Bearer fresh-jwt-#{login_count}"}}
-        end
+  test "skips rows without matching TournamentCc (no crash)" do
+    html = build_meldelisten_html([
+      {cc_id: 888, name: "Orphan Meldeliste ohne TCc", deadline: "01.07.2025", qualifying_date: "01.01.2025", status: "Gemeldet"}
+    ])
 
-      patch_count = 0
-      stub_request(:patch, "https://api.example.test/api/tournament_ccs/12345/registration_list_link")
-        .to_return do
-          patch_count += 1
-          if patch_count == 1
-            {status: 401, body: {error: "Unauthorized"}.to_json}
-          else
-            {status: 200, body: {tournament_cc: {}, registration_list_cc: {}}.to_json}
-          end
-        end
+    @client.expect(:post, [OpenStruct.new(message: "OK"), Nokogiri::HTML(html)],
+      ["showMeldelistenList", Hash, Hash])
 
-      Rails.application.credentials.stub(:api_syncer_email, "syncer@test.de") do
-        Rails.application.credentials.stub(:api_syncer_password, "secret") do
-          RegionCc::RegistrationSyncer.stub(:apply_response_unprotected, ->(_json) { :applied }) do
-            RegionCc::RegistrationSyncer.push_link_to_api(@tournament_cc, @registration_list_cc)
-          end
-        end
-      end
-
-      assert_equal 2, patch_count, "PATCH muss 2× gerufen werden (initial + retry nach 401)"
-      assert_equal 2, login_count, "POST /login muss 2× gerufen werden (initial + after reset_api_token!)"
-    end
-
-    test "push_link_to_api on network exception logs and does not crash" do
-      stub_request(:post, "https://api.example.test/login")
-        .to_return(status: 200, headers: {"Authorization" => "Bearer test-jwt"})
-      stub_request(:patch, "https://api.example.test/api/tournament_ccs/12345/registration_list_link")
-        .to_raise(Errno::ECONNREFUSED)
-
-      Rails.application.credentials.stub(:api_syncer_email, "syncer@test.de") do
-        Rails.application.credentials.stub(:api_syncer_password, "secret") do
-          assert_nothing_raised do
-            RegionCc::RegistrationSyncer.push_link_to_api(@tournament_cc, @registration_list_cc)
-          end
-        end
+    TournamentCc.stub(:where, ->(*) {
+      relation = Object.new
+      relation.define_singleton_method(:where) { |*| relation }
+      relation.define_singleton_method(:none?) { true }
+      relation.define_singleton_method(:find_each) { |&block| }
+      relation
+    }) do
+      assert_nothing_raised do
+        RegionCc::RegistrationSyncer.call(
+          region_cc: @region_cc, client: @client,
+          operation: :sync_registration_list_ccs_detail,
+          season: @season, branch_cc: @branch_cc,
+          context: "nbv"
+        )
       end
     end
+
+    @client.verify
+  end
+
+  private
+
+  # Baut V2-UI-konformes HTML: <table> mit >5 <tr> (extract_meldeliste_rows
+  # nimmt nur Tabellen mit `tr.length > 5`). Pro Meldeliste-Row 8 Cells:
+  # [Laufnr | Name+Link | Disziplin | Deadline | Kategorie | QualifyingDate | Status | Dashboard]
+  # Link-Pattern: ?p=<fed>|<branch>|<disz>|<kat>|<season>|<cc_id>&
+  def build_meldelisten_html(rows)
+    body_rows = rows.map.with_index(1) do |r, i|
+      <<~ROW
+        <tr>
+          <td>#{i}</td>
+          <td><a class="cc_bluelink" href="showMeldeliste.php?p=20|10|*|*|2025/2026|#{r[:cc_id]}&">#{r[:name]}</a></td>
+          <td>Karambol</td>
+          <td>#{r[:deadline]}</td>
+          <td>Senioren (50-99)</td>
+          <td>#{r[:qualifying_date]}</td>
+          <td>#{r[:status]}</td>
+          <td>icon</td>
+        </tr>
+      ROW
+    end.join
+
+    # Mindestens 6 Rows (1 Header + 5 Daten); padding mit Dummy-Rows wenn nötig.
+    padding_needed = [6 - (rows.size + 1), 0].max
+    padding = ("<tr><td>dummy</td>" * 8 + "</tr>") * padding_needed
+
+    <<~HTML
+      <html><body>
+        <table>
+          <tr><th>Header</th></tr>
+          #{body_rows}
+          #{padding}
+        </table>
+      </body></html>
+    HTML
   end
 end

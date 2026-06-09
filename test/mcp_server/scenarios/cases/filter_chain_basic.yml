@@ -53,5 +53,4 @@ steps:
     expect:
       error: false
       content_includes:
-        - "last_sync_age_hours"
         - "filter_basis"

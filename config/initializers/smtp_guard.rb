@@ -11,6 +11,10 @@
 # assets:precompile, db:seed, rails console, rails runner, generators) — diese
 # Tasks senden keine Mails und sollen ohne SMTP-Creds laufbar bleiben (Hot-Fix
 # nach Phase 41 Production-Deploy-Bruch von carambus_nbv 2026-05-16).
+#
+# Opt-out (Plan 16-03 / D-16-03-A): ENV["SKIP_SMTP_GUARD"]=1 ueberspringt den Guard explizit —
+# fuer Scenario-Server ohne echtes SMTP (z.B. carambus_gu), als sauberer Ersatz fuer den
+# frueheren Dummy-SMTP-ENV-Workaround. Ohne das Flag bleibt der Fail-Fast-Schutz unveraendert.
 if Rails.env.production?
   # Detection ueber empirisch bewaehrte Signale (verifiziert mit File-Trace,
   # carambus_nbv-Tree, 2026-05-16):
@@ -34,7 +38,9 @@ if Rails.env.production?
                 basename == "puma" ||
                 basename == "sidekiq"
 
-  if server_boot
+  # SKIP_SMTP_GUARD=1 (z.B. im systemd Environment=) deaktiviert den Guard explizit fuer
+  # Scenario-Server ohne echtes SMTP — sauberes Opt-out statt Dummy-SMTP-Creds.
+  if server_boot && ENV["SKIP_SMTP_GUARD"].blank?
     missing = []
     missing << "SMTP_USERNAME" if ENV["SMTP_USERNAME"].blank?
     missing << "SMTP_PASSWORD" if ENV["SMTP_PASSWORD"].blank?

@@ -19,8 +19,8 @@ Visuelle Übersicht des Monitoring-Systems.
                              │ include ScrapeMonitor
                              ▼
               ┌──────────────────────────────┐
-              │   ScrapingMonitor            │
-              │  (Concern)                   │
+              │   ScrapeMonitor (Concern)    │
+              │   + ScrapingMonitor (class)  │
               │                              │
               │  - track_scraping()          │
               │  - record_created()          │
@@ -54,9 +54,9 @@ Visuelle Übersicht des Monitoring-Systems.
   │                │         │  (Rake Tasks)       │
   │  /scraping_    │         │                     │
   │   monitor      │         │  - scrape:stats     │
-  │                │         │  - scrape:health    │
-  │  - Overview    │         │  - scrape:errors    │
-  │  - Per-Op View │         │  - scrape:export    │
+  │                │         │  - scrape:check_health   │
+  │  - Overview    │         │  - scrape:recent_errors  │
+  │  - Per-Op View │         │  - scrape:export_stats   │
   │  - Auto-Refresh│         │                     │
   └────────────────┘         └─────────────────────┘
 ```
@@ -148,10 +148,9 @@ scraping_logs Table
   │
   └─▶ ScrapingLog.check_anomalies
       │
-      └─▶ Prüfungen:
-          ├─ success_rate < 90% ? → ALARM
-          ├─ avg_duration > 300s ? → ALARM
-          └─ no recent runs ? → ALARM
+      └─▶ Prüfungen (aktuell 2 implementiert):
+          ├─ success_rate < (100 - threshold*100)% ? → ALARM
+          └─ avg_duration > 300s ? → ALARM
 ```
 
 ---
@@ -334,7 +333,8 @@ Backend:
 ├── app/models/concerns/scraping_monitor.rb         [Concern]
 ├── app/models/scraping_log.rb                      [Model]
 ├── db/migrate/20260215194955_create_scraping_logs.rb
-└── db/migrate/20260215195121_add_unchanged_count_to_scraping_logs.rb
+├── db/migrate/20260215195121_add_unchanged_count_to_scraping_logs.rb
+└── db/migrate/20260215210617_add_model_stats_to_scraping_logs.rb
 
 Frontend:
 ├── app/controllers/scraping_monitor_controller.rb  [Controller]
@@ -343,16 +343,12 @@ Frontend:
 └── config/routes.rb                                [+2 Routes]
 
 CLI:
-└── lib/tasks/scrape_monitored.rake                 [7 Tasks]
+└── lib/tasks/scrape_monitored.rake                 [6 Tasks: daily_update_monitored,
+                                                     stats, check_health, cleanup_logs,
+                                                     recent_errors, export_stats]
 
 Documentation:
-├── docs/SCRAPING_MONITORING.md                     [Vollständig]
-├── docs/SCRAPING_MONITORING_QUICKSTART.md          [5 Min]
-├── docs/MONITORING_ARCHITECTURE.md                 [This file]
-└── MONITORING_SYSTEM.md                            [Übersicht]
-
-Updated:
-└── test/README.md                                  [+Monitoring Link]
+└── docs/internal/implementation-notes/monitoring-architecture.md  [This file]
 ```
 
 ---
@@ -384,17 +380,19 @@ SCENARIO DEPLOYMENT (per carambus_bcw etc):
    └─▶ Restarts Puma
 
 
-PRODUCTION CRON JOBS:
-─────────────────────
-# Daily Scraping (3:00 AM)
-0 3 * * * cd /var/www/carambus_bcw && rake scrape:daily_update_monitored
+PRODUCTION CRON JOBS (via config/schedule.rb / whenever, roles: [:api]):
+────────────────────────────────────────────────────────────────────────
+# Daily Scraping (4:00 AM)
+#   every 1.day, at: "4:00 am", roles: [:api] -> rake scrape:daily_update_monitored
 
-# Health Check (6:00 AM)
-0 6 * * * cd /var/www/carambus_bcw && rake scrape:check_health || \
-          mail -s "Scraping Alert: carambus_bcw" admin@example.com
+# Weekly Cleanup (Sunday 6:00 AM, keep last 90 days)
+#   every :sunday, at: "6:00 am", roles: [:api] -> rake scrape:cleanup_logs[90]
 
-# Weekly Cleanup (Sunday 4:00 AM)
-0 4 * * 0 cd /var/www/carambus_bcw && rake scrape:cleanup_logs[90]
+# NOTE: No scrape:check_health cron is currently scheduled. Run it manually or
+#       wire it into config/schedule.rb if alerting on anomalies is desired, e.g.:
+#         every 1.day, at: "6:00 am", roles: [:api] do
+#           rake "scrape:check_health"
+#         end
 ```
 
 ---
@@ -413,6 +411,7 @@ CREATE TABLE scraping_logs (
   unchanged_count  INTEGER DEFAULT 0,
   error_count      INTEGER DEFAULT 0,
   errors_json      TEXT,
+  model_stats      JSONB DEFAULT '{}',
   executed_at      TIMESTAMP NOT NULL,
   created_at       TIMESTAMP NOT NULL,
   updated_at       TIMESTAMP NOT NULL
@@ -422,6 +421,8 @@ CREATE INDEX index_scraping_logs_on_operation ON scraping_logs(operation);
 CREATE INDEX index_scraping_logs_on_executed_at ON scraping_logs(executed_at);
 CREATE INDEX index_scraping_logs_on_operation_and_executed_at 
   ON scraping_logs(operation, executed_at);
+CREATE INDEX index_scraping_logs_on_model_stats
+  ON scraping_logs USING gin (model_stats);
 ```
 
 ---

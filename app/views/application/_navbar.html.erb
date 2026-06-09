@@ -90,6 +90,20 @@
   </div>
 </nav>
 
+<!-- Floating Sportwart-Assistent Button (nur für Sportwarte, nicht auf der Chat-Seite selbst) -->
+<%- if user_signed_in? && current_user.sportwart_locations.any? && controller_name != 'spielleiter_chat' %>
+  <%= link_to spielleiter_chat_path,
+        title: "Sportwart-Assistent öffnen",
+        class: "fixed bottom-6 right-6 z-40 w-14 h-14 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center group" do %>
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.76c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.076-4.076a1.526 1.526 0 011.037-.443 48.282 48.282 0 005.68-.494c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z"/>
+    </svg>
+    <span class="pointer-events-none absolute right-16 bg-gray-900 dark:bg-gray-700 text-white text-xs font-medium px-2 py-1 rounded shadow opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+      Sportwart-Assistent
+    </span>
+  <% end %>
+<%- end %>
+
 <!-- Hamburger Menu Button -->
 <button data-action="sidebar#collapse"
         class="opacity-0 hover:opacity-20 transition-opacity duration-300 fixed top-4 left-4 z-50 p-2

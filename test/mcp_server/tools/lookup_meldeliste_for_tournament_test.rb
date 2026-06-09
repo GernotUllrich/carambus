@@ -77,10 +77,10 @@ class McpServer::Tools::LookupMeldelisteForTournamentTest < ActiveSupport::TestC
     # → +1 GET-Call vor den POST-Calls. Tests filtern jetzt auf POSTs.
     posts = @mock.calls.select { |verb, _, _, _| verb == :post }
     assert_equal 2, posts.size, "Retry-Fallback muss 2 POST-Calls (Scope-Filter + meisterschaftsId) ausgelöst haben"
-    # 1. POST: scope-filter payload
+    # 1. POST: scope-filter payload — enthält seit DEFER-25-4-Fix auch meisterschaftsId
     payload_1 = posts[0][2]
     assert_equal 20, payload_1[:fedId]
-    refute payload_1.key?(:meisterschaftsId)
+    assert_equal 890, payload_1[:meisterschaftsId]
     # 2. POST: meisterschaftsId fallback payload
     payload_2 = posts[1][2]
     assert_equal 890, payload_2[:meisterschaftsId]
@@ -225,7 +225,7 @@ class McpServer::Tools::LookupMeldelisteForTournamentTest < ActiveSupport::TestC
     assert_equal "2025/2026", payload[:season]
     assert_equal "*", payload[:disciplinId]
     assert_equal "100", payload[:catId]
-    refute payload.key?(:meisterschaftsId), "Scope-Filter-Pfad darf KEIN meisterschaftsId-Key haben"
+    assert_equal 890, payload[:meisterschaftsId], "DEFER-25-4: Scope-Filter-Payload muss meisterschaftsId enthalten"
   end
 
   test "Plan 09-02 T-Scope-Partial: nur fed_cc_id + branch_cc_id → partial Scope-Filter-Payload" do
@@ -244,7 +244,7 @@ class McpServer::Tools::LookupMeldelisteForTournamentTest < ActiveSupport::TestC
     assert_equal 8, payload[:branchId]
     refute payload.key?(:season), "Partial: season nicht gesetzt → kein Key"
     refute payload.key?(:catId), "Partial: cat_id nicht gesetzt → kein Key"
-    refute payload.key?(:meisterschaftsId), "Partial Scope-Filter darf KEIN meisterschaftsId-Key haben"
+    assert_equal 890, payload[:meisterschaftsId], "DEFER-25-4: Scope-Filter-Payload muss meisterschaftsId enthalten"
   end
 
   test "Plan 09-02 T-Scope-Default-Disciplin: disciplin_id omitted → Wildcard '*' im Payload" do
@@ -539,5 +539,194 @@ class McpServer::Tools::LookupMeldelisteForTournamentTest < ActiveSupport::TestC
     assert_equal({meldeliste_cc_id: 1291, name: "NDM Jugend Eurokegel", count: 0},
                  parsed.find { |c| c[:meldeliste_cc_id] == 1291 },
                  "Edge-Case: kein '[N Meldungen]'-Suffix → count: 0")
+  end
+
+  # ---------------------------------------------------------------------
+  # Plan 24-01 T3: Pipe-Anchor-Parser + Title-Match + with_session_recovery
+  # ---------------------------------------------------------------------
+  # Fixture aus heutigem live-curl gegen LSW-Endpoint mit frischer SID
+  # (29969 bytes, ~40 Anchors im Pipe-Pattern, inkl. meldeliste_cc_id=1312
+  # für Vorgabepokal Dreiband MB). Stub-Fixture aus cc_session_test.rb-Familie.
+
+  def lsw_fixture_body
+    File.read(Rails.root.join("test/fixtures/cc/lsw_meldelistenlist_full.html"))
+  end
+
+  def auto_logout_body
+    File.read(Rails.root.join("test/fixtures/cc/auto_logout_stub.html"))
+  end
+
+  test "T3 fetch_from_cc: parst Pipe-Anchors (Plan 21-13 D-EXEC-A-Format), findet 1312" do
+    @mock.define_singleton_method(:post) do |action, post_options = {}, opts = {}|
+      @calls << [:post, action, post_options, opts]
+      body = File.read(Rails.root.join("test/fixtures/cc/lsw_meldelistenlist_full.html"))
+      [Struct.new(:code, :message, :body).new("200", "OK", body), Nokogiri::HTML(body)]
+    end
+    candidates = McpServer::Tools::LookupMeldelisteForTournament.parse_pipe_anchors(
+      Nokogiri::HTML(lsw_fixture_body)
+    )
+    refute_empty candidates, "Pipe-Anchor-Parser muss aus live-Fixture Anchors finden"
+    cc_ids = candidates.map { |c| c[:meldeliste_cc_id] }
+    assert_includes cc_ids, 1312, "meldeliste_cc_id=1312 (Vorgabepokal Dreiband MB) muss gefunden werden"
+    vorgabe = candidates.find { |c| c[:meldeliste_cc_id] == 1312 }
+    assert_equal "Vorgabepokal Dreiband MB", vorgabe[:name]
+    assert_equal "cc-live", vorgabe[:source]
+  end
+
+  test "T3 fetch_from_cc: Title-exact-Match auf TournamentCc.name liefert nur diese eine Candidate" do
+    @mock.define_singleton_method(:post) do |action, post_options = {}, opts = {}|
+      @calls << [:post, action, post_options, opts]
+      body = File.read(Rails.root.join("test/fixtures/cc/lsw_meldelistenlist_full.html"))
+      [Struct.new(:code, :message, :body).new("200", "OK", body), Nokogiri::HTML(body)]
+    end
+    # TCc-Stub: nutze Klassen-Method-Mock damit kein DB-Fixture nötig
+    tcc_stub = Struct.new(:name).new("Vorgabepokal Dreiband MB")
+    TournamentCc.stub :find_by, tcc_stub do
+      McpServer::Tools::LookupMeldelisteForTournament.stub :effective_cc_region, "nbv" do
+        candidates = McpServer::Tools::LookupMeldelisteForTournament.fetch_from_cc(
+          889, fed_cc_id: 20, branch_cc_id: 10, season: "2025/2026", server_context: nil
+        )
+        assert_equal 1, candidates.size, "Title-Match muss aus ~40 nur 1 Candidate liefern"
+        assert_equal 1312, candidates.first[:meldeliste_cc_id]
+        assert_equal "Vorgabepokal Dreiband MB", candidates.first[:name]
+      end
+    end
+  end
+
+  test "T3 fetch_from_cc: Title-Substring-Match returnt Substring-Treffer wenn kein exact" do
+    @mock.define_singleton_method(:post) do |_a, _p = {}, _o = {}|
+      [Struct.new(:code, :message, :body).new("200", "OK", File.read(Rails.root.join("test/fixtures/cc/lsw_meldelistenlist_full.html"))),
+       Nokogiri::HTML(File.read(Rails.root.join("test/fixtures/cc/lsw_meldelistenlist_full.html")))]
+    end
+    # TCc mit kürzerem Substring-Namen, der als Substring in HTML-Anchor-Title vorkommt
+    tcc_stub = Struct.new(:name).new("Vorgabepokal Dreiband")  # Substring von "Vorgabepokal Dreiband MB" und auch von "1. Vorgabepokal" (nein, nur erstere)
+    TournamentCc.stub :find_by, tcc_stub do
+      McpServer::Tools::LookupMeldelisteForTournament.stub :effective_cc_region, "nbv" do
+        candidates = McpServer::Tools::LookupMeldelisteForTournament.fetch_from_cc(
+          889, fed_cc_id: 20, branch_cc_id: 10, season: "2025/2026", server_context: nil
+        )
+        # Substring "Vorgabepokal Dreiband" matcht "Vorgabepokal Dreiband MB" (Anchor enthält tcc-Name)
+        # plus alle anderen wo Anchor-Name als Substring von tcc-Name vorkommt
+        assert candidates.size >= 1, "mindestens 1 Substring-Treffer"
+        assert(candidates.any? { |c| c[:meldeliste_cc_id] == 1312 })
+      end
+    end
+  end
+
+  test "T3 fetch_from_cc: kein TCc → alle Candidates als Disambiguation-Fallback" do
+    @mock.define_singleton_method(:post) do |_a, _p = {}, _o = {}|
+      [Struct.new(:code, :message, :body).new("200", "OK", File.read(Rails.root.join("test/fixtures/cc/lsw_meldelistenlist_full.html"))),
+       Nokogiri::HTML(File.read(Rails.root.join("test/fixtures/cc/lsw_meldelistenlist_full.html")))]
+    end
+    TournamentCc.stub :find_by, nil do
+      McpServer::Tools::LookupMeldelisteForTournament.stub :effective_cc_region, "nbv" do
+        candidates = McpServer::Tools::LookupMeldelisteForTournament.fetch_from_cc(
+          99999, fed_cc_id: 20, branch_cc_id: 10, season: "2025/2026", server_context: nil
+        )
+        assert candidates.size > 1, "Ohne TCc kommen ALLE Pipe-Anchors als Disambiguation-Candidates zurück"
+      end
+    end
+  end
+
+  # Helper: Setting.login_to_cc stubben (Module-Level), damit Re-Login keine echte CC-IO macht.
+  def with_stubbed_login(returning: "FRESH_SID_32_CHARS_xxxxxxxxxxxxx", raises: nil)
+    Setting.singleton_class.send(:alias_method, :_orig_login_to_cc, :login_to_cc)
+    if raises
+      Setting.singleton_class.send(:define_method, :login_to_cc) { raise raises }
+    else
+      Setting.singleton_class.send(:define_method, :login_to_cc) { returning }
+    end
+    yield
+  ensure
+    Setting.singleton_class.send(:alias_method, :login_to_cc, :_orig_login_to_cc)
+    Setting.singleton_class.send(:remove_method, :_orig_login_to_cc)
+  end
+
+  test "T3 fetch_from_cc: Auto-Logout-Stub triggert Re-Login + Single-Retry → 1312 nach Recovery" do
+    call_count = 0
+    @mock.define_singleton_method(:post) do |action, post_options = {}, opts = {}|
+      @calls << [:post, action, post_options, opts]
+      call_count += 1
+      body = if call_count == 1
+        File.read(Rails.root.join("test/fixtures/cc/auto_logout_stub.html"))
+      else
+        File.read(Rails.root.join("test/fixtures/cc/lsw_meldelistenlist_full.html"))
+      end
+      [Struct.new(:code, :message, :body).new("200", "OK", body), Nokogiri::HTML(body)]
+    end
+    # NICHT mock-mode — sonst erzeugt client_for einen neuen MockClient statt _client_override.
+    # Stattdessen: _client_override aktiv lassen + Setting.login_to_cc stubben + SID pre-seeden.
+    prev_mock = ENV["CARAMBUS_MCP_MOCK"]
+    ENV["CARAMBUS_MCP_MOCK"] = nil
+    begin
+      tcc_stub = Struct.new(:name).new("Vorgabepokal Dreiband MB")
+      with_stubbed_login do
+        TournamentCc.stub :find_by, tcc_stub do
+          McpServer::Tools::LookupMeldelisteForTournament.stub :effective_cc_region, "nbv" do
+            candidates = McpServer::Tools::LookupMeldelisteForTournament.fetch_from_cc(
+              889, fed_cc_id: 20, branch_cc_id: 10, season: "2025/2026", server_context: nil
+            )
+            assert_equal 2, call_count, "Block muss zweimal aufgerufen werden (1. expired, 2. retry success)"
+            assert_equal 1, candidates.size
+            assert_equal 1312, candidates.first[:meldeliste_cc_id]
+          end
+        end
+      end
+    ensure
+      ENV["CARAMBUS_MCP_MOCK"] = prev_mock
+    end
+  end
+
+  test "T3 self.call: SessionRecoveryFailed liefert strukturierten Error statt 0 Treffer" do
+    @mock.define_singleton_method(:post) do |_a, _p = {}, _o = {}|
+      body = File.read(Rails.root.join("test/fixtures/cc/auto_logout_stub.html"))
+      [Struct.new(:code, :message, :body).new("200", "OK", body), Nokogiri::HTML(body)]
+    end
+    # Auch hier non-mock-mode (sonst _client_override umgangen).
+    # Block liefert beide Male Auto-Logout-Stub → with_session_recovery raises SessionRecoveryFailed
+    # → self.call fängt → klare Error-Message.
+    prev_mock = ENV["CARAMBUS_MCP_MOCK"]
+    ENV["CARAMBUS_MCP_MOCK"] = nil
+    begin
+      with_stubbed_login do
+        response = McpServer::Tools::LookupMeldelisteForTournament.call(
+          tournament_cc_id: 889, fed_cc_id: 20, branch_cc_id: 10, season: "2025/2026",
+          force_refresh: true, server_context: nil
+        )
+        assert response.error?
+        text = response.content.first[:text]
+        assert_match(/Session/i, text, "Error muss Session-Expiry-Markierung enthalten")
+        assert_match(/Re-Login/i, text, "Error muss Re-Login-Hinweis enthalten")
+        # Anti-Regression: kein „0 Treffer"-Stillschweigen, kein „Meldeliste nicht finden"
+        refute_match(/0 Treffer/, text)
+        refute_match(/Resolver konnte Meldeliste nicht finden/, text)
+      end
+    ensure
+      ENV["CARAMBUS_MCP_MOCK"] = prev_mock
+    end
+  end
+
+  # DEFER-25-4: scope-filter-Pfad muss meisterschaftsId im Payload enthalten
+  test "DEFER-25-4: scope-filter-Payload enthält meisterschaftsId" do
+    captured_payload = nil
+    @mock.define_singleton_method(:post) do |action, post_options = {}, opts = {}|
+      @calls << [:post, action, post_options, opts]
+      captured_payload = post_options
+      body = '<html><body><tr data-meldeliste-cc-id="1347"><td>NDM Test Cadre 35/2</td></tr></body></html>'
+      [Struct.new(:code, :message, :body).new("200", "OK", body), Nokogiri::HTML(body)]
+    end
+
+    McpServer::Tools::LookupMeldelisteForTournament.call(
+      tournament_cc_id: 937,
+      fed_cc_id: 20, branch_cc_id: 10, season: "2025/2026",
+      force_refresh: true, server_context: nil
+    )
+
+    posts = @mock.calls.select { |verb, _, _, _| verb == :post }
+    assert posts.any?, "Mindestens ein POST soll erfolgt sein"
+    scope_payload = posts.first[2]
+    assert_equal 937, scope_payload[:meisterschaftsId], "Scope-Filter-Payload muss meisterschaftsId enthalten (DEFER-25-4)"
+    assert_equal 20, scope_payload[:fedId]
+    assert_equal 10, scope_payload[:branchId]
   end
 end

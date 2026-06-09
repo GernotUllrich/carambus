@@ -20,25 +20,48 @@ Diese Version bringt umfangreiche Verbesserungen für das Pool Scoreboard und di
 **Beschreibung:**
 Pool-Tische haben jetzt konfigurierbare Quickstart-Buttons ähnlich wie Karambol-Tische:
 
+> **Hinweis (aktuelle Struktur):** Das ursprüngliche Release nutzte eine flache
+> `pool:`-Map mit Disziplin-Schlüsseln und einem `sets:`-Key pro Button. Dies
+> wurde später durch die unten gezeigte `quick_game_presets:`-Struktur abgelöst,
+> die Presets nach `TableKind` (`small_billard` / `match_billard` / `pool` /
+> `snooker`) als Liste von `{ category:, buttons: }`-Einträgen gruppiert und
+> `sets:` in `sets_to_win:` umbenennt.
+
 ```yaml
-pool:
-  8-Ball:
-    - { sets: 5, discipline: "8-Ball", kickoff_switches_with: "set", label: "Best of 5" }
-    - { sets: 6, discipline: "8-Ball", kickoff_switches_with: "set", label: "Best of 6" }
-  9-Ball:
-    - { sets: 7, discipline: "9-Ball", kickoff_switches_with: "set", label: "Best of 7" }
-    - { sets: 9, discipline: "9-Ball", kickoff_switches_with: "set", label: "Best of 9" }
-  10-Ball:
-    - { sets: 7, discipline: "10-Ball", kickoff_switches_with: "set", label: "Best of 7" }
-  14.1 endlos:
-    - { balls: 50, innings: 0, discipline: "14.1 endlos", label: "50 Punkte" }
-    - { balls: 75, innings: 0, discipline: "14.1 endlos", label: "75 Punkte" }
-    - { balls: 100, innings: 0, discipline: "14.1 endlos", label: "100 Punkte" }
+quick_game_presets:
+  pool:
+    - category: "8-Ball"
+      buttons:
+        - { sets_to_win: 3, discipline: "8-Ball", kickoff_switches_with: "winner", label: "3 (W)" }
+        - { sets_to_win: 4, discipline: "8-Ball", kickoff_switches_with: "winner", label: "4 (W)" }
+        - { sets_to_win: 5, discipline: "8-Ball", kickoff_switches_with: "winner", label: "5 (W)" }
+        - { sets_to_win: 3, discipline: "8-Ball", kickoff_switches_with: "set", label: "3 (A)" }
+        - { sets_to_win: 4, discipline: "8-Ball", kickoff_switches_with: "set", label: "4 (A)" }
+        - { sets_to_win: 5, discipline: "8-Ball", kickoff_switches_with: "set", label: "5 (A)" }
+    - category: "9-Ball"
+      buttons:
+        - { sets_to_win: 5, discipline: "9-Ball", kickoff_switches_with: "winner", label: "5 (W)" }
+        - { sets_to_win: 7, discipline: "9-Ball", kickoff_switches_with: "winner", label: "7 (W)" }
+        - { sets_to_win: 9, discipline: "9-Ball", kickoff_switches_with: "winner", label: "9 (W)" }
+        - { sets_to_win: 5, discipline: "9-Ball", kickoff_switches_with: "set", label: "5 (A)" }
+        - { sets_to_win: 7, discipline: "9-Ball", kickoff_switches_with: "set", label: "7 (A)" }
+        - { sets_to_win: 9, discipline: "9-Ball", kickoff_switches_with: "set", label: "9 (A)" }
+    - category: "10-Ball"
+      buttons:
+        - { sets_to_win: 5, discipline: "10-Ball", kickoff_switches_with: "winner", label: "5 (W)" }
+        - { sets_to_win: 7, discipline: "10-Ball", kickoff_switches_with: "winner", label: "7 (W)" }
+        - { sets_to_win: 5, discipline: "10-Ball", kickoff_switches_with: "set", label: "5 (A)" }
+        - { sets_to_win: 7, discipline: "10-Ball", kickoff_switches_with: "set", label: "7 (A)" }
+    - category: "14.1 endlos"
+      buttons:
+        - { balls: 50, innings: 0, discipline: "14.1 endlos", label: "50" }
+        - { balls: 75, innings: 0, discipline: "14.1 endlos", label: "75" }
+        - { balls: 100, innings: 0, discipline: "14.1 endlos", label: "100" }
 ```
 
 ### 2. Pool Scoreboard Benutzerhandbuch
 
-**Datei:** `docs/pool_scoreboard_benutzerhandbuch.de.md`
+**Datei:** `docs/players/pool_scoreboard_benutzerhandbuch.de.md`
 
 Vollständiges deutsches Benutzerhandbuch für Pool-Spieler mit:
 - Anleitungen für alle Pool-Disziplinen (8-Ball, 9-Ball, 10-Ball, 14.1 endlos)
@@ -95,28 +118,31 @@ ERB-Syntax-Fehler durch multiple Assignment mit Bedingung und fehlendes `end`-Ta
 
 ### 3. PartyMonitor Game-Verknüpfung
 
-**Datei:** `app/models/table_monitor.rb`
+**Datei:** `app/services/table_monitor/game_setup.rb`
+(`TableMonitor#start_game` war ursprünglich inline in
+`app/models/table_monitor.rb` implementiert; die Logik wurde später in den
+Service `TableMonitor::GameSetup` ausgelagert und delegiert jetzt nur noch:
+`def start_game(options_ = {}); TableMonitor::GameSetup.call(table_monitor: self, options: options_); end`)
 
 **Problem:**
 Beim Starten von Liga-Spielen über den PartyMonitor wurden neue Games erstellt, anstatt die bestehenden Party-Games zu verwenden. Dadurch wurden Spielergebnisse nicht korrekt im PartyMonitor angezeigt.
 
 **Lösung:**
-Die `start_game()` Methode prüft jetzt, ob ein bestehendes Party/Tournament-Game vorhanden ist:
+Die Game-Setup-Logik prüft jetzt, ob ein bestehendes Party/Tournament-Game vorhanden ist (in `GameSetup#perform_start_game`, mit Verzweigung in `setup_existing_party_game`):
 
 ```ruby
-def start_game(options_ = {})
+def perform_start_game
   # Check if we have an existing Party/Tournament game that should be preserved
-  existing_party_game = game if game.present? && game.tournament_type.present?
-  
+  existing_party_game = @tm.game if @tm.game.present? && @tm.game.tournament_type.present?
+
   if existing_party_game.present?
     # Use the existing Party/Tournament game - don't create a new one
-    @game = existing_party_game
-    # Update game participations instead of creating new ones
-    # ...
+    setup_existing_party_game(existing_party_game)
   else
     # Create a new game for free games
-    # ...
+    create_new_game
   end
+  # ...
 end
 ```
 
@@ -184,24 +210,44 @@ Die Spielparameter (z.B. Punkteziel 80 für 14.1 endlos) waren vor dem Spielstar
 
 ---
 
-## JavaScript-Änderungen
+## JavaScript-/View-Änderungen
 
-### balls_left Methode
+### balls_left Klick-Verarbeitung
 
-**Datei:** `app/javascript/controllers/table_monitor_controller.js`
+**Dateien:**
+- `app/views/table_monitors/_pool_scoreboard.html.erb`
+- `app/reflexes/table_monitor_reflex.rb` (`TableMonitor#balls_left`)
 
 **Problem:**
-Klicks auf Bälle in der Kontrollleiste zeigten keine Wirkung.
+Klicks auf Bälle in der Kontrollleiste (14.1 endlos) zeigten keine Wirkung.
 
 **Lösung:**
-Hinzufügen der fehlenden JavaScript-Methode:
+Der Klick wird deklarativ in der View verdrahtet, nicht über eine explizite
+Stimulus-Controller-Methode. Jedes Ball-Element trägt die StimulusReflex-Action
+sowie die vom Reflex benötigten Daten:
 
-```javascript
-balls_left () {
-  console.log('TableMonitor balls_left called')
-  this.stimulate('TableMonitor#balls_left', this.element)
-}
+```erb
+<%= content_tag "div",
+                data: {
+                  controller: "table-monitor",
+                  action: "click->table-monitor#balls_left",
+                  ball_no: n,
+                  id: table_monitor.id
+                },
+                ... do %>
+  <%= image_tag "p#{n}.png" %>
+<%- end %>
 ```
+
+StimulusReflex bildet die Action `table-monitor#balls_left` direkt auf den
+Reflex `TableMonitor#balls_left` ab; eine explizite `balls_left()`-Methode in
+`table_monitor_controller.js` ist nicht erforderlich. Der Reflex liest
+`dataset[:ball_no]`, um die Anzahl der verbleibenden Bälle zu ermitteln.
+
+> **Hinweis:** Eine frühere Fassung dieses Changelogs beschrieb das Hinzufügen
+> einer expliziten `balls_left()`-Methode in `table_monitor_controller.js`.
+> Diese Methode wurde nie committet — der oben beschriebene deklarative
+> View-Weg ist der tatsächlich verwendete Mechanismus.
 
 ---
 
@@ -262,8 +308,8 @@ Der Undo-Button unterhalb des Tischnamens wurde entfernt, da bereits ein Undo/Re
 
 ## Dokumentation
 
-- `docs/pool_scoreboard_benutzerhandbuch.de.md` - Neues Benutzerhandbuch
-- `docs/CHANGELOG_POOL_SCOREBOARD.md` - Diese Datei
+- `docs/players/pool_scoreboard_benutzerhandbuch.de.md` - Neues Benutzerhandbuch
+- `docs/developers/pool-scoreboard-changelog.de.md` - Diese Datei
 
 
 

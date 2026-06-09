@@ -49,10 +49,10 @@ Phase 40 schließt alle drei Lücken in einem Server: vier Schichten ClubCloud-W
 
 | Schicht | URI / Tool-Präfix | Anzahl | Zielgruppe |
 |---------|-------------------|--------|------------|
-| **Workflow-Doku (DE)** | `cc://workflow/scenarios/*` + `cc://workflow/{roles,glossary}` | 5 Resources | Sportwart |
-| **API-Surface (curated)** | `cc://api/{action}` | 15 Resources | Carambus-Dev |
-| **Read-Tools (Lookup)** | `cc_lookup_*` + `cc_search_*` | 10 Tools (4 DB-first, 6 live-only) | beide |
-| **Write-Tools (Mutation)** | `cc_finalize_teilnehmerliste` (Phase 40.1: mehr) | 1 Tool (Proof) | Sportwart |
+| **Workflow-Doku (DE)** | `cc://workflow/scenarios/*` + `cc://workflow/{roles,glossary}` | 10 Resources (8 Szenarien + 2 Meta) | Sportwart |
+| **API-Surface (curated)** | `cc://api/{action}` | 26 Resources | Carambus-Dev |
+| **Read-Tools (Lookup)** | `cc_whoami` + `cc_lookup_*` + `cc_list_*` + `cc_search_*` + `cc_check_*` | 17 Tools | beide |
+| **Write-Tools (Mutation)** | `cc_register_*` / `cc_unregister_*` / `cc_*_teilnehmerliste` / `cc_update_tournament_deadline` | 6 Tools | Sportwart |
 
 ---
 
@@ -68,7 +68,7 @@ flowchart LR
     Boot["McpServer::Transport::Boot<br/>(Logger→STDERR, SIGINT/TERM)"]
 
     subgraph "lib/mcp_server/"
-        Tools["Tools::*<br/>(11 Klassen)"]
+        Tools["Tools::*<br/>(23 Klassen)"]
         Resources["Resources::*<br/>(3 Registries)"]
         BaseTool["BaseTool<br/>(error/text/validate)"]
         CcSession["CcSession<br/>(Login + 30min TTL + Reauth)"]
@@ -95,7 +95,7 @@ flowchart LR
     CcSession -->|Live-Mode| Setting
     Setting -->|HTTPS| CC
     CcSession -.->|Mock-Mode| MockClient
-    Tools -.->|DB-first 4 Tools| Region
+    Tools -.->|DB-first Read-Tools| Region
     Tools -.-> RegionCc
     Tools -.-> LeagueCc
     Tools -.-> TournamentCc
@@ -131,6 +131,8 @@ flowchart TD
 ```
 
 **Konsequenz:** Eine neue Tool-Klasse unter `lib/mcp_server/tools/` (Subklasse von `McpServer::Tools::BaseTool`) wird beim nächsten Server-Boot automatisch entdeckt — kein Edit von `server.rb` nötig.
+
+**Hinweis (zwei Tool-Listing-Pfade):** Die Auto-Registry via `collect_tools` gilt nur für den **Stdio-Pfad** (`Server.build`). Der **HTTP-Pfad** (`McpController`-Mount) nutzt stattdessen die hardcoded `RoleToolMap::ALL_TOOLS`-Liste, ausgeliefert über `ToolRegistry.tool_classes_for(user)` (`lib/mcp_server/tool_registry.rb` + `role_tool_map.rb`). `ToolRegistry` ersetzt die Auto-Registry **nicht** — beide koexistieren. Eine neue Tool-Klasse muss daher zusätzlich in `RoleToolMap::ALL_TOOLS` eingetragen werden, damit sie auch über HTTP sichtbar ist.
 
 **Ein einziger zentraler `resources_read_handler`** dispatched alle `cc://`-URIs per Regex an die richtige Registry-Klasse (`WorkflowScenarios.read`, `WorkflowMeta.read`, `ApiSurface.read`). Das verhindert SDK-Konflikte (das MCP-SDK akzeptiert nur einen Handler pro Server) und macht parallele Plan-Entwicklung konfliktfrei (Phase-40-Wave-2-Lehre).
 
@@ -227,28 +229,43 @@ sequenceDiagram
 ```
 lib/
 ├── mcp_server/
-│   ├── server.rb                       # 89 LOC — Auto-Registry + zentraler read_handler
+│   ├── server.rb                       # 177 LOC — Auto-Registry (Stdio) + zentraler read_handler
 │   ├── cc_session.rb                   # 106 LOC — Login + 30min TTL + Reauth
+│   ├── audit_trail.rb                  # 81 LOC — JSON-Lines-Audit-Trail für jeden armed:true-Write-Call
+│   ├── role_tool_map.rb                # 50 LOC — ALL_TOOLS-Liste (HTTP-Pfad/McpController, hardcoded statt collect_tools)
+│   ├── tool_registry.rb                # 34 LOC — tools_for(user)/tool_classes_for (HTTP-Pfad-Mount, liefert ALL_TOOLS)
 │   ├── transport/
 │   │   └── boot.rb                     # 35 LOC — Logger→STDERR, SIGINT/TERM trap, StdioTransport.open
 │   ├── tools/
 │   │   ├── base_tool.rb                # 43 LOC — BaseTool < MCP::Tool — error/text/validate Helpers
 │   │   ├── mock_client.rb              # 42 LOC — Drop-in für CARAMBUS_MCP_MOCK=1
-│   │   ├── lookup_region.rb            # DB-first — kanonisches Template
-│   │   ├── lookup_league.rb            # DB-first
-│   │   ├── lookup_tournament.rb        # DB-first
-│   │   ├── lookup_teilnehmerliste.rb   # DB-first
-│   │   ├── lookup_team.rb              # live-only
-│   │   ├── lookup_club.rb              # live-only
-│   │   ├── lookup_spielbericht.rb      # live-only
-│   │   ├── lookup_category.rb          # live-only
-│   │   ├── lookup_serie.rb             # live-only
-│   │   ├── search_player.rb            # live-only
-│   │   └── finalize_teilnehmerliste.rb # WRITE — armed-flag + parse_cc_error + Reauth-Retry
+│   │   ├── cc_whoami.rb                             # READ — Session-Kontext (scenario/region/season/Sportwart-Scope), kein CC-Call
+│   │   ├── lookup_region.rb                       # READ DB-first — kanonisches Template
+│   │   ├── lookup_league.rb                        # READ DB-first
+│   │   ├── lookup_tournament.rb                     # READ DB-first
+│   │   ├── lookup_teilnehmerliste.rb               # READ DB-first
+│   │   ├── lookup_club.rb                           # READ DB-first (cc_id ODER Name/Synonym-Suche)
+│   │   ├── lookup_meldeliste_for_tournament.rb     # READ DB-first + Live-Fallback
+│   │   ├── search_player.rb                         # READ DB-first (Disambiguation-Output)
+│   │   ├── list_clubs_by_discipline.rb             # READ DB-first
+│   │   ├── list_open_tournaments.rb                # READ DB-first
+│   │   ├── list_players_by_club_and_discipline.rb  # READ DB-first
+│   │   ├── list_players_by_name.rb                  # READ DB-first (kein CC-Call)
+│   │   ├── check_player_discipline_experience.rb   # READ DB-first
+│   │   ├── lookup_team.rb                           # READ live-only
+│   │   ├── lookup_spielbericht.rb                  # READ live-only
+│   │   ├── lookup_category.rb                       # READ live-only
+│   │   ├── lookup_serie.rb                          # READ live-only
+│   │   ├── finalize_teilnehmerliste.rb             # WRITE — armed-flag + parse_cc_error + Reauth-Retry
+│   │   ├── assign_player_to_teilnehmerliste.rb     # WRITE
+│   │   ├── remove_from_teilnehmerliste.rb          # WRITE
+│   │   ├── register_for_tournament.rb              # WRITE
+│   │   ├── unregister_for_tournament.rb            # WRITE
+│   │   └── update_tournament_deadline.rb           # WRITE
 │   └── resources/
-│       ├── workflow_scenarios.rb       # cc://workflow/scenarios/* (3 Slugs whitelisted)
+│       ├── workflow_scenarios.rb       # cc://workflow/scenarios/* (8 Slugs whitelisted)
 │       ├── workflow_meta.rb            # cc://workflow/{roles,glossary}
-│       └── api_surface.rb              # cc://api/{action} (15 ALLOWLIST entries)
+│       └── api_surface.rb              # cc://api/{action} (26 ALLOWLIST entries)
 bin/
 └── mcp-server                          # 0755 — require config/environment + Boot.run
 
@@ -276,7 +293,7 @@ test/mcp_server/
 │   ├── lookup_teilnehmerliste_test.rb  # D-18 acceptance story
 │   ├── search_player_test.rb           # live-only
 │   ├── finalize_teilnehmerliste_test.rb # 6 Tests inkl. Reauth-Retry
-│   └── lookup_smoke_test.rb            # 11 Smoke + Drift-Detection
+│   └── lookup_smoke_test.rb            # Tool-Namen Drift-Detection (EXPECTED_TOOL_NAMES, 23 Tools inkl. cc_whoami)
 └── integration/
     └── stdio_e2e_test.rb               # 6 E2E — bin/mcp-server Subprocess + JSON-RPC
 
@@ -286,7 +303,7 @@ lib/capistrano/tasks/
 .mcp.json.example                       # Vorlage — .mcp.json ist gitignored
 ```
 
-**Gesamt:** 30 Source-Files, ~1100 LOC Production-Code, 65 Tests / 220 Assertions.
+**Gesamt:** 31 Source-Files, ~1100 LOC Production-Code, 65 Tests / 220 Assertions.
 
 ---
 
@@ -479,6 +496,28 @@ Boot-Sequenz für `bin/mcp-server`:
 3. `Server.build` aufrufen.
 4. Signal-Handler für SIGINT + SIGTERM registrieren — **direkter `$stderr.write`** (Pitfall 8: Logger im Trap-Kontext nicht erlaubt; Quick-Fix `260507-c4o`).
 5. `MCP::Server::Transports::StdioTransport.new(server).open` — blockiert.
+
+### `McpServer::AuditTrail` (`lib/mcp_server/audit_trail.rb`)
+
+JSON-Lines-Audit-Trail (append-only) für jeden `armed:true`-Write-Call — Forensik + Cleanup-Routing bei Live-Datenschäden (D-10-04-D). Storage: `log/mcp-audit-trail.log`. Defensiv: `rescue StandardError` — ein Logger-Failure darf das Tool nie crashen.
+
+7-Feld-Schema: `zeitpunkt` (ISO-8601 UTC), `operator` (CC-Login-User, `"unknown"` falls fehlend), `tool` (name+version), `payload` (vollständig inkl. cc_ids), `pre_validation_results`, `read_back_status` (`match`/`mismatch`/`skipped`/nil), `result` (`success`/`cc-error`/`exception`).
+
+### `McpServer::RoleToolMap` (`lib/mcp_server/role_tool_map.rb`)
+
+Hardcoded Tool-Listen (`BASE_READ_TOOLS`, `ALL_TOOLS`) für den **HTTP-Pfad** (`McpController`-Mount). Der HTTP-Pfad nutzt diese Liste statt der Stdio-`collect_tools`-Auto-Registry — neue Tools müssen hier zusätzlich eingetragen werden, um über HTTP sichtbar zu sein. Der Final-Stub (Plan 14-G.2) liefert allen authentifizierten Usern `ALL_TOOLS`; die Per-Record-Authority erfolgt in `BaseTool.authorize!` (TournamentPolicy), nicht hier.
+
+### `McpServer::ToolRegistry` (`lib/mcp_server/tool_registry.rb`)
+
+Liefert die Tool-Klassen für den HTTP-Mount auf Basis von `RoleToolMap::ALL_TOOLS`.
+
+| Methode | Signatur | Zweck |
+|---------|----------|-------|
+| `.tools_for` | `(user)` → `Array<Symbol>` | `[]` bei nil-User, sonst `RoleToolMap::ALL_TOOLS`. |
+| `.tool_classes_for` | `(user)` → `Array<Class>` | Resolved Tool-Klassen (`constantize`); unbekannte Klassen werden geloggt + `compact`-entfernt. |
+| `.tool_count_for` | `(_role_key)` → `Integer` | Stub — gibt `ALL_TOOLS.size` für jeden Key zurück. |
+
+**Wichtig:** `ToolRegistry`/`RoleToolMap` ersetzen die Stdio-Auto-Registry (`Server.collect_tools`) **nicht** — beide Listing-Pfade koexistieren (siehe §2 Auto-Registry-Mechanismus).
 
 ---
 
@@ -676,7 +715,7 @@ Für eine neue Meta-Resource (`cc://workflow/foo`): analog die `META`-Konstante 
 | Schicht | Pfad | Was | Boot-Cost |
 |---------|------|-----|-----------|
 | Unit | `test/mcp_server/{tools,resources}/*_test.rb` | Einzelne Klassen, Mock-Client | schnell (< 1s) |
-| Smoke | `test/mcp_server/tools/lookup_smoke_test.rb` | Drift-Detection für 11 Tool-Namen | schnell |
+| Smoke | `test/mcp_server/tools/lookup_smoke_test.rb` | Drift-Detection für 23 Tool-Namen inkl. `cc_whoami` (`EXPECTED_TOOL_NAMES`) | schnell |
 | Integration | `test/mcp_server/server_smoke_test.rb` | `Server.build` + Auto-Registry | schnell |
 | E2E | `test/mcp_server/integration/stdio_e2e_test.rb` | echter `bin/mcp-server`-Subprocess + JSON-RPC-Roundtrip | langsam (Rails-Boot pro Test) |
 
@@ -908,7 +947,22 @@ Phase 40 lieferte die **Architektur** + **eine** Write-Tool-Proof-Implementierun
 
 WR-01..WR-05 Fixes + IN-02 + IN-04 (siehe oben). Vor neuen Write-Tools — sonst werden Defekte vervielfacht.
 
-### B. Restliche Write-Tools (Vorlage: `cc_finalize_teilnehmerliste`)
+### B. Write-Tools (Vorlage: `cc_finalize_teilnehmerliste`)
+
+**Bereits implementiert** (seit Phase 40 / 40.1 — alle in `lib/mcp_server/tools/`, `annotations(read_only_hint: false, destructive_hint: true)`):
+
+| Tool | Datei | Zweck |
+|------|-------|-------|
+| `cc_finalize_teilnehmerliste` | `finalize_teilnehmerliste.rb` | Teilnehmerliste finalisieren (Proof-Implementierung) |
+| `cc_assign_player_to_teilnehmerliste` | `assign_player_to_teilnehmerliste.rb` | Spieler einer Teilnehmerliste zuordnen |
+| `cc_remove_from_teilnehmerliste` | `remove_from_teilnehmerliste.rb` | Spieler aus Teilnehmerliste entfernen |
+| `cc_register_for_tournament` | `register_for_tournament.rb` | Spieler zu Turnier melden |
+| `cc_unregister_for_tournament` | `unregister_for_tournament.rb` | Turniermeldung zurücknehmen |
+| `cc_update_tournament_deadline` | `update_tournament_deadline.rb` | Meldeschluss eines Turniers ändern |
+
+Jedes Tool folgt dem Vertrag aus [How-To 7.3](#73-neues-write-tool).
+
+**Noch offen (Kandidaten):**
 
 | Geplantes Tool | CC-Action (PATH_MAP) | Zweck | Pflicht-Inputs |
 |----------------|---------------------|-------|----------------|
@@ -917,11 +971,9 @@ WR-01..WR-05 Fixes + IN-02 + IN-04 (siehe oben). Vor neuen Write-Tools — sonst
 | `cc_upload_result` | `uploadErgebnis` (TBD) | Ergebnis-Upload | spielberichtId + Daten |
 | `cc_release_endrangliste` | `releaseEndrangliste` | Endrangliste freigeben | tournamentId |
 
-Jedes Tool folgt dem Vertrag aus [How-To 7.3](#73-neues-write-tool).
-
 ### C. Reauth-Retry in alle live-Read-Tools
 
-WR-04-Fix: `cc_session.reauth_if_needed!(doc)` + Retry-Schleife in den 6 live-only Lookups.
+WR-04-Fix: `cc_session.reauth_if_needed!(doc)` + Retry-Schleife in den 4 live-only Lookups (`cc_lookup_team`, `cc_lookup_spielbericht`, `cc_lookup_category`, `cc_lookup_serie`).
 
 ### D. JSON-Output statt freier Text
 

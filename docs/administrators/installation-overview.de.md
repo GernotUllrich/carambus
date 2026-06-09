@@ -59,8 +59,8 @@ Für spezielle Anforderungen oder Legacy-Systeme:
 
 ### 1. Scenario erstellen
 ```bash
-# Neues Scenario erstellen
-rake "scenario:create[carambus_location_5101]"
+# Neues Scenario erstellen (location_id ist erforderlich, context optional, Default NBV)
+rake "scenario:create[carambus_location_5101,5101,NBV]"
 
 # Rails-Root erstellen
 rake "scenario:create_rails_root[carambus_location_5101]"
@@ -69,11 +69,14 @@ rake "scenario:create_rails_root[carambus_location_5101]"
 ### 2. Development-Setup
 ```bash
 # Development-Umgebung einrichten
-rake "scenario:setup[carambus_location_5101,development]"
+rake "scenario:prepare_development[carambus_location_5101,development]"
 ```
 
 ### 3. Production-Deployment
 ```bash
+# Deployment vorbereiten (Configs generieren, DB/Server vorbereiten)
+rake "scenario:prepare_deploy[carambus_location_5101]"
+
 # Vollständiges Production-Deployment
 rake "scenario:deploy[carambus_location_5101]"
 ```
@@ -98,7 +101,7 @@ Das Scenario Management konfiguriert automatisch:
 Bei Problemen:
 1. Prüfen Sie die **[Scenario Management](../developers/scenario-management.md)**-Seite
 2. Logs anschauen: `tail -f log/production.log`
-3. Service-Status: `systemctl status puma-carambus`
+3. Service-Status: `systemctl status carambus`
 4. System neu starten: `sudo reboot`
 
 ---

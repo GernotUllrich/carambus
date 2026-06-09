@@ -65,6 +65,12 @@ class TableMonitor < ApplicationRecord
 
   before_create :on_create
   before_save :log_state_change
+  # Invariante: im AASM-Zustand set_over MUSS panel_state "protocol_final" sein, damit das
+  # Scoreboard DIREKT den ProtokollEditor (final-mode, "Fertig"=confirm_result) zeigt — nicht den
+  # seltenen Umweg ueber das "...OK?"/alte innings_list-Panel. Diverse Pfade ueberschreiben
+  # panel_state nach dem set_over-Eintritt (Eingabe-Modus "inputs", key_a/key_b "pointer_mode",
+  # App-/Bridge-Spiele). current_element bleibt unangetastet (Tiebreak setzt "tiebreak_winner_choice").
+  before_save :enforce_protocol_final_panel_at_set_over
 
   delegate :name, to: :table, allow_nil: true
 
@@ -356,7 +362,12 @@ class TableMonitor < ApplicationRecord
     # advance_tournament_round_if_present delegates to the ResultProcessor
     # (no-op in training mode where tournament_monitor is blank).
     event :close_match, after: :advance_tournament_round_if_present do
-      transitions from: %i[playing set_over final_match_score ready_for_new_match], to: :ready_for_new_match
+      # Phase 17 / 17-04: guard external_release_allowed? blocks operator-driven
+      # release of an App-driven game whose result the app has not yet pulled
+      # (game.data["external_id"] present + result_acknowledged_at nil). Normal
+      # tournaments have no external_id → guard passes → no behavior change. The
+      # ack endpoint sets result_acknowledged_at BEFORE calling close_match!.
+      transitions from: %i[playing set_over final_match_score ready_for_new_match], to: :ready_for_new_match, guard: :external_release_allowed?
     end
     event :warmup_a do
       transitions from: %i[warmup warmup_b warmup_a],
@@ -406,8 +417,11 @@ class TableMonitor < ApplicationRecord
     #   do_play         (re-arms the play timer / panel state)
     # Both methods are defined further down in this file (lines 1389 and 574).
     event :start_rematch do
+      # Phase 17 / 17-04: same external-release guard as :close_match — the operator
+      # "Nächstes Spiel" button must not advance an App-driven game before the app
+      # has pulled the result via acknowledge_result.
       transitions from: :final_match_score, to: :playing,
-                  after: [:revert_players, :do_play]
+                  after: [:revert_players, :do_play], guard: :external_release_allowed?
     end
     event :next_set do
       transitions from: %i[set_over final_set_score], to: :playing
@@ -550,6 +564,14 @@ class TableMonitor < ApplicationRecord
   rescue StandardError => e
     Rails.logger.error "ERROR: m6[#{id}]#{e}, #{e.backtrace&.join("\n")}"
     raise StandardError
+  end
+
+  # before_save-Invariante (Deklaration oben): solange der AASM-Zustand set_over ist, MUSS
+  # panel_state "protocol_final" sein -> Scoreboard zeigt direkt den ProtokollEditor (final-mode),
+  # nie den seltenen "...OK?"/innings_list-Umweg, egal welcher Pfad panel_state vorher gesetzt hat.
+  # Nur panel_state fixieren; current_element bleibt (Tiebreak setzt "tiebreak_winner_choice").
+  def enforce_protocol_final_panel_at_set_over
+    self.panel_state = "protocol_final" if state == "set_over" && panel_state != "protocol_final"
   end
 
   def numbers
@@ -1816,6 +1838,13 @@ class TableMonitor < ApplicationRecord
   def advance_tournament_round_if_present
     return if tournament_monitor.blank?
     return unless tournament_monitor.is_a?(TournamentMonitor)
+    # Phase 17 / 17-04: App-driven (manual_assignment) tournaments own their plan —
+    # the app commands each game start/result via API. Carambus must NOT run the
+    # executor-based round-progression cascade (populate_tables / incr_current_round! /
+    # finalize_round — needs executor_params) when acknowledge_result fires close_match!.
+    # Without this no-op the release would crash/mis-advance. manual_assignment is the
+    # project-wide "manually/externally driven" signal (cf. reset_table_monitor below).
+    return if tournament_monitor.tournament&.manual_assignment?
     if Thread.current[:_advancing_round_for_tm] == self.id
       Rails.logger.info "[advance_tournament_round_if_present] m6[#{id}] sentinel SHORT-CIRCUIT (CR-02 per-TM re-entry guard)"
       return
@@ -1831,6 +1860,20 @@ class TableMonitor < ApplicationRecord
   end
 
   def force_next_state
+    # Phase 17 (17-04) / 18-03: App-driven result-hold. Die immer-aktive
+    # Spielstand-Klickfläche am Scoreboard (_scoreboard.html.erb ->
+    # table-monitor#force_next_state) ist eine Operator-Freigabe-/Weiterschalt-Fläche,
+    # die NICHT durch die AASM-Guards von :close_match / :start_rematch abgedeckt ist:
+    # für ein App-Spiel in :final_match_score läuft sie via evaluate_result in den
+    # ResultRecorder, der den State direkt setzt (assign_attributes state:"playing") und
+    # acknowledge_result!/finish_match! feuert — am external_release_allowed?-Guard vorbei.
+    # Solange das App-Ergebnis nicht von der App abgeholt wurde (POST acknowledge_result
+    # setzt result_acknowledged_at), darf der Operator den Tisch nicht weiterbewegen.
+    # Nicht-App-Spiele: external_result_pending? false -> keine Verhaltensänderung.
+    if external_result_pending?
+      Rails.logger.info "+++ m6[#{id}] force_next_state SKIPPED — external result pending (awaiting App acknowledge_result)"
+      return
+    end
     if %i[warmup warmup_a warmup_b].include?(state.to_sym)
       Rails.logger.debug { "nxst +++++ B: %i[warmup warmup_a warmup_b].include?(state.to_sym)" }
       reset_timer!
@@ -1871,9 +1914,41 @@ class TableMonitor < ApplicationRecord
     %w[playing warmup warmup_a warmup_b match_shootout set_over final_set_score final_match_score].include?(state)
   end
 
-  def reset_table_monitor
+  # Phase 17 / 17-04 — App-driven result-hold guard predicates.
+  #
+  # external_result_pending? : true iff the current game was started by the external
+  # tournament app (game.data["external_id"] present) AND the app has not yet pulled
+  # the result (game.result_acknowledged_at nil). While true, the operator-facing
+  # release transitions (:close_match / :start_rematch) and operator-driven
+  # reset_table_monitor are blocked — only POST acknowledge_result (which sets
+  # result_acknowledged_at) releases the table. Pure read, no side effects → safe as
+  # an AASM guard predicate.
+  def external_result_pending?
+    g = game
+    return false if g.blank?
+    d = g.data
+    d = (JSON.parse(d.to_s) rescue {}) unless d.is_a?(Hash)
+    d["external_id"].to_s.present? && g.result_acknowledged_at.nil?
+  end
+
+  # AASM guards are positive ("allow if true"); expose the negation for the
+  # :close_match and :start_rematch release events.
+  def external_release_allowed?
+    !external_result_pending?
+  end
+
+  def reset_table_monitor(force: false)
     Rails.logger.debug do
-      "--------------m6[#{id}]------->>> reset_table_monitor <<<------------------------------------------"
+      "--------------m6[#{id}]------->>> reset_table_monitor(force: #{force}) <<<------------------------------------------"
+    end
+    # Phase 17 / 17-04: protect an unacknowledged App result from operator-driven
+    # reset — the operator path must not wipe a result the app has not yet pulled.
+    # Phase 17 / 17-05: force:true bypasses this guard for the AUTHORIZED release
+    # paths (App end_tournament, Sysadmin-rake, midnight auto-abort — D-17-vision-5).
+    # Safe for the :new after_enter callback (no force, game nil → pending? false).
+    if external_result_pending? && !force
+      Rails.logger.info "+++ m6[#{id}] reset_table_monitor SKIPPED — external result pending (awaiting App acknowledge_result)"
+      return
     end
     if tournament_monitor.present? && !tournament_monitor.tournament.manual_assignment? && tournament_monitor.state != "closed"
       info = "+++ 8 - m6[#{id}]IGNORING table_monitor#reset_table_monitor - cannot reset managed tournament"

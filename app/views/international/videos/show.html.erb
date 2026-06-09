@@ -110,7 +110,7 @@
             </span>
           <% end %>
 
-          <% if @video.data['year'].present? && @video.data['year'] > 0 %>
+          <% if @video.data['year'].to_i > 0 %>
             <span class="inline-flex items-center px-3 py-1 text-sm font-semibold text-purple-800 bg-purple-100 rounded-full">
               <%= @video.data['season'] || @video.data['year'] %>
             </span>
