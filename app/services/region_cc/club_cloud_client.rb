@@ -307,6 +307,11 @@ class RegionCc::ClubCloudClient
     "editTeilnehmerlisteCheck" => ["/admin/einzel/meisterschaft/editTeilnehmerlisteCheck.php", false],
     "editTeilnehmerlisteSave" => ["/admin/einzel/meisterschaft/editTeilnehmerlisteSave.php", false],
     "showTeilnehmerliste" => ["/admin/einzel/meisterschaft/showTeilnehmerliste.php", true],
+    # Plan 32-01 cc_fast_assign — Schnellanmeldung (DEFER-D2-2): Spieler direkt via foundpid in
+    # Teilnehmerliste eintragen. Kein Pre-Read/Edit-Buffer nötig. Params: meisterschaftsId + foundpid
+    # + akkpid (leer=add, befüllt=swap) + fedId + branchId. URL-Pfad basiert auf DEFER-D2-2-HAR-Befund;
+    # Live-Smoke empfohlen falls URL-Drift festgestellt wird.
+    "cc_fast_assign" => ["/admin/einzel/meisterschaft/cc_fast_assign.php", false],
     #
     # --- Vereins-Sicht (myclub/meldewesen/single) — Plan 04-04 register-Tool ---
     # Diese 3 Endpoints liegen im VEREINS-Bereich (admin/myclub/meldewesen/single),
