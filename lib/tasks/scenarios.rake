@@ -1093,6 +1093,24 @@ Rails.application.configure do
   config.action_controller.default_url_options = { host: "#{webserver_host}"#{port_clause} }
   config.action_mailer.default_url_options = { host: "#{webserver_host}"#{port_clause} }
 
+  # Configure SMTP for email delivery (Gmail). Credentials are provided at
+  # runtime via the systemd EnvironmentFile (/etc/<basename>.env -> ENV).
+  config.action_mailer.delivery_method = :smtp
+  config.action_mailer.smtp_settings = {
+    address: "smtp.gmail.com",
+    port: 587,
+    domain: "carambus.de",
+    user_name: ENV["SMTP_USERNAME"],
+    password: ENV["SMTP_PASSWORD"],
+    authentication: "plain",
+    enable_starttls_auto: true,
+    open_timeout: 5,
+    read_timeout: 5
+  }
+  config.action_mailer.perform_deliveries = true
+  config.action_mailer.raise_delivery_errors = true
+  config.action_mailer.default_options = { from: ENV["SMTP_USERNAME"] || "no-reply@carambus.de" }
+
   # Include generic and useful information about system operation, but avoid logging too much
   # information to avoid inadvertent exposure of personally identifiable information (PII).
   config.log_level = :info
@@ -2568,10 +2586,11 @@ ENV
     # Step 5: Copy deployment files
     puts "\n🚀 Step 5: Copying deployment files..."
     deploy_dir = File.join(scenarios_path, scenario_name, 'production')
-    if File.exist?(File.join(deploy_dir, 'deploy.rb'))
-      FileUtils.cp(File.join(deploy_dir, 'deploy.rb'), File.join(rails_root, 'config', 'deploy.rb'))
-      puts "   ✅ deploy.rb copied"
-    end
+    # Plan 21-10: deploy.rb is a tracked, universal repo file (config/deploy.rb).
+    # It must NOT be overwritten by a per-scenario copy - doing so reintroduced
+    # stale linked_files (e.g. a missing config/cable.yml). The tracked
+    # config/deploy.rb already carries the complete, correct linked_files list.
+    puts "   ℹ️  Using tracked config/deploy.rb (per-scenario copy intentionally skipped, Plan 21-10)"
 
     if Dir.exist?(File.join(deploy_dir, 'deploy'))
       # Copy individual files from deploy subdirectory
@@ -3166,6 +3185,10 @@ ENV
     nginx_conf_path = File.join(production_dir, 'nginx.conf')
     return false unless upload_config_file(nginx_conf_path, shared_config_dir, 'nginx.conf', ssh_host, ssh_port, required: true)
 
+    # Upload cable.yml (Action Cable / Redis - scenario-specific channel_prefix)
+    cable_yml_path = File.join(production_dir, 'cable.yml')
+    return false unless upload_config_file(cable_yml_path, shared_config_dir, 'cable.yml', ssh_host, ssh_port, required: true)
+
     # Upload puma.service
     puma_service_path = File.join(production_dir, 'puma.service')
     return false unless upload_config_file(puma_service_path, shared_config_dir, 'puma.service', ssh_host, ssh_port, required: true)
@@ -3277,10 +3300,11 @@ ENV
     # Step 3: Copy deployment files
     puts "\n🚀 Step 3: Copying deployment files..."
     deploy_dir = File.join(scenarios_path, scenario_name, 'production')
-    if File.exist?(File.join(deploy_dir, 'deploy.rb'))
-      FileUtils.cp(File.join(deploy_dir, 'deploy.rb'), File.join(rails_root, 'config', 'deploy.rb'))
-      puts "   ✅ deploy.rb copied"
-    end
+    # Plan 21-10: deploy.rb is a tracked, universal repo file (config/deploy.rb).
+    # It must NOT be overwritten by a per-scenario copy - doing so reintroduced
+    # stale linked_files (e.g. a missing config/cable.yml). The tracked
+    # config/deploy.rb already carries the complete, correct linked_files list.
+    puts "   ℹ️  Using tracked config/deploy.rb (per-scenario copy intentionally skipped, Plan 21-10)"
 
     if Dir.exist?(File.join(deploy_dir, 'deploy'))
       # Copy individual files from deploy subdirectory
