@@ -111,6 +111,23 @@ namespace :scenario do
     prepare_scenario_for_deployment(scenario_name)
   end
 
+  desc "DESTRUKTIV: DB auf Server zurücksetzen und neu befüllen (Migrations + Dump + DB-Reset auf Server)"
+  task :reset_server_db, [:scenario_name] => :environment do |task, args|
+    scenario_name = args[:scenario_name]
+
+    if scenario_name.nil?
+      puts "Usage: rake scenario:reset_server_db[scenario_name]"
+      puts "Example: rake scenario:reset_server_db[carambus_nbv]"
+      puts ""
+      puts "⚠️  DESTRUKTIV: Dropt und recreiert die Production-DB auf dem Server!"
+      puts "   Nur für Local-Server-Szenarien (cap_role: local) verwenden."
+      puts "   Voraussetzung: rake scenario:prepare_deploy[name] muss bereits gelaufen sein."
+      exit 1
+    end
+
+    reset_server_database(scenario_name)
+  end
+
   desc "Deploy scenario to production (pure Capistrano deployment with automatic service management)"
   task :deploy, [:scenario_name] => :environment do |task, args|
     scenario_name = args[:scenario_name]
@@ -3254,6 +3271,16 @@ ENV
     production_config = scenario_config['environments']['production']
     scenario = scenario_config['scenario']
 
+    # Authority-Server-Guard: prepare_deploy darf nie auf dem Authority-Server laufen
+    # (Infra-Vorfall 2026-06-09: unbeabsichtigter prepare_deploy droppte Production-DB)
+    cap_role = production_config['cap_role']
+    if cap_role == 'api'
+      puts "❌ GUARD: #{scenario_name} hat cap_role: api (Authority-Server)."
+      puts "   prepare_deploy ist NUR für Local-Server-Szenarien (cap_role: local)."
+      puts "   Für den Authority-Server Capistrano direkt verwenden: cap production deploy"
+      return false
+    end
+
     puts "   Target: #{production_config['webserver_host']}:#{production_config['webserver_port']}"
     puts "   SSH: #{production_config['ssh_host']}:#{production_config['ssh_port']}"
 
@@ -3338,66 +3365,14 @@ ENV
       return false
     end
 
-    # Step 5: Ensure development database has all migrations applied
-    puts "\n🔄 Step 5: Ensuring development database has all migrations applied..."
-
-    # Change to the Rails root directory and run migrations
-    rails_root_dir = File.join(File.expand_path('..', Rails.root), scenario_name)
-    if Dir.exist?(rails_root_dir)
-      puts "   Running migrations on development database..."
-      migrate_cmd = "cd #{rails_root_dir} && RAILS_ENV=development bundle exec rails db:migrate"
-      if system(migrate_cmd)
-        puts "   ✅ Development database migrations completed"
-      else
-        puts "   ❌ Development database migrations failed"
-        return false
-      end
-    else
-      puts "   ❌ Rails root directory not found: #{rails_root_dir}"
-      return false
-    end
-
-    # Step 6: Create production database dump from scenario development database
-    puts "\n💾 Step 6: Creating production database dump from #{scenario_name}_development..."
-
-    # Check if development database exists
-    dev_database_name = "#{scenario_name}_development"
-    unless system("psql -lqt | cut -d \\| -f 1 | grep -qw #{dev_database_name}")
-      puts "❌ Development database #{dev_database_name} not found!"
-      puts "   Run 'rake scenario:prepare_development[#{scenario_name},development]' first"
-      return false
-    end
-
-    # Create production dump from development database
-    unless create_production_dump_from_development(scenario_name)
-      puts "❌ Failed to create production dump from development database"
-      return false
-    end
-
-    # Step 7: Upload and load database dump to server
-    puts "\n💾 Step 7: Uploading and loading database dump to server..."
-    unless upload_and_load_database_dump(scenario_name, production_config)
-      puts "❌ Failed to upload and load database dump"
-      return false
-    end
-
-    # Step 8: Upload configuration files to server
-    puts "\n📤 Step 8: Uploading configuration files to server..."
-    unless upload_configuration_files_to_server(scenario_name, production_config)
-      puts "❌ Failed to upload configuration files to server"
-      return false
-    end
-
-    puts "\n✅ Scenario #{scenario_name} prepared for deployment!"
+    puts "\n✅ Scenario #{scenario_name} für Deployment vorbereitet (Config + Server-Setup)!"
     puts "   Rails root: #{rails_root}"
     puts "   Production config: #{File.join(scenarios_path, scenario_name, 'production')}"
-    puts "   Database dump: #{File.join(scenarios_path, scenario_name, 'database_dumps')}"
-    puts "   Configuration files: Uploaded to server"
-    puts "   Database: Loaded and verified on server"
     puts ""
     puts "Next steps:"
-    puts "  1. Run 'rake scenario:deploy[#{scenario_name}]' to execute Capistrano deployment"
-    puts "  2. Or manually deploy using Capistrano: cd #{rails_root} && cap production deploy"
+    puts "  1. rake scenario:reset_server_db[#{scenario_name}]  # DB auf Server zurücksetzen (DESTRUKTIV)"
+    puts "  2. rake scenario:deploy[#{scenario_name}]           # Capistrano-Deploy"
+    puts "  Oder direkt: cd #{rails_root} && cap production deploy"
 
     true
   end
@@ -5592,6 +5567,65 @@ EOF
       puts "\n   Example:"
       puts "   rake scenario:restart_table_scoreboard[#{scenario_name},\"#{tables.first.name}\"]"
     end
+  end
+
+  def reset_server_database(scenario_name)
+    config_file = File.join(scenarios_path, scenario_name, 'config.yml')
+    unless File.exist?(config_file)
+      puts "Error: Scenario configuration not found: #{config_file}"
+      return false
+    end
+
+    scenario_config = YAML.load_file(config_file)
+    production_config = scenario_config['environments']['production']
+
+    # Authority-Guard: auch hier absichern
+    if production_config['cap_role'] == 'api'
+      puts "❌ GUARD: #{scenario_name} ist der Authority-Server (cap_role: api)."
+      puts "   DB-Reset auf dem Authority-Server ist verboten."
+      return false
+    end
+
+    # Step 5: Ensure development database has all migrations applied
+    puts "\n🔄 Step 5: Ensuring development database has all migrations applied..."
+    rails_root_dir = File.join(File.expand_path('..', Rails.root), scenario_name)
+    if Dir.exist?(rails_root_dir)
+      puts "   Running migrations on development database..."
+      migrate_cmd = "cd #{rails_root_dir} && RAILS_ENV=development bundle exec rails db:migrate"
+      if system(migrate_cmd)
+        puts "   ✅ Development database migrations completed"
+      else
+        puts "   ❌ Development database migrations failed"
+        return false
+      end
+    else
+      puts "   ❌ Rails root directory not found: #{rails_root_dir}"
+      return false
+    end
+
+    # Step 6: Create production database dump from scenario development database
+    puts "\n💾 Step 6: Creating production database dump from #{scenario_name}_development..."
+    dev_database_name = "#{scenario_name}_development"
+    unless system("psql -lqt | cut -d \\| -f 1 | grep -qw #{dev_database_name}")
+      puts "❌ Development database #{dev_database_name} not found!"
+      puts "   Run 'rake scenario:prepare_development[#{scenario_name},development]' first"
+      return false
+    end
+    unless create_production_dump_from_development(scenario_name)
+      puts "❌ Failed to create production dump from development database"
+      return false
+    end
+
+    # Step 7: Upload and load database dump to server
+    puts "\n💾 Step 7: Uploading and loading database dump to server..."
+    unless upload_and_load_database_dump(scenario_name, production_config)
+      puts "❌ Failed to upload and load database dump"
+      return false
+    end
+
+    puts "\n✅ Server-DB für #{scenario_name} zurückgesetzt und befüllt!"
+    puts "   Nächster Schritt: rake scenario:deploy[#{scenario_name}]"
+    true
   end
 
 
