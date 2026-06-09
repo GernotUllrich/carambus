@@ -3053,12 +3053,16 @@ ENV
 
             # Verify database was restored correctly
             puts "   🔍 Verifying database restore..."
-            verify_cmd = "sudo -u postgres psql #{production_database} -c \"SELECT COUNT(*) FROM regions;\" 2>&1"
+            # -tA => tuples-only, unaligned: psql returns just the number (no
+            # header/separator/"(1 row)"), locale-independent and robust.
+            verify_cmd = "sudo -u postgres psql -tA #{production_database} -c \"SELECT COUNT(*) FROM regions;\" 2>&1"
             verify_output = `ssh -p #{ssh_port} www-data@#{ssh_host} '#{verify_cmd}'`
+            region_count = verify_output[/\d+/].to_i
 
-            # Check for 21 regions (locale-independent - works with both "1 row" and "1 Zeile")
-            if verify_output.include?("19") && (verify_output.include?("(1 row)") || verify_output.include?("(1 Zeile)"))
-              puts "   ✅ Database verification successful - 21 regions found"
+            # A successful global-data restore must contain regions. Don't hardcode
+            # the exact count (it changes over time) - just require > 0.
+            if region_count > 0
+              puts "   ✅ Database verification successful - #{region_count} regions found"
 
               # Note: Sequence reset not needed - production DB is a copy of development DB with correct sequences
               # Note: Local data already included in development database - no separate restore needed
