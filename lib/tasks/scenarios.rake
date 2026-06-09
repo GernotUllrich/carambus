@@ -3013,20 +3013,20 @@ ENV
           # Backup shared directory before removing application folders
           echo "💾 Backing up shared directory..."
           if [ -d "/var/www/#{basename}/shared" ]; then
-            sudo cp -r /var/www/#{basename}/shared /tmp/#{basename}_shared_backup
+            sudo cp -r /var/www/#{basename}/shared /var/www/#{basename}_shared_backup_pre_reset
             echo "✅ Shared directory backed up"
           else
             echo "ℹ️  No existing shared directory to backup"
           fi
-          
+
           # Remove existing application folders (including old trials)
           echo "📁 Removing application folders..."
           sudo rm -rf /var/www/#{basename}
-          
+
           # Drop and recreate database with verification
           echo "🗑️  Dropping existing database..."
           sudo -u postgres psql -c "DROP DATABASE IF EXISTS #{production_database};" || echo "Database did not exist"
-          
+
           # Ensure database role exists (with password and privileges)
           echo "👤 Ensuring database role exists..."
           if sudo -u postgres psql -tAc "SELECT 1 FROM pg_roles WHERE rolname='#{db_username}'" | grep -q 1; then
@@ -3038,10 +3038,10 @@ ENV
           # Always enforce password and required privileges
           sudo -u postgres psql -c "ALTER ROLE #{db_username} WITH PASSWORD '#{db_password}';"
           sudo -u postgres psql -c "ALTER ROLE #{db_username} SUPERUSER CREATEROLE CREATEDB REPLICATION;"
-          
+
           echo "🆕 Creating new database..."
           sudo -u postgres psql -c "CREATE DATABASE #{production_database} OWNER #{db_username};"
-          
+
           # Verify database was created successfully
           echo "🔍 Verifying database creation..."
           if sudo -u postgres psql -c "\\l" | grep -q "#{production_database}"; then
@@ -3050,14 +3050,14 @@ ENV
             echo "❌ Database creation failed"
             exit 1
           fi
-          
+
           # Restore shared directory after database creation
           echo "🔄 Restoring shared directory..."
-          if [ -d "/tmp/#{basename}_shared_backup" ]; then
+          if [ -d "/var/www/#{basename}_shared_backup_pre_reset" ]; then
             sudo mkdir -p /var/www/#{basename}
-            sudo cp -r /tmp/#{basename}_shared_backup /var/www/#{basename}/shared
+            sudo cp -r /var/www/#{basename}_shared_backup_pre_reset /var/www/#{basename}/shared
             sudo chown -R www-data:www-data /var/www/#{basename}
-            sudo rm -rf /tmp/#{basename}_shared_backup
+            sudo rm -rf /var/www/#{basename}_shared_backup_pre_reset
             echo "✅ Shared directory restored"
           else
             echo "ℹ️  No shared directory backup to restore"
