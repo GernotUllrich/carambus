@@ -276,6 +276,9 @@ class RegionCc::ClubCloudClient
     # catId: *
     # season: 2010/2011
     "showMeldeliste" => ["/admin/einzel/meldelisten/showMeldeliste.php", true],
+    # Turnier-spezifische Meldeliste (persistiert, stabil) — Plan 31-01 Bug-Fix.
+    # p=<fedId>-<branchId>-*-<season>-*--<meisterschaftsId>-2
+    "meisterschaft-showMeldeliste" => ["/admin/einzel/meisterschaft/showMeldeliste.php", true],
     # fedId: 20
     # branchId: 10
     # disciplinId: *

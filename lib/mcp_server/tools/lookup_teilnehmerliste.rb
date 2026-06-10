@@ -120,7 +120,7 @@ module McpServer
           available_in_meldeliste: meldung,
           read_pfade: {
             teilnehmer: "showTeilnehmerliste.php -3 (persistiert, stabil)",
-            meldung: "showTeilnehmerliste.php -2 (persistiert, stabil)"
+            meldung: "showMeldeliste.php -2 (persistiert, stabil)"
           }
         ))
       rescue => e
@@ -170,23 +170,27 @@ module McpServer
         error("showTeilnehmerliste parse failed: #{e.class.name} (#{e.message})")
       end
 
-      # Plan 31-01 T1: persistierte Meldeliste-View via showTeilnehmerliste.php -2 (Meldeliste-Tab).
-      # Gleicher Endpunkt wie fetch_teilnehmerliste_persisted, Tab-Indicator 2 statt 3.
-      # Gibt alle registrierten Spieler zurück — Differenz zu Teilnehmerliste ergibt available_in_meldeliste.
-      # Bei HTTP-Fehler: [] (defensiv, kein MCP::Tool::Response — Lookup laeuft mit leerem Ergebnis weiter).
+      # Plan 31-01 T1 (Bug-Fix 2026-06-10): persistierte Meldeliste via meisterschaft-showMeldeliste.
+      # Smoke-Test 2026-06-10 ergab: showTeilnehmerliste.php -2 hat anderes HTML-Format als -3;
+      # tatsaechliche Meldeliste liegt auf showMeldeliste.php (Endpunkt "meisterschaft-showMeldeliste").
+      # URL-Pattern: /admin/einzel/meisterschaft/showMeldeliste.php?p=<fed>-<branch>-*-<season>-*--<meisterschaftsId>-2
+      # HTML-Format (live-capture): <tr class="even|odd"> mit <td class="bb1"><b>Nachname</b></td>
+      #   <td class="bb1"><b>Vorname</b></td> <td class="bb1" align="center">cc_id</td>
+      # Bei HTTP-Fehler: [] (defensiv — Lookup laeuft mit leerem Ergebnis weiter).
       def self.fetch_meldeliste_persisted(client, tournament_cc_id, scope)
         p_param = "#{scope[:fedId]}-#{scope[:branchId]}-*-#{scope[:season]}-*--#{tournament_cc_id}-2"
         Rails.logger.info "[cc_lookup_teilnehmerliste] fetch_meldeliste p_param=#{p_param.inspect}"
-        res, _doc = client.get("showTeilnehmerliste", {p: p_param}, {session_id: cc_session.cookie})
+        res, _doc = client.get("meisterschaft-showMeldeliste", {p: p_param}, {session_id: cc_session.cookie})
         return [] if res.nil? || res.code != "200"
 
         body = res.body.to_s
-        title_count = body.scan(/title=["'][^"']+\(\d+\)["']/).size
-        Rails.logger.info "[cc_lookup_teilnehmerliste] meldeliste body_bytes=#{body.bytesize} has_cc_bluelink=#{body.include?("cc_bluelink")} title_with_id_count=#{title_count}"
+        Rails.logger.info "[cc_lookup_teilnehmerliste] meldeliste body_bytes=#{body.bytesize} has_bb1=#{body.include?("bb1")} has_loginButton=#{body.include?("loginButton")}"
 
-        matches = body.scan(/title=["']([^"']+?)\s*\((\d+)\)["']\s+class=["']cc_bluelink["']/)
-        matches.uniq { |_name, cc_id| cc_id.to_i }.map do |name, cc_id|
-          {cc_id: cc_id.to_i, label: name.strip}
+        # Live-HTML: <td class="bb1"><b>Nachname</b></td><td class="bb1"><b>Vorname</b></td>
+        #            <td class="bb1" align="center">10024</td>  (Pass-Nr. = cc_id)
+        matches = body.scan(/<td class="bb1"><b>([^<]+)<\/b><\/td>\s*<td class="bb1"><b>([^<]+)<\/b><\/td>\s*<td class="bb1" align="center">(\d+)<\/td>/m)
+        matches.uniq { |_nachname, _vorname, cc_id| cc_id.to_i }.map do |nachname, vorname, cc_id|
+          {cc_id: cc_id.to_i, label: "#{nachname}, #{vorname}"}
         end
       rescue => e
         Rails.logger.warn "[cc_lookup_teilnehmerliste] fetch_meldeliste_persisted failed: #{e.class}: #{e.message}"
