@@ -203,11 +203,15 @@ module McpServer
         # Optional Read-Back (Schicht 4 Verify): re-read teilnehmerliste, verify all player_cc_ids now present.
         # Plan 26-01 T1b: zusätzlich prüfen, ob Bestandsteilnehmer unbeabsichtigt entfernt wurden
         # (Demo-2-Befund: alter read_back war False-Positive — prüfte nur neue Spieler, nicht Bestand).
+        # Plan 33-fix (2026-06-10): Read-Back aus persistierter Tab-3-View (showTeilnehmerliste),
+        # NICHT aus dem editTeilnehmerlisteCheck-Edit-Buffer. Nach dem atomaren Toggle ist der
+        # Edit-Buffer eventual-stale → alter Read-Back gab False-Negative (error trotz korrektem Write,
+        # Live-Befund 2026-06-10). Die persistierte View spiegelt den DB-Stand sofort wider.
         read_back_match = :skipped
         if read_back
-          rb = pre_read_teilnehmerliste(client, tournament_cc_id, scope)
-          if rb.is_a?(Hash)
-            actual_ids = rb[:current_teilnehmer].map { |opt| opt[:cc_id] }
+          rb_teilnehmer = McpServer::Tools::LookupTeilnehmerliste.fetch_teilnehmerliste_persisted(client, tournament_cc_id, scope)
+          if rb_teilnehmer.is_a?(Array)
+            actual_ids = rb_teilnehmer.map { |opt| opt[:cc_id] }
             missing_after_save = player_cc_ids - actual_ids
             pre_existing_ids = pre_read[:current_teilnehmer].map { |o| o[:cc_id] }
             unintended_removals = pre_existing_ids - actual_ids
@@ -218,11 +222,11 @@ module McpServer
               problem_parts << "unbeabsichtigt entfernte Bestandsteilnehmer: #{unintended_removals.inspect}" if unintended_removals.any?
               return error(
                 "Read-back mismatch: #{problem_parts.join("; ")}. " \
-                "Save hat möglicherweise unvollständige Daten geschrieben. Bitte CC-UI prüfen und ggf. bereinigen."
+                "Die ClubCloud braucht einen Moment, bis sie den neuen Stand übernimmt — bitte gleich erneut prüfen."
               )
             end
           else
-            return error("Read-back failed (post-save Pre-Read returned error). Save may have succeeded; inspect CC manually.")
+            return error("Read-back failed (post-write persisted read returned error). Write may have succeeded; inspect CC manually.")
           end
         end
 

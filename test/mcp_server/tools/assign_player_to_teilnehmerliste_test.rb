@@ -101,6 +101,19 @@ class McpServer::Tools::AssignPlayerToTeilnehmerlisteTest < ActiveSupport::TestC
           Nokogiri::HTML("<html><body>MOCK POST #{action} OK</body></html>")]
       end
     end
+    # Plan 33-fix: fetch_teilnehmerliste_persisted (Read-Back + Buffer-Sync) nutzt GET showTeilnehmerliste.
+    # Liefert current_teilnehmer im cc_bluelink-title-Format (Tab-3-persisted).
+    mock.define_singleton_method(:get) do |action, params, opts|
+      @calls << [:get, action, params, opts]
+      rows = current_teilnehmer.map do |cc_id, label|
+        last_first = label.split(" (").first.to_s
+        last_name, first_name = last_first.split(", ", 2)
+        first_name ||= "Vorname"
+        %(<a href="showTeilnehmer.php?p=x--890-#{cc_id}&amp;" title="#{last_name}, #{first_name} (#{cc_id})" class="cc_bluelink">#{last_name}</a>)
+      end.join
+      body = "<html><body>#{rows}</body></html>"
+      [Struct.new(:code, :message, :body).new("200", "OK", body), Nokogiri::HTML(body)]
+    end
     mock
   end
 
@@ -130,7 +143,7 @@ class McpServer::Tools::AssignPlayerToTeilnehmerlisteTest < ActiveSupport::TestC
     assert_equal 1, pre_reads.size, "Dry-Run macht exakt 1 Pre-Read — got #{pre_reads.size}"
   end
 
-  test "armed:true Single-Add ruft Pre-Read → showMeldeliste_teilnahme → Read-Back in genau dieser Reihenfolge" do
+  test "armed:true Single-Add ruft Pre-Read → showMeldeliste_teilnahme → Read-Back (GET) in genau dieser Reihenfolge" do
     response = McpServer::Tools::AssignPlayerToTeilnehmerliste.call(
       tournament_cc_id: 890, player_cc_ids: [11683],
       fed_cc_id: 20, branch_cc_id: 8, season: "2025/2026",
@@ -141,11 +154,14 @@ class McpServer::Tools::AssignPlayerToTeilnehmerlisteTest < ActiveSupport::TestC
     assert_match(/Assigned 1 player.*tournament_cc_id=890.*MOCK NDM Endrunde/, text)
     assert_match(/added: \[11683\]/, text)
     assert_match(/read_back_match: true/, text)
-    # Plan 33-fix: Pre-Read → showMeldeliste_teilnahme (atomarer Toggle) → Read-Back.
-    # Kein assignPlayer/Re-Render/Save mehr (Edit-Buffer-Race eliminiert).
-    actions = @mock.calls.select { |verb, _, _, _| verb == :post }.map { |_, a, _, _| a }
-    assert_equal ["editTeilnehmerlisteCheck", "showMeldeliste_teilnahme", "editTeilnehmerlisteCheck"], actions,
-      "Erwarte Pre-Read → Toggle → Read-Back — got #{actions.inspect}"
+    # Plan 33-fix: POST-Sequenz = Pre-Read (editTeilnehmerlisteCheck) → Toggle (showMeldeliste_teilnahme).
+    # Kein assignPlayer/Re-Render/Save mehr; Read-Back ist jetzt ein GET (showTeilnehmerliste).
+    post_actions = @mock.calls.select { |verb, _, _, _| verb == :post }.map { |_, a, _, _| a }
+    assert_equal ["editTeilnehmerlisteCheck", "showMeldeliste_teilnahme"], post_actions,
+      "Erwarte Pre-Read → Toggle (POST) — got #{post_actions.inspect}"
+    # Read-Back ist ein GET auf showTeilnehmerliste (persisted Tab-3).
+    rb_get = @mock.calls.select { |verb, action, _, _| verb == :get && action == "showTeilnehmerliste" }
+    assert rb_get.any?, "Read-Back muss GET showTeilnehmerliste nutzen — got #{@mock.calls.map { |v, a, _, _| [v, a] }.inspect}"
   end
 
   # --- AC-2 Multi-Add (Phase-7-Spezifikum) ---
@@ -334,12 +350,12 @@ class McpServer::Tools::AssignPlayerToTeilnehmerlisteTest < ActiveSupport::TestC
     assert_match(/persisted_truth_source: showTeilnehmerliste\b/, text)
     refute_match(/synced after wait/, text)
     refute_match(/persisted unavailable/, text)
-    # showTeilnehmerliste muss exakt 1x via GET aufgerufen worden sein (initial sync check, kein retry).
+    # Plan 33-fix: showTeilnehmerliste 2× via GET (1× initial Buffer-Sync-Check + 1× Read-Back).
     show_calls = @mock.calls.select { |verb, action, _, _| verb == :get && action == "showTeilnehmerliste" }
-    assert_equal 1, show_calls.size, "fetch_teilnehmerliste_persisted muss 1x aufgerufen werden — got #{show_calls.size}"
-    # Plan 33-fix: 2 editTeilnehmerlisteCheck (1 initial Pre-Read + 1 read-back); KEIN Re-Render mehr.
+    assert_equal 2, show_calls.size, "fetch_teilnehmerliste_persisted: 1× Buffer-Sync + 1× Read-Back — got #{show_calls.size}"
+    # Plan 33-fix: nur 1 editTeilnehmerlisteCheck (Pre-Read); Read-Back ist jetzt GET, kein Re-Render.
     pre_read_calls = @mock.calls.select { |verb, action, _, _| verb == :post && action == "editTeilnehmerlisteCheck" }
-    assert_equal 2, pre_read_calls.size, "1 initial Pre-Read + 1 read-back — got #{pre_read_calls.size}"
+    assert_equal 1, pre_read_calls.size, "nur 1 initial Pre-Read (Read-Back via GET) — got #{pre_read_calls.size}"
   end
 
   test "Plan 26-01 T1: edit_buffer permanent stale (persisted=3, buffer=0) → abort vor Save mit Sportwart-Sprache" do
