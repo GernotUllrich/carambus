@@ -21,12 +21,13 @@ class McpServer::Tools::LookupTeilnehmerlisteTest < ActiveSupport::TestCase
     McpServer::CcSession.reset!
   end
 
-  # Plan 31-01: GET-Dispatch auf Tab-2 (Meldeliste) vs Tab-3 (Teilnehmerliste).
-  # Tab 2 bekommt alle Registrierten (teilnehmer + meldung); Tab 3 nur die Akkreditierten.
-  # Kein POST mehr — Assertions im AC-2-Test pruefen das explizit.
+  # Plan 33-fix (2026-06-10): GET-Dispatch nach Action.
+  #   - showTeilnehmerliste (Tab-3, p endet -3) → akkreditierte Teilnehmer (cc_bluelink-Format)
+  #   - meisterschaft-showMeldeliste (p endet -2) → ALLE Meldungen (showMeldeliste.php bb1-Format)
+  # available_in_meldeliste = Meldeliste(alle) minus Teilnehmer.
   def build_mock(teilnehmer:, meldung:)
-    show_tab3_body = build_show_tab_html(players: teilnehmer)
-    show_tab2_body = build_show_tab_html(players: teilnehmer + meldung)
+    teilnehmer_body = build_teilnehmer_html(players: teilnehmer)
+    meldeliste_body = build_meldeliste_html(players: teilnehmer + meldung)
     ok = Struct.new(:code, :message, :body)
     mock = McpServer::Tools::MockClient.new
     mock.define_singleton_method(:post) do |action, params, opts|
@@ -35,16 +36,15 @@ class McpServer::Tools::LookupTeilnehmerlisteTest < ActiveSupport::TestCase
     end
     mock.define_singleton_method(:get) do |action, params, opts|
       @calls << [:get, action, params, opts]
-      body = params[:p].to_s.end_with?("-2") ? show_tab2_body : show_tab3_body
+      body = (action == "meisterschaft-showMeldeliste") ? meldeliste_body : teilnehmer_body
       [ok.new("200", "OK", body), Nokogiri::HTML(body)]
     end
     McpServer::CcSession._client_override = mock
     mock
   end
 
-  # HTML fuer showTeilnehmerliste.php (Tab 2 oder Tab 3) — REAL-FORMAT (DFP SU 2026-06-02).
-  # Gleicher Endpunkt, gleiches HTML-Format fuer beide Tabs.
-  def build_show_tab_html(players:)
+  # HTML fuer showTeilnehmerliste.php Tab-3 (Teilnehmerliste) — cc_bluelink title-Format.
+  def build_teilnehmer_html(players:)
     rows = players.each_with_index.map do |(cc_id, label), idx|
       last_first = label.split(" (").first.to_s
       last_name, first_name = last_first.split(", ", 2)
@@ -57,6 +57,20 @@ class McpServer::Tools::LookupTeilnehmerlisteTest < ActiveSupport::TestCase
       ROW
     end.join
     "<html><body><table><tbody>#{rows}</tbody></table></body></html>"
+  end
+
+  # HTML fuer showMeldeliste.php (Meldeliste) — bb1 single-quote-Format (HAR-Goldvorlage 2026-06-10).
+  #   <td class='bb1'><b>Nachname</b></td><td class='bb1'><b>Vorname</b></td><td class='bb1' align='center'>Pass-Nr</td>
+  def build_meldeliste_html(players:)
+    rows = players.map do |cc_id, label|
+      last_first = label.split(" (").first.to_s
+      last_name, first_name = last_first.split(", ", 2)
+      first_name = first_name.presence || "Vorname"  # CC hat immer einen Vornamen; Test-Label ggf. ohne
+      "<tr class='even'><td class='bb1' align='center'>1</td>" \
+        "<td class='bb1'><b>#{last_name}</b></td><td class='bb1'><b>#{first_name}</b></td>" \
+        "<td class='bb1' align='center'>#{cc_id}</td></tr>"
+    end.join
+    "<html><body><table>#{rows}</table></body></html>"
   end
 
   # AC-1: available_in_meldeliste kommt aus Tab-2-Differenz (Registrierte minus Akkreditierte)
@@ -75,7 +89,7 @@ class McpServer::Tools::LookupTeilnehmerlisteTest < ActiveSupport::TestCase
     assert_equal 2, body["counts"]["meldung_open"]
     assert_equal [42], body["current_teilnehmer"].map { |p| p["cc_id"] }
     assert_equal [43, 44], body["available_in_meldeliste"].map { |p| p["cc_id"] }
-    assert_match(/showTeilnehmerliste\.php -2/, body["read_pfade"]["meldung"])
+    assert_match(/showMeldeliste\.php -2/, body["read_pfade"]["meldung"])
   end
 
   # AC-2: cc_lookup_teilnehmerliste macht keine POST-Calls (kein Edit-Buffer-Seiteneffekt)
