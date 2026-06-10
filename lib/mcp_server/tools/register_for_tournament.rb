@@ -245,31 +245,30 @@ module McpServer
         # a=<just-added> als Bestätigung.
 
         # Step 0: Initial Check — Edit-Modus auf dem CC-Server aktivieren.
-        # Plan 14-G.13 (2026-05-18 Discovery via tmp/add.har): Browser-Init enthält
-        # EXAKT diese 9 Felder (NICHT firstEntry, NICHT selectedClubId — beide kippten
-        # bei meinem 1. Fix-Versuch den DB-Scratch-Load).
-        # - `edit=` LEER triggert PHP-isset+empty → lädt DB-State in Server-Scratch.
-        #   Mit edit="1" bleibt Scratch leer → Save = OVERWRITE der DB.
-        # - `keep_blanks: [:edit]` umgeht den Standard-blank-Filter im ClubCloudClient.
+        # Plan 31-fix (2026-06-10, HAR-Goldvorlage tmp/Schnellanmeldung.har): Browser nutzt
+        # `editUp=` (LEER), NICHT `edit=`. Der frühere edit=""-Init (14-G.13) lud den DB-State
+        # NICHT in den Scratch → Save überschrieb bestehende Spieler (Nachmeldung zu befüllter
+        # Liste verlor die alten Einträge). Live-Befund 2026-06-10: Lothar→HaJo→Lothar, jeder
+        # register-Call überschrieb den vorherigen. Browser-editUp lädt den DB-State korrekt.
+        # - `keep_blanks: [:editUp]` umgeht den Standard-blank-Filter im ClubCloudClient.
         initial_check_payload = {
           fedId: fed_id, disciplinId: "*", season: season, catId: "*",
           meldelisteId: meldeliste_cc_id, sortOrder: "player",
           clubId: club_cc_id, branchId: branch_cc_id,
-          edit: ""  # LEER — lädt DB-State in Scratch!
+          editUp: ""  # LEER — lädt DB-State in Scratch (HAR-belegt)!
         }
         init_res, _init_doc = client.post(
           "sportwart-editMeldelisteCheck",
           initial_check_payload,
-          {armed: armed, session_id: cc_session.cookie, keep_blanks: [:edit]}
+          {armed: armed, session_id: cc_session.cookie, keep_blanks: [:editUp]}
         )
         return error("Unexpected nil response from CC (initial editMeldelisteCheck).") if init_res.nil?
         return error("CC rejected at initial editMeldelisteCheck: HTTP #{init_res&.code}") if init_res&.code != "200"
 
-        # Plan 14-G.13 (2026-05-18 empirisch in scripts/cc_probe_edit_empty.rb):
-        # Mit korrektem Init (edit=LEER) ist der Server-Scratch bereits mit DB-State
-        # gefüllt. Der per-Player editMeldelisteCheck zwischen den Adds ist NICHT mehr
-        # nötig — cc_add(a=pid) appendet einfach in den Scratch. Vorher angenommene
-        # h3-Pattern (check+add pro Player) war Notlösung gegen den falschen Init.
+        # Plan 31-fix (2026-06-10, HAR-Goldvorlage): Browser-Sequenz pro Spieler ist
+        #   cc_add(a=pid) → editMeldelisteCheck(post-add persist, a=pid).
+        # Der post-add-Check persistiert den frisch-addierten Spieler in den Server-Scratch.
+        # Plan 14-G.13 hatte ihn als "nicht mehr nötig" entfernt — die HAR widerlegt das.
         player_cc_ids.each do |pid|
           add_res, add_doc = client.post(
             "addPlayerToMeldeliste",
@@ -287,6 +286,22 @@ module McpServer
           return error("CC rejected at cc_add for player_cc_id=#{pid}: #{parse_cc_error(add_doc)} (HTTP #{add_res&.code})") if add_res&.code != "200"
           add_parsed = parse_cc_error(add_doc)
           return error("CC rejected at cc_add for player_cc_id=#{pid}: #{add_parsed}") if add_parsed && add_parsed != "(no error)"
+
+          # Post-Add-Check (HAR-belegt): persistiert den gerade addierten Spieler in den Scratch.
+          # Payload aus tmp/Schnellanmeldung.har:
+          #   setzNummer=&fedId=..&branchId=..&disciplinId=*&season=..&catId=*&meldelisteId=..
+          #   &selectedClubId=..&firstEntry=1&a=<pid>
+          post_add_payload = {
+            setzNummer: "", fedId: fed_id, branchId: branch_cc_id,
+            disciplinId: "*", season: season, catId: "*",
+            meldelisteId: meldeliste_cc_id, selectedClubId: club_cc_id,
+            firstEntry: 1, a: pid
+          }
+          client.post(
+            "sportwart-editMeldelisteCheck",
+            post_add_payload,
+            {armed: armed, session_id: cc_session.cookie, keep_blanks: [:setzNummer]}
+          )
         end
 
         # Step 2: EIN editMeldelisteSave — committet alle vorherigen Adds.
