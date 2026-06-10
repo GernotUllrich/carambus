@@ -85,21 +85,17 @@ class McpServer::Tools::AssignPlayerToTeilnehmerlisteTest < ActiveSupport::TestC
           tournament_name: tournament_name
         )
         [Struct.new(:code, :message, :body).new("200", "OK", body), Nokogiri::HTML(body)]
-      when "assignPlayer"
-        # State-Mutation: move all meldungId[] entries from meldung → teilnehmer.
-        added_ids = Array(params["meldungId[]"]).map(&:to_i)
-        added_ids.each do |cc_id|
-          moved = current_meldung.find { |id, _| id == cc_id }
-          if moved
-            current_teilnehmer << moved
-            current_meldung.delete(moved)
-          end
+      when "showMeldeliste_teilnahme"
+        # Plan 33-fix: atomarer Akkreditierungs-Toggle. State-Mutation: pid von meldung → teilnehmer.
+        cc_id = params[:pid].to_i
+        moved = current_meldung.find { |id, _| id == cc_id }
+        if moved
+          current_teilnehmer << moved
+          # Hinweis: CC lässt akkreditierte Spieler in der Meldeliste sichtbar; fürs Mock-Modell
+          # genügt die Teilnehmer-Aufnahme, damit der Read-Back den Spieler findet.
         end
         [Struct.new(:code, :message, :body).new("200", "OK", ""),
-          Nokogiri::HTML("<html><body>MOCK POST assignPlayer OK</body></html>")]
-      when "editTeilnehmerlisteSave"
-        [Struct.new(:code, :message, :body).new("200", "OK", ""),
-          Nokogiri::HTML("<html><body>MOCK POST editTeilnehmerlisteSave Saved</body></html>")]
+          Nokogiri::HTML("<html><body>MOCK POST showMeldeliste_teilnahme OK</body></html>")]
       else
         [Struct.new(:code, :message, :body).new("200", "OK", ""),
           Nokogiri::HTML("<html><body>MOCK POST #{action} OK</body></html>")]
@@ -125,16 +121,16 @@ class McpServer::Tools::AssignPlayerToTeilnehmerlisteTest < ActiveSupport::TestC
     assert_match(/teilnehmerliste_count_before: 0/, text)
     assert_match(/teilnehmerliste_count_after:  1/, text)
     assert_match(/available_in_meldeliste:.*2 player/, text)
-    assert_match(/Workflow: assignPlayer.*Multi-Add.*editTeilnehmerlisteSave/, text)
-    # Schicht 1: armed=false darf NIEMALS assignPlayer/Save aufrufen
-    write_calls = @mock.calls.select { |verb, action, _, _| verb == :post && %w[assignPlayer editTeilnehmerlisteSave].include?(action) }
-    assert write_calls.empty?, "Dry-Run darf assignPlayer/Save NICHT aufrufen — got #{write_calls.inspect}"
+    assert_match(/Workflow: showMeldeliste_teilnahme.*Toggle/, text)
+    # Schicht 1: armed=false darf NIEMALS den Akkreditierungs-Toggle aufrufen
+    write_calls = @mock.calls.select { |verb, action, _, _| verb == :post && %w[showMeldeliste_teilnahme assignPlayer editTeilnehmerlisteSave].include?(action) }
+    assert write_calls.empty?, "Dry-Run darf showMeldeliste_teilnahme NICHT aufrufen — got #{write_calls.inspect}"
     # Pre-Read editTeilnehmerlisteCheck DARF aufgerufen werden
     pre_reads = @mock.calls.select { |verb, action, _, _| verb == :post && action == "editTeilnehmerlisteCheck" }
     assert_equal 1, pre_reads.size, "Dry-Run macht exakt 1 Pre-Read — got #{pre_reads.size}"
   end
 
-  test "armed:true Single-Add ruft Pre-Read → assignPlayer → Save → Read-Back in genau dieser Reihenfolge" do
+  test "armed:true Single-Add ruft Pre-Read → showMeldeliste_teilnahme → Read-Back in genau dieser Reihenfolge" do
     response = McpServer::Tools::AssignPlayerToTeilnehmerliste.call(
       tournament_cc_id: 890, player_cc_ids: [11683],
       fed_cc_id: 20, branch_cc_id: 8, season: "2025/2026",
@@ -145,15 +141,16 @@ class McpServer::Tools::AssignPlayerToTeilnehmerlisteTest < ActiveSupport::TestC
     assert_match(/Assigned 1 player.*tournament_cc_id=890.*MOCK NDM Endrunde/, text)
     assert_match(/added: \[11683\]/, text)
     assert_match(/read_back_match: true/, text)
-    # Reihenfolge: Pre-Read → assignPlayer → Re-Render → Save → Read-Back (Plan 07-04 Inline-Patch — Risk A)
+    # Plan 33-fix: Pre-Read → showMeldeliste_teilnahme (atomarer Toggle) → Read-Back.
+    # Kein assignPlayer/Re-Render/Save mehr (Edit-Buffer-Race eliminiert).
     actions = @mock.calls.select { |verb, _, _, _| verb == :post }.map { |_, a, _, _| a }
-    assert_equal ["editTeilnehmerlisteCheck", "assignPlayer", "editTeilnehmerlisteCheck", "editTeilnehmerlisteSave", "editTeilnehmerlisteCheck"], actions,
-      "Erwarte Pre-Read → assignPlayer → Re-Render → Save → Read-Back — got #{actions.inspect}"
+    assert_equal ["editTeilnehmerlisteCheck", "showMeldeliste_teilnahme", "editTeilnehmerlisteCheck"], actions,
+      "Erwarte Pre-Read → Toggle → Read-Back — got #{actions.inspect}"
   end
 
   # --- AC-2 Multi-Add (Phase-7-Spezifikum) ---
 
-  test "Multi-Add: player_cc_ids=[11683, 10024] erzeugt EINEN assignPlayer-Call mit meldungId[] Array" do
+  test "Multi-Add: player_cc_ids=[11683, 10024] erzeugt EINEN showMeldeliste_teilnahme-Toggle pro Spieler" do
     response = McpServer::Tools::AssignPlayerToTeilnehmerliste.call(
       tournament_cc_id: 890, player_cc_ids: [11683, 10024],
       fed_cc_id: 20, branch_cc_id: 8, season: "2025/2026",
@@ -161,31 +158,32 @@ class McpServer::Tools::AssignPlayerToTeilnehmerlisteTest < ActiveSupport::TestC
     )
     refute response.error?, "Expected success, got: #{response.content.first[:text]}"
     assert_match(/Assigned 2 player/, response.content.first[:text])
-    # GENAU ein assignPlayer-Call mit Array-Payload
-    assign_calls = @mock.calls.select { |verb, action, _, _| verb == :post && action == "assignPlayer" }
-    assert_equal 1, assign_calls.size, "Multi-Add muss in EINEM Call passieren — got #{assign_calls.size}"
-    _, _, payload, _ = assign_calls.first
-    assert_equal [11683, 10024], Array(payload["meldungId[]"]),
-      "meldungId[] muss Array mit beiden cc_ids sein — got #{payload["meldungId[]"].inspect}"
+    # Plan 33-fix: EIN atomarer Toggle pro Spieler (kein Multi-Add via meldungId[]).
+    toggle_calls = @mock.calls.select { |verb, action, _, _| verb == :post && action == "showMeldeliste_teilnahme" }
+    assert_equal 2, toggle_calls.size, "Multi-Add macht 1 Toggle pro Spieler — got #{toggle_calls.size}"
+    toggled_pids = toggle_calls.map { |_, _, params, _| params[:pid] }
+    assert_equal [11683, 10024], toggled_pids, "Je ein pid-Toggle in Reihenfolge — got #{toggled_pids.inspect}"
     # Verify count_after im Final-Text
     assert_match(/teilnehmerliste_count_after:  2/, response.content.first[:text])
   end
 
-  test "Save-Payload enthält 9-Felder-Base + save=1 als non-blank Sentinel" do
+  test "Toggle-Payload enthält Base-Felder (ohne firstEntry/save) + pid (HAR-Goldvorlage)" do
     McpServer::Tools::AssignPlayerToTeilnehmerliste.call(
       tournament_cc_id: 890, player_cc_ids: [11683],
       fed_cc_id: 20, branch_cc_id: 8, season: "2025/2026",
       armed: true, server_context: nil
     )
-    save_call = @mock.calls.find { |verb, action, _, _| verb == :post && action == "editTeilnehmerlisteSave" }
-    refute_nil save_call, "editTeilnehmerlisteSave muss aufgerufen worden sein"
-    _, _, params, _ = save_call
-    # 9-Felder-Base-Payload aus 07-02 SNIFF-OUTPUT.md §3 + save-Sentinel
-    # Plan 07-04 Inline-Patch v2: zusätzlich :referer (wird vom Real-Client als HTTP-Header gesetzt, nicht im Body)
-    required_keys = %i[fedId branchId disciplinId catId season meisterTypeId meisterschaftsId sortedBy firstEntry save]
+    toggle_call = @mock.calls.find { |verb, action, _, _| verb == :post && action == "showMeldeliste_teilnahme" }
+    refute_nil toggle_call, "showMeldeliste_teilnahme muss aufgerufen worden sein"
+    _, _, params, _ = toggle_call
+    # Plan 33-fix: Toggle-Payload aus tmp/Schnellanmeldung.har:
+    #   fedId, branchId, disciplinId, season, catId, meisterTypeId, meisterschaftsId, sortedBy, pid
+    required_keys = %i[fedId branchId disciplinId catId season meisterTypeId meisterschaftsId sortedBy pid]
     missing_keys = required_keys - params.keys
-    assert_empty missing_keys, "Save-Payload fehlen Felder: #{missing_keys.inspect}; got #{params.keys.sort.inspect}"
-    assert_equal "1", params[:save], "save-Sentinel muss '1' sein (D-7-6, non-blank fallthrough für client.post)"
+    assert_empty missing_keys, "Toggle-Payload fehlen Felder: #{missing_keys.inspect}; got #{params.keys.sort.inspect}"
+    refute params.key?(:firstEntry), "firstEntry darf NICHT im Toggle-Payload sein (HAR-belegt)"
+    refute params.key?(:save), "save darf NICHT im Toggle-Payload sein (kein Save-Step mehr)"
+    assert_equal 11683, params[:pid], "pid = player_cc_id (atomarer Toggle)"
     assert_equal 890, params[:meisterschaftsId], "meisterschaftsId = tournament_cc_id (Phase-7-Identifier)"
   end
 
@@ -259,9 +257,9 @@ class McpServer::Tools::AssignPlayerToTeilnehmerlisteTest < ActiveSupport::TestC
     )
     refute response.error?, "Expected success, got: #{response.content.first[:text]}"
     assert_match(/read_back_match: skipped/, response.content.first[:text])
-    # 4 Calls (mit Inline-Patch Risk A): Pre-Read + assignPlayer + Re-Render + Save (kein Read-Back)
+    # Plan 33-fix: read_back:false → nur 1 editTeilnehmerlisteCheck (Pre-Read); kein Re-Render, kein Read-Back.
     check_calls = @mock.calls.select { |verb, action, _, _| verb == :post && action == "editTeilnehmerlisteCheck" }
-    assert_equal 2, check_calls.size, "read_back:false → 2 editTeilnehmerlisteCheck (Pre-Read + Re-Render) — got #{check_calls.size}"
+    assert_equal 1, check_calls.size, "read_back:false → 1 editTeilnehmerlisteCheck (nur Pre-Read) — got #{check_calls.size}"
   end
 
   # --- Real-CC-Format-Parsing (NBV-only-Constraint-Vorbereitung) ---
@@ -339,9 +337,9 @@ class McpServer::Tools::AssignPlayerToTeilnehmerlisteTest < ActiveSupport::TestC
     # showTeilnehmerliste muss exakt 1x via GET aufgerufen worden sein (initial sync check, kein retry).
     show_calls = @mock.calls.select { |verb, action, _, _| verb == :get && action == "showTeilnehmerliste" }
     assert_equal 1, show_calls.size, "fetch_teilnehmerliste_persisted muss 1x aufgerufen werden — got #{show_calls.size}"
-    # Genau 2 Pre-Reads (1 initial + 1 read-back); KEIN Retry-Pre-Read nach Sleep.
+    # Plan 33-fix: 2 editTeilnehmerlisteCheck (1 initial Pre-Read + 1 read-back); KEIN Re-Render mehr.
     pre_read_calls = @mock.calls.select { |verb, action, _, _| verb == :post && action == "editTeilnehmerlisteCheck" }
-    assert_equal 3, pre_read_calls.size, "1 initial + 1 re-render + 1 read-back — got #{pre_read_calls.size}"
+    assert_equal 2, pre_read_calls.size, "1 initial Pre-Read + 1 read-back — got #{pre_read_calls.size}"
   end
 
   test "Plan 26-01 T1: edit_buffer permanent stale (persisted=3, buffer=0) → abort vor Save mit Sportwart-Sprache" do

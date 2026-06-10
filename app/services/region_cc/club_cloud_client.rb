@@ -307,6 +307,10 @@ class RegionCc::ClubCloudClient
     # KEIN finalize-State (Kapitalbefund Plan 07-02 D-7-5): Add/Remove werden via Save direkt persistiert.
     "assignPlayer" => ["/admin/einzel/meisterschaft/assignPlayer.php", false],
     "removePlayer" => ["/admin/einzel/meisterschaft/removePlayer.php", false],
+    # Plan 33-fix (2026-06-10, HAR-Goldvorlage): atomarer Akkreditierungs-Toggle pro Spieler.
+    # POST mit pid=<player_cc_id> verschiebt einen Spieler Meldeliste→Teilnehmerliste (bzw. zurück).
+    # Ersetzt den race-anfälligen assignPlayer/meldungId[]-Edit-Buffer-Workflow.
+    "showMeldeliste_teilnahme" => ["/admin/einzel/meisterschaft/showMeldeliste_teilnahme.php", false],
     "editTeilnehmerlisteCheck" => ["/admin/einzel/meisterschaft/editTeilnehmerlisteCheck.php", false],
     "editTeilnehmerlisteSave" => ["/admin/einzel/meisterschaft/editTeilnehmerlisteSave.php", false],
     "showTeilnehmerliste" => ["/admin/einzel/meisterschaft/showTeilnehmerliste.php", true],

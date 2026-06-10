@@ -170,7 +170,7 @@ module McpServer
             teilnehmerliste_count_after:  #{pre_read[:current_teilnehmer].size + player_cc_ids.size}
             available_in_meldeliste:      #{pre_read[:available_in_meldeliste].size} player(s)
             Scope: fed_id=#{scope[:fedId]}, branch_cc_id=#{scope[:branchId]}, season=#{scope[:season]}, disciplin_id=#{scope[:disciplinId]}, cat_id=#{scope[:catId]}
-            Workflow: assignPlayer (Multi-Add via meldungId[]) → editTeilnehmerlisteSave → optional Read-Back.
+            Workflow: showMeldeliste_teilnahme (atomarer Akkreditierungs-Toggle, 1 POST pro Spieler) → optional Read-Back.
             pre_read_verified: #{pre_read_status[:pre_read_verified]}
             pre_read_source: #{pre_read_status[:pre_read_source]}
             pre_read_warning: #{pre_read_status[:pre_read_warning]}
@@ -179,40 +179,26 @@ module McpServer
           DRY_RUN
         end
 
-        # Armed=true: Multi-Step Save-Chain.
-        # Plan 07-04 Inline-Patch v2 (Risk A.2): Referer-Chaining — jeder Call referenziert den vorherigen.
-        # HAR-Analyse 2026-05-11 zeigte: Real-CC braucht Referer-Header für Phase-7-Workflow-State-Machine.
-        # Phase 6 funktionierte ohne — Phase 7 ist strenger (PHP-MVC State-Validation pro Step).
-        # Step 1: assignPlayer (Multi-Add).
-        # `meldungId[]` ist als String-Key mit Array-Value notwendig, damit set_form_data
-        # `meldungId%5B%5D=<id1>&meldungId%5B%5D=<id2>` encoded (matches Real-CC-HAR-Format).
-        assign_payload = base_payload(tournament_cc_id, scope).merge(referer: "/admin/einzel/meisterschaft/editTeilnehmerlisteCheck.php?")
-        assign_payload["meldungId[]"] = player_cc_ids
-        assign_res, assign_doc = client.post("assignPlayer", assign_payload, {armed: armed, session_id: cc_session.cookie})
-        if cc_session.reauth_if_needed!(assign_doc)
-          assign_res, assign_doc = client.post("assignPlayer", assign_payload, {armed: armed, session_id: cc_session.cookie})
+        # Armed=true: atomarer Akkreditierungs-Toggle pro Spieler (Plan 33-fix 2026-06-10, HAR-Goldvorlage).
+        # Browser nutzt showMeldeliste_teilnahme.php?...&pid=<player_cc_id> — EIN POST pro Spieler, der
+        # den Spieler Meldeliste→Teilnehmerliste verschiebt. KEIN Edit-Buffer, KEIN meldungId[]-Pre-Read,
+        # KEIN Save-Step, KEIN PUT-Replace-Race (Wurzel des Akkreditierungs-Chaos 2026-06-10).
+        # Pre-Validation (none_doppelt_in_teilnehmer) garantiert: kein player_cc_id ist schon Teilnehmer
+        # → der Toggle akkreditiert (de-akkreditiert nie versehentlich einen Bestandsteilnehmer).
+        # Payload (HAR): fedId, branchId, disciplinId, season, catId, meisterTypeId, meisterschaftsId,
+        #   sortedBy, pid — also base_payload OHNE firstEntry + pid.
+        toggle_base = base_payload(tournament_cc_id, scope).except(:firstEntry)
+        player_cc_ids.each do |pid|
+          toggle_payload = toggle_base.merge(pid: pid)
+          tg_res, tg_doc = client.post("showMeldeliste_teilnahme", toggle_payload, {armed: armed, session_id: cc_session.cookie})
+          if cc_session.reauth_if_needed!(tg_doc)
+            tg_res, tg_doc = client.post("showMeldeliste_teilnahme", toggle_payload, {armed: armed, session_id: cc_session.cookie})
+          end
+          return error("Unexpected nil response from CC (showMeldeliste_teilnahme for player_cc_id=#{pid}, armed mode).") if tg_res.nil?
+          return error("CC rejected at showMeldeliste_teilnahme for player_cc_id=#{pid}: #{parse_cc_error(tg_doc)} (HTTP #{tg_res&.code})") if tg_res&.code != "200"
+          tg_parsed = parse_cc_error(tg_doc)
+          return error("CC rejected at showMeldeliste_teilnahme for player_cc_id=#{pid}: #{tg_parsed}") if tg_parsed && tg_parsed != "(no error)"
         end
-        return error("Unexpected nil response from CC (assignPlayer, armed mode). MockClient may have rejected.") if assign_res.nil?
-        return error("CC rejected at assignPlayer: #{parse_cc_error(assign_doc)} (HTTP #{assign_res&.code})") if assign_res&.code != "200"
-        assign_parsed = parse_cc_error(assign_doc)
-        return error("CC rejected at assignPlayer: #{assign_parsed}") if assign_parsed && assign_parsed != "(no error)"
-
-        # Step 2 (Plan 07-04 Inline-Patch v2 — Risk A): Re-Render-Form-State via editTeilnehmerlisteCheck.
-        # Referer-Chaining: dieser Step kommt vom assignPlayer-Submit.
-        recheck_payload = base_payload(tournament_cc_id, scope).merge(referer: "/admin/einzel/meisterschaft/assignPlayer.php?")
-        rc_res, _rc_doc = client.post("editTeilnehmerlisteCheck", recheck_payload, {armed: armed, session_id: cc_session.cookie})
-        return error("Unexpected nil response from CC (editTeilnehmerlisteCheck re-render, armed mode).") if rc_res.nil?
-        return error("CC rejected at editTeilnehmerlisteCheck re-render: HTTP #{rc_res&.code}") if rc_res&.code != "200"
-
-        # Step 3: editTeilnehmerlisteSave — Commit mit save="1" Sentinel.
-        # Referer: kommt vom editTeilnehmerlisteCheck (re-render).
-        # save: "1" als non-blank Sentinel (CC PHP prüft isset, nicht Wert; client.post .reject(&:blank?) entfernt sonst).
-        save_payload = base_payload(tournament_cc_id, scope).merge(save: "1", referer: "/admin/einzel/meisterschaft/editTeilnehmerlisteCheck.php?")
-        save_res, save_doc = client.post("editTeilnehmerlisteSave", save_payload, {armed: armed, session_id: cc_session.cookie})
-        return error("Unexpected nil response from CC (editTeilnehmerlisteSave, armed mode).") if save_res.nil?
-        return error("CC rejected at editTeilnehmerlisteSave: #{parse_cc_error(save_doc)} (HTTP #{save_res&.code})") if save_res&.code != "200"
-        save_parsed = parse_cc_error(save_doc)
-        return error("CC rejected at editTeilnehmerlisteSave: #{save_parsed}") if save_parsed && save_parsed != "(no error)"
 
         # Optional Read-Back (Schicht 4 Verify): re-read teilnehmerliste, verify all player_cc_ids now present.
         # Plan 26-01 T1b: zusätzlich prüfen, ob Bestandsteilnehmer unbeabsichtigt entfernt wurden
@@ -256,7 +242,7 @@ module McpServer
           added: #{player_cc_ids.inspect}
           teilnehmerliste_count_before: #{pre_read[:current_teilnehmer].size}
           teilnehmerliste_count_after:  #{pre_read[:current_teilnehmer].size + player_cc_ids.size}
-          Steps completed: assignPlayer → editTeilnehmerlisteCheck (re-render) → editTeilnehmerlisteSave#{" → editTeilnehmerlisteCheck (read-back)" if read_back}.
+          Steps completed: showMeldeliste_teilnahme (atomarer Toggle, #{player_cc_ids.size}× pro Spieler)#{" → Read-Back" if read_back}.
           read_back_match: #{read_back_match}
           pre_validation_passed: #{validation_result[:all_passed]}
           pre_read_verified: #{pre_read_status[:pre_read_verified]}
