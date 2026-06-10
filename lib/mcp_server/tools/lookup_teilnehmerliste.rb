@@ -186,9 +186,11 @@ module McpServer
         body = res.body.to_s
         Rails.logger.info "[cc_lookup_teilnehmerliste] meldeliste body_bytes=#{body.bytesize} has_bb1=#{body.include?("bb1")} has_loginButton=#{body.include?("loginButton")}"
 
-        # Live-HTML: <td class="bb1"><b>Nachname</b></td><td class="bb1"><b>Vorname</b></td>
-        #            <td class="bb1" align="center">10024</td>  (Pass-Nr. = cc_id)
-        matches = body.scan(/<td class="bb1"><b>([^<]+)<\/b><\/td>\s*<td class="bb1"><b>([^<]+)<\/b><\/td>\s*<td class="bb1" align="center">(\d+)<\/td>/m)
+        # Live-HTML (showMeldeliste.php sendet konsistent single quotes):
+        #   <td class='bb1'><b>Nachname</b></td><td class='bb1'><b>Vorname</b></td>
+        #   <td class='bb1' align='center'>10024</td>  (Pass-Nr. = cc_id)
+        # WICHTIG: ['"] character class funktioniert NICHT mit ASCII-8BIT body — literal ' verwenden.
+        matches = body.scan(/<td class='bb1'><b>([^<]+)<\/b><\/td>\s*<td class='bb1'><b>([^<]+)<\/b><\/td>\s*<td class='bb1' align='center'>(\d+)<\/td>/m)
         matches.uniq { |_nachname, _vorname, cc_id| cc_id.to_i }.map do |nachname, vorname, cc_id|
           {cc_id: cc_id.to_i, label: "#{nachname}, #{vorname}"}
         end
