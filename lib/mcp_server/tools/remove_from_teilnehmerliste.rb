@@ -1,45 +1,44 @@
 # frozen_string_literal: true
 
-# cc_remove_from_teilnehmerliste — Phase 7 Plan 07-04 Inline-Patch (D-7-8).
-# Entfernt Spieler aus der Teilnehmerliste eines Turniers (symmetrische Cleanup-Closure
-# zu cc_assign_player_to_teilnehmerliste).
+# cc_remove_from_teilnehmerliste — Phase 7 Plan 07-04; Plan 33-01 (2026-06-11) Toggle-Umbau.
+# Entfernt einen Spieler aus der Teilnehmerliste eines Turniers (Deakkreditierung).
 #
-# Architektur (aus 07-02-SNIFF-OUTPUT.md): Multi-Step CC-Workflow:
-#   1. editTeilnehmerlisteCheck — Pre-Read, liefert current Teilnehmerliste
-#   2. removePlayer            — Single-Remove via teilnehmerId=<cc_id> (KEIN Array, anders als assignPlayer!)
-#   3. editTeilnehmerlisteSave — Commit mit save="1" Sentinel
-#   4. editTeilnehmerlisteCheck — optional Read-Back-Verify (player NICHT mehr im teilnehmerId-Select)
+# Plan 33-01: ersetzt den race-anfälligen 3-Schritt-Edit-Buffer-Workflow
+# (editTeilnehmerlisteCheck → removePlayer.php → editTeilnehmerlisteSave) durch ZWEI
+# atomare Pfade, abhängig vom Live-Zustand des Spielers (accreditation_state):
 #
-# Phase-7-Unterschiede zu assignPlayer:
-#   - player_cc_id (Single, Integer) statt player_cc_ids (Array)
-#   - Pre-Validation: player_cc_id MUSS in Teilnehmerliste sein (sonst error)
-#   - Read-Back-Verify: player_cc_id NICHT mehr in Teilnehmerliste
+#   :accredited    (gemeldet + Teilnehmer, roter Toggle-Button in der Meldeliste)
+#                  → POST showMeldeliste_teilnahme.php?...&pid=X  (Toggle, zurück in die Meldeliste)
+#   :fast_assigned (Teilnehmer OHNE Meldeliste-Eintrag, per Schnellanmeldung eingetragen)
+#                  → POST cc_remove_tn.php?...&akkpid=X  (Spieler verschwindet ganz)
+#   :reported_only / :not_in_tournament → Ablehnung (nichts zu entfernen)
 #
-# 4-Schichten-Sicherheitsnetz analog assign-Tool.
+# Beide Schreib-Pfade sind atomare Single-POSTs: kein Edit-Buffer, kein Save-Step,
+# kein PUT-Replace-Race. Live-State aus persistierten CC-DB-Views (DEFER-D2-1).
 
 module McpServer
   module Tools
     class RemoveFromTeilnehmerliste < BaseTool
       tool_name "cc_remove_from_teilnehmerliste"
       description <<~DESC
-        Wann nutzen? Am Turniertag, wenn der Turnierleiter einen Spieler von der Teilnehmerliste entfernt (Rückzug, versehentliche Akkreditierung korrigieren). Schreibendes Tool mit Pre-Validation-First (3 Constraints) + Audit-Trail.
+        Wann nutzen? Am Turniertag, wenn der Turnierleiter einen Spieler von der Teilnehmerliste entfernt (Rückzug, versehentliche Akkreditierung korrigieren). Schreibendes Tool mit Pre-Validation-First + Audit-Trail.
         Was tippt der User typisch? 'Raus Hans Müller', 'Raus Spieler X', 'Müller zurückziehen', 'entferne Schmidt'.
         Entfernt einen Spieler aus der Teilnehmerliste eines Turniers (Rückzug nach Akkreditierung, Korrektur einer versehentlichen Übernahme).
-        Workflow: Pre-Read (editTeilnehmerlisteCheck) → removePlayer (Single-Remove via teilnehmerId=) → editTeilnehmerlisteSave → optional Read-Back.
+        Zwei automatische Pfade je nach Live-Zustand: war der Spieler über die Meldeliste akkreditiert, wird er dorthin zurückgeschoben; wurde er per Schnellanmeldung direkt eingetragen, wird er ganz entfernt.
         Pass `armed: false` (default) for a dry-run that prints request details without modifying CC.
         Pass `armed: true` to actually remove — this is a destructive write to ClubCloud.
         Tool refuses to run armed:true in Rails production env.
         Pass `tournament_cc_id` (= CC meisterschaftsId, REQUIRED) + `player_cc_id` (Single Integer, REQUIRED).
-        Pre-Validation: player_cc_id MUSS in current Teilnehmerliste sein (sonst error).
-        NICHT verwechseln mit `cc_unregister_for_tournament` (Phase 8 — wirkt auf Meldeliste, anderer Pfad) — dieses Tool wirkt auf Teilnehmerliste-Akkreditierung.
-        Symmetrisches Cleanup-Tool zu cc_assign_player_to_teilnehmerliste (D-7-8).
+        Pre-Validation: player_cc_id MUSS aktuell Teilnehmer sein (sonst Ablehnung mit Hinweis).
+        NICHT verwechseln mit `cc_unregister_for_tournament` (wirkt auf Meldeliste, anderer Pfad) — dieses Tool wirkt auf Teilnehmerliste-Akkreditierung.
+        Symmetrisches Cleanup-Tool zu cc_assign_player_to_teilnehmerliste / cc_fast_assign_to_teilnehmerliste.
       DESC
       input_schema(
         properties: {
           tournament_cc_id: {type: "integer", description: "Tournament-cc_id (= CC meisterschaftsId). REQUIRED."},
-          player_cc_id: {type: "integer", description: "Player-cc_id zum Entfernen. REQUIRED. Single (KEIN Array — removePlayer.php ist Single-Remove)."},
-          armed: {type: "boolean", default: false, description: "If false (default), dry-run only — no CC mutation. If true, performs destructive POSTs to CC."},
-          read_back: {type: "boolean", default: true, description: "If true (default) and armed:true, verify player_cc_id NOT in post-save Teilnehmerliste; raises error on mismatch."},
+          player_cc_id: {type: "integer", description: "Player-cc_id zum Entfernen. REQUIRED. Single Integer."},
+          armed: {type: "boolean", default: false, description: "If false (default), dry-run only — no CC mutation. If true, performs destructive POST to CC."},
+          read_back: {type: "boolean", default: true, description: "If true (default) and armed:true, verify player_cc_id NOT in post-write Teilnehmerliste."},
           fed_cc_id: {type: "integer"},
           branch_cc_id: {type: "integer"},
           season: {type: "string"},
@@ -59,6 +58,8 @@ module McpServer
           %i[tournament_cc_id player_cc_id])
         return err if err
 
+        player_cc_id = player_cc_id.to_i
+
         # Plan 14-G.4 / F5-B: Authority-Integration. Defensiv-Skip bei unauflösbar.
         resolved_tournament = resolve_tournament(
           tournament_cc_id: tournament_cc_id, server_context: server_context
@@ -68,101 +69,93 @@ module McpServer
           return auth_err if auth_err
         end
 
-        # Plan 10-05.1 Task 1 (D-10-04-B Pivot): Phase-4-Schicht-3 (Production-Block für armed:true)
-        # DEPRECATED. Pre-Validation-First-Pattern ersetzt globalen env-Block durch Tool-eigene Constraints.
-
-        # Reuse Phase-7 helpers from AssignPlayerToTeilnehmerliste (DRY — both tools share Teilnehmerliste logic)
+        # Reuse Phase-7 helpers from AssignPlayerToTeilnehmerliste (DRY).
         scope = AssignPlayerToTeilnehmerliste.resolve_scope_filters(tournament_cc_id, fed_cc_id, branch_cc_id, season, disciplin_id, cat_id)
-
-        # Pre-Read via editTeilnehmerlisteCheck
         client = cc_session.client_for(server_context)
-        pre_read = AssignPlayerToTeilnehmerliste.pre_read_teilnehmerliste(client, tournament_cc_id, scope)
-        return pre_read if pre_read.is_a?(MCP::Tool::Response)  # error envelope
 
-        # Pre-Validation: player_cc_id muss in Teilnehmerliste sein
-        current_ids = pre_read[:current_teilnehmer].map { |opt| opt[:cc_id] }
+        # Plan 33-01: Live-State-Check (showTeilnehmerliste Tab-3 + showMeldeliste Tab-2) statt
+        # editTeilnehmerlisteCheck-Edit-Buffer. Bestimmt sicher die Entfernungs-Richtung.
+        acc = AssignPlayerToTeilnehmerliste.accreditation_state(client, tournament_cc_id, scope, player_cc_id)
+        return acc[:error] if acc[:error]
+        tournament_name = AssignPlayerToTeilnehmerliste.tournament_name_for(tournament_cc_id)
 
-        # Plan 10-05.1 Task 4 (D-10-04-G Pre-Validation-First-Pattern, 3 Constraints):
+        # Pre-Validation: nur :accredited oder :fast_assigned sind entfernbar.
         validation_result = run_validations([
-          _validate_tournament_exists_remove(pre_read, tournament_cc_id),
-          _validate_player_in_teilnehmerliste(player_cc_id, current_ids, tournament_cc_id, pre_read),
-          _validate_non_finalized_remove(pre_read)
+          _validate_removable(acc[:state], player_cc_id, tournament_cc_id, tournament_name)
         ])
-
         unless validation_result[:all_passed]
           failed_details = validation_result[:results].reject { |r| r[:ok] }.map { |r| "#{r[:name]}: #{r[:reason]}" }.join("; ")
           return error("Pre-Validation failed for cc_remove_from_teilnehmerliste. Failed: #{validation_result[:failed_constraints].inspect}. #{failed_details}")
         end
 
-        # Plan 10-05 Task 4 (Befund #8): Pre-Read war erfolgreich (Player ist in Teilnehmerliste verifiziert);
-        # tournament_cc_id + player_cc_id sind User-Inputs → source: "override-param".
         pre_read_status = format_pre_read_status(
           verified: true,
-          source: "override-param",
-          warning: "tournament_cc_id=#{tournament_cc_id} + player_cc_id=#{player_cc_id} via User-Input; Pre-Read-Call hat die Existenz in Teilnehmerliste live verifiziert."
+          source: "live-cc (showTeilnehmerliste Tab-3 + showMeldeliste Tab-2)",
+          warning: "Live-Zustand von player_cc_id=#{player_cc_id}: #{acc[:state]} (#{acc[:label] || "?"})."
         )
+
+        teilnehmer_count_before = acc[:teilnehmer].size
+        # Pfad-Wahl aus Live-Zustand.
+        path = (acc[:state] == :accredited) ? :toggle : :fast_remove
 
         # Schicht 4 (Network-Level): Detail-Dry-Run-Echo
         unless armed
-          player_label = pre_read[:current_teilnehmer].find { |opt| opt[:cc_id] == player_cc_id }&.[](:label) || "?"
+          aktion = if path == :toggle
+            "zurück in die Meldeliste verschieben (Toggle showMeldeliste_teilnahme)"
+          else
+            "ganz aus der Teilnehmerliste entfernen (Schnellanmeldung ohne Meldeliste-Eintrag, cc_remove_tn)"
+          end
           return text(<<~DRY_RUN.strip)
-            [DRY-RUN] Would remove player_cc_id=#{player_cc_id} (#{player_label}) from Teilnehmerliste of tournament_cc_id=#{tournament_cc_id} (#{pre_read[:tournament_name]}).
-            teilnehmerliste_count_before: #{pre_read[:current_teilnehmer].size}
-            teilnehmerliste_count_after:  #{pre_read[:current_teilnehmer].size - 1}
+            [DRY-RUN] Would remove player_cc_id=#{player_cc_id} (#{acc[:label] || "?"}) from Teilnehmerliste of tournament_cc_id=#{tournament_cc_id} (#{tournament_name}).
+            Aktion: #{aktion}
+            teilnehmerliste_count_before: #{teilnehmer_count_before}
+            teilnehmerliste_count_after:  #{teilnehmer_count_before - 1}
+            Live-Zustand: #{acc[:state]}
             Scope: fed_id=#{scope[:fedId]}, branch_cc_id=#{scope[:branchId]}, season=#{scope[:season]}, disciplin_id=#{scope[:disciplinId]}, cat_id=#{scope[:catId]}
-            Workflow: removePlayer (Single-Remove via teilnehmerId=) → editTeilnehmerlisteSave → optional Read-Back.
             pre_read_verified: #{pre_read_status[:pre_read_verified]}
             pre_read_source: #{pre_read_status[:pre_read_source]}
-            pre_read_warning: #{pre_read_status[:pre_read_warning]}
             Pass armed:true to actually perform this removal.
           DRY_RUN
         end
 
-        # Armed=true: Multi-Step Save-Chain. Plan 07-04 Inline-Patch v2: Referer-Chaining.
-        # Step 1: removePlayer (Single-Remove via teilnehmerId=).
-        # Referer: kommt vom editTeilnehmerlisteCheck (Pre-Read).
-        remove_payload = AssignPlayerToTeilnehmerliste.base_payload(tournament_cc_id, scope).merge(teilnehmerId: player_cc_id, referer: "/admin/einzel/meisterschaft/editTeilnehmerlisteCheck.php?")
-        rm_res, rm_doc = client.post("removePlayer", remove_payload, {armed: armed, session_id: cc_session.cookie})
-        if cc_session.reauth_if_needed!(rm_doc)
-          rm_res, rm_doc = client.post("removePlayer", remove_payload, {armed: armed, session_id: cc_session.cookie})
+        # Armed=true: atomarer Single-POST je nach Pfad.
+        if path == :toggle
+          # :accredited — derselbe bidirektionale Toggle wie cc_assign (HAR-belegt 2026-06-11).
+          payload = AssignPlayerToTeilnehmerliste.base_payload(tournament_cc_id, scope).except(:firstEntry).merge(pid: player_cc_id)
+          action_name = "showMeldeliste_teilnahme"
+          steps = "showMeldeliste_teilnahme (atomarer Toggle → zurück in Meldeliste)"
+        else
+          # :fast_assigned — cc_remove_tn.php?akkpid=<pid> (HAR-Goldvorlage schnellanmeldung_entfernen).
+          payload = AssignPlayerToTeilnehmerliste.base_payload(tournament_cc_id, scope).except(:firstEntry).merge(dla: 1, akkpid: player_cc_id)
+          action_name = "cc_remove_tn"
+          steps = "cc_remove_tn (atomares Entfernen — Schnellanmeldungs-Spieler verschwindet ganz)"
         end
-        return error("Unexpected nil response from CC (removePlayer, armed mode). MockClient may have rejected.") if rm_res.nil?
-        return error("CC rejected at removePlayer: #{AssignPlayerToTeilnehmerliste.parse_cc_error(rm_doc)} (HTTP #{rm_res&.code})") if rm_res&.code != "200"
-        rm_parsed = AssignPlayerToTeilnehmerliste.parse_cc_error(rm_doc)
-        return error("CC rejected at removePlayer: #{rm_parsed}") if rm_parsed && rm_parsed != "(no error)"
 
-        # Step 2 (Plan 07-04 Inline-Patch v2 — Risk A): Re-Render-Form-State.
-        # Referer kommt vom removePlayer-Submit.
-        recheck_payload = AssignPlayerToTeilnehmerliste.base_payload(tournament_cc_id, scope).merge(referer: "/admin/einzel/meisterschaft/removePlayer.php?")
-        rc_res, _rc_doc = client.post("editTeilnehmerlisteCheck", recheck_payload, {armed: armed, session_id: cc_session.cookie})
-        return error("Unexpected nil response from CC (editTeilnehmerlisteCheck re-render, armed mode).") if rc_res.nil?
-        return error("CC rejected at editTeilnehmerlisteCheck re-render: HTTP #{rc_res&.code}") if rc_res&.code != "200"
+        res, doc = client.post(action_name, payload, {armed: armed, session_id: cc_session.cookie})
+        if cc_session.reauth_if_needed!(doc)
+          res, doc = client.post(action_name, payload, {armed: armed, session_id: cc_session.cookie})
+        end
+        return error("Unexpected nil response from CC (#{action_name}, armed mode).") if res.nil?
+        return error("CC rejected at #{action_name}: #{AssignPlayerToTeilnehmerliste.parse_cc_error(doc)} (HTTP #{res&.code})") if res&.code != "200"
+        parsed = AssignPlayerToTeilnehmerliste.parse_cc_error(doc)
+        return error("CC rejected at #{action_name}: #{parsed}") if parsed && parsed != "(no error)"
 
-        # Step 3: editTeilnehmerlisteSave — Commit.
-        # Referer kommt vom editTeilnehmerlisteCheck (re-render).
-        save_payload = AssignPlayerToTeilnehmerliste.base_payload(tournament_cc_id, scope).merge(save: "1", referer: "/admin/einzel/meisterschaft/editTeilnehmerlisteCheck.php?")
-        sv_res, sv_doc = client.post("editTeilnehmerlisteSave", save_payload, {armed: armed, session_id: cc_session.cookie})
-        return error("Unexpected nil response from CC (editTeilnehmerlisteSave, armed mode).") if sv_res.nil?
-        return error("CC rejected at editTeilnehmerlisteSave: #{AssignPlayerToTeilnehmerliste.parse_cc_error(sv_doc)} (HTTP #{sv_res&.code})") if sv_res&.code != "200"
-        sv_parsed = AssignPlayerToTeilnehmerliste.parse_cc_error(sv_doc)
-        return error("CC rejected at editTeilnehmerlisteSave: #{sv_parsed}") if sv_parsed && sv_parsed != "(no error)"
-
-        # Optional Read-Back (Schicht 4 Verify)
+        # Optional Read-Back (Schicht 4 Verify): Spieler darf nicht mehr Teilnehmer sein.
+        # Persistierte Tab-3-View (kein Edit-Buffer). Defensiv: Hinweis statt Hard-Fail bei CC-Nachhinken.
         read_back_match = :skipped
         if read_back
-          rb = AssignPlayerToTeilnehmerliste.pre_read_teilnehmerliste(client, tournament_cc_id, scope)
-          if rb.is_a?(Hash)
-            actual_ids = rb[:current_teilnehmer].map { |opt| opt[:cc_id] }
-            still_present = actual_ids.include?(player_cc_id)
+          rb = McpServer::Tools::LookupTeilnehmerliste.fetch_teilnehmerliste_persisted(client, tournament_cc_id, scope)
+          if rb.is_a?(Array)
+            still_present = rb.any? { |opt| opt[:cc_id] == player_cc_id }
             read_back_match = !still_present
             unless read_back_match
               return error(
-                "Read-back mismatch: expected player_cc_id=#{player_cc_id} removed from Teilnehmerliste, " \
-                "but still present. Save may have failed silently. Inspect CC UI manually (cleanup may be needed)."
+                "Read-back: Spieler ist noch in der Teilnehmerliste. " \
+                "Die ClubCloud braucht einen Moment, bis sie den neuen Stand übernimmt — bitte gleich erneut prüfen."
               )
             end
           else
-            return error("Read-back failed (post-save Pre-Read returned error). Save may have succeeded; inspect CC manually.")
+            return error("Read-back failed (post-write persisted read returned error). Write may have succeeded; inspect CC manually.")
           end
         end
 
@@ -170,7 +163,7 @@ module McpServer
         McpServer::AuditTrail.write_entry(
           tool_name: "cc_remove_from_teilnehmerliste",
           operator: cc_session.respond_to?(:cc_login_user) ? cc_session.cc_login_user.to_s : "unknown",
-          payload: {tournament_cc_id: tournament_cc_id, player_cc_id: player_cc_id, armed: true},
+          payload: {tournament_cc_id: tournament_cc_id, player_cc_id: player_cc_id, path: action_name, armed: true},
           pre_validation_results: validation_result[:results],
           read_back_status: read_back_match.to_s,
           result: "success",
@@ -178,39 +171,34 @@ module McpServer
         )
 
         text(<<~OUT.strip)
-          Removed player_cc_id=#{player_cc_id} from Teilnehmerliste of tournament_cc_id=#{tournament_cc_id} (#{pre_read[:tournament_name]}).
-          teilnehmerliste_count_before: #{pre_read[:current_teilnehmer].size}
-          teilnehmerliste_count_after:  #{pre_read[:current_teilnehmer].size - 1}
-          Steps completed: removePlayer → editTeilnehmerlisteCheck (re-render) → editTeilnehmerlisteSave#{" → editTeilnehmerlisteCheck (read-back)" if read_back}.
+          Removed player_cc_id=#{player_cc_id} (#{acc[:label] || "?"}) from Teilnehmerliste of tournament_cc_id=#{tournament_cc_id} (#{tournament_name}).
+          teilnehmerliste_count_before: #{teilnehmer_count_before}
+          teilnehmerliste_count_after:  #{teilnehmer_count_before - 1}
+          Steps completed: #{steps}#{" → Read-Back" if read_back}.
           read_back_match: #{read_back_match}
           pre_validation_passed: #{validation_result[:all_passed]}
           pre_read_verified: #{pre_read_status[:pre_read_verified]}
           pre_read_source: #{pre_read_status[:pre_read_source]}
-          pre_read_warning: #{pre_read_status[:pre_read_warning]}
         OUT
       rescue => e
         error("Tool exception: #{e.class.name} (details suppressed; check Rails.logger on stderr).")
       end
 
-      # Plan 10-05.1 Task 4 (D-10-04-G Pre-Validation Constraints für cc_remove):
-      def self._validate_tournament_exists_remove(pre_read, tournament_cc_id)
-        if pre_read.nil? || !pre_read.is_a?(Hash) || pre_read[:tournament_name].blank?
-          return {name: "tournament_exists", ok: false, reason: "Pre-Read von Teilnehmerliste für tournament_cc_id=#{tournament_cc_id} fehlgeschlagen oder leer"}
+      # Plan 33-01: Matrix-Pre-Validation. Entfernbar sind nur akkreditierte Spieler
+      # (:accredited via Toggle, :fast_assigned via cc_remove_tn). Ablehnung mit Sportwart-Sprache.
+      def self._validate_removable(state, player_cc_id, tournament_cc_id, tournament_name)
+        case state
+        when :accredited, :fast_assigned
+          {name: "player_entfernbar", ok: true}
+        when :reported_only
+          {name: "player_entfernbar", ok: false,
+           reason: "Spieler #{player_cc_id} ist für #{tournament_name || "tournament_cc_id=#{tournament_cc_id}"} nur gemeldet, aber nicht akkreditiert — in der Teilnehmerliste ist nichts zu entfernen."}
+        when :not_in_tournament
+          {name: "player_entfernbar", ok: false,
+           reason: "Spieler #{player_cc_id} ist in #{tournament_name || "tournament_cc_id=#{tournament_cc_id}"} weder gemeldet noch Teilnehmer."}
+        else
+          {name: "player_entfernbar", ok: false, reason: "Unbekannter Live-Zustand '#{state}' für Spieler #{player_cc_id}."}
         end
-        {name: "tournament_exists", ok: true}
-      end
-
-      def self._validate_player_in_teilnehmerliste(player_cc_id, current_ids, tournament_cc_id, pre_read)
-        unless current_ids.include?(player_cc_id)
-          return {name: "player_in_teilnehmerliste", ok: false,
-                  reason: "Player #{player_cc_id} not in Teilnehmerliste of tournament #{tournament_cc_id} (#{pre_read[:tournament_name]}). Current Teilnehmerliste: #{current_ids.inspect}. If player is in Meldeliste but not yet accreditated, use cc_assign_player_to_teilnehmerliste first."}
-        end
-        {name: "player_in_teilnehmerliste", ok: true}
-      end
-
-      def self._validate_non_finalized_remove(pre_read)
-        # CC hat keinen finalized-Marker für Teilnehmerliste (Phase-7-Befund).
-        {name: "non_finalized", ok: true}
       end
     end
   end

@@ -319,6 +319,12 @@ class RegionCc::ClubCloudClient
     # + akkpid (leer=add, befüllt=swap) + fedId + branchId. URL-Pfad basiert auf DEFER-D2-2-HAR-Befund;
     # Live-Smoke empfohlen falls URL-Drift festgestellt wird.
     "cc_fast_assign" => ["/admin/einzel/meisterschaft/cc_fast_assign.php", false],
+    # Plan 33-01 (2026-06-11, HAR-Goldvorlage schnellanmeldung_entfernen): atomares Entfernen eines
+    # Schnellanmeldungs-Spielers (ohne Meldeliste-Eintrag) GANZ aus der Teilnehmerliste. Spiegel zu
+    # cc_fast_assign: dort foundpid=<add>, hier akkpid=<player_cc_id zum Entfernen>, foundpid leer.
+    # Kein Edit-Buffer/Save. Für :accredited-Spieler (mit Meldeliste-Eintrag) stattdessen den
+    # showMeldeliste_teilnahme-Toggle nutzen (der schiebt zurück in die Meldeliste).
+    "cc_remove_tn" => ["/admin/einzel/meisterschaft/cc_remove_tn.php", false],
     #
     # --- Vereins-Sicht (myclub/meldewesen/single) — Plan 04-04 register-Tool ---
     # Diese 3 Endpoints liegen im VEREINS-Bereich (admin/myclub/meldewesen/single),
