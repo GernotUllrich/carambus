@@ -238,7 +238,8 @@ module McpServer
           pre_read_source: #{pre_read_status[:pre_read_source]}
         OUT
       rescue => e
-        error("Tool exception: #{e.class.name} (details suppressed; check Rails.logger on stderr).")
+        Rails.logger.error("[cc_assign_player_to_teilnehmerliste] #{e.class}: #{e.message}\n  #{e.backtrace&.first(10)&.join("\n  ")}")
+        error("Tool exception: #{e.class.name} (Details siehe Rails.logger auf dem Server).")
       end
 
       # Plan 33-01 Pre-Validation Constraints für cc_assign (Matrix-basiert auf accreditation_state).

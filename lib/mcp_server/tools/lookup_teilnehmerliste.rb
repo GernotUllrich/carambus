@@ -163,7 +163,9 @@ module McpServer
         # Scan: title='Last, First (cc_id)' class='cc_bluelink' — accepts both ' and ".
         matches = body.scan(/title=["']([^"']+?)\s*\((\d+)\)["']\s+class=["']cc_bluelink["']/)
         matches.uniq { |_name, cc_id| cc_id.to_i }.map do |name, cc_id|
-          {cc_id: cc_id.to_i, label: name.strip}
+          # force_encoding: Net::HTTP-Rohbody ist ASCII-8BIT; Labels mit Umlauten (Kämmer, Schröder)
+          # sonst inkompatibel sobald sie in UTF-8-Ausgaben interpoliert werden (Encoding::CompatibilityError).
+          {cc_id: cc_id.to_i, label: name.strip.dup.force_encoding("UTF-8")}
         end
       rescue => e
         Rails.logger.warn "[cc_lookup_teilnehmerliste] fetch_teilnehmerliste_persisted failed: #{e.class}: #{e.message}"
@@ -192,7 +194,8 @@ module McpServer
         # WICHTIG: ['"] character class funktioniert NICHT mit ASCII-8BIT body — literal ' verwenden.
         matches = body.scan(/<td class='bb1'><b>([^<]+)<\/b><\/td>\s*<td class='bb1'><b>([^<]+)<\/b><\/td>\s*<td class='bb1' align='center'>(\d+)<\/td>/m)
         matches.uniq { |_nachname, _vorname, cc_id| cc_id.to_i }.map do |nachname, vorname, cc_id|
-          {cc_id: cc_id.to_i, label: "#{nachname}, #{vorname}"}
+          # force_encoding: ASCII-8BIT-Rohbody → UTF-8, sonst Encoding::CompatibilityError bei Umlauten.
+          {cc_id: cc_id.to_i, label: "#{nachname.dup.force_encoding("UTF-8")}, #{vorname.dup.force_encoding("UTF-8")}"}
         end
       rescue => e
         Rails.logger.warn "[cc_lookup_teilnehmerliste] fetch_meldeliste_persisted failed: #{e.class}: #{e.message}"
