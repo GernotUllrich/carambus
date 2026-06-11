@@ -77,7 +77,7 @@ module McpServer
         # editTeilnehmerlisteCheck-Edit-Buffer. Bestimmt sicher die Entfernungs-Richtung.
         acc = AssignPlayerToTeilnehmerliste.accreditation_state(client, tournament_cc_id, scope, player_cc_id)
         return acc[:error] if acc[:error]
-        tournament_name = AssignPlayerToTeilnehmerliste.tournament_name_for(tournament_cc_id)
+        tournament_name = AssignPlayerToTeilnehmerliste.tournament_name_for(tournament_cc_id, server_context)
 
         # Pre-Validation: nur :accredited oder :fast_assigned sind entfernbar.
         validation_result = run_validations([

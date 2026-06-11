@@ -120,7 +120,7 @@ module McpServer
         return lists[:error] if lists[:error]
         teilnehmer = lists[:teilnehmer]
         gemeldete = lists[:gemeldete]
-        tournament_name = tournament_name_for(tournament_cc_id)
+        tournament_name = tournament_name_for(tournament_cc_id, server_context)
 
         states = player_cc_ids.index_with { |pid| classify_accreditation(pid, teilnehmer, gemeldete) }
         already_accredited = player_cc_ids.select { |pid| %i[accredited fast_assigned].include?(states[pid]) }
@@ -349,8 +349,16 @@ module McpServer
       end
 
       # Best-Effort Turnier-Name aus DB-Mirror (für Anzeige/Ablehnungstexte; Live-State kommt aus CC).
-      def self.tournament_name_for(tournament_cc_id)
-        TournamentCc.find_by(cc_id: tournament_cc_id)&.name
+      # cc_id ist NICHT global eindeutig — context-scoped suchen, sonst trifft man ein gleichnamiges
+      # Turnier aus einer anderen Region (z.B. cc_id 939 = NBV-Cadre ODER BLMR-Quali).
+      def self.tournament_name_for(tournament_cc_id, server_context = nil)
+        context = effective_cc_region(server_context).to_s.downcase
+        tc = if context.present?
+          TournamentCc.find_by(cc_id: tournament_cc_id, context: context)
+        else
+          TournamentCc.find_by(cc_id: tournament_cc_id)
+        end
+        tc&.name
       rescue
         nil
       end

@@ -159,6 +159,10 @@ class SpielleiterChatService
       "finalisiertem/geschlossenem Turnier gedacht (z.B. Last-Minute-Nachmeldung am Turniertag). " \
       "Lehne eine Schnellanmeldung NIEMALS mit der Begründung ab, das Turnier sei finalisiert, " \
       "geschlossen oder der Meldeschluss vorbei — rufe stattdessen cc_fast_assign_to_teilnehmerliste auf. " \
+      "Der Status 'finalisiert', 'geschlossen' oder 'alle akkreditiert / Meldeliste leer' beschreibt NUR " \
+      "den aktuellen Stand — er bedeutet NICHT, dass keine Änderungen mehr möglich sind. Behaupte NIEMALS, " \
+      "ein Turnier 'könne nicht mehr verändert werden': Spieler können auch dann per Schnellanmeldung " \
+      "hinzugefügt (cc_fast_assign_to_teilnehmerliste) und per cc_remove_from_teilnehmerliste entfernt werden. " \
       "Für CC-Schreiboperationen (cc_assign_player_to_teilnehmerliste, " \
       "cc_remove_from_teilnehmerliste, cc_fast_assign_to_teilnehmerliste, cc_register_for_tournament, " \
       "cc_unregister_for_tournament, cc_update_tournament_deadline): " \
