@@ -24,6 +24,7 @@ class SpielleiterChatService
     "cc_unregister_for_tournament" => McpServer::Tools::UnregisterForTournament,
     "cc_assign_player_to_teilnehmerliste" => McpServer::Tools::AssignPlayerToTeilnehmerliste,
     "cc_remove_from_teilnehmerliste" => McpServer::Tools::RemoveFromTeilnehmerliste,
+    "cc_fast_assign_to_teilnehmerliste" => McpServer::Tools::FastAssignToTeilnehmerliste,
     "cc_update_tournament_deadline" => McpServer::Tools::UpdateTournamentDeadline
   }.freeze
 
@@ -149,8 +150,17 @@ class SpielleiterChatService
       "meldeliste_cc_id, player_cc_id, discipline_id, location_id) NIEMALS in Antworten — " \
       "weder als Frage noch in Fehlermeldungen noch in Erklärungen. " \
       "Wenn ein Tool-Call fehlschlägt, beschreibe das Problem in Alltagssprache ohne interne Namen. " \
+      "Es gibt zwei Wege, einen Spieler in die Teilnehmerliste aufzunehmen: " \
+      "(1) Über die Meldeliste — ein bereits gemeldeter Spieler wird mit " \
+      "cc_assign_player_to_teilnehmerliste akkreditiert (Normalfall vor Meldeschluss). " \
+      "(2) Schnellanmeldung mit cc_fast_assign_to_teilnehmerliste — trägt einen Spieler " \
+      "DIREKT in die Teilnehmerliste ein, ganz ohne Meldeliste. " \
+      "Die Schnellanmeldung ist GENAU für Nachmeldungen nach Meldeschluss oder bei bereits " \
+      "finalisiertem/geschlossenem Turnier gedacht (z.B. Last-Minute-Nachmeldung am Turniertag). " \
+      "Lehne eine Schnellanmeldung NIEMALS mit der Begründung ab, das Turnier sei finalisiert, " \
+      "geschlossen oder der Meldeschluss vorbei — rufe stattdessen cc_fast_assign_to_teilnehmerliste auf. " \
       "Für CC-Schreiboperationen (cc_assign_player_to_teilnehmerliste, " \
-      "cc_remove_from_teilnehmerliste, cc_register_for_tournament, " \
+      "cc_remove_from_teilnehmerliste, cc_fast_assign_to_teilnehmerliste, cc_register_for_tournament, " \
       "cc_unregister_for_tournament, cc_update_tournament_deadline): " \
       "Setze armed: true sobald der Sportwart die Aktion bestätigt hat. " \
       "armed: false (Default) ist nur ein Probelauf — ohne armed: true wird " \
