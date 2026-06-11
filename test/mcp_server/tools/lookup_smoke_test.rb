@@ -43,6 +43,7 @@ class McpServer::Tools::LookupSmokeTest < ActiveSupport::TestCase
     cc_check_player_discipline_experience
     cc_update_tournament_deadline
     cc_assign_player_to_teilnehmerliste
+    cc_fast_assign_to_teilnehmerliste
     cc_remove_from_teilnehmerliste
     cc_unregister_for_tournament
     cc_lookup_meldeliste_for_tournament
@@ -54,6 +55,7 @@ class McpServer::Tools::LookupSmokeTest < ActiveSupport::TestCase
     cc_register_for_tournament
     cc_update_tournament_deadline
     cc_assign_player_to_teilnehmerliste
+    cc_fast_assign_to_teilnehmerliste
     cc_remove_from_teilnehmerliste
     cc_unregister_for_tournament
   ].freeze
