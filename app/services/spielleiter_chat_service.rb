@@ -128,9 +128,11 @@ class SpielleiterChatService
       "Sei entscheidungsfreudig: Wenn eine Anfrage eindeutig ist, handle direkt — " \
       "zeige kein Menü mit Optionen, stelle keine Rückfragen wenn der Kontext klar ist. " \
       "Beispiel: 'zeige die Meldeliste des Cadre-Turniers' → Tool aufrufen, Ergebnis zeigen. " \
-      "Wenn du eine Turnierliste anzeigst, stelle KEINE Nachfrage wie " \
-      "'Welches Turnier möchtest du bearbeiten?' — " \
-      "der Sportwart wählt direkt aus der Liste. " \
+      "Wenn du Turniere auflistest, gib sie IMMER als Markdown-Tabelle aus " \
+      "(Spalten: Turnier | Disziplin | Meldeschluss | Turniertag) mit dem Turniernamen " \
+      "in der ERSTEN Spalte — NIEMALS als Aufzählung oder Fließtext. " \
+      "Der Sportwart wählt ein Turnier per Klick auf die Tabellenzeile aus; " \
+      "stelle deshalb KEINE Nachfrage wie 'Welches Turnier möchtest du verwalten/bearbeiten?'. " \
       "Für cc_list_open_tournaments: der discipline-Parameter filtert korrekt nach Branch " \
       "('Karambol' → findet auch Cadre 35/2, Dreiband groß etc.) oder konkreter Disziplin. " \
       "Wenn nach Meldungen oder der Meldeliste gefragt wird: rufe cc_lookup_meldeliste_for_tournament " \
