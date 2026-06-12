@@ -26,7 +26,7 @@ class SpielleiterChatService
 
   # Lazy-init: ohne Anthropic-API-Key/Netz konstruierbar (tool_definitions offline testbar).
   def client
-    @client ||= Anthropic::Client.new(api_key: Rails.application.credentials.dig(:anthropic, :api_key))
+    @client ||= Anthropic::Client.new(api_key: Carambus.anthropic_api_key)
   end
 
   def converse(messages:)

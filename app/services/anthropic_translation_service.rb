@@ -5,7 +5,7 @@
 # domain-specific terms in the translation context.
 #
 # Configuration:
-#   Requires credentials.dig(:anthropic, :api_key)
+#   Requires Carambus.anthropic_api_key (Rails credentials, kein ENV)
 #
 # Usage:
 #   service = AnthropicTranslationService.new
@@ -25,7 +25,7 @@ class AnthropicTranslationService
   }
 
   def initialize
-    @client = Anthropic::Client.new(api_key: Rails.application.credentials.dig(:anthropic, :api_key))
+    @client = Anthropic::Client.new(api_key: Carambus.anthropic_api_key)
   end
 
   def translate(text:, source_lang:, target_lang:)

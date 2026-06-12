@@ -26,7 +26,7 @@ class AiTranslationService
 
     raise "Unsupported provider #{@provider.inspect} — only :anthropic is supported" unless @provider == :anthropic
 
-    @api_key = Rails.application.credentials.dig(:anthropic, :api_key)
+    @api_key = Carambus.anthropic_api_key
     raise "Anthropic API key not found" unless @api_key
   end
 

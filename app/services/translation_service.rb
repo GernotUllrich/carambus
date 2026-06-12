@@ -1,6 +1,6 @@
 class TranslationService
   def self.translate(text, source_language, target_language)
-    api_key = ENV['ANTHROPIC_API_KEY'].presence || Rails.application.credentials.fetch(:anthropic_key)
+    api_key = Carambus.anthropic_api_key
     Rails.logger.debug("Using API key: #{api_key.present? ? "Present (not shown)" : "Missing"}")
 
     # First, let's parse the markdown to identify structure elements
@@ -155,7 +155,7 @@ class TranslationService
   end
 
   def self.translate_with_model(text, source_language, target_language, model)
-    api_key = ENV['ANTHROPIC_API_KEY'].presence || Rails.application.credentials.fetch(:anthropic_key)
+    api_key = Carambus.anthropic_api_key
 
     uri = URI.parse("https://api.anthropic.com/v1/messages")
     request = Net::HTTP::Post.new(uri)

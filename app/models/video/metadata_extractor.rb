@@ -87,7 +87,7 @@ class Video::MetadataExtractor
   # Only called by extract_with_ai_fallback when regex returns empty.
   # Rescue guard ensures failures return empty hash without raising.
   def ai_extract
-    client = Anthropic::Client.new(api_key: Rails.application.credentials.dig(:anthropic, :api_key))
+    client = Anthropic::Client.new(api_key: Carambus.anthropic_api_key)
 
     prompt = <<~PROMPT
       Extract structured metadata from this billiards video title.

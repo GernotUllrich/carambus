@@ -15,7 +15,7 @@ class AiDocsService < ApplicationService
     @query = options[:query]&.strip
     @user = options[:user]
     @locale = options[:locale] || "de"
-    @client = Anthropic::Client.new(api_key: Rails.application.credentials.dig(:anthropic, :api_key))
+    @client = Anthropic::Client.new(api_key: Carambus.anthropic_api_key)
   end
 
   def call
@@ -372,6 +372,6 @@ class AiDocsService < ApplicationService
   end
 
   def anthropic_configured?
-    Rails.application.credentials.dig(:anthropic, :api_key).present?
+    Carambus.anthropic_api_key.present?
   end
 end
