@@ -49,7 +49,14 @@ module McpServer
       RemoveTournamentLeiter
     ].freeze
 
-    # All-Tools (Read + Write) — Tool-Set fuer schreibberechtigte Personas.
-    ALL_TOOLS = (BASE_READ_TOOLS + WRITE_TOOLS).uniq.freeze
+    # Self-Service-Tools (Phase 35-01) — fuer JEDEN authentifizierten User; self-scoped
+    # (eigenes Profil, z.B. Spielerprofil verknuepfen), NICHT von cc_write_access? abhaengig
+    # und KEIN CC-Admin-Write. Hält das 34-01-Gating sauber (read-only ≠ keine Self-Service).
+    SELF_SERVICE_TOOLS = %i[
+      LinkMyPlayer
+    ].freeze
+
+    # All-Tools (Read + Self-Service + Write) — Tool-Set fuer schreibberechtigte Personas.
+    ALL_TOOLS = (BASE_READ_TOOLS + SELF_SERVICE_TOOLS + WRITE_TOOLS).uniq.freeze
   end
 end

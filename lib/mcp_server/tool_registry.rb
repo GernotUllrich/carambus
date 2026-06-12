@@ -13,6 +13,7 @@ module McpServer
     def self.tools_for(user)
       return [] if user.nil?
       tools = RoleToolMap::BASE_READ_TOOLS.dup
+      tools.concat(RoleToolMap::SELF_SERVICE_TOOLS)
       tools.concat(RoleToolMap::WRITE_TOOLS) if user.cc_write_access?
       tools.uniq
     end

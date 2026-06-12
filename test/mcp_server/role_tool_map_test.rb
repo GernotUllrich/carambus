@@ -7,10 +7,17 @@ require_relative "../../lib/mcp_server/role_tool_map"
 # Drift-Guard für ALL_TOOLS-Größe + Tier-Inhalt. Per-Record-Authority-Check ist
 # in BaseTool.authorize! (14-G.2); KEIN MAPPING-Hash mehr.
 class McpServer::RoleToolMapTest < ActiveSupport::TestCase
-  # Drift-Guard: 23 → 24 (34-01 FastAssign) → 26 (34-04 Assign/RemoveTournamentLeiter).
-  test "ALL_TOOLS-Größe = 26 (24 + Phase-34-04 Assign/RemoveTournamentLeiter)" do
-    assert_equal 26, McpServer::RoleToolMap::ALL_TOOLS.size,
+  # Drift-Guard: 23 → 24 (34-01 FastAssign) → 26 (34-04 TL-Tools) → 27 (35-01 LinkMyPlayer).
+  test "ALL_TOOLS-Größe = 27 (26 + Phase-35-01 LinkMyPlayer)" do
+    assert_equal 27, McpServer::RoleToolMap::ALL_TOOLS.size,
       "Drift-Guard: ALL_TOOLS-Count hat sich geändert. Falls beabsichtigt → Plan-Bezug aktualisieren."
+  end
+
+  # Phase 35-01: Self-Service-Stufe (für alle Rollen; kein CC-Admin-Write).
+  test "SELF_SERVICE_TOOLS enthält LinkMyPlayer (Phase 35-01)" do
+    assert_includes McpServer::RoleToolMap::SELF_SERVICE_TOOLS, :LinkMyPlayer
+    assert (McpServer::RoleToolMap::SELF_SERVICE_TOOLS & McpServer::RoleToolMap::WRITE_TOOLS).empty?,
+      "Self-Service ist NICHT CC-Admin-Write"
   end
 
   # Phase 34-04: TL-Delegations-Tools (Carambus-interne Zuordnung, kein CC-Write).
@@ -26,8 +33,8 @@ class McpServer::RoleToolMapTest < ActiveSupport::TestCase
   end
 
   # ALL_TOOLS == (READ + WRITE).uniq — Tiers überschneidungsfrei zusammengesetzt.
-  test "ALL_TOOLS == (BASE_READ_TOOLS + WRITE_TOOLS).uniq" do
-    assert_equal (McpServer::RoleToolMap::BASE_READ_TOOLS + McpServer::RoleToolMap::WRITE_TOOLS).uniq,
+  test "ALL_TOOLS == (BASE_READ_TOOLS + SELF_SERVICE_TOOLS + WRITE_TOOLS).uniq" do
+    assert_equal (McpServer::RoleToolMap::BASE_READ_TOOLS + McpServer::RoleToolMap::SELF_SERVICE_TOOLS + McpServer::RoleToolMap::WRITE_TOOLS).uniq,
       McpServer::RoleToolMap::ALL_TOOLS
   end
 

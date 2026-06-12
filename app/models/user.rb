@@ -22,6 +22,9 @@ class User < ApplicationRecord
   has_many :user_tournaments, dependent: :destroy
   has_many :led_tournaments, through: :user_tournaments, source: :tournament
 
+  # D-35-1: User↔Player-Verknüpfung (users.player_id existierte als toter FK; hier reaktiviert).
+  belongs_to :player, optional: true
+
   PRIVILEGED = %w[gernot.ullrich@gmx.de nla@ph.at wcauel@gmail.com joerg.unger@hamburg.de].freeze
 
   attr_accessor :player_ba_id, :terms_of_service

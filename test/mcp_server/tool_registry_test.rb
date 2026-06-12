@@ -14,15 +14,17 @@ class McpServer::ToolRegistryTest < ActiveSupport::TestCase
     assert_equal [], McpServer::ToolRegistry.tools_for(nil)
   end
 
-  test "read-only Persona (cc_write_access? false): nur BASE_READ_TOOLS, KEIN Write-Tool" do
+  test "read-only Persona (cc_write_access? false): Read + Self-Service, KEIN CC-Write-Tool" do
     u = User.new(email: "tr-ro@example.com", password: "password123")
     def u.cc_write_access?
       false
     end
     tools = McpServer::ToolRegistry.tools_for(u)
-    assert_equal McpServer::RoleToolMap::BASE_READ_TOOLS.sort, tools.sort
+    expected = (McpServer::RoleToolMap::BASE_READ_TOOLS + McpServer::RoleToolMap::SELF_SERVICE_TOOLS).sort
+    assert_equal expected, tools.sort
     assert((tools & McpServer::RoleToolMap::WRITE_TOOLS).empty?,
-      "read-only Persona darf KEIN Write-Tool bekommen")
+      "read-only Persona darf KEIN CC-Admin-Write-Tool bekommen")
+    assert_includes tools, :LinkMyPlayer, "Self-Service-Tool ist auch für read-only verfügbar"
   end
 
   test "schreibberechtigte Persona (cc_write_access? true): Read + Write (ALL_TOOLS)" do
@@ -46,7 +48,7 @@ class McpServer::ToolRegistryTest < ActiveSupport::TestCase
     def rw.cc_write_access?
       true
     end
-    assert_equal McpServer::RoleToolMap::BASE_READ_TOOLS.size, McpServer::ToolRegistry.tool_count_for(ro)
+    assert_equal (McpServer::RoleToolMap::BASE_READ_TOOLS + McpServer::RoleToolMap::SELF_SERVICE_TOOLS).size, McpServer::ToolRegistry.tool_count_for(ro)
     assert_equal McpServer::RoleToolMap::ALL_TOOLS.size, McpServer::ToolRegistry.tool_count_for(rw)
   end
 end

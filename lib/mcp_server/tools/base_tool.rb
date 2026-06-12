@@ -189,6 +189,31 @@ module McpServer
         [nil, error("Turnierleiter-Aufloesung fehlgeschlagen (defensive): #{e.class.name}")]
       end
 
+      # Plan 35-01 (D-35-1): Aufloesung des EIGENEN Players via dbu_nr (primaer) / ba_id (Fallback),
+      # REGION-SCOPED (dbu_nr ist im Authority-Mirror nicht eindeutig — Cross-Region-Dupes; vgl.
+      # project_cc_id_not_unique). Returns [player, nil] | [nil, error_response].
+      def self.resolve_own_player(dbu_nr: nil, ba_id: nil, server_context: nil)
+        if dbu_nr.blank? && ba_id.blank?
+          return [nil, error("Bitte deine DBU-Nummer (oder BA-ID) angeben.")]
+        end
+        region_shortname = effective_cc_region(server_context).to_s.upcase
+        region_id = (Region.find_by(shortname: region_shortname)&.id if region_shortname.present?)
+        scope = region_id ? Player.where(region_id: region_id) : Player.all
+
+        player = nil
+        player = scope.where.not(dbu_nr: [nil, 0]).find_by(dbu_nr: dbu_nr.to_i) if dbu_nr.present?
+        player ||= scope.find_by(ba_id: ba_id.to_i) if ba_id.present?
+
+        if player
+          [player, nil]
+        else
+          [nil, error("Kein Spieler zu dieser Nummer in deiner Region gefunden. Pruefe deine DBU-Nummer (oder BA-ID).")]
+        end
+      rescue => e
+        Rails.logger.warn "[BaseTool.resolve_own_player] #{e.class}: #{e.message}"
+        [nil, error("Spieler-Aufloesung fehlgeschlagen (defensive): #{e.class.name}")]
+      end
+
       # Liefert die ClubCloud federation_id als Default-Fallback für Tools.
       # Priorität:
       #   1. ENV["CC_FED_ID"] (expliziter Override — höchste Prio)
