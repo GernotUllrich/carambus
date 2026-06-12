@@ -49,13 +49,15 @@
       <%= form.label :sportwart_disciplines, "Sportwart-Disziplinen" %>
       <p class="field-unit__help" style="font-size: 0.85em; color: #666;">
         Zugeordnete Disziplinen machen den Nutzer zum <strong>Sportwart</strong> (mit CC-Schreibrecht im Chat).
-        Mehrfachauswahl mit Strg-/Cmd-Klick.
+        Eine Oberdisziplin (z.B. <em>Karambol</em>) deckt automatisch alle Unterdisziplinen ab — zum Aufklappen auf das ▶ klicken.
       </p>
     </div>
     <div class="field-unit__field">
-      <%= form.collection_select :sportwart_discipline_ids,
-            Discipline.all.sort_by { |d| d.name.to_s }, :id, :name,
-            {}, { multiple: true, size: 8, class: "text-input" } %>
+      <ul style="margin: 0; padding: 0;">
+        <% discipline_tree_roots.each do |root| %>
+          <%= render "admin/users/discipline_node", discipline: root, selected_ids: page.resource.sportwart_discipline_ids %>
+        <% end %>
+      </ul>
     </div>
   </div>
 
@@ -63,25 +65,45 @@
     <div class="field-unit__label">
       <%= form.label :sportwart_locations, "Sportwart-Spielorte" %>
       <p class="field-unit__help" style="font-size: 0.85em; color: #666;">
-        Zugeordnete Spielorte definieren den Wirkbereich. Mehrfachauswahl mit Strg-/Cmd-Klick.
+        Nur Spielorte der Region <strong><%= server_region&.shortname || "—" %></strong>, gruppiert nach Verein.
+        Mehrfachauswahl mit Strg-/Cmd-Klick.
       </p>
     </div>
     <div class="field-unit__field">
-      <%= form.collection_select :sportwart_location_ids,
-            Location.all.sort_by { |l| l.name.to_s }, :id, :name,
-            {}, { multiple: true, size: 8, class: "text-input" } %>
+      <%= select_tag "user[sportwart_location_ids][]",
+            grouped_options_for_select(region_locations_grouped_options, page.resource.sportwart_location_ids),
+            multiple: true, size: 10, class: "text-input" %>
     </div>
   </div>
 
-  <div class="field-unit">
+  <% current_player = page.resource.player %>
+  <% selected_club = current_player && (
+       SeasonParticipation.where(player_id: current_player.id, season_id: Season.current_season&.id).first&.club ||
+       (current_player.respond_to?(:club) ? current_player.club : nil)
+     ) %>
+  <div class="field-unit" data-controller="dependent-select"
+       data-dependent-select-url-value="<%= players_by_club_admin_users_path %>">
     <div class="field-unit__label">
-      <%= form.label :player_id, "Verknuepfter Spieler (Player-ID)" %>
+      <%= form.label :player_id, "Verknüpfter Spieler" %>
       <p class="field-unit__help" style="font-size: 0.85em; color: #666;">
-        Optional fuer "Mein Billard". Alternativ kann sich der Nutzer im Chat selbst verknuepfen (cc_link_my_player).
+        Für „Mein Billard": erst Verein der Region wählen, dann Spieler (aktuelle Saison).
+        Alternativ verknüpft sich der Nutzer im Chat selbst (cc_link_my_player).
       </p>
     </div>
-    <div class="field-unit__field">
-      <%= form.number_field :player_id, class: "text-input", autocomplete: "off" %>
+    <div class="field-unit__field" style="display: flex; gap: 8px; flex-wrap: wrap;">
+      <%= select_tag :player_club_picker,
+            options_from_collection_for_select(region_clubs, :id, :name, selected_club&.id),
+            include_blank: "— Verein wählen —",
+            class: "text-input",
+            data: { dependent_select_target: "source", action: "dependent-select#load" } %>
+      <%= select_tag "user[player_id]",
+            options_for_select(
+              current_player ? [[current_player.fullname, current_player.id]] : [],
+              page.resource.player_id
+            ),
+            include_blank: "— Spieler wählen —",
+            class: "text-input",
+            data: { dependent_select_target: "dest" } %>
     </div>
   </div>
 <% end %>

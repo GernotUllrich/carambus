@@ -516,7 +516,12 @@ Rails.application.routes.draw do
   #   end
 
   namespace :admin do
-    resources :users
+    resources :users do
+      collection do
+        # Phase 37-01: Player-Cascade (Club -> Spieler aktuelle Saison) im Admin-User-Formular.
+        get :players_by_club
+      end
+    end
     resources :settings, only: %i[index create update] do
       collection do
         patch :update
