@@ -4,6 +4,7 @@
 class User < ApplicationRecord
   include Theme
   include SportwartScope
+  include UserPersonas
 
   enum :role, {
     player: 0,

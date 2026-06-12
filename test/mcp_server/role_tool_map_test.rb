@@ -3,19 +3,29 @@
 require "test_helper"
 require_relative "../../lib/mcp_server/role_tool_map"
 
-# Plan 14-G.2 / D-14-G6: 8 obsolete MAPPING/Per-Role-Tests gelöscht (Phase-13-mcp_role-Enum
-# durch D-14-G6 ersatzlos entfernt). Verbleibend: ALL_TOOLS-Drift-Guard (14-G.1-Substrate).
-# Per-Record-Authority-Check ist in BaseTool.authorize! (14-G.2); KEIN MAPPING-Hash mehr.
+# Phase 34-01 (v1.0): RoleToolMap-Tiers (BASE_READ_TOOLS + WRITE_TOOLS).
+# Drift-Guard für ALL_TOOLS-Größe + Tier-Inhalt. Per-Record-Authority-Check ist
+# in BaseTool.authorize! (14-G.2); KEIN MAPPING-Hash mehr.
 class McpServer::RoleToolMapTest < ActiveSupport::TestCase
-  # Drift-Guard für 14-G.1-Stub + Phase-22-Erweiterung: ALL_TOOLS-Größe muss stabil sein.
-  # 22 → 23: Plan 22-01 T2-Mount-Fix (CcWhoami hinzugefügt; HTTP-Pfad nutzt ALL_TOOLS, nicht collect_tools).
-  test "ALL_TOOLS-Stub-Größe = 23 (14-G.1-Substrate + 22-01-Erweiterung CcWhoami)" do
-    assert_equal 23, McpServer::RoleToolMap::ALL_TOOLS.size,
-      "Stub-Drift: ALL_TOOLS-Count hat sich geändert. Falls beabsichtigt → Plan-Bezug aktualisieren."
+  # Drift-Guard: 23 (14-G.1 + 22-01 CcWhoami) → 24 (34-01 FastAssignToTeilnehmerliste).
+  test "ALL_TOOLS-Größe = 24 (23 + Phase-34-01 FastAssignToTeilnehmerliste)" do
+    assert_equal 24, McpServer::RoleToolMap::ALL_TOOLS.size,
+      "Drift-Guard: ALL_TOOLS-Count hat sich geändert. Falls beabsichtigt → Plan-Bezug aktualisieren."
   end
 
-  # Plan 22-01 T2-Mount-Fix: CcWhoami ist auf der hardcoded ALL_TOOLS-Liste,
-  # nicht nur via collect_tools sichtbar.
+  # Phase 34-01 Drift-Fix: Chat nutzte FastAssign, Registry kannte es nicht.
+  test "WRITE_TOOLS enthält FastAssignToTeilnehmerliste (Phase 34-01 Drift-Fix)" do
+    assert_includes McpServer::RoleToolMap::WRITE_TOOLS, :FastAssignToTeilnehmerliste,
+      "FastAssignToTeilnehmerliste muss als Write-Tool registriert sein (Chat ⇄ Registry vereinheitlicht)."
+  end
+
+  # ALL_TOOLS == (READ + WRITE).uniq — Tiers überschneidungsfrei zusammengesetzt.
+  test "ALL_TOOLS == (BASE_READ_TOOLS + WRITE_TOOLS).uniq" do
+    assert_equal (McpServer::RoleToolMap::BASE_READ_TOOLS + McpServer::RoleToolMap::WRITE_TOOLS).uniq,
+      McpServer::RoleToolMap::ALL_TOOLS
+  end
+
+  # Plan 22-01 T2-Mount-Fix: CcWhoami ist auf der Read-Liste (HTTP-MCP-Mount sichtbar).
   test "ALL_TOOLS enthält CcWhoami (Plan 22-01 Foundation für HTTP-MCP-Mount)" do
     assert_includes McpServer::RoleToolMap::ALL_TOOLS, :CcWhoami,
       "cc_whoami muss im HTTP-MCP-Mount (McpController via ToolRegistry) sichtbar sein."
