@@ -45,6 +45,8 @@ module McpServer
       RemoveFromTeilnehmerliste
       FastAssignToTeilnehmerliste
       FinalizeTeilnehmerliste
+      AssignTournamentLeiter
+      RemoveTournamentLeiter
     ].freeze
 
     # All-Tools (Read + Write) — Tool-Set fuer schreibberechtigte Personas.

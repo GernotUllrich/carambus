@@ -7,10 +7,16 @@ require_relative "../../lib/mcp_server/role_tool_map"
 # Drift-Guard für ALL_TOOLS-Größe + Tier-Inhalt. Per-Record-Authority-Check ist
 # in BaseTool.authorize! (14-G.2); KEIN MAPPING-Hash mehr.
 class McpServer::RoleToolMapTest < ActiveSupport::TestCase
-  # Drift-Guard: 23 (14-G.1 + 22-01 CcWhoami) → 24 (34-01 FastAssignToTeilnehmerliste).
-  test "ALL_TOOLS-Größe = 24 (23 + Phase-34-01 FastAssignToTeilnehmerliste)" do
-    assert_equal 24, McpServer::RoleToolMap::ALL_TOOLS.size,
+  # Drift-Guard: 23 → 24 (34-01 FastAssign) → 26 (34-04 Assign/RemoveTournamentLeiter).
+  test "ALL_TOOLS-Größe = 26 (24 + Phase-34-04 Assign/RemoveTournamentLeiter)" do
+    assert_equal 26, McpServer::RoleToolMap::ALL_TOOLS.size,
       "Drift-Guard: ALL_TOOLS-Count hat sich geändert. Falls beabsichtigt → Plan-Bezug aktualisieren."
+  end
+
+  # Phase 34-04: TL-Delegations-Tools (Carambus-interne Zuordnung, kein CC-Write).
+  test "WRITE_TOOLS enthält Assign/RemoveTournamentLeiter (Phase 34-04)" do
+    assert_includes McpServer::RoleToolMap::WRITE_TOOLS, :AssignTournamentLeiter
+    assert_includes McpServer::RoleToolMap::WRITE_TOOLS, :RemoveTournamentLeiter
   end
 
   # Phase 34-01 Drift-Fix: Chat nutzte FastAssign, Registry kannte es nicht.

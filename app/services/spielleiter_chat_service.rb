@@ -157,9 +157,10 @@ class SpielleiterChatService
       "den aktuellen Stand — er bedeutet NICHT, dass keine Änderungen mehr möglich sind. Behaupte NIEMALS, " \
       "ein Turnier 'könne nicht mehr verändert werden': Spieler können auch dann per Schnellanmeldung " \
       "hinzugefügt (cc_fast_assign_to_teilnehmerliste) und per cc_remove_from_teilnehmerliste entfernt werden. " \
-      "Für CC-Schreiboperationen (cc_assign_player_to_teilnehmerliste, " \
+      "Für Schreiboperationen (cc_assign_player_to_teilnehmerliste, " \
       "cc_remove_from_teilnehmerliste, cc_fast_assign_to_teilnehmerliste, cc_register_for_tournament, " \
-      "cc_unregister_for_tournament, cc_update_tournament_deadline): " \
+      "cc_unregister_for_tournament, cc_update_tournament_deadline, " \
+      "cc_assign_tournament_leiter, cc_remove_tournament_leiter): " \
       "Setze armed: true sobald der Sportwart die Aktion bestätigt hat. " \
       "armed: false (Default) ist nur ein Probelauf — ohne armed: true wird " \
       "NICHTS in ClubCloud geändert. " \
@@ -175,7 +176,10 @@ class SpielleiterChatService
       "Zeige dem Sportwart KEINE internen IDs (cc_id, branch_id, discipline_id, tournament_cc_id, " \
       "meldeliste_cc_id, player_cc_id o.ä.) — nur Namen, Bezeichnungen und Ergebnisse. " \
       "Verwende keine IT-Fachbegriffe wie Flapping, Eventual Consistency, Caching, Race-Condition, " \
-      "Buffer, Stale Read, Token oder PUT-Replace in Erklärungen an den Sportwart."
+      "Buffer, Stale Read, Token oder PUT-Replace in Erklärungen an den Sportwart. " \
+      "Turnierleiter-Zuordnung (cc_assign_tournament_leiter / cc_remove_tournament_leiter) ist eine " \
+      "interne Carambus-Aktion (KEIN ClubCloud-Eintrag); der künftige Turnierleiter braucht ein " \
+      "Carambus-Benutzerkonto. Eine über das Turnier-Formular gesetzte Zuordnung kann der Chat nicht entfernen."
 
     unless @user&.cc_write_access?
       base += " HINWEIS: Dieser Nutzer hat nur Lese-Zugriff — biete KEINE Schreib- oder " \

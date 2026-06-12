@@ -160,6 +160,35 @@ module McpServer
         [nil, "Player-Auto-Resolve-Exception: #{e.class.name}"]
       end
 
+      # Plan 34-04 (D-34-5): Aufloesung eines Carambus-Users als (kuenftiger) Turnierleiter.
+      # email/username exakt (unique) ODER Name-Token-Suche (first_name/last_name/username).
+      # Returns [user, nil] | [nil, error_response]. KEINE internen IDs in Fehlertexten.
+      def self.resolve_tl_user(email: nil, name: nil, server_context: nil)
+        if email.present?
+          key = email.to_s.downcase
+          u = User.find_by("LOWER(email) = ?", key) || User.find_by("LOWER(username) = ?", key)
+          return [u, nil] if u
+          return [nil, error("Kein Benutzerkonto zu '#{email}' gefunden. Der Turnierleiter braucht ein Carambus-Benutzerkonto.")]
+        end
+        if name.present?
+          tokens = tokenize_search_query(name)
+          matches = apply_token_search_filter(User.all, tokens, %w[first_name last_name username]).limit(6).to_a
+          case matches.size
+          when 0
+            [nil, error("Kein Benutzerkonto zu '#{name}' gefunden. Der Turnierleiter braucht ein Carambus-Benutzerkonto.")]
+          when 1
+            [matches.first, nil]
+          else
+            [nil, error("Mehrere Nutzer passen zu '#{name}': #{matches.map(&:display_name).join(", ")}. Bitte praeziser angeben (Email oder Benutzername).")]
+          end
+        else
+          [nil, error("Bitte Email/Benutzername oder Namen des Turnierleiters angeben.")]
+        end
+      rescue => e
+        Rails.logger.warn "[BaseTool.resolve_tl_user] #{e.class}: #{e.message}"
+        [nil, error("Turnierleiter-Aufloesung fehlgeschlagen (defensive): #{e.class.name}")]
+      end
+
       # Liefert die ClubCloud federation_id als Default-Fallback für Tools.
       # Priorität:
       #   1. ENV["CC_FED_ID"] (expliziter Override — höchste Prio)
