@@ -14,7 +14,7 @@
     <%= form.label :name %>
   </div>
   <div class="field-unit__field">
-    <%= text_field_tag :name_display, page.resource.name, class: "text-input", disabled: true %>
+    <%= text_field_tag :name_display, page.resource.name, class: "text-input", disabled: true, autocomplete: "off" %>
   </div>
 </div>
 
@@ -35,3 +35,53 @@
     <%= form.text_field :last_name %>
   </div>
 </div>
+
+<% if current_user&.system_admin? %>
+  <%#
+    v1.0 Live-Test-Fix (D-34-4-Luecke): Sportwart-Wirkbereich + Player-Verknuepfung klickbar machen.
+    "Sportwart"/"Turnierleiter" sind KEINE Rollen — der Sportwart-Status ergibt sich aus diesen
+    Zuordnungen (sportwart? = mind. eine Disziplin ODER eine Location). Daraus folgt cc_write_access?.
+    Die Params (sportwart_discipline_ids / sportwart_location_ids / player_id) sind ueber die
+    Dashboard-FORM_ATTRIBUTES bereits permitted — hier fehlten nur die Eingabefelder.
+  %>
+  <div class="field-unit">
+    <div class="field-unit__label">
+      <%= form.label :sportwart_disciplines, "Sportwart-Disziplinen" %>
+      <p class="field-unit__help" style="font-size: 0.85em; color: #666;">
+        Zugeordnete Disziplinen machen den Nutzer zum <strong>Sportwart</strong> (mit CC-Schreibrecht im Chat).
+        Mehrfachauswahl mit Strg-/Cmd-Klick.
+      </p>
+    </div>
+    <div class="field-unit__field">
+      <%= form.collection_select :sportwart_discipline_ids,
+            Discipline.all.sort_by { |d| d.name.to_s }, :id, :name,
+            {}, { multiple: true, size: 8, class: "text-input" } %>
+    </div>
+  </div>
+
+  <div class="field-unit">
+    <div class="field-unit__label">
+      <%= form.label :sportwart_locations, "Sportwart-Spielorte" %>
+      <p class="field-unit__help" style="font-size: 0.85em; color: #666;">
+        Zugeordnete Spielorte definieren den Wirkbereich. Mehrfachauswahl mit Strg-/Cmd-Klick.
+      </p>
+    </div>
+    <div class="field-unit__field">
+      <%= form.collection_select :sportwart_location_ids,
+            Location.all.sort_by { |l| l.name.to_s }, :id, :name,
+            {}, { multiple: true, size: 8, class: "text-input" } %>
+    </div>
+  </div>
+
+  <div class="field-unit">
+    <div class="field-unit__label">
+      <%= form.label :player_id, "Verknuepfter Spieler (Player-ID)" %>
+      <p class="field-unit__help" style="font-size: 0.85em; color: #666;">
+        Optional fuer "Mein Billard". Alternativ kann sich der Nutzer im Chat selbst verknuepfen (cc_link_my_player).
+      </p>
+    </div>
+    <div class="field-unit__field">
+      <%= form.number_field :player_id, class: "text-input", autocomplete: "off" %>
+    </div>
+  </div>
+<% end %>
