@@ -72,7 +72,7 @@ class Video::MetadataExtractor
   # all regex values are blank AND ai_extraction_enabled is true.
   #
   # Threat T-27-02: ai_extraction_enabled defaults to false to prevent
-  # unexpected OpenAI calls in batch/background contexts.
+  # unexpected AI calls in batch/background contexts.
   def extract_with_ai_fallback(ai_extraction_enabled: false)
     result = extract_all
     if result.values.all?(&:blank?) && ai_extraction_enabled
@@ -83,11 +83,11 @@ class Video::MetadataExtractor
 
   private
 
-  # AI extraction via GPT-4o-mini for non-English or unusual titles.
+  # AI extraction via Claude (claude-haiku) for non-English or unusual titles.
   # Only called by extract_with_ai_fallback when regex returns empty.
   # Rescue guard ensures failures return empty hash without raising.
   def ai_extract
-    client = OpenAI::Client.new(access_token: Rails.application.credentials.dig(:openai, :api_key))
+    client = Anthropic::Client.new(api_key: Rails.application.credentials.dig(:anthropic, :api_key))
 
     prompt = <<~PROMPT
       Extract structured metadata from this billiards video title.
@@ -95,20 +95,23 @@ class Video::MetadataExtractor
       round (e.g. "Final", "Semi_Final", "R16", "Q"), tournament_type
       (one of: world_cup, world_championship, european_championship, masters, grand_prix),
       year (integer 4-digit year or null).
+      Return ONLY valid JSON, no markdown, no code fences.
       Title: #{video.title}
     PROMPT
 
-    response = client.chat(
-      parameters: {
-        model: "gpt-4o-mini",
-        response_format: {type: "json_object"},
-        messages: [{role: "user", content: prompt}],
-        temperature: 0.0
-      }
+    response = client.messages.create(
+      model: "claude-haiku-4-5-20251001",
+      max_tokens: 200,
+      temperature: 0.0,
+      messages: [{role: "user", content: prompt}]
     )
 
-    content = response.dig("choices", 0, "message", "content")
+    content = response.content.first&.text
     return empty_result if content.blank?
+
+    # Anthropic kann JSON in ```-Fences wrappen — strippen vor dem Parsen (wie AiSearchService).
+    content = content.gsub(/\A\s*```(?:json)?\s*/m, "").gsub(/\s*```\s*\z/m, "").strip
+    content = content[/{.*}/m] || content
 
     parsed = JSON.parse(content)
     {

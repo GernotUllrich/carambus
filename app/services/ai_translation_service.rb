@@ -1,7 +1,3 @@
-require 'net/http'
-require 'uri'
-require 'json'
-
 class AiTranslationService
   # Billard-Kontext für bessere Übersetzungen
   BILLIARD_CONTEXT = <<~CONTEXT
@@ -24,34 +20,26 @@ class AiTranslationService
     - Positionsnamen bleiben meistens im Original (z.B. "Amerika-Position", nicht "Amerikanische Position")
     - Sei präzise bei technischen Beschreibungen
   CONTEXT
-  
+
   def initialize(provider: :anthropic)
     @provider = provider
 
-    case @provider
-    when :anthropic
-      @api_key = Rails.application.credentials.dig(:anthropic, :api_key)
-      raise "Anthropic API key not found" unless @api_key
-    when :openai
-      raise "OpenAI provider deprecated in v0.8 — use :anthropic"
-    end
+    raise "Unsupported provider #{@provider.inspect} — only :anthropic is supported" unless @provider == :anthropic
+
+    @api_key = Rails.application.credentials.dig(:anthropic, :api_key)
+    raise "Anthropic API key not found" unless @api_key
   end
-  
+
   # Übersetzt Text mit AI und Billard-Kontext
   def translate(text:, source_lang:, target_lang:)
     return nil if text.blank?
-    
+
     # Erstelle den Übersetzungs-Prompt
     prompt = build_translation_prompt(text, source_lang, target_lang)
-    
-    # Rufe die richtige API auf
-    response = case @provider
-    when :anthropic
-      call_claude_api(prompt)
-    when :openai
-      call_openai_api(prompt)
-    end
-    
+
+    # Rufe die Claude-API auf
+    response = call_claude_api(prompt)
+
     # Extrahiere die Übersetzung aus der Antwort
     extract_translation(response, @provider)
   rescue => e
@@ -59,13 +47,13 @@ class AiTranslationService
     Rails.logger.error(e.backtrace.join("\n"))
     nil
   end
-  
+
   private
-  
+
   def build_translation_prompt(text, source_lang, target_lang)
     source_name = language_name(source_lang)
     target_name = language_name(target_lang)
-    
+
     <<~PROMPT
       #{BILLIARD_CONTEXT}
       
@@ -83,7 +71,7 @@ class AiTranslationService
       ÜBERSETZUNG:
     PROMPT
   end
-  
+
   def call_claude_api(prompt)
     client = Anthropic::Client.new(api_key: @api_key)
     client.messages.create(
@@ -95,38 +83,7 @@ class AiTranslationService
     Rails.logger.error("Claude API Error: #{e.message}")
     nil
   end
-  
-  def call_openai_api(prompt)
-    uri = URI.parse("https://api.openai.com/v1/chat/completions")
-    request = Net::HTTP::Post.new(uri)
-    request["Content-Type"] = "application/json"
-    request["Authorization"] = "Bearer #{@api_key}"
-    
-    request.body = {
-      model: "gpt-4o-mini",
-      messages: [
-        {
-          role: "user",
-          content: prompt
-        }
-      ],
-      max_tokens: 2048,
-      temperature: 0.3
-    }.to_json
-    
-    response = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) do |http|
-      http.read_timeout = 30
-      http.request(request)
-    end
-    
-    if response.is_a?(Net::HTTPSuccess)
-      JSON.parse(response.body)
-    else
-      Rails.logger.error("OpenAI API Error: #{response.code} - #{response.body}")
-      nil
-    end
-  end
-  
+
   def extract_translation(response, provider)
     return nil unless response
 
@@ -137,7 +94,7 @@ class AiTranslationService
 
     content&.strip
   end
-  
+
   def language_name(code)
     case code.to_s.upcase
     when "DE" then "Deutsch"

@@ -10,7 +10,7 @@ marked.setOptions({
 })
 
 // AI-powered search controller
-// Handles natural language search queries via OpenAI
+// Handles natural language search queries via Anthropic Claude
 export default class extends Controller {
   static targets = ["panel", "backdrop", "input", "submitButton", "loading", "message", 
                     "searchTab", "docsTab", "label", "searchExamples", "docsExamples"]

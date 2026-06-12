@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "test_helper"
+require "ostruct"
 
 class Video::MetadataExtractorTest < ActiveSupport::TestCase
   # Helper to build a minimal Video-like struct without touching the DB
@@ -163,11 +164,11 @@ class Video::MetadataExtractorTest < ActiveSupport::TestCase
   # ------------------------------------------------------------------
   # Test 6: AI fallback NOT called when regex extraction succeeds
   # ------------------------------------------------------------------
-  test "extract_with_ai_fallback does not call OpenAI when regex succeeds" do
+  test "extract_with_ai_fallback does not call AI (Claude) when regex succeeds" do
     video = make_video(title: "UMB World Cup 2024 Final - JASPERS vs CHO")
     extractor = Video::MetadataExtractor.new(video)
 
-    # If OpenAI were called, it would fail due to WebMock blocking real HTTP
+    # If Claude were called, it would fail due to WebMock blocking real HTTP
     # We just verify the call returns the regex result without errors
     result = extractor.extract_with_ai_fallback(ai_extraction_enabled: true)
     assert_kind_of Hash, result
@@ -176,32 +177,26 @@ class Video::MetadataExtractorTest < ActiveSupport::TestCase
 
   # ------------------------------------------------------------------
   # Test 7: AI fallback called when regex returns empty and ai_extraction_enabled true
+  # Phase 36-01: von OpenAI (WebMock) auf gemockten Anthropic-Client migriert.
   # ------------------------------------------------------------------
-  test "extract_with_ai_fallback calls AI when regex fails and ai_extraction_enabled is true" do
+  test "extract_with_ai_fallback calls Claude when regex fails and ai_extraction_enabled is true" do
     video = make_video(title: "당구 경기 결승전") # Korean title with no known patterns
     extractor = Video::MetadataExtractor.new(video)
 
-    # Stub OpenAI API call
-    stub_request(:post, /api\.openai\.com/)
-      .to_return(
-        status: 200,
-        body: {
-          choices: [
-            {
-              message: {
-                content: '{"players": [], "round": "Final", "tournament_type": "world_cup", "year": 2024}'
-              }
-            }
-          ]
-        }.to_json,
-        headers: { "Content-Type" => "application/json" }
-      )
+    # Fake Anthropic-Client (key-frei): messages.create → JSON-Text via .content.first.text
+    fake = Object.new
+    fake.define_singleton_method(:messages) { self }
+    fake.define_singleton_method(:create) { |**_|
+      OpenStruct.new(content: [OpenStruct.new(text: '{"players": ["KIM"], "round": "Final", "tournament_type": "world_cup", "year": 2024}')])
+    }
 
-    result = extractor.extract_with_ai_fallback(ai_extraction_enabled: true)
-    assert_kind_of Hash, result
-    # AI fallback was called (WebMock stub used) — verify keys present
-    assert result.key?(:players)
-    assert result.key?(:round)
+    Anthropic::Client.stub(:new, fake) do
+      result = extractor.extract_with_ai_fallback(ai_extraction_enabled: true)
+      assert_equal ["kim"], result[:players]
+      assert_equal "Final", result[:round]
+      assert_equal "world_cup", result[:tournament_type]
+      assert_equal 2024, result[:year]
+    end
   end
 
   # ------------------------------------------------------------------
