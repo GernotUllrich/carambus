@@ -29,6 +29,10 @@ class McpServer::ToolRegistryTest < ActiveSupport::TestCase
     %i[MyTournaments MyResults MyRanking].each do |s|
       assert_includes tools, s, "Mein-Billard-Tool #{s} muss auch für read-only Persona sichtbar sein"
     end
+    # Phase 36-02: Doku/Suche read-only Tools ebenso für read-only Persona.
+    %i[DocSearch SmartSearch].each do |s|
+      assert_includes tools, s, "Doku/Suche-Tool #{s} muss auch für read-only Persona sichtbar sein"
+    end
   end
 
   test "schreibberechtigte Persona (cc_write_access? true): Read + Write (ALL_TOOLS)" do
