@@ -7,10 +7,19 @@ require_relative "../../lib/mcp_server/role_tool_map"
 # Drift-Guard für ALL_TOOLS-Größe + Tier-Inhalt. Per-Record-Authority-Check ist
 # in BaseTool.authorize! (14-G.2); KEIN MAPPING-Hash mehr.
 class McpServer::RoleToolMapTest < ActiveSupport::TestCase
-  # Drift-Guard: 23 → 24 (34-01 FastAssign) → 26 (34-04 TL-Tools) → 27 (35-01 LinkMyPlayer).
-  test "ALL_TOOLS-Größe = 27 (26 + Phase-35-01 LinkMyPlayer)" do
-    assert_equal 27, McpServer::RoleToolMap::ALL_TOOLS.size,
+  # Drift-Guard: 23 → 24 (34-01 FastAssign) → 26 (34-04 TL-Tools) → 27 (35-01 LinkMyPlayer)
+  # → 30 (35-02 Mein-Billard: MyTournaments/MyResults/MyRanking).
+  test "ALL_TOOLS-Größe = 30 (27 + Phase-35-02 Mein-Billard-Tools)" do
+    assert_equal 30, McpServer::RoleToolMap::ALL_TOOLS.size,
       "Drift-Guard: ALL_TOOLS-Count hat sich geändert. Falls beabsichtigt → Plan-Bezug aktualisieren."
+  end
+
+  # Phase 35-02: Mein-Billard read-only Tools — für ALLE Rollen (BASE_READ_TOOLS), kein CC-Write.
+  test "BASE_READ_TOOLS enthält Mein-Billard-Tools, NICHT in WRITE_TOOLS (Phase 35-02)" do
+    my_tools = %i[MyTournaments MyResults MyRanking]
+    my_tools.each { |s| assert_includes McpServer::RoleToolMap::BASE_READ_TOOLS, s }
+    assert((my_tools & McpServer::RoleToolMap::WRITE_TOOLS).empty?,
+      "Mein-Billard-Tools sind read-only (self-scoped), KEIN CC-Admin-Write")
   end
 
   # Phase 35-01: Self-Service-Stufe (für alle Rollen; kein CC-Admin-Write).

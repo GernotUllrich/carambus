@@ -31,6 +31,9 @@ module McpServer
       ListOpenTournaments
       SearchPlayer
       CheckPlayerDisciplineExperience
+      MyTournaments
+      MyResults
+      MyRanking
     ].freeze
 
     # Write-Tools — CC-Schreiboperationen. Gating: nur Personas mit cc_write_access?

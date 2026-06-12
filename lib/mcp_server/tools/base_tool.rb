@@ -214,6 +214,33 @@ module McpServer
         [nil, error("Spieler-Aufloesung fehlgeschlagen (defensive): #{e.class.name}")]
       end
 
+      # Plan 35-02: Aufloesung des EIGENEN, bereits verknuepften Players (current_user.player)
+      # fuer die "Mein Billard"-Lese-Tools (cc_my_tournaments/results/ranking). Self-scoped —
+      # ausschliesslich ueber server_context[:user_id], NIE ueber einen player_id-Parameter
+      # (Sicherheitseigenschaft: niemand kann fremde Spielerdaten lesen).
+      # Returns:
+      #   [player, nil]            — User verknuepft, Player aufgeloest
+      #   [nil, text(...)]         — NICHT verknuepft → freundlicher Gate-Hinweis (KEIN Fehler)
+      #   [nil, error(...)]        — nicht angemeldet / defensive Exception
+      # Verwendung im Tool: `player, resp = current_player(server_context); return resp if resp`
+      def self.current_player(server_context)
+        user = User.find_by(id: server_context&.dig(:user_id))
+        return [nil, error("Nicht angemeldet — bitte zuerst einloggen.")] if user.nil?
+
+        player = user.player
+        if player.nil?
+          return [nil, text(
+            "Du hast noch kein Spielerprofil verknuepft. Nutze zuerst cc_link_my_player mit deiner " \
+            "DBU-Nummer, dann zeige ich dir deine Turniere, Ergebnisse und deine Rangliste."
+          )]
+        end
+
+        [player, nil]
+      rescue => e
+        Rails.logger.warn "[BaseTool.current_player] #{e.class}: #{e.message}"
+        [nil, error("Profil-Aufloesung fehlgeschlagen (defensive): #{e.class.name}")]
+      end
+
       # Liefert die ClubCloud federation_id als Default-Fallback für Tools.
       # Priorität:
       #   1. ENV["CC_FED_ID"] (expliziter Override — höchste Prio)

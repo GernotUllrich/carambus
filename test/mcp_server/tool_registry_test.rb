@@ -25,6 +25,10 @@ class McpServer::ToolRegistryTest < ActiveSupport::TestCase
     assert((tools & McpServer::RoleToolMap::WRITE_TOOLS).empty?,
       "read-only Persona darf KEIN CC-Admin-Write-Tool bekommen")
     assert_includes tools, :LinkMyPlayer, "Self-Service-Tool ist auch für read-only verfügbar"
+    # Phase 35-02: Mein-Billard read-only Tools sind auch für die read-only :player-Persona da.
+    %i[MyTournaments MyResults MyRanking].each do |s|
+      assert_includes tools, s, "Mein-Billard-Tool #{s} muss auch für read-only Persona sichtbar sein"
+    end
   end
 
   test "schreibberechtigte Persona (cc_write_access? true): Read + Write (ALL_TOOLS)" do

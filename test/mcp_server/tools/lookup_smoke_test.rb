@@ -48,6 +48,12 @@ class McpServer::Tools::LookupSmokeTest < ActiveSupport::TestCase
     cc_unregister_for_tournament
     cc_lookup_meldeliste_for_tournament
     cc_whoami
+    cc_assign_tournament_leiter
+    cc_remove_tournament_leiter
+    cc_link_my_player
+    cc_my_tournaments
+    cc_my_results
+    cc_my_ranking
   ].freeze
 
   WRITE_TOOL_NAMES = %w[
@@ -58,6 +64,15 @@ class McpServer::Tools::LookupSmokeTest < ActiveSupport::TestCase
     cc_fast_assign_to_teilnehmerliste
     cc_remove_from_teilnehmerliste
     cc_unregister_for_tournament
+    cc_assign_tournament_leiter
+    cc_remove_tournament_leiter
+  ].freeze
+
+  # Phase 35-01: Self-Service-Write (eigenes Profil verknuepfen) — nicht-destruktiv und kein
+  # Read; passt in keine der binaeren read/write-Annotations-Kategorien
+  # (read_only_hint:false + destructive_hint:false). Aus den Hint-Asserts ausgenommen.
+  SELF_SERVICE_TOOL_NAMES = %w[
+    cc_link_my_player
   ].freeze
 
   test "dynamic tool registry matches frozen reference (drift detection both ways)" do
@@ -78,7 +93,7 @@ class McpServer::Tools::LookupSmokeTest < ActiveSupport::TestCase
       "(ein Tool fehlt oder hat den falschen Namen)."
   end
 
-  test "all 22 expected tools (16 read + 6 write) are registered on McpServer::Server.build" do
+  test "all expected tools are registered on McpServer::Server.build" do
     # server.tools liefert Arrays [name, klass] — erstes Element ist der tool_name-String.
     registered = McpServer::Server.build.tools.map { |t|
       if t.is_a?(Array)
@@ -130,8 +145,8 @@ class McpServer::Tools::LookupSmokeTest < ActiveSupport::TestCase
   # Annotation-Disziplin — Read-Tools sind read_only_hint:true, Finalize ist destructive_hint:true.
   # Dateiname-Mapping: cc_lookup_X → lookup_X.rb; cc_search_player → search_player.rb;
   # cc_finalize_teilnehmerliste → finalize_teilnehmerliste.rb.
-  test "all 16 read tools have read_only_hint: true annotation" do
-    read_tool_names = EXPECTED_TOOL_NAMES - WRITE_TOOL_NAMES
+  test "all read tools have read_only_hint: true annotation" do
+    read_tool_names = EXPECTED_TOOL_NAMES - WRITE_TOOL_NAMES - SELF_SERVICE_TOOL_NAMES
     read_tool_names.each do |tname|
       fname = case tname
       when "cc_search_player" then "search_player.rb"
@@ -150,6 +165,16 @@ class McpServer::Tools::LookupSmokeTest < ActiveSupport::TestCase
       content = Rails.root.join("lib/mcp_server/tools/#{fname}").read
       assert_match(/destructive_hint:\s*true/, content, "#{tname} fehlt destructive_hint:true")
       assert_match(/read_only_hint:\s*false/, content, "#{tname} fehlt read_only_hint:false")
+    end
+  end
+
+  # Phase 35-01: Self-Service-Tools sind nicht-destruktive Self-Writes (read_only_hint:false +
+  # destructive_hint:false) — eigene Kategorie ausserhalb des binaeren read/write-Modells.
+  test "self-service tools have read_only_hint: false + destructive_hint: false" do
+    SELF_SERVICE_TOOL_NAMES.each do |tname|
+      content = Rails.root.join("lib/mcp_server/tools/#{tname.delete_prefix("cc_")}.rb").read
+      assert_match(/read_only_hint:\s*false/, content, "#{tname} fehlt read_only_hint:false")
+      assert_match(/destructive_hint:\s*false/, content, "#{tname} fehlt destructive_hint:false")
     end
   end
 end
