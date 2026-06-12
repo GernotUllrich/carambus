@@ -93,6 +93,8 @@ class Tournament < ApplicationRecord
 
   # D-14-G4: Single-TL-pro-Turnier Sub-Authorization.
   belongs_to :turnier_leiter, class_name: "User", foreign_key: :turnier_leiter_user_id, optional: true
+  # D-34-5: Lokale User<->Turnier-Zuordnungen (UserTournament, ApiProtector; Union mit turnier_leiter_user_id).
+  has_many :user_tournaments, dependent: :destroy
   
   # Polymorphe Video Association
   has_many :videos, as: :videoable, dependent: :nullify

@@ -18,6 +18,10 @@ class User < ApplicationRecord
   has_many :sportwart_discipline_assignments, class_name: "SportwartDiscipline", dependent: :destroy
   has_many :sportwart_disciplines, through: :sportwart_discipline_assignments, source: :discipline
 
+  # D-34-5: Lokale User<->Turnier-Zuordnungen (UserTournament, ApiProtector).
+  has_many :user_tournaments, dependent: :destroy
+  has_many :led_tournaments, through: :user_tournaments, source: :tournament
+
   PRIVILEGED = %w[gernot.ullrich@gmx.de nla@ph.at wcauel@gmail.com joerg.unger@hamburg.de].freeze
 
   attr_accessor :player_ba_id, :terms_of_service

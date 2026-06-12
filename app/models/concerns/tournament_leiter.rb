@@ -10,10 +10,12 @@ module TournamentLeiter
 
   def leiter?(user)
     return false if user.nil?
-    turnier_leiter_user_id.present? && turnier_leiter_user_id == user.id
+    (turnier_leiter_user_id.present? && turnier_leiter_user_id == user.id) ||
+      user_tournaments.exists?(user_id: user.id, role: "turnier_leiter")
   end
 
   def has_active_leiter?
-    turnier_leiter_user_id.present?
+    turnier_leiter_user_id.present? ||
+      user_tournaments.where(role: "turnier_leiter").exists?
   end
 end

@@ -27,7 +27,10 @@ module UserPersonas
   # alle Tournaments OHNE Turnierleiter und liefert faelschlich true.
   def turnierleiter?
     return @is_turnierleiter if defined?(@is_turnierleiter)
-    @is_turnierleiter = id.present? && Tournament.exists?(turnier_leiter_user_id: id)
+    @is_turnierleiter = id.present? && (
+      Tournament.exists?(turnier_leiter_user_id: id) ||
+      UserTournament.exists?(user_id: id, role: "turnier_leiter")
+    )
   end
 
   # Abgeleitete Personas als Symbol-Array: Basis-Rolle aus dem enum plus

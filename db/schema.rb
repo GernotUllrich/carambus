@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_05_31_214659) do
+ActiveRecord::Schema[7.2].define(version: 2026_06_12_104652) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -1591,6 +1591,17 @@ ActiveRecord::Schema[7.2].define(version: 2026_05_31_214659) do
     t.datetime "updated_at", null: false
   end
 
+  create_table "user_tournaments", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.bigint "tournament_id", null: false
+    t.string "role", default: "turnier_leiter", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["tournament_id"], name: "index_user_tournaments_on_tournament_id"
+    t.index ["user_id", "tournament_id", "role"], name: "index_user_tournaments_unique", unique: true
+    t.index ["user_id"], name: "index_user_tournaments_on_user_id"
+  end
+
   create_table "users", force: :cascade do |t|
     t.string "email", default: "", null: false
     t.string "encrypted_password", default: "", null: false
@@ -1744,6 +1755,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_05_31_214659) do
   add_foreign_key "training_concept_relations", "training_concepts", column: "target_concept_id"
   add_foreign_key "training_examples", "training_concepts"
   add_foreign_key "training_examples", "training_examples", column: "parent_id"
+  add_foreign_key "user_tournaments", "tournaments", on_delete: :cascade
+  add_foreign_key "user_tournaments", "users"
   add_foreign_key "users", "players"
   add_foreign_key "versions", "regions", validate: false
   add_foreign_key "videos", "disciplines"

@@ -65,4 +65,13 @@ class UserPersonasTest < ActiveSupport::TestCase
     assert_not u.turnierleiter?
     assert_not u.cc_write_access?
   end
+
+  # Phase 34-03 (D-34-5): Union — turnierleiter? auch via lokale UserTournament-Relation.
+  test "Union: turnierleiter? via UserTournament (ohne globales turnier_leiter_user_id)" do
+    u = User.create!(email: "up_ut@test.de", password: "password123")
+    UserTournament.create!(user: u, tournament: tournaments(:local), role: "turnier_leiter")
+    assert u.turnierleiter?
+    assert_includes u.personas, :turnierleiter
+    assert u.cc_write_access?
+  end
 end
