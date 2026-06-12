@@ -88,4 +88,28 @@ class McpServer::Tools::CcWhoamiTest < ActiveSupport::TestCase
     assert_equal [], body["sportwart_locations"]
     assert_equal [], body["sportwart_disciplines"]
   end
+
+  # Phase 34-02: personas + can_write_cc.
+  test "personas + can_write_cc: ohne server_context → [] + false" do
+    response = McpServer::Tools::CcWhoami.call(server_context: nil)
+    body = JSON.parse(response.content.first[:text])
+    assert_equal [], body["personas"]
+    assert_equal false, body["can_write_cc"]
+  end
+
+  test "personas + can_write_cc: system_admin → personas enthält system_admin, can_write_cc true" do
+    admin = User.create!(email: "whoami_admin@test.de", password: "password123", role: :system_admin)
+    response = McpServer::Tools::CcWhoami.call(server_context: {user_id: admin.id})
+    body = JSON.parse(response.content.first[:text])
+    assert_includes body["personas"], "system_admin"
+    assert_equal true, body["can_write_cc"]
+  end
+
+  test "personas + can_write_cc: reiner player → personas [player], can_write_cc false" do
+    player = User.create!(email: "whoami_player@test.de", password: "password123")
+    response = McpServer::Tools::CcWhoami.call(server_context: {user_id: player.id})
+    body = JSON.parse(response.content.first[:text])
+    assert_equal ["player"], body["personas"]
+    assert_equal false, body["can_write_cc"]
+  end
 end

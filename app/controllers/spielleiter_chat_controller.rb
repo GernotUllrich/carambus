@@ -59,8 +59,8 @@ class SpielleiterChatController < ApplicationController
     result = McpServer::Tools::CcWhoami.call(server_context: server_ctx)
     whoami_text = result.content.first[:text].to_s
     [
-      {role: "user", content: "[Sportwart-Profil automatisch geladen] #{whoami_text}"},
-      {role: "assistant", content: "Sportwart-Kontext geladen. Ich kenne deinen Scope und frage nicht nach club_cc_id."}
+      {role: "user", content: "[Profil automatisch geladen] #{whoami_text}"},
+      {role: "assistant", content: "Profil geladen. Ich kenne deinen Scope (Rolle, Region, ggf. Wirkbereich) und frage nicht nach internen IDs."}
     ]
   rescue => e
     Rails.logger.warn("[SpielleiterChatController] cc_whoami: #{e.class} #{e.message}")
@@ -71,11 +71,16 @@ class SpielleiterChatController < ApplicationController
     name = current_user.first_name.presence || current_user.email.split("@").first
     data = whoami_data_from_context
     locations = Array(data["sportwart_locations"]).filter_map { |l| l["name"] }
+    personas = Array(data["personas"])
     region = data.dig("region", "shortname")
     season = data["default_season"]
 
     parts = ["Willkommen zurück, #{name}!"]
-    parts << "Du bist Sportwart für: #{locations.join(", ")}." if locations.any?
+    if locations.any?
+      parts << "Du bist Sportwart für: #{locations.join(", ")}."
+    elsif personas.include?("turnierleiter")
+      parts << "Du bist als Turnierleiter eingetragen."
+    end
     parts << "(#{region}, Saison #{season})" if region && season
     parts << "Wie kann ich dir helfen?"
     parts.join(" ")
@@ -84,7 +89,7 @@ class SpielleiterChatController < ApplicationController
   def whoami_data_from_context
     ctx = deep_symbolize(session[CONTEXT_KEY] || [])
     raw = ctx.first&.dig(:content).to_s
-    JSON.parse(raw.sub(/\A\[Sportwart-Profil automatisch geladen\]\s*/, ""))
+    JSON.parse(raw.sub(/\A\[(?:Sportwart-)?Profil automatisch geladen\]\s*/, ""))
   rescue
     {}
   end

@@ -25,7 +25,8 @@ module McpServer
                   "automatisch zu Sessionbeginn aufrufen (siehe server.instructions). " \
                   "Returns: { scenario_name, region: {shortname, name, cc_id} | nil, " \
                   "default_season, user: {id, email} | nil, sportwart_locations: [...], " \
-                  "sportwart_disciplines: [...] }. Keine sensitiven Felder; idempotent; read-only."
+                  "sportwart_disciplines: [...], personas: [...], can_write_cc: bool }. " \
+                  "Keine sensitiven Felder; idempotent; read-only."
       input_schema(properties: {})
       annotations(read_only_hint: true, destructive_hint: false)
 
@@ -36,7 +37,9 @@ module McpServer
           default_season: resolve_default_season(server_context),
           user: resolve_user_envelope(server_context),
           sportwart_locations: resolve_sportwart_locations(server_context),
-          sportwart_disciplines: resolve_sportwart_disciplines(server_context)
+          sportwart_disciplines: resolve_sportwart_disciplines(server_context),
+          personas: resolve_personas(server_context),
+          can_write_cc: resolve_can_write_cc(server_context)
         }
         text(JSON.generate(payload))
       rescue => e
@@ -135,6 +138,31 @@ module McpServer
       rescue => e
         Rails.logger.warn "[CcWhoami.resolve_sportwart_disciplines] #{e.class}: #{e.message}"
         []
+      end
+
+      # Abgeleitete Personas des Users (UserPersonas-Concern, Phase 34-01):
+      # z.B. ["player"] / ["player","sportwart"] / ["club_admin","turnierleiter"].
+      def self.resolve_personas(server_context)
+        user_id = server_context&.dig(:user_id)
+        return [] if user_id.blank?
+        u = User.find_by(id: user_id)
+        return [] unless u&.respond_to?(:personas)
+        u.personas.map(&:to_s)
+      rescue => e
+        Rails.logger.warn "[CcWhoami.resolve_personas] #{e.class}: #{e.message}"
+        []
+      end
+
+      # CC-Schreibrecht der Persona (34-01 cc_write_access?): true für Sportwart/TL/Admin.
+      def self.resolve_can_write_cc(server_context)
+        user_id = server_context&.dig(:user_id)
+        return false if user_id.blank?
+        u = User.find_by(id: user_id)
+        return false unless u&.respond_to?(:cc_write_access?)
+        u.cc_write_access?
+      rescue => e
+        Rails.logger.warn "[CcWhoami.resolve_can_write_cc] #{e.class}: #{e.message}"
+        false
       end
     end
   end

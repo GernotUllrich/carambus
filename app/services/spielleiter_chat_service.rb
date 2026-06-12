@@ -1,8 +1,9 @@
 # frozen_string_literal: true
 
-# SpielleiterChatService — Anthropic Tool-Use Agentic Loop für Sportwart-Web-Chat (Phase 28).
-# Hält eine Konversation mit 9 cc_*-Tools als Anthropic Tool-Definitionen und dispatcht
-# tool_use-Blöcke an die entsprechenden McpServer::Tools-Klassen.
+# SpielleiterChatService — Anthropic Tool-Use Agentic Loop für den Carambus-Web-Chat
+# (Phase 28; 34-02: persona-gefiltert + für alle Rollen geöffnet). Die Tool-Liste kommt
+# aus McpServer::ToolRegistry.tool_classes_for(user) — read-only User bekommen KEINE
+# Write-Tools, und es gibt nur EINE Tool-Quelle (keine TOOL_CLASSES-Drift, D-34-3).
 #
 # Usage:
 #   svc = SpielleiterChatService.new(user: current_user)
@@ -12,29 +13,20 @@
 class SpielleiterChatService
   MAX_TOOL_ITERATIONS = 10
 
-  TOOL_CLASSES = {
-    "cc_whoami" => McpServer::Tools::CcWhoami,
-    "cc_list_open_tournaments" => McpServer::Tools::ListOpenTournaments,
-    "cc_lookup_meldeliste_for_tournament" => McpServer::Tools::LookupMeldelisteForTournament,
-    "cc_lookup_teilnehmerliste" => McpServer::Tools::LookupTeilnehmerliste,
-    "cc_list_players_by_club_and_discipline" => McpServer::Tools::ListPlayersByClubAndDiscipline,
-    "cc_search_player" => McpServer::Tools::SearchPlayer,
-    "cc_check_player_discipline_experience" => McpServer::Tools::CheckPlayerDisciplineExperience,
-    "cc_register_for_tournament" => McpServer::Tools::RegisterForTournament,
-    "cc_unregister_for_tournament" => McpServer::Tools::UnregisterForTournament,
-    "cc_assign_player_to_teilnehmerliste" => McpServer::Tools::AssignPlayerToTeilnehmerliste,
-    "cc_remove_from_teilnehmerliste" => McpServer::Tools::RemoveFromTeilnehmerliste,
-    "cc_fast_assign_to_teilnehmerliste" => McpServer::Tools::FastAssignToTeilnehmerliste,
-    "cc_update_tournament_deadline" => McpServer::Tools::UpdateTournamentDeadline
-  }.freeze
-
   def initialize(user:)
     @user = user
-    @client = Anthropic::Client.new(api_key: Rails.application.credentials.dig(:anthropic, :api_key))
+    # Persona-gefilterte Tool-Quelle (34-01 ToolRegistry): tool_name => Tool-Klasse.
+    # read-only User bekommen KEINE Write-Tools; eine Quelle (keine TOOL_CLASSES-Drift, D-34-3).
+    @tools_by_name = McpServer::ToolRegistry.tool_classes_for(user).index_by(&:tool_name)
     @server_context = {
       user_id: user.id,
       cc_region: Carambus.config.context.to_s.presence&.upcase
     }
+  end
+
+  # Lazy-init: ohne Anthropic-API-Key/Netz konstruierbar (tool_definitions offline testbar).
+  def client
+    @client ||= Anthropic::Client.new(api_key: Rails.application.credentials.dig(:anthropic, :api_key))
   end
 
   def converse(messages:)
@@ -45,7 +37,7 @@ class SpielleiterChatService
       iterations += 1
       break if iterations > MAX_TOOL_ITERATIONS
 
-      response = @client.messages.create(
+      response = client.messages.create(
         model: "claude-haiku-4-5-20251001",
         max_tokens: 4096,
         system: system_prompt,
@@ -72,7 +64,7 @@ class SpielleiterChatService
   end
 
   def tool_definitions
-    TOOL_CLASSES.map do |name, klass|
+    @tools_by_name.map do |name, klass|
       schema = klass.input_schema.to_h.compact
       schema = schema.merge(type: "object") unless schema[:type]
       {
@@ -86,7 +78,7 @@ class SpielleiterChatService
   private
 
   def dispatch_tool(name:, id:, input:)
-    tool_class = TOOL_CLASSES[name]
+    tool_class = @tools_by_name[name]
     result_text = if tool_class
       begin
         kwargs = input.transform_keys(&:to_sym)
@@ -121,7 +113,7 @@ class SpielleiterChatService
   end
 
   def system_prompt
-    "Du bist ein Assistent für NBV-Sportwarte. " \
+    base = "Du bist der Carambus-Assistent. " \
       "Du hilfst bei ClubCloud-Admin-Aufgaben: Turnierverwaltung, Melde- und Teilnehmerlisten. " \
       "Nutze die verfügbaren Tools für alle CC-Operationen. " \
       "Antworte auf Deutsch, kurz und sachlich. " \
@@ -184,5 +176,12 @@ class SpielleiterChatService
       "meldeliste_cc_id, player_cc_id o.ä.) — nur Namen, Bezeichnungen und Ergebnisse. " \
       "Verwende keine IT-Fachbegriffe wie Flapping, Eventual Consistency, Caching, Race-Condition, " \
       "Buffer, Stale Read, Token oder PUT-Replace in Erklärungen an den Sportwart."
+
+    unless @user&.cc_write_access?
+      base += " HINWEIS: Dieser Nutzer hat nur Lese-Zugriff — biete KEINE Schreib- oder " \
+        "Verwaltungsaktionen an (Anmelden/Akkreditieren/Entfernen/Finalisieren/Meldeschluss-Verschieben); " \
+        "dafür stehen keine Werkzeuge bereit. Beantworte Anfragen mit den verfügbaren Lese-Werkzeugen."
+    end
+    base
   end
 end
