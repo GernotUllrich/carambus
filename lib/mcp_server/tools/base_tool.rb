@@ -284,7 +284,12 @@ module McpServer
       # Min-Token-Länge 2 Zeichen (kürzere Tokens raus — verhindert Wildcard-Explosion).
       def self.tokenize_search_query(query)
         return [] if query.blank?
-        query.to_s.strip.split(/\s+/).map(&:strip).reject { |t| t.size < 2 }
+        # Whitespace-Split + führende/abschließende Satzzeichen pro Token strippen, damit das
+        # Meldeliste-Anzeigeformat "Nachname, Vorname" matcht ("Schröder, Hans-Jörg" → ["Schröder",
+        # "Hans-Jörg"]). Interne Bindestriche (z.B. "Hans-Jörg") bleiben erhalten.
+        query.to_s.strip.split(/\s+/)
+          .map { |t| t.gsub(/\A[[:punct:]]+|[[:punct:]]+\z/, "") }
+          .reject { |t| t.size < 2 }
       end
 
       # Plan 14-02.2 / Befund E-1: DRY-Filter-Helper für Token-Search.
