@@ -1,5 +1,8 @@
 # Carambus Szenario — Drift-Report
 
+> **Archiviert (einmaliger Audit, 2026-06-13).** Aktueller Stand + Pflege:
+> [../scenario-parameter-howto.de.md](../scenario-parameter-howto.de.md).
+
 > **Was wurde verglichen:** die live auf den Produktionsservern liegenden
 > End-Quellen gegen die lokal generierten Artefakte
 > (`carambus_data/scenarios/<scenario>/production/`) sowie die vier von dir
