@@ -36,7 +36,11 @@ class ApplicationController < ActionController::Base
   before_action :set_user_preferences
   before_action :set_locale
   around_action :set_current_user
-  # impersonates :user
+  # Pretender: erlaubt es system_admins, voruebergehend in die Identitaet eines anderen
+  # Users zu schluepfen. Definiert current_user (= impersonierter User || true_user),
+  # true_user (echter angemeldeter User) sowie impersonate_user / stop_impersonating_user.
+  # Muss NACH der Devise-current_user-Definition stehen (siehe pretender#impersonates).
+  impersonates :user
 
   before_action :set_cache_headers if Rails.env.development?
   before_action :handle_menu_state

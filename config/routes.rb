@@ -354,7 +354,16 @@ Rails.application.routes.draw do
       post :test_tournament_status_update
     end
   end
-  resources :users
+  resources :users do
+    member do
+      # Pretender: system_admin schluepft in die Identitaet dieses Users.
+      post :impersonate
+    end
+    collection do
+      # Pretender: zurueck zum eigenen Konto.
+      delete :stop_impersonating
+    end
+  end
   resources :season_participations
   resources :game_participations
   resources :games

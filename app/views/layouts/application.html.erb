@@ -104,6 +104,20 @@
 <div class="flex flex-col min-h-screen <%= "no-navbar" unless @navbar %>" data-controller="sidebar">
   <header>
     <%= render "flash" %>
+    <%# Pretender: gut sichtbares Banner solange ein Identitaetswechsel aktiv ist. %>
+    <% if respond_to?(:true_user) && true_user && current_user != true_user %>
+      <div class="bg-amber-400 text-amber-950 px-4 py-2 text-sm flex flex-wrap items-center justify-center gap-3 shadow">
+        <span>
+          👤 Du agierst gerade als <strong><%= current_user.display_name %></strong>
+          <span class="opacity-80">(eigenes Konto: <%= true_user.display_name %>)</span>
+        </span>
+        <%= button_to "Eigenes Konto wiederherstellen",
+              stop_impersonating_users_path,
+              method: :delete,
+              class: "underline font-semibold hover:no-underline",
+              form_class: "inline" %>
+      </div>
+    <% end %>
     <%= render "navbar" %>
   </header>
   

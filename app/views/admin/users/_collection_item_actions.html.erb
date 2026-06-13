@@ -1,0 +1,32 @@
+<%# Ueberschreibt administrate/application/_collection_item_actions fuer User: %>
+<%# zusaetzlich zur Standard-Edit/Destroy-Aktion ein "Als dieser User agieren"-Button. %>
+<%# Hinweis: Im Admin-Namespace ist pretender NICHT aktiv -> current_user ist hier %>
+<%# immer der echte angemeldete Admin (nicht impersoniert). %>
+
+<% if existing_action?(collection_presenter.resource_name, :edit) %>
+  <td><%= link_to(
+    t("administrate.actions.edit"),
+    [:edit, namespace, resource],
+    class: "action-edit",
+  ) if accessible_action?(resource, :edit) %></td>
+<% end %>
+
+<% if existing_action?(collection_presenter.resource_name, :destroy) %>
+  <td><%= link_to(
+    t("administrate.actions.destroy"),
+    [namespace, resource],
+    class: "text-color-red",
+    method: :delete,
+    data: { confirm: t("administrate.actions.confirm") }
+  ) if accessible_action?(resource, :destroy) %></td>
+<% end %>
+
+<% if current_user&.system_admin? && !resource.system_admin? && resource != current_user %>
+  <td><%= button_to(
+    "Identität übernehmen",
+    impersonate_user_path(resource),
+    method: :post,
+    class: "action-impersonate",
+    form: { data: { turbo_confirm: "Als #{resource.display_name} agieren?" } }
+  ) %></td>
+<% end %>
