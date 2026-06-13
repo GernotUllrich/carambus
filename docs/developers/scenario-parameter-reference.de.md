@@ -1,5 +1,7 @@
 # Carambus Szenario-Parameter — Referenz-Verzeichnis
 
+> **Nachschlagewerk.** Wie man Parameter pflegt (Abläufe): [scenario-parameter-howto.de.md](scenario-parameter-howto.de.md).
+
 > **Zweck:** Übersicht im „Parameter-Dschungel". Für jeden Parameter, der ein
 > Carambus-Szenario von einem anderen unterscheidet, ist hier dokumentiert:
 > **Name**, **Bedeutung**, **Auftreten in `config.yml`** und **Auftreten in der

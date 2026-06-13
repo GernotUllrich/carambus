@@ -1,6 +1,9 @@
 # Carambus Credentials — Inventur & Konsolidierungsplan
 
-> Begleitdokument zu [scenario-parameter-reference.de.md](scenario-parameter-reference.de.md)
+> **Archiviert (Historie/Hintergrund).** Aktueller Stand + Pflege:
+> [../scenario-parameter-howto.de.md](../scenario-parameter-howto.de.md).
+>
+> Begleitdokument zu [../scenario-parameter-reference.de.md](../scenario-parameter-reference.de.md)
 > und [scenario-drift-report.de.md](scenario-drift-report.de.md), Abschnitt 8.
 >
 > **Ziel:** Die hand-gepflegten, uneinheitlichen Rails-Credentials auf eine
@@ -9,6 +12,29 @@
 > (Klartext-)`config.yml` zu legen.
 >
 > Stand: 2026-06-13
+
+---
+
+## 0. Betriebs-Erkenntnisse (wichtig!)
+
+- **Quelle der Wahrheit für Credentials sind die SERVER**, nicht `carambus_data`.
+  Die `carambus_data/scenarios/*/production/credentials/*.yml.enc` sind hand-/test-
+  gepflegt, divergieren von den Servern und teilen einen **einheitlichen
+  `secret_key_base`/`active_record_encryption`-Satz, der zu KEINEM Server passt**.
+- **Deploy-Gate:** Vor jedem Credential-Deploy MUSS geprüft werden, dass
+  `secret_key_base` UND `active_record_encryption.primary_key` mit dem Server
+  übereinstimmen. Ein Deploy abweichender Werte → **alle Sessions ungültig** und
+  **verschlüsselte DB-Spalten unentschlüsselbar (Datenverlust)**. Prüfung
+  geheimnisfrei via serverseitigem Hash-Vergleich (nur MATCH/MISMATCH).
+- **Konsequenz:** Feature-Keys werden per **server-seitigem additivem Merge**
+  ergänzt (entschlüsseln → nur fehlende Keys mergen → re-encrypten, Kritisches
+  bewahren → Puma-Restart), NICHT durch Deploy der carambus_data-Dateien.
+  Done für alle 6 Produktionsserver am 2026-06-13.
+- **`clubcloud`-Key kleingeschrieben** (`nbv`) — `Setting.get_cc_credentials`
+  nutzt `context.downcase.to_sym`.
+- **`carambus_train` = Spezialfall:** Feature-Branch `scenario/gu/training-system`,
+  nicht master → hat die `Carambus.*`-Helper (noch) nicht. Credentials wurden
+  trotzdem ergänzt; greift, sobald der Branch master nachzieht.
 
 ---
 
@@ -262,6 +288,15 @@ wenn überall neu generiert + deployt wird.
   `secret_key_base` bewahrt. Pool-Schutz: `carambus_data/.gitignore` (secrets.yml) +
   `carambus_data/secrets.yml.example`. Adoption-Beispiel: `features`-Block in
   `scenarios/carambus_nbv/config.yml`.
-- ⬜ **Phase B** wird durch Phase-C-`WRITE=true` miterledigt (echten Pool `secrets.yml` befüllen, dann je Szenario/Env schreiben + deployen).
+- ✅ **Phase B auf den Servern erledigt (2026-06-13):** Statt carambus_data zu
+  deployen (Gate-Befund: `secret_key_base` **und** `active_record_encryption`
+  weichen auf allen Servern ab → Deploy hätte Sessions + verschlüsselte Daten
+  zerstört), wurde pro Server ein **server-seitiger additiver Merge** gemacht:
+  fehlende Feature-Keys (anthropic/deepl/google.translate/youtube/kozoom/clubcloud.nbv)
+  aus dem Pool ergänzt, `secret_key_base`/`active_record_encryption`/alles andere
+  bewahrt, Puma-Restart. Alle 6 Server (gu, nbv, train, api, bcw, carambus.de)
+  verifiziert gesund. Backups als `production.yml.enc.bak.<ts>` je Server.
+  Der carambus_data-WRITE wurde zurückgerollt (nicht deploybar).
+  **clubcloud-Key muss kleingeschrieben sein** (`nbv`) — Setting nutzt `context.downcase`.
 - ⬜ **Rollout:** `features`-Block in alle Szenario-`config.yml`; Generator-Code committen/pushen; ggf. in `prepare_deploy` einhängen.
 - ✅ **`fetch` vs `dig`**: Helper liefern `nil` statt Exception — Aufrufer prüfen `.present?` (ok).
