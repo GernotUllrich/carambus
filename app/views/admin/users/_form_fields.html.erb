@@ -66,13 +66,65 @@
       <%= form.label :sportwart_locations, "Sportwart-Spielorte" %>
       <p class="field-unit__help" style="font-size: 0.85em; color: #666;">
         Nur Spielorte der Region <strong><%= server_region&.shortname || "—" %></strong>, gruppiert nach Verein.
-        Mehrfachauswahl mit Strg-/Cmd-Klick.
+        Klick auf einen Spielort fügt ihn oben hinzu; am Chip auf „×" entfernt ihn wieder.
       </p>
     </div>
-    <div class="field-unit__field">
-      <%= select_tag "user[sportwart_location_ids][]",
-            grouped_options_for_select(region_locations_grouped_options, page.resource.sportwart_location_ids),
-            multiple: true, size: 10, class: "text-input" %>
+    <% selected_locs = page.resource.sportwart_locations.to_a %>
+    <% selected_location_ids = selected_locs.map(&:id) %>
+    <% grouped = region_locations_grouped_options %>
+    <div class="field-unit__field" data-controller="location-picker">
+      <%# Kontrast erzwingen: globale .btn-*-Regeln setzen color:white !important auf Buttons —
+          unsere Picker-Buttons in allen Zustaenden auf lesbares Dunkel ueberschreiben. %>
+      <style>
+        [data-controller="location-picker"] .lp-available-item {
+          color: #1f2937 !important; -webkit-text-fill-color: #1f2937 !important;
+          background-color: transparent !important;
+        }
+        [data-controller="location-picker"] .lp-available-item:hover {
+          background-color: #dbeafe !important;
+          color: #1e3a8a !important; -webkit-text-fill-color: #1e3a8a !important;
+        }
+        [data-controller="location-picker"] .lp-chip,
+        [data-controller="location-picker"] .lp-chip button {
+          color: #1e3a8a !important; -webkit-text-fill-color: #1e3a8a !important;
+        }
+      </style>
+      <%# leeres Fallback-Input: damit "alle Chips entfernt" die Zuordnung wirklich leert %>
+      <input type="hidden" name="user[sportwart_location_ids][]" value="">
+
+      <%# Ausgewählt-Block (Chips, entfernbar) %>
+      <div data-location-picker-target="selected"
+           style="min-height: 38px; padding: 4px; border: 1px solid #d1d5db; border-radius: 6px; margin-bottom: 8px; background: #fff;">
+        <% selected_locs.each do |loc| %>
+          <span class="lp-chip" data-chip-id="<%= loc.id %>" style="display:inline-flex;align-items:center;gap:4px;padding:3px 8px;margin:2px;border:1px solid #2563eb;border-radius:12px;background:#eff6ff;font-size:0.9em;">
+            <input type="hidden" name="user[sportwart_location_ids][]" value="<%= loc.id %>">
+            <span><%= loc.name %></span>
+            <button type="button" data-action="location-picker#remove" style="border:0;background:transparent;cursor:pointer;color:#2563eb;font-weight:bold;line-height:1;">&times;</button>
+          </span>
+        <% end %>
+        <span data-location-picker-target="empty" <%= "hidden" if selected_locs.any? %>
+              style="color:#9ca3af;font-size:0.9em;padding:4px;">Keine Spielorte gewählt</span>
+      </div>
+
+      <%# Verfügbar-Liste, nach Verein gruppiert — Klick fügt hinzu %>
+      <div style="max-height: 220px; overflow-y: auto; border: 1px solid #e5e7eb; border-radius: 6px; padding: 4px; background: #fafafa;">
+        <% grouped.each do |club_name, locs| %>
+          <div data-location-picker-target="group" <%= "hidden" if locs.all? { |_n, id| selected_location_ids.include?(id) } %>
+               style="margin-bottom: 6px;">
+            <div style="font-weight: 600; font-size: 0.8em; color: #6b7280; padding: 2px 4px;"><%= club_name %></div>
+            <% locs.each do |loc_name, loc_id| %>
+              <button type="button" class="lp-available-item"
+                      data-location-picker-target="available"
+                      data-id="<%= loc_id %>" data-name="<%= loc_name %>"
+                      data-action="location-picker#add"
+                      <%= "hidden" if selected_location_ids.include?(loc_id) %>
+                      style="display:block;width:100%;text-align:left;border:0;background:transparent;cursor:pointer;padding:3px 8px;border-radius:4px;font-size:0.9em;">
+                + <%= loc_name %>
+              </button>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
     </div>
   </div>
 

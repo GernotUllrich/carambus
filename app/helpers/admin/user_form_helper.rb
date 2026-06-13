@@ -21,8 +21,13 @@ module Admin
     end
 
     # Clubs der Server-Region (fuer den Club-Select der Player-Cascade).
+    # Vereine OHNE Namen ausschliessen: der Mirror enthaelt leere Stub-Records
+    # (kein name/shortname/cc_id; ~30 in NBV), die via order(:name) vor die echten
+    # sortieren und im Dropdown als Leerzeilen erscheinen. Sie haben keine Spielorte
+    # (verifiziert) → der Location-Select bleibt unberuehrt.
     def region_clubs
-      server_region&.clubs&.order(:name)&.to_a || []
+      return [] unless server_region
+      server_region.clubs.where.not(name: [nil, ""]).order(:name).to_a
     end
 
     # Locations der Server-Region, gruppiert nach Club — fuer grouped_options_for_select:

@@ -227,3 +227,17 @@ a[class*="btn-primary"]:hover {
   --tw-text-opacity: 1 !important;
   -webkit-text-fill-color: rgb(255 255 255) !important;
 }
+
+/* Administrate-Aktionsbuttons (.button / .button--danger, z.B. Editieren/Loeschen auf
+   Show-/Index-Seiten): Administrate stylt sie blau/rot mit weisser Schrift, aber eine
+   globale Link-/Tailwind-Farbe ueberschreibt das -> dunkler, kaum lesbarer Text.
+   Im Administrate-Wrapper (.main-content) weisse Schrift erzwingen. */
+.main-content .button,
+.main-content .button:link,
+.main-content .button:visited,
+.main-content .button:hover,
+.main-content .button:focus,
+.main-content .button:active {
+  color: #fff !important;
+  -webkit-text-fill-color: #fff !important;
+}
