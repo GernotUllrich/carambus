@@ -386,7 +386,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../reference/api.md" class="md-tabs__link">
+        <a href="../../reference/api/" class="md-tabs__link">
           
   
   
@@ -812,6 +812,8 @@
       
         
       
+        
+      
     
     
     
@@ -1131,6 +1133,29 @@
   
   
   
+    <li class="md-nav__item">
+      <a href="../../managers/external-tournament-bridge/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    External-Tournament-Bridge
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
     
     
       
@@ -1159,10 +1184,10 @@
         
           
         
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_10" >
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_11" >
         
           
-          <label class="md-nav__link" for="__nav_4_10" id="__nav_4_10_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_4_11" id="__nav_4_11_label" tabindex="0">
             
   
   
@@ -1175,8 +1200,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_10_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_4_10">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_11_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_11">
             <span class="md-nav__icon md-icon"></span>
             ClubCloud Scenarios
           </label>
@@ -2062,6 +2087,8 @@
       
         
       
+        
+      
     
     
     
@@ -2509,6 +2536,29 @@
   
   
   
+    <li class="md-nav__item">
+      <a href="../../developers/external-tournament-bridge/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    External-Tournament-Bridge
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
     
     
       
@@ -2543,10 +2593,10 @@
         
           
         
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6_12" >
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6_13" >
         
           
-          <label class="md-nav__link" for="__nav_6_12" id="__nav_6_12_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_6_13" id="__nav_6_13_label" tabindex="0">
             
   
   
@@ -2559,8 +2609,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_12_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_6_12">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_13_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6_13">
             <span class="md-nav__icon md-icon"></span>
             Services
           </label>
@@ -3155,7 +3205,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/api.md" class="md-nav__link">
+      <a href="../../reference/api/" class="md-nav__link">
         
   
   
@@ -3838,13 +3888,25 @@
 </code></pre></div></p>
 <h2 id="schritt-2-ansible-konfiguration-10-minuten">Schritt 2: Ansible Konfiguration (10 Minuten)<a class="headerlink" href="#schritt-2-ansible-konfiguration-10-minuten" title="Permanent link">&para;</a></h2>
 <h3 id="21-initiales-server-setup">2.1 Initiales Server-Setup<a class="headerlink" href="#21-initiales-server-setup" title="Permanent link">&para;</a></h3>
-<p>Ansible Playbook ausführen, um Raspberry Pi als Server zu konfigurieren:</p>
+<p>Die Basis-Provisionierung des Raspberry Pi (Pakete, Ruby/rbenv, PostgreSQL, Nginx, www-data-Benutzer) erfolgt über das Setup-Skript bzw. die Ansible-Rollen im <code>carambus_master</code>-Checkout:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nb">cd</span><span class="w"> </span>carambus_master
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>ansible-playbook<span class="w"> </span>-i<span class="w"> </span>ansible/inventory/production.yml<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span>ansible/playbooks/raspberry_pi_server.yml<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">  </span>--extra-vars<span class="w"> </span><span class="s2">&quot;target_host=raspberrypi.local&quot;</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">  </span>--ask-become-pass
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="c1"># Variante A: Setup-Skript direkt auf dem Raspberry Pi ausführen</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="c1">#   (vorher per scp/git auf den Pi übertragen)</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>sh<span class="w"> </span>bin/setup-raspberry-pi.sh
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="c1"># Variante B: Ansible-Rollen aus dem ansible/-Verzeichnis</span>
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="c1">#   Hosts in ansible/hosts eintragen, dann:</span>
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="nb">cd</span><span class="w"> </span>ansible
+<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>ansible-playbook<span class="w"> </span>-i<span class="w"> </span>hosts<span class="w"> </span>master.yml
 </code></pre></div>
+<blockquote>
+<p>Hinweis: Die genaue Provisionierungs-Prozedur (SSH-Härtung, rbenv, PostgreSQL,
+Nginx) ist in <code>ansible/RUNBOOK</code> dokumentiert. Es gibt <strong>kein</strong>
+<code>ansible/playbooks/raspberry_pi_server.yml</code> und <strong>kein</strong>
+<code>ansible/inventory/production.yml</code>; das Inventar liegt in <code>ansible/hosts</code>,
+die Playbooks in <code>ansible/master.yml</code> / <code>ansible/migrate.yml</code>.</p>
+</blockquote>
 <p>Dies wird:
 - ✅ System-Pakete aktualisieren
 - ✅ Ruby, Rails, PostgreSQL, Nginx installieren
@@ -3889,73 +3951,43 @@
 <a id="__codelineno-4-26" name="__codelineno-4-26" href="#__codelineno-4-26"></a><span class="w">      </span><span class="nt">autostart_enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
 </code></pre></div></p>
 <h3 id="32-vollstandiges-deployment-ausfuhren">3.2 Vollständiges Deployment ausführen<a class="headerlink" href="#32-vollstandiges-deployment-ausfuhren" title="Permanent link">&para;</a></h3>
-<p>Automatisierten Deployment-Workflow verwenden:</p>
+<p>Den Deployment-Workflow Schritt für Schritt ausführen. Es gibt <strong>keine</strong> einzelne <code>deploy_complete</code>-Aufgabe; das Deployment setzt sich aus den folgenden Rake-Tasks zusammen:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nb">cd</span><span class="w"> </span>carambus_master
-<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>rake<span class="w"> </span><span class="s2">&quot;scenario:deploy_complete[carambus_bcw]&quot;</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="c1"># 1. Deployment-Dateien vorbereiten (Configs, Credentials, Nginx/Puma)</span>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>rake<span class="w"> </span><span class="s2">&quot;scenario:prepare_deploy[carambus_bcw]&quot;</span>
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="c1"># 2. Server-Deployment (Capistrano + Datenbank-Restore + Service-Management)</span>
+<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>rake<span class="w"> </span><span class="s2">&quot;scenario:deploy[carambus_bcw]&quot;</span>
+<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>
+<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="c1"># 3. Raspberry Pi Client einrichten (Pakete, Kiosk-Benutzer, Systemd-Service)</span>
+<a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>rake<span class="w"> </span><span class="s2">&quot;scenario:setup_raspberry_pi_client[carambus_bcw]&quot;</span>
+<a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a>
+<a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a><span class="c1"># 4. Client-Konfiguration deployen (Scoreboard-URL, Autostart, Kiosk-Service)</span>
+<a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a>rake<span class="w"> </span><span class="s2">&quot;scenario:deploy_raspberry_pi_client[carambus_bcw]&quot;</span>
+<a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a>
+<a id="__codelineno-5-15" name="__codelineno-5-15" href="#__codelineno-5-15"></a><span class="c1"># 5. Client testen</span>
+<a id="__codelineno-5-16" name="__codelineno-5-16" href="#__codelineno-5-16"></a>rake<span class="w"> </span><span class="s2">&quot;scenario:test_raspberry_pi_client[carambus_bcw]&quot;</span>
 </code></pre></div>
-<p>Diese umfassende Aufgabe wird:</p>
+<p>Diese Aufgaben erledigen zusammen:</p>
 <ol>
-<li><strong>Konfigurationsdateien generieren</strong></li>
-<li>Datenbank-Konfiguration</li>
-<li>Nginx-Konfiguration</li>
-<li>Puma Service-Dateien</li>
-<li>
-<p>Credentials</p>
-</li>
-<li>
-<p><strong>Datenbank-Dump erstellen</strong></p>
-</li>
-<li>Development-Datenbank exportieren</li>
-<li>
-<p>Für Übertragung komprimieren</p>
-</li>
-<li>
-<p><strong>Auf Server deployen</strong></p>
-</li>
-<li>Datenbank-Dump hochladen</li>
-<li>Auf Production-Server wiederherstellen</li>
-<li>Konfigurationsdateien hochladen</li>
-<li>
-<p>Anwendungscode deployen (via Capistrano)</p>
-</li>
-<li>
-<p><strong>Raspberry Pi Client einrichten</strong></p>
-</li>
-<li>Erforderliche Pakete installieren (Chromium, wmctrl, xdotool)</li>
-<li>Kiosk-Benutzer konfigurieren</li>
-<li>
-<p>Systemd-Service erstellen</p>
-</li>
-<li>
-<p><strong>Client-Konfiguration deployen</strong></p>
-</li>
-<li>Scoreboard-URL hochladen</li>
-<li>Autostart-Skript installieren</li>
-<li>
-<p>Kiosk-Service aktivieren und starten</p>
-</li>
-<li>
-<p><strong>Alles testen</strong></p>
-</li>
-<li>SSH-Verbindung überprüfen</li>
-<li>Systemd-Service prüfen</li>
-<li>Browser-Ausführung bestätigen</li>
+<li><strong>Konfigurationsdateien generieren</strong> (Datenbank, Nginx, Puma, Credentials)</li>
+<li><strong>Auf Server deployen</strong> (Anwendungscode via Capistrano, Datenbank-Restore)</li>
+<li><strong>Raspberry Pi Client einrichten</strong> (Chromium, wmctrl, xdotool; Kiosk-Benutzer; Systemd-Service)</li>
+<li><strong>Client-Konfiguration deployen</strong> (Scoreboard-URL, Autostart-Skript, Kiosk-Service aktivieren/starten)</li>
+<li><strong>Alles testen</strong> (SSH-Verbindung, Systemd-Service, Browser-Ausführung)</li>
 </ol>
 <p><strong>Dauer:</strong> ~10 Minuten</p>
-<p><strong>Erwartete Ausgabe:</strong>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>🎉 VOLLSTÄNDIGER WORKFLOW ERFOLGREICH!
-<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>====================================
-<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>Szenario &#39;carambus_bcw&#39; ist jetzt vollständig deployed und betriebsbereit
+<p>Nach erfolgreichem Deployment:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>Zugriffsinformationen:
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>  - Web-Interface: http://192.168.178.107:3131
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>  - SSH-Zugriff: ssh -p 8910 www-data@192.168.178.107
 <a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>
-<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>Zugriffsinformationen:
-<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>  - Web-Interface: http://192.168.178.107:3131
-<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>  - SSH-Zugriff: ssh -p 8910 www-data@192.168.178.107
-<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a>
-<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a>Management-Befehle:
-<a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a>  - Browser neustarten: rake scenario:restart_raspberry_pi_client[carambus_bcw]
-<a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a>  - Client testen: rake scenario:test_raspberry_pi_client[carambus_bcw]
-<a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a>  - Service prüfen: ssh -p 8910 www-data@192.168.178.107 &#39;sudo systemctl status scoreboard-kiosk&#39;
-</code></pre></div></p>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>Management-Befehle:
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>  - Browser neustarten: rake scenario:restart_raspberry_pi_client[carambus_bcw]
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>  - Client testen: rake scenario:test_raspberry_pi_client[carambus_bcw]
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a>  - Service prüfen: ssh -p 8910 www-data@192.168.178.107 &#39;sudo systemctl status scoreboard-kiosk&#39;
+</code></pre></div>
 <h2 id="schritt-4-installation-uberprufen-2-minuten">Schritt 4: Installation überprüfen (2 Minuten)<a class="headerlink" href="#schritt-4-installation-uberprufen-2-minuten" title="Permanent link">&para;</a></h2>
 <h3 id="41-web-interface-prufen">4.1 Web-Interface prüfen<a class="headerlink" href="#41-web-interface-prufen" title="Permanent link">&para;</a></h3>
 <p>Browser auf anderem Computer öffnen:
@@ -4018,7 +4050,7 @@
 <h3 id="updates-und-wartung">Updates und Wartung<a class="headerlink" href="#updates-und-wartung" title="Permanent link">&para;</a></h3>
 <p><strong>Anwendungscode aktualisieren:</strong>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="nb">cd</span><span class="w"> </span>carambus_master
-<a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a>rake<span class="w"> </span><span class="s2">&quot;scenario:deploy[carambus_bcw,production]&quot;</span>
+<a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a>rake<span class="w"> </span><span class="s2">&quot;scenario:deploy[carambus_bcw]&quot;</span>
 </code></pre></div></p>
 <p><strong>System-Pakete aktualisieren:</strong>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>ssh<span class="w"> </span>-p<span class="w"> </span><span class="m">8910</span><span class="w"> </span>www-data@192.168.178.107<span class="w"> </span><span class="s1">&#39;sudo apt update &amp;&amp; sudo apt upgrade -y&#39;</span>

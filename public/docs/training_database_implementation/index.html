@@ -380,7 +380,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../reference/api.md" class="md-tabs__link">
+        <a href="../reference/api/" class="md-tabs__link">
           
   
   
@@ -806,6 +806,8 @@
       
         
       
+        
+      
     
     
     
@@ -1125,6 +1127,29 @@
   
   
   
+    <li class="md-nav__item">
+      <a href="../managers/external-tournament-bridge/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    External-Tournament-Bridge
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
     
     
       
@@ -1153,10 +1178,10 @@
         
           
         
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_10" >
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_11" >
         
           
-          <label class="md-nav__link" for="__nav_4_10" id="__nav_4_10_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_4_11" id="__nav_4_11_label" tabindex="0">
             
   
   
@@ -1169,8 +1194,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_10_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_4_10">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_11_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_11">
             <span class="md-nav__icon md-icon"></span>
             ClubCloud Scenarios
           </label>
@@ -1684,6 +1709,8 @@
       
         
       
+        
+      
     
     
     
@@ -2131,6 +2158,29 @@
   
   
   
+    <li class="md-nav__item">
+      <a href="../developers/external-tournament-bridge/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    External-Tournament-Bridge
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
     
     
       
@@ -2165,10 +2215,10 @@
         
           
         
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6_12" >
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6_13" >
         
           
-          <label class="md-nav__link" for="__nav_6_12" id="__nav_6_12_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_6_13" id="__nav_6_13_label" tabindex="0">
             
   
   
@@ -2181,8 +2231,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_12_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_6_12">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_13_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6_13">
             <span class="md-nav__icon md-icon"></span>
             Services
           </label>
@@ -2777,7 +2827,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../reference/api.md" class="md-nav__link">
+      <a href="../reference/api/" class="md-nav__link">
         
   
   
@@ -3411,18 +3461,18 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#fixtures" class="md-nav__link">
+  <a href="#fixtures-vorlage" class="md-nav__link">
     <span class="md-ellipsis">
-      Fixtures
+      Fixtures (Vorlage)
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#model-tests" class="md-nav__link">
+  <a href="#model-tests-vorlage" class="md-nav__link">
     <span class="md-ellipsis">
-      Model Tests
+      Model Tests (Vorlage)
     </span>
   </a>
   
@@ -3756,46 +3806,61 @@
 <h2 id="models">Models<a class="headerlink" href="#models" title="Permanent link">&para;</a></h2>
 <h3 id="model-ubersicht">Model-Übersicht<a class="headerlink" href="#model-ubersicht" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># Hauptmodelle</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="no">TrainingConcept</span>
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span><span class="kp">include</span><span class="w"> </span><span class="no">Translatable</span>
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">  </span><span class="n">has_many</span><span class="w"> </span><span class="ss">:training_examples</span>
-<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">  </span><span class="n">has_many</span><span class="w"> </span><span class="ss">:disciplines</span><span class="p">,</span><span class="w"> </span><span class="ss">through</span><span class="p">:</span><span class="w"> </span><span class="ss">:training_concept_disciplines</span>
-<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">  </span><span class="n">has_many</span><span class="w"> </span><span class="ss">:tags</span><span class="p">,</span><span class="w"> </span><span class="ss">as</span><span class="p">:</span><span class="w"> </span><span class="ss">:taggable</span>
-<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>
-<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="no">TrainingExample</span>
-<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">  </span><span class="kp">include</span><span class="w"> </span><span class="no">Translatable</span>
-<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="w">  </span><span class="n">belongs_to</span><span class="w"> </span><span class="ss">:training_concept</span>
-<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="w">  </span><span class="n">belongs_to</span><span class="w"> </span><span class="ss">:parent</span><span class="p">,</span><span class="w"> </span><span class="ss">class_name</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;TrainingExample&#39;</span><span class="p">,</span><span class="w"> </span><span class="ss">optional</span><span class="p">:</span><span class="w"> </span><span class="kp">true</span>
-<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="w">  </span><span class="n">has_many</span><span class="w"> </span><span class="ss">:children</span><span class="p">,</span><span class="w"> </span><span class="ss">class_name</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;TrainingExample&#39;</span><span class="p">,</span><span class="w"> </span><span class="ss">foreign_key</span><span class="p">:</span><span class="w"> </span><span class="ss">:parent_id</span>
-<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="w">  </span><span class="n">has_one</span><span class="w"> </span><span class="ss">:start_position</span>
-<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="w">  </span><span class="n">has_many</span><span class="w"> </span><span class="ss">:shots</span>
-<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="w">  </span><span class="n">has_many</span><span class="w"> </span><span class="ss">:source_attributions</span><span class="p">,</span><span class="w"> </span><span class="ss">as</span><span class="p">:</span><span class="w"> </span><span class="ss">:sourceable</span>
-<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a><span class="w">  </span><span class="n">has_many</span><span class="w"> </span><span class="ss">:training_sources</span><span class="p">,</span><span class="w"> </span><span class="ss">through</span><span class="p">:</span><span class="w"> </span><span class="ss">:source_attributions</span>
-<a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a>
-<a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a><span class="no">StartPosition</span>
-<a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a><span class="w">  </span><span class="kp">include</span><span class="w"> </span><span class="no">Translatable</span>
-<a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a><span class="w">  </span><span class="nb">self</span><span class="o">.</span><span class="n">table_name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;starting_positions&#39;</span>
-<a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a><span class="w">  </span><span class="n">belongs_to</span><span class="w"> </span><span class="ss">:training_example</span>
-<a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a><span class="w">  </span><span class="n">has_one_attached</span><span class="w"> </span><span class="ss">:image</span>
-<a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a>
-<a id="__codelineno-1-24" name="__codelineno-1-24" href="#__codelineno-1-24"></a><span class="no">Shot</span><span class="w"> </span><span class="p">(</span><span class="no">NEW</span><span class="p">)</span>
-<a id="__codelineno-1-25" name="__codelineno-1-25" href="#__codelineno-1-25"></a><span class="w">  </span><span class="kp">include</span><span class="w"> </span><span class="no">Translatable</span>
-<a id="__codelineno-1-26" name="__codelineno-1-26" href="#__codelineno-1-26"></a><span class="w">  </span><span class="n">belongs_to</span><span class="w"> </span><span class="ss">:training_example</span>
-<a id="__codelineno-1-27" name="__codelineno-1-27" href="#__codelineno-1-27"></a><span class="w">  </span><span class="n">has_one_attached</span><span class="w"> </span><span class="ss">:shot_image</span>
-<a id="__codelineno-1-28" name="__codelineno-1-28" href="#__codelineno-1-28"></a><span class="w">  </span><span class="n">validates</span><span class="w"> </span><span class="ss">:shot_type</span><span class="p">,</span><span class="w"> </span><span class="ss">inclusion</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">in</span><span class="p">:</span><span class="w"> </span><span class="sx">%w[ideal alternative error]</span><span class="w"> </span><span class="p">}</span>
-<a id="__codelineno-1-29" name="__codelineno-1-29" href="#__codelineno-1-29"></a><span class="w">  </span><span class="n">scope</span><span class="w"> </span><span class="ss">:ideal</span><span class="p">,</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">where</span><span class="p">(</span><span class="ss">shot_type</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;ideal&#39;</span><span class="p">)</span><span class="w"> </span><span class="p">}</span>
-<a id="__codelineno-1-30" name="__codelineno-1-30" href="#__codelineno-1-30"></a><span class="w">  </span><span class="n">scope</span><span class="w"> </span><span class="ss">:alternative</span><span class="p">,</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">where</span><span class="p">(</span><span class="ss">shot_type</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;alternative&#39;</span><span class="p">)</span><span class="w"> </span><span class="p">}</span>
-<a id="__codelineno-1-31" name="__codelineno-1-31" href="#__codelineno-1-31"></a><span class="w">  </span><span class="n">scope</span><span class="w"> </span><span class="ss">:errors</span><span class="p">,</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">where</span><span class="p">(</span><span class="ss">shot_type</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;error&#39;</span><span class="p">)</span><span class="w"> </span><span class="p">}</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="c1"># Tagging erfolgt über das Taggable-Concern (has_many :tags, through: :taggings),</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="c1"># NICHT über eine polymorphe :taggable-Association.</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="no">TrainingConcept</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">  </span><span class="kp">include</span><span class="w"> </span><span class="no">Taggable</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">  </span><span class="kp">include</span><span class="w"> </span><span class="no">Translatable</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">  </span><span class="n">has_many</span><span class="w"> </span><span class="ss">:training_concept_disciplines</span><span class="p">,</span><span class="w"> </span><span class="ss">dependent</span><span class="p">:</span><span class="w"> </span><span class="ss">:destroy</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">  </span><span class="n">has_many</span><span class="w"> </span><span class="ss">:disciplines</span><span class="p">,</span><span class="w"> </span><span class="ss">through</span><span class="p">:</span><span class="w"> </span><span class="ss">:training_concept_disciplines</span>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">  </span><span class="n">has_many</span><span class="w"> </span><span class="ss">:training_examples</span><span class="p">,</span><span class="w"> </span><span class="ss">dependent</span><span class="p">:</span><span class="w"> </span><span class="ss">:destroy</span>
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="w">  </span><span class="n">has_many</span><span class="w"> </span><span class="ss">:source_attributions</span><span class="p">,</span><span class="w"> </span><span class="ss">as</span><span class="p">:</span><span class="w"> </span><span class="ss">:sourceable</span><span class="p">,</span><span class="w"> </span><span class="ss">dependent</span><span class="p">:</span><span class="w"> </span><span class="ss">:destroy</span>
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="w">  </span><span class="n">has_many</span><span class="w"> </span><span class="ss">:training_sources</span><span class="p">,</span><span class="w"> </span><span class="ss">through</span><span class="p">:</span><span class="w"> </span><span class="ss">:source_attributions</span>
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="w">  </span><span class="c1"># via Taggable: has_many :taggings, as: :taggable / has_many :tags, through: :taggings</span>
+<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>
+<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="no">TrainingExample</span>
+<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="w">  </span><span class="kp">include</span><span class="w"> </span><span class="no">Taggable</span>
+<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a><span class="w">  </span><span class="kp">include</span><span class="w"> </span><span class="no">Translatable</span>
+<a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a><span class="w">  </span><span class="n">belongs_to</span><span class="w"> </span><span class="ss">:training_concept</span>
+<a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a><span class="w">  </span><span class="n">belongs_to</span><span class="w"> </span><span class="ss">:parent</span><span class="p">,</span><span class="w"> </span><span class="ss">class_name</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;TrainingExample&#39;</span><span class="p">,</span><span class="w"> </span><span class="ss">optional</span><span class="p">:</span><span class="w"> </span><span class="kp">true</span>
+<a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a><span class="w">  </span><span class="n">has_many</span><span class="w"> </span><span class="ss">:children</span><span class="p">,</span><span class="w"> </span><span class="ss">class_name</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;TrainingExample&#39;</span><span class="p">,</span><span class="w"> </span><span class="ss">foreign_key</span><span class="p">:</span><span class="w"> </span><span class="ss">:parent_id</span><span class="p">,</span><span class="w"> </span><span class="ss">dependent</span><span class="p">:</span><span class="w"> </span><span class="ss">:destroy</span>
+<a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a><span class="w">  </span><span class="n">has_one</span><span class="w"> </span><span class="ss">:start_position</span><span class="p">,</span><span class="w"> </span><span class="ss">dependent</span><span class="p">:</span><span class="w"> </span><span class="ss">:destroy</span>
+<a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a><span class="w">  </span><span class="n">has_many</span><span class="w"> </span><span class="ss">:shots</span><span class="p">,</span><span class="w"> </span><span class="ss">dependent</span><span class="p">:</span><span class="w"> </span><span class="ss">:destroy</span>
+<a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a><span class="w">  </span><span class="n">has_many</span><span class="w"> </span><span class="ss">:source_attributions</span><span class="p">,</span><span class="w"> </span><span class="ss">as</span><span class="p">:</span><span class="w"> </span><span class="ss">:sourceable</span><span class="p">,</span><span class="w"> </span><span class="ss">dependent</span><span class="p">:</span><span class="w"> </span><span class="ss">:destroy</span>
+<a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a><span class="w">  </span><span class="n">has_many</span><span class="w"> </span><span class="ss">:training_sources</span><span class="p">,</span><span class="w"> </span><span class="ss">through</span><span class="p">:</span><span class="w"> </span><span class="ss">:source_attributions</span>
+<a id="__codelineno-1-24" name="__codelineno-1-24" href="#__codelineno-1-24"></a>
+<a id="__codelineno-1-25" name="__codelineno-1-25" href="#__codelineno-1-25"></a><span class="no">StartPosition</span>
+<a id="__codelineno-1-26" name="__codelineno-1-26" href="#__codelineno-1-26"></a><span class="w">  </span><span class="kp">include</span><span class="w"> </span><span class="no">Taggable</span>
+<a id="__codelineno-1-27" name="__codelineno-1-27" href="#__codelineno-1-27"></a><span class="w">  </span><span class="kp">include</span><span class="w"> </span><span class="no">Translatable</span>
+<a id="__codelineno-1-28" name="__codelineno-1-28" href="#__codelineno-1-28"></a><span class="w">  </span><span class="nb">self</span><span class="o">.</span><span class="n">table_name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;starting_positions&#39;</span>
+<a id="__codelineno-1-29" name="__codelineno-1-29" href="#__codelineno-1-29"></a><span class="w">  </span><span class="n">belongs_to</span><span class="w"> </span><span class="ss">:training_example</span>
+<a id="__codelineno-1-30" name="__codelineno-1-30" href="#__codelineno-1-30"></a><span class="w">  </span><span class="n">has_one_attached</span><span class="w"> </span><span class="ss">:image</span>
+<a id="__codelineno-1-31" name="__codelineno-1-31" href="#__codelineno-1-31"></a><span class="w">  </span><span class="n">validates</span><span class="w"> </span><span class="ss">:training_example_id</span><span class="p">,</span><span class="w"> </span><span class="ss">uniqueness</span><span class="p">:</span><span class="w"> </span><span class="kp">true</span>
 <a id="__codelineno-1-32" name="__codelineno-1-32" href="#__codelineno-1-32"></a>
-<a id="__codelineno-1-33" name="__codelineno-1-33" href="#__codelineno-1-33"></a><span class="no">TrainingSource</span><span class="w"> </span><span class="p">(</span><span class="no">NEW</span><span class="p">)</span>
-<a id="__codelineno-1-34" name="__codelineno-1-34" href="#__codelineno-1-34"></a><span class="w">  </span><span class="n">has_many</span><span class="w"> </span><span class="ss">:source_attributions</span>
-<a id="__codelineno-1-35" name="__codelineno-1-35" href="#__codelineno-1-35"></a><span class="w">  </span><span class="n">has_many</span><span class="w"> </span><span class="ss">:training_concepts</span><span class="p">,</span><span class="w"> </span><span class="ss">through</span><span class="p">:</span><span class="w"> </span><span class="ss">:source_attributions</span>
-<a id="__codelineno-1-36" name="__codelineno-1-36" href="#__codelineno-1-36"></a><span class="w">  </span><span class="n">has_many</span><span class="w"> </span><span class="ss">:training_examples</span><span class="p">,</span><span class="w"> </span><span class="ss">through</span><span class="p">:</span><span class="w"> </span><span class="ss">:source_attributions</span>
-<a id="__codelineno-1-37" name="__codelineno-1-37" href="#__codelineno-1-37"></a><span class="w">  </span><span class="n">has_many_attached</span><span class="w"> </span><span class="ss">:source_files</span><span class="p">,</span><span class="w"> </span><span class="ss">service</span><span class="p">:</span><span class="w"> </span><span class="ss">:local_sources</span>
-<a id="__codelineno-1-38" name="__codelineno-1-38" href="#__codelineno-1-38"></a>
-<a id="__codelineno-1-39" name="__codelineno-1-39" href="#__codelineno-1-39"></a><span class="no">SourceAttribution</span><span class="w"> </span><span class="p">(</span><span class="no">NEW</span><span class="p">)</span>
-<a id="__codelineno-1-40" name="__codelineno-1-40" href="#__codelineno-1-40"></a><span class="w">  </span><span class="n">belongs_to</span><span class="w"> </span><span class="ss">:training_source</span>
-<a id="__codelineno-1-41" name="__codelineno-1-41" href="#__codelineno-1-41"></a><span class="w">  </span><span class="n">belongs_to</span><span class="w"> </span><span class="ss">:sourceable</span><span class="p">,</span><span class="w"> </span><span class="ss">polymorphic</span><span class="p">:</span><span class="w"> </span><span class="kp">true</span>
+<a id="__codelineno-1-33" name="__codelineno-1-33" href="#__codelineno-1-33"></a><span class="no">Shot</span><span class="w"> </span><span class="p">(</span><span class="no">NEW</span><span class="p">)</span>
+<a id="__codelineno-1-34" name="__codelineno-1-34" href="#__codelineno-1-34"></a><span class="w">  </span><span class="kp">include</span><span class="w"> </span><span class="no">Translatable</span>
+<a id="__codelineno-1-35" name="__codelineno-1-35" href="#__codelineno-1-35"></a><span class="w">  </span><span class="n">belongs_to</span><span class="w"> </span><span class="ss">:training_example</span>
+<a id="__codelineno-1-36" name="__codelineno-1-36" href="#__codelineno-1-36"></a><span class="w">  </span><span class="n">has_one_attached</span><span class="w"> </span><span class="ss">:shot_image</span>
+<a id="__codelineno-1-37" name="__codelineno-1-37" href="#__codelineno-1-37"></a><span class="w">  </span><span class="n">validates</span><span class="w"> </span><span class="ss">:shot_type</span><span class="p">,</span><span class="w"> </span><span class="ss">inclusion</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">in</span><span class="p">:</span><span class="w"> </span><span class="sx">%w[ideal alternative error]</span><span class="w"> </span><span class="p">}</span>
+<a id="__codelineno-1-38" name="__codelineno-1-38" href="#__codelineno-1-38"></a><span class="w">  </span><span class="n">scope</span><span class="w"> </span><span class="ss">:ideal</span><span class="p">,</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">where</span><span class="p">(</span><span class="ss">shot_type</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;ideal&#39;</span><span class="p">)</span><span class="w"> </span><span class="p">}</span>
+<a id="__codelineno-1-39" name="__codelineno-1-39" href="#__codelineno-1-39"></a><span class="w">  </span><span class="n">scope</span><span class="w"> </span><span class="ss">:alternative</span><span class="p">,</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">where</span><span class="p">(</span><span class="ss">shot_type</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;alternative&#39;</span><span class="p">)</span><span class="w"> </span><span class="p">}</span>
+<a id="__codelineno-1-40" name="__codelineno-1-40" href="#__codelineno-1-40"></a><span class="w">  </span><span class="n">scope</span><span class="w"> </span><span class="ss">:errors</span><span class="p">,</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">where</span><span class="p">(</span><span class="ss">shot_type</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;error&#39;</span><span class="p">)</span><span class="w"> </span><span class="p">}</span>
+<a id="__codelineno-1-41" name="__codelineno-1-41" href="#__codelineno-1-41"></a>
+<a id="__codelineno-1-42" name="__codelineno-1-42" href="#__codelineno-1-42"></a><span class="no">TrainingSource</span><span class="w"> </span><span class="p">(</span><span class="no">NEW</span><span class="p">)</span>
+<a id="__codelineno-1-43" name="__codelineno-1-43" href="#__codelineno-1-43"></a><span class="w">  </span><span class="n">has_many</span><span class="w"> </span><span class="ss">:source_attributions</span><span class="p">,</span><span class="w"> </span><span class="ss">dependent</span><span class="p">:</span><span class="w"> </span><span class="ss">:destroy</span>
+<a id="__codelineno-1-44" name="__codelineno-1-44" href="#__codelineno-1-44"></a><span class="w">  </span><span class="n">has_many</span><span class="w"> </span><span class="ss">:training_concepts</span><span class="p">,</span><span class="w"> </span><span class="ss">through</span><span class="p">:</span><span class="w"> </span><span class="ss">:source_attributions</span><span class="p">,</span>
+<a id="__codelineno-1-45" name="__codelineno-1-45" href="#__codelineno-1-45"></a><span class="w">           </span><span class="ss">source</span><span class="p">:</span><span class="w"> </span><span class="ss">:sourceable</span><span class="p">,</span><span class="w"> </span><span class="ss">source_type</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;TrainingConcept&#39;</span>
+<a id="__codelineno-1-46" name="__codelineno-1-46" href="#__codelineno-1-46"></a><span class="w">  </span><span class="n">has_many</span><span class="w"> </span><span class="ss">:training_examples</span><span class="p">,</span><span class="w"> </span><span class="ss">through</span><span class="p">:</span><span class="w"> </span><span class="ss">:source_attributions</span><span class="p">,</span>
+<a id="__codelineno-1-47" name="__codelineno-1-47" href="#__codelineno-1-47"></a><span class="w">           </span><span class="ss">source</span><span class="p">:</span><span class="w"> </span><span class="ss">:sourceable</span><span class="p">,</span><span class="w"> </span><span class="ss">source_type</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;TrainingExample&#39;</span>
+<a id="__codelineno-1-48" name="__codelineno-1-48" href="#__codelineno-1-48"></a><span class="w">  </span><span class="n">has_many_attached</span><span class="w"> </span><span class="ss">:source_files</span><span class="p">,</span><span class="w"> </span><span class="ss">service</span><span class="p">:</span><span class="w"> </span><span class="ss">:local_sources</span>
+<a id="__codelineno-1-49" name="__codelineno-1-49" href="#__codelineno-1-49"></a><span class="w">  </span><span class="n">validates</span><span class="w"> </span><span class="ss">:title</span><span class="p">,</span><span class="w"> </span><span class="ss">presence</span><span class="p">:</span><span class="w"> </span><span class="kp">true</span>
+<a id="__codelineno-1-50" name="__codelineno-1-50" href="#__codelineno-1-50"></a><span class="w">  </span><span class="n">validates</span><span class="w"> </span><span class="ss">:language</span><span class="p">,</span><span class="w"> </span><span class="ss">inclusion</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">in</span><span class="p">:</span><span class="w"> </span><span class="sx">%w[de en nl fr]</span><span class="p">,</span><span class="w"> </span><span class="ss">allow_blank</span><span class="p">:</span><span class="w"> </span><span class="kp">true</span><span class="w"> </span><span class="p">}</span>
+<a id="__codelineno-1-51" name="__codelineno-1-51" href="#__codelineno-1-51"></a>
+<a id="__codelineno-1-52" name="__codelineno-1-52" href="#__codelineno-1-52"></a><span class="no">SourceAttribution</span><span class="w"> </span><span class="p">(</span><span class="no">NEW</span><span class="p">)</span>
+<a id="__codelineno-1-53" name="__codelineno-1-53" href="#__codelineno-1-53"></a><span class="w">  </span><span class="n">belongs_to</span><span class="w"> </span><span class="ss">:training_source</span>
+<a id="__codelineno-1-54" name="__codelineno-1-54" href="#__codelineno-1-54"></a><span class="w">  </span><span class="n">belongs_to</span><span class="w"> </span><span class="ss">:sourceable</span><span class="p">,</span><span class="w"> </span><span class="ss">polymorphic</span><span class="p">:</span><span class="w"> </span><span class="kp">true</span>
+<a id="__codelineno-1-55" name="__codelineno-1-55" href="#__codelineno-1-55"></a><span class="w">  </span><span class="n">validates</span><span class="w"> </span><span class="ss">:training_source</span><span class="p">,</span><span class="w"> </span><span class="ss">presence</span><span class="p">:</span><span class="w"> </span><span class="kp">true</span>
+<a id="__codelineno-1-56" name="__codelineno-1-56" href="#__codelineno-1-56"></a><span class="w">  </span><span class="n">validates</span><span class="w"> </span><span class="ss">:sourceable</span><span class="p">,</span><span class="w"> </span><span class="ss">presence</span><span class="p">:</span><span class="w"> </span><span class="kp">true</span>
 </code></pre></div>
 <h3 id="translatable-concern">Translatable Concern<a class="headerlink" href="#translatable-concern" title="Permanent link">&para;</a></h3>
 <p>Automatische Übersetzung für mehrsprachige Felder:</p>
@@ -3994,26 +4059,49 @@
 <h3 id="nested-resources">Nested Resources<a class="headerlink" href="#nested-resources" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="n">namespace</span><span class="w"> </span><span class="ss">:admin</span><span class="w"> </span><span class="k">do</span>
 <a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="w">  </span><span class="n">resources</span><span class="w"> </span><span class="ss">:training_concepts</span><span class="w"> </span><span class="k">do</span>
-<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a><span class="w">    </span><span class="n">resources</span><span class="w"> </span><span class="ss">:training_examples</span><span class="p">,</span><span class="w"> </span><span class="ss">shallow</span><span class="p">:</span><span class="w"> </span><span class="kp">true</span><span class="w"> </span><span class="k">do</span>
-<a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a><span class="w">      </span><span class="n">resources</span><span class="w"> </span><span class="ss">:shots</span><span class="p">,</span><span class="w"> </span><span class="ss">shallow</span><span class="p">:</span><span class="w"> </span><span class="kp">true</span><span class="w"> </span><span class="k">do</span>
-<a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a><span class="w">        </span><span class="n">member</span><span class="w"> </span><span class="k">do</span>
-<a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a><span class="w">          </span><span class="n">patch</span><span class="w"> </span><span class="ss">:move_up</span>
-<a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a><span class="w">          </span><span class="n">patch</span><span class="w"> </span><span class="ss">:move_down</span>
-<a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a><span class="w">        </span><span class="k">end</span>
-<a id="__codelineno-14-9" name="__codelineno-14-9" href="#__codelineno-14-9"></a><span class="w">      </span><span class="k">end</span>
-<a id="__codelineno-14-10" name="__codelineno-14-10" href="#__codelineno-14-10"></a><span class="w">    </span><span class="k">end</span>
-<a id="__codelineno-14-11" name="__codelineno-14-11" href="#__codelineno-14-11"></a><span class="w">  </span><span class="k">end</span>
-<a id="__codelineno-14-12" name="__codelineno-14-12" href="#__codelineno-14-12"></a>
-<a id="__codelineno-14-13" name="__codelineno-14-13" href="#__codelineno-14-13"></a><span class="w">  </span><span class="n">resources</span><span class="w"> </span><span class="ss">:training_sources</span><span class="w"> </span><span class="k">do</span>
-<a id="__codelineno-14-14" name="__codelineno-14-14" href="#__codelineno-14-14"></a><span class="w">    </span><span class="n">member</span><span class="w"> </span><span class="k">do</span>
-<a id="__codelineno-14-15" name="__codelineno-14-15" href="#__codelineno-14-15"></a><span class="w">      </span><span class="n">delete</span><span class="w"> </span><span class="ss">:delete_attachment</span>
-<a id="__codelineno-14-16" name="__codelineno-14-16" href="#__codelineno-14-16"></a><span class="w">    </span><span class="k">end</span>
-<a id="__codelineno-14-17" name="__codelineno-14-17" href="#__codelineno-14-17"></a><span class="w">  </span><span class="k">end</span>
-<a id="__codelineno-14-18" name="__codelineno-14-18" href="#__codelineno-14-18"></a>
-<a id="__codelineno-14-19" name="__codelineno-14-19" href="#__codelineno-14-19"></a><span class="w">  </span><span class="c1"># Standalone für Administrate navigation</span>
-<a id="__codelineno-14-20" name="__codelineno-14-20" href="#__codelineno-14-20"></a><span class="w">  </span><span class="n">resources</span><span class="w"> </span><span class="ss">:training_examples</span><span class="p">,</span><span class="w"> </span><span class="ss">only</span><span class="p">:</span><span class="w"> </span><span class="o">[</span><span class="ss">:index</span><span class="o">]</span>
-<a id="__codelineno-14-21" name="__codelineno-14-21" href="#__codelineno-14-21"></a><span class="w">  </span><span class="n">resources</span><span class="w"> </span><span class="ss">:shots</span><span class="p">,</span><span class="w"> </span><span class="ss">only</span><span class="p">:</span><span class="w"> </span><span class="o">[</span><span class="ss">:index</span><span class="o">]</span>
-<a id="__codelineno-14-22" name="__codelineno-14-22" href="#__codelineno-14-22"></a><span class="k">end</span>
+<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a><span class="w">    </span><span class="n">member</span><span class="w"> </span><span class="k">do</span>
+<a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a><span class="w">      </span><span class="n">post</span><span class="w"> </span><span class="ss">:translate</span>
+<a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a><span class="w">    </span><span class="k">end</span>
+<a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a><span class="w">    </span><span class="n">resources</span><span class="w"> </span><span class="ss">:training_examples</span><span class="p">,</span><span class="w"> </span><span class="ss">shallow</span><span class="p">:</span><span class="w"> </span><span class="kp">true</span><span class="w"> </span><span class="k">do</span>
+<a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a><span class="w">      </span><span class="n">member</span><span class="w"> </span><span class="k">do</span>
+<a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a><span class="w">        </span><span class="n">patch</span><span class="w"> </span><span class="ss">:move_up</span>
+<a id="__codelineno-14-9" name="__codelineno-14-9" href="#__codelineno-14-9"></a><span class="w">        </span><span class="n">patch</span><span class="w"> </span><span class="ss">:move_down</span>
+<a id="__codelineno-14-10" name="__codelineno-14-10" href="#__codelineno-14-10"></a><span class="w">      </span><span class="k">end</span>
+<a id="__codelineno-14-11" name="__codelineno-14-11" href="#__codelineno-14-11"></a><span class="w">      </span><span class="n">resources</span><span class="w"> </span><span class="ss">:shots</span><span class="p">,</span><span class="w"> </span><span class="ss">shallow</span><span class="p">:</span><span class="w"> </span><span class="kp">true</span><span class="w"> </span><span class="k">do</span>
+<a id="__codelineno-14-12" name="__codelineno-14-12" href="#__codelineno-14-12"></a><span class="w">        </span><span class="n">member</span><span class="w"> </span><span class="k">do</span>
+<a id="__codelineno-14-13" name="__codelineno-14-13" href="#__codelineno-14-13"></a><span class="w">          </span><span class="n">patch</span><span class="w"> </span><span class="ss">:move_up</span>
+<a id="__codelineno-14-14" name="__codelineno-14-14" href="#__codelineno-14-14"></a><span class="w">          </span><span class="n">patch</span><span class="w"> </span><span class="ss">:move_down</span>
+<a id="__codelineno-14-15" name="__codelineno-14-15" href="#__codelineno-14-15"></a><span class="w">        </span><span class="k">end</span>
+<a id="__codelineno-14-16" name="__codelineno-14-16" href="#__codelineno-14-16"></a><span class="w">      </span><span class="k">end</span>
+<a id="__codelineno-14-17" name="__codelineno-14-17" href="#__codelineno-14-17"></a><span class="w">    </span><span class="k">end</span>
+<a id="__codelineno-14-18" name="__codelineno-14-18" href="#__codelineno-14-18"></a><span class="w">  </span><span class="k">end</span>
+<a id="__codelineno-14-19" name="__codelineno-14-19" href="#__codelineno-14-19"></a>
+<a id="__codelineno-14-20" name="__codelineno-14-20" href="#__codelineno-14-20"></a><span class="w">  </span><span class="c1"># Standalone für Administrate navigation (mit Sortier-Membern)</span>
+<a id="__codelineno-14-21" name="__codelineno-14-21" href="#__codelineno-14-21"></a><span class="w">  </span><span class="n">resources</span><span class="w"> </span><span class="ss">:training_examples</span><span class="p">,</span><span class="w"> </span><span class="ss">only</span><span class="p">:</span><span class="w"> </span><span class="o">[</span><span class="ss">:index</span><span class="o">]</span><span class="w"> </span><span class="k">do</span>
+<a id="__codelineno-14-22" name="__codelineno-14-22" href="#__codelineno-14-22"></a><span class="w">    </span><span class="n">member</span><span class="w"> </span><span class="k">do</span>
+<a id="__codelineno-14-23" name="__codelineno-14-23" href="#__codelineno-14-23"></a><span class="w">      </span><span class="n">patch</span><span class="w"> </span><span class="ss">:move_up</span>
+<a id="__codelineno-14-24" name="__codelineno-14-24" href="#__codelineno-14-24"></a><span class="w">      </span><span class="n">patch</span><span class="w"> </span><span class="ss">:move_down</span>
+<a id="__codelineno-14-25" name="__codelineno-14-25" href="#__codelineno-14-25"></a><span class="w">    </span><span class="k">end</span>
+<a id="__codelineno-14-26" name="__codelineno-14-26" href="#__codelineno-14-26"></a><span class="w">  </span><span class="k">end</span>
+<a id="__codelineno-14-27" name="__codelineno-14-27" href="#__codelineno-14-27"></a><span class="w">  </span><span class="n">resources</span><span class="w"> </span><span class="ss">:shots</span><span class="p">,</span><span class="w"> </span><span class="ss">only</span><span class="p">:</span><span class="w"> </span><span class="o">[</span><span class="ss">:index</span><span class="o">]</span><span class="w"> </span><span class="k">do</span>
+<a id="__codelineno-14-28" name="__codelineno-14-28" href="#__codelineno-14-28"></a><span class="w">    </span><span class="n">member</span><span class="w"> </span><span class="k">do</span>
+<a id="__codelineno-14-29" name="__codelineno-14-29" href="#__codelineno-14-29"></a><span class="w">      </span><span class="n">patch</span><span class="w"> </span><span class="ss">:move_up</span>
+<a id="__codelineno-14-30" name="__codelineno-14-30" href="#__codelineno-14-30"></a><span class="w">      </span><span class="n">patch</span><span class="w"> </span><span class="ss">:move_down</span>
+<a id="__codelineno-14-31" name="__codelineno-14-31" href="#__codelineno-14-31"></a><span class="w">    </span><span class="k">end</span>
+<a id="__codelineno-14-32" name="__codelineno-14-32" href="#__codelineno-14-32"></a><span class="w">  </span><span class="k">end</span>
+<a id="__codelineno-14-33" name="__codelineno-14-33" href="#__codelineno-14-33"></a>
+<a id="__codelineno-14-34" name="__codelineno-14-34" href="#__codelineno-14-34"></a><span class="w">  </span><span class="n">resources</span><span class="w"> </span><span class="ss">:training_sources</span><span class="w"> </span><span class="k">do</span>
+<a id="__codelineno-14-35" name="__codelineno-14-35" href="#__codelineno-14-35"></a><span class="w">    </span><span class="n">member</span><span class="w"> </span><span class="k">do</span>
+<a id="__codelineno-14-36" name="__codelineno-14-36" href="#__codelineno-14-36"></a><span class="w">      </span><span class="n">delete</span><span class="w"> </span><span class="ss">:delete_attachment</span>
+<a id="__codelineno-14-37" name="__codelineno-14-37" href="#__codelineno-14-37"></a><span class="w">    </span><span class="k">end</span>
+<a id="__codelineno-14-38" name="__codelineno-14-38" href="#__codelineno-14-38"></a><span class="w">  </span><span class="k">end</span>
+<a id="__codelineno-14-39" name="__codelineno-14-39" href="#__codelineno-14-39"></a>
+<a id="__codelineno-14-40" name="__codelineno-14-40" href="#__codelineno-14-40"></a><span class="w">  </span><span class="n">resources</span><span class="w"> </span><span class="ss">:tags</span><span class="w"> </span><span class="k">do</span>
+<a id="__codelineno-14-41" name="__codelineno-14-41" href="#__codelineno-14-41"></a><span class="w">    </span><span class="n">member</span><span class="w"> </span><span class="k">do</span>
+<a id="__codelineno-14-42" name="__codelineno-14-42" href="#__codelineno-14-42"></a><span class="w">      </span><span class="n">post</span><span class="w"> </span><span class="ss">:translate</span>
+<a id="__codelineno-14-43" name="__codelineno-14-43" href="#__codelineno-14-43"></a><span class="w">    </span><span class="k">end</span>
+<a id="__codelineno-14-44" name="__codelineno-14-44" href="#__codelineno-14-44"></a><span class="w">  </span><span class="k">end</span>
+<a id="__codelineno-14-45" name="__codelineno-14-45" href="#__codelineno-14-45"></a><span class="k">end</span>
 </code></pre></div>
 <hr />
 <h2 id="rake-tasks">Rake Tasks<a class="headerlink" href="#rake-tasks" title="Permanent link">&para;</a></h2>
@@ -4039,8 +4127,14 @@
 <p>Für DeepL Glossar-Management (siehe TRANSLATION.md)</p>
 <hr />
 <h2 id="testing">Testing<a class="headerlink" href="#testing" title="Permanent link">&para;</a></h2>
-<h3 id="fixtures">Fixtures<a class="headerlink" href="#fixtures" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="c1"># test/fixtures/shots.yml</span>
+<blockquote>
+<p>Stand März 2026: Bisher existiert nur die Fixture <code>test/fixtures/training_sources.yml</code>.
+Dedizierte Fixtures für <code>shots</code> und Model-Tests (z.B. <code>test/models/shot_test.rb</code>)
+sind noch <strong>nicht</strong> vorhanden — siehe "Zukünftige Erweiterungen → Automated Tests".
+Die folgenden Snippets sind als Vorlage zu verstehen, nicht als existierender Code.</p>
+</blockquote>
+<h3 id="fixtures-vorlage">Fixtures (Vorlage)<a class="headerlink" href="#fixtures-vorlage" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="c1"># test/fixtures/shots.yml (noch nicht vorhanden)</span>
 <a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a><span class="nt">ideal_shot</span><span class="p">:</span>
 <a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a><span class="w">  </span><span class="nt">training_example</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">example_one</span>
 <a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a><span class="w">  </span><span class="nt">shot_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ideal</span>
@@ -4054,8 +4148,8 @@
 <a id="__codelineno-18-12" name="__codelineno-18-12" href="#__codelineno-18-12"></a><span class="w">  </span><span class="nt">sequence_number</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2</span>
 <a id="__codelineno-18-13" name="__codelineno-18-13" href="#__codelineno-18-13"></a><span class="w">  </span><span class="nt">title_de</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Zu</span><span class="nv"> </span><span class="s">wenig</span><span class="nv"> </span><span class="s">Effet&quot;</span>
 </code></pre></div>
-<h3 id="model-tests">Model Tests<a class="headerlink" href="#model-tests" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="c1"># test/models/shot_test.rb</span>
+<h3 id="model-tests-vorlage">Model Tests (Vorlage)<a class="headerlink" href="#model-tests-vorlage" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="c1"># test/models/shot_test.rb (noch nicht vorhanden)</span>
 <a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a><span class="nb">test</span><span class="w"> </span><span class="s2">&quot;should validate shot_type&quot;</span><span class="w"> </span><span class="k">do</span>
 <a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a><span class="w">  </span><span class="n">shot</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">Shot</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="ss">shot_type</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;invalid&#39;</span><span class="p">)</span>
 <a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a><span class="w">  </span><span class="n">assert_not</span><span class="w"> </span><span class="n">shot</span><span class="o">.</span><span class="n">valid?</span>

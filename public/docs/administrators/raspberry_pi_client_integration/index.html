@@ -380,7 +380,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../reference/api.md" class="md-tabs__link">
+        <a href="../../reference/api/" class="md-tabs__link">
           
   
   
@@ -806,6 +806,8 @@
       
         
       
+        
+      
     
     
     
@@ -1125,6 +1127,29 @@
   
   
   
+    <li class="md-nav__item">
+      <a href="../../managers/external-tournament-bridge/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    External-Tournament-Bridge
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
     
     
       
@@ -1153,10 +1178,10 @@
         
           
         
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_10" >
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_11" >
         
           
-          <label class="md-nav__link" for="__nav_4_10" id="__nav_4_10_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_4_11" id="__nav_4_11_label" tabindex="0">
             
   
   
@@ -1169,8 +1194,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_10_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_4_10">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_11_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_11">
             <span class="md-nav__icon md-icon"></span>
             ClubCloud Scenarios
           </label>
@@ -1684,6 +1709,8 @@
       
         
       
+        
+      
     
     
     
@@ -2131,6 +2158,29 @@
   
   
   
+    <li class="md-nav__item">
+      <a href="../../developers/external-tournament-bridge/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    External-Tournament-Bridge
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
     
     
       
@@ -2165,10 +2215,10 @@
         
           
         
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6_12" >
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6_13" >
         
           
-          <label class="md-nav__link" for="__nav_6_12" id="__nav_6_12_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_6_13" id="__nav_6_13_label" tabindex="0">
             
   
   
@@ -2181,8 +2231,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_12_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_6_12">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_13_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6_13">
             <span class="md-nav__icon md-icon"></span>
             Services
           </label>
@@ -2777,7 +2827,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/api.md" class="md-nav__link">
+      <a href="../../reference/api/" class="md-nav__link">
         
   
   
@@ -3671,12 +3721,13 @@
 <p>Das System generiert automatisch die korrekte Scoreboard-URL:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="n">location_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">scenario_config</span><span class="o">[</span><span class="s1">&#39;scenario&#39;</span><span class="o">][</span><span class="s1">&#39;location_id&#39;</span><span class="o">]</span>
 <a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="n">location_md5</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">Digest</span><span class="o">::</span><span class="no">MD5</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">(</span><span class="n">location_id</span><span class="o">.</span><span class="n">to_s</span><span class="p">)</span>
-<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="n">scoreboard_url</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;http://</span><span class="si">#{</span><span class="n">webserver_host</span><span class="si">}</span><span class="s2">:</span><span class="si">#{</span><span class="n">webserver_port</span><span class="si">}</span><span class="s2">/locations/</span><span class="si">#{</span><span class="n">location_md5</span><span class="si">}</span><span class="s2">?sb_state=welcome&quot;</span>
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="n">sb_state</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">pi_config</span><span class="o">[</span><span class="s1">&#39;sb_state&#39;</span><span class="o">]</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="s1">&#39;welcome&#39;</span>
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="n">scoreboard_url</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;http://</span><span class="si">#{</span><span class="n">webserver_host</span><span class="si">}</span><span class="s2">:</span><span class="si">#{</span><span class="n">webserver_port</span><span class="si">}</span><span class="s2">/locations/</span><span class="si">#{</span><span class="n">location_md5</span><span class="si">}</span><span class="s2">/scoreboard?sb_state=</span><span class="si">#{</span><span class="n">sb_state</span><span class="si">}</span><span class="s2">&amp;locale=de&quot;</span>
 </code></pre></div>
 <h3 id="beispiel">Beispiel<a class="headerlink" href="#beispiel" title="Permanent link">&para;</a></h3>
 <p>Für <code>location_id: 2459</code>:
 - MD5-Hash: <code>a1b2c3d4e5f6...</code>
-- URL: <code>http://192.168.178.107:81/locations/a1b2c3d4e5f6...?sb_state=welcome</code></p>
+- URL: <code>http://192.168.178.107:3131/locations/a1b2c3d4e5f6.../scoreboard?sb_state=welcome&amp;locale=de</code></p>
 <h2 id="systemd-service">Systemd-Service<a class="headerlink" href="#systemd-service" title="Permanent link">&para;</a></h2>
 <h3 id="service-definition">Service-Definition<a class="headerlink" href="#service-definition" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="k">[Unit]</span>

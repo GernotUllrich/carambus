@@ -380,7 +380,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../reference/api.md" class="md-tabs__link">
+        <a href="../../reference/api/" class="md-tabs__link">
           
   
   
@@ -806,6 +806,8 @@
       
         
       
+        
+      
     
     
     
@@ -1125,6 +1127,29 @@
   
   
   
+    <li class="md-nav__item">
+      <a href="../../managers/external-tournament-bridge/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    External-Tournament-Bridge
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
     
     
       
@@ -1153,10 +1178,10 @@
         
           
         
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_10" >
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_11" >
         
           
-          <label class="md-nav__link" for="__nav_4_10" id="__nav_4_10_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_4_11" id="__nav_4_11_label" tabindex="0">
             
   
   
@@ -1169,8 +1194,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_10_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_4_10">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_11_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_11">
             <span class="md-nav__icon md-icon"></span>
             ClubCloud Scenarios
           </label>
@@ -1684,6 +1709,8 @@
       
         
       
+        
+      
     
     
     
@@ -2131,6 +2158,29 @@
   
   
   
+    <li class="md-nav__item">
+      <a href="../external-tournament-bridge/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    External-Tournament-Bridge
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
     
     
       
@@ -2165,10 +2215,10 @@
         
           
         
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6_12" >
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6_13" >
         
           
-          <label class="md-nav__link" for="__nav_6_12" id="__nav_6_12_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_6_13" id="__nav_6_13_label" tabindex="0">
             
   
   
@@ -2181,8 +2231,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_12_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_6_12">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_13_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6_13">
             <span class="md-nav__icon md-icon"></span>
             Services
           </label>
@@ -2777,7 +2827,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/api.md" class="md-nav__link">
+      <a href="../../reference/api/" class="md-nav__link">
         
   
   
@@ -3444,7 +3494,7 @@
 <a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="n">add_column</span><span class="w"> </span><span class="ss">:tournaments</span><span class="p">,</span><span class="w"> </span><span class="ss">:auto_upload_to_cc</span><span class="p">,</span><span class="w"> </span><span class="ss">:boolean</span><span class="p">,</span><span class="w"> </span><span class="ss">default</span><span class="p">:</span><span class="w"> </span><span class="kp">true</span><span class="p">,</span><span class="w"> </span><span class="ss">null</span><span class="p">:</span><span class="w"> </span><span class="kp">false</span>
 </code></pre></div>
 <h3 id="upload-logik">Upload-Logik<a class="headerlink" href="#upload-logik" title="Permanent link">&para;</a></h3>
-<p>Der Upload erfolgt in <code>lib/tournament_monitor_state.rb</code> nach Spielabschluss:</p>
+<p>Der Upload erfolgt in <code>app/services/tournament_monitor/result_processor.rb</code> nach Spielabschluss:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">finalize_game_result</span><span class="p">(</span><span class="n">table_monitor</span><span class="p">)</span>
 <a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="c1"># ... Spiel-Daten speichern ...</span>
 <a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>
@@ -3488,25 +3538,39 @@
 <a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a><span class="w">  </span><span class="n">group_item_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">find_group_item_id</span><span class="p">(</span><span class="n">tournament</span><span class="p">,</span><span class="w"> </span><span class="n">cc_group_name</span><span class="p">)</span>
 <a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a>
 <a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a><span class="w">  </span><span class="c1"># 6. Erstelle POST-Request an ClubCloud</span>
-<a id="__codelineno-3-20" name="__codelineno-3-20" href="#__codelineno-3-20"></a><span class="w">  </span><span class="n">url</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;</span><span class="si">#{</span><span class="n">region_cc</span><span class="o">.</span><span class="n">base_url</span><span class="si">}</span><span class="s2">/admin/einzel/meisterschaft/createErgebnisSave.php&quot;</span>
-<a id="__codelineno-3-21" name="__codelineno-3-21" href="#__codelineno-3-21"></a><span class="w">  </span><span class="n">form_data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-3-22" name="__codelineno-3-22" href="#__codelineno-3-22"></a><span class="w">    </span><span class="s2">&quot;groupItemId&quot;</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">group_item_id</span><span class="p">,</span>
-<a id="__codelineno-3-23" name="__codelineno-3-23" href="#__codelineno-3-23"></a><span class="w">    </span><span class="s2">&quot;sportlerOneId&quot;</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">player1</span><span class="o">.</span><span class="n">cc_id</span><span class="p">,</span>
-<a id="__codelineno-3-24" name="__codelineno-3-24" href="#__codelineno-3-24"></a><span class="w">    </span><span class="s2">&quot;sportlerTwoId&quot;</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">player2</span><span class="o">.</span><span class="n">cc_id</span><span class="p">,</span>
-<a id="__codelineno-3-25" name="__codelineno-3-25" href="#__codelineno-3-25"></a><span class="w">    </span><span class="s2">&quot;resultOne&quot;</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">ba_results</span><span class="o">[</span><span class="s2">&quot;Ergebnis1&quot;</span><span class="o">]</span><span class="p">,</span>
-<a id="__codelineno-3-26" name="__codelineno-3-26" href="#__codelineno-3-26"></a><span class="w">    </span><span class="s2">&quot;resultTwo&quot;</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">ba_results</span><span class="o">[</span><span class="s2">&quot;Ergebnis2&quot;</span><span class="o">]</span><span class="p">,</span>
-<a id="__codelineno-3-27" name="__codelineno-3-27" href="#__codelineno-3-27"></a><span class="w">    </span><span class="c1"># ... weitere Felder ...</span>
-<a id="__codelineno-3-28" name="__codelineno-3-28" href="#__codelineno-3-28"></a><span class="w">  </span><span class="p">}</span>
-<a id="__codelineno-3-29" name="__codelineno-3-29" href="#__codelineno-3-29"></a>
-<a id="__codelineno-3-30" name="__codelineno-3-30" href="#__codelineno-3-30"></a><span class="w">  </span><span class="c1"># 7. Sende Request und verarbeite Antwort</span>
-<a id="__codelineno-3-31" name="__codelineno-3-31" href="#__codelineno-3-31"></a><span class="w">  </span><span class="n">res</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">http</span><span class="o">.</span><span class="n">request</span><span class="p">(</span><span class="n">req</span><span class="p">)</span>
-<a id="__codelineno-3-32" name="__codelineno-3-32" href="#__codelineno-3-32"></a>
-<a id="__codelineno-3-33" name="__codelineno-3-33" href="#__codelineno-3-33"></a><span class="w">  </span><span class="c1"># 8. Markiere Spiel als hochgeladen</span>
-<a id="__codelineno-3-34" name="__codelineno-3-34" href="#__codelineno-3-34"></a><span class="w">  </span><span class="n">game</span><span class="o">.</span><span class="n">data</span><span class="o">[</span><span class="s2">&quot;cc_uploaded_at&quot;</span><span class="o">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">Time</span><span class="o">.</span><span class="n">current</span><span class="o">.</span><span class="n">iso8601</span>
-<a id="__codelineno-3-35" name="__codelineno-3-35" href="#__codelineno-3-35"></a><span class="w">  </span><span class="n">game</span><span class="o">.</span><span class="n">save!</span>
-<a id="__codelineno-3-36" name="__codelineno-3-36" href="#__codelineno-3-36"></a>
-<a id="__codelineno-3-37" name="__codelineno-3-37" href="#__codelineno-3-37"></a><span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="ss">success</span><span class="p">:</span><span class="w"> </span><span class="kp">true</span><span class="p">,</span><span class="w"> </span><span class="ss">error</span><span class="p">:</span><span class="w"> </span><span class="kp">nil</span><span class="w"> </span><span class="p">}</span>
-<a id="__codelineno-3-38" name="__codelineno-3-38" href="#__codelineno-3-38"></a><span class="k">end</span>
+<a id="__codelineno-3-20" name="__codelineno-3-20" href="#__codelineno-3-20"></a><span class="w">  </span><span class="c1"># Hinweis: Form-Keys sind Symbole und entsprechen der ClubCloud-API createErgebnisSave.php</span>
+<a id="__codelineno-3-21" name="__codelineno-3-21" href="#__codelineno-3-21"></a><span class="w">  </span><span class="n">url</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;</span><span class="si">#{</span><span class="n">region_cc</span><span class="o">.</span><span class="n">base_url</span><span class="si">}</span><span class="s2">/admin/einzel/meisterschaft/createErgebnisSave.php&quot;</span>
+<a id="__codelineno-3-22" name="__codelineno-3-22" href="#__codelineno-3-22"></a><span class="w">  </span><span class="n">form_data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-3-23" name="__codelineno-3-23" href="#__codelineno-3-23"></a><span class="w">    </span><span class="ss">fedId</span><span class="p">:</span><span class="w"> </span><span class="n">region</span><span class="o">.</span><span class="n">cc_id</span><span class="p">,</span>
+<a id="__codelineno-3-24" name="__codelineno-3-24" href="#__codelineno-3-24"></a><span class="w">    </span><span class="ss">branchId</span><span class="p">:</span><span class="w"> </span><span class="n">branch_cc</span><span class="o">.</span><span class="n">cc_id</span><span class="p">,</span>
+<a id="__codelineno-3-25" name="__codelineno-3-25" href="#__codelineno-3-25"></a><span class="w">    </span><span class="ss">disciplinId</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;*&quot;</span><span class="p">,</span>
+<a id="__codelineno-3-26" name="__codelineno-3-26" href="#__codelineno-3-26"></a><span class="w">    </span><span class="ss">season</span><span class="p">:</span><span class="w"> </span><span class="n">tournament</span><span class="o">.</span><span class="n">season</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+<a id="__codelineno-3-27" name="__codelineno-3-27" href="#__codelineno-3-27"></a><span class="w">    </span><span class="ss">catId</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;*&quot;</span><span class="p">,</span>
+<a id="__codelineno-3-28" name="__codelineno-3-28" href="#__codelineno-3-28"></a><span class="w">    </span><span class="ss">meisterTypeId</span><span class="p">:</span><span class="w"> </span><span class="n">tournament_cc</span><span class="o">.</span><span class="n">championship_type_cc</span><span class="o">&amp;.</span><span class="n">cc_id</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+<a id="__codelineno-3-29" name="__codelineno-3-29" href="#__codelineno-3-29"></a><span class="w">    </span><span class="ss">meisterschaftsId</span><span class="p">:</span><span class="w"> </span><span class="n">tournament_cc</span><span class="o">.</span><span class="n">cc_id</span><span class="p">,</span>
+<a id="__codelineno-3-30" name="__codelineno-3-30" href="#__codelineno-3-30"></a><span class="w">    </span><span class="ss">teilnehmerId</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;*&quot;</span><span class="p">,</span>
+<a id="__codelineno-3-31" name="__codelineno-3-31" href="#__codelineno-3-31"></a><span class="w">    </span><span class="ss">groupItemId</span><span class="p">:</span><span class="w"> </span><span class="n">group_item_id</span><span class="p">,</span>
+<a id="__codelineno-3-32" name="__codelineno-3-32" href="#__codelineno-3-32"></a><span class="w">    </span><span class="ss">partieNumber</span><span class="p">:</span><span class="w"> </span><span class="n">partie_number</span><span class="o">.</span><span class="n">to_s</span><span class="p">,</span>
+<a id="__codelineno-3-33" name="__codelineno-3-33" href="#__codelineno-3-33"></a><span class="w">    </span><span class="ss">setNumber</span><span class="p">:</span><span class="w"> </span><span class="n">set_number</span><span class="o">.</span><span class="n">to_s</span><span class="p">,</span>
+<a id="__codelineno-3-34" name="__codelineno-3-34" href="#__codelineno-3-34"></a><span class="w">    </span><span class="ss">sportlerOne</span><span class="p">:</span><span class="w"> </span><span class="p">(</span><span class="n">player1</span><span class="o">.</span><span class="n">cc_id</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">player1</span><span class="o">.</span><span class="n">ba_id</span><span class="p">)</span><span class="o">.</span><span class="n">to_s</span><span class="p">,</span>
+<a id="__codelineno-3-35" name="__codelineno-3-35" href="#__codelineno-3-35"></a><span class="w">    </span><span class="ss">sportlerTwo</span><span class="p">:</span><span class="w"> </span><span class="p">(</span><span class="n">player2</span><span class="o">.</span><span class="n">cc_id</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">player2</span><span class="o">.</span><span class="n">ba_id</span><span class="p">)</span><span class="o">.</span><span class="n">to_s</span><span class="p">,</span>
+<a id="__codelineno-3-36" name="__codelineno-3-36" href="#__codelineno-3-36"></a><span class="w">    </span><span class="ss">homescore</span><span class="p">:</span><span class="w"> </span><span class="p">(</span><span class="n">ba_results</span><span class="o">[</span><span class="s2">&quot;Ergebnis1&quot;</span><span class="o">]</span><span class="p">)</span><span class="o">.</span><span class="n">to_s</span><span class="p">,</span>
+<a id="__codelineno-3-37" name="__codelineno-3-37" href="#__codelineno-3-37"></a><span class="w">    </span><span class="ss">visitorscore</span><span class="p">:</span><span class="w"> </span><span class="p">(</span><span class="n">ba_results</span><span class="o">[</span><span class="s2">&quot;Ergebnis2&quot;</span><span class="o">]</span><span class="p">)</span><span class="o">.</span><span class="n">to_s</span><span class="p">,</span>
+<a id="__codelineno-3-38" name="__codelineno-3-38" href="#__codelineno-3-38"></a><span class="w">    </span><span class="ss">homeinning</span><span class="p">:</span><span class="w"> </span><span class="p">(</span><span class="n">ba_results</span><span class="o">[</span><span class="s2">&quot;Aufnahmen1&quot;</span><span class="o">]</span><span class="p">)</span><span class="o">.</span><span class="n">to_s</span><span class="p">,</span>
+<a id="__codelineno-3-39" name="__codelineno-3-39" href="#__codelineno-3-39"></a><span class="w">    </span><span class="ss">visitorinning</span><span class="p">:</span><span class="w"> </span><span class="p">(</span><span class="n">ba_results</span><span class="o">[</span><span class="s2">&quot;Aufnahmen2&quot;</span><span class="o">]</span><span class="p">)</span><span class="o">.</span><span class="n">to_s</span><span class="p">,</span>
+<a id="__codelineno-3-40" name="__codelineno-3-40" href="#__codelineno-3-40"></a><span class="w">    </span><span class="ss">homebreak</span><span class="p">:</span><span class="w"> </span><span class="p">(</span><span class="n">ba_results</span><span class="o">[</span><span class="s2">&quot;Höchstserie1&quot;</span><span class="o">]</span><span class="p">)</span><span class="o">.</span><span class="n">to_s</span><span class="p">,</span>
+<a id="__codelineno-3-41" name="__codelineno-3-41" href="#__codelineno-3-41"></a><span class="w">    </span><span class="ss">visitorbreak</span><span class="p">:</span><span class="w"> </span><span class="p">(</span><span class="n">ba_results</span><span class="o">[</span><span class="s2">&quot;Höchstserie2&quot;</span><span class="o">]</span><span class="p">)</span><span class="o">.</span><span class="n">to_s</span>
+<a id="__codelineno-3-42" name="__codelineno-3-42" href="#__codelineno-3-42"></a><span class="w">  </span><span class="p">}</span>
+<a id="__codelineno-3-43" name="__codelineno-3-43" href="#__codelineno-3-43"></a>
+<a id="__codelineno-3-44" name="__codelineno-3-44" href="#__codelineno-3-44"></a><span class="w">  </span><span class="c1"># 7. Sende Request und verarbeite Antwort</span>
+<a id="__codelineno-3-45" name="__codelineno-3-45" href="#__codelineno-3-45"></a><span class="w">  </span><span class="n">res</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">http</span><span class="o">.</span><span class="n">request</span><span class="p">(</span><span class="n">req</span><span class="p">)</span>
+<a id="__codelineno-3-46" name="__codelineno-3-46" href="#__codelineno-3-46"></a>
+<a id="__codelineno-3-47" name="__codelineno-3-47" href="#__codelineno-3-47"></a><span class="w">  </span><span class="c1"># 8. Markiere Spiel als hochgeladen</span>
+<a id="__codelineno-3-48" name="__codelineno-3-48" href="#__codelineno-3-48"></a><span class="w">  </span><span class="n">game</span><span class="o">.</span><span class="n">data</span><span class="o">[</span><span class="s2">&quot;cc_uploaded_at&quot;</span><span class="o">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">Time</span><span class="o">.</span><span class="n">current</span><span class="o">.</span><span class="n">iso8601</span>
+<a id="__codelineno-3-49" name="__codelineno-3-49" href="#__codelineno-3-49"></a><span class="w">  </span><span class="n">game</span><span class="o">.</span><span class="n">save!</span>
+<a id="__codelineno-3-50" name="__codelineno-3-50" href="#__codelineno-3-50"></a>
+<a id="__codelineno-3-51" name="__codelineno-3-51" href="#__codelineno-3-51"></a><span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="ss">success</span><span class="p">:</span><span class="w"> </span><span class="kp">true</span><span class="p">,</span><span class="w"> </span><span class="ss">error</span><span class="p">:</span><span class="w"> </span><span class="kp">nil</span><span class="w"> </span><span class="p">}</span>
+<a id="__codelineno-3-52" name="__codelineno-3-52" href="#__codelineno-3-52"></a><span class="k">end</span>
 </code></pre></div>
 <h3 id="spielnamen-mapping">Spielnamen-Mapping<a class="headerlink" href="#spielnamen-mapping" title="Permanent link">&para;</a></h3>
 <p>Carambus-Spielnamen werden zu ClubCloud-konformen Namen konvertiert:</p>
@@ -3648,8 +3712,8 @@
 <h3 id="regioncc-konfiguration">RegionCc-Konfiguration<a class="headerlink" href="#regioncc-konfiguration" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="c1"># Region benötigt ClubCloud-Credentials:</span>
 <a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="n">region_cc</span><span class="o">.</span><span class="n">base_url</span><span class="w">                    </span><span class="c1"># z.B. &quot;https://ndbv.de&quot;</span>
-<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="n">region_cc</span><span class="o">.</span><span class="n">login_username</span><span class="w">              </span><span class="c1"># Admin-Login</span>
-<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="n">region_cc</span><span class="o">.</span><span class="n">login_password</span><span class="w">              </span><span class="c1"># Admin-Passwort</span>
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="n">region_cc</span><span class="o">.</span><span class="n">username</span><span class="w">                    </span><span class="c1"># Admin-Login</span>
+<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="n">region_cc</span><span class="o">.</span><span class="n">userpw</span><span class="w">                      </span><span class="c1"># Admin-Passwort</span>
 </code></pre></div>
 <h3 id="spieler-identifikation">Spieler-Identifikation<a class="headerlink" href="#spieler-identifikation" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="c1"># Spieler benötigen ClubCloud-ID:</span>
@@ -3773,8 +3837,8 @@
 <p><strong>Lösung:</strong>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a><span class="c1"># Prüfe Region-Credentials:</span>
 <a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a><span class="n">region_cc</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">tournament</span><span class="o">.</span><span class="n">organizer</span><span class="o">.</span><span class="n">region_cc</span>
-<a id="__codelineno-23-3" name="__codelineno-23-3" href="#__codelineno-23-3"></a><span class="n">region_cc</span><span class="o">.</span><span class="n">login_username</span><span class="w">  </span><span class="c1"># =&gt; &quot;admin@example.com&quot;</span>
-<a id="__codelineno-23-4" name="__codelineno-23-4" href="#__codelineno-23-4"></a><span class="n">region_cc</span><span class="o">.</span><span class="n">login_password</span><span class="w">  </span><span class="c1"># =&gt; &quot;***&quot;</span>
+<a id="__codelineno-23-3" name="__codelineno-23-3" href="#__codelineno-23-3"></a><span class="n">region_cc</span><span class="o">.</span><span class="n">username</span><span class="w">  </span><span class="c1"># =&gt; &quot;admin@example.com&quot;</span>
+<a id="__codelineno-23-4" name="__codelineno-23-4" href="#__codelineno-23-4"></a><span class="n">region_cc</span><span class="o">.</span><span class="n">userpw</span><span class="w">    </span><span class="c1"># =&gt; &quot;***&quot;</span>
 <a id="__codelineno-23-5" name="__codelineno-23-5" href="#__codelineno-23-5"></a>
 <a id="__codelineno-23-6" name="__codelineno-23-6" href="#__codelineno-23-6"></a><span class="c1"># Teste Login:</span>
 <a id="__codelineno-23-7" name="__codelineno-23-7" href="#__codelineno-23-7"></a><span class="n">session_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">Setting</span><span class="o">.</span><span class="n">ensure_logged_in</span>
@@ -3802,7 +3866,7 @@
 <ul>
 <li><a href="../../managers/clubcloud-integration/">Manager-Dokumentation: ClubCloud Integration</a></li>
 <li><a href="../../managers/single-tournament/">Manager-Dokumentation: Einzelturnier-Verwaltung</a></li>
-<li><a href="../reference/api.md">API-Referenz</a></li>
+<li><a href="../../reference/api/">API-Referenz</a></li>
 </ul>
 
 

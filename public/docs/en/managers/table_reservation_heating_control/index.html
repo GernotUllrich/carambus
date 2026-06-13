@@ -380,7 +380,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../../reference/api.md" class="md-tabs__link">
+        <a href="../../reference/api/" class="md-tabs__link">
           
   
   
@@ -806,6 +806,8 @@
       
         
       
+        
+      
     
     
     
@@ -1125,6 +1127,29 @@
   
   
   
+    <li class="md-nav__item">
+      <a href="../external-tournament-bridge/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    External Tournament Bridge
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
     
     
       
@@ -1153,10 +1178,10 @@
         
           
         
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_10" >
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_11" >
         
           
-          <label class="md-nav__link" for="__nav_4_10" id="__nav_4_10_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_4_11" id="__nav_4_11_label" tabindex="0">
             
   
   
@@ -1169,8 +1194,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_10_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_4_10">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_11_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_11">
             <span class="md-nav__icon md-icon"></span>
             ClubCloud Scenarios
           </label>
@@ -1684,6 +1709,8 @@
       
         
       
+        
+      
     
     
     
@@ -2131,6 +2158,29 @@
   
   
   
+    <li class="md-nav__item">
+      <a href="../../developers/external-tournament-bridge/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    External Tournament Bridge
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
     
     
       
@@ -2165,10 +2215,10 @@
         
           
         
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6_12" >
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6_13" >
         
           
-          <label class="md-nav__link" for="__nav_6_12" id="__nav_6_12_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_6_13" id="__nav_6_13_label" tabindex="0">
             
   
   
@@ -2181,8 +2231,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_12_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_6_12">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_13_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6_13">
             <span class="md-nav__icon md-icon"></span>
             Services
           </label>
@@ -2777,7 +2827,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../reference/api.md" class="md-nav__link">
+      <a href="../../reference/api/" class="md-nav__link">
         
   
   
@@ -3220,15 +3270,19 @@
 <h3 id="activation-on">Activation (ON)<a class="headerlink" href="#activation-on" title="Permanent link">&para;</a></h3>
 <p>The heaters are automatically activated:</p>
 <ol>
-<li><strong>2 hours (3 hours for match billards) before a reservation</strong></li>
+<li><strong>2 hours before a reservation (4 hours for Match Billard / Snooker tables)</strong></li>
 <li><strong>At the latest within 5 minutes</strong>, when a game is recognized on the <strong>Scoreboard</strong></li>
 </ol>
 <h3 id="deactivation-off">Deactivation (OFF)<a class="headerlink" href="#deactivation-off" title="Permanent link">&para;</a></h3>
 <p>The heaters are automatically deactivated:</p>
 <ol>
-<li><strong>After reservation start</strong>: If no activity is recognized on the <strong>Scoreboard</strong> for one hour</li>
-<li><strong>Without running reservation</strong>: If no reservation is running and no activity is recognized on the <strong>Scoreboard</strong> for one hour</li>
+<li><strong>After reservation start</strong>: If the <strong>Scoreboard</strong> is not switched on within 30 minutes after the event start (no activity recognized)</li>
+<li><strong>Without running reservation</strong>: If no reservation is running and the <strong>Scoreboard</strong> is switched off (no activity recognized)</li>
+<li><strong>After reservation end</strong>: When the event has finished, the heater is switched off immediately, even if the Scoreboard is still on</li>
 </ol>
+<blockquote>
+<p><strong>Note</strong>: Reservations whose title contains <code>(!)</code> are <em>protected</em> — the heater stays ON for the entire reservation period regardless of Scoreboard activity (it is still switched off once the event ends).</p>
+</blockquote>
 <h2 id="technical-integration">Technical Integration<a class="headerlink" href="#technical-integration" title="Permanent link">&para;</a></h2>
 <h3 id="carambus-system">Carambus System<a class="headerlink" href="#carambus-system" title="Permanent link">&para;</a></h3>
 <p>The <strong>Carambus</strong> system evaluates the calendar entries and coordinates the heating control.</p>

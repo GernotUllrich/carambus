@@ -386,7 +386,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../reference/api.md" class="md-tabs__link">
+        <a href="../../reference/api/" class="md-tabs__link">
           
   
   
@@ -812,6 +812,8 @@
       
         
       
+        
+      
     
     
     
@@ -1131,6 +1133,29 @@
   
   
   
+    <li class="md-nav__item">
+      <a href="../../managers/external-tournament-bridge/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    External-Tournament-Bridge
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
     
     
       
@@ -1159,10 +1184,10 @@
         
           
         
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_10" >
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_11" >
         
           
-          <label class="md-nav__link" for="__nav_4_10" id="__nav_4_10_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_4_11" id="__nav_4_11_label" tabindex="0">
             
   
   
@@ -1175,8 +1200,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_10_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_4_10">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_11_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_11">
             <span class="md-nav__icon md-icon"></span>
             ClubCloud Scenarios
           </label>
@@ -1657,6 +1682,15 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#server-ohne-echtes-smtp-skip_smtp_guard" class="md-nav__link">
+    <span class="md-ellipsis">
+      Server ohne echtes SMTP: SKIP_SMTP_GUARD
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1902,6 +1936,8 @@
       
         
           
+        
+      
         
       
         
@@ -2401,6 +2437,29 @@
   
   
   
+    <li class="md-nav__item">
+      <a href="../../developers/external-tournament-bridge/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    External-Tournament-Bridge
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
     
     
       
@@ -2435,10 +2494,10 @@
         
           
         
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6_12" >
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6_13" >
         
           
-          <label class="md-nav__link" for="__nav_6_12" id="__nav_6_12_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_6_13" id="__nav_6_13_label" tabindex="0">
             
   
   
@@ -2451,8 +2510,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_12_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_6_12">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_13_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6_13">
             <span class="md-nav__icon md-icon"></span>
             Services
           </label>
@@ -3047,7 +3106,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/api.md" class="md-nav__link">
+      <a href="../../reference/api/" class="md-nav__link">
         
   
   
@@ -3383,6 +3442,15 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#server-ohne-echtes-smtp-skip_smtp_guard" class="md-nav__link">
+    <span class="md-ellipsis">
+      Server ohne echtes SMTP: SKIP_SMTP_GUARD
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -3608,6 +3676,17 @@
 <div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>sudo<span class="w"> </span>systemctl<span class="w"> </span>daemon-reload
 <a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>sudo<span class="w"> </span>systemctl<span class="w"> </span>restart<span class="w"> </span>carambus_bcw
 </code></pre></div></p>
+<h3 id="server-ohne-echtes-smtp-skip_smtp_guard">Server ohne echtes SMTP: <code>SKIP_SMTP_GUARD</code><a class="headerlink" href="#server-ohne-echtes-smtp-skip_smtp_guard" title="Permanent link">&para;</a></h3>
+<p>In Production prüft <code>config/initializers/smtp_guard.rb</code> beim Server-/Sidekiq-Boot, ob
+<code>SMTP_USERNAME</code> und <code>SMTP_PASSWORD</code> gesetzt sind, und bricht den Start sonst bewusst ab
+(Fail-Fast, damit Devise-Mails nicht still scheitern). Interne bzw. Scenario-Server, die
+<strong>kein echtes SMTP</strong> brauchen (z. B. <code>carambus_gu</code>), setzen stattdessen das Opt-out-Flag —
+sauberer als Dummy-SMTP-Zugangsdaten zu hinterlegen:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="na">Environment</span><span class="o">=</span><span class="s">&quot;SKIP_SMTP_GUARD=1&quot;</span>
+</code></pre></div>
+<p>Ist <code>SKIP_SMTP_GUARD</code> gesetzt, wird der Guard übersprungen und der Server bootet ohne
+SMTP-Zugangsdaten. <strong>Ohne</strong> das Flag bleibt der Fail-Fast-Schutz unverändert aktiv — auf
+echten Mail-versendenden Servern also weglassen.</p>
 <h2 id="gmail-app-passwort-erstellen">Gmail App-Passwort erstellen<a class="headerlink" href="#gmail-app-passwort-erstellen" title="Permanent link">&para;</a></h2>
 <p><strong>Wichtig:</strong> Verwende kein normales Gmail-Passwort, sondern ein App-Passwort!</p>
 <h3 id="voraussetzung-2-faktor-authentifizierung">Voraussetzung: 2-Faktor-Authentifizierung<a class="headerlink" href="#voraussetzung-2-faktor-authentifizierung" title="Permanent link">&para;</a></h3>
@@ -3631,29 +3710,29 @@
 </ol>
 <h2 id="testen">Testen<a class="headerlink" href="#testen" title="Permanent link">&para;</a></h2>
 <h3 id="manueller-test-in-rails-console">Manueller Test in Rails Console<a class="headerlink" href="#manueller-test-in-rails-console" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nb">cd</span><span class="w"> </span>~/carambus_bcw/current
-<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="nv">RAILS_ENV</span><span class="o">=</span>production<span class="w"> </span>bundle<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>rails<span class="w"> </span>console
-<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>
-<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="c1"># Test E-Mail senden</span>
-<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>ActionMailer::Base.mail<span class="o">(</span>
-<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="w">  </span>from:<span class="w"> </span>ENV<span class="o">[</span><span class="s1">&#39;SMTP_USERNAME&#39;</span><span class="o">]</span>,
-<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="w">  </span>to:<span class="w"> </span>ENV<span class="o">[</span><span class="s1">&#39;SMTP_USERNAME&#39;</span><span class="o">]</span>,
-<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="w">  </span>subject:<span class="w"> </span><span class="s1">&#39;Test E-Mail&#39;</span>,
-<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="w">  </span>body:<span class="w"> </span><span class="s1">&#39;Dies ist ein Test&#39;</span>
-<a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="o">)</span>.deliver_now
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="nb">cd</span><span class="w"> </span>~/carambus_bcw/current
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="nv">RAILS_ENV</span><span class="o">=</span>production<span class="w"> </span>bundle<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>rails<span class="w"> </span>console
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="c1"># Test E-Mail senden</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>ActionMailer::Base.mail<span class="o">(</span>
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="w">  </span>from:<span class="w"> </span>ENV<span class="o">[</span><span class="s1">&#39;SMTP_USERNAME&#39;</span><span class="o">]</span>,
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="w">  </span>to:<span class="w"> </span>ENV<span class="o">[</span><span class="s1">&#39;SMTP_USERNAME&#39;</span><span class="o">]</span>,
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="w">  </span>subject:<span class="w"> </span><span class="s1">&#39;Test E-Mail&#39;</span>,
+<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="w">  </span>body:<span class="w"> </span><span class="s1">&#39;Dies ist ein Test&#39;</span>
+<a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a><span class="o">)</span>.deliver_now
 </code></pre></div>
 <h3 id="benutzerregistrierung-testen">Benutzerregistrierung testen<a class="headerlink" href="#benutzerregistrierung-testen" title="Permanent link">&para;</a></h3>
 <ol>
 <li>Öffne die Registrierungsseite</li>
 <li>Erstelle einen neuen Benutzer</li>
 <li>Prüfe die Logs auf Fehler:
-   <div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>tail<span class="w"> </span>-f<span class="w"> </span>~/carambus_bcw/current/log/production.log
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>tail<span class="w"> </span>-f<span class="w"> </span>~/carambus_bcw/current/log/production.log
 </code></pre></div></li>
 </ol>
 <h2 id="fehlersuche">Fehlersuche<a class="headerlink" href="#fehlersuche" title="Permanent link">&para;</a></h2>
 <h3 id="timeout-fehler">Timeout-Fehler<a class="headerlink" href="#timeout-fehler" title="Permanent link">&para;</a></h3>
 <p><strong>Symptom:</strong>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>Net::ReadTimeout (Net::ReadTimeout with #&lt;TCPSocket:(closed)&gt;)
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>Net::ReadTimeout (Net::ReadTimeout with #&lt;TCPSocket:(closed)&gt;)
 </code></pre></div></p>
 <p><strong>Ursachen:</strong>
 - SMTP-Server nicht erreichbar
@@ -3661,18 +3740,18 @@
 - Falsche SMTP-Credentials
 - <code>SMTP_PASSWORD</code> Umgebungsvariable nicht gesetzt</p>
 <p><strong>Lösung:</strong>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c1"># Test SMTP-Verbindung</span>
-<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>telnet<span class="w"> </span>smtp.gmail.com<span class="w"> </span><span class="m">587</span>
-<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>
-<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="c1"># Prüfe Umgebungsvariablen</span>
-<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="nb">echo</span><span class="w"> </span><span class="nv">$SMTP_PASSWORD</span>
-<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>
-<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="c1"># Prüfe Logs</span>
-<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a>tail<span class="w"> </span>-100<span class="w"> </span>~/carambus_bcw/current/log/production.log
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="c1"># Test SMTP-Verbindung</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>telnet<span class="w"> </span>smtp.gmail.com<span class="w"> </span><span class="m">587</span>
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="c1"># Prüfe Umgebungsvariablen</span>
+<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="nb">echo</span><span class="w"> </span><span class="nv">$SMTP_PASSWORD</span>
+<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a>
+<a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="c1"># Prüfe Logs</span>
+<a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a>tail<span class="w"> </span>-100<span class="w"> </span>~/carambus_bcw/current/log/production.log
 </code></pre></div></p>
 <h3 id="authentifizierungsfehler">Authentifizierungsfehler<a class="headerlink" href="#authentifizierungsfehler" title="Permanent link">&para;</a></h3>
 <p><strong>Symptom:</strong>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>Net::SMTPAuthenticationError
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>Net::SMTPAuthenticationError
 </code></pre></div></p>
 <p><strong>Lösung:</strong>
 - Verwende ein Gmail App-Passwort (16 Zeichen, keine Leerzeichen)
@@ -3681,30 +3760,30 @@
 - Erstelle ein neues App-Passwort, falls unsicher</p>
 <h3 id="port-blockiert">Port blockiert<a class="headerlink" href="#port-blockiert" title="Permanent link">&para;</a></h3>
 <p><strong>Symptom:</strong>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>Errno::ECONNREFUSED (Connection refused)
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>Errno::ECONNREFUSED (Connection refused)
 </code></pre></div></p>
 <p><strong>Lösung:</strong>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="c1"># Teste Port 587</span>
-<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>sudo<span class="w"> </span>netstat<span class="w"> </span>-tuln<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span><span class="m">587</span>
-<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>
-<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="c1"># Teste alternative Ports</span>
-<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="c1"># Port 465 (SSL): config.action_mailer.smtp_settings[:port] = 465</span>
-<a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a><span class="c1"># Port 25 (unverschlüsselt, nicht empfohlen)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="c1"># Teste Port 587</span>
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>sudo<span class="w"> </span>netstat<span class="w"> </span>-tuln<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span><span class="m">587</span>
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>
+<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="c1"># Teste alternative Ports</span>
+<a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a><span class="c1"># Port 465 (SSL): config.action_mailer.smtp_settings[:port] = 465</span>
+<a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a><span class="c1"># Port 25 (unverschlüsselt, nicht empfohlen)</span>
 </code></pre></div></p>
 <h2 id="alternative-sendmail-reparieren-nicht-empfohlen">Alternative: Sendmail reparieren (nicht empfohlen)<a class="headerlink" href="#alternative-sendmail-reparieren-nicht-empfohlen" title="Permanent link">&para;</a></h2>
 <p>Falls du trotzdem Sendmail verwenden möchtest:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="c1"># Postfix installieren</span>
-<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>sudo<span class="w"> </span>apt-get<span class="w"> </span>install<span class="w"> </span>postfix
-<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>
-<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="c1"># Postfix als Internet Site konfigurieren</span>
-<a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a>sudo<span class="w"> </span>dpkg-reconfigure<span class="w"> </span>postfix
-<a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a>
-<a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a><span class="c1"># Service starten</span>
-<a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a>sudo<span class="w"> </span>systemctl<span class="w"> </span><span class="nb">enable</span><span class="w"> </span>postfix
-<a id="__codelineno-12-9" name="__codelineno-12-9" href="#__codelineno-12-9"></a>sudo<span class="w"> </span>systemctl<span class="w"> </span>start<span class="w"> </span>postfix
-<a id="__codelineno-12-10" name="__codelineno-12-10" href="#__codelineno-12-10"></a>
-<a id="__codelineno-12-11" name="__codelineno-12-11" href="#__codelineno-12-11"></a><span class="c1"># Test</span>
-<a id="__codelineno-12-12" name="__codelineno-12-12" href="#__codelineno-12-12"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Test&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>mail<span class="w"> </span>-s<span class="w"> </span><span class="s2">&quot;Test Subject&quot;</span><span class="w"> </span>gernot.ullrich@gmx.de
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="c1"># Postfix installieren</span>
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>sudo<span class="w"> </span>apt-get<span class="w"> </span>install<span class="w"> </span>postfix
+<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>
+<a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="c1"># Postfix als Internet Site konfigurieren</span>
+<a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>sudo<span class="w"> </span>dpkg-reconfigure<span class="w"> </span>postfix
+<a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a>
+<a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a><span class="c1"># Service starten</span>
+<a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a>sudo<span class="w"> </span>systemctl<span class="w"> </span><span class="nb">enable</span><span class="w"> </span>postfix
+<a id="__codelineno-13-9" name="__codelineno-13-9" href="#__codelineno-13-9"></a>sudo<span class="w"> </span>systemctl<span class="w"> </span>start<span class="w"> </span>postfix
+<a id="__codelineno-13-10" name="__codelineno-13-10" href="#__codelineno-13-10"></a>
+<a id="__codelineno-13-11" name="__codelineno-13-11" href="#__codelineno-13-11"></a><span class="c1"># Test</span>
+<a id="__codelineno-13-12" name="__codelineno-13-12" href="#__codelineno-13-12"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Test&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>mail<span class="w"> </span>-s<span class="w"> </span><span class="s2">&quot;Test Subject&quot;</span><span class="w"> </span>gernot.ullrich@gmx.de
 </code></pre></div>
 <p><strong>Problem:</strong> Viele ISPs blockieren Port 25, sodass ausgehende E-Mails nicht funktionieren.</p>
 <h2 id="sicherheitshinweise">Sicherheitshinweise<a class="headerlink" href="#sicherheitshinweise" title="Permanent link">&para;</a></h2>
@@ -3716,15 +3795,15 @@
 </ol>
 <h2 id="deployment">Deployment<a class="headerlink" href="#deployment" title="Permanent link">&para;</a></h2>
 <p>Nach Änderungen an den Environment-Dateien:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="c1"># In carambus_master</span>
-<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>git<span class="w"> </span>add<span class="w"> </span>config/environments/production-*.rb
-<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;Switch from sendmail to SMTP for email delivery&quot;</span>
-<a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a>git<span class="w"> </span>push
-<a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>
-<a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a><span class="c1"># Auf dem Produktionsserver</span>
-<a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a><span class="nb">cd</span><span class="w"> </span>~/carambus_bcw/current
-<a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a>git<span class="w"> </span>pull
-<a id="__codelineno-13-9" name="__codelineno-13-9" href="#__codelineno-13-9"></a>sudo<span class="w"> </span>systemctl<span class="w"> </span>restart<span class="w"> </span>carambus_bcw
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="c1"># In carambus_master</span>
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>git<span class="w"> </span>add<span class="w"> </span>config/environments/production-*.rb
+<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;Switch from sendmail to SMTP for email delivery&quot;</span>
+<a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a>git<span class="w"> </span>push
+<a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a>
+<a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a><span class="c1"># Auf dem Produktionsserver</span>
+<a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a><span class="nb">cd</span><span class="w"> </span>~/carambus_bcw/current
+<a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a>git<span class="w"> </span>pull
+<a id="__codelineno-14-9" name="__codelineno-14-9" href="#__codelineno-14-9"></a>sudo<span class="w"> </span>systemctl<span class="w"> </span>restart<span class="w"> </span>carambus_bcw
 </code></pre></div>
 <h2 id="siehe-auch">Siehe auch<a class="headerlink" href="#siehe-auch" title="Permanent link">&para;</a></h2>
 <ul>

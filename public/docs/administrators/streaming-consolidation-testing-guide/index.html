@@ -380,7 +380,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../reference/api.md" class="md-tabs__link">
+        <a href="../../reference/api/" class="md-tabs__link">
           
   
   
@@ -806,6 +806,8 @@
       
         
       
+        
+      
     
     
     
@@ -1125,6 +1127,29 @@
   
   
   
+    <li class="md-nav__item">
+      <a href="../../managers/external-tournament-bridge/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    External-Tournament-Bridge
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
     
     
       
@@ -1153,10 +1178,10 @@
         
           
         
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_10" >
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_11" >
         
           
-          <label class="md-nav__link" for="__nav_4_10" id="__nav_4_10_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_4_11" id="__nav_4_11_label" tabindex="0">
             
   
   
@@ -1169,8 +1194,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_10_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_4_10">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_11_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_11">
             <span class="md-nav__icon md-icon"></span>
             ClubCloud Scenarios
           </label>
@@ -1684,6 +1709,8 @@
       
         
       
+        
+      
     
     
     
@@ -2131,6 +2158,29 @@
   
   
   
+    <li class="md-nav__item">
+      <a href="../../developers/external-tournament-bridge/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    External-Tournament-Bridge
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
     
     
       
@@ -2165,10 +2215,10 @@
         
           
         
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6_12" >
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6_13" >
         
           
-          <label class="md-nav__link" for="__nav_6_12" id="__nav_6_12_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_6_13" id="__nav_6_13_label" tabindex="0">
             
   
   
@@ -2181,8 +2231,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_12_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_6_12">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_13_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6_13">
             <span class="md-nav__icon md-icon"></span>
             Services
           </label>
@@ -2777,7 +2827,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/api.md" class="md-nav__link">
+      <a href="../../reference/api/" class="md-nav__link">
         
   
   
@@ -3535,7 +3585,7 @@
 </ul>
 <h3 id="on-raspberry-pi">On Raspberry Pi:<a class="headerlink" href="#on-raspberry-pi" title="Permanent link">&para;</a></h3>
 <ul>
-<li>Streaming software installed (via <code>rake streaming:setup_raspi</code>)</li>
+<li>Streaming software installed (via <code>rake streaming:setup[RASPI_IP]</code>)</li>
 <li>USB camera connected</li>
 <li>Network connectivity to Mac mini</li>
 </ul>
@@ -3623,7 +3673,7 @@
 <p>Configure:</p>
 </li>
 <li>❌ Uncheck "Local File"</li>
-<li>Input: <code>rtmp://localhost:1935/live/table2</code> (use your table ID!)</li>
+<li>Input: <code>rtmp://localhost:1935/stream/table2</code> (use your table ID!)</li>
 <li>✓ Check "Restart playback when source becomes active"</li>
 <li>✓ Check "Close file when inactive"</li>
 <li>
@@ -3667,7 +3717,7 @@
 <a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="c1"># 2025/01/09 21:00:00 [info] client connected &#39;192.168.1.100&#39;</span>
 <a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>
 <a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="c1"># Test RTMP URL manually</span>
-<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>ffplay<span class="w"> </span>rtmp://localhost:1935/live/table2
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>ffplay<span class="w"> </span>rtmp://localhost:1935/stream/table2
 </code></pre></div></p>
 <p><strong>Overlay not updating:</strong>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1"># Check overlay URL is accessible</span>
@@ -3833,13 +3883,13 @@
 <tr>
 <td>192.168.1.100</td>
 <td>Table 1 (ID: 2)</td>
-<td>rtmp://192.168.1.105:1935/live/table2</td>
+<td>rtmp://192.168.1.105:1935/stream/table2</td>
 <td>Camera Table 1</td>
 </tr>
 <tr>
 <td>192.168.1.101</td>
 <td>Table 2 (ID: 3)</td>
-<td>rtmp://192.168.1.105:1935/live/table3</td>
+<td>rtmp://192.168.1.105:1935/stream/table3</td>
 <td>Camera Table 2</td>
 </tr>
 </tbody>
@@ -4068,7 +4118,7 @@
 <a id="__codelineno-21-5" name="__codelineno-21-5" href="#__codelineno-21-5"></a>ssh<span class="w"> </span>pi@192.168.1.100<span class="w"> </span><span class="s1">&#39;ps aux | grep ffmpeg&#39;</span>
 <a id="__codelineno-21-6" name="__codelineno-21-6" href="#__codelineno-21-6"></a>
 <a id="__codelineno-21-7" name="__codelineno-21-7" href="#__codelineno-21-7"></a><span class="c1"># Test RTMP URL manually</span>
-<a id="__codelineno-21-8" name="__codelineno-21-8" href="#__codelineno-21-8"></a>ffplay<span class="w"> </span>rtmp://192.168.1.105:1935/live/table2
+<a id="__codelineno-21-8" name="__codelineno-21-8" href="#__codelineno-21-8"></a>ffplay<span class="w"> </span>rtmp://192.168.1.105:1935/stream/table2
 <a id="__codelineno-21-9" name="__codelineno-21-9" href="#__codelineno-21-9"></a>
 <a id="__codelineno-21-10" name="__codelineno-21-10" href="#__codelineno-21-10"></a><span class="c1"># If that works, issue is with OBS configuration</span>
 </code></pre></div></p>

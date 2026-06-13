@@ -386,7 +386,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../../reference/api.md" class="md-tabs__link">
+        <a href="../../reference/api/" class="md-tabs__link">
           
   
   
@@ -812,6 +812,8 @@
       
         
       
+        
+      
     
     
     
@@ -1131,6 +1133,29 @@
   
   
   
+    <li class="md-nav__item">
+      <a href="../../managers/external-tournament-bridge/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    External Tournament Bridge
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
     
     
       
@@ -1159,10 +1184,10 @@
         
           
         
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_10" >
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_11" >
         
           
-          <label class="md-nav__link" for="__nav_4_10" id="__nav_4_10_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_4_11" id="__nav_4_11_label" tabindex="0">
             
   
   
@@ -1175,8 +1200,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_10_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_4_10">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_11_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_11">
             <span class="md-nav__icon md-icon"></span>
             ClubCloud Scenarios
           </label>
@@ -1640,6 +1665,8 @@
       
         
           
+        
+      
         
       
         
@@ -2746,6 +2773,29 @@
   
   
   
+    <li class="md-nav__item">
+      <a href="../external-tournament-bridge/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    External Tournament Bridge
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
     
     
       
@@ -2783,10 +2833,10 @@
         
           
         
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6_12" >
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6_13" >
         
           
-          <label class="md-nav__link" for="__nav_6_12" id="__nav_6_12_label" tabindex="">
+          <label class="md-nav__link" for="__nav_6_13" id="__nav_6_13_label" tabindex="">
             
   
   
@@ -2799,8 +2849,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_12_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_6_12">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_13_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6_13">
             <span class="md-nav__icon md-icon"></span>
             Services
           </label>
@@ -3395,7 +3445,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../reference/api.md" class="md-nav__link">
+      <a href="../../reference/api/" class="md-nav__link">
         
   
   
@@ -4292,9 +4342,9 @@
 <h4 id="concerns">Concerns<a class="headerlink" href="#concerns" title="Permanent link">&para;</a></h4>
 <p>The application uses Rails concerns to share functionality:</p>
 <ul>
-<li><code>LocalProtector</code>: Protects local data from external modifications</li>
-<li><code>SourceHandler</code>: Manages external data synchronization</li>
-<li><code>RegionTaggable</code>: Handles region-based data organization</li>
+<li><code>LocalProtector</code> (<code>app/models/local_protector.rb</code>): Protects local data from external modifications</li>
+<li><code>SourceHandler</code> (<code>app/models/source_handler.rb</code>): Manages external data synchronization</li>
+<li><code>RegionTaggable</code> (<code>app/models/concerns/region_taggable.rb</code>): Handles region-based data organization</li>
 </ul>
 <h4 id="real-time-features">Real-time Features<a class="headerlink" href="#real-time-features" title="Permanent link">&para;</a></h4>
 <ul>
@@ -4588,8 +4638,8 @@
 </li>
 <li>
 <p><strong>Database setup</strong>
-   <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>cp<span class="w"> </span>config/database.yml.example<span class="w"> </span>config/database.yml
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="c1"># Edit database.yml with your PostgreSQL credentials</span>
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># config/database.yml already exists in the repository.</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="c1"># Edit it with your PostgreSQL credentials if needed.</span>
 <a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>
 <a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="c1"># Option 1: Import existing database dump (recommended)</span>
 <a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="c1"># Ensure you have a database dump file (e.g., carambus_api_development_YYYYMMDD_HHMMSS.sql)</span>
@@ -4605,8 +4655,8 @@
 </li>
 <li>
 <p><strong>Environment configuration</strong>
-   <div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>cp<span class="w"> </span>config/application.yml.example<span class="w"> </span>config/application.yml
-<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="c1"># Edit application.yml with your configuration</span>
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1"># Application configuration lives in config/carambus.yml (accessed via Carambus.config).</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="c1"># This file already exists in the repository; edit it for your environment if needed.</span>
 </code></pre></div></p>
 </li>
 <li>
@@ -4625,7 +4675,7 @@
 </ul>
 <h4 id="testing">Testing<a class="headerlink" href="#testing" title="Permanent link">&para;</a></h4>
 <ul>
-<li><strong>RSpec</strong>: Unit and integration tests</li>
+<li><strong>Minitest</strong>: Unit and integration tests</li>
 <li><strong>Capybara</strong>: System tests</li>
 <li><strong>Factory Bot</strong>: Test data factories</li>
 </ul>
@@ -4665,12 +4715,12 @@
 <li>Created when setting up individual matches</li>
 </ol>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">Seeding</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="no">ApplicationRecord</span>
-<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">  </span><span class="n">belongs_to</span><span class="w"> </span><span class="ss">:player</span><span class="p">,</span><span class="w"> </span><span class="ss">optional</span><span class="p">:</span><span class="w"> </span><span class="kp">true</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">  </span><span class="n">belongs_to</span><span class="w"> </span><span class="ss">:player</span>
 <a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">  </span><span class="n">belongs_to</span><span class="w"> </span><span class="ss">:tournament</span><span class="p">,</span><span class="w"> </span><span class="ss">polymorphic</span><span class="p">:</span><span class="w"> </span><span class="kp">true</span><span class="p">,</span><span class="w"> </span><span class="ss">optional</span><span class="p">:</span><span class="w"> </span><span class="kp">true</span>
 <a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">  </span><span class="n">belongs_to</span><span class="w"> </span><span class="ss">:league_team</span><span class="p">,</span><span class="w"> </span><span class="ss">optional</span><span class="p">:</span><span class="w"> </span><span class="kp">true</span>
 <a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="w">  </span><span class="kp">include</span><span class="w"> </span><span class="no">LocalProtector</span>
-<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="w">  </span><span class="kp">include</span><span class="w"> </span><span class="no">SourceHandler</span>
-<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="w">  </span><span class="kp">include</span><span class="w"> </span><span class="no">RegionTaggable</span>
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="w">  </span><span class="kp">include</span><span class="w"> </span><span class="no">RegionTaggable</span>
+<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="w">  </span><span class="kp">include</span><span class="w"> </span><span class="no">Searchable</span>
 <a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="k">end</span>
 </code></pre></div>
 <h4 id="party-and-leagueteam-relationship">Party and LeagueTeam Relationship<a class="headerlink" href="#party-and-leagueteam-relationship" title="Permanent link">&para;</a></h4>
@@ -4833,10 +4883,10 @@
 <p>⚠️ <strong>OBSOLETE:</strong> The Mode System has been replaced by Scenario Management.</p>
 </blockquote>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="c1"># Use Scenario Management instead</span>
-<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>rake<span class="w"> </span>scenario:deploy<span class="o">[</span>scenario_name,target_environment<span class="o">]</span>
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>rake<span class="w"> </span>scenario:deploy<span class="o">[</span>scenario_name<span class="o">]</span>
 <a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>
 <a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a><span class="c1"># Example:</span>
-<a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a>rake<span class="w"> </span>scenario:deploy<span class="o">[</span>carambus_location_5101,production<span class="o">]</span>
+<a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a>rake<span class="w"> </span>scenario:deploy<span class="o">[</span>carambus_location_5101<span class="o">]</span>
 </code></pre></div>
 <p><strong><a href="../scenario-management/">🚀 Current: Scenario Management Documentation</a></strong><br />
 <del><strong>Old (Obsolete): Enhanced Mode System</strong></del></p>
@@ -4851,7 +4901,7 @@
 </ul>
 <h4 id="deployment-process">Deployment Process<a class="headerlink" href="#deployment-process" title="Permanent link">&para;</a></h4>
 <ol>
-<li><strong>Server Setup</strong>: See <a href="./#operations">Runbook</a> for detailed server configuration</li>
+<li><strong>Server Setup</strong>: See <a href="../scenario-management/">Scenario Management</a> for detailed server configuration</li>
 <li><strong>Enhanced Mode Configuration</strong>: Use the Enhanced Mode System for deployment configuration</li>
 <li><strong>Application Deployment</strong>: Capistrano-based deployment</li>
 <li><strong>Service Management</strong>: Systemd services for autostart</li>

@@ -3556,8 +3556,9 @@ header.</p>
 <p>Verify connectivity before the first real tournament:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nv">SERVICE_ACCOUNT_PASSWORD</span><span class="o">=</span><span class="s2">&quot;&lt;password&gt;&quot;</span><span class="w"> </span>rake<span class="w"> </span>external_tournament:smoke_test<span class="o">[</span>NBV<span class="o">]</span>
 </code></pre></div>
-<p>A successful run prints five <code>✓</code> steps (login → tournament lookup → seeding
-→ round start → round result). On failure see "What can go wrong?" below.</p>
+<p>A successful run prints six <code>✓</code> steps (login → tournament lookup → seeding
+→ round start → round result → player reconcile). On failure see "What can
+go wrong?" below.</p>
 <h2 id="deployment-topology">Deployment topology<a class="headerlink" href="#deployment-topology" title="Permanent link">&para;</a></h2>
 <p>The bridge works in three topologies — from the app's perspective the only
 thing that changes is the base URL:</p>

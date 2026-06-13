@@ -380,7 +380,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../../reference/api.md" class="md-tabs__link">
+        <a href="../../reference/api/" class="md-tabs__link">
           
   
   
@@ -806,6 +806,8 @@
       
         
       
+        
+      
     
     
     
@@ -1125,6 +1127,29 @@
   
   
   
+    <li class="md-nav__item">
+      <a href="../../managers/external-tournament-bridge/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    External Tournament Bridge
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
     
     
       
@@ -1153,10 +1178,10 @@
         
           
         
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_10" >
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_11" >
         
           
-          <label class="md-nav__link" for="__nav_4_10" id="__nav_4_10_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_4_11" id="__nav_4_11_label" tabindex="0">
             
   
   
@@ -1169,8 +1194,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_10_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_4_10">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_11_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_11">
             <span class="md-nav__icon md-icon"></span>
             ClubCloud Scenarios
           </label>
@@ -1684,6 +1709,8 @@
       
         
       
+        
+      
     
     
     
@@ -2131,6 +2158,29 @@
   
   
   
+    <li class="md-nav__item">
+      <a href="../../developers/external-tournament-bridge/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    External Tournament Bridge
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
     
     
       
@@ -2165,10 +2215,10 @@
         
           
         
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6_12" >
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6_13" >
         
           
-          <label class="md-nav__link" for="__nav_6_12" id="__nav_6_12_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_6_13" id="__nav_6_13_label" tabindex="0">
             
   
   
@@ -2181,8 +2231,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_12_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_6_12">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_13_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6_13">
             <span class="md-nav__icon md-icon"></span>
             Services
           </label>
@@ -2777,7 +2827,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../reference/api.md" class="md-nav__link">
+      <a href="../../reference/api/" class="md-nav__link">
         
   
   
@@ -3147,27 +3197,18 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#console-apish" class="md-nav__link">
+  <a href="#local-api-console-development" class="md-nav__link">
     <span class="md-ellipsis">
-      console-api.sh
+      Local / API console (development)
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#console-localsh" class="md-nav__link">
+  <a href="#production-console" class="md-nav__link">
     <span class="md-ellipsis">
-      console-local.sh
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#console-productionsh" class="md-nav__link">
-    <span class="md-ellipsis">
-      console-production.sh
+      Production console
     </span>
   </a>
   
@@ -3231,9 +3272,27 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#debug-productionsh" class="md-nav__link">
+  <a href="#diagnose-puma-carambussh" class="md-nav__link">
     <span class="md-ellipsis">
-      debug-production.sh
+      diagnose-puma-carambus.sh
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#check-database-statessh" class="md-nav__link">
+    <span class="md-ellipsis">
+      check-database-states.sh
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#other-diagnostics" class="md-nav__link">
+    <span class="md-ellipsis">
+      Other diagnostics
     </span>
   </a>
   
@@ -3674,67 +3733,49 @@
 - Quick restart on problems</p>
 <hr />
 <h2 id="rails-console">Rails Console<a class="headerlink" href="#rails-console" title="Permanent link">&para;</a></h2>
-<h3 id="console-apish"><code>console-api.sh</code><a class="headerlink" href="#console-apish" title="Permanent link">&para;</a></h3>
-<p><strong>Purpose</strong>: Opens Rails console for API server</p>
+<p>There is no dedicated console wrapper script. Use the standard Rails console
+(<code>bin/rails console</code>) in the relevant scenario or API directory.</p>
+<h3 id="local-api-console-development">Local / API console (development)<a class="headerlink" href="#local-api-console-development" title="Permanent link">&para;</a></h3>
 <p><strong>Usage</strong>:
-<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>./bin/console-api.sh
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="c1"># In the API checkout</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="nb">cd</span><span class="w"> </span>carambus_api
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>bin/rails<span class="w"> </span>console
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>
+<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="c1"># In a scenario checkout</span>
+<a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="nb">cd</span><span class="w"> </span>carambus_location_5101
+<a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a>bin/rails<span class="w"> </span>console
 </code></pre></div></p>
-<p><strong>What it does</strong>:
-- Changes to carambus_api
-- Starts Rails console (development)
-- Loads all models/helpers</p>
 <p><strong>Example Session</strong>:
-<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="c1"># Start script</span>
-<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="o">.</span><span class="n n-Operator">/</span><span class="n">bin</span><span class="o">/</span><span class="n">console</span><span class="o">-</span><span class="n">api</span><span class="o">.</span><span class="n">sh</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="o">&gt;</span><span class="w"> </span><span class="no">Player</span><span class="o">.</span><span class="n">count</span>
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="o">=&gt;</span><span class="w"> </span><span class="mi">69082</span>
 <a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>
-<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="c1"># In console:</span>
-<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="o">&gt;</span><span class="w"> </span><span class="no">Player</span><span class="o">.</span><span class="n">count</span>
-<a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a><span class="o">=&gt;</span><span class="w"> </span><span class="mi">69082</span>
-<a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a>
-<a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a><span class="o">&gt;</span><span class="w"> </span><span class="no">Version</span><span class="o">.</span><span class="n">last</span><span class="o">.</span><span class="n">id</span>
-<a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a><span class="o">=&gt;</span><span class="w"> </span><span class="mi">12227261</span>
-<a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a>
-<a id="__codelineno-11-11" name="__codelineno-11-11" href="#__codelineno-11-11"></a><span class="o">&gt;</span><span class="w"> </span><span class="no">Setting</span><span class="o">.</span><span class="n">find_by</span><span class="p">(</span><span class="ss">key</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;last_version_id&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">value</span>
-<a id="__codelineno-11-12" name="__codelineno-11-12" href="#__codelineno-11-12"></a><span class="o">=&gt;</span><span class="w"> </span><span class="s2">&quot;12227261&quot;</span>
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="o">&gt;</span><span class="w"> </span><span class="no">Version</span><span class="o">.</span><span class="n">last</span><span class="o">.</span><span class="n">id</span>
+<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="o">=&gt;</span><span class="w"> </span><span class="mi">12227261</span>
+<a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a>
+<a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a><span class="o">&gt;</span><span class="w"> </span><span class="no">Setting</span><span class="o">.</span><span class="n">find_by</span><span class="p">(</span><span class="ss">key</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;last_version_id&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">value</span>
+<a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a><span class="o">=&gt;</span><span class="w"> </span><span class="s2">&quot;12227261&quot;</span>
+<a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a>
+<a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a><span class="c1"># Check local data (records with id &gt;= 50_000_000 are local)</span>
+<a id="__codelineno-11-11" name="__codelineno-11-11" href="#__codelineno-11-11"></a><span class="o">&gt;</span><span class="w"> </span><span class="no">Game</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="s1">&#39;id &gt; 50000000&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">count</span>
+<a id="__codelineno-11-12" name="__codelineno-11-12" href="#__codelineno-11-12"></a><span class="o">=&gt;</span><span class="w"> </span><span class="mi">28</span>
+<a id="__codelineno-11-13" name="__codelineno-11-13" href="#__codelineno-11-13"></a>
+<a id="__codelineno-11-14" name="__codelineno-11-14" href="#__codelineno-11-14"></a><span class="o">&gt;</span><span class="w"> </span><span class="no">TableLocal</span><span class="o">.</span><span class="n">count</span>
+<a id="__codelineno-11-15" name="__codelineno-11-15" href="#__codelineno-11-15"></a><span class="o">=&gt;</span><span class="w"> </span><span class="mi">10</span>
 </code></pre></div></p>
-<hr />
-<h3 id="console-localsh"><code>console-local.sh</code><a class="headerlink" href="#console-localsh" title="Permanent link">&para;</a></h3>
-<p><strong>Purpose</strong>: Opens Rails console for local scenario</p>
+<h3 id="production-console">Production console<a class="headerlink" href="#production-console" title="Permanent link">&para;</a></h3>
 <p><strong>Usage</strong>:
-<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>./bin/console-local.sh<span class="w"> </span>&lt;scenario_name&gt;
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="c1"># SSH to the production server, then open the console in the deployment dir</span>
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>ssh<span class="w"> </span>-p<span class="w"> </span><span class="m">8910</span><span class="w"> </span>www-data@192.168.178.107
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="nb">cd</span><span class="w"> </span>/var/www/carambus_location_5101/current
+<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="nv">RAILS_ENV</span><span class="o">=</span>production<span class="w"> </span>bundle<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>rails<span class="w"> </span>console
 </code></pre></div></p>
-<p><strong>Examples</strong>:
-<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="c1"># Open scenario console</span>
-<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>./bin/console-local.sh<span class="w"> </span>carambus_location_5101
-<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>
-<a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="c1"># Check local data</span>
-<a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>&gt;<span class="w"> </span>Game.where<span class="o">(</span><span class="s1">&#39;id &gt; 50000000&#39;</span><span class="o">)</span>.count
-<a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a><span class="o">=</span>&gt;<span class="w"> </span><span class="m">28</span>
-<a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a>
-<a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a>&gt;<span class="w"> </span>TableLocal.count
-<a id="__codelineno-13-9" name="__codelineno-13-9" href="#__codelineno-13-9"></a><span class="o">=</span>&gt;<span class="w"> </span><span class="m">10</span>
-</code></pre></div></p>
-<hr />
-<h3 id="console-productionsh"><code>console-production.sh</code><a class="headerlink" href="#console-productionsh" title="Permanent link">&para;</a></h3>
-<p><strong>Purpose</strong>: Opens Rails console on production server</p>
-<p><strong>Usage</strong>:
-<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>./bin/console-production.sh<span class="w"> </span>&lt;scenario_name&gt;
-</code></pre></div></p>
-<p><strong>What it does</strong>:
-- SSH to production server
-- Changes to deployment directory
-- Starts Rails console (production)</p>
 <p><strong>⚠️ WARNING</strong>: Production console! Be careful with changes!</p>
 <p><strong>Example</strong>:
-<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="c1"># Open production console</span>
-<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>./bin/console-production.sh<span class="w"> </span>carambus_location_5101
-<a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a>
-<a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a><span class="c1"># Careful! Production data!</span>
-<a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a>&gt;<span class="w"> </span>Rails.env
-<a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a><span class="o">=</span>&gt;<span class="w"> </span><span class="s2">&quot;production&quot;</span>
-<a id="__codelineno-15-7" name="__codelineno-15-7" href="#__codelineno-15-7"></a>
-<a id="__codelineno-15-8" name="__codelineno-15-8" href="#__codelineno-15-8"></a>&gt;<span class="w"> </span>Game.count
-<a id="__codelineno-15-9" name="__codelineno-15-9" href="#__codelineno-15-9"></a><span class="o">=</span>&gt;<span class="w"> </span><span class="m">280163</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="o">&gt;</span><span class="w"> </span><span class="no">Rails</span><span class="o">.</span><span class="n">env</span>
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="o">=&gt;</span><span class="w"> </span><span class="s2">&quot;production&quot;</span>
+<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>
+<a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="o">&gt;</span><span class="w"> </span><span class="no">Game</span><span class="o">.</span><span class="n">count</span>
+<a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a><span class="o">=&gt;</span><span class="w"> </span><span class="mi">280163</span>
 </code></pre></div></p>
 <p><strong>Best Practice</strong>:
 - Never destructive operations without backup
@@ -3745,8 +3786,8 @@
 <h3 id="rebuild_jssh"><code>rebuild_js.sh</code><a class="headerlink" href="#rebuild_jssh" title="Permanent link">&para;</a></h3>
 <p><strong>Purpose</strong>: Recompile JavaScript assets</p>
 <p><strong>Usage</strong>:
-<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="nb">cd</span><span class="w"> </span>carambus_location_5101
-<a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>../carambus_master/bin/rebuild_js.sh
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="nb">cd</span><span class="w"> </span>carambus_location_5101
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>../carambus_master/bin/rebuild_js.sh
 </code></pre></div></p>
 <p><strong>What it does</strong>:
 1. ✅ <code>yarn build</code> (esbuild)
@@ -3757,18 +3798,18 @@
 - After CSS changes
 - Fix asset build errors</p>
 <p><strong>Example</strong>:
-<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="c1"># JavaScript changed, rebuild</span>
-<a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a><span class="nb">cd</span><span class="w"> </span>carambus_location_5101
-<a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a>../carambus_master/bin/rebuild_js.sh
-<a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a>
-<a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a><span class="c1"># Restart development server</span>
-<a id="__codelineno-17-6" name="__codelineno-17-6" href="#__codelineno-17-6"></a>./bin/start-local-server.sh<span class="w"> </span>carambus_location_5101
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="c1"># JavaScript changed, rebuild</span>
+<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="nb">cd</span><span class="w"> </span>carambus_location_5101
+<a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a>../carambus_master/bin/rebuild_js.sh
+<a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a>
+<a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a><span class="c1"># Restart development server</span>
+<a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a>./bin/start-local-server.sh<span class="w"> </span>carambus_location_5101
 </code></pre></div></p>
 <hr />
 <h3 id="cleanup_railssh"><code>cleanup_rails.sh</code><a class="headerlink" href="#cleanup_railssh" title="Permanent link">&para;</a></h3>
 <p><strong>Purpose</strong>: Clean Rails cache and temporary files</p>
 <p><strong>Usage</strong>:
-<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>./bin/cleanup_rails.sh
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>./bin/cleanup_rails.sh
 </code></pre></div></p>
 <p><strong>What it does</strong>:
 - Deletes <code>tmp/cache/</code>
@@ -3783,7 +3824,7 @@
 <h3 id="cleanup_versionssh"><code>cleanup_versions.sh</code><a class="headerlink" href="#cleanup_versionssh" title="Permanent link">&para;</a></h3>
 <p><strong>Purpose</strong>: Cleans old version entries</p>
 <p><strong>Usage</strong>:
-<div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>./bin/cleanup_versions.sh<span class="w"> </span><span class="o">[</span>--dry-run<span class="o">]</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>./bin/cleanup_versions.sh<span class="w"> </span><span class="o">[</span>--dry-run<span class="o">]</span>
 </code></pre></div></p>
 <p><strong>What it does</strong>:
 - Deletes version entries older than X days
@@ -3792,43 +3833,39 @@
 <p><strong>⚠️ WARNING</strong>: Only use on local servers! Not on API server!</p>
 <hr />
 <h2 id="debug-testing">Debug &amp; Testing<a class="headerlink" href="#debug-testing" title="Permanent link">&para;</a></h2>
-<h3 id="debug-productionsh"><code>debug-production.sh</code><a class="headerlink" href="#debug-productionsh" title="Permanent link">&para;</a></h3>
-<p><strong>Purpose</strong>: Collect debugging information from production</p>
+<p>There is no single <code>debug-production.sh</code> script. Use the dedicated diagnostic
+scripts below depending on what you need to inspect.</p>
+<h3 id="diagnose-puma-carambussh"><code>diagnose-puma-carambus.sh</code><a class="headerlink" href="#diagnose-puma-carambussh" title="Permanent link">&para;</a></h3>
+<p><strong>Purpose</strong>: Detailed diagnosis of Puma socket/service connection issues</p>
 <p><strong>Usage</strong>:
-<div class="highlight"><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>./bin/debug-production.sh<span class="w"> </span>&lt;scenario_name&gt;
+<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>./bin/diagnose-puma-carambus.sh
 </code></pre></div></p>
-<p><strong>What is collected</strong>:
-1. ✅ Service status (Puma, Nginx)
-2. ✅ Log files (last 100 lines)
-3. ✅ Database status
-4. ✅ Disk space
-5. ✅ Memory usage
-6. ✅ Process list</p>
-<p><strong>Output</strong>:
-<div class="highlight"><pre><span></span><code><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>./bin/debug-production.sh<span class="w"> </span><span class="nv">carambus_location_5101</span>
-<a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a>
-<a id="__codelineno-21-3" name="__codelineno-21-3" href="#__codelineno-21-3"></a><span class="o">===</span><span class="w"> </span>Service<span class="w"> </span><span class="nv">Status</span><span class="w"> </span><span class="o">===</span>
-<a id="__codelineno-21-4" name="__codelineno-21-4" href="#__codelineno-21-4"></a>puma-carambus_location_5101.service:<span class="w"> </span>active<span class="w"> </span><span class="o">(</span>running<span class="o">)</span>
-<a id="__codelineno-21-5" name="__codelineno-21-5" href="#__codelineno-21-5"></a>nginx.service:<span class="w"> </span>active<span class="w"> </span><span class="o">(</span>running<span class="o">)</span>
-<a id="__codelineno-21-6" name="__codelineno-21-6" href="#__codelineno-21-6"></a>
-<a id="__codelineno-21-7" name="__codelineno-21-7" href="#__codelineno-21-7"></a><span class="o">===</span><span class="w"> </span>Logs<span class="w"> </span><span class="o">(</span>last<span class="w"> </span><span class="m">100</span><span class="w"> </span>lines<span class="o">)</span><span class="w"> </span><span class="o">===</span>
-<a id="__codelineno-21-8" name="__codelineno-21-8" href="#__codelineno-21-8"></a><span class="o">[</span>...<span class="o">]</span>
-<a id="__codelineno-21-9" name="__codelineno-21-9" href="#__codelineno-21-9"></a>
-<a id="__codelineno-21-10" name="__codelineno-21-10" href="#__codelineno-21-10"></a><span class="o">===</span><span class="w"> </span><span class="nv">Database</span><span class="w"> </span><span class="o">===</span>
-<a id="__codelineno-21-11" name="__codelineno-21-11" href="#__codelineno-21-11"></a>Games:<span class="w"> </span><span class="m">280163</span>
-<a id="__codelineno-21-12" name="__codelineno-21-12" href="#__codelineno-21-12"></a>Players:<span class="w"> </span><span class="m">63972</span>
-<a id="__codelineno-21-13" name="__codelineno-21-13" href="#__codelineno-21-13"></a>Tournaments:<span class="w"> </span><span class="nv">16748</span>
-<a id="__codelineno-21-14" name="__codelineno-21-14" href="#__codelineno-21-14"></a>
-<a id="__codelineno-21-15" name="__codelineno-21-15" href="#__codelineno-21-15"></a><span class="o">===</span><span class="w"> </span><span class="nv">Resources</span><span class="w"> </span><span class="o">===</span>
-<a id="__codelineno-21-16" name="__codelineno-21-16" href="#__codelineno-21-16"></a>Disk:<span class="w"> </span><span class="m">45</span>%<span class="w"> </span>used
-<a id="__codelineno-21-17" name="__codelineno-21-17" href="#__codelineno-21-17"></a>Memory:<span class="w"> </span>678M<span class="w"> </span>/<span class="w"> </span>8G
+<p><strong>What is checked</strong>:
+1. ✅ Puma socket path and permissions
+2. ✅ Service status (Puma, Nginx)
+3. ✅ Process list
+4. ✅ Recent log output</p>
+<h3 id="check-database-statessh"><code>check-database-states.sh</code><a class="headerlink" href="#check-database-statessh" title="Permanent link">&para;</a></h3>
+<p><strong>Purpose</strong>: Inspect current database states for a scenario</p>
+<p><strong>Usage</strong>:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>./bin/check-database-states.sh<span class="w"> </span>&lt;scenario_name&gt;
+<a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a>
+<a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a><span class="c1"># Example</span>
+<a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a>./bin/check-database-states.sh<span class="w"> </span>carambus_location_5101
 </code></pre></div></p>
+<h3 id="other-diagnostics">Other diagnostics<a class="headerlink" href="#other-diagnostics" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>diagnose-nginx.sh</code> — Nginx configuration / connectivity</li>
+<li><code>diagnose-socket-issue.sh</code> — Puma/Nginx socket problems</li>
+<li><code>check-puma-logs.sh</code> — recent Puma log output</li>
+<li><code>check-actioncable-status.sh</code> — ActionCable / WebSocket status</li>
+</ul>
 <hr />
 <h2 id="setup-installation">Setup &amp; Installation<a class="headerlink" href="#setup-installation" title="Permanent link">&para;</a></h2>
 <h3 id="carambus-installsh"><code>carambus-install.sh</code><a class="headerlink" href="#carambus-installsh" title="Permanent link">&para;</a></h3>
 <p><strong>Purpose</strong>: Complete Carambus installation on new server</p>
 <p><strong>Usage</strong>:
-<div class="highlight"><pre><span></span><code><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a>./bin/carambus-install.sh
+<div class="highlight"><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>./bin/carambus-install.sh
 </code></pre></div></p>
 <p><strong>What is installed</strong>:
 1. ✅ System dependencies (Ruby, Node, PostgreSQL)
@@ -3846,7 +3883,7 @@
 <h3 id="setup-local-devsh"><code>setup-local-dev.sh</code><a class="headerlink" href="#setup-local-devsh" title="Permanent link">&para;</a></h3>
 <p><strong>Purpose</strong>: Set up local development environment</p>
 <p><strong>Usage</strong>:
-<div class="highlight"><pre><span></span><code><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a>./bin/setup-local-dev.sh
+<div class="highlight"><pre><span></span><code><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>./bin/setup-local-dev.sh
 </code></pre></div></p>
 <p><strong>What it does</strong>:
 1. ✅ Checks system dependencies
@@ -3859,7 +3896,7 @@
 <h3 id="generate-ssl-certsh"><code>generate-ssl-cert.sh</code><a class="headerlink" href="#generate-ssl-certsh" title="Permanent link">&para;</a></h3>
 <p><strong>Purpose</strong>: Generate SSL certificates for development/testing</p>
 <p><strong>Usage</strong>:
-<div class="highlight"><pre><span></span><code><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a>./bin/generate-ssl-cert.sh<span class="w"> </span><span class="o">[</span>domain<span class="o">]</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a>./bin/generate-ssl-cert.sh<span class="w"> </span><span class="o">[</span>domain<span class="o">]</span>
 </code></pre></div></p>
 <p><strong>What it does</strong>:
 - Generates self-signed certificate
@@ -3870,11 +3907,11 @@
 - Development with SSL features
 - Scoreboard testing with secure connection</p>
 <p><strong>Example</strong>:
-<div class="highlight"><pre><span></span><code><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a><span class="c1"># Certificate for localhost</span>
-<a id="__codelineno-25-2" name="__codelineno-25-2" href="#__codelineno-25-2"></a>./bin/generate-ssl-cert.sh<span class="w"> </span>localhost
-<a id="__codelineno-25-3" name="__codelineno-25-3" href="#__codelineno-25-3"></a>
-<a id="__codelineno-25-4" name="__codelineno-25-4" href="#__codelineno-25-4"></a><span class="c1"># Certificate for custom domain</span>
-<a id="__codelineno-25-5" name="__codelineno-25-5" href="#__codelineno-25-5"></a>./bin/generate-ssl-cert.sh<span class="w"> </span>carambus.local
+<div class="highlight"><pre><span></span><code><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a><span class="c1"># Certificate for localhost</span>
+<a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a>./bin/generate-ssl-cert.sh<span class="w"> </span>localhost
+<a id="__codelineno-23-3" name="__codelineno-23-3" href="#__codelineno-23-3"></a>
+<a id="__codelineno-23-4" name="__codelineno-23-4" href="#__codelineno-23-4"></a><span class="c1"># Certificate for custom domain</span>
+<a id="__codelineno-23-5" name="__codelineno-23-5" href="#__codelineno-23-5"></a>./bin/generate-ssl-cert.sh<span class="w"> </span>carambus.local
 </code></pre></div></p>
 <hr />
 <h2 id="legacydeprecated-scripts">Legacy/Deprecated Scripts<a class="headerlink" href="#legacydeprecated-scripts" title="Permanent link">&para;</a></h2>
@@ -3893,115 +3930,118 @@
 <hr />
 <h2 id="workflow-examples">Workflow Examples<a class="headerlink" href="#workflow-examples" title="Permanent link">&para;</a></h2>
 <h3 id="start-local-development-session">Start Local Development Session<a class="headerlink" href="#start-local-development-session" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a><span class="c1"># 1. Prepare development environment</span>
-<a id="__codelineno-26-2" name="__codelineno-26-2" href="#__codelineno-26-2"></a>rake<span class="w"> </span><span class="s2">&quot;scenario:prepare_development[carambus_location_5101,development]&quot;</span>
-<a id="__codelineno-26-3" name="__codelineno-26-3" href="#__codelineno-26-3"></a>
-<a id="__codelineno-26-4" name="__codelineno-26-4" href="#__codelineno-26-4"></a><span class="c1"># 2. Build assets</span>
-<a id="__codelineno-26-5" name="__codelineno-26-5" href="#__codelineno-26-5"></a><span class="nb">cd</span><span class="w"> </span>carambus_location_5101
-<a id="__codelineno-26-6" name="__codelineno-26-6" href="#__codelineno-26-6"></a>../carambus_master/bin/rebuild_js.sh
-<a id="__codelineno-26-7" name="__codelineno-26-7" href="#__codelineno-26-7"></a>
-<a id="__codelineno-26-8" name="__codelineno-26-8" href="#__codelineno-26-8"></a><span class="c1"># 3. Start server</span>
-<a id="__codelineno-26-9" name="__codelineno-26-9" href="#__codelineno-26-9"></a><span class="nb">cd</span><span class="w"> </span>../carambus_master
-<a id="__codelineno-26-10" name="__codelineno-26-10" href="#__codelineno-26-10"></a>./bin/start-both-servers.sh<span class="w"> </span>carambus_location_5101
-<a id="__codelineno-26-11" name="__codelineno-26-11" href="#__codelineno-26-11"></a>
-<a id="__codelineno-26-12" name="__codelineno-26-12" href="#__codelineno-26-12"></a><span class="c1"># API: http://localhost:3000</span>
-<a id="__codelineno-26-13" name="__codelineno-26-13" href="#__codelineno-26-13"></a><span class="c1"># Location: http://localhost:3003</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a><span class="c1"># 1. Prepare development environment</span>
+<a id="__codelineno-24-2" name="__codelineno-24-2" href="#__codelineno-24-2"></a>rake<span class="w"> </span><span class="s2">&quot;scenario:prepare_development[carambus_location_5101,development]&quot;</span>
+<a id="__codelineno-24-3" name="__codelineno-24-3" href="#__codelineno-24-3"></a>
+<a id="__codelineno-24-4" name="__codelineno-24-4" href="#__codelineno-24-4"></a><span class="c1"># 2. Build assets</span>
+<a id="__codelineno-24-5" name="__codelineno-24-5" href="#__codelineno-24-5"></a><span class="nb">cd</span><span class="w"> </span>carambus_location_5101
+<a id="__codelineno-24-6" name="__codelineno-24-6" href="#__codelineno-24-6"></a>../carambus_master/bin/rebuild_js.sh
+<a id="__codelineno-24-7" name="__codelineno-24-7" href="#__codelineno-24-7"></a>
+<a id="__codelineno-24-8" name="__codelineno-24-8" href="#__codelineno-24-8"></a><span class="c1"># 3. Start server</span>
+<a id="__codelineno-24-9" name="__codelineno-24-9" href="#__codelineno-24-9"></a><span class="nb">cd</span><span class="w"> </span>../carambus_master
+<a id="__codelineno-24-10" name="__codelineno-24-10" href="#__codelineno-24-10"></a>./bin/start-both-servers.sh<span class="w"> </span>carambus_location_5101
+<a id="__codelineno-24-11" name="__codelineno-24-11" href="#__codelineno-24-11"></a>
+<a id="__codelineno-24-12" name="__codelineno-24-12" href="#__codelineno-24-12"></a><span class="c1"># API: http://localhost:3000</span>
+<a id="__codelineno-24-13" name="__codelineno-24-13" href="#__codelineno-24-13"></a><span class="c1"># Location: http://localhost:3003</span>
 </code></pre></div>
 <h3 id="deploy-code-change-complete">Deploy Code Change (Complete)<a class="headerlink" href="#deploy-code-change-complete" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-27-1" name="__codelineno-27-1" href="#__codelineno-27-1"></a><span class="c1"># 1. Commit code</span>
-<a id="__codelineno-27-2" name="__codelineno-27-2" href="#__codelineno-27-2"></a>git<span class="w"> </span>add<span class="w"> </span>.
-<a id="__codelineno-27-3" name="__codelineno-27-3" href="#__codelineno-27-3"></a>git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;Feature: XYZ&quot;</span>
-<a id="__codelineno-27-4" name="__codelineno-27-4" href="#__codelineno-27-4"></a>git<span class="w"> </span>push<span class="w"> </span>carambus<span class="w"> </span>master
-<a id="__codelineno-27-5" name="__codelineno-27-5" href="#__codelineno-27-5"></a>
-<a id="__codelineno-27-6" name="__codelineno-27-6" href="#__codelineno-27-6"></a><span class="c1"># 2. Update scenario</span>
-<a id="__codelineno-27-7" name="__codelineno-27-7" href="#__codelineno-27-7"></a>rake<span class="w"> </span><span class="s2">&quot;scenario:update[carambus_location_5101]&quot;</span>
-<a id="__codelineno-27-8" name="__codelineno-27-8" href="#__codelineno-27-8"></a>
-<a id="__codelineno-27-9" name="__codelineno-27-9" href="#__codelineno-27-9"></a><span class="c1"># 3. Rebuild assets</span>
-<a id="__codelineno-27-10" name="__codelineno-27-10" href="#__codelineno-27-10"></a><span class="nb">cd</span><span class="w"> </span>carambus_location_5101
-<a id="__codelineno-27-11" name="__codelineno-27-11" href="#__codelineno-27-11"></a>../carambus_master/bin/rebuild_js.sh
-<a id="__codelineno-27-12" name="__codelineno-27-12" href="#__codelineno-27-12"></a>
-<a id="__codelineno-27-13" name="__codelineno-27-13" href="#__codelineno-27-13"></a><span class="c1"># 4. Deploy</span>
-<a id="__codelineno-27-14" name="__codelineno-27-14" href="#__codelineno-27-14"></a><span class="nb">cd</span><span class="w"> </span>../carambus_master
-<a id="__codelineno-27-15" name="__codelineno-27-15" href="#__codelineno-27-15"></a>./bin/deploy-scenario.sh<span class="w"> </span>carambus_location_5101
-<a id="__codelineno-27-16" name="__codelineno-27-16" href="#__codelineno-27-16"></a>
-<a id="__codelineno-27-17" name="__codelineno-27-17" href="#__codelineno-27-17"></a><span class="c1"># 5. Restart browser on RasPi</span>
-<a id="__codelineno-27-18" name="__codelineno-27-18" href="#__codelineno-27-18"></a>ssh<span class="w"> </span>-p<span class="w"> </span><span class="m">8910</span><span class="w"> </span>www-data@192.168.178.107<span class="w"> </span><span class="s1">&#39;./bin/restart-scoreboard.sh&#39;</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a><span class="c1"># 1. Commit code</span>
+<a id="__codelineno-25-2" name="__codelineno-25-2" href="#__codelineno-25-2"></a>git<span class="w"> </span>add<span class="w"> </span>.
+<a id="__codelineno-25-3" name="__codelineno-25-3" href="#__codelineno-25-3"></a>git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;Feature: XYZ&quot;</span>
+<a id="__codelineno-25-4" name="__codelineno-25-4" href="#__codelineno-25-4"></a>git<span class="w"> </span>push<span class="w"> </span>carambus<span class="w"> </span>master
+<a id="__codelineno-25-5" name="__codelineno-25-5" href="#__codelineno-25-5"></a>
+<a id="__codelineno-25-6" name="__codelineno-25-6" href="#__codelineno-25-6"></a><span class="c1"># 2. Update scenario</span>
+<a id="__codelineno-25-7" name="__codelineno-25-7" href="#__codelineno-25-7"></a>rake<span class="w"> </span><span class="s2">&quot;scenario:update[carambus_location_5101]&quot;</span>
+<a id="__codelineno-25-8" name="__codelineno-25-8" href="#__codelineno-25-8"></a>
+<a id="__codelineno-25-9" name="__codelineno-25-9" href="#__codelineno-25-9"></a><span class="c1"># 3. Rebuild assets</span>
+<a id="__codelineno-25-10" name="__codelineno-25-10" href="#__codelineno-25-10"></a><span class="nb">cd</span><span class="w"> </span>carambus_location_5101
+<a id="__codelineno-25-11" name="__codelineno-25-11" href="#__codelineno-25-11"></a>../carambus_master/bin/rebuild_js.sh
+<a id="__codelineno-25-12" name="__codelineno-25-12" href="#__codelineno-25-12"></a>
+<a id="__codelineno-25-13" name="__codelineno-25-13" href="#__codelineno-25-13"></a><span class="c1"># 4. Deploy</span>
+<a id="__codelineno-25-14" name="__codelineno-25-14" href="#__codelineno-25-14"></a><span class="nb">cd</span><span class="w"> </span>../carambus_master
+<a id="__codelineno-25-15" name="__codelineno-25-15" href="#__codelineno-25-15"></a>./bin/deploy-scenario.sh<span class="w"> </span>carambus_location_5101
+<a id="__codelineno-25-16" name="__codelineno-25-16" href="#__codelineno-25-16"></a>
+<a id="__codelineno-25-17" name="__codelineno-25-17" href="#__codelineno-25-17"></a><span class="c1"># 5. Restart browser on RasPi</span>
+<a id="__codelineno-25-18" name="__codelineno-25-18" href="#__codelineno-25-18"></a>ssh<span class="w"> </span>-p<span class="w"> </span><span class="m">8910</span><span class="w"> </span>www-data@192.168.178.107<span class="w"> </span><span class="s1">&#39;./bin/restart-scoreboard.sh&#39;</span>
 </code></pre></div>
 <h3 id="quick-fix-without-complete-deployment">Quick Fix Without Complete Deployment<a class="headerlink" href="#quick-fix-without-complete-deployment" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-28-1" name="__codelineno-28-1" href="#__codelineno-28-1"></a><span class="c1"># 1. Commit small change</span>
-<a id="__codelineno-28-2" name="__codelineno-28-2" href="#__codelineno-28-2"></a>git<span class="w"> </span>commit<span class="w"> </span>-am<span class="w"> </span><span class="s2">&quot;Fix: typo&quot;</span>
-<a id="__codelineno-28-3" name="__codelineno-28-3" href="#__codelineno-28-3"></a>git<span class="w"> </span>push<span class="w"> </span>carambus<span class="w"> </span>master
-<a id="__codelineno-28-4" name="__codelineno-28-4" href="#__codelineno-28-4"></a>
-<a id="__codelineno-28-5" name="__codelineno-28-5" href="#__codelineno-28-5"></a><span class="c1"># 2. Pull on production server</span>
-<a id="__codelineno-28-6" name="__codelineno-28-6" href="#__codelineno-28-6"></a>ssh<span class="w"> </span>-p<span class="w"> </span><span class="m">8910</span><span class="w"> </span>www-data@192.168.178.107
-<a id="__codelineno-28-7" name="__codelineno-28-7" href="#__codelineno-28-7"></a><span class="nb">cd</span><span class="w"> </span>/var/www/carambus_location_5101/current
-<a id="__codelineno-28-8" name="__codelineno-28-8" href="#__codelineno-28-8"></a>git<span class="w"> </span>pull
-<a id="__codelineno-28-9" name="__codelineno-28-9" href="#__codelineno-28-9"></a>
-<a id="__codelineno-28-10" name="__codelineno-28-10" href="#__codelineno-28-10"></a><span class="c1"># 3. Restart server</span>
-<a id="__codelineno-28-11" name="__codelineno-28-11" href="#__codelineno-28-11"></a>./bin/restart-carambus.sh
-<a id="__codelineno-28-12" name="__codelineno-28-12" href="#__codelineno-28-12"></a><span class="nb">exit</span>
-<a id="__codelineno-28-13" name="__codelineno-28-13" href="#__codelineno-28-13"></a>
-<a id="__codelineno-28-14" name="__codelineno-28-14" href="#__codelineno-28-14"></a><span class="c1"># 4. Restart browser</span>
-<a id="__codelineno-28-15" name="__codelineno-28-15" href="#__codelineno-28-15"></a>ssh<span class="w"> </span>-p<span class="w"> </span><span class="m">8910</span><span class="w"> </span>www-data@192.168.178.107<span class="w"> </span><span class="s1">&#39;./bin/restart-scoreboard.sh&#39;</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a><span class="c1"># 1. Commit small change</span>
+<a id="__codelineno-26-2" name="__codelineno-26-2" href="#__codelineno-26-2"></a>git<span class="w"> </span>commit<span class="w"> </span>-am<span class="w"> </span><span class="s2">&quot;Fix: typo&quot;</span>
+<a id="__codelineno-26-3" name="__codelineno-26-3" href="#__codelineno-26-3"></a>git<span class="w"> </span>push<span class="w"> </span>carambus<span class="w"> </span>master
+<a id="__codelineno-26-4" name="__codelineno-26-4" href="#__codelineno-26-4"></a>
+<a id="__codelineno-26-5" name="__codelineno-26-5" href="#__codelineno-26-5"></a><span class="c1"># 2. Pull on production server</span>
+<a id="__codelineno-26-6" name="__codelineno-26-6" href="#__codelineno-26-6"></a>ssh<span class="w"> </span>-p<span class="w"> </span><span class="m">8910</span><span class="w"> </span>www-data@192.168.178.107
+<a id="__codelineno-26-7" name="__codelineno-26-7" href="#__codelineno-26-7"></a><span class="nb">cd</span><span class="w"> </span>/var/www/carambus_location_5101/current
+<a id="__codelineno-26-8" name="__codelineno-26-8" href="#__codelineno-26-8"></a>git<span class="w"> </span>pull
+<a id="__codelineno-26-9" name="__codelineno-26-9" href="#__codelineno-26-9"></a>
+<a id="__codelineno-26-10" name="__codelineno-26-10" href="#__codelineno-26-10"></a><span class="c1"># 3. Restart server</span>
+<a id="__codelineno-26-11" name="__codelineno-26-11" href="#__codelineno-26-11"></a>./bin/restart-carambus.sh
+<a id="__codelineno-26-12" name="__codelineno-26-12" href="#__codelineno-26-12"></a><span class="nb">exit</span>
+<a id="__codelineno-26-13" name="__codelineno-26-13" href="#__codelineno-26-13"></a>
+<a id="__codelineno-26-14" name="__codelineno-26-14" href="#__codelineno-26-14"></a><span class="c1"># 4. Restart browser</span>
+<a id="__codelineno-26-15" name="__codelineno-26-15" href="#__codelineno-26-15"></a>ssh<span class="w"> </span>-p<span class="w"> </span><span class="m">8910</span><span class="w"> </span>www-data@192.168.178.107<span class="w"> </span><span class="s1">&#39;./bin/restart-scoreboard.sh&#39;</span>
 </code></pre></div>
 <h3 id="debug-production-problem">Debug Production Problem<a class="headerlink" href="#debug-production-problem" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-29-1" name="__codelineno-29-1" href="#__codelineno-29-1"></a><span class="c1"># 1. Collect debug info</span>
-<a id="__codelineno-29-2" name="__codelineno-29-2" href="#__codelineno-29-2"></a>./bin/debug-production.sh<span class="w"> </span>carambus_location_5101<span class="w"> </span>&gt;<span class="w"> </span>debug.log
-<a id="__codelineno-29-3" name="__codelineno-29-3" href="#__codelineno-29-3"></a>
-<a id="__codelineno-29-4" name="__codelineno-29-4" href="#__codelineno-29-4"></a><span class="c1"># 2. Check logs</span>
-<a id="__codelineno-29-5" name="__codelineno-29-5" href="#__codelineno-29-5"></a>less<span class="w"> </span>debug.log
-<a id="__codelineno-29-6" name="__codelineno-29-6" href="#__codelineno-29-6"></a>
-<a id="__codelineno-29-7" name="__codelineno-29-7" href="#__codelineno-29-7"></a><span class="c1"># 3. Open console (if needed)</span>
-<a id="__codelineno-29-8" name="__codelineno-29-8" href="#__codelineno-29-8"></a>./bin/console-production.sh<span class="w"> </span>carambus_location_5101
-<a id="__codelineno-29-9" name="__codelineno-29-9" href="#__codelineno-29-9"></a>
-<a id="__codelineno-29-10" name="__codelineno-29-10" href="#__codelineno-29-10"></a><span class="c1"># 4. Apply quick fix</span>
-<a id="__codelineno-29-11" name="__codelineno-29-11" href="#__codelineno-29-11"></a>ssh<span class="w"> </span>-p<span class="w"> </span><span class="m">8910</span><span class="w"> </span>www-data@192.168.178.107<span class="w"> </span><span class="s1">&#39;sudo systemctl restart puma-carambus_location_5101&#39;</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-27-1" name="__codelineno-27-1" href="#__codelineno-27-1"></a><span class="c1"># 1. Collect debug info</span>
+<a id="__codelineno-27-2" name="__codelineno-27-2" href="#__codelineno-27-2"></a>./bin/diagnose-puma-carambus.sh<span class="w"> </span>&gt;<span class="w"> </span>debug.log
+<a id="__codelineno-27-3" name="__codelineno-27-3" href="#__codelineno-27-3"></a>./bin/check-database-states.sh<span class="w"> </span>carambus_location_5101<span class="w"> </span>&gt;&gt;<span class="w"> </span>debug.log
+<a id="__codelineno-27-4" name="__codelineno-27-4" href="#__codelineno-27-4"></a>
+<a id="__codelineno-27-5" name="__codelineno-27-5" href="#__codelineno-27-5"></a><span class="c1"># 2. Check logs</span>
+<a id="__codelineno-27-6" name="__codelineno-27-6" href="#__codelineno-27-6"></a>less<span class="w"> </span>debug.log
+<a id="__codelineno-27-7" name="__codelineno-27-7" href="#__codelineno-27-7"></a>
+<a id="__codelineno-27-8" name="__codelineno-27-8" href="#__codelineno-27-8"></a><span class="c1"># 3. Open console (if needed)</span>
+<a id="__codelineno-27-9" name="__codelineno-27-9" href="#__codelineno-27-9"></a>ssh<span class="w"> </span>-p<span class="w"> </span><span class="m">8910</span><span class="w"> </span>www-data@192.168.178.107
+<a id="__codelineno-27-10" name="__codelineno-27-10" href="#__codelineno-27-10"></a><span class="nb">cd</span><span class="w"> </span>/var/www/carambus_location_5101/current
+<a id="__codelineno-27-11" name="__codelineno-27-11" href="#__codelineno-27-11"></a><span class="nv">RAILS_ENV</span><span class="o">=</span>production<span class="w"> </span>bundle<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>rails<span class="w"> </span>console
+<a id="__codelineno-27-12" name="__codelineno-27-12" href="#__codelineno-27-12"></a>
+<a id="__codelineno-27-13" name="__codelineno-27-13" href="#__codelineno-27-13"></a><span class="c1"># 4. Apply quick fix</span>
+<a id="__codelineno-27-14" name="__codelineno-27-14" href="#__codelineno-27-14"></a>ssh<span class="w"> </span>-p<span class="w"> </span><span class="m">8910</span><span class="w"> </span>www-data@192.168.178.107<span class="w"> </span><span class="s1">&#39;sudo systemctl restart puma-carambus_location_5101&#39;</span>
 </code></pre></div>
 <hr />
 <h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">&para;</a></h2>
 <h3 id="puma-wont-start">Puma Won't Start<a class="headerlink" href="#puma-wont-start" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-30-1" name="__codelineno-30-1" href="#__codelineno-30-1"></a><span class="c1"># Problem: &quot;Address already in use&quot;</span>
-<a id="__codelineno-30-2" name="__codelineno-30-2" href="#__codelineno-30-2"></a><span class="c1"># Solution: Stop old processes</span>
-<a id="__codelineno-30-3" name="__codelineno-30-3" href="#__codelineno-30-3"></a>ssh<span class="w"> </span>-p<span class="w"> </span><span class="m">8910</span><span class="w"> </span>www-data@192.168.178.107
-<a id="__codelineno-30-4" name="__codelineno-30-4" href="#__codelineno-30-4"></a>pkill<span class="w"> </span>-9<span class="w"> </span>puma
-<a id="__codelineno-30-5" name="__codelineno-30-5" href="#__codelineno-30-5"></a>rm<span class="w"> </span>/var/www/carambus_location_5101/shared/pids/*.pid
-<a id="__codelineno-30-6" name="__codelineno-30-6" href="#__codelineno-30-6"></a>rm<span class="w"> </span>/var/www/carambus_location_5101/shared/sockets/*.sock
-<a id="__codelineno-30-7" name="__codelineno-30-7" href="#__codelineno-30-7"></a>./bin/manage-puma.sh<span class="w"> </span>start
+<div class="highlight"><pre><span></span><code><a id="__codelineno-28-1" name="__codelineno-28-1" href="#__codelineno-28-1"></a><span class="c1"># Problem: &quot;Address already in use&quot;</span>
+<a id="__codelineno-28-2" name="__codelineno-28-2" href="#__codelineno-28-2"></a><span class="c1"># Solution: Stop old processes</span>
+<a id="__codelineno-28-3" name="__codelineno-28-3" href="#__codelineno-28-3"></a>ssh<span class="w"> </span>-p<span class="w"> </span><span class="m">8910</span><span class="w"> </span>www-data@192.168.178.107
+<a id="__codelineno-28-4" name="__codelineno-28-4" href="#__codelineno-28-4"></a>pkill<span class="w"> </span>-9<span class="w"> </span>puma
+<a id="__codelineno-28-5" name="__codelineno-28-5" href="#__codelineno-28-5"></a>rm<span class="w"> </span>/var/www/carambus_location_5101/shared/pids/*.pid
+<a id="__codelineno-28-6" name="__codelineno-28-6" href="#__codelineno-28-6"></a>rm<span class="w"> </span>/var/www/carambus_location_5101/shared/sockets/*.sock
+<a id="__codelineno-28-7" name="__codelineno-28-7" href="#__codelineno-28-7"></a>./bin/manage-puma.sh<span class="w"> </span>start
 </code></pre></div>
 <h3 id="assets-missing-after-deployment">Assets Missing After Deployment<a class="headerlink" href="#assets-missing-after-deployment" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-31-1" name="__codelineno-31-1" href="#__codelineno-31-1"></a><span class="c1"># Problem: &quot;Asset not found&quot;</span>
-<a id="__codelineno-31-2" name="__codelineno-31-2" href="#__codelineno-31-2"></a><span class="c1"># Solution: Recompile assets</span>
-<a id="__codelineno-31-3" name="__codelineno-31-3" href="#__codelineno-31-3"></a><span class="nb">cd</span><span class="w"> </span>carambus_location_5101
-<a id="__codelineno-31-4" name="__codelineno-31-4" href="#__codelineno-31-4"></a>../carambus_master/bin/rebuild_js.sh
-<a id="__codelineno-31-5" name="__codelineno-31-5" href="#__codelineno-31-5"></a>
-<a id="__codelineno-31-6" name="__codelineno-31-6" href="#__codelineno-31-6"></a><span class="c1"># On server:</span>
-<a id="__codelineno-31-7" name="__codelineno-31-7" href="#__codelineno-31-7"></a>ssh<span class="w"> </span>-p<span class="w"> </span><span class="m">8910</span><span class="w"> </span>www-data@192.168.178.107
-<a id="__codelineno-31-8" name="__codelineno-31-8" href="#__codelineno-31-8"></a><span class="nb">cd</span><span class="w"> </span>/var/www/carambus_location_5101/current
-<a id="__codelineno-31-9" name="__codelineno-31-9" href="#__codelineno-31-9"></a><span class="nv">RAILS_ENV</span><span class="o">=</span>production<span class="w"> </span>bundle<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>rails<span class="w"> </span>assets:precompile
-<a id="__codelineno-31-10" name="__codelineno-31-10" href="#__codelineno-31-10"></a>./bin/restart-carambus.sh
+<div class="highlight"><pre><span></span><code><a id="__codelineno-29-1" name="__codelineno-29-1" href="#__codelineno-29-1"></a><span class="c1"># Problem: &quot;Asset not found&quot;</span>
+<a id="__codelineno-29-2" name="__codelineno-29-2" href="#__codelineno-29-2"></a><span class="c1"># Solution: Recompile assets</span>
+<a id="__codelineno-29-3" name="__codelineno-29-3" href="#__codelineno-29-3"></a><span class="nb">cd</span><span class="w"> </span>carambus_location_5101
+<a id="__codelineno-29-4" name="__codelineno-29-4" href="#__codelineno-29-4"></a>../carambus_master/bin/rebuild_js.sh
+<a id="__codelineno-29-5" name="__codelineno-29-5" href="#__codelineno-29-5"></a>
+<a id="__codelineno-29-6" name="__codelineno-29-6" href="#__codelineno-29-6"></a><span class="c1"># On server:</span>
+<a id="__codelineno-29-7" name="__codelineno-29-7" href="#__codelineno-29-7"></a>ssh<span class="w"> </span>-p<span class="w"> </span><span class="m">8910</span><span class="w"> </span>www-data@192.168.178.107
+<a id="__codelineno-29-8" name="__codelineno-29-8" href="#__codelineno-29-8"></a><span class="nb">cd</span><span class="w"> </span>/var/www/carambus_location_5101/current
+<a id="__codelineno-29-9" name="__codelineno-29-9" href="#__codelineno-29-9"></a><span class="nv">RAILS_ENV</span><span class="o">=</span>production<span class="w"> </span>bundle<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>rails<span class="w"> </span>assets:precompile
+<a id="__codelineno-29-10" name="__codelineno-29-10" href="#__codelineno-29-10"></a>./bin/restart-carambus.sh
 </code></pre></div>
 <h3 id="database-connection-fails">Database Connection Fails<a class="headerlink" href="#database-connection-fails" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-32-1" name="__codelineno-32-1" href="#__codelineno-32-1"></a><span class="c1"># Problem: &quot;could not connect to server&quot;</span>
-<a id="__codelineno-32-2" name="__codelineno-32-2" href="#__codelineno-32-2"></a><span class="c1"># Solution: Check PostgreSQL service</span>
-<a id="__codelineno-32-3" name="__codelineno-32-3" href="#__codelineno-32-3"></a>ssh<span class="w"> </span>-p<span class="w"> </span><span class="m">8910</span><span class="w"> </span>www-data@192.168.178.107
-<a id="__codelineno-32-4" name="__codelineno-32-4" href="#__codelineno-32-4"></a>sudo<span class="w"> </span>systemctl<span class="w"> </span>status<span class="w"> </span>postgresql
-<a id="__codelineno-32-5" name="__codelineno-32-5" href="#__codelineno-32-5"></a>sudo<span class="w"> </span>systemctl<span class="w"> </span>start<span class="w"> </span>postgresql
-<a id="__codelineno-32-6" name="__codelineno-32-6" href="#__codelineno-32-6"></a>
-<a id="__codelineno-32-7" name="__codelineno-32-7" href="#__codelineno-32-7"></a><span class="c1"># Check config</span>
-<a id="__codelineno-32-8" name="__codelineno-32-8" href="#__codelineno-32-8"></a>cat<span class="w"> </span>/var/www/carambus_location_5101/shared/config/database.yml
+<div class="highlight"><pre><span></span><code><a id="__codelineno-30-1" name="__codelineno-30-1" href="#__codelineno-30-1"></a><span class="c1"># Problem: &quot;could not connect to server&quot;</span>
+<a id="__codelineno-30-2" name="__codelineno-30-2" href="#__codelineno-30-2"></a><span class="c1"># Solution: Check PostgreSQL service</span>
+<a id="__codelineno-30-3" name="__codelineno-30-3" href="#__codelineno-30-3"></a>ssh<span class="w"> </span>-p<span class="w"> </span><span class="m">8910</span><span class="w"> </span>www-data@192.168.178.107
+<a id="__codelineno-30-4" name="__codelineno-30-4" href="#__codelineno-30-4"></a>sudo<span class="w"> </span>systemctl<span class="w"> </span>status<span class="w"> </span>postgresql
+<a id="__codelineno-30-5" name="__codelineno-30-5" href="#__codelineno-30-5"></a>sudo<span class="w"> </span>systemctl<span class="w"> </span>start<span class="w"> </span>postgresql
+<a id="__codelineno-30-6" name="__codelineno-30-6" href="#__codelineno-30-6"></a>
+<a id="__codelineno-30-7" name="__codelineno-30-7" href="#__codelineno-30-7"></a><span class="c1"># Check config</span>
+<a id="__codelineno-30-8" name="__codelineno-30-8" href="#__codelineno-30-8"></a>cat<span class="w"> </span>/var/www/carambus_location_5101/shared/config/database.yml
 </code></pre></div>
 <h3 id="memory-problems">Memory Problems<a class="headerlink" href="#memory-problems" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-33-1" name="__codelineno-33-1" href="#__codelineno-33-1"></a><span class="c1"># Problem: &quot;Cannot allocate memory&quot;</span>
-<a id="__codelineno-33-2" name="__codelineno-33-2" href="#__codelineno-33-2"></a><span class="c1"># Solution: Memory analysis and cleanup</span>
-<a id="__codelineno-33-3" name="__codelineno-33-3" href="#__codelineno-33-3"></a>./bin/debug-production.sh<span class="w"> </span>carambus_location_5101<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>Memory
-<a id="__codelineno-33-4" name="__codelineno-33-4" href="#__codelineno-33-4"></a>
-<a id="__codelineno-33-5" name="__codelineno-33-5" href="#__codelineno-33-5"></a><span class="c1"># Clean cache</span>
-<a id="__codelineno-33-6" name="__codelineno-33-6" href="#__codelineno-33-6"></a>ssh<span class="w"> </span>-p<span class="w"> </span><span class="m">8910</span><span class="w"> </span>www-data@192.168.178.107
-<a id="__codelineno-33-7" name="__codelineno-33-7" href="#__codelineno-33-7"></a><span class="nb">cd</span><span class="w"> </span>/var/www/carambus_location_5101/current
-<a id="__codelineno-33-8" name="__codelineno-33-8" href="#__codelineno-33-8"></a>./bin/cleanup_rails.sh
-<a id="__codelineno-33-9" name="__codelineno-33-9" href="#__codelineno-33-9"></a>
-<a id="__codelineno-33-10" name="__codelineno-33-10" href="#__codelineno-33-10"></a><span class="c1"># Restart services</span>
-<a id="__codelineno-33-11" name="__codelineno-33-11" href="#__codelineno-33-11"></a>sudo<span class="w"> </span>systemctl<span class="w"> </span>restart<span class="w"> </span>puma-carambus_location_5101
+<div class="highlight"><pre><span></span><code><a id="__codelineno-31-1" name="__codelineno-31-1" href="#__codelineno-31-1"></a><span class="c1"># Problem: &quot;Cannot allocate memory&quot;</span>
+<a id="__codelineno-31-2" name="__codelineno-31-2" href="#__codelineno-31-2"></a><span class="c1"># Solution: Memory analysis and cleanup</span>
+<a id="__codelineno-31-3" name="__codelineno-31-3" href="#__codelineno-31-3"></a>ssh<span class="w"> </span>-p<span class="w"> </span><span class="m">8910</span><span class="w"> </span>www-data@192.168.178.107<span class="w"> </span><span class="s1">&#39;free -h&#39;</span>
+<a id="__codelineno-31-4" name="__codelineno-31-4" href="#__codelineno-31-4"></a>
+<a id="__codelineno-31-5" name="__codelineno-31-5" href="#__codelineno-31-5"></a><span class="c1"># Clean cache</span>
+<a id="__codelineno-31-6" name="__codelineno-31-6" href="#__codelineno-31-6"></a>ssh<span class="w"> </span>-p<span class="w"> </span><span class="m">8910</span><span class="w"> </span>www-data@192.168.178.107
+<a id="__codelineno-31-7" name="__codelineno-31-7" href="#__codelineno-31-7"></a><span class="nb">cd</span><span class="w"> </span>/var/www/carambus_location_5101/current
+<a id="__codelineno-31-8" name="__codelineno-31-8" href="#__codelineno-31-8"></a>./bin/cleanup_rails.sh
+<a id="__codelineno-31-9" name="__codelineno-31-9" href="#__codelineno-31-9"></a>
+<a id="__codelineno-31-10" name="__codelineno-31-10" href="#__codelineno-31-10"></a><span class="c1"># Restart services</span>
+<a id="__codelineno-31-11" name="__codelineno-31-11" href="#__codelineno-31-11"></a>sudo<span class="w"> </span>systemctl<span class="w"> </span>restart<span class="w"> </span>puma-carambus_location_5101
 </code></pre></div>
 <hr />
 <h2 id="best-practices">Best Practices<a class="headerlink" href="#best-practices" title="Permanent link">&para;</a></h2>
@@ -4016,7 +4056,7 @@
 <ol>
 <li>✅ Never manually start/stop Puma (use Capistrano)</li>
 <li>✅ Console only for debugging, not for data changes</li>
-<li>✅ On problems: First run <code>debug-production.sh</code></li>
+<li>✅ On problems: First run <code>diagnose-puma-carambus.sh</code> / <code>check-database-states.sh</code></li>
 <li>✅ Check logs regularly</li>
 </ol>
 <h3 id="deployment">Deployment<a class="headerlink" href="#deployment" title="Permanent link">&para;</a></h3>
@@ -4029,38 +4069,38 @@
 <hr />
 <h2 id="monitoring-maintenance">Monitoring &amp; Maintenance<a class="headerlink" href="#monitoring-maintenance" title="Permanent link">&para;</a></h2>
 <h3 id="daily-checks">Daily Checks<a class="headerlink" href="#daily-checks" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-34-1" name="__codelineno-34-1" href="#__codelineno-34-1"></a><span class="c1"># Service status</span>
-<a id="__codelineno-34-2" name="__codelineno-34-2" href="#__codelineno-34-2"></a>ssh<span class="w"> </span>-p<span class="w"> </span><span class="m">8910</span><span class="w"> </span>www-data@192.168.178.107<span class="w"> </span><span class="s1">&#39;systemctl status puma-carambus_location_5101&#39;</span>
-<a id="__codelineno-34-3" name="__codelineno-34-3" href="#__codelineno-34-3"></a>
-<a id="__codelineno-34-4" name="__codelineno-34-4" href="#__codelineno-34-4"></a><span class="c1"># Disk space</span>
-<a id="__codelineno-34-5" name="__codelineno-34-5" href="#__codelineno-34-5"></a>ssh<span class="w"> </span>-p<span class="w"> </span><span class="m">8910</span><span class="w"> </span>www-data@192.168.178.107<span class="w"> </span><span class="s1">&#39;df -h&#39;</span>
-<a id="__codelineno-34-6" name="__codelineno-34-6" href="#__codelineno-34-6"></a>
-<a id="__codelineno-34-7" name="__codelineno-34-7" href="#__codelineno-34-7"></a><span class="c1"># Logs (errors)</span>
-<a id="__codelineno-34-8" name="__codelineno-34-8" href="#__codelineno-34-8"></a>ssh<span class="w"> </span>-p<span class="w"> </span><span class="m">8910</span><span class="w"> </span>www-data@192.168.178.107<span class="w"> </span><span class="s1">&#39;tail -100 /var/www/carambus_location_5101/current/log/production.log | grep ERROR&#39;</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-32-1" name="__codelineno-32-1" href="#__codelineno-32-1"></a><span class="c1"># Service status</span>
+<a id="__codelineno-32-2" name="__codelineno-32-2" href="#__codelineno-32-2"></a>ssh<span class="w"> </span>-p<span class="w"> </span><span class="m">8910</span><span class="w"> </span>www-data@192.168.178.107<span class="w"> </span><span class="s1">&#39;systemctl status puma-carambus_location_5101&#39;</span>
+<a id="__codelineno-32-3" name="__codelineno-32-3" href="#__codelineno-32-3"></a>
+<a id="__codelineno-32-4" name="__codelineno-32-4" href="#__codelineno-32-4"></a><span class="c1"># Disk space</span>
+<a id="__codelineno-32-5" name="__codelineno-32-5" href="#__codelineno-32-5"></a>ssh<span class="w"> </span>-p<span class="w"> </span><span class="m">8910</span><span class="w"> </span>www-data@192.168.178.107<span class="w"> </span><span class="s1">&#39;df -h&#39;</span>
+<a id="__codelineno-32-6" name="__codelineno-32-6" href="#__codelineno-32-6"></a>
+<a id="__codelineno-32-7" name="__codelineno-32-7" href="#__codelineno-32-7"></a><span class="c1"># Logs (errors)</span>
+<a id="__codelineno-32-8" name="__codelineno-32-8" href="#__codelineno-32-8"></a>ssh<span class="w"> </span>-p<span class="w"> </span><span class="m">8910</span><span class="w"> </span>www-data@192.168.178.107<span class="w"> </span><span class="s1">&#39;tail -100 /var/www/carambus_location_5101/current/log/production.log | grep ERROR&#39;</span>
 </code></pre></div>
 <h3 id="weekly-maintenance">Weekly Maintenance<a class="headerlink" href="#weekly-maintenance" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-35-1" name="__codelineno-35-1" href="#__codelineno-35-1"></a><span class="c1"># 1. Clean Rails cache</span>
-<a id="__codelineno-35-2" name="__codelineno-35-2" href="#__codelineno-35-2"></a>ssh<span class="w"> </span>-p<span class="w"> </span><span class="m">8910</span><span class="w"> </span>www-data@192.168.178.107<span class="w"> </span><span class="s1">&#39;cd /var/www/carambus_location_5101/current &amp;&amp; ./bin/cleanup_rails.sh&#39;</span>
-<a id="__codelineno-35-3" name="__codelineno-35-3" href="#__codelineno-35-3"></a>
-<a id="__codelineno-35-4" name="__codelineno-35-4" href="#__codelineno-35-4"></a><span class="c1"># 2. Rotate logs</span>
-<a id="__codelineno-35-5" name="__codelineno-35-5" href="#__codelineno-35-5"></a>ssh<span class="w"> </span>-p<span class="w"> </span><span class="m">8910</span><span class="w"> </span>www-data@192.168.178.107<span class="w"> </span><span class="s1">&#39;sudo logrotate -f /etc/logrotate.d/carambus&#39;</span>
-<a id="__codelineno-35-6" name="__codelineno-35-6" href="#__codelineno-35-6"></a>
-<a id="__codelineno-35-7" name="__codelineno-35-7" href="#__codelineno-35-7"></a><span class="c1"># 3. Check disk space</span>
-<a id="__codelineno-35-8" name="__codelineno-35-8" href="#__codelineno-35-8"></a>./bin/debug-production.sh<span class="w"> </span>carambus_location_5101<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span><span class="s2">&quot;Disk:&quot;</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-33-1" name="__codelineno-33-1" href="#__codelineno-33-1"></a><span class="c1"># 1. Clean Rails cache</span>
+<a id="__codelineno-33-2" name="__codelineno-33-2" href="#__codelineno-33-2"></a>ssh<span class="w"> </span>-p<span class="w"> </span><span class="m">8910</span><span class="w"> </span>www-data@192.168.178.107<span class="w"> </span><span class="s1">&#39;cd /var/www/carambus_location_5101/current &amp;&amp; ./bin/cleanup_rails.sh&#39;</span>
+<a id="__codelineno-33-3" name="__codelineno-33-3" href="#__codelineno-33-3"></a>
+<a id="__codelineno-33-4" name="__codelineno-33-4" href="#__codelineno-33-4"></a><span class="c1"># 2. Rotate logs</span>
+<a id="__codelineno-33-5" name="__codelineno-33-5" href="#__codelineno-33-5"></a>ssh<span class="w"> </span>-p<span class="w"> </span><span class="m">8910</span><span class="w"> </span>www-data@192.168.178.107<span class="w"> </span><span class="s1">&#39;sudo logrotate -f /etc/logrotate.d/carambus&#39;</span>
+<a id="__codelineno-33-6" name="__codelineno-33-6" href="#__codelineno-33-6"></a>
+<a id="__codelineno-33-7" name="__codelineno-33-7" href="#__codelineno-33-7"></a><span class="c1"># 3. Check disk space</span>
+<a id="__codelineno-33-8" name="__codelineno-33-8" href="#__codelineno-33-8"></a>ssh<span class="w"> </span>-p<span class="w"> </span><span class="m">8910</span><span class="w"> </span>www-data@192.168.178.107<span class="w"> </span><span class="s1">&#39;df -h&#39;</span>
 </code></pre></div>
 <h3 id="monthly-maintenance">Monthly Maintenance<a class="headerlink" href="#monthly-maintenance" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-36-1" name="__codelineno-36-1" href="#__codelineno-36-1"></a><span class="c1"># 1. System updates</span>
-<a id="__codelineno-36-2" name="__codelineno-36-2" href="#__codelineno-36-2"></a>ssh<span class="w"> </span>-p<span class="w"> </span><span class="m">8910</span><span class="w"> </span>www-data@192.168.178.107
-<a id="__codelineno-36-3" name="__codelineno-36-3" href="#__codelineno-36-3"></a>sudo<span class="w"> </span>apt<span class="w"> </span>update<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>sudo<span class="w"> </span>apt<span class="w"> </span>upgrade<span class="w"> </span>-y
-<a id="__codelineno-36-4" name="__codelineno-36-4" href="#__codelineno-36-4"></a>
-<a id="__codelineno-36-5" name="__codelineno-36-5" href="#__codelineno-36-5"></a><span class="c1"># 2. Update Ruby/Node/Gems</span>
-<a id="__codelineno-36-6" name="__codelineno-36-6" href="#__codelineno-36-6"></a><span class="nb">cd</span><span class="w"> </span>/var/www/carambus_location_5101/current
-<a id="__codelineno-36-7" name="__codelineno-36-7" href="#__codelineno-36-7"></a>bundle<span class="w"> </span>update
-<a id="__codelineno-36-8" name="__codelineno-36-8" href="#__codelineno-36-8"></a>yarn<span class="w"> </span>upgrade
-<a id="__codelineno-36-9" name="__codelineno-36-9" href="#__codelineno-36-9"></a>
-<a id="__codelineno-36-10" name="__codelineno-36-10" href="#__codelineno-36-10"></a><span class="c1"># 3. Restart services</span>
-<a id="__codelineno-36-11" name="__codelineno-36-11" href="#__codelineno-36-11"></a>sudo<span class="w"> </span>systemctl<span class="w"> </span>restart<span class="w"> </span>puma-carambus_location_5101
-<a id="__codelineno-36-12" name="__codelineno-36-12" href="#__codelineno-36-12"></a>sudo<span class="w"> </span>systemctl<span class="w"> </span>restart<span class="w"> </span>nginx
+<div class="highlight"><pre><span></span><code><a id="__codelineno-34-1" name="__codelineno-34-1" href="#__codelineno-34-1"></a><span class="c1"># 1. System updates</span>
+<a id="__codelineno-34-2" name="__codelineno-34-2" href="#__codelineno-34-2"></a>ssh<span class="w"> </span>-p<span class="w"> </span><span class="m">8910</span><span class="w"> </span>www-data@192.168.178.107
+<a id="__codelineno-34-3" name="__codelineno-34-3" href="#__codelineno-34-3"></a>sudo<span class="w"> </span>apt<span class="w"> </span>update<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>sudo<span class="w"> </span>apt<span class="w"> </span>upgrade<span class="w"> </span>-y
+<a id="__codelineno-34-4" name="__codelineno-34-4" href="#__codelineno-34-4"></a>
+<a id="__codelineno-34-5" name="__codelineno-34-5" href="#__codelineno-34-5"></a><span class="c1"># 2. Update Ruby/Node/Gems</span>
+<a id="__codelineno-34-6" name="__codelineno-34-6" href="#__codelineno-34-6"></a><span class="nb">cd</span><span class="w"> </span>/var/www/carambus_location_5101/current
+<a id="__codelineno-34-7" name="__codelineno-34-7" href="#__codelineno-34-7"></a>bundle<span class="w"> </span>update
+<a id="__codelineno-34-8" name="__codelineno-34-8" href="#__codelineno-34-8"></a>yarn<span class="w"> </span>upgrade
+<a id="__codelineno-34-9" name="__codelineno-34-9" href="#__codelineno-34-9"></a>
+<a id="__codelineno-34-10" name="__codelineno-34-10" href="#__codelineno-34-10"></a><span class="c1"># 3. Restart services</span>
+<a id="__codelineno-34-11" name="__codelineno-34-11" href="#__codelineno-34-11"></a>sudo<span class="w"> </span>systemctl<span class="w"> </span>restart<span class="w"> </span>puma-carambus_location_5101
+<a id="__codelineno-34-12" name="__codelineno-34-12" href="#__codelineno-34-12"></a>sudo<span class="w"> </span>systemctl<span class="w"> </span>restart<span class="w"> </span>nginx
 </code></pre></div>
 <hr />
 <h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>

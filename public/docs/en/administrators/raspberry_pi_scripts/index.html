@@ -380,7 +380,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../../reference/api.md" class="md-tabs__link">
+        <a href="../../reference/api/" class="md-tabs__link">
           
   
   
@@ -806,6 +806,8 @@
       
         
       
+        
+      
     
     
     
@@ -1125,6 +1127,29 @@
   
   
   
+    <li class="md-nav__item">
+      <a href="../../managers/external-tournament-bridge/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    External Tournament Bridge
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
     
     
       
@@ -1153,10 +1178,10 @@
         
           
         
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_10" >
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_11" >
         
           
-          <label class="md-nav__link" for="__nav_4_10" id="__nav_4_10_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_4_11" id="__nav_4_11_label" tabindex="0">
             
   
   
@@ -1169,8 +1194,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_10_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_4_10">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_11_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_11">
             <span class="md-nav__icon md-icon"></span>
             ClubCloud Scenarios
           </label>
@@ -1684,6 +1709,8 @@
       
         
       
+        
+      
     
     
     
@@ -2131,6 +2158,29 @@
   
   
   
+    <li class="md-nav__item">
+      <a href="../../developers/external-tournament-bridge/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    External Tournament Bridge
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
     
     
       
@@ -2165,10 +2215,10 @@
         
           
         
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6_12" >
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6_13" >
         
           
-          <label class="md-nav__link" for="__nav_6_12" id="__nav_6_12_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_6_13" id="__nav_6_13_label" tabindex="0">
             
   
   
@@ -2181,8 +2231,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_12_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_6_12">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_13_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6_13">
             <span class="md-nav__icon md-icon"></span>
             Services
           </label>
@@ -2777,7 +2827,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../reference/api.md" class="md-nav__link">
+      <a href="../../reference/api/" class="md-nav__link">
         
   
   
@@ -3075,15 +3125,6 @@
   <a href="#install-client-onlysh" class="md-nav__link">
     <span class="md-ellipsis">
       install-client-only.sh
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#install-scoreboard-clientsh" class="md-nav__link">
-    <span class="md-ellipsis">
-      install-scoreboard-client.sh
     </span>
   </a>
   
@@ -3479,20 +3520,14 @@
 <p><strong>Use Case</strong>: Tablet or RasPi that only serves as display</p>
 <p><strong>Documented in</strong>: <a href="../raspberry-pi-client/">Client-Only Installation</a></p>
 <hr />
-<h3 id="install-scoreboard-clientsh"><code>install-scoreboard-client.sh</code><a class="headerlink" href="#install-scoreboard-clientsh" title="Permanent link">&para;</a></h3>
-<p><strong>Purpose</strong>: Installs scoreboard client software</p>
-<p><strong>Usage</strong>:
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>./bin/install-scoreboard-client.sh
-</code></pre></div></p>
-<p><strong>What it does</strong>:
-- Installs client dependencies
-- Configures browser for fullscreen
-- Sets up autostart</p>
-<hr />
+<blockquote>
+<p><strong>Note:</strong> Scoreboard client software is installed via <code>install-client-only.sh</code>
+(see above). There is no separate <code>install-scoreboard-client.sh</code> script.</p>
+</blockquote>
 <h3 id="setup-phillips-table-sshsh"><code>setup-phillips-table-ssh.sh</code><a class="headerlink" href="#setup-phillips-table-sshsh" title="Permanent link">&para;</a></h3>
 <p><strong>Purpose</strong>: Set up SSH access for Phillips Table</p>
 <p><strong>Usage</strong>:
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>./bin/setup-phillips-table-ssh.sh
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>./bin/setup-phillips-table-ssh.sh
 </code></pre></div></p>
 <p><strong>What it does</strong>:
 1. ✅ Generates SSH keys
@@ -3503,38 +3538,38 @@
 - Initial password for RasPi known
 - Network access to RasPi</p>
 <p><strong>Example</strong>:
-<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>./bin/setup-phillips-table-ssh.sh
-<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="c1"># Interactive: Asks for IP, port, password</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>./bin/setup-phillips-table-ssh.sh
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="c1"># Interactive: Asks for IP, port, password</span>
 </code></pre></div></p>
 <hr />
 <h2 id="testing-debugging">Testing &amp; Debugging<a class="headerlink" href="#testing-debugging" title="Permanent link">&para;</a></h2>
 <h3 id="find-raspberry-pish"><code>find-raspberry-pi.sh</code><a class="headerlink" href="#find-raspberry-pish" title="Permanent link">&para;</a></h3>
 <p><strong>Purpose</strong>: Finds Raspberry Pis in local network</p>
 <p><strong>Usage</strong>:
-<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>./bin/find-raspberry-pi.sh<span class="w"> </span><span class="o">[</span>subnet<span class="o">]</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>./bin/find-raspberry-pi.sh<span class="w"> </span><span class="o">[</span>subnet<span class="o">]</span>
 </code></pre></div></p>
 <p><strong>What it does</strong>:
 - Scans network for RasPi hosts
 - Shows IP addresses and hostnames
 - Checks SSH availability</p>
 <p><strong>Examples</strong>:
-<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="c1"># Standard scan in local network</span>
-<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>./bin/find-raspberry-pi.sh
-<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>
-<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="c1"># Scan specific subnet</span>
-<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>./bin/find-raspberry-pi.sh<span class="w"> </span><span class="m">192</span>.168.178.0/24
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1"># Standard scan in local network</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>./bin/find-raspberry-pi.sh
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="c1"># Scan specific subnet</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>./bin/find-raspberry-pi.sh<span class="w"> </span><span class="m">192</span>.168.178.0/24
 </code></pre></div></p>
 <p><strong>Output Example</strong>:
-<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>Scanning for Raspberry Pis in 192.168.178.0/24...
-<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>Found: 192.168.178.107 (raspberrypi.local)
-<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>  SSH: Available (Port 8910)
-<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>  Service: puma-carambus_location_5101
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>Scanning for Raspberry Pis in 192.168.178.0/24...
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>Found: 192.168.178.107 (raspberrypi.local)
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>  SSH: Available (Port 8910)
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>  Service: puma-carambus_location_5101
 </code></pre></div></p>
 <hr />
 <h3 id="test-raspberry-pish"><code>test-raspberry-pi.sh</code><a class="headerlink" href="#test-raspberry-pish" title="Permanent link">&para;</a></h3>
 <p><strong>Purpose</strong>: Comprehensive tests for RasPi functionality</p>
 <p><strong>Usage</strong>:
-<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>./bin/test-raspberry-pi.sh<span class="w"> </span>&lt;scenario_name&gt;
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>./bin/test-raspberry-pi.sh<span class="w"> </span>&lt;scenario_name&gt;
 </code></pre></div></p>
 <p><strong>What is tested</strong>:
 1. ✅ SSH connection
@@ -3544,14 +3579,14 @@
 5. ✅ Scoreboard accessibility
 6. ✅ Browser kiosk mode</p>
 <p><strong>Example</strong>:
-<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>./bin/test-raspberry-pi.sh<span class="w"> </span>carambus_location_5101
-<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="c1"># Runs all tests and shows results</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>./bin/test-raspberry-pi.sh<span class="w"> </span>carambus_location_5101
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="c1"># Runs all tests and shows results</span>
 </code></pre></div></p>
 <hr />
 <h3 id="test-raspberry-pi-restartsh"><code>test-raspberry-pi-restart.sh</code><a class="headerlink" href="#test-raspberry-pi-restartsh" title="Permanent link">&para;</a></h3>
 <p><strong>Purpose</strong>: Tests RasPi restart functionality</p>
 <p><strong>Usage</strong>:
-<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>./bin/test-raspberry-pi-restart.sh<span class="w"> </span>&lt;scenario_name&gt;
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>./bin/test-raspberry-pi-restart.sh<span class="w"> </span>&lt;scenario_name&gt;
 </code></pre></div></p>
 <p><strong>What is tested</strong>:
 - Restart command works
@@ -3562,11 +3597,11 @@
 <h3 id="start-scoreboardsh"><code>start-scoreboard.sh</code><a class="headerlink" href="#start-scoreboardsh" title="Permanent link">&para;</a></h3>
 <p><strong>Purpose</strong>: Starts scoreboard in kiosk mode</p>
 <p><strong>Usage</strong>:
-<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="c1"># On the RasPi:</span>
-<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>./bin/start-scoreboard.sh<span class="w"> </span><span class="o">[</span>url<span class="o">]</span>
-<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>
-<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="c1"># Remote from development machine:</span>
-<a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a>ssh<span class="w"> </span>pi@raspberrypi.local<span class="w"> </span><span class="s1">&#39;/path/to/start-scoreboard.sh&#39;</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="c1"># On the RasPi:</span>
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>./bin/start-scoreboard.sh<span class="w"> </span><span class="o">[</span>url<span class="o">]</span>
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="c1"># Remote from development machine:</span>
+<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>ssh<span class="w"> </span>pi@raspberrypi.local<span class="w"> </span><span class="s1">&#39;/path/to/start-scoreboard.sh&#39;</span>
 </code></pre></div></p>
 <p><strong>What it does</strong>:
 1. ✅ Starts Chromium in fullscreen mode
@@ -3580,7 +3615,7 @@
 <h3 id="autostart-scoreboardsh"><code>autostart-scoreboard.sh</code><a class="headerlink" href="#autostart-scoreboardsh" title="Permanent link">&para;</a></h3>
 <p><strong>Purpose</strong>: Scoreboard autostart configuration</p>
 <p><strong>Usage</strong>:
-<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>./bin/autostart-scoreboard.sh<span class="w"> </span>&lt;scenario_name&gt;
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>./bin/autostart-scoreboard.sh<span class="w"> </span>&lt;scenario_name&gt;
 </code></pre></div></p>
 <p><strong>What it does</strong>:
 - Creates systemd service
@@ -3592,11 +3627,11 @@
 <h3 id="restart-scoreboardsh"><code>restart-scoreboard.sh</code><a class="headerlink" href="#restart-scoreboardsh" title="Permanent link">&para;</a></h3>
 <p><strong>Purpose</strong>: Restart scoreboard browser</p>
 <p><strong>Usage</strong>:
-<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="c1"># Locally on RasPi:</span>
-<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>./bin/restart-scoreboard.sh
-<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>
-<a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a><span class="c1"># Remote via SSH:</span>
-<a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a>ssh<span class="w"> </span>-p<span class="w"> </span><span class="m">8910</span><span class="w"> </span>www-data@192.168.178.107<span class="w"> </span><span class="s1">&#39;./bin/restart-scoreboard.sh&#39;</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="c1"># Locally on RasPi:</span>
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>./bin/restart-scoreboard.sh
+<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>
+<a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="c1"># Remote via SSH:</span>
+<a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>ssh<span class="w"> </span>-p<span class="w"> </span><span class="m">8910</span><span class="w"> </span>www-data@192.168.178.107<span class="w"> </span><span class="s1">&#39;./bin/restart-scoreboard.sh&#39;</span>
 </code></pre></div></p>
 <p><strong>What it does</strong>:
 1. ✅ Terminates running Chromium processes
@@ -3610,7 +3645,7 @@
 <h3 id="exit-scoreboardsh"><code>exit-scoreboard.sh</code><a class="headerlink" href="#exit-scoreboardsh" title="Permanent link">&para;</a></h3>
 <p><strong>Purpose</strong>: Exits scoreboard kiosk mode cleanly</p>
 <p><strong>Usage</strong>:
-<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>./bin/exit-scoreboard.sh
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>./bin/exit-scoreboard.sh
 </code></pre></div></p>
 <p><strong>What it does</strong>:
 - Terminates Chromium processes
@@ -3620,7 +3655,7 @@
 <h3 id="cleanup-chromiumsh"><code>cleanup-chromium.sh</code><a class="headerlink" href="#cleanup-chromiumsh" title="Permanent link">&para;</a></h3>
 <p><strong>Purpose</strong>: Cleans Chromium cache and temporary files</p>
 <p><strong>Usage</strong>:
-<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>./bin/cleanup-chromium.sh
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>./bin/cleanup-chromium.sh
 </code></pre></div></p>
 <p><strong>What it does</strong>:
 - Deletes browser cache
@@ -3636,7 +3671,7 @@
 <h3 id="prepare-sd-cardsh"><code>prepare-sd-card.sh</code><a class="headerlink" href="#prepare-sd-cardsh" title="Permanent link">&para;</a></h3>
 <p><strong>Purpose</strong>: Prepares SD card for RasPi installation</p>
 <p><strong>Usage</strong>:
-<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>./bin/prepare-sd-card.sh<span class="w"> </span><span class="o">[</span>device<span class="o">]</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>./bin/prepare-sd-card.sh<span class="w"> </span><span class="o">[</span>device<span class="o">]</span>
 </code></pre></div></p>
 <p><strong>What it does</strong>:
 1. ⚠️ Formats SD card (WARNING: All data will be deleted!)
@@ -3649,11 +3684,11 @@
 - Raspberry Pi OS image downloaded
 - Admin rights (sudo)</p>
 <p><strong>Example</strong>:
-<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="c1"># List available devices</span>
-<a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a>diskutil<span class="w"> </span>list
-<a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a>
-<a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a><span class="c1"># Prepare SD card</span>
-<a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a>sudo<span class="w"> </span>./bin/prepare-sd-card.sh<span class="w"> </span>/dev/disk2
+<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="c1"># List available devices</span>
+<a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a>diskutil<span class="w"> </span>list
+<a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a>
+<a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a><span class="c1"># Prepare SD card</span>
+<a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a>sudo<span class="w"> </span>./bin/prepare-sd-card.sh<span class="w"> </span>/dev/disk2
 </code></pre></div></p>
 <p><strong>⚠️ WARNING</strong>: Check device carefully! Wrong device leads to data loss.</p>
 <hr />
@@ -3669,73 +3704,73 @@
 <hr />
 <h2 id="workflow-examples">Workflow Examples<a class="headerlink" href="#workflow-examples" title="Permanent link">&para;</a></h2>
 <h3 id="setting-up-a-new-raspberry-pi-from-scratch">Setting up a New Raspberry Pi from Scratch<a class="headerlink" href="#setting-up-a-new-raspberry-pi-from-scratch" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="c1"># 1. Prepare SD card</span>
-<a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a>sudo<span class="w"> </span>./bin/prepare-sd-card.sh<span class="w"> </span>/dev/disk2
-<a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a>
-<a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a><span class="c1"># 2. Boot RasPi and find it in network</span>
-<a id="__codelineno-19-5" name="__codelineno-19-5" href="#__codelineno-19-5"></a>./bin/find-raspberry-pi.sh
-<a id="__codelineno-19-6" name="__codelineno-19-6" href="#__codelineno-19-6"></a>
-<a id="__codelineno-19-7" name="__codelineno-19-7" href="#__codelineno-19-7"></a><span class="c1"># 3. Set up SSH access</span>
-<a id="__codelineno-19-8" name="__codelineno-19-8" href="#__codelineno-19-8"></a>./bin/setup-phillips-table-ssh.sh
-<a id="__codelineno-19-9" name="__codelineno-19-9" href="#__codelineno-19-9"></a><span class="c1"># IP: 192.168.178.107</span>
-<a id="__codelineno-19-10" name="__codelineno-19-10" href="#__codelineno-19-10"></a><span class="c1"># Port: 22</span>
-<a id="__codelineno-19-11" name="__codelineno-19-11" href="#__codelineno-19-11"></a><span class="c1"># Password: [initial password]</span>
-<a id="__codelineno-19-12" name="__codelineno-19-12" href="#__codelineno-19-12"></a>
-<a id="__codelineno-19-13" name="__codelineno-19-13" href="#__codelineno-19-13"></a><span class="c1"># 4. Complete installation</span>
-<a id="__codelineno-19-14" name="__codelineno-19-14" href="#__codelineno-19-14"></a>./bin/setup-raspberry-pi.sh<span class="w"> </span>carambus_location_5101
-<a id="__codelineno-19-15" name="__codelineno-19-15" href="#__codelineno-19-15"></a>
-<a id="__codelineno-19-16" name="__codelineno-19-16" href="#__codelineno-19-16"></a><span class="c1"># 5. Test</span>
-<a id="__codelineno-19-17" name="__codelineno-19-17" href="#__codelineno-19-17"></a>./bin/test-raspberry-pi.sh<span class="w"> </span>carambus_location_5101
+<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="c1"># 1. Prepare SD card</span>
+<a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a>sudo<span class="w"> </span>./bin/prepare-sd-card.sh<span class="w"> </span>/dev/disk2
+<a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a>
+<a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a><span class="c1"># 2. Boot RasPi and find it in network</span>
+<a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a>./bin/find-raspberry-pi.sh
+<a id="__codelineno-18-6" name="__codelineno-18-6" href="#__codelineno-18-6"></a>
+<a id="__codelineno-18-7" name="__codelineno-18-7" href="#__codelineno-18-7"></a><span class="c1"># 3. Set up SSH access</span>
+<a id="__codelineno-18-8" name="__codelineno-18-8" href="#__codelineno-18-8"></a>./bin/setup-phillips-table-ssh.sh
+<a id="__codelineno-18-9" name="__codelineno-18-9" href="#__codelineno-18-9"></a><span class="c1"># IP: 192.168.178.107</span>
+<a id="__codelineno-18-10" name="__codelineno-18-10" href="#__codelineno-18-10"></a><span class="c1"># Port: 22</span>
+<a id="__codelineno-18-11" name="__codelineno-18-11" href="#__codelineno-18-11"></a><span class="c1"># Password: [initial password]</span>
+<a id="__codelineno-18-12" name="__codelineno-18-12" href="#__codelineno-18-12"></a>
+<a id="__codelineno-18-13" name="__codelineno-18-13" href="#__codelineno-18-13"></a><span class="c1"># 4. Complete installation</span>
+<a id="__codelineno-18-14" name="__codelineno-18-14" href="#__codelineno-18-14"></a>./bin/setup-raspberry-pi.sh<span class="w"> </span>carambus_location_5101
+<a id="__codelineno-18-15" name="__codelineno-18-15" href="#__codelineno-18-15"></a>
+<a id="__codelineno-18-16" name="__codelineno-18-16" href="#__codelineno-18-16"></a><span class="c1"># 5. Test</span>
+<a id="__codelineno-18-17" name="__codelineno-18-17" href="#__codelineno-18-17"></a>./bin/test-raspberry-pi.sh<span class="w"> </span>carambus_location_5101
 </code></pre></div>
 <h3 id="fixing-browser-problems">Fixing Browser Problems<a class="headerlink" href="#fixing-browser-problems" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a><span class="c1"># 1. Clean Chromium cache</span>
-<a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a>ssh<span class="w"> </span>-p<span class="w"> </span><span class="m">8910</span><span class="w"> </span>www-data@192.168.178.107<span class="w"> </span><span class="s1">&#39;./bin/cleanup-chromium.sh&#39;</span>
-<a id="__codelineno-20-3" name="__codelineno-20-3" href="#__codelineno-20-3"></a>
-<a id="__codelineno-20-4" name="__codelineno-20-4" href="#__codelineno-20-4"></a><span class="c1"># 2. Restart browser</span>
-<a id="__codelineno-20-5" name="__codelineno-20-5" href="#__codelineno-20-5"></a>ssh<span class="w"> </span>-p<span class="w"> </span><span class="m">8910</span><span class="w"> </span>www-data@192.168.178.107<span class="w"> </span><span class="s1">&#39;./bin/restart-scoreboard.sh&#39;</span>
-<a id="__codelineno-20-6" name="__codelineno-20-6" href="#__codelineno-20-6"></a>
-<a id="__codelineno-20-7" name="__codelineno-20-7" href="#__codelineno-20-7"></a><span class="c1"># 3. If still problems: Restart service</span>
-<a id="__codelineno-20-8" name="__codelineno-20-8" href="#__codelineno-20-8"></a>ssh<span class="w"> </span>-p<span class="w"> </span><span class="m">8910</span><span class="w"> </span>www-data@192.168.178.107<span class="w"> </span><span class="s1">&#39;sudo systemctl restart scoreboard-kiosk&#39;</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="c1"># 1. Clean Chromium cache</span>
+<a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a>ssh<span class="w"> </span>-p<span class="w"> </span><span class="m">8910</span><span class="w"> </span>www-data@192.168.178.107<span class="w"> </span><span class="s1">&#39;./bin/cleanup-chromium.sh&#39;</span>
+<a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a>
+<a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a><span class="c1"># 2. Restart browser</span>
+<a id="__codelineno-19-5" name="__codelineno-19-5" href="#__codelineno-19-5"></a>ssh<span class="w"> </span>-p<span class="w"> </span><span class="m">8910</span><span class="w"> </span>www-data@192.168.178.107<span class="w"> </span><span class="s1">&#39;./bin/restart-scoreboard.sh&#39;</span>
+<a id="__codelineno-19-6" name="__codelineno-19-6" href="#__codelineno-19-6"></a>
+<a id="__codelineno-19-7" name="__codelineno-19-7" href="#__codelineno-19-7"></a><span class="c1"># 3. If still problems: Restart service</span>
+<a id="__codelineno-19-8" name="__codelineno-19-8" href="#__codelineno-19-8"></a>ssh<span class="w"> </span>-p<span class="w"> </span><span class="m">8910</span><span class="w"> </span>www-data@192.168.178.107<span class="w"> </span><span class="s1">&#39;sudo systemctl restart scoreboard-kiosk&#39;</span>
 </code></pre></div>
 <h3 id="deploy-scenario-update-to-raspi">Deploy Scenario Update to RasPi<a class="headerlink" href="#deploy-scenario-update-to-raspi" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a><span class="c1"># 1. Deployment from development machine</span>
-<a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a><span class="nb">cd</span><span class="w"> </span>carambus_master
-<a id="__codelineno-21-3" name="__codelineno-21-3" href="#__codelineno-21-3"></a>./bin/deploy-scenario.sh<span class="w"> </span>carambus_location_5101
-<a id="__codelineno-21-4" name="__codelineno-21-4" href="#__codelineno-21-4"></a>
-<a id="__codelineno-21-5" name="__codelineno-21-5" href="#__codelineno-21-5"></a><span class="c1"># 2. Restart browser on RasPi (to load new assets)</span>
-<a id="__codelineno-21-6" name="__codelineno-21-6" href="#__codelineno-21-6"></a>ssh<span class="w"> </span>-p<span class="w"> </span><span class="m">8910</span><span class="w"> </span>www-data@192.168.178.107<span class="w"> </span><span class="s1">&#39;./bin/restart-scoreboard.sh&#39;</span>
-<a id="__codelineno-21-7" name="__codelineno-21-7" href="#__codelineno-21-7"></a>
-<a id="__codelineno-21-8" name="__codelineno-21-8" href="#__codelineno-21-8"></a><span class="c1"># 3. Test</span>
-<a id="__codelineno-21-9" name="__codelineno-21-9" href="#__codelineno-21-9"></a>./bin/test-raspberry-pi.sh<span class="w"> </span>carambus_location_5101
+<div class="highlight"><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a><span class="c1"># 1. Deployment from development machine</span>
+<a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a><span class="nb">cd</span><span class="w"> </span>carambus_master
+<a id="__codelineno-20-3" name="__codelineno-20-3" href="#__codelineno-20-3"></a>./bin/deploy-scenario.sh<span class="w"> </span>carambus_location_5101
+<a id="__codelineno-20-4" name="__codelineno-20-4" href="#__codelineno-20-4"></a>
+<a id="__codelineno-20-5" name="__codelineno-20-5" href="#__codelineno-20-5"></a><span class="c1"># 2. Restart browser on RasPi (to load new assets)</span>
+<a id="__codelineno-20-6" name="__codelineno-20-6" href="#__codelineno-20-6"></a>ssh<span class="w"> </span>-p<span class="w"> </span><span class="m">8910</span><span class="w"> </span>www-data@192.168.178.107<span class="w"> </span><span class="s1">&#39;./bin/restart-scoreboard.sh&#39;</span>
+<a id="__codelineno-20-7" name="__codelineno-20-7" href="#__codelineno-20-7"></a>
+<a id="__codelineno-20-8" name="__codelineno-20-8" href="#__codelineno-20-8"></a><span class="c1"># 3. Test</span>
+<a id="__codelineno-20-9" name="__codelineno-20-9" href="#__codelineno-20-9"></a>./bin/test-raspberry-pi.sh<span class="w"> </span>carambus_location_5101
 </code></pre></div>
 <hr />
 <h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">&para;</a></h2>
 <h3 id="ssh-connection-fails">SSH Connection Fails<a class="headerlink" href="#ssh-connection-fails" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a><span class="c1"># Problem: &quot;Connection refused&quot;</span>
-<a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a><span class="c1"># Solution: Enable SSH manually on RasPi</span>
-<a id="__codelineno-22-3" name="__codelineno-22-3" href="#__codelineno-22-3"></a><span class="c1"># 1. Connect monitor + keyboard to RasPi</span>
-<a id="__codelineno-22-4" name="__codelineno-22-4" href="#__codelineno-22-4"></a><span class="c1"># 2. sudo raspi-config</span>
-<a id="__codelineno-22-5" name="__codelineno-22-5" href="#__codelineno-22-5"></a><span class="c1"># 3. Interface Options → SSH → Enable</span>
-<a id="__codelineno-22-6" name="__codelineno-22-6" href="#__codelineno-22-6"></a>
-<a id="__codelineno-22-7" name="__codelineno-22-7" href="#__codelineno-22-7"></a><span class="c1"># Problem: &quot;Permission denied (publickey)&quot;</span>
-<a id="__codelineno-22-8" name="__codelineno-22-8" href="#__codelineno-22-8"></a><span class="c1"># Solution: Set up SSH keys again</span>
-<a id="__codelineno-22-9" name="__codelineno-22-9" href="#__codelineno-22-9"></a>./bin/setup-phillips-table-ssh.sh
+<div class="highlight"><pre><span></span><code><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a><span class="c1"># Problem: &quot;Connection refused&quot;</span>
+<a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a><span class="c1"># Solution: Enable SSH manually on RasPi</span>
+<a id="__codelineno-21-3" name="__codelineno-21-3" href="#__codelineno-21-3"></a><span class="c1"># 1. Connect monitor + keyboard to RasPi</span>
+<a id="__codelineno-21-4" name="__codelineno-21-4" href="#__codelineno-21-4"></a><span class="c1"># 2. sudo raspi-config</span>
+<a id="__codelineno-21-5" name="__codelineno-21-5" href="#__codelineno-21-5"></a><span class="c1"># 3. Interface Options → SSH → Enable</span>
+<a id="__codelineno-21-6" name="__codelineno-21-6" href="#__codelineno-21-6"></a>
+<a id="__codelineno-21-7" name="__codelineno-21-7" href="#__codelineno-21-7"></a><span class="c1"># Problem: &quot;Permission denied (publickey)&quot;</span>
+<a id="__codelineno-21-8" name="__codelineno-21-8" href="#__codelineno-21-8"></a><span class="c1"># Solution: Set up SSH keys again</span>
+<a id="__codelineno-21-9" name="__codelineno-21-9" href="#__codelineno-21-9"></a>./bin/setup-phillips-table-ssh.sh
 </code></pre></div>
 <h3 id="browser-wont-start">Browser Won't Start<a class="headerlink" href="#browser-wont-start" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a><span class="c1"># Problem: &quot;Display not available&quot;</span>
-<a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a><span class="c1"># Solution: Check X11 display</span>
-<a id="__codelineno-23-3" name="__codelineno-23-3" href="#__codelineno-23-3"></a>ssh<span class="w"> </span>-p<span class="w"> </span><span class="m">8910</span><span class="w"> </span>www-data@raspberrypi<span class="w"> </span><span class="s1">&#39;echo $DISPLAY&#39;</span>
-<a id="__codelineno-23-4" name="__codelineno-23-4" href="#__codelineno-23-4"></a><span class="c1"># Should be &quot;:0&quot;</span>
-<a id="__codelineno-23-5" name="__codelineno-23-5" href="#__codelineno-23-5"></a>
-<a id="__codelineno-23-6" name="__codelineno-23-6" href="#__codelineno-23-6"></a><span class="c1"># If not set:</span>
-<a id="__codelineno-23-7" name="__codelineno-23-7" href="#__codelineno-23-7"></a>ssh<span class="w"> </span>-p<span class="w"> </span><span class="m">8910</span><span class="w"> </span>www-data@raspberrypi<span class="w"> </span><span class="s1">&#39;export DISPLAY=:0 &amp;&amp; ./bin/start-scoreboard.sh&#39;</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a><span class="c1"># Problem: &quot;Display not available&quot;</span>
+<a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a><span class="c1"># Solution: Check X11 display</span>
+<a id="__codelineno-22-3" name="__codelineno-22-3" href="#__codelineno-22-3"></a>ssh<span class="w"> </span>-p<span class="w"> </span><span class="m">8910</span><span class="w"> </span>www-data@raspberrypi<span class="w"> </span><span class="s1">&#39;echo $DISPLAY&#39;</span>
+<a id="__codelineno-22-4" name="__codelineno-22-4" href="#__codelineno-22-4"></a><span class="c1"># Should be &quot;:0&quot;</span>
+<a id="__codelineno-22-5" name="__codelineno-22-5" href="#__codelineno-22-5"></a>
+<a id="__codelineno-22-6" name="__codelineno-22-6" href="#__codelineno-22-6"></a><span class="c1"># If not set:</span>
+<a id="__codelineno-22-7" name="__codelineno-22-7" href="#__codelineno-22-7"></a>ssh<span class="w"> </span>-p<span class="w"> </span><span class="m">8910</span><span class="w"> </span>www-data@raspberrypi<span class="w"> </span><span class="s1">&#39;export DISPLAY=:0 &amp;&amp; ./bin/start-scoreboard.sh&#39;</span>
 </code></pre></div>
 <h3 id="scoreboard-shows-old-version">Scoreboard Shows Old Version<a class="headerlink" href="#scoreboard-shows-old-version" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a><span class="c1"># Clean cache and restart browser</span>
-<a id="__codelineno-24-2" name="__codelineno-24-2" href="#__codelineno-24-2"></a>ssh<span class="w"> </span>-p<span class="w"> </span><span class="m">8910</span><span class="w"> </span>www-data@raspberrypi<span class="w"> </span><span class="s1">&#39;./bin/cleanup-chromium.sh &amp;&amp; ./bin/restart-scoreboard.sh&#39;</span>
-<a id="__codelineno-24-3" name="__codelineno-24-3" href="#__codelineno-24-3"></a>
-<a id="__codelineno-24-4" name="__codelineno-24-4" href="#__codelineno-24-4"></a><span class="c1"># If that doesn&#39;t help: Hard reload in browser</span>
-<a id="__codelineno-24-5" name="__codelineno-24-5" href="#__codelineno-24-5"></a><span class="c1"># Ctrl+Shift+R or systemctl restart</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a><span class="c1"># Clean cache and restart browser</span>
+<a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a>ssh<span class="w"> </span>-p<span class="w"> </span><span class="m">8910</span><span class="w"> </span>www-data@raspberrypi<span class="w"> </span><span class="s1">&#39;./bin/cleanup-chromium.sh &amp;&amp; ./bin/restart-scoreboard.sh&#39;</span>
+<a id="__codelineno-23-3" name="__codelineno-23-3" href="#__codelineno-23-3"></a>
+<a id="__codelineno-23-4" name="__codelineno-23-4" href="#__codelineno-23-4"></a><span class="c1"># If that doesn&#39;t help: Hard reload in browser</span>
+<a id="__codelineno-23-5" name="__codelineno-23-5" href="#__codelineno-23-5"></a><span class="c1"># Ctrl+Shift+R or systemctl restart</span>
 </code></pre></div>
 <hr />
 <h2 id="best-practices">Best Practices<a class="headerlink" href="#best-practices" title="Permanent link">&para;</a></h2>

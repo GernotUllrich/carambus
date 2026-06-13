@@ -3553,9 +3553,9 @@ im <code>Authorization</code>-Header.</p>
 <p>Verifiziere die Anbindung vor dem ersten echten Turnier:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nv">SERVICE_ACCOUNT_PASSWORD</span><span class="o">=</span><span class="s2">&quot;&lt;password&gt;&quot;</span><span class="w"> </span>rake<span class="w"> </span>external_tournament:smoke_test<span class="o">[</span>NBV<span class="o">]</span>
 </code></pre></div>
-<p>Erfolgreicher Output zeigt 5 Schritte mit <code>✓</code> (Login → Tournament-Lookup →
-Seeding → Round-Start → Round-Result). Bei Fehler siehe Abschnitt
-"Was läuft schief?" weiter unten.</p>
+<p>Erfolgreicher Output zeigt 6 Schritte mit <code>✓</code> (Login → Tournament-Lookup →
+Seeding → Round-Start → Round-Result → Player-Reconcile). Bei Fehler siehe
+Abschnitt "Was läuft schief?" weiter unten.</p>
 <h2 id="deployment-topologie">Deployment-Topologie<a class="headerlink" href="#deployment-topologie" title="Permanent link">&para;</a></h2>
 <p>Die Bridge funktioniert in drei Topologien — gleich aus App-Sicht, nur die
 Base-URL ändert sich:</p>

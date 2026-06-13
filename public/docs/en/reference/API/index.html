@@ -2988,6 +2988,15 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#planned-jsonapi-contract-not-yet-implemented" class="md-nav__link">
+    <span class="md-ellipsis">
+      Planned JSON:API Contract (not yet implemented)
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#response-format" class="md-nav__link">
     <span class="md-ellipsis">
       Response Format
@@ -3006,13 +3015,13 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#core-endpoints" class="md-nav__link">
+  <a href="#core-endpoints-planned" class="md-nav__link">
     <span class="md-ellipsis">
-      Core Endpoints
+      Core Endpoints (Planned)
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Core Endpoints">
+    <nav class="md-nav" aria-label="Core Endpoints (Planned)">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -3025,9 +3034,9 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#tournament-actions" class="md-nav__link">
+  <a href="#tournament-actions-implemented-htmlturbo" class="md-nav__link">
     <span class="md-ellipsis">
-      Tournament Actions
+      Tournament Actions (implemented — HTML/Turbo)
     </span>
   </a>
   
@@ -3117,19 +3126,28 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#data-synchronization-api" class="md-nav__link">
+  <a href="#data-synchronization" class="md-nav__link">
     <span class="md-ellipsis">
-      Data Synchronization API
+      Data Synchronization
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Data Synchronization API">
+    <nav class="md-nav" aria-label="Data Synchronization">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#external-data-sources" class="md-nav__link">
+  <a href="#scraper-services" class="md-nav__link">
     <span class="md-ellipsis">
-      External Data Sources
+      Scraper Services
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scheduled-sync-tasks" class="md-nav__link">
+    <span class="md-ellipsis">
+      Scheduled Sync Tasks
     </span>
   </a>
   
@@ -3679,6 +3697,15 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#planned-jsonapi-contract-not-yet-implemented" class="md-nav__link">
+    <span class="md-ellipsis">
+      Planned JSON:API Contract (not yet implemented)
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#response-format" class="md-nav__link">
     <span class="md-ellipsis">
       Response Format
@@ -3697,13 +3724,13 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#core-endpoints" class="md-nav__link">
+  <a href="#core-endpoints-planned" class="md-nav__link">
     <span class="md-ellipsis">
-      Core Endpoints
+      Core Endpoints (Planned)
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Core Endpoints">
+    <nav class="md-nav" aria-label="Core Endpoints (Planned)">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -3716,9 +3743,9 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#tournament-actions" class="md-nav__link">
+  <a href="#tournament-actions-implemented-htmlturbo" class="md-nav__link">
     <span class="md-ellipsis">
-      Tournament Actions
+      Tournament Actions (implemented — HTML/Turbo)
     </span>
   </a>
   
@@ -3808,19 +3835,28 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#data-synchronization-api" class="md-nav__link">
+  <a href="#data-synchronization" class="md-nav__link">
     <span class="md-ellipsis">
-      Data Synchronization API
+      Data Synchronization
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Data Synchronization API">
+    <nav class="md-nav" aria-label="Data Synchronization">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#external-data-sources" class="md-nav__link">
+  <a href="#scraper-services" class="md-nav__link">
     <span class="md-ellipsis">
-      External Data Sources
+      Scraper Services
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scheduled-sync-tasks" class="md-nav__link">
+    <span class="md-ellipsis">
+      Scheduled Sync Tasks
     </span>
   </a>
   
@@ -4066,12 +4102,16 @@
 <p>JWT lifetime: <strong>90 days</strong> (long-lived; via D-14-G7 +
 <code>Carambus.config.jwt_expiration_days</code>).</p>
 <h3 id="endpoints">Endpoints<a class="headerlink" href="#endpoints" title="Permanent link">&para;</a></h3>
+<p>All endpoints are mounted under <code>/api/external_tournament/</code> and require a Bearer
+JWT. The bridge has grown well beyond the original read-only trio; the table
+below reflects the routes in <code>config/routes.rb</code> and the actions in
+<code>app/controllers/api/external_tournaments_controller.rb</code>.</p>
+<p><strong>Read / discovery (GET):</strong></p>
 <table>
 <thead>
 <tr>
 <th>Method</th>
 <th>URL</th>
-<th>Auth</th>
 <th>Purpose</th>
 </tr>
 </thead>
@@ -4079,20 +4119,94 @@
 <tr>
 <td><code>GET</code></td>
 <td><code>/api/external_tournament/seeding?tournament_cc_id=X&amp;region=R</code></td>
-<td>Bearer</td>
 <td>Seeding list (<code>carambus.seeding/v1</code>)</td>
-</tr>
-<tr>
-<td><code>POST</code></td>
-<td><code>/api/external_tournament/round_start</code></td>
-<td>Bearer</td>
-<td>Table pairings (<code>carambus.round_start/v1</code> → Game + GameParticipation + TableMonitor)</td>
 </tr>
 <tr>
 <td><code>GET</code></td>
 <td><code>/api/external_tournament/round_result?tournament_cc_id=X&amp;round_no=N&amp;region=R</code></td>
-<td>Bearer</td>
 <td>Results per round (<code>carambus.round_result/v1</code>)</td>
+</tr>
+<tr>
+<td><code>GET</code></td>
+<td><code>/api/external_tournament/tables?location_cc_id=X&amp;region=R</code></td>
+<td>Tables of a location (<code>carambus.tables/v1</code>; Plan 15-06)</td>
+</tr>
+<tr>
+<td><code>GET</code></td>
+<td><code>/api/external_tournament/clubs</code></td>
+<td>Clubs of the region for the player picker (Plan 18-01)</td>
+</tr>
+<tr>
+<td><code>GET</code></td>
+<td><code>/api/external_tournament/club_players</code></td>
+<td>Players eligible (active) for a club in the running season, with <code>cc_id</code> + <code>dbu_nr</code> (Plan 18-01)</td>
+</tr>
+<tr>
+<td><code>GET</code></td>
+<td><code>/api/external_tournament/player_rankings</code></td>
+<td>Players sorted by discipline ranking for app seeding lists (Plan 19-01)</td>
+</tr>
+<tr>
+<td><code>GET</code></td>
+<td><code>/api/external_tournament/disciplines</code></td>
+<td>Region-relevant disciplines + TournamentPlan matrix (<code>carambus.disciplines/v1</code>; Plan 20-01)</td>
+</tr>
+<tr>
+<td><code>GET</code></td>
+<td><code>/api/external_tournament/categories</code></td>
+<td>Player/age classes, genders, categories (<code>carambus.categories/v1</code>; Plan 20-02)</td>
+</tr>
+<tr>
+<td><code>GET</code></td>
+<td><code>/api/external_tournament/registration_lists</code></td>
+<td>Meldelisten discovery: deadline/status/category/discipline (<code>carambus.registration_lists/v1</code>; Plan 21-05)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Write / lifecycle (POST):</strong></p>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>URL</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>POST</code></td>
+<td><code>/api/external_tournament/round_start</code></td>
+<td>Table pairings (<code>carambus.round_start/v1</code>; accepts <code>location</code> + <code>table_name</code>, Plan 15-06) → Game + GameParticipation + TableMonitor</td>
+</tr>
+<tr>
+<td><code>POST</code></td>
+<td><code>/api/external_tournament/tournament</code></td>
+<td>Create a local tournament + bind TournamentMonitor (Plan 17-02)</td>
+</tr>
+<tr>
+<td><code>POST</code></td>
+<td><code>/api/external_tournament/lock_table</code></td>
+<td>App-driven table lock via TournamentMonitor binding (Plan 17-02)</td>
+</tr>
+<tr>
+<td><code>POST</code></td>
+<td><code>/api/external_tournament/start_game</code></td>
+<td>Start a game with per-game/per-player disciplines; creates Game + warmup (Plan 17-03)</td>
+</tr>
+<tr>
+<td><code>POST</code></td>
+<td><code>/api/external_tournament/acknowledge_result</code></td>
+<td>Pull the captured result + release the table (result hold + pull, Plan 17-04)</td>
+</tr>
+<tr>
+<td><code>POST</code></td>
+<td><code>/api/external_tournament/end_tournament</code></td>
+<td>End the tournament: release all tables + close the TournamentMonitor (Plan 17-05)</td>
+</tr>
+<tr>
+<td><code>POST</code></td>
+<td><code>/api/external_tournament/player_reconcile</code></td>
+<td>Reconcile an app participant list against Carambus-local players (returns <code>dbu_nr</code>, Plan 17-06)</td>
 </tr>
 </tbody>
 </table>
@@ -4136,8 +4250,36 @@
 <div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>Development: http://localhost:3000
 <a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>Production: https://carambus.de
 </code></pre></div>
+<h2 id="planned-jsonapi-contract-not-yet-implemented">Planned JSON:API Contract (not yet implemented)<a class="headerlink" href="#planned-jsonapi-contract-not-yet-implemented" title="Permanent link">&para;</a></h2>
+<blockquote>
+<p><strong>⚠️ Planned / future design — NOT yet implemented.</strong></p>
+<p>The sections below (<strong>Response Format</strong>, <strong>Error Responses</strong>, <strong>Core
+Endpoints</strong> for Tournaments / Players / Leagues / Parties / Table Monitors,
+the <strong>Data Synchronization API</strong>, <strong>Rate Limiting</strong>, <strong>Pagination metadata</strong>,
+and the <strong>SDK</strong> examples) describe an <em>aspirational</em> JSON:API-style contract.
+They are <strong>not</strong> backed by live routes today.</p>
+<p><strong>What actually exists today:</strong>
+- The public tournament resource is <strong>server-rendered HTML / Turbo</strong>, not a
+  JSON:API endpoint. <code>/tournaments</code> (index) and <code>/tournaments/:id</code> (show)
+  render HTML/Turbo Streams. Tournament lifecycle actions are custom member
+  routes (<code>select_modus</code>, <code>finalize_modus</code>, <code>start</code>, <code>reset</code>,
+  <code>define_participants</code>, <code>add_team</code>, <code>placement</code>, …) that also operate on
+  HTML/Turbo, <strong>not</strong> JSON envelopes.
+- There is <strong>no</strong> <code>POST/PATCH/DELETE /tournaments</code> JSON:API, <strong>no</strong>
+  <code>GET /api/tournaments</code>, and <strong>no</strong> JSON list/get endpoints for players or
+  parties.
+- The only implemented JSON APIs under <code>/api</code> are: AI search
+  (<code>POST /api/ai_search</code>, <code>POST /api/ai_docs</code>), autocomplete
+  (<code>GET /api/players/autocomplete</code>, <code>GET /api/locations/autocomplete</code>), and
+  the <strong>External Tournament Bridge</strong> (devise-JWT) documented above.</p>
+<p>Treat everything in this "Planned JSON:API Contract" block as a design
+sketch, not a working API.</p>
+</blockquote>
 <h2 id="response-format">Response Format<a class="headerlink" href="#response-format" title="Permanent link">&para;</a></h2>
-<p>All API responses are in JSON format:</p>
+<blockquote>
+<p>Planned / future design — see the note above.</p>
+</blockquote>
+<p>In the planned design, API responses would be in JSON format:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="p">{</span>
 <a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">  </span><span class="nt">&quot;data&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">    </span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
@@ -4169,7 +4311,13 @@
 <a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="w">  </span><span class="p">}</span>
 <a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="p">}</span>
 </code></pre></div>
-<h2 id="core-endpoints">Core Endpoints<a class="headerlink" href="#core-endpoints" title="Permanent link">&para;</a></h2>
+<h2 id="core-endpoints-planned">Core Endpoints (Planned)<a class="headerlink" href="#core-endpoints-planned" title="Permanent link">&para;</a></h2>
+<blockquote>
+<p><strong>⚠️ Planned / future design — NOT yet implemented.</strong> See the note in
+"Planned JSON:API Contract" above. Today <code>/tournaments</code> and
+<code>/tournaments/:id</code> render HTML/Turbo, and there is no JSON CRUD for
+tournaments, players, or parties.</p>
+</blockquote>
 <h3 id="tournaments">Tournaments<a class="headerlink" href="#tournaments" title="Permanent link">&para;</a></h3>
 <h4 id="list-tournaments">List Tournaments<a class="headerlink" href="#list-tournaments" title="Permanent link">&para;</a></h4>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="err">GET /tournaments</span>
@@ -4267,16 +4415,24 @@
 <h4 id="delete-tournament">Delete Tournament<a class="headerlink" href="#delete-tournament" title="Permanent link">&para;</a></h4>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="err">DELETE /tournaments/{id}</span>
 </code></pre></div>
-<h3 id="tournament-actions">Tournament Actions<a class="headerlink" href="#tournament-actions" title="Permanent link">&para;</a></h3>
+<h3 id="tournament-actions-implemented-htmlturbo">Tournament Actions (implemented — HTML/Turbo)<a class="headerlink" href="#tournament-actions-implemented-htmlturbo" title="Permanent link">&para;</a></h3>
+<blockquote>
+<p>These member routes <strong>do</strong> exist on <code>resources :tournaments</code>. They are
+HTML/Turbo actions (redirects / Turbo Streams), not JSON:API endpoints.</p>
+</blockquote>
 <h4 id="start-tournament">Start Tournament<a class="headerlink" href="#start-tournament" title="Permanent link">&para;</a></h4>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="err">POST /tournaments/{id}/start</span>
 </code></pre></div>
 <h4 id="reset-tournament">Reset Tournament<a class="headerlink" href="#reset-tournament" title="Permanent link">&para;</a></h4>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="err">POST /tournaments/{id}/reset</span>
 </code></pre></div>
-<h4 id="generate-game-plan">Generate Game Plan<a class="headerlink" href="#generate-game-plan" title="Permanent link">&para;</a></h4>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="err">POST /tournaments/{id}/generate_game_plan</span>
+<h4 id="mode-game-plan-selection">Mode / Game-Plan Selection<a class="headerlink" href="#mode-game-plan-selection" title="Permanent link">&para;</a></h4>
+<p>There is <strong>no</strong> <code>generate_game_plan</code> action. The game plan (Turnierplan /
+modus) is chosen via these real member routes:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="err">GET  /tournaments/{id}/finalize_modus   # show proposed plan(s) + grouping</span>
+<a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a><span class="err">POST /tournaments/{id}/select_modus     # apply a chosen tournament_plan_id</span>
 </code></pre></div>
+<p><code>POST /tournaments/{id}/recalculate_groups</code> re-runs the grouping algorithm.</p>
 <h3 id="players">Players<a class="headerlink" href="#players" title="Permanent link">&para;</a></h3>
 <h4 id="list-players">List Players<a class="headerlink" href="#list-players" title="Permanent link">&para;</a></h4>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="err">GET /players</span>
@@ -4382,60 +4538,55 @@
 <a id="__codelineno-28-17" name="__codelineno-28-17" href="#__codelineno-28-17"></a><span class="w">  </span><span class="p">}</span>
 <a id="__codelineno-28-18" name="__codelineno-28-18" href="#__codelineno-28-18"></a><span class="p">}</span>
 </code></pre></div></p>
-<h4 id="update-table-monitor">Update Table Monitor<a class="headerlink" href="#update-table-monitor" title="Permanent link">&para;</a></h4>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-29-1" name="__codelineno-29-1" href="#__codelineno-29-1"></a><span class="err">PATCH /table_monitors/{id}</span>
+<h4 id="set-balls">Set Balls<a class="headerlink" href="#set-balls" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-29-1" name="__codelineno-29-1" href="#__codelineno-29-1"></a><span class="err">POST /table_monitors/{id}/set_balls</span>
 </code></pre></div>
-<p><strong>Request Body:</strong>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-30-1" name="__codelineno-30-1" href="#__codelineno-30-1"></a><span class="p">{</span>
-<a id="__codelineno-30-2" name="__codelineno-30-2" href="#__codelineno-30-2"></a><span class="w">  </span><span class="nt">&quot;table_monitor&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-30-3" name="__codelineno-30-3" href="#__codelineno-30-3"></a><span class="w">    </span><span class="nt">&quot;balls_a&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">16</span><span class="p">,</span>
-<a id="__codelineno-30-4" name="__codelineno-30-4" href="#__codelineno-30-4"></a><span class="w">    </span><span class="nt">&quot;balls_b&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">12</span>
-<a id="__codelineno-30-5" name="__codelineno-30-5" href="#__codelineno-30-5"></a><span class="w">  </span><span class="p">}</span>
-<a id="__codelineno-30-6" name="__codelineno-30-6" href="#__codelineno-30-6"></a><span class="p">}</span>
-</code></pre></div></p>
+<p>Sets the ball count for the active player. The score is mutated through this
+member action (and the increment/decrement actions below), not through a
+<code>PATCH /table_monitors/{id}</code> update.</p>
 <h3 id="table-monitor-actions">Table Monitor Actions<a class="headerlink" href="#table-monitor-actions" title="Permanent link">&para;</a></h3>
 <h4 id="add-points">Add Points<a class="headerlink" href="#add-points" title="Permanent link">&para;</a></h4>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-31-1" name="__codelineno-31-1" href="#__codelineno-31-1"></a><span class="err">POST /table_monitors/{id}/add_one</span>
-<a id="__codelineno-31-2" name="__codelineno-31-2" href="#__codelineno-31-2"></a><span class="err">POST /table_monitors/{id}/add_ten</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-30-1" name="__codelineno-30-1" href="#__codelineno-30-1"></a><span class="err">POST /table_monitors/{id}/add_one</span>
+<a id="__codelineno-30-2" name="__codelineno-30-2" href="#__codelineno-30-2"></a><span class="err">POST /table_monitors/{id}/add_ten</span>
 </code></pre></div>
 <h4 id="subtract-points">Subtract Points<a class="headerlink" href="#subtract-points" title="Permanent link">&para;</a></h4>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-32-1" name="__codelineno-32-1" href="#__codelineno-32-1"></a><span class="err">POST /table_monitors/{id}/minus_one</span>
-<a id="__codelineno-32-2" name="__codelineno-32-2" href="#__codelineno-32-2"></a><span class="err">POST /table_monitors/{id}/minus_ten</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-31-1" name="__codelineno-31-1" href="#__codelineno-31-1"></a><span class="err">POST /table_monitors/{id}/minus_one</span>
+<a id="__codelineno-31-2" name="__codelineno-31-2" href="#__codelineno-31-2"></a><span class="err">POST /table_monitors/{id}/minus_ten</span>
 </code></pre></div>
 <h4 id="next-step">Next Step<a class="headerlink" href="#next-step" title="Permanent link">&para;</a></h4>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-33-1" name="__codelineno-33-1" href="#__codelineno-33-1"></a><span class="err">POST /table_monitors/{id}/next_step</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-32-1" name="__codelineno-32-1" href="#__codelineno-32-1"></a><span class="err">POST /table_monitors/{id}/next_step</span>
 </code></pre></div>
 <h4 id="start-game">Start Game<a class="headerlink" href="#start-game" title="Permanent link">&para;</a></h4>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-34-1" name="__codelineno-34-1" href="#__codelineno-34-1"></a><span class="err">POST /table_monitors/{id}/start_game</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-33-1" name="__codelineno-33-1" href="#__codelineno-33-1"></a><span class="err">POST /table_monitors/{id}/start_game</span>
 </code></pre></div>
 <h4 id="evaluate-result">Evaluate Result<a class="headerlink" href="#evaluate-result" title="Permanent link">&para;</a></h4>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-35-1" name="__codelineno-35-1" href="#__codelineno-35-1"></a><span class="err">POST /table_monitors/{id}/evaluate_result</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-34-1" name="__codelineno-34-1" href="#__codelineno-34-1"></a><span class="err">POST /table_monitors/{id}/evaluate_result</span>
 </code></pre></div>
 <h2 id="real-time-api">Real-time API<a class="headerlink" href="#real-time-api" title="Permanent link">&para;</a></h2>
 <h3 id="action-cable-channels">Action Cable Channels<a class="headerlink" href="#action-cable-channels" title="Permanent link">&para;</a></h3>
 <h4 id="table-monitor-channel">Table Monitor Channel<a class="headerlink" href="#table-monitor-channel" title="Permanent link">&para;</a></h4>
 <p>Subscribe to real-time table monitor updates:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-36-1" name="__codelineno-36-1" href="#__codelineno-36-1"></a><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">createConsumer</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s2">&quot;@rails/actioncable&quot;</span>
-<a id="__codelineno-36-2" name="__codelineno-36-2" href="#__codelineno-36-2"></a>
-<a id="__codelineno-36-3" name="__codelineno-36-3" href="#__codelineno-36-3"></a><span class="kd">const</span><span class="w"> </span><span class="nx">consumer</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">createConsumer</span><span class="p">()</span>
-<a id="__codelineno-36-4" name="__codelineno-36-4" href="#__codelineno-36-4"></a><span class="kd">const</span><span class="w"> </span><span class="nx">subscription</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">consumer</span><span class="p">.</span><span class="nx">subscriptions</span><span class="p">.</span><span class="nx">create</span><span class="p">(</span>
-<a id="__codelineno-36-5" name="__codelineno-36-5" href="#__codelineno-36-5"></a><span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="nx">channel</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;TableMonitorChannel&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">table_id</span><span class="o">:</span><span class="w"> </span><span class="mf">1</span><span class="w"> </span><span class="p">},</span>
-<a id="__codelineno-36-6" name="__codelineno-36-6" href="#__codelineno-36-6"></a><span class="w">  </span><span class="p">{</span>
-<a id="__codelineno-36-7" name="__codelineno-36-7" href="#__codelineno-36-7"></a><span class="w">    </span><span class="nx">connected</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-36-8" name="__codelineno-36-8" href="#__codelineno-36-8"></a><span class="w">      </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;Connected to table monitor&quot;</span><span class="p">)</span>
-<a id="__codelineno-36-9" name="__codelineno-36-9" href="#__codelineno-36-9"></a><span class="w">    </span><span class="p">},</span>
-<a id="__codelineno-36-10" name="__codelineno-36-10" href="#__codelineno-36-10"></a>
-<a id="__codelineno-36-11" name="__codelineno-36-11" href="#__codelineno-36-11"></a><span class="w">    </span><span class="nx">disconnected</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-36-12" name="__codelineno-36-12" href="#__codelineno-36-12"></a><span class="w">      </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;Disconnected from table monitor&quot;</span><span class="p">)</span>
-<a id="__codelineno-36-13" name="__codelineno-36-13" href="#__codelineno-36-13"></a><span class="w">    </span><span class="p">},</span>
-<a id="__codelineno-36-14" name="__codelineno-36-14" href="#__codelineno-36-14"></a>
-<a id="__codelineno-36-15" name="__codelineno-36-15" href="#__codelineno-36-15"></a><span class="w">    </span><span class="nx">received</span><span class="p">(</span><span class="nx">data</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-36-16" name="__codelineno-36-16" href="#__codelineno-36-16"></a><span class="w">      </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;Received update:&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">data</span><span class="p">)</span>
-<a id="__codelineno-36-17" name="__codelineno-36-17" href="#__codelineno-36-17"></a><span class="w">      </span><span class="c1">// Update UI with new data</span>
-<a id="__codelineno-36-18" name="__codelineno-36-18" href="#__codelineno-36-18"></a><span class="w">      </span><span class="nx">updateTableDisplay</span><span class="p">(</span><span class="nx">data</span><span class="p">)</span>
-<a id="__codelineno-36-19" name="__codelineno-36-19" href="#__codelineno-36-19"></a><span class="w">    </span><span class="p">}</span>
-<a id="__codelineno-36-20" name="__codelineno-36-20" href="#__codelineno-36-20"></a><span class="w">  </span><span class="p">}</span>
-<a id="__codelineno-36-21" name="__codelineno-36-21" href="#__codelineno-36-21"></a><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-35-1" name="__codelineno-35-1" href="#__codelineno-35-1"></a><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">createConsumer</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s2">&quot;@rails/actioncable&quot;</span>
+<a id="__codelineno-35-2" name="__codelineno-35-2" href="#__codelineno-35-2"></a>
+<a id="__codelineno-35-3" name="__codelineno-35-3" href="#__codelineno-35-3"></a><span class="kd">const</span><span class="w"> </span><span class="nx">consumer</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">createConsumer</span><span class="p">()</span>
+<a id="__codelineno-35-4" name="__codelineno-35-4" href="#__codelineno-35-4"></a><span class="kd">const</span><span class="w"> </span><span class="nx">subscription</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">consumer</span><span class="p">.</span><span class="nx">subscriptions</span><span class="p">.</span><span class="nx">create</span><span class="p">(</span>
+<a id="__codelineno-35-5" name="__codelineno-35-5" href="#__codelineno-35-5"></a><span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="nx">channel</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;TableMonitorChannel&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">table_id</span><span class="o">:</span><span class="w"> </span><span class="mf">1</span><span class="w"> </span><span class="p">},</span>
+<a id="__codelineno-35-6" name="__codelineno-35-6" href="#__codelineno-35-6"></a><span class="w">  </span><span class="p">{</span>
+<a id="__codelineno-35-7" name="__codelineno-35-7" href="#__codelineno-35-7"></a><span class="w">    </span><span class="nx">connected</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-35-8" name="__codelineno-35-8" href="#__codelineno-35-8"></a><span class="w">      </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;Connected to table monitor&quot;</span><span class="p">)</span>
+<a id="__codelineno-35-9" name="__codelineno-35-9" href="#__codelineno-35-9"></a><span class="w">    </span><span class="p">},</span>
+<a id="__codelineno-35-10" name="__codelineno-35-10" href="#__codelineno-35-10"></a>
+<a id="__codelineno-35-11" name="__codelineno-35-11" href="#__codelineno-35-11"></a><span class="w">    </span><span class="nx">disconnected</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-35-12" name="__codelineno-35-12" href="#__codelineno-35-12"></a><span class="w">      </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;Disconnected from table monitor&quot;</span><span class="p">)</span>
+<a id="__codelineno-35-13" name="__codelineno-35-13" href="#__codelineno-35-13"></a><span class="w">    </span><span class="p">},</span>
+<a id="__codelineno-35-14" name="__codelineno-35-14" href="#__codelineno-35-14"></a>
+<a id="__codelineno-35-15" name="__codelineno-35-15" href="#__codelineno-35-15"></a><span class="w">    </span><span class="nx">received</span><span class="p">(</span><span class="nx">data</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-35-16" name="__codelineno-35-16" href="#__codelineno-35-16"></a><span class="w">      </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;Received update:&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">data</span><span class="p">)</span>
+<a id="__codelineno-35-17" name="__codelineno-35-17" href="#__codelineno-35-17"></a><span class="w">      </span><span class="c1">// Update UI with new data</span>
+<a id="__codelineno-35-18" name="__codelineno-35-18" href="#__codelineno-35-18"></a><span class="w">      </span><span class="nx">updateTableDisplay</span><span class="p">(</span><span class="nx">data</span><span class="p">)</span>
+<a id="__codelineno-35-19" name="__codelineno-35-19" href="#__codelineno-35-19"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-35-20" name="__codelineno-35-20" href="#__codelineno-35-20"></a><span class="w">  </span><span class="p">}</span>
+<a id="__codelineno-35-21" name="__codelineno-35-21" href="#__codelineno-35-21"></a><span class="p">)</span>
 </code></pre></div>
 <p><strong>Channel Events:</strong>
 - <code>score_update</code>: Score changes
@@ -4444,59 +4595,72 @@
 - <code>status_change</code>: Table status changed</p>
 <h4 id="scoreboard-channel">Scoreboard Channel<a class="headerlink" href="#scoreboard-channel" title="Permanent link">&para;</a></h4>
 <p>Subscribe to scoreboard updates:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-37-1" name="__codelineno-37-1" href="#__codelineno-37-1"></a><span class="kd">const</span><span class="w"> </span><span class="nx">scoreboardSubscription</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">consumer</span><span class="p">.</span><span class="nx">subscriptions</span><span class="p">.</span><span class="nx">create</span><span class="p">(</span>
-<a id="__codelineno-37-2" name="__codelineno-37-2" href="#__codelineno-37-2"></a><span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="nx">channel</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;ScoreboardChannel&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">location_id</span><span class="o">:</span><span class="w"> </span><span class="mf">1</span><span class="w"> </span><span class="p">},</span>
-<a id="__codelineno-37-3" name="__codelineno-37-3" href="#__codelineno-37-3"></a><span class="w">  </span><span class="p">{</span>
-<a id="__codelineno-37-4" name="__codelineno-37-4" href="#__codelineno-37-4"></a><span class="w">    </span><span class="nx">received</span><span class="p">(</span><span class="nx">data</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-37-5" name="__codelineno-37-5" href="#__codelineno-37-5"></a><span class="w">      </span><span class="nx">updateScoreboard</span><span class="p">(</span><span class="nx">data</span><span class="p">)</span>
-<a id="__codelineno-37-6" name="__codelineno-37-6" href="#__codelineno-37-6"></a><span class="w">    </span><span class="p">}</span>
-<a id="__codelineno-37-7" name="__codelineno-37-7" href="#__codelineno-37-7"></a><span class="w">  </span><span class="p">}</span>
-<a id="__codelineno-37-8" name="__codelineno-37-8" href="#__codelineno-37-8"></a><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-36-1" name="__codelineno-36-1" href="#__codelineno-36-1"></a><span class="kd">const</span><span class="w"> </span><span class="nx">scoreboardSubscription</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">consumer</span><span class="p">.</span><span class="nx">subscriptions</span><span class="p">.</span><span class="nx">create</span><span class="p">(</span>
+<a id="__codelineno-36-2" name="__codelineno-36-2" href="#__codelineno-36-2"></a><span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="nx">channel</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;ScoreboardChannel&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">location_id</span><span class="o">:</span><span class="w"> </span><span class="mf">1</span><span class="w"> </span><span class="p">},</span>
+<a id="__codelineno-36-3" name="__codelineno-36-3" href="#__codelineno-36-3"></a><span class="w">  </span><span class="p">{</span>
+<a id="__codelineno-36-4" name="__codelineno-36-4" href="#__codelineno-36-4"></a><span class="w">    </span><span class="nx">received</span><span class="p">(</span><span class="nx">data</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-36-5" name="__codelineno-36-5" href="#__codelineno-36-5"></a><span class="w">      </span><span class="nx">updateScoreboard</span><span class="p">(</span><span class="nx">data</span><span class="p">)</span>
+<a id="__codelineno-36-6" name="__codelineno-36-6" href="#__codelineno-36-6"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-36-7" name="__codelineno-36-7" href="#__codelineno-36-7"></a><span class="w">  </span><span class="p">}</span>
+<a id="__codelineno-36-8" name="__codelineno-36-8" href="#__codelineno-36-8"></a><span class="p">)</span>
 </code></pre></div>
 <h3 id="websocket-message-format">WebSocket Message Format<a class="headerlink" href="#websocket-message-format" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-38-1" name="__codelineno-38-1" href="#__codelineno-38-1"></a><span class="p">{</span>
-<a id="__codelineno-38-2" name="__codelineno-38-2" href="#__codelineno-38-2"></a><span class="w">  </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;score_update&quot;</span><span class="p">,</span>
-<a id="__codelineno-38-3" name="__codelineno-38-3" href="#__codelineno-38-3"></a><span class="w">  </span><span class="nt">&quot;table_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
-<a id="__codelineno-38-4" name="__codelineno-38-4" href="#__codelineno-38-4"></a><span class="w">  </span><span class="nt">&quot;data&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-38-5" name="__codelineno-38-5" href="#__codelineno-38-5"></a><span class="w">    </span><span class="nt">&quot;player_a&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;John Doe&quot;</span><span class="p">,</span>
-<a id="__codelineno-38-6" name="__codelineno-38-6" href="#__codelineno-38-6"></a><span class="w">    </span><span class="nt">&quot;player_b&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Jane Smith&quot;</span><span class="p">,</span>
-<a id="__codelineno-38-7" name="__codelineno-38-7" href="#__codelineno-38-7"></a><span class="w">    </span><span class="nt">&quot;score_a&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">16</span><span class="p">,</span>
-<a id="__codelineno-38-8" name="__codelineno-38-8" href="#__codelineno-38-8"></a><span class="w">    </span><span class="nt">&quot;score_b&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">12</span><span class="p">,</span>
-<a id="__codelineno-38-9" name="__codelineno-38-9" href="#__codelineno-38-9"></a><span class="w">    </span><span class="nt">&quot;balls_goal&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">30</span><span class="p">,</span>
-<a id="__codelineno-38-10" name="__codelineno-38-10" href="#__codelineno-38-10"></a><span class="w">    </span><span class="nt">&quot;status&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;in_progress&quot;</span>
-<a id="__codelineno-38-11" name="__codelineno-38-11" href="#__codelineno-38-11"></a><span class="w">  </span><span class="p">},</span>
-<a id="__codelineno-38-12" name="__codelineno-38-12" href="#__codelineno-38-12"></a><span class="w">  </span><span class="nt">&quot;timestamp&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2024-01-15T14:30:00Z&quot;</span>
-<a id="__codelineno-38-13" name="__codelineno-38-13" href="#__codelineno-38-13"></a><span class="p">}</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-37-1" name="__codelineno-37-1" href="#__codelineno-37-1"></a><span class="p">{</span>
+<a id="__codelineno-37-2" name="__codelineno-37-2" href="#__codelineno-37-2"></a><span class="w">  </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;score_update&quot;</span><span class="p">,</span>
+<a id="__codelineno-37-3" name="__codelineno-37-3" href="#__codelineno-37-3"></a><span class="w">  </span><span class="nt">&quot;table_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
+<a id="__codelineno-37-4" name="__codelineno-37-4" href="#__codelineno-37-4"></a><span class="w">  </span><span class="nt">&quot;data&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-37-5" name="__codelineno-37-5" href="#__codelineno-37-5"></a><span class="w">    </span><span class="nt">&quot;player_a&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;John Doe&quot;</span><span class="p">,</span>
+<a id="__codelineno-37-6" name="__codelineno-37-6" href="#__codelineno-37-6"></a><span class="w">    </span><span class="nt">&quot;player_b&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Jane Smith&quot;</span><span class="p">,</span>
+<a id="__codelineno-37-7" name="__codelineno-37-7" href="#__codelineno-37-7"></a><span class="w">    </span><span class="nt">&quot;score_a&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">16</span><span class="p">,</span>
+<a id="__codelineno-37-8" name="__codelineno-37-8" href="#__codelineno-37-8"></a><span class="w">    </span><span class="nt">&quot;score_b&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">12</span><span class="p">,</span>
+<a id="__codelineno-37-9" name="__codelineno-37-9" href="#__codelineno-37-9"></a><span class="w">    </span><span class="nt">&quot;balls_goal&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">30</span><span class="p">,</span>
+<a id="__codelineno-37-10" name="__codelineno-37-10" href="#__codelineno-37-10"></a><span class="w">    </span><span class="nt">&quot;status&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;in_progress&quot;</span>
+<a id="__codelineno-37-11" name="__codelineno-37-11" href="#__codelineno-37-11"></a><span class="w">  </span><span class="p">},</span>
+<a id="__codelineno-37-12" name="__codelineno-37-12" href="#__codelineno-37-12"></a><span class="w">  </span><span class="nt">&quot;timestamp&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2024-01-15T14:30:00Z&quot;</span>
+<a id="__codelineno-37-13" name="__codelineno-37-13" href="#__codelineno-37-13"></a><span class="p">}</span>
 </code></pre></div>
-<h2 id="data-synchronization-api">Data Synchronization API<a class="headerlink" href="#data-synchronization-api" title="Permanent link">&para;</a></h2>
-<h3 id="external-data-sources">External Data Sources<a class="headerlink" href="#external-data-sources" title="Permanent link">&para;</a></h3>
-<h4 id="ba-billiards-association-sync">BA (Billiards Association) Sync<a class="headerlink" href="#ba-billiards-association-sync" title="Permanent link">&para;</a></h4>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-39-1" name="__codelineno-39-1" href="#__codelineno-39-1"></a><span class="err">POST /api/sync/ba/players</span>
-<a id="__codelineno-39-2" name="__codelineno-39-2" href="#__codelineno-39-2"></a><span class="err">POST /api/sync/ba/tournaments</span>
+<h2 id="data-synchronization">Data Synchronization<a class="headerlink" href="#data-synchronization" title="Permanent link">&para;</a></h2>
+<blockquote>
+<p>There are <strong>no</strong> <code>POST /api/sync/ba/*</code> or <code>POST /api/sync/cc/*</code> HTTP
+endpoints. Synchronization with external data sources is performed by
+<strong>scraper services</strong> triggered by <strong>scheduled rake tasks</strong>, not by an
+inbound REST API.</p>
+</blockquote>
+<h3 id="scraper-services">Scraper Services<a class="headerlink" href="#scraper-services" title="Permanent link">&para;</a></h3>
+<p>External data is collected by service objects (see <code>app/services/</code>):
+<code>UmbScraperV2</code>, <code>CuescoScraper</code>, <code>SoopliveScraper</code>, <code>KozoomScraper</code>,
+<code>YoutubeScraper</code>.</p>
+<h3 id="scheduled-sync-tasks">Scheduled Sync Tasks<a class="headerlink" href="#scheduled-sync-tasks" title="Permanent link">&para;</a></h3>
+<p>The main synchronization entry points are rake tasks (run via cron / whenever):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-38-1" name="__codelineno-38-1" href="#__codelineno-38-1"></a>rake<span class="w"> </span>scrape:daily_update<span class="w">              </span><span class="c1"># daily regional/club/tournament/league sync</span>
+<a id="__codelineno-38-2" name="__codelineno-38-2" href="#__codelineno-38-2"></a>rake<span class="w"> </span>scrape:daily_update_monitored<span class="w">    </span><span class="c1"># monitored variant (cron @ 04:00 daily)</span>
+<a id="__codelineno-38-3" name="__codelineno-38-3" href="#__codelineno-38-3"></a>rake<span class="w"> </span>scrape:update_seasons
+<a id="__codelineno-38-4" name="__codelineno-38-4" href="#__codelineno-38-4"></a>rake<span class="w"> </span>scrape:scrape_clubs
+<a id="__codelineno-38-5" name="__codelineno-38-5" href="#__codelineno-38-5"></a>rake<span class="w"> </span>scrape:scrape_tournaments_optimized
+<a id="__codelineno-38-6" name="__codelineno-38-6" href="#__codelineno-38-6"></a>rake<span class="w"> </span>scrape:scrape_leagues_optimized
 </code></pre></div>
-<h4 id="cc-competition-center-sync">CC (Competition Center) Sync<a class="headerlink" href="#cc-competition-center-sync" title="Permanent link">&para;</a></h4>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-40-1" name="__codelineno-40-1" href="#__codelineno-40-1"></a><span class="err">POST /api/sync/cc/competitions</span>
-<a id="__codelineno-40-2" name="__codelineno-40-2" href="#__codelineno-40-2"></a><span class="err">POST /api/sync/cc/results</span>
-</code></pre></div>
+<p>Additional source-specific tasks live under the <code>umb:</code>, <code>cuesco:</code>,
+<code>youtube:</code>, and <code>international:</code> namespaces (e.g.
+<code>rake international:scrape_all</code>, <code>rake youtube:scrape_all</code>).</p>
 <h3 id="region-management">Region Management<a class="headerlink" href="#region-management" title="Permanent link">&para;</a></h3>
 <h4 id="check-region-data">Check Region Data<a class="headerlink" href="#check-region-data" title="Permanent link">&para;</a></h4>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-41-1" name="__codelineno-41-1" href="#__codelineno-41-1"></a><span class="err">GET /region_ccs/{id}/check</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-39-1" name="__codelineno-39-1" href="#__codelineno-39-1"></a><span class="err">GET /region_ccs/{id}/check</span>
 </code></pre></div>
 <h4 id="fix-region-data">Fix Region Data<a class="headerlink" href="#fix-region-data" title="Permanent link">&para;</a></h4>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-42-1" name="__codelineno-42-1" href="#__codelineno-42-1"></a><span class="err">POST /region_ccs/{id}/fix</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-40-1" name="__codelineno-40-1" href="#__codelineno-40-1"></a><span class="err">POST /region_ccs/{id}/fix</span>
 </code></pre></div>
 <h2 id="admin-api">Admin API<a class="headerlink" href="#admin-api" title="Permanent link">&para;</a></h2>
 <h3 id="user-management">User Management<a class="headerlink" href="#user-management" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-43-1" name="__codelineno-43-1" href="#__codelineno-43-1"></a><span class="err">GET /admin/users</span>
-<a id="__codelineno-43-2" name="__codelineno-43-2" href="#__codelineno-43-2"></a><span class="err">POST /admin/users</span>
-<a id="__codelineno-43-3" name="__codelineno-43-3" href="#__codelineno-43-3"></a><span class="err">PATCH /admin/users/{id}</span>
-<a id="__codelineno-43-4" name="__codelineno-43-4" href="#__codelineno-43-4"></a><span class="err">DELETE /admin/users/{id}</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-41-1" name="__codelineno-41-1" href="#__codelineno-41-1"></a><span class="err">GET /admin/users</span>
+<a id="__codelineno-41-2" name="__codelineno-41-2" href="#__codelineno-41-2"></a><span class="err">POST /admin/users</span>
+<a id="__codelineno-41-3" name="__codelineno-41-3" href="#__codelineno-41-3"></a><span class="err">PATCH /admin/users/{id}</span>
+<a id="__codelineno-41-4" name="__codelineno-41-4" href="#__codelineno-41-4"></a><span class="err">DELETE /admin/users/{id}</span>
 </code></pre></div>
 <h3 id="system-settings">System Settings<a class="headerlink" href="#system-settings" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-44-1" name="__codelineno-44-1" href="#__codelineno-44-1"></a><span class="err">GET /settings/club_settings</span>
-<a id="__codelineno-44-2" name="__codelineno-44-2" href="#__codelineno-44-2"></a><span class="err">POST /settings/update_club_settings</span>
-<a id="__codelineno-44-3" name="__codelineno-44-3" href="#__codelineno-44-3"></a><span class="err">GET /settings/tournament_settings</span>
-<a id="__codelineno-44-4" name="__codelineno-44-4" href="#__codelineno-44-4"></a><span class="err">POST /settings/update_tournament_settings</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-42-1" name="__codelineno-42-1" href="#__codelineno-42-1"></a><span class="err">GET /settings/club_settings</span>
+<a id="__codelineno-42-2" name="__codelineno-42-2" href="#__codelineno-42-2"></a><span class="err">POST /settings/update_club_settings</span>
+<a id="__codelineno-42-3" name="__codelineno-42-3" href="#__codelineno-42-3"></a><span class="err">GET /settings/tournament_settings</span>
+<a id="__codelineno-42-4" name="__codelineno-42-4" href="#__codelineno-42-4"></a><span class="err">POST /settings/update_tournament_settings</span>
 </code></pre></div>
 <h2 id="rate-limiting">Rate Limiting<a class="headerlink" href="#rate-limiting" title="Permanent link">&para;</a></h2>
 <p>API requests are rate-limited to prevent abuse:</p>
@@ -4505,9 +4669,9 @@
 <li><strong>Unauthenticated users</strong>: 100 requests per hour</li>
 </ul>
 <p>Rate limit headers are included in responses:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-45-1" name="__codelineno-45-1" href="#__codelineno-45-1"></a>X-RateLimit-Limit: 1000
-<a id="__codelineno-45-2" name="__codelineno-45-2" href="#__codelineno-45-2"></a>X-RateLimit-Remaining: 999
-<a id="__codelineno-45-3" name="__codelineno-45-3" href="#__codelineno-45-3"></a>X-RateLimit-Reset: 1642248000
+<div class="highlight"><pre><span></span><code><a id="__codelineno-43-1" name="__codelineno-43-1" href="#__codelineno-43-1"></a>X-RateLimit-Limit: 1000
+<a id="__codelineno-43-2" name="__codelineno-43-2" href="#__codelineno-43-2"></a>X-RateLimit-Remaining: 999
+<a id="__codelineno-43-3" name="__codelineno-43-3" href="#__codelineno-43-3"></a>X-RateLimit-Reset: 1642248000
 </code></pre></div>
 <h2 id="pagination">Pagination<a class="headerlink" href="#pagination" title="Permanent link">&para;</a></h2>
 <p>List endpoints support pagination with the following parameters:</p>
@@ -4516,25 +4680,25 @@
 <li><code>per_page</code>: Items per page (default: 25, max: 100)</li>
 </ul>
 <p>Pagination metadata is included in responses:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-46-1" name="__codelineno-46-1" href="#__codelineno-46-1"></a><span class="p">{</span>
-<a id="__codelineno-46-2" name="__codelineno-46-2" href="#__codelineno-46-2"></a><span class="w">  </span><span class="nt">&quot;data&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="err">...</span><span class="p">],</span>
-<a id="__codelineno-46-3" name="__codelineno-46-3" href="#__codelineno-46-3"></a><span class="w">  </span><span class="nt">&quot;meta&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-46-4" name="__codelineno-46-4" href="#__codelineno-46-4"></a><span class="w">    </span><span class="nt">&quot;total_count&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">150</span><span class="p">,</span>
-<a id="__codelineno-46-5" name="__codelineno-46-5" href="#__codelineno-46-5"></a><span class="w">    </span><span class="nt">&quot;total_pages&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">6</span><span class="p">,</span>
-<a id="__codelineno-46-6" name="__codelineno-46-6" href="#__codelineno-46-6"></a><span class="w">    </span><span class="nt">&quot;current_page&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
-<a id="__codelineno-46-7" name="__codelineno-46-7" href="#__codelineno-46-7"></a><span class="w">    </span><span class="nt">&quot;per_page&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">25</span>
-<a id="__codelineno-46-8" name="__codelineno-46-8" href="#__codelineno-46-8"></a><span class="w">  </span><span class="p">}</span>
-<a id="__codelineno-46-9" name="__codelineno-46-9" href="#__codelineno-46-9"></a><span class="p">}</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-44-1" name="__codelineno-44-1" href="#__codelineno-44-1"></a><span class="p">{</span>
+<a id="__codelineno-44-2" name="__codelineno-44-2" href="#__codelineno-44-2"></a><span class="w">  </span><span class="nt">&quot;data&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="err">...</span><span class="p">],</span>
+<a id="__codelineno-44-3" name="__codelineno-44-3" href="#__codelineno-44-3"></a><span class="w">  </span><span class="nt">&quot;meta&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-44-4" name="__codelineno-44-4" href="#__codelineno-44-4"></a><span class="w">    </span><span class="nt">&quot;total_count&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">150</span><span class="p">,</span>
+<a id="__codelineno-44-5" name="__codelineno-44-5" href="#__codelineno-44-5"></a><span class="w">    </span><span class="nt">&quot;total_pages&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">6</span><span class="p">,</span>
+<a id="__codelineno-44-6" name="__codelineno-44-6" href="#__codelineno-44-6"></a><span class="w">    </span><span class="nt">&quot;current_page&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
+<a id="__codelineno-44-7" name="__codelineno-44-7" href="#__codelineno-44-7"></a><span class="w">    </span><span class="nt">&quot;per_page&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">25</span>
+<a id="__codelineno-44-8" name="__codelineno-44-8" href="#__codelineno-44-8"></a><span class="w">  </span><span class="p">}</span>
+<a id="__codelineno-44-9" name="__codelineno-44-9" href="#__codelineno-44-9"></a><span class="p">}</span>
 </code></pre></div>
 <h2 id="filtering-and-sorting">Filtering and Sorting<a class="headerlink" href="#filtering-and-sorting" title="Permanent link">&para;</a></h2>
 <h3 id="filtering">Filtering<a class="headerlink" href="#filtering" title="Permanent link">&para;</a></h3>
 <p>Most list endpoints support filtering:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-47-1" name="__codelineno-47-1" href="#__codelineno-47-1"></a><span class="err">GET /tournaments?status=active&amp;discipline_id=1&amp;location_id=2</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-45-1" name="__codelineno-45-1" href="#__codelineno-45-1"></a><span class="err">GET /tournaments?status=active&amp;discipline_id=1&amp;location_id=2</span>
 </code></pre></div>
 <h3 id="sorting">Sorting<a class="headerlink" href="#sorting" title="Permanent link">&para;</a></h3>
 <p>Sorting is supported on most endpoints:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-48-1" name="__codelineno-48-1" href="#__codelineno-48-1"></a><span class="err">GET /tournaments?sort=start_date&amp;direction=desc</span>
-<a id="__codelineno-48-2" name="__codelineno-48-2" href="#__codelineno-48-2"></a><span class="err">GET /players?sort=last_name&amp;direction=asc</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-46-1" name="__codelineno-46-1" href="#__codelineno-46-1"></a><span class="err">GET /tournaments?sort=start_date&amp;direction=desc</span>
+<a id="__codelineno-46-2" name="__codelineno-46-2" href="#__codelineno-46-2"></a><span class="err">GET /players?sort=last_name&amp;direction=asc</span>
 </code></pre></div>
 <h2 id="error-codes">Error Codes<a class="headerlink" href="#error-codes" title="Permanent link">&para;</a></h2>
 <table>
@@ -4577,94 +4741,99 @@
 </table>
 <h2 id="sdks-and-libraries">SDKs and Libraries<a class="headerlink" href="#sdks-and-libraries" title="Permanent link">&para;</a></h2>
 <h3 id="javascripttypescript">JavaScript/TypeScript<a class="headerlink" href="#javascripttypescript" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-49-1" name="__codelineno-49-1" href="#__codelineno-49-1"></a>npm<span class="w"> </span>install<span class="w"> </span>carambus-api-client
+<div class="highlight"><pre><span></span><code><a id="__codelineno-47-1" name="__codelineno-47-1" href="#__codelineno-47-1"></a>npm<span class="w"> </span>install<span class="w"> </span>carambus-api-client
 </code></pre></div>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-50-1" name="__codelineno-50-1" href="#__codelineno-50-1"></a><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">CarambusAPI</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;carambus-api-client&#39;</span>
-<a id="__codelineno-50-2" name="__codelineno-50-2" href="#__codelineno-50-2"></a>
-<a id="__codelineno-50-3" name="__codelineno-50-3" href="#__codelineno-50-3"></a><span class="kd">const</span><span class="w"> </span><span class="nx">api</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">CarambusAPI</span><span class="p">({</span>
-<a id="__codelineno-50-4" name="__codelineno-50-4" href="#__codelineno-50-4"></a><span class="w">  </span><span class="nx">baseURL</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;https://carambus.de&#39;</span><span class="p">,</span>
-<a id="__codelineno-50-5" name="__codelineno-50-5" href="#__codelineno-50-5"></a><span class="w">  </span><span class="nx">credentials</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;include&#39;</span>
-<a id="__codelineno-50-6" name="__codelineno-50-6" href="#__codelineno-50-6"></a><span class="p">})</span>
-<a id="__codelineno-50-7" name="__codelineno-50-7" href="#__codelineno-50-7"></a>
-<a id="__codelineno-50-8" name="__codelineno-50-8" href="#__codelineno-50-8"></a><span class="c1">// Get tournaments</span>
-<a id="__codelineno-50-9" name="__codelineno-50-9" href="#__codelineno-50-9"></a><span class="kd">const</span><span class="w"> </span><span class="nx">tournaments</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">api</span><span class="p">.</span><span class="nx">tournaments</span><span class="p">.</span><span class="nx">list</span><span class="p">()</span>
-<a id="__codelineno-50-10" name="__codelineno-50-10" href="#__codelineno-50-10"></a>
-<a id="__codelineno-50-11" name="__codelineno-50-11" href="#__codelineno-50-11"></a><span class="c1">// Create tournament</span>
-<a id="__codelineno-50-12" name="__codelineno-50-12" href="#__codelineno-50-12"></a><span class="kd">const</span><span class="w"> </span><span class="nx">tournament</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">api</span><span class="p">.</span><span class="nx">tournaments</span><span class="p">.</span><span class="nx">create</span><span class="p">({</span>
-<a id="__codelineno-50-13" name="__codelineno-50-13" href="#__codelineno-50-13"></a><span class="w">  </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;New Tournament&#39;</span><span class="p">,</span>
-<a id="__codelineno-50-14" name="__codelineno-50-14" href="#__codelineno-50-14"></a><span class="w">  </span><span class="nx">discipline_id</span><span class="o">:</span><span class="w"> </span><span class="mf">1</span><span class="p">,</span>
-<a id="__codelineno-50-15" name="__codelineno-50-15" href="#__codelineno-50-15"></a><span class="w">  </span><span class="nx">location_id</span><span class="o">:</span><span class="w"> </span><span class="mf">1</span>
-<a id="__codelineno-50-16" name="__codelineno-50-16" href="#__codelineno-50-16"></a><span class="p">})</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-48-1" name="__codelineno-48-1" href="#__codelineno-48-1"></a><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">CarambusAPI</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s1">&#39;carambus-api-client&#39;</span>
+<a id="__codelineno-48-2" name="__codelineno-48-2" href="#__codelineno-48-2"></a>
+<a id="__codelineno-48-3" name="__codelineno-48-3" href="#__codelineno-48-3"></a><span class="kd">const</span><span class="w"> </span><span class="nx">api</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">CarambusAPI</span><span class="p">({</span>
+<a id="__codelineno-48-4" name="__codelineno-48-4" href="#__codelineno-48-4"></a><span class="w">  </span><span class="nx">baseURL</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;https://carambus.de&#39;</span><span class="p">,</span>
+<a id="__codelineno-48-5" name="__codelineno-48-5" href="#__codelineno-48-5"></a><span class="w">  </span><span class="nx">credentials</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;include&#39;</span>
+<a id="__codelineno-48-6" name="__codelineno-48-6" href="#__codelineno-48-6"></a><span class="p">})</span>
+<a id="__codelineno-48-7" name="__codelineno-48-7" href="#__codelineno-48-7"></a>
+<a id="__codelineno-48-8" name="__codelineno-48-8" href="#__codelineno-48-8"></a><span class="c1">// Get tournaments</span>
+<a id="__codelineno-48-9" name="__codelineno-48-9" href="#__codelineno-48-9"></a><span class="kd">const</span><span class="w"> </span><span class="nx">tournaments</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">api</span><span class="p">.</span><span class="nx">tournaments</span><span class="p">.</span><span class="nx">list</span><span class="p">()</span>
+<a id="__codelineno-48-10" name="__codelineno-48-10" href="#__codelineno-48-10"></a>
+<a id="__codelineno-48-11" name="__codelineno-48-11" href="#__codelineno-48-11"></a><span class="c1">// Create tournament</span>
+<a id="__codelineno-48-12" name="__codelineno-48-12" href="#__codelineno-48-12"></a><span class="kd">const</span><span class="w"> </span><span class="nx">tournament</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">api</span><span class="p">.</span><span class="nx">tournaments</span><span class="p">.</span><span class="nx">create</span><span class="p">({</span>
+<a id="__codelineno-48-13" name="__codelineno-48-13" href="#__codelineno-48-13"></a><span class="w">  </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;New Tournament&#39;</span><span class="p">,</span>
+<a id="__codelineno-48-14" name="__codelineno-48-14" href="#__codelineno-48-14"></a><span class="w">  </span><span class="nx">discipline_id</span><span class="o">:</span><span class="w"> </span><span class="mf">1</span><span class="p">,</span>
+<a id="__codelineno-48-15" name="__codelineno-48-15" href="#__codelineno-48-15"></a><span class="w">  </span><span class="nx">location_id</span><span class="o">:</span><span class="w"> </span><span class="mf">1</span>
+<a id="__codelineno-48-16" name="__codelineno-48-16" href="#__codelineno-48-16"></a><span class="p">})</span>
 </code></pre></div>
 <h3 id="ruby">Ruby<a class="headerlink" href="#ruby" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-51-1" name="__codelineno-51-1" href="#__codelineno-51-1"></a><span class="nb">require</span><span class="w"> </span><span class="s1">&#39;carambus_api&#39;</span>
-<a id="__codelineno-51-2" name="__codelineno-51-2" href="#__codelineno-51-2"></a>
-<a id="__codelineno-51-3" name="__codelineno-51-3" href="#__codelineno-51-3"></a><span class="n">client</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">CarambusAPI</span><span class="o">::</span><span class="no">Client</span><span class="o">.</span><span class="n">new</span><span class="p">(</span>
-<a id="__codelineno-51-4" name="__codelineno-51-4" href="#__codelineno-51-4"></a><span class="w">  </span><span class="ss">base_url</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;https://carambus.de&#39;</span><span class="p">,</span>
-<a id="__codelineno-51-5" name="__codelineno-51-5" href="#__codelineno-51-5"></a><span class="w">  </span><span class="ss">session_cookies</span><span class="p">:</span><span class="w"> </span><span class="n">session_cookies</span>
-<a id="__codelineno-51-6" name="__codelineno-51-6" href="#__codelineno-51-6"></a><span class="p">)</span>
-<a id="__codelineno-51-7" name="__codelineno-51-7" href="#__codelineno-51-7"></a>
-<a id="__codelineno-51-8" name="__codelineno-51-8" href="#__codelineno-51-8"></a><span class="c1"># Get tournaments</span>
-<a id="__codelineno-51-9" name="__codelineno-51-9" href="#__codelineno-51-9"></a><span class="n">tournaments</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">client</span><span class="o">.</span><span class="n">tournaments</span><span class="o">.</span><span class="n">list</span>
-<a id="__codelineno-51-10" name="__codelineno-51-10" href="#__codelineno-51-10"></a>
-<a id="__codelineno-51-11" name="__codelineno-51-11" href="#__codelineno-51-11"></a><span class="c1"># Create tournament</span>
-<a id="__codelineno-51-12" name="__codelineno-51-12" href="#__codelineno-51-12"></a><span class="n">tournament</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">client</span><span class="o">.</span><span class="n">tournaments</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
-<a id="__codelineno-51-13" name="__codelineno-51-13" href="#__codelineno-51-13"></a><span class="w">  </span><span class="nb">name</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;New Tournament&#39;</span><span class="p">,</span>
-<a id="__codelineno-51-14" name="__codelineno-51-14" href="#__codelineno-51-14"></a><span class="w">  </span><span class="ss">discipline_id</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
-<a id="__codelineno-51-15" name="__codelineno-51-15" href="#__codelineno-51-15"></a><span class="w">  </span><span class="ss">location_id</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span>
-<a id="__codelineno-51-16" name="__codelineno-51-16" href="#__codelineno-51-16"></a><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-49-1" name="__codelineno-49-1" href="#__codelineno-49-1"></a><span class="nb">require</span><span class="w"> </span><span class="s1">&#39;carambus_api&#39;</span>
+<a id="__codelineno-49-2" name="__codelineno-49-2" href="#__codelineno-49-2"></a>
+<a id="__codelineno-49-3" name="__codelineno-49-3" href="#__codelineno-49-3"></a><span class="n">client</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">CarambusAPI</span><span class="o">::</span><span class="no">Client</span><span class="o">.</span><span class="n">new</span><span class="p">(</span>
+<a id="__codelineno-49-4" name="__codelineno-49-4" href="#__codelineno-49-4"></a><span class="w">  </span><span class="ss">base_url</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;https://carambus.de&#39;</span><span class="p">,</span>
+<a id="__codelineno-49-5" name="__codelineno-49-5" href="#__codelineno-49-5"></a><span class="w">  </span><span class="ss">session_cookies</span><span class="p">:</span><span class="w"> </span><span class="n">session_cookies</span>
+<a id="__codelineno-49-6" name="__codelineno-49-6" href="#__codelineno-49-6"></a><span class="p">)</span>
+<a id="__codelineno-49-7" name="__codelineno-49-7" href="#__codelineno-49-7"></a>
+<a id="__codelineno-49-8" name="__codelineno-49-8" href="#__codelineno-49-8"></a><span class="c1"># Get tournaments</span>
+<a id="__codelineno-49-9" name="__codelineno-49-9" href="#__codelineno-49-9"></a><span class="n">tournaments</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">client</span><span class="o">.</span><span class="n">tournaments</span><span class="o">.</span><span class="n">list</span>
+<a id="__codelineno-49-10" name="__codelineno-49-10" href="#__codelineno-49-10"></a>
+<a id="__codelineno-49-11" name="__codelineno-49-11" href="#__codelineno-49-11"></a><span class="c1"># Create tournament</span>
+<a id="__codelineno-49-12" name="__codelineno-49-12" href="#__codelineno-49-12"></a><span class="n">tournament</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">client</span><span class="o">.</span><span class="n">tournaments</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
+<a id="__codelineno-49-13" name="__codelineno-49-13" href="#__codelineno-49-13"></a><span class="w">  </span><span class="nb">name</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;New Tournament&#39;</span><span class="p">,</span>
+<a id="__codelineno-49-14" name="__codelineno-49-14" href="#__codelineno-49-14"></a><span class="w">  </span><span class="ss">discipline_id</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
+<a id="__codelineno-49-15" name="__codelineno-49-15" href="#__codelineno-49-15"></a><span class="w">  </span><span class="ss">location_id</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span>
+<a id="__codelineno-49-16" name="__codelineno-49-16" href="#__codelineno-49-16"></a><span class="p">)</span>
 </code></pre></div>
 <h2 id="examples">Examples<a class="headerlink" href="#examples" title="Permanent link">&para;</a></h2>
 <h3 id="complete-tournament-workflow">Complete Tournament Workflow<a class="headerlink" href="#complete-tournament-workflow" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-52-1" name="__codelineno-52-1" href="#__codelineno-52-1"></a><span class="c1">// 1. Create tournament</span>
-<a id="__codelineno-52-2" name="__codelineno-52-2" href="#__codelineno-52-2"></a><span class="kd">const</span><span class="w"> </span><span class="nx">tournament</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">api</span><span class="p">.</span><span class="nx">tournaments</span><span class="p">.</span><span class="nx">create</span><span class="p">({</span>
-<a id="__codelineno-52-3" name="__codelineno-52-3" href="#__codelineno-52-3"></a><span class="w">  </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;Championship 2024&#39;</span><span class="p">,</span>
-<a id="__codelineno-52-4" name="__codelineno-52-4" href="#__codelineno-52-4"></a><span class="w">  </span><span class="nx">discipline_id</span><span class="o">:</span><span class="w"> </span><span class="mf">1</span><span class="p">,</span>
-<a id="__codelineno-52-5" name="__codelineno-52-5" href="#__codelineno-52-5"></a><span class="w">  </span><span class="nx">location_id</span><span class="o">:</span><span class="w"> </span><span class="mf">1</span><span class="p">,</span>
-<a id="__codelineno-52-6" name="__codelineno-52-6" href="#__codelineno-52-6"></a><span class="w">  </span><span class="nx">start_date</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;2024-02-01&#39;</span><span class="p">,</span>
-<a id="__codelineno-52-7" name="__codelineno-52-7" href="#__codelineno-52-7"></a><span class="w">  </span><span class="nx">max_participants</span><span class="o">:</span><span class="w"> </span><span class="mf">16</span>
-<a id="__codelineno-52-8" name="__codelineno-52-8" href="#__codelineno-52-8"></a><span class="p">})</span>
-<a id="__codelineno-52-9" name="__codelineno-52-9" href="#__codelineno-52-9"></a>
-<a id="__codelineno-52-10" name="__codelineno-52-10" href="#__codelineno-52-10"></a><span class="c1">// 2. Add participants</span>
-<a id="__codelineno-52-11" name="__codelineno-52-11" href="#__codelineno-52-11"></a><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kd">const</span><span class="w"> </span><span class="nx">player</span><span class="w"> </span><span class="k">of</span><span class="w"> </span><span class="nx">players</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-52-12" name="__codelineno-52-12" href="#__codelineno-52-12"></a><span class="w">  </span><span class="k">await</span><span class="w"> </span><span class="nx">api</span><span class="p">.</span><span class="nx">tournaments</span><span class="p">.</span><span class="nx">addParticipant</span><span class="p">(</span><span class="nx">tournament</span><span class="p">.</span><span class="nx">id</span><span class="p">,</span><span class="w"> </span><span class="nx">player</span><span class="p">.</span><span class="nx">id</span><span class="p">)</span>
-<a id="__codelineno-52-13" name="__codelineno-52-13" href="#__codelineno-52-13"></a><span class="p">}</span>
-<a id="__codelineno-52-14" name="__codelineno-52-14" href="#__codelineno-52-14"></a>
-<a id="__codelineno-52-15" name="__codelineno-52-15" href="#__codelineno-52-15"></a><span class="c1">// 3. Generate game plan</span>
-<a id="__codelineno-52-16" name="__codelineno-52-16" href="#__codelineno-52-16"></a><span class="k">await</span><span class="w"> </span><span class="nx">api</span><span class="p">.</span><span class="nx">tournaments</span><span class="p">.</span><span class="nx">generateGamePlan</span><span class="p">(</span><span class="nx">tournament</span><span class="p">.</span><span class="nx">id</span><span class="p">)</span>
-<a id="__codelineno-52-17" name="__codelineno-52-17" href="#__codelineno-52-17"></a>
-<a id="__codelineno-52-18" name="__codelineno-52-18" href="#__codelineno-52-18"></a><span class="c1">// 4. Start tournament</span>
-<a id="__codelineno-52-19" name="__codelineno-52-19" href="#__codelineno-52-19"></a><span class="k">await</span><span class="w"> </span><span class="nx">api</span><span class="p">.</span><span class="nx">tournaments</span><span class="p">.</span><span class="nx">start</span><span class="p">(</span><span class="nx">tournament</span><span class="p">.</span><span class="nx">id</span><span class="p">)</span>
-<a id="__codelineno-52-20" name="__codelineno-52-20" href="#__codelineno-52-20"></a>
-<a id="__codelineno-52-21" name="__codelineno-52-21" href="#__codelineno-52-21"></a><span class="c1">// 5. Subscribe to real-time updates</span>
-<a id="__codelineno-52-22" name="__codelineno-52-22" href="#__codelineno-52-22"></a><span class="kd">const</span><span class="w"> </span><span class="nx">subscription</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">consumer</span><span class="p">.</span><span class="nx">subscriptions</span><span class="p">.</span><span class="nx">create</span><span class="p">(</span>
-<a id="__codelineno-52-23" name="__codelineno-52-23" href="#__codelineno-52-23"></a><span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="nx">channel</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;TournamentChannel&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">tournament_id</span><span class="o">:</span><span class="w"> </span><span class="nx">tournament</span><span class="p">.</span><span class="nx">id</span><span class="w"> </span><span class="p">},</span>
-<a id="__codelineno-52-24" name="__codelineno-52-24" href="#__codelineno-52-24"></a><span class="w">  </span><span class="p">{</span>
-<a id="__codelineno-52-25" name="__codelineno-52-25" href="#__codelineno-52-25"></a><span class="w">    </span><span class="nx">received</span><span class="p">(</span><span class="nx">data</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-52-26" name="__codelineno-52-26" href="#__codelineno-52-26"></a><span class="w">      </span><span class="nx">updateTournamentDisplay</span><span class="p">(</span><span class="nx">data</span><span class="p">)</span>
-<a id="__codelineno-52-27" name="__codelineno-52-27" href="#__codelineno-52-27"></a><span class="w">    </span><span class="p">}</span>
-<a id="__codelineno-52-28" name="__codelineno-52-28" href="#__codelineno-52-28"></a><span class="w">  </span><span class="p">}</span>
-<a id="__codelineno-52-29" name="__codelineno-52-29" href="#__codelineno-52-29"></a><span class="p">)</span>
+<blockquote>
+<p><strong>⚠️ Planned / future design.</strong> This SDK sketch is illustrative only; no
+<code>carambus-api-client</code> package or JSON tournament CRUD exists today.</p>
+</blockquote>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-50-1" name="__codelineno-50-1" href="#__codelineno-50-1"></a><span class="c1">// 1. Create tournament</span>
+<a id="__codelineno-50-2" name="__codelineno-50-2" href="#__codelineno-50-2"></a><span class="kd">const</span><span class="w"> </span><span class="nx">tournament</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">api</span><span class="p">.</span><span class="nx">tournaments</span><span class="p">.</span><span class="nx">create</span><span class="p">({</span>
+<a id="__codelineno-50-3" name="__codelineno-50-3" href="#__codelineno-50-3"></a><span class="w">  </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;Championship 2024&#39;</span><span class="p">,</span>
+<a id="__codelineno-50-4" name="__codelineno-50-4" href="#__codelineno-50-4"></a><span class="w">  </span><span class="nx">discipline_id</span><span class="o">:</span><span class="w"> </span><span class="mf">1</span><span class="p">,</span>
+<a id="__codelineno-50-5" name="__codelineno-50-5" href="#__codelineno-50-5"></a><span class="w">  </span><span class="nx">location_id</span><span class="o">:</span><span class="w"> </span><span class="mf">1</span><span class="p">,</span>
+<a id="__codelineno-50-6" name="__codelineno-50-6" href="#__codelineno-50-6"></a><span class="w">  </span><span class="nx">start_date</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;2024-02-01&#39;</span><span class="p">,</span>
+<a id="__codelineno-50-7" name="__codelineno-50-7" href="#__codelineno-50-7"></a><span class="w">  </span><span class="nx">max_participants</span><span class="o">:</span><span class="w"> </span><span class="mf">16</span>
+<a id="__codelineno-50-8" name="__codelineno-50-8" href="#__codelineno-50-8"></a><span class="p">})</span>
+<a id="__codelineno-50-9" name="__codelineno-50-9" href="#__codelineno-50-9"></a>
+<a id="__codelineno-50-10" name="__codelineno-50-10" href="#__codelineno-50-10"></a><span class="c1">// 2. Add participants</span>
+<a id="__codelineno-50-11" name="__codelineno-50-11" href="#__codelineno-50-11"></a><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kd">const</span><span class="w"> </span><span class="nx">player</span><span class="w"> </span><span class="k">of</span><span class="w"> </span><span class="nx">players</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-50-12" name="__codelineno-50-12" href="#__codelineno-50-12"></a><span class="w">  </span><span class="k">await</span><span class="w"> </span><span class="nx">api</span><span class="p">.</span><span class="nx">tournaments</span><span class="p">.</span><span class="nx">addParticipant</span><span class="p">(</span><span class="nx">tournament</span><span class="p">.</span><span class="nx">id</span><span class="p">,</span><span class="w"> </span><span class="nx">player</span><span class="p">.</span><span class="nx">id</span><span class="p">)</span>
+<a id="__codelineno-50-13" name="__codelineno-50-13" href="#__codelineno-50-13"></a><span class="p">}</span>
+<a id="__codelineno-50-14" name="__codelineno-50-14" href="#__codelineno-50-14"></a>
+<a id="__codelineno-50-15" name="__codelineno-50-15" href="#__codelineno-50-15"></a><span class="c1">// 3. Select the tournament mode / game plan</span>
+<a id="__codelineno-50-16" name="__codelineno-50-16" href="#__codelineno-50-16"></a><span class="c1">//    (real HTML/Turbo actions: finalize_modus → select_modus)</span>
+<a id="__codelineno-50-17" name="__codelineno-50-17" href="#__codelineno-50-17"></a><span class="k">await</span><span class="w"> </span><span class="nx">api</span><span class="p">.</span><span class="nx">tournaments</span><span class="p">.</span><span class="nx">selectModus</span><span class="p">(</span><span class="nx">tournament</span><span class="p">.</span><span class="nx">id</span><span class="p">,</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">tournament_plan_id</span><span class="o">:</span><span class="w"> </span><span class="nx">planId</span><span class="w"> </span><span class="p">})</span>
+<a id="__codelineno-50-18" name="__codelineno-50-18" href="#__codelineno-50-18"></a>
+<a id="__codelineno-50-19" name="__codelineno-50-19" href="#__codelineno-50-19"></a><span class="c1">// 4. Start tournament</span>
+<a id="__codelineno-50-20" name="__codelineno-50-20" href="#__codelineno-50-20"></a><span class="k">await</span><span class="w"> </span><span class="nx">api</span><span class="p">.</span><span class="nx">tournaments</span><span class="p">.</span><span class="nx">start</span><span class="p">(</span><span class="nx">tournament</span><span class="p">.</span><span class="nx">id</span><span class="p">)</span>
+<a id="__codelineno-50-21" name="__codelineno-50-21" href="#__codelineno-50-21"></a>
+<a id="__codelineno-50-22" name="__codelineno-50-22" href="#__codelineno-50-22"></a><span class="c1">// 5. Subscribe to real-time updates</span>
+<a id="__codelineno-50-23" name="__codelineno-50-23" href="#__codelineno-50-23"></a><span class="kd">const</span><span class="w"> </span><span class="nx">subscription</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">consumer</span><span class="p">.</span><span class="nx">subscriptions</span><span class="p">.</span><span class="nx">create</span><span class="p">(</span>
+<a id="__codelineno-50-24" name="__codelineno-50-24" href="#__codelineno-50-24"></a><span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="nx">channel</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;TournamentChannel&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">tournament_id</span><span class="o">:</span><span class="w"> </span><span class="nx">tournament</span><span class="p">.</span><span class="nx">id</span><span class="w"> </span><span class="p">},</span>
+<a id="__codelineno-50-25" name="__codelineno-50-25" href="#__codelineno-50-25"></a><span class="w">  </span><span class="p">{</span>
+<a id="__codelineno-50-26" name="__codelineno-50-26" href="#__codelineno-50-26"></a><span class="w">    </span><span class="nx">received</span><span class="p">(</span><span class="nx">data</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-50-27" name="__codelineno-50-27" href="#__codelineno-50-27"></a><span class="w">      </span><span class="nx">updateTournamentDisplay</span><span class="p">(</span><span class="nx">data</span><span class="p">)</span>
+<a id="__codelineno-50-28" name="__codelineno-50-28" href="#__codelineno-50-28"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-50-29" name="__codelineno-50-29" href="#__codelineno-50-29"></a><span class="w">  </span><span class="p">}</span>
+<a id="__codelineno-50-30" name="__codelineno-50-30" href="#__codelineno-50-30"></a><span class="p">)</span>
 </code></pre></div>
 <h3 id="real-time-scoreboard-integration">Real-time Scoreboard Integration<a class="headerlink" href="#real-time-scoreboard-integration" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-53-1" name="__codelineno-53-1" href="#__codelineno-53-1"></a><span class="c1">// Connect to scoreboard</span>
-<a id="__codelineno-53-2" name="__codelineno-53-2" href="#__codelineno-53-2"></a><span class="kd">const</span><span class="w"> </span><span class="nx">scoreboard</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">consumer</span><span class="p">.</span><span class="nx">subscriptions</span><span class="p">.</span><span class="nx">create</span><span class="p">(</span>
-<a id="__codelineno-53-3" name="__codelineno-53-3" href="#__codelineno-53-3"></a><span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="nx">channel</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;ScoreboardChannel&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">location_id</span><span class="o">:</span><span class="w"> </span><span class="mf">1</span><span class="w"> </span><span class="p">},</span>
-<a id="__codelineno-53-4" name="__codelineno-53-4" href="#__codelineno-53-4"></a><span class="w">  </span><span class="p">{</span>
-<a id="__codelineno-53-5" name="__codelineno-53-5" href="#__codelineno-53-5"></a><span class="w">    </span><span class="nx">received</span><span class="p">(</span><span class="nx">data</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-53-6" name="__codelineno-53-6" href="#__codelineno-53-6"></a><span class="w">      </span><span class="c1">// Update scoreboard display</span>
-<a id="__codelineno-53-7" name="__codelineno-53-7" href="#__codelineno-53-7"></a><span class="w">      </span><span class="nb">document</span><span class="p">.</span><span class="nx">getElementById</span><span class="p">(</span><span class="s1">&#39;scoreboard&#39;</span><span class="p">).</span><span class="nx">innerHTML</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>
-<a id="__codelineno-53-8" name="__codelineno-53-8" href="#__codelineno-53-8"></a><span class="w">        </span><span class="nx">generateScoreboardHTML</span><span class="p">(</span><span class="nx">data</span><span class="p">)</span>
-<a id="__codelineno-53-9" name="__codelineno-53-9" href="#__codelineno-53-9"></a><span class="w">    </span><span class="p">}</span>
-<a id="__codelineno-53-10" name="__codelineno-53-10" href="#__codelineno-53-10"></a><span class="w">  </span><span class="p">}</span>
-<a id="__codelineno-53-11" name="__codelineno-53-11" href="#__codelineno-53-11"></a><span class="p">)</span>
-<a id="__codelineno-53-12" name="__codelineno-53-12" href="#__codelineno-53-12"></a>
-<a id="__codelineno-53-13" name="__codelineno-53-13" href="#__codelineno-53-13"></a><span class="c1">// Update table scores</span>
-<a id="__codelineno-53-14" name="__codelineno-53-14" href="#__codelineno-53-14"></a><span class="k">async</span><span class="w"> </span><span class="kd">function</span><span class="w"> </span><span class="nx">updateScore</span><span class="p">(</span><span class="nx">tableId</span><span class="p">,</span><span class="w"> </span><span class="nx">player</span><span class="p">,</span><span class="w"> </span><span class="nx">points</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-53-15" name="__codelineno-53-15" href="#__codelineno-53-15"></a><span class="w">  </span><span class="k">await</span><span class="w"> </span><span class="nx">api</span><span class="p">.</span><span class="nx">tableMonitors</span><span class="p">.</span><span class="nx">update</span><span class="p">(</span><span class="nx">tableId</span><span class="p">,</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-53-16" name="__codelineno-53-16" href="#__codelineno-53-16"></a><span class="w">    </span><span class="p">[</span><span class="sb">`balls_</span><span class="si">${</span><span class="nx">player</span><span class="si">}</span><span class="sb">`</span><span class="p">]</span><span class="o">:</span><span class="w"> </span><span class="nx">points</span>
-<a id="__codelineno-53-17" name="__codelineno-53-17" href="#__codelineno-53-17"></a><span class="w">  </span><span class="p">})</span>
-<a id="__codelineno-53-18" name="__codelineno-53-18" href="#__codelineno-53-18"></a><span class="p">}</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-51-1" name="__codelineno-51-1" href="#__codelineno-51-1"></a><span class="c1">// Connect to scoreboard</span>
+<a id="__codelineno-51-2" name="__codelineno-51-2" href="#__codelineno-51-2"></a><span class="kd">const</span><span class="w"> </span><span class="nx">scoreboard</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">consumer</span><span class="p">.</span><span class="nx">subscriptions</span><span class="p">.</span><span class="nx">create</span><span class="p">(</span>
+<a id="__codelineno-51-3" name="__codelineno-51-3" href="#__codelineno-51-3"></a><span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="nx">channel</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;ScoreboardChannel&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">location_id</span><span class="o">:</span><span class="w"> </span><span class="mf">1</span><span class="w"> </span><span class="p">},</span>
+<a id="__codelineno-51-4" name="__codelineno-51-4" href="#__codelineno-51-4"></a><span class="w">  </span><span class="p">{</span>
+<a id="__codelineno-51-5" name="__codelineno-51-5" href="#__codelineno-51-5"></a><span class="w">    </span><span class="nx">received</span><span class="p">(</span><span class="nx">data</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-51-6" name="__codelineno-51-6" href="#__codelineno-51-6"></a><span class="w">      </span><span class="c1">// Update scoreboard display</span>
+<a id="__codelineno-51-7" name="__codelineno-51-7" href="#__codelineno-51-7"></a><span class="w">      </span><span class="nb">document</span><span class="p">.</span><span class="nx">getElementById</span><span class="p">(</span><span class="s1">&#39;scoreboard&#39;</span><span class="p">).</span><span class="nx">innerHTML</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>
+<a id="__codelineno-51-8" name="__codelineno-51-8" href="#__codelineno-51-8"></a><span class="w">        </span><span class="nx">generateScoreboardHTML</span><span class="p">(</span><span class="nx">data</span><span class="p">)</span>
+<a id="__codelineno-51-9" name="__codelineno-51-9" href="#__codelineno-51-9"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-51-10" name="__codelineno-51-10" href="#__codelineno-51-10"></a><span class="w">  </span><span class="p">}</span>
+<a id="__codelineno-51-11" name="__codelineno-51-11" href="#__codelineno-51-11"></a><span class="p">)</span>
+<a id="__codelineno-51-12" name="__codelineno-51-12" href="#__codelineno-51-12"></a>
+<a id="__codelineno-51-13" name="__codelineno-51-13" href="#__codelineno-51-13"></a><span class="c1">// Update table scores</span>
+<a id="__codelineno-51-14" name="__codelineno-51-14" href="#__codelineno-51-14"></a><span class="k">async</span><span class="w"> </span><span class="kd">function</span><span class="w"> </span><span class="nx">updateScore</span><span class="p">(</span><span class="nx">tableId</span><span class="p">,</span><span class="w"> </span><span class="nx">player</span><span class="p">,</span><span class="w"> </span><span class="nx">points</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-51-15" name="__codelineno-51-15" href="#__codelineno-51-15"></a><span class="w">  </span><span class="k">await</span><span class="w"> </span><span class="nx">api</span><span class="p">.</span><span class="nx">tableMonitors</span><span class="p">.</span><span class="nx">update</span><span class="p">(</span><span class="nx">tableId</span><span class="p">,</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-51-16" name="__codelineno-51-16" href="#__codelineno-51-16"></a><span class="w">    </span><span class="p">[</span><span class="sb">`balls_</span><span class="si">${</span><span class="nx">player</span><span class="si">}</span><span class="sb">`</span><span class="p">]</span><span class="o">:</span><span class="w"> </span><span class="nx">points</span>
+<a id="__codelineno-51-17" name="__codelineno-51-17" href="#__codelineno-51-17"></a><span class="w">  </span><span class="p">})</span>
+<a id="__codelineno-51-18" name="__codelineno-51-18" href="#__codelineno-51-18"></a><span class="p">}</span>
 </code></pre></div>
 <h2 id="support">Support<a class="headerlink" href="#support" title="Permanent link">&para;</a></h2>
 <p>For API support and questions:</p>

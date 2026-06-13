@@ -386,7 +386,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../../reference/api.md" class="md-tabs__link">
+        <a href="../../../reference/api/" class="md-tabs__link">
           
   
   
@@ -812,6 +812,8 @@
       
         
       
+        
+      
     
     
     
@@ -1131,6 +1133,29 @@
   
   
   
+    <li class="md-nav__item">
+      <a href="../../../managers/external-tournament-bridge/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    External-Tournament-Bridge
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
     
     
       
@@ -1159,10 +1184,10 @@
         
           
         
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_10" >
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_11" >
         
           
-          <label class="md-nav__link" for="__nav_4_10" id="__nav_4_10_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_4_11" id="__nav_4_11_label" tabindex="0">
             
   
   
@@ -1175,8 +1200,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_10_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_4_10">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_11_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_11">
             <span class="md-nav__icon md-icon"></span>
             ClubCloud Scenarios
           </label>
@@ -1692,6 +1717,8 @@
       
         
       
+        
+      
     
     
     
@@ -2144,6 +2171,29 @@
                 
   
   
+  
+  
+    <li class="md-nav__item">
+      <a href="../../external-tournament-bridge/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    External-Tournament-Bridge
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
     
   
   
@@ -2183,10 +2233,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6_12" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6_13" checked>
         
           
-          <label class="md-nav__link" for="__nav_6_12" id="__nav_6_12_label" tabindex="">
+          <label class="md-nav__link" for="__nav_6_13" id="__nav_6_13_label" tabindex="">
             
   
   
@@ -2199,8 +2249,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_12_label" aria-expanded="true">
-          <label class="md-nav__title" for="__nav_6_12">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_13_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_6_13">
             <span class="md-nav__icon md-icon"></span>
             Services
           </label>
@@ -2966,7 +3016,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../reference/api.md" class="md-nav__link">
+      <a href="../../../reference/api/" class="md-nav__link">
         
   
   
@@ -3419,11 +3469,11 @@
 <h3 id="playergroupdistributor">PlayerGroupDistributor<a class="headerlink" href="#playergroupdistributor" title="Permanent link">&para;</a></h3>
 <p><strong>Einstiegspunkte (Klassenmethoden — kein Objekt notwendig):</strong></p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="no">TournamentMonitor</span><span class="o">::</span><span class="no">PlayerGroupDistributor</span><span class="o">.</span><span class="n">distribute_to_group</span><span class="p">(</span><span class="n">players</span><span class="p">,</span><span class="w"> </span><span class="n">ngroups</span><span class="p">)</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="c1"># → Hash { group_no =&gt; [player_ids] }</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="c1"># → Hash { &quot;group1&quot; =&gt; [player_ids], &quot;group2&quot; =&gt; [player_ids], … }</span>
 <a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="c1"># Verteilt players (Array von Integer) auf ngroups Gruppen via Zick-Zack</span>
 <a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
 <a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="no">TournamentMonitor</span><span class="o">::</span><span class="no">PlayerGroupDistributor</span><span class="o">.</span><span class="n">distribute_with_sizes</span><span class="p">(</span><span class="n">players</span><span class="p">,</span><span class="w"> </span><span class="n">ngroups</span><span class="p">,</span><span class="w"> </span><span class="n">sizes</span><span class="p">)</span>
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">  </span><span class="c1"># → Hash { group_no =&gt; [player_ids] }</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">  </span><span class="c1"># → Hash { &quot;group1&quot; =&gt; [player_ids], &quot;group2&quot; =&gt; [player_ids], … }</span>
 <a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">  </span><span class="c1"># Verteilt players auf ngroups Gruppen mit expliziten Gruppengrößen</span>
 </code></pre></div>
 <p><strong>Eingabe:</strong></p>
@@ -3453,7 +3503,7 @@
 </tr>
 </tbody>
 </table>
-<p><strong>Ausgabe:</strong> <code>Hash { Integer =&gt; Array&lt;Integer&gt; }</code> — Gruppennnummer → Liste der Spieler-IDs.</p>
+<p><strong>Ausgabe:</strong> <code>Hash { String =&gt; Array&lt;Integer&gt; }</code> — Gruppenschlüssel (<code>"group1"</code>, <code>"group2"</code>, …) → Liste der Spieler-IDs.</p>
 <h3 id="rankingresolver">RankingResolver<a class="headerlink" href="#rankingresolver" title="Permanent link">&para;</a></h3>
 <p><strong>Einstiegspunkte:</strong></p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">resolver</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">TournamentMonitor</span><span class="o">::</span><span class="no">RankingResolver</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">tournament_monitor</span><span class="p">)</span>
@@ -3483,8 +3533,8 @@
 <td>Komposit-Regel: Rang 2 unter allen Rang-4-Spielern der Gruppen 1 und 2</td>
 </tr>
 <tr>
-<td><code>"fin.w"</code></td>
-<td>Sieger des Finales (KO-Klammer-Referenz)</td>
+<td><code>"fin.rk1"</code></td>
+<td>Rang 1 des Finalspiels — also der Sieger des Finales (KO-Klammer-Referenz)</td>
 </tr>
 <tr>
 <td><code>"sl.rk1"</code></td>
@@ -3522,14 +3572,21 @@
 <a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="n">processor</span><span class="o">.</span><span class="n">update_ranking</span>
 <a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="w">  </span><span class="c1"># → aktualisiert Rankings nach Ergebnisverarbeitung</span>
 <a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>
-<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="n">processor</span><span class="o">.</span><span class="n">update_game_participations</span>
+<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="n">processor</span><span class="o">.</span><span class="n">update_game_participations</span><span class="p">(</span><span class="n">tabmon</span><span class="p">)</span>
 <a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a><span class="w">  </span><span class="c1"># → aktualisiert GameParticipation-Datensätze</span>
+<a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a><span class="w">  </span><span class="c1"># → delegiert an update_game_participations_for_game(tabmon.game, tabmon.data)</span>
 </code></pre></div>
 <p><strong>DB-Lock-Bereich:</strong></p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">game</span><span class="o">.</span><span class="n">with_lock</span><span class="w"> </span><span class="k">do</span>
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="c1"># Deckt genau ab: write_game_result_data + finish_match!</span>
-<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">  </span><span class="c1"># Pessimistischer Lock verhindert Race Conditions bei gleichzeitigen Ergebnissen</span>
-<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="k">end</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="c1"># Innerhalb des Locks: table_monitor + game neu laden, write_game_result_data,</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">  </span><span class="c1"># beide erneut neu laden (um die vom AASM-Callback gelesene</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">  </span><span class="c1"># table_monitor.game-Assoziation zu aktualisieren), dann ein abgesichertes</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">  </span><span class="c1"># finish_match! (falls may_finish_match?).</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">  </span><span class="c1"># Pessimistischer Lock verhindert Race Conditions bei gleichzeitigen Ergebnissen.</span>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="k">end</span>
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="c1"># Der ClubCloud-Upload (finalize_game_result) läuft AUSSERHALB des Locks,</span>
+<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="c1"># nach dessen Freigabe, um den Lock nicht während des Netzwerkaufrufs zu halten.</span>
 </code></pre></div>
 <p><strong>Eingabe (Konstruktor):</strong></p>
 <table>

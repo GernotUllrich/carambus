@@ -386,7 +386,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../../reference/api.md" class="md-tabs__link">
+        <a href="../../reference/api/" class="md-tabs__link">
           
   
   
@@ -812,6 +812,8 @@
       
         
       
+        
+      
     
     
     
@@ -1131,6 +1133,29 @@
   
   
   
+    <li class="md-nav__item">
+      <a href="../../managers/external-tournament-bridge/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    External Tournament Bridge
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
     
     
       
@@ -1159,10 +1184,10 @@
         
           
         
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_10" >
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_11" >
         
           
-          <label class="md-nav__link" for="__nav_4_10" id="__nav_4_10_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_4_11" id="__nav_4_11_label" tabindex="0">
             
   
   
@@ -1175,8 +1200,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_10_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_4_10">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_11_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_11">
             <span class="md-nav__icon md-icon"></span>
             ClubCloud Scenarios
           </label>
@@ -1903,6 +1928,8 @@
       
         
       
+        
+      
     
     
     
@@ -2350,6 +2377,29 @@
   
   
   
+    <li class="md-nav__item">
+      <a href="../../developers/external-tournament-bridge/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    External Tournament Bridge
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
     
     
       
@@ -2384,10 +2434,10 @@
         
           
         
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6_12" >
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6_13" >
         
           
-          <label class="md-nav__link" for="__nav_6_12" id="__nav_6_12_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_6_13" id="__nav_6_13_label" tabindex="0">
             
   
   
@@ -2400,8 +2450,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_12_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_6_12">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_13_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6_13">
             <span class="md-nav__icon md-icon"></span>
             Services
           </label>
@@ -2996,7 +3046,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../reference/api.md" class="md-nav__link">
+      <a href="../../reference/api/" class="md-nav__link">
         
   
   
@@ -3508,19 +3558,22 @@
 </ul>
 <h2 id="quick-start">🚀 Quick Start<a class="headerlink" href="#quick-start" title="Permanent link">&para;</a></h2>
 <h3 id="1-create-scenario">1. Create Scenario<a class="headerlink" href="#1-create-scenario" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># Create new scenario</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>rake<span class="w"> </span><span class="s2">&quot;scenario:create[carambus_location_5101]&quot;</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># Create new scenario (location_id is required, context optional, default NBV)</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>rake<span class="w"> </span><span class="s2">&quot;scenario:create[carambus_location_5101,5101,NBV]&quot;</span>
 <a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
 <a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="c1"># Create Rails root</span>
 <a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>rake<span class="w"> </span><span class="s2">&quot;scenario:create_rails_root[carambus_location_5101]&quot;</span>
 </code></pre></div>
 <h3 id="2-development-setup">2. Development Setup<a class="headerlink" href="#2-development-setup" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># Setup development environment</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>rake<span class="w"> </span><span class="s2">&quot;scenario:setup[carambus_location_5101,development]&quot;</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>rake<span class="w"> </span><span class="s2">&quot;scenario:prepare_development[carambus_location_5101,development]&quot;</span>
 </code></pre></div>
 <h3 id="3-production-deployment">3. Production Deployment<a class="headerlink" href="#3-production-deployment" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># Full production deployment</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>rake<span class="w"> </span><span class="s2">&quot;scenario:deploy[carambus_location_5101]&quot;</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># Prepare deployment (generate configs, prepare DB/server)</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>rake<span class="w"> </span><span class="s2">&quot;scenario:prepare_deploy[carambus_location_5101]&quot;</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="c1"># Full production deployment</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>rake<span class="w"> </span><span class="s2">&quot;scenario:deploy[carambus_location_5101]&quot;</span>
 </code></pre></div>
 <h3 id="4-automatic-configuration">4. Automatic Configuration<a class="headerlink" href="#4-automatic-configuration" title="Permanent link">&para;</a></h3>
 <p>Scenario Management automatically configures:
@@ -3534,13 +3587,13 @@
 <ul>
 <li><strong><a href="../../developers/scenario-management/">Scenario Management</a></strong> - Complete deployment guide</li>
 <li><strong><a href="../../developers/developer-guide/">Developer Guide</a></strong> - Developer documentation</li>
-<li><strong><a href="../reference/api.md">API Documentation</a></strong> - API reference</li>
+<li><strong><a href="../../reference/api/">API Documentation</a></strong> - API reference</li>
 </ul>
 <h2 id="support">🆘 Support<a class="headerlink" href="#support" title="Permanent link">&para;</a></h2>
 <p>If you have problems:
 1. Check the <strong><a href="../../developers/scenario-management/">Scenario Management</a></strong> page
 2. View logs: <code>tail -f log/production.log</code>
-3. Service status: <code>systemctl status puma-carambus</code>
+3. Service status: <code>systemctl status carambus</code>
 4. Restart system: <code>sudo reboot</code></p>
 <hr />
 <p><strong>🎯 Goal</strong>: Simple, automated installation of Carambus on various platforms with consistent configuration via the Scenario Management System. </p>

@@ -386,7 +386,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../../reference/api.md" class="md-tabs__link">
+        <a href="../../reference/api/" class="md-tabs__link">
           
   
   
@@ -792,6 +792,8 @@
       
         
           
+        
+      
         
       
         
@@ -1440,6 +1442,29 @@
   
   
   
+    <li class="md-nav__item">
+      <a href="../external-tournament-bridge/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    External Tournament Bridge
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
     
     
       
@@ -1471,10 +1496,10 @@
         
           
         
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_10" >
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_11" >
         
           
-          <label class="md-nav__link" for="__nav_4_10" id="__nav_4_10_label" tabindex="">
+          <label class="md-nav__link" for="__nav_4_11" id="__nav_4_11_label" tabindex="">
             
   
   
@@ -1487,8 +1512,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_10_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_4_10">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_11_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_11">
             <span class="md-nav__icon md-icon"></span>
             ClubCloud Scenarios
           </label>
@@ -2002,6 +2027,8 @@
       
         
       
+        
+      
     
     
     
@@ -2449,6 +2476,29 @@
   
   
   
+    <li class="md-nav__item">
+      <a href="../../developers/external-tournament-bridge/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    External Tournament Bridge
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
     
     
       
@@ -2483,10 +2533,10 @@
         
           
         
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6_12" >
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6_13" >
         
           
-          <label class="md-nav__link" for="__nav_6_12" id="__nav_6_12_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_6_13" id="__nav_6_13_label" tabindex="0">
             
   
   
@@ -2499,8 +2549,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_12_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_6_12">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_13_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6_13">
             <span class="md-nav__icon md-icon"></span>
             Services
           </label>
@@ -3095,7 +3145,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../reference/api.md" class="md-nav__link">
+      <a href="../../reference/api/" class="md-nav__link">
         
   
   
@@ -3823,13 +3873,14 @@ These are the basis for automated tournament and table management (TournamentMon
 - 🔄 <strong>Before match days</strong> - Current team lineups
 - 🛠️ <strong>As needed</strong> - Admin can trigger scraping via UI</p>
 <p><strong>Workflow:</strong>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># Automatic (Cron job):</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="n">rake</span><span class="w"> </span><span class="ss">regions</span><span class="p">:</span><span class="n">scrape_all</span><span class="w">  </span><span class="c1"># All regions at 4:00 AM</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a># Automatic (Cron job, runs at 4:00 AM on the API server):
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>rake scrape:daily_update_monitored
 <a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="c1"># Manual (via UI):</span>
-<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="no">Region</span><span class="o">.</span><span class="n">find_by</span><span class="p">(</span><span class="ss">shortname</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;NBV&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">reload_from_cc</span>
-<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="no">Tournament</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="mi">123</span><span class="p">)</span><span class="o">.</span><span class="n">reload_from_cc</span><span class="w">  </span><span class="c1"># Only one tournament</span>
-<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="no">League</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="mi">456</span><span class="p">)</span><span class="o">.</span><span class="n">reload_from_cc_with_details</span><span class="w">  </span><span class="c1"># League with details</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a># Manual (via UI):
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a># On the Region, Tournament, League or Club page, click the
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a># &quot;Reload from CC&quot; or &quot;Reload from CC with details&quot; buttons
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a># (visible to admins only). These trigger the controller actions
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a># reload_from_cc / reload_from_cc_with_details.
 </code></pre></div></p>
 <hr />
 <h2 id="global-ids-and-dbu-data">🆔 Global IDs and DBU Data<a class="headerlink" href="#global-ids-and-dbu-data" title="Permanent link">&para;</a></h2>

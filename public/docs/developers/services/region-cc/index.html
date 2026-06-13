@@ -386,7 +386,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../../reference/api.md" class="md-tabs__link">
+        <a href="../../../reference/api/" class="md-tabs__link">
           
   
   
@@ -812,6 +812,8 @@
       
         
       
+        
+      
     
     
     
@@ -1131,6 +1133,29 @@
   
   
   
+    <li class="md-nav__item">
+      <a href="../../../managers/external-tournament-bridge/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    External-Tournament-Bridge
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
     
     
       
@@ -1159,10 +1184,10 @@
         
           
         
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_10" >
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_11" >
         
           
-          <label class="md-nav__link" for="__nav_4_10" id="__nav_4_10_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_4_11" id="__nav_4_11_label" tabindex="0">
             
   
   
@@ -1175,8 +1200,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_10_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_4_10">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_11_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_11">
             <span class="md-nav__icon md-icon"></span>
             ClubCloud Scenarios
           </label>
@@ -1692,6 +1717,8 @@
       
         
       
+        
+      
     
     
     
@@ -2144,6 +2171,29 @@
                 
   
   
+  
+  
+    <li class="md-nav__item">
+      <a href="../../external-tournament-bridge/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    External-Tournament-Bridge
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
     
   
   
@@ -2183,10 +2233,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6_12" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6_13" checked>
         
           
-          <label class="md-nav__link" for="__nav_6_12" id="__nav_6_12_label" tabindex="">
+          <label class="md-nav__link" for="__nav_6_13" id="__nav_6_13_label" tabindex="">
             
   
   
@@ -2199,8 +2249,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_12_label" aria-expanded="true">
-          <label class="md-nav__title" for="__nav_6_12">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_13_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_6_13">
             <span class="md-nav__icon md-icon"></span>
             Services
           </label>
@@ -2317,6 +2367,15 @@
   <a href="#syncer-muster" class="md-nav__link">
     <span class="md-ellipsis">
       Syncer-Muster
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#meldelistecreator-abweichende-signatur" class="md-nav__link">
+    <span class="md-ellipsis">
+      MeldelisteCreator (abweichende Signatur)
     </span>
   </a>
   
@@ -2948,7 +3007,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../reference/api.md" class="md-nav__link">
+      <a href="../../../reference/api/" class="md-nav__link">
         
   
   
@@ -3251,6 +3310,15 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#meldelistecreator-abweichende-signatur" class="md-nav__link">
+    <span class="md-ellipsis">
+      MeldelisteCreator (abweichende Signatur)
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -3345,8 +3413,8 @@
 
 
 <h1 id="regioncc-architektur">RegionCc:: — Architektur<a class="headerlink" href="#regioncc-architektur" title="Permanent link">&para;</a></h1>
-<p>Der <code>RegionCc::</code>-Namespace synchronisiert die lokale Carambus-Datenbank mit der ClubCloud (CC) — der PHP-basierten Verwaltungsplattform des Deutschen Billard-Verbands. Alle Sync-Operationen werden über <code>RegionCc.synchronize(opts)</code> am Modell gestartet; jeder Service verantwortet eine Sync-Domäne.</p>
-<p>Der Namespace besteht aus <strong>10 Services</strong> in <code>app/services/region_cc/</code>.</p>
+<p>Der <code>RegionCc::</code>-Namespace synchronisiert die lokale Carambus-Datenbank mit der ClubCloud (CC) — der PHP-basierten Verwaltungsplattform des Deutschen Billard-Verbands. Die übergeordnete Synchronisation wird von drei Instanzmethoden des <code>RegionCc</code>-Modells orchestriert — <code>synchronize_league_structure</code>, <code>synchronize_league_plan_structure</code> und <code>synchronize_tournament_structure</code> (<code>app/models/region_cc.rb</code>) —, die mehrere Syncer aufrufen. Aufrufer können die einzelnen <code>RegionCc::*Syncer.call</code>-Services auch direkt nutzen; jeder Service verantwortet eine Sync-Domäne.</p>
+<p>Der Namespace besteht aus <strong>11 Services</strong> in <code>app/services/region_cc/</code>.</p>
 <h2 id="namespace-ubersicht">Namespace-Übersicht<a class="headerlink" href="#namespace-ubersicht" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
@@ -3380,7 +3448,7 @@
 <tr>
 <td><code>RegionCc::GamePlanSyncer</code></td>
 <td><code>app/services/region_cc/game_plan_syncer.rb</code></td>
-<td>Synchronisiert <code>GamePlanCc</code>- und <code>GameDetailCc</code>-Datensätze inkl. HTML-Tabellen-Parsing; Operation-Dispatch</td>
+<td>Synchronisiert <code>GamePlanCc</code>- und <code>GameDetailCc</code>-Datensätze inkl. HTML-Tabellen-Parsing; Operationen: <code>:sync_game_plans</code>, <code>:sync_game_details</code></td>
 </tr>
 <tr>
 <td><code>RegionCc::LeagueSyncer</code></td>
@@ -3388,9 +3456,14 @@
 <td>Dispatcher für Liga-Sync — Operationen: <code>:sync_leagues</code>, <code>:sync_league_teams</code>, <code>:sync_league_teams_new</code>, <code>:sync_league_plan</code>, <code>:sync_team_players</code>, <code>:sync_team_players_structure</code></td>
 </tr>
 <tr>
+<td><code>RegionCc::MeldelisteCreator</code></td>
+<td><code>app/services/region_cc/meldeliste_creator.rb</code></td>
+<td>Erstellt die CC-Meldeliste für ein einzelnes Turnier — prüft auf eine bestehende Liste, erstellt sie dann und verifiziert sie via <code>post_cc</code>. Kein <code>operation</code>-Dispatch; erwartet ein <code>tournament:</code> statt <code>client:</code></td>
+</tr>
+<tr>
 <td><code>RegionCc::MetadataSyncer</code></td>
 <td><code>app/services/region_cc/metadata_syncer.rb</code></td>
-<td>Synchronisiert Metadaten-Referenzobjekte (Kategorien, Gruppen, Disziplinen); Operation-Dispatch</td>
+<td>Synchronisiert Metadaten-Referenzobjekte (Kategorien, Gruppen, Disziplinen); Operationen: <code>:sync_category_ccs</code>, <code>:sync_group_ccs</code>, <code>:sync_discipline_ccs</code></td>
 </tr>
 <tr>
 <td><code>RegionCc::PartySyncer</code></td>
@@ -3405,7 +3478,7 @@
 <tr>
 <td><code>RegionCc::TournamentSyncer</code></td>
 <td><code>app/services/region_cc/tournament_syncer.rb</code></td>
-<td>Synchronisiert Turnier-, Turnierserie- und Meisterschaftstyp-Daten; mehrere Operationen</td>
+<td>Synchronisiert Turnier-, Turnierserie- und Meisterschaftstyp-Daten; Operationen: <code>:sync_tournaments</code>, <code>:sync_tournament_ccs</code>, <code>:sync_tournament_series_ccs</code>, <code>:sync_championship_type_ccs</code>, <code>:fix_tournament_structure</code></td>
 </tr>
 </tbody>
 </table>
@@ -3502,9 +3575,22 @@
 <a id="__codelineno-1-24" name="__codelineno-1-24" href="#__codelineno-1-24"></a><span class="no">RegionCc</span><span class="o">::</span><span class="no">RegistrationSyncer</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="ss">region_cc</span><span class="p">:</span><span class="w"> </span><span class="n">rc</span><span class="p">,</span><span class="w"> </span><span class="ss">client</span><span class="p">:</span><span class="w"> </span><span class="n">cc_client</span><span class="p">,</span><span class="w"> </span><span class="ss">operation</span><span class="p">:</span><span class="w"> </span><span class="ss">:sync_registration_list_ccs</span><span class="p">,</span><span class="w"> </span><span class="o">**</span><span class="n">opts</span><span class="p">)</span>
 <a id="__codelineno-1-25" name="__codelineno-1-25" href="#__codelineno-1-25"></a><span class="no">RegionCc</span><span class="o">::</span><span class="no">RegistrationSyncer</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="ss">region_cc</span><span class="p">:</span><span class="w"> </span><span class="n">rc</span><span class="p">,</span><span class="w"> </span><span class="ss">client</span><span class="p">:</span><span class="w"> </span><span class="n">cc_client</span><span class="p">,</span><span class="w"> </span><span class="ss">operation</span><span class="p">:</span><span class="w"> </span><span class="ss">:sync_registration_list_ccs_detail</span><span class="p">,</span><span class="w"> </span><span class="o">**</span><span class="n">opts</span><span class="p">)</span>
 <a id="__codelineno-1-26" name="__codelineno-1-26" href="#__codelineno-1-26"></a>
-<a id="__codelineno-1-27" name="__codelineno-1-27" href="#__codelineno-1-27"></a><span class="no">RegionCc</span><span class="o">::</span><span class="no">GamePlanSyncer</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="ss">region_cc</span><span class="p">:</span><span class="w"> </span><span class="n">rc</span><span class="p">,</span><span class="w"> </span><span class="ss">client</span><span class="p">:</span><span class="w"> </span><span class="n">cc_client</span><span class="p">,</span><span class="w"> </span><span class="ss">operation</span><span class="p">:</span><span class="w"> </span><span class="ss">:sync_game_plans</span><span class="p">,</span><span class="w"> </span><span class="o">**</span><span class="n">opts</span><span class="p">)</span>
-<a id="__codelineno-1-28" name="__codelineno-1-28" href="#__codelineno-1-28"></a>
-<a id="__codelineno-1-29" name="__codelineno-1-29" href="#__codelineno-1-29"></a><span class="no">RegionCc</span><span class="o">::</span><span class="no">MetadataSyncer</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="ss">region_cc</span><span class="p">:</span><span class="w"> </span><span class="n">rc</span><span class="p">,</span><span class="w"> </span><span class="ss">client</span><span class="p">:</span><span class="w"> </span><span class="n">cc_client</span><span class="p">,</span><span class="w"> </span><span class="ss">operation</span><span class="p">:</span><span class="w"> </span><span class="ss">:sync_metadata</span><span class="p">,</span><span class="w"> </span><span class="o">**</span><span class="n">opts</span><span class="p">)</span>
+<a id="__codelineno-1-27" name="__codelineno-1-27" href="#__codelineno-1-27"></a><span class="no">RegionCc</span><span class="o">::</span><span class="no">TournamentSyncer</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="ss">region_cc</span><span class="p">:</span><span class="w"> </span><span class="n">rc</span><span class="p">,</span><span class="w"> </span><span class="ss">client</span><span class="p">:</span><span class="w"> </span><span class="n">cc_client</span><span class="p">,</span><span class="w"> </span><span class="ss">operation</span><span class="p">:</span><span class="w"> </span><span class="ss">:sync_tournament_ccs</span><span class="p">,</span><span class="w"> </span><span class="o">**</span><span class="n">opts</span><span class="p">)</span>
+<a id="__codelineno-1-28" name="__codelineno-1-28" href="#__codelineno-1-28"></a><span class="no">RegionCc</span><span class="o">::</span><span class="no">TournamentSyncer</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="ss">region_cc</span><span class="p">:</span><span class="w"> </span><span class="n">rc</span><span class="p">,</span><span class="w"> </span><span class="ss">client</span><span class="p">:</span><span class="w"> </span><span class="n">cc_client</span><span class="p">,</span><span class="w"> </span><span class="ss">operation</span><span class="p">:</span><span class="w"> </span><span class="ss">:sync_tournament_series_ccs</span><span class="p">,</span><span class="w"> </span><span class="o">**</span><span class="n">opts</span><span class="p">)</span>
+<a id="__codelineno-1-29" name="__codelineno-1-29" href="#__codelineno-1-29"></a><span class="no">RegionCc</span><span class="o">::</span><span class="no">TournamentSyncer</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="ss">region_cc</span><span class="p">:</span><span class="w"> </span><span class="n">rc</span><span class="p">,</span><span class="w"> </span><span class="ss">client</span><span class="p">:</span><span class="w"> </span><span class="n">cc_client</span><span class="p">,</span><span class="w"> </span><span class="ss">operation</span><span class="p">:</span><span class="w"> </span><span class="ss">:sync_championship_type_ccs</span><span class="p">,</span><span class="w"> </span><span class="o">**</span><span class="n">opts</span><span class="p">)</span>
+<a id="__codelineno-1-30" name="__codelineno-1-30" href="#__codelineno-1-30"></a><span class="no">RegionCc</span><span class="o">::</span><span class="no">TournamentSyncer</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="ss">region_cc</span><span class="p">:</span><span class="w"> </span><span class="n">rc</span><span class="p">,</span><span class="w"> </span><span class="ss">client</span><span class="p">:</span><span class="w"> </span><span class="n">cc_client</span><span class="p">,</span><span class="w"> </span><span class="ss">operation</span><span class="p">:</span><span class="w"> </span><span class="ss">:fix_tournament_structure</span><span class="p">,</span><span class="w"> </span><span class="o">**</span><span class="n">opts</span><span class="p">)</span>
+<a id="__codelineno-1-31" name="__codelineno-1-31" href="#__codelineno-1-31"></a>
+<a id="__codelineno-1-32" name="__codelineno-1-32" href="#__codelineno-1-32"></a><span class="no">RegionCc</span><span class="o">::</span><span class="no">GamePlanSyncer</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="ss">region_cc</span><span class="p">:</span><span class="w"> </span><span class="n">rc</span><span class="p">,</span><span class="w"> </span><span class="ss">client</span><span class="p">:</span><span class="w"> </span><span class="n">cc_client</span><span class="p">,</span><span class="w"> </span><span class="ss">operation</span><span class="p">:</span><span class="w"> </span><span class="ss">:sync_game_plans</span><span class="p">,</span><span class="w"> </span><span class="o">**</span><span class="n">opts</span><span class="p">)</span>
+<a id="__codelineno-1-33" name="__codelineno-1-33" href="#__codelineno-1-33"></a><span class="no">RegionCc</span><span class="o">::</span><span class="no">GamePlanSyncer</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="ss">region_cc</span><span class="p">:</span><span class="w"> </span><span class="n">rc</span><span class="p">,</span><span class="w"> </span><span class="ss">client</span><span class="p">:</span><span class="w"> </span><span class="n">cc_client</span><span class="p">,</span><span class="w"> </span><span class="ss">operation</span><span class="p">:</span><span class="w"> </span><span class="ss">:sync_game_details</span><span class="p">,</span><span class="w"> </span><span class="o">**</span><span class="n">opts</span><span class="p">)</span>
+<a id="__codelineno-1-34" name="__codelineno-1-34" href="#__codelineno-1-34"></a>
+<a id="__codelineno-1-35" name="__codelineno-1-35" href="#__codelineno-1-35"></a><span class="no">RegionCc</span><span class="o">::</span><span class="no">MetadataSyncer</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="ss">region_cc</span><span class="p">:</span><span class="w"> </span><span class="n">rc</span><span class="p">,</span><span class="w"> </span><span class="ss">client</span><span class="p">:</span><span class="w"> </span><span class="n">cc_client</span><span class="p">,</span><span class="w"> </span><span class="ss">operation</span><span class="p">:</span><span class="w"> </span><span class="ss">:sync_category_ccs</span><span class="p">,</span><span class="w"> </span><span class="o">**</span><span class="n">opts</span><span class="p">)</span>
+<a id="__codelineno-1-36" name="__codelineno-1-36" href="#__codelineno-1-36"></a><span class="no">RegionCc</span><span class="o">::</span><span class="no">MetadataSyncer</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="ss">region_cc</span><span class="p">:</span><span class="w"> </span><span class="n">rc</span><span class="p">,</span><span class="w"> </span><span class="ss">client</span><span class="p">:</span><span class="w"> </span><span class="n">cc_client</span><span class="p">,</span><span class="w"> </span><span class="ss">operation</span><span class="p">:</span><span class="w"> </span><span class="ss">:sync_group_ccs</span><span class="p">,</span><span class="w"> </span><span class="o">**</span><span class="n">opts</span><span class="p">)</span>
+<a id="__codelineno-1-37" name="__codelineno-1-37" href="#__codelineno-1-37"></a><span class="no">RegionCc</span><span class="o">::</span><span class="no">MetadataSyncer</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="ss">region_cc</span><span class="p">:</span><span class="w"> </span><span class="n">rc</span><span class="p">,</span><span class="w"> </span><span class="ss">client</span><span class="p">:</span><span class="w"> </span><span class="n">cc_client</span><span class="p">,</span><span class="w"> </span><span class="ss">operation</span><span class="p">:</span><span class="w"> </span><span class="ss">:sync_discipline_ccs</span><span class="p">,</span><span class="w"> </span><span class="o">**</span><span class="n">opts</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="meldelistecreator-abweichende-signatur">MeldelisteCreator (abweichende Signatur)<a class="headerlink" href="#meldelistecreator-abweichende-signatur" title="Permanent link">&para;</a></h3>
+<p><code>MeldelisteCreator</code> folgt nicht dem <code>region_cc:</code>/<code>client:</code>/<code>operation:</code>-Muster. Er erwartet ein <code>tournament:</code> und erstellt die CC-Meldeliste für genau dieses Turnier, wobei Region und Client aus dem Organizer des Turniers aufgelöst werden. Die HTTP-Aufrufe erfolgen über <code>region_cc.post_cc</code>; aufgerufen wird er von <code>synchronize_tournament_structure</code>.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="no">RegionCc</span><span class="o">::</span><span class="no">MeldelisteCreator</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="ss">tournament</span><span class="p">:</span><span class="w"> </span><span class="n">tournament</span><span class="p">,</span><span class="w"> </span><span class="o">**</span><span class="n">opts</span><span class="p">)</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="c1"># → erstellt und verifiziert die Meldeliste; wirft &quot;Error: Synchronization failed&quot;, falls die Verifikation fehlschlägt</span>
 </code></pre></div>
 <p><strong>Gemeinsame Eingabe-Parameter:</strong></p>
 <table>
@@ -3553,7 +3639,7 @@
 <h3 id="d-path_map-konstante">d. PATH_MAP-Konstante<a class="headerlink" href="#d-path_map-konstante" title="Permanent link">&para;</a></h3>
 <p><code>ClubCloudClient</code> enthält eine <code>PATH_MAP</code>-Konstante, die Aktionsnamen auf URL-Pfade und ein <code>read_only</code>-Flag mappt. Das <code>read_only</code>-Flag verhindert POST-Anfragen im Dry-Run-Modus für schreibende Aktionen.</p>
 <h3 id="e-alle-syncer-als-applicationservice">e. Alle Syncer als ApplicationService<a class="headerlink" href="#e-alle-syncer-als-applicationservice" title="Permanent link">&para;</a></h3>
-<p>Alle 9 Syncer erben von <code>ApplicationService</code>, da sie Datenbankänderungen vornehmen. <code>ClubCloudClient</code> erbt nicht von <code>ApplicationService</code> — er ist ein zustandsloser HTTP-Transport.</p>
+<p>Alle 10 Services (9 Syncer plus <code>MeldelisteCreator</code>) erben von <code>ApplicationService</code>, da sie Datenbank-/CC-Änderungen vornehmen. <code>ClubCloudClient</code> erbt nicht von <code>ApplicationService</code> — er ist ein zustandsloser HTTP-Transport.</p>
 <h2 id="querverweise">Querverweise<a class="headerlink" href="#querverweise" title="Permanent link">&para;</a></h2>
 <ul>
 <li>Übergeordneter Leitfaden: <a href="../../developer-guide/#extrahierte-services">Developer Guide — Extrahierte Services</a></li>

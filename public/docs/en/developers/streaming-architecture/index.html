@@ -386,7 +386,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../../reference/api.md" class="md-tabs__link">
+        <a href="../../reference/api/" class="md-tabs__link">
           
   
   
@@ -812,6 +812,8 @@
       
         
       
+        
+      
     
     
     
@@ -1131,6 +1133,29 @@
   
   
   
+    <li class="md-nav__item">
+      <a href="../../managers/external-tournament-bridge/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    External Tournament Bridge
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
     
     
       
@@ -1159,10 +1184,10 @@
         
           
         
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_10" >
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_11" >
         
           
-          <label class="md-nav__link" for="__nav_4_10" id="__nav_4_10_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_4_11" id="__nav_4_11_label" tabindex="0">
             
   
   
@@ -1175,8 +1200,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_10_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_4_10">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_11_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_11">
             <span class="md-nav__icon md-icon"></span>
             ClubCloud Scenarios
           </label>
@@ -1692,6 +1717,8 @@
       
         
       
+        
+      
     
     
     
@@ -2146,6 +2173,29 @@
   
   
   
+    <li class="md-nav__item">
+      <a href="../external-tournament-bridge/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    External Tournament Bridge
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
     
     
       
@@ -2183,10 +2233,10 @@
         
           
         
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6_12" >
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6_13" >
         
           
-          <label class="md-nav__link" for="__nav_6_12" id="__nav_6_12_label" tabindex="">
+          <label class="md-nav__link" for="__nav_6_13" id="__nav_6_13_label" tabindex="">
             
   
   
@@ -2199,8 +2249,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_12_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_6_12">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_13_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6_13">
             <span class="md-nav__icon md-icon"></span>
             Services
           </label>
@@ -3305,7 +3355,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../reference/api.md" class="md-nav__link">
+      <a href="../../reference/api/" class="md-nav__link">
         
   
   
@@ -4141,89 +4191,147 @@
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># db/migrate/XXXXXX_create_stream_configurations.rb</span>
 <a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="n">create_table</span><span class="w"> </span><span class="ss">:stream_configurations</span><span class="w"> </span><span class="k">do</span><span class="w"> </span><span class="o">|</span><span class="n">t</span><span class="o">|</span>
 <a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span><span class="c1"># Beziehungen</span>
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">  </span><span class="n">t</span><span class="o">.</span><span class="n">references</span><span class="w"> </span><span class="ss">:table</span><span class="p">,</span><span class="w"> </span><span class="ss">null</span><span class="p">:</span><span class="w"> </span><span class="kp">false</span><span class="p">,</span><span class="w"> </span><span class="ss">foreign_key</span><span class="p">:</span><span class="w"> </span><span class="kp">true</span><span class="p">,</span><span class="w"> </span><span class="ss">index</span><span class="p">:</span><span class="w"> </span><span class="kp">false</span>
-<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">  </span><span class="n">t</span><span class="o">.</span><span class="n">references</span><span class="w"> </span><span class="ss">:location</span><span class="p">,</span><span class="w"> </span><span class="ss">null</span><span class="p">:</span><span class="w"> </span><span class="kp">false</span><span class="p">,</span><span class="w"> </span><span class="ss">foreign_key</span><span class="p">:</span><span class="w"> </span><span class="kp">true</span><span class="p">,</span><span class="w"> </span><span class="ss">index</span><span class="p">:</span><span class="w"> </span><span class="kp">false</span>
-<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>
-<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">  </span><span class="c1"># YouTube</span>
-<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">  </span><span class="n">t</span><span class="o">.</span><span class="n">string</span><span class="w"> </span><span class="ss">:youtube_stream_key</span><span class="w">      </span><span class="c1"># encrypted!</span>
-<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">  </span><span class="n">t</span><span class="o">.</span><span class="n">string</span><span class="w"> </span><span class="ss">:youtube_channel_id</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">  </span><span class="c1"># Nur :table. Die Location wird NICHT direkt referenziert, sondern</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">  </span><span class="c1"># über die Table erreicht (has_one :location, through: :table).</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">  </span><span class="n">t</span><span class="o">.</span><span class="n">references</span><span class="w"> </span><span class="ss">:table</span><span class="p">,</span><span class="w"> </span><span class="ss">null</span><span class="p">:</span><span class="w"> </span><span class="kp">false</span><span class="p">,</span><span class="w"> </span><span class="ss">foreign_key</span><span class="p">:</span><span class="w"> </span><span class="kp">true</span><span class="p">,</span><span class="w"> </span><span class="ss">index</span><span class="p">:</span><span class="w"> </span><span class="kp">false</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">  </span><span class="c1"># Stream-Ziel (youtube | local | custom)</span>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">  </span><span class="n">t</span><span class="o">.</span><span class="n">string</span><span class="w"> </span><span class="ss">:stream_destination</span><span class="p">,</span><span class="w"> </span><span class="ss">default</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;youtube&#39;</span><span class="p">,</span><span class="w"> </span><span class="ss">null</span><span class="p">:</span><span class="w"> </span><span class="kp">false</span>
 <a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>
-<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="w">  </span><span class="c1"># Kamera</span>
-<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="w">  </span><span class="n">t</span><span class="o">.</span><span class="n">string</span><span class="w"> </span><span class="ss">:camera_device</span><span class="p">,</span><span class="w"> </span><span class="ss">default</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;/dev/video0&#39;</span>
-<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="w">  </span><span class="n">t</span><span class="o">.</span><span class="n">integer</span><span class="w"> </span><span class="ss">:camera_width</span><span class="p">,</span><span class="w"> </span><span class="ss">default</span><span class="p">:</span><span class="w"> </span><span class="mi">1280</span>
-<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="w">  </span><span class="n">t</span><span class="o">.</span><span class="n">integer</span><span class="w"> </span><span class="ss">:camera_height</span><span class="p">,</span><span class="w"> </span><span class="ss">default</span><span class="p">:</span><span class="w"> </span><span class="mi">720</span>
-<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="w">  </span><span class="n">t</span><span class="o">.</span><span class="n">integer</span><span class="w"> </span><span class="ss">:camera_fps</span><span class="p">,</span><span class="w"> </span><span class="ss">default</span><span class="p">:</span><span class="w"> </span><span class="mi">60</span>
-<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a>
-<a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a><span class="w">  </span><span class="c1"># Overlay</span>
-<a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a><span class="w">  </span><span class="n">t</span><span class="o">.</span><span class="n">boolean</span><span class="w"> </span><span class="ss">:overlay_enabled</span><span class="p">,</span><span class="w"> </span><span class="ss">default</span><span class="p">:</span><span class="w"> </span><span class="kp">true</span>
-<a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a><span class="w">  </span><span class="n">t</span><span class="o">.</span><span class="n">string</span><span class="w"> </span><span class="ss">:overlay_position</span><span class="p">,</span><span class="w"> </span><span class="ss">default</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;bottom&#39;</span>
-<a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a><span class="w">  </span><span class="n">t</span><span class="o">.</span><span class="n">integer</span><span class="w"> </span><span class="ss">:overlay_height</span><span class="p">,</span><span class="w"> </span><span class="ss">default</span><span class="p">:</span><span class="w"> </span><span class="mi">200</span>
-<a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a>
-<a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a><span class="w">  </span><span class="c1"># Status</span>
-<a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a><span class="w">  </span><span class="n">t</span><span class="o">.</span><span class="n">string</span><span class="w"> </span><span class="ss">:status</span><span class="p">,</span><span class="w"> </span><span class="ss">default</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;inactive&#39;</span>
-<a id="__codelineno-1-24" name="__codelineno-1-24" href="#__codelineno-1-24"></a><span class="w">  </span><span class="n">t</span><span class="o">.</span><span class="n">datetime</span><span class="w"> </span><span class="ss">:last_started_at</span>
-<a id="__codelineno-1-25" name="__codelineno-1-25" href="#__codelineno-1-25"></a><span class="w">  </span><span class="n">t</span><span class="o">.</span><span class="n">datetime</span><span class="w"> </span><span class="ss">:last_stopped_at</span>
-<a id="__codelineno-1-26" name="__codelineno-1-26" href="#__codelineno-1-26"></a><span class="w">  </span><span class="n">t</span><span class="o">.</span><span class="n">text</span><span class="w"> </span><span class="ss">:error_message</span>
-<a id="__codelineno-1-27" name="__codelineno-1-27" href="#__codelineno-1-27"></a><span class="w">  </span><span class="n">t</span><span class="o">.</span><span class="n">integer</span><span class="w"> </span><span class="ss">:restart_count</span><span class="p">,</span><span class="w"> </span><span class="ss">default</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span>
-<a id="__codelineno-1-28" name="__codelineno-1-28" href="#__codelineno-1-28"></a>
-<a id="__codelineno-1-29" name="__codelineno-1-29" href="#__codelineno-1-29"></a><span class="w">  </span><span class="c1"># Netzwerk</span>
-<a id="__codelineno-1-30" name="__codelineno-1-30" href="#__codelineno-1-30"></a><span class="w">  </span><span class="n">t</span><span class="o">.</span><span class="n">string</span><span class="w"> </span><span class="ss">:raspi_ip</span>
-<a id="__codelineno-1-31" name="__codelineno-1-31" href="#__codelineno-1-31"></a><span class="w">  </span><span class="n">t</span><span class="o">.</span><span class="n">integer</span><span class="w"> </span><span class="ss">:raspi_ssh_port</span><span class="p">,</span><span class="w"> </span><span class="ss">default</span><span class="p">:</span><span class="w"> </span><span class="mi">22</span>
-<a id="__codelineno-1-32" name="__codelineno-1-32" href="#__codelineno-1-32"></a>
-<a id="__codelineno-1-33" name="__codelineno-1-33" href="#__codelineno-1-33"></a><span class="w">  </span><span class="c1"># Qualität</span>
-<a id="__codelineno-1-34" name="__codelineno-1-34" href="#__codelineno-1-34"></a><span class="w">  </span><span class="n">t</span><span class="o">.</span><span class="n">integer</span><span class="w"> </span><span class="ss">:video_bitrate</span><span class="p">,</span><span class="w"> </span><span class="ss">default</span><span class="p">:</span><span class="w"> </span><span class="mi">2000</span>
-<a id="__codelineno-1-35" name="__codelineno-1-35" href="#__codelineno-1-35"></a><span class="w">  </span><span class="n">t</span><span class="o">.</span><span class="n">integer</span><span class="w"> </span><span class="ss">:audio_bitrate</span><span class="p">,</span><span class="w"> </span><span class="ss">default</span><span class="p">:</span><span class="w"> </span><span class="mi">128</span>
-<a id="__codelineno-1-36" name="__codelineno-1-36" href="#__codelineno-1-36"></a>
-<a id="__codelineno-1-37" name="__codelineno-1-37" href="#__codelineno-1-37"></a><span class="w">  </span><span class="n">t</span><span class="o">.</span><span class="n">timestamps</span>
-<a id="__codelineno-1-38" name="__codelineno-1-38" href="#__codelineno-1-38"></a><span class="k">end</span>
-<a id="__codelineno-1-39" name="__codelineno-1-39" href="#__codelineno-1-39"></a>
-<a id="__codelineno-1-40" name="__codelineno-1-40" href="#__codelineno-1-40"></a><span class="c1"># Indizes</span>
-<a id="__codelineno-1-41" name="__codelineno-1-41" href="#__codelineno-1-41"></a><span class="n">add_index</span><span class="w"> </span><span class="ss">:stream_configurations</span><span class="p">,</span><span class="w"> </span><span class="ss">:table_id</span><span class="p">,</span><span class="w"> </span><span class="ss">unique</span><span class="p">:</span><span class="w"> </span><span class="kp">true</span>
-<a id="__codelineno-1-42" name="__codelineno-1-42" href="#__codelineno-1-42"></a><span class="n">add_index</span><span class="w"> </span><span class="ss">:stream_configurations</span><span class="p">,</span><span class="w"> </span><span class="ss">:location_id</span>
-<a id="__codelineno-1-43" name="__codelineno-1-43" href="#__codelineno-1-43"></a><span class="n">add_index</span><span class="w"> </span><span class="ss">:stream_configurations</span><span class="p">,</span><span class="w"> </span><span class="ss">:status</span>
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="w">  </span><span class="c1"># YouTube</span>
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="w">  </span><span class="n">t</span><span class="o">.</span><span class="n">string</span><span class="w"> </span><span class="ss">:youtube_stream_key</span><span class="w">      </span><span class="c1"># encrypted!</span>
+<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="w">  </span><span class="n">t</span><span class="o">.</span><span class="n">string</span><span class="w"> </span><span class="ss">:youtube_channel_id</span>
+<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>
+<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="w">  </span><span class="c1"># Lokaler RTMP-Server / Custom-RTMP-Ziel</span>
+<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a><span class="w">  </span><span class="n">t</span><span class="o">.</span><span class="n">string</span><span class="w"> </span><span class="ss">:local_rtmp_server_ip</span>
+<a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a><span class="w">  </span><span class="n">t</span><span class="o">.</span><span class="n">string</span><span class="w"> </span><span class="ss">:custom_rtmp_url</span>
+<a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a><span class="w">  </span><span class="n">t</span><span class="o">.</span><span class="n">string</span><span class="w"> </span><span class="ss">:custom_rtmp_key</span><span class="w">         </span><span class="c1"># encrypted!</span>
+<a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a>
+<a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a><span class="w">  </span><span class="c1"># Kamera</span>
+<a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a><span class="w">  </span><span class="n">t</span><span class="o">.</span><span class="n">string</span><span class="w"> </span><span class="ss">:camera_device</span><span class="p">,</span><span class="w"> </span><span class="ss">default</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;/dev/video0&#39;</span>
+<a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a><span class="w">  </span><span class="n">t</span><span class="o">.</span><span class="n">integer</span><span class="w"> </span><span class="ss">:camera_width</span><span class="p">,</span><span class="w"> </span><span class="ss">default</span><span class="p">:</span><span class="w"> </span><span class="mi">640</span>
+<a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a><span class="w">  </span><span class="n">t</span><span class="o">.</span><span class="n">integer</span><span class="w"> </span><span class="ss">:camera_height</span><span class="p">,</span><span class="w"> </span><span class="ss">default</span><span class="p">:</span><span class="w"> </span><span class="mi">360</span>
+<a id="__codelineno-1-24" name="__codelineno-1-24" href="#__codelineno-1-24"></a><span class="w">  </span><span class="n">t</span><span class="o">.</span><span class="n">integer</span><span class="w"> </span><span class="ss">:camera_fps</span><span class="p">,</span><span class="w"> </span><span class="ss">default</span><span class="p">:</span><span class="w"> </span><span class="mi">30</span>
+<a id="__codelineno-1-25" name="__codelineno-1-25" href="#__codelineno-1-25"></a>
+<a id="__codelineno-1-26" name="__codelineno-1-26" href="#__codelineno-1-26"></a><span class="w">  </span><span class="c1"># Overlay</span>
+<a id="__codelineno-1-27" name="__codelineno-1-27" href="#__codelineno-1-27"></a><span class="w">  </span><span class="n">t</span><span class="o">.</span><span class="n">boolean</span><span class="w"> </span><span class="ss">:overlay_enabled</span><span class="p">,</span><span class="w"> </span><span class="ss">default</span><span class="p">:</span><span class="w"> </span><span class="kp">true</span>
+<a id="__codelineno-1-28" name="__codelineno-1-28" href="#__codelineno-1-28"></a><span class="w">  </span><span class="n">t</span><span class="o">.</span><span class="n">string</span><span class="w"> </span><span class="ss">:overlay_position</span><span class="p">,</span><span class="w"> </span><span class="ss">default</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;bottom&#39;</span>
+<a id="__codelineno-1-29" name="__codelineno-1-29" href="#__codelineno-1-29"></a><span class="w">  </span><span class="n">t</span><span class="o">.</span><span class="n">integer</span><span class="w"> </span><span class="ss">:overlay_height</span><span class="p">,</span><span class="w"> </span><span class="ss">default</span><span class="p">:</span><span class="w"> </span><span class="mi">200</span>
+<a id="__codelineno-1-30" name="__codelineno-1-30" href="#__codelineno-1-30"></a>
+<a id="__codelineno-1-31" name="__codelineno-1-31" href="#__codelineno-1-31"></a><span class="w">  </span><span class="c1"># Status</span>
+<a id="__codelineno-1-32" name="__codelineno-1-32" href="#__codelineno-1-32"></a><span class="w">  </span><span class="n">t</span><span class="o">.</span><span class="n">string</span><span class="w"> </span><span class="ss">:status</span><span class="p">,</span><span class="w"> </span><span class="ss">default</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;inactive&#39;</span>
+<a id="__codelineno-1-33" name="__codelineno-1-33" href="#__codelineno-1-33"></a><span class="w">  </span><span class="n">t</span><span class="o">.</span><span class="n">datetime</span><span class="w"> </span><span class="ss">:last_started_at</span>
+<a id="__codelineno-1-34" name="__codelineno-1-34" href="#__codelineno-1-34"></a><span class="w">  </span><span class="n">t</span><span class="o">.</span><span class="n">datetime</span><span class="w"> </span><span class="ss">:last_stopped_at</span>
+<a id="__codelineno-1-35" name="__codelineno-1-35" href="#__codelineno-1-35"></a><span class="w">  </span><span class="n">t</span><span class="o">.</span><span class="n">text</span><span class="w"> </span><span class="ss">:error_message</span>
+<a id="__codelineno-1-36" name="__codelineno-1-36" href="#__codelineno-1-36"></a><span class="w">  </span><span class="n">t</span><span class="o">.</span><span class="n">integer</span><span class="w"> </span><span class="ss">:restart_count</span><span class="p">,</span><span class="w"> </span><span class="ss">default</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span>
+<a id="__codelineno-1-37" name="__codelineno-1-37" href="#__codelineno-1-37"></a>
+<a id="__codelineno-1-38" name="__codelineno-1-38" href="#__codelineno-1-38"></a><span class="w">  </span><span class="c1"># Netzwerk</span>
+<a id="__codelineno-1-39" name="__codelineno-1-39" href="#__codelineno-1-39"></a><span class="w">  </span><span class="n">t</span><span class="o">.</span><span class="n">string</span><span class="w"> </span><span class="ss">:raspi_ip</span>
+<a id="__codelineno-1-40" name="__codelineno-1-40" href="#__codelineno-1-40"></a><span class="w">  </span><span class="n">t</span><span class="o">.</span><span class="n">integer</span><span class="w"> </span><span class="ss">:raspi_ssh_port</span><span class="p">,</span><span class="w"> </span><span class="ss">default</span><span class="p">:</span><span class="w"> </span><span class="mi">22</span>
+<a id="__codelineno-1-41" name="__codelineno-1-41" href="#__codelineno-1-41"></a><span class="w">  </span><span class="n">t</span><span class="o">.</span><span class="n">string</span><span class="w"> </span><span class="ss">:raspi_ssh_user</span><span class="p">,</span><span class="w"> </span><span class="ss">default</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;pi&#39;</span>
+<a id="__codelineno-1-42" name="__codelineno-1-42" href="#__codelineno-1-42"></a>
+<a id="__codelineno-1-43" name="__codelineno-1-43" href="#__codelineno-1-43"></a><span class="w">  </span><span class="c1"># Qualität</span>
+<a id="__codelineno-1-44" name="__codelineno-1-44" href="#__codelineno-1-44"></a><span class="w">  </span><span class="n">t</span><span class="o">.</span><span class="n">integer</span><span class="w"> </span><span class="ss">:video_bitrate</span><span class="p">,</span><span class="w"> </span><span class="ss">default</span><span class="p">:</span><span class="w"> </span><span class="mi">1000</span>
+<a id="__codelineno-1-45" name="__codelineno-1-45" href="#__codelineno-1-45"></a><span class="w">  </span><span class="n">t</span><span class="o">.</span><span class="n">integer</span><span class="w"> </span><span class="ss">:audio_bitrate</span><span class="p">,</span><span class="w"> </span><span class="ss">default</span><span class="p">:</span><span class="w"> </span><span class="mi">128</span>
+<a id="__codelineno-1-46" name="__codelineno-1-46" href="#__codelineno-1-46"></a>
+<a id="__codelineno-1-47" name="__codelineno-1-47" href="#__codelineno-1-47"></a><span class="w">  </span><span class="c1"># Perspektiv-Korrektur (Keystone) und Kamera-Tuning (V4L2)</span>
+<a id="__codelineno-1-48" name="__codelineno-1-48" href="#__codelineno-1-48"></a><span class="w">  </span><span class="n">t</span><span class="o">.</span><span class="n">boolean</span><span class="w"> </span><span class="ss">:perspective_enabled</span><span class="p">,</span><span class="w"> </span><span class="ss">default</span><span class="p">:</span><span class="w"> </span><span class="kp">false</span>
+<a id="__codelineno-1-49" name="__codelineno-1-49" href="#__codelineno-1-49"></a><span class="w">  </span><span class="n">t</span><span class="o">.</span><span class="n">string</span><span class="w"> </span><span class="ss">:perspective_coords</span>
+<a id="__codelineno-1-50" name="__codelineno-1-50" href="#__codelineno-1-50"></a><span class="w">  </span><span class="n">t</span><span class="o">.</span><span class="n">integer</span><span class="w"> </span><span class="ss">:focus_auto</span><span class="p">,</span><span class="w"> </span><span class="ss">default</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span>
+<a id="__codelineno-1-51" name="__codelineno-1-51" href="#__codelineno-1-51"></a><span class="w">  </span><span class="n">t</span><span class="o">.</span><span class="n">integer</span><span class="w"> </span><span class="ss">:exposure_auto</span><span class="p">,</span><span class="w"> </span><span class="ss">default</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span>
+<a id="__codelineno-1-52" name="__codelineno-1-52" href="#__codelineno-1-52"></a><span class="w">  </span><span class="n">t</span><span class="o">.</span><span class="n">integer</span><span class="w"> </span><span class="ss">:focus_absolute</span>
+<a id="__codelineno-1-53" name="__codelineno-1-53" href="#__codelineno-1-53"></a><span class="w">  </span><span class="n">t</span><span class="o">.</span><span class="n">integer</span><span class="w"> </span><span class="ss">:exposure_absolute</span>
+<a id="__codelineno-1-54" name="__codelineno-1-54" href="#__codelineno-1-54"></a><span class="w">  </span><span class="n">t</span><span class="o">.</span><span class="n">integer</span><span class="w"> </span><span class="ss">:brightness</span>
+<a id="__codelineno-1-55" name="__codelineno-1-55" href="#__codelineno-1-55"></a><span class="w">  </span><span class="n">t</span><span class="o">.</span><span class="n">integer</span><span class="w"> </span><span class="ss">:contrast</span>
+<a id="__codelineno-1-56" name="__codelineno-1-56" href="#__codelineno-1-56"></a><span class="w">  </span><span class="n">t</span><span class="o">.</span><span class="n">integer</span><span class="w"> </span><span class="ss">:saturation</span>
+<a id="__codelineno-1-57" name="__codelineno-1-57" href="#__codelineno-1-57"></a>
+<a id="__codelineno-1-58" name="__codelineno-1-58" href="#__codelineno-1-58"></a><span class="w">  </span><span class="n">t</span><span class="o">.</span><span class="n">timestamps</span>
+<a id="__codelineno-1-59" name="__codelineno-1-59" href="#__codelineno-1-59"></a><span class="k">end</span>
+<a id="__codelineno-1-60" name="__codelineno-1-60" href="#__codelineno-1-60"></a>
+<a id="__codelineno-1-61" name="__codelineno-1-61" href="#__codelineno-1-61"></a><span class="c1"># Indizes</span>
+<a id="__codelineno-1-62" name="__codelineno-1-62" href="#__codelineno-1-62"></a><span class="n">add_index</span><span class="w"> </span><span class="ss">:stream_configurations</span><span class="p">,</span><span class="w"> </span><span class="ss">:table_id</span><span class="p">,</span><span class="w"> </span><span class="ss">unique</span><span class="p">:</span><span class="w"> </span><span class="kp">true</span>
+<a id="__codelineno-1-63" name="__codelineno-1-63" href="#__codelineno-1-63"></a><span class="n">add_index</span><span class="w"> </span><span class="ss">:stream_configurations</span><span class="p">,</span><span class="w"> </span><span class="ss">:stream_destination</span>
+<a id="__codelineno-1-64" name="__codelineno-1-64" href="#__codelineno-1-64"></a><span class="n">add_index</span><span class="w"> </span><span class="ss">:stream_configurations</span><span class="p">,</span><span class="w"> </span><span class="ss">:status</span>
 </code></pre></div>
+<blockquote>
+<p>ℹ️ <strong>Schema-Snapshot (Stand: aktueller <code>db/schema.rb</code>):</strong> Die obigen Spalten und
+Defaults entsprechen dem aktuellen Schema. Über die ursprüngliche Streaming-Migration
+hinaus kamen per späteren Migrationen hinzu: <code>raspi_ssh_user</code>, <code>stream_destination</code>,
+<code>custom_rtmp_url</code>, <code>custom_rtmp_key</code>, <code>local_rtmp_server_ip</code> sowie die Kamera-/
+Perspektiv-Tuning-Spalten (<code>perspective_enabled</code>, <code>perspective_coords</code>, <code>focus_auto</code>,
+<code>exposure_auto</code>, <code>focus_absolute</code>, <code>exposure_absolute</code>, <code>brightness</code>, <code>contrast</code>,
+<code>saturation</code>). Hinweis: Die Camera-Defaults sind aktuell 640×360 @ 30 fps und
+<code>video_bitrate</code> 1000 (nicht 1280×720 @ 60 fps / 2000); die FFmpeg-Beispiele weiter
+unten verwenden zur Illustration weiterhin 720p60.</p>
+</blockquote>
 <p><strong>Wichtige Constraints:</strong>
 - <code>table_id</code> unique: Nur ein Stream pro Tisch
-- <code>youtube_stream_key</code> verschlüsselt via Rails 7 <code>encrypts</code>
-- Status-Maschine: <code>inactive → starting → active → stopping → inactive|error</code></p>
+- <code>youtube_stream_key</code> und <code>custom_rtmp_key</code> verschlüsselt via Rails 7 <code>encrypts</code>
+- Status-Maschine: <code>inactive → starting → active → stopping → inactive|error</code>
+- <strong>Keine <code>location_id</code>-Spalte</strong>: Eine frühere <code>location</code>-Referenz wurde per Migration
+  <code>remove_location_id_from_stream_configurations</code> entfernt. Die Location wird über
+  <code>has_one :location, through: :table</code> erreicht. Im Model verhindert
+  <code>self.ignored_columns = ["location_id"]</code> Fehler bei Deployments mit alter DB-Spalte.</p>
 <h4 id="12-model-layer">1.2 Model-Layer<a class="headerlink" href="#12-model-layer" title="Permanent link">&para;</a></h4>
 <p><strong><code>app/models/stream_configuration.rb</code></strong></p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">StreamConfiguration</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="no">ApplicationRecord</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="c1"># Verschlüsselung</span>
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span><span class="n">encrypts</span><span class="w"> </span><span class="ss">:youtube_stream_key</span><span class="p">,</span><span class="w"> </span><span class="ss">deterministic</span><span class="p">:</span><span class="w"> </span><span class="kp">false</span>
-<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>
-<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">  </span><span class="c1"># Beziehungen</span>
-<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">  </span><span class="n">belongs_to</span><span class="w"> </span><span class="ss">:table</span>
-<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="w">  </span><span class="n">belongs_to</span><span class="w"> </span><span class="ss">:location</span>
-<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>
-<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="w">  </span><span class="c1"># Status-Helpers</span>
-<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="w">  </span><span class="k">def</span><span class="w"> </span><span class="nf">inactive?</span><span class="p">;</span><span class="w"> </span><span class="n">status</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s1">&#39;inactive&#39;</span><span class="p">;</span><span class="w"> </span><span class="k">end</span>
-<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="w">  </span><span class="k">def</span><span class="w"> </span><span class="nf">active?</span><span class="p">;</span><span class="w"> </span><span class="n">status</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s1">&#39;active&#39;</span><span class="p">;</span><span class="w"> </span><span class="k">end</span>
-<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="w">  </span><span class="k">def</span><span class="w"> </span><span class="nf">starting?</span><span class="p">;</span><span class="w"> </span><span class="n">status</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s1">&#39;starting&#39;</span><span class="p">;</span><span class="w"> </span><span class="k">end</span>
-<a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a><span class="w">  </span><span class="c1"># ...</span>
-<a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a>
-<a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a><span class="w">  </span><span class="c1"># Streaming-Operationen</span>
-<a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a><span class="w">  </span><span class="k">def</span><span class="w"> </span><span class="nf">start_streaming</span>
-<a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a><span class="w">    </span><span class="n">update</span><span class="p">(</span><span class="ss">status</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;starting&#39;</span><span class="p">)</span>
-<a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a><span class="w">    </span><span class="no">StreamControlJob</span><span class="o">.</span><span class="n">perform_later</span><span class="p">(</span><span class="nb">id</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;start&#39;</span><span class="p">)</span>
-<a id="__codelineno-2-19" name="__codelineno-2-19" href="#__codelineno-2-19"></a><span class="w">  </span><span class="k">end</span>
-<a id="__codelineno-2-20" name="__codelineno-2-20" href="#__codelineno-2-20"></a>
-<a id="__codelineno-2-21" name="__codelineno-2-21" href="#__codelineno-2-21"></a><span class="w">  </span><span class="k">def</span><span class="w"> </span><span class="nf">stop_streaming</span>
-<a id="__codelineno-2-22" name="__codelineno-2-22" href="#__codelineno-2-22"></a><span class="w">    </span><span class="n">update</span><span class="p">(</span><span class="ss">status</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;stopping&#39;</span><span class="p">)</span>
-<a id="__codelineno-2-23" name="__codelineno-2-23" href="#__codelineno-2-23"></a><span class="w">    </span><span class="no">StreamControlJob</span><span class="o">.</span><span class="n">perform_later</span><span class="p">(</span><span class="nb">id</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;stop&#39;</span><span class="p">)</span>
-<a id="__codelineno-2-24" name="__codelineno-2-24" href="#__codelineno-2-24"></a><span class="w">  </span><span class="k">end</span>
-<a id="__codelineno-2-25" name="__codelineno-2-25" href="#__codelineno-2-25"></a>
-<a id="__codelineno-2-26" name="__codelineno-2-26" href="#__codelineno-2-26"></a><span class="w">  </span><span class="c1"># URL-Generierung</span>
-<a id="__codelineno-2-27" name="__codelineno-2-27" href="#__codelineno-2-27"></a><span class="w">  </span><span class="k">def</span><span class="w"> </span><span class="nf">scoreboard_overlay_url</span>
-<a id="__codelineno-2-28" name="__codelineno-2-28" href="#__codelineno-2-28"></a><span class="w">    </span><span class="c1"># Generiert: http://localhost:80/locations/:md5/scoreboard_overlay?table=N</span>
-<a id="__codelineno-2-29" name="__codelineno-2-29" href="#__codelineno-2-29"></a><span class="w">  </span><span class="k">end</span>
-<a id="__codelineno-2-30" name="__codelineno-2-30" href="#__codelineno-2-30"></a>
-<a id="__codelineno-2-31" name="__codelineno-2-31" href="#__codelineno-2-31"></a><span class="w">  </span><span class="k">def</span><span class="w"> </span><span class="nf">rtmp_url</span>
-<a id="__codelineno-2-32" name="__codelineno-2-32" href="#__codelineno-2-32"></a><span class="w">    </span><span class="c1"># Generiert: rtmp://a.rtmp.youtube.com/live2/:stream_key</span>
-<a id="__codelineno-2-33" name="__codelineno-2-33" href="#__codelineno-2-33"></a><span class="w">  </span><span class="k">end</span>
-<a id="__codelineno-2-34" name="__codelineno-2-34" href="#__codelineno-2-34"></a><span class="k">end</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="c1"># Spalte location_id wurde entfernt; Shim verhindert Fehler bei</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span><span class="c1"># alter DB-Spalte während Deployments.</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">  </span><span class="nb">self</span><span class="o">.</span><span class="n">ignored_columns</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">[</span><span class="s2">&quot;location_id&quot;</span><span class="o">]</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">  </span><span class="c1"># Verschlüsselung (zwei verschlüsselte Keys)</span>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="w">  </span><span class="n">encrypts</span><span class="w"> </span><span class="ss">:youtube_stream_key</span><span class="p">,</span><span class="w"> </span><span class="ss">deterministic</span><span class="p">:</span><span class="w"> </span><span class="kp">false</span>
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="w">  </span><span class="n">encrypts</span><span class="w"> </span><span class="ss">:custom_rtmp_key</span><span class="p">,</span><span class="w"> </span><span class="ss">deterministic</span><span class="p">:</span><span class="w"> </span><span class="kp">false</span>
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>
+<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="w">  </span><span class="c1"># Beziehungen</span>
+<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="w">  </span><span class="n">belongs_to</span><span class="w"> </span><span class="ss">:table</span>
+<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="w">  </span><span class="n">has_one</span><span class="w"> </span><span class="ss">:location</span><span class="p">,</span><span class="w"> </span><span class="ss">through</span><span class="p">:</span><span class="w"> </span><span class="ss">:table</span><span class="w">   </span><span class="c1"># KEIN belongs_to :location</span>
+<a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a>
+<a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a><span class="w">  </span><span class="c1"># Stream-Ziel-Validierung</span>
+<a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a><span class="w">  </span><span class="n">validates</span><span class="w"> </span><span class="ss">:stream_destination</span><span class="p">,</span><span class="w"> </span><span class="ss">inclusion</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">in</span><span class="p">:</span><span class="w"> </span><span class="sx">%w[youtube local custom]</span><span class="w"> </span><span class="p">},</span><span class="w"> </span><span class="ss">presence</span><span class="p">:</span><span class="w"> </span><span class="kp">true</span>
+<a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a>
+<a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a><span class="w">  </span><span class="c1"># Status-Helpers</span>
+<a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a><span class="w">  </span><span class="k">def</span><span class="w"> </span><span class="nf">inactive?</span><span class="p">;</span><span class="w"> </span><span class="n">status</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s1">&#39;inactive&#39;</span><span class="p">;</span><span class="w"> </span><span class="k">end</span>
+<a id="__codelineno-2-19" name="__codelineno-2-19" href="#__codelineno-2-19"></a><span class="w">  </span><span class="k">def</span><span class="w"> </span><span class="nf">active?</span><span class="p">;</span><span class="w"> </span><span class="n">status</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s1">&#39;active&#39;</span><span class="p">;</span><span class="w"> </span><span class="k">end</span>
+<a id="__codelineno-2-20" name="__codelineno-2-20" href="#__codelineno-2-20"></a><span class="w">  </span><span class="k">def</span><span class="w"> </span><span class="nf">starting?</span><span class="p">;</span><span class="w"> </span><span class="n">status</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s1">&#39;starting&#39;</span><span class="p">;</span><span class="w"> </span><span class="k">end</span>
+<a id="__codelineno-2-21" name="__codelineno-2-21" href="#__codelineno-2-21"></a><span class="w">  </span><span class="c1"># ...</span>
+<a id="__codelineno-2-22" name="__codelineno-2-22" href="#__codelineno-2-22"></a>
+<a id="__codelineno-2-23" name="__codelineno-2-23" href="#__codelineno-2-23"></a><span class="w">  </span><span class="c1"># Streaming-Operationen</span>
+<a id="__codelineno-2-24" name="__codelineno-2-24" href="#__codelineno-2-24"></a><span class="w">  </span><span class="k">def</span><span class="w"> </span><span class="nf">start_streaming</span>
+<a id="__codelineno-2-25" name="__codelineno-2-25" href="#__codelineno-2-25"></a><span class="w">    </span><span class="n">update</span><span class="p">(</span><span class="ss">status</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;starting&#39;</span><span class="p">)</span>
+<a id="__codelineno-2-26" name="__codelineno-2-26" href="#__codelineno-2-26"></a><span class="w">    </span><span class="no">StreamControlJob</span><span class="o">.</span><span class="n">perform_later</span><span class="p">(</span><span class="nb">id</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;start&#39;</span><span class="p">)</span>
+<a id="__codelineno-2-27" name="__codelineno-2-27" href="#__codelineno-2-27"></a><span class="w">  </span><span class="k">end</span>
+<a id="__codelineno-2-28" name="__codelineno-2-28" href="#__codelineno-2-28"></a>
+<a id="__codelineno-2-29" name="__codelineno-2-29" href="#__codelineno-2-29"></a><span class="w">  </span><span class="k">def</span><span class="w"> </span><span class="nf">stop_streaming</span>
+<a id="__codelineno-2-30" name="__codelineno-2-30" href="#__codelineno-2-30"></a><span class="w">    </span><span class="n">update</span><span class="p">(</span><span class="ss">status</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;stopping&#39;</span><span class="p">)</span>
+<a id="__codelineno-2-31" name="__codelineno-2-31" href="#__codelineno-2-31"></a><span class="w">    </span><span class="no">StreamControlJob</span><span class="o">.</span><span class="n">perform_later</span><span class="p">(</span><span class="nb">id</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;stop&#39;</span><span class="p">)</span>
+<a id="__codelineno-2-32" name="__codelineno-2-32" href="#__codelineno-2-32"></a><span class="w">  </span><span class="k">end</span>
+<a id="__codelineno-2-33" name="__codelineno-2-33" href="#__codelineno-2-33"></a>
+<a id="__codelineno-2-34" name="__codelineno-2-34" href="#__codelineno-2-34"></a><span class="w">  </span><span class="c1"># URL-Generierung</span>
+<a id="__codelineno-2-35" name="__codelineno-2-35" href="#__codelineno-2-35"></a><span class="w">  </span><span class="k">def</span><span class="w"> </span><span class="nf">scoreboard_overlay_url</span>
+<a id="__codelineno-2-36" name="__codelineno-2-36" href="#__codelineno-2-36"></a><span class="w">    </span><span class="c1"># Generiert: http://localhost:80/locations/:md5/scoreboard_overlay?table_id=&lt;id&gt;</span>
+<a id="__codelineno-2-37" name="__codelineno-2-37" href="#__codelineno-2-37"></a><span class="w">    </span><span class="c1"># (Tisch wird über die DB-ID adressiert, nicht über die Tischnummer)</span>
+<a id="__codelineno-2-38" name="__codelineno-2-38" href="#__codelineno-2-38"></a><span class="w">  </span><span class="k">end</span>
+<a id="__codelineno-2-39" name="__codelineno-2-39" href="#__codelineno-2-39"></a>
+<a id="__codelineno-2-40" name="__codelineno-2-40" href="#__codelineno-2-40"></a><span class="w">  </span><span class="c1"># RTMP-Ziel hängt von stream_destination ab:</span>
+<a id="__codelineno-2-41" name="__codelineno-2-41" href="#__codelineno-2-41"></a><span class="w">  </span><span class="c1">#   youtube → rtmp://a.rtmp.youtube.com/live2/&lt;youtube_stream_key&gt;</span>
+<a id="__codelineno-2-42" name="__codelineno-2-42" href="#__codelineno-2-42"></a><span class="w">  </span><span class="c1">#   local   → rtmp://&lt;local_rtmp_server_ip&gt;:1935/stream/table&lt;table_id&gt;</span>
+<a id="__codelineno-2-43" name="__codelineno-2-43" href="#__codelineno-2-43"></a><span class="w">  </span><span class="c1">#   custom  → &lt;custom_rtmp_url&gt;[/&lt;custom_rtmp_key&gt;]</span>
+<a id="__codelineno-2-44" name="__codelineno-2-44" href="#__codelineno-2-44"></a><span class="w">  </span><span class="k">def</span><span class="w"> </span><span class="nf">rtmp_url</span>
+<a id="__codelineno-2-45" name="__codelineno-2-45" href="#__codelineno-2-45"></a><span class="w">    </span><span class="k">case</span><span class="w"> </span><span class="n">stream_destination</span>
+<a id="__codelineno-2-46" name="__codelineno-2-46" href="#__codelineno-2-46"></a><span class="w">    </span><span class="k">when</span><span class="w"> </span><span class="s1">&#39;youtube&#39;</span><span class="w"> </span><span class="k">then</span><span class="w"> </span><span class="n">youtube_rtmp_url</span>
+<a id="__codelineno-2-47" name="__codelineno-2-47" href="#__codelineno-2-47"></a><span class="w">    </span><span class="k">when</span><span class="w"> </span><span class="s1">&#39;local&#39;</span><span class="w">   </span><span class="k">then</span><span class="w"> </span><span class="n">local_rtmp_url</span>
+<a id="__codelineno-2-48" name="__codelineno-2-48" href="#__codelineno-2-48"></a><span class="w">    </span><span class="k">when</span><span class="w"> </span><span class="s1">&#39;custom&#39;</span><span class="w">  </span><span class="k">then</span><span class="w"> </span><span class="n">custom_rtmp_url_complete</span>
+<a id="__codelineno-2-49" name="__codelineno-2-49" href="#__codelineno-2-49"></a><span class="w">    </span><span class="k">end</span>
+<a id="__codelineno-2-50" name="__codelineno-2-50" href="#__codelineno-2-50"></a><span class="w">  </span><span class="k">end</span>
+<a id="__codelineno-2-51" name="__codelineno-2-51" href="#__codelineno-2-51"></a><span class="k">end</span>
 </code></pre></div>
 <p><strong>Design-Entscheidungen:</strong>
+- Drei Stream-Ziele: <code>youtube</code>, <code>local</code> (Docker-RTMP-Server im LAN, z.B. Mac mini),
+  <code>custom</code> (frei konfigurierbare RTMP-URL + optionaler Key)
+- <code>rtmp_url</code> schaltet anhand <code>stream_destination</code> zwischen den Zielen um (nicht
+  fest auf YouTube verdrahtet)
+- Location über <code>has_one :location, through: :table</code> statt direkter Referenz
 - Asynchrone Job-Ausführung (verhindert HTTP-Timeouts bei langsamen SSH-Operationen)
 - URL-Generierung im Model (Single Source of Truth)
 - Deterministic false encryption (höhere Sicherheit, keine Suche nach Keys möglich)</p>
@@ -4235,8 +4343,18 @@
 <a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="no">POST</span><span class="w"> </span><span class="sr">/admin/s</span><span class="n">tream_configurations</span><span class="o">/</span><span class="ss">:id</span><span class="o">/</span><span class="n">stop</span><span class="w">        </span><span class="c1"># Stream stoppen</span>
 <a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="no">POST</span><span class="w"> </span><span class="sr">/admin/s</span><span class="n">tream_configurations</span><span class="o">/</span><span class="ss">:id</span><span class="o">/</span><span class="n">restart</span><span class="w">     </span><span class="c1"># Neustart</span>
 <a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="no">POST</span><span class="w"> </span><span class="sr">/admin/s</span><span class="n">tream_configurations</span><span class="o">/</span><span class="ss">:id</span><span class="o">/</span><span class="n">health_check</span><span class="w"> </span><span class="c1"># Health-Check</span>
-<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="no">POST</span><span class="w"> </span><span class="sr">/admin/s</span><span class="n">tream_configurations</span><span class="o">/</span><span class="n">deploy_all</span><span class="w">      </span><span class="c1"># Alle deployen</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="no">POST</span><span class="w"> </span><span class="sr">/admin/s</span><span class="n">tream_configurations</span><span class="o">/</span><span class="n">deploy_all</span><span class="w">      </span><span class="c1"># Alle deployen (siehe Caveat)</span>
 </code></pre></div>
+<blockquote>
+<p>⚠️ <strong>Caveat <code>deploy_all</code>:</strong> Die Route und die Controller-Action existieren,
+aber die Action ruft <code>StreamDeployJob.perform_later(config.id)</code> auf — und
+<strong><code>StreamDeployJob</code> existiert im Code nicht</strong> (kein <code>app/jobs/stream_deploy_job.rb</code>).
+Beim Aufruf von <code>deploy_all</code> schlägt die Job-Einreihung daher fehl. Für das
+tatsächliche Starten/Stoppen wird <strong><code>StreamControlJob</code></strong> verwendet (siehe
+<code>start_streaming</code> / <code>stop_streaming</code> im Model). <code>deploy_all</code> ist derzeit defekt,
+bis <code>StreamDeployJob</code> implementiert oder die Action auf <code>StreamControlJob</code>
+umgestellt wird.</p>
+</blockquote>
 <p><strong><code>app/controllers/locations_controller.rb</code></strong></p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">scoreboard_overlay</span>
 <a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span><span class="c1"># Minimales Layout ohne UI-Chrome</span>
@@ -4304,68 +4422,125 @@
 <li><code>new.html.erb</code>, <code>edit.html.erb</code>: Standard CRUD-Views</li>
 </ul>
 <p><strong>Overlay-View (<code>app/views/locations/scoreboard_overlay.html.erb</code>)</strong></p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="cp">&lt;%</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="vi">@game</span><span class="o">.</span><span class="n">present?</span><span class="w"> </span><span class="cp">%&gt;</span>
-<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="x">  &lt;div class=&quot;overlay-container&quot;&gt;</span>
-<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="x">    &lt;div class=&quot;player-section&quot;&gt;</span>
-<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="x">      </span><span class="cp">&lt;%=</span><span class="w"> </span><span class="vi">@game</span><span class="o">.</span><span class="n">player_a</span><span class="o">.</span><span class="n">display_name</span><span class="w"> </span><span class="cp">%&gt;</span>
-<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="x">      </span><span class="cp">&lt;%=</span><span class="w"> </span><span class="vi">@game</span><span class="o">.</span><span class="n">score_a</span><span class="w"> </span><span class="cp">%&gt;</span>
-<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="x">    &lt;/div&gt;</span>
-<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="x">    &lt;div class=&quot;vs-section&quot;&gt;VS&lt;/div&gt;</span>
-<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="x">    &lt;div class=&quot;player-section&quot;&gt;</span>
-<a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="x">      </span><span class="cp">&lt;%=</span><span class="w"> </span><span class="vi">@game</span><span class="o">.</span><span class="n">player_b</span><span class="o">.</span><span class="n">display_name</span><span class="w"> </span><span class="cp">%&gt;</span>
-<a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="x">      </span><span class="cp">&lt;%=</span><span class="w"> </span><span class="vi">@game</span><span class="o">.</span><span class="n">score_b</span><span class="w"> </span><span class="cp">%&gt;</span>
-<a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a><span class="x">    &lt;/div&gt;</span>
-<a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a><span class="x">  &lt;/div&gt;</span>
-<a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a><span class="cp">&lt;%</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="cp">%&gt;</span>
-<a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a><span class="x">  &lt;div class=&quot;no-game&quot;&gt;Kein aktives Spiel&lt;/div&gt;</span>
-<a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a><span class="cp">&lt;%</span><span class="w"> </span><span class="k">end</span><span class="w"> </span><span class="cp">%&gt;</span>
+<blockquote>
+<p>ℹ️ <strong>Schematisch.</strong> Das untenstehende Snippet ist eine vereinfachte Darstellung.
+Die reale View liest die Spieler-/Score-Daten <strong>nicht</strong> aus <code>@game.player_a</code> /
+<code>@game.score_a</code>, sondern aus dem <code>TableMonitor</code>-Options-Hash
+(<code>@table_monitor.get_options!</code> bzw. <code>local_assigns[:options]</code>). Die Spieler-
+Orientierung (links/rechts) folgt <code>options[:current_left_player]</code>, die Scores
+werden aus <code>result</code> plus laufendem Inning berechnet. Das Markup nutzt Tailwind-
+Utility-Klassen (kein <code>.overlay-container</code>) und setzt
+<code>data-controller="streaming-overlay"</code> mit
+<code>data-streaming-overlay-table-id-value="&lt;%= @table&amp;.id %&gt;"</code>.</p>
+</blockquote>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="cp">&lt;%</span><span class="w"> </span><span class="c1"># options stammen aus dem TableMonitor (Live-Update oder Polling)</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">   </span><span class="k">if</span><span class="w"> </span><span class="n">local_assigns</span><span class="o">[</span><span class="ss">:options</span><span class="o">].</span><span class="n">present?</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">     </span><span class="n">options</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">local_assigns</span><span class="o">[</span><span class="ss">:options</span><span class="o">]</span>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">   </span><span class="k">elsif</span><span class="w"> </span><span class="vi">@table_monitor</span><span class="o">.</span><span class="n">present?</span>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="w">     </span><span class="vi">@table_monitor</span><span class="o">.</span><span class="n">get_options!</span><span class="p">(</span><span class="no">I18n</span><span class="o">.</span><span class="n">locale</span><span class="p">)</span>
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="w">     </span><span class="n">options</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="vi">@table_monitor</span><span class="o">.</span><span class="n">options</span>
+<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="w">   </span><span class="k">end</span><span class="w"> </span><span class="cp">%&gt;</span>
+<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>
+<a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="cp">&lt;%</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="vi">@game</span><span class="o">.</span><span class="n">present?</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">options</span><span class="o">.</span><span class="n">present?</span><span class="w"> </span><span class="cp">%&gt;</span>
+<a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="x">  </span><span class="cp">&lt;%</span><span class="w"> </span><span class="n">left_player</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="n">options</span><span class="o">[</span><span class="ss">:current_left_player</span><span class="o">]</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s2">&quot;playera&quot;</span><span class="w"> </span><span class="p">?</span><span class="w"> </span><span class="n">options</span><span class="o">[</span><span class="ss">:player_a</span><span class="o">]</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="n">options</span><span class="o">[</span><span class="ss">:player_b</span><span class="o">]</span>
+<a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a><span class="w">     </span><span class="n">right_player</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">options</span><span class="o">[</span><span class="ss">:current_left_player</span><span class="o">]</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s2">&quot;playera&quot;</span><span class="w"> </span><span class="p">?</span><span class="w"> </span><span class="n">options</span><span class="o">[</span><span class="ss">:player_b</span><span class="o">]</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="n">options</span><span class="o">[</span><span class="ss">:player_a</span><span class="o">]</span><span class="w"> </span><span class="cp">%&gt;</span>
+<a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a>
+<a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a><span class="x">  &lt;div class=&quot;w-full px-2 py-1 flex flex-col gap-1 bg-black/80&quot;</span>
+<a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a><span class="x">       data-controller=&quot;streaming-overlay&quot;</span>
+<a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a><span class="x">       data-streaming-overlay-table-id-value=&quot;</span><span class="cp">&lt;%=</span><span class="w"> </span><span class="vi">@table</span><span class="o">&amp;.</span><span class="n">id</span><span class="w"> </span><span class="cp">%&gt;</span><span class="x">&quot;&gt;</span>
+<a id="__codelineno-7-16" name="__codelineno-7-16" href="#__codelineno-7-16"></a><span class="x">    &lt;div class=&quot;flex items-center gap-1.5 ...&quot;&gt;</span>
+<a id="__codelineno-7-17" name="__codelineno-7-17" href="#__codelineno-7-17"></a><span class="x">      &lt;span&gt;</span><span class="cp">&lt;%=</span><span class="w"> </span><span class="n">left_player</span><span class="o">[</span><span class="ss">:firstname</span><span class="o">].</span><span class="n">presence</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">left_player</span><span class="o">[</span><span class="ss">:lastname</span><span class="o">]</span><span class="w"> </span><span class="cp">%&gt;</span><span class="x">&lt;/span&gt;</span>
+<a id="__codelineno-7-18" name="__codelineno-7-18" href="#__codelineno-7-18"></a><span class="x">      &lt;span data-streaming-overlay-target=&quot;scoreA&quot;&gt;</span><span class="cp">&lt;%=</span><span class="w"> </span><span class="n">left_score</span><span class="w"> </span><span class="cp">%&gt;</span><span class="x">&lt;/span&gt;</span>
+<a id="__codelineno-7-19" name="__codelineno-7-19" href="#__codelineno-7-19"></a><span class="x">    &lt;/div&gt;</span>
+<a id="__codelineno-7-20" name="__codelineno-7-20" href="#__codelineno-7-20"></a><span class="x">    &lt;div class=&quot;flex items-center gap-1.5 ...&quot;&gt;</span>
+<a id="__codelineno-7-21" name="__codelineno-7-21" href="#__codelineno-7-21"></a><span class="x">      &lt;span&gt;</span><span class="cp">&lt;%=</span><span class="w"> </span><span class="n">right_player</span><span class="o">[</span><span class="ss">:firstname</span><span class="o">].</span><span class="n">presence</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">right_player</span><span class="o">[</span><span class="ss">:lastname</span><span class="o">]</span><span class="w"> </span><span class="cp">%&gt;</span><span class="x">&lt;/span&gt;</span>
+<a id="__codelineno-7-22" name="__codelineno-7-22" href="#__codelineno-7-22"></a><span class="x">      &lt;span data-streaming-overlay-target=&quot;scoreB&quot;&gt;</span><span class="cp">&lt;%=</span><span class="w"> </span><span class="n">right_score</span><span class="w"> </span><span class="cp">%&gt;</span><span class="x">&lt;/span&gt;</span>
+<a id="__codelineno-7-23" name="__codelineno-7-23" href="#__codelineno-7-23"></a><span class="x">    &lt;/div&gt;</span>
+<a id="__codelineno-7-24" name="__codelineno-7-24" href="#__codelineno-7-24"></a><span class="x">  &lt;/div&gt;</span>
+<a id="__codelineno-7-25" name="__codelineno-7-25" href="#__codelineno-7-25"></a><span class="cp">&lt;%</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="cp">%&gt;</span>
+<a id="__codelineno-7-26" name="__codelineno-7-26" href="#__codelineno-7-26"></a><span class="x">  &lt;div class=&quot;w-full p-2 text-center ...&quot;&gt;Tisch </span><span class="cp">&lt;%=</span><span class="w"> </span><span class="vi">@table</span><span class="o">&amp;.</span><span class="n">number</span><span class="w"> </span><span class="cp">%&gt;</span><span class="x"> • Kein Spiel&lt;/div&gt;</span>
+<a id="__codelineno-7-27" name="__codelineno-7-27" href="#__codelineno-7-27"></a><span class="cp">&lt;%</span><span class="w"> </span><span class="k">end</span><span class="w"> </span><span class="cp">%&gt;</span>
 </code></pre></div>
-<p><strong>Layout: <code>app/views/layouts/streaming_overlay.html.erb</code></strong></p>
+<p><strong>Layout: <code>app/views/layouts/streaming_overlay.html.erb</code></strong> (verkürzt — der reale
+Body-Hintergrund ist opakes Schwarz <code>#000000</code>, gerendert über Tailwind/Importmap):</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="x">&lt;html&gt;</span>
 <a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="x">&lt;head&gt;</span>
-<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="x">  &lt;style&gt;</span>
-<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="x">    body { background: rgba(0, 0, 0, 0.75); }</span>
-<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="x">    /* Fixed 1920x200 Overlay-Dimensionen */</span>
-<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="x">  &lt;/style&gt;</span>
-<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="x">&lt;/head&gt;</span>
-<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a><span class="x">&lt;body&gt;</span><span class="cp">&lt;%=</span><span class="w"> </span><span class="k">yield</span><span class="w"> </span><span class="cp">%&gt;</span><span class="x">&lt;/body&gt;</span>
-<a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a><span class="x">&lt;/html&gt;</span>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="x">  </span><span class="cp">&lt;%=</span><span class="w"> </span><span class="n">stylesheet_link_tag</span><span class="w"> </span><span class="s2">&quot;application&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;data-turbo-track&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;reload&quot;</span><span class="w"> </span><span class="cp">%&gt;</span>
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="x">  &lt;style&gt;</span>
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="x">    @keyframes pulse-dot { 0%, 100% { opacity: 1; transform: scale(1); }</span>
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="x">                           50% { opacity: 0.5; transform: scale(0.85); } }</span>
+<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="x">    .live-indicator { animation: pulse-dot 2s infinite; }</span>
+<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a><span class="x">    .overlay-gradient {</span>
+<a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a><span class="x">      background: linear-gradient(135deg, rgba(0, 97, 120, 0.95) 0%,</span>
+<a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a><span class="x">                                          rgba(0, 60, 80, 0.95) 100%);</span>
+<a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a><span class="x">    }</span>
+<a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a><span class="x">  &lt;/style&gt;</span>
+<a id="__codelineno-8-13" name="__codelineno-8-13" href="#__codelineno-8-13"></a><span class="x">  </span><span class="cp">&lt;%=</span><span class="w"> </span><span class="n">javascript_importmap_tags</span><span class="w"> </span><span class="cp">%&gt;</span>
+<a id="__codelineno-8-14" name="__codelineno-8-14" href="#__codelineno-8-14"></a><span class="x">  </span><span class="cp">&lt;%=</span><span class="w"> </span><span class="n">action_cable_meta_tag</span><span class="w"> </span><span class="cp">%&gt;</span>
+<a id="__codelineno-8-15" name="__codelineno-8-15" href="#__codelineno-8-15"></a><span class="x">&lt;/head&gt;</span>
+<a id="__codelineno-8-16" name="__codelineno-8-16" href="#__codelineno-8-16"></a><span class="x">&lt;body class=&quot;w-full h-full m-0 p-0 font-sans text-white overflow-hidden antialiased&quot;</span>
+<a id="__codelineno-8-17" name="__codelineno-8-17" href="#__codelineno-8-17"></a><span class="x">      style=&quot;background-color: #000000;&quot;&gt;</span>
+<a id="__codelineno-8-18" name="__codelineno-8-18" href="#__codelineno-8-18"></a><span class="x">  </span><span class="cp">&lt;%=</span><span class="w"> </span><span class="k">yield</span><span class="w"> </span><span class="cp">%&gt;</span>
+<a id="__codelineno-8-19" name="__codelineno-8-19" href="#__codelineno-8-19"></a><span class="x">&lt;/body&gt;</span>
+<a id="__codelineno-8-20" name="__codelineno-8-20" href="#__codelineno-8-20"></a><span class="x">&lt;/html&gt;</span>
 </code></pre></div>
 <p><strong>Design-Entscheidungen:</strong>
-- Fixed Dimensions (1920x200): FFmpeg erwartet konsistente Größe
-- Transparenter Hintergrund (alpha channel)
-- Inline CSS (keine External Assets, schnelleres Rendering)
-- Kein JavaScript im Overlay (statische Captures alle 2s)</p>
+- Opaker schwarzer Body-Hintergrund (<code>#000000</code>); die Score-Karte selbst nutzt
+  <code>bg-black/80</code> (transluzent) bzw. die <code>.overlay-gradient</code>-Klasse
+- Das Layout setzt keine festen 1920×200-Maße; der Body ist <code>w-full h-full</code>,
+  die FFmpeg/Chromium-Capture-Größe wird beim Start vorgegeben
+- Tailwind-CSS + Importmap-Assets statt reinem Inline-CSS
+- Der Overlay-Stimulus-Controller lädt die Seite per Polling alle 3s neu; FFmpeg/
+  Chromium captured den jeweils gerenderten Stand</p>
 <h4 id="16-frontend-stimulus">1.6 Frontend (Stimulus)<a class="headerlink" href="#16-frontend-stimulus" title="Permanent link">&para;</a></h4>
 <p><strong><code>app/javascript/controllers/streaming_overlay_controller.js</code></strong></p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="k">export</span><span class="w"> </span><span class="k">default</span><span class="w"> </span><span class="kd">class</span><span class="w"> </span><span class="k">extends</span><span class="w"> </span><span class="nx">Controller</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="w">  </span><span class="nx">connect</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="w">    </span><span class="k">this</span><span class="p">.</span><span class="nx">subscribeToTableMonitor</span><span class="p">()</span>
-<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="w">  </span><span class="p">}</span>
-<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>
-<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="w">  </span><span class="nx">subscribeToTableMonitor</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="w">    </span><span class="nx">consumer</span><span class="p">.</span><span class="nx">subscriptions</span><span class="p">.</span><span class="nx">create</span><span class="p">(</span>
-<a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a><span class="w">      </span><span class="p">{</span><span class="w"> </span><span class="nx">channel</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;TableMonitorChannel&quot;</span><span class="w"> </span><span class="p">},</span>
-<a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a><span class="w">      </span><span class="p">{</span>
-<a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a><span class="w">        </span><span class="nx">received</span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="nx">data</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a><span class="w">          </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">data</span><span class="p">.</span><span class="nx">type</span><span class="w"> </span><span class="o">===</span><span class="w"> </span><span class="s2">&quot;score_update&quot;</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-9-12" name="__codelineno-9-12" href="#__codelineno-9-12"></a><span class="w">            </span><span class="k">this</span><span class="p">.</span><span class="nx">updateScores</span><span class="p">(</span><span class="nx">data</span><span class="p">)</span>
-<a id="__codelineno-9-13" name="__codelineno-9-13" href="#__codelineno-9-13"></a><span class="w">          </span><span class="p">}</span>
-<a id="__codelineno-9-14" name="__codelineno-9-14" href="#__codelineno-9-14"></a><span class="w">        </span><span class="p">}</span>
-<a id="__codelineno-9-15" name="__codelineno-9-15" href="#__codelineno-9-15"></a><span class="w">      </span><span class="p">}</span>
-<a id="__codelineno-9-16" name="__codelineno-9-16" href="#__codelineno-9-16"></a><span class="w">    </span><span class="p">)</span>
+<blockquote>
+<p>ℹ️ <strong>Aktueller Stand: Polling, nicht ActionCable.</strong> Der Controller lädt im
+<code>connect()</code> die Seite per <code>setInterval</code> alle 3 Sekunden neu
+(<code>window.location.reload()</code>). Das ist die bewusst gewählte „Phase 1"-Lösung
+für OBS-Browser-Sources. Der ActionCable-Pfad (<code>subscribeToTableMonitor()</code>,
+<code>handleUpdate()</code>) ist im Code vorhanden, aber <strong>auskommentiert/ungenutzt</strong> und
+als „Phase 2"-Zukunftsoptimierung markiert.</p>
+</blockquote>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">Controller</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s2">&quot;@hotwired/stimulus&quot;</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="k">import</span><span class="w"> </span><span class="nx">consumer</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s2">&quot;../channels/consumer&quot;</span>
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="k">export</span><span class="w"> </span><span class="k">default</span><span class="w"> </span><span class="kd">class</span><span class="w"> </span><span class="k">extends</span><span class="w"> </span><span class="nx">Controller</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="w">  </span><span class="k">static</span><span class="w"> </span><span class="nx">targets</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;scoreA&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;scoreB&quot;</span><span class="p">]</span>
+<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="w">  </span><span class="k">static</span><span class="w"> </span><span class="nx">values</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">tableId</span><span class="o">:</span><span class="w"> </span><span class="nb">Number</span><span class="w"> </span><span class="p">}</span>
+<a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a>
+<a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a><span class="w">  </span><span class="nx">connect</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a><span class="w">    </span><span class="c1">// PHASE 1: Einfaches Polling für OBS-Browser-Source —</span>
+<a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a><span class="w">    </span><span class="c1">// Seite alle 3s neu laden, um frische Scores zu holen.</span>
+<a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a><span class="w">    </span><span class="k">this</span><span class="p">.</span><span class="nx">pollInterval</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">setInterval</span><span class="p">(()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-9-12" name="__codelineno-9-12" href="#__codelineno-9-12"></a><span class="w">      </span><span class="nb">window</span><span class="p">.</span><span class="nx">location</span><span class="p">.</span><span class="nx">reload</span><span class="p">()</span>
+<a id="__codelineno-9-13" name="__codelineno-9-13" href="#__codelineno-9-13"></a><span class="w">    </span><span class="p">},</span><span class="w"> </span><span class="mf">3000</span><span class="p">)</span>
+<a id="__codelineno-9-14" name="__codelineno-9-14" href="#__codelineno-9-14"></a>
+<a id="__codelineno-9-15" name="__codelineno-9-15" href="#__codelineno-9-15"></a><span class="w">    </span><span class="c1">// PHASE 2 (Zukunft, derzeit ungenutzt): Echtzeit via ActionCable</span>
+<a id="__codelineno-9-16" name="__codelineno-9-16" href="#__codelineno-9-16"></a><span class="w">    </span><span class="c1">// this.subscribeToTableMonitor()</span>
 <a id="__codelineno-9-17" name="__codelineno-9-17" href="#__codelineno-9-17"></a><span class="w">  </span><span class="p">}</span>
 <a id="__codelineno-9-18" name="__codelineno-9-18" href="#__codelineno-9-18"></a>
-<a id="__codelineno-9-19" name="__codelineno-9-19" href="#__codelineno-9-19"></a><span class="w">  </span><span class="nx">updateScores</span><span class="p">(</span><span class="nx">data</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-9-20" name="__codelineno-9-20" href="#__codelineno-9-20"></a><span class="w">    </span><span class="c1">// Animierte Score-Updates</span>
-<a id="__codelineno-9-21" name="__codelineno-9-21" href="#__codelineno-9-21"></a><span class="w">    </span><span class="c1">// Flash-Effekt bei Änderung</span>
+<a id="__codelineno-9-19" name="__codelineno-9-19" href="#__codelineno-9-19"></a><span class="w">  </span><span class="nx">disconnect</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-9-20" name="__codelineno-9-20" href="#__codelineno-9-20"></a><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">pollInterval</span><span class="p">)</span><span class="w"> </span><span class="nx">clearInterval</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">pollInterval</span><span class="p">)</span>
+<a id="__codelineno-9-21" name="__codelineno-9-21" href="#__codelineno-9-21"></a><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">subscription</span><span class="p">)</span><span class="w"> </span><span class="k">this</span><span class="p">.</span><span class="nx">subscription</span><span class="p">.</span><span class="nx">unsubscribe</span><span class="p">()</span>
 <a id="__codelineno-9-22" name="__codelineno-9-22" href="#__codelineno-9-22"></a><span class="w">  </span><span class="p">}</span>
-<a id="__codelineno-9-23" name="__codelineno-9-23" href="#__codelineno-9-23"></a><span class="p">}</span>
+<a id="__codelineno-9-23" name="__codelineno-9-23" href="#__codelineno-9-23"></a>
+<a id="__codelineno-9-24" name="__codelineno-9-24" href="#__codelineno-9-24"></a><span class="w">  </span><span class="c1">// PHASE 2 (noch nicht aktiv): ActionCable-Subscription auf TableMonitorChannel</span>
+<a id="__codelineno-9-25" name="__codelineno-9-25" href="#__codelineno-9-25"></a><span class="w">  </span><span class="nx">subscribeToTableMonitor</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-9-26" name="__codelineno-9-26" href="#__codelineno-9-26"></a><span class="w">    </span><span class="k">this</span><span class="p">.</span><span class="nx">subscription</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">consumer</span><span class="p">.</span><span class="nx">subscriptions</span><span class="p">.</span><span class="nx">create</span><span class="p">(</span>
+<a id="__codelineno-9-27" name="__codelineno-9-27" href="#__codelineno-9-27"></a><span class="w">      </span><span class="p">{</span><span class="w"> </span><span class="nx">channel</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;TableMonitorChannel&quot;</span><span class="w"> </span><span class="p">},</span>
+<a id="__codelineno-9-28" name="__codelineno-9-28" href="#__codelineno-9-28"></a><span class="w">      </span><span class="p">{</span><span class="w"> </span><span class="nx">received</span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="nx">data</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="k">this</span><span class="p">.</span><span class="nx">handleUpdate</span><span class="p">(</span><span class="nx">data</span><span class="p">)</span><span class="w"> </span><span class="p">}</span>
+<a id="__codelineno-9-29" name="__codelineno-9-29" href="#__codelineno-9-29"></a><span class="w">    </span><span class="p">)</span>
+<a id="__codelineno-9-30" name="__codelineno-9-30" href="#__codelineno-9-30"></a><span class="w">  </span><span class="p">}</span>
+<a id="__codelineno-9-31" name="__codelineno-9-31" href="#__codelineno-9-31"></a><span class="p">}</span>
 </code></pre></div>
 <p><strong>Design-Entscheidungen:</strong>
-- ActionCable für Echtzeit-Updates
-- Nur im Browser-Overlay aktiv (nicht in FFmpeg-Captures)
-- Fallback auf Page-Reload bei größeren Änderungen (Spielerwechsel)</p>
+- <strong>Polling per Page-Reload (3s)</strong> ist der aktuelle Mechanismus — simpel und
+  robust für FFmpeg-/OBS-Captures
+- ActionCable-Echtzeit-Updates sind vorbereitet, aber noch nicht aktiviert
+  (Phase 2)
+- Controller läuft im Browser-Overlay (Chromium-Capture greift den gerenderten
+  Stand)</p>
 <hr />
 <h3 id="2-raspberry-pi-software-stack">2. Raspberry Pi Software-Stack<a class="headerlink" href="#2-raspberry-pi-software-stack" title="Permanent link">&para;</a></h3>
 <h4 id="21-streaming-script">2.1 Streaming-Script<a class="headerlink" href="#21-streaming-script" title="Permanent link">&para;</a></h4>
@@ -4453,7 +4628,7 @@
 <a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a><span class="nv">CAMERA_HEIGHT</span><span class="o">=</span><span class="m">720</span>
 <a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a><span class="nv">CAMERA_FPS</span><span class="o">=</span><span class="m">60</span>
 <a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a><span class="nv">OVERLAY_ENABLED</span><span class="o">=</span><span class="nb">true</span>
-<a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a><span class="nv">OVERLAY_URL</span><span class="o">=</span>http://localhost:80/locations/abc123/scoreboard_overlay?table<span class="o">=</span><span class="m">1</span>
+<a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a><span class="nv">OVERLAY_URL</span><span class="o">=</span>http://localhost:80/locations/abc123/scoreboard_overlay?table_id<span class="o">=</span><span class="m">42</span>
 <a id="__codelineno-13-9" name="__codelineno-13-9" href="#__codelineno-13-9"></a><span class="nv">OVERLAY_POSITION</span><span class="o">=</span>bottom
 <a id="__codelineno-13-10" name="__codelineno-13-10" href="#__codelineno-13-10"></a><span class="nv">OVERLAY_HEIGHT</span><span class="o">=</span><span class="m">200</span>
 <a id="__codelineno-13-11" name="__codelineno-13-11" href="#__codelineno-13-11"></a><span class="nv">VIDEO_BITRATE</span><span class="o">=</span><span class="m">2000</span>
@@ -4616,24 +4791,25 @@
 <h4 id="chromium-headless">Chromium Headless<a class="headerlink" href="#chromium-headless" title="Permanent link">&para;</a></h4>
 <p><strong>Render-Pipeline:</strong></p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>1. HTTP Request → Rails Server
-<a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a>   GET /locations/:md5/scoreboard_overlay?table=1
-<a id="__codelineno-20-3" name="__codelineno-20-3" href="#__codelineno-20-3"></a>
-<a id="__codelineno-20-4" name="__codelineno-20-4" href="#__codelineno-20-4"></a>2. Rails Controller
-<a id="__codelineno-20-5" name="__codelineno-20-5" href="#__codelineno-20-5"></a>   locations_controller.rb#scoreboard_overlay
-<a id="__codelineno-20-6" name="__codelineno-20-6" href="#__codelineno-20-6"></a>   - Lädt @game, @table_monitor, @tournament
-<a id="__codelineno-20-7" name="__codelineno-20-7" href="#__codelineno-20-7"></a>   - Rendert streaming_overlay Layout
-<a id="__codelineno-20-8" name="__codelineno-20-8" href="#__codelineno-20-8"></a>
-<a id="__codelineno-20-9" name="__codelineno-20-9" href="#__codelineno-20-9"></a>3. HTML + CSS Rendering (Chromium)
-<a id="__codelineno-20-10" name="__codelineno-20-10" href="#__codelineno-20-10"></a>   - Layout-Engine: Blink
-<a id="__codelineno-20-11" name="__codelineno-20-11" href="#__codelineno-20-11"></a>   - Rendering auf Xvfb Display :1
-<a id="__codelineno-20-12" name="__codelineno-20-12" href="#__codelineno-20-12"></a>   - Kein GPU-Rendering (--disable-gpu)
-<a id="__codelineno-20-13" name="__codelineno-20-13" href="#__codelineno-20-13"></a>
-<a id="__codelineno-20-14" name="__codelineno-20-14" href="#__codelineno-20-14"></a>4. Screenshot-Capture
-<a id="__codelineno-20-15" name="__codelineno-20-15" href="#__codelineno-20-15"></a>   - Via --screenshot Flag
-<a id="__codelineno-20-16" name="__codelineno-20-16" href="#__codelineno-20-16"></a>   - Format: PNG mit Alpha-Channel
-<a id="__codelineno-20-17" name="__codelineno-20-17" href="#__codelineno-20-17"></a>   - Auflösung: 1920x200px
-<a id="__codelineno-20-18" name="__codelineno-20-18" href="#__codelineno-20-18"></a>
-<a id="__codelineno-20-19" name="__codelineno-20-19" href="#__codelineno-20-19"></a>5. Output: /tmp/carambus-overlay-table-1.png
+<a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a>   GET /locations/:md5/scoreboard_overlay?table_id=&lt;id&gt;
+<a id="__codelineno-20-3" name="__codelineno-20-3" href="#__codelineno-20-3"></a>   (Tisch über DB-ID; `?table=N` mit Tischnummer ist Legacy-Fallback)
+<a id="__codelineno-20-4" name="__codelineno-20-4" href="#__codelineno-20-4"></a>
+<a id="__codelineno-20-5" name="__codelineno-20-5" href="#__codelineno-20-5"></a>2. Rails Controller
+<a id="__codelineno-20-6" name="__codelineno-20-6" href="#__codelineno-20-6"></a>   locations_controller.rb#scoreboard_overlay
+<a id="__codelineno-20-7" name="__codelineno-20-7" href="#__codelineno-20-7"></a>   - Lädt @game, @table_monitor, @tournament
+<a id="__codelineno-20-8" name="__codelineno-20-8" href="#__codelineno-20-8"></a>   - Rendert streaming_overlay Layout
+<a id="__codelineno-20-9" name="__codelineno-20-9" href="#__codelineno-20-9"></a>
+<a id="__codelineno-20-10" name="__codelineno-20-10" href="#__codelineno-20-10"></a>3. HTML + CSS Rendering (Chromium)
+<a id="__codelineno-20-11" name="__codelineno-20-11" href="#__codelineno-20-11"></a>   - Layout-Engine: Blink
+<a id="__codelineno-20-12" name="__codelineno-20-12" href="#__codelineno-20-12"></a>   - Rendering auf Xvfb Display :1
+<a id="__codelineno-20-13" name="__codelineno-20-13" href="#__codelineno-20-13"></a>   - Kein GPU-Rendering (--disable-gpu)
+<a id="__codelineno-20-14" name="__codelineno-20-14" href="#__codelineno-20-14"></a>
+<a id="__codelineno-20-15" name="__codelineno-20-15" href="#__codelineno-20-15"></a>4. Screenshot-Capture
+<a id="__codelineno-20-16" name="__codelineno-20-16" href="#__codelineno-20-16"></a>   - Via --screenshot Flag
+<a id="__codelineno-20-17" name="__codelineno-20-17" href="#__codelineno-20-17"></a>   - Format: PNG mit Alpha-Channel
+<a id="__codelineno-20-18" name="__codelineno-20-18" href="#__codelineno-20-18"></a>   - Auflösung: 1920x200px
+<a id="__codelineno-20-19" name="__codelineno-20-19" href="#__codelineno-20-19"></a>
+<a id="__codelineno-20-20" name="__codelineno-20-20" href="#__codelineno-20-20"></a>5. Output: /tmp/carambus-overlay-table-1.png
 </code></pre></div>
 <p><strong>Performance-Optimierung:</strong></p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>chromium-browser<span class="w"> </span><span class="se">\</span>
@@ -4686,6 +4862,14 @@
 <a id="__codelineno-23-20" name="__codelineno-23-20" href="#__codelineno-23-20"></a><span class="w">  </span><span class="k">end</span>
 <a id="__codelineno-23-21" name="__codelineno-23-21" href="#__codelineno-23-21"></a><span class="k">end</span>
 </code></pre></div>
+<blockquote>
+<p><strong>SSH-User-Auflösung:</strong> <code>ssh_user</code> in <code>StreamControlJob</code> ist
+<code>@config.raspi_ssh_user.presence || ENV['RASPI_SSH_USER'] || 'pi'</code> —
+der Konfigurationswert <code>raspi_ssh_user</code> (DB-Default <code>'pi'</code>) hat Vorrang,
+dann die Umgebungsvariable <code>RASPI_SSH_USER</code>, sonst der Fallback <code>'pi'</code>.
+Hinweis: <code>StreamHealthJob#ssh_user</code> nutzt denselben Override-Mechanismus,
+aber mit Fallback <code>'www-data'</code> statt <code>'pi'</code>.</p>
+</blockquote>
 <p><strong>Security-Considerations:</strong></p>
 <p>❌ <strong>Nicht Production-Ready:</strong>
 - Passwort-Auth (sollte Key-Auth sein)
@@ -4817,13 +5001,17 @@
 <p><strong>Encryption:</strong>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-31-1" name="__codelineno-31-1" href="#__codelineno-31-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">StreamConfiguration</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="no">ApplicationRecord</span>
 <a id="__codelineno-31-2" name="__codelineno-31-2" href="#__codelineno-31-2"></a><span class="w">  </span><span class="n">encrypts</span><span class="w"> </span><span class="ss">:youtube_stream_key</span><span class="p">,</span><span class="w"> </span><span class="ss">deterministic</span><span class="p">:</span><span class="w"> </span><span class="kp">false</span>
-<a id="__codelineno-31-3" name="__codelineno-31-3" href="#__codelineno-31-3"></a><span class="k">end</span>
+<a id="__codelineno-31-3" name="__codelineno-31-3" href="#__codelineno-31-3"></a><span class="w">  </span><span class="n">encrypts</span><span class="w"> </span><span class="ss">:custom_rtmp_key</span><span class="p">,</span><span class="w"> </span><span class="ss">deterministic</span><span class="p">:</span><span class="w"> </span><span class="kp">false</span>
+<a id="__codelineno-31-4" name="__codelineno-31-4" href="#__codelineno-31-4"></a><span class="k">end</span>
 </code></pre></div></p>
 <ul>
 <li>Rails 7 Active Record Encryption</li>
 <li>AES-256-GCM</li>
 <li>Key-Rotation unterstützt</li>
 <li>Key-Storage: <code>config/credentials.yml.enc</code></li>
+<li><strong>Zwei verschlüsselte Felder:</strong> <code>youtube_stream_key</code> (YouTube-Ziel) und
+  <code>custom_rtmp_key</code> (Custom-RTMP-Ziel). Beim <code>local</code>-Ziel wird kein Key
+  benötigt (Stream-Name = <code>table&lt;ID&gt;</code>).</li>
 </ul>
 <p><strong>Key-Derivation:</strong>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-32-1" name="__codelineno-32-1" href="#__codelineno-32-1"></a><span class="c1"># config/credentials.yml.enc</span>
@@ -4937,50 +5125,61 @@
 </code></pre></div></p>
 <hr />
 <h2 id="testing-strategie">🧪 Testing-Strategie<a class="headerlink" href="#testing-strategie" title="Permanent link">&para;</a></h2>
+<blockquote>
+<p>ℹ️ <strong>Hinweis:</strong> Das Carambus-Projekt nutzt <strong>Minitest</strong> (nicht RSpec). Die
+folgenden Beispiele sind als Minitest-Tests formuliert. Sie sind illustrativ —
+Methoden-/Factory-Namen ggf. an den tatsächlichen Code anpassen.</p>
+</blockquote>
 <h3 id="unit-tests">Unit-Tests<a class="headerlink" href="#unit-tests" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-39-1" name="__codelineno-39-1" href="#__codelineno-39-1"></a><span class="c1"># spec/models/stream_configuration_spec.rb</span>
-<a id="__codelineno-39-2" name="__codelineno-39-2" href="#__codelineno-39-2"></a><span class="no">RSpec</span><span class="o">.</span><span class="n">describe</span><span class="w"> </span><span class="no">StreamConfiguration</span><span class="w"> </span><span class="k">do</span>
-<a id="__codelineno-39-3" name="__codelineno-39-3" href="#__codelineno-39-3"></a><span class="w">  </span><span class="n">it</span><span class="w"> </span><span class="s2">&quot;generates correct RTMP URL&quot;</span><span class="w"> </span><span class="k">do</span>
-<a id="__codelineno-39-4" name="__codelineno-39-4" href="#__codelineno-39-4"></a><span class="w">    </span><span class="n">config</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">create</span><span class="p">(</span><span class="ss">:stream_configuration</span><span class="p">,</span><span class="w"> </span><span class="ss">youtube_stream_key</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;test-key&quot;</span><span class="p">)</span>
-<a id="__codelineno-39-5" name="__codelineno-39-5" href="#__codelineno-39-5"></a><span class="w">    </span><span class="n">expect</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">rtmp_url</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="w"> </span><span class="n">eq</span><span class="p">(</span><span class="s2">&quot;rtmp://a.rtmp.youtube.com/live2/test-key&quot;</span><span class="p">)</span>
-<a id="__codelineno-39-6" name="__codelineno-39-6" href="#__codelineno-39-6"></a><span class="w">  </span><span class="k">end</span>
-<a id="__codelineno-39-7" name="__codelineno-39-7" href="#__codelineno-39-7"></a>
-<a id="__codelineno-39-8" name="__codelineno-39-8" href="#__codelineno-39-8"></a><span class="w">  </span><span class="n">it</span><span class="w"> </span><span class="s2">&quot;transitions status correctly&quot;</span><span class="w"> </span><span class="k">do</span>
-<a id="__codelineno-39-9" name="__codelineno-39-9" href="#__codelineno-39-9"></a><span class="w">    </span><span class="n">config</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">create</span><span class="p">(</span><span class="ss">:stream_configuration</span><span class="p">,</span><span class="w"> </span><span class="ss">status</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;inactive&#39;</span><span class="p">)</span>
-<a id="__codelineno-39-10" name="__codelineno-39-10" href="#__codelineno-39-10"></a><span class="w">    </span><span class="n">config</span><span class="o">.</span><span class="n">start_streaming</span>
-<a id="__codelineno-39-11" name="__codelineno-39-11" href="#__codelineno-39-11"></a><span class="w">    </span><span class="n">expect</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">status</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="w"> </span><span class="n">eq</span><span class="p">(</span><span class="s1">&#39;starting&#39;</span><span class="p">)</span>
-<a id="__codelineno-39-12" name="__codelineno-39-12" href="#__codelineno-39-12"></a><span class="w">  </span><span class="k">end</span>
-<a id="__codelineno-39-13" name="__codelineno-39-13" href="#__codelineno-39-13"></a><span class="k">end</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-39-1" name="__codelineno-39-1" href="#__codelineno-39-1"></a><span class="c1"># test/models/stream_configuration_test.rb</span>
+<a id="__codelineno-39-2" name="__codelineno-39-2" href="#__codelineno-39-2"></a><span class="nb">require</span><span class="w"> </span><span class="s2">&quot;test_helper&quot;</span>
+<a id="__codelineno-39-3" name="__codelineno-39-3" href="#__codelineno-39-3"></a>
+<a id="__codelineno-39-4" name="__codelineno-39-4" href="#__codelineno-39-4"></a><span class="k">class</span><span class="w"> </span><span class="nc">StreamConfigurationTest</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="no">ActiveSupport</span><span class="o">::</span><span class="no">TestCase</span>
+<a id="__codelineno-39-5" name="__codelineno-39-5" href="#__codelineno-39-5"></a><span class="w">  </span><span class="nb">test</span><span class="w"> </span><span class="s2">&quot;generates correct RTMP URL&quot;</span><span class="w"> </span><span class="k">do</span>
+<a id="__codelineno-39-6" name="__codelineno-39-6" href="#__codelineno-39-6"></a><span class="w">    </span><span class="n">config</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">create</span><span class="p">(</span><span class="ss">:stream_configuration</span><span class="p">,</span><span class="w"> </span><span class="ss">youtube_stream_key</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;test-key&quot;</span><span class="p">)</span>
+<a id="__codelineno-39-7" name="__codelineno-39-7" href="#__codelineno-39-7"></a><span class="w">    </span><span class="n">assert_equal</span><span class="w"> </span><span class="s2">&quot;rtmp://a.rtmp.youtube.com/live2/test-key&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">config</span><span class="o">.</span><span class="n">rtmp_url</span>
+<a id="__codelineno-39-8" name="__codelineno-39-8" href="#__codelineno-39-8"></a><span class="w">  </span><span class="k">end</span>
+<a id="__codelineno-39-9" name="__codelineno-39-9" href="#__codelineno-39-9"></a>
+<a id="__codelineno-39-10" name="__codelineno-39-10" href="#__codelineno-39-10"></a><span class="w">  </span><span class="nb">test</span><span class="w"> </span><span class="s2">&quot;transitions status correctly&quot;</span><span class="w"> </span><span class="k">do</span>
+<a id="__codelineno-39-11" name="__codelineno-39-11" href="#__codelineno-39-11"></a><span class="w">    </span><span class="n">config</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">create</span><span class="p">(</span><span class="ss">:stream_configuration</span><span class="p">,</span><span class="w"> </span><span class="ss">status</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;inactive&quot;</span><span class="p">)</span>
+<a id="__codelineno-39-12" name="__codelineno-39-12" href="#__codelineno-39-12"></a><span class="w">    </span><span class="n">config</span><span class="o">.</span><span class="n">start_streaming</span>
+<a id="__codelineno-39-13" name="__codelineno-39-13" href="#__codelineno-39-13"></a><span class="w">    </span><span class="n">assert_equal</span><span class="w"> </span><span class="s2">&quot;starting&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">config</span><span class="o">.</span><span class="n">status</span>
+<a id="__codelineno-39-14" name="__codelineno-39-14" href="#__codelineno-39-14"></a><span class="w">  </span><span class="k">end</span>
+<a id="__codelineno-39-15" name="__codelineno-39-15" href="#__codelineno-39-15"></a><span class="k">end</span>
 </code></pre></div>
 <h3 id="integration-tests">Integration-Tests<a class="headerlink" href="#integration-tests" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-40-1" name="__codelineno-40-1" href="#__codelineno-40-1"></a><span class="c1"># spec/jobs/stream_control_job_spec.rb</span>
-<a id="__codelineno-40-2" name="__codelineno-40-2" href="#__codelineno-40-2"></a><span class="no">RSpec</span><span class="o">.</span><span class="n">describe</span><span class="w"> </span><span class="no">StreamControlJob</span><span class="w"> </span><span class="k">do</span>
-<a id="__codelineno-40-3" name="__codelineno-40-3" href="#__codelineno-40-3"></a><span class="w">  </span><span class="n">it</span><span class="w"> </span><span class="s2">&quot;deploys config and starts service&quot;</span><span class="w"> </span><span class="k">do</span>
-<a id="__codelineno-40-4" name="__codelineno-40-4" href="#__codelineno-40-4"></a><span class="w">    </span><span class="n">config</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">create</span><span class="p">(</span><span class="ss">:stream_configuration</span><span class="p">)</span>
-<a id="__codelineno-40-5" name="__codelineno-40-5" href="#__codelineno-40-5"></a>
-<a id="__codelineno-40-6" name="__codelineno-40-6" href="#__codelineno-40-6"></a><span class="w">    </span><span class="n">expect_any_instance_of</span><span class="p">(</span><span class="no">Net</span><span class="o">::</span><span class="no">SSH</span><span class="o">::</span><span class="no">Connection</span><span class="o">::</span><span class="no">Session</span><span class="p">)</span>
-<a id="__codelineno-40-7" name="__codelineno-40-7" href="#__codelineno-40-7"></a><span class="w">      </span><span class="o">.</span><span class="n">to</span><span class="w"> </span><span class="n">receive</span><span class="p">(</span><span class="ss">:exec!</span><span class="p">)</span><span class="o">.</span><span class="n">with</span><span class="p">(</span><span class="sr">/systemctl start/</span><span class="p">)</span><span class="o">.</span><span class="n">and_return</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
-<a id="__codelineno-40-8" name="__codelineno-40-8" href="#__codelineno-40-8"></a>
-<a id="__codelineno-40-9" name="__codelineno-40-9" href="#__codelineno-40-9"></a><span class="w">    </span><span class="n">described_class</span><span class="o">.</span><span class="n">new</span><span class="o">.</span><span class="n">perform</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">id</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;start&#39;</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-40-1" name="__codelineno-40-1" href="#__codelineno-40-1"></a><span class="c1"># test/jobs/stream_control_job_test.rb</span>
+<a id="__codelineno-40-2" name="__codelineno-40-2" href="#__codelineno-40-2"></a><span class="nb">require</span><span class="w"> </span><span class="s2">&quot;test_helper&quot;</span>
+<a id="__codelineno-40-3" name="__codelineno-40-3" href="#__codelineno-40-3"></a>
+<a id="__codelineno-40-4" name="__codelineno-40-4" href="#__codelineno-40-4"></a><span class="k">class</span><span class="w"> </span><span class="nc">StreamControlJobTest</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="no">ActiveJob</span><span class="o">::</span><span class="no">TestCase</span>
+<a id="__codelineno-40-5" name="__codelineno-40-5" href="#__codelineno-40-5"></a><span class="w">  </span><span class="nb">test</span><span class="w"> </span><span class="s2">&quot;deploys config and starts service&quot;</span><span class="w"> </span><span class="k">do</span>
+<a id="__codelineno-40-6" name="__codelineno-40-6" href="#__codelineno-40-6"></a><span class="w">    </span><span class="n">config</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">create</span><span class="p">(</span><span class="ss">:stream_configuration</span><span class="p">)</span>
+<a id="__codelineno-40-7" name="__codelineno-40-7" href="#__codelineno-40-7"></a>
+<a id="__codelineno-40-8" name="__codelineno-40-8" href="#__codelineno-40-8"></a><span class="w">    </span><span class="no">Net</span><span class="o">::</span><span class="no">SSH</span><span class="o">::</span><span class="no">Connection</span><span class="o">::</span><span class="no">Session</span><span class="o">.</span><span class="n">any_instance</span>
+<a id="__codelineno-40-9" name="__codelineno-40-9" href="#__codelineno-40-9"></a><span class="w">      </span><span class="o">.</span><span class="n">expects</span><span class="p">(</span><span class="ss">:exec!</span><span class="p">)</span><span class="o">.</span><span class="n">with</span><span class="p">(</span><span class="n">regexp_matches</span><span class="p">(</span><span class="sr">/systemctl start/</span><span class="p">))</span><span class="o">.</span><span class="n">returns</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
 <a id="__codelineno-40-10" name="__codelineno-40-10" href="#__codelineno-40-10"></a>
-<a id="__codelineno-40-11" name="__codelineno-40-11" href="#__codelineno-40-11"></a><span class="w">    </span><span class="n">expect</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">reload</span><span class="o">.</span><span class="n">status</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="w"> </span><span class="n">eq</span><span class="p">(</span><span class="s1">&#39;active&#39;</span><span class="p">)</span>
-<a id="__codelineno-40-12" name="__codelineno-40-12" href="#__codelineno-40-12"></a><span class="w">  </span><span class="k">end</span>
-<a id="__codelineno-40-13" name="__codelineno-40-13" href="#__codelineno-40-13"></a><span class="k">end</span>
+<a id="__codelineno-40-11" name="__codelineno-40-11" href="#__codelineno-40-11"></a><span class="w">    </span><span class="no">StreamControlJob</span><span class="o">.</span><span class="n">new</span><span class="o">.</span><span class="n">perform</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">id</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;start&quot;</span><span class="p">)</span>
+<a id="__codelineno-40-12" name="__codelineno-40-12" href="#__codelineno-40-12"></a>
+<a id="__codelineno-40-13" name="__codelineno-40-13" href="#__codelineno-40-13"></a><span class="w">    </span><span class="n">assert_equal</span><span class="w"> </span><span class="s2">&quot;active&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">config</span><span class="o">.</span><span class="n">reload</span><span class="o">.</span><span class="n">status</span>
+<a id="__codelineno-40-14" name="__codelineno-40-14" href="#__codelineno-40-14"></a><span class="w">  </span><span class="k">end</span>
+<a id="__codelineno-40-15" name="__codelineno-40-15" href="#__codelineno-40-15"></a><span class="k">end</span>
 </code></pre></div>
 <h3 id="system-tests-e2e">System-Tests (E2E)<a class="headerlink" href="#system-tests-e2e" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-41-1" name="__codelineno-41-1" href="#__codelineno-41-1"></a><span class="c1"># spec/system/admin/streaming_spec.rb</span>
-<a id="__codelineno-41-2" name="__codelineno-41-2" href="#__codelineno-41-2"></a><span class="no">RSpec</span><span class="o">.</span><span class="n">describe</span><span class="w"> </span><span class="s2">&quot;Admin Streaming&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">type</span><span class="p">:</span><span class="w"> </span><span class="ss">:system</span><span class="w"> </span><span class="k">do</span>
-<a id="__codelineno-41-3" name="__codelineno-41-3" href="#__codelineno-41-3"></a><span class="w">  </span><span class="n">it</span><span class="w"> </span><span class="s2">&quot;admin can start stream&quot;</span><span class="w"> </span><span class="k">do</span>
-<a id="__codelineno-41-4" name="__codelineno-41-4" href="#__codelineno-41-4"></a><span class="w">    </span><span class="n">config</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">create</span><span class="p">(</span><span class="ss">:stream_configuration</span><span class="p">)</span>
-<a id="__codelineno-41-5" name="__codelineno-41-5" href="#__codelineno-41-5"></a>
-<a id="__codelineno-41-6" name="__codelineno-41-6" href="#__codelineno-41-6"></a><span class="w">    </span><span class="n">visit</span><span class="w"> </span><span class="n">admin_stream_configurations_path</span>
-<a id="__codelineno-41-7" name="__codelineno-41-7" href="#__codelineno-41-7"></a><span class="w">    </span><span class="n">click_button</span><span class="w"> </span><span class="s2">&quot;Start&quot;</span>
-<a id="__codelineno-41-8" name="__codelineno-41-8" href="#__codelineno-41-8"></a>
-<a id="__codelineno-41-9" name="__codelineno-41-9" href="#__codelineno-41-9"></a><span class="w">    </span><span class="n">expect</span><span class="p">(</span><span class="n">page</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="w"> </span><span class="n">have_content</span><span class="p">(</span><span class="s2">&quot;Starting&quot;</span><span class="p">)</span>
-<a id="__codelineno-41-10" name="__codelineno-41-10" href="#__codelineno-41-10"></a><span class="w">    </span><span class="c1"># WebMock: Mock SSH-Call</span>
-<a id="__codelineno-41-11" name="__codelineno-41-11" href="#__codelineno-41-11"></a><span class="w">    </span><span class="c1"># Eventually: have_content(&quot;Active&quot;)</span>
-<a id="__codelineno-41-12" name="__codelineno-41-12" href="#__codelineno-41-12"></a><span class="w">  </span><span class="k">end</span>
-<a id="__codelineno-41-13" name="__codelineno-41-13" href="#__codelineno-41-13"></a><span class="k">end</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-41-1" name="__codelineno-41-1" href="#__codelineno-41-1"></a><span class="c1"># test/system/admin/streaming_test.rb</span>
+<a id="__codelineno-41-2" name="__codelineno-41-2" href="#__codelineno-41-2"></a><span class="nb">require</span><span class="w"> </span><span class="s2">&quot;application_system_test_case&quot;</span>
+<a id="__codelineno-41-3" name="__codelineno-41-3" href="#__codelineno-41-3"></a>
+<a id="__codelineno-41-4" name="__codelineno-41-4" href="#__codelineno-41-4"></a><span class="k">class</span><span class="w"> </span><span class="nc">Admin</span><span class="o">::</span><span class="no">StreamingTest</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="no">ApplicationSystemTestCase</span>
+<a id="__codelineno-41-5" name="__codelineno-41-5" href="#__codelineno-41-5"></a><span class="w">  </span><span class="nb">test</span><span class="w"> </span><span class="s2">&quot;admin can start stream&quot;</span><span class="w"> </span><span class="k">do</span>
+<a id="__codelineno-41-6" name="__codelineno-41-6" href="#__codelineno-41-6"></a><span class="w">    </span><span class="n">config</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">create</span><span class="p">(</span><span class="ss">:stream_configuration</span><span class="p">)</span>
+<a id="__codelineno-41-7" name="__codelineno-41-7" href="#__codelineno-41-7"></a>
+<a id="__codelineno-41-8" name="__codelineno-41-8" href="#__codelineno-41-8"></a><span class="w">    </span><span class="n">visit</span><span class="w"> </span><span class="n">admin_stream_configurations_path</span>
+<a id="__codelineno-41-9" name="__codelineno-41-9" href="#__codelineno-41-9"></a><span class="w">    </span><span class="n">click_button</span><span class="w"> </span><span class="s2">&quot;Start&quot;</span>
+<a id="__codelineno-41-10" name="__codelineno-41-10" href="#__codelineno-41-10"></a>
+<a id="__codelineno-41-11" name="__codelineno-41-11" href="#__codelineno-41-11"></a><span class="w">    </span><span class="n">assert_text</span><span class="w"> </span><span class="s2">&quot;Starting&quot;</span>
+<a id="__codelineno-41-12" name="__codelineno-41-12" href="#__codelineno-41-12"></a><span class="w">    </span><span class="c1"># WebMock: SSH-Call mocken</span>
+<a id="__codelineno-41-13" name="__codelineno-41-13" href="#__codelineno-41-13"></a><span class="w">    </span><span class="c1"># Eventually: assert_text &quot;Active&quot;</span>
+<a id="__codelineno-41-14" name="__codelineno-41-14" href="#__codelineno-41-14"></a><span class="w">  </span><span class="k">end</span>
+<a id="__codelineno-41-15" name="__codelineno-41-15" href="#__codelineno-41-15"></a><span class="k">end</span>
 </code></pre></div>
 <h3 id="manual-testing-checklist">Manual Testing-Checklist<a class="headerlink" href="#manual-testing-checklist" title="Permanent link">&para;</a></h3>
 <p><strong>Auf Entwicklungsmaschine:</strong>
@@ -5118,7 +5317,7 @@
 <a id="__codelineno-53-3" name="__codelineno-53-3" href="#__codelineno-53-3"></a><span class="w">  </span>--headless<span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-53-4" name="__codelineno-53-4" href="#__codelineno-53-4"></a><span class="w">  </span>--screenshot<span class="o">=</span>/tmp/test.png<span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-53-5" name="__codelineno-53-5" href="#__codelineno-53-5"></a><span class="w">  </span>--window-size<span class="o">=</span><span class="m">1920</span>,200<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-53-6" name="__codelineno-53-6" href="#__codelineno-53-6"></a><span class="w">  </span><span class="s2">&quot;http://localhost/locations/xxx/scoreboard_overlay?table=1&quot;</span>
+<a id="__codelineno-53-6" name="__codelineno-53-6" href="#__codelineno-53-6"></a><span class="w">  </span><span class="s2">&quot;http://localhost/locations/xxx/scoreboard_overlay?table_id=42&quot;</span>
 <a id="__codelineno-53-7" name="__codelineno-53-7" href="#__codelineno-53-7"></a>
 <a id="__codelineno-53-8" name="__codelineno-53-8" href="#__codelineno-53-8"></a><span class="c1"># PNG anschauen (auf Desktop-PC)</span>
 <a id="__codelineno-53-9" name="__codelineno-53-9" href="#__codelineno-53-9"></a>scp<span class="w"> </span>pi@192.168.1.100:/tmp/test.png<span class="w"> </span>.

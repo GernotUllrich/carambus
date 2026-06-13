@@ -380,7 +380,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../../reference/api.md" class="md-tabs__link">
+        <a href="../../reference/api/" class="md-tabs__link">
           
   
   
@@ -806,6 +806,8 @@
       
         
       
+        
+      
     
     
     
@@ -1125,6 +1127,29 @@
   
   
   
+    <li class="md-nav__item">
+      <a href="../external-tournament-bridge/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    External Tournament Bridge
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
     
     
       
@@ -1153,10 +1178,10 @@
         
           
         
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_10" >
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_11" >
         
           
-          <label class="md-nav__link" for="__nav_4_10" id="__nav_4_10_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_4_11" id="__nav_4_11_label" tabindex="0">
             
   
   
@@ -1169,8 +1194,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_10_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_4_10">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_11_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_11">
             <span class="md-nav__icon md-icon"></span>
             ClubCloud Scenarios
           </label>
@@ -1684,6 +1709,8 @@
       
         
       
+        
+      
     
     
     
@@ -2131,6 +2158,29 @@
   
   
   
+    <li class="md-nav__item">
+      <a href="../../developers/external-tournament-bridge/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    External Tournament Bridge
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
     
     
       
@@ -2165,10 +2215,10 @@
         
           
         
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6_12" >
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6_13" >
         
           
-          <label class="md-nav__link" for="__nav_6_12" id="__nav_6_12_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_6_13" id="__nav_6_13_label" tabindex="0">
             
   
   
@@ -2181,8 +2231,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_12_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_6_12">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_13_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6_13">
             <span class="md-nav__icon md-icon"></span>
             Services
           </label>
@@ -2777,7 +2827,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../reference/api.md" class="md-nav__link">
+      <a href="../../reference/api/" class="md-nav__link">
         
   
   
@@ -3297,15 +3347,22 @@
 <p>Das System reserviert automatisch die benötigten Tische für anstehende Einzelmeisterschaften im Google Kalender. Die Heizungssteuerung erfolgt dann wie gewohnt basierend auf diesen Kalendereinträgen.</p>
 <h2 id="funktionsweise">Funktionsweise<a class="headerlink" href="#funktionsweise" title="Permanent link">&para;</a></h2>
 <h3 id="automatische-tischreservierung">Automatische Tischreservierung<a class="headerlink" href="#automatische-tischreservierung" title="Permanent link">&para;</a></h3>
-<p>Nach dem Meldeschluss eines Turniers wird täglich geprüft, ob eine Tischreservierung erstellt werden muss. Dabei werden folgende Kriterien berücksichtigt:</p>
+<p>Nach dem Meldeschluss eines Turniers wird täglich geprüft, ob eine Tischreservierung erstellt werden muss. Der Rake-Task wählt Turniere anhand folgender Kriterien aus:</p>
 <ol>
-<li><strong>Turniertyp</strong>: Nur Einzelmeisterschaften (keine Ligen)</li>
-<li><strong>Meldeschluss</strong>: Muss in den letzten 7 Tagen abgelaufen sein</li>
-<li><strong>Turnierdatum</strong>: Liegt in der Zukunft</li>
-<li><strong>Location</strong>: Muss vorhanden sein</li>
-<li><strong>Disziplin</strong>: Muss vorhanden sein</li>
-<li><strong>Teilnehmer</strong>: Mindestens ein Teilnehmer gemeldet</li>
+<li><strong>Location</strong>: Muss vorhanden sein (<code>location_id</code> gesetzt)</li>
+<li><strong>Disziplin</strong>: Muss vorhanden sein (<code>discipline_id</code> gesetzt)</li>
+<li><strong>Turnierdatum</strong>: Liegt in der Zukunft (<code>date &gt;= jetzt</code>)</li>
+<li><strong>Meldeschluss</strong>: <code>accredation_end</code> ist gesetzt und in den letzten 7 Tagen abgelaufen</li>
 </ol>
+<p>Anschließend wird pro Turnier geprüft:</p>
+<ol>
+<li><strong>Teilnehmer</strong>: Mindestens ein Teilnehmer gemeldet (sonst übersprungen)</li>
+</ol>
+<blockquote>
+<p><strong>Hinweis:</strong> Der Task filtert technisch nicht auf den Turniertyp
+(<code>single_or_league</code>). In der Praxis sind nur Einzelmeisterschaften betroffen,
+weil Ligen i.d.R. keinen passenden Meldeschluss/Teilnehmer-Workflow haben.</p>
+</blockquote>
 <h3 id="tischberechnung">Tischberechnung<a class="headerlink" href="#tischberechnung" title="Permanent link">&para;</a></h3>
 <p>Die Anzahl der benötigten Tische wird wie folgt ermittelt:</p>
 <ol>

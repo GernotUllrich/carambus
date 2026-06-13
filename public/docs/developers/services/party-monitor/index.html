@@ -386,7 +386,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../../reference/api.md" class="md-tabs__link">
+        <a href="../../../reference/api/" class="md-tabs__link">
           
   
   
@@ -812,6 +812,8 @@
       
         
       
+        
+      
     
     
     
@@ -1131,6 +1133,29 @@
   
   
   
+    <li class="md-nav__item">
+      <a href="../../../managers/external-tournament-bridge/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    External-Tournament-Bridge
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
     
     
       
@@ -1159,10 +1184,10 @@
         
           
         
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_10" >
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_11" >
         
           
-          <label class="md-nav__link" for="__nav_4_10" id="__nav_4_10_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_4_11" id="__nav_4_11_label" tabindex="0">
             
   
   
@@ -1175,8 +1200,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_10_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_4_10">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_11_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_11">
             <span class="md-nav__icon md-icon"></span>
             ClubCloud Scenarios
           </label>
@@ -1692,6 +1717,8 @@
       
         
       
+        
+      
     
     
     
@@ -2144,6 +2171,29 @@
                 
   
   
+  
+  
+    <li class="md-nav__item">
+      <a href="../../external-tournament-bridge/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    External-Tournament-Bridge
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
     
   
   
@@ -2183,10 +2233,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6_12" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6_13" checked>
         
           
-          <label class="md-nav__link" for="__nav_6_12" id="__nav_6_12_label" tabindex="">
+          <label class="md-nav__link" for="__nav_6_13" id="__nav_6_13_label" tabindex="">
             
   
   
@@ -2199,8 +2249,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_12_label" aria-expanded="true">
-          <label class="md-nav__title" for="__nav_6_12">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_13_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_6_13">
             <span class="md-nav__icon md-icon"></span>
             Services
           </label>
@@ -2948,7 +2998,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../reference/api.md" class="md-nav__link">
+      <a href="../../../reference/api/" class="md-nav__link">
         
   
   
@@ -3379,15 +3429,16 @@
 <a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>
 <a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="n">processor</span><span class="o">.</span><span class="n">accumulate_results</span>
 <a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">  </span><span class="c1"># → nil; aggregiert GameParticipation-Ergebnisse in @party_monitor.data[&quot;rankings&quot;]</span>
-<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>
-<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="n">processor</span><span class="o">.</span><span class="n">finalize_round</span>
-<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">  </span><span class="c1"># → nil; schließt alle TableMonitor-Records und akkumuliert Ergebnisse</span>
-<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>
-<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="n">processor</span><span class="o">.</span><span class="n">finalize_game_result</span><span class="p">(</span><span class="n">table_monitor</span><span class="p">)</span>
-<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="w">  </span><span class="c1"># → nil; schreibt GameParticipation-Updates und führt manuelle Zuweisung durch</span>
-<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>
-<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="n">processor</span><span class="o">.</span><span class="n">update_game_participations</span><span class="p">(</span><span class="n">table_monitor</span><span class="p">)</span>
-<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="w">  </span><span class="c1"># → nil; aktualisiert GameParticipation-Records mit Ergebnisdaten</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">  </span><span class="c1">#   und persistiert sie via @party_monitor.save! (Seiteneffekt)</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="n">processor</span><span class="o">.</span><span class="n">finalize_round</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="w">  </span><span class="c1"># → nil; schließt alle TableMonitor-Records und akkumuliert Ergebnisse</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="n">processor</span><span class="o">.</span><span class="n">finalize_game_result</span><span class="p">(</span><span class="n">table_monitor</span><span class="p">)</span>
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="w">  </span><span class="c1"># → nil; schreibt GameParticipation-Updates und führt manuelle Zuweisung durch</span>
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="n">processor</span><span class="o">.</span><span class="n">update_game_participations</span><span class="p">(</span><span class="n">table_monitor</span><span class="p">)</span>
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="w">  </span><span class="c1"># → nil; aktualisiert GameParticipation-Records mit Ergebnisdaten</span>
 </code></pre></div>
 <p><strong>DB-Lock-Verhalten in <code>report_result</code>:</strong></p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>Thread A erwirbt game.with_lock
@@ -3414,7 +3465,7 @@
 <a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="n">populator</span><span class="o">.</span><span class="n">initialize_table_monitors</span>
 <a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="w">  </span><span class="c1"># → nil; weist TableMonitors den Party-Tischen zu</span>
 <a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>
-<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="n">populator</span><span class="o">.</span><span class="n">do_placement</span><span class="p">(</span><span class="n">game</span><span class="p">,</span><span class="w"> </span><span class="n">r_no</span><span class="p">,</span><span class="w"> </span><span class="n">t_no</span><span class="p">)</span>
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="n">populator</span><span class="o">.</span><span class="n">do_placement</span><span class="p">(</span><span class="n">game</span><span class="p">,</span><span class="w"> </span><span class="n">r_no</span><span class="p">,</span><span class="w"> </span><span class="n">t_no</span><span class="p">,</span><span class="w"> </span><span class="n">row</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kp">nil</span><span class="p">,</span><span class="w"> </span><span class="n">row_nr</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kp">nil</span><span class="p">)</span>
 <a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="w">  </span><span class="c1"># → platziert ein einzelnes Spiel auf einem Tisch (Runden-Nr. r_no, Tisch-Nr. t_no)</span>
 </code></pre></div>
 <p><strong>Eingabe für <code>do_placement</code>:</strong></p>
@@ -3442,15 +3493,25 @@
 <td><code>Integer</code></td>
 <td>Tisch-Nummer</td>
 </tr>
+<tr>
+<td><code>row</code></td>
+<td><code>Hash</code></td>
+<td>Optional. Ergebnis-Zeile für die Platzierung (Default <code>nil</code>)</td>
+</tr>
+<tr>
+<td><code>row_nr</code></td>
+<td><code>Integer</code></td>
+<td>Optional. Zeilen-Index für die Platzierung (Default <code>nil</code>)</td>
+</tr>
 </tbody>
 </table>
 <h2 id="architektur-entscheidungen">Architektur-Entscheidungen<a class="headerlink" href="#architektur-entscheidungen" title="Permanent link">&para;</a></h2>
 <h3 id="a-poros-mit-db-seiteneffekten">a. POROs mit DB-Seiteneffekten<a class="headerlink" href="#a-poros-mit-db-seiteneffekten" title="Permanent link">&para;</a></h3>
 <p>Beide Services sind POROs (keine <code>ApplicationService</code>-Unterklasse), da sie mehrere öffentliche Eintrittspunkte haben und kein einzelnes <code>call</code>-Interface sinnvoll wäre. POROs ermöglichen hier flexible Aufrufmuster bei gleichzeitiger klarer Verantwortungstrennung.</p>
 <h3 id="b-aasm-events-auf-dem-modell-nicht-im-service">b. AASM-Events auf dem Modell, nicht im Service<a class="headerlink" href="#b-aasm-events-auf-dem-modell-nicht-im-service" title="Permanent link">&para;</a></h3>
-<p>Alle AASM-Events (z. B. <code>finish_match!</code>, <code>close_match!</code>) werden auf <code>@party_monitor</code> bzw. dem jeweiligen <code>table_monitor</code>-Record ausgelöst, nicht vom Service selbst. Dies stellt sicher, dass <code>after_enter</code>-Callbacks korrekt über die Modellreferenz ausgeführt werden.</p>
+<p>AASM-Events wie <code>finish_match!</code> und <code>close_match!</code> werden auf dem <code>table_monitor</code>-Record (einem <code>TableMonitor</code>) ausgelöst, nicht im Service / nicht auf <code>@party_monitor</code>. Dies stellt sicher, dass <code>after_enter</code>-Callbacks korrekt über die Modellreferenz ausgeführt werden.</p>
 <h3 id="c-cattr_accessor-muster">c. cattr_accessor-Muster<a class="headerlink" href="#c-cattr_accessor-muster" title="Permanent link">&para;</a></h3>
-<p>Der <code>cattr_accessor</code>-Wert <code>allow_change_tables</code> wird als <code>PartyMonitor.allow_change_tables</code> (Klassen-Level) abgerufen — nicht als <code>TournamentMonitor.allow_change_tables</code>. Dies spiegelt den eigenständigen Namespace des PartyMonitors wider.</p>
+<p><code>allow_change_tables</code> ist als <code>cattr_accessor</code> auf dem <code>PartyMonitor</code>-Modell deklariert (<code>party_monitor.rb:~35</code>). Die tatsächliche Lese-/Schreib-Nutzung liegt jedoch im <code>table_populator</code> des <code>TournamentMonitor</code> (über <code>TournamentMonitor.allow_change_tables</code>), nicht in einem PartyMonitor-Service. Die Deklaration existiert auf dem Modell, wird aber von den hier dokumentierten PartyMonitor-Services nicht verwendet.</p>
 <h3 id="d-paralleles-muster-zu-tournamentmonitor">d. Paralleles Muster zu TournamentMonitor::<a class="headerlink" href="#d-paralleles-muster-zu-tournamentmonitor" title="Permanent link">&para;</a></h3>
 <p><code>PartyMonitor::ResultProcessor</code> und <code>PartyMonitor::TablePopulator</code> sind direkte Analoga zu <code>TournamentMonitor::ResultProcessor</code> und <code>TournamentMonitor::TablePopulator</code>. Die Extraktionsmuster wurden 1:1 übernommen, einschließlich des DB-Lock-Scopes und der AASM-Event-Delegation.</p>
 <h3 id="e-pitfall-scope-erhalt-bei-tournamentmonitortransaction">e. Pitfall — Scope-Erhalt bei <code>TournamentMonitor.transaction</code><a class="headerlink" href="#e-pitfall-scope-erhalt-bei-tournamentmonitortransaction" title="Permanent link">&para;</a></h3>
