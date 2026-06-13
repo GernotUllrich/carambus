@@ -69,6 +69,21 @@ namespace :scenario do
     generate_configuration_files(scenario_name, environment)
   end
 
+  desc "Generate/merge encrypted credentials from carambus_data/secrets.yml per config.yml features"
+  task :generate_credentials, [:scenario_name, :environment] => :environment do |task, args|
+    scenario_name = args[:scenario_name]
+    environment = args[:environment] || 'production'
+
+    if scenario_name.nil?
+      puts "Usage: rake scenario:generate_credentials[scenario_name,environment]"
+      puts "Default: DRY-RUN (zeigt nur die Key-Struktur). Schreiben mit WRITE=true."
+      exit 1
+    end
+
+    dry_run = ENV['WRITE'] != 'true'
+    generate_scenario_credentials(scenario_name, environment, dry_run: dry_run)
+  end
+
   desc "Create Rails root folder for a scenario"
   task :create_rails_root, [:scenario_name] => :environment do |task, args|
     scenario_name = args[:scenario_name]
@@ -594,6 +609,128 @@ namespace :scenario do
     puts "✅ Configuration files generated for #{scenario_name} (#{environment})"
     puts "   Location: #{env_dir}"
     true
+  end
+
+  # ---------------------------------------------------------------------------
+  # Credential-Generator (Phase C): merged Feature-Keys aus carambus_data/secrets.yml
+  # (laut config.yml scenario.credentials.features) in die bestehenden, verschlüsselten
+  # <env>.yml.enc — MERGE statt Regenerate (secret_key_base etc. bleiben erhalten).
+  # Doku: carambus_master/docs/developers/scenario-credentials.de.md
+  # ---------------------------------------------------------------------------
+  FEATURE_KEY_GROUPS = {
+    'ai' => %w[anthropic openai],
+    'translation' => %w[deepl google],
+    'scraping' => %w[youtube kozoom]
+  }.freeze
+  PRESERVE_KEYS = %w[secret_key_base active_record_encryption devise_jwt_secret_key
+    location_id location_calendar_id].freeze
+  LEGACY_FLAT_KEYS = %w[anthropic_key deepl_key youtube_api_key].freeze
+
+  def generate_scenario_credentials(scenario_name, environment = 'production', dry_run: true)
+    require 'securerandom'
+    require 'active_support/encrypted_configuration'
+    require 'active_support/core_ext/hash/deep_merge'
+
+    config_file = File.join(scenarios_path, scenario_name, 'config.yml')
+    unless File.exist?(config_file)
+      puts "❌ config.yml nicht gefunden: #{config_file}"; return false
+    end
+    config = YAML.load_file(config_file)
+    decl = config.dig('scenario', 'credentials') || {}
+    features = Array(decl['features']).map(&:to_s)
+    features = %w[ai translation] if features.empty? # Default: Backup überall
+    cc_ctx = decl['clubcloud_context']
+
+    pool_file = File.join(carambus_data_path, 'secrets.yml')
+    unless File.exist?(pool_file)
+      puts "❌ Secret-Pool fehlt: #{pool_file}"
+      puts "   Aus Vorlage anlegen: cp #{pool_file}.example #{pool_file} (gitignored, chmod 600)"
+      return false
+    end
+    pool = YAML.load_file(pool_file) || {}
+    shared = pool['shared'] || {}
+    per = (pool['per_scenario'] || {})[scenario_name] || {}
+
+    creds_dir = File.join(scenarios_path, scenario_name, 'production', 'credentials')
+    enc_path = File.join(creds_dir, "#{environment}.yml.enc")
+    key_path = File.join(creds_dir, "#{environment}.key")
+    unless File.exist?(key_path)
+      puts "❌ Key fehlt: #{key_path} (Credentials müssen mindestens initial existieren)"; return false
+    end
+
+    enc = ActiveSupport::EncryptedConfiguration.new(
+      config_path: enc_path, key_path: key_path,
+      env_key: 'RAILS_MASTER_KEY', raise_if_missing_key: true
+    )
+    existing = {}
+    if File.exist?(enc_path)
+      existing = YAML.safe_load(enc.read.to_s, permitted_classes: [Symbol], aliases: true) || {}
+    end
+
+    merged = deep_stringify(existing)
+    # (3) historische flache Leaves entfernen — nested ersetzt sie
+    removed = LEGACY_FLAT_KEYS.select { |k| merged.key?(k) }
+    LEGACY_FLAT_KEYS.each { |k| merged.delete(k) }
+    # (2) secret_key_base bewahren; nur bei Neuanlage erzeugen
+    generated_skb = false
+    if merged['secret_key_base'].to_s.strip.empty?
+      merged['secret_key_base'] = SecureRandom.hex(64)
+      generated_skb = true
+    end
+    # Feature-Keys aus shared mergen (nested)
+    added = []
+    features.each do |f|
+      Array(FEATURE_KEY_GROUPS[f]).each do |grp|
+        next unless shared[grp]
+        merged[grp] = (merged[grp] || {}).deep_merge(deep_stringify(shared[grp]))
+        added << grp
+      end
+    end
+    # clubcloud (per_scenario, kontext-gewählt)
+    if features.include?('clubcloud') && cc_ctx && per.dig('clubcloud', cc_ctx)
+      merged['clubcloud'] = (merged['clubcloud'] || {}).merge(cc_ctx => deep_stringify(per['clubcloud'][cc_ctx]))
+      added << "clubcloud.#{cc_ctx}"
+    end
+    # google_service immer (per_scenario, falls vorhanden)
+    if per['google_service']
+      merged['google_service'] = deep_stringify(per['google_service'])
+      added << 'google_service'
+    end
+
+    puts "── generate_credentials #{scenario_name} [#{environment}] #{dry_run ? '(DRY-RUN)' : '(WRITE)'} ──"
+    puts "   features: #{features.join(', ')}#{cc_ctx ? "  clubcloud_context=#{cc_ctx}" : ''}"
+    puts "   entfernte flache Leaves: #{removed.empty? ? '—' : removed.join(', ')}"
+    puts "   secret_key_base: #{generated_skb ? 'NEU generiert' : 'bewahrt'}"
+    puts "   gemergte Gruppen: #{added.uniq.join(', ')}"
+    puts "   resultierende Key-Struktur:"
+    credential_key_paths(merged).each { |p| puts "     #{p}" }
+
+    if dry_run
+      puts "   (DRY-RUN — nichts geschrieben. Schreiben mit WRITE=true)"
+    else
+      enc.write(merged.to_yaml)
+      puts "   ✅ geschrieben: #{enc_path}"
+      puts "   ⚠️  secret_key_base neu — in #{File.join(carambus_data_path, 'secrets.yml')} per_scenario sichern!" if generated_skb
+    end
+    true
+  end
+
+  # rekursiv String-Keys (für stabiles deep_merge zwischen Pool/Bestand)
+  def deep_stringify(obj)
+    case obj
+    when Hash then obj.each_with_object({}) { |(k, v), h| h[k.to_s] = deep_stringify(v) }
+    when Array then obj.map { |e| deep_stringify(e) }
+    else obj
+    end
+  end
+
+  # Liste der Blatt-Pfade (ohne Werte) — für Dry-Run-Anzeige
+  def credential_key_paths(obj, prefix = "")
+    return [prefix] unless obj.is_a?(Hash)
+    obj.sort_by { |k, _| k.to_s }.flat_map do |k, v|
+      np = prefix.empty? ? k.to_s : "#{prefix}.#{k}"
+      v.is_a?(Hash) ? credential_key_paths(v, np) : [np]
+    end
   end
 
   def generate_carambus_yml(scenario_config, env_config, env_dir)
