@@ -48,6 +48,7 @@ class UserDashboard < Administrate::BaseDashboard
     sign_in_count: Administrate::Field::Number,
     sportwart_locations: Administrate::Field::HasMany,
     sportwart_disciplines: Administrate::Field::HasMany,
+    persona_grants: Administrate::Field::String,
     time_zone: Administrate::Field::String,
     unconfirmed_email: Administrate::Field::String,
     username: Administrate::Field::String,
@@ -110,6 +111,7 @@ class UserDashboard < Administrate::BaseDashboard
     sign_in_count
     sportwart_locations
     sportwart_disciplines
+    persona_grants
     time_zone
     unconfirmed_email
     username
@@ -176,6 +178,13 @@ class UserDashboard < Administrate::BaseDashboard
   #     open: ->(resources) { resources.where(open: true) }
   #   }.freeze
   COLLECTION_FILTERS = {}.freeze
+
+  # D-38: persona_grants ist ein jsonb-Array — explizit als Array permitten (FORM_ATTRIBUTES würde
+  # nur einen Skalar permitten). Gerendert wird das Feld via custom _form_fields.html.erb (Checkboxen),
+  # daher NICHT in FORM_ATTRIBUTES, sondern hier ergänzt.
+  def permitted_attributes(action = nil)
+    super + [{persona_grants: []}]
+  end
 
   # Overwrite this method to customize how users are displayed
   # across all pages of the admin dashboard.

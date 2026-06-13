@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_06_12_104652) do
+ActiveRecord::Schema[7.2].define(version: 2026_06_13_194952) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -1649,6 +1649,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_06_12_104652) do
     t.integer "role", default: 0
     t.datetime "mcp_consent_at"
     t.string "jti"
+    t.jsonb "persona_grants", default: [], null: false
     t.index ["confirmation_token"], name: "index_users_on_confirmation_token", unique: true
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["invitation_token"], name: "index_users_on_invitation_token", unique: true

@@ -38,17 +38,37 @@
 
 <% if current_user&.system_admin? %>
   <%#
-    v1.0 Live-Test-Fix (D-34-4-Luecke): Sportwart-Wirkbereich + Player-Verknuepfung klickbar machen.
-    "Sportwart"/"Turnierleiter" sind KEINE Rollen — der Sportwart-Status ergibt sich aus diesen
-    Zuordnungen (sportwart? = mind. eine Disziplin ODER eine Location). Daraus folgt cc_write_access?.
-    Die Params (sportwart_discipline_ids / sportwart_location_ids / player_id) sind ueber die
-    Dashboard-FORM_ATTRIBUTES bereits permitted — hier fehlten nur die Eingabefelder.
+    D-38: Sportwart-Persona ist EXPLIZIT (Spalte persona_grants, nur system_admin). sportwart? folgt
+    NICHT mehr aus Disziplin-/Location-Joins — die verfeinern nur den Wirkbereich. Daraus folgt
+    cc_write_access?. persona_grants wird als jsonb-Array permittet (UserDashboard#permitted_attributes).
   %>
+  <div class="field-unit">
+    <div class="field-unit__label">
+      <%= form.label :persona_grants, "Sportwart-Persona" %>
+      <p class="field-unit__help" style="font-size: 0.85em; color: #666;">
+        Macht den Nutzer zum <strong>Sportwart</strong> (CC-Schreibrecht im Chat).
+        <strong>Landessportwart</strong> = region-weit (ALLE Spielorte); <strong>Sportwart</strong> = nur die unten gewählten Spielorte.
+        Ohne Persona: read-only (Disziplinen/Spielorte allein genügen nicht).
+      </p>
+    </div>
+    <div class="field-unit__field">
+      <%# leeres Fallback: alle Personas abwählen leert die Liste %>
+      <input type="hidden" name="user[persona_grants][]" value="">
+      <% User::PERSONA_GRANTS.each do |pg| %>
+        <label style="display:block; margin:3px 0;">
+          <%= check_box_tag "user[persona_grants][]", pg, Array(page.resource.persona_grants).include?(pg) %>
+          <%= pg == "landessportwart" ? "Landessportwart (region-weit, alle Spielorte)" : "Sportwart (standortgebunden)" %>
+        </label>
+      <% end %>
+    </div>
+  </div>
+
+  <%# Disziplinen + Spielorte VERFEINERN den Wirkbereich (greifen nur bei gesetzter Persona). %>
   <div class="field-unit">
     <div class="field-unit__label">
       <%= form.label :sportwart_disciplines, "Sportwart-Disziplinen" %>
       <p class="field-unit__help" style="font-size: 0.85em; color: #666;">
-        Zugeordnete Disziplinen machen den Nutzer zum <strong>Sportwart</strong> (mit CC-Schreibrecht im Chat).
+        Schränkt den Wirkbereich auf diese Disziplinen ein (leer = alle Disziplinen).
         Eine Oberdisziplin (z.B. <em>Karambol</em>) deckt automatisch alle Unterdisziplinen ab — zum Aufklappen auf das ▶ klicken.
       </p>
     </div>

@@ -68,7 +68,10 @@ class SpielleiterChatController < ApplicationController
   end
 
   def build_welcome
-    name = current_user.first_name.presence || current_user.email.split("@").first
+    # D-35/D-38: bevorzugt den Namen des verknuepften Players (current_user.player), sonst User-Name.
+    name = current_user.player&.firstname.presence ||
+      current_user.first_name.presence ||
+      current_user.email.split("@").first
     data = whoami_data_from_context
     locations = Array(data["sportwart_locations"]).filter_map { |l| l["name"] }
     personas = Array(data["personas"])
@@ -76,8 +79,12 @@ class SpielleiterChatController < ApplicationController
     season = data["default_season"]
 
     parts = ["Willkommen zurück, #{name}!"]
-    if locations.any?
+    if personas.include?("landessportwart")
+      parts << "Du bist Landessportwart."
+    elsif locations.any?
       parts << "Du bist Sportwart für: #{locations.join(", ")}."
+    elsif personas.include?("sportwart")
+      parts << "Du bist als Sportwart eingetragen."
     elsif personas.include?("turnierleiter")
       parts << "Du bist als Turnierleiter eingetragen."
     end

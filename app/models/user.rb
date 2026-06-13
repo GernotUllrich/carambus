@@ -12,6 +12,12 @@ class User < ApplicationRecord
     system_admin: 2
   }, default: :player
 
+  # D-38 (v1.0): Explizite, nur-system_admin-setzbare Sportwart-Persona-Grants (Spalte
+  # users.persona_grants, jsonb-Array — Name wg. Kollision mit der abgeleiteten UserPersonas#personas).
+  # `sportwart` = location-scoped, `landessportwart` = region-weit (alle Locations).
+  # Quelle für Form-Optionen + UserPersonas-Predicates. NICHT die role (player/club_admin/system_admin).
+  PERSONA_GRANTS = %w[sportwart landessportwart].freeze
+
   # D-14-G5: Sportwart-Wirkbereich via M:N-Join-Tables.
   has_many :sportwart_location_assignments, class_name: "SportwartLocation", dependent: :destroy
   has_many :sportwart_locations, through: :sportwart_location_assignments, source: :location
@@ -31,6 +37,7 @@ class User < ApplicationRecord
 
   before_save :set_paper_trail_whodunnit
   before_validation :set_default_role, on: :create
+  before_validation :normalize_persona_grants
 
   # Plan 13-06.2 / D-13-06.1-C: JWT-Token-Auth via devise-jwt + JTIMatcher-Revocation.
   # Backwards-Compat: Cookie-Auth (database_authenticatable + Session) bleibt parallel aktiv.
@@ -163,6 +170,12 @@ class User < ApplicationRecord
 
   def set_default_role
     self.role ||= :player
+  end
+
+  # D-38: persona_grants bereinigen — leeres Fallback-Input ("") + Duplikate + unbekannte Werte raus.
+  # So bleibt z.B. ["", "landessportwart"] (aus dem Checkbox-Fallback) als ["landessportwart"].
+  def normalize_persona_grants
+    self.persona_grants = Array(persona_grants).map(&:to_s).reject(&:blank?).uniq & PERSONA_GRANTS
   end
 
   def set_paper_trail_whodunnit

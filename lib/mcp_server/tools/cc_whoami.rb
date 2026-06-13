@@ -103,7 +103,20 @@ module McpServer
         return nil if user_id.blank?
         u = User.find_by(id: user_id)
         return nil unless u
-        {id: u.id, email: u.email}
+        envelope = {id: u.id, email: u.email}
+        envelope[:first_name] = u.first_name if u.first_name.present?
+        # D-35/D-38: verknuepften Player (current_user.player) exposen, damit der Chat die echte
+        # Person kennt (Name + Verein) und den Nutzer mit seinem Spieler-Namen ansprechen kann.
+        if (player = u.player)
+          envelope[:player] = {
+            id: player.id,
+            firstname: player.firstname,
+            lastname: player.lastname,
+            fullname: player.fullname,
+            club: player.club&.shortname
+          }.compact
+        end
+        envelope
       rescue => e
         Rails.logger.warn "[CcWhoami.resolve_user_envelope] #{e.class}: #{e.message}"
         nil

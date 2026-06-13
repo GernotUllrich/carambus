@@ -575,32 +575,6 @@ module McpServer
         [nil, error("Authority-Check (club_cc_id) fehlgeschlagen (defensive): #{e.class.name}")]
       end
 
-      # Plan 23-01 T4: Transitive Discipline-Permission-Check.
-      # Prüft, ob ein Tournament (oder direkt eine discipline_id) im Sportwart-
-      # Wirkbereich des Users liegt — bezogen auf die Discipline-Hierarchie.
-      # Beispiel: User-sportwart_disciplines=[Karambol(50)], Tournament-Discipline=
-      # Dreiband-groß(31) → erlaubt, weil Karambol in der root_chain liegt.
-      #
-      # Returns true wenn überschneidung in der Hierarchie, false sonst.
-      # Defensive: missing user / missing discipline / Errors → false.
-      def self.discipline_permission?(user, discipline_or_tournament)
-        return false unless user.respond_to?(:sportwart_disciplines)
-
-        discipline = if discipline_or_tournament.respond_to?(:discipline)
-          discipline_or_tournament.discipline
-        else
-          discipline_or_tournament
-        end
-        return false if discipline.nil?
-
-        chain_ids = discipline.root_chain.map(&:id)
-        allowed_ids = user.sportwart_disciplines.pluck(:id)
-        (chain_ids & allowed_ids).any?
-      rescue => e
-        Rails.logger.warn "[BaseTool.discipline_permission?] #{e.class}: #{e.message}"
-        false
-      end
-
       # Plan 14-G.13.1 Task 1: Per-Tool-Call-Cache für idempotente Read-Endpoints
       # (showCommittedMeldeliste). Cache lebt für die Dauer EINES Tool-Calls via
       # Thread.current; Tools, die den Cache nutzen, müssen `cc_cache_reset!` am
