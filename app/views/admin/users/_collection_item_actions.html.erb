@@ -21,7 +21,10 @@
   ) if accessible_action?(resource, :destroy) %></td>
 <% end %>
 
-<% if current_user&.system_admin? && !resource.system_admin? && resource != current_user %>
+<%# resource.is_a?(User) zwingend: dieses Partial wird auch fuer has_many-Collections %>
+<%# auf der User-Show-Seite (z.B. sportwart_locations) gerendert -> resource ist dann %>
+<%# KEIN User und haette kein system_admin?. %>
+<% if resource.is_a?(User) && current_user&.system_admin? && !resource.system_admin? && resource != current_user %>
   <td><%= button_to(
     "Identität übernehmen",
     impersonate_user_path(resource),
