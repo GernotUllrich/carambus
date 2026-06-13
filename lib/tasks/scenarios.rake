@@ -686,12 +686,16 @@ namespace :scenario do
         added << grp
       end
     end
-    # clubcloud (kontext-gewählt; per_scenario-Override, sonst shared)
+    # clubcloud (kontext-gewählt; per_scenario-Override, sonst shared).
+    # WICHTIG: Setting.get_cc_credentials liest mit context.downcase.to_sym →
+    # der Credential-Key MUSS kleingeschrieben sein (z.B. clubcloud.nbv).
     if features.include?('clubcloud') && cc_ctx
-      cc = per.dig('clubcloud', cc_ctx) || shared.dig('clubcloud', cc_ctx)
+      ck = cc_ctx.to_s.downcase
+      cc = per.dig('clubcloud', cc_ctx) || per.dig('clubcloud', ck) ||
+        shared.dig('clubcloud', cc_ctx) || shared.dig('clubcloud', ck)
       if cc
-        merged['clubcloud'] = (merged['clubcloud'] || {}).merge(cc_ctx => deep_stringify(cc))
-        added << "clubcloud.#{cc_ctx}"
+        merged['clubcloud'] = (merged['clubcloud'] || {}).merge(ck => deep_stringify(cc))
+        added << "clubcloud.#{ck}"
       end
     end
     # google_service immer (per_scenario-Override, sonst shared)
