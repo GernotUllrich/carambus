@@ -18,4 +18,12 @@ class UserTournament < ApplicationRecord
 
   validates :role, inclusion: {in: ROLES}
   validates :user_id, uniqueness: {scope: [:tournament_id, :role]}
+
+  # Anzeige-Label fuers Admin-Dashboard (Collection/Show). Bewusst als String-Feld
+  # statt tournament-BelongsTo, damit KEIN TournamentDashboard noetig ist (sonst 500).
+  def tournament_label
+    return "" unless tournament
+
+    [tournament.title.presence, tournament.date&.strftime("%d.%m.%Y")].compact.join(" – ")
+  end
 end

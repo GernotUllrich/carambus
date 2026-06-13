@@ -522,6 +522,8 @@ Rails.application.routes.draw do
         get :players_by_club
       end
     end
+    # Phase 37-03: Turnierleiter-Zuordnungen (UserTournament) verwalten (Local-Server).
+    resources :user_tournaments, only: %i[index show new create destroy]
     resources :settings, only: %i[index create update] do
       collection do
         patch :update
