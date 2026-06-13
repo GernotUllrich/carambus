@@ -38,7 +38,7 @@ class DeeplTranslationService
   def self.translate_content(text, source_language = "DE", target_language = "EN", glossary_id: nil)
     return nil if text.blank?
 
-    api_key = ENV['DEEPL_API_KEY'].presence || Rails.application.credentials.fetch(:deepl_key)
+    api_key = ENV['DEEPL_API_KEY'].presence || Carambus.deepl_key
     # Remove :fx suffix for Pro API (Free API keys end with :fx, Pro keys don't)
     api_key = api_key.to_s.sub(/:fx$/, '')
 

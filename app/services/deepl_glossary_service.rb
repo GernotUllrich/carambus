@@ -293,7 +293,7 @@ class DeeplGlossaryService
   }
 
   def initialize
-    @api_key = ENV['DEEPL_API_KEY'].presence || Rails.application.credentials.fetch(:deepl_key)
+    @api_key = ENV['DEEPL_API_KEY'].presence || Carambus.deepl_key
     @api_key = @api_key.to_s.sub(/:fx$/, '')
   end
 
