@@ -686,14 +686,18 @@ namespace :scenario do
         added << grp
       end
     end
-    # clubcloud (per_scenario, kontext-gewählt)
-    if features.include?('clubcloud') && cc_ctx && per.dig('clubcloud', cc_ctx)
-      merged['clubcloud'] = (merged['clubcloud'] || {}).merge(cc_ctx => deep_stringify(per['clubcloud'][cc_ctx]))
-      added << "clubcloud.#{cc_ctx}"
+    # clubcloud (kontext-gewählt; per_scenario-Override, sonst shared)
+    if features.include?('clubcloud') && cc_ctx
+      cc = per.dig('clubcloud', cc_ctx) || shared.dig('clubcloud', cc_ctx)
+      if cc
+        merged['clubcloud'] = (merged['clubcloud'] || {}).merge(cc_ctx => deep_stringify(cc))
+        added << "clubcloud.#{cc_ctx}"
+      end
     end
-    # google_service immer (per_scenario, falls vorhanden)
-    if per['google_service']
-      merged['google_service'] = deep_stringify(per['google_service'])
+    # google_service immer (per_scenario-Override, sonst shared)
+    gsvc = per['google_service'] || shared['google_service']
+    if gsvc
+      merged['google_service'] = deep_stringify(gsvc)
       added << 'google_service'
     end
 
