@@ -76,7 +76,8 @@ module ApplicationHelper
   def markdown(text)
     return unless text
 
-    renderer = Redcarpet::Render::HTML.new(
+    # ExternalLinkRenderer: externe Links öffnen in neuem Tab (User-Wunsch 2026-06-14).
+    renderer = ExternalLinkRenderer.new(
       filter_html: true,
       hard_wrap: true
     )
