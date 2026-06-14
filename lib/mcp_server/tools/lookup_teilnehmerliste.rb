@@ -87,17 +87,20 @@ module McpServer
         # Strang 2 (LSW-Kegel-Befund 2026-06-14): Soft-Hinweis bei fachlicher Nichtzuständigkeit
         # (Turnier-Disziplin außerhalb des Sportwart-Wirkbereichs) — führt vor der technischen
         # Scope-Filter-Diagnose, damit das LLM nicht „Konfigurationsproblem" narriert.
-        scope_note = discipline_scope_note(tournament: tournament_cc&.tournament, server_context: server_context)
+        # Plus (User-Direktive „einfacher"): IMMER den öffentlichen Turnier-Link anbieten —
+        # die Teilnehmerliste ist öffentlich einsehbar (kein Admin-Scope nötig).
+        t = tournament_cc&.tournament
+        scope_note = discipline_scope_note(tournament: t, server_context: server_context)
 
         missing = [:fedId, :branchId, :season].select { |k| scope[k].blank? }
         if missing.any?
           if scope_note
-            return error("#{scope_note} (Technisch: Scope-Filter unvollständig: fehlend [#{missing.join(", ")}].)")
+            return error("#{scope_note} (Technisch: Scope-Filter unvollständig: fehlend [#{missing.join(", ")}].)#{public_view_hint(t)}")
           end
           return error("Scope-Filter unvollstaendig: fehlend [#{missing.join(", ")}]. " \
                        "Bitte explizit mitgeben (z.B. fed_cc_id=20, branch_cc_id=7 fuer Snooker, season='2025/2026') " \
                        "ODER TournamentCc-DB-Mirror anlegen. " \
-                       "admin-cc-ids: 8=Kegel, 6=Pool, 7=Snooker, 10=Karambol.")
+                       "admin-cc-ids: 8=Kegel, 6=Pool, 7=Snooker, 10=Karambol.#{public_view_hint(t)}")
         end
 
         client = cc_session.client_for(server_context)

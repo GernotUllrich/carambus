@@ -250,15 +250,16 @@ module McpServer
         if meldeliste_cc_id.blank?
           # Strang 2 (LSW-Kegel-Befund 2026-06-14): Ist der anfragende Sportwart fachlich gar
           # nicht zuständig (Turnier-Disziplin außerhalb seines Wirkbereichs), führt ein KLARER
-          # Scope-Hinweis — statt „Meldeliste-Verknüpfung fehlt / LSW informieren", das das LLM
-          # als technisches Problem an einen Administrator eskaliert.
-          scope_note = discipline_scope_note(tournament: tournament_cc&.tournament, server_context: server_context)
-          meta[:committed_list_warning] = if scope_note
+          # Scope-Hinweis. Plus (User-Direktive „einfacher" 2026-06-14): IMMER den öffentlichen
+          # Turnier-Link anbieten — die Teilnehmer sind öffentlich einsehbar, kein Admin-Scope nötig.
+          t = tournament_cc&.tournament
+          scope_note = discipline_scope_note(tournament: t, server_context: server_context)
+          base_msg = if scope_note
             "#{scope_note} (Die Meldungen und Akkreditierungen verwaltet der zuständige Sportwart.)"
           else
-            # Plan 14-02.3 / F-6: Sportwart-Vokabular.
-            "Daten-Lücke: Das Turnier ist in Carambus, aber die Meldeliste-Verknüpfung fehlt. Bitte LSW informieren — oder meldeliste_cc_id direkt setzen (Override-Parameter)."
+            "Die Akkreditierungs-Details aus dem Admin-Zugang sind für dieses Turnier nicht verfügbar."
           end
+          meta[:committed_list_warning] = "#{base_msg}#{public_view_hint(t)}"
           return nil
         end
 

@@ -549,6 +549,33 @@ module McpServer
         nil
       end
 
+      # Live-Test 2026-06-14 (User-Direktive „einfacher"): Statt die ÖFFENTLICHE CC-Seite zu
+      # parsen, geben wir bei Read-Fragen/-Fehlern einfach den LINK auf die öffentliche Turnier-
+      # Ansicht (sb_meisterschaft.php) — die kennt jeder club_admin und sie braucht KEINEN
+      # Admin-Scope/kein branch_cc (genau die Lücke, an der der Admin-Read scheiterte).
+      # Liefert die URL ODER nil (wenn region/fed/season/tournament_cc_id fehlen).
+      def self.public_tournament_url(tournament)
+        return nil if tournament.nil?
+        region = (tournament.organizer if tournament.try(:organizer_type) == "Region") || tournament.try(:region)
+        base = region&.public_cc_url_base.presence
+        return nil if base.blank?
+        fed = region.region_cc&.cc_id
+        season = tournament.season&.name
+        tcc_id = tournament.tournament_cc&.cc_id
+        return nil if fed.blank? || season.blank? || tcc_id.blank?
+        # Form aus Tournament::PublicCcScraper (leeres branch-Feld — bewusst, kein branch_cc nötig).
+        "#{base}sb_meisterschaft.php?p=#{fed}--#{season}-#{tcc_id}----1-100000-"
+      rescue => e
+        Rails.logger.warn "[BaseTool.public_tournament_url] #{e.class}: #{e.message}"
+        nil
+      end
+
+      # Anhängbarer Hinweis-Suffix mit dem öffentlichen Link (oder "" wenn nicht baubar).
+      def self.public_view_hint(tournament)
+        url = public_tournament_url(tournament)
+        url ? " Öffentliche Ansicht (für alle einsehbar): #{url}" : ""
+      end
+
       # Plan 14-G.12 Task 4 / D-14-G.12-B:
       # Authority-Helper für Sportwart-Scope-Tools (cc_register / cc_unregister /
       # cc_lookup_meldeliste_for_tournament). Resolved club_cc_id aus User-Sportwart-

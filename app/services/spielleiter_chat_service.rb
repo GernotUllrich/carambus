@@ -156,6 +156,10 @@ class SpielleiterChatService
       "Akkreditierungen verwaltet der dafür zuständige Sportwart. Stelle dies NICHT als technisches " \
       "Problem oder Daten-Lücke dar und fordere NICHT auf, einen Administrator oder eine " \
       "Info-Stelle zu informieren. " \
+      "Wenn ein Tool-Ergebnis einen öffentlichen Turnier-Link enthält ('Öffentliche Ansicht: <URL>'), " \
+      "gib diesen als anklickbaren Markdown-Link weiter (z.B. '[öffentliche Turnier-Ansicht](URL)') und " \
+      "nenne ihn als Quelle — so kann der Sportwart die öffentlich sichtbaren Turnierdaten (Teilnehmer, " \
+      "Ergebnisse, Rangliste) selbst einsehen, auch ohne Verwaltungsrechte. " \
       "Es gibt zwei Wege, einen Spieler in die Teilnehmerliste aufzunehmen: " \
       "(1) Über die Meldeliste — ein bereits gemeldeter Spieler wird mit " \
       "cc_assign_player_to_teilnehmerliste akkreditiert (Normalfall vor Meldeschluss). " \

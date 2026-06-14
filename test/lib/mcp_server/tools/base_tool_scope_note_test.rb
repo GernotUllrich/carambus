@@ -101,10 +101,10 @@ class BaseToolScopeNoteTest < ActiveSupport::TestCase
       server_context: {user_id: @user.id}
     )
     assert_includes meta[:committed_list_warning], "nicht zuständig", "out-of-scope → Scope-Hinweis"
-    refute_includes meta[:committed_list_warning], "Daten-Lücke", "keine Eskalations-Narration"
+    refute_includes meta[:committed_list_warning].to_s, "Administrator", "keine Eskalations-Narration"
   end
 
-  test "lookup_tournament: ohne User-Kontext echte Daten-Lücken-Meldung (zuständige Sportwarte)" do
+  test "lookup_tournament: ohne User-Kontext sachliche Admin-nicht-verfügbar-Meldung (keine Eskalation)" do
     tcc = TournamentCc.new(meldeliste_cc_id: nil)
     tcc.tournament = Tournament.new(location_id: @location.id, discipline_id: @cadre.id)
 
@@ -113,6 +113,39 @@ class BaseToolScopeNoteTest < ActiveSupport::TestCase
       tournament_cc: tcc, meldeliste_cc_id_override: nil, fed_id: 20, meta: meta,
       server_context: nil
     )
-    assert_includes meta[:committed_list_warning], "Daten-Lücke"
+    assert_includes meta[:committed_list_warning], "Admin-Zugang"
+    refute_includes meta[:committed_list_warning].to_s, "informieren", "keine Eskalation an Admin/Info-Stelle"
+  end
+
+  # Live-Test 2026-06-14 (User-Direktive „einfacher"): öffentlicher Turnier-Link statt Parser.
+  # DB-frei via Struct-Doubles — testet nur die URL-Bauform.
+  test "public_tournament_url baut die öffentliche sb_meisterschaft-URL" do
+    region = Struct.new(:public_cc_url_base, :region_cc).new("https://www.ndbv.de/", Struct.new(:cc_id).new(20))
+    tournament = Struct.new(:organizer_type, :organizer, :season, :tournament_cc).new(
+      "Region", region, Struct.new(:name).new("2025/2026"), Struct.new(:cc_id).new(939)
+    )
+    assert_equal "https://www.ndbv.de/sb_meisterschaft.php?p=20--2025/2026-939----1-100000-",
+      McpServer::Tools::BaseTool.public_tournament_url(tournament)
+  end
+
+  test "public_tournament_url → nil wenn tournament_cc_id fehlt" do
+    region = Struct.new(:public_cc_url_base, :region_cc).new("https://www.ndbv.de/", Struct.new(:cc_id).new(20))
+    tournament = Struct.new(:organizer_type, :organizer, :season, :tournament_cc).new(
+      "Region", region, Struct.new(:name).new("2025/2026"), Struct.new(:cc_id).new(nil)
+    )
+    assert_nil McpServer::Tools::BaseTool.public_tournament_url(tournament)
+  end
+
+  test "public_tournament_url(nil) → nil" do
+    assert_nil McpServer::Tools::BaseTool.public_tournament_url(nil)
+  end
+
+  test "public_view_hint hängt Link an, leer wenn nicht baubar" do
+    region = Struct.new(:public_cc_url_base, :region_cc).new("https://www.ndbv.de/", Struct.new(:cc_id).new(20))
+    tournament = Struct.new(:organizer_type, :organizer, :season, :tournament_cc).new(
+      "Region", region, Struct.new(:name).new("2025/2026"), Struct.new(:cc_id).new(939)
+    )
+    assert_includes McpServer::Tools::BaseTool.public_view_hint(tournament), "Öffentliche Ansicht"
+    assert_equal "", McpServer::Tools::BaseTool.public_view_hint(nil)
   end
 end

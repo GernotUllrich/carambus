@@ -195,12 +195,10 @@ module McpServer
           # nicht zuständig (Turnier-Disziplin außerhalb seines Wirkbereichs), führt ein KLARER
           # Scope-Hinweis — statt der irreführenden „branch_cc_id fehlt / anderen Branch probieren",
           # die das LLM als „Meldeliste nicht verknüpft / Konfigurationsproblem" narriert.
-          scope_note = discipline_scope_note(
-            tournament: resolve_tournament(tournament_cc_id: tournament_cc_id, server_context: server_context),
-            server_context: server_context
-          )
+          t = resolve_tournament(tournament_cc_id: tournament_cc_id, server_context: server_context)
+          scope_note = discipline_scope_note(tournament: t, server_context: server_context)
           if scope_note
-            return error("#{scope_note} (Technisch: Für tournament_cc_id=#{tournament_cc_id} wurde im Branch deines Wirkbereichs keine Meldeliste gefunden — die Meldeliste IST verknüpft, nur in einer anderen Disziplin.)")
+            return error("#{scope_note} (Technisch: Für tournament_cc_id=#{tournament_cc_id} wurde im Branch deines Wirkbereichs keine Meldeliste gefunden — die Meldeliste IST verknüpft, nur in einer anderen Disziplin.)#{public_view_hint(t)}")
           end
 
           # Plan 14-02.3 / F-6: Sportwart-Vokabular statt Entwickler-Diagnose. Behält
