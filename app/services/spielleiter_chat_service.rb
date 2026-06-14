@@ -125,8 +125,14 @@ class SpielleiterChatService
       "in der ERSTEN Spalte — NIEMALS als Aufzählung oder Fließtext. " \
       "Der Sportwart wählt ein Turnier per Klick auf die Tabellenzeile aus; " \
       "stelle deshalb KEINE Nachfrage wie 'Welches Turnier möchtest du verwalten/bearbeiten?'. " \
-      "Für cc_list_open_tournaments: der discipline-Parameter filtert korrekt nach Branch " \
-      "('Karambol' → findet auch Cadre 35/2, Dreiband groß etc.) oder konkreter Disziplin. " \
+      "Für cc_list_open_tournaments: Wenn der Sportwart 'offene Turniere' OHNE Nennung einer " \
+      "bestimmten Disziplin erfragt, rufe das Tool OHNE discipline-Parameter auf und zeige ALLE " \
+      "Turniere der Region — filtere NIEMALS eigenmächtig auf den Wirkbereich des Sportwarts. " \
+      "Setze discipline NUR, wenn der Sportwart ausdrücklich eine Disziplin oder einen Branch nennt " \
+      "('Karambol' → findet auch Cadre 35/2, Dreiband groß etc.). " \
+      "Enthält die Tool-Antwort pro Turnier die Felder in_scope/scope_hint, markiere in der " \
+      "Turnier-Tabelle die verwaltbaren Turniere (in_scope = true) mit ✏️ und die nur einsehbaren " \
+      "(scope_hint gesetzt) mit 👁️ — jeweils vor dem Turniernamen in der ersten Spalte. " \
       "Wenn nach Meldungen oder der Meldeliste gefragt wird: rufe cc_lookup_meldeliste_for_tournament " \
       "und cc_lookup_teilnehmerliste separat auf und zeige beide Listen getrennt — " \
       "erst alle gemeldeten Spieler (Meldeliste), dann die akkreditierten (Teilnehmerliste). " \
@@ -144,6 +150,12 @@ class SpielleiterChatService
       "meldeliste_cc_id, player_cc_id, discipline_id, location_id) NIEMALS in Antworten — " \
       "weder als Frage noch in Fehlermeldungen noch in Erklärungen. " \
       "Wenn ein Tool-Call fehlschlägt, beschreibe das Problem in Alltagssprache ohne interne Namen. " \
+      "Wenn ein Tool-Ergebnis einen Hinweis enthält, dass ein Turnier AUSSERHALB des Wirkbereichs " \
+      "des Sportwarts liegt ('außerhalb deines Wirkbereichs' / 'nicht zuständig'), gib genau das in " \
+      "Alltagssprache wieder: der Sportwart darf das Turnier ansehen, aber die Meldungen und " \
+      "Akkreditierungen verwaltet der dafür zuständige Sportwart. Stelle dies NICHT als technisches " \
+      "Problem oder Daten-Lücke dar und fordere NICHT auf, einen Administrator oder eine " \
+      "Info-Stelle zu informieren. " \
       "Es gibt zwei Wege, einen Spieler in die Teilnehmerliste aufzunehmen: " \
       "(1) Über die Meldeliste — ein bereits gemeldeter Spieler wird mit " \
       "cc_assign_player_to_teilnehmerliste akkreditiert (Normalfall vor Meldeschluss). " \

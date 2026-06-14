@@ -85,4 +85,34 @@ class BaseToolScopeNoteTest < ActiveSupport::TestCase
     t = Tournament.new(location_id: 99_999_999, discipline_id: @karambol.id)
     refute_nil note_for(t, user_id: @user.id)
   end
+
+  # Issue 3 (Live-Test 2026-06-14): lookup_tournament committed_list_warning. Der Blank-meldeliste-
+  # Pfad kehrt VOR dem CC-Client zurück → testbar mit In-Memory-Records (kein Mocking).
+  # Out-of-Scope-Sportwart darf NICHT die "Verknüpfung fehlt / LSW informieren"-Eskalation sehen.
+  test "lookup_tournament: Out-of-Scope-Sportwart bekommt Scope-Hinweis statt Daten-Lücke" do
+    @user.persona_grants = ["landessportwart"]
+    @user.sportwart_disciplines << @kegel
+    tcc = TournamentCc.new(meldeliste_cc_id: nil)
+    tcc.tournament = Tournament.new(location_id: @location.id, discipline_id: @cadre.id)
+
+    meta = {}
+    McpServer::Tools::LookupTournament.read_committed_players(
+      tournament_cc: tcc, meldeliste_cc_id_override: nil, fed_id: 20, meta: meta,
+      server_context: {user_id: @user.id}
+    )
+    assert_includes meta[:committed_list_warning], "nicht zuständig", "out-of-scope → Scope-Hinweis"
+    refute_includes meta[:committed_list_warning], "Daten-Lücke", "keine Eskalations-Narration"
+  end
+
+  test "lookup_tournament: ohne User-Kontext echte Daten-Lücken-Meldung (zuständige Sportwarte)" do
+    tcc = TournamentCc.new(meldeliste_cc_id: nil)
+    tcc.tournament = Tournament.new(location_id: @location.id, discipline_id: @cadre.id)
+
+    meta = {}
+    McpServer::Tools::LookupTournament.read_committed_players(
+      tournament_cc: tcc, meldeliste_cc_id_override: nil, fed_id: 20, meta: meta,
+      server_context: nil
+    )
+    assert_includes meta[:committed_list_warning], "Daten-Lücke"
+  end
 end

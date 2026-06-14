@@ -248,8 +248,17 @@ module McpServer
       def self.read_committed_players(tournament_cc:, meldeliste_cc_id_override:, fed_id:, meta:, server_context: nil)
         meldeliste_cc_id = meldeliste_cc_id_override.presence || tournament_cc.meldeliste_cc_id
         if meldeliste_cc_id.blank?
-          # Plan 14-02.3 / F-6: Sportwart-Vokabular.
-          meta[:committed_list_warning] = "Daten-Lücke: Das Turnier ist in Carambus, aber die Meldeliste-Verknüpfung fehlt. Bitte LSW informieren — oder meldeliste_cc_id direkt setzen (Override-Parameter)."
+          # Strang 2 (LSW-Kegel-Befund 2026-06-14): Ist der anfragende Sportwart fachlich gar
+          # nicht zuständig (Turnier-Disziplin außerhalb seines Wirkbereichs), führt ein KLARER
+          # Scope-Hinweis — statt „Meldeliste-Verknüpfung fehlt / LSW informieren", das das LLM
+          # als technisches Problem an einen Administrator eskaliert.
+          scope_note = discipline_scope_note(tournament: tournament_cc&.tournament, server_context: server_context)
+          meta[:committed_list_warning] = if scope_note
+            "#{scope_note} (Die Meldungen und Akkreditierungen verwaltet der zuständige Sportwart.)"
+          else
+            # Plan 14-02.3 / F-6: Sportwart-Vokabular.
+            "Daten-Lücke: Das Turnier ist in Carambus, aber die Meldeliste-Verknüpfung fehlt. Bitte LSW informieren — oder meldeliste_cc_id direkt setzen (Override-Parameter)."
+          end
           return nil
         end
 
