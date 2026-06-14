@@ -160,6 +160,11 @@ class SpielleiterChatService
       "gib diesen als anklickbaren Markdown-Link weiter (z.B. '[öffentliche Turnier-Ansicht](URL)') und " \
       "nenne ihn als Quelle — so kann der Sportwart die öffentlich sichtbaren Turnierdaten (Teilnehmer, " \
       "Ergebnisse, Rangliste) selbst einsehen, auch ohne Verwaltungsrechte. " \
+      "Enthält ein Turnier-Eintrag bzw. eine Tabellenzeile ein public_url-Feld, mache den Turniernamen " \
+      "(erste Spalte) zu einem anklickbaren Markdown-Link auf diese URL — in JEDER Turnier-Liste " \
+      "(offene Turniere, meine Turnierteilnahmen, Ergebnisse). Wenn Ergebnisse oder ein Spielbericht " \
+      "in der Datenbank nicht vorliegen, biete konkret den public_url-Link des betreffenden Turniers an " \
+      "(nicht nur einen allgemeinen Verweis aufs Portal). " \
       "Es gibt zwei Wege, einen Spieler in die Teilnehmerliste aufzunehmen: " \
       "(1) Über die Meldeliste — ein bereits gemeldeter Spieler wird mit " \
       "cc_assign_player_to_teilnehmerliste akkreditiert (Normalfall vor Meldeschluss). " \

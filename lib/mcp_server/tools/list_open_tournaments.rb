@@ -146,6 +146,11 @@ module McpServer
           []
         end
 
+        # Öffentlicher Turnier-Link pro Zeile (User-Direktive 2026-06-14). region/fed EINMAL
+        # auflösen (kein N+1) — pro Zeile nur season + tournament_cc.cc_id einsetzen.
+        public_base = region.public_cc_url_base
+        public_fed = region.region_cc&.cc_id
+
         data = rel.includes(:discipline, :season, :tournament_cc).map { |t|
           tc = t.tournament_cc
           tc = nil unless tc&.context.to_s.downcase == user_region_name.to_s.downcase
@@ -167,6 +172,8 @@ module McpServer
             row[:in_scope] = in_scope
             row[:scope_hint] = "außerhalb deines Wirkbereichs" unless in_scope
           end
+          pub = public_tournament_url_from(base: public_base, fed: public_fed, season: t.season&.name, tcc_id: t.tournament_cc&.cc_id)
+          row[:public_url] = pub if pub
           row
         }
 

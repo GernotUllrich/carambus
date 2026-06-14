@@ -557,17 +557,24 @@ module McpServer
       def self.public_tournament_url(tournament)
         return nil if tournament.nil?
         region = (tournament.organizer if tournament.try(:organizer_type) == "Region") || tournament.try(:region)
-        base = region&.public_cc_url_base.presence
-        return nil if base.blank?
-        fed = region.region_cc&.cc_id
-        season = tournament.season&.name
-        tcc_id = tournament.tournament_cc&.cc_id
-        return nil if fed.blank? || season.blank? || tcc_id.blank?
-        # Form aus Tournament::PublicCcScraper (leeres branch-Feld — bewusst, kein branch_cc nötig).
-        "#{base}sb_meisterschaft.php?p=#{fed}--#{season}-#{tcc_id}----1-100000-"
+        public_tournament_url_from(
+          base: region&.public_cc_url_base,
+          fed: region&.region_cc&.cc_id,
+          season: tournament.season&.name,
+          tcc_id: tournament.tournament_cc&.cc_id
+        )
       rescue => e
         Rails.logger.warn "[BaseTool.public_tournament_url] #{e.class}: #{e.message}"
         nil
+      end
+
+      # Variante mit expliziten Teilen — für Listen-Tools, die region/fed EINMAL auflösen
+      # (kein N+1) und pro Zeile nur season + tournament_cc_id einsetzen.
+      # Form aus Tournament::PublicCcScraper (leeres branch-Feld — bewusst, kein branch_cc nötig).
+      def self.public_tournament_url_from(base:, fed:, season:, tcc_id:)
+        base = base.presence
+        return nil if base.blank? || fed.blank? || season.blank? || tcc_id.blank?
+        "#{base}sb_meisterschaft.php?p=#{fed}--#{season}-#{tcc_id}----1-100000-"
       end
 
       # Anhängbarer Hinweis-Suffix mit dem öffentlichen Link (oder "" wenn nicht baubar).

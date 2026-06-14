@@ -140,6 +140,16 @@ class BaseToolScopeNoteTest < ActiveSupport::TestCase
     assert_nil McpServer::Tools::BaseTool.public_tournament_url(nil)
   end
 
+  test "public_tournament_url_from baut URL aus expliziten Teilen (Listen-Variante, kein N+1)" do
+    assert_equal "https://www.ndbv.de/sb_meisterschaft.php?p=20--2025/2026-939----1-100000-",
+      McpServer::Tools::BaseTool.public_tournament_url_from(base: "https://www.ndbv.de/", fed: 20, season: "2025/2026", tcc_id: 939)
+  end
+
+  test "public_tournament_url_from → nil bei fehlendem Teil" do
+    assert_nil McpServer::Tools::BaseTool.public_tournament_url_from(base: nil, fed: 20, season: "2025/2026", tcc_id: 939)
+    assert_nil McpServer::Tools::BaseTool.public_tournament_url_from(base: "https://x/", fed: 20, season: "2025/2026", tcc_id: nil)
+  end
+
   test "public_view_hint hängt Link an, leer wenn nicht baubar" do
     region = Struct.new(:public_cc_url_base, :region_cc).new("https://www.ndbv.de/", Struct.new(:cc_id).new(20))
     tournament = Struct.new(:organizer_type, :organizer, :season, :tournament_cc).new(

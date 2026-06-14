@@ -43,7 +43,7 @@ module McpServer
 
         data = rows.map do |s|
           t = s.tournament
-          {
+          row = {
             tournament_id: t.id,
             title: t.title,
             date: t.date&.iso8601,
@@ -53,6 +53,10 @@ module McpServer
             position: s.position,
             state: s.state
           }
+          # Öffentlicher Turnier-Link (User-Direktive 2026-06-14) — für alle einsehbar.
+          pub = public_tournament_url(t)
+          row[:public_url] = pub if pub
+          row
         end
 
         text(JSON.generate(

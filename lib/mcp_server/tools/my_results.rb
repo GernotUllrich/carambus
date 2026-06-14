@@ -33,7 +33,7 @@ module McpServer
 
         data = rows.map do |gp|
           tournament = gp.game&.tournament
-          {
+          row = {
             tournament: tournament&.title,
             points: gp.points,
             innings: gp.innings,
@@ -43,6 +43,11 @@ module McpServer
             sets: gp.sets,
             role: gp.role
           }
+          # Öffentlicher Turnier-Link: wenn Ergebnis-/Spielbericht-Details in der DB fehlen,
+          # kann der Nutzer sie über die öffentliche CC-Ansicht einsehen (User-Direktive 2026-06-14).
+          pub = tournament && public_tournament_url(tournament)
+          row[:public_url] = pub if pub
+          row
         end
 
         text(JSON.generate(
