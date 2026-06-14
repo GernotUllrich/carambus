@@ -129,6 +129,9 @@ module McpServer
         return [] if user_id.blank?
         u = User.find_by(id: user_id)
         return [] unless u&.respond_to?(:sportwart_locations)
+        # D-38: Wirkbereich nur für EXPLIZITE Sportwarte exponieren — ein club_admin/player mit
+        # latenten sportwart_locations-Joins (aber ohne persona_grant) ist KEIN Sportwart.
+        return [] unless u.respond_to?(:sportwart?) && u.sportwart?
         u.sportwart_locations.pluck(:id, :name).map { |id, name| {id: id, name: name} }
       rescue => e
         Rails.logger.warn "[CcWhoami.resolve_sportwart_locations] #{e.class}: #{e.message}"
@@ -144,6 +147,8 @@ module McpServer
         return [] if user_id.blank?
         u = User.find_by(id: user_id)
         return [] unless u&.respond_to?(:sportwart_disciplines)
+        # D-38: nur für EXPLIZITE Sportwarte (analog resolve_sportwart_locations).
+        return [] unless u.respond_to?(:sportwart?) && u.sportwart?
         ctx = Carambus.config.context.to_s.presence
         u.sportwart_disciplines.map do |d|
           {id: d.id, name: d.name, branch_cc_id: resolve_branch_cc_id(d, ctx)}

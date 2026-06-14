@@ -113,6 +113,31 @@ class McpServer::Tools::CcWhoamiTest < ActiveSupport::TestCase
     assert_equal false, body["can_write_cc"]
   end
 
+  # D-38 Gating (Live-Test 2026-06-14, Doc-Jörg-Befund): Wirkbereich (sportwart_locations/
+  # -disciplines) NUR für EXPLIZITE Sportwarte. Ein club_admin mit latenten Join-Records (aber
+  # ohne persona_grant) darf NICHT als Sportwart erscheinen — sonst Gruß „Du bist Sportwart für…".
+  test "D-38 Gating: club_admin mit sportwart_locations-Join, OHNE persona_grant → leere Wirkbereich-Arrays" do
+    ca = User.create!(email: "whoami_clubadmin@test.de", password: "password123", role: :club_admin)
+    ca.sportwart_locations << locations(:one)
+    ca.sportwart_disciplines << disciplines(:carom_3band)
+    response = McpServer::Tools::CcWhoami.call(server_context: {user_id: ca.id})
+    body = JSON.parse(response.content.first[:text])
+    assert_equal [], body["sportwart_locations"], "Nicht-Sportwart darf keinen Wirkbereich exponieren"
+    assert_equal [], body["sportwart_disciplines"]
+    assert_equal false, body["can_write_cc"]
+    assert_includes body["personas"], "club_admin"
+    refute_includes body["personas"], "sportwart"
+  end
+
+  test "D-38 Gating: expliziter Sportwart-Grant → Wirkbereich WIRD exponiert" do
+    sw = User.create!(email: "whoami_sw@test.de", password: "password123", persona_grants: ["sportwart"])
+    sw.sportwart_locations << locations(:one)
+    response = McpServer::Tools::CcWhoami.call(server_context: {user_id: sw.id})
+    body = JSON.parse(response.content.first[:text])
+    assert_equal 1, body["sportwart_locations"].size
+    assert_includes body["personas"], "sportwart"
+  end
+
   # 2026-06-14 (LSW-Kegel-Befund): branch_cc_id muss über die Wurzel der Disziplin-Hierarchie
   # aufgelöst werden. BranchCc-Records existieren NUR für Wurzeln (Karambol→10, Kegel→8), nicht
   # für Sub-Disziplinen (Cadre/Dreiband/…). Vorher: Sub-Disziplin-Sportwart → branch_cc_id=nil.

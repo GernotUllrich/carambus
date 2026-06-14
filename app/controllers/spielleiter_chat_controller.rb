@@ -79,14 +79,16 @@ class SpielleiterChatController < ApplicationController
     season = data["default_season"]
 
     parts = ["Willkommen zurück, #{name}!"]
+    # D-38: Persona-Zuschreibung ist EXPLIZIT (persona_grants), NICHT aus Join-Präsenz abgeleitet.
+    # Ein club_admin mit sportwart_locations-Joins (aber ohne sportwart-Grant) ist KEIN Sportwart.
     if personas.include?("landessportwart")
       parts << "Du bist Landessportwart."
-    elsif locations.any?
-      parts << "Du bist Sportwart für: #{locations.join(", ")}."
     elsif personas.include?("sportwart")
-      parts << "Du bist als Sportwart eingetragen."
+      parts << (locations.any? ? "Du bist Sportwart für: #{locations.join(", ")}." : "Du bist als Sportwart eingetragen.")
     elsif personas.include?("turnierleiter")
       parts << "Du bist als Turnierleiter eingetragen."
+    elsif personas.include?("club_admin")
+      parts << "Du bist Vereins-Administrator."
     end
     parts << "(#{region}, Saison #{season})" if region && season
     parts << "Wie kann ich dir helfen?"
