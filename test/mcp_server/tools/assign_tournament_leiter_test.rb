@@ -17,7 +17,11 @@ class AssignTournamentLeiterTest < ActiveSupport::TestCase
       date: 1.week.from_now
     )
     @tcc = TournamentCc.create!(cc_id: 80_201, context: "nbv", tournament: @tournament)
-    @sportwart = User.create!(email: "atl_sw@test.de", password: "password123")
+    # D-38 (seit Phase 38): sportwart? kommt aus EXPLIZITEN persona_grants, nicht aus Listen-Präsenz.
+    # Ohne persona_grants lehnt authorize!(assign_leiter) → in_sportwart_scope? ab (pre-existing
+    # Drift in den 34-04-Tests, hier mit-saniert). Persistiert via create!, da das Tool den User
+    # über server_context[:user_id] aus der DB nachlädt.
+    @sportwart = User.create!(email: "atl_sw@test.de", password: "password123", persona_grants: ["sportwart"])
     @sportwart.sportwart_locations << @location
     @sportwart.sportwart_disciplines << @discipline
     @random = User.create!(email: "atl_random@test.de", password: "password123")
@@ -48,6 +52,16 @@ class AssignTournamentLeiterTest < ActiveSupport::TestCase
     assert_not res.error?
     assert UserTournament.exists?(user: @target, tournament: @tournament, role: "turnier_leiter")
     assert @tournament.reload.leiter?(@target)
+  end
+
+  # D-39-3 (v1.1): granted_by = der einsetzende Sportwart (Operator) — Quelle der CC-Vererbung.
+  test "Sportwart armed:true → granted_by_user_id == Operator (einsetzender Sportwart)" do
+    res = assign(@sw_ctx, leiter_email: @target.email, armed: true)
+    assert_not res.error?
+    ut = UserTournament.find_by(user: @target, tournament: @tournament, role: "turnier_leiter")
+    assert_not_nil ut
+    assert_equal @sportwart.id, ut.granted_by_user_id, "granter muss der einsetzende Sportwart sein"
+    assert_equal @sportwart, ut.granted_by
   end
 
   test "erneuter armed:true → bereits zugeordnet, kein Duplikat" do

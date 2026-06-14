@@ -16,6 +16,12 @@ class UserTournament < ApplicationRecord
   belongs_to :user
   belongs_to :tournament
 
+  # D-39-3 (v1.1): Welcher Sportwart hat diesen TL eingesetzt? Quelle der CC-Credential-Vererbung
+  # (TL ohne eigenen CC-Account erbt turnierspezifisch die Creds des einsetzenden Sportwarts).
+  # optional: Legacy-Records + der globale turnier_leiter_user_id-Pfad haben keinen granter.
+  # Spaltenname granted_by_user_id konsistent mit Tournament.turnier_leiter_user_id.
+  belongs_to :granted_by, class_name: "User", foreign_key: :granted_by_user_id, optional: true
+
   validates :role, inclusion: {in: ROLES}
   validates :user_id, uniqueness: {scope: [:tournament_id, :role]}
 

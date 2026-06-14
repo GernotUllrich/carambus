@@ -293,4 +293,23 @@ class UserTest < ActiveSupport::TestCase
     refute User.jwt_revoked?(new_payload, user),
       "Neuer Payload mit aktuellem jti darf NICHT als revoked klassifiziert sein"
   end
+
+  # D-39-1 (v1.1): Per-User-CC-Credentials — verschlüsselt at rest (Rails 7 encrypts) + Helper.
+  test "cc_password wird verschlüsselt gespeichert (Rohwert != Klartext, decryptbar)" do
+    user = users(:valid)
+    user.update!(cc_username: "sw_login", cc_password: "topsecret")
+    raw = User.connection.select_value("select cc_password from users where id=#{user.id}")
+    assert_not_equal "topsecret", raw, "cc_password darf nicht im Klartext in der DB stehen"
+    assert_equal "topsecret", User.find(user.id).cc_password, "cc_password muss über das Model entschlüsselt lesbar sein"
+  end
+
+  test "cc_credentials_present? true nur wenn username UND password gesetzt" do
+    user = users(:valid)
+    user.update!(cc_username: nil, cc_password: nil)
+    assert_not user.cc_credentials_present?
+    user.cc_username = "x"
+    assert_not user.cc_credentials_present?
+    user.cc_password = "y"
+    assert user.cc_credentials_present?
+  end
 end
