@@ -29,7 +29,7 @@ class BaseToolScopeNoteTest < ActiveSupport::TestCase
   end
 
   test "nil-Tournament → nil" do
-    @user.persona_grants = ["sportwart"]
+    @user.update!(persona_grants: ["sportwart"])
     @user.sportwart_disciplines << @kegel
     assert_nil note_for(nil, user_id: @user.id)
   end
@@ -45,27 +45,27 @@ class BaseToolScopeNoteTest < ActiveSupport::TestCase
   end
 
   test "Sportwart ohne Disziplin-Scope (leer = alle) → nil" do
-    @user.persona_grants = ["landessportwart"]
+    @user.update!(persona_grants: ["landessportwart"])
     t = Tournament.new(location_id: @location.id, discipline_id: @cadre.id)
     assert_nil note_for(t, user_id: @user.id), "leerer Disziplin-Scope = alle Disziplinen → kein Hinweis"
   end
 
   test "Turnier-Disziplin IM Wirkbereich (direkt) → nil" do
-    @user.persona_grants = ["sportwart"]
+    @user.update!(persona_grants: ["sportwart"])
     @user.sportwart_disciplines << @kegel
     t = Tournament.new(location_id: @location.id, discipline_id: @kegel.id)
     assert_nil note_for(t, user_id: @user.id)
   end
 
   test "Turnier-Sub-Disziplin IM Wirkbereich (root_chain deckt ab) → nil" do
-    @user.persona_grants = ["landessportwart"]
+    @user.update!(persona_grants: ["landessportwart"])
     @user.sportwart_disciplines << @karambol
     t = Tournament.new(location_id: @location.id, discipline_id: @cadre.id)
     assert_nil note_for(t, user_id: @user.id), "Karambol-Wurzel deckt Cadre via root_chain ab"
   end
 
   test "HaJo-Fall: Kegel-Sportwart öffnet Karambol-Cadre-Turnier → führender Scope-Hinweis" do
-    @user.persona_grants = ["landessportwart"]
+    @user.update!(persona_grants: ["landessportwart"])
     @user.sportwart_disciplines << @kegel
     t = Tournament.new(location_id: @location.id, discipline_id: @cadre.id)
 
@@ -79,7 +79,7 @@ class BaseToolScopeNoteTest < ActiveSupport::TestCase
   end
 
   test "plain sportwart out-of-scope (Location irrelevant für Disziplin-Hinweis) → Hinweis" do
-    @user.persona_grants = ["sportwart"]
+    @user.update!(persona_grants: ["sportwart"])
     @user.sportwart_disciplines << @kegel
     # Disziplin-Hinweis ist location-unabhängig (bewusst nur Disziplin, vgl. Helper-Doku).
     t = Tournament.new(location_id: 99_999_999, discipline_id: @karambol.id)
@@ -90,7 +90,7 @@ class BaseToolScopeNoteTest < ActiveSupport::TestCase
   # Pfad kehrt VOR dem CC-Client zurück → testbar mit In-Memory-Records (kein Mocking).
   # Out-of-Scope-Sportwart darf NICHT die "Verknüpfung fehlt / LSW informieren"-Eskalation sehen.
   test "lookup_tournament: Out-of-Scope-Sportwart bekommt Scope-Hinweis statt Daten-Lücke" do
-    @user.persona_grants = ["landessportwart"]
+    @user.update!(persona_grants: ["landessportwart"])
     @user.sportwart_disciplines << @kegel
     tcc = TournamentCc.new(meldeliste_cc_id: nil)
     tcc.tournament = Tournament.new(location_id: @location.id, discipline_id: @cadre.id)
