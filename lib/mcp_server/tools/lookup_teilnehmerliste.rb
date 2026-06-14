@@ -84,8 +84,16 @@ module McpServer
           season: season || tournament_cc&.season&.to_s
         }.compact
 
+        # Strang 2 (LSW-Kegel-Befund 2026-06-14): Soft-Hinweis bei fachlicher Nichtzuständigkeit
+        # (Turnier-Disziplin außerhalb des Sportwart-Wirkbereichs) — führt vor der technischen
+        # Scope-Filter-Diagnose, damit das LLM nicht „Konfigurationsproblem" narriert.
+        scope_note = discipline_scope_note(tournament: tournament_cc&.tournament, server_context: server_context)
+
         missing = [:fedId, :branchId, :season].select { |k| scope[k].blank? }
         if missing.any?
+          if scope_note
+            return error("#{scope_note} (Technisch: Scope-Filter unvollständig: fehlend [#{missing.join(", ")}].)")
+          end
           return error("Scope-Filter unvollstaendig: fehlend [#{missing.join(", ")}]. " \
                        "Bitte explizit mitgeben (z.B. fed_cc_id=20, branch_cc_id=7 fuer Snooker, season='2025/2026') " \
                        "ODER TournamentCc-DB-Mirror anlegen. " \

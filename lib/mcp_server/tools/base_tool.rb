@@ -512,6 +512,43 @@ module McpServer
         nil
       end
 
+      # Strang 2 (LSW-Kegel-Befund 2026-06-14): Soft-Hinweis, wenn ein scoped Sportwart ein
+      # Turnier AUSSERHALB seines Disziplin-Wirkbereichs aufruft (z.B. HaJo/Kegel öffnet ein
+      # Karambol-Turnier). Liefert einen freundlichen, FÜHRENDEN Hinweistext (String) ODER nil.
+      #
+      # Bewusst NUR Disziplin (nicht Location) — der User-Entscheid ist "Soft-Hinweis": der
+      # (Landes-)Sportwart darf fremde Disziplinen read-only ansehen; die Meldung erklärt nur,
+      # warum es "nicht seine Liste" ist, und beugt der irreführenden Narration vor ("Meldeliste
+      # nicht verknüpft / Konfigurationsproblem"). Hierarchie-bewusst via discipline.root_chain —
+      # spiegelt exakt die discipline_match-Logik aus SportwartScope#in_sportwart_scope?.
+      #
+      # nil (= kein Hinweis) bei: keinem Turnier, keinem User, Nicht-Sportwart, leerem
+      # Disziplin-Scope (leer = alle Disziplinen), oder wenn das Turnier IM Wirkbereich liegt.
+      def self.discipline_scope_note(tournament:, server_context: nil)
+        return nil if tournament.nil?
+        user = User.find_by(id: server_context&.dig(:user_id))
+        return nil if user.nil?
+        return nil unless user.respond_to?(:sportwart?) && user.sportwart?
+
+        disc_ids = Array(user.try(:sportwart_discipline_ids))
+        return nil if disc_ids.empty? # leer = alle Disziplinen → kein Mismatch
+
+        t_disc = tournament.discipline
+        return nil if t_disc.nil?
+        chain_ids = Array(t_disc.root_chain).map(&:id)
+        return nil if (chain_ids & disc_ids).any? # im Wirkbereich → kein Hinweis
+
+        own_names = Discipline.where(id: disc_ids).pluck(:name).compact.join(", ").presence || "(keine)"
+        branch = t_disc.root&.name
+        disc_label = (branch && branch != t_disc.name) ? "#{t_disc.name} (#{branch})" : t_disc.name
+        "Hinweis: Dieses Turnier ist #{disc_label}. Dein Sportwart-Wirkbereich ist #{own_names} — " \
+          "für diese Disziplin bist du nicht zuständig. Du kannst die Daten read-only ansehen, " \
+          "aber Anmeldungen und Akkreditierungen liegen beim zuständigen Sportwart."
+      rescue => e
+        Rails.logger.warn "[BaseTool.discipline_scope_note] #{e.class}: #{e.message}"
+        nil
+      end
+
       # Plan 14-G.12 Task 4 / D-14-G.12-B:
       # Authority-Helper für Sportwart-Scope-Tools (cc_register / cc_unregister /
       # cc_lookup_meldeliste_for_tournament). Resolved club_cc_id aus User-Sportwart-
