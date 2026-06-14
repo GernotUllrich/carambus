@@ -136,8 +136,9 @@ module McpServer
       end
 
       # Sportwart-Disciplines mit branch_cc_id (CC admin branch ID für Tool-Calls wie
-      # cc_lookup_meldeliste_for_tournament). branch_cc_id aus BranchCc-Lookup per
-      # discipline_id + context — nil wenn kein BranchCc-Eintrag existiert.
+      # cc_lookup_meldeliste_for_tournament). branch_cc_id via root_chain aufgelöst
+      # (siehe resolve_branch_cc_id) — nil nur wenn keine Wurzel der Hierarchie einen
+      # BranchCc-Eintrag im aktiven Kontext hat.
       def self.resolve_sportwart_disciplines(server_context)
         user_id = server_context&.dig(:user_id)
         return [] if user_id.blank?
@@ -145,12 +146,26 @@ module McpServer
         return [] unless u&.respond_to?(:sportwart_disciplines)
         ctx = Carambus.config.context.to_s.presence
         u.sportwart_disciplines.map do |d|
-          branch_cc_id = BranchCc.find_by(discipline_id: d.id, context: ctx)&.cc_id
-          {id: d.id, name: d.name, branch_cc_id: branch_cc_id}
+          {id: d.id, name: d.name, branch_cc_id: resolve_branch_cc_id(d, ctx)}
         end
       rescue => e
         Rails.logger.warn "[CcWhoami.resolve_sportwart_disciplines] #{e.class}: #{e.message}"
         []
+      end
+
+      # branch_cc_id (CC admin branch ID) zu einer Disziplin. BranchCc-Records existieren nur
+      # für die Wurzel-Disziplinen einer Hierarchie (z.B. Karambol[50]→cc_id 10, Kegel[55]→cc_id 8),
+      # NICHT für Sub-Disziplinen (Cadre/Dreiband/…). Deshalb über die root_chain auflösen und die
+      # erste Disziplin der Kette (self … root) nehmen, zu der ein BranchCc existiert — praktisch
+      # die Wurzel = der Branch. Ohne diese Wurzel-Auflösung liefert ein Sub-Disziplin-Sportwart
+      # branch_cc_id=nil und alle darauf aufbauenden Write-Tools/Prompts verlieren ihren Scope
+      # (LSW-Kegel-Befund 2026-06-14: „Die Top-Hierarchie der Discipline IST der Branch.").
+      def self.resolve_branch_cc_id(discipline, ctx)
+        discipline.root_chain.each do |d|
+          bc = BranchCc.find_by(discipline_id: d.id, context: ctx)
+          return bc.cc_id if bc
+        end
+        nil
       end
 
       # Abgeleitete Personas des Users (UserPersonas-Concern, Phase 34-01):

@@ -112,4 +112,39 @@ class McpServer::Tools::CcWhoamiTest < ActiveSupport::TestCase
     assert_equal ["player"], body["personas"]
     assert_equal false, body["can_write_cc"]
   end
+
+  # 2026-06-14 (LSW-Kegel-Befund): branch_cc_id muss über die Wurzel der Disziplin-Hierarchie
+  # aufgelöst werden. BranchCc-Records existieren NUR für Wurzeln (Karambol→10, Kegel→8), nicht
+  # für Sub-Disziplinen (Cadre/Dreiband/…). Vorher: Sub-Disziplin-Sportwart → branch_cc_id=nil.
+  class BranchCcResolutionTest < ActiveSupport::TestCase
+    setup do
+      @ctx = "branchtest"
+      @region_cc = RegionCc.create!(region: regions(:nbv), cc_id: 4711, context: @ctx, name: "NBV-Test")
+      @root = Discipline.create!(name: "Karambol-Test")
+      @sub = Discipline.create!(name: "Cadre 35/2-Test", super_discipline: @root)
+      @deep = Discipline.create!(name: "Cadre 35/2 fein-Test", super_discipline: @sub)
+      BranchCc.create!(discipline: @root, region_cc: @region_cc, context: @ctx, cc_id: 10, name: "Karambol")
+    end
+
+    test "Sub-Disziplin löst branch_cc_id über die Wurzel auf (LSW-Kegel-Fix)" do
+      assert_equal 10, McpServer::Tools::CcWhoami.resolve_branch_cc_id(@sub, @ctx)
+    end
+
+    test "mehrstufig verschachtelte Sub-Disziplin löst ebenfalls über die Wurzel auf" do
+      assert_equal 10, McpServer::Tools::CcWhoami.resolve_branch_cc_id(@deep, @ctx)
+    end
+
+    test "Wurzel-Disziplin selbst behält ihre branch_cc_id (Regression-Guard)" do
+      assert_equal 10, McpServer::Tools::CcWhoami.resolve_branch_cc_id(@root, @ctx)
+    end
+
+    test "Disziplin ohne BranchCc in der Kette → nil statt crash" do
+      orphan = Discipline.create!(name: "Snooker-ohne-Branch-Test")
+      assert_nil McpServer::Tools::CcWhoami.resolve_branch_cc_id(orphan, @ctx)
+    end
+
+    test "context-Scoping: BranchCc aus fremdem Kontext zählt nicht" do
+      assert_nil McpServer::Tools::CcWhoami.resolve_branch_cc_id(@sub, "anderer_kontext")
+    end
+  end
 end
