@@ -194,4 +194,77 @@ class RegistrationsControllerTest < ActionDispatch::IntegrationTest
     refute_nil confirm_mail, "confirmation_instructions muss an neue Adresse versendet werden"
     assert_match %r{/confirmation\?confirmation_token=}, confirm_mail.body.to_s
   end
+
+  # === Plan 39-04: Per-User-CC-Credentials Provisionierungs-UI (D-39-11 / D-39-12) ===
+  #
+  # Self-Service der eigenen ClubCloud-Zugangsdaten ueber die Account-Edit-Seite.
+  # @user (users(:regular)) ist via setup eingeloggt. cc_password ist encrypts at rest;
+  # Lesen liefert den Klartext zurueck.
+
+  test "hinterlegt eigene CC-Zugangsdaten (AC-1)" do
+    patch user_registration_path, params: {
+      user: {
+        cc_username: "sw_login",
+        cc_password: "geheim123"
+      }
+    }
+
+    @user.reload
+    assert_equal "sw_login", @user.cc_username
+    assert_equal "geheim123", @user.cc_password
+    assert @user.cc_credentials_present?
+  end
+
+  test "leeres cc_password laesst bestehenden Zugang unveraendert (AC-2)" do
+    @user.update!(cc_username: "sw_login", cc_password: "altesgeheim")
+
+    patch user_registration_path, params: {
+      user: {
+        cc_username: "sw_login_neu",
+        cc_password: ""
+      }
+    }
+
+    @user.reload
+    assert_equal "sw_login_neu", @user.cc_username, "Username wird aktualisiert"
+    assert_equal "altesgeheim", @user.cc_password, "leeres PW-Feld behaelt bestehendes Passwort"
+    assert @user.cc_credentials_present?
+  end
+
+  test "Update ohne CC-Felder laesst hinterlegten Zugang unberuehrt (AC-2 key-absent)" do
+    @user.update!(cc_username: "sw_login", cc_password: "geheim123")
+
+    patch user_registration_path, params: {
+      user: {theme: "dark"}
+    }
+
+    @user.reload
+    assert_equal "sw_login", @user.cc_username
+    assert_equal "geheim123", @user.cc_password
+    assert @user.cc_credentials_present?
+  end
+
+  test "leerer Username entfernt beide CC-Felder (AC-3)" do
+    @user.update!(cc_username: "sw_login", cc_password: "geheim123")
+
+    patch user_registration_path, params: {
+      user: {
+        cc_username: "",
+        cc_password: ""
+      }
+    }
+
+    @user.reload
+    assert_nil @user.cc_username
+    assert_nil @user.cc_password
+    refute @user.cc_credentials_present?
+  end
+
+  test "Account-Edit-Seite zeigt die ClubCloud-Zugang-Sektion (AC-4)" do
+    get edit_user_registration_path
+    assert_response :success
+    assert_match "ClubCloud-Zugang", response.body
+    assert_select "input[name=?]", "user[cc_username]"
+    assert_select "input[name=?]", "user[cc_password]"
+  end
 end
