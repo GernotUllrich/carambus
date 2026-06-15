@@ -638,6 +638,38 @@ module McpServer
         url ? " Öffentliche Ansicht (für alle einsehbar): #{url}" : ""
       end
 
+      # Quellen-Attribution (Phase 40, D-40-1/D-40-2): die INTERNE Datenquelle rechte-gegated
+      # benennen. Der ÖFFENTLICHE Link (public_view_hint) bleibt für ALLE; die interne Quelle
+      # (DB-Abbild vs. Live-CC-Abruf) wird NUR Usern mit CC-Schreibrecht (cc_write_access?)
+      # genannt. Read-only User + User-loser Stdio-Pfad (kein server_context[:user_id]) bekommen
+      # KEINE interne Quellennote. Wording jargonfrei (server.instructions-Verbotsliste beachtet).
+      SOURCE_NOTES = {
+        db_mirror: "Quelle: Carambus-Datenbank (Abbild der ClubCloud).",
+        live_cc: "Quelle: direkt aus der ClubCloud abgerufen."
+      }.freeze
+
+      # Hat der handelnde User (server_context[:user_id]) CC-Schreibrecht? false ohne User.
+      def self.acting_can_write_cc?(server_context)
+        User.find_by(id: server_context&.dig(:user_id))&.cc_write_access? || false
+      rescue => e
+        Rails.logger.warn "[BaseTool.acting_can_write_cc?] #{e.class}: #{e.message}"
+        false
+      end
+
+      # Bare Quellen-Label (gated) — für JSON-Antworten (meta.source). "" wenn nicht
+      # schreibberechtigt (D-40-1) oder unbekannte Quellenart.
+      def self.source_label(server_context, kind)
+        return "" unless acting_can_write_cc?(server_context)
+        SOURCE_NOTES[kind] || ""
+      end
+
+      # Anhängbarer Quellen-Suffix (führendes Leerzeichen, analog public_view_hint) — für
+      # Prosa-Antworten. "" wenn nicht schreibberechtigt oder unbekannte Quellenart.
+      def self.source_note(server_context, kind)
+        label = source_label(server_context, kind)
+        label.empty? ? "" : " #{label}"
+      end
+
       # Plan 14-G.12 Task 4 / D-14-G.12-B:
       # Authority-Helper für Sportwart-Scope-Tools (cc_register / cc_unregister /
       # cc_lookup_meldeliste_for_tournament). Resolved club_cc_id aus User-Sportwart-

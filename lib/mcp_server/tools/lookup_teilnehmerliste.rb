@@ -129,6 +129,8 @@ module McpServer
           counts: {teilnehmer: teilnehmer.size, meldung_open: meldung.size},
           current_teilnehmer: teilnehmer,
           available_in_meldeliste: meldung,
+          # Phase 40 (D-40-1): interne Quelle (Live-CC) rechte-gegated; "" für read-only User.
+          source: source_label(server_context, :live_cc),
           read_pfade: {
             teilnehmer: "showTeilnehmerliste.php -3 (persistiert, stabil)",
             meldung: "showMeldeliste.php -2 (persistiert, stabil)"

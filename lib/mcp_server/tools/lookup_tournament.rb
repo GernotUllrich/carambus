@@ -237,6 +237,8 @@ module McpServer
           payload[:committed_players] = committed
         end
 
+        # Phase 40 (D-40-1): interne Quelle (DB-Abbild) rechte-gegated; "" für read-only User.
+        payload[:source] = source_label(server_context, :db_mirror)
         payload[:meta] = meta unless meta.empty?
         JSON.generate(payload)
       end

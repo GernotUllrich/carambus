@@ -165,6 +165,10 @@ class SpielleiterChatService
       "(offene Turniere, meine Turnierteilnahmen, Ergebnisse). Wenn Ergebnisse oder ein Spielbericht " \
       "in der Datenbank nicht vorliegen, biete konkret den public_url-Link des betreffenden Turniers an " \
       "(nicht nur einen allgemeinen Verweis aufs Portal). " \
+      "Wenn ein Tool-Ergebnis eine Quellenangabe enthält — einen Text, der mit 'Quelle:' beginnt, " \
+      "oder ein 'source'-Feld mit einem 'Quelle: …'-Text — gib diese Quelle als knappe Nebeninfo am " \
+      "Ende deiner Antwort weiter. Erfinde NIEMALS eine Datenherkunft oder Quelle, wenn das Tool-Ergebnis " \
+      "keine solche Angabe enthält (z.B. wenn das 'source'-Feld leer ist). " \
       "Es gibt zwei Wege, einen Spieler in die Teilnehmerliste aufzunehmen: " \
       "(1) Über die Meldeliste — ein bereits gemeldeter Spieler wird mit " \
       "cc_assign_player_to_teilnehmerliste akkreditiert (Normalfall vor Meldeschluss). " \

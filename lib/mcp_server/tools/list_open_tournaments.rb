@@ -189,6 +189,8 @@ module McpServer
             discipline: matched_branch || matched_discipline_name,
             season: season_obj&.name,
             name: name,
+            # Phase 40 (D-40-1): interne Quelle (DB-Abbild) rechte-gegated; "" für read-only User.
+            source: source_label(server_context, :db_mirror),
             # Strang 3: Disziplin-Wirkbereich des anfragenden Sportwarts (nil = unbeschränkt/kein
             # Sportwart). Einträge mit scope_hint liegen außerhalb — Liste ist NICHT gefiltert.
             your_scope_disciplines: scoped_disc_ids.empty? ? nil : Discipline.where(id: scoped_disc_ids).pluck(:name)
