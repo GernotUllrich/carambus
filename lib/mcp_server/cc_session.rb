@@ -14,6 +14,8 @@ module McpServer
   class CcSession
     TTL_SECONDS = 30 * 60
     MOCK_FLAG = "CARAMBUS_MCP_MOCK"
+    # Plan 39-02: Cache-Key des geteilten Region-Admin-Accounts (Legacy/Default-Pfad).
+    DEFAULT_KEY = :__shared_default__
 
     # Plan 24-01 T2 (Phase-23-Nachzieher): Auto-Logout-Stub-Detection für expired
     # PHPSESSID. CC liefert in diesem Fall HTTP 200 mit `<body onLoad='goOut()'>` +
@@ -28,7 +30,36 @@ module McpServer
     class SessionRecoveryFailed < StandardError; end
 
     class << self
-      attr_accessor :session_id, :session_started_at, :_client_override
+      attr_accessor :_client_override
+
+      # Plan 39-02 (D-39-Plan-02): Klassen-Singleton → per-CC-Account-gekeyter Session-Cache.
+      # @sessions: { account_key => {session_id:, started_at:, login_username:} }, Mutex-geschützt
+      # (HTTP-Pfad ist multi-user — die stdio-Single-Thread-Annahme oben gilt dort nicht mehr).
+      # Cache-Key = login_username des CC-Accounts. DEFAULT_KEY = geteilter Region-Admin (Legacy-Pfad).
+      def sessions
+        @sessions ||= {}
+      end
+
+      def session_mutex
+        @session_mutex ||= Mutex.new
+      end
+
+      # --- Backward-Compat-Shims: die argumentlose Legacy-API operiert auf dem Default-Account-Slot. ---
+      def session_id
+        session_mutex.synchronize { sessions.dig(DEFAULT_KEY, :session_id) }
+      end
+
+      def session_id=(value)
+        session_mutex.synchronize { (sessions[DEFAULT_KEY] ||= {})[:session_id] = value }
+      end
+
+      def session_started_at
+        session_mutex.synchronize { sessions.dig(DEFAULT_KEY, :started_at) }
+      end
+
+      def session_started_at=(value)
+        session_mutex.synchronize { (sessions[DEFAULT_KEY] ||= {})[:started_at] = value }
+      end
 
       # Returns either a real RegionCc::ClubCloudClient or a McpServer::Tools::MockClient.
       # Failsafe: gibt niemals Mock in Production zurück (D-08).
@@ -73,12 +104,27 @@ module McpServer
         nil
       end
 
-      # Lazy-Login: gibt eine aktive PHPSESSID zurück, loggt ein wenn Cache leer/abgelaufen.
+      # Lazy-Login (Default-Account): gibt eine aktive PHPSESSID zurück, loggt ein wenn leer/abgelaufen.
       def cookie
+        set_active_account_key(DEFAULT_KEY)
         if session_id.nil? || cookie_expired?(session_started_at)
           login!
         end
         session_id
+      end
+
+      # Plan 39-02: Lazy-Login für einen KONKRETEN CC-Account (per-User / TL-vererbt).
+      # account = McpServer::CcAccountResolver::CcAccount (login_username + password).
+      # Eigener Cache-Eintrag pro login_username; fällt defensiv auf den Default-Pfad zurück,
+      # wenn kein gültiger Account übergeben wird. (Tool-Verdrahtung = 39-03.)
+      def cookie_for(account)
+        return cookie if account.nil? || !account.respond_to?(:login_username) || account.login_username.blank?
+
+        key = account.login_username
+        set_active_account_key(key)
+        slot = session_mutex.synchronize { sessions[key] }
+        login_for(account) if slot.nil? || slot[:session_id].nil? || cookie_expired?(slot[:started_at])
+        session_mutex.synchronize { sessions.dig(key, :session_id) }
       end
 
       def cookie_expired?(started_at)
@@ -86,9 +132,20 @@ module McpServer
         Time.now - started_at > TTL_SECONDS
       end
 
-      def reset!
-        self.session_id = nil
-        self.session_started_at = nil
+      # Plan 39-02: account_key = nil → ALLE Accounts leeren (Test-Frischzustand + globale Recovery);
+      # konkreter Key → nur diesen Account-Slot. Backward-compat: reset! (arglos) wie bisher.
+      def reset!(account_key = nil)
+        session_mutex.synchronize do
+          account_key.nil? ? sessions.clear : sessions.delete(account_key)
+        end
+        nil
+      end
+
+      # Plan 39-02 (behebt D-39-5 "unknown"-Bug): CC-Login-Identität des aktiven (oder angegebenen)
+      # Accounts — Quelle für den AuditTrail-operator. Default-/Account-Login setzen den aktiven Key.
+      def cc_login_user(account_key = nil)
+        key = account_key || Thread.current[:cc_active_account_key] || DEFAULT_KEY
+        session_mutex.synchronize { sessions.dig(key, :login_username) }
       end
 
       def mock_mode?
@@ -138,25 +195,33 @@ module McpServer
       # Symmetrisch zur existierenden Setting.login_to_cc-Architektur (Decision Q1 in
       # Phase-24-CONTEXT: lazy statt eager). Heute live als manueller Recovery-Pfad
       # via curl + frische SID verifiziert.
-      def with_session_recovery(server_context: nil)
+      # Plan 39-02: account: nil → Default-Account (verhaltensidentisch zu vorher);
+      # account: CcAccount → per-Account-Session (Tool-Verdrahtung = 39-03).
+      def with_session_recovery(account: nil, server_context: nil)
         client = client_for(server_context)
-        res, doc = yield(client, cookie)
+        res, doc = yield(client, session_cookie(account))
         return [res, doc] unless session_expired?(res)
 
         Rails.logger.warn "[CcSession.with_session_recovery] expired session detected, triggering re-login"
         begin
-          reset!
-          cookie  # erzwingt login! — raises bei Login-Fail
+          account ? reset!(account.login_username) : reset!(DEFAULT_KEY)
+          session_cookie(account)  # erzwingt login! — raises bei Login-Fail
         rescue => e
           raise SessionRecoveryFailed, "re-login failed after Auto-Logout-Stub: #{e.class}: #{e.message}"
         end
 
         client = client_for(server_context)  # neuer Client mit fresh SID
-        res2, doc2 = yield(client, cookie)
+        res2, doc2 = yield(client, session_cookie(account))
         if session_expired?(res2)
-          raise SessionRecoveryFailed, "second response still Auto-Logout-Stub after re-login (PHPSESSID #{cookie[0, 8]}…)"
+          sid = session_cookie(account)
+          raise SessionRecoveryFailed, "second response still Auto-Logout-Stub after re-login (PHPSESSID #{sid.to_s[0, 8]}…)"
         end
         [res2, doc2]
+      end
+
+      # Plan 39-02: SID-Quelle für with_session_recovery — Default-Account (nil) oder per-Account.
+      def session_cookie(account)
+        account ? cookie_for(account) : cookie
       end
 
       # Plan 14-02.3 / F-5 + D-14-02-A Helper A: Live-CC-Meldeliste-Overview via
@@ -252,6 +317,8 @@ module McpServer
         if mock_mode?
           self.session_id = "MOCK_SESSION_ID"
           self.session_started_at = Time.now
+          session_mutex.synchronize { (sessions[DEFAULT_KEY] ||= {})[:login_username] = "mock-admin" }
+          set_active_account_key(DEFAULT_KEY)
           return session_id
         end
 
@@ -269,7 +336,45 @@ module McpServer
         # In `RAILS_MASTER_KEY`-verschlüsselte credentials.yml.enc eintragen statt Bypass.
         self.session_id = Setting.login_to_cc
         self.session_started_at = Time.now
+        store_default_login_username
+        set_active_account_key(DEFAULT_KEY)
         session_id
+      end
+
+      # Plan 39-02: Login für einen KONKRETEN CC-Account (per-User / TL-vererbt). Nutzt den
+      # login_to_cc-Credential-Override (Task 1) → die per-Account-SID wird NICHT global persistiert.
+      def login_for(account)
+        sid = if mock_mode?
+          "MOCK_SESSION_ID"
+        else
+          Setting.login_to_cc(username: account.login_username, password: account.password)
+        end
+        key = account.login_username
+        session_mutex.synchronize do
+          sessions[key] = {session_id: sid, started_at: Time.now, login_username: key}
+        end
+        set_active_account_key(key)
+        sid
+      end
+
+      # Plan 39-02: hält den Region-Admin-Usernamen im Default-Slot für cc_login_user-Attribution.
+      def store_default_login_username
+        uname = default_login_username
+        return if uname.blank?
+        session_mutex.synchronize { (sessions[DEFAULT_KEY] ||= {})[:login_username] = uname }
+      end
+
+      def default_login_username
+        region = McpServer::Tools::BaseTool.effective_cc_region(nil)
+        return nil if region.blank?
+        Setting.get_cc_credentials(region)[:username]
+      rescue => e
+        Rails.logger.warn "[CcSession.default_login_username] #{e.class}: #{e.message}"
+        nil
+      end
+
+      def set_active_account_key(key)
+        Thread.current[:cc_active_account_key] = key
       end
 
       def login_redirect?(doc)

@@ -101,7 +101,21 @@ class Setting < ApplicationRecord
     { username: nil, password: nil }
   end
 
-  def self.login_to_cc
+  # Plan 39-02 (D-39-2): Reine Credential-Auswahl für login_to_cc — testbare Naht ohne Net::HTTP.
+  # Explizite username+password (per-User-CC-Identität, D-39) übersteuern die Region-Admin-Quelle 1:1;
+  # sonst Delegation an get_cc_credentials(context) (Region-Admin aus Rails Credentials/RegionCc).
+  def self.resolve_login_credentials(context, username: nil, password: nil)
+    if username.present? && password.present?
+      {username: username, password: password}
+    else
+      get_cc_credentials(context)
+    end
+  end
+
+  def self.login_to_cc(username: nil, password: nil)
+    # Plan 39-02 (D-39-2/D-39-6): Explizite per-User-Creds übersteuern die Region-Admin-Quelle;
+    # bei Override die globale Setting-Session NICHT überschreiben (per-Account-SID lebt im CcSession-Cache).
+    persist_global = username.blank? || password.blank?
     opts = RegionCcAction.context_opts_from_environment
     region = Region.find_by(shortname: opts[:context].upcase)
     raise "Region not found for context: #{opts[:context]}" unless region
@@ -110,8 +124,9 @@ class Setting < ApplicationRecord
     raise "RegionCc not found for region: #{region.shortname}" unless region_cc
     raise "RegionCc base_url not set for region: #{region.shortname}" unless region_cc.base_url.present?
     
-    # Hole Credentials aus Rails Credentials (lokal, verschlüsselt) oder als Fallback aus RegionCc
-    cc_credentials = get_cc_credentials(opts[:context])
+    # Hole Credentials: explizite Override-Args (per-User, Plan 39-02) ODER Region-Admin
+    # (Rails Credentials/RegionCc). resolve_login_credentials kapselt die Auswahl (testbar ohne HTTP).
+    cc_credentials = resolve_login_credentials(opts[:context], username: username, password: password)
     username = cc_credentials[:username]
     password = cc_credentials[:password]
     
@@ -314,9 +329,11 @@ class Setting < ApplicationRecord
         # Plan 21-13 T2 (D-21-13-H): Anti-Silent-Failure Sedo-Parking-Detection
         verify_clubcloud_reachable!(region_cc, session_id)
 
-        # Speichere Session-ID nach erfolgreichem Redirect-Follow
-        Setting.key_set_value("session_id", session_id)
-        Setting.key_set_value("session_login_time", Time.now.to_f.to_s)
+        # Speichere Session-ID nach erfolgreichem Redirect-Follow (nur Default/Shared-Pfad, Plan 39-02 D-39-6)
+        if persist_global
+          Setting.key_set_value("session_id", session_id)
+          Setting.key_set_value("session_login_time", Time.now.to_f.to_s)
+        end
         Rails.logger.info "Successfully logged in to ClubCloud (via redirect + follow), session_id: #{session_id}"
         return session_id
       end
@@ -508,8 +525,10 @@ class Setting < ApplicationRecord
     # Plan 21-13 T2 (D-21-13-H): Anti-Silent-Failure Sedo-Parking-Detection
     verify_clubcloud_reachable!(region_cc, session_id)
 
-    Setting.key_set_value("session_id", session_id)
-    Setting.key_set_value("session_login_time", Time.now.to_f.to_s) # Track login time
+    if persist_global
+      Setting.key_set_value("session_id", session_id)
+      Setting.key_set_value("session_login_time", Time.now.to_f.to_s) # Track login time
+    end
     Rails.logger.info "Successfully logged in to ClubCloud, session_id: #{session_id}"
     session_id
   end
