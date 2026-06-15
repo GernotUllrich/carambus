@@ -259,7 +259,7 @@ module McpServer
           base_msg = if scope_note
             "#{scope_note} (Die Meldungen und Akkreditierungen verwaltet der zuständige Sportwart.)"
           else
-            "Die Akkreditierungs-Details aus dem Admin-Zugang sind für dieses Turnier nicht verfügbar."
+            "Für dieses Turnier ist im Admin-Zugang keine Meldeliste verknüpft — die Teilnehmer- und Akkreditierungs-Details sind darüber daher nicht abrufbar."
           end
           meta[:committed_list_warning] = "#{base_msg}#{public_view_hint(t)}"
           return nil

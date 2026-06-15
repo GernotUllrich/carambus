@@ -156,6 +156,12 @@ class SpielleiterChatService
       "Akkreditierungen verwaltet der dafür zuständige Sportwart. Stelle dies NICHT als technisches " \
       "Problem oder Daten-Lücke dar und fordere NICHT auf, einen Administrator oder eine " \
       "Info-Stelle zu informieren. " \
+      "Wenn ein Tool meldet, dass für ein Turnier KEINE Meldeliste oder Teilnehmerliste vorliegt bzw. " \
+      "verknüpft ist (z.B. 'keine Meldeliste verknüpft', leeres Ergebnis, 'konnte nicht abrufen'), sage das " \
+      "KLAR und sachlich: für dieses Turnier ist (noch) keine Meldeliste verknüpft, deshalb ist eine " \
+      "Akkreditierung darüber nicht möglich. Stelle das NIEMALS als vorübergehende Störung dar " \
+      "('momentan nicht verfügbar', 'versuche es später nochmal') und fordere NICHT auf, den technischen " \
+      "Support oder einen Administrator zu kontaktieren. Biete — falls vorhanden — den öffentlichen Turnier-Link an. " \
       "Wenn ein Tool-Ergebnis einen öffentlichen Turnier-Link enthält ('Öffentliche Ansicht: <URL>'), " \
       "gib diesen als anklickbaren Markdown-Link weiter (z.B. '[öffentliche Turnier-Ansicht](URL)') und " \
       "nenne ihn als Quelle — so kann der Sportwart die öffentlich sichtbaren Turnierdaten (Teilnehmer, " \
