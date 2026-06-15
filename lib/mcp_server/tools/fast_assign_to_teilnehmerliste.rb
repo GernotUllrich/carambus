@@ -99,9 +99,15 @@ module McpServer
         swap_mode = replace_player_cc_id.present?
         tournament_name = tournament_cc&.name
 
+        # Plan 39-03 (D-39-8/-9): effektive CC-Identität (TL-Vererbung via Turnier); armed:true
+        # ohne eigene CC-Identität (:none) blockt hier (Dry-Run bleibt). Write läuft unter cookie_for(account).
+        account = resolve_cc_account(tournament: tournament_cc&.tournament, server_context: server_context)
+        identity_block = cc_write_identity_block(account, armed: armed)
+        return identity_block if identity_block
+
         # Dry-Run
         unless armed
-          return text(<<~DRY.strip)
+          dry = <<~DRY.strip
             [DRY-RUN] cc_fast_assign_to_teilnehmerliste
             tournament_cc_id: #{tournament_cc_id} (#{tournament_name || "unbekannt"})
             player_cc_id:     #{player_cc_id} (foundpid)
@@ -112,6 +118,10 @@ module McpServer
             Modus:            #{swap_mode ? "Swap — ersetzt Spieler #{replace_player_cc_id}" : "Add — fuegt Spieler hinzu"}
             Pass armed:true um tatsaechlich in CC zu schreiben.
           DRY
+          if (hint = cc_identity_hint(account))
+            dry = "#{dry}\n\nHinweis: #{hint}"
+          end
+          return text(dry)
         end
 
         # Armed=true: POST cc_fast_assign.php
@@ -124,16 +134,16 @@ module McpServer
           branchId: effective_branch
         }
 
-        res, _doc = client.post("cc_fast_assign", payload, {armed: true, session_id: cc_session.cookie})
+        res, _doc = client.post("cc_fast_assign", payload, {armed: true, session_id: cc_session.cookie_for(account)})
         if res.nil? || res.code != "200"
           McpServer::AuditTrail.write_entry(
             tool_name: "cc_fast_assign_to_teilnehmerliste",
-            operator: cc_session.respond_to?(:cc_login_user) ? cc_session.cc_login_user.to_s : "unknown",
+            operator: cc_audit_operator,
             payload: payload,
             pre_validation_results: [{name: "http_response", ok: false, reason: "HTTP #{res&.code}"}],
             read_back_status: "skipped",
             result: "cc-error",
-            user_id: server_context&.dig(:user_id)
+            user_id: account.acting_user_id
           )
           return error("CC rejected cc_fast_assign: HTTP #{res&.code}")
         end
@@ -155,12 +165,12 @@ module McpServer
 
         McpServer::AuditTrail.write_entry(
           tool_name: "cc_fast_assign_to_teilnehmerliste",
-          operator: cc_session.respond_to?(:cc_login_user) ? cc_session.cc_login_user.to_s : "unknown",
+          operator: cc_audit_operator,
           payload: payload,
           pre_validation_results: [{name: "http_response", ok: true, reason: "HTTP 200"}],
           read_back_status: read_back_status,
           result: "success",
-          user_id: server_context&.dig(:user_id)
+          user_id: account.acting_user_id
         )
 
         text(<<~OUT.strip)

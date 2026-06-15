@@ -104,6 +104,12 @@ module McpServer
           return auth_err if auth_err
         end
 
+        # Plan 39-03 (D-39-8/-9): effektive CC-Identität auflösen; armed:true OHNE eigene
+        # CC-Identität (:none) wird hier geblockt (Dry-Run bleibt). Writes laufen unter cookie_for(account).
+        account = resolve_cc_account(tournament: resolved_tournament, server_context: server_context)
+        identity_block = cc_write_identity_block(account, armed: armed)
+        return identity_block if identity_block
+
         # Plan 10-05.1 Task 1 (D-10-04-B Pivot): Phase-4-Schicht-3 (Production-Block für armed:true)
         # DEPRECATED. Pre-Validation-First-Pattern ersetzt globalen env-Block durch Tool-eigene Constraints.
 
@@ -150,7 +156,7 @@ module McpServer
             .select { |opt| player_cc_ids.include?(opt[:cc_id]) }
             .map { |opt| "#{opt[:cc_id]} (#{opt[:label]})" }
             .join(", ")
-          return text(<<~DRY_RUN.strip)
+          dry_run = <<~DRY_RUN.strip
             [DRY-RUN] Would assign #{player_cc_ids.size} player(s) to Teilnehmerliste for tournament_cc_id=#{tournament_cc_id} (#{tournament_name}).
             Players: #{player_details}
             teilnehmerliste_count_before: #{teilnehmer.size}
@@ -162,6 +168,10 @@ module McpServer
             pre_read_source: #{pre_read_status[:pre_read_source]}
             Pass armed:true to actually perform this assignment.
           DRY_RUN
+          if (hint = cc_identity_hint(account))
+            dry_run = "#{dry_run}\n\nHinweis: #{hint}"
+          end
+          return text(dry_run)
         end
 
         # Armed=true: atomarer Akkreditierungs-Toggle pro Spieler (Plan 33-fix 2026-06-10, HAR-Goldvorlage).
@@ -175,9 +185,9 @@ module McpServer
         toggle_base = base_payload(tournament_cc_id, scope).except(:firstEntry)
         player_cc_ids.each do |pid|
           toggle_payload = toggle_base.merge(pid: pid)
-          tg_res, tg_doc = client.post("showMeldeliste_teilnahme", toggle_payload, {armed: armed, session_id: cc_session.cookie})
+          tg_res, tg_doc = client.post("showMeldeliste_teilnahme", toggle_payload, {armed: armed, session_id: cc_session.cookie_for(account)})
           if cc_session.reauth_if_needed!(tg_doc)
-            tg_res, tg_doc = client.post("showMeldeliste_teilnahme", toggle_payload, {armed: armed, session_id: cc_session.cookie})
+            tg_res, tg_doc = client.post("showMeldeliste_teilnahme", toggle_payload, {armed: armed, session_id: cc_session.cookie_for(account)})
           end
           return error("Unexpected nil response from CC (showMeldeliste_teilnahme for player_cc_id=#{pid}, armed mode).") if tg_res.nil?
           return error("CC rejected at showMeldeliste_teilnahme for player_cc_id=#{pid}: #{parse_cc_error(tg_doc)} (HTTP #{tg_res&.code})") if tg_res&.code != "200"
@@ -218,12 +228,12 @@ module McpServer
         # Plan 10-05.1 Task 3 (D-10-04-D Audit-Trail-Pflicht):
         McpServer::AuditTrail.write_entry(
           tool_name: "cc_assign_player_to_teilnehmerliste",
-          operator: cc_session.respond_to?(:cc_login_user) ? cc_session.cc_login_user.to_s : "unknown",
+          operator: cc_audit_operator,
           payload: {tournament_cc_id: tournament_cc_id, player_cc_ids: player_cc_ids, armed: true},
           pre_validation_results: validation_result[:results],
           read_back_status: read_back_match.to_s,
           result: "success",
-          user_id: server_context&.dig(:user_id)
+          user_id: account.acting_user_id
         )
 
         text(<<~OUT.strip)

@@ -54,6 +54,61 @@ module McpServer
         McpServer::CcSession
       end
 
+      # ---------------------------------------------------------------------------------------
+      # Plan 39-03 (D-39-2/-3/-6/-7/-8/-9): Per-User-CC-Identitäts-Naht für die CC-Write-Tools.
+      # Hält den Per-Tool-Diff 1-zeilig (analog authorize!). Read-Tools nutzen diese Naht NICHT
+      # (bleiben auf der geteilten Default-Session). Jargonfreie Sportwart-Sprache (MCP-Language-
+      # Direktive) — KEINE Begriffe wie Token/Session/Cache/Credential-Store.
+      # ---------------------------------------------------------------------------------------
+      CC_IDENTITY_REQUIRED_MSG =
+        "Für Änderungen in der ClubCloud brauche ich deinen persönlichen ClubCloud-Zugang. " \
+        "Bitte hinterlege deinen ClubCloud-Benutzernamen und dein Passwort in deinem Profil — " \
+        "danach kann ich die Aktion unter deinem Namen ausführen."
+
+      # Löst den effektiven CC-Account für diesen Tool-Call auf (D-39-2/-3/-6).
+      # user = server_context[:user_id] (D-39-7); tournament (optional) ermöglicht die TL-Vererbung.
+      # Liefert IMMER ein CcAccount (kann :none sein) — der Block erfolgt am armed-Gate via
+      # cc_write_identity_block (D-39-8), NICHT hier (sonst bräche der Dry-Run).
+      def self.resolve_cc_account(tournament:, server_context:)
+        user = User.find_by(id: server_context&.dig(:user_id))
+        McpServer::CcAccountResolver.resolve(user: user, tournament: tournament)
+      rescue => e
+        Rails.logger.warn "[BaseTool.resolve_cc_account] #{e.class}: #{e.message}"
+        McpServer::CcAccountResolver.none(nil)
+      end
+
+      # Hard-Block-Gate (D-39-8): error-Response NUR wenn ein echter Schreibvorgang (armed:true)
+      # OHNE auflösbare CC-Identität (:none) liefe. Sonst nil. Dry-Run (armed:false) wird NIE
+      # geblockt — Vorschau bleibt (+ cc_identity_hint als Note).
+      #
+      # D-39-10: Der Block greift NUR im authentifizierten Kontext (server_context[:user_id] aufgelöst
+      # → account.acting_user_id gesetzt). Der User-lose Stdio-/Legacy-Pfad (bin/mcp-server,
+      # technische-Stellvertretung; acting_user_id nil) nutzt weiterhin die geteilte Admin-Session
+      # (D-13-01-F Backwards-Compat) — kein Block, kein Profil zum Hinterlegen.
+      def self.cc_write_identity_block(account, armed:)
+        return nil if account&.resolved?
+        return nil unless armed
+        return nil if account.nil? || account.acting_user_id.blank?
+        error(CC_IDENTITY_REQUIRED_MSG)
+      end
+
+      # Nicht-blockierender Hinweis für Dry-Run-Antworten, wenn ein AUTHENTIFIZIERTER User keine
+      # eigene CC-Identität hat (D-39-10: gated wie cc_write_identity_block — Stdio-Pfad ohne User
+      # bekommt keinen Hinweis). nil bei resolved? ODER fehlendem acting_user_id.
+      def self.cc_identity_hint(account)
+        return nil if account&.resolved?
+        return nil if account.nil? || account.acting_user_id.blank?
+        CC_IDENTITY_REQUIRED_MSG
+      end
+
+      # AuditTrail-operator = CC-Login-Account des aktiven CC-Accounts (D-39-2: zweischichtig —
+      # operator = CC-Seite; user_id = echter Carambus-Akteur via account.acting_user_id).
+      # Ersetzt das duplizierte `cc_session.respond_to?(:cc_login_user) ? … : "unknown"`-Inline.
+      def self.cc_audit_operator
+        return "unknown" unless cc_session.respond_to?(:cc_login_user)
+        cc_session.cc_login_user.to_s.presence || "unknown"
+      end
+
       # Plan 10-05 Task 4 (Befund #8 D-10-03-5): Pre-Read-Verify-Status-Helper für Write-Tools.
       # Sportwart kann manuell eingegebene cc_id (meldeliste_cc_id, player_cc_id) nicht
       # selbständig verifizieren. Vorhandenes Pattern `read_back_match` zeigt nach-Schreib-Status,

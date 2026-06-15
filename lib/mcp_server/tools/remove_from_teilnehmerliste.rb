@@ -69,6 +69,12 @@ module McpServer
           return auth_err if auth_err
         end
 
+        # Plan 39-03 (D-39-8/-9): effektive CC-Identität; armed:true ohne eigene CC-Identität (:none)
+        # blockt hier (Dry-Run bleibt). Write läuft unter cookie_for(account).
+        account = resolve_cc_account(tournament: resolved_tournament, server_context: server_context)
+        identity_block = cc_write_identity_block(account, armed: armed)
+        return identity_block if identity_block
+
         # Reuse Phase-7 helpers from AssignPlayerToTeilnehmerliste (DRY).
         scope = AssignPlayerToTeilnehmerliste.resolve_scope_filters(tournament_cc_id, fed_cc_id, branch_cc_id, season, disciplin_id, cat_id)
         client = cc_session.client_for(server_context)
@@ -105,7 +111,7 @@ module McpServer
           else
             "ganz aus der Teilnehmerliste entfernen (Schnellanmeldung ohne Meldeliste-Eintrag, cc_remove_tn)"
           end
-          return text(<<~DRY_RUN.strip)
+          dry_run = <<~DRY_RUN.strip
             [DRY-RUN] Would remove player_cc_id=#{player_cc_id} (#{acc[:label] || "?"}) from Teilnehmerliste of tournament_cc_id=#{tournament_cc_id} (#{tournament_name}).
             Aktion: #{aktion}
             teilnehmerliste_count_before: #{teilnehmer_count_before}
@@ -116,6 +122,10 @@ module McpServer
             pre_read_source: #{pre_read_status[:pre_read_source]}
             Pass armed:true to actually perform this removal.
           DRY_RUN
+          if (hint = cc_identity_hint(account))
+            dry_run = "#{dry_run}\n\nHinweis: #{hint}"
+          end
+          return text(dry_run)
         end
 
         # Armed=true: atomarer Single-POST je nach Pfad.
@@ -131,9 +141,9 @@ module McpServer
           steps = "cc_remove_tn (atomares Entfernen — Schnellanmeldungs-Spieler verschwindet ganz)"
         end
 
-        res, doc = client.post(action_name, payload, {armed: armed, session_id: cc_session.cookie})
+        res, doc = client.post(action_name, payload, {armed: armed, session_id: cc_session.cookie_for(account)})
         if cc_session.reauth_if_needed!(doc)
-          res, doc = client.post(action_name, payload, {armed: armed, session_id: cc_session.cookie})
+          res, doc = client.post(action_name, payload, {armed: armed, session_id: cc_session.cookie_for(account)})
         end
         return error("Unexpected nil response from CC (#{action_name}, armed mode).") if res.nil?
         return error("CC rejected at #{action_name}: #{AssignPlayerToTeilnehmerliste.parse_cc_error(doc)} (HTTP #{res&.code})") if res&.code != "200"
@@ -162,12 +172,12 @@ module McpServer
         # Plan 10-05.1 Task 4 (D-10-04-D Audit-Trail-Pflicht):
         McpServer::AuditTrail.write_entry(
           tool_name: "cc_remove_from_teilnehmerliste",
-          operator: cc_session.respond_to?(:cc_login_user) ? cc_session.cc_login_user.to_s : "unknown",
+          operator: cc_audit_operator,
           payload: {tournament_cc_id: tournament_cc_id, player_cc_id: player_cc_id, path: action_name, armed: true},
           pre_validation_results: validation_result[:results],
           read_back_status: read_back_match.to_s,
           result: "success",
-          user_id: server_context&.dig(:user_id)
+          user_id: account.acting_user_id
         )
 
         text(<<~OUT.strip)
