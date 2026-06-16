@@ -53,6 +53,7 @@ module McpServer
       AssignTournamentLeiter
       RemoveTournamentLeiter
       PrepareTournament
+      OpenInTournamentApp
     ].freeze
 
     # Self-Service-Tools (Phase 35-01) — fuer JEDEN authentifizierten User; self-scoped

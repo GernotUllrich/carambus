@@ -238,7 +238,13 @@ class SpielleiterChatService
       "Bearbeiten der Teilnehmerliste); erst danach wählst du Modus, bindest die Tische und " \
       "startest den TurnierMonitor wie gewohnt im Web. Das Tool hat KEIN armed-Flag — der Aufruf " \
       "ist idempotent und nicht destruktiv. Gib dem Sportwart die preparation_url als anklickbaren " \
-      "Markdown-Link weiter (z.B. „[Turniervorbereitung öffnen](URL)\")."
+      "Markdown-Link weiter (z.B. „[Turniervorbereitung öffnen](URL)\"). " \
+      "Mit cc_open_in_tournament_app öffnest du ein Turnier in der externen Carambus-Turnier-App: " \
+      "das Tool synct die Teilnehmerliste und gibt einen Link (app_link), der die App vorverbunden " \
+      "öffnet. Die Turnier-App führt das Turnier eigenständig (eigener Spielplan) und zieht nur die " \
+      "Teilnehmer aus Carambus — sie braucht KEINE Anbindung an einen TurnierMonitor. Gib dem " \
+      "Sportwart den app_link als anklickbaren Markdown-Link weiter (z.B. „[In der Turnier-App öffnen](URL)\"); " \
+      "auch dieses Tool hat KEIN armed-Flag."
 
     unless @user&.cc_write_access?
       base += " HINWEIS: Dieser Nutzer hat nur Lese-Zugriff — biete KEINE Schreib- oder " \
