@@ -241,11 +241,13 @@ class McpServer::Tools::BaseToolTest < ActiveSupport::TestCase
       scope = Player.all
       result = McpServer::Tools::BaseTool.apply_token_search_filter(scope, %w[Gernot Ullrich], %w[firstname lastname])
       sql = result.to_sql
-      # Beide Tokens müssen als ILIKE-Clauses im SQL erscheinen
-      assert_match(/firstname ILIKE.*Gernot/i, sql)
-      assert_match(/lastname ILIKE.*Gernot/i, sql)
-      assert_match(/firstname ILIKE.*Ullrich/i, sql)
-      assert_match(/lastname ILIKE.*Ullrich/i, sql)
+      # Beide Tokens müssen als ILIKE-Clauses im SQL erscheinen. Seit dem ß/Umlaut-Fix
+      # (2026-06-16) sind die Spalten in replace(lower(...)) gewrappt und die Werte
+      # normalisiert/lowercased (z.B. '%gernot%') — daher lower(col)…ILIKE…<token>.
+      assert_match(/lower\(firstname\).*ILIKE.*gernot/i, sql)
+      assert_match(/lower\(lastname\).*ILIKE.*gernot/i, sql)
+      assert_match(/lower\(firstname\).*ILIKE.*ullrich/i, sql)
+      assert_match(/lower\(lastname\).*ILIKE.*ullrich/i, sql)
     end
   end
 

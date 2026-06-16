@@ -355,11 +355,28 @@ module McpServer
       def self.apply_token_search_filter(scope, tokens, columns)
         return scope if tokens.empty?
         tokens.reduce(scope) do |current_scope, token|
-          escaped = ActiveRecord::Base.sanitize_sql_like(token)
+          # ß/Umlaut-insensitive Suche (User-Befund 2026-06-16: „Meissner" fand „Meißner" nicht).
+          # Beide Seiten auf ASCII normalisieren (ß→ss, ä→ae, ö→oe, ü→ue) — symmetrisch, d.h.
+          # „Meissner"↔„Meißner" und „Mueller"↔„Müller" matchen jeweils gegenseitig.
+          escaped = ActiveRecord::Base.sanitize_sql_like(normalize_for_search(token))
           like_pattern = "%#{escaped}%"
-          token_clause = columns.map { |col| "#{col} ILIKE ?" }.join(" OR ")
+          token_clause = columns.map { |col| "#{search_normalize_sql(col)} ILIKE ?" }.join(" OR ")
           current_scope.where(token_clause, *Array.new(columns.size, like_pattern))
         end
+      end
+
+      # Ruby-seitige ASCII-Normalisierung eines Suchbegriffs (ß/Umlaute → Mehrbuchstaben-ASCII).
+      # force_encoding("UTF-8")+scrub: Eingaben können ASCII-8BIT sein (z.B. CC-Net::HTTP-Bodies,
+      # vgl. D-33-3) → gsub mit UTF-8-Literalen würde sonst Encoding::CompatibilityError werfen.
+      def self.normalize_for_search(str)
+        str.to_s.dup.force_encoding("UTF-8").scrub.downcase
+          .gsub("ß", "ss").gsub("ä", "ae").gsub("ö", "oe").gsub("ü", "ue")
+      end
+
+      # SQL-Pendant: normalisiert eine (vertrauenswürdige, hartkodierte) Spalte gleich wie
+      # normalize_for_search. ß→ss/ä→ae sind 1→2-Ersetzungen → replace (nicht translate).
+      def self.search_normalize_sql(col)
+        "replace(replace(replace(replace(lower(#{col}), 'ß', 'ss'), 'ä', 'ae'), 'ö', 'oe'), 'ü', 'ue')"
       end
 
       # Plan 14-02.2: Detect Title-Präfixe im Query (Dr./Prof./Dr.-Ing./Dipl.-Ing./Mag./
