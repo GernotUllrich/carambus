@@ -51,7 +51,8 @@ module McpServer
           region: region.shortname,
           discipline: discipline_obj.name,
           count: clubs.count,
-          clubs: clubs.map { |c| {id: c.id, shortname: c.shortname, name: c.name, cc_id: c.cc_id} }
+          clubs: clubs.map { |c| {id: c.id, shortname: c.shortname, name: c.name, cc_id: c.cc_id} },
+          source: source_label(server_context, :db_mirror) # Quelle (D-40-1): rechte-gegated, "" für read-only
         ))
       end
 

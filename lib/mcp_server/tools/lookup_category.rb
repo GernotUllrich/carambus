@@ -31,7 +31,8 @@ module McpServer
           action = "showCategoryList"
         end
         return error("CC live-lookup failed: HTTP #{res&.code}") if res&.code != "200"
-        text("CC live response for #{action} (fed_id=#{fed_id}, status #{res.code})")
+        # Quelle (D-40-1/-6): primärer Return liest live aus CC → :live_cc, rechte-gegated
+        text("CC live response for #{action} (fed_id=#{fed_id}, status #{res.code})#{source_note(server_context, :live_cc)}")
       end
     end
   end

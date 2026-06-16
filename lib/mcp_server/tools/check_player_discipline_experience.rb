@@ -97,6 +97,7 @@ module McpServer
             has_participation_via_league: has_participation_via_league
           },
           reason: reason,
+          source: source_label(server_context, :db_mirror), # Quelle (D-40-1): rechte-gegated, "" für read-only
           meta: {
             region: region.shortname,
             player_id: player.id,
