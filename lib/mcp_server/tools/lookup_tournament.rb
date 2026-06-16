@@ -257,16 +257,25 @@ module McpServer
         t = tournament_cc&.tournament
         scope_note = meldeliste_cc_id.blank? ? discipline_scope_note(tournament: t, server_context: server_context) : nil
 
-        # Live-Fix 2026-06-15 (User-Direktive): In der ClubCloud kann kein Turnier OHNE
+        # Live-Fix 2026-06-15/16 (User-Direktive): In der ClubCloud kann kein Turnier OHNE
         # Meldeliste angelegt werden — ein leerer meldeliste_cc_id ist also ein SYNC-Loch im
         # Mirror, KEINE fehlende Meldeliste. Ist der Sportwart zuständig (kein scope_note) und
-        # existiert das Turnier in CC (cc_id da), löse die meldeliste_cc_id LIVE auf (erprobt in
-        # lookup_meldeliste_for_tournament). Kein Persist (globaler Record → LocalProtector);
-        # nur für diesen Aufruf. Defensiv: Fehler → bleibt blank → Hinweis unten.
+        # existiert das Turnier in CC (cc_id da), löse die meldeliste_cc_id LIVE auf — über den
+        # BRANCH-getriebenen Resolver (path-3 in lookup_meldeliste: showMeldelistenList +
+        # Title-Match gegen TournamentCc.name). Der reine Overview-Pfad gab oft nil; der
+        # Branch-Pfad trifft zuverlässig (Branch = der des TURNIERS, scope-unabhängig). Kein
+        # Persist (globaler Record → LocalProtector); nur dieser Aufruf. Defensiv: Fehler ODER
+        # mehrdeutig (≠1 Kandidat) → bleibt blank → Hinweis unten.
         if meldeliste_cc_id.blank? && scope_note.nil? && tournament_cc.cc_id.present?
           begin
-            overview = cc_session.fetch_meldeliste_overview(tournament_cc.cc_id, server_context: server_context)
-            meldeliste_cc_id = overview[:meldeliste_cc_id] if overview.is_a?(Hash) && overview[:meldeliste_cc_id].present?
+            candidates = McpServer::Tools::LookupMeldelisteForTournament.fetch_from_cc(
+              tournament_cc.cc_id,
+              fed_cc_id: fed_id,
+              branch_cc_id: tournament_cc.branch_cc&.cc_id,
+              season: tournament_cc.season,
+              server_context: server_context
+            )
+            meldeliste_cc_id = candidates.first[:meldeliste_cc_id] if candidates.is_a?(Array) && candidates.size == 1
           rescue => e
             Rails.logger.warn "[cc_lookup_tournament] live meldeliste-resolve (cc_id=#{tournament_cc.cc_id}) failed: #{e.class}: #{e.message}"
           end
