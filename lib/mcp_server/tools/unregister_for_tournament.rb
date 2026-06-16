@@ -97,6 +97,12 @@ module McpServer
           return auth_err if auth_err
         end
 
+        # Plan 39-03 (D-39-8/-9): effektive CC-Identität; armed:true ohne eigene CC-Identität (:none)
+        # blockt hier (Dry-Run bleibt). Pre-Reads + Writes laufen unter cookie_for(account).
+        account = resolve_cc_account(tournament: resolved_tournament, server_context: server_context)
+        identity_block = cc_write_identity_block(account, armed: armed)
+        return identity_block if identity_block
+
         # Plan 10-05.1 Task 1 (D-10-04-B Pivot): Phase-4-Schicht-3 (Production-Block für armed:true)
         # DEPRECATED. Pre-Validation-First-Pattern ersetzt globalen env-Block durch Tool-eigene Constraints.
 
@@ -122,7 +128,7 @@ module McpServer
           client.post(
             "showCommittedMeldeliste",
             pre_payload,
-            {armed: true, session_id: cc_session.cookie}
+            {armed: true, session_id: cc_session.cookie_for(account)}
           )
         end
         if cc_session.reauth_if_needed!(pre_doc)
@@ -131,7 +137,7 @@ module McpServer
           pre_res, pre_doc = cc_cache_get_or_set(pre_cache_key) do
             client.post(
               "showCommittedMeldeliste", pre_payload,
-              {armed: true, session_id: cc_session.cookie}
+              {armed: true, session_id: cc_session.cookie_for(account)}
             )
           end
         end
@@ -166,7 +172,7 @@ module McpServer
 
         # Schicht 4 (Network-Level): Detail-Dry-Run-Echo
         unless armed
-          return text(<<~DRY_RUN.strip)
+          dry_run = <<~DRY_RUN.strip
             [DRY-RUN] Would unregister player_cc_id=#{player_cc_id} from meldeliste_cc_id=#{meldeliste_cc_id} \
             (club_cc_id=#{club_cc_id}, fed_id=#{fed_id}, branch_cc_id=#{branch_cc_id}, season=#{season}).
             Resolved Listen-Eintrags-ID: #{listen_eintrags_id.inspect} (fallback player_cc_id if nil)
@@ -177,6 +183,10 @@ module McpServer
             pre_read_warning: #{pre_read_status[:pre_read_warning]}
             Pass armed:true to actually perform this unregister.
           DRY_RUN
+          if (hint = cc_identity_hint(account))
+            dry_run = "#{dry_run}\n\nHinweis: #{hint}"
+          end
+          return text(dry_run)
         end
 
         # Step 0 (NEU): Init editMeldelisteCheck mit editUp=LEER — lädt DB→Server-Scratch.
@@ -195,7 +205,7 @@ module McpServer
         init_res, _init_doc = client.post(
           "sportwart-editMeldelisteCheck",
           init_payload,
-          {armed: armed, session_id: cc_session.cookie, keep_blanks: [:editUp]}
+          {armed: armed, session_id: cc_session.cookie_for(account), keep_blanks: [:editUp]}
         )
         return error("Unexpected nil response from CC (initial editMeldelisteCheck before remove).") if init_res.nil?
         return error("CC rejected at initial editMeldelisteCheck before remove: HTTP #{init_res&.code}") if init_res&.code != "200"
@@ -208,7 +218,7 @@ module McpServer
         rm_res, rm_doc = client.post(
           "removePlayerFromMeldeliste",
           remove_payload,
-          {armed: armed, session_id: cc_session.cookie, keep_blanks: [:gd]}
+          {armed: armed, session_id: cc_session.cookie_for(account), keep_blanks: [:gd]}
         )
         return error("Unexpected nil response from CC (cc_remove, armed mode).") if rm_res.nil?
         return error("CC rejected at cc_remove: #{parse_cc_error(rm_doc)} (HTTP #{rm_res&.code})") if rm_res&.code != "200"
@@ -228,7 +238,7 @@ module McpServer
         rr_res, _rr_doc = client.post(
           "sportwart-editMeldelisteCheck",
           rerender_payload,
-          {armed: armed, session_id: cc_session.cookie}
+          {armed: armed, session_id: cc_session.cookie_for(account)}
         )
         return error("Unexpected nil response from CC (Re-Render editMeldelisteCheck).") if rr_res.nil?
         return error("CC rejected at Re-Render editMeldelisteCheck: HTTP #{rr_res&.code}") if rr_res&.code != "200"
@@ -241,7 +251,7 @@ module McpServer
         sv_res, sv_doc = client.post(
           "saveMeldeliste",
           save_payload,
-          {armed: armed, session_id: cc_session.cookie, keep_blanks: [:save, :d, :gd]}
+          {armed: armed, session_id: cc_session.cookie_for(account), keep_blanks: [:save, :d, :gd]}
         )
         return error("Unexpected nil response from CC (editMeldelisteSave, armed mode).") if sv_res.nil?
         return error("CC rejected at editMeldelisteSave: #{parse_cc_error(sv_doc)} (HTTP #{sv_res&.code})") if sv_res&.code != "200"
@@ -261,7 +271,7 @@ module McpServer
             client.post(
               "showCommittedMeldeliste",
               rb_payload,
-              {armed: true, session_id: cc_session.cookie}
+              {armed: true, session_id: cc_session.cookie_for(account)}
             )
           end
           if rb_res&.code == "200"
@@ -281,12 +291,12 @@ module McpServer
         # Plan 10-05.1 Task 4 (D-10-04-D Audit-Trail-Pflicht):
         McpServer::AuditTrail.write_entry(
           tool_name: "cc_unregister_for_tournament",
-          operator: cc_session.respond_to?(:cc_login_user) ? cc_session.cc_login_user.to_s : "unknown",
+          operator: cc_audit_operator,
           payload: {meldeliste_cc_id: meldeliste_cc_id, player_cc_id: player_cc_id, armed: true},
           pre_validation_results: validation_result[:results],
           read_back_status: read_back_match.to_s,
           result: "success",
-          user_id: server_context&.dig(:user_id)
+          user_id: account.acting_user_id
         )
 
         text(<<~OUT.strip)

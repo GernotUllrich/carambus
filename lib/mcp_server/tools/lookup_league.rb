@@ -41,7 +41,7 @@ module McpServer
 
         return error("League not found in Carambus DB. Try force_refresh: true to query CC.") if league_cc.nil?
 
-        text(format_league_cc(league_cc))
+        text(format_league_cc(league_cc, server_context))
       end
 
       def self.live_lookup(fed_id:, branch_id:, season:, league_id:)
@@ -60,14 +60,15 @@ module McpServer
         Season.find_by(name: season_name)&.id
       end
 
-      def self.format_league_cc(league_cc)
+      def self.format_league_cc(league_cc, server_context = nil)
         JSON.generate(
           id: league_cc.id,
           cc_id: league_cc.cc_id,
           name: league_cc.name,
           shortname: league_cc.shortname,
           status: league_cc.status,
-          context: league_cc.context
+          context: league_cc.context,
+          source: source_label(server_context, :db_mirror) # Quelle (D-40-1): rechte-gegated, "" für read-only
         )
       end
     end

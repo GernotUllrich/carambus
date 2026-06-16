@@ -26,7 +26,8 @@ module McpServer
         client = cc_session.client_for(server_context)
         res, _doc = client.get("showTeam", {teamId: team_id, fedId: fed_id}, {session_id: cc_session.cookie})
         return error("CC live-lookup failed: HTTP #{res&.code}") if res&.code != "200"
-        text("CC live response for showTeam (team_id=#{team_id}, fed_id=#{fed_id}, status #{res.code})")
+        # Quelle (D-40-1/-6): primärer Return liest live aus CC → :live_cc, rechte-gegated
+        text("CC live response for showTeam (team_id=#{team_id}, fed_id=#{fed_id}, status #{res.code})#{source_note(server_context, :live_cc)}")
       end
     end
   end

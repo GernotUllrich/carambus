@@ -1,6 +1,6 @@
 
 <!doctype html>
-<html lang="de" class="no-js">
+<html lang="en" class="no-js">
   <head>
     
       <meta charset="utf-8">
@@ -10,24 +10,24 @@
       
       
       
-        <link rel="canonical" href="https://GernotUllrich.github.io/carambus/managers/clubcloud_credentials/">
+        <link rel="canonical" href="https://GernotUllrich.github.io/carambus/en/developers/per-user-cc-identitaet/">
       
       
       
       
-      <link rel="icon" href="../../assets/images/favicon.png">
+      <link rel="icon" href="../../../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.15">
     
     
       
-        <title>ClubCloud Credentials Setup (geteilter Region-Admin-Zugang) - Carambus Documentation</title>
+        <title>Per-User-ClubCloud-Identität — Entwickler-Handbuch - Carambus Documentation</title>
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.342714a4.min.css">
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.342714a4.min.css">
       
         
-        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.06af60db.min.css">
       
       
 
@@ -46,11 +46,11 @@
       
     
     
-      <link rel="stylesheet" href="../../stylesheets/extra.css">
+      <link rel="stylesheet" href="../../../stylesheets/extra.css">
     
-      <link rel="stylesheet" href="../../stylesheets/print.css">
+      <link rel="stylesheet" href="../../../stylesheets/print.css">
     
-    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -76,8 +76,8 @@
     <div data-md-component="skip">
       
         
-        <a href="#clubcloud-credentials-setup-geteilter-region-admin-zugang" class="md-skip">
-          Zum Inhalt
+        <a href="#per-user-clubcloud-identitat-entwickler-handbuch" class="md-skip">
+          Skip to content
         </a>
       
     </div>
@@ -95,8 +95,8 @@
   
 
 <header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
-  <nav class="md-header__inner md-grid" aria-label="Kopfzeile">
-    <a href="../.." title="Carambus Documentation" class="md-header__button md-logo" aria-label="Carambus Documentation" data-md-component="logo">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../" title="Carambus Documentation" class="md-header__button md-logo" aria-label="Carambus Documentation" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -116,7 +116,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              ClubCloud Credentials Setup (geteilter Region-Admin-Zugang)
+              Per-User-ClubCloud-Identität — Entwickler-Handbuch
             
           </span>
         </div>
@@ -156,20 +156,20 @@
       <div class="md-header__option">
   <div class="md-select">
     
-    <button class="md-header__button md-icon" aria-label="Sprache wechseln">
+    <button class="md-header__button md-icon" aria-label="Select language">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"/></svg>
     </button>
     <div class="md-select__inner">
       <ul class="md-select__list">
         
           <li class="md-select__item">
-            <a href="./" hreflang="de" class="md-select__link">
+            <a href="../../../developers/per-user-cc-identitaet/" hreflang="de" class="md-select__link">
               Deutsch
             </a>
           </li>
         
           <li class="md-select__item">
-            <a href="../../en/managers/clubcloud_credentials/" hreflang="en" class="md-select__link">
+            <a href="./" hreflang="en" class="md-select__link">
               English
             </a>
           </li>
@@ -190,16 +190,16 @@
   <label class="md-search__overlay" for="__search"></label>
   <div class="md-search__inner" role="search">
     <form class="md-search__form" name="search">
-      <input type="text" class="md-search__input" name="query" aria-label="Suche" placeholder="Suche" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
       <label class="md-search__icon md-icon" for="__search">
         
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
         
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
       </label>
-      <nav class="md-search__options" aria-label="Suche">
+      <nav class="md-search__options" aria-label="Search">
         
-        <button type="reset" class="md-search__icon md-icon" title="Zurücksetzen" aria-label="Zurücksetzen" tabindex="-1">
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
           
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
         </button>
@@ -212,7 +212,7 @@
       <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
         <div class="md-search-result" data-md-component="search-result">
           <div class="md-search-result__meta">
-            Suche wird initialisiert
+            Initializing search
           </div>
           <ol class="md-search-result__list" role="presentation"></ol>
         </div>
@@ -224,7 +224,7 @@
     
     
       <div class="md-header__source">
-        <a href="https://github.com/GernotUllrich/carambus" title="Zum Repository" class="md-source" data-md-component="source">
+        <a href="https://github.com/GernotUllrich/carambus" title="Go to repository" class="md-source" data-md-component="source">
   <div class="md-source__icon md-icon">
     
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
@@ -239,7 +239,7 @@
   
     
       
-<nav class="md-tabs" aria-label="Hauptnavigation" data-md-component="tabs">
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
   <div class="md-grid">
     <ul class="md-tabs__list">
       
@@ -249,13 +249,13 @@
   
   
     <li class="md-tabs__item">
-      <a href="../.." class="md-tabs__link">
+      <a href="../../" class="md-tabs__link">
         
   
   
     
   
-  Startseite
+  Home
 
       </a>
     </li>
@@ -276,7 +276,7 @@
   
     
   
-  Für Entscheider
+  Decision Makers
 
         </a>
       </li>
@@ -298,7 +298,7 @@
   
     
   
-  Für Spieler
+  Players
 
         </a>
       </li>
@@ -314,13 +314,13 @@
     
     
       <li class="md-tabs__item">
-        <a href="../" class="md-tabs__link">
+        <a href="../../managers/" class="md-tabs__link">
           
   
   
     
   
-  Für Turniermanager
+  Managers
 
         </a>
       </li>
@@ -342,7 +342,7 @@
   
     
   
-  Für Systemadministratoren
+  Administrators
 
         </a>
       </li>
@@ -358,13 +358,13 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../developers/" class="md-tabs__link">
+        <a href="../" class="md-tabs__link">
           
   
   
     
   
-  Für Entwickler
+  Developers
 
         </a>
       </li>
@@ -386,7 +386,7 @@
   
     
   
-  Referenz
+  Reference
 
         </a>
       </li>
@@ -408,7 +408,7 @@
   
     
   
-  Über
+  About
 
         </a>
       </li>
@@ -444,7 +444,7 @@
 
 <nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="../.." title="Carambus Documentation" class="md-nav__button md-logo" aria-label="Carambus Documentation" data-md-component="logo">
+    <a href="../../" title="Carambus Documentation" class="md-nav__button md-logo" aria-label="Carambus Documentation" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -454,7 +454,7 @@
   </label>
   
     <div class="md-nav__source">
-      <a href="https://github.com/GernotUllrich/carambus" title="Zum Repository" class="md-source" data-md-component="source">
+      <a href="https://github.com/GernotUllrich/carambus" title="Go to repository" class="md-source" data-md-component="source">
   <div class="md-source__icon md-icon">
     
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
@@ -474,12 +474,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../.." class="md-nav__link">
+      <a href="../../" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Startseite
+    Home
     
   </span>
   
@@ -532,7 +532,7 @@
   
   
   <span class="md-ellipsis">
-    Für Entscheider
+    Decision Makers
     
   </span>
   
@@ -549,7 +549,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_2">
             <span class="md-nav__icon md-icon"></span>
-            Für Entscheider
+            Decision Makers
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -590,7 +590,7 @@
   
   
   <span class="md-ellipsis">
-    Feature-Übersicht
+    Features Overview
     
   </span>
   
@@ -613,7 +613,7 @@
   
   
   <span class="md-ellipsis">
-    Deployment-Optionen
+    Deployment Options
     
   </span>
   
@@ -674,7 +674,7 @@
   
   
   <span class="md-ellipsis">
-    Für Spieler
+    Players
     
   </span>
   
@@ -691,7 +691,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
-            Für Spieler
+            Players
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -709,7 +709,7 @@
   
   
   <span class="md-ellipsis">
-    Scoreboard-Anleitung
+    Scoreboard Guide
     
   </span>
   
@@ -732,7 +732,7 @@
   
   
   <span class="md-ellipsis">
-    Turnierteilnahme
+    Tournament Participation
     
   </span>
   
@@ -755,7 +755,7 @@
   
   
   <span class="md-ellipsis">
-    KI-gestützte Suche
+    AI-Powered Search
     
   </span>
   
@@ -827,12 +827,12 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../" class="md-nav__link ">
+            <a href="../../managers/" class="md-nav__link ">
               
   
   
   <span class="md-ellipsis">
-    Für Turniermanager
+    Managers
     
   </span>
   
@@ -849,7 +849,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
-            Für Turniermanager
+            Managers
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -862,12 +862,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../tournament-management/" class="md-nav__link">
+      <a href="../../managers/tournament-management/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Turnierverwaltung
+    Tournament Management
     
   </span>
   
@@ -885,12 +885,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../tournament-quick-reference/" class="md-nav__link">
+      <a href="../../managers/tournament-quick-reference/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Turnier-Schnellreferenz
+    Tournament Quick Reference
     
   </span>
   
@@ -908,12 +908,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../league-management/" class="md-nav__link">
+      <a href="../../managers/league-management/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Liga-Management
+    League Management
     
   </span>
   
@@ -931,12 +931,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../single-tournament/" class="md-nav__link">
+      <a href="../../managers/single-tournament/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Einzelturnier
+    Single Tournament
     
   </span>
   
@@ -954,12 +954,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../table-reservation/" class="md-nav__link">
+      <a href="../../managers/table-reservation/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Tischreservierung
+    Table Reservation
     
   </span>
   
@@ -977,12 +977,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../admin-roles/" class="md-nav__link">
+      <a href="../../managers/admin-roles/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Admin-Rollen
+    Admin Roles
     
   </span>
   
@@ -1000,12 +1000,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../clubcloud-integration/" class="md-nav__link">
+      <a href="../../managers/clubcloud-integration/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    ClubCloud-Integration
+    ClubCloud Integration
     
   </span>
   
@@ -1074,7 +1074,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../clubcloud-mcp-cloud-quickstart/" class="md-nav__link">
+      <a href="../../managers/clubcloud-mcp-cloud-quickstart/" class="md-nav__link">
         
   
   
@@ -1097,7 +1097,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../clubcloud-mcp-setup-service/" class="md-nav__link">
+      <a href="../../managers/clubcloud-mcp-setup-service/" class="md-nav__link">
         
   
   
@@ -1128,12 +1128,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../external-tournament-bridge/" class="md-nav__link">
+      <a href="../../managers/external-tournament-bridge/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    External-Tournament-Bridge
+    External Tournament Bridge
     
   </span>
   
@@ -1208,7 +1208,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../clubcloud-scenarios/cc-glossary/" class="md-nav__link">
+      <a href="../../managers/clubcloud-scenarios/cc-glossary/" class="md-nav__link">
         
   
   
@@ -1231,7 +1231,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../clubcloud-scenarios/cc-roles/" class="md-nav__link">
+      <a href="../../managers/clubcloud-scenarios/cc-roles/" class="md-nav__link">
         
   
   
@@ -1254,7 +1254,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../clubcloud-scenarios/endrangliste-eintragen/" class="md-nav__link">
+      <a href="../../managers/clubcloud-scenarios/endrangliste-eintragen/" class="md-nav__link">
         
   
   
@@ -1277,7 +1277,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../clubcloud-scenarios/player-anlegen/" class="md-nav__link">
+      <a href="../../managers/clubcloud-scenarios/player-anlegen/" class="md-nav__link">
         
   
   
@@ -1300,7 +1300,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../clubcloud-scenarios/teilnehmerliste-finalisieren/" class="md-nav__link">
+      <a href="../../managers/clubcloud-scenarios/teilnehmerliste-finalisieren/" class="md-nav__link">
         
   
   
@@ -1331,12 +1331,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../search-filters/" class="md-nav__link">
+      <a href="../../managers/search-filters/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Suche & Filter
+    Search & Filters
     
   </span>
   
@@ -1409,7 +1409,7 @@
   
   
   <span class="md-ellipsis">
-    Für Systemadministratoren
+    Administrators
     
   </span>
   
@@ -1426,7 +1426,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_5">
             <span class="md-nav__icon md-icon"></span>
-            Für Systemadministratoren
+            Administrators
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -1444,7 +1444,7 @@
   
   
   <span class="md-ellipsis">
-    Installations-Übersicht
+    Installation Overview
     
   </span>
   
@@ -1536,7 +1536,7 @@
   
   
   <span class="md-ellipsis">
-    Server-Architektur
+    Server Architecture
     
   </span>
   
@@ -1559,7 +1559,7 @@
   
   
   <span class="md-ellipsis">
-    Email-Konfiguration
+    Email Configuration
     
   </span>
   
@@ -1582,7 +1582,7 @@
   
   
   <span class="md-ellipsis">
-    Datenbank-Setup
+    Database Setup
     
   </span>
   
@@ -1730,12 +1730,12 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../developers/" class="md-nav__link ">
+            <a href="../" class="md-nav__link ">
               
   
   
   <span class="md-ellipsis">
-    Für Entwickler
+    Developers
     
   </span>
   
@@ -1752,7 +1752,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_6">
             <span class="md-nav__icon md-icon"></span>
-            Für Entwickler
+            Developers
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -1765,7 +1765,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../developers/getting-started/" class="md-nav__link">
+      <a href="../getting-started/" class="md-nav__link">
         
   
   
@@ -1788,12 +1788,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../../developers/developer-guide/" class="md-nav__link">
+      <a href="../developer-guide/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Entwickler-Leitfaden
+    Developer Guide
     
   </span>
   
@@ -1811,12 +1811,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../../developers/database-design/" class="md-nav__link">
+      <a href="../database-design/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Datenbank-Design
+    Database Design
     
   </span>
   
@@ -1834,12 +1834,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../../developers/er-diagram/" class="md-nav__link">
+      <a href="../er-diagram/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    ER-Diagramm
+    ER Diagram
     
   </span>
   
@@ -1857,12 +1857,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../../developers/scenario-management/" class="md-nav__link">
+      <a href="../scenario-management/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Scenario-Management
+    Scenario Management
     
   </span>
   
@@ -1880,12 +1880,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../../developers/scenario-workflow/" class="md-nav__link">
+      <a href="../scenario-workflow/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Scenario-Workflow
+    Scenario Workflow
     
   </span>
   
@@ -1903,7 +1903,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../developers/rubymine-setup/" class="md-nav__link">
+      <a href="../rubymine-setup/" class="md-nav__link">
         
   
   
@@ -1977,7 +1977,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../developers/testing/testing-quickstart/" class="md-nav__link">
+      <a href="../testing/testing-quickstart/" class="md-nav__link">
         
   
   
@@ -2000,12 +2000,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../../developers/testing/fixture-collection-guide/" class="md-nav__link">
+      <a href="../testing/fixture-collection-guide/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Fixture Sammlung Anleitung
+    Fixture Collection Guide
     
   </span>
   
@@ -2082,12 +2082,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../../developers/umb-scraping-implementation/" class="md-nav__link">
+      <a href="../umb-scraping-implementation/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    UMB Scraping Implementierung
+    UMB Scraping Implementation
     
   </span>
   
@@ -2105,12 +2105,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../../developers/umb-scraping-methods/" class="md-nav__link">
+      <a href="../umb-scraping-methods/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    UMB Scraping Methoden
+    UMB Scraping Methods
     
   </span>
   
@@ -2136,12 +2136,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../../developers/clubcloud-mcp-server/" class="md-nav__link">
+      <a href="../clubcloud-mcp-server/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    ClubCloud MCP-Server
+    ClubCloud MCP Server
     
   </span>
   
@@ -2159,12 +2159,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../../developers/external-tournament-bridge/" class="md-nav__link">
+      <a href="../external-tournament-bridge/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    External-Tournament-Bridge
+    External Tournament Bridge
     
   </span>
   
@@ -2245,7 +2245,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../developers/services/table-monitor/" class="md-nav__link">
+      <a href="../services/table-monitor/" class="md-nav__link">
         
   
   
@@ -2268,7 +2268,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../developers/services/region-cc/" class="md-nav__link">
+      <a href="../services/region-cc/" class="md-nav__link">
         
   
   
@@ -2291,12 +2291,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../../developers/services/tournament/" class="md-nav__link">
+      <a href="../services/tournament/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Turnier
+    Tournament
     
   </span>
   
@@ -2314,12 +2314,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../../developers/services/tournament-monitor/" class="md-nav__link">
+      <a href="../services/tournament-monitor/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Turnier-Monitor
+    Tournament Monitor
     
   </span>
   
@@ -2337,12 +2337,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../../developers/services/league/" class="md-nav__link">
+      <a href="../services/league/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Liga
+    League
     
   </span>
   
@@ -2360,12 +2360,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../../developers/services/party-monitor/" class="md-nav__link">
+      <a href="../services/party-monitor/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Party-Monitor
+    Party Monitor
     
   </span>
   
@@ -2383,12 +2383,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../../developers/services/umb/" class="md-nav__link">
+      <a href="../services/umb/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    UMB-Services
+    UMB Services
     
   </span>
   
@@ -2406,12 +2406,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../../developers/services/video-crossref/" class="md-nav__link">
+      <a href="../services/video-crossref/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Video-Querverweise
+    Video Cross-Reference
     
   </span>
   
@@ -2437,7 +2437,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../developers/frontend-sti-migration/" class="md-nav__link">
+      <a href="../frontend-sti-migration/" class="md-nav__link">
         
   
   
@@ -2460,7 +2460,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../developers/rake-tasks-debugging/" class="md-nav__link">
+      <a href="../rake-tasks-debugging/" class="md-nav__link">
         
   
   
@@ -2483,12 +2483,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../../developers/deployment-workflow/" class="md-nav__link">
+      <a href="../deployment-workflow/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Deployment-Workflow
+    Deployment Workflow
     
   </span>
   
@@ -2506,12 +2506,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../../developers/overcommit-hooks.md" class="md-nav__link">
+      <a href="../../../developers/overcommit-hooks.md" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Overcommit-Hooks (MkDocsBuild)
+    Overcommit Hooks (MkDocsBuild)
     
   </span>
   
@@ -2529,12 +2529,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../../developers/data-management/" class="md-nav__link">
+      <a href="../data-management/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Datenverwaltung
+    Data Management
     
   </span>
   
@@ -2552,12 +2552,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../../developers/database-partitioning/" class="md-nav__link">
+      <a href="../database-partitioning/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Datenbank-Partitionierung
+    Database Partitioning
     
   </span>
   
@@ -2575,12 +2575,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../../developers/paper-trail-optimization/" class="md-nav__link">
+      <a href="../paper-trail-optimization/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    PaperTrail-Optimierung
+    Paper Trail Optimization
     
   </span>
   
@@ -2598,12 +2598,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../../developers/game-plan-reconstruction/" class="md-nav__link">
+      <a href="../game-plan-reconstruction/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Spielplan-Rekonstruktion
+    Game Plan Reconstruction
     
   </span>
   
@@ -2621,12 +2621,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../../developers/tournament-duplicate-handling/" class="md-nav__link">
+      <a href="../tournament-duplicate-handling/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Turnier-Duplikate
+    Tournament Duplicates
     
   </span>
   
@@ -2644,12 +2644,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../../developers/region-tagging-cleanup-summary/" class="md-nav__link">
+      <a href="../region-tagging-cleanup-summary/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Regions-Tagging
+    Region Tagging
     
   </span>
   
@@ -2667,12 +2667,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../../developers/streaming-architecture/" class="md-nav__link">
+      <a href="../streaming-architecture/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    YouTube Streaming Architektur
+    YouTube Streaming Architecture
     
   </span>
   
@@ -2690,7 +2690,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../developers/pool-scoreboard-changelog/" class="md-nav__link">
+      <a href="../pool-scoreboard-changelog/" class="md-nav__link">
         
   
   
@@ -2713,12 +2713,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../../developers/deployment-checklist/" class="md-nav__link">
+      <a href="../deployment-checklist/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Deployment-Checkliste (Prod)
+    Deployment Checklist Production
     
   </span>
   
@@ -2736,12 +2736,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../../developers/umb-deployment-checklist/" class="md-nav__link">
+      <a href="../umb-deployment-checklist/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    UMB Deployment-Checkliste
+    UMB Deployment Checklist
     
   </span>
   
@@ -2805,7 +2805,7 @@
   
   
   <span class="md-ellipsis">
-    Referenz
+    Reference
     
   </span>
   
@@ -2816,7 +2816,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_7">
             <span class="md-nav__icon md-icon"></span>
-            Referenz
+            Reference
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -2855,7 +2855,7 @@
   
   
   <span class="md-ellipsis">
-    Glossar
+    Glossary
     
   </span>
   
@@ -2878,7 +2878,7 @@
   
   
   <span class="md-ellipsis">
-    AGB
+    Terms
     
   </span>
   
@@ -2901,7 +2901,7 @@
   
   
   <span class="md-ellipsis">
-    Datenschutz
+    Privacy
     
   </span>
   
@@ -3022,7 +3022,7 @@
   
   
   <span class="md-ellipsis">
-    Über
+    About
     
   </span>
   
@@ -3033,7 +3033,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_8">
             <span class="md-nav__icon md-icon"></span>
-            Über
+            About
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -3049,7 +3049,7 @@
   
   
   <span class="md-ellipsis">
-    Über
+    About
     
   </span>
   
@@ -3080,7 +3080,7 @@
                   <div class="md-sidebar__inner">
                     
 
-<nav class="md-nav md-nav--secondary" aria-label="Inhaltsverzeichnis">
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
   
   
   
@@ -3089,152 +3089,86 @@
   
     <label class="md-nav__title" for="__toc">
       <span class="md-nav__icon md-icon"></span>
-      Inhaltsverzeichnis
+      Table of contents
     </label>
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#uberblick" class="md-nav__link">
+  <a href="#problem-ziel" class="md-nav__link">
     <span class="md-ellipsis">
-      Überblick
+      Problem &amp; Ziel
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#vorteile" class="md-nav__link">
+  <a href="#datenmodell-39-01" class="md-nav__link">
     <span class="md-ellipsis">
-      Vorteile
+      Datenmodell (39-01)
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#setup" class="md-nav__link">
+  <a href="#resolver-39-02-mcpserverccaccountresolver" class="md-nav__link">
     <span class="md-ellipsis">
-      Setup
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Setup">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#development-environment" class="md-nav__link">
-    <span class="md-ellipsis">
-      Development Environment
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#production-environment" class="md-nav__link">
-    <span class="md-ellipsis">
-      Production Environment
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#datei-struktur" class="md-nav__link">
-    <span class="md-ellipsis">
-      Datei-Struktur
+      Resolver (39-02) — McpServer::CcAccountResolver
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#verwendung-im-code" class="md-nav__link">
+  <a href="#session-handling-39-02-mcpserverccsession" class="md-nav__link">
     <span class="md-ellipsis">
-      Verwendung im Code
+      Session-Handling (39-02) — McpServer::CcSession
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#migration-von-regioncc" class="md-nav__link">
+  <a href="#tool-verdrahtung-39-03-die-7-cc-write-tools" class="md-nav__link">
     <span class="md-ellipsis">
-      Migration von RegionCc
+      Tool-Verdrahtung (39-03) — die 7 CC-Write-Tools
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#fallback-mechanismus" class="md-nav__link">
+  <a href="#provisionierungs-ui-39-04" class="md-nav__link">
     <span class="md-ellipsis">
-      Fallback-Mechanismus
+      Provisionierungs-UI (39-04)
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#troubleshooting" class="md-nav__link">
+  <a href="#grenzen-bewusst" class="md-nav__link">
     <span class="md-ellipsis">
-      Troubleshooting
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Troubleshooting">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#no-clubcloud-credentials-found" class="md-nav__link">
-    <span class="md-ellipsis">
-      "No ClubCloud credentials found"
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#key-is-missing-or-invalid" class="md-nav__link">
-    <span class="md-ellipsis">
-      "Key is missing or invalid"
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#key-file-backup" class="md-nav__link">
-    <span class="md-ellipsis">
-      Key-File Backup
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#sicherheit" class="md-nav__link">
-    <span class="md-ellipsis">
-      Sicherheit
+      Grenzen (bewusst)
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#weiterfuhrende-links" class="md-nav__link">
+  <a href="#deploy-hinweis" class="md-nav__link">
     <span class="md-ellipsis">
-      Weiterführende Links
+      Deploy-Hinweis
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#datei-landkarte" class="md-nav__link">
+    <span class="md-ellipsis">
+      Datei-Landkarte
     </span>
   </a>
   
@@ -3259,134 +3193,176 @@
   
 
 
-<h1 id="clubcloud-credentials-setup-geteilter-region-admin-zugang">ClubCloud Credentials Setup (geteilter Region-Admin-Zugang)<a class="headerlink" href="#clubcloud-credentials-setup-geteilter-region-admin-zugang" title="Permanent link">&para;</a></h1>
+<h1 id="per-user-clubcloud-identitat-entwickler-handbuch">Per-User-ClubCloud-Identität — Entwickler-Handbuch<a class="headerlink" href="#per-user-clubcloud-identitat-entwickler-handbuch" title="Permanent link">&para;</a></h1>
 <blockquote>
-<p><strong>Abgrenzung:</strong> Dieses Dokument beschreibt den <strong>geteilten, region-weiten</strong>
-Admin-Zugang (<code>clubcloud.&lt;context&gt;</code> in Rails Credentials). Den <strong>persönlichen,
-per-User</strong>-ClubCloud-Zugang (v1.1, hinterlegt im Profil) beschreiben:
-<a href="../clubcloud-eigener-zugang/"><code>clubcloud-eigener-zugang.de.md</code></a> (Endnutzer) ·
-<a href="../../developers/per-user-cc-identitaet/"><code>../developers/per-user-cc-identitaet.de.md</code></a> (Technik).</p>
+<p><strong>Status:</strong> v1.1 Phase 39 (code-complete, Branch <code>feature/v1.1-trust-haertung</code>).
+<strong>Endnutzer-Anleitung:</strong> <a href="../../managers/clubcloud-eigener-zugang/"><code>docs/managers/clubcloud-eigener-zugang.de.md</code></a>
+<strong>Region-Admin-Credentials (geteilt):</strong> <a href="../../managers/clubcloud_credentials/"><code>docs/managers/clubcloud_credentials.md</code></a></p>
 </blockquote>
-<h2 id="uberblick">Überblick<a class="headerlink" href="#uberblick" title="Permanent link">&para;</a></h2>
-<p>ClubCloud-Zugangsdaten werden <strong>lokal und verschlüsselt</strong> in Rails Credentials gespeichert, <strong>NICHT</strong> in der <code>region_ccs</code> Tabelle (die mit dem API-Server synchronisiert wird).</p>
-<h2 id="vorteile">Vorteile<a class="headerlink" href="#vorteile" title="Permanent link">&para;</a></h2>
+<h2 id="problem-ziel">Problem &amp; Ziel<a class="headerlink" href="#problem-ziel" title="Permanent link">&para;</a></h2>
+<p>CC-Schreibaktionen (Akkreditieren, Schnellanmeldung, Storno, Meldeschluss …) liefen
+bisher unter <strong>einer geteilten Region-Admin-Identität</strong> (<code>Setting.login_to_cc</code> mit
+<code>clubcloud.&lt;context&gt;</code>-Credentials). In der ClubCloud waren damit alle Änderungen
+demselben Account zugeschrieben — falsche Attribution.</p>
+<p><strong>Ziel (Phase 39):</strong> Jeder User schreibt unter seiner <strong>eigenen</strong> CC-Identität.
+Reads bleiben bewusst auf der geteilten Admin-Session (siehe Grenzen unten).</p>
+<h2 id="datenmodell-39-01">Datenmodell (39-01)<a class="headerlink" href="#datenmodell-39-01" title="Permanent link">&para;</a></h2>
 <ul>
-<li>✅ <strong>Sicher</strong>: Credentials sind verschlüsselt und lokal</li>
-<li>✅ <strong>Nicht synchronisiert</strong>: Keine Verbreitung über API-Server</li>
-<li>✅ <strong>Pro-Environment</strong>: Unterschiedliche Credentials für Development/Production</li>
-<li>✅ <strong>Versionskontrolle</strong>: Key-File bleibt lokal (in <code>.gitignore</code>)</li>
+<li><code>users.cc_username</code> (string) + <code>users.cc_password</code> (<strong><code>encrypts deterministic: false</code></strong>,
+  Klartext at rest verschlüsselt; der bestehende Login-Flow macht intern MD5 daraus).</li>
+<li><code>User#cc_credentials_present?</code> → <code>cc_username.present? &amp;&amp; cc_password.present?</code>.</li>
+<li><code>user_tournaments.granted_by_user_id</code> → der Sportwart, der den TL eingesetzt hat
+  (von <code>assign_tournament_leiter</code> befüllt via <code>server_context[:user_id]</code>).</li>
 </ul>
-<h2 id="setup">Setup<a class="headerlink" href="#setup" title="Permanent link">&para;</a></h2>
-<h3 id="development-environment">Development Environment<a class="headerlink" href="#development-environment" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># 1. Credentials bearbeiten</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nv">EDITOR</span><span class="o">=</span>nano<span class="w"> </span>rails<span class="w"> </span>credentials:edit<span class="w"> </span>--environment<span class="w"> </span>development
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="c1"># 2. Folgendes hinzufügen:</span>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>clubcloud:
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">  </span>nbv:
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">    </span>username:<span class="w"> </span><span class="s2">&quot;your-email@example.com&quot;</span>
-<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">    </span>password:<span class="w"> </span><span class="s2">&quot;your-password&quot;</span>
-<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">  </span><span class="c1"># Weitere Regionen bei Bedarf:</span>
-<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">  </span><span class="c1"># dbu:</span>
-<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="w">  </span><span class="c1">#   username: &quot;...&quot;</span>
-<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="w">  </span><span class="c1">#   password: &quot;...&quot;</span>
-<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>
-<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="c1"># 3. Speichern und schließen (Ctrl+O, Enter, Ctrl+X in nano)</span>
+<h2 id="resolver-39-02-mcpserverccaccountresolver">Resolver (39-02) — <code>McpServer::CcAccountResolver</code><a class="headerlink" href="#resolver-39-02-mcpserverccaccountresolver" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="no">McpServer</span><span class="o">::</span><span class="no">CcAccountResolver</span><span class="o">.</span><span class="n">resolve</span><span class="p">(</span><span class="ss">user</span><span class="p">:,</span><span class="w"> </span><span class="ss">tournament</span><span class="p">:</span><span class="w"> </span><span class="kp">nil</span><span class="p">)</span><span class="w"> </span><span class="c1"># =&gt; CcAccount</span>
 </code></pre></div>
-<h3 id="production-environment">Production Environment<a class="headerlink" href="#production-environment" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># Auf dem Production Server (z.B. bc-wedel.duckdns.org)</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>ssh<span class="w"> </span>-p<span class="w"> </span><span class="m">8910</span><span class="w"> </span>www-data@bc-wedel.duckdns.org
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="nb">cd</span><span class="w"> </span>/var/www/carambus_bcw/current
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>
-<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="c1"># Credentials bearbeiten</span>
-<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="nv">EDITOR</span><span class="o">=</span>nano<span class="w"> </span><span class="nv">RAILS_ENV</span><span class="o">=</span>production<span class="w"> </span>bundle<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>rails<span class="w"> </span>credentials:edit<span class="w"> </span>--environment<span class="w"> </span>production
-<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>
-<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="c1"># Gleiche Struktur wie oben hinzufügen</span>
-</code></pre></div>
-<h2 id="datei-struktur">Datei-Struktur<a class="headerlink" href="#datei-struktur" title="Permanent link">&para;</a></h2>
-<p>Nach dem Setup existieren folgende Dateien:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>config/
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>├── credentials/
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>│   ├── development.key          # Lokal, NICHT committen! (in .gitignore)
-<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>│   ├── development.yml.enc      # Verschlüsselt, kann committet werden
-<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>│   ├── production.key           # Auf Server, NICHT committen!
-<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>│   └── production.yml.enc       # Verschlüsselt, kann committet werden
-</code></pre></div>
-<h2 id="verwendung-im-code">Verwendung im Code<a class="headerlink" href="#verwendung-im-code" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># Credentials werden automatisch geholt</span>
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="n">credentials</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">Setting</span><span class="o">.</span><span class="n">get_cc_credentials</span><span class="p">(</span><span class="s2">&quot;nbv&quot;</span><span class="p">)</span>
-<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="c1"># =&gt; { username: &quot;...&quot;, password: &quot;...&quot; }</span>
-<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>
-<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="c1"># Login verwendet automatisch die Credentials</span>
-<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="no">Setting</span><span class="o">.</span><span class="n">login_to_cc</span>
-</code></pre></div>
-<h2 id="migration-von-regioncc">Migration von RegionCc<a class="headerlink" href="#migration-von-regioncc" title="Permanent link">&para;</a></h2>
-<p>Falls du bereits Credentials in <code>region_ccs.username</code> und <code>region_ccs.userpw</code> hast:</p>
-<ol>
-<li>
-<p><strong>Notiere die Werte</strong>:
-   <div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="n">rc</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">RegionCc</span><span class="o">.</span><span class="n">find_by</span><span class="p">(</span><span class="ss">context</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;nbv&quot;</span><span class="p">)</span>
-<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;Username: </span><span class="si">#{</span><span class="n">rc</span><span class="o">.</span><span class="n">username</span><span class="si">}</span><span class="s2">&quot;</span>
-<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;Password: </span><span class="si">#{</span><span class="n">rc</span><span class="o">.</span><span class="n">userpw</span><span class="si">}</span><span class="s2">&quot;</span>
-</code></pre></div></p>
-</li>
-<li>
-<p><strong>In Rails Credentials eintragen</strong> (siehe Setup oben)</p>
-</li>
-<li>
-<p><strong>RegionCc-Felder leeren</strong> (optional, für Sicherheit):
-   <div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="n">rc</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">RegionCc</span><span class="o">.</span><span class="n">find_by</span><span class="p">(</span><span class="ss">context</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;nbv&quot;</span><span class="p">)</span>
-<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="n">rc</span><span class="o">.</span><span class="n">unprotected</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kp">true</span>
-<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="n">rc</span><span class="o">.</span><span class="n">username</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kp">nil</span>
-<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="n">rc</span><span class="o">.</span><span class="n">userpw</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kp">nil</span>
-<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="n">rc</span><span class="o">.</span><span class="n">save!</span>
-</code></pre></div></p>
-</li>
-</ol>
-<h2 id="fallback-mechanismus">Fallback-Mechanismus<a class="headerlink" href="#fallback-mechanismus" title="Permanent link">&para;</a></h2>
-<p>Der Code unterstützt einen Fallback für Rückwärtskompatibilität:
-1. <strong>Primär</strong>: Rails Credentials (<code>config/credentials/</code>)
-2. <strong>Fallback</strong>: RegionCc-Tabelle (mit Warnung im Log)</p>
-<h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">&para;</a></h2>
-<h3 id="no-clubcloud-credentials-found">"No ClubCloud credentials found"<a class="headerlink" href="#no-clubcloud-credentials-found" title="Permanent link">&para;</a></h3>
-<p><strong>Problem</strong>: Credentials sind nicht konfiguriert.</p>
-<p><strong>Lösung</strong>:
-<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>rails<span class="w"> </span>credentials:edit<span class="w"> </span>--environment<span class="w"> </span>development
-<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="c1"># Füge clubcloud-Section hinzu (siehe Setup oben)</span>
-</code></pre></div></p>
-<h3 id="key-is-missing-or-invalid">"Key is missing or invalid"<a class="headerlink" href="#key-is-missing-or-invalid" title="Permanent link">&para;</a></h3>
-<p><strong>Problem</strong>: Die <code>.key</code> Datei fehlt oder ist ungültig.</p>
-<p><strong>Lösung Development</strong>:
-<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="c1"># Key-File neu generieren (ACHTUNG: Alte Credentials gehen verloren!)</span>
-<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>rm<span class="w"> </span>config/credentials/development.key<span class="w"> </span>config/credentials/development.yml.enc
-<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>rails<span class="w"> </span>credentials:edit<span class="w"> </span>--environment<span class="w"> </span>development
-</code></pre></div></p>
-<p><strong>Lösung Production</strong>:
-<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c1"># Key-File vom Backup wiederherstellen ODER</span>
-<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="c1"># Credentials neu anlegen (siehe oben)</span>
-</code></pre></div></p>
-<h3 id="key-file-backup">Key-File Backup<a class="headerlink" href="#key-file-backup" title="Permanent link">&para;</a></h3>
-<p><strong>Wichtig</strong>: Sichere die <code>.key</code> Files!</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="c1"># Development</span>
-<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>cp<span class="w"> </span>config/credentials/development.key<span class="w"> </span>~/carambus_credentials_backup/
-<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>
-<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="c1"># Production (auf Server)</span>
-<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>cp<span class="w"> </span>config/credentials/production.key<span class="w"> </span>~/carambus_credentials_backup/
-</code></pre></div>
-<h2 id="sicherheit">Sicherheit<a class="headerlink" href="#sicherheit" title="Permanent link">&para;</a></h2>
+<p><code>CcAccount = Struct.new(:login_username, :password, :source, :acting_user_id, :granted_by_user_id)</code>
+mit <code>#resolved? == (source != :none)</code>.</p>
+<p>Auflösungs-Reihenfolge (<code>source</code>):</p>
+<table>
+<thead>
+<tr>
+<th>source</th>
+<th>Bedingung</th>
+<th>login_username/password</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>:own</code></td>
+<td><code>user.cc_credentials_present?</code></td>
+<td>eigene Creds des Users</td>
+</tr>
+<tr>
+<td><code>:tl_inherited</code></td>
+<td>User ist TL für <code>tournament</code> UND dessen <code>granted_by</code> hat eigene Creds</td>
+<td>Creds des einsetzenden Sportwarts</td>
+</tr>
+<tr>
+<td><code>:none</code></td>
+<td>sonst</td>
+<td>leer — <strong>KEIN</strong> Fallback auf den geteilten Region-Admin (D-39-6)</td>
+</tr>
+</tbody>
+</table>
+<p><code>acting_user_id</code> bleibt IMMER der echte Carambus-Akteur (auch bei <code>:tl_inherited</code>
+und <code>:none</code>) — Basis der zweischichtigen Audit-Attribution.</p>
+<h2 id="session-handling-39-02-mcpserverccsession">Session-Handling (39-02) — <code>McpServer::CcSession</code><a class="headerlink" href="#session-handling-39-02-mcpserverccsession" title="Permanent link">&para;</a></h2>
+<p>Vom <strong>Klassen-Singleton</strong> (eine geteilte PHPSESSID) zu einem <strong>per-Account-Cache</strong>
+(<code>class &lt;&lt; self</code>, Mutex-geschützt), gekeyt am <code>login_username</code>:</p>
 <ul>
-<li>✅ <code>.key</code> Files sind in <code>.gitignore</code> und werden <strong>NICHT</strong> committet</li>
-<li>✅ <code>.yml.enc</code> Files sind verschlüsselt und können committet werden</li>
-<li>✅ Credentials werden <strong>NICHT</strong> zwischen Servern synchronisiert</li>
-<li>✅ Jedes Environment hat eigene Credentials</li>
-<li>⚠️ <strong>NIEMALS</strong> <code>.key</code> Files in Git committen!</li>
-<li>⚠️ <strong>NIEMALS</strong> <code>.key</code> Files per Email/Chat teilen!</li>
+<li><code>DEFAULT_KEY = :__shared_default__</code> → der geteilte Region-Admin (Legacy-/Read-Pfad).</li>
+<li><code>cookie</code> → Cookie der geteilten Default-Session (setzt <code>DEFAULT_KEY</code> als aktiv).</li>
+<li><code>cookie_for(account)</code> → Cookie der <strong>account-spezifischen</strong> Session; fällt auf den
+  Default zurück, wenn <code>account</code> nil/<code>login_username</code> blank ist (<code>:none</code>-sicher).</li>
+<li><code>cc_login_user(account_key = nil)</code> → Login-Username der aktiven Session (für Audit).</li>
+<li><code>with_session_recovery(account:, server_context:)</code> → Re-Login + Single-Retry bei
+  Auto-Logout (<code>reset!(account.login_username)</code> bzw. <code>reset!(DEFAULT_KEY)</code>).</li>
+<li>Aktiver Account pro Request: <code>Thread.current[:cc_active_account_key]</code> (thread-safe
+  für Multi-User-HTTP).</li>
 </ul>
-<h2 id="weiterfuhrende-links">Weiterführende Links<a class="headerlink" href="#weiterfuhrende-links" title="Permanent link">&para;</a></h2>
+<p>Credential-Quelle: <code>Setting.resolve_login_credentials(context, username:, password:)</code>
+— explizite per-User-Args übersteuern <code>get_cc_credentials(context)</code> (Region-Admin);
+bei Override wird die globale Default-Session NICHT überschrieben.</p>
+<h2 id="tool-verdrahtung-39-03-die-7-cc-write-tools">Tool-Verdrahtung (39-03) — die 7 CC-Write-Tools<a class="headerlink" href="#tool-verdrahtung-39-03-die-7-cc-write-tools" title="Permanent link">&para;</a></h2>
+<p>Verdrahtet sind <strong>genau die 7 CC-Write-Tools</strong>:
+<code>register_for_tournament</code>, <code>fast_assign_to_teilnehmerliste</code>,
+<code>assign_player_to_teilnehmerliste</code>, <code>unregister_for_tournament</code>,
+<code>finalize_teilnehmerliste</code>, <code>remove_from_teilnehmerliste</code>, <code>update_tournament_deadline</code>.</p>
+<p>Gemeinsame Naht in <code>BaseTool</code> (hält den Per-Tool-Diff klein, analog <code>authorize!</code>):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">account</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">resolve_cc_account</span><span class="p">(</span><span class="ss">tournament</span><span class="p">:,</span><span class="w"> </span><span class="ss">server_context</span><span class="p">:)</span><span class="w">   </span><span class="c1"># User aus server_context[:user_id] → Resolver</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="n">block</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="n">cc_write_identity_block</span><span class="p">(</span><span class="n">account</span><span class="p">,</span><span class="w"> </span><span class="ss">armed</span><span class="p">:)</span><span class="w">           </span><span class="c1"># :none-Gate (s.u.) ODER nil</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="k">return</span><span class="w"> </span><span class="n">block</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">block</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="c1"># ... POST mit cookie_for(account) ...</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="c1"># Audit: operator: cc_audit_operator (CC-Login-Account) + user_id: account.acting_user_id</span>
+</code></pre></div>
 <ul>
-<li><a href="https://edgeguides.rubyonrails.org/security.html#custom-credentials">Rails Credentials Guide</a></li>
-<li><a href="https://edgeapi.rubyonrails.org/classes/Rails/Application.html#method-i-credentials">Rails Encrypted Credentials</a></li>
+<li><strong><code>:none</code>-Block am armed-Schreib-Gate (D-39-8):</strong> <code>armed: true</code> + <code>account.source == :none</code>
+  → jargonfreie Absage („Bitte hinterlege deinen ClubCloud-Zugang im Profil…"),
+  <strong>kein</strong> CC-POST. <code>armed: false</code> (Dry-Run) → Vorschau/Pre-Validation läuft weiter
+  über die geteilte Lese-Session + derselbe Hinweis als Note (<code>cc_identity_hint</code>).</li>
+<li><strong>Nur authentifizierter Kontext (D-39-10):</strong> der Block greift nur, wenn
+  <code>acting_user_id</code> gesetzt ist. Der User-lose Stdio-/Legacy-Pfad (<code>bin/mcp-server</code>,
+  technische Stellvertretung) behält die geteilte Admin-Session.</li>
+<li><strong>Zweischichtige Audit-Attribution:</strong> <code>operator</code> = CC-Login-Account
+  (<code>cc_audit_operator</code>/<code>cc_login_user</code>), <code>user_id</code> = <code>account.acting_user_id</code>
+  (echter Carambus-Akteur). Die ClubCloud kennt nur den Login-Account; Carambus hält
+  den wahren Akteur.</li>
 </ul>
+<h2 id="provisionierungs-ui-39-04">Provisionierungs-UI (39-04)<a class="headerlink" href="#provisionierungs-ui-39-04" title="Permanent link">&para;</a></h2>
+<ul>
+<li><code>RegistrationsController#configure_permitted_parameters</code>: <code>cc_username</code> + <code>cc_password</code>
+  in <code>:account_update</code> permittiert.</li>
+<li><code>RegistrationsController#update_resource</code> — Blanking-Schutz (<strong>D-39-11</strong>):</li>
+<li><code>cc_username</code>-Key NICHT im Update → beide CC-Felder unberührt (Wipe-Schutz).</li>
+<li><code>cc_username</code> leer → beide Felder löschen (bewusstes Entfernen).</li>
+<li><code>cc_username</code> gesetzt + <code>cc_password</code> leer → Passwort behalten.</li>
+<li>beide gesetzt → übernehmen.</li>
+<li>View <code>app/views/devise/registrations/edit.html.erb</code>: Sektion „ClubCloud-Zugang"
+  für <strong>alle</strong> angemeldeten User (<strong>D-39-12</strong>), mit Status + Erklärung. Keine
+  <code>current_password</code>-Re-Auth (folgt dem App-Muster für Profilfelder).</li>
+</ul>
+<h2 id="grenzen-bewusst">Grenzen (bewusst)<a class="headerlink" href="#grenzen-bewusst" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Reads bleiben geteilt (D-39-9):</strong> die ~10 CC-Read-Tools (Meldeliste/Teilnehmerliste/
+  Lookups) nutzen weiter die geteilte Admin-Session (<code>cookie</code>/<code>client_for</code>). Per-User-
+  Creds greifen <strong>nur</strong> bei den 7 Write-Tools. Grund: read-only-Personas sollen den
+  Lesezugriff behalten. <strong>Konsequenz:</strong> auf einem Server ohne geteilten Admin-Zugang
+  scheitern Admin-Reads — unabhängig von eigenen Creds.</li>
+<li><strong>DB-Write-Tools unverändert:</strong> <code>assign/remove_tournament_leiter</code>, <code>link_my_player</code>
+  schreiben lokal in Carambus und attribuieren via <code>user.email</code> — keine CC-Identität.</li>
+<li><strong>Stdio-Pfad geteilt (D-39-10):</strong> kein <code>acting_user_id</code> → geteilte Admin-Session.</li>
+</ul>
+<h2 id="deploy-hinweis">Deploy-Hinweis<a class="headerlink" href="#deploy-hinweis" title="Permanent link">&para;</a></h2>
+<p>⚠️ <strong>39-03 + 39-04 müssen ZUSAMMEN deployt werden</strong> — es gibt <strong>keinen Backfill</strong>.
+Nach 39-03 sind echte Writes für alle Sportwarte ohne hinterlegte Creds geblockt
+(<code>:none</code>), bis sie über die 39-04-UI ihren Zugang hinterlegen.</p>
+<h2 id="datei-landkarte">Datei-Landkarte<a class="headerlink" href="#datei-landkarte" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Datei</th>
+<th>Rolle</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>app/models/user.rb</code></td>
+<td><code>cc_username</code>/<code>encrypts :cc_password</code>/<code>cc_credentials_present?</code></td>
+</tr>
+<tr>
+<td><code>app/models/user_tournament.rb</code></td>
+<td><code>granted_by_user_id</code> (TL-Vererbung)</td>
+</tr>
+<tr>
+<td><code>lib/mcp_server/cc_account_resolver.rb</code></td>
+<td><code>CcAccountResolver.resolve</code> + <code>CcAccount</code></td>
+</tr>
+<tr>
+<td><code>lib/mcp_server/cc_session.rb</code></td>
+<td>per-Account-Session-Cache, <code>cookie_for</code>, <code>cc_login_user</code></td>
+</tr>
+<tr>
+<td><code>lib/mcp_server/tools/base_tool.rb</code></td>
+<td><code>resolve_cc_account</code> / <code>cc_write_identity_block</code> / <code>cc_identity_hint</code> / <code>cc_audit_operator</code></td>
+</tr>
+<tr>
+<td><code>lib/mcp_server/tools/{register,fast_assign,assign_player,unregister,finalize,remove_from_teilnehmerliste,update_tournament_deadline}*.rb</code></td>
+<td>die 7 verdrahteten Write-Tools</td>
+</tr>
+<tr>
+<td><code>app/controllers/registrations_controller.rb</code> + <code>app/views/devise/registrations/edit.html.erb</code></td>
+<td>Provisionierungs-UI</td>
+</tr>
+<tr>
+<td><code>app/models/setting.rb</code></td>
+<td><code>resolve_login_credentials</code> / <code>login_to_cc</code> / <code>get_cc_credentials</code></td>
+</tr>
+</tbody>
+</table>
+<p>Entscheidungen im Detail: <strong>D-39-1 bis D-39-12</strong> (siehe <code>.paul/STATE.md</code> Accumulated
+Context bzw. PROJECT.md Key Decisions).</p>
 
 
 
@@ -3461,12 +3437,12 @@ per-User</strong>-ClubCloud-Zugang (v1.1, hinterlegt im Profil) beschreiben:
     
     
       
-      <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.expand", "navigation.indexes", "search.suggest", "search.highlight", "header.autohide", "toc.follow"], "search": "../../assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "In Zwischenablage kopiert", "clipboard.copy": "In Zwischenablage kopieren", "search.result.more.one": "1 weiteres Suchergebnis auf dieser Seite", "search.result.more.other": "# weitere Suchergebnisse auf dieser Seite", "search.result.none": "Keine Suchergebnisse", "search.result.one": "1 Suchergebnis", "search.result.other": "# Suchergebnisse", "search.result.placeholder": "Suchbegriff eingeben", "search.result.term.missing": "Es fehlt", "select.version": "Version ausw\u00e4hlen"}, "version": {"provider": "mike"}}</script>
+      <script id="__config" type="application/json">{"base": "../../..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.expand", "navigation.indexes", "search.suggest", "search.highlight", "header.autohide", "toc.follow"], "search": "../../../assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.56ea9cef.min.js"></script>
+      <script src="../../../assets/javascripts/bundle.56ea9cef.min.js"></script>
       
-        <script src="../../javascripts/mathjax.js"></script>
+        <script src="../../../javascripts/mathjax.js"></script>
       
         <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
       
@@ -3474,7 +3450,7 @@ per-User</strong>-ClubCloud-Zugang (v1.1, hinterlegt im Profil) beschreiben:
       
         <script src="https://unpkg.com/mermaid@10/dist/mermaid.min.js"></script>
       
-        <script src="../../javascripts/mermaid-init.js"></script>
+        <script src="../../../javascripts/mermaid-init.js"></script>
       
     
   </body>

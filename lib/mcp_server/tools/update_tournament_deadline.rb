@@ -94,7 +94,22 @@ module McpServer
         if resolved_tournament
           auth_err = authorize!(action: :update_deadline, tournament: resolved_tournament, server_context: server_context)
           return auth_err if auth_err
+
+          # Scope (branch/season) aus dem aufgelösten Turnier ableiten, wenn das LLM ihn nicht
+          # mitgibt — Multi-Disziplin-Sportwart/TL liefert branchId/season oft nicht (vgl. b94a2fb7
+          # #3), sonst scheitert der showMeldeliste-Pre-Read an fehlenden Scope-Feldern.
+          if (rt_tcc = resolved_tournament.tournament_cc)
+            branch_cc_id ||= rt_tcc.branch_cc&.cc_id
+            season ||= resolved_tournament.season&.name
+          end
         end
+
+        # Plan 39-03 (D-39-8/-9): effektive CC-Identität; armed:true ohne eigene CC-Identität (:none)
+        # blockt hier (Dry-Run bleibt). Die armed-Writes laufen unter cookie_for(account); der
+        # read-only Pre-Read/Read-Back-Helper (pre_read_meldeliste) bleibt auf der geteilten Session.
+        account = resolve_cc_account(tournament: resolved_tournament, server_context: server_context)
+        identity_block = cc_write_identity_block(account, armed: armed)
+        return identity_block if identity_block
 
         # Plan 10-05.1 Task 1 (D-10-04-B Pivot): Phase-4-Schicht-3 (Production-Block für armed:true)
         # DEPRECATED. Pre-Validation-First-Pattern ersetzt globalen env-Block durch Tool-eigene Constraints.
@@ -119,6 +134,24 @@ module McpServer
           "DB-resolver"
         end
         meldeliste_cc_id ||= resolve_meldeliste_cc_id(tournament_cc_id, server_context: server_context)
+        # DEFER-D2-1 Spiegel-Loch: meldeliste_cc_id fehlt im DB-Abbild, obwohl jedes CC-Turnier
+        # eine Meldeliste hat. Branch-getrieben live aus CC nachladen (8adeb8aa-Muster; nur bei
+        # genau 1 Treffer übernehmen — sonst bleibt es beim Fehler unten).
+        if meldeliste_cc_id.nil? && tournament_cc_id.present?
+          live_candidates = begin
+            McpServer::Tools::LookupMeldelisteForTournament.fetch_from_cc(
+              tournament_cc_id, fed_cc_id: fed_cc_id, branch_cc_id: branch_cc_id,
+              season: season, server_context: server_context
+            )
+          rescue => e
+            Rails.logger.warn "[cc_update_tournament_deadline] live meldeliste resolve: #{e.class}: #{e.message}"
+            nil
+          end
+          if live_candidates.is_a?(Array) && live_candidates.size == 1
+            meldeliste_cc_id = live_candidates.first[:meldeliste_cc_id]
+            pre_read_source = "cc-live-resolver"
+          end
+        end
         if meldeliste_cc_id.nil?
           return error(
             "Cannot resolve meldeliste_cc_id from tournament_cc_id=#{tournament_cc_id} via Carambus DB. " \
@@ -160,7 +193,7 @@ module McpServer
 
         # Schicht 4 (Network-Level): Detail-Dry-Run-Echo — alle 8 Detail-Felder + mschluss_old/new.
         unless armed
-          return text(<<~DRY_RUN.strip)
+          dry_run = <<~DRY_RUN.strip
             [DRY-RUN] Would update Meldeschluss for meldeliste_cc_id=#{meldeliste_cc_id} (#{pre_read[:meldelistenName]}).
             mschluss_old: #{pre_read[:mschluss_old]}
             mschluss_new: #{new_deadline}
@@ -171,6 +204,10 @@ module McpServer
             pre_read_warning: #{pre_read_status[:pre_read_warning]}
             Pass armed:true to actually perform this update.
           DRY_RUN
+          if (hint = cc_identity_hint(account))
+            dry_run = "#{dry_run}\n\nHinweis: #{hint}"
+          end
+          return text(dry_run)
         end
 
         # Armed=true: 2-Step Save-Chain. Step 1: editMeldelisteCheck (Server-Side-Prep).
@@ -181,9 +218,9 @@ module McpServer
           season: pre_read[:season], meldelisteId: meldeliste_cc_id,
           nbut: "1"
         }
-        check_res, check_doc = client.post("editMeldelisteCheck", check_payload, {armed: armed, session_id: cc_session.cookie})
+        check_res, check_doc = client.post("editMeldelisteCheck", check_payload, {armed: armed, session_id: cc_session.cookie_for(account)})
         if cc_session.reauth_if_needed!(check_doc)
-          check_res, check_doc = client.post("editMeldelisteCheck", check_payload, {armed: armed, session_id: cc_session.cookie})
+          check_res, check_doc = client.post("editMeldelisteCheck", check_payload, {armed: armed, session_id: cc_session.cookie_for(account)})
         end
         return error("Unexpected nil response from CC (editMeldelisteCheck, armed mode). MockClient may have rejected.") if check_res.nil?
         return error("CC rejected at editMeldelisteCheck: #{parse_cc_error(check_doc)} (HTTP #{check_res&.code})") if check_res&.code != "200"
@@ -198,7 +235,7 @@ module McpServer
           stag: pre_read[:stag],
           save: "1"
         )
-        save_res, save_doc = client.post("editMeldelisteSave", save_payload, {armed: armed, session_id: cc_session.cookie})
+        save_res, save_doc = client.post("editMeldelisteSave", save_payload, {armed: armed, session_id: cc_session.cookie_for(account)})
         return error("Unexpected nil response from CC (editMeldelisteSave, armed mode).") if save_res.nil?
         return error("CC rejected at editMeldelisteSave: #{parse_cc_error(save_doc)} (HTTP #{save_res&.code})") if save_res&.code != "200"
         save_parsed = parse_cc_error(save_doc)
@@ -226,12 +263,12 @@ module McpServer
         # Plan 10-05.1 Task 3 (D-10-04-D Audit-Trail-Pflicht):
         McpServer::AuditTrail.write_entry(
           tool_name: "cc_update_tournament_deadline",
-          operator: cc_session.respond_to?(:cc_login_user) ? cc_session.cc_login_user.to_s : "unknown",
+          operator: cc_audit_operator,
           payload: {meldeliste_cc_id: meldeliste_cc_id, new_deadline: new_deadline, armed: true},
           pre_validation_results: validation_result[:results],
           read_back_status: read_back_match.to_s,
           result: "success",
-          user_id: server_context&.dig(:user_id)
+          user_id: account.acting_user_id
         )
 
         text(<<~OUT.strip)

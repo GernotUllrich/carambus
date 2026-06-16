@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_06_13_194952) do
+ActiveRecord::Schema[7.2].define(version: 2026_06_14_223411) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -1597,6 +1597,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_06_13_194952) do
     t.string "role", default: "turnier_leiter", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "granted_by_user_id"
+    t.index ["granted_by_user_id"], name: "index_user_tournaments_on_granted_by_user_id"
     t.index ["tournament_id"], name: "index_user_tournaments_on_tournament_id"
     t.index ["user_id", "tournament_id", "role"], name: "index_user_tournaments_unique", unique: true
     t.index ["user_id"], name: "index_user_tournaments_on_user_id"
@@ -1650,6 +1652,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_06_13_194952) do
     t.datetime "mcp_consent_at"
     t.string "jti"
     t.jsonb "persona_grants", default: [], null: false
+    t.string "cc_username"
+    t.string "cc_password"
     t.index ["confirmation_token"], name: "index_users_on_confirmation_token", unique: true
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["invitation_token"], name: "index_users_on_invitation_token", unique: true

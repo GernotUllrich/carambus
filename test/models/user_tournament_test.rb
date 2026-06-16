@@ -33,4 +33,16 @@ class UserTournamentTest < ActiveSupport::TestCase
     assert_equal @user, ut.user
     assert_equal @tournament, ut.tournament
   end
+
+  # D-39-3 (v1.1): granted_by = einsetzender Sportwart, optional (Legacy + globaler-TL-Pfad ohne granter).
+  test "granted_by belongs_to (optional): liefert User; ohne granter valide" do
+    sw = User.create!(email: "ut_granter@test.de", password: "password123")
+    ut = UserTournament.create!(user: @user, tournament: @tournament, granted_by: sw)
+    assert_equal sw, ut.granted_by
+    assert_equal sw.id, ut.granted_by_user_id
+
+    other = User.create!(email: "ut_nogranter@test.de", password: "password123")
+    no_granter = UserTournament.new(user: other, tournament: @tournament)
+    assert no_granter.valid?, "UserTournament ohne granter muss valide sein"
+  end
 end

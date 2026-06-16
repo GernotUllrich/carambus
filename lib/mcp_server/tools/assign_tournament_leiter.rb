@@ -49,16 +49,24 @@ module McpServer
           return text("[Probelauf] Wuerde #{user.display_name} als Turnierleiter von '#{tournament.title}' zuordnen. Mit armed:true durchfuehren.")
         end
 
-        UserTournament.find_or_create_by!(user: user, tournament: tournament, role: "turnier_leiter")
+        operator_id = server_context&.dig(:user_id)
+
+        # D-39-3: granted_by = der einsetzende Sportwart (Operator). NUR on-create gesetzt —
+        # der granter ist der Einsetzer ZUM Einsetzzeitpunkt; ein Nachsetzen auf den aktuellen
+        # Aufrufer bei Bestand waere falsch (Aufrufer != urspruenglicher Einsetzer). Quelle der
+        # CC-Credential-Vererbung fuer TL ohne eigenen CC-Account (Phase 39-02 Resolver).
+        UserTournament.find_or_create_by!(user: user, tournament: tournament, role: "turnier_leiter") do |ut|
+          ut.granted_by_user_id = operator_id
+        end
 
         McpServer::AuditTrail.write_entry(
           tool_name: "cc_assign_tournament_leiter",
-          operator: User.find_by(id: server_context&.dig(:user_id))&.email || "unknown",
-          payload: {tournament_id: tournament.id, user_id: user.id, role: "turnier_leiter"},
+          operator: User.find_by(id: operator_id)&.email || "unknown",
+          payload: {tournament_id: tournament.id, user_id: user.id, role: "turnier_leiter", granted_by_user_id: operator_id},
           pre_validation_results: [],
           read_back_status: "n/a",
           result: "success",
-          user_id: server_context&.dig(:user_id)
+          user_id: operator_id
         )
 
         text("#{user.display_name} ist jetzt Turnierleiter von '#{tournament.title}'.")

@@ -37,7 +37,7 @@ module McpServer
 
         return error("Region not found in Carambus DB. Try force_refresh: true to query CC.") if region.nil?
 
-        text(format_region(region))
+        text(format_region(region, server_context))
       end
 
       # Validates that at least one of the anyof-required params is present.
@@ -55,12 +55,13 @@ module McpServer
         text("CC live response for fed_id=#{fed_id} (status #{res.code})")
       end
 
-      def self.format_region(region)
+      def self.format_region(region, server_context = nil)
         JSON.generate(
           id: region.id,
           shortname: region.shortname,
           name: region.name,
-          cc_id: region.region_cc&.cc_id
+          cc_id: region.region_cc&.cc_id,
+          source: source_label(server_context, :db_mirror) # Quelle (D-40-1): rechte-gegated, "" für read-only
         )
       end
     end

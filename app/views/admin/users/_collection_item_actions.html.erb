@@ -25,11 +25,15 @@
 <%# auf der User-Show-Seite (z.B. sportwart_locations) gerendert -> resource ist dann %>
 <%# KEIN User und haette kein system_admin?. %>
 <% if resource.is_a?(User) && current_user&.system_admin? && !resource.system_admin? && resource != current_user %>
+  <%# stopPropagation: verhindert, dass der Klick zur klickbaren Administrate-Tabellenzeile %>
+  <%# hochblubbert (administrate table.js → window.location = Show-URL). Ohne das überholt %>
+  <%# die Zeilen-Navigation das Formular-POST → Impersonation feuert nie (Race). %>
   <td><%= button_to(
     "Identität übernehmen",
     impersonate_user_path(resource),
     method: :post,
     class: "action-impersonate",
+    onclick: "event.stopPropagation()",
     form: { data: { turbo_confirm: "Als #{resource.display_name} agieren?" } }
   ) %></td>
 <% end %>

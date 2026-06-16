@@ -105,6 +105,7 @@ module McpServer
         body = {
           cc_id: (candidates.length == 1) ? candidates.first[:cc_id] : nil,
           candidates: candidates,
+          source: source_label(server_context, :db_mirror), # Quelle (D-40-1): rechte-gegated, "" für read-only (DB-first primärer Return; Live-Fallback unberührt, D-40-6)
           meta: {
             count: candidates.length,
             region: region.shortname,

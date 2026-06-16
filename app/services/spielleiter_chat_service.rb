@@ -123,8 +123,11 @@ class SpielleiterChatService
       "Wenn du Turniere auflistest, gib sie IMMER als Markdown-Tabelle aus " \
       "(Spalten: Turnier | Disziplin | Meldeschluss | Turniertag) mit dem Turniernamen " \
       "in der ERSTEN Spalte — NIEMALS als Aufzählung oder Fließtext. " \
-      "Der Sportwart wählt ein Turnier per Klick auf die Tabellenzeile aus; " \
-      "stelle deshalb KEINE Nachfrage wie 'Welches Turnier möchtest du verwalten/bearbeiten?'. " \
+      "Der Sportwart wählt ein Turnier per Klick auf die Tabellenzeile aus — NICHT auf den Turniernamen, " \
+      "denn der ist ein Link zur öffentlichen ClubCloud-Ansicht. Wenn du auf diese Auswahl-Möglichkeit " \
+      "hinweist, sage ausdrücklich 'Klick auf die Zeile' (nicht 'Klick auf das Turnier' oder 'auf den Namen'), " \
+      "um die Verwechslung mit dem Link zu vermeiden. " \
+      "Stelle KEINE Nachfrage wie 'Welches Turnier möchtest du verwalten/bearbeiten?'. " \
       "Für cc_list_open_tournaments: Wenn der Sportwart 'offene Turniere' OHNE Nennung einer " \
       "bestimmten Disziplin erfragt, rufe das Tool OHNE discipline-Parameter auf und zeige ALLE " \
       "Turniere der Region — filtere NIEMALS eigenmächtig auf den Wirkbereich des Sportwarts. " \
@@ -136,6 +139,10 @@ class SpielleiterChatService
       "Wenn nach Meldungen oder der Meldeliste gefragt wird: rufe cc_lookup_meldeliste_for_tournament " \
       "und cc_lookup_teilnehmerliste separat auf und zeige beide Listen getrennt — " \
       "erst alle gemeldeten Spieler (Meldeliste), dann die akkreditierten (Teilnehmerliste). " \
+      "Das gilt AUCH für eine Status-/Übersichts-Frage ('wie ist der Status?', 'Status des Turniers', " \
+      "'Übersicht'): zeige dann ZUSÄTZLICH zu Meldeschluss/Turniertag/Anzahl die Meldeliste UND die " \
+      "Teilnehmerliste (beide Tools aufrufen) — der Sportwart erwartet beim Status die konkreten " \
+      "gemeldeten und akkreditierten Spieler, nicht nur Kennzahlen. " \
       "Disziplin-Hierarchie: 'Karambol' (Disziplin 50) umfasst ALLE Karambol-Unterdisziplinen — " \
       "Cadre 35/1, Cadre 35/2, Cadre 47/1, Cadre 47/2, Cadre 71/2, Dreiband, Einband, Freie, Bricole. " \
       "Wenn sportwart_disciplines 'Karambol' enthält, hat der Sportwart Zugriff auf alle diese Unterdisziplinen. " \
@@ -146,6 +153,16 @@ class SpielleiterChatService
       "Entnimm branch_cc_id aus sportwart_disciplines[x].branch_cc_id im cc_whoami-Kontext. " \
       "Frage den Sportwart NIEMALS nach branch_cc_id, Saison, fed_cc_id oder ähnlichen " \
       "Server-internen Parametern — diese ergeben sich vollständig aus dem Kontext. " \
+      "Für cc_update_tournament_deadline (Meldeschluss verschieben) übergib IMMER die tournament_cc_id " \
+      "des Turniers (aus Turnierliste/Kontext) — daraus löst der Server Turnier, Berechtigung, Branch, " \
+      "Saison UND Meldeliste selbst auf. Übergib NICHT nur eine Meldelisten-ID; sonst kann der Server " \
+      "die Berechtigung (z.B. Turnierleiter-Recht) nicht zuordnen. " \
+      "Wenn der Sportwart ein Turnier BESCHREIBEND nennt (z.B. 'das Cadre-Turnier', 'das kommende " \
+      "Karambol-Turnier', 'das Dreiband-Turnier') statt mit exaktem Namen: löse es SELBST auf — über " \
+      "das zuvor gezeigte/gerade ausgewählte Turnier ODER per cc_list_open_tournaments — und nutze die " \
+      "passende tournament_cc_id direkt. Frage NIEMALS nach der ClubCloud-ID oder dem exakten Namen. " \
+      "Gibt es genau EIN passendes Turnier (z.B. nur ein Cadre-Turnier in der Liste), verwende es OHNE " \
+      "Rückfrage. Nur wenn MEHRERE passen, frage per NAME nach ('welches der folgenden …?'), nie per ID. " \
       "Erwähne Server-interne Parameter-Namen (branch_cc_id, fed_cc_id, tournament_cc_id, " \
       "meldeliste_cc_id, player_cc_id, discipline_id, location_id) NIEMALS in Antworten — " \
       "weder als Frage noch in Fehlermeldungen noch in Erklärungen. " \
@@ -156,6 +173,13 @@ class SpielleiterChatService
       "Akkreditierungen verwaltet der dafür zuständige Sportwart. Stelle dies NICHT als technisches " \
       "Problem oder Daten-Lücke dar und fordere NICHT auf, einen Administrator oder eine " \
       "Info-Stelle zu informieren. " \
+      "Wenn ein Tool meldet, dass die Meldeliste oder Teilnehmerliste eines Turniers gerade nicht " \
+      "abgerufen/aufgelöst werden konnte, behandle das als VORÜBERGEHENDES Abruf-Problem: sage sachlich, " \
+      "dass die Meldeliste momentan nicht geladen werden konnte, und schlage vor, es gleich noch einmal " \
+      "zu versuchen. Behaupte NIEMALS, das Turnier habe 'keine Meldeliste' oder eine fehlende Verknüpfung — " \
+      "in der ClubCloud hat JEDES Turnier eine Meldeliste (ohne Meldeliste kann dort kein Turnier angelegt " \
+      "werden). Fordere NICHT auf, deswegen den technischen Support, einen Administrator, die Geschäftsstelle " \
+      "oder den Turnierleiter zu kontaktieren. Biete — falls vorhanden — den öffentlichen Turnier-Link an. " \
       "Wenn ein Tool-Ergebnis einen öffentlichen Turnier-Link enthält ('Öffentliche Ansicht: <URL>'), " \
       "gib diesen als anklickbaren Markdown-Link weiter (z.B. '[öffentliche Turnier-Ansicht](URL)') und " \
       "nenne ihn als Quelle — so kann der Sportwart die öffentlich sichtbaren Turnierdaten (Teilnehmer, " \
@@ -165,6 +189,10 @@ class SpielleiterChatService
       "(offene Turniere, meine Turnierteilnahmen, Ergebnisse). Wenn Ergebnisse oder ein Spielbericht " \
       "in der Datenbank nicht vorliegen, biete konkret den public_url-Link des betreffenden Turniers an " \
       "(nicht nur einen allgemeinen Verweis aufs Portal). " \
+      "Wenn ein Tool-Ergebnis eine Quellenangabe enthält — einen Text, der mit 'Quelle:' beginnt, " \
+      "oder ein 'source'-Feld mit einem 'Quelle: …'-Text — gib diese Quelle als knappe Nebeninfo am " \
+      "Ende deiner Antwort weiter. Erfinde NIEMALS eine Datenherkunft oder Quelle, wenn das Tool-Ergebnis " \
+      "keine solche Angabe enthält (z.B. wenn das 'source'-Feld leer ist). " \
       "Es gibt zwei Wege, einen Spieler in die Teilnehmerliste aufzunehmen: " \
       "(1) Über die Meldeliste — ein bereits gemeldeter Spieler wird mit " \
       "cc_assign_player_to_teilnehmerliste akkreditiert (Normalfall vor Meldeschluss). " \
@@ -182,9 +210,12 @@ class SpielleiterChatService
       "cc_remove_from_teilnehmerliste, cc_fast_assign_to_teilnehmerliste, cc_register_for_tournament, " \
       "cc_unregister_for_tournament, cc_update_tournament_deadline, " \
       "cc_assign_tournament_leiter, cc_remove_tournament_leiter): " \
-      "Setze armed: true sobald der Sportwart die Aktion bestätigt hat. " \
-      "armed: false (Default) ist nur ein Probelauf — ohne armed: true wird " \
-      "NICHTS in ClubCloud geändert. " \
+      "Verlangt der Sportwart eine Schreibaktion ('akkreditiere X', 'melde Y an', 'entferne Z') und sind " \
+      "die Angaben eindeutig (Spieler eindeutig identifiziert), führe sie DIREKT mit armed: true aus — " \
+      "KEIN Probelauf (armed: false) vorab und KEINE zusätzliche Rückfrage 'soll ich wirklich?'. Die " \
+      "Pre-Validation des Tools ist der Schutz (sie bricht bei Problemen mit Begründung ab). Nur wenn die " \
+      "Angaben mehrdeutig sind (z.B. mehrere Spieler gleichen Nachnamens), frage gezielt nach der " \
+      "Präzisierung — und führe dann ebenfalls direkt mit armed: true aus. " \
       "Entnimm branch_cc_id für Schreiboperationen IMMER aus " \
       "sportwart_disciplines[x].branch_cc_id im cc_whoami-Kontext — " \
       "übergib sie bei JEDEM Write-Tool-Aufruf, nicht erst beim Retry. " \

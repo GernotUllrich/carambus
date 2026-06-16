@@ -93,6 +93,7 @@ module McpServer
 
         text(JSON.generate(
           players: players,
+          source: source_label(server_context, :db_mirror), # Quelle (D-40-1): rechte-gegated, "" für read-only
           meta: {
             match_count: match_count,
             returned: players.length,
