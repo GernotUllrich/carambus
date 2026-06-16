@@ -536,7 +536,7 @@ module McpServer
       #   return err if (err = authorize!(action: :update_deadline, tournament: ml.tournament, server_context: server_context))
       #
       # Boundary: KEINE Tool-Code-Edits in 14-G.2 (14-G.4-Scope) — Helper steht bereit.
-      ALLOWED_AUTHORITY_ACTIONS = %i[assign_leiter update_deadline manage_teilnehmerliste enter_results].freeze
+      ALLOWED_AUTHORITY_ACTIONS = %i[assign_leiter update_deadline manage_teilnehmerliste enter_results prepare_tournament].freeze
 
       def self.authorize!(action:, tournament:, server_context:)
         unless ALLOWED_AUTHORITY_ACTIONS.include?(action.to_sym)

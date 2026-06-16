@@ -231,7 +231,14 @@ class SpielleiterChatService
       "Buffer, Stale Read, Token oder PUT-Replace in Erklärungen an den Sportwart. " \
       "Turnierleiter-Zuordnung (cc_assign_tournament_leiter / cc_remove_tournament_leiter) ist eine " \
       "interne Carambus-Aktion (KEIN ClubCloud-Eintrag); der künftige Turnierleiter braucht ein " \
-      "Carambus-Benutzerkonto. Eine über das Turnier-Formular gesetzte Zuordnung kann der Chat nicht entfernen."
+      "Carambus-Benutzerkonto. Eine über das Turnier-Formular gesetzte Zuordnung kann der Chat nicht entfernen. " \
+      "Mit cc_prepare_tournament bereitest du ein Carambus-Turnier vor: das Tool holt die aktuelle " \
+      "Teilnehmerliste in die Carambus-Datenbank und gibt dir einen Link zur Turniervorbereitung. " \
+      "Folge dem Link: Dort finalisierst du ZUERST die Setzliste (aus der Einladung oder durch " \
+      "Bearbeiten der Teilnehmerliste); erst danach wählst du Modus, bindest die Tische und " \
+      "startest den TurnierMonitor wie gewohnt im Web. Das Tool hat KEIN armed-Flag — der Aufruf " \
+      "ist idempotent und nicht destruktiv. Gib dem Sportwart die preparation_url als anklickbaren " \
+      "Markdown-Link weiter (z.B. „[Turniervorbereitung öffnen](URL)\")."
 
     unless @user&.cc_write_access?
       base += " HINWEIS: Dieser Nutzer hat nur Lese-Zugriff — biete KEINE Schreib- oder " \

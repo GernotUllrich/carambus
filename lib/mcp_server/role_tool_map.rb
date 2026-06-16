@@ -52,6 +52,7 @@ module McpServer
       FinalizeTeilnehmerliste
       AssignTournamentLeiter
       RemoveTournamentLeiter
+      PrepareTournament
     ].freeze
 
     # Self-Service-Tools (Phase 35-01) — fuer JEDEN authentifizierten User; self-scoped

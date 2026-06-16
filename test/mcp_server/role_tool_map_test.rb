@@ -8,9 +8,9 @@ require_relative "../../lib/mcp_server/role_tool_map"
 # in BaseTool.authorize! (14-G.2); KEIN MAPPING-Hash mehr.
 class McpServer::RoleToolMapTest < ActiveSupport::TestCase
   # Drift-Guard: 23 → 24 (34-01) → 26 (34-04) → 27 (35-01) → 30 (35-02 Mein-Billard)
-  # → 32 (36-02 Doku/Suche: DocSearch/SmartSearch).
-  test "ALL_TOOLS-Größe = 32 (30 + Phase-36-02 Doku/Suche-Tools)" do
-    assert_equal 32, McpServer::RoleToolMap::ALL_TOOLS.size,
+  # → 32 (36-02 Doku/Suche: DocSearch/SmartSearch) → 33 (42-01 PrepareTournament-Spike).
+  test "ALL_TOOLS-Größe = 33 (32 + Phase-42-01 PrepareTournament)" do
+    assert_equal 33, McpServer::RoleToolMap::ALL_TOOLS.size,
       "Drift-Guard: ALL_TOOLS-Count hat sich geändert. Falls beabsichtigt → Plan-Bezug aktualisieren."
   end
 
