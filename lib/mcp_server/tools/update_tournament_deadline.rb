@@ -94,6 +94,14 @@ module McpServer
         if resolved_tournament
           auth_err = authorize!(action: :update_deadline, tournament: resolved_tournament, server_context: server_context)
           return auth_err if auth_err
+
+          # Scope (branch/season) aus dem aufgelösten Turnier ableiten, wenn das LLM ihn nicht
+          # mitgibt — Multi-Disziplin-Sportwart/TL liefert branchId/season oft nicht (vgl. b94a2fb7
+          # #3), sonst scheitert der showMeldeliste-Pre-Read an fehlenden Scope-Feldern.
+          if (rt_tcc = resolved_tournament.tournament_cc)
+            branch_cc_id ||= rt_tcc.branch_cc&.cc_id
+            season ||= resolved_tournament.season&.name
+          end
         end
 
         # Plan 39-03 (D-39-8/-9): effektive CC-Identität; armed:true ohne eigene CC-Identität (:none)
@@ -126,6 +134,24 @@ module McpServer
           "DB-resolver"
         end
         meldeliste_cc_id ||= resolve_meldeliste_cc_id(tournament_cc_id, server_context: server_context)
+        # DEFER-D2-1 Spiegel-Loch: meldeliste_cc_id fehlt im DB-Abbild, obwohl jedes CC-Turnier
+        # eine Meldeliste hat. Branch-getrieben live aus CC nachladen (8adeb8aa-Muster; nur bei
+        # genau 1 Treffer übernehmen — sonst bleibt es beim Fehler unten).
+        if meldeliste_cc_id.nil? && tournament_cc_id.present?
+          live_candidates = begin
+            McpServer::Tools::LookupMeldelisteForTournament.fetch_from_cc(
+              tournament_cc_id, fed_cc_id: fed_cc_id, branch_cc_id: branch_cc_id,
+              season: season, server_context: server_context
+            )
+          rescue => e
+            Rails.logger.warn "[cc_update_tournament_deadline] live meldeliste resolve: #{e.class}: #{e.message}"
+            nil
+          end
+          if live_candidates.is_a?(Array) && live_candidates.size == 1
+            meldeliste_cc_id = live_candidates.first[:meldeliste_cc_id]
+            pre_read_source = "cc-live-resolver"
+          end
+        end
         if meldeliste_cc_id.nil?
           return error(
             "Cannot resolve meldeliste_cc_id from tournament_cc_id=#{tournament_cc_id} via Carambus DB. " \

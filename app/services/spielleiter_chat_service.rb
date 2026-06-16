@@ -153,6 +153,10 @@ class SpielleiterChatService
       "Entnimm branch_cc_id aus sportwart_disciplines[x].branch_cc_id im cc_whoami-Kontext. " \
       "Frage den Sportwart NIEMALS nach branch_cc_id, Saison, fed_cc_id oder ähnlichen " \
       "Server-internen Parametern — diese ergeben sich vollständig aus dem Kontext. " \
+      "Für cc_update_tournament_deadline (Meldeschluss verschieben) übergib IMMER die tournament_cc_id " \
+      "des Turniers (aus Turnierliste/Kontext) — daraus löst der Server Turnier, Berechtigung, Branch, " \
+      "Saison UND Meldeliste selbst auf. Übergib NICHT nur eine Meldelisten-ID; sonst kann der Server " \
+      "die Berechtigung (z.B. Turnierleiter-Recht) nicht zuordnen. " \
       "Wenn der Sportwart ein Turnier BESCHREIBEND nennt (z.B. 'das Cadre-Turnier', 'das kommende " \
       "Karambol-Turnier', 'das Dreiband-Turnier') statt mit exaktem Namen: löse es SELBST auf — über " \
       "das zuvor gezeigte/gerade ausgewählte Turnier ODER per cc_list_open_tournaments — und nutze die " \
