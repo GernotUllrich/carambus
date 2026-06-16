@@ -227,7 +227,14 @@ module McpServer
         end
         if name.present?
           tokens = tokenize_search_query(name)
-          matches = apply_token_search_filter(User.all, tokens, %w[first_name last_name username]).limit(6).to_a
+          # Auch über den verknüpften Player suchen (Phase 35): User-Namensfelder sind oft leer
+          # (Live-Befund 2026-06-16: User 50000003 first_name/last_name/username = nil), die
+          # Identität steckt im verknüpften Player (firstname="Dr. Jörg", lastname="Unger"). So
+          # findet „Dr. Jörg Unger" den User über players.firstname/lastname — der Titel „Dr."
+          # matcht player.firstname. ß/Umlaut-Normalisierung greift via apply_token_search_filter.
+          scope = User.left_joins(:player).distinct
+          columns = %w[users.first_name users.last_name users.username players.firstname players.lastname]
+          matches = apply_token_search_filter(scope, tokens, columns).limit(6).to_a
           case matches.size
           when 0
             [nil, error("Kein Benutzerkonto zu '#{name}' gefunden. Der Turnierleiter braucht ein Carambus-Benutzerkonto.")]
