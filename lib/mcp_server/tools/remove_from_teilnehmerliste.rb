@@ -76,7 +76,7 @@ module McpServer
         return identity_block if identity_block
 
         # Reuse Phase-7 helpers from AssignPlayerToTeilnehmerliste (DRY).
-        scope = AssignPlayerToTeilnehmerliste.resolve_scope_filters(tournament_cc_id, fed_cc_id, branch_cc_id, season, disciplin_id, cat_id)
+        scope = AssignPlayerToTeilnehmerliste.resolve_scope_filters(tournament_cc_id, fed_cc_id, branch_cc_id, season, disciplin_id, cat_id, server_context: server_context)
         client = cc_session.client_for(server_context)
 
         # Plan 33-01: Live-State-Check (showTeilnehmerliste Tab-3 + showMeldeliste Tab-2) statt

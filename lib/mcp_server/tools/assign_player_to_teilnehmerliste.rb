@@ -114,7 +114,7 @@ module McpServer
         # DEPRECATED. Pre-Validation-First-Pattern ersetzt globalen env-Block durch Tool-eigene Constraints.
 
         # DB-first-Resolver (Best-Effort, NBV-only-Optimization)
-        scope = resolve_scope_filters(tournament_cc_id, fed_cc_id, branch_cc_id, season, disciplin_id, cat_id)
+        scope = resolve_scope_filters(tournament_cc_id, fed_cc_id, branch_cc_id, season, disciplin_id, cat_id, server_context: server_context)
         client = cc_session.client_for(server_context)
 
         # Plan 33-01 (2026-06-11): gemeinsamer Live-State-Check statt editTeilnehmerlisteCheck-Edit-Buffer.
@@ -280,19 +280,30 @@ module McpServer
       end
 
       # Resolve scope filters from DB (TournamentCc) + Override-Params (Best-Effort, NBV-only-Constraint).
-      def self.resolve_scope_filters(tournament_cc_id, fed_cc_id, branch_cc_id, season, disciplin_id, cat_id)
-        # Try DB-first lookup (best-effort, may fail for NBV-only tournaments without linkage)
+      def self.resolve_scope_filters(tournament_cc_id, fed_cc_id, branch_cc_id, season, disciplin_id, cat_id, server_context: nil)
+        # DB-first lookup, CONTEXT-scoped — cc_id ist NICHT global eindeutig (sonst falscher
+        # Verbands-/Disziplin-Datensatz, z.B. cc_id 939 = blmr-9-Ball statt nbv-Cadre;
+        # vgl. project_cc_id_not_unique). Best-effort, kann für reine CC-Turniere ohne Linkage nil sein.
+        context = effective_cc_region(server_context).to_s.downcase
         tournament_cc = begin
-          TournamentCc.find_by(cc_id: tournament_cc_id)
+          if context.present?
+            TournamentCc.find_by(cc_id: tournament_cc_id, context: context)
+          else
+            TournamentCc.find_by(cc_id: tournament_cc_id)
+          end
         rescue
           nil
         end
         {
-          fedId: fed_cc_id || tournament_cc&.region_cc&.cc_id || default_fed_id,
-          branchId: branch_cc_id || tournament_cc&.branch_cc_id,
+          # fedId/branchId über die korrekte Assoziationskette: TournamentCc → branch_cc → region_cc
+          # (TournamentCc hat KEIN region_cc; branch_cc_id ist die Rails-FK, NICHT die CC-cc_id).
+          fedId: fed_cc_id || tournament_cc&.branch_cc&.region_cc&.cc_id || default_fed_id,
+          branchId: branch_cc_id || tournament_cc&.branch_cc&.cc_id,
           disciplinId: disciplin_id || "*",
           catId: cat_id || "*",
-          season: season || tournament_cc&.season&.name
+          # TournamentCc.season ist eine String-Spalte (kein Assoziations-Objekt → kein .name);
+          # Fallback auf den Saisonnamen des verknüpften Turniers, wenn die Spalte leer ist.
+          season: season || tournament_cc&.season.presence || tournament_cc&.tournament&.season&.name
         }.compact
       end
 
