@@ -47,6 +47,12 @@ module McpServer
           return auth_err if auth_err
         end
 
+        # Plan 39-03 (D-39-8/-9): effektive CC-Identität; armed:true ohne eigene CC-Identität (:none)
+        # blockt hier (Dry-Run bleibt). Write läuft unter cookie_for(account).
+        account = resolve_cc_account(tournament: resolved_tournament, server_context: server_context)
+        identity_block = cc_write_identity_block(account, armed: armed)
+        return identity_block if identity_block
+
         # Plan 10-05.1 Task 4 (D-10-04-G Pre-Validation-First-Pattern, 3 Constraints):
         # cc_finalize macht (heute) kein Pre-Read; defensive ok:true für die Constraints,
         # CC selbst rejected mit klarer Error-Message falls Constraint verletzt.
@@ -65,11 +71,15 @@ module McpServer
         res, doc = client.post(
           "releaseMeldeliste",
           {branchId: branch_id, fedId: fed_id, season: season, meldelisteId: meldeliste_id, release: ""},
-          {armed: armed, session_id: cc_session.cookie}
+          {armed: armed, session_id: cc_session.cookie_for(account)}
         )
 
         # Dry-run-Pfad: armed: false → RegionCc::ClubCloudClient#post gibt [nil, nil] zurück für Write-Actions
-        return text("Would finalize Meldeliste #{meldeliste_id} for branch #{branch_id}, season #{season}.") unless armed
+        unless armed
+          msg = "Would finalize Meldeliste #{meldeliste_id} for branch #{branch_id}, season #{season}."
+          msg = "#{msg}\n\nHinweis: #{cc_identity_hint(account)}" if cc_identity_hint(account)
+          return text(msg)
+        end
 
         # Armed-Pfad: res muss vorhanden und 200 sein
         if res.nil?
@@ -82,7 +92,7 @@ module McpServer
           res, doc = client.post(
             "releaseMeldeliste",
             {branchId: branch_id, fedId: fed_id, season: season, meldelisteId: meldeliste_id, release: ""},
-            {armed: armed, session_id: cc_session.cookie}
+            {armed: armed, session_id: cc_session.cookie_for(account)}
           )
         end
 
@@ -97,12 +107,12 @@ module McpServer
         # Plan 10-05.1 Task 4 (D-10-04-D Audit-Trail-Pflicht):
         McpServer::AuditTrail.write_entry(
           tool_name: "cc_finalize_teilnehmerliste",
-          operator: cc_session.respond_to?(:cc_login_user) ? cc_session.cc_login_user.to_s : "unknown",
+          operator: cc_audit_operator,
           payload: {meldeliste_id: meldeliste_id, branch_id: branch_id, season: season, armed: true},
           pre_validation_results: validation_result[:results],
           read_back_status: "skipped",
           result: "success",
-          user_id: server_context&.dig(:user_id)
+          user_id: account.acting_user_id
         )
 
         text("Finalized Meldeliste #{meldeliste_id} for branch #{branch_id}, season #{season}.")

@@ -54,6 +54,61 @@ module McpServer
         McpServer::CcSession
       end
 
+      # ---------------------------------------------------------------------------------------
+      # Plan 39-03 (D-39-2/-3/-6/-7/-8/-9): Per-User-CC-Identitäts-Naht für die CC-Write-Tools.
+      # Hält den Per-Tool-Diff 1-zeilig (analog authorize!). Read-Tools nutzen diese Naht NICHT
+      # (bleiben auf der geteilten Default-Session). Jargonfreie Sportwart-Sprache (MCP-Language-
+      # Direktive) — KEINE Begriffe wie Token/Session/Cache/Credential-Store.
+      # ---------------------------------------------------------------------------------------
+      CC_IDENTITY_REQUIRED_MSG =
+        "Für Änderungen in der ClubCloud brauche ich deinen persönlichen ClubCloud-Zugang. " \
+        "Bitte hinterlege deinen ClubCloud-Benutzernamen und dein Passwort in deinem Profil — " \
+        "danach kann ich die Aktion unter deinem Namen ausführen."
+
+      # Löst den effektiven CC-Account für diesen Tool-Call auf (D-39-2/-3/-6).
+      # user = server_context[:user_id] (D-39-7); tournament (optional) ermöglicht die TL-Vererbung.
+      # Liefert IMMER ein CcAccount (kann :none sein) — der Block erfolgt am armed-Gate via
+      # cc_write_identity_block (D-39-8), NICHT hier (sonst bräche der Dry-Run).
+      def self.resolve_cc_account(tournament:, server_context:)
+        user = User.find_by(id: server_context&.dig(:user_id))
+        McpServer::CcAccountResolver.resolve(user: user, tournament: tournament)
+      rescue => e
+        Rails.logger.warn "[BaseTool.resolve_cc_account] #{e.class}: #{e.message}"
+        McpServer::CcAccountResolver.none(nil)
+      end
+
+      # Hard-Block-Gate (D-39-8): error-Response NUR wenn ein echter Schreibvorgang (armed:true)
+      # OHNE auflösbare CC-Identität (:none) liefe. Sonst nil. Dry-Run (armed:false) wird NIE
+      # geblockt — Vorschau bleibt (+ cc_identity_hint als Note).
+      #
+      # D-39-10: Der Block greift NUR im authentifizierten Kontext (server_context[:user_id] aufgelöst
+      # → account.acting_user_id gesetzt). Der User-lose Stdio-/Legacy-Pfad (bin/mcp-server,
+      # technische-Stellvertretung; acting_user_id nil) nutzt weiterhin die geteilte Admin-Session
+      # (D-13-01-F Backwards-Compat) — kein Block, kein Profil zum Hinterlegen.
+      def self.cc_write_identity_block(account, armed:)
+        return nil if account&.resolved?
+        return nil unless armed
+        return nil if account.nil? || account.acting_user_id.blank?
+        error(CC_IDENTITY_REQUIRED_MSG)
+      end
+
+      # Nicht-blockierender Hinweis für Dry-Run-Antworten, wenn ein AUTHENTIFIZIERTER User keine
+      # eigene CC-Identität hat (D-39-10: gated wie cc_write_identity_block — Stdio-Pfad ohne User
+      # bekommt keinen Hinweis). nil bei resolved? ODER fehlendem acting_user_id.
+      def self.cc_identity_hint(account)
+        return nil if account&.resolved?
+        return nil if account.nil? || account.acting_user_id.blank?
+        CC_IDENTITY_REQUIRED_MSG
+      end
+
+      # AuditTrail-operator = CC-Login-Account des aktiven CC-Accounts (D-39-2: zweischichtig —
+      # operator = CC-Seite; user_id = echter Carambus-Akteur via account.acting_user_id).
+      # Ersetzt das duplizierte `cc_session.respond_to?(:cc_login_user) ? … : "unknown"`-Inline.
+      def self.cc_audit_operator
+        return "unknown" unless cc_session.respond_to?(:cc_login_user)
+        cc_session.cc_login_user.to_s.presence || "unknown"
+      end
+
       # Plan 10-05 Task 4 (Befund #8 D-10-03-5): Pre-Read-Verify-Status-Helper für Write-Tools.
       # Sportwart kann manuell eingegebene cc_id (meldeliste_cc_id, player_cc_id) nicht
       # selbständig verifizieren. Vorhandenes Pattern `read_back_match` zeigt nach-Schreib-Status,
@@ -172,7 +227,14 @@ module McpServer
         end
         if name.present?
           tokens = tokenize_search_query(name)
-          matches = apply_token_search_filter(User.all, tokens, %w[first_name last_name username]).limit(6).to_a
+          # Auch über den verknüpften Player suchen (Phase 35): User-Namensfelder sind oft leer
+          # (Live-Befund 2026-06-16: User 50000003 first_name/last_name/username = nil), die
+          # Identität steckt im verknüpften Player (firstname="Dr. Jörg", lastname="Unger"). So
+          # findet „Dr. Jörg Unger" den User über players.firstname/lastname — der Titel „Dr."
+          # matcht player.firstname. ß/Umlaut-Normalisierung greift via apply_token_search_filter.
+          scope = User.left_joins(:player).distinct
+          columns = %w[users.first_name users.last_name users.username players.firstname players.lastname]
+          matches = apply_token_search_filter(scope, tokens, columns).limit(6).to_a
           case matches.size
           when 0
             [nil, error("Kein Benutzerkonto zu '#{name}' gefunden. Der Turnierleiter braucht ein Carambus-Benutzerkonto.")]
@@ -300,11 +362,28 @@ module McpServer
       def self.apply_token_search_filter(scope, tokens, columns)
         return scope if tokens.empty?
         tokens.reduce(scope) do |current_scope, token|
-          escaped = ActiveRecord::Base.sanitize_sql_like(token)
+          # ß/Umlaut-insensitive Suche (User-Befund 2026-06-16: „Meissner" fand „Meißner" nicht).
+          # Beide Seiten auf ASCII normalisieren (ß→ss, ä→ae, ö→oe, ü→ue) — symmetrisch, d.h.
+          # „Meissner"↔„Meißner" und „Mueller"↔„Müller" matchen jeweils gegenseitig.
+          escaped = ActiveRecord::Base.sanitize_sql_like(normalize_for_search(token))
           like_pattern = "%#{escaped}%"
-          token_clause = columns.map { |col| "#{col} ILIKE ?" }.join(" OR ")
+          token_clause = columns.map { |col| "#{search_normalize_sql(col)} ILIKE ?" }.join(" OR ")
           current_scope.where(token_clause, *Array.new(columns.size, like_pattern))
         end
+      end
+
+      # Ruby-seitige ASCII-Normalisierung eines Suchbegriffs (ß/Umlaute → Mehrbuchstaben-ASCII).
+      # force_encoding("UTF-8")+scrub: Eingaben können ASCII-8BIT sein (z.B. CC-Net::HTTP-Bodies,
+      # vgl. D-33-3) → gsub mit UTF-8-Literalen würde sonst Encoding::CompatibilityError werfen.
+      def self.normalize_for_search(str)
+        str.to_s.dup.force_encoding("UTF-8").scrub.downcase
+          .gsub("ß", "ss").gsub("ä", "ae").gsub("ö", "oe").gsub("ü", "ue")
+      end
+
+      # SQL-Pendant: normalisiert eine (vertrauenswürdige, hartkodierte) Spalte gleich wie
+      # normalize_for_search. ß→ss/ä→ae sind 1→2-Ersetzungen → replace (nicht translate).
+      def self.search_normalize_sql(col)
+        "replace(replace(replace(replace(lower(#{col}), 'ß', 'ss'), 'ä', 'ae'), 'ö', 'oe'), 'ü', 'ue')"
       end
 
       # Plan 14-02.2: Detect Title-Präfixe im Query (Dr./Prof./Dr.-Ing./Dipl.-Ing./Mag./
@@ -581,6 +660,38 @@ module McpServer
       def self.public_view_hint(tournament)
         url = public_tournament_url(tournament)
         url ? " Öffentliche Ansicht (für alle einsehbar): #{url}" : ""
+      end
+
+      # Quellen-Attribution (Phase 40, D-40-1/D-40-2): die INTERNE Datenquelle rechte-gegated
+      # benennen. Der ÖFFENTLICHE Link (public_view_hint) bleibt für ALLE; die interne Quelle
+      # (DB-Abbild vs. Live-CC-Abruf) wird NUR Usern mit CC-Schreibrecht (cc_write_access?)
+      # genannt. Read-only User + User-loser Stdio-Pfad (kein server_context[:user_id]) bekommen
+      # KEINE interne Quellennote. Wording jargonfrei (server.instructions-Verbotsliste beachtet).
+      SOURCE_NOTES = {
+        db_mirror: "Quelle: Carambus-Datenbank (Abbild der ClubCloud).",
+        live_cc: "Quelle: direkt aus der ClubCloud abgerufen."
+      }.freeze
+
+      # Hat der handelnde User (server_context[:user_id]) CC-Schreibrecht? false ohne User.
+      def self.acting_can_write_cc?(server_context)
+        User.find_by(id: server_context&.dig(:user_id))&.cc_write_access? || false
+      rescue => e
+        Rails.logger.warn "[BaseTool.acting_can_write_cc?] #{e.class}: #{e.message}"
+        false
+      end
+
+      # Bare Quellen-Label (gated) — für JSON-Antworten (meta.source). "" wenn nicht
+      # schreibberechtigt (D-40-1) oder unbekannte Quellenart.
+      def self.source_label(server_context, kind)
+        return "" unless acting_can_write_cc?(server_context)
+        SOURCE_NOTES[kind] || ""
+      end
+
+      # Anhängbarer Quellen-Suffix (führendes Leerzeichen, analog public_view_hint) — für
+      # Prosa-Antworten. "" wenn nicht schreibberechtigt oder unbekannte Quellenart.
+      def self.source_note(server_context, kind)
+        label = source_label(server_context, kind)
+        label.empty? ? "" : " #{label}"
       end
 
       # Plan 14-G.12 Task 4 / D-14-G.12-B:

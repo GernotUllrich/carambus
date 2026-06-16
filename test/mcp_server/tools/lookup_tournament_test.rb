@@ -69,6 +69,27 @@ class McpServer::Tools::LookupTournamentTest < ActiveSupport::TestCase
     assert_equal sample.cc_id, body["cc_id"]
   end
 
+  # Phase 40 (D-40-1): interne Quellenangabe rechte-gegated im JSON-source-Feld.
+  # Direkt auf format_tournament_cc — kein gespeichertes TournamentCc-Fixture nötig
+  # (die fixture-abhängigen Tests skippen mangels qualifizierendem TournamentCc in der Test-DB).
+  test "Quellenangabe: write-berechtigter User bekommt source-Feld (DB-Abbild)" do
+    tc = TournamentCc.new(cc_id: 999_001, name: "Quellen-Testturnier", context: "nbv", season: "2025/2026")
+    json = McpServer::Tools::LookupTournament.format_tournament_cc(
+      tc, server_context: {user_id: users(:system_admin).id}
+    )
+    body = JSON.parse(json)
+    assert_equal "Quelle: Carambus-Datenbank (Abbild der ClubCloud).", body["source"]
+  end
+
+  test "Quellenangabe: read-only User bekommt KEINE interne Quelle (source leer)" do
+    tc = TournamentCc.new(cc_id: 999_002, name: "Quellen-Testturnier", context: "nbv", season: "2025/2026")
+    json = McpServer::Tools::LookupTournament.format_tournament_cc(
+      tc, server_context: {user_id: users(:player).id}
+    )
+    body = JSON.parse(json)
+    assert_equal "", body["source"]
+  end
+
   test "F-4 cc_id-Alias: meisterschaft_id hat Präzedenz wenn beide gesetzt" do
     sample = TournamentCc.where.not(cc_id: nil).where.not(context: nil).first
     skip "No TournamentCc fixtures available" unless sample

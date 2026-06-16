@@ -103,6 +103,33 @@
           </div>
         </div>
 
+        <h3 class="mt-12 text-xl font-medium mb-6">ClubCloud-Zugang</h3>
+
+        <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">
+          Hinterlege hier deinen persönlichen ClubCloud-Login. Nur nötig, wenn du Turniere in der
+          ClubCloud verwaltest (Meldungen, Akkreditierung). Aktionen werden dann unter deinem eigenen
+          ClubCloud-Konto gespeichert — nicht unter einer geteilten Sammelkennung.
+        </p>
+
+        <% if current_user.cc_credentials_present? %>
+          <p class="text-sm font-medium text-green-600 dark:text-green-400 mb-4">✓ ClubCloud-Zugang hinterlegt</p>
+        <% else %>
+          <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">Noch kein ClubCloud-Zugang hinterlegt.</p>
+        <% end %>
+
+        <div class="form-group mb-4">
+          <%= form.label :cc_username, "ClubCloud-Benutzername", class: "text-lg font-medium mb-2 block" %>
+          <%= form.text_field :cc_username, value: current_user.cc_username, autocomplete: "off",
+              class: "w-full px-4 py-3 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-black dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400" %>
+        </div>
+
+        <div class="form-group mb-4">
+          <%= form.label :cc_password, "ClubCloud-Passwort", class: "text-lg font-medium mb-2 block" %>
+          <%= form.password_field :cc_password, autocomplete: "new-password", placeholder: "Leer lassen = unverändert",
+              class: "w-full px-4 py-3 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-black dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400" %>
+          <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">Zum Entfernen das Benutzername-Feld leeren und speichern.</p>
+        </div>
+
         <h3 class="mt-12 text-xl font-medium mb-6"><%= t('.change_password') %></h3>
 
         <div class="form-group mb-4">

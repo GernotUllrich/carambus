@@ -84,6 +84,13 @@ module McpServer
         effective_fed = fed_cc_id || default_fed_id(server_context)
         effective_season_name = season.presence || (effective_season(server_context)&.name rescue nil)
 
+        # #3-Fix 2026-06-16 (User-Befund): Branch aus dem TURNIER ableiten, wenn nicht mitgegeben.
+        # Multi-Disziplin-Sportwarte (z.B. Kegel+Karambol) → das LLM gibt branch_cc_id oft nicht mit
+        # → Resolver lief scope_given=false → 0 Kandidaten. Der Branch des Turniers
+        # (tournament_cc.branch_cc) ist deterministisch + scope-unabhängig korrekt. ||= = nur füllen
+        # wenn leer (explizit gegebener Branch bleibt unangetastet).
+        branch_cc_id ||= resolve_tournament_branch_cc_id(tournament_cc_id, server_context)
+
         Rails.logger.info "[LookupMeldelistе] start tournament_cc_id=#{tournament_cc_id} club_cc_id=#{effective_club_cc_id || "-"} (explicit=#{!club_cc_id.nil?}) fed=#{effective_fed || "-"} branch=#{branch_cc_id || "-"} season=#{effective_season_name || "-"} force_refresh=#{force_refresh}"
 
         # Plan 14-G.12 / NEU primary path-0: Sportwart-Discovery via club-scoped showMeldelistenList.
@@ -267,6 +274,21 @@ module McpServer
         )
       rescue => e
         error("Tool exception: #{e.class.name} (details suppressed; check Rails.logger on stderr).")
+      end
+
+      # #3-Fix 2026-06-16: Branch-cc_id aus dem Turnier ableiten (tournament_cc.branch_cc).
+      # Context-scoped (cc_id ist regions-eindeutig, D-14-02-D). nil-sicher.
+      def self.resolve_tournament_branch_cc_id(tournament_cc_id, server_context)
+        context = effective_cc_region(server_context).to_s.downcase
+        tcc = if context.present?
+          TournamentCc.find_by(cc_id: tournament_cc_id, context: context)
+        else
+          TournamentCc.find_by(cc_id: tournament_cc_id)
+        end
+        tcc&.branch_cc&.cc_id
+      rescue => e
+        Rails.logger.warn "[LookupMeldelisteForTournament.resolve_tournament_branch_cc_id] #{e.class}: #{e.message}"
+        nil
       end
 
       # DB-first Lookup via TournamentCc.meldeliste_cc_id (Plan 23-01 T3d).

@@ -164,4 +164,48 @@ class McpServer::Tools::AssignPlayerToTeilnehmerlisteTest < ActiveSupport::TestC
     tools = McpServer::Server.collect_tools.map { |t| t.respond_to?(:tool_name) ? t.tool_name : nil }.compact
     assert_includes tools, "cc_assign_player_to_teilnehmerliste"
   end
+
+  # --- Plan 39-03: Per-User-CC-Identität im authentifizierten HTTP-Pfad (server_context[:user_id]) ---
+
+  test "authenticated :own → Write läuft unter der EIGENEN CC-Session (nicht Default-Admin)" do
+    user = User.create!(email: "sw-own@t.de", password: "password123", cc_username: "sw-own-cc", cc_password: "pw")
+    # per-Account-Slot vorseeden → cookie_for(account) trifft einen frischen Slot, KEIN echtes Login.
+    McpServer::CcSession.sessions["sw-own-cc"] = {session_id: "SID_OWN", started_at: Time.now, login_username: "sw-own-cc"}
+    resp = McpServer::Tools::AssignPlayerToTeilnehmerliste.call(
+      tournament_cc_id: 939, player_cc_ids: [10021],
+      fed_cc_id: 20, branch_cc_id: 10, season: "2025/2026",
+      armed: true, read_back: false, server_context: {user_id: user.id}
+    )
+    refute resp.error?, "Write mit eigener CC-Identität darf nicht blocken"
+    toggle = @mock.calls.find { |verb, action, _p, _o| verb == :post && action == "showMeldeliste_teilnahme" }
+    assert toggle, "Akkreditierungs-Toggle muss ausgeführt worden sein"
+    assert_equal "SID_OWN", toggle[3][:session_id], "Write lief unter der eigenen CC-Session (SID_OWN), nicht Default"
+    assert_equal "sw-own-cc", McpServer::CcSession.cc_login_user, "AuditTrail-operator-Quelle = eigener CC-Login"
+  end
+
+  test "authenticated :none + armed → Hard-Block, KEIN CC-Write (D-39-8)" do
+    user = User.create!(email: "sw-nocred@t.de", password: "password123") # OHNE cc_credentials
+    resp = McpServer::Tools::AssignPlayerToTeilnehmerliste.call(
+      tournament_cc_id: 939, player_cc_ids: [10021],
+      fed_cc_id: 20, branch_cc_id: 10, season: "2025/2026",
+      armed: true, read_back: false, server_context: {user_id: user.id}
+    )
+    assert resp.error?
+    assert_match(/ClubCloud-Zugang/, resp.content.map { |c| c[:text] }.join)
+    refute(@mock.calls.any? { |verb, action, _p, _o| verb == :post && action == "showMeldeliste_teilnahme" },
+      "bei :none darf KEIN Akkreditierungs-Write erfolgen")
+  end
+
+  test "authenticated :none + Dry-Run → Vorschau bleibt + CC-Zugang-Hinweis (D-39-8)" do
+    user = User.create!(email: "sw-nocred2@t.de", password: "password123")
+    resp = McpServer::Tools::AssignPlayerToTeilnehmerliste.call(
+      tournament_cc_id: 939, player_cc_ids: [10021],
+      fed_cc_id: 20, branch_cc_id: 10, season: "2025/2026",
+      armed: false, read_back: false, server_context: {user_id: user.id}
+    )
+    refute resp.error?
+    text = resp.content.map { |c| c[:text] }.join
+    assert_match(/DRY-RUN/, text)
+    assert_match(/ClubCloud-Zugang/, text, "Dry-Run enthält den CC-Zugang-Hinweis")
+  end
 end

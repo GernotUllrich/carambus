@@ -52,6 +52,7 @@ module McpServer
 
         text(JSON.generate(
           data: data,
+          source: source_label(server_context, :db_mirror), # Quelle (D-40-1): rechte-gegated, "" für read-only
           meta: {player: player.fullname, count: data.length}
         ))
       rescue => e

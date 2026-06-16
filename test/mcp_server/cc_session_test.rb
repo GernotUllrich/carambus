@@ -263,4 +263,64 @@ class McpServer::CcSessionTest < ActiveSupport::TestCase
     assert_equal 1, call_count
     assert_equal ok, res
   end
+
+  # ---------------------------------------------------------------------
+  # Plan 39-02: per-CC-Account-Cache + cc_login_user (mechanism-only)
+  # ---------------------------------------------------------------------
+  CcAcct = McpServer::CcAccountResolver::CcAccount
+
+  test "cookie_for: zwei verschiedene CC-Accounts → zwei unabhängige Session-Slots" do
+    ENV["CARAMBUS_MCP_MOCK"] = "1"
+    acc_a = CcAcct.new(login_username: "sw-a", password: "pw-a", source: :own, acting_user_id: 1)
+    acc_b = CcAcct.new(login_username: "sw-b", password: "pw-b", source: :own, acting_user_id: 2)
+    assert_equal "MOCK_SESSION_ID", McpServer::CcSession.cookie_for(acc_a)
+    assert_equal "MOCK_SESSION_ID", McpServer::CcSession.cookie_for(acc_b)
+    # zwei getrennte Slots — keine gegenseitige Überschreibung
+    assert_equal "sw-a", McpServer::CcSession.cc_login_user("sw-a")
+    assert_equal "sw-b", McpServer::CcSession.cc_login_user("sw-b")
+  end
+
+  test "cc_login_user: liefert aktiven Account nach cookie_for, Default-Admin nach cookie" do
+    ENV["CARAMBUS_MCP_MOCK"] = "1"
+    acc = CcAcct.new(login_username: "sw-x", password: "pw", source: :own, acting_user_id: 1)
+    McpServer::CcSession.cookie_for(acc)
+    assert_equal "sw-x", McpServer::CcSession.cc_login_user, "aktiver Key = sw-x"
+    McpServer::CcSession.cookie # Default-Pfad → aktiver Key zurück auf Default
+    assert_equal "mock-admin", McpServer::CcSession.cc_login_user
+  end
+
+  test "cookie_for: nil/blank account fällt defensiv auf Default-cookie zurück" do
+    ENV["CARAMBUS_MCP_MOCK"] = "1"
+    assert_equal "MOCK_SESSION_ID", McpServer::CcSession.cookie_for(nil)
+    blank = CcAcct.new(login_username: nil, password: nil, source: :none, acting_user_id: nil)
+    assert_equal "MOCK_SESSION_ID", McpServer::CcSession.cookie_for(blank)
+  end
+
+  test "reset!(key) leert nur einen Account; reset! leert alle" do
+    ENV["CARAMBUS_MCP_MOCK"] = "1"
+    acc_a = CcAcct.new(login_username: "ra-a", password: "p", source: :own, acting_user_id: 1)
+    acc_b = CcAcct.new(login_username: "ra-b", password: "p", source: :own, acting_user_id: 2)
+    McpServer::CcSession.cookie_for(acc_a)
+    McpServer::CcSession.cookie_for(acc_b)
+    McpServer::CcSession.reset!("ra-a")
+    assert_nil McpServer::CcSession.cc_login_user("ra-a")
+    assert_equal "ra-b", McpServer::CcSession.cc_login_user("ra-b")
+    McpServer::CcSession.reset!
+    assert_nil McpServer::CcSession.cc_login_user("ra-b")
+  end
+
+  test "with_session_recovery(account:): account-aware Single-Retry (mock)" do
+    ENV["CARAMBUS_MCP_MOCK"] = "1"
+    acc = CcAcct.new(login_username: "rec-sw", password: "pw", source: :own, acting_user_id: 1)
+    call_count = 0
+    expired = Struct.new(:body, :code).new(auto_logout_fixture_body, "200")
+    ok = Struct.new(:body, :code).new("<html><body>ok</body></html>", "200")
+    res, _doc = McpServer::CcSession.with_session_recovery(account: acc) do |_client, sid|
+      call_count += 1
+      assert_equal "MOCK_SESSION_ID", sid
+      (call_count == 1) ? [expired, Nokogiri::HTML(expired.body)] : [ok, Nokogiri::HTML(ok.body)]
+    end
+    assert_equal 2, call_count
+    assert_equal ok, res
+  end
 end

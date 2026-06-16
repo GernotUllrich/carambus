@@ -31,6 +31,17 @@ class User < ApplicationRecord
   # D-35-1: User↔Player-Verknüpfung (users.player_id existierte als toter FK; hier reaktiviert).
   belongs_to :player, optional: true
 
+  # D-39-1 (v1.1): Eigene CC-Admin-Credentials des Users, verschlüsselt at rest (Rails 7 encrypts,
+  # Muster wie StreamConfiguration#youtube_stream_key). Quelle der per-User-CC-Identität
+  # (effective_cc_account, Phase 39-02). cc_password hält den Klartext, den der bestehende
+  # CC-Login-Flow (Setting.login_to_cc) intern zu MD5 macht.
+  encrypts :cc_password, deterministic: false
+
+  # D-39-1: Hat dieser User eigene CC-Credentials hinterlegt? (vom Resolver in 39-02 genutzt.)
+  def cc_credentials_present?
+    cc_username.present? && cc_password.present?
+  end
+
   PRIVILEGED = %w[gernot.ullrich@gmx.de nla@ph.at wcauel@gmail.com joerg.unger@hamburg.de].freeze
 
   attr_accessor :player_ba_id, :terms_of_service

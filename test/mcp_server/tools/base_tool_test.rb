@@ -241,11 +241,13 @@ class McpServer::Tools::BaseToolTest < ActiveSupport::TestCase
       scope = Player.all
       result = McpServer::Tools::BaseTool.apply_token_search_filter(scope, %w[Gernot Ullrich], %w[firstname lastname])
       sql = result.to_sql
-      # Beide Tokens müssen als ILIKE-Clauses im SQL erscheinen
-      assert_match(/firstname ILIKE.*Gernot/i, sql)
-      assert_match(/lastname ILIKE.*Gernot/i, sql)
-      assert_match(/firstname ILIKE.*Ullrich/i, sql)
-      assert_match(/lastname ILIKE.*Ullrich/i, sql)
+      # Beide Tokens müssen als ILIKE-Clauses im SQL erscheinen. Seit dem ß/Umlaut-Fix
+      # (2026-06-16) sind die Spalten in replace(lower(...)) gewrappt und die Werte
+      # normalisiert/lowercased (z.B. '%gernot%') — daher lower(col)…ILIKE…<token>.
+      assert_match(/lower\(firstname\).*ILIKE.*gernot/i, sql)
+      assert_match(/lower\(lastname\).*ILIKE.*gernot/i, sql)
+      assert_match(/lower\(firstname\).*ILIKE.*ullrich/i, sql)
+      assert_match(/lower\(lastname\).*ILIKE.*ullrich/i, sql)
     end
   end
 
@@ -529,6 +531,111 @@ class McpServer::Tools::BaseToolTest < ActiveSupport::TestCase
       val = McpServer::Tools::BaseTool.cc_cache_get_or_set("k1") { "v1" }
       assert_equal "v1", val
       assert_equal({"k1" => "v1"}, Thread.current[:cc_cache])
+    end
+  end
+
+  # Plan 39-03 Task 1 (D-39-8/-9): Per-User-CC-Identitäts-Naht für die CC-Write-Tools.
+  class CcIdentitySeamTest < ActiveSupport::TestCase
+    CcAccount = McpServer::CcAccountResolver::CcAccount
+    Seam = McpServer::Tools::BaseTool
+
+    setup do
+      @prev_mock = ENV["CARAMBUS_MCP_MOCK"]
+      McpServer::CcSession.reset!
+    end
+
+    teardown do
+      ENV["CARAMBUS_MCP_MOCK"] = @prev_mock
+      McpServer::CcSession.reset!
+    end
+
+    def own_account(user_id: 1)
+      CcAccount.new(login_username: "sw-eigen", password: "pw", source: :own, acting_user_id: user_id)
+    end
+
+    def none_account
+      # Authentifizierter User OHNE eigene Creds (acting_user_id gesetzt) → Block greift.
+      CcAccount.new(source: :none, acting_user_id: 7)
+    end
+
+    def none_account_stdio
+      # User-loser Stdio-/Legacy-Pfad (acting_user_id nil) → kein Block (D-39-10).
+      CcAccount.new(source: :none, acting_user_id: nil)
+    end
+
+    # --- resolve_cc_account (DB-Wiring um den Resolver) ---
+
+    test "resolve_cc_account: User mit eigenen Creds → :own" do
+      user = User.create!(email: "seam-own@test.de", password: "password123",
+        cc_username: "seam-own-cc", cc_password: "seam-own-pw")
+      acc = Seam.resolve_cc_account(tournament: nil, server_context: {user_id: user.id})
+      assert_equal :own, acc.source
+      assert acc.resolved?
+      assert_equal "seam-own-cc", acc.login_username
+      assert_equal user.id, acc.acting_user_id
+    end
+
+    test "resolve_cc_account: kein/unbekannter user_id → :none" do
+      assert_equal :none, Seam.resolve_cc_account(tournament: nil, server_context: {}).source
+      assert_equal :none, Seam.resolve_cc_account(tournament: nil, server_context: nil).source
+      assert_equal :none, Seam.resolve_cc_account(tournament: nil, server_context: {user_id: 999_999_999}).source
+    end
+
+    # --- cc_write_identity_block (D-39-8: Block NUR bei armed:true + :none) ---
+
+    test "cc_write_identity_block: aufgelöster Account → kein Block (armed egal)" do
+      assert_nil Seam.cc_write_identity_block(own_account, armed: true)
+      assert_nil Seam.cc_write_identity_block(own_account, armed: false)
+    end
+
+    test "cc_write_identity_block: :none + armed:true → Block mit jargonfreier Meldung" do
+      resp = Seam.cc_write_identity_block(none_account, armed: true)
+      refute_nil resp
+      assert resp.error?
+      text = resp.content.map { |c| c[:text] }.join
+      assert_equal Seam::CC_IDENTITY_REQUIRED_MSG, text
+      refute_match(/Token|Session|Cache|Credential/i, text, "keine IT-Jargon-Begriffe (MCP-Language-Direktive)")
+    end
+
+    test "cc_write_identity_block: :none + Dry-Run (armed:false) → KEIN Block" do
+      assert_nil Seam.cc_write_identity_block(none_account, armed: false)
+    end
+
+    test "cc_write_identity_block: Stdio-Pfad (:none ohne acting_user_id) + armed:true → KEIN Block (D-39-10)" do
+      assert_nil Seam.cc_write_identity_block(none_account_stdio, armed: true),
+        "User-loser Stdio-/Legacy-Pfad behält die geteilte Admin-Session (D-13-01-F)"
+    end
+
+    # --- cc_identity_hint (nicht-blockierender Dry-Run-Hinweis) ---
+
+    test "cc_identity_hint: authentifizierter :none → Hinweis; aufgelöst/Stdio → nil" do
+      assert_equal Seam::CC_IDENTITY_REQUIRED_MSG, Seam.cc_identity_hint(none_account)
+      assert_nil Seam.cc_identity_hint(own_account)
+      assert_nil Seam.cc_identity_hint(none_account_stdio), "Stdio-Pfad ohne User → kein Hinweis (D-39-10)"
+    end
+
+    # --- cc_audit_operator (CC-Login-Account des aktiven Slots) ---
+
+    test "cc_audit_operator: ohne aktive Session → 'unknown'" do
+      assert_equal "unknown", Seam.cc_audit_operator
+    end
+
+    test "cc_audit_operator: nach per-Account-Login → dessen CC-Login-Name" do
+      ENV["CARAMBUS_MCP_MOCK"] = "1"
+      McpServer::CcSession.cookie_for(own_account)  # mock-Login setzt aktiven Account = login_username
+      assert_equal "sw-eigen", Seam.cc_audit_operator
+    end
+
+    # Zweischichtige Attribution (D-39-2): operator = CC-Login des Granters, user_id = echter TL.
+    test "tl_inherited: operator = Granter-CC-Login, user_id-Quelle = echter TL" do
+      ENV["CARAMBUS_MCP_MOCK"] = "1"
+      tl_acc = CcAccount.new(login_username: "sw-granter", password: "pw",
+        source: :tl_inherited, acting_user_id: 99, granted_by_user_id: 5)
+      assert tl_acc.resolved?
+      assert_nil Seam.cc_write_identity_block(tl_acc, armed: true), "tl_inherited darf nicht blocken"
+      McpServer::CcSession.cookie_for(tl_acc)
+      assert_equal "sw-granter", Seam.cc_audit_operator, "operator = CC-Login des einsetzenden Sportwarts"
+      assert_equal 99, tl_acc.acting_user_id, "user_id-Quelle = echter Turnierleiter"
     end
   end
 end

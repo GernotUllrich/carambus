@@ -237,6 +237,8 @@ module McpServer
           payload[:committed_players] = committed
         end
 
+        # Phase 40 (D-40-1): interne Quelle (DB-Abbild) rechte-gegated; "" für read-only User.
+        payload[:source] = source_label(server_context, :db_mirror)
         payload[:meta] = meta unless meta.empty?
         JSON.generate(payload)
       end
@@ -247,17 +249,43 @@ module McpServer
       # tournament_cc.meldeliste_cc_id (Plan 23-01 T3d); Override-Param erlaubt Fallback.
       def self.read_committed_players(tournament_cc:, meldeliste_cc_id_override:, fed_id:, meta:, server_context: nil)
         meldeliste_cc_id = meldeliste_cc_id_override.presence || tournament_cc.meldeliste_cc_id
+
+        # Strang 2 (LSW-Kegel-Befund 2026-06-14): Ist der anfragende Sportwart fachlich gar
+        # nicht zuständig (Turnier-Disziplin außerhalb seines Wirkbereichs), führt ein KLARER
+        # Scope-Hinweis. Plus (User-Direktive „einfacher" 2026-06-14): IMMER den öffentlichen
+        # Turnier-Link anbieten — die Teilnehmer sind öffentlich einsehbar, kein Admin-Scope nötig.
+        t = tournament_cc&.tournament
+        scope_note = meldeliste_cc_id.blank? ? discipline_scope_note(tournament: t, server_context: server_context) : nil
+
+        # Live-Fix 2026-06-15/16 (User-Direktive): In der ClubCloud kann kein Turnier OHNE
+        # Meldeliste angelegt werden — ein leerer meldeliste_cc_id ist also ein SYNC-Loch im
+        # Mirror, KEINE fehlende Meldeliste. Ist der Sportwart zuständig (kein scope_note) und
+        # existiert das Turnier in CC (cc_id da), löse die meldeliste_cc_id LIVE auf — über den
+        # BRANCH-getriebenen Resolver (path-3 in lookup_meldeliste: showMeldelistenList +
+        # Title-Match gegen TournamentCc.name). Der reine Overview-Pfad gab oft nil; der
+        # Branch-Pfad trifft zuverlässig (Branch = der des TURNIERS, scope-unabhängig). Kein
+        # Persist (globaler Record → LocalProtector); nur dieser Aufruf. Defensiv: Fehler ODER
+        # mehrdeutig (≠1 Kandidat) → bleibt blank → Hinweis unten.
+        if meldeliste_cc_id.blank? && scope_note.nil? && tournament_cc.cc_id.present?
+          begin
+            candidates = McpServer::Tools::LookupMeldelisteForTournament.fetch_from_cc(
+              tournament_cc.cc_id,
+              fed_cc_id: fed_id,
+              branch_cc_id: tournament_cc.branch_cc&.cc_id,
+              season: tournament_cc.season,
+              server_context: server_context
+            )
+            meldeliste_cc_id = candidates.first[:meldeliste_cc_id] if candidates.is_a?(Array) && candidates.size == 1
+          rescue => e
+            Rails.logger.warn "[cc_lookup_tournament] live meldeliste-resolve (cc_id=#{tournament_cc.cc_id}) failed: #{e.class}: #{e.message}"
+          end
+        end
+
         if meldeliste_cc_id.blank?
-          # Strang 2 (LSW-Kegel-Befund 2026-06-14): Ist der anfragende Sportwart fachlich gar
-          # nicht zuständig (Turnier-Disziplin außerhalb seines Wirkbereichs), führt ein KLARER
-          # Scope-Hinweis. Plus (User-Direktive „einfacher" 2026-06-14): IMMER den öffentlichen
-          # Turnier-Link anbieten — die Teilnehmer sind öffentlich einsehbar, kein Admin-Scope nötig.
-          t = tournament_cc&.tournament
-          scope_note = discipline_scope_note(tournament: t, server_context: server_context)
           base_msg = if scope_note
             "#{scope_note} (Die Meldungen und Akkreditierungen verwaltet der zuständige Sportwart.)"
           else
-            "Die Akkreditierungs-Details aus dem Admin-Zugang sind für dieses Turnier nicht verfügbar."
+            "Die Meldeliste für dieses Turnier konnte über den Admin-Zugang gerade nicht aufgelöst werden — bitte versuche es gleich noch einmal."
           end
           meta[:committed_list_warning] = "#{base_msg}#{public_view_hint(t)}"
           return nil

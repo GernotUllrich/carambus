@@ -147,6 +147,12 @@ module McpServer
           return auth_err if auth_err
         end
 
+        # Plan 39-03 (D-39-8/-9): effektive CC-Identität; armed:true ohne eigene CC-Identität (:none)
+        # blockt hier (Dry-Run bleibt). Writes laufen unter cookie_for(account).
+        account = resolve_cc_account(tournament: resolved_tournament, server_context: server_context)
+        identity_block = cc_write_identity_block(account, armed: armed)
+        return identity_block if identity_block
+
         # Plan 10-05.1 Task 2 (D-10-04-G Pre-Validation-First-Pattern, 7 Constraints):
         # 7 _validate_*-Methoden via run_validations-Aggregator (BaseTool-Helper).
         # Defensive Logic: bei unklarer DB-/CC-Data → ok:true (keine False-Negative-Blockade);
@@ -197,13 +203,17 @@ module McpServer
         unless armed
           extras = "discipline_id=#{discipline_id}" if discipline_id
           id_list = player_cc_ids.join(", ")
-          return text(<<~DRY_RUN.strip)
+          dry_run = <<~DRY_RUN.strip
             [DRY-RUN] Would register #{player_cc_ids.size} player(s) [#{id_list}] into meldeliste_cc_id=#{meldeliste_cc_id} \
             (club_cc_id=#{club_cc_id}, fed_id=#{fed_id}, branch_cc_id=#{branch_cc_id}, season=#{season}#{", #{extras}" if extras}).
             Workflow: Multi-Add-Loop (#{player_cc_ids.size} × addPlayerToMeldeliste) → 1× saveMeldeliste → 1× showCommittedMeldeliste verify.
             #{consistency_msg}
             Pass armed:true to actually perform this registration.
           DRY_RUN
+          if (hint = cc_identity_hint(account))
+            dry_run = "#{dry_run}\n\nHinweis: #{hint}"
+          end
+          return text(dry_run)
         end
 
         # Armed=true: Multi-Add-Loop mit Per-Player-Check + Final-Save + Verify.
@@ -260,7 +270,7 @@ module McpServer
         init_res, _init_doc = client.post(
           "sportwart-editMeldelisteCheck",
           initial_check_payload,
-          {armed: armed, session_id: cc_session.cookie, keep_blanks: [:editUp]}
+          {armed: armed, session_id: cc_session.cookie_for(account), keep_blanks: [:editUp]}
         )
         return error("Unexpected nil response from CC (initial editMeldelisteCheck).") if init_res.nil?
         return error("CC rejected at initial editMeldelisteCheck: HTTP #{init_res&.code}") if init_res&.code != "200"
@@ -273,13 +283,13 @@ module McpServer
           add_res, add_doc = client.post(
             "addPlayerToMeldeliste",
             base_payload.merge(a: pid),
-            {armed: armed, session_id: cc_session.cookie}
+            {armed: armed, session_id: cc_session.cookie_for(account)}
           )
           if cc_session.reauth_if_needed!(add_doc)
             add_res, add_doc = client.post(
               "addPlayerToMeldeliste",
               base_payload.merge(a: pid),
-              {armed: armed, session_id: cc_session.cookie}
+              {armed: armed, session_id: cc_session.cookie_for(account)}
             )
           end
           return error("Unexpected nil response from CC (cc_add for player_cc_id=#{pid}, armed mode). MockClient may have rejected.") if add_res.nil?
@@ -300,7 +310,7 @@ module McpServer
           client.post(
             "sportwart-editMeldelisteCheck",
             post_add_payload,
-            {armed: armed, session_id: cc_session.cookie, keep_blanks: [:setzNummer]}
+            {armed: armed, session_id: cc_session.cookie_for(account), keep_blanks: [:setzNummer]}
           )
         end
 
@@ -312,7 +322,7 @@ module McpServer
         save_res, save_doc = client.post(
           "saveMeldeliste",
           base_payload.merge(a: player_cc_ids.last, save: "1"),
-          {armed: armed, session_id: cc_session.cookie}
+          {armed: armed, session_id: cc_session.cookie_for(account)}
         )
         return error("Unexpected nil response from CC (editMeldelisteSave, armed mode).") if save_res.nil?
         return error("CC rejected at editMeldelisteSave: #{parse_cc_error(save_doc)} (HTTP #{save_res&.code})") if save_res&.code != "200"
@@ -342,7 +352,7 @@ module McpServer
           client.post(
             "showCommittedMeldeliste",
             verify_payload,
-            {armed: armed, session_id: cc_session.cookie}
+            {armed: armed, session_id: cc_session.cookie_for(account)}
           )
         end
         verify_body = verify_res&.body.to_s
@@ -378,7 +388,7 @@ module McpServer
         end
         McpServer::AuditTrail.write_entry(
           tool_name: "cc_register_for_tournament",
-          operator: cc_session.respond_to?(:cc_login_user) ? cc_session.cc_login_user.to_s : "unknown",
+          operator: cc_audit_operator,
           payload: {
             meldeliste_cc_id: meldeliste_cc_id, player_cc_ids: player_cc_ids,
             club_cc_id: club_cc_id, fed_id: fed_id, branch_cc_id: branch_cc_id,
@@ -387,7 +397,7 @@ module McpServer
           pre_validation_results: validation_result[:results],
           read_back_status: read_back_status,
           result: "success",
-          user_id: server_context&.dig(:user_id)
+          user_id: account.acting_user_id
         )
 
         text(<<~OUT.strip)
