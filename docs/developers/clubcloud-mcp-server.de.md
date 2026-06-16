@@ -58,6 +58,8 @@ Phase 40 schließt alle drei Lücken in einem Server: vier Schichten ClubCloud-W
 
 ## 2. Architektur-Übersicht
 
+> **Querschnittliche Nähte** (Identität, Autorisierung, Domänen-Grenze) sind in einem eigenen Kapitel beschrieben: [MCP-Server — Architektur-Naht](mcp-architektur-naht.de.md). Dieses Handbuch fokussiert auf *was* die Tools tun; das Naht-Kapitel auf *wie die Teile zusammenhängen*.
+
 ### System-Komponenten
 
 ```mermaid

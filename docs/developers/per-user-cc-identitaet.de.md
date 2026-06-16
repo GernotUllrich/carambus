@@ -1,6 +1,7 @@
 # Per-User-ClubCloud-Identität — Entwickler-Handbuch
 
-> **Status:** v1.1 Phase 39 (code-complete, Branch `feature/v1.1-trust-haertung`).
+> **Status:** v1.1 Phase 39 ✅ SHIPPED (2026-06-16, Tag `v1.1.0`; TL-Vererbung live verifiziert).
+> **Übergeordnete Architektur:** [MCP-Server — Architektur-Naht](mcp-architektur-naht.de.md) (Identität/Autorisierung/Domänen-Grenze)
 > **Endnutzer-Anleitung:** [`docs/managers/clubcloud-eigener-zugang.de.md`](../managers/clubcloud-eigener-zugang.de.md)
 > **Region-Admin-Credentials (geteilt):** [`docs/managers/clubcloud_credentials.md`](../managers/clubcloud_credentials.md)
 

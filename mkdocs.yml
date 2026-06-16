@@ -209,7 +209,11 @@ nav:
       - UMB Scraping:
           - UMB Scraping Implementation: developers/umb-scraping-implementation.md
           - UMB Scraping Methods: developers/umb-scraping-methods.md
-      - ClubCloud MCP Server: developers/clubcloud-mcp-server.md
+      - ClubCloud MCP:
+          - Server-Handbuch: developers/clubcloud-mcp-server.md
+          - Architektur-Naht (Identität/Autorisierung): developers/mcp-architektur-naht.md
+          - Per-User-ClubCloud-Identität: developers/per-user-cc-identitaet.md
+          - Workflow-Scenarios: developers/clubcloud-mcp-workflow-scenarios.md
       - External Tournament Bridge: developers/external-tournament-bridge.md
       - Services:
           - Table Monitor: developers/services/table-monitor.md
