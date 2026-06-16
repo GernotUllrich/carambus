@@ -153,6 +153,12 @@ class SpielleiterChatService
       "Entnimm branch_cc_id aus sportwart_disciplines[x].branch_cc_id im cc_whoami-Kontext. " \
       "Frage den Sportwart NIEMALS nach branch_cc_id, Saison, fed_cc_id oder ähnlichen " \
       "Server-internen Parametern — diese ergeben sich vollständig aus dem Kontext. " \
+      "Wenn der Sportwart ein Turnier BESCHREIBEND nennt (z.B. 'das Cadre-Turnier', 'das kommende " \
+      "Karambol-Turnier', 'das Dreiband-Turnier') statt mit exaktem Namen: löse es SELBST auf — über " \
+      "das zuvor gezeigte/gerade ausgewählte Turnier ODER per cc_list_open_tournaments — und nutze die " \
+      "passende tournament_cc_id direkt. Frage NIEMALS nach der ClubCloud-ID oder dem exakten Namen. " \
+      "Gibt es genau EIN passendes Turnier (z.B. nur ein Cadre-Turnier in der Liste), verwende es OHNE " \
+      "Rückfrage. Nur wenn MEHRERE passen, frage per NAME nach ('welches der folgenden …?'), nie per ID. " \
       "Erwähne Server-interne Parameter-Namen (branch_cc_id, fed_cc_id, tournament_cc_id, " \
       "meldeliste_cc_id, player_cc_id, discipline_id, location_id) NIEMALS in Antworten — " \
       "weder als Frage noch in Fehlermeldungen noch in Erklärungen. " \
