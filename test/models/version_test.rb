@@ -47,6 +47,48 @@ class VersionTest < ActiveSupport::TestCase
     assert_equal bad, Version.safe_parse_for_text_column(bad)
   end
 
+  # === coerce_serialized_args! (Sync-Apply-Fix 2026-06-17) ===
+  # PlayerRanking: serialize :remarks (type: Hash) + :t_ids (type: Array). Der Sync
+  # liefert die Werte als String → write_attribute warf SerializationTypeMismatch,
+  # der Apply schlug still fehl, der Cursor lief trotzdem hoch (stiller Verlust).
+
+  test "coerce_serialized_args! parst JSON-String für serialize-Hash-Spalte (remarks)" do
+    args = {"remarks" => '{"result":{"GD":1.33,"t_ids":[15754]}}', "gd" => 1.33}
+    Version.coerce_serialized_args!(PlayerRanking, args)
+    assert_kind_of Hash, args["remarks"]
+    assert_equal 1.33, args["remarks"].dig("result", "GD")
+    assert_in_delta 1.33, args["gd"], 0.0001 # Nicht-serialisierte Spalte unverändert
+  end
+
+  test "coerce_serialized_args! parst JSON-String für serialize-Array-Spalte (t_ids)" do
+    args = {"t_ids" => "[15754, 15755]"}
+    Version.coerce_serialized_args!(PlayerRanking, args)
+    assert_equal [15754, 15755], args["t_ids"]
+  end
+
+  test "coerce_serialized_args! lässt Nicht-String-Werte unverändert" do
+    args = {"remarks" => {"already" => "hash"}, "rank" => 5}
+    Version.coerce_serialized_args!(PlayerRanking, args)
+    assert_equal({"already" => "hash"}, args["remarks"])
+    assert_equal 5, args["rank"]
+  end
+
+  test "coerce_serialized_args! lässt String-Spalten ohne serialize-Coder unverändert" do
+    # ba_state ist eine normale string-Spalte (kein serialize) → bleibt String
+    args = {"ba_state" => "active"}
+    Version.coerce_serialized_args!(PlayerRanking, args)
+    assert_equal "active", args["ba_state"]
+  end
+
+  test "coerce_serialized_args! ergibt schreibbaren remarks-Hash (kein SerializationTypeMismatch)" do
+    pr = PlayerRanking.new
+    args = {"remarks" => '{"result":{"GD":2.5}}'}
+    Version.coerce_serialized_args!(PlayerRanking, args)
+    # Der eigentliche Repro: write_attribute darf NICHT mehr werfen
+    assert_nothing_raised { pr.write_attribute("remarks", args["remarks"]) }
+    assert_equal 2.5, pr.remarks.dig("result", "GD")
+  end
+
   # === Integration regression — round-trip through update_from_carambus_api ===
   #
   # This tests the exact bug path: update event with no object_changes falls through
