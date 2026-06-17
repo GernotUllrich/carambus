@@ -44,15 +44,31 @@ class TournamentPreparation::AppLinkBuilderTest < ActiveSupport::TestCase
     end
   end
 
-  test "Fallback wenn tournament_app_url fehlt, api aus carambus_domain abgeleitet" do
+  test "DEV-43-C: Same-Origin-Default — relativer /app/-Link OHNE cb_base_url" do
+    # Keine App-Config gesetzt → relativer Default /app/, App leitet base_url aus location.origin ab.
     Carambus.stub(:config, OpenStruct.new(carambus_domain: "lvh.me:3007")) do
       res = TournamentPreparation::AppLinkBuilder.call(tournament: @tournament, server_context: @ctx)
       assert res[:ok]
-      # app_base Fallback
-      assert link = res[:app_link]
-      assert link.start_with?("http://localhost:8123/?"), link
-      # api_base aus carambus_domain (http:// vorangestellt) → encoded
-      assert_match(/cb_base_url=http%3A%2F%2Flvh.me%3A3007/, link)
+      link = res[:app_link]
+      assert link.start_with?("/app/?"), link
+      assert_match(/cb_region=NBV/, link)
+      assert_match(/cb_tournament_cc_id=80905/, link)
+      # Punkt 2: globaler DB-PK im Link (deterministische Auflösung)
+      assert_match(/cb_tournament_id=#{@tournament.id}/, link)
+      refute_match(/cb_base_url/, link, "Same-Origin → kein cb_base_url")
+    end
+  end
+
+  test "cross-origin: external_app_api_base_url gesetzt → cb_base_url im Link" do
+    Carambus.stub(:config, OpenStruct.new(
+      tournament_app_url: "http://192.168.2.210:8123/",
+      external_app_api_base_url: "http://192.168.2.210:3131"
+    )) do
+      res = TournamentPreparation::AppLinkBuilder.call(tournament: @tournament, server_context: @ctx)
+      assert res[:ok]
+      link = res[:app_link]
+      assert link.start_with?("http://192.168.2.210:8123/?"), link
+      assert_match(/cb_base_url=http%3A%2F%2F192.168.2.210%3A3131/, link)
     end
   end
 
@@ -63,7 +79,7 @@ class TournamentPreparation::AppLinkBuilderTest < ActiveSupport::TestCase
     )) do
       res = TournamentPreparation::AppLinkBuilder.call(tournament: @tournament, server_context: @ctx)
       assert res[:ok]
-      assert_match(%r{\?v=2&cb_base_url=}, res[:app_link])
+      assert_match(%r{\?v=2&cb_region=}, res[:app_link])
     end
   end
 end

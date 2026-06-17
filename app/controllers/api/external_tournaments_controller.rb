@@ -32,18 +32,30 @@ module Api
     #   - 422 — region_shortname passt nicht zur Tournament-Region, oder TournamentCc noch nicht verlinkt
     def seeding
       region = Region.find_by!(shortname: params[:region].to_s.upcase)
-      tournament_cc = TournamentCc.find_by!(
-        cc_id: params[:tournament_cc_id],
-        context: region.shortname.downcase
-      )
 
-      tournament = tournament_cc.tournament
-      if tournament.nil?
-        return render json: {error: "Tournament not yet linked"}, status: :unprocessable_entity
-      end
-
-      if tournament.region_id != region.id
-        return render json: {error: "Region mismatch"}, status: :unprocessable_entity
+      # Punkt 2 (HANDOFF tournament-id-ambiguity, 2026-06-17): tournament_cc_id ist nur
+      # region-scoped eindeutig — der Chat-Deep-Link lieferte ein falsches Turnier. Der
+      # globale DB-PK (Tournament#id) ist eindeutig und wird, wenn vorhanden, bevorzugt.
+      # Fallback bleibt der cc_id+context-Pfad (rueckwaertskompatibel).
+      if params[:tournament_id].present?
+        tournament = Tournament.find_by(id: params[:tournament_id])
+        return render json: {error: "Tournament not found"}, status: :not_found if tournament.nil?
+        if tournament.region_id != region.id
+          return render json: {error: "Region mismatch"}, status: :unprocessable_entity
+        end
+        tournament_cc = tournament.tournament_cc
+      else
+        tournament_cc = TournamentCc.find_by!(
+          cc_id: params[:tournament_cc_id],
+          context: region.shortname.downcase
+        )
+        tournament = tournament_cc.tournament
+        if tournament.nil?
+          return render json: {error: "Tournament not yet linked"}, status: :unprocessable_entity
+        end
+        if tournament.region_id != region.id
+          return render json: {error: "Region mismatch"}, status: :unprocessable_entity
+        end
       end
 
       render json: build_seeding_payload(tournament, tournament_cc, region)
@@ -168,6 +180,10 @@ module Api
         location: {id: location.id, cc_id: location.cc_id, name: location.name},
         tables: location.tables.includes(:table_kind, :table_monitor).sort_by { |t| t.name.to_s }.map do |t|
           {
+            # Punkt 3 (HANDOFF tables-id): id ergaenzt — App bindet per id statt Name
+            # (robust gegen doppelte Tischnamen einer Location). Rein additiv.
+            # (Table hat keine cc_id-Spalte; die App nutzt ohnehin nur id.)
+            id: t.id,
             name: t.name,
             table_kind: t.table_kind&.name,
             has_monitor: t.read_attribute(:table_monitor_id).present?,

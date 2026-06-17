@@ -140,6 +140,37 @@ module Api
       assert_equal @player.firstname, player_data["firstname"]
     end
 
+    # Punkt 2 (HANDOFF tournament-id-ambiguity 2026-06-17): seeding via globalen
+    # Tournament-DB-PK loest deterministisch auf (umgeht die region-scoped cc_id-Ambiguitaet).
+    test "seeding via tournament_id (DB-PK) returns spec-compliant doc" do
+      Seeding.create!(tournament: @tournament, player: @player, position: 1)
+      headers = {"Content-Type" => "application/json", "Accept" => "application/json",
+                 "Authorization" => "Bearer #{login_jwt}"}
+      get "/api/external_tournament/seeding",
+        params: {tournament_id: @tournament.id, region: "NBV"}, headers: headers
+      assert_response :success
+      body = JSON.parse(response.body)
+      assert_equal "carambus.seeding/v1", body["schema"]
+      assert_equal 999_201, body.dig("tournament", "cc_id")
+    end
+
+    test "seeding via unknown tournament_id returns 404" do
+      headers = {"Content-Type" => "application/json", "Accept" => "application/json",
+                 "Authorization" => "Bearer #{login_jwt}"}
+      get "/api/external_tournament/seeding",
+        params: {tournament_id: 999_999_999, region: "NBV"}, headers: headers
+      assert_response :not_found
+    end
+
+    test "seeding via tournament_id with mismatched region returns 422" do
+      @tournament.update_columns(region_id: regions(:bbv).id)
+      headers = {"Content-Type" => "application/json", "Accept" => "application/json",
+                 "Authorization" => "Bearer #{login_jwt}"}
+      get "/api/external_tournament/seeding",
+        params: {tournament_id: @tournament.id, region: "NBV"}, headers: headers
+      assert_response :unprocessable_entity
+    end
+
     # === Plan 15-03: Round-Start-Endpoint Tests ===
 
     # AC-1: ohne JWT → 401
@@ -549,9 +580,9 @@ module Api
         data: {external_id: "rr-test-ext-1"}
       )
       GameParticipation.create!(game: @rr_game_1, player: @player_a, role: "playera",
-                                points: 30, innings: 22, hs: 5, gd: 1.364)
+        points: 30, innings: 22, hs: 5, gd: 1.364)
       GameParticipation.create!(game: @rr_game_1, player: @player_b, role: "playerb",
-                                points: 24, innings: 22, hs: 4)
+        points: 24, innings: 22, hs: 4)
 
       # Game 2: laufend (kein ended_at gesetzt)
       @rr_game_2 = @tournament.games.create!(
@@ -563,9 +594,9 @@ module Api
         data: {external_id: "rr-test-ext-2"}
       )
       GameParticipation.create!(game: @rr_game_2, player: @player_a, role: "playera",
-                                points: 12, innings: 10, hs: 3)
+        points: 12, innings: 10, hs: 3)
       GameParticipation.create!(game: @rr_game_2, player: @player_b, role: "playerb",
-                                points: 9, innings: 10, hs: 2)
+        points: 9, innings: 10, hs: 2)
     end
 
     def get_round_result(tournament_cc_id:, round_no:, region:, jwt:)
