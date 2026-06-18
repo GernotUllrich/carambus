@@ -164,6 +164,11 @@ class Tournament::PublicCcScraper < ApplicationService
       @tournament.reload.seedings.destroy_all
     end
     player_list = {}
+    # State-Quellen (CC = Wahrheit): wer in der Meldeliste bzw. Teilnehmerliste steht.
+    # Teilnehmerliste = aktiver Teilnehmer; nur Meldeliste = no_show; Teilnehmerliste
+    # ohne Meldeliste-Eintrag = per Schnellanmeldung reingekommen (aktiv, nur Log).
+    registration_player_ids = []
+    participant_player_ids = []
     registration_link = tournament_link.gsub("meisterschaft", "meldeliste")
     Rails.logger.info "reading #{url + registration_link}"
     uri = URI(url + registration_link)
@@ -202,7 +207,10 @@ class Tournament::PublicCcScraper < ApplicationService
                                                                              @tournament.season, region,
                                                                              club_name, nil,
                                                                              true, true, ix)
-              player_list[player.fl_name] = [player, club, ix] if player.present?
+              if player.present?
+                player_list[player.fl_name] = [player, club, ix]
+                registration_player_ids << player.id
+              end
             end
           end
         end
@@ -229,6 +237,11 @@ class Tournament::PublicCcScraper < ApplicationService
             player_lname, club_name = name_match[1..2]
           end
         end
+        # CC liefert im "Nachname, Vorname"-Format einen führenden Space im Vornamen
+        # (z.B. " Lothar"); fix_from_shortnames matcht aber exakt und liefert sonst nil
+        # — die Teilnehmer würden fehlen bzw. (mit der State-Logik) fälschlich no_show.
+        player_fname = player_fname.andand.strip
+        player_lname = player_lname.andand.strip
         club_name = club_name.andand.gsub("1.", "1. ").andand.gsub("1.  ", "1. ")
         # Don't create seedings yet - just collect players from participant list
         player, club, _seeding, _state_ix = Player.fix_from_shortnames(player_lname, player_fname, @tournament.season,
@@ -236,7 +249,10 @@ class Tournament::PublicCcScraper < ApplicationService
                                                                        club_name.strip, nil,
                                                                        true, true, ix)
         # Only add to player_list if not already present (registration list takes precedence for position)
-        player_list[player.fl_name] ||= [player, club, ix] if player.present?
+        if player.present?
+          player_list[player.fl_name] ||= [player, club, ix]
+          participant_player_ids << player.id
+        end
       end
     end
 
@@ -245,15 +261,38 @@ class Tournament::PublicCcScraper < ApplicationService
     player_list.each_with_index do |(fl_name, (player, club, position)), idx|
       next unless player.present?
 
+      # State aus den CC-Listen ableiten (CC = Wahrheit, bei jedem Scrape neu):
+      # in Teilnehmerliste => aktiver Teilnehmer (registered); nur in Meldeliste
+      # (nicht akkreditiert) => no_show. Schnellanmeldung (in Teilnehmerliste, aber
+      # nicht in Meldeliste) ist ein aktiver Teilnehmer — wird nur protokolliert.
+      in_participants = participant_player_ids.include?(player.id)
+      in_registration = registration_player_ids.include?(player.id)
+      # no_show nur ableiten, wenn es überhaupt eine Teilnehmerliste gibt. Solange keine
+      # existiert (z.B. vor der Akkreditierung), bleiben gemeldete Spieler aktiv — sonst
+      # würden alle Turniere in der Anmeldephase 0 aktive Teilnehmer bekommen.
+      target_state = if participant_player_ids.empty?
+        "registered"
+      else
+        in_participants ? "registered" : "no_show"
+      end
+      if in_participants && !in_registration
+        Rails.logger.info("==== scrape ==== #{fl_name}: Schnellanmeldung (in Teilnehmerliste, nicht in Meldeliste)")
+      end
+
       seeding = Seeding.find_by_player_id_and_tournament_id(player.id, @tournament.id)
-      unless seeding.present?
+      if seeding.blank?
         seeding = Seeding.new(player_id: player.id, tournament: @tournament, position: position || idx)
         seeding.region_id = region.id
-        if seeding.save
-          Rails.logger.info("Seeding[#{seeding.id}] created for #{fl_name}.")
-        else
+        unless seeding.save
           Rails.logger.error("==== scrape ==== Failed to create seeding for player #{player.id} (#{fl_name}): #{seeding.errors.full_messages.join(", ")}")
+          next
         end
+        Rails.logger.info("Seeding[#{seeding.id}] created for #{fl_name} (state=#{target_state}).")
+      end
+      # CC = Wahrheit: State bei jedem Scrape angleichen (auch bestehende Seedings)
+      if seeding.state != target_state
+        seeding.update(state: target_state)
+        Rails.logger.info("==== scrape ==== Seeding[#{seeding.id}] #{fl_name}: state → #{target_state}")
       end
     end
 
