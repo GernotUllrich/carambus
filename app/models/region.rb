@@ -556,7 +556,10 @@ image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9"
       tc.assign_attributes(name:)
       tc.save
       # tournament known but no cc entry yet?
-      tournament = Tournament.where(season:, organizer: self, title: name).first
+      # Mapping primär über die cc_id-Verknüpfung (tc) statt über den Titel — Titel-Mapping
+      # allein ist fehleranfällig (Titel-Kollision, cc_id-Drift). Titel nur als Fallback.
+      tournament = (tc.tournament if tc.tournament_id.present?)
+      tournament ||= Tournament.where(season:, organizer: self, title: name).first
       unless tournament.present?
         # Erkenne Vorgabeturniere am Titel
         is_handicap = name =~ /Vorgabe/i

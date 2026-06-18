@@ -69,6 +69,21 @@ class Tournament::PublicCcScraper < ApplicationService
     @tournament.source_url = url + tournament_link
     # details
     detail_table = tournament_doc.css("aside table.silver")[0]
+    # Schutz gegen cc_id-Drift: ClubCloud kann die cc_id eines Turniers nachträglich
+    # ändern (cc_id ist nicht stabil). Bauen wir die URL aus einer veralteten cc_id,
+    # liefert CC ein FREMDES Turnier. Bevor wir dessen Detaildaten übernehmen, prüfen
+    # wir den Turniertitel der geholten Seite gegen das erwartete Turnier — sonst Abbruch
+    # (sonst bekommt z.B. ein Test-Cadre die Daten eines fremden Vorgabepokals).
+    norm_title = ->(s) { s.to_s.gsub(nbsp, " ").gsub(/\s+/, " ").strip }
+    page_title = detail_table.andand.css("tr").to_a.map { |tr|
+      [norm_title.call(tr.css("td")[0].andand.text), tr.css("td")[1].andand.text]
+    }.to_h["Turnier"]
+    if page_title.present? && norm_title.call(page_title) != norm_title.call(@tournament.title)
+      Rails.logger.error "===== scrape ===== ABBRUCH: cc_id #{tournament_cc_id} liefert Turnier " \
+        "'#{norm_title.call(page_title)}' statt erwartetem '#{@tournament.title}' " \
+        "(Tournament[#{@tournament.id}] — cc_id-Drift?). Keine Datenübernahme, tc.cc_id prüfen/aktualisieren."
+      return
+    end
     branch_cc = nil
     discipline = nil
     detail_table.css("tr").each do |detail_tr|
@@ -79,7 +94,9 @@ class Tournament::PublicCcScraper < ApplicationService
         @tournament.shortname = tc.shortname = detail_tr.css("td")[1].text.gsub(nbsp, " ").strip
       when "Datum"
         ht = detail_tr.css("td")[1].inner_html
-        date_time = DateTime.parse(ht.match(/.*Spielbeginn am (.*) Uhr.*/)[1].andand.gsub("um ", ""))
+        # Time.zone.parse (Berlin) statt DateTime.parse: CC gibt deutsche Lokalzeit an —
+        # DateTime.parse nimmt UTC an → Spielbeginn würde um den TZ-Offset (Sommer +2h) verschoben.
+        date_time = Time.zone.parse(ht.match(/.*Spielbeginn am (.*) Uhr.*/)[1].andand.gsub("um ", ""))
         tc.tournament_start = date_time
         @tournament.date = date_time
       when "Location"
@@ -98,7 +115,7 @@ class Tournament::PublicCcScraper < ApplicationService
         @tournament.location = tc.location = location
       when "Meldeschluss"
         text = detail_tr.css("td")[1].text.gsub(nbsp, " ").strip
-        date_time = DateTime.parse(text)
+        date_time = Time.zone.parse(text)
         @tournament.accredation_end = date_time
       when "Sparte"
         name = detail_tr.css("td")[1].text.gsub(nbsp, " ").strip
@@ -237,6 +254,25 @@ class Tournament::PublicCcScraper < ApplicationService
         else
           Rails.logger.error("==== scrape ==== Failed to create seeding for player #{player.id} (#{fl_name}): #{seeding.errors.full_messages.join(", ")}")
         end
+      end
+    end
+
+    # Verwaiste Seedings bereinigen: Spieler, die nicht (mehr) in den aktuellen CC-Listen
+    # (Melde-/Teilnehmerliste) stehen und keine Spiele im Turnier haben, entfernen. Sonst
+    # sammeln sich Karteileichen aus früheren/fehlerhaften Scrapes an (z.B. Reste eines via
+    # veralteter cc_id überschriebenen Turniers). Nur bereinigen, wenn CC echte Teilnehmer
+    # liefert — sonst würden bei leerer/fehlerhafter Seite ALLE Seedings gelöscht.
+    valid_player_ids = player_list.values.map { |(player, *_rest)| player.andand.id }.compact
+    if valid_player_ids.any?
+      players_with_games = GameParticipation.joins(:game)
+                                            .where(games: { tournament_id: @tournament.id })
+                                            .distinct.pluck(:player_id).compact
+      keep_ids = (valid_player_ids + players_with_games).uniq
+      stale_seedings = @tournament.reload.seedings.where.not(player_id: keep_ids)
+      if stale_seedings.exists?
+        Rails.logger.info "==== scrape ==== removing #{stale_seedings.count} stale seeding(s) for " \
+          "tournament[#{@tournament.id}] (not in CC lists, no games): player_ids=#{stale_seedings.pluck(:player_id).inspect}"
+        stale_seedings.destroy_all
       end
     end
 
