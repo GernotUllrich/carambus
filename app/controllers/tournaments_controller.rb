@@ -121,6 +121,8 @@ class TournamentsController < ApplicationController
       @tournament.reload
       # Berechne Rankings explizit (falls after_enter callback nicht funktioniert hat)
       @tournament.calculate_and_cache_rankings if @tournament.data["player_rankings"].blank?
+      # Plan 44-03: Teilnehmerliste-Abschluss atomar in die CC zurückpushen (releaseMeldeliste, async).
+      FinalizeTeilnehmerlisteJob.enqueue_for(tournament: @tournament, acting_user: current_user)
     else
       flash[:alert] = t("not_allowed_on_api_server")
     end
