@@ -9,12 +9,16 @@
 #     tournament: tournament, player: player, target: :accredit, acting_user: user
 #   )
 #
-# Mapping (D-44-7):
-#   target :accredit   → Spieler soll Teilnehmer sein   (CC-Zustand :accredited)
-#   target :deaccredit → Spieler soll nur gemeldet sein (CC-Zustand :reported_only)
-# Umgesetzt über den bestehenden atomaren showMeldeliste_teilnahme-Toggle (HAR-Goldvorlage,
-# wiederverwendet aus cc_assign/cc_remove). Liest zuerst den Live-CC-Zustand und togglet NUR,
-# wenn Ist ≠ Ziel (idempotent). Schreibt einen AuditTrail-Eintrag.
+# Targets (Mapping D-44-7 Akkreditierung / D-44-8 Mitgliedschaft):
+#   :accredit           → akkreditieren   (nur aus :reported_only, via Toggle)
+#   :deaccredit         → deakkreditieren (nur aus :accredited, via Toggle)
+#   :ensure_participant → Teilnehmer sicherstellen (:not_in_tournament→cc_fast_assign,
+#                         :reported_only→Toggle, sonst noop)
+#   :remove_participant → Teilnehmer entfernen (:accredited→Toggle, :fast_assigned→cc_remove_tn,
+#                         :reported_only→skip [nur gemeldet], :not_in_tournament→noop)
+# Liest zuerst den Live-CC-Zustand (accreditation_state) und führt GENAU EINE zustandsabhängige
+# atomare CC-Aktion aus — nur wenn nötig (idempotent). Schreibt einen AuditTrail-Eintrag.
+# Endpoints/Payloads exakt aus cc_assign/cc_remove/cc_fast_assign wiederverwendet.
 #
 # Identität (Phase 39): die effektive CC-Identität wird über CcAccountResolver aufgelöst
 # (:own / :tl_inherited); ohne eigene/vererbte Credentials (:none) wird NICHT geschrieben.
@@ -53,46 +57,75 @@ class Tournament::CcSync::AccreditationPush < ApplicationService
     return result(:error, reason: info[:error]) if info[:error]
     current = info[:state]
 
-    case toggle_decision(current)
-    when :noop
+    action = plan_action(current)
+    if action.is_a?(Array) && action.first == :skip
+      return skip(action.last, current: current)
+    elsif action == :noop
       audit(account, tc, player_cc_id, current, "noop")
       return result(:noop, current: current)
-    when :unsupported
-      return skip(:unsupported_state, current: current)
     end
 
-    # :toggle — genau EIN atomarer Toggle-POST (spiegelt cc_assign/cc_remove, Plan 33-01).
-    payload = Assign.base_payload(tc.cc_id, scope).except(:firstEntry).merge(pid: player_cc_id)
-    res, doc = client.post(TOGGLE_ACTION, payload, {armed: true, session_id: cookie})
-    if McpServer::CcSession.reauth_if_needed!(doc)
-      res, doc = client.post(TOGGLE_ACTION, payload, {armed: true, session_id: cookie})
-    end
+    # action ∈ {:toggle, :fast_assign, :remove_tn} — genau EIN atomarer CC-POST.
+    action_name, res, doc = perform_cc_action(action, client, tc, scope, player_cc_id, cookie)
 
     return cc_failure(account, tc, player_cc_id, current, "http_#{res&.code || "nil"}") if res.nil? || res.code != "200"
 
     parsed = Assign.parse_cc_error(doc)
     return cc_failure(account, tc, player_cc_id, current, parsed) if parsed && parsed != "(no error)"
 
-    audit(account, tc, player_cc_id, current, "success")
-    result(:pushed, from: current, to: desired_state)
+    audit(account, tc, player_cc_id, current, "success:#{action_name}")
+    result(:pushed, action: action, from: current)
   end
 
   private
 
-  def desired_state
-    (@target == :accredit) ? :accredited : :reported_only
+  # Wählt die zustandsabhängige CC-Aktion für (target, current).
+  # Rückgabe: :noop | :toggle | :fast_assign | :remove_tn | [:skip, reason]
+  # (Mapping D-44-7 für :accredit/:deaccredit, D-44-8 für :ensure_participant/:remove_participant.)
+  def plan_action(current)
+    case @target
+    when :accredit
+      return :noop if current == :accredited
+      return :toggle if current == :reported_only
+      [:skip, :unsupported_state]
+    when :deaccredit
+      return :noop if current == :reported_only
+      return :toggle if current == :accredited
+      [:skip, :unsupported_state]
+    when :ensure_participant
+      return :noop if current == :accredited || current == :fast_assigned
+      return :fast_assign if current == :not_in_tournament
+      return :toggle if current == :reported_only
+      [:skip, :unsupported_state]
+    when :remove_participant
+      return :toggle if current == :accredited
+      return :remove_tn if current == :fast_assigned
+      return :noop if current == :not_in_tournament
+      return [:skip, :registration_only_not_removed] if current == :reported_only
+      [:skip, :unsupported_state]
+    else
+      [:skip, :unknown_target]
+    end
   end
 
-  # Nur die zwei sauberen Toggle-Richtungen togglen; alles andere noop (bereits am Ziel)
-  # oder unsupported (:fast_assigned / :not_in_tournament — Sonderpfade = 44-02).
-  def toggle_decision(current)
-    return :noop if current == desired_state
-    if (@target == :accredit && current == :reported_only) ||
-        (@target == :deaccredit && current == :accredited)
-      :toggle
-    else
-      :unsupported
+  # Baut Endpoint + Payload zustandsabhängig (exakt wie cc_assign/cc_remove/cc_fast_assign)
+  # und sendet GENAU EINEN atomaren POST (mit Reauth-Retry). Rückgabe: [action_name, res, doc].
+  def perform_cc_action(action, client, tc, scope, player_cc_id, cookie)
+    action_name, payload =
+      case action
+      when :toggle
+        [TOGGLE_ACTION, Assign.base_payload(tc.cc_id, scope).except(:firstEntry).merge(pid: player_cc_id)]
+      when :fast_assign
+        ["cc_fast_assign", {meisterschaftsId: tc.cc_id, foundpid: player_cc_id, akkpid: "", fedId: scope[:fedId], branchId: scope[:branchId]}]
+      when :remove_tn
+        ["cc_remove_tn", Assign.base_payload(tc.cc_id, scope).except(:firstEntry).merge(dla: 1, akkpid: player_cc_id)]
+      end
+
+    res, doc = client.post(action_name, payload, {armed: true, session_id: cookie})
+    if McpServer::CcSession.reauth_if_needed!(doc)
+      res, doc = client.post(action_name, payload, {armed: true, session_id: cookie})
     end
+    [action_name, res, doc]
   end
 
   def result(status, **extra)

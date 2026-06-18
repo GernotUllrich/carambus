@@ -111,4 +111,63 @@ class Tournament::CcSync::AccreditationPushTest < ActiveSupport::TestCase
     assert_equal :skipped, result[:status]
     assert_equal :no_tournament_cc, result[:reason]
   end
+
+  # --- 44-02: Membership-Targets (D-44-8) ---
+
+  test "ensure_participant + not_in_tournament → cc_fast_assign (Schnellanmeldung)" do
+    result, client = run_push(state: :not_in_tournament, target: :ensure_participant)
+    assert_equal :pushed, result[:status]
+    assert_equal 1, client.posts.size
+    action, payload, _ = client.posts.first
+    assert_equal "cc_fast_assign", action
+    assert_equal 10021, payload[:foundpid]
+    assert_equal "", payload[:akkpid]
+  end
+
+  test "ensure_participant + reported_only → Toggle (akkreditieren)" do
+    result, client = run_push(state: :reported_only, target: :ensure_participant)
+    assert_equal :pushed, result[:status]
+    assert_equal ["showMeldeliste_teilnahme"], client.posts.map { |p| p[0] }
+  end
+
+  test "ensure_participant + accredited → noop, kein POST" do
+    result, client = run_push(state: :accredited, target: :ensure_participant)
+    assert_equal :noop, result[:status]
+    assert_empty client.posts
+  end
+
+  test "ensure_participant + fast_assigned → noop, kein POST" do
+    result, client = run_push(state: :fast_assigned, target: :ensure_participant)
+    assert_equal :noop, result[:status]
+    assert_empty client.posts
+  end
+
+  test "remove_participant + accredited → Toggle (deakkreditieren)" do
+    result, client = run_push(state: :accredited, target: :remove_participant)
+    assert_equal :pushed, result[:status]
+    assert_equal ["showMeldeliste_teilnahme"], client.posts.map { |p| p[0] }
+  end
+
+  test "remove_participant + fast_assigned → cc_remove_tn" do
+    result, client = run_push(state: :fast_assigned, target: :remove_participant)
+    assert_equal :pushed, result[:status]
+    assert_equal 1, client.posts.size
+    action, payload, _ = client.posts.first
+    assert_equal "cc_remove_tn", action
+    assert_equal 10021, payload[:akkpid]
+    assert_equal 1, payload[:dla]
+  end
+
+  test "remove_participant + reported_only → skip (registration_only_not_removed), kein POST" do
+    result, client = run_push(state: :reported_only, target: :remove_participant)
+    assert_equal :skipped, result[:status]
+    assert_equal :registration_only_not_removed, result[:reason]
+    assert_empty client.posts
+  end
+
+  test "remove_participant + not_in_tournament → noop, kein POST" do
+    result, client = run_push(state: :not_in_tournament, target: :remove_participant)
+    assert_equal :noop, result[:status]
+    assert_empty client.posts
+  end
 end
