@@ -140,9 +140,15 @@ class TournamentReflex < ApplicationReflex
     seeding = tournament.seedings.where(player_id: player.id)
     if checked
       seeding.update(state: "no_show")
+      target = :deaccredit
     else
       seeding.update(state: "registered")
+      target = :accredit
     end
+    # Plan 44-01: TL-Akkreditierungsänderung atomar in die CC zurückpushen (async, Queue+Retry).
+    PushAccreditationToCcJob.enqueue_for(
+      tournament: tournament, player: player, target: target, acting_user: current_user
+    )
   end
 
   def change_position
