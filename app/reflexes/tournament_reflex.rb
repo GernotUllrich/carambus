@@ -128,7 +128,13 @@ class TournamentReflex < ApplicationReflex
       tournament.seedings.where(player_id: player.id).destroy_all
     end
     tournament.save!
-    
+
+    # Plan 44-02: Mitgliedschaftsänderung atomar in die CC zurückpushen (async, Queue+Retry).
+    PushAccreditationToCcJob.enqueue_for(
+      tournament: tournament, player: player,
+      target: checked ? :ensure_participant : :remove_participant, acting_user: current_user
+    )
+
     # Rendere die ganze Seite neu, damit Gruppenzuordnungen aktualisiert werden
     morph :page
   end
@@ -140,9 +146,15 @@ class TournamentReflex < ApplicationReflex
     seeding = tournament.seedings.where(player_id: player.id)
     if checked
       seeding.update(state: "no_show")
+      target = :deaccredit
     else
       seeding.update(state: "registered")
+      target = :accredit
     end
+    # Plan 44-01: TL-Akkreditierungsänderung atomar in die CC zurückpushen (async, Queue+Retry).
+    PushAccreditationToCcJob.enqueue_for(
+      tournament: tournament, player: player, target: target, acting_user: current_user
+    )
   end
 
   def change_position
