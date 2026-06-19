@@ -3663,7 +3663,7 @@ scoreboards → final standings), you do <strong>not</strong> need this bridge.<
 </table>
 <h3 id="step-1-create-the-service-account-sportwart">Step 1: Create the service account (Sportwart)<a class="headerlink" href="#step-1-create-the-service-account-sportwart" title="Permanent link">&para;</a></h3>
 <p>In the Carambus scenario's server directory:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>rake<span class="w"> </span>service_accounts:create_2band<span class="o">[</span>NBV<span class="o">]</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>rake<span class="w"> </span>service_accounts:create_carambus_app<span class="o">[</span>NBV<span class="o">]</span>
 </code></pre></div>
 <p>Output: a one-time password — <strong>communicate securely</strong>, not in plain text
 in chat or email. Hand it over in person or via a trusted channel
@@ -3676,7 +3676,7 @@ in chat or email. Hand it over in person or via a trusted channel
     <code>http://192.168.X.X:3000</code></li>
 <li>Per-region cloud: <code>https://nbv.carambus.de</code></li>
 <li>Global cloud: <code>https://carambus.de</code></li>
-<li><strong>Service-account email</strong>: <code>2band-nbv-bridge@carambus.de</code>
+<li><strong>Service-account email</strong>: <code>carambus-app-nbv-bridge@carambus.de</code>
   (or the equivalent for other regions)</li>
 <li><strong>Password</strong>: from step 1</li>
 <li><strong>Region shortname</strong>: e.g., <code>NBV</code>, <code>BCW</code></li>

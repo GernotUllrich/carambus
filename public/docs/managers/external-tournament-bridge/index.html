@@ -3662,7 +3662,7 @@ Auslosung → Scoreboards → Endrangliste), brauchst du diese Bridge <strong>ni
 </table>
 <h3 id="schritt-1-service-account-anlegen-sportwart">Schritt 1: Service-Account anlegen (Sportwart)<a class="headerlink" href="#schritt-1-service-account-anlegen-sportwart" title="Permanent link">&para;</a></h3>
 <p>Im Server-Verzeichnis des Carambus-Scenarios:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>rake<span class="w"> </span>service_accounts:create_2band<span class="o">[</span>NBV<span class="o">]</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>rake<span class="w"> </span>service_accounts:create_carambus_app<span class="o">[</span>NBV<span class="o">]</span>
 </code></pre></div>
 <p>Output: Einmaliges Password — <strong>sicher kommunizieren</strong>, nicht in Chat/Email
 klartext. Persönlich übergeben oder über einen vertrauenswürdigen Kanal
@@ -3674,7 +3674,7 @@ klartext. Persönlich übergeben oder über einen vertrauenswürdigen Kanal
 <li>Lokal im Clubheim-WLAN: <code>http://carambus.local:3000</code> oder <code>http://192.168.X.X:3000</code></li>
 <li>Per-Region Cloud: <code>https://nbv.carambus.de</code></li>
 <li>Globale Cloud: <code>https://carambus.de</code></li>
-<li><strong>Service-Account-Email</strong>: <code>2band-nbv-bridge@carambus.de</code> (oder analog für andere Regionen)</li>
+<li><strong>Service-Account-Email</strong>: <code>carambus-app-nbv-bridge@carambus.de</code> (oder analog für andere Regionen)</li>
 <li><strong>Password</strong>: aus Schritt 1</li>
 <li><strong>Region-Shortname</strong>: z.B. <code>NBV</code>, <code>BCW</code></li>
 </ul>
