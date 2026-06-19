@@ -80,4 +80,30 @@ class McpServer::Tools::SearchPlayerTest < ActiveSupport::TestCase
     assert_operator body["candidates"].length, :>=, 2
     assert body["warning"].present?, "Warning erwartet bei ≥2 Treffern"
   end
+
+  # Befund 2026-06-19 (Live-Test bcw): ungerankte Spieler — z.B. ganze Disziplinen wie Kegel,
+  # für die keine Rankings berechnet wurden — waren per Name unauffindbar, weil der Region-Filter
+  # einen Pflicht-Join auf player_rankings machte. Region jetzt ranking-unabhängig über Club→Region.
+  test "ungerankter Spieler wird über Club->Region gefunden (region_id NULL, Kegel-Szenario)" do
+    region_name = McpServer::Tools::BaseTool.effective_cc_region(nil)
+    skip "keine effektive Region in Test-Config" if region_name.blank?
+    region = Region.find_or_create_by!(shortname: region_name) { |r| r.name = region_name }
+    club = Club.create!(name: "Zz Kegelclub Test", region_id: region.id, cc_id: 990_001)
+    season = Season.first || Season.create!(name: "2025/2026")
+    # region_id bewusst NULL — Region kommt allein über den Club (Kegel-Realität auf Local-Servern).
+    player = Player.create!(firstname: "Zzgeorg", lastname: "Zznachtmanntest")
+    SeasonParticipation.create!(player: player, club: club, season: season)
+    assert_empty player.player_rankings, "Testspieler darf KEIN Ranking haben (Kegel-Szenario)"
+
+    response = McpServer::Tools::SearchPlayer.call(query: "Zznachtmanntest", server_context: {cc_region: region_name})
+
+    refute response.error?, "Ungerankter Spieler mit Club in der Region muss gefunden werden: #{response.content.first[:text]}"
+    body = JSON.parse(response.content.first[:text])
+    assert(body["candidates"].any? { |c| c["lastname"] == "Zznachtmanntest" },
+      "Spieler nicht in candidates: #{body["candidates"].inspect}")
+  ensure
+    SeasonParticipation.where(player_id: player&.id).destroy_all if player
+    player&.destroy
+    club&.destroy
+  end
 end

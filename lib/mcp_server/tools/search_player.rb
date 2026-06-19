@@ -53,7 +53,16 @@ module McpServer
         tokens = tokenize_search_query(query)
         title_prefix = detect_title_prefix(query)
 
-        scope = Player.joins(:player_rankings).where(player_rankings: {region_id: region.id}).distinct
+        # Region-Scope ranking-UNABHÄNGIG (Befund 2026-06-19): der bisherige Pflicht-Join auf
+        # player_rankings schloss Spieler OHNE Ranking aus — z.B. ganze Disziplinen wie Kegel,
+        # für die keine Rankings berechnet wurden → per Name unauffindbar (per dbu_nr schon).
+        # Region jetzt über das verlässliche Club→Region-Signal (players.region_id ist ~88% NULL)
+        # ODER eigenes region_id ODER (additiv, kein Regress) ein Ranking in der Region.
+        base = Player.left_joins(:clubs)
+        scope = base.where(players: {region_id: region.id})
+          .or(base.where(clubs: {region_id: region.id}))
+          .or(base.where(id: PlayerRanking.where(region_id: region.id).select(:player_id)))
+          .distinct
         if club_cc_id.present?
           club = Club.find_by(cc_id: club_cc_id)
           scope = scope.where(club_id: club.id) if club

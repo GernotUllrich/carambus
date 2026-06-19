@@ -64,9 +64,15 @@ module McpServer
         tokens = tokenize_search_query(name)
         title_prefix = detect_title_prefix(name)
 
-        rel = Player
-          .joins(:player_rankings)
-          .where(player_rankings: {region_id: region.id})
+        # Region-Scope ranking-UNABHÄNGIG (Befund 2026-06-19, analog cc_search_player): der
+        # Pflicht-Join auf player_rankings schloss Spieler OHNE Ranking aus (z.B. ganze
+        # Disziplinen wie Kegel, für die keine Rankings berechnet wurden) → per Name
+        # unauffindbar. Region jetzt über Club→Region (players.region_id ist ~88% NULL)
+        # ODER eigenes region_id ODER (additiv, kein Regress) ein Ranking in der Region.
+        base = Player.left_joins(:clubs)
+        rel = base.where(players: {region_id: region.id})
+          .or(base.where(clubs: {region_id: region.id}))
+          .or(base.where(id: PlayerRanking.where(region_id: region.id).select(:player_id)))
           .distinct
 
         rel = apply_token_search_filter(rel, tokens, %w[players.fl_name players.firstname players.lastname])
