@@ -156,13 +156,18 @@ module McpServer
 
         # Plan 14-02.3 / F-5: Pfad 3 legacy-fallback — showMeldelistenList-Parser.
         if candidates.empty? || force_refresh
+          # Bug B (2026-06-19): path-3 muss den EFFEKTIVEN Scope-Tupel durchreichen, nicht die
+          # rohen (oft nil) fed_cc_id/season. path-0 nutzte effective_fed/effective_season_name
+          # bereits korrekt; path-3 wurde beim Hotfix #2 übersehen → unvollständiger CC-Scope
+          # (nur branchId, ohne fedId/season) → CC liefert Pool-Default statt der gescopten Liste
+          # → 0 Treffer trotz existierender Meldeliste (Live-Befund „NDM Test Cadre 35/2" → 1347).
           live_candidates = fetch_from_cc(
             tournament_cc_id,
-            fed_cc_id: fed_cc_id, branch_cc_id: branch_cc_id,
-            season: season, disciplin_id: disciplin_id, cat_id: cat_id,
+            fed_cc_id: effective_fed, branch_cc_id: branch_cc_id,
+            season: effective_season_name, disciplin_id: disciplin_id, cat_id: cat_id,
             server_context: server_context
           )
-          Rails.logger.info "[LookupMeldelistе] path-3 cc-live (scope_given=#{scope_filter_given?(fed_cc_id, branch_cc_id, season, disciplin_id, cat_id)}): #{live_candidates.size} candidate(s)"
+          Rails.logger.info "[LookupMeldelistе] path-3 cc-live (scope_given=#{scope_filter_given?(effective_fed, branch_cc_id, effective_season_name, disciplin_id, cat_id)}): #{live_candidates.size} candidate(s)"
           # Live-Candidates haben Vorrang nur bei force_refresh oder DB-empty
           candidates = live_candidates if !live_candidates.empty?
         end

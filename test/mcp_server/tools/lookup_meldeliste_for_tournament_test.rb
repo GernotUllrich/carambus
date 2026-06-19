@@ -228,22 +228,28 @@ class McpServer::Tools::LookupMeldelisteForTournamentTest < ActiveSupport::TestC
     assert_equal 890, payload[:meisterschaftsId], "DEFER-25-4: Scope-Filter-Payload muss meisterschaftsId enthalten"
   end
 
-  test "Plan 09-02 T-Scope-Partial: nur fed_cc_id + branch_cc_id → partial Scope-Filter-Payload" do
+  # Bug B (2026-06-19): season nicht explizit gegeben → path-3 ergänzt sie aus dem
+  # effective_season-Default (vorher fälschlich roh = nil durchgereicht). Deterministisch
+  # via Stub, damit der Test nicht von Season-Fixtures/Datum abhängt.
+  test "Plan 09-02 T-Scope-Partial: fed+branch explizit, season fehlt → aus effective_season-Default ergänzt (Bug B)" do
     @mock.define_singleton_method(:post) do |action, post_options = {}, opts = {}|
       @calls << [:post, action, post_options, opts]
       body = '<html><body><tr data-meldeliste-cc-id="1310"><td>Result</td></tr></body></html>'
       [Struct.new(:code, :message, :body).new("200", "OK", body), Nokogiri::HTML(body)]
     end
-    McpServer::Tools::LookupMeldelisteForTournament.call(
-      tournament_cc_id: 890, fed_cc_id: 20, branch_cc_id: 8,
-      force_refresh: true, server_context: nil
-    )
+    season_stub = Struct.new(:name).new("2025/2026")
+    McpServer::Tools::LookupMeldelisteForTournament.stub(:effective_season, season_stub) do
+      McpServer::Tools::LookupMeldelisteForTournament.call(
+        tournament_cc_id: 890, fed_cc_id: 20, branch_cc_id: 8,
+        force_refresh: true, server_context: nil
+      )
+    end
     # Plan 14-02.3 / F-5: filter auf erste POST-Call (GET editMeldelisteCheck ist Pfad-1-Probe)
     payload = @mock.calls.find { |verb, _, _, _| verb == :post }[2]
     assert_equal 20, payload[:fedId]
     assert_equal 8, payload[:branchId]
-    refute payload.key?(:season), "Partial: season nicht gesetzt → kein Key"
-    refute payload.key?(:catId), "Partial: cat_id nicht gesetzt → kein Key"
+    assert_equal "2025/2026", payload[:season], "Bug B: season wird aus effective_season-Default ergänzt"
+    refute payload.key?(:catId), "cat_id nicht gesetzt → kein Key"
     assert_equal 890, payload[:meisterschaftsId], "DEFER-25-4: Scope-Filter-Payload muss meisterschaftsId enthalten"
   end
 
@@ -263,21 +269,56 @@ class McpServer::Tools::LookupMeldelisteForTournamentTest < ActiveSupport::TestC
     assert_equal "*", payload[:disciplinId], "disciplin_id-Default ist Wildcard '*'"
   end
 
-  test "Plan 09-02 T-Backwards-Compat: ohne Scope-Filter → meisterschaftsId-Pfad (Plan 08-02 default)" do
+  # Bug B (2026-06-19): „kein Scope" heißt jetzt „nichts auflösbar". Wenn weder explizite
+  # Params noch effective-Defaults (fed/season) noch ein ableitbarer Branch vorliegen, bleibt
+  # der reine meisterschaftsId-Pfad (Plan-08-02-Fallback). Resolver via Stub auf nil gezwungen,
+  # damit der Test diesen echten Fallback prüft statt von Fixtures/Datum/Context abzuhängen.
+  test "Plan 09-02 T-Backwards-Compat: nichts auflösbar → reiner meisterschaftsId-Pfad" do
     @mock.define_singleton_method(:post) do |action, post_options = {}, opts = {}|
       @calls << [:post, action, post_options, opts]
       body = '<html><body><tr data-meldeliste-cc-id="1310"><td>Result</td></tr></body></html>'
       [Struct.new(:code, :message, :body).new("200", "OK", body), Nokogiri::HTML(body)]
     end
-    McpServer::Tools::LookupMeldelisteForTournament.call(
-      tournament_cc_id: 890, force_refresh: true, server_context: nil
-    )
+    tool = McpServer::Tools::LookupMeldelisteForTournament
+    tool.stub(:resolve_tournament_branch_cc_id, nil) do
+      tool.stub(:default_fed_id, nil) do
+        tool.stub(:effective_season, nil) do
+          tool.call(tournament_cc_id: 890, force_refresh: true, server_context: nil)
+        end
+      end
+    end
     # Plan 14-02.3 / F-5: filter auf erste POST-Call (GET editMeldelisteCheck ist Pfad-1-Probe)
     payload = @mock.calls.find { |verb, _, _, _| verb == :post }[2]
     assert_equal 890, payload[:meisterschaftsId], "Backwards-Compat: meisterschaftsId muss gesendet werden"
-    refute payload.key?(:fedId), "Backwards-Compat darf KEIN Scope-Filter-Key haben"
+    refute payload.key?(:fedId), "Nichts auflösbar → KEIN Scope-Filter-Key"
     refute payload.key?(:branchId)
     refute payload.key?(:season)
+  end
+
+  # Bug B (2026-06-19) Regression: ohne explizite Scope-Params, aber mit auflösbarem
+  # server_context-Default (fed/season) + aus dem Turnier ableitbarem Branch, MUSS path-3
+  # den vollständigen Scope-Tupel an die CC senden. Vorher reichte path-3 die rohen nil-Werte
+  # durch → nur branchId → CC-Pool-Default → 0 Treffer (Live-Befund „NDM Test Cadre 35/2").
+  test "Bug B: server_context-Default-Scope (fed/branch/season) wird in path-3 ergänzt" do
+    @mock.define_singleton_method(:post) do |action, post_options = {}, opts = {}|
+      @calls << [:post, action, post_options, opts]
+      body = '<html><body><tr data-meldeliste-cc-id="1347"><td>NDM Test Cadre 35/2</td></tr></body></html>'
+      [Struct.new(:code, :message, :body).new("200", "OK", body), Nokogiri::HTML(body)]
+    end
+    season_stub = Struct.new(:name).new("2025/2026")
+    tool = McpServer::Tools::LookupMeldelisteForTournament
+    tool.stub(:default_fed_id, 20) do
+      tool.stub(:effective_season, season_stub) do
+        tool.stub(:resolve_tournament_branch_cc_id, 10) do
+          tool.call(tournament_cc_id: 939, force_refresh: true, server_context: nil)
+        end
+      end
+    end
+    payload = @mock.calls.find { |verb, _, _, _| verb == :post }[2]
+    assert_equal 939, payload[:meisterschaftsId]
+    assert_equal 20, payload[:fedId], "Bug B: fedId aus effective_fed (default_fed_id) ergänzt"
+    assert_equal 10, payload[:branchId], "Bug B: branchId aus dem Turnier abgeleitet"
+    assert_equal "2025/2026", payload[:season], "Bug B: season aus effective_season ergänzt"
   end
 
   test "Plan 09-02 T-Scope-Mixed-mit-Force-Refresh: Scope-Filter + force_refresh:true → Live-CC mit Scope-Payload, source=cc-live" do
