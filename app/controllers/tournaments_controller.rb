@@ -818,6 +818,14 @@ class TournamentsController < ApplicationController
         position: max_position + 1
       )
 
+      # Plan 44-02: kurzfristige dbu_nr-Nachmeldung atomar in die CC pushen — analog zum
+      # change_seeding-Reflex. Ohne das landet die Nachmeldung lokal, aber NICHT in der CC
+      # (Live-Befund 2026-06-19). enqueue_for ist no-op ohne tournament_cc.
+      PushAccreditationToCcJob.enqueue_for(
+        tournament: @tournament, player: player,
+        target: :ensure_participant, acting_user: current_user
+      )
+
       added << "#{player.fullname} (#{dbu_nr}, Pos. #{max_position + 1})"
     end
 
