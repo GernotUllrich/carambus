@@ -3510,6 +3510,17 @@ ENV
       return false
     end
 
+    # Step 4.6: carambus_app ausliefern (nur wenn serve_tournament_app:true) — Turniermanagement
+    # ohne Carambus-Scoreboards (z.B. BG Hamburg). Kopiert die statische SPA in den
+    # (universellen) public/app-linked_dir auf dem Server → Auslieferung unter /app/.
+    # Fehlschlag blockiert das Deployment NICHT (die App ist ein optionales Add-on).
+    if scenario['serve_tournament_app']
+      puts "\n🎱 Step 4.6: serve_tournament_app aktiv — carambus_app auf den Server kopieren..."
+      unless copy_tournament_app_to_server(scenario_name, production_config)
+        puts "   ⚠️  carambus_app-Kopie fehlgeschlagen — Deployment läuft weiter, /app/ liefert ggf. 404."
+      end
+    end
+
     puts "\n✅ Scenario #{scenario_name} für Deployment vorbereitet (Config + Server-Setup)!"
     puts "   Rails root: #{rails_root}"
     puts "   Production config: #{File.join(scenarios_path, scenario_name, 'production')}"
@@ -3519,6 +3530,44 @@ ENV
     puts "  2. rake scenario:deploy[#{scenario_name}]           # Capistrano-Deploy"
     puts "  Oder direkt: cd #{rails_root} && cap production deploy"
 
+    true
+  end
+
+  # Den SAUBEREN Servable-Subdir der carambus_app (carambus_app/public/ — nur index.html +
+  # Assets) nach <deploy_to>/shared/public/app auf dem Server kopieren. NICHT der Repo-Root:
+  # der enthält .git, IDE-/Doku-Dateien und PRIVATE Backups (z.B. chat-backup.jsonl), die
+  # niemals auf den öffentlichen Server gehören. Der App-Dev pflegt carambus_app/public/
+  # (separates Repo 3band-turnier). Befüllt den universellen public/app-linked_dir
+  # (config/deploy.rb) → Auslieferung unter /app/. Nur bei serve_tournament_app:true.
+  # Defensiv: false (keine Exception) bei fehlender Quelle oder ssh_host.
+  def copy_tournament_app_to_server(scenario_name, production_config)
+    app_source = File.expand_path("../carambus_app/public", carambus_data_path)
+    unless File.exist?(File.join(app_source, "index.html"))
+      puts "   ⚠️  carambus_app/public/index.html fehlt (#{app_source}) — die App stellt noch keinen"
+      puts "       bereinigten Servable-Ordner bereit. Kopie übersprungen (App-Dev muss public/ anlegen)."
+      return false
+    end
+
+    ssh_host = production_config['ssh_host']
+    ssh_port = production_config['ssh_port'] || 22
+    if ssh_host.nil? || ssh_host.to_s.strip.empty?
+      puts "   ❌ ssh_host nicht gesetzt — Kopie übersprungen"
+      return false
+    end
+
+    deploy_to = production_config['deploy_to'] || "/var/www/#{scenario_name}"
+    remote_dir = "#{deploy_to}/shared/public/app"
+
+    puts "   📤 rsync #{app_source}/ → www-data@#{ssh_host}:#{remote_dir}/"
+    unless system("ssh -p #{ssh_port} www-data@#{ssh_host} 'mkdir -p #{remote_dir}'")
+      puts "   ❌ mkdir #{remote_dir} auf Server fehlgeschlagen"
+      return false
+    end
+    unless system("rsync -az --delete --exclude='.git' --exclude='.DS_Store' -e 'ssh -p #{ssh_port}' #{app_source}/ www-data@#{ssh_host}:#{remote_dir}/")
+      puts "   ❌ rsync fehlgeschlagen"
+      return false
+    end
+    puts "   ✅ carambus_app nach #{remote_dir} kopiert (/app/ wird ausgeliefert)"
     true
   end
 

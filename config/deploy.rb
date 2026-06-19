@@ -15,6 +15,12 @@ append :linked_files, "config/database.yml", "config/cable.yml", "config/carambu
 # Default value for linked_dirs is []
 append :linked_dirs, "log", "tmp/pids", "tmp/cache", "tmp/sockets", "public/system", "storage", "config/credentials", "bundle"
 
+# public/app: optionale Auslieferung der carambus_app (Turniermanagement ohne Carambus-
+# Scoreboards, z.B. BG Hamburg) unter /app/. Universeller linked_dir (Plan 21-10: deploy.rb
+# ist getrackt/universell). Befüllt wird shared/public/app nur bei serve_tournament_app:true
+# durch scenario:prepare_deploy; sonst bleibt es leer (→ /app/ 404, harmlos).
+append :linked_dirs, "public/app"
+
 # Default value for keep_releases is 5
 set :keep_releases, 5
 
