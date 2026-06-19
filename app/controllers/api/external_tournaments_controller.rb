@@ -6,8 +6,8 @@ module Api
   # Liefert carambus.seeding/v1-konformes JSON-Dokument für externe Turnier-Apps
   # (Pilot: 3BandMannschaftsTurnier in /Users/gullrich/2BandTurnier; BC Wedel 3-Band-Mannschaft).
   #
-  # Auth: devise-jwt (Bearer-Token aus POST /login eines 2band-bridge-Service-Account-Users
-  # wie 2band-nbv-bridge@carambus.de; angelegt via `rake service_accounts:create_2band[NBV]`).
+  # Auth: devise-jwt (Bearer-Token aus POST /login eines carambus-app-bridge-Service-Account-Users
+  # wie carambus-app-nbv-bridge@carambus.de; angelegt via `rake service_accounts:create_carambus_app[NBV]`).
   # D-15-01-A: Service-Account-Pattern analog G.14 (Pattern aus TournamentCcsController).
   #
   # Spec: /Users/gullrich/2BandTurnier/docs/json-schema.md

@@ -50,16 +50,16 @@ namespace :service_accounts do
   # für externe Turnier-Apps (z.B. 3BandMannschaftsTurnier-App in /Users/gullrich/2BandTurnier).
   # Wird zur devise-jwt-Auth gegen GET /api/external_tournament/* Endpoints genutzt.
   # D-15-01-A: Service-Account-Pattern analog G.14 (nbv-syncer).
-  desc "Create or rotate 2band-bridge service-account for External-Tournament-Bridge. Usage: rake service_accounts:create_2band[NBV]"
-  task :create_2band, [:region_shortname] => :environment do |_, args|
+  desc "Create or rotate carambus-app-bridge service-account for External-Tournament-Bridge. Usage: rake service_accounts:create_carambus_app[NBV]"
+  task :create_carambus_app, [:region_shortname] => :environment do |_, args|
     shortname = args[:region_shortname].to_s.upcase
     if shortname.blank?
-      puts "Usage: rake service_accounts:create_2band[REGION_SHORTNAME]"
-      puts "Example: rake service_accounts:create_2band[NBV]"
+      puts "Usage: rake service_accounts:create_carambus_app[REGION_SHORTNAME]"
+      puts "Example: rake service_accounts:create_carambus_app[NBV]"
       exit 1
     end
 
-    email = "2band-#{shortname.downcase}-bridge@carambus.de"
+    email = "carambus-app-#{shortname.downcase}-bridge@carambus.de"
     password = SecureRandom.urlsafe_base64(32)
 
     user = User.find_or_initialize_by(email: email)
@@ -68,7 +68,7 @@ namespace :service_accounts do
       user.password_confirmation = password
       user.role = :player
       user.save!
-      puts "✓ Created 2band-bridge service-account: #{email}"
+      puts "✓ Created carambus-app-bridge service-account: #{email}"
       puts ""
       puts "One-time password (store in 3BandMannschaftsTurnier-App configuration):"
       puts "  #{password}"
@@ -81,7 +81,7 @@ namespace :service_accounts do
       puts "  3. Use this JWT in 'Authorization: Bearer ...' header for all"
       puts "     GET /api/external_tournament/* calls (Long-Lived 90d via D-14-G7)."
     else
-      puts "2band-bridge service-account exists: #{email}"
+      puts "carambus-app-bridge service-account exists: #{email}"
       puts ""
       puts "To rotate password (revokes existing JWTs via JTIMatcher D-13-06.2-C):"
       puts "  user = User.find_by(email: '#{email}')"

@@ -9,7 +9,7 @@ module Api
     setup do
       @nbv = regions(:nbv)
       @location = locations(:one)
-      @service_user = User.create!(email: "test-2band-lifecycle@carambus.de", password: "password123")
+      @service_user = User.create!(email: "test-carambus-app-lifecycle@carambus.de", password: "password123")
       @player_a = Player.create!(id: 50_100_501, firstname: "AckCtrlA", lastname: "Test", dbu_nr: 43001, ba_id: 43001)
       @player_b = Player.create!(id: 50_100_502, firstname: "AckCtrlB", lastname: "Test", dbu_nr: 43002, ba_id: 43002)
     end
@@ -21,7 +21,7 @@ module Api
         t.destroy
       end
       Player.where(id: [@player_a&.id, @player_b&.id].compact).delete_all
-      User.where(email: "test-2band-lifecycle@carambus.de").delete_all
+      User.where(email: "test-carambus-app-lifecycle@carambus.de").delete_all
     end
 
     # AC-4: ohne Auth -> 401

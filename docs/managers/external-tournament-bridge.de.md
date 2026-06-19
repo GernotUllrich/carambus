@@ -42,7 +42,7 @@ Auslosung → Scoreboards → Endrangliste), brauchst du diese Bridge **nicht**.
 Im Server-Verzeichnis des Carambus-Scenarios:
 
 ```bash
-rake service_accounts:create_2band[NBV]
+rake service_accounts:create_carambus_app[NBV]
 ```
 
 Output: Einmaliges Password — **sicher kommunizieren**, nicht in Chat/Email
@@ -57,7 +57,7 @@ Die App benötigt:
   - Lokal im Clubheim-WLAN: `http://carambus.local:3000` oder `http://192.168.X.X:3000`
   - Per-Region Cloud: `https://nbv.carambus.de`
   - Globale Cloud: `https://carambus.de`
-- **Service-Account-Email**: `2band-nbv-bridge@carambus.de` (oder analog für andere Regionen)
+- **Service-Account-Email**: `carambus-app-nbv-bridge@carambus.de` (oder analog für andere Regionen)
 - **Password**: aus Schritt 1
 - **Region-Shortname**: z.B. `NBV`, `BCW`
 

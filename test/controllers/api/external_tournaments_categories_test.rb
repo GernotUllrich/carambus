@@ -9,7 +9,7 @@ module Api
   class ExternalTournamentsCategoriesTest < ActionDispatch::IntegrationTest
     setup do
       @nbv = regions(:nbv)
-      @service_user = User.create!(email: "test-2band-cat@carambus.de", password: "password123")
+      @service_user = User.create!(email: "test-carambus-app-cat@carambus.de", password: "password123")
       @region_cc = RegionCc.create!(region: @nbv, context: "nbv", cc_id: 70_101, shortname: "NBV",
         name: "CAT-CTRL RegionCc")
 
@@ -30,7 +30,7 @@ module Api
       PlayerClass.where(discipline_id: @discipline&.id).delete_all
       @discipline&.destroy
       @region_cc&.destroy
-      User.where(email: "test-2band-cat@carambus.de").delete_all
+      User.where(email: "test-carambus-app-cat@carambus.de").delete_all
     end
 
     test "categories with discipline returns schema + lists (AC-1)" do

@@ -73,7 +73,7 @@ Rails.application.routes.draw do
     end
 
     # Plan 15-02: External-Tournament-Bridge Seeding-Endpoint (devise-jwt-authentifiziert)
-    # D-15-01-A: Service-Account-Pattern analog G.14 (2band-{region}-bridge@carambus.de).
+    # D-15-01-A: Service-Account-Pattern analog G.14 (carambus-app-{region}-bridge@carambus.de).
     get "external_tournament/seeding",
         to: "external_tournaments#seeding",
         as: :external_tournament_seeding

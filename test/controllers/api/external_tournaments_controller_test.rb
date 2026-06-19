@@ -16,7 +16,7 @@ module Api
       @season = seasons(:current)
 
       @service_user = User.create!(
-        email: "test-2band-bridge@carambus.de",
+        email: "test-carambus-app-bridge@carambus.de",
         password: "password123"
       )
 
@@ -60,7 +60,7 @@ module Api
       TournamentCc.where(cc_id: 999_201).delete_all
       Tournament.where(title: "Test 3-Band Mannschaft 15-02").delete_all
       Seeding.where(tournament: @tournament).destroy_all if @tournament.persisted?
-      User.where(email: "test-2band-bridge@carambus.de").delete_all
+      User.where(email: "test-carambus-app-bridge@carambus.de").delete_all
     end
 
     # AC-3: ohne JWT → 401
