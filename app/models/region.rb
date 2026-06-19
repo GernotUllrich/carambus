@@ -734,6 +734,23 @@ image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9"
     "ClubCloud"
   end
 
+  # CC-Admin-base_url aus dem "Anmeldung"-Link der öffentlichen Region-Seite ableiten.
+  # Auf jeder öffentlichen Seite verweist <a ...>Anmeldung</a> auf den CC-Admin-Tenant-Host
+  # (z.B. https://<hash>.club-cloud.de). Das ist die zuverlässige Quelle für base_url —
+  # NICHT public_cc_url_base (= öffentliche Verbandsdomain). Auf scheme://host normalisiert
+  # OHNE Trailing-Slash — setting.rb baut Login-URLs als base_url + "/login/checkUser.php"
+  # (führender Slash am Pfad); ein Trailing-Slash würde Doppel-Slash erzeugen. Vgl.
+  # Konstante RegionCc::BASE_URL (ebenfalls ohne Slash).
+  # Gibt nil zurück, wenn kein Anmeldung-Link gefunden / href unbrauchbar.
+  def cc_admin_base_url_from(doc, page_url)
+    a = doc.css("a").find { |x| x.text.to_s.strip.casecmp?("Anmeldung") }
+    return nil unless a && a["href"].present?
+    u = URI.join(page_url.to_s, a["href"])
+    "#{u.scheme}://#{u.host}" if u.scheme.present? && u.host.present?
+  rescue URI::InvalidURIError
+    nil
+  end
+
   def scrape_region_public
 
     key_to_db_name = {
@@ -772,9 +789,14 @@ image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9"
       self.source_url = verband_url
       self.region_id ||= self.id
       save! if changed?
+      # base_url = CC-Admin-Tenant-Host aus dem "Anmeldung"-Link (NICHT public_cc_url_base).
+      # Vorher schrieb der Scrape public_cc_url_base in base_url → täglich 06:00 CC-Admin-Login
+      # 404 (PaperTrail-belegt). Fallback: bestehender Wert, dann public_cc_url_base.
+      # [[project_cc_admin_base_url_pitfall]]
+      scraped_admin_base = cc_admin_base_url_from(doc_verband, url)
       region_cc = RegionCc.find_by_shortname(shortname) || RegionCc.new(shortname:)
       region_cc.assign_attributes(name:, cc_id:, region_id: id, context: shortname.downcase, public_url: url,
-                                  base_url:)
+                                  base_url: scraped_admin_base.presence || region_cc.base_url.presence || base_url)
       region_cc.save! if region_cc.changed?
     else
       if shortname == "BBV" && false # TODO debug this, before releasing
