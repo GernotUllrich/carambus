@@ -136,10 +136,20 @@ scenario:
     features: [ai, translation, scraping, clubcloud]
     clubcloud_context: NBV        # wird intern kleingeschrieben
 ```
+> ⚠️ **Für ClubCloud beide Felder setzen:** `clubcloud` muss in `features` stehen **UND**
+> `clubcloud_context` gesetzt sein. Fehlt der Context, überspringt der Generator clubcloud
+> **still** (kein Fehler, .enc bleibt gleich groß) — der häufigste Stolperstein.
+
 Feature → Keys: `ai`→anthropic(+openai) · `translation`→deepl+google.translate ·
 `scraping`→youtube+kozoom · `clubcloud`→clubcloud.<ctx>. `google_service` immer.
-Rollen-Konvention: `scraping` nur auf dem Scraper (carambus_api); `clubcloud` nur
-Region-Szenarien (nicht club-only wie bcw/pbv).
+Rollen-Konvention: `scraping` nur auf dem Scraper (carambus_api). `clubcloud` gehört auf
+**jeden Local-Server, der die CC-Admin nutzt** — Local-Server schreiben heute
+Turnierergebnisse direkt in die CC-Admin und betreiben das Sportwart-Chat-/MCP-Interface.
+`clubcloud_context` = die Region, deren ClubCloud bedient wird (z. B. `NBV`). Sonderfall
+**NBV-Local-Server**: bindet via carambus_app auch Spieler ohne eigenes Scoreboard/
+Location-Server an.
+*(Die frühere Regel „`clubcloud` nur Region-Szenarien, nicht club-only wie bcw/pbv" stammt
+aus der Zeit reinen api-Scrapings und ist überholt.)*
 
 ### 4.4 ⚠️ Quelle der Wahrheit = die SERVER (nicht carambus_data)
 Die `carambus_data/scenarios/*/.../credentials/*.yml.enc` sind veraltet/Template
