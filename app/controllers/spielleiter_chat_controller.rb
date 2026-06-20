@@ -2,6 +2,7 @@
 
 class SpielleiterChatController < ApplicationController
   before_action :authenticate_user!
+  before_action :require_local_server!
 
   SESSION_KEY = :spielleiter_chat_messages
   CONTEXT_KEY = :spielleiter_chat_context
@@ -44,6 +45,15 @@ class SpielleiterChatController < ApplicationController
   end
 
   private
+
+  # Der Assistent/Chat steht NUR auf Local-Servern zur Verfügung. Auf der zentralen
+  # Authority (api.carambus.de) ist er NICHT freigegeben: der Server ist nicht für die
+  # Allgemeinheit bestimmt, CC-Schreibaktionen liefen dort fehl-attribuiert (Phase 39),
+  # und persönliche Anfragen (Player-Verknüpfung) funktionieren dort ohnehin nicht.
+  def require_local_server!
+    return if local_server?
+    redirect_to root_path, alert: "Der Carambus-Assistent steht auf diesem Server nicht zur Verfügung."
+  end
 
   def get_or_fetch_context
     cached = session[CONTEXT_KEY]

@@ -54,6 +54,7 @@ class ApplicationController < ActionController::Base
   def local_server?
     Carambus.config.carambus_api_url.present?
   end
+  helper_method :local_server?
 
   def default_url_options
     # Only add locale to URL if it's different from the default locale
