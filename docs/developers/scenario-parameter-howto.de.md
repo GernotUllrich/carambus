@@ -123,11 +123,23 @@ shared:                 # fleet-weit identische Werte (Backup überall)
   kozoom:    { email: ..., password: ... }
   google_service: { ... }
   clubcloud: { nbv: { username: ..., password: ... } }   # kleingeschrieben!
+  database_password: ...   # Production-DB-Passwort (fleet-uniform); seit 2026-06-19 NICHT mehr in config.yml
 per_scenario:           # nur echte Abweichungen je Szenario (Override)
-  <szenario>: { ... }
+  carambus_bcw: { club_wlan_password: ... }   # WLAN-Passwort (network.club_wlan); NICHT mehr in config.yml
 ```
 Anlegen: `cp carambus_data/secrets.yml.example carambus_data/secrets.yml` → echte
 Werte eintragen → `chmod 600`. **Niemals committen.**
+
+> **Secret-Extraktion (2026-06-19):** Das versionierte `config.yml` enthält **keine
+> Klartext-Secrets** mehr — das DB-Passwort (`environments.production.database_password`)
+> und WLAN-Passwörter (`environments.production.network.club_wlan.password`) liegen jetzt
+> hier in `secrets.yml`. Der Generator (`scenarios.rake#generate_configuration_files`)
+> injiziert das DB-Passwort beim **production**-Generieren aus `secrets.yml`
+> (`per_scenario.<name>.database_password` → sonst `shared.database_password`) in
+> `database.yml`/`env.production`. `carambus_data` ist ein **privates, secret-freies
+> Git-Repo** (`github.com/GernotUllrich/carambus_data`); `*.key`/`*.yml.enc` + `secrets.yml`
+> + generierte `production/`/`development/`-Artefakte sind gitignored (nur lokal + im
+> `.git`-Archiv `carambus_data-gitbackup-*.tar.gz`).
 
 ### 4.3 Deklaration in `config.yml`
 ```yaml
@@ -151,15 +163,24 @@ Location-Server an.
 *(Die frühere Regel „`clubcloud` nur Region-Szenarien, nicht club-only wie bcw/pbv" stammt
 aus der Zeit reinen api-Scrapings und ist überholt.)*
 
-### 4.4 ⚠️ Quelle der Wahrheit = die SERVER (nicht carambus_data)
-Die `carambus_data/scenarios/*/.../credentials/*.yml.enc` sind veraltet/Template
-und teilen einen `secret_key_base`/`active_record_encryption`-Satz, der zu **keinem**
-Server passt. **Sie dürfen NICHT auf Server deployt werden** — das würde Sessions
-ungültig machen und **verschlüsselte DB-Daten unentschlüsselbar** machen.
+### 4.4 Schlüssel-Satz ist fleet-uniform (verifiziert 2026-06-19)
+`production.key` ist über **alle** Szenarien byte-identisch; `secret_key_base` und
+`active_record_encryption.primary_key` sind in allen `.yml.enc` **identisch** und stimmen
+mit den Servern überein. Daraus folgt:
 
-`rake scenario:generate_credentials` (Dry-Run-Default; `WRITE=true` zum Schreiben)
-ist daher v. a. für **neue** Szenarien / lokale Stände gedacht. Für **bestehende
-Server** gilt der additive Server-Merge unten.
+- `rake scenario:generate_credentials` (Dry-Run-Default; `WRITE=true` zum Schreiben)
+  **bewahrt** `secret_key_base`/AR (MERGE, kein Regenerate) → der **reguläre, sichere Weg**
+  auch für **bestehende** Server. Kein Datenverlust, solange der Key uniform bleibt.
+- ⚠️ **Restrisiko nur bei abweichendem Key:** Käme jemals ein `.yml.enc` mit einem
+  **anderen** `secret_key_base`/AR-Key auf einen Server, wären Sessions ungültig und
+  `encrypts`-DB-Spalten (z. B. Phase-39 `cc_password`) unentschlüsselbar. Genau dagegen
+  sichert das **§4.5-Gate** (1 Befehl, MATCH/MISMATCH) — billig, vor jedem Credential-Upload.
+- Die `.yml.enc`/`.key` sind seit 2026-06-19 **nicht** im `carambus_data`-Repo (gitignored,
+  lokal/Archiv). Die **Server** bleiben die laufende Quelle der Wahrheit für die deployten Creds.
+
+*(Die frühere Formulierung „die carambus_data-.enc passen zu keinem Server → Datenverlust"
+war für die aktuelle uniforme Flotte überspitzt und ist hiermit korrigiert; das §4.5-Gate
+bleibt als günstige 100%-Absicherung Pflicht.)*
 
 ### 4.5 Deploy-Gate (vor jedem Credential-Deploy PFLICHT)
 Prüfen, dass `secret_key_base` UND `active_record_encryption.primary_key` mit dem
