@@ -527,6 +527,19 @@ namespace :scenario do
     scenario_config['environments'].keys
   end
 
+  # DB-Passwort aus carambus_data/secrets.yml (gitignored) lesen — per_scenario-Override,
+  # sonst shared. nil wenn nicht vorhanden. Quelle seit Secret-Extraktion 2026-06-19
+  # (kein Klartext-DB-Passwort mehr in der versionierten config.yml).
+  def scenario_db_password(scenario_name)
+    pool_file = File.join(carambus_data_path, 'secrets.yml')
+    return nil unless File.exist?(pool_file)
+    pool = YAML.load_file(pool_file) || {}
+    pool.dig('per_scenario', scenario_name, 'database_password') ||
+      pool.dig('shared', 'database_password')
+  rescue
+    nil
+  end
+
   def generate_configuration_files(scenario_name, environment)
     puts "Generating configuration files for #{scenario_name} (#{environment})..."
 
@@ -543,6 +556,15 @@ namespace :scenario do
     if env_config.nil?
       puts "Error: Environment '#{environment}' not found in scenario configuration"
       return false
+    end
+
+    # DB-Passwort aus secrets.yml ziehen, falls nicht in config.yml (Secret-Extraktion 2026-06-19:
+    # die versionierte config.yml enthält kein Klartext-DB-Passwort mehr). secrets.yml (gitignored)
+    # ist die Quelle → fließt in database.yml + env.production. NUR production (dev/test nutzen
+    # lokale Auth ohne Secret-Passwort — dort NICHT injizieren).
+    if environment == 'production' && env_config['database_password'].to_s.strip.empty?
+      db_pw = scenario_db_password(scenario_name)
+      env_config = env_config.merge('database_password' => db_pw) if db_pw
     end
 
     # Create environment directory
