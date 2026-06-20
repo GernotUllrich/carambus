@@ -153,29 +153,67 @@
        SeasonParticipation.where(player_id: current_player.id, season_id: Season.current_season&.id).first&.club ||
        (current_player.respond_to?(:club) ? current_player.club : nil)
      ) %>
-  <div class="field-unit" data-controller="dependent-select"
-       data-dependent-select-url-value="<%= players_by_club_admin_users_path %>">
-    <div class="field-unit__label">
-      <%= form.label :player_id, "Verknüpfter Spieler" %>
-      <p class="field-unit__help" style="font-size: 0.85em; color: #666;">
-        Für „Mein Billard": erst Verein der Region wählen, dann Spieler (aktuelle Saison).
-        Alternativ verknüpft sich der Nutzer im Chat selbst (cc_link_my_player).
-      </p>
+  <% if server_region %>
+    <div class="field-unit" data-controller="dependent-select"
+         data-dependent-select-url-value="<%= players_by_club_admin_users_path %>">
+      <div class="field-unit__label">
+        <%= form.label :player_id, "Verknüpfter Spieler" %>
+        <p class="field-unit__help" style="font-size: 0.85em; color: #666;">
+          Für „Mein Billard": erst Verein der Region wählen, dann Spieler (aktuelle Saison).
+          Alternativ verknüpft sich der Nutzer im Chat selbst (cc_link_my_player).
+        </p>
+      </div>
+      <div class="field-unit__field" style="display: flex; gap: 8px; flex-wrap: wrap;">
+        <%= select_tag :player_club_picker,
+              options_from_collection_for_select(region_clubs, :id, :name, selected_club&.id),
+              include_blank: "— Verein wählen —",
+              class: "text-input",
+              data: { dependent_select_target: "source", action: "dependent-select#load" } %>
+        <%= select_tag "user[player_id]",
+              options_for_select(
+                current_player ? [[current_player.fullname, current_player.id]] : [],
+                page.resource.player_id
+              ),
+              include_blank: "— Spieler wählen —",
+              class: "text-input",
+              data: { dependent_select_target: "dest" } %>
+      </div>
     </div>
-    <div class="field-unit__field" style="display: flex; gap: 8px; flex-wrap: wrap;">
-      <%= select_tag :player_club_picker,
-            options_from_collection_for_select(region_clubs, :id, :name, selected_club&.id),
-            include_blank: "— Verein wählen —",
-            class: "text-input",
-            data: { dependent_select_target: "source", action: "dependent-select#load" } %>
-      <%= select_tag "user[player_id]",
-            options_for_select(
-              current_player ? [[current_player.fullname, current_player.id]] : [],
-              page.resource.player_id
-            ),
-            include_blank: "— Spieler wählen —",
-            class: "text-input",
-            data: { dependent_select_target: "dest" } %>
+  <% else %>
+    <% selected_region = selected_club&.region %>
+    <div class="field-unit" data-controller="region-player-picker"
+         data-region-player-picker-clubs-url-value="<%= clubs_by_region_admin_users_path %>"
+         data-region-player-picker-players-url-value="<%= players_by_club_admin_users_path %>">
+      <div class="field-unit__label">
+        <%= form.label :player_id, "Verknüpfter Spieler" %>
+        <p class="field-unit__help" style="font-size: 0.85em; color: #666;">
+          Kein fester Region-Kontext auf diesem Server — erst Region, dann Verein, dann Spieler (aktuelle Saison).
+          Alternativ verknüpft sich der Nutzer im Chat selbst (cc_link_my_player).
+        </p>
+      </div>
+      <div class="field-unit__field" style="display: flex; gap: 8px; flex-wrap: wrap;">
+        <%= select_tag :player_region_picker,
+              options_for_select(region_picker_options, selected_region&.id),
+              include_blank: "— Region wählen —",
+              class: "text-input",
+              data: { region_player_picker_target: "region", action: "region-player-picker#loadClubs" } %>
+        <%= select_tag :player_club_picker,
+              options_for_select(
+                selected_club ? [[selected_club.name, selected_club.id]] : [],
+                selected_club&.id
+              ),
+              include_blank: "— Verein wählen —",
+              class: "text-input",
+              data: { region_player_picker_target: "club", action: "region-player-picker#loadPlayers" } %>
+        <%= select_tag "user[player_id]",
+              options_for_select(
+                current_player ? [[current_player.fullname, current_player.id]] : [],
+                page.resource.player_id
+              ),
+              include_blank: "— Spieler wählen —",
+              class: "text-input",
+              data: { region_player_picker_target: "player" } %>
+      </div>
     </div>
-  </div>
+  <% end %>
 <% end %>
