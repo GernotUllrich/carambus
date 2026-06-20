@@ -251,6 +251,15 @@ class SpielleiterChatService
         "Verwaltungsaktionen an (Anmelden/Akkreditieren/Entfernen/Finalisieren/Meldeschluss-Verschieben); " \
         "dafür stehen keine Werkzeuge bereit. Beantworte Anfragen mit den verfügbaren Lese-Werkzeugen."
     end
+
+    unless McpServer::ToolRegistry.local_server?
+      base += " WICHTIG — DU LÄUFST AUF DEM ZENTRALEN AUTHORITY-SERVER: hier sind NUR Auskunfts-/" \
+        "Lese-Funktionen verfügbar (Turniere/Spieler/Vereine/Listen anzeigen, Doku). KEINE Schreib-/" \
+        "Verwaltungsaktionen — kein Anmelden, Akkreditieren, Schnellanmelden, Entfernen, Finalisieren, " \
+        "Meldeschluss-Verschieben, Turnierleiter-Zuweisen, Turniervorbereiten. Biete solche Aktionen NICHT " \
+        "an (auch nicht bei 'was kann ich fragen?') und führe sie NICHT aus; Turnierverwaltung läuft auf den " \
+        "Vereins-/Local-Servern. Liste bei einer Capability-Frage NUR Lese-/Auskunfts-Funktionen."
+    end
     base
   end
 end

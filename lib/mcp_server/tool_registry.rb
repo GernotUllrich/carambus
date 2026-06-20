@@ -14,8 +14,17 @@ module McpServer
       return [] if user.nil?
       tools = RoleToolMap::BASE_READ_TOOLS.dup
       tools.concat(RoleToolMap::SELF_SERVICE_TOOLS)
-      tools.concat(RoleToolMap::WRITE_TOOLS) if user.cc_write_access?
+      # CC-Write-Tools NUR auf Local-Servern. Auf der Authority (api.carambus.de, carambus_api_url
+      # blank) liefen Schreibaktionen unter der geteilten Scraper-/Admin-Identität (fehl-attribuiert
+      # in der CC) + umgehen das Per-User-/Scope-Modell (Phase 39). Authority-Chat = read-only —
+      # auch für system_admin. Turnierverwaltung gehört auf die Local-Server.
+      tools.concat(RoleToolMap::WRITE_TOOLS) if user.cc_write_access? && local_server?
       tools.uniq
+    end
+
+    # Authority (zentrale API/Scraper) hat KEINE carambus_api_url; Local-Server haben eine.
+    def self.local_server?
+      Carambus.config.carambus_api_url.present?
     end
 
     # Anzahl Tools, die der User tatsächlich bekommt (persona-gefiltert).

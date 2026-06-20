@@ -20,6 +20,17 @@ class SpielleiterChatServiceTest < ActiveSupport::TestCase
     SpielleiterChatService.new(user: user).tool_definitions.map { |t| t[:name] }
   end
 
+  # Write-Tools nur auf Local-Servern (Authority = read-only, seit 2026-06-20). Test-Env ist
+  # Authority (carambus_api_url leer) → für die Write-Tool-Tests local mode setzen.
+  setup do
+    @orig_api_url = Carambus.config.carambus_api_url
+    Carambus.config.carambus_api_url = "http://local.test"
+  end
+
+  teardown do
+    Carambus.config.carambus_api_url = @orig_api_url
+  end
+
   test "read-only User (cc_write_access? false): KEIN Write-Tool in den Tool-Definitionen" do
     u = User.new(email: "chat_ro@test.de")
     def u.cc_write_access?
@@ -40,6 +51,21 @@ class SpielleiterChatServiceTest < ActiveSupport::TestCase
     names = tool_names_for(u)
     assert_includes names, "cc_assign_player_to_teilnehmerliste"
     assert_includes names, "cc_remove_from_teilnehmerliste"
+  end
+
+  test "Authority (carambus_api_url blank): cc_write_access? sieht KEINE Write-Tools + read-only-System-Prompt" do
+    Carambus.config.carambus_api_url = nil
+    u = User.new(email: "chat_authority@test.de")
+    def u.cc_write_access?
+      true
+    end
+    svc = SpielleiterChatService.new(user: u)
+    names = svc.tool_definitions.map { |t| t[:name] }
+    leaked = names & WRITE_TOOL_NAMES
+    assert leaked.empty?, "Authority-Chat darf keine Write-Tools sehen, hatte: #{leaked.inspect}"
+    assert_includes names, "cc_list_open_tournaments", "Lese-Tools bleiben auf der Authority"
+    assert_match(/AUTHORITY-SERVER/i, svc.send(:system_prompt),
+      "System-Prompt rahmt die Authority als read-only")
   end
 
   test "tool_definitions ohne Anthropic-API-Key konstruierbar (lazy client)" do
