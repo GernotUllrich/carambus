@@ -6,8 +6,11 @@ import { Controller } from "@hotwired/stimulus"
 // Quelle der Wahrheit sind die hidden inputs in den Chips; ein leeres Fallback-Input
 // im Partial sorgt dafuer, dass "alle entfernt" die Zuordnung auch wirklich leert.
 export default class extends Controller {
-  static targets = ["selected", "available", "group", "empty"]
-  static values = { field: { type: String, default: "user[sportwart_location_ids][]" } }
+  static targets = ["selected", "available", "group", "empty", "region", "availableList"]
+  static values = {
+    field: { type: String, default: "user[sportwart_location_ids][]" },
+    locationsUrl: String // nur gesetzt auf Servern OHNE Region-Context (Region-Stufe davor)
+  }
 
   connect() {
     this.updateEmpty()
@@ -56,5 +59,46 @@ export default class extends Controller {
   updateEmpty() {
     if (!this.hasEmptyTarget) return
     this.emptyTarget.hidden = this.selectedTarget.querySelector("[data-chip-id]") !== null
+  }
+
+  // 2026-06-20: Region-Stufe fuer Server OHNE festen Region-Context (carambus.de, Authority).
+  // Bei Region-Wechsel die Verfuegbar-Liste (Spielorte gruppiert nach Verein) per JSON nachladen.
+  // Bereits gewaehlte Chips bleiben erhalten (additiv ueber Regionen).
+  async loadRegion() {
+    if (!this.hasRegionTarget || !this.hasAvailableListTarget) return
+    const regionId = this.regionTarget.value
+    const selectedIds = Array.from(this.selectedTarget.querySelectorAll("[data-chip-id]"))
+      .map((c) => c.dataset.chipId)
+    if (!regionId) {
+      this.availableListTarget.innerHTML = ""
+      return
+    }
+    let groups = []
+    try {
+      const resp = await fetch(`${this.locationsUrlValue}?region_id=${encodeURIComponent(regionId)}`, {
+        headers: { Accept: "application/json" }
+      })
+      if (resp.ok) groups = await resp.json()
+    } catch (e) {
+      groups = []
+    }
+    this.renderAvailable(groups, selectedIds)
+  }
+
+  renderAvailable(groups, selectedIds) {
+    const esc = (s) =>
+      String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;")
+    const html = groups.map((g) => {
+      const items = g.locations.map((l) => {
+        const hidden = selectedIds.includes(String(l.id)) ? "hidden" : ""
+        return `<button type="button" class="lp-available-item" data-location-picker-target="available" ` +
+          `data-id="${l.id}" data-name="${esc(l.name)}" data-action="location-picker#add" ${hidden} ` +
+          `style="display:block;width:100%;text-align:left;border:0;background:transparent;cursor:pointer;padding:3px 8px;border-radius:4px;font-size:0.9em;">+ ${esc(l.name)}</button>`
+      }).join("")
+      return `<div data-location-picker-target="group" style="margin-bottom:6px;">` +
+        `<div style="font-weight:600;font-size:0.8em;color:#6b7280;padding:2px 4px;">${esc(g.club)}</div>${items}</div>`
+    }).join("")
+    this.availableListTarget.innerHTML = html
+    this.refreshGroups()
   }
 }

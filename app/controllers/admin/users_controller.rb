@@ -74,6 +74,23 @@ module Admin
       render json: rows
     end
 
+    # 2026-06-20: Spielorte einer Region, nach Verein gruppiert — fuer die vorgeschaltete
+    # Region-Stufe der Sportwart-Spielort-Auswahl auf Servern OHNE festen Region-Context.
+    # Spiegelt UserFormHelper#region_locations_grouped_options fuer eine beliebige region_id.
+    def locations_by_region
+      return head :forbidden unless current_user&.system_admin?
+
+      region = Region.find_by(id: params[:region_id])
+      return render(json: []) unless region
+
+      groups = region.clubs.where.not(name: [nil, ""]).order(:name).map { |club|
+        locs = club.locations.order(:name).map { |l| {id: l.id, name: l.name} }
+        {club: club.name, locations: locs}
+      }.reject { |g| g[:locations].empty? }
+
+      render json: groups
+    end
+
     # Override `resource_params` if you want to transform the submitted
     # data before it's persisted. For example, the following would turn all
     # empty values into nil values. It uses other APIs such as `resource_class`

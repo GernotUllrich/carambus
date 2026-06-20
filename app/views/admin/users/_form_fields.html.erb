@@ -85,14 +85,19 @@
     <div class="field-unit__label">
       <%= form.label :sportwart_locations, "Sportwart-Spielorte" %>
       <p class="field-unit__help" style="font-size: 0.85em; color: #666;">
-        Nur Spielorte der Region <strong><%= server_region&.shortname || "—" %></strong>, gruppiert nach Verein.
+        <% if server_region %>
+          Nur Spielorte der Region <strong><%= server_region.shortname %></strong>, gruppiert nach Verein.
+        <% else %>
+          Kein fester Region-Kontext auf diesem Server — erst Region wählen, dann Spielorte (gruppiert nach Verein).
+        <% end %>
         Klick auf einen Spielort fügt ihn oben hinzu; am Chip auf „×" entfernt ihn wieder.
       </p>
     </div>
     <% selected_locs = page.resource.sportwart_locations.to_a %>
     <% selected_location_ids = selected_locs.map(&:id) %>
     <% grouped = region_locations_grouped_options %>
-    <div class="field-unit__field" data-controller="location-picker">
+    <div class="field-unit__field" data-controller="location-picker"
+         data-location-picker-locations-url-value="<%= locations_by_region_admin_users_path %>">
       <%# Kontrast erzwingen: globale .btn-*-Regeln setzen color:white !important auf Buttons —
           unsere Picker-Buttons in allen Zustaenden auf lesbares Dunkel ueberschreiben. %>
       <style>
@@ -126,8 +131,19 @@
               style="color:#9ca3af;font-size:0.9em;padding:4px;">Keine Spielorte gewählt</span>
       </div>
 
+      <%# Server OHNE festen Region-Context: Region wählen → Verfügbar-Liste wird per JSON geladen. %>
+      <% unless server_region %>
+        <%= select_tag :sportwart_region_picker,
+              options_for_select(region_picker_options),
+              include_blank: "— Region wählen —",
+              class: "text-input",
+              style: "margin-bottom: 8px; width: 100%;",
+              data: { location_picker_target: "region", action: "location-picker#loadRegion" } %>
+      <% end %>
+
       <%# Verfügbar-Liste, nach Verein gruppiert — Klick fügt hinzu %>
-      <div style="max-height: 220px; overflow-y: auto; border: 1px solid #e5e7eb; border-radius: 6px; padding: 4px; background: #fafafa;">
+      <div data-location-picker-target="availableList"
+           style="max-height: 220px; overflow-y: auto; border: 1px solid #e5e7eb; border-radius: 6px; padding: 4px; background: #fafafa;">
         <% grouped.each do |club_name, locs| %>
           <div data-location-picker-target="group" <%= "hidden" if locs.all? { |_n, id| selected_location_ids.include?(id) } %>
                style="margin-bottom: 6px;">
