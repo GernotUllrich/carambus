@@ -140,6 +140,36 @@ module Api
       assert_equal @player.firstname, player_data["firstname"]
     end
 
+    # 2026-06-20: Auf dem Local-Server koexistieren global gesyncte (id < MIN_ID) und lokal
+    # gepflegte (id >= MIN_ID) Seedings -> Teilnehmer erschienen doppelt. Lokal zaehlen nur die lokalen.
+    test "seeding on local server: globale Dubletten gefiltert, nur lokale Seedings" do
+      orig = Carambus.config.carambus_api_url
+      Carambus.config.carambus_api_url = "http://local.test" # local_server? == true
+      # dieselbe Person als globale UND lokale Seeding -> ohne Filter zwei Teams
+      Seeding.create!(id: 30_000_777, tournament: @tournament, player: @player, position: 1)
+      Seeding.create!(id: 50_000_777, tournament: @tournament, player: @player, position: 1)
+
+      get_seeding(tournament_cc_id: 999_201, region: "NBV", jwt: login_jwt)
+      assert_response :success
+      body = JSON.parse(response.body)
+      assert_equal 1, body["teams"].length, "globale Dublette muss auf dem Local-Server gefiltert sein"
+    ensure
+      Carambus.config.carambus_api_url = orig
+    end
+
+    test "seeding on local server: ohne lokale Seedings Fallback auf globale" do
+      orig = Carambus.config.carambus_api_url
+      Carambus.config.carambus_api_url = "http://local.test"
+      Seeding.create!(id: 30_000_778, tournament: @tournament, player: @player, position: 1)
+
+      get_seeding(tournament_cc_id: 999_201, region: "NBV", jwt: login_jwt)
+      assert_response :success
+      body = JSON.parse(response.body)
+      assert_equal 1, body["teams"].length, "ohne lokale Seedings muessen globale geliefert werden"
+    ensure
+      Carambus.config.carambus_api_url = orig
+    end
+
     # Punkt 2 (HANDOFF tournament-id-ambiguity 2026-06-17): seeding via globalen
     # Tournament-DB-PK loest deterministisch auf (umgeht die region-scoped cc_id-Ambiguitaet).
     test "seeding via tournament_id (DB-PK) returns spec-compliant doc" do
