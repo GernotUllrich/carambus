@@ -9,7 +9,7 @@ module Api
   class ExternalTournamentsRankingsTest < ActionDispatch::IntegrationTest
     setup do
       @nbv = regions(:nbv)
-      @service_user = User.create!(email: "test-2band-ranking@carambus.de", password: "password123")
+      @service_user = User.create!(email: "test-carambus-app-ranking@carambus.de", password: "password123")
       @season = Season.create!(name: "RANK-CTRL-2099/2100")
       @discipline = Discipline.create!(name: "Test19 Dreiband klein")
 
@@ -28,7 +28,7 @@ module Api
       Player.where("firstname LIKE ?", "Test19R-%").delete_all
       @discipline&.destroy
       @season&.destroy
-      User.where(email: "test-2band-ranking@carambus.de").delete_all
+      User.where(email: "test-carambus-app-ranking@carambus.de").delete_all
     end
 
     test "player_rankings returns players sorted by rank with schema" do

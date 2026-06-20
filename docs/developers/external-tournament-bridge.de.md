@@ -82,13 +82,13 @@ Service-Account — egal ob lokal, per-Region oder global:
 ```bash
 # Lokales Scenario am Spielort (Default)
 cd /path/to/carambus_bcw      # z.B. carambus_bcw im Clubheim
-rake service_accounts:create_2band[BCW]
-# → legt 2band-bcw-bridge@carambus.local an, gibt Password einmalig aus
+rake service_accounts:create_carambus_app[BCW]
+# → legt carambus-app-bcw-bridge@carambus.local an, gibt Password einmalig aus
 
 # Alternative: Per-Region Cloud (Multi-Location-Turnier)
 cd /path/to/carambus_master   # global oder per-region wie nbv
-rake service_accounts:create_2band[NBV]
-# → legt 2band-nbv-bridge@carambus.de an
+rake service_accounts:create_carambus_app[NBV]
+# → legt carambus-app-nbv-bridge@carambus.de an
 ```
 
 Bearer-Token holen — Base-URL je nach Topologie:
@@ -97,14 +97,14 @@ Bearer-Token holen — Base-URL je nach Topologie:
 # Local Scenario via WLAN
 curl -X POST http://carambus.local:3000/login \
   -H "Content-Type: application/json" \
-  -d '{"user":{"email":"2band-bcw-bridge@carambus.local","password":"…"}}' \
+  -d '{"user":{"email":"carambus-app-bcw-bridge@carambus.local","password":"…"}}' \
   -i | grep -i Authorization
 # Authorization: Bearer eyJhbGciOiJIUzI1NiJ9…
 
 # Per-Region Cloud (Beispiel NBV)
 curl -X POST https://nbv.carambus.de/login \
   -H "Content-Type: application/json" \
-  -d '{"user":{"email":"2band-nbv-bridge@carambus.de","password":"…"}}' \
+  -d '{"user":{"email":"carambus-app-nbv-bridge@carambus.de","password":"…"}}' \
   -i | grep -i Authorization
 ```
 
@@ -955,7 +955,7 @@ per-Spieler `player_class`-Feld via `PlayerRanking.player_class_id` (Batch, kein
 |----------|-------------|
 | D-15-01-A | Authority-Modell = Service-Account analog G.14 |
 | D-15-02-A | Mapping-Decisions (synonyms-newline-split + balls_goal→target_points etc.) |
-| D-15-02-B | Service-Account-Email = `2band-{region}-bridge@carambus.de` |
+| D-15-02-B | Service-Account-Email = `carambus-app-{region}-bridge@carambus.de` |
 | D-15-03-A | Tisch-Identifikation via `Table.name == table_no.to_s` (**superseded durch D-15-06-A**) |
 | D-15-04-A | Round-Result: leere Runde → `200 OK` mit `results: []` |
 | D-15-04-B | Laufende Games (`ended_at: nil`) sind im Round-Result enthalten |

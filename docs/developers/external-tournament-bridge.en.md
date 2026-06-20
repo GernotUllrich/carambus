@@ -83,13 +83,13 @@ per scenario** — local, per-region, or global:
 ```bash
 # Local scenario at the venue (default)
 cd /path/to/carambus_bcw      # e.g., carambus_bcw at the clubhouse
-rake service_accounts:create_2band[BCW]
-# → creates 2band-bcw-bridge@carambus.local, prints password once
+rake service_accounts:create_carambus_app[BCW]
+# → creates carambus-app-bcw-bridge@carambus.local, prints password once
 
 # Alternative: per-region cloud (multi-location tournament)
 cd /path/to/carambus_master   # global or per-region such as nbv
-rake service_accounts:create_2band[NBV]
-# → creates 2band-nbv-bridge@carambus.de
+rake service_accounts:create_carambus_app[NBV]
+# → creates carambus-app-nbv-bridge@carambus.de
 ```
 
 Obtain a bearer token — base URL depends on topology:
@@ -98,14 +98,14 @@ Obtain a bearer token — base URL depends on topology:
 # Local scenario via Wi-Fi
 curl -X POST http://carambus.local:3000/login \
   -H "Content-Type: application/json" \
-  -d '{"user":{"email":"2band-bcw-bridge@carambus.local","password":"…"}}' \
+  -d '{"user":{"email":"carambus-app-bcw-bridge@carambus.local","password":"…"}}' \
   -i | grep -i Authorization
 # Authorization: Bearer eyJhbGciOiJIUzI1NiJ9…
 
 # Per-region cloud (NBV example)
 curl -X POST https://nbv.carambus.de/login \
   -H "Content-Type: application/json" \
-  -d '{"user":{"email":"2band-nbv-bridge@carambus.de","password":"…"}}' \
+  -d '{"user":{"email":"carambus-app-nbv-bridge@carambus.de","password":"…"}}' \
   -i | grep -i Authorization
 ```
 
@@ -953,7 +953,7 @@ per-player `player_class` field via `PlayerRanking.player_class_id` (batch, no N
 |----------|-------|
 | D-15-01-A | Authority model = service account, same pattern as G.14 |
 | D-15-02-A | Mapping decisions (synonyms newline split + balls_goal→target_points etc.) |
-| D-15-02-B | Service-account email = `2band-{region}-bridge@carambus.de` |
+| D-15-02-B | Service-account email = `carambus-app-{region}-bridge@carambus.de` |
 | D-15-03-A | Table identification via `Table.name == table_no.to_s` (**superseded by D-15-06-A**) |
 | D-15-04-A | Round result: empty round → `200 OK` with `results: []` |
 | D-15-04-B | Ongoing games (`ended_at: nil`) are included in round result |

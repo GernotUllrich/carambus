@@ -35,8 +35,8 @@ Token-basierte Authentifizierung ist für zukünftige Versionen geplant.
 devise-JWT-Bearer-Tokens. Pro Region/Scenario ein Service-Account:
 
 ```bash
-rake service_accounts:create_2band[NBV]
-# → 2band-nbv-bridge@carambus.de
+rake service_accounts:create_carambus_app[NBV]
+# → carambus-app-nbv-bridge@carambus.de
 ```
 
 Bearer-Token holen:
@@ -44,7 +44,7 @@ Bearer-Token holen:
 ```bash
 curl -X POST <base-url>/login \
   -H "Content-Type: application/json" \
-  -d '{"user":{"email":"2band-nbv-bridge@carambus.de","password":"…"}}' \
+  -d '{"user":{"email":"carambus-app-nbv-bridge@carambus.de","password":"…"}}' \
   -i | grep -i Authorization
 # Authorization: Bearer eyJhbGciOi…
 ```

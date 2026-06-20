@@ -11,7 +11,7 @@ module Api
   class ExternalTournamentsRegistrationListsTest < ActionDispatch::IntegrationTest
     setup do
       @nbv = regions(:nbv)
-      @service_user = User.create!(email: "test-2band-rl@carambus.de", password: "password123")
+      @service_user = User.create!(email: "test-carambus-app-rl@carambus.de", password: "password123")
       @region_cc = RegionCc.create!(region: @nbv, context: "nbv", cc_id: 70_201, shortname: "RL-NBV",
         name: "RL-CTRL RegionCc")
 
@@ -43,7 +43,7 @@ module Api
       RegionCc.where(cc_id: 70_201).delete_all
       Season.where(name: ["RL-CTRL-2099/2100"]).delete_all
       [@discipline, @other_discipline].compact.each(&:destroy)
-      User.where(email: "test-2band-rl@carambus.de").delete_all
+      User.where(email: "test-carambus-app-rl@carambus.de").delete_all
     end
 
     test "registration_lists happy path returns schema + items" do

@@ -43,7 +43,7 @@ scoreboards → final standings), you do **not** need this bridge.
 In the Carambus scenario's server directory:
 
 ```bash
-rake service_accounts:create_2band[NBV]
+rake service_accounts:create_carambus_app[NBV]
 ```
 
 Output: a one-time password — **communicate securely**, not in plain text
@@ -59,7 +59,7 @@ The app needs:
     `http://192.168.X.X:3000`
   - Per-region cloud: `https://nbv.carambus.de`
   - Global cloud: `https://carambus.de`
-- **Service-account email**: `2band-nbv-bridge@carambus.de`
+- **Service-account email**: `carambus-app-nbv-bridge@carambus.de`
   (or the equivalent for other regions)
 - **Password**: from step 1
 - **Region shortname**: e.g., `NBV`, `BCW`

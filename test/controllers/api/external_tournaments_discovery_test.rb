@@ -10,7 +10,7 @@ module Api
   class ExternalTournamentsDiscoveryTest < ActionDispatch::IntegrationTest
     setup do
       @nbv = regions(:nbv)
-      @service_user = User.create!(email: "test-2band-discovery@carambus.de", password: "password123")
+      @service_user = User.create!(email: "test-carambus-app-discovery@carambus.de", password: "password123")
       @season = Season.create!(name: "ROSTER-CTRL-2099/2100")
       @club = Club.create!(region: @nbv, cc_id: 180_201, shortname: "TST-DC", name: "Discovery Test Club")
       @club2 = Club.create!(region: @nbv, cc_id: 180_202, shortname: "TST-DC2", name: "Discovery Test Club 2")
@@ -38,7 +38,7 @@ module Api
       @disc&.destroy
       Club.where(cc_id: [180_201, 180_202]).delete_all
       @season&.destroy
-      User.where(email: "test-2band-discovery@carambus.de").delete_all
+      User.where(email: "test-carambus-app-discovery@carambus.de").delete_all
     end
 
     test "clubs returns carambus.clubs/v1 with the region's cc_id clubs" do

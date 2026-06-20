@@ -9,7 +9,7 @@ module Api
   class ExternalTournamentsDisciplinesTest < ActionDispatch::IntegrationTest
     setup do
       @nbv = regions(:nbv)
-      @service_user = User.create!(email: "test-2band-disc@carambus.de", password: "password123")
+      @service_user = User.create!(email: "test-carambus-app-disc@carambus.de", password: "password123")
       @season = Season.create!(name: "DISC-CTRL-2099/2100")
 
       @table_kind = TableKind.create!(name: "DISC Small Billard")
@@ -44,7 +44,7 @@ module Api
       [@discipline, @irrelevant, @super].compact.each(&:destroy)
       @table_kind&.destroy
       @season&.destroy
-      User.where(email: "test-2band-disc@carambus.de").delete_all
+      User.where(email: "test-carambus-app-disc@carambus.de").delete_all
     end
 
     test "disciplines returns region-relevant disciplines with schema (AC-1)" do
