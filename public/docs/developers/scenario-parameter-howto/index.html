@@ -3586,15 +3586,26 @@ Kiosk-Client (<code>scenario:setup_raspberry_pi_client</code> / <code>deploy_ras
 Anlegen: <code>cp carambus_data/secrets.yml.example carambus_data/secrets.yml</code> → echte
 Werte eintragen → <code>chmod 600</code>. <strong>Niemals committen.</strong></p>
 <h3 id="43-deklaration-in-configyml">4.3 Deklaration in <code>config.yml</code><a class="headerlink" href="#43-deklaration-in-configyml" title="Permanent link">&para;</a></h3>
-<p><div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nt">scenario</span><span class="p">:</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nt">scenario</span><span class="p">:</span>
 <a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="nt">credentials</span><span class="p">:</span>
 <a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">    </span><span class="nt">features</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">ai</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">translation</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">scraping</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">clubcloud</span><span class="p p-Indicator">]</span>
 <a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">    </span><span class="nt">clubcloud_context</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">NBV</span><span class="w">        </span><span class="c1"># wird intern kleingeschrieben</span>
 </code></pre></div>
-Feature → Keys: <code>ai</code>→anthropic(+openai) · <code>translation</code>→deepl+google.translate ·
+<blockquote>
+<p>⚠️ <strong>Für ClubCloud beide Felder setzen:</strong> <code>clubcloud</code> muss in <code>features</code> stehen <strong>UND</strong>
+<code>clubcloud_context</code> gesetzt sein. Fehlt der Context, überspringt der Generator clubcloud
+<strong>still</strong> (kein Fehler, .enc bleibt gleich groß) — der häufigste Stolperstein.</p>
+</blockquote>
+<p>Feature → Keys: <code>ai</code>→anthropic(+openai) · <code>translation</code>→deepl+google.translate ·
 <code>scraping</code>→youtube+kozoom · <code>clubcloud</code>→clubcloud.<ctx>. <code>google_service</code> immer.
-Rollen-Konvention: <code>scraping</code> nur auf dem Scraper (carambus_api); <code>clubcloud</code> nur
-Region-Szenarien (nicht club-only wie bcw/pbv).</p>
+Rollen-Konvention: <code>scraping</code> nur auf dem Scraper (carambus_api). <code>clubcloud</code> gehört auf
+<strong>jeden Local-Server, der die CC-Admin nutzt</strong> — Local-Server schreiben heute
+Turnierergebnisse direkt in die CC-Admin und betreiben das Sportwart-Chat-/MCP-Interface.
+<code>clubcloud_context</code> = die Region, deren ClubCloud bedient wird (z. B. <code>NBV</code>). Sonderfall
+<strong>NBV-Local-Server</strong>: bindet via carambus_app auch Spieler ohne eigenes Scoreboard/
+Location-Server an.
+<em>(Die frühere Regel „<code>clubcloud</code> nur Region-Szenarien, nicht club-only wie bcw/pbv" stammt
+aus der Zeit reinen api-Scrapings und ist überholt.)</em></p>
 <h3 id="44-quelle-der-wahrheit-die-server-nicht-carambus_data">4.4 ⚠️ Quelle der Wahrheit = die SERVER (nicht carambus_data)<a class="headerlink" href="#44-quelle-der-wahrheit-die-server-nicht-carambus_data" title="Permanent link">&para;</a></h3>
 <p>Die <code>carambus_data/scenarios/*/.../credentials/*.yml.enc</code> sind veraltet/Template
 und teilen einen <code>secret_key_base</code>/<code>active_record_encryption</code>-Satz, der zu <strong>keinem</strong>
