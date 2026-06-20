@@ -3580,11 +3580,24 @@ Kiosk-Client (<code>scenario:setup_raspberry_pi_client</code> / <code>deploy_ras
 <a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">  </span><span class="nt">kozoom</span><span class="p">:</span><span class="w">    </span><span class="p p-Indicator">{</span><span class="nt"> email</span><span class="p">:</span><span class="w"> </span><span class="nv">...</span><span class="p p-Indicator">,</span><span class="nt"> password</span><span class="p">:</span><span class="w"> </span><span class="nv">...</span><span class="w"> </span><span class="p p-Indicator">}</span>
 <a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="w">  </span><span class="nt">google_service</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="w"> </span><span class="nv">...</span><span class="w"> </span><span class="p p-Indicator">}</span>
 <a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="w">  </span><span class="nt">clubcloud</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt"> nbv</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt"> username</span><span class="p">:</span><span class="w"> </span><span class="nv">...</span><span class="p p-Indicator">,</span><span class="nt"> password</span><span class="p">:</span><span class="w"> </span><span class="nv">...</span><span class="w"> </span><span class="p p-Indicator">}</span><span class="w"> </span><span class="p p-Indicator">}</span><span class="w">   </span><span class="c1"># kleingeschrieben!</span>
-<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="nt">per_scenario</span><span class="p">:</span><span class="w">           </span><span class="c1"># nur echte Abweichungen je Szenario (Override)</span>
-<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="w">  </span><span class="nt">&lt;szenario&gt;</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="w"> </span><span class="nv">...</span><span class="w"> </span><span class="p p-Indicator">}</span>
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="w">  </span><span class="nt">database_password</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">...</span><span class="w">   </span><span class="c1"># Production-DB-Passwort (fleet-uniform); seit 2026-06-19 NICHT mehr in config.yml</span>
+<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="nt">per_scenario</span><span class="p">:</span><span class="w">           </span><span class="c1"># nur echte Abweichungen je Szenario (Override)</span>
+<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="w">  </span><span class="nt">carambus_bcw</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt"> club_wlan_password</span><span class="p">:</span><span class="w"> </span><span class="nv">...</span><span class="w"> </span><span class="p p-Indicator">}</span><span class="w">   </span><span class="c1"># WLAN-Passwort (network.club_wlan); NICHT mehr in config.yml</span>
 </code></pre></div>
 Anlegen: <code>cp carambus_data/secrets.yml.example carambus_data/secrets.yml</code> → echte
 Werte eintragen → <code>chmod 600</code>. <strong>Niemals committen.</strong></p>
+<blockquote>
+<p><strong>Secret-Extraktion (2026-06-19):</strong> Das versionierte <code>config.yml</code> enthält <strong>keine
+Klartext-Secrets</strong> mehr — das DB-Passwort (<code>environments.production.database_password</code>)
+und WLAN-Passwörter (<code>environments.production.network.club_wlan.password</code>) liegen jetzt
+hier in <code>secrets.yml</code>. Der Generator (<code>scenarios.rake#generate_configuration_files</code>)
+injiziert das DB-Passwort beim <strong>production</strong>-Generieren aus <code>secrets.yml</code>
+(<code>per_scenario.&lt;name&gt;.database_password</code> → sonst <code>shared.database_password</code>) in
+<code>database.yml</code>/<code>env.production</code>. <code>carambus_data</code> ist ein <strong>privates, secret-freies
+Git-Repo</strong> (<code>github.com/GernotUllrich/carambus_data</code>); <code>*.key</code>/<code>*.yml.enc</code> + <code>secrets.yml</code>
++ generierte <code>production/</code>/<code>development/</code>-Artefakte sind gitignored (nur lokal + im
+<code>.git</code>-Archiv <code>carambus_data-gitbackup-*.tar.gz</code>).</p>
+</blockquote>
 <h3 id="43-deklaration-in-configyml">4.3 Deklaration in <code>config.yml</code><a class="headerlink" href="#43-deklaration-in-configyml" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nt">scenario</span><span class="p">:</span>
 <a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="nt">credentials</span><span class="p">:</span>
