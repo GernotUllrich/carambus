@@ -90,4 +90,19 @@ class SpielleiterChatServiceTest < ActiveSupport::TestCase
     assert_includes SpielleiterChatService.new(user: ro).send(:system_prompt), "nur Lese-Zugriff"
     refute_includes SpielleiterChatService.new(user: rw).send(:system_prompt), "nur Lese-Zugriff"
   end
+
+  test "write_tool? erkennt Schreib- vs Lese-Tools (steuert Hybrid-Modell-Eskalation)" do
+    u = User.new(email: "chat_hybrid@test.de")
+    def u.cc_write_access?
+      true
+    end
+    svc = SpielleiterChatService.new(user: u)
+    # Write-Tools (read_only_hint: false) → lösen die Eskalation aufs starke Modell aus
+    assert svc.send(:write_tool?, "cc_remove_from_teilnehmerliste"), "Schreib-Tool muss als Write erkannt werden"
+    assert svc.send(:write_tool?, "cc_assign_player_to_teilnehmerliste")
+    # Lese-Tool (read_only_hint: true) → bleibt beim schnellen Modell
+    refute svc.send(:write_tool?, "cc_list_open_tournaments"), "Lese-Tool darf NICHT als Write gelten"
+    # Unbekanntes Tool → defensiv als Write (lieber zu früh eskalieren als Write mit Haiku)
+    assert svc.send(:write_tool?, "tool_das_es_nicht_gibt"), "Unbekanntes Tool defensiv als Write behandeln"
+  end
 end
