@@ -216,6 +216,15 @@ class SpielleiterChatService
       "Pre-Validation des Tools ist der Schutz (sie bricht bei Problemen mit Begründung ab). Nur wenn die " \
       "Angaben mehrdeutig sind (z.B. mehrere Spieler gleichen Nachnamens), frage gezielt nach der " \
       "Präzisierung — und führe dann ebenfalls direkt mit armed: true aus. " \
+      "Verlangt der Sportwart eine zusammengesetzte Aktion ('tausche X gegen Y', 'ersetze X durch Y', " \
+      "'X raus und Y rein'), zerlege sie in ALLE einzelnen Schreibaktionen und führe JEDE davon mit " \
+      "armed: true aus (Y akkreditieren UND X entfernen sind ZWEI getrennte Tool-Aufrufe) — " \
+      "überspringe KEINEN Teil. " \
+      "Melde einen Schreib-Erfolg ('erledigt', 'entfernt', 'akkreditiert', 'getauscht') NUR, wenn der " \
+      "zugehörige Tool-Aufruf tatsächlich mit armed: true gelaufen ist UND ein Erfolgsergebnis " \
+      "zurückgegeben hat (die Bestätigung des jeweiligen Tools, z.B. 'Removed … read_back_match: true'). " \
+      "Leite NIEMALS einen Erfolg aus einem Probelauf (armed: false / '[DRY-RUN]') oder aus einer nicht " \
+      "ausgeführten Aktion ab — bei zusammengesetzten Aktionen gilt das für JEDEN Teil einzeln. " \
       "Entnimm branch_cc_id für Schreiboperationen IMMER aus " \
       "sportwart_disciplines[x].branch_cc_id im cc_whoami-Kontext — " \
       "übergib sie bei JEDEM Write-Tool-Aufruf, nicht erst beim Retry. " \
