@@ -52,4 +52,43 @@ class MyTournamentsTest < ActiveSupport::TestCase
     res = McpServer::Tools::MyTournaments.call(server_context: {user_id: nil})
     assert res.error?
   end
+
+  test "placement = erspielte Platzierung aus data['result'] (Karambol-Key 'Rang')" do
+    t = tournaments(:local)
+    Seeding.create!(player: @player, tournament: t, position: 8,
+      data: {"result" => {"Gesamtrangliste" => {"Rang" => 3, "GD" => "1,35"}}})
+    body = JSON.parse(call.content.first[:text])
+    row = body["data"].find { |r| r["tournament_id"] == t.id }
+    assert_equal 3, row["placement"]
+    assert_not row.key?("position"), "Setzposition darf nicht mehr im Output sein"
+    assert_not row.key?("rank")
+  end
+
+  test "placement = erspielte Platzierung aus data['result'] (Snooker/Pool-Key 'Rank')" do
+    t = tournaments(:local)
+    Seeding.create!(player: @player, tournament: t, position: 19,
+      data: {"result" => {"Gesamtrangliste" => {"Rank" => 19}}})
+    body = JSON.parse(call.content.first[:text])
+    row = body["data"].find { |r| r["tournament_id"] == t.id }
+    assert_equal 19, row["placement"]
+  end
+
+  test "Dedup pro Turnier: Seeding mit Ergebnis gewinnt, keine Dublette" do
+    t = tournaments(:local)
+    Seeding.create!(player: @player, tournament: t, position: 17, data: {}) # verwaister Scrape-Rest
+    Seeding.create!(player: @player, tournament: t, position: 8,
+      data: {"result" => {"Gesamtrangliste" => {"Rang" => 2}}}) # maszgeblich
+    body = JSON.parse(call.content.first[:text])
+    rows = body["data"].select { |r| r["tournament_id"] == t.id }
+    assert_equal 1, rows.size, "Turnier darf nur einmal erscheinen"
+    assert_equal 2, rows.first["placement"]
+  end
+
+  test "placement faellt auf DB-Spalte rank zurueck (Monitor-Turnier ohne data['result'])" do
+    t = tournaments(:local)
+    Seeding.create!(player: @player, tournament: t, rank: 1, data: {})
+    body = JSON.parse(call.content.first[:text])
+    row = body["data"].find { |r| r["tournament_id"] == t.id }
+    assert_equal 1, row["placement"]
+  end
 end

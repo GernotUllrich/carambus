@@ -13,6 +13,7 @@ module McpServer
         Wann nutzen? Wenn DU (eingeloggter Nutzer) deine eigenen Turniere sehen willst — woran du teilnimmst oder teilgenommen hast.
         Was tippt der User typisch? "Meine Turniere", "Wann spiele ich als Naechstes?", "Welche Turniere habe ich gespielt?".
         Zeigt NUR DEINE Turniere (self-scoped, kein fremder Spieler). Voraussetzung: einmalig via cc_link_my_player verknuepfen.
+        Feld `placement` = erspielte End-Platzierung aus der Gesamtrangliste (nil = noch nicht gespielt) — das ist NICHT die Setzposition.
         Optional `season` (z.B. "2025/2026") und `limit` (Default 20). Sortierung: neueste zuerst.
       DESC
       input_schema(
@@ -36,6 +37,14 @@ module McpServer
         seedings.select! { |s| s.tournament.present? }
         seedings.select! { |s| s.tournament.season_id == season_obj.id } if season_obj
 
+        # Dedup pro Turnier: ein Spieler kann mehrere Seedings am selben Turnier haben
+        # (global gescraptes + lokal gepflegtes, oder verwaiste Scrape-Reste). Maszgeblich
+        # ist das Seeding mit gescraptem Endergebnis (data["result"]); sonst das juengste
+        # (hoechste id → bevorzugt das lokale Seeding).
+        seedings = seedings.group_by(&:tournament_id).map do |_tid, group|
+          group.find { |s| s.final_rank.present? } || group.max_by(&:id)
+        end
+
         # Neueste zuerst; Turniere ohne Datum ans Ende.
         dated = seedings.reject { |s| s.tournament.date.nil? }.sort_by { |s| s.tournament.date }.reverse
         undated = seedings.select { |s| s.tournament.date.nil? }
@@ -49,8 +58,7 @@ module McpServer
             date: t.date&.iso8601,
             discipline: t.discipline&.name,
             season: t.season&.name,
-            rank: s.rank,
-            position: s.position,
+            placement: s.final_rank, # erspielte End-Platzierung (Gesamtrangliste); nil = noch nicht gespielt
             state: s.state
           }
           # Öffentlicher Turnier-Link (User-Direktive 2026-06-14) — für alle einsehbar.
