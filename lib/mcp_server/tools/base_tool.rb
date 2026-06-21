@@ -528,6 +528,21 @@ module McpServer
         collected.uniq
       end
 
+      # Plan 45-01: Liga-taugliche Disziplin-Aufloesung. resolve_discipline_or_branch
+      # liefert bei einem Branch-Treffer nur den Subtree OHNE den Branch-Root.
+      # Turniere haengen an Sub-Disziplinen (z.B. "9-Ball") — Ligen aber direkt am
+      # Branch-Root (z.B. "Pool"=23, type=Branch). Daher den getroffenen Knoten selbst
+      # mit aufnehmen, sonst verfehlt ein "Pool"-Filter alle Pool-Ligen.
+      def self.resolve_discipline_ids_inclusive(filter_string)
+        ids, branch_name = resolve_discipline_or_branch(filter_string)
+        return [nil, nil] if ids.blank?
+        if branch_name.present?
+          node = Discipline.find_by("name ILIKE ?", filter_string.to_s.strip)
+          ids = ([node.id] + ids).uniq if node
+        end
+        [ids, branch_name]
+      end
+
       # Plan 14-G.2 / D-14-G4 + D-14-G5: Authority-Helper für Write-Tools.
       # Konsumiert Pundit-TournamentPolicy (4 Methoden aus 14-G.1).
       # Returnt nil bei Allow, error(...)-Response bei Denial.

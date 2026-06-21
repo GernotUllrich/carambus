@@ -26,6 +26,7 @@ module McpServer
       LookupMeldelisteForTournament
       LookupTeilnehmerliste
       ListClubsByDiscipline
+      ListLeagues
       ListPlayersByClubAndDiscipline
       ListPlayersByName
       ListOpenTournaments

@@ -37,6 +37,7 @@ class McpServer::Tools::LookupSmokeTest < ActiveSupport::TestCase
     cc_finalize_teilnehmerliste
     cc_register_for_tournament
     cc_list_clubs_by_discipline
+    cc_list_leagues
     cc_list_players_by_club_and_discipline
     cc_list_open_tournaments
     cc_list_players_by_name
