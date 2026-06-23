@@ -38,6 +38,8 @@ module McpServer
       MyTournaments
       MyResults
       MyRanking
+      MyTeams
+      MyPartyGames
       DocSearch
       SmartSearch
     ].freeze

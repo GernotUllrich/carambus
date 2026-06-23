@@ -224,6 +224,11 @@ class SpielleiterChatService
       "oder ein 'source'-Feld mit einem 'Quelle: …'-Text — gib diese Quelle als knappe Nebeninfo am " \
       "Ende deiner Antwort weiter. Erfinde NIEMALS eine Datenherkunft oder Quelle, wenn das Tool-Ergebnis " \
       "keine solche Angabe enthält (z.B. wenn das 'source'-Feld leer ist). " \
+      "Für die Frage, in welchen Mannschaften/Ligen der Nutzer spielt oder welche Liga-Einzelpartien " \
+      "er gemacht hat, nutze cc_my_teams bzw. cc_my_party_games. Schließe NIEMALS aus cc_my_results " \
+      "(das deckt nur Einzelturnier-Spielberichte ab) oder cc_my_tournaments auf fehlende Mannschafts-/ " \
+      "Liga-Teilnahme — verneine eine Liga-/Mannschafts-Teilnahme nur, wenn cc_my_teams bzw. " \
+      "cc_my_party_games selbst leer zurückkommen. " \
       "Es gibt zwei Wege, einen Spieler in die Teilnehmerliste aufzunehmen: " \
       "(1) Über die Meldeliste — ein bereits gemeldeter Spieler wird mit " \
       "cc_assign_player_to_teilnehmerliste akkreditiert (Normalfall vor Meldeschluss). " \

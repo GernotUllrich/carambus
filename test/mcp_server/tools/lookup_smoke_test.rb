@@ -58,6 +58,8 @@ class McpServer::Tools::LookupSmokeTest < ActiveSupport::TestCase
     cc_my_tournaments
     cc_my_results
     cc_my_ranking
+    cc_my_teams
+    cc_my_party_games
     cc_doc_search
     cc_smart_search
   ].freeze
