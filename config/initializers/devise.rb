@@ -161,7 +161,10 @@ Devise.setup do |config|
   # without confirming their account.
   # Default is 0.days, meaning the user cannot access the website without
   # confirming their account.
-  config.allow_unconfirmed_access_for = 7.days
+  # Bot-Schutz: Confirmation verpflichtend. 0.days = unbestaetigte Accounts koennen
+  # sich NICHT einloggen (kein Grace-Window). Zusammen mit User.purge_unconfirmed!
+  # (taeglicher Cron) werden unbestaetigte Karteileichen nach 7 Tagen geloescht.
+  config.allow_unconfirmed_access_for = 0.days
 
   # A period that the user is allowed to confirm their account before their
   # token becomes invalid. For example, if set to 3.days, the user can confirm

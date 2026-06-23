@@ -87,6 +87,24 @@ class User < ApplicationRecord
     end
   end
 
+  # Bot-Schutz: loescht selbst-registrierte, NIE bestaetigte Accounts, die aelter als
+  # `older_than` sind und sich nie eingeloggt haben. Seit der Umstellung auf
+  # verpflichtende Confirmation (allow_unconfirmed_access_for = 0) sind unbestaetigte
+  # Accounts ohnehin login-gesperrt -> dieser Task raeumt die Karteileichen weg.
+  # Whitelist schuetzt System-/Admin-/privilegierte Accounts; nur role=player wird
+  # angefasst, mit player_id IS NULL und ohne je erfolgten Login (defense in depth).
+  # Gibt die geloeschten [id, email]-Paare zurueck (fuer Logging/Tests).
+  def self.purge_unconfirmed!(older_than: 7.days)
+    scope = where(confirmed_at: nil)
+      .where(player_id: nil, role: roles[:player])
+      .where("created_at < ?", older_than.ago)
+      .where("sign_in_count IS NULL OR sign_in_count = 0")
+      .where.not(email: PRIVILEGED + ["scoreboard@carambus.de"])
+    deleted = scope.pluck(:id, :email)
+    scope.destroy_all
+    deleted
+  end
+
   def skip_confirmation!
   end
 

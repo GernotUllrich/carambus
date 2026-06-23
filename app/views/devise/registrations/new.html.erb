@@ -41,7 +41,9 @@
     </div>
 
     <div class="form-group">
-      <%= invisible_captcha %>
+      <%# Honeypot MUSS den Feldnamen :subtitle rendern, damit der Controller-Guard
+          `invisible_captcha honeypot: :subtitle` greift (sonst Namens-Mismatch = wirkungslos). %>
+      <%= invisible_captcha :subtitle %>
     </div>
 
     <div class="field">

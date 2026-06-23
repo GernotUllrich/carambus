@@ -165,6 +165,12 @@ every :sunday, at: "6:00 am", roles: [:api] do
   rake "scrape:cleanup_logs[90]"
 end
 
+# Bot-Schutz: taeglich unbestaetigte Karteileichen-Accounts (>7 Tage, nie bestaetigt,
+# nie eingeloggt, kein Player) loeschen. Idempotent.
+every 1.day, at: "1:30 am", roles: [:api] do
+  rake "users:purge_unconfirmed[7]"
+end
+
 # Monthly: Update video statistics and tag counts
 # Runs on the 1st of each month at 7:00 AM
 every "0 7 1 * *", roles: [:api] do
