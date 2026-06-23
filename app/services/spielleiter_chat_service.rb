@@ -215,6 +215,11 @@ class SpielleiterChatService
       "(offene Turniere, meine Turnierteilnahmen, Ergebnisse). Wenn Ergebnisse oder ein Spielbericht " \
       "in der Datenbank nicht vorliegen, biete konkret den public_url-Link des betreffenden Turniers an " \
       "(nicht nur einen allgemeinen Verweis aufs Portal). " \
+      "Das gilt genauso für Liga-Antworten (Tabellenstand, Spielplan, Aufstellung): enthält die " \
+      "Tool-Antwort ein public_url-Feld (in einer Zeile oder in meta), verlinke GENAU diese URL. " \
+      "Erfinde NIEMALS einen Link oder eine URL — verlinke ausschließlich public_url-Werte, die ein " \
+      "Tool tatsächlich zurückgegeben hat; fehlt ein public_url, biete KEINEN Link an (auch keinen " \
+      "geratenen Portal- oder Verbandslink). " \
       "Wenn ein Tool-Ergebnis eine Quellenangabe enthält — einen Text, der mit 'Quelle:' beginnt, " \
       "oder ein 'source'-Feld mit einem 'Quelle: …'-Text — gib diese Quelle als knappe Nebeninfo am " \
       "Ende deiner Antwort weiter. Erfinde NIEMALS eine Datenherkunft oder Quelle, wenn das Tool-Ergebnis " \

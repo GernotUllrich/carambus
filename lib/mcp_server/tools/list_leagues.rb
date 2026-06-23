@@ -85,6 +85,11 @@ module McpServer
           []
         end
 
+        # Öffentlicher Liga-Link pro Zeile (45-01-Live-Befund: billard.de-Halluzination).
+        # base/fed EINMAL auflösen (kein N+1) — pro Zeile nur season + cc_id einsetzen.
+        public_base = region.public_cc_url_base
+        public_fed = region.region_cc&.cc_id
+
         data = rel.includes(:discipline, :season, :league_teams).map { |l|
           row = {
             league_id: l.id,
@@ -98,6 +103,8 @@ module McpServer
             season: l.season&.name,
             team_count: l.league_teams.size
           }
+          pub = public_league_url_from(base: public_base, fed: public_fed, season: l.season&.name, cc_id: l.cc_id, cc_id2: l.try(:cc_id2))
+          row[:public_url] = pub if pub
           unless scoped_disc_ids.empty?
             in_scope = (Array(l.discipline&.root_chain).map(&:id) & scoped_disc_ids).any?
             row[:in_scope] = in_scope

@@ -90,7 +90,7 @@ module McpServer
       end
 
       def self.format_league(league, server_context = nil)
-        JSON.generate(
+        h = {
           league_id: league.id,
           cc_id: league.cc_id,
           name: league.name,
@@ -102,11 +102,15 @@ module McpServer
           staffel_text: league.staffel_text,
           team_count: league.league_teams.size,
           source: source_label(server_context, :db_mirror) # Quelle (D-40-1): rechte-gegated, "" für read-only
-        )
+        }
+        # Echter öffentlicher Liga-Link (45-01-Live-Befund: billard.de-Halluzination).
+        pub = public_league_url(league)
+        h[:public_url] = pub if pub
+        JSON.generate(h)
       end
 
       def self.format_league_cc(league_cc, server_context = nil)
-        JSON.generate(
+        h = {
           id: league_cc.id,
           cc_id: league_cc.cc_id,
           name: league_cc.name,
@@ -114,7 +118,10 @@ module McpServer
           status: league_cc.status,
           context: league_cc.context,
           source: source_label(server_context, :db_mirror) # Quelle (D-40-1): rechte-gegated, "" für read-only
-        )
+        }
+        pub = public_league_url(league_cc.league)
+        h[:public_url] = pub if pub
+        JSON.generate(h)
       end
     end
   end

@@ -9,9 +9,10 @@ require_relative "../../lib/mcp_server/role_tool_map"
 class McpServer::RoleToolMapTest < ActiveSupport::TestCase
   # Drift-Guard: 23 → 24 (34-01) → 26 (34-04) → 27 (35-01) → 30 (35-02 Mein-Billard)
   # → 32 (36-02 Doku/Suche: DocSearch/SmartSearch) → 33 (42-01 PrepareTournament-Spike)
-  # → 34 (43-01 OpenInTournamentApp-Spike) → 35 (45-01 ListLeagues, cc_list_leagues).
-  test "ALL_TOOLS-Größe = 35 (34 + Phase-45-01 ListLeagues)" do
-    assert_equal 35, McpServer::RoleToolMap::ALL_TOOLS.size,
+  # → 34 (43-01 OpenInTournamentApp-Spike) → 35 (45-01 ListLeagues, cc_list_leagues)
+  # → 38 (45-02 LeagueStandings/LeagueSchedule/PartyLineup).
+  test "ALL_TOOLS-Größe = 38 (35 + Phase-45-02 Liga/Party-Detail-Lese-Tools)" do
+    assert_equal 38, McpServer::RoleToolMap::ALL_TOOLS.size,
       "Drift-Guard: ALL_TOOLS-Count hat sich geändert. Falls beabsichtigt → Plan-Bezug aktualisieren."
   end
 

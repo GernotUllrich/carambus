@@ -543,6 +543,78 @@ module McpServer
         [ids, branch_name]
       end
 
+      # Plan 45-02: zentrale, REGION-SCOPE-geprüfte League-Auflösung für die Liga-/Party-
+      # Lese-Tools (cc_league_standings/-schedule/cc_party_lineup). Mirror des DB-Pfads aus
+      # cc_lookup_league, hier wiederverwendbar gebündelt — KEIN Cross-Region-Leak.
+      # Rückgabe: {league: <League>} bei Erfolg, {error: <Response>} bei Fehler/Mehrdeutigkeit.
+      def self.resolve_league(server_context, league_id: nil, cc_id: nil, discipline: nil, season: nil)
+        region_name = effective_cc_region(server_context)
+        return {error: scenario_config_missing_error} if region_name.blank?
+        region = Region.find_by(shortname: region_name)
+        return {error: error("Region '#{region_name}' nicht in Carambus gefunden — bitte LSW/SysAdmin informieren.")} if region.nil?
+
+        league = nil
+        if league_id.present?
+          league = League.find_by(id: league_id)
+          return {error: error("Liga nicht gefunden (league_id=#{league_id}). Nutze cc_list_leagues zum Auflisten.")} if league.nil?
+        elsif cc_id.present?
+          league = LeagueCc.find_by(cc_id: cc_id)&.league
+          return {error: error("Liga nicht gefunden (cc_id=#{cc_id}). Nutze cc_list_leagues zum Auflisten.")} if league.nil?
+        end
+
+        if league
+          unless league.organizer_type == "Region" && league.organizer_id == region.id
+            return {error: error("Liga (#{league_id || cc_id}) gehört nicht zur Region #{region.shortname}.")}
+          end
+          return {league: league}
+        end
+
+        # Fallback ohne id: region-/saison-/disziplin-gefiltert (Muster aus cc_lookup_league).
+        season_obj = effective_season(server_context, override: season)
+        rel = League.where(organizer_type: "Region", organizer_id: region.id)
+        rel = rel.where(season_id: season_obj.id) if season_obj
+        if discipline.present?
+          discipline_ids, = resolve_discipline_ids_inclusive(discipline)
+          return {error: error("Discipline oder Branch nicht gefunden: '#{discipline}'. Beispiele: 'Pool', 'Snooker', 'Karambol', '8-Ball'.")} if discipline_ids.blank?
+          rel = rel.where(discipline_id: discipline_ids)
+        end
+
+        matches = rel.limit(25).to_a
+        if matches.empty?
+          disc_part = discipline.present? ? ", Disziplin '#{discipline}'" : ""
+          return {error: error("Keine Liga gefunden (Region #{region.shortname}, Saison #{season_obj&.name}#{disc_part}). Nutze cc_list_leagues oder gib league_id an.")}
+        elsif matches.size > 1
+          listing = matches.first(10).map { |l| "#{l.name} (league_id=#{l.id}, cc_id=#{l.cc_id})" }.join("; ")
+          return {error: text("Mehrere Ligen passen (#{matches.size}). Bitte über cc_list_leagues eingrenzen und dann mit `league_id` erneut anfragen. Treffer: #{listing}")}
+        end
+        {league: matches.first}
+      end
+
+      # Plan 45-02 (45-01-Live-Befund): ECHTE öffentliche Liga-Ansicht (Spielplan+Tabelle).
+      # Spiegelt League#cc_id_link, aber mit nil-Guards (kein Müll-Link) — damit das LLM einen
+      # realen Link relayt statt zu halluzinieren (Befund: erfundener www.billard.de-Link).
+      def self.public_league_url_from(base:, fed:, season:, cc_id:, cc_id2: nil)
+        base = base.presence
+        return nil if base.blank? || fed.blank? || season.blank? || cc_id.blank?
+        "#{base}sb_spielplan.php?p=#{fed}--#{season}-#{cc_id}#{"-#{cc_id2}" if cc_id2.present?}"
+      end
+
+      def self.public_league_url(league)
+        return nil if league.nil?
+        org = league.organizer
+        return nil unless org.respond_to?(:public_cc_url_base) && org.respond_to?(:region_cc)
+        public_league_url_from(
+          base: org.public_cc_url_base,
+          fed: org.region_cc&.cc_id,
+          season: league.season&.name,
+          cc_id: league.cc_id,
+          cc_id2: league.try(:cc_id2)
+        )
+      rescue => e
+        Rails.logger.warn "[BaseTool.public_league_url] #{e.class}: #{e.message}"
+        nil
+      end
+
       # Plan 14-G.2 / D-14-G4 + D-14-G5: Authority-Helper für Write-Tools.
       # Konsumiert Pundit-TournamentPolicy (4 Methoden aus 14-G.1).
       # Returnt nil bei Allow, error(...)-Response bei Denial.
