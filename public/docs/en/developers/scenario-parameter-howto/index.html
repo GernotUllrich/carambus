@@ -3314,9 +3314,9 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#44-quelle-der-wahrheit-die-server-nicht-carambus_data" class="md-nav__link">
+  <a href="#44-schlussel-satz-ist-fleet-uniform-verifiziert-2026-06-19" class="md-nav__link">
     <span class="md-ellipsis">
-      4.4 ⚠️ Quelle der Wahrheit = die SERVER (nicht carambus_data)
+      4.4 Schlüssel-Satz ist fleet-uniform (verifiziert 2026-06-19)
     </span>
   </a>
   
@@ -3619,14 +3619,24 @@ Turnierergebnisse direkt in die CC-Admin und betreiben das Sportwart-Chat-/MCP-I
 Location-Server an.
 <em>(Die frühere Regel „<code>clubcloud</code> nur Region-Szenarien, nicht club-only wie bcw/pbv" stammt
 aus der Zeit reinen api-Scrapings und ist überholt.)</em></p>
-<h3 id="44-quelle-der-wahrheit-die-server-nicht-carambus_data">4.4 ⚠️ Quelle der Wahrheit = die SERVER (nicht carambus_data)<a class="headerlink" href="#44-quelle-der-wahrheit-die-server-nicht-carambus_data" title="Permanent link">&para;</a></h3>
-<p>Die <code>carambus_data/scenarios/*/.../credentials/*.yml.enc</code> sind veraltet/Template
-und teilen einen <code>secret_key_base</code>/<code>active_record_encryption</code>-Satz, der zu <strong>keinem</strong>
-Server passt. <strong>Sie dürfen NICHT auf Server deployt werden</strong> — das würde Sessions
-ungültig machen und <strong>verschlüsselte DB-Daten unentschlüsselbar</strong> machen.</p>
-<p><code>rake scenario:generate_credentials</code> (Dry-Run-Default; <code>WRITE=true</code> zum Schreiben)
-ist daher v. a. für <strong>neue</strong> Szenarien / lokale Stände gedacht. Für <strong>bestehende
-Server</strong> gilt der additive Server-Merge unten.</p>
+<h3 id="44-schlussel-satz-ist-fleet-uniform-verifiziert-2026-06-19">4.4 Schlüssel-Satz ist fleet-uniform (verifiziert 2026-06-19)<a class="headerlink" href="#44-schlussel-satz-ist-fleet-uniform-verifiziert-2026-06-19" title="Permanent link">&para;</a></h3>
+<p><code>production.key</code> ist über <strong>alle</strong> Szenarien byte-identisch; <code>secret_key_base</code> und
+<code>active_record_encryption.primary_key</code> sind in allen <code>.yml.enc</code> <strong>identisch</strong> und stimmen
+mit den Servern überein. Daraus folgt:</p>
+<ul>
+<li><code>rake scenario:generate_credentials</code> (Dry-Run-Default; <code>WRITE=true</code> zum Schreiben)
+  <strong>bewahrt</strong> <code>secret_key_base</code>/AR (MERGE, kein Regenerate) → der <strong>reguläre, sichere Weg</strong>
+  auch für <strong>bestehende</strong> Server. Kein Datenverlust, solange der Key uniform bleibt.</li>
+<li>⚠️ <strong>Restrisiko nur bei abweichendem Key:</strong> Käme jemals ein <code>.yml.enc</code> mit einem
+  <strong>anderen</strong> <code>secret_key_base</code>/AR-Key auf einen Server, wären Sessions ungültig und
+  <code>encrypts</code>-DB-Spalten (z. B. Phase-39 <code>cc_password</code>) unentschlüsselbar. Genau dagegen
+  sichert das <strong>§4.5-Gate</strong> (1 Befehl, MATCH/MISMATCH) — billig, vor jedem Credential-Upload.</li>
+<li>Die <code>.yml.enc</code>/<code>.key</code> sind seit 2026-06-19 <strong>nicht</strong> im <code>carambus_data</code>-Repo (gitignored,
+  lokal/Archiv). Die <strong>Server</strong> bleiben die laufende Quelle der Wahrheit für die deployten Creds.</li>
+</ul>
+<p><em>(Die frühere Formulierung „die carambus_data-.enc passen zu keinem Server → Datenverlust"
+war für die aktuelle uniforme Flotte überspitzt und ist hiermit korrigiert; das §4.5-Gate
+bleibt als günstige 100%-Absicherung Pflicht.)</em></p>
 <h3 id="45-deploy-gate-vor-jedem-credential-deploy-pflicht">4.5 Deploy-Gate (vor jedem Credential-Deploy PFLICHT)<a class="headerlink" href="#45-deploy-gate-vor-jedem-credential-deploy-pflicht" title="Permanent link">&para;</a></h3>
 <p>Prüfen, dass <code>secret_key_base</code> UND <code>active_record_encryption.primary_key</code> mit dem
 Server übereinstimmen — geheimnisfrei per serverseitigem Hash-Vergleich

@@ -84,6 +84,17 @@ namespace :scenario do
     generate_scenario_credentials(scenario_name, environment, dry_run: dry_run)
   end
 
+  desc "Soft-Credentials (clubcloud/ai/translation/google_service) additiv auf den Server mergen — bewahrt secret_key_base/AR/devise_jwt. DRY-RUN default; WRITE=true (+RESTART=true). Auch für Authority (kein DB-Schritt → kein Guard). Usage: rake scenario:push_credentials[<name>]"
+  task :push_credentials, [:scenario_name] => :environment do |_, args|
+    scenario_name = args[:scenario_name]
+    if scenario_name.to_s.empty?
+      puts "Usage: rake scenario:push_credentials[<name>]"
+      puts "  DRY-RUN default; WRITE=true zum Schreiben, RESTART=true für Puma-Restart."
+      exit 1
+    end
+    push_credentials_to_server(scenario_name, write: ENV['WRITE'] == 'true', restart: ENV['RESTART'] == 'true')
+  end
+
   desc "Create Rails root folder for a scenario"
   task :create_rails_root, [:scenario_name] => :environment do |task, args|
     scenario_name = args[:scenario_name]
@@ -741,6 +752,120 @@ namespace :scenario do
       enc.write(merged.to_yaml)
       puts "   ✅ geschrieben: #{enc_path}"
       puts "   ⚠️  secret_key_base neu — in #{File.join(carambus_data_path, 'secrets.yml')} per_scenario sichern!" if generated_skb
+    end
+    true
+  end
+
+  # Soft-Feature-Keys (clubcloud/anthropic/deepl/google/youtube/kozoom/google_service) aus
+  # secrets.yml für ein Scenario bauen — NUR weiche, frei-updatebare Keys, NIE secret_key_base/
+  # active_record_encryption/devise_jwt. Basis für scenario:push_credentials.
+  def build_feature_keys_from_pool(scenario_name)
+    config = YAML.load_file(File.join(scenarios_path, scenario_name, 'config.yml'))
+    decl = config.dig('scenario', 'credentials') || {}
+    features = Array(decl['features']).map(&:to_s)
+    cc_ctx = decl['clubcloud_context']
+    pool = YAML.load_file(File.join(carambus_data_path, 'secrets.yml')) || {}
+    shared = pool['shared'] || {}
+    per = (pool['per_scenario'] || {})[scenario_name] || {}
+    out = {}
+    features.each do |f|
+      Array(FEATURE_KEY_GROUPS[f]).each do |grp|
+        next unless shared[grp]
+        out[grp] = (out[grp] || {}).deep_merge(deep_stringify(shared[grp]))
+      end
+    end
+    if features.include?('clubcloud') && cc_ctx
+      ck = cc_ctx.to_s.downcase
+      cc = per.dig('clubcloud', cc_ctx) || per.dig('clubcloud', ck) ||
+        shared.dig('clubcloud', cc_ctx) || shared.dig('clubcloud', ck)
+      out['clubcloud'] = (out['clubcloud'] || {}).merge(ck => deep_stringify(cc)) if cc
+    end
+    gsvc = per['google_service'] || shared['google_service']
+    out['google_service'] = deep_stringify(gsvc) if gsvc
+    out
+  end
+
+  # Server-seitiger Ruby-Runner (wird auf den Server kopiert + via `rails runner <file> <mode>`
+  # ausgeführt): mergt die Soft-Additions additiv in die LIVE-.enc und BEWAHRT die fragilen Keys
+  # (secret_key_base/active_record_encryption/devise_jwt) — Abbruch ohne Schreiben, wenn die sich
+  # ändern würden. Schreibt (+ Backup) nur bei mode=='write'.
+  def credentials_merge_runner_script
+    <<~'RUBY'
+      require "yaml"; require "fileutils"
+      mode = ARGV[0].to_s
+      add  = YAML.safe_load(File.read("/tmp/carambus_cred_additions.yml"), permitted_classes: [Symbol], aliases: true) || {}
+      path = "config/credentials/production.yml.enc"
+      keyp = "config/credentials/production.key"
+      enc = ActiveSupport::EncryptedConfiguration.new(config_path: path, key_path: keyp,
+              env_key: "RAILS_MASTER_KEY", raise_if_missing_key: true)
+      cur = YAML.safe_load(enc.read.to_s, permitted_classes: [Symbol], aliases: true) || {}
+      fragile = lambda { |h| { "skb" => h["secret_key_base"], "ar" => h["active_record_encryption"],
+                               "jwt" => h["devise_jwt_secret_key"] } }
+      before = fragile.call(cur)
+      merged = cur.deep_merge(add)
+      abort("ABBRUCH: fragile Keys (secret_key_base/AR/devise_jwt) wuerden sich aendern - nichts geschrieben.") unless fragile.call(merged) == before
+      new_keys = add.keys.reject { |k| cur.key?(k) }
+      chg_keys = add.keys.select { |k| cur.key?(k) && cur[k] != merged[k] }
+      puts "  Additions: #{add.keys.join(', ')}"
+      puts "  NEU:       #{new_keys.empty? ? '-' : new_keys.join(', ')}"
+      puts "  GEAENDERT: #{chg_keys.empty? ? '-' : chg_keys.join(', ')}"
+      puts "  fragile Keys: unveraendert (verifiziert)"
+      if mode == "write"
+        bak = "#{path}.bak.#{Time.now.strftime('%Y%m%d%H%M%S')}"
+        FileUtils.cp(path, bak)
+        enc.write(merged.to_yaml)
+        puts "  WRITE ok - Backup: #{bak}"
+      else
+        puts "  DRY-RUN - nichts geschrieben (WRITE=true zum Schreiben)."
+      end
+    RUBY
+  end
+
+  # scenario:push_credentials — Soft-Credentials additiv + sicher auf einen Server mergen.
+  def push_credentials_to_server(scenario_name, write:, restart:)
+    cfg_file = File.join(scenarios_path, scenario_name, 'config.yml')
+    unless File.exist?(cfg_file)
+      puts "❌ config.yml nicht gefunden: #{cfg_file}"; return false
+    end
+    cfg = YAML.load_file(cfg_file)
+    prod = cfg.dig('environments', 'production') || {}
+    ssh_host = prod['ssh_host']; ssh_port = prod['ssh_port'] || 22
+    deploy_to = prod['deploy_to'] || "/var/www/#{scenario_name}"
+    if ssh_host.to_s.strip.empty?
+      puts "❌ ssh_host fehlt in #{scenario_name} (environments.production)"; return false
+    end
+
+    additions = build_feature_keys_from_pool(scenario_name)
+    if additions.empty?
+      puts "Keine Soft-Feature-Keys zu mergen — config.yml features / secrets.yml prüfen."; return false
+    end
+    puts "── push_credentials #{scenario_name} #{write ? '(WRITE)' : '(DRY-RUN)'} → #{ssh_host}:#{ssh_port} ──"
+    puts "   Gruppen: #{additions.keys.join(', ')}  (fragile Keys werden NICHT angefasst)"
+
+    require 'tmpdir'
+    Dir.mktmpdir do |tmp|
+      add_file = File.join(tmp, 'carambus_cred_additions.yml')
+      run_file = File.join(tmp, 'carambus_merge_creds.rb')
+      File.write(add_file, additions.to_yaml); File.chmod(0o600, add_file)
+      File.write(run_file, credentials_merge_runner_script)
+      base = "ssh -p #{ssh_port} www-data@#{ssh_host}"
+      unless system("scp -P #{ssh_port} #{add_file} #{run_file} www-data@#{ssh_host}:/tmp/")
+        puts "❌ scp fehlgeschlagen"; return false
+      end
+      system("#{base} 'chmod 600 /tmp/carambus_cred_additions.yml'")
+      rbenv = "RBENV_ROOT=/var/www/.rbenv PATH=/var/www/.rbenv/shims:$PATH RBENV_VERSION=3.2.1 RAILS_ENV=production"
+      ok = system("#{base} 'cd #{deploy_to}/current && #{rbenv} bundle exec rails runner /tmp/carambus_merge_creds.rb #{write ? 'write' : 'dry'}'")
+      system("#{base} 'rm -f /tmp/carambus_cred_additions.yml /tmp/carambus_merge_creds.rb'")
+      unless ok
+        puts "❌ Merge-Runner meldete Fehler / Abbruch — nichts geschrieben."; return false
+      end
+      if write && restart
+        svc = "puma-#{prod['basename'] || cfg.dig('scenario', 'basename') || scenario_name}"
+        puts "   Puma-Restart: #{svc}"
+        system("#{base} 'sudo systemctl restart #{svc}'")
+      elsif write
+        puts "   ⚠️  Puma NICHT neugestartet (RESTART=true zum Anwenden, oder manuell: sudo systemctl restart puma-<basename>)."
+      end
     end
     true
   end

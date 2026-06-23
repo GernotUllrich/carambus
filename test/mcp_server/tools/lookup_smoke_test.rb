@@ -37,6 +37,10 @@ class McpServer::Tools::LookupSmokeTest < ActiveSupport::TestCase
     cc_finalize_teilnehmerliste
     cc_register_for_tournament
     cc_list_clubs_by_discipline
+    cc_list_leagues
+    cc_league_standings
+    cc_league_schedule
+    cc_party_lineup
     cc_list_players_by_club_and_discipline
     cc_list_open_tournaments
     cc_list_players_by_name
@@ -54,6 +58,8 @@ class McpServer::Tools::LookupSmokeTest < ActiveSupport::TestCase
     cc_my_tournaments
     cc_my_results
     cc_my_ranking
+    cc_my_teams
+    cc_my_party_games
     cc_doc_search
     cc_smart_search
   ].freeze

@@ -529,6 +529,9 @@ Rails.application.routes.draw do
       collection do
         # Phase 37-01: Player-Cascade (Club -> Spieler aktuelle Saison) im Admin-User-Formular.
         get :players_by_club
+        # 2026-06-20: Vorgeschaltete Region-Stufe fuer Server OHNE Region-Context (carambus.de, Authority).
+        get :clubs_by_region
+        get :locations_by_region
       end
     end
     # Phase 37-03: Turnierleiter-Zuordnungen (UserTournament) verwalten (Local-Server).

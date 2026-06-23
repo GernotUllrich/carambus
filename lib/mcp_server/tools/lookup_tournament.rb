@@ -32,7 +32,7 @@ module McpServer
           shortname: {type: "string", description: "Optionaler Region-Filter-Override. Strict-Mode aus 14-02.1-fix: Override ungleich User#cc_region wird mit Warning ignoriert. Removal in 14-02.4."},
           season: {type: "string", description: "Season-Name (z.B. '2025/2026'). Plan 14-02.3 / F-7: Default = aktuelle Saison."},
           force_refresh: {type: "boolean", default: false, description: "Bypass DB cache, query CC live"},
-          with_committed_list: {type: "boolean", default: false, description: "Wenn true, ruft showCommittedMeldeliste auf und liefert die bereits angemeldeten Player-cc_ids als 'committed_players' (read-only). meldeliste_cc_id wird aus TournamentCc.registration_list_cc abgeleitet — falls nicht in DB verknüpft, kann optional `meldeliste_cc_id` als Override gesetzt werden."},
+          with_committed_list: {type: "boolean", default: false, description: "Wenn true, ruft showCommittedMeldeliste auf und liefert die bereits angemeldeten Player-cc_ids als 'committed_players' (read-only). WICHTIG: committed_players zeigt NUR die aus der Meldeliste uebernommenen Akkreditierungen — per Schnellanmeldung direkt eingetragene Spieler sind NICHT enthalten. Fuer den vollstaendigen Teilnehmerliste-Stand (inkl. Schnellanmeldungen) cc_lookup_teilnehmerliste nutzen. meldeliste_cc_id wird aus TournamentCc.registration_list_cc abgeleitet — falls nicht in DB verknüpft, kann optional `meldeliste_cc_id` als Override gesetzt werden."},
           meldeliste_cc_id: {type: "integer", description: "Override für with_committed_list — nur nötig wenn TournamentCc keine registration_list_cc-Beziehung hat. Sonst wird der Wert aus der DB-Beziehung gelesen."}
         }
       )

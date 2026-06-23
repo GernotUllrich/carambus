@@ -18,6 +18,8 @@ module McpServer
     class LookupTeilnehmerliste < BaseTool
       tool_name "cc_lookup_teilnehmerliste"
       description "Wann nutzen? Vor Akkreditierung/Finalisierung — Turnierleiter will den aktuellen Stand der Teilnehmerliste sehen ('wer ist schon akkreditiert?'). " \
+                  "DIES ist auch das richtige Tool fuer 'Meldestatus' / 'wie viele sind akkreditiert' — es liest die ECHTE Teilnehmerliste (showTeilnehmerliste -3) INKL. der per Schnellanmeldung direkt eingetragenen Spieler. " \
+                  "NICHT cc_lookup_tournament(with_committed_list) dafuer nutzen — dessen committed_players sieht Schnellanmeldungen nicht. " \
                   "Auch um den Phase-Status zu pruefen (Anmeldephase vs. schon-finalisiert). " \
                   "Was tippt der User typisch? 'Liste zeigen', 'Wer ist akkreditiert fuer die Eurokegel?', 'Status Teilnehmerliste DFP SU'. " \
                   "Liefert die committed Teilnehmerliste (akkreditierte Spieler) UND die noch zur Uebernahme verfuegbare Meldeliste-Reste. " \

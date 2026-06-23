@@ -796,6 +796,16 @@ module Api
       # Tournament#seedings hat `-> { order(position: :asc) }`-Scope (siehe Tournament-Model).
       seedings = tournament.seedings.includes(:player, :league_team)
 
+      # Local-Server (2026-06-20): Das Turnier traegt sowohl global gesyncte Seedings
+      # (id < MIN_ID, Mirror von der Authority) als auch lokal gepflegte (id >= MIN_ID,
+      # vom TL am Turniertag). Beide zusammen = doppelte Teilnehmer. Lokal zaehlen NUR die
+      # lokalen; Fallback auf alle, falls (noch) keine lokalen existieren (Turnier nicht
+      # lokal angelegt).
+      if local_server?
+        local = seedings.where("seedings.id >= ?", Seeding::MIN_ID)
+        seedings = local if local.exists?
+      end
+
       teams = group_seedings_into_teams(seedings)
 
       {

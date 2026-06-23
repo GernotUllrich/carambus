@@ -290,9 +290,12 @@ class TournamentCc < ApplicationRecord
     begin
       ranking_data = tournament.seedings.where(seeding_scope).select do |seeding|
                        seeding.data["result"].andand["Gesamtrangliste"].present?
-                     end.sort_by { |seeding| seeding.data["result"]["Gesamtrangliste"]["Rank"].to_i }.map do |s|
+                     end.sort_by { |seeding| seeding.final_rank.to_i }.map do |s|
+        # Platzierung robust via Seeding#final_rank (disziplinabhaengiger Key
+        # "Rang"/"Rank"/"#"); der alte ["Rank"]/["#"]-Zugriff war fuer Karambol nil → 0
+        # → unsortierte Rangliste ohne Platzierungsnummern.
         [
-          s.data["result"]["Gesamtrangliste"]["#"].to_i, s.data["result"]["Gesamtrangliste"]["Punkte"].to_i, "", s.player.cc_id, "", ""
+          s.final_rank.to_i, s.data["result"]["Gesamtrangliste"]["Punkte"].to_i, "", s.player.cc_id, "", ""
         ].join(";")
       end
     rescue Exception

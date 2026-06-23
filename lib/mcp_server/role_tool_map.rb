@@ -26,6 +26,10 @@ module McpServer
       LookupMeldelisteForTournament
       LookupTeilnehmerliste
       ListClubsByDiscipline
+      ListLeagues
+      LeagueStandings
+      LeagueSchedule
+      PartyLineup
       ListPlayersByClubAndDiscipline
       ListPlayersByName
       ListOpenTournaments
@@ -34,6 +38,8 @@ module McpServer
       MyTournaments
       MyResults
       MyRanking
+      MyTeams
+      MyPartyGames
       DocSearch
       SmartSearch
     ].freeze

@@ -13,6 +13,14 @@
 class SpielleiterChatService
   MAX_TOOL_ITERATIONS = 10
 
+  # Hybrid-Modell-Strategie (2026-06-21): Default das schnelle Haiku für Reads/Lookups;
+  # sobald im Turn eine Schreibaktion (Write-Tool) auftaucht, läuft der Rest des Turns mit
+  # dem stärkeren Sonnet weiter. Haiku plant mehrstufige Writes/Swaps unzuverlässig (Live-
+  # Befund bc-wedel: Swap führte nur den Assign scharf aus). Reads bleiben schnell, nur
+  # Writes zahlen die Sonnet-Latenz.
+  FAST_MODEL = "claude-haiku-4-5-20251001"
+  STRONG_MODEL = "claude-sonnet-4-6"
+
   def initialize(user:)
     @user = user
     # Persona-gefilterte Tool-Quelle (34-01 ToolRegistry): tool_name => Tool-Klasse.
@@ -32,13 +40,14 @@ class SpielleiterChatService
   def converse(messages:)
     loop_messages = messages.dup
     iterations = 0
+    model = FAST_MODEL # Default schnell; bei erster Schreibaktion → STRONG_MODEL (Hybrid-Eskalation)
 
     loop do
       iterations += 1
       break if iterations > MAX_TOOL_ITERATIONS
 
       response = client.messages.create(
-        model: "claude-haiku-4-5-20251001",
+        model: model,
         max_tokens: 4096,
         system: system_prompt,
         tools: tool_definitions,
@@ -51,10 +60,18 @@ class SpielleiterChatService
 
       break if response.stop_reason.to_s != "tool_use"
 
+      tool_use_blocks = assistant_content.select { |b| b[:type] == "tool_use" }
+
+      # Hybrid-Eskalation: sobald eine Schreibaktion im Turn auftaucht, läuft der Rest des Turns
+      # mit STRONG_MODEL — der Folge-Schritt (z.B. der zweite Teil eines Swaps) wird dann vom
+      # stärkeren Modell geplant. Greift ab der nächsten Iteration; der erste (Einzel-)Write ist
+      # für Haiku unkritisch (zusätzlich durch die Pre-Validation der Tools geschützt).
+      if model == FAST_MODEL && tool_use_blocks.any? { |b| write_tool?(b[:name]) }
+        model = STRONG_MODEL
+      end
+
       # Dispatch all tool_use blocks and collect tool_results.
-      tool_results = assistant_content
-        .select { |b| b[:type] == "tool_use" }
-        .map { |b| dispatch_tool(name: b[:name], id: b[:id], input: b[:input]) }
+      tool_results = tool_use_blocks.map { |b| dispatch_tool(name: b[:name], id: b[:id], input: b[:input]) }
 
       loop_messages << {role: "user", content: tool_results}
     end
@@ -93,6 +110,15 @@ class SpielleiterChatService
     end
 
     {type: "tool_result", tool_use_id: id, content: result_text}
+  end
+
+  # Schreibendes Tool? (read_only_hint == false aus den MCP-Annotations) — steuert die
+  # Hybrid-Modell-Eskalation. Defensiv: ohne eindeutige read-only-Annotation als Write
+  # behandeln (lieber zu früh auf das stärkere Modell als eine Schreibaktion mit Haiku).
+  def write_tool?(name)
+    anno = @tools_by_name[name]&.annotations_value
+    return true if anno.nil? || !anno.respond_to?(:read_only_hint)
+    anno.read_only_hint != true
   end
 
   def serialize_content_block(block)
@@ -189,10 +215,20 @@ class SpielleiterChatService
       "(offene Turniere, meine Turnierteilnahmen, Ergebnisse). Wenn Ergebnisse oder ein Spielbericht " \
       "in der Datenbank nicht vorliegen, biete konkret den public_url-Link des betreffenden Turniers an " \
       "(nicht nur einen allgemeinen Verweis aufs Portal). " \
+      "Das gilt genauso für Liga-Antworten (Tabellenstand, Spielplan, Aufstellung): enthält die " \
+      "Tool-Antwort ein public_url-Feld (in einer Zeile oder in meta), verlinke GENAU diese URL. " \
+      "Erfinde NIEMALS einen Link oder eine URL — verlinke ausschließlich public_url-Werte, die ein " \
+      "Tool tatsächlich zurückgegeben hat; fehlt ein public_url, biete KEINEN Link an (auch keinen " \
+      "geratenen Portal- oder Verbandslink). " \
       "Wenn ein Tool-Ergebnis eine Quellenangabe enthält — einen Text, der mit 'Quelle:' beginnt, " \
       "oder ein 'source'-Feld mit einem 'Quelle: …'-Text — gib diese Quelle als knappe Nebeninfo am " \
       "Ende deiner Antwort weiter. Erfinde NIEMALS eine Datenherkunft oder Quelle, wenn das Tool-Ergebnis " \
       "keine solche Angabe enthält (z.B. wenn das 'source'-Feld leer ist). " \
+      "Für die Frage, in welchen Mannschaften/Ligen der Nutzer spielt oder welche Liga-Einzelpartien " \
+      "er gemacht hat, nutze cc_my_teams bzw. cc_my_party_games. Schließe NIEMALS aus cc_my_results " \
+      "(das deckt nur Einzelturnier-Spielberichte ab) oder cc_my_tournaments auf fehlende Mannschafts-/ " \
+      "Liga-Teilnahme — verneine eine Liga-/Mannschafts-Teilnahme nur, wenn cc_my_teams bzw. " \
+      "cc_my_party_games selbst leer zurückkommen. " \
       "Es gibt zwei Wege, einen Spieler in die Teilnehmerliste aufzunehmen: " \
       "(1) Über die Meldeliste — ein bereits gemeldeter Spieler wird mit " \
       "cc_assign_player_to_teilnehmerliste akkreditiert (Normalfall vor Meldeschluss). " \
@@ -216,6 +252,15 @@ class SpielleiterChatService
       "Pre-Validation des Tools ist der Schutz (sie bricht bei Problemen mit Begründung ab). Nur wenn die " \
       "Angaben mehrdeutig sind (z.B. mehrere Spieler gleichen Nachnamens), frage gezielt nach der " \
       "Präzisierung — und führe dann ebenfalls direkt mit armed: true aus. " \
+      "Verlangt der Sportwart eine zusammengesetzte Aktion ('tausche X gegen Y', 'ersetze X durch Y', " \
+      "'X raus und Y rein'), zerlege sie in ALLE einzelnen Schreibaktionen und führe JEDE davon mit " \
+      "armed: true aus (Y akkreditieren UND X entfernen sind ZWEI getrennte Tool-Aufrufe) — " \
+      "überspringe KEINEN Teil. " \
+      "Melde einen Schreib-Erfolg ('erledigt', 'entfernt', 'akkreditiert', 'getauscht') NUR, wenn der " \
+      "zugehörige Tool-Aufruf tatsächlich mit armed: true gelaufen ist UND ein Erfolgsergebnis " \
+      "zurückgegeben hat (die Bestätigung des jeweiligen Tools, z.B. 'Removed … read_back_match: true'). " \
+      "Leite NIEMALS einen Erfolg aus einem Probelauf (armed: false / '[DRY-RUN]') oder aus einer nicht " \
+      "ausgeführten Aktion ab — bei zusammengesetzten Aktionen gilt das für JEDEN Teil einzeln. " \
       "Entnimm branch_cc_id für Schreiboperationen IMMER aus " \
       "sportwart_disciplines[x].branch_cc_id im cc_whoami-Kontext — " \
       "übergib sie bei JEDEM Write-Tool-Aufruf, nicht erst beim Retry. " \
@@ -250,6 +295,15 @@ class SpielleiterChatService
       base += " HINWEIS: Dieser Nutzer hat nur Lese-Zugriff — biete KEINE Schreib- oder " \
         "Verwaltungsaktionen an (Anmelden/Akkreditieren/Entfernen/Finalisieren/Meldeschluss-Verschieben); " \
         "dafür stehen keine Werkzeuge bereit. Beantworte Anfragen mit den verfügbaren Lese-Werkzeugen."
+    end
+
+    unless McpServer::ToolRegistry.local_server?
+      base += " WICHTIG — DU LÄUFST AUF DEM ZENTRALEN AUTHORITY-SERVER: hier sind NUR Auskunfts-/" \
+        "Lese-Funktionen verfügbar (Turniere/Spieler/Vereine/Listen anzeigen, Doku). KEINE Schreib-/" \
+        "Verwaltungsaktionen — kein Anmelden, Akkreditieren, Schnellanmelden, Entfernen, Finalisieren, " \
+        "Meldeschluss-Verschieben, Turnierleiter-Zuweisen, Turniervorbereiten. Biete solche Aktionen NICHT " \
+        "an (auch nicht bei 'was kann ich fragen?') und führe sie NICHT aus; Turnierverwaltung läuft auf den " \
+        "Vereins-/Local-Servern. Liste bei einer Capability-Frage NUR Lese-/Auskunfts-Funktionen."
     end
     base
   end

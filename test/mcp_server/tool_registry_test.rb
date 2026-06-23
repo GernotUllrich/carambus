@@ -10,6 +10,17 @@ Dir[Rails.root.join("lib/mcp_server/tools/*.rb")].each { |f| require f }
 # cc_write_access? (Sportwart + Turnierleiter + system_admin).
 # Per-Record-Authority bleibt orthogonal in BaseTool.authorize! (14-G.2).
 class McpServer::ToolRegistryTest < ActiveSupport::TestCase
+  # Write-Tools sind seit 2026-06-20 NUR auf Local-Servern verfügbar (Authority = read-only).
+  # Test-Env ist Authority (carambus_api_url leer) → für die Write-Tool-Tests local mode setzen.
+  setup do
+    @orig_api_url = Carambus.config.carambus_api_url
+    Carambus.config.carambus_api_url = "http://local.test"
+  end
+
+  teardown do
+    Carambus.config.carambus_api_url = @orig_api_url
+  end
+
   test "tools_for(nil) liefert leeres Array (defensive Default)" do
     assert_equal [], McpServer::ToolRegistry.tools_for(nil)
   end
@@ -58,5 +69,18 @@ class McpServer::ToolRegistryTest < ActiveSupport::TestCase
     end
     assert_equal (McpServer::RoleToolMap::BASE_READ_TOOLS + McpServer::RoleToolMap::SELF_SERVICE_TOOLS).size, McpServer::ToolRegistry.tool_count_for(ro)
     assert_equal McpServer::RoleToolMap::ALL_TOOLS.size, McpServer::ToolRegistry.tool_count_for(rw)
+  end
+
+  test "Authority (carambus_api_url blank): cc_write_access? bekommt KEINE Write-Tools (read-only)" do
+    Carambus.config.carambus_api_url = nil
+    u = User.new(email: "tr-authority@example.com", password: "password123")
+    def u.cc_write_access?
+      true
+    end
+    tools = McpServer::ToolRegistry.tools_for(u)
+    expected = (McpServer::RoleToolMap::BASE_READ_TOOLS + McpServer::RoleToolMap::SELF_SERVICE_TOOLS).sort
+    assert_equal expected, tools.sort, "Authority-Chat ist read-only — auch für cc_write_access?"
+    assert((tools & McpServer::RoleToolMap::WRITE_TOOLS).empty?,
+      "Authority darf KEINE CC-Admin-Write-Tools liefern")
   end
 end

@@ -30,6 +30,16 @@ module Admin
       server_region.clubs.where.not(name: [nil, ""]).order(:name).to_a
     end
 
+    # 2026-06-20: Region-Auswahloptionen fuer Server OHNE festen Region-Context (carambus.de,
+    # Authority). Nur Regionen MIT benannten Vereinen (sonst leere/irrelevante Eintraege).
+    #   [["NBV – Niedersächsischer Billard-Verband", id], ...]
+    def region_picker_options
+      Region.where(id: Club.where.not(name: [nil, ""]).select(:region_id))
+        .where.not(shortname: [nil, ""])
+        .order(:shortname)
+        .map { |r| [[r.shortname, r.name].reject(&:blank?).join(" – "), r.id] }
+    end
+
     # Locations der Server-Region, gruppiert nach Club — fuer grouped_options_for_select:
     #   [[club_name, [[location_name, location_id], ...]], ...]
     # Eine Location kann (M:N) mehreren Clubs gehoeren und so unter mehreren Gruppen auftauchen — ok.
