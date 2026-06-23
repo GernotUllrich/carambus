@@ -6,6 +6,7 @@ class SpielleiterChatController < ApplicationController
 
   SESSION_KEY = :spielleiter_chat_messages
   CONTEXT_KEY = :spielleiter_chat_context
+  MAX_HISTORY = 40
 
   def show
     get_or_fetch_context  # Kontext cachen bevor erster POST
@@ -24,7 +25,7 @@ class SpielleiterChatController < ApplicationController
 
     begin
       result = SpielleiterChatService.new(user: current_user).converse(messages: messages)
-      session[SESSION_KEY] = result[:messages][ctx_len..].last(40)
+      session[SESSION_KEY] = trim_history(result[:messages][ctx_len..])
     rescue => e
       Rails.logger.error("[SpielleiterChatController] #{e.class}: #{e.message}")
       flash[:alert] = "Fehler beim Verarbeiten der Anfrage. Bitte erneut versuchen."
@@ -115,6 +116,22 @@ class SpielleiterChatController < ApplicationController
 
   def session_messages
     (session[SESSION_KEY] || []).map { |m| deep_symbolize(m) }
+  end
+
+  # History-Kürzung an TURN-GRENZEN statt per Nachrichten-Zahl. Ein stumpfes `last(N)` kann ein
+  # tool_use(assistant)/tool_result(user)-Paar zerschneiden — bleibt am Rand ein verwaistes
+  # tool_result, lehnt die Anthropic-API JEDEN Folge-Request mit 400 ab ("tool_result without
+  # corresponding tool_use") und der Chat ist tot ("nichts geht mehr"). Daher nach `last(N)` so
+  # lange vom Anfang kürzen, bis die History an einem echten Turn-Anfang (User-TEXT) beginnt.
+  def trim_history(messages)
+    trimmed = Array(messages).last(MAX_HISTORY)
+    trimmed.shift while trimmed.any? && !turn_start?(trimmed.first)
+    trimmed
+  end
+
+  # Turn-Anfang = User-Nachricht mit reinem Text (kein tool_result-Array, kein assistant-Block).
+  def turn_start?(msg)
+    msg[:role].to_s == "user" && msg[:content].is_a?(String)
   end
 
   def deep_symbolize(obj)
