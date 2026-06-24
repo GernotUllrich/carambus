@@ -60,6 +60,7 @@ class McpServer::Tools::LookupSmokeTest < ActiveSupport::TestCase
     cc_my_ranking
     cc_my_teams
     cc_my_party_games
+    cc_set_party_lineup
     cc_doc_search
     cc_smart_search
   ].freeze
@@ -74,6 +75,7 @@ class McpServer::Tools::LookupSmokeTest < ActiveSupport::TestCase
     cc_unregister_for_tournament
     cc_assign_tournament_leiter
     cc_remove_tournament_leiter
+    cc_set_party_lineup
   ].freeze
 
   # Phase 35-01: Self-Service-Write (eigenes Profil verknuepfen) — nicht-destruktiv und kein

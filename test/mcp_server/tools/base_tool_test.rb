@@ -638,4 +638,77 @@ class McpServer::Tools::BaseToolTest < ActiveSupport::TestCase
       assert_equal 99, tl_acc.acting_user_id, "user_id-Quelle = echter Turnierleiter"
     end
   end
+
+  # Plan 46-01: resolve_party (Region-Scope) + party_preparation_authorized? (Persona-Backbone).
+  class ResolvePartyAndAuthorityTest < ActiveSupport::TestCase
+    Seam = McpServer::Tools::BaseTool
+
+    setup do
+      @nbv = regions(:nbv)
+      @season = seasons(:current)
+      @pool = Branch.create!(name: "Pool")
+      @league = League.create!(name: "P4601B Pool Liga", shortname: "P4601B-PL",
+        organizer: @nbv, season: @season, discipline: @pool, cc_id: 946_011)
+      @a = LeagueTeam.create!(league: @league, name: "P4601B A")
+      @b = LeagueTeam.create!(league: @league, name: "P4601B B")
+      @party = Party.create!(league: @league, league_team_a: @a, league_team_b: @b,
+        host_league_team: @a, day_seqno: 1, date: Date.new(2026, 3, 20), data: {})
+      @ctx = {cc_region: "NBV"}
+    end
+
+    test "resolve_party: party_id-Pfad (region-scoped)" do
+      r = Seam.resolve_party(@ctx, party_id: @party.id)
+      assert_nil r[:error], "got: #{r[:error]&.content&.first&.dig(:text)}"
+      assert_equal @party.id, r[:party].id
+    end
+
+    test "resolve_party: league_id + day_seqno-Pfad findet dieselbe Party" do
+      r = Seam.resolve_party(@ctx, league_id: @league.id, day_seqno: 1)
+      assert_nil r[:error]
+      assert_equal @party.id, r[:party].id
+    end
+
+    test "resolve_party: Cross-Region → error (kein Leak)" do
+      skip "fixture bbv fehlt" unless regions(:bbv)
+      ol = League.create!(name: "P4601B BBV", shortname: "P4601B-BBV",
+        organizer: regions(:bbv), season: @season, discipline: @pool, cc_id: 946_012)
+      oa = LeagueTeam.create!(league: ol, name: "P4601B BBV A")
+      ob = LeagueTeam.create!(league: ol, name: "P4601B BBV B")
+      op = Party.create!(league: ol, league_team_a: oa, league_team_b: ob,
+        host_league_team: oa, day_seqno: 1, date: Date.new(2026, 3, 20), data: {})
+      r = Seam.resolve_party(@ctx, party_id: op.id)
+      assert r[:error], "Cross-Region muss error liefern"
+    end
+
+    test "authority: system_admin → erlaubt" do
+      assert Seam.party_preparation_authorized?(party: @party, server_context: {user_id: users(:system_admin).id})
+    end
+
+    test "authority: read-only player → verweigert" do
+      refute Seam.party_preparation_authorized?(party: @party, server_context: {user_id: users(:player).id})
+    end
+
+    test "authority: landessportwart → erlaubt (region-weit)" do
+      lsw = User.create!(email: "p4601b_lsw@test.de", password: "password123", persona_grants: ["landessportwart"])
+      assert Seam.party_preparation_authorized?(party: @party, server_context: {user_id: lsw.id})
+    end
+
+    test "authority: Sportwart mit passender Disziplin → erlaubt; mit fremder Disziplin → verweigert" do
+      sw_pool = User.create!(email: "p4601b_swp@test.de", password: "password123", persona_grants: ["sportwart"])
+      sw_pool.sportwart_disciplines << @pool
+      assert Seam.party_preparation_authorized?(party: @party, server_context: {user_id: sw_pool.id})
+
+      karambol = Branch.create!(name: "Karambol P4601B")
+      sw_kar = User.create!(email: "p4601b_swk@test.de", password: "password123", persona_grants: ["sportwart"])
+      sw_kar.sportwart_disciplines << karambol
+      refute Seam.party_preparation_authorized?(party: @party, server_context: {user_id: sw_kar.id})
+    end
+
+    test "authorize_party_preparation!: nil bei Erlaubnis, error bei Denial" do
+      assert_nil Seam.authorize_party_preparation!(party: @party, server_context: {user_id: users(:system_admin).id})
+      denied = Seam.authorize_party_preparation!(party: @party, server_context: {user_id: users(:player).id})
+      assert denied.error?
+      assert_match(/nicht zuständig/i, denied.content.first[:text])
+    end
+  end
 end

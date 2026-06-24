@@ -615,6 +615,73 @@ module McpServer
         nil
       end
 
+      # Plan 46-01: REGION-SCOPE-geprüfte Party-Auflösung für die Party-Vorbereitungs-Tools.
+      # party_id direkt ODER league_id/cc_id + (day_seqno|date) — Mirror der cc_party_lineup-
+      # Auflösung, hier gebündelt wiederverwendbar. Region-Scope erbt aus resolve_league
+      # (kein Cross-Region-Leak). Rückgabe: {party: <Party>} | {error: <Response>}.
+      def self.resolve_party(server_context, party_id: nil, league_id: nil, cc_id: nil, day_seqno: nil, date: nil, discipline: nil, season: nil)
+        if party_id.present?
+          party = Party.find_by(id: party_id)
+          return {error: error("Party nicht gefunden (party_id=#{party_id}).")} if party.nil?
+          resolved = resolve_league(server_context, league_id: party.league_id)
+          return {error: resolved[:error]} if resolved[:error]
+          return {party: party}
+        end
+
+        resolved = resolve_league(server_context, league_id: league_id, cc_id: cc_id, discipline: discipline, season: season)
+        return {error: resolved[:error]} if resolved[:error]
+        league = resolved[:league]
+        rel = league.parties
+        if day_seqno.present?
+          rel = rel.where(day_seqno: day_seqno)
+        elsif date.present?
+          d = begin
+            Date.parse(date.to_s)
+          rescue
+            nil
+          end
+          return {error: error("Datum nicht lesbar: #{date.inspect} (erwartet YYYY-MM-DD).")} if d.nil?
+          rel = rel.where("date::date = ?", d)
+        else
+          return {error: error("Bitte party_id ODER league_id + (day_seqno ODER date) angeben.")}
+        end
+        matches = rel.to_a
+        return {error: error("Keine Party gefunden (league_id=#{league.id}, day_seqno=#{day_seqno}, date=#{date}).")} if matches.empty?
+        if matches.size > 1
+          listing = matches.map { |p| "party_id=#{p.id} #{p.league_team_a&.name} vs #{p.league_team_b&.name} (#{p.date&.to_date})" }.join("; ")
+          return {error: text("Mehrere Parties passen (#{matches.size}). Bitte party_id angeben: #{listing}")}
+        end
+        {party: matches.first}
+      end
+
+      # Plan 46-01: Berechtigung für die Party-Vorbereitung (Aufstellung setzen). Baut auf das
+      # bestehende Persona-/Scope-Backbone (KEINE neue Policy — extend-before-build). Region ist
+      # bereits über resolve_party/resolve_league erzwungen; hier zählt Disziplin-Scope.
+      # DEV-46-01-A: bewusst OHNE Location-Filter (anders als in_sportwart_scope? für Turniere) —
+      # Ligen sind nicht venue-gebunden (Mannschaftskämpfe wechseln den Austragungsort je Spieltag);
+      # der Disziplin-Match folgt derselben root_chain-Logik wie SportwartScope#in_sportwart_scope?.
+      def self.party_preparation_authorized?(party:, server_context:)
+        user = User.find_by(id: server_context&.dig(:user_id))
+        return false if user.nil? || !user.cc_write_access?
+        return true if user.try(:system_admin?)
+        return true if user.try(:landessportwart?)
+        return false unless user.try(:sportwart?)
+        disc_ids = Array(user.try(:sportwart_discipline_ids))
+        return true if disc_ids.empty? # leer = alle Disziplinen
+        league_disc = party&.league&.discipline
+        return true if league_disc.nil? # keine Liga-Disziplin → nicht blockieren
+        (Array(league_disc.root_chain).map(&:id) & disc_ids).any?
+      rescue => e
+        Rails.logger.warn "[BaseTool.party_preparation_authorized?] #{e.class}: #{e.message}"
+        false
+      end
+
+      # Convenience: nil bei Erlaubnis, error(...)-Response bei Denial (1-Zeilen-Pattern in Tools).
+      def self.authorize_party_preparation!(party:, server_context:)
+        return nil if party_preparation_authorized?(party: party, server_context: server_context)
+        error("Du bist für die Aufstellung dieses Mannschaftskampfs nicht zuständig — das übernimmt der zuständige (Landes-)Sportwart der Liga.")
+      end
+
       # Plan 14-G.2 / D-14-G4 + D-14-G5: Authority-Helper für Write-Tools.
       # Konsumiert Pundit-TournamentPolicy (4 Methoden aus 14-G.1).
       # Returnt nil bei Allow, error(...)-Response bei Denial.

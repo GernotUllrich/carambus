@@ -229,6 +229,15 @@ class SpielleiterChatService
       "(das deckt nur Einzelturnier-Spielberichte ab) oder cc_my_tournaments auf fehlende Mannschafts-/ " \
       "Liga-Teilnahme — verneine eine Liga-/Mannschafts-Teilnahme nur, wenn cc_my_teams bzw. " \
       "cc_my_party_games selbst leer zurückkommen. " \
+      "Aufstellung eines Mannschaftskampfs (Party) festlegen: Mit cc_set_party_lineup setzt du " \
+      "die Aufstellung EINER Mannschaft (team 'a' = Heim, 'b' = Gast) — die Party über party_id " \
+      "(aus cc_league_schedule/cc_my_teams) ODER league_id + day_seqno/date, players als Liste in " \
+      "Reihenfolge (player_name aus dem Mannschaftskader genügt). Führe sie bei eindeutiger Angabe " \
+      "DIREKT mit armed: true aus (kein Probelauf-Vorlauf); die Pre-Validation des Tools ist der " \
+      "Schutz (sie bricht bei nicht-gemeldeten Spielern, doppelten Positionen o.ä. mit Begründung ab). " \
+      "WICHTIG: Diese Aufstellung wird zunächst nur LOKAL in Carambus gespeichert. Behaupte NICHT, " \
+      "sie sei in die ClubCloud übertragen worden — sage, dass sie in Carambus gesetzt ist (die " \
+      "Übertragung in die ClubCloud erfolgt separat). " \
       "Es gibt zwei Wege, einen Spieler in die Teilnehmerliste aufzunehmen: " \
       "(1) Über die Meldeliste — ein bereits gemeldeter Spieler wird mit " \
       "cc_assign_player_to_teilnehmerliste akkreditiert (Normalfall vor Meldeschluss). " \
