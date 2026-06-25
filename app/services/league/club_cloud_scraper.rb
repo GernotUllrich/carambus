@@ -805,28 +805,45 @@ class League::ClubCloudScraper < ApplicationService
             end
           end
         else
-          party_cc_id = last_cc_id + 1
-          last_cc_id = party_cc_id
+          # 46.5-02: Ungespielte Termine (kein Ergebnis-Link) über den region-scoped NATÜRLICHEN
+          # Schlüssel suchen — wie der gespielte Pfad oben (Z.376) —, NICHT über einen synthetischen
+          # cc_id (last_cc_id+1). Der war iterationsabhängig instabil und erzeugte bei JEDEM Re-Scrape
+          # ein neues Phantom (vgl. project_cc_id_not_unique). cc_id bleibt nil, bis ein Ergebnis
+          # vorliegt; der gespielte Pfad setzt dann die echte cc_id (gleicher natürlicher Schlüssel →
+          # sauberer Übergang ungespielt → gespielt).
           party_attrs = {
             day_seqno: day_seqno,
+            round_name: round_name,
             remarks: {remarks: remarks.to_s},
             data: {result: result_text}.compact,
-            cc_id: party_cc_id,
             league_team_a_id: league_team_a.andand.id,
             league_team_b_id: league_team_b.andand.id,
             source_url: party_url,
             host_league_team: nil,
             location: defined?(location) ? location : league_team_a.andand.club.andand.location
           }.compact
-          party = Party.where(party_attrs).first
-          party ||= Party.new(league_id: @league.id)
+          party = @league.parties.where(
+            day_seqno: day_seqno,
+            round_name: round_name,
+            league_team_a: league_team_a,
+            league_team_b: league_team_b
+          ).first
+          party ||= @league.parties.new
           party.assign_attributes(party_attrs.merge(date: date))
           if party.changed?
             party.region_id = @region_id
             party.global_context = @global_context
             party.save!
           end
-          Party.where(party_attrs.merge(league_id: @league.id, cc_id: nil)).destroy_all
+          # Mehrfach-nil-cc_id-Einträge desselben Termins entfernen (den gerade upserteten behalten);
+          # synthetische-cc_id-Altlast-Phantome bleiben unberührt → das räumt der Cleanup-Rake (46.5-03).
+          @league.parties.where(
+            day_seqno: day_seqno,
+            round_name: round_name,
+            league_team_a: league_team_a,
+            league_team_b: league_team_b,
+            cc_id: nil
+          ).where.not(id: party.id).destroy_all
         end
         party
       end
