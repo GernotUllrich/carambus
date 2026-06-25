@@ -24,6 +24,24 @@ class League::ClubCloudScraper < ApplicationService
 
   private
 
+  # Folgt HTTP-Redirects — Net::HTTP.get tut das NICHT. Nötig, weil manche ClubCloud-Tenants
+  # (z.B. blmr.club-cloud.de) per 302 auf ihre öffentliche Verbandsdomain (billard-blmr.de)
+  # umleiten; ohne Folgen bekäme der Scraper nur den leeren Redirect-Body (0 Tabellen → Abbruch).
+  # Hosts ohne Redirect (z.B. ndbv.de) liefern den Body direkt → unverändertes Verhalten.
+  def http_get(url, limit = 5)
+    raise ArgumentError, "zu viele HTTP-Redirects für #{url}" if limit <= 0
+    response = Net::HTTP.get_response(URI(url.to_s))
+    case response
+    when Net::HTTPSuccess
+      response.body
+    when Net::HTTPRedirection
+      http_get(URI.join(url.to_s, response["location"]).to_s, limit - 1)
+    else
+      Rails.logger.info "==== scrape ==== HTTP #{response.code} für #{url}"
+      response.body
+    end
+  end
+
   def scrape_league
     @region_id = ((@league.organizer_type == "Region") ? @league.organizer_id : nil)
     @global_context = @region_id == League::DBU_ID
@@ -61,7 +79,7 @@ class League::ClubCloudScraper < ApplicationService
     @league_url = url + league_p
     Rails.logger.info "reading #{@league_url}"
     uri = URI(@league_url)
-    league_html = Net::HTTP.get(uri)
+    league_html = http_get(uri)
     league_doc = Nokogiri::HTML(league_html)
 
     # TODO what's the following code about??
@@ -69,7 +87,7 @@ class League::ClubCloudScraper < ApplicationService
       staffel_link = @league.source_url
       Rails.logger.info "reading #{staffel_link}"
       uri = URI(staffel_link)
-      staffel_html = Net::HTTP.get(uri)
+      staffel_html = http_get(uri)
       staffel_doc = Nokogiri::HTML(staffel_html)
       details_table = staffel_doc.css("aside > section > table")[0]
       skip = false
@@ -115,7 +133,7 @@ class League::ClubCloudScraper < ApplicationService
       team_url = url + team_link
       Rails.logger.info "reading #{team_url}"
       uri = URI(team_url)
-      team_html = Net::HTTP.get(uri)
+      team_html = http_get(uri)
       team_doc = Nokogiri::HTML(team_html)
       team_club_table = team_doc.css("aside > section > table")[2]
       if team_club_table.blank?
@@ -131,7 +149,7 @@ class League::ClubCloudScraper < ApplicationService
         team_club_url = url + team_club_link
         Rails.logger.info "reading #{team_club_url}"
         uri = URI(team_club_url)
-        team_club_html = Net::HTTP.get(uri)
+        team_club_html = http_get(uri)
         team_club_doc = Nokogiri::HTML(team_club_html)
         team_club_dbu_nr = nil
         team_club_doc.css("aside section table")[0].css("tr").each do |tr__|
@@ -400,7 +418,7 @@ class League::ClubCloudScraper < ApplicationService
           game_report_url = url + game_report_link
           Rails.logger.info "reading #{game_report_url}"
           uri = URI(game_report_url)
-          game_report_html = Net::HTTP.get(uri)
+          game_report_html = http_get(uri)
           party_url = game_report_url
           game_report_doc = Nokogiri::HTML(game_report_html)
           game_report_table = game_report_doc.css("aside > section > table")[2]
