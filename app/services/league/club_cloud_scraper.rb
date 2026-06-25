@@ -322,7 +322,17 @@ class League::ClubCloudScraper < ApplicationService
     shift = 0
     party_count = 0
     table.css("tr").each do |tr|
-      if tr.css("th").count > 0 && tr.css("th")[0][:class] == "bb1"
+      th_texts = tr.css("th").map { |th_| th_.text.strip }
+      # Spalten-Header per Inhalt erkennen (HEIM + GAST) — unabhaengig von der th-Klasse. Manche
+      # ClubCloud-Instanzen (z.B. blmr.club-cloud.de) geben AUCH der Spalten-Header-Zeile class='bb1',
+      # wodurch sie sonst von der naechsten Regel als Rundenname verschluckt wuerde (header bleibt []
+      # -> jede Datenzeile "ScrapeError problem with header []", nichts importiert). ndbv.de unveraendert.
+      is_column_header = th_texts.any? { |t| t.casecmp?("heim") } && th_texts.any? { |t| t.casecmp?("gast") }
+      if is_column_header
+        header = th_texts
+        header.pop while header.last == "" # nachgestellte Leer-Spalten weg -> Pattern-Match Z.319/344
+        shift = (tr.css("th")[0]["colspan"].to_i == 2) ? 1 : 0
+      elsif tr.css("th").count > 0 && tr.css("th")[0][:class] == "bb1"
         round_name = tr.css("th").text
       elsif tr.css("th").count > 1
         header = tr.css("th").map(&:text)
@@ -397,6 +407,9 @@ class League::ClubCloudScraper < ApplicationService
             league_team_a: league_team_a,
             league_team_b: league_team_b
           ).first
+          # Fallback: bestehende Party per (ligaweit eindeutiger) cc_id finden, falls round_name
+          # zwischen Scrape und Bestand abweicht — verhindert Dubletten mit gleicher cc_id.
+          party ||= @league.parties.where(cc_id: party_cc_id).first if party_cc_id.present?
           # If a result/cc_id is now available, update the party
           if party && party.cc_id.nil? && party_cc_id.present?
             party.assign_attributes(cc_id: party_cc_id, round_name: round_name, data: {result: result, points: points}.compact)
