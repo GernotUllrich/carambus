@@ -176,4 +176,48 @@ class League::StandingsCalculatorTest < ActiveSupport::TestCase
     assert_equal via_model.keys, via_service.keys
     assert_equal via_model.values.map(&:size), via_service.values.map(&:size)
   end
+
+  # --- 46.5-01: empty placeholder parties (result ":") must not count as draws ---
+  # Fixiert den Live-Befund "Oberliga - Pool": 85 Phantom-Parties (Ergebnis ":", 0 party_games)
+  # wurden als 0:0-Remis gezaehlt (":" -> [0,0] -> 0==0) und in spiele (= parties_all.size).
+
+  test "pool ignores phantom party (empty ':' result); spiele == g+u+v" do
+    setup = create_league_with_teams(discipline_fixture: :pool_8ball)
+    league = setup[:league]
+    add_party(league: league, team_a: setup[:team_a], team_b: setup[:team_b], result: "5:3")
+    add_party(league: league, team_a: setup[:team_a], team_b: setup[:team_b], result: ":")
+
+    row = League::StandingsCalculator.new(league).pool.find { |r| r[:team].id == setup[:team_a].id }
+    assert_equal 1, row[:spiele], "phantom darf nicht in spiele zaehlen"
+    assert_equal 1, row[:gewonnen]
+    assert_equal 0, row[:unentschieden], "phantom darf NICHT als Remis zaehlen"
+    assert_equal 0, row[:verloren]
+    assert_equal row[:gewonnen] + row[:unentschieden] + row[:verloren], row[:spiele], "spiele == g+u+v"
+  end
+
+  test "karambol counts a real draw ('4:4') but ignores phantom (':')" do
+    setup = create_league_with_teams(discipline_fixture: :carom_3band)
+    league = setup[:league]
+    add_party(league: league, team_a: setup[:team_a], team_b: setup[:team_b], result: "4:4")
+    add_party(league: league, team_a: setup[:team_a], team_b: setup[:team_b], result: ":")
+
+    row = League::StandingsCalculator.new(league).karambol.find { |r| r[:team].id == setup[:team_a].id }
+    assert_equal 1, row[:spiele], "nur das echte Remis zaehlt"
+    assert_equal 1, row[:unentschieden], "echtes 4:4 muss als Unentschieden zaehlen"
+    assert_equal 1, row[:punkte]
+    assert_equal 0, row[:gewonnen]
+    assert_equal 0, row[:verloren]
+  end
+
+  test "snooker ignores phantom party (regression anchor)" do
+    setup = create_league_with_teams(discipline_fixture: :pool_8ball)
+    league = setup[:league]
+    add_party(league: league, team_a: setup[:team_a], team_b: setup[:team_b], result: "6:2")
+    add_party(league: league, team_a: setup[:team_a], team_b: setup[:team_b], result: ":")
+
+    row = League::StandingsCalculator.new(league).snooker.find { |r| r[:team].id == setup[:team_a].id }
+    assert_equal 1, row[:spiele]
+    assert_equal 1, row[:gewonnen]
+    assert_equal 0, row[:unentschieden]
+  end
 end
