@@ -137,6 +137,38 @@ class Party < ApplicationRecord
     end
   end
 
+  # Plan 46.5-03: Phantom-Duplikat-Cleanup. Entfernt LEERE Dubletten (0 party_games UND kein
+  # Ziffern-Ergebnis) je natürlichem Schlüssel (league_id + day_seqno + teams) — bewusst OHNE
+  # round_name, denn die Alt-Phantome (alte Scraper-Logik) haben round_name=nil, echte Parties
+  # aber gesetzt; mit round_name würden sie nicht als Dubletten desselben Spieltags erkannt.
+  # (day_seqno + teams identifiziert den Spieltag eindeutig.) Behält IMMER mindestens eine Party
+  # je Termin und NIE eine gespielte (party_games/Ergebnis). Default dry_run (nur Report).
+  # Authority-seitig — LocalProtector blockt global-Record-Deletes auf Local-Servern. Idempotent.
+  def self.cleanup_phantom_duplicates(scope: Party.all, dry_run: true)
+    report = {groups_with_dupes: 0, deleted: 0, deleted_ids: [], kept: 0, dry_run: dry_run}
+    phantom = ->(p) { p.party_games.empty? && p.data["result"].to_s !~ /\d/ }
+    scope.includes(:party_games)
+      .group_by { |p| [p.league_id, p.day_seqno, p.league_team_a_id, p.league_team_b_id] }
+      .each do |_key, parties|
+      next if parties.size <= 1
+      reals = parties.reject { |p| phantom.call(p) }
+      to_delete = if reals.any?
+        parties.select { |p| phantom.call(p) } # echte/gespielte bleiben ALLE
+      else
+        parties - [parties.min_by(&:id)] # nur Phantome: genau eine (niedrigste id) behalten
+      end
+      next if to_delete.empty?
+      report[:groups_with_dupes] += 1
+      report[:kept] += parties.size - to_delete.size
+      report[:deleted] += to_delete.size
+      to_delete.each do |p|
+        report[:deleted_ids] << p.id
+        p.destroy unless dry_run
+      end
+    end
+    report
+  end
+
   def kickoff_switches_with
     read_attribute(:kickoff_switches_with).presence || "set"
   end
