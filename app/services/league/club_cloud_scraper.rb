@@ -309,8 +309,18 @@ class League::ClubCloudScraper < ApplicationService
 
   def parse_parties(league_doc, url)
     header = []
-    table = league_doc.css("aside > section > table")[2]
-    table = league_doc.css("aside > section > table")[3] if table && /Location/.match?(table.text)
+    # Spielplan-Tabelle per Inhalt finden (Zeile mit HEIM- UND GAST-Header) statt per hartem Index [2].
+    # Grund: manche Ligen (z.B. Senioren) führen das Wort "Location" in der Spielplan-Tabelle selbst →
+    # die alte Heuristik (/Location/ → [3]) wechselte auf die nicht existente Tabelle [3] → nil →
+    # Liga übersprungen → 0 Ergebnisse (Standings all-zero). Inhaltsbasiert ist das robust.
+    tables = league_doc.css("aside > section > table")
+    table = tables.find do |t|
+      t.css("tr").any? do |tr|
+        hs = tr.css("th").map { |x| x.text.strip.downcase }
+        hs.include?("heim") && hs.include?("gast")
+      end
+    end
+    table ||= tables[2] # Fallback auf alten Index, falls keine HEIM/GAST-Zeile gefunden
     if table.nil?
       Rails.logger.info "==== scrape ==== parse_parties: keine Spielplan-Tabelle für #{url} — Liga übersprungen"
       return
