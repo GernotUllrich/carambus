@@ -440,6 +440,14 @@ class League::ClubCloudScraper < ApplicationService
               global_context: @global_context
             )
             party.save
+          elsif party && result.to_s =~ /\d/ &&
+                (party.data&.dig("result") || party.data&.dig(:result)).to_s != result.to_s
+            # Re-Scrape-Reparatur: bestehende Party MIT cc_id hatte leeres/abweichendes Ergebnis.
+            # Der alte Code setzte data NUR beim Erst-Import (cc_id.nil?), nie beim Re-Scrape →
+            # einmal leer angelegte Parties blieben für immer leer (Standings zählte sie ungespielt).
+            # Jetzt: bei vorliegendem Ziffern-Ergebnis nachtragen/korrigieren.
+            party.assign_attributes(data: {result: result, points: points}.compact)
+            party.save if party.changed?
           end
           last_cc_id = party_cc_id
           game_report_url = url + game_report_link
