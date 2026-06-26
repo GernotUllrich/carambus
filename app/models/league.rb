@@ -300,6 +300,19 @@ class League < ApplicationRecord
   end
 
   # scrape_leagues_from_cc
+  # Folgt HTTP-Redirects (302) — manche ClubCloud-Tenants (z.B. blmr.club-cloud.de) leiten auf ihre
+  # oeffentliche Verbandsdomain um; plain Net::HTTP.get folgt nicht und liefert leeren Body
+  # -> Liga-Liste leer -> 0 Ligen gescraped. Pendant zu http_get im ClubCloudScraper-Service.
+  def self.cc_http_get(url, limit = 5)
+    raise ArgumentError, "zu viele HTTP-Redirects für #{url}" if limit <= 0
+    response = Net::HTTP.get_response(URI(url.to_s))
+    case response
+    when Net::HTTPSuccess then response.body
+    when Net::HTTPRedirection then cc_http_get(URI.join(url.to_s, response["location"]).to_s, limit - 1)
+    else response.body
+    end
+  end
+
   def self.scrape_leagues_from_cc(region, season, opts = {})
     if region.shortname == "BBV"
       scrape_bbv_leagues(region, season, opts)
@@ -308,8 +321,7 @@ class League < ApplicationRecord
       url = region.public_cc_url_base
       leagues_url = "#{url}sb_spielplan.php?eps=100000&s=#{season.name}"
       Rails.logger.info "reading #{leagues_url} - region #{region.shortname} league tournaments season #{season.name}"
-      uri = URI(leagues_url)
-      leagues_html = Net::HTTP.get(uri)
+      leagues_html = cc_http_get(leagues_url)
       leagues_doc = Nokogiri::HTML(leagues_html)
       table = leagues_doc.css("article table.silver")[1]
 
@@ -331,8 +343,7 @@ class League < ApplicationRecord
           n_staffel = tr.css("td")[2].text.strip.to_i
           staffel_link = url + link
           Rails.logger.info "reading #{staffel_link}"
-          uri = URI(staffel_link)
-          staffel_html = Net::HTTP.get(uri)
+          staffel_html = cc_http_get(staffel_link)
           staffel_doc = Nokogiri::HTML(staffel_html)
           details_table = staffel_doc.css("aside > section > table")[0]
           branch = nil
@@ -412,8 +423,7 @@ class League < ApplicationRecord
       url = region.public_cc_url_base
       leagues_url = "#{url}sb_spielplan.php?eps=100000&s=#{season.name}"
       Rails.logger.info "reading #{leagues_url} - region #{region.shortname} league tournaments season #{season.name}"
-      uri = URI(leagues_url)
-      leagues_html = Net::HTTP.get(uri)
+      leagues_html = cc_http_get(leagues_url)
       leagues_doc = Nokogiri::HTML(leagues_html)
       table = leagues_doc.css("article table.silver")[1]
 
@@ -474,8 +484,7 @@ class League < ApplicationRecord
 
   def self.scrape_league_details(region, season, title, short, n_staffel, staffel_link, league_cc_id, opts)
     Rails.logger.info "reading #{staffel_link}"
-    uri = URI(staffel_link)
-    staffel_html = Net::HTTP.get(uri)
+    staffel_html = cc_http_get(staffel_link)
     staffel_doc = Nokogiri::HTML(staffel_html)
     details_table = staffel_doc.css("aside > section > table")[0]
     branch = nil

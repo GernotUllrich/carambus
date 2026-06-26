@@ -310,7 +310,11 @@ class League::ClubCloudScraper < ApplicationService
   def parse_parties(league_doc, url)
     header = []
     table = league_doc.css("aside > section > table")[2]
-    table = league_doc.css("aside > section > table")[3] if /Location/.match?(table.text)
+    table = league_doc.css("aside > section > table")[3] if table && /Location/.match?(table.text)
+    if table.nil?
+      Rails.logger.info "==== scrape ==== parse_parties: keine Spielplan-Tabelle für #{url} — Liga übersprungen"
+      return
+    end
     @game_plan_data = League::GAME_PARAMETER_DEFAULTS[@league.branch.name.downcase.to_sym].compact
     @game_plan_data[:rows] = []
     @disciplines = {}
