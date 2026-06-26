@@ -309,6 +309,9 @@ class League::ClubCloudScraper < ApplicationService
 
   def parse_parties(league_doc, url)
     header = []
+    # Liga ohne Teams (z.B. Relegation): parse_teams returnt früh und setzt @league_teams_cache NICHT
+    # → war nil → `.find` crashte (Z.397). Ohne Teams gibt es nichts zu matchen → überspringen.
+    return if @league_teams_cache.blank?
     # Spielplan-Tabelle per Inhalt finden (Zeile mit HEIM- UND GAST-Header) statt per hartem Index [2].
     # Grund: manche Ligen (z.B. Senioren) führen das Wort "Location" in der Spielplan-Tabelle selbst →
     # die alte Heuristik (/Location/ → [3]) wechselte auf die nicht existente Tabelle [3] → nil →
