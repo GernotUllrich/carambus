@@ -549,7 +549,7 @@ class League::ClubCloudScraper < ApplicationService
                       header_g & ["", "Paarung", "Heim-Spieler", "Erg.", "Gast-Spieler",
                         "Punkte"] == ["", "Paarung", "Heim-Spieler", "Erg.", "Gast-Spieler", "Punkte"]
                     @game_plan_data[:bez_brett] = header_g[header_g.index("Paarung") || header_g.index("Brett")]
-                    raise StandardError "Format Error 1 Party[#{party.id}]" unless (m = header_g[1].match(/Runde (\d+)/))
+                    raise StandardError, "Format Error 1 Party[#{party.id}]" unless (m = header_g[1].match(/Runde (\d+)/))
 
                     structure = "runde+brett"
                     r_no = m[1].to_i
@@ -562,7 +562,7 @@ class League::ClubCloudScraper < ApplicationService
 
                   elsif header_g & ["", "Heim-Spieler", "Erg.", "Gast-Spieler",
                     "Punkte"] == ["", "Heim-Spieler", "Erg.", "Gast-Spieler", "Punkte"]
-                    raise StandardError "Format Error 2 Party[#{party.id}]" unless (m = header_g[1].match(/Runde (\d+)/))
+                    raise StandardError, "Format Error 2 Party[#{party.id}]" unless (m = header_g[1].match(/Runde (\d+)/))
 
                     structure = "runde"
                     r_no = m[1].to_i
@@ -573,7 +573,7 @@ class League::ClubCloudScraper < ApplicationService
                     games_per_round = 0
 
                   else
-                    raise StandardError "Format Error 3 Party[#{party.id}]"
+                    raise StandardError, "Format Error 3 Party[#{party.id}] unbekanntes header_g=#{header_g.inspect}"
                   end
                 end
               elsif tr_g.text.match(/(MGD \(Heim\)|MGD \(Gast\)|BED)/).present?
