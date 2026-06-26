@@ -544,12 +544,14 @@ class League::ClubCloudScraper < ApplicationService
                     header_g
                   elsif header_g == ["Partie-Nr.", "Heim-Mannschaft", "", "Gast-Mannschaft", "Datum"]
                     structure = "party"
-                  elsif header_g & ["", "Brett", "Heim-Spieler", "Erg.", "Gast-Spieler",
-                    "Punkte"] == ["", "Brett", "Heim-Spieler", "Erg.", "Gast-Spieler", "Punkte"] ||
-                      header_g & ["", "Paarung", "Heim-Spieler", "Erg.", "Gast-Spieler",
-                        "Punkte"] == ["", "Paarung", "Heim-Spieler", "Erg.", "Gast-Spieler", "Punkte"]
-                    @game_plan_data[:bez_brett] = header_g[header_g.index("Paarung") || header_g.index("Brett")]
-                    raise StandardError, "Format Error 1 Party[#{party.id}]" unless (m = header_g[1].match(/Runde (\d+)/))
+                  elsif header_g.include?("Heim-Spieler") && header_g.include?("Gast-Spieler") &&
+                      (brett_label = header_g.find { |h| h == "Paarung" || h == "Brett" })
+                    # runde+brett: praesenzbasiert (Heim-/Gast-Spieler + Brett/Paarung), robust gegen
+                    # Instanz-Varianten — z.B. billard-niederrhein.de: Rundenname in header_g[1] und
+                    # "Erg."-Spalte leer ("") statt beschriftet. Nur Spaltenpraesenz zaehlt, nicht das
+                    # exakte Label-Array; td-Layout ist identisch (7 Spalten, Erg. an gleicher Position).
+                    @game_plan_data[:bez_brett] = brett_label
+                    raise StandardError, "Format Error 1 Party[#{party.id}] header_g=#{header_g.inspect}" unless (m = header_g[1].match(/Runde (\d+)/))
 
                     structure = "runde+brett"
                     r_no = m[1].to_i
@@ -560,9 +562,8 @@ class League::ClubCloudScraper < ApplicationService
                     tables = [tables, games_per_round].max
                     games_per_round = 0
 
-                  elsif header_g & ["", "Heim-Spieler", "Erg.", "Gast-Spieler",
-                    "Punkte"] == ["", "Heim-Spieler", "Erg.", "Gast-Spieler", "Punkte"]
-                    raise StandardError, "Format Error 2 Party[#{party.id}]" unless (m = header_g[1].match(/Runde (\d+)/))
+                  elsif header_g.include?("Heim-Spieler") && header_g.include?("Gast-Spieler")
+                    raise StandardError, "Format Error 2 Party[#{party.id}] header_g=#{header_g.inspect}" unless (m = header_g[1].match(/Runde (\d+)/))
 
                     structure = "runde"
                     r_no = m[1].to_i
