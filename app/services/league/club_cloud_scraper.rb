@@ -386,6 +386,7 @@ class League::ClubCloudScraper < ApplicationService
               remarks = remark_a[0]["title"].gsub("Memo: ", "")
             end
           end
+          next if tr.css("td").count < 8 # Zeile ohne vollständige HEIM/Erg./GAST-Spalten (spielfrei/Trenner)
           day_seqno = tr.css("td")[shift + 0].text.to_i
           date = begin
             DateTime.parse(tr.css("td")[shift + 1].inner_html.gsub("<br>", " ").gsub(" Uhr", ""))
