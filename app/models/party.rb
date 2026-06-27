@@ -148,7 +148,11 @@ class Party < ApplicationRecord
   # das OOM't auf der Produktions-Authority). Pro Liga sind es nur hunderte Records.
   def self.cleanup_phantom_duplicates(scope: Party.all, dry_run: true)
     report = {groups_with_dupes: 0, deleted: 0, deleted_ids: [], kept: 0, dry_run: dry_run}
-    phantom = ->(p) { p.party_games.empty? && p.data["result"].to_s !~ /\d/ }
+    # WICHTIG: data wird teils mit Symbol-Key {result: …} gespeichert (Ergebnis-Nachtrag/Create),
+    # teils mit String-Key. p.data["result"] allein verfehlt Symbol-Einträge → eine Party MIT echtem
+    # Ergebnis (Symbol-Key) aber ohne party_games würde sonst als Phantom gelöscht (DATENVERLUST).
+    # Daher BEIDE Keys prüfen (wie League::StandingsCalculator).
+    phantom = ->(p) { p.party_games.empty? && (p.data["result"] || p.data[:result]).to_s !~ /\d/ }
     scope.distinct.pluck(:league_id).compact.each do |lid|
       # Nur diese Liga laden (Schlüssel innerhalb der Liga = day_seqno + teams).
       scope.where(league_id: lid).includes(:party_games)
