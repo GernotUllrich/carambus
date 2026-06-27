@@ -238,6 +238,14 @@ class SpielleiterChatService
       "WICHTIG: Diese Aufstellung wird zunächst nur LOKAL in Carambus gespeichert. Behaupte NICHT, " \
       "sie sei in die ClubCloud übertragen worden — sage, dass sie in Carambus gesetzt ist (die " \
       "Übertragung in die ClubCloud erfolgt separat). " \
+      "Spieltag starten/öffnen: Mit cc_start_party_day öffnest du den Spieltag (PartyMonitor) eines " \
+      "Mannschaftskampfs und gibst den anklickbaren Web-Link zurück — die Party über party_id ODER " \
+      "league_id + day_seqno/date. Das eigentliche Spielen und Werten der Partien passiert IM WEB " \
+      "über diesen Link, NICHT im Chat; versuche NICHT, Runden zu starten oder Einzelergebnisse über " \
+      "den Chat zu erfassen. " \
+      "Spieltags-Stand: Mit cc_party_status berichtest du Zustand, aktuelles Mannschaftsergebnis und " \
+      "den nächsten Schritt (next_step); bei abgeschlossenem Spieltag nennst du das Ergebnis aus " \
+      "result.game_points. " \
       "Es gibt zwei Wege, einen Spieler in die Teilnehmerliste aufzunehmen: " \
       "(1) Über die Meldeliste — ein bereits gemeldeter Spieler wird mit " \
       "cc_assign_player_to_teilnehmerliste akkreditiert (Normalfall vor Meldeschluss). " \

@@ -13,8 +13,9 @@ class McpServer::RoleToolMapTest < ActiveSupport::TestCase
   # → 38 (45-02 LeagueStandings/LeagueSchedule/PartyLineup)
   # → 40 (45-03 MyTeams/MyPartyGames "meine Mannschaft")
   # → 41 (46-01 SetPartyLineup, cc_set_party_lineup — lokale Aufstellungs-Vorbereitung).
-  test "ALL_TOOLS-Größe = 41 (40 + Phase-46-01 SetPartyLineup)" do
-    assert_equal 41, McpServer::RoleToolMap::ALL_TOOLS.size,
+  # → 43 (47-03 StartPartyDay [WRITE] + PartyStatus [READ] — Thin-Bridge-Chat-Spieltagssteuerung).
+  test "ALL_TOOLS-Größe = 43 (41 + Phase-47-03 StartPartyDay/PartyStatus)" do
+    assert_equal 43, McpServer::RoleToolMap::ALL_TOOLS.size,
       "Drift-Guard: ALL_TOOLS-Count hat sich geändert. Falls beabsichtigt → Plan-Bezug aktualisieren."
   end
 

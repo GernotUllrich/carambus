@@ -30,6 +30,7 @@ module McpServer
       LeagueStandings
       LeagueSchedule
       PartyLineup
+      PartyStatus
       ListPlayersByClubAndDiscipline
       ListPlayersByName
       ListOpenTournaments
@@ -61,6 +62,7 @@ module McpServer
       PrepareTournament
       OpenInTournamentApp
       SetPartyLineup
+      StartPartyDay
     ].freeze
 
     # Self-Service-Tools (Phase 35-01) — fuer JEDEN authentifizierten User; self-scoped
