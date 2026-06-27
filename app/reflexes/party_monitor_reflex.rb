@@ -318,6 +318,36 @@ class PartyMonitorReflex < ApplicationReflex
     end
   end
 
+  # Zeilenweise Direkteingabe der Endergebnisse (Phase 48 / D-48-1, kein Scoreboard):
+  # liest die getippten Felder der aktuellen Runde aus dem serialisierten Form und schreibt
+  # je Partie game.data["ba_results"] + ended_at DIREKT (über Party#record_game_result!) —
+  # ohne TableMonitor/evaluate_result. Nur im Zustand "playing_round".
+  def enter_game_results
+    unless @party_monitor.playing_round?
+      flash[:alert] =
+        "Systemfehler?! Ergebniseingabe ist nur im Zustand 'playing_round' möglich! Derzeit ist der Zustand '#{@party_monitor.state}'"
+      return
+    end
+    r_no = element.dataset["rno"].to_i
+    Array(@party_monitor.data["rows"]).each_with_index do |row, row_nr|
+      next unless Party::GAME_ROW_TYPES.include?(row["type"]) && row["r_no"] == r_no
+
+      prefix = "#{@party.cc_id}-#{row_nr}-#{r_no}-1-"
+      @party.record_game_result!(
+        row: row,
+        sc1: params["#{prefix}sc1"],
+        sc2: params["#{prefix}sc2"],
+        in1: params["#{prefix}in1"],
+        in2: params["#{prefix}in2"],
+        br1: params["#{prefix}br1"],
+        br2: params["#{prefix}br2"]
+      )
+    end
+  rescue StandardError => e
+    Rails.logger.info "#{e} #{e.backtrace}"
+    raise StandardError
+  end
+
   def reset_party_monitor
     Rails.logger.info "🔴 RESET PARTY MONITOR CALLED - User: #{current_user&.id}, Admin: #{current_user&.admin?}"
     

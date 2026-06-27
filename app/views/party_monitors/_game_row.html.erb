@@ -12,6 +12,7 @@
 <%- game = party.games.where(gname: "#{row['seqno']}-#{row['type']}").first %>
 <%- nl = 1; nr = 2; nls = "a"; nrs = "b" %>
 <%- ba_results = game.andand.data.andand["ba_results"].presence || game.andand.table_monitor.andand.data.andand["ba_results"].presence %>
+<%- editable_results = party_monitor&.state == "playing_round" && party_monitor&.current_round == r_no %>
 <%- if ba_results.present? %>
   <%- if ba_results["Spieler1"] == players_hash[Array(row['player_b'])[0]].andand.ba_id %>
     <%- nl = 2; nr = 1; nls = "b"; nrs = "a" %>
@@ -101,9 +102,9 @@
       <div class=flex>
         <%- unless row['type'] == "14/1e" %>
           <label>
-            <input disabled="disabled" class="font-bold" type="text" name="<%= party.cc_id %>-<%= row_nr %>-<%= r_no %>-1-sc1" size="2" maxlength="3" value="<%= ba_results["Ergebnis#{nl}"] if ba_results.present? %>">
+            <input <%= "disabled" unless editable_results %> class="font-bold" type="text" name="<%= party.cc_id %>-<%= row_nr %>-<%= r_no %>-1-sc1" size="2" maxlength="3" value="<%= ba_results["Ergebnis#{nl}"] if ba_results.present? %>">
           </label>:<label>
-        <input disabled="disabled" class="font-bold" type="text" name="<%= party.cc_id %>-<%= row_nr %>-<%= r_no %>-1-sc2" size="2" maxlength="3" value="<%= ba_results["Ergebnis#{nr}"] if ba_results.present? %>">
+        <input <%= "disabled" unless editable_results %> class="font-bold" type="text" name="<%= party.cc_id %>-<%= row_nr %>-<%= r_no %>-1-sc2" size="2" maxlength="3" value="<%= ba_results["Ergebnis#{nr}"] if ba_results.present? %>">
       </label>
         <%- end %>
       </div>
@@ -150,19 +151,19 @@
         <div class="flex">
           Punkte:
           <label>
-            <input disabled="disabled" class="font-bold" type="text" name="<%= party.cc_id %>-<%= row_nr %>-<%= r_no %>-1-sc1" size="3" maxlength="3" value="<%= ba_results["Ergebnis#{nl}"] if ba_results.present? %>">
+            <input <%= "disabled" unless editable_results %> class="font-bold" type="text" name="<%= party.cc_id %>-<%= row_nr %>-<%= r_no %>-1-sc1" size="3" maxlength="3" value="<%= ba_results["Ergebnis#{nl}"] if ba_results.present? %>">
           </label>:<label>
-          <input disabled="disabled" class="font-bold" type="text" name="<%= party.cc_id %>-<%= row_nr %>-<%= r_no %>-1-sc2" size="3" maxlength="3" value="<%= ba_results["Ergebnis#{nr}"] if ba_results.present? %>">
+          <input <%= "disabled" unless editable_results %> class="font-bold" type="text" name="<%= party.cc_id %>-<%= row_nr %>-<%= r_no %>-1-sc2" size="3" maxlength="3" value="<%= ba_results["Ergebnis#{nr}"] if ba_results.present? %>">
         </label>&nbsp;&nbsp;Aufn.:
           <label>
-            <input disabled="disabled" class="font-bold" type="text" name="<%= party.cc_id %>-<%= row_nr %>-<%= r_no %>-1-in1" size="3" maxlength="3" value="<%= ba_results["Aufnahmen#{nl}"] if ba_results.present? %>">
+            <input <%= "disabled" unless editable_results %> class="font-bold" type="text" name="<%= party.cc_id %>-<%= row_nr %>-<%= r_no %>-1-in1" size="3" maxlength="3" value="<%= ba_results["Aufnahmen#{nl}"] if ba_results.present? %>">
           </label>/<label>
-          <input disabled="disabled" class="font-bold" type="text" name="<%= party.cc_id %>-<%= row_nr %>-<%= r_no %>-1-in2" size="3" maxlength="3" value="<%= ba_results["Aufnahmen#{nr}"] if ba_results.present? %>">
+          <input <%= "disabled" unless editable_results %> class="font-bold" type="text" name="<%= party.cc_id %>-<%= row_nr %>-<%= r_no %>-1-in2" size="3" maxlength="3" value="<%= ba_results["Aufnahmen#{nr}"] if ba_results.present? %>">
         </label>&nbsp;&nbsp;HS:
           <label>
-            <input disabled="disabled" class="font-bold" type="text" name="<%= party.cc_id %>-<%= row_nr %>-<%= r_no %>-1-br1" size="3" maxlength="3" value="<%= ba_results["Höchstserie#{nl}"] if ba_results.present? %>">
+            <input <%= "disabled" unless editable_results %> class="font-bold" type="text" name="<%= party.cc_id %>-<%= row_nr %>-<%= r_no %>-1-br1" size="3" maxlength="3" value="<%= ba_results["Höchstserie#{nl}"] if ba_results.present? %>">
           </label>/<label>
-          <input disabled="disabled" class="font-bold" type="text" name="<%= party.cc_id %>-<%= row_nr %>-<%= r_no %>-1-br2" size="3" maxlength="3" value="<%= ba_results["Höchstserie#{nr}"] if ba_results.present? %>">
+          <input <%= "disabled" unless editable_results %> class="font-bold" type="text" name="<%= party.cc_id %>-<%= row_nr %>-<%= r_no %>-1-br2" size="3" maxlength="3" value="<%= ba_results["Höchstserie#{nr}"] if ba_results.present? %>">
         </label>&nbsp;
         </div>
       </div>

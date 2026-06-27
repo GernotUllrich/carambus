@@ -125,4 +125,98 @@ class PartyTest < ActiveSupport::TestCase
     assert @party.data.key?("result")
     assert_equal "3:1", @party.data["result"]
   end
+
+  # --- record_game_result! (Phase 48-01: Direct-to-Game zeilenweise Direkteingabe) ---
+
+  test "record_game_result! schreibt ba_results (Spieler1/Sets1 = team_a) + ended_at" do
+    setup = build_party_for_direct_entry([{seqno: 1, type: "9-Ball", sets: 7}], player_a_ba: 1001, player_b_ba: 2002)
+    party = setup[:party]
+    row = party.party_monitor.data["rows"].first
+
+    game = party.record_game_result!(row: row, sc1: "7", sc2: "4")
+    game.reload
+    ba = game.data["ba_results"]
+
+    assert_equal 1001, ba["Spieler1"]
+    assert_equal 2002, ba["Spieler2"]
+    assert_equal 7, ba["Sets1"]
+    assert_equal 4, ba["Sets2"]
+    assert_equal 7, ba["Ergebnis1"]
+    assert_equal 4, ba["Ergebnis2"]
+    assert_not_nil game.ended_at
+  end
+
+  test "record_game_result! 14.1: Ergebnis/Aufnahmen/Höchstserie, KEINE Sets bei sets<=1" do
+    setup = build_party_for_direct_entry([{seqno: 1, type: "14/1e", sets: 1}], player_a_ba: 1001, player_b_ba: 2002)
+    party = setup[:party]
+    row = party.party_monitor.data["rows"].first
+
+    game = party.record_game_result!(row: row, sc1: "80", sc2: "55", in1: "20", in2: "20", br1: "15", br2: "9")
+    ba = game.reload.data["ba_results"]
+
+    assert_equal 80, ba["Ergebnis1"]
+    assert_equal 55, ba["Ergebnis2"]
+    assert_nil ba["Sets1"] # sets<=1 → keine Sets-Keys
+    assert_equal 20, ba["Aufnahmen1"]
+    assert_equal 15, ba["Höchstserie1"]
+    assert_equal 9, ba["Höchstserie2"]
+  end
+
+  test "intermediate_result rechnet aus per record_game_result! direkt erfassten Ergebnissen" do
+    setup = build_party_for_direct_entry([
+      {seqno: 1, type: "9-Ball", sets: 7},
+      {seqno: 2, type: "8-Ball", sets: 7},
+      {seqno: 3, type: "10-Ball", sets: 7}
+    ], player_a_ba: 1001, player_b_ba: 2002)
+    party = setup[:party]
+    rows = party.party_monitor.data["rows"]
+
+    party.record_game_result!(row: rows[0], sc1: "7", sc2: "5") # team_a
+    party.record_game_result!(row: rows[1], sc1: "4", sc2: "7") # team_b
+    party.record_game_result!(row: rows[2], sc1: "7", sc2: "6") # team_a
+    party.reload
+
+    # identisch zum ba_results-Pfad aus 47-02: Default win=1 → [2, 1]
+    assert_equal [2, 1], party.intermediate_result
+  end
+
+  test "record_game_result! überspringt leere Eingabe (kein ended_at, nil-Return)" do
+    setup = build_party_for_direct_entry([{seqno: 1, type: "9-Ball", sets: 7}], player_a_ba: 1001, player_b_ba: 2002)
+    party = setup[:party]
+    row = party.party_monitor.data["rows"].first
+
+    assert_nil party.record_game_result!(row: row, sc1: "", sc2: "")
+    assert_nil party.games.find_by(gname: "1-9-Ball").ended_at
+    assert_equal [0, 0], party.intermediate_result # ungespielt → 0
+  end
+
+  private
+
+  # Baut eine Party mit PartyMonitor-Rows (player_a/player_b + seqno/type/sets/r_no) + LEEREN
+  # Games (gname, ohne ba_results/ended_at) + zwei echten Players mit ba_id — für die
+  # Charakterisierung von Party#record_game_result! (Phase 48-01). KEIN echter Lauf.
+  def build_party_for_direct_entry(game_specs, player_a_ba:, player_b_ba:)
+    result = create_party_monitor_with_party
+    party = result[:party]
+    party_monitor = result[:party_monitor]
+    base = party.id
+
+    player_a = Player.create!(id: base + 10, ba_id: player_a_ba, lastname: "Heim", firstname: "A")
+    player_b = Player.create!(id: base + 11, ba_id: player_b_ba, lastname: "Gast", firstname: "B")
+
+    rows = game_specs.map do |s|
+      {
+        "seqno" => s[:seqno], "type" => s[:type], "sets" => s.fetch(:sets, 1),
+        "r_no" => s.fetch(:r_no, 1),
+        "player_a" => player_a.id, "player_b" => player_b.id
+      }
+    end
+    party_monitor.update!(data: {"rows" => rows})
+
+    game_specs.each do |s|
+      party.games.create!(gname: "#{s[:seqno]}-#{s[:type]}", seqno: s[:seqno])
+    end
+    party.reload
+    {party: party, party_monitor: party_monitor, player_a: player_a, player_b: player_b}
+  end
 end

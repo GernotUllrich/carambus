@@ -237,6 +237,42 @@ class Party < ApplicationRecord
     [points_l, points_r]
   end
 
+  # Schreibt das Endergebnis EINER Liga-Einzelpartie direkt nach game.data["ba_results"]
+  # + ended_at (Direct-to-Game, Phase 48 / D-48-1) — OHNE TableMonitor/evaluate_result.
+  # Konvention Index1 = team_a (links, kein Swap), kompatibel zu #intermediate_result und
+  # party_monitors/_game_row.html.erb. sc1/sc2 = Satz-/Punkteergebnis team_a/team_b;
+  # in1/in2 = Aufnahmen, br1/br2 = Höchstserie (i.d.R. nur 14.1 endlos).
+  # Leere Eingabe (sc1 UND sc2 blank) => Game wird übersprungen (kein ended_at, nil-Return).
+  def record_game_result!(row:, sc1:, sc2:, in1: nil, in2: nil, br1: nil, br2: nil)
+    return if sc1.to_s.strip.blank? && sc2.to_s.strip.blank?
+
+    gname = "#{row["seqno"]}-#{row["type"]}"
+    game = games.find_by(gname: gname)
+    return if game.nil?
+
+    player_a = Player.find_by(id: Array(row["player_a"]).first)
+    player_b = Player.find_by(id: Array(row["player_b"]).first)
+
+    ba = {
+      "Spieler1" => player_a&.ba_id,
+      "Spieler2" => player_b&.ba_id,
+      "Ergebnis1" => sc1.to_i,
+      "Ergebnis2" => sc2.to_i
+    }
+    if row["sets"].to_i > 1
+      ba["Sets1"] = sc1.to_i
+      ba["Sets2"] = sc2.to_i
+    end
+    ba["Aufnahmen1"] = in1.to_i if in1.to_s.strip.present?
+    ba["Aufnahmen2"] = in2.to_i if in2.to_s.strip.present?
+    ba["Höchstserie1"] = br1.to_i if br1.to_s.strip.present?
+    ba["Höchstserie2"] = br2.to_i if br2.to_s.strip.present?
+
+    game.deep_merge_data!("ba_results" => ba)
+    game.update!(ended_at: Time.now)
+    game
+  end
+
   def name
     "#{league_team_a.name} - #{league_team_b.name}"
   end
