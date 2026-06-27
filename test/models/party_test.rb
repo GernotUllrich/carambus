@@ -1,10 +1,13 @@
 # frozen_string_literal: true
 
 require "test_helper"
+require_relative "../support/party_monitor_test_helper"
 
 # Characterization tests for Party (216 lines).
 # Per D-06: no AASM — test associations, computed properties, and boolean flags.
 class PartyTest < ActiveSupport::TestCase
+  include PartyMonitorTestHelper
+
   def setup
     @party = parties(:party_one)
   end
@@ -40,18 +43,50 @@ class PartyTest < ActiveSupport::TestCase
     assert_equal "Team Alpha - Team Beta", @party.name
   end
 
-  test "intermediate_result returns [0, 0]" do
-    # CHARACTERIZATION / BASELINE für Phase 47-02 (intermediate_result-Fix).
-    # party.rb:187 schließt die Methode mit `return [0, 0]` kurz (Code darunter tot).
-    # Folge: das echte gescrapte Mannschaftsergebnis wird IGNORIERT —
-    # @party.data["result"] ist "3:1", intermediate_result liefert trotzdem [0, 0].
-    assert_equal "3:1", @party.data["result"]
+  # --- intermediate_result (Phase 47-02: rechnet [team_a, team_b] aus game.data["ba_results"]) ---
+
+  test "intermediate_result is [0, 0] when there are no played-game rows" do
+    # party_one's PartyMonitor (Fixture) trägt leeres data → keine rows → [0, 0].
     assert_equal [0, 0], @party.intermediate_result
-    # Diese [0,0]-Quelle speist ZWEI Stellen im party_monitor_reflex:
-    #   - finish_round (reflex:222): points_l == points_r → loopt immer zu prepare_next_round!
-    #   - close_party  (reflex:370): game_points/match_points werden immer "0:0"/Remis
-    # Wenn 47-02 den Kurzschluss durch die echte Ergebnisrechnung ersetzt,
-    # MUSS diese Assertion bewusst angepasst werden (Safety-Net-Marker).
+  end
+
+  test "intermediate_result tallies game points from ba_results (Sets1 = team_a)" do
+    # 3 Pool-Spiele: team_a (Sets1) gewinnt #1 und #3, team_b #2; Default win=1 → [2, 1].
+    res = build_party_with_results([
+      {seqno: 1, type: "9-Ball", sets: 7, sets1: 7, sets2: 5},
+      {seqno: 2, type: "8-Ball", sets: 7, sets1: 4, sets2: 7},
+      {seqno: 3, type: "10-Ball", sets: 7, sets1: 7, sets2: 6}
+    ])
+    assert_equal [2, 1], res[:party].intermediate_result
+  end
+
+  test "intermediate_result defaults win=1/draw=0/lost=0 when game_points config is nil" do
+    # Phase-47-01-Befund: manche Parties tragen game_points {win:nil,...} → Default greift.
+    res = build_party_with_results([
+      {seqno: 1, type: "9-Ball", sets: 7, sets1: 7, sets2: 3,
+       game_points: {"win" => nil, "draw" => nil, "lost" => nil}}
+    ])
+    assert_equal [1, 0], res[:party].intermediate_result
+  end
+
+  test "intermediate_result honors explicit game_points weights" do
+    res = build_party_with_results([
+      {seqno: 1, type: "9-Ball", sets: 7, sets1: 7, sets2: 1,
+       game_points: {"win" => 2, "draw" => 1, "lost" => 0}}
+    ])
+    assert_equal [2, 0], res[:party].intermediate_result
+  end
+
+  test "intermediate_result ignores unplayed games and non-game rows" do
+    res = build_party_with_results([
+      {seqno: 1, type: "9-Ball", sets: 7, sets1: 7, sets2: 2},          # gespielt → team_a
+      {seqno: 2, type: "8-Ball", sets: 7, sets1: 3, sets2: 6, played: false} # kein Game → 0
+    ])
+    party = res[:party]
+    pm = party.party_monitor
+    pm.update!(data: {"rows" => pm.data["rows"] + [{"type" => "Neue Runde", "r_no" => 2}]})
+    party.reload
+    assert_equal [1, 0], party.intermediate_result
   end
 
   test "party_nr assigns party_no if blank and returns it" do

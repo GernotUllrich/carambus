@@ -182,37 +182,59 @@ class Party < ApplicationRecord
     read_attribute(:kickoff_switches_with).presence || "set"
   end
 
+  # Spielbare Row-Typen eines Spieltags (identisch zur Filterliste in
+  # party_monitor_reflex#start_round + #close_party).
+  GAME_ROW_TYPES = ["14/1e", "10-Ball", "8-Ball", "9-Ball", "10-Ball Doppel", "9-Ball Doppel",
+    "Shootout (4er Team)"].freeze
+
+  # Aktuelles Mannschaftsergebnis [points_team_a, points_team_b] aus den gespielten Partien.
+  #
+  # Quelle = game.data["ba_results"] (autoritative gespielte Werte; GameParticipation.points
+  # bleibt bei manual_assignment-Parties nil, vgl. D-17-06-B). Konvention Sets1/Ergebnis1 = team_a
+  # (links), wie PartyMonitor::ResultProcessor#update_game_participations (kein Swap).
+  # game_points je Spiel aus der Row (Default win=1/draw=0/lost=0 — manche Parties tragen keine
+  # game_points-Config; Phase-47-01-Befund). Ungespielte/leere Games + Nicht-Spiel-Rows zählen 0.
   def intermediate_result
-    # TODO GameParticipation is only for tournament games and PartyGame is not a Game!!
-    return [0, 0]
-    raise "GameParticipation is only for tournament games and PartyGame is not a Game!!"
-    points_l = nil
-    points_r = nil
-    players = GameParticipation.joins(:game).joins("left outer join parties on parties.id = games.tournament_id").where.not(points: nil).where(games: {
-                                                                                                                                                 tournament_id: id, tournament_type: "Party"
-                                                                                                                                               }).map(&:player).uniq
-    players_hash = players.each_with_object({}) do |player, memo|
-      memo[player.id] = player
-    end
-    GameParticipation.joins(:game).joins("left outer join parties on parties.id = games.tournament_id").where.not(points: nil).where(games: {
-                                                                                                                                       tournament_id: id, tournament_type: "Party"
-                                                                                                                                     }).each do |gp|
-      nls = "a"
-      nrs = "b"
-      # - TODO far to complicated!
-      if gp.game.andand.data.andand["ba_results"].present? && (gp.game.data["ba_results"]["Spieler1"] == players_hash[Array(party_monitor.get_attribute_by_gname(
-                                                                                                                              gp.game.gname, "player_b"
-                                                                                                                            ))[0]].andand.ba_id)
-        nls = "b"
-        nrs = "a"
+    rows = party_monitor&.data&.dig("rows")
+    return [0, 0] if rows.blank?
+
+    points_l = 0
+    points_r = 0
+    rows.each do |row|
+      next unless GAME_ROW_TYPES.include?(row["type"])
+
+      gname = "#{row["seqno"]}-#{row["type"]}"
+      game = games.find_by(gname: gname)
+      next if game.nil? || game.ended_at.blank?
+
+      ba = game.data["ba_results"]
+      next if ba.blank?
+
+      gp = HashWithIndifferentAccess.new(row["game_points"].presence || {})
+      win = (gp["win"] || 1).to_i
+      draw = (gp["draw"] || 0).to_i
+      lost = (gp["lost"] || 0).to_i
+
+      if row["sets"].to_i > 1
+        a = ba["Sets1"].to_i
+        b = ba["Sets2"].to_i
+      else
+        a = ba["Ergebnis1"].to_i
+        b = ba["Ergebnis2"].to_i
       end
-      points_l = points_l.to_i + gp.points if gp.role == "player#{nls}"
-      points_r = points_r.to_i + gp.points if gp.role == "player#{nrs}"
+
+      if a > b
+        points_l += win
+        points_r += lost
+      elsif b > a
+        points_l += lost
+        points_r += win
+      else
+        points_l += draw
+        points_r += draw
+      end
     end
     [points_l, points_r]
-  rescue StandardError => e
-    Rails.logger.info "OOPS- #{e}"
-    raise StandardError unless Rails.env == "production"
   end
 
   def name
