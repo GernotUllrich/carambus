@@ -357,10 +357,10 @@ class PartyMonitorReflex < ApplicationReflex
         next unless ["14/1e", "10-Ball", "8-Ball", "9-Ball", "10-Ball Doppel", "9-Ball Doppel",
                      "Shootout (4er Team)"].include?(row[:type])
 
-        row_type = row[type]
+        row_type = row[:type]
         gname = "#{row[:seqno]}-#{row_type}"
         game = @party_monitor.party.games.where(gname: gname).first
-        if game.ended_at.blank?
+        if game.nil? || game.ended_at.blank?
           complete = false
         else
           games << game
