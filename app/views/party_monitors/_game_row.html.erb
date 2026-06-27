@@ -65,7 +65,7 @@
     </div>
     <div style="display:table-cell" class="p-3 <%= "flex" if table.present? %> flex-row items-center">
       <%- if table.present? %>
-        <%- if table.table_monitor.playing_round? %>
+        <%- if table.table_monitor&.playing_round? %>
           <%= custom_link_to table_monitor_path(table.table_monitor), :"data-turbo" => false, target: :_blank do %>
             <%= render_svg "icons/view-show",
                            styles: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 fill-current z-0 icon-lg m-2 lg:m-3 mr-0 #{
