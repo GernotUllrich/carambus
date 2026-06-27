@@ -41,8 +41,17 @@ class PartyTest < ActiveSupport::TestCase
   end
 
   test "intermediate_result returns [0, 0]" do
-    # Per RESEARCH Pitfall: intermediate_result has an early return [0, 0] (dead code below it).
+    # CHARACTERIZATION / BASELINE für Phase 47-02 (intermediate_result-Fix).
+    # party.rb:187 schließt die Methode mit `return [0, 0]` kurz (Code darunter tot).
+    # Folge: das echte gescrapte Mannschaftsergebnis wird IGNORIERT —
+    # @party.data["result"] ist "3:1", intermediate_result liefert trotzdem [0, 0].
+    assert_equal "3:1", @party.data["result"]
     assert_equal [0, 0], @party.intermediate_result
+    # Diese [0,0]-Quelle speist ZWEI Stellen im party_monitor_reflex:
+    #   - finish_round (reflex:222): points_l == points_r → loopt immer zu prepare_next_round!
+    #   - close_party  (reflex:370): game_points/match_points werden immer "0:0"/Remis
+    # Wenn 47-02 den Kurzschluss durch die echte Ergebnisrechnung ersetzt,
+    # MUSS diese Assertion bewusst angepasst werden (Safety-Net-Marker).
   end
 
   test "party_nr assigns party_no if blank and returns it" do

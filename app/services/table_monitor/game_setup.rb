@@ -61,7 +61,7 @@ class TableMonitor::GameSetup < ApplicationService
     Rails.logger.debug { "existing_innings_goal = #{existing_innings_goal.inspect}" }
     Rails.logger.debug { "existing_balls_goal_a = #{existing_balls_goal_a.inspect}" }
     Rails.logger.debug { "existing_balls_goal_b = #{existing_balls_goal_b.inspect}" }
-    Rails.logger.debug { "tournament_monitor.innings_goal = #{tm.tournament_monitor&.innings_goal.inspect}" }
+    Rails.logger.debug { "tournament_monitor.innings_goal = #{tm.tournament_monitor.try(:innings_goal).inspect}" }
 
     # Initialize initial_red_balls for snooker (default 15)
     initial_reds = if tm.tournament_monitor.is_a?(PartyMonitor) && tm.game.data["free_game_form"] == "snooker"
@@ -233,7 +233,7 @@ class TableMonitor::GameSetup < ApplicationService
     tm.data.except!("ba_results", "sets", "bk2_state")
   rescue => e
     Rails.logger.error "ERROR: m6[#{tm.id}]#{e}, #{e.backtrace&.join("\n")}"
-    raise StandardError
+    raise e
   end
 
   # Phase 38.4-04 I1: Name → free_game_form fallback map for all 5 BK-* disciplines.
