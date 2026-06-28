@@ -620,6 +620,19 @@ module Api
       assert_equal "2:0", body.dig("intermediate_result", "match_points")
     end
 
+    test "party_game_result on a sets discipline falls back to Ergebnis when Sets absent" do
+      party = create_nbv_party(game_count: 1, sets: 5) # Satz-Disziplin
+      post "/api/external_tournament/party_game_result",
+        params: {region: {shortname: "NBV"}, party: {party_id: party.id},
+                 gname: "1-9-Ball", ba_results: {Ergebnis1: 5, Ergebnis2: 3}}.to_json, # nur Ergebnis, keine Sets
+        headers: json_auth_headers
+      assert_response :success
+      body = JSON.parse(response.body)
+      assert body["ok"]
+      assert_not_nil body.dig("game", "ended_at"), "Fallback Ergebnis→Sets: Spiel wird trotzdem geschrieben"
+      assert_equal "1:0", body.dig("intermediate_result", "game_points")
+    end
+
     test "party_close with a missing game result returns 409 missing_gnames" do
       party = create_nbv_party(game_count: 2)
       row1 = party.party_monitor.data["rows"].first
@@ -659,7 +672,7 @@ module Api
     # Minimaler NBV-Liga-Spieltag für die Party-API-Tests: League(organizer=nbv) + Party +
     # 2 LeagueTeams(club bcw) + PartyMonitor(rows+match_points) + 2 Players(ba_id) + 1
     # SeasonParticipation (Kader). game_count = Anzahl 9-Ball-Spielzeilen in Runde 1.
-    def create_nbv_party(game_count: 1, match_points: {"win" => 2, "draw" => 1, "lost" => 0})
+    def create_nbv_party(game_count: 1, sets: 1, match_points: {"win" => 2, "draw" => 1, "lost" => 0})
       suffix = SecureRandom.hex(4)
       league = League.create!(name: "Party-API Test #{suffix}", shortname: "PAT-#{suffix}",
         organizer: @nbv, season: @season, discipline: @discipline)
@@ -671,7 +684,7 @@ module Api
       p2 = Player.create!(ba_id: 99_900_002, lastname: "Gast", firstname: "B")
       SeasonParticipation.create!(season: @season, club: clubs(:bcw), player: p1, status: "active")
       rows = (1..game_count).map do |i|
-        {"seqno" => i, "type" => "9-Ball", "sets" => 1, "r_no" => 1, "player_a" => p1.id, "player_b" => p2.id}
+        {"seqno" => i, "type" => "9-Ball", "sets" => sets, "r_no" => 1, "player_a" => p1.id, "player_b" => p2.id}
       end
       # after_create_commit broadcastet das _party_monitor-Partial (nutzt current_user) → ohne
       # Warden im Test-Setup-Kontext ein Render-Fehler. Suppress nur bei der Anlage; die Endpoints

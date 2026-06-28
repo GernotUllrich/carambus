@@ -709,7 +709,10 @@ module Api
       party.build_game_for_row!(row, row["r_no"])
       ba = payload[:ba_results] || {}
       sets = row["sets"].to_i > 1
-      sc1, sc2 = sets ? [ba[:Sets1], ba[:Sets2]] : [ba[:Ergebnis1], ba[:Ergebnis2]]
+      # Satz-Disziplin: Sets1/2 maßgeblich, aber Fallback auf Ergebnis1/2 (Vertrag: "Sets1 falls
+      # vorhanden, sonst Ergebnis1"). Nicht-Satz: Ergebnis1/2.
+      sc1 = sets ? (ba[:Sets1] || ba[:Ergebnis1]) : ba[:Ergebnis1]
+      sc2 = sets ? (ba[:Sets2] || ba[:Ergebnis2]) : ba[:Ergebnis2]
       party.record_game_result!(row: row, sc1: sc1, sc2: sc2,
         in1: ba[:Aufnahmen1], in2: ba[:Aufnahmen2], br1: ba[:Höchstserie1], br2: ba[:Höchstserie2])
 
