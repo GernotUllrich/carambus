@@ -104,7 +104,7 @@ class PartyMonitor < ApplicationRecord
   end
 
   def data=(val)
-    write_attribute(:data, val.to_hash)
+    write_attribute(:data, val&.to_hash)
   end
 
   def reset_party_monitor
