@@ -190,6 +190,99 @@ class PartyTest < ActiveSupport::TestCase
     assert_equal [0, 0], party.intermediate_result # ungespielt → 0
   end
 
+  # --- Phase 48-03: close_with_result! (K-2) ---
+
+  test "close_with_result! rechnet game_points/match_points und schließt, wenn alle Spiele beendet" do
+    r = build_party_for_direct_entry([{seqno: 1, type: "9-Ball", sets: 1}], player_a_ba: 101, player_b_ba: 201)
+    party = r[:party]
+    pm = r[:party_monitor]
+    pm.update!(data: pm.data.merge("match_points" => {"win" => 2, "draw" => 1, "lost" => 0}),
+      state: "party_result_checking_mode")
+    party.record_game_result!(row: pm.reload.data["rows"].first, sc1: 5, sc2: 3) # team_a gewinnt
+
+    outcome = pm.reload.close_with_result!
+
+    assert outcome[:ok], "erwartet ok-Outcome"
+    assert_equal "1:0", pm.reload.data.dig("result", "game_points")
+    assert_equal "2:0", pm.data.dig("result", "match_points")
+    assert_equal "closed", pm.state
+  end
+
+  test "close_with_result! liefert missing_gnames und schließt NICHT, wenn ein Spiel kein ended_at hat" do
+    r = build_party_for_direct_entry([{seqno: 1, type: "9-Ball"}, {seqno: 2, type: "9-Ball"}],
+      player_a_ba: 101, player_b_ba: 201)
+    party = r[:party]
+    pm = r[:party_monitor]
+    pm.update!(data: pm.data.merge("match_points" => {"win" => 2, "draw" => 1, "lost" => 0}),
+      state: "party_result_checking_mode")
+    party.record_game_result!(row: pm.reload.data["rows"].first, sc1: 5, sc2: 3) # nur Spiel 1 beendet
+
+    outcome = pm.reload.close_with_result!
+
+    refute outcome[:ok]
+    assert_includes outcome[:missing_gnames], "2-9-Ball"
+    refute_equal "closed", pm.reload.state
+  end
+
+  # --- Phase 48-03: build_game_for_row! (K-1) ---
+
+  test "build_game_for_row! erzeugt ein Game der Spielzeile OHNE TableMonitor, idempotent" do
+    r = create_party_monitor_with_party
+    party = r[:party]
+    pm = r[:party_monitor]
+    row = {"seqno" => 1, "type" => "9-Ball", "sets" => 5, "r_no" => 1,
+           "player_a" => nil, "player_b" => nil, "score" => "Hauptrunde 80",
+           "innings" => 0, "first_break" => "a", "next_break" => "set"}
+
+    game = party.build_game_for_row!(row, 1).reload
+
+    assert_equal "1-9-Ball", game.gname
+    assert_equal 1, game.round_no
+    assert_equal 80, game.data["points_choice"], "score 'Hauptrunde 80' → 80"
+    assert_equal "9-Ball", game.data["discipline_a"]
+    assert_equal 0, pm.table_monitors.count, "die Naht erzeugt keinen TableMonitor"
+
+    again = party.build_game_for_row!(row, 1)
+    assert_equal game.id, again.id, "find-or-create: dasselbe Game, kein Duplikat"
+    assert_equal 1, party.games.where(gname: "1-9-Ball").count
+  end
+
+  # --- Phase 48-03: ensure_party_monitor! (K-3) ---
+
+  test "ensure_party_monitor! legt den Monitor an und seedet data aus league.game_plan" do
+    r = create_party_monitor_with_party
+    party = r[:party]
+    party.party_monitor.destroy
+    party.reload
+    gp = GamePlan.create!(
+      name: "GP 48-03",
+      data: {
+        "rows" => [{"type" => "Neue Runde", "r_no" => 1}, {"type" => "9-Ball", "r_no" => 1, "seqno" => 1}],
+        "match_points" => {"win" => 2, "draw" => 1, "lost" => 0}
+      }
+    )
+    party.league.update!(game_plan: gp)
+
+    pm = party.ensure_party_monitor!
+
+    assert pm.persisted?
+    assert_equal 2, pm.data["rows"].size
+    assert_equal 2, pm.data.dig("match_points", "win")
+  end
+
+  test "ensure_party_monitor! ist idempotent und überschreibt vorhandene rows nicht" do
+    r = create_party_monitor_with_party
+    party = r[:party]
+    pm = r[:party_monitor]
+    pm.update!(data: {"rows" => [{"type" => "9-Ball", "r_no" => 1, "seqno" => 1}], "current_round" => 2})
+
+    result_pm = party.ensure_party_monitor!
+
+    assert_equal pm.id, result_pm.id
+    assert_equal 2, result_pm.data["current_round"], "vorhandene data bleibt erhalten"
+    assert_equal 1, result_pm.data["rows"].size
+  end
+
   private
 
   # Baut eine Party mit PartyMonitor-Rows (player_a/player_b + seqno/type/sets/r_no) + LEEREN

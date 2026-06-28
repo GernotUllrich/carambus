@@ -273,6 +273,60 @@ class Party < ApplicationRecord
     game
   end
 
+  # Erzeugt (find-or-create per gname) das Game EINER Spielzeile OHNE TableMonitor-Bindung
+  # (Phase 48-03 / K-1). Extrahiert aus party_monitor_reflex#start_round, damit der
+  # Direkteingabe-Pfad (48-04-Endpoint) Games anlegen kann, ohne dass ein Scoreboard läuft —
+  # sonst liefe ein Ergebnis-Push ins Leere (record_game_result! setzt das Game voraus).
+  # Der Live-start_round-Pfad ruft dieselbe Naht und führt DANACH do_placement aus.
+  # row = HashWithIndifferentAccess-fähige Spielzeile (type/seqno/sets/score/innings/first_break/
+  # next_break/player_a/player_b); t_no = Tisch-Nr (nur Anzeige in data, keine TableMonitor-Bindung).
+  def build_game_for_row!(row, r_no, t_no = nil)
+    row = row.with_indifferent_access
+    gname = "#{row[:seqno]}-#{row[:type]}"
+    row_type = (row[:type] == "14/1e") ? "14.1 endlos" : row[:type]
+    score_value = row[:score]
+    score_value = score_value.scan(/\d+/).last.to_i if score_value.is_a?(String)
+    score_value = score_value.to_i if score_value.present?
+
+    essential_game_options = {
+      gname: gname,
+      started_at: Time.now,
+      round_no: r_no,
+      seqno: row[:seqno]
+    }
+    additional_options = {
+      free_game_form: "pool",
+      kickoff_switches_with: (row[:next_break] unless row_type == "14.1 endlos").presence || "set",
+      table_no: t_no,
+      player_a_id: row[:player_a],
+      player_b_id: row[:player_b],
+      discipline_a: row_type,
+      discipline_b: row_type,
+      sets_to_win: row[:sets].to_i,
+      points_choice: score_value,
+      balls_goal_a: score_value,
+      balls_goal_b: score_value,
+      innings_goal: row[:innings].to_i,
+      first_break_choice: row[:first_break]
+    }
+    game = games.where(gname: gname).first || games.new(essential_game_options)
+    game.assign_attributes(data: additional_options)
+    game.save!
+    game
+  end
+
+  # Stellt sicher, dass ein PartyMonitor existiert und sein data aus league.game_plan.data
+  # geseedet ist (Phase 48-03 / K-3). Idempotent: vorhandene Runden-/Ergebnis-Daten (rows)
+  # werden NICHT überschrieben. Muster: parties_controller#party_monitor + gather_parameters-Seed.
+  def ensure_party_monitor!
+    pm = party_monitor || create_party_monitor
+    if pm.data["rows"].blank? && league&.game_plan&.data.present?
+      pm.data = league.game_plan.data
+      pm.save
+    end
+    pm
+  end
+
   def name
     "#{league_team_a.name} - #{league_team_b.name}"
   end
