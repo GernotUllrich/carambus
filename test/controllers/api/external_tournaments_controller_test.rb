@@ -605,6 +605,50 @@ module Api
       assert body.dig("team_a", "roster").any? { |p| p.key?("ba_id") }, "roster trägt ba_id-Schlüssel"
     end
 
+    test "party roster_source = club_pool_fallback ohne Liga-Kader-Seedings (48-07/B)" do
+      party = create_nbv_party(game_count: 1) # keine LeagueTeam-Seedings
+      get "/api/external_tournament/party",
+        params: {region: "NBV", party_id: party.id},
+        headers: {"Accept" => "application/json", "Authorization" => "Bearer #{login_jwt}"}
+      assert_response :success
+      team_a = JSON.parse(response.body)["team_a"]
+      assert_equal "club_pool_fallback", team_a["roster_source"]
+      assert team_a["roster"].any?, "Club-Pool-Fallback nicht leer"
+    end
+
+    test "party roster_source = league_team aus den Kader-Seedings (48-07/B)" do
+      party = create_nbv_party(game_count: 1)
+      squad = Player.create!(ba_id: 77_011, dbu_nr: 66_011, region: @nbv, lastname: "Kader", firstname: "K")
+      party.league_team_a.seedings.create!(player: squad)
+      get "/api/external_tournament/party",
+        params: {region: "NBV", party_id: party.id},
+        headers: {"Accept" => "application/json", "Authorization" => "Bearer #{login_jwt}"}
+      assert_response :success
+      team_a = JSON.parse(response.body)["team_a"]
+      assert_equal "league_team", team_a["roster_source"]
+      assert_equal ["66011"], team_a["roster"].map { |p| p["dbu_nr"] }
+    end
+
+    test "party filtert Aggregat-Rows + normalisiert row.score (48-07/C)" do
+      party = create_nbv_party(game_count: 1)
+      pm = party.party_monitor
+      pm.update!(data: pm.data.merge("rows" => [
+        {"type" => "Neue Runde", "r_no" => 1},
+        {"seqno" => 1, "type" => "9-Ball", "r_no" => 1, "sets" => 1, "score" => {"balls" => 80}},
+        {"type" => "Gesamtsumme"}
+      ]))
+      get "/api/external_tournament/party",
+        params: {region: "NBV", party_id: party.id},
+        headers: {"Accept" => "application/json", "Authorization" => "Bearer #{login_jwt}"}
+      assert_response :success
+      rows = JSON.parse(response.body).dig("party_monitor", "rows")
+      types = rows.map { |r| r["type"] }
+      assert_includes types, "9-Ball"
+      assert_includes types, "Neue Runde"
+      refute_includes types, "Gesamtsumme", "Aggregat-Row server-seitig gefiltert"
+      assert_equal 80, rows.find { |r| r["type"] == "9-Ball" }["score"], "score-Object normalisiert auf Zahl"
+    end
+
     test "party_game_result writes the game and returns intermediate_result" do
       party = create_nbv_party(game_count: 1)
       post "/api/external_tournament/party_game_result",

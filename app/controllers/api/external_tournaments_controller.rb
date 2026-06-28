@@ -925,39 +925,73 @@ module Api
         },
         team_a: serialize_party_team(party.league_team_a, league),
         team_b: serialize_party_team(party.league_team_b, league),
-        party_monitor: party_monitor.data
+        party_monitor: party_monitor_payload(party_monitor)
       }
+    end
+
+    # C (48-07): Payload-Sicht von party_monitor.data — Aggregat-Rows ("Gesamtsumme"/"Zwischensumme")
+    # raus, nur GAME_ROW_TYPES + "Neue Runde" (Runden-Struktur); row.score auf eine Zahl normalisiert.
+    # Nicht-destruktiv (select/map/merge): die DB-data + der gname-/Tally-Pfad lesen weiter die Original-Rows.
+    def party_monitor_payload(party_monitor)
+      data = party_monitor.data
+      rows = Array(data["rows"])
+        .select { |r| Party::GAME_ROW_TYPES.include?(r["type"]) || r["type"] == "Neue Runde" }
+        .map { |r| r["score"].nil? ? r : r.merge("score" => normalize_score(r["score"])) }
+      data.merge("rows" => rows)
+    end
+
+    # row.score → Zahl: String → letzte Zahl ("Hauptrunde 80" → 80); Number → as-is;
+    # Object → balls|points|target|max|distance; sonst nil.
+    def normalize_score(score)
+      case score
+      when Numeric then score
+      when String then score.scan(/\d+/).last&.to_i
+      when Hash
+        h = score.with_indifferent_access
+        h[:balls] || h[:points] || h[:target] || h[:max] || h[:distance]
+      end
     end
 
     def serialize_party_team(league_team, league)
       return nil if league_team.nil?
       club = league_team.club
+      # Liga-Kader (gemeldete Mannschaft) = die Seedings des LeagueTeam (vom Scraper aus dem
+      # CC-„Mannschaft"-Tab persistiert, 48-07/B). Fallback: Vereins-Pool (active SeasonParticipation),
+      # mit roster_source-Marker, damit die App weiß, ob sie filtern muss.
+      squad = league_team.seedings.includes(:player).filter_map(&:player).uniq
+      if squad.any?
+        roster = squad.map { |p| serialize_roster_player(p) }
+        roster_source = "league_team"
+      else
+        roster = party_team_roster(club, league&.season)
+        roster_source = "club_pool_fallback"
+      end
       {
         id: league_team.id,
         cc_id: league_team.try(:cc_id),
         name: league_team.name,
         club_cc_id: club&.cc_id,
         club_shortname: club&.shortname,
-        roster: party_team_roster(club, league&.season)
+        roster_source: roster_source,
+        roster: roster
       }
     end
 
-    # Kader = in der Saison spielberechtigte (active) Spieler des Team-Clubs, je dbu_nr (kanonisches
-    # Pflichtfeld — 48-06/A; ba_results.Spieler1/2 = dbu_nr) + ba_id (optional/Legacy, oft nil). Eigene
-    # Projektion (ClubRosterQuery liefert kein ba_id/dbu_nr-Tupel);
-    # gleiche Eligibility (SeasonParticipation status active).
+    # Spieler-Projektion für den Kader, je dbu_nr (kanonisches Pflichtfeld — 48-06/A;
+    # ba_results.Spieler1/2 = dbu_nr) + ba_id (optional/Legacy, oft nil).
+    def serialize_roster_player(player)
+      {
+        ba_id: player.ba_id, firstname: player.firstname, lastname: player.lastname,
+        dbu_nr: player.dbu_nr&.to_s, age_class: player.age_class, gender: player.gender,
+        cc_id: player.cc_id, nationality: player.try(:nationality) || "DE"
+      }
+    end
+
+    # Vereins-Pool-Fallback: in der Saison spielberechtigte (active) Spieler des Team-Clubs.
     def party_team_roster(club, season)
       return [] if club.nil? || season.nil?
       SeasonParticipation.where(season_id: season.id, club_id: club.id, status: "active")
-        .includes(:player).filter_map do |sp|
-          player = sp.player
-          next if player.nil?
-          {
-            ba_id: player.ba_id, firstname: player.firstname, lastname: player.lastname,
-            dbu_nr: player.dbu_nr&.to_s, age_class: player.age_class, gender: player.gender,
-            cc_id: player.cc_id, nationality: player.try(:nationality) || "DE"
-          }
-        end
+        .includes(:player).filter_map { |sp| sp.player && serialize_roster_player(sp.player) }
     end
 
     def party_game_result_params
