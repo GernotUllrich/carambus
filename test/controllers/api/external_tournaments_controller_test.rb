@@ -633,6 +633,18 @@ module Api
       assert_equal "1:0", body.dig("intermediate_result", "game_points")
     end
 
+    test "party_game_result schreibt Spieler1/2 = gesendete dbu_nr (48-06/A)" do
+      party = create_nbv_party(game_count: 1)
+      post "/api/external_tournament/party_game_result",
+        params: {region: {shortname: "NBV"}, party: {party_id: party.id}, gname: "1-9-Ball",
+                 ba_results: {Spieler1: 88_001, Spieler2: 88_002, Ergebnis1: 5, Ergebnis2: 3}}.to_json,
+        headers: json_auth_headers
+      assert_response :success
+      ba = party.games.find_by(gname: "1-9-Ball").data["ba_results"]
+      assert_equal 88_001, ba["Spieler1"], "dbu_nr aus dem Request, region-scoped aufgelöst (nicht ba_id)"
+      assert_equal 88_002, ba["Spieler2"]
+    end
+
     test "party_close with a missing game result returns 409 missing_gnames" do
       party = create_nbv_party(game_count: 2)
       row1 = party.party_monitor.data["rows"].first
@@ -680,8 +692,8 @@ module Api
       team_b = LeagueTeam.create!(name: "Gast", club: clubs(:bcw), league: league)
       party = Party.create!(league: league, league_team_a: team_a, league_team_b: team_b,
         date: Time.zone.local(2026, 9, 13))
-      p1 = Player.create!(ba_id: 99_900_001, lastname: "Heim", firstname: "A")
-      p2 = Player.create!(ba_id: 99_900_002, lastname: "Gast", firstname: "B")
+      p1 = Player.create!(ba_id: 99_900_001, dbu_nr: 88_001, region: @nbv, lastname: "Heim", firstname: "A")
+      p2 = Player.create!(ba_id: 99_900_002, dbu_nr: 88_002, region: @nbv, lastname: "Gast", firstname: "B")
       SeasonParticipation.create!(season: @season, club: clubs(:bcw), player: p1, status: "active")
       rows = (1..game_count).map do |i|
         {"seqno" => i, "type" => "9-Ball", "sets" => sets, "r_no" => 1, "player_a" => p1.id, "player_b" => p2.id}

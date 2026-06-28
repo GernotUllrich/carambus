@@ -713,8 +713,10 @@ module Api
       # vorhanden, sonst Ergebnis1"). Nicht-Satz: Ergebnis1/2.
       sc1 = sets ? (ba[:Sets1] || ba[:Ergebnis1]) : ba[:Ergebnis1]
       sc2 = sets ? (ba[:Sets2] || ba[:Ergebnis2]) : ba[:Ergebnis2]
+      # Spieler1/2 = dbu_nr (kanonisch, 48-06/A) — werden region-scoped aufgelöst + als Spieler1/2 geschrieben.
       party.record_game_result!(row: row, sc1: sc1, sc2: sc2,
-        in1: ba[:Aufnahmen1], in2: ba[:Aufnahmen2], br1: ba[:Höchstserie1], br2: ba[:Höchstserie2])
+        in1: ba[:Aufnahmen1], in2: ba[:Aufnahmen2], br1: ba[:Höchstserie1], br2: ba[:Höchstserie2],
+        spieler1: ba[:Spieler1], spieler2: ba[:Spieler2])
 
       game = party.games.find_by(gname: gname)
       gp = party.intermediate_result
@@ -940,8 +942,9 @@ module Api
       }
     end
 
-    # Kader = in der Saison spielberechtigte (active) Spieler des Team-Clubs, je ba_id (Pflichtfeld,
-    # nullable → best-effort K-6) + dbu_nr. Eigene Projektion (ClubRosterQuery liefert kein ba_id);
+    # Kader = in der Saison spielberechtigte (active) Spieler des Team-Clubs, je dbu_nr (kanonisches
+    # Pflichtfeld — 48-06/A; ba_results.Spieler1/2 = dbu_nr) + ba_id (optional/Legacy, oft nil). Eigene
+    # Projektion (ClubRosterQuery liefert kein ba_id/dbu_nr-Tupel);
     # gleiche Eligibility (SeasonParticipation status active).
     def party_team_roster(club, season)
       return [] if club.nil? || season.nil?

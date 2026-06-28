@@ -243,19 +243,26 @@ class Party < ApplicationRecord
   # party_monitors/_game_row.html.erb. sc1/sc2 = Satz-/Punkteergebnis team_a/team_b;
   # in1/in2 = Aufnahmen, br1/br2 = Höchstserie (i.d.R. nur 14.1 endlos).
   # Leere Eingabe (sc1 UND sc2 blank) => Game wird übersprungen (kein ended_at, nil-Return).
-  def record_game_result!(row:, sc1:, sc2:, in1: nil, in2: nil, br1: nil, br2: nil)
+  def record_game_result!(row:, sc1:, sc2:, in1: nil, in2: nil, br1: nil, br2: nil, spieler1: nil, spieler2: nil)
     return if sc1.to_s.strip.blank? && sc2.to_s.strip.blank?
 
     gname = "#{row["seqno"]}-#{row["type"]}"
     game = games.find_by(gname: gname)
     return if game.nil?
 
-    player_a = Player.find_by(id: Array(row["player_a"]).first)
-    player_b = Player.find_by(id: Array(row["player_b"]).first)
+    # Spieler-Identität: bevorzugt die gesendeten spieler1/spieler2 (dbu_nr, kanonisch — 48-06/Befund A);
+    # REGION-SCOPED, da dbu_nr im Mirror nicht eindeutig ist ([[project_cc_id_not_unique]]); Fallback auf
+    # row.player_a/b (interne id). ba_results["Spieler1/2"] = dbu_nr (war ba_id, live meist nil).
+    region = league&.organizer
+    player_scope = region.is_a?(Region) ? Player.where(region_id: region.id) : Player.all
+    player_a = (spieler1.to_s.strip.present? ? player_scope.where.not(dbu_nr: [nil, 0]).find_by(dbu_nr: spieler1.to_i) : nil) ||
+      Player.find_by(id: Array(row["player_a"]).first)
+    player_b = (spieler2.to_s.strip.present? ? player_scope.where.not(dbu_nr: [nil, 0]).find_by(dbu_nr: spieler2.to_i) : nil) ||
+      Player.find_by(id: Array(row["player_b"]).first)
 
     ba = {
-      "Spieler1" => player_a&.ba_id,
-      "Spieler2" => player_b&.ba_id,
+      "Spieler1" => player_a&.dbu_nr,
+      "Spieler2" => player_b&.dbu_nr,
       "Ergebnis1" => sc1.to_i,
       "Ergebnis2" => sc2.to_i
     }

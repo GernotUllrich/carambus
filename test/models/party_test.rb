@@ -190,6 +190,33 @@ class PartyTest < ActiveSupport::TestCase
     assert_equal [0, 0], party.intermediate_result # ungespielt → 0
   end
 
+  test "record_game_result! schreibt dbu_nr (nicht ba_id) als Spieler1/2 (48-06/A)" do
+    setup = build_party_for_direct_entry([{seqno: 1, type: "9-Ball", sets: 7}], player_a_ba: 1001, player_b_ba: 2002)
+    party = setup[:party]
+    setup[:player_a].update!(ba_id: 5001, dbu_nr: 1001) # ba_id ≠ dbu_nr
+    setup[:player_b].update!(ba_id: 5002, dbu_nr: 2002)
+    row = party.party_monitor.data["rows"].first
+
+    ba = party.record_game_result!(row: row, sc1: "7", sc2: "4").reload.data["ba_results"]
+
+    assert_equal 1001, ba["Spieler1"], "dbu_nr, nicht ba_id (5001)"
+    assert_equal 2002, ba["Spieler2"]
+  end
+
+  test "record_game_result! löst gesendete spieler1/spieler2 (dbu_nr) region-scoped auf (48-06/A)" do
+    setup = build_party_for_direct_entry([{seqno: 1, type: "9-Ball", sets: 7}], player_a_ba: 1001, player_b_ba: 2002)
+    party = setup[:party]
+    nbv = regions(:nbv) # = league.organizer der Test-Party
+    Player.create!(ba_id: 7001, dbu_nr: 6001, region: nbv, lastname: "X", firstname: "x")
+    Player.create!(ba_id: 7002, dbu_nr: 6002, region: nbv, lastname: "Y", firstname: "y")
+    row = party.party_monitor.data["rows"].first
+
+    ba = party.record_game_result!(row: row, sc1: "7", sc2: "4", spieler1: "6001", spieler2: "6002").reload.data["ba_results"]
+
+    assert_equal 6001, ba["Spieler1"], "aus gesendetem spieler1 (dbu_nr), nicht row.player"
+    assert_equal 6002, ba["Spieler2"]
+  end
+
   # --- Phase 48-03: close_with_result! (K-2) ---
 
   test "close_with_result! rechnet game_points/match_points und schließt, wenn alle Spiele beendet" do
@@ -294,8 +321,10 @@ class PartyTest < ActiveSupport::TestCase
     party_monitor = result[:party_monitor]
     base = party.id
 
-    player_a = Player.create!(id: base + 10, ba_id: player_a_ba, lastname: "Heim", firstname: "A")
-    player_b = Player.create!(id: base + 11, ba_id: player_b_ba, lastname: "Gast", firstname: "B")
+    # dbu_nr = kanonischer Identifier (48-06/A); ba_id zusätzlich (Legacy). Default dbu_nr == ba-Wert,
+    # damit die bestehenden Spieler1/2-Assertions (jetzt dbu_nr) ohne Wertänderung greifen.
+    player_a = Player.create!(id: base + 10, ba_id: player_a_ba, dbu_nr: player_a_ba, lastname: "Heim", firstname: "A")
+    player_b = Player.create!(id: base + 11, ba_id: player_b_ba, dbu_nr: player_b_ba, lastname: "Gast", firstname: "B")
 
     rows = game_specs.map do |s|
       {
