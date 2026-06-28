@@ -17,7 +17,8 @@ module Api
 
       @service_user = User.create!(
         email: "test-carambus-app-bridge@carambus.de",
-        password: "password123"
+        password: "password123",
+        confirmed_at: Time.zone.now # User ist :confirmable → ohne Bestätigung scheitert login_jwt mit 401
       )
 
       @tournament = Tournament.create!(
@@ -567,7 +568,119 @@ module Api
       assert_nil body.dig("tournament", "location")
     end
 
+    # === Plan 48-04: Party-API (b1) ===
+
+    test "party without Authorization header returns 401" do
+      get "/api/external_tournament/party",
+        params: {region: "NBV", party_id: 1},
+        headers: {"Accept" => "application/json"}
+      assert_response :unauthorized
+    end
+
+    test "party without party_id or party_cc_id returns 422" do
+      get "/api/external_tournament/party",
+        params: {region: "NBV"},
+        headers: {"Accept" => "application/json", "Authorization" => "Bearer #{login_jwt}"}
+      assert_response :unprocessable_entity
+    end
+
+    test "party with unknown party_id returns 404" do
+      get "/api/external_tournament/party",
+        params: {region: "NBV", party_id: 999_999_999},
+        headers: {"Accept" => "application/json", "Authorization" => "Bearer #{login_jwt}"}
+      assert_response :not_found
+    end
+
+    test "party happy path returns carambus.party/v1 with roster + party_monitor" do
+      party = create_nbv_party(game_count: 1)
+      get "/api/external_tournament/party",
+        params: {region: "NBV", party_id: party.id},
+        headers: {"Accept" => "application/json", "Authorization" => "Bearer #{login_jwt}"}
+      assert_response :success
+      body = JSON.parse(response.body)
+      assert_equal "carambus.party/v1", body["schema"]
+      assert_equal party.id, body.dig("party", "id")
+      assert_equal "party-#{party.id}", body.dig("party", "external_id")
+      assert_equal 1, body.dig("party_monitor", "rows").size
+      assert body.dig("team_a", "roster").any? { |p| p.key?("ba_id") }, "roster trägt ba_id-Schlüssel"
+    end
+
+    test "party_game_result writes the game and returns intermediate_result" do
+      party = create_nbv_party(game_count: 1)
+      post "/api/external_tournament/party_game_result",
+        params: {region: {shortname: "NBV"}, party: {external_id: "party-#{party.id}"},
+                 gname: "1-9-Ball", ba_results: {Ergebnis1: 5, Ergebnis2: 3}}.to_json,
+        headers: json_auth_headers
+      assert_response :success
+      body = JSON.parse(response.body)
+      assert body["ok"]
+      assert_equal "1-9-Ball", body.dig("game", "gname")
+      assert_not_nil body.dig("game", "ended_at")
+      assert_equal "1:0", body.dig("intermediate_result", "game_points")
+      assert_equal "2:0", body.dig("intermediate_result", "match_points")
+    end
+
+    test "party_close with a missing game result returns 409 missing_gnames" do
+      party = create_nbv_party(game_count: 2)
+      row1 = party.party_monitor.data["rows"].first
+      party.build_game_for_row!(row1, 1)
+      party.record_game_result!(row: row1, sc1: 5, sc2: 3) # nur Spiel 1 erfasst
+      post "/api/external_tournament/party_close",
+        params: {region: {shortname: "NBV"}, party: {party_id: party.id}}.to_json,
+        headers: json_auth_headers
+      assert_response :conflict
+      body = JSON.parse(response.body)
+      assert_includes body["missing_gnames"], "2-9-Ball"
+    end
+
+    test "party_close happy path closes the party and returns result" do
+      party = create_nbv_party(game_count: 1)
+      row1 = party.party_monitor.data["rows"].first
+      party.build_game_for_row!(row1, 1)
+      party.record_game_result!(row: row1, sc1: 5, sc2: 3)
+      post "/api/external_tournament/party_close",
+        params: {region: {shortname: "NBV"}, party: {party_id: party.id}}.to_json,
+        headers: json_auth_headers
+      assert_response :success
+      body = JSON.parse(response.body)
+      assert body["ok"]
+      assert_equal "closed", body.dig("party", "state")
+      assert_equal "1:0", body.dig("result", "game_points")
+    end
+
     private
+
+    # JSON-POST-Header mit frischem Bearer (login_jwt ruft reset! → einmal pro Test holen).
+    def json_auth_headers
+      {"Content-Type" => "application/json", "Accept" => "application/json",
+       "Authorization" => "Bearer #{login_jwt}"}
+    end
+
+    # Minimaler NBV-Liga-Spieltag für die Party-API-Tests: League(organizer=nbv) + Party +
+    # 2 LeagueTeams(club bcw) + PartyMonitor(rows+match_points) + 2 Players(ba_id) + 1
+    # SeasonParticipation (Kader). game_count = Anzahl 9-Ball-Spielzeilen in Runde 1.
+    def create_nbv_party(game_count: 1, match_points: {"win" => 2, "draw" => 1, "lost" => 0})
+      suffix = SecureRandom.hex(4)
+      league = League.create!(name: "Party-API Test #{suffix}", shortname: "PAT-#{suffix}",
+        organizer: @nbv, season: @season, discipline: @discipline)
+      team_a = LeagueTeam.create!(name: "Heim", club: clubs(:bcw), league: league)
+      team_b = LeagueTeam.create!(name: "Gast", club: clubs(:bcw), league: league)
+      party = Party.create!(league: league, league_team_a: team_a, league_team_b: team_b,
+        date: Time.zone.local(2026, 9, 13))
+      p1 = Player.create!(ba_id: 99_900_001, lastname: "Heim", firstname: "A")
+      p2 = Player.create!(ba_id: 99_900_002, lastname: "Gast", firstname: "B")
+      SeasonParticipation.create!(season: @season, club: clubs(:bcw), player: p1, status: "active")
+      rows = (1..game_count).map do |i|
+        {"seqno" => i, "type" => "9-Ball", "sets" => 1, "r_no" => 1, "player_a" => p1.id, "player_b" => p2.id}
+      end
+      # after_create_commit broadcastet das _party_monitor-Partial (nutzt current_user) → ohne
+      # Warden im Test-Setup-Kontext ein Render-Fehler. Suppress nur bei der Anlage; die Endpoints
+      # finden die pm danach (kein Re-Create, Updates broadcasten nicht).
+      PartyMonitor.suppressing_turbo_broadcasts do
+        party.create_party_monitor!(state: "seeding_mode", data: {"rows" => rows, "match_points" => match_points})
+      end
+      party
+    end
 
     # === Round-Start-Test-Fixtures ===
 

@@ -137,6 +137,17 @@ Rails.application.routes.draw do
     get "external_tournament/player_rankings",
         to: "external_tournaments#player_rankings",
         as: :external_tournament_player_rankings
+    # Plan 48-04 (Party-API, b1): Liga-Spieltag laden / Direkteingabe-Push / Spielbericht schließen
+    # für das autarke carambus_app-Schema "spieltag". Dünn über den 48-03-Nähten.
+    get "external_tournament/party",
+        to: "external_tournaments#party",
+        as: :external_tournament_party
+    post "external_tournament/party_game_result",
+         to: "external_tournaments#party_game_result",
+         as: :external_tournament_party_game_result
+    post "external_tournament/party_close",
+         to: "external_tournaments#party_close",
+         as: :external_tournament_party_close
     # Plan 20-01 (Setup-Discovery F3): region-relevante Disziplinen + TournamentPlan-Matrix
     # fuer den App-Disziplin-Selektor (carambus.disciplines/v1).
     get "external_tournament/disciplines",

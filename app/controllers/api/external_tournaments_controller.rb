@@ -678,6 +678,84 @@ module Api
       render json: {error: e.message}, status: :not_found
     end
 
+    # GET /api/external_tournament/party?region=NBV&party_id=X (oder &party_cc_id=Y)
+    #
+    # Plan 48-04 (Party-API b1): lädt einen Liga-Spieltag für das autarke carambus_app-Schema
+    # "spieltag" — carambus.party/v1: party + team_a/team_b (inkl. Kader) + party_monitor.data.
+    # party_id hat Vorrang vor party_cc_id (K-5); Region über league.organizer (K-4). Read-only.
+    # Errors: 401 / 404 (Region/Party) / 422 (weder party_id noch party_cc_id).
+    def party
+      region = Region.find_by!(shortname: params[:region].to_s.upcase)
+      party = resolve_party!(params, region) or return
+      pm = party.ensure_party_monitor!
+      render json: build_party_payload(party, pm, region)
+    rescue ActiveRecord::RecordNotFound => e
+      render json: {error: e.message}, status: :not_found
+    end
+
+    # POST /api/external_tournament/party_game_result — Direkteingabe-Push (carambus.party_game_result/v1)
+    #
+    # Schreibt das Endergebnis EINER Einzelpartie direkt (build_game_for_row! [K-1] +
+    # record_game_result! [48-01]) — ohne TableMonitor. Mehrfach-Push überschreibt (TL-Korrektur).
+    def party_game_result
+      payload = party_game_result_params.to_h.deep_symbolize_keys
+      region = Region.find_by!(shortname: payload.dig(:region, :shortname).to_s.upcase)
+      party = resolve_party!(payload[:party], region) or return
+      pm = party.ensure_party_monitor!
+      gname = payload[:gname].to_s
+      row = Array(pm.data["rows"]).find { |r| "#{r["seqno"]}-#{r["type"]}" == gname }
+      return render json: {error: "gname unknown: #{gname}"}, status: :not_found if row.nil?
+
+      party.build_game_for_row!(row, row["r_no"])
+      ba = payload[:ba_results] || {}
+      sets = row["sets"].to_i > 1
+      sc1, sc2 = sets ? [ba[:Sets1], ba[:Sets2]] : [ba[:Ergebnis1], ba[:Ergebnis2]]
+      party.record_game_result!(row: row, sc1: sc1, sc2: sc2,
+        in1: ba[:Aufnahmen1], in2: ba[:Aufnahmen2], br1: ba[:Höchstserie1], br2: ba[:Höchstserie2])
+
+      game = party.games.find_by(gname: gname)
+      gp = party.intermediate_result
+      render json: {
+        schema: "carambus.party_game_result/v1", ok: true,
+        party: {id: party.id, external_id: "party-#{party.id}"},
+        game: {id: game&.id, gname: gname, ended_at: game&.ended_at&.iso8601},
+        intermediate_result: {game_points: gp.join(":"), match_points: pm.match_points_for(gp).join(":")}
+      }
+    rescue ActiveRecord::RecordNotFound => e
+      render json: {error: e.message}, status: :not_found
+    end
+
+    # POST /api/external_tournament/party_close — Spielbericht abschließen (carambus.party_close/v1)
+    #
+    # close_with_result! [K-2]: Vollständigkeits-Guard → 409 missing_gnames, sonst result + closed.
+    # Der autarke API-Pfad treibt die Web-AASM NICHT → Abschluss via end_of_party (any → closed).
+    def party_close
+      payload = party_close_params.to_h.deep_symbolize_keys
+      region = Region.find_by!(shortname: payload.dig(:region, :shortname).to_s.upcase)
+      party = resolve_party!(payload[:party], region) or return
+      pm = party.ensure_party_monitor!
+      if pm.state == "closed"
+        return render json: {error: "party already closed"}, status: :unprocessable_entity
+      end
+
+      outcome = pm.close_with_result!(event: :end_of_party)
+      if outcome[:ok]
+        render json: {
+          schema: "carambus.party_close/v1", ok: true,
+          party: {id: party.id, external_id: "party-#{party.id}", state: pm.reload.state},
+          result: outcome[:result]
+        }
+      else
+        render json: {
+          schema: "carambus.party_close/v1", ok: false,
+          error: "guard failed: not all games have ended_at",
+          missing_gnames: outcome[:missing_gnames]
+        }, status: :conflict
+      end
+    rescue ActiveRecord::RecordNotFound => e
+      render json: {error: e.message}, status: :not_found
+    end
+
     private
 
     # Plan 17-05: region-scoped Tournament-Resolve (tournament_id ODER tournament.external_id).
@@ -787,6 +865,107 @@ module Api
         region: [:shortname],
         participants: [:ref, :cc_id, :dbu_nr, :firstname, :lastname, :club_cc_id]
       )
+    end
+
+    # === Party-API (Plan 48-04, b1) ===
+
+    # Region-scoped Party-Resolve (K-4/K-5). source = params (GET) ODER das party-Objekt (POST-Body).
+    # id-Vorrang vor cc_id; external_id "party-<id>" → id. Rendert selbst 422 (kein Identifier) bzw.
+    # 404 (nicht gefunden / falsche Region) und gibt dann nil zurück (Caller: `... or return`).
+    def resolve_party!(source, region)
+      source = normalize_party_source(source)
+      party_id = source[:party_id].presence || source[:external_id].to_s[/\Aparty-(\d+)\z/, 1]
+      cc_id = source[:party_cc_id].presence
+      if party_id.blank? && cc_id.blank?
+        render json: {error: "party_id or party_cc_id required"}, status: :unprocessable_entity
+        return nil
+      end
+      party =
+        if party_id.present?
+          Party.find_by(id: party_id)
+        else
+          Party.where(cc_id: cc_id).detect { |p| party_in_region?(p, region) }
+        end
+      if party.nil? || !party_in_region?(party, region)
+        render json: {error: "Party not found"}, status: :not_found
+        return nil
+      end
+      party
+    end
+
+    def normalize_party_source(source)
+      if source.respond_to?(:to_unsafe_h)
+        source.to_unsafe_h.with_indifferent_access
+      else
+        (source || {}).with_indifferent_access
+      end
+    end
+
+    # Party-Region läuft über league.organizer (Region) — Party hat KEINE region_id-Spalte (K-4).
+    def party_in_region?(party, region)
+      org = party.league&.organizer
+      org.is_a?(Region) && org.id == region.id
+    end
+
+    def build_party_payload(party, party_monitor, region)
+      league = party.league
+      {
+        schema: "carambus.party/v1",
+        region: {shortname: region.shortname},
+        party: {
+          id: party.id, cc_id: party.cc_id, external_id: "party-#{party.id}",
+          name: party.name, season: league&.season&.name,
+          date: party.date&.to_date&.iso8601, league: league&.name,
+          location: build_location(party.location)
+        },
+        team_a: serialize_party_team(party.league_team_a, league),
+        team_b: serialize_party_team(party.league_team_b, league),
+        party_monitor: party_monitor.data
+      }
+    end
+
+    def serialize_party_team(league_team, league)
+      return nil if league_team.nil?
+      club = league_team.club
+      {
+        id: league_team.id,
+        cc_id: league_team.try(:cc_id),
+        name: league_team.name,
+        club_cc_id: club&.cc_id,
+        club_shortname: club&.shortname,
+        roster: party_team_roster(club, league&.season)
+      }
+    end
+
+    # Kader = in der Saison spielberechtigte (active) Spieler des Team-Clubs, je ba_id (Pflichtfeld,
+    # nullable → best-effort K-6) + dbu_nr. Eigene Projektion (ClubRosterQuery liefert kein ba_id);
+    # gleiche Eligibility (SeasonParticipation status active).
+    def party_team_roster(club, season)
+      return [] if club.nil? || season.nil?
+      SeasonParticipation.where(season_id: season.id, club_id: club.id, status: "active")
+        .includes(:player).filter_map do |sp|
+          player = sp.player
+          next if player.nil?
+          {
+            ba_id: player.ba_id, firstname: player.firstname, lastname: player.lastname,
+            dbu_nr: player.dbu_nr&.to_s, age_class: player.age_class, gender: player.gender,
+            cc_id: player.cc_id, nationality: player.try(:nationality) || "DE"
+          }
+        end
+    end
+
+    def party_game_result_params
+      params.permit(
+        :schema, :gname,
+        region: [:shortname],
+        party: [:external_id, :party_id, :party_cc_id],
+        ba_results: [:Spieler1, :Spieler2, :Ergebnis1, :Ergebnis2, :Sets1, :Sets2,
+          :Aufnahmen1, :Aufnahmen2, :Höchstserie1, :Höchstserie2]
+      )
+    end
+
+    def party_close_params
+      params.permit(:schema, region: [:shortname], party: [:external_id, :party_id, :party_cc_id])
     end
 
     # === Seeding-Payload-Builder ===
