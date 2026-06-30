@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_06_14_223411) do
+ActiveRecord::Schema[7.2].define(version: 2026_06_30_190139) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -84,6 +84,21 @@ ActiveRecord::Schema[7.2].define(version: 2026_06_14_223411) do
     t.index ["created_at"], name: "index_ai_search_logs_on_created_at"
     t.index ["success"], name: "index_ai_search_logs_on_success"
     t.index ["user_id"], name: "index_ai_search_logs_on_user_id"
+  end
+
+  create_table "ai_usage_events", force: :cascade do |t|
+    t.string "scenario_context"
+    t.bigint "user_id"
+    t.string "persona"
+    t.string "model"
+    t.integer "input_tokens", default: 0, null: false
+    t.integer "output_tokens", default: 0, null: false
+    t.integer "cache_creation_tokens", default: 0, null: false
+    t.integer "cache_read_tokens", default: 0, null: false
+    t.decimal "est_cost_eur", precision: 10, scale: 6, default: "0.0", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["scenario_context", "created_at"], name: "index_ai_usage_events_on_scenario_context_and_created_at"
   end
 
   create_table "ball_configuration_zones", force: :cascade do |t|

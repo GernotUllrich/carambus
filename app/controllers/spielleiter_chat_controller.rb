@@ -26,6 +26,7 @@ class SpielleiterChatController < ApplicationController
     begin
       result = SpielleiterChatService.new(user: current_user).converse(messages: messages)
       session[SESSION_KEY] = trim_history(result[:messages][ctx_len..])
+      record_ai_usage(result[:usage_by_model])
     rescue => e
       Rails.logger.error("[SpielleiterChatController] #{e.class}: #{e.message}")
       flash[:alert] = "Fehler beim Verarbeiten der Anfrage. Bitte erneut versuchen."
@@ -46,6 +47,16 @@ class SpielleiterChatController < ApplicationController
   end
 
   private
+
+  # 49-01: AI-Token-Verbrauch des Turns je Modell persistieren (AiUsageEvent). In EIGENEM rescue —
+  # Telemetrie darf den Chat NIE brechen (ein Persist-Fehler wird nur geloggt).
+  def record_ai_usage(usage_by_model)
+    return if usage_by_model.blank?
+    AiUsageEvent.record_turn(usage_by_model: usage_by_model, user: current_user,
+      scenario: Carambus.config.context)
+  rescue => e
+    Rails.logger.error("[SpielleiterChatController] AiUsageEvent persist: #{e.class}: #{e.message}")
+  end
 
   # Der Assistent/Chat steht NUR auf Local-Servern zur Verfügung. Auf der zentralen
   # Authority (api.carambus.de) ist er NICHT freigegeben: der Server ist nicht für die

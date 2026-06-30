@@ -105,4 +105,35 @@ class SpielleiterChatServiceTest < ActiveSupport::TestCase
     # Unbekanntes Tool → defensiv als Write (lieber zu früh eskalieren als Write mit Haiku)
     assert svc.send(:write_tool?, "tool_das_es_nicht_gibt"), "Unbekanntes Tool defensiv als Write behandeln"
   end
+
+  # 49-01: converse summiert response.usage pro Modell + gibt usage_by_model ADDITIV zurück.
+  test "converse liefert usage_by_model aus response.usage (additiv, response/messages unverändert)" do
+    u = User.new(email: "chat_usage@test.de")
+    def u.cc_write_access?
+      false
+    end
+    svc = SpielleiterChatService.new(user: u)
+
+    usage = Struct.new(:input_tokens, :output_tokens, :cache_creation_input_tokens, :cache_read_input_tokens)
+      .new(120, 30, 0, 0)
+    block = Struct.new(:type, :text).new("text", "Hallo")
+    response = Struct.new(:content, :stop_reason, :usage).new([block], "end_turn", usage)
+    fake_messages = Object.new
+    fake_messages.define_singleton_method(:create) { |**_| response }
+    fake_client = Object.new
+    fake_client.define_singleton_method(:messages) { fake_messages }
+
+    result = svc.stub(:client, fake_client) do
+      svc.converse(messages: [{role: "user", content: "hi"}])
+    end
+
+    # Bestehende Keys unverändert
+    assert_equal "Hallo", result[:response]
+    assert_equal({role: "user", content: "hi"}, result[:messages].first)
+    # Additive Usage-Aufschlüsselung pro Modell
+    ubm = result[:usage_by_model]
+    assert_equal [SpielleiterChatService::FAST_MODEL], ubm.keys
+    assert_equal 120, ubm[SpielleiterChatService::FAST_MODEL][:input]
+    assert_equal 30, ubm[SpielleiterChatService::FAST_MODEL][:output]
+  end
 end

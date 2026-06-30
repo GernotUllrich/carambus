@@ -41,6 +41,9 @@ class SpielleiterChatService
     loop_messages = messages.dup
     iterations = 0
     model = FAST_MODEL # Default schnell; bei erster Schreibaktion → STRONG_MODEL (Hybrid-Eskalation)
+    # 49-01: Token-Verbrauch PRO MODELL summieren — ein Turn kann mid-turn von Haiku auf Sonnet
+    # eskalieren, daher je Modell getrennt (für korrekte €-Kostenattribution).
+    usage_by_model = Hash.new { |h, k| h[k] = {input: 0, output: 0, cache_creation: 0, cache_read: 0} }
 
     loop do
       iterations += 1
@@ -53,6 +56,8 @@ class SpielleiterChatService
         tools: tool_definitions,
         messages: loop_messages
       )
+
+      accumulate_usage(usage_by_model[model], response) # 49-01: usage des aktuellen Modells aufsummieren
 
       # Convert SDK blocks to plain hashes for message history (SDK objects are not re-serializable).
       assistant_content = response.content.map { |b| serialize_content_block(b) }
@@ -77,7 +82,23 @@ class SpielleiterChatService
     end
 
     final_text = extract_final_text(loop_messages)
-    {response: final_text, messages: loop_messages}
+    # 49-01: usage_by_model ADDITIV — response/messages unverändert (Caller, die es nicht lesen, brechen nicht).
+    {response: final_text, messages: loop_messages, usage_by_model: usage_by_model}
+  end
+
+  # 49-01: addiert die Token-usage EINER API-Antwort auf den Modell-Akkumulator. Defensiv gegen
+  # fehlende usage/Felder (SDK-Versionen; cache-Felder sind nil ohne Prompt-Caching).
+  def accumulate_usage(acc, response)
+    usage = response.respond_to?(:usage) ? response.usage : nil
+    return if usage.nil?
+    acc[:input] += usage_field(usage, :input_tokens)
+    acc[:output] += usage_field(usage, :output_tokens)
+    acc[:cache_creation] += usage_field(usage, :cache_creation_input_tokens)
+    acc[:cache_read] += usage_field(usage, :cache_read_input_tokens)
+  end
+
+  def usage_field(usage, name)
+    usage.respond_to?(name) ? usage.public_send(name).to_i : 0
   end
 
   def tool_definitions
