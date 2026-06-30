@@ -50,19 +50,25 @@ class AiUsageEventTest < ActiveSupport::TestCase
     end
   end
 
-  # 49-01: cost_report aggregiert pro Scenario + Zeit-Bucket (Tokens + €).
-  test "cost_report aggregiert pro Scenario und Tag" do
+  # 49-02: cost_report aggregiert pro Scenario + MODELL + Zeit-Bucket — Haiku/Sonnet getrennt.
+  test "cost_report splittet pro Scenario, Modell und Tag" do
     t1 = Time.zone.local(2026, 6, 28, 10)
     t2 = Time.zone.local(2026, 6, 29, 10)
     AiUsageEvent.create!(scenario_context: "nbv", model: "claude-haiku-4-5-20251001", input_tokens: 1_000_000, created_at: t1)
     AiUsageEvent.create!(scenario_context: "nbv", model: "claude-haiku-4-5-20251001", input_tokens: 1_000_000, created_at: t1)
+    AiUsageEvent.create!(scenario_context: "nbv", model: "claude-sonnet-4-6", input_tokens: 1_000_000, created_at: t1)
     AiUsageEvent.create!(scenario_context: "bcw", model: "claude-sonnet-4-6", input_tokens: 1_000_000, created_at: t2)
 
     rep = AiUsageEvent.cost_report(bucket: :day)
-    nbv = rep.find { |r| r[:scenario] == "nbv" }
-    assert_equal 2, nbv[:events]
-    assert_equal 2_000_000, nbv[:input]
-    assert_operator nbv[:cost_eur], :>, 0
+    # nbv am selben Tag in zwei getrennte Modell-Zeilen aufgesplittet
+    nbv_haiku = rep.find { |r| r[:scenario] == "nbv" && r[:model] == "claude-haiku-4-5-20251001" }
+    nbv_sonnet = rep.find { |r| r[:scenario] == "nbv" && r[:model] == "claude-sonnet-4-6" }
+    assert_equal 2, nbv_haiku[:events]
+    assert_equal 2_000_000, nbv_haiku[:input]
+    assert_equal 1, nbv_sonnet[:events]
+    assert_operator nbv_haiku[:cost_eur], :>, 0
+    # Sonnet (1M In) ist teurer als ein einzelner Haiku-Turn (1M In) → Split macht's sichtbar
+    assert_operator nbv_sonnet[:cost_eur], :>, nbv_haiku[:cost_eur] / 2
     assert(rep.any? { |r| r[:scenario] == "bcw" }, "bcw-Scenario getrennt aggregiert")
   end
 end

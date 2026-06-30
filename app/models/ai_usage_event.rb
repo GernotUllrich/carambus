@@ -31,20 +31,21 @@ class AiUsageEvent < ApplicationRecord
     end
   end
 
-  # 49-01: Kostenbericht pro Scenario über Zeit (für `rake ai_usage:report`). bucket = :day | :week.
-  # Gibt strukturierte Zeilen zurück (eine je scenario_context + Zeit-Bucket).
+  # 49-01/49-02: Kostenbericht pro Scenario + Modell über Zeit (für `rake ai_usage:report`).
+  # bucket = :day | :week. Gibt strukturierte Zeilen zurück (eine je scenario_context + model + Zeit-Bucket) —
+  # so wird sichtbar, was die teuren Sonnet-Eskalationen vs. die günstigen Haiku-Reads kosten (49-02).
   def self.cost_report(since: nil, until_: nil, bucket: :day)
     trunc = (bucket.to_s == "week") ? "week" : "day"
     bucket_sql = Arel.sql("date_trunc('#{trunc}', created_at)")
     rel = all
     rel = rel.where("created_at >= ?", since) if since
     rel = rel.where("created_at < ?", until_) if until_
-    rel.group(:scenario_context).group(bucket_sql).order(bucket_sql)
-      .pluck(:scenario_context, bucket_sql,
+    rel.group(:scenario_context, :model).group(bucket_sql).order(bucket_sql, :scenario_context, :model)
+      .pluck(:scenario_context, :model, bucket_sql,
         Arel.sql("count(*)"), Arel.sql("sum(input_tokens)"), Arel.sql("sum(output_tokens)"),
         Arel.sql("sum(cache_creation_tokens)"), Arel.sql("sum(cache_read_tokens)"), Arel.sql("sum(est_cost_eur)"))
-      .map do |sc, bucket_time, cnt, inp, out, cc, cr, cost|
-        {scenario: sc, bucket: bucket_time, events: cnt.to_i, input: inp.to_i, output: out.to_i,
+      .map do |sc, model, bucket_time, cnt, inp, out, cc, cr, cost|
+        {scenario: sc, model: model, bucket: bucket_time, events: cnt.to_i, input: inp.to_i, output: out.to_i,
          cache_creation: cc.to_i, cache_read: cr.to_i, cost_eur: cost.to_f}
       end
   end
