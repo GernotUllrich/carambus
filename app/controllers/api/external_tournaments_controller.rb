@@ -702,6 +702,10 @@ module Api
       region = Region.find_by!(shortname: payload.dig(:region, :shortname).to_s.upcase)
       party = resolve_party!(payload[:party], region) or return
       pm = party.ensure_party_monitor!
+      unless party_writable?(party)
+        return render json: party_not_writable_response(party, "carambus.party_game_result/v1"),
+          status: :unprocessable_entity
+      end
       gname = payload[:gname].to_s
       row = Array(pm.data["rows"]).find { |r| "#{r["seqno"]}-#{r["type"]}" == gname }
       return render json: {error: "gname unknown: #{gname}"}, status: :not_found if row.nil?
@@ -739,6 +743,10 @@ module Api
       region = Region.find_by!(shortname: payload.dig(:region, :shortname).to_s.upcase)
       party = resolve_party!(payload[:party], region) or return
       pm = party.ensure_party_monitor!
+      unless party_writable?(party)
+        return render json: party_not_writable_response(party, "carambus.party_close/v1"),
+          status: :unprocessable_entity
+      end
       if pm.state == "closed"
         return render json: {error: "party already closed"}, status: :unprocessable_entity
       end
@@ -912,6 +920,25 @@ module Api
       org.is_a?(Region) && org.id == region.id
     end
 
+    # 48-08/H: Spiegelt die LocalProtector-Guard-Bedingung (application_record.rb:
+    # `id < MIN_ID && ApplicationRecord.local_server?`). Eine globale Party (Mirror von der
+    # Authority) auf einem Local-Server ist NICHT schreibbar — der Guard würde den Game-/
+    # Monitor-Write still per ActiveRecord::Rollback verwerfen. party.id ist der Proxy
+    # (globale Party ⇒ globale Games).
+    def party_writable?(party)
+      !(party.id < ApplicationRecord::MIN_ID && ApplicationRecord.local_server?)
+    end
+
+    # 48-08/H: ehrlicher 422-Body statt stillem ok:true, wenn der Write am LocalProtector scheitern
+    # würde. Die App zeigt err.body.error direkt im Sync-Pillen-Tooltip + writable:false als Flag.
+    def party_not_writable_response(party, schema)
+      {
+        schema: schema, ok: false, writable: false,
+        error: "party is global (id #{party.id}), this server is a local sync target — " \
+               "push refused by LocalProtector. Push to api.carambus.de or run on the authority."
+      }
+    end
+
     def build_party_payload(party, party_monitor, region)
       league = party.league
       {
@@ -921,7 +948,8 @@ module Api
           id: party.id, cc_id: party.cc_id, external_id: "party-#{party.id}",
           name: party.name, season: league&.season&.name,
           date: party.date&.to_date&.iso8601, league: league&.name,
-          location: build_location(party.location)
+          location: build_location(party.location),
+          writable: party_writable?(party) # 48-08/H: App zeigt präventiv READ-ONLY-Banner statt erst beim Push zu scheitern
         },
         team_a: serialize_party_team(party.league_team_a, league),
         team_b: serialize_party_team(party.league_team_b, league),
@@ -936,8 +964,22 @@ module Api
       data = party_monitor.data
       rows = Array(data["rows"])
         .select { |r| Party::GAME_ROW_TYPES.include?(r["type"]) || r["type"] == "Neue Runde" }
-        .map { |r| r["score"].nil? ? r : r.merge("score" => normalize_score(r["score"])) }
-      data.merge("rows" => rows)
+        .map { |r| Party::GAME_ROW_TYPES.include?(r["type"]) ? game_row_view(r) : r }
+      data.merge("rows" => rows, "state" => party_monitor.state) # 48-08/H: state für präventives READ-ONLY-Banner
+    end
+
+    # 48-08/F+G: Payload-Sicht EINER Spielzeile — score normalisiert (48-07/C) + Herkunfts-Marker
+    # der Spielparameter (sets_source/score_source), damit die App ein „ⓘ heuristisch — prüfen"-Icon
+    # zeigen kann. Read-through aus der Row; solange GamePlan/Scraper keine Provenienz führen, ist der
+    # pbv-Realwert "scraped_heuristic" (sets/score „durch maximale Ergebnisse" gescrapt). Erlaubte
+    # Werte: "sportordnung" | "scraped_heuristic" | "default". Nur GAME_ROWS — "Neue Runde" bleibt roh.
+    # (Die echten sets/score-Werte korrekt zu pflegen ist GamePlan-Datenpflege, NICHT dieser Code.)
+    def game_row_view(row)
+      view = row["score"].nil? ? row : row.merge("score" => normalize_score(row["score"]))
+      view.merge(
+        "sets_source" => row["sets_source"] || "scraped_heuristic",
+        "score_source" => row["score_source"] || "scraped_heuristic"
+      )
     end
 
     # row.score → Zahl: String → letzte Zahl ("Hauptrunde 80" → 80); Number → as-is;
