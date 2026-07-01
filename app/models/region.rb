@@ -71,7 +71,8 @@ class Region < ApplicationRecord
     # was 'BBBV' => 'https://bbbv.club-cloud.de/',
     "BBBV" => "https://billard-brandenburg.net/",
     # "BBV",##
-    "BLMR" => "https://blmr.club-cloud.de/",
+    # was 'BLMR' => 'https://blmr.club-cloud.de/', (302-Redirect auf eigene Domain)
+    "BLMR" => "https://billard-blmr.de/",
     "BLVN" => "https://billard-niedersachsen.de/",
     "BVB" => "https://billardverband-berlin.net/",
     "BVBW" => "https://billard-bvbw.de/",
