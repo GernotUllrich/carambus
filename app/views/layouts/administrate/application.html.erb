@@ -1,24 +1,29 @@
 <!DOCTYPE html>
-<html lang="<%= I18n.locale %>">
+<% html_classes = [current_user&.prefers_dark_mode? ? "dark" : "light"] %>
+<html lang="<%= I18n.locale %>" class="<%= html_classes.join(" ") %>">
 <head>
   <meta charset="utf-8">
   <meta name="ROBOTS" content="NOODP">
   <meta name="viewport" content="initial-scale=1">
-  <title><%= content_for(:title) %> | <%= Rails.application.class.module_parent_name.titlecase %></title>
+  <title><%= content_for(:title) %> | <%= Rails.application.class.module_parent_name.titlecase %> · Admin</title>
   <%= render "administrate/application/stylesheet" %>
   <%= csrf_meta_tags %>
   <%= csp_meta_tag %>
   <%= action_cable_meta_tag %>
+  <% if current_user&.system_theme? %>
+    <script>document.documentElement.classList.toggle("dark", window.matchMedia('(prefers-color-scheme: dark)').matches)</script>
+  <% end %>
+  <%# StimulusReflex/ActionCable-Init kommt aus application.js (index.js); defer wie in der Haupt-App %>
   <%= javascript_include_tag "application", "data-turbo-track": "reload", defer: true %>
   <%= stylesheet_link_tag "application", media: "all", "data-turbo-track": "reload" %>
 </head>
-<body>
+<body class="admin-body bg-surface-content dark:bg-gray-900 text-gray-900 dark:text-gray-100">
   <%= render "administrate/application/icons" %>
 
-  <div class="app-container">
+  <div class="admin-container flex min-h-screen">
     <%= render "administrate/application/navigation" %>
 
-    <main class="main-content" role="main">
+    <main class="admin-main flex-1 min-w-0 p-6" role="main">
       <%= render "administrate/application/flashes" %>
       <%= yield %>
     </main>
@@ -27,4 +32,3 @@
   <%= render "administrate/application/javascript" %>
 </body>
 </html>
-<%# Hier fehlen die ActionCable/StimulusReflex Initialisierungen %> 
