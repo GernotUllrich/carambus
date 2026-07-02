@@ -41,14 +41,21 @@ button[disabled] .when-enabled { display: none; }
     @apply px-4 py-3;
   }
 
-  /* Weiße Schrift auf .btn-primary ergibt sich aus `text-white`; Anchor-Buttons
-     erben keine Link-Farbe, da `a:not(.btn)` in base.css sie ausschließt.
-     Kein !important-Krieg mehr nötig. */
+  /* Weiße Schrift auf .btn-primary aus `text-white`. base.css `a:not(.btn)` schließt Buttons
+     zwar aus, ABER breitere a:not(...)-Regeln aus forms.css/trix.css (z.B.
+     `a:not(.input-file+label):is(.dark *)`, Specificity bis (0,2,2)) tun das NICHT und schlagen
+     `.btn-primary` (0,1,0) im Dark-Mode → Anchor-Button wird teal-auf-teal unlesbar (SB-4/UAT-002).
+     Fix: Textfarbe kompound-spezifisch reasserten (`.btn.btn-primary` = (0,2,0) light / (0,3,0) dark),
+     schlägt die breiten Regeln OHNE !important (P0-Teardown-Prinzip). */
   .btn-primary {
     @apply bg-primary-600 text-white;
     @apply hover:bg-primary-700;
     @apply active:bg-primary-800;
     @apply focus:text-white focus-visible:text-white focus-visible:outline-primary-500;
+  }
+
+  .btn.btn-primary {
+    @apply text-white dark:text-white;
   }
 
   .btn-primary.btn-outline {

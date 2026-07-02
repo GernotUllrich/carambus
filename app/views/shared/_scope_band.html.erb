@@ -4,17 +4,18 @@
 <%# via Current.scope (region_id/season_id/branch_id) als FK-Filter. %>
 <div class="border-b border-gray-200 dark:border-gray-700 bg-surface-card dark:bg-gray-800">
   <div class="px-4 py-2">
-    <%= form_tag request.path, method: :get, class: "flex items-center gap-2 flex-wrap" do %>
+    <%= form_tag request.path, method: :get, class: "flex items-center gap-2 flex-nowrap overflow-x-auto" do %>
       <%# Sortierung erhalten (Suche liegt in der Session, braucht kein Hidden-Feld). %>
       <%= hidden_field_tag :sort, params[:sort] if params[:sort].present? %>
       <%= hidden_field_tag :direction, params[:direction] if params[:direction].present? %>
 
-      <span class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 mr-1">
+      <span class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 mr-1 shrink-0 whitespace-nowrap">
         <%= t("scope_band.label", default: "Ausschnitt") %>
       </span>
 
-      <% pill = "rounded-pill border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 text-sm px-3 py-1" %>
-      <% caption = "text-xs text-gray-400 dark:text-gray-500" %>
+      <%# w-auto shrink-0: Selects bleiben inhaltsbreit (gegen globale width:100%) und stauchen nicht. %>
+      <% pill = "rounded-pill border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 text-sm px-3 py-1 w-auto shrink-0" %>
+      <% caption = "text-xs text-gray-400 dark:text-gray-500 shrink-0 whitespace-nowrap" %>
 
       <span class="<%= caption %>"><%= t("scope_band.region", default: "Region") %></span>
       <%= select_tag "scope[region]",
@@ -27,7 +28,7 @@
             class: pill, onchange: "this.form.requestSubmit()" %>
 
       <% if scope_season_transition? %>
-        <span class="text-xs italic text-gray-400 dark:text-gray-500" title="<%= t("scope_band.transition_hint", default: "Saison-Umbruch: die kommende Saison ist noch in Planung — bis Mitte August gilt die Vorsaison.") %>">
+        <span class="text-xs italic text-gray-400 dark:text-gray-500 shrink-0 whitespace-nowrap" title="<%= t("scope_band.transition_hint", default: "Saison-Umbruch: die kommende Saison ist noch in Planung — bis Mitte August gilt die Vorsaison.") %>">
           · <%= t("scope_band.transition", default: "Saison-Umbruch – Vorsaison") %>
         </span>
       <% end %>
