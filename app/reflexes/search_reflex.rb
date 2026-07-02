@@ -38,6 +38,11 @@ class SearchReflex < ApplicationReflex
     # Set @sSearch for FiltersHelper
     @sSearch = search_params[:sSearch]
 
+    # Globaler Ausschnitt (Scope-Band): der Reflex laeuft ueber ActionCable und NICHT durch
+    # ApplicationController#set_current_scope -> Current.scope waere sonst nil und die Live-Suche
+    # ignorierte den Ausschnitt. Gleiche Ableitung wie im HTTP-Pfad (ScopeResolver).
+    Current.scope = ScopeResolver.new(session_scope: session[:scope], user: current_user).fk_scope
+
     # Perform search
     results = SearchService.call(@model.search_hash(search_params))
 

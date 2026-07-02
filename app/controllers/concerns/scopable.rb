@@ -35,74 +35,63 @@ module Scopable
     scope_params = params[:scope]
     return unless scope_params.respond_to?(:key?)
 
+    captured = false
     SCOPE_FACETS.each_key do |facet|
       next unless scope_params.key?(facet)
       session[:scope][facet] = scope_params[facet].to_s.strip.presence
+      captured = true
     end
+
+    persist_scope_preference if captured
+  end
+
+  # Write-back: angemeldete User merken sich ihren Ausschnitt ueber Sessions hinweg
+  # (preferences["scope"]). Nur bei echter Facetten-Aenderung, nur fuer current_user,
+  # fehlerrobust (Preference-Schreiben darf den Request nie abbrechen).
+  def persist_scope_preference
+    return unless current_user
+
+    prefs = current_user.preferences.is_a?(Hash) ? current_user.preferences.deep_dup : {}
+    scope_pref = prefs["scope"].is_a?(Hash) ? prefs["scope"] : {}
+    # Gesetzte Werte uebernehmen, geleerte ("Alle Branchen") entfernen -> Default greift wieder.
+    current_scope.each { |facet, val| val.present? ? scope_pref[facet] = val : scope_pref.delete(facet) }
+    prefs["scope"] = scope_pref
+    current_user.update(preferences: prefs)
+  rescue => e
+    Rails.logger.warn("[Scopable] scope-preference write-back failed: #{e.message}")
   end
 
   # Stellt den Ausschnitt als FK-Filter fuer SearchService bereit (Current, pro Request).
   def set_current_scope
-    Current.scope = {
-      "region_id" => current_region_id,
-      "season_id" => current_season_id,
-      "branch_id" => current_branch_id
-    }.compact
+    Current.scope = scope_resolver.fk_scope
+  end
+
+  # Gemeinsame Ableitung (Session + User) — dieselbe Einheit nutzt auch SearchReflex (Live-Suche),
+  # damit die Default-Regeln nur an einer Stelle existieren. Pro Request memoisiert.
+  def scope_resolver
+    @scope_resolver ||= ScopeResolver.new(session_scope: session[:scope], user: current_user)
   end
 
   def current_scope
     (session[:scope] || {}).slice(*SCOPE_FACETS.keys)
   end
 
-  # Immer ein konkreter Wert: Session -> Default (kein "Alle").
+  # View-nahe Helper: delegieren an den Resolver (Werte fuer die Band-Selects).
   def current_region_id
-    (current_scope["region"].presence || default_region_id)&.to_i
+    scope_resolver.region_id
   end
 
   def current_season_id
-    (current_scope["season"].presence || default_season_id)&.to_i
+    scope_resolver.season_id
   end
 
-  # Branch: KEIN Default -> nil bedeutet "Alle Branchen" (kein Filter).
   def current_branch_id
-    current_scope["branch"].presence&.to_i
-  end
-
-  # Default-Region: pragmatisch NBV (per shortname, sonst erste Region). 02-02: User-Preference/Server-Kontext.
-  def default_region_id
-    @default_region_id ||= Region.find_by(shortname: "NBV")&.id || Region.order(:id).first&.id
-  end
-
-  # Default-Saison. Im Saison-Umbruch (bis ~Mitte August) ist die kommende Saison noch in Planung
-  # (Vorsaison abgeschlossen mit Endergebnissen/Ranglisten) -> dann gilt die Vorsaison als Default.
-  # Feinere/User-Defaults folgen in 02-02.
-  def default_season_id
-    @default_season_id ||= (transition_previous_season || Season.current_season)&.id
-  end
-
-  # Vorsaison, solange wir uns im Saison-Umbruch befinden (heute <= 15.08. des Startjahres der
-  # aktuellen Saison); sonst nil. Wird auch fuer den dezenten Band-Hinweis genutzt.
-  def transition_previous_season
-    return @transition_previous_season if defined?(@transition_previous_season)
-
-    @transition_previous_season = begin
-      current = Season.current_season
-      start_year = current&.name.to_s[/\A(\d{4})/, 1]&.to_i
-      if current && start_year && Date.current <= Date.new(start_year, 8, 15)
-        previous_season(current)
-      end
-    end
-  end
-
-  # Vorsaison ueber ba_id (ordnungsstabil, unabhaengig von lokalen id>=MIN_ID-Records).
-  def previous_season(season)
-    return nil unless season&.ba_id
-    Season.where("ba_id < ?", season.ba_id).order(ba_id: :desc).first
+    scope_resolver.branch_id
   end
 
   # True, wenn der Default aktuell die Vorsaison ist (Umbruch, keine explizite User-Wahl).
   def scope_season_transition?
-    current_scope["season"].blank? && transition_previous_season.present?
+    scope_resolver.season_transition?
   end
 
   # --- Options-Quellen fuer die Band-View (Werte = IDs, kein "Alle") ---
