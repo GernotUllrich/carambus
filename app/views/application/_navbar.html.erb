@@ -19,6 +19,23 @@
       </button>
     </div>
 
+    <!-- Region-Indikator (Ausschnitt) — reine Anzeige, angepinnt oben; Klick springt zum Scope-Band -->
+    <% if scope_indicator_label.present? %>
+      <div class="mb-4" data-controller="scope-indicator">
+        <button type="button"
+                data-action="scope-indicator#focus"
+                title="<%= t("scope_band.indicator_title", default: "Zum Ausschnitt-Band springen") %>"
+                class="w-full flex flex-col items-start gap-0.5 px-3 py-2 rounded-lg text-left border border-gray-300 dark:border-gray-600 bg-gray-200/60 dark:bg-gray-700/60 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+          <span class="text-[10px] uppercase tracking-wide text-gray-500 dark:text-gray-400">
+            <%= t("scope_band.label", default: "Ausschnitt") %>
+          </span>
+          <span class="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate max-w-full">
+            <%= scope_indicator_label %>
+          </span>
+        </button>
+      </div>
+    <% end %>
+
     <!-- AI Search Button (opens central panel) -->
     <div class="mb-4">
       <button onclick="window.dispatchEvent(new CustomEvent('ai-search:toggle'))"

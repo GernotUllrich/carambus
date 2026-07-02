@@ -2,7 +2,7 @@
 <%# Region/Saison: kein "Alle" (Default Region=NBV, Saison=aktuell). Branch: "Alle Branchen" (Ausnahme). %>
 <%# Aenderung submittet per GET; Scopable#capture_scope speichert in Session, SearchService filtert %>
 <%# via Current.scope (region_id/season_id/branch_id) als FK-Filter. %>
-<div class="border-b border-gray-200 dark:border-gray-700 bg-surface-card dark:bg-gray-800">
+<div id="scope-band" tabindex="-1" class="border-b border-gray-200 dark:border-gray-700 bg-surface-card dark:bg-gray-800 scroll-mt-4 transition-shadow duration-300">
   <div class="px-4 py-2">
     <%= form_tag request.path, method: :get, class: "flex items-center gap-2 flex-nowrap overflow-x-auto" do %>
       <%# Sortierung erhalten (Suche liegt in der Session, braucht kein Hidden-Feld). %>

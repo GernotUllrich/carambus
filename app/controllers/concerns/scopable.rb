@@ -24,7 +24,9 @@ module Scopable
   included do
     helper_method :current_scope, :current_region_id, :current_season_id, :current_branch_id,
                   :scope_region_options, :scope_season_options, :scope_branch_options,
-                  :scope_season_transition?
+                  :scope_season_transition?,
+                  :current_region_shortname, :current_season_name, :current_branch_name,
+                  :scope_indicator_label
   end
 
   private
@@ -92,6 +94,28 @@ module Scopable
   # True, wenn der Default aktuell die Vorsaison ist (Umbruch, keine explizite User-Wahl).
   def scope_season_transition?
     scope_resolver.season_transition?
+  end
+
+  # --- Anzeige-Label fuer den Region-Indikator im Sidebar-Kopf (reine Anzeige, kein State) ---
+  # Uebersetzen die Resolver-IDs in Anzeigetext. Defensiv gegen nil (fehlende Records).
+
+  def current_region_shortname
+    Region.find_by(id: current_region_id)&.shortname
+  end
+
+  def current_season_name
+    Season.find_by(id: current_season_id)&.name
+  end
+
+  # nil, wenn keine konkrete Branch gewaehlt ist ("Alle Branchen" -> im Label weggelassen).
+  def current_branch_name
+    id = current_branch_id
+    id && Branch.find_by(id: id)&.name
+  end
+
+  # "NBV · 2025/26" bzw. "NBV · 2025/26 · Karambol". Branch nur bei konkreter Wahl.
+  def scope_indicator_label
+    [current_region_shortname, current_season_name, current_branch_name].compact.join(" · ")
   end
 
   # --- Options-Quellen fuer die Band-View (Werte = IDs, kein "Alle") ---
