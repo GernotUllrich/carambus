@@ -5,6 +5,9 @@
 
 class Current < ActiveSupport::CurrentAttributes
   attribute :user, :request_id, :user_agent, :ip_address
+  # Globaler Ausschnitt (Scope-Band): { "region_id" => id, "season_id" => id, ... }.
+  # Wird pro Request aus der Session gesetzt; SearchService wendet es als FK-Filter an.
+  attribute :scope
 
   resets do
     Time.zone = nil

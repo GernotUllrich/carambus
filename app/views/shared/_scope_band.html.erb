@@ -1,0 +1,36 @@
+<%# Globaler Ausschnitt (Scope-Band): Region · Saison als primaere Interaktion. %>
+<%# KEIN "Alle" — jede Facette ist immer ein konkreter Wert (Default: Region=NBV, Saison=aktuell). %>
+<%# Aenderung submittet per GET; Scopable#capture_scope speichert in Session, SearchService filtert %>
+<%# via Current.scope (region_id/season_id). Disziplin/Branch-Facette folgt in 02-02 (branch_id). %>
+<div class="border-b border-gray-200 dark:border-gray-700 bg-surface-card dark:bg-gray-800">
+  <div class="px-4 py-2">
+    <%= form_tag request.path, method: :get, class: "flex items-center gap-2 flex-wrap" do %>
+      <%# Sortierung erhalten (Suche liegt in der Session, braucht kein Hidden-Feld). %>
+      <%= hidden_field_tag :sort, params[:sort] if params[:sort].present? %>
+      <%= hidden_field_tag :direction, params[:direction] if params[:direction].present? %>
+
+      <span class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 mr-1">
+        <%= t("scope_band.label", default: "Ausschnitt") %>
+      </span>
+
+      <% pill = "rounded-pill border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 text-sm px-3 py-1" %>
+      <% caption = "text-xs text-gray-400 dark:text-gray-500" %>
+
+      <span class="<%= caption %>"><%= t("scope_band.region", default: "Region") %></span>
+      <%= select_tag "scope[region]",
+            options_for_select(scope_region_options.map { |shortname, id| [shortname, id] }, current_region_id),
+            class: pill, onchange: "this.form.requestSubmit()" %>
+
+      <span class="<%= caption %>"><%= t("scope_band.season", default: "Saison") %></span>
+      <%= select_tag "scope[season]",
+            options_for_select(scope_season_options.map { |name, id| [name, id] }, current_season_id),
+            class: pill, onchange: "this.form.requestSubmit()" %>
+
+      <% if scope_season_transition? %>
+        <span class="text-xs italic text-gray-400 dark:text-gray-500" title="<%= t("scope_band.transition_hint", default: "Saison-Umbruch: die kommende Saison ist noch in Planung — bis Mitte August gilt die Vorsaison.") %>">
+          · <%= t("scope_band.transition", default: "Saison-Umbruch – Vorsaison") %>
+        </span>
+      <% end %>
+    <% end %>
+  </div>
+</div>

@@ -14,6 +14,7 @@ class ApplicationController < ActionController::Base
   include Sortable
   include Users::TimeZone
   include SetCurrentRequestDetails
+  include Scopable
 
   before_action :check_mini_profiler if Rails.env != "production" && Rails.env != "test"
   before_action :set_paper_trail_whodunnit
@@ -33,6 +34,9 @@ class ApplicationController < ActionController::Base
     @navbar = true
     @footer = true
   end
+  # Scope-Band: Ausschnitt aus der Session lesen und als FK-Filter (Current.scope) bereitstellen.
+  before_action :capture_scope
+  before_action :set_current_scope
   before_action :set_user_preferences
   before_action :set_locale
   around_action :set_current_user

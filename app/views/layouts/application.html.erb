@@ -120,12 +120,14 @@
     <% end %>
     <%= render "navbar" %>
   </header>
-  
+
   <!-- AI Search Panel (central overlay) -->
   <%= render "ai_search_panel" %>
   
   <!-- Main Content -->
   <main class="flex-1 bg-gray-200 dark:bg-gray-900 transition-all duration-300 content-wrapper" data-sidebar-target="content">
+    <%# Globaler Ausschnitt (Scope-Band) — im Content-Bereich (rechts der Sidebar), ueber allen Listen %>
+    <%= render "shared/scope_band" %>
     <%= yield %>
   </main>
   <%= render partial: "footer" if !turbo_native_app? && @footer %>
