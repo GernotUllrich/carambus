@@ -57,7 +57,9 @@ class SearchReflex < ApplicationReflex
     instance_variable_set("@pagy", pagy)
     instance_variable_set("@search_params", search_params)
 
-    # Render partial
-    render partial: "#{model_name.underscore.pluralize}_table", locals: {pagy: @pagy, model_class: @model, records: records}
+    # Render partial: das tatsaechlich von der Index-Seite gerenderte table_partial (Default _table),
+    # damit die Live-Suche das richtige DOM-Ziel morpht (UAT-001; tournaments/index rendert tournaments_list).
+    table_partial = element.dataset["table-partial"].presence || "#{model_name.underscore.pluralize}_table"
+    render partial: table_partial, locals: {pagy: @pagy, model_class: @model, records: records}
   end
 end

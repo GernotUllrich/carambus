@@ -199,7 +199,17 @@ module ApplicationHelper
       
       # Determine field key (for form name attribute)
       field_key = determine_field_key(display_name, column_def)
-      
+
+      # Scope-Band-Redundanz (02-04): Region/Saison besitzt jetzt das globale Scope-Band.
+      # Aus dem Popup entfernen -- ausser das Modell nutzt die Facette als AKTIVEN Kaskaden-Trigger
+      # (nicht-leere Kinder), dann bleibt sie, damit die abhaengige Dropdown-Kaskade nicht bricht.
+      # (Tournament#season_id ist eine kinderlose Kaskade -> wird entfernt; Player#region_id -> ['club_id'] bleibt.)
+      # Disziplin bleibt bewusst (feiner als Branch = Within-Scope-Verfeinerung, kein Band-Pendant).
+      if %w[region_id season_id].include?(field_key)
+        cascade_children = model_class.respond_to?(:cascading_filters) ? model_class.cascading_filters[field_key] : nil
+        next if cascade_children.blank?
+      end
+
       max_options = options.is_a?(Array) ? options.length : nil
       
       # Get examples and description from model if available

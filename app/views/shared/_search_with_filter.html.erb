@@ -12,6 +12,7 @@
             data-controller="stimulus-reflex"
             data-reflex="input->SearchReflex#perform"
             data-reflex-permanent="search"
+            <%= tag.attributes("data-table-partial" => local_assigns[:table_partial]) if local_assigns[:table_partial].present? %>
             placeholder="Search"
             data-action="input->stimulus-reflex#__perform"
             data-filter-popup-target="searchInput"
