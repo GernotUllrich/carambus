@@ -34,6 +34,7 @@ class League < ApplicationRecord
   include LocalProtector
   include SourceHandler
   include RegionTaggable
+  include BranchTaggable
 
   self.ignored_columns = ["region_ids"]
 

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_06_30_190139) do
+ActiveRecord::Schema[7.2].define(version: 2026_07_02_061649) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -538,11 +538,13 @@ ActiveRecord::Schema[7.2].define(version: 2026_06_30_190139) do
     t.text "game_parameters"
     t.boolean "game_plan_locked", default: false, null: false
     t.integer "region_id"
+    t.integer "branch_id"
     t.boolean "global_context", default: false
     t.index ["ba_id", "ba_id2"], name: "index_leagues_on_ba_id_and_ba_id2", unique: true
     t.index ["cc_id", "cc_id2", "organizer_id", "organizer_type"], name: "index_leagues_on_cc_ids_organizer_unique", unique: true, where: "((cc_id IS NOT NULL) AND ((organizer_type)::text = 'Region'::text))"
     t.index ["global_context"], name: "index_leagues_on_global_context"
     t.index ["region_id"], name: "index_leagues_on_region_id"
+    t.index ["branch_id"], name: "index_leagues_on_branch_id"
   end
 
   create_table "location_synonyms", force: :cascade do |t|
@@ -1439,6 +1441,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_06_30_190139) do
     t.integer "ba_id"
     t.integer "season_id"
     t.integer "region_id"
+    t.integer "branch_id"
     t.datetime "end_date", precision: nil
     t.string "plan_or_show"
     t.string "single_or_league"
@@ -1489,6 +1492,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_06_30_190139) do
     t.index ["international_tournament_id"], name: "index_tournaments_on_international_tournament_id"
     t.index ["turnier_leiter_user_id"], name: "index_tournaments_on_turnier_leiter_user_id"
     t.index ["type"], name: "index_tournaments_on_type"
+    t.index ["branch_id"], name: "index_tournaments_on_branch_id"
   end
 
   create_table "training_concept_disciplines", force: :cascade do |t|

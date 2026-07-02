@@ -62,6 +62,7 @@ class Tournament < ApplicationRecord
   include LocalProtector
   include SourceHandler
   include RegionTaggable
+  include BranchTaggable
   include Searchable
   include TournamentLeiter
   DEBUG_LOGGER = Logger.new("#{Rails.root}/log/debug.log")

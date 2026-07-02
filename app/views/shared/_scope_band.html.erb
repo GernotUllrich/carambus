@@ -1,7 +1,7 @@
-<%# Globaler Ausschnitt (Scope-Band): Region · Saison als primaere Interaktion. %>
-<%# KEIN "Alle" — jede Facette ist immer ein konkreter Wert (Default: Region=NBV, Saison=aktuell). %>
+<%# Globaler Ausschnitt (Scope-Band): Region · Saison · Branch als primaere Interaktion. %>
+<%# Region/Saison: kein "Alle" (Default Region=NBV, Saison=aktuell). Branch: "Alle Branchen" (Ausnahme). %>
 <%# Aenderung submittet per GET; Scopable#capture_scope speichert in Session, SearchService filtert %>
-<%# via Current.scope (region_id/season_id). Disziplin/Branch-Facette folgt in 02-02 (branch_id). %>
+<%# via Current.scope (region_id/season_id/branch_id) als FK-Filter. %>
 <div class="border-b border-gray-200 dark:border-gray-700 bg-surface-card dark:bg-gray-800">
   <div class="px-4 py-2">
     <%= form_tag request.path, method: :get, class: "flex items-center gap-2 flex-wrap" do %>
@@ -31,6 +31,12 @@
           · <%= t("scope_band.transition", default: "Saison-Umbruch – Vorsaison") %>
         </span>
       <% end %>
+
+      <span class="<%= caption %>"><%= t("scope_band.branch", default: "Branch") %></span>
+      <%= select_tag "scope[branch]",
+            options_for_select([[t("scope_band.all_branches", default: "Alle Branchen"), ""]] +
+              scope_branch_options.map { |name, id| [name, id] }, current_branch_id),
+            class: pill, onchange: "this.form.requestSubmit()" %>
     <% end %>
   </div>
 </div>

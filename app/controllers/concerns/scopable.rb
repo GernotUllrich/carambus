@@ -9,19 +9,22 @@
 #   Region = NBV (Region[1], pragmatisch — aktuell einzige real genutzte Region; DBU ist einfach
 #   eine waehlbare Region), Saison = aktuelle Saison. Regionale Server setzen die Region aus dem
 #   Server-Kontext; globaler Server nutzt bis 02-02 diese Defaults.
-# Branch/Disziplin-Facette folgt in 02-02 zusammen mit branch_id (BranchTaggable, analog RegionTaggable).
+# Branch ist die EINE Ausnahme zur "kein Alle"-Regel: "Alle Branchen" (Default), weil Branch genuin
+# quer-interessant ist und (noch) unklassifizierte Disziplinen (branch_id=nil) sonst durchs Raster fielen.
 module Scopable
   extend ActiveSupport::Concern
 
   # Facette (Band-Feldname) => FK-Spalte auf den Modellen.
   SCOPE_FACETS = {
     "region" => "region_id",
-    "season" => "season_id"
+    "season" => "season_id",
+    "branch" => "branch_id"
   }.freeze
 
   included do
-    helper_method :current_scope, :current_region_id, :current_season_id,
-                  :scope_region_options, :scope_season_options, :scope_season_transition?
+    helper_method :current_scope, :current_region_id, :current_season_id, :current_branch_id,
+                  :scope_region_options, :scope_season_options, :scope_branch_options,
+                  :scope_season_transition?
   end
 
   private
@@ -42,7 +45,8 @@ module Scopable
   def set_current_scope
     Current.scope = {
       "region_id" => current_region_id,
-      "season_id" => current_season_id
+      "season_id" => current_season_id,
+      "branch_id" => current_branch_id
     }.compact
   end
 
@@ -57,6 +61,11 @@ module Scopable
 
   def current_season_id
     (current_scope["season"].presence || default_season_id)&.to_i
+  end
+
+  # Branch: KEIN Default -> nil bedeutet "Alle Branchen" (kein Filter).
+  def current_branch_id
+    current_scope["branch"].presence&.to_i
   end
 
   # Default-Region: pragmatisch NBV (per shortname, sonst erste Region). 02-02: User-Preference/Server-Kontext.
@@ -104,5 +113,9 @@ module Scopable
 
   def scope_season_options
     Season.order(id: :desc).limit(20).pluck(:name, :id)
+  end
+
+  def scope_branch_options
+    Branch.order(:name).pluck(:name, :id)
   end
 end
