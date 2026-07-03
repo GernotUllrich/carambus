@@ -71,6 +71,17 @@ module ApplicationHelper
       class: "inline-flex items-center rounded-md border border-gray-200 dark:border-gray-700 px-2 py-0.5 text-xs text-gray-500 dark:text-gray-400")
   end
 
+  # True auf Scoreboard-/Kiosk-Seiten (out-of-scope des Redesigns): Table-Monitor-Scoreboard,
+  # sb_state-Kiosk auf einer Location, oder angemeldeter scoreboard@carambus.de-User mit sb_state.
+  # Single Source fuer: kein Scope-Band, Sidebar beim Aktivieren eingeklappt, kein Chat-Button.
+  def scoreboard_page?
+    scoreboard_user = current_user&.email == "scoreboard@carambus.de" ||
+                      Current.user&.email == "scoreboard@carambus.de"
+    (scoreboard_user && params[:sb_state].present?) ||
+      @table_monitor.present? ||
+      (@location.present? && params[:sb_state].present?)
+  end
+
   def title(page_title)
     content_for(:title) { page_title }
   end

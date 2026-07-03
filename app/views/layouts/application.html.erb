@@ -3,13 +3,12 @@
 <% 
   html_classes = []
   html_classes << (current_user&.prefers_dark_mode? ? 'dark' : 'light')
-  # Only force collapsed for scoreboard users when sb_state parameter is present (direct scoreboard URL)
-  # Check both current_user (Devise) and Current.user (could be set even if current_user is not yet available)
-  is_scoreboard_user = (current_user&.email == 'scoreboard@carambus.de') || (Current.user&.email == 'scoreboard@carambus.de')
-  is_scoreboard_url = is_scoreboard_user && params[:sb_state].present?
-  html_classes << 'sidebar-collapsed' if is_scoreboard_url
+  # Scoreboard/Kiosk ist out-of-scope des Redesigns (siehe scoreboard_page?): kein Scope-Band,
+  # Sidebar beim Aktivieren immer eingeklappt, kein Chat-Button.
+  is_scoreboard_page = scoreboard_page?
+  html_classes << 'sidebar-collapsed' if is_scoreboard_page
 %>
-<html lang="<%= I18n.locale %>" class="<%= html_classes.join(' ') %>" data-scoreboard-url="<%= is_scoreboard_url %>">
+<html lang="<%= I18n.locale %>" class="<%= html_classes.join(' ') %>" data-scoreboard-url="<%= is_scoreboard_page %>">
 <head>
   <title>
     <% if content_for?(:title) %>
@@ -126,8 +125,9 @@
   
   <!-- Main Content -->
   <main class="flex-1 bg-gray-200 dark:bg-gray-900 transition-all duration-300 content-wrapper" data-sidebar-target="content">
-    <%# Globaler Ausschnitt (Scope-Band) — im Content-Bereich (rechts der Sidebar), ueber allen Listen %>
-    <%= render "shared/scope_band" %>
+    <%# Globaler Ausschnitt (Scope-Band) — im Content-Bereich (rechts der Sidebar), ueber allen Listen. %>
+    <%# NICHT im Scoreboard/Kiosk (out-of-scope): dort kein Band. %>
+    <%= render "shared/scope_band" unless is_scoreboard_page %>
     <%= yield %>
   </main>
   <%= render partial: "footer" if !turbo_native_app? && @footer %>
