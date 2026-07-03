@@ -37,6 +37,12 @@ class Player < ApplicationRecord
 
   belongs_to :region, optional: true
 
+  # Scope-Band-Zusatzfacette: fuer Spieler ist der Club (aus season_participations) der zentrale
+  # Filter — nicht Branch. Siehe ApplicationRecord.scope_extra_facet.
+  def self.scope_extra_facet
+    :club
+  end
+
   validates :pin4,
             uniqueness: true,
             length: { is: 4 },

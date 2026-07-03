@@ -11,7 +11,7 @@
 # branch: KEIN Fallback -> nil bedeutet "Alle Branchen" (kein Filter); eine gesetzte
 #   Branch-Preference wird aber als Default respektiert.
 class ScopeResolver
-  SCOPE_FACETS = %w[region season branch].freeze
+  SCOPE_FACETS = %w[region season branch club].freeze
 
   def initialize(session_scope: nil, user: nil)
     @session_scope = (session_scope || {}).slice(*SCOPE_FACETS)
@@ -23,7 +23,8 @@ class ScopeResolver
     {
       "region_id" => region_id,
       "season_id" => season_id,
-      "branch_id" => branch_id
+      "branch_id" => branch_id,
+      "club_id" => club_id
     }.compact
   end
 
@@ -40,6 +41,11 @@ class ScopeResolver
   # Branch: Session -> Preference; sonst nil = "Alle Branchen".
   def branch_id
     (@session_scope["branch"].presence || preferred("branch")).presence&.to_i
+  end
+
+  # Club: Session -> Preference; sonst nil = "Alle Clubs" (Analog Branch, kontext-sensitive 3. Facette).
+  def club_id
+    (@session_scope["club"].presence || preferred("club")).presence&.to_i
   end
 
   # True, wenn der Saison-Default aktuell die Vorsaison ist (Umbruch, keine explizite Wahl:

@@ -45,6 +45,12 @@ class ApplicationRecord < ActiveRecord::Base
     @sortable_columns ||= columns.map(&:name)
   end
 
+  # Zusatz-Facette des Scope-Bands (neben Region/Saison). Default = Branch; Modelle koennen
+  # ueberschreiben (z.B. Player => :club). Das Band liest dies ueber das aktuelle Controller-Modell.
+  def self.scope_extra_facet
+    :branch
+  end
+
   def disallow_saving_global_records
     raise ActiveRecord::Rollback if id < MIN_ID && ApplicationRecord.local_server? && !unprotected
 

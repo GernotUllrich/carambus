@@ -29,9 +29,16 @@
           <span class="text-[10px] uppercase tracking-wide text-gray-500 dark:text-gray-400">
             <%= t("scope_band.label", default: "Ausschnitt") %>
           </span>
+          <%# Primaerzeile Region·Saison (kurz, einzeilig). %>
           <span class="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate max-w-full">
-            <%= scope_indicator_label %>
+            <%= scope_indicator_primary %>
           </span>
+          <%# 3. Facette (Club/Branch) auf eigener Zeile — Club-Namen sind oft zu lang fuer eine Zeile. %>
+          <% if scope_indicator_extra.present? %>
+            <span class="text-xs font-medium text-gray-700 dark:text-gray-300 break-words max-w-full leading-tight">
+              <%= scope_indicator_extra %>
+            </span>
+          <% end %>
         </button>
       </div>
     <% end %>

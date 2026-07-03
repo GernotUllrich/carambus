@@ -14,19 +14,23 @@
 module Scopable
   extend ActiveSupport::Concern
 
-  # Facette (Band-Feldname) => FK-Spalte auf den Modellen.
+  # Facette (Band-Feldname) => FK-Spalte auf den Modellen. "club" ist die kontext-sensitive
+  # 3. Facette fuer Modelle mit scope_extra_facet == :club (Player) und wird join-basiert gefiltert.
   SCOPE_FACETS = {
     "region" => "region_id",
     "season" => "season_id",
-    "branch" => "branch_id"
+    "branch" => "branch_id",
+    "club" => "club_id"
   }.freeze
 
   included do
     helper_method :current_scope, :current_region_id, :current_season_id, :current_branch_id,
+                  :current_club_id,
                   :scope_region_options, :scope_season_options, :scope_branch_options,
+                  :scope_club_options, :scope_extra_facet,
                   :scope_season_transition?,
                   :current_region_shortname, :current_season_name, :current_branch_name,
-                  :scope_indicator_label
+                  :scope_indicator_label, :scope_indicator_primary, :scope_indicator_extra
   end
 
   private
@@ -91,6 +95,22 @@ module Scopable
     scope_resolver.branch_id
   end
 
+  def current_club_id
+    scope_resolver.club_id
+  end
+
+  # Aktuelles Modell (aus dem Controller-Namen) und dessen Scope-Zusatzfacette (:branch|:club).
+  # Steuert, welche 3. Facette das Band zeigt. Defensiv: unbekannter Controller -> :branch (Default).
+  def scope_model
+    controller_name.classify.constantize
+  rescue StandardError
+    nil
+  end
+
+  def scope_extra_facet
+    (scope_model.respond_to?(:scope_extra_facet) ? scope_model.scope_extra_facet : nil) || :branch
+  end
+
   # True, wenn der Default aktuell die Vorsaison ist (Umbruch, keine explizite User-Wahl).
   def scope_season_transition?
     scope_resolver.season_transition?
@@ -113,9 +133,28 @@ module Scopable
     id && Branch.find_by(id: id)&.name
   end
 
-  # "NBV · 2025/26" bzw. "NBV · 2025/26 · Karambol". Branch nur bei konkreter Wahl.
+  # nil, wenn kein konkreter Club gewaehlt ist ("Alle Clubs"). Anzeige: shortname, sonst name.
+  def current_club_name
+    id = current_club_id
+    return nil unless id
+    club = Club.find_by(id: id)
+    club && (club.shortname.presence || club.name.presence)
+  end
+
+  # Primaerzeile des Indikators: "NBV · 2025/26" (Region · Saison) — kurz, passt einzeilig.
+  def scope_indicator_primary
+    [current_region_shortname, current_season_name].compact.join(" · ")
+  end
+
+  # 3. Facette (Zweitzeile): Club auf players, sonst Branch — folgt scope_extra_facet, kann lang sein
+  # (Club-Name) und wird im Sidebar-Kopf auf eine eigene Zeile gesetzt. nil, wenn nicht konkret gewaehlt.
+  def scope_indicator_extra
+    scope_extra_facet == :club ? current_club_name : current_branch_name
+  end
+
+  # Volltext (fuer Titel/aria/Present-Check): "NBV · 2025/26" bzw. "... · 1. BC Schwerin".
   def scope_indicator_label
-    [current_region_shortname, current_season_name, current_branch_name].compact.join(" · ")
+    [scope_indicator_primary, scope_indicator_extra].compact.reject(&:blank?).join(" · ")
   end
 
   # --- Options-Quellen fuer die Band-View (Werte = IDs, kein "Alle") ---
@@ -130,5 +169,16 @@ module Scopable
 
   def scope_branch_options
     Branch.order(:name).pluck(:name, :id)
+  end
+
+  # Clubs der aktuellen Scope-Region (kaskadiert Region -> Club). Anzeige = shortname, sonst name;
+  # namenlose Stub-/Placeholder-Clubs (weder shortname noch name) werden weggelassen. Werte = IDs,
+  # kein "Alle" (Ausnahme wie Branch: das Band ergaenzt "Alle Clubs" selbst).
+  def scope_club_options
+    display = Arel.sql("COALESCE(NULLIF(clubs.shortname, ''), clubs.name)")
+    Club.where(region_id: current_region_id)
+        .where.not(name: [nil, ""])
+        .order(display)
+        .pluck(display, :id)
   end
 end

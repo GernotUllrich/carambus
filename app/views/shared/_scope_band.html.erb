@@ -33,11 +33,20 @@
         </span>
       <% end %>
 
-      <span class="<%= caption %>"><%= t("scope_band.branch", default: "Branch") %></span>
-      <%= select_tag "scope[branch]",
-            options_for_select([[t("scope_band.all_branches", default: "Alle Branchen"), ""]] +
-              scope_branch_options.map { |name, id| [name, id] }, current_branch_id),
-            class: pill, onchange: "this.form.requestSubmit()" %>
+      <%# Kontext-sensitive 3. Facette: Club (Player) statt Branch — aus scope_extra_facet des Modells. %>
+      <% if scope_extra_facet == :club %>
+        <span class="<%= caption %>"><%= t("scope_band.club", default: "Club") %></span>
+        <%= select_tag "scope[club]",
+              options_for_select([[t("scope_band.all_clubs", default: "Alle Clubs"), ""]] +
+                scope_club_options.map { |name, id| [name, id] }, current_club_id),
+              class: pill, onchange: "this.form.requestSubmit()" %>
+      <% else %>
+        <span class="<%= caption %>"><%= t("scope_band.branch", default: "Branch") %></span>
+        <%= select_tag "scope[branch]",
+              options_for_select([[t("scope_band.all_branches", default: "Alle Branchen"), ""]] +
+                scope_branch_options.map { |name, id| [name, id] }, current_branch_id),
+              class: pill, onchange: "this.form.requestSubmit()" %>
+      <% end %>
     <% end %>
   </div>
 </div>

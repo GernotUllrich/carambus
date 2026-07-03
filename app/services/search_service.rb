@@ -44,12 +44,30 @@ class SearchService < ApplicationService
     table = @model.table_name
     scope.each do |column, value|
       next if value.blank?
-      next unless cols.include?(column.to_s)
+      col = column.to_s
 
-      results = if column.to_s == "region_id" && cols.include?("global_context")
+      # Club: join-basiert, saison-gebunden. Fuer Modelle mit season_participations (Player) ist die
+      # direkte players.club_id-Spalte unzuverlaessig -> ueber die Assoziation filtern (club_id +
+      # season_id = Scope-Saison), distinct. Andere Modelle ohne die Assoziation ignorieren club_id.
+      if col == "club_id"
+        next unless @model.reflect_on_association(:season_participations)
+
+        results = results.joins(:season_participations)
+                         .where(season_participations: { club_id: value })
+        season = scope["season_id"]
+        if season.present? && SeasonParticipation.column_names.include?("season_id")
+          results = results.where(season_participations: { season_id: season })
+        end
+        results = results.distinct
+        next
+      end
+
+      next unless cols.include?(col)
+
+      results = if col == "region_id" && cols.include?("global_context")
                   results.where("#{table}.region_id = :r OR #{table}.global_context = TRUE", r: value)
                 else
-                  results.where(column => value)
+                  results.where(col => value)
                 end
     end
     results
