@@ -1,0 +1,27 @@
+<div class="bg-surface-card dark:bg-gray-800 rounded-card border border-gray-200 dark:border-gray-700 overflow-hidden">
+  <% @players ||= records %>
+  <% @pagy ||= defined?(pagy) ? pagy : nil %>
+  <% @players.each do |player| %>
+    <div class="group flex items-center gap-3 px-4 py-3 border-t border-gray-100 dark:border-gray-700 first:border-t-0 hover:bg-surface-page dark:hover:bg-gray-700/60">
+      <div class="flex-1 min-w-0">
+        <%= custom_link_to(player.fullname, player, class: "font-medium text-gray-900 dark:text-gray-100 hover:text-primary-600") %>
+        <div class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+          <%# Subzeile = Club (aktueller Club via player.club); Spieler haben kein Datum/Saison. %>
+          <%# Region ist scope-fixiert → nur als Badge bei Abweichung, nicht inline. %>
+          <%= player.club&.name %>
+        </div>
+      </div>
+      <%# Kein Disziplin-Chip: Spieler sind nicht disziplin-gebunden. %>
+      <%# Region-Badge nur bei Abweichung: Spieler-Region ≠ Scope-Region (global_context/überregional). %>
+      <% if player.region.present? && player.region_id != current_region_id %>
+        <%= region_badge(player.region) %>
+      <% end %>
+    </div>
+  <% end %>
+</div>
+
+<% if @pagy.present? && @pagy.pages > 1 %>
+  <div class="text-center my-6">
+    <%= pagy_nav(@pagy).html_safe %>
+  </div>
+<% end %>
