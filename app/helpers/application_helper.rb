@@ -59,6 +59,18 @@ module ApplicationHelper
     tag.div(text, **options, &block)
   end
 
+  # Neutraler Region-/Organizer-Badge fuer Zeilen-Listen (Redesign Mockup #5 .as-badge).
+  # Zeigt das Kuerzel (Region#shortname), umrandet und dezent; nie eingefaerbt.
+  def region_badge(region)
+    return if region.blank?
+
+    shortname = region.respond_to?(:shortname) ? region.shortname : region.to_s
+    return if shortname.blank?
+
+    content_tag(:span, shortname,
+      class: "inline-flex items-center rounded-md border border-gray-200 dark:border-gray-700 px-2 py-0.5 text-xs text-gray-500 dark:text-gray-400")
+  end
+
   def title(page_title)
     content_for(:title) { page_title }
   end
