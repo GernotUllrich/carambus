@@ -76,9 +76,9 @@
               <td class="p-3 align-top">
                 <%= form_tag add_tables_to_location_path(@location) do %>
                   <%= select_tag :table_kind_id, options_for_select(@table_kind_all.map { |tk| [tk.name, tk.id] },
-                                                                    @table_kind_all.select{|tk| tk.name =="Small Billard"}.first&.id), class: "border-2" %>
+                                                                    @table_kind_all.select{|tk| tk.name =="Small Billard"}.first&.id), class: "bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 rounded-md px-2 py-1" %>
                   <br>
-                  <%= number_field_tag :number, value = 1, class: "border-2", style: "width: 50px" %>
+                  <%= number_field_tag :number, value = 1, class: "bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 rounded-md px-2 py-1", style: "width: 60px", autocomplete: :off %>
                   <%= submit_tag "Add" %>
                 <%- end %>
               </td>

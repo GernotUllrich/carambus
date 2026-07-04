@@ -110,4 +110,38 @@
   .admin-main .flash--alert {
     @apply bg-red-50 dark:bg-red-900/30 text-red-800 dark:text-red-200 border-red-200 dark:border-red-800;
   }
+
+  /* --- 06-06: nested fieldsets (has_one/has_many), File-Inputs, Attachments (Dark-Mode) --- */
+  .admin-main .field-unit--nested,
+  .admin-main .attribute--nested {
+    @apply border border-gray-200 dark:border-gray-700 rounded-md p-4 bg-surface-card dark:bg-gray-800;
+  }
+
+  .admin-main .field-unit--nested legend,
+  .admin-main .attribute--nested legend {
+    @apply text-gray-700 dark:text-gray-200 font-semibold px-1;
+  }
+
+  .admin-main input[type="file"] {
+    @apply text-gray-900 dark:text-gray-100;
+  }
+
+  .admin-main input[type="file"]::file-selector-button {
+    @apply mr-3 rounded-md border-0 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-100 px-3 py-1.5 text-sm font-medium cursor-pointer hover:bg-gray-300 dark:hover:bg-gray-600;
+  }
+
+  .admin-main .attachment figure,
+  .admin-main figure {
+    @apply text-gray-900 dark:text-gray-100;
+  }
+
+  .admin-main .attachment a,
+  .admin-main figure a {
+    @apply text-primary-700 dark:text-primary-300 hover:underline;
+  }
+
+  .admin-main .attachment img,
+  .admin-main figure img {
+    @apply rounded-md;
+  }
 }
