@@ -123,7 +123,7 @@
 }
 
 .yellow_link {
-  color: #f67f32;
+  color: theme('colors.warning.500');
   background-color: transparent;
   text-decoration: none;
   font-weight: bold;
@@ -142,8 +142,8 @@ ul:not(.list-none) {
   }
 }
 .highlight {
-  background-color: #f8f8f8;
-  border: 1px solid #ddd;
+  background-color: theme('colors.gray.50');
+  border: 1px solid theme('colors.gray.300');
   border-radius: 3px;
   padding: 10px;
   margin: 10px 0;

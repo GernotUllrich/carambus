@@ -69,6 +69,10 @@ module.exports = {
         secondary: colors.emerald,
         tertiary: colors.gray,
         danger: colors.red,
+        // Semantische Status-Tokens (Phase 7) — volle Ramps für alle Shades
+        success: colors.emerald, // Anker #10b981 = emerald-500
+        warning: colors.amber,   // Anker #f59e0b = amber-500, #fbbf24 = amber-400
+        info: colors.blue,       // info/brand-Blau-Fälle
         colors: {
           'neon-yellow': '#FFFF09',
         },

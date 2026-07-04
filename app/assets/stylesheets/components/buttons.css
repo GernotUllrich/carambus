@@ -147,6 +147,6 @@ button[disabled] .when-enabled { display: none; }
 .main-content .button:hover,
 .main-content .button:focus,
 .main-content .button:active {
-  color: #fff !important;
-  -webkit-text-fill-color: #fff !important;
+  color: theme('colors.white') !important;
+  -webkit-text-fill-color: theme('colors.white') !important;
 }
