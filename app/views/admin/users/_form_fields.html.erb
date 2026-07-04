@@ -45,7 +45,7 @@
   <div class="field-unit">
     <div class="field-unit__label">
       <%= form.label :persona_grants, "Sportwart-Persona" %>
-      <p class="field-unit__help" style="font-size: 0.85em; color: #666;">
+      <p class="field-unit__help text-[0.85em] text-gray-500 dark:text-gray-400">
         Macht den Nutzer zum <strong>Sportwart</strong> (CC-Schreibrecht im Chat).
         <strong>Landessportwart</strong> = region-weit (ALLE Spielorte); <strong>Sportwart</strong> = nur die unten gewählten Spielorte.
         Ohne Persona: read-only (Disziplinen/Spielorte allein genügen nicht).
@@ -55,7 +55,7 @@
       <%# leeres Fallback: alle Personas abwählen leert die Liste %>
       <input type="hidden" name="user[persona_grants][]" value="">
       <% User::PERSONA_GRANTS.each do |pg| %>
-        <label style="display:block; margin:3px 0;">
+        <label class="block my-0.5">
           <%= check_box_tag "user[persona_grants][]", pg, Array(page.resource.persona_grants).include?(pg) %>
           <%= pg == "landessportwart" ? "Landessportwart (region-weit, alle Spielorte)" : "Sportwart (standortgebunden)" %>
         </label>
@@ -67,13 +67,13 @@
   <div class="field-unit">
     <div class="field-unit__label">
       <%= form.label :sportwart_disciplines, "Sportwart-Disziplinen" %>
-      <p class="field-unit__help" style="font-size: 0.85em; color: #666;">
+      <p class="field-unit__help text-[0.85em] text-gray-500 dark:text-gray-400">
         Schränkt den Wirkbereich auf diese Disziplinen ein (leer = alle Disziplinen).
         Eine Oberdisziplin (z.B. <em>Karambol</em>) deckt automatisch alle Unterdisziplinen ab — zum Aufklappen auf das ▶ klicken.
       </p>
     </div>
     <div class="field-unit__field">
-      <ul style="margin: 0; padding: 0;">
+      <ul class="m-0 p-0 list-none">
         <% discipline_tree_roots.each do |root| %>
           <%= render "admin/users/discipline_node", discipline: root, selected_ids: page.resource.sportwart_discipline_ids %>
         <% end %>
@@ -84,7 +84,7 @@
   <div class="field-unit">
     <div class="field-unit__label">
       <%= form.label :sportwart_locations, "Sportwart-Spielorte" %>
-      <p class="field-unit__help" style="font-size: 0.85em; color: #666;">
+      <p class="field-unit__help text-[0.85em] text-gray-500 dark:text-gray-400">
         <% if server_region %>
           Nur Spielorte der Region <strong><%= server_region.shortname %></strong>, gruppiert nach Verein.
         <% else %>
@@ -98,37 +98,21 @@
     <% grouped = region_locations_grouped_options %>
     <div class="field-unit__field" data-controller="location-picker"
          data-location-picker-locations-url-value="<%= locations_by_region_admin_users_path %>">
-      <%# Kontrast erzwingen: globale .btn-*-Regeln setzen color:white !important auf Buttons —
-          unsere Picker-Buttons in allen Zustaenden auf lesbares Dunkel ueberschreiben. %>
-      <style>
-        [data-controller="location-picker"] .lp-available-item {
-          color: #1f2937 !important; -webkit-text-fill-color: #1f2937 !important;
-          background-color: transparent !important;
-        }
-        [data-controller="location-picker"] .lp-available-item:hover {
-          background-color: #dbeafe !important;
-          color: #1e3a8a !important; -webkit-text-fill-color: #1e3a8a !important;
-        }
-        [data-controller="location-picker"] .lp-chip,
-        [data-controller="location-picker"] .lp-chip button {
-          color: #1e3a8a !important; -webkit-text-fill-color: #1e3a8a !important;
-        }
-      </style>
       <%# leeres Fallback-Input: damit "alle Chips entfernt" die Zuordnung wirklich leert %>
       <input type="hidden" name="user[sportwart_location_ids][]" value="">
 
       <%# Ausgewählt-Block (Chips, entfernbar) %>
       <div data-location-picker-target="selected"
-           style="min-height: 38px; padding: 4px; border: 1px solid #d1d5db; border-radius: 6px; margin-bottom: 8px; background: #fff;">
+           class="min-h-[38px] p-1 rounded-md mb-2 border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900">
         <% selected_locs.each do |loc| %>
-          <span class="lp-chip" data-chip-id="<%= loc.id %>" style="display:inline-flex;align-items:center;gap:4px;padding:3px 8px;margin:2px;border:1px solid #2563eb;border-radius:12px;background:#eff6ff;font-size:0.9em;">
+          <span class="lp-chip inline-flex items-center gap-1 px-2 py-0.5 m-0.5 rounded-full text-[0.9em] border border-info-600 bg-info-50 dark:bg-info-900/30 !text-info-800 dark:!text-info-200" data-chip-id="<%= loc.id %>">
             <input type="hidden" name="user[sportwart_location_ids][]" value="<%= loc.id %>">
             <span><%= loc.name %></span>
-            <button type="button" data-action="location-picker#remove" style="border:0;background:transparent;cursor:pointer;color:#2563eb;font-weight:bold;line-height:1;">&times;</button>
+            <button type="button" data-action="location-picker#remove" class="border-0 bg-transparent cursor-pointer font-bold leading-none !text-info-800 dark:!text-info-200">&times;</button>
           </span>
         <% end %>
         <span data-location-picker-target="empty" <%= "hidden" if selected_locs.any? %>
-              style="color:#9ca3af;font-size:0.9em;padding:4px;">Keine Spielorte gewählt</span>
+              class="text-gray-400 text-[0.9em] p-1">Keine Spielorte gewählt</span>
       </div>
 
       <%# Server OHNE festen Region-Context: Region wählen → Verfügbar-Liste wird per JSON geladen. %>
@@ -136,25 +120,24 @@
         <%= select_tag :sportwart_region_picker,
               options_for_select(region_picker_options),
               include_blank: "— Region wählen —",
-              class: "text-input",
-              style: "margin-bottom: 8px; width: 100%;",
+              class: "text-input mb-2 w-full",
               data: { location_picker_target: "region", action: "location-picker#loadRegion" } %>
       <% end %>
 
       <%# Verfügbar-Liste, nach Verein gruppiert — Klick fügt hinzu %>
       <div data-location-picker-target="availableList"
-           style="max-height: 220px; overflow-y: auto; border: 1px solid #e5e7eb; border-radius: 6px; padding: 4px; background: #fafafa;">
+           class="max-h-[220px] overflow-y-auto rounded-md p-1 border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
         <% grouped.each do |club_name, locs| %>
           <div data-location-picker-target="group" <%= "hidden" if locs.all? { |_n, id| selected_location_ids.include?(id) } %>
-               style="margin-bottom: 6px;">
-            <div style="font-weight: 600; font-size: 0.8em; color: #6b7280; padding: 2px 4px;"><%= club_name %></div>
+               class="mb-1.5">
+            <div class="font-semibold text-[0.8em] text-gray-500 dark:text-gray-400 px-1 py-0.5"><%= club_name %></div>
             <% locs.each do |loc_name, loc_id| %>
-              <button type="button" class="lp-available-item"
+              <button type="button"
+                      class="lp-available-item block w-full text-left border-0 bg-transparent cursor-pointer px-2 py-0.5 rounded text-[0.9em] !text-gray-800 dark:!text-gray-100 hover:bg-info-100 dark:hover:bg-info-900/30 hover:!text-info-900 dark:hover:!text-info-100"
                       data-location-picker-target="available"
                       data-id="<%= loc_id %>" data-name="<%= loc_name %>"
                       data-action="location-picker#add"
-                      <%= "hidden" if selected_location_ids.include?(loc_id) %>
-                      style="display:block;width:100%;text-align:left;border:0;background:transparent;cursor:pointer;padding:3px 8px;border-radius:4px;font-size:0.9em;">
+                      <%= "hidden" if selected_location_ids.include?(loc_id) %>>
                 + <%= loc_name %>
               </button>
             <% end %>
@@ -174,12 +157,12 @@
          data-dependent-select-url-value="<%= players_by_club_admin_users_path %>">
       <div class="field-unit__label">
         <%= form.label :player_id, "Verknüpfter Spieler" %>
-        <p class="field-unit__help" style="font-size: 0.85em; color: #666;">
+        <p class="field-unit__help text-[0.85em] text-gray-500 dark:text-gray-400">
           Für „Mein Billard": erst Verein der Region wählen, dann Spieler (aktuelle Saison).
           Alternativ verknüpft sich der Nutzer im Chat selbst (cc_link_my_player).
         </p>
       </div>
-      <div class="field-unit__field" style="display: flex; gap: 8px; flex-wrap: wrap;">
+      <div class="field-unit__field flex gap-2 flex-wrap">
         <%= select_tag :player_club_picker,
               options_from_collection_for_select(region_clubs, :id, :name, selected_club&.id),
               include_blank: "— Verein wählen —",
@@ -202,12 +185,12 @@
          data-region-player-picker-players-url-value="<%= players_by_club_admin_users_path %>">
       <div class="field-unit__label">
         <%= form.label :player_id, "Verknüpfter Spieler" %>
-        <p class="field-unit__help" style="font-size: 0.85em; color: #666;">
+        <p class="field-unit__help text-[0.85em] text-gray-500 dark:text-gray-400">
           Kein fester Region-Kontext auf diesem Server — erst Region, dann Verein, dann Spieler (aktuelle Saison).
           Alternativ verknüpft sich der Nutzer im Chat selbst (cc_link_my_player).
         </p>
       </div>
-      <div class="field-unit__field" style="display: flex; gap: 8px; flex-wrap: wrap;">
+      <div class="field-unit__field flex gap-2 flex-wrap">
         <%= select_tag :player_region_picker,
               options_for_select(region_picker_options, selected_region&.id),
               include_blank: "— Region wählen —",
