@@ -84,6 +84,20 @@ Uses Minitest (not RSpec despite .cursorrules mentioning rspec). Fixtures + Fact
 - Conventional commit messages
 - `strong_migrations` enforced in dev/test
 
+### UI/CSS-Konventionen
+
+Seit dem Redesign gilt: **keine hartkodierten Farben** — überall Tailwind-Token
+(Ramps `primary`/`gray`/`danger`/`success`/`warning`/`info` aus
+`tailwind.config.js`) und **class-basierter Dark-Mode** (`.dark`, nicht
+`prefers-color-scheme`). In ERB nur Utility-Klassen, keine inline `style=` mit
+Farbe und keine `<style>`-Blöcke; `theme()` nur in kompiliertem CSS. Neue
+Utility-Klassen greifen in Preview/Dev erst nach `yarn build:css` +
+`bin/rails assets:precompile` + Server-Neustart.
+
+Vollständige Regeln, Flatui→Token-Mapping und der Migrations-Workflow:
+**[`docs/ui-conventions.md`](docs/ui-conventions.md)**. Die Wache
+`rake ui:no_hardcoded_hex` (pre-commit + CI) blockiert neue Verstöße.
+
 <!-- GSD:project-start source:PROJECT.md -->
 ## Project
 
@@ -434,6 +448,7 @@ A focused improvement effort on the Carambus API codebase to break down the two 
 |-------|-------------|------|
 | scenario-management | Manages multi-tenant deployment workflow for Carambus project with multiple git checkouts. Use when working with carambus_master, carambus_bcw, carambus_phat, or carambus_api directories, when modifying code, committing changes, or when user mentions scenarios, deployments, or debugging mode. | `.agents/skills/scenario-management/SKILL.md` |
 | extend-before-build | When adding a feature/addon to an existing codebase, prefer extending existing structures (legacy paths, predicates, lifecycles) with small guards over building parallel state machines. Refactoring for quality can come later. Use whenever introducing discipline-specific behavior, scoring rules, multiset variants, or any feature that overlaps with the legacy karambol path. | `.agents/skills/extend-before-build/SKILL.md` |
+| hex-to-token-migration | Migrates hardcoded color hex (`#rgb`/`#rrggbb`), `<style>` blocks and inline `style="…color…"` in UI code to Tailwind design-token utilities with class-based dark mode. Use when migrating an admin/UI view or CSS file off hardcoded colors, or when `rake ui:no_hardcoded_hex` flags a new violation. | `.agents/skills/hex-to-token-migration/SKILL.md` |
 <!-- GSD:skills-end -->
 
 <!-- GSD:workflow-start source:GSD defaults -->

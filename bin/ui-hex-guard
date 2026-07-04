@@ -1,0 +1,12 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# Standalone-Einstieg für die UI-Hex-Guardrail (siehe lib/ui_hex_guard.rb).
+# Bewusst ohne Rails-Boot und OHNE ARGV-Auswertung: overcommit hängt die
+# gestagten Dateipfade als Argumente an — die ignorieren wir hier absichtlich,
+# damit der Aufruf robust bleibt. Der Scan läuft immer über den definierten
+# In-Scope-Baum. Exit 0 = sauber, Exit 1 = neue Verstöße.
+
+require_relative "../lib/ui_hex_guard"
+
+exit(UiHexGuard.check ? 0 : 1)
