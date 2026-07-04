@@ -19,7 +19,7 @@
     Mehrere Dateien gleichzeitig möglich. Unterstützte Formate: PDF, JPG, PNG, MP4
   </p>
 
-  <% if page.resource.source_files.attached? %>
+  <% if page.resource.persisted? && page.resource.source_files.attached? %>
     <div class="attached-files mt-5">
       <p class="font-bold text-gray-600 dark:text-gray-300 mb-2.5">Vorhandene Dateien:</p>
       <% page.resource.source_files.each do |file| %>

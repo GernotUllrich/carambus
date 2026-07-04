@@ -35,7 +35,7 @@
   <%= f.label :shot_image, "Shot Image (Trajectories + EndPosition)" %>
   <%= f.file_field :shot_image, class: "field-unit__field" %>
   
-  <% if f.object.shot_image.attached? %>
+  <% if f.object.persisted? && f.object.shot_image.attached? %>
     <div style="margin-top: 10px;">
       <strong>Aktuelles Image:</strong>
       <%= image_tag f.object.shot_image, class: "max-w-[400px] border border-gray-300 dark:border-gray-700 p-1.5" %>
