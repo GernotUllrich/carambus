@@ -14,9 +14,11 @@
         </div>
       </div>
       <%# Kein Disziplin-Chip: Spieler sind nicht disziplin-gebunden. %>
-      <%# Region-Badge nur bei Abweichung: Spieler-Region ≠ Scope-Region (global_context/überregional). %>
-      <% if player.region.present? && player.region_id != current_region_id %>
-        <%= region_badge(player.region) %>
+      <%# Region-Badge nur bei Abweichung zur Scope-Region. Bei national/global registrierten Spielern %>
+      <%# (Region mit global_context-Spalte, z.B. DBU) die echte Club-Region zeigen statt „DBU" (player_home_region). %>
+      <% home_region = player_home_region(player, season_club) %>
+      <% if home_region.present? && home_region.id != current_region_id %>
+        <%= region_badge(home_region) %>
       <% end %>
     </div>
   <% end %>

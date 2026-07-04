@@ -61,6 +61,17 @@ module ApplicationHelper
 
   # Neutraler Region-/Organizer-Badge fuer Zeilen-Listen (Redesign Mockup #5 .as-badge).
   # Zeigt das Kuerzel (Region#shortname), umrandet und dezent; nie eingefaerbt.
+  # Aussagekraeftige "Heimat"-Region eines Spielers fuer den Zeilen-Badge: bei national/global
+  # registrierten Spielern (Region mit global_context-Spalte = true, z.B. DBU) die Region des
+  # Saison-Clubs bevorzugen — "DBU" hat keinen regionalen Bezug. Fallback = eigene (registrierte)
+  # Region (z.B. bei vereinslos). ACHTUNG: die Spalte `global_context` lesen, NICHT `global_context?`
+  # (RegionTaggable#global_context? ist eine semantische Methode, fuer Region immer false).
+  def player_home_region(player, season_club)
+    reg = player.region
+    return reg unless reg&.global_context
+    season_club&.region || reg
+  end
+
   def region_badge(region)
     return if region.blank?
 

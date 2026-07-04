@@ -43,6 +43,14 @@ class Player < ApplicationRecord
     :club
   end
 
+  # Region-Scope strikt: ein Spieler ist in genau EINER Region registriert. global_context-Spieler
+  # aus anderen Regionen (76% des NBV-Ausschnitts: 7.968 vs. 1.926 echte NBV) sollen den Ausschnitt
+  # per Default nicht aufblaehen. Der Band-Toggle „auch ueberregionale zeigen" (Current.show_overregional)
+  # holt sie bei Bedarf zurueck. Nutzt den generischen Seam aus 05-04. Siehe ApplicationRecord.
+  def self.scope_region_strict?
+    true
+  end
+
   validates :pin4,
             uniqueness: true,
             length: { is: 4 },
