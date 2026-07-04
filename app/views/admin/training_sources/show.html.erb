@@ -45,54 +45,51 @@ as well as a link to its edit page.
       </dd>
     <% end %>
   </dl>
-  
+
   <%# Custom section for source files %>
   <% if page.resource.source_files.attached? %>
-    <div style="margin-top: 40px; padding: 20px; background: #f8f9fa; border-radius: 8px; border: 2px solid #dee2e6;">
-      <h3 style="margin: 0 0 20px 0; color: #2c3e50; border-bottom: 2px solid #6c757d; padding-bottom: 10px;">
+    <div class="mt-10 p-5 rounded-lg border-2 border-gray-300 bg-gray-50 dark:border-gray-700 dark:bg-gray-800">
+      <h3 class="mt-0 mb-5 pb-2.5 border-b-2 border-gray-400 dark:border-gray-600 text-gray-800 dark:text-gray-100">
         📎 Quelldateien (<%= page.resource.source_files.count %>)
       </h3>
-      
-      <div class="source-files-grid" style="display: grid; gap: 15px;">
+
+      <div class="source-files-grid grid gap-4">
         <% page.resource.source_files.each do |file| %>
-          <div style="background: white; padding: 15px; border-radius: 6px; border-left: 4px solid #28a745;">
-            <div style="display: flex; justify-content: space-between; align-items: start; gap: 15px;">
-              <div style="flex: 1;">
-                <strong style="color: #2c3e50; font-size: 1.1em;">
+          <div class="p-4 rounded-md border-l-4 border-success-500 bg-white dark:bg-gray-900">
+            <div class="flex justify-between items-start gap-4">
+              <div class="flex-1">
+                <strong class="text-gray-800 dark:text-gray-100 text-lg">
                   <%= file.filename %>
                 </strong>
                 <br>
-                <span style="color: #6c757d; font-size: 0.9em;">
+                <span class="text-gray-500 dark:text-gray-400 text-sm">
                   <%= file.content_type %> • <%= number_to_human_size(file.byte_size) %>
                 </span>
-                
+
                 <% if file.representable? %>
-                  <div style="margin-top: 10px;">
-                    <%= image_tag file.representation(resize_to_limit: [300, 300]), 
-                                 style: "max-width: 100%; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);" %>
+                  <div class="mt-2.5">
+                    <%= image_tag file.representation(resize_to_limit: [300, 300]),
+                                 class: "max-w-full rounded shadow" %>
                   </div>
                 <% end %>
               </div>
-              
-              <div style="display: flex; flex-direction: column; gap: 8px;">
-                <%= link_to "👁️ Ansehen", 
-                           rails_blob_path(file, disposition: "inline"), 
+
+              <div class="flex flex-col gap-2">
+                <%= link_to "👁️ Ansehen",
+                           rails_blob_path(file, disposition: "inline"),
                            target: "_blank",
-                           class: "button",
-                           style: "padding: 8px 16px; background: #28a745; color: white; text-decoration: none; border-radius: 4px; white-space: nowrap;" %>
-                           
-                <%= link_to "⬇️ Download", 
-                           rails_blob_path(file, disposition: "attachment"), 
-                           class: "button",
-                           style: "padding: 8px 16px; background: #007bff; color: white; text-decoration: none; border-radius: 4px; white-space: nowrap;" %>
-                
-                <%= button_to "🗑️ Löschen", 
+                           class: "inline-block px-4 py-2 rounded text-white text-sm font-medium no-underline whitespace-nowrap bg-success-600 hover:bg-success-700" %>
+
+                <%= link_to "⬇️ Download",
+                           rails_blob_path(file, disposition: "attachment"),
+                           class: "inline-block px-4 py-2 rounded text-white text-sm font-medium no-underline whitespace-nowrap bg-info-600 hover:bg-info-700" %>
+
+                <%= button_to "🗑️ Löschen",
                              delete_attachment_admin_training_source_path(page.resource, attachment_id: file.id),
                              method: :delete,
                              data: { confirm: "Datei '#{file.filename}' wirklich löschen?" },
-                             class: "button",
-                             style: "padding: 8px 16px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer; white-space: nowrap;",
-                             form: { style: "display: inline;" } %>
+                             class: "px-4 py-2 rounded text-white text-sm font-medium cursor-pointer whitespace-nowrap border-0 bg-danger-600 hover:bg-danger-700",
+                             form: { class: "inline" } %>
               </div>
             </div>
           </div>

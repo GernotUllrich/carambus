@@ -6,42 +6,38 @@
 <% end %>
 
 <%# Custom file upload field %>
-<div class="field-unit" style="margin-top: 30px; background: #f8f9fa; padding: 20px; border-radius: 8px; border: 2px solid #dee2e6;">
-  <h4 style="margin: 0 0 15px 0; color: #2c3e50; border-bottom: 2px solid #6c757d; padding-bottom: 8px;">
+<div class="mt-8 p-5 rounded-lg border-2 border-gray-300 bg-gray-50 dark:border-gray-700 dark:bg-gray-800">
+  <h4 class="mt-0 mb-4 pb-2 border-b-2 border-gray-400 dark:border-gray-600 text-gray-800 dark:text-gray-100">
     📎 Quelldateien
   </h4>
-  
-  <%= form.label :source_files, "PDFs, Videos, Bilder hochladen", class: "field-unit__label" %>
-  <div class="field-unit__field">
-    <%= form.file_field :source_files, 
-                        multiple: true, 
-                        class: "field-unit__input",
-                        style: "margin-top: 10px;" %>
-    <p class="field-hint" style="margin-top: 8px; color: #6c757d;">
-      Mehrere Dateien gleichzeitig möglich. Unterstützte Formate: PDF, JPG, PNG, MP4
-    </p>
-  </div>
-  
+
+  <%= form.label :source_files, "PDFs, Videos, Bilder hochladen", class: "block font-bold text-gray-800 dark:text-gray-100 mb-2" %>
+  <%= form.file_field :source_files,
+                      multiple: true,
+                      class: "block w-full text-gray-800 dark:text-gray-200" %>
+  <p class="field-hint mt-2 text-sm text-gray-500 dark:text-gray-400">
+    Mehrere Dateien gleichzeitig möglich. Unterstützte Formate: PDF, JPG, PNG, MP4
+  </p>
+
   <% if page.resource.source_files.attached? %>
-    <div class="attached-files" style="margin-top: 20px;">
-      <p style="font-weight: bold; color: #495057; margin-bottom: 10px;">Vorhandene Dateien:</p>
+    <div class="attached-files mt-5">
+      <p class="font-bold text-gray-600 dark:text-gray-300 mb-2.5">Vorhandene Dateien:</p>
       <% page.resource.source_files.each do |file| %>
-        <div style="background: white; padding: 12px; margin-bottom: 8px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid #28a745;">
+        <div class="flex justify-between items-center p-3 mb-2 rounded-md border-l-4 border-success-500 bg-white dark:bg-gray-900">
           <div>
-            <strong style="color: #2c3e50;"><%= file.filename %></strong>
-            <span style="color: #6c757d; font-size: 0.9em; margin-left: 8px;">
+            <strong class="text-gray-800 dark:text-gray-100"><%= file.filename %></strong>
+            <span class="text-gray-500 dark:text-gray-400 text-sm ml-2">
               (<%= number_to_human_size(file.byte_size) %>)
             </span>
             <% if file.representable? %>
               <br>
-              <%= image_tag file.representation(resize_to_limit: [200, 200]), 
-                           style: "max-width: 200px; margin-top: 8px; border-radius: 4px;" %>
+              <%= image_tag file.representation(resize_to_limit: [200, 200]),
+                           class: "max-w-[200px] mt-2 rounded" %>
             <% end %>
           </div>
-          <%= link_to "⬇️ Download", 
-                      rails_blob_path(file, disposition: "attachment"), 
-                      class: "button",
-                      style: "padding: 5px 12px; font-size: 0.9em; background: #007bff; color: white;" %>
+          <%= link_to "⬇️ Download",
+                      rails_blob_path(file, disposition: "attachment"),
+                      class: "inline-block px-3 py-1 rounded text-white text-sm no-underline whitespace-nowrap bg-info-600 hover:bg-info-700" %>
         </div>
       <% end %>
     </div>
