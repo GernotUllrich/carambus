@@ -49,6 +49,20 @@ class Club < ApplicationRecord
 
   attr_accessor :season_id
 
+  # Scope-Band-Zusatzfacette: Clubs haben keine sinnvolle 3. Facette (kein branch_id, kein
+  # saison-gebundener Sub-Club) -> keine. Band + Indikator lassen sie weg. Siehe ApplicationRecord.
+  def self.scope_extra_facet
+    :none
+  end
+
+  # Region-Scope strikt: ein Verein gehoert zu genau EINER Region. global_context-Clubs
+  # (~1006, 90%+ aus anderen Regionen) sollen den Region-Ausschnitt nicht aufblaehen (NBV: 69 vs 1036).
+  # Der Band-Toggle „auch ueberregionale zeigen" (Current.show_overregional) holt sie bei Bedarf zurueck.
+  # Nutzt den generischen 05-04-Seam. Club hat region_id + global_context. Siehe ApplicationRecord.
+  def self.scope_region_strict?
+    true
+  end
+
   before_save :update_synonyms
 
   REFLECTION_KEYS = %w[region season_participations].freeze
