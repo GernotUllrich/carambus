@@ -12,25 +12,15 @@
 #
 # NICHT von Hand die Zahlen hochsetzen, um die Wache stumm zu schalten.
 # ─────────────────────────────────────────────────────────────────────────
-"app/views/admin/application/_multilingual_form_header.html.erb": 4
-"app/views/admin/application/_multilingual_text_fields.html.erb": 19
 "app/views/admin/application/_navigation.html.erb": 2
 "app/views/admin/application/_source_attributions_fields.html.erb": 19
 "app/views/admin/application/_translations_display.html.erb": 6
 "app/views/admin/incomplete_records/show.html.erb": 3
 "app/views/admin/pages/_form_fields.html.erb": 10
-"app/views/admin/pages/show.html.erb": 1
 "app/views/admin/player_duplicates/index.html.erb": 1
-"app/views/admin/settings/index.html.erb": 6
-"app/views/admin/shots/_form_fields.html.erb": 3
 "app/views/admin/stream_configurations/index.html.erb": 1
 "app/views/admin/tags/_form_fields.html.erb": 8
-"app/views/admin/tags/show.html.erb": 3
-"app/views/admin/training_concepts/_form_fields.html.erb": 14
 "app/views/admin/training_examples/_form_fields.html.erb": 16
 "app/views/admin/training_examples/_index_header.html.erb": 1
-"app/views/admin/training_examples/show.html.erb": 20
-"app/views/admin/translations/index.html.erb": 30
-"app/views/admin/user_tournaments/_form.html.erb": 1
 "app/views/admin/users/_discipline_node.html.erb": 1
 "app/views/admin/users/_form_fields.html.erb": 17
