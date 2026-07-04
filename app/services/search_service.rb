@@ -65,7 +65,16 @@ class SearchService < ApplicationService
       next unless cols.include?(col)
 
       results = if col == "region_id" && cols.include?("global_context")
-                  results.where("#{table}.region_id = :r OR #{table}.global_context = TRUE", r: value)
+                  # Strikte Modelle (Location) zeigen per Default nur die eigene Region; der Band-Toggle
+                  # "auch ueberregionale zeigen" (Current.show_overregional) schliesst global_context
+                  # wieder ein. Nicht-strikte Modelle (Ligen/Turniere) inkludieren global_context immer.
+                  strict = @model.respond_to?(:scope_region_strict?) &&
+                           @model.scope_region_strict? && !Current.show_overregional
+                  if strict
+                    results.where("#{table}.region_id = :r", r: value)
+                  else
+                    results.where("#{table}.region_id = :r OR #{table}.global_context = TRUE", r: value)
+                  end
                 else
                   results.where(col => value)
                 end

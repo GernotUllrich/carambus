@@ -51,6 +51,15 @@ class ApplicationRecord < ActiveRecord::Base
     :branch
   end
 
+  # Region-Scope strikt? Default = false -> Region-Filter schliesst global_context-Records ein
+  # (richtig fuer regionsuebergreifende Entitaeten wie DBU-Ligen/-Turniere). Physische Entitaeten
+  # (Location) ueberschreiben mit true: sie stehen an genau einem Ort, global_context blaeht die
+  # Region-Sicht sonst auf. Der Band-Toggle "auch ueberregionale zeigen" (Current.show_overregional)
+  # hebt die Striktheit pro Request wieder auf.
+  def self.scope_region_strict?
+    false
+  end
+
   def disallow_saving_global_records
     raise ActiveRecord::Rollback if id < MIN_ID && ApplicationRecord.local_server? && !unprotected
 

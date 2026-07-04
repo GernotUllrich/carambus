@@ -33,8 +33,11 @@
         </span>
       <% end %>
 
-      <%# Kontext-sensitive 3. Facette: Club (Player) statt Branch — aus scope_extra_facet des Modells. %>
-      <% if scope_extra_facet == :club %>
+      <%# Kontext-sensitive 3. Facette: Club (Player), Branch (tournaments/leagues), nichts bei :none %>
+      <%# (Locations — kein branch_id/saison-Club-Filter). Aus scope_extra_facet des Modells. %>
+      <% if scope_extra_facet == :none %>
+        <%# keine 3. Facette %>
+      <% elsif scope_extra_facet == :club %>
         <span class="<%= caption %>"><%= t("scope_band.club", default: "Club") %></span>
         <%= select_tag "scope[club]",
               options_for_select([[t("scope_band.all_clubs", default: "Alle Clubs"), ""]] +
@@ -46,6 +49,18 @@
               options_for_select([[t("scope_band.all_branches", default: "Alle Branchen"), ""]] +
                 scope_branch_options.map { |name, id| [name, id] }, current_branch_id),
               class: pill, onchange: "this.form.requestSubmit()" %>
+      <% end %>
+
+      <%# Region-Restrict-Toggle: nur strikte Modelle (Location). Aus (Default) = nur eigene Region; %>
+      <%# an = auch global_context (ueberregionale) Venues. hidden-Fallback -> unchecked submittet "0". %>
+      <% if scope_region_strict? %>
+        <label class="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400 shrink-0 whitespace-nowrap ml-1 cursor-pointer">
+          <%= hidden_field_tag "scope[overregional]", "0" %>
+          <%= check_box_tag "scope[overregional]", "1", scope_show_overregional?,
+                onchange: "this.form.requestSubmit()",
+                class: "rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500 w-auto shrink-0" %>
+          <%= t("scope_band.show_overregional", default: "auch überregionale zeigen") %>
+        </label>
       <% end %>
     <% end %>
   </div>

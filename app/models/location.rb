@@ -80,7 +80,22 @@ class Location < ApplicationRecord
   end
 
   def self.search_distinct?
-    false # LEFT OUTER JOIN erzeugt keine Duplikate
+    # LEFT OUTER JOIN club_locations erzeugt sehr wohl Duplikate: Locations mit mehreren Clubs
+    # (72 Stueck) tauchen sonst mehrfach in Liste + Pagination-Count auf. distinct = eine Zeile je Location.
+    true
+  end
+
+  # Scope-Band-Zusatzfacette: Locations haben weder branch_id noch einen (saison-gebundenen)
+  # Club-Filter -> keine 3. Facette. Band + Indikator lassen sie weg. Siehe ApplicationRecord.scope_extra_facet.
+  def self.scope_extra_facet
+    :none
+  end
+
+  # Region-Scope strikt: ein Spiellokal steht an genau EINEM Ort -> die Region-Sicht zeigt per
+  # Default nur region_id (nicht global_context). 90% der global_context-Venues stehen physisch in
+  # anderen Regionen und blaehten die Sicht sonst auf. Band-Toggle hebt es auf. Siehe ApplicationRecord.
+  def self.scope_region_strict?
+    true
   end
 
   def self.cascading_filters

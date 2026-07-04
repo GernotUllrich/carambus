@@ -8,6 +8,9 @@ class Current < ActiveSupport::CurrentAttributes
   # Globaler Ausschnitt (Scope-Band): { "region_id" => id, "season_id" => id, ... }.
   # Wird pro Request aus der Session gesetzt; SearchService wendet es als FK-Filter an.
   attribute :scope
+  # Band-Toggle "auch ueberregionale zeigen": hebt bei scope_region_strict?-Modellen (Location)
+  # die Striktheit auf -> Region-Filter schliesst global_context wieder ein. Default nil/false = strikt.
+  attribute :show_overregional
 
   resets do
     Time.zone = nil
