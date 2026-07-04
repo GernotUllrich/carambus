@@ -1,71 +1,87 @@
 <div class="container mx-auto my-8 px-4">
   <div class="max-w-3xl mx-auto">
-    <div class="flex justify-between items-center mb-4">
-      <h1 class="h3"><%= custom_link_to 'Leagues', leagues_path %> > League #<%= @league.id %></h1>
-      <%= custom_link_to 'Edit', edit_league_path(@league), class: "btn btn-link" %>
+    <div class="flex flex-wrap justify-between items-start gap-2 mb-4">
+      <div class="min-w-0">
+        <h1 class="text-xl font-semibold text-gray-900 dark:text-gray-100 break-words">
+          <%= custom_link_to 'Leagues', leagues_path, class: "text-primary-600 hover:text-primary-700" %>
+          <span class="text-gray-400 dark:text-gray-500">&gt;</span> League #<%= @league.id %>
+        </h1>
+      </div>
+      <%= custom_link_to 'Edit', edit_league_path(@league), class: "btn btn-link shrink-0" %>
     </div>
 
-    <div class=" rounded shadow p-8">
-      <div class="mb-4">
-        <h5>Name</h5>
+    <%# Detail-Card-Muster (Phase 6): Token-Card + Label/Wert-Grid — Referenz tournaments/_show.html.erb. %>
+    <div class="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-4 bg-surface-card dark:bg-gray-800 rounded-card border border-gray-200 dark:border-gray-700 p-6 text-gray-900 dark:text-gray-100">
+      <div class="min-w-0">
+        <h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5">Name</h5>
         <%= @league.name %>
       </div>
-      <div class="mb-4">
-        <h5>Registration until</h5>
+      <div class="min-w-0">
+        <h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5">Registration until</h5>
         <%= @league.registration_until %>
       </div>
-      <div class="mb-4">
-        <h5>Organizer</h5>
+      <div class="min-w-0">
+        <h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5">Organizer</h5>
         <%= custom_link_to @league.organizer.shortname, region_path(@league.organizer) %>
       </div>
-      <div class="mb-4">
-        <h5>Season</h5>
+      <div class="min-w-0">
+        <h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5">Season</h5>
         <%= custom_link_to @league.season.name, season_path(@league.season) %>
       </div>
-      <div class="mb-4">
-        <h5>CC</h5>
+      <div class="min-w-0">
+        <h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5">CC</h5>
         <%= custom_link_to "#{@league.league_cc.name}(#{@league.league_cc.id})", league_cc_path(@league.league_cc) if @league.league_cc.present? %>
       </div>
-      <div class="mb-4">
-        <h5>Discipline</h5>
+      <div class="min-w-0">
+        <h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5">Discipline</h5>
         <%= custom_link_to @league.discipline.name, discipline_path(@league.discipline) %>
       </div>
-      <div class="mb-4">
-        <h5>Game Plan</h5>
+      <div class="min-w-0">
+        <h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5">Game Plan</h5>
         <%= custom_link_to @league.game_plan.name, game_plan_path(@league.game_plan) if @league.game_plan.present? %>
       </div>
-      <div class="mb-4">
-        <h5>Quelle</h5>
+      <div class="min-w-0">
+        <h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5">Quelle</h5>
         <%= link_to_if @league.source_url.present?, @league.source_url.present? ? URI.parse(@league.source_url).host : "", @league.source_url, target: :_blank %>
       </div>
-      <div class="mb-4">
-        <h5>Last Sync</h5>
+      <div class="min-w-0">
+        <h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5">Last Sync</h5>
         <%= @league.sync_date.andand.to_date %>
       </div>
     </div>
     <%- @parties = Party.where(league_id: @league.id).order(id: :asc) %>
 
-    <div class="flex flex-row px-3 lg:px-0">
-      <%= button_to I18n.t("league.show.reload_from_club_cloud", source: @league.source), reload_from_cc_league_path(@league), method: :post, style: "float: left; margin-right: 10px;", disabled: !current_user&.admin?, class: "btn btn-flat btn-primary" %>
-      <%= button_to I18n.t("league.show.reload_from_club_cloud_with_details", source: @league.source), reload_from_cc_with_details_league_path(@league), method: :post, style: "float: left; margin-right: 10px;", disabled: !current_user&.admin?, class: "btn btn-flat btn-primary" %>
-      <%= button_to I18n.t("league.show.reload_from_club_cloud_all_new", source: @league.source), reload_from_cc_all_new_league_path(@league), method: :post, style: "float: left; margin-right: 10px;", disabled: !current_user&.admin?, class: "btn btn-flat btn-primary" %>
+    <div class="flex flex-wrap gap-2 mt-4">
+      <%= button_to I18n.t("league.show.reload_from_club_cloud", source: @league.source), reload_from_cc_league_path(@league), method: :post, disabled: !current_user&.admin?, class: "btn btn-flat btn-primary" %>
+      <%= button_to I18n.t("league.show.reload_from_club_cloud_with_details", source: @league.source), reload_from_cc_with_details_league_path(@league), method: :post, disabled: !current_user&.admin?, class: "btn btn-flat btn-primary" %>
+      <%= button_to I18n.t("league.show.reload_from_club_cloud_all_new", source: @league.source), reload_from_cc_all_new_league_path(@league), method: :post, disabled: !current_user&.admin?, class: "btn btn-flat btn-primary" %>
     </div>
 
-    <h3 class="mt-6 mb-4"><%= custom_link_to "=> #{t('league_league_teams')}", league_teams_path(sSearch: "league_id:#{@league.id}") %></h3>
-    <h3 class="mt-6 mb-4"><%= custom_link_to "=> #{t('league_parties')}", parties_path(sSearch: "league_id:#{@league.id}") %></h3>
+    <div class="flex flex-wrap gap-4 mt-6">
+      <%= custom_link_to "=> #{t('league_league_teams')}", league_teams_path(sSearch: "league_id:#{@league.id}"), class: "text-primary-600 hover:text-primary-700 font-medium" %>
+      <%= custom_link_to "=> #{t('league_parties')}", parties_path(sSearch: "league_id:#{@league.id}"), class: "text-primary-600 hover:text-primary-700 font-medium" %>
+    </div>
 
     <% if @league.discipline&.name == "Snooker" %>
-      <h2>Ligatabelle</h2>
-      <%= render partial: "standings_table_snooker", locals: { standings: @league.standings_table_snooker } %>
+      <div class="mt-6 bg-surface-card dark:bg-gray-800 rounded-card border border-gray-200 dark:border-gray-700 p-6 text-gray-900 dark:text-gray-100">
+        <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">Ligatabelle</h2>
+        <%= render partial: "standings_table_snooker", locals: { standings: @league.standings_table_snooker } %>
+      </div>
     <% elsif @league.discipline&.name&.match?(/Karambol/i) %>
-      <h2>Ligatabelle</h2>
-      <%= render partial: "standings_table_karambol", locals: { standings: @league.standings_table_karambol } %>
+      <div class="mt-6 bg-surface-card dark:bg-gray-800 rounded-card border border-gray-200 dark:border-gray-700 p-6 text-gray-900 dark:text-gray-100">
+        <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">Ligatabelle</h2>
+        <%= render partial: "standings_table_karambol", locals: { standings: @league.standings_table_karambol } %>
+      </div>
     <% elsif @league.discipline&.name&.match?(/Pool/i) %>
-      <h2>Ligatabelle</h2>
-      <%= render partial: "standings_table_pool", locals: { standings: @league.standings_table_pool } %>
+      <div class="mt-6 bg-surface-card dark:bg-gray-800 rounded-card border border-gray-200 dark:border-gray-700 p-6 text-gray-900 dark:text-gray-100">
+        <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">Ligatabelle</h2>
+        <%= render partial: "standings_table_pool", locals: { standings: @league.standings_table_pool } %>
+      </div>
     <% end %>
 
-    <h2>Spielplan</h2>
-    <%= render partial: "schedule_table", locals: { schedule_by_rounds: @league.schedule_by_rounds } %>
+    <div class="mt-6 bg-surface-card dark:bg-gray-800 rounded-card border border-gray-200 dark:border-gray-700 p-6 text-gray-900 dark:text-gray-100">
+      <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">Spielplan</h2>
+      <%= render partial: "schedule_table", locals: { schedule_by_rounds: @league.schedule_by_rounds } %>
+    </div>
   </div>
 </div>
