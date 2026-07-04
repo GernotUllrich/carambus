@@ -38,7 +38,7 @@
   <% if f.object.shot_image.attached? %>
     <div style="margin-top: 10px;">
       <strong>Aktuelles Image:</strong>
-      <%= image_tag f.object.shot_image, style: "max-width: 400px; border: 1px solid #ddd; padding: 5px;" %>
+      <%= image_tag f.object.shot_image, class: "max-w-[400px] border border-gray-300 dark:border-gray-700 p-1.5" %>
     </div>
   <% end %>
 </div>
@@ -118,7 +118,7 @@
 </div>
 
 <!-- Translation Toggle -->
-<div class="field-unit" style="background: #f8f9fa; padding: 15px; border-radius: 6px; border-left: 4px solid #3498db;">
+<div class="field-unit bg-gray-50 dark:bg-gray-800 p-4 rounded-md border-l-4 border-info-500">
   <div style="display: flex; align-items: center; gap: 20px;">
     <%= check_box_tag :translate_after_save, '1', false, 
         id: 'translate_after_save',
@@ -138,7 +138,7 @@
     </label>
   </div>
   
-  <p style="margin: 10px 0 0 0; color: #7f8c8d; font-size: 0.9em;">
+  <p class="mt-2.5 text-gray-500 dark:text-gray-400 text-[0.9em]">
     ℹ️ Übersetzt automatisch alle Felder in die Zielsprachen (DE/EN).
   </p>
 </div>
