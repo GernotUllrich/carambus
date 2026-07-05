@@ -89,4 +89,89 @@ module RegionsHelper
       buckets.map { |(x, y), count| { x: x, y: y, count: count } }
     end
   end
+
+  # 08-06: Regionale Club-Karte. Clubs EINER Region an ihren Standorten (Location-PLZ projiziert,
+  # gleiche 08-05-Projektion), read-only, je Region memoisiert. Ableitungen (Spieler/Sparten) als
+  # Sammel-Queries ueber die Club-Ids gebatcht (KEIN N+1). -> [{x, y, shortname, href, logo,
+  # players, branches}]; Clubs ohne aufloesbare PLZ werden ausgelassen (Datenluecke, kein Fehler).
+  def region_club_points(region)
+    (@region_club_points ||= {})[region.id] ||= begin
+      clubs = Club.where(region_id: region.id).to_a
+      club_ids = clubs.map(&:id)
+
+      # Batch: Spieler je Club = season_participations der aktuellen Saison (ein Aggregat-Query).
+      season = Season.current_season
+      players_by_club =
+        if season && club_ids.any?
+          SeasonParticipation.where(club_id: club_ids, season_id: season.id).group(:club_id).count
+        else
+          {}
+        end
+
+      # Batch: aktive Sparten je Club = distinct Branch (Discipline) ueber league_teams -> leagues.branch_id.
+      branch_pairs =
+        if club_ids.any?
+          LeagueTeam.where(club_id: club_ids).joins(:league)
+                    .where.not(leagues: { branch_id: nil })
+                    .distinct.pluck(:club_id, "leagues.branch_id")
+        else
+          []
+        end
+      branch_names = Discipline.where(id: branch_pairs.map(&:last).uniq).pluck(:id, :name).to_h
+      branches_by_club = Hash.new { |h, k| h[k] = [] }
+      branch_pairs.each { |cid, bid| branches_by_club[cid] << branch_names[bid] }
+
+      # Batch: Adressen je Club (club_locations-Join, ein Query) — erste mit aufloesbarer PLZ gewinnt.
+      addrs_by_club = Hash.new { |h, k| h[k] = [] }
+      if club_ids.any?
+        Location.joins(:club_locations)
+                .where(club_locations: { club_id: club_ids })
+                .where.not(address: [nil, ""])
+                .pluck("club_locations.club_id", :address)
+                .each { |cid, addr| addrs_by_club[cid] << addr }
+      end
+
+      clubs.filter_map do |club|
+        coord = nil
+        addrs_by_club[club.id].each do |addr|
+          plz = addr.to_s[/\b(\d{5})\b/, 1]
+          coord = plz && PLZ_COORDS[plz]
+          break if coord
+        end
+        next unless coord
+
+        x, y = project_lonlat(coord[1], coord[0]) # coord = [lat, lon]
+        {
+          x: x, y: y,
+          shortname: club.shortname.presence || club.name,
+          href: club_path(club),
+          logo: club.logo.presence,
+          players: players_by_club[club.id].to_i,
+          branches: branches_by_club[club.id].compact.uniq.sort
+        }
+      end
+    end
+  end
+
+  # SVG-Polygon-Pfad EINER Region (aus den 08-05-Geodaten). nil, wenn keine Kartengeometrie vorliegt.
+  def region_map_path(shortname)
+    GERMANY_MAP_DATA["regions"].dig(shortname, "path")
+  end
+
+  # Bounding-Box der Region als viewBox-Tupel [x, y, w, h] (+ Padding), aus den Pfad-Koordinaten
+  # berechnet. nil ohne Geometrie. Dient als Karten-Ausschnitt fuer die Club-Karte.
+  def region_map_bbox(shortname, pad: 8)
+    path = region_map_path(shortname)
+    return nil unless path
+
+    nums = path.scan(/-?\d+(?:\.\d+)?/).map(&:to_f)
+    return nil if nums.size < 4
+
+    xs = nums.each_slice(2).map(&:first)
+    ys = nums.each_slice(2).map(&:last)
+    minx, maxx = xs.minmax
+    miny, maxy = ys.minmax
+    [(minx - pad).round(1), (miny - pad).round(1),
+     (maxx - minx + 2 * pad).round(1), (maxy - miny + 2 * pad).round(1)]
+  end
 end

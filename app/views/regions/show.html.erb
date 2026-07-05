@@ -50,6 +50,9 @@
         <dd class="text-gray-800 dark:text-gray-100"><%= custom_link_to @region.country.andand.code, country_path(@region.country) %></dd>
       </dl>
     </div>
+
+    <%# 08-06: Zoombare regionale Club-Karte (additiv; rendert nur bei projizierbaren Clubs). %>
+    <%= render "region_club_map" %>
   </div>
 
   <!-- Sektions-Links (Drilldown in DIESE Region): region_focus überschreibt die Scope-Region temporär
