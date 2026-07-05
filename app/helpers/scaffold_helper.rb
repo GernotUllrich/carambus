@@ -73,7 +73,60 @@ module ScaffoldHelper
     scaffold_blank
   end
 
+  # 09-03: Generisches Formularfeld — ein `.form-group`-Div mit Label + typ-passendem Token-Input.
+  # `form` = FormBuilder, `attr` = Spaltenname. Read-only ausser dem Formular selbst; defensiv.
+  def scaffold_form_field(form, attr)
+    record = form.object
+    reflection = scaffold_belongs_to_for(record, attr)
+    type = record.class.columns_hash[attr.to_s]&.type
+
+    # Boolean: Checkbox + Label inline.
+    if type == :boolean && reflection.nil?
+      return content_tag(:div, class: "form-group flex items-center gap-2") do
+        safe_join([form.check_box(attr), form.label(attr, scaffold_attribute_label(record, attr))])
+      end
+    end
+
+    input =
+      if reflection
+        scaffold_fk_input(form, attr, reflection)
+      else
+        case type
+        when :text then form.text_area(attr, class: "form-control")
+        when :integer then form.number_field(attr, class: "form-control")
+        when :decimal, :float then form.number_field(attr, step: :any, class: "form-control")
+        when :date then form.date_field(attr, class: "form-control")
+        when :datetime, :timestamp then form.datetime_local_field(attr, class: "form-control")
+        else form.text_field(attr, class: "form-control")
+        end
+      end
+
+    content_tag(:div, class: "form-group") do
+      safe_join([form.label(attr, scaffold_attribute_label(record, attr)), input])
+    end
+  rescue StandardError => e
+    Rails.logger.debug { "scaffold_form_field(#{attr}): #{e.message}" }
+    content_tag(:div, class: "form-group") do
+      safe_join([form.label(attr), form.text_field(attr, class: "form-control")])
+    end
+  end
+
   private
+
+  # FK-Eingabe: Select der assoziierten Records; bei sehr grosser Zieltabelle Fallback auf number_field.
+  def scaffold_fk_input(form, attr, reflection)
+    klass = reflection.klass
+    if klass.count > 500
+      form.number_field(attr, class: "form-control")
+    else
+      form.select(attr,
+                  klass.all.map { |o| [scaffold_assoc_label(o), o.id] },
+                  { include_blank: true },
+                  class: "form-control")
+    end
+  rescue StandardError
+    form.number_field(attr, class: "form-control")
+  end
 
   def scaffold_blank
     content_tag(:span, "—", class: "text-gray-400 dark:text-gray-500")
