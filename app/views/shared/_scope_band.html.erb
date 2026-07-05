@@ -20,7 +20,17 @@
       <span class="<%= caption %>"><%= t("scope_band.region", default: "Region") %></span>
       <%= select_tag "scope[region]",
             options_for_select(scope_region_options.map { |shortname, id| [shortname, id] }, current_region_id),
-            class: pill, onchange: "this.form.requestSubmit()" %>
+            class: pill + (region_focus_active? ? " opacity-60" : ""), onchange: "this.form.requestSubmit()" %>
+      <% if region_focus_active? %>
+        <%# Temporärer Region-Fokus (Drilldown): überschreibt den Ausschnitt nur für diese Ansicht. %>
+        <span class="inline-flex items-center gap-1 shrink-0 whitespace-nowrap rounded-pill bg-warning-50 dark:bg-warning-900/30 text-warning-800 dark:text-warning-200 text-xs px-2 py-1"
+              title="<%= t("scope_band.region_focus_hint", default: "Temporärer Region-Fokus (Drilldown) — überschreibt den Ausschnitt nur für diese Ansicht.") %>">
+          <%= t("scope_band.region_focus", default: "temporär") %>: <strong><%= region_focus_shortname %></strong>
+          <%= custom_link_to "✕", without_region_focus_path,
+                class: "font-bold no-underline hover:text-warning-900 dark:hover:text-warning-100",
+                title: t("scope_band.region_focus_clear", default: "Fokus verlassen") %>
+        </span>
+      <% end %>
 
       <span class="<%= caption %>"><%= t("scope_band.season", default: "Saison") %></span>
       <%= select_tag "scope[season]",
@@ -53,7 +63,9 @@
 
       <%# Region-Restrict-Toggle: nur strikte Modelle (Location). Aus (Default) = nur eigene Region; %>
       <%# an = auch global_context (ueberregionale) Venues. hidden-Fallback -> unchecked submittet "0". %>
-      <% if scope_region_strict? %>
+      <%# Bei aktivem Region-Fokus ausgeblendet: eine Region-Ansicht zeigt exakt DIESE Region (kein Sinn, %>
+      <%# ueberregionale hinzuzuschalten); der Fokus haelt ohnehin strikt (Current.show_overregional=false). %>
+      <% if scope_region_strict? && !region_focus_active? %>
         <label class="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400 shrink-0 whitespace-nowrap ml-1 cursor-pointer">
           <%= hidden_field_tag "scope[overregional]", "0" %>
           <%= check_box_tag "scope[overregional]", "1", scope_show_overregional?,

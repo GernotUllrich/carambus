@@ -31,7 +31,8 @@ module Scopable
                   :scope_region_strict?, :scope_show_overregional?,
                   :scope_season_transition?,
                   :current_region_shortname, :current_season_name, :current_branch_name,
-                  :scope_indicator_label, :scope_indicator_primary, :scope_indicator_extra
+                  :scope_indicator_label, :scope_indicator_primary, :scope_indicator_extra,
+                  :region_focus_active?, :region_focus_shortname, :without_region_focus_path
   end
 
   private
@@ -77,7 +78,39 @@ module Scopable
   # Stellt den Ausschnitt als FK-Filter fuer SearchService bereit (Current, pro Request).
   def set_current_scope
     Current.scope = scope_resolver.fk_scope
-    Current.show_overregional = scope_show_overregional?
+    # Temporaerer Region-Fokus (Drilldown aus regions/show): region_focus hat HOEHERE Prio als der
+    # persistente Scope-Band-Wert und ueberschreibt region_id NUR fuer diesen Request. KEIN session-Write
+    # (capture_scope unberuehrt) -> der Hauptselektor bleibt, wo er ist; der Fokus ist ephemer.
+    if region_focus_active?
+      Current.scope = Current.scope.merge("region_id" => params[:region_focus].to_i)
+      # Fokus zeigt EXAKT diese Region: bei strikten Modellen (Club/Location) kein global_context.
+      # (Ueberregionale Records in einer Region-Ansicht = widersinnig; Checkbox wird zudem ausgeblendet.)
+      Current.show_overregional = false
+    else
+      Current.show_overregional = scope_show_overregional?
+    end
+  end
+
+  # --- Temporaerer Region-Fokus (Drilldown aus regions/show) --------------------------------
+  # region_focus ist ein ephemerer Request-Param (KEINE persistente Facette, NICHT in SCOPE_FACETS):
+  # ueberschreibt die Scope-Region nur fuer diesen Request, ohne session[:scope] zu aendern.
+
+  def region_focus_active?
+    params[:region_focus].present?
+  end
+
+  def region_focus_region
+    return @region_focus_region if defined?(@region_focus_region)
+    @region_focus_region = region_focus_active? ? Region.find_by(id: params[:region_focus]) : nil
+  end
+
+  def region_focus_shortname
+    region_focus_region&.display_shortname.presence || region_focus_region&.shortname
+  end
+
+  # Aktueller Pfad OHNE region_focus (fuer den "Fokus verlassen"-Link im Scope-Band).
+  def without_region_focus_path
+    url_for(request.query_parameters.except("region_focus").merge(only_path: true))
   end
 
   # Gemeinsame Ableitung (Session + User) — dieselbe Einheit nutzt auch SearchReflex (Live-Suche),
