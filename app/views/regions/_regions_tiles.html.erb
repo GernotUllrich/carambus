@@ -1,0 +1,21 @@
+<div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 p-4">
+  <% @regions.each do |region| %>
+    <%# Kacheln liegen im Pagy-<turbo-frame id="table_wrapper">. data-turbo-frame="_top" bricht aus dem Frame
+        aus → volle Navigation zu Region#show (Detailseite). Ändert den Scope NICHT (capture_scope liest nur
+        params[:scope]) — Region wechselt man nur explizit am Scope-Band-Selector. %>
+    <%= link_to region_path(region), data: { turbo_frame: "_top" },
+          class: "no-underline flex flex-col items-center text-center gap-2 p-4 rounded-xl ring-1 ring-gray-200 dark:ring-gray-700 bg-white dark:bg-gray-900 hover:ring-primary-400 dark:hover:ring-primary-500 transition" do %>
+      <div class="h-16 flex items-center justify-center">
+        <% if region.logo.present? %>
+          <%= image_tag region.logo, class: "max-h-16 max-w-full object-contain", loading: "lazy" %>
+        <% else %>
+          <div class="h-14 w-14 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center font-bold text-gray-500 dark:text-gray-400">
+            <%= region.shortname.to_s[0, 3] %>
+          </div>
+        <% end %>
+      </div>
+      <div class="font-bold text-gray-800 dark:text-gray-100"><%= region.shortname %></div>
+      <div class="text-[0.8em] leading-tight text-gray-500 dark:text-gray-400"><%= region.name %></div>
+    <% end %>
+  <% end %>
+</div>
