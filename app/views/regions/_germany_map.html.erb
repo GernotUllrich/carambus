@@ -1,0 +1,46 @@
+<%# Deutschlandkarte (08-04). Additiv ueber der Kachel-Galerie. Klickbare LV-Chips mit Region-Logo,
+    geografisch platziert (Anordnung ~ Deutschland), mit grober Kontur im Hintergrund.
+    Klick -> regions/show (region_path, data-turbo-frame _top, Muster 08-01; aendert Scope NICHT).
+    NRW = 3 Chips, NBV sammelt HH/HB/SH/MV. Inline-SVG (CSP-konform). Token-Farben, kein Hex.
+    Fehlende Region/Logo -> Kuerzel-Text bzw. ausgegrauter Chip. %>
+<div class="mx-4 mt-4 mb-2 p-4 rounded-xl ring-1 ring-gray-200 dark:ring-gray-700 bg-white dark:bg-gray-900">
+  <div class="mb-2 font-bold text-gray-800 dark:text-gray-100">
+    <%= t("region.index.map_heading", default: "Landesverbände") %>
+  </div>
+  <svg viewBox="<%= RegionsHelper::GERMANY_MAP_VIEWBOX %>" role="img"
+       aria-label="<%= t('region.index.map_aria', default: 'Deutschlandkarte der Landesverbände') %>"
+       class="w-full max-w-md mx-auto h-auto">
+    <%# Reale, vereinfachte Deutschland-Aussengrenze (Hintergrund) — deckungsgleich mit den Kacheln. %>
+    <path d="<%= RegionsHelper::GERMANY_OUTLINE_PATH %>"
+          class="fill-gray-50 dark:fill-gray-800 stroke-gray-300 dark:stroke-gray-600"
+          stroke-width="1" stroke-linejoin="round" />
+    <% RegionsHelper::GERMANY_MAP_LAYOUT.each do |area, (cx, cy)| %>
+      <% s = RegionsHelper::GERMANY_MAP_SMALL_TILES.include?(area) ? 32 : 42 %>
+      <% x = cx - s / 2; y = cy - s / 2; pad = 5 %>
+      <% attrs = region_area_link_attrs(area) %>
+      <% if attrs %>
+        <a href="<%= attrs[:href] %>" data-turbo-frame="_top" aria-label="<%= attrs[:aria_label] %>" class="group">
+          <title><%= attrs[:title] %></title>
+          <rect x="<%= x %>" y="<%= y %>" width="<%= s %>" height="<%= s %>" rx="8" stroke-width="1.5"
+                class="fill-white stroke-gray-300 dark:stroke-gray-500
+                       group-hover:stroke-primary-500 group-focus:stroke-primary-500 transition-colors" />
+          <%# Kuerzel-Text als Fallback: unsichtbar, wenn ein Logo vorhanden ist; bei tot geladener %>
+          <%# Logo-URL blendet der image-onerror ihn ein und entfernt das Broken-Bild. %>
+          <text x="<%= cx %>" y="<%= cy %>" text-anchor="middle" dominant-baseline="central"
+                class="fill-primary-800 dark:fill-gray-100 text-[10px] font-semibold pointer-events-none select-none <%= 'opacity-0' if attrs[:logo] %>">
+            <%= attrs[:shortname] %>
+          </text>
+          <% if attrs[:logo] %>
+            <image href="<%= attrs[:logo] %>" x="<%= x + pad %>" y="<%= y + pad %>"
+                   width="<%= s - 2 * pad %>" height="<%= s - 2 * pad %>"
+                   preserveAspectRatio="xMidYMid meet" class="pointer-events-none"
+                   onerror="this.previousElementSibling.classList.remove('opacity-0'); this.remove();" />
+          <% end %>
+        </a>
+      <% else %>
+        <rect x="<%= x %>" y="<%= y %>" width="<%= s %>" height="<%= s %>" rx="8" stroke-width="1.5"
+              class="fill-gray-100 dark:fill-gray-800 stroke-gray-200 dark:stroke-gray-700" />
+      <% end %>
+    <% end %>
+  </svg>
+</div>
