@@ -18,6 +18,20 @@ module ScaffoldHelper
     cols
   end
 
+  # 09-02: Name des "fuehrenden" Attributs fuer die Zeilen-Liste (verlinkter Titel je Zeile).
+  # Erstes vorhandenes aus name/title/shortname/display_name, sonst die erste String-Spalte,
+  # sonst nil (das Shell faellt dann auf record.to_s zurueck).
+  def scaffold_primary_attribute(record)
+    %w[name title shortname display_name].each do |a|
+      return a if record.respond_to?(a) && record.public_send(a).present?
+    end
+    scaffold_show_attributes(record).find do |a|
+      record.class.columns_hash[a]&.type == :string
+    end
+  rescue StandardError
+    nil
+  end
+
   # Label einer Spalte: bei FK (*_id) mit belongs_to der Assoziations-Name, sonst
   # human_attribute_name (nutzt activerecord.attributes.<model>.<attr>-i18n + Humanize-Fallback).
   def scaffold_attribute_label(record, attr)
