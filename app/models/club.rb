@@ -57,7 +57,6 @@ class Club < ApplicationRecord
 
   # Region-Scope strikt: ein Verein gehoert zu genau EINER Region. global_context-Clubs
   # (~1006, 90%+ aus anderen Regionen) sollen den Region-Ausschnitt nicht aufblaehen (NBV: 69 vs 1036).
-  # Der Band-Toggle „auch ueberregionale zeigen" (Current.show_overregional) holt sie bei Bedarf zurueck.
   # Nutzt den generischen 05-04-Seam. Club hat region_id + global_context. Siehe ApplicationRecord.
   def self.scope_region_strict?
     true

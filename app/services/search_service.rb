@@ -39,6 +39,8 @@ class SearchService < ApplicationService
   def apply_scope(results)
     scope = Current.scope
     return results if scope.blank?
+    # Picker-/Einstiegs-Listen (Region) sind vom globalen Scope ausgenommen -> nie selbst filtern.
+    return results if @model.respond_to?(:scope_exempt?) && @model.scope_exempt?
 
     cols = @model.column_names
     table = @model.table_name
@@ -65,11 +67,11 @@ class SearchService < ApplicationService
       next unless cols.include?(col)
 
       results = if col == "region_id" && cols.include?("global_context")
-                  # Strikte Modelle (Location) zeigen per Default nur die eigene Region; der Band-Toggle
-                  # "auch ueberregionale zeigen" (Current.show_overregional) schliesst global_context
-                  # wieder ein. Nicht-strikte Modelle (Ligen/Turniere) inkludieren global_context immer.
-                  strict = @model.respond_to?(:scope_region_strict?) &&
-                           @model.scope_region_strict? && !Current.show_overregional
+                  # Strikte Modelle (Location/Player/Club) zeigen ausschliesslich die eigene Region;
+                  # global_context ist dort ein Sync-Retention-Marker, kein Anzeige-Praedikat und wird
+                  # nie eingeblendet. Nicht-strikte Modelle (Ligen/Turniere) inkludieren global_context
+                  # immer (regionsuebergreifend gueltige Records, z.B. DBU-Ligen).
+                  strict = @model.respond_to?(:scope_region_strict?) && @model.scope_region_strict?
                   if strict
                     results.where("#{table}.region_id = :r", r: value)
                   else

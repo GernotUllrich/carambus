@@ -91,9 +91,9 @@ class Location < ApplicationRecord
     :none
   end
 
-  # Region-Scope strikt: ein Spiellokal steht an genau EINEM Ort -> die Region-Sicht zeigt per
-  # Default nur region_id (nicht global_context). 90% der global_context-Venues stehen physisch in
-  # anderen Regionen und blaehten die Sicht sonst auf. Band-Toggle hebt es auf. Siehe ApplicationRecord.
+  # Region-Scope strikt: ein Spiellokal steht an genau EINEM Ort -> die Region-Sicht zeigt nur
+  # region_id (nicht global_context). 90% der global_context-Venues stehen physisch in anderen
+  # Regionen; global_context ist hier ein Sync-Marker, kein Anzeige-Praedikat. Siehe ApplicationRecord.
   def self.scope_region_strict?
     true
   end

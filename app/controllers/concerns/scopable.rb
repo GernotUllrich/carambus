@@ -28,7 +28,6 @@ module Scopable
                   :current_club_id,
                   :scope_region_options, :scope_season_options, :scope_branch_options,
                   :scope_club_options, :scope_extra_facet,
-                  :scope_region_strict?, :scope_show_overregional?,
                   :scope_season_transition?,
                   :current_region_shortname, :current_season_name, :current_branch_name,
                   :scope_indicator_label, :scope_indicator_primary, :scope_indicator_extra,
@@ -48,12 +47,6 @@ module Scopable
       next unless scope_params.key?(facet)
       session[:scope][facet] = scope_params[facet].to_s.strip.presence
       captured = true
-    end
-
-    # Toggle "auch ueberregionale zeigen" (nur strikte Modelle wie Location). Ephemer in der Session,
-    # KEINE User-Preference (captured bleibt unberuehrt). Checkbox liefert per hidden-Fallback immer "0"/"1".
-    if scope_params.key?("overregional")
-      session[:scope]["overregional"] = (scope_params["overregional"].to_s == "1" ? "1" : nil)
     end
 
     persist_scope_preference if captured
@@ -81,14 +74,7 @@ module Scopable
     # Temporaerer Region-Fokus (Drilldown aus regions/show): region_focus hat HOEHERE Prio als der
     # persistente Scope-Band-Wert und ueberschreibt region_id NUR fuer diesen Request. KEIN session-Write
     # (capture_scope unberuehrt) -> der Hauptselektor bleibt, wo er ist; der Fokus ist ephemer.
-    if region_focus_active?
-      Current.scope = Current.scope.merge("region_id" => params[:region_focus].to_i)
-      # Fokus zeigt EXAKT diese Region: bei strikten Modellen (Club/Location) kein global_context.
-      # (Ueberregionale Records in einer Region-Ansicht = widersinnig; Checkbox wird zudem ausgeblendet.)
-      Current.show_overregional = false
-    else
-      Current.show_overregional = scope_show_overregional?
-    end
+    Current.scope = Current.scope.merge("region_id" => params[:region_focus].to_i) if region_focus_active?
   end
 
   # --- Temporaerer Region-Fokus (Drilldown aus regions/show) --------------------------------
@@ -150,18 +136,6 @@ module Scopable
 
   def scope_extra_facet
     (scope_model.respond_to?(:scope_extra_facet) ? scope_model.scope_extra_facet : nil) || :branch
-  end
-
-  # True, wenn das aktuelle Controller-Modell Region strikt scoped (Location) -> Band zeigt den
-  # Toggle "auch ueberregionale zeigen".
-  def scope_region_strict?
-    scope_model.respond_to?(:scope_region_strict?) && scope_model.scope_region_strict?
-  end
-
-  # True, wenn der Toggle aktiv ist (Session, ephemer — keine Preference). Steuert Band-Checkbox +
-  # Current.show_overregional (SearchService#apply_scope).
-  def scope_show_overregional?
-    session.dig(:scope, "overregional") == "1"
   end
 
   # True, wenn der Default aktuell die Vorsaison ist (Umbruch, keine explizite User-Wahl).

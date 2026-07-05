@@ -60,20 +60,6 @@
                 scope_branch_options.map { |name, id| [name, id] }, current_branch_id),
               class: pill, onchange: "this.form.requestSubmit()" %>
       <% end %>
-
-      <%# Region-Restrict-Toggle: nur strikte Modelle (Location). Aus (Default) = nur eigene Region; %>
-      <%# an = auch global_context (ueberregionale) Venues. hidden-Fallback -> unchecked submittet "0". %>
-      <%# Bei aktivem Region-Fokus ausgeblendet: eine Region-Ansicht zeigt exakt DIESE Region (kein Sinn, %>
-      <%# ueberregionale hinzuzuschalten); der Fokus haelt ohnehin strikt (Current.show_overregional=false). %>
-      <% if scope_region_strict? && !region_focus_active? %>
-        <label class="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400 shrink-0 whitespace-nowrap ml-1 cursor-pointer">
-          <%= hidden_field_tag "scope[overregional]", "0" %>
-          <%= check_box_tag "scope[overregional]", "1", scope_show_overregional?,
-                onchange: "this.form.requestSubmit()",
-                class: "rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500 w-auto shrink-0" %>
-          <%= t("scope_band.show_overregional", default: "auch überregionale zeigen") %>
-        </label>
-      <% end %>
     <% end %>
   </div>
 </div>

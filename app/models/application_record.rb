@@ -52,11 +52,17 @@ class ApplicationRecord < ActiveRecord::Base
   end
 
   # Region-Scope strikt? Default = false -> Region-Filter schliesst global_context-Records ein
-  # (richtig fuer regionsuebergreifende Entitaeten wie DBU-Ligen/-Turniere). Physische Entitaeten
-  # (Location) ueberschreiben mit true: sie stehen an genau einem Ort, global_context blaeht die
-  # Region-Sicht sonst auf. Der Band-Toggle "auch ueberregionale zeigen" (Current.show_overregional)
-  # hebt die Striktheit pro Request wieder auf.
+  # (richtig fuer regionsuebergreifende Entitaeten wie DBU-Ligen/-Turniere). Region-strikte Modelle
+  # (Location/Player/Club) ueberschreiben mit true: sie gehoeren zu genau EINER Region; global_context
+  # ist dort ein Sync-Retention-Marker (kein Anzeige-Praedikat) und wird nie eingeblendet.
   def self.scope_region_strict?
+    false
+  end
+
+  # Vom globalen Scope-Band-Filter ausgenommen? Default = false. Picker-/Einstiegs-Listen, die selbst
+  # der Auswahl einer Scope-Dimension dienen (Region), setzen true -- sonst filtern sie sich per eigener
+  # region_id/global_context selbst weg (SearchService#apply_scope macht dann einen early-return).
+  def self.scope_exempt?
     false
   end
 
