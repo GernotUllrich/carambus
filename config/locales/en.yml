@@ -31,6 +31,10 @@ en:
     updated_at: updated at
   actions: Actions
   activerecord:
+    models:
+      game:
+        one: Game
+        other: Games
     attributes:
       account:
         name_on_card: Name on Card

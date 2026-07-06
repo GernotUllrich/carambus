@@ -127,7 +127,12 @@
   <main class="flex-1 bg-gray-200 dark:bg-gray-900 transition-all duration-300 content-wrapper" data-sidebar-target="content">
     <%# Globaler Ausschnitt (Scope-Band) — im Content-Bereich (rechts der Sidebar), ueber allen Listen. %>
     <%# NICHT im Scoreboard/Kiosk (out-of-scope): dort kein Band. %>
-    <%= render "shared/scope_band" unless is_scoreboard_page %>
+    <%# Drill-down-Modus (Scopable#drill_focus_active?): Breadcrumbs ersetzen das Scope-Band (Parent = Scope). %>
+    <% if drill_focus_active? %>
+      <%= render "shared/breadcrumbs" %>
+    <% elsif !is_scoreboard_page %>
+      <%= render "shared/scope_band" %>
+    <% end %>
     <%= yield %>
   </main>
   <%= render partial: "footer" if !turbo_native_app? && @footer %>

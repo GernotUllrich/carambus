@@ -23,6 +23,12 @@ module Scopable
     "club" => "club_id"
   }.freeze
 
+  # Drill-down-Modus (Verallgemeinerung von region_focus): erlaubte Parent-FK-Spalten, die als
+  # ephemerer Ankunftskontext (params[:drill]) akzeptiert werden. Allowlist verhindert
+  # Column-Injection (nur diese FKs landen in Current.scope). Ein gesetzter Drill-Kontext ersetzt
+  # das Scope-Band durch Breadcrumbs und filtert die Kind-Liste ueber den generischen apply_scope-Zweig.
+  DRILL_FOCUS_KEYS = %w[tournament_id league_id club_id party_id].freeze
+
   included do
     helper_method :current_scope, :current_region_id, :current_season_id, :current_branch_id,
                   :current_club_id,
@@ -31,7 +37,8 @@ module Scopable
                   :scope_season_transition?,
                   :current_region_shortname, :current_season_name, :current_branch_name,
                   :scope_indicator_label, :scope_indicator_primary, :scope_indicator_extra,
-                  :region_focus_active?, :region_focus_shortname, :without_region_focus_path
+                  :region_focus_active?, :region_focus_shortname, :without_region_focus_path,
+                  :drill_focus_active?, :drill_focus_crumbs
   end
 
   private
@@ -70,11 +77,79 @@ module Scopable
 
   # Stellt den Ausschnitt als FK-Filter fuer SearchService bereit (Current, pro Request).
   def set_current_scope
-    Current.scope = scope_resolver.fk_scope
-    # Temporaerer Region-Fokus (Drilldown aus regions/show): region_focus hat HOEHERE Prio als der
-    # persistente Scope-Band-Wert und ueberschreibt region_id NUR fuer diesen Request. KEIN session-Write
-    # (capture_scope unberuehrt) -> der Hauptselektor bleibt, wo er ist; der Fokus ist ephemer.
-    Current.scope = Current.scope.merge("region_id" => params[:region_focus].to_i) if region_focus_active?
+    if drill_focus_active?
+      # Drill-down-Modus: der Parent IST der Scope. Current.scope wird Parent-ONLY gesetzt (NICHT ueber
+      # Region/Saison der Session gemergt) — sonst wuerde ein fremdregionaler Parent seine Kinder
+      # faelschlich leerfiltern. apply_scope filtert den Parent-FK ueber seinen generischen Zweig
+      # (search_service.rb: `else results.where(col => value)`). KEIN session-Write (ephemer).
+      Current.scope = drill_focus_params.transform_keys(&:to_s)
+    else
+      Current.scope = scope_resolver.fk_scope
+      # Temporaerer Region-Fokus (Drilldown aus regions/show): region_focus hat HOEHERE Prio als der
+      # persistente Scope-Band-Wert und ueberschreibt region_id NUR fuer diesen Request. KEIN session-Write
+      # (capture_scope unberuehrt) -> der Hauptselektor bleibt, wo er ist; der Fokus ist ephemer.
+      Current.scope = Current.scope.merge("region_id" => params[:region_focus].to_i) if region_focus_active?
+    end
+  end
+
+  # --- Drill-down-Modus (Verallgemeinerung von region_focus) --------------------------------
+  # params[:drill] = { <parent_fk> => <id> } ist ein ephemerer Ankunftskontext (KEINE persistente
+  # Facette): filtert die Kind-Liste auf den Parent und laesst das Layout Breadcrumbs statt Scope-Band
+  # rendern. Nur DRILL_FOCUS_KEYS werden akzeptiert (Allowlist gegen Column-Injection).
+
+  def drill_focus_params
+    return @drill_focus_params if defined?(@drill_focus_params)
+
+    raw = params[:drill]
+    hash = raw.respond_to?(:to_unsafe_h) ? raw.to_unsafe_h : raw
+    @drill_focus_params =
+      if hash.is_a?(Hash)
+        hash.stringify_keys.slice(*DRILL_FOCUS_KEYS)
+          .transform_values { |v| v.to_i }
+          .select { |_, v| v.positive? }
+      else
+        {}
+      end
+  end
+
+  def drill_focus_active?
+    drill_focus_params.present?
+  end
+
+  # Breadcrumb-Kette fuer den Drill-down: [{ label:, path: }] Parent(s) + aktuelles Modell (path: nil).
+  # Fehlerrobust: nicht ladbare Parents werden uebersprungen, der Request bricht nie ab.
+  def drill_focus_crumbs
+    crumbs = []
+    drill_focus_params.each do |fk, id|
+      model = fk.delete_suffix("_id").classify.safe_constantize
+      next unless model
+
+      record = model.find_by(id: id)
+      next unless record
+
+      # Optionaler Region-Ahne davor -> Weg "Region › Turnier › …" (nur wenn der Parent region fuehrt).
+      if record.respond_to?(:region) && (reg = record.region).present?
+        crumbs << {label: reg.try(:shortname).presence || reg.to_s, path: safe_crumb_path(reg)}
+      end
+
+      label = record.try(:title).presence || record.try(:name).presence || "#{model.model_name.human} ##{id}"
+      crumbs << {label: label, path: safe_crumb_path(record)}
+    end
+
+    current_label = begin
+      controller_name.classify.constantize.model_name.human(count: 2)
+    rescue
+      controller_name.humanize
+    end
+    crumbs << {label: current_label, path: nil}
+    crumbs
+  end
+
+  # Defensiver Pfad-Bau fuer eine Crumb (unroutbare Records -> nil, kein Crash).
+  def safe_crumb_path(record)
+    polymorphic_path(record)
+  rescue
+    nil
   end
 
   # --- Temporaerer Region-Fokus (Drilldown aus regions/show) --------------------------------
