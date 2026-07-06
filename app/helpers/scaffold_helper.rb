@@ -18,6 +18,20 @@ module ScaffoldHelper
     cols
   end
 
+  # 11-02: Klassen-getriebene Spaltenliste fuer den generischen sortierbaren Index-Body
+  # (shared/_scaffold_sortable_table, Top-Level-Modus). Wie scaffold_show_attributes, aber KLASSEN-level:
+  # heavy-Typen (text/json/jsonb/binary) raus (rendern als Wall-of-Text/JSON -> nicht scanbar) + begrenzt.
+  # only: ersetzt die Default-Liste (per-Modell-Override im Rollout ohne Partial-Edit), except: entfernt zusaetzlich.
+  def scaffold_index_columns(model_class, only: nil, except: nil, limit: 8)
+    cols = only.presence&.map(&:to_s) || (model_class.column_names - SCAFFOLD_HIDDEN_COLUMNS)
+    cols -= Array(except).map(&:to_s)
+    heavy = %i[text json jsonb binary]
+    cols = cols.reject { |c| heavy.include?(model_class.columns_hash[c]&.type) }
+    cols.first(limit)
+  rescue StandardError
+    []
+  end
+
   # 09-02: Name des "fuehrenden" Attributs fuer die Zeilen-Liste (verlinkter Titel je Zeile).
   # Erstes vorhandenes aus name/title/shortname/display_name, sonst die erste String-Spalte,
   # sonst nil (das Shell faellt dann auf record.to_s zurueck).
@@ -48,8 +62,12 @@ module ScaffoldHelper
     if (reflection = scaffold_belongs_to_for(record, attr))
       assoc = record.public_send(reflection.name) rescue nil
       return scaffold_blank if assoc.nil?
-      return custom_link_to(scaffold_assoc_label(assoc), assoc,
-                            class: "text-primary-600 hover:text-primary-700")
+      label = scaffold_assoc_label(assoc)
+      # custom_link_to gibt bei nicht-routbaren Zielen (z.B. STI-Subklassen ohne eigene Route,
+      # etwa discipline -> Branch) im Rescue kein <a> zurueck -> auf reinen Label-Text zurueckfallen
+      # statt "true" zu rendern.
+      link = custom_link_to(label, assoc, class: "text-primary-600 hover:text-primary-700")
+      return link.is_a?(String) ? link : label
     end
 
     return scaffold_blank if value.nil? || (value.respond_to?(:empty?) && value.empty?)
