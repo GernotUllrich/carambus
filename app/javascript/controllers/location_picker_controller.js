@@ -41,10 +41,10 @@ export default class extends Controller {
     const span = document.createElement("span")
     span.textContent = name
     const safeName = span.innerHTML
-    return `<span class="lp-chip" data-chip-id="${id}" style="display:inline-flex;align-items:center;gap:4px;padding:3px 8px;margin:2px;border:1px solid #2563eb;border-radius:12px;background:#eff6ff;font-size:0.9em;">
+    return `<span class="lp-chip inline-flex items-center gap-1 px-2 py-0.5 m-0.5 rounded-full text-[0.9em] border border-info-600 bg-info-50 dark:bg-info-900/30 !text-info-800 dark:!text-info-200" data-chip-id="${id}">
       <input type="hidden" name="${this.fieldValue}" value="${id}">
       <span>${safeName}</span>
-      <button type="button" data-action="location-picker#remove" style="border:0;background:transparent;cursor:pointer;color:#2563eb;font-weight:bold;line-height:1;">&times;</button>
+      <button type="button" data-action="location-picker#remove" class="border-0 bg-transparent cursor-pointer font-bold leading-none !text-info-800 dark:!text-info-200">&times;</button>
     </span>`
   }
 
@@ -91,12 +91,11 @@ export default class extends Controller {
     const html = groups.map((g) => {
       const items = g.locations.map((l) => {
         const hidden = selectedIds.includes(String(l.id)) ? "hidden" : ""
-        return `<button type="button" class="lp-available-item" data-location-picker-target="available" ` +
-          `data-id="${l.id}" data-name="${esc(l.name)}" data-action="location-picker#add" ${hidden} ` +
-          `style="display:block;width:100%;text-align:left;border:0;background:transparent;cursor:pointer;padding:3px 8px;border-radius:4px;font-size:0.9em;">+ ${esc(l.name)}</button>`
+        return `<button type="button" class="lp-available-item block w-full text-left border-0 bg-transparent cursor-pointer px-2 py-0.5 rounded text-[0.9em] !text-gray-800 dark:!text-gray-100 hover:bg-info-100 dark:hover:bg-info-900/30 hover:!text-info-900 dark:hover:!text-info-100" data-location-picker-target="available" ` +
+          `data-id="${l.id}" data-name="${esc(l.name)}" data-action="location-picker#add" ${hidden}>+ ${esc(l.name)}</button>`
       }).join("")
-      return `<div data-location-picker-target="group" style="margin-bottom:6px;">` +
-        `<div style="font-weight:600;font-size:0.8em;color:#6b7280;padding:2px 4px;">${esc(g.club)}</div>${items}</div>`
+      return `<div data-location-picker-target="group" class="mb-1.5">` +
+        `<div class="font-semibold text-[0.8em] text-gray-500 dark:text-gray-400 px-1 py-0.5">${esc(g.club)}</div>${items}</div>`
     }).join("")
     this.availableListTarget.innerHTML = html
     this.refreshGroups()

@@ -45,6 +45,27 @@ class ApplicationRecord < ActiveRecord::Base
     @sortable_columns ||= columns.map(&:name)
   end
 
+  # Zusatz-Facette des Scope-Bands (neben Region/Saison). Default = Branch; Modelle koennen
+  # ueberschreiben (z.B. Player => :club). Das Band liest dies ueber das aktuelle Controller-Modell.
+  def self.scope_extra_facet
+    :branch
+  end
+
+  # Region-Scope strikt? Default = false -> Region-Filter schliesst global_context-Records ein
+  # (richtig fuer regionsuebergreifende Entitaeten wie DBU-Ligen/-Turniere). Region-strikte Modelle
+  # (Location/Player/Club) ueberschreiben mit true: sie gehoeren zu genau EINER Region; global_context
+  # ist dort ein Sync-Retention-Marker (kein Anzeige-Praedikat) und wird nie eingeblendet.
+  def self.scope_region_strict?
+    false
+  end
+
+  # Vom globalen Scope-Band-Filter ausgenommen? Default = false. Picker-/Einstiegs-Listen, die selbst
+  # der Auswahl einer Scope-Dimension dienen (Region), setzen true -- sonst filtern sie sich per eigener
+  # region_id/global_context selbst weg (SearchService#apply_scope macht dann einen early-return).
+  def self.scope_exempt?
+    false
+  end
+
   def disallow_saving_global_records
     raise ActiveRecord::Rollback if id < MIN_ID && ApplicationRecord.local_server? && !unprotected
 

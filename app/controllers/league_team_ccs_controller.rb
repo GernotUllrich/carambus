@@ -1,7 +1,7 @@
 class LeagueTeamCcsController < ApplicationController
   include FiltersHelper
   # TODO: callback needed?:  protect_from_forgery except: :search
-  before_action :admin_only_check, except: %i[show index]
+  before_action :system_admin_only
   before_action :set_league_team_cc, only: %i[show edit update destroy]
 
   # GET /league_team_ccs

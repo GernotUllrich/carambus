@@ -1,4 +1,5 @@
 class TableLocalsController < ApplicationController
+  before_action :system_admin_only
   before_action :set_table_local, only: %i[show edit update destroy]
 
   # Uncomment to enforce Pundit authorization

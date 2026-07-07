@@ -5,6 +5,7 @@
     <% if model_class.any? %>
       <%= render partial: 'shared/search_with_filter', locals: {
         model_class: model_class,
+        table_partial: local_assigns[:table_partial],
                 } %>
       <%= button_to new_text, new_path, method: :get, disabled: !current_user&.admin?, class: "btn btn-primary" %>
           <% end %>

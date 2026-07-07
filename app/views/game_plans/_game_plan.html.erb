@@ -1,20 +1,25 @@
-<div id="<%= dom_id game_plan %>">
-  <div class="mb-4">
-    <p class="text-sm font-medium text-gray-500">Footprint</p>
-    <%= game_plan.footprint %>
+<div id="<%= dom_id game_plan %>" class="space-y-2">
+  <div>
+    <p class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500">Name</p>
+    <span class="font-medium text-gray-900 dark:text-gray-100"><%= game_plan.name %></span>
   </div>
-  <div class="mb-4">
-    <p class="text-sm font-medium text-gray-500">Data</p>
-    <pre><%= JSON.pretty_generate(game_plan.data) %></pre>
+  <div>
+    <p class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500">Footprint</p>
+    <span class="text-gray-900 dark:text-gray-100"><%= game_plan.footprint %></span>
   </div>
-  <div class="mb-4">
-    <p class="text-sm font-medium text-gray-500">Name</p>
-    <%= game_plan.name %>
+  <div>
+    <p class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500">Leagues</p>
+    <div class="text-sm">
+      <% _counts = game_plan.leagues.group_by { |l| [l.name, l.branch&.id] }.transform_values(&:size) %>
+      <%- game_plan.leagues.sort_by { |l| [l.name.to_s, l.season&.name.to_s] }.each do |league| %>
+        <% _multi = _counts[[league.name, league.branch&.id]].to_i > 1 %>
+        <% _label = league.name + ' - ' + league.branch.name + (_multi && league.season ? " (#{league.season.name})" : "") %>
+        <%= custom_link_to (_label + "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;").html_safe, league, class: "text-primary-600 dark:text-primary-400" %>
+      <%- end %>
+    </div>
   </div>
-  <div class="mb-4">
-    <p class="text-sm font-medium text-gray-500">Leagues</p>
-    <%- game_plan.leagues.each do |league| %>
-      <%= custom_link_to (league.name + ' - ' + league.branch.name + "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;").html_safe, league %>
-    <%- end %>
+  <div>
+    <p class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500">Data</p>
+    <%= pretty_json(game_plan.data) %>
   </div>
 </div>

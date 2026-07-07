@@ -1,0 +1,65 @@
+<%# Globaler Ausschnitt (Scope-Band): Region · Saison · Branch als primaere Interaktion. %>
+<%# Region/Saison: kein "Alle" (Default Region=NBV, Saison=aktuell). Branch: "Alle Branchen" (Ausnahme). %>
+<%# Aenderung submittet per GET; Scopable#capture_scope speichert in Session, SearchService filtert %>
+<%# via Current.scope (region_id/season_id/branch_id) als FK-Filter. %>
+<div id="scope-band" tabindex="-1" class="border-b border-gray-300 dark:border-gray-700 bg-gray-300 dark:bg-gray-800 scroll-mt-4 transition-shadow duration-300">
+  <div class="px-4 py-2">
+    <%= form_tag request.path, method: :get, class: "flex items-center gap-2 flex-nowrap overflow-x-auto" do %>
+      <%# Sortierung erhalten (Suche liegt in der Session, braucht kein Hidden-Feld). %>
+      <%= hidden_field_tag :sort, params[:sort] if params[:sort].present? %>
+      <%= hidden_field_tag :direction, params[:direction] if params[:direction].present? %>
+
+      <span class="text-xs uppercase tracking-wide text-gray-600 dark:text-gray-500 mr-1 shrink-0 whitespace-nowrap">
+        <%= t("scope_band.label", default: "Ausschnitt") %>
+      </span>
+
+      <%# w-auto shrink-0: Selects bleiben inhaltsbreit (gegen globale width:100%) und stauchen nicht. %>
+      <% pill = "rounded-pill border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 text-sm px-3 py-1 w-auto shrink-0" %>
+      <% caption = "text-xs text-gray-600 dark:text-gray-500 shrink-0 whitespace-nowrap" %>
+
+      <span class="<%= caption %>"><%= t("scope_band.region", default: "Region") %></span>
+      <%= select_tag "scope[region]",
+            options_for_select(scope_region_options.map { |shortname, id| [shortname, id] }, current_region_id),
+            class: pill + (region_focus_active? ? " opacity-60" : ""), onchange: "this.form.requestSubmit()" %>
+      <% if region_focus_active? %>
+        <%# Temporärer Region-Fokus (Drilldown): überschreibt den Ausschnitt nur für diese Ansicht. %>
+        <span class="inline-flex items-center gap-1 shrink-0 whitespace-nowrap rounded-pill bg-warning-50 dark:bg-warning-900/30 text-warning-800 dark:text-warning-200 text-xs px-2 py-1"
+              title="<%= t("scope_band.region_focus_hint", default: "Temporärer Region-Fokus (Drilldown) — überschreibt den Ausschnitt nur für diese Ansicht.") %>">
+          <%= t("scope_band.region_focus", default: "temporär") %>: <strong><%= region_focus_shortname %></strong>
+          <%= custom_link_to "✕", without_region_focus_path,
+                class: "font-bold no-underline hover:text-warning-900 dark:hover:text-warning-100",
+                title: t("scope_band.region_focus_clear", default: "Fokus verlassen") %>
+        </span>
+      <% end %>
+
+      <span class="<%= caption %>"><%= t("scope_band.season", default: "Saison") %></span>
+      <%= select_tag "scope[season]",
+            options_for_select(scope_season_options.map { |name, id| [name, id] }, current_season_id),
+            class: pill, onchange: "this.form.requestSubmit()" %>
+
+      <% if scope_season_transition? %>
+        <span class="text-xs italic text-gray-600 dark:text-gray-500 shrink-0 whitespace-nowrap" title="<%= t("scope_band.transition_hint", default: "Saison-Umbruch: die kommende Saison ist noch in Planung — bis Mitte August gilt die Vorsaison.") %>">
+          · <%= t("scope_band.transition", default: "Saison-Umbruch – Vorsaison") %>
+        </span>
+      <% end %>
+
+      <%# Kontext-sensitive 3. Facette: Club (Player), Branch (tournaments/leagues), nichts bei :none %>
+      <%# (Locations — kein branch_id/saison-Club-Filter). Aus scope_extra_facet des Modells. %>
+      <% if scope_extra_facet == :none %>
+        <%# keine 3. Facette %>
+      <% elsif scope_extra_facet == :club %>
+        <span class="<%= caption %>"><%= t("scope_band.club", default: "Club") %></span>
+        <%= select_tag "scope[club]",
+              options_for_select([[t("scope_band.all_clubs", default: "Alle Clubs"), ""]] +
+                scope_club_options.map { |name, id| [name, id] }, current_club_id),
+              class: pill, onchange: "this.form.requestSubmit()" %>
+      <% else %>
+        <span class="<%= caption %>"><%= t("scope_band.branch", default: "Branch") %></span>
+        <%= select_tag "scope[branch]",
+              options_for_select([[t("scope_band.all_branches", default: "Alle Branchen"), ""]] +
+                scope_branch_options.map { |name, id| [name, id] }, current_branch_id),
+              class: pill, onchange: "this.form.requestSubmit()" %>
+      <% end %>
+    <% end %>
+  </div>
+</div>

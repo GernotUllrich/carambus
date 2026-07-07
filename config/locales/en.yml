@@ -31,6 +31,13 @@ en:
     updated_at: updated at
   actions: Actions
   activerecord:
+    models:
+      game:
+        one: Game
+        other: Games
+      league_team:
+        one: League Team
+        other: League Teams
     attributes:
       account:
         name_on_card: Name on Card
@@ -302,6 +309,7 @@ en:
       tournaments: Tournaments
       tournierabwicklung: Tournament Management
       tournierplanung: Tournament Mgmt
+      verwaltung: Administration
       training: Training
       version: Versions
       your_tables: Available Tournament Tables
@@ -1269,6 +1277,11 @@ en:
       no_results: "No results found for '%{query}'"
     index_with_search:
       no_records: "No records found"
+    scaffold:
+      new:
+        title: "New %{model}"
+      edit:
+        title: "Edit %{model}"
 
   league_team:
     index:

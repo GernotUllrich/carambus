@@ -4,18 +4,18 @@
 
 <div class="field-unit__field" data-controller="array-field">
   <% Array.wrap(f.object.send(field.attribute)).each do |item| %>
-    <div class="row">
+    <div class="row flex items-center gap-2 mb-1">
       <%= text_field_tag "#{f.object_name}[#{field.attribute}][]", item, autocomplete: :off %>
-      <%= custom_link_to "Remove", "#", data: { action: "array-field#remove" } %>
+      <%= custom_link_to "Remove", "#", data: { action: "array-field#remove" }, class: "text-primary-600 dark:text-primary-300 hover:underline text-sm" %>
     </div>
   <% end %>
 
-  <%= custom_link_to "Add", "#", data: { action: "array-field#add" } %>
+  <%= custom_link_to "Add", "#", data: { action: "array-field#add" }, class: "text-primary-600 dark:text-primary-300 hover:underline text-sm" %>
 
   <template data-array-field-target="template">
-    <div class="row">
+    <div class="row flex items-center gap-2 mb-1">
       <%= text_field_tag "#{f.object_name}[#{field.attribute}][]", nil, autocomplete: :off %>
-      <%= custom_link_to "Remove", "#", data: { action: "array-field#remove" } %>
+      <%= custom_link_to "Remove", "#", data: { action: "array-field#remove" }, class: "text-primary-600 dark:text-primary-300 hover:underline text-sm" %>
     </div>
   </template>
 </div>

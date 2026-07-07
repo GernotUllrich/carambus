@@ -1,133 +1,154 @@
   <div class="container mx-auto my-8 px-4">
   <div class="max-w-5xl mx-auto">
-    <div class="flex justify-between items-center mb-4">
-      <h1 class="h3"><%= custom_link_to 'Clubs', clubs_path %> > <%= @club.name %></h1>
-      <%= button_to('Edit', edit_club_path(@club), method: :get, disabled: !current_user&.admin?, class: "btn btn-link") %>
+    <div class="flex flex-wrap justify-between items-start gap-2 mb-4">
+      <div class="min-w-0">
+        <h1 class="text-xl font-semibold text-gray-900 dark:text-gray-100 break-words">
+          <%= custom_link_to 'Clubs', clubs_path, class: "text-primary-600 hover:text-primary-700" %>
+          <span class="text-gray-400 dark:text-gray-500">&gt;</span> <%= @club.name %>
+        </h1>
+      </div>
+      <%= button_to('Edit', edit_club_path(@club), method: :get, disabled: !current_user&.admin?, class: "btn btn-link shrink-0") %>
     </div>
 
-    <div class="flex flex-wrap space-y-5  rounded shadow p-8">
-      <div class="w-1/2 md:w-3/12 mb-4 m-w-full pr-8"><h5>Logo</h5><%= image_tag @club.logo if @club.logo.present? %></div>
-      <div class="w-1/2 md:w-3/12 mb-4 m-w-full pr-8">
-        <h5>cc_id</h5><%= custom_link_to @club.cc_id.presence || "TBD", "#{@club.region.public_cc_url_base}verein-details.php?p=#{@club.region.andand.region_cc.andand.cc_id}---#{@club.cc_id}--1-100000-0", class: "green_link", target: '_blank' %>
+    <%# Detail-Card-Muster (Phase 6): Token-Card + responsives Label/Wert-Grid — Referenz tournaments/_show.html.erb. %>
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-4 bg-surface-card dark:bg-gray-800 rounded-card border border-gray-200 dark:border-gray-700 p-6 text-gray-900 dark:text-gray-100">
+      <div class="min-w-0 col-span-2"><h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5">Logo</h5><%= image_tag @club.logo if @club.logo.present? %></div>
+      <div class="min-w-0">
+        <h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5">cc_id</h5><%= custom_link_to @club.cc_id.presence || "TBD", "#{@club.region.public_cc_url_base}verein-details.php?p=#{@club.region.andand.region_cc.andand.cc_id}---#{@club.cc_id}--1-100000-0", class: "green_link", target: '_blank' %>
       </div>
-      <div class="w-1/2 md:w-3/12 mb-4 m-w-full pr-8">
-        <h5><%= t('club.region_id') %></h5><%= custom_link_to @club.region.name, region_path(@club.region) if @club.region.present? %>
+      <div class="min-w-0">
+        <h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5"><%= t('club.region_id') %></h5><%= custom_link_to @club.region.name, region_path(@club.region) if @club.region.present? %>
       </div>
-      <div class="w-1/2 md:w-3/12 mb-4 m-w-full pr-8">
-        <h5><%= t('club.name') %></h5><%= custom_link_to(@club.name, club_path(@club)) %></div>
-      <div class="w-1/2 md:w-3/12 mb-4 m-w-full pr-8"><h5><%= t('club.shortname') %></h5><%= @club.shortname %></div>
-      <div class="w-1/2 md:w-3/12 mb-4 m-w-full pr-8"><h5><%= t('club.synonyms') %></h5><%= my_sanitize @club.synonyms&.gsub("\n", ",<hr class=\"my-2 mx-auto w-48 h-1 bg-gray-200 rounded border-0 md:my-5 dark:bg-gray-700\">") %></div>
-      <div class="w-1/2 md:w-3/12 mb-4 m-w-full pr-8">
-        <h5><%= t('club.address') %></h5><%= my_sanitize @club.address %>
+      <div class="min-w-0">
+        <h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5"><%= t('club.name') %></h5><%= custom_link_to(@club.name, club_path(@club)) %></div>
+      <div class="min-w-0"><h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5"><%= t('club.shortname') %></h5><%= @club.shortname %></div>
+      <div class="min-w-0"><h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5"><%= t('club.synonyms') %></h5><%= my_sanitize @club.synonyms&.gsub("\n", ",<hr class=\"my-2 mx-auto w-48 h-1 bg-gray-200 rounded border-0 md:my-5 dark:bg-gray-700\">") %></div>
+      <div class="min-w-0">
+        <h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5"><%= t('club.address') %></h5><%= my_sanitize @club.address %>
       </div>
-      <div class="w-1/2 md:w-3/12 mb-4 m-w-full pr-8">
-        <h5><%= t('club.homepage') %></h5><%= my_sanitize @club.homepage %>
+      <div class="min-w-0">
+        <h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5"><%= t('club.homepage') %></h5><%= my_sanitize @club.homepage %>
       </div>
-      <div class="w-1/2 md:w-3/12 mb-4 m-w-full pr-8"><h5><%= t('club.email') %></h5><%= my_sanitize mail_to @club.email %></div>
-      <div class="w-1/2 md:w-3/12 mb-4 m-w-full pr-8">
-        <h5><%= t('club.priceinfo') %></h5><%= my_sanitize @club.priceinfo.andand.gsub(/\n+/, "<br />").andand.html_safe %>
+      <div class="min-w-0"><h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5"><%= t('club.email') %></h5><%= my_sanitize mail_to @club.email %></div>
+      <div class="min-w-0">
+        <h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5"><%= t('club.priceinfo') %></h5><%= my_sanitize @club.priceinfo.andand.gsub(/\n+/, "<br />").andand.html_safe %>
       </div>
-      <div class="w-1/2 md:w-3/12 mb-4 m-w-full pr-8"><h5><%= t('club.status') %></h5><%= @club.status %></div>
-      <div class="w-1/2 md:w-3/12 mb-4 m-w-full pr-8"><h5><%= t('club.founded') %></h5><%= @club.founded %></div>
-      <div class="w-1/2 md:w-3/12 mb-4 m-w-full pr-8"><h5><%= t('club.dbu_entry') %></h5><%= @club.dbu_entry %></div>
-    </div>
-    <div class="flex flex-row px-3 lg:px-0">
-      <%= button_to I18n.t("tournaments.show.reload_from_club_cloud"), reload_from_cc_club_path(@club), method: :post, style: "float: left; margin-right: 10px;", disabled: !current_user&.admin?, class: "btn btn-flat btn-primary" %>
-      <%= button_to I18n.t("tournaments.show.reload_from_club_cloud_with_details"), reload_from_cc_with_details_club_path(@club), method: :post, style: "float: left; margin-right: 10px;", disabled: !current_user&.admin?, class: "btn btn-flat btn-primary" %>
+      <div class="min-w-0"><h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5"><%= t('club.status') %></h5><%= @club.status %></div>
+      <div class="min-w-0"><h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5"><%= t('club.founded') %></h5><%= @club.founded %></div>
+      <div class="min-w-0"><h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5"><%= t('club.dbu_entry') %></h5><%= @club.dbu_entry %></div>
     </div>
   </div>
 </div>
-<hr>
-<div class="px-3 lg:px-0">
-  <div class="container mx-auto my-8 px-4">
-    <div class="max-w-5xl justify-center mx-auto">
-      <h2><%= t("home.index.guests") %></h2>
-      <%= button_to t('club.new_club_guest'), new_club_guest_club_path(@club), disabled: !current_user&.admin?, method: :get, class: "btn btn-flat btn-primary" %>
-      <div class="flex space-x-20 p-4 justify-center ">
-        <ul>
-          <%- Player.joins(:season_participations => :club).where(season_participations: {season: Season.current_season, club: @club, status: "guest"}).order(firstname: :desc).uniq.each do |player| %>
-            <li><%= custom_link_to "#{player.lastname}, #{player.firstname}", player_path(player) %></li>
-          <%- end %>
-        </ul>
-      </div>
+<div class="container mx-auto px-4">
+  <div class="max-w-5xl mx-auto mt-6 bg-surface-card dark:bg-gray-800 rounded-card border border-gray-200 dark:border-gray-700 p-6 text-gray-900 dark:text-gray-100">
+    <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+      <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100"><%= t("home.index.guests") %></h2>
+      <%= button_to t('club.new_club_guest'), new_club_guest_club_path(@club), disabled: !current_user&.admin?, method: :get, class: "btn btn-flat btn-primary shrink-0" %>
     </div>
+    <ul class="space-y-1">
+      <%- Player.joins(:season_participations => :club).where(season_participations: {season: Season.current_season, club: @club, status: "guest"}).order(firstname: :desc).uniq.each do |player| %>
+        <li><%= custom_link_to "#{player.lastname}, #{player.firstname}", player_path(player), class: "text-primary-600 hover:text-primary-700" %></li>
+      <%- end %>
+    </ul>
   </div>
 </div>
-<div class="px-3 lg:px-0">
-  <div class="container mx-auto my-8 px-4">
-    <div class="max-w-5xl justify-center mx-auto">
-      <h2><%= t('home.index.locations') %></h2>
-      <%= button_to t('club.new_club_location'), new_club_location_club_path(@club), disabled: !current_user&.admin?, method: :get, class: "btn btn-flat btn-primary" %>
-      <div class="flex space-x-20 p-4 justify-center ">
-        <ul>
-          <%- @club.locations.each do |location| %>
-            <li><%= custom_link_to location.name, location_path(location) %></li>
-          <%- end %>
-        </ul>
-      </div>
+<div class="container mx-auto px-4">
+  <div class="max-w-5xl mx-auto mt-6 bg-surface-card dark:bg-gray-800 rounded-card border border-gray-200 dark:border-gray-700 p-6 text-gray-900 dark:text-gray-100">
+    <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+      <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100"><%= t('home.index.locations') %></h2>
+      <%= button_to t('club.new_club_location'), new_club_location_club_path(@club), disabled: !current_user&.admin?, method: :get, class: "btn btn-flat btn-primary shrink-0" %>
     </div>
+    <ul class="space-y-1">
+      <%- @club.locations.each do |location| %>
+        <li><%= custom_link_to location.name, location_path(location), class: "text-primary-600 hover:text-primary-700" %></li>
+      <%- end %>
+    </ul>
   </div>
 </div>
-<div class="px-3 lg:px-0">
-  <div class="container mx-auto my-8 px-4">
-    <div class="max-w-5xl justify-center mx-auto">
-      <h2><%= t('home.index.leagues') %></h2>
-      <div class="flex  dark:">
-        <%- League.where(organizer_id: 1, season: Season.current_season, organizer_type: "Region").each do |league| %>
-          <%- if league.league_teams.where(club: @club.id).count > 0 %>
-            <div class="p-4">
-              <h4><%= custom_link_to league.name, league_path(league) %></h4>
-              <ul>
-                <%- league.league_teams.where(club: @club.id).order(name: :desc).uniq.each do |league_team| %>
-                  <li><%= custom_link_to league_team.name, league_team_path(league_team) %></li>
-                <%- end %>
-              </ul>
-            </div>
-          <%- end %>
+<div class="container mx-auto px-4">
+  <div class="max-w-5xl mx-auto mt-6 bg-surface-card dark:bg-gray-800 rounded-card border border-gray-200 dark:border-gray-700 p-6 text-gray-900 dark:text-gray-100">
+    <%# Ligen, in denen der Club Mannschaften stellt (ueber league_teams, unabhaengig vom Organisator). %>
+    <%# Aktuelle Saison; sind dort noch keine Ligen definiert (Umbruchsphase), auf die Vorsaison zurueckfallen. %>
+    <%- current_season = Season.current_season %>
+    <%- shown_season = current_season %>
+    <%- club_leagues = League.joins(:league_teams).where(league_teams: { club_id: @club.id }, season: current_season).distinct.order(:name).to_a %>
+    <%- if club_leagues.blank? && current_season&.previous %>
+      <%- shown_season = current_season.previous %>
+      <%- club_leagues = League.joins(:league_teams).where(league_teams: { club_id: @club.id }, season: shown_season).distinct.order(:name).to_a %>
+    <%- end %>
+    <div class="flex flex-wrap items-baseline gap-2 mb-3">
+      <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100"><%= t('home.index.leagues') %></h2>
+      <%- if shown_season %><span class="text-sm text-gray-500 dark:text-gray-400"><%= shown_season.name %></span><%- end %>
+    </div>
+    <%- if club_leagues.present? %>
+      <div class="flex flex-wrap gap-6">
+        <%- club_leagues.each do |league| %>
+          <div class="min-w-0">
+            <h4 class="font-medium"><%= custom_link_to league.name, league_path(league), class: "text-primary-600 hover:text-primary-700" %></h4>
+            <ul class="space-y-1 mt-1">
+              <%# uniq(&:name): Datenbestand enthaelt teils mehrere LeagueTeam-Datensaetze gleichen Namens -> pro Name nur einen zeigen. %>
+              <%- league.league_teams.where(club_id: @club.id).order(:name).to_a.uniq(&:name).each do |league_team| %>
+                <li><%= custom_link_to league_team.name, league_team_path(league_team), class: "text-primary-600 hover:text-primary-700" %></li>
+              <%- end %>
+            </ul>
+          </div>
         <%- end %>
       </div>
-    </div>
+    <%- else %>
+      <p class="text-sm text-gray-500 dark:text-gray-400"><%= t('clubs.show.no_leagues', default: "Der Club spielt derzeit in keiner Liga mit.") %></p>
+    <%- end %>
   </div>
 </div>
-<div class="px-3 lg:px-0">
-  <div class="container mx-auto my-8 px-4">
-    <div class="max-w-5xl justify-center mx-auto">
-      <%- Season.joins(:season_participations => :club).where(clubs: { id: @club.id }).order(name: :desc).uniq[0..1].each do |season| %>
+<div class="container mx-auto px-4">
+  <%- Season.joins(:season_participations => :club).where(clubs: { id: @club.id }).order(name: :desc).uniq[0..1].each do |season| %>
+    <div class="max-w-5xl mx-auto mt-6 bg-surface-card dark:bg-gray-800 rounded-card border border-gray-200 dark:border-gray-700 p-6 text-gray-900 dark:text-gray-100">
+      <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+        <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100"><%= t('home.index.season') %> <%= season.name %></h2>
         <%- if season.id >= Season.current_season.id %>
-          <%= button_to t('club.new_club_tournament'), new_club_tournament_club_path(@club, tournament: { season_id: season.id }), disabled: !current_user&.admin?, data: { turbo: false }, class: "btn btn-flat btn-primary" %>
+          <%= button_to t('club.new_club_tournament'), new_club_tournament_club_path(@club, tournament: { season_id: season.id }), disabled: !current_user&.admin?, data: { turbo: false }, class: "btn btn-flat btn-primary shrink-0" %>
         <%- end -%>
-        <h2><%= t('home.index.season') %> <%= season.name %></h2>
+      </div>
 
-        <h3 class="space-above"><%= t('player.index.players') %></h3>
-        <div class="flex space-x-20 p-4 justify-center ">
-          <table class="w-full">
-            <thead>
-            <tr>
-              <th><%= t('season_participation.player_id') %></th>
-              <th><%= t('season_participation.club_id') %></th>
-              <th><%= t('player.firstname') %></th>
-              <th><%= t('player.nickname') %></th>
-              <th><%= t('player.lastname') %></th>
-              <th><%= t('player.title') %></th>
+      <h3 class="font-medium mb-2"><%= t('player.index.players') %></h3>
+      <div class="overflow-x-auto rounded shadow ring-1 ring-slate-200 dark:ring-slate-800">
+        <table class="min-w-full text-sm">
+          <thead class="bg-gray-100/80 border-b border-slate-200 text-slate-500 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-400">
+          <tr>
+            <th class="p-3 text-left font-semibold"><%= t('season_participation.player_id') %></th>
+            <th class="p-3 text-left font-semibold"><%= t('season_participation.club_id') %></th>
+            <th class="p-3 text-left font-semibold"><%= t('player.firstname') %></th>
+            <th class="p-3 text-left font-semibold"><%= t('player.nickname') %></th>
+            <th class="p-3 text-left font-semibold"><%= t('player.lastname') %></th>
+            <th class="p-3 text-left font-semibold"><%= t('player.title') %></th>
+          </tr>
+          </thead>
+          <tbody>
+          <%- Player.joins(:season_participations => :club).joins(:season_participations => :season).where("seasons.id = ?", season.id).where("clubs.id = ?", @club.id).order(lastname: :asc, firstname: :asc).uniq.each do |player| %>
+            <tr class="border-b border-slate-100 dark:border-slate-800">
+              <td class="p-3"><%= link_to_if player.ba_id.present?, player.ba_id, player_path(player) %></td>
+              <td class="p-3"><%= custom_link_to @club.shortname, club_path(@club) %></td>
+              <td class="p-3"><%= player.firstname %></td>
+              <td class="p-3"><%= player.nickname %></td>
+              <td class="p-3"><%= custom_link_to player.lastname, player_path(player) %></td>
+              <td class="p-3"><%= player.title %></td>
             </tr>
-            </thead>
-            <tbody>
-            <%- Player.joins(:season_participations => :club).joins(:season_participations => :season).where("seasons.id = ?", season.id).where("clubs.id = ?", @club.id).order(lastname: :asc, firstname: :asc).uniq.each do |player| %>
-              <tr>
-                <td><%= link_to_if player.ba_id.present?, player.ba_id, player_path(player) %></td>
-                <td><%= custom_link_to @club.shortname, club_path(@club) %></td>
-                <td><%= player.firstname %></td>
-                <td><%= player.nickname %></td>
-                <td><%= custom_link_to player.lastname, player_path(player) %></td>
-                <td><%= player.title %></td>
-              </tr>
-            <%- end %>
-            </tbody>
-          </table>
-        </div>
-        <h3><%= t('club.club_tournaments') %></h3>
-      <%- end %>
+          <%- end %>
+          </tbody>
+        </table>
+      </div>
+      <h3 class="font-medium mt-4"><%= t('club.club_tournaments') %></h3>
     </div>
-  </div>
+  <%- end %>
 </div>
 
+<% if current_user&.data_sync_access? %>
+  <div class="container mx-auto px-4">
+    <div class="max-w-5xl mx-auto mt-8 pt-4 border-t border-gray-200 dark:border-gray-700">
+      <p class="text-sm text-gray-500 dark:text-gray-400 mb-2">Datenabgleich</p>
+      <div class="flex flex-wrap gap-2">
+        <%= button_to I18n.t("tournaments.show.reload_from_club_cloud"), reload_from_cc_club_path(@club), method: :post, class: "btn btn-flat btn-primary" %>
+        <%= button_to I18n.t("tournaments.show.reload_from_club_cloud_with_details"), reload_from_cc_with_details_club_path(@club), method: :post, class: "btn btn-flat btn-primary" %>
+      </div>
+    </div>
+  </div>
+<% end %>

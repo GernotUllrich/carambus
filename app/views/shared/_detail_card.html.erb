@@ -1,0 +1,46 @@
+<%# 09-01: Generische, spalten-getriebene Detail-Card (Foundation v0.3). Rendert einen beliebigen
+    Record als Token-Detail-Card (Header + Label/Wert-Grid), verhaltensneutral zum Scaffold-show.
+    Locals:
+      record       (Pflicht)
+      index_path   (default: polymorphic_path(record.class))
+      index_label  (default: record.model_name.human.pluralize)
+      title        (default: name/title/"<Model> #<id>")
+      edit_path    (default: edit_polymorphic_path(record))
+      only:/except: (Spaltenauswahl, an scaffold_show_attributes durchgereicht)
+      details      (optionaler HTML-Block: Zusatz-Sektion unter der Card)
+    Token-Utilities only, kein Hex; Dark-Mode. %>
+<% index_path  ||= polymorphic_path(record.class) %>
+<% index_label ||= record.model_name.human.pluralize %>
+<% title       ||= (record.try(:name).presence || record.try(:title).presence || "#{record.model_name.human} ##{record.id}") %>
+<% edit_path   ||= (edit_polymorphic_path(record) rescue nil) %>
+
+<div class="container mx-auto my-8 px-4">
+  <div class="max-w-3xl mx-auto">
+    <div class="flex justify-between items-start mb-4 gap-2">
+      <h1 class="text-xl font-semibold text-gray-900 dark:text-gray-100 break-words min-w-0">
+        <%= custom_link_to index_label, index_path, class: "text-primary-600 hover:text-primary-700" %>
+        <span class="text-gray-400 dark:text-gray-500">&gt;</span>
+        <%= title %>
+      </h1>
+      <% if edit_path %>
+        <%= button_to t('edit', default: 'Edit'), edit_path, method: :get,
+              disabled: !current_user&.admin?, class: "btn btn-link shrink-0" %>
+      <% end %>
+    </div>
+
+    <dl class="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-4 bg-surface-card dark:bg-gray-800 rounded-card border border-gray-200 dark:border-gray-700 p-6 text-gray-900 dark:text-gray-100">
+      <% scaffold_show_attributes(record, only: local_assigns[:only], except: local_assigns[:except]).each do |attr| %>
+        <div class="min-w-0">
+          <dt class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5">
+            <%= scaffold_attribute_label(record, attr) %>
+          </dt>
+          <dd class="break-words"><%= scaffold_attribute_value(record, attr) %></dd>
+        </div>
+      <% end %>
+    </dl>
+
+    <% if local_assigns[:details].present? %>
+      <div class="mt-6"><%= details %></div>
+    <% end %>
+  </div>
+</div>

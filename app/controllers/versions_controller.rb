@@ -1,4 +1,5 @@
 class VersionsController < ApplicationController
+  before_action :system_admin_only
   before_action :set_version, only: %i[show edit update destroy]
 
   # GET /versions

@@ -1,0 +1,35 @@
+<%# 11-01: Generischer Row-List-BODY für die Such-Hülle (`_index_with_search`/`_search_with_filter`).
+    Anders als `_scaffold_index` (standalone, mit eigenem Container-Titel + New-Button) liefert dieses
+    Partial NUR die Zeilen-Liste — Header/New-Button/Suchfeld kommen von der Such-Hülle. Dient zugleich
+    als SearchReflex-Live-Rerender-Ziel (via `data-table-partial: 'shared/scaffold_table'`), damit die
+    Live-Suche denselben Body morpht. Locals:
+      records      (Pflicht)
+      model_class  (Pflicht — Konsistenz mit _scaffold_index; hier nicht direkt genutzt)
+      pagy         (default: @pagy)
+    Token-Utilities only, kein Hex, Dark-Mode. Spalten-Header-Sortierung entfällt bewusst (wie 09-02).
+    Leerzustand behandelt die Such-Hülle (no_results / model_class.any?) — hier bei leeren records nichts. %>
+<% pagy = local_assigns.fetch(:pagy) { @pagy } %>
+
+<% if records.any? %>
+  <div class="bg-surface-card dark:bg-gray-800 rounded-card border border-gray-200 dark:border-gray-700 overflow-hidden">
+    <% records.each do |record| %>
+      <% primary = scaffold_primary_attribute(record) %>
+      <% label = primary ? record.public_send(primary) : record.to_s %>
+      <% secondary = (scaffold_show_attributes(record) - [primary].compact).select { |a| record.public_send(a).present? rescue false }.first(4) %>
+      <div class="group flex items-center gap-3 px-4 py-3 border-t border-gray-100 dark:border-gray-700 first:border-t-0 hover:bg-surface-page dark:hover:bg-gray-700/60">
+        <div class="flex-1 min-w-0">
+          <%= custom_link_to(label, polymorphic_path(record), class: "font-medium text-gray-900 dark:text-gray-100 hover:text-primary-600 break-words") %>
+          <% if secondary.any? %>
+            <div class="text-xs text-gray-500 dark:text-gray-400 mt-0.5 break-words">
+              <%= safe_join(secondary.map { |a| scaffold_attribute_value(record, a) }, " · ") %>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+  </div>
+
+  <% if pagy && pagy.pages > 1 %>
+    <div class="text-center my-6"><%= pagy_nav(pagy).html_safe %></div>
+  <% end %>
+<% end %>

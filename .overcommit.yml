@@ -1,0 +1,36 @@
+# Overcommit-Konfiguration (Git-Pre-Commit-Hooks).
+#
+# Aktivieren (einmalig pro Checkout):  bundle exec overcommit --install
+# Nach jeder Änderung an DIESER Datei:  bundle exec overcommit --sign
+# Umgehen im Notfall (nur mit Grund):  OVERCOMMIT_DISABLE=1 git commit ...
+#
+# Diese Datei führt overcommit im Projekt erstmals ein und aktiviert BEWUSST
+# nur EINEN Hook: die UI-Hex-Guardrail der Phase-7 Hex→Token-Migration
+# (UX-Redesign, Regeln in docs/ui-conventions.md). standardrb / erb_lint /
+# brakeman laufen bereits in CI.
+#
+# Die overcommit-Default-Hooks sind unten explizit deaktiviert, damit das
+# Einführen dieser Config NICHT ungefragt eine ganze Hook-Suite scharf schaltet
+# (z. B. würde CommitMsg/CapitalizedSubject die konventionellen, klein
+# beginnenden Commit-Messages des Projekts ablehnen; BrokenSymlinks failt auf
+# dem dev-`.env`-Symlink). Wer diese Prüfungen will, aktiviert sie gezielt.
+
+PreCommit:
+  UiNoHardcodedHex:
+    enabled: true
+    description: "Keine neuen hartkodierten Farb-Hex / inline color-styles"
+    command: ["ruby", "bin/ui-hex-guard"]
+
+  # overcommit-Defaults bewusst aus (siehe Kopf):
+  AuthorEmail: { enabled: false }
+  AuthorName: { enabled: false }
+  BrokenSymlinks: { enabled: false }
+  CaseConflicts: { enabled: false }
+  MergeConflicts: { enabled: false }
+
+CommitMsg:
+  CapitalizedSubject: { enabled: false }
+  EmptyMessage: { enabled: false }
+  SingleLineSubject: { enabled: false }
+  TextWidth: { enabled: false }
+  TrailingPeriod: { enabled: false }

@@ -1,0 +1,64 @@
+<%# 09-02: Generisches Row-List-Shell (Foundation v0.3) — standalone (ohne Such-Hülle). Rendert eine
+    Records-Collection als Zeilen-Liste im neuen Token-Design (Optik aus _tournaments_list),
+    verhaltensneutral zum Scaffold-index. Locals:
+      records      (Pflicht)
+      model_class  (Pflicht)
+      title        (default: model_class.model_name.human.pluralize)
+      new_path     (default: new_polymorphic_path(model_class))
+      new_text     (default: "New <Model>")
+      pagy         (default: @pagy)
+    Token-Utilities only, kein Hex; Dark-Mode. Spalten-Header-Sortierung entfällt bewusst. %>
+<% title    ||= model_class.model_name.human.pluralize %>
+<% new_path ||= (new_polymorphic_path(model_class) rescue nil) %>
+<% new_text ||= "New #{model_class.model_name.human}" %>
+<% pagy = local_assigns.fetch(:pagy) { @pagy } %>
+
+<div class="container mx-auto my-8 px-4">
+  <div class="flex justify-between items-center mb-4 gap-2">
+    <h1 class="text-xl font-semibold text-gray-900 dark:text-gray-100"><%= title %></h1>
+    <% if new_path && records.any? %>
+      <%= button_to new_text, new_path, method: :get, disabled: !current_user&.admin?, class: "btn btn-primary shrink-0" %>
+    <% end %>
+  </div>
+
+  <% if records.any? %>
+    <div class="bg-surface-card dark:bg-gray-800 rounded-card border border-gray-200 dark:border-gray-700 overflow-hidden">
+      <% records.each do |record| %>
+        <% primary = scaffold_primary_attribute(record) %>
+        <%# Override-Slot: Modelle mit Komposit-Label (z.B. PlayerClass = Disziplin + Klasse) koennen
+            scaffold_row_label/scaffold_row_subtitle definieren; sonst spalten-getriebener Default (verhaltensneutral). %>
+        <% custom_label = record.scaffold_row_label if record.respond_to?(:scaffold_row_label) %>
+        <% custom_subtitle = record.scaffold_row_subtitle if record.respond_to?(:scaffold_row_subtitle) %>
+        <% label = custom_label.presence || (primary ? record.public_send(primary) : record.to_s) %>
+        <% secondary = (scaffold_show_attributes(record) - [primary].compact).select { |a| record.public_send(a).present? rescue false }.first(4) %>
+        <div class="group flex items-center gap-3 px-4 py-3 border-t border-gray-100 dark:border-gray-700 first:border-t-0 hover:bg-surface-page dark:hover:bg-gray-700/60">
+          <div class="flex-1 min-w-0">
+            <%= custom_link_to(label, polymorphic_path(record), class: "font-medium text-gray-900 dark:text-gray-100 hover:text-primary-600 break-words") %>
+            <% if custom_subtitle.present? %>
+              <div class="text-xs text-gray-500 dark:text-gray-400 mt-0.5 break-words"><%= custom_subtitle %></div>
+            <% elsif secondary.any? %>
+              <div class="text-xs text-gray-500 dark:text-gray-400 mt-0.5 break-words">
+                <%= safe_join(secondary.map { |a| scaffold_attribute_value(record, a) }, " · ") %>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+
+    <% if pagy && pagy.pages > 1 %>
+      <div class="text-center my-6"><%= pagy_nav(pagy).html_safe %></div>
+    <% end %>
+  <% else %>
+    <div class="bg-surface-card dark:bg-gray-800 rounded-card border border-gray-200 dark:border-gray-700 flex flex-col items-center justify-between p-8 lg:flex-row gap-4">
+      <svg class="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 13.5h3.86a2.25 2.25 0 0 1 2.012 1.244l.256.512a2.25 2.25 0 0 0 2.013 1.244h3.218a2.25 2.25 0 0 0 2.013-1.244l.256-.512a2.25 2.25 0 0 1 2.013-1.244h3.859m-19.5.338V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18v-4.162c0-.224-.034-.447-.1-.661L19.24 5.338a2.25 2.25 0 0 0-2.15-1.588H6.911a2.25 2.25 0 0 0-2.15 1.588L2.35 13.177a2.25 2.25 0 0 0-.1.661Z" />
+      </svg>
+      <% if new_path %>
+        <div class="flex-1 text-center">
+          <%= button_to new_text, new_path, method: :get, disabled: !current_user&.admin?, class: "btn btn-primary" %>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+</div>

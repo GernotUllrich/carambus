@@ -1,4 +1,5 @@
 class GroupCcsController < ApplicationController
+  before_action :system_admin_only
   before_action :set_group_cc, only: %i[show edit update destroy]
 
   # GET /group_ccs

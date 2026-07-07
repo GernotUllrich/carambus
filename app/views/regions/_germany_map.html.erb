@@ -1,0 +1,90 @@
+<%# Deutschlandkarte (08-04/08-05). Additiv ueber der Kachel-Galerie. Region-basiert:
+    15 LV-Territorien als Polygone (Basis-Ebene). Umschaltbar: Logo-Ansicht (je Region 1 Logo,
+    Klick -> regions/show via region_path/_top; kein Scope-Eingriff) und Vereinsdichte (Kreise an
+    Venue-Standorten aus Location-PLZ, gleiche Projektion). Inline-SVG (CSP), Token-Farben, kein Hex. %>
+<div class="js-map mx-4 mt-4 mb-2 p-4 rounded-xl ring-1 ring-gray-200 dark:ring-gray-700 bg-white dark:bg-gray-900">
+  <div class="flex items-center justify-between gap-3 mb-2">
+    <span class="font-bold text-gray-800 dark:text-gray-100">
+      <%= t("region.index.map_heading", default: "Landesverbände") %>
+    </span>
+    <div role="group" class="inline-flex rounded-lg ring-1 ring-gray-200 dark:ring-gray-700 overflow-hidden text-sm">
+      <button type="button" data-map-tab="logos" aria-pressed="true"
+              onclick="toggleRegionMapLayer(this,'logos')"
+              class="px-3 py-1 bg-primary-600 text-white">
+        <%= t("region.index.map_tab_logos", default: "Logos") %>
+      </button>
+      <button type="button" data-map-tab="density" aria-pressed="false"
+              onclick="toggleRegionMapLayer(this,'density')"
+              class="px-3 py-1 text-gray-600 dark:text-gray-300">
+        <%= t("region.index.map_tab_density", default: "Vereinsdichte") %>
+      </button>
+    </div>
+  </div>
+
+  <svg viewBox="<%= germany_map_viewbox %>" role="img"
+       aria-label="<%= t('region.index.map_aria', default: 'Deutschlandkarte der Landesverbände') %>"
+       class="w-full max-w-md mx-auto h-auto">
+    <%# Ebene 1: Regionsgrenzen (immer sichtbar) %>
+    <g data-layer="regions">
+      <% germany_regions.each do |r| %>
+        <path d="<%= r[:path] %>"
+              class="fill-gray-50 dark:fill-gray-800 stroke-gray-300 dark:stroke-gray-600"
+              stroke-width="0.8" stroke-linejoin="round" />
+      <% end %>
+    </g>
+
+    <%# Ebene 2: Logos je Region (Default sichtbar) %>
+    <g data-layer="logos">
+      <% pad = 5 %>
+      <% germany_regions.each do |r| %>
+        <% ov = RegionsHelper::MAP_LOGO_OVERRIDES[r[:shortname]] || {} %>
+        <% s = ov["size"] || 40 %>
+        <% cx, cy = r[:centroid]; cx += ov["dx"].to_i; cy += ov["dy"].to_i; x = cx - s / 2; y = cy - s / 2 %>
+        <a href="<%= r[:href] %>" data-turbo-frame="_top" aria-label="<%= r[:aria_label] %>" class="group">
+          <title><%= r[:title] %></title>
+          <rect x="<%= x %>" y="<%= y %>" width="<%= s %>" height="<%= s %>" rx="8" stroke-width="1.5"
+                class="fill-white stroke-gray-300 dark:stroke-gray-500
+                       group-hover:stroke-primary-500 group-focus:stroke-primary-500 transition-colors" />
+          <text x="<%= cx %>" y="<%= cy %>" text-anchor="middle" dominant-baseline="central"
+                class="fill-primary-800 dark:fill-gray-100 text-[10px] font-semibold pointer-events-none select-none <%= 'opacity-0' if r[:logo] %>">
+            <%= r[:shortname] %>
+          </text>
+          <% if r[:logo] %>
+            <image href="<%= r[:logo] %>" x="<%= x + pad %>" y="<%= y + pad %>"
+                   width="<%= s - 2 * pad %>" height="<%= s - 2 * pad %>"
+                   preserveAspectRatio="xMidYMid meet" class="pointer-events-none"
+                   onerror="this.previousElementSibling.classList.remove('opacity-0'); this.remove();" />
+          <% end %>
+        </a>
+      <% end %>
+    </g>
+
+    <%# Ebene 3: Vereinsdichte (per Umschalter) %>
+    <g data-layer="density" class="hidden">
+      <% club_density_points.each do |p| %>
+        <circle cx="<%= p[:x] %>" cy="<%= p[:y] %>" r="<%= (1.4 + Math.sqrt(p[:count]) * 1.3).round(1) %>"
+                fill-opacity="0.45" class="fill-primary-500 pointer-events-none">
+          <title><%= p[:count] %></title>
+        </circle>
+      <% end %>
+    </g>
+  </svg>
+</div>
+
+<script>
+  // Umschalter Logos <-> Vereinsdichte (idempotent, ueberlebt Turbo-Visits).
+  window.toggleRegionMapLayer = window.toggleRegionMapLayer || function (btn, name) {
+    var root = btn.closest(".js-map");
+    root.querySelectorAll("[data-layer]").forEach(function (g) {
+      var lyr = g.getAttribute("data-layer");
+      if (lyr === "logos" || lyr === "density") g.classList.toggle("hidden", lyr !== name);
+    });
+    root.querySelectorAll("[data-map-tab]").forEach(function (b) {
+      var on = b.getAttribute("data-map-tab") === name;
+      b.setAttribute("aria-pressed", String(on));
+      b.classList.toggle("bg-primary-600", on);
+      b.classList.toggle("text-white", on);
+      b.classList.toggle("text-gray-600", !on);
+    });
+  };
+</script>

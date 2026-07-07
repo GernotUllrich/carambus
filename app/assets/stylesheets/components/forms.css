@@ -11,7 +11,7 @@ div.form-control {
   -webkit-appearance: none;
   -moz-appearance: none;
   appearance: none;
-  background-color: #fff;
+  background-color: theme('colors.white');
   border-width: 1px;
   padding-top: .5rem;
   padding-right: .75rem;
@@ -112,7 +112,7 @@ form.inline .form-group .label {
 }
 
 .input-file + label:focus {
-  outline: 1px dotted #000;
+  outline: 1px dotted theme('colors.black');
   outline: -webkit-focus-ring-color auto 5px;
 }
 

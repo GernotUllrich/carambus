@@ -89,7 +89,7 @@ as well as a link to its edit page.
 
   <% if page.resource.content_type == 'markdown' && page.resource.content.present? %>
     <h2><%= t('admin.pages.show.rendered_content') %></h2>
-    <div style="background-color: #f5f5f5; padding: 10px; border-radius: 4px;">
+    <div class="bg-gray-100 dark:bg-gray-800 p-2.5 rounded">
       <%= raw page.resource.rendered_content %>
     </div>
   <% end %>

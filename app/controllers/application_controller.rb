@@ -14,6 +14,7 @@ class ApplicationController < ActionController::Base
   include Sortable
   include Users::TimeZone
   include SetCurrentRequestDetails
+  include Scopable
 
   before_action :check_mini_profiler if Rails.env != "production" && Rails.env != "test"
   before_action :set_paper_trail_whodunnit
@@ -33,6 +34,9 @@ class ApplicationController < ActionController::Base
     @navbar = true
     @footer = true
   end
+  # Scope-Band: Ausschnitt aus der Session lesen und als FK-Filter (Current.scope) bereitstellen.
+  before_action :capture_scope
+  before_action :set_current_scope
   before_action :set_user_preferences
   before_action :set_locale
   around_action :set_current_user
@@ -92,6 +96,23 @@ class ApplicationController < ActionController::Base
     return if current_user&.admin? || guest_player_creation?
 
     redirect_back fallback_location: root_path, alert: "Admin Only - ask gernot.ullrich@gmx.de for permission"
+    false
+  end
+
+  def system_admin_only
+    return if current_user&.system_admin?
+
+    redirect_back fallback_location: root_path, alert: "System-Admin only - ask gernot.ullrich@gmx.de for permission"
+    false
+  end
+
+  # S5 (12-14): CC-Datenabgleich (reload-from-cc) darf ausführen, wer data_sync_access? hat
+  # (system_admin/club_admin/Sportwart/LandesSportwart/Turnierleiter).
+  def data_sync_access_check
+    return if current_user&.data_sync_access?
+
+    redirect_back fallback_location: root_path,
+                  alert: "Nur für Sportwart/Turnierleiter/Admin - ask gernot.ullrich@gmx.de for permission"
     false
   end
 

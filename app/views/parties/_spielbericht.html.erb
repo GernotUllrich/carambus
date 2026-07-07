@@ -1,21 +1,21 @@
-<div class="spielbericht">
-  <h2>
+<div class="spielbericht bg-surface-card dark:bg-gray-800 rounded-card border border-gray-200 dark:border-gray-700 p-6 text-gray-900 dark:text-gray-100 overflow-x-auto">
+  <h2 class="text-lg font-semibold mb-1">
     <%= party.league.name %> – <%= party.league_team_a.name %> vs. <%= party.league_team_b.name %>
   </h2>
-  <div>
+  <div class="text-sm text-gray-500 dark:text-gray-400 mb-4">
     <strong>Datum:</strong> <%= l(party.date, format: :long) if party.date %>
     <% if party.location %> | <strong>Ort:</strong> <%= party.location.name %> <% end %>
   </div>
 
-  <table class="spielbericht-tabelle">
+  <table class="spielbericht-tabelle w-full text-sm border-collapse">
     <thead>
       <tr>
-        <th>Nr</th>
-        <th>Disziplin</th>
-        <th>Heim-Spieler</th>
-        <th>Erg.</th>
-        <th>Gast-Spieler</th>
-        <th>Punkte</th>
+        <th class="text-left px-3 py-2 border-b border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 font-medium">Nr</th>
+        <th class="text-left px-3 py-2 border-b border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 font-medium">Disziplin</th>
+        <th class="text-left px-3 py-2 border-b border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 font-medium">Heim-Spieler</th>
+        <th class="text-left px-3 py-2 border-b border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 font-medium">Erg.</th>
+        <th class="text-left px-3 py-2 border-b border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 font-medium">Gast-Spieler</th>
+        <th class="text-left px-3 py-2 border-b border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 font-medium">Punkte</th>
       </tr>
     </thead>
     <tbody>
@@ -29,54 +29,54 @@
       <% spielbericht_rows(party).each do |row| %>
         <% if row[:type] == "Neue Runde" %>
           <tr>
-            <td colspan="6" style="font-weight:bold; background:#eee;">
+            <td colspan="6" class="px-3 py-2 font-bold bg-gray-100 dark:bg-gray-800">
               Runde <%= row[:r_no] %>
             </td>
           </tr>
         <% elsif row[:type] == "Gesamtsumme" %>
           <tr>
-            <td colspan="5" style="text-align:right; font-weight:bold;">Endstand:</td>
-            <td style="font-weight:bold;"><%= spielbericht_endstand_einfach(party).join(":") %></td>
+            <td colspan="5" class="px-3 py-2 text-right font-bold">Endstand:</td>
+            <td class="px-3 py-2 font-bold"><%= spielbericht_endstand_einfach(party).join(":") %></td>
           </tr>
         <% elsif row == shootout_row %>
           <% if regulare_heim == regulare_gast %>
             <tr>
-              <td><%= row[:game]&.seqno %></td>
-              <td><%= row[:type] %></td>
-              <td><%= row[:game]&.player_a&.fullname %></td>
-              <td>
+              <td class="px-3 py-2 border-b border-gray-100 dark:border-gray-800 align-top"><%= row[:game]&.seqno %></td>
+              <td class="px-3 py-2 border-b border-gray-100 dark:border-gray-800 align-top"><%= row[:type] %></td>
+              <td class="px-3 py-2 border-b border-gray-100 dark:border-gray-800 align-top"><%= row[:game]&.player_a&.fullname %></td>
+              <td class="px-3 py-2 border-b border-gray-100 dark:border-gray-800 align-top">
                 <% if row[:game]&.data && row[:game].data["result"] %>
                   <%= row[:game].data["result"]["Ergebnis:"] || row[:game].data["result"].values.join(" / ") %><%= tiebreak_indicator(row[:game]) %>
                 <% else %>
                   -
                 <% end %>
               </td>
-              <td><%= row[:game]&.player_b&.fullname %></td>
-              <td>
+              <td class="px-3 py-2 border-b border-gray-100 dark:border-gray-800 align-top"><%= row[:game]&.player_b&.fullname %></td>
+              <td class="px-3 py-2 border-b border-gray-100 dark:border-gray-800 align-top">
                 <%= spielbericht_punkte_einfach(row[:game], row[:row], heim: true) %>:<%= spielbericht_punkte_einfach(row[:game], row[:row], heim: false) %>
               </td>
             </tr>
           <% else %>
             <tr>
-              <td><%= row[:game]&.seqno %></td>
-              <td><%= row[:type] %></td>
-              <td colspan="4" style="font-style:italic; color:#888;">Shootout entfällt (kein Unentschieden nach regulären Spielen)</td>
+              <td class="px-3 py-2 border-b border-gray-100 dark:border-gray-800 align-top"><%= row[:game]&.seqno %></td>
+              <td class="px-3 py-2 border-b border-gray-100 dark:border-gray-800 align-top"><%= row[:type] %></td>
+              <td colspan="4" class="px-3 py-2 border-b border-gray-100 dark:border-gray-800 italic text-gray-500 dark:text-gray-400">Shootout entfällt (kein Unentschieden nach regulären Spielen)</td>
             </tr>
           <% end %>
         <% else %>
           <tr>
-            <td><%= row[:game]&.seqno %></td>
-            <td><%= row[:type] %></td>
-            <td><%= row[:game]&.player_a&.fullname %></td>
-            <td>
+            <td class="px-3 py-2 border-b border-gray-100 dark:border-gray-800 align-top"><%= row[:game]&.seqno %></td>
+            <td class="px-3 py-2 border-b border-gray-100 dark:border-gray-800 align-top"><%= row[:type] %></td>
+            <td class="px-3 py-2 border-b border-gray-100 dark:border-gray-800 align-top"><%= row[:game]&.player_a&.fullname %></td>
+            <td class="px-3 py-2 border-b border-gray-100 dark:border-gray-800 align-top">
               <% if row[:game]&.data && row[:game].data["result"] %>
                 <%= row[:game].data["result"]["Ergebnis:"] || row[:game].data["result"].values.join(" / ") %><%= tiebreak_indicator(row[:game]) %>
               <% else %>
                 -
               <% end %>
             </td>
-            <td><%= row[:game]&.player_b&.fullname %></td>
-            <td>
+            <td class="px-3 py-2 border-b border-gray-100 dark:border-gray-800 align-top"><%= row[:game]&.player_b&.fullname %></td>
+            <td class="px-3 py-2 border-b border-gray-100 dark:border-gray-800 align-top">
               <%= spielbericht_punkte_einfach(row[:game], row[:row], heim: true) %>:<%= spielbericht_punkte_einfach(row[:game], row[:row], heim: false) %>
             </td>
           </tr>
@@ -84,14 +84,14 @@
           <% is_detail_row = detail_keys.include?(row[:type].to_s) %>
           <% if !is_detail_row && row[:game]&.data && row[:game].data["result"] && (row[:game].data["result"].keys - ["Ergebnis:"]).any? %>
             <tr>
-              <td colspan="2"></td>
-              <td colspan="3" style="font-size:smaller;">
+              <td colspan="2" class="px-3 py-2"></td>
+              <td colspan="3" class="px-3 py-2 text-xs text-gray-500 dark:text-gray-400">
                 <% row[:game].data["result"].each do |k, v| %>
                   <% next if k == "Ergebnis:" %>
                   <strong><%= k.gsub(":","") %>:</strong> <%= v %> &nbsp;
                 <% end %>
               </td>
-              <td></td>
+              <td class="px-3 py-2"></td>
             </tr>
           <% end %>
         <% end %>

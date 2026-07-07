@@ -15,15 +15,14 @@
       [:edit, namespace, page.resource],
       class: "button",
     ) if accessible_action?(page.resource, :edit) %>
-    
+
     <%= button_to(
       "🌐 Translate",
       translate_admin_training_concept_path(page.resource),
       method: :post,
-      class: "button button--translate",
-      style: "background: #27ae60; color: white; display: inline-block; margin-left: 10px;",
+      class: "inline-block ml-2.5 px-4 py-2 rounded text-white font-medium bg-success-600 hover:bg-success-700",
       title: "Übersetze in DE und EN",
-      form: { style: "display: inline-block;" }
+      form: { class: "inline-block" }
     ) if valid_action?(:translate) %>
 
     <%= link_to(
@@ -54,70 +53,68 @@
 </section>
 
 <!-- Trainingsbeispiele Section -->
-<section class="main-content__body" style="margin-top: 40px; clear: both;">
-  <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #3498db; padding-bottom: 10px; width: 100%;">
-    <h2 style="color: #2c3e50; margin: 0; flex: 1;">
-      📚 Trainingsbeispiele 
-      <span style="color: #7f8c8d; font-size: 0.8em;">(<%= page.resource.training_examples.count %>)</span>
+<section class="main-content__body mt-10 clear-both">
+  <header class="flex justify-between items-center mb-5 pb-2.5 w-full border-b-2 border-info-500">
+    <h2 class="m-0 flex-1 text-gray-800 dark:text-gray-100">
+      📚 Trainingsbeispiele
+      <span class="text-gray-500 dark:text-gray-400 text-[0.8em]">(<%= page.resource.training_examples.count %>)</span>
     </h2>
     <%= link_to(
       "➕ Neues Beispiel",
       new_admin_training_concept_training_example_path(page.resource),
-      class: "button",
-      style: "background: #27ae60; color: white; flex-shrink: 0;"
+      class: "inline-block shrink-0 px-4 py-2 rounded text-white font-medium bg-success-600 hover:bg-success-700"
     ) %>
   </header>
 
   <% if page.resource.training_examples.any? %>
-    <table class="table" style="width: 100%; border-collapse: collapse;">
+    <table class="table w-full border-collapse">
       <thead>
-        <tr style="background: #ecf0f1;">
-          <th style="padding: 10px; text-align: left; width: 60px;">#</th>
-          <th style="padding: 10px; text-align: left;">Titel</th>
-          <th style="padding: 10px; text-align: left;">Sprache</th>
-          <th style="padding: 10px; text-align: center;">Übersetzt</th>
-          <th style="padding: 10px; text-align: center; width: 80px;">Sortierung</th>
-          <th style="padding: 10px; text-align: right; width: 200px;">Aktionen</th>
+        <tr class="bg-gray-100 dark:bg-gray-800">
+          <th class="p-2.5 text-left w-[60px]">#</th>
+          <th class="p-2.5 text-left">Titel</th>
+          <th class="p-2.5 text-left">Sprache</th>
+          <th class="p-2.5 text-center">Übersetzt</th>
+          <th class="p-2.5 text-center w-20">Sortierung</th>
+          <th class="p-2.5 text-right w-[200px]">Aktionen</th>
         </tr>
       </thead>
       <tbody>
         <% examples = page.resource.training_examples.order(:sequence_number).to_a %>
         <% examples.each_with_index do |example, index| %>
-          <tr style="border-bottom: 1px solid #ddd;">
-            <td style="padding: 10px; font-weight: bold; color: #7f8c8d;">
+          <tr class="border-b border-gray-300 dark:border-gray-700">
+            <td class="p-2.5 font-bold text-gray-500 dark:text-gray-400">
               <%= example.sequence_number %>
             </td>
-            <td style="padding: 10px;">
+            <td class="p-2.5">
               <strong><%= example.title %></strong>
               <% if example.ideal_stroke_parameters_text.present? %>
                 <br>
-                <span style="color: #7f8c8d; font-size: 0.85em;">
+                <span class="text-gray-500 dark:text-gray-400 text-[0.85em]">
                   <%= truncate(example.ideal_stroke_parameters_text, length: 80) %>
                 </span>
               <% end %>
             </td>
-            <td style="padding: 10px;">
-              <span class="badge" style="background: #3498db; color: white; padding: 3px 8px; border-radius: 3px; font-size: 0.85em;">
+            <td class="p-2.5">
+              <span class="badge inline-block px-2 py-0.5 rounded text-[0.85em] bg-info-600 text-white">
                 <%= example.source_language.upcase %>
               </span>
             </td>
-            <td style="padding: 10px; text-align: center;">
+            <td class="p-2.5 text-center">
               <% if example.translations_in_sync? %>
-                <span style="color: #27ae60; font-size: 1.2em;" title="Übersetzungen synchronisiert">✅</span>
+                <span class="text-success-600 text-xl" title="Übersetzungen synchronisiert">✅</span>
               <% else %>
-                <span style="color: #e74c3c; font-size: 1.2em;" title="Übersetzungen nicht synchronisiert">⚠️</span>
+                <span class="text-danger-500 text-xl" title="Übersetzungen nicht synchronisiert">⚠️</span>
               <% end %>
             </td>
-            <td style="padding: 10px; text-align: center;">
+            <td class="p-2.5 text-center">
               <% if index > 0 %>
                 <%= button_to(
                   "↑",
                   move_up_admin_training_example_path(example),
                   method: :patch,
-                  class: "button button--small",
-                  style: "background: #95a5a6; color: white; padding: 3px 8px; display: inline-block; margin-right: 3px;",
+                  class: "inline-block mr-1 px-2 py-0.5 rounded text-white bg-gray-500 hover:bg-gray-600",
                   title: "Nach oben",
-                  form: { style: "display: inline-block;" }
+                  form: { class: "inline-block" }
                 ) %>
               <% end %>
               <% if index < examples.size - 1 %>
@@ -125,34 +122,30 @@
                   "↓",
                   move_down_admin_training_example_path(example),
                   method: :patch,
-                  class: "button button--small",
-                  style: "background: #95a5a6; color: white; padding: 3px 8px; display: inline-block;",
+                  class: "inline-block px-2 py-0.5 rounded text-white bg-gray-500 hover:bg-gray-600",
                   title: "Nach unten",
-                  form: { style: "display: inline-block;" }
+                  form: { class: "inline-block" }
                 ) %>
               <% end %>
             </td>
-            <td style="padding: 10px; text-align: right;">
+            <td class="p-2.5 text-right">
               <%= link_to(
                 "👁️ Anzeigen",
                 admin_training_example_path(example),
-                class: "button button--small",
-                style: "background: #3498db; color: white; padding: 5px 10px; margin-right: 5px;"
+                class: "inline-block mr-1.5 px-2.5 py-1 rounded text-white bg-info-600 hover:bg-info-700"
               ) %>
               <%= link_to(
                 "✏️ Bearbeiten",
                 edit_admin_training_example_path(example),
-                class: "button button--small",
-                style: "background: #f39c12; color: white; padding: 5px 10px; margin-right: 5px;"
+                class: "inline-block mr-1.5 px-2.5 py-1 rounded text-white bg-warning-500 hover:bg-warning-600"
               ) %>
               <%= button_to(
                 "🗑️",
                 admin_training_example_path(example),
                 method: :delete,
                 data: { confirm: "Trainingsbeispiel '#{example.title}' wirklich löschen?" },
-                class: "button button--small button--danger",
-                style: "background: #e74c3c; color: white; padding: 5px 10px; display: inline-block;",
-                form: { style: "display: inline-block;" }
+                class: "inline-block px-2.5 py-1 rounded text-white bg-danger-600 hover:bg-danger-700",
+                form: { class: "inline-block" }
               ) %>
             </td>
           </tr>
@@ -160,23 +153,17 @@
       </tbody>
     </table>
   <% else %>
-    <div style="background: #ecf0f1; padding: 30px; text-align: center; border-radius: 6px; color: #7f8c8d;">
-      <p style="margin: 0; font-size: 1.1em;">
+    <div class="bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 p-8 text-center rounded-md">
+      <p class="m-0 text-[1.1em]">
         📝 Noch keine Trainingsbeispiele vorhanden.
       </p>
-      <p style="margin: 10px 0 0 0;">
+      <p class="mt-2.5 mb-0">
         <%= link_to(
           "Erstes Beispiel hinzufügen →",
           new_admin_training_concept_training_example_path(page.resource),
-          style: "color: #3498db; text-decoration: underline;"
+          class: "text-info-600 dark:text-info-400 underline"
         ) %>
       </p>
     </div>
   <% end %>
 </section>
-
-<style>
-  .button--translate:hover {
-    background: #229954 !important;
-  }
-</style>

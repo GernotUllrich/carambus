@@ -5,40 +5,41 @@
       <%= button_to('Edit', edit_discipline_path(@discipline), method: :get, disabled: !current_user&.admin?, class: "btn btn-link") %>
     </div>
 
-    <div class=" rounded shadow p-8">
-      <div class="mb-4">
-        <h5>Type</h5>
-        <%= @discipline.type %>
+    <dl class="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-4 bg-surface-card dark:bg-gray-800 rounded-card border border-gray-200 dark:border-gray-700 p-6 text-gray-900 dark:text-gray-100">
+      <div class="min-w-0">
+        <dt class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5">Type</dt>
+        <dd class="break-words"><%= @discipline.type %></dd>
       </div>
-      <div class="mb-4">
-        <h5>Name</h5>
-        <%= @discipline.name %>
+      <div class="min-w-0">
+        <dt class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5">Name</dt>
+        <dd class="break-words"><%= @discipline.name %></dd>
       </div>
-      <div class="mb-4">
-        <h5>Synonyms</h5>
-        <%= my_sanitize @discipline.synonyms.split("\n").join("<br>") %>
+      <div class="min-w-0">
+        <dt class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5">Super discipline</dt>
+        <dd class="break-words"><%= custom_link_to @discipline.super_discipline.andand.name, discipline_path(@discipline.super_discipline) if @discipline.super_discipline.present? %></dd>
       </div>
-      <div class="mb-4">
-        <h5>Super discipline</h5>
-        <%= custom_link_to @discipline.super_discipline.andand.name, discipline_path(@discipline.super_discipline) if @discipline.super_discipline.present? %>
+      <div class="min-w-0">
+        <dt class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5">Table kind</dt>
+        <dd class="break-words"><%= custom_link_to @discipline.table_kind.name, table_kind_path(@discipline.table_kind) if @discipline.table_kind.present? %></dd>
       </div>
-      <div class="mb-4">
-        <h5>Sub disciplines</h5>
-        <ul >
-          <%- @discipline.sub_disciplines.order(:name).each do |sub| %>
-            <li><%= custom_link_to sub.name, discipline_path(sub) %></li>
-          <%- end %>
-        </ul>
-        <%= custom_link_to @discipline.super_discipline.andand.name, discipline_path(@discipline.super_discipline) if @discipline.super_discipline.present? %>
+      <div class="min-w-0 col-span-full">
+        <dt class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5">Synonyms</dt>
+        <dd class="break-words"><%= my_sanitize @discipline.synonyms.split("\n").join("<br>") %></dd>
       </div>
-      <div class="mb-4">
-        <h5>Table kind</h5>
-        <%= custom_link_to @discipline.table_kind.name, table_kind_path(@discipline.table_kind) if @discipline.table_kind.present? %>
+      <div class="min-w-0 col-span-full">
+        <dt class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5">Sub disciplines</dt>
+        <dd class="break-words">
+          <ul class="list-disc list-inside">
+            <%- @discipline.sub_disciplines.order(:name).each do |sub| %>
+              <li><%= custom_link_to sub.name, discipline_path(sub) %></li>
+            <%- end %>
+          </ul>
+        </dd>
       </div>
-      <div class="mb-4">
-        <h5>Data</h5>
-        <%= @discipline.data %>
+      <div class="min-w-0 col-span-full">
+        <dt class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5">Data</dt>
+        <dd class="break-words"><%= pretty_json(@discipline.data) %></dd>
       </div>
-    </div>
+    </dl>
   </div>
 </div>

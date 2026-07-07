@@ -1,0 +1,36 @@
+<div class="bg-surface-card dark:bg-gray-800 rounded-card border border-gray-200 dark:border-gray-700 overflow-hidden">
+  <% @tournaments ||= records %>
+  <% @pagy ||= defined?(pagy) ? pagy : nil %>
+  <% @tournaments.each do |tournament| %>
+    <div class="group flex items-center gap-3 px-4 py-3 border-t border-gray-100 dark:border-gray-700 first:border-t-0 hover:bg-surface-page dark:hover:bg-gray-700/60">
+      <div class="flex-1 min-w-0">
+        <%= custom_link_to(tournament.title, tournament_path(tournament), class: "font-medium text-gray-900 dark:text-gray-100 hover:text-primary-600") %>
+        <div class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+          <%# Subzeile "Datum · Ort" — Trenner nur, wenn beide Teile vorhanden sind. %>
+          <% date_part = tournament.date&.to_date %>
+          <% location_part = if tournament.location.is_a?(Location)
+               custom_link_to(tournament.location.display_address_short&.html_safe, location_path(tournament.location))
+             else
+               tournament.location_text
+             end %>
+          <%= safe_join([date_part, location_part].select(&:present?), " · ") %>
+        </div>
+      </div>
+      <%# Kontextuelle Marker vom Scope-State getrieben: %>
+      <%# Disziplin-Chip nur, wenn Branch nicht auf Einzelwert fixiert ("Alle Branchen"). %>
+      <% if current_branch_id.blank? %>
+        <%= discipline_chip(tournament.discipline) %>
+      <% end %>
+      <%# Region-Badge nur bei Abweichung: Turnier-Region ≠ Scope-Region (überregional/global_context). %>
+      <% if tournament.region_id != current_region_id %>
+        <%= region_badge(tournament.organizer) %>
+      <% end %>
+    </div>
+  <% end %>
+</div>
+
+<% if @pagy.present? && @pagy.pages > 1 %>
+  <div class="text-center my-6">
+    <%= pagy_nav(@pagy).html_safe %>
+  </div>
+<% end %>

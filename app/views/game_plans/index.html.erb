@@ -7,21 +7,21 @@
       <h1 class="h3">Game Plans</h1>
 
       <div class="text-sm font-medium">
-        <span class="text-gray-500"><%= I18n.t("sort_by", :default => "Sort By:") %></span>
-        <%= sortable @game_plans, :footprint,"Footprint", params, class: "text-gray-700 mr-1" %>
-        <%= sortable @game_plans, :data,"Data", params, class: "text-gray-700 mr-1" %>
-        <%= sortable @game_plans, :name,"Name", params, class: "text-gray-700 mr-1" %>
+        <span class="text-gray-500 dark:text-gray-400"><%= I18n.t("sort_by", :default => "Sort By:") %></span>
+        <%= sortable @game_plans, :footprint,"Footprint", params, class: "text-gray-700 dark:text-gray-300 mr-1" %>
+        <%= sortable @game_plans, :data,"Data", params, class: "text-gray-700 dark:text-gray-300 mr-1" %>
+        <%= sortable @game_plans, :name,"Name", params, class: "text-gray-700 dark:text-gray-300 mr-1" %>
       </div>
     </div>
 
     <%= custom_link_to t("shared.scaffold.new.title", default: "New Game Plan", model: "Game Plan"), new_game_plan_path, class: "btn btn-white" %>
   </div>
 
-  <%= tag.div id: ("game_plans" if first_page?), class: " rounded-md shadow p-6 space-y-8" do %>
+  <%= tag.div id: ("game_plans" if first_page?), class: "bg-surface-card dark:bg-gray-800 rounded-card border border-gray-200 dark:border-gray-700 divide-y divide-gray-100 dark:divide-gray-800" do %>
     <%= render partial: "game_plans/index", collection: @game_plans, as: :game_plan, cached: true %>
 
-    <div class="hidden only:flex flex-col items-center justify-between lg:flex-row">
-            <svg class="mx-auto h-12 w-12 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+    <div class="hidden only:flex flex-col items-center justify-between lg:flex-row p-6">
+            <svg class="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 13.5h3.86a2.25 2.25 0 0 1 2.012 1.244l.256.512a2.25 2.25 0 0 0 2.013 1.244h3.218a2.25 2.25 0 0 0 2.013-1.244l.256-.512a2.25 2.25 0 0 1 2.013-1.244h3.859m-19.5.338V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18v-4.162c0-.224-.034-.447-.1-.661L19.24 5.338a2.25 2.25 0 0 0-2.15-1.588H6.911a2.25 2.25 0 0 0-2.15 1.588L2.35 13.177a2.25 2.25 0 0 0-.1.661Z" />
       </svg>
       <div class="flex-1 text-center">

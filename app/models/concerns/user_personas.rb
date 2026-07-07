@@ -57,4 +57,10 @@ module UserPersonas
   def cc_write_access?
     system_admin? || sportwart? || turnierleiter?
   end
+
+  # Sichtbarkeit + Recht der CC-Datenabgleich-Aktionen (reload-from-cc) auf clubs/leagues:
+  # CC-Schreibberechtigte (system_admin/Sportwart/Turnierleiter) PLUS club_admin (User-Entscheid S5 2026-07-07).
+  def data_sync_access?
+    cc_write_access? || club_admin?
+  end
 end

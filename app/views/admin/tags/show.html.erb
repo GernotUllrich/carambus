@@ -20,10 +20,9 @@
       "🌐 Translate",
       translate_admin_tag_path(page.resource),
       method: :post,
-      class: "button button--translate",
-      style: "background: #27ae60; color: white; display: inline-block; margin-left: 10px;",
+      class: "inline-block ml-2.5 px-4 py-2 rounded text-white font-medium bg-success-600 hover:bg-success-700",
       title: "Übersetze in DE und EN",
-      form: { style: "display: inline-block;" }
+      form: { class: "inline-block" }
     ) if valid_action?(:translate) %>
 
     <%= link_to(
@@ -52,9 +51,3 @@
     <% end %>
   </dl>
 </section>
-
-<style>
-  .button--translate:hover {
-    background: #229954 !important;
-  }
-</style>

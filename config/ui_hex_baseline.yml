@@ -1,0 +1,26 @@
+# ─────────────────────────────────────────────────────────────────────────
+# UI-Hex-Ratchet-Baseline — auto-generiert von `rake ui:no_hardcoded_hex:baseline`.
+#
+# Jeder Eintrag = Anzahl „grandfahterter" Verstoß-Zeilen (Hex / <style> /
+# inline color-style) in einer NOCH-NICHT-migrierten In-Scope-Datei.
+# Die Wache (`rake ui:no_hardcoded_hex`) failt, wenn eine Datei MEHR
+# Verstöße bekommt als hier steht, oder eine hier fehlende Datei welche hat.
+#
+# Beim Migrieren einer Datei (Hex→Token, siehe docs/ui-conventions.md):
+#   → ihren Eintrag ENTFERNEN. Sie muss danach dauerhaft sauber (0) bleiben.
+# Nach absichtlichen Änderungen neu erzeugen: bin/rails ui:no_hardcoded_hex:baseline
+#
+# NICHT von Hand die Zahlen hochsetzen, um die Wache stumm zu schalten.
+# ─────────────────────────────────────────────────────────────────────────
+"app/views/admin/application/_navigation.html.erb": 2
+"app/views/admin/application/_source_attributions_fields.html.erb": 19
+"app/views/admin/application/_translations_display.html.erb": 6
+"app/views/admin/incomplete_records/show.html.erb": 3
+"app/views/admin/pages/_form_fields.html.erb": 10
+"app/views/admin/player_duplicates/index.html.erb": 1
+"app/views/admin/stream_configurations/index.html.erb": 1
+"app/views/admin/tags/_form_fields.html.erb": 8
+"app/views/admin/training_examples/_form_fields.html.erb": 16
+"app/views/admin/training_examples/_index_header.html.erb": 1
+"app/views/admin/users/_discipline_node.html.erb": 1
+"app/views/admin/users/_form_fields.html.erb": 17

@@ -49,6 +49,12 @@ class PlayerRanking < ApplicationRecord
   # belongs_to :pp_player_class, foreign_key: :pp_player_class_id, class_name: "PlayerClass"
   # belongs_to :tournament_player_class, foreign_key: :tournament_player_class_id, class_name: "PlayerClass"
 
+  # 12-15 (S3): Kuratierte Spaltenauswahl für die generische sortierbare Index-Tabelle
+  # (shared/_scaffold_sortable_table). rank zuerst (wichtigste Größe) + FK-Kontext als Links + Kernwerte.
+  def self.scaffold_index_columns_default
+    %w[rank player_id discipline_id season_id points quote gd hs]
+  end
+
   # 2026-06-17: Coder YAML → JSON (analog zu allen anderen Sync-Modellen). Der strikte
   # YAML-Coder (assert_valid_value type: Hash/Array) warf beim Sync-Apply
   # SerializationTypeMismatch, wenn der Wert als String ankam → stiller Verlust (der

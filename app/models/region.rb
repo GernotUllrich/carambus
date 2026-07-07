@@ -129,7 +129,14 @@ class Region < ApplicationRecord
   def self.search_distinct?
     false
   end
-  
+
+  # Die Regionen-Galerie ist der Einstieg zum Auswaehlen einer Region und wird NIE gescoped.
+  # Region fuehrt selbst region_id (= eigene id) + global_context -> liefe sonst durch den globalen
+  # Scope-Band-Filter und wuerde sich selbst wegfiltern (zeigte 17/20 statt aller Regionen).
+  def self.scope_exempt?
+    true
+  end
+
   def self.cascading_filters
     {}
   end
@@ -147,6 +154,14 @@ class Region < ApplicationRecord
     else
       super
     end
+  end
+
+  # Effektive Anzeige-Saison für Region-Drill-Downs: aktuelle Saison, sofern die Region darin
+  # Turniere ODER Ligen hat; sonst die Vorsaison (Übergangsphase am Saisonanfang).
+  def effective_season
+    cur = Season.current_season
+    return cur if tournaments.where(season_id: cur.id).exists? || leagues.where(season_id: cur.id).exists?
+    cur.previous || cur
   end
 
   def self.region_map

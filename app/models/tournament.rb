@@ -62,6 +62,7 @@ class Tournament < ApplicationRecord
   include LocalProtector
   include SourceHandler
   include RegionTaggable
+  include BranchTaggable
   include Searchable
   include TournamentLeiter
   DEBUG_LOGGER = Logger.new("#{Rails.root}/log/debug.log")
@@ -204,10 +205,14 @@ class Tournament < ApplicationRecord
   end
 
   def self.text_search_sql
+    # Location in die General-Suche aufnehmen: erlaubt Venue-Suche ("Hamburg") und macht
+    # `location:BG Hamburg` (unquoted) tolerant — das nachlaufende "Hamburg" matcht sonst nur
+    # title/shortname/season und filtert per AND auf 0 (SB-3). locations ist LEFT JOINed (search_joins).
     "(tournaments.ba_id = :isearch)
      or (tournaments.title ilike :search)
      or (tournaments.shortname ilike :search)
-     or (seasons.name ilike :search)"
+     or (seasons.name ilike :search)
+     or (locations.name ilike :search)"
   end
 
   def self.search_joins

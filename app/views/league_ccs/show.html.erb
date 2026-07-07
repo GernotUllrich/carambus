@@ -1,41 +1,20 @@
-<div class="container mx-auto my-8 px-4">
-  <div class="max-w-3xl mx-auto">
-    <div class="flex justify-between items-center mb-4">
-      <h1><%= custom_link_to 'League Ccs', league_ccs_path %> > League Cc #<%= @league_cc.id %></h1>
-      <%= custom_link_to 'Edit', edit_league_cc_path(@league_cc), class: "btn btn-link" %>
-    </div>
-
-    <div class=" rounded shadow p-8">
-            <div class="mb-4">
-        <h5>Cc</h5>
-        <%= @league_cc.cc_id %>
-      </div>
-            <div class="mb-4">
-        <h5>Name</h5>
-        <%= @league_cc.name %>
-      </div>
-            <div class="mb-4">
-        <h5>Season cc</h5>
-        <%= custom_link_to "#{@league_cc.season_cc.name}(#{@league_cc.season_cc_id})", season_cc_path(@league_cc.season_cc) %>
-      </div>
-            <div class="mb-4">
-        <h5>Context</h5>
-        <%= @league_cc.context %>
-      </div>
-          </div>
-  </div>
-
+<%# 10-04: generische Detail-Card (09-01) + League-Teams- und Parties-Sub-Tabellen im details-Slot. %>
+<% details_html = capture do %>
   <% if @league_team_ccs.any? %>
-    <h3> League Teams</h3>
-    <div id="table_wrapper text-sm">
-      <%= render partial: 'league_team_ccs/league_team_ccs_table' %>
+    <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">League Teams</h3>
+    <div id="table_wrapper">
+      <%= render partial: 'league_team_ccs/league_team_ccs_table', locals: { records: @league_team_ccs } %>
     </div>
   <% end %>
-
   <% if @party_ccs.any? %>
-    <h3> Parties</h3>
-    <div id="table_wrapper text-base">
-      <%= render partial: 'party_ccs/party_ccs_table' %>
+    <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3 mt-6">Parties</h3>
+    <div id="table_wrapper">
+      <%= render partial: 'party_ccs/party_ccs_table', locals: { records: @party_ccs } %>
     </div>
   <% end %>
-</div>
+<% end %>
+<%= render "shared/detail_card",
+      record: @league_cc,
+      index_path: league_ccs_path,
+      index_label: "League Ccs",
+      details: (details_html.to_s.strip.present? ? details_html : nil) %>

@@ -8,8 +8,8 @@
 
 <section class="main-content__body" id="form_wrapper">
   <%= form_tag admin_settings_path, method: :post, class: "form" do %>
-    <div class="field-group">
-      <h3>System Settings</h3>
+    <div class="field-group mb-8 p-4 rounded border border-gray-200 dark:border-gray-700">
+      <h3 class="mt-0 mb-4 text-gray-600 dark:text-gray-300">System Settings</h3>
       <% %w[application_name carambus_api_url carambus_domain queue_adapter season_name force_update no_local_protection].each do |key| %>
         <div class="field-unit">
           <div class="field-unit__label">
@@ -35,8 +35,8 @@
       </div>
     </div>
 
-    <div class="field-group">
-      <h3>Contact Settings</h3>
+    <div class="field-group mb-8 p-4 rounded border border-gray-200 dark:border-gray-700">
+      <h3 class="mt-0 mb-4 text-gray-600 dark:text-gray-300">Contact Settings</h3>
       <% %w[support_email business_name business_address].each do |key| %>
         <div class="field-unit">
           <div class="field-unit__label">
@@ -49,8 +49,8 @@
       <% end %>
     </div>
 
-    <div class="field-group">
-      <h3>Location Settings</h3>
+    <div class="field-group mb-8 p-4 rounded border border-gray-200 dark:border-gray-700">
+      <h3 class="mt-0 mb-4 text-gray-600 dark:text-gray-300">Location Settings</h3>
       <div class="field-unit">
         <div class="field-unit__label">
           <%= label_tag "config[location_id]", "Location" %>
@@ -70,20 +70,19 @@
       </div>
     </div>
 
-    <div class="field-group">
-      <h3>Advanced Settings (JSON)</h3>
+    <div class="field-group mb-8 p-4 rounded border border-gray-200 dark:border-gray-700">
+      <h3 class="mt-0 mb-4 text-gray-600 dark:text-gray-300">Advanced Settings (JSON)</h3>
       <div class="field-unit">
         <div class="field-unit__label">
           <%= label_tag "config[quick_game_presets]", "Quick Game Presets" %>
-          <small style="display: block; color: #666; margin-top: 0.25rem;">
+          <small class="block text-gray-500 dark:text-gray-400 mt-1">
             Configure quick game buttons for different table kinds (JSON format)
           </small>
         </div>
         <div class="field-unit__field">
-          <%= text_area_tag "config[quick_game_presets]", @quick_game_presets_json, 
-                            class: "field-unit__input", 
-                            rows: 20,
-                            style: "font-family: monospace; font-size: 0.9em;" %>
+          <%= text_area_tag "config[quick_game_presets]", @quick_game_presets_json,
+                            class: "field-unit__input w-full min-h-[200px] p-2 rounded border border-gray-300 dark:border-gray-700 font-mono text-[0.9em]",
+                            rows: 20 %>
         </div>
       </div>
     </div>
@@ -94,47 +93,15 @@
   <% end %>
 
   <% if @config_locked %>
-    <div class="notice" style="background-color: #fff3cd; border-color: #ffc107; color: #856404;">
-      <strong>⚠️ Configuration Lock Active:</strong> 
+    <div class="notice bg-warning-50 dark:bg-warning-900/30 border border-warning-400 text-warning-800 dark:text-warning-200 p-3 rounded">
+      <strong>⚠️ Configuration Lock Active:</strong>
       Your settings are protected from being overwritten by scenario deployment tasks.
-      Lock file: <code>config/carambus.yml.lock</code>
+      Lock file: <code class="bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded font-mono">config/carambus.yml.lock</code>
     </div>
   <% end %>
 
-  <div class="notice">
+  <div class="notice bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-3 rounded mt-4">
     <strong>Note:</strong> Changes to configuration require application restart to take effect.
     When you save settings, a lock file is created to prevent scenario deployment from overwriting your customizations.
   </div>
 </section>
-
-<% content_for :styles do %>
-  <style>
-      .field-group {
-          margin-bottom: 2rem;
-          padding: 1rem;
-          border: 1px solid #eee;
-          border-radius: 4px;
-      }
-
-      .field-group h3 {
-          margin-top: 0;
-          margin-bottom: 1rem;
-          color: #666;
-      }
-
-      .field-unit textarea {
-          width: 100%;
-          min-height: 200px;
-          padding: 0.5rem;
-          border: 1px solid #ddd;
-          border-radius: 4px;
-      }
-
-      .notice code {
-          background: rgba(0,0,0,0.05);
-          padding: 2px 6px;
-          border-radius: 3px;
-          font-family: monospace;
-      }
-  </style>
-<% end %>

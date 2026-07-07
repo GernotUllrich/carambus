@@ -1,5 +1,5 @@
 class UsersController < ApplicationController
-  before_action :admin_only_check, except: %i[show index stop_impersonating]
+  before_action :system_admin_only, except: %i[stop_impersonating]
   before_action :set_user, only: %i[show edit update destroy impersonate]
 
   # GET /users
