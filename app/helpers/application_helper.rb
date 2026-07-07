@@ -4,6 +4,32 @@
 module ApplicationHelper
   include Pagy::Frontend
 
+  # Rendert JSON/Hash-Werte lesbar als eingerueckten monospace-Block (Beautifier).
+  # Akzeptiert einen JSON-String, ein Hash/Array oder nil. nil-/parse-sicher:
+  #  - nil/leer            -> dezenter "—"-Hinweis
+  #  - JSON-String         -> geparst + pretty-generiert
+  #  - Hash/Array          -> pretty-generiert
+  #  - nicht-parsbar/Fehler -> Rohwert als Block (kein Crash)
+  def pretty_json(value)
+    return content_tag(:span, "—", class: "text-gray-400 dark:text-gray-500") if value.nil? || (value.respond_to?(:empty?) && value.empty?)
+
+    parsed =
+      if value.is_a?(String)
+        JSON.parse(value)
+      else
+        value
+      end
+    content_tag(:pre, JSON.pretty_generate(parsed),
+                class: "text-xs font-mono whitespace-pre overflow-x-auto rounded-md p-3 " \
+                       "bg-surface-page dark:bg-gray-900 text-gray-800 dark:text-gray-200 " \
+                       "border border-gray-200 dark:border-gray-700")
+  rescue StandardError
+    content_tag(:pre, value.to_s,
+                class: "text-xs font-mono whitespace-pre-wrap break-words overflow-x-auto rounded-md p-3 " \
+                       "bg-surface-page dark:bg-gray-900 text-gray-800 dark:text-gray-200 " \
+                       "border border-gray-200 dark:border-gray-700")
+  end
+
   # Generates button tags for Turbo disable with
   # Preserve opacity-25 opacity-75 during purge
   def button_text(text = nil, disable_with: t("processing"), &block)
