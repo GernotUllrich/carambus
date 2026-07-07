@@ -58,11 +58,11 @@
   <!-- Sektions-Links (Drilldown in DIESE Region): region_focus überschreibt die Scope-Region temporär
        (höhere Prio als der Scope-Band-Default), OHNE den persistenten Wert umzuschalten. -->
   <div class="max-w-3xl mx-auto mt-8 space-y-3">
-    <%= custom_link_to "→ #{t('tournaments_season')} #{Season.current_season.name}",
-          tournaments_path(region_focus: @region.id, sSearch: "Season:#{Season.current_season.name} Date:>heute-2w"),
+    <%= custom_link_to "→ #{t('tournaments_season')} #{@effective_season.name}",
+          tournaments_path(region_focus: @region.id, sSearch: "Season:#{@effective_season.name} Date:>heute-2w"),
           class: "block font-medium text-primary-600 dark:text-primary-400 hover:underline" %>
-    <%= custom_link_to "→ #{t('leagues_season')} #{Season.current_season.name}",
-          parties_path(region_focus: @region.id, sSearch: "Season:#{Season.current_season.name} Date:>heute-2w"),
+    <%= custom_link_to "→ #{t('leagues_season')} #{@effective_season.name}",
+          parties_path(region_focus: @region.id, sSearch: "Season:#{@effective_season.name} Date:>heute-2w"),
           class: "block font-medium text-primary-600 dark:text-primary-400 hover:underline" %>
     <%= custom_link_to "→ Clubs", clubs_path(region_focus: @region.id),
           class: "block font-medium text-primary-600 dark:text-primary-400 hover:underline" %>

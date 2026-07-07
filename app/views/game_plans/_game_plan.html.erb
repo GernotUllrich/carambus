@@ -10,8 +10,11 @@
   <div>
     <p class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500">Leagues</p>
     <div class="text-sm">
-      <%- game_plan.leagues.each do |league| %>
-        <%= custom_link_to (league.name + ' - ' + league.branch.name + "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;").html_safe, league, class: "text-primary-600 dark:text-primary-400" %>
+      <% _counts = game_plan.leagues.group_by { |l| [l.name, l.branch&.id] }.transform_values(&:size) %>
+      <%- game_plan.leagues.sort_by { |l| [l.name.to_s, l.season&.name.to_s] }.each do |league| %>
+        <% _multi = _counts[[league.name, league.branch&.id]].to_i > 1 %>
+        <% _label = league.name + ' - ' + league.branch.name + (_multi && league.season ? " (#{league.season.name})" : "") %>
+        <%= custom_link_to (_label + "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;").html_safe, league, class: "text-primary-600 dark:text-primary-400" %>
       <%- end %>
     </div>
   </div>

@@ -38,7 +38,8 @@ class RegionsController < ApplicationController
 
   # GET /regions/1
   def show
-    @t_pagy, @tournaments = pagy(Tournament.where(season: Season.current_season,
+    @effective_season = @region.effective_season
+    @t_pagy, @tournaments = pagy(Tournament.where(season: @effective_season,
                                                   organizer: @region).order("tournaments.date asc"))
     @tournaments.load
   end

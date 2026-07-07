@@ -156,6 +156,14 @@ class Region < ApplicationRecord
     end
   end
 
+  # Effektive Anzeige-Saison für Region-Drill-Downs: aktuelle Saison, sofern die Region darin
+  # Turniere ODER Ligen hat; sonst die Vorsaison (Übergangsphase am Saisonanfang).
+  def effective_season
+    cur = Season.current_season
+    return cur if tournaments.where(season_id: cur.id).exists? || leagues.where(season_id: cur.id).exists?
+    cur.previous || cur
+  end
+
   def self.region_map
     regions = all.to_a
     map = regions.each_with_object({}) do |region, hash|
