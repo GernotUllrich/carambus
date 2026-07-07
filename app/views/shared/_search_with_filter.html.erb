@@ -2,6 +2,11 @@
   <div class="flex w-full relative"
        data-controller="filter-popup">
     <form action="/<%= controller_name %>" method="get" target="table_wrapper" data-reflex-serialize-form="true" class="w-full">
+      <%# Drill-Ankunftskontext mitfuehren: serialize-form sendet params[:drill] bei jeder Live-Suche mit, %>
+      <%# damit SearchReflex den Parent-Filter (Current.drill) nicht verliert. Nur im Drill gesetzt -> Top-Level unveraendert. %>
+      <% (Current.drill || {}).slice(*Scopable::DRILL_FOCUS_KEYS).each do |fk, id| %>
+        <%= hidden_field_tag "drill[#{fk}]", id %>
+      <% end %>
       <div class="flex flex-col w-full">
         <div class="flex items-center">
           <input

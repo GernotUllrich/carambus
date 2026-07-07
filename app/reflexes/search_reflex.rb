@@ -43,6 +43,20 @@ class SearchReflex < ApplicationReflex
     # ignorierte den Ausschnitt. Gleiche Ableitung wie im HTTP-Pfad (ScopeResolver).
     Current.scope = ScopeResolver.new(session_scope: session[:scope], user: current_user).fk_scope
 
+    # Drill-down-Kontext (Ankunftskontext): der Reflex laeuft ueber ActionCable und NICHT durch
+    # Scopable#set_current_scope -> Current.drill waere sonst nil und die Live-Suche im Drill
+    # verlaere den Parent-Filter (zeigte alle Datensaetze). Gleiche Ableitung wie Scopable#drill_focus_params
+    # (Allowlist Scopable::DRILL_FOCUS_KEYS gegen Column-Injection). apply_drill (SearchService) liest Current.drill.
+    raw_drill = params[:drill]
+    Current.drill =
+      if raw_drill.respond_to?(:to_unsafe_h)
+        raw_drill.to_unsafe_h
+      elsif raw_drill.is_a?(Hash)
+        raw_drill
+      else
+        {}
+      end.stringify_keys.slice(*Scopable::DRILL_FOCUS_KEYS)
+
     # Perform search
     results = SearchService.call(@model.search_hash(search_params))
 
