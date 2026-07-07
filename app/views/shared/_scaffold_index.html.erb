@@ -25,12 +25,18 @@
     <div class="bg-surface-card dark:bg-gray-800 rounded-card border border-gray-200 dark:border-gray-700 overflow-hidden">
       <% records.each do |record| %>
         <% primary = scaffold_primary_attribute(record) %>
-        <% label = primary ? record.public_send(primary) : record.to_s %>
+        <%# Override-Slot: Modelle mit Komposit-Label (z.B. PlayerClass = Disziplin + Klasse) koennen
+            scaffold_row_label/scaffold_row_subtitle definieren; sonst spalten-getriebener Default (verhaltensneutral). %>
+        <% custom_label = record.scaffold_row_label if record.respond_to?(:scaffold_row_label) %>
+        <% custom_subtitle = record.scaffold_row_subtitle if record.respond_to?(:scaffold_row_subtitle) %>
+        <% label = custom_label.presence || (primary ? record.public_send(primary) : record.to_s) %>
         <% secondary = (scaffold_show_attributes(record) - [primary].compact).select { |a| record.public_send(a).present? rescue false }.first(4) %>
         <div class="group flex items-center gap-3 px-4 py-3 border-t border-gray-100 dark:border-gray-700 first:border-t-0 hover:bg-surface-page dark:hover:bg-gray-700/60">
           <div class="flex-1 min-w-0">
             <%= custom_link_to(label, polymorphic_path(record), class: "font-medium text-gray-900 dark:text-gray-100 hover:text-primary-600 break-words") %>
-            <% if secondary.any? %>
+            <% if custom_subtitle.present? %>
+              <div class="text-xs text-gray-500 dark:text-gray-400 mt-0.5 break-words"><%= custom_subtitle %></div>
+            <% elsif secondary.any? %>
               <div class="text-xs text-gray-500 dark:text-gray-400 mt-0.5 break-words">
                 <%= safe_join(secondary.map { |a| scaffold_attribute_value(record, a) }, " · ") %>
               </div>
