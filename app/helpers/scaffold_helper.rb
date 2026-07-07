@@ -75,6 +75,9 @@ module ScaffoldHelper
     case value
     when true then "✓"
     when false then "✗"
+    when Hash, Array
+      # serialisierte JSON-Hash-Felder (z.B. `data`) lesbar als eingeruecktes JSON statt roh {"k"=>"v"}
+      pretty_json(value)
     when Time, Date, ActiveSupport::TimeWithZone
       (l(value, format: :short) rescue value.to_s)
     else

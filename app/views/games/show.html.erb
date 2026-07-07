@@ -18,7 +18,7 @@
       </div>
       <div>
         <dt class="text-sm text-gray-500 dark:text-gray-400">Data</dt>
-        <dd class="mt-1 break-words"><%= @game.data %></dd>
+        <dd class="mt-1 break-words"><%= pretty_json(@game.data) %></dd>
       </div>
       <div>
         <dt class="text-sm text-gray-500 dark:text-gray-400">Seqno</dt>
