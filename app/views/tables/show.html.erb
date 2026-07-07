@@ -6,27 +6,27 @@
       <%= custom_link_to( 'Löschen', table_path(@table), method: :delete, class: "btn btn-link") %>
     </div>
 
-    <div class=" rounded shadow p-8">
-            <div class="mb-4">
-        <h5>Location</h5>
-        <%= custom_link_to @table.location.display_address, location_path(@table.location) if @table.present? %>
+    <dl class="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-4 bg-surface-card dark:bg-gray-800 rounded-card border border-gray-200 dark:border-gray-700 p-6 text-gray-900 dark:text-gray-100">
+      <div class="min-w-0">
+        <dt class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5">Location</dt>
+        <dd class="break-words"><%= custom_link_to @table.location.display_address, location_path(@table.location) if @table.present? %></dd>
       </div>
-            <div class="mb-4">
-        <h5>Table kind</h5>
-        <%= custom_link_to @table.table_kind.name, table_kind_path(@table.table_kind) if @table.table_kind.present? %>
+      <div class="min-w-0">
+        <dt class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5">Table kind</dt>
+        <dd class="break-words"><%= custom_link_to @table.table_kind.name, table_kind_path(@table.table_kind) if @table.table_kind.present? %></dd>
       </div>
-            <div class="mb-4">
-        <h5>Name</h5>
-        <%= @table.name %>
+      <div class="min-w-0">
+        <dt class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5">Name</dt>
+        <dd class="break-words"><%= @table.name %></dd>
       </div>
-            <div class="mb-4">
-        <h5>Data</h5>
-        <%= pretty_json(@table.data) %>
+      <div class="min-w-0">
+        <dt class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5">Ip address</dt>
+        <dd class="break-words"><%= @table.ip_address %></dd>
       </div>
-            <div class="mb-4">
-        <h5>Ip address</h5>
-        <%= @table.ip_address %>
+      <div class="min-w-0 col-span-full">
+        <dt class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5">Data</dt>
+        <dd class="break-words"><%= pretty_json(@table.data) %></dd>
       </div>
-          </div>
+    </dl>
   </div>
 </div>
