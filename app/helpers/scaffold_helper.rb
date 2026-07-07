@@ -23,7 +23,9 @@ module ScaffoldHelper
   # heavy-Typen (text/json/jsonb/binary) raus (rendern als Wall-of-Text/JSON -> nicht scanbar) + begrenzt.
   # only: ersetzt die Default-Liste (per-Modell-Override im Rollout ohne Partial-Edit), except: entfernt zusaetzlich.
   def scaffold_index_columns(model_class, only: nil, except: nil, limit: 8)
-    cols = only.presence&.map(&:to_s) || (model_class.column_names - SCAFFOLD_HIDDEN_COLUMNS)
+    cols = only.presence&.map(&:to_s) ||
+           model_class.try(:scaffold_index_columns_default)&.map(&:to_s) ||
+           (model_class.column_names - SCAFFOLD_HIDDEN_COLUMNS)
     cols -= Array(except).map(&:to_s)
     heavy = %i[text json jsonb binary]
     cols = cols.reject { |c| heavy.include?(model_class.columns_hash[c]&.type) }
@@ -80,6 +82,9 @@ module ScaffoldHelper
       pretty_json(value)
     when Time, Date, ActiveSupport::TimeWithZone
       (l(value, format: :short) rescue value.to_s)
+    when Float
+      # Anzeige-Rundung: Durchschnitte/Quoten (z.B. GD) auf max. 3 Nachkommastellen, ohne Float-Rauschen
+      value.round(3).to_s
     else
       str = value.to_s
       if str.match?(%r{\Ahttps?://})
