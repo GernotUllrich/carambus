@@ -78,11 +78,12 @@ module Scopable
   # Stellt den Ausschnitt als FK-Filter fuer SearchService bereit (Current, pro Request).
   def set_current_scope
     if drill_focus_active?
-      # Drill-down-Modus: der Parent IST der Scope. Current.scope wird Parent-ONLY gesetzt (NICHT ueber
-      # Region/Saison der Session gemergt) — sonst wuerde ein fremdregionaler Parent seine Kinder
-      # faelschlich leerfiltern. apply_scope filtert den Parent-FK ueber seinen generischen Zweig
-      # (search_service.rb: `else results.where(col => value)`). KEIN session-Write (ephemer).
-      Current.scope = drill_focus_params.transform_keys(&:to_s)
+      # Drill-down-Modus: der Parent IST der Scope. Der Parent-FK wird als eigener Current.drill-Kontext
+      # gesetzt (NICHT ins Scope-Band gemergt) und von SearchService DIREKT gefiltert (where(fk => id)) —
+      # so umgeht der Drill die Scope-Facetten-Spezial-Logik (club_id-Join), die sonst SeasonParticipation/
+      # LeagueTeam ueberspringt. Das Band selbst ist im Drill leer. KEIN session-Write (ephemer).
+      Current.drill = drill_focus_params.transform_keys(&:to_s)
+      Current.scope = {}
     else
       Current.scope = scope_resolver.fk_scope
       # Temporaerer Region-Fokus (Drilldown aus regions/show): region_focus hat HOEHERE Prio als der

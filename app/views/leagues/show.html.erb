@@ -58,8 +58,7 @@
     </div>
 
     <div class="flex flex-wrap gap-4 mt-6">
-      <%= custom_link_to "=> #{t('league_league_teams')}", league_teams_path(sSearch: "league_id:#{@league.id}"), class: "text-primary-600 hover:text-primary-700 font-medium" %>
-      <%= custom_link_to "=> #{t('league_parties')}", parties_path(sSearch: "league_id:#{@league.id}"), class: "text-primary-600 hover:text-primary-700 font-medium" %>
+      <%= custom_link_to "=> #{t('league_league_teams')}", league_teams_path(drill: {league_id: @league.id}), class: "text-primary-600 hover:text-primary-700 font-medium" %>
     </div>
 
     <% if @league.discipline&.name == "Snooker" %>

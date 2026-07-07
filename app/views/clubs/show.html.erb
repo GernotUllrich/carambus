@@ -71,21 +71,36 @@
 </div>
 <div class="container mx-auto px-4">
   <div class="max-w-5xl mx-auto mt-6 bg-surface-card dark:bg-gray-800 rounded-card border border-gray-200 dark:border-gray-700 p-6 text-gray-900 dark:text-gray-100">
-    <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3"><%= t('home.index.leagues') %></h2>
-    <div class="flex flex-wrap gap-6">
-      <%- League.where(organizer_id: 1, season: Season.current_season, organizer_type: "Region").each do |league| %>
-        <%- if league.league_teams.where(club: @club.id).count > 0 %>
+    <%# Ligen, in denen der Club Mannschaften stellt (ueber league_teams, unabhaengig vom Organisator). %>
+    <%# Aktuelle Saison; sind dort noch keine Ligen definiert (Umbruchsphase), auf die Vorsaison zurueckfallen. %>
+    <%- current_season = Season.current_season %>
+    <%- shown_season = current_season %>
+    <%- club_leagues = League.joins(:league_teams).where(league_teams: { club_id: @club.id }, season: current_season).distinct.order(:name).to_a %>
+    <%- if club_leagues.blank? && current_season&.previous %>
+      <%- shown_season = current_season.previous %>
+      <%- club_leagues = League.joins(:league_teams).where(league_teams: { club_id: @club.id }, season: shown_season).distinct.order(:name).to_a %>
+    <%- end %>
+    <div class="flex flex-wrap items-baseline gap-2 mb-3">
+      <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100"><%= t('home.index.leagues') %></h2>
+      <%- if shown_season %><span class="text-sm text-gray-500 dark:text-gray-400"><%= shown_season.name %></span><%- end %>
+    </div>
+    <%- if club_leagues.present? %>
+      <div class="flex flex-wrap gap-6">
+        <%- club_leagues.each do |league| %>
           <div class="min-w-0">
             <h4 class="font-medium"><%= custom_link_to league.name, league_path(league), class: "text-primary-600 hover:text-primary-700" %></h4>
             <ul class="space-y-1 mt-1">
-              <%- league.league_teams.where(club: @club.id).order(name: :desc).uniq.each do |league_team| %>
+              <%# uniq(&:name): Datenbestand enthaelt teils mehrere LeagueTeam-Datensaetze gleichen Namens -> pro Name nur einen zeigen. %>
+              <%- league.league_teams.where(club_id: @club.id).order(:name).to_a.uniq(&:name).each do |league_team| %>
                 <li><%= custom_link_to league_team.name, league_team_path(league_team), class: "text-primary-600 hover:text-primary-700" %></li>
               <%- end %>
             </ul>
           </div>
         <%- end %>
-      <%- end %>
-    </div>
+      </div>
+    <%- else %>
+      <p class="text-sm text-gray-500 dark:text-gray-400"><%= t('clubs.show.no_leagues', default: "Der Club spielt derzeit in keiner Liga mit.") %></p>
+    <%- end %>
   </div>
 </div>
 <div class="container mx-auto px-4">

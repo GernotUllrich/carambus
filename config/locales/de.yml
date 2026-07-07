@@ -35,6 +35,9 @@ de:
       game:
         one: Spiel
         other: Spiele
+      league_team:
+        one: Mannschaft
+        other: Mannschaften
     attributes:
       account:
         name_on_card: Name on Card

@@ -20,6 +20,7 @@ class SearchService < ApplicationService
     results = results.sort_by_params(@sort, @direction)
     results = results.distinct if @distinct
     results = apply_scope(results)
+    results = apply_drill(results)
 
     if @sSearch.present?
       results_no_query = results
@@ -29,6 +30,23 @@ class SearchService < ApplicationService
   end
 
   private
+
+  # Drill-down-Kontext (Current.drill, z.B. { "club_id" => id }): filtert den Parent-FK DIREKT
+  # (where(fk => id)), getrennt vom Scope-Band. Bewusst OHNE die apply_scope-Facetten-Spezial-Logik
+  # (club_id-Join), damit der Drill auch Modelle wie SeasonParticipation/LeagueTeam filtert. Defensiv:
+  # nur vorhandene Spalten, praesente Werte.
+  def apply_drill(results)
+    drill = Current.drill
+    return results if drill.blank?
+
+    cols = @model.column_names
+    drill.each do |column, value|
+      col = column.to_s
+      next if value.blank? || !cols.include?(col)
+      results = results.where(col => value)
+    end
+    results
+  end
 
   # Globaler Ausschnitt (Scope-Band): FK-Filter (region_id/season_id/...) aus Current.scope,
   # nur wo das Modell die Spalte fuehrt. Unabhaengig von der User-Suche (@sSearch).
