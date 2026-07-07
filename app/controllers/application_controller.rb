@@ -99,6 +99,23 @@ class ApplicationController < ActionController::Base
     false
   end
 
+  def system_admin_only
+    return if current_user&.system_admin?
+
+    redirect_back fallback_location: root_path, alert: "System-Admin only - ask gernot.ullrich@gmx.de for permission"
+    false
+  end
+
+  # S5 (12-14): CC-Datenabgleich (reload-from-cc) darf ausführen, wer data_sync_access? hat
+  # (system_admin/club_admin/Sportwart/LandesSportwart/Turnierleiter).
+  def data_sync_access_check
+    return if current_user&.data_sync_access?
+
+    redirect_back fallback_location: root_path,
+                  alert: "Nur für Sportwart/Turnierleiter/Admin - ask gernot.ullrich@gmx.de for permission"
+    false
+  end
+
   def guest_player_creation?
     Current.user.andand.email == "scoreboard@carambus.de" && params[:club_id].present? && params[:season_id].present?
   end
