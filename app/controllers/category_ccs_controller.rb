@@ -1,4 +1,5 @@
 class CategoryCcsController < ApplicationController
+  before_action :system_admin_only
   before_action :set_category_cc, only: %i[show edit update destroy]
 
   # GET /category_ccs

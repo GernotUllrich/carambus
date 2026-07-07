@@ -26,6 +26,14 @@ class Version < PaperTrail::Version
 
   self.ignored_columns = ["region_ids"]
 
+  # Version erbt von PaperTrail::Version (nicht ApplicationRecord), daher fehlt die dort
+  # definierte sort_by_params-Klassenmethode. Selbst-enthaltene Variante (alle Spalten sortierbar).
+  def self.sort_by_params(column, direction)
+    col = column.presence_in(column_names) || "created_at"
+    dir = direction.presence_in(%w[asc desc]) || "asc"
+    order(col => dir)
+  end
+
   # This scope finds all versions where:
   # 1. region_id is nil OR
   # 2. region_id is the given region_id OR

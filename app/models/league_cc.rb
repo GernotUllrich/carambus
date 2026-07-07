@@ -111,7 +111,7 @@ class LeagueCc < ApplicationRecord
     branchId = season_cc.competition_cc.branch_cc.cc_id
     subBranchId = season_cc.competition_cc.cc_id
     seasonId = season_cc.cc_id
-    "#{RegionCc::BASE_URL}#{RegionCc::PATH_MAP["showLeague"]}?fedId=#{fedId}&branchId=#{branchId}&subBranchId=#{subBranchId}&seasonId=#{seasonId}&leagueId=#{cc_id}"
+    "#{RegionCc::BASE_URL}#{RegionCc::ClubCloudClient::PATH_MAP["showLeague"][0]}?fedId=#{fedId}&branchId=#{branchId}&subBranchId=#{subBranchId}&seasonId=#{seasonId}&leagueId=#{cc_id}"
   end
 
   def sync_single_league(opts = {})

@@ -1,4 +1,5 @@
 class IonContentsController < ApplicationController
+  before_action :system_admin_only
   before_action :set_ion_content, only: %i[show edit update destroy]
 
   # GET /ion_contents

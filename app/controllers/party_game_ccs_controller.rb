@@ -1,5 +1,5 @@
 class PartyGameCcsController < ApplicationController
-  before_action :admin_only_check, except: %i[show index]
+  before_action :system_admin_only
   before_action :set_party_game_cc, only: %i[show edit update destroy]
 
   # GET /party_game_ccs

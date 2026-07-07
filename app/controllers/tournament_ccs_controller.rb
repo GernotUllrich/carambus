@@ -1,4 +1,5 @@
 class TournamentCcsController < ApplicationController
+  before_action :system_admin_only
   include FiltersHelper
   before_action :set_tournament_cc, only: %i[show edit update destroy]
 
