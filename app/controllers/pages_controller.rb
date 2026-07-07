@@ -2,6 +2,8 @@
 
 # Controller for managing content pages
 class PagesController < ApplicationController
+  # 2026-07: pages-CMS ausgemustert → öffentliche Seiten auf die mkdocs-Dokumentation umleiten.
+  before_action :redirect_to_mkdocs, only: [:index, :show]
   before_action :authenticate_user!, except: [:index, :show]
   before_action :set_page, only: [:show, :edit, :update, :destroy, :publish, :archive]
   before_action :authorize_page, except: [:index, :new, :create]
@@ -99,6 +101,13 @@ class PagesController < ApplicationController
   end
 
   private
+
+  # pages-CMS ausgemustert (2026-07): öffentliche Read-Seiten auf die mkdocs-Dokumentation umleiten.
+  # Model/Daten/authentifizierte CRUD bleiben erhalten (reversibel).
+  def redirect_to_mkdocs
+    redirect_to docs_page_path(path: "index", locale: I18n.locale.to_s),
+                notice: I18n.t("pages.deprecated_redirect", default: "Die Dokumentation ist auf die neue Doku umgezogen.")
+  end
 
   # Use callbacks to share common setup or constraints between actions
   def set_page
