@@ -1,50 +1,98 @@
 <div class="container mx-auto my-8 px-4">
-  <div class="max-w-3xl mx-auto">
-    <div class="flex justify-between items-center mb-4">
-      <h1 class="h3"><%= custom_link_to 'Games', games_path %> > Game #<%= @game.id %></h1>
+  <div class="max-w-4xl mx-auto bg-surface-card dark:bg-gray-800 rounded-card border border-gray-200 dark:border-gray-700 p-6 text-gray-900 dark:text-gray-100">
+    <div class="flex justify-between items-center mb-6">
+      <h1 class="text-xl font-semibold text-gray-900 dark:text-gray-100">
+        <%= custom_link_to 'Games', games_path %> &rsaquo; Game #<%= @game.id %>
+      </h1>
       <%= button_to('Edit', edit_game_path(@game), method: :get, disabled: !current_user&.admin?, class: "btn btn-link") %>
     </div>
 
-    <div class="mb-4">
-      <h5>Tournament</h5>
-      <%= custom_link_to @game.tournament.title, tournament_path(@game.tournament) %>
-    </div>
-    <div class="mb-4">
-      <h5>Roles</h5>
-      <%= @game.roles %>
-    </div>
-    <div class="mb-4">
-      <h5>Data</h5>
-      <%= @game.data %>
-    </div>
-    <div class="mb-4">
-      <h5>Seqno</h5>
-      <%= @game.seqno %>
-    </div>
-    <div class="mb-4">
-      <h5>Gname</h5>
-      <%= @game.display_gname %>
-    </div>
-    <div class="mb-4">
-      <h5>Group no</h5>
-      <%= @game.group_no %>
-    </div>
-    <div class="mb-4">
-      <h5>Table no</h5>
-      <%= @game.table_no %>
-    </div>
-    <div class="mb-4">
-      <h5>Round no</h5>
-      <%= @game.round_no %>
-    </div>
-    <div class="mb-4">
-      <h5>Started at</h5>
-      <%= @game.started_at %>
-    </div>
-    <div class="mb-4">
-      <h5>Ended at</h5>
-      <%= @game.ended_at %>
-    </div>
+    <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4">
+      <div>
+        <dt class="text-sm text-gray-500 dark:text-gray-400">Tournament</dt>
+        <dd class="mt-1"><%= custom_link_to @game.tournament.title, tournament_path(@game.tournament) %></dd>
+      </div>
+      <div>
+        <dt class="text-sm text-gray-500 dark:text-gray-400">Roles</dt>
+        <dd class="mt-1"><%= @game.roles %></dd>
+      </div>
+      <div>
+        <dt class="text-sm text-gray-500 dark:text-gray-400">Data</dt>
+        <dd class="mt-1 break-words"><%= @game.data %></dd>
+      </div>
+      <div>
+        <dt class="text-sm text-gray-500 dark:text-gray-400">Seqno</dt>
+        <dd class="mt-1"><%= @game.seqno %></dd>
+      </div>
+      <div>
+        <dt class="text-sm text-gray-500 dark:text-gray-400">Gname</dt>
+        <dd class="mt-1"><%= @game.display_gname %></dd>
+      </div>
+      <div>
+        <dt class="text-sm text-gray-500 dark:text-gray-400">Group no</dt>
+        <dd class="mt-1"><%= @game.group_no %></dd>
+      </div>
+      <div>
+        <dt class="text-sm text-gray-500 dark:text-gray-400">Table no</dt>
+        <dd class="mt-1"><%= @game.table_no %></dd>
+      </div>
+      <div>
+        <dt class="text-sm text-gray-500 dark:text-gray-400">Round no</dt>
+        <dd class="mt-1"><%= @game.round_no %></dd>
+      </div>
+      <div>
+        <dt class="text-sm text-gray-500 dark:text-gray-400">Started at</dt>
+        <dd class="mt-1"><%= @game.started_at %></dd>
+      </div>
+      <div>
+        <dt class="text-sm text-gray-500 dark:text-gray-400">Ended at</dt>
+        <dd class="mt-1"><%= @game.ended_at %></dd>
+      </div>
+    </dl>
   </div>
 </div>
+
+<div class="container mx-auto px-4">
+  <div class="max-w-4xl mx-auto mt-6 bg-surface-card dark:bg-gray-800 rounded-card border border-gray-200 dark:border-gray-700 p-6 text-gray-900 dark:text-gray-100">
+    <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">Teilnehmer</h3>
+    <% participations = @game.game_participations.order(:role) %>
+    <% if participations.empty? %>
+      <p class="text-gray-500 dark:text-gray-400">Keine Teilnehmer</p>
+    <% else %>
+      <div class="overflow-x-auto rounded shadow ring-1 ring-slate-200 dark:ring-slate-800">
+        <table class="min-w-full text-sm">
+          <thead class="bg-gray-100/80 border-b border-slate-200 text-slate-500 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-400">
+          <tr>
+            <th class="p-3 text-left font-semibold">Spieler</th>
+            <th class="p-3 text-left font-semibold">Rolle</th>
+            <th class="p-3 text-left font-semibold">Ergebnis</th>
+            <th class="p-3 text-left font-semibold">Punkte</th>
+            <th class="p-3 text-left font-semibold">Aufnahmen</th>
+            <th class="p-3 text-left font-semibold">HS</th>
+            <th class="p-3 text-left font-semibold">GD</th>
+          </tr>
+          </thead>
+          <tbody>
+          <% participations.each do |gp| %>
+            <tr class="border-b border-slate-100 dark:border-slate-800">
+              <td class="p-3">
+                <% if gp.player.present? %>
+                  <%= custom_link_to gp.player.fullname, player_path(gp.player) %>
+                <% else %>
+                  &mdash;
+                <% end %>
+              </td>
+              <td class="p-3"><%= gp.role %></td>
+              <td class="p-3"><%= gp.result %></td>
+              <td class="p-3"><%= gp.points %></td>
+              <td class="p-3"><%= gp.innings %></td>
+              <td class="p-3"><%= gp.hs %></td>
+              <td class="p-3"><%= gp.gd %></td>
+            </tr>
+          <% end %>
+          </tbody>
+        </table>
+      </div>
+    <% end %>
+  </div>
 </div>
