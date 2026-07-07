@@ -1350,6 +1350,11 @@ de:
       no_results: "Keine Ergebnisse gefunden für '%{query}'"
     index_with_search:
       no_records: "Keine Einträge gefunden"
+    scaffold:
+      new:
+        title: "%{model} anlegen"
+      edit:
+        title: "%{model} bearbeiten"
 
   league_team:
     index:
