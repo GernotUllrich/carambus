@@ -21,11 +21,8 @@ a:not(.btn) {
   @apply dark:text-primary-400;
 }
 
-/* Underline/Farbwechsel nur für echte Inhaltslinks. Button-artige Anchors (`.btn`
-   ODER mit `bg-*`-Utility, z.B. die Scoreboard-/Kiosk-Buttons) sind ausgenommen —
-   sonst wird ihr Text im Hover unlesbar (dunkelgrün auf farbigem Grund) + Underline. */
-a:not(.btn):not([class*="bg-"]):hover,
-a:not(.btn):not([class*="bg-"]):focus {
+a:not(.btn):hover,
+a:not(.btn):focus {
   @apply text-primary-700 underline;
   @apply dark:text-primary-300;
   transform: none;

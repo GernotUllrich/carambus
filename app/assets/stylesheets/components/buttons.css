@@ -137,6 +137,26 @@ button[disabled] .when-enabled { display: none; }
   }
 }
 
+/* Button-Anchors vs. generische Content-Link-Hover-Regeln.
+   base.css/forms.css/trix.css definieren `a:not(<X>):hover/:focus { text-primary-700 underline }`
+   (je ungelayert, Spezifitaet (0,2,2)). Nur base.css schliesst `.btn` aus — die forms/trix-Varianten
+   (`:not(.input-file+label)` / `:not(trix-toolbar .trix-button--dialog)`) treffen die `.btn`-Anchors der
+   Scoreboard-/Kiosk-Seiten: Underline (auch bei :focus/grünem Ring) + im Light-Mode-Hover Text = Grund
+   (unlesbar). Reassert MUSS ungelayert stehen (sonst verliert er gegen die ungelayerten Regeln); `[class]`
+   hebt die Spezifitaet auf (0,3,1) > (0,2,2), ohne !important (P0-Teardown-Prinzip).
+   Dark-Mode-Hover-Farbe (primary-300, (0,3,2)) bleibt bewusst unberührt (dort lesbar). */
+a.btn[class]:hover,
+a.btn[class]:focus {
+  @apply no-underline;
+}
+
+a.btn-primary[class]:hover, a.btn-primary[class]:focus,
+a.btn-danger[class]:hover, a.btn-danger[class]:focus,
+a.btn-success[class]:hover, a.btn-success[class]:focus,
+a.btn-dark[class]:hover, a.btn-dark[class]:focus {
+  @apply text-white;
+}
+
 /* Administrate-Aktionsbuttons (.button / .button--danger, z.B. Editieren/Loeschen auf
    Show-/Index-Seiten): Administrate stylt sie blau/rot mit weisser Schrift, aber eine
    globale Link-/Tailwind-Farbe ueberschreibt das -> dunkler, kaum lesbarer Text.
