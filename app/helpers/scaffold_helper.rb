@@ -65,10 +65,10 @@ module ScaffoldHelper
       assoc = record.public_send(reflection.name) rescue nil
       return scaffold_blank if assoc.nil?
       label = scaffold_assoc_label(assoc)
-      # custom_link_to gibt bei nicht-routbaren Zielen (z.B. STI-Subklassen ohne eigene Route,
-      # etwa discipline -> Branch) im Rescue kein <a> zurueck -> auf reinen Label-Text zurueckfallen
-      # statt "true" zu rendern.
-      link = custom_link_to(label, assoc, class: "text-primary-600 hover:text-primary-700")
+      # STI-Subklassen (z.B. Branch < Discipline) haben keine eigene Route -> ueber die base_class
+      # routen (Branch -> discipline_path), sonst faellt custom_link_to auf reinen Text zurueck.
+      target = assoc.is_a?(ActiveRecord::Base) ? assoc.becomes(assoc.class.base_class) : assoc
+      link = custom_link_to(label, target, class: "text-primary-600 hover:text-primary-700")
       return link.is_a?(String) ? link : label
     end
 
