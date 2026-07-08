@@ -137,13 +137,13 @@ class StaticController < ApplicationController
   end
 
   def terms
-    # Redirect to docs_page for terms documentation
-    redirect_to docs_page_path(path: 'terms', locale: I18n.locale.to_s)
+    # Redirect to docs_page for terms documentation (liegt unter docs/reference/)
+    redirect_to docs_page_path(path: 'reference/terms', locale: I18n.locale.to_s)
   end
 
   def privacy
-    # Redirect to docs_page for privacy documentation
-    redirect_to docs_page_path(path: 'privacy', locale: I18n.locale.to_s)
+    # Redirect to docs_page for privacy documentation (liegt unter docs/reference/)
+    redirect_to docs_page_path(path: 'reference/privacy', locale: I18n.locale.to_s)
   end
 
   def database_syncing
