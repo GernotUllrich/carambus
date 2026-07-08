@@ -115,6 +115,19 @@ module ScaffoldHelper
     true
   end
 
+  # H30: true, wenn dieser Record HIER editierbar ist. Auf der Authority (local_server? == false)
+  # immer true; auf einem Local-Server nur fuer lokale Records (id >= MIN_ID). Globale Records
+  # (id < MIN_ID) sind lokal via LocalProtector nicht editierbar -> Edit-Link ausblenden.
+  # Spiegelt ApplicationRecord#disallow_saving_global_records. Im Zweifel (Fehler) -> true.
+  def scaffold_editable_here?(record)
+    return true unless ApplicationRecord.local_server?
+
+    id = record.try(:id)
+    id.present? && id >= ApplicationRecord::MIN_ID
+  rescue StandardError
+    true
+  end
+
   # 09-03: Generisches Formularfeld — ein `.form-group`-Div mit Label + typ-passendem Token-Input.
   # `form` = FormBuilder, `attr` = Spaltenname. Read-only ausser dem Formular selbst; defensiv.
   def scaffold_form_field(form, attr)

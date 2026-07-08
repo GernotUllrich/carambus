@@ -22,7 +22,7 @@
         <span class="text-gray-400 dark:text-gray-500">&gt;</span>
         <%= title %>
       </h1>
-      <% if edit_path %>
+      <% if edit_path && scaffold_editable_here?(record) %>
         <%= button_to t('edit', default: 'Edit'), edit_path, method: :get,
               disabled: !current_user&.admin?, class: "btn btn-link shrink-0" %>
       <% end %>
