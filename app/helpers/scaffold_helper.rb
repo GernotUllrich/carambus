@@ -72,7 +72,7 @@ module ScaffoldHelper
       return link.is_a?(String) ? link : label
     end
 
-    return scaffold_blank if value.nil? || (value.respond_to?(:empty?) && value.empty?)
+    return scaffold_blank if value.nil? || (value.respond_to?(:empty?) && value.empty?) || scaffold_zero_year_string?(value)
 
     case value
     when true then "✓"
@@ -81,7 +81,9 @@ module ScaffoldHelper
       # serialisierte JSON-Hash-Felder (z.B. `data`) lesbar als eingeruecktes JSON statt roh {"k"=>"v"}
       pretty_json(value)
     when Time, Date, ActiveSupport::TimeWithZone
-      (l(value, format: :short) rescue value.to_s)
+      # H2: nur das Kalenderdatum (TT.MM.JJJJ), ohne Uhrzeit/Zeitzone — to_date normalisiert
+      # Datetime/TimeWithZone auf den Tag in der App-Zeitzone.
+      (l(value.to_date, format: :default) rescue value.to_date.to_s rescue value.to_s)
     when Float
       # Anzeige-Rundung: Durchschnitte/Quoten (z.B. GD) auf max. 3 Nachkommastellen, ohne Float-Rauschen
       value.round(3).to_s
@@ -97,6 +99,20 @@ module ScaffoldHelper
   rescue StandardError => e
     Rails.logger.debug { "scaffold_attribute_value(#{record.class}##{attr}): #{e.message}" }
     scaffold_blank
+  end
+
+  # H1: true, wenn dieses Attribut in der Detail-Card kein anzeigbarer Wert waere (nil-FK / nil /
+  # leer / "0000"-Jahr-Platzhalter). Spiegelt die Blank-Logik von scaffold_attribute_value, damit
+  # _detail_card leere Felder ueberspringen kann. Im Zweifel (Fehler) -> true (ausblenden).
+  def scaffold_attribute_blank?(record, attr)
+    if (reflection = scaffold_belongs_to_for(record, attr))
+      (record.public_send(reflection.name) rescue nil).nil?
+    else
+      value = record.public_send(attr)
+      value.nil? || (value.respond_to?(:empty?) && value.empty?) || scaffold_zero_year_string?(value)
+    end
+  rescue StandardError
+    true
   end
 
   # 09-03: Generisches Formularfeld — ein `.form-group`-Div mit Label + typ-passendem Token-Input.
@@ -156,6 +172,11 @@ module ScaffoldHelper
 
   def scaffold_blank
     content_tag(:span, "—", class: "text-gray-400 dark:text-gray-500")
+  end
+
+  # H3: "0000"-Jahr-Platzhalter (z.B. Club#founded als String "0000") wie leer behandeln.
+  def scaffold_zero_year_string?(value)
+    value.is_a?(String) && value.strip.match?(/\A0000\b/)
   end
 
   # belongs_to-Reflection, deren Fremdschluessel diese Spalte ist (oder nil).
