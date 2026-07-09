@@ -9,7 +9,7 @@
         </h1>
         <% if subtitle.present? %><h3 class="text-sm text-gray-500 dark:text-gray-400 mt-0.5"><%= subtitle %></h3><% end %>
       </div>
-      <% if local_server? && !tournament.has_clubcloud_results? %>
+      <% if local_server? && !tournament.has_clubcloud_results? && scaffold_editable_here?(tournament) %>
         <%= button_to(t('tournaments.show.edit_button'), edit_tournament_path(tournament), method: :get, disabled: !current_user&.admin?, class: "btn btn-link shrink-0") %>
       <% end %>
     </div>
@@ -27,13 +27,15 @@
           <div class="min-w-0">
             <h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5"><%= t('activerecord.attributes.tournament.age_restriction') %></h5><%= tournament.age_restriction %></div>
         <% end %>
-        <div class="min-w-0"><h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5"><%= t('activerecord.attributes.tournament.date') %></h5><%= tournament.date %></div>
+        <div class="min-w-0"><h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5"><%= t('activerecord.attributes.tournament.date') %></h5><%= format_date(tournament.date) %></div>
         <div class="min-w-0">
-          <h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5"><%= t('activerecord.attributes.tournament.accredation_end') %></h5><%= tournament.accredation_end %></div>
-        <div class="min-w-0">
-          <%# InternationalTournament (STI) #location ist ein String (location_text) -> nur fuer echte Location verlinken. %>
-          <h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5"><%= t('activerecord.attributes.tournament.location') %></h5><%= custom_link_to tournament.location.display_address, location_path(tournament.location) if tournament.location.is_a?(Location) %>
-        </div>
+          <h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5"><%= t('activerecord.attributes.tournament.accredation_end') %></h5><%= format_date(tournament.accredation_end) %></div>
+        <% if tournament.location.is_a?(Location) %>
+          <div class="min-w-0">
+            <%# InternationalTournament (STI) #location ist ein String (location_text) -> nur fuer echte Location verlinken. %>
+            <h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5"><%= t('activerecord.attributes.tournament.location') %></h5><%= custom_link_to tournament.location.display_address, location_path(tournament.location) %>
+          </div>
+        <% end %>
         <div class="min-w-0">
           <h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5"><%= t('activerecord.attributes.tournament.season') %></h5><%= custom_link_to(tournament.season.name, season_path(tournament.season)) %>
         </div>
@@ -41,9 +43,11 @@
           <h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5"><%= t('activerecord.attributes.tournament.organizer') %></h5><%= custom_link_to(tournament.organizer.name, tournament.organizer) %>
         </div>
         <% if tournament.end_date.present? %>
-          <div class="min-w-0"><h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5"><%= t('activerecord.attributes.tournament.end_date') %></h5><%= tournament.end_date %></div>
+          <div class="min-w-0"><h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5"><%= t('activerecord.attributes.tournament.end_date') %></h5><%= format_date(tournament.end_date) %></div>
         <% end %>
-        <div class="min-w-0"><h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5"><%= t('activerecord.attributes.tournament.shortname') %></h5><%= tournament.shortname %></div>
+        <% if tournament.shortname.present? %>
+          <div class="min-w-0"><h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5"><%= t('activerecord.attributes.tournament.shortname') %></h5><%= tournament.shortname %></div>
+        <% end %>
         <% if tournament.data.present? && tournament_director?(current_user) %>
           <div class="min-w-0">
             <h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5"><%= t('activerecord.attributes.tournament.data') %></h5>
@@ -173,10 +177,14 @@
           <div class="min-w-0">
             <h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5"><%= t('activerecord.attributes.tournament.color_remains_with_set') %></h5><%= tournament.color_remains_with_set %></div>
         <% end %>
-        <div class="min-w-0">
-          <h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5"><%= t('activerecord.attributes.tournament.source') %></h5><%= link_to_if tournament.source_url.present?, tournament.source_url.present? ? URI.parse(tournament.source_url).host : "", tournament.source_url, class: "green_link", target: :_blank %>
-        </div>
-        <div class="min-w-0"><h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5"><%= t('tournaments.show.last_sync') %></h5><%= tournament.sync_date.andand.to_date %></div>
+        <% if tournament.source_url.present? %>
+          <div class="min-w-0">
+            <h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5"><%= t('activerecord.attributes.tournament.source') %></h5><%= link_to URI.parse(tournament.source_url).host, tournament.source_url, class: "green_link", target: :_blank %>
+          </div>
+        <% end %>
+        <% if tournament.sync_date.present? %>
+          <div class="min-w-0"><h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5"><%= Tournament.human_attribute_name(:sync_date) %></h5><%= format_date(tournament.sync_date) %></div>
+        <% end %>
       </div>
       </div>
     <%- end %>

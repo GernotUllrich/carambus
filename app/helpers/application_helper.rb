@@ -4,6 +4,15 @@
 module ApplicationHelper
   include Pagy::Frontend
 
+  # Date-only-Anzeige (TT.MM.JJJJ) fuer Datetime-/Date-Werte; nil -> nil (Aufrufer blendet dann aus).
+  def format_date(value)
+    return if value.nil?
+
+    l(value.to_date, format: :default)
+  rescue StandardError
+    value.to_s
+  end
+
   # Rendert JSON/Hash-Werte lesbar als eingerueckten monospace-Block (Beautifier).
   # Akzeptiert einen JSON-String, ein Hash/Array oder nil. nil-/parse-sicher:
   #  - nil/leer            -> dezenter "—"-Hinweis
