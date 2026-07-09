@@ -31,8 +31,35 @@ de:
     updated_at: aktualisiert
   actions: Aktionen
   attributes:
+    data: Daten
+    discipline: Disziplin
+    discipline_id: Disziplin
+    even_more_description: Weitere Beschreibung
+    executor_class: Executor-Klasse
+    executor_params: Executor-Parameter
+    game_plan: Spielplan
+    game_plan_id: Spielplan
+    more_description: Beschreibung
+    name: Name
+    ngroups: Gruppen
+    nrepeats: Wiederholungen
+    organizer: Veranstalter
+    organizer_id: Veranstalter
+    players: Spieler
+    registration_until: Meldeschluss
+    rulesystem: Regelwerk
+    season: Saison
+    season_id: Saison
     source_url: Quelle
+    super_discipline: Über-Disziplin
+    super_discipline_id: Über-Disziplin
     sync_date: Zuletzt aktualisiert
+    synonyms: Synonyme
+    table_kind: Tischart
+    table_kind_id: Tischart
+    tables: Tische
+    team_size: Mannschaftsgröße
+    type: Typ
   activerecord:
     models:
       game:

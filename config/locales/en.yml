@@ -31,8 +31,35 @@ en:
     updated_at: updated at
   actions: Actions
   attributes:
+    data: Data
+    discipline: Discipline
+    discipline_id: Discipline
+    even_more_description: Further description
+    executor_class: Executor class
+    executor_params: Executor params
+    game_plan: Game plan
+    game_plan_id: Game plan
+    more_description: Description
+    name: Name
+    ngroups: Groups
+    nrepeats: Repeats
+    organizer: Organizer
+    organizer_id: Organizer
+    players: Players
+    registration_until: Registration until
+    rulesystem: Rule system
+    season: Season
+    season_id: Season
     source_url: Source
+    super_discipline: Super discipline
+    super_discipline_id: Super discipline
     sync_date: Last updated
+    synonyms: Synonyms
+    table_kind: Table kind
+    table_kind_id: Table kind
+    tables: Tables
+    team_size: Team size
+    type: Type
   activerecord:
     models:
       game:
