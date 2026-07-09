@@ -30,6 +30,8 @@ en:
     trial_ends_at: trial ends at
     updated_at: updated at
   actions: Actions
+  attributes:
+    sync_date: Last updated
   activerecord:
     models:
       game:

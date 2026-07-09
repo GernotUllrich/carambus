@@ -30,6 +30,8 @@ de:
     trial_ends_at: Probezeitende
     updated_at: aktualisiert
   actions: Aktionen
+  attributes:
+    sync_date: Zuletzt aktualisiert
   activerecord:
     models:
       game:

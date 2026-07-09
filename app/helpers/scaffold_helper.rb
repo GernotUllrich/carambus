@@ -5,9 +5,12 @@
 # generische Detail-Card (shared/_detail_card). Read-only, defensiv.
 module ScaffoldHelper
   # Technische Spalten, die in der generischen Detail-Card standardmaessig NICHT gezeigt werden.
-  # Bewusst NICHT dabei: source_url (haelt oft den ClubCloud-Link -> als Link zeigen).
+  # Bewusst NICHT dabei:
+  # - source_url (haelt oft den ClubCloud-Link -> als Link zeigen).
+  # - sync_date: wichtige Aktualitaets-Info fuer gescrapte Daten (Turnierleiter sieht fehlende
+  #   Aktualitaet). Bei nicht-gescrapten/lokalen Records ist es nil -> via H1 ohnehin ausgeblendet.
   SCAFFOLD_HIDDEN_COLUMNS = %w[
-    id created_at updated_at global_context source_id sync_date lock_version
+    id created_at updated_at global_context source_id lock_version
   ].freeze
 
   # Geordnete Liste anzuzeigender Spaltennamen. only: ersetzt die Default-Liste, except: entfernt
@@ -201,9 +204,11 @@ module ScaffoldHelper
     end
   end
 
-  # Lesbares Label eines assoziierten Records.
+  # Lesbares Label eines assoziierten Records. shortname zuerst — in dieser Domaene werden
+  # Entitaeten mit Kuerzel (Region „NBV", Club, League) konventionell darueber angezeigt;
+  # Entitaeten ohne shortname (Discipline/Season/TableKind) fallen auf name zurueck.
   def scaffold_assoc_label(obj)
-    obj.try(:name).presence || obj.try(:title).presence ||
-      obj.try(:shortname).presence || obj.to_s
+    obj.try(:shortname).presence || obj.try(:name).presence ||
+      obj.try(:title).presence || obj.to_s
   end
 end
