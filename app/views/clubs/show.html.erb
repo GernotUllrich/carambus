@@ -7,35 +7,65 @@
           <span class="text-gray-400 dark:text-gray-500">&gt;</span> <%= @club.name %>
         </h1>
       </div>
-      <%= button_to('Edit', edit_club_path(@club), method: :get, disabled: !current_user&.admin?, class: "btn btn-link shrink-0") %>
+      <% if scaffold_editable_here?(@club) %>
+        <%= button_to('Edit', edit_club_path(@club), method: :get, disabled: !current_user&.admin?, class: "btn btn-link shrink-0") %>
+      <% end %>
     </div>
 
     <%# Detail-Card-Muster (Phase 6): Token-Card + responsives Label/Wert-Grid — Referenz tournaments/_show.html.erb. %>
     <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-4 bg-surface-card dark:bg-gray-800 rounded-card border border-gray-200 dark:border-gray-700 p-6 text-gray-900 dark:text-gray-100">
-      <div class="min-w-0 col-span-2"><h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5">Logo</h5><%= image_tag @club.logo if @club.logo.present? %></div>
-      <div class="min-w-0">
-        <h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5">cc_id</h5><%= custom_link_to @club.cc_id.presence || "TBD", "#{@club.region.public_cc_url_base}verein-details.php?p=#{@club.region.andand.region_cc.andand.cc_id}---#{@club.cc_id}--1-100000-0", class: "green_link", target: '_blank' %>
-      </div>
-      <div class="min-w-0">
-        <h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5"><%= t('club.region_id') %></h5><%= custom_link_to @club.region.name, region_path(@club.region) if @club.region.present? %>
-      </div>
+      <% if @club.logo.present? %>
+        <div class="min-w-0 col-span-2"><h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5">Logo</h5><%= image_tag @club.logo %></div>
+      <% end %>
+      <% if @club.region.present? %>
+        <div class="min-w-0">
+          <h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5"><%= t('club.region_id') %></h5><%= custom_link_to @club.region.name, region_path(@club.region) %>
+        </div>
+      <% end %>
       <div class="min-w-0">
         <h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5"><%= t('club.name') %></h5><%= custom_link_to(@club.name, club_path(@club)) %></div>
-      <div class="min-w-0"><h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5"><%= t('club.shortname') %></h5><%= @club.shortname %></div>
-      <div class="min-w-0"><h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5"><%= t('club.synonyms') %></h5><%= my_sanitize @club.synonyms&.gsub("\n", ",<hr class=\"my-2 mx-auto w-48 h-1 bg-gray-200 rounded border-0 md:my-5 dark:bg-gray-700\">") %></div>
-      <div class="min-w-0">
-        <h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5"><%= t('club.address') %></h5><%= my_sanitize @club.address %>
-      </div>
-      <div class="min-w-0">
-        <h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5"><%= t('club.homepage') %></h5><%= my_sanitize @club.homepage %>
-      </div>
-      <div class="min-w-0"><h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5"><%= t('club.email') %></h5><%= my_sanitize mail_to @club.email %></div>
-      <div class="min-w-0">
-        <h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5"><%= t('club.priceinfo') %></h5><%= my_sanitize @club.priceinfo.andand.gsub(/\n+/, "<br />").andand.html_safe %>
-      </div>
-      <div class="min-w-0"><h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5"><%= t('club.status') %></h5><%= @club.status %></div>
-      <div class="min-w-0"><h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5"><%= t('club.founded') %></h5><%= @club.founded %></div>
-      <div class="min-w-0"><h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5"><%= t('club.dbu_entry') %></h5><%= @club.dbu_entry %></div>
+      <% if @club.shortname.present? %>
+        <div class="min-w-0"><h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5"><%= t('club.shortname') %></h5><%= @club.shortname %></div>
+      <% end %>
+      <% if @club.synonyms.present? %>
+        <div class="min-w-0"><h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5"><%= t('club.synonyms') %></h5><%= my_sanitize @club.synonyms&.gsub("\n", ",<hr class=\"my-2 mx-auto w-48 h-1 bg-gray-200 rounded border-0 md:my-5 dark:bg-gray-700\">") %></div>
+      <% end %>
+      <% if strip_tags(@club.address.to_s).strip.present? %>
+        <div class="min-w-0">
+          <h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5"><%= t('club.address') %></h5><%= my_sanitize @club.address %>
+        </div>
+      <% end %>
+      <% if @club.homepage.present? %>
+        <div class="min-w-0">
+          <h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5"><%= t('club.homepage') %></h5><%= my_sanitize @club.homepage %>
+        </div>
+      <% end %>
+      <% if @club.email.present? %>
+        <div class="min-w-0"><h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5"><%= t('club.email') %></h5><%= my_sanitize mail_to @club.email %></div>
+      <% end %>
+      <% if @club.priceinfo.present? %>
+        <div class="min-w-0">
+          <h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5"><%= t('club.priceinfo') %></h5><%= my_sanitize @club.priceinfo.andand.gsub(/\n+/, "<br />").andand.html_safe %>
+        </div>
+      <% end %>
+      <% if @club.status.present? %>
+        <div class="min-w-0"><h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5"><%= t('club.status') %></h5><%= @club.status %></div>
+      <% end %>
+      <% if @club.founded.present? && @club.founded.to_s.strip !~ /\A0+\z/ %>
+        <div class="min-w-0"><h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5"><%= t('club.founded') %></h5><%= @club.founded %></div>
+      <% end %>
+      <% if @club.dbu_entry.present? %>
+        <div class="min-w-0"><h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5"><%= t('club.dbu_entry') %></h5><%= @club.dbu_entry %></div>
+      <% end %>
+      <%# Fußnoten-artige Metadaten (Herkunft/Aktualität) ans Ende. %>
+      <% if @club.cc_id.present? && @club.region&.public_cc_url_base.present? %>
+        <div class="min-w-0">
+          <h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5"><%= t('club.source', default: 'Quelle') %></h5><%= link_to (URI.parse(@club.region.public_cc_url_base).host rescue @club.region.public_cc_url_base), "#{@club.region.public_cc_url_base}verein-details.php?p=#{@club.region.andand.region_cc.andand.cc_id}---#{@club.cc_id}--1-100000-0", class: "green_link", target: '_blank' %>
+        </div>
+      <% end %>
+      <% if @club.sync_date.present? %>
+        <div class="min-w-0"><h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5"><%= Club.human_attribute_name(:sync_date) %></h5><%= format_date(@club.sync_date) %></div>
+      <% end %>
     </div>
   </div>
 </div>
