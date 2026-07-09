@@ -31,6 +31,7 @@ en:
     updated_at: updated at
   actions: Actions
   attributes:
+    source_url: Source
     sync_date: Last updated
   activerecord:
     models:
@@ -338,6 +339,7 @@ en:
   location:
     address: address
     club_id: club id
+    clubs: Clubs
     created_at: created at
     data: data
     id: id
@@ -348,6 +350,9 @@ en:
     name: name
     organizer_id: organizer id
     organizer_type: organizer type
+    region_id: Region
+    synonyms: Synonyms
+    tables: Tables
     updated_at: updated at
   may_loose_results: You may loose game results!
   must_be_an_admin: You must be an admin to do that.

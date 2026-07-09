@@ -1,14 +1,16 @@
 <div class="container mx-auto my-8 px-4">
-  <div class="max-w-3xl mx-auto">
+  <div class="max-w-5xl mx-auto">
     <div data-controller="clipboard" data-clipboard-success-content="<%= t('copied') %>" data-clipboard-text="<%= scoreboard_location_url(@location.md5, sb_state: "welcome") %>" class="flex flex-wrap justify-between items-start gap-2 mb-4">
       <div class="min-w-0">
         <h1 class="text-xl font-semibold text-gray-900 dark:text-gray-100 break-words">
-          <%= custom_link_to 'Locations', locations_path, class: "text-primary-600 hover:text-primary-700" %>
-          <span class="text-gray-400 dark:text-gray-500">&gt;</span> Location #<%= @location.id %>
+          <%= custom_link_to t('location.index.locations', default: 'Spiellokale'), locations_path, class: "text-primary-600 hover:text-primary-700" %>
+          <span class="text-gray-400 dark:text-gray-500">&gt;</span> <%= @location.name.presence || "Location ##{@location.id}" %>
         </h1>
       </div>
       <div class="flex flex-wrap gap-2 shrink-0">
-        <%= button_to('Edit', edit_location_path(@location), method: :get, disabled: !current_user&.admin?, class: "btn btn-link") %>
+        <% if scaffold_editable_here?(@location) %>
+          <%= button_to('Edit', edit_location_path(@location), method: :get, disabled: !current_user&.admin?, class: "btn btn-link") %>
+        <% end %>
         <%= custom_link_to('scoreboard', "/locations/#{@location.md5}/scoreboard?sb_state=welcome", class: "btn btn-link", data: { turbo: false } ) %>
         <button
           class="btn"
@@ -19,38 +21,44 @@
       </div>
     </div>
 
-    <%# Detail-Card-Muster (Phase 6): Token-Card mit vertikalen Label/Wert-Bloecken (Listen/Tabellen inklusive). %>
-    <div class="space-y-5 bg-surface-card dark:bg-gray-800 rounded-card border border-gray-200 dark:border-gray-700 p-6 text-gray-900 dark:text-gray-100">
-      <div>
-        <h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5">Clubs</h5>
-        <ul class="space-y-1">
-          <%- @location.clubs.each do |club| %>
-            <li><%= custom_link_to(club.andand.name, club_path(club)) if club.present? %></li>
-          <%- end %>
-        </ul>
+    <%# Detail-Card-Muster (14-08): mehrspaltiges Token-Grid (Muster clubs/show); breite Inhalte (Vereine/
+        Daten/Tische) ueber die volle Zeile; leere Felder ausgeblendet (H1); Fussnoten (Quelle/sync) ans Ende. %>
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-4 bg-surface-card dark:bg-gray-800 rounded-card border border-gray-200 dark:border-gray-700 p-6 text-gray-900 dark:text-gray-100">
+      <% if @location.organizer.present? && @location.organizer_type == "Region" %>
+        <div class="min-w-0">
+          <h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5"><%= t('location.region_id') %></h5><%= custom_link_to(@location.organizer.name, region_path(@location.organizer)) %>
+        </div>
+      <% end %>
+      <div class="min-w-0">
+        <h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5"><%= t('location.name') %></h5><%= @location.name %>
       </div>
-      <div>
-        <h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5">Region</h5>
-        <%= custom_link_to(@location.organizer.andand.name, region_path(@location.organizer)) if @location.organizer.present? && @location.organizer_type == "Region" %>
-      </div>
-      <div>
-        <h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5">Name</h5>
-        <%= @location.name %>
-      </div>
-      <div>
-        <h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5">Synonyme</h5>
-        <%= @location.synonyms.gsub("\n", ",<hr class=\"my-2 w-48 h-1 bg-gray-200 rounded border-0 md:my-5 dark:bg-gray-700\">").html_safe %>
-      </div>
-      <div>
-        <h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5">Address</h5>
-        <%= @location.address.andand.gsub("\n", "<br>").andand.html_safe %>
-      </div>
-      <div>
-        <h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5">Data</h5>
-        <%= pretty_json(@location.data) %>
-      </div>
-      <div>
-        <h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5">Tables</h5>
+      <% if @location.synonyms.present? %>
+        <div class="min-w-0">
+          <h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5"><%= t('location.synonyms') %></h5><%= my_sanitize @location.synonyms.gsub("\n", ",<hr class=\"my-2 w-48 h-1 bg-gray-200 rounded border-0 md:my-5 dark:bg-gray-700\">") %>
+        </div>
+      <% end %>
+      <% if strip_tags(@location.address.to_s).strip.present? %>
+        <div class="min-w-0">
+          <h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5"><%= t('location.address') %></h5><%= my_sanitize @location.address.gsub("\n", "<br>") %>
+        </div>
+      <% end %>
+      <% if @location.clubs.any? %>
+        <div class="min-w-0 col-span-2 md:col-span-3 lg:col-span-4">
+          <h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5"><%= t('location.clubs') %></h5>
+          <ul class="space-y-1">
+            <%- @location.clubs.each do |club| %>
+              <li><%= custom_link_to(club.andand.name, club_path(club)) if club.present? %></li>
+            <%- end %>
+          </ul>
+        </div>
+      <% end %>
+      <% if @location.data.present? %>
+        <div class="min-w-0 col-span-2 md:col-span-3 lg:col-span-4">
+          <h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5"><%= t('location.data') %></h5><%= pretty_json(@location.data) %>
+        </div>
+      <% end %>
+      <div class="min-w-0 col-span-2 md:col-span-3 lg:col-span-4">
+        <h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5"><%= t('location.tables') %></h5>
         <div class="overflow-x-auto rounded shadow ring-1 ring-slate-200 dark:ring-slate-800">
           <table class="min-w-full text-sm">
             <thead class="bg-gray-100/80 border-b border-slate-200 text-slate-500 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-400">
@@ -87,6 +95,17 @@
           </table>
         </div>
       </div>
+      <%# H38: Quelle + Zuletzt aktualisiert als Fussnoten ans Card-Ende (leer -> ausgeblendet). %>
+      <% if @location.source_url.present? %>
+        <div class="min-w-0">
+          <h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5"><%= t('attributes.source_url', default: 'Quelle') %></h5><%= link_to (URI.parse(@location.source_url).host rescue @location.source_url), @location.source_url, class: "green_link", target: :_blank %>
+        </div>
+      <% end %>
+      <% if @location.sync_date.present? %>
+        <div class="min-w-0">
+          <h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5"><%= Location.human_attribute_name(:sync_date) %></h5><%= format_date(@location.sync_date) %>
+        </div>
+      <% end %>
     </div>
   </div>
 </div>

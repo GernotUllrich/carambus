@@ -77,6 +77,14 @@ module ScaffoldHelper
 
     return scaffold_blank if value.nil? || (value.respond_to?(:empty?) && value.empty?) || scaffold_zero_year_string?(value)
 
+    # H38: source_url einheitlich als Host-Link (statt voller URL) — spiegelt die "Quelle"+Host-
+    # Konvention der bespoke Show-Seiten (clubs/tournaments/parties/players) auf allen generischen Cards.
+    if attr.to_s == "source_url" && value.is_a?(String) && value.match?(%r{\Ahttps?://})
+      host = (URI.parse(value).host rescue value)
+      return link_to(host, value, target: "_blank", rel: "noopener",
+                     class: "text-primary-600 hover:text-primary-700 break-all")
+    end
+
     case value
     when true then "✓"
     when false then "✗"
