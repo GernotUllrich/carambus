@@ -19,7 +19,7 @@
   <!-- Bucket chips (FIX-03, D-01) -->
   <div class="flex flex-wrap justify-center gap-2 mb-2">
     <% wizard_bucket_chips(tournament).each do |chip| %>
-      <span class="px-3 py-1 rounded-full text-sm font-medium border <%= chip[:active] ? 'bg-blue-600 text-white border-blue-700 shadow' : 'bg-gray-100 text-gray-600 border-gray-300' %>">
+      <span class="px-3 py-1 rounded-full text-sm font-medium border <%= chip[:active] ? 'bg-gray-600 text-white border-gray-700 shadow' : 'bg-gray-100 text-gray-600 border-gray-300' %>">
         <%= chip[:label] %>
       </span>
     <% end %>
@@ -69,7 +69,7 @@
                 <%= t("tournaments.wizard_steps_v2.step1_help_body_html").html_safe %>
               </p>
               <p class="step-docs-link mt-2">
-                <%= mkdocs_link('managers/tournament-management', text: t('tournaments.docs.walkthrough_link'), options: { class: 'text-blue-600 dark:text-blue-400 underline text-sm' }) %>
+                <%= mkdocs_link('managers/tournament-management', text: t('tournaments.docs.walkthrough_link'), options: { class: 'text-primary-600 dark:text-primary-400 underline text-sm' }) %>
               </p>
             </details>
           </div>
@@ -181,7 +181,7 @@
               <%= t("tournaments.wizard_steps_v2.step2_help_body_html").html_safe %>
             </p>
             <p class="step-docs-link mt-2">
-              <%= mkdocs_link('managers/tournament-management', anchor: 'seeding-list', text: t('tournaments.docs.walkthrough_link'), options: { class: 'text-blue-600 dark:text-blue-400 underline text-sm' }) %>
+              <%= mkdocs_link('managers/tournament-management', anchor: 'seeding-list', text: t('tournaments.docs.walkthrough_link'), options: { class: 'text-primary-600 dark:text-primary-400 underline text-sm' }) %>
             </p>
           </details>
         </div>
@@ -203,8 +203,8 @@
 
         <%# IMMER anzeigen wenn Seedings vorhanden sind (egal ob ClubCloud oder manuell) %>
         <% if total_seedings > 0 %>
-          <div class="mt-3 p-3 bg-gradient-to-r from-blue-50 to-green-50 dark:from-blue-900/20 dark:to-green-900/20 border-2 border-blue-300 dark:border-blue-600 rounded-lg shadow-sm">
-            <p class="text-sm font-semibold text-blue-900 dark:text-blue-200 mb-2">
+          <div class="mt-3 p-3 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm">
+            <p class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-2">
               <%= t("tournaments.wizard_steps_v2.step2_players_available_html", count: total_seedings).html_safe %>
             </p>
             <p class="text-xs text-gray-700 dark:text-gray-300 mb-3">
@@ -240,43 +240,38 @@
   <!-- Schritt 3: Teilnehmerliste bearbeiten (vor Ort!) -->
   <%= render 'wizard_step',
       number: tournament.organizer.is_a?(Region) ? 3 : 2,
-      title: "Teilnehmerliste bearbeiten (am Turniertag)",
+      title: t("tournaments.wizard_steps_v2.step3_title"),
       status: wizard_step_status(tournament, 3),
       action: {
-        text: 'Teilnehmer prüfen',
+        text: t("tournaments.wizard_steps_v2.step3_action_text"),
         path: define_participants_tournament_path(tournament),
         method: :get
       },
       info: seedings_info_text(tournament),
-      warning: wizard_step_status(tournament, 3) == :active ? "Dieser Schritt bleibt offen bis zur endgültigen Festschreibung in Schritt 4" : false,
+      warning: wizard_step_status(tournament, 3) == :active ? t("tournaments.wizard_steps_v2.step3_warning") : false,
       danger: false,
-      help: "Passen Sie die <strong>Teilnehmerliste</strong> direkt am Turniertag an:<br>
-             • ☑️ Checkboxen: Teilnehmer aktivieren/deaktivieren (No-Shows)<br>
-             #{tournament.handicap_tournier? ? '• 🎯 <strong>Vorgaben korrigieren</strong> falls nötig (Punktzahlen)<br>' : ''}
-             • ✏️ Änderungen werden sofort gespeichert<br>
-             • ➕ Kurzfristige Nachmeldungen: Spieler aus Meldeliste aktivieren<br><br>
-             <strong>Wichtig:</strong> Dieser Schritt bleibt aktiv bis Sie in Schritt 4 die Liste finalisieren!<br><br>
-             <strong>Für Tests:</strong> #{link_to '📝 Direkt zur Teilnehmerliste (für manuelle Eingabe)', define_participants_tournament_path(tournament), class: 'text-blue-600 dark:text-blue-400 underline'}",
+      help: t("tournaments.wizard_steps_v2.step3_help_html",
+              handicap_line: tournament.handicap_tournier? ? t("tournaments.wizard_steps_v2.step3_help_handicap_line_html") : "",
+              test_link: link_to(t("tournaments.wizard_steps_v2.step3_help_test_link_text"), define_participants_tournament_path(tournament), class: 'text-primary-600 dark:text-primary-400 underline')),
       docs_path: 'managers/tournament-management',
       docs_anchor: 'participants' %>
 
   <!-- Schritt 4: Teilnehmerliste finalisieren -->
   <%= render 'wizard_step',
       number: tournament.organizer.is_a?(Region) ? 4 : 3,
-      title: "Teilnehmerliste finalisieren",
+      title: t("tournaments.wizard_steps_v2.step4_title"),
       status: wizard_step_status(tournament, 4),
       action: {
-        text: 'Teilnehmerliste abschließen',
+        text: t("tournaments.wizard_steps_v2.step4_action_text"),
         path: finish_seeding_tournament_path(tournament),
         method: :post,
-        confirm: "⚠️ ACHTUNG: Nach diesem Schritt können keine Spieler mehr hinzugefügt oder entfernt werden!\n\nIst die Teilnehmerliste vollständig und korrekt?",
+        confirm: t("tournaments.wizard_steps_v2.step4_confirm"),
         class: wizard_step_status(tournament, 4) != :active ? 'opacity-25' : ''
       },
       info: nil,
       warning: false,
       danger: true,
-      help: "⚠️ WICHTIG: Diese Aktion ist nicht umkehrbar! Die finale <strong>Teilnehmerliste</strong>
-             wird fest gespeichert und die Gruppeneinteilung wird basierend auf dieser Reihenfolge berechnet.",
+      help: t("tournaments.wizard_steps_v2.step4_help_html"),
       docs_path: 'managers/tournament-management',
       docs_anchor: 'participants' %>
 
@@ -286,7 +281,7 @@
       title: I18n.t("tournaments.show.finalize_tournament_modus", default: "Turniermodus wählen"),
       status: wizard_step_status(tournament, 5),
       action: {
-        text: 'Modus auswählen',
+        text: t("tournaments.wizard_steps_v2.step5_action_text"),
         path: finalize_modus_tournament_path(tournament),
         method: :get,
         class: wizard_step_status(tournament, 5) != :active ? 'opacity-25' : ''
@@ -294,8 +289,7 @@
       info: mode_info_text(tournament),
       warning: false,
       danger: false,
-      help: "Wählen Sie den Turniermodus (z.B. T07, T10) basierend auf der Anzahl der Teilnehmer.
-             Der Modus bestimmt Gruppenaufteilung und K.O.-Runden.",
+      help: t("tournaments.wizard_steps_v2.step5_help"),
       docs_path: 'managers/tournament-management',
       docs_anchor: 'mode-selection' %>
 
@@ -307,35 +301,31 @@
       </div>
       <div class="wizard-step-content">
         <div class="wizard-step-number-title">
-          <h4 class="step-title">Verwaltung der Turnierspiele</h4>
+          <h4 class="step-title"><%= t("tournaments.wizard_steps_v2.step6_title") %></h4>
           <% if tournament.tournament_started %>
-            <span class="status-badge badge-success">Läuft</span>
+            <span class="status-badge badge-success"><%= t("tournaments.wizard_steps_v2.step6_running_badge") %></span>
           <% end %>
         </div>
 
         <% if wizard_step_status(tournament, 6) == :active && !tournament.tournament_started %>
           <div class="step-warning">
             <span class="warning-icon">⚠️</span>
-            Turnier noch nicht gestartet
+            <%= t("tournaments.wizard_steps_v2.step6_warning") %>
           </div>
         <% end %>
 
         <div class="step-help">
           <details<%= " open" if wizard_step_status(tournament, 6) == :active %>>
-            <summary>💡 Was macht dieser Schritt?</summary>
+            <summary><%= t('tournaments.wizard_step.help_summary') %></summary>
             <p>
               <% if tournament.tournament_started %>
-                Das Turnier läuft bereits. Verwenden Sie den <strong>Tournament Monitor</strong> um:
-                <br>• Spiele zu starten und zu verwalten
-                <br>• Tische zuzuordnen
-                <br>• Ergebnisse zu kontrollieren
-                <br>• Den Turnierverlauf zu überwachen
+                <%= t("tournaments.wizard_steps_v2.step6_help_running_html").html_safe %>
               <% else %>
-                Startet das Turnier und öffnet den Tournament-Monitor für die Verwaltung der Spiele und Tischzuordnungen.
+                <%= t("tournaments.wizard_steps_v2.step6_help_pending") %>
               <% end %>
             </p>
             <p class="step-docs-link mt-2">
-              <%= mkdocs_link('managers/tournament-management', anchor: 'start-parameters', text: t('tournaments.docs.walkthrough_link'), options: { class: 'text-blue-600 dark:text-blue-400 underline text-sm' }) %>
+              <%= mkdocs_link('managers/tournament-management', anchor: 'start-parameters', text: t('tournaments.docs.walkthrough_link'), options: { class: 'text-primary-600 dark:text-primary-400 underline text-sm' }) %>
             </p>
           </details>
         </div>
@@ -345,23 +335,23 @@
     <div class="wizard-step-actions">
       <% if tournament.tournament_started && tournament.tournament_monitor.present? %>
         <!-- Prominenter Button wenn Turnier läuft -->
-        <%= link_to '🎮 Tournament Monitor öffnen',
+        <%= link_to t("tournaments.wizard_steps_v2.step6_open_monitor"),
             tournament_monitor_path(tournament.tournament_monitor),
             class: 'btn btn-success btn-lg',
             style: 'font-weight: bold;' %>
       <% elsif wizard_step_status(tournament, 6) == :active %>
         <!-- Button zum Starten wenn noch nicht gestartet -->
-        <%= link_to 'Turnier starten',
+        <%= link_to t("tournaments.wizard_steps_v2.step6_start_tournament"),
             tournament_monitor_tournament_path(tournament),
             class: 'btn btn-primary btn-pulse' %>
       <% elsif wizard_step_status(tournament, 6) == :completed %>
         <!-- Button auch wenn Schritt abgeschlossen (falls Turnier zurückgesetzt wurde) -->
-        <%= link_to 'Turnier starten',
+        <%= link_to t("tournaments.wizard_steps_v2.step6_start_tournament"),
             tournament_monitor_tournament_path(tournament),
             class: 'btn btn-secondary btn-sm' %>
       <% else %>
         <span class="disabled-text">
-          Erst verfügbar nach vorherigem Schritt
+          <%= t('tournaments.wizard_step.pending_hint') %>
         </span>
       <% end %>
     </div>
@@ -370,9 +360,9 @@
 </div>
 
 <!-- Hilfe-Box -->
-<div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg p-4 mb-6">
-  <h4 class="font-semibold text-blue-900 dark:text-blue-200 mb-2"><%= t("tournaments.wizard_steps_v2.glossary_heading") %></h4>
-  <dl class="text-sm text-blue-800 dark:text-blue-200 space-y-2">
+<div class="bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg p-4 mb-6">
+  <h4 class="font-semibold text-gray-900 dark:text-gray-100 mb-2"><%= t("tournaments.wizard_steps_v2.glossary_heading") %></h4>
+  <dl class="text-sm text-gray-700 dark:text-gray-300 space-y-2">
     <dt class="font-semibold"><%= t("tournaments.wizard_steps_v2.glossary_meldeliste_term") %></dt>
     <dd class="ml-4"><%= t("tournaments.wizard_steps_v2.glossary_meldeliste_desc_html").html_safe %></dd>
 

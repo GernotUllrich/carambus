@@ -625,6 +625,25 @@ de:
     updated_at: updated at
   something_went_wrong: Da ist was schief gegangen
   sort_by: 'Sortiere nach:'
+  spielleiter_chat:
+    title: Sportwart-Assistent
+    as_pdf: Als PDF
+    new_conversation: Neues Gespräch
+    input_placeholder: Nachricht eingeben...
+    send: Senden
+    empty_hint: "Stelle eine Frage — z.B. „Welche Turniere sind aktuell offen?“"
+    errors:
+      processing: Fehler beim Verarbeiten der Anfrage. Bitte erneut versuchen.
+      not_available: Der Carambus-Assistent steht auf diesem Server nicht zur Verfügung.
+    welcome:
+      greeting: "Willkommen zurück, %{name}!"
+      landessportwart: Du bist Landessportwart.
+      sportwart_with_locations: "Du bist Sportwart für: %{locations}."
+      sportwart: Du bist als Sportwart eingetragen.
+      turnierleiter: Du bist als Turnierleiter eingetragen.
+      club_admin: Du bist Vereins-Administrator.
+      region_season: "(%{region}, Saison %{season})"
+      help: Wie kann ich dir helfen?
   static:
     about:
       content: |
@@ -1130,6 +1149,12 @@ de:
         tournament_seeding_finished: Setzliste finalisiert
         tournament_started: Turnier läuft
         tournament_started_waiting_for_monitors: Wartet auf Tische
+      info:
+        mode_extracted: "%{count} Teilnehmer → %{info}"
+        mode_selected: "Gewählt: %{plan_name}"
+        participants:
+          one: "%{count} Spieler"
+          other: "%{count} Spieler"
       sync_info:
         never: Noch nicht synchronisiert
         overdue: "⚠️ Zuletzt: %{time} her (vor Meldeschluss)"
@@ -1182,6 +1207,25 @@ de:
       step2_title: Setzliste aus Einladung übernehmen
       step2_upload_invitation: Einladung hochladen
       step2_upload_prompt: Laden Sie die PDF-Einladung oder Screenshot hoch
+      step3_action_text: Teilnehmer prüfen
+      step3_help_handicap_line_html: "• 🎯 <strong>Vorgaben korrigieren</strong> falls nötig (Punktzahlen)<br>"
+      step3_help_html: "Passen Sie die <strong>Teilnehmerliste</strong> direkt am Turniertag an:<br>• ☑️ Checkboxen: Teilnehmer aktivieren/deaktivieren (No-Shows)<br>%{handicap_line}• ✏️ Änderungen werden sofort gespeichert<br>• ➕ Kurzfristige Nachmeldungen: Spieler aus Meldeliste aktivieren<br><br><strong>Wichtig:</strong> Dieser Schritt bleibt aktiv bis Sie in Schritt 4 die Liste finalisieren!<br><br><strong>Für Tests:</strong> %{test_link}"
+      step3_help_test_link_text: "📝 Direkt zur Teilnehmerliste (für manuelle Eingabe)"
+      step3_title: Teilnehmerliste bearbeiten (am Turniertag)
+      step3_warning: Dieser Schritt bleibt offen bis zur endgültigen Festschreibung in Schritt 4
+      step4_action_text: Teilnehmerliste abschließen
+      step4_confirm: "⚠️ ACHTUNG: Nach diesem Schritt können keine Spieler mehr hinzugefügt oder entfernt werden!\n\nIst die Teilnehmerliste vollständig und korrekt?"
+      step4_help_html: "⚠️ WICHTIG: Diese Aktion ist nicht umkehrbar! Die finale <strong>Teilnehmerliste</strong> wird fest gespeichert und die Gruppeneinteilung wird basierend auf dieser Reihenfolge berechnet."
+      step4_title: Teilnehmerliste finalisieren
+      step5_action_text: Modus auswählen
+      step5_help: Wählen Sie den Turniermodus (z.B. T07, T10) basierend auf der Anzahl der Teilnehmer. Der Modus bestimmt Gruppenaufteilung und K.O.-Runden.
+      step6_help_pending: Startet das Turnier und öffnet den Tournament-Monitor für die Verwaltung der Spiele und Tischzuordnungen.
+      step6_help_running_html: "Das Turnier läuft bereits. Verwenden Sie den <strong>Tournament Monitor</strong> um:<br>• Spiele zu starten und zu verwalten<br>• Tische zuzuordnen<br>• Ergebnisse zu kontrollieren<br>• Den Turnierverlauf zu überwachen"
+      step6_open_monitor: "🎮 Tournament Monitor öffnen"
+      step6_running_badge: Läuft
+      step6_start_tournament: Turnier starten
+      step6_title: Verwaltung der Turnierspiele
+      step6_warning: Turnier noch nicht gestartet
     compare_seedings:
       alt_clubcloud_body_html: "Falls keine Einladung vorliegt, können Sie mit der <strong>Meldeliste von ClubCloud</strong> direkt zu Schritt 3 (Teilnehmerliste bearbeiten) weitermachen."
       alt_clubcloud_heading: "📊 Alternative: Mit ClubCloud-Meldeliste weitermachen"

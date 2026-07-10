@@ -138,17 +138,17 @@ class StaticController < ApplicationController
 
   def terms
     # Redirect to docs_page for terms documentation (liegt unter docs/reference/)
-    redirect_to docs_page_path(path: 'reference/terms', locale: I18n.locale.to_s)
+    redirect_to docs_page_with_locale_path(locale: I18n.locale.to_s, path: 'reference/terms')
   end
 
   def privacy
     # Redirect to docs_page for privacy documentation (liegt unter docs/reference/)
-    redirect_to docs_page_path(path: 'reference/privacy', locale: I18n.locale.to_s)
+    redirect_to docs_page_with_locale_path(locale: I18n.locale.to_s, path: 'reference/privacy')
   end
 
   def database_syncing
     # Redirect to docs_page for database syncing documentation
-    redirect_to docs_page_path(path: 'database_syncing', locale: I18n.locale.to_s)
+    redirect_to docs_page_with_locale_path(locale: I18n.locale.to_s, path: 'database_syncing')
   end
 
   # Neue Methode: Einzelne MkDocs-Dokumente in das Carambus-Layout integrieren

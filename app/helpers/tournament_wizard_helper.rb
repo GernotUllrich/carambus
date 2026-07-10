@@ -166,21 +166,21 @@ module TournamentWizardHelper
   # Spieleranzahl-Info
   def seedings_info_text(tournament)
     active_count = participant_count(tournament)
-    "#{active_count} Spieler"
+    t("tournaments.wizard.info.participants", count: active_count)
   end
 
   # Turniermodus-Info
   def mode_info_text(tournament)
     if tournament.tournament_plan
-      "Gewählt: #{tournament.tournament_plan.name}"
+      t("tournaments.wizard.info.mode_selected", plan_name: tournament.tournament_plan.name)
     elsif tournament.data["extracted_plan_info"].present?
       # Zeige extrahierte Plan-Info aus Einladung (z.B. "T21 - 3 Gruppen à 3, 4 und 4 Spieler")
       count = participant_count(tournament)
       info = tournament.data["extracted_plan_info"]
-      "#{count} Teilnehmer → #{info}"
+      t("tournaments.wizard.info.mode_extracted", count: count, info: info)
     else
       count = participant_count(tournament)
-      "#{count} Spieler"
+      t("tournaments.wizard.info.participants", count: count)
     end
   end
 

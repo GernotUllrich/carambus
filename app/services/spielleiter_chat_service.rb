@@ -182,10 +182,22 @@ class SpielleiterChatService
   end
 
   def system_prompt
+    english = I18n.locale.to_s == "en"
+    # Sprachdirektive locale-gesteuert und BEWUSST dominant: die restlichen Instruktionen sind
+    # deutsch; eine einzelne beiläufige Zeile setzt sich dagegen nicht durch (das Modell antwortete
+    # sonst deutsch, bis der Nutzer explizit „auf Englisch" verlangte). Daher unter EN auf Englisch
+    # formuliert und mit einer Schluss-Erinnerung am Prompt-Ende verstärkt.
+    language_directive = if english
+      "CRITICAL LANGUAGE RULE: Write EVERY reply to the user in English only — even though the rest " \
+        "of these instructions are in German and prior messages may be in German. Keep replies short " \
+        "and factual. "
+    else
+      "Antworte dem Sportwart AUSSCHLIESSLICH auf Deutsch, kurz und sachlich. "
+    end
     base = "Du bist der Carambus-Assistent. " \
       "Du hilfst bei ClubCloud-Admin-Aufgaben: Turnierverwaltung, Melde- und Teilnehmerlisten. " \
       "Nutze die verfügbaren Tools für alle CC-Operationen. " \
-      "Antworte auf Deutsch, kurz und sachlich. " \
+      "#{language_directive}" \
       "Sei entscheidungsfreudig: Wenn eine Anfrage eindeutig ist, handle direkt — " \
       "zeige kein Menü mit Optionen, stelle keine Rückfragen wenn der Kontext klar ist. " \
       "Beispiel: 'zeige die Meldeliste des Cadre-Turniers' → Tool aufrufen, Ergebnis zeigen. " \
@@ -376,6 +388,10 @@ class SpielleiterChatService
         "an (auch nicht bei 'was kann ich fragen?') und führe sie NICHT aus; Turnierverwaltung läuft auf den " \
         "Vereins-/Local-Servern. Liste bei einer Capability-Frage NUR Lese-/Auskunfts-Funktionen."
     end
+
+    # Sprach-Erinnerung ans Prompt-ENDE (hohe Salienz) — nur unter EN, damit die englische Ausgabe
+    # gegen den durchgehend deutschen Prompt-Kontext gewinnt.
+    base += " REMINDER: Your reply to the user MUST be written in English." if english
     base
   end
 end

@@ -21,7 +21,7 @@
       <%- if user_signed_in? && local_server? %>
         <li class="mb-2">
           <%= link_to spielleiter_chat_path,
-                class: "flex items-center p-2 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-700 dark:hover:text-blue-300 rounded font-medium border border-blue-200 dark:border-blue-700" do %>
+                class: "flex items-center p-2 text-primary-600 dark:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 hover:text-primary-700 dark:hover:text-primary-300 rounded font-medium border border-primary-200 dark:border-primary-700" do %>
             <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mr-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.76c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.076-4.076a1.526 1.526 0 011.037-.443 48.282 48.282 0 005.68-.494c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z"/>
             </svg>
@@ -192,8 +192,8 @@
         </button>
         <ul class="pl-4 hidden list-none" data-sidebar-target="submenu">
           <li><%= link_to I18n.t("home.index.intro", :default => "Einführung"), intro_path, class: 'block p-2 text-gray-700 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white rounded' %></li>
-          <li><%= link_to I18n.t("home.index.tournierplanung", :default => "Turnier Management"), docs_page_path(path: 'managers/tournament-management', locale: I18n.locale.to_s), target: '_blank', class: 'block p-2 text-gray-700 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white rounded' %></li>
-          <li><%= link_to I18n.t("home.index.matchday_monitoring", :default => "Matchday Monitoring"), docs_page_path(path: 'managers/league-management', locale: I18n.locale.to_s), target: '_blank', class: 'block p-2 text-gray-700 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white rounded' %></li>
+          <li><%= link_to I18n.t("home.index.tournierplanung", :default => "Turnier Management"), docs_page_with_locale_path(locale: I18n.locale.to_s, path: 'managers/tournament-management'), target: '_blank', class: 'block p-2 text-gray-700 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white rounded' %></li>
+          <li><%= link_to I18n.t("home.index.matchday_monitoring", :default => "Matchday Monitoring"), docs_page_with_locale_path(locale: I18n.locale.to_s, path: 'managers/league-management'), target: '_blank', class: 'block p-2 text-gray-700 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white rounded' %></li>
           <li><%= link_to I18n.t("home.index.about", :default => "Über den Entwickler"), about_path, class: 'block p-2 text-gray-700 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white rounded' %></li>
           <li><%= link_to I18n.t("home.index.search", :default => "Das Suchen in Tabellen"), search_path, class: 'block p-2 text-gray-700 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white rounded' %></li>
           <li><%= link_to I18n.t("home.index.version", :default => "Versionen"), repo_version_path, class: 'block p-2 text-gray-700 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white rounded' %></li>

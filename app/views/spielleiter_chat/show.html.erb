@@ -6,13 +6,13 @@
     transition: background-color 0.12s;
   }
   #chat-messages .prose tbody tr.tournament-row:hover {
-    background-color: rgba(59, 130, 246, 0.08);
+    background-color: rgba(15, 95, 86, 0.08);
   }
   #chat-messages .prose tbody tr.tournament-row td:first-child::after {
     content: " →";
     opacity: 0;
     transition: opacity 0.12s;
-    color: #2563eb;
+    color: #0f5f56;
     font-size: 0.75em;
   }
   #chat-messages .prose tbody tr.tournament-row:hover td:first-child::after {
@@ -47,7 +47,7 @@
     /* User-Bubble */
     #chat-messages .justify-end > div,
     #chat-messages .justify-end > div * {
-      background-color: #2563eb !important;
+      background-color: #0f5f56 !important;
       color: #ffffff !important;
     }
 
@@ -59,13 +59,13 @@
 <div class="max-w-3xl mx-auto px-4 py-8">
   <div id="chat-header" class="flex items-center justify-between mb-6">
     <h1 class="text-2xl font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
-      <%= inline_svg_tag 'icons/chat-bubble-dots.svg', class: 'w-7 h-7 text-blue-600' %>
-      Sportwart-Assistent
+      <%= inline_svg_tag 'icons/chat-bubble-dots.svg', class: 'w-7 h-7 text-primary-600' %>
+      <%= t("spielleiter_chat.title") %>
     </h1>
     <div class="flex items-center gap-3">
-      <%= link_to "Als PDF", print_spielleiter_chat_path, target: "_blank",
-            class: "text-sm text-gray-500 hover:text-blue-600 transition-colors" %>
-      <%= button_to "Neues Gespräch", spielleiter_chat_path, method: :delete,
+      <%= link_to t("spielleiter_chat.as_pdf"), print_spielleiter_chat_path, target: "_blank",
+            class: "text-sm text-gray-500 hover:text-primary-600 transition-colors" %>
+      <%= button_to t("spielleiter_chat.new_conversation"), spielleiter_chat_path, method: :delete,
             class: "text-sm text-gray-500 hover:text-red-600 transition-colors" %>
     </div>
   </div>
@@ -76,7 +76,7 @@
       <%= render 'message', message: {role: "assistant", content: @welcome_message} %>
     <% elsif @messages.empty? %>
       <p class="text-gray-400 text-center py-12">
-        Stelle eine Frage — z.B. „Welche Turniere sind aktuell offen?"
+        <%= t("spielleiter_chat.empty_hint") %>
       </p>
     <% end %>
     <% @messages.each do |msg| %>
@@ -89,12 +89,12 @@
     <%= form_with url: spielleiter_chat_path, method: :post, data: {turbo: false} do |f| %>
       <div class="flex gap-2">
         <%= f.text_field :message,
-              placeholder: "Nachricht eingeben...",
+              placeholder: t("spielleiter_chat.input_placeholder"),
               autocomplete: "off",
               id: "chat-input",
-              class: "flex-1 rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100" %>
-        <%= f.submit "Senden",
-              class: "px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors" %>
+              class: "flex-1 rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 dark:bg-gray-700 dark:text-gray-100" %>
+        <%= f.submit t("spielleiter_chat.send"),
+              class: "px-4 py-2 bg-primary-600 text-white text-sm rounded-lg hover:bg-primary-700 transition-colors" %>
       </div>
     <% end %>
 

@@ -105,7 +105,7 @@ class PagesController < ApplicationController
   # pages-CMS ausgemustert (2026-07): öffentliche Read-Seiten auf die mkdocs-Dokumentation umleiten.
   # Model/Daten/authentifizierte CRUD bleiben erhalten (reversibel).
   def redirect_to_mkdocs
-    redirect_to docs_page_path(path: "index", locale: I18n.locale.to_s),
+    redirect_to docs_page_with_locale_path(locale: I18n.locale.to_s, path: "index"),
                 notice: I18n.t("pages.deprecated_redirect", default: "Die Dokumentation ist auf die neue Doku umgezogen.")
   end
 

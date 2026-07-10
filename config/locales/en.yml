@@ -599,6 +599,25 @@ en:
     updated_at: updated at
   something_went_wrong: Something went wrong
   sort_by: 'Sort by:'
+  spielleiter_chat:
+    title: Tournament Director Assistant
+    as_pdf: As PDF
+    new_conversation: New conversation
+    input_placeholder: Enter message...
+    send: Send
+    empty_hint: "Ask a question — e.g. \"Which tournaments are currently open?\""
+    errors:
+      processing: Error processing the request. Please try again.
+      not_available: The Carambus Assistant is not available on this server.
+    welcome:
+      greeting: "Welcome back, %{name}!"
+      landessportwart: You are a regional sports official.
+      sportwart_with_locations: "You are sports official for: %{locations}."
+      sportwart: You are registered as a sports official.
+      turnierleiter: You are registered as a tournament director.
+      club_admin: You are a club administrator.
+      region_season: "(%{region}, season %{season})"
+      help: How can I help you?
   static:
     about:
       content: |
@@ -1090,6 +1109,12 @@ en:
         tournament_seeding_finished: Seeding finalized
         tournament_started: Tournament running
         tournament_started_waiting_for_monitors: Waiting for tables
+      info:
+        mode_extracted: "%{count} participants → %{info}"
+        mode_selected: "Selected: %{plan_name}"
+        participants:
+          one: "%{count} player"
+          other: "%{count} players"
       sync_info:
         never: Not synced yet
         overdue: "⚠️ Last: %{time} ago (before registration deadline)"
@@ -1142,6 +1167,25 @@ en:
       step2_title: Import seeding from invitation
       step2_upload_invitation: Upload invitation
       step2_upload_prompt: Upload the PDF invitation or a screenshot
+      step3_action_text: Check participants
+      step3_help_handicap_line_html: "• 🎯 <strong>Adjust handicaps</strong> if needed (point targets)<br>"
+      step3_help_html: "Adjust the <strong>participant list</strong> directly on the day of the tournament:<br>• ☑️ Checkboxes: activate/deactivate participants (no-shows)<br>%{handicap_line}• ✏️ Changes are saved immediately<br>• ➕ Late registrations: activate players from the registration list<br><br><strong>Important:</strong> This step stays active until you finalize the list in step 4!<br><br><strong>For testing:</strong> %{test_link}"
+      step3_help_test_link_text: "📝 Go directly to the participant list (for manual entry)"
+      step3_title: Edit participant list (on tournament day)
+      step3_warning: This step stays open until it is finalized in step 4
+      step4_action_text: Finalize participant list
+      step4_confirm: "⚠️ WARNING: After this step, no more players can be added or removed!\n\nIs the participant list complete and correct?"
+      step4_help_html: "⚠️ IMPORTANT: This action cannot be undone! The final <strong>participant list</strong> is saved permanently and the group assignment is calculated based on this order."
+      step4_title: Finalize participant list
+      step5_action_text: Select mode
+      step5_help: Select the tournament mode (e.g. T07, T10) based on the number of participants. The mode determines the group assignment and knockout rounds.
+      step6_help_pending: Starts the tournament and opens the Tournament Monitor for managing games and table assignments.
+      step6_help_running_html: "The tournament is already running. Use the <strong>Tournament Monitor</strong> to:<br>• Start and manage games<br>• Assign tables<br>• Check results<br>• Monitor tournament progress"
+      step6_open_monitor: "🎮 Open Tournament Monitor"
+      step6_running_badge: Running
+      step6_start_tournament: Start tournament
+      step6_title: Manage tournament games
+      step6_warning: Tournament not started yet
     compare_seedings:
       alt_clubcloud_body_html: "If no invitation is available, you can proceed with the <strong>ClubCloud registration list</strong> directly to step 3 (edit participants list)."
       alt_clubcloud_heading: "📊 Alternative: Continue with ClubCloud registration list"
@@ -1299,7 +1343,7 @@ en:
       extracted_mode_label: "Extracted tournament mode:"
       file_label: "File:"
       final_tournament_mode: 'Final Tournament Mode:'
-      finalize_tournament_modus: Finalize Tournament Modus
+      finalize_tournament_modus: Finalize tournament mode
       finish_seeding: Finish Seeding List (no easy return)
       games: Games
       handicap_short: Handicap

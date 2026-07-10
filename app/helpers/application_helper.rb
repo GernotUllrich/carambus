@@ -162,14 +162,6 @@ module ApplicationHelper
     markdown.render(text).html_safe
   end
 
-  # Helper method for creating links to documentation pages
-  def docs_page_link(path, locale: nil, text: nil, options: {})
-    text ||= path.humanize
-    locale ||= I18n.locale.to_s
-    
-    link_to text, docs_page_path(path: path, locale: locale), options
-  end
-
   def custom_link_to(*args, &block)
     begin
       options = block_given? ? args[1] : args[2]
@@ -206,7 +198,7 @@ module ApplicationHelper
     locale ||= I18n.locale.to_s
     text ||= path.split('/').last.humanize
     
-    link_to text, docs_page_path(path: path, locale: locale), options
+    link_to text, docs_page_with_locale_path(locale: locale, path: path), options
   end
 
   # Hilfsmethode für lokale MkDocs-Links.

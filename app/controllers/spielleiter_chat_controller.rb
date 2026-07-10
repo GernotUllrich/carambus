@@ -6,6 +6,7 @@ class SpielleiterChatController < ApplicationController
 
   SESSION_KEY = :spielleiter_chat_messages
   CONTEXT_KEY = :spielleiter_chat_context
+  CONTEXT_REGION_KEY = :spielleiter_chat_context_region
   MAX_HISTORY = 40
 
   def show
@@ -29,7 +30,7 @@ class SpielleiterChatController < ApplicationController
       record_ai_usage(result[:usage_by_model])
     rescue => e
       Rails.logger.error("[SpielleiterChatController] #{e.class}: #{e.message}")
-      flash[:alert] = "Fehler beim Verarbeiten der Anfrage. Bitte erneut versuchen."
+      flash[:alert] = t("spielleiter_chat.errors.processing")
     end
 
     redirect_to spielleiter_chat_path
@@ -43,6 +44,7 @@ class SpielleiterChatController < ApplicationController
   def destroy
     session.delete(SESSION_KEY)
     session.delete(CONTEXT_KEY)
+    session.delete(CONTEXT_REGION_KEY)
     redirect_to spielleiter_chat_path
   end
 
@@ -64,20 +66,29 @@ class SpielleiterChatController < ApplicationController
   # und persönliche Anfragen (Player-Verknüpfung) funktionieren dort ohnehin nicht.
   def require_local_server!
     return if local_server?
-    redirect_to root_path, alert: "Der Carambus-Assistent steht auf diesem Server nicht zur Verfügung."
+    redirect_to root_path, alert: t("spielleiter_chat.errors.not_available")
   end
 
   def get_or_fetch_context
+    region = chat_cc_region
     cached = session[CONTEXT_KEY]
-    return cached.map { |m| deep_symbolize(m) } if cached
+    return cached.map { |m| deep_symbolize(m) } if cached && session[CONTEXT_REGION_KEY] == region
 
-    context = fetch_whoami_context
+    context = fetch_whoami_context(region)
     session[CONTEXT_KEY] = context
+    session[CONTEXT_REGION_KEY] = region
     context
   end
 
-  def fetch_whoami_context
-    server_ctx = {user_id: current_user.id, cc_region: Carambus.config.context.to_s.presence&.upcase}
+  # Die Region, in der der Chat arbeitet: bevorzugt die im Scope-Band gewaehlte Region
+  # (Scopable#current_region_shortname), sonst der Server-Kontext (carambus.yml context).
+  # Region.shortname == CC-Kontext-Code (NBV/BBBV/…), daher direkt als cc_region nutzbar.
+  def chat_cc_region
+    (current_region_shortname.presence || Carambus.config.context.to_s.presence)&.upcase
+  end
+
+  def fetch_whoami_context(region = chat_cc_region)
+    server_ctx = {user_id: current_user.id, cc_region: region}
     result = McpServer::Tools::CcWhoami.call(server_context: server_ctx)
     whoami_text = result.content.first[:text].to_s
     [
@@ -100,20 +111,20 @@ class SpielleiterChatController < ApplicationController
     region = data.dig("region", "shortname")
     season = data["default_season"]
 
-    parts = ["Willkommen zurück, #{name}!"]
+    parts = [t("spielleiter_chat.welcome.greeting", name: name)]
     # D-38: Persona-Zuschreibung ist EXPLIZIT (persona_grants), NICHT aus Join-Präsenz abgeleitet.
     # Ein club_admin mit sportwart_locations-Joins (aber ohne sportwart-Grant) ist KEIN Sportwart.
     if personas.include?("landessportwart")
-      parts << "Du bist Landessportwart."
+      parts << t("spielleiter_chat.welcome.landessportwart")
     elsif personas.include?("sportwart")
-      parts << (locations.any? ? "Du bist Sportwart für: #{locations.join(", ")}." : "Du bist als Sportwart eingetragen.")
+      parts << (locations.any? ? t("spielleiter_chat.welcome.sportwart_with_locations", locations: locations.join(", ")) : t("spielleiter_chat.welcome.sportwart"))
     elsif personas.include?("turnierleiter")
-      parts << "Du bist als Turnierleiter eingetragen."
+      parts << t("spielleiter_chat.welcome.turnierleiter")
     elsif personas.include?("club_admin")
-      parts << "Du bist Vereins-Administrator."
+      parts << t("spielleiter_chat.welcome.club_admin")
     end
-    parts << "(#{region}, Saison #{season})" if region && season
-    parts << "Wie kann ich dir helfen?"
+    parts << t("spielleiter_chat.welcome.region_season", region: region, season: season) if region && season
+    parts << t("spielleiter_chat.welcome.help")
     parts.join(" ")
   end
 

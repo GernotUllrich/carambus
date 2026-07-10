@@ -101,7 +101,7 @@ export default class extends Controller {
     // Update tab styling
     if (mode === 'search') {
       this.searchTabTarget.classList.remove('bg-gray-200', 'dark:bg-gray-600', 'text-gray-700', 'dark:text-gray-200')
-      this.searchTabTarget.classList.add('bg-blue-600', 'text-white')
+      this.searchTabTarget.classList.add('bg-primary-600', 'text-white')
       this.docsTabTarget.classList.add('bg-gray-200', 'dark:bg-gray-600', 'text-gray-700', 'dark:text-gray-200')
       this.docsTabTarget.classList.remove('bg-purple-600', 'text-white')
       
@@ -114,7 +114,7 @@ export default class extends Controller {
       this.docsTabTarget.classList.remove('bg-gray-200', 'dark:bg-gray-600', 'text-gray-700', 'dark:text-gray-200')
       this.docsTabTarget.classList.add('bg-purple-600', 'text-white')
       this.searchTabTarget.classList.add('bg-gray-200', 'dark:bg-gray-600', 'text-gray-700', 'dark:text-gray-200')
-      this.searchTabTarget.classList.remove('bg-blue-600', 'text-white')
+      this.searchTabTarget.classList.remove('bg-primary-600', 'text-white')
       
       // Update label and placeholder from data attributes (i18n)
       this.labelTarget.textContent = this.labelTarget.dataset.docsText
