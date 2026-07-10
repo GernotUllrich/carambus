@@ -64,6 +64,7 @@ module McpServer
       SetPartyLineup
       StartPartyDay
       OpenPartyInApp
+      CloneTournament
     ].freeze
 
     # Self-Service-Tools (Phase 35-01) — fuer JEDEN authentifizierten User; self-scoped
