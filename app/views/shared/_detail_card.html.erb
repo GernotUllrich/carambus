@@ -9,10 +9,12 @@
       only:/except: (Spaltenauswahl, an scaffold_show_attributes durchgereicht)
       details      (optionaler HTML-Block: Zusatz-Sektion unter der Card)
     Token-Utilities only, kein Hex; Dark-Mode. %>
-<% index_path  ||= polymorphic_path(record.class) %>
-<% index_label ||= record.model_name.human.pluralize %>
-<% title       ||= (record.try(:name).presence || record.try(:title).presence || "#{record.model_name.human} ##{record.id}") %>
-<% edit_path   ||= (edit_polymorphic_path(record) rescue nil) %>
+<%# STI-Subklassen (z.B. Branch < Discipline) haben keine eigene Route -> ueber die base_class routen. %>
+<% base_class  = record.class.base_class %>
+<% index_path  ||= polymorphic_path(base_class) %>
+<% index_label ||= base_class.model_name.human.pluralize %>
+<% title       ||= (record.try(:name).presence || record.try(:title).presence || record.try(:shortname).presence || record.try(:display_name).presence || "#{record.model_name.human} ##{record.id}") %>
+<% edit_path   ||= (edit_polymorphic_path(record.becomes(base_class)) rescue nil) %>
 
 <div class="container mx-auto my-8 px-4">
   <div class="max-w-3xl mx-auto">
@@ -22,7 +24,7 @@
         <span class="text-gray-400 dark:text-gray-500">&gt;</span>
         <%= title %>
       </h1>
-      <% if edit_path %>
+      <% if edit_path && scaffold_editable_here?(record) %>
         <%= button_to t('edit', default: 'Edit'), edit_path, method: :get,
               disabled: !current_user&.admin?, class: "btn btn-link shrink-0" %>
       <% end %>
@@ -30,6 +32,7 @@
 
     <dl class="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-4 bg-surface-card dark:bg-gray-800 rounded-card border border-gray-200 dark:border-gray-700 p-6 text-gray-900 dark:text-gray-100">
       <% scaffold_show_attributes(record, only: local_assigns[:only], except: local_assigns[:except]).each do |attr| %>
+        <% next if scaffold_attribute_blank?(record, attr) %>
         <div class="min-w-0">
           <dt class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5">
             <%= scaffold_attribute_label(record, attr) %>

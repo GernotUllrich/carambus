@@ -5,9 +5,12 @@
 # generische Detail-Card (shared/_detail_card). Read-only, defensiv.
 module ScaffoldHelper
   # Technische Spalten, die in der generischen Detail-Card standardmaessig NICHT gezeigt werden.
-  # Bewusst NICHT dabei: source_url (haelt oft den ClubCloud-Link -> als Link zeigen).
+  # Bewusst NICHT dabei:
+  # - source_url (haelt oft den ClubCloud-Link -> als Link zeigen).
+  # - sync_date: wichtige Aktualitaets-Info fuer gescrapte Daten (Turnierleiter sieht fehlende
+  #   Aktualitaet). Bei nicht-gescrapten/lokalen Records ist es nil -> via H1 ohnehin ausgeblendet.
   SCAFFOLD_HIDDEN_COLUMNS = %w[
-    id created_at updated_at global_context source_id sync_date lock_version
+    id created_at updated_at global_context source_id lock_version
   ].freeze
 
   # Geordnete Liste anzuzeigender Spaltennamen. only: ersetzt die Default-Liste, except: entfernt
@@ -65,14 +68,22 @@ module ScaffoldHelper
       assoc = record.public_send(reflection.name) rescue nil
       return scaffold_blank if assoc.nil?
       label = scaffold_assoc_label(assoc)
-      # custom_link_to gibt bei nicht-routbaren Zielen (z.B. STI-Subklassen ohne eigene Route,
-      # etwa discipline -> Branch) im Rescue kein <a> zurueck -> auf reinen Label-Text zurueckfallen
-      # statt "true" zu rendern.
-      link = custom_link_to(label, assoc, class: "text-primary-600 hover:text-primary-700")
+      # STI-Subklassen (z.B. Branch < Discipline) haben keine eigene Route -> ueber die base_class
+      # routen (Branch -> discipline_path), sonst faellt custom_link_to auf reinen Text zurueck.
+      target = assoc.is_a?(ActiveRecord::Base) ? assoc.becomes(assoc.class.base_class) : assoc
+      link = custom_link_to(label, target, class: "text-primary-600 hover:text-primary-700")
       return link.is_a?(String) ? link : label
     end
 
-    return scaffold_blank if value.nil? || (value.respond_to?(:empty?) && value.empty?)
+    return scaffold_blank if value.nil? || (value.respond_to?(:empty?) && value.empty?) || scaffold_zero_year_string?(value)
+
+    # H38: source_url einheitlich als Host-Link (statt voller URL) — spiegelt die "Quelle"+Host-
+    # Konvention der bespoke Show-Seiten (clubs/tournaments/parties/players) auf allen generischen Cards.
+    if attr.to_s == "source_url" && value.is_a?(String) && value.match?(%r{\Ahttps?://})
+      host = (URI.parse(value).host rescue value)
+      return link_to(host, value, target: "_blank", rel: "noopener",
+                     class: "text-primary-600 hover:text-primary-700 break-all")
+    end
 
     case value
     when true then "✓"
@@ -81,7 +92,9 @@ module ScaffoldHelper
       # serialisierte JSON-Hash-Felder (z.B. `data`) lesbar als eingeruecktes JSON statt roh {"k"=>"v"}
       pretty_json(value)
     when Time, Date, ActiveSupport::TimeWithZone
-      (l(value, format: :short) rescue value.to_s)
+      # H2: nur das Kalenderdatum (TT.MM.JJJJ), ohne Uhrzeit/Zeitzone — to_date normalisiert
+      # Datetime/TimeWithZone auf den Tag in der App-Zeitzone.
+      (l(value.to_date, format: :default) rescue value.to_date.to_s rescue value.to_s)
     when Float
       # Anzeige-Rundung: Durchschnitte/Quoten (z.B. GD) auf max. 3 Nachkommastellen, ohne Float-Rauschen
       value.round(3).to_s
@@ -97,6 +110,33 @@ module ScaffoldHelper
   rescue StandardError => e
     Rails.logger.debug { "scaffold_attribute_value(#{record.class}##{attr}): #{e.message}" }
     scaffold_blank
+  end
+
+  # H1: true, wenn dieses Attribut in der Detail-Card kein anzeigbarer Wert waere (nil-FK / nil /
+  # leer / "0000"-Jahr-Platzhalter). Spiegelt die Blank-Logik von scaffold_attribute_value, damit
+  # _detail_card leere Felder ueberspringen kann. Im Zweifel (Fehler) -> true (ausblenden).
+  def scaffold_attribute_blank?(record, attr)
+    if (reflection = scaffold_belongs_to_for(record, attr))
+      (record.public_send(reflection.name) rescue nil).nil?
+    else
+      value = record.public_send(attr)
+      value.nil? || (value.respond_to?(:empty?) && value.empty?) || scaffold_zero_year_string?(value)
+    end
+  rescue StandardError
+    true
+  end
+
+  # H30: true, wenn dieser Record HIER editierbar ist. Auf der Authority (local_server? == false)
+  # immer true; auf einem Local-Server nur fuer lokale Records (id >= MIN_ID). Globale Records
+  # (id < MIN_ID) sind lokal via LocalProtector nicht editierbar -> Edit-Link ausblenden.
+  # Spiegelt ApplicationRecord#disallow_saving_global_records. Im Zweifel (Fehler) -> true.
+  def scaffold_editable_here?(record)
+    return true unless ApplicationRecord.local_server?
+
+    id = record.try(:id)
+    id.present? && id >= ApplicationRecord::MIN_ID
+  rescue StandardError
+    true
   end
 
   # 09-03: Generisches Formularfeld — ein `.form-group`-Div mit Label + typ-passendem Token-Input.
@@ -158,6 +198,11 @@ module ScaffoldHelper
     content_tag(:span, "—", class: "text-gray-400 dark:text-gray-500")
   end
 
+  # H3: "0000"-Jahr-Platzhalter (z.B. Club#founded als String "0000") wie leer behandeln.
+  def scaffold_zero_year_string?(value)
+    value.is_a?(String) && value.strip.match?(/\A0000\b/)
+  end
+
   # belongs_to-Reflection, deren Fremdschluessel diese Spalte ist (oder nil).
   def scaffold_belongs_to_for(record, attr)
     return nil unless attr.to_s.end_with?("_id")
@@ -167,9 +212,11 @@ module ScaffoldHelper
     end
   end
 
-  # Lesbares Label eines assoziierten Records.
+  # Lesbares Label eines assoziierten Records. shortname zuerst — in dieser Domaene werden
+  # Entitaeten mit Kuerzel (Region „NBV", Club, League) konventionell darueber angezeigt;
+  # Entitaeten ohne shortname (Discipline/Season/TableKind) fallen auf name zurueck.
   def scaffold_assoc_label(obj)
-    obj.try(:name).presence || obj.try(:title).presence ||
-      obj.try(:shortname).presence || obj.to_s
+    obj.try(:shortname).presence || obj.try(:name).presence ||
+      obj.try(:title).presence || obj.to_s
   end
 end

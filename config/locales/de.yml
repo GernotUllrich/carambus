@@ -30,6 +30,9 @@ de:
     trial_ends_at: Probezeitende
     updated_at: aktualisiert
   actions: Aktionen
+  attributes:
+    source_url: Quelle
+    sync_date: Zuletzt aktualisiert
   activerecord:
     models:
       game:
@@ -353,6 +356,7 @@ de:
   location:
     address: Adresse
     club_id: Club
+    clubs: Vereine
     created_at: created at
     data: Daten
     id: ID
@@ -363,6 +367,9 @@ de:
     name: Name
     organizer_id: Organisierung
     organizer_type: Region/Club
+    region_id: Region
+    synonyms: Synonyme
+    tables: Tische
     updated_at: updated at
   may_loose_results: Spielergebnisse können dabei verloren gehen!
   must_be_an_admin: Adminrechte erforderlich.

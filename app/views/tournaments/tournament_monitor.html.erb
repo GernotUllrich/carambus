@@ -36,6 +36,7 @@
       </p>
     </div>
 
+    <% if @tournament.tournament_plan.present? %>
     <div class=" rounded shadow p-8">
       <p><%= @tournament.tournament_plan.rulesystem %></p>
       <p class="mt-4 mb-4"><%= @tournament.tournament_plan.more_description %></p>
@@ -158,5 +159,13 @@
       <% end %>
       <%= render partial: "groups", locals: { tournament_plan: @tournament.tournament_plan, groups: @groups } %>
     </div>
+    <% else %>
+    <div class=" rounded shadow p-8">
+      <p class="text-sm text-gray-700 dark:text-gray-300"><%= t("tournaments.monitor.no_plan_hint", default: "Diesem Turnier ist noch kein Turnierplan zugewiesen. Bitte zuerst den Modus/Turnierplan wählen.") %></p>
+      <div class="mt-4">
+        <%= custom_link_to t('tournaments.monitor.back_to_mode_selection'), finalize_modus_tournament_path(@tournament) %>
+      </div>
+    </div>
+    <% end %>
   </div>
 </div>

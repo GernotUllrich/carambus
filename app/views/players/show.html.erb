@@ -4,54 +4,74 @@
       <div class="min-w-0">
         <h1 class="text-xl font-semibold text-gray-900 dark:text-gray-100 break-words">
           <%= custom_link_to t('player.index.players'), players_path, class: "text-primary-600 hover:text-primary-700" %>
-          <span class="text-gray-400 dark:text-gray-500">&gt;</span> <%= @player.fullname %>
+          <span class="text-gray-400 dark:text-gray-500">&gt;</span> <%= @player.fullname.presence || "Player ##{@player.id}" %>
         </h1>
       </div>
-      <%= button_to('Edit', edit_player_path(@player), method: :get, disabled: !current_user&.admin?, class: "btn btn-link shrink-0") %>
+      <% if scaffold_editable_here?(@player) %>
+        <%= button_to('Edit', edit_player_path(@player), method: :get, disabled: !current_user&.admin?, class: "btn btn-link shrink-0") %>
+      <% end %>
     </div>
 
     <%- club = @player.season_participations.where(season: Season.current_season).first.andand.club %>
-    <%# Detail-Card-Muster (Phase 6): Token-Card + Label/Wert-Grid — Referenz tournaments/_show.html.erb. %>
-    <div class="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-4 bg-surface-card dark:bg-gray-800 rounded-card border border-gray-200 dark:border-gray-700 p-6 text-gray-900 dark:text-gray-100">
-      <div class="min-w-0">
-        <h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5"><%= t('player.club_id') %></h5>
-        <%= custom_link_to club.shortname, club_path(club) if club.present? %>
-      </div>
+    <%# Detail-Card-Muster (Phase 6, 14-07 T1 in-place): Multi-Column-Token-Grid; leere Felder ausgeblendet (H1);
+        Quelle/Aktualität als Fußnoten ans Ende (beide STI-Zweige). %>
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-4 bg-surface-card dark:bg-gray-800 rounded-card border border-gray-200 dark:border-gray-700 p-6 text-gray-900 dark:text-gray-100">
+      <% if club.present? %>
+        <div class="min-w-0">
+          <h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5"><%= t('player.club_id') %></h5>
+          <%= custom_link_to club.shortname, club_path(club) %>
+        </div>
+      <% end %>
       <%- if @player.is_a? Team %>
         <div class="min-w-0">
           <h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5"><%= t('player.fullname') %></h5>
           <%= @player.fullname %>
         </div>
-        <div class="min-w-0">
-          <h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5"><%= t('player.data') %></h5>
-          <%= @player.data.inspect %>
-        </div>
+        <% if @player.data.present? %>
+          <div class="min-w-0 col-span-2 md:col-span-3 lg:col-span-4">
+            <h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5"><%= t('player.data') %></h5>
+            <%= pretty_json(@player.data) %>
+          </div>
+        <% end %>
       <%- else %>
-        <div class="min-w-0">
-          <h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5"><%= t('player.lastname') %></h5>
-          <%= @player.lastname %>
-        </div>
-        <div class="min-w-0">
-          <h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5"><%= t('player.nickname') %></h5>
-          <%= @player.nickname %>
-        </div>
-        <div class="min-w-0">
-          <h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5"><%= t('player.firstname') %></h5>
-          <%= @player.firstname %>
-        </div>
-        <div class="min-w-0">
-          <h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5"><%= t('player.title') %></h5>
-          <%= @player.title %>
-        </div>
-        <div class="min-w-0">
-          <h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5"><%= t('player.source_url') %></h5>
-          <%= link_to_if @player.source_url.present?, @player.source_url.present? ? URI.parse(@player.source_url).host : "", @player.source_url, target: :_blank %>
-        </div>
-        <div class="min-w-0">
-          <h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5"><%= t('player.last_sync') %></h5>
-          <%= @player.sync_date.andand.to_date %>
-        </div>
+        <% if @player.lastname.present? %>
+          <div class="min-w-0">
+            <h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5"><%= t('player.lastname') %></h5>
+            <%= @player.lastname %>
+          </div>
+        <% end %>
+        <% if @player.nickname.present? %>
+          <div class="min-w-0">
+            <h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5"><%= t('player.nickname') %></h5>
+            <%= @player.nickname %>
+          </div>
+        <% end %>
+        <% if @player.firstname.present? %>
+          <div class="min-w-0">
+            <h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5"><%= t('player.firstname') %></h5>
+            <%= @player.firstname %>
+          </div>
+        <% end %>
+        <% if @player.title.present? %>
+          <div class="min-w-0">
+            <h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5"><%= t('player.title') %></h5>
+            <%= @player.title %>
+          </div>
+        <% end %>
       <%- end %>
+      <%# H38: Quelle + Zuletzt aktualisiert als Fußnoten ans Card-Ende (leer -> ausgeblendet). %>
+      <% if @player.source_url.present? %>
+        <div class="min-w-0">
+          <h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5"><%= t('attributes.source_url', default: 'Quelle') %></h5>
+          <%= link_to (URI.parse(@player.source_url).host rescue @player.source_url), @player.source_url, class: "green_link", target: :_blank %>
+        </div>
+      <% end %>
+      <% if @player.sync_date.present? %>
+        <div class="min-w-0">
+          <h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5"><%= Player.human_attribute_name(:sync_date) %></h5>
+          <%= format_date(@player.sync_date) %>
+        </div>
+      <% end %>
     </div>
   </div>
 </div>
