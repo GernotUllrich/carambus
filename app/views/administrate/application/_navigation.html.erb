@@ -45,14 +45,14 @@ as defined by the routes in the `admin/` namespace
 
     <%# Custom non-Administrate resources — dezent hervorgehoben (Tokens statt greller Inline-Farben) %>
     <div class="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700 space-y-0.5">
-      <div class="px-3 pb-1 text-xs font-bold uppercase tracking-wide text-gray-400 dark:text-gray-500">Tools</div>
+      <div class="px-3 pb-1 text-xs font-bold uppercase tracking-wide text-gray-400 dark:text-gray-500">Werkzeuge</div>
       <%= link_to(
-        "Player Duplicates",
+        "Duplikate",
         admin_player_duplicates_path,
         class: (controller_name == "player_duplicates" ? resource_link_active : resource_link)
       ) %>
       <%= link_to(
-        "Incomplete Records",
+        "Unvollständige Datensätze",
         admin_incomplete_records_path,
         class: (controller_name == "incomplete_records" ? resource_link_active : resource_link)
       ) %>

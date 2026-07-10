@@ -65,9 +65,45 @@ de:
       game:
         one: Spiel
         other: Spiele
+      international_source:
+        one: Internationale Quelle
+        other: Internationale Quellen
       league_team:
         one: Mannschaft
         other: Mannschaften
+      player_class:
+        one: Spielerklasse
+        other: Spielerklassen
+      scoreboard_message:
+        one: Scoreboard-Nachricht
+        other: Scoreboard-Nachrichten
+      season:
+        one: Saison
+        other: Saisons
+      setting:
+        one: Einstellung
+        other: Einstellungen
+      stream_configuration:
+        one: Stream-Konfiguration
+        other: Stream-Konfigurationen
+      table:
+        one: Tisch
+        other: Tische
+      table_kind:
+        one: Tischart
+        other: Tischarten
+      training_concept:
+        one: Trainingskonzept
+        other: Trainingskonzepte
+      training_example:
+        one: Trainingsbeispiel
+        other: Trainingsbeispiele
+      training_source:
+        one: Trainingsquelle
+        other: Trainingsquellen
+      user_tournament:
+        one: Benutzerturnier
+        other: Benutzerturniere
     attributes:
       account:
         name_on_card: Name on Card
@@ -145,6 +181,22 @@ de:
           attributes:
             admin:
               cannot_be_removed: role cannot be removed for the account owner
+  admin:
+    settings:
+      advanced_settings: Erweiterte Einstellungen (JSON)
+      club: Club
+      config_lock_active: "⚠️ Konfigurationssperre aktiv:"
+      config_lock_body_html: "Ihre Einstellungen sind vor dem Überschreiben durch Szenario-Deployment-Tasks geschützt. Lock-Datei: <code class=\"bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded font-mono\">config/carambus.yml.lock</code>"
+      contact_settings: Kontakteinstellungen
+      location: Location
+      location_settings: Standort-Einstellungen
+      note: 'Hinweis:'
+      note_body: Änderungen an der Konfiguration erfordern einen Neustart der Anwendung, um wirksam zu werden. Beim Speichern der Einstellungen wird eine Lock-Datei erstellt, um zu verhindern, dass Szenario-Deployment Ihre Anpassungen überschreibt.
+      quick_game_presets_hint: Schnellspiel-Buttons für verschiedene Tischarten konfigurieren (JSON-Format)
+      region: Region
+      system_settings: Systemeinstellungen
+      title: Einstellungen
+      update_configuration: Konfiguration aktualisieren
   add_tables: Tische hinzufügen
   application:
     account_navbar:
@@ -376,6 +428,24 @@ de:
       reload_from_club_cloud: Datenabgleich mit der %{source}
       reload_from_club_cloud_with_details: Datenabgleich mit der %{source} inkl. Spielergebnisse
       reload_from_club_cloud_all_new: Datenabgleich mit der %{source} alles neu
+    standings:
+      rank: Platz
+      team: Mannschaft
+      matches: S
+      won: G
+      drawn: U
+      lost: V
+      points: Pkt.
+      diff: Diff.
+      games: Partien
+      frames: Frames
+    schedule:
+      matchday: ST
+      date: Termin
+      home: Heim
+      result: Erg.
+      guest: Gast
+      host: Gastgeber
   league_league_teams: Liga Mannschaften
   league_parties: Liga Wettkämpfe
   leagues_season: Aktuelle Ligaspiele in der Saison
@@ -395,6 +465,14 @@ de:
     organizer_id: Organisierung
     organizer_type: Region/Club
     region_id: Region
+    scoreboard_reservations:
+      event_title_placeholder: "Event Titel, z.B. \"T4 Peter+Mike\""
+      info_calendar: "Reservierungen können direkt hier oder im Google Kalender \"BC Wedel\" gemacht werden. Für den Zugang zum Google Kalender bitte email an gernot.ullrich@gmx.com. Korrekturen an den hier gemachten Einträgen sind derzeit nur im Google Kalender möglich."
+      info_heating: "Die Heizungen werden entsprechend dieser Reservierungen geschaltet (2 bzw. 4 (gr. Tische) Stunden vor Terminbeginn)."
+      naming_convention_details: "Der Titel setzt sich zusammen aus einer mit Kommas getrennten Liste von Tischbereichen (z.B. T5 oder T6-T8), gefolgt von einem Lehrzeichen und dem Eventtitel oder den Spielernamen, Also z.B. \"Clubabend\" oder \"NDM Cadre 35/2\" oder \"Lothar + Gernot\". Am Ende kann ein Ausrufungszeichen (!) gesetzt werden um zu verhindern, dass Heizungen bei Nichtbenutzung während der Reservierung abgeschaltet werden. Termineinträge, die sich nicht an diese Namenskonvention halten und auch nicht mit einem Label wie \"info:\" oder \"BGH:\" beginnen, werden automatisch gelöscht."
+      naming_convention_intro: "Die Belegung der Tische, das Turnier, die Teilnehmer, sowie eine Angabe zur automatischen Heizungssteuerung, wird durch eine Namenskonvention im Titel festgelegt."
+      new_reservation: Neue Reservierung
+      new_table_reservation: Neue Tischreservierung
     synonyms: Synonyme
     tables: Tische
     updated_at: updated at
@@ -628,8 +706,10 @@ de:
       exchange_players: Spieler tauschen
       final_match_score: Endergebnis erfasst
       final_set_score: Partie beendet
+      free: frei
       match_shootout: Ausstoßen
       new: Startup...
+      occupied: belegt
       playing: ''
       ready: Frei
       ready_for_new_match: Frei
@@ -641,6 +721,76 @@ de:
       warmup: Spielbeginn
       warmup_a: Einstoßen Spieler A
       warmup_b: Einstoßen Spieler B
+    round: Runde
+    table: Tisch
+    warmup:
+      stop: Halt
+      start: Start Einspielzeit
+      time: Einspielzeit
+      minutes: Min.
+      continue_to_shootout: Weiter zum Ausstoßen
+    shootout:
+      player_breaks: "%{player} stößt an!"
+      player_breaks_mode: "%{player} stößt an — %{mode}"
+    result_3b_label: 3B-Ergebnis
+    winning_sets: "%{count} Gewinnsätze"
+    max_sets: "maximal %{count} Sätze"
+    max_frames: "maximal %{count} Frames"
+    halted: Angehalten
+    inning: Aufnahme
+    follow_up: Nachstoß
+    undo: zurück
+    foul:
+      title: Foul
+      ball: Foul-Kugel
+      miss: Miss
+      free_ball: Free Ball
+      remove_reds: Rote entfernen
+      submit: Übernehmen
+    free_game: Freie Partie
+    inning_abbr: Aufn
+    hs_abbr: HS
+    protocol:
+      points: Punkte
+      sum: Summe
+      no_innings: Noch keine Aufnahmen
+      game_not_started: Noch keine Aufnahmen vorhanden. Das Spiel hat noch nicht begonnen.
+      final_title: Spielende - Ergebnis prüfen
+      games_to_win: Gewinnspiele
+      check_result: Bitte Ergebnis prüfen!
+      result: Ergebnis
+      in_sets: in Sätzen
+      confirm_result: Ergebnis bestätigen
+      print: Protokoll drucken
+      print_pdf: Protokoll PDF
+      close: Schließen
+      edit: Bearbeiten
+      done: Fertig
+      insert_inning: Aufnahme davor einfügen
+      delete_row: Zeile löschen
+      no_sets: Noch keine Sätze gespielt
+      set: Satz
+      standing: Stand
+      in_progress: "(läuft)"
+      total: Gesamt
+      win: Sieg
+      of: von
+      set_won: Satz gewonnen
+      set_lost: Satz verloren
+    inning_edit:
+      title: "Aufnahme %{number} bearbeiten"
+      player_a: Spieler A
+      player_b: Spieler B
+      points: Punkte
+      potted_balls: Versenkte Bälle
+      no_balls: Keine Bälle versenkt
+      add_ball: Ball hinzufügen
+      clear_all: Alle löschen
+      cancel: Abbrechen
+      save: Speichern
+    tooltip:
+      game_protocol: Spielprotokoll
+      concede: Aufgeben (Frame vorzeitig beenden)
     bk2_kombi:
       # Display-label invariant (Phase 38.4 I2): the YAML keys below
       # (direkter_zweikampf, serienspiel) are INTERNAL mode keys that are ALSO
@@ -962,10 +1112,76 @@ de:
       heading: Neues TurnierTeam
       player_ba_id_label: "Player%{n} BaID:"
       player_ba_id_placeholder: "player %{n} BA ID"
+    wizard:
+      bucket:
+        mode_selection: Modus-Auswahl
+        preparation: Vorbereitung
+        ready_to_start: Bereit zum Start
+        running: Turnier läuft
+        seeding_setup: Setzliste konfigurieren
+        completed: Abgeschlossen
+      state_badge:
+        accreditation_finished: Teilnehmer abgeschlossen
+        closed: Geschlossen
+        new_tournament: Vorbereitung
+        results_published: Ergebnisse veröffentlicht
+        tournament_finished: Turnier beendet
+        tournament_mode_defined: Modus gewählt
+        tournament_seeding_finished: Setzliste finalisiert
+        tournament_started: Turnier läuft
+        tournament_started_waiting_for_monitors: Wartet auf Tische
+      sync_info:
+        never: Noch nicht synchronisiert
+        overdue: "⚠️ Zuletzt: %{time} her (vor Meldeschluss)"
+        recent: "✓ Zuletzt: %{time} her"
     wizard_step:
       help_summary: 💡 Was macht dieser Schritt?
       pending_default: Dieser Schritt ist noch offen
       pending_hint: Erst verfügbar nach vorherigem Schritt
+    wizard_steps_v2:
+      glossary_heading: "📖 Begriffserklärung"
+      glossary_meldeliste_desc_html: "Wer hat sich für das Turnier <em>angemeldet</em> (aus ClubCloud)"
+      glossary_meldeliste_term: 'Meldeliste:'
+      glossary_setzliste_desc_html: "Offizielle <em>Reihenfolge</em> nach Ranking (aus Einladung vom Landessportwart)"
+      glossary_setzliste_term: 'Setzliste:'
+      glossary_teilnehmerliste_desc_html: "Wer ist <em>tatsächlich da</em> am Turniertag (= Setzliste ± Änderungen)"
+      glossary_teilnehmerliste_term: 'Teilnehmerliste:'
+      header_title: 'Turnier-Setup:'
+      step1_badge_loaded: Geladen
+      step1_badge_optional: Optional
+      step1_badge_recommended: Empfohlen
+      step1_deadline_label: "📅 Meldeschluss:"
+      step1_help_body_html: "Die <strong>Meldeliste</strong> enthält alle Spieler, die sich für das Turnier <em>angemeldet</em> haben. Diese Liste kommt von der ClubCloud und wird täglich bis zum Meldeschluss aktualisiert.<br><br><strong>Nicht verwechseln mit:</strong><br>• <strong>Setzliste</strong> = Reihenfolge nach Ranking (kommt in Schritt 2)<br>• <strong>Teilnehmerliste</strong> = Wer tatsächlich da ist (Schritt 3)"
+      step1_help_summary: "💡 Was ist die Meldeliste?"
+      step1_info_html: "Lädt die <strong>Meldeliste</strong> (wer hat sich gemeldet) von der ClubCloud"
+      step1_load_all: "🔄 Alle Turniere vom API Server laden"
+      step1_load_all_disable_with: "API scraped alle... (1-2 Minuten)"
+      step1_load_all_hint: "⏱️ Langsamer - Alle Turniere der Region"
+      step1_load_results: "📊 Ergebnisse von ClubCloud laden"
+      step1_load_results_confirm: "⚠️ ACHTUNG: Lädt Spiele und Ergebnisse von ClubCloud.\n\nLokale Änderungen gehen verloren!\n\nNur verwenden wenn Turnier abgeschlossen und Ergebnisse hochgeladen wurden."
+      step1_load_results_title: "Für Archivierung nach Turnier-Ende"
+      step1_load_upcoming: "🔄 Anstehende Turniere laden (nächste 30 Tage)"
+      step1_load_upcoming_disable_with: "API scraped..."
+      step1_load_upcoming_hint: "⏱️ Schnell (10-30 Sekunden) - Nur Turniere der nächsten 30 Tage"
+      step1_open_clubcloud: "🔗 ClubCloud öffnen"
+      step1_sync_now: Jetzt synchronisieren
+      step1_title: Meldeliste von ClubCloud laden
+      step1_troubleshoot_alternative_heading: "Alternative: Alle Turniere aktualisieren"
+      step1_troubleshoot_recommended_heading: "Empfohlen: Nur anstehende Turniere aktualisieren"
+      step1_troubleshoot_summary: "⚠️ Turnier nicht gefunden? Hier klicken für Hilfe"
+      step2_check_seedings: Setzliste prüfen
+      step2_continue_button: "→ Weiter zu Schritt 3 mit diesen %{count} Spielern"
+      step2_continue_confirm: "Diese %{count} Spieler als Teilnehmerliste übernehmen?\n\nDie Spieler werden automatisch nach ihrer Position sortiert."
+      step2_continue_hint: Übernehmen Sie diese Spieler, um mit Schritt 3 fortzufahren.
+      step2_continue_title: Übernimmt die vorhandenen Spieler und aktiviert Schritt 3
+      step2_existing_players_info_html: "ℹ️ <strong>Es sind bereits %{count} Spieler vorhanden</strong><br>Sie können diese direkt übernehmen (siehe unten)"
+      step2_help_body_html: "Laden Sie die <strong>offizielle Einladung</strong> vom Landessportwart hoch. Carambus extrahiert automatisch:<br>• <strong>Setzliste</strong> (Reihenfolge nach Ranking)<br>• <strong>Vorgaben</strong> bei Vorgabeturnieren (Punktzahlen)<br><br>Unterstützt PDF oder Screenshot (PNG/JPG).<br>Zweispaltige Tabellen werden automatisch erkannt.<br><br><strong>Alternative:</strong> Falls keine Einladung vorliegt, können Sie auch direkt mit der Meldeliste von ClubCloud (aus Schritt 1) zu Schritt 3 weitergehen.<br><br><strong>Hinweis:</strong> Die Setzliste (Reihenfolge/Position der Spieler) können Sie in <strong>Schritt 3</strong> bei Bedarf anpassen (↑↓ Buttons oder direkte Positionseingabe)."
+      step2_invitation_uploaded: "✓ Einladung hochgeladen:"
+      step2_players_available_html: "✓ <strong>Es sind bereits %{count} Spieler vorhanden</strong>"
+      step2_players_taken: "%{count} Spieler bereits als Teilnehmer übernommen."
+      step2_title: Setzliste aus Einladung übernehmen
+      step2_upload_invitation: Einladung hochladen
+      step2_upload_prompt: Laden Sie die PDF-Einladung oder Screenshot hoch
     compare_seedings:
       alt_clubcloud_body_html: "Falls keine Einladung vorliegt, können Sie mit der <strong>Meldeliste von ClubCloud</strong> direkt zu Schritt 3 (Teilnehmerliste bearbeiten) weitermachen."
       alt_clubcloud_heading: "📊 Alternative: Mit ClubCloud-Meldeliste weitermachen"
@@ -1147,8 +1363,6 @@ de:
       position_short: Pos.
       quick_links_heading: 🔗 Schnellzugriff
       rankings: Ranglisten
-      readonly_body_html: "Dieses Turnier hat bereits <strong>Ergebnisse aus der ClubCloud</strong> und kann nicht mehr bearbeitet werden. Die ClubCloud ist die führende Datenquelle für abgeschlossene Turniere."
-      readonly_heading: Turnier ist schreibgeschützt
       region: 'Regionalverband:'
       registrations: Registrierungen
       reload_from_club_cloud: Datenabgleich mit der Club Cloud

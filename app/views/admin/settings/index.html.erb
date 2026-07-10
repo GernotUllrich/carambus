@@ -1,15 +1,15 @@
 <% content_for(:title) do %>
-  Settings
+  <%= t("admin.settings.title") %>
 <% end %>
 
 <header class="main-content__header">
-  <h1 class="main-content__page-title">Settings</h1>
+  <h1 class="main-content__page-title"><%= t("admin.settings.title") %></h1>
 </header>
 
 <section class="main-content__body" id="form_wrapper">
   <%= form_tag admin_settings_path, method: :post, class: "form" do %>
     <div class="field-group mb-8 p-4 rounded border border-gray-200 dark:border-gray-700">
-      <h3 class="mt-0 mb-4 text-gray-600 dark:text-gray-300">System Settings</h3>
+      <h3 class="mt-0 mb-4 text-gray-600 dark:text-gray-300"><%= t("admin.settings.system_settings") %></h3>
       <% %w[application_name carambus_api_url carambus_domain queue_adapter season_name force_update no_local_protection].each do |key| %>
         <div class="field-unit">
           <div class="field-unit__label">
@@ -22,7 +22,7 @@
       <% end %>
       <div class="field-unit">
         <div class="field-unit__label">
-          <%= label_tag "config[context]", "Region" %>
+          <%= label_tag "config[context]", t("admin.settings.region") %>
         </div>
         <div class="field-unit__field">
           <%= select_tag "config[context]",
@@ -36,7 +36,7 @@
     </div>
 
     <div class="field-group mb-8 p-4 rounded border border-gray-200 dark:border-gray-700">
-      <h3 class="mt-0 mb-4 text-gray-600 dark:text-gray-300">Contact Settings</h3>
+      <h3 class="mt-0 mb-4 text-gray-600 dark:text-gray-300"><%= t("admin.settings.contact_settings") %></h3>
       <% %w[support_email business_name business_address].each do |key| %>
         <div class="field-unit">
           <div class="field-unit__label">
@@ -50,10 +50,10 @@
     </div>
 
     <div class="field-group mb-8 p-4 rounded border border-gray-200 dark:border-gray-700">
-      <h3 class="mt-0 mb-4 text-gray-600 dark:text-gray-300">Location Settings</h3>
+      <h3 class="mt-0 mb-4 text-gray-600 dark:text-gray-300"><%= t("admin.settings.location_settings") %></h3>
       <div class="field-unit">
         <div class="field-unit__label">
-          <%= label_tag "config[location_id]", "Location" %>
+          <%= label_tag "config[location_id]", t("admin.settings.location") %>
         </div>
         <div class="field-unit__field">
           <%= render partial: "location_select", locals: { locations: @locations } %>
@@ -62,7 +62,7 @@
 
       <div class="field-unit">
         <div class="field-unit__label">
-          <%= label_tag "config[club_id]", "Club" %>
+          <%= label_tag "config[club_id]", t("admin.settings.club") %>
         </div>
         <div class="field-unit__field">
           <%= render partial: "club_select", locals: { clubs: @clubs } %>
@@ -71,12 +71,12 @@
     </div>
 
     <div class="field-group mb-8 p-4 rounded border border-gray-200 dark:border-gray-700">
-      <h3 class="mt-0 mb-4 text-gray-600 dark:text-gray-300">Advanced Settings (JSON)</h3>
+      <h3 class="mt-0 mb-4 text-gray-600 dark:text-gray-300"><%= t("admin.settings.advanced_settings") %></h3>
       <div class="field-unit">
         <div class="field-unit__label">
           <%= label_tag "config[quick_game_presets]", "Quick Game Presets" %>
           <small class="block text-gray-500 dark:text-gray-400 mt-1">
-            Configure quick game buttons for different table kinds (JSON format)
+            <%= t("admin.settings.quick_game_presets_hint") %>
           </small>
         </div>
         <div class="field-unit__field">
@@ -88,20 +88,18 @@
     </div>
 
     <div class="form-actions">
-      <%= submit_tag "Update Configuration", class: "button" %>
+      <%= submit_tag t("admin.settings.update_configuration"), class: "button" %>
     </div>
   <% end %>
 
   <% if @config_locked %>
     <div class="notice bg-warning-50 dark:bg-warning-900/30 border border-warning-400 text-warning-800 dark:text-warning-200 p-3 rounded">
-      <strong>⚠️ Configuration Lock Active:</strong>
-      Your settings are protected from being overwritten by scenario deployment tasks.
-      Lock file: <code class="bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded font-mono">config/carambus.yml.lock</code>
+      <strong><%= t("admin.settings.config_lock_active") %></strong>
+      <%= t("admin.settings.config_lock_body_html").html_safe %>
     </div>
   <% end %>
 
   <div class="notice bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-3 rounded mt-4">
-    <strong>Note:</strong> Changes to configuration require application restart to take effect.
-    When you save settings, a lock file is created to prevent scenario deployment from overwriting your customizations.
+    <strong><%= t("admin.settings.note") %></strong> <%= t("admin.settings.note_body") %>
   </div>
 </section>

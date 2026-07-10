@@ -234,14 +234,14 @@
             <div class="flex flex-1 items-center font-bold text-center text-<%= vw2 %>"><%= options[:tournament_title] %></div>
             <div class="flex flex-1 items-center text-center text-<%= vw2 %>"><%= options[:name] %></div>
             <%- if options[:current_round].present? %>
-              <div class="flex flex-1 items-center text-center text-<%= vw2 %>">Runde <%= options[:current_round] %></div>
+              <div class="flex flex-1 items-center text-center text-<%= vw2 %>"><%= t("table_monitor.round") %> <%= options[:current_round] %></div>
             <%- end %>
             <div class="flex flex-1 items-center text-center text-<%= vw2 %>"><%= options[:game_name] %></div>
             <%- if frames_to_win.to_i > 1 %>
               <div class="flex flex-1 items-center text-center text-<%= vw2 %>"><%= "Best of #{frames_to_win * 2 - 1}" %></div>
             <%- end %>
             <%- if frames_to_play.to_i > 0 %>
-              <div class="flex flex-1 items-center text-center text-<%= vw2 %>"><%= "maximal #{frames_to_play} Frames" %></div>
+              <div class="flex flex-1 items-center text-center text-<%= vw2 %>"><%= t("table_monitor.max_frames", count: frames_to_play) %></div>
             <%- end %>
           </div>
           <div class="flex flex-col items-center h-1/6">
@@ -281,7 +281,7 @@
                 <%- end %>
               <%- end %>
             </div>
-            <div class="flex h-1/3 font-bold text-<%= vw2 %> text-red-500"><%= "Halted" if table_monitor.timer_halt_at.present? %></div>
+            <div class="flex h-1/3 font-bold text-<%= vw2 %> text-red-500"><%= t("table_monitor.halted") if table_monitor.timer_halt_at.present? %></div>
           </div>
         <%- end %>
       </div>
@@ -423,7 +423,7 @@
       </div>
       <div class="controls hide-on-display-only w-full h-1/6 grid grid-cols-12 place-items-center gap-1 dark:bg-black">
         <%- if table_monitor.playing? %>
-          <%= content_tag "div", class: "mr-1 min-w-1/3 flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none bg-blue-50 dark:bg-black hover:bg-gray-300 dark:text-blue-400 text-blue-600", title: "Spielprotokoll", data: { reflex: "click->GameProtocolReflex#open_protocol", id: table_monitor.id }, id: "game-protocol-button", tabindex: 2 do %>
+          <%= content_tag "div", class: "mr-1 min-w-1/3 flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none bg-blue-50 dark:bg-black hover:bg-gray-300 dark:text-blue-400 text-blue-600", title: t("table_monitor.tooltip.game_protocol"), data: { reflex: "click->GameProtocolReflex#open_protocol", id: table_monitor.id }, id: "game-protocol-button", tabindex: 2 do %>
             <%= render_svg "icons/clipboard", styles: "fill-current icon-2xl inline-block" %>
           <%- end %>
           <%- # Snooker ball values: Red=1, Yellow=2, Green=3, Brown=4, Blue=5, Pink=6, Black=7 %>
@@ -474,7 +474,7 @@
           <%- end %>
           <%= content_tag "div",
                           class: "ml-1 min-w-1/3 flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none bg-orange-500 dark:bg-orange-600 hover:bg-orange-600 dark:hover:bg-orange-700 text-white px-4 py-2",
-                          title: "Aufgeben (Frame vorzeitig beenden)",
+                          title: t("table_monitor.tooltip.concede"),
                           data: { controller: "table-monitor", action: "click->table-monitor#concede_snooker_frame", id: table_monitor.id },
                           id: "concede",
                           tabindex: 2 do %>

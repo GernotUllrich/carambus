@@ -173,7 +173,7 @@
         <button data-reflex="click->GameProtocolReflex#insert_inning"
                 data-before="<%= i %>"
                 data-id="<%= table_monitor.id %>"
-                title="Aufnahme davor einfügen"
+                title="<%= t("table_monitor.protocol.insert_inning") %>"
                 class="px-2 py-1 bg-green-500 hover:bg-green-600 text-white rounded text-sm font-bold">
           ➕
         </button>
@@ -181,7 +181,7 @@
                 data-inning="<%= i %>"
                 data-id="<%= table_monitor.id %>"
                 <%= 'disabled' unless can_delete %>
-                title="Zeile löschen"
+                title="<%= t("table_monitor.protocol.delete_row") %>"
                 class="<%= delete_button_class %>">
           🗑️
         </button>

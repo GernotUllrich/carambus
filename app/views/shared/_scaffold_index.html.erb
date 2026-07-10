@@ -8,9 +8,9 @@
       new_text     (default: "New <Model>")
       pagy         (default: @pagy)
     Token-Utilities only, kein Hex; Dark-Mode. Spalten-Header-Sortierung entfällt bewusst. %>
-<% title    ||= model_class.model_name.human.pluralize %>
+<% title    ||= model_class.model_name.human(count: 2) %>
 <% new_path ||= (new_polymorphic_path(model_class) rescue nil) %>
-<% new_text ||= "New #{model_class.model_name.human}" %>
+<% new_text ||= t("shared.scaffold.new.title", model: model_class.model_name.human) %>
 <% pagy = local_assigns.fetch(:pagy) { @pagy } %>
 
 <div class="container mx-auto my-8 px-4">

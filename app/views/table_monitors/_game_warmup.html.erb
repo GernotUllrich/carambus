@@ -15,12 +15,12 @@
 
       <div class="dark:text-gray-200 bg-white dark:bg-black bg-gray-50 flex h-2/6 flex-col">
         <div class="flex h-2/6 flex-row space-x-4">
-          <div class="flex-auto mt-5 text-2vw text-center">Tisch <%= table_monitor.name.match(/.*(\d+).*/).andand[1] %></div>
+          <div class="flex-auto mt-5 text-2vw text-center"><%= t("table_monitor.table") %> <%= table_monitor.name.match(/.*(\d+).*/).andand[1] %></div>
           <%- lines = table_monitor.game.andand.display_gname_lines || [] %>
           <div class="flex-auto mt-5 text-2vw text-center"><%= lines[0] %></div>
           <%= render 'table_monitors/menu', table_monitor: table_monitor %>
           <div class="flex-auto mt-5 text-2vw text-center"><%= lines[1] %></div>
-          <div class="flex-auto mt-5 text-2vw text-center">Runde <%= table_monitor.tournament_monitor.andand.current_round %></div>
+          <div class="flex-auto mt-5 text-2vw text-center"><%= t("table_monitor.round") %> <%= table_monitor.tournament_monitor.andand.current_round %></div>
         </div>
         <%- gps = table_monitor.game.andand.game_participations.andand.order(:role).to_a %>
         <div class="mt-4 flex h-1/2 flex-row text-black dark:text-gray-200 space-x-4">
@@ -31,26 +31,26 @@
       <div class="dark:text-gray-200 bg-white dark:bg-black bg-gray-50 flex h-1/6 flex-row mt-2 space-x-8">
         <%- if table_monitor.warmup_a? && table_monitor.timer_finish_at.present? %>
           <%= content_tag "div", class: "flex flex-1 h-full items-center justify-center text-2vw text-center btn btn-primary", data: { turbo: false, reflex: "click->TableMonitorReflex#stop", id: table_monitor.id } do %>
-            <%= "Halt" %>
+            <%= t("table_monitor.warmup.stop") %>
           <%- end %>
         <%- else %>
           <%= content_tag "div", class: "flex flex-1
           items-center justify-center text-2vw text-center btn btn-primary", data: { turbo: false, reflex: "click->TableMonitorReflex#play_warm_up_a", id: table_monitor.id } do %>
-            <%= "Start Einspielzeit" %>
+            <%= t("table_monitor.warmup.start") %>
           <%- end %>
         <%- end %>
-        <div class="flex flex-1 items-center rounded-full justify-center text-2vw text-center">Einspielzeit
+        <div class="flex flex-1 items-center rounded-full justify-center text-2vw text-center"><%= t("table_monitor.warmup.time") %>
           5
-          Min.
+          <%= t("table_monitor.warmup.minutes") %>
         </div>
         <%- if table_monitor.warmup_b? && table_monitor.timer_finish_at.present? %>
           <%= content_tag "div", class: "flex flex-1 h-full items-center justify-center text-2vw text-center btn btn-primary", data: { turbo: false, reflex: "click->TableMonitorReflex#stop", id: table_monitor.id } do %>
-            <%= "Halt" %>
+            <%= t("table_monitor.warmup.stop") %>
           <%- end %>
         <%- else %>
           <%= content_tag "div", class: "flex flex-1
           items-center justify-center text-2vw text-center btn btn-primary", data: { turbo: false, reflex: "click->TableMonitorReflex#play_warm_up_b", id: table_monitor.id } do %>
-            <%= "Start Einspielzeit" %>
+            <%= t("table_monitor.warmup.start") %>
           <%- end %>
         <%- end %>
       </div>
@@ -85,7 +85,7 @@
       </div>
       <div class="flex h-2/6 flex-row mt-0 space-x-8 items-center justify-center">
         <%= content_tag "div", class: "text-2vw h-1/3 focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 btn btn-primary", data: { turbo: false, reflex: raw("click->TableMonitorReflex#warm_up_finished"), id: table_monitor.id }, id: "continue", tabindex: 7 do %>
-          <%= "Weiter zum Ausstoßen" %>
+          <%= t("table_monitor.warmup.continue_to_shootout") %>
         <%- end %>
       </div>
     </div>
@@ -97,11 +97,11 @@
     <div id="table_monitor_modal_setup_<%= table_monitor.id %>" class="p-2 lg:p-10 border-0 rounded-lg shadow-lg relative flex flex-col h-3/4 w-3/4  outline-none focus:outline-none" data-game-id="<%= table_monitor.game_id %>">
       <div class="flex h-1/6 flex-col">
         <div class="flex h-1/2 flex-row space-x-4">
-          <div class="flex-1 text-2vw text-center">Tisch <%= table_monitor.name.match(/.*(\d+).*/).andand[1] %></div>
+          <div class="flex-1 text-2vw text-center"><%= t("table_monitor.table") %> <%= table_monitor.name.match(/.*(\d+).*/).andand[1] %></div>
           <%- lines = table_monitor.game.andand.display_gname_lines || [] %>
           <div class="flex-1 text-2vw text-center"><%= lines[0] %></div>
           <div class="flex-1 text-2vw text-center"><%= lines[1] %></div>
-          <div class="flex-1 text-2vw text-center">Runde <%= table_monitor.tournament_monitor.andand.current_round %></div>
+          <div class="flex-1 text-2vw text-center"><%= t("table_monitor.round") %> <%= table_monitor.tournament_monitor.andand.current_round %></div>
         </div>
         <hr>
         <%- gps = table_monitor.game.andand.game_participations.andand.order(:role).to_a %>
@@ -113,26 +113,26 @@
       <div class="flex h-1/6 flex-row mt-2 space-x-8">
         <%- if table_monitor.warmup_a? && table_monitor.timer_finish_at.present? %>
           <%= content_tag "div", class: "flex flex-1 h-full items-center justify-center text-2vw text-center btn btn-primary", data: { turbo: false, reflex: "click->TableMonitorReflex#stop", id: table_monitor.id } do %>
-            <%= "Halt" %>
+            <%= t("table_monitor.warmup.stop") %>
           <%- end %>
         <%- else %>
           <%= content_tag "div", class: "flex flex-1
           items-center justify-center text-2vw text-center btn btn-primary", data: { turbo: false, reflex: "click->TableMonitorReflex#play_warm_up_a", id: table_monitor.id } do %>
-            <%= "Start Einspielzeit" %>
+            <%= t("table_monitor.warmup.start") %>
           <%- end %>
         <%- end %>
-        <div class="flex flex-1 items-center rounded-full justify-center text-2vw text-center">Einspielzeit
+        <div class="flex flex-1 items-center rounded-full justify-center text-2vw text-center"><%= t("table_monitor.warmup.time") %>
           5
-          Min.
+          <%= t("table_monitor.warmup.minutes") %>
         </div>
         <%- if table_monitor.warmup_b? && table_monitor.timer_finish_at.present? %>
           <%= content_tag "div", class: "flex flex-1 h-full items-center justify-center text-2vw text-center btn btn-primary", data: { turbo: false, reflex: "click->TableMonitorReflex#stop", id: table_monitor.id } do %>
-            <%= "Halt" %>
+            <%= t("table_monitor.warmup.stop") %>
           <%- end %>
         <%- else %>
           <%= content_tag "div", class: "flex flex-1
           items-center justify-center text-2vw text-center btn btn-primary", data: { turbo: false, reflex: "click->TableMonitorReflex#play_warm_up_b", id: table_monitor.id } do %>
-            <%= "Start Einspielzeit" %>
+            <%= t("table_monitor.warmup.start") %>
           <%- end %>
         <%- end %>
       </div>

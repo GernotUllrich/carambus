@@ -1462,13 +1462,13 @@ RECOMMENDATION: Follow steps 1-7 in order!
 <div style="z-index:910" class="hidden overflow-x-hidden overflow-y-auto fixed inset-0 outline-none focus:outline-none justify-center" id="modal-new-reservation">
   <div id="new_reservation_modal_setup__2" class="border-2 border-gray-500 rounded-lg shadow-lg relative flex flex-col p-10 w-5/6 dark:text-gray-200 bg-white dark:bg-black  outline-none focus:outline-none">
     <div class="flex flex-col">
-      <h2 class="flex mb-5">Neue Tischreservierung <%= @location.name %></h2>
+      <h2 class="flex mb-5"><%= t("location.scoreboard_reservations.new_table_reservation") %> <%= @location.name %></h2>
       <div class="flex justify-around w-full text-2vw">
         <%= form_with(model: @location, method: :post, url: { action: "create_event" }) do |form| %>
           <%= hidden_field_tag :location_id, @location.id %>
           <%= render "error_messages", resource: form.object %>
           <div class="form-group flex">
-            <%= form.text_field :summary, autocomplete: "off", class: "form-control text-2vw", style: "width: 400px", placeholder: "Event Titel, z.B. \"T4 Peter+Mike\"" %>
+            <%= form.text_field :summary, autocomplete: "off", class: "form-control text-2vw", style: "width: 400px", placeholder: t("location.scoreboard_reservations.event_title_placeholder") %>
           </div>
           <div class="form-group flex items-center">
             <input type="date" name="location[date]" id="location_date">
@@ -1483,21 +1483,10 @@ RECOMMENDATION: Follow steps 1-7 in order!
             <%= form.submit t('save'), class: "btn btn-primary text-2vw" %>
           </div>
           <p class="text-1-5vw leading-6">
-            Die Belegung der Tische, das Turnier, die Teilnehmer,
-            sowie eine Angabe zur automatischen Heizungssteuerung,
-            wird durch eine Namenskonvention im Titel festgelegt.
+            <%= t("location.scoreboard_reservations.naming_convention_intro") %>
           </p>
           <p class="text-1-5vw leading-6">
-            Der Titel setzt sich zusammen aus einer mit Kommas getrennten
-            Liste von Tischbereichen (z.B. T5 oder T6-T8), gefolgt von einem
-            Lehrzeichen und dem Eventtitel oder den Spielernamen, Also z.B.
-            "Clubabend" oder "NDM Cadre 35/2" oder "Lothar + Gernot".
-            Am Ende kann ein Ausrufungszeichen (!) gesetzt werden um zu
-            verhindern, dass Heizungen bei Nichtbenutzung während der
-            Reservierung abgeschaltet werden.
-            Termineinträge, die sich nicht an diese Namenskonvention
-            halten und auch nicht mit einem Label wie "info:" oder "BGH:" beginnen,
-            werden automatisch gelöscht.
+            <%= t("location.scoreboard_reservations.naming_convention_details") %>
           </p>
         <% end %>
       </div>
@@ -1522,7 +1511,7 @@ RECOMMENDATION: Follow steps 1-7 in order!
       <pre><%= table_status.join("\n") %></pre>
     </div>
     <p>
-      <%= custom_link_to "Neue Reservierung", "javascript:new_reservation_mode()", data: { turbolinks: false }, class: "dark:text-white flex w-full h-full border-4 focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 rounded-lg btn btn-primary text-2vw", id: "cancel", tabindex: "1" %>
+      <%= custom_link_to t("location.scoreboard_reservations.new_reservation"), "javascript:new_reservation_mode()", data: { turbolinks: false }, class: "dark:text-white flex w-full h-full border-4 focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 rounded-lg btn btn-primary text-2vw", id: "cancel", tabindex: "1" %>
     </p>
 
     <!-- Debug Mode Toggle (hidden by default) -->
@@ -1556,10 +1545,8 @@ RECOMMENDATION: Follow steps 1-7 in order!
       </p>
     </div>
     <p class="w-3/4 mt-5">
-      Reservierungen können direkt hier oder im Google Kalender "BC Wedel" gemacht werden.
-      Für den Zugang zum Google Kalender bitte email an gernot.ullrich@gmx.com.
-      Korrekturen an den hier gemachten Einträgen sind derzeit nur im Google Kalender möglich.<br/>
-      Die Heizungen werden entsprechend dieser Reservierungen geschaltet (2 bzw. 4 (gr. Tische) Stunden vor Terminbeginn).
+      <%= t("location.scoreboard_reservations.info_calendar") %><br/>
+      <%= t("location.scoreboard_reservations.info_heating") %>
     </p>
   <%- end %>
 </div>

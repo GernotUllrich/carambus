@@ -14,8 +14,8 @@
   
   <!-- Game Info -->
   <div class="protocol-game-info">
-    <div class="game-discipline"><%= table_monitor.discipline || 'Freie Partie' %></div>
-    <div class="game-goal">Ziel: <%= table_monitor.data.dig('playera', 'balls_goal').to_i > 0 ? "#{table_monitor.data.dig('playera', 'balls_goal')}" : "∞" %></div>
+    <div class="game-discipline"><%= table_monitor.discipline || t("table_monitor.free_game") %></div>
+    <div class="game-goal"><%= t("goal") %>: <%= table_monitor.data.dig('playera', 'balls_goal').to_i > 0 ? "#{table_monitor.data.dig('playera', 'balls_goal')}" : "∞" %></div>
     <div class="game-date"><%= Time.current.strftime("%d.%m.%Y %H:%M") %></div>
   </div>
   
@@ -28,10 +28,10 @@
         <th colspan="2" class="player-b-header"><%= history[:player_b][:shortname] || history[:player_b][:name] %></th>
       </tr>
       <tr>
-        <th class="col-inning">Aufn.</th>
-        <th class="col-points">Pkt</th>
+        <th class="col-inning"><%= t("table_monitor.inning_abbr") %>.</th>
+        <th class="col-points"><%= t("table_monitor.protocol.points") %></th>
         <th class="col-total">Total</th>
-        <th class="col-points">Pkt</th>
+        <th class="col-points"><%= t("table_monitor.protocol.points") %></th>
         <th class="col-total">Total</th>
       </tr>
     </thead>
@@ -43,7 +43,7 @@
       %>
       <% if max_innings == 0 %>
         <tr>
-          <td colspan="5" class="text-center">Noch keine Aufnahmen</td>
+          <td colspan="5" class="text-center"><%= t("table_monitor.protocol.no_innings") %></td>
         </tr>
       <% else %>
         <% max_innings.times do |i| %>
@@ -68,18 +68,18 @@
     </tbody>
     <tfoot>
       <tr class="totals-row">
-        <td class="col-inning">Summe</td>
+        <td class="col-inning"><%= t("table_monitor.protocol.sum") %></td>
         <td class="col-points player-a"><%= player_a[:result] %></td>
         <td class="col-total player-a"><%= player_a[:result] %></td>
         <td class="col-points player-b"><%= player_b[:result] %></td>
         <td class="col-total player-b"><%= player_b[:result] %></td>
       </tr>
       <tr class="stats-row">
-        <td class="col-inning">HS</td>
+        <td class="col-inning"><%= t("table_monitor.hs_abbr") %></td>
         <td class="col-points player-a"><%= player_a[:hs] %></td>
-        <td class="col-total player-a">GD: <%= player_a[:gd] %></td>
+        <td class="col-total player-a"><%= t("gd") %>: <%= player_a[:gd] %></td>
         <td class="col-points player-b"><%= player_b[:hs] %></td>
-        <td class="col-total player-b">GD: <%= player_b[:gd] %></td>
+        <td class="col-total player-b"><%= t("gd") %>: <%= player_b[:gd] %></td>
       </tr>
     </tfoot>
   </table>

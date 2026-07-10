@@ -9,12 +9,12 @@
         <% unless Rails.env.production? %>
           <th class="p-3 text-left font-semibold">id</th>
         <% end %>
-        <th class="p-3 text-left font-semibold">ST</th>
-        <th class="p-3 text-left font-semibold">Termin</th>
-        <th class="p-3 text-left font-semibold">Heim</th>
-        <th class="p-3 text-left font-semibold">Erg.</th>
-        <th class="p-3 text-left font-semibold">Gast</th>
-        <th class="p-3 text-left font-semibold">Gastgeber</th>
+        <th class="p-3 text-left font-semibold"><%= t("league.schedule.matchday") %></th>
+        <th class="p-3 text-left font-semibold"><%= t("league.schedule.date") %></th>
+        <th class="p-3 text-left font-semibold"><%= t("league.schedule.home") %></th>
+        <th class="p-3 text-left font-semibold"><%= t("league.schedule.result") %></th>
+        <th class="p-3 text-left font-semibold"><%= t("league.schedule.guest") %></th>
+        <th class="p-3 text-left font-semibold"><%= t("league.schedule.host") %></th>
       </tr>
       </thead>
       <tbody>

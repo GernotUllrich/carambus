@@ -38,7 +38,7 @@
             <%= "#{table_monitor.discipline} - " %>
           <%- end %>
           <%- delta = table_monitor.state_display(I18n.locale).present? ? 0 : 1 %>
-          <%= "Aufnahme <strong class='text-2vw'>#{options[:current_kickoff_player] == 'playera' ? right_player[:innings].to_i + delta : left_player[:innings].to_i + delta}</strong".html_safe %>
+          <%= "#{t("table_monitor.inning")} <strong class='text-2vw'>#{options[:current_kickoff_player] == 'playera' ? right_player[:innings].to_i + delta : left_player[:innings].to_i + delta}</strong".html_safe %>
 
         </div>
       </td>
