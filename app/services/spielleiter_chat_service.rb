@@ -41,6 +41,10 @@ class SpielleiterChatService
     loop_messages = messages.dup
     iterations = 0
     model = FAST_MODEL # Default schnell; bei erster Schreibaktion → STRONG_MODEL (Hybrid-Eskalation)
+    # Vor-Eskalation (50-03): Haiku plant den mehrstufigen Turnier-Klon unzuverlässig — es ruft das
+    # Write-Tool gar nicht erst auf (fragt stattdessen zurück), sodass die Hybrid-Eskalation (unten)
+    # nie greift. Bei erkanntem Klon-/Saison-Übernahme-Intent daher DIREKT STRONG_MODEL.
+    model = STRONG_MODEL if clone_intent?(loop_messages)
     # 49-01: Token-Verbrauch PRO MODELL summieren — ein Turn kann mid-turn von Haiku auf Sonnet
     # eskalieren, daher je Modell getrennt (für korrekte €-Kostenattribution).
     usage_by_model = Hash.new { |h, k| h[k] = {input: 0, output: 0, cache_creation: 0, cache_read: 0} }
@@ -142,6 +146,24 @@ class SpielleiterChatService
     anno.read_only_hint != true
   end
 
+  # Vor-Eskalation (50-03): erkennt einen Turnier-Klon-/Saison-Übernahme-Wunsch in der letzten
+  # User-Nachricht → dann direkt STRONG_MODEL (Haiku ruft cc_clone_tournament sonst nicht auf,
+  # sondern fragt zurück).
+  def clone_intent?(messages)
+    last_user = messages.reverse.find { |m| (m[:role] || m["role"]).to_s == "user" }
+    return false unless last_user
+    text = extract_message_text(last_user[:content] || last_user["content"])
+    text.match?(/\bklon|dupliz|in die (neue|kommende) saison|neue saison.{0,25}(übernehm|übernimm|klon|kopier)/i)
+  end
+
+  def extract_message_text(content)
+    case content
+    when String then content
+    when Array then content.map { |c| c.is_a?(Hash) ? (c[:text] || c["text"]).to_s : c.to_s }.join(" ")
+    else content.to_s
+    end
+  end
+
   def serialize_content_block(block)
     case block.type.to_s
     when "tool_use"
@@ -204,6 +226,17 @@ class SpielleiterChatService
       "des Turniers (aus Turnierliste/Kontext) — daraus löst der Server Turnier, Berechtigung, Branch, " \
       "Saison UND Meldeliste selbst auf. Übergib NICHT nur eine Meldelisten-ID; sonst kann der Server " \
       "die Berechtigung (z.B. Turnierleiter-Recht) nicht zuordnen. " \
+      "Wenn der (Landes-)Sportwart ein Turnier KLONEN oder in die neue Saison ÜBERNEHMEN will " \
+      "('klone das Turnier X', 'übernimm das Vorsaison-Turnier X in die neue Saison'), rufe " \
+      "cc_clone_tournament DIREKT auf und übergib den Turnier-Titel als source_title — dieses Tool " \
+      "IST die Klon-Funktion. Suche NICHT vorher selbst nach dem Turnier, lehne NICHT ab, und verweise " \
+      "NIEMALS auf das ClubCloud-Web-Portal oder eine 'Klonen/Duplizieren'-Funktion als Ersatz. " \
+      "Ablauf: erst armed:false (Dry-Run — zeige den Plan), dann nach Bestätigung armed:true (legt die " \
+      "Meldeliste an, reversibel), und erst nach ausdrücklicher Bestätigung der IRREVERSIBLEN Freigabe " \
+      "armed:true + release:true (Freigabe + Meisterschaft). Meldet das Tool 'nicht gefunden', frage " \
+      "den genauen Titel/die Saison nach — verweise NICHT aufs Portal. " \
+      "Erfinde NIEMALS einen Verbands-/Regionsnamen (z.B. 'BBBV') — nenne als Region ausschließlich die " \
+      "im Kontext genannte (cc_region bzw. cc_whoami); im Zweifel lasse den Verbandsnamen ganz weg. " \
       "Wenn der Sportwart ein Turnier BESCHREIBEND nennt (z.B. 'das Cadre-Turnier', 'das kommende " \
       "Karambol-Turnier', 'das Dreiband-Turnier') statt mit exaktem Namen: löse es SELBST auf — über " \
       "das zuvor gezeigte/gerade ausgewählte Turnier ODER per cc_list_open_tournaments — und nutze die " \

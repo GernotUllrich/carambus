@@ -420,6 +420,9 @@ class RegionCc::ClubCloudClient
     # meldelisteId: cc_id_ml
     # release: ""
     "createMeisterschaftSave" => ["/admin/einzel/meisterschaft/createMeisterschaftSave.php", false],
+    # v1.3 Phase 50-02: Turnier-Klon (createMeisterschaftCheck = Prep vor Save; cc_turnier_status = "Verbergen")
+    "createMeisterschaftCheck" => ["/admin/einzel/meisterschaft/createMeisterschaftCheck.php", false],
+    "cc_turnier_status" => ["/admin/einzel/meisterschaft/cc_turnier_status.php", false],
     "editMeisterschaftCheck" => ["/admin/einzel/meisterschaft/editMeisterschaftCheck.php", false],
     "editMeisterschaftSave" => ["/admin/einzel/meisterschaft/editMeisterschaftSave.php", false],
     "deleteMeldeliste" => ["/admin/einzel/meldelisten/deleteMeldeliste.php", false],
