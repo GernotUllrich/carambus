@@ -16,7 +16,6 @@
 "app/views/admin/application/_source_attributions_fields.html.erb": 19
 "app/views/admin/application/_translations_display.html.erb": 6
 "app/views/admin/incomplete_records/show.html.erb": 3
-"app/views/admin/pages/_form_fields.html.erb": 10
 "app/views/admin/player_duplicates/index.html.erb": 1
 "app/views/admin/stream_configurations/index.html.erb": 1
 "app/views/admin/tags/_form_fields.html.erb": 8

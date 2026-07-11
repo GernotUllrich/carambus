@@ -588,20 +588,6 @@ Rails.application.routes.draw do
     resources :international_sources
     resources :videos
 
-    resources :pages do
-      member do
-        post :publish
-        post :archive
-        get :preview
-        post :translate
-      end
-
-      collection do
-        post :preview, defaults: { format: :json }
-        get :preview, defaults: { format: :json }
-      end
-    end
-    
     resources :training_concepts do
       member do
         post :translate
@@ -652,18 +638,6 @@ Rails.application.routes.draw do
 
   scope module: :users do
     resource :profile, only: %i[edit update], controller: "profiles"
-  end
-
-  # Add routes for pages
-  resources :pages do
-    member do
-      post :publish
-      post :archive
-    end
-
-    collection do
-      post :preview
-    end
   end
 
   resources :rankings, only: %i[index show]
