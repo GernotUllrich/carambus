@@ -287,11 +287,11 @@ Plans:
   5. Rollback/Idempotenz: erneuter Task-Lauf ist no-op (keine neuen Versionen, wenn bereits getaggt).
 **Out of scope (Folge-Phasen/Entscheidungen):** `global_context?`-`when Region`-Code-Fix; Nebenbefund Region 11 (BVNRW `gc=false`); Handoff H2 (branch_id) → Phase 42; Handoff H3 (Disziplin-Baum) → Phase 43.
 **UI hint**: no
-**Plans:** 1/3 plans executed
+**Plans:** 2/3 plans executed
 
 Plans:
 - [x] 41-01-PLAN.md — Wave 0: sync-mechanism characterization tests (selection, version tagging, idempotency, touch-forces-version)
-- [ ] 41-02-PLAN.md — Wave 1: fix_international_organizer_context rake task (DRY-RUN default + ARMED) + task test + ordered-redelivery integration test
+- [x] 41-02-PLAN.md — Wave 1: fix_international_organizer_context rake task (DRY-RUN default + ARMED) + task test + ordered-redelivery integration test
 - [ ] 41-03-PLAN.md — Wave 2: gated authority execution (read-only preview + sign-off → armed run → get_updates + regional-server verification)
 
 
