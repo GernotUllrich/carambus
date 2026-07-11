@@ -97,4 +97,60 @@ class RegionTaggableSyncTest < ActiveSupport::TestCase
 
     assert_not_includes affected_regions.pluck(:id), region_intl.id, "ein zweiter Task-Lauf darf nichts mehr selektieren"
   end
+
+  # Die folgenden zwei Tests laufen nur auf dem API-Server (PaperTrail ist nur
+  # aktiv, wenn Carambus.config.carambus_api_url leer ist — siehe LocalProtector).
+
+  test "region update! global_context_true creates a new version tagged global_context true from the record column" do
+    skip_unless_api_server
+
+    region_intl = Region.create!(id: REGION_BASE_ID + 5, shortname: "INT2", name: "Intl Body 2", global_context: false, region_id: nil)
+
+    before = region_intl.versions.count
+    # Echte Spaltenänderung -> normaler PaperTrail after_update-Callback feuert,
+    # anschließend tagt RegionTaggable#update_version_region_data die Version
+    # aus den AKTUELLEN Record-Spalten (nicht aus global_context?).
+    region_intl.update!(global_context: true)
+
+    assert_equal before + 1, region_intl.versions.count, "update! muss eine NEUE Version erzeugen (nicht bypassed)"
+
+    v = region_intl.versions.reload.last
+    assert_equal true, v.global_context, "Version muss aus der global_context-SPALTE des Records getaggt werden"
+    # region_intl.region_id ist hier nil (Top-Level-Verband, keiner deutschen LV zugeordnet).
+    # assert_nil statt assert_equal(nil, ...) vermeidet die Minitest-6-Deprecation-Warnung.
+    if region_intl.region_id.nil?
+      assert_nil v.region_id, "Version muss die EIGENE region_id-Spalte des Records tragen"
+    else
+      assert_equal region_intl.region_id, v.region_id, "Version muss die EIGENE region_id-Spalte des Records tragen"
+    end
+  end
+
+  test "tournament touch_forces_version with blank object_changes and populated object, ordered after region version" do
+    skip_unless_api_server
+
+    region_intl = Region.create!(id: REGION_BASE_ID + 6, shortname: "INT3", name: "Intl Body 3", global_context: false, region_id: nil)
+    tournament = Tournament.create!(
+      id: REGION_BASE_ID + 7,
+      title: "Intl Stuck Tournament",
+      season: seasons(:current),
+      organizer: region_intl,
+      single_or_league: "single",
+      date: 1.week.from_now,
+      region_id: nil
+    )
+
+    region_intl.update!(global_context: true)
+    region_version = region_intl.versions.reload.last
+
+    before = tournament.versions.count
+    # tournament.touch erzwingt eine Version trotz Null-Attribut-Diff
+    # (Events::Update#changed_notably? touch-Spezialfall, siehe 41-RESEARCH.md Q3).
+    tournament.touch
+
+    tv = tournament.versions.reload.last
+    assert_equal before + 1, tournament.versions.count, "touch muss trotz Null-Attribut-Diff eine Version erzeugen"
+    assert tv.object_changes.blank?, "touch-Version darf keine object_changes speichern"
+    assert tv.object.present?, "touch-Version muss den vollen object-Snapshot speichern (Client-Apply-Fallback)"
+    assert tv.id > region_version.id, "Tournament-Version muss NACH der Region-Version geordnet sein (organizer muss beim Apply schon existieren)"
+  end
 end
