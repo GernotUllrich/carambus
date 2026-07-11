@@ -56,6 +56,11 @@ as defined by the routes in the `admin/` namespace
         admin_incomplete_records_path,
         class: (controller_name == "incomplete_records" ? resource_link_active : resource_link)
       ) %>
+      <%= link_to(
+        "Scraping Monitor",
+        scraping_monitor_path,
+        class: (controller_name == "scraping_monitor" ? resource_link_active : resource_link)
+      ) %>
     </div>
   </div>
 </nav>
