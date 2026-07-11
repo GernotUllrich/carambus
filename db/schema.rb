@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_07_02_061649) do
+ActiveRecord::Schema[7.2].define(version: 2026_07_11_102735) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -112,8 +112,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_07_02_061649) do
     t.index ["ball_configuration_id", "table_zone_id", "which_ball", "role"], name: "idx_ball_config_zone_unique", unique: true
     t.index ["ball_configuration_id"], name: "index_ball_configuration_zones_on_ball_configuration_id"
     t.index ["table_zone_id"], name: "index_ball_configuration_zones_on_table_zone_id"
-    t.check_constraint "role::text = ANY (ARRAY['target'::character varying, 'source'::character varying, 'via'::character varying]::text[])", name: "ball_configuration_zones_role_check"
-    t.check_constraint "which_ball::text = ANY (ARRAY['b1'::character varying, 'b2'::character varying, 'b3'::character varying, 'any'::character varying]::text[])", name: "ball_configuration_zones_which_ball_check"
+    t.check_constraint "role::text = ANY (ARRAY['target'::character varying::text, 'source'::character varying::text, 'via'::character varying::text])", name: "ball_configuration_zones_role_check"
+    t.check_constraint "which_ball::text = ANY (ARRAY['b1'::character varying::text, 'b2'::character varying::text, 'b3'::character varying::text, 'any'::character varying::text])", name: "ball_configuration_zones_which_ball_check"
   end
 
   create_table "ball_configurations", force: :cascade do |t|
@@ -137,14 +137,14 @@ ActiveRecord::Schema[7.2].define(version: 2026_07_02_061649) do
     t.index ["gather_state"], name: "index_ball_configurations_on_gather_state"
     t.index ["table_variant", "gather_state"], name: "index_ball_configs_on_variant_and_gather_state"
     t.check_constraint "b1_x >= 0::double precision AND b1_x <= 1::double precision AND b1_y >= 0::double precision AND b1_y <= 1::double precision AND b2_x >= 0::double precision AND b2_x <= 1::double precision AND b2_y >= 0::double precision AND b2_y <= 1::double precision AND b3_x >= 0::double precision AND b3_x <= 1::double precision AND b3_y >= 0::double precision AND b3_y <= 1::double precision", name: "ball_configurations_normalized_coords_check"
-    t.check_constraint "biais_class IS NULL OR (biais_class::text = ANY (ARRAY['imperceptible'::character varying, 'faible'::character varying, 'moyen'::character varying, 'prononce'::character varying, 'extreme'::character varying]::text[]))", name: "ball_configs_biais_class_check"
+    t.check_constraint "biais_class IS NULL OR (biais_class::text = ANY (ARRAY['imperceptible'::character varying::text, 'faible'::character varying::text, 'moyen'::character varying::text, 'prononce'::character varying::text, 'extreme'::character varying::text]))", name: "ball_configs_biais_class_check"
     t.check_constraint "biais_degrees IS NULL OR biais_degrees >= '-180'::integer::double precision AND biais_degrees <= 180::double precision", name: "ball_configs_biais_degrees_check"
-    t.check_constraint "flow_direction IS NULL OR (flow_direction::text = ANY (ARRAY['centrifugal'::character varying, 'centripetal'::character varying]::text[]))", name: "ball_configs_flow_direction_check"
-    t.check_constraint "gather_state::text = ANY (ARRAY['pre_gather'::character varying, 'gathering'::character varying, 'post_gather'::character varying]::text[])", name: "ball_configurations_gather_state_check"
-    t.check_constraint "orientation IS NULL OR (orientation::text = ANY (ARRAY['gather'::character varying, 'distribute'::character varying, 'hybrid'::character varying]::text[]))", name: "ball_configs_orientation_check"
-    t.check_constraint "position_type::text = ANY (ARRAY['exact'::character varying, 'approximate'::character varying, 'qualitative'::character varying]::text[])", name: "ball_configs_position_type_check"
-    t.check_constraint "table_variant::text = ANY (ARRAY['match'::character varying, 'halbmatch'::character varying, 'klein'::character varying]::text[])", name: "ball_configurations_table_variant_check"
-    t.check_constraint "target_cushion IS NULL OR (target_cushion::text = ANY (ARRAY['short_left'::character varying, 'short_right'::character varying, 'long_near'::character varying, 'long_far'::character varying]::text[]))", name: "ball_configs_target_cushion_check"
+    t.check_constraint "flow_direction IS NULL OR (flow_direction::text = ANY (ARRAY['centrifugal'::character varying::text, 'centripetal'::character varying::text]))", name: "ball_configs_flow_direction_check"
+    t.check_constraint "gather_state::text = ANY (ARRAY['pre_gather'::character varying::text, 'gathering'::character varying::text, 'post_gather'::character varying::text])", name: "ball_configurations_gather_state_check"
+    t.check_constraint "orientation IS NULL OR (orientation::text = ANY (ARRAY['gather'::character varying::text, 'distribute'::character varying::text, 'hybrid'::character varying::text]))", name: "ball_configs_orientation_check"
+    t.check_constraint "position_type::text = ANY (ARRAY['exact'::character varying::text, 'approximate'::character varying::text, 'qualitative'::character varying::text])", name: "ball_configs_position_type_check"
+    t.check_constraint "table_variant::text = ANY (ARRAY['match'::character varying::text, 'halbmatch'::character varying::text, 'klein'::character varying::text])", name: "ball_configurations_table_variant_check"
+    t.check_constraint "target_cushion IS NULL OR (target_cushion::text = ANY (ARRAY['short_left'::character varying::text, 'short_right'::character varying::text, 'long_near'::character varying::text, 'long_far'::character varying::text]))", name: "ball_configs_target_cushion_check"
   end
 
   create_table "branch_ccs", force: :cascade do |t|
@@ -538,13 +538,13 @@ ActiveRecord::Schema[7.2].define(version: 2026_07_02_061649) do
     t.text "game_parameters"
     t.boolean "game_plan_locked", default: false, null: false
     t.integer "region_id"
-    t.integer "branch_id"
     t.boolean "global_context", default: false
+    t.integer "branch_id"
     t.index ["ba_id", "ba_id2"], name: "index_leagues_on_ba_id_and_ba_id2", unique: true
+    t.index ["branch_id"], name: "index_leagues_on_branch_id"
     t.index ["cc_id", "cc_id2", "organizer_id", "organizer_type"], name: "index_leagues_on_cc_ids_organizer_unique", unique: true, where: "((cc_id IS NOT NULL) AND ((organizer_type)::text = 'Region'::text))"
     t.index ["global_context"], name: "index_leagues_on_global_context"
     t.index ["region_id"], name: "index_leagues_on_region_id"
-    t.index ["branch_id"], name: "index_leagues_on_branch_id"
   end
 
   create_table "location_synonyms", force: :cascade do |t|
@@ -597,31 +597,6 @@ ActiveRecord::Schema[7.2].define(version: 2026_07_02_061649) do
     t.text "data"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-  end
-
-  create_table "pages", force: :cascade do |t|
-    t.string "title", null: false
-    t.text "content"
-    t.text "summary"
-    t.integer "super_page_id"
-    t.integer "position"
-    t.string "author_type"
-    t.integer "author_id"
-    t.string "content_type", default: "markdown"
-    t.string "status", default: "draft"
-    t.datetime "published_at"
-    t.jsonb "tags", default: []
-    t.jsonb "metadata", default: {}
-    t.jsonb "crud_minimum_roles", default: {"read"=>"player", "create"=>"system_admin", "delete"=>"system_admin", "update"=>"system_admin"}
-    t.string "version", default: "0.1"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.datetime "last_translated_at"
-    t.string "slug", default: "", null: false
-    t.index ["author_type", "author_id"], name: "index_pages_on_author_type_and_author_id"
-    t.index ["status"], name: "index_pages_on_status"
-    t.index ["super_page_id"], name: "index_pages_on_super_page_id"
-    t.index ["tags"], name: "index_pages_on_tags", using: :gin
   end
 
   create_table "parties", force: :cascade do |t|
@@ -988,9 +963,9 @@ ActiveRecord::Schema[7.2].define(version: 2026_07_02_061649) do
     t.datetime "updated_at", null: false
     t.index ["shot_id", "sequence_number"], name: "idx_shot_events_on_shot_and_sequence", unique: true
     t.index ["shot_id"], name: "index_shot_events_on_shot_id"
-    t.check_constraint "ball_involved IS NULL OR (ball_involved::text = ANY (ARRAY['b1'::character varying, 'b2'::character varying, 'b3'::character varying]::text[]))", name: "shot_events_ball_involved_check"
-    t.check_constraint "cushion_involved IS NULL OR (cushion_involved::text = ANY (ARRAY['short_left'::character varying, 'short_right'::character varying, 'long_near'::character varying, 'long_far'::character varying]::text[]))", name: "shot_events_cushion_involved_check"
-    t.check_constraint "event_type::text = ANY (ARRAY['initial_contact'::character varying, 'cushion_contact'::character varying, 'sperre'::character varying, 'austausch'::character varying, 'final_carambolage'::character varying, 'near_miss'::character varying]::text[])", name: "shot_events_event_type_check"
+    t.check_constraint "ball_involved IS NULL OR (ball_involved::text = ANY (ARRAY['b1'::character varying::text, 'b2'::character varying::text, 'b3'::character varying::text]))", name: "shot_events_ball_involved_check"
+    t.check_constraint "cushion_involved IS NULL OR (cushion_involved::text = ANY (ARRAY['short_left'::character varying::text, 'short_right'::character varying::text, 'long_near'::character varying::text, 'long_far'::character varying::text]))", name: "shot_events_cushion_involved_check"
+    t.check_constraint "event_type::text = ANY (ARRAY['initial_contact'::character varying::text, 'cushion_contact'::character varying::text, 'sperre'::character varying::text, 'austausch'::character varying::text, 'final_carambolage'::character varying::text, 'near_miss'::character varying::text])", name: "shot_events_event_type_check"
   end
 
   create_table "shots", force: :cascade do |t|
@@ -1213,7 +1188,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_07_02_061649) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["key"], name: "index_table_zones_on_key", unique: true
-    t.check_constraint "zone_type::text = ANY (ARRAY['band_strip'::character varying, 'corner_region'::character varying, 'line_passage'::character varying, 'custom'::character varying]::text[])", name: "table_zones_zone_type_check"
+    t.check_constraint "zone_type::text = ANY (ARRAY['band_strip'::character varying::text, 'corner_region'::character varying::text, 'line_passage'::character varying::text, 'custom'::character varying::text])", name: "table_zones_zone_type_check"
   end
 
   create_table "tables", force: :cascade do |t|
@@ -1441,7 +1416,6 @@ ActiveRecord::Schema[7.2].define(version: 2026_07_02_061649) do
     t.integer "ba_id"
     t.integer "season_id"
     t.integer "region_id"
-    t.integer "branch_id"
     t.datetime "end_date", precision: nil
     t.string "plan_or_show"
     t.string "single_or_league"
@@ -1485,14 +1459,15 @@ ActiveRecord::Schema[7.2].define(version: 2026_07_02_061649) do
     t.string "external_id"
     t.bigint "international_source_id"
     t.bigint "turnier_leiter_user_id"
+    t.integer "branch_id"
     t.index ["ba_id"], name: "index_tournaments_on_ba_id", unique: true
+    t.index ["branch_id"], name: "index_tournaments_on_branch_id"
     t.index ["external_id", "international_source_id"], name: "idx_tournaments_external_id_source", unique: true, where: "((external_id IS NOT NULL) AND (international_source_id IS NOT NULL))"
     t.index ["global_context"], name: "index_tournaments_on_global_context"
     t.index ["international_source_id"], name: "index_tournaments_on_international_source_id"
     t.index ["international_tournament_id"], name: "index_tournaments_on_international_tournament_id"
     t.index ["turnier_leiter_user_id"], name: "index_tournaments_on_turnier_leiter_user_id"
     t.index ["type"], name: "index_tournaments_on_type"
-    t.index ["branch_id"], name: "index_tournaments_on_branch_id"
   end
 
   create_table "training_concept_disciplines", force: :cascade do |t|
@@ -1518,7 +1493,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_07_02_061649) do
     t.index ["training_concept_id", "training_example_id"], name: "idx_concept_example_unique", unique: true
     t.index ["training_concept_id"], name: "index_training_concept_examples_on_training_concept_id"
     t.index ["training_example_id"], name: "index_training_concept_examples_on_training_example_id"
-    t.check_constraint "role IS NULL OR (role::text = ANY (ARRAY['illustrates'::character varying, 'counter_example'::character varying]::text[]))", name: "training_concept_examples_role_check"
+    t.check_constraint "role IS NULL OR (role::text = ANY (ARRAY['illustrates'::character varying::text, 'counter_example'::character varying::text]))", name: "training_concept_examples_role_check"
     t.check_constraint "weight >= 1 AND weight <= 5", name: "training_concept_examples_weight_check"
   end
 
@@ -1532,7 +1507,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_07_02_061649) do
     t.index ["source_concept_id", "target_concept_id", "relation"], name: "idx_concept_relation_unique", unique: true
     t.index ["source_concept_id"], name: "index_training_concept_relations_on_source_concept_id"
     t.index ["target_concept_id"], name: "index_training_concept_relations_on_target_concept_id"
-    t.check_constraint "relation::text = ANY (ARRAY['teaches'::character varying, 'applies'::character varying, 'exemplifies'::character varying, 'specializes'::character varying, 'parallels'::character varying]::text[])", name: "training_concept_relations_relation_check"
+    t.check_constraint "relation::text = ANY (ARRAY['teaches'::character varying::text, 'applies'::character varying::text, 'exemplifies'::character varying::text, 'specializes'::character varying::text, 'parallels'::character varying::text])", name: "training_concept_relations_relation_check"
     t.check_constraint "source_concept_id <> target_concept_id", name: "training_concept_relations_no_self_loop"
   end
 
@@ -1563,8 +1538,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_07_02_061649) do
     t.index ["title_de"], name: "index_training_concepts_on_title_de"
     t.index ["title_en"], name: "index_training_concepts_on_title_en"
     t.index ["translations"], name: "index_training_concepts_on_translations", using: :gin
-    t.check_constraint "axis::text = ANY (ARRAY['technique'::character varying, 'conception'::character varying, 'psychology'::character varying, 'training'::character varying]::text[])", name: "training_concepts_axis_check"
-    t.check_constraint "kind IS NULL OR (kind::text = ANY (ARRAY['topic'::character varying, 'strategic_maxim'::character varying, 'measurable_dimension'::character varying, 'phenomenological'::character varying, 'technique'::character varying, 'system'::character varying]::text[]))", name: "training_concepts_kind_check"
+    t.check_constraint "axis::text = ANY (ARRAY['technique'::character varying::text, 'conception'::character varying::text, 'psychology'::character varying::text, 'training'::character varying::text])", name: "training_concepts_axis_check"
+    t.check_constraint "kind IS NULL OR (kind::text = ANY (ARRAY['topic'::character varying::text, 'strategic_maxim'::character varying::text, 'measurable_dimension'::character varying::text, 'phenomenological'::character varying::text, 'technique'::character varying::text, 'system'::character varying::text]))", name: "training_concepts_kind_check"
   end
 
   create_table "training_examples", force: :cascade do |t|
