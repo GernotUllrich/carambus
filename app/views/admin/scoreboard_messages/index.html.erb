@@ -41,7 +41,7 @@
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                 <% if message.table_monitor_id.present? %>
-                  <span class="text-blue-600">Table: <%= message.table_monitor.name %></span>
+                  <span class="text-primary-600">Table: <%= message.table_monitor.name %></span>
                 <% else %>
                   <span class="text-purple-600 font-semibold">All Tables</span>
                 <% end %>
@@ -75,7 +75,7 @@
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                 <div class="flex gap-2">
-                  <%= link_to 'View', admin_scoreboard_message_path(message), class: 'text-blue-600 hover:text-blue-900' %>
+                  <%= link_to 'View', admin_scoreboard_message_path(message), class: 'text-primary-600 hover:text-primary-900' %>
                   <% if message.active? %>
                     <%= button_to 'Acknowledge', acknowledge_admin_scoreboard_message_path(message), 
                         method: :post, 

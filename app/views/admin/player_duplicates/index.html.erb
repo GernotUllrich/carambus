@@ -43,13 +43,13 @@
     <!-- Player Comparison -->
     <div class="grid gap-6 mb-6" style="grid-template-columns: repeat(<%= players.count %>, 1fr);">
       <% players.each_with_index do |player, idx| %>
-        <div class="border rounded-lg p-4 <%= idx == 0 ? 'border-blue-500 border-2' : 'border-gray-300' %>" 
+        <div class="border rounded-lg p-4 <%= idx == 0 ? 'border-primary-500 border-2' : 'border-gray-300' %>" 
              id="player-<%= player.id %>">
           <div class="flex justify-between items-start mb-4">
             <h3 class="font-bold text-lg">
               Player <%= idx + 1 %>
               <% if idx == 0 %>
-                <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded ml-2">Suggested Master</span>
+                <span class="text-xs bg-primary-100 text-primary-800 px-2 py-1 rounded ml-2">Suggested Master</span>
               <% end %>
             </h3>
             <span class="text-xs text-gray-500">ID: <%= player.id %></span>
@@ -261,7 +261,7 @@
     </div>
 
     <!-- Quick Stats -->
-    <div class="mt-6 p-4 bg-blue-50 border border-blue-200 rounded">
+    <div class="mt-6 p-4 bg-primary-50 border border-primary-200 rounded">
       <h3 class="font-semibold mb-2">Overall Progress</h3>
       <div class="text-sm">
         <div class="flex justify-between">
