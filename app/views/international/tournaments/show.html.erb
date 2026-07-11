@@ -104,13 +104,13 @@
 
   <!-- Tournament Videos -->
   <section class="mb-12">
-    <h2 class="text-2xl font-bold text-gray-900 mb-6">Tournament Videos</h2>
+    <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6">Tournament Videos</h2>
 
     <% if @videos.any? %>
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         <% @videos.each do |video| %>
           <a href="<%= international_video_path(video) %>"
-             class="block bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow overflow-hidden">
+             class="block bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-xl transition-shadow overflow-hidden">
             <!-- Thumbnail -->
             <% if video.thumbnail_url.present? %>
               <div class="relative pb-[56.25%]">
@@ -135,11 +135,11 @@
 
             <!-- Video Info -->
             <div class="p-4">
-              <h3 class="text-sm font-semibold text-gray-900 mb-2 line-clamp-2" title="<%= video.title %>">
+              <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-2 line-clamp-2" title="<%= video.title %>">
                 <%= video.translated_title(:en) %>
               </h3>
 
-              <div class="text-xs text-gray-600 space-y-1">
+              <div class="text-xs text-gray-600 dark:text-gray-300 space-y-1">
                 <p><%= video.international_source.name %></p>
                 <% if video.published_at.present? %>
                   <p><%= time_ago_in_words(video.published_at) %> ago</p>
@@ -159,55 +159,55 @@
         <% end %>
       </div>
     <% else %>
-      <p class="text-gray-600 italic">No videos available for this tournament yet.</p>
+      <p class="text-gray-600 dark:text-gray-300 italic">No videos available for this tournament yet.</p>
     <% end %>
   </section>
 
   <!-- Rankings Section -->
   <% if @all_participations.any? %>
     <section class="mb-12">
-      <h2 class="text-2xl font-bold text-gray-900 mb-6">Ranglisten</h2>
+      <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6">Ranglisten</h2>
 
-      <div class="bg-white rounded-lg shadow-md overflow-hidden">
-        <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
-          <h3 class="text-lg font-semibold text-gray-900">Gesamtrangliste</h3>
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
+        <div class="px-6 py-4 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-700">
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Gesamtrangliste</h3>
         </div>
 
         <div class="overflow-x-auto">
-          <table class="min-w-full divide-y divide-gray-200">
-            <thead class="bg-gray-50">
+          <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+            <thead class="bg-gray-50 dark:bg-gray-700">
               <tr>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rang</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Land</th>
-                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Punkte</th>
-                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Aufn.</th>
-                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">GD</th>
-                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">HS</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Rang</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Name</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Land</th>
+                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Punkte</th>
+                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Aufn.</th>
+                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">GD</th>
+                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">HS</th>
               </tr>
             </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
+            <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
               <% @all_participations.each_with_index do |participation, index| %>
-                <tr class="hover:bg-gray-50">
-                  <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
+                  <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
                     <%= index + 1 %>
                   </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
                     <%= participation.player&.fl_name || '-' %>
                   </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">
                     <%= participation.player&.nationality || '-' %>
                   </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right font-mono">
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100 text-right font-mono">
                     <%= participation.result || 0 %>
                   </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600 text-right font-mono">
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300 text-right font-mono">
                     <%= participation.innings || 0 %>
                   </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600 text-right font-mono">
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300 text-right font-mono">
                     <%= participation.gd ? number_with_precision(participation.gd, precision: 2) : '-' %>
                   </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600 text-right font-mono">
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300 text-right font-mono">
                     <%= participation.hs || '-' %>
                   </td>
                 </tr>
@@ -222,7 +222,7 @@
   <!-- Games Section -->
   <% if @phase_games.any? %>
     <section class="mb-12">
-      <h2 class="text-2xl font-bold text-gray-900 mb-6">Spiele</h2>
+      <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6">Spiele</h2>
 
       <div class="space-y-6">
         <% @phase_games.each do |phase_game| %>
@@ -232,7 +232,7 @@
             matches_by_group = phase_matches.group_by { |g| g.data['group'] || g.group_no || 'A' }
           %>
 
-          <div class="bg-white rounded-lg shadow-md overflow-hidden">
+          <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
             <!-- Phase Header -->
             <div class="px-6 py-4 bg-gradient-to-r from-blue-600 to-blue-700">
               <h3 class="text-lg font-bold text-white"><%= phase_game.display_gname_lines.join(" - ") %></h3>
@@ -240,34 +240,34 @@
 
             <% matches_by_group.sort_by { |group, _| group.to_s }.each do |group, matches| %>
               <!-- Group Section -->
-              <div class="border-b border-gray-200 last:border-b-0">
-                <div class="px-6 py-3 bg-gray-50">
-                  <h4 class="font-semibold text-gray-700">Gruppe <%= group %></h4>
+              <div class="border-b border-gray-200 dark:border-gray-700 last:border-b-0">
+                <div class="px-6 py-3 bg-gray-50 dark:bg-gray-700">
+                  <h4 class="font-semibold text-gray-700 dark:text-gray-200">Gruppe <%= group %></h4>
                 </div>
 
                 <div class="overflow-x-auto">
                   <table class="min-w-full">
-                    <thead class="bg-gray-50 border-b border-gray-200">
+                    <thead class="bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-700">
                       <tr>
-                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Partie</th>
-                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Heim</th>
-                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Gast</th>
-                        <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase">Punkte</th>
-                        <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase">Aufn.</th>
-                        <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase">HS</th>
-                        <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase">Durchschnitt</th>
-                        <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase">Video</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Partie</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Heim</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Gast</th>
+                        <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Punkte</th>
+                        <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Aufn.</th>
+                        <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">HS</th>
+                        <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Durchschnitt</th>
+                        <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Video</th>
                       </tr>
                     </thead>
-                    <tbody class="divide-y divide-gray-100">
+                    <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
                       <% matches.sort_by { |m| m.data['umb_match_number'] || 0 }.each do |match| %>
                         <%
                           participations = match.game_participations.includes(:player).to_a
                           home = participations[0]
                           away = participations[1]
                         %>
-                        <tr class="hover:bg-gray-50">
-                          <td class="px-4 py-3 text-sm text-gray-900">
+                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
+                          <td class="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">
                             <%= match.data['umb_match_number'] %>
                           </td>
                           <td class="px-4 py-3 text-sm <%= 'font-bold text-green-600' if home && away && home.result > away.result %>">

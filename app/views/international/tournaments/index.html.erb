@@ -1,38 +1,38 @@
 <div class="container mx-auto px-4 py-8">
   <div class="mb-8">
-    <h1 class="text-4xl font-bold text-gray-900 mb-2">International Tournaments</h1>
-    <p class="text-xl text-gray-600">Browse carom billiards tournaments from around the world</p>
+    <h1 class="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-2">International Tournaments</h1>
+    <p class="text-xl text-gray-600 dark:text-gray-300">Browse carom billiards tournaments from around the world</p>
   </div>
 
   <!-- Filters -->
-  <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+  <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-8">
     <%= form_with url: international_tournaments_path, method: :get, class: 'space-y-4' do |f| %>
       <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
         <!-- Tournament Type Filter -->
         <div>
-          <%= f.label :type, 'Type', class: 'block text-sm font-medium text-gray-700 mb-1' %>
+          <%= f.label :type, 'Type', class: 'block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1' %>
           <%= f.select :type,
               options_for_select(@tournament_types.map { |t| [t.humanize, t] }, params[:type]),
               { include_blank: 'All Types' },
-              class: 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500' %>
+              class: 'form-control' %>
         </div>
 
         <!-- Discipline Filter (Hierarchical) -->
         <div>
-          <%= f.label :discipline_id, 'Discipline', class: 'block text-sm font-medium text-gray-700 mb-1' %>
+          <%= f.label :discipline_id, 'Discipline', class: 'block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1' %>
           <%= f.select :discipline_id,
               grouped_options_for_select(grouped_disciplines_for_select, params[:discipline_id]),
               { include_blank: 'All Disciplines' },
-              class: 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500' %>
+              class: 'form-control' %>
         </div>
 
         <!-- Year Filter -->
         <div>
-          <%= f.label :year, 'Year', class: 'block text-sm font-medium text-gray-700 mb-1' %>
+          <%= f.label :year, 'Year', class: 'block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1' %>
           <%= f.select :year,
               options_for_select((2014..2026).to_a.reverse, params[:year]),
               { include_blank: 'All Years' },
-              class: 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500' %>
+              class: 'form-control' %>
         </div>
 
         <!-- Submit Button -->
@@ -47,7 +47,7 @@
           <%= f.check_box :official_umb, 
               { checked: params[:official_umb] == '1', class: 'w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-500' },
               '1', '0' %>
-          <span class="ml-2 text-sm font-medium text-gray-700">
+          <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-200">
             Show only official UMB tournaments
             <span class="ml-1 px-2 py-0.5 text-xs font-semibold text-blue-800 bg-blue-100 rounded">Official</span>
           </span>
@@ -60,14 +60,14 @@
   <div class="flex justify-end mb-6">
     <div class="inline-flex rounded-lg shadow-sm" role="group">
       <%= link_to international_tournaments_path(view: 'grid', type: params[:type], discipline_id: params[:discipline_id], year: params[:year], official_umb: params[:official_umb]), 
-          class: "px-4 py-2 text-sm font-medium #{params[:view] != 'table' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-50'} border border-gray-300 rounded-l-lg transition-colors inline-flex items-center" do %>
+          class: "px-4 py-2 text-sm font-medium #{params[:view] != 'table' ? 'bg-blue-600 text-white' : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700'} border border-gray-300 rounded-l-lg transition-colors inline-flex items-center" do %>
         <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
           <path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM11 13a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
         </svg>
         Grid
       <% end %>
       <%= link_to international_tournaments_path(view: 'table', type: params[:type], discipline_id: params[:discipline_id], year: params[:year], official_umb: params[:official_umb]), 
-          class: "px-4 py-2 text-sm font-medium #{params[:view] == 'table' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-50'} border-l-0 border border-gray-300 rounded-r-lg transition-colors inline-flex items-center" do %>
+          class: "px-4 py-2 text-sm font-medium #{params[:view] == 'table' ? 'bg-blue-600 text-white' : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700'} border-l-0 border border-gray-300 rounded-r-lg transition-colors inline-flex items-center" do %>
         <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
           <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"/>
         </svg>
@@ -85,7 +85,7 @@
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
       <% @tournaments.each do |tournament| %>
         <a href="<%= international_tournament_path(tournament) %>" 
-           class="block bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow p-6">
+           class="block bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-xl transition-shadow p-6">
           <!-- Tournament Type Badge -->
           <div class="mb-4">
             <span class="inline-block px-3 py-1 text-sm font-semibold <%= tournament_type_badge_class(tournament.tournament_type) %> rounded-full">
@@ -94,7 +94,7 @@
           </div>
 
           <!-- Tournament Name -->
-          <h3 class="text-xl font-bold text-gray-900 mb-3">
+          <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-3">
             <%= tournament.name %>
             <% if tournament.official_umb? %>
               <span class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">
@@ -107,7 +107,7 @@
           </h3>
 
           <!-- Details -->
-          <div class="text-gray-600 space-y-2">
+          <div class="text-gray-600 dark:text-gray-300 space-y-2">
             <!-- Discipline -->
             <p class="flex items-center">
               <svg class="w-4 h-4 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -156,8 +156,8 @@
       <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
       </svg>
-      <h3 class="mt-2 text-sm font-medium text-gray-900">No tournaments found</h3>
-      <p class="mt-1 text-sm text-gray-500">Try adjusting your filter criteria.</p>
+      <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-gray-100">No tournaments found</h3>
+      <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Try adjusting your filter criteria.</p>
     </div>
   <% end %>
 </div>

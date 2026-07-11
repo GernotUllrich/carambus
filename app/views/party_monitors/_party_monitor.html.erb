@@ -55,12 +55,12 @@
                 <td class="p-3">
                   <p>
                     <%= content_tag(:button, name: "assign_a", title: "Melden", data: { turbo: false, reflex: "click->PartyMonitorReflex#assign_player_a", reflex_serialize_form: "true", id: @party_monitor.id, 'reflex-dataset': "ancestors" }) do %>
-                      <%= render_svg "icons/arrow-thin-left", styles: "fill-current icon-sm text-gray-600 inline-block" %>
+                      <%= render_svg "icons/arrow-thin-left", styles: "fill-current icon-sm text-gray-600 dark:text-gray-300 inline-block" %>
                     <%- end %>
                   </p>
                   <p>
                     <%= content_tag(:button, name: "remove_a", title: "Abmelden", data: { turbo: false, reflex: "click->PartyMonitorReflex#remove_player_a", reflex_serialize_form: "true", id: @party_monitor.id, 'reflex-dataset': "ancestors" }) do %>
-                      <%= render_svg "icons/arrow-thin-right", styles: "fill-current icon-sm text-gray-600 inline-block" %>
+                      <%= render_svg "icons/arrow-thin-right", styles: "fill-current icon-sm text-gray-600 dark:text-gray-300 inline-block" %>
                     <%- end %>
                   </p>
                 </td>
@@ -107,12 +107,12 @@
                 <td class="p-3">
                   <p>
                     <%= content_tag(:button, name: "assign_b", title: "Melden", data: { turbo: false, reflex: "click->PartyMonitorReflex#assign_player_b", reflex_serialize_form: "true", id: @party_monitor.id, 'reflex-dataset': "ancestors" }) do %>
-                      <%= render_svg "icons/arrow-thin-left", styles: "fill-current icon-sm text-gray-600 inline-block" %>
+                      <%= render_svg "icons/arrow-thin-left", styles: "fill-current icon-sm text-gray-600 dark:text-gray-300 inline-block" %>
                     <%- end %>
                   </p>
                   <p>
                     <%= content_tag(:button, name: "remove_b", title: "Abmelden", data: { turbo: false, reflex: "click->PartyMonitorReflex#remove_player_b", reflex_serialize_form: "true", id: @party_monitor.id, 'reflex-dataset': "ancestors" }) do %>
-                      <%= render_svg "icons/arrow-thin-right", styles: "fill-current icon-sm text-gray-600 inline-block" %>
+                      <%= render_svg "icons/arrow-thin-right", styles: "fill-current icon-sm text-gray-600 dark:text-gray-300 inline-block" %>
                     <%- end %>
                   </p>
                 </td>

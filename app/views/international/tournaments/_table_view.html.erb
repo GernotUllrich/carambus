@@ -1,4 +1,4 @@
-<div class="bg-white rounded-lg shadow-md overflow-hidden">
+<div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
   <%
     # Gruppierung nach Jahr/Monat
     tournaments_by_month = tournaments.group_by { |t| [t.date.year, t.date.month] }
@@ -6,12 +6,12 @@
   %>
   
   <% tournaments_by_month.each do |(year, month), month_tournaments| %>
-    <div class="border-b border-gray-200 last:border-b-0">
+    <div class="border-b border-gray-200 dark:border-gray-700 last:border-b-0">
       <!-- Monats-Header -->
       <div class="bg-gray-100 px-6 py-3 sticky top-0 z-10 border-b border-gray-300">
-        <h3 class="text-lg font-bold text-gray-900">
+        <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100">
           <%= Date.new(year, month, 1).strftime('%B %Y') %>
-          <span class="ml-2 text-sm font-normal text-gray-600">
+          <span class="ml-2 text-sm font-normal text-gray-600 dark:text-gray-300">
             (<%= pluralize(month_tournaments.count, 'tournament') %>)
           </span>
         </h3>
@@ -19,21 +19,21 @@
       
       <!-- Monats-Tabelle -->
       <div class="overflow-x-auto">
-        <table class="min-w-full divide-y divide-gray-200">
-          <thead class="bg-gray-50">
+        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+          <thead class="bg-gray-50 dark:bg-gray-700">
             <tr>
-              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tournament</th>
-              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
-              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Discipline</th>
-              <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Videos</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Date</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Tournament</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Type</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Location</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Discipline</th>
+              <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Videos</th>
             </tr>
           </thead>
-          <tbody class="bg-white divide-y divide-gray-100">
+          <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-100 dark:divide-gray-700">
             <% month_tournaments.sort_by(&:date).each do |tournament| %>
-              <tr class="hover:bg-gray-50 transition-colors">
-                <td class="px-4 py-3 text-sm text-gray-900 whitespace-nowrap font-medium">
+              <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                <td class="px-4 py-3 text-sm text-gray-900 dark:text-gray-100 whitespace-nowrap font-medium">
                   <%= tournament.date.strftime('%d.%m.%Y') %>
                 </td>
                 <td class="px-4 py-3">
@@ -59,10 +59,10 @@
                     <span class="text-gray-400">-</span>
                   <% end %>
                 </td>
-                <td class="px-4 py-3 text-sm text-gray-700">
+                <td class="px-4 py-3 text-sm text-gray-700 dark:text-gray-200">
                   <%= tournament.location.presence || '-' %>
                 </td>
-                <td class="px-4 py-3 text-sm text-gray-700">
+                <td class="px-4 py-3 text-sm text-gray-700 dark:text-gray-200">
                   <%= tournament.discipline.name %>
                 </td>
                 <td class="px-4 py-3 text-sm text-center">
