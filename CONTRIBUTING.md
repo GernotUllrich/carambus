@@ -74,6 +74,23 @@ In tests, `LocalProtector` is disabled via `LocalProtectorTestOverride` in `test
 
 See `CLAUDE.md` at the repo root for a compact architecture and conventions overview.
 
+## Working with Claude Code & PAUL (planning handoff)
+
+Much of Carambus is developed with [Claude Code](https://claude.com/claude-code) using the **PAUL** planning framework (a PLAN → APPLY → UNIFY loop). The planning state and the assistant's memory deliberately live **outside git** and are therefore *not* carried by a fresh `git clone`:
+
+- `.paul/` — project memory (STATE / PROJECT / ROADMAP + per-phase PLAN/SUMMARY history)
+- `.claude/paul-framework/` and `.claude/commands/paul/` — the PAUL machinery and `/paul:*` commands
+- `~/.claude/projects/<path-hash>/memory/` — Claude's auto-memory (path-hashed, lives in `$HOME`)
+- `~/.carambus_config` — account-specific entry points (`CARAMBUS_BASE`, WLAN) — **contains a secret**
+
+To onboard a new developer or a fresh test scenario **without losing this context**, run the bundler at the repo root:
+
+```bash
+bash paul-handoff-bundle.sh          # -> tmp/paul-handoff-<stamp>.tar.gz
+```
+
+Hand the resulting archive over; its `INSTALL.sh` places `.paul/`, the PAUL machinery, and the memory into the target checkout (recomputing the memory path-hash for the new location). Scenario-specific config (`config/carambus.yml`, `.claude/launch.json`) and `~/.carambus_config` are included **only as redacted templates** — real secrets are never bundled and must be provided over a secure channel. The new developer then runs `/paul:resume` to continue where the last session stopped.
+
 ## Questions?
 
 - Open a [GitHub issue](https://github.com/GernotUllrich/carambus/issues)
