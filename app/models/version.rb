@@ -26,6 +26,12 @@ class Version < PaperTrail::Version
 
   self.ignored_columns = ["region_ids"]
 
+  # H33 (P1): Wird geworfen, wenn der API-Server keine verwertbare (leere/nicht-JSON)
+  # Antwort liefert. ApplicationController fängt das zentral ab (roter Flash statt 500).
+  # Client-Guard/Stopgap — die eigentliche Ursache (api.carambus.de/versions/* → 403/leer)
+  # liegt API-seitig (Authority/carambus_api).
+  class ApiUnavailableError < StandardError; end
+
   # Version erbt von PaperTrail::Version (nicht ApplicationRecord), daher fehlt die dort
   # definierte sort_by_params-Klassenmethode. Selbst-enthaltene Variante (alle Spalten sortierbar).
   def self.sort_by_params(column, direction)
@@ -57,6 +63,18 @@ class Version < PaperTrail::Version
     response.body
   end
 
+  # H33 (P1): Guard gegen leere/nicht-JSON-API-Antworten. Gibt nil zurück, wenn der
+  # Body blank ist oder nicht als JSON geparst werden kann (statt eines rohen
+  # JSON::ParserError-500). Ein gültiges leeres JSON (`[]`/`{}`) parst normal weiter.
+  def self.parse_api_json(json_io)
+    return nil if json_io.blank?
+
+    JSON.parse(json_io)
+  rescue JSON::ParserError => e
+    Rails.logger.warn("parse_api_json: keine gültige JSON-Antwort (#{e.message})")
+    nil
+  end
+
   def self.list_sequence
     sql = <<~SQL
       SELECT 'SELECT NEXTVAL(' ||
@@ -86,7 +104,11 @@ class Version < PaperTrail::Version
     Rails.logger.info ">>>>>>>>>>>>>>>> GET #{url} <<<<<<<<<<<<<<<<"
     uri = URI(url)
     json_io = http_get_with_ssl_bypass(uri)
-    vers = JSON.parse(json_io)
+    vers = parse_api_json(json_io)
+    if vers.nil?
+      Rails.logger.warn("update_carambus: keine gültige API-Antwort von #{url} — übersprungen")
+      return
+    end
     revision = vers["current_revision"]
     my_revision = `cat #{Rails.root}/REVISION`.strip
     if my_revision != revision
@@ -178,7 +200,8 @@ class Version < PaperTrail::Version
     url = "#{Carambus.config.carambus_api_url}/versions/last_version"
     uri = URI(url)
     json_io = http_get_with_ssl_bypass(uri)
-    JSON.parse(json_io)["last_version"]
+    parsed = parse_api_json(json_io)
+    parsed.is_a?(Hash) ? parsed["last_version"] : Version.last&.id
   rescue OpenURI::HTTPError => e
     Rails.logger.info "===== #{e} cannot read from #{url}"
     e.to_s
@@ -318,7 +341,9 @@ class Version < PaperTrail::Version
     Rails.logger.info ">>>>>>>>>>>>>>>> GET #{url} <<<<<<<<<<<<<<<<"
     uri = URI(url)
     json_io = http_get_with_ssl_bypass(uri)
-    vers = JSON.parse(json_io)
+    vers = parse_api_json(json_io)
+    raise ApiUnavailableError, "Keine gültige Antwort von #{url}" if vers.nil?
+
     while vers.present?
       h = vers.shift
       break if h.blank?

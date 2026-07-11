@@ -179,4 +179,41 @@ class VersionTest < ActiveSupport::TestCase
     assert_equal false, called,
       "T-CR-01: Version.sequence_reset must NOT be called when local_server? returns false"
   end
+
+  # === H33 (P1) — Guard gegen leere/nicht-JSON-API-Antwort (kein roher 500) ===
+
+  test "parse_api_json returns nil for blank body" do
+    assert_nil Version.parse_api_json("")
+    assert_nil Version.parse_api_json(nil)
+  end
+
+  test "parse_api_json returns nil for non-JSON body (empty/403)" do
+    assert_nil Version.parse_api_json("not json")
+    assert_nil Version.parse_api_json("<html>403 Forbidden</html>")
+  end
+
+  test "parse_api_json parses valid JSON object and array" do
+    assert_equal({"a" => 1}, Version.parse_api_json('{"a":1}'))
+    assert_equal([1, 2], Version.parse_api_json("[1,2]"))
+  end
+
+  test "update_from_carambus_api raises ApiUnavailableError on empty API body (H33)" do
+    Version.stub :http_get_with_ssl_bypass, "" do
+      assert_raises(Version::ApiUnavailableError) do
+        Version.update_from_carambus_api({})
+      end
+    end
+  end
+
+  test "last_version falls back to local last id on empty API body (H33, no 500)" do
+    Version.stub :http_get_with_ssl_bypass, "" do
+      assert_equal Version.last&.id, Version.last_version
+    end
+  end
+
+  test "update_carambus is nil-safe on empty API body (H33, no crash)" do
+    Version.stub :http_get_with_ssl_bypass, "" do
+      assert_nothing_raised { Version.update_carambus }
+    end
+  end
 end

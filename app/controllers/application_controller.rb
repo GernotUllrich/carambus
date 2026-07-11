@@ -6,6 +6,10 @@ class ApplicationController < ActionController::Base
   include DarkModeHelper
   protect_from_forgery with: :exception
 
+  # H33 (P1): Datenabgleich-Aktionen crashten mit rohem 500, wenn der API-Server eine
+  # leere/nicht-JSON-Antwort liefert. Zentraler Abfang → roter Flash statt 500/False-Success.
+  rescue_from Version::ApiUnavailableError, with: :handle_api_unavailable
+
   include Authentication
   include Authorization
   include CurrentHelper
@@ -159,6 +163,13 @@ class ApplicationController < ActionController::Base
   end
 
   private
+
+  # H33 (P1): Handler für Version::ApiUnavailableError — sauberer roter Flash + zurück,
+  # statt rohem 500 bzw. falschem Erfolgs-Notice. Deckt alle ~13 Datenabgleich-Aktionen ab.
+  def handle_api_unavailable(exception)
+    Rails.logger.warn("ApiUnavailableError: #{exception.message}")
+    redirect_back fallback_location: root_path, alert: t("application.flash.api_unavailable")
+  end
 
   def require_account
     redirect_to new_user_registration_path unless current_account

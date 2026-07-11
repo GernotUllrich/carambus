@@ -203,6 +203,7 @@ en:
       password: Password
       profile: Profile
     flash:
+      api_unavailable: The API server is currently unavailable. Please try again later.
       confirm_payment: Confirm your latest payment
     footer:
       about: About Us

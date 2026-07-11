@@ -203,6 +203,7 @@ de:
       password: Password
       profile: Profil
     flash:
+      api_unavailable: Der API-Server ist derzeit nicht erreichbar. Bitte später erneut versuchen.
       confirm_payment: Betätige Die letzte Zahlung
     footer:
       about: Über uns
