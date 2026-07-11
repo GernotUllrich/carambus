@@ -128,6 +128,12 @@ module ApplicationHelper
       (@location.present? && params[:sb_state].present?)
   end
 
+  # H47: /international-Seiten (International/Tournaments/Videos) liegen außerhalb der
+  # DE-Regionen → das Scope-Band (Region·Saison·Branch) filtert dort nichts und wird ausgeblendet.
+  def international_page?
+    controller_path.to_s.start_with?("international")
+  end
+
   def title(page_title)
     content_for(:title) { page_title }
   end
