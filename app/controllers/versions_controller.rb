@@ -1,5 +1,9 @@
 class VersionsController < ApplicationController
-  before_action :system_admin_only
+  # Maschine-zu-Maschine-Sync-Endpoints: von anderen Carambus-Servern ohne
+  # Admin-Session aufgerufen (Client sendet keine Auth) -> vom system_admin-Gate
+  # ausnehmen. Waren vor Phase 10/11 (515b8a77) offen; der pauschale Gate hat
+  # den Sync ab 2026-07-08 gebrochen (H33 Root Cause).
+  before_action :system_admin_only, except: %i[get_updates last_version current_revision update_carambus]
   before_action :set_version, only: %i[show edit update destroy]
 
   # GET /versions
