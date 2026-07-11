@@ -145,6 +145,79 @@ class VersionTest < ActiveSupport::TestCase
     Discipline.where(id: 50_000_099).destroy_all
   end
 
+  # === H1-03 (Phase 41) — Ordered redelivery apply path ===
+  # Beweist das exakte Fehlerbild, das diese Phase behebt: eine international
+  # organisierte Region wird VOR ihrem organisierten Turnier appliziert (niedrigere
+  # Version-id zuerst, siehe get_updates id ASC + Client .shift front-to-back),
+  # sodass der belongs_to :organizer beim Turnier-Apply bereits auflösbar ist
+  # (kein "Organisiert von muss ausgefüllt werden").
+
+  test "redelivered international tournament applies after its organizer region version is applied first" do
+    skip_unless_local_server
+
+    Tournament.where(id: 52_000_251).destroy_all
+    Region.where(id: 52_000_250).destroy_all
+
+    region_attrs = {
+      "id" => 52_000_250,
+      "shortname" => "INTX",
+      "name" => "Intl Apply",
+      "global_context" => true,
+      "region_id" => nil,
+      "created_at" => Time.current,
+      "updated_at" => Time.current
+    }
+    tournament_attrs = {
+      "id" => 52_000_251,
+      "title" => "Intl Apply Tournament",
+      "organizer_type" => "Region",
+      "organizer_id" => 52_000_250,
+      "region_id" => nil,
+      "single_or_league" => "single",
+      "season_id" => seasons(:current).id,
+      "date" => 1.week.from_now,
+      "created_at" => Time.current,
+      "updated_at" => Time.current
+    }
+
+    # Region-Version-id (990_001) < Tournament-Version-id (990_002) — mirrors
+    # get_updates .order(id: :asc) + client .shift front-to-back.
+    payload = [
+      {
+        "id" => 990_001,
+        "item_type" => "Region",
+        "item_id" => 52_000_250,
+        "event" => "update",
+        "object" => YAML.dump(region_attrs),
+        "object_changes" => nil,
+        "created_at" => Time.current.to_s
+      },
+      {
+        "id" => 990_002,
+        "item_type" => "Tournament",
+        "item_id" => 52_000_251,
+        "event" => "update",
+        "object" => YAML.dump(tournament_attrs),
+        "object_changes" => nil,
+        "created_at" => Time.current.to_s
+      }
+    ]
+
+    api_url = Carambus.config.carambus_api_url
+    stub_request(:get, /#{Regexp.escape(api_url)}\/versions\/get_updates/)
+      .to_return(status: 200, body: payload.to_json, headers: {"Content-Type" => "application/json"})
+
+    assert_nothing_raised do
+      Version.update_from_carambus_api({})
+    end
+
+    assert Region.exists?(52_000_250), "Organizer-Region muss zuerst angelegt werden (niedrigere Version-id)"
+    assert Tournament.exists?(52_000_251), "Turnier muss NACH der Region applien, mit auflösbarem organizer"
+  ensure
+    Tournament.where(id: 52_000_251).destroy_all
+    Region.where(id: 52_000_250).destroy_all
+  end
+
   # === T-CR-01 — Version.local_from_api NameError regression (Phase 38.4-17) ===
 
   test "T-CR-01-local-from-api-no-raises 38.4-17: Version.local_from_api uses local_server? (predicate)" do
@@ -207,7 +280,14 @@ class VersionTest < ActiveSupport::TestCase
 
   test "last_version falls back to local last id on empty API body (H33, no 500)" do
     Version.stub :http_get_with_ssl_bypass, "" do
-      assert_equal Version.last&.id, Version.last_version
+      expected = Version.last&.id
+      # assert_nil statt assert_equal(nil, ...) vermeidet die Minitest-6-Deprecation-Warnung
+      # (siehe Phase 41-01: gleiches Muster in region_taggable_sync_test.rb).
+      if expected.nil?
+        assert_nil Version.last_version
+      else
+        assert_equal expected, Version.last_version
+      end
     end
   end
 

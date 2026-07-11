@@ -195,7 +195,7 @@ class Version < PaperTrail::Version
   end
 
   def self.last_version
-    return Version.last.id if Carambus.config.carambus_api_url.blank?
+    return Version.last&.id if Carambus.config.carambus_api_url.blank?
 
     url = "#{Carambus.config.carambus_api_url}/versions/last_version"
     uri = URI(url)
