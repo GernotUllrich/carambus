@@ -10,9 +10,9 @@
     </div>
 
     <!-- Erklärung -->
-    <div class="dark:bg-black bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-      <h3 class="font-semibold text-blue-900 dark:text-blue-400 mb-2"><%= t('tournaments.compare_seedings.how_it_works') %></h3>
-      <ol class="list-decimal list-inside text-blue-800 dark:text-blue-400 space-y-1">
+    <div class="dark:bg-black bg-primary-50 border border-primary-200 rounded-lg p-4 mb-6">
+      <h3 class="font-semibold text-primary-900 dark:text-primary-400 mb-2"><%= t('tournaments.compare_seedings.how_it_works') %></h3>
+      <ol class="list-decimal list-inside text-primary-800 dark:text-primary-400 space-y-1">
         <li><%= t('tournaments.compare_seedings.step_1_html').html_safe %></li>
         <li><%= t('tournaments.compare_seedings.step_2_html').html_safe %></li>
         <li><%= t('tournaments.compare_seedings.step_3') %></li>
@@ -43,12 +43,12 @@
       <%= form_with url: upload_invitation_tournament_path(@tournament), method: :post,
           multipart: true, local: true, class: 'space-y-4', id: 'invitation-upload-form' do |f| %>
 
-        <div id="upload-area" class="upload-area border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-8 text-center hover:border-blue-400 transition relative">
+        <div id="upload-area" class="upload-area border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-8 text-center hover:border-primary-400 transition relative">
           <!-- Drag Overlay -->
-          <div id="drag-overlay" class="absolute inset-0 bg-blue-100 bg-opacity-90 border-4 border-blue-500 border-dashed rounded-lg flex items-center justify-center hidden z-10">
+          <div id="drag-overlay" class="absolute inset-0 bg-primary-100 bg-opacity-90 border-4 border-primary-500 border-dashed rounded-lg flex items-center justify-center hidden z-10">
             <div class="text-center">
               <span class="text-6xl mb-4 block">📥</span>
-              <p class="text-xl font-bold text-blue-900"><%= t('tournaments.compare_seedings.drop_file_here') %></p>
+              <p class="text-xl font-bold text-primary-900"><%= t('tournaments.compare_seedings.drop_file_here') %></p>
             </div>
           </div>
 
@@ -70,7 +70,7 @@
 
           <p class="text-gray-600 dark:text-gray-300 mt-2" id="selected-file-name">
             <%= t('tournaments.compare_seedings.file_types') %><br>
-            <span class="text-sm text-blue-600"><%= t('tournaments.compare_seedings.or_drag_file') %></span>
+            <span class="text-sm text-primary-600"><%= t('tournaments.compare_seedings.or_drag_file') %></span>
           </p>
 
           <p class="text-sm text-gray-500 dark:text-gray-400 mt-4">
@@ -97,9 +97,9 @@
             <%= t('tournaments.compare_seedings.alt_clubcloud_body_html').html_safe %>
           </p>
 
-          <div class="bg-blue-50 border border-blue-200 rounded p-3 mb-4 dark:bg-slate-800 dark:border-slate-700">
-            <p class="text-sm text-blue-900 mb-2 dark:text-blue-200"><strong><%= t('tournaments.compare_seedings.two_options_label') %></strong></p>
-            <ul class="list-disc list-inside text-sm text-blue-800 space-y-1 dark:text-blue-200">
+          <div class="bg-primary-50 border border-primary-200 rounded p-3 mb-4 dark:bg-slate-800 dark:border-slate-700">
+            <p class="text-sm text-primary-900 mb-2 dark:text-primary-200"><strong><%= t('tournaments.compare_seedings.two_options_label') %></strong></p>
+            <ul class="list-disc list-inside text-sm text-primary-800 space-y-1 dark:text-primary-200">
               <li><%= t('tournaments.compare_seedings.option_by_ranking_html').html_safe %></li>
               <li><%= t('tournaments.compare_seedings.option_as_clubcloud_html').html_safe %></li>
             </ul>
@@ -169,7 +169,7 @@
 <script>
 function updateFileName(input) {
   const fileName = input.files[0]?.name || 'PDF oder Screenshot (PNG, JPG)';
-  document.getElementById('selected-file-name').innerHTML = fileName + '<br><span class="text-sm text-blue-600">💡 Oder Datei hierher ziehen (z.B. aus E-Mail)</span>';
+  document.getElementById('selected-file-name').innerHTML = fileName + '<br><span class="text-sm text-primary-600">💡 Oder Datei hierher ziehen (z.B. aus E-Mail)</span>';
 }
 
 // WICHTIG: Event-Handler MÜSSEN sofort registriert werden (vor DOMContentLoaded)
@@ -231,8 +231,8 @@ document.addEventListener('DOMContentLoaded', function() {
   uploadArea.addEventListener('dragenter', function(e) {
     preventDefaults(e);
     dragOverlay.classList.remove('hidden');
-    uploadArea.classList.add('border-blue-500');
-    uploadArea.classList.add('bg-blue-50');
+    uploadArea.classList.add('border-primary-500');
+    uploadArea.classList.add('bg-primary-50');
   }, false);
 
   uploadArea.addEventListener('dragover', function(e) {
@@ -246,8 +246,8 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     }
     dragOverlay.classList.remove('hidden');
-    uploadArea.classList.add('border-blue-500');
-    uploadArea.classList.add('bg-blue-50');
+    uploadArea.classList.add('border-primary-500');
+    uploadArea.classList.add('bg-primary-50');
   }, false);
 
   uploadArea.addEventListener('dragleave', function(e) {
@@ -255,8 +255,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Nur verstecken wenn wirklich außerhalb des Upload-Bereichs
     if (!uploadArea.contains(e.relatedTarget)) {
       dragOverlay.classList.add('hidden');
-      uploadArea.classList.remove('border-blue-500');
-      uploadArea.classList.remove('bg-blue-50');
+      uploadArea.classList.remove('border-primary-500');
+      uploadArea.classList.remove('bg-primary-50');
     }
   }, false);
 
@@ -265,8 +265,8 @@ document.addEventListener('DOMContentLoaded', function() {
     preventDefaults(e);
 
     dragOverlay.classList.add('hidden');
-    uploadArea.classList.remove('border-blue-500');
-    uploadArea.classList.remove('bg-blue-50');
+    uploadArea.classList.remove('border-primary-500');
+    uploadArea.classList.remove('bg-primary-50');
 
     const dt = e.dataTransfer;
     if (!dt) {

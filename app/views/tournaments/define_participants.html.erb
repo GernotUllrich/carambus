@@ -2,8 +2,8 @@
   <div class="max-w-3xl mx-auto">
 
     <!-- LINK-03: Detailanleitung im Handbuch -->
-    <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg p-4 mb-6">
-      <p class="text-sm text-blue-900 dark:text-blue-200">
+    <div class="bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-700 rounded-lg p-4 mb-6">
+      <p class="text-sm text-primary-900 dark:text-primary-200">
         📖 <strong><%= t('tournaments.docs.form_help_prefix') %></strong>
         <%= mkdocs_link('managers/tournament-management', anchor: 'participants', text: t('tournaments.docs.form_help_link'), options: { class: 'underline font-medium' }) %>
       </p>
@@ -187,7 +187,7 @@
                 <% if rank.present? && player_region.present? %>
                   <%= link_to rank,
                       ranking_path(player_region) + "#discipline-#{@tournament.discipline_id}",
-                      class: 'text-blue-600 dark:text-blue-200 hover:text-blue-800 underline',
+                      class: 'text-primary-600 dark:text-primary-200 hover:text-primary-800 underline',
                       title: t('tournaments.define_participants.rank_title', rank: rank, discipline: @tournament.discipline.name, region: player_region.shortname),
                       target: '_blank' %>
                 <% else %>
@@ -226,7 +226,7 @@
                 <% if rank.present? && player_region.present? %>
                   <%= link_to rank,
                       ranking_path(player_region) + "#discipline-#{@tournament.discipline_id}",
-                      class: 'text-blue-600 dark:text-blue-200 hover:text-blue-800 underline text-sm',
+                      class: 'text-primary-600 dark:text-primary-200 hover:text-primary-800 underline text-sm',
                       title: t('tournaments.define_participants.rank_title', rank: rank, discipline: @tournament.discipline.name, region: player_region.shortname),
                       target: '_blank' %>
                 <% else %>
@@ -274,19 +274,19 @@
         
         <!-- Turnierpläne und Gruppenzuordnungen Vorschau -->
         <% if @participant_count > 0 && @proposed_discipline_tournament_plan.present? %>
-          <div class="mt-6 p-4 bg-blue-50 dark:bg-gray-800 border border-blue-200 rounded">
-            <h4 class="font-semibold text-blue-900 dark:text-blue-200 mb-3">
+          <div class="mt-6 p-4 bg-primary-50 dark:bg-gray-800 border border-primary-200 rounded">
+            <h4 class="font-semibold text-primary-900 dark:text-primary-200 mb-3">
               <%= t('tournaments.define_participants.possible_plans_heading', count: @participant_count) %>
             </h4>
 
             <!-- Vorgeschlagener Plan (aus Einladung oder automatisch) -->
-            <div class="mb-4 p-3 dark:bg-black bg-white dark:bg-gray-800 border border-blue-300 rounded">
+            <div class="mb-4 p-3 dark:bg-black bg-white dark:bg-gray-800 border border-primary-300 rounded">
               <div class="flex items-center justify-between mb-2">
                 <div class="flex-1">
                   <% if @tournament.data['extracted_plan_info'].present? %>
                     <span class="text-sm font-semibold text-green-700"><%= t('tournaments.define_participants.from_invitation_label') %></span>
                   <% else %>
-                    <span class="text-sm font-semibold dark:text-blue-400 text-blue-700"><%= t('tournaments.define_participants.auto_suggested_label') %></span>
+                    <span class="text-sm font-semibold dark:text-primary-400 text-primary-700"><%= t('tournaments.define_participants.auto_suggested_label') %></span>
                   <% end %>
                   <span class="text-sm font-bold ml-2"><%= @proposed_discipline_tournament_plan.name %></span>
                   <% if @groups_source == :extracted_differs_from_nbv %>
@@ -309,7 +309,7 @@
             <!-- Alternative Pläne (gleiche Disziplin) -->
             <% if @alternatives_same_discipline.any? %>
               <details class="text-sm mb-3">
-                <summary class="cursor-pointer text-blue-800 dark:text-blue-400 hover:text-blue-900 font-semibold">
+                <summary class="cursor-pointer text-primary-800 dark:text-primary-400 hover:text-primary-900 font-semibold">
                   <%= t('tournaments.define_participants.show_alternatives_same_discipline', count: @alternatives_same_discipline.count, discipline: @tournament.discipline.name) %>
                 </summary>
                 <div class="mt-3 space-y-2">
@@ -377,7 +377,7 @@
               </details>
             <% end %>
 
-            <div class="text-xs dark:text-blue-400 text-blue-700 mt-3 space-y-1">
+            <div class="text-xs dark:text-primary-400 text-primary-700 mt-3 space-y-1">
               <p><%= t('tournaments.define_participants.groups_auto_update_info') %></p>
               <% if @alternatives_other_disciplines.any? %>
                 <p class="dark:text-gray-100 text-gray-600 dark:text-gray-300">
@@ -439,15 +439,15 @@
       <%- end %>
 
       <!-- Info-Box und Navigation -->
-      <div class="mt-8 p-4 bg-blue-50 dark:bg-gray-800 border border-blue-200 rounded">
+      <div class="mt-8 p-4 bg-primary-50 dark:bg-gray-800 border border-primary-200 rounded">
         <div class="flex items-center justify-between">
           <div>
-            <h4 class="font-semibold text-blue-900 dark:text-blue-200"><%= t('tournaments.define_participants.important_label') %></h4>
-            <p class="text-sm text-blue-800 dark:text-blue-400">
+            <h4 class="font-semibold text-primary-900 dark:text-primary-200"><%= t('tournaments.define_participants.important_label') %></h4>
+            <p class="text-sm text-primary-800 dark:text-primary-400">
               <%= t('tournaments.define_participants.all_changes_saved_html').html_safe %><br>
               <%= t('tournaments.define_participants.can_return_anytime') %>
             </p>
-            <p class="text-sm text-blue-900 dark:text-blue-200 mt-3 font-semibold bg-blue-100 dark:bg-gray-800 p-2 rounded">
+            <p class="text-sm text-primary-900 dark:text-primary-200 mt-3 font-semibold bg-primary-100 dark:bg-gray-800 p-2 rounded">
               <%= t('tournaments.define_participants.when_done_html').html_safe %>
             </p>
           </div>

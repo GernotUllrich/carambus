@@ -4,13 +4,13 @@
   <!-- Time Range Filter -->
   <div class="mb-6 flex gap-2">
     <%= link_to "24 Hours", scraping_monitor_path(days: 1), 
-        class: "px-4 py-2 rounded #{@time_range == 1 ? 'bg-blue-600 text-white' : 'bg-gray-200'}" %>
+        class: "px-4 py-2 rounded #{@time_range == 1 ? 'bg-primary-600 text-white' : 'bg-gray-200'}" %>
     <%= link_to "7 Days", scraping_monitor_path(days: 7), 
-        class: "px-4 py-2 rounded #{@time_range == 7 ? 'bg-blue-600 text-white' : 'bg-gray-200'}" %>
+        class: "px-4 py-2 rounded #{@time_range == 7 ? 'bg-primary-600 text-white' : 'bg-gray-200'}" %>
     <%= link_to "30 Days", scraping_monitor_path(days: 30), 
-        class: "px-4 py-2 rounded #{@time_range == 30 ? 'bg-blue-600 text-white' : 'bg-gray-200'}" %>
+        class: "px-4 py-2 rounded #{@time_range == 30 ? 'bg-primary-600 text-white' : 'bg-gray-200'}" %>
     <%= link_to "90 Days", scraping_monitor_path(days: 90), 
-        class: "px-4 py-2 rounded #{@time_range == 90 ? 'bg-blue-600 text-white' : 'bg-gray-200'}" %>
+        class: "px-4 py-2 rounded #{@time_range == 90 ? 'bg-primary-600 text-white' : 'bg-gray-200'}" %>
   </div>
   
   <!-- Anomalies Alert -->
@@ -41,9 +41,9 @@
       <div class="text-3xl font-bold text-green-900"><%= total_created %></div>
     </div>
     
-    <div class="bg-blue-100 border-l-4 border-blue-500 p-4">
-      <div class="text-sm text-blue-800">Updated</div>
-      <div class="text-3xl font-bold text-blue-900"><%= total_updated %></div>
+    <div class="bg-primary-100 border-l-4 border-primary-500 p-4">
+      <div class="text-sm text-primary-800">Updated</div>
+      <div class="text-3xl font-bold text-primary-900"><%= total_updated %></div>
     </div>
     
     <div class="bg-yellow-100 border-l-4 border-yellow-500 p-4">
@@ -80,12 +80,12 @@
           <tr class="hover:bg-gray-50">
             <td class="px-6 py-4 whitespace-nowrap">
               <%= link_to stats[:operation], scraping_monitor_operation_path(stats[:operation], days: @time_range), 
-                  class: "text-blue-600 hover:text-blue-800 font-medium" %>
+                  class: "text-primary-600 hover:text-primary-800 font-medium" %>
             </td>
             <td class="px-6 py-4 whitespace-nowrap"><%= stats[:total_runs] %></td>
             <td class="px-6 py-4 whitespace-nowrap"><%= "#{stats[:avg_duration]}s" %></td>
             <td class="px-6 py-4 whitespace-nowrap text-green-600"><%= stats[:total_created] %></td>
-            <td class="px-6 py-4 whitespace-nowrap text-blue-600"><%= stats[:total_updated] %></td>
+            <td class="px-6 py-4 whitespace-nowrap text-primary-600"><%= stats[:total_updated] %></td>
             <td class="px-6 py-4 whitespace-nowrap <%= stats[:total_errors] > 0 ? 'text-red-600 font-bold' : 'text-gray-600' %>">
               <%= stats[:total_errors] %>
             </td>
@@ -136,7 +136,7 @@
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm">
                 <span class="text-green-600"><%= log.created_count %></span> /
-                <span class="text-blue-600"><%= log.updated_count %></span> /
+                <span class="text-primary-600"><%= log.updated_count %></span> /
                 <span class="text-yellow-600"><%= log.deleted_count %></span>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm">

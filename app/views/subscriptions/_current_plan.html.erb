@@ -22,7 +22,7 @@
     </div>
 
   <% else %>
-    <p><%= t ".resubscribe_html", link: custom_link_to(t(".resubscribe"), new_subscription_path, class: "underline text-blue-500") %></p>
+    <p><%= t ".resubscribe_html", link: custom_link_to(t(".resubscribe"), new_subscription_path, class: "underline text-primary-500") %></p>
   <% end %>
 
 <% elsif current_account.subscription && current_account.subscription.active? %>
@@ -121,7 +121,7 @@
   <div class="flex">
     <div class="flex-1 mt-2 text-gray-700 dark:text-gray-200">
       <div class="font-bold"><%= t ".cancel.description", product: Carambus.config.application_name %></div>
-      <div><%= t ".cancel.help_html", link: mail_to(Carambus.config.support_email, t(".cancel.contact_us"), subject: t(".cancel.subject", product: Carambus.config.application_name), class: "underline text-blue-600") %></div>
+      <div><%= t ".cancel.help_html", link: mail_to(Carambus.config.support_email, t(".cancel.contact_us"), subject: t(".cancel.subject", product: Carambus.config.application_name), class: "underline text-primary-600") %></div>
     </div>
 
     <div>

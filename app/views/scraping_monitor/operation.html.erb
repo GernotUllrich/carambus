@@ -1,6 +1,6 @@
 <div class="container mx-auto px-4 py-8">
   <div class="mb-6">
-    <%= link_to "← Back to Dashboard", scraping_monitor_path, class: "text-blue-600 hover:text-blue-800" %>
+    <%= link_to "← Back to Dashboard", scraping_monitor_path, class: "text-primary-600 hover:text-primary-800" %>
   </div>
   
   <h1 class="text-3xl font-bold mb-6">📊 <%= @operation %></h1>
@@ -8,11 +8,11 @@
   <!-- Time Range Filter -->
   <div class="mb-6 flex gap-2">
     <%= link_to "7 Days", scraping_monitor_operation_path(@operation, days: 7), 
-        class: "px-4 py-2 rounded #{@time_range == 7 ? 'bg-blue-600 text-white' : 'bg-gray-200'}" %>
+        class: "px-4 py-2 rounded #{@time_range == 7 ? 'bg-primary-600 text-white' : 'bg-gray-200'}" %>
     <%= link_to "30 Days", scraping_monitor_operation_path(@operation, days: 30), 
-        class: "px-4 py-2 rounded #{@time_range == 30 ? 'bg-blue-600 text-white' : 'bg-gray-200'}" %>
+        class: "px-4 py-2 rounded #{@time_range == 30 ? 'bg-primary-600 text-white' : 'bg-gray-200'}" %>
     <%= link_to "90 Days", scraping_monitor_operation_path(@operation, days: 90), 
-        class: "px-4 py-2 rounded #{@time_range == 90 ? 'bg-blue-600 text-white' : 'bg-gray-200'}" %>
+        class: "px-4 py-2 rounded #{@time_range == 90 ? 'bg-primary-600 text-white' : 'bg-gray-200'}" %>
   </div>
   
   <!-- Stats Cards -->
@@ -32,9 +32,9 @@
       <div class="text-2xl font-bold text-green-600"><%= @stats[:total_created] %></div>
     </div>
     
-    <div class="bg-white border-l-4 border-blue-500 p-4 shadow">
+    <div class="bg-white border-l-4 border-primary-500 p-4 shadow">
       <div class="text-sm text-gray-600">Total Updated</div>
-      <div class="text-2xl font-bold text-blue-600"><%= @stats[:total_updated] %></div>
+      <div class="text-2xl font-bold text-primary-600"><%= @stats[:total_updated] %></div>
     </div>
     
     <div class="bg-white border-l-4 border-red-500 p-4 shadow">
@@ -46,9 +46,9 @@
   </div>
   
   <!-- Last Run Info -->
-  <div class="bg-blue-50 border border-blue-200 rounded p-4 mb-8">
-    <strong class="text-blue-900">Last Run:</strong> 
-    <span class="text-blue-700"><%= @stats[:last_run]&.strftime('%Y-%m-%d %H:%M:%S') || 'N/A' %></span>
+  <div class="bg-primary-50 border border-primary-200 rounded p-4 mb-8">
+    <strong class="text-primary-900">Last Run:</strong> 
+    <span class="text-primary-700"><%= @stats[:last_run]&.strftime('%Y-%m-%d %H:%M:%S') || 'N/A' %></span>
   </div>
   
   <!-- Logs Table -->
@@ -87,7 +87,7 @@
               <td class="px-6 py-4 whitespace-nowrap text-sm text-green-600">
                 <%= log.created_count %>
               </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-blue-600">
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-primary-600">
                 <%= log.updated_count %>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-yellow-600">

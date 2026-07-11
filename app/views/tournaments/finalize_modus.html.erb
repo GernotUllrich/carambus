@@ -17,8 +17,8 @@
 
 <!-- LINK-03: Detailanleitung im Handbuch -->
 <div class="container mx-auto mt-6 px-4">
-  <div class="max-w-3xl mx-auto bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg p-4 mb-6">
-    <p class="text-sm text-blue-900 dark:text-blue-200">
+  <div class="max-w-3xl mx-auto bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-700 rounded-lg p-4 mb-6">
+    <p class="text-sm text-primary-900 dark:text-primary-200">
       📖 <strong><%= t('tournaments.docs.form_help_prefix') %></strong>
       <%= mkdocs_link('managers/tournament-management', anchor: 'mode-selection', text: t('tournaments.docs.form_help_link'), options: { class: 'underline font-medium' }) %>
     </p>
@@ -119,10 +119,10 @@
               </details>
             </div>
           <% elsif @groups_source == :algorithm %>
-            <div class="mb-4 p-3 bg-blue-50 border border-blue-200 rounded">
+            <div class="mb-4 p-3 bg-primary-50 border border-primary-200 rounded">
               <div class="flex items-center justify-between">
                 <div>
-                  <p class="text-blue-900 text-sm">
+                  <p class="text-primary-900 text-sm">
                     <%= t('tournaments.finalize_modus.groups_auto_calculated_html').html_safe %>
                   </p>
                 </div>
