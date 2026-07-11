@@ -43,7 +43,7 @@
       <%= form_with url: upload_invitation_tournament_path(@tournament), method: :post,
           multipart: true, local: true, class: 'space-y-4', id: 'invitation-upload-form' do |f| %>
 
-        <div id="upload-area" class="upload-area border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-400 transition relative">
+        <div id="upload-area" class="upload-area border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-8 text-center hover:border-blue-400 transition relative">
           <!-- Drag Overlay -->
           <div id="drag-overlay" class="absolute inset-0 bg-blue-100 bg-opacity-90 border-4 border-blue-500 border-dashed rounded-lg flex items-center justify-center hidden z-10">
             <div class="text-center">
@@ -68,12 +68,12 @@
             </span>
           </label>
 
-          <p class="text-gray-600 mt-2" id="selected-file-name">
+          <p class="text-gray-600 dark:text-gray-300 mt-2" id="selected-file-name">
             <%= t('tournaments.compare_seedings.file_types') %><br>
             <span class="text-sm text-blue-600"><%= t('tournaments.compare_seedings.or_drag_file') %></span>
           </p>
 
-          <p class="text-sm text-gray-500 mt-4">
+          <p class="text-sm text-gray-500 dark:text-gray-400 mt-4">
             <%= t('tournaments.compare_seedings.supported_formats') %><br>
             <%= t('tournaments.compare_seedings.auto_extract_note') %>
           </p>
@@ -88,12 +88,12 @@
     </div>
 
     <!-- Alternative: ClubCloud-Reihenfolge -->
-    <div class="bg-white rounded-lg shadow p-6 mb-6 dark:bg-slate-900 dark:border dark:border-slate-800">
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-6 dark:bg-slate-900 dark:border dark:border-slate-800">
       <h2 class="text-xl font-bold mb-4"><%= t('tournaments.compare_seedings.alt_clubcloud_heading') %></h2>
 
       <div class="flex items-start gap-4">
         <div class="flex-1">
-          <p class="text-gray-700 mb-4 dark:text-gray-200">
+          <p class="text-gray-700 dark:text-gray-200 mb-4 dark:text-gray-200">
             <%= t('tournaments.compare_seedings.alt_clubcloud_body_html').html_safe %>
           </p>
 
@@ -113,7 +113,7 @@
           <% end %>
 
           <% if @clubcloud_seedings.any? %>
-            <div class="bg-gray-50/90 border border-slate-200 p-4 rounded mb-4 dark:bg-slate-950/70 dark:border-slate-800">
+            <div class="bg-gray-50 dark:bg-gray-700/90 border border-slate-200 p-4 rounded mb-4 dark:bg-slate-950/70 dark:border-slate-800">
               <h4 class="font-semibold mb-2 text-slate-900 dark:text-slate-200"><%= t('tournaments.compare_seedings.clubcloud_list_heading', count: @clubcloud_seedings.count) %></h4>
               <ol class="list-decimal list-inside text-sm max-h-48 overflow-y-auto text-slate-800 dark:text-slate-200">
                 <% @clubcloud_seedings.each do |seeding| %>
@@ -152,7 +152,7 @@
     <div class="bg-white dark:bg-slate-900 rounded-lg shadow p-6">
       <h2 class="text-xl font-bold mb-4"><%= t('tournaments.compare_seedings.alt_manual_heading') %></h2>
 
-      <p class="dark:text-gray-200 text-gray-700 mb-4">
+      <p class="dark:text-gray-200 text-gray-700 dark:text-gray-200 mb-4">
         <%= t('tournaments.compare_seedings.manual_sort_body') %>
       </p>
 

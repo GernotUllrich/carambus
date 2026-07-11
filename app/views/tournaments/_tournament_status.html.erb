@@ -78,7 +78,7 @@
                     total_b = result_b
                   end
                 %>
-                <div class="bg-white rounded-lg p-3 border border-blue-300">
+                <div class="bg-white dark:bg-gray-800 rounded-lg p-3 border border-blue-300">
                   <div class="text-sm text-blue-600 font-semibold mb-1">
                     <%= tm.display_name %> - <%= tm.game.display_gname %>
                   </div>
@@ -93,7 +93,7 @@
               <% end %>
             <% end %>
           <% else %>
-            <div class="col-span-full text-gray-500 text-sm"><%= t('tournaments.monitor.no_active_games') %></div>
+            <div class="col-span-full text-gray-500 dark:text-gray-400 text-sm"><%= t('tournaments.monitor.no_active_games') %></div>
           <% end %>
         </div>
       </div>

@@ -1,5 +1,5 @@
 <nav class="p-4  dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
-  <%= custom_link_to root_path, class: "flex items-center text-gray-700 hover:text-gray-800 dark:text-gray-100 dark:hover:text-gray-300" do %>
+  <%= custom_link_to root_path, class: "flex items-center text-gray-700 dark:text-gray-200 hover:text-gray-800 dark:text-gray-100 dark:hover:text-gray-300" do %>
     <%= render_svg "logo", styles: "fill-current" %>
     <span class="sr-only"><%= Carambus.config.application_name %></span>
   <% end %>
@@ -73,7 +73,7 @@
       <div class="hidden flex justify-center mb-4 lg:block">
         <div>
           <% @plan.features.each do |plan_feature| %>
-            <div class="flex mb-2 text-gray-500">
+            <div class="flex mb-2 text-gray-500 dark:text-gray-400">
               <svg xmlns="http://www.w3.org/2000/svg" class="flex-shrink-0 mr-2 text-primary-500 h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                 <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
               </svg>
@@ -89,13 +89,13 @@
     <div>
       <h1 class="hidden h3 mb-4 lg:block"><%= t(".title") %></h1>
 
-      <h5 id="billing-address" class="text-gray-700 dark:text-gray-300 font-semibold my-4 border-b border-gray-200 pb-2"><%= t(".account") %></h5>
+      <h5 id="billing-address" class="text-gray-700 dark:text-gray-300 font-semibold my-4 border-b border-gray-200 dark:border-gray-700 pb-2"><%= t(".account") %></h5>
       <div class="flex items-center mb-8">
         <%= account_avatar current_account, class: "h-10 w-10 rounded-full mr-4" %>
         <h4><%= current_account.name %></h4>
       </div>
 
-      <h5 class="text-gray-700 dark:text-gray-300 font-semibold my-4 border-b border-gray-200 pb-2"><%= t("subscriptions.new.payment_method") %></h5>
+      <h5 class="text-gray-700 dark:text-gray-300 font-semibold my-4 border-b border-gray-200 dark:border-gray-700 pb-2"><%= t("subscriptions.new.payment_method") %></h5>
       <div>
         <%= render 'subscriptions/forms/paddle_billing' if Carambus.config.paddle_billing? %>
         <%= render 'subscriptions/forms/paddle_classic' if Carambus.config.paddle_classic? %>
@@ -110,7 +110,7 @@
       </div>
 
       <div class="text-sm text-center mt-8">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="inline-block w-5 h-5 text-gray-500">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="inline-block w-5 h-5 text-gray-500 dark:text-gray-400">
           <path fill-rule="evenodd" d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0ZM8.94 6.94a.75.75 0 1 1-1.061-1.061 3 3 0 1 1 2.871 5.026v.345a.75.75 0 0 1-1.5 0v-.5c0-.72.57-1.172 1.081-1.287A1.5 1.5 0 1 0 8.94 6.94ZM10 15a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z" clip-rule="evenodd" />
         </svg>
         <%= t(".help") %>

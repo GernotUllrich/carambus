@@ -19,7 +19,7 @@
   <!-- Bucket chips (FIX-03, D-01) -->
   <div class="flex flex-wrap justify-center gap-2 mb-2">
     <% wizard_bucket_chips(tournament).each do |chip| %>
-      <span class="px-3 py-1 rounded-full text-sm font-medium border <%= chip[:active] ? 'bg-gray-600 text-white border-gray-700 shadow' : 'bg-gray-100 text-gray-600 border-gray-300' %>">
+      <span class="px-3 py-1 rounded-full text-sm font-medium border <%= chip[:active] ? 'bg-gray-600 text-white border-gray-700 shadow' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-300 dark:border-gray-600' %>">
         <%= chip[:label] %>
       </span>
     <% end %>
