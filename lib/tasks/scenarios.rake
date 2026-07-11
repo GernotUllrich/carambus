@@ -1120,6 +1120,7 @@ YAML
     actioncable_url = env_config['actioncable_url'] || "ws://localhost:3000/cable"
     redis_db = env_config['redis_database'] || 1
     webserver_port = env_config['webserver_port'] || 3000
+    basename = scenario_config['scenario']['basename'] || scenario_config['scenario']['name']
 
     content = <<~RUBY
 require "active_support/core_ext/integer/time"
@@ -1127,12 +1128,15 @@ require "active_support/logger"
 require "active_support/broadcast_logger"
 
 Rails.application.configure do
+  # Scenario-spezifischer Session-Namespace: mehrere Scenario-Server auf localhost teilen sonst
+  # dieselbe Session (Cookie portagnostisch + gleiche Redis-DB + key_prefix) → falscher Kontext-Leak.
   config.session_store :redis_session_store,
+    key: "_#{basename}_session",
     serializer: :json,
     on_redis_down: ->(*args) { Rails.logger.error("Redis down! \#{args.inspect}") },
     redis: {
       expire_after: 120.minutes,
-      key_prefix: "session:",
+      key_prefix: "session:#{basename}:",
       url: ENV.fetch("REDIS_URL") { "redis://localhost:6379/#{redis_db}" }
     }
 
@@ -1317,6 +1321,7 @@ ENV
     redis_db = env_config['redis_database'] || 0
     webserver_port = env_config['webserver_port'] || 3000
     webserver_host = env_config['webserver_host'] || 'localhost'
+    basename = scenario_config['scenario']['basename'] || scenario_config['scenario']['name']
 
     # Plan 14-G.7.1 / D-14-G.7.1-A: HTTPS-conditional Port-Klausel für default_url_options.
     # Pre-Fix Bug: `port: #{webserver_port}` unkonditional setzte port:80 für HTTPS-Scenarios
@@ -1347,12 +1352,15 @@ ENV
 require "active_support/core_ext/integer/time"
 
 Rails.application.configure do
+  # Scenario-spezifischer Session-Namespace: mehrere Scenario-Server auf demselben Host teilen sonst
+  # dieselbe Session (Cookie portagnostisch + gleiche Redis-DB + key_prefix) → falscher Kontext-Leak.
   config.session_store :redis_session_store,
+    key: "_#{basename}_session",
     serializer: :json,
     on_redis_down: ->(*args) { Rails.logger.error("Redis down! \#{args.inspect}") },
     redis: {
       expire_after: 120.minutes,
-      key_prefix: "session:",
+      key_prefix: "session:#{basename}:",
       url: ENV.fetch("REDIS_URL") { "redis://localhost:6379/#{redis_db}" }
     }
 
@@ -1502,6 +1510,7 @@ RUBY
                     .gsub('#{raspberry_pi_hosts}', raspberry_pi_hosts)
                     .gsub('#{duckdns_hosts}', duckdns_hosts)
                     .gsub('#{port_clause}', port_clause)
+                    .gsub('#{basename}', basename)
 
     File.write(File.join(env_dir, 'production.rb'), content)
     puts "   Generated: #{File.join(env_dir, 'production.rb')}"

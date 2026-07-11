@@ -153,7 +153,9 @@ class SpielleiterChatService
     last_user = messages.reverse.find { |m| (m[:role] || m["role"]).to_s == "user" }
     return false unless last_user
     text = extract_message_text(last_user[:content] || last_user["content"])
-    text.match?(/\bklon|dupliz|in die (neue|kommende) saison|neue saison.{0,25}(übernehm|übernimm|klon|kopier)/i)
+    # 50-03: Einzel-Klon-Intent. 51 (Bulk): auch Sammel-/Saison-Übernahme ('alle/sämtliche/ganze
+    # … Turnier/Saison', 'übernimm … Saison') vor-eskalieren, damit das Plural-Tool zuverlässig greift.
+    text.match?(/\bklon|dupliz|in die (neue|kommende|nächste|folge)\s*saison|(neue|nächste|folge)\s*saison.{0,30}(übernehm|übernimm|klon|kopier)|(übernehm|übernimm|kopier).{0,30}saison|(alle|sämtliche|ganze).{0,30}(turnier|saison)/i)
   end
 
   def extract_message_text(content)
@@ -247,6 +249,13 @@ class SpielleiterChatService
       "Meldeliste an, reversibel), und erst nach ausdrücklicher Bestätigung der IRREVERSIBLEN Freigabe " \
       "armed:true + release:true (Freigabe + Meisterschaft). Meldet das Tool 'nicht gefunden', frage " \
       "den genauen Titel/die Saison nach — verweise NICHT aufs Portal. " \
+      "Will der Landessportwart MEHRERE Turniere auf einmal übernehmen — 'alle', 'sämtliche', 'die " \
+      "ganze Saison', eine ganze Sparte ('alle Karambol-Turniere der Saison 2025/2026') —, nutze " \
+      "cc_clone_tournaments (PLURAL) mit source_season und optional discipline (Sparte). Dieses Tool " \
+      "ermittelt die passenden Turniere SELBST und klont sie im Batch — löse dafür KEINE einzelnen " \
+      "Turniere auf und übertrage KEINE Turnier-IDs. Für genau EIN benanntes Turnier nimm das Singular- " \
+      "Tool cc_clone_tournament. Dieselben zwei Bestätigungsstufen gelten (armed:false Dry-Run → " \
+      "armed:true → armed:true + release:true). " \
       "Erfinde NIEMALS einen Verbands-/Regionsnamen (z.B. 'BBBV') — nenne als Region ausschließlich die " \
       "im Kontext genannte (cc_region bzw. cc_whoami); im Zweifel lasse den Verbandsnamen ganz weg. " \
       "Wenn der Sportwart ein Turnier BESCHREIBEND nennt (z.B. 'das Cadre-Turnier', 'das kommende " \
