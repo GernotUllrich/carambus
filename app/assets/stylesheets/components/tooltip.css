@@ -23,3 +23,78 @@
   border-bottom: 1px dashed currentColor;
   padding-bottom: 1px;
 }
+
+/*
+ * tippy.js-Theme "carambus" (H23)
+ *
+ * Ersetzt das dunkle tippy-Default (#333), das sich zu wenig von den
+ * (grauen/dunklen) Field-Labels abhob. Der Controller setzt theme: "carambus"
+ * (tippy_controller.js), gematcht wird über .tippy-box[data-theme~="carambus"].
+ *
+ * Theme-aware: Light = heller Surface (schwebende Karte), Dark = abgesetztes
+ * Panel, deutlich heller als der fast-schwarze Untergrund und unterscheidbar
+ * von den text-gray-600-Labels. Class-basierter Dark-Mode (.dark). Farben
+ * ausschließlich über theme()-Tokens.
+ */
+
+/* Light */
+.tippy-box[data-theme~="carambus"] {
+  background-color: theme("colors.white");
+  color: theme("colors.gray.800");
+  border: 1px solid theme("colors.gray.200");
+  box-shadow: 0 4px 14px -2px rgb(0 0 0 / 0.12), 0 2px 6px -2px rgb(0 0 0 / 0.08);
+}
+
+.tippy-box[data-theme~="carambus"][data-placement^="top"] > .tippy-arrow::before {
+  border-top-color: theme("colors.white");
+}
+.tippy-box[data-theme~="carambus"][data-placement^="bottom"] > .tippy-arrow::before {
+  border-bottom-color: theme("colors.white");
+}
+.tippy-box[data-theme~="carambus"][data-placement^="left"] > .tippy-arrow::before {
+  border-left-color: theme("colors.white");
+}
+.tippy-box[data-theme~="carambus"][data-placement^="right"] > .tippy-arrow::before {
+  border-right-color: theme("colors.white");
+}
+
+/* Dark (class-basiert) — deutlich helle Karte, damit die Bubble klar aus dem
+ * fast-schwarzen Grund heraussticht und sich von den (dunkleren) grauen Labels
+ * abhebt: heller Surface + dunkler Text (analog Light, minimal wärmer). */
+.dark .tippy-box[data-theme~="carambus"] {
+  background-color: theme("colors.gray.200");
+  color: theme("colors.gray.800");
+  border-color: theme("colors.gray.400");
+}
+
+.dark .tippy-box[data-theme~="carambus"][data-placement^="top"] > .tippy-arrow::before {
+  border-top-color: theme("colors.gray.200");
+}
+.dark .tippy-box[data-theme~="carambus"][data-placement^="bottom"] > .tippy-arrow::before {
+  border-bottom-color: theme("colors.gray.200");
+}
+.dark .tippy-box[data-theme~="carambus"][data-placement^="left"] > .tippy-arrow::before {
+  border-left-color: theme("colors.gray.200");
+}
+.dark .tippy-box[data-theme~="carambus"][data-placement^="right"] > .tippy-arrow::before {
+  border-right-color: theme("colors.gray.200");
+}
+
+/*
+ * Stimulus-Tooltip-Hovercard (tooltip_controller.js, nur tournament_monitor).
+ * Zweiter Tooltip-Mechanismus neben tippy — hier auf dieselbe Optik wie das
+ * tippy-Theme "carambus" gebracht (H23-Konsistenz): heller Surface, dunkler
+ * Text, theme-aware Light/Dark, token-basiert. Positionierung/Spacing liefern
+ * die Tailwind-Utilities in der className des Controllers.
+ */
+.tooltip-hovercard {
+  background-color: theme("colors.white");
+  color: theme("colors.gray.800");
+  border: 1px solid theme("colors.gray.200");
+}
+
+.dark .tooltip-hovercard {
+  background-color: theme("colors.gray.200");
+  color: theme("colors.gray.800");
+  border-color: theme("colors.gray.400");
+}

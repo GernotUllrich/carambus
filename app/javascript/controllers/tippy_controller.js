@@ -22,7 +22,7 @@ export default class extends Controller {
 
   initializeTippys() {
     this.destroyTippys();
-    tippy(document.querySelectorAll("[data-tippy-content]"));
+    tippy(document.querySelectorAll("[data-tippy-content]"), { theme: "carambus" });
   }
 
   destroyTippys() {

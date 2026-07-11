@@ -28,7 +28,10 @@ export default class extends Controller {
       this.element.style.position = "relative"
     }
     const card = document.createElement("div")
-    card.className = "absolute z-50 bg-gray-800 text-white text-sm px-3 py-2 rounded shadow-lg max-w-xs bottom-full left-0 mb-2 whitespace-normal pointer-events-none"
+    // Optik über die CSS-Klasse .tooltip-hovercard (components/tooltip.css),
+    // identisch zum tippy-Theme "carambus" (H23): theme-aware Light/Dark,
+    // token-basiert. Positionierung/Spacing bleiben Tailwind-Utilities.
+    card.className = "tooltip-hovercard absolute z-50 text-sm px-3 py-2 rounded shadow-lg max-w-xs bottom-full left-0 mb-2 whitespace-normal pointer-events-none"
     // SECURITY: use textContent only (no HTML injection) — content is static
     // i18n text, but this guards against future misuse that could pipe user
     // input through here.
