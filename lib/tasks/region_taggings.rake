@@ -310,4 +310,51 @@ namespace :region_taggings do
     puts "\nSummary:"
     puts "Total versions updated: #{total_versions_updated}"
   end
+
+  desc "Phase 41 (H1): int. Organizer-Regions global_context=true taggen (PaperTrail-getrackt) + hängengebliebene int. Turniere/Ligen redelivern. Read-only Preview per Default; ARMED=1 zum Mutieren."
+  task fix_international_organizer_context: :environment do
+    # Guard: nur auf der Authority — dort ist PaperTrail aktiv und der LocalProtector-Save-Guard inaktiv
+    raise "Abbruch: Task nur auf der Authority ausführen (Carambus.config.carambus_api_url muss leer sein)" if ApplicationRecord.local_server?
+    # Guard: PaperTrail MUSS aktiv sein, sonst entstehen keine Versionen → stiller No-op, Fix propagiert nicht
+    unless PaperTrail.enabled? && PaperTrail.request.enabled?
+      raise "Abbruch: PaperTrail ist deaktiviert — ohne neue Versionen erreicht der Fix keinen Local-Server"
+    end
+
+    armed = ENV["ARMED"] == "1"
+    puts "== region_taggings:fix_international_organizer_context — #{armed ? "ARMED (mutating)" : "DRY-RUN (read-only preview)"} =="
+
+    # Selektionskriterium (locked, CONTEXT.md): Regions, die Organizer eines region_id IS NULL
+    # Tournament ODER League sind UND global_context != true. Datengetrieben, keine Hardcode-Liste.
+    affected_region_ids =
+      (Tournament.where(region_id: nil, organizer_type: "Region").distinct.pluck(:organizer_id) +
+       League.where(region_id: nil, organizer_type: "Region").distinct.pluck(:organizer_id)).uniq
+    regions_to_fix = Region.where(id: affected_region_ids).where.not(global_context: true)
+
+    puts "Betroffene Regions (#{regions_to_fix.count}):"
+    regions_to_fix.order(:id).each do |region|
+      t_count = Tournament.where(organizer_type: "Region", organizer_id: region.id, region_id: nil).count
+      l_count = League.where(organizer_type: "Region", organizer_id: region.id, region_id: nil).count
+      puts "  Region ##{region.id} #{region.shortname} — #{t_count} Turniere, #{l_count} Ligen (region_id IS NULL)"
+    end
+
+    unless armed
+      puts "DRY-RUN: keine Änderungen geschrieben. Ausführen mit: ARMED=1 bin/rails region_taggings:fix_international_organizer_context"
+      next
+    end
+
+    regions_to_fix.find_each do |region|
+      region.update!(global_context: true) # echte Spaltenänderung → neue Version, von RegionTaggable#update_version_region_data getaggt
+      fix_version = region.versions.order(:id).last
+      # Redelivery: Turniere/Ligen dieser Region NACH der Region-Version touchen (höhere Version-id → Organizer appliziert zuerst)
+      [Tournament, League].each do |klass|
+        klass.where(organizer_type: "Region", organizer_id: region.id, region_id: nil).find_each do |rec|
+          last_v_time = rec.versions.maximum(:created_at)
+          next if last_v_time && last_v_time > fix_version.created_at # Idempotenz: bereits nach dem Fix reversioniert → skip
+          rec.touch # erzwingt frische Version trotz 0 Attribut-Diff (PaperTrail on: touch)
+        end
+      end
+      puts "  Region ##{region.id} #{region.shortname}: global_context=true (Version ##{fix_version.id}), Turniere/Ligen redelivered"
+    end
+    puts "Fertig."
+  end
 end
