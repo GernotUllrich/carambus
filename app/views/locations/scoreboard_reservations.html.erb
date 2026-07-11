@@ -1473,9 +1473,9 @@ RECOMMENDATION: Follow steps 1-7 in order!
           <div class="form-group flex items-center">
             <input type="date" name="location[date]" id="location_date">
             &nbsp;&nbsp;&nbsp;&nbsp;
-            <input type="time" name="location[start_time]" id="location-start-time" class="bg-gray-50 border leading-none border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block ml-10 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" min="00:00" value="19:00" required/>
+            <input type="time" name="location[start_time]" id="location-start-time" class="bg-gray-50 border leading-none border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block ml-10 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500" min="00:00" value="19:00" required/>
             &nbsp;-&nbsp;
-            <input type="time" name="location[end_time]" id="location-end-time" class="bg-gray-50 border leading-none border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" min="00:00" value="23:00" required/>
+            <input type="time" name="location[end_time]" id="location-end-time" class="bg-gray-50 border leading-none border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500" min="00:00" value="23:00" required/>
           </div>
           <div class="form-group">
             <%= custom_link_to t('back'), "javascript:set_new_reservation_modal()", data: { turbolinks: false }, class: "dark:text-white focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 btn btn-primary text-2vw", id: "cancel", tabindex: "1" %>
@@ -1526,7 +1526,7 @@ RECOMMENDATION: Follow steps 1-7 in order!
         <%= custom_link_to "Exit Kiosk Mode", "javascript:open_kiosk_keyboard()", data: { turbolinks: false }, class: "dark:text-white flex w-full h-full border-4 focus:outline-none focus:ring-8 focus:ring-red-500 focus:ring-opacity-90 border-0 rounded-lg btn btn-danger text-1-5vw", id: "exit_kiosk", tabindex: "1" %>
       </p>
       <p>
-        <%= custom_link_to "Show Debug Logs", "javascript:showDebugLogs()", data: { turbolinks: false }, class: "dark:text-white flex w-full h-full border-4 focus:outline-none focus:ring-8 focus:ring-blue-500 focus:ring-opacity-90 border-0 rounded-lg btn btn-info text-1-5vw", id: "show_logs", tabindex: "1" %>
+        <%= custom_link_to "Show Debug Logs", "javascript:showDebugLogs()", data: { turbolinks: false }, class: "dark:text-white flex w-full h-full border-4 focus:outline-none focus:ring-8 focus:ring-primary-500 focus:ring-opacity-90 border-0 rounded-lg btn btn-info text-1-5vw", id: "show_logs", tabindex: "1" %>
       </p>
       <p>
         <%= custom_link_to "Download Debug Logs", "javascript:downloadDebugLogs()", data: { turbolinks: false }, class: "dark:text-white flex w-full h-full border-4 focus:outline-none focus:ring-8 focus:ring-purple-500 focus:ring-opacity-90 border-0 rounded-lg btn btn-secondary text-1-5vw", id: "download_logs", tabindex: "1" %>

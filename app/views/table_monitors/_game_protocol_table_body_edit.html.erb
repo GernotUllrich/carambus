@@ -54,7 +54,7 @@
     </td>
     
     <!-- Player A Points with +/- buttons or Edit for Snooker -->
-    <td class="py-2 px-4 text-center bg-blue-50 dark:bg-blue-900 dark:bg-blue-900 dark:bg-opacity-20">
+    <td class="py-2 px-4 text-center bg-primary-50 dark:bg-primary-900 dark:bg-primary-900 dark:bg-opacity-20">
       <% if show_inning_a %>
         <%- if table_monitor.data["free_game_form"] == "snooker" %>
           <%# Snooker: Show all innings with edit button %>
@@ -82,7 +82,7 @@
                         data-id="<%= table_monitor.id %>"
                         data-controller="stimulus-reflex"
                         data-action="click->stimulus-reflex#__perform"
-                        class="px-2 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded text-xs font-bold">✏️</button>
+                        class="px-2 py-1 bg-primary-500 hover:bg-primary-600 text-white rounded text-xs font-bold">✏️</button>
               <%- end %>
             </div>
           <%- end %>
@@ -93,20 +93,20 @@
                     data-inning="<%= i %>"
                     data-player="playera"
                     data-id="<%= table_monitor.id %>"
-                    class="px-2 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded text-sm font-bold">−</button>
+                    class="px-2 py-1 bg-primary-500 hover:bg-primary-600 text-white rounded text-sm font-bold">−</button>
             <span class="<%= input_class_a %> w-16 px-2 py-1 text-center"><%= inning_a %></span>
             <button data-reflex="click->GameProtocolReflex#increment_points"
                     data-inning="<%= i %>"
                     data-player="playera"
                     data-id="<%= table_monitor.id %>"
-                    class="px-2 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded text-sm font-bold">+</button>
+                    class="px-2 py-1 bg-primary-500 hover:bg-primary-600 text-white rounded text-sm font-bold">+</button>
           </div>
         <%- end %>
       <% end %>
     </td>
     
     <!-- Player A Total -->
-    <td class="py-2 px-4 text-center font-bold bg-blue-50 dark:bg-blue-900 dark:bg-opacity-20 <%= total_a_class %>">
+    <td class="py-2 px-4 text-center font-bold bg-primary-50 dark:bg-primary-900 dark:bg-opacity-20 <%= total_a_class %>">
       <%= show_inning_a ? total_a : '' %>
     </td>
     
