@@ -267,7 +267,7 @@ class Umb::FutureScraper
           next
         end
 
-        discipline = Umb::DisciplineDetector.detect(data[:name]) ||
+        discipline = Umb::DisciplineDetector.detect_with_title_fallback(data[:name]) ||
           Discipline.find_by("name ILIKE ?", "%dreiband%groß%") ||
           Discipline.find_by("name ILIKE ?", "%dreiband%gross%")
 
