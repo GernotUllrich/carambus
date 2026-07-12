@@ -101,6 +101,13 @@ namespace :region_taggings do
         tag_with_region(model, eval("organic_#{model.name.underscore}_ids"), region)
       end
     end
+
+    puts "\n" + ("=" * 72)
+    puts "HINWEIS: update_all_region_id taggt KEINE internationalen Records."
+    puts "UMB & int. Organizer-Turniere werden dabei region-scoped/nicht-global gesetzt."
+    puts "Danach zwingend ausführen:"
+    puts "  rake region_taggings:fix_international_organizer_context ARMED=1 REDELIVER_CHILDREN=1"
+    puts ("=" * 72)
   end
 
   def tag_with_gobal_context(model, ids)
@@ -113,8 +120,25 @@ namespace :region_taggings do
     PaperTrail::Version.where(item_type: model.name, item_id: ids).update_all(region_id: region.id)
   end
 
+  # Recurrence-Schutz: die derivation-basierten Re-Tag-Tasks rechnen global_context/region_id
+  # aus RegionTaggable#global_context? bzw. #find_associated_region_id neu — beide sind unvollständig
+  # und würden die kuratierte globale Taggung (dt. LV 1–17, DBU=17, UMB=25) still herunterreißen.
+  def guard_derivation_retag!(task_name)
+    return if ENV["FORCE_DERIVATION_RETAG"] == "1"
+    raise <<~MSG
+      #{task_name} ist deaktiviert (Recurrence-Schutz).
+      Diese Aufgabe rechnet global_context/region_id aus RegionTaggable#global_context? bzw.
+      #find_associated_region_id neu — beide sind unvollständig und würden die kuratierte globale
+      Taggung (dt. LV 1–17, DBU=17, UMB=25) herunterreißen.
+      Source of Truth für DE-Tagging: rake region_taggings:update_all_region_id.
+      Für internationale Records: rake region_taggings:fix_international_organizer_context ARMED=1 REDELIVER_CHILDREN=1.
+      Nur wenn du sicher bist: FORCE_DERIVATION_RETAG=1 setzen, um diesen Guard zu überschreiben.
+    MSG
+  end
+
   desc "Update region tagging for all models that include RegionTaggable"
   task update_all: :environment do
+    guard_derivation_retag!("region_taggings:update_all")
     if Carambus.config.carambus_api_url.present?
       puts "region tagging allowed only in API Server!"
       exit
@@ -226,6 +250,7 @@ namespace :region_taggings do
 
   desc "Set global_context flag for records that participate in global events"
   task set_global_context: :environment do
+    guard_derivation_retag!("region_taggings:set_global_context")
     models_to_process = [
       Tournament, League, Party, GameParticipation, Player
     ]
@@ -268,6 +293,7 @@ namespace :region_taggings do
 
   desc "Update existing versions with region_id and global_context"
   task update_existing_versions: :environment do
+    guard_derivation_retag!("region_taggings:update_existing_versions")
     puts "Updating existing versions with region_id and global_context..."
 
     # Get all models that include RegionTaggable
