@@ -101,6 +101,13 @@ namespace :region_taggings do
         tag_with_region(model, eval("organic_#{model.name.underscore}_ids"), region)
       end
     end
+
+    puts "\n" + ("=" * 72)
+    puts "HINWEIS: update_all_region_id taggt KEINE internationalen Records."
+    puts "UMB & int. Organizer-Turniere werden dabei region-scoped/nicht-global gesetzt."
+    puts "Danach zwingend ausführen:"
+    puts "  rake region_taggings:fix_international_organizer_context ARMED=1 REDELIVER_CHILDREN=1"
+    puts ("=" * 72)
   end
 
   def tag_with_gobal_context(model, ids)
@@ -113,8 +120,25 @@ namespace :region_taggings do
     PaperTrail::Version.where(item_type: model.name, item_id: ids).update_all(region_id: region.id)
   end
 
+  # Recurrence-Schutz: die derivation-basierten Re-Tag-Tasks rechnen global_context/region_id
+  # aus RegionTaggable#global_context? bzw. #find_associated_region_id neu — beide sind unvollständig
+  # und würden die kuratierte globale Taggung (dt. LV 1–17, DBU=17, UMB=25) still herunterreißen.
+  def guard_derivation_retag!(task_name)
+    return if ENV["FORCE_DERIVATION_RETAG"] == "1"
+    raise <<~MSG
+      #{task_name} ist deaktiviert (Recurrence-Schutz).
+      Diese Aufgabe rechnet global_context/region_id aus RegionTaggable#global_context? bzw.
+      #find_associated_region_id neu — beide sind unvollständig und würden die kuratierte globale
+      Taggung (dt. LV 1–17, DBU=17, UMB=25) herunterreißen.
+      Source of Truth für DE-Tagging: rake region_taggings:update_all_region_id.
+      Für internationale Records: rake region_taggings:fix_international_organizer_context ARMED=1 REDELIVER_CHILDREN=1.
+      Nur wenn du sicher bist: FORCE_DERIVATION_RETAG=1 setzen, um diesen Guard zu überschreiben.
+    MSG
+  end
+
   desc "Update region tagging for all models that include RegionTaggable"
   task update_all: :environment do
+    guard_derivation_retag!("region_taggings:update_all")
     if Carambus.config.carambus_api_url.present?
       puts "region tagging allowed only in API Server!"
       exit
@@ -226,6 +250,7 @@ namespace :region_taggings do
 
   desc "Set global_context flag for records that participate in global events"
   task set_global_context: :environment do
+    guard_derivation_retag!("region_taggings:set_global_context")
     models_to_process = [
       Tournament, League, Party, GameParticipation, Player
     ]
@@ -268,6 +293,7 @@ namespace :region_taggings do
 
   desc "Update existing versions with region_id and global_context"
   task update_existing_versions: :environment do
+    guard_derivation_retag!("region_taggings:update_existing_versions")
     puts "Updating existing versions with region_id and global_context..."
 
     # Get all models that include RegionTaggable
@@ -337,8 +363,20 @@ namespace :region_taggings do
       puts "  Region ##{region.id} #{region.shortname} — #{t_count} Turniere, #{l_count} Ligen (region_id IS NULL)"
     end
 
+    redeliver_children = ENV["REDELIVER_CHILDREN"] == "1"
+
+    # Kinder-Redelivery-Umfang: Games/GameParticipations/Player der int. Organizer-Turniere (region_id IS NULL).
+    # Basis: ALLE int. Organizer-Turniere (auch wenn die Region bereits global_context=true ist — Kinder-Records
+    # können unabhängig davon noch fehlen). Reihenfolge beim Redelivery = Apply-Reihenfolge.
+    intl_tids = Tournament.where(region_id: nil, organizer_type: "Region", organizer_id: affected_region_ids).pluck(:id)
+    child_gids = Game.where(tournament_id: intl_tids).select(:id)
+    child_pids = GameParticipation.where(game_id: child_gids).distinct.pluck(:player_id).compact
+    puts "Kinder-Umfang (int. Turniere=#{intl_tids.size}): Games=#{Game.where(tournament_id: intl_tids).count} " \
+         "GameParticipations=#{GameParticipation.where(game_id: child_gids).count} Player=#{child_pids.size}"
+
     unless armed
-      puts "DRY-RUN: keine Änderungen geschrieben. Ausführen mit: ARMED=1 bin/rails region_taggings:fix_international_organizer_context"
+      puts "DRY-RUN: keine Änderungen geschrieben. ARMED=1 mutiert Regions/Turniere; " \
+           "zusätzlich REDELIVER_CHILDREN=1 redelivert Games/GameParticipations/Player."
       next
     end
 
@@ -355,6 +393,40 @@ namespace :region_taggings do
       end
       puts "  Region ##{region.id} #{region.shortname}: global_context=true (Version ##{fix_version.id}), Turniere/Ligen redelivered"
     end
+
+    if redeliver_children
+      # Reihenfolge = Apply-Reihenfolge (niedrigere Version-id zuerst): Player -> Games -> GameParticipations.
+      # Player brauchen global_context=true (viele sind region-scoped getaggt -> Touch bliebe region-scoped und
+      # repliziert nicht); Games/GameParticipations haben region_id=nil -> Touch-Versionen replizieren ueberall.
+      # Alle Bulk-Touches broadcast-frei (skip_cable_ready_updates), in Batches (find_each).
+      n_players = 0
+      Player.skip_cable_ready_updates do
+        Player.where(id: child_pids).where.not(global_context: true).find_each(batch_size: 500) do |player|
+          player.update!(global_context: true)
+          n_players += 1
+        end
+      end
+      puts "  Player global_context=true: #{n_players}"
+
+      n_games = 0
+      Game.skip_cable_ready_updates do
+        Game.where(tournament_id: intl_tids).find_each(batch_size: 500) do |game|
+          game.touch
+          n_games += 1
+        end
+      end
+      puts "  Games getoucht: #{n_games}"
+
+      n_gp = 0
+      GameParticipation.skip_cable_ready_updates do
+        GameParticipation.where(game_id: Game.where(tournament_id: intl_tids).select(:id)).find_each(batch_size: 500) do |gp|
+          gp.touch
+          n_gp += 1
+        end
+      end
+      puts "  GameParticipations getoucht: #{n_gp}"
+    end
+
     puts "Fertig."
   end
 end
