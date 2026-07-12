@@ -67,6 +67,25 @@ class Discipline < ApplicationRecord
 
   CADRE_FORMATS = %w[35/2 52/2 47/2 71/2 47/1 38/2 57/2].freeze
 
+  # Kuratierte Titel->Disziplin-Overrides fuer Turnier-MARKENNAMEN, deren Disziplin der Titel nicht
+  # verraet (User-Domaenenwissen, Triage-Review 2026-07-12). Bewusst HIER (Code), NICHT in
+  # Discipline.synonyms (die sind fuer echte Disziplin-Aliase + Scraper-Nutzung). Ziel = Disziplin-Name.
+  TITLE_DISCIPLINE_OVERRIDES = {
+    "lausanne billard masters" => "Dreiband groß",
+    "verhoeven open" => "Dreiband groß",
+    "continental cup" => "Dreiband groß",
+    "agipi" => "Dreiband groß",
+    "sang lee" => "Dreiband groß",
+    "crystal kelly" => "Dreiband groß",
+    "super-cup" => "Dreiband groß",
+    "player of the year" => "Dreiband groß",
+    "carom cafe" => "Dreiband groß",
+    "femina belgian open" => "Dreiband groß",
+    "billiard charity challenge" => "Snooker",
+    "usba women" => "Pool",
+    "5kegel" => "5-Pin Billards"
+  }.freeze
+
   # Memoisierter Index (73 Disziplinen). reset_classify_index! fuer Tests.
   def self.classify_index
     @classify_index ||= begin
@@ -93,6 +112,9 @@ class Discipline < ApplicationRecord
 
     idx = classify_index
     named = ->(n) { idx[:by_name][n.downcase] }
+
+    # Kuratierte Marken-Overrides zuerst (Titel verraet die Disziplin nicht; NICHT in synonyms)
+    TITLE_DISCIPLINE_OVERRIDES.each { |pat, name| return named.call(name) if t.include?(pat) }
 
     # Kegel: sobald Kegel/Pin/BK -> Kegel-Blatt via Synonym; sonst der Kegel-Branch selbst (Branch erlaubt)
     if t.match?(/kegel|pin(s|billard|[- ])|\bbk[- \d]|ausstoss|ausstoß|eurokegel/)

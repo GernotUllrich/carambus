@@ -24,6 +24,9 @@ class DisciplineClassifyTest < ActiveSupport::TestCase
     @pool = Branch.create!(id: BASE + 23, name: "Pool")
     Discipline.create!(id: BASE + 51, name: "10-Ball", synonyms: "10er Ball\n10 Ball", super_discipline_id: @pool.id)
     Discipline.create!(id: BASE + 46, name: "14.1 endlos", synonyms: "14/1", super_discipline_id: @pool.id)
+    # Fuer Marken-Overrides
+    Branch.create!(id: BASE + 24, name: "Snooker")
+    Discipline.create!(id: BASE + 26, name: "5-Pin Billards", super_discipline_id: @kegel.id)
 
     Discipline.reset_classify_index!
   end
@@ -62,6 +65,17 @@ class DisciplineClassifyTest < ActiveSupport::TestCase
   test "3C/3CC -> Dreiband groß" do
     assert_equal "Dreiband groß", name_of("Survival 3C Masters")
     assert_equal "Dreiband groß", name_of("3CC Masters")
+  end
+
+  # Plan 03-03-fix: Turnier-Markennamen via Code-Override (NICHT Discipline.synonyms).
+  test "Marken-Overrides -> Disziplin (nicht aus synonyms)" do
+    assert_equal "Dreiband groß", name_of("Lausanne Billard Masters")
+    assert_equal "Dreiband groß", name_of("Verhoeven Open Tournament")
+    assert_equal "Pool", name_of("USBA Women's Invitation Tournament")
+    assert_equal "Snooker", name_of("Billiard Charity Challenge")
+    assert_equal "5-Pin Billards", name_of("LEM 5Kegel")
+    # Gegenprobe: die Marken stehen NICHT in den synonyms der Zieldisziplin
+    refute_includes Discipline.find_by(name: "Dreiband groß").synonyms.to_s, "Lausanne"
   end
 
   test "AC-2: extend_title_synonyms ist idempotent + dry-run mutiert nicht" do

@@ -13,15 +13,12 @@ namespace :disciplines do
       "8-Ball" => ["8er Ball", "8 Ball"],
       "9-Ball" => ["9er Ball", "9 Ball"],
       "14.1 endlos" => ["14/1", "14.1", "14er"],
-      "5-Pin Billards" => ["5-Pin", "5 Pin", "5-Pins", "5 Pins", "5Kegel"],
+      "5-Pin Billards" => ["5-Pin", "5 Pin", "5-Pins", "5 Pins"],
       "Ausstoßen" => ["Ausstoss"],
-      "BK-2kombi" => ["BK2-kombi", "BK2 Kombi", "BK2kombi"],
-      # Kuratierte internationale Brand-Namen (3-Band-Events, Titel verraet die Disziplin nicht) -> Dreiband groß.
-      # User-Domaenenentscheidung 2026-07-12 (Triage-Review).
-      "Dreiband groß" => ["Lausanne Billard Masters", "Verhoeven Open", "Continental Cup", "AGIPI",
-        "Sang Lee", "Crystal Kelly", "Super-Cup", "Player of the Year", "Carom Cafe", "Femina Belgian Open"],
-      "Snooker" => ["Billiard Charity Challenge"],
-      "Pool" => ["USBA Women"]
+      "BK-2kombi" => ["BK2-kombi", "BK2 Kombi", "BK2kombi"]
+      # HINWEIS: KEINE Turnier-Markennamen hier — die gehoeren in Discipline::TITLE_DISCIPLINE_OVERRIDES
+      # (code-seitige Titel->Disziplin-Tabelle), nicht in die synonyms-Spalte. Siehe Memory
+      # no-tournament-titles-in-synonyms. synonyms = echte Disziplin-Aliase (der Scraper nutzt sie auch).
     }
 
     armed = ENV["ARMED"] == "1"
