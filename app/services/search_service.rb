@@ -82,6 +82,16 @@ class SearchService < ApplicationService
         next
       end
 
+      # Branch: die branch_id-Spalte NICHT abfragen (bei gesyncten Global-Records NULL, SB-2),
+      # sondern zur Query-Zeit ueber discipline.root aufloesen -> alle Disziplinen des Branch-
+      # Teilbaums. Modelle ohne discipline_id ignorieren die Branch-Facette (verhaltensneutral).
+      if col == "branch_id"
+        next unless cols.include?("discipline_id")
+
+        results = results.where(discipline_id: Branch.discipline_ids_for(value))
+        next
+      end
+
       next unless cols.include?(col)
 
       results = if col == "region_id" && cols.include?("global_context")
