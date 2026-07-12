@@ -452,16 +452,15 @@ A focused improvement effort on the Carambus API codebase to break down the two 
 <!-- GSD:skills-end -->
 
 <!-- GSD:workflow-start source:GSD defaults -->
-## GSD Workflow Enforcement
+## Workflow (Paul-first)
 
-Before using Edit, Write, or other file-changing tools, start work through a GSD command so planning artifacts and execution context stay in sync.
+Prefer the lightweight **Paul** framework (`/paul:*`) or direct interactive work. GSD's multi-agent orchestration (`/gsd:plan-phase`, `/gsd:execute-phase` with researcher/planner/checker/executor subagents) proved painfully slow for this repo's operational work and is now **opt-in only** — use it only when the user explicitly asks for it.
 
-Use these entry points:
-- `/gsd-quick` for small fixes, doc updates, and ad-hoc tasks
-- `/gsd-debug` for investigation and bug fixing
-- `/gsd-execute-phase` for planned phase work
+- Operational / investigative / data / prod-ops work (debugging, sync reconciliation, migrations): work **directly and interactively** — no planning ceremony, no subagent orchestration.
+- Feature work that benefits from structure: `/paul:discuss` → `/paul:plan` → `/paul:apply` → `/paul:verify`.
+- Direct `Edit`/`Write` is fine — you do **not** need to route changes through a GSD command first.
 
-Do not make direct repo edits outside a GSD workflow unless the user explicitly asks to bypass it.
+Do not spin up GSD (or heavy Paul subagent) orchestration unless the user explicitly requests that scale.
 <!-- GSD:workflow-end -->
 
 <!-- GSD:profile-start -->
