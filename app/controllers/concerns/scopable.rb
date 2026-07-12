@@ -270,8 +270,13 @@ module Scopable
     Region.order(:shortname).pluck(:shortname, :id)
   end
 
+  # Saisons absteigend von current_season + 2 Jahren bis 2009/2010, nur echte
+  # "yyyy/yyyy+1"-Namen (kein "Unknown Season", keine Ausreisser wie 1911/1912).
   def scope_season_options
-    Season.order(id: :desc).limit(20).pluck(:name, :id)
+    current_year = Season.current_season&.name.to_s.split("/").first.to_i
+    current_year = (Date.today - 6.month).year if current_year.zero?
+    valid_names = (2009..(current_year + 2)).map { |y| "#{y}/#{y + 1}" }
+    Season.where(name: valid_names).order(name: :desc).pluck(:name, :id)
   end
 
   def scope_branch_options
