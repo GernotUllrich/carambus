@@ -267,7 +267,7 @@ module Scopable
   # --- Options-Quellen fuer die Band-View (Werte = IDs, kein "Alle") ---
 
   def scope_region_options
-    Region.order(:shortname).pluck(:shortname, :id)
+    Region.where.not(shortname: "UNKNOWN").order(:shortname).pluck(:shortname, :id)
   end
 
   # Saisons absteigend von current_season + 2 Jahren bis 2009/2010, nur echte
