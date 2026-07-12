@@ -48,6 +48,91 @@ class Discipline < ApplicationRecord
     self.synonyms = (synonyms.to_s.split("\n") + [name]).uniq.join("\n")
   end
 
+  # --- Phase 03 (v0.2): Titel -> exakte Disziplin -------------------------------
+  # Leitet aus einem Tournament#title die exakte Disziplin ab (oder nil = Triage).
+  # Quelle: Discipline.synonyms (generischer Match) + strukturelle Regeln fuer
+  # Tischgroesse (gross=Default), Cadre-Format, Snooker-Reds und Kegel-Branch.
+  # Domaenenregeln: siehe Memory title-to-discipline-derivation.
+
+  # Klein-Tisch-Marker (sonst grosser Tisch = Default). Aus realem Titel-Korpus.
+  KLEIN_MARKERS = ["kl.", " kl ", "klein", " tb ", "petit", "kleines billard"].freeze
+
+  # Karambol-Familien mit gross/klein-Variante (Ziel-Namen; gross=table_kind 5, klein=3).
+  KARAMBOL_FAMILIES = [
+    [["dreiband", "3-cushion", "3 cushion", "three cushion", "3-band", "3 band", "(3c", "3c)"],
+      "Dreiband groß", "Dreiband klein"],
+    [["freie partie", "partie libre", " libre"], "Freie Partie groß", "Freie Partie klein"],
+    [["einband", "one cushion", "1-cushion", "1 cushion"], "Einband groß", "Einband klein"]
+  ].freeze
+
+  CADRE_FORMATS = %w[35/2 52/2 47/2 71/2 47/1 38/2 57/2].freeze
+
+  # Memoisierter Index (73 Disziplinen). reset_classify_index! fuer Tests.
+  def self.classify_index
+    @classify_index ||= begin
+      all = Discipline.all.to_a
+      {
+        all: all,
+        kegel: all.select { |d| d.root&.name == "Kegel" },
+        by_name: all.index_by { |d| d.name.to_s.downcase }
+      }
+    end
+  end
+
+  def self.reset_classify_index!
+    @classify_index = nil
+  end
+
+  def self.classify_from_title(title)
+    t = " #{title.to_s.dup.force_encoding("UTF-8").scrub(" ").downcase} "
+    return nil if t.strip.empty?
+
+    idx = classify_index
+    named = ->(n) { idx[:by_name][n.downcase] }
+
+    # Kegel: sobald Kegel/Pin/BK -> nur Kegel-Branch als Kandidaten; exakt via Synonym, sonst nil (Dubletten -> Triage)
+    if t.match?(/kegel|pin(s|billard|[- ])|\bbk[- \d]|ausstoss|ausstoß|eurokegel/)
+      return best_synonym_match(t, idx[:kegel])
+    end
+
+    # Snooker
+    return named.call("Snooker (6reds)") if t.include?("6reds") || t.include?("6 reds") || t.include?("6-reds")
+    return named.call("Snooker (15reds)") if t.include?("snooker") || t.include?("15reds") || t.include?("15 reds") || t.include?("15-reds")
+
+    # Cadre: Format pinnt die exakte Disziplin; Cadre ohne bekanntes Format -> Triage
+    CADRE_FORMATS.each { |f| return named.call("Cadre #{f}") if t.include?(f) }
+    return nil if t.include?("cadre") || t.include?("cadré") || t.include?("kader")
+
+    # Karambol-Familien: gross default, klein nur bei Marker
+    small = KLEIN_MARKERS.any? { |m| t.include?(m) }
+    KARAMBOL_FAMILIES.each do |kws, gross_name, klein_name|
+      return named.call(small ? klein_name : gross_name) if kws.any? { |k| t.include?(k) }
+    end
+    return named.call("Biathlon") if t.include?("biathlon")
+    return named.call("Artistique") if t.include?("artistique") || t.include?("artistic")
+
+    # Generischer Synonym-Match (Pool/rest): laengster Synonym-Treffer gewinnt.
+    best_synonym_match(t, idx[:all])
+  end
+
+  # Laengster Synonym-Treffer im (normalisierten, mit Spaces gepolsterten) Titel gewinnt.
+  def self.best_synonym_match(padded_title, scope)
+    best = nil
+    best_len = 0
+    scope.each do |d|
+      d.synonyms.to_s.split("\n").each do |syn|
+        s = syn.strip.downcase
+        next if s.length < 3
+        if s.length > best_len && padded_title.include?(s)
+          best = d
+          best_len = s.length
+        end
+      end
+    end
+    best
+  end
+  # ------------------------------------------------------------------------------
+
   # Phase 39 D-04: Player-Klassen-Ordnung (worst → best). Walk-Richtung im
   # Class-Fallback (D-05) ist aufsteigend = strenger (bessere Klasse).
   # Zahlen (Karambol klein: 7..1) und römische Zahlen (Karambol groß: I..III)
