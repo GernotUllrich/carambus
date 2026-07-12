@@ -337,8 +337,20 @@ namespace :region_taggings do
       puts "  Region ##{region.id} #{region.shortname} — #{t_count} Turniere, #{l_count} Ligen (region_id IS NULL)"
     end
 
+    redeliver_children = ENV["REDELIVER_CHILDREN"] == "1"
+
+    # Kinder-Redelivery-Umfang: Games/GameParticipations/Player der int. Organizer-Turniere (region_id IS NULL).
+    # Basis: ALLE int. Organizer-Turniere (auch wenn die Region bereits global_context=true ist — Kinder-Records
+    # können unabhängig davon noch fehlen). Reihenfolge beim Redelivery = Apply-Reihenfolge.
+    intl_tids = Tournament.where(region_id: nil, organizer_type: "Region", organizer_id: affected_region_ids).pluck(:id)
+    child_gids = Game.where(tournament_id: intl_tids).select(:id)
+    child_pids = GameParticipation.where(game_id: child_gids).distinct.pluck(:player_id).compact
+    puts "Kinder-Umfang (int. Turniere=#{intl_tids.size}): Games=#{Game.where(tournament_id: intl_tids).count} " \
+         "GameParticipations=#{GameParticipation.where(game_id: child_gids).count} Player=#{child_pids.size}"
+
     unless armed
-      puts "DRY-RUN: keine Änderungen geschrieben. Ausführen mit: ARMED=1 bin/rails region_taggings:fix_international_organizer_context"
+      puts "DRY-RUN: keine Änderungen geschrieben. ARMED=1 mutiert Regions/Turniere; " \
+           "zusätzlich REDELIVER_CHILDREN=1 redelivert Games/GameParticipations/Player."
       next
     end
 
@@ -355,6 +367,40 @@ namespace :region_taggings do
       end
       puts "  Region ##{region.id} #{region.shortname}: global_context=true (Version ##{fix_version.id}), Turniere/Ligen redelivered"
     end
+
+    if redeliver_children
+      # Reihenfolge = Apply-Reihenfolge (niedrigere Version-id zuerst): Player -> Games -> GameParticipations.
+      # Player brauchen global_context=true (viele sind region-scoped getaggt -> Touch bliebe region-scoped und
+      # repliziert nicht); Games/GameParticipations haben region_id=nil -> Touch-Versionen replizieren ueberall.
+      # Alle Bulk-Touches broadcast-frei (skip_cable_ready_updates), in Batches (find_each).
+      n_players = 0
+      Player.skip_cable_ready_updates do
+        Player.where(id: child_pids).where.not(global_context: true).find_each(batch_size: 500) do |player|
+          player.update!(global_context: true)
+          n_players += 1
+        end
+      end
+      puts "  Player global_context=true: #{n_players}"
+
+      n_games = 0
+      Game.skip_cable_ready_updates do
+        Game.where(tournament_id: intl_tids).find_each(batch_size: 500) do |game|
+          game.touch
+          n_games += 1
+        end
+      end
+      puts "  Games getoucht: #{n_games}"
+
+      n_gp = 0
+      GameParticipation.skip_cable_ready_updates do
+        GameParticipation.where(game_id: Game.where(tournament_id: intl_tids).select(:id)).find_each(batch_size: 500) do |gp|
+          gp.touch
+          n_gp += 1
+        end
+      end
+      puts "  GameParticipations getoucht: #{n_gp}"
+    end
+
     puts "Fertig."
   end
 end
