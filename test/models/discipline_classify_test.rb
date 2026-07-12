@@ -20,8 +20,10 @@ class DisciplineClassifyTest < ActiveSupport::TestCase
     # Cadre (Format pinnt exakt) + Snooker
     Discipline.create!(id: BASE + 40, name: "Cadre 47/2")
     Discipline.create!(id: BASE + 91, name: "Snooker (15reds)")
-    # Pool mit deutschen Titel-Synonymen
-    Discipline.create!(id: BASE + 51, name: "10-Ball", synonyms: "10er Ball\n10 Ball")
+    # Pool: Branch + Blatt-Disziplinen (Blatt-vor-Branch-Praezedenz, Plan 03-03)
+    @pool = Branch.create!(id: BASE + 23, name: "Pool")
+    Discipline.create!(id: BASE + 51, name: "10-Ball", synonyms: "10er Ball\n10 Ball", super_discipline_id: @pool.id)
+    Discipline.create!(id: BASE + 46, name: "14.1 endlos", synonyms: "14/1", super_discipline_id: @pool.id)
 
     Discipline.reset_classify_index!
   end
@@ -46,8 +48,20 @@ class DisciplineClassifyTest < ActiveSupport::TestCase
     assert_nil name_of("UMB General Assembly"), "internationales Sammelevent ohne Disziplin"
     assert_nil name_of("Jahresabschlussturnier 2023")
     assert_nil name_of(""), "leerer Titel"
-    assert_nil name_of("Landesjugendmeisterschaft BK U15"),
-      "mehrdeutiges BK (Kegel-Dubletten -> Triage, kein eindeutiger Kegel-Synonym-Treffer)"
+  end
+
+  # Plan 03-03: Blatt schlaegt Branch; Branch ist gueltiger Fallback (User-Entscheidung).
+  test "Blatt schlaegt Branch, Branch als Fallback" do
+    assert_equal "14.1 endlos", name_of("Sächsische Landesmeisterschaft Pool 14/1 Herren"),
+      "Blatt (14.1 endlos) schlaegt Branch (Pool)"
+    assert_equal "Pool", name_of("Friday for Pool (PBF Blieskastel)"), "kein Blatt -> Pool-Branch"
+    assert_equal "Kegel", name_of("Landesjugendmeisterschaft BK U15"), "BK ohne exakte Kegel-Disziplin -> Kegel-Branch"
+    assert_equal "Kegel", name_of("Landesjugendmeisterschaft Kegel U15"), "generisches Kegel -> Kegel-Branch"
+  end
+
+  test "3C/3CC -> Dreiband groß" do
+    assert_equal "Dreiband groß", name_of("Survival 3C Masters")
+    assert_equal "Dreiband groß", name_of("3CC Masters")
   end
 
   test "AC-2: extend_title_synonyms ist idempotent + dry-run mutiert nicht" do

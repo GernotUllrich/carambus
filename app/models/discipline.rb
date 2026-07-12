@@ -59,7 +59,7 @@ class Discipline < ApplicationRecord
 
   # Karambol-Familien mit gross/klein-Variante (Ziel-Namen; gross=table_kind 5, klein=3).
   KARAMBOL_FAMILIES = [
-    [["dreiband", "3-cushion", "3 cushion", "three cushion", "3-band", "3 band", "(3c", "3c)"],
+    [["dreiband", "3-cushion", "3 cushion", "three cushion", "3-band", "3 band", "(3c", "3c)", "3c ", "3cc", "3-c "],
       "Dreiband groß", "Dreiband klein"],
     [["freie partie", "partie libre", " libre"], "Freie Partie groß", "Freie Partie klein"],
     [["einband", "one cushion", "1-cushion", "1 cushion"], "Einband groß", "Einband klein"]
@@ -71,9 +71,13 @@ class Discipline < ApplicationRecord
   def self.classify_index
     @classify_index ||= begin
       all = Discipline.all.to_a
+      kegel = all.select { |d| d.root&.name == "Kegel" }
       {
         all: all,
-        kegel: all.select { |d| d.root&.name == "Kegel" },
+        non_branch: all.reject { |d| d.is_a?(Branch) },
+        branches: all.select { |d| d.is_a?(Branch) },
+        kegel_leaf: kegel.reject { |d| d.is_a?(Branch) },
+        kegel_branch: kegel.find { |d| d.is_a?(Branch) },
         by_name: all.index_by { |d| d.name.to_s.downcase }
       }
     end
@@ -90,9 +94,9 @@ class Discipline < ApplicationRecord
     idx = classify_index
     named = ->(n) { idx[:by_name][n.downcase] }
 
-    # Kegel: sobald Kegel/Pin/BK -> nur Kegel-Branch als Kandidaten; exakt via Synonym, sonst nil (Dubletten -> Triage)
+    # Kegel: sobald Kegel/Pin/BK -> Kegel-Blatt via Synonym; sonst der Kegel-Branch selbst (Branch erlaubt)
     if t.match?(/kegel|pin(s|billard|[- ])|\bbk[- \d]|ausstoss|ausstoß|eurokegel/)
-      return best_synonym_match(t, idx[:kegel])
+      return best_synonym_match(t, idx[:kegel_leaf]) || idx[:kegel_branch]
     end
 
     # Snooker
@@ -111,8 +115,8 @@ class Discipline < ApplicationRecord
     return named.call("Biathlon") if t.include?("biathlon")
     return named.call("Artistique") if t.include?("artistique") || t.include?("artistic")
 
-    # Generischer Synonym-Match (Pool/rest): laengster Synonym-Treffer gewinnt.
-    best_synonym_match(t, idx[:all])
+    # Generischer Synonym-Match: Blatt zuerst (spezifisch), Branch nur als Fallback (Branch ist erlaubt).
+    best_synonym_match(t, idx[:non_branch]) || best_synonym_match(t, idx[:branches])
   end
 
   # Laengster Synonym-Treffer im (normalisierten, mit Spaces gepolsterten) Titel gewinnt.

@@ -13,9 +13,15 @@ namespace :disciplines do
       "8-Ball" => ["8er Ball", "8 Ball"],
       "9-Ball" => ["9er Ball", "9 Ball"],
       "14.1 endlos" => ["14/1", "14.1", "14er"],
-      "5-Pin Billards" => ["5-Pin", "5 Pin", "5-Pins", "5 Pins"],
+      "5-Pin Billards" => ["5-Pin", "5 Pin", "5-Pins", "5 Pins", "5Kegel"],
       "Ausstoßen" => ["Ausstoss"],
-      "BK-2kombi" => ["BK2-kombi", "BK2 Kombi", "BK2kombi"]
+      "BK-2kombi" => ["BK2-kombi", "BK2 Kombi", "BK2kombi"],
+      # Kuratierte internationale Brand-Namen (3-Band-Events, Titel verraet die Disziplin nicht) -> Dreiband groß.
+      # User-Domaenenentscheidung 2026-07-12 (Triage-Review).
+      "Dreiband groß" => ["Lausanne Billard Masters", "Verhoeven Open", "Continental Cup", "AGIPI",
+        "Sang Lee", "Crystal Kelly", "Super-Cup", "Player of the Year", "Carom Cafe", "Femina Belgian Open"],
+      "Snooker" => ["Billiard Charity Challenge"],
+      "Pool" => ["USBA Women"]
     }
 
     armed = ENV["ARMED"] == "1"
@@ -64,9 +70,9 @@ namespace :disciplines do
     Tournament.skip_cable_ready_updates do
       scope.find_each(batch_size: 500) do |t|
         d = Discipline.classify_from_title(t.title)
-        # Branch-Treffer (z.B. Titel nur "Pool"/"Kegel" ohne konkrete Disziplin) sind keine exakte
-        # Disziplin -> Triage (eine Turnier-Disziplin soll ein Blatt sein, kein Branch).
-        if d.nil? || d.is_a?(Branch)
+        # Branch-Treffer sind erlaubt (Titel nur "Pool"/"Kegel" -> Branch-Disziplin;
+        # User-Entscheidung 2026-07-12). Nur echte nil gehen in die Triage.
+        if d.nil?
           triage << [t.id, t.title]
           next
         end

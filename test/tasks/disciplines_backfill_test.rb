@@ -14,7 +14,8 @@ class DisciplinesBackfillTest < ActiveSupport::TestCase
     ENV.delete("ARMED")
 
     @region = Region.create!(id: BASE + 900, shortname: "BFT", name: "Backfill Test", region_id: nil)
-    @ten = Discipline.create!(id: BASE + 51, name: "10-Ball", synonyms: "10er Ball\n10 Ball")
+    @pool = Branch.create!(id: BASE + 23, name: "Pool")
+    @ten = Discipline.create!(id: BASE + 51, name: "10-Ball", synonyms: "10er Ball\n10 Ball", super_discipline_id: @pool.id)
     @unknown = Discipline.find_by(name: "Unknown Discipline") || Discipline.create!(id: BASE + 102, name: "Unknown Discipline")
     Discipline.reset_classify_index!
   end
@@ -79,6 +80,15 @@ class DisciplinesBackfillTest < ActiveSupport::TestCase
     backfill(armed: false)
 
     assert_nil t.reload.discipline_id, "DRY-RUN darf nicht schreiben"
+  end
+
+  test "branch-ergebender Titel wird zugewiesen (kein Triage, Plan 03-03)" do
+    skip_unless_api_server
+    t = tournament(6, "Friday for Pool (PBF Blieskastel)", discipline_id: nil)
+
+    backfill(armed: true)
+
+    assert_equal @pool.id, t.reload.discipline_id, "Pool-Branch ist eine gueltige Zuweisung"
   end
 
   test "second armed run is a no-op (already assigned, not reselected)" do
