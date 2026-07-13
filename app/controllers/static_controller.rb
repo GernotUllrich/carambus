@@ -22,7 +22,7 @@ class StaticController < ApplicationController
     # Redirect to search documentation
     # Respect locale parameter from query string
     locale = params[:locale] || I18n.locale.to_s
-    redirect_to docs_page_with_locale_path(locale: locale, path: 'search')
+    redirect_to docs_page_with_locale_path(locale: locale, path: 'reference/search')
   end
 
   def intro
@@ -144,11 +144,6 @@ class StaticController < ApplicationController
   def privacy
     # Redirect to docs_page for privacy documentation (liegt unter docs/reference/)
     redirect_to docs_page_with_locale_path(locale: I18n.locale.to_s, path: 'reference/privacy')
-  end
-
-  def database_syncing
-    # Redirect to docs_page for database syncing documentation
-    redirect_to docs_page_with_locale_path(locale: I18n.locale.to_s, path: 'database_syncing')
   end
 
   # Neue Methode: Einzelne MkDocs-Dokumente in das Carambus-Layout integrieren
