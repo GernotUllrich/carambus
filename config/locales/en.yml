@@ -1,34 +1,4 @@
 en:
-  account:
-    card_exp_month: card exp month
-    card_exp_year: card exp year
-    card_last4: card last4
-    card_token: card token
-    card_type: card type
-    created_at: created at
-    domain: domain
-    extra_billing_info: extra billing info
-    id: id
-    name: name
-    owner_id: owner id
-    passwords:
-      edit:
-        two_factor:
-          description: When you login, you will be required to enter a one-time code along to one of your devices.
-          disable: Disable two-factor authentication
-          enable: Enable two-factor authentication
-          header: Two-factor Authentication
-        update: Update
-        update_password: Update Password
-      updated: Your password was changed successfully.
-    personal: personal
-    plan: plan
-    processor: processor
-    processor_id: processor id
-    quantity: quantity
-    subdomain: subdomain
-    trial_ends_at: trial ends at
-    updated_at: updated at
   actions: Actions
   attributes:
     data: Data
@@ -105,11 +75,6 @@ en:
         one: User Tournament
         other: User Tournaments
     attributes:
-      account:
-        name_on_card: Name on Card
-      api_token:
-        created_at: Created
-        last_used_at: Last Used
       club:
       party:
       party_monitor:
@@ -164,23 +129,6 @@ en:
         timezone: Timezone
         theme: Color theme
         preferences: Preferences
-    errors:
-      models:
-        account:
-          attributes:
-            domain:
-              reserved: "%{value} is reserved."
-            subdomain:
-              format: must be at least 2 characters and alphanumeric
-              reserved: "%{value} is reserved."
-        account_invitation:
-          attributes:
-            email:
-              invited: has already been invited
-        account_user:
-          attributes:
-            admin:
-              cannot_be_removed: role cannot be removed for the account owner
   admin:
     settings:
       advanced_settings: Advanced Settings (JSON)
@@ -401,7 +349,6 @@ en:
     mailer:
       copyright_html: Copyright &copy; %{year}, All rights reserved.
       mailing_address: 'Our mailing address is:'
-      preferences: Update subscription preferences
       unsubscribe: Unsubscribe from this list
       view_in_browser: View this in your browser
   league:

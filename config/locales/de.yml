@@ -1,34 +1,4 @@
 de:
-  account:
-    card_exp_month: Kartenablaufdatunm
-    card_exp_year: Kartenablaufjahr
-    card_last4: Kartenendziffern
-    card_token: Karten Token
-    card_type: Kartenart
-    created_at: Erstellt
-    domain: Domain
-    extra_billing_info: Zusatzinfos
-    id: id
-    name: Name
-    owner_id: Benutzerkennung
-    passwords:
-      edit:
-        two_factor:
-          description: When you login, you will be required to enter a one-time code along to one of your devices.
-          disable: Disable two-factor authentication
-          enable: Enable two-factor authentication
-          header: Two-factor Authentication
-        update: Aktualisieren
-        update_password: Passwort Aktualisieren
-      updated: Dein Passwort wurde erfolgreich geändert.
-    personal: persönlich
-    plan: Plan
-    processor: Prozessor
-    processor_id: Prozessor ID
-    quantity: Anzahl
-    subdomain: Subdomain
-    trial_ends_at: Probezeitende
-    updated_at: aktualisiert
   actions: Aktionen
   attributes:
     data: Daten
@@ -105,11 +75,6 @@ de:
         one: Benutzerturnier
         other: Benutzerturniere
     attributes:
-      account:
-        name_on_card: Name on Card
-      api_token:
-        created_at: Created
-        last_used_at: Last Used
       club:
       party:
       party_monitor:
@@ -164,23 +129,6 @@ de:
         timezone: Zeitzone
         theme: Farbschema
         preferences: Einstellungen
-    errors:
-      models:
-        account:
-          attributes:
-            domain:
-              reserved: "%{value} is reserved."
-            subdomain:
-              format: must be at least 2 characters and alphanumeric
-              reserved: "%{value} is reserved."
-        account_invitation:
-          attributes:
-            email:
-              invited: has already been invited
-        account_user:
-          attributes:
-            admin:
-              cannot_be_removed: role cannot be removed for the account owner
   admin:
     settings:
       advanced_settings: Erweiterte Einstellungen (JSON)
@@ -324,8 +272,6 @@ de:
   hello: Hallo Welt
   helpers:
     label:
-      account:
-        name: Account Name
       country: Country or region
       user:
         name: Full name
@@ -333,19 +279,6 @@ de:
         locale: Sprache
         timezone: Zeitzone
     placeholder:
-      account:
-        billing_email: gernot.ullrich@gmx.de
-        domain: carambus.de
-        extra_billing_info: VAT ID, Business name, address, etc...
-        name: Account Name
-        name_on_card: Full Name
-        subdomain: example
-      account_invitation:
-        email: gernot.ullrich@gmx.de
-        name: Full name
-      api_token:
-        name: Token Name
-      name_on_card: Full name
       user:
         email: you@example.com
         name: Steve Jobs

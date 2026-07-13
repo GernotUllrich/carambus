@@ -171,10 +171,6 @@ class ApplicationController < ActionController::Base
     redirect_back fallback_location: root_path, alert: t("application.flash.api_unavailable")
   end
 
-  def require_account
-    redirect_to new_user_registration_path unless current_account
-  end
-
   def set_current_user
     User.current = current_user
     yield
