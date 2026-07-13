@@ -57,8 +57,5 @@
     <div class="mt-6 mb-4">
       <%= render partial: 'spielbericht', locals: { party: @party } %>
     </div>
-    <div class="mt-6 mb-4">
-      <%= render partial: 'party_games/party_games_table', locals: { records: @party.party_games } if @party.party_games.present? %>
-    </div>
   </div>
 </div>
