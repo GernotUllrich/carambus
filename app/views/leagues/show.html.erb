@@ -4,7 +4,7 @@
     organizer wird polymorph verlinkt (behebt den hardcodeten region_path-Bug). %>
 <% details = capture do %>
   <div class="flex flex-wrap gap-4">
-    <%= custom_link_to "=> #{t('league_league_teams')}", league_teams_path(drill: { league_id: @league.id }), class: "text-primary-600 hover:text-primary-700 font-medium" %>
+    <%= custom_link_to "#{t('league_league_teams')} →", league_teams_path(drill: { league_id: @league.id }), class: "text-primary-600 hover:text-primary-700 font-medium" %>
   </div>
 
   <% if @league.discipline&.name == "Snooker" %>
