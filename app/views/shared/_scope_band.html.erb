@@ -60,6 +60,10 @@
                 scope_branch_options.map { |name, id| [name, id] }, current_branch_id),
               class: pill, onchange: "this.form.requestSubmit()" %>
       <% end %>
+
+      <%# H4: Trailing-Atem, damit das letzte Element im horizontalen Scroller (z.B. der
+          Saison-Umbruch-Hinweis auf Seiten ohne 3. Facette) nicht bündig/abgeschnitten am Rand klebt. %>
+      <span aria-hidden="true" class="shrink-0 w-2"></span>
     <% end %>
   </div>
 </div>
