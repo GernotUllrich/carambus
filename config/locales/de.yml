@@ -1080,11 +1080,13 @@ de:
     groups:
       groups: Gruppen
     index:
+      all_heading: Alle Turniere
       api_server_readonly_body_html: "Dies ist der zentrale API Server. Turniermanagement (Erstellen, Bearbeiten, Durchführen) ist nur auf <strong>lokalen Servern</strong> möglich. Hier können Sie nur Turniere ansehen und als Datenquelle für lokale Server verwenden."
       api_server_readonly_heading: API Server - Nur-Lese-Modus
       listing_tournaments: Liste der Turniere
       new_tournament: Neues Turnier
       new_tournament_button: Neues Turnier
+      upcoming_heading: Demnächst
     monitor:
       all_rankings_label: "💡 Alle Rankings:"
       back_to_mode_selection: Zurück zur Modus-Auswahl

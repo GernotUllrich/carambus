@@ -1,31 +1,19 @@
+<%# H19: „Demnächst"-Block (nur Standard-Blick/Seite 1, im Controller via @show_upcoming gesetzt). %>
+<% if @show_upcoming && @upcoming_tournaments.present? %>
+  <h2 class="h5 mb-2 text-gray-700 dark:text-gray-300"><%= t('tournaments.index.upcoming_heading') %></h2>
+  <div class="bg-surface-card dark:bg-gray-800 rounded-card border border-primary-200 dark:border-primary-800 overflow-hidden mb-6">
+    <% @upcoming_tournaments.each do |tournament| %>
+      <%= render partial: 'tournaments/tournament_row', locals: { tournament: tournament } %>
+    <% end %>
+  </div>
+  <h2 class="h5 mb-2 text-gray-700 dark:text-gray-300"><%= t('tournaments.index.all_heading') %></h2>
+<% end %>
+
 <div class="bg-surface-card dark:bg-gray-800 rounded-card border border-gray-200 dark:border-gray-700 overflow-hidden">
   <% @tournaments ||= records %>
   <% @pagy ||= defined?(pagy) ? pagy : nil %>
   <% @tournaments.each do |tournament| %>
-    <div class="group flex items-center gap-3 px-4 py-3 border-t border-gray-100 dark:border-gray-700 first:border-t-0 hover:bg-surface-page dark:hover:bg-gray-700/60">
-      <div class="flex-1 min-w-0">
-        <%= custom_link_to(tournament.title, tournament_path(tournament), class: "font-medium text-gray-900 dark:text-gray-100 hover:text-primary-600") %>
-        <div class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-          <%# Subzeile "Datum · Ort" — Trenner nur, wenn beide Teile vorhanden sind. %>
-          <% date_part = tournament.date&.to_date %>
-          <% location_part = if tournament.location.is_a?(Location)
-               custom_link_to(tournament.location.display_address_short&.html_safe, location_path(tournament.location))
-             else
-               tournament.location_text
-             end %>
-          <%= safe_join([date_part, location_part].select(&:present?), " · ") %>
-        </div>
-      </div>
-      <%# Kontextuelle Marker vom Scope-State getrieben: %>
-      <%# Disziplin-Chip nur, wenn Branch nicht auf Einzelwert fixiert ("Alle Branchen"). %>
-      <% if current_branch_id.blank? %>
-        <%= discipline_chip(tournament.discipline) %>
-      <% end %>
-      <%# Region-Badge nur bei Abweichung: Turnier-Region ≠ Scope-Region (überregional/global_context). %>
-      <% if tournament.region_id != current_region_id %>
-        <%= region_badge(tournament.organizer) %>
-      <% end %>
-    </div>
+    <%= render partial: 'tournaments/tournament_row', locals: { tournament: tournament } %>
   <% end %>
 </div>
 

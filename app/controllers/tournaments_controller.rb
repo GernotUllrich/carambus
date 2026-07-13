@@ -34,9 +34,31 @@ class TournamentsController < ApplicationController
     # Default sort by date descending if no sort specified
     search_params = params.dup
     search_params[:sort] ||= "date"
-    search_params[:direction] ||= "asc"
+    search_params[:direction] ||= "desc"
 
     results = SearchService.call(Tournament.search_hash(search_params))
+
+    # H19: „Demnächst"-Block — anstehende Turniere (nächste 14 Tage) im Standard-Blick
+    # oben abgesetzt, aus der datum-absteigenden Hauptliste ausgeklammert.
+    @show_upcoming = false
+    default_view = params[:sSearch].blank? && params[:sort].blank? && params[:direction].blank?
+    if default_view
+      window = Date.current.beginning_of_day..(Date.current + 14.days).end_of_day
+      upcoming_scope = results.where(date: window)
+      upcoming_ids = upcoming_scope.pluck(:id)
+      if upcoming_ids.any?
+        # Ausklammerung über ALLE Seiten konsistent (sonst Duplikate/Offset-Bruch bei Pagy):
+        results = results.where.not(id: upcoming_ids)
+        # Anzeige des Blocks nur auf Seite 1:
+        if params[:page].to_i <= 1
+          @upcoming_tournaments = upcoming_scope.reorder(date: :asc)
+            .includes(:discipline, :season, :location, :tournament_cc).preload(:organizer)
+          @upcoming_tournaments.load
+          @show_upcoming = true
+        end
+      end
+    end
+
     @pagy, @tournaments = pagy(results.includes(:discipline, :season, :location, :tournament_cc).preload(:organizer))
     # We explicitly load the records to avoid triggering multiple DB calls in the views when checking if records exist and iterating over them.
     # Calling @tournaments.any? in the view will use the loaded records to check existence instead of making an extra DB call.

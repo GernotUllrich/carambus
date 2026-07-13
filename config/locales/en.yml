@@ -1040,11 +1040,13 @@ en:
     groups:
       groups: Groups
     index:
+      all_heading: All tournaments
       api_server_readonly_body_html: "This is the central API server. Tournament management (create, edit, run) is only possible on <strong>local servers</strong>. Here you can only view tournaments and use them as a data source for local servers."
       api_server_readonly_heading: API Server — Read-Only Mode
       listing_tournaments: Listing Tournaments
       new_tournament: New Tournament
       new_tournament_button: New Tournament
+      upcoming_heading: Upcoming
     monitor:
       all_rankings_label: "💡 All rankings:"
       back_to_mode_selection: Back to Mode Selection
