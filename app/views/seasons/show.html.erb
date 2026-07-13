@@ -1,2 +1,2 @@
 <%# 09-01: generisches Detail-Card-Partial (Foundation v0.3) — ersetzt das bespoke Scaffold-show. %>
-<%= render "shared/detail_card", record: @season, index_path: seasons_path, index_label: "Seasons" %>
+<%= render "shared/detail_card", record: @season, index_path: seasons_path, index_label: "Seasons", except: %w[ba_id data] %>
