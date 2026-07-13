@@ -248,8 +248,8 @@ export default class extends Controller {
     
     // AI Answer (use localized label and render Markdown)
     const answerLabel = this.answerLabelValue || "💡 Answer:"
-    html += `<div class="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-md">`
-    html += `<div class="font-medium text-blue-900 dark:text-blue-200 mb-2">${answerLabel}</div>`
+    html += `<div class="bg-primary-50 dark:bg-primary-900/20 p-3 rounded-md">`
+    html += `<div class="font-medium text-primary-900 dark:text-primary-200 mb-2">${answerLabel}</div>`
     html += `<div class="prose prose-sm max-w-none dark:prose-invert text-gray-700 dark:text-gray-300">${marked.parse(data.answer)}</div>`
     html += `</div>`
     
@@ -260,7 +260,7 @@ export default class extends Controller {
       html += `<div class="font-medium text-gray-700 dark:text-gray-300 mb-2">${docsLabel}</div>`
       html += `<ul class="space-y-1">`
       data.docs_links.forEach(link => {
-        html += `<li><a href="${link.url}" target="_blank" class="text-blue-600 dark:text-blue-400 hover:underline">→ ${this.escapeHtml(link.title)}</a></li>`
+        html += `<li><a href="${link.url}" target="_blank" class="text-primary-600 dark:text-primary-400 hover:underline">→ ${this.escapeHtml(link.title)}</a></li>`
       })
       html += `</ul></div>`
     }
