@@ -9,7 +9,7 @@
     <div class="alert alert-warning bg-warning-50 dark:bg-warning-900/30 border border-warning-400 text-gray-800 dark:text-gray-100 p-3 rounded-md mb-5">
       ⚠️ <strong>Übersetzungen nicht synchronisiert</strong><br>
       <span class="text-[0.9em]">
-        Original-Text wurde geändert. Klicken Sie nach dem Speichern auf "Translate" um die Übersetzungen zu aktualisieren.
+        Original-Text wurde geändert. Klicke nach dem Speichern auf "Translate", um die Übersetzungen zu aktualisieren.
       </span>
     </div>
   <% end %>
@@ -131,7 +131,7 @@
   <%= form.label :tags, "Tags", class: "field-unit__label" %>
   <div class="field-unit__field">
     <div class="flex justify-between items-center mb-2.5">
-      <p class="field-hint text-gray-500 dark:text-gray-400 m-0">Wählen Sie bestehende Tags aus den Kategorien:</p>
+      <p class="field-hint text-gray-500 dark:text-gray-400 m-0">Wähle bestehende Tags aus den Kategorien:</p>
       <%= link_to "Tag-Verwaltung", admin_tags_path, target: "_blank",
                   class: "bg-success-600 hover:bg-success-700 text-white px-2.5 py-1 rounded text-[0.9em] no-underline" %>
     </div>
@@ -160,10 +160,10 @@
     <% if Tag.count == 0 %>
       <div class="tag-input-wrapper mt-4">
         <p class="text-danger-500 font-bold">⚠ Noch keine Tags vorhanden!</p>
-        <p>Bitte erstellen Sie zuerst Tags über die <%= link_to "Tag-Verwaltung", admin_tags_path, target: "_blank" %>,
+        <p>Bitte erstelle zuerst Tags über die<%= link_to "Tag-Verwaltung", admin_tags_path, target: "_blank" %>,
            um Redundanz zu vermeiden.</p>
         <p class="text-[0.9em] mt-2.5">
-          Oder laden Sie Beispiel-Tags:
+          Oder lade Beispiel-Tags:
           <code class="bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded">
             rails runner db/seeds/tags.rb
           </code>

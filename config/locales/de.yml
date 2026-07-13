@@ -186,12 +186,12 @@ de:
       advanced_settings: Erweiterte Einstellungen (JSON)
       club: Club
       config_lock_active: "⚠️ Konfigurationssperre aktiv:"
-      config_lock_body_html: "Ihre Einstellungen sind vor dem Überschreiben durch Szenario-Deployment-Tasks geschützt. Lock-Datei: <code class=\"bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded font-mono\">config/carambus.yml.lock</code>"
+      config_lock_body_html: "Deine Einstellungen sind vor dem Überschreiben durch Szenario-Deployment-Tasks geschützt. Lock-Datei: <code class=\"bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded font-mono\">config/carambus.yml.lock</code>"
       contact_settings: Kontakteinstellungen
       location: Location
       location_settings: Standort-Einstellungen
       note: 'Hinweis:'
-      note_body: Änderungen an der Konfiguration erfordern einen Neustart der Anwendung, um wirksam zu werden. Beim Speichern der Einstellungen wird eine Lock-Datei erstellt, um zu verhindern, dass Szenario-Deployment Ihre Anpassungen überschreibt.
+      note_body: Änderungen an der Konfiguration erfordern einen Neustart der Anwendung, um wirksam zu werden. Beim Speichern der Einstellungen wird eine Lock-Datei erstellt, um zu verhindern, dass Szenario-Deployment deine Anpassungen überschreibt.
       quick_game_presets_hint: Schnellspiel-Buttons für verschiedene Tischarten konfigurieren (JSON-Format)
       region: Region
       system_settings: Systemeinstellungen
@@ -298,7 +298,7 @@ de:
       invalid_theme: Ungültiges Layout Thema
       invalid_locale: Ungültiges Locale Kürzel
       invalid_timezone: Ungültige Zeitzone
-    tournament_game_manipulation_blocked: "Spielmanipulationen sind während eines Turniers nicht erlaubt. Bitte verwenden Sie das Turnier-Verwaltungssystem."
+    tournament_game_manipulation_blocked: "Spielmanipulationen sind während eines Turniers nicht erlaubt. Bitte verwende das Turnier-Verwaltungssystem."
     tournament_reset_requires_admin: "Das Zurücksetzen eines Turniers ist nur für Club- und System-Administratoren erlaubt."
   game_participation:
     balls_goal: Ballziel
@@ -1038,7 +1038,7 @@ de:
       calculated_likely_wrong: "🤖 Berechnet (vermutlich falsch):"
       close: Schließen
       continue_with: Weiter mit
-      current_workaround: "Aktuell: Verwenden Sie '🔄 Neu berechnen' oder passen Sie die Setzliste in Schritt 3 an."
+      current_workaround: "Aktuell: Verwende '🔄 Neu berechnen' oder passe die Setzliste in Schritt 3 an."
       extracted_info: Diese Informationen wurden automatisch aus der hochgeladenen Einladung extrahiert.
       final_modus_selection: Abschliessende Auswahl des Austragungsmodus
       from_invitation_nbv: "📄 Aus Einladung (NBV-Vorgabe):"
@@ -1047,7 +1047,7 @@ de:
       in_development_html: "<strong>Hinweis:</strong> Diese Funktion ist in Entwicklung."
       invitation_specs_heading: "📄 Vorgaben aus Einladung:"
       landessportwart_quote: "\"Auch der Landessportwart irrt manchmal\" 😊"
-      manual_correct_hint: Sie können die Gruppenzuordnung manuell korrigieren.
+      manual_correct_hint: Du kannst die Gruppenzuordnung manuell korrigieren.
       manually_adjust: ✏️ Manuell anpassen
       proposed_modus: 'Vorgeschlagener Modus:'
       proposed_from_invitation: 'Empfohlen aus Einladung:'
@@ -1081,7 +1081,7 @@ de:
       groups: Gruppen
     index:
       all_heading: Alle Turniere
-      api_server_readonly_body_html: "Dies ist der zentrale API Server. Turniermanagement (Erstellen, Bearbeiten, Durchführen) ist nur auf <strong>lokalen Servern</strong> möglich. Hier können Sie nur Turniere ansehen und als Datenquelle für lokale Server verwenden."
+      api_server_readonly_body_html: "Dies ist der zentrale API Server. Turniermanagement (Erstellen, Bearbeiten, Durchführen) ist nur auf <strong>lokalen Servern</strong> möglich. Hier kannst du nur Turniere ansehen und als Datenquelle für lokale Server verwenden."
       api_server_readonly_heading: API Server - Nur-Lese-Modus
       listing_tournaments: Liste der Turniere
       new_tournament: Neues Turnier
@@ -1200,19 +1200,19 @@ de:
       step2_check_seedings: Setzliste prüfen
       step2_continue_button: "→ Weiter zu Schritt 3 mit diesen %{count} Spielern"
       step2_continue_confirm: "Diese %{count} Spieler als Teilnehmerliste übernehmen?\n\nDie Spieler werden automatisch nach ihrer Position sortiert."
-      step2_continue_hint: Übernehmen Sie diese Spieler, um mit Schritt 3 fortzufahren.
+      step2_continue_hint: Übernimm diese Spieler, um mit Schritt 3 fortzufahren.
       step2_continue_title: Übernimmt die vorhandenen Spieler und aktiviert Schritt 3
-      step2_existing_players_info_html: "ℹ️ <strong>Es sind bereits %{count} Spieler vorhanden</strong><br>Sie können diese direkt übernehmen (siehe unten)"
-      step2_help_body_html: "Laden Sie die <strong>offizielle Einladung</strong> vom Landessportwart hoch. Carambus extrahiert automatisch:<br>• <strong>Setzliste</strong> (Reihenfolge nach Ranking)<br>• <strong>Vorgaben</strong> bei Vorgabeturnieren (Punktzahlen)<br><br>Unterstützt PDF oder Screenshot (PNG/JPG).<br>Zweispaltige Tabellen werden automatisch erkannt.<br><br><strong>Alternative:</strong> Falls keine Einladung vorliegt, können Sie auch direkt mit der Meldeliste von ClubCloud (aus Schritt 1) zu Schritt 3 weitergehen.<br><br><strong>Hinweis:</strong> Die Setzliste (Reihenfolge/Position der Spieler) können Sie in <strong>Schritt 3</strong> bei Bedarf anpassen (↑↓ Buttons oder direkte Positionseingabe)."
+      step2_existing_players_info_html: "ℹ️ <strong>Es sind bereits %{count} Spieler vorhanden</strong><br>Du kannst diese direkt übernehmen (siehe unten)"
+      step2_help_body_html: "Lade die <strong>offizielle Einladung</strong> vom Landessportwart hoch. Carambus extrahiert automatisch:<br>• <strong>Setzliste</strong> (Reihenfolge nach Ranking)<br>• <strong>Vorgaben</strong> bei Vorgabeturnieren (Punktzahlen)<br><br>Unterstützt PDF oder Screenshot (PNG/JPG).<br>Zweispaltige Tabellen werden automatisch erkannt.<br><br><strong>Alternative:</strong> Falls keine Einladung vorliegt, kannst du auch direkt mit der Meldeliste von ClubCloud (aus Schritt 1) zu Schritt 3 weitergehen.<br><br><strong>Hinweis:</strong> Die Setzliste (Reihenfolge/Position der Spieler) kannst du in <strong>Schritt 3</strong> bei Bedarf anpassen (↑↓ Buttons oder direkte Positionseingabe)."
       step2_invitation_uploaded: "✓ Einladung hochgeladen:"
       step2_players_available_html: "✓ <strong>Es sind bereits %{count} Spieler vorhanden</strong>"
       step2_players_taken: "%{count} Spieler bereits als Teilnehmer übernommen."
       step2_title: Setzliste aus Einladung übernehmen
       step2_upload_invitation: Einladung hochladen
-      step2_upload_prompt: Laden Sie die PDF-Einladung oder Screenshot hoch
+      step2_upload_prompt: Lade die PDF-Einladung oder den Screenshot hoch
       step3_action_text: Teilnehmer prüfen
       step3_help_handicap_line_html: "• 🎯 <strong>Vorgaben korrigieren</strong> falls nötig (Punktzahlen)<br>"
-      step3_help_html: "Passen Sie die <strong>Teilnehmerliste</strong> direkt am Turniertag an:<br>• ☑️ Checkboxen: Teilnehmer aktivieren/deaktivieren (No-Shows)<br>%{handicap_line}• ✏️ Änderungen werden sofort gespeichert<br>• ➕ Kurzfristige Nachmeldungen: Spieler aus Meldeliste aktivieren<br><br><strong>Wichtig:</strong> Dieser Schritt bleibt aktiv bis Sie in Schritt 4 die Liste finalisieren!<br><br><strong>Für Tests:</strong> %{test_link}"
+      step3_help_html: "Passe die <strong>Teilnehmerliste</strong> direkt am Turniertag an:<br>• ☑️ Checkboxen: Teilnehmer aktivieren/deaktivieren (No-Shows)<br>%{handicap_line}• ✏️ Änderungen werden sofort gespeichert<br>• ➕ Kurzfristige Nachmeldungen: Spieler aus Meldeliste aktivieren<br><br><strong>Wichtig:</strong> Dieser Schritt bleibt aktiv, bis du in Schritt 4 die Liste finalisierst!<br><br><strong>Für Tests:</strong> %{test_link}"
       step3_help_test_link_text: "📝 Direkt zur Teilnehmerliste (für manuelle Eingabe)"
       step3_title: Teilnehmerliste bearbeiten (am Turniertag)
       step3_warning: Dieser Schritt bleibt offen bis zur endgültigen Festschreibung in Schritt 4
@@ -1221,16 +1221,16 @@ de:
       step4_help_html: "⚠️ WICHTIG: Diese Aktion ist nicht umkehrbar! Die finale <strong>Teilnehmerliste</strong> wird fest gespeichert und die Gruppeneinteilung wird basierend auf dieser Reihenfolge berechnet."
       step4_title: Teilnehmerliste finalisieren
       step5_action_text: Modus auswählen
-      step5_help: Wählen Sie den Turniermodus (z.B. T07, T10) basierend auf der Anzahl der Teilnehmer. Der Modus bestimmt Gruppenaufteilung und K.O.-Runden.
+      step5_help: Wähle den Turniermodus (z.B. T07, T10) basierend auf der Anzahl der Teilnehmer. Der Modus bestimmt Gruppenaufteilung und K.O.-Runden.
       step6_help_pending: Startet das Turnier und öffnet den Tournament-Monitor für die Verwaltung der Spiele und Tischzuordnungen.
-      step6_help_running_html: "Das Turnier läuft bereits. Verwenden Sie den <strong>Tournament Monitor</strong> um:<br>• Spiele zu starten und zu verwalten<br>• Tische zuzuordnen<br>• Ergebnisse zu kontrollieren<br>• Den Turnierverlauf zu überwachen"
+      step6_help_running_html: "Das Turnier läuft bereits. Verwende den <strong>Tournament Monitor</strong> um:<br>• Spiele zu starten und zu verwalten<br>• Tische zuzuordnen<br>• Ergebnisse zu kontrollieren<br>• Den Turnierverlauf zu überwachen"
       step6_open_monitor: "🎮 Tournament Monitor öffnen"
       step6_running_badge: Läuft
       step6_start_tournament: Turnier starten
       step6_title: Verwaltung der Turnierspiele
       step6_warning: Turnier noch nicht gestartet
     compare_seedings:
-      alt_clubcloud_body_html: "Falls keine Einladung vorliegt, können Sie mit der <strong>Meldeliste von ClubCloud</strong> direkt zu Schritt 3 (Teilnehmerliste bearbeiten) weitermachen."
+      alt_clubcloud_body_html: "Falls keine Einladung vorliegt, kannst du mit der <strong>Meldeliste von ClubCloud</strong> direkt zu Schritt 3 (Teilnehmerliste bearbeiten) weitermachen."
       alt_clubcloud_heading: "📊 Alternative: Mit ClubCloud-Meldeliste weitermachen"
       alt_manual_heading: "✏️ Alternative: Manuell sortieren"
       auto_extract_note: Die Setzliste wird automatisch extrahiert!
@@ -1245,7 +1245,7 @@ de:
       how_it_works: "💡 So funktioniert's:"
       invitation_present: "✅ Einladung vorhanden:"
       load_clubcloud_hint: Bitte zuerst in Schritt 1 die Meldeliste von ClubCloud laden.
-      manual_sort_body: "Oder sortieren Sie die Liste automatisch nach aktueller Rangliste:"
+      manual_sort_body: "Oder sortiere die Liste automatisch nach aktueller Rangliste:"
       no_clubcloud_data: "⚠️ Keine ClubCloud-Daten verfügbar."
       open_clubcloud: 🔗 ClubCloud öffnen (zum Vergleich)
       option_as_clubcloud_html: "<strong>Wie in ClubCloud:</strong> Übernimmt die Reihenfolge exakt wie sie in ClubCloud steht"
@@ -1254,9 +1254,9 @@ de:
       processing: Wird verarbeitet...
       reparse: Erneut parsen
       sort_by_ranking: Nach Rangliste sortieren
-      step_1_html: "Laden Sie die <strong>offizielle Einladung</strong> (PDF oder Screenshot) hoch"
+      step_1_html: "Lade die <strong>offizielle Einladung</strong> (PDF oder Screenshot) hoch"
       step_2_html: "Carambus extrahiert automatisch die <strong>Setzliste</strong>"
-      step_3: Sie prüfen und bestätigen die erkannten Spieler
+      step_3: Du prüfst und bestätigst die erkannten Spieler
       step_4: Die Reihenfolge wird übernommen
       supported_formats: "Unterstützte Formate: PDF, PNG, JPEG"
       two_options_label: "Zwei Möglichkeiten:"
@@ -1273,7 +1273,7 @@ de:
       auto_suggested_label: "🤖 Automatisch vorgeschlagen:"
       back: zurück
       back_to_wizard: ← Zurück zum Wizard
-      can_return_anytime: ✓ Sie können jederzeit hierher zurückkehren um weitere Anpassungen vorzunehmen
+      can_return_anytime: ✓ Du kannst jederzeit hierher zurückkehren, um weitere Anpassungen vorzunehmen
       col_handicap: Vorgabe (Pkt)
       col_name: Name
       col_new_pos: Neue Pos.
@@ -1290,7 +1290,7 @@ de:
       differs_from_nbv: ⚠️ Weicht von NBV ab
       edit_heading: 📝 Teilnehmerliste bearbeiten
       from_invitation_label: "📄 Aus Einladung:"
-      groups_auto_update_info: 💡 Die Gruppenzuordnungen ändern sich automatisch, wenn Sie die Teilnehmerliste bearbeiten.
+      groups_auto_update_info: 💡 Die Gruppenzuordnungen ändern sich automatisch, wenn du die Teilnehmerliste bearbeitest.
       heading: Teilnehmerliste
       important_label: 💡 Wichtig
       incl_round_robin: "(inkl. \"Jeder gegen Jeden\")"
@@ -1313,7 +1313,7 @@ de:
       searching: Wird gesucht...
       show_alternatives_same_discipline: "🔄 %{count} Alternative Pläne (%{discipline}) anzeigen"
       show_other_plans: "⚙️ %{count} Weitere Pläne anzeigen"
-      solution_add_guest: "Oder: Turnierleiter trägt Spieler als Gast ein (kontaktieren Sie den Landessportwart)"
+      solution_add_guest: "Oder: Turnierleiter trägt Spieler als Gast ein (kontaktiere den Landessportwart)"
       solution_apply_dbu_nr: Spieler muss DBU-Nummer beantragen
       solution_label: "Lösung:"
       sort_by_handicap: 🎯 Nach Vorgabeziel sortieren
@@ -1329,7 +1329,7 @@ de:
       tip_late_registration: ➕ Kurzfristig nachmelden? Checkbox aktivieren!
       tip_position_html: "🔢 <strong>Setzreihenfolge ändern:</strong> Neue Position direkt eingeben ODER Pfeile ⬆️⬇️ klicken"
       tip_ranking_html: "📊 <strong>Ranking-Spalte:</strong> Zeigt aktuelles Carambus-Ranking für %{discipline} (letzten 2-3 Saisons), klickbar zur Rangliste"
-      when_done_html: "⏭️ Wenn Sie fertig sind: Gehen Sie zurück zum Wizard und klicken Sie <strong>Schritt 4: Teilnehmerliste finalisieren</strong>"
+      when_done_html: "⏭️ Wenn du fertig bist: Geh zurück zum Wizard und klicke <strong>Schritt 4: Teilnehmerliste finalisieren</strong>"
     parse_invitation:
       alternatives_label: "Alternativen:"
       apply_seeding: Setzliste übernehmen
@@ -1353,14 +1353,14 @@ de:
       heading: Setzliste automatisch erkannt
       player_fallback: Spieler %{pos}
       players_detected: "✅ %{count} Spieler automatisch erkannt!"
-      please_review: Bitte prüfen Sie die erkannten Spieler und bestätigen Sie die Übernahme.
+      please_review: Bitte prüfe die erkannten Spieler und bestätige die Übernahme.
       points_suffix: "%{balls_goal} Pkt"
       seeding_extracted: Die Setzliste wurde aus der Einladung extrahiert.
       show_extracted_text: 🔍 Extrahierter Text anzeigen (Debugging)
       show_extracted_text_short: Extrahierter Text anzeigen
       sort_manually: Manuell sortieren
       unmatched_heading: "⚠️ Nicht zugeordnet (%{count}):"
-      unmatched_hint: Diese Spieler sind nicht in der Meldeliste. Bitte fügen Sie sie manuell hinzu.
+      unmatched_hint: Diese Spieler sind nicht in der Meldeliste. Bitte füge sie manuell hinzu.
       unmatched_item: "%{name} (Position %{position})"
       upload_other_file: Andere Datei hochladen
     show:
@@ -1779,8 +1779,8 @@ de:
       data_search: "🔍 Daten suchen"
       docs_help: "📚 Hilfe & Docs"
     labels:
-      search_question: "Was möchten Sie finden?"
-      docs_question: "Was möchten Sie wissen?"
+      search_question: "Was möchtest du finden?"
+      docs_question: "Was möchtest du wissen?"
     placeholders:
       search: "z.B. 'Turniere in Hamburg 2024' oder 'Alle Spieler aus Westfalen'"
       docs: "z.B. 'Wie erstelle ich ein Turnier?' oder 'Was ist ein Party?'"
@@ -1801,13 +1801,13 @@ de:
     buttons:
       search: "Suchen"
       clear: "Löschen"
-    loading: "KI analysiert Ihre Anfrage..."
+    loading: "KI analysiert deine Anfrage..."
     results:
       answer_label: "💡 Antwort:"
       docs_label: "📚 Relevante Dokumentation:"
       confidence: "Relevanz:"
     errors:
-      generic: "Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut."
+      generic: "Ein Fehler ist aufgetreten. Bitte versuche es erneut."
       no_docs_found: "Keine Antwort in der Dokumentation gefunden."
   
   views:

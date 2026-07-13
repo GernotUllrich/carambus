@@ -299,7 +299,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (!file) {
       console.warn('Keine Dateien im DataTransfer gefunden');
-      alert('Keine Datei erkannt. Bitte ziehen Sie eine Datei direkt (nicht einen Link) in den Upload-Bereich.');
+      alert('Keine Datei erkannt. Bitte ziehe eine Datei direkt (nicht einen Link) in den Upload-Bereich.');
       return;
     }
 
@@ -346,7 +346,7 @@ document.addEventListener('DOMContentLoaded', function() {
         updateFileName(fileInput);
       } catch (fallbackError) {
         console.error('Auch Fallback fehlgeschlagen:', fallbackError);
-        alert('Fehler beim Verarbeiten der Datei. Bitte nutzen Sie die Dateiauswahl.');
+        alert('Fehler beim Verarbeiten der Datei. Bitte nutze die Dateiauswahl.');
       }
     }
   }, false);
