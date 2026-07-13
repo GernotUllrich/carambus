@@ -106,10 +106,6 @@
     </div>
   <% end %>
 
-  <div class="max-w-3xl mx-auto">
-    <%= render partial: "rankings" %>
-  </div>
-
   <% if current_user&.admin? %>
     <div class="max-w-3xl mx-auto grid grid-cols-1 sm:grid-cols-2 gap-3 mt-8">
       <%= button_to I18n.t("region.show.reload_from_club_cloud", source: @region.source), reload_from_cc_region_path(@region), method: :post, disabled: !current_user&.admin?, class: "inline-block px-4 py-2 rounded text-white text-sm bg-primary-600 hover:bg-primary-700 disabled:opacity-40" %>

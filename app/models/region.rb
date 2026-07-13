@@ -158,10 +158,25 @@ class Region < ApplicationRecord
 
   # Effektive Anzeige-Saison für Region-Drill-Downs: aktuelle Saison, sofern die Region darin
   # Turniere ODER Ligen hat; sonst die Vorsaison (Übergangsphase am Saisonanfang).
+  # H34: In der Saison-Übergangszeit (heute ≤ 15.08. des Startjahres, gleiche Schwelle wie
+  # ScopeResolver#transition_previous_season) enthält die aktuelle Saison oft nur Vorab-Stubs — die
+  # bloße Existenz eines Datensatzes soll dann NICHT auf current kippen, sondern die (vollständige)
+  # Vorsaison anbieten. Außerhalb der Übergangszeit wie bisher.
   def effective_season
     cur = Season.current_season
-    return cur if tournaments.where(season_id: cur.id).exists? || leagues.where(season_id: cur.id).exists?
+    return cur if cur.nil?
+
+    unless season_transition_window?(cur)
+      return cur if tournaments.where(season_id: cur.id).exists? || leagues.where(season_id: cur.id).exists?
+    end
     cur.previous || cur
+  end
+
+  # Saison-Übergangszeit: heute ≤ 15.08. des Startjahres der übergebenen Saison. Bewusst dieselbe
+  # Schwelle wie ScopeResolver#transition_previous_season (H34) — bei Änderung dort mitziehen.
+  private def season_transition_window?(season)
+    start_year = season.name.to_s[/\A(\d{4})/, 1]&.to_i
+    start_year.present? && Date.current <= Date.new(start_year, 8, 15)
   end
 
   def self.region_map
