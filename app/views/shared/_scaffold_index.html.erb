@@ -28,7 +28,10 @@
         <%# Override-Slot: Modelle mit Komposit-Label (z.B. PlayerClass = Disziplin + Klasse) koennen
             scaffold_row_label/scaffold_row_subtitle definieren; sonst spalten-getriebener Default (verhaltensneutral). %>
         <% custom_label = record.scaffold_row_label if record.respond_to?(:scaffold_row_label) %>
-        <% custom_subtitle = record.scaffold_row_subtitle if record.respond_to?(:scaffold_row_subtitle) %>
+        <%# Definiert ein Modell scaffold_row_subtitle, ist der Override autoritativ (leer = keine Subzeile,
+            KEIN secondary-Fallback) — sonst der spalten-getriebene secondary-Default. %>
+        <% has_custom_subtitle = record.respond_to?(:scaffold_row_subtitle) %>
+        <% custom_subtitle = record.scaffold_row_subtitle if has_custom_subtitle %>
         <% label = custom_label.presence || (primary ? record.public_send(primary) : record.to_s) %>
         <% secondary = (scaffold_show_attributes(record) - [primary].compact).select { |a| record.public_send(a).present? rescue false }.first(4) %>
         <div class="group flex items-center gap-3 px-4 py-3 border-t border-gray-100 dark:border-gray-700 first:border-t-0 hover:bg-surface-page dark:hover:bg-gray-700/60">
@@ -36,7 +39,7 @@
             <%= custom_link_to(label, polymorphic_path(record), class: "font-medium text-gray-900 dark:text-gray-100 hover:text-primary-600 break-words") %>
             <% if custom_subtitle.present? %>
               <div class="text-xs text-gray-500 dark:text-gray-400 mt-0.5 break-words"><%= custom_subtitle %></div>
-            <% elsif secondary.any? %>
+            <% elsif !has_custom_subtitle && secondary.any? %>
               <div class="text-xs text-gray-500 dark:text-gray-400 mt-0.5 break-words">
                 <%= safe_join(secondary.map { |a| scaffold_attribute_value(record, a) }, " · ") %>
               </div>

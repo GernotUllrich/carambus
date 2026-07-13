@@ -85,6 +85,13 @@ class Season < ApplicationRecord
     @pnext_season || Season.find_by_ba_id(ba_id + 1)
   end
 
+  # H28: seasons/index zeigt nur den (selbsterklaerenden) Namen — keine Subzeile.
+  # Verhindert den Leak von `data` (Scraper-Freitext) bzw. `ba_id` (interne Sync-ID) in
+  # die oeffentliche Liste. Leerer Override wird vom Index-Partial autoritativ behandelt.
+  def scaffold_row_subtitle
+    nil
+  end
+
   def copy_season_participations_to_next_season
     new_season = next_season
     unless new_season.season_participations.present?
