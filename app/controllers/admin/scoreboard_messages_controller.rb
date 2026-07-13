@@ -92,7 +92,7 @@ module Admin
     end
 
     def check_permissions
-      unless current_user.club_admin? || current_user.system_admin?
+      unless current_user&.club_admin? || current_user&.system_admin?
         flash[:alert] = 'You do not have permission to access this page.'
         redirect_to admin_root_path
       end

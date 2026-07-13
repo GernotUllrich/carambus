@@ -1,0 +1,21 @@
+<header class="header">
+  <div class="header__heading">
+    <h1 class="header__heading__name">
+      <%= display_resource_name(page.resource_name) %>
+    </h1>
+
+    <%= render(
+      "search",
+      search_term: search_term,
+      resource_name: display_resource_name(page.resource_name)
+    ) if show_search_bar %>
+  </div>
+
+  <div class="header__actions">
+    <%# Kein "New"-Button für Shots: sie werden nur über Trainingsbeispiele (verschachtelte Route) angelegt.
+        Die Route ist `only: [:index]`, hat also keinen new-Pfad-Helfer (sonst crasht der generische Header). %>
+    <div class="header__hint text-gray-500 dark:text-gray-400 text-sm italic">
+      💡 Shots werden über <%= link_to "Trainingsbeispiele", admin_training_examples_path, class: "text-primary-600 dark:text-primary-400" %> angelegt
+    </div>
+  </div>
+</header>
