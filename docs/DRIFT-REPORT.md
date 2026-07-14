@@ -91,11 +91,14 @@ Kernmuster: fast aller Drift entstand, weil der Refactor **neue Fähigkeiten hin
 - **Video-KI** nutzt Anthropic Claude Haiku (nicht OpenAI) für Metadaten-Extraktion.
 - **RegionTaggable** liefert jetzt eine einzelne Region-ID (Verzweigung nach `tournament_type`), nicht mehr ein Array.
 
-## Bewusst zurückgestellt / offen
+## Nachgezogen (nach dem Re-Audit erledigt)
 
-- **MCP-Tool-Zahl im „Phase-40"-Snapshot** (`clubcloud-mcp-server.de.md`): dokumentiert 23 Tools (17 read / 6 write); die reale MCP-Oberfläche ist auf **~46 `tool_name`-Deklarationen (39 in `EXPECTED_TOOL_NAMES`)** gewachsen. Belassen als LOW, weil das Doc diese Abschnitte explizit als eingefrorenen Phase-40-Stand rahmt — braucht einen separaten Voll-Refresh. (Nebenwirkung: der frühere „Smoke-Test synchron bei 23"-Vermerk ist überholt → jetzt 39.)
-- **`BranchTaggable` / `Scopable`** (neues Scoping-Subsystem: `before_save :set_branch_id`, Includers Tournament+League) — in den ER-/MCP-Docs noch gar nicht beschrieben. GAP (neue Doku nötig), kein Drift.
-- Einige niedrige, vor-refactor bestehende Label-Ungenauigkeiten (z. B. „ApplicationService" für PORO-Scraper) — surgical belassen.
+- **MCP-Tool-Inventar voll-refresht** (`clubcloud-mcp-server.de.md`): von veraltet 23 auf real **46 registrierte Tools (29 Read / 16 Write / 1 Self-Service)** aktualisiert, inkl. Persona-Gating (`cc_write_access? && local_server?`). Dabei aufgedeckt: der **Drift-Guard-Test ist ROT** — `EXPECTED_TOOL_NAMES` (39) hinkt der dynamischen Registry (46) hinterher, 7 Tools fehlen (cc_clone_tournament(s), cc_open_in_tournament_app, cc_open_party_in_app, cc_party_status, cc_prepare_tournament, cc_start_party_day). Als Code/Test-Fix ausgelagert (Chip). Korrigiert die frühere Fehlannahme „Smoke-Test synchron".
+- **`BranchTaggable` / `Scopable`-Subsystem dokumentiert** — neues Doc `developers/branch-scoping.{de,en}.md`. Zentrale Erkenntnis: das `branch_taggings.rake`-Backfill wurde wieder entfernt (update_columns umgeht before_save + LocalProtector sperrt Globals → `branch_id` bleibt NULL auf synchronisierten Records); Branch-Facette wird zur **Query-Zeit** über `discipline.root` / `Branch.discipline_ids_for` aufgelöst. Stalen Kommentar-Verweis in `branch_taggable.rb` als Code-Fix ausgelagert (Chip).
+
+## Offen (niedrig)
+
+- Einige vor-refactor bestehende Label-Ungenauigkeiten (z. B. „ApplicationService" für PORO-Scraper) — surgical belassen.
 
 ## Verbleibende Code-Punkte → an PAUL (unverändert)
 

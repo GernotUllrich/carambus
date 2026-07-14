@@ -3,7 +3,7 @@
 > **Zielgruppe:** Carambus-Entwickler. Deckt Onboarding, Erweiterung (Phase 40.1+), Operations/Debugging und API-Referenz ab.
 > **Setup-Quickstart für Sportwarte/Endanwender:** [`docs/managers/clubcloud-mcp-cloud-quickstart.de.md`](../managers/clubcloud-mcp-cloud-quickstart.de.md) (User-facing)
 > **Per-Region-Admin-Setup:** [`docs/managers/clubcloud-mcp-setup-service.de.md`](../managers/clubcloud-mcp-setup-service.de.md) (Carambus-Tech-Admin)
-> **Stand:** Phase 40 abgeschlossen 2026-05-07. Phase 40.1 in Vorbereitung.
+> **Stand:** Phase 40 legte die Architektur (2026-05-07). Der Tool-Bestand ist seither auf **46 registrierte Tools** gewachsen (29 Read / 16 Write / 1 Self-Service — verifiziert gegen `lib/mcp_server/tools/*.rb` + `RoleToolMap::ALL_TOOLS`). Die frozen Referenzliste `EXPECTED_TOOL_NAMES` im Smoke-Test hinkt aktuell bei 39 Namen hinterher (siehe §8).
 
 ---
 
@@ -51,8 +51,11 @@ Phase 40 schließt alle drei Lücken in einem Server: vier Schichten ClubCloud-W
 |---------|-------------------|--------|------------|
 | **Workflow-Doku (DE)** | `cc://workflow/scenarios/*` + `cc://workflow/{roles,glossary}` | 10 Resources (8 Szenarien + 2 Meta) | Sportwart |
 | **API-Surface (curated)** | `cc://api/{action}` | 26 Resources | Carambus-Dev |
-| **Read-Tools (Lookup)** | `cc_whoami` + `cc_lookup_*` + `cc_list_*` + `cc_search_*` + `cc_check_*` | 17 Tools | beide |
-| **Write-Tools (Mutation)** | `cc_register_*` / `cc_unregister_*` / `cc_*_teilnehmerliste` / `cc_update_tournament_deadline` | 6 Tools | Sportwart |
+| **Read-Tools (Lookup)** | `cc_whoami` + `cc_lookup_*` + `cc_list_*` + `cc_league_*` + `cc_party_*` + `cc_search_*` + `cc_check_*` + `cc_my_*` + `cc_doc_search`/`cc_smart_search` | 29 Tools | beide |
+| **Write-Tools (Mutation)** | `cc_*_teilnehmerliste` / `cc_register_*`·`cc_unregister_*` / `cc_*_tournament_leiter` / `cc_prepare_tournament` / `cc_clone_tournament(s)` / `cc_set_party_lineup` / `cc_open_*`·`cc_start_party_day` / `cc_update_tournament_deadline` | 16 Tools | Sportwart/Turnierleiter |
+| **Self-Service (self-scoped Write)** | `cc_link_my_player` | 1 Tool | jeder auth. User |
+
+**Gesamt: 46 registrierte Tools.** Die Read/Write-Klassifikation folgt der Annotation `read_only_hint:` (`true` = Read, `false` = Write). Von den 16 Write-Tools sind 12 `destructive_hint: true`; vier (`cc_prepare_tournament`, `cc_open_in_tournament_app`, `cc_start_party_day`, `cc_open_party_in_app`) sind nicht-destruktive Aktionen, laufen aber im Write-Tier. Persona-Gating: Read + Self-Service für jeden authentifizierten User; die Write-Tools nur, wenn `user.cc_write_access?` (system_admin/Sportwart/Turnierleiter) **und** der Server ein Local-Server ist (siehe §6).
 
 ---
 
@@ -70,7 +73,7 @@ flowchart LR
     Boot["McpServer::Transport::Boot<br/>(Logger→STDERR, SIGINT/TERM)"]
 
     subgraph "lib/mcp_server/"
-        Tools["Tools::*<br/>(23 Klassen)"]
+        Tools["Tools::*<br/>(46 Klassen)"]
         Resources["Resources::*<br/>(3 Registries)"]
         BaseTool["BaseTool<br/>(error/text/validate)"]
         CcSession["CcSession<br/>(Login + 30min TTL + Reauth)"]
@@ -234,13 +237,14 @@ lib/
 │   ├── server.rb                       # 177 LOC — Auto-Registry (Stdio) + zentraler read_handler
 │   ├── cc_session.rb                   # 106 LOC — Login + 30min TTL + Reauth
 │   ├── audit_trail.rb                  # 81 LOC — JSON-Lines-Audit-Trail für jeden armed:true-Write-Call
-│   ├── role_tool_map.rb                # 50 LOC — ALL_TOOLS-Liste (HTTP-Pfad/McpController, hardcoded statt collect_tools)
-│   ├── tool_registry.rb                # 34 LOC — tools_for(user)/tool_classes_for (HTTP-Pfad-Mount, liefert ALL_TOOLS)
+│   ├── role_tool_map.rb                # Tool-Tiers BASE_READ_TOOLS(29)/WRITE_TOOLS(16)/SELF_SERVICE_TOOLS(1) → ALL_TOOLS(46), HTTP-Pfad/McpController, hardcoded statt collect_tools
+│   ├── tool_registry.rb                # tools_for(user)/tool_classes_for — persona-gefiltert (Read+Self-Service immer, Write nur bei cc_write_access? && local_server?)
 │   ├── transport/
 │   │   └── boot.rb                     # 35 LOC — Logger→STDERR, SIGINT/TERM trap, StdioTransport.open
 │   ├── tools/
 │   │   ├── base_tool.rb                # 43 LOC — BaseTool < MCP::Tool — error/text/validate Helpers
 │   │   ├── mock_client.rb              # 42 LOC — Drop-in für CARAMBUS_MCP_MOCK=1
+│   │   │  # ── READ (29, read_only_hint: true) ──
 │   │   ├── cc_whoami.rb                             # READ — Session-Kontext (scenario/region/season/Sportwart-Scope), kein CC-Call
 │   │   ├── lookup_region.rb                       # READ DB-first — kanonisches Template
 │   │   ├── lookup_league.rb                        # READ DB-first
@@ -250,24 +254,50 @@ lib/
 │   │   ├── lookup_meldeliste_for_tournament.rb     # READ DB-first + Live-Fallback
 │   │   ├── search_player.rb                         # READ DB-first (Disambiguation-Output)
 │   │   ├── list_clubs_by_discipline.rb             # READ DB-first
+│   │   ├── list_leagues.rb                          # READ DB-first
 │   │   ├── list_open_tournaments.rb                # READ DB-first
 │   │   ├── list_players_by_club_and_discipline.rb  # READ DB-first
 │   │   ├── list_players_by_name.rb                  # READ DB-first (kein CC-Call)
 │   │   ├── check_player_discipline_experience.rb   # READ DB-first
+│   │   ├── league_standings.rb                      # READ — Tabellenstand
+│   │   ├── league_schedule.rb                       # READ — Spielplan
+│   │   ├── party_lineup.rb                          # READ — Mannschaftsaufstellung
+│   │   ├── party_status.rb                          # READ — Party-/Begegnungsstatus
+│   │   ├── my_tournaments.rb                        # READ — self-scoped (verknüpfter Spieler)
+│   │   ├── my_results.rb                            # READ — self-scoped
+│   │   ├── my_ranking.rb                            # READ — self-scoped
+│   │   ├── my_teams.rb                              # READ — self-scoped
+│   │   ├── my_party_games.rb                        # READ — self-scoped
+│   │   ├── doc_search.rb                            # READ — Doku-Suche (cc_doc_search)
+│   │   ├── smart_search.rb                          # READ — semantische Suche (cc_smart_search)
 │   │   ├── lookup_team.rb                           # READ live-only
 │   │   ├── lookup_spielbericht.rb                  # READ live-only
 │   │   ├── lookup_category.rb                       # READ live-only
 │   │   ├── lookup_serie.rb                          # READ live-only
-│   │   ├── finalize_teilnehmerliste.rb             # WRITE — armed-flag + parse_cc_error + Reauth-Retry
+│   │   │  # ── WRITE (16, read_only_hint: false; 12 davon destructive_hint: true) ──
+│   │   ├── finalize_teilnehmerliste.rb             # WRITE — armed-flag + parse_cc_error + Reauth-Retry (Referenz-Template)
 │   │   ├── assign_player_to_teilnehmerliste.rb     # WRITE
+│   │   ├── fast_assign_to_teilnehmerliste.rb       # WRITE
 │   │   ├── remove_from_teilnehmerliste.rb          # WRITE
 │   │   ├── register_for_tournament.rb              # WRITE
 │   │   ├── unregister_for_tournament.rb            # WRITE
-│   │   └── update_tournament_deadline.rb           # WRITE
+│   │   ├── update_tournament_deadline.rb           # WRITE
+│   │   ├── assign_tournament_leiter.rb             # WRITE — Turnierleiter zuordnen
+│   │   ├── remove_tournament_leiter.rb             # WRITE — Turnierleiter entfernen
+│   │   ├── clone_tournament.rb                     # WRITE
+│   │   ├── clone_tournaments.rb                    # WRITE
+│   │   ├── set_party_lineup.rb                     # WRITE
+│   │   ├── prepare_tournament.rb                   # WRITE (nicht-destruktiv, destructive_hint: false)
+│   │   ├── open_in_tournament_app.rb              # WRITE (nicht-destruktiv — App-Deeplink)
+│   │   ├── start_party_day.rb                     # WRITE (nicht-destruktiv)
+│   │   ├── open_party_in_app.rb                   # WRITE (nicht-destruktiv — App-Deeplink)
+│   │   │  # ── SELF-SERVICE (1, read_only_hint: false + destructive_hint: false) ──
+│   │   └── link_my_player.rb                       # SELF-SERVICE — eigenes Spielerprofil verknüpfen
 │   └── resources/
 │       ├── workflow_scenarios.rb       # cc://workflow/scenarios/* (8 Slugs whitelisted)
 │       ├── workflow_meta.rb            # cc://workflow/{roles,glossary}
-│       └── api_surface.rb              # cc://api/{action} (26 ALLOWLIST entries)
+│       ├── api_surface.rb              # cc://api/{action} (26 ALLOWLIST entries)
+│       └── context_current.rb          # cc://context/current (Session-/Kontext-Resource)
 bin/
 └── mcp-server                          # 0755 — require config/environment + Boot.run
 
@@ -295,7 +325,7 @@ test/mcp_server/
 │   ├── lookup_teilnehmerliste_test.rb  # D-18 acceptance story
 │   ├── search_player_test.rb           # live-only
 │   ├── finalize_teilnehmerliste_test.rb # 6 Tests inkl. Reauth-Retry
-│   └── lookup_smoke_test.rb            # Tool-Namen Drift-Detection (EXPECTED_TOOL_NAMES, 23 Tools inkl. cc_whoami)
+│   └── lookup_smoke_test.rb            # Tool-Namen Drift-Detection (EXPECTED_TOOL_NAMES — frozen bei 39, hinkt den 46 live-registrierten hinterher; Drift-Guard aktuell rot)
 └── integration/
     └── stdio_e2e_test.rb               # 6 E2E — bin/mcp-server Subprocess + JSON-RPC
 
@@ -305,7 +335,7 @@ lib/capistrano/tasks/
 .mcp.json.example                       # Vorlage — .mcp.json ist gitignored
 ```
 
-**Gesamt:** 31 Source-Files, ~1100 LOC Production-Code, 65 Tests / 220 Assertions.
+**Gesamt:** 59 Ruby-Files unter `lib/mcp_server/` — davon **46 registrierte Tool-Klassen** (+ `base_tool.rb`/`mock_client.rb`), 4 Resource-Registries und das Wiring (`server.rb`, `cc_session.rb`, `audit_trail.rb`, `role_tool_map.rb`, `tool_registry.rb`, `transport/boot.rb`).
 
 ---
 
@@ -720,9 +750,11 @@ Für eine neue Meta-Resource (`cc://workflow/foo`): analog die `META`-Konstante 
 | Schicht | Pfad | Was | Boot-Cost |
 |---------|------|-----|-----------|
 | Unit | `test/mcp_server/{tools,resources}/*_test.rb` | Einzelne Klassen, Mock-Client | schnell (< 1s) |
-| Smoke | `test/mcp_server/tools/lookup_smoke_test.rb` | Drift-Detection für 23 Tool-Namen inkl. `cc_whoami` (`EXPECTED_TOOL_NAMES`) | schnell |
+| Smoke | `test/mcp_server/tools/lookup_smoke_test.rb` | Drift-Detection der Tool-Namen (`EXPECTED_TOOL_NAMES`) — frozen bei **39**, gegenübergestellt der dynamischen `collect_tools`-Ableitung | schnell |
 | Integration | `test/mcp_server/server_smoke_test.rb` | `Server.build` + Auto-Registry | schnell |
 | E2E | `test/mcp_server/integration/stdio_e2e_test.rb` | echter `bin/mcp-server`-Subprocess + JSON-RPC-Roundtrip | langsam (Rails-Boot pro Test) |
+
+> **Aktueller Drift-Stand (Wartungshinweis):** Der Live-Server registriert **46 Tools** (`Server.collect_tools` = alle `BaseTool`-Subklassen; deckungsgleich mit `RoleToolMap::ALL_TOOLS`). `EXPECTED_TOOL_NAMES` listet dagegen nur **39** — es fehlen die sieben Tournament-/Party-Lifecycle-Tools `cc_clone_tournament`, `cc_clone_tournaments`, `cc_open_in_tournament_app`, `cc_open_party_in_app`, `cc_party_status`, `cc_prepare_tournament`, `cc_start_party_day`. Der `test_dynamic_tool_registry_matches_frozen_reference`-Test schlägt daher aktuell fehl; wer den Drift-Guard grün ziehen will, ergänzt diese sieben Namen in `EXPECTED_TOOL_NAMES`. Die vollständige aktuelle Tool-Liste (grup­piert Read/Write/Self-Service) steht im [Datei-Layout §4](#4-datei-layout).
 
 ### Test-Pattern für DB-first-Tool
 
