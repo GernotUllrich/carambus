@@ -1,0 +1,65 @@
+---
+http_interactions:
+- request:
+    method: get
+    uri: https://ligen.billard.center/api/this-resource-does-not-exist
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - application/json
+      User-Agent:
+      - Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML,
+        like Gecko) Chrome/120 Safari/537.36
+      Host:
+      - ligen.billard.center
+      Referer:
+      - https://ligen.billard.center/landesverband-thueringen
+      Origin:
+      - https://ligen.billard.center
+      X-Requested-With:
+      - XMLHttpRequest
+  response:
+    status:
+      code: 404
+      message: Not Found
+    headers:
+      Date:
+      - Tue, 14 Jul 2026 15:58:17 GMT
+      Server:
+      - Apache
+      Expires:
+      - Thu, 19 Nov 1981 08:52:00 GMT
+      Cache-Control:
+      - no-store, no-cache, must-revalidate
+      Pragma:
+      - no-cache
+      Set-Cookie:
+      - PHPSESSID=46cbf4fdb56e3f8c83d52440b04f9c74; path=/
+      X-Xss-Protection:
+      - 1; mode=block
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Content-Security-Policy:
+      - default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';
+        img-src 'self' data:; font-src 'self'
+      Upgrade:
+      - h2
+      Connection:
+      - Upgrade
+      Transfer-Encoding:
+      - chunked
+      Content-Type:
+      - application/json; charset=utf-8
+    body:
+      encoding: UTF-8
+      string: '{"success":false,"message":"Unbekannte Ressource: this-resource-does-not-exist","error_code":404}'
+  recorded_at: Tue, 14 Jul 2026 15:58:17 GMT
+recorded_with: VCR 6.4.0

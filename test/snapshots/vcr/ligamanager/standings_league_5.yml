@@ -1,0 +1,79 @@
+---
+http_interactions:
+- request:
+    method: get
+    uri: https://ligen.billard.center/api/leagues/5/standings
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - application/json
+      User-Agent:
+      - Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML,
+        like Gecko) Chrome/120 Safari/537.36
+      Host:
+      - ligen.billard.center
+      Referer:
+      - https://ligen.billard.center/landesverband-thueringen
+      Origin:
+      - https://ligen.billard.center
+      X-Requested-With:
+      - XMLHttpRequest
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Date:
+      - Tue, 14 Jul 2026 16:07:22 GMT
+      Server:
+      - Apache
+      Expires:
+      - Thu, 19 Nov 1981 08:52:00 GMT
+      Cache-Control:
+      - no-store, no-cache, must-revalidate
+      Pragma:
+      - no-cache
+      Access-Control-Allow-Origin:
+      - https://ligen.billard.center
+      Access-Control-Allow-Methods:
+      - GET, POST, PUT, DELETE, OPTIONS
+      Access-Control-Allow-Headers:
+      - Content-Type, Authorization, X-Requested-With, X-CSRF-Token
+      Access-Control-Allow-Credentials:
+      - 'true'
+      Access-Control-Max-Age:
+      - '86400'
+      Set-Cookie:
+      - PHPSESSID=d941d202ba9c3fa28fcc3603952067f1; path=/
+      X-Xss-Protection:
+      - 1; mode=block
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Content-Security-Policy:
+      - default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';
+        img-src 'self' data:; font-src 'self'
+      Upgrade:
+      - h2
+      Connection:
+      - Upgrade
+      Transfer-Encoding:
+      - chunked
+      Content-Type:
+      - application/json; charset=utf-8
+    body:
+      encoding: UTF-8
+      string: '{"success":true,"message":"Tabelle erfolgreich abgerufen","data":[{"Platz":1,"official_short_name":"kara","team_id":15,"Mannschaft":"TuS
+        Weida Mehrkampf 1","club_id":16,"S":6,"G":"6","U":"0","V":"0","Pkt":"12","Diff":"+40","Partien":"56:16","Frames":"12018:7626","MGD":"9.740","BEMD":"75.000"},{"Platz":2,"official_short_name":"kara","team_id":14,"Mannschaft":"1.
+        Erfurter BC Mehrkampf 1","club_id":5,"S":6,"G":"4","U":"0","V":"2","Pkt":"8","Diff":"+10","Partien":"41:31","Frames":"8368:9244","MGD":"7.246","BEMD":"66.667"},{"Platz":3,"official_short_name":"kara","team_id":13,"Mannschaft":"USV
+        Jena Mehrkampf 1","club_id":17,"S":6,"G":"2","U":"0","V":"4","Pkt":"4","Diff":"-10","Partien":"31:41","Frames":"8349:9222","MGD":"5.983","BEMD":"35.000"},{"Platz":4,"official_short_name":"kara","team_id":16,"Mannschaft":"TuS
+        Weida Mehrkampf 2","club_id":16,"S":6,"G":"0","U":"0","V":"6","Pkt":"0","Diff":"-40","Partien":"16:56","Frames":"6784:9427","MGD":"3.592","BEMD":"16.800"}]}'
+  recorded_at: Tue, 14 Jul 2026 16:07:22 GMT
+recorded_with: VCR 6.4.0
