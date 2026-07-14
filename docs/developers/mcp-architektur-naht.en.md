@@ -110,7 +110,7 @@ CC write permission is checked at **two orthogonal layers**. Both must pass.
 cc_write_access? == system_admin? || sportwart? || turnierleiter?
 ```
 
-`ToolRegistry.tools_for(user)` filters on this: a read-only user (player/club_admin without persona/TL) does **not even receive** the write tools in the tool list. `sportwart?` derives from the explicit `users.persona_grants` column (`sportwart` location-scoped, `landessportwart` region-wide — Phase 38).
+`ToolRegistry.tools_for(user)` filters on this: a read-only user (player/club_admin without persona/TL) does **not even receive** the write tools in the tool list. There is a second, orthogonal gate: write tools are appended **only if `cc_write_access? && local_server?`** — so on the Authority (`carambus_api_url` blank) even a `system_admin` gets a read-only tool set (Phase 39). `sportwart?` derives from the explicit `users.persona_grants` column (`sportwart` location-scoped, `landessportwart` region-wide — Phase 38).
 
 ### Layer 2 — fine per-record authority (may this user do THIS action on THIS tournament?)
 
@@ -212,7 +212,7 @@ Read tools skip the `authorize!`/`resolve_cc_account`/block steps and run direct
 4. `resolve_cc_account` + `cc_write_identity_block(account, armed:)` before the POST.
 5. POST under `cc_session.cookie_for(account)` (NOT `cookie`).
 6. AuditTrail with `operator: cc_audit_operator`, `user_id: account.acting_user_id`.
-7. Register the tool in `role_tool_map.rb` (WRITE_TOOLS) **and** in `SpielleiterChatService::TOOL_CLASSES` (two separate lists — drift trap!).
+7. Register the tool in `role_tool_map.rb` (`WRITE_TOOLS`) — that is the **single** source for the HTTP path. `ToolRegistry.tool_classes_for(user)` and `SpielleiterChatService` both consume it; there is **no** second `TOOL_CLASSES` list (D-34-3 collapsed the old two-list drift trap). Write tools reach a user only if `cc_write_access? && local_server?`.
 8. Pre-validation-first: check all constraints BEFORE `armed:true`.
 
 ---

@@ -76,6 +76,15 @@ processor = TournamentMonitor::ResultProcessor.new(tournament_monitor)
 processor.report_result(table_monitor)
   # → side effects: writes game result, triggers finish_match!, uploads to CC
 
+processor.advance_round_after_match_close(table_monitor)
+  # → PUBLIC — deferred round-progression cascade (Phase 38.8):
+  #   accumulate_results → all_table_monitors_finished? gate → finalize_round /
+  #   incr_current_round! / populate_tables / update_ranking / end_of_tournament!.
+  #   Invoked from TableMonitor#advance_tournament_round_if_present (the close_match!
+  #   after-callback), AFTER the operator confirms :final_match_score. NOT idempotent —
+  #   runs exactly once per operator "Weiter"/"Continue" click (re-entry guarded by the
+  #   thread-local sentinel Thread.current[:_advancing_round_for_tm]).
+
 processor.accumulate_results
   # → PUBLIC — also used by TablePopulator
 

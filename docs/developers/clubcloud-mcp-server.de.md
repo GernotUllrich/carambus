@@ -134,7 +134,7 @@ flowchart TD
 
 **Konsequenz:** Eine neue Tool-Klasse unter `lib/mcp_server/tools/` (Subklasse von `McpServer::Tools::BaseTool`) wird beim nächsten Server-Boot automatisch entdeckt — kein Edit von `server.rb` nötig.
 
-**Hinweis (zwei Tool-Listing-Pfade):** Die Auto-Registry via `collect_tools` gilt nur für den **Stdio-Pfad** (`Server.build`). Der **HTTP-Pfad** (`McpController`-Mount) nutzt stattdessen die hardcoded `RoleToolMap::ALL_TOOLS`-Liste, ausgeliefert über `ToolRegistry.tool_classes_for(user)` (`lib/mcp_server/tool_registry.rb` + `role_tool_map.rb`). `ToolRegistry` ersetzt die Auto-Registry **nicht** — beide koexistieren. Eine neue Tool-Klasse muss daher zusätzlich in `RoleToolMap::ALL_TOOLS` eingetragen werden, damit sie auch über HTTP sichtbar ist.
+**Hinweis (zwei Tool-Listing-Pfade):** Die Auto-Registry via `collect_tools` gilt nur für den **Stdio-Pfad** (`Server.build`). Der **HTTP-Pfad** (`McpController`-Mount) nutzt stattdessen die hardcoded `RoleToolMap`-Tiers, persona-gefiltert ausgeliefert über `ToolRegistry.tool_classes_for(user)` (`lib/mcp_server/tool_registry.rb` + `role_tool_map.rb`). `ToolRegistry` ersetzt die Auto-Registry **nicht** — beide koexistieren. Eine neue Tool-Klasse muss daher zusätzlich in den passenden `RoleToolMap`-Tier eingetragen werden (`BASE_READ_TOOLS`, `WRITE_TOOLS` oder `SELF_SERVICE_TOOLS` — `ALL_TOOLS` wird daraus komponiert), damit sie auch über HTTP sichtbar ist.
 
 **Ein einziger zentraler `resources_read_handler`** dispatched alle `cc://`-URIs per Regex an die richtige Registry-Klasse (`WorkflowScenarios.read`, `WorkflowMeta.read`, `ApiSurface.read`). Das verhindert SDK-Konflikte (das MCP-SDK akzeptiert nur einen Handler pro Server) und macht parallele Plan-Entwicklung konfliktfrei (Phase-40-Wave-2-Lehre).
 
@@ -507,17 +507,20 @@ JSON-Lines-Audit-Trail (append-only) für jeden `armed:true`-Write-Call — Fore
 
 ### `McpServer::RoleToolMap` (`lib/mcp_server/role_tool_map.rb`)
 
-Hardcoded Tool-Listen (`BASE_READ_TOOLS`, `ALL_TOOLS`) für den **HTTP-Pfad** (`McpController`-Mount). Der HTTP-Pfad nutzt diese Liste statt der Stdio-`collect_tools`-Auto-Registry — neue Tools müssen hier zusätzlich eingetragen werden, um über HTTP sichtbar zu sein. Der Final-Stub (Plan 14-G.2) liefert allen authentifizierten Usern `ALL_TOOLS`; die Per-Record-Authority erfolgt in `BaseTool.authorize!` (TournamentPolicy), nicht hier.
+Hardcoded Tool-Listen für den **HTTP-Pfad** (`McpController`-Mount): `BASE_READ_TOOLS`, `WRITE_TOOLS`, `SELF_SERVICE_TOOLS` und die daraus komponierte `ALL_TOOLS = (BASE_READ_TOOLS + SELF_SERVICE_TOOLS + WRITE_TOOLS).uniq`. Der HTTP-Pfad nutzt diese Listen statt der Stdio-`collect_tools`-Auto-Registry — neue Tools müssen hier zusätzlich eingetragen werden, um über HTTP sichtbar zu sein. Das Tier-Gating (welcher Tier für welche Persona) erfolgt in `ToolRegistry.tools_for` (s.u.); die feine Per-Record-Authority in `BaseTool.authorize!` (TournamentPolicy).
 
 ### `McpServer::ToolRegistry` (`lib/mcp_server/tool_registry.rb`)
 
-Liefert die Tool-Klassen für den HTTP-Mount auf Basis von `RoleToolMap::ALL_TOOLS`.
+Komponiert das persona-gefilterte Tool-Set für den HTTP-Mount aus den `RoleToolMap`-Tiers — **nicht** pauschal `ALL_TOOLS`.
 
 | Methode | Signatur | Zweck |
 |---------|----------|-------|
-| `.tools_for` | `(user)` → `Array<Symbol>` | `[]` bei nil-User, sonst `RoleToolMap::ALL_TOOLS`. |
+| `.tools_for` | `(user)` → `Array<Symbol>` | `[]` bei nil-User; sonst `BASE_READ_TOOLS + SELF_SERVICE_TOOLS`, **plus** `WRITE_TOOLS` nur wenn `user.cc_write_access? && local_server?`. |
+| `.local_server?` | → `Boolean` | `Carambus.config.carambus_api_url.present?` — die Authority (zentrale API/Scraper) hat keine, Local-Server schon. |
 | `.tool_classes_for` | `(user)` → `Array<Class>` | Resolved Tool-Klassen (`constantize`); unbekannte Klassen werden geloggt + `compact`-entfernt. |
-| `.tool_count_for` | `(_role_key)` → `Integer` | Stub — gibt `ALL_TOOLS.size` für jeden Key zurück. |
+| `.tool_count_for` | `(user)` → `Integer` | `tools_for(user).size` (persona-gefiltert), **nicht** `ALL_TOOLS.size`. |
+
+**Wichtig (Authority = read-only):** Write-Tools werden nur auf **Local-Servern** ausgeliefert. Auf der Authority (`carambus_api_url` blank) bekommt selbst ein `system_admin` KEINE Write-Tools — Turnierverwaltung gehört auf die Local-Server (Phase 39). `SpielleiterChatService` konsumiert dieselbe `tool_classes_for(user)`-Quelle (D-34-3: EINE Tool-Quelle, keine zweite `TOOL_CLASSES`-Liste).
 
 **Wichtig:** `ToolRegistry`/`RoleToolMap` ersetzen die Stdio-Auto-Registry (`Server.collect_tools`) **nicht** — beide Listing-Pfade koexistieren (siehe §2 Auto-Registry-Mechanismus).
 

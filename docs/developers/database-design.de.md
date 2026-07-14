@@ -74,21 +74,18 @@ Mehrere Modelle verwenden serialisierte Spalten für flexible Datenspeicherung:
 Das `RegionTaggable`-Concern bietet intelligente Regionsverwaltung:
 
 ```ruby
-# Beispiel aus RegionTaggable
+# Beispiel aus RegionTaggable#find_associated_region_id (liefert eine einzelne region_id)
 when Seeding
   if tournament_id.present?
-    # Behandlung des tournament-basierten Region-Taggings
-    tournament ? [
-      tournament.region_id,
-      (tournament.organizer_type == "Region" ? tournament.organizer_id : nil),
-      find_dbu_region_id_if_global
-    ].compact : []
+    # Tournament-basiertes Region-Tagging (polymorpher tournament_type)
+    if tournament_type == "Region"
+      tournament&.organizer_type == "Region" ? tournament.organizer_id : tournament&.region_id
+    elsif tournament_type == "Party"
+      tournament&.league&.organizer_type == "Region" ? tournament.league.organizer_id : nil
+    end
   elsif league_team_id.present?
-    # Behandlung des league-team-basierten Region-Taggings
-    league_team&.league ? [
-      (league_team.league.organizer_type == "Region" ? league_team.league.organizer_id : nil),
-      find_dbu_region_id_if_global
-    ].compact : []
+    # League-Team-basiertes Region-Tagging
+    league_team&.league&.organizer_type == "Region" ? league_team.league.organizer_id : nil
   end
 ```
 

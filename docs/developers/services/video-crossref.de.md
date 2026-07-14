@@ -112,7 +112,7 @@ Muster werden mit Wortgrenzen-Ankern geprueft (`/\b#{Regexp.escape(pattern)}\b/i
 
 Der KI-Fallback greift nur dann, wenn **alle** Regex-Extraktionswerte leer sind **und** `ai_extraction_enabled: true` explizit gesetzt wurde:
 
-- **Modell:** `gpt-4o-mini` mit `response_format: { type: "json_object" }`
+- **Modell:** `claude-haiku-4-5-20251001` via `Anthropic::Client` (`Carambus.anthropic_api_key`). Der Prompt fordert reines JSON an; ```-Code-Fences in der Antwort werden vor dem Parsen entfernt.
 - **Standard:** deaktiviert (`ai_extraction_enabled: false`) — verhindert unerwartete OpenAI-Aufrufe in Batch-Kontexten
 - **Fehlerbehandlung:** Exceptions werden abgefangen und zurueck geben ein leeres Hash zurueck (kein Raise)
 

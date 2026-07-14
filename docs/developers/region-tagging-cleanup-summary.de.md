@@ -82,26 +82,17 @@ Dieses Dokument fasst die Bereinigung des alten polymorphen `region_taggings` Sy
 
 ## Noch zu erledigen
 
-### 1. Modell-Code Bereinigung
-Die folgenden Modelle enthalten noch Referenzen zum alten `region_ids |= [region.id]` Muster, die aktualisiert werden müssen:
+### 1. Modell-Code Bereinigung ✅ ABGESCHLOSSEN
+Das alte `region_ids |= [region.id]` Muster wurde in allen Modellen entfernt.
+Es sind KEINE Instanzen mehr vorhanden (Stand: Prüfung 2026-07 —
+`grep -rn "region_ids |=" app/models/` liefert keinen Treffer).
 
-#### Hochprioritäts-Modelle:
-- `app/models/league.rb` - Mehrere Instanzen von `region_ids |= [region.id]`
-- `app/models/region.rb` - Mehrere Instanzen von `region_ids |= [region.id]`
-- `app/models/tournament.rb` - Mehrere Instanzen von `region_ids |= [region.id]`
-- `app/models/club.rb` - Mehrere Instanzen von `region_ids |= [region.id]`
-- `app/models/player.rb` - Eine Instanz von `region_ids |= [region.id]`
-
-#### Erforderliche Änderungen:
-Ersetzen Sie alle Instanzen von:
-```ruby
-record.region_ids |= [region.id]
-```
-
-Durch:
-```ruby
-record.region_id = region.id
-```
+Die betroffenen Modelle (`league.rb`, `region.rb`, `tournament.rb`, `club.rb`,
+`player.rb` u.a.) führen die alte Array-Spalte nur noch als
+`self.ignored_columns = ["region_ids"]` (die DB-Spalte wurde durch Migration
+`20250624000001_remove_region_ids_columns.rb` entfernt). Das Region-Tagging
+läuft jetzt ausschließlich über die einzelne `region_id`-Spalte
+(`RegionTaggable#find_associated_region_id`) plus `global_context`.
 
 ### 2. Tests aktualisieren
 - ✅ Alle bestehenden Tests aktualisieren, um das neue System zu verwenden

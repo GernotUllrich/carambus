@@ -1,13 +1,13 @@
 # UMB Scraping — Architecture
 
-The `Umb::` namespace handles scraping of tournament data from the Union Mondiale de Billard (UMB) official website [files.umb-carom.org](https://files.umb-carom.org). It consists of **10 services** across two sub-namespaces: `Umb::` (7 classes + 1 module) and `Umb::PdfParser::` (3 classes).
+The `Umb::` namespace handles scraping of tournament data from the Union Mondiale de Billard (UMB) official website [files.umb-carom.org](https://files.umb-carom.org). It consists of **10 services** across two sub-namespaces: `Umb::` (6 classes + 1 module) and `Umb::PdfParser::` (3 classes).
 
 ## Namespace Overview
 
 | Class | File | Description |
 |-------|------|-------------|
 | `Umb::HttpClient` | `app/services/umb/http_client.rb` | Stateless HTTP transport — fetches HTML and PDF content from UMB URLs, handles SSL, redirects, and timeouts |
-| `Umb::DisciplineDetector` | `app/services/umb/discipline_detector.rb` | Stateless PORO — maps tournament names to `Discipline` DB records via regex + DB-ILIKE fallback |
+| `Umb::DisciplineDetector` | `app/services/umb/discipline_detector.rb` | Stateless PORO — maps tournament names to `Discipline` DB records. `detect` uses regex + DB-ILIKE lookup; `detect_with_title_fallback` additionally applies `Discipline.classify_from_title` (curated title overrides + synonym/structural rules) when `detect` returns nothing |
 | `Umb::DateHelpers` | `app/services/umb/date_helpers.rb` | Module with `module_function` — parses UMB date range strings into `{start_date:, end_date:}` hashes |
 | `Umb::PlayerResolver` | `app/services/umb/player_resolver.rb` | Finds or creates `Player` records from UMB caps/mixed-case name pairs, enriches umb_player_id and nationality |
 | `Umb::FutureScraper` | `app/services/umb/future_scraper.rb` | Scrapes `FutureTournaments.aspx`, parses HTML table including cross-month events, creates/updates `InternationalTournament` records |
@@ -61,6 +61,15 @@ They do not perform their own HTTP logic or date parsing.
 ### e. InternationalGame STI
 
 `DetailsScraper` creates game records with `type: 'InternationalGame'` (STI). Omitting this causes incorrect ActiveRecord behavior, since `Game` is the base class.
+
+### f. Two-tier discipline detection
+
+`Umb::DisciplineDetector` exposes two entry points:
+
+- `detect(name)` — regex + DB-ILIKE lookup only (`detect_by_db_lookup` → `detect_by_string_map`). Returns `nil` when nothing matches.
+- `detect_with_title_fallback(name)` — runs `detect` first and, only if it finds nothing, falls back to `Discipline.classify_from_title(name)`. That model method applies curated `TITLE_DISCIPLINE_OVERRIDES`, structural rules (Kegel/Snooker/Cadre/Karambol families), and a longest-synonym match against the `Discipline.synonyms` column (synonyms are seeded via `rake disciplines:extend_title_synonyms`).
+
+`FutureScraper` and `ArchiveScraper` use `detect_with_title_fallback` (broader coverage for German/abbreviated titles); `DetailsScraper` and the V1 `UmbScraper` shim still use plain `detect`. All three scrapers layer their own final default (`%dreiband%groß%`) on top of a `nil` result.
 
 ## Data Flow
 

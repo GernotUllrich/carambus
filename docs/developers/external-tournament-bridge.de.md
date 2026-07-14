@@ -22,6 +22,8 @@ tauscht mit Carambus über REST folgende Daten aus:
 | Carambus → App | `GET /api/external_tournament/player_rankings` | Disziplin-Ranking-Setzliste (Vorsaison) | ✅ v0.6 (Plan 19-01) |
 | Carambus → App | `GET /api/external_tournament/disciplines` | Region-relevante Disziplinen + Format-/Klassen-Matrix (TournamentPlans) | ✅ v0.6 (Plan 20-01) |
 | Carambus → App | `GET /api/external_tournament/categories` | Kategorie-/Klassen-Listen (player_classes + age_classes + genders + categories[]) für den Selektor | ✅ v0.6 (Plan 20-02) |
+| Carambus → App | `GET /api/external_tournament/registration_lists` | ClubCloud-Meldelisten einer Region (deadline/status + discipline/category, optional tournament_cc-Link) | ✅ v0.6 (Plan 21-05) |
+| App ↔ Carambus | `GET party` / `POST party_game_result` / `POST party_close` | Autarker Liga-Spieltag: Spieltag + Kader laden, Einzelspiel-Ergebnisse pushen, Spielbericht abschließen | ✅ (Plan 48-04..48-08) |
 
 **Eliminiert die Doppel-Erfassung** zwischen externer App und Carambus-Scoreboards.
 
@@ -812,6 +814,36 @@ curl -H "Authorization: Bearer <jwt>" \
 |--------|-----------|
 | 401 | Fehlende/ungültige JWT |
 | 404 | Region nicht gefunden **oder** `season`/`discipline`/`category` angegeben, aber nicht auflösbar |
+
+## Endpoint 11: Party — autarker Liga-Spieltag (Plan 48)
+
+Ein paralleles Schema für **Liga-Spieltage** („Spieltag"). Es teilt sich den Bridge-Controller und
+den `/api/external_tournament/*`-Namespace, arbeitet aber auf `Party` / `PartyMonitor` statt auf
+einem `Tournament`. Die externe App lädt einen Spieltag + Kader, pusht Einzelspiel-Ergebnisse direkt
+und schließt den Spielbericht ab — alles ohne `TableMonitor`.
+
+### `GET /api/external_tournament/party?region=NBV&party_id=…`  (oder `&party_cc_id=…`)
+
+Lädt einen Liga-Spieltag für das autarke carambus_app-Schema „spieltag". Response
+`carambus.party/v1`: `party` + `team_a`/`team_b` (inkl. Kader) + `party_monitor.data`. `party_id` hat
+Vorrang vor `party_cc_id`; die Region wird über `league.organizer` aufgelöst. Read-only.
+Fehler: `401` / `404` (Region/Party) / `422` (weder `party_id` noch `party_cc_id`).
+
+### `POST /api/external_tournament/party_game_result`
+
+Direkteingabe-Push (`carambus.party_game_result/v1`): schreibt das Endergebnis **einer** Einzelpartie
+direkt (`Party#build_game_for_row!` + `Party#record_game_result!`) — **ohne TableMonitor**. Ein
+Mehrfach-Push überschreibt (TL-Korrektur). Die Zeile wird über `gname = "<seqno>-<type>"` identifiziert;
+`Spieler1`/`Spieler2` sind `dbu_nr` (kanonisch, Plan 48-06). Bei Satz-Disziplinen sind `Sets1/2`
+maßgeblich, mit Fallback auf `Ergebnis1/2`. Die Response liefert `intermediate_result`
+(`game_points` + `match_points`). Nicht schreibbar (LocalProtector-Honest-Refusal) → `422`;
+unbekannter `gname` → `404`.
+
+### `POST /api/external_tournament/party_close`
+
+Schließt den Spielbericht ab (`carambus.party_close/v1`) via `PartyMonitor#close_with_result!(event:
+:end_of_party)` — der autarke API-Pfad treibt die Web-AASM **nicht**. Vollständigkeits-Guard: wenn nicht
+alle Spiele ein `ended_at` haben, `409` mit `missing_gnames`. Bereits geschlossen → `422`.
 
 ## Teardown & Garbage-Collection (Plan 16-01)
 

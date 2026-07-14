@@ -2,7 +2,7 @@
 
 Der `Tournament::`-Namespace stellt Services für den lokalen Turnier-Lebenszyklus bereit — Scraping öffentlicher ClubCloud-Seiten, Berechnung von Spieler-Rankings und Erstellung von Google-Calendar-Tischreservierungen.
 
-Der Namespace besteht aus **3 Services** in `app/services/tournament/`.
+Der Namespace besteht aus **3 Top-Level-Services** in `app/services/tournament/`, zuzüglich eines `Tournament::CcSync::`-Sub-Namespace (**2 Services**), der lokale Änderungen in die ClubCloud zurückschreibt (Phase 44).
 
 ## Namespace-Übersicht
 
@@ -11,6 +11,15 @@ Der Namespace besteht aus **3 Services** in `app/services/tournament/`.
 | `Tournament::PublicCcScraper` | `app/services/tournament/public_cc_scraper.rb` | Scrapt Turnierdaten von der öffentlichen CC-URL — verarbeitet Meldelisten, Teilnehmer, Ergebnisse und Rankings |
 | `Tournament::RankingCalculator` | `app/services/tournament/ranking_calculator.rb` | Berechnet und cacht effektive Spieler-Rankings; ordnet Setzungen nach dem Wettkampf neu |
 | `Tournament::TableReservationService` | `app/services/tournament/table_reservation_service.rb` | Erstellt Google-Calendar-Ereignisse für Tischreservierungen mit Guard-Condition-Validierung |
+
+### CcSync-Sub-Namespace (lokal → ClubCloud-Push)
+
+| Klasse | Datei | Beschreibung |
+|--------|-------|--------------|
+| `Tournament::CcSync::AccreditationPush` | `app/services/tournament/cc_sync/accreditation_push.rb` | Schreibt eine einzelne lokale Akkreditierungs-/Teilnahme-Änderung atomar und idempotent in die ClubCloud zurück (liest zuerst den Live-CC-Zustand, führt dann genau eine zustandsabhängige Aktion aus) |
+| `Tournament::CcSync::FinalizePush` | `app/services/tournament/cc_sync/finalize_push.rb` | Finalisiert die CC-Meldeliste (`releaseMeldeliste`), wenn der Turnierleiter die Teilnehmerliste lokal abschließt (`finish_seeding`) |
+
+Beide erben von `ApplicationService`, sind MCP-frei (aus Job/Reflex aufrufbar) und laufen unter Per-User-CC-Identität (Phase 39, via `McpServer::CcAccountResolver`).
 
 ## Öffentliche Schnittstelle
 

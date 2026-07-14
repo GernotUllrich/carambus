@@ -188,4 +188,6 @@ The following services are used internally by the scrapers and have no direct pu
 | `Umb::DateHelpers` | FutureScraper, ArchiveScraper, DetailsScraper |
 | `Umb::PlayerResolver` | DetailsScraper |
 
+`Umb::DisciplineDetector` offers two class methods: `detect(name)` (regex + DB-ILIKE only) and `detect_with_title_fallback(name)` (adds a `Discipline.classify_from_title` title-based fallback with curated overrides + synonyms). `FutureScraper` and `ArchiveScraper` call the fallback variant; `DetailsScraper` calls plain `detect`. See the [Architecture Documentation](umb-scraping-implementation.md) (section f) for details.
+
 For full descriptions of these services, see the [Architecture Documentation](umb-scraping-implementation.md).

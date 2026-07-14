@@ -110,7 +110,7 @@ CC-Schreibrecht wird an **zwei orthogonalen Schichten** geprüft. Beide müssen 
 cc_write_access? == system_admin? || sportwart? || turnierleiter?
 ```
 
-`ToolRegistry.tools_for(user)` filtert darauf: ein read-only User (player/club_admin ohne Persona/TL) bekommt die Write-Tools **gar nicht erst** in die Tool-Liste. `sportwart?` leitet sich aus der expliziten `users.persona_grants`-Spalte ab (`sportwart` location-scoped, `landessportwart` region-weit — Phase 38).
+`ToolRegistry.tools_for(user)` filtert darauf: ein read-only User (player/club_admin ohne Persona/TL) bekommt die Write-Tools **gar nicht erst** in die Tool-Liste. Es gibt ein zweites, orthogonales Gate: Write-Tools werden **nur bei `cc_write_access? && local_server?`** angehängt — auf der Authority (`carambus_api_url` blank) bekommt also selbst ein `system_admin` ein read-only Tool-Set (Phase 39). `sportwart?` leitet sich aus der expliziten `users.persona_grants`-Spalte ab (`sportwart` location-scoped, `landessportwart` region-weit — Phase 38).
 
 ### Schicht 2 — feine Per-Record-Authority (darf dieser User DIESE Aktion an DIESEM Turnier?)
 
@@ -212,7 +212,7 @@ Read-Tools überspringen Schritt `authorize!`/`resolve_cc_account`/Block und lau
 4. `resolve_cc_account` + `cc_write_identity_block(account, armed:)` vor dem POST.
 5. POST unter `cc_session.cookie_for(account)` (NICHT `cookie`).
 6. AuditTrail mit `operator: cc_audit_operator`, `user_id: account.acting_user_id`.
-7. Tool in `role_tool_map.rb` (WRITE_TOOLS) **und** in `SpielleiterChatService::TOOL_CLASSES` eintragen (zwei getrennte Listen — Drift-Falle!).
+7. Tool in `role_tool_map.rb` (`WRITE_TOOLS`) eintragen — das ist die **einzige** Quelle für den HTTP-Pfad. `ToolRegistry.tool_classes_for(user)` und `SpielleiterChatService` konsumieren sie beide; es gibt **keine** zweite `TOOL_CLASSES`-Liste (D-34-3 hat die alte Zwei-Listen-Drift-Falle aufgelöst). Write-Tools erreichen einen User nur, wenn `cc_write_access? && local_server?`.
 8. Pre-Validation-First: alle Constraints VOR `armed:true` prüfen.
 
 ---

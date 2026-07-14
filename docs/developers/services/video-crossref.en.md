@@ -112,7 +112,7 @@ Patterns are checked with word-boundary anchors (`/\b#{Regexp.escape(pattern)}\b
 
 The AI fallback fires only when **all** regex extraction values are blank **and** `ai_extraction_enabled: true` is explicitly set:
 
-- **Model:** `gpt-4o-mini` with `response_format: { type: "json_object" }`
+- **Model:** `claude-haiku-4-5-20251001` via `Anthropic::Client` (`Carambus.anthropic_api_key`). The prompt requests raw JSON; any ```-code fences in the response are stripped before parsing.
 - **Default:** disabled (`ai_extraction_enabled: false`) — prevents unexpected OpenAI calls in batch/background contexts
 - **Error handling:** exceptions are rescued and an empty hash is returned (no re-raise)
 

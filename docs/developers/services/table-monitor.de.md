@@ -71,9 +71,14 @@ TableMonitor::ResultRecorder.switch_to_next_set(table_monitor: tm)
   "Ergebnis2"    => Integer,         # Endpunktzahl Spieler B
   "Aufnahmen1"   => Integer,         # Anzahl Aufnahmen Spieler A
   "Aufnahmen2"   => Integer,         # Anzahl Aufnahmen Spieler B
+  "3BErgebnis1"  => Integer,         # Dreiband-Teilergebnis Spieler A (result_3b)
+  "3BErgebnis2"  => Integer,         # Dreiband-Teilergebnis Spieler B
+  "3BAufnahmen1" => Integer,         # Dreiband-Aufnahmen Spieler A (innings_3b)
+  "3BAufnahmen2" => Integer,         # Dreiband-Aufnahmen Spieler B
   "Höchstserie1" => Integer,         # Höchstserie Spieler A
   "Höchstserie2" => Integer,         # Höchstserie Spieler B
-  "Tischnummer"  => Integer          # Tischnummer (game.table_no)
+  "Tischnummer"  => Integer,         # Tischnummer (game.table_no)
+  "TiebreakWinner" => Integer        # Satz-Tiebreak-Sieger: 1 = playera, 2 = playerb; nil wenn keiner
 }
 ```
 

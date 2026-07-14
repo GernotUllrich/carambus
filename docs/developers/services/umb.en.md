@@ -7,7 +7,7 @@ The `Umb::` namespace scrapes international tournament data from the Union Mondi
 | Class | File | Description |
 |-------|------|-------------|
 | `Umb::HttpClient` | `app/services/umb/http_client.rb` | Stateless HTTP transport — fetches HTML and PDF content from UMB URLs |
-| `Umb::DisciplineDetector` | `app/services/umb/discipline_detector.rb` | Maps tournament names to `Discipline` records via regex and DB ILIKE fallback |
+| `Umb::DisciplineDetector` | `app/services/umb/discipline_detector.rb` | Maps tournament names to `Discipline` records via regex and DB ILIKE lookup (`detect`); `detect_with_title_fallback` adds a title-based `Discipline.classify_from_title` fallback (used by the future/archive scrapers) |
 | `Umb::DateHelpers` | `app/services/umb/date_helpers.rb` | Module — parses UMB date range strings into `{start_date:, end_date:}` |
 | `Umb::PlayerResolver` | `app/services/umb/player_resolver.rb` | Finds or creates `Player` records from UMB caps/mixed name pairs |
 | `Umb::FutureScraper` | `app/services/umb/future_scraper.rb` | Scrapes `FutureTournaments.aspx` and creates/updates `InternationalTournament` records |
@@ -21,8 +21,8 @@ The `Umb::` namespace scrapes international tournament data from the Union Mondi
 
 Full architecture documentation and method reference are in the Phase 30 documents:
 
-- [UMB Scraping — Architecture](../umb-scraping-implementation.md) — architecture, data flow, service interactions
-- [UMB Scraping — Methods Reference](../umb-scraping-methods.md) — method inventory, parameter documentation
+- [UMB Scraping — Architecture](../umb-scraping-implementation.en.md) — architecture, data flow, service interactions
+- [UMB Scraping — Methods Reference](../umb-scraping-methods.en.md) — method inventory, parameter documentation
 
 ## Note
 
