@@ -62,10 +62,35 @@ module LigaManager
 
     def norm(str) = self.class.normalize_name(str)
 
+    # LigaManager (CC-Nachfolger) asso_no matcht die Carambus-Nummer, die je nach Herkunft in
+    # cc_id (CC-gescrapt) ODER ba_id (BA-importiert) liegt — cc_id bevorzugt (regionsspezifisch,
+    # hier region-scoped). Name ODER shortname für die Mismatch-Erkennung.
     def compare_clubs
-      lm = @scraper.clubs.to_h { |c| [c["asso_no"].to_i, c["name"].to_s] }
-      cb = carambus_clubs.to_h { |c| [c.ba_id, c.name.to_s] }
-      self.class.diff_maps(lm, cb)
+      cb_clubs = carambus_clubs.to_a
+      by_cc = cb_clubs.index_by(&:cc_id)
+      by_ba = cb_clubs.index_by(&:ba_id)
+      matched_cb = []
+      mismatches = []
+      only_lm = []
+
+      @scraper.clubs.each do |c|
+        no = c["asso_no"].to_i
+        cb = by_cc[no] || by_ba[no]
+        if cb
+          matched_cb << cb
+          mismatches << {key: no, lm: c["name"].to_s, cb: cb.name.to_s} unless name_or_shortname_matches?(c["name"], cb)
+        else
+          only_lm << "#{no} — #{c["name"]}"
+        end
+      end
+
+      only_cb = (cb_clubs - matched_cb).map { |cb| "#{cb.cc_id || cb.ba_id} — #{cb.name}" }
+      {matched: matched_cb.size, only_lm: only_lm.sort, only_carambus: only_cb.sort, mismatches: mismatches}
+    end
+
+    def name_or_shortname_matches?(lm_name, cb)
+      ln = self.class.normalize_name(lm_name)
+      ln == self.class.normalize_name(cb.name) || ln == self.class.normalize_name(cb.shortname)
     end
 
     def compare_leagues
@@ -80,7 +105,7 @@ module LigaManager
         [team_key(club_by_lm_id[t["club_id"]], t["team_number"]), t["name"].to_s]
       end
       cb = carambus_league_teams.to_h do |t|
-        [team_key(t.club&.ba_id, t.name.to_s[/(\d+)\s*\z/, 1]), t.name.to_s]
+        [team_key(t.club&.cc_id || t.club&.ba_id, t.name.to_s[/(\d+)\s*\z/, 1]), t.name.to_s]
       end
       self.class.diff_maps(lm, cb)
     end
@@ -98,7 +123,7 @@ module LigaManager
     # --- Carambus-Seite (read-only via ActiveRecord) ---
 
     def carambus_clubs
-      Club.where(region_id: @region_id).where.not(ba_id: nil)
+      Club.where(region_id: @region_id).where("cc_id IS NOT NULL OR ba_id IS NOT NULL")
     end
 
     def carambus_leagues
