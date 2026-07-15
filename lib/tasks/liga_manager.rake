@@ -125,8 +125,55 @@ namespace :liga_manager do
     print_list("mehrdeutig (Namensträger)", sd[:ambiguous])
     print_list("ohne Match (Team/Roster)", sd[:unmatched])
 
+    pt = report[:parties]
     puts
-    puts armed ? "Fertig (versioniert → Sync)." : "DRY-RUN: keine Änderung. ARMED=1 schreibt source_url/Seedings."
+    puts "── PARTIES ──  matched=#{pt[:matched]}  " \
+         "#{armed ? "angelegt" : "würde anlegen"}=#{pt[:created]}  " \
+         "#{armed ? "Ergebnis gefüllt" : "würde füllen"}=#{pt[:filled]}  " \
+         "source_url=#{pt[:updated]}  unmatched=#{pt[:unmatched].size}"
+    print_list("ohne Match (Team/Liga fehlt in Carambus)", pt[:unmatched])
+
+    pg = report[:party_games]
+    puts
+    puts "── PARTY_GAMES ──  parties=#{pg[:parties_processed]}  " \
+         "#{armed ? "angelegt" : "würde anlegen"}=#{pg[:games_created]}  " \
+         "spieler_offen=#{pg[:players_unmatched]}  disziplin_offen=#{pg[:disciplines_unmatched]}  " \
+         "übersprungen=#{pg[:parties_skipped]}"
+
+    puts
+    puts armed ? "Fertig (versioniert → Sync)." : "DRY-RUN: keine Änderung. ARMED=1 schreibt source_url/Seedings/Parties/Einzelspiele."
+    puts "=" * 72
+  end
+
+  # GamePlan-Rekonstruktion aus vorhandenen Carambus-Spieldaten (NICHT aus LigaManager — LM liefert die
+  # Regelparameter Aufnahmen/Satzziel/Punkte/Bretter nicht). Nutzt das Bestandswerkzeug.
+  #   bin/rails liga_manager:reconstruct_game_plans            # dry-run: zählt Ligen ohne game_plan
+  #   ARMED=1 REGION_ID=16 SEASON_ID=17 bin/rails liga_manager:reconstruct_game_plans
+  # READ-ONLY GamePlan-Abgleich: der GamePlan ist saisonstabil (ändert sich CC→LM nicht). Prüft je Liga
+  # die GamePlan-Spielanzahl gegen die LM-Spielanzahl einer Beispielbegegnung. Erwartet 0 Diskrepanzen.
+  # Bewusst KEIN Rekonstruieren/Schreiben (reconstruct_game_plans_for_season wirkt saisonweit/alle Regionen).
+  #   bin/rails liga_manager:check_game_plans
+  desc "READ-ONLY Abgleich bestehender GamePlans gegen die LM-Spielstruktur (erwartet 0 Diskrepanzen)"
+  task check_game_plans: :environment do
+    association_id = (ENV["ASSOCIATION_ID"] || 1).to_i
+    region_id = (ENV["REGION_ID"] || 16).to_i
+    season_id = (ENV["SEASON_ID"] || 17).to_i
+
+    rows = LigaManager::Importer.new(
+      association_id: association_id, region_id: region_id, season_id: season_id
+    ).check_game_plans
+
+    puts "=" * 72
+    puts "GamePlan-Abgleich (READ-ONLY, GamePlan ist saisonstabil)  region_id=#{region_id} season_id=#{season_id}"
+    puts "=" * 72
+    rows.sort_by { |r| r[:status].to_s }.each do |r|
+      puts "  [#{r[:status]}]  #{r[:league]}  GamePlan-Spiele=#{r[:gameplan_games].inspect}  LM-Spiele=#{r[:lm_games].inspect}"
+    end
+    disc = rows.count { |r| r[:status] == :discrepancy }
+    puts
+    puts "Diskrepanzen: #{disc} (erwartet 0)  ·  ok=#{rows.count { |r| r[:status] == :ok }}  ·  " \
+         "ohne GamePlan=#{rows.count { |r| r[:status] == :no_game_plan }}  ·  " \
+         "ohne LM=#{rows.count { |r| %i[no_lm_league no_lm_report].include?(r[:status]) }}"
     puts "=" * 72
   end
 

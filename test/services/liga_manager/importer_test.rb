@@ -16,7 +16,29 @@ module LigaManager
       end
 
       def teams(_league_id)
-        [{"id" => 15, "name" => "TuS Weida Mehrkampf 1", "team_number" => 1, "club_id" => 99}]
+        [
+          {"id" => 15, "name" => "TuS Weida Mehrkampf 1", "team_number" => 1, "club_id" => 99},
+          {"id" => 16, "name" => "1. Erfurter BC 1", "team_number" => 1, "club_id" => 98}
+        ]
+      end
+
+      # Begegnungen (match_plans): 81 bestehend+Ergebnis, 82 bestehend+leer (→ füllen),
+      # 83 fehlend (→ anlegen), 84 Team fehlt in Carambus (→ unmatched).
+      def match_plans(_league_id)
+        [
+          {"id" => 81, "home_team_id" => 15, "away_team_id" => 16, "scheduled_date" => "2025-10-01",
+           "matchpoints" => {"total_home_points" => "5", "total_guest_points" => "3"},
+           "home_team_name" => "TuS Weida Mehrkampf 1", "away_team_name" => "1. Erfurter BC 1"},
+          {"id" => 82, "home_team_id" => 16, "away_team_id" => 15, "scheduled_date" => "2025-11-01",
+           "matchpoints" => {"total_home_points" => "2", "total_guest_points" => "6"},
+           "home_team_name" => "1. Erfurter BC 1", "away_team_name" => "TuS Weida Mehrkampf 1"},
+          {"id" => 83, "home_team_id" => 15, "away_team_id" => 16, "scheduled_date" => "2026-01-15",
+           "matchpoints" => {"total_home_points" => "7", "total_guest_points" => "1"},
+           "home_team_name" => "TuS Weida Mehrkampf 1", "away_team_name" => "1. Erfurter BC 1"},
+          {"id" => 84, "home_team_id" => 4242, "away_team_id" => 15, "scheduled_date" => "2026-02-01",
+           "matchpoints" => {"total_home_points" => "3", "total_guest_points" => "3"},
+           "home_team_name" => "Fremd 1", "away_team_name" => "TuS Weida Mehrkampf 1"}
+        ]
       end
 
       def clubs
@@ -37,6 +59,19 @@ module LigaManager
           {"id" => 888, "first_name" => "Ghost", "last_name" => "Player", "_status" => 1},   # kein Roster-Treffer
           {"id" => 777, "first_name" => "Inaktiv", "last_name" => "Exmitglied", "_status" => 0} # inaktiv → gefiltert
         ]
+      end
+
+      # Spielbericht je match_plan: Spiel 1 vollständig, Spiel 2 mit unbekannter Disziplin + Spieler.
+      def match_report(match_plan_id)
+        return {final_score: nil, games: []} unless match_plan_id.to_s == "81"
+
+        {final_score: {home: 2, guest: 1},
+         games: [
+           {position: 1, discipline: "Dreiband", home_player: "Schumann, Jens", away_player: "Gast, Anton",
+            set_result: "2:0", match_points: "2:0", stats: {factor: 1, balls: {home: 120, guest: 90}}},
+           {position: 2, discipline: "UnbekannteDisziplinXYZ", home_player: "Niemand, Unbekannt",
+            away_player: "Gast, Anton", set_result: "0:2", match_points: "0:2", stats: nil}
+         ]}
       end
 
       # Rangliste je Disziplin (leagues/{id}/ranking): Spielername = "Nachname, Vorname".
@@ -65,6 +100,13 @@ module LigaManager
       @league = League.create!(region_id: @region.id, season_id: @season.id, discipline: @discipline,
         name: "Mehrkampf Oberliga")
       @team = LeagueTeam.create!(league_id: @league.id, club_id: @club_cc.id, name: "TuS Weida Mehrkampf 1")
+      @team_b = LeagueTeam.create!(league_id: @league.id, club_id: @club_ba.id, name: "1. Erfurter BC 1")
+
+      # Bestehende Begegnungen: eine mit Ergebnis (81), eine mit LEEREM Ergebnis (82 → füllbar).
+      @party_ab = Party.create!(league_id: @league.id, league_team_a_id: @team.id, league_team_b_id: @team_b.id,
+        date: "2025-10-01", data: {"result" => "5:3"})
+      @party_ba_empty = Party.create!(league_id: @league.id, league_team_a_id: @team_b.id, league_team_b_id: @team.id,
+        date: "2025-11-01", data: {"result" => ""})
 
       # Vereins-Saison-Roster von @club_cc: ein eindeutiger Spieler + zwei gleichnamige (Ambiguität).
       @player_matched = Player.create!(firstname: "Jens", lastname: "Schumann")
@@ -78,6 +120,17 @@ module LigaManager
     def importer(armed: false)
       Importer.new(association_id: 1, region_id: @region.id, season_id: @season.id,
         armed: armed, scraper: StubScraper.new)
+    end
+
+    # Für import_party_games: @party_ab bekommt match-plans-source_url; Seedings der beiden Teams
+    # (Heim Jens Schumann, Gast Anton Gast) + Disziplin "Dreiband" mit Synonym.
+    def setup_party_games_scenario
+      @party_ab.update!(source_url: "https://ligen.billard.center/api/match-plans/81")
+      @away_player = Player.create!(firstname: "Anton", lastname: "Gast")
+      Seeding.create!(league_team_id: @team.id, player_id: @player_matched.id)
+      Seeding.create!(league_team_id: @team_b.id, player_id: @away_player.id)
+      d = Discipline.find_or_create_by!(name: "Dreiband")
+      d.update!(synonyms: "Dreiband") unless d.synonyms.to_s.split("\n").include?("Dreiband")
     end
 
     test "reconcile_clubs matcht über cc_id ODER ba_id, meldet unmatched" do
@@ -124,7 +177,7 @@ module LigaManager
 
     test "import_teams matcht Team über Verein+Team-Nummer" do
       r = importer(armed: true).import_teams
-      assert_equal 1, r[:matched]
+      assert_equal 2, r[:matched] # @team (15) + @team_b (16)
       assert_equal "https://ligen.billard.center/api/teams?league_id=5&id=15", @team.reload.source_url
     end
 
@@ -166,10 +219,133 @@ module LigaManager
     end
 
     test "voller dry-run mutiert keine Record-Anzahl" do
-      counts = -> { [Club.count, League.count, LeagueTeam.count, Player.count, SeasonParticipation.count, Seeding.count] }
+      counts = -> { [Club.count, League.count, LeagueTeam.count, Player.count, SeasonParticipation.count, Seeding.count, Party.count, PartyGame.count] }
       before = counts.call
       importer.run
       assert_equal before, counts.call, "Importer legt keine Records an"
+    end
+
+    test "import_party_games legt Einzelspiele an (ARMED)" do
+      setup_party_games_scenario
+      assert_difference -> { PartyGame.where(party_id: @party_ab.id).count }, 2 do
+        r = importer(armed: true).import_party_games
+        assert_equal 1, r[:parties_processed]
+        assert_equal 2, r[:games_created]
+      end
+      g1 = PartyGame.find_by(party_id: @party_ab.id, seqno: 1)
+      assert_equal "Spiel 1::Dreiband", g1.name
+      assert_equal "Dreiband", g1.discipline&.name
+      assert_equal @player_matched.id, g1.player_a_id
+      assert_equal @away_player.id, g1.player_b_id
+      assert_equal "2:0", g1.data["result"]
+    end
+
+    test "import_party_games ist robust bei unbekannter Disziplin/Spieler" do
+      setup_party_games_scenario
+      r = importer(armed: true).import_party_games
+      g2 = PartyGame.find_by(party_id: @party_ab.id, seqno: 2)
+      assert_not_nil g2
+      assert_nil g2.discipline_id
+      assert_nil g2.player_a_id
+      assert_equal @away_player.id, g2.player_b_id
+      assert_operator r[:disciplines_unmatched], :>=, 1
+      assert_operator r[:players_unmatched], :>=, 1
+    end
+
+    test "import_party_games ist idempotent (2. ARMED-Lauf)" do
+      setup_party_games_scenario
+      importer(armed: true).import_party_games
+      assert_no_difference -> { PartyGame.count } do
+        r2 = importer(armed: true).import_party_games
+        assert_equal 0, r2[:games_created]
+      end
+    end
+
+    test "import_party_games dry-run schreibt nicht" do
+      setup_party_games_scenario
+      assert_no_difference -> { PartyGame.count } do
+        r = importer.import_party_games
+        assert_equal 2, r[:games_created]
+      end
+    end
+
+    test "import_party_games überspringt Party ohne match-plans-source_url" do
+      r = importer.import_party_games
+      assert_operator r[:parties_skipped], :>=, 1
+    end
+
+    test "import_party_games lässt Party mit bestehenden Einzelspielen unberührt" do
+      setup_party_games_scenario
+      PartyGame.create!(party_id: @party_ab.id, seqno: 1, name: "bestehend")
+      r = importer(armed: true).import_party_games
+      assert_equal 0, r[:parties_processed]
+    end
+
+    test "check_game_plans meldet ok bei gleicher Spielanzahl (read-only, kein Schreiben)" do
+      gp = GamePlan.create!(name: "TP", data: {"rows" => [
+        {"type" => "Neue Runde"}, {"seqno" => 1, "type" => "Dreiband"}, {"seqno" => 2, "type" => "Dreiband"}
+      ]})
+      @league.update!(game_plan_id: gp.id)
+      before = [GamePlan.count, PartyGame.count]
+      rows = importer.check_game_plans
+      row = rows.find { |r| r[:league] == @league.name }
+      assert_equal 2, row[:gameplan_games] # zwei seqno-Zeilen im GamePlan
+      assert_equal 2, row[:lm_games]       # StubScraper.match_report(81) liefert 2 Spiele
+      assert_equal :ok, row[:status]
+      assert_equal before, [GamePlan.count, PartyGame.count], "check ist read-only"
+    end
+
+    test "reconcile_parties: matched/filled/created/unmatched Übersicht (dry-run)" do
+      r = importer.reconcile_parties
+      assert_equal 2, r[:matched]       # 81 (@party_ab) + 82 (@party_ba_empty)
+      assert_equal 1, r[:created]       # 83 fehlt
+      assert_equal 1, r[:filled]        # 82 leer → würde füllen
+      assert_equal 1, r[:unmatched].size # 84 (Team 4242 fehlt)
+    end
+
+    test "reconcile_parties setzt source_url, ohne bestehendes Ergebnis zu ändern (ARMED)" do
+      importer(armed: true).reconcile_parties
+      assert_equal "5:3", @party_ab.reload.data["result"], "vorhandenes Ergebnis unverändert"
+      assert_match %r{/api/match-plans/81}, @party_ab.source_url
+    end
+
+    test "reconcile_parties füllt leeres Ergebnis (ARMED)" do
+      importer(armed: true).reconcile_parties
+      assert_equal "2:6", @party_ba_empty.reload.data["result"]
+    end
+
+    test "reconcile_parties legt fehlende Begegnung an (ARMED) mit korrekten Feldern" do
+      assert_difference -> { Party.count }, 1 do
+        importer(armed: true).reconcile_parties
+      end
+      p = Party.find_by(source_url: "https://ligen.billard.center/api/match-plans/83")
+      assert_not_nil p
+      assert_equal @league.id, p.league_id
+      assert_equal [@team.id, @team_b.id], [p.league_team_a_id, p.league_team_b_id]
+      assert_equal @team.id, p.host_league_team_id
+      assert_equal "2026-01-15", p.date.to_date.to_s
+      assert_equal "7:1", p.data["result"]
+    end
+
+    test "reconcile_parties ist idempotent (2. ARMED-Lauf)" do
+      importer(armed: true).reconcile_parties
+      r2 = importer(armed: true).reconcile_parties
+      assert_equal 0, r2[:created]
+      assert_equal 0, r2[:updated]
+      assert_equal 0, r2[:filled]
+    end
+
+    test "reconcile_parties dry-run schreibt nicht" do
+      assert_no_difference -> { Party.count } do
+        r = importer.reconcile_parties
+        assert_equal 1, r[:created]
+      end
+      assert_equal "", @party_ba_empty.reload.data["result"], "dry-run füllt nicht"
+    end
+
+    test "reconcile_parties meldet Begegnung mit fehlendem Team als unmatched" do
+      r = importer.reconcile_parties
+      assert(r[:unmatched].any? { |u| u.include?("Fremd 1") })
     end
 
     test "reconcile_seedings zählt bestehendes Seeding als matched, ohne Create" do

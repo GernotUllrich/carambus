@@ -25,10 +25,11 @@ module LigaManager
       @scraper = scraper || Scraper.new(association_id: association_id)
     end
 
-    # Fährt Club → League → Team → Player → Seedings und liefert je Stufe den Reconcile-Report.
+    # Fährt Club → League → Team → Player → Seedings → Parties → PartyGames und liefert je Stufe den Report.
     def run
       {clubs: reconcile_clubs, leagues: import_leagues, teams: import_teams,
-       players: reconcile_players, seedings: reconcile_seedings}
+       players: reconcile_players, seedings: reconcile_seedings, parties: reconcile_parties,
+       party_games: import_party_games}
     end
 
     # Club-Reconcile: LM asso_no ↔ Carambus Club.cc_id ODER ba_id (Region). Setzt source_url der
@@ -192,6 +193,125 @@ module LigaManager
        ambiguous: ambiguous.uniq.sort, unmatched: unmatched.uniq.sort}
     end
 
+    # Party-Reconcile: gleicht LM-Begegnungen (match_plans) über Liga + Mannschafts-Paar
+    # (LM-Team → Carambus-LeagueTeam) gegen bestehende Carambus-Parties ab. Bestehende → source_url
+    # als Provenienz (Ergebnis/data UNVERÄNDERT). Fehlende gespielte Begegnungen → Party anlegen
+    # (league/team_a/team_b/host/date/data{result}/source_url). Begegnungen mit fehlendem Team in
+    # Carambus (v.a. Pokal) → :unmatched (kein Anlegen, keine neuen Teams).
+    # Idempotenz über (league_id, league_team_a_id, league_team_b_id); Rundenturnier ⇒ pro Saison
+    # eindeutig (Hin-/Rückrunde vertauschen a/b).
+    def reconcile_parties
+      lt_by_lm = lt_by_lm_team_id
+      cb_league_by_key = carambus_leagues.index_by { |l| league_key(l.discipline&.name, l.name) }
+      # Schlüssel inkl. Datum: dasselbe Team-Paar kann in kleinen Ligen mehrfach in gleicher
+      # Richtung an verschiedenen Terminen spielen (Doppel-/Dreifachrunde) — (Liga,Heim,Gast) allein
+      # ist NICHT eindeutig. (Liga,Heim,Gast,Datum) ist in Carambus eindeutig.
+      cb_party_by_key = Party.where(league_id: carambus_leagues.map(&:id))
+        .index_by { |p| [p.league_id, p.league_team_a_id, p.league_team_b_id, party_date_key(p.date)] }
+      matched = 0
+      updated = 0
+      created = 0
+      filled = 0
+      unmatched = []
+
+      lm_leagues.each do |l|
+        cbl = cb_league_by_key[league_key(l["game_type_name"], l["name"])]
+        @scraper.match_plans(l["id"]).each do |m|
+          a = lt_by_lm[m["home_team_id"]]
+          b = lt_by_lm[m["away_team_id"]]
+          unless a && b && cbl
+            unmatched << "#{m["home_team_name"]} vs #{m["away_team_name"]} (#{m["scheduled_date"]}) — Team/Liga fehlt in Carambus"
+            next
+          end
+
+          result = "#{m.dig("matchpoints", "total_home_points")}:#{m.dig("matchpoints", "total_guest_points")}"
+          party = cb_party_by_key[[cbl.id, a.id, b.id, party_date_key(m["scheduled_date"])]]
+          if party
+            matched += 1
+            updated += 1 if apply_source_url(party, party_source_url(m["id"]))
+            filled += 1 if fill_empty_result(party, result)
+          else
+            created += 1
+            create_party(cbl, a, b, m, result) if @armed
+          end
+        end
+      end
+
+      {matched: matched, updated: updated, created: created, filled: filled, unmatched: unmatched.uniq.sort}
+    end
+
+    # Einzelspiel-Import (PartyGame): für jede Party mit source_url = ".../api/match-plans/{id}", die
+    # noch KEINE Einzelspiele hat, den Spielbericht holen und je game ein PartyGame anlegen
+    # (seqno=Position, name="Spiel N::Disziplin", discipline via Synonym/classify, player_a/b namensbasiert
+    # im jeweiligen Team-Roster, data{result + stats aus 11-01}). Idempotent über (party_id, seqno).
+    # Bestehende Einzelspiele (CC-Parties) werden NICHT angefasst; keine neuen Player/Teams.
+    def import_party_games
+      parties_processed = 0
+      games_created = 0
+      players_unmatched = 0
+      disciplines_unmatched = 0
+      parties_skipped = 0
+
+      carambus_parties_without_games.each do |party|
+        mp_id = match_plan_id_from(party.source_url)
+        unless mp_id
+          parties_skipped += 1
+          next
+        end
+
+        report = @scraper.match_report(mp_id)
+        roster_a = roster_by_league_team(party.league_team_a_id)
+        roster_b = roster_by_league_team(party.league_team_b_id)
+        parties_processed += 1
+
+        Array(report[:games]).each do |g|
+          seqno = g[:position]
+          next if seqno.nil? || PartyGame.where(party_id: party.id, seqno: seqno).exists?
+
+          discipline = discipline_for(g[:discipline])
+          disciplines_unmatched += 1 if discipline.nil?
+          player_a = unique_roster_player(roster_a, g[:home_player])
+          player_b = unique_roster_player(roster_b, g[:away_player])
+          players_unmatched += 1 if player_a.nil?
+          players_unmatched += 1 if player_b.nil?
+
+          games_created += 1
+          create_party_game(party, seqno, g, discipline, player_a, player_b) if @armed
+        end
+      end
+
+      {parties_processed: parties_processed, games_created: games_created,
+       players_unmatched: players_unmatched, disciplines_unmatched: disciplines_unmatched,
+       parties_skipped: parties_skipped}
+    end
+
+    # READ-ONLY GamePlan-Abgleich: der GamePlan ist saisonstabil (CC→LM unverändert). Prüft je Liga die
+    # Anzahl der Spiel-Slots im GamePlan (data["rows"] mit seqno) gegen die Anzahl der Einzelspiele einer
+    # LM-Beispielbegegnung (naming-unabhängig). Erwartet 0 Diskrepanzen. Schreibt NICHTS, rekonstruiert
+    # NICHTS (vgl. reconstruct_game_plans_for_season = saisonweit/alle Regionen = Footgun).
+    def check_game_plans
+      lm_by_key = lm_leagues.index_by { |l| league_key(l["game_type_name"], l["name"]) }
+      carambus_leagues.map do |cbl|
+        gp = cbl.game_plan
+        lm = lm_by_key[league_key(cbl.discipline&.name, cbl.name)]
+        gp_games = gp ? Array(gp.data["rows"]).count { |r| r.is_a?(Hash) && r["seqno"] } : nil
+        lm_games = lm ? sample_lm_game_count(lm["id"]) : nil
+        status =
+          if gp.nil?
+            :no_game_plan
+          elsif lm.nil?
+            :no_lm_league
+          elsif lm_games.nil?
+            :no_lm_report
+          elsif gp_games == lm_games
+            :ok
+          else
+            :discrepancy
+          end
+        {league: cbl.name, gameplan_games: gp_games, lm_games: lm_games, status: status}
+      end
+    end
+
     # Kuratierter Club-Identitäts-Fix: gibt einem Region-Club, dessen Name das Fragment EINDEUTIG
     # enthält und der noch KEIN cc_id trägt, die echte LM-Nummer (cc_id=asso_no) — behebt Clubs mit
     # synthetischer Nummer (z. B. SV Sömmerda → 1567), damit reconcile_clubs sie matcht. Konservativ:
@@ -269,6 +389,76 @@ module LigaManager
       TbvComparison.normalize_name(first.present? ? "#{first} #{last}" : last.to_s)
     end
 
+    # TBV-Parties der Region/Season OHNE Einzelspiele (nur diese bekommen PartyGames).
+    def carambus_parties_without_games
+      Party.where(league_id: carambus_leagues.map(&:id))
+        .where.missing(:party_games)
+        .to_a
+    end
+
+    # Extrahiert die match_plan-id aus einer source_url ".../api/match-plans/{id}"; nil sonst.
+    def match_plan_id_from(url)
+      url.to_s[%r{/api/match-plans/(\d+)}, 1]
+    end
+
+    # Spieler eines LeagueTeams (via Seedings) gruppiert nach normalisiertem Namen — Roster für den Match.
+    def roster_by_league_team(league_team_id)
+      (@lt_roster_cache ||= {})[league_team_id] ||=
+        Seeding.where(league_team_id: league_team_id).includes(:player)
+          .filter_map(&:player).group_by { |p| TbvComparison.normalize_name(p.fl_name) }
+    end
+
+    # Ranglisten-/Berichts-Name "Nachname, Vorname" → eindeutiger Roster-Spieler (nil bei 0/>1).
+    def unique_roster_player(roster, spielername)
+      candidates = Array(roster[ranking_name_key(spielername)]).uniq
+      (candidates.size == 1) ? candidates.first : nil
+    end
+
+    # Disziplin über exakten Synonym-Zeilentreffer (wie ClubCloudScraper), Fallback classify_from_title.
+    def discipline_for(name)
+      return nil if name.to_s.strip.empty?
+
+      (@discipline_cache ||= {})[name] ||= begin
+        by_syn = Discipline.where("synonyms ilike ?", "%#{name}%").to_a
+          .find { |d| d.synonyms.to_s.split("\n").map(&:strip).include?(name.strip) }
+        by_syn || Discipline.classify_from_title(name)
+      end
+    end
+
+    # Legt ein PartyGame an (broadcast-frei). name = "Spiel N::Disziplin"; data{result + stats}.
+    def create_party_game(party, seqno, game, discipline, player_a, player_b)
+      data = {"result" => game[:set_result]}
+      data["match_points"] = game[:match_points] if game[:match_points].present?
+      data["stats"] = game[:stats] if game[:stats]
+      PartyGame.skip_cable_ready_updates do
+        PartyGame.create!(
+          party_id: party.id,
+          seqno: seqno,
+          name: "Spiel #{seqno}::#{game[:discipline]}",
+          discipline_id: discipline&.id,
+          player_a_id: player_a&.id,
+          player_b_id: player_b&.id,
+          data: data
+        )
+      end
+    end
+
+    # Legt eine fehlende Begegnung an (Heim=a, Gast=b, Gastgeber=Heim), broadcast-frei. Ergebnis als
+    # data["result"]="H:G"; source_url = LM-Provenienz. Minimal + konsistent zum Bestand (round/party_no nil).
+    def create_party(league, home, away, match_plan, result)
+      Party.skip_cable_ready_updates do
+        Party.create!(
+          league_id: league.id,
+          league_team_a_id: home.id,
+          league_team_b_id: away.id,
+          host_league_team_id: home.id,
+          date: match_plan["scheduled_date"],
+          data: {"result" => result},
+          source_url: party_source_url(match_plan["id"])
+        )
+      end
+    end
+
     # Legt ein Minimal-Seeding an (Player↔LeagueTeam, tournament nil, state registered), broadcast-frei.
     def create_seeding(league_team_id, player_id)
       Seeding.skip_cable_ready_updates do
@@ -313,6 +503,41 @@ module LigaManager
 
     def player_source_url(lm_club_id, member_id)
       "#{BASE_URL}/api/members/public?club_id=#{lm_club_id}&id=#{member_id}"
+    end
+
+    def party_source_url(match_plan_id)
+      "#{BASE_URL}/api/match-plans/#{match_plan_id}"
+    end
+
+    # Anzahl der Einzelspiele einer gespielten LM-Beispielbegegnung der Liga (read-only, für check_game_plans).
+    def sample_lm_game_count(lm_league_id)
+      mp = @scraper.match_plans(lm_league_id).find { |m| m["is_completed"] || m["matchpoints"].is_a?(Hash) }
+      return nil unless mp
+
+      Array(@scraper.match_report(mp["id"])[:games]).size
+    end
+
+    # Normalisiert CB-Datetime (Party#date) und LM-Datumsstring ("2026-02-14") auf "YYYY-MM-DD".
+    def party_date_key(date)
+      date.respond_to?(:to_date) ? date.to_date.to_s : date.to_s[0, 10]
+    end
+
+    # Füllt data["result"] NUR wenn das Carambus-Ergebnis leer ist (CC-Ruhephase-Platzhalter);
+    # überschreibt NIE ein vorhandenes Ergebnis. LM-Ergebnis muss selbst nicht-leer sein.
+    def fill_empty_result(party, result)
+      return false unless blank_result?(party.data)
+      return false if result.gsub(/[^0-9]/, "").empty?
+
+      if @armed
+        party.class.skip_cable_ready_updates do
+          party.update!(data: (party.data || {}).merge("result" => result))
+        end
+      end
+      true
+    end
+
+    def blank_result?(data)
+      (data.is_a?(Hash) ? data["result"].to_s : "").gsub(/[^0-9]/, "").empty?
     end
 
     # --- Match-Schlüssel (identisch zu TbvComparison, dort private) ---
