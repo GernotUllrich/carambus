@@ -565,12 +565,23 @@ class TableMonitor < ApplicationRecord
     raise StandardError
   end
 
-  # before_save-Invariante (Deklaration oben): solange der AASM-Zustand set_over ist, MUSS
-  # panel_state "protocol_final" sein -> Scoreboard zeigt direkt den ProtokollEditor (final-mode),
-  # nie den seltenen "...OK?"/innings_list-Umweg, egal welcher Pfad panel_state vorher gesetzt hat.
-  # Nur panel_state fixieren; current_element bleibt (Tiebreak setzt "tiebreak_winner_choice").
+  # before_save-Invariante (Deklaration oben): panel_state "protocol_final" ist 1:1 an den
+  # AASM-Zustand set_over gebunden.
+  # - WÄHREND set_over MUSS panel_state "protocol_final" sein -> Scoreboard zeigt direkt den
+  #   ProtokollEditor (final-mode), nie den seltenen "...OK?"/innings_list-Umweg, egal welcher
+  #   Pfad panel_state vorher gesetzt hat.
+  # - SOBALD set_over verlassen ist (Ergebnis bestätigt -> final_set_score/next_set/undo), wird
+  #   ein stehengebliebenes "protocol_final" freigegeben. Ohne diese Freigabe leakte es über
+  #   set_over hinaus (der Confirm-Reflex setzt panel_state noch IM set_over und wurde von der
+  #   Erzwingung wieder überschrieben), wodurch der Abschluss-Editor zurückflackerte / ein
+  #   zweites Bestätigen nötig war.
+  # Nur panel_state anfassen; current_element bleibt (Tiebreak setzt "tiebreak_winner_choice").
   def enforce_protocol_final_panel_at_set_over
-    self.panel_state = "protocol_final" if state == "set_over" && panel_state != "protocol_final"
+    if state == "set_over"
+      self.panel_state = "protocol_final" if panel_state != "protocol_final"
+    elsif panel_state == "protocol_final"
+      self.panel_state = "pointer_mode"
+    end
   end
 
   def numbers
