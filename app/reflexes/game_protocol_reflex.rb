@@ -154,14 +154,10 @@ class GameProtocolReflex < ApplicationReflex
     # Close the modal first
     send_modal_update("")
 
-    # Now trigger the result confirmation via evaluate_result
-    # This will handle the state transition (acknowledge_result!, finish_match!, etc.)
-    @table_monitor.suppress_broadcast = true
-    @table_monitor.panel_state = "pointer_mode"
-    @table_monitor.save!
-    @table_monitor.suppress_broadcast = false
-
-    # Call evaluate_result to proceed with the game flow
+    # Advance the game flow (state transition via ResultRecorder). Leaving set_over
+    # releases the protocol_final panel through the before_save invariant
+    # (enforce_protocol_final_panel_at_set_over) — no manual panel_state reset needed
+    # here; the earlier in-set_over reset was clobbered by that same invariant.
     @table_monitor.evaluate_result
 
     # Broadcast the updated scoreboard
