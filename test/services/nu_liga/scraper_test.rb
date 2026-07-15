@@ -90,5 +90,14 @@ module NuLiga
         assert first[:team_name].present?
       end
     end
+
+    test "club returns name and BBV Vereinsnummer (vnr)" do
+      VCR.use_cassette("nuliga/clubInfoDisplay_383") do
+        c = build_scraper.club(383)
+        assert_equal 383, c[:club_id]
+        assert_match(/Hof/, c[:name])       # Snooker-Pool-Club Hof e.V.
+        assert_equal 1743, c[:vnr]          # VNr. aus dem Seiteninhalt = Carambus cc_id/ba_id
+      end
+    end
   end
 end

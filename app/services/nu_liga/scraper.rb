@@ -71,7 +71,28 @@ module NuLiga
       table.css("tr").filter_map { |tr| ranking_row(tr) }
     end
 
+    # Verein (clubInfoDisplay): NuLiga-interne club_id + Name + BBV-Vereinsnummer (VNr).
+    # { club_id:, name:, vnr: } — vnr aus dem Seiteninhalt „VNr.: <n>" (= Carambus cc_id/ba_id-fähig),
+    # NICHT der NuLiga-URL-Param club=<id> (der ist intern). vnr nil, wenn keine VNr angegeben.
+    def club(club_id)
+      doc = @client.get_doc("clubInfoDisplay", club: club_id)
+      {club_id: club_id.to_i, name: club_name(doc), vnr: club_vnr(doc)}
+    end
+
     private
+
+    # Vereinsname = letztes nicht-leeres Text-Kind der h1 (h1 = „<Verband><br><Vereinsname>").
+    def club_name(doc)
+      h1 = doc.at_css("h1")
+      return nil unless h1
+
+      h1.children.map { |c| clean_text(c) }.compact.reject(&:empty?).last
+    end
+
+    # BBV-Vereinsnummer aus „VNr.: <n>" im Seitentext (nbsp → Space; \s matcht U+00A0 nicht).
+    def club_vnr(doc)
+      doc.text.tr(" ", " ")[/VNr\.[\s ]*:?[\s ]*(\d+)/, 1]&.to_i
+    end
 
     # Eine Spielplan-Zeile → Begegnung oder nil (Header/Trenner/ungespielt ohne meeting-Link).
     # Robust: die Ergebnis-Zelle ist die mit dem groupMeetingReport-Link; Heim/Gast = die zwei Zellen
