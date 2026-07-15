@@ -1,0 +1,295 @@
+---
+http_interactions:
+- request:
+    method: get
+    uri: https://bbv-billard.liga.nu/cgi-bin/WebObjects/nuLigaBILLARDDE.woa/wa/groupPage?championship=BBV%20Pool%2025/26&displayDetail=meetings&group=1001
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - text/html
+      User-Agent:
+      - Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML,
+        like Gecko) Chrome/120 Safari/537.36
+      Host:
+      - bbv-billard.liga.nu
+  response:
+    status:
+      code: 200
+      message: Apple WebObjects
+    headers:
+      Date:
+      - Wed, 15 Jul 2026 11:43:29 GMT
+      Content-Type:
+      - text/html; charset=utf-8
+      Content-Length:
+      - '22263'
+      Set-Cookie:
+      - nusportingress=1784115810.08.3508.764296|b6276a1c10bdf8118344bab7bb8764b8;
+        Path=/cgi-bin/WebObjects/nuLigaBILLARDDE.woa/; Secure; HttpOnly; SameSite=None
+      - routeid_nuligabillardde=.nuligabillardde_8080; version="1"; path=/; secure;
+        HttpOnly
+      X-Webobjects-Loadaverage:
+      - '3'
+      X-Varnish:
+      - '4068164663'
+      Age:
+      - '0'
+      Via:
+      - 1.1 otns326 (Varnish/7.6)
+      X-Cache:
+      - MISS
+      Strict-Transport-Security:
+      - max-age=16000000; includeSubDomains;
+    body:
+      encoding: UTF-8
+      string: "<!DOCTYPE html>\n<html xmlns=\"http://www.w3.org/1999/xhtml\" lang=\"de\">\n
+        \ <head>\n    <meta charset=\"utf-8\">\n    <meta name=\"viewport\" content=\"width=device-width,
+        initial-scale=1\">\n    <meta name=\"robots\" content=\"all\">\n    <meta
+        name=\"publisher\" content=\"nuLiga\">\n    <meta name=\"author\" content=\"nuLiga\">\n
+        \   <meta name=\"nuLigaStatsUrl\" content=\"/nuLigaBILLARDDE/wa/groupPage/view?championship=BBV+Pool+25%2F26&group=1001&displayDetail=meetings\"
+        />\n<meta name=\"uLigaStatsRefUrl\" />\n\n    <!-- InstanceBeginEditable name=\"doctitle\"
+        -->\n    <title>\n      nuLiga Billard\n       &ndash; \n      Staffel\n    </title>\n
+        \    <meta name=\"robots\" content=\"noindex,nofollow\"></meta> \n    \n    \n<link
+        rel=\"stylesheet\" type=\"text/css\" href=\"/WebObjects/nuLiga.woa/Frameworks/nuLigaWebResources.framework/WebServerResources/css/bootstrap.min.css?nlv=9b272e78\"
+        media=\"all\" />\n    \n<link rel=\"stylesheet\" type=\"text/css\" href=\"/WebObjects/nuLiga.woa/Frameworks/nuLigaWebResources.framework/WebServerResources/css/billardde/theme-bbv.css?nlv=9b272e78\"
+        media=\"all\" />\n    \n<link rel=\"stylesheet\" type=\"text/css\" href=\"/WebObjects/nuLiga.woa/Frameworks/nuLigaWebResources.framework/WebServerResources/css/layoutBootstrap.css?nlv=9b272e78\"
+        media=\"all\" />\n    \n<link rel=\"stylesheet\" type=\"text/css\" href=\"/WebObjects/nuLiga.woa/Frameworks/nuLigaWebResources.framework/WebServerResources/css/club-offers.css?nlv=9b272e78\"
+        media=\"all\" />\n    \n<link rel=\"stylesheet\" type=\"text/css\" href=\"/WebObjects/nuLiga.woa/Frameworks/nuLigaWebResources.framework/WebServerResources/css/referee-observation-questionnaire.css?nlv=9b272e78\"
+        media=\"all\" />\n    \n    <script type=\"text/javascript\" src=\"/WebObjects/nuLiga.woa/Frameworks/nuLigaWebResources.framework/WebServerResources/js/default.js?nlv=9b272e78\"></script>\n
+        \   \n      <script type=\"text/javascript\" src=\"/banner/federationLists.ujs?nlv=9b272e78\"></script>\n
+        \     <script type=\"text/javascript\" src=\"/banner/federationFunctions.js?nlv=9b272e78\"></script>\n
+        \     \n      \n      \n    \n    <script type=\"text/javascript\">\n               <!--
+        \n      \tvar tickerposition=0; \n      \tvar tickerlength=50; \n        var
+        tickermessage='';  \n      \tfunction initTerminationMessageTicker() {\t\t
+        \n      \t\tif ( tickermessage != \"\" ) {\t \n      \t\t\tvar i, msg=\"\";
+        \n      \t\t\tfor ( i=0;i<tickerlength;i++ ) msg += \" \"; \n      \t\t\tmsg
+        += \"+ + + \" + tickermessage + \" + + +\"; \n      \t\t\tdocument.getElementById(\"terminationMessage\").innerHTML
+        = msg.substr(tickerposition,tickerlength).replace(/ /g,\" \") + \" \"; \n
+        \     \t\t\tif ( tickerposition++ >= msg.length ) tickerposition=0; \n      \t\t\tsetTimeout(\"initTerminationMessageTicker()\",1500/10);\t\t
+        \n      \t} \n      }\n       //--> \n    </script>\n    \n    \n      <link
+        rel=\"stylesheet\" type=\"text/css\" href=\"//cdnjs.cloudflare.com/ajax/libs/cookieconsent2/3.1.0/cookieconsent.min.css\"
+        />\n<script src=\"//cdnjs.cloudflare.com/ajax/libs/cookieconsent2/3.1.0/cookieconsent.min.js\"></script>\n<script>\n
+        \   window.addEventListener(\"load\", function() {\n    window.cookieconsent.initialise({\n
+        \       \"cookie\": {\n            \"name\": \"disclaimer_cookie\",\n            \"expiryDays\":
+        999\n        },\n        \"palette\": {\n            \"popup\": {\n                \"background\":
+        \"#237afc\"\n            },\n            \"button\": {\n                \"background\":
+        \"#fff\",\n                \"text\": \"#237afc\"\n            }\n        },\n
+        \       \"theme\": \"classic\",\n        \"position\": \"bottom\",\n        \"content\":
+        {\n            \"message\": \"Diese Internetseite verwendet Cookies, um die
+        grundlegende Funktionalität zu gewährleisten, die Nutzererfahrung zu verbessern
+        und weitere Dienste und Funktionen zur Verfügung zu stellen.\",\n            \"dismiss\":
+        \"Verstanden\",\n            \"link\": \"Details\",\n            \"href\":
+        'https://bbv-billard.liga.nu/cgi-bin/WebObjects/nuLigaBILLARDDE.woa/wa/dataProtection'\n
+        \       }\n    })});\n</script>\n    \n  </head>\n  <body>\n    \n      \n
+        \       <div id=\"banner-super\"></div>\n      \n      \n        <div id=\"banner-skyscraper\"></div>\n
+        \     \n      <div id=\"layoutBanner800\">\n        <script type=\"text/javascript\">\n
+        \         if (typeof layoutBanner800 === 'function') {\n            layoutBanner800();\n
+        \         }\n        </script>\n      </div>\n      <div id=\"layoutBanner801\">\n
+        \       <script type=\"text/javascript\">\n          if (typeof layoutBanner801
+        === 'function') {\n            layoutBanner801();\n          }\n        </script>\n
+        \     </div>\n    \n\n    <div id=\"page\">\n      <header id=\"header\">\n
+        \       <button id=\"hamburger-btn\" aria-label=\"Navigation öffnen\">&#9776;</button>\n
+        \       \n          \n            \n            \n            \n              \n
+        \               <script type=\"text/javascript\">fedBanner100();</script>\n
+        \             \n            \n          \n\n        \n\n        <div id=\"header-right\">\n
+        \         \n          <div id=\"logo\">\n            \n            \n              \n
+        \               <a href=\"/\"><img  alt=\"Home\" src=\"/WebObjects/nuLiga.woa/Frameworks/nuLigaWebResources.framework/WebServerResources/img/spacer.gif?nlv=9b272e78\"
+        /></a>\n              \n\n            \n\n          </div>\n        </div>\n
+        \     </header>\n      <div id=\"tabs-external\">\n        \n          \n\n
+        \       \n\n      </div>\n      \n\n      <nav id=\"tabs\" class=\"no-print\">\n
+        \       \n\n        \n\n      </nav>\n      <main>\n        \n  <nav id=\"breadcrumb\"
+        aria-label=\"breadcrumb\">\n    \n  <a href=\"/\" target=\"_top\">Home</a>\n
+        \ &gt; \n\n\n    <a href=\"/cgi-bin/WebObjects/nuLigaBILLARDDE.woa/wa/leaguePage?championship=BBV+Pool+25%2F26\">\n
+        \     BBV Pool 2025/26\n    </a>\n    &gt;\n    \n    \n\n  </nav>\n\n  <div
+        id=\"container\" class=\"container-fluid\">\n    <div class=\"row\">\n      <div
+        id=\"navigation\" class=\"col-auto\">\n        <ul>\r\n  <script type=\"text/javascript\">banner1();</script>\r\n
+        \ <li> <strong>Spielbetrieb</strong>\r\n  <ul>\r\n    <li><a href=\"/cgi-bin/WebObjects/nuLigaBILLARDDE.woa/wa/leaguePage?championship=BBV
+        Pool 26/27\">Pool 2026/27</a></li>\r\n    <li><a href=\"/cgi-bin/WebObjects/nuLigaBILLARDDE.woa/wa/leaguePage?championship=BBV
+        Snooker 26/27\">Snooker 2026/27</a></li>\r\n    <li><a href=\"/cgi-bin/WebObjects/nuLigaBILLARDDE.woa/wa/leaguePage?championship=BBV
+        Karambol 26/27\">Karambol 2026/27</a></li>\r\n  </ul>\r\n  </li>\r\n  <script
+        type=\"text/javascript\">banner2();</script>\r\n  <li><strong>Turniere</strong>\r\n
+        \   <ul>\r\n      <li><a href=\"/cgi-bin/WebObjects/nuLigaBILLARDDE.woa/wa/tournamentCalendar?federation=BBV\">Alle</a></li>\r\n
+        \     <li><a href=\"/cgi-bin/WebObjects/nuLigaBILLARDDE.woa/wa/tournamentCalendar?federation=BBV&seasonType=REGULAR\">Pool</a></li>\r\n
+        \     <li><a href=\"/cgi-bin/WebObjects/nuLigaBILLARDDE.woa/wa/tournamentCalendar?federation=BBV&seasonType=KARAMBOL\">Karambol</a></li>\r\n
+        \     <li><a href=\"/cgi-bin/WebObjects/nuLigaBILLARDDE.woa/wa/tournamentCalendar?federation=BBV&seasonType=SNOOKER\">Snooker</a></li>\r\n
+        \   </ul>\r\n  </li>\r\n  <li><strong>Seminare</strong>\r\n    <ul>\r\n      <li><a
+        href=\"/cgi-bin/WebObjects/nuLigaBILLARDDE.woa/wa/courseCalendar?federation=BBV\">Seminarkalender</a></li>\r\n
+        \   </ul>\r\n  </li>\r\n  <li><strong>Filter</strong>\r\n    <ul>\r\n      <li><a
+        href=\"/cgi-bin/WebObjects/nuLigaBILLARDDE.woa/wa/clubSearch?federation=BBV\">Vereine</a></li>\r\n
+        \   </ul>\r\n  </li>\r\n  <li><strong>Archiv</strong>\r\n    <ul>\r\n      <li><a
+        href=\"/cgi-bin/WebObjects/nuLigaBILLARDDE.woa/wa/leaguePage?championship=BBV
+        Pool 25/26\">Pool 2025/26</a></li>\r\n      <li><a href=\"/cgi-bin/WebObjects/nuLigaBILLARDDE.woa/wa/leaguePage?championship=BBV
+        Snooker 25/26\">Snooker 2025/26</a></li>\r\n      <li><a href=\"/cgi-bin/WebObjects/nuLigaBILLARDDE.woa/wa/leaguePage?championship=BBV
+        Karambol 25/26\">Karambol 2025/26</a></li>\r\n      &nbsp;\r\n      <li><a
+        href=\"/cgi-bin/WebObjects/nuLigaBILLARDDE.woa/wa/leaguePage?championship=BBV
+        Pool 24/25\">Pool 2024/25</a></li>\r\n      <li><a href=\"/cgi-bin/WebObjects/nuLigaBILLARDDE.woa/wa/leaguePage?championship=BBV
+        Snooker 24/25\">Snooker 2024/25</a></li>\r\n      <li><a href=\"/cgi-bin/WebObjects/nuLigaBILLARDDE.woa/wa/leaguePage?championship=BBV
+        Karambol 24/25\">Karambol 2024/25</a></li>\r\n      &nbsp;\r\n      <li><a
+        href=\"/cgi-bin/WebObjects/nuLigaBILLARDDE.woa/wa/leaguePage?championship=BBV
+        Pool 23/24\">Pool 2023/24</a></li>\r\n      <li><a href=\"/cgi-bin/WebObjects/nuLigaBILLARDDE.woa/wa/leaguePage?championship=BBV
+        Snooker 23/24\">Snooker 2023/24</a></li>\r\n      <li><a href=\"/cgi-bin/WebObjects/nuLigaBILLARDDE.woa/wa/leaguePage?championship=BBV
+        Karambol 23/24\">Karambol 2023/24</a></li>\r\n      &nbsp;\r\n      <li><a
+        href=\"/cgi-bin/WebObjects/nuLigaBILLARDDE.woa/wa/leaguePage?championship=BBV
+        Pool 22/23\">Pool 2022/23</a></li>\r\n      <li><a href=\"/cgi-bin/WebObjects/nuLigaBILLARDDE.woa/wa/leaguePage?championship=BBV
+        Snooker 22/23\">Snooker 2022/23</a></li>\r\n      <li><a href=\"/cgi-bin/WebObjects/nuLigaBILLARDDE.woa/wa/leaguePage?championship=BBV
+        Karambol 22/23\">Karambol 2022/23</a></li>\r\n    </ul>\t\r\n  </li>\r\n  <li><strong>Links</strong>\r\n
+        \   <ul>\r\n\t    <li><a href=\"https://billardbayern.de/\" target=\"_blank\">Homepage
+        BBV</a></li>\r\n\t    <li><a href=\"https://billard-union.net/kalender.php\"
+        target=\"_blank\">DBU Rahmenterminplan</a></li>\r\n\t    <li><a href=\"https://bbv-billard.liga.nu/admin\"
+        target=\"_blank\">nuLigaAdmin</a></li>\r\n            <li><a href=\"https://bbv-billard.liga.nu/verband\"
+        target=\"_blank\">nuVerband</a></li>\r\n    </ul>\r\n  </li>\r\n</ul>\r\n\n
+        \     </div>\n\n      \n        <div id=\"content\" class=\"col\">\n          <div
+        id=\"content-row1\">\n            \n              \n\n  <div id=\"locker\">\n
+        \ <form method=\"post\" action=\"https://bbv-billard.liga.nu/cgi-bin/WebObjects/nuLigaBILLARDDE.woa/wa/groupPage?championship=BBV+Pool+25%2F26&group=1001&displayDetail=meetings\"
+        class=\"query\">\n    <fieldset>\n      <legend>\n        <span>Ergebnishistorie
+        freigeschaltet</span>\n      </legend>\n    </fieldset>\n  </form>\n  </div>\n\n
+        \           \n          </div>\n\n          <div id=\"content-col1\">\n  <h1>\n
+        \   BBV Pool 2025/26\n    <br />\n    Bezirksliga Oberfranken\n    <br />\n
+        \   Spielplan (Aktuell)\n  </h1>\n  \n    \n  \n  \n    \n    \n      \n      \n\t
+        \     <h2>Mannschaftsinformationen</h2>\n\t      <p>\n\t        \n\t        <a
+        href=\"/cgi-bin/WebObjects/nuLigaBILLARDDE.woa/wa/groupInfo?contentType=teamContacts&amp;championship=BBV+Pool+25%2F26&amp;group=1001\">\n\t
+        \         \n\t            Kontaktadressen, \n\t            Mannschaftsverantwortlicher\n\t
+        \           \n\t            \n\t          \n\t          \n\t        </a>\n\t
+        \     </p>\n      \n    \n    \n  \n</div>\n<div id=\"content-col2\">\n  \n
+        \   \n\n\n  <div id = \"sub-navigation\">\n    \n      \n      <h2>Tabellen
+        und Spielpl&auml;ne</h2>\n      <ul>\n        <li>\n          \n            <a
+        href=\"/cgi-bin/WebObjects/nuLigaBILLARDDE.woa/wa/groupPage?championship=BBV+Pool+25%2F26&amp;group=1001\">Tabelle
+        und Spielplan (Aktuell)</a>\n          \n\n          \n\n        </li>\n        \n
+        \       <li>\n          \n            \n              <a href=\"/cgi-bin/WebObjects/nuLigaBILLARDDE.woa/wa/groupPage?displayTyp=vorrunde&amp;displayDetail=meetings&amp;championship=BBV+Pool+25%2F26&amp;group=1001\">Spielplan
+        (Gesamt)</a>\n            \n\n            \n\n          \n\n          \n\n
+        \       </li>\n        \n        \n      </ul>\n      \n        \n      \n
+        \     \n      \n      \n        \n          <h2>\n            <!-- <a href=\"/cgi-bin/WebObjects/nuLigaBILLARDDE.woa/wa/groupPlayerRankingLists?site=GroupPortraitPage&amp;displayTyp=gesamt&amp;type=rankingPoints&amp;championship=BBV+Pool+25%2F26&amp;group=1001\">
+        Spieler-Ranglisten </a> -->\n            Spieler-Ranglisten \n          </h2>\n
+        \         <ul>\n            <li>\n              <a href=\"/cgi-bin/WebObjects/nuLigaBILLARDDE.woa/wa/groupPortrait?site=GroupPortraitPage&amp;displayTyp=gesamt&amp;type=rankingPoints&amp;championship=BBV+Pool+25%2F26&amp;group=1001\">Spieler-Rangliste</a>\n
+        \           </li>\n            \n              <li>\n                <a href=\"/cgi-bin/WebObjects/nuLigaBILLARDDE.woa/wa/groupPortrait?site=GroupPortraitPage&amp;displayTyp=gesamt&amp;type=rankingPointsSingle&amp;championship=BBV+Pool+25%2F26&amp;group=1001\">Spieler-Rangliste
+        (Einzel)</a>\n              </li>\n            \n            \n          </ul>\n
+        \       \n      \n    \n    \n    \n  </div>\n\n    \n  \n</div>\n\n          <div
+        id=\"content-row2\">\n            \n\n            <div id=\"banner-groupPage-content\"
+        class=\"mb-3\">\n              <span class=\"left\">\n                <script
+        type=\"text/javascript\">leagueBanner500('DE.SO.07','Kombi','BL OFR');</script>&nbsp;\n
+        \             </span>\n              <span class=\"middle\">\n                <script
+        type=\"text/javascript\">leagueBanner501('DE.SO.07','Kombi','BL OFR');</script>&nbsp;\n
+        \             </span>\n              <span class=\"right\">\n                <script
+        type=\"text/javascript\">leagueBanner502('DE.SO.07','Kombi','BL OFR');</script>&nbsp;\n
+        \             </span>\n              <div class=\"clear\"></div>\n            </div>\n\n
+        \           \n\n            \n\n            \n\n            \n              \n
+        \             \n              \n                \n                  <h2>Spielplan
+        (Aktuell)</h2>\n                  \n\n  \n  <table class=\"result-set\" cellspacing=\"0\"
+        border=\"0\" cellpadding=\"0\">\n    \n      \n      \n        \n          <tr>\n
+        \           <th colspan=\"3\">Tag Datum Zeit</th>\n            \n              <th>\n
+        \             \tSpiellokal\n              </th>\n            \n            \n
+        \           \t<th>Runde</th>\t\n            \n            \n              <th>Nr.</th>\n
+        \           \n            \n            \n            \n            <th>Heimmannschaft</th>\n
+        \           \n            <th>Gastmannschaft</th>\n            \n            <th
+        class=\"center\">\n              \n                Partien\n                \n
+        \             \n              \n            </th>\n            \n            \n
+        \             <th>&nbsp;</th>\n            \n            <th>&nbsp;</th>\n
+        \           <th>&nbsp;</th>\n          </tr>\n        \n      \n      <tr>\n
+        \       \n        \n          \n          \n              <td nowrap=\"nowrap\">\n\t
+        \           Sa.\n\t          </td>\n\t          <td nowrap=\"nowrap\">\n\t
+        \           09.05.2026\n\t          </td>\n          \n\n        \n\t\t\n
+        \       \n        \n        <td nowrap=\"nowrap\">\n          \n          \n
+        \           \n            11:00\n            \n            \n            \n
+        \         &nbsp;</td>\n        \n          \n            <td class=\"center\"
+        nowrap=\"nowrap\">\n              \n                \n                  <a
+        alt=\"Spiellokalnummer (Heimverein)\" title=\"Spiellokalnummer (Heimverein)\"
+        href=\"/cgi-bin/WebObjects/nuLigaBILLARDDE.woa/wa/clubInfoDisplay?club=383\">(1)</a>\n
+        \               \n              \n              &nbsp; \n            </td>\n
+        \         \n          \n        \n        \n        \t<td>\n        \t\t10\n
+        \       \t</td>\n        \n        \n          <td>\n            40229\n          </td>\n
+        \       \n        \n        \n        \n        <td nowrap=\"nowrap\">SPC
+        Hof II</td>\n        \n        <td nowrap=\"nowrap\">\n          \tABC Bamberg
+        IV&nbsp;\n\t\t\t\t</td>\n\t\t\t\t\n        <td nowrap=\"nowrap\" class=\"center\">\n
+        \         \n          \t\n\t            <a alt=\"Spielbericht\" title=\"Spielbericht\"
+        href=\"/cgi-bin/WebObjects/nuLigaBILLARDDE.woa/wa/groupMeetingReport?meeting=7112996&amp;championship=BBV+Pool+25%2F26&amp;group=1001\">\n\t
+        \             <span>\n\t                4:6\n\t              </span>\n\t            </a>\n\t
+        \       \n\t              \n          \n          \n        </td>\n        \n\t\t\t\t\n
+        \         <td nowrap=\"nowrap\" class=\"center\">&nbsp;</td>\n        \n        <td
+        nowrap=\"nowrap\">\n          <img alt=\"Spielbericht genehmigt\" border=\"0\"
+        title=\"Spielbericht genehmigt\" src=\"/WebObjects/nuLiga.woa/Frameworks/nuLigaFramework.framework/WebServerResources/img/icons/check.gif?nlv=9b272e78\"
+        width=\"13\" height=\"11\" />\n        </td>\n        <td nowrap=\"nowrap\">\n
+        \         &nbsp; \n          <span></span>\n        </td>\n      </tr>\n    \n
+        \     \n      \n      <tr>\n        \n        \n          <td class=\"tabelle-rowspan\">&nbsp;</td>\n
+        \         <td class=\"tabelle-rowspan\">&nbsp;</td>\n        \n        <td
+        nowrap=\"nowrap\">\n          \n          \n            \n            14:00\n
+        \           \n            \n            \n          &nbsp;</td>\n        \n
+        \         \n            <td class=\"center\" nowrap=\"nowrap\">\n              \n
+        \               \n                  <a alt=\"Spiellokalnummer (Heimverein)\"
+        title=\"Spiellokalnummer (Heimverein)\" href=\"/cgi-bin/WebObjects/nuLigaBILLARDDE.woa/wa/clubInfoDisplay?club=394\">(1)</a>\n
+        \               \n              \n              &nbsp; \n            </td>\n
+        \         \n          \n        \n        \n        \t<td>\n        \t\t10\n
+        \       \t</td>\n        \n        \n          <td>\n            40228\n          </td>\n
+        \       \n        \n        \n        \n        <td nowrap=\"nowrap\">ABC
+        Bamberg III</td>\n        \n        <td nowrap=\"nowrap\">\n          \t1.
+        BC Selb II&nbsp;\n\t\t\t\t</td>\n\t\t\t\t\n        <td nowrap=\"nowrap\" class=\"center\">\n
+        \         \n          \t\n\t            <a alt=\"Spielbericht\" title=\"Spielbericht\"
+        href=\"/cgi-bin/WebObjects/nuLigaBILLARDDE.woa/wa/groupMeetingReport?meeting=7112992&amp;championship=BBV+Pool+25%2F26&amp;group=1001\">\n\t
+        \             <span>\n\t                4:6\n\t              </span>\n\t            </a>\n\t
+        \       \n\t              \n          \n          \n        </td>\n        \n\t\t\t\t\n
+        \         <td nowrap=\"nowrap\" class=\"center\">&nbsp;</td>\n        \n        <td
+        nowrap=\"nowrap\">\n          <img alt=\"Spielbericht genehmigt\" border=\"0\"
+        title=\"Spielbericht genehmigt\" src=\"/WebObjects/nuLiga.woa/Frameworks/nuLigaFramework.framework/WebServerResources/img/icons/check.gif?nlv=9b272e78\"
+        width=\"13\" height=\"11\" />\n        </td>\n        <td nowrap=\"nowrap\">\n
+        \         &nbsp; \n          <span></span>\n        </td>\n      </tr>\n    \n
+        \     \n      \n      <tr>\n        \n        \n          <td class=\"tabelle-rowspan\">&nbsp;</td>\n
+        \         <td class=\"tabelle-rowspan\">&nbsp;</td>\n        \n        <td
+        nowrap=\"nowrap\">\n          \n          \n            \n            14:00\n
+        \           \n            \n            \n          &nbsp;</td>\n        \n
+        \         \n            <td class=\"center\" nowrap=\"nowrap\">\n              \n
+        \               \n              \n              &nbsp; \n            </td>\n
+        \         \n          \n        \n        \n        \t<td>\n        \t\t10\n
+        \       \t</td>\n        \n        \n          <td>\n            40230\n          </td>\n
+        \       \n        \n        \n        \n        <td nowrap=\"nowrap\">1.AC
+        Bayreuth</td>\n        \n        <td nowrap=\"nowrap\">\n          \tSPC Hof&nbsp;\n\t\t\t\t</td>\n\t\t\t\t\n
+        \       <td nowrap=\"nowrap\" class=\"center\">\n          \n          \t\n\t
+        \           <a alt=\"Spielbericht\" title=\"Spielbericht\" href=\"/cgi-bin/WebObjects/nuLigaBILLARDDE.woa/wa/groupMeetingReport?meeting=7112978&amp;championship=BBV+Pool+25%2F26&amp;group=1001\">\n\t
+        \             <span>\n\t                9:1\n\t              </span>\n\t            </a>\n\t
+        \       \n\t              \n          \n          \n        </td>\n        \n\t\t\t\t\n
+        \         <td nowrap=\"nowrap\" class=\"center\">&nbsp;</td>\n        \n        <td
+        nowrap=\"nowrap\">\n          <img alt=\"Spielbericht genehmigt\" border=\"0\"
+        title=\"Spielbericht genehmigt\" src=\"/WebObjects/nuLiga.woa/Frameworks/nuLigaFramework.framework/WebServerResources/img/icons/check.gif?nlv=9b272e78\"
+        width=\"13\" height=\"11\" />\n        </td>\n        <td nowrap=\"nowrap\">\n
+        \         &nbsp; \n          <span></span>\n        </td>\n      </tr>\n    \n
+        \ </table>\n  \n\n                  <p class=\"mt-2\">\n                    \n
+        \                   \n                      <a target=\"_blank\" class=\"picto-pdf\"
+        href=\"/cgi-bin/WebObjects/nuLigaDokumentBILLARDDE.woa/wa/nuDokument?dokument=ScheduleReportFOP&group=1001\">Tabelle
+        und Spielplan (pdf)</a>\n                    \n                  </p>\n                \n
+        \             \n            \n\n            \n\n            <div id=\"banner-groupPage-content-bottom\"
+        class=\"mb-3\">\n              <span class=\"left\">\n                <script
+        type=\"text/javascript\">leagueBanner503('DE.SO.07','Kombi','BL OFR');</script>&nbsp;\n
+        \             </span>\n              <span class=\"middle\">\n                <script
+        type=\"text/javascript\">leagueBanner504('DE.SO.07','Kombi','BL OFR');</script>&nbsp;\n
+        \             </span>\n              <span class=\"right\">\n                <script
+        type=\"text/javascript\">leagueBanner505('DE.SO.07','Kombi','BL OFR');</script>&nbsp;\n
+        \             </span>\n              <div class=\"clear\"></div>\n            </div>\n
+        \         </div>\n        </div>\n      \n\n\n      \n\n    </div>\n  </div>\n\n
+        \     </main>\n      <div id=\"footer-external\">\n        \n      </div>\n
+        \     <footer id=\"footer\">\n      \t<div id=\"footer-left\">\n    \t    \n\t
+        \       \n\t        \t<div id=\"footer-copyright\">Für den Inhalt verantwortlich:&nbsp;Bayerischer
+        Billardverband e.V. </div>\n\t        \n\t        <div id=\"footer-link\">\n\t
+        \       \t&copy;&nbsp;1999-2026&nbsp;<a target=\"_blank\" href=\"http://www.datenautomaten.nu\">nu
+        Datenautomaten GmbH - Automatisierte internetgestützte Netzwerklösungen</a>\n\t
+        \       </div>\n\t        <div id=\"footer-navigation\">\n\t          <a href=\"http://bbv-billard.liga.nu/cgi-bin/WebObjects/nuLigaBILLARDDE.woa/wa/contact?federation=BBV\">Kontakt</a>,\n\t
+        \         <a href=\"http://bbv-billard.liga.nu/cgi-bin/WebObjects/nuLigaBILLARDDE.woa/wa/legalNotice?federation=BBV\">Impressum</a>,\n\t
+        \           <a href=\"http://bbv-billard.liga.nu/cgi-bin/WebObjects/nuLigaBILLARDDE.woa/wa/dataProtection?federation=BBV\">Datenschutz</a>\n\t
+        \         \n\t        </div>\n\t        \n       </div>\n      <div id=\"footer-right\">\n
+        \     \t<script type=\"text/javascript\">\n\t          if (typeof fedBanner104
+        === 'function') {\n\t            fedBanner104();\n\t          }\n    \t</script>\n
+        \     </div>\n  \t</footer>\n    </div>\n    <script>\n        document.addEventListener(\"DOMContentLoaded\",
+        function () {\n            const sidebar = document.getElementById(\"navigation\");\n
+        \           const btn = document.getElementById(\"hamburger-btn\");\n            if
+        (!sidebar || !btn) return;\n\n            btn.addEventListener(\"click\",
+        function (e) {\n                e.stopPropagation();\n                sidebar.classList.toggle(\"open\");\n
+        \           });\n\n            document.addEventListener(\"click\", function
+        (e) {\n                if (!sidebar.contains(e.target) && !btn.contains(e.target))
+        {\n                    sidebar.classList.remove(\"open\");\n                }\n
+        \           });\n        });\n    </script>\n    <script type=\"text/javascript\"
+        src=\"/WebObjects/nuLiga.woa/Frameworks/nuLigaWebResources.framework/WebServerResources/js/bootstrap.bundle.min.js?nlv=9b272e78\"></script>\n
+        \   \n    <script language=\"JavaScript\" type=\"text/javascript\"><!-- Dynamic
+        client side script from WebObjects\n\n//-->\n</script>\n  </body>\n</html>\n"
+  recorded_at: Wed, 15 Jul 2026 11:43:29 GMT
+recorded_with: VCR 6.4.0
