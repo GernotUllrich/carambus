@@ -457,6 +457,13 @@ class TableMonitor < ApplicationRecord
     @innings_editor ||= TableMonitor::InningsEditor.new(self)
   end
 
+  # Thin collaborator carrying the read-only presentation/view-data methods
+  # (modal predicates, render_*, state_display, progress bar). Holds only the
+  # self-reference, so it stays valid across reload.
+  def panel_presenter
+    @panel_presenter ||= TableMonitor::PanelPresenter.new(self)
+  end
+
   # Phase 38.5 lifecycle invariant: guarantees BkParamResolver has populated
   # effective_discipline + the two BK params into data before any predicate reads
   # them. Re-bakes on drift — the cached effective_discipline is stale if
@@ -508,22 +515,7 @@ class TableMonitor < ApplicationRecord
   def state_display(locale)
     # Rails.logger.info "-----------m6[#{id}]---------->>> #{"state_display(#{locale})"} <<<-------------------------\
     # -----------------"
-    @locale = locale || I18n.default_locale
-    @game_or_set = if data["sets_to_play"].to_i > 1
-                     I18n.t("table_monitor.set_finished")
-                   else
-                     I18n.t("table_monitor.final_set_score")
-                   end
-    if state == "set_over"
-      I18n.t("table_monitor.status.set_over",
-             game_or_set_finished: @game_or_set,
-             wait_check: player_controlled? ? I18n.t("table_monitor.status.wait_check") : "")
-    else
-      I18n.t("table_monitor.status.#{state}")
-    end
-  rescue StandardError => e
-    Rails.logger.error "ERROR: m6[#{id}]#{e}, #{e.backtrace&.join("\n")}"
-    raise StandardError
+    panel_presenter.state_display(locale)
   end
 
   def locked_scoreboard
@@ -655,10 +647,7 @@ class TableMonitor < ApplicationRecord
   end
 
   def render_innings_list(role)
-    score_engine.render_innings_list(role)
-  rescue StandardError => e
-    Rails.logger.error "ERROR:m6[#{id}] #{e}, #{e.backtrace&.join("\n")}"
-    raise StandardError unless Rails.env == "production"
+    panel_presenter.render_innings_list(role)
   end
 
   def automatic_next_set
@@ -666,28 +655,15 @@ class TableMonitor < ApplicationRecord
   end
 
   def render_last_innings(last_n, role)
-    score_engine.render_last_innings(last_n, role)
-  rescue StandardError => e
-    Rails.logger.error "ERROR in render_last_innings: #{e.class}: #{e.message}"
-    Rails.logger.error "Backtrace: #{e.backtrace&.first(10)&.join("\n")}"
-    Rails.logger.error "Data: role=#{role}, innings_list=#{data[role].andand["innings_list"].inspect}, innings_redo_list=#{data[role].andand["innings_redo_list"].inspect}"
-    raise StandardError, "render_last_innings failed: #{e.message}" unless Rails.env == "production"
+    panel_presenter.render_last_innings(last_n, role)
   end
 
   def warmup_modal_should_be_open?
-    # noinspection RubyResolve
-    warmup? || warmup_a? || warmup_b?
-  rescue StandardError => e
-    Rails.logger.error "ERROR: m6[#{id}]#{e}, #{e.backtrace&.join("\n")}"
-    raise StandardError
+    panel_presenter.warmup_modal_should_be_open?
   end
 
   def shootout_modal_should_be_open?
-    # noinspection RubyResolve
-    match_shootout?
-  rescue StandardError => e
-    Rails.logger.error "ERROR: m6[#{id}]#{e}, #{e.backtrace&.join("\n")}"
-    raise StandardError
+    panel_presenter.shootout_modal_should_be_open?
   end
 
   def discipline
@@ -695,32 +671,19 @@ class TableMonitor < ApplicationRecord
   end
 
   def numbers_modal_should_be_open?
-    # noinspection RubyResolve
-    nnn.present? || panel_state == "numbers"
-  rescue StandardError => e
-    Rails.logger.error "ERROR: m6[#{id}]#{e}, #{e.backtrace&.join("\n")}"
-    raise StandardError
+    panel_presenter.numbers_modal_should_be_open?
   end
 
   def protocol_modal_should_be_open?
-    %w[protocol protocol_edit protocol_final].include?(panel_state)
-  rescue StandardError => e
-    Rails.logger.error "ERROR: m6[#{id}]#{e}, #{e.backtrace&.join("\n")}"
-    false
+    panel_presenter.protocol_modal_should_be_open?
   end
 
   def foul_modal_should_be_open?
-    panel_state == "foul"
-  rescue StandardError => e
-    Rails.logger.error "ERROR: foul_modal_should_be_open?[#{id}]#{e}, #{e.backtrace&.join("\n")}"
-    false
+    panel_presenter.foul_modal_should_be_open?
   end
 
   def snooker_inning_edit_modal_should_be_open?
-    panel_state == "snooker_inning_edit"
-  rescue StandardError => e
-    Rails.logger.error "ERROR: snooker_inning_edit_modal_should_be_open?[#{id}]#{e}, #{e.backtrace&.join("\n")}"
-    false
+    panel_presenter.snooker_inning_edit_modal_should_be_open?
   end
 
   # Returns the initial number of red balls for snooker (6, 10, or 15)
@@ -750,65 +713,11 @@ class TableMonitor < ApplicationRecord
   def snooker_remaining_points = score_engine.snooker_remaining_points
 
   def final_protocol_modal_should_be_open?
-    panel_state == "protocol_final"
-  rescue StandardError => e
-    Rails.logger.error "ERROR: m6[#{id}]#{e}, #{e.backtrace&.join("\n")}"
-    false
+    panel_presenter.final_protocol_modal_should_be_open?
   end
 
   def get_progress_bar_status(n_bars)
-    Rails.logger.debug do
-      "------------m6[#{id}]--------->>> get_progress_bar_status(#{n_bars}) <<<------------------------------------------"
-    end
-    time_counter = green_bars = do_green_bars = do_yellow_bars = do_orange_bars = do_lightred_bars = do_red_bars = 0
-    finish = timer_finish_at
-    start = timer_start_at
-    Rails.logger.debug { "[table_monitor#get_progress_bar_status] finish, start: #{[finish, start].inspect}" }
-    if finish.present? && timer_halt_at.present?
-      Rails.logger.debug { "[table_monitor#get_progress_bar_status] finish.present && timer_halt_at.present ..." }
-      halted = Time.now.to_i - timer_halt_at.to_i
-      finish += halted.seconds
-      start += halted.seconds
-      Rails.logger.debug do
-        "[table_monitor#get_progress_bar_status] halted, finish, start: #{[halted, finish, start].inspect}"
-      end
-    end
-    if finish.present? && (Time.now < finish)
-      Rails.logger.debug { "[table_monitor#get_progress_bar_status] finish.present && Time.now < finish ..." }
-      delta_total = (finish - start).to_i
-      delta_rest = (finish - Time.now)
-      units = active_timer =~ /min$/ ? "minutes" : "seconds"
-      Rails.logger.debug do
-        "[table_monitor#get_progress_bar_status] halted, finish, start: #{[delta_total, delta_rest, units].inspect}"
-      end
-      if units == "minutes"
-        minutes = (delta_rest / 1.send(units)).to_i
-        seconds = ((((delta_rest / 1.send(units)) - (delta_rest.to_i / 1.send(units))) *
-          100 * 60 / 100).to_i + 100).to_s[-2..]
-        time_counter = "#{minutes}:#{seconds}"
-      else
-        time_counter = (1.0 * delta_rest / 1.send(units)).ceil
-      end
-      green_bars = [((1.0 * n_bars * delta_rest) / delta_total).ceil, 18].min
-      do_bars = [((1.0 * 50 * delta_rest) / delta_total).ceil, 50].min
-      do_green_bars = [[do_bars - 40, 10].min, 0].max
-      do_yellow_bars = [[do_bars - 30, 10].min, 0].max
-      do_orange_bars = [[do_bars - 20, 10].min, 0].max
-      do_lightred_bars = [[do_bars - 10, 10].min, 0].max
-      do_red_bars = [[do_bars, 10].min, 0].max
-      Rails.logger.debug do
-        "[table_monitor#get_progress_bar_status] m6[#{id}]time_counter, green_bars: #{[time_counter,
-                                                                                       green_bars].inspect}"
-      end
-    end
-    Rails.logger.debug do
-      "[table_monitor#get_progress_bar_status] m6[#{id}]return [time_counter, green_bars]: #{[time_counter,
-                                                                                              green_bars].inspect}"
-    end
-    [time_counter, green_bars, do_green_bars, do_yellow_bars, do_orange_bars, do_lightred_bars, do_red_bars]
-  rescue StandardError => e
-    Rails.logger.error "ERROR: #{e}, #{e.backtrace&.join("\n")}"
-    raise StandardError unless Rails.env == "production"
+    panel_presenter.get_progress_bar_status(n_bars)
   end
 
   def switch_players
