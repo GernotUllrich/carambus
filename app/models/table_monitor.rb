@@ -450,6 +450,13 @@ class TableMonitor < ApplicationRecord
     @score_engine = TableMonitor::ScoreEngine.new(data, discipline: discipline)
   end
 
+  # Thin collaborator carrying the Game-Protocol innings-history orchestration.
+  # Holds only the self-reference (delegates to score_engine per call), so it stays
+  # valid across reload and needs no invalidation.
+  def innings_editor
+    @innings_editor ||= TableMonitor::InningsEditor.new(self)
+  end
+
   # Phase 38.5 lifecycle invariant: guarantees BkParamResolver has populated
   # effective_discipline + the two BK params into data before any predicate reads
   # them. Re-bakes on drift — the cached effective_discipline is stale if
@@ -1967,100 +1974,48 @@ class TableMonitor < ApplicationRecord
   end
 
   # Game Protocol Modal - Get innings history for both players
+  # Orchestration extracted to TableMonitor::InningsEditor (Phase 53).
   def innings_history
-    gps = game&.game_participations&.order(:role).to_a || []
-    score_engine.innings_history(gps: gps)
-  rescue StandardError => e
-    Rails.logger.error "ERROR: m6[#{id}]#{e}, #{e.backtrace&.join("\n")}"
-    {
-      player_a: { name: "Spieler A", innings: [], totals: [], result: 0, innings_count: 0 },
-      player_b: { name: "Spieler B", innings: [], totals: [], result: 0, innings_count: 0 },
-      current_inning: { number: 1, active_player: "playera" },
-      discipline: "",
-      balls_goal: 0
-    }
+    innings_editor.innings_history
   end
 
   # Update innings history from game protocol modal
   def update_innings_history(innings_params)
-    Rails.logger.debug do
-      "-----------m6[#{id}]---------->>> update_innings_history <<<------------------------------------------"
-    end
-    result = score_engine.update_innings_history(innings_params, playing_or_set_over: playing? || set_over?)
-    return result unless result[:success]
-
-    data_will_change!
-    save!
-    result
-  rescue StandardError => e
-    Rails.logger.error "ERROR: m6[#{id}]#{e}, #{e.backtrace&.join("\n")}"
-    { success: false, error: e.message }
+    innings_editor.update_innings_history(innings_params)
   end
 
   # Protocol editing methods for GameProtocolReflex
 
   # Increment points for a specific inning and player
   def increment_inning_points(inning_index, player)
-    return unless playing? || set_over?
-
-    score_engine.increment_inning_points(inning_index, player)
-    data_will_change!
-    save!
-  rescue StandardError => e
-    Rails.logger.error "ERROR: m6[#{id}]#{e}, #{e.backtrace&.join("\n")}"
+    innings_editor.increment_inning_points(inning_index, player)
   end
 
   # Decrement points for a specific inning and player
   def decrement_inning_points(inning_index, player)
-    return unless playing? || set_over?
-
-    score_engine.decrement_inning_points(inning_index, player)
-    data_will_change!
-    save!
-  rescue StandardError => e
-    Rails.logger.error "ERROR: m6[#{id}]#{e}, #{e.backtrace&.join("\n")}"
+    innings_editor.decrement_inning_points(inning_index, player)
   end
 
   # Delete an inning (only if both players have 0 points AND not the current inning)
   def delete_inning(inning_index)
-    return { success: false, error: "Not in playing state" } unless playing? || set_over?
-
-    result = score_engine.delete_inning(inning_index, playing_or_set_over: true)
-    return result unless result[:success]
-
-    data_will_change!
-    save!
-    result
-  rescue StandardError => e
-    Rails.logger.error "ERROR: m6[#{id}]#{e}, #{e.backtrace&.join("\n")}"
-    { success: false, error: e.message }
+    innings_editor.delete_inning(inning_index)
   end
 
   # Insert an empty inning before the specified index for BOTH players
   def insert_inning(before_index)
-    return unless playing? || set_over?
-
-    score_engine.insert_inning(before_index, playing_or_set_over: true)
-    data_will_change!
-    save!
-  rescue StandardError => e
-    Rails.logger.error "ERROR: m6[#{id}]#{e}, #{e.backtrace&.join("\n")}"
+    innings_editor.insert_inning(before_index)
   end
 
   private
 
   # Update innings data for a player from a complete innings array
   def update_player_innings_data(player, innings_array)
-    score_engine.update_player_innings_data(player, innings_array)
-    data_will_change!
-    save!
-  rescue StandardError => e
-    Rails.logger.error "ERROR: m6[#{id}]#{e}, #{e.backtrace&.join("\n")}"
+    innings_editor.update_player_innings_data(player, innings_array)
   end
 
   # Calculate running totals for a player's innings
   def calculate_running_totals(player_id)
-    score_engine.calculate_running_totals(player_id)
+    innings_editor.calculate_running_totals(player_id)
   end
 
   # Log all state transitions to detect spurious state changes
