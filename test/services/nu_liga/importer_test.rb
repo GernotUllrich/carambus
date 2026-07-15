@@ -122,6 +122,31 @@ module NuLiga
       assert_equal 1, r[:skipped].size
     end
 
+    # 18-01: League-Uniqueness (name+season+organizer+staffel_text) ignoriert die Disziplin. NuLiga nutzt
+    # dieselben Kurznamen in Pool UND Snooker → Cross-Sparten-Kollision. Fix: Namen mit Branch qualifizieren.
+    test "create_leagues qualifies name with branch on cross-branch collision" do
+      snooker = Discipline.find_by(name: "Snooker") || Discipline.create!(name: "Snooker")
+      build_importer(FakeScraper.new(leagues: {"Pool" => [{group_id: 7001, name: "VL Nord"}]})).create_leagues
+
+      snk_scraper = FakeScraper.new(leagues: {"Snooker" => [{group_id: 7002, name: "VL Nord"}]})
+      imp = Importer.new(federation: "BBV", region_id: @region.id, season_id: @season.id,
+        branches: ["Snooker"], armed: true, scraper: snk_scraper)
+      r = imp.create_leagues
+      assert_equal 1, r[:created], "Snooker-Liga soll qualifiziert angelegt (nicht geskippt) werden"
+      assert_equal 0, r[:skipped].size
+      snk = League.find_by(region_id: @region.id, season_id: @season.id, discipline_id: snooker.id)
+      assert_equal "VL Nord (Snooker)", snk.name
+      pool = League.find_by(region_id: @region.id, season_id: @season.id, discipline_id: @discipline.id)
+      assert_equal "VL Nord", pool.name, "bestehende Pool-Liga bleibt unqualifiziert"
+
+      # Idempotenz PRIMÄR über source_url (2. Lauf 0 created, matched)
+      imp2 = Importer.new(federation: "BBV", region_id: @region.id, season_id: @season.id,
+        branches: ["Snooker"], armed: true, scraper: snk_scraper)
+      r2 = imp2.create_leagues
+      assert_equal 0, r2[:created]
+      assert_equal 1, r2[:matched]
+    end
+
     test "create_teams creates league teams with club via VNr and is idempotent" do
       club = Club.create!(region_id: @region.id, cc_id: 1743, name: "Test Club e.V.", shortname: "TC")
       scraper = FakeScraper.new(
@@ -292,6 +317,32 @@ module NuLiga
       r = imp.reconcile_parties
       assert_equal 0, r[:created]
       assert_equal 1, r[:unmatched].size
+    end
+
+    # 18-01: Archiv-Begegnung (meeting_id nil, Ergebnis vorhanden) → Party mit result, aber KEINE kaputte
+    # groupMeetingReport-source_url; import_party_games überspringt sie (keine Einzelspiele im Archiv).
+    test "reconcile_parties handles archived meeting (nil meeting_id): result set, no report source_url, games skipped" do
+      scraper = FakeScraper.new(
+        leagues: {"Pool" => [{group_id: 9032, name: "NuLiga Archivliga"}]},
+        teams: {9032 => [{teamtable_id: 6201, name: NU_TEAM_A}, {teamtable_id: 6202, name: NU_TEAM_B}]},
+        meetings: {9032 => [{meeting_id: nil, date: "21.09.2024", home_team: NU_TEAM_A,
+                             guest_team: NU_TEAM_B, result: "6:4"}]}
+      )
+      imp = build_importer(scraper)
+      imp.create_leagues
+      imp.create_teams
+      assert_equal 1, imp.reconcile_parties[:created]
+
+      league = League.find_by(region_id: @region.id, season_id: @season.id, name: "NuLiga Archivliga")
+      ta = LeagueTeam.find_by(league_id: league.id, name: NU_TEAM_A)
+      party = Party.find_by(league_id: league.id, league_team_a_id: ta.id)
+      assert party, "Archiv-Party soll angelegt sein"
+      assert_equal "6:4", party.data["result"]
+      refute_match(/groupMeetingReport/, party.source_url.to_s)
+      # 18-02 fix-first: Archiv-Party trägt die groupPage-URL der Liga als NuLiga-Provenienz (statt nil)
+      assert_match(/groupPage\?group=9032/, party.source_url.to_s)
+      assert_equal league.source_url, party.source_url
+      assert_equal 0, imp.import_party_games[:games_created], "Archiv-Party hat keine Einzelspiele"
     end
 
     test "import_party_games creates PartyGames (singles + doubles first player) idempotent" do

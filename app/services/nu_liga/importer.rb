@@ -65,18 +65,21 @@ module NuLiga
     # League find-or-create: Natur-Key region/season/Branch|Name. Discipline = Branch (fehlt → skip+melden).
     # Füllt @leagues_by_group (group_id → League) für create_teams.
     def create_leagues
-      index = League.where(region_id: @region_id, season_id: @season_id).includes(:discipline)
-        .index_by { |l| league_key(l.discipline&.name, l.name) }
+      scope = League.where(region_id: @region_id, season_id: @season_id)
+      index = scope.includes(:discipline).index_by { |l| league_key(l.discipline&.name, l.name) }
+      by_source = scope.where.not(source_url: nil).index_by(&:source_url)
       matched = 0
       created = 0
       updated = 0
       skipped = []
 
       nuliga_leagues.each do |l|
-        existing = index[league_key(l[:branch], l[:name])]
+        src = league_source_url(l[:group_id])
+        # Idempotenz PRIMÄR über die NuLiga-source_url (stabil, sparten-eindeutig), dann Name-Key.
+        existing = by_source[src] || index[league_key(l[:branch], l[:name])]
         if existing
           matched += 1
-          updated += 1 if apply_source_url(existing, league_source_url(l[:group_id]))
+          updated += 1 if apply_source_url(existing, src)
           @leagues_by_group[l[:group_id]] = existing
           next
         end
@@ -91,6 +94,8 @@ module NuLiga
           league = create_league(l, discipline)
           if league
             created += 1
+            by_source[src] = league
+            index[league_key(l[:branch], league.name)] = league
             @leagues_by_group[l[:group_id]] = league
           else
             skipped << "#{l[:group_id]} — #{l[:name]} (create fehlgeschlagen)"
@@ -227,7 +232,7 @@ module NuLiga
           party = cb_party_index[[league.id, a.id, b.id, party_date_key(date)]]
           if party
             matched += 1
-            apply_source_url(party, party_source_url(m[:meeting_id]))
+            apply_source_url(party, party_source_url(m[:meeting_id], league))
             filled += 1 if fill_empty_result(party, m[:result])
           else
             created += 1
@@ -289,6 +294,7 @@ module NuLiga
     # --- Schreib-Guard (nur bei @armed; broadcast-frei; instance-level → PaperTrail → Sync) ---
 
     def apply_source_url(record, url)
+      return false if url.blank? # Archiv-Begegnungen ohne meeting_id → keine source_url setzen/überschreiben
       return false if record.source_url == url
 
       if @armed
@@ -303,6 +309,25 @@ module NuLiga
     # abgeleitet (Validierung verlangt shortname bei organizer_type=='Region'). nil bei Validierungsfehler
     # (z.B. Name-Kollision im uniqueness-Scope) — der Aufrufer meldet den Fehldruck, statt abzubrechen.
     def create_league(nu_league, discipline)
+      build_league(nu_league[:name], nu_league, discipline)
+    rescue ActiveRecord::RecordInvalid => e
+      # League-Uniqueness (name+season+organizer+staffel_text) IGNORIERT die Disziplin. NuLiga nutzt
+      # dieselben Kurznamen („VL Nord") in Pool UND Snooker → Kollision. Fix: Sparte an den Namen hängen.
+      qualified = "#{nu_league[:name]} (#{nu_league[:branch]})"
+      if e.message.include?("unique within the same region") && !nu_league[:name].to_s.include?("(#{nu_league[:branch]})")
+        begin
+          build_league(qualified, nu_league, discipline)
+        rescue ActiveRecord::RecordInvalid => e2
+          Rails.logger.warn("NuLiga::Importer create_league(#{qualified}) fehlgeschlagen: #{e2.message}")
+          nil
+        end
+      else
+        Rails.logger.warn("NuLiga::Importer create_league(#{nu_league[:name]}) fehlgeschlagen: #{e.message}")
+        nil
+      end
+    end
+
+    def build_league(name, nu_league, discipline)
       League.skip_cable_ready_updates do
         League.create!(
           region_id: @region_id,
@@ -310,14 +335,11 @@ module NuLiga
           organizer_type: "Region",
           organizer_id: @region_id,
           discipline_id: discipline.id,
-          name: nu_league[:name],
-          shortname: nu_league[:name],
+          name: name,
+          shortname: name,
           source_url: league_source_url(nu_league[:group_id])
         )
       end
-    rescue ActiveRecord::RecordInvalid => e
-      Rails.logger.warn("NuLiga::Importer create_league(#{nu_league[:name]}) fehlgeschlagen: #{e.message}")
-      nil
     end
 
     def create_team(league, nu_team, club)
@@ -462,7 +484,7 @@ module NuLiga
           host_league_team_id: home.id,
           date: date,
           data: {"result" => result},
-          source_url: party_source_url(meeting_id)
+          source_url: party_source_url(meeting_id, league)
         )
       end
     rescue ActiveRecord::RecordInvalid => e
@@ -490,8 +512,12 @@ module NuLiga
       nil
     end
 
-    def party_source_url(meeting_id)
-      "#{nuliga_base}/groupMeetingReport?meeting=#{meeting_id}"
+    def party_source_url(meeting_id, league = nil)
+      return "#{nuliga_base}/groupMeetingReport?meeting=#{meeting_id}" if meeting_id.present?
+      # Archiv-Begegnung ohne Einzelspiel-Link → groupPage-URL der Liga als NuLiga-Provenienz (statt nil);
+      # unterscheidet NuLiga-Archiv-Parties von Legacy-Billardarea (source_url nil). Kein groupMeetingReport →
+      # import_party_games/carambus_parties_without_games überspringen sie weiterhin korrekt.
+      league&.source_url
     end
 
     # --- NuLiga-Seite (read-only via Scraper; Fehler je Ebene → überspringen) ---

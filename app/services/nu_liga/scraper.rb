@@ -38,7 +38,10 @@ module NuLiga
     # [{meeting_id:, date:, home_team:, guest_team:, result:}, ...] — nur Zeilen mit
     # groupMeetingReport-Link (gespielte/berichtete Begegnungen); reine Hashes, kein DB-Zugriff.
     def meetings(group_id, branch:)
-      doc = @client.get_doc("groupPage", championship: championship(branch), group: group_id, displayDetail: "meetings")
+      # displayTyp=gesamt = die „Spielplan (Gesamt)"-Ansicht → VOLLER Spielplan (alle Runden), nicht das
+      # Default-Fenster (nur der aktuelle Spieltag). Gilt für aktuelle UND Archiv-Saisons.
+      doc = @client.get_doc("groupPage", championship: championship(branch), group: group_id,
+        displayDetail: "meetings", displayTyp: "gesamt")
       table = doc.css("table").first
       return [] unless table
 
@@ -97,24 +100,28 @@ module NuLiga
     # Eine Spielplan-Zeile → Begegnung oder nil (Header/Trenner/ungespielt ohne meeting-Link).
     # Robust: die Ergebnis-Zelle ist die mit dem groupMeetingReport-Link; Heim/Gast = die zwei Zellen
     # davor; Datum per Regex (der Header spannt "Tag Datum Zeit" über mehrere Datenspalten).
+    # Eine Begegnungszeile des vollen Spielplans (displayTyp=gesamt). Positionsbasiert statt über den
+    # Report-Link, damit ARCHIV-Saisons (ohne Einzelspiel-Link) ebenfalls funktionieren.
+    # Anker = die „Nr."-Spalte (4–6-stellige Begegnungsnummer); Heim/Gast/Ergebnis stehen direkt danach
+    # (Header: … Nr. · Heimmannschaft · Gastmannschaft · Partien). Ergebnis kommt aus der PARTIEN-Zelle.
+    # meeting_id (interne groupMeetingReport-ID) nur gesetzt, wenn die Ergebniszelle einen Report-Link trägt
+    # (aktuelle Saison); im Archiv nil. Nur gespielte Begegnungen (Ergebnis „d:d") werden zurückgegeben.
     def meeting_row(tr)
-      link = tr.at_css('a[href*="groupMeetingReport"]')
-      meeting_id = link && link["href"][/meeting=(\d+)/, 1]&.to_i
-      return nil unless meeting_id
-
       tds = tr.css("td")
-      result_cell = tds.find { |td| td.at_css('a[href*="groupMeetingReport"]') }
-      idx = tds.index(result_cell)
-      home = (idx && idx >= 2) ? tds[idx - 2] : nil
-      guest = (idx && idx >= 1) ? tds[idx - 1] : nil
-      date_cell = tds.find { |td| td.text =~ %r{\d{2}\.\d{2}\.\d{4}} }
+      nr_idx = tds.index { |td| td.text.strip.match?(/\A\d{4,6}\z/) }
+      return nil unless nr_idx && tds[nr_idx + 3]
 
+      date_cell = tds.find { |td| td.text =~ %r{\d{2}\.\d{2}\.\d{4}} }
+      result = clean_text(tds[nr_idx + 3])
+      return nil unless date_cell && result =~ /\A\d+\s*:\s*\d+\z/
+
+      link = tds[nr_idx + 3].at_css('a[href*="groupMeetingReport"]')
       {
-        meeting_id: meeting_id,
-        date: date_cell&.text&.[](%r{\d{2}\.\d{2}\.\d{4}}),
-        home_team: clean_text(home),
-        guest_team: clean_text(guest),
-        result: clean_text(result_cell)
+        meeting_id: link && link["href"][/meeting=(\d+)/, 1]&.to_i,
+        date: date_cell.text[%r{\d{2}\.\d{2}\.\d{4}}],
+        home_team: clean_text(tds[nr_idx + 1]),
+        guest_team: clean_text(tds[nr_idx + 2]),
+        result: result
       }
     end
 

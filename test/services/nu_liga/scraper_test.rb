@@ -42,18 +42,37 @@ module NuLiga
       end
     end
 
-    test "meetings lists begegnungen with meeting ids, dates and teams" do
-      VCR.use_cassette("nuliga/groupPage_meetings_group1001") do
+    test "meetings returns the FULL schedule (displayTyp=gesamt) for the current season with meeting ids" do
+      VCR.use_cassette("nuliga/groupPage_meetings_gesamt_group1001") do
         meetings = build_scraper.meetings(1001, branch: "Pool")
-        assert_operator meetings.size, :>, 0
+        # Voller Spielplan, nicht das ~1-3-Begegnungen-Fenster
+        assert_operator meetings.size, :>, 10
 
         first = meetings.first
         assert_kind_of Integer, first[:meeting_id]
         assert_match(/\d{2}\.\d{2}\.\d{4}/, first[:date])
         assert first[:home_team].present?
         assert first[:guest_team].present?
-        # keine Header-/Trennzeilen als Begegnung
+        assert_match(/\A\d+:\d+\z/, first[:result])
+        # aktuelle Saison: jede Begegnung hat einen Einzelspiel-Link → meeting_id gesetzt
         assert(meetings.all? { |m| m[:meeting_id].is_a?(Integer) })
+      end
+    end
+
+    # 18-01: Archiv-Saisons liefern das Mannschaftsergebnis in der PARTIEN-Spalte, aber KEINEN
+    # groupMeetingReport-Link → meeting_id nil. Der positionsbasierte Parser muss diese Zeilen behalten.
+    test "meetings returns archived begegnungen with results but nil meeting_id (no report link)" do
+      archived = Scraper.new(federation: "BBV", season: "2024/2025")
+      VCR.use_cassette("nuliga/groupPage_meetings_gesamt_group642_2425") do
+        meetings = archived.meetings(642, branch: "Pool")
+        assert_operator meetings.size, :>, 10
+
+        first = meetings.first
+        assert_nil first[:meeting_id], "Archiv-Begegnung hat keinen Report-Link → meeting_id nil"
+        assert_match(/\A\d+:\d+\z/, first[:result], "Mannschaftsergebnis vorhanden")
+        assert first[:home_team].present?
+        assert first[:guest_team].present?
+        assert(meetings.all? { |m| m[:meeting_id].nil? && m[:result].present? })
       end
     end
 

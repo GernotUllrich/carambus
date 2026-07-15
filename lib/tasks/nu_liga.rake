@@ -57,46 +57,80 @@ namespace :nu_liga do
     items.each { |i| puts "     #{i}" }
   end
 
-  # Struktur-Import NuLiga → Carambus (BBV, Phase 16). DRY-RUN default; ARMED=1 schreibt
-  # (reconcile_clubs source_url + create_leagues/create_teams). Nur Authority/Dev (Prod = Phase 18).
+  # Struktur-/Ergebnis-Import NuLiga → Carambus (BBV, Phasen 16/17/18). DRY-RUN default; ARMED=1 schreibt.
+  # Nur Authority/Dev (Prod = Phase 18-02).
   #
-  #   bin/rails nu_liga:import_bbv                      # dry-run
-  #   ARMED=1 REGION_ID=3 SEASON_ID=17 BRANCHES=Pool bin/rails nu_liga:import_bbv
-  desc "Struktur-Import NuLiga → Carambus (Clubs/Leagues/Teams) für BBV — dry-run default, ARMED=1 schreibt"
+  #   bin/rails nu_liga:import_bbv                                  # dry-run, current season (Warnung)
+  #   ARMED=1 REGION_ID=3 SEASON_ID=17 BRANCHES=Pool bin/rails nu_liga:import_bbv         # eine Saison
+  #   SEASONS=14,15,16,17 BRANCHES=Pool,Snooker bin/rails nu_liga:import_bbv              # mehrere Saisons (18-01)
+  desc "Struktur-/Ergebnis-Import NuLiga → Carambus für BBV — dry-run default, ARMED=1 schreibt; SEASONS für Multi-Season"
   task import_bbv: :environment do
     federation = ENV["FEDERATION"].presence || "BBV"
     region_id = (ENV["REGION_ID"] || 3).to_i
-    season_id = (ENV["SEASON_ID"] || 17).to_i
     branches = ENV["BRANCHES"].present? ? ENV["BRANCHES"].split(",").map(&:strip) : NuLiga::Scraper::BRANCHES
     armed = ENV["ARMED"] == "1"
-
-    report = NuLiga::Importer.new(
-      federation: federation, region_id: region_id, season_id: season_id, branches: branches, armed: armed
-    ).run
+    season_ids = nu_liga_season_ids
 
     puts "=" * 72
-    puts "NuLiga → Carambus — Struktur-Import  #{armed ? "(ARMED — schreibt)" : "(DRY-RUN)"}"
-    puts "federation=#{federation}  region_id=#{region_id}  season_id=#{season_id}  branches=#{branches.join(",")}"
+    puts "NuLiga → Carambus — Import  #{armed ? "(ARMED — schreibt)" : "(DRY-RUN)"}"
+    puts "federation=#{federation}  region_id=#{region_id}  seasons=#{season_ids.join(",")}  branches=#{branches.join(",")}"
     puts "=" * 72
+
+    totals = Hash.new(0)
+    season_ids.each do |season_id|
+      report = NuLiga::Importer.new(
+        federation: federation, region_id: region_id, season_id: season_id, branches: branches, armed: armed
+      ).run
+      print_import_report(report, season_id, armed)
+      accumulate_import_totals(totals, report)
+    end
+
+    if season_ids.size > 1
+      puts
+      puts "── Σ ALLE SAISONS ──  leagues_created=#{totals[:leagues_created]}  teams_created=#{totals[:teams_created]}  " \
+           "players_created=#{totals[:players_created]}  seedings_created=#{totals[:seedings_created]}  " \
+           "parties_created=#{totals[:parties_created]}  games_created=#{totals[:games_created]}"
+    end
+
+    puts
+    puts "=" * 72
+  end
+
+  # Saison-Auswahl: SEASONS (Kommaliste) > SEASON_ID (Einzel, abwärtskompatibel) > current_season (mit Warnung).
+  # current NIE implizit ohne Warnung: auf re-synctem Dev ist current bereits außerhalb der NuLiga-Range.
+  def nu_liga_season_ids
+    if ENV["SEASONS"].present?
+      ENV["SEASONS"].split(",").map { |s| s.strip.to_i }
+    elsif ENV["SEASON_ID"].present?
+      [ENV["SEASON_ID"].to_i]
+    else
+      cur = Season.current_season&.id
+      warn "⚠ Weder SEASONS noch SEASON_ID gesetzt → nutze current_season=#{cur.inspect} " \
+           "(auf re-synctem Dev ggf. außerhalb der NuLiga-Range — SEASONS explizit setzen!)"
+      [cur].compact
+    end
+  end
+
+  def print_import_report(report, season_id, armed)
+    season_name = Season.find_by(id: season_id)&.name || "?"
+    puts
+    puts "── SAISON #{season_name} (id #{season_id}) ──"
 
     c = report[:clubs]
-    puts
-    puts "── CLUBS ──  matched=#{c[:matched]}  #{armed ? "updated" : "würde-updaten"}=#{c[:updated]}  " \
+    puts "  CLUBS       matched=#{c[:matched]}  #{armed ? "updated" : "würde-updaten"}=#{c[:updated]}  " \
          "name_mismatch=#{c[:name_mismatches].size}  unmatched=#{c[:unmatched].size}"
     unless c[:name_mismatches].empty?
-      puts "   Namens-Mismatch (VNr matcht, Name weicht ab — REVIEW):"
-      c[:name_mismatches].each { |m| puts "     VNr #{m[:vnr]}:  NuLiga «#{m[:nu]}»  ≠  CB «#{m[:cb]}»" }
+      puts "    Namens-Mismatch (VNr matcht, Name weicht ab — REVIEW):"
+      c[:name_mismatches].each { |m| puts "      VNr #{m[:vnr]}:  NuLiga «#{m[:nu]}»  ≠  CB «#{m[:cb]}»" }
     end
 
     l = report[:leagues]
-    puts
-    puts "── LEAGUES ──  matched=#{l[:matched]}  #{armed ? "created" : "würde-anlegen"}=#{l[:created]}  " \
+    puts "  LEAGUES     matched=#{l[:matched]}  #{armed ? "created" : "würde-anlegen"}=#{l[:created]}  " \
          "updated=#{l[:updated]}  skipped=#{l[:skipped].size}"
     print_nu_list("skipped (keine Discipline / Fehler)", l[:skipped])
 
     t = report[:teams]
-    puts
-    puts "── TEAMS ──  #{armed ? "created" : "würde-anlegen"}=#{t[:created]}  updated=#{t[:updated]}  " \
+    puts "  TEAMS       #{armed ? "created" : "würde-anlegen"}=#{t[:created]}  updated=#{t[:updated]}  " \
          "club_unmatched=#{t[:club_unmatched].size}  club_mismatch=#{t[:club_mismatch]&.size || 0}  " \
          "league_missing=#{t[:league_missing].size}"
     print_nu_list("club_unmatched (Team ohne VNr-Club)", t[:club_unmatched].first(20))
@@ -104,35 +138,37 @@ namespace :nu_liga do
 
     p = report[:players]
     if p
-      puts
-      puts "── PLAYERS ──  matched=#{p[:matched]}  #{armed ? "created" : "würde-anlegen"}=#{p[:created]}  " \
+      puts "  PLAYERS     matched=#{p[:matched]}  #{armed ? "created" : "würde-anlegen"}=#{p[:created]}  " \
            "ambiguous=#{p[:ambiguous].size}  sp_updated=#{p[:sp_updated]}"
       print_nu_list("ambiguous (>1 Namenstreffer)", p[:ambiguous].first(20))
     end
 
     s = report[:seedings]
     if s
-      puts
-      puts "── SEEDINGS ──  matched=#{s[:seedings_matched]}  #{armed ? "created" : "würde-anlegen"}=#{s[:seedings_created]}  " \
+      puts "  SEEDINGS    matched=#{s[:seedings_matched]}  #{armed ? "created" : "würde-anlegen"}=#{s[:seedings_created]}  " \
            "unmatched=#{s[:unmatched].size}"
     end
 
     pa = report[:parties]
     if pa
-      puts
-      puts "── PARTIES ──  matched=#{pa[:matched]}  #{armed ? "created" : "würde-anlegen"}=#{pa[:created]}  " \
+      puts "  PARTIES     matched=#{pa[:matched]}  #{armed ? "created" : "würde-anlegen"}=#{pa[:created]}  " \
            "filled=#{pa[:filled]}  unmatched=#{pa[:unmatched].size}"
       print_nu_list("unmatched (Begegnung ohne LeagueTeam)", pa[:unmatched].first(20))
     end
 
     pg = report[:party_games]
     if pg
-      puts
-      puts "── PARTY_GAMES ──  parties_processed=#{pg[:parties_processed]}  #{armed ? "games_created" : "würde-anlegen"}=#{pg[:games_created]}  " \
+      puts "  PARTY_GAMES parties_processed=#{pg[:parties_processed]}  #{armed ? "games_created" : "würde-anlegen"}=#{pg[:games_created]}  " \
            "players_unmatched=#{pg[:players_unmatched]}  disciplines_unmatched=#{pg[:disciplines_unmatched]}  parties_skipped=#{pg[:parties_skipped]}"
     end
+  end
 
-    puts
-    puts "=" * 72
+  def accumulate_import_totals(totals, report)
+    totals[:leagues_created] += report.dig(:leagues, :created).to_i
+    totals[:teams_created] += report.dig(:teams, :created).to_i
+    totals[:players_created] += report.dig(:players, :created).to_i
+    totals[:seedings_created] += report.dig(:seedings, :seedings_created).to_i
+    totals[:parties_created] += report.dig(:parties, :created).to_i
+    totals[:games_created] += report.dig(:party_games, :games_created).to_i
   end
 end
