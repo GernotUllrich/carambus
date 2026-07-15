@@ -61,12 +61,14 @@ module NuLiga
     # --- create_leagues / create_teams: find-or-create + Idempotenz (Test-DB + FakeScraper) ---
 
     class FakeScraper
-      def initialize(leagues:, teams: {}, team_clubs: {}, clubs: {}, rosters: {})
+      def initialize(leagues:, teams: {}, team_clubs: {}, clubs: {}, rosters: {}, meetings: {}, reports: {})
         @leagues = leagues
         @teams = teams
         @team_clubs = team_clubs
         @clubs = clubs
         @rosters = rosters
+        @meetings = meetings
+        @reports = reports
       end
 
       def leagues(branch) = @leagues[branch] || []
@@ -78,6 +80,10 @@ module NuLiga
       def club(club_id) = @clubs[club_id]
 
       def player_ranking(group_id, branch:) = @rosters[group_id] || []
+
+      def meetings(group_id, branch:) = @meetings[group_id] || []
+
+      def meeting_report(meeting_id, group_id:, branch:) = @reports[meeting_id.to_i] || {games: []}
     end
 
     def setup
@@ -218,6 +224,109 @@ module NuLiga
       before = Player.where(region_id: @region.id).count
       imp.reconcile_players
       assert_equal before, Player.where(region_id: @region.id).count
+    end
+
+    # --- Parties + PartyGames (Phase 17) ---
+
+    # Eindeutige Team-Namen (Fixtures haben generische „Team Alpha"/„Beta").
+    NU_TEAM_A = "NuLiga Alpha 2526"
+    NU_TEAM_B = "NuLiga Beta 2526"
+
+    def party_scenario
+      FakeScraper.new(
+        leagues: {"Pool" => [{group_id: 9030, name: "NuLiga Testliga R"}]},
+        teams: {9030 => [{teamtable_id: 6001, name: NU_TEAM_A}, {teamtable_id: 6002, name: NU_TEAM_B}]},
+        meetings: {9030 => [{meeting_id: 7001, date: "27.09.2025", home_team: NU_TEAM_A,
+                             guest_team: NU_TEAM_B, result: "5:3"}]},
+        reports: {7001 => {games: [
+          {position: 1, discipline: "8-Ball", home_players: ["Alpha, Anton"], guest_players: ["Beta, Bert"],
+           set_result: "5:3", match_points: "1:0", stats: nil},
+          {position: 2, discipline: "9-Ball Doppel", home_players: ["Alpha, Anton", "Alpha2, Andi"],
+           guest_players: ["Beta, Bert", "Beta2, Ben"], set_result: "3:6", match_points: "0:1", stats: nil}
+        ]}}
+      )
+    end
+
+    def seed_party_roster(imp)
+      imp.create_leagues
+      imp.create_teams
+      league = League.find_by(region_id: @region.id, season_id: @season.id, name: "NuLiga Testliga R")
+      ta = LeagueTeam.find_by(league_id: league.id, name: NU_TEAM_A)
+      tb = LeagueTeam.find_by(league_id: league.id, name: NU_TEAM_B)
+      pa = Player.find_or_create_by!(region_id: @region.id, lastname: "Alpha", firstname: "Anton")
+      pb = Player.find_or_create_by!(region_id: @region.id, lastname: "Beta", firstname: "Bert")
+      Seeding.find_or_create_by!(league_team_id: ta.id, player_id: pa.id)
+      Seeding.find_or_create_by!(league_team_id: tb.id, player_id: pb.id)
+      [ta, tb, pa, pb]
+    end
+
+    test "reconcile_parties creates a party with result and source_url, idempotent" do
+      imp = build_importer(party_scenario)
+      ta, tb, = seed_party_roster(imp)
+
+      r1 = imp.reconcile_parties
+      assert_equal 1, r1[:created]
+      party = Party.where("source_url LIKE ?", "%meeting=7001%").first
+      assert party, "Party should be created"
+      assert_equal ta.id, party.league_team_a_id
+      assert_equal tb.id, party.league_team_b_id
+      assert_equal "5:3", party.data["result"]
+      assert_equal Date.new(2025, 9, 27), party.date.to_date
+
+      imp2 = build_importer(party_scenario)
+      imp2.create_leagues
+      imp2.create_teams
+      assert_equal 0, imp2.reconcile_parties[:created]
+    end
+
+    test "reconcile_parties reports unmatched when a team name is unknown" do
+      scraper = FakeScraper.new(
+        leagues: {"Pool" => [{group_id: 9031, name: "NuLiga Testliga S"}]},
+        teams: {9031 => [{teamtable_id: 6101, name: "Team Alpha"}]},
+        meetings: {9031 => [{meeting_id: 7101, date: "01.10.2025", home_team: "Team Alpha",
+                             guest_team: "Unbekanntes Team", result: "6:4"}]}
+      )
+      imp = build_importer(scraper)
+      imp.create_leagues
+      imp.create_teams
+      r = imp.reconcile_parties
+      assert_equal 0, r[:created]
+      assert_equal 1, r[:unmatched].size
+    end
+
+    test "import_party_games creates PartyGames (singles + doubles first player) idempotent" do
+      imp = build_importer(party_scenario)
+      _, _, pa, pb = seed_party_roster(imp)
+      imp.reconcile_parties
+      party = Party.where("source_url LIKE ?", "%meeting=7001%").first
+
+      r = imp.import_party_games
+      assert_equal 2, r[:games_created]
+
+      pg1 = PartyGame.find_by(party_id: party.id, seqno: 1)
+      assert_equal pa.id, pg1.player_a_id
+      assert_equal pb.id, pg1.player_b_id
+      assert_equal "5:3", pg1.data["result"]
+      assert_match(/8-Ball/, pg1.name)
+
+      pg2 = PartyGame.find_by(party_id: party.id, seqno: 2)  # Doppel → erster Spieler je Seite
+      assert_equal pa.id, pg2.player_a_id
+      assert_match(/Doppel/, pg2.name)
+
+      imp2 = build_importer(party_scenario)
+      imp2.create_leagues
+      imp2.create_teams
+      imp2.reconcile_parties
+      assert_equal 0, imp2.import_party_games[:games_created]
+    end
+
+    test "reconcile_parties in dry-run does not create a party" do
+      imp = build_importer(party_scenario, armed: false)
+      imp.create_leagues
+      imp.create_teams
+      before = Party.count
+      imp.reconcile_parties
+      assert_equal before, Party.count
     end
   end
 end

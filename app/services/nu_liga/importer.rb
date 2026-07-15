@@ -32,7 +32,8 @@ module NuLiga
 
     def run
       {clubs: reconcile_clubs, leagues: create_leagues, teams: create_teams,
-       players: reconcile_players, seedings: reconcile_seedings}
+       players: reconcile_players, seedings: reconcile_seedings,
+       parties: reconcile_parties, party_games: import_party_games}
     end
 
     # Club-Reconcile: NuLiga-VNr ↔ Carambus cc_id/ba_id (PRIMÄR). Setzt source_url der gematchten Clubs
@@ -198,6 +199,91 @@ module NuLiga
       {seedings_matched: seedings_matched, seedings_created: seedings_created, unmatched: unmatched.uniq.sort}
     end
 
+    # Party-Reconcile: je Liga die Begegnungen (Scraper#meetings) → Carambus-Party (Heim/Gast-LeagueTeam
+    # über den Team-Namen). find-or-create idempotent über (league, a, b, Datum). Bestehende → source_url +
+    # leeres Ergebnis füllen (nie überschreiben). Fehlendes LeagueTeam → unmatched. Nur gespielte Begegnungen.
+    def reconcile_parties
+      cb_party_index = Party.where(league_id: @leagues_by_group.values.map(&:id))
+        .index_by { |p| [p.league_id, p.league_team_a_id, p.league_team_b_id, party_date_key(p.date)] }
+      matched = 0
+      created = 0
+      filled = 0
+      unmatched = []
+
+      nuliga_leagues.each do |l|
+        league = @leagues_by_group[l[:group_id]]
+        next unless league
+
+        lt_index = league_team_by_name(league.id)
+        @scraper.meetings(l[:group_id], branch: l[:branch]).each do |m|
+          a = lt_index[Comparison.normalize_key(m[:home_team])]
+          b = lt_index[Comparison.normalize_key(m[:guest_team])]
+          date = parse_nuliga_date(m[:date])
+          unless a && b
+            unmatched << "#{m[:home_team]} vs #{m[:guest_team]} (#{m[:date]}) — Team fehlt"
+            next
+          end
+
+          party = cb_party_index[[league.id, a.id, b.id, party_date_key(date)]]
+          if party
+            matched += 1
+            apply_source_url(party, party_source_url(m[:meeting_id]))
+            filled += 1 if fill_empty_result(party, m[:result])
+          else
+            created += 1
+            create_party(league, a, b, date, m[:result], m[:meeting_id]) if @armed
+          end
+        end
+      end
+
+      {matched: matched, created: created, filled: filled, unmatched: unmatched.uniq.sort}
+    end
+
+    # Einzelspiel-Import: je Party mit meeting-source_url ohne PartyGames den Spielbericht holen und je game
+    # ein PartyGame anlegen (seqno=position, discipline via classify, player_a/b namensbasiert im Roster,
+    # Doppel = erster Spieler/Seite). Idempotent (party_id, seqno). Keine neuen Player/Teams.
+    def import_party_games
+      parties_processed = 0
+      games_created = 0
+      players_unmatched = 0
+      disciplines_unmatched = 0
+      parties_skipped = 0
+
+      carambus_parties_without_games.each do |party|
+        meeting_id = party.source_url.to_s[%r{groupMeetingReport\?meeting=(\d+)}, 1]
+        group_id = party.league&.source_url.to_s[%r{groupPage\?group=(\d+)}, 1]
+        branch = party.league&.discipline&.name
+        unless meeting_id && group_id && branch
+          parties_skipped += 1
+          next
+        end
+
+        report = @scraper.meeting_report(meeting_id, group_id: group_id, branch: branch)
+        roster_a = roster_by_league_team(party.league_team_a_id)
+        roster_b = roster_by_league_team(party.league_team_b_id)
+        parties_processed += 1
+
+        Array(report[:games]).each do |g|
+          seqno = g[:position]
+          next if seqno.nil? || PartyGame.exists?(party_id: party.id, seqno: seqno)
+
+          discipline = discipline_for(g[:discipline])
+          disciplines_unmatched += 1 if discipline.nil?
+          player_a = unique_roster_player(roster_a, Array(g[:home_players]).first)
+          player_b = unique_roster_player(roster_b, Array(g[:guest_players]).first)
+          players_unmatched += 1 if player_a.nil?
+          players_unmatched += 1 if player_b.nil?
+
+          games_created += 1
+          create_party_game(party, seqno, g, discipline, player_a, player_b) if @armed
+        end
+      end
+
+      {parties_processed: parties_processed, games_created: games_created,
+       players_unmatched: players_unmatched, disciplines_unmatched: disciplines_unmatched,
+       parties_skipped: parties_skipped}
+    end
+
     private
 
     # --- Schreib-Guard (nur bei @armed; broadcast-frei; instance-level → PaperTrail → Sync) ---
@@ -294,6 +380,118 @@ module NuLiga
 
     def league_key(branch, name)
       "#{Comparison.normalize_name(branch)}|#{Comparison.normalize_key(name)}"
+    end
+
+    # --- Parties/PartyGames (Phase 17) ---
+
+    # Frischer LeagueTeam-Index je League (nach der Anlage), Name → LeagueTeam.
+    def league_team_by_name(league_id)
+      (@lt_by_name ||= {})[league_id] ||=
+        LeagueTeam.where(league_id: league_id).index_by { |t| Comparison.normalize_key(t.name) }
+    end
+
+    # NuLiga-Datum „DD.MM.YYYY" → Date (nil bei ungültig).
+    def parse_nuliga_date(str)
+      Date.strptime(str.to_s, "%d.%m.%Y")
+    rescue ArgumentError
+      nil
+    end
+
+    # Normalisiert Party#date / Date auf „YYYY-MM-DD" für den Idempotenz-Key.
+    def party_date_key(date)
+      date.respond_to?(:to_date) ? date.to_date.to_s : date.to_s[0, 10]
+    end
+
+    # Roster (Seeding-Spieler) eines LeagueTeams, gruppiert nach normalisiertem „lastname firstname".
+    def roster_by_league_team(league_team_id)
+      (@lt_roster ||= {})[league_team_id] ||=
+        Seeding.where(league_team_id: league_team_id).includes(:player)
+          .filter_map(&:player).group_by { |p| player_key_for(p) }
+    end
+
+    # NuLiga-Berichtsname „Nachname, Vorname" → eindeutiger Roster-Spieler (nil bei 0/>1).
+    def unique_roster_player(roster, spielername)
+      return nil if spielername.to_s.strip.empty?
+
+      candidates = Array(roster[Comparison.normalize_name(spielername)]).uniq
+      (candidates.size == 1) ? candidates.first : nil
+    end
+
+    # Disziplin über exakten Synonym-Zeilentreffer, Fallback classify_from_title (wie LM).
+    def discipline_for(name)
+      return nil if name.to_s.strip.empty?
+
+      (@discipline_cache ||= {})[name] ||= begin
+        by_syn = Discipline.where("synonyms ilike ?", "%#{name}%").to_a
+          .find { |d| d.synonyms.to_s.split("\n").map(&:strip).include?(name.strip) }
+        by_syn || Discipline.classify_from_title(name)
+      end
+    end
+
+    # Carambus-Parties der Zielsaison (region/season) mit NuLiga-source_url ohne Einzelspiele.
+    def carambus_parties_without_games
+      league_ids = League.where(region_id: @region_id, season_id: @season_id).select(:id)
+      Party.where(league_id: league_ids).where("source_url LIKE ?", "%groupMeetingReport%")
+        .where.not(id: PartyGame.select(:party_id).distinct)
+        .includes(:league)
+    end
+
+    # Füllt data["result"] NUR wenn leer (nie überschreiben). result muss selbst nicht-leer sein.
+    def fill_empty_result(party, result)
+      return false unless blank_result?(party.data)
+      return false if result.to_s.gsub(/[^0-9]/, "").empty?
+
+      if @armed
+        party.class.skip_cable_ready_updates do
+          party.update!(data: (party.data || {}).merge("result" => result))
+        end
+      end
+      true
+    end
+
+    def blank_result?(data)
+      (data.is_a?(Hash) ? data["result"].to_s : "").gsub(/[^0-9]/, "").empty?
+    end
+
+    def create_party(league, home, away, date, result, meeting_id)
+      Party.skip_cable_ready_updates do
+        Party.create!(
+          league_id: league.id,
+          league_team_a_id: home.id,
+          league_team_b_id: away.id,
+          host_league_team_id: home.id,
+          date: date,
+          data: {"result" => result},
+          source_url: party_source_url(meeting_id)
+        )
+      end
+    rescue ActiveRecord::RecordInvalid => e
+      Rails.logger.warn("NuLiga::Importer create_party(#{home.name} vs #{away.name}) fehlgeschlagen: #{e.message}")
+      nil
+    end
+
+    def create_party_game(party, seqno, game, discipline, player_a, player_b)
+      data = {"result" => game[:set_result]}
+      data["match_points"] = game[:match_points] if game[:match_points].present?
+      data["stats"] = game[:stats] if game[:stats]
+      PartyGame.skip_cable_ready_updates do
+        PartyGame.create!(
+          party_id: party.id,
+          seqno: seqno,
+          name: "Spiel #{seqno}::#{game[:discipline]}",
+          discipline_id: discipline&.id,
+          player_a_id: player_a&.id,
+          player_b_id: player_b&.id,
+          data: data
+        )
+      end
+    rescue ActiveRecord::RecordInvalid => e
+      Rails.logger.warn("NuLiga::Importer create_party_game(#{party.id}/#{seqno}) fehlgeschlagen: #{e.message}")
+      nil
+    end
+
+    def party_source_url(meeting_id)
+      "#{nuliga_base}/groupMeetingReport?meeting=#{meeting_id}"
     end
 
     # --- NuLiga-Seite (read-only via Scraper; Fehler je Ebene → überspringen) ---

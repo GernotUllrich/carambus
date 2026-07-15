@@ -117,6 +117,21 @@ namespace :nu_liga do
            "unmatched=#{s[:unmatched].size}"
     end
 
+    pa = report[:parties]
+    if pa
+      puts
+      puts "── PARTIES ──  matched=#{pa[:matched]}  #{armed ? "created" : "würde-anlegen"}=#{pa[:created]}  " \
+           "filled=#{pa[:filled]}  unmatched=#{pa[:unmatched].size}"
+      print_nu_list("unmatched (Begegnung ohne LeagueTeam)", pa[:unmatched].first(20))
+    end
+
+    pg = report[:party_games]
+    if pg
+      puts
+      puts "── PARTY_GAMES ──  parties_processed=#{pg[:parties_processed]}  #{armed ? "games_created" : "würde-anlegen"}=#{pg[:games_created]}  " \
+           "players_unmatched=#{pg[:players_unmatched]}  disciplines_unmatched=#{pg[:disciplines_unmatched]}  parties_skipped=#{pg[:parties_skipped]}"
+    end
+
     puts
     puts "=" * 72
   end
