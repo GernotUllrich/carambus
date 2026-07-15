@@ -83,8 +83,9 @@ class Region < ApplicationRecord
     "BVW" => "https://westfalenbillard.net/",
     # "HBU",
     "NBV" => "https://ndbv.de/",
-    "SBV" => "https://billard-sachsen.de/",
-    "TBV" => "https://billard-thueringen.de/"
+    "SBV" => "https://billard-sachsen.de/"
+    # Phase 12 (v0.4 TBV-Cutover): TBV auf LigaManager migriert — CC-URL entfernt,
+    # damit scrape_regions public_cc_url_base=nil setzt und scrape_region_public überspringt.
   }.freeze
 
   #  BVB
@@ -94,7 +95,9 @@ class Region < ApplicationRecord
   # SHORTNAMES_CARAMBUS_USERS = %w[].freeze
   # SHORTNAMES_OTHERS = %w[BVB].freeze
   # SHORTNAMES_OTHERS = %w[BVW SBV TBV].freeze
-  SHORTNAMES_OTHERS = %w[BVB BBBV BLMR BLVN BVNR BVRP BVS BVW SBV TBV].freeze
+  # Phase 12 (v0.4 TBV-Cutover): TBV auf LigaManager migriert — aus CC-Scrape entfernt
+  # (Clubs/Turniere/Ligen iterieren alle über diese Liste). Import läuft via liga_manager:daily_import.
+  SHORTNAMES_OTHERS = %w[BVB BBBV BLMR BLVN BVNR BVRP BVS BVW SBV].freeze
   SHORTNAMES_FEDERATIONS = %w[BVNRW].freeze
   SHORTNAMES_NO_CC = %w[BBV HBU BLVSA].freeze
 

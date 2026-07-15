@@ -435,5 +435,28 @@ module LigaManager
       assert_equal 999, club.reload.ba_id
       assert_equal 1567, club.reload.cc_id
     end
+
+    # Phase 12 (v0.4 TBV-Cutover): Zielsaison-Auflösung für Cron/Tasks.
+    test "resolve_season_id: explizites Argument hat Vorrang vor current_season" do
+      fake = Struct.new(:id).new(1234)
+      Season.stub(:current_season, fake) do
+        assert_equal 17, Importer.resolve_season_id("17")
+        assert_equal 42, Importer.resolve_season_id("42")
+      end
+    end
+
+    test "resolve_season_id: ohne Argument → Season.current_season" do
+      fake = Struct.new(:id).new(1234)
+      Season.stub(:current_season, fake) do
+        assert_equal 1234, Importer.resolve_season_id(nil)
+        assert_equal 1234, Importer.resolve_season_id(""), "leerer String zählt als nicht gesetzt (presence)"
+      end
+    end
+
+    test "resolve_season_id: Fallback 17, wenn keine current_season existiert" do
+      Season.stub(:current_season, nil) do
+        assert_equal 17, Importer.resolve_season_id(nil)
+      end
+    end
   end
 end

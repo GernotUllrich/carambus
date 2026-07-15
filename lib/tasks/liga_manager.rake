@@ -90,11 +90,12 @@ namespace :liga_manager do
   #
   #   bin/rails liga_manager:import_structure
   #   ARMED=1 ASSOCIATION_ID=1 REGION_ID=16 SEASON_ID=17 bin/rails liga_manager:import_structure
+  # SEASON_ID ist optional: ohne Angabe wird Season.current_season verwendet (Phase 12).
   desc "Struktur-Import LigaManager→Carambus (Clubs/Ligen/Teams source_url). DRY-RUN default; ARMED=1 schreibt"
   task import_structure: :environment do
     association_id = (ENV["ASSOCIATION_ID"] || 1).to_i
     region_id = (ENV["REGION_ID"] || 16).to_i
-    season_id = (ENV["SEASON_ID"] || 17).to_i
+    season_id = LigaManager::Importer.resolve_season_id
     armed = ENV["ARMED"] == "1"
 
     report = LigaManager::Importer.new(
@@ -143,6 +144,27 @@ namespace :liga_manager do
     puts
     puts armed ? "Fertig (versioniert → Sync)." : "DRY-RUN: keine Änderung. ARMED=1 schreibt source_url/Seedings/Parties/Einzelspiele."
     puts "=" * 72
+  end
+
+  # Laufender TBV-Import aus dem LigaManager (Phase 12 v0.4 Cutover-Betrieb). Dedizierter Cron-Ziel-Task:
+  # ARMED fix, TBV (association_id=1, region_id=16), Zielsaison = Season.current_season (rollt automatisch).
+  # Ersetzt den abgeschalteten CC-Scrape für TBV. Verdrahtet in config/schedule.rb (täglich, roles :api).
+  #   bin/rails liga_manager:daily_import
+  desc "Laufender TBV-Import aus LigaManager (ARMED, current season) — Cron-Ziel-Task (Phase 12)"
+  task daily_import: :environment do
+    season_id = LigaManager::Importer.resolve_season_id
+    report = LigaManager::Importer.new(
+      association_id: 1, region_id: 16, season_id: season_id, armed: true
+    ).run
+
+    cl = report[:clubs]
+    sd = report[:seedings]
+    pt = report[:parties]
+    pg = report[:party_games]
+    puts "LigaManager daily_import (TBV, season_id=#{season_id}) — ARMED"
+    puts "  clubs source_url=#{cl[:updated]}  seedings angelegt=#{sd[:seedings_created]}  " \
+         "parties angelegt=#{pt[:created]}/gefüllt=#{pt[:filled]}  einzelspiele angelegt=#{pg[:games_created]}"
+    puts "Fertig (versioniert → Sync)."
   end
 
   # GamePlan-Rekonstruktion aus vorhandenen Carambus-Spieldaten (NICHT aus LigaManager — LM liefert die

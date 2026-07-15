@@ -17,6 +17,13 @@ module LigaManager
   class Importer
     BASE_URL = "https://ligen.billard.center"
 
+    # Zielsaison für Import-Tasks/Cron auflösen: explizites SEASON_ID (ENV/Arg) hat Vorrang,
+    # sonst die laufende Saison (Season.current_season) → rollt automatisch in Folgesaisons.
+    # Fallback 17 nur, falls current_season fehlt (Test/leere DB). Phase 12 (v0.4 TBV-Cutover).
+    def self.resolve_season_id(env_value = ENV["SEASON_ID"])
+      (env_value.presence || Season.current_season&.id || 17).to_i
+    end
+
     def initialize(association_id:, region_id:, season_id:, armed: false, scraper: nil)
       @association_id = association_id
       @region_id = region_id
