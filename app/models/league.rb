@@ -326,6 +326,14 @@ class League < ApplicationRecord
       end
       scrape_bbv_leagues(region, season, opts)
     else
+      # Rollover-Guard (CC-Incident 2026-07-16): fehlt die Saison im CC-Saison-Selektor, liefert
+      # sb_spielplan.php Daten einer anderen Saison (Links tragen trotzdem die angefragte Saison,
+      # der season_name-Filter unten greift also NICHT). Siehe Region#cc_season_available?.
+      unless region.cc_season_available?(season)
+        Rails.logger.warn "===== scrape ===== League.scrape_leagues_from_cc(#{region.shortname}): " \
+                          "Saison #{season.name} nicht im CC-Saison-Selektor — übersprungen (Rollover-Guard)"
+        return
+      end
       # return unless region.shortname == "BVBW"
       url = region.public_cc_url_base
       leagues_url = "#{url}sb_spielplan.php?eps=100000&s=#{season.name}"
@@ -429,6 +437,12 @@ class League < ApplicationRecord
       # BBV uses a different scraping method, use the original for now
       scrape_leagues_from_cc(region, season, opts)
     else
+      # Rollover-Guard — siehe scrape_leagues_from_cc / Region#cc_season_available?
+      unless region.cc_season_available?(season)
+        Rails.logger.warn "===== scrape ===== League.scrape_leagues_optimized(#{region.shortname}): " \
+                          "Saison #{season.name} nicht im CC-Saison-Selektor — übersprungen (Rollover-Guard)"
+        return
+      end
       url = region.public_cc_url_base
       leagues_url = "#{url}sb_spielplan.php?eps=100000&s=#{season.name}"
       Rails.logger.info "reading #{leagues_url} - region #{region.shortname} league tournaments season #{season.name}"

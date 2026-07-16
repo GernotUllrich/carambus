@@ -481,8 +481,42 @@ image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9"
     Rails.logger.info "TournamentCheck problem_source_urls: #{problem_source_urls.inspect}"
   end
 
+  # Rollover-Guard (CC-Incident 2026-07-16): ClubCloud liefert bei einer Saison, die der Tenant
+  # noch nicht im Saison-Selektor anbietet, Daten einer ANDEREN Saison zurück — die Links tragen
+  # dabei trotzdem die angefragte Saison, sodass der season_name-Filter im Scrape NICHT schützt.
+  # Deshalb: Region/Saison nur scrapen, wenn der Selektor (select name="s" in sb_spielplan.php)
+  # die Saison tatsächlich enthält. Fail-closed: Selektor nicht lesbar/nicht vorhanden → false.
+  def cc_season_available?(season)
+    cc_selector_seasons.to_a.include?(season.name)
+  end
+
+  # Saison-Optionen aus dem CC-Saison-Selektor. Bewusst OHNE Query-Params: sb_spielplan.php?f=999
+  # liefert auf den meisten Tenants (NBV, DBU, BVNR, …) eine leere Fehlerseite ohne Selektor —
+  # nur die parameterlose Default-Seite trägt den Selektor überall (15–65 KB, akzeptabel leicht).
+  # Memoisiert je Instanz (ein Fetch pro Scrape-Lauf); nil bei Fehler/fehlendem Selektor.
+  def cc_selector_seasons
+    return @cc_selector_seasons if defined?(@cc_selector_seasons)
+    @cc_selector_seasons =
+      if public_cc_url_base.blank?
+        nil
+      else
+        html = League.cc_http_get("#{public_cc_url_base}sb_spielplan.php")
+        doc = Nokogiri::HTML(html)
+        doc.css('select[name="s"] option').map { |o| o["value"].to_s.strip }.reject(&:empty?).presence
+      end
+  rescue => e
+    Rails.logger.warn "===== scrape ===== Region #{shortname}: CC-Saison-Selektor nicht lesbar " \
+                      "(#{e.class}: #{e.message}) — fail-closed, Scrape wird übersprungen"
+    @cc_selector_seasons = nil
+  end
+
   # crape_single_tournament_public
   def scrape_single_tournament_public(season, opts = {})
+    unless cc_season_available?(season)
+      Rails.logger.warn "===== scrape ===== Region #{shortname}: Saison #{season.name} nicht im " \
+                        "CC-Saison-Selektor — Turnier-Scrape übersprungen (Rollover-Guard)"
+      return
+    end
     tournament = nil
     url = public_cc_url_base
     Rails.logger.info "===== scrape ===== SCRAPING REGION '#{url}'"
