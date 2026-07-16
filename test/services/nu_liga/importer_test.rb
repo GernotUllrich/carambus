@@ -397,5 +397,49 @@ module NuLiga
       imp.reconcile_parties
       assert_equal before, Party.count
     end
+
+    # 18-03: Saison-Probe — neueste NuLiga-verfügbare Saison ermitteln, NICHT blind current_season.
+    test "current_nuliga_season probes downward to the newest NuLiga-available season" do
+      newer = Season.create!(id: 900_018, name: "NL Newer #{rand(9999)}")
+      older = Season.create!(id: 900_017, name: "NL Older #{rand(9999)}")
+      probe = lambda do |*_a, **kw|
+        avail = (kw[:season] == older.name)
+        s = Object.new
+        s.define_singleton_method(:leagues) { |_branch| avail ? [{group_id: 1}] : [] }
+        s
+      end
+      Season.stub(:current_season, newer) do
+        NuLiga::Scraper.stub(:new, probe) do
+          assert_equal older.id, NuLiga::Importer.current_nuliga_season(federation: "BBV").id
+        end
+      end
+    end
+
+    # 18-03: Version-Sauberkeit — ein 2. Import-Lauf ohne Quelländerung erzeugt keine neue PaperTrail-Version
+    # (find-or-create/fill-if-empty schreiben nur bei echter Änderung; import_party_games überspringt Parties mit Spielen).
+    test "second import run creates no new PaperTrail versions (version-clean)" do
+      imp = build_importer(party_scenario)
+      seed_party_roster(imp)
+      imp.reconcile_parties
+      imp.import_party_games
+      before = PaperTrail::Version.count
+
+      imp2 = build_importer(party_scenario)
+      imp2.create_leagues
+      imp2.create_teams
+      imp2.reconcile_parties
+      imp2.import_party_games
+      assert_equal before, PaperTrail::Version.count, "2. Lauf ohne Quelländerung darf keine Version erzeugen"
+    end
+
+    # 18-03: Alt-BBV-CC-Pfad deprecatet — scrape_leagues_from_cc(BBV) ruft den Alt-Scraper NICHT mehr.
+    test "scrape_leagues_from_cc for BBV is deprecated (skips old BbvScraper)" do
+      bbv = Region.new(shortname: "BBV")
+      called = false
+      League.stub(:scrape_bbv_leagues, ->(*_a) { called = true }) do
+        assert_nothing_raised { League.scrape_leagues_from_cc(bbv, Season.new(name: "2025/2026")) }
+      end
+      refute called, "Alt-BBV-CC-Scrape darf nicht mehr laufen (deprecated)"
+    end
   end
 end

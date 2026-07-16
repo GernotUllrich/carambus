@@ -30,6 +30,25 @@ module NuLiga
       @leagues_by_group = {}
     end
 
+    # Ermittelt die neueste Saison, für die NuLiga tatsächlich Ligen liefert — Probe absteigend ab current_season.
+    # NuLiga hält nur ~4 Saisons; current_season (Carambus) ist dort evtl. noch NICHT vorhanden (z.B. 2026/27) →
+    # nicht blind current_season nehmen. Rückgabe: Season (oder nil, wenn nichts verfügbar). Für nu_liga:daily_import.
+    def self.current_nuliga_season(federation:, branch: Scraper::BRANCHES.first, max_lookback: 5)
+      base = Season.current_season&.id || 17
+      base.downto([base - max_lookback + 1, 1].max) do |sid|
+        season = Season.find_by(id: sid)
+        next unless season
+
+        available = begin
+          Scraper.new(federation: federation, season: season.name).leagues(branch).any?
+        rescue
+          false
+        end
+        return season if available
+      end
+      nil
+    end
+
     def run
       {clubs: reconcile_clubs, leagues: create_leagues, teams: create_teams,
        players: reconcile_players, seedings: reconcile_seedings,

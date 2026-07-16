@@ -96,6 +96,34 @@ namespace :nu_liga do
     puts "=" * 72
   end
 
+  # Täglicher NuLiga-Import für den laufenden Betrieb (BBV, Phase 18-03). ARMED fix. Saison via Probe
+  # (neueste NuLiga-verfügbare — NICHT blind current_season, das ist auf NuLiga evtl. nicht vorhanden).
+  # Cron-Ziel (schedule.rb, roles :api). Idempotent: import_party_games zieht nur Parties OHNE Spiele tief;
+  # find-or-create/fill-if-empty schreiben nur bei echter Änderung → kein Version-Churn bei unverändertem Lauf.
+  #   bin/rails nu_liga:daily_import
+  desc "Täglicher NuLiga-Import (BBV, ARMED fix, aktuelle NuLiga-Saison via Probe) — Cron-Ziel"
+  task daily_import: :environment do
+    federation = ENV["FEDERATION"].presence || "BBV"
+    region_id = (ENV["REGION_ID"] || 3).to_i
+    branches = ENV["BRANCHES"].present? ? ENV["BRANCHES"].split(",").map(&:strip) : %w[Pool Snooker]
+
+    season = NuLiga::Importer.current_nuliga_season(federation: federation, branch: branches.first)
+    unless season
+      warn "nu_liga:daily_import: keine NuLiga-verfügbare Saison gefunden (federation=#{federation}) — übersprungen."
+      next
+    end
+
+    puts "=" * 72
+    puts "NuLiga daily_import (ARMED)  federation=#{federation}  region_id=#{region_id}  " \
+         "season=#{season.name}(id #{season.id})  branches=#{branches.join(",")}"
+    puts "=" * 72
+    report = NuLiga::Importer.new(
+      federation: federation, region_id: region_id, season_id: season.id, branches: branches, armed: true
+    ).run
+    print_import_report(report, season.id, true)
+    puts "=" * 72
+  end
+
   # Saison-Auswahl: SEASONS (Kommaliste) > SEASON_ID (Einzel, abwärtskompatibel) > current_season (mit Warnung).
   # current NIE implizit ohne Warnung: auf re-synctem Dev ist current bereits außerhalb der NuLiga-Range.
   def nu_liga_season_ids

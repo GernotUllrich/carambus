@@ -105,6 +105,14 @@ every 1.day, at: "3:30 am", roles: [:api] do
   rake "liga_manager:daily_import"
 end
 
+# Phase 18-03 (v0.5 BBV/NuLiga-Cutover): Laufender BBV-Import aus NuLiga (bbv-billard.liga.nu).
+# ARMED, region 3, Pool+Snooker, Zielsaison = neueste NuLiga-verfügbare (Probe, NICHT blind current_season).
+# Idempotent/version-sauber (nur neue Parties tief). Slot 03:45 (kollisionsarm zu 03:30 LM / 04:00 CC).
+# HINWEIS: Aktivierung bewusst gegated — solange CC ruht bleibt der ganze api-Crontab via whenever:clear_crontab aus.
+every 1.day, at: "3:45 am", roles: [:api] do
+  rake "nu_liga:daily_import"
+end
+
 # ============================================================================
 # PHASE 21 CLUBCLOUD-ADMIN-SCRAPING (Plan 21-06 Slice E + 21-08 Region-Generalisierung)
 # ============================================================================

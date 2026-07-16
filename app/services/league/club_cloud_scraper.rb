@@ -56,6 +56,12 @@ class League::ClubCloudScraper < ApplicationService
 
     organizer = @league.organizer
     if organizer.is_a?(Region) && organizer.shortname == "BBV"
+      # Phase 18-03: deprecated — BBV läuft über NuLiga (nu_liga:import_bbv). Alt-CC-Server abgeschaltet.
+      # Notausgang: FORCE_LEGACY_BBV_SCRAPE=1. Andere Regionen: scrape_from_club_cloud (unverändert).
+      unless ENV["FORCE_LEGACY_BBV_SCRAPE"] == "1"
+        Rails.logger.warn("ClubCloudScraper(BBV league #{@league.id}): deprecated — BBV läuft über NuLiga. Übersprungen.")
+        return nil
+      end
       @league_url, _ = @league.scrape_single_bbv_league(organizer, @opts)
     else
       scrape_from_club_cloud

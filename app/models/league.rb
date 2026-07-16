@@ -316,6 +316,14 @@ class League < ApplicationRecord
 
   def self.scrape_leagues_from_cc(region, season, opts = {})
     if region.shortname == "BBV"
+      # Phase 18-03: BBV läuft über NuLiga (nu_liga:import_bbv / nu_liga:daily_import). Der Alt-BBV-CC-Scrape
+      # (League::BbvScraper, Billardarea) ist DEPRECATED; der Alt-CC-Server ist abgeschaltet. Notausgang für
+      # Reproduktion: FORCE_LEGACY_BBV_SCRAPE=1 (Muster wie FORCE_DERIVATION_RETAG).
+      unless ENV["FORCE_LEGACY_BBV_SCRAPE"] == "1"
+        Rails.logger.warn("League.scrape_leagues_from_cc(BBV): deprecated — BBV läuft über NuLiga " \
+                          "(nu_liga:import_bbv). Übersprungen. Notfall: FORCE_LEGACY_BBV_SCRAPE=1.")
+        return
+      end
       scrape_bbv_leagues(region, season, opts)
     else
       # return unless region.shortname == "BVBW"
