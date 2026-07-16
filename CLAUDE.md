@@ -103,9 +103,11 @@ Vollständige Regeln, Flatui→Token-Mapping und der Migrations-Workflow:
 
 **Carambus API — Model Refactoring & Test Coverage**
 
-A focused improvement effort on the Carambus API codebase to break down the two largest model classes (TableMonitor at 3900 lines and RegionCc at 2700 lines) into smaller, well-tested components. This is a refactoring initiative — no new features, no architecture changes.
+A focused refactoring effort to break the god-object model `TableMonitor` into smaller, well-tested collaborators. `RegionCc` — once named as the second target — is no longer a god-object (~500 lines, already decomposed into 11 syncers under `app/services/region_cc/`, commit `a510f3f5`) and is out of scope. This is a refactoring initiative — no new features, no architecture changes.
 
-**Core Value:** Reduce the two worst god-object models into maintainable, testable units without changing external behavior.
+**Status (2026-07-15):** The TableMonitor-Refactoring milestone (carambus_nbv, branch `scenario/nbv/tablemonitor-refactor`) extracted two cohesive collaborators via thin delegation — behaviour strictly preserved, characterization tests first: `TableMonitor::InningsEditor` (innings-history orchestration, Phase 53) and `TableMonitor::PanelPresenter` (read-only presentation/view-data, Phase 54). `app/models/table_monitor.rb` went from 2132 to 1996 lines; the scoring engine (`table_monitor/score_engine.rb` ~1354) and `options_presenter.rb` were extracted earlier. The remaining core is the tightly-coupled AASM/scoring lifecycle (`end_of_set?`, `undo`/`redo`, `force_next_state`, `evaluate_result`, `add_n_balls`/`terminate_current_inning`) — live-scoring/state-machine bound and left as a dedicated characterization-first follow-up, not part of this milestone.
+
+**Core Value:** Reduce the worst god-object model (`TableMonitor`) into maintainable, testable units without changing external behavior.
 
 ### Constraints
 
