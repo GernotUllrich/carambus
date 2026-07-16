@@ -7,6 +7,10 @@ rake-Task oder `bin/*.sh`-Script — sortiert nach Problembereich.
 > Bewusst **nicht** in `docs/` (nicht Teil der öffentlichen mkdocs-Site) —
 > nur über das Repo zugänglich.
 
+> 🌐 **Gerenderte, navigierbare Fassung** (Sidebar-TOC + Live-Filter, privat):
+> <https://claude.ai/code/artifact/73a33b4e-7b55-4a70-afe4-c2f33a167e97>
+> — oder in der Artifact-Galerie: <https://claude.ai/code/artifacts>.
+
 Task-Namen ohne `bin/rails`-Präfix, nur `namespace:task`. Aufruf lokal per
 `bin/rails <task>` bzw. `bundle exec rake <task>`.
 
