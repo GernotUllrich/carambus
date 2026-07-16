@@ -41,5 +41,22 @@ module NuLiga
       err = assert_raises(RuntimeError) { Client.new.get_html("leaguePage", championship: "x") }
       assert_match(/HTTP 500/, err.message)
     end
+
+    test "get_html retries a transient 302 (rate-limit) then returns the 200 body" do
+      # NuLiga antwortet bei Request-Bursts mit 302; dieselbe URL liefert kurz darauf 200. Der Client
+      # wiederholt 3xx (Backoff wird im Test übersprungen) und darf NICHT abbrechen.
+      stub_request(:get, /bbv-billard\.liga\.nu/)
+        .to_return({status: 302, headers: {"Location" => "https://bbv-billard.liga.nu/x"}},
+          {status: 200, body: "<html>ok</html>"})
+      html = Client.new.get_html("groupMeetingReport", meeting: "7113311")
+      assert_includes html, "ok"
+    end
+
+    test "get_html raises after exhausting retries on persistent 3xx" do
+      stub_request(:get, /bbv-billard\.liga\.nu/)
+        .to_return(status: 302, headers: {"Location" => "https://bbv-billard.liga.nu/x"})
+      err = assert_raises(RuntimeError) { Client.new.get_html("groupMeetingReport", meeting: "1") }
+      assert_match(/HTTP 302/, err.message)
+    end
   end
 end

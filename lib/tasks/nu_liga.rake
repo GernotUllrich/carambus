@@ -159,7 +159,7 @@ namespace :nu_liga do
     pg = report[:party_games]
     if pg
       puts "  PARTY_GAMES parties_processed=#{pg[:parties_processed]}  #{armed ? "games_created" : "würde-anlegen"}=#{pg[:games_created]}  " \
-           "players_unmatched=#{pg[:players_unmatched]}  disciplines_unmatched=#{pg[:disciplines_unmatched]}  parties_skipped=#{pg[:parties_skipped]}"
+           "players_unmatched=#{pg[:players_unmatched]}  disciplines_unmatched=#{pg[:disciplines_unmatched]}  parties_skipped=#{pg[:parties_skipped]}  meetings_failed=#{pg[:meetings_failed]}"
     end
   end
 

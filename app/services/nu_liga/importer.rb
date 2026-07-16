@@ -253,6 +253,7 @@ module NuLiga
       players_unmatched = 0
       disciplines_unmatched = 0
       parties_skipped = 0
+      meetings_failed = 0
 
       carambus_parties_without_games.each do |party|
         meeting_id = party.source_url.to_s[%r{groupMeetingReport\?meeting=(\d+)}, 1]
@@ -263,7 +264,16 @@ module NuLiga
           next
         end
 
-        report = @scraper.meeting_report(meeting_id, group_id: group_id, branch: branch)
+        # Ein einzelner fehlgeschlagener Spielbericht (transienter 302/Timeout/Parse-Fehler nach den Client-
+        # Retries) darf NIE den ganzen Import abbrechen — überspringen, Party bleibt "ohne Spiele" → ein
+        # idempotenter Re-Run holt sie nach.
+        begin
+          report = @scraper.meeting_report(meeting_id, group_id: group_id, branch: branch)
+        rescue => e
+          Rails.logger.warn("NuLiga::Importer meeting_report(#{meeting_id}) übersprungen: #{e.message}")
+          meetings_failed += 1
+          next
+        end
         roster_a = roster_by_league_team(party.league_team_a_id)
         roster_b = roster_by_league_team(party.league_team_b_id)
         parties_processed += 1
@@ -286,7 +296,7 @@ module NuLiga
 
       {parties_processed: parties_processed, games_created: games_created,
        players_unmatched: players_unmatched, disciplines_unmatched: disciplines_unmatched,
-       parties_skipped: parties_skipped}
+       parties_skipped: parties_skipped, meetings_failed: meetings_failed}
     end
 
     private

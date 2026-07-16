@@ -345,6 +345,24 @@ module NuLiga
       assert_equal 0, imp.import_party_games[:games_created], "Archiv-Party hat keine Einzelspiele"
     end
 
+    # 18-02: ein fehlschlagender Spielbericht (transienter 302/Timeout nach Client-Retries) darf den Import
+    # NICHT abbrechen — die Party wird übersprungen (meetings_failed), ein Re-Run holt sie idempotent nach.
+    test "import_party_games skips a meeting whose report fetch fails, without aborting" do
+      imp = build_importer(party_scenario)
+      seed_party_roster(imp)
+      imp.reconcile_parties # legt die Party (source_url groupMeetingReport) an
+
+      failing = party_scenario
+      def failing.meeting_report(*)
+        raise "NuLiga GET groupMeetingReport?meeting=7001 → HTTP 302"
+      end
+      imp2 = build_importer(failing)
+      r = nil
+      assert_nothing_raised { r = imp2.import_party_games }
+      assert_equal 1, r[:meetings_failed]
+      assert_equal 0, r[:games_created]
+    end
+
     test "import_party_games creates PartyGames (singles + doubles first player) idempotent" do
       imp = build_importer(party_scenario)
       _, _, pa, pb = seed_party_roster(imp)

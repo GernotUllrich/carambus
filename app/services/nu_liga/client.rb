@@ -15,6 +15,9 @@ module NuLiga
     WA_PATH = "/cgi-bin/WebObjects/nuLigaBILLARDDE.woa/wa"
     USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 " \
                  "(KHTML, like Gecko) Chrome/120 Safari/537.36"
+    # Backoff für transiente NuLiga-Redirects (WebObjects antwortet bei Request-Bursts mit 302 Rate-Limit/
+    # Session-Redirect; dieselbe URL liefert nach kurzer Pause wieder 200). Nur 3xx wird retried, 4xx/5xx nicht.
+    RETRY_DELAYS = [2, 5, 10].freeze
 
     def initialize(base_url: DEFAULT_BASE_URL)
       @base_url = base_url.chomp("/")
@@ -41,17 +44,26 @@ module NuLiga
 
     def request(action, params)
       uri = build_uri(action, params)
+      attempt = 0
+      loop do
+        res = perform_get(uri)
+        return res.body if res.is_a?(Net::HTTPSuccess)
+        # Nur transiente 3xx (Rate-Limit/Session-Redirect) werden mit Backoff wiederholt — 4xx/5xx sofort fatal.
+        unless res.is_a?(Net::HTTPRedirection) && attempt < RETRY_DELAYS.length
+          raise "NuLiga GET #{uri} → HTTP #{res.code}"
+        end
+        sleep(RETRY_DELAYS[attempt]) unless defined?(Rails) && Rails.env.test?
+        attempt += 1
+      end
+    end
+
+    def perform_get(uri)
       req = Net::HTTP::Get.new(uri)
       req["User-Agent"] = USER_AGENT
       req["Accept"] = "text/html"
-
-      res = Net::HTTP.start(uri.host, uri.port, use_ssl: uri.scheme == "https") do |http|
+      Net::HTTP.start(uri.host, uri.port, use_ssl: uri.scheme == "https") do |http|
         http.request(req)
       end
-
-      raise "NuLiga GET #{uri} → HTTP #{res.code}" unless res.is_a?(Net::HTTPSuccess)
-
-      res.body
     end
 
     def build_uri(action, params)
