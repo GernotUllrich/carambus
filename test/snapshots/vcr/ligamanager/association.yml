@@ -1,0 +1,166 @@
+---
+http_interactions:
+- request:
+    method: get
+    uri: https://ligen.billard.center/api/associations/public-show?id=1
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - application/json
+      User-Agent:
+      - Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML,
+        like Gecko) Chrome/120 Safari/537.36
+      Host:
+      - ligen.billard.center
+      Referer:
+      - https://ligen.billard.center/landesverband-thueringen
+      Origin:
+      - https://ligen.billard.center
+      X-Requested-With:
+      - XMLHttpRequest
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Date:
+      - Tue, 14 Jul 2026 15:58:17 GMT
+      Server:
+      - Apache
+      Expires:
+      - Thu, 19 Nov 1981 08:52:00 GMT
+      Cache-Control:
+      - no-store, no-cache, must-revalidate
+      Pragma:
+      - no-cache
+      Set-Cookie:
+      - PHPSESSID=b1375c6e0f896893527af382e7e6e2f8; path=/
+      X-Xss-Protection:
+      - 1; mode=block
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Content-Security-Policy:
+      - default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';
+        img-src 'self' data:; font-src 'self'
+      Upgrade:
+      - h2
+      Connection:
+      - Upgrade
+      Transfer-Encoding:
+      - chunked
+      Content-Type:
+      - application/json; charset=utf-8
+    body:
+      encoding: UTF-8
+      string: '{"id":1,"name":"Thüringer Billard-Verband e.V.","short_name":"TBV","public_page":"landesverband-thueringen","contact_email":"info@billard-verband-thueringen.de","impressum":"<p><strong>Thüringer
+        Billard-Verband e.V.<\/strong><br>\r\nAn der Trifft 5<br>\r\n36460 Kieselbach<br>\r\nTelefon:
+        036963 – 234 72 Büro<br>\r\nE-Mail: <a href=\"mailto:praesident@tbv-billard.de\">praesident@tbv-billard.de<\/a><br>\r\nWeb:
+        <a href=\"https:\/\/tbv-billard.de\">https:\/\/tbv-billard.de<\/a><br>\r\nWeitere
+        Seite: <a href=\"https:\/\/billard-thueringen.de\">https:\/\/billard-thueringen.de<\/a><\/p>\r\n\r\n<p>Registergericht:
+        Amtsgericht Erfurt<br>\r\nVereinsregisternummer: VR 160364<\/p>\r\n\r\n<p><strong>Inhaltlich
+        Verantwortlich für die Webseite ist der Vorstand des Thüringer Billard-Verbandes:<\/strong><\/p>\r\n<ul>\r\n  <li>Karl-Heinz
+        Möder (Präsident)<\/li>\r\n  <li>Jonas Schröter (Vizepräsident Sport und Verwaltung)<\/li>\r\n  <li>Gerhard
+        Morgenroth (Vizepräsident Finanzen)<\/li>\r\n  <li>Ronny Rejke (Landesportwart
+        Snooker)<\/li>\r\n  <li>Andre Lamert (Landesportwart Pool)<\/li>\r\n  <li>Tobias
+        Bucher (Landesportwart Karambol)<\/li>\r\n  <li>Jens Schumann (Vorsitzender
+        TBJ)<\/li>\r\n<\/ul>\r\n\r\n<p><strong>Haftungsausschluss – Disclaimer<\/strong><\/p>\r\n\r\n<p><strong>Haftung
+        für Inhalte<\/strong><br>\r\nAlle Inhalte unseres Internetauftritts wurden
+        mit größter Sorgfalt und nach bestem Gewissen erstellt. Für die Richtigkeit,
+        Vollständigkeit und Aktualität der Inhalte können wir jedoch keine Gewähr
+        übernehmen. Als Diensteanbieter sind wir gemäß § 7 Abs.1 TMG für eigene Inhalte
+        auf diesen Seiten nach den allgemeinen Gesetzen verantwortlich. Nach §§ 8
+        bis 10 TMG sind wir als Diensteanbieter jedoch nicht verpflichtet, übermittelte
+        oder gespeicherte fremde Informationen zu überwachen oder nach Umständen zu
+        forschen, die auf eine rechtswidrige Tätigkeit hinweisen. Verpflichtungen
+        zur Entfernung oder Sperrung der Nutzung von Informationen nach den allgemeinen
+        Gesetzen bleiben hiervon unberührt.<\/p>\r\n\r\n<p>Eine diesbezügliche Haftung
+        ist jedoch erst ab dem Zeitpunkt der Kenntniserlangung einer konkreten Rechtsverletzung
+        möglich. Bei Bekanntwerden von den o.g. Rechtsverletzungen werden wir diese
+        Inhalte unverzüglich entfernen.<\/p>\r\n\r\n<p><strong>Haftungsbeschränkung
+        für externe Links<\/strong><br>\r\nUnsere Webseite enthält Links auf externe
+        Webseiten Dritter. Auf die Inhalte dieser direkt oder indirekt verlinkten
+        Webseiten haben wir keinen Einfluss. Daher können wir für die „externen Links“
+        auch keine Gewähr auf Richtigkeit der Inhalte übernehmen. Für die Inhalte
+        der externen Links sind die jeweilige Anbieter oder Betreiber (Urheber) der
+        Seiten verantwortlich.<\/p>\r\n\r\n<p>Die externen Links wurden zum Zeitpunkt
+        der Linksetzung auf eventuelle Rechtsverstöße überprüft und waren im Zeitpunkt
+        der Linksetzung frei von rechtswidrigen Inhalten. Eine ständige inhaltliche
+        Überprüfung der externen Links ist ohne konkrete Anhaltspunkte einer Rechtsverletzung
+        nicht möglich. Bei direkten oder indirekten Verlinkungen auf die Webseiten
+        Dritter, die außerhalb unseres Verantwortungsbereichs liegen, würde eine Haftungsverpflichtung
+        ausschließlich in dem Fall nur bestehen, wenn wir von den Inhalten Kenntnis
+        erlangen und es uns technisch möglich und zumutbar wäre, die Nutzung im Falle
+        rechtswidriger Inhalte zu verhindern.<\/p>\r\n\r\n<p>Diese Haftungsausschlusserklärung
+        gilt auch innerhalb des eigenen Internetauftrittes „tbv-billard.de“ gesetzten
+        Links und Verweise von Fragestellern, Blogeinträgern, Gästen des Diskussionsforums.
+        Für illegale, fehlerhafte oder unvollständige Inhalte und insbesondere für
+        Schäden, die aus der Nutzung oder Nichtnutzung solcherart dargestellten Informationen
+        entstehen, haftet allein der Diensteanbieter der Seite, auf welche verwiesen
+        wurde, nicht derjenige, der über Links auf die jeweilige Veröffentlichung
+        lediglich verweist.<\/p>\r\n\r\n<p>Werden uns Rechtsverletzungen bekannt,
+        werden die externen Links durch uns unverzüglich entfernt.<\/p>\r\n\r\n<p><strong>Urheberrecht<\/strong><br>\r\nDie
+        auf unserer Webseite veröffentlichen Inhalte und Werke unterliegen dem deutschen
+        Urheberrecht. Die Vervielfältigung, Bearbeitung, Verbreitung und jede Art
+        der Verwertung des geistigen Eigentums in ideeller und materieller Sicht des
+        Urhebers außerhalb der Grenzen des Urheberrechtes bedürfen der vorherigen
+        schriftlichen Zustimmung des jeweiligen Urhebers i.S.d. Urhebergesetzes. Downloads
+        und Kopien dieser Seite sind nur für den privaten und nicht kommerziellen
+        Gebrauch erlaubt. Sind die Inhalte auf unserer Webseite nicht von uns erstellt
+        worden, sind die Urheberrechte Dritter zu beachten. Die Inhalte Dritter werden
+        als solche kenntlich gemacht. Sollten Sie trotzdem auf eine Urheberrechtsverletzung
+        aufmerksam werden, bitten wir um einen entsprechenden Hinweis. Bei Bekanntwerden
+        von Rechtsverletzungen werden wir derartige Inhalte unverzüglich entfernen.<\/p>\r\n","datenschutz":"<p><strong>Datenschutzerklärung<\/strong><\/p>\r\n\r\n<p>Der
+        Thüringer Billard-Verband e.V. nimmt den Schutz Ihrer persönlichen Daten sehr
+        ernst. Wir behandeln Ihre personenbezogenen Daten vertraulich und entsprechend
+        der gesetzlichen Datenschutzvorschriften sowie dieser Datenschutzerklärung.<\/p>\r\n\r\n<p>Diese
+        Webseite kann grundsätzlich ohne die Angabe personenbezogener Daten genutzt
+        werden. Es werden keine Cookies gesetzt, kein Kontaktformular angeboten und
+        keine Daten an andere Server oder externe Dienste übermittelt.<\/p>\r\n\r\n<p><strong>Verantwortlicher<\/strong><br>\r\nThüringer
+        Billard-Verband e.V.<br>\r\nAn der Trifft 5<br>\r\n36460 Kieselbach<br>\r\nTelefon:
+        036963 – 234 72 Büro<br>\r\nE-Mail: <a href=\"mailto:praesident@tbv-billard.de\">praesident@tbv-billard.de<\/a><br>\r\nWeb:
+        <a href=\"https:\/\/tbv-billard.de\">https:\/\/tbv-billard.de<\/a><\/p>\r\n\r\n<p><strong>Server-Log-Dateien<\/strong><br>\r\nDer
+        Provider der Seiten erhebt und speichert automatisch Informationen in sogenannten
+        Server-Log-Dateien, die Ihr Browser automatisch übermittelt. Dies sind insbesondere:<\/p>\r\n\r\n<ul>\r\n  <li>Browsertyp
+        und Browserversion<\/li>\r\n  <li>verwendetes Betriebssystem<\/li>\r\n  <li>Referrer
+        URL<\/li>\r\n  <li>Hostname des zugreifenden Rechners<\/li>\r\n  <li>Uhrzeit
+        der Serveranfrage<\/li>\r\n  <li>IP-Adresse (in gekürzter, anonymisierter
+        Form)<\/li>\r\n<\/ul>\r\n\r\n<p>Diese Daten sind nicht bestimmten Personen
+        zuordenbar. Eine Zusammenführung dieser Daten mit anderen Datenquellen wird
+        nicht vorgenommen. Die Erfassung der Daten erfolgt zur technischen Bereitstellung
+        und zur Gewährleistung der Sicherheit der Webseite. Eine Auswertung zu Marketingzwecken
+        findet nicht statt.<\/p>\r\n\r\n<p><strong>Personenbezogene Daten<\/strong><br>\r\nAuf
+        dieser Webseite werden keine personenbezogenen Daten erhoben, gespeichert
+        oder verarbeitet. Es findet keine Weitergabe von Daten an Dritte statt.<\/p>\r\n\r\n<p><strong>SSL-
+        bzw. TLS-Verschlüsselung<\/strong><br>\r\nDiese Seite nutzt aus Sicherheitsgründen
+        und zum Schutz der Übertragung vertraulicher Inhalte, wie z. B. Anfragen,
+        die Sie an uns als Seitenbetreiber senden, eine SSL- bzw. TLS-Verschlüsselung.
+        Eine verschlüsselte Verbindung erkennen Sie daran, dass die Adresszeile des
+        Browsers von „http:\/\/“ auf „https:\/\/“ wechselt und an dem Schloss-Symbol
+        in Ihrer Browserzeile.<\/p>\r\n\r\n<p><strong>Ihre Rechte<\/strong><br>\r\nSie
+        haben im Rahmen der geltenden gesetzlichen Bestimmungen das Recht auf:<\/p>\r\n\r\n<ul>\r\n  <li>Auskunft
+        über Ihre bei uns gespeicherten Daten,<\/li>\r\n  <li>Berichtigung unrichtiger
+        Daten,<\/li>\r\n  <li>Löschung Ihrer Daten, sofern keine gesetzlichen Aufbewahrungspflichten
+        bestehen,<\/li>\r\n  <li>Einschränkung der Verarbeitung,<\/li>\r\n  <li>Widerspruch
+        gegen die Verarbeitung sowie<\/li>\r\n  <li>Datenübertragbarkeit.<\/li>\r\n<\/ul>\r\n\r\n<p>Hierzu
+        sowie zu weiteren Fragen zum Thema personenbezogene Daten können Sie sich
+        jederzeit unter der oben angegebenen Adresse an uns wenden.<\/p>\r\n\r\n<p><strong>Beschwerderecht
+        bei der Aufsichtsbehörde<\/strong><br>\r\nIm Falle datenschutzrechtlicher
+        Verstöße steht Ihnen ein Beschwerderecht bei der zuständigen Aufsichtsbehörde
+        zu. Zuständig ist der <a href=\"https:\/\/www.tlfdi.de\/\" target=\"_blank\"
+        rel=\"noopener noreferrer\">Thüringer Landesbeauftragte für den Datenschutz
+        und die Informationsfreiheit (TLfDI)<\/a>.<\/p>\r\n\r\n<p><strong>Änderungen
+        dieser Datenschutzerklärung<\/strong><br>\r\nWir behalten uns vor, diese Datenschutzerklärung
+        gelegentlich anzupassen, um sie an aktuelle rechtliche Anforderungen oder
+        technische Änderungen anzupassen. Es gilt die jeweils aktuelle, auf dieser
+        Seite veröffentlichte Fassung.<\/p>\r\n\r\n<p>Stand: Oktober 2025<\/p>","created_at":"2025-06-23
+        17:16:15","logo_url":"\/uploads\/associations\/logos\/logo-1.png"}'
+  recorded_at: Tue, 14 Jul 2026 15:58:17 GMT
+recorded_with: VCR 6.4.0

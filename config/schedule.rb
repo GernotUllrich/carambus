@@ -98,6 +98,13 @@ every 1.day, at: "4:00 am", roles: [:api] do
   rake "scrape:daily_update_monitored"
 end
 
+# Phase 12 (v0.4 TBV-Cutover): Laufender TBV-Import aus dem LigaManager (ligen.billard.center).
+# Ersetzt den CC-Scrape für TBV (TBV aus Region::SHORTNAMES_OTHERS/SHORTNAMES_CC entfernt).
+# ARMED, association_id=1/region 16, Zielsaison = Season.current_season. Slot 03:30 (vor 04:00-CC-Pull).
+every 1.day, at: "3:30 am", roles: [:api] do
+  rake "liga_manager:daily_import"
+end
+
 # ============================================================================
 # PHASE 21 CLUBCLOUD-ADMIN-SCRAPING (Plan 21-06 Slice E + 21-08 Region-Generalisierung)
 # ============================================================================

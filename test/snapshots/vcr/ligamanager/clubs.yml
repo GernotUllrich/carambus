@@ -1,0 +1,107 @@
+---
+http_interactions:
+- request:
+    method: get
+    uri: https://ligen.billard.center/api/clubs/public?association_id=1&page=1
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - application/json
+      User-Agent:
+      - Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML,
+        like Gecko) Chrome/120 Safari/537.36
+      Host:
+      - ligen.billard.center
+      Referer:
+      - https://ligen.billard.center/landesverband-thueringen
+      Origin:
+      - https://ligen.billard.center
+      X-Requested-With:
+      - XMLHttpRequest
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Date:
+      - Tue, 14 Jul 2026 15:58:17 GMT
+      Server:
+      - Apache
+      Expires:
+      - Thu, 19 Nov 1981 08:52:00 GMT
+      Cache-Control:
+      - no-store, no-cache, must-revalidate
+      Pragma:
+      - no-cache
+      Access-Control-Allow-Origin:
+      - https://ligen.billard.center
+      Access-Control-Allow-Methods:
+      - GET, POST, PUT, DELETE, OPTIONS
+      Access-Control-Allow-Headers:
+      - Content-Type, Authorization, X-Requested-With, X-CSRF-Token
+      Access-Control-Allow-Credentials:
+      - 'true'
+      Access-Control-Max-Age:
+      - '86400'
+      Set-Cookie:
+      - PHPSESSID=31ac669b636fcf6a1fbce46b0b6f6402; path=/
+      X-Xss-Protection:
+      - 1; mode=block
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Content-Security-Policy:
+      - default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';
+        img-src 'self' data:; font-src 'self'
+      Upgrade:
+      - h2
+      Connection:
+      - Upgrade
+      Transfer-Encoding:
+      - chunked
+      Content-Type:
+      - application/json; charset=utf-8
+    body:
+      encoding: UTF-8
+      string: '{"success":true,"message":"Vereine (öffentlich) erfolgreich abgerufen","data":{"data":[{"id":11,"association_id":1,"name":"1.
+        BC BlackPool Eisenach e.V.","short_name":"","city":"Eisenach","logo":"club_11.jpg","address":"Goethestraße
+        25","postal_code":"99817","email":"","web":"https://www.bc-black-pool-eisenach.de","asso_no":"1562"},{"id":3,"association_id":1,"name":"1.
+        BC Heiligenstadt","short_name":"","city":"Heiligenstadt","logo":"club_3.jpg","address":"Tilmann-Riemenschneider-Str.
+        4a","postal_code":"37308","email":"heiligenstadt-1.bc@tbv-billard.de","web":null,"asso_no":"1546"},{"id":4,"association_id":1,"name":"1.
+        BC Neustadt (Orla)","short_name":"","city":"Neustadt an der Orla","logo":"club_4.jpg","address":"Mühlstraße
+        20b","postal_code":"07806","email":"billardbernd@gmail.com","web":null,"asso_no":"1547"},{"id":5,"association_id":1,"name":"1.
+        Erfurter BC","short_name":"","city":"","logo":"club_5.jpg","address":"","postal_code":"","email":"","web":null,"asso_no":"1550"},{"id":6,"association_id":1,"name":"1.
+        PBC Erfurt e.V.","short_name":"","city":"Erfurt","logo":"club_6.jpg","address":"Magdeburger
+        Allee 111","postal_code":"99086","email":"pbc.erfurt@gmail.com","web":null,"asso_no":"1552"},{"id":7,"association_id":1,"name":"1.
+        PBC Gera","short_name":"","city":"Gera","logo":"club_7.jpg","address":"Zwötzener
+        Straße 35","postal_code":"07551","email":"info@pbcgera.de","web":null,"asso_no":"1553"},{"id":8,"association_id":1,"name":"1.
+        PBC Merkers e.V.","short_name":"","city":"Krayenberggemeinde","logo":"club_8.jpg","address":"Frankfurter
+        Straße 42","postal_code":"36460","email":"merkers-1.pbc@tbv-billard.de","web":"https://pbc-merkers.de","asso_no":"1554"},{"id":20,"association_id":1,"name":"BV
+        Werratal","short_name":"","city":"Schmalkalden","logo":"club_20.jpg","address":"Am
+        Bahnhof 22a","postal_code":"98574","email":"schulz-management@gmx.de","web":null,"asso_no":"3085"},{"id":13,"association_id":1,"name":"Chemie
+        Gotha","short_name":"","city":"Gotha","logo":"club_13.jpg","address":"Damaschkestraße
+        33","postal_code":"99867","email":"gotha-chemie@tbv-billard.de","web":null,"asso_no":"1564"},{"id":9,"association_id":1,"name":"Gothaer
+        Sportverein","short_name":"","city":"","logo":"club_9.jpg","address":"","postal_code":"","email":"","web":null,"asso_no":"1557"},{"id":2,"association_id":1,"name":"PM
+        Erfurt","short_name":"","city":"","logo":"club_2.jpg","address":"","postal_code":"","email":"","web":null,"asso_no":"1545"},{"id":10,"association_id":1,"name":"Sparta
+        Ilmenau","short_name":"","city":"Ilmenau","logo":"club_10.jpg","address":"Unterpörlitzer
+        Straße 32b","postal_code":"98693","email":"","web":"","asso_no":"1558"},{"id":12,"association_id":1,"name":"SV
+        1883 Schwarza e.V.","short_name":"","city":"Rudolstadt","logo":"club_12.jpg","address":"SV
+        1883 Schwarza e.V. / Abt. Billard, Erich- Corrensring 22b","postal_code":"07407","email":"sv-schwarza.billard@lutzthiel.com","web":null,"asso_no":"1563"},{"id":19,"association_id":1,"name":"SV
+        Green Table Apolda e.V.","short_name":"","city":"Apolda","logo":"club_19.jpg","address":"Weilandstrasse
+        7","postal_code":"99510","email":"info-greentableapolda@web.de","web":"","asso_no":"2760"},{"id":14,"association_id":1,"name":"SV
+        Haselbach e.V","short_name":"","city":"Haselbach","logo":"club_14.jpg","address":"Nordstraße
+        11a","postal_code":"04617","email":"uwekahnt72@gmail.com","web":"https://sv-haselbach.de/","asso_no":"1566"},{"id":15,"association_id":1,"name":"SV
+        Sömmerda","short_name":"","city":"","logo":"club_15.jpg","address":"","postal_code":"","email":"","web":null,"asso_no":"1567"},{"id":16,"association_id":1,"name":"TuS
+        Weida","short_name":"","city":"","logo":"club_16.jpg","address":"","postal_code":"","email":"","web":"","asso_no":"1568"},{"id":17,"association_id":1,"name":"USV
+        Jena","short_name":"","city":"Jena","logo":"club_17.jpg","address":"Jahnstrasse
+        8 (Zugang über Parkplatz auf Höhe der Kegelbahn)","postal_code":"07743","email":"","web":"","asso_no":"1569"},{"id":18,"association_id":1,"name":"ZSG
+        Waltershausen","short_name":"","city":"","logo":"club_18.jpg","address":"","postal_code":"","email":"","web":"","asso_no":"1571"}],"total":19,"per_page":25,"current_page":1,"last_page":1,"from":1,"to":19}}'
+  recorded_at: Tue, 14 Jul 2026 15:58:17 GMT
+recorded_with: VCR 6.4.0
