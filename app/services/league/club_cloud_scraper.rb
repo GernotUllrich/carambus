@@ -307,6 +307,21 @@ class League::ClubCloudScraper < ApplicationService
     end
   end
 
+  # Robustes Datums-Parsing für CC-Spielplan-Zellen. `DateTime.parse` ist zu lax und erzeugt bei malformten
+  # Zellen stille Garbage-Datteln: "21.02.206"→0206-02-21, "21.02.20"→2021, "9.1.1"→2009, "21.2."→HEUTE,
+  # "01.01.1970"→1970. Wir extrahieren nur ein echtes DD.MM.YYYY (+optional HH:MM) mit 4-stelligem, plausiblem
+  # Jahr (2000..2100) — alles andere → nil (statt Garbage, das dann als Party-Datum landet).
+  def parse_cc_datetime(raw)
+    s = raw.to_s.gsub("<br>", " ").gsub(" Uhr", "")
+    m = s.match(/(\d{1,2})\.(\d{1,2})\.(\d{4})(?:[^\d]+(\d{1,2}):(\d{2}))?/)
+    return nil unless m
+    return nil unless m[3].to_i.between?(2000, 2100)
+
+    DateTime.parse("#{m[1]}.#{m[2]}.#{m[3]} #{m[4] || "00"}:#{m[5] || "00"}")
+  rescue
+    nil
+  end
+
   def parse_parties(league_doc, url)
     header = []
     # Liga ohne Teams (z.B. Relegation): parse_teams returnt früh und setzt @league_teams_cache NICHT
@@ -369,11 +384,7 @@ class League::ClubCloudScraper < ApplicationService
           next if tr.css("td").count < 8
 
           day_seqno = tr.css("td")[0 + shift].text.to_i
-          date = begin
-            DateTime.parse(tr.css("td")[1 + shift].inner_html.gsub("<br>", " ").gsub(" Uhr", ""))
-          rescue
-            nil
-          end
+          date = parse_cc_datetime(tr.css("td")[1 + shift].inner_html)
           league_team_a_name = tr.css("td")[2 + shift].text.strip
           league_team_a = @league_teams_cache.find { |lt| lt.name == league_team_a_name }
           league_team_b_name = tr.css("td")[6 + shift].text.strip
@@ -391,11 +402,7 @@ class League::ClubCloudScraper < ApplicationService
           end
           next if tr.css("td").count < 8 # Zeile ohne vollständige HEIM/Erg./GAST-Spalten (spielfrei/Trenner)
           day_seqno = tr.css("td")[shift + 0].text.to_i
-          date = begin
-            DateTime.parse(tr.css("td")[shift + 1].inner_html.gsub("<br>", " ").gsub(" Uhr", ""))
-          rescue
-            nil
-          end
+          date = parse_cc_datetime(tr.css("td")[shift + 1].inner_html)
           league_team_a_name = tr.css("td")[shift + 2].text.strip
           league_team_a = @league_teams_cache.find { |lt| lt.name == league_team_a_name }
           league_team_b_name = tr.css("td")[shift + 6].text.strip

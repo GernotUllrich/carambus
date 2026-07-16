@@ -58,4 +58,17 @@ class League::ClubCloudScraperTest < ActiveSupport::TestCase
       League::ClubCloudScraper.call(league: league, league_details: true)
     end
   end
+
+  # Robustes Datums-Parsing: valide DD.MM.YYYY parsen, malformte Zellen → nil (kein stilles Garbage-Datum,
+  # das früher als Party-Datum landete: "21.02.206"→0206, "21.2."→heute, "01.01.1970"→1970 usw.)
+  test "parse_cc_datetime parses valid dates and rejects malformed cells" do
+    s = League::ClubCloudScraper.new
+    assert_equal "2026-02-21 20:00",
+      s.send(:parse_cc_datetime, "21.02.2026<br>20:00 Uhr").strftime("%Y-%m-%d %H:%M")
+    assert_equal "2025-11-01 00:00",
+      s.send(:parse_cc_datetime, "Sa, 01.11.2025").strftime("%Y-%m-%d %H:%M")
+    ["21.02.206", "21.02.20", "9.1.1", "21.2.", "01.01.1970", "31.13.2026", "Termin folgt", ""].each do |bad|
+      assert_nil s.send(:parse_cc_datetime, bad), "#{bad.inspect} sollte nil ergeben (kein Garbage-Datum)"
+    end
+  end
 end
