@@ -1,4 +1,5 @@
 class IonModulesController < ApplicationController
+  before_action :system_admin_only
   before_action :set_ion_module, only: %i[show edit update destroy]
 
   # GET /ion_modules

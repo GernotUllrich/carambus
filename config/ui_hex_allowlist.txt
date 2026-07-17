@@ -1,0 +1,35 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# UI-Hex-Guardrail — Allowlist (bewusst out of scope der Hex→Token-Migration).
+#
+# Eine Zeile = ein Pattern. Ein Pattern matcht, wenn es als Substring im
+# relativen Pfad einer sonst geprüften Datei vorkommt. `#`-Kommentare und
+# Leerzeilen werden ignoriert. Gelesen von lib/ui_hex_guard.rb.
+#
+# Diese Bereiche dürfen hartkodierte Farben behalten (Kiosk/Print/Vendor/
+# Spezial-Widgets, die NICHT der Token-Ästhetik folgen). Nur hier eintragen,
+# wenn eine Datei GENUINE aus dem Redesign-Scope fällt — nicht, um eine
+# unbequeme Migration zu umgehen.
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Scoreboard (Kiosk-Anzeige, eigene Vollbild-Ästhetik)
+scoreboard_
+/scoreboard
+
+# Turnier-Wizard (eigenständiges Standalone-Styling)
+tournament_wizard.css
+
+# Spezial-Komponenten-CSS (Vendor-nah / Print / Eingabegeräte)
+components/braintree.css
+components/game_protocol_print.css
+components/game_protocol_modal.css
+components/trix.css
+components/virt_keyboard.css
+
+# Spielleiter-Chat + Druck-Views
+spielleiter_chat
+/print
+
+# Vendor-CSS (Third-Party-Widgets)
+flatpickr
+tippy
+tom-select

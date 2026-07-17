@@ -4,6 +4,41 @@
 module ApplicationHelper
   include Pagy::Frontend
 
+  # Date-only-Anzeige (TT.MM.JJJJ) fuer Datetime-/Date-Werte; nil -> nil (Aufrufer blendet dann aus).
+  def format_date(value)
+    return if value.nil?
+
+    l(value.to_date, format: :default)
+  rescue StandardError
+    value.to_s
+  end
+
+  # Rendert JSON/Hash-Werte lesbar als eingerueckten monospace-Block (Beautifier).
+  # Akzeptiert einen JSON-String, ein Hash/Array oder nil. nil-/parse-sicher:
+  #  - nil/leer            -> dezenter "—"-Hinweis
+  #  - JSON-String         -> geparst + pretty-generiert
+  #  - Hash/Array          -> pretty-generiert
+  #  - nicht-parsbar/Fehler -> Rohwert als Block (kein Crash)
+  def pretty_json(value)
+    return content_tag(:span, "—", class: "text-gray-400 dark:text-gray-500") if value.nil? || (value.respond_to?(:empty?) && value.empty?)
+
+    parsed =
+      if value.is_a?(String)
+        JSON.parse(value)
+      else
+        value
+      end
+    content_tag(:pre, JSON.pretty_generate(parsed),
+                class: "text-xs font-mono whitespace-pre overflow-x-auto rounded-md p-3 " \
+                       "bg-surface-page dark:bg-gray-900 text-gray-800 dark:text-gray-200 " \
+                       "border border-gray-200 dark:border-gray-700")
+  rescue StandardError
+    content_tag(:pre, value.to_s,
+                class: "text-xs font-mono whitespace-pre-wrap break-words overflow-x-auto rounded-md p-3 " \
+                       "bg-surface-page dark:bg-gray-900 text-gray-800 dark:text-gray-200 " \
+                       "border border-gray-200 dark:border-gray-700")
+  end
+
   # Generates button tags for Turbo disable with
   # Preserve opacity-25 opacity-75 during purge
   def button_text(text = nil, disable_with: t("processing"), &block)
@@ -59,6 +94,46 @@ module ApplicationHelper
     tag.div(text, **options, &block)
   end
 
+  # Neutraler Region-/Organizer-Badge fuer Zeilen-Listen (Redesign Mockup #5 .as-badge).
+  # Zeigt das Kuerzel (Region#shortname), umrandet und dezent; nie eingefaerbt.
+  # Aussagekraeftige "Heimat"-Region eines Spielers fuer den Zeilen-Badge: bei national/global
+  # registrierten Spielern (Region mit global_context-Spalte = true, z.B. DBU) die Region des
+  # Saison-Clubs bevorzugen — "DBU" hat keinen regionalen Bezug. Fallback = eigene (registrierte)
+  # Region (z.B. bei vereinslos). ACHTUNG: die Spalte `global_context` lesen, NICHT `global_context?`
+  # (RegionTaggable#global_context? ist eine semantische Methode, fuer Region immer false).
+  def player_home_region(player, season_club)
+    reg = player.region
+    return reg unless reg&.global_context
+    season_club&.region || reg
+  end
+
+  def region_badge(region)
+    return if region.blank?
+
+    shortname = region.respond_to?(:shortname) ? region.shortname : region.to_s
+    return if shortname.blank?
+
+    content_tag(:span, shortname,
+      class: "inline-flex items-center rounded-md border border-gray-200 dark:border-gray-700 px-2 py-0.5 text-xs text-gray-500 dark:text-gray-400")
+  end
+
+  # True auf Scoreboard-/Kiosk-Seiten (out-of-scope des Redesigns): Table-Monitor-Scoreboard,
+  # sb_state-Kiosk auf einer Location, oder angemeldeter scoreboard@carambus.de-User mit sb_state.
+  # Single Source fuer: kein Scope-Band, Sidebar beim Aktivieren eingeklappt, kein Chat-Button.
+  def scoreboard_page?
+    scoreboard_user = current_user&.email == "scoreboard@carambus.de" ||
+                      Current.user&.email == "scoreboard@carambus.de"
+    (scoreboard_user && params[:sb_state].present?) ||
+      @table_monitor.present? ||
+      (@location.present? && params[:sb_state].present?)
+  end
+
+  # H47: /international-Seiten (International/Tournaments/Videos) liegen außerhalb der
+  # DE-Regionen → das Scope-Band (Region·Saison·Branch) filtert dort nichts und wird ausgeblendet.
+  def international_page?
+    controller_path.to_s.start_with?("international")
+  end
+
   def title(page_title)
     content_for(:title) { page_title }
   end
@@ -76,7 +151,8 @@ module ApplicationHelper
   def markdown(text)
     return unless text
 
-    renderer = Redcarpet::Render::HTML.new(
+    # ExternalLinkRenderer: externe Links öffnen in neuem Tab (User-Wunsch 2026-06-14).
+    renderer = ExternalLinkRenderer.new(
       filter_html: true,
       hard_wrap: true
     )
@@ -90,14 +166,6 @@ module ApplicationHelper
 
     markdown = Redcarpet::Markdown.new(renderer, extensions)
     markdown.render(text).html_safe
-  end
-
-  # Helper method for creating links to documentation pages
-  def docs_page_link(path, locale: nil, text: nil, options: {})
-    text ||= path.humanize
-    locale ||= I18n.locale.to_s
-    
-    link_to text, docs_page_path(path: path, locale: locale), options
   end
 
   def custom_link_to(*args, &block)
@@ -136,7 +204,7 @@ module ApplicationHelper
     locale ||= I18n.locale.to_s
     text ||= path.split('/').last.humanize
     
-    link_to text, docs_page_path(path: path, locale: locale), options
+    link_to text, docs_page_with_locale_path(locale: locale, path: path), options
   end
 
   # Hilfsmethode für lokale MkDocs-Links.
@@ -198,7 +266,17 @@ module ApplicationHelper
       
       # Determine field key (for form name attribute)
       field_key = determine_field_key(display_name, column_def)
-      
+
+      # Scope-Band-Redundanz (02-04): Region/Saison besitzt jetzt das globale Scope-Band.
+      # Aus dem Popup entfernen -- ausser das Modell nutzt die Facette als AKTIVEN Kaskaden-Trigger
+      # (nicht-leere Kinder), dann bleibt sie, damit die abhaengige Dropdown-Kaskade nicht bricht.
+      # (Tournament#season_id ist eine kinderlose Kaskade -> wird entfernt; Player#region_id -> ['club_id'] bleibt.)
+      # Disziplin bleibt bewusst (feiner als Branch = Within-Scope-Verfeinerung, kein Band-Pendant).
+      if %w[region_id season_id].include?(field_key)
+        cascade_children = model_class.respond_to?(:cascading_filters) ? model_class.cascading_filters[field_key] : nil
+        next if cascade_children.blank?
+      end
+
       max_options = options.is_a?(Array) ? options.length : nil
       
       # Get examples and description from model if available

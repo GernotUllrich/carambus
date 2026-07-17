@@ -104,7 +104,7 @@ class PartyMonitor < ApplicationRecord
   end
 
   def data=(val)
-    write_attribute(:data, val.to_hash)
+    write_attribute(:data, val&.to_hash)
   end
 
   def reset_party_monitor
@@ -207,6 +207,54 @@ class PartyMonitor < ApplicationRecord
     data = party.league.game_plan.data
     ix = data["rows"].find_index { |row| row[:seqno] == seqno && row[:type] == type }
     ix.present? ? data["rows"][ix][key] : nil
+  end
+
+  # Direkt-Abschluss-Naht (Phase 48-03 / K-2): Vollständigkeits-Guard + game_points/match_points
+  # + result-Write + close_party!. Extrahiert aus party_monitor_reflex#close_party (382-418), damit
+  # Reflex UND der 48-04-REST-Endpoint dieselbe testbare Logik teilen. Konvention Index1 = team_a.
+  # Caller stellt den Zustand party_result_checking_mode sicher (close_party! AASM-gated).
+  # Rückgabe: {ok: true, result: {...}} bei Erfolg; {ok: false, missing_gnames: [...]} wenn ein
+  # Spiel fehlt/noch nicht beendet ist (KEIN Transition).
+  def close_with_result!(event: :close_party)
+    missing = missing_game_gnames
+    return {ok: false, missing_gnames: missing} if missing.present?
+
+    game_points = party.intermediate_result
+    result = {"game_points" => game_points.join(":"), "match_points" => match_points_for(game_points).join(":")}
+    deep_merge_data!(result: result)
+    save
+    public_send("#{event}!")
+    {ok: true, result: result}
+  end
+
+  # match_points-Paar [a,b] aus game_points + data["match_points"] (win/draw/lost). Konvention Index1=team_a.
+  # Vom Web-Reflex (über close_with_result!) UND vom Party-REST-Endpoint (48-04, intermediate_result-Response) genutzt.
+  def match_points_for(game_points)
+    mp = data["match_points"] || {}
+    [
+      (if game_points[0] > game_points[1]
+         mp["win"]
+       else
+         (game_points[0] == game_points[1]) ? mp["draw"] : mp["lost"]
+       end),
+      (if game_points[1] > game_points[0]
+         mp["win"]
+       else
+         (game_points[1] == game_points[0]) ? mp["draw"] : mp["lost"]
+       end)
+    ]
+  end
+
+  # gname-Liste der Spielzeilen, deren Game fehlt oder noch nicht beendet ist (ended_at leer).
+  # Für den Vollständigkeits-Guard von close_with_result! (und den 409 in 48-04).
+  def missing_game_gnames
+    Array(data["rows"]).filter_map do |row|
+      next unless Party::GAME_ROW_TYPES.include?(row["type"])
+
+      gname = "#{row["seqno"]}-#{row["type"]}"
+      game = party.games.find_by(gname: gname)
+      gname if game.nil? || game.ended_at.blank?
+    end
   end
 
   private

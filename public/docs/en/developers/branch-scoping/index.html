@@ -1,0 +1,3965 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Comprehensive documentation for Carambus - Professional billiards tournament management system">
+      
+      
+      
+        <link rel="canonical" href="https://GernotUllrich.github.io/carambus/en/developers/branch-scoping/">
+      
+      
+      
+      
+      <link rel="icon" href="../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.15">
+    
+    
+      
+        <title>Branch Tagging & Scope Band - Carambus Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.342714a4.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../../stylesheets/extra.css">
+    
+      <link rel="stylesheet" href="../../../stylesheets/print.css">
+    
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#branch-tagging-scope-band" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../" title="Carambus Documentation" class="md-header__button md-logo" aria-label="Carambus Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Carambus Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Branch Tagging &amp; Scope Band
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+      <div class="md-header__option">
+  <div class="md-select">
+    
+    <button class="md-header__button md-icon" aria-label="Select language">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"/></svg>
+    </button>
+    <div class="md-select__inner">
+      <ul class="md-select__list">
+        
+          <li class="md-select__item">
+            <a href="../../../developers/branch-scoping/" hreflang="de" class="md-select__link">
+              Deutsch
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="./" hreflang="en" class="md-select__link">
+              English
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</div>
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/GernotUllrich/carambus" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GernotUllrich/carambus
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../decision-makers/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Decision Makers
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../players/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Players
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../managers/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Managers
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../administrators/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Administrators
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Developers
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../reference/api/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../about/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  About
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../" title="Carambus Documentation" class="md-nav__button md-logo" aria-label="Carambus Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Carambus Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/GernotUllrich/carambus" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GernotUllrich/carambus
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../decision-makers/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Decision Makers
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2" id="__nav_2_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Decision Makers
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../decision-makers/executive-summary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Executive Summary
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../decision-makers/features-overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Features Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../decision-makers/deployment-options/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Deployment Options
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../players/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Players
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3" id="__nav_3_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Players
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../players/scoreboard-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Scoreboard Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../players/tournament-participation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Tournament Participation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../players/ai-search/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    AI-Powered Search
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../managers/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Managers
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_4" id="__nav_4_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            Managers
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../managers/tournament-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Tournament Management
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../managers/tournament-quick-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Tournament Quick Reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../managers/league-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    League Management
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../managers/single-tournament/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Single Tournament
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../managers/table-reservation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Table Reservation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../managers/admin-roles/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Admin Roles
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../managers/clubcloud-integration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    ClubCloud Integration
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_9" id="__nav_4_9_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    ClubCloud MCP
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_9">
+            <span class="md-nav__icon md-icon"></span>
+            ClubCloud MCP
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../managers/clubcloud-mcp-cloud-quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Cloud Quickstart
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../managers/clubcloud-mcp-setup-service/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Setup Service
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../managers/external-tournament-bridge/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    External Tournament Bridge
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_11" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_11" id="__nav_4_11_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    ClubCloud Scenarios
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_11_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_11">
+            <span class="md-nav__icon md-icon"></span>
+            ClubCloud Scenarios
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../managers/clubcloud-scenarios/cc-glossary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    CC Glossary
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../managers/clubcloud-scenarios/cc-roles/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    CC Roles
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../managers/clubcloud-scenarios/endrangliste-eintragen/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Endrangliste eintragen
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../managers/clubcloud-scenarios/player-anlegen/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Player anlegen
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../managers/clubcloud-scenarios/teilnehmerliste-finalisieren/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Teilnehmerliste finalisieren
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../managers/search-filters/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Search & Filters
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../administrators/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Administrators
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5" id="__nav_5_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            Administrators
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../administrators/installation-overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Installation Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../administrators/raspberry-pi-quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Raspberry Pi Quickstart
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../administrators/raspberry-pi-client/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Raspberry Pi Client
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../administrators/scoreboard-autostart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Scoreboard Autostart
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../administrators/server-architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Server Architecture
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../administrators/email-configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Email Configuration
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../administrators/database-setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Database Setup
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../administrators/streaming-quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    YouTube Streaming Quickstart
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../administrators/streaming-setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    YouTube Streaming Setup
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Developers
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_6" id="__nav_6_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            Developers
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Getting Started
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../developer-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Developer Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../database-design/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Database Design
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../er-diagram/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    ER Diagram
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../scenario-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Scenario Management
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../scenario-workflow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Scenario Workflow
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rubymine-setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    RubyMine Setup
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_6_9" id="__nav_6_9_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Testing
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6_9">
+            <span class="md-nav__icon md-icon"></span>
+            Testing
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../testing/testing-quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Testing Quickstart
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../testing/fixture-collection-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Fixture Collection Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6_10" >
+        
+          
+          <label class="md-nav__link" for="__nav_6_10" id="__nav_6_10_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    UMB Scraping
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_10_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6_10">
+            <span class="md-nav__icon md-icon"></span>
+            UMB Scraping
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../umb-scraping-implementation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    UMB Scraping Implementation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../umb-scraping-methods/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    UMB Scraping Methods
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6_11" >
+        
+          
+          <label class="md-nav__link" for="__nav_6_11" id="__nav_6_11_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    ClubCloud MCP
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_11_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6_11">
+            <span class="md-nav__icon md-icon"></span>
+            ClubCloud MCP
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../clubcloud-mcp-server/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Server-Handbuch
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../mcp-architektur-naht/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Architektur-Naht (Identität/Autorisierung)
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../per-user-cc-identitaet/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Per-User-ClubCloud-Identität
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../clubcloud-mcp-workflow-scenarios/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Workflow-Scenarios
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../external-tournament-bridge/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    External Tournament Bridge
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6_13" >
+        
+          
+          <label class="md-nav__link" for="__nav_6_13" id="__nav_6_13_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Services
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_13_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6_13">
+            <span class="md-nav__icon md-icon"></span>
+            Services
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../services/table-monitor/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Table Monitor
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../services/region-cc/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Region CC
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../services/tournament/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Tournament
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../services/tournament-monitor/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Tournament Monitor
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../services/league/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    League
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../services/party-monitor/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Party Monitor
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../services/umb/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    UMB Services
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../services/video-crossref/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Video Cross-Reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../frontend-sti-migration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Frontend STI Migration
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rake-tasks-debugging/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Testing & Debugging
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../deployment-workflow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Deployment Workflow
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../developers/overcommit-hooks.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Overcommit Hooks (MkDocsBuild)
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../data-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Data Management
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../database-partitioning/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Database Partitioning
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../paper-trail-optimization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Paper Trail Optimization
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../game-plan-reconstruction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Game Plan Reconstruction
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tournament-duplicate-handling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Tournament Duplicates
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../region-tagging-cleanup-summary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Region Tagging
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../streaming-architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    YouTube Streaming Architecture
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../pool-scoreboard-changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Pool Scoreboard Changelog
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../deployment-checklist/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Deployment Checklist Production
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../umb-deployment-checklist/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    UMB Deployment Checklist
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Reference
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            Reference
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    API
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/glossary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Glossary
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/terms/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Terms
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/privacy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Privacy
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/config-lock-files/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Config Lock Files
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/search/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Search
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/mkdocs_documentation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    MkDocs
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    About
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            About
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../about/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    About
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-purpose-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Purpose / Overview
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-branchtaggable-concern" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. BranchTaggable Concern
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. BranchTaggable Concern">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#deriving-branch_id" class="md-nav__link">
+    <span class="md-ellipsis">
+      Deriving branch_id
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#includers" class="md-nav__link">
+    <span class="md-ellipsis">
+      Includers
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#deliberately-lean-design-no-papertrail" class="md-nav__link">
+    <span class="md-ellipsis">
+      Deliberately lean design (no PaperTrail)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#backfill-of-global-records-historical-note-gotcha" class="md-nav__link">
+    <span class="md-ellipsis">
+      Backfill of global records — historical note (gotcha)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-scopable-concern-the-scope-band" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Scopable Concern (the Scope Band)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Scopable Concern (the Scope Band)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#scope_facets-facet-fk-column" class="md-nav__link">
+    <span class="md-ellipsis">
+      SCOPE_FACETS — facet → FK column
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#request-wiring" class="md-nav__link">
+    <span class="md-ellipsis">
+      Request wiring
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-no-all-except-branch-rule" class="md-nav__link">
+    <span class="md-ellipsis">
+      The "No All except Branch" rule
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#defaults-scoperesolver" class="md-nav__link">
+    <span class="md-ellipsis">
+      Defaults (ScopeResolver)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scope_extra_facet-which-3rd-facet-does-the-band-show" class="md-nav__link">
+    <span class="md-ellipsis">
+      scope_extra_facet — which 3rd facet does the band show?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#drill-down-mode-drill_focus_keys" class="md-nav__link">
+    <span class="md-ellipsis">
+      Drill-down mode (DRILL_FOCUS_KEYS)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#currentscope-currentdrill" class="md-nav__link">
+    <span class="md-ellipsis">
+      Current.scope / Current.drill
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#application-by-searchservice-fk-filter" class="md-nav__link">
+    <span class="md-ellipsis">
+      Application by SearchService (FK filter)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#option-sources-for-the-band-view" class="md-nav__link">
+    <span class="md-ellipsis">
+      Option sources for the band view
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-relation-to-regiontaggable" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. Relation to RegionTaggable
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-db-columns-rake-backfill-tasks" class="md-nav__link">
+    <span class="md-ellipsis">
+      5. DB columns &amp; rake backfill tasks
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. DB columns &amp; rake backfill tasks">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#migration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Migration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      Schema
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rake-backfill-tasks" class="md-nav__link">
+    <span class="md-ellipsis">
+      Rake backfill tasks
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-gotchas" class="md-nav__link">
+    <span class="md-ellipsis">
+      6. Gotchas
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="branch-tagging-scope-band">Branch Tagging &amp; Scope Band<a class="headerlink" href="#branch-tagging-scope-band" title="Permanent link">&para;</a></h1>
+<h2 id="1-purpose-overview">1. Purpose / Overview<a class="headerlink" href="#1-purpose-overview" title="Permanent link">&para;</a></h2>
+<p>The <strong>Scope Band</strong> is a global, session-persistent slice of the data along
+several facets — <strong>Region</strong>, <strong>Season</strong>, <strong>Branch</strong> (billiard discipline family)
+and, context-sensitively, <strong>Club</strong>. It answers the question "which slice of the
+world is this user currently looking at?" and applies it as a <strong>foreign-key
+filter</strong> to the index lists (tournaments, leagues, players …).</p>
+<p>Two building blocks make up the subsystem:</p>
+<ul>
+<li><strong><code>BranchTaggable</code></strong> (model concern) — derives a <code>branch_id</code> from a record's
+  discipline (Pool/Snooker/Karambol/Kegel), analogous to <code>region_id</code>. The column
+  lives on <code>tournaments</code> and <code>leagues</code>.</li>
+<li><strong><code>Scopable</code></strong> (controller concern) — holds Region/Season/Branch/Club as a
+  session scope, exposes them via <code>Current.scope</code>, and has <code>SearchService</code> apply
+  them as an FK filter.</li>
+</ul>
+<p><strong>Core design decision — no leak into the search box:</strong> The scope is applied
+<strong>separately</strong> from the full-text user search (<code>params[:sSearch]</code>). The band
+filters over real FK columns (<code>region_id</code>, <code>season_id</code>, <code>discipline_id</code> …); it
+never touches the user's search string. "Choose a slice" and "search within the
+slice" stay two independent axes.
+(Source: <code>app/controllers/concerns/scopable.rb:1-13</code>,
+<code>app/services/search_service.rb:51-52</code>.)</p>
+<p><strong>"No All" — with one exception:</strong> Region and Season are <strong>always</strong> a concrete
+value (there is no "All Regions" state). Only <strong>Branch</strong> (and the
+context-sensitive Club facet) may be empty, meaning "All Branches" / "All Clubs".
+Branch is genuinely cross-cutting, and (still) unclassified disciplines
+(<code>branch_id = nil</code>) would slip through the grid if a choice were forced.
+(Source: <code>scopable.rb:8-13</code>.)</p>
+<hr />
+<h2 id="2-branchtaggable-concern">2. <code>BranchTaggable</code> Concern<a class="headerlink" href="#2-branchtaggable-concern" title="Permanent link">&para;</a></h2>
+<p>File: <code>app/models/concerns/branch_taggable.rb</code></p>
+<h3 id="deriving-branch_id">Deriving <code>branch_id</code><a class="headerlink" href="#deriving-branch_id" title="Permanent link">&para;</a></h3>
+<p>The concern registers exactly one callback and three methods:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">included</span><span class="w"> </span><span class="k">do</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="n">before_save</span><span class="w"> </span><span class="ss">:set_branch_id</span><span class="p">,</span><span class="w"> </span><span class="k">if</span><span class="p">:</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">will_save_change_to_discipline_id?</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">branch_id</span><span class="o">.</span><span class="n">nil?</span><span class="w"> </span><span class="p">}</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="k">end</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="k">def</span><span class="w"> </span><span class="nf">find_associated_branch_id</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">  </span><span class="n">root</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">discipline</span><span class="o">&amp;.</span><span class="n">root</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">  </span><span class="n">root</span><span class="o">.</span><span class="n">is_a?</span><span class="p">(</span><span class="no">Branch</span><span class="p">)</span><span class="w"> </span><span class="p">?</span><span class="w"> </span><span class="n">root</span><span class="o">.</span><span class="n">id</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="kp">nil</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="k">end</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="k">def</span><span class="w"> </span><span class="nf">set_branch_id</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="w">  </span><span class="nb">self</span><span class="o">.</span><span class="n">branch_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">find_associated_branch_id</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="k">end</span>
+</code></pre></div>
+<p>(Source: <code>branch_taggable.rb:9-22</code>.)</p>
+<ul>
+<li><code>discipline.root</code> walks the <code>super_discipline</code> chain up to the tree root
+  (<code>app/models/discipline.rb:585-587</code>).</li>
+<li>If the root is a <strong><code>Branch</code></strong> (Pool/Snooker/Karambol/Kegel), its <code>id</code> is set;
+  otherwise <code>nil</code> (e.g. a discipline not yet rooted under a Branch — the code's
+  own example: 10-Ball until the authority-tree fix).</li>
+<li>The callback fires only when <code>discipline_id</code> changed <strong>or</strong> when <code>branch_id</code> is
+  still <code>nil</code> — it does not recompute on every save.</li>
+</ul>
+<h3 id="includers">Includers<a class="headerlink" href="#includers" title="Permanent link">&para;</a></h3>
+<p>Only two models carry the column and the concern:</p>
+<ul>
+<li><code>Tournament</code> — <code>app/models/tournament.rb:65</code></li>
+<li><code>League</code> — <code>app/models/league.rb:37</code></li>
+</ul>
+<h3 id="deliberately-lean-design-no-papertrail">Deliberately lean design (no PaperTrail)<a class="headerlink" href="#deliberately-lean-design-no-papertrail" title="Permanent link">&para;</a></h3>
+<p>Unlike <code>RegionTaggable</code>, <code>BranchTaggable</code> runs <strong>no</strong> version/PaperTrail
+machinery. There are no <code>after_save</code>/<code>after_destroy</code> callbacks that back-tag
+versions — only the live <code>branch_id</code> column. The concern is deliberately minimal
+(<code>branch_taggable.rb:3-5</code>).</p>
+<h3 id="backfill-of-global-records-historical-note-gotcha">Backfill of global records — historical note (gotcha)<a class="headerlink" href="#backfill-of-global-records-historical-note-gotcha" title="Permanent link">&para;</a></h3>
+<blockquote>
+<p><strong>Caution — stale comment in the code.</strong> The header comment in
+<code>branch_taggable.rb:5</code> references a backfill task
+<code>lib/tasks/branch_taggings.rake</code>. <strong>That file no longer exists</strong> — it was
+removed in commit <code>56e67264</code> (Phase 17 17-03, "Branch facet scope band on
+discipline.root", SB-2).</p>
+</blockquote>
+<p>The original approach was an <code>update_all</code> backfill over <code>discipline.root</code>
+(bypassing <code>LocalProtector</code>, because <code>update_all</code> fires no callbacks). It was
+abandoned because it fundamentally cannot work reliably for <strong>synced global
+records</strong> (<code>id &lt; MIN_ID</code>):</p>
+<ol>
+<li>The version apply writes attributes via <code>update_columns</code> — which bypasses the
+   <code>BranchTaggable</code> <code>before_save</code>, so <code>branch_id</code> is not populated.</li>
+<li><code>LocalProtector</code> then locks any re-save of global records on local servers.</li>
+<li>→ <code>branch_id</code> stays <strong>NULL</strong> on synced global records.</li>
+</ol>
+<p>Therefore the scope band resolves the Branch facet <strong>at query time</strong> via
+<code>discipline.root</code> instead of querying the (empty-on-global-records) <code>branch_id</code>
+column — see section 3 and <code>Branch.discipline_ids_for</code>
+(<code>app/models/branch.rb:22-58</code>). The <code>branch_id</code> column <em>is</em> populated on the
+authority via the <code>before_save</code> during normal saves and serves as a derived
+dimension there; but for filtering it is <strong>not</strong> the source of truth.</p>
+<hr />
+<h2 id="3-scopable-concern-the-scope-band">3. <code>Scopable</code> Concern (the Scope Band)<a class="headerlink" href="#3-scopable-concern-the-scope-band" title="Permanent link">&para;</a></h2>
+<p>File: <code>app/controllers/concerns/scopable.rb</code>.
+Included into <code>ApplicationController</code> (<code>app/controllers/application_controller.rb:21</code>).</p>
+<h3 id="scope_facets-facet-fk-column"><code>SCOPE_FACETS</code> — facet → FK column<a class="headerlink" href="#scope_facets-facet-fk-column" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="no">SCOPE_FACETS</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="s2">&quot;region&quot;</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="s2">&quot;region_id&quot;</span><span class="p">,</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span><span class="s2">&quot;season&quot;</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="s2">&quot;season_id&quot;</span><span class="p">,</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">  </span><span class="s2">&quot;branch&quot;</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="s2">&quot;branch_id&quot;</span><span class="p">,</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">  </span><span class="s2">&quot;club&quot;</span><span class="w">   </span><span class="o">=&gt;</span><span class="w"> </span><span class="s2">&quot;club_id&quot;</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="p">}</span><span class="o">.</span><span class="n">freeze</span>
+</code></pre></div>
+<p>(Source: <code>scopable.rb:19-24</code>.) <code>club</code> is the context-sensitive 3<sup>rd</sup> facet for
+models with <code>scope_extra_facet == :club</code> (Player) and is filtered via a join.</p>
+<h3 id="request-wiring">Request wiring<a class="headerlink" href="#request-wiring" title="Permanent link">&para;</a></h3>
+<p><code>ApplicationController</code> queues two before_actions
+(<code>application_controller.rb:42-43</code>):</p>
+<ol>
+<li><strong><code>capture_scope</code></strong> — reads <code>params[:scope]</code> and merges the values into
+   <code>session[:scope]</code>. Values are concrete IDs (no "All"). On a real change it
+   additionally calls <code>persist_scope_preference</code> (<code>scopable.rb:47-60</code>).</li>
+<li><strong><code>set_current_scope</code></strong> — places the resolved FK scope into <code>Current.scope</code>,
+   which <code>SearchService</code> consumes per request (<code>scopable.rb:79-94</code>).</li>
+</ol>
+<p><strong>Write-back to user preferences:</strong> Logged-in users remember their slice across
+sessions in <code>preferences["scope"]</code>. Cleared facets ("All Branches") are removed
+from the preference so the default kicks in again. The write is fault-tolerant —
+a failed preference write never aborts the request (<code>scopable.rb:65-76</code>).</p>
+<h3 id="the-no-all-except-branch-rule">The "No All except Branch" rule<a class="headerlink" href="#the-no-all-except-branch-rule" title="Permanent link">&para;</a></h3>
+<p>The concrete default/empty rules live in <code>ScopeResolver</code> (defaults section below).
+For the band:</p>
+<ul>
+<li><strong>Region, Season:</strong> always concrete. Fallback chain Session → Preference →
+  server context (Region only) → default.</li>
+<li><strong>Branch, Club:</strong> may stay empty (<code>nil</code>), meaning "All Branches"/"All Clubs" —
+  in which case <strong>no</strong> filter is set for that facet.</li>
+</ul>
+<h3 id="defaults-scoperesolver">Defaults (<code>ScopeResolver</code>)<a class="headerlink" href="#defaults-scoperesolver" title="Permanent link">&para;</a></h3>
+<p>File: <code>app/services/scope_resolver.rb</code>. The resolver is a pure derivation from
+session + user and is used by both the HTTP controller (<code>Scopable</code>) <strong>and</strong> the
+<code>SearchReflex</code> (ActionCable live search) — so the default rules exist in a single
+place (<code>scope_resolver.rb:1-12</code>, <code>app/reflexes/search_reflex.rb:44</code>).</p>
+<ul>
+<li><strong>Region</strong> (<code>scope_resolver.rb:32-34</code>): Session → Preference → server-context
+  region → <strong>NBV</strong> (by <code>shortname</code>, else first Region; <code>scope_resolver.rb:76-78</code>).
+  Regional servers set the region from the server context
+  (<code>Carambus.config.context</code> = region shortname, <code>scope_resolver.rb:68-73</code>); the
+  global server uses the NBV default.</li>
+<li><strong>Season</strong> (<code>scope_resolver.rb:37-39</code>): Session → Preference → current season;
+  during the <strong>season transition</strong> (today ≤ Aug 15 of the start year) the
+  <strong>previous season</strong> is the default (<code>scope_resolver.rb:82-98</code>).
+  <code>season_transition?</code> reports this state for a discreet band hint
+  (<code>scope_resolver.rb:53-55</code>).</li>
+<li><strong>Branch</strong> (<code>scope_resolver.rb:42-44</code>): Session → Preference; otherwise <code>nil</code> =
+  "All Branches". A set branch preference is respected as the default.</li>
+<li><strong>Club</strong> (<code>scope_resolver.rb:47-49</code>): analogous to Branch.</li>
+</ul>
+<p><code>fk_scope</code> builds the hash <code>{ "region_id" =&gt; …, "season_id" =&gt; …, "branch_id" =&gt;
+…, "club_id" =&gt; … }</code> and <strong>removes <code>nil</code> values via <code>compact</code></strong> — empty facets
+thus produce no filter (<code>scope_resolver.rb:22-29</code>).</p>
+<h3 id="scope_extra_facet-which-3rd-facet-does-the-band-show"><code>scope_extra_facet</code> — which 3<sup>rd</sup> facet does the band show?<a class="headerlink" href="#scope_extra_facet-which-3rd-facet-does-the-band-show" title="Permanent link">&para;</a></h3>
+<p>Besides Region and Season, the band shows a context-dependent third facet. It
+follows the current controller model via the class method <code>scope_extra_facet</code>
+(<code>scopable.rb:207-215</code>):</p>
+<table>
+<thead>
+<tr>
+<th>Model</th>
+<th><code>scope_extra_facet</code></th>
+<th>Source</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Default (<code>ApplicationRecord</code>)</td>
+<td><code>:branch</code></td>
+<td><code>application_record.rb:50-52</code></td>
+</tr>
+<tr>
+<td><code>Player</code></td>
+<td><code>:club</code></td>
+<td><code>player.rb:42-44</code></td>
+</tr>
+<tr>
+<td><code>Club</code></td>
+<td><code>:none</code></td>
+<td><code>club.rb:54-56</code></td>
+</tr>
+<tr>
+<td><code>Location</code></td>
+<td><code>:none</code></td>
+<td><code>location.rb:90-92</code></td>
+</tr>
+</tbody>
+</table>
+<p>For an unknown controller, <code>scope_extra_facet</code> defensively falls back to
+<code>:branch</code> (<code>scopable.rb:213-215</code>).</p>
+<h3 id="drill-down-mode-drill_focus_keys">Drill-down mode (<code>DRILL_FOCUS_KEYS</code>)<a class="headerlink" href="#drill-down-mode-drill_focus_keys" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="no">DRILL_FOCUS_KEYS</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="sx">%w[tournament_id league_id club_id party_id]</span><span class="o">.</span><span class="n">freeze</span>
+</code></pre></div>
+<p>(Source: <code>scopable.rb:30</code>.) The drill-down is the generalization of the former
+<code>region_focus</code>: an <strong>ephemeral arrival context</strong> from <code>params[:drill] =
+{ &lt;parent_fk&gt; =&gt; &lt;id&gt; }</code> that narrows the child list to a parent (e.g. "show the
+leagues of this club").</p>
+<ul>
+<li>The <strong>allowlist</strong> <code>DRILL_FOCUS_KEYS</code> prevents <strong>column injection</strong>: only these
+  four FK columns land in the drill context (<code>scopable.rb:101-114</code>).</li>
+<li>An active drill replaces the scope band with <strong>breadcrumbs</strong>
+  (<code>drill_focus_crumbs</code>, <code>scopable.rb:122-147</code>) and is kept <strong>separate</strong> from the
+  scope band: <code>set_current_scope</code> sets <code>Current.drill</code> and empties <code>Current.scope</code>
+  (<code>scopable.rb:80-86</code>).</li>
+<li>The drill writes <strong>nothing</strong> to the session (ephemeral).</li>
+</ul>
+<p>A <strong>temporary region focus</strong> (<code>params[:region_focus]</code>, from <code>regions/show</code>) is a
+separate, also ephemeral param with <strong>higher priority</strong> than the persistent band
+value: it overrides <code>region_id</code> for this request only, without changing
+<code>session[:scope]</code> (<code>scopable.rb:88-92</code>, <code>scopable.rb:160-176</code>).</p>
+<h3 id="currentscope-currentdrill"><code>Current.scope</code> / <code>Current.drill</code><a class="headerlink" href="#currentscope-currentdrill" title="Permanent link">&para;</a></h3>
+<p><code>Current</code> (<code>app/models/current.rb</code>) is an <code>ActiveSupport::CurrentAttributes</code> with,
+among others, two attributes:</p>
+<ul>
+<li><strong><code>Current.scope</code></strong> — the scope band's FK filter hash, set per request
+  (<code>current.rb:8</code>).</li>
+<li><strong><code>Current.drill</code></strong> — the ephemeral parent FK of the drill-down, kept
+  <strong>separate</strong> from the scope band so <code>SearchService</code> filters it directly
+  (<code>where(fk =&gt; id)</code>) rather than running the facet special logic (club_id join)
+  (<code>current.rb:12</code>).</li>
+</ul>
+<h3 id="application-by-searchservice-fk-filter">Application by <code>SearchService</code> (FK filter)<a class="headerlink" href="#application-by-searchservice-fk-filter" title="Permanent link">&para;</a></h3>
+<p>File: <code>app/services/search_service.rb</code>. In <code>call</code>, the service invokes
+<code>apply_scope</code> first, then <code>apply_drill</code> — <strong>before</strong> the full-text search
+(<code>search_service.rb:22-28</code>).</p>
+<p><strong><code>apply_scope</code></strong> (<code>search_service.rb:57-113</code>):</p>
+<ol>
+<li>If <code>Current.scope</code> is empty → return unchanged (<code>:59</code>).</li>
+<li><strong>Column-injection allowlist:</strong> models can exempt themselves entirely via
+   <code>scope_exempt?</code> (picker lists like <code>Region</code>) → early return (<code>:61</code>,
+   <code>region.rb:136</code>). Otherwise each facet is applied only if the model actually
+   carries the column (<code>cols.include?(col)</code>, <code>:95</code>).</li>
+<li><strong>Club</strong> (<code>:72-83</code>): join-based and season-bound. Only models with a
+   <code>season_participations</code> association (Player) are filtered
+   (<code>joins(:season_participations).where(club_id:, season_id:)</code>, distinct); other
+   models ignore the Club facet.</li>
+<li><strong>Branch</strong> (<code>:88-93</code>): The <code>branch_id</code> column is <strong>not</strong> queried (NULL on
+   global records, SB-2). Instead resolution over the discipline subtree:
+   <code>where(discipline_id: Branch.discipline_ids_for(value))</code>. Models without
+   <code>discipline_id</code> ignore the Branch facet (behavior-neutral).</li>
+<li><strong>Region</strong> (<code>:97-110</code>): Strict models (<code>scope_region_strict? == true</code>:
+   Location/Player/Club) show only their own <code>region_id</code>. Non-strict models
+   (leagues/tournaments) additionally include <code>global_context = TRUE</code>
+   (cross-region records, e.g. DBU leagues).</li>
+</ol>
+<p><strong><code>apply_drill</code></strong> (<code>search_service.rb:38-49</code>): filters each present drill FK
+directly via <code>where(col =&gt; value)</code> — defensively only for columns the model
+carries.</p>
+<p><code>Branch.discipline_ids_for(branch_id)</code> (<code>app/models/branch.rb:32-58</code>) returns all
+discipline <code>id</code>s whose tree root is that Branch (including the Branch <code>id</code>
+itself). It builds a process-wide memoized tree index once (<code>ids_by_root</code>, one
+<code>pluck</code>, no N+1 root walk); <code>reset_discipline_ids_cache!</code> forces recomputation.
+The tree only changes via sync/scrape, so the cache is rebuilt on code reload
+(dev) or deploy/restart (prod).</p>
+<h3 id="option-sources-for-the-band-view">Option sources for the band view<a class="headerlink" href="#option-sources-for-the-band-view" title="Permanent link">&para;</a></h3>
+<p>All option helpers return <code>[label, id]</code> pairs (values = IDs, no "All"):</p>
+<ul>
+<li><code>scope_region_options</code> — all regions except <code>UNKNOWN</code>, by shortname
+  (<code>scopable.rb:269-271</code>).</li>
+<li><code>scope_season_options</code> — real "yyyy/yyyy+1" names from 2009 up to
+  current year + 2, descending (<code>scopable.rb:275-280</code>).</li>
+<li><code>scope_branch_options</code> — <code>Branch.order(:name)</code> (<code>scopable.rb:282-284</code>).</li>
+<li><code>scope_club_options</code> — clubs of the current scope region, label
+  <code>COALESCE(shortname, name)</code>, nameless stubs omitted (<code>scopable.rb:289-295</code>).</li>
+</ul>
+<hr />
+<h2 id="4-relation-to-regiontaggable">4. Relation to <code>RegionTaggable</code><a class="headerlink" href="#4-relation-to-regiontaggable" title="Permanent link">&para;</a></h2>
+<p><code>BranchTaggable</code> is deliberately built as a <strong>lean analogue</strong> of <code>RegionTaggable</code>
+(<code>app/models/concerns/region_taggable.rb</code>). Commonality: both derive an FK
+dimension from the record and feed it into the scope filter. The differences:</p>
+<table>
+<thead>
+<tr>
+<th>Aspect</th>
+<th><code>RegionTaggable</code></th>
+<th><code>BranchTaggable</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Derived column</td>
+<td><code>region_id</code> (+ <code>global_context</code>)</td>
+<td><code>branch_id</code></td>
+</tr>
+<tr>
+<td>Derivation logic</td>
+<td><code>find_associated_region_id</code> — big <code>case</code> over model class <strong>and</strong> <code>tournament_type</code>; returns a <strong>single</strong> ID (<code>region_taggable.rb:11-53</code>)</td>
+<td><code>find_associated_branch_id</code> — only <code>discipline.root</code>, one branch (<code>branch_taggable.rb:15-18</code>)</td>
+</tr>
+<tr>
+<td>Version/PaperTrail tagging</td>
+<td>yes — <code>after_save</code>/<code>after_destroy :update_version_region_data</code>, tags versions for region sync (<code>region_taggable.rb:7-8</code>, <code>:123-143</code>)</td>
+<td><strong>no</strong> — live column only, no version machinery</td>
+</tr>
+<tr>
+<td><code>global_context</code></td>
+<td>yes — <code>global_context?</code> marks cross-region records (<code>region_taggable.rb:55-79</code>)</td>
+<td>no</td>
+</tr>
+<tr>
+<td>Includers</td>
+<td>16 models (Region, Club, Tournament, League, Party, Player, Game, …)</td>
+<td>2 models (Tournament, League)</td>
+</tr>
+<tr>
+<td>Backfill task</td>
+<td><code>lib/tasks/region_taggings.rake</code> (exists, curated)</td>
+<td>removed — query-time resolution via <code>discipline.root</code></td>
+</tr>
+</tbody>
+</table>
+<p>The former <code>find_associated_region_ids</code> (array) was simplified to a <strong>single</strong> ID
+(<code>find_associated_region_id</code>); see
+<a href="../region-tagging-cleanup-summary/"><code>region-tagging-cleanup-summary.en.md</code></a>.
+<code>BranchTaggable</code> adopted this lean form from the start — plus the omission of the
+version machinery.</p>
+<p><strong>Filter asymmetry in <code>SearchService</code>:</strong> <code>region_id</code> is filtered directly as a
+column (with a <code>global_context</code> OR for non-strict models). <code>branch_id</code>, by
+contrast, is <strong>never</strong> filtered as a column but always resolved via
+<code>discipline.root</code> — precisely because of the NULL problem on synced global
+records (section 2).</p>
+<hr />
+<h2 id="5-db-columns-rake-backfill-tasks">5. DB columns &amp; rake backfill tasks<a class="headerlink" href="#5-db-columns-rake-backfill-tasks" title="Permanent link">&para;</a></h2>
+<h3 id="migration">Migration<a class="headerlink" href="#migration" title="Permanent link">&para;</a></h3>
+<p><code>db/migrate/20260702061649_add_branch_id_to_tournaments_and_leagues.rb</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">disable_ddl_transaction!</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="n">add_column</span><span class="w"> </span><span class="ss">:tournaments</span><span class="p">,</span><span class="w"> </span><span class="ss">:branch_id</span><span class="p">,</span><span class="w"> </span><span class="ss">:integer</span><span class="w"> </span><span class="k">unless</span><span class="w"> </span><span class="n">column_exists?</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="n">add_column</span><span class="w"> </span><span class="ss">:leagues</span><span class="p">,</span><span class="w">     </span><span class="ss">:branch_id</span><span class="p">,</span><span class="w"> </span><span class="ss">:integer</span><span class="w"> </span><span class="k">unless</span><span class="w"> </span><span class="n">column_exists?</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="n">add_index</span><span class="w">  </span><span class="ss">:tournaments</span><span class="p">,</span><span class="w"> </span><span class="ss">:branch_id</span><span class="p">,</span><span class="w"> </span><span class="ss">algorithm</span><span class="p">:</span><span class="w"> </span><span class="ss">:concurrently</span><span class="w"> </span><span class="k">unless</span><span class="w"> </span><span class="o">...</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="n">add_index</span><span class="w">  </span><span class="ss">:leagues</span><span class="p">,</span><span class="w">     </span><span class="ss">:branch_id</span><span class="p">,</span><span class="w"> </span><span class="ss">algorithm</span><span class="p">:</span><span class="w"> </span><span class="ss">:concurrently</span><span class="w"> </span><span class="k">unless</span><span class="w"> </span><span class="o">...</span>
+</code></pre></div>
+<p>Derived FK dimension analogous to <code>region_id</code>: <strong>nullable</strong>, <strong>no</strong> FK constraint
+(Discipline is global), index concurrently (strong_migrations).</p>
+<h3 id="schema">Schema<a class="headerlink" href="#schema" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>tournaments.branch_id</code> (integer) + <code>index_tournaments_on_branch_id</code>
+  (<code>db/schema.rb:1462</code>, <code>:1464</code>).</li>
+<li><code>leagues.branch_id</code> (integer) + <code>index_leagues_on_branch_id</code>
+  (<code>db/schema.rb:542</code>, <code>:544</code>).</li>
+</ul>
+<h3 id="rake-backfill-tasks">Rake backfill tasks<a class="headerlink" href="#rake-backfill-tasks" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Branch:</strong> <strong>no active task.</strong> The former <code>lib/tasks/branch_taggings.rake</code>
+  (<code>namespace :branch_taggings</code>, task <code>update_all_branch_id</code>) was removed in
+  <code>56e67264</code> (see section 2). A backfill of global records is not possible; the
+  band resolves the Branch facet at query time.</li>
+<li><strong>Region (analogue):</strong> <code>lib/tasks/region_taggings.rake</code> exists and is the
+  curated source of truth for DE tagging. Key tasks:</li>
+<li><code>region_taggings:update_all_region_id</code> — organic region derivation top-down
+    (Region → Club → SeasonParticipation → Player etc.).</li>
+<li><code>region_taggings:fix_international_organizer_context</code> — tags international
+    organizer regions as <code>global_context</code> (authority only, PaperTrail-tracked;
+    <code>ARMED=1</code> mutates). DRY-RUN by default.</li>
+<li>A <strong>recurrence guard</strong> (<code>guard_derivation_retag!</code>,
+    <code>region_taggings.rake:126-137</code>) locks the derivation-based re-tag tasks,
+    because <code>RegionTaggable#global_context?</code>/<code>#find_associated_region_id</code> are
+    incomplete and would silently tear down the curated global tagging. Override:
+    <code>FORCE_DERIVATION_RETAG=1</code>.</li>
+</ul>
+<hr />
+<h2 id="6-gotchas">6. Gotchas<a class="headerlink" href="#6-gotchas" title="Permanent link">&para;</a></h2>
+<ol>
+<li>
+<p><strong><code>branch_id = nil</code> for unclassified disciplines.</strong> Disciplines whose tree root
+   is (still) not a <code>Branch</code> yield <code>find_associated_branch_id == nil</code>
+   (<code>branch_taggable.rb:15-18</code>). Such records carry no Branch and appear only in
+   the "All Branches" state. This is the reason for the "No All except Branch"
+   exception (<code>scopable.rb:11-13</code>).</p>
+</li>
+<li>
+<p><strong>The <code>branch_id</code> column is NOT the filter source.</strong> On synced global records
+   (<code>id &lt; MIN_ID</code>), <code>branch_id</code> stays NULL (update_columns during version apply
+   bypasses the <code>before_save</code>, <code>LocalProtector</code> locks the re-save).
+   <code>SearchService</code> therefore <strong>never</strong> queries <code>branch_id</code> but resolves via
+   <code>Branch.discipline_ids_for</code> / <code>discipline.root</code> (<code>search_service.rb:88-93</code>).
+   Anyone using the column for their own query must know this gap.</p>
+</li>
+<li>
+<p><strong>Stale backfill reference in the concern comment.</strong> <code>branch_taggable.rb:5</code>
+   names <code>lib/tasks/branch_taggings.rake</code> — the file no longer exists (removed in
+   <code>56e67264</code>). No backfill present.</p>
+</li>
+<li>
+<p><strong>Global vs. regional server — region default.</strong> Regional servers set the
+   default region from <code>Carambus.config.context</code> (region shortname). The global
+   server (empty context) falls back to <strong>NBV</strong> (currently the only region in real
+   use; <code>scope_resolver.rb:31-34</code>, <code>:66-78</code>). DBU is simply a selectable region,
+   not a special state.</p>
+</li>
+<li>
+<p><strong>Season transition shifts the default.</strong> Until Aug 15 of the current season's
+   start year, the <strong>previous season</strong> is the season default (final
+   results/rankings are settled, the new season is still being planned;
+   <code>scope_resolver.rb:82-98</code>). <code>scope_season_transition?</code> signals this for the band
+   hint.</p>
+</li>
+<li>
+<p><strong>Region-strict vs. non-strict models.</strong> For <code>region_id</code> filtering, strict
+   models (Player/Club/Location, <code>scope_region_strict? == true</code>) show <strong>only</strong>
+   their own region; <code>global_context</code> there is a sync-retention marker and is
+   never shown. Non-strict models (tournaments/leagues) include
+   <code>global_context = TRUE</code> (<code>search_service.rb:97-110</code>, <code>player.rb:49</code>,
+   <code>club.rb:61</code>, <code>location.rb:97</code>).</p>
+</li>
+<li>
+<p><strong><code>SearchReflex</code> bypasses the controller before_actions.</strong> The ActionCable
+   live search does not run through <code>set_current_scope</code>. It sets <code>Current.scope</code>
+   itself via the same <code>ScopeResolver</code> (<code>search_reflex.rb:44</code>) — otherwise the
+   scope would be <code>nil</code> in the live search.</p>
+</li>
+</ol>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        <div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/GernotUllrich/carambus" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="http://www.billardclub-wedel.de/" target="_blank" rel="noopener" title="www.billardclub-wedel.de" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M352 256c0 22.2-1.2 43.6-3.3 64H163.4c-2.2-20.4-3.3-41.8-3.3-64s1.2-43.6 3.3-64h185.3c2.2 20.4 3.3 41.8 3.3 64m28.8-64h123.1c5.3 20.5 8.1 41.9 8.1 64s-2.8 43.5-8.1 64H380.8c2.1-20.6 3.2-42 3.2-64s-1.1-43.4-3.2-64m112.6-32H376.7c-10-63.9-29.8-117.4-55.3-151.6 78.3 20.7 142 77.5 171.9 151.6zm-149.1 0H167.7c6.1-36.4 15.5-68.6 27-94.7 10.5-23.6 22.2-40.7 33.5-51.5C239.4 3.2 248.7 0 256 0s16.6 3.2 27.8 13.8c11.3 10.8 23 27.9 33.5 51.5 11.6 26 20.9 58.2 27 94.7m-209 0H18.6c30-74.1 93.6-130.9 172-151.6-25.5 34.2-45.3 87.7-55.3 151.6M8.1 192h123.1c-2.1 20.6-3.2 42-3.2 64s1.1 43.4 3.2 64H8.1C2.8 299.5 0 278.1 0 256s2.8-43.5 8.1-64m186.6 254.6c-11.6-26-20.9-58.2-27-94.6h176.6c-6.1 36.4-15.5 68.6-27 94.6-10.5 23.6-22.2 40.7-33.5 51.5-11.2 10.7-20.5 13.9-27.8 13.9s-16.6-3.2-27.8-13.8c-11.3-10.8-23-27.9-33.5-51.5zM135.3 352c10 63.9 29.8 117.4 55.3 151.6-78.4-20.7-142-77.5-172-151.6zm358.1 0c-30 74.1-93.6 130.9-171.9 151.6 25.5-34.2 45.2-87.7 55.3-151.6h116.7z"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "../../..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.expand", "navigation.indexes", "search.suggest", "search.highlight", "header.autohide", "toc.follow"], "search": "../../../assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../../../assets/javascripts/bundle.56ea9cef.min.js"></script>
+      
+        <script src="../../../javascripts/mathjax.js"></script>
+      
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+        <script src="https://unpkg.com/mermaid@10/dist/mermaid.min.js"></script>
+      
+        <script src="../../../javascripts/mermaid-init.js"></script>
+      
+    
+  </body>
+</html>

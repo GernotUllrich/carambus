@@ -1,4 +1,5 @@
 class DisciplineCcsController < ApplicationController
+  before_action :system_admin_only
   before_action :set_discipline_cc, only: %i[show edit update destroy]
 
   # GET /discipline_ccs

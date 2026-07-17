@@ -3,93 +3,94 @@
   <% source_lang = resource.source_language || 'de' %>
   <% show_source_block = !['de', 'en'].include?(source_lang) %>
   <% field_id = "#{resource.class.name.underscore}_#{resource.id || 'new'}_#{field_config[:name]}" %>
-  
-  <div class="multilingual-field-group">
-    <h4 class="multilingual-field-title">
+
+  <div class="multilingual-field-group my-6 p-5 rounded-lg shadow-sm bg-white dark:bg-gray-800">
+    <h4 class="multilingual-field-title mt-0 mb-4 pb-2 text-[1.1em] border-b-2 border-info-500 text-gray-800 dark:text-gray-100">
       <%= field_config[:label] || field_config[:name].to_s.humanize %>
       <% unless resource.translations_in_sync? %>
-        <span class="sync-warning" title="Übersetzungen nicht aktuell" style="color: #e74c3c; margin-left: 8px;">⚠️</span>
+        <span class="sync-warning text-danger-500 text-[1.2em] cursor-help ml-2" title="Übersetzungen nicht aktuell">⚠️</span>
       <% end %>
     </h4>
-    
+
     <%# Collapsible source block for non-DE/EN languages %>
     <% if show_source_block %>
-      <div class="source-block-container" style="margin-bottom: 15px;">
-        <button type="button" 
-                class="source-toggle-btn" 
-                onclick="toggleSource('<%= field_id %>')"
-                style="background: #95a5a6; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; width: 100%; text-align: left; font-weight: bold;">
-          <span id="<%= field_id %>_toggle_icon">▶</span> 
+      <div class="source-block-container mb-4 p-2.5 rounded-md border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
+        <button type="button"
+                class="source-toggle-btn w-full text-left font-bold px-3 py-2 rounded border-0 cursor-pointer bg-gray-500 hover:bg-gray-600 text-white"
+                onclick="toggleSource('<%= field_id %>')">
+          <span id="<%= field_id %>_toggle_icon">▶</span>
           Quelle anzeigen (<%= source_lang.upcase %>)
         </button>
-        
-        <div id="<%= field_id %>_source" class="source-block" style="display: none; margin-top: 10px;">
-          <div class="language-field-box original-field">
-            <div class="language-label">
-              <span class="flag-emoji">
+
+        <div id="<%= field_id %>_source" class="source-block mt-2.5" style="display: none;">
+          <div class="language-field-box original-field p-4 rounded-md border-2 bg-warning-50 dark:bg-warning-900/30 border-warning-400">
+            <div class="language-label flex items-center gap-2 mb-2.5 text-[0.95em]">
+              <span class="flag-emoji text-[1.3em]">
                 <%= {'nl' => '🇳🇱', 'fr' => '🇫🇷'}[source_lang] || '🌐' %>
               </span>
               <strong>Quelle (<%= source_lang.upcase %>)</strong>
             </div>
-            
+
             <% if field_config[:type] == :text_area %>
-              <%= form.text_area field_config[:name], 
-                                rows: field_config[:rows] || 5, 
-                                class: "multilingual-textarea" %>
+              <%= form.text_area field_config[:name],
+                                rows: field_config[:rows] || 5,
+                                class: "multilingual-textarea w-full p-2.5 rounded border-2 border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-100 focus:border-info-500 focus:outline-none resize-y min-h-[100px]" %>
             <% else %>
-              <%= form.text_field field_config[:name], 
-                                 class: "multilingual-input" %>
+              <%= form.text_field field_config[:name],
+                                 class: "multilingual-input w-full p-2.5 rounded border-2 border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-100 focus:border-info-500 focus:outline-none" %>
             <% end %>
           </div>
         </div>
       </div>
     <% end %>
-    
-    <div class="multilingual-field-grid">
+
+    <div class="multilingual-field-grid grid gap-4 grid-cols-[repeat(auto-fit,minmax(300px,1fr))]">
       <%# German field %>
-      <div class="language-field-box <%= 'current-source' if source_lang == 'de' %>">
-        <div class="language-label">
-          <span class="flag-emoji">🇩🇪</span>
+      <% de_box = source_lang == 'de' ? 'bg-success-50 dark:bg-success-900/30 border-success-500' : 'bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-700' %>
+      <div class="language-field-box p-4 rounded-md border-2 <%= de_box %>">
+        <div class="language-label flex items-center gap-2 mb-2.5 text-[0.95em]">
+          <span class="flag-emoji text-[1.3em]">🇩🇪</span>
           <strong>Deutsch</strong>
           <% if source_lang == 'de' %>
-            <span class="badge-source">Quelle</span>
+            <span class="badge-source bg-success-600 text-white px-2 py-0.5 rounded-full text-[0.75em] font-bold">Quelle</span>
           <% else %>
-            <span class="badge-translated">übersetzt</span>
+            <span class="badge-translated bg-gray-500 text-white px-2 py-0.5 rounded-full text-[0.75em] font-bold">übersetzt</span>
           <% end %>
         </div>
-        
+
         <% if field_config[:type] == :text_area %>
-          <%= form.text_area source_lang == 'de' ? field_config[:name] : "#{field_config[:name]}_de", 
-                            rows: field_config[:rows] || 5, 
-                            class: "multilingual-textarea",
+          <%= form.text_area source_lang == 'de' ? field_config[:name] : "#{field_config[:name]}_de",
+                            rows: field_config[:rows] || 5,
+                            class: "multilingual-textarea w-full p-2.5 rounded border-2 border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-100 focus:border-info-500 focus:outline-none resize-y min-h-[100px]",
                             placeholder: source_lang == 'de' ? '' : 'Wird automatisch übersetzt' %>
         <% else %>
-          <%= form.text_field source_lang == 'de' ? field_config[:name] : "#{field_config[:name]}_de", 
-                             class: "multilingual-input",
+          <%= form.text_field source_lang == 'de' ? field_config[:name] : "#{field_config[:name]}_de",
+                             class: "multilingual-input w-full p-2.5 rounded border-2 border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-100 focus:border-info-500 focus:outline-none",
                              placeholder: source_lang == 'de' ? '' : 'Wird automatisch übersetzt' %>
         <% end %>
       </div>
-      
+
       <%# English field %>
-      <div class="language-field-box <%= 'current-source' if source_lang == 'en' %>">
-        <div class="language-label">
-          <span class="flag-emoji">🇬🇧</span>
+      <% en_box = source_lang == 'en' ? 'bg-success-50 dark:bg-success-900/30 border-success-500' : 'bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-700' %>
+      <div class="language-field-box p-4 rounded-md border-2 <%= en_box %>">
+        <div class="language-label flex items-center gap-2 mb-2.5 text-[0.95em]">
+          <span class="flag-emoji text-[1.3em]">🇬🇧</span>
           <strong>English</strong>
           <% if source_lang == 'en' %>
-            <span class="badge-source">Source</span>
+            <span class="badge-source bg-success-600 text-white px-2 py-0.5 rounded-full text-[0.75em] font-bold">Source</span>
           <% else %>
-            <span class="badge-translated">translated</span>
+            <span class="badge-translated bg-gray-500 text-white px-2 py-0.5 rounded-full text-[0.75em] font-bold">translated</span>
           <% end %>
         </div>
-        
+
         <% if field_config[:type] == :text_area %>
-          <%= form.text_area source_lang == 'en' ? field_config[:name] : "#{field_config[:name]}_en", 
-                            rows: field_config[:rows] || 5, 
-                            class: "multilingual-textarea",
+          <%= form.text_area source_lang == 'en' ? field_config[:name] : "#{field_config[:name]}_en",
+                            rows: field_config[:rows] || 5,
+                            class: "multilingual-textarea w-full p-2.5 rounded border-2 border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-100 focus:border-info-500 focus:outline-none resize-y min-h-[100px]",
                             placeholder: source_lang == 'en' ? '' : 'Auto-translated' %>
         <% else %>
-          <%= form.text_field source_lang == 'en' ? field_config[:name] : "#{field_config[:name]}_en", 
-                             class: "multilingual-input",
+          <%= form.text_field source_lang == 'en' ? field_config[:name] : "#{field_config[:name]}_en",
+                             class: "multilingual-input w-full p-2.5 rounded border-2 border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-100 focus:border-info-500 focus:outline-none",
                              placeholder: source_lang == 'en' ? '' : 'Auto-translated' %>
         <% end %>
       </div>
@@ -101,7 +102,7 @@
 function toggleSource(fieldId) {
   const sourceBlock = document.getElementById(fieldId + '_source');
   const toggleIcon = document.getElementById(fieldId + '_toggle_icon');
-  
+
   if (sourceBlock.style.display === 'none') {
     sourceBlock.style.display = 'block';
     toggleIcon.textContent = '▼';
@@ -111,134 +112,3 @@ function toggleSource(fieldId) {
   }
 }
 </script>
-
-<style>
-  .multilingual-field-group {
-    margin: 25px 0;
-    padding: 20px;
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-  }
-  
-  .multilingual-field-title {
-    margin: 0 0 15px 0;
-    color: #2c3e50;
-    font-size: 1.1em;
-    border-bottom: 2px solid #3498db;
-    padding-bottom: 8px;
-  }
-  
-  .multilingual-field-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 15px;
-  }
-  
-  .language-field-box {
-    background: #f8f9fa;
-    padding: 15px;
-    border-radius: 6px;
-    border: 2px solid #e9ecef;
-    transition: all 0.3s;
-  }
-  
-  .language-field-box:hover {
-    border-color: #667eea;
-    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.1);
-  }
-  
-  .language-field-box.original-field {
-    background: #fff3cd;
-    border-color: #ffc107;
-  }
-  
-  .language-field-box.current-source {
-    background: #d4edda;
-    border-color: #28a745;
-  }
-  
-  .language-label {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 10px;
-    font-size: 0.95em;
-  }
-  
-  .flag-emoji {
-    font-size: 1.3em;
-  }
-  
-  .sync-warning {
-    font-size: 1.2em;
-    cursor: help;
-  }
-  
-  .badge-source {
-    background: #28a745;
-    color: white;
-    padding: 2px 8px;
-    border-radius: 12px;
-    font-size: 0.75em;
-    font-weight: bold;
-  }
-  
-  .badge-translated {
-    background: #6c757d;
-    color: white;
-    padding: 2px 8px;
-    border-radius: 12px;
-    font-size: 0.75em;
-    font-weight: bold;
-  }
-  
-  .source-block-container {
-    background: #f8f9fa;
-    padding: 10px;
-    border-radius: 6px;
-    border: 1px solid #ddd;
-  }
-  
-  .source-toggle-btn:hover {
-    background: #7f8c8d !important;
-  }
-  
-  .source-block {
-    animation: slideDown 0.3s ease-out;
-  }
-  
-  @keyframes slideDown {
-    from {
-      opacity: 0;
-      transform: translateY(-10px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-  
-  .multilingual-input,
-  .multilingual-textarea {
-    width: 100%;
-    padding: 10px;
-    border: 2px solid #ddd;
-    border-radius: 4px;
-    font-size: 1em;
-    font-family: inherit;
-    transition: border-color 0.3s;
-  }
-  
-  .multilingual-input:focus,
-  .multilingual-textarea:focus {
-    border-color: #667eea;
-    outline: none;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
-  }
-  
-  .multilingual-textarea {
-    resize: vertical;
-    min-height: 100px;
-  }
-</style>

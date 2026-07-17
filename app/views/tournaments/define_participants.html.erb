@@ -2,8 +2,8 @@
   <div class="max-w-3xl mx-auto">
 
     <!-- LINK-03: Detailanleitung im Handbuch -->
-    <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg p-4 mb-6">
-      <p class="text-sm text-blue-900 dark:text-blue-200">
+    <div class="bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-700 rounded-lg p-4 mb-6">
+      <p class="text-sm text-primary-900 dark:text-primary-200">
         📖 <strong><%= t('tournaments.docs.form_help_prefix') %></strong>
         <%= mkdocs_link('managers/tournament-management', anchor: 'participants', text: t('tournaments.docs.form_help_link'), options: { class: 'underline font-medium' }) %>
       </p>
@@ -32,7 +32,7 @@
                 <%= check_box_tag "participate-#{team.id}", "1", seeding.present?, data: { reflex: "change->TournamentReflex#change_seeding", id: @tournament.id } %></td>
               <%- end %>
               <%= content_tag "td", id: "balls-wrapper-#{team.id}", class: "w-1/4", style: "text-align: right" do %>
-                <%= number_field_tag("balls-#{team.id}", seeding.andand.balls_goal, data: { reflex: "change->TournamentReflex#change_point_goal", id: @tournament.id }, style: "#{seeding.present? ? "" : "display: none"}") %>
+                <%= number_field_tag("balls-#{team.id}", seeding.andand.balls_goal, data: { reflex: "change->TournamentReflex#change_point_goal", id: @tournament.id }, style: "#{seeding.present? ? "" : "display: none"}", class: "form-control") %>
               <%- end %>
             </tr>
           <% end %>
@@ -187,7 +187,7 @@
                 <% if rank.present? && player_region.present? %>
                   <%= link_to rank,
                       ranking_path(player_region) + "#discipline-#{@tournament.discipline_id}",
-                      class: 'text-blue-600 dark:text-blue-200 hover:text-blue-800 underline',
+                      class: 'text-primary-600 dark:text-primary-200 hover:text-primary-800 underline',
                       title: t('tournaments.define_participants.rank_title', rank: rank, discipline: @tournament.discipline.name, region: player_region.shortname),
                       target: '_blank' %>
                 <% else %>
@@ -202,7 +202,7 @@
                 <%= number_field_tag("balls-#{player.id}", seeding.balls_goal,
                     data: { reflex: "change->TournamentReflex#change_point_goal", id: @tournament.id },
                     style: seeding.present? && seeding.state != 'no_show' ? "" : "display: none",
-                    class: "w-20 text-right") %>
+                    class: "form-control w-20 text-right") %>
               </td>
             </tr>
           <% end %>
@@ -221,12 +221,12 @@
               <td class="text-center text-gray-400">-</td>
               <td></td>
               <td></td>
-              <td class="text-gray-500"><%= player.fullname %></td>
+              <td class="text-gray-500 dark:text-gray-400"><%= player.fullname %></td>
               <td class="text-center">
                 <% if rank.present? && player_region.present? %>
                   <%= link_to rank,
                       ranking_path(player_region) + "#discipline-#{@tournament.discipline_id}",
-                      class: 'text-blue-600 dark:text-blue-200 hover:text-blue-800 underline text-sm',
+                      class: 'text-primary-600 dark:text-primary-200 hover:text-primary-800 underline text-sm',
                       title: t('tournaments.define_participants.rank_title', rank: rank, discipline: @tournament.discipline.name, region: player_region.shortname),
                       target: '_blank' %>
                 <% else %>
@@ -241,7 +241,7 @@
                 <%= number_field_tag("balls-#{player.id}", nil,
                     data: { reflex: "change->TournamentReflex#change_point_goal", id: @tournament.id },
                     style: "display: none",
-                    class: "w-20 text-right") %>
+                    class: "form-control w-20 text-right") %>
               </td>
             </tr>
           <% end %>
@@ -249,7 +249,7 @@
         </table>
 
         <!-- Sortier-Buttons -->
-        <div class="mt-6 p-4 bg-gray-50 dark:bg-gray-800 border border-gray-300 rounded">
+        <div class="mt-6 p-4 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded">
           <h4 class="font-semibold text-gray-900 dark:text-gray-200 mb-3"><%= t('tournaments.define_participants.sort_heading') %></h4>
           <div class="flex gap-3">
             <button class="btn btn-primary"
@@ -274,19 +274,19 @@
         
         <!-- Turnierpläne und Gruppenzuordnungen Vorschau -->
         <% if @participant_count > 0 && @proposed_discipline_tournament_plan.present? %>
-          <div class="mt-6 p-4 bg-blue-50 dark:bg-gray-800 border border-blue-200 rounded">
-            <h4 class="font-semibold text-blue-900 dark:text-blue-200 mb-3">
+          <div class="mt-6 p-4 bg-primary-50 dark:bg-gray-800 border border-primary-200 rounded">
+            <h4 class="font-semibold text-primary-900 dark:text-primary-200 mb-3">
               <%= t('tournaments.define_participants.possible_plans_heading', count: @participant_count) %>
             </h4>
 
             <!-- Vorgeschlagener Plan (aus Einladung oder automatisch) -->
-            <div class="mb-4 p-3 dark:bg-black bg-white border border-blue-300 rounded">
+            <div class="mb-4 p-3 dark:bg-black bg-white dark:bg-gray-800 border border-primary-300 rounded">
               <div class="flex items-center justify-between mb-2">
                 <div class="flex-1">
                   <% if @tournament.data['extracted_plan_info'].present? %>
                     <span class="text-sm font-semibold text-green-700"><%= t('tournaments.define_participants.from_invitation_label') %></span>
                   <% else %>
-                    <span class="text-sm font-semibold dark:text-blue-400 text-blue-700"><%= t('tournaments.define_participants.auto_suggested_label') %></span>
+                    <span class="text-sm font-semibold dark:text-primary-400 text-primary-700"><%= t('tournaments.define_participants.auto_suggested_label') %></span>
                   <% end %>
                   <span class="text-sm font-bold ml-2"><%= @proposed_discipline_tournament_plan.name %></span>
                   <% if @groups_source == :extracted_differs_from_nbv %>
@@ -297,32 +297,32 @@
                 </div>
                 <% rounds = @proposed_discipline_tournament_plan.rounds_count %>
                 <% if rounds.present? %>
-                  <span class="text-xs dark:bg-gray-800 bg-gray-100 dark:text-gray-100 text-gray-700 px-2 py-1 rounded ml-2">
+                  <span class="text-xs dark:bg-gray-800 bg-gray-100 dark:bg-gray-800 dark:text-gray-100 text-gray-700 dark:text-gray-200 px-2 py-1 rounded ml-2">
                     <%= t('tournaments.define_participants.rounds', count: rounds) %>
                   </span>
                 <% end %>
               </div>
-              <p class="text-xs dark:text-gray-100 text-gray-600 mb-2"><%= @proposed_discipline_tournament_plan.rulesystem %></p>
+              <p class="text-xs dark:text-gray-100 text-gray-600 dark:text-gray-300 mb-2"><%= @proposed_discipline_tournament_plan.rulesystem %></p>
               <%= render partial: "groups_compact", locals: { tournament_plan: @proposed_discipline_tournament_plan, groups: @groups } %>
             </div>
 
             <!-- Alternative Pläne (gleiche Disziplin) -->
             <% if @alternatives_same_discipline.any? %>
               <details class="text-sm mb-3">
-                <summary class="cursor-pointer text-blue-800 dark:text-blue-400 hover:text-blue-900 font-semibold">
+                <summary class="cursor-pointer text-primary-800 dark:text-primary-400 hover:text-primary-900 font-semibold">
                   <%= t('tournaments.define_participants.show_alternatives_same_discipline', count: @alternatives_same_discipline.count, discipline: @tournament.discipline.name) %>
                 </summary>
                 <div class="mt-3 space-y-2">
                   <% @alternatives_same_discipline.each do |alternative| %>
-                    <div class="p-3 dark:bg-black bg-white border border-gray-300 rounded">
+                    <div class="p-3 dark:bg-black bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded">
                       <div class="flex items-center justify-between mb-2">
                         <div class="flex-1">
                           <span class="text-sm font-bold"><%= alternative.name %></span>
-                          <span class="text-xs text-gray-500 ml-2"><%= alternative.rulesystem %></span>
+                          <span class="text-xs text-gray-500 dark:text-gray-400 ml-2"><%= alternative.rulesystem %></span>
                         </div>
                         <% rounds = alternative.rounds_count %>
                         <% if rounds.present? %>
-                          <span class="text-xs bg-gray-100 text-gray-700 dark:text-gray-200 px-2 py-1 rounded ml-2">
+                          <span class="text-xs bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 px-2 py-1 rounded ml-2">
                             <%= t('tournaments.define_participants.rounds', count: rounds) %>
                           </span>
                         <% end %>
@@ -350,18 +350,18 @@
                 <div class="mt-3 space-y-2">
                   <% @alternatives_other_disciplines.each do |alternative| %>
                     <% is_round_robin = alternative.name =~ /jeder.*gegen.*jeden/i || alternative.name =~ /round.*robin/i || alternative.name == "Jgj#{@participant_count}" %>
-                    <div class="p-3 dark:bg-black bg-white border <%= is_round_robin ? 'border-green-300 dark:bg-gray-600 bg-green-50' : 'border-gray-300' %> rounded">
+                    <div class="p-3 dark:bg-black bg-white dark:bg-gray-800 border <%= is_round_robin ? 'border-green-300 dark:bg-gray-600 bg-green-50' : 'border-gray-300 dark:border-gray-600' %> rounded">
                       <div class="flex items-center justify-between mb-2">
                         <div class="flex-1">
                           <% if is_round_robin %>
                             <span class="text-xs bg-green-100 text-green-700 px-2 py-1 rounded mr-2"><%= t('tournaments.define_participants.round_robin_tag') %></span>
                           <% end %>
                           <span class="text-sm font-bold"><%= alternative.name %></span>
-                          <span class="text-xs text-gray-500 ml-2"><%= alternative.rulesystem %></span>
+                          <span class="text-xs text-gray-500 dark:text-gray-400 ml-2"><%= alternative.rulesystem %></span>
                         </div>
                         <% rounds = alternative.rounds_count %>
                         <% if rounds.present? %>
-                          <span class="text-xs <%= is_round_robin ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700 dark:text-gray-200' %> px-2 py-1 rounded ml-2">
+                          <span class="text-xs <%= is_round_robin ? 'bg-green-100 text-green-700' : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200' %> px-2 py-1 rounded ml-2">
                             <%= t('tournaments.define_participants.rounds', count: rounds) %>
                           </span>
                         <% end %>
@@ -377,17 +377,17 @@
               </details>
             <% end %>
 
-            <div class="text-xs dark:text-blue-400 text-blue-700 mt-3 space-y-1">
+            <div class="text-xs dark:text-primary-400 text-primary-700 mt-3 space-y-1">
               <p><%= t('tournaments.define_participants.groups_auto_update_info') %></p>
               <% if @alternatives_other_disciplines.any? %>
-                <p class="dark:text-gray-100 text-gray-600">
+                <p class="dark:text-gray-100 text-gray-600 dark:text-gray-300">
                   <%= t('tournaments.define_participants.reduced_mode_info_html').html_safe %>
                 </p>
               <% end %>
             </div>
           </div>
         <% elsif @participant_count > 0 %>
-          <div class="mt-6 p-4 bg-gray-50 border border-gray-300 rounded">
+          <div class="mt-6 p-4 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded">
             <p class="text-sm text-gray-700 dark:text-gray-200">
               <%= t('tournaments.define_participants.no_plan_for_count', count: @participant_count, discipline: @tournament.discipline.name) %>
             </p>
@@ -439,15 +439,15 @@
       <%- end %>
 
       <!-- Info-Box und Navigation -->
-      <div class="mt-8 p-4 bg-blue-50 dark:bg-gray-800 border border-blue-200 rounded">
+      <div class="mt-8 p-4 bg-primary-50 dark:bg-gray-800 border border-primary-200 rounded">
         <div class="flex items-center justify-between">
           <div>
-            <h4 class="font-semibold text-blue-900 dark:text-blue-200"><%= t('tournaments.define_participants.important_label') %></h4>
-            <p class="text-sm text-blue-800 dark:text-blue-400">
+            <h4 class="font-semibold text-primary-900 dark:text-primary-200"><%= t('tournaments.define_participants.important_label') %></h4>
+            <p class="text-sm text-primary-800 dark:text-primary-400">
               <%= t('tournaments.define_participants.all_changes_saved_html').html_safe %><br>
               <%= t('tournaments.define_participants.can_return_anytime') %>
             </p>
-            <p class="text-sm text-blue-900 dark:text-blue-200 mt-3 font-semibold bg-blue-100 dark:bg-gray-800 p-2 rounded">
+            <p class="text-sm text-primary-900 dark:text-primary-200 mt-3 font-semibold bg-primary-100 dark:bg-gray-800 p-2 rounded">
               <%= t('tournaments.define_participants.when_done_html').html_safe %>
             </p>
           </div>

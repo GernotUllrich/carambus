@@ -10,7 +10,7 @@ marked.setOptions({
 })
 
 // AI-powered search controller
-// Handles natural language search queries via OpenAI
+// Handles natural language search queries via Anthropic Claude
 export default class extends Controller {
   static targets = ["panel", "backdrop", "input", "submitButton", "loading", "message", 
                     "searchTab", "docsTab", "label", "searchExamples", "docsExamples"]
@@ -101,7 +101,7 @@ export default class extends Controller {
     // Update tab styling
     if (mode === 'search') {
       this.searchTabTarget.classList.remove('bg-gray-200', 'dark:bg-gray-600', 'text-gray-700', 'dark:text-gray-200')
-      this.searchTabTarget.classList.add('bg-blue-600', 'text-white')
+      this.searchTabTarget.classList.add('bg-primary-600', 'text-white')
       this.docsTabTarget.classList.add('bg-gray-200', 'dark:bg-gray-600', 'text-gray-700', 'dark:text-gray-200')
       this.docsTabTarget.classList.remove('bg-purple-600', 'text-white')
       
@@ -114,7 +114,7 @@ export default class extends Controller {
       this.docsTabTarget.classList.remove('bg-gray-200', 'dark:bg-gray-600', 'text-gray-700', 'dark:text-gray-200')
       this.docsTabTarget.classList.add('bg-purple-600', 'text-white')
       this.searchTabTarget.classList.add('bg-gray-200', 'dark:bg-gray-600', 'text-gray-700', 'dark:text-gray-200')
-      this.searchTabTarget.classList.remove('bg-blue-600', 'text-white')
+      this.searchTabTarget.classList.remove('bg-primary-600', 'text-white')
       
       // Update label and placeholder from data attributes (i18n)
       this.labelTarget.textContent = this.labelTarget.dataset.docsText
@@ -248,8 +248,8 @@ export default class extends Controller {
     
     // AI Answer (use localized label and render Markdown)
     const answerLabel = this.answerLabelValue || "💡 Answer:"
-    html += `<div class="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-md">`
-    html += `<div class="font-medium text-blue-900 dark:text-blue-200 mb-2">${answerLabel}</div>`
+    html += `<div class="bg-primary-50 dark:bg-primary-900/20 p-3 rounded-md">`
+    html += `<div class="font-medium text-primary-900 dark:text-primary-200 mb-2">${answerLabel}</div>`
     html += `<div class="prose prose-sm max-w-none dark:prose-invert text-gray-700 dark:text-gray-300">${marked.parse(data.answer)}</div>`
     html += `</div>`
     
@@ -260,7 +260,7 @@ export default class extends Controller {
       html += `<div class="font-medium text-gray-700 dark:text-gray-300 mb-2">${docsLabel}</div>`
       html += `<ul class="space-y-1">`
       data.docs_links.forEach(link => {
-        html += `<li><a href="${link.url}" target="_blank" class="text-blue-600 dark:text-blue-400 hover:underline">→ ${this.escapeHtml(link.title)}</a></li>`
+        html += `<li><a href="${link.url}" target="_blank" class="text-primary-600 dark:text-primary-400 hover:underline">→ ${this.escapeHtml(link.title)}</a></li>`
       })
       html += `</ul></div>`
     }

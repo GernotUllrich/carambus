@@ -104,44 +104,39 @@ module McpServer
           return auth_err if auth_err
         end
 
+        # Plan 39-03 (D-39-8/-9): effektive CC-Identität auflösen; armed:true OHNE eigene
+        # CC-Identität (:none) wird hier geblockt (Dry-Run bleibt). Writes laufen unter cookie_for(account).
+        account = resolve_cc_account(tournament: resolved_tournament, server_context: server_context)
+        identity_block = cc_write_identity_block(account, armed: armed)
+        return identity_block if identity_block
+
         # Plan 10-05.1 Task 1 (D-10-04-B Pivot): Phase-4-Schicht-3 (Production-Block für armed:true)
         # DEPRECATED. Pre-Validation-First-Pattern ersetzt globalen env-Block durch Tool-eigene Constraints.
 
         # DB-first-Resolver (Best-Effort, NBV-only-Optimization)
-        scope = resolve_scope_filters(tournament_cc_id, fed_cc_id, branch_cc_id, season, disciplin_id, cat_id)
+        scope = resolve_scope_filters(tournament_cc_id, fed_cc_id, branch_cc_id, season, disciplin_id, cat_id, server_context: server_context)
         client = cc_session.client_for(server_context)
 
-        # Plan 26-01 T1b (2026-06-03 — Demo-2-Bugfix): REIHENFOLGE KRITISCH.
-        # showTeilnehmerliste MUSS vor editTeilnehmerlisteCheck dla=1 aufgerufen werden.
-        # T1-Fehler (Demo-2-Befund 2026-06-03): showTeilnehmerliste-GET NACH editTeilnehmerlisteCheck
-        # setzt den CC-Session-Edit-Buffer als Seiteneffekt zurück — assignPlayer fügt dann zu
-        # leerem Buffer hinzu, Save schreibt nur den neuen Spieler (live: 4 → 1 statt 4).
-        # Korrekte Reihenfolge entspricht dem CC-Web-UI-HAR-Flow: showTeilnehmerliste → editTeilnehmerlisteCheck.
-        persisted_result = McpServer::Tools::LookupTeilnehmerliste.fetch_teilnehmerliste_persisted(client, tournament_cc_id, scope)
+        # Plan 33-01 (2026-06-11): gemeinsamer Live-State-Check statt editTeilnehmerlisteCheck-Edit-Buffer.
+        # Holt persistierte Teilnehmer- (showTeilnehmerliste Tab-3) + Meldelisten-View (showMeldeliste Tab-2)
+        # EINMAL und klassifiziert jeden player_cc_id. Behebt die stale-Pre-Read-Restursache des
+        # Akkreditierungs-Hakens (Edit-Buffer war 1-3s eventual nach Writes) und sichert die Toggle-Richtung:
+        # cc_assign akkreditiert NUR Spieler im Zustand :reported_only (gemeldet, noch nicht Teilnehmer).
+        lists = fetch_state_lists(client, tournament_cc_id, scope)
+        return lists[:error] if lists[:error]
+        teilnehmer = lists[:teilnehmer]
+        gemeldete = lists[:gemeldete]
+        tournament_name = tournament_name_for(tournament_cc_id, server_context)
 
-        # Pre-Read via editTeilnehmerlisteCheck → parse state (NACH showTeilnehmerliste!)
-        pre_read = pre_read_teilnehmerliste(client, tournament_cc_id, scope)
-        return pre_read if pre_read.is_a?(MCP::Tool::Response)  # error envelope
+        states = player_cc_ids.index_with { |pid| classify_accreditation(pid, teilnehmer, gemeldete) }
+        already_accredited = player_cc_ids.select { |pid| %i[accredited fast_assigned].include?(states[pid]) }
+        not_in_meldeliste = player_cc_ids.select { |pid| states[pid] == :not_in_tournament }
 
-        # Buffer-Sync-Guard mit vorab abgerufenem persisted_result (kein internes Fetch mehr).
-        sync = ensure_buffer_synced_with_persisted!(client, tournament_cc_id, scope, pre_read, persisted_result)
-        return sync[:error] if sync[:error]
-        pre_read = sync[:pre_read]
-        persisted_truth_source = sync[:persisted_truth_source]
-
-        # Pre-Validation: alle player_cc_ids in meldungId-Available?
-        available_ids = pre_read[:available_in_meldeliste].map { |opt| opt[:cc_id] }
-        already_in_list = pre_read[:current_teilnehmer].map { |opt| opt[:cc_id] }
-
-        missing_from_meldeliste = player_cc_ids - available_ids
-        duplicates_in_teilnehmer = player_cc_ids & already_in_list
-
-        # Plan 10-05.1 Task 3 (D-10-04-G Pre-Validation-First-Pattern, 4 Constraints):
+        # Plan 33-01 Pre-Validation-First (Matrix-basiert):
         validation_result = run_validations([
-          _validate_tournament_exists_assign(pre_read, tournament_cc_id),
-          _validate_all_players_in_available(missing_from_meldeliste),
-          _validate_none_doppelt_in_teilnehmer(duplicates_in_teilnehmer),
-          _validate_non_finalized_assign(pre_read)
+          _validate_tournament_known(tournament_name, teilnehmer, gemeldete, tournament_cc_id),
+          _validate_all_players_in_meldeliste(not_in_meldeliste),
+          _validate_none_already_accredited(already_accredited)
         ])
 
         unless validation_result[:all_passed]
@@ -149,81 +144,71 @@ module McpServer
           return error("Pre-Validation failed for cc_assign_player_to_teilnehmerliste. Failed: #{validation_result[:failed_constraints].inspect}. #{failed_details}")
         end
 
-        # Plan 10-05 Task 4 (Befund #8): Pre-Read war erfolgreich (live-CC-fallback);
-        # tournament_cc_id stammt aus User-Input → source: "override-param".
         pre_read_status = format_pre_read_status(
           verified: true,
-          source: "override-param",
-          warning: "tournament_cc_id=#{tournament_cc_id} als User-Override; Pre-Read-Call hat die Teilnehmerliste live verifiziert (#{pre_read[:current_teilnehmer].size} bestehende Teilnehmer)."
+          source: "live-cc (showTeilnehmerliste Tab-3 + showMeldeliste Tab-2)",
+          warning: "Live verifiziert: #{teilnehmer.size} bestehende Teilnehmer, #{gemeldete.size} gemeldet."
         )
 
         # Schicht 4 (Network-Level): Detail-Dry-Run-Echo
         unless armed
-          player_details = pre_read[:available_in_meldeliste]
+          player_details = gemeldete
             .select { |opt| player_cc_ids.include?(opt[:cc_id]) }
             .map { |opt| "#{opt[:cc_id]} (#{opt[:label]})" }
             .join(", ")
-          return text(<<~DRY_RUN.strip)
-            [DRY-RUN] Would assign #{player_cc_ids.size} player(s) to Teilnehmerliste for tournament_cc_id=#{tournament_cc_id} (#{pre_read[:tournament_name]}).
+          dry_run = <<~DRY_RUN.strip
+            [DRY-RUN] Would assign #{player_cc_ids.size} player(s) to Teilnehmerliste for tournament_cc_id=#{tournament_cc_id} (#{tournament_name}).
             Players: #{player_details}
-            teilnehmerliste_count_before: #{pre_read[:current_teilnehmer].size}
-            teilnehmerliste_count_after:  #{pre_read[:current_teilnehmer].size + player_cc_ids.size}
-            available_in_meldeliste:      #{pre_read[:available_in_meldeliste].size} player(s)
+            teilnehmerliste_count_before: #{teilnehmer.size}
+            teilnehmerliste_count_after:  #{teilnehmer.size + player_cc_ids.size}
+            available_in_meldeliste:      #{gemeldete.size} gemeldet
             Scope: fed_id=#{scope[:fedId]}, branch_cc_id=#{scope[:branchId]}, season=#{scope[:season]}, disciplin_id=#{scope[:disciplinId]}, cat_id=#{scope[:catId]}
-            Workflow: assignPlayer (Multi-Add via meldungId[]) → editTeilnehmerlisteSave → optional Read-Back.
+            Workflow: showMeldeliste_teilnahme (atomarer Akkreditierungs-Toggle, 1 POST pro Spieler) → optional Read-Back.
             pre_read_verified: #{pre_read_status[:pre_read_verified]}
             pre_read_source: #{pre_read_status[:pre_read_source]}
-            pre_read_warning: #{pre_read_status[:pre_read_warning]}
-            persisted_truth_source: #{persisted_truth_source}
             Pass armed:true to actually perform this assignment.
           DRY_RUN
+          if (hint = cc_identity_hint(account))
+            dry_run = "#{dry_run}\n\nHinweis: #{hint}"
+          end
+          return text(dry_run)
         end
 
-        # Armed=true: Multi-Step Save-Chain.
-        # Plan 07-04 Inline-Patch v2 (Risk A.2): Referer-Chaining — jeder Call referenziert den vorherigen.
-        # HAR-Analyse 2026-05-11 zeigte: Real-CC braucht Referer-Header für Phase-7-Workflow-State-Machine.
-        # Phase 6 funktionierte ohne — Phase 7 ist strenger (PHP-MVC State-Validation pro Step).
-        # Step 1: assignPlayer (Multi-Add).
-        # `meldungId[]` ist als String-Key mit Array-Value notwendig, damit set_form_data
-        # `meldungId%5B%5D=<id1>&meldungId%5B%5D=<id2>` encoded (matches Real-CC-HAR-Format).
-        assign_payload = base_payload(tournament_cc_id, scope).merge(referer: "/admin/einzel/meisterschaft/editTeilnehmerlisteCheck.php?")
-        assign_payload["meldungId[]"] = player_cc_ids
-        assign_res, assign_doc = client.post("assignPlayer", assign_payload, {armed: armed, session_id: cc_session.cookie})
-        if cc_session.reauth_if_needed!(assign_doc)
-          assign_res, assign_doc = client.post("assignPlayer", assign_payload, {armed: armed, session_id: cc_session.cookie})
+        # Armed=true: atomarer Akkreditierungs-Toggle pro Spieler (Plan 33-fix 2026-06-10, HAR-Goldvorlage).
+        # Browser nutzt showMeldeliste_teilnahme.php?...&pid=<player_cc_id> — EIN POST pro Spieler, der
+        # den Spieler Meldeliste→Teilnehmerliste verschiebt. KEIN Edit-Buffer, KEIN meldungId[]-Pre-Read,
+        # KEIN Save-Step, KEIN PUT-Replace-Race (Wurzel des Akkreditierungs-Chaos 2026-06-10).
+        # Pre-Validation (none_doppelt_in_teilnehmer) garantiert: kein player_cc_id ist schon Teilnehmer
+        # → der Toggle akkreditiert (de-akkreditiert nie versehentlich einen Bestandsteilnehmer).
+        # Payload (HAR): fedId, branchId, disciplinId, season, catId, meisterTypeId, meisterschaftsId,
+        #   sortedBy, pid — also base_payload OHNE firstEntry + pid.
+        toggle_base = base_payload(tournament_cc_id, scope).except(:firstEntry)
+        player_cc_ids.each do |pid|
+          toggle_payload = toggle_base.merge(pid: pid)
+          tg_res, tg_doc = client.post("showMeldeliste_teilnahme", toggle_payload, {armed: armed, session_id: cc_session.cookie_for(account)})
+          if cc_session.reauth_if_needed!(tg_doc)
+            tg_res, tg_doc = client.post("showMeldeliste_teilnahme", toggle_payload, {armed: armed, session_id: cc_session.cookie_for(account)})
+          end
+          return error("Unexpected nil response from CC (showMeldeliste_teilnahme for player_cc_id=#{pid}, armed mode).") if tg_res.nil?
+          return error("CC rejected at showMeldeliste_teilnahme for player_cc_id=#{pid}: #{parse_cc_error(tg_doc)} (HTTP #{tg_res&.code})") if tg_res&.code != "200"
+          tg_parsed = parse_cc_error(tg_doc)
+          return error("CC rejected at showMeldeliste_teilnahme for player_cc_id=#{pid}: #{tg_parsed}") if tg_parsed && tg_parsed != "(no error)"
         end
-        return error("Unexpected nil response from CC (assignPlayer, armed mode). MockClient may have rejected.") if assign_res.nil?
-        return error("CC rejected at assignPlayer: #{parse_cc_error(assign_doc)} (HTTP #{assign_res&.code})") if assign_res&.code != "200"
-        assign_parsed = parse_cc_error(assign_doc)
-        return error("CC rejected at assignPlayer: #{assign_parsed}") if assign_parsed && assign_parsed != "(no error)"
-
-        # Step 2 (Plan 07-04 Inline-Patch v2 — Risk A): Re-Render-Form-State via editTeilnehmerlisteCheck.
-        # Referer-Chaining: dieser Step kommt vom assignPlayer-Submit.
-        recheck_payload = base_payload(tournament_cc_id, scope).merge(referer: "/admin/einzel/meisterschaft/assignPlayer.php?")
-        rc_res, _rc_doc = client.post("editTeilnehmerlisteCheck", recheck_payload, {armed: armed, session_id: cc_session.cookie})
-        return error("Unexpected nil response from CC (editTeilnehmerlisteCheck re-render, armed mode).") if rc_res.nil?
-        return error("CC rejected at editTeilnehmerlisteCheck re-render: HTTP #{rc_res&.code}") if rc_res&.code != "200"
-
-        # Step 3: editTeilnehmerlisteSave — Commit mit save="1" Sentinel.
-        # Referer: kommt vom editTeilnehmerlisteCheck (re-render).
-        # save: "1" als non-blank Sentinel (CC PHP prüft isset, nicht Wert; client.post .reject(&:blank?) entfernt sonst).
-        save_payload = base_payload(tournament_cc_id, scope).merge(save: "1", referer: "/admin/einzel/meisterschaft/editTeilnehmerlisteCheck.php?")
-        save_res, save_doc = client.post("editTeilnehmerlisteSave", save_payload, {armed: armed, session_id: cc_session.cookie})
-        return error("Unexpected nil response from CC (editTeilnehmerlisteSave, armed mode).") if save_res.nil?
-        return error("CC rejected at editTeilnehmerlisteSave: #{parse_cc_error(save_doc)} (HTTP #{save_res&.code})") if save_res&.code != "200"
-        save_parsed = parse_cc_error(save_doc)
-        return error("CC rejected at editTeilnehmerlisteSave: #{save_parsed}") if save_parsed && save_parsed != "(no error)"
 
         # Optional Read-Back (Schicht 4 Verify): re-read teilnehmerliste, verify all player_cc_ids now present.
         # Plan 26-01 T1b: zusätzlich prüfen, ob Bestandsteilnehmer unbeabsichtigt entfernt wurden
         # (Demo-2-Befund: alter read_back war False-Positive — prüfte nur neue Spieler, nicht Bestand).
+        # Plan 33-fix (2026-06-10): Read-Back aus persistierter Tab-3-View (showTeilnehmerliste),
+        # NICHT aus dem editTeilnehmerlisteCheck-Edit-Buffer. Nach dem atomaren Toggle ist der
+        # Edit-Buffer eventual-stale → alter Read-Back gab False-Negative (error trotz korrektem Write,
+        # Live-Befund 2026-06-10). Die persistierte View spiegelt den DB-Stand sofort wider.
         read_back_match = :skipped
         if read_back
-          rb = pre_read_teilnehmerliste(client, tournament_cc_id, scope)
-          if rb.is_a?(Hash)
-            actual_ids = rb[:current_teilnehmer].map { |opt| opt[:cc_id] }
+          rb_teilnehmer = McpServer::Tools::LookupTeilnehmerliste.fetch_teilnehmerliste_persisted(client, tournament_cc_id, scope)
+          if rb_teilnehmer.is_a?(Array)
+            actual_ids = rb_teilnehmer.map { |opt| opt[:cc_id] }
             missing_after_save = player_cc_ids - actual_ids
-            pre_existing_ids = pre_read[:current_teilnehmer].map { |o| o[:cc_id] }
+            pre_existing_ids = teilnehmer.map { |o| o[:cc_id] }
             unintended_removals = pre_existing_ids - actual_ids
             read_back_match = missing_after_save.empty? && unintended_removals.empty?
             unless read_back_match
@@ -232,139 +217,93 @@ module McpServer
               problem_parts << "unbeabsichtigt entfernte Bestandsteilnehmer: #{unintended_removals.inspect}" if unintended_removals.any?
               return error(
                 "Read-back mismatch: #{problem_parts.join("; ")}. " \
-                "Save hat möglicherweise unvollständige Daten geschrieben. Bitte CC-UI prüfen und ggf. bereinigen."
+                "Die ClubCloud braucht einen Moment, bis sie den neuen Stand übernimmt — bitte gleich erneut prüfen."
               )
             end
           else
-            return error("Read-back failed (post-save Pre-Read returned error). Save may have succeeded; inspect CC manually.")
+            return error("Read-back failed (post-write persisted read returned error). Write may have succeeded; inspect CC manually.")
           end
         end
 
         # Plan 10-05.1 Task 3 (D-10-04-D Audit-Trail-Pflicht):
         McpServer::AuditTrail.write_entry(
           tool_name: "cc_assign_player_to_teilnehmerliste",
-          operator: cc_session.respond_to?(:cc_login_user) ? cc_session.cc_login_user.to_s : "unknown",
+          operator: cc_audit_operator,
           payload: {tournament_cc_id: tournament_cc_id, player_cc_ids: player_cc_ids, armed: true},
           pre_validation_results: validation_result[:results],
           read_back_status: read_back_match.to_s,
           result: "success",
-          user_id: server_context&.dig(:user_id)
+          user_id: account.acting_user_id
         )
 
         text(<<~OUT.strip)
-          Assigned #{player_cc_ids.size} player(s) to Teilnehmerliste for tournament_cc_id=#{tournament_cc_id} (#{pre_read[:tournament_name]}).
+          Assigned #{player_cc_ids.size} player(s) to Teilnehmerliste for tournament_cc_id=#{tournament_cc_id} (#{tournament_name}).
           added: #{player_cc_ids.inspect}
-          teilnehmerliste_count_before: #{pre_read[:current_teilnehmer].size}
-          teilnehmerliste_count_after:  #{pre_read[:current_teilnehmer].size + player_cc_ids.size}
-          Steps completed: assignPlayer → editTeilnehmerlisteCheck (re-render) → editTeilnehmerlisteSave#{" → editTeilnehmerlisteCheck (read-back)" if read_back}.
+          teilnehmerliste_count_before: #{teilnehmer.size}
+          teilnehmerliste_count_after:  #{teilnehmer.size + player_cc_ids.size}
+          Steps completed: showMeldeliste_teilnahme (atomarer Toggle, #{player_cc_ids.size}× pro Spieler)#{" → Read-Back" if read_back}.
           read_back_match: #{read_back_match}
           pre_validation_passed: #{validation_result[:all_passed]}
           pre_read_verified: #{pre_read_status[:pre_read_verified]}
           pre_read_source: #{pre_read_status[:pre_read_source]}
-          pre_read_warning: #{pre_read_status[:pre_read_warning]}
-          persisted_truth_source: #{persisted_truth_source}
         OUT
       rescue => e
-        error("Tool exception: #{e.class.name} (details suppressed; check Rails.logger on stderr).")
+        Rails.logger.error("[cc_assign_player_to_teilnehmerliste] #{e.class}: #{e.message}\n  #{e.backtrace&.first(10)&.join("\n  ")}")
+        error("Tool exception: #{e.class.name} (Details siehe Rails.logger auf dem Server).")
       end
 
-      # Plan 10-05.1 Task 3 (D-10-04-G Pre-Validation Constraints für cc_assign):
-      def self._validate_tournament_exists_assign(pre_read, tournament_cc_id)
-        if pre_read.nil? || !pre_read.is_a?(Hash) || pre_read[:tournament_name].blank?
-          return {name: "tournament_exists", ok: false, reason: "Pre-Read von Teilnehmerliste für tournament_cc_id=#{tournament_cc_id} fehlgeschlagen oder leer"}
+      # Plan 33-01 Pre-Validation Constraints für cc_assign (Matrix-basiert auf accreditation_state).
+      def self._validate_tournament_known(tournament_name, teilnehmer, gemeldete, tournament_cc_id)
+        if tournament_name.blank? && teilnehmer.empty? && gemeldete.empty?
+          return {name: "tournament_known", ok: false,
+                  reason: "Turnier tournament_cc_id=#{tournament_cc_id} unbekannt oder ohne Teilnehmer/Meldeliste (Live-Reads leer)."}
         end
-        {name: "tournament_exists", ok: true}
+        {name: "tournament_known", ok: true}
       end
 
-      def self._validate_all_players_in_available(missing_from_meldeliste)
-        if missing_from_meldeliste.any?
-          {name: "all_players_in_available", ok: false, reason: "Players not in Meldeliste-Available: #{missing_from_meldeliste.inspect}. Use cc_register_for_tournament to add them to the Meldeliste first (Phase 4 workflow)."}
+      def self._validate_all_players_in_meldeliste(not_in_meldeliste)
+        if not_in_meldeliste.any?
+          {name: "all_players_in_meldeliste", ok: false,
+           reason: "Spieler nicht in der Meldeliste: #{not_in_meldeliste.inspect}. Vor Meldeschluss zuerst mit cc_register_for_tournament melden; nach Meldeschluss per cc_fast_assign_to_teilnehmerliste direkt in die Teilnehmerliste eintragen."}
         else
-          {name: "all_players_in_available", ok: true}
+          {name: "all_players_in_meldeliste", ok: true}
         end
       end
 
-      def self._validate_none_doppelt_in_teilnehmer(duplicates_in_teilnehmer)
-        if duplicates_in_teilnehmer.any?
-          {name: "none_doppelt_in_teilnehmer", ok: false, reason: "Players already in Teilnehmerliste: #{duplicates_in_teilnehmer.inspect}. Re-adding would be a no-op or fail. Use cc_remove_from_teilnehmerliste (Phase 8) to re-assign."}
+      def self._validate_none_already_accredited(already_accredited)
+        if already_accredited.any?
+          {name: "none_already_accredited", ok: false,
+           reason: "Spieler sind bereits akkreditiert (in der Teilnehmerliste): #{already_accredited.inspect}. Erneutes Akkreditieren ist nicht nötig; zum Entfernen cc_remove_from_teilnehmerliste nutzen."}
         else
-          {name: "none_doppelt_in_teilnehmer", ok: true}
+          {name: "none_already_accredited", ok: true}
         end
-      end
-
-      def self._validate_non_finalized_assign(pre_read)
-        # CC-API hat keinen klaren finalized-Marker für Teilnehmerliste (Phase-7-Befund: kein finalize-State).
-        # Defensive: assume non-finalized (CC selbst rejected falls Teilnehmerliste finalized).
-        {name: "non_finalized", ok: true}
-      end
-
-      # Plan 26-01 T1 (2026-06-03): Buffer-Sync-Guard gegen Edit-Buffer 1-3s eventual nach Writes.
-      # Plan 26-01 T1b-Fix (2026-06-03): persisted_teilnehmer MUSS vorab (vor pre_read_teilnehmerliste!)
-      # abgerufen worden sein und wird als Parameter übergeben. Internes Fetchen würde den CC-Session-
-      # Edit-Buffer zurücksetzen (Demo-2-Befund: showTeilnehmerliste GET NACH editTeilnehmerlisteCheck
-      # setzt Session-State → leerer Buffer → nur neuer Spieler gespeichert).
-      # Liefert {pre_read:, persisted_truth_source:, error: nil} bei Sync oder Degrade-Graceful;
-      # {error: MCP-Response} wenn Buffer dauerhaft stale ist (kein Save → kein Datenverlust).
-      def self.ensure_buffer_synced_with_persisted!(client, tournament_cc_id, scope, pre_read, persisted_teilnehmer)
-        unless persisted_teilnehmer.is_a?(Array)
-          # Persisted-Read nicht verfügbar → Degrade-Graceful auf Edit-Buffer (T3b-Pattern).
-          Rails.logger.info "[assign_player_to_teilnehmerliste] persisted truth-source unavailable; falling back to edit_buffer for tournament_cc_id=#{tournament_cc_id}"
-          return {pre_read: pre_read, persisted_truth_source: "edit_buffer (persisted unavailable)", error: nil}
-        end
-
-        persisted_count = persisted_teilnehmer.size
-        edit_buffer_count = pre_read[:current_teilnehmer].size
-
-        if persisted_count <= edit_buffer_count
-          # Edit-Buffer mindestens so aktuell wie persisted → keine Aktion.
-          return {pre_read: pre_read, persisted_truth_source: "showTeilnehmerliste", error: nil}
-        end
-
-        # Edit-Buffer ist stale (Bug-Fall aus Demo-1). Einmalig warten + re-read.
-        Rails.logger.info "[assign_player_to_teilnehmerliste] edit_buffer stale (count=#{edit_buffer_count}) vs persisted (count=#{persisted_count}) for tournament_cc_id=#{tournament_cc_id}; waiting #{edit_buffer_resync_wait_seconds}s before retry"
-        sleep edit_buffer_resync_wait_seconds
-        retry_pre_read = pre_read_teilnehmerliste(client, tournament_cc_id, scope)
-        return {error: retry_pre_read} if retry_pre_read.is_a?(MCP::Tool::Response)
-
-        if persisted_count > retry_pre_read[:current_teilnehmer].size
-          # Buffer weiterhin stale → abort statt Datenverlust riskieren.
-          Rails.logger.warn "[assign_player_to_teilnehmerliste] edit_buffer remains stale after wait (count=#{retry_pre_read[:current_teilnehmer].size} vs persisted=#{persisted_count}); aborting for tournament_cc_id=#{tournament_cc_id}"
-          return {error: error(
-            "Die ClubCloud braucht einen Moment, bis sie den neuen Stand übernimmt. " \
-            "Bitte gleich erneut versuchen. " \
-            "(Hintergrund: Es sind bereits #{persisted_count} Eintrag(e) in der Teilnehmerliste, " \
-            "das Bearbeitungsformular sieht aber nur #{retry_pre_read[:current_teilnehmer].size} davon — " \
-            "ein Schreibvorgang jetzt würde die anderen Einträge verlieren.)"
-          )}
-        end
-
-        # Nach Wait synced — proceed mit korrigiertem pre_read.
-        {pre_read: retry_pre_read, persisted_truth_source: "showTeilnehmerliste (synced after wait)", error: nil}
-      end
-
-      # Wartezeit zwischen erstem Stale-Detect und Re-Read. Klassen-Methode + Setter für Test-Override.
-      def self.edit_buffer_resync_wait_seconds
-        @edit_buffer_resync_wait_seconds ||= 1.5
-      end
-
-      class << self
-        attr_writer :edit_buffer_resync_wait_seconds
       end
 
       # Resolve scope filters from DB (TournamentCc) + Override-Params (Best-Effort, NBV-only-Constraint).
-      def self.resolve_scope_filters(tournament_cc_id, fed_cc_id, branch_cc_id, season, disciplin_id, cat_id)
-        # Try DB-first lookup (best-effort, may fail for NBV-only tournaments without linkage)
+      def self.resolve_scope_filters(tournament_cc_id, fed_cc_id, branch_cc_id, season, disciplin_id, cat_id, server_context: nil)
+        # DB-first lookup, CONTEXT-scoped — cc_id ist NICHT global eindeutig (sonst falscher
+        # Verbands-/Disziplin-Datensatz, z.B. cc_id 939 = blmr-9-Ball statt nbv-Cadre;
+        # vgl. project_cc_id_not_unique). Best-effort, kann für reine CC-Turniere ohne Linkage nil sein.
+        context = effective_cc_region(server_context).to_s.downcase
         tournament_cc = begin
-          TournamentCc.find_by(cc_id: tournament_cc_id)
+          if context.present?
+            TournamentCc.find_by(cc_id: tournament_cc_id, context: context)
+          else
+            TournamentCc.find_by(cc_id: tournament_cc_id)
+          end
         rescue
           nil
         end
         {
-          fedId: fed_cc_id || tournament_cc&.region_cc&.cc_id || default_fed_id,
-          branchId: branch_cc_id || tournament_cc&.branch_cc_id,
+          # fedId/branchId über die korrekte Assoziationskette: TournamentCc → branch_cc → region_cc
+          # (TournamentCc hat KEIN region_cc; branch_cc_id ist die Rails-FK, NICHT die CC-cc_id).
+          fedId: fed_cc_id || tournament_cc&.branch_cc&.region_cc&.cc_id || default_fed_id,
+          branchId: branch_cc_id || tournament_cc&.branch_cc&.cc_id,
           disciplinId: disciplin_id || "*",
           catId: cat_id || "*",
-          season: season || tournament_cc&.season&.name
+          # TournamentCc.season ist eine String-Spalte (kein Assoziations-Objekt → kein .name);
+          # Fallback auf den Saisonnamen des verknüpften Turniers, wenn die Spalte leer ist.
+          season: season || tournament_cc&.season.presence || tournament_cc&.tournament&.season&.name
         }.compact
       end
 
@@ -384,91 +323,65 @@ module McpServer
         }
       end
 
-      # Pre-Read: fetch editTeilnehmerlisteCheck, parse Tournament-Name + Teilnehmerliste-Options + Meldeliste-Options.
-      # Returns Hash with keys [:tournament_name, :current_teilnehmer, :available_in_meldeliste]
-      # — or error response on HTTP/parse failure.
-      # Hybrid-Parser: funktioniert für Mock-HTML (analog 07-02 Captures) UND Real-CC-HTML.
+      # Plan 33-01 T1 (2026-06-11): Gemeinsamer Live-State-Check für cc_assign + cc_remove.
+      # Klassifiziert den Akkreditierungs-Status EINES Spielers aus ZWEI persistierten CC-DB-Views
+      # (KEIN Edit-Buffer): showTeilnehmerliste Tab-3 (akkreditierte) + showMeldeliste Tab-2 (gemeldete).
+      # Der Toggle showMeldeliste_teilnahme.php ist zustandsabhängig (akkreditiert ODER deakkreditiert
+      # je nach Live-Zustand, HAR-belegt 2026-06-11) — dieser Check sichert die Toggle-Richtung beider Tools ab.
       #
-      # Plan 07-04 Inline-Patch v3 (Risk A.3): Pre-Read benutzt `dla=1`-Modus (Initial-Landing-Payload
-      # nach Navigation von showTeilnehmerliste) statt `firstEntry=1`. CC unterscheidet:
-      # - dla=1, foundpid=, etlbu=, akkpid= → Initial-Landing, DB-State in Session-Buffer laden
-      # - firstEntry=1 → Working-Session, existierenden Buffer benutzen
-      # Ohne dla=1 liefert CC einen leeren Buffer in fresh Sessions (zeigt KEINEN DB-State).
-      # Fresh-Session-Pre-Read MUSS dla=1 nutzen, sonst sieht es den persistierten DB-State nicht.
-      def self.pre_read_teilnehmerliste(client, tournament_cc_id, scope)
-        # firstEntry: 1 raus, dla/foundpid/etlbu/akkpid rein (HAR-Initial-Pattern)
-        payload = base_payload(tournament_cc_id, scope).except(:firstEntry)
-          .merge(dla: 1, foundpid: "", etlbu: "", akkpid: "")
-        # CC-Flakiness-Retry: transienter HTTP-Fehler beim ersten Versuch → einmal wiederholen.
-        # Claude muss keinen Retry mehr machen — der Fehler taucht nie nach oben auf.
-        # retry ist in Ruby nur in rescue gültig — non-200 wird daher als Exception behandelt.
-        attempt = 0
-        begin
-          attempt += 1
-          res, doc = client.post("editTeilnehmerlisteCheck", payload, {armed: true, session_id: cc_session.cookie})
-          if cc_session.reauth_if_needed!(doc)
-            res, doc = client.post("editTeilnehmerlisteCheck", payload, {armed: true, session_id: cc_session.cookie})
-          end
-          raise "HTTP #{res&.code}" unless res&.code == "200"
-          parsed = parse_teilnehmerliste_state(doc)
-          return parsed unless parsed.is_a?(Hash)
-          parsed
-        rescue => e
-          if attempt < 2
-            Rails.logger.warn "[pre_read_teilnehmerliste] attempt #{attempt} failed: #{e.message}, retrying in 300ms"
-            sleep(0.3)
-            retry
-          end
-          error("Pre-Read failed: #{e.message}")
+      # Rückgabe: {state:, teilnehmer:, gemeldete:, label:, error:}
+      #   :accredited        gemeldet + Teilnehmer        → cc_remove darf deakkreditieren; cc_assign lehnt ab
+      #   :reported_only     gemeldet, nicht Teilnehmer    → cc_assign darf akkreditieren; cc_remove lehnt ab
+      #   :fast_assigned     Teilnehmer ohne Meldeliste    → Schnellanmeldung (NICHT über Meldeliste toggelbar)
+      #   :not_in_tournament weder gemeldet noch Teilnehmer
+      #
+      # Annahme (Live-Verify 2026-06-11): showMeldeliste Tab-2 (fetch_meldeliste_persisted) listet ALLE
+      # gemeldeten Spieler — auch bereits akkreditierte (vgl. all_registered-Logik in cc_lookup_teilnehmerliste).
+      def self.accreditation_state(client, tournament_cc_id, scope, player_cc_id)
+        lists = fetch_state_lists(client, tournament_cc_id, scope)
+        return {error: lists[:error]} if lists[:error]
+        state = classify_accreditation(player_cc_id, lists[:teilnehmer], lists[:gemeldete])
+        label = (lists[:teilnehmer] + lists[:gemeldete]).find { |x| x[:cc_id] == player_cc_id }&.[](:label)
+        {state: state, teilnehmer: lists[:teilnehmer], gemeldete: lists[:gemeldete], label: label, error: nil}
+      end
+
+      # Holt die zwei persistierten Live-Listen EINMAL (für Multi-Player-Klassifikation in cc_assign,
+      # ohne pro Spieler erneut zu lesen). Rückgabe {teilnehmer:, gemeldete:, error:}.
+      def self.fetch_state_lists(client, tournament_cc_id, scope)
+        teilnehmer = McpServer::Tools::LookupTeilnehmerliste.fetch_teilnehmerliste_persisted(client, tournament_cc_id, scope)
+        return {error: teilnehmer} if teilnehmer.is_a?(MCP::Tool::Response)
+        gemeldete = McpServer::Tools::LookupTeilnehmerliste.fetch_meldeliste_persisted(client, tournament_cc_id, scope)
+        {teilnehmer: teilnehmer, gemeldete: gemeldete, error: nil}
+      end
+
+      # Reine Klassifikation (keine I/O) — aus den zwei Listen.
+      def self.classify_accreditation(player_cc_id, teilnehmer, gemeldete)
+        ist_teilnehmer = teilnehmer.any? { |t| t[:cc_id] == player_cc_id }
+        ist_gemeldet = gemeldete.any? { |g| g[:cc_id] == player_cc_id }
+        if ist_gemeldet && ist_teilnehmer
+          :accredited
+        elsif ist_gemeldet
+          :reported_only
+        elsif ist_teilnehmer
+          :fast_assigned
+        else
+          :not_in_tournament
         end
       end
 
-      # Parse Tournament-Name + Teilnehmerliste-Options + Meldeliste-Options from editTeilnehmerlisteCheck HTML.
-      # Selectors aus 07-02-Captures verified:
-      #   <select name="teilnehmerId"><option value="11683">Nachtmann, Georg ...</option>...</select>
-      #   <select name="meldungId[]"><option value="10024">Schröder ...</option>...</select>
-      #   Tournament-Name in <td class="white" nowrap><b>NDM Endrunde Eurokegel</b></td>
-      def self.parse_teilnehmerliste_state(doc)
-        return nil unless doc
-
-        # Tournament-Name: extract from the bold tag in the "Meisterschaft"-row.
-        tournament_name = extract_text_after_label(doc, "Meisterschaft")
-
-        # Teilnehmerliste-Options (current participants).
-        current_teilnehmer = extract_options(doc, 'select[name="teilnehmerId"]')
-
-        # Meldeliste-Available-Options (candidates for assignment).
-        available_in_meldeliste = extract_options(doc, 'select[name="meldungId[]"]')
-
-        {
-          tournament_name: tournament_name,
-          current_teilnehmer: current_teilnehmer,
-          available_in_meldeliste: available_in_meldeliste
-        }
-      end
-
-      # Extract <option value="ID">LABEL</option> entries from a <select>.
-      # Filters out empty value="" placeholder options (CC uses leerstring-Option für "kein Spieler").
-      def self.extract_options(doc, css_selector)
-        select_el = doc.css(css_selector).first
-        return [] unless select_el
-        select_el.css("option").map do |opt|
-          value = opt["value"].to_s.strip
-          next nil if value.empty?
-          {cc_id: value.to_i, label: opt.text.strip}
-        end.compact
-      end
-
-      # Extract `<b>TEXT</b>` after a labeled `<td>` cell.
-      # Phase 6-Pattern (XPath mit normalize-space + exakter Label-Gleichheit).
-      # Hier label = "Meisterschaft" (kein Doppelpunkt im Capture — siehe 07-02-Captures).
-      def self.extract_text_after_label(doc, label)
-        # Versuche zuerst mit Doppelpunkt (Phase-6-Pattern), dann ohne (Phase-7-Capture-Format).
-        label_td = doc.xpath("//td[normalize-space(.) = '#{label}:']").first ||
-          doc.xpath("//td[normalize-space(.) = '#{label}']").first
-        return nil unless label_td
-        sibling = label_td.xpath("following-sibling::td//b").first
-        sibling&.text&.strip
+      # Best-Effort Turnier-Name aus DB-Mirror (für Anzeige/Ablehnungstexte; Live-State kommt aus CC).
+      # cc_id ist NICHT global eindeutig — context-scoped suchen, sonst trifft man ein gleichnamiges
+      # Turnier aus einer anderen Region (z.B. cc_id 939 = NBV-Cadre ODER BLMR-Quali).
+      def self.tournament_name_for(tournament_cc_id, server_context = nil)
+        context = effective_cc_region(server_context).to_s.downcase
+        tc = if context.present?
+          TournamentCc.find_by(cc_id: tournament_cc_id, context: context)
+        else
+          TournamentCc.find_by(cc_id: tournament_cc_id)
+        end
+        tc&.name
+      rescue
+        nil
       end
 
       # CC-Error-Parser (analog cc_update_tournament_deadline).

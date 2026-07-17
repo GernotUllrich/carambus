@@ -1,4 +1,10 @@
-# ClubCloud Credentials Setup
+# ClubCloud Credentials Setup (geteilter Region-Admin-Zugang)
+
+> **Abgrenzung:** Dieses Dokument beschreibt den **geteilten, region-weiten**
+> Admin-Zugang (`clubcloud.<context>` in Rails Credentials). Den **persönlichen,
+> per-User**-ClubCloud-Zugang (v1.1, hinterlegt im Profil) beschreiben:
+> [`clubcloud-eigener-zugang.de.md`](clubcloud-eigener-zugang.de.md) (Endnutzer) ·
+> [`../developers/per-user-cc-identitaet.de.md`](../developers/per-user-cc-identitaet.de.md) (Technik).
 
 ## Überblick
 

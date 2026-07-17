@@ -2,7 +2,7 @@
 
 The `Tournament::` namespace provides services for the local tournament lifecycle — scraping public ClubCloud pages, computing player rankings, and creating Google Calendar table reservations.
 
-The namespace consists of **3 services** in `app/services/tournament/`.
+The namespace consists of **3 top-level services** in `app/services/tournament/`, plus a `Tournament::CcSync::` sub-namespace (**2 services**) that pushes local changes back to ClubCloud (Phase 44).
 
 ## Namespace Overview
 
@@ -11,6 +11,15 @@ The namespace consists of **3 services** in `app/services/tournament/`.
 | `Tournament::PublicCcScraper` | `app/services/tournament/public_cc_scraper.rb` | Scrapes tournament data from the public CC URL — processes registration lists, participants, results, and rankings |
 | `Tournament::RankingCalculator` | `app/services/tournament/ranking_calculator.rb` | Calculates and caches effective player rankings; reorders seedings post-competition |
 | `Tournament::TableReservationService` | `app/services/tournament/table_reservation_service.rb` | Creates Google Calendar events for table reservations with guard-condition validation |
+
+### CcSync Sub-namespace (local → ClubCloud push)
+
+| Class | File | Description |
+|-------|------|-------------|
+| `Tournament::CcSync::AccreditationPush` | `app/services/tournament/cc_sync/accreditation_push.rb` | Writes a single local accreditation/participation change atomically and idempotently back to ClubCloud (reads live CC state first, then performs exactly one state-dependent action) |
+| `Tournament::CcSync::FinalizePush` | `app/services/tournament/cc_sync/finalize_push.rb` | Finalizes the CC registration list (`releaseMeldeliste`) when the tournament director closes the participant list locally (`finish_seeding`) |
+
+Both inherit from `ApplicationService`, are MCP-free (callable from a job/reflex), and run under per-user CC identity (Phase 39, via `McpServer::CcAccountResolver`).
 
 ## Public Interface
 

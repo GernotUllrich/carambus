@@ -146,14 +146,14 @@
           <div class="flex flex-1 mt-2 mb-2 items-center text-center text-<%= vw2 %>"><%= options[:player_a].andand[:discipline] %><%= "#{"/3B" if table_monitor.data["biathlon_phase"] == "3b"}#{"/5K" if table_monitor.data["biathlon_phase"] == "5k"}" %></div>
           <div class="flex flex-1 items-center text-center text-<%= vw2 %>"><%= options[:name] %></div>
           <%- if options[:current_round].present? %>
-            <div class="flex flex-1 items-center text-center text-<%= vw2 %>">Runde <%= options[:current_round] %></div>
+            <div class="flex flex-1 items-center text-center text-<%= vw2 %>"><%= t("table_monitor.round") %> <%= options[:current_round] %></div>
           <%- end %>
           <div class="flex flex-1 items-center text-center text-<%= vw2 %>"><%= options[:game_name] %></div>
           <%- if options[:sets_to_win].to_i > 1 %>
-            <div class="flex flex-1 items-center text-center text-<%= vw2 %>"><%= "#{options[:sets_to_win].to_i} Gewinnsätze" %></div>
+            <div class="flex flex-1 items-center text-center text-<%= vw2 %>"><%= t("table_monitor.winning_sets", count: options[:sets_to_win].to_i) %></div>
           <%- end %>
           <%- if options[:sets_to_play].to_i > 1 %>
-            <div class="flex flex-1 items-center text-center text-<%= vw2 %>"><%= "maximal #{options[:sets_to_play].to_i} Sätze" %></div>
+            <div class="flex flex-1 items-center text-center text-<%= vw2 %>"><%= t("table_monitor.max_sets", count: options[:sets_to_play].to_i) %></div>
           <%- end %>
 
           <%- unless options[:allow_follow_up] %>
@@ -161,14 +161,14 @@
           <%- end %>
           <%- if table_monitor.discipline == "Biathlon" %>
             <%- if table_monitor.data["biathlon_phase"] == "5k" %>
-              <div class="flex flex-1 items-center text-center text-<%= vw2 %>"><%= "3B-Ergebnis:<br/>#{table_monitor.data['playera']['result_3b']}(#{table_monitor.data['playera']['result_3b'] * 6}) / #{table_monitor.data['playerb']['result_3b']}(#{table_monitor.data['playerb']['result_3b'] * 6})".html_safe %></div>
+              <div class="flex flex-1 items-center text-center text-<%= vw2 %>"><%= "#{t("table_monitor.result_3b_label")}:<br/>#{table_monitor.data['playera']['result_3b']}(#{table_monitor.data['playera']['result_3b'] * 6}) / #{table_monitor.data['playerb']['result_3b']}(#{table_monitor.data['playerb']['result_3b'] * 6})".html_safe %></div>
             <%- end %>
           <%- end %>
         </div>
         <%- if table_monitor.state_display(I18n.locale).present? && !table_monitor.final_match_score? %>
           <%= content_tag "div", data: { controller: "table-monitor", action: "click->table-monitor#undo", id: table_monitor.id }, id: "game_state", class: "flex flex-col h-1/6 items-center font-bold text-red-400 text-#{vw2}
           text-center dark:bg-black" do %>
-            <%= "zurück" %>
+            <%= t("table_monitor.undo") %>
           <%- end %>
         <%- elsif table_monitor.final_match_score? %>
           <%# Phase 38.8 — operator-gate button. The TM has entered
@@ -237,7 +237,7 @@
     </div>
     <div class="controls dark:bg-black overflow-hidden hide-on-display-only h-1/6 grid grid-cols-9 gap-1">
       <%- if table_monitor.playing? %>
-        <%= content_tag "div", class: "mr-1 min-w-1/3 flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none bg-blue-50 dark:bg-black hover:bg-gray-300 dark:text-blue-400 text-blue-600", title: "Spielprotokoll", data: { reflex: "click->GameProtocolReflex#open_protocol", id: table_monitor.id }, id: "game-protocol-button", tabindex: 2 do %>
+        <%= content_tag "div", class: "mr-1 min-w-1/3 flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none bg-primary-50 dark:bg-black hover:bg-gray-300 dark:text-primary-400 text-primary-600", title: t("table_monitor.tooltip.game_protocol"), data: { reflex: "click->GameProtocolReflex#open_protocol", id: table_monitor.id }, id: "game-protocol-button", tabindex: 2 do %>
           <%= render_svg "icons/clipboard", styles: "fill-current icon-2xl inline-block" %>
         <%- end %>
         <%- if options[:player_a].andand[:discipline] == "4 Ball" %>
@@ -276,7 +276,7 @@
             -10
           <%- end %>
         <%- end %>
-        <%= content_tag "div", class: "ml-1 min-w-1/3 flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none bg-gray-100 dark:bg-black hover:bg-gray-300 dark:text_blue_400 text-blue-400", title: "Change Players", style: "letter-spacing: -5px;", data: { controller: "table-monitor", action: "click->table-monitor#next_step", id: table_monitor.id }, id: "next_step", tabindex: 2 do %>
+        <%= content_tag "div", class: "ml-1 min-w-1/3 flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none bg-gray-100 dark:bg-black hover:bg-gray-300 dark:text_blue_400 text-primary-400", title: "Change Players", style: "letter-spacing: -5px;", data: { controller: "table-monitor", action: "click->table-monitor#next_step", id: table_monitor.id }, id: "next_step", tabindex: 2 do %>
           <%= render_svg "icons/exchange", styles: "svg-red fill-current icon-2xl text-gray-400 inline-block" %>
         <%- end %>
         <%= content_tag "div", class: "ml-1 min-w-1/3 flex items-center justify-center inline-block spacing-0 rounded-full font-bold leading-none text-4vw bg-gray-100 dark:bg-black hover:bg-gray-300 text-gray-400", title: "Add ten to current Inning", data: { controller: "table-monitor", action: "click->table-monitor#add_n", n: 10, id: table_monitor.id }, id: "add_ten", tabindex: 2 do %>

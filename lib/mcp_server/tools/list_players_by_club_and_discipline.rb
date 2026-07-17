@@ -81,6 +81,7 @@ module McpServer
           season: season_obj.name,
           region: user_region.shortname,
           count: players.count,
+          source: source_label(server_context, :db_mirror), # Quelle (D-40-1): rechte-gegated, "" für read-only
           players: players.map { |p|
             {
               cc_id: p.cc_id,

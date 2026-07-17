@@ -69,6 +69,21 @@ class Tournament::PublicCcScraper < ApplicationService
     @tournament.source_url = url + tournament_link
     # details
     detail_table = tournament_doc.css("aside table.silver")[0]
+    # Schutz gegen cc_id-Drift: ClubCloud kann die cc_id eines Turniers nachträglich
+    # ändern (cc_id ist nicht stabil). Bauen wir die URL aus einer veralteten cc_id,
+    # liefert CC ein FREMDES Turnier. Bevor wir dessen Detaildaten übernehmen, prüfen
+    # wir den Turniertitel der geholten Seite gegen das erwartete Turnier — sonst Abbruch
+    # (sonst bekommt z.B. ein Test-Cadre die Daten eines fremden Vorgabepokals).
+    norm_title = ->(s) { s.to_s.gsub(nbsp, " ").gsub(/\s+/, " ").strip }
+    page_title = detail_table.andand.css("tr").to_a.map { |tr|
+      [norm_title.call(tr.css("td")[0].andand.text), tr.css("td")[1].andand.text]
+    }.to_h["Turnier"]
+    if page_title.present? && norm_title.call(page_title) != norm_title.call(@tournament.title)
+      Rails.logger.error "===== scrape ===== ABBRUCH: cc_id #{tournament_cc_id} liefert Turnier " \
+        "'#{norm_title.call(page_title)}' statt erwartetem '#{@tournament.title}' " \
+        "(Tournament[#{@tournament.id}] — cc_id-Drift?). Keine Datenübernahme, tc.cc_id prüfen/aktualisieren."
+      return
+    end
     branch_cc = nil
     discipline = nil
     detail_table.css("tr").each do |detail_tr|
@@ -79,7 +94,9 @@ class Tournament::PublicCcScraper < ApplicationService
         @tournament.shortname = tc.shortname = detail_tr.css("td")[1].text.gsub(nbsp, " ").strip
       when "Datum"
         ht = detail_tr.css("td")[1].inner_html
-        date_time = DateTime.parse(ht.match(/.*Spielbeginn am (.*) Uhr.*/)[1].andand.gsub("um ", ""))
+        # Time.zone.parse (Berlin) statt DateTime.parse: CC gibt deutsche Lokalzeit an —
+        # DateTime.parse nimmt UTC an → Spielbeginn würde um den TZ-Offset (Sommer +2h) verschoben.
+        date_time = Time.zone.parse(ht.match(/.*Spielbeginn am (.*) Uhr.*/)[1].andand.gsub("um ", ""))
         tc.tournament_start = date_time
         @tournament.date = date_time
       when "Location"
@@ -98,7 +115,7 @@ class Tournament::PublicCcScraper < ApplicationService
         @tournament.location = tc.location = location
       when "Meldeschluss"
         text = detail_tr.css("td")[1].text.gsub(nbsp, " ").strip
-        date_time = DateTime.parse(text)
+        date_time = Time.zone.parse(text)
         @tournament.accredation_end = date_time
       when "Sparte"
         name = detail_tr.css("td")[1].text.gsub(nbsp, " ").strip
@@ -147,6 +164,11 @@ class Tournament::PublicCcScraper < ApplicationService
       @tournament.reload.seedings.destroy_all
     end
     player_list = {}
+    # State-Quellen (CC = Wahrheit): wer in der Meldeliste bzw. Teilnehmerliste steht.
+    # Teilnehmerliste = aktiver Teilnehmer; nur Meldeliste = no_show; Teilnehmerliste
+    # ohne Meldeliste-Eintrag = per Schnellanmeldung reingekommen (aktiv, nur Log).
+    registration_player_ids = []
+    participant_player_ids = []
     registration_link = tournament_link.gsub("meisterschaft", "meldeliste")
     Rails.logger.info "reading #{url + registration_link}"
     uri = URI(url + registration_link)
@@ -185,7 +207,10 @@ class Tournament::PublicCcScraper < ApplicationService
                                                                              @tournament.season, region,
                                                                              club_name, nil,
                                                                              true, true, ix)
-              player_list[player.fl_name] = [player, club, ix] if player.present?
+              if player.present?
+                player_list[player.fl_name] = [player, club, ix]
+                registration_player_ids << player.id
+              end
             end
           end
         end
@@ -212,6 +237,11 @@ class Tournament::PublicCcScraper < ApplicationService
             player_lname, club_name = name_match[1..2]
           end
         end
+        # CC liefert im "Nachname, Vorname"-Format einen führenden Space im Vornamen
+        # (z.B. " Lothar"); fix_from_shortnames matcht aber exakt und liefert sonst nil
+        # — die Teilnehmer würden fehlen bzw. (mit der State-Logik) fälschlich no_show.
+        player_fname = player_fname.andand.strip
+        player_lname = player_lname.andand.strip
         club_name = club_name.andand.gsub("1.", "1. ").andand.gsub("1.  ", "1. ")
         # Don't create seedings yet - just collect players from participant list
         player, club, _seeding, _state_ix = Player.fix_from_shortnames(player_lname, player_fname, @tournament.season,
@@ -219,7 +249,10 @@ class Tournament::PublicCcScraper < ApplicationService
                                                                        club_name.strip, nil,
                                                                        true, true, ix)
         # Only add to player_list if not already present (registration list takes precedence for position)
-        player_list[player.fl_name] ||= [player, club, ix] if player.present?
+        if player.present?
+          player_list[player.fl_name] ||= [player, club, ix]
+          participant_player_ids << player.id
+        end
       end
     end
 
@@ -228,15 +261,57 @@ class Tournament::PublicCcScraper < ApplicationService
     player_list.each_with_index do |(fl_name, (player, club, position)), idx|
       next unless player.present?
 
+      # State aus den CC-Listen ableiten (CC = Wahrheit, bei jedem Scrape neu):
+      # in Teilnehmerliste => aktiver Teilnehmer (registered); nur in Meldeliste
+      # (nicht akkreditiert) => no_show. Schnellanmeldung (in Teilnehmerliste, aber
+      # nicht in Meldeliste) ist ein aktiver Teilnehmer — wird nur protokolliert.
+      in_participants = participant_player_ids.include?(player.id)
+      in_registration = registration_player_ids.include?(player.id)
+      # no_show nur ableiten, wenn es überhaupt eine Teilnehmerliste gibt. Solange keine
+      # existiert (z.B. vor der Akkreditierung), bleiben gemeldete Spieler aktiv — sonst
+      # würden alle Turniere in der Anmeldephase 0 aktive Teilnehmer bekommen.
+      target_state = if participant_player_ids.empty?
+        "registered"
+      else
+        in_participants ? "registered" : "no_show"
+      end
+      if in_participants && !in_registration
+        Rails.logger.info("==== scrape ==== #{fl_name}: Schnellanmeldung (in Teilnehmerliste, nicht in Meldeliste)")
+      end
+
       seeding = Seeding.find_by_player_id_and_tournament_id(player.id, @tournament.id)
-      unless seeding.present?
+      if seeding.blank?
         seeding = Seeding.new(player_id: player.id, tournament: @tournament, position: position || idx)
         seeding.region_id = region.id
-        if seeding.save
-          Rails.logger.info("Seeding[#{seeding.id}] created for #{fl_name}.")
-        else
+        unless seeding.save
           Rails.logger.error("==== scrape ==== Failed to create seeding for player #{player.id} (#{fl_name}): #{seeding.errors.full_messages.join(", ")}")
+          next
         end
+        Rails.logger.info("Seeding[#{seeding.id}] created for #{fl_name} (state=#{target_state}).")
+      end
+      # CC = Wahrheit: State bei jedem Scrape angleichen (auch bestehende Seedings)
+      if seeding.state != target_state
+        seeding.update(state: target_state)
+        Rails.logger.info("==== scrape ==== Seeding[#{seeding.id}] #{fl_name}: state → #{target_state}")
+      end
+    end
+
+    # Verwaiste Seedings bereinigen: Spieler, die nicht (mehr) in den aktuellen CC-Listen
+    # (Melde-/Teilnehmerliste) stehen und keine Spiele im Turnier haben, entfernen. Sonst
+    # sammeln sich Karteileichen aus früheren/fehlerhaften Scrapes an (z.B. Reste eines via
+    # veralteter cc_id überschriebenen Turniers). Nur bereinigen, wenn CC echte Teilnehmer
+    # liefert — sonst würden bei leerer/fehlerhafter Seite ALLE Seedings gelöscht.
+    valid_player_ids = player_list.values.map { |(player, *_rest)| player.andand.id }.compact
+    if valid_player_ids.any?
+      players_with_games = GameParticipation.joins(:game)
+                                            .where(games: { tournament_id: @tournament.id })
+                                            .distinct.pluck(:player_id).compact
+      keep_ids = (valid_player_ids + players_with_games).uniq
+      stale_seedings = @tournament.reload.seedings.where.not(player_id: keep_ids)
+      if stale_seedings.exists?
+        Rails.logger.info "==== scrape ==== removing #{stale_seedings.count} stale seeding(s) for " \
+          "tournament[#{@tournament.id}] (not in CC lists, no games): player_ids=#{stale_seedings.pluck(:player_id).inspect}"
+        stale_seedings.destroy_all
       end
     end
 

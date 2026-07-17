@@ -41,45 +41,26 @@ button[disabled] .when-enabled { display: none; }
     @apply px-4 py-3;
   }
 
+  /* Weiße Schrift auf .btn-primary aus `text-white`. base.css `a:not(.btn)` schließt Buttons
+     zwar aus, ABER breitere a:not(...)-Regeln aus forms.css/trix.css (z.B.
+     `a:not(.input-file+label):is(.dark *)`, Specificity bis (0,2,2)) tun das NICHT und schlagen
+     `.btn-primary` (0,1,0) im Dark-Mode → Anchor-Button wird teal-auf-teal unlesbar (SB-4/UAT-002).
+     Fix: Textfarbe kompound-spezifisch reasserten (`.btn.btn-primary` = (0,2,0) light / (0,3,0) dark),
+     schlägt die breiten Regeln OHNE !important (P0-Teardown-Prinzip). */
   .btn-primary {
     @apply bg-primary-600 text-white;
     @apply hover:bg-primary-700;
     @apply active:bg-primary-800;
     @apply focus:text-white focus-visible:text-white focus-visible:outline-primary-500;
   }
-  
-  .btn-primary,
-  .btn-primary:hover,
-  .btn-primary:focus,
-  .btn-primary:active {
-    color: white !important;
-  }
 
-  /* Ensure anchor buttons don't inherit base link color */
-  a.btn-primary,
-  a.btn-primary:hover,
-  a.btn-primary:focus,
-  a.btn-primary:active,
-  a.btn-primary:visited {
-    color: white !important;
-  }
-
-  /* Extra specificity to override base a:hover color */
-  .btn.btn-primary,
-  .btn.btn-primary:hover,
-  .btn.btn-primary:focus,
-  .btn.btn-primary:active,
-  .btn.btn-primary:visited {
-    color: white !important;
+  .btn.btn-primary {
+    @apply text-white dark:text-white;
   }
 
   .btn-primary.btn-outline {
     @apply bg-transparent border border-primary-500 text-primary-500 shadow-none;
-    @apply hover:bg-primary-500;
-  }
-  
-  .btn-primary.btn-outline:hover {
-    color: white !important;
+    @apply hover:bg-primary-500 hover:text-white;
   }
 
   .btn-secondary,
@@ -156,74 +137,36 @@ button[disabled] .when-enabled { display: none; }
   }
 }
 
-/* Critical: Button text colors MUST override base link styles
-   These rules are outside @layer to ensure they win specificity war */
-.btn-primary,
-.btn-primary:hover,
-.btn-primary:focus,
-.btn-primary:active,
-.btn-primary:visited {
-  color: white !important;
+/* Button-Anchors vs. generische Content-Link-Hover-Regeln.
+   base.css/forms.css/trix.css definieren `a:not(<X>):hover/:focus { text-primary-700 underline }`
+   (je ungelayert, Spezifitaet (0,2,2)). Nur base.css schliesst `.btn` aus — die forms/trix-Varianten
+   (`:not(.input-file+label)` / `:not(trix-toolbar .trix-button--dialog)`) treffen die `.btn`-Anchors der
+   Scoreboard-/Kiosk-Seiten: Underline (auch bei :focus/grünem Ring) + im Light-Mode-Hover Text = Grund
+   (unlesbar). Reassert MUSS ungelayert stehen (sonst verliert er gegen die ungelayerten Regeln); `[class]`
+   hebt die Spezifitaet auf (0,3,1) > (0,2,2), ohne !important (P0-Teardown-Prinzip).
+   Dark-Mode-Hover-Farbe (primary-300, (0,3,2)) bleibt bewusst unberührt (dort lesbar). */
+a.btn[class]:hover,
+a.btn[class]:focus {
+  @apply no-underline;
 }
 
-a.btn-primary,
-a.btn-primary:hover,
-a.btn-primary:focus,
-a.btn-primary:active,
-a.btn-primary:visited {
-  color: white !important;
+a.btn-primary[class]:hover, a.btn-primary[class]:focus,
+a.btn-danger[class]:hover, a.btn-danger[class]:focus,
+a.btn-success[class]:hover, a.btn-success[class]:focus,
+a.btn-dark[class]:hover, a.btn-dark[class]:focus {
+  @apply text-white;
 }
 
-a.btn.btn-primary,
-a.btn.btn-primary:hover,
-a.btn.btn-primary:focus,
-a.btn.btn-primary:active,
-a.btn.btn-primary:visited {
-  color: white !important;
-}
-
-/* Handle Chromium variants (Comet) that apply :any-link or WebKit text paint */
-a.btn.btn-primary:any-link,
-a.btn.btn-primary:hover:any-link,
-a.btn.btn-primary:focus:any-link,
-a.btn.btn-primary:active:any-link,
-a.btn.btn-primary:visited:any-link {
-  color: white !important;
-}
-
-/* WebKit-specific text fill to lock white text in some skins */
-a.btn.btn-primary,
-a.btn.btn-primary:hover,
-a.btn.btn-primary:focus,
-a.btn.btn-primary:active,
-a.btn.btn-primary:visited {
-  -webkit-text-fill-color: #ffffff !important;
-}
-
-/* Final authority: enforce darker hover background for primary buttons across engines */
-.btn-primary {
-  --tw-bg-opacity: 1 !important;
-  background-color: rgb(37 99 235 / var(--tw-bg-opacity, 1)) !important; /* primary-600 */
-  --tw-text-opacity: 1 !important;
-  color: rgb(255 255 255 / var(--tw-text-opacity, 1)) !important;
-}
-
-/* Maximum specificity for anchor buttons - must override any link color */
-a[class*="btn-primary"],
-a[class*="btn-primary"]:not(:hover),
-a[class*="btn-primary"]:link,
-a[class*="btn-primary"]:visited {
-  color: rgb(255 255 255) !important;
-  --tw-text-opacity: 1 !important;
-  -webkit-text-fill-color: rgb(255 255 255) !important;
-}
-
-.btn-primary:hover,
-.btn-primary:focus:hover,
-a[class*="btn-primary"]:hover {
-  --tw-bg-opacity: 1 !important;
-  background-color: rgb(29 78 216 / var(--tw-bg-opacity, 1)) !important; /* primary-700 - darker */
-  color: rgb(255 255 255 / var(--tw-text-opacity, 1)) !important;
-  --tw-text-opacity: 1 !important;
-  -webkit-text-fill-color: rgb(255 255 255) !important;
+/* Administrate-Aktionsbuttons (.button / .button--danger, z.B. Editieren/Loeschen auf
+   Show-/Index-Seiten): Administrate stylt sie blau/rot mit weisser Schrift, aber eine
+   globale Link-/Tailwind-Farbe ueberschreibt das -> dunkler, kaum lesbarer Text.
+   Im Administrate-Wrapper (.main-content) weisse Schrift erzwingen. */
+.main-content .button,
+.main-content .button:link,
+.main-content .button:visited,
+.main-content .button:hover,
+.main-content .button:focus,
+.main-content .button:active {
+  color: theme('colors.white') !important;
+  -webkit-text-fill-color: theme('colors.white') !important;
 }

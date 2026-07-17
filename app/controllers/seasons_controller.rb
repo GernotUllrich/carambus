@@ -4,7 +4,14 @@ class SeasonsController < ApplicationController
 
   # GET /seasons
   def index
-    @pagy, @seasons = pagy(Season.sort_by_params(params[:sort], sort_direction))
+    # Default: numerisch nach der ersten Jahreszahl des Namens (yyyy/yyyy+1), neueste zuerst
+    # (created_at ist durch internationale Scrapes verrutscht). Expliziter Sort-Param bleibt möglich.
+    base = if params[:sort].present?
+             Season.sort_by_params(params[:sort], sort_direction)
+           else
+             Season.order(Arel.sql("NULLIF(substring(seasons.name from '^[0-9]+'), '')::int DESC NULLS LAST, seasons.name DESC"))
+           end
+    @pagy, @seasons = pagy(base)
 
     # We explicitly load the records to avoid triggering multiple DB calls in the views when checking if records exist and iterating over them.
     # Calling @seasons.any? in the view will use the loaded records to check existence instead of making an extra DB call.

@@ -71,9 +71,14 @@ TableMonitor::ResultRecorder.switch_to_next_set(table_monitor: tm)
   "Ergebnis2"    => Integer,         # final score player B
   "Aufnahmen1"   => Integer,         # number of innings player A
   "Aufnahmen2"   => Integer,         # number of innings player B
+  "3BErgebnis1"  => Integer,         # 3-cushion sub-score player A (result_3b)
+  "3BErgebnis2"  => Integer,         # 3-cushion sub-score player B
+  "3BAufnahmen1" => Integer,         # 3-cushion innings player A (innings_3b)
+  "3BAufnahmen2" => Integer,         # 3-cushion innings player B
   "Höchstserie1" => Integer,         # highest run player A
   "Höchstserie2" => Integer,         # highest run player B
-  "Tischnummer"  => Integer          # table number (game.table_no)
+  "Tischnummer"  => Integer,         # table number (game.table_no)
+  "TiebreakWinner" => Integer        # per-set tiebreak winner: 1 = playera, 2 = playerb; nil if none
 }
 ```
 

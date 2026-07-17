@@ -34,6 +34,7 @@ class League < ApplicationRecord
   include LocalProtector
   include SourceHandler
   include RegionTaggable
+  include BranchTaggable
 
   self.ignored_columns = ["region_ids"]
 
@@ -300,20 +301,50 @@ class League < ApplicationRecord
   end
 
   # scrape_leagues_from_cc
+  # Folgt HTTP-Redirects (302) — manche ClubCloud-Tenants (z.B. blmr.club-cloud.de) leiten auf ihre
+  # oeffentliche Verbandsdomain um; plain Net::HTTP.get folgt nicht und liefert leeren Body
+  # -> Liga-Liste leer -> 0 Ligen gescraped. Pendant zu http_get im ClubCloudScraper-Service.
+  def self.cc_http_get(url, limit = 5)
+    raise ArgumentError, "zu viele HTTP-Redirects für #{url}" if limit <= 0
+    response = Net::HTTP.get_response(URI(url.to_s))
+    case response
+    when Net::HTTPSuccess then response.body
+    when Net::HTTPRedirection then cc_http_get(URI.join(url.to_s, response["location"]).to_s, limit - 1)
+    else response.body
+    end
+  end
+
   def self.scrape_leagues_from_cc(region, season, opts = {})
     if region.shortname == "BBV"
+      # Phase 18-03: BBV läuft über NuLiga (nu_liga:import_bbv / nu_liga:daily_import). Der Alt-BBV-CC-Scrape
+      # (League::BbvScraper, Billardarea) ist DEPRECATED; der Alt-CC-Server ist abgeschaltet. Notausgang für
+      # Reproduktion: FORCE_LEGACY_BBV_SCRAPE=1 (Muster wie FORCE_DERIVATION_RETAG).
+      unless ENV["FORCE_LEGACY_BBV_SCRAPE"] == "1"
+        Rails.logger.warn("League.scrape_leagues_from_cc(BBV): deprecated — BBV läuft über NuLiga " \
+                          "(nu_liga:import_bbv). Übersprungen. Notfall: FORCE_LEGACY_BBV_SCRAPE=1.")
+        return
+      end
       scrape_bbv_leagues(region, season, opts)
     else
+      # Rollover-Guard (CC-Incident 2026-07-16): fehlt die Saison im CC-Saison-Selektor, liefert
+      # sb_spielplan.php Daten einer anderen Saison (Links tragen trotzdem die angefragte Saison,
+      # der season_name-Filter unten greift also NICHT). Siehe Region#cc_season_available?.
+      unless region.cc_season_available?(season)
+        Rails.logger.warn "===== scrape ===== League.scrape_leagues_from_cc(#{region.shortname}): " \
+                          "Saison #{season.name} nicht im CC-Saison-Selektor — übersprungen (Rollover-Guard)"
+        return
+      end
       # return unless region.shortname == "BVBW"
       url = region.public_cc_url_base
       leagues_url = "#{url}sb_spielplan.php?eps=100000&s=#{season.name}"
       Rails.logger.info "reading #{leagues_url} - region #{region.shortname} league tournaments season #{season.name}"
-      uri = URI(leagues_url)
-      leagues_html = Net::HTTP.get(uri)
+      leagues_html = cc_http_get(leagues_url)
       leagues_doc = Nokogiri::HTML(leagues_html)
       table = leagues_doc.css("article table.silver")[1]
 
       if table.present?
+        cc_gate_deep = 0        # Change-Gate-Metrik (Phase 22): tief gescrapte Ligen
+        cc_gate_skipped = 0     # Change-Gate-Metrik: unveränderte, übersprungene Ligen
         table.css("tr").each do |tr|
           cc_id2s = []
           staffel_texts = []
@@ -331,8 +362,7 @@ class League < ApplicationRecord
           n_staffel = tr.css("td")[2].text.strip.to_i
           staffel_link = url + link
           Rails.logger.info "reading #{staffel_link}"
-          uri = URI(staffel_link)
-          staffel_html = Net::HTTP.get(uri)
+          staffel_html = cc_http_get(staffel_link)
           staffel_doc = Nokogiri::HTML(staffel_html)
           details_table = staffel_doc.css("aside > section > table")[0]
           branch = nil
@@ -388,11 +418,24 @@ class League < ApplicationRecord
             end
 
             if opts[:league_details]
-              # Collect all records from league details for batch tagging
-              league.scrape_single_league_from_cc(opts)
+              # Change-Gate (21-02, Ebene C): unveränderte Standings → teuren Deep-Scrape überspringen.
+              # Content aus dem BEREITS gefetchten staffel_doc (fetch-frei). Guard cc_season_available?
+              # lief bereits oben (VOR dem Gate). commit erst NACH erfolgreichem Deep (all-or-nothing) —
+              # eine Deep-Exception (siehe rescue der Methode) verhindert den commit → nächster Lauf prüft erneut.
+              content = cc_standings_content(staffel_doc)
+              if ScrapeFingerprint.deep?(league, "standings", content)
+                cc_gate_deep += 1
+                # Collect all records from league details for batch tagging
+                league.scrape_single_league_from_cc(opts)
+                ScrapeFingerprint.for(league, "standings").commit!(content)
+              else
+                cc_gate_skipped += 1
+              end
             end
           end
         end
+        Rails.logger.info "===== scrape ===== CC-Change-Gate #{region.shortname}: " \
+                          "deep=#{cc_gate_deep} skipped_unchanged=#{cc_gate_skipped}"
       end
     end
   rescue StandardError => e
@@ -402,6 +445,31 @@ class League < ApplicationRecord
 #{e} #{e.backtrace&.to_a&.join("/n")}"
   end
 
+  # Change-Gate-Content (21-02, Ebene C): normalisierte, ergebnistragende Zellen der HEIM/GAST-Spielplan-
+  # Tabelle des Staffel-Dokuments (Selektor-Muster wie League::ClubCloudScraper#parse_parties). Eine
+  # neue/geänderte Begegnung ändert eine Zeile → digest kippt → Deep-Scrape läuft. Leere/fehlende Tabelle
+  # → "" (führt zu stale → deep, kein Fehl-Skip). Deterministisch sortiert = fetch-freier, stabiler Hash-Input.
+  def self.cc_standings_content(staffel_doc)
+    return "" if staffel_doc.nil?
+
+    tables = staffel_doc.css("aside > section > table")
+    table = tables.find do |t|
+      t.css("tr").any? do |tr|
+        hs = tr.css("th").map { |x| x.text.strip.downcase }
+        hs.include?("heim") && hs.include?("gast")
+      end
+    end
+    return "" if table.nil?
+
+    table.css("tr").filter_map do |tr|
+      tds = tr.css("td").map { |td| td.text.strip.gsub(/\s+/, " ") }
+      next if tds.empty?
+
+      tds.join("|")
+    end.sort.join("\n")
+  end
+  private_class_method :cc_standings_content
+
   def self.scrape_leagues_optimized(region, season, opts = {})
     Rails.logger.info "===== scrape ===== Starting optimized league scraping for region #{region.shortname}"
 
@@ -409,11 +477,16 @@ class League < ApplicationRecord
       # BBV uses a different scraping method, use the original for now
       scrape_leagues_from_cc(region, season, opts)
     else
+      # Rollover-Guard — siehe scrape_leagues_from_cc / Region#cc_season_available?
+      unless region.cc_season_available?(season)
+        Rails.logger.warn "===== scrape ===== League.scrape_leagues_optimized(#{region.shortname}): " \
+                          "Saison #{season.name} nicht im CC-Saison-Selektor — übersprungen (Rollover-Guard)"
+        return
+      end
       url = region.public_cc_url_base
       leagues_url = "#{url}sb_spielplan.php?eps=100000&s=#{season.name}"
       Rails.logger.info "reading #{leagues_url} - region #{region.shortname} league tournaments season #{season.name}"
-      uri = URI(leagues_url)
-      leagues_html = Net::HTTP.get(uri)
+      leagues_html = cc_http_get(leagues_url)
       leagues_doc = Nokogiri::HTML(leagues_html)
       table = leagues_doc.css("article table.silver")[1]
 
@@ -474,8 +547,7 @@ class League < ApplicationRecord
 
   def self.scrape_league_details(region, season, title, short, n_staffel, staffel_link, league_cc_id, opts)
     Rails.logger.info "reading #{staffel_link}"
-    uri = URI(staffel_link)
-    staffel_html = Net::HTTP.get(uri)
+    staffel_html = cc_http_get(staffel_link)
     staffel_doc = Nokogiri::HTML(staffel_html)
     details_table = staffel_doc.css("aside > section > table")[0]
     branch = nil

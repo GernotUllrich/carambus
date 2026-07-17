@@ -3,22 +3,33 @@
 require_relative "role_tool_map"
 
 module McpServer
-  # Final Stub (Plan 14-G.2 / D-14-G6):
-  # Jeder authentifizierte User bekommt das volle Tool-Subset (ALL_TOOLS).
-  # Per-Record-Authority-Check ist in BaseTool.authorize! (TournamentPolicy)
-  # statt in ToolRegistry. Per-Tool-Authority erfolgt in 14-G.4 Write-Tools-Refactor.
+  # Persona-basiertes Tool-Gating (Phase 34-01, v1.0):
+  # Jeder authentifizierte User bekommt die Read-Tools; CC-Write-Tools nur, wenn
+  # user.cc_write_access? (Sportwart + Turnierleiter + system_admin). Per-Record-
+  # Authority bleibt orthogonal in BaseTool.authorize! (TournamentPolicy) —
+  # das Tier-Gating hier ist Defense-in-Depth davor.
   module ToolRegistry
-    # Liefert Array von Tool-Klassen-Symbolen für den User.
-    # Stub-Verhalten: jeder nicht-nil User bekommt ALL_TOOLS.
+    # Liefert Array von Tool-Klassen-Symbolen für den User, persona-gefiltert.
     def self.tools_for(user)
       return [] if user.nil?
-      RoleToolMap::ALL_TOOLS
+      tools = RoleToolMap::BASE_READ_TOOLS.dup
+      tools.concat(RoleToolMap::SELF_SERVICE_TOOLS)
+      # CC-Write-Tools NUR auf Local-Servern. Auf der Authority (api.carambus.de, carambus_api_url
+      # blank) liefen Schreibaktionen unter der geteilten Scraper-/Admin-Identität (fehl-attribuiert
+      # in der CC) + umgehen das Per-User-/Scope-Modell (Phase 39). Authority-Chat = read-only —
+      # auch für system_admin. Turnierverwaltung gehört auf die Local-Server.
+      tools.concat(RoleToolMap::WRITE_TOOLS) if user.cc_write_access? && local_server?
+      tools.uniq
     end
 
-    # Anzahl Tools für eine "Rolle" — Stub gibt für jeden Key die ALL_TOOLS-Größe zurück.
-    # Per-Record-Authority-Check ist in BaseTool.authorize! (14-G.4-Scope für Tool-Refactor).
-    def self.tool_count_for(_role_key)
-      RoleToolMap::ALL_TOOLS.size
+    # Authority (zentrale API/Scraper) hat KEINE carambus_api_url; Local-Server haben eine.
+    def self.local_server?
+      Carambus.config.carambus_api_url.present?
+    end
+
+    # Anzahl Tools, die der User tatsächlich bekommt (persona-gefiltert).
+    def self.tool_count_for(user)
+      tools_for(user).size
     end
 
     # Resolved Tool-Klassen (statt nur Symbole) — für McpController-Mount.

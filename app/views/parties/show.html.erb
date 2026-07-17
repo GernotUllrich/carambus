@@ -5,60 +5,57 @@
       <%= custom_link_to 'Edit', edit_party_path(@party), class: "btn btn-link" %>
     </div>
 
-    <div class="flex flex-wrap space-y-5  dark: rounded shadow p-8">
-      <div class="w-1/2 md:w-3/12 mb-4 m-w-full pr-8">
-        <h5>Date</h5>
-        <%= @party.date %>
+    <dl class="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-4 bg-surface-card dark:bg-gray-800 rounded-card border border-gray-200 dark:border-gray-700 p-6 text-gray-900 dark:text-gray-100">
+      <div class="min-w-0">
+        <dt class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5">Date</dt>
+        <dd class="break-words"><%= @party.date %></dd>
       </div>
-      <div class="w-1/2 md:w-3/12 mb-4 m-w-full pr-8">
-        <h5>League</h5>
-        <%= custom_link_to @party.league.name, league_path(@party.league) %>
+      <div class="min-w-0">
+        <dt class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5">League</dt>
+        <dd class="break-words"><%= custom_link_to @party.league.name, league_path(@party.league) %></dd>
       </div>
-      <div class="w-1/2 md:w-3/12 mb-4 m-w-full pr-8">
-        <h5>Remarks</h5>
-        <%= @party.remarks %>
+      <div class="min-w-0">
+        <dt class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5">Remarks</dt>
+        <dd class="break-words"><%= @party.remarks %></dd>
       </div>
-      <div class="w-1/2 md:w-3/12 mb-4 m-w-full pr-8">
-        <h5>League team a</h5>
-        <%= custom_link_to @party.league_team_a.name, league_team_path(@party.league_team_a) %>
+      <div class="min-w-0">
+        <dt class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5">League team a</dt>
+        <dd class="break-words"><%= custom_link_to @party.league_team_a.name, league_team_path(@party.league_team_a) %></dd>
       </div>
-      <div class="w-1/2 md:w-3/12 mb-4 m-w-full pr-8">
-        <h5>League team b</h5>
-        <%= custom_link_to @party.league_team_b.name, league_team_path(@party.league_team_b) %>
+      <div class="min-w-0">
+        <dt class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5">League team b</dt>
+        <dd class="break-words"><%= custom_link_to @party.league_team_b.name, league_team_path(@party.league_team_b) %></dd>
       </div>
-      <div class="w-1/2 md:w-3/12 mb-4 m-w-full pr-8">
-        <h5>CC</h5>
-        <%= custom_link_to "#{@party.party_cc.name}(#{@party.party_cc.id})", party_cc_path(@party.party_cc) if @party.party_cc.present? %>
+      <div class="min-w-0">
+        <dt class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5">CC</dt>
+        <dd class="break-words"><%= custom_link_to "#{@party.party_cc.name}(#{@party.party_cc.id})", party_cc_path(@party.party_cc) if @party.party_cc.present? %></dd>
       </div>
-      <div class="w-1/2 md:w-3/12 mb-4 m-w-full pr-8">
-        <h5>Day seqno</h5>
-        <%= @party.day_seqno %>
+      <div class="min-w-0">
+        <dt class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5">Day seqno</dt>
+        <dd class="break-words"><%= @party.day_seqno %></dd>
       </div>
-      <div class="w-1/2 md:w-3/12 mb-4 m-w-full pr-8">
-        <h5>Data</h5>
-        <%= @party.data %>
+      <div class="min-w-0">
+        <dt class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5">Quelle</dt>
+        <dd class="break-words"><%= link_to_if @party.source_url.present?, @party.source_url.present? ? URI.parse(@party.source_url).host : "", @party.source_url, target: :_blank %></dd>
       </div>
-      <div class="w-1/2 md:w-3/12 mb-4 m-w-full pr-8">
-        <h5>Quelle</h5>
-        <%= link_to_if @party.source_url.present?, @party.source_url.present? ? URI.parse(@party.source_url).host : "", @party.source_url, target: :_blank %>
+      <div class="min-w-0">
+        <dt class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5">Last Sync</dt>
+        <dd class="break-words"><%= @party.sync_date.andand.to_date %></dd>
       </div>
-      <div class="w-1/2 md:w-3/12 mb-4 m-w-full pr-8">
-        <h5>Last Sync</h5>
-        <%= @party.sync_date.andand.to_date %>
+      <div class="min-w-0">
+        <dt class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5">Host league team</dt>
+        <dd class="break-words"><%= custom_link_to @party.host_league_team.name, league_team_path(@party.host_league_team) if @party.host_league_team.present? %></dd>
       </div>
-      <div class="w-1/2 md:w-3/12 mb-4 m-w-full pr-8">
-        <h5>Host league team</h5>
-        <%= custom_link_to @party.host_league_team.name, league_team_path(@party.host_league_team) if @party.host_league_team.present? %>
+      <div class="min-w-0 col-span-full">
+        <dt class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5">Data</dt>
+        <dd class="break-words"><%= pretty_json(@party.data) %></dd>
       </div>
-    </div>
+    </dl>
     <div class="flex flex-row px-3 lg:px-0">
       <%= button_to I18n.t("tournaments.show.party_monitor"), party_monitor_party_path(@party), method: :get, style: "float: left; margin-right: 10px;", class: "btn btn-flat btn-primary" %>
     </div>
     <div class="mt-6 mb-4">
       <%= render partial: 'spielbericht', locals: { party: @party } %>
-    </div>
-    <div class="mt-6 mb-4">
-      <%= render partial: 'party_games/party_games_table', locals: { records: @party.party_games } if @party.party_games.present? %>
     </div>
   </div>
 </div>

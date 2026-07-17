@@ -121,7 +121,7 @@ class RegionCc::MetadataSyncer < ApplicationService
         discipline_cc = DisciplineCc.find_or_initialize_by(cc_id: option_cc_id)
         discipline = Discipline.find_by_name(name.gsub("(großes Billard)", "groß").gsub("(kleines Billard)", "klein").gsub("5-Kegel", "5 Kegel").gsub("14/1 endlos", "14.1 endlos").gsub("15-reds", "Snooker").gsub(
                                                "Billard Kegeln", "Billard-Kegeln"
-                                             ))
+                                             )) || Discipline.classify_from_title(name) # Phase 04: additiver Titel-Fallback
         discipline_cc.update(context: region.shortname.downcase, name: name, branch_cc_id: branch_cc.id,
                              discipline_id: discipline.andand.id)
       end

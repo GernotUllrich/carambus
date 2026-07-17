@@ -16,8 +16,9 @@ module Api
       @season = seasons(:current)
 
       @service_user = User.create!(
-        email: "test-2band-bridge@carambus.de",
-        password: "password123"
+        email: "test-carambus-app-bridge@carambus.de",
+        password: "password123",
+        confirmed_at: Time.zone.now # User ist :confirmable → ohne Bestätigung scheitert login_jwt mit 401
       )
 
       @tournament = Tournament.create!(
@@ -60,7 +61,7 @@ module Api
       TournamentCc.where(cc_id: 999_201).delete_all
       Tournament.where(title: "Test 3-Band Mannschaft 15-02").delete_all
       Seeding.where(tournament: @tournament).destroy_all if @tournament.persisted?
-      User.where(email: "test-2band-bridge@carambus.de").delete_all
+      User.where(email: "test-carambus-app-bridge@carambus.de").delete_all
     end
 
     # AC-3: ohne JWT → 401
@@ -138,6 +139,67 @@ module Api
       player_data = first_team["players"].first
       assert_equal 1, player_data["position_in_team"]
       assert_equal @player.firstname, player_data["firstname"]
+    end
+
+    # 2026-06-20: Auf dem Local-Server koexistieren global gesyncte (id < MIN_ID) und lokal
+    # gepflegte (id >= MIN_ID) Seedings -> Teilnehmer erschienen doppelt. Lokal zaehlen nur die lokalen.
+    test "seeding on local server: globale Dubletten gefiltert, nur lokale Seedings" do
+      orig = Carambus.config.carambus_api_url
+      Carambus.config.carambus_api_url = "http://local.test" # local_server? == true
+      # dieselbe Person als globale UND lokale Seeding -> ohne Filter zwei Teams
+      Seeding.create!(id: 30_000_777, tournament: @tournament, player: @player, position: 1)
+      Seeding.create!(id: 50_000_777, tournament: @tournament, player: @player, position: 1)
+
+      get_seeding(tournament_cc_id: 999_201, region: "NBV", jwt: login_jwt)
+      assert_response :success
+      body = JSON.parse(response.body)
+      assert_equal 1, body["teams"].length, "globale Dublette muss auf dem Local-Server gefiltert sein"
+    ensure
+      Carambus.config.carambus_api_url = orig
+    end
+
+    test "seeding on local server: ohne lokale Seedings Fallback auf globale" do
+      orig = Carambus.config.carambus_api_url
+      Carambus.config.carambus_api_url = "http://local.test"
+      Seeding.create!(id: 30_000_778, tournament: @tournament, player: @player, position: 1)
+
+      get_seeding(tournament_cc_id: 999_201, region: "NBV", jwt: login_jwt)
+      assert_response :success
+      body = JSON.parse(response.body)
+      assert_equal 1, body["teams"].length, "ohne lokale Seedings muessen globale geliefert werden"
+    ensure
+      Carambus.config.carambus_api_url = orig
+    end
+
+    # Punkt 2 (HANDOFF tournament-id-ambiguity 2026-06-17): seeding via globalen
+    # Tournament-DB-PK loest deterministisch auf (umgeht die region-scoped cc_id-Ambiguitaet).
+    test "seeding via tournament_id (DB-PK) returns spec-compliant doc" do
+      Seeding.create!(tournament: @tournament, player: @player, position: 1)
+      headers = {"Content-Type" => "application/json", "Accept" => "application/json",
+                 "Authorization" => "Bearer #{login_jwt}"}
+      get "/api/external_tournament/seeding",
+        params: {tournament_id: @tournament.id, region: "NBV"}, headers: headers
+      assert_response :success
+      body = JSON.parse(response.body)
+      assert_equal "carambus.seeding/v1", body["schema"]
+      assert_equal 999_201, body.dig("tournament", "cc_id")
+    end
+
+    test "seeding via unknown tournament_id returns 404" do
+      headers = {"Content-Type" => "application/json", "Accept" => "application/json",
+                 "Authorization" => "Bearer #{login_jwt}"}
+      get "/api/external_tournament/seeding",
+        params: {tournament_id: 999_999_999, region: "NBV"}, headers: headers
+      assert_response :not_found
+    end
+
+    test "seeding via tournament_id with mismatched region returns 422" do
+      @tournament.update_columns(region_id: regions(:bbv).id)
+      headers = {"Content-Type" => "application/json", "Accept" => "application/json",
+                 "Authorization" => "Bearer #{login_jwt}"}
+      get "/api/external_tournament/seeding",
+        params: {tournament_id: @tournament.id, region: "NBV"}, headers: headers
+      assert_response :unprocessable_entity
     end
 
     # === Plan 15-03: Round-Start-Endpoint Tests ===
@@ -506,7 +568,279 @@ module Api
       assert_nil body.dig("tournament", "location")
     end
 
+    # === Plan 48-04: Party-API (b1) ===
+
+    test "party without Authorization header returns 401" do
+      get "/api/external_tournament/party",
+        params: {region: "NBV", party_id: 1},
+        headers: {"Accept" => "application/json"}
+      assert_response :unauthorized
+    end
+
+    test "party without party_id or party_cc_id returns 422" do
+      get "/api/external_tournament/party",
+        params: {region: "NBV"},
+        headers: {"Accept" => "application/json", "Authorization" => "Bearer #{login_jwt}"}
+      assert_response :unprocessable_entity
+    end
+
+    test "party with unknown party_id returns 404" do
+      get "/api/external_tournament/party",
+        params: {region: "NBV", party_id: 999_999_999},
+        headers: {"Accept" => "application/json", "Authorization" => "Bearer #{login_jwt}"}
+      assert_response :not_found
+    end
+
+    test "party happy path returns carambus.party/v1 with roster + party_monitor" do
+      party = create_nbv_party(game_count: 1)
+      get "/api/external_tournament/party",
+        params: {region: "NBV", party_id: party.id},
+        headers: {"Accept" => "application/json", "Authorization" => "Bearer #{login_jwt}"}
+      assert_response :success
+      body = JSON.parse(response.body)
+      assert_equal "carambus.party/v1", body["schema"]
+      assert_equal party.id, body.dig("party", "id")
+      assert_equal "party-#{party.id}", body.dig("party", "external_id")
+      assert_equal 1, body.dig("party_monitor", "rows").size
+      assert body.dig("team_a", "roster").any? { |p| p.key?("ba_id") }, "roster trägt ba_id-Schlüssel"
+    end
+
+    test "party roster_source = club_pool_fallback ohne Liga-Kader-Seedings (48-07/B)" do
+      party = create_nbv_party(game_count: 1) # keine LeagueTeam-Seedings
+      get "/api/external_tournament/party",
+        params: {region: "NBV", party_id: party.id},
+        headers: {"Accept" => "application/json", "Authorization" => "Bearer #{login_jwt}"}
+      assert_response :success
+      team_a = JSON.parse(response.body)["team_a"]
+      assert_equal "club_pool_fallback", team_a["roster_source"]
+      assert team_a["roster"].any?, "Club-Pool-Fallback nicht leer"
+    end
+
+    test "party roster_source = league_team aus den Kader-Seedings (48-07/B)" do
+      party = create_nbv_party(game_count: 1)
+      squad = Player.create!(ba_id: 77_011, dbu_nr: 66_011, region: @nbv, lastname: "Kader", firstname: "K")
+      party.league_team_a.seedings.create!(player: squad)
+      get "/api/external_tournament/party",
+        params: {region: "NBV", party_id: party.id},
+        headers: {"Accept" => "application/json", "Authorization" => "Bearer #{login_jwt}"}
+      assert_response :success
+      team_a = JSON.parse(response.body)["team_a"]
+      assert_equal "league_team", team_a["roster_source"]
+      assert_equal ["66011"], team_a["roster"].map { |p| p["dbu_nr"] }
+    end
+
+    test "party filtert Aggregat-Rows + normalisiert row.score (48-07/C)" do
+      party = create_nbv_party(game_count: 1)
+      pm = party.party_monitor
+      pm.update!(data: pm.data.merge("rows" => [
+        {"type" => "Neue Runde", "r_no" => 1},
+        {"seqno" => 1, "type" => "9-Ball", "r_no" => 1, "sets" => 1, "score" => {"balls" => 80}},
+        {"type" => "Gesamtsumme"}
+      ]))
+      get "/api/external_tournament/party",
+        params: {region: "NBV", party_id: party.id},
+        headers: {"Accept" => "application/json", "Authorization" => "Bearer #{login_jwt}"}
+      assert_response :success
+      rows = JSON.parse(response.body).dig("party_monitor", "rows")
+      types = rows.map { |r| r["type"] }
+      assert_includes types, "9-Ball"
+      assert_includes types, "Neue Runde"
+      refute_includes types, "Gesamtsumme", "Aggregat-Row server-seitig gefiltert"
+      assert_equal 80, rows.find { |r| r["type"] == "9-Ball" }["score"], "score-Object normalisiert auf Zahl"
+    end
+
+    test "party_game_result writes the game and returns intermediate_result" do
+      party = create_nbv_party(game_count: 1)
+      post "/api/external_tournament/party_game_result",
+        params: {region: {shortname: "NBV"}, party: {external_id: "party-#{party.id}"},
+                 gname: "1-9-Ball", ba_results: {Ergebnis1: 5, Ergebnis2: 3}}.to_json,
+        headers: json_auth_headers
+      assert_response :success
+      body = JSON.parse(response.body)
+      assert body["ok"]
+      assert_equal "1-9-Ball", body.dig("game", "gname")
+      assert_not_nil body.dig("game", "ended_at")
+      assert_equal "1:0", body.dig("intermediate_result", "game_points")
+      assert_equal "2:0", body.dig("intermediate_result", "match_points")
+    end
+
+    test "party_game_result on a sets discipline falls back to Ergebnis when Sets absent" do
+      party = create_nbv_party(game_count: 1, sets: 5) # Satz-Disziplin
+      post "/api/external_tournament/party_game_result",
+        params: {region: {shortname: "NBV"}, party: {party_id: party.id},
+                 gname: "1-9-Ball", ba_results: {Ergebnis1: 5, Ergebnis2: 3}}.to_json, # nur Ergebnis, keine Sets
+        headers: json_auth_headers
+      assert_response :success
+      body = JSON.parse(response.body)
+      assert body["ok"]
+      assert_not_nil body.dig("game", "ended_at"), "Fallback Ergebnis→Sets: Spiel wird trotzdem geschrieben"
+      assert_equal "1:0", body.dig("intermediate_result", "game_points")
+    end
+
+    test "party_game_result schreibt Spieler1/2 = gesendete dbu_nr (48-06/A)" do
+      party = create_nbv_party(game_count: 1)
+      post "/api/external_tournament/party_game_result",
+        params: {region: {shortname: "NBV"}, party: {party_id: party.id}, gname: "1-9-Ball",
+                 ba_results: {Spieler1: 88_001, Spieler2: 88_002, Ergebnis1: 5, Ergebnis2: 3}}.to_json,
+        headers: json_auth_headers
+      assert_response :success
+      ba = party.games.find_by(gname: "1-9-Ball").data["ba_results"]
+      assert_equal 88_001, ba["Spieler1"], "dbu_nr aus dem Request, region-scoped aufgelöst (nicht ba_id)"
+      assert_equal 88_002, ba["Spieler2"]
+    end
+
+    test "party_close with a missing game result returns 409 missing_gnames" do
+      party = create_nbv_party(game_count: 2)
+      row1 = party.party_monitor.data["rows"].first
+      party.build_game_for_row!(row1, 1)
+      party.record_game_result!(row: row1, sc1: 5, sc2: 3) # nur Spiel 1 erfasst
+      post "/api/external_tournament/party_close",
+        params: {region: {shortname: "NBV"}, party: {party_id: party.id}}.to_json,
+        headers: json_auth_headers
+      assert_response :conflict
+      body = JSON.parse(response.body)
+      assert_includes body["missing_gnames"], "2-9-Ball"
+    end
+
+    test "party_close happy path closes the party and returns result" do
+      party = create_nbv_party(game_count: 1)
+      row1 = party.party_monitor.data["rows"].first
+      party.build_game_for_row!(row1, 1)
+      party.record_game_result!(row: row1, sc1: 5, sc2: 3)
+      post "/api/external_tournament/party_close",
+        params: {region: {shortname: "NBV"}, party: {party_id: party.id}}.to_json,
+        headers: json_auth_headers
+      assert_response :success
+      body = JSON.parse(response.body)
+      assert body["ok"]
+      assert_equal "closed", body.dig("party", "state")
+      assert_equal "1:0", body.dig("result", "game_points")
+    end
+
+    # === Plan 48-08/H: LocalProtector-Honest-Refusal ===
+
+    test "party_game_result on a global party on a local_server returns 422 writable:false (48-08/H)" do
+      party = create_nbv_party(game_count: 1, id: 1_234_567) # globale Party: id < MIN_ID
+      ApplicationRecord.stub(:local_server?, true) do
+        post "/api/external_tournament/party_game_result",
+          params: {region: {shortname: "NBV"}, party: {party_id: party.id},
+                   gname: "1-9-Ball", ba_results: {Ergebnis1: 5, Ergebnis2: 3}}.to_json,
+          headers: json_auth_headers
+      end
+      assert_response :unprocessable_entity
+      body = JSON.parse(response.body)
+      assert_equal false, body["ok"]
+      assert_equal false, body["writable"]
+      assert_match(/LocalProtector/, body["error"])
+      assert_nil party.games.find_by(gname: "1-9-Ball"), "kein stiller Write — record_game_result! nicht aufgerufen"
+    end
+
+    test "party_close on a global party on a local_server returns 422 writable:false (48-08/H)" do
+      party = create_nbv_party(game_count: 1, id: 1_234_568) # globale Party: id < MIN_ID
+      ApplicationRecord.stub(:local_server?, true) do
+        post "/api/external_tournament/party_close",
+          params: {region: {shortname: "NBV"}, party: {party_id: party.id}}.to_json,
+          headers: json_auth_headers
+      end
+      assert_response :unprocessable_entity
+      body = JSON.parse(response.body)
+      assert_equal false, body["ok"]
+      assert_equal false, body["writable"]
+      refute_equal "closed", party.party_monitor.reload.state, "Party nicht geschlossen (kein stiller Rollback)"
+    end
+
+    test "GET party carries party.writable + party_monitor.state (48-08/H)" do
+      party = create_nbv_party(game_count: 1)
+      get "/api/external_tournament/party",
+        params: {region: "NBV", party_id: party.id},
+        headers: {"Accept" => "application/json", "Authorization" => "Bearer #{login_jwt}"}
+      assert_response :success
+      body = JSON.parse(response.body)
+      assert_equal true, body.dig("party", "writable"), "local_server? false im Test ⇒ writable true"
+      assert_equal party.party_monitor.state, body.dig("party_monitor", "state")
+    end
+
+    # === Plan 48-08/F+G: sets_source/score_source-Marker ===
+
+    test "GET party defaults sets_source/score_source to scraped_heuristic per game row (48-08/F+G)" do
+      party = create_nbv_party(game_count: 1) # 9-Ball-Row ohne sets_source/score_source
+      get "/api/external_tournament/party",
+        params: {region: "NBV", party_id: party.id},
+        headers: {"Accept" => "application/json", "Authorization" => "Bearer #{login_jwt}"}
+      assert_response :success
+      game_row = JSON.parse(response.body).dig("party_monitor", "rows").find { |r| r["type"] == "9-Ball" }
+      assert_equal "scraped_heuristic", game_row["sets_source"]
+      assert_equal "scraped_heuristic", game_row["score_source"]
+    end
+
+    test "GET party passes through an explicit sets_source (no default override) (48-08/F)" do
+      party = create_nbv_party(game_count: 1)
+      pm = party.party_monitor
+      pm.update!(data: pm.data.merge("rows" => [
+        {"seqno" => 1, "type" => "9-Ball", "r_no" => 1, "sets" => 5, "sets_source" => "sportordnung"}
+      ]))
+      get "/api/external_tournament/party",
+        params: {region: "NBV", party_id: party.id},
+        headers: {"Accept" => "application/json", "Authorization" => "Bearer #{login_jwt}"}
+      assert_response :success
+      game_row = JSON.parse(response.body).dig("party_monitor", "rows").find { |r| r["type"] == "9-Ball" }
+      assert_equal "sportordnung", game_row["sets_source"], "expliziter Wert bleibt (kein Default-Override)"
+      assert_equal "scraped_heuristic", game_row["score_source"], "fehlender Wert ⇒ Default"
+    end
+
+    test "GET party does not mark Neue-Runde separator rows (48-08/F+G)" do
+      party = create_nbv_party(game_count: 1)
+      pm = party.party_monitor
+      pm.update!(data: pm.data.merge("rows" => [
+        {"type" => "Neue Runde", "r_no" => 1},
+        {"seqno" => 1, "type" => "9-Ball", "r_no" => 1, "sets" => 1}
+      ]))
+      get "/api/external_tournament/party",
+        params: {region: "NBV", party_id: party.id},
+        headers: {"Accept" => "application/json", "Authorization" => "Bearer #{login_jwt}"}
+      assert_response :success
+      separator = JSON.parse(response.body).dig("party_monitor", "rows").find { |r| r["type"] == "Neue Runde" }
+      refute separator.key?("sets_source"), "Trennerzeile ohne sets_source-Marker"
+      refute separator.key?("score_source"), "Trennerzeile ohne score_source-Marker"
+    end
+
     private
+
+    # JSON-POST-Header mit frischem Bearer (login_jwt ruft reset! → einmal pro Test holen).
+    def json_auth_headers
+      {"Content-Type" => "application/json", "Accept" => "application/json",
+       "Authorization" => "Bearer #{login_jwt}"}
+    end
+
+    # Minimaler NBV-Liga-Spieltag für die Party-API-Tests: League(organizer=nbv) + Party +
+    # 2 LeagueTeams(club bcw) + PartyMonitor(rows+match_points) + 2 Players(ba_id) + 1
+    # SeasonParticipation (Kader). game_count = Anzahl 9-Ball-Spielzeilen in Runde 1.
+    # id: optional erzwungene Party-PK — für 48-08/H, um eine GLOBALE Party (id < MIN_ID, Mirror
+    # von der Authority) zu simulieren. Default = DB-Sequenz (>= MIN_ID, lokaler/schreibbarer Record).
+    def create_nbv_party(game_count: 1, sets: 1, match_points: {"win" => 2, "draw" => 1, "lost" => 0}, id: nil)
+      suffix = SecureRandom.hex(4)
+      league = League.create!(name: "Party-API Test #{suffix}", shortname: "PAT-#{suffix}",
+        organizer: @nbv, season: @season, discipline: @discipline)
+      team_a = LeagueTeam.create!(name: "Heim", club: clubs(:bcw), league: league)
+      team_b = LeagueTeam.create!(name: "Gast", club: clubs(:bcw), league: league)
+      party_attrs = {league: league, league_team_a: team_a, league_team_b: team_b,
+                     date: Time.zone.local(2026, 9, 13)}
+      party_attrs[:id] = id if id
+      party = Party.create!(party_attrs)
+      p1 = Player.create!(ba_id: 99_900_001, dbu_nr: 88_001, region: @nbv, lastname: "Heim", firstname: "A")
+      p2 = Player.create!(ba_id: 99_900_002, dbu_nr: 88_002, region: @nbv, lastname: "Gast", firstname: "B")
+      SeasonParticipation.create!(season: @season, club: clubs(:bcw), player: p1, status: "active")
+      rows = (1..game_count).map do |i|
+        {"seqno" => i, "type" => "9-Ball", "sets" => sets, "r_no" => 1, "player_a" => p1.id, "player_b" => p2.id}
+      end
+      # after_create_commit broadcastet das _party_monitor-Partial (nutzt current_user) → ohne
+      # Warden im Test-Setup-Kontext ein Render-Fehler. Suppress nur bei der Anlage; die Endpoints
+      # finden die pm danach (kein Re-Create, Updates broadcasten nicht).
+      PartyMonitor.suppressing_turbo_broadcasts do
+        party.create_party_monitor!(state: "seeding_mode", data: {"rows" => rows, "match_points" => match_points})
+      end
+      party
+    end
 
     # === Round-Start-Test-Fixtures ===
 
@@ -549,9 +883,9 @@ module Api
         data: {external_id: "rr-test-ext-1"}
       )
       GameParticipation.create!(game: @rr_game_1, player: @player_a, role: "playera",
-                                points: 30, innings: 22, hs: 5, gd: 1.364)
+        points: 30, innings: 22, hs: 5, gd: 1.364)
       GameParticipation.create!(game: @rr_game_1, player: @player_b, role: "playerb",
-                                points: 24, innings: 22, hs: 4)
+        points: 24, innings: 22, hs: 4)
 
       # Game 2: laufend (kein ended_at gesetzt)
       @rr_game_2 = @tournament.games.create!(
@@ -563,9 +897,9 @@ module Api
         data: {external_id: "rr-test-ext-2"}
       )
       GameParticipation.create!(game: @rr_game_2, player: @player_a, role: "playera",
-                                points: 12, innings: 10, hs: 3)
+        points: 12, innings: 10, hs: 3)
       GameParticipation.create!(game: @rr_game_2, player: @player_b, role: "playerb",
-                                points: 9, innings: 10, hs: 2)
+        points: 9, innings: 10, hs: 2)
     end
 
     def get_round_result(tournament_cc_id:, round_no:, region:, jwt:)

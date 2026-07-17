@@ -1,8 +1,11 @@
+<%# 08-04: Deutschlandkarte additiv ueber der Kachel-Galerie (ausserhalb des Pagy-turbo-frame). %>
+<%= render 'germany_map' %>
+
 <%= render partial: 'shared/index_with_search', locals: {
   model_class: Region,
   records: @regions,
   title: t('region.index.regions'),
   new_text: t('region.index.new_region'),
   new_path: new_region_path,
-  table_partial: 'regions_table'
+  table_partial: 'regions_tiles'
 } %>

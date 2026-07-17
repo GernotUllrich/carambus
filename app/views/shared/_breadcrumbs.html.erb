@@ -1,0 +1,28 @@
+<%# Drill-down-Breadcrumbs: ersetzen im Drill-down-Modus (Scopable#drill_focus_active?) das globale %>
+<%# Scope-Band. Zeigen den Weg (Parent-Kette + aktuelles Modell) und dienen dem gezielten Zurueck. %>
+<%# Datenquelle: Scopable#drill_focus_crumbs => [{ label:, path: }], letzte Crumb path: nil. %>
+<%# Token+Dark, kein Hex; Rahmen/Hintergrund wie das Scope-Band (_scope_band.html.erb). %>
+<% crumbs = drill_focus_crumbs %>
+<% if crumbs.present? %>
+  <div id="breadcrumbs" class="border-b border-gray-300 dark:border-gray-700 bg-gray-300 dark:bg-gray-800">
+    <div class="px-4 py-2">
+      <nav aria-label="<%= t("breadcrumbs.aria", default: "Breadcrumb") %>">
+        <ol class="flex items-center gap-2 flex-nowrap overflow-x-auto text-sm list-none pl-0 m-0">
+          <% crumbs.each_with_index do |crumb, i| %>
+            <% if i.positive? %>
+              <li aria-hidden="true" class="text-gray-500 dark:text-gray-500 shrink-0">&rsaquo;</li>
+            <% end %>
+            <li class="shrink-0 whitespace-nowrap">
+              <% if crumb[:path].present? %>
+                <%= custom_link_to crumb[:label], crumb[:path],
+                      class: "text-gray-700 dark:text-gray-200 hover:text-primary-700 dark:hover:text-primary-300 no-underline" %>
+              <% else %>
+                <span aria-current="page" class="font-semibold text-gray-900 dark:text-gray-100"><%= crumb[:label] %></span>
+              <% end %>
+            </li>
+          <% end %>
+        </ol>
+      </nav>
+    </div>
+  </div>
+<% end %>

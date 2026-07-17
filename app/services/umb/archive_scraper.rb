@@ -115,7 +115,7 @@ class Umb::ArchiveScraper
 
     return nil unless tournament_info[:name].present?
 
-    discipline = Umb::DisciplineDetector.detect(tournament_info[:name])
+    discipline = Umb::DisciplineDetector.detect_with_title_fallback(tournament_info[:name])
     tournament_type = determine_tournament_type(tournament_info[:name])
 
     {

@@ -1,16 +1,13 @@
 # frozen_string_literal: true
 
-# cc_lookup_teilnehmerliste — Plan 25-01 T3a Spike (2026-06-02).
+# cc_lookup_teilnehmerliste — Plan 25-01 T3a Spike (2026-06-02), Plan 31-01 Live-Read-Fix.
 #
-# Plan 25 Live-Smoke-Befund: Pre-existing-Stub (D-18 Phase) lieferte nur einen
-# HTTP-Status-String aus `showMeldelistenList` — keine Player-Liste, keine Phasen-
-# Erkennung. DFP SU (cc_id=859) zeigt in CC-UI 3 Teilnehmerliste-Doppel, das alte
-# Tool sagte "leer" → Sportwart-Workflow "wer ist akkreditiert?" war via MCP blind.
+# Liest Teilnehmerliste + Meldeliste immer live aus CCs persistierter DB-View:
+#   - current_teilnehmer: showTeilnehmerliste.php -3 (Tab 3, akkreditierte Spieler)
+#   - available_in_meldeliste: showTeilnehmerliste.php -2 (Tab 2, registrierte Spieler) minus Tab-3
 #
-# Spike-Strategie (DRY): wiederverwendet `AssignPlayerToTeilnehmerliste.pre_read_teilnehmerliste`
-# (Plan 07-04 Inline-Patch v3 `dla=1` Initial-Landing-Payload). Pre-Read parst
-# editTeilnehmerlisteCheck-HTML und liefert sowohl `current_teilnehmer` (akkreditiert)
-# als auch `available_in_meldeliste` (noch zur Übernahme verfügbar) plus Tournament-Name.
+# Plan 31-01: ersetzt den alten editTeilnehmerlisteCheck-Edit-Buffer fuer available_in_meldeliste.
+# Root Cause DEFER-D2-1: Edit-Buffer spiegelt CC-UI-Aenderungen aus anderen Sessions nicht sofort wider.
 #
 # Output-Anreicherung: Phase-Heuristik (open/partial/finalized/empty) + Counts, damit
 # Claude/Sportwart sofort sieht ob Tournament im Anmelde-Stand, gemischt, oder schon
@@ -21,14 +18,16 @@ module McpServer
     class LookupTeilnehmerliste < BaseTool
       tool_name "cc_lookup_teilnehmerliste"
       description "Wann nutzen? Vor Akkreditierung/Finalisierung — Turnierleiter will den aktuellen Stand der Teilnehmerliste sehen ('wer ist schon akkreditiert?'). " \
+                  "DIES ist auch das richtige Tool fuer 'Meldestatus' / 'wie viele sind akkreditiert' — es liest die ECHTE Teilnehmerliste (showTeilnehmerliste -3) INKL. der per Schnellanmeldung direkt eingetragenen Spieler. " \
+                  "NICHT cc_lookup_tournament(with_committed_list) dafuer nutzen — dessen committed_players sieht Schnellanmeldungen nicht. " \
                   "Auch um den Phase-Status zu pruefen (Anmeldephase vs. schon-finalisiert). " \
                   "Was tippt der User typisch? 'Liste zeigen', 'Wer ist akkreditiert fuer die Eurokegel?', 'Status Teilnehmerliste DFP SU'. " \
                   "Liefert die committed Teilnehmerliste (akkreditierte Spieler) UND die noch zur Uebernahme verfuegbare Meldeliste-Reste. " \
                   "Phase-Indikator im Output: 'empty' (nichts da), 'open' (alle in Meldeliste, noch nicht uebernommen), " \
                   "'partial' (teils uebernommen), 'finalized' (alle in Teilnehmerliste, Meldeliste leer). " \
                   "Use VOR cc_assign_player_to_teilnehmerliste / cc_remove_from_teilnehmerliste / cc_finalize_teilnehmerliste. " \
-                  "Live-CC Pfad via editTeilnehmerlisteCheck mit dla=1 (Initial-Landing-Payload). " \
-                  "Plan 25-01 T3a (2026-06-02): vorheriger Stub lieferte nur Status-String."
+                  "Live-CC Pfaede: showTeilnehmerliste.php -3 (Teilnehmerliste, persistiert) + -2 (Meldeliste, persistiert). " \
+                  "Plan 31-01: immer live aus CC, kein Edit-Buffer-Seiteneffekt."
       input_schema(
         properties: {
           tournament_cc_id: {type: "integer", description: "CC meisterschaft ID (= TournamentCc.cc_id). REQUIRED fuer Live-Pfad — oder via tournament_id mit Mirror."},
@@ -87,12 +86,23 @@ module McpServer
           season: season || tournament_cc&.season&.to_s
         }.compact
 
+        # Strang 2 (LSW-Kegel-Befund 2026-06-14): Soft-Hinweis bei fachlicher Nichtzuständigkeit
+        # (Turnier-Disziplin außerhalb des Sportwart-Wirkbereichs) — führt vor der technischen
+        # Scope-Filter-Diagnose, damit das LLM nicht „Konfigurationsproblem" narriert.
+        # Plus (User-Direktive „einfacher"): IMMER den öffentlichen Turnier-Link anbieten —
+        # die Teilnehmerliste ist öffentlich einsehbar (kein Admin-Scope nötig).
+        t = tournament_cc&.tournament
+        scope_note = discipline_scope_note(tournament: t, server_context: server_context)
+
         missing = [:fedId, :branchId, :season].select { |k| scope[k].blank? }
         if missing.any?
+          if scope_note
+            return error("#{scope_note} (Technisch: Scope-Filter unvollständig: fehlend [#{missing.join(", ")}].)#{public_view_hint(t)}")
+          end
           return error("Scope-Filter unvollstaendig: fehlend [#{missing.join(", ")}]. " \
                        "Bitte explizit mitgeben (z.B. fed_cc_id=20, branch_cc_id=7 fuer Snooker, season='2025/2026') " \
                        "ODER TournamentCc-DB-Mirror anlegen. " \
-                       "admin-cc-ids: 8=Kegel, 6=Pool, 7=Snooker, 10=Karambol.")
+                       "admin-cc-ids: 8=Kegel, 6=Pool, 7=Snooker, 10=Karambol.#{public_view_hint(t)}")
         end
 
         client = cc_session.client_for(server_context)
@@ -103,20 +113,13 @@ module McpServer
         teilnehmer = fetch_teilnehmerliste_persisted(client, tournament_cc_id, scope)
         return teilnehmer if teilnehmer.is_a?(MCP::Tool::Response)
 
-        # SECONDARY READ (Buffer-View, kann eventual sein): editTeilnehmerlisteCheck fuer tournament_name +
-        # available_in_meldeliste. Caveat im Output. Phase 26 sollte showMeldeliste.php als stabile Quelle ergaenzen.
-        # Plan 25-01 T3b-Defensive-Wrap (2026-06-02): Crash hier darf das gesamte Tool nicht killen
-        # (-32603 vermieden). User-Live-Befund DFP SU: pre_read raised wegen Multi-Meldelisten-State —
-        # statt Internal-Error liefern wir partial-data + warning.
-        edit_view = begin
-          AssignPlayerToTeilnehmerliste.pre_read_teilnehmerliste(client, tournament_cc_id, scope)
-        rescue => e
-          Rails.logger.warn "[cc_lookup_teilnehmerliste] pre_read fallback (non-fatal): #{e.class}: #{e.message}\n#{e.backtrace&.first(3)&.join("\n")}"
-          nil
-        end
-        meldung = (edit_view.is_a?(Hash) ? (edit_view[:available_in_meldeliste] || []) : [])
-        tournament_name = edit_view.is_a?(Hash) ? edit_view[:tournament_name] : nil
-        meldung_read_status = edit_view.is_a?(Hash) ? "ok" : "failed-fallback-to-empty"
+        # SECONDARY READ (persistiert, stabil): showTeilnehmerliste.php -2 (Meldeliste-Tab).
+        # Plan 31-01 T1: ersetzt editTeilnehmerlisteCheck (Edit-Buffer) — der spiegelt CC-UI-Aenderungen
+        # aus anderen Browser-Sessions nicht sofort wider. Tab-2 liest direkt aus CCs persistierter DB-View.
+        all_registered = fetch_meldeliste_persisted(client, tournament_cc_id, scope)
+        akkreditierte_ids = teilnehmer.map { |t| t[:cc_id] }.to_set
+        meldung = all_registered.reject { |r| akkreditierte_ids.include?(r[:cc_id]) }
+        tournament_name = tournament_cc&.name
 
         text(JSON.generate(
           tournament_cc_id: tournament_cc_id,
@@ -128,9 +131,11 @@ module McpServer
           counts: {teilnehmer: teilnehmer.size, meldung_open: meldung.size},
           current_teilnehmer: teilnehmer,
           available_in_meldeliste: meldung,
+          # Phase 40 (D-40-1): interne Quelle (Live-CC) rechte-gegated; "" für read-only User.
+          source: source_label(server_context, :live_cc),
           read_pfade: {
-            teilnehmer: "showTeilnehmerliste.php (persistiert, stabil)",
-            meldung: "editTeilnehmerlisteCheck dla=1 (Edit-Buffer, kann nach Writes 1-3s eventual sein) — status=#{meldung_read_status}"
+            teilnehmer: "showTeilnehmerliste.php -3 (persistiert, stabil)",
+            meldung: "showMeldeliste.php -2 (persistiert, stabil)"
           }
         ))
       rescue => e
@@ -173,11 +178,43 @@ module McpServer
         # Scan: title='Last, First (cc_id)' class='cc_bluelink' — accepts both ' and ".
         matches = body.scan(/title=["']([^"']+?)\s*\((\d+)\)["']\s+class=["']cc_bluelink["']/)
         matches.uniq { |_name, cc_id| cc_id.to_i }.map do |name, cc_id|
-          {cc_id: cc_id.to_i, label: name.strip}
+          # force_encoding: Net::HTTP-Rohbody ist ASCII-8BIT; Labels mit Umlauten (Kämmer, Schröder)
+          # sonst inkompatibel sobald sie in UTF-8-Ausgaben interpoliert werden (Encoding::CompatibilityError).
+          {cc_id: cc_id.to_i, label: name.strip.dup.force_encoding("UTF-8")}
         end
       rescue => e
         Rails.logger.warn "[cc_lookup_teilnehmerliste] fetch_teilnehmerliste_persisted failed: #{e.class}: #{e.message}"
         error("showTeilnehmerliste parse failed: #{e.class.name} (#{e.message})")
+      end
+
+      # Plan 31-01 T1 (Bug-Fix 2026-06-10): persistierte Meldeliste via meisterschaft-showMeldeliste.
+      # Smoke-Test 2026-06-10 ergab: showTeilnehmerliste.php -2 hat anderes HTML-Format als -3;
+      # tatsaechliche Meldeliste liegt auf showMeldeliste.php (Endpunkt "meisterschaft-showMeldeliste").
+      # URL-Pattern: /admin/einzel/meisterschaft/showMeldeliste.php?p=<fed>-<branch>-*-<season>-*--<meisterschaftsId>-2
+      # HTML-Format (live-capture): <tr class="even|odd"> mit <td class="bb1"><b>Nachname</b></td>
+      #   <td class="bb1"><b>Vorname</b></td> <td class="bb1" align="center">cc_id</td>
+      # Bei HTTP-Fehler: [] (defensiv — Lookup laeuft mit leerem Ergebnis weiter).
+      def self.fetch_meldeliste_persisted(client, tournament_cc_id, scope)
+        p_param = "#{scope[:fedId]}-#{scope[:branchId]}-*-#{scope[:season]}-*--#{tournament_cc_id}-2"
+        Rails.logger.info "[cc_lookup_teilnehmerliste] fetch_meldeliste p_param=#{p_param.inspect}"
+        res, _doc = client.get("meisterschaft-showMeldeliste", {p: p_param}, {session_id: cc_session.cookie})
+        return [] if res.nil? || res.code != "200"
+
+        body = res.body.to_s
+        Rails.logger.info "[cc_lookup_teilnehmerliste] meldeliste body_bytes=#{body.bytesize} has_bb1=#{body.include?("bb1")} has_loginButton=#{body.include?("loginButton")}"
+
+        # Live-HTML (showMeldeliste.php sendet konsistent single quotes):
+        #   <td class='bb1'><b>Nachname</b></td><td class='bb1'><b>Vorname</b></td>
+        #   <td class='bb1' align='center'>10024</td>  (Pass-Nr. = cc_id)
+        # WICHTIG: ['"] character class funktioniert NICHT mit ASCII-8BIT body — literal ' verwenden.
+        matches = body.scan(/<td class='bb1'><b>([^<]+)<\/b><\/td>\s*<td class='bb1'><b>([^<]+)<\/b><\/td>\s*<td class='bb1' align='center'>(\d+)<\/td>/m)
+        matches.uniq { |_nachname, _vorname, cc_id| cc_id.to_i }.map do |nachname, vorname, cc_id|
+          # force_encoding: ASCII-8BIT-Rohbody → UTF-8, sonst Encoding::CompatibilityError bei Umlauten.
+          {cc_id: cc_id.to_i, label: "#{nachname.dup.force_encoding("UTF-8")}, #{vorname.dup.force_encoding("UTF-8")}"}
+        end
+      rescue => e
+        Rails.logger.warn "[cc_lookup_teilnehmerliste] fetch_meldeliste_persisted failed: #{e.class}: #{e.message}"
+        []
       end
 
       # Phase-Heuristik: "open" (alle in Meldeliste), "partial" (teils transferiert),

@@ -10,14 +10,22 @@ class ChangeDetectionTest < ActiveSupport::TestCase
     @region = regions(:nbv)
     @season = seasons(:current)
   end
-  
+
+  # Hart vergebene IDs (früher 50_000_200ff.) kollidierten mit den Phase-39-
+  # Fixtures local_fpk_class1 etc. (test/fixtures/tournaments.yml). Stattdessen
+  # dynamisch eine garantiert freie lokale ID (>= MIN_ID) oberhalb aller
+  # Fixture-IDs wählen — deterministisch, da Tests transaktional zurückrollen.
+  def next_local_id
+    [Tournament.maximum(:id).to_i, ApplicationRecord::MIN_ID].max + 1
+  end
+
   # ============================================================================
   # BASIC CHANGE DETECTION (via SourceHandler)
   # ============================================================================
   
   test "sync_date is set when source_url is present" do
     tournament = Tournament.create!(
-      id: 50_000_200,
+      id: next_local_id,
       title: "Test Tournament",
       season: @season,
       organizer: @region,
@@ -32,7 +40,7 @@ class ChangeDetectionTest < ActiveSupport::TestCase
   
   test "sync_date updates when record changes with source_url" do
     tournament = Tournament.create!(
-      id: 50_000_201,
+      id: next_local_id,
       title: "Original Title",
       season: @season,
       organizer: @region,
@@ -55,7 +63,7 @@ class ChangeDetectionTest < ActiveSupport::TestCase
   
   test "sync_date does not update when no changes" do
     tournament = Tournament.create!(
-      id: 50_000_202,
+      id: next_local_id,
       title: "Test Tournament",
       season: @season,
       organizer: @region,
@@ -76,7 +84,7 @@ class ChangeDetectionTest < ActiveSupport::TestCase
   
   test "sync_date is not set when source_url is missing" do
     tournament = Tournament.create!(
-      id: 50_000_203,
+      id: next_local_id,
       title: "Local Tournament",
       season: @season,
       organizer: @region,
@@ -95,7 +103,7 @@ class ChangeDetectionTest < ActiveSupport::TestCase
   
   test "multiple saves track sync_date correctly" do
     tournament = Tournament.create!(
-      id: 50_000_204,
+      id: next_local_id,
       title: "Test Tournament",
       season: @season,
       organizer: @region,

@@ -55,12 +55,12 @@
                 <td class="p-3">
                   <p>
                     <%= content_tag(:button, name: "assign_a", title: "Melden", data: { turbo: false, reflex: "click->PartyMonitorReflex#assign_player_a", reflex_serialize_form: "true", id: @party_monitor.id, 'reflex-dataset': "ancestors" }) do %>
-                      <%= render_svg "icons/arrow-thin-left", styles: "fill-current icon-sm text-gray-600 inline-block" %>
+                      <%= render_svg "icons/arrow-thin-left", styles: "fill-current icon-sm text-gray-600 dark:text-gray-300 inline-block" %>
                     <%- end %>
                   </p>
                   <p>
                     <%= content_tag(:button, name: "remove_a", title: "Abmelden", data: { turbo: false, reflex: "click->PartyMonitorReflex#remove_player_a", reflex_serialize_form: "true", id: @party_monitor.id, 'reflex-dataset': "ancestors" }) do %>
-                      <%= render_svg "icons/arrow-thin-right", styles: "fill-current icon-sm text-gray-600 inline-block" %>
+                      <%= render_svg "icons/arrow-thin-right", styles: "fill-current icon-sm text-gray-600 dark:text-gray-300 inline-block" %>
                     <%- end %>
                   </p>
                 </td>
@@ -107,12 +107,12 @@
                 <td class="p-3">
                   <p>
                     <%= content_tag(:button, name: "assign_b", title: "Melden", data: { turbo: false, reflex: "click->PartyMonitorReflex#assign_player_b", reflex_serialize_form: "true", id: @party_monitor.id, 'reflex-dataset': "ancestors" }) do %>
-                      <%= render_svg "icons/arrow-thin-left", styles: "fill-current icon-sm text-gray-600 inline-block" %>
+                      <%= render_svg "icons/arrow-thin-left", styles: "fill-current icon-sm text-gray-600 dark:text-gray-300 inline-block" %>
                     <%- end %>
                   </p>
                   <p>
                     <%= content_tag(:button, name: "remove_b", title: "Abmelden", data: { turbo: false, reflex: "click->PartyMonitorReflex#remove_player_b", reflex_serialize_form: "true", id: @party_monitor.id, 'reflex-dataset': "ancestors" }) do %>
-                      <%= render_svg "icons/arrow-thin-right", styles: "fill-current icon-sm text-gray-600 inline-block" %>
+                      <%= render_svg "icons/arrow-thin-right", styles: "fill-current icon-sm text-gray-600 dark:text-gray-300 inline-block" %>
                     <%- end %>
                   </p>
                 </td>
@@ -205,6 +205,10 @@
                         &nbsp;=>&nbsp;
                         <%= content_tag(:button, disabled: ("disabled" unless r_no == @party_monitor.current_round && %w[ready_for_next_round].include?(@party_monitor.state)), class: "btn btn-primary", name: "start_round_#{r_no}", title: "Runde #{r_no} starten", data: { turbo: false, reflex: "click->PartyMonitorReflex#start_round", reflex_serialize_form: "true", rno: r_no, id: @party_monitor.id, 'reflex-dataset': "ancestors" }) do %>
                           Runde <%= r_no %> starten
+                        <%- end %>
+                        &nbsp;=>&nbsp;
+                        <%= content_tag(:button, disabled: ("disabled" unless r_no == @party_monitor.current_round && @party_monitor.state == "playing_round"), class: "btn btn-primary", name: "enter_game_results_#{r_no}", title: "Ergebnisse Runde #{r_no} speichern", data: { turbo: false, reflex: "click->PartyMonitorReflex#enter_game_results", reflex_serialize_form: "true", rno: r_no, id: @party_monitor.id, 'reflex-dataset': "ancestors" }) do %>
+                          Ergebnisse Runde <%= r_no %> speichern
                         <%- end %>
                         &nbsp;=>&nbsp;
                         <%= content_tag(:button, disabled: ("disabled" unless r_no == @party_monitor.current_round && %w[playing_round].include?(@party_monitor.state)), class: "btn btn-primary", name: "finish_round_#{r_no}", title: "Runde #{r_no} abschliessen", data: { turbo: false, reflex: "click->PartyMonitorReflex#finish_round", reflex_serialize_form: "true", rno: r_no, id: @party_monitor.id, 'reflex-dataset': "ancestors" }) do %>

@@ -2348,18 +2348,150 @@
   
   
   
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6_11" >
+        
+          
+          <label class="md-nav__link" for="__nav_6_11" id="__nav_6_11_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    ClubCloud MCP
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_11_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6_11">
+            <span class="md-nav__icon md-icon"></span>
+            ClubCloud MCP
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
     <li class="md-nav__item">
       <a href="../../developers/clubcloud-mcp-server/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    ClubCloud MCP Server
+    Server-Handbuch
     
   </span>
   
 
       </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/mcp-architektur-naht/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Architektur-Naht (Identität/Autorisierung)
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/per-user-cc-identitaet/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Per-User-ClubCloud-Identität
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/clubcloud-mcp-workflow-scenarios/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Workflow-Scenarios
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
     </li>
   
 
@@ -3531,7 +3663,7 @@ scoreboards → final standings), you do <strong>not</strong> need this bridge.<
 </table>
 <h3 id="step-1-create-the-service-account-sportwart">Step 1: Create the service account (Sportwart)<a class="headerlink" href="#step-1-create-the-service-account-sportwart" title="Permanent link">&para;</a></h3>
 <p>In the Carambus scenario's server directory:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>rake<span class="w"> </span>service_accounts:create_2band<span class="o">[</span>NBV<span class="o">]</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>rake<span class="w"> </span>service_accounts:create_carambus_app<span class="o">[</span>NBV<span class="o">]</span>
 </code></pre></div>
 <p>Output: a one-time password — <strong>communicate securely</strong>, not in plain text
 in chat or email. Hand it over in person or via a trusted channel
@@ -3544,7 +3676,7 @@ in chat or email. Hand it over in person or via a trusted channel
     <code>http://192.168.X.X:3000</code></li>
 <li>Per-region cloud: <code>https://nbv.carambus.de</code></li>
 <li>Global cloud: <code>https://carambus.de</code></li>
-<li><strong>Service-account email</strong>: <code>2band-nbv-bridge@carambus.de</code>
+<li><strong>Service-account email</strong>: <code>carambus-app-nbv-bridge@carambus.de</code>
   (or the equivalent for other regions)</li>
 <li><strong>Password</strong>: from step 1</li>
 <li><strong>Region shortname</strong>: e.g., <code>NBV</code>, <code>BCW</code></li>
@@ -3556,8 +3688,9 @@ header.</p>
 <p>Verify connectivity before the first real tournament:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nv">SERVICE_ACCOUNT_PASSWORD</span><span class="o">=</span><span class="s2">&quot;&lt;password&gt;&quot;</span><span class="w"> </span>rake<span class="w"> </span>external_tournament:smoke_test<span class="o">[</span>NBV<span class="o">]</span>
 </code></pre></div>
-<p>A successful run prints five <code>✓</code> steps (login → tournament lookup → seeding
-→ round start → round result). On failure see "What can go wrong?" below.</p>
+<p>A successful run prints six <code>✓</code> steps (login → tournament lookup → seeding
+→ round start → round result → player reconcile). On failure see "What can
+go wrong?" below.</p>
 <h2 id="deployment-topology">Deployment topology<a class="headerlink" href="#deployment-topology" title="Permanent link">&para;</a></h2>
 <p>The bridge works in three topologies — from the app's perspective the only
 thing that changes is the base URL:</p>

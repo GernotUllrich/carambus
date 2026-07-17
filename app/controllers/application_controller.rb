@@ -6,6 +6,10 @@ class ApplicationController < ActionController::Base
   include DarkModeHelper
   protect_from_forgery with: :exception
 
+  # H33 (P1): Datenabgleich-Aktionen crashten mit rohem 500, wenn der API-Server eine
+  # leere/nicht-JSON-Antwort liefert. Zentraler Abfang → roter Flash statt 500/False-Success.
+  rescue_from Version::ApiUnavailableError, with: :handle_api_unavailable
+
   include Authentication
   include Authorization
   include CurrentHelper
@@ -14,6 +18,7 @@ class ApplicationController < ActionController::Base
   include Sortable
   include Users::TimeZone
   include SetCurrentRequestDetails
+  include Scopable
 
   before_action :check_mini_profiler if Rails.env != "production" && Rails.env != "test"
   before_action :set_paper_trail_whodunnit
@@ -33,10 +38,17 @@ class ApplicationController < ActionController::Base
     @navbar = true
     @footer = true
   end
+  # Scope-Band: Ausschnitt aus der Session lesen und als FK-Filter (Current.scope) bereitstellen.
+  before_action :capture_scope
+  before_action :set_current_scope
   before_action :set_user_preferences
   before_action :set_locale
   around_action :set_current_user
-  # impersonates :user
+  # Pretender: erlaubt es system_admins, voruebergehend in die Identitaet eines anderen
+  # Users zu schluepfen. Definiert current_user (= impersonierter User || true_user),
+  # true_user (echter angemeldeter User) sowie impersonate_user / stop_impersonating_user.
+  # Muss NACH der Devise-current_user-Definition stehen (siehe pretender#impersonates).
+  impersonates :user
 
   before_action :set_cache_headers if Rails.env.development?
   before_action :handle_menu_state
@@ -50,6 +62,7 @@ class ApplicationController < ActionController::Base
   def local_server?
     Carambus.config.carambus_api_url.present?
   end
+  helper_method :local_server?
 
   def default_url_options
     # Only add locale to URL if it's different from the default locale
@@ -87,6 +100,23 @@ class ApplicationController < ActionController::Base
     return if current_user&.admin? || guest_player_creation?
 
     redirect_back fallback_location: root_path, alert: "Admin Only - ask gernot.ullrich@gmx.de for permission"
+    false
+  end
+
+  def system_admin_only
+    return if current_user&.system_admin?
+
+    redirect_back fallback_location: root_path, alert: "System-Admin only - ask gernot.ullrich@gmx.de for permission"
+    false
+  end
+
+  # S5 (12-14): CC-Datenabgleich (reload-from-cc) darf ausführen, wer data_sync_access? hat
+  # (system_admin/club_admin/Sportwart/LandesSportwart/Turnierleiter).
+  def data_sync_access_check
+    return if current_user&.data_sync_access?
+
+    redirect_back fallback_location: root_path,
+                  alert: "Nur für Sportwart/Turnierleiter/Admin - ask gernot.ullrich@gmx.de for permission"
     false
   end
 
@@ -134,8 +164,11 @@ class ApplicationController < ActionController::Base
 
   private
 
-  def require_account
-    redirect_to new_user_registration_path unless current_account
+  # H33 (P1): Handler für Version::ApiUnavailableError — sauberer roter Flash + zurück,
+  # statt rohem 500 bzw. falschem Erfolgs-Notice. Deckt alle ~13 Datenabgleich-Aktionen ab.
+  def handle_api_unavailable(exception)
+    Rails.logger.warn("ApiUnavailableError: #{exception.message}")
+    redirect_back fallback_location: root_path, alert: t("application.flash.api_unavailable")
   end
 
   def set_current_user

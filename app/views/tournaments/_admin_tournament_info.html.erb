@@ -1,32 +1,32 @@
 <%# Admin-Bereich: Geparste Einladung & Setzliste - Nur für Spielleiter %>
 <%# Wird ausgeblendet sobald das Turnier gestartet ist (Seeding finalisiert) %>
 <% if tournament_director?(current_user) && !@tournament.tournament_seeding_finished? %>
-  <div class="admin-tournament-info-container bg-gray-50 border border-gray-300 rounded-lg p-6 mb-6">
-    <h2 class="text-2xl font-bold mb-4 text-gray-900">
+  <div class="admin-tournament-info-container bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg p-6 mb-6">
+    <h2 class="text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100">
       <%= t('tournaments.show.admin_heading') %>
     </h2>
 
     <div class="space-y-4">
       <!-- Geparste Einladung -->
       <% if @tournament.data['invitation_filename'].present? %>
-        <div class="bg-white rounded-lg p-4 border border-gray-200">
+        <div class="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
           <h3 class="text-lg font-semibold text-gray-800 mb-2"><%= t('tournaments.show.parsed_invitation_heading') %></h3>
-          <p class="text-sm text-gray-600 mb-2">
+          <p class="text-sm text-gray-600 dark:text-gray-300 mb-2">
             <%= t('tournaments.show.file_label') %> <strong><%= @tournament.data['invitation_filename'] %></strong>
           </p>
 
           <% if @tournament.data['extracted_plan_info'].present? %>
-            <div class="text-sm text-gray-700 mb-2">
+            <div class="text-sm text-gray-700 dark:text-gray-200 mb-2">
               <strong><%= t('tournaments.show.extracted_mode_label') %></strong> <%= @tournament.data['extracted_plan_info'] %>
             </div>
           <% end %>
 
           <% if @tournament.data['extracted_group_assignment'].present? %>
             <details class="mt-2">
-              <summary class="cursor-pointer text-sm font-semibold text-gray-700">
+              <summary class="cursor-pointer text-sm font-semibold text-gray-700 dark:text-gray-200">
                 <%= t('tournaments.show.show_extracted_groups') %>
               </summary>
-              <div class="mt-2 text-xs text-gray-600">
+              <div class="mt-2 text-xs text-gray-600 dark:text-gray-300">
                 <% @tournament.data['extracted_group_assignment'].each do |group_key, player_positions| %>
                   <div class="mb-2">
                     <strong><%= group_key.humanize %>:</strong>
@@ -49,7 +49,7 @@
       <% end %>
 
       <!-- Setzliste -->
-      <div class="bg-white rounded-lg p-4 border border-gray-200">
+      <div class="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
         <h3 class="text-lg font-semibold text-gray-800 mb-2"><%= t('tournaments.show.seeding_heading') %></h3>
         <% seeding_scope = @tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").count > 0 ? 
                           "seedings.id >= #{Seeding::MIN_ID}" : 
@@ -58,7 +58,7 @@
         <div class="max-h-64 overflow-y-auto">
           <table class="w-full text-sm">
             <thead>
-              <tr class="bg-gray-100">
+              <tr class="bg-gray-100 dark:bg-gray-800">
                 <th class="px-2 py-1 text-left"><%= t('tournaments.show.position_short') %></th>
                 <th class="px-2 py-1 text-left"><%= t('tournaments.show.player') %></th>
                 <% if @tournament.handicap_tournier? %>
@@ -68,7 +68,7 @@
             </thead>
             <tbody>
               <% @tournament.seedings.where(seeding_scope).where.not(state: "no_show").order(:position).limit(20).each do |seeding| %>
-                <tr class="border-b border-gray-200">
+                <tr class="border-b border-gray-200 dark:border-gray-700">
                   <td class="px-2 py-1"><%= seeding.position %></td>
                   <td class="px-2 py-1"><%= seeding.player.fullname %></td>
                   <% if @tournament.handicap_tournier? %>
@@ -80,7 +80,7 @@
           </table>
           <% total_count = @tournament.seedings.where(seeding_scope).where.not(state: "no_show").count %>
           <% if total_count > 20 %>
-            <p class="text-xs text-gray-500 mt-2">
+            <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">
               <%= t('tournaments.show.more_players', count: total_count - 20) %>
             </p>
           <% end %>
@@ -88,7 +88,7 @@
       </div>
 
       <!-- Quick Links -->
-      <div class="bg-white rounded-lg p-4 border border-gray-200">
+      <div class="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
         <h3 class="text-lg font-semibold text-gray-800 mb-2"><%= t('tournaments.show.quick_links_heading') %></h3>
         <div class="flex flex-wrap gap-2">
           <% if @tournament.tournament_monitor.present? %>

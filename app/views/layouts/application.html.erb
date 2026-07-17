@@ -3,13 +3,12 @@
 <% 
   html_classes = []
   html_classes << (current_user&.prefers_dark_mode? ? 'dark' : 'light')
-  # Only force collapsed for scoreboard users when sb_state parameter is present (direct scoreboard URL)
-  # Check both current_user (Devise) and Current.user (could be set even if current_user is not yet available)
-  is_scoreboard_user = (current_user&.email == 'scoreboard@carambus.de') || (Current.user&.email == 'scoreboard@carambus.de')
-  is_scoreboard_url = is_scoreboard_user && params[:sb_state].present?
-  html_classes << 'sidebar-collapsed' if is_scoreboard_url
+  # Scoreboard/Kiosk ist out-of-scope des Redesigns (siehe scoreboard_page?): kein Scope-Band,
+  # Sidebar beim Aktivieren immer eingeklappt, kein Chat-Button.
+  is_scoreboard_page = scoreboard_page?
+  html_classes << 'sidebar-collapsed' if is_scoreboard_page
 %>
-<html lang="<%= I18n.locale %>" class="<%= html_classes.join(' ') %>" data-scoreboard-url="<%= is_scoreboard_url %>">
+<html lang="<%= I18n.locale %>" class="<%= html_classes.join(' ') %>" data-scoreboard-url="<%= is_scoreboard_page %>">
 <head>
   <title>
     <% if content_for?(:title) %>
@@ -104,14 +103,36 @@
 <div class="flex flex-col min-h-screen <%= "no-navbar" unless @navbar %>" data-controller="sidebar">
   <header>
     <%= render "flash" %>
+    <%# Pretender: gut sichtbares Banner solange ein Identitaetswechsel aktiv ist. %>
+    <% if respond_to?(:true_user) && true_user && current_user != true_user %>
+      <div class="bg-amber-400 text-amber-950 px-4 py-2 text-sm flex flex-wrap items-center justify-center gap-3 shadow">
+        <span>
+          👤 Du agierst gerade als <strong><%= current_user.display_name %></strong>
+          <span class="opacity-80">(eigenes Konto: <%= true_user.display_name %>)</span>
+        </span>
+        <%= button_to "Eigenes Konto wiederherstellen",
+              stop_impersonating_users_path,
+              method: :delete,
+              class: "underline font-semibold hover:no-underline",
+              form_class: "inline" %>
+      </div>
+    <% end %>
     <%= render "navbar" %>
   </header>
-  
+
   <!-- AI Search Panel (central overlay) -->
   <%= render "ai_search_panel" %>
   
   <!-- Main Content -->
   <main class="flex-1 bg-gray-200 dark:bg-gray-900 transition-all duration-300 content-wrapper" data-sidebar-target="content">
+    <%# Globaler Ausschnitt (Scope-Band) — im Content-Bereich (rechts der Sidebar), ueber allen Listen. %>
+    <%# NICHT im Scoreboard/Kiosk (out-of-scope): dort kein Band. %>
+    <%# Drill-down-Modus (Scopable#drill_focus_active?): Breadcrumbs ersetzen das Scope-Band (Parent = Scope). %>
+    <% if drill_focus_active? %>
+      <%= render "shared/breadcrumbs" %>
+    <% elsif !is_scoreboard_page && !international_page? %>
+      <%= render "shared/scope_band" %>
+    <% end %>
     <%= yield %>
   </main>
   <%= render partial: "footer" if !turbo_native_app? && @footer %>

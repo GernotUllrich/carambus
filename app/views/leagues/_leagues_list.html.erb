@@ -1,0 +1,33 @@
+<div class="bg-surface-card dark:bg-gray-800 rounded-card border border-gray-200 dark:border-gray-700 overflow-hidden">
+  <% @leagues ||= records %>
+  <% @pagy ||= defined?(pagy) ? pagy : nil %>
+  <% @leagues.each do |league| %>
+    <div class="group flex items-center gap-3 px-4 py-3 border-t border-gray-100 dark:border-gray-700 first:border-t-0 hover:bg-surface-page dark:hover:bg-gray-700/60">
+      <div class="flex-1 min-w-0">
+        <%= custom_link_to(league.name, league, class: "font-medium text-gray-900 dark:text-gray-100 hover:text-primary-600") %>
+        <div class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+          <%# Subzeile "Staffel · N Mannschaften" — Ligen haben kein Datum/Ort; Saison/Region sind %>
+          <%# scope-fixiert (Region nur als Badge bei Abweichung). Trenner nur, wenn beide Teile da. %>
+          <% team_count = league.league_teams.size %>
+          <% team_part = team_count == 1 ? "1 Mannschaft" : "#{team_count} Mannschaften" if team_count > 0 %>
+          <%= safe_join([league.staffel_text.presence, team_part].select(&:present?), " · ") %>
+        </div>
+      </div>
+      <%# Kontextuelle Marker vom Scope-State getrieben (identisch zu tournaments): %>
+      <%# Disziplin-Chip nur, wenn Branch nicht auf Einzelwert fixiert ("Alle Branchen"). %>
+      <% if current_branch_id.blank? %>
+        <%= discipline_chip(league.discipline) %>
+      <% end %>
+      <%# Region-Badge nur bei Abweichung: Liga-Region ≠ Scope-Region (überregional/global_context, z.B. DBU). %>
+      <% if league.region_id != current_region_id %>
+        <%= region_badge(league.organizer) %>
+      <% end %>
+    </div>
+  <% end %>
+</div>
+
+<% if @pagy.present? && @pagy.pages > 1 %>
+  <div class="text-center my-6">
+    <%= pagy_nav(@pagy).html_safe %>
+  </div>
+<% end %>

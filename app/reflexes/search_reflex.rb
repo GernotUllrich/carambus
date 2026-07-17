@@ -38,6 +38,25 @@ class SearchReflex < ApplicationReflex
     # Set @sSearch for FiltersHelper
     @sSearch = search_params[:sSearch]
 
+    # Globaler Ausschnitt (Scope-Band): der Reflex laeuft ueber ActionCable und NICHT durch
+    # ApplicationController#set_current_scope -> Current.scope waere sonst nil und die Live-Suche
+    # ignorierte den Ausschnitt. Gleiche Ableitung wie im HTTP-Pfad (ScopeResolver).
+    Current.scope = ScopeResolver.new(session_scope: session[:scope], user: current_user).fk_scope
+
+    # Drill-down-Kontext (Ankunftskontext): der Reflex laeuft ueber ActionCable und NICHT durch
+    # Scopable#set_current_scope -> Current.drill waere sonst nil und die Live-Suche im Drill
+    # verlaere den Parent-Filter (zeigte alle Datensaetze). Gleiche Ableitung wie Scopable#drill_focus_params
+    # (Allowlist Scopable::DRILL_FOCUS_KEYS gegen Column-Injection). apply_drill (SearchService) liest Current.drill.
+    raw_drill = params[:drill]
+    Current.drill =
+      if raw_drill.respond_to?(:to_unsafe_h)
+        raw_drill.to_unsafe_h
+      elsif raw_drill.is_a?(Hash)
+        raw_drill
+      else
+        {}
+      end.stringify_keys.slice(*Scopable::DRILL_FOCUS_KEYS)
+
     # Perform search
     results = SearchService.call(@model.search_hash(search_params))
 
@@ -52,7 +71,9 @@ class SearchReflex < ApplicationReflex
     instance_variable_set("@pagy", pagy)
     instance_variable_set("@search_params", search_params)
 
-    # Render partial
-    render partial: "#{model_name.underscore.pluralize}_table", locals: {pagy: @pagy, model_class: @model, records: records}
+    # Render partial: das tatsaechlich von der Index-Seite gerenderte table_partial (Default _table),
+    # damit die Live-Suche das richtige DOM-Ziel morpht (UAT-001; tournaments/index rendert tournaments_list).
+    table_partial = element.dataset["table-partial"].presence || "#{model_name.underscore.pluralize}_table"
+    render partial: table_partial, locals: {pagy: @pagy, model_class: @model, records: records}
   end
 end

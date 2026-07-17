@@ -6,8 +6,8 @@ module Api
   # Liefert carambus.seeding/v1-konformes JSON-Dokument für externe Turnier-Apps
   # (Pilot: 3BandMannschaftsTurnier in /Users/gullrich/2BandTurnier; BC Wedel 3-Band-Mannschaft).
   #
-  # Auth: devise-jwt (Bearer-Token aus POST /login eines 2band-bridge-Service-Account-Users
-  # wie 2band-nbv-bridge@carambus.de; angelegt via `rake service_accounts:create_2band[NBV]`).
+  # Auth: devise-jwt (Bearer-Token aus POST /login eines carambus-app-bridge-Service-Account-Users
+  # wie carambus-app-nbv-bridge@carambus.de; angelegt via `rake service_accounts:create_carambus_app[NBV]`).
   # D-15-01-A: Service-Account-Pattern analog G.14 (Pattern aus TournamentCcsController).
   #
   # Spec: /Users/gullrich/2BandTurnier/docs/json-schema.md
@@ -32,18 +32,30 @@ module Api
     #   - 422 — region_shortname passt nicht zur Tournament-Region, oder TournamentCc noch nicht verlinkt
     def seeding
       region = Region.find_by!(shortname: params[:region].to_s.upcase)
-      tournament_cc = TournamentCc.find_by!(
-        cc_id: params[:tournament_cc_id],
-        context: region.shortname.downcase
-      )
 
-      tournament = tournament_cc.tournament
-      if tournament.nil?
-        return render json: {error: "Tournament not yet linked"}, status: :unprocessable_entity
-      end
-
-      if tournament.region_id != region.id
-        return render json: {error: "Region mismatch"}, status: :unprocessable_entity
+      # Punkt 2 (HANDOFF tournament-id-ambiguity, 2026-06-17): tournament_cc_id ist nur
+      # region-scoped eindeutig — der Chat-Deep-Link lieferte ein falsches Turnier. Der
+      # globale DB-PK (Tournament#id) ist eindeutig und wird, wenn vorhanden, bevorzugt.
+      # Fallback bleibt der cc_id+context-Pfad (rueckwaertskompatibel).
+      if params[:tournament_id].present?
+        tournament = Tournament.find_by(id: params[:tournament_id])
+        return render json: {error: "Tournament not found"}, status: :not_found if tournament.nil?
+        if tournament.region_id != region.id
+          return render json: {error: "Region mismatch"}, status: :unprocessable_entity
+        end
+        tournament_cc = tournament.tournament_cc
+      else
+        tournament_cc = TournamentCc.find_by!(
+          cc_id: params[:tournament_cc_id],
+          context: region.shortname.downcase
+        )
+        tournament = tournament_cc.tournament
+        if tournament.nil?
+          return render json: {error: "Tournament not yet linked"}, status: :unprocessable_entity
+        end
+        if tournament.region_id != region.id
+          return render json: {error: "Region mismatch"}, status: :unprocessable_entity
+        end
       end
 
       render json: build_seeding_payload(tournament, tournament_cc, region)
@@ -168,6 +180,10 @@ module Api
         location: {id: location.id, cc_id: location.cc_id, name: location.name},
         tables: location.tables.includes(:table_kind, :table_monitor).sort_by { |t| t.name.to_s }.map do |t|
           {
+            # Punkt 3 (HANDOFF tables-id): id ergaenzt — App bindet per id statt Name
+            # (robust gegen doppelte Tischnamen einer Location). Rein additiv.
+            # (Table hat keine cc_id-Spalte; die App nutzt ohnehin nur id.)
+            id: t.id,
             name: t.name,
             table_kind: t.table_kind&.name,
             has_monitor: t.read_attribute(:table_monitor_id).present?,
@@ -662,6 +678,97 @@ module Api
       render json: {error: e.message}, status: :not_found
     end
 
+    # GET /api/external_tournament/party?region=NBV&party_id=X (oder &party_cc_id=Y)
+    #
+    # Plan 48-04 (Party-API b1): lädt einen Liga-Spieltag für das autarke carambus_app-Schema
+    # "spieltag" — carambus.party/v1: party + team_a/team_b (inkl. Kader) + party_monitor.data.
+    # party_id hat Vorrang vor party_cc_id (K-5); Region über league.organizer (K-4). Read-only.
+    # Errors: 401 / 404 (Region/Party) / 422 (weder party_id noch party_cc_id).
+    def party
+      region = Region.find_by!(shortname: params[:region].to_s.upcase)
+      party = resolve_party!(params, region) or return
+      pm = party.ensure_party_monitor!
+      render json: build_party_payload(party, pm, region)
+    rescue ActiveRecord::RecordNotFound => e
+      render json: {error: e.message}, status: :not_found
+    end
+
+    # POST /api/external_tournament/party_game_result — Direkteingabe-Push (carambus.party_game_result/v1)
+    #
+    # Schreibt das Endergebnis EINER Einzelpartie direkt (build_game_for_row! [K-1] +
+    # record_game_result! [48-01]) — ohne TableMonitor. Mehrfach-Push überschreibt (TL-Korrektur).
+    def party_game_result
+      payload = party_game_result_params.to_h.deep_symbolize_keys
+      region = Region.find_by!(shortname: payload.dig(:region, :shortname).to_s.upcase)
+      party = resolve_party!(payload[:party], region) or return
+      pm = party.ensure_party_monitor!
+      unless party_writable?(party)
+        return render json: party_not_writable_response(party, "carambus.party_game_result/v1"),
+          status: :unprocessable_entity
+      end
+      gname = payload[:gname].to_s
+      row = Array(pm.data["rows"]).find { |r| "#{r["seqno"]}-#{r["type"]}" == gname }
+      return render json: {error: "gname unknown: #{gname}"}, status: :not_found if row.nil?
+
+      party.build_game_for_row!(row, row["r_no"])
+      ba = payload[:ba_results] || {}
+      sets = row["sets"].to_i > 1
+      # Satz-Disziplin: Sets1/2 maßgeblich, aber Fallback auf Ergebnis1/2 (Vertrag: "Sets1 falls
+      # vorhanden, sonst Ergebnis1"). Nicht-Satz: Ergebnis1/2.
+      sc1 = sets ? (ba[:Sets1] || ba[:Ergebnis1]) : ba[:Ergebnis1]
+      sc2 = sets ? (ba[:Sets2] || ba[:Ergebnis2]) : ba[:Ergebnis2]
+      # Spieler1/2 = dbu_nr (kanonisch, 48-06/A) — werden region-scoped aufgelöst + als Spieler1/2 geschrieben.
+      party.record_game_result!(row: row, sc1: sc1, sc2: sc2,
+        in1: ba[:Aufnahmen1], in2: ba[:Aufnahmen2], br1: ba[:Höchstserie1], br2: ba[:Höchstserie2],
+        spieler1: ba[:Spieler1], spieler2: ba[:Spieler2])
+
+      game = party.games.find_by(gname: gname)
+      gp = party.intermediate_result
+      render json: {
+        schema: "carambus.party_game_result/v1", ok: true,
+        party: {id: party.id, external_id: "party-#{party.id}"},
+        game: {id: game&.id, gname: gname, ended_at: game&.ended_at&.iso8601},
+        intermediate_result: {game_points: gp.join(":"), match_points: pm.match_points_for(gp).join(":")}
+      }
+    rescue ActiveRecord::RecordNotFound => e
+      render json: {error: e.message}, status: :not_found
+    end
+
+    # POST /api/external_tournament/party_close — Spielbericht abschließen (carambus.party_close/v1)
+    #
+    # close_with_result! [K-2]: Vollständigkeits-Guard → 409 missing_gnames, sonst result + closed.
+    # Der autarke API-Pfad treibt die Web-AASM NICHT → Abschluss via end_of_party (any → closed).
+    def party_close
+      payload = party_close_params.to_h.deep_symbolize_keys
+      region = Region.find_by!(shortname: payload.dig(:region, :shortname).to_s.upcase)
+      party = resolve_party!(payload[:party], region) or return
+      pm = party.ensure_party_monitor!
+      unless party_writable?(party)
+        return render json: party_not_writable_response(party, "carambus.party_close/v1"),
+          status: :unprocessable_entity
+      end
+      if pm.state == "closed"
+        return render json: {error: "party already closed"}, status: :unprocessable_entity
+      end
+
+      outcome = pm.close_with_result!(event: :end_of_party)
+      if outcome[:ok]
+        render json: {
+          schema: "carambus.party_close/v1", ok: true,
+          party: {id: party.id, external_id: "party-#{party.id}", state: pm.reload.state},
+          result: outcome[:result]
+        }
+      else
+        render json: {
+          schema: "carambus.party_close/v1", ok: false,
+          error: "guard failed: not all games have ended_at",
+          missing_gnames: outcome[:missing_gnames]
+        }, status: :conflict
+      end
+    rescue ActiveRecord::RecordNotFound => e
+      render json: {error: e.message}, status: :not_found
+    end
+
     private
 
     # Plan 17-05: region-scoped Tournament-Resolve (tournament_id ODER tournament.external_id).
@@ -773,12 +880,192 @@ module Api
       )
     end
 
+    # === Party-API (Plan 48-04, b1) ===
+
+    # Region-scoped Party-Resolve (K-4/K-5). source = params (GET) ODER das party-Objekt (POST-Body).
+    # id-Vorrang vor cc_id; external_id "party-<id>" → id. Rendert selbst 422 (kein Identifier) bzw.
+    # 404 (nicht gefunden / falsche Region) und gibt dann nil zurück (Caller: `... or return`).
+    def resolve_party!(source, region)
+      source = normalize_party_source(source)
+      party_id = source[:party_id].presence || source[:external_id].to_s[/\Aparty-(\d+)\z/, 1]
+      cc_id = source[:party_cc_id].presence
+      if party_id.blank? && cc_id.blank?
+        render json: {error: "party_id or party_cc_id required"}, status: :unprocessable_entity
+        return nil
+      end
+      party =
+        if party_id.present?
+          Party.find_by(id: party_id)
+        else
+          Party.where(cc_id: cc_id).detect { |p| party_in_region?(p, region) }
+        end
+      if party.nil? || !party_in_region?(party, region)
+        render json: {error: "Party not found"}, status: :not_found
+        return nil
+      end
+      party
+    end
+
+    def normalize_party_source(source)
+      if source.respond_to?(:to_unsafe_h)
+        source.to_unsafe_h.with_indifferent_access
+      else
+        (source || {}).with_indifferent_access
+      end
+    end
+
+    # Party-Region läuft über league.organizer (Region) — Party hat KEINE region_id-Spalte (K-4).
+    def party_in_region?(party, region)
+      org = party.league&.organizer
+      org.is_a?(Region) && org.id == region.id
+    end
+
+    # 48-08/H: Spiegelt die LocalProtector-Guard-Bedingung (application_record.rb:
+    # `id < MIN_ID && ApplicationRecord.local_server?`). Eine globale Party (Mirror von der
+    # Authority) auf einem Local-Server ist NICHT schreibbar — der Guard würde den Game-/
+    # Monitor-Write still per ActiveRecord::Rollback verwerfen. party.id ist der Proxy
+    # (globale Party ⇒ globale Games).
+    def party_writable?(party)
+      !(party.id < ApplicationRecord::MIN_ID && ApplicationRecord.local_server?)
+    end
+
+    # 48-08/H: ehrlicher 422-Body statt stillem ok:true, wenn der Write am LocalProtector scheitern
+    # würde. Die App zeigt err.body.error direkt im Sync-Pillen-Tooltip + writable:false als Flag.
+    def party_not_writable_response(party, schema)
+      {
+        schema: schema, ok: false, writable: false,
+        error: "party is global (id #{party.id}), this server is a local sync target — " \
+               "push refused by LocalProtector. Push to api.carambus.de or run on the authority."
+      }
+    end
+
+    def build_party_payload(party, party_monitor, region)
+      league = party.league
+      {
+        schema: "carambus.party/v1",
+        region: {shortname: region.shortname},
+        party: {
+          id: party.id, cc_id: party.cc_id, external_id: "party-#{party.id}",
+          name: party.name, season: league&.season&.name,
+          date: party.date&.to_date&.iso8601, league: league&.name,
+          location: build_location(party.location),
+          writable: party_writable?(party) # 48-08/H: App zeigt präventiv READ-ONLY-Banner statt erst beim Push zu scheitern
+        },
+        team_a: serialize_party_team(party.league_team_a, league),
+        team_b: serialize_party_team(party.league_team_b, league),
+        party_monitor: party_monitor_payload(party_monitor)
+      }
+    end
+
+    # C (48-07): Payload-Sicht von party_monitor.data — Aggregat-Rows ("Gesamtsumme"/"Zwischensumme")
+    # raus, nur GAME_ROW_TYPES + "Neue Runde" (Runden-Struktur); row.score auf eine Zahl normalisiert.
+    # Nicht-destruktiv (select/map/merge): die DB-data + der gname-/Tally-Pfad lesen weiter die Original-Rows.
+    def party_monitor_payload(party_monitor)
+      data = party_monitor.data
+      rows = Array(data["rows"])
+        .select { |r| Party::GAME_ROW_TYPES.include?(r["type"]) || r["type"] == "Neue Runde" }
+        .map { |r| Party::GAME_ROW_TYPES.include?(r["type"]) ? game_row_view(r) : r }
+      data.merge("rows" => rows, "state" => party_monitor.state) # 48-08/H: state für präventives READ-ONLY-Banner
+    end
+
+    # 48-08/F+G: Payload-Sicht EINER Spielzeile — score normalisiert (48-07/C) + Herkunfts-Marker
+    # der Spielparameter (sets_source/score_source), damit die App ein „ⓘ heuristisch — prüfen"-Icon
+    # zeigen kann. Read-through aus der Row; solange GamePlan/Scraper keine Provenienz führen, ist der
+    # pbv-Realwert "scraped_heuristic" (sets/score „durch maximale Ergebnisse" gescrapt). Erlaubte
+    # Werte: "sportordnung" | "scraped_heuristic" | "default". Nur GAME_ROWS — "Neue Runde" bleibt roh.
+    # (Die echten sets/score-Werte korrekt zu pflegen ist GamePlan-Datenpflege, NICHT dieser Code.)
+    def game_row_view(row)
+      view = row["score"].nil? ? row : row.merge("score" => normalize_score(row["score"]))
+      view.merge(
+        "sets_source" => row["sets_source"] || "scraped_heuristic",
+        "score_source" => row["score_source"] || "scraped_heuristic"
+      )
+    end
+
+    # row.score → Zahl: String → letzte Zahl ("Hauptrunde 80" → 80); Number → as-is;
+    # Object → balls|points|target|max|distance; sonst nil.
+    def normalize_score(score)
+      case score
+      when Numeric then score
+      when String then score.scan(/\d+/).last&.to_i
+      when Hash
+        h = score.with_indifferent_access
+        h[:balls] || h[:points] || h[:target] || h[:max] || h[:distance]
+      end
+    end
+
+    def serialize_party_team(league_team, league)
+      return nil if league_team.nil?
+      club = league_team.club
+      # Liga-Kader (gemeldete Mannschaft) = die Seedings des LeagueTeam (vom Scraper aus dem
+      # CC-„Mannschaft"-Tab persistiert, 48-07/B). Fallback: Vereins-Pool (active SeasonParticipation),
+      # mit roster_source-Marker, damit die App weiß, ob sie filtern muss.
+      squad = league_team.seedings.includes(:player).filter_map(&:player).uniq
+      if squad.any?
+        roster = squad.map { |p| serialize_roster_player(p) }
+        roster_source = "league_team"
+      else
+        roster = party_team_roster(club, league&.season)
+        roster_source = "club_pool_fallback"
+      end
+      {
+        id: league_team.id,
+        cc_id: league_team.try(:cc_id),
+        name: league_team.name,
+        club_cc_id: club&.cc_id,
+        club_shortname: club&.shortname,
+        roster_source: roster_source,
+        roster: roster
+      }
+    end
+
+    # Spieler-Projektion für den Kader, je dbu_nr (kanonisches Pflichtfeld — 48-06/A;
+    # ba_results.Spieler1/2 = dbu_nr) + ba_id (optional/Legacy, oft nil).
+    def serialize_roster_player(player)
+      {
+        ba_id: player.ba_id, firstname: player.firstname, lastname: player.lastname,
+        dbu_nr: player.dbu_nr&.to_s, age_class: player.age_class, gender: player.gender,
+        cc_id: player.cc_id, nationality: player.try(:nationality) || "DE"
+      }
+    end
+
+    # Vereins-Pool-Fallback: in der Saison spielberechtigte (active) Spieler des Team-Clubs.
+    def party_team_roster(club, season)
+      return [] if club.nil? || season.nil?
+      SeasonParticipation.where(season_id: season.id, club_id: club.id, status: "active")
+        .includes(:player).filter_map { |sp| sp.player && serialize_roster_player(sp.player) }
+    end
+
+    def party_game_result_params
+      params.permit(
+        :schema, :gname,
+        region: [:shortname],
+        party: [:external_id, :party_id, :party_cc_id],
+        ba_results: [:Spieler1, :Spieler2, :Ergebnis1, :Ergebnis2, :Sets1, :Sets2,
+          :Aufnahmen1, :Aufnahmen2, :Höchstserie1, :Höchstserie2]
+      )
+    end
+
+    def party_close_params
+      params.permit(:schema, region: [:shortname], party: [:external_id, :party_id, :party_cc_id])
+    end
+
     # === Seeding-Payload-Builder ===
 
     def build_seeding_payload(tournament, tournament_cc, region)
       # Polymorphic-aware Seeding-Lookup (Spec-Pivot 2 aus 15-01-Audit).
       # Tournament#seedings hat `-> { order(position: :asc) }`-Scope (siehe Tournament-Model).
       seedings = tournament.seedings.includes(:player, :league_team)
+
+      # Local-Server (2026-06-20): Das Turnier traegt sowohl global gesyncte Seedings
+      # (id < MIN_ID, Mirror von der Authority) als auch lokal gepflegte (id >= MIN_ID,
+      # vom TL am Turniertag). Beide zusammen = doppelte Teilnehmer. Lokal zaehlen NUR die
+      # lokalen; Fallback auf alle, falls (noch) keine lokalen existieren (Turnier nicht
+      # lokal angelegt).
+      if local_server?
+        local = seedings.where("seedings.id >= ?", Seeding::MIN_ID)
+        seedings = local if local.exists?
+      end
 
       teams = group_seedings_into_teams(seedings)
 

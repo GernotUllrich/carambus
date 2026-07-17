@@ -47,6 +47,48 @@ class VersionTest < ActiveSupport::TestCase
     assert_equal bad, Version.safe_parse_for_text_column(bad)
   end
 
+  # === coerce_serialized_args! (Sync-Apply-Fix 2026-06-17) ===
+  # PlayerRanking: serialize :remarks (type: Hash) + :t_ids (type: Array). Der Sync
+  # liefert die Werte als String → write_attribute warf SerializationTypeMismatch,
+  # der Apply schlug still fehl, der Cursor lief trotzdem hoch (stiller Verlust).
+
+  test "coerce_serialized_args! parst JSON-String für serialize-Hash-Spalte (remarks)" do
+    args = {"remarks" => '{"result":{"GD":1.33,"t_ids":[15754]}}', "gd" => 1.33}
+    Version.coerce_serialized_args!(PlayerRanking, args)
+    assert_kind_of Hash, args["remarks"]
+    assert_equal 1.33, args["remarks"].dig("result", "GD")
+    assert_in_delta 1.33, args["gd"], 0.0001 # Nicht-serialisierte Spalte unverändert
+  end
+
+  test "coerce_serialized_args! parst JSON-String für serialize-Array-Spalte (t_ids)" do
+    args = {"t_ids" => "[15754, 15755]"}
+    Version.coerce_serialized_args!(PlayerRanking, args)
+    assert_equal [15754, 15755], args["t_ids"]
+  end
+
+  test "coerce_serialized_args! lässt Nicht-String-Werte unverändert" do
+    args = {"remarks" => {"already" => "hash"}, "rank" => 5}
+    Version.coerce_serialized_args!(PlayerRanking, args)
+    assert_equal({"already" => "hash"}, args["remarks"])
+    assert_equal 5, args["rank"]
+  end
+
+  test "coerce_serialized_args! lässt String-Spalten ohne serialize-Coder unverändert" do
+    # ba_state ist eine normale string-Spalte (kein serialize) → bleibt String
+    args = {"ba_state" => "active"}
+    Version.coerce_serialized_args!(PlayerRanking, args)
+    assert_equal "active", args["ba_state"]
+  end
+
+  test "coerce_serialized_args! ergibt schreibbaren remarks-Hash (kein SerializationTypeMismatch)" do
+    pr = PlayerRanking.new
+    args = {"remarks" => '{"result":{"GD":2.5}}'}
+    Version.coerce_serialized_args!(PlayerRanking, args)
+    # Der eigentliche Repro: write_attribute darf NICHT mehr werfen
+    assert_nothing_raised { pr.write_attribute("remarks", args["remarks"]) }
+    assert_equal 2.5, pr.remarks.dig("result", "GD")
+  end
+
   # === Integration regression — round-trip through update_from_carambus_api ===
   #
   # This tests the exact bug path: update event with no object_changes falls through
@@ -103,6 +145,79 @@ class VersionTest < ActiveSupport::TestCase
     Discipline.where(id: 50_000_099).destroy_all
   end
 
+  # === H1-03 (Phase 41) — Ordered redelivery apply path ===
+  # Beweist das exakte Fehlerbild, das diese Phase behebt: eine international
+  # organisierte Region wird VOR ihrem organisierten Turnier appliziert (niedrigere
+  # Version-id zuerst, siehe get_updates id ASC + Client .shift front-to-back),
+  # sodass der belongs_to :organizer beim Turnier-Apply bereits auflösbar ist
+  # (kein "Organisiert von muss ausgefüllt werden").
+
+  test "redelivered international tournament applies after its organizer region version is applied first" do
+    skip_unless_local_server
+
+    Tournament.where(id: 52_000_251).destroy_all
+    Region.where(id: 52_000_250).destroy_all
+
+    region_attrs = {
+      "id" => 52_000_250,
+      "shortname" => "INTX",
+      "name" => "Intl Apply",
+      "global_context" => true,
+      "region_id" => nil,
+      "created_at" => Time.current,
+      "updated_at" => Time.current
+    }
+    tournament_attrs = {
+      "id" => 52_000_251,
+      "title" => "Intl Apply Tournament",
+      "organizer_type" => "Region",
+      "organizer_id" => 52_000_250,
+      "region_id" => nil,
+      "single_or_league" => "single",
+      "season_id" => seasons(:current).id,
+      "date" => 1.week.from_now,
+      "created_at" => Time.current,
+      "updated_at" => Time.current
+    }
+
+    # Region-Version-id (990_001) < Tournament-Version-id (990_002) — mirrors
+    # get_updates .order(id: :asc) + client .shift front-to-back.
+    payload = [
+      {
+        "id" => 990_001,
+        "item_type" => "Region",
+        "item_id" => 52_000_250,
+        "event" => "update",
+        "object" => YAML.dump(region_attrs),
+        "object_changes" => nil,
+        "created_at" => Time.current.to_s
+      },
+      {
+        "id" => 990_002,
+        "item_type" => "Tournament",
+        "item_id" => 52_000_251,
+        "event" => "update",
+        "object" => YAML.dump(tournament_attrs),
+        "object_changes" => nil,
+        "created_at" => Time.current.to_s
+      }
+    ]
+
+    api_url = Carambus.config.carambus_api_url
+    stub_request(:get, /#{Regexp.escape(api_url)}\/versions\/get_updates/)
+      .to_return(status: 200, body: payload.to_json, headers: {"Content-Type" => "application/json"})
+
+    assert_nothing_raised do
+      Version.update_from_carambus_api({})
+    end
+
+    assert Region.exists?(52_000_250), "Organizer-Region muss zuerst angelegt werden (niedrigere Version-id)"
+    assert Tournament.exists?(52_000_251), "Turnier muss NACH der Region applien, mit auflösbarem organizer"
+  ensure
+    Tournament.where(id: 52_000_251).destroy_all
+    Region.where(id: 52_000_250).destroy_all
+  end
+
   # === T-CR-01 — Version.local_from_api NameError regression (Phase 38.4-17) ===
 
   test "T-CR-01-local-from-api-no-raises 38.4-17: Version.local_from_api uses local_server? (predicate)" do
@@ -136,5 +251,49 @@ class VersionTest < ActiveSupport::TestCase
     end
     assert_equal false, called,
       "T-CR-01: Version.sequence_reset must NOT be called when local_server? returns false"
+  end
+
+  # === H33 (P1) — Guard gegen leere/nicht-JSON-API-Antwort (kein roher 500) ===
+
+  test "parse_api_json returns nil for blank body" do
+    assert_nil Version.parse_api_json("")
+    assert_nil Version.parse_api_json(nil)
+  end
+
+  test "parse_api_json returns nil for non-JSON body (empty/403)" do
+    assert_nil Version.parse_api_json("not json")
+    assert_nil Version.parse_api_json("<html>403 Forbidden</html>")
+  end
+
+  test "parse_api_json parses valid JSON object and array" do
+    assert_equal({"a" => 1}, Version.parse_api_json('{"a":1}'))
+    assert_equal([1, 2], Version.parse_api_json("[1,2]"))
+  end
+
+  test "update_from_carambus_api raises ApiUnavailableError on empty API body (H33)" do
+    Version.stub :http_get_with_ssl_bypass, "" do
+      assert_raises(Version::ApiUnavailableError) do
+        Version.update_from_carambus_api({})
+      end
+    end
+  end
+
+  test "last_version falls back to local last id on empty API body (H33, no 500)" do
+    Version.stub :http_get_with_ssl_bypass, "" do
+      expected = Version.last&.id
+      # assert_nil statt assert_equal(nil, ...) vermeidet die Minitest-6-Deprecation-Warnung
+      # (siehe Phase 41-01: gleiches Muster in region_taggable_sync_test.rb).
+      if expected.nil?
+        assert_nil Version.last_version
+      else
+        assert_equal expected, Version.last_version
+      end
+    end
+  end
+
+  test "update_carambus is nil-safe on empty API body (H33, no crash)" do
+    Version.stub :http_get_with_ssl_bypass, "" do
+      assert_nothing_raised { Version.update_carambus }
+    end
   end
 end

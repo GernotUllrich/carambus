@@ -49,7 +49,7 @@
                   <%= form.radio_button :theme, 'light', class: "absolute opacity-0" %>
                   <label for="user_theme_light" class="cursor-pointer block">
                     <div class="w-24 h-16 bg-white border-2 border-gray-200 rounded-xl mb-4"></div>
-                    <div class="h-[3px] bg-gray-200 group-has-[input:checked]:bg-blue-500"></div>
+                    <div class="h-[3px] bg-gray-200 group-has-[input:checked]:bg-primary-500"></div>
                     <div class="text-xl mt-4">Hell</div>
                   </label>
                 </div>
@@ -58,7 +58,7 @@
                   <%= form.radio_button :theme, 'dark', class: "absolute opacity-0" %>
                   <label for="user_theme_dark" class="cursor-pointer block">
                     <div class="w-24 h-16 bg-gray-900 border-2 border-gray-600 rounded-xl mb-4"></div>
-                    <div class="h-[3px] bg-gray-200 group-has-[input:checked]:bg-blue-500"></div>
+                    <div class="h-[3px] bg-gray-200 group-has-[input:checked]:bg-primary-500"></div>
                     <div class="text-xl mt-4">Dunkel</div>
                   </label>
                 </div>
@@ -72,7 +72,7 @@
                         <div class="w-1/2 bg-gray-900 border-2 border-l-[1px] border-gray-600"></div>
                       </div>
                     </div>
-                    <div class="h-[3px] bg-gray-200 group-has-[input:checked]:bg-blue-500"></div>
+                    <div class="h-[3px] bg-gray-200 group-has-[input:checked]:bg-primary-500"></div>
                     <div class="text-xl mt-4">
                       <div>System</div>
                       <div>folgen</div>
@@ -101,6 +101,33 @@
                                      class: 'w-full px-4 py-3 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-black dark:text-white' %>
             </div>
           </div>
+        </div>
+
+        <h3 class="mt-12 text-xl font-medium mb-6">ClubCloud-Zugang</h3>
+
+        <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">
+          Hinterlege hier deinen persönlichen ClubCloud-Login. Nur nötig, wenn du Turniere in der
+          ClubCloud verwaltest (Meldungen, Akkreditierung). Aktionen werden dann unter deinem eigenen
+          ClubCloud-Konto gespeichert — nicht unter einer geteilten Sammelkennung.
+        </p>
+
+        <% if current_user.cc_credentials_present? %>
+          <p class="text-sm font-medium text-green-600 dark:text-green-400 mb-4">✓ ClubCloud-Zugang hinterlegt</p>
+        <% else %>
+          <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">Noch kein ClubCloud-Zugang hinterlegt.</p>
+        <% end %>
+
+        <div class="form-group mb-4">
+          <%= form.label :cc_username, "ClubCloud-Benutzername", class: "text-lg font-medium mb-2 block" %>
+          <%= form.text_field :cc_username, value: current_user.cc_username, autocomplete: "off",
+              class: "w-full px-4 py-3 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-black dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400" %>
+        </div>
+
+        <div class="form-group mb-4">
+          <%= form.label :cc_password, "ClubCloud-Passwort", class: "text-lg font-medium mb-2 block" %>
+          <%= form.password_field :cc_password, autocomplete: "new-password", placeholder: "Leer lassen = unverändert",
+              class: "w-full px-4 py-3 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-black dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400" %>
+          <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">Zum Entfernen das Benutzername-Feld leeren und speichern.</p>
         </div>
 
         <h3 class="mt-12 text-xl font-medium mb-6"><%= t('.change_password') %></h3>

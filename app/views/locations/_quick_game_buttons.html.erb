@@ -169,11 +169,11 @@
             <% end %>
 
             <%= submit_tag label,
-                class: "px-8 py-6 text-4xl font-bold rounded-lg bg-blue-500 text-white hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed quick-start-btn",
+                class: "px-8 py-6 text-4xl font-bold rounded-lg bg-primary-600 text-white hover:bg-primary-700 disabled:bg-gray-400 disabled:cursor-not-allowed quick-start-btn",
                 disabled: true,
                 data: {
                   form_id: "quick_player_a_#{button_id}",
-                  enabled_class: "bg-blue-500 hover:bg-blue-600 cursor-pointer",
+                  enabled_class: "bg-primary-600 hover:bg-primary-700 cursor-pointer",
                   disabled_class: "bg-gray-400 cursor-not-allowed"
                 } %>
           <% end %>
@@ -198,7 +198,7 @@
           sb_state: "free_game_detail",
           table_id: table_monitor.table.id,
           :"data-turbo" => false),
-        class: "text-white text-2xl underline hover:text-blue-300",
+        class: "text-white text-2xl underline hover:text-primary-300",
         data: { turbo: false } %>
   </div>
 </div>

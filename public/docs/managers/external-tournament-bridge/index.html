@@ -2348,18 +2348,150 @@
   
   
   
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6_11" >
+        
+          
+          <label class="md-nav__link" for="__nav_6_11" id="__nav_6_11_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    ClubCloud MCP
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_11_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6_11">
+            <span class="md-nav__icon md-icon"></span>
+            ClubCloud MCP
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
     <li class="md-nav__item">
       <a href="../../developers/clubcloud-mcp-server/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    ClubCloud MCP-Server
+    Server-Handbuch
     
   </span>
   
 
       </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/mcp-architektur-naht/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Architektur-Naht (Identität/Autorisierung)
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/per-user-cc-identitaet/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Per-User-ClubCloud-Identität
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developers/clubcloud-mcp-workflow-scenarios/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Workflow-Scenarios
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
     </li>
   
 
@@ -3530,7 +3662,7 @@ Auslosung → Scoreboards → Endrangliste), brauchst du diese Bridge <strong>ni
 </table>
 <h3 id="schritt-1-service-account-anlegen-sportwart">Schritt 1: Service-Account anlegen (Sportwart)<a class="headerlink" href="#schritt-1-service-account-anlegen-sportwart" title="Permanent link">&para;</a></h3>
 <p>Im Server-Verzeichnis des Carambus-Scenarios:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>rake<span class="w"> </span>service_accounts:create_2band<span class="o">[</span>NBV<span class="o">]</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>rake<span class="w"> </span>service_accounts:create_carambus_app<span class="o">[</span>NBV<span class="o">]</span>
 </code></pre></div>
 <p>Output: Einmaliges Password — <strong>sicher kommunizieren</strong>, nicht in Chat/Email
 klartext. Persönlich übergeben oder über einen vertrauenswürdigen Kanal
@@ -3542,7 +3674,7 @@ klartext. Persönlich übergeben oder über einen vertrauenswürdigen Kanal
 <li>Lokal im Clubheim-WLAN: <code>http://carambus.local:3000</code> oder <code>http://192.168.X.X:3000</code></li>
 <li>Per-Region Cloud: <code>https://nbv.carambus.de</code></li>
 <li>Globale Cloud: <code>https://carambus.de</code></li>
-<li><strong>Service-Account-Email</strong>: <code>2band-nbv-bridge@carambus.de</code> (oder analog für andere Regionen)</li>
+<li><strong>Service-Account-Email</strong>: <code>carambus-app-nbv-bridge@carambus.de</code> (oder analog für andere Regionen)</li>
 <li><strong>Password</strong>: aus Schritt 1</li>
 <li><strong>Region-Shortname</strong>: z.B. <code>NBV</code>, <code>BCW</code></li>
 </ul>
@@ -3553,9 +3685,9 @@ im <code>Authorization</code>-Header.</p>
 <p>Verifiziere die Anbindung vor dem ersten echten Turnier:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nv">SERVICE_ACCOUNT_PASSWORD</span><span class="o">=</span><span class="s2">&quot;&lt;password&gt;&quot;</span><span class="w"> </span>rake<span class="w"> </span>external_tournament:smoke_test<span class="o">[</span>NBV<span class="o">]</span>
 </code></pre></div>
-<p>Erfolgreicher Output zeigt 5 Schritte mit <code>✓</code> (Login → Tournament-Lookup →
-Seeding → Round-Start → Round-Result). Bei Fehler siehe Abschnitt
-"Was läuft schief?" weiter unten.</p>
+<p>Erfolgreicher Output zeigt 6 Schritte mit <code>✓</code> (Login → Tournament-Lookup →
+Seeding → Round-Start → Round-Result → Player-Reconcile). Bei Fehler siehe
+Abschnitt "Was läuft schief?" weiter unten.</p>
 <h2 id="deployment-topologie">Deployment-Topologie<a class="headerlink" href="#deployment-topologie" title="Permanent link">&para;</a></h2>
 <p>Die Bridge funktioniert in drei Topologien — gleich aus App-Sicht, nur die
 Base-URL ändert sich:</p>

@@ -1,0 +1,32 @@
+<%#
+  Phase 37-01: Rekursiver Knoten des Disziplin-Baums.
+  locals: discipline, selected_ids (Array von Discipline-IDs = user.sportwart_discipline_ids)
+  Wurzeln (4 Branches) sind sichtbar; Kinder initial "hidden", per Caret aufklappbar.
+%>
+<% children = discipline.sub_disciplines.order(:name) %>
+<li class="dt-node" style="list-style: none; margin: 2px 0;">
+  <% if children.any? %>
+    <div data-controller="discipline-tree">
+      <span class="dt-row" style="display: flex; align-items: center; gap: 4px;">
+        <button type="button"
+                data-action="discipline-tree#toggle"
+                aria-expanded="false"
+                style="border: none; background: none; cursor: pointer; width: 1.2em; font-size: 0.9em; line-height: 1;">▶</button>
+        <label style="font-weight: 600; cursor: pointer; margin: 0;">
+          <%= check_box_tag "user[sportwart_discipline_ids][]", discipline.id, selected_ids.include?(discipline.id), id: nil %>
+          <%= discipline.name %>
+        </label>
+      </span>
+      <ul class="dt-children hidden" data-discipline-tree-target="children" style="margin: 0 0 0 1.6em; padding: 0;">
+        <% children.each do |child| %>
+          <%= render "admin/users/discipline_node", discipline: child, selected_ids: selected_ids %>
+        <% end %>
+      </ul>
+    </div>
+  <% else %>
+    <label class="dt-leaf" style="cursor: pointer; margin: 0; padding-left: 1.2em; display: inline-block;">
+      <%= check_box_tag "user[sportwart_discipline_ids][]", discipline.id, selected_ids.include?(discipline.id), id: nil %>
+      <%= discipline.name %>
+    </label>
+  <% end %>
+</li>

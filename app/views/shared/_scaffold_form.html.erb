@@ -1,0 +1,38 @@
+<%# 09-03: Generisches Token-Form (Foundation v0.3) — volle new/edit-Seite für einen beliebigen Record.
+    Header (New/Edit aus new_record? + Cancel) + Token-Card + form_with + error_messages + spalten-getriebene
+    Felder + Submit/Delete. Nur Token-Utilities, kein Hex; Dark-Mode. Locals:
+      record       (Pflicht)
+      index_path   (default: polymorphic_path(record.class))
+      title        (default: "New/Edit <Model>")
+      cancel_path  (default: new → index, edit → show) %>
+<% index_path  ||= polymorphic_path(record.class) %>
+<% new_rec       = record.new_record? %>
+<% title       ||= "#{new_rec ? 'New' : 'Edit'} #{record.model_name.human}" %>
+<% cancel_path ||= (new_rec ? index_path : polymorphic_path(record)) %>
+
+<div class="container mx-auto my-8 px-4">
+  <div class="max-w-3xl mx-auto">
+    <div class="flex justify-between items-center mb-4 gap-2">
+      <h1 class="text-xl font-semibold text-gray-900 dark:text-gray-100"><%= title %></h1>
+      <%= custom_link_to t('cancel', default: 'Cancel'), cancel_path, class: "btn btn-link shrink-0" %>
+    </div>
+
+    <div class="bg-surface-card dark:bg-gray-800 rounded-card border border-gray-200 dark:border-gray-700 p-6">
+      <%= form_with(model: record) do |form| %>
+        <%= render "application/error_messages", resource: form.object %>
+
+        <% scaffold_show_attributes(record).each do |attr| %>
+          <%= scaffold_form_field(form, attr) %>
+        <% end %>
+
+        <div class="flex justify-between items-center gap-2 mt-6">
+          <%= form.button class: "btn btn-primary" %>
+          <% if record.persisted? %>
+            <%= custom_link_to t('delete', default: 'Delete'), record, class: "btn btn-danger outline",
+                  method: :delete, data: { confirm: t('confirm', default: 'Are you sure?') } %>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

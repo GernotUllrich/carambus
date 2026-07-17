@@ -59,7 +59,7 @@
                     <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
                       <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100"><%= index + 1 %></td>
                       <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                        <%= link_to data[:player].fl_name, player_path(data[:player]), class: "hover:text-blue-600 dark:hover:text-blue-400" %>
+                        <%= link_to data[:player].fl_name, player_path(data[:player]), class: "hover:text-primary-600 dark:hover:text-primary-400" %>
                       </td>
                       <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100"><%= data[:club]&.shortname %></td>
                       <% data[:gd_data][:gd_values].each do |gd, btg| %>
@@ -76,10 +76,10 @@
                           <% all_t_ids = data[:rankings].flat_map(&:t_ids).uniq %>
                           <% all_t_ids.each do |tournament_id| %>
                             <%= link_to tournament_id, tournament_path(tournament_id),
-                                        class: "text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 underline" %>
+                                        class: "text-sm text-primary-600 dark:text-primary-400 hover:text-primary-800 dark:hover:text-primary-300 underline" %>
                           <% end %>
                         </div>
-                        <button class="chart-toggle flex items-center text-blue-600 hover:text-blue-800 dark:hover:text-blue-400 transition-colors mt-2"
+                        <button class="chart-toggle flex items-center text-primary-600 hover:text-primary-800 dark:hover:text-primary-400 transition-colors mt-2"
                                 data-player="<%= data[:player].id %>"
                                 data-discipline="<%= discipline.id %>">
                           <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -103,7 +103,7 @@
 
             <!-- Back to top link -->
             <div class="text-right mb-8">
-              <a href="#" class="text-blue-600 dark:text-blue-400 hover:underline">
+              <a href="#" class="text-primary-600 dark:text-primary-400 hover:underline">
                 ↑ Zurück zum Anfang
               </a>
             </div>
@@ -128,7 +128,7 @@
     <div class="flex justify-between items-center mb-4 sticky top-0 z-10">
       <h3 id="chart-modal-title" class="text-xl font-semibold text-gray-900 dark:text-white">Performance Chart</h3>
       <div class="flex items-center gap-2">
-        <button id="debug-data-button" class="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 text-sm px-2 py-1 border border-current rounded">
+        <button id="debug-data-button" class="text-primary-600 dark:text-primary-400 hover:text-primary-800 dark:hover:text-primary-300 text-sm px-2 py-1 border border-current rounded">
           Show Raw Data
         </button>
         <button id="chart-modal-close" class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white">
@@ -594,8 +594,8 @@
               {
                 label: 'Turnierdurchschnitt',
                 data: processedTournaments,
-                backgroundColor: 'rgba(59, 130, 246, 1)',
-                borderColor: 'rgba(30, 64, 175, 1)',
+                backgroundColor: 'rgba(31, 122, 109, 1)',
+                borderColor: 'rgba(10, 62, 56, 1)',
                 pointRadius: 6,
                 pointHoverRadius: 9,
                 borderWidth: 1.5,

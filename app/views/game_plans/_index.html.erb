@@ -1,6 +1,5 @@
-<div id="<%= dom_id(game_plan, :index) %>">
+<div id="<%= dom_id(game_plan, :index) %>" class="flex items-start justify-between gap-4 px-4 py-3">
   <%= turbo_stream_from game_plan %>
-  <%= render game_plan %>
-  <%= custom_link_to "View", game_plan, class: "btn btn-white" %>
+  <div class="min-w-0"><%= render game_plan %></div>
+  <%= custom_link_to "View", game_plan, class: "btn btn-white shrink-0" %>
 </div>
-

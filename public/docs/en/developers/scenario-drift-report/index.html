@@ -1,0 +1,3765 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Comprehensive documentation for Carambus - Professional billiards tournament management system">
+      
+      
+      
+        <link rel="canonical" href="https://GernotUllrich.github.io/carambus/en/developers/scenario-drift-report/">
+      
+      
+      
+      
+      <link rel="icon" href="../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.15">
+    
+    
+      
+        <title>Carambus Szenario — Drift-Report - Carambus Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.342714a4.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../../stylesheets/extra.css">
+    
+      <link rel="stylesheet" href="../../../stylesheets/print.css">
+    
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#carambus-szenario-drift-report" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../" title="Carambus Documentation" class="md-header__button md-logo" aria-label="Carambus Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Carambus Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Carambus Szenario — Drift-Report
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+      <div class="md-header__option">
+  <div class="md-select">
+    
+    <button class="md-header__button md-icon" aria-label="Select language">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"/></svg>
+    </button>
+    <div class="md-select__inner">
+      <ul class="md-select__list">
+        
+          <li class="md-select__item">
+            <a href="../../../developers/scenario-drift-report/" hreflang="de" class="md-select__link">
+              Deutsch
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="./" hreflang="en" class="md-select__link">
+              English
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</div>
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/GernotUllrich/carambus" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GernotUllrich/carambus
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../decision-makers/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Decision Makers
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../players/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Players
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../managers/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Managers
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../administrators/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Administrators
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Developers
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../reference/api/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../about/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  About
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../" title="Carambus Documentation" class="md-nav__button md-logo" aria-label="Carambus Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Carambus Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/GernotUllrich/carambus" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GernotUllrich/carambus
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../decision-makers/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Decision Makers
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2" id="__nav_2_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Decision Makers
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../decision-makers/executive-summary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Executive Summary
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../decision-makers/features-overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Features Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../decision-makers/deployment-options/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Deployment Options
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../players/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Players
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3" id="__nav_3_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Players
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../players/scoreboard-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Scoreboard Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../players/tournament-participation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Tournament Participation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../players/ai-search/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    AI-Powered Search
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../managers/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Managers
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_4" id="__nav_4_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            Managers
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../managers/tournament-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Tournament Management
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../managers/tournament-quick-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Tournament Quick Reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../managers/league-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    League Management
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../managers/single-tournament/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Single Tournament
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../managers/table-reservation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Table Reservation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../managers/admin-roles/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Admin Roles
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../managers/clubcloud-integration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    ClubCloud Integration
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_9" id="__nav_4_9_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    ClubCloud MCP
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_9">
+            <span class="md-nav__icon md-icon"></span>
+            ClubCloud MCP
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../managers/clubcloud-mcp-cloud-quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Cloud Quickstart
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../managers/clubcloud-mcp-setup-service/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Setup Service
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../managers/external-tournament-bridge/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    External Tournament Bridge
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_11" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_11" id="__nav_4_11_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    ClubCloud Scenarios
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_11_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_11">
+            <span class="md-nav__icon md-icon"></span>
+            ClubCloud Scenarios
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../managers/clubcloud-scenarios/cc-glossary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    CC Glossary
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../managers/clubcloud-scenarios/cc-roles/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    CC Roles
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../managers/clubcloud-scenarios/endrangliste-eintragen/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Endrangliste eintragen
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../managers/clubcloud-scenarios/player-anlegen/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Player anlegen
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../managers/clubcloud-scenarios/teilnehmerliste-finalisieren/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Teilnehmerliste finalisieren
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../managers/search-filters/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Search & Filters
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../administrators/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Administrators
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5" id="__nav_5_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            Administrators
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../administrators/installation-overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Installation Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../administrators/raspberry-pi-quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Raspberry Pi Quickstart
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../administrators/raspberry-pi-client/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Raspberry Pi Client
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../administrators/scoreboard-autostart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Scoreboard Autostart
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../administrators/server-architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Server Architecture
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../administrators/email-configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Email Configuration
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../administrators/database-setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Database Setup
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../administrators/streaming-quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    YouTube Streaming Quickstart
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../administrators/streaming-setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    YouTube Streaming Setup
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Developers
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_6" id="__nav_6_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            Developers
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Getting Started
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../developer-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Developer Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../database-design/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Database Design
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../er-diagram/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    ER Diagram
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../scenario-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Scenario Management
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../scenario-workflow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Scenario Workflow
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rubymine-setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    RubyMine Setup
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_6_9" id="__nav_6_9_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Testing
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6_9">
+            <span class="md-nav__icon md-icon"></span>
+            Testing
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../testing/testing-quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Testing Quickstart
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../testing/fixture-collection-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Fixture Collection Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6_10" >
+        
+          
+          <label class="md-nav__link" for="__nav_6_10" id="__nav_6_10_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    UMB Scraping
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_10_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6_10">
+            <span class="md-nav__icon md-icon"></span>
+            UMB Scraping
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../umb-scraping-implementation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    UMB Scraping Implementation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../umb-scraping-methods/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    UMB Scraping Methods
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../clubcloud-mcp-server/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    ClubCloud MCP Server
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../external-tournament-bridge/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    External Tournament Bridge
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6_13" >
+        
+          
+          <label class="md-nav__link" for="__nav_6_13" id="__nav_6_13_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Services
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_13_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6_13">
+            <span class="md-nav__icon md-icon"></span>
+            Services
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../services/table-monitor/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Table Monitor
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../services/region-cc/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Region CC
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../services/tournament/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Tournament
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../services/tournament-monitor/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Tournament Monitor
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../services/league/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    League
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../services/party-monitor/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Party Monitor
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../services/umb/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    UMB Services
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../services/video-crossref/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Video Cross-Reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../frontend-sti-migration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Frontend STI Migration
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rake-tasks-debugging/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Testing & Debugging
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../deployment-workflow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Deployment Workflow
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../developers/overcommit-hooks.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Overcommit Hooks (MkDocsBuild)
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../data-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Data Management
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../database-partitioning/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Database Partitioning
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../paper-trail-optimization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Paper Trail Optimization
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../game-plan-reconstruction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Game Plan Reconstruction
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tournament-duplicate-handling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Tournament Duplicates
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../region-tagging-cleanup-summary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Region Tagging
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../streaming-architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    YouTube Streaming Architecture
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../pool-scoreboard-changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Pool Scoreboard Changelog
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../deployment-checklist/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Deployment Checklist Production
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../umb-deployment-checklist/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    UMB Deployment Checklist
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Reference
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            Reference
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    API
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/glossary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Glossary
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/terms/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Terms
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/privacy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Privacy
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/config-lock-files/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Config Lock Files
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/search/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Search
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/mkdocs_documentation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    MkDocs
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    About
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            About
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../about/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    About
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#0-ampel-ubersicht" class="md-nav__link">
+    <span class="md-ellipsis">
+      0. Ampel-Übersicht
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1-configdeployrb-soll-fur-alle-identisch-sein" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. config/deploy.rb — soll für alle identisch sein ✅/⚠️
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-smtp-konfiguration-uber-etcbaseenv" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. SMTP-Konfiguration über /etc/&lt;base&gt;.env 🟡
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-credentials-schlussel-drift" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Credentials — Schlüssel-Drift 🟡
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-capistrano-symlinks" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. Capistrano-Symlinks 🟢/🟡
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-datei-drift-server-live-vs-lokal-generiert" class="md-nav__link">
+    <span class="md-ellipsis">
+      5. Datei-Drift: Server-Live vs. lokal generiert
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. Datei-Drift: Server-Live vs. lokal generiert">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#echte-handlungsrelevante-drifts" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔴 Echte, handlungsrelevante Drifts
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kosmetisch-kein-handlungsbedarf" class="md-nav__link">
+    <span class="md-ellipsis">
+      🟢 Kosmetisch (kein Handlungsbedarf)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-empfohlene-reihenfolge-zur-bereinigung" class="md-nav__link">
+    <span class="md-ellipsis">
+      6. Empfohlene Reihenfolge zur Bereinigung
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-reproduktion" class="md-nav__link">
+    <span class="md-ellipsis">
+      7. Reproduktion
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-designfrage-credentials-aus-configyml-generieren" class="md-nav__link">
+    <span class="md-ellipsis">
+      8. Designfrage: Credentials aus config.yml generieren
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8. Designfrage: Credentials aus config.yml generieren">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#empfohlenes-modell-ein-secret-pool-selektion-pro-szenario" class="md-nav__link">
+    <span class="md-ellipsis">
+      Empfohlenes Modell: ein Secret-Pool + Selektion pro Szenario
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sofort-konsolidierung-vorunabhangig-vom-generator" class="md-nav__link">
+    <span class="md-ellipsis">
+      Sofort-Konsolidierung (vor/unabhängig vom Generator)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="carambus-szenario-drift-report">Carambus Szenario — Drift-Report<a class="headerlink" href="#carambus-szenario-drift-report" title="Permanent link">&para;</a></h1>
+<blockquote>
+<p><strong>Was wurde verglichen:</strong> die live auf den Produktionsservern liegenden
+End-Quellen gegen die lokal generierten Artefakte
+(<code>carambus_data/scenarios/&lt;scenario&gt;/production/</code>) sowie die vier von dir
+benannten Problemfelder.</p>
+<p><strong>Geprüfte Hosts/Szenarien:</strong>
+<code>ssh gu</code> → carambus_gu · <code>ssh api</code> → carambus, carambus_api, carambus_nbv, carambus_train · <code>ssh bc-wedel</code> → carambus_bcw</p>
+<p><strong>Stand:</strong> 2026-06-13 · Methodik: <code>ssh</code> + <code>diff</code> der generierten Dateien,
+<code>md5</code> für deploy.rb, entschlüsselte Credential-<strong>Schlüssel</strong> (keine Werte).</p>
+</blockquote>
+<hr />
+<h2 id="0-ampel-ubersicht">0. Ampel-Übersicht<a class="headerlink" href="#0-ampel-ubersicht" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Feld</th>
+<th>Status</th>
+<th>Kernbefund</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1 · <code>config/deploy.rb</code> einheitlich</td>
+<td>🟢</td>
+<td>Server + 8/9 Checkouts identisch; <code>carambus_pbv</code> weicht ab — <strong>unkritisch</strong> (Test-Szenario, wird per <code>deploy-scenario.sh</code> neu generiert).</td>
+</tr>
+<tr>
+<td>2 · SMTP via <code>/etc/&lt;base&gt;.env</code></td>
+<td>🟢</td>
+<td>SMTP zur Laufzeit auf <strong>allen</strong> Servern gesetzt (am Prozess verifiziert). <code>carambus</code>-EnvironmentFile-Bug (<code>carambus_api.env</code>→<code>carambus.env</code>) behoben. Rest-Lücke: <code>.env</code> wird von <strong>keinem</strong> Task erzeugt (manuell).</td>
+</tr>
+<tr>
+<td>3 · Credential-Keys</td>
+<td>🔴</td>
+<td>Hand-gepflegtes Chaos: flat-vs-layered-Schreibweise, Feature-Keys driften stark; <strong>carambus_api fehlen die Scraping-/AI-Keys</strong> (verifiziert).</td>
+</tr>
+<tr>
+<td>4 · Capistrano-Symlinks</td>
+<td>🟢/🟡</td>
+<td>Symlinks korrekt; aber <strong>shared/config ist alt</strong> (Code-Deploy erneuert Configs nicht) + Altlast-Dateien.</td>
+</tr>
+<tr>
+<td>— · Datei-Drift live vs. generiert</td>
+<td>🔴</td>
+<td><strong><code>cable.yml</code> channel_prefix</strong> auf mehreren Servern falsch (<code>carambus_bcw_development</code>) → ActionCable-Kollisionsgefahr. Generierung ist korrekt, nur Server-Datei veraltet.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Gemeinsame Ursache (Root Cause):</strong> Reine Code-Deploys (<code>cap deploy</code> / <code>bin/deploy.sh</code>)
+erneuern <strong>nicht</strong> die Dateien in <code>shared/config/</code>. Die Configs wurden teils
+direkt auf den Servern hand-gepatcht (Phase-41-SMTP, <code>carambus_nbv</code> carambus.yml),
+während die lokal generierten Artefakte teils veraltet sind. Ergebnis: beide
+Seiten laufen auseinander. Ein sauberer <code>scenarios:prepare_deploy</code> würde die
+Drift beheben — <strong>aber zugleich die Hand-Patches überschreiben</strong> (s. Feld 2).</p>
+<hr />
+<h2 id="1-configdeployrb-soll-fur-alle-identisch-sein">1. <code>config/deploy.rb</code> — soll für alle identisch sein ✅/⚠️<a class="headerlink" href="#1-configdeployrb-soll-fur-alle-identisch-sein" title="Permanent link">&para;</a></h2>
+<p><code>deploy.rb</code> ist die universelle Capistrano-Basis; Unterschiede gehören in die
+generierte <code>config/deploy/production.rb</code>.</p>
+<ul>
+<li>✅ <strong>Server:</strong> carambus_gu, carambus_nbv, carambus_bcw → alle md5 <code>2bd2661722eaf246c52fb071d001d391</code>.</li>
+<li>✅ <strong>Checkouts:</strong> carambus, carambus_api, carambus_bcw, carambus_gu, carambus_nbv, carambus_master, carambus_train, carambus_phat → identisch.</li>
+<li>⚠️ <strong><code>carambus_pbv/config/deploy.rb</code> weicht ab</strong> → md5 <code>79d2f87883b38f662b5970b14c9f07ed</code>.
+  <strong>Bewertung (Klärung 2026-06-13):</strong> unkritisch. <code>carambus_pbv</code> ist ein
+  Test-Szenario für einen Pool-Billard-Club mit nur einem zeitweilig im Büro
+  aufgesetzten lokalen Production-Server. Wird bei Bedarf komplett neu generiert
+  via <code>bin/deploy-scenario.sh carambus_pbv</code> — dabei zieht es die universelle
+  <code>deploy.rb</code> ohnehin nach. Kein Handlungsbedarf.</li>
+</ul>
+<hr />
+<h2 id="2-smtp-konfiguration-uber-etcbaseenv">2. SMTP-Konfiguration über <code>/etc/&lt;base&gt;.env</code> 🟡<a class="headerlink" href="#2-smtp-konfiguration-uber-etcbaseenv" title="Permanent link">&para;</a></h2>
+<blockquote>
+<p><strong>Korrektur 2026-06-13:</strong> Mein erster Befund „SMTP überall leer" war <strong>falsch</strong>
+— ein Artefakt meiner eigenen Prüf-Regex (<code>^[A-Z_]+=</code> schnitt den Wert ab).
+Korrekte Messung unten.</p>
+</blockquote>
+<p>Das systemd-Unit <code>puma-&lt;base&gt;.service</code> zieht Secrets über
+<code>EnvironmentFile=/etc/&lt;base&gt;.env</code>. <code>production.rb</code> liest daraus
+<code>ENV["SMTP_USERNAME"]</code> / <code>ENV["SMTP_PASSWORD"]</code>.</p>
+<p><strong>Tatsächlicher Stand — verifiziert am laufenden Prozess via
+<code>/proc/&lt;MainPID&gt;/environ</code> (zuverlässigste Methode; frühere <code>grep</code>-Checks waren
+unzuverlässig):</strong></p>
+<table>
+<thead>
+<tr>
+<th>Szenario</th>
+<th><code>EnvironmentFile</code> (nach Fix)</th>
+<th>SMTP_USERNAME/PASSWORD zur Laufzeit</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>carambus_nbv</td>
+<td><code>-/etc/carambus_nbv.env</code></td>
+<td>✅ gesetzt</td>
+</tr>
+<tr>
+<td>carambus_bcw</td>
+<td><code>-/etc/carambus_bcw.env</code></td>
+<td>✅ gesetzt</td>
+</tr>
+<tr>
+<td>carambus (carambus.de)</td>
+<td><code>-/etc/carambus.env</code> <em>(war fälschlich <code>carambus_api.env</code>)</em></td>
+<td>✅ gesetzt</td>
+</tr>
+<tr>
+<td>carambus_api</td>
+<td><code>-/etc/carambus_api.env</code></td>
+<td>✅ gesetzt</td>
+</tr>
+<tr>
+<td>carambus_gu</td>
+<td><code>/etc/carambus_gu.env</code></td>
+<td>✅ gesetzt</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>Korrektur²:</strong> Auch der zweite „SMTP leer bei carambus/api/gu"-Befund war ein
+Mess-Artefakt. Am laufenden Puma-Master sind <code>SMTP_USERNAME</code> <strong>und</strong>
+<code>SMTP_PASSWORD</code> überall gesetzt — der Fail-Fast-Guard
+(<code>config/initializers/smtp_guard.rb</code>) ist erfüllt, sonst wären die Worker beim
+Boot abgebrochen. Alle 4 neu gestarteten Dienste: <code>active/running</code>,
+NRestarts=0, <strong>2 Worker</strong> je Dienst, stabil.</p>
+</blockquote>
+<p>Die <strong>echten</strong> Befunde (struktureller Art):</p>
+<table>
+<thead>
+<tr>
+<th>Befund</th>
+<th>Detail</th>
+<th>Schwere</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Falscher EnvironmentFile-Name</strong></td>
+<td>Der <code>carambus</code>-Dienst (basename <code>carambus</code>) referenziert <code>/etc/carambus_api.env</code> statt <code>/etc/carambus.env</code>. Das aktuelle <code>puma.service.erb</code>-Template würde korrekt <code>-/etc/carambus.env</code> erzeugen → der Server-Service ist <strong>hand-gepatcht/veraltet</strong>.</td>
+<td>🟡 Fehlkonfiguration; bei Mailbedarf von carambus.de greift die falsche Datei.</td>
+</tr>
+<tr>
+<td><strong><code>.env</code> wird von keinem Task erzeugt</strong></td>
+<td>Kein Rake-Task/Skript legt <code>/etc/&lt;base&gt;.env</code> an oder befüllt es — rein manuell. <code>deploy-scenario.sh</code> behandelt es <strong>nicht</strong>.</td>
+<td>🟡 <strong>Kernlücke</strong>: gehört in den Deploy-Prozess.</td>
+</tr>
+<tr>
+<td><strong><code>puma.service</code> lokal stale</strong></td>
+<td><code>EnvironmentFile</code>-Zeile + Phase-41-Kommentar stehen auf den Servern, fehlen aber in den lokal generierten <code>puma.service</code>.</td>
+<td>🟡 Bei Regeneration+Deploy ginge der Server-Stand verloren — aber das Template ist eigentlich korrekt, also würde Regeneration den <code>carambus_api.env</code>-Bug sogar <strong>beheben</strong>.</td>
+</tr>
+<tr>
+<td><strong>Doppelter SMTP-Block</strong></td>
+<td><code>carambus_nbv</code> <code>production.rb</code> hat einen zusätzlich hand-eingefügten SMTP-Block (Phase 41, <code>open_timeout: 30</code>) neben dem generierten (<code>open_timeout: 5</code>), mit kaputter Einrückung.</td>
+<td>🟡 Redundant.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Empfehlung (so soll <code>deploy-scenario.sh</code> es behandeln):</strong>
+1. <strong><code>/etc/&lt;base&gt;.env</code>-Management in den Deploy-Prozess aufnehmen:</strong> Datei mit
+   korrektem Namen (<code>/etc/&lt;basename&gt;.env</code>), Rechten <code>root:www-data 640</code> anlegen
+   und SMTP-Secrets aus einer geschützten Quelle befüllen (s. Credential-Diskussion).
+2. Server-<code>puma.service</code> aus dem Template neu erzeugen → behebt den
+   <code>carambus → carambus_api.env</code>-Namensbug automatisch.
+3. SMTP fest im generierten <code>production.rb</code> belassen → Phase-41-Hand-Patch in
+   <code>carambus_nbv</code> entfernen.</p>
+<hr />
+<h2 id="3-credentials-schlussel-drift">3. Credentials — Schlüssel-Drift 🟡<a class="headerlink" href="#3-credentials-schlussel-drift" title="Permanent link">&para;</a></h2>
+<p><code>secret_key_base</code>, <code>active_record_encryption.*</code>, <code>google_service.*</code>,
+<code>location_id</code>, <code>location_calendar_id</code>, <code>domain</code> sind <strong>überall</strong> vorhanden ✅.
+Der Großteil der übrigen Keys ist <strong>Rails-Default-Boilerplate</strong> (stripe,
+braintree, sendgrid, mailgun, sentry, …) und ungenutzt.</p>
+<p><strong>Feature-relevante Keys driften zwischen Szenarien:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th style="text-align: center;">carambus</th>
+<th style="text-align: center;">carambus_api</th>
+<th style="text-align: center;">carambus_nbv</th>
+<th style="text-align: center;">carambus_train</th>
+<th style="text-align: center;">carambus_gu</th>
+<th style="text-align: center;">carambus_bcw</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>anthropic.api_key</code></td>
+<td style="text-align: center;">–</td>
+<td style="text-align: center;">–</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">–</td>
+<td style="text-align: center;">–</td>
+<td style="text-align: center;">–</td>
+</tr>
+<tr>
+<td><code>deepl_key</code></td>
+<td style="text-align: center;">–</td>
+<td style="text-align: center;">–</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">–</td>
+<td style="text-align: center;">–</td>
+<td style="text-align: center;">–</td>
+</tr>
+<tr>
+<td><code>clubcloud.nbv.{username,password}</code></td>
+<td style="text-align: center;">–</td>
+<td style="text-align: center;">–</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">–</td>
+<td style="text-align: center;">–</td>
+<td style="text-align: center;">–</td>
+</tr>
+<tr>
+<td><code>kozoom.{email,password}</code></td>
+<td style="text-align: center;">–</td>
+<td style="text-align: center;">–</td>
+<td style="text-align: center;">–</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">–</td>
+</tr>
+<tr>
+<td><code>youtube_api_key</code></td>
+<td style="text-align: center;">–</td>
+<td style="text-align: center;">–</td>
+<td style="text-align: center;">–</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">–</td>
+</tr>
+<tr>
+<td><code>google.translate_api_key</code></td>
+<td style="text-align: center;">–</td>
+<td style="text-align: center;">–</td>
+<td style="text-align: center;">–</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">–</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Auffälligkeiten (mit Klärung 2026-06-13):</strong>
+- <strong>Schreibweise uneinheitlich (flat vs. layered):</strong> teils <code>anthropic_key:</code> (flat),
+  in development teils <code>anthropic:</code> → <code>key:</code> (layered). <strong>Soll vereinheitlicht
+  werden auf flat — auch im Code</strong> (<code>Rails.application.credentials.anthropic_key</code>
+  statt <code>.anthropic.key</code>). Gleiches Muster bei anderen Keys prüfen.
+- <strong><code>deepl_key</code> und <code>google.translate_api_key</code> sollten überall</strong> als Backup
+  vorhanden sein — aktuell <code>deepl_key</code> nur in carambus_nbv, <code>google.translate_api_key</code>
+  nur in train/gu.
+- <strong>carambus_api fehlen die Scraping-/AI-Keys — verifiziert</strong> (production: 69 Keys,
+  davon nur <code>google_service.*</code> + <code>omniauth.google_oauth2.*</code> relevant; <strong>kein</strong>
+  youtube/kozoom/five&amp;six/deepl/anthropic/openai). Da Scraping laut Betreiber
+  <strong>nur</strong> auf carambus_api läuft, ist das überraschend.
+  <strong>Mögliche Erklärung:</strong> auf der Deploy-Maschine existiert lokal eine
+  <code>carambus_api/config/credentials/development.yml.enc</code> (5844 B) — Scraping
+  läuft evtl. im <strong>development</strong>-Kontext der lokalen Maschine, nicht mit den
+  <strong>production</strong>-Credentials des Servers. → Klären, in welchem Kontext der
+  Scraping-Cron tatsächlich läuft (<code>whenever_roles [:api]</code> ⇒ eigentlich production
+  auf carambus_api).
+- Kein <code>openai_api_key</code> in irgendeinem production-Szenario — per ENV/dev oder ungenutzt.
+- SMTP liegt <strong>nicht</strong> in den Credentials (bewusst per ENV, s. Feld 2).</p>
+<p><strong>Status:</strong> hand-gepflegt, „Chaos am größten". Zwei getrennte Aufgaben:
+1. <strong>Konsolidieren</strong> (flat-Schreibweise; deepl/google.translate überall; carambus_api
+   vollständig ausstatten).
+2. <strong>Generierbar machen aus <code>config.yml</code></strong> — Designvorschlag siehe
+   <a href="#8-designfrage-credentials-aus-configyml-generieren">Abschnitt 8</a>.</p>
+<hr />
+<h2 id="4-capistrano-symlinks">4. Capistrano-Symlinks 🟢/🟡<a class="headerlink" href="#4-capistrano-symlinks" title="Permanent link">&para;</a></h2>
+<p>In <code>/var/www/&lt;base&gt;/current/config/</code> korrekt nach <code>shared/config/</code> verlinkt:
+<code>cable.yml</code>, <code>carambus.yml</code>, <code>database.yml</code>, <code>env.production</code>, <code>nginx.conf</code>,
+<code>puma.rb</code>, <code>credentials/</code>, <code>environments/production.rb</code>. ✅</p>
+<ul>
+<li>⚠️ <strong><code>shared/config/*</code> ist alt</strong> (Zeitstempel Mai 15/16; Code-Release Jun 12).
+  Bestätigt: Code-Deploys erneuern die Configs nicht → Quelle der Datei-Drift unten.</li>
+<li>🧹 <code>current/config/environments/</code> enthält <strong>veraltete, nicht verlinkte</strong> Env-Dateien:
+  <code>development-carambus.rb</code>, <code>production-bc-wedel.rb</code>, <code>production-carambus-de.rb</code>,
+  <code>staging.rb</code> — Altlast aus der Zeit vor dem Szenario-System. Aktiv ist nur das
+  symverlinkte <code>production.rb</code>.</li>
+<li>🧹 <code>current/config/*.erb</code> (<code>carambus.yml.erb</code>, <code>database.yml.erb</code>, …) liegen mit
+  im Release — vermutlich unnötiger Ballast.</li>
+</ul>
+<blockquote>
+<p><strong>Hinweis (kein Drift):</strong> <code>current/config/deploy/production.rb</code> fehlt auf den
+Servern — das ist <strong>by design</strong> (Capistrano-Stage-Datei, wird nur auf der
+Deploy-Maschine gelesen).</p>
+</blockquote>
+<hr />
+<h2 id="5-datei-drift-server-live-vs-lokal-generiert">5. Datei-Drift: Server-Live vs. lokal generiert<a class="headerlink" href="#5-datei-drift-server-live-vs-lokal-generiert" title="Permanent link">&para;</a></h2>
+<h3 id="echte-handlungsrelevante-drifts">🔴 Echte, handlungsrelevante Drifts<a class="headerlink" href="#echte-handlungsrelevante-drifts" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Datei</th>
+<th>Szenario(s)</th>
+<th>Drift</th>
+<th>Bewertung</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong><code>cable.yml</code></strong></td>
+<td>carambus, carambus_nbv, carambus_api, carambus_bcw</td>
+<td>Server: <code>channel_prefix: carambus_bcw_development</code> statt eigenem (<code>carambus_production</code> / <code>carambus_nbv_production</code> / …). <code>carambus_api</code> zusätzlich Redis <code>/2</code> statt <code>/3</code>.</td>
+<td>🔴 <strong>ActionCable-Kollision</strong>: carambus + carambus_nbv + carambus_api liegen auf dem <strong>api-Host auf Redis-DB 2 mit identischem Channel-Prefix</strong> → Cross-Talk zwischen Instanzen. Sieht aus wie eine versehentlich propagierte bcw-Dev-<code>cable.yml</code>.</td>
+</tr>
+<tr>
+<td><strong><code>carambus.yml</code></strong></td>
+<td>carambus_nbv</td>
+<td>Server hand-gepflegt: <code>business_name: Norddeutscher Billard-Verband</code>, <code>location_id: 0</code>, <code>context: NBV</code>. Generiert: <code>context: nbv</code> (klein), leere Werte, volle <code>quick_game_presets</code>.</td>
+<td>🟡 Generierte Version würde Hand-Werte überschreiben. <code>business_name</code> ist vom Template gar nicht erzeugbar.</td>
+</tr>
+<tr>
+<td><strong><code>production.rb</code></strong></td>
+<td>carambus (carambus.de)</td>
+<td>Server: <code>default_url_options { host: "carambus.de", port: 80 }</code>. Generiert: ohne Port.</td>
+<td>🟡 Veraltet (vor Fix Plan 14-G.7.1) → Risiko kaputter HTTPS-Redirects <code>https://…:80</code>. Wird bei Neugenerierung behoben.</td>
+</tr>
+<tr>
+<td><strong><code>production.rb</code></strong></td>
+<td>carambus_nbv</td>
+<td>doppelter SMTP-Block (s. Feld 2).</td>
+<td>🟡</td>
+</tr>
+<tr>
+<td><strong><code>puma.service</code></strong></td>
+<td>alle</td>
+<td><code>EnvironmentFile</code>-Zeile (s. Feld 2).</td>
+<td>🟡</td>
+</tr>
+<tr>
+<td><strong><code>nginx.conf</code></strong></td>
+<td>carambus (carambus.de)</td>
+<td><code>error_log … debug;</code> (Server) vs. ohne <code>debug</code> (generiert) + Leerzeile.</td>
+<td>🟢 minor.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="kosmetisch-kein-handlungsbedarf">🟢 Kosmetisch (kein Handlungsbedarf)<a class="headerlink" href="#kosmetisch-kein-handlungsbedarf" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong><code>puma.rb</code></strong>: bei <strong>allen</strong> Szenarien nur ein fehlender Zeilenumbruch am Dateiende — inhaltlich identisch.</li>
+<li><strong><code>nginx.conf</code></strong>: bei carambus_nbv, carambus_api, carambus_train, carambus_bcw, carambus_gu nur Trailing-Newline.</li>
+<li><strong><code>database.yml</code>, <code>env.production</code></strong> (alle), <strong><code>carambus.yml</code></strong> (außer nbv), <strong><code>production.rb</code></strong> (carambus_api, carambus_train, carambus_bcw, carambus_gu), <strong><code>cable.yml</code>/<code>puma.service</code></strong> (carambus_train teils): <strong>IDENTISCH</strong> ✅.</li>
+</ul>
+<hr />
+<h2 id="6-empfohlene-reihenfolge-zur-bereinigung">6. Empfohlene Reihenfolge zur Bereinigung<a class="headerlink" href="#6-empfohlene-reihenfolge-zur-bereinigung" title="Permanent link">&para;</a></h2>
+<ol>
+<li><del><strong>Sofort (🔴):</strong> <code>cable.yml</code> auf carambus, carambus_nbv, carambus_api, carambus_bcw korrigieren.</del> <strong>✅ ERLEDIGT &amp; NACHHALTIG VERIFIZIERT 2026-06-13:</strong>
+   korrekte <code>cable.yml</code> (aus <code>config.yml</code>) nach <code>shared/config/</code> hochgeladen (Backups als <code>cable.yml.bak.&lt;ts&gt;</code>), Puma neu gestartet, alle Dienste <code>active</code>. carambus_api jetzt korrekt auf Redis <code>/3</code>, alle channel_prefixe szenario-spezifisch. carambus.de + nbv.carambus.de → HTTP 200.
+   <strong>Nachhaltigkeit geprüft:</strong> der echte <code>scenario:generate_configs</code>-Generator erzeugt aus <code>config.yml</code> <strong>byte-identisch</strong> die jetzt deployte <code>cable.yml</code> (alle 4 Szenarien) → ein künftiges <code>deploy-scenario</code> reproduziert denselben Stand, die Drift kommt nicht zurück. Quelle (<code>config.yml</code> channel_prefix/redis_database) ist also korrekt.</li>
+<li><strong>production.rb + puma.service</strong> ✅ <strong>ERLEDIGT 2026-06-13</strong> für carambus, carambus_api, carambus_nbv, carambus_bcw: frisch aus <code>config.yml</code> generiert, nach <code>shared/config/environments/production.rb</code> bzw. <code>/etc/systemd/system/puma-&lt;base&gt;.service</code> deployt (Backups <code>*.bak.&lt;ts&gt;</code>), <code>daemon-reload</code> + Puma-Restart, alle Dienste <code>active</code>, carambus.de + nbv.carambus.de → 200. Behoben: <code>carambus</code>-EnvironmentFile (<code>carambus_api.env</code> → <code>carambus.env</code>), stale <code>port:80</code> in carambus/carambus_api (HTTPS-Redirect-Fix), nbv-SMTP-Hand-Patch bereinigt, SMTP-Block auf bcw ergänzt. <strong>Worker-Health nach Restart verifiziert:</strong> alle 4 Dienste <code>active/running</code>, NRestarts=0, je 2 Worker, <code>SMTP_USERNAME</code>/<code>SMTP_PASSWORD</code> zur Laufzeit gesetzt (SMTP-Guard erfüllt). SMTP ist auf allen Servern befüllt — die früheren „leer"-Befunde waren Mess-Artefakte.</li>
+<li><strong>Hand-Patches sichern:</strong> vor jedem <code>prepare_deploy</code> die manuellen Werte
+   (<code>carambus_nbv</code> carambus.yml <code>business_name</code>/<code>location_id</code>/<code>context</code>; SMTP-Block)
+   entweder in <code>config.yml</code>/Template überführen <strong>oder</strong> bewusst akzeptieren, dass
+   sie überschrieben werden.</li>
+<li><strong><code>carambus_pbv/config/deploy.rb</code></strong> angleichen.</li>
+<li><strong>Aufräumen (🧹):</strong> veraltete <code>environments/*.rb</code> und <code>*.erb</code> aus dem Release entfernen.</li>
+<li><strong>Prozess:</strong> klären, ob <code>shared/config</code> bei Deploys automatisch neu generiert
+   werden soll (sonst bleibt Config-Drift strukturell bestehen).</li>
+</ol>
+<hr />
+<h2 id="7-reproduktion">7. Reproduktion<a class="headerlink" href="#7-reproduktion" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># Datei-Drift (Server vs. lokal generiert), Beispiel cable.yml:</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>diff<span class="w"> </span>&lt;<span class="o">(</span>ssh<span class="w"> </span>api<span class="w"> </span>cat<span class="w"> </span>/var/www/carambus_nbv/shared/config/cable.yml<span class="o">)</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">     </span>carambus_data/scenarios/carambus_nbv/production/cable.yml
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="c1"># deploy.rb-Uniformität:</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>ssh<span class="w"> </span>api<span class="w"> </span>md5sum<span class="w"> </span>/var/www/carambus_nbv/current/config/deploy.rb
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="c1"># SMTP-Env prüfen:</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>ssh<span class="w"> </span>api<span class="w"> </span><span class="s1">&#39;grep -E &quot;^SMTP&quot; /etc/carambus_nbv.env&#39;</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="c1"># Credential-Keys (rbenv-Ruby!):</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>ssh<span class="w"> </span>api<span class="w"> </span><span class="s1">&#39;cd /var/www/carambus_nbv/current &amp;&amp; RBENV_ROOT=/var/www/.rbenv \</span>
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="s1">  PATH=$RBENV_ROOT/shims:$PATH RBENV_VERSION=3.2.1 RAILS_ENV=production \</span>
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="s1">  bundle exec rails runner &quot;puts Rails.application.credentials.to_h.keys.sort&quot;&#39;</span>
+</code></pre></div>
+<hr />
+<h2 id="8-designfrage-credentials-aus-configyml-generieren">8. Designfrage: Credentials aus <code>config.yml</code> generieren<a class="headerlink" href="#8-designfrage-credentials-aus-configyml-generieren" title="Permanent link">&para;</a></h2>
+<p><strong>Grundproblem:</strong> <code>config.yml</code> ist <strong>Klartext</strong> und liegt in <code>carambus_data</code>
+(versioniert/geteilt). <strong>Secrets dürfen dort nicht rein.</strong> Trotzdem soll der
+Credential-Satz pro Szenario reproduzierbar/ableitbar werden. Lösung: <strong>trenne
+„welche Keys" (deklarierbar, nicht-geheim) von „die geheimen Werte" (eine
+geschützte Quelle).</strong></p>
+<h3 id="empfohlenes-modell-ein-secret-pool-selektion-pro-szenario">Empfohlenes Modell: ein Secret-Pool + Selektion pro Szenario<a class="headerlink" href="#empfohlenes-modell-ein-secret-pool-selektion-pro-szenario" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>~/.carambus-secrets/secrets.yml        ← EINE geschützte Klartext-Quelle (NICHT in git,
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>   secret_key_base: &lt;pro basename&gt;        chmod 600, nur auf der Deploy-Maschine)
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>   deepl_key: ...                         gemeinsame Werte (deepl, google.translate,
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>   google.translate_api_key: ...          anthropic_key) zentral, einmal gepflegt
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>   anthropic_key: ...
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>   kozoom: {email, password}
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>   youtube_api_key: ...
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>   clubcloud:
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>     NBV: {username, password}            ← region-/kontext-spezifisch
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>        │
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>        │  config.yml (NICHT-geheim) deklariert je Szenario:
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>        │    credentials:
+<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>        │      include: [deepl_key, google.translate_api_key, anthropic_key]   # gemeinsam
+<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>        │      scraping: true            # ⇒ youtube/kozoom/five_six dazu
+<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a>        │      clubcloud_context: NBV    # ⇒ clubcloud.NBV.* dazu
+<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a>        ▼
+<a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a>   rake scenarios:generate_credentials[&lt;scenario&gt;,&lt;env&gt;]
+<a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a>        → nimmt die deklarierten Keys aus dem Pool
+<a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a>        → schreibt+verschlüsselt &lt;scenario&gt;/&lt;env&gt;/credentials/&lt;env&gt;.yml.enc
+<a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a>          mit dem szenario-eigenen &lt;env&gt;.key
+<a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a>        → Upload nach shared/config/credentials (wie heute)
+</code></pre></div>
+<p><strong>Vorteile:</strong> gemeinsame Keys (deepl, google.translate, anthropic) liegen
+<strong>einmal</strong> im Pool → automatisch überall als Backup vorhanden; nur die wirklich
+unterscheidenden Teile (<code>clubcloud_context</code>, <code>scraping</code>, <code>location_id</code>,
+<code>location_calendar_id</code>) stehen — <strong>nicht-geheim</strong> — in <code>config.yml</code>.</p>
+<h3 id="sofort-konsolidierung-vorunabhangig-vom-generator">Sofort-Konsolidierung (vor/unabhängig vom Generator)<a class="headerlink" href="#sofort-konsolidierung-vorunabhangig-vom-generator" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Schreibweise vereinheitlichen auf flat</strong> — <code>anthropic_key:</code>, <code>deepl_key:</code>,
+   <code>youtube_api_key:</code>, <code>google_translate_api_key:</code> (flach). Auch im <strong>Code</strong>:
+   <code>Rails.application.credentials.anthropic_key</code> (kein <code>.anthropic.key</code>).
+   Betrifft u. a. <code>AiTranslationService</code>, <code>DeeplTranslationService</code>,
+   <code>KozoomScraper</code>, <code>YoutubeScraper</code>.</li>
+<li><strong>deepl_key + google_translate_api_key + anthropic_key</strong> in <strong>allen</strong>
+   Szenarien hinterlegen (Backup-Fähigkeit).</li>
+<li><strong>carambus_api</strong> vollständig mit Scraping-Keys (youtube, kozoom, five&amp;six)
+   ausstatten — <strong>oder</strong> klären, ob Scraping in Wahrheit im development-Kontext
+   der lokalen Maschine läuft (lokale <code>development.yml.enc</code> vorhanden).</li>
+</ol>
+<blockquote>
+<p><strong>Hinweis zu den vielen Boilerplate-Keys</strong> (stripe, braintree, sendgrid,
+mailgun, sentry, …): das ist der ungenutzte Default-Satz aus
+<code>rails credentials:edit</code>. Beim Neuaufbau des Pools kann er entfallen — nur die
+tatsächlich genutzten Keys übernehmen.</p>
+</blockquote>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        <div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/GernotUllrich/carambus" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="http://www.billardclub-wedel.de/" target="_blank" rel="noopener" title="www.billardclub-wedel.de" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M352 256c0 22.2-1.2 43.6-3.3 64H163.4c-2.2-20.4-3.3-41.8-3.3-64s1.2-43.6 3.3-64h185.3c2.2 20.4 3.3 41.8 3.3 64m28.8-64h123.1c5.3 20.5 8.1 41.9 8.1 64s-2.8 43.5-8.1 64H380.8c2.1-20.6 3.2-42 3.2-64s-1.1-43.4-3.2-64m112.6-32H376.7c-10-63.9-29.8-117.4-55.3-151.6 78.3 20.7 142 77.5 171.9 151.6zm-149.1 0H167.7c6.1-36.4 15.5-68.6 27-94.7 10.5-23.6 22.2-40.7 33.5-51.5C239.4 3.2 248.7 0 256 0s16.6 3.2 27.8 13.8c11.3 10.8 23 27.9 33.5 51.5 11.6 26 20.9 58.2 27 94.7m-209 0H18.6c30-74.1 93.6-130.9 172-151.6-25.5 34.2-45.3 87.7-55.3 151.6M8.1 192h123.1c-2.1 20.6-3.2 42-3.2 64s1.1 43.4 3.2 64H8.1C2.8 299.5 0 278.1 0 256s2.8-43.5 8.1-64m186.6 254.6c-11.6-26-20.9-58.2-27-94.6h176.6c-6.1 36.4-15.5 68.6-27 94.6-10.5 23.6-22.2 40.7-33.5 51.5-11.2 10.7-20.5 13.9-27.8 13.9s-16.6-3.2-27.8-13.8c-11.3-10.8-23-27.9-33.5-51.5zM135.3 352c10 63.9 29.8 117.4 55.3 151.6-78.4-20.7-142-77.5-172-151.6zm358.1 0c-30 74.1-93.6 130.9-171.9 151.6 25.5-34.2 45.2-87.7 55.3-151.6h116.7z"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "../../..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.expand", "navigation.indexes", "search.suggest", "search.highlight", "header.autohide", "toc.follow"], "search": "../../../assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../../../assets/javascripts/bundle.56ea9cef.min.js"></script>
+      
+        <script src="../../../javascripts/mathjax.js"></script>
+      
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+        <script src="https://unpkg.com/mermaid@10/dist/mermaid.min.js"></script>
+      
+        <script src="../../../javascripts/mermaid-init.js"></script>
+      
+    
+  </body>
+</html>

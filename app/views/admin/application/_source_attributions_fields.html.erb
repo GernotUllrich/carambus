@@ -1,78 +1,78 @@
-<div class="source-attributions-section" style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-top: 30px; border: 2px solid #dee2e6;">
-  <h3 style="color: #2c3e50; margin: 0 0 15px 0; border-bottom: 2px solid #6c757d; padding-bottom: 8px;">
+<div class="source-attributions-section bg-gray-50 dark:bg-gray-800 p-5 rounded-lg mt-8 border-2 border-gray-300 dark:border-gray-700">
+  <h3 class="text-gray-800 dark:text-gray-100 m-0 mb-4 pb-2 border-b-2 border-gray-400 dark:border-gray-600">
     📚 Quellenangaben
   </h3>
-  
+
   <% if resource.training_sources.any? %>
-    <div class="existing-sources" style="margin-bottom: 20px;">
-      <p style="font-weight: bold; color: #495057;">Zugeordnete Quellen:</p>
+    <div class="existing-sources mb-5">
+      <p class="font-bold text-gray-600 dark:text-gray-300">Zugeordnete Quellen:</p>
       <% resource.source_attributions.each do |attribution| %>
-        <div style="background: white; padding: 12px; border-radius: 6px; margin-bottom: 10px; border-left: 4px solid #28a745;">
-          <div style="display: flex; justify-content: space-between; align-items: start;">
+        <div class="bg-white dark:bg-gray-900 p-3 rounded-md mb-2.5 border-l-4 border-success-500">
+          <div class="flex justify-between items-start">
             <div>
-              <strong style="color: #2c3e50;"><%= attribution.training_source.display_name %></strong>
+              <strong class="text-gray-800 dark:text-gray-100"><%= attribution.training_source.display_name %></strong>
               <% if attribution.reference.present? %>
                 <br>
-                <span style="color: #6c757d; font-size: 0.9em;">
+                <span class="text-gray-500 dark:text-gray-400 text-[0.9em]">
                   📍 <%= attribution.reference %>
                 </span>
               <% end %>
               <% if attribution.notes.present? %>
                 <br>
-                <span style="color: #6c757d; font-size: 0.85em; font-style: italic;">
+                <span class="text-gray-500 dark:text-gray-400 text-[0.85em] italic">
                   <%= truncate(attribution.notes, length: 100) %>
                 </span>
               <% end %>
             </div>
-            <%= link_to "🗑️", 
-                        [:admin, attribution], 
+            <%= link_to "🗑️",
+                        [:admin, attribution],
                         method: :delete,
                         data: { confirm: "Quellenangabe wirklich entfernen?" },
-                        style: "color: #dc3545; text-decoration: none; font-size: 1.2em;" if false %>
+                        class: "!text-danger-600 no-underline text-[1.2em]" if false %>
           </div>
         </div>
       <% end %>
     </div>
   <% else %>
-    <p style="color: #6c757d; font-style: italic; margin-bottom: 15px;">
+    <p class="text-gray-500 dark:text-gray-400 italic mb-4">
       Noch keine Quellen zugeordnet.
     </p>
   <% end %>
-  
-  <div class="add-source-form" style="background: white; padding: 15px; border-radius: 6px; border: 1px dashed #adb5bd;">
-    <p style="font-weight: bold; color: #495057; margin: 0 0 10px 0;">Neue Quelle hinzufügen:</p>
-    
+
+  <div class="add-source-form bg-white dark:bg-gray-900 p-4 rounded-md border border-dashed border-gray-400 dark:border-gray-600">
+    <p class="font-bold text-gray-600 dark:text-gray-300 m-0 mb-2.5">Neue Quelle hinzufügen:</p>
+
     <%= form.fields_for :source_attributions, resource.source_attributions.build do |sa_form| %>
-      <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 10px; margin-bottom: 10px;">
+      <div class="grid grid-cols-[2fr_1fr] gap-2.5 mb-2.5">
         <div>
-          <%= sa_form.label :training_source_id, "Quelle auswählen", style: "display: block; font-size: 0.9em; color: #495057; margin-bottom: 5px;" %>
+          <%= sa_form.label :training_source_id, "Quelle auswählen", class: "block text-[0.9em] text-gray-600 dark:text-gray-300 mb-1" %>
           <%= sa_form.collection_select :training_source_id,
                                         TrainingSource.order(:title),
                                         :id,
                                         :display_name,
                                         { include_blank: "-- Quelle auswählen --" },
-                                        { style: "width: 100%; padding: 8px; border: 1px solid #ced4da; border-radius: 4px;" } %>
+                                        { class: "w-full p-2 rounded border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-100" } %>
         </div>
-        
+
         <div>
-          <%= sa_form.label :reference, "Referenz (z.B. S. 23-25)", style: "display: block; font-size: 0.9em; color: #495057; margin-bottom: 5px;" %>
+          <%= sa_form.label :reference, "Referenz (z.B. S. 23-25)", class: "block text-[0.9em] text-gray-600 dark:text-gray-300 mb-1" %>
           <%= sa_form.text_field :reference,
                                  placeholder: "z.B. Seiten 23-25",
-                                 style: "width: 100%; padding: 8px; border: 1px solid #ced4da; border-radius: 4px;" %>
+                                 class: "w-full p-2 rounded border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-100" %>
         </div>
       </div>
-      
-      <div style="margin-bottom: 10px;">
-        <%= sa_form.label :notes, "Notizen (optional)", style: "display: block; font-size: 0.9em; color: #495057; margin-bottom: 5px;" %>
+
+      <div class="mb-2.5">
+        <%= sa_form.label :notes, "Notizen (optional)", class: "block text-[0.9em] text-gray-600 dark:text-gray-300 mb-1" %>
         <%= sa_form.text_area :notes,
                               rows: 2,
                               placeholder: "Zusätzliche Notizen zur Quelle...",
-                              style: "width: 100%; padding: 8px; border: 1px solid #ced4da; border-radius: 4px; font-size: 0.9em;" %>
+                              class: "w-full p-2 rounded border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-100 text-[0.9em]" %>
       </div>
     <% end %>
-    
-    <p class="field-hint" style="color: #6c757d; font-size: 0.85em; margin: 10px 0 0 0;">
-      💡 Tipp: Legen Sie zuerst eine neue Quelle unter <a href="/admin/training_sources/new" target="_blank" style="color: #007bff;">Training Sources</a> an, falls diese noch nicht existiert.
+
+    <p class="field-hint text-gray-500 dark:text-gray-400 text-[0.85em] mt-2.5">
+      💡 Tipp: Lege zuerst eine neue Quelle unter<a href="/admin/training_sources/new" target="_blank" class="text-info-600 dark:text-info-400">Training Sources</a> an, falls diese noch nicht existiert.
     </p>
   </div>
 </div>

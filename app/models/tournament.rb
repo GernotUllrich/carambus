@@ -62,6 +62,7 @@ class Tournament < ApplicationRecord
   include LocalProtector
   include SourceHandler
   include RegionTaggable
+  include BranchTaggable
   include Searchable
   include TournamentLeiter
   DEBUG_LOGGER = Logger.new("#{Rails.root}/log/debug.log")
@@ -93,6 +94,8 @@ class Tournament < ApplicationRecord
 
   # D-14-G4: Single-TL-pro-Turnier Sub-Authorization.
   belongs_to :turnier_leiter, class_name: "User", foreign_key: :turnier_leiter_user_id, optional: true
+  # D-34-5: Lokale User<->Turnier-Zuordnungen (UserTournament, ApiProtector; Union mit turnier_leiter_user_id).
+  has_many :user_tournaments, dependent: :destroy
   
   # Polymorphe Video Association
   has_many :videos, as: :videoable, dependent: :nullify
@@ -202,10 +205,14 @@ class Tournament < ApplicationRecord
   end
 
   def self.text_search_sql
+    # Location in die General-Suche aufnehmen: erlaubt Venue-Suche ("Hamburg") und macht
+    # `location:BG Hamburg` (unquoted) tolerant — das nachlaufende "Hamburg" matcht sonst nur
+    # title/shortname/season und filtert per AND auf 0 (SB-3). locations ist LEFT JOINed (search_joins).
     "(tournaments.ba_id = :isearch)
      or (tournaments.title ilike :search)
      or (tournaments.shortname ilike :search)
-     or (seasons.name ilike :search)"
+     or (seasons.name ilike :search)
+     or (locations.name ilike :search)"
   end
 
   def self.search_joins

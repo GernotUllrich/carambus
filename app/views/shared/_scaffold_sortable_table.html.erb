@@ -1,0 +1,43 @@
+<%# 11-02: Generischer sortierbarer Token-Tabellen-Body (Top-Level-Index-Modus). %>
+<%# Gegenstueck zur Zeilen-Liste (_scaffold_table) — hier: spaltensortierbare Tabelle fuer grosse Mengen. %>
+<%# STRIKT ueber Locals (kein @ivar): records (Pflicht), model_class (Pflicht), pagy (Fallback @pagy) — %>
+<%# funktioniert in der HTTP-Such-Huelle UND als SearchReflex-Rerender-Ziel (data-table-partial). %>
+<%# Spalten aus ScaffoldHelper#scaffold_index_columns (heavy/JSON-Typen ausgeschlossen). Token+Dark, kein Hex. %>
+<% cols = scaffold_index_columns(model_class) %>
+<% pagy = local_assigns.fetch(:pagy, nil) || @pagy %>
+<% sample = model_class.new %>
+<div class="rounded-card ring-1 ring-gray-200 dark:ring-gray-700 overflow-x-auto">
+  <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+    <thead class="bg-gray-100 dark:bg-gray-800">
+      <tr>
+        <% cols.each do |col| %>
+          <th class="px-3 py-2 text-left text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400 whitespace-nowrap">
+            <%= sortable records, col, scaffold_attribute_label(sample, col), params, class: "hover:text-primary-700 dark:hover:text-primary-300" %>
+          </th>
+        <% end %>
+        <th class="px-3 py-2 text-right text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400 whitespace-nowrap">
+          <%= t("actions", default: "Aktionen") %>
+        </th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+      <% records.each do |record| %>
+        <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50">
+          <% cols.each do |col| %>
+            <td class="px-3 py-2 text-sm text-gray-900 dark:text-gray-100 whitespace-nowrap"><%= scaffold_attribute_value(record, col) %></td>
+          <% end %>
+          <td class="px-3 py-2 text-right text-sm whitespace-nowrap">
+            <%= custom_link_to t("view", default: "Ansehen"), record,
+                  class: "text-primary-600 hover:text-primary-700 dark:text-primary-300 no-underline" %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>
+
+<% if pagy && pagy.pages > 1 %>
+  <div class="text-center my-6">
+    <%== pagy_nav(pagy) %>
+  </div>
+<% end %>

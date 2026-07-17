@@ -1,0 +1,77 @@
+<h2 class="sr-only">Verfeinerte Redesign-Richtung A für Carambus: helle SaaS-Ästhetik mit skalierbarer vertikaler Sidebar-Navigation, gruppierten aufklappbaren Nav-Bereichen, Region-Umschalter und aufgeräumter Turnierliste</h2>
+<div style="font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; background:#eceae5; border-radius:16px; padding:12px; color:#26251f;">
+  <style>
+    .av-frame{display:flex;background:#faf9f6;border:1px solid #e2ded4;border-radius:12px;overflow:hidden;min-height:470px}
+    .av-item{display:flex;align-items:center;gap:10px;color:#57534e;text-decoration:none;font-size:13px;padding:8px 10px;border-radius:8px}
+    .av-item:hover{background:#f0eee7}
+    .av-item.on{background:#e7f0ee;color:#0f5f56;font-weight:500}
+    .av-sub{display:flex;align-items:center;gap:8px;color:#78736a;text-decoration:none;font-size:12.5px;padding:6px 10px 6px 34px;border-radius:8px}
+    .av-sub:hover{background:#f0eee7}
+    .av-sub.on{color:#0f5f56;font-weight:500}
+    .av-row{display:flex;align-items:center;gap:12px;padding:12px 16px;border-top:1px solid #eeece5;background:#fff}
+    .av-row:hover{background:#f6f5f1}
+    .av-chip{font-size:11px;padding:2px 9px;border-radius:20px;font-weight:500}
+    .av-badge{font-size:11px;color:#8a857a;border:1px solid #e2ded4;padding:1px 8px;border-radius:6px}
+    .av-btn{background:#0f5f56;color:#fff;border:none;border-radius:9px;padding:10px 16px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit}
+  </style>
+  <div class="av-frame">
+    <div style="width:186px;background:#f3f1ea;border-right:1px solid #e2ded4;padding:14px 10px;flex-shrink:0;display:flex;flex-direction:column">
+      <div style="display:flex;align-items:center;gap:8px;padding:0 6px 12px"><span style="width:20px;height:20px;border-radius:6px;background:#0f5f56;display:inline-block"></span><span style="font-weight:600;font-size:15px;letter-spacing:-0.2px">Carambus</span></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;background:#fff;border:1px solid #e2ded4;border-radius:8px;padding:7px 10px;font-size:12px;color:#3a352c;margin-bottom:12px"><span><i class="ti ti-world" style="color:#0f5f56;font-size:14px;vertical-align:-2px" aria-hidden="true"></i> Alle Regionen</span><i class="ti ti-chevron-down" style="font-size:14px;color:#8a857a" aria-hidden="true"></i></div>
+      <div style="display:flex;flex-direction:column;gap:1px;overflow:hidden">
+        <a class="av-item" href="#"><i class="ti ti-building-community" aria-hidden="true"></i> Organisationen <i class="ti ti-chevron-down" style="font-size:13px;margin-left:auto;color:#b8b3a8" aria-hidden="true"></i></a>
+        <a class="av-item" href="#"><i class="ti ti-users" aria-hidden="true"></i> Spieler</a>
+        <a class="av-item" href="#"><i class="ti ti-cards" aria-hidden="true"></i> Partien</a>
+        <a class="av-item on" href="#"><i class="ti ti-trophy" aria-hidden="true"></i> Turniere <i class="ti ti-chevron-up" style="font-size:13px;margin-left:auto;color:#0f5f56" aria-hidden="true"></i></a>
+        <a class="av-sub on" href="#">Turniere</a>
+        <a class="av-sub" href="#">Setzlisten</a>
+        <a class="av-sub" href="#">Ergebnisse</a>
+        <a class="av-item" href="#"><i class="ti ti-chart-bar" aria-hidden="true"></i> Ligen</a>
+        <a class="av-item" href="#"><i class="ti ti-clipboard-list" aria-hidden="true"></i> Turnierverwaltung</a>
+        <a class="av-item" href="#"><i class="ti ti-cloud" aria-hidden="true"></i> Club Cloud</a>
+        <a class="av-item" href="#"><i class="ti ti-book" aria-hidden="true"></i> Dokumentation</a>
+      </div>
+      <div style="margin-top:auto;padding-top:12px;border-top:1px solid #e2ded4;display:flex;align-items:center;gap:9px"><span style="width:26px;height:26px;border-radius:50%;background:#e7f0ee;color:#0f5f56;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500">GU</span><span style="font-size:12px;color:#57534e">gernot</span><i class="ti ti-dots" style="margin-left:auto;color:#b8b3a8" aria-hidden="true"></i></div>
+    </div>
+    <div style="flex:1">
+      <div style="display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid #e2ded4;background:#fff">
+        <span style="font-size:19px;font-weight:600;letter-spacing:-0.3px">Turniere</span>
+        <span style="font-size:12px;color:#8a857a">312 · alle Regionen · 2025/2026</span>
+        <span style="margin-left:auto;display:flex;align-items:center;gap:8px">
+          <input placeholder="Suchen…" style="width:140px;font-size:12px;padding:6px 10px;border:1px solid #e2ded4;border-radius:8px;background:#faf9f6;color:#26251f"/>
+          <button style="font-size:12px;font-weight:500;background:#0f5f56;color:#fff;border:none;border-radius:8px;padding:7px 12px;cursor:pointer;font-family:inherit">Neues Turnier</button>
+        </span>
+      </div>
+      <div class="av-row" style="border-top:none">
+        <div style="flex:1"><div style="font-size:14px;font-weight:500">Dreiband Bezirksliga</div><div style="font-size:12px;color:#8a857a;margin-top:2px">14.–16. Feb 2026 · BC Wedel</div></div>
+        <span class="av-chip" style="background:#eaf2ff;color:#1e498c">3-Band</span><span class="av-badge">NBV</span><i class="ti ti-chevron-right" style="color:#c3bfb4" aria-hidden="true"></i>
+      </div>
+      <div class="av-row">
+        <div style="flex:1"><div style="font-size:14px;font-weight:500">Snooker Verbandsliga</div><div style="font-size:12px;color:#8a857a;margin-top:2px">21. Feb 2026 · PBC Waghäusel</div></div>
+        <span class="av-chip" style="background:#e9f7ee;color:#1c6b3f">Snooker</span><span class="av-badge">BVBW</span><i class="ti ti-chevron-right" style="color:#c3bfb4" aria-hidden="true"></i>
+      </div>
+      <div class="av-row">
+        <div style="flex:1"><div style="font-size:14px;font-weight:500">Pool 9-Ball Landesmeisterschaft</div><div style="font-size:12px;color:#8a857a;margin-top:2px">07. Mär 2026 · BC Schrebergarten</div></div>
+        <span class="av-chip" style="background:#fdeede;color:#8a5a12">Pool</span><span class="av-badge">NRW</span><i class="ti ti-chevron-right" style="color:#c3bfb4" aria-hidden="true"></i>
+      </div>
+      <div class="av-row" style="background:#f3f8f7;border-left:3px solid #0f5f56">
+        <div style="flex:1"><div style="font-size:14px;font-weight:500">Karambol Oberliga Vierkampf</div><div style="font-size:12px;color:#8a857a;margin-top:2px">14. Mär 2026 · Johannes Schule</div></div>
+        <span class="av-chip" style="background:#efeafd;color:#4b3a8c">Karambol</span><span class="av-badge">DBU</span><i class="ti ti-chevron-right" style="color:#0f5f56" aria-hidden="true"></i>
+      </div>
+      <div style="padding:14px 16px;background:#faf9f6;border-top:1px solid #e2ded4">
+        <div style="font-size:13px;font-weight:500;margin-bottom:8px">Karambol Oberliga Vierkampf</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 20px;font-size:12px">
+          <div style="display:flex;justify-content:space-between;border-bottom:1px solid #eeece5;padding-bottom:5px"><span style="color:#8a857a">Disziplin</span><span>Karambol klein</span></div>
+          <div style="display:flex;justify-content:space-between;border-bottom:1px solid #eeece5;padding-bottom:5px"><span style="color:#8a857a">Ausrichter</span><span>DBU</span></div>
+          <div style="display:flex;justify-content:space-between;border-bottom:1px solid #eeece5;padding-bottom:5px"><span style="color:#8a857a">Ort</span><span>Johannes Schule</span></div>
+          <div style="display:flex;justify-content:space-between;border-bottom:1px solid #eeece5;padding-bottom:5px"><span style="color:#8a857a">Teilnehmer</span><span>16</span></div>
+        </div>
+        <div style="font-size:11px;color:#b0aba0;margin-top:8px">Quelle: billard-niederrhein.de · zuletzt synchronisiert 17.03.2025</div>
+      </div>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:12px;margin-top:12px">
+    <button class="av-btn" onclick="sendPrompt('Richtung A verfeinert (Sidebar) passt. Lass uns die Umsetzung planen: Design-Tokens zuerst.')">Diese Richtung festlegen ↗</button>
+    <span style="font-size:12px;color:#6b675e">A-Ruhe · vertikale Sidebar (skaliert) · Region-Kontext oben · aufklappbare Bereiche</span>
+  </div>
+</div>

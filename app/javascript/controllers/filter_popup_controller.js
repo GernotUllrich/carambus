@@ -225,7 +225,7 @@ export default class extends ApplicationController {
           
           recent.forEach(value => {
             const chip = document.createElement('span')
-            chip.className = 'inline-flex items-center px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 cursor-pointer hover:bg-blue-200 dark:hover:bg-blue-800'
+            chip.className = 'inline-flex items-center px-2 py-1 rounded-full text-xs bg-primary-100 text-primary-800 dark:bg-primary-900 dark:text-primary-200 cursor-pointer hover:bg-primary-200 dark:hover:bg-primary-800'
             chip.textContent = value
             chip.dataset.value = value
             chip.dataset.fieldKey = fieldKey

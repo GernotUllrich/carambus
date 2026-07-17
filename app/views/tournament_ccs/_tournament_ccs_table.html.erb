@@ -12,7 +12,6 @@
       <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :status,'Status', params, class: 'text-gray-700' %></th>
       <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :branch_cc_id,'Sparte', params, class: 'text-gray-700' %></th>
       <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :season,'Season', params, class: 'text-gray-700' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :registration_list_cc_id,'Registration list cc', params, class: 'text-gray-700' %></th>
       <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :registration_rule,'Registration rule', params, class: 'text-gray-700' %></th>
       <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :discipline_id,'Discipline', params, class: 'text-gray-700' %></th>
       <th class="p-3 uppercase text-left text-xs"><%= sortable @tournament_ccs, :championship_type_cc_id,'Championship type cc', params, class: 'text-gray-700' %></th>
@@ -48,7 +47,6 @@
         <td class="p-3"><%= tournament_cc.status %></td>
         <td class="p-3"><%= custom_link_to "#{tournament_cc.branch_cc.discipline.name}[#{tournament_cc.branch_cc.discipline_id}]", discipline_path(tournament_cc.branch_cc.discipline) %></td>
         <td class="p-3"><%= tournament_cc.season %></td>
-        <td class="p-3"><%= tournament_cc.registration_list_cc_id %></td>
         <td class="p-3"><%= TournamentCc::REGISTRATION_RULES[tournament_cc.registration_rule] %></td>
         <td class="p-3"><%= custom_link_to "#{tournament_cc.discipline.name}[#{tournament_cc.discipline_id}]", discipline_path(tournament_cc.discipline) %></td>
         <td class="p-3"><%= tournament_cc.championship_type_cc_id %></td>

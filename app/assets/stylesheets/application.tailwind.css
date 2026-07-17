@@ -18,6 +18,7 @@
 @import "components/direct_uploads.css";
 @import "components/docs.css";
 @import "components/forms.css";
+@import "components/admin.css";
 @import "tournament_wizard.css";
 @import "components/icons.css";
 @import "components/iframe.css";
@@ -38,78 +39,6 @@
 
 @import "tailwindcss/utilities";
 
-/* IMMEDIATE OVERRIDE: Prevent a:is(.dark *) from applying blue text to btn-primary */
-/* This must be first after utilities to catch the dark mode rule */
-a:is(.dark *).btn.btn-primary,
-a.btn.btn-primary:is(.dark *),
-a[class*="btn-primary"]:is(.dark *),
-a:is(.dark *)[class*="btn-primary"] {
-  --tw-text-opacity: 1 !important;
-  color: rgb(255, 255, 255) !important;
-  -webkit-text-fill-color: rgb(255, 255, 255) !important;
-}
-
-/* CRITICAL: Button overrides MUST come after Tailwind utilities to override text-primary-* classes */
-/* Override a:is(.dark *) rule that sets light blue text (rgb(96 165 250)) on anchors */
-/* Must use same specificity but with !important and come AFTER the utility rule */
-a:is(.dark *).btn.btn-primary,
-a:is(.dark *).btn.btn-primary:hover,
-a:is(.dark *).btn.btn-primary:focus,
-a:is(.dark *).btn.btn-primary:active,
-a:is(.dark *).btn.btn-primary:visited,
-a:is(.dark *).btn.btn-primary:link,
-a:is(.dark *)[class*="btn-primary"],
-a:is(.dark *)[class*="btn-primary"]:not(:hover),
-a:is(.dark *)[class*="btn-primary"]:link,
-a:is(.dark *)[class*="btn-primary"]:visited,
-a.btn.btn-primary:is(.dark *),
-a.btn.btn-primary:is(.dark *):hover,
-a.btn.btn-primary:is(.dark *):focus,
-a.btn.btn-primary:is(.dark *):active,
-a.btn.btn-primary:is(.dark *):visited,
-a.btn.btn-primary:is(.dark *):link,
-a[class*="btn-primary"]:is(.dark *),
-a[class*="btn-primary"]:is(.dark *):not(:hover),
-a[class*="btn-primary"]:is(.dark *):link,
-a[class*="btn-primary"]:is(.dark *):visited {
-  color: rgb(255, 255, 255) !important;
-  --tw-text-opacity: 1 !important;
-  -webkit-text-fill-color: rgb(255, 255, 255) !important;
-}
-
-/* Force white text and darker hover for .btn-primary anchors - override ALL Tailwind utilities */
-/* Explicit non-hover state to override a:is(.dark *) in normal state */
-a.btn.btn-primary:not(:hover),
-a[class*="btn-primary"]:not(:hover),
-a.btn.btn-primary:link:not(:hover),
-a[class*="btn-primary"]:link:not(:hover) {
-  color: rgb(255, 255, 255) !important;
-  --tw-text-opacity: 1 !important;
-  -webkit-text-fill-color: rgb(255, 255, 255) !important;
-}
-
-a.btn.btn-primary,
-a.btn.btn-primary:hover,
-a.btn.btn-primary:focus,
-a.btn.btn-primary:active,
-a.btn.btn-primary:visited,
-a.btn.btn-primary:link,
-a[class*="btn-primary"],
-a[class*="btn-primary"]:link,
-a[class*="btn-primary"]:visited {
-  color: rgb(255, 255, 255) !important;
-  --tw-text-opacity: 1 !important;
-  -webkit-text-fill-color: rgb(255, 255, 255) !important;
-}
-
-a[class*="btn-primary"]:hover,
-a[class*="btn-primary"]:is(.dark *):hover {
-  background-color: rgb(29, 78, 216) !important; /* primary-700 - darker on hover */
-  color: rgb(255, 255, 255) !important;
-  --tw-text-opacity: 1 !important;
-  -webkit-text-fill-color: rgb(255, 255, 255) !important;
-}
-
 @import "flatpickr/dist/flatpickr.css";
 @import "tippy.js/dist/tippy.css";
 @import "tom-select/dist/css/tom-select.css";
@@ -122,7 +51,7 @@ a[class*="btn-primary"]:is(.dark *):hover {
 }
 
 .dark .chart-container canvas {
-  background-color: #374151;
+  background-color: theme('colors.gray.700');
 }
 
 /* Optimistic update animations for scoreboard */
@@ -146,7 +75,7 @@ a[class*="btn-primary"]:is(.dark *):hover {
     border-color: currentColor;
   }
   50% {
-    border-color: #fbbf24;
+    border-color: theme('colors.warning.400');
     border-width: 8px;
   }
   100% {
@@ -159,12 +88,12 @@ a[class*="btn-primary"]:is(.dark *):hover {
 }
 
 .player-active {
-  border-color: #10b981;
+  border-color: theme('colors.success.500');
   border-width: 8px;
 }
 
 .player-inactive {
-  border-color: #6b7280;
+  border-color: theme('colors.gray.500');
   border-width: 4px;
 }
 
@@ -184,7 +113,7 @@ a[class*="btn-primary"]:is(.dark *):hover {
   right: 0;
   width: 8px;
   height: 8px;
-  background-color: #fbbf24;
+  background-color: theme('colors.warning.400');
   border-radius: 50%;
   animation: pulse 1.5s infinite;
 }
@@ -224,7 +153,7 @@ a[class*="btn-primary"]:is(.dark *):hover {
   height: 36px;
   margin: -18px 0 0 -18px;
   border: 4px solid rgba(209, 213, 219, 0.8);
-  border-top-color: #fbbf24;
+  border-top-color: theme('colors.warning.400');
   border-radius: 9999px;
   animation: spin 1s linear infinite;
   pointer-events: none;
@@ -264,8 +193,8 @@ a[class*="btn-primary"]:is(.dark *):hover {
   width: 20px;
   height: 20px;
   margin: -10px 0 0 -10px;
-  border: 2px solid #f3f4f6;
-  border-top: 2px solid #10b981;
+  border: 2px solid theme('colors.gray.100');
+  border-top: 2px solid theme('colors.success.500');
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
@@ -289,22 +218,22 @@ a[class*="btn-primary"]:is(.dark *):hover {
 }
 
 .connection-status-healthy {
-  background-color: #10b981; /* green-500 */
+  background-color: theme('colors.success.500'); /* green-500 */
   animation: pulse-green 2s ease-in-out infinite;
 }
 
 .connection-status-disconnected {
-  background-color: #ef4444; /* red-500 */
+  background-color: theme('colors.danger.500'); /* red-500 */
   animation: pulse-red 1s ease-in-out infinite;
 }
 
 .connection-status-reconnecting {
-  background-color: #f59e0b; /* amber-500 */
+  background-color: theme('colors.warning.500'); /* amber-500 */
   animation: pulse-amber 0.5s ease-in-out infinite;
 }
 
 .connection-status-reloading {
-  background-color: #8b5cf6; /* violet-500 */
+  background-color: theme('colors.violet.500'); /* violet-500 */
   animation: spin 1s linear infinite;
 }
 
@@ -349,15 +278,4 @@ a[class*="btn-primary"]:is(.dark *):hover {
     top: 5px;
     right: 5px;
   }
-}
-
-/* FINAL OVERRIDE - Must be at the very end to override everything including a:is(.dark *) */
-/* This rule has higher specificity and comes last to ensure it wins */
-a:is(.dark *).btn.btn-primary,
-a:is(.dark *)[class*="btn-primary"],
-a.btn.btn-primary:is(.dark *),
-a[class*="btn-primary"]:is(.dark *) {
-  --tw-text-opacity: 1 !important;
-  color: rgb(255, 255, 255) !important;
-  -webkit-text-fill-color: rgb(255, 255, 255) !important;
 }

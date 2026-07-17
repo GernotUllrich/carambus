@@ -20,6 +20,31 @@ module Carambus
     @config = new_config
   end
 
+  # Anthropic-API-Key — ausschließlich aus Rails-Credentials (NIE aus ENV; der
+  # Rails-Prozess liest ihn direkt, anders als SMTP, wo externe Start-up-Tools den
+  # Key brauchen und Credentials nicht entschlüsseln können — siehe smtp_guard).
+  # Der Credential-Name divergierte historisch zwischen Umgebungen/Scenarios:
+  # production nutzt verschachtelt `anthropic.api_key`, development flach
+  # `anthropic_key`. Dieser Helper ist die EINZIGE Quelle für alle Anthropic-
+  # Aufrufer und überbrückt beide Namen — kein Credential-File muss angefasst werden.
+  def self.anthropic_api_key
+    creds = Rails.application.credentials
+    creds.dig(:anthropic, :api_key).presence || creds.dig(:anthropic_key).presence
+  end
+
+  # Plan 37-02 (Forts.): deepl/youtube historisch flach (deepl_key/youtube_api_key),
+  # Ziel-Schema nested (deepl.key / youtube.api_key). Helper überbrücken beide Namen —
+  # analog anthropic_api_key, EINZIGE Quelle für alle Aufrufer.
+  def self.deepl_key
+    creds = Rails.application.credentials
+    creds.dig(:deepl, :key).presence || creds.dig(:deepl_key).presence
+  end
+
+  def self.youtube_api_key
+    creds = Rails.application.credentials
+    creds.dig(:youtube, :api_key).presence || creds.dig(:youtube_api_key).presence
+  end
+
   def self.save_config(create_lock: false)
     yaml = YAML.load_file(Rails.root.join('config', 'carambus.yml'))
 

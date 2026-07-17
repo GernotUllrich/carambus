@@ -13,6 +13,7 @@
 - 🚧 **v7.1 UX Polish & i18n Debt** — Phase 38 (in progress, started 2026-04-15)
 - 📋 **v7.2 ClubCloud Integration** — skeleton at `.planning/milestones/v7.2-*` (planned, not started)
 - 📋 **v7.3 Shootout Support** — skeleton at `.planning/milestones/v7.2-*` (planned, version label TBD)
+- 🚧 **v7.4 Authority Sync Tagging** — Phase 41 (planning, started 2026-07-12) — carambus-UX Authority-Handoffs; H2/H3 (branch_id, Disziplin-Baum) als Folge-Phasen 42/43
 
 ## Phases
 
@@ -273,6 +274,25 @@ Plans:
 - [ ] `40-05-write-tool-PLAN.md` — Write-Architektur (Allowlist + JSON-Schema + `armed`-Flag + D-11 trust-CC-and-parse-error) + EINE Proof-Implementierung `cc_finalize_teilnehmerliste` (PATH_MAP `releaseMeldeliste`) inkl. Retry-After-Reauth via Plan-01-`reauth_if_needed!`. **Plan 05 modifiziert NICHT cc_session.rb** — voller Login-Flow lebt in Plan 01 (Setting.login_to_cc-Reuse). 6 Tests (Dry-Run / Armed-Mock / Validation / D-11 Role-Error / Reauth-Retry / Defensive Guard). (D-03, D-10, D-11, D-19). Wave 2. **2 Tasks**.
 - [ ] `40-06-tests-and-setup-PLAN.md` — 11 Smoke-Tests für Plan-04-Read-Tool-Validierung (mit dynamischer + frozen Reference Drift-Detection) + 6 E2E-Stdio-Integration (`Open3.popen2e bin/mcp-server`: JSON-RPC initialize/tools-list/resources-list/tools-call + Invalid-JSON-Probe für `-32700 Parse error` + Executable-Bit-Guard) + `.mcp.json.example` committed + `/.mcp.json` gitignored + 2 DE Setup-Docs für Sportwart (Claude Desktop) + Carambus-Dev (Claude Code) + **Capistrano deploy task** `lib/capistrano/tasks/mcp_server.rake` (chmod 0755 bin/mcp-server nach `:bundle:install`) löst RESEARCH Open Question §5 (D-09, D-16, D-17). Wave 3. **4 Tasks**.
 **UI hint**: no
+
+### Phase 41: Version-Sync Tagging — International Organizer Regions (Authority Handoff H1)
+**Goal**: Internationale Organizer-Regions (z. B. UMB = Region 25) replizieren ihre Versionen nicht zu deutschen Regional-Servern, weil sie `global_context=false, region_id=<eigene id>` getaggt sind — während die von ihnen organisierten Turniere global getaggt sind (`region_id=nil`) und überallhin replizieren. Folge: dangling `organizer`-Referenz auf dem Local-Server → Sync-Apply scheitert an `belongs_to :organizer required` („Organisiert von muss ausgefüllt werden") → skip+log (`version.rb:469`). Root Cause bestätigt (2026-07-12, lokal reproduziert: UMB organisiert 433 `region_id=nil`-Turniere, u. a. Tournament 18488). **Fix = Option A (Daten-Fix, nicht Code-Fix)**: auf der Authority (api.carambus.de) `global_context=true` auf allen Regions setzen, die Organizer eines `region_id IS NULL`-Tournaments/-Ligas sind (idempotentes Kriterium). **Kritische Randbedingung (User 2026-07-12):** Der Fix MUSS die Änderungen mit aktiviertem PaperTrail speichern, sodass NEUE Versionen (mit `global_context=true` via `RegionTaggable#update_version_region_data`, das die Version aus der `global_context`-SPALTE des Records tagt) entstehen und über den normalen Cron-Update-Zyklus alle Local-Server erreichen — KEIN manueller Per-Server-Re-Sync ab früherem Cursor. Bereits übersprungene Turniere (18488 & Co.) erreichen die Locals nur, wenn sie ebenfalls frische Versionen bekommen (Touch), in Reihenfolge NACH der jeweiligen Region.
+**Depends on**: Sync-Wiederherstellung (commit d44c88cc / Slice 17-02, bereits auf origin/master) + Deploy api.carambus.de
+**Requirements**: H1-01 (idempotenter PaperTrail-getrackter Daten-Fix-Task), H1-02 (Region-Row + neue Version tagged `global_context=true`), H1-03 (übersprungene int. Turniere via frische Versionen in korrekter Reihenfolge redelivered), H1-04 (Verifikation: `get_updates`-Snapshot zeigt `global_context=true`; Apply-Failures für int. Turniere = 0)
+**Success Criteria**:
+  1. Rake-Task (idempotent, PaperTrail enabled) auf Authority: selektiert alle `Region`, die Organizer eines `region_id IS NULL`-Records sind und `global_context != true`, setzt Spalte via PaperTrail-getracktem Save → neue Version mit `global_context=true`.
+  2. Task berührt betroffene int. Turniere/Ligen so, dass sie frische Versionen bekommen (Redelivery via Cron), Reihenfolge Region-vor-Turnier gewährleistet (niedrigere Version-id zuerst).
+  3. Keine Nutzung von `region_taggings:update_all` / `global_context?` (dessen fehlender `when Region`-Case ist bekannter Footgun → separate Folge-Entscheidung, NICHT in dieser Phase).
+  4. Verifikation reproduzierbar ohne Test-DB: `get_updates?last_version_id=<vor Region-Version>` liefert Region-Version mit `global_context=true`; auf einem Local-Server nach Cron: int. Turniere vorhanden, Apply-Failures = 0.
+  5. Rollback/Idempotenz: erneuter Task-Lauf ist no-op (keine neuen Versionen, wenn bereits getaggt).
+**Out of scope (Folge-Phasen/Entscheidungen):** `global_context?`-`when Region`-Code-Fix; Nebenbefund Region 11 (BVNRW `gc=false`); Handoff H2 (branch_id) → Phase 42; Handoff H3 (Disziplin-Baum) → Phase 43.
+**UI hint**: no
+**Plans:** 2/3 plans executed
+
+Plans:
+- [x] 41-01-PLAN.md — Wave 0: sync-mechanism characterization tests (selection, version tagging, idempotency, touch-forces-version)
+- [x] 41-02-PLAN.md — Wave 1: fix_international_organizer_context rake task (DRY-RUN default + ARMED) + task test + ordered-redelivery integration test
+- [ ] 41-03-PLAN.md — Wave 2: gated authority execution (read-only preview + sign-off → armed run → get_updates + regional-server verification)
 
 
 ## Progress

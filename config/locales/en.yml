@@ -1,42 +1,80 @@
 en:
-  account:
-    card_exp_month: card exp month
-    card_exp_year: card exp year
-    card_last4: card last4
-    card_token: card token
-    card_type: card type
-    created_at: created at
-    domain: domain
-    extra_billing_info: extra billing info
-    id: id
-    name: name
-    owner_id: owner id
-    passwords:
-      edit:
-        two_factor:
-          description: When you login, you will be required to enter a one-time code along to one of your devices.
-          disable: Disable two-factor authentication
-          enable: Enable two-factor authentication
-          header: Two-factor Authentication
-        update: Update
-        update_password: Update Password
-      updated: Your password was changed successfully.
-    personal: personal
-    plan: plan
-    processor: processor
-    processor_id: processor id
-    quantity: quantity
-    subdomain: subdomain
-    trial_ends_at: trial ends at
-    updated_at: updated at
   actions: Actions
+  attributes:
+    data: Data
+    discipline: Discipline
+    discipline_id: Discipline
+    even_more_description: Further description
+    executor_class: Executor class
+    executor_params: Executor params
+    game_plan: Game plan
+    game_plan_id: Game plan
+    more_description: Description
+    name: Name
+    ngroups: Groups
+    nrepeats: Repeats
+    organizer: Organizer
+    organizer_id: Organizer
+    players: Players
+    registration_until: Registration until
+    rulesystem: Rule system
+    season: Season
+    season_id: Season
+    source_url: Source
+    super_discipline: Super discipline
+    super_discipline_id: Super discipline
+    sync_date: Last updated
+    synonyms: Synonyms
+    table_kind: Table kind
+    table_kind_id: Table kind
+    tables: Tables
+    team_size: Team size
+    type: Type
   activerecord:
+    models:
+      game:
+        one: Game
+        other: Games
+      international_source:
+        one: International Source
+        other: International Sources
+      league_team:
+        one: League Team
+        other: League Teams
+      player_class:
+        one: Player Class
+        other: Player Classes
+      scoreboard_message:
+        one: Scoreboard Message
+        other: Scoreboard Messages
+      season:
+        one: Season
+        other: Seasons
+      setting:
+        one: Setting
+        other: Settings
+      stream_configuration:
+        one: Stream Configuration
+        other: Stream Configurations
+      table:
+        one: Table
+        other: Tables
+      table_kind:
+        one: Table Kind
+        other: Table Kinds
+      training_concept:
+        one: Training Concept
+        other: Training Concepts
+      training_example:
+        one: Training Example
+        other: Training Examples
+      training_source:
+        one: Training Source
+        other: Training Sources
+      user_tournament:
+        one: User Tournament
+        other: User Tournaments
     attributes:
-      account:
-        name_on_card: Name on Card
-      api_token:
-        created_at: Created
-        last_used_at: Last Used
       club:
       party:
       party_monitor:
@@ -44,76 +82,76 @@ en:
         reset_party_monitor: Spieltag-Monitor komplett zurücksetzen
         state: Status
       tournament:
-        accredation_end: Registrierung bis
-        age_restriction: Zugangs-beschränkungen
-        allow_follow_up: 'Nachstoß erlaubt:'
-        allow_overflow: 'Eingabeüberlauf erlaubt:'
-        ba_id: Ba-Id
-        ba_state: BA-Status
-        balls_goal: Bälle Ziel
-        cc_id: Cc-Id
+        accredation_end: 'Register until:'
+        age_restriction: Access restrictions
+        allow_follow_up: 'Follow-up shot allowed:'
+        allow_overflow: 'Score overflow allowed:'
+        ba_id: BA ID
+        ba_state: BA status
+        balls_goal: Ball target
+        cc_id: CC ID
         club: Club
-        color_remains_with_set: 'Farbe bleibt bei Satzwechsel:'
-        data: Daten
-        date: Datum
-        discipline: Disziplin
-        end_date: Turnierende
-        fixed_display_left: 'Linksseitige Darstellung:'
-        games: Spiele
-        handicap_tournier: Handicap-Turnier
-        hosting_club: Gastgeber
-        innings_goal: Aufnahme-begrenzung
-        kickoff_switches_with: 'Anstoß wechselt mit:'
-        league: Liga
-        location: Spielort
-        modus: Modus
+        color_remains_with_set: 'Color stays with set change:'
+        data: Data
+        date: Date
+        discipline: Discipline
+        end_date: Tournament end
+        fixed_display_left: 'Left-side display:'
+        games: Games
+        handicap_tournier: Handicap tournament
+        hosting_club: Host club
+        innings_goal: Inning limit
+        kickoff_switches_with: 'Kick-off alternates with:'
+        league: League
+        location: Location
+        modus: Mode
         name: Name
-        organizer: Organisiert von
+        organizer: Organized by
         plan_or_show: plan or show
-        player_class: Spielerklasse
+        player_class: Player class
         position: Position
-        rankings: Ranglisten
-        region: Regionalverband
-        reorder: Reihenfolge
-        season: Saison
-        sets_to_play: 'Sätze:'
-        sets_to_play_win: Sätze / Gewinnsätze
-        sets_to_win: 'Gewinnsätze:'
-        shortname: Kurzname
-        single_or_league: Einzel oder Mannschaft
+        rankings: Rankings
+        region: Regional association
+        reorder: Reorder
+        season: Season
+        sets_to_play: 'Sets:'
+        sets_to_play_win: Sets / winning sets
+        sets_to_win: 'Winning sets:'
+        shortname: Short name
+        single_or_league: Single or team
         state: Status
-        source: Spource
-        team_size: 'Teamgrösse:'
-        timeout: Timeout (Sek.)
+        source: Source
+        team_size: 'Team size:'
+        timeout: Timeout (sec.)
         timeouts: "# Timeouts"
-        title: Titel
+        title: Title
       user:
         timezone: Timezone
         theme: Color theme
         preferences: Preferences
-    errors:
-      models:
-        account:
-          attributes:
-            domain:
-              reserved: "%{value} is reserved."
-            subdomain:
-              format: must be at least 2 characters and alphanumeric
-              reserved: "%{value} is reserved."
-        account_invitation:
-          attributes:
-            email:
-              invited: has already been invited
-        account_user:
-          attributes:
-            admin:
-              cannot_be_removed: role cannot be removed for the account owner
+  admin:
+    settings:
+      advanced_settings: Advanced Settings (JSON)
+      club: Club
+      config_lock_active: "⚠️ Configuration Lock Active:"
+      config_lock_body_html: "Your settings are protected from being overwritten by scenario deployment tasks. Lock file: <code class=\"bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded font-mono\">config/carambus.yml.lock</code>"
+      contact_settings: Contact Settings
+      location: Location
+      location_settings: Location Settings
+      note: 'Note:'
+      note_body: Changes to configuration require application restart to take effect. When you save settings, a lock file is created to prevent scenario deployment from overwriting your customizations.
+      quick_game_presets_hint: Configure quick game buttons for different table kinds (JSON format)
+      region: Region
+      system_settings: System Settings
+      title: Settings
+      update_configuration: Update Configuration
   add_tables: Add Tables
   application:
     account_navbar:
       password: Password
       profile: Profile
     flash:
+      api_unavailable: The API server is currently unavailable. Please try again later.
       confirm_payment: Confirm your latest payment
     footer:
       about: About Us
@@ -302,6 +340,7 @@ en:
       tournaments: Tournaments
       tournierabwicklung: Tournament Management
       tournierplanung: Tournament Mgmt
+      verwaltung: Administration
       training: Training
       version: Versions
       your_tables: Available Tournament Tables
@@ -310,7 +349,6 @@ en:
     mailer:
       copyright_html: Copyright &copy; %{year}, All rights reserved.
       mailing_address: 'Our mailing address is:'
-      preferences: Update subscription preferences
       unsubscribe: Unsubscribe from this list
       view_in_browser: View this in your browser
   league:
@@ -321,13 +359,33 @@ en:
       reload_from_club_cloud: Data sync with mit der %{source}
       reload_from_club_cloud_with_details: Data sync with %{source} incl. party games
       reload_from_club_cloud_all_new: Data sync with %{source} all new
+    standings:
+      rank: Rank
+      team: Team
+      matches: M
+      won: W
+      drawn: D
+      lost: L
+      points: Pts
+      diff: Diff
+      games: Games
+      frames: Frames
+    schedule:
+      matchday: MD
+      date: Date
+      home: Home
+      result: Result
+      guest: Guest
+      host: Host
   league_league_teams: League Teams
+  league_team_members: Members
   league_parties: League Parties
   leagues_season: League Tournaments of current Season
   leaving_game: You are about to leave the current game.
   location:
     address: address
     club_id: club id
+    clubs: Clubs
     created_at: created at
     data: data
     id: id
@@ -338,6 +396,17 @@ en:
     name: name
     organizer_id: organizer id
     organizer_type: organizer type
+    region_id: Region
+    scoreboard_reservations:
+      event_title_placeholder: "Event title, e.g. \"T4 Peter+Mike\""
+      info_calendar: "Reservations can be made directly here or in the \"BC Wedel\" Google Calendar. For access to the Google Calendar, please email gernot.ullrich@gmx.com. Corrections to entries made here are currently only possible in the Google Calendar."
+      info_heating: "Heating is switched according to these reservations (2 or 4 hours for large tables before the appointment starts)."
+      naming_convention_details: "The title consists of a comma-separated list of table ranges (e.g. T5 or T6-T8), followed by a space and the event title or player names, e.g. \"Club evening\" or \"NDM Cadre 35/2\" or \"Lothar + Gernot\". An exclamation mark (!) can be added at the end to prevent heating from being switched off when tables are unused during the reservation. Calendar entries that do not follow this naming convention and do not start with a label such as \"info:\" or \"BGH:\" are automatically deleted."
+      naming_convention_intro: "Table assignment, tournament, participants, and automatic heating control are determined by a naming convention in the title."
+      new_reservation: New reservation
+      new_table_reservation: New table reservation
+    synonyms: Synonyms
+    tables: Tables
     updated_at: updated at
   may_loose_results: You may loose game results!
   must_be_an_admin: You must be an admin to do that.
@@ -479,6 +548,25 @@ en:
     updated_at: updated at
   something_went_wrong: Something went wrong
   sort_by: 'Sort by:'
+  spielleiter_chat:
+    title: Tournament Director Assistant
+    as_pdf: As PDF
+    new_conversation: New conversation
+    input_placeholder: Enter message...
+    send: Send
+    empty_hint: "Ask a question — e.g. \"Which tournaments are currently open?\""
+    errors:
+      processing: Error processing the request. Please try again.
+      not_available: The Carambus Assistant is not available on this server.
+    welcome:
+      greeting: "Welcome back, %{name}!"
+      landessportwart: You are a regional sports official.
+      sportwart_with_locations: "You are sports official for: %{locations}."
+      sportwart: You are registered as a sports official.
+      turnierleiter: You are registered as a tournament director.
+      club_admin: You are a club administrator.
+      region_season: "(%{region}, season %{season})"
+      help: How can I help you?
   static:
     about:
       content: |
@@ -553,8 +641,10 @@ en:
       exchange_players: Exchange
       final_match_score: Results reported
       final_set_score: Set finished
+      free: Free
       match_shootout: Shoot Out
       new: Startup...
+      occupied: Occupied
       playing: ''
       ready: Free
       ready_for_new_match: Free
@@ -566,6 +656,76 @@ en:
       warmup: Warm-up
       warmup_a: Warm-up Player A
       warmup_b: Warm-up Player B
+    round: Round
+    table: Table
+    warmup:
+      stop: Stop
+      start: Start warm-up
+      time: Warm-up time
+      minutes: min.
+      continue_to_shootout: Continue to break shot
+    shootout:
+      player_breaks: "%{player} breaks!"
+      player_breaks_mode: "%{player} breaks — %{mode}"
+    result_3b_label: 3-cushion result
+    winning_sets: "%{count} winning sets"
+    max_sets: "max. %{count} sets"
+    max_frames: "max. %{count} frames"
+    halted: Halted
+    inning: Inning
+    follow_up: Follow-up
+    undo: back
+    foul:
+      title: Foul
+      ball: Foul ball
+      miss: Miss
+      free_ball: Free ball
+      remove_reds: Remove reds
+      submit: Submit
+    free_game: Free game
+    inning_abbr: Inn
+    hs_abbr: HR
+    protocol:
+      points: Points
+      sum: Total
+      no_innings: No innings yet
+      game_not_started: "No innings yet. The game has not started."
+      final_title: "Game over - review result"
+      games_to_win: Games to win
+      check_result: Please review result!
+      result: Result
+      in_sets: in sets
+      confirm_result: Confirm result
+      print: Print protocol
+      print_pdf: Protocol PDF
+      close: Close
+      edit: Edit
+      done: Done
+      insert_inning: Insert inning before
+      delete_row: Delete row
+      no_sets: No sets played yet
+      set: Set
+      standing: Standing
+      in_progress: "(in progress)"
+      total: Total
+      win: Win
+      of: of
+      set_won: Set won
+      set_lost: Set lost
+    inning_edit:
+      title: "Edit inning %{number}"
+      player_a: Player A
+      player_b: Player B
+      points: Points
+      potted_balls: Potted balls
+      no_balls: No balls potted
+      add_ball: Add ball
+      clear_all: Clear all
+      cancel: Cancel
+      save: Save
+    tooltip:
+      game_protocol: Game protocol
+      concede: Concede (end frame early)
     bk2_kombi:
       # Display-label invariant (Phase 38.4 I2): see de.yml for explanation.
       # Display values: direkter_zweikampf → "BK-2plus", serienspiel → "BK-2".
@@ -828,11 +988,13 @@ en:
     groups:
       groups: Groups
     index:
+      all_heading: All tournaments
       api_server_readonly_body_html: "This is the central API server. Tournament management (create, edit, run) is only possible on <strong>local servers</strong>. Here you can only view tournaments and use them as a data source for local servers."
       api_server_readonly_heading: API Server — Read-Only Mode
       listing_tournaments: Listing Tournaments
       new_tournament: New Tournament
       new_tournament_button: New Tournament
+      upcoming_heading: Upcoming
     monitor:
       all_rankings_label: "💡 All rankings:"
       back_to_mode_selection: Back to Mode Selection
@@ -880,10 +1042,101 @@ en:
       heading: New Tournament Team
       player_ba_id_label: "Player%{n} BaID:"
       player_ba_id_placeholder: "player %{n} BA ID"
+    wizard:
+      bucket:
+        mode_selection: Mode selection
+        preparation: Preparation
+        ready_to_start: Ready to start
+        running: Tournament running
+        seeding_setup: Configure seeding
+        completed: Completed
+      state_badge:
+        accreditation_finished: Participants finalized
+        closed: Closed
+        new_tournament: Preparation
+        results_published: Results published
+        tournament_finished: Tournament finished
+        tournament_mode_defined: Mode selected
+        tournament_seeding_finished: Seeding finalized
+        tournament_started: Tournament running
+        tournament_started_waiting_for_monitors: Waiting for tables
+      info:
+        mode_extracted: "%{count} participants → %{info}"
+        mode_selected: "Selected: %{plan_name}"
+        participants:
+          one: "%{count} player"
+          other: "%{count} players"
+      sync_info:
+        never: Not synced yet
+        overdue: "⚠️ Last: %{time} ago (before registration deadline)"
+        recent: "✓ Last: %{time} ago"
     wizard_step:
       help_summary: 💡 What does this step do?
       pending_default: This step is still open
       pending_hint: Available only after the previous step
+    wizard_steps_v2:
+      glossary_heading: "📖 Glossary"
+      glossary_meldeliste_desc_html: "Who <em>registered</em> for the tournament (from ClubCloud)"
+      glossary_meldeliste_term: 'Registration list:'
+      glossary_setzliste_desc_html: "Official <em>order</em> by ranking (from the invitation by the regional sports officer)"
+      glossary_setzliste_term: 'Seeding list:'
+      glossary_teilnehmerliste_desc_html: "Who is <em>actually present</em> on tournament day (= seeding list ± changes)"
+      glossary_teilnehmerliste_term: 'Participant list:'
+      header_title: 'Tournament setup:'
+      step1_badge_loaded: Loaded
+      step1_badge_optional: Optional
+      step1_badge_recommended: Recommended
+      step1_deadline_label: "📅 Registration deadline:"
+      step1_help_body_html: "The <strong>registration list</strong> contains all players who <em>registered</em> for the tournament. This list comes from ClubCloud and is updated daily until the registration deadline.<br><br><strong>Not to be confused with:</strong><br>• <strong>Seeding list</strong> = order by ranking (comes in step 2)<br>• <strong>Participant list</strong> = who is actually present (step 3)"
+      step1_help_summary: "💡 What is the registration list?"
+      step1_info_html: "Loads the <strong>registration list</strong> (who registered) from ClubCloud"
+      step1_load_all: "🔄 Load all tournaments from API server"
+      step1_load_all_disable_with: "API scraping all... (1-2 minutes)"
+      step1_load_all_hint: "⏱️ Slower - all tournaments of the region"
+      step1_load_results: "📊 Load results from ClubCloud"
+      step1_load_results_confirm: "⚠️ WARNING: Loads games and results from ClubCloud.\n\nLocal changes will be lost!\n\nOnly use when the tournament is finished and results have been uploaded."
+      step1_load_results_title: "For archiving after tournament end"
+      step1_load_upcoming: "🔄 Load upcoming tournaments (next 30 days)"
+      step1_load_upcoming_disable_with: "API scraping..."
+      step1_load_upcoming_hint: "⏱️ Fast (10-30 seconds) - only tournaments of the next 30 days"
+      step1_open_clubcloud: "🔗 Open ClubCloud"
+      step1_sync_now: Sync now
+      step1_title: Load registration list from ClubCloud
+      step1_troubleshoot_alternative_heading: "Alternative: update all tournaments"
+      step1_troubleshoot_recommended_heading: "Recommended: only update upcoming tournaments"
+      step1_troubleshoot_summary: "⚠️ Tournament not found? Click here for help"
+      step2_check_seedings: Check seeding
+      step2_continue_button: "→ Continue to step 3 with these %{count} players"
+      step2_continue_confirm: "Import these %{count} players as the participant list?\n\nPlayers will be sorted automatically by their position."
+      step2_continue_hint: Import these players to proceed to step 3.
+      step2_continue_title: Imports the existing players and activates step 3
+      step2_existing_players_info_html: "ℹ️ <strong>%{count} players already available</strong><br>You can import them directly (see below)"
+      step2_help_body_html: "Upload the <strong>official invitation</strong> from the regional sports officer. Carambus automatically extracts:<br>• <strong>Seeding list</strong> (order by ranking)<br>• <strong>Handicap presets</strong> for handicap tournaments (point targets)<br><br>Supports PDF or screenshot (PNG/JPG).<br>Two-column tables are detected automatically.<br><br><strong>Alternative:</strong> If no invitation is available, you can also proceed directly to step 3 with the ClubCloud registration list (from step 1).<br><br><strong>Note:</strong> You can adjust the seeding (player order/position) in <strong>step 3</strong> if needed (↑↓ buttons or direct position entry)."
+      step2_invitation_uploaded: "✓ Invitation uploaded:"
+      step2_players_available_html: "✓ <strong>%{count} players already available</strong>"
+      step2_players_taken: "%{count} players already imported as participants."
+      step2_title: Import seeding from invitation
+      step2_upload_invitation: Upload invitation
+      step2_upload_prompt: Upload the PDF invitation or a screenshot
+      step3_action_text: Check participants
+      step3_help_handicap_line_html: "• 🎯 <strong>Adjust handicaps</strong> if needed (point targets)<br>"
+      step3_help_html: "Adjust the <strong>participant list</strong> directly on the day of the tournament:<br>• ☑️ Checkboxes: activate/deactivate participants (no-shows)<br>%{handicap_line}• ✏️ Changes are saved immediately<br>• ➕ Late registrations: activate players from the registration list<br><br><strong>Important:</strong> This step stays active until you finalize the list in step 4!<br><br><strong>For testing:</strong> %{test_link}"
+      step3_help_test_link_text: "📝 Go directly to the participant list (for manual entry)"
+      step3_title: Edit participant list (on tournament day)
+      step3_warning: This step stays open until it is finalized in step 4
+      step4_action_text: Finalize participant list
+      step4_confirm: "⚠️ WARNING: After this step, no more players can be added or removed!\n\nIs the participant list complete and correct?"
+      step4_help_html: "⚠️ IMPORTANT: This action cannot be undone! The final <strong>participant list</strong> is saved permanently and the group assignment is calculated based on this order."
+      step4_title: Finalize participant list
+      step5_action_text: Select mode
+      step5_help: Select the tournament mode (e.g. T07, T10) based on the number of participants. The mode determines the group assignment and knockout rounds.
+      step6_help_pending: Starts the tournament and opens the Tournament Monitor for managing games and table assignments.
+      step6_help_running_html: "The tournament is already running. Use the <strong>Tournament Monitor</strong> to:<br>• Start and manage games<br>• Assign tables<br>• Check results<br>• Monitor tournament progress"
+      step6_open_monitor: "🎮 Open Tournament Monitor"
+      step6_running_badge: Running
+      step6_start_tournament: Start tournament
+      step6_title: Manage tournament games
+      step6_warning: Tournament not started yet
     compare_seedings:
       alt_clubcloud_body_html: "If no invitation is available, you can proceed with the <strong>ClubCloud registration list</strong> directly to step 3 (edit participants list)."
       alt_clubcloud_heading: "📊 Alternative: Continue with ClubCloud registration list"
@@ -1041,7 +1294,7 @@ en:
       extracted_mode_label: "Extracted tournament mode:"
       file_label: "File:"
       final_tournament_mode: 'Final Tournament Mode:'
-      finalize_tournament_modus: Finalize Tournament Modus
+      finalize_tournament_modus: Finalize tournament mode
       finish_seeding: Finish Seeding List (no easy return)
       games: Games
       handicap_short: Handicap
@@ -1065,8 +1318,6 @@ en:
       position_short: Pos.
       quick_links_heading: 🔗 Quick links
       rankings: Rankings
-      readonly_body_html: "This tournament already has <strong>results from ClubCloud</strong> and can no longer be edited. ClubCloud is the authoritative data source for completed tournaments."
-      readonly_heading: Tournament is read-only
       region: 'Region:'
       regions: 'Regional Organisations:'
       registrations: Registrations
@@ -1269,6 +1520,11 @@ en:
       no_results: "No results found for '%{query}'"
     index_with_search:
       no_records: "No records found"
+    scaffold:
+      new:
+        title: "New %{model}"
+      edit:
+        title: "Edit %{model}"
 
   league_team:
     index:

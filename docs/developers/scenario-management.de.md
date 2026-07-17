@@ -1,5 +1,14 @@
 # Scenario Management System
 
+> **Hinweis:** Dieses Dokument beschreibt den tiefen Deploy-/Datenbank-Workflow
+> (Rake-Tasks). Für **Parameter- und Credential-Pflege im Ist-Zustand** (was lebt
+> wo, Schritt-für-Schritt) siehe das aktuelle
+> [scenario-parameter-howto.de.md](scenario-parameter-howto.de.md) und das
+> Nachschlagewerk [scenario-parameter-reference.de.md](scenario-parameter-reference.de.md).
+> Einzelne Abschnitte hier (Stand 2026-03) können ggü. den neueren Mechanismen
+> (config.yml-`credentials.features`, Secret-Pool, server-seitiger Credential-Merge)
+> veraltet sein.
+
 Das Scenario Management System ermöglicht es, verschiedene Deployment-Umgebungen (Scenarios) für Carambus zu verwalten und automatisch zu deployen.
 
 ## Überblick

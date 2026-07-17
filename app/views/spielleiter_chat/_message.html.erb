@@ -1,5 +1,11 @@
 <% is_user = message[:role].to_s == "user" %>
-<% is_text = message[:content].is_a?(String) || (message[:content].is_a?(Array) && message[:content].any? { |b| b.is_a?(Hash) && b[:type] == "text" }) %>
+<%# Zwischen-Iterations-Narration unterdrücken: ein Assistant-Turn MIT tool_use ist ein interner
+    Werkzeug-Aufruf ("Jetzt hole ich…"), keine finale Antwort → nicht anzeigen. Die finale Antwort
+    ist ein reiner Text-Turn (ohne tool_use). User-Messages immer zeigen; die volle History bleibt
+    in der Session (LLM-Kontext) erhalten. %>
+<% has_tool_use = message[:content].is_a?(Array) && message[:content].any? { |b| b.is_a?(Hash) && b[:type] == "tool_use" } %>
+<% is_text = (is_user || !has_tool_use) &&
+             (message[:content].is_a?(String) || (message[:content].is_a?(Array) && message[:content].any? { |b| b.is_a?(Hash) && b[:type] == "text" })) %>
 <% if is_text %>
   <% text = if message[:content].is_a?(String)
                 message[:content]
@@ -9,7 +15,7 @@
   <% unless text.blank? %>
     <div class="flex <%= is_user ? 'justify-end' : 'justify-start' %>">
       <div class="max-w-[80%] rounded-lg px-4 py-3 text-sm
-                  <%= is_user ? 'bg-blue-600 text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100' %>
+                  <%= is_user ? 'bg-primary-600 text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100' %>
                   <%= is_user ? '' : 'prose prose-sm dark:prose-invert max-w-none' %>">
         <%= is_user ? simple_format(text, {}, wrapper_tag: :div) : markdown(text) %>
       </div>

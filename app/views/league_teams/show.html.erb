@@ -5,24 +5,24 @@
       <%= custom_link_to 'Edit', edit_league_team_path(@league_team), class: "btn btn-link" %>
     </div>
 
-    <div class=" rounded shadow p-8">
-      <div class="mb-4">
-        <h5>Name</h5>
-        <%= @league_team.name %>
+    <dl class="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-4 bg-surface-card dark:bg-gray-800 rounded-card border border-gray-200 dark:border-gray-700 p-6 text-gray-900 dark:text-gray-100">
+      <div class="min-w-0">
+        <dt class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5">Name</dt>
+        <dd class="break-words"><%= @league_team.name %></dd>
       </div>
-      <div class="mb-4">
-        <h5>Shortname</h5>
-        <%= @league_team.shortname %>
+      <div class="min-w-0">
+        <dt class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5">Shortname</dt>
+        <dd class="break-words"><%= @league_team.shortname %></dd>
       </div>
-      <div class="mb-4">
-        <h5>League</h5>
-        <%= custom_link_to @league_team.league.name, league_path(@league_team.league) %>
+      <div class="min-w-0">
+        <dt class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5">League</dt>
+        <dd class="break-words"><%= custom_link_to @league_team.league.name, league_path(@league_team.league) %></dd>
       </div>
-      <div class="mb-4">
-        <h5>Club</h5>
-        <%= custom_link_to @league_team.club.shortname, club_path(@league_team.club) if @league_team.club.present? %>
+      <div class="min-w-0">
+        <dt class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5">Club</dt>
+        <dd class="break-words"><%= custom_link_to @league_team.club.shortname, club_path(@league_team.club) if @league_team.club.present? %></dd>
       </div>
-    </div>
+    </dl>
   </div>
   <% if @parties.any? %>
     <h3> Parties</h3>
@@ -32,5 +32,5 @@
   <% end %>
 </div>
 <div class="container mx-auto my-8 px-4">
-  <h3><%= custom_link_to "=> Mitglieder", seedings_path(sSearch: "league_team_id:#{@league_team.id}") %></h3>
+  <h3><%= custom_link_to "#{t('league_team_members')} →", seedings_path(sSearch: "league_team_id:#{@league_team.id}"), class: "text-primary-600 hover:text-primary-700 font-medium" %></h3>
 </div>

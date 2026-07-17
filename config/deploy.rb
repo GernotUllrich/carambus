@@ -15,6 +15,12 @@ append :linked_files, "config/database.yml", "config/cable.yml", "config/carambu
 # Default value for linked_dirs is []
 append :linked_dirs, "log", "tmp/pids", "tmp/cache", "tmp/sockets", "public/system", "storage", "config/credentials", "bundle"
 
+# public/app: optionale Auslieferung der carambus_app (Turniermanagement ohne Carambus-
+# Scoreboards, z.B. BG Hamburg) unter /app/. Universeller linked_dir (Plan 21-10: deploy.rb
+# ist getrackt/universell). Befüllt wird shared/public/app nur bei serve_tournament_app:true
+# durch scenario:prepare_deploy; sonst bleibt es leer (→ /app/ 404, harmlos).
+append :linked_dirs, "public/app"
+
 # Default value for keep_releases is 5
 set :keep_releases, 5
 
@@ -46,7 +52,7 @@ namespace :deploy do
       on roles(:app) do
         # Check if previous release exists
         previous_release = capture(:ls, "-t", "#{deploy_to}/releases", "2>/dev/null || echo ''").split("\n")[1]
-        
+
         if previous_release.nil? || previous_release.empty? || ENV['FORCE_ASSETS']
           set :assets_changed, true
           if ENV['FORCE_ASSETS']
@@ -57,7 +63,7 @@ namespace :deploy do
         else
           # Compare asset-relevant files between current and previous release
           previous_path = "#{deploy_to}/releases/#{previous_release}"
-          
+
           # Check for differences in asset-related files
           assets_differ = false
           asset_paths = %w[
@@ -70,7 +76,7 @@ namespace :deploy do
             esbuild.config.mjs
             tailwind.config.js
           ]
-          
+
           asset_paths.each do |path|
             if test("[ -e #{release_path}/#{path} ]") && test("[ -e #{previous_path}/#{path} ]")
               # Both exist, check for differences
@@ -84,9 +90,9 @@ namespace :deploy do
               break
             end
           end
-          
+
           set :assets_changed, assets_differ
-          
+
           if assets_differ
             info "✅ Asset files changed since last deployment - will compile assets"
           else
@@ -96,7 +102,7 @@ namespace :deploy do
         end
       end
     end
-    
+
     desc "Install yarn dependencies before asset compilation"
     task :install_dependencies do
       on roles(:app) do
@@ -117,7 +123,7 @@ namespace :deploy do
             if fetch(:assets_changed, true)
               # Build JavaScript assets
               execute :yarn, :build
-              
+
               # Build CSS assets
               execute :yarn, "build:css"
 
@@ -143,7 +149,7 @@ namespace :deploy do
         end
       end
     end
-    
+
     desc "Precompile Rails assets"
     task :precompile do
       on roles(:app) do

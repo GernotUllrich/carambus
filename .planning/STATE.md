@@ -2,15 +2,16 @@
 gsd_state_version: 1.0
 milestone: v7.1
 milestone_name: UX Polish & i18n Debt
-status: verifying
-stopped_at: Completed quick-260507-4cb (MCP-Tool-Schema-Description-Drift nach 260507-njl Region-Lookup-Refactor geschlossen — 11 fed_id descriptions auf Region-Lookup-Default umgestellt; 2 Commits 4cb195bb + 5f6ffd68 lokal, ahead of origin/master, Push noch ausstehend)
-last_updated: "2026-05-16T09:45:41.046Z"
-last_activity: 2026-05-16
+status: executing
+stopped_at: Completed 41-02-PLAN.md
+last_updated: "2026-07-11T23:36:47.504Z"
+last_activity: 2026-07-11
 progress:
-  total_phases: 13
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 2
+  total_phases: 14
+  completed_phases: 1
+  total_plans: 9
+  completed_plans: 8
+  percent: 89
 ---
 
 # Project State
@@ -20,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-15)
 
 **Core value:** Code and docs stay in sync — every documented feature works, every working feature is documented, and a volunteer user should never need to read the architecture to run a tournament.
-**Current focus:** Phase 40 — mcp-server-clubcloud
+**Current focus:** Phase 41 — Version-Sync Tagging — International Organizer Regions
 
 ## Current Position
 
-Phase: 999.1
-Plan: Not started
-Status: Phase complete — ready for verification
-Last activity: 2026-05-17 - Completed quick task 260516-x7g: Multi-Player-Save-Bug in cc_register_for_tournament (+ Latency-Instrumentation Substrat)
+Phase: 41 (Version-Sync Tagging — International Organizer Regions) — EXECUTING
+Plan: 3 of 3
+Status: Ready to execute
+Last activity: 2026-07-11
 
 Previous milestone archived at:
 
@@ -134,6 +135,8 @@ Decisions are logged in PROJECT.md Key Decisions table. Full v7.0 cross-phase de
 - [Quick 260507-c4o]: SIGINT/SIGTERM trap-context bug fix — Rails.logger.info im Trap-Block ersetzt durch direktes $stderr.write (Logger akquiriert Mutex, ThreadError im Trap)
 - [Quick 260507-njl]: require_env! in cc_session.rb#client_for entfernt — Login läuft über Setting.login_to_cc (Rails Credentials), ENV CC_USERNAME/CC_PASSWORD waren tote Parameter; default_fed_id auf Region-Lookup umgestellt (CC_REGION → Region.region_cc.cc_id); .mcp.json.example + Doku auf 3-ENV-Schema (kein Klartext mehr)
 - [Quick 260507-4cb]: MCP-Tool-Schema-Description-Drift Followup zu 260507-njl — fed_id `description:`-Strings in 11 Tools (lookup_club/region/category/league/serie/team/spielbericht/tournament/teilnehmerliste + search_player + finalize_teilnehmerliste) auf "Optional — resolved via region lookup (CC_REGION/Setting 'context', default 'NBV'); ENV CC_FED_ID overrides." umgestellt. Reine Schema-Metadata, kein default:-Feld (würde MCP-SDK-Validation triggern); 36/36 MCP-Tool-Tests GREEN; Doku in clubcloud-mcp-server.de.md / clubcloud-mcp-setup.de.md war beim njl-Task bereits aktuell
+- [Phase 41]: Used assert_nil branch instead of assert_equal(nil, ...) in version-tagging test to avoid Minitest 6 deprecation warning
+- [Phase 41]: Fixed pre-existing Version.last_version nil-crash (Rule 3) blocking the plan's mandated test command; unrelated change_detection_test.rb id-collision logged to deferred-items.md instead of fixed (out of scope)
 
 ### Roadmap Evolution
 
@@ -212,6 +215,6 @@ See `HISTORY.md` for the chronological ledger of completed quick tasks (with com
 
 ## Session Continuity
 
-Last session: 2026-05-07T18:30:00.000Z
-Stopped at: Completed quick-260507-4cb (MCP-Tool-Schema-Description-Drift nach 260507-njl Region-Lookup-Refactor geschlossen — 11 fed_id descriptions auf Region-Lookup-Default umgestellt; 2 Commits 4cb195bb + 5f6ffd68 lokal, ahead of origin/master, Push noch ausstehend)
+Last session: 2026-07-11T23:36:47.430Z
+Stopped at: Completed 41-02-PLAN.md
 Resume: `git push` der 2 lokalen Commits, dann `/gsd-discuss-phase` für die Spec-Implementation starten — Spec-Doc lesen, Phase scopen (v7.2 oder v7.1-closure 38.10), 9 Plan-Sketches in Spec Section 9 als Ausgangspunkt nutzen. Parallel: bei nächstem Tournament die 4 deferred Phase-38.7-Items abhaken. Bug-A separat triagieren (Quick-Task oder `/gsd-debug`).

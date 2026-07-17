@@ -256,52 +256,9 @@ class PartyMonitorReflex < ApplicationReflex
         next unless ["14/1e", "10-Ball", "8-Ball", "9-Ball", "10-Ball Doppel", "9-Ball Doppel",
                      "Shootout (4er Team)"].include?(row[:type]) && (row[:r_no] == r_no)
 
-        # options = [
-        #   :player_a_id, :player_b_id, :timeouts, :timeout,
-        #   :sets_to_play, :sets_to_win, :balls_goal_a,
-        #   :balls_goal_b, :innings_goal, :discipline_a,
-        #   :discipline_b, :kickoff_switches_with,
-        #   :fixed_display_left, :color_remains_with_set,
-        #   :allow_overflow, :allow_follow_up, :free_game_form,
-        #   :discipline_choice, :next_break_choice, :games_choice,
-        #   :points_choice, :innings_choice, :warntime, :gametime,
-        #   :first_break_choice
-        # ]
-        row_type = row[:type] == "14/1e" ? "14.1 endlos" : row[:type]
-        # Extract numeric score from strings like "Hauptrunde 80" or just use the value if it's already a number
-        score_value = row[:score]
-        if score_value.is_a?(String)
-          # Extract the last number from the string (e.g., "Hauptrunde 80" -> 80)
-          score_value = score_value.scan(/\d+/).last.to_i
-        end
-        score_value = score_value.to_i if score_value.present?
-        
-        essential_game_options = {
-          # tournament: @party,
-          gname: "#{row[:seqno]}-#{row[:type]}",
-          started_at: Time.now,
-          round_no: r_no,
-          seqno: row[:seqno]
-        }
-        additional_options = {
-          free_game_form: "pool",
-          kickoff_switches_with: (row[:next_break] unless row_type == "14.1 endlos").presence || "set",
-          table_no: t_no,
-          player_a_id: row[:player_a],
-          player_b_id: row[:player_b],
-          discipline_a: row_type,
-          discipline_b: row_type,
-          sets_to_win: row[:sets].to_i,
-          points_choice: score_value,
-          balls_goal_a: score_value,
-          balls_goal_b: score_value,
-          innings_goal: row[:innings].to_i,
-          first_break_choice: row[:first_break]
-        }
-        game = @party.games.where(gname: "#{row[:seqno]}-#{row[:type]}").first
-        game = @party.games.new(essential_game_options) unless game.present?
-        game.assign_attributes(data: additional_options)
-        game.save!
+        # Game-Erzeugung für die Spielzeile (ohne TableMonitor) ist nach Party#build_game_for_row!
+        # extrahiert (48-03/K-1) — danach unverändert do_placement + TableMonitor-Bindung.
+        game = @party.build_game_for_row!(row, r_no, t_no)
         @party_monitor.do_placement(game, r_no, t_no, row, row_nr)
         t_no += 1
       end
@@ -316,6 +273,36 @@ class PartyMonitorReflex < ApplicationReflex
     else
       flash[:alert] = "Der Party Monitor kann in diesen Zustand (#{@party_monitor.state}) keine Runde starten!"
     end
+  end
+
+  # Zeilenweise Direkteingabe der Endergebnisse (Phase 48 / D-48-1, kein Scoreboard):
+  # liest die getippten Felder der aktuellen Runde aus dem serialisierten Form und schreibt
+  # je Partie game.data["ba_results"] + ended_at DIREKT (über Party#record_game_result!) —
+  # ohne TableMonitor/evaluate_result. Nur im Zustand "playing_round".
+  def enter_game_results
+    unless @party_monitor.playing_round?
+      flash[:alert] =
+        "Systemfehler?! Ergebniseingabe ist nur im Zustand 'playing_round' möglich! Derzeit ist der Zustand '#{@party_monitor.state}'"
+      return
+    end
+    r_no = element.dataset["rno"].to_i
+    Array(@party_monitor.data["rows"]).each_with_index do |row, row_nr|
+      next unless Party::GAME_ROW_TYPES.include?(row["type"]) && row["r_no"] == r_no
+
+      prefix = "#{@party.cc_id}-#{row_nr}-#{r_no}-1-"
+      @party.record_game_result!(
+        row: row,
+        sc1: params["#{prefix}sc1"],
+        sc2: params["#{prefix}sc2"],
+        in1: params["#{prefix}in1"],
+        in2: params["#{prefix}in2"],
+        br1: params["#{prefix}br1"],
+        br2: params["#{prefix}br2"]
+      )
+    end
+  rescue StandardError => e
+    Rails.logger.info "#{e} #{e.backtrace}"
+    raise StandardError
   end
 
   def reset_party_monitor
@@ -351,47 +338,11 @@ class PartyMonitorReflex < ApplicationReflex
 
   def close_party
     if @party_monitor.party_result_checking_mode?
-      complete = true
-      games = []
-      @party_monitor.data["rows"].each do |row|
-        next unless ["14/1e", "10-Ball", "8-Ball", "9-Ball", "10-Ball Doppel", "9-Ball Doppel",
-                     "Shootout (4er Team)"].include?(row[:type])
-
-        row_type = row[type]
-        gname = "#{row[:seqno]}-#{row_type}"
-        game = @party_monitor.party.games.where(gname: gname).first
-        if game.ended_at.blank?
-          complete = false
-        else
-          games << game
-        end
-      end
-      if complete
-        game_points = @party_monitor.party.intermediate_result
-        result = {}
-        result["game_points"] = game_points.join(":")
-        match_points = [
-          (if game_points[0] > game_points[1]
-             @party_monitor.data["match_points"]["win"]
-           else
-             game_points[0] == game_points[1] ? @party_monitor.data["match_points"]["draw"] : @party_monitor.data["match_points"]["lost"]
-           end),
-          (if game_points[1] > game_points[0]
-             @party_monitor.data["match_points"]["win"]
-           else
-             game_points[1] == game_points[0] ? @party_monitor.data["match_points"]["draw"] : @party_monitor.data["match_points"]["lost"]
-           end)
-        ]
-        result["match_points"] = match_points.join(":")
-        @party_monitor.deep_merge_data!(result: result)
-        @party_monitor.save
-        @party_monitor.close_party!
-      else
-        flash[:alert] = "Die Spiele sind noch nicht vollständig erfasst!"
-      end
+      outcome = @party_monitor.close_with_result! # Naht: Guard + game_points/match_points + close_party! (48-03/K-2)
+      flash[:alert] = "Die Spiele sind noch nicht vollständig erfasst!" unless outcome[:ok]
     else
       flash[:alert] =
-        "Der Party Monitor kann in diesen Zustand (#{@party_monitor.stata}) keinen Spielbericht erstellen!"
+        "Der Party Monitor kann in diesen Zustand (#{@party_monitor.state}) keinen Spielbericht erstellen!"
     end
   rescue StandardError => e
     Rails.logger.info "#{e} #{e.backtrace}"

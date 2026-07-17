@@ -26,6 +26,20 @@ class Version < PaperTrail::Version
 
   self.ignored_columns = ["region_ids"]
 
+  # H33 (P1): Wird geworfen, wenn der API-Server keine verwertbare (leere/nicht-JSON)
+  # Antwort liefert. ApplicationController fängt das zentral ab (roter Flash statt 500).
+  # Client-Guard/Stopgap — die eigentliche Ursache (api.carambus.de/versions/* → 403/leer)
+  # liegt API-seitig (Authority/carambus_api).
+  class ApiUnavailableError < StandardError; end
+
+  # Version erbt von PaperTrail::Version (nicht ApplicationRecord), daher fehlt die dort
+  # definierte sort_by_params-Klassenmethode. Selbst-enthaltene Variante (alle Spalten sortierbar).
+  def self.sort_by_params(column, direction)
+    col = column.presence_in(column_names) || "created_at"
+    dir = direction.presence_in(%w[asc desc]) || "asc"
+    order(col => dir)
+  end
+
   # This scope finds all versions where:
   # 1. region_id is nil OR
   # 2. region_id is the given region_id OR
@@ -47,6 +61,18 @@ class Version < PaperTrail::Version
     request = Net::HTTP::Get.new(uri.request_uri)
     response = http.request(request)
     response.body
+  end
+
+  # H33 (P1): Guard gegen leere/nicht-JSON-API-Antworten. Gibt nil zurück, wenn der
+  # Body blank ist oder nicht als JSON geparst werden kann (statt eines rohen
+  # JSON::ParserError-500). Ein gültiges leeres JSON (`[]`/`{}`) parst normal weiter.
+  def self.parse_api_json(json_io)
+    return nil if json_io.blank?
+
+    JSON.parse(json_io)
+  rescue JSON::ParserError => e
+    Rails.logger.warn("parse_api_json: keine gültige JSON-Antwort (#{e.message})")
+    nil
   end
 
   def self.list_sequence
@@ -78,7 +104,11 @@ class Version < PaperTrail::Version
     Rails.logger.info ">>>>>>>>>>>>>>>> GET #{url} <<<<<<<<<<<<<<<<"
     uri = URI(url)
     json_io = http_get_with_ssl_bypass(uri)
-    vers = JSON.parse(json_io)
+    vers = parse_api_json(json_io)
+    if vers.nil?
+      Rails.logger.warn("update_carambus: keine gültige API-Antwort von #{url} — übersprungen")
+      return
+    end
     revision = vers["current_revision"]
     my_revision = `cat #{Rails.root}/REVISION`.strip
     if my_revision != revision
@@ -165,12 +195,13 @@ class Version < PaperTrail::Version
   end
 
   def self.last_version
-    return Version.last.id if Carambus.config.carambus_api_url.blank?
+    return Version.last&.id if Carambus.config.carambus_api_url.blank?
 
     url = "#{Carambus.config.carambus_api_url}/versions/last_version"
     uri = URI(url)
     json_io = http_get_with_ssl_bypass(uri)
-    JSON.parse(json_io)["last_version"]
+    parsed = parse_api_json(json_io)
+    parsed.is_a?(Hash) ? parsed["last_version"] : Version.last&.id
   rescue OpenURI::HTTPError => e
     Rails.logger.info "===== #{e} cannot read from #{url}"
     e.to_s
@@ -228,6 +259,39 @@ class Version < PaperTrail::Version
     (parsed.is_a?(Hash) || parsed.is_a?(Array)) ? parsed.to_json : raw
   end
 
+  # Sync-Apply-Fix (2026-06-17): Für serialize-typisierte Spalten (z.B.
+  # PlayerRanking `serialize :remarks, type: Hash` / `serialize :t_ids, type: Array`)
+  # erwartet ActiveRecord beim Schreiben das Ruby-Objekt (Hash/Array), NICHT einen
+  # String. Der Sync liefert die Werte aber als String (object_changes-JSON bzw. das
+  # Ergebnis von safe_parse_for_text_column). `write_attribute`/`update_columns`
+  # wirft dann ActiveRecord::SerializationTypeMismatch — der innere rescue im
+  # Apply-Loop verschluckte das, der Cursor (last_version_id) lief trotzdem hoch →
+  # die Version war für immer übersprungen (stiller Datenverlust, Live-Befund
+  # PlayerRanking-Werte auf Local-Servern veraltet). Dieser Helper coerced
+  # typ-bewusst: nur serialisierte Spalten, nur String-Werte → JSON, sonst YAML.
+  # Mutiert args in-place (greift auch fuer das nachfolgende update_columns(args)).
+  def self.coerce_serialized_args!(klass, args)
+    return args unless args.is_a?(Hash)
+    args.each do |k, v|
+      next unless v.is_a?(String)
+      type = klass.type_for_attribute(k.to_s)
+      next unless type.respond_to?(:coder) && type.coder # nur serialize-Spalten
+      args[k] = begin
+        JSON.parse(v)
+      rescue JSON::ParserError, TypeError
+        begin
+          YAML.load(v)
+        rescue Psych::Exception, ArgumentError
+          v
+        end
+      end
+    end
+    args
+  rescue => e
+    Rails.logger.warn "[Version.coerce_serialized_args!] #{klass}: #{e.class}: #{e.message}"
+    args
+  end
+
   def self.update_from_carambus_api(opts = {})
     tournament_id = opts[:update_tournament_from_cc]
     region_id = opts[:reload_tournaments]
@@ -277,7 +341,9 @@ class Version < PaperTrail::Version
     Rails.logger.info ">>>>>>>>>>>>>>>> GET #{url} <<<<<<<<<<<<<<<<"
     uri = URI(url)
     json_io = http_get_with_ssl_bypass(uri)
-    vers = JSON.parse(json_io)
+    vers = parse_api_json(json_io)
+    raise ApiUnavailableError, "Keine gültige Antwort von #{url}" if vers.nil?
+
     while vers.present?
       h = vers.shift
       break if h.blank?
@@ -296,6 +362,7 @@ class Version < PaperTrail::Version
             Rails.logger.info "#{h["item_type"]}[#{h["item_id"]}]#{JSON.pretty_generate(args)}"
             begin
               classz = h["item_type"].constantize
+              coerce_serialized_args!(classz, args)
               item_id = h["item_id"]
               obj = nil
               case h["item_type"]
@@ -345,7 +412,8 @@ class Version < PaperTrail::Version
                 Rails.logger.info "Created #{h["item_type"]} with #{args.inspect}"
               end
             rescue => e
-              Rails.logger.info "#{e} #{e.backtrace.inspect}"
+              Rails.logger.error "[Version.sync] APPLY FAILED create #{h["item_type"]}[#{h["item_id"]}] v#{h["id"]}: #{e.class}: #{e.message}"
+              (Thread.current[:carambus_sync_apply_failures] ||= []) << {type: h["item_type"], id: h["item_id"], version: h["id"], error: e.message}
             end
           when "update"
             args = if h["object_changes"].present?
@@ -359,10 +427,11 @@ class Version < PaperTrail::Version
             elsif args["data"].present?
               args["data"] = Version.safe_parse_for_text_column(args["data"])
             end
-            args["remarks"] = Version.safe_parse_for_text_column(args["remarks"]) if args["remarks"].present?
-            args["t_ids"] = YAML.load(args["t_ids"]) if args["t_ids"].present?
             begin
               classz = h["item_type"].constantize
+              # Sync-Apply-Fix (2026-06-17): serialize-Spalten (remarks/t_ids/data) typ-bewusst
+              # zu Hash/Array coercen — sonst SerializationTypeMismatch + stiller Verlust.
+              coerce_serialized_args!(classz, args)
               obj = classz.where(id: h["item_id"]).first
               if obj.present?
                 args.each do |k, v|
@@ -380,15 +449,15 @@ class Version < PaperTrail::Version
                 else
                   args = YAML.load(h["object"])
                   args["data"] = Version.safe_parse_for_text_column(args["data"]) if args["data"].present?
-                  args["remarks"] = Version.safe_parse_for_text_column(args["remarks"]) if args["remarks"].present?
+                  coerce_serialized_args!(classz, args)
                 end
                 obj.update_columns(args)
               else
-                obj = h["item_type"].constantize.new
+                obj = classz.new
                 obj.id = h["item_id"]
                 args = YAML.load(h["object"])
                 args["data"] = Version.safe_parse_for_text_column(args["data"]) if args["data"].present?
-                args["remarks"] = Version.safe_parse_for_text_column(args["remarks"]) if args["remarks"].present?
+                coerce_serialized_args!(classz, args)
 
                 args.each do |k, v|
                   obj.write_attribute(k, v)
@@ -398,7 +467,11 @@ class Version < PaperTrail::Version
                 obj.unprotected = false
               end
             rescue => e
-              Rails.logger.info "#{obj.andand.attributes} #{e} #{e.backtrace.inspect}"
+              # Härtung (2026-06-17): NICHT mehr still verschlucken — laut loggen +
+              # fehlgeschlagene Version sammeln. Cursor läuft bewusst weiter (kein
+              # Sync-Hängen), aber der Verlust ist jetzt sichtbar + nachvollziehbar.
+              Rails.logger.error "[Version.sync] APPLY FAILED update #{h["item_type"]}[#{h["item_id"]}] v#{h["id"]}: #{e.class}: #{e.message}"
+              (Thread.current[:carambus_sync_apply_failures] ||= []) << {type: h["item_type"], id: h["item_id"], version: h["id"], error: e.message}
             end
           when "destroy"
             begin
@@ -420,6 +493,12 @@ class Version < PaperTrail::Version
       rescue => e
         Rails.logger.info "===== FATAL #{e} #{e.backtrace} cannot continue"
       end
+    end
+    # Härtung (2026-06-17): gesammelte Apply-Fehler am Durchlauf-Ende laut zusammenfassen
+    # (sonst gingen sie im inneren rescue still verloren, während der Cursor weiterlief).
+    if (fails = Thread.current[:carambus_sync_apply_failures]).present?
+      Rails.logger.error "[Version.sync] #{fails.size} Version(en) beim Apply fehlgeschlagen (übersprungen, Cursor lief weiter): #{fails.first(20).inspect}"
+      Thread.current[:carambus_sync_apply_failures] = nil
     end
   rescue OpenURI::HTTPError => e
     Rails.logger.info "===== #{e} cannot read from #{url}"

@@ -1,6 +1,6 @@
 class UsersController < ApplicationController
-  before_action :admin_only_check, except: %i[show index]
-  before_action :set_user, only: %i[show edit update destroy]
+  before_action :system_admin_only, except: %i[stop_impersonating]
+  before_action :set_user, only: %i[show edit update destroy impersonate]
 
   # GET /users
   # GET /users.json
@@ -41,6 +41,41 @@ class UsersController < ApplicationController
     else
       render :edit
     end
+  end
+
+  # POST /users/1/impersonate
+  # Nur echte system_admins duerfen die Identitaet wechseln. Andere system_admins
+  # koennen NICHT uebernommen werden (keine Admin-zu-Admin-Eskalation).
+  def impersonate
+    unless true_user&.system_admin?
+      redirect_back fallback_location: root_path,
+                    alert: "Nur Systemadministratoren dürfen die Benutzeridentität wechseln."
+      return
+    end
+
+    if @user.system_admin?
+      redirect_back fallback_location: root_path,
+                    alert: "Andere Systemadministratoren können nicht übernommen werden."
+      return
+    end
+
+    if @user == true_user
+      redirect_back fallback_location: root_path,
+                    alert: "Das ist bereits dein eigenes Konto."
+      return
+    end
+
+    impersonate_user(@user)
+    redirect_to root_path, notice: "Du agierst jetzt als #{@user.display_name}."
+  end
+
+  # DELETE /users/stop_impersonating
+  # Beendet eine laufende Impersonation. Bewusst ohne admin_only_check, da
+  # current_user waehrend der Impersonation der (evtl. nicht-Admin) Ziel-User ist.
+  def stop_impersonating
+    name = current_user&.display_name
+    stop_impersonating_user
+    redirect_to root_path, notice: name ? "Du agierst wieder als du selbst (war: #{name})." : "Identitätswechsel beendet."
   end
 
   # DELETE /users/1

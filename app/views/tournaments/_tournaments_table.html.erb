@@ -1,41 +1,40 @@
-<div class=" rounded shadow table-responsive">
+<div class="bg-surface-card dark:bg-gray-800 rounded-card border border-gray-200 dark:border-gray-700 overflow-hidden table-responsive">
   <% @tournaments ||= records %>
   <% @pagy ||= defined?(pagy) ? pagy : nil %>
+  <% th = "px-4 py-3 text-left text-xs font-medium uppercase tracking-wide" %>
+  <% lbl = "text-gray-500 dark:text-gray-400" %>
   <table class="table">
-    <thead>
+    <thead class="bg-gray-50 dark:bg-gray-800/60 border-b border-gray-200 dark:border-gray-700">
     <tr>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournaments, :title, 'Title(*)', params, class: 'text-gray-700 dark:text-gray-300' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournaments, :discipline_id, 'Discipline(*)', params, class: 'text-gray-700 dark:text-gray-300' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournaments, :date, 'Date(*)', params, class: 'text-gray-700 dark:text-gray-300' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournaments, :accredation_end, 'Accredation end', params, class: 'text-gray-700 dark:text-gray-300' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournaments, :location_text, 'Location Text', params, class: 'text-gray-700 dark:text-gray-300' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournaments, :location_id, 'Location', params, class: 'text-gray-700 dark:text-gray-300' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournaments, :cc_id, 'Cc(*)', params, class: 'text-gray-700 dark:text-gray-300' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournaments, :season_id, 'Season(*)', params, class: 'text-gray-700 dark:text-gray-300' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournaments, :region_id, 'Organizer(*)', params, class: 'text-gray-700 dark:text-gray-300' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournaments, :source_url, 'Source', params, class: 'text-gray-700' %></th>
-      <th class="p-3 uppercase text-left text-xs"><%= sortable @tournaments, :sync_date, 'Sync Date', params, class: 'text-gray-700' %></th>
-      <th class="p-3 uppercase text-left text-xs text-gray-700 dark:text-gray-300 w-20"><%= t('actions') %></th>
+      <th class="<%= th %>"><%= sortable @tournaments, :title, Tournament.human_attribute_name(:title), params, class: lbl %></th>
+      <th class="<%= th %>"><%= sortable @tournaments, :discipline_id, Tournament.human_attribute_name(:discipline), params, class: lbl %></th>
+      <th class="<%= th %>"><%= sortable @tournaments, :date, Tournament.human_attribute_name(:date), params, class: lbl %></th>
+      <th class="<%= th %>"><%= sortable @tournaments, :accredation_end, Tournament.human_attribute_name(:accredation_end), params, class: lbl %></th>
+      <th class="<%= th %>"><%= sortable @tournaments, :location_text, Tournament.human_attribute_name(:location), params, class: lbl %></th>
+      <th class="<%= th %>"><%= sortable @tournaments, :season_id, Tournament.human_attribute_name(:season), params, class: lbl %></th>
+      <th class="<%= th %>"><%= sortable @tournaments, :region_id, Tournament.human_attribute_name(:organizer), params, class: lbl %></th>
+      <th class="<%= th %> <%= lbl %> w-20"><%= t('actions') %></th>
     </tr>
     </thead>
 
     <tbody>
     <% @tournaments.each do |tournament| %>
-      <tr class="group border-t border-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">
-        <td class="p-3"><%= custom_link_to(tournament.title, tournament_path(tournament)) %></td>
-        <td class="p-3"><%= (custom_link_to(tournament.discipline.name, discipline_path(tournament.discipline)) if tournament.discipline.present?) %></td>
-        <td class="p-3"><%= tournament.date.andand.to_date %></td>
-        <td class="p-3"><%= tournament.accredation_end.andand.to_date %></td>
-        <td class="p-3"><%= tournament.location_text %></td>
-        <%# InternationalTournament (STI) ueberschreibt #location -> String (location_text); nur fuer echte Location-Objekte verlinken. %>
-        <td class="p-3"><%= custom_link_to tournament.location.display_address_short&.html_safe, location_path(tournament.location) if tournament.location.is_a?(Location) %></td>
-        <td class="p-3"><%= custom_link_to(tournament.tournament_cc.cc_id, tournament_cc_path(tournament.tournament_cc)) if tournament.tournament_cc.present? %></td>
-        <td class="p-3"><%= custom_link_to(tournament.season.name, season_path(tournament.season)) %></td>
-        <td class="p-3"><%= custom_link_to(tournament.organizer.shortname, region_path(tournament.organizer)) %></td>
-        <td class="p-3"><%= link_to_if tournament.source_url.present?, tournament.source_url.present? ? URI.parse(tournament.source_url).host : "", tournament.source_url, class: "green_link" %></td>
-        <td class="p-3"><%= tournament.sync_date.andand.to_date %></td>
-
-        <td>
+      <tr class="group border-t border-gray-100 dark:border-gray-700 hover:bg-surface-page dark:hover:bg-gray-700/60">
+        <td class="px-4 py-3"><%= custom_link_to(tournament.title, tournament_path(tournament), class: "font-medium text-gray-900 dark:text-gray-100 hover:text-primary-600") %></td>
+        <td class="px-4 py-3"><%= discipline_chip(tournament.discipline) %></td>
+        <td class="px-4 py-3 text-gray-600 dark:text-gray-300 whitespace-nowrap"><%= tournament.date.andand.to_date %></td>
+        <td class="px-4 py-3 text-gray-600 dark:text-gray-300 whitespace-nowrap"><%= tournament.accredation_end.andand.to_date %></td>
+        <td class="px-4 py-3 text-gray-600 dark:text-gray-300">
+          <%# InternationalTournament (STI) ueberschreibt #location -> String (location_text); nur fuer echte Location-Objekte verlinken. %>
+          <% if tournament.location.is_a?(Location) %>
+            <%= custom_link_to tournament.location.display_address_short&.html_safe, location_path(tournament.location) %>
+          <% else %>
+            <%= tournament.location_text %>
+          <% end %>
+        </td>
+        <td class="px-4 py-3"><%= custom_link_to(tournament.season.name, season_path(tournament.season)) if tournament.season.present? %></td>
+        <td class="px-4 py-3"><%= custom_link_to(tournament.organizer.shortname, region_path(tournament.organizer)) if tournament.organizer.present? %></td>
+        <td class="px-4 py-3">
           <%= custom_link_to t('view'), tournament, class: "btn btn-link no-underline" %>
         </td>
       </tr>

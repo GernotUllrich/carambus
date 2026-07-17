@@ -1,71 +1,45 @@
-<div class="container mx-auto my-8 px-4">
-  <div class="max-w-3xl mx-auto">
-    <div class="flex justify-between items-center mb-4">
-      <h1 class="h3"><%= custom_link_to 'Leagues', leagues_path %> > League #<%= @league.id %></h1>
-      <%= custom_link_to 'Edit', edit_league_path(@league), class: "btn btn-link" %>
-    </div>
+<%# 14-04: auf die generische Detail-Card migriert. Stammdaten kuratiert (only:, ohne rohe Technik-
+    Spalten/CC/Sync); die reichen Sektionen (Mannschaften-Drill, disziplin-abhängige Ligatabelle,
+    Spielplan, Datenabgleich) im details-Slot. Erbt H1 (leere Felder), H5 (Titel=Name), H30 (Edit-Gate);
+    organizer wird polymorph verlinkt (behebt den hardcodeten region_path-Bug). %>
+<% details = capture do %>
+  <div class="flex flex-wrap gap-4">
+    <%= custom_link_to "#{t('league_league_teams')} →", league_teams_path(drill: { league_id: @league.id }), class: "text-primary-600 hover:text-primary-700 font-medium" %>
+  </div>
 
-    <div class=" rounded shadow p-8">
-      <div class="mb-4">
-        <h5>Name</h5>
-        <%= @league.name %>
-      </div>
-      <div class="mb-4">
-        <h5>Registration until</h5>
-        <%= @league.registration_until %>
-      </div>
-      <div class="mb-4">
-        <h5>Organizer</h5>
-        <%= custom_link_to @league.organizer.shortname, region_path(@league.organizer) %>
-      </div>
-      <div class="mb-4">
-        <h5>Season</h5>
-        <%= custom_link_to @league.season.name, season_path(@league.season) %>
-      </div>
-      <div class="mb-4">
-        <h5>CC</h5>
-        <%= custom_link_to "#{@league.league_cc.name}(#{@league.league_cc.id})", league_cc_path(@league.league_cc) if @league.league_cc.present? %>
-      </div>
-      <div class="mb-4">
-        <h5>Discipline</h5>
-        <%= custom_link_to @league.discipline.name, discipline_path(@league.discipline) %>
-      </div>
-      <div class="mb-4">
-        <h5>Game Plan</h5>
-        <%= custom_link_to @league.game_plan.name, game_plan_path(@league.game_plan) if @league.game_plan.present? %>
-      </div>
-      <div class="mb-4">
-        <h5>Quelle</h5>
-        <%= link_to_if @league.source_url.present?, @league.source_url.present? ? URI.parse(@league.source_url).host : "", @league.source_url, target: :_blank %>
-      </div>
-      <div class="mb-4">
-        <h5>Last Sync</h5>
-        <%= @league.sync_date.andand.to_date %>
-      </div>
-    </div>
-    <%- @parties = Party.where(league_id: @league.id).order(id: :asc) %>
-
-    <div class="flex flex-row px-3 lg:px-0">
-      <%= button_to I18n.t("league.show.reload_from_club_cloud", source: @league.source), reload_from_cc_league_path(@league), method: :post, style: "float: left; margin-right: 10px;", disabled: !current_user&.admin?, class: "btn btn-flat btn-primary" %>
-      <%= button_to I18n.t("league.show.reload_from_club_cloud_with_details", source: @league.source), reload_from_cc_with_details_league_path(@league), method: :post, style: "float: left; margin-right: 10px;", disabled: !current_user&.admin?, class: "btn btn-flat btn-primary" %>
-      <%= button_to I18n.t("league.show.reload_from_club_cloud_all_new", source: @league.source), reload_from_cc_all_new_league_path(@league), method: :post, style: "float: left; margin-right: 10px;", disabled: !current_user&.admin?, class: "btn btn-flat btn-primary" %>
-    </div>
-
-    <h3 class="mt-6 mb-4"><%= custom_link_to "=> #{t('league_league_teams')}", league_teams_path(sSearch: "league_id:#{@league.id}") %></h3>
-    <h3 class="mt-6 mb-4"><%= custom_link_to "=> #{t('league_parties')}", parties_path(sSearch: "league_id:#{@league.id}") %></h3>
-
-    <% if @league.discipline&.name == "Snooker" %>
-      <h2>Ligatabelle</h2>
+  <% if @league.discipline&.name == "Snooker" %>
+    <div class="mt-6 bg-surface-card dark:bg-gray-800 rounded-card border border-gray-200 dark:border-gray-700 p-6 text-gray-900 dark:text-gray-100">
+      <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">Ligatabelle</h2>
       <%= render partial: "standings_table_snooker", locals: { standings: @league.standings_table_snooker } %>
-    <% elsif @league.discipline&.name&.match?(/Karambol/i) %>
-      <h2>Ligatabelle</h2>
+    </div>
+  <% elsif @league.discipline&.name&.match?(/Karambol/i) %>
+    <div class="mt-6 bg-surface-card dark:bg-gray-800 rounded-card border border-gray-200 dark:border-gray-700 p-6 text-gray-900 dark:text-gray-100">
+      <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">Ligatabelle</h2>
       <%= render partial: "standings_table_karambol", locals: { standings: @league.standings_table_karambol } %>
-    <% elsif @league.discipline&.name&.match?(/Pool/i) %>
-      <h2>Ligatabelle</h2>
+    </div>
+  <% elsif @league.discipline&.name&.match?(/Pool/i) %>
+    <div class="mt-6 bg-surface-card dark:bg-gray-800 rounded-card border border-gray-200 dark:border-gray-700 p-6 text-gray-900 dark:text-gray-100">
+      <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">Ligatabelle</h2>
       <%= render partial: "standings_table_pool", locals: { standings: @league.standings_table_pool } %>
-    <% end %>
+    </div>
+  <% end %>
 
-    <h2>Spielplan</h2>
+  <div class="mt-6 bg-surface-card dark:bg-gray-800 rounded-card border border-gray-200 dark:border-gray-700 p-6 text-gray-900 dark:text-gray-100">
+    <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">Spielplan</h2>
     <%= render partial: "schedule_table", locals: { schedule_by_rounds: @league.schedule_by_rounds } %>
   </div>
-</div>
+
+  <% if current_user&.data_sync_access? %>
+    <div class="mt-8 pt-4 border-t border-gray-200 dark:border-gray-700">
+      <p class="text-sm text-gray-500 dark:text-gray-400 mb-2">Datenabgleich</p>
+      <div class="flex flex-wrap gap-2">
+        <%= button_to I18n.t("league.show.reload_from_club_cloud", source: @league.source), reload_from_cc_league_path(@league), method: :post, class: "btn btn-flat btn-primary" %>
+        <%= button_to I18n.t("league.show.reload_from_club_cloud_with_details", source: @league.source), reload_from_cc_with_details_league_path(@league), method: :post, class: "btn btn-flat btn-primary" %>
+        <%= button_to I18n.t("league.show.reload_from_club_cloud_all_new", source: @league.source), reload_from_cc_all_new_league_path(@league), method: :post, class: "btn btn-flat btn-primary" %>
+      </div>
+    </div>
+  <% end %>
+<% end %>
+<%= render "shared/detail_card", record: @league,
+      only: %w[name registration_until organizer_id season_id discipline_id game_plan_id source_url sync_date],
+      details: details %>

@@ -135,10 +135,26 @@ module McpServer
         # Pre-14-G.10-Code rief `t.tournament_ccs` auf eine nicht-existente Plural-Association
         # → ActiveRecord::AssociationNotFoundError beim includes() bzw. NoMethodError im Map-Block
         # → MCP SDK fängt + returned -32603 Internal Error im Body (HTTP 200 in Rails-Log).
+        # Strang 3 (LSW-Kegel-Befund 2026-06-14, User-Entscheid „alle zeigen + markieren"):
+        # Wir filtern NICHT, markieren aber jeden Eintrag mit in_scope/scope_hint, wenn der
+        # anfragende User ein Sportwart mit Disziplin-Wirkbereich ist. Scope EINMAL auflösen
+        # (kein N+1); hierarchie-bewusst via discipline.root_chain (analog SportwartScope).
+        scope_user = User.find_by(id: server_context&.dig(:user_id))
+        scoped_disc_ids = if scope_user&.respond_to?(:sportwart?) && scope_user.sportwart?
+          Array(scope_user.sportwart_discipline_ids)
+        else
+          []
+        end
+
+        # Öffentlicher Turnier-Link pro Zeile (User-Direktive 2026-06-14). region/fed EINMAL
+        # auflösen (kein N+1) — pro Zeile nur season + tournament_cc.cc_id einsetzen.
+        public_base = region.public_cc_url_base
+        public_fed = region.region_cc&.cc_id
+
         data = rel.includes(:discipline, :season, :tournament_cc).map { |t|
           tc = t.tournament_cc
           tc = nil unless tc&.context.to_s.downcase == user_region_name.to_s.downcase
-          {
+          row = {
             tournament_id: t.id,
             cc_id: tc&.cc_id,
             title: t.title,
@@ -150,6 +166,15 @@ module McpServer
             shortname: t.shortname,
             season: t.season&.name
           }
+          # leer = alle Disziplinen (kein Sportwart oder unbeschränkt) → keine Markierung.
+          unless scoped_disc_ids.empty?
+            in_scope = (Array(t.discipline&.root_chain).map(&:id) & scoped_disc_ids).any?
+            row[:in_scope] = in_scope
+            row[:scope_hint] = "außerhalb deines Wirkbereichs" unless in_scope
+          end
+          pub = public_tournament_url_from(base: public_base, fed: public_fed, season: t.season&.name, tcc_id: t.tournament_cc&.cc_id)
+          row[:public_url] = pub if pub
+          row
         }
 
         text(JSON.generate(
@@ -163,7 +188,12 @@ module McpServer
             branch: matched_branch,
             discipline: matched_branch || matched_discipline_name,
             season: season_obj&.name,
-            name: name
+            name: name,
+            # Phase 40 (D-40-1): interne Quelle (DB-Abbild) rechte-gegated; "" für read-only User.
+            source: source_label(server_context, :db_mirror),
+            # Strang 3: Disziplin-Wirkbereich des anfragenden Sportwarts (nil = unbeschränkt/kein
+            # Sportwart). Einträge mit scope_hint liegen außerhalb — Liste ist NICHT gefiltert.
+            your_scope_disciplines: scoped_disc_ids.empty? ? nil : Discipline.where(id: scoped_disc_ids).pluck(:name)
           }
         ))
       end

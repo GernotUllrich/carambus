@@ -32,7 +32,7 @@ safety_assured {
       unless index_exists?(:connected_accounts, [:owner_id, :owner_type])
         add_index :connected_accounts, [:owner_id, :owner_type], algorithm: :concurrently
       end
-    # else: Skip creating connected_accounts - JumpStart Pro feature not used
+    # else: Skip creating connected_accounts - social-login feature not used
     end
 }
   end

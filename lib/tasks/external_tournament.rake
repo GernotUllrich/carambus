@@ -11,7 +11,7 @@ require "json"
 #
 # Voraussetzungen:
 #   1. Carambus-Server läuft (z.B. bin/rails server :3000)
-#   2. Service-Account existiert (`rake service_accounts:create_2band[REGION]`)
+#   2. Service-Account existiert (`rake service_accounts:create_carambus_app[REGION]`)
 #   3. SERVICE_ACCOUNT_PASSWORD env var ist gesetzt (Output aus Schritt 2)
 #   4. Region existiert in DB; mindestens 1 TournamentCc mit context=region.downcase
 #
@@ -26,17 +26,17 @@ namespace :external_tournament do
       puts "Usage: rake external_tournament:smoke_test[REGION_SHORTNAME]"
       puts "Example: rake external_tournament:smoke_test[NBV]"
       puts ""
-      puts "Required env var: SERVICE_ACCOUNT_PASSWORD (from rake service_accounts:create_2band[REGION] output)"
+      puts "Required env var: SERVICE_ACCOUNT_PASSWORD (from rake service_accounts:create_carambus_app[REGION] output)"
       puts "Optional env var: BASE_URL (default: http://localhost:3000)"
       exit 1
     end
 
     base_url = ENV.fetch("BASE_URL", "http://localhost:3000")
-    email = "2band-#{shortname.downcase}-bridge@carambus.de"
+    email = "carambus-app-#{shortname.downcase}-bridge@carambus.de"
     password = ENV["SERVICE_ACCOUNT_PASSWORD"]
     if password.to_s.empty?
       puts "ERROR: SERVICE_ACCOUNT_PASSWORD env var nicht gesetzt"
-      puts "       Lege den Account an mit `rake service_accounts:create_2band[#{shortname}]`"
+      puts "       Lege den Account an mit `rake service_accounts:create_carambus_app[#{shortname}]`"
       puts "       und exportiere das ausgegebene Password: export SERVICE_ACCOUNT_PASSWORD=..."
       exit 1
     end

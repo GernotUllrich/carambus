@@ -71,7 +71,8 @@ class Region < ApplicationRecord
     # was 'BBBV' => 'https://bbbv.club-cloud.de/',
     "BBBV" => "https://billard-brandenburg.net/",
     # "BBV",##
-    "BLMR" => "https://blmr.club-cloud.de/",
+    # was 'BLMR' => 'https://blmr.club-cloud.de/', (302-Redirect auf eigene Domain)
+    "BLMR" => "https://billard-blmr.de/",
     "BLVN" => "https://billard-niedersachsen.de/",
     "BVB" => "https://billardverband-berlin.net/",
     "BVBW" => "https://billard-bvbw.de/",
@@ -82,8 +83,9 @@ class Region < ApplicationRecord
     "BVW" => "https://westfalenbillard.net/",
     # "HBU",
     "NBV" => "https://ndbv.de/",
-    "SBV" => "https://billard-sachsen.de/",
-    "TBV" => "https://billard-thueringen.de/"
+    "SBV" => "https://billard-sachsen.de/"
+    # Phase 12 (v0.4 TBV-Cutover): TBV auf LigaManager migriert — CC-URL entfernt,
+    # damit scrape_regions public_cc_url_base=nil setzt und scrape_region_public überspringt.
   }.freeze
 
   #  BVB
@@ -93,7 +95,9 @@ class Region < ApplicationRecord
   # SHORTNAMES_CARAMBUS_USERS = %w[].freeze
   # SHORTNAMES_OTHERS = %w[BVB].freeze
   # SHORTNAMES_OTHERS = %w[BVW SBV TBV].freeze
-  SHORTNAMES_OTHERS = %w[BVB BBBV BLMR BLVN BVNR BVRP BVS BVW SBV TBV].freeze
+  # Phase 12 (v0.4 TBV-Cutover): TBV auf LigaManager migriert — aus CC-Scrape entfernt
+  # (Clubs/Turniere/Ligen iterieren alle über diese Liste). Import läuft via liga_manager:daily_import.
+  SHORTNAMES_OTHERS = %w[BVB BBBV BLMR BLVN BVNR BVRP BVS BVW SBV].freeze
   SHORTNAMES_FEDERATIONS = %w[BVNRW].freeze
   SHORTNAMES_NO_CC = %w[BBV HBU BLVSA].freeze
 
@@ -128,7 +132,14 @@ class Region < ApplicationRecord
   def self.search_distinct?
     false
   end
-  
+
+  # Die Regionen-Galerie ist der Einstieg zum Auswaehlen einer Region und wird NIE gescoped.
+  # Region fuehrt selbst region_id (= eigene id) + global_context -> liefe sonst durch den globalen
+  # Scope-Band-Filter und wuerde sich selbst wegfiltern (zeigte 17/20 statt aller Regionen).
+  def self.scope_exempt?
+    true
+  end
+
   def self.cascading_filters
     {}
   end
@@ -146,6 +157,29 @@ class Region < ApplicationRecord
     else
       super
     end
+  end
+
+  # Effektive Anzeige-Saison für Region-Drill-Downs: aktuelle Saison, sofern die Region darin
+  # Turniere ODER Ligen hat; sonst die Vorsaison (Übergangsphase am Saisonanfang).
+  # H34: In der Saison-Übergangszeit (heute ≤ 15.08. des Startjahres, gleiche Schwelle wie
+  # ScopeResolver#transition_previous_season) enthält die aktuelle Saison oft nur Vorab-Stubs — die
+  # bloße Existenz eines Datensatzes soll dann NICHT auf current kippen, sondern die (vollständige)
+  # Vorsaison anbieten. Außerhalb der Übergangszeit wie bisher.
+  def effective_season
+    cur = Season.current_season
+    return cur if cur.nil?
+
+    unless season_transition_window?(cur)
+      return cur if tournaments.where(season_id: cur.id).exists? || leagues.where(season_id: cur.id).exists?
+    end
+    cur.previous || cur
+  end
+
+  # Saison-Übergangszeit: heute ≤ 15.08. des Startjahres der übergebenen Saison. Bewusst dieselbe
+  # Schwelle wie ScopeResolver#transition_previous_season (H34) — bei Änderung dort mitziehen.
+  private def season_transition_window?(season)
+    start_year = season.name.to_s[/\A(\d{4})/, 1]&.to_i
+    start_year.present? && Date.current <= Date.new(start_year, 8, 15)
   end
 
   def self.region_map
@@ -447,8 +481,42 @@ image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9"
     Rails.logger.info "TournamentCheck problem_source_urls: #{problem_source_urls.inspect}"
   end
 
+  # Rollover-Guard (CC-Incident 2026-07-16): ClubCloud liefert bei einer Saison, die der Tenant
+  # noch nicht im Saison-Selektor anbietet, Daten einer ANDEREN Saison zurück — die Links tragen
+  # dabei trotzdem die angefragte Saison, sodass der season_name-Filter im Scrape NICHT schützt.
+  # Deshalb: Region/Saison nur scrapen, wenn der Selektor (select name="s" in sb_spielplan.php)
+  # die Saison tatsächlich enthält. Fail-closed: Selektor nicht lesbar/nicht vorhanden → false.
+  def cc_season_available?(season)
+    cc_selector_seasons.to_a.include?(season.name)
+  end
+
+  # Saison-Optionen aus dem CC-Saison-Selektor. Bewusst OHNE Query-Params: sb_spielplan.php?f=999
+  # liefert auf den meisten Tenants (NBV, DBU, BVNR, …) eine leere Fehlerseite ohne Selektor —
+  # nur die parameterlose Default-Seite trägt den Selektor überall (15–65 KB, akzeptabel leicht).
+  # Memoisiert je Instanz (ein Fetch pro Scrape-Lauf); nil bei Fehler/fehlendem Selektor.
+  def cc_selector_seasons
+    return @cc_selector_seasons if defined?(@cc_selector_seasons)
+    @cc_selector_seasons =
+      if public_cc_url_base.blank?
+        nil
+      else
+        html = League.cc_http_get("#{public_cc_url_base}sb_spielplan.php")
+        doc = Nokogiri::HTML(html)
+        doc.css('select[name="s"] option').map { |o| o["value"].to_s.strip }.reject(&:empty?).presence
+      end
+  rescue => e
+    Rails.logger.warn "===== scrape ===== Region #{shortname}: CC-Saison-Selektor nicht lesbar " \
+                      "(#{e.class}: #{e.message}) — fail-closed, Scrape wird übersprungen"
+    @cc_selector_seasons = nil
+  end
+
   # crape_single_tournament_public
   def scrape_single_tournament_public(season, opts = {})
+    unless cc_season_available?(season)
+      Rails.logger.warn "===== scrape ===== Region #{shortname}: Saison #{season.name} nicht im " \
+                        "CC-Saison-Selektor — Turnier-Scrape übersprungen (Rollover-Guard)"
+      return
+    end
     tournament = nil
     url = public_cc_url_base
     Rails.logger.info "===== scrape ===== SCRAPING REGION '#{url}'"
@@ -556,7 +624,10 @@ image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9"
       tc.assign_attributes(name:)
       tc.save
       # tournament known but no cc entry yet?
-      tournament = Tournament.where(season:, organizer: self, title: name).first
+      # Mapping primär über die cc_id-Verknüpfung (tc) statt über den Titel — Titel-Mapping
+      # allein ist fehleranfällig (Titel-Kollision, cc_id-Drift). Titel nur als Fallback.
+      tournament = (tc.tournament if tc.tournament_id.present?)
+      tournament ||= Tournament.where(season:, organizer: self, title: name).first
       unless tournament.present?
         # Erkenne Vorgabeturniere am Titel
         is_handicap = name =~ /Vorgabe/i
@@ -731,6 +802,23 @@ image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9"
     "ClubCloud"
   end
 
+  # CC-Admin-base_url aus dem "Anmeldung"-Link der öffentlichen Region-Seite ableiten.
+  # Auf jeder öffentlichen Seite verweist <a ...>Anmeldung</a> auf den CC-Admin-Tenant-Host
+  # (z.B. https://<hash>.club-cloud.de). Das ist die zuverlässige Quelle für base_url —
+  # NICHT public_cc_url_base (= öffentliche Verbandsdomain). Auf scheme://host normalisiert
+  # OHNE Trailing-Slash — setting.rb baut Login-URLs als base_url + "/login/checkUser.php"
+  # (führender Slash am Pfad); ein Trailing-Slash würde Doppel-Slash erzeugen. Vgl.
+  # Konstante RegionCc::BASE_URL (ebenfalls ohne Slash).
+  # Gibt nil zurück, wenn kein Anmeldung-Link gefunden / href unbrauchbar.
+  def cc_admin_base_url_from(doc, page_url)
+    a = doc.css("a").find { |x| x.text.to_s.strip.casecmp?("Anmeldung") }
+    return nil unless a && a["href"].present?
+    u = URI.join(page_url.to_s, a["href"])
+    "#{u.scheme}://#{u.host}" if u.scheme.present? && u.host.present?
+  rescue URI::InvalidURIError
+    nil
+  end
+
   def scrape_region_public
 
     key_to_db_name = {
@@ -769,9 +857,14 @@ image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9"
       self.source_url = verband_url
       self.region_id ||= self.id
       save! if changed?
+      # base_url = CC-Admin-Tenant-Host aus dem "Anmeldung"-Link (NICHT public_cc_url_base).
+      # Vorher schrieb der Scrape public_cc_url_base in base_url → täglich 06:00 CC-Admin-Login
+      # 404 (PaperTrail-belegt). Fallback: bestehender Wert, dann public_cc_url_base.
+      # [[project_cc_admin_base_url_pitfall]]
+      scraped_admin_base = cc_admin_base_url_from(doc_verband, url)
       region_cc = RegionCc.find_by_shortname(shortname) || RegionCc.new(shortname:)
       region_cc.assign_attributes(name:, cc_id:, region_id: id, context: shortname.downcase, public_url: url,
-                                  base_url:)
+                                  base_url: scraped_admin_base.presence || region_cc.base_url.presence || base_url)
       region_cc.save! if region_cc.changed?
     else
       if shortname == "BBV" && false # TODO debug this, before releasing

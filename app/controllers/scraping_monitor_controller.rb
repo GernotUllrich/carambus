@@ -4,8 +4,8 @@
 # Route: /scraping_monitor
 
 class ScrapingMonitorController < ApplicationController
-  # Nur für Admin/Developer
-  before_action :require_admin
+  # Nur für System-Admins (CC-Migration/Sysadmin-Bereich)
+  before_action :system_admin_only
 
   def index
     @time_range = params[:days]&.to_i || 7
@@ -42,12 +42,6 @@ class ScrapingMonitorController < ApplicationController
   end
 
   private
-
-  def require_admin
-    # TODO: Implement authentication
-    # return unless current_user&.admin?
-    # redirect_to root_path, alert: "Not authorized"
-  end
 
   def prepare_chart_data(days)
     logs = ScrapingLog.where("executed_at >= ?", days.days.ago)

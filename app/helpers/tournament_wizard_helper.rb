@@ -1,15 +1,9 @@
 # frozen_string_literal: true
 
 module TournamentWizardHelper
-  # Die sechs Wizard-Buckets (konsistent mit wizard_status_text)
-  WIZARD_BUCKETS = [
-    "Vorbereitung",
-    "Setzliste konfigurieren",
-    "Modus-Auswahl",
-    "Bereit zum Start",
-    "Turnier läuft",
-    "Abgeschlossen"
-  ].freeze
+  # Die sechs Wizard-Buckets (konsistent mit wizard_status_text); Anzeige-Text via
+  # t("tournaments.wizard.bucket.<key>")
+  WIZARD_BUCKETS = %i[preparation seeding_setup mode_selection ready_to_start running completed].freeze
 
   # Tailwind-Klasse für das dominante AASM-State-Badge im Wizard-Header (FIX-04)
   def wizard_state_badge_class(tournament)
@@ -27,27 +21,27 @@ module TournamentWizardHelper
     end
   end
 
-  # Kurzer deutscher Text für das AASM-State-Badge (FIX-04)
+  # Übersetzter Text für das AASM-State-Badge (FIX-04)
   def wizard_state_badge_label(tournament)
     case tournament.state.to_s
-    when "new_tournament" then "Vorbereitung"
-    when "accreditation_finished" then "Teilnehmer abgeschlossen"
-    when "tournament_seeding_finished" then "Setzliste finalisiert"
-    when "tournament_mode_defined" then "Modus gewählt"
-    when "tournament_started_waiting_for_monitors" then "Wartet auf Tische"
-    when "tournament_started" then "Turnier läuft"
-    when "tournament_finished" then "Turnier beendet"
-    when "results_published" then "Ergebnisse veröffentlicht"
-    when "closed" then "Geschlossen"
+    when "new_tournament" then t("tournaments.wizard.state_badge.new_tournament")
+    when "accreditation_finished" then t("tournaments.wizard.state_badge.accreditation_finished")
+    when "tournament_seeding_finished" then t("tournaments.wizard.state_badge.tournament_seeding_finished")
+    when "tournament_mode_defined" then t("tournaments.wizard.state_badge.tournament_mode_defined")
+    when "tournament_started_waiting_for_monitors" then t("tournaments.wizard.state_badge.tournament_started_waiting_for_monitors")
+    when "tournament_started" then t("tournaments.wizard.state_badge.tournament_started")
+    when "tournament_finished" then t("tournaments.wizard.state_badge.tournament_finished")
+    when "results_published" then t("tournaments.wizard.state_badge.results_published")
+    when "closed" then t("tournaments.wizard.state_badge.closed")
     else tournament.state.to_s.humanize
     end
   end
 
   # Liefert die sechs Bucket-Chips für den Wizard-Header (FIX-03)
-  # Jeder Chip enthält :label und :active (Boolean)
+  # Jeder Chip enthält :label (übersetzt) und :active (Boolean, Vergleich auf internem Symbol)
   def wizard_bucket_chips(tournament)
-    current_label = wizard_status_text(tournament)
-    WIZARD_BUCKETS.map { |label| {label: label, active: label == current_label} }
+    current_key = wizard_status_text(tournament)
+    WIZARD_BUCKETS.map { |key| {label: t("tournaments.wizard.bucket.#{key}"), active: key == current_key} }
   end
 
   # Bestimmt den aktuellen Wizard-Schritt basierend auf Tournament State
@@ -104,16 +98,17 @@ module TournamentWizardHelper
     [(current - 1) * 100.0 / 6.0, 100].min.round
   end
 
-  # Status-Text
+  # Status-Key (internes Symbol, konsistent mit WIZARD_BUCKETS; Anzeige via
+  # t("tournaments.wizard.bucket.<key>") in wizard_bucket_chips)
   def wizard_status_text(tournament)
     case wizard_current_step(tournament)
-    when 1..2 then "Vorbereitung"
-    when 3..4 then "Setzliste konfigurieren"
-    when 5 then "Modus-Auswahl"
-    when 6 then "Bereit zum Start"
-    when 7 then "Turnier läuft"
-    when 8 then "Abgeschlossen"
-    else "Vorbereitung"
+    when 1..2 then :preparation
+    when 3..4 then :seeding_setup
+    when 5 then :mode_selection
+    when 6 then :ready_to_start
+    when 7 then :running
+    when 8 then :completed
+    else :preparation
     end
   end
 
@@ -139,12 +134,12 @@ module TournamentWizardHelper
   def sync_info_text(tournament)
     if tournament.sync_date
       if sync_needed?(tournament)
-        "⚠️ Zuletzt: #{time_ago_in_words(tournament.sync_date)} her (vor Meldeschluss)"
+        t("tournaments.wizard.sync_info.overdue", time: time_ago_in_words(tournament.sync_date))
       else
-        "✓ Zuletzt: #{time_ago_in_words(tournament.sync_date)} her"
+        t("tournaments.wizard.sync_info.recent", time: time_ago_in_words(tournament.sync_date))
       end
     else
-      "Noch nicht synchronisiert"
+      t("tournaments.wizard.sync_info.never")
     end
   end
 
@@ -171,21 +166,21 @@ module TournamentWizardHelper
   # Spieleranzahl-Info
   def seedings_info_text(tournament)
     active_count = participant_count(tournament)
-    "#{active_count} Spieler"
+    t("tournaments.wizard.info.participants", count: active_count)
   end
 
   # Turniermodus-Info
   def mode_info_text(tournament)
     if tournament.tournament_plan
-      "Gewählt: #{tournament.tournament_plan.name}"
+      t("tournaments.wizard.info.mode_selected", plan_name: tournament.tournament_plan.name)
     elsif tournament.data["extracted_plan_info"].present?
       # Zeige extrahierte Plan-Info aus Einladung (z.B. "T21 - 3 Gruppen à 3, 4 und 4 Spieler")
       count = participant_count(tournament)
       info = tournament.data["extracted_plan_info"]
-      "#{count} Teilnehmer → #{info}"
+      t("tournaments.wizard.info.mode_extracted", count: count, info: info)
     else
       count = participant_count(tournament)
-      "#{count} Spieler"
+      t("tournaments.wizard.info.participants", count: count)
     end
   end
 

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_05_31_214659) do
+ActiveRecord::Schema[7.2].define(version: 2026_07_17_175301) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -84,6 +84,21 @@ ActiveRecord::Schema[7.2].define(version: 2026_05_31_214659) do
     t.index ["created_at"], name: "index_ai_search_logs_on_created_at"
     t.index ["success"], name: "index_ai_search_logs_on_success"
     t.index ["user_id"], name: "index_ai_search_logs_on_user_id"
+  end
+
+  create_table "ai_usage_events", force: :cascade do |t|
+    t.string "scenario_context"
+    t.bigint "user_id"
+    t.string "persona"
+    t.string "model"
+    t.integer "input_tokens", default: 0, null: false
+    t.integer "output_tokens", default: 0, null: false
+    t.integer "cache_creation_tokens", default: 0, null: false
+    t.integer "cache_read_tokens", default: 0, null: false
+    t.decimal "est_cost_eur", precision: 10, scale: 6, default: "0.0", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["scenario_context", "created_at"], name: "index_ai_usage_events_on_scenario_context_and_created_at"
   end
 
   create_table "ball_configuration_zones", force: :cascade do |t|
@@ -524,7 +539,9 @@ ActiveRecord::Schema[7.2].define(version: 2026_05_31_214659) do
     t.boolean "game_plan_locked", default: false, null: false
     t.integer "region_id"
     t.boolean "global_context", default: false
+    t.integer "branch_id"
     t.index ["ba_id", "ba_id2"], name: "index_leagues_on_ba_id_and_ba_id2", unique: true
+    t.index ["branch_id"], name: "index_leagues_on_branch_id"
     t.index ["cc_id", "cc_id2", "organizer_id", "organizer_type"], name: "index_leagues_on_cc_ids_organizer_unique", unique: true, where: "((cc_id IS NOT NULL) AND ((organizer_type)::text = 'Region'::text))"
     t.index ["global_context"], name: "index_leagues_on_global_context"
     t.index ["region_id"], name: "index_leagues_on_region_id"
@@ -580,31 +597,6 @@ ActiveRecord::Schema[7.2].define(version: 2026_05_31_214659) do
     t.text "data"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-  end
-
-  create_table "pages", force: :cascade do |t|
-    t.string "title", null: false
-    t.text "content"
-    t.text "summary"
-    t.integer "super_page_id"
-    t.integer "position"
-    t.string "author_type"
-    t.integer "author_id"
-    t.string "content_type", default: "markdown"
-    t.string "status", default: "draft"
-    t.datetime "published_at"
-    t.jsonb "tags", default: []
-    t.jsonb "metadata", default: {}
-    t.jsonb "crud_minimum_roles", default: {"read"=>"player", "create"=>"system_admin", "delete"=>"system_admin", "update"=>"system_admin"}
-    t.string "version", default: "0.1"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.datetime "last_translated_at"
-    t.string "slug", default: "", null: false
-    t.index ["author_type", "author_id"], name: "index_pages_on_author_type_and_author_id"
-    t.index ["status"], name: "index_pages_on_status"
-    t.index ["super_page_id"], name: "index_pages_on_super_page_id"
-    t.index ["tags"], name: "index_pages_on_tags", using: :gin
   end
 
   create_table "parties", force: :cascade do |t|
@@ -867,6 +859,18 @@ ActiveRecord::Schema[7.2].define(version: 2026_05_31_214659) do
     t.index ["location_id"], name: "index_scoreboard_messages_on_location_id"
     t.index ["sender_id"], name: "index_scoreboard_messages_on_sender_id"
     t.index ["table_monitor_id"], name: "index_scoreboard_messages_on_table_monitor_id"
+  end
+
+  create_table "scrape_fingerprints", force: :cascade do |t|
+    t.string "fingerprintable_type", null: false
+    t.bigint "fingerprintable_id", null: false
+    t.string "scope", null: false
+    t.string "digest", null: false
+    t.datetime "checked_at", null: false
+    t.datetime "changed_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["fingerprintable_type", "fingerprintable_id", "scope"], name: "idx_scrape_fingerprints_owner_scope", unique: true
   end
 
   create_table "scraping_logs", force: :cascade do |t|
@@ -1467,7 +1471,9 @@ ActiveRecord::Schema[7.2].define(version: 2026_05_31_214659) do
     t.string "external_id"
     t.bigint "international_source_id"
     t.bigint "turnier_leiter_user_id"
+    t.integer "branch_id"
     t.index ["ba_id"], name: "index_tournaments_on_ba_id", unique: true
+    t.index ["branch_id"], name: "index_tournaments_on_branch_id"
     t.index ["external_id", "international_source_id"], name: "idx_tournaments_external_id_source", unique: true, where: "((external_id IS NOT NULL) AND (international_source_id IS NOT NULL))"
     t.index ["global_context"], name: "index_tournaments_on_global_context"
     t.index ["international_source_id"], name: "index_tournaments_on_international_source_id"
@@ -1587,6 +1593,19 @@ ActiveRecord::Schema[7.2].define(version: 2026_05_31_214659) do
     t.datetime "updated_at", null: false
   end
 
+  create_table "user_tournaments", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.bigint "tournament_id", null: false
+    t.string "role", default: "turnier_leiter", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "granted_by_user_id"
+    t.index ["granted_by_user_id"], name: "index_user_tournaments_on_granted_by_user_id"
+    t.index ["tournament_id"], name: "index_user_tournaments_on_tournament_id"
+    t.index ["user_id", "tournament_id", "role"], name: "index_user_tournaments_unique", unique: true
+    t.index ["user_id"], name: "index_user_tournaments_on_user_id"
+  end
+
   create_table "users", force: :cascade do |t|
     t.string "email", default: "", null: false
     t.string "encrypted_password", default: "", null: false
@@ -1634,6 +1653,9 @@ ActiveRecord::Schema[7.2].define(version: 2026_05_31_214659) do
     t.integer "role", default: 0
     t.datetime "mcp_consent_at"
     t.string "jti"
+    t.jsonb "persona_grants", default: [], null: false
+    t.string "cc_username"
+    t.string "cc_password"
     t.index ["confirmation_token"], name: "index_users_on_confirmation_token", unique: true
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["invitation_token"], name: "index_users_on_invitation_token", unique: true
@@ -1741,6 +1763,8 @@ ActiveRecord::Schema[7.2].define(version: 2026_05_31_214659) do
   add_foreign_key "training_concept_relations", "training_concepts", column: "source_concept_id"
   add_foreign_key "training_concept_relations", "training_concepts", column: "target_concept_id"
   add_foreign_key "training_examples", "training_examples", column: "parent_id"
+  add_foreign_key "user_tournaments", "tournaments", on_delete: :cascade
+  add_foreign_key "user_tournaments", "users"
   add_foreign_key "users", "players"
   add_foreign_key "versions", "regions", validate: false
   add_foreign_key "videos", "disciplines"

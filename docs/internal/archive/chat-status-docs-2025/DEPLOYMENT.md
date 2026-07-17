@@ -6,7 +6,7 @@ Carambus verwendet **Capistrano** für alle Deployments. Docker wurde entfernt, 
 
 ## Server-Struktur
 
-### Aktuell (carambus2 - Jumpstart Pro)
+### Aktuell (carambus2)
 - **API Server**: `api.carambus.de` → `/var/www/carambus2_api/current`
 - **Local Server**: `carambus.de` → `/var/www/carambus2/current`
 

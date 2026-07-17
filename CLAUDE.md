@@ -84,14 +84,30 @@ Uses Minitest (not RSpec despite .cursorrules mentioning rspec). Fixtures + Fact
 - Conventional commit messages
 - `strong_migrations` enforced in dev/test
 
+### UI/CSS-Konventionen
+
+Seit dem Redesign gilt: **keine hartkodierten Farben** — überall Tailwind-Token
+(Ramps `primary`/`gray`/`danger`/`success`/`warning`/`info` aus
+`tailwind.config.js`) und **class-basierter Dark-Mode** (`.dark`, nicht
+`prefers-color-scheme`). In ERB nur Utility-Klassen, keine inline `style=` mit
+Farbe und keine `<style>`-Blöcke; `theme()` nur in kompiliertem CSS. Neue
+Utility-Klassen greifen in Preview/Dev erst nach `yarn build:css` +
+`bin/rails assets:precompile` + Server-Neustart.
+
+Vollständige Regeln, Flatui→Token-Mapping und der Migrations-Workflow:
+**[`docs/ui-conventions.md`](docs/ui-conventions.md)**. Die Wache
+`rake ui:no_hardcoded_hex` (pre-commit + CI) blockiert neue Verstöße.
+
 <!-- GSD:project-start source:PROJECT.md -->
 ## Project
 
 **Carambus API — Model Refactoring & Test Coverage**
 
-A focused improvement effort on the Carambus API codebase to break down the two largest model classes (TableMonitor at 3900 lines and RegionCc at 2700 lines) into smaller, well-tested components. This is a refactoring initiative — no new features, no architecture changes.
+A focused refactoring effort to break the god-object model `TableMonitor` into smaller, well-tested collaborators. `RegionCc` — once named as the second target — is no longer a god-object (~500 lines, already decomposed into 11 syncers under `app/services/region_cc/`, commit `a510f3f5`) and is out of scope. This is a refactoring initiative — no new features, no architecture changes.
 
-**Core Value:** Reduce the two worst god-object models into maintainable, testable units without changing external behavior.
+**Status (2026-07-15):** The TableMonitor-Refactoring milestone (carambus_nbv, branch `scenario/nbv/tablemonitor-refactor`) extracted two cohesive collaborators via thin delegation — behaviour strictly preserved, characterization tests first: `TableMonitor::InningsEditor` (innings-history orchestration, Phase 53) and `TableMonitor::PanelPresenter` (read-only presentation/view-data, Phase 54). `app/models/table_monitor.rb` went from 2132 to 1996 lines; the scoring engine (`table_monitor/score_engine.rb` ~1354) and `options_presenter.rb` were extracted earlier. The remaining core is the tightly-coupled AASM/scoring lifecycle (`end_of_set?`, `undo`/`redo`, `force_next_state`, `evaluate_result`, `add_n_balls`/`terminate_current_inning`) — live-scoring/state-machine bound and left as a dedicated characterization-first follow-up, not part of this milestone.
+
+**Core Value:** Reduce the worst god-object model (`TableMonitor`) into maintainable, testable units without changing external behavior.
 
 ### Constraints
 
@@ -434,19 +450,19 @@ A focused improvement effort on the Carambus API codebase to break down the two 
 |-------|-------------|------|
 | scenario-management | Manages multi-tenant deployment workflow for Carambus project with multiple git checkouts. Use when working with carambus_master, carambus_bcw, carambus_phat, or carambus_api directories, when modifying code, committing changes, or when user mentions scenarios, deployments, or debugging mode. | `.agents/skills/scenario-management/SKILL.md` |
 | extend-before-build | When adding a feature/addon to an existing codebase, prefer extending existing structures (legacy paths, predicates, lifecycles) with small guards over building parallel state machines. Refactoring for quality can come later. Use whenever introducing discipline-specific behavior, scoring rules, multiset variants, or any feature that overlaps with the legacy karambol path. | `.agents/skills/extend-before-build/SKILL.md` |
+| hex-to-token-migration | Migrates hardcoded color hex (`#rgb`/`#rrggbb`), `<style>` blocks and inline `style="…color…"` in UI code to Tailwind design-token utilities with class-based dark mode. Use when migrating an admin/UI view or CSS file off hardcoded colors, or when `rake ui:no_hardcoded_hex` flags a new violation. | `.agents/skills/hex-to-token-migration/SKILL.md` |
 <!-- GSD:skills-end -->
 
 <!-- GSD:workflow-start source:GSD defaults -->
-## GSD Workflow Enforcement
+## Workflow (Paul-first)
 
-Before using Edit, Write, or other file-changing tools, start work through a GSD command so planning artifacts and execution context stay in sync.
+Prefer the lightweight **Paul** framework (`/paul:*`) or direct interactive work. GSD's multi-agent orchestration (`/gsd:plan-phase`, `/gsd:execute-phase` with researcher/planner/checker/executor subagents) proved painfully slow for this repo's operational work and is now **opt-in only** — use it only when the user explicitly asks for it.
 
-Use these entry points:
-- `/gsd-quick` for small fixes, doc updates, and ad-hoc tasks
-- `/gsd-debug` for investigation and bug fixing
-- `/gsd-execute-phase` for planned phase work
+- Operational / investigative / data / prod-ops work (debugging, sync reconciliation, migrations): work **directly and interactively** — no planning ceremony, no subagent orchestration.
+- Feature work that benefits from structure: `/paul:discuss` → `/paul:plan` → `/paul:apply` → `/paul:verify`.
+- Direct `Edit`/`Write` is fine — you do **not** need to route changes through a GSD command first.
 
-Do not make direct repo edits outside a GSD workflow unless the user explicitly asks to bypass it.
+Do not spin up GSD (or heavy Paul subagent) orchestration unless the user explicitly requests that scale.
 <!-- GSD:workflow-end -->
 
 <!-- GSD:profile-start -->

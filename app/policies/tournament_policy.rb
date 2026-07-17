@@ -31,6 +31,14 @@ class TournamentPolicy < ApplicationPolicy
     record.leiter?(user)
   end
 
+  # Phase 42 Re-Plan-Spike (2026-06-16): cc_prepare_tournament — Tool synct
+  # die Teilnehmerliste über Version.update_from_carambus_api und übergibt
+  # dem Sportwart einen Link auf die Carambus-Web-Turniervorbereitung
+  # (finalize_modus). KEIN direkter CC-Touch, KEIN destruktiver Pfad.
+  def prepare_tournament?
+    tl_or_sportwart_or_admin?
+  end
+
   private
 
   def tl_or_sportwart_or_admin?

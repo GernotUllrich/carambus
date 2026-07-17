@@ -1,0 +1,308 @@
+---
+http_interactions:
+- request:
+    method: get
+    uri: https://bbv-billard.liga.nu/cgi-bin/WebObjects/nuLigaBILLARDDE.woa/wa/groupMeetingReport?championship=BBV%20Pool%2025/26&group=1001&meeting=7112978
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - text/html
+      User-Agent:
+      - Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML,
+        like Gecko) Chrome/120 Safari/537.36
+      Host:
+      - bbv-billard.liga.nu
+  response:
+    status:
+      code: 200
+      message: Apple WebObjects
+    headers:
+      Date:
+      - Wed, 15 Jul 2026 11:43:28 GMT
+      Content-Type:
+      - text/html; charset=utf-8
+      Content-Length:
+      - '23611'
+      Set-Cookie:
+      - nusportingress=1784115809.207.3362.871837|b6276a1c10bdf8118344bab7bb8764b8;
+        Path=/cgi-bin/WebObjects/nuLigaBILLARDDE.woa/; Secure; HttpOnly; SameSite=None
+      - routeid_nuligabillardde=.nuligabillardde_8080; version="1"; path=/; secure;
+        HttpOnly
+      X-Webobjects-Loadaverage:
+      - '3'
+      X-Varnish:
+      - '4066465092'
+      Age:
+      - '0'
+      Via:
+      - 1.1 otns326 (Varnish/7.6)
+      X-Cache:
+      - MISS
+      Strict-Transport-Security:
+      - max-age=16000000; includeSubDomains;
+    body:
+      encoding: UTF-8
+      string: "<!DOCTYPE html>\n<html xmlns=\"http://www.w3.org/1999/xhtml\" lang=\"de\">\n
+        \ <head>\n    <meta charset=\"utf-8\">\n    <meta name=\"viewport\" content=\"width=device-width,
+        initial-scale=1\">\n    <meta name=\"robots\" content=\"all\">\n    <meta
+        name=\"publisher\" content=\"nuLiga\">\n    <meta name=\"author\" content=\"nuLiga\">\n
+        \   <meta name=\"nuLigaStatsUrl\" content=\"/nuLigaBILLARDDE/wa/groupMeetingReport/view?meeting=7112978&championship=BBV+Pool+25%2F26&group=1001\"
+        />\n<meta name=\"uLigaStatsRefUrl\" />\n\n    <!-- InstanceBeginEditable name=\"doctitle\"
+        -->\n    <title>\n      nuLiga Billard\n       &ndash; \n      Staffel\n    </title>\n
+        \    <meta name=\"robots\" content=\"noindex,nofollow\"></meta> \n    \n    \n<link
+        rel=\"stylesheet\" type=\"text/css\" href=\"/WebObjects/nuLiga.woa/Frameworks/nuLigaWebResources.framework/WebServerResources/css/bootstrap.min.css?nlv=9b272e78\"
+        media=\"all\" />\n    \n<link rel=\"stylesheet\" type=\"text/css\" href=\"/WebObjects/nuLiga.woa/Frameworks/nuLigaWebResources.framework/WebServerResources/css/billardde/theme-bbv.css?nlv=9b272e78\"
+        media=\"all\" />\n    \n<link rel=\"stylesheet\" type=\"text/css\" href=\"/WebObjects/nuLiga.woa/Frameworks/nuLigaWebResources.framework/WebServerResources/css/layoutBootstrap.css?nlv=9b272e78\"
+        media=\"all\" />\n    \n<link rel=\"stylesheet\" type=\"text/css\" href=\"/WebObjects/nuLiga.woa/Frameworks/nuLigaWebResources.framework/WebServerResources/css/club-offers.css?nlv=9b272e78\"
+        media=\"all\" />\n    \n<link rel=\"stylesheet\" type=\"text/css\" href=\"/WebObjects/nuLiga.woa/Frameworks/nuLigaWebResources.framework/WebServerResources/css/referee-observation-questionnaire.css?nlv=9b272e78\"
+        media=\"all\" />\n    \n    <script type=\"text/javascript\" src=\"/WebObjects/nuLiga.woa/Frameworks/nuLigaWebResources.framework/WebServerResources/js/default.js?nlv=9b272e78\"></script>\n
+        \   \n      <script type=\"text/javascript\" src=\"/banner/federationLists.ujs?nlv=9b272e78\"></script>\n
+        \     <script type=\"text/javascript\" src=\"/banner/federationFunctions.js?nlv=9b272e78\"></script>\n
+        \     \n      \n      \n    \n    <script type=\"text/javascript\">\n               <!--
+        \n      \tvar tickerposition=0; \n      \tvar tickerlength=50; \n        var
+        tickermessage='';  \n      \tfunction initTerminationMessageTicker() {\t\t
+        \n      \t\tif ( tickermessage != \"\" ) {\t \n      \t\t\tvar i, msg=\"\";
+        \n      \t\t\tfor ( i=0;i<tickerlength;i++ ) msg += \" \"; \n      \t\t\tmsg
+        += \"+ + + \" + tickermessage + \" + + +\"; \n      \t\t\tdocument.getElementById(\"terminationMessage\").innerHTML
+        = msg.substr(tickerposition,tickerlength).replace(/ /g,\" \") + \" \"; \n
+        \     \t\t\tif ( tickerposition++ >= msg.length ) tickerposition=0; \n      \t\t\tsetTimeout(\"initTerminationMessageTicker()\",1500/10);\t\t
+        \n      \t} \n      }\n       //--> \n    </script>\n    \n    \n      <link
+        rel=\"stylesheet\" type=\"text/css\" href=\"//cdnjs.cloudflare.com/ajax/libs/cookieconsent2/3.1.0/cookieconsent.min.css\"
+        />\n<script src=\"//cdnjs.cloudflare.com/ajax/libs/cookieconsent2/3.1.0/cookieconsent.min.js\"></script>\n<script>\n
+        \   window.addEventListener(\"load\", function() {\n    window.cookieconsent.initialise({\n
+        \       \"cookie\": {\n            \"name\": \"disclaimer_cookie\",\n            \"expiryDays\":
+        999\n        },\n        \"palette\": {\n            \"popup\": {\n                \"background\":
+        \"#237afc\"\n            },\n            \"button\": {\n                \"background\":
+        \"#fff\",\n                \"text\": \"#237afc\"\n            }\n        },\n
+        \       \"theme\": \"classic\",\n        \"position\": \"bottom\",\n        \"content\":
+        {\n            \"message\": \"Diese Internetseite verwendet Cookies, um die
+        grundlegende Funktionalität zu gewährleisten, die Nutzererfahrung zu verbessern
+        und weitere Dienste und Funktionen zur Verfügung zu stellen.\",\n            \"dismiss\":
+        \"Verstanden\",\n            \"link\": \"Details\",\n            \"href\":
+        'https://bbv-billard.liga.nu/cgi-bin/WebObjects/nuLigaBILLARDDE.woa/wa/dataProtection'\n
+        \       }\n    })});\n</script>\n    \n  </head>\n  <body>\n    \n      \n
+        \       <div id=\"banner-super\"></div>\n      \n      \n        <div id=\"banner-skyscraper\"></div>\n
+        \     \n      <div id=\"layoutBanner800\">\n        <script type=\"text/javascript\">\n
+        \         if (typeof layoutBanner800 === 'function') {\n            layoutBanner800();\n
+        \         }\n        </script>\n      </div>\n      <div id=\"layoutBanner801\">\n
+        \       <script type=\"text/javascript\">\n          if (typeof layoutBanner801
+        === 'function') {\n            layoutBanner801();\n          }\n        </script>\n
+        \     </div>\n    \n\n    <div id=\"page\">\n      <header id=\"header\">\n
+        \       <button id=\"hamburger-btn\" aria-label=\"Navigation öffnen\">&#9776;</button>\n
+        \       \n          \n            \n            \n            \n              \n
+        \               <script type=\"text/javascript\">fedBanner100();</script>\n
+        \             \n            \n          \n\n        \n\n        <div id=\"header-right\">\n
+        \         \n          <div id=\"logo\">\n            \n            \n              \n
+        \               <a href=\"/\"><img  alt=\"Home\" src=\"/WebObjects/nuLiga.woa/Frameworks/nuLigaWebResources.framework/WebServerResources/img/spacer.gif?nlv=9b272e78\"
+        /></a>\n              \n\n            \n\n          </div>\n        </div>\n
+        \     </header>\n      <div id=\"tabs-external\">\n        \n          \n\n
+        \       \n\n      </div>\n      \n\n      <nav id=\"tabs\" class=\"no-print\">\n
+        \       \n\n        \n\n      </nav>\n      <main>\n        \n  <nav id=\"breadcrumb\"
+        aria-label=\"breadcrumb\">\n    \n  <a href=\"/\" target=\"_top\">Home</a>\n
+        \ &gt; \n\n\n    <a href=\"/cgi-bin/WebObjects/nuLigaBILLARDDE.woa/wa/leaguePage?championship=BBV+Pool+25%2F26\">\n
+        \     BBV Pool 2025/26\n    </a>\n    &gt;\n    \n    \n      <a href=\"/cgi-bin/WebObjects/nuLigaBILLARDDE.woa/wa/groupPage?championship=BBV+Pool+25%2F26&amp;group=1001\">\n
+        \       Bezirksliga Oberfranken\n      </a>\n      &gt;\n    \n\n  </nav>\n\n
+        \ <div id=\"container\" class=\"container-fluid\">\n    <div class=\"row\">\n
+        \     <div id=\"navigation\" class=\"col-auto\">\n        <ul>\r\n  <script
+        type=\"text/javascript\">banner1();</script>\r\n  <li> <strong>Spielbetrieb</strong>\r\n
+        \ <ul>\r\n    <li><a href=\"/cgi-bin/WebObjects/nuLigaBILLARDDE.woa/wa/leaguePage?championship=BBV
+        Pool 26/27\">Pool 2026/27</a></li>\r\n    <li><a href=\"/cgi-bin/WebObjects/nuLigaBILLARDDE.woa/wa/leaguePage?championship=BBV
+        Snooker 26/27\">Snooker 2026/27</a></li>\r\n    <li><a href=\"/cgi-bin/WebObjects/nuLigaBILLARDDE.woa/wa/leaguePage?championship=BBV
+        Karambol 26/27\">Karambol 2026/27</a></li>\r\n  </ul>\r\n  </li>\r\n  <script
+        type=\"text/javascript\">banner2();</script>\r\n  <li><strong>Turniere</strong>\r\n
+        \   <ul>\r\n      <li><a href=\"/cgi-bin/WebObjects/nuLigaBILLARDDE.woa/wa/tournamentCalendar?federation=BBV\">Alle</a></li>\r\n
+        \     <li><a href=\"/cgi-bin/WebObjects/nuLigaBILLARDDE.woa/wa/tournamentCalendar?federation=BBV&seasonType=REGULAR\">Pool</a></li>\r\n
+        \     <li><a href=\"/cgi-bin/WebObjects/nuLigaBILLARDDE.woa/wa/tournamentCalendar?federation=BBV&seasonType=KARAMBOL\">Karambol</a></li>\r\n
+        \     <li><a href=\"/cgi-bin/WebObjects/nuLigaBILLARDDE.woa/wa/tournamentCalendar?federation=BBV&seasonType=SNOOKER\">Snooker</a></li>\r\n
+        \   </ul>\r\n  </li>\r\n  <li><strong>Seminare</strong>\r\n    <ul>\r\n      <li><a
+        href=\"/cgi-bin/WebObjects/nuLigaBILLARDDE.woa/wa/courseCalendar?federation=BBV\">Seminarkalender</a></li>\r\n
+        \   </ul>\r\n  </li>\r\n  <li><strong>Filter</strong>\r\n    <ul>\r\n      <li><a
+        href=\"/cgi-bin/WebObjects/nuLigaBILLARDDE.woa/wa/clubSearch?federation=BBV\">Vereine</a></li>\r\n
+        \   </ul>\r\n  </li>\r\n  <li><strong>Archiv</strong>\r\n    <ul>\r\n      <li><a
+        href=\"/cgi-bin/WebObjects/nuLigaBILLARDDE.woa/wa/leaguePage?championship=BBV
+        Pool 25/26\">Pool 2025/26</a></li>\r\n      <li><a href=\"/cgi-bin/WebObjects/nuLigaBILLARDDE.woa/wa/leaguePage?championship=BBV
+        Snooker 25/26\">Snooker 2025/26</a></li>\r\n      <li><a href=\"/cgi-bin/WebObjects/nuLigaBILLARDDE.woa/wa/leaguePage?championship=BBV
+        Karambol 25/26\">Karambol 2025/26</a></li>\r\n      &nbsp;\r\n      <li><a
+        href=\"/cgi-bin/WebObjects/nuLigaBILLARDDE.woa/wa/leaguePage?championship=BBV
+        Pool 24/25\">Pool 2024/25</a></li>\r\n      <li><a href=\"/cgi-bin/WebObjects/nuLigaBILLARDDE.woa/wa/leaguePage?championship=BBV
+        Snooker 24/25\">Snooker 2024/25</a></li>\r\n      <li><a href=\"/cgi-bin/WebObjects/nuLigaBILLARDDE.woa/wa/leaguePage?championship=BBV
+        Karambol 24/25\">Karambol 2024/25</a></li>\r\n      &nbsp;\r\n      <li><a
+        href=\"/cgi-bin/WebObjects/nuLigaBILLARDDE.woa/wa/leaguePage?championship=BBV
+        Pool 23/24\">Pool 2023/24</a></li>\r\n      <li><a href=\"/cgi-bin/WebObjects/nuLigaBILLARDDE.woa/wa/leaguePage?championship=BBV
+        Snooker 23/24\">Snooker 2023/24</a></li>\r\n      <li><a href=\"/cgi-bin/WebObjects/nuLigaBILLARDDE.woa/wa/leaguePage?championship=BBV
+        Karambol 23/24\">Karambol 2023/24</a></li>\r\n      &nbsp;\r\n      <li><a
+        href=\"/cgi-bin/WebObjects/nuLigaBILLARDDE.woa/wa/leaguePage?championship=BBV
+        Pool 22/23\">Pool 2022/23</a></li>\r\n      <li><a href=\"/cgi-bin/WebObjects/nuLigaBILLARDDE.woa/wa/leaguePage?championship=BBV
+        Snooker 22/23\">Snooker 2022/23</a></li>\r\n      <li><a href=\"/cgi-bin/WebObjects/nuLigaBILLARDDE.woa/wa/leaguePage?championship=BBV
+        Karambol 22/23\">Karambol 2022/23</a></li>\r\n    </ul>\t\r\n  </li>\r\n  <li><strong>Links</strong>\r\n
+        \   <ul>\r\n\t    <li><a href=\"https://billardbayern.de/\" target=\"_blank\">Homepage
+        BBV</a></li>\r\n\t    <li><a href=\"https://billard-union.net/kalender.php\"
+        target=\"_blank\">DBU Rahmenterminplan</a></li>\r\n\t    <li><a href=\"https://bbv-billard.liga.nu/admin\"
+        target=\"_blank\">nuLigaAdmin</a></li>\r\n            <li><a href=\"https://bbv-billard.liga.nu/verband\"
+        target=\"_blank\">nuVerband</a></li>\r\n    </ul>\r\n  </li>\r\n</ul>\r\n\n
+        \     </div>\n\n      \n\n\n      \n        <div class=\"col\">\n          <div
+        id=\"content\">\n  <div id=\"content-row1\">\n    \n      <h1>\n        BBV
+        Pool 2025/26\n        <br />\n        Bezirksliga Oberfranken\n        <br
+        />\n        \n          1.AC Bayreuth\n          - \n          SPC Hof\n        \n
+        \       \n        ,&nbsp;09.05.2026, \n        14:00&nbsp;Uhr</h1>\n      \n
+        \       <h2>Spielbericht</h2>\n        \n          \n          \n          \t<table
+        class = \"result-set\" cellspacing = \"0\" cellpadding = \"0\" border = \"0\">\n\t<tr>\n\t
+        \ <th>&nbsp;</th>\n\t  <th>1.AC Bayreuth</th>\n\t  <th>SPC Hof</th>\n\t  \n\t
+        \ \t<th colspan=\"2\">&nbsp;</th>\n\t  \t\n\t  \t\t<th>&nbsp;</th>\n\t  \t\n\t
+        \ \t\n\t  \t<th class = \"center\">Ergebnis</th>\n\t  \t<th class = \"center\">Partien</th>\n\t
+        \ \n\t  \n\t</tr>\n\t\n\t  \n\t  <tr>\n\t    <td>14.1</td>\n\t    <td>\n    \t\t<a
+        alt=\"Spielerportrait und head-to-head\" target=\"_top\" title=\"Spielerportrait
+        und head-to-head\" href=\"/cgi-bin/WebObjects/nuLigaBILLARDDE.woa/wa/playerPortrait?federation=BBV&amp;season=Pool+2025%2F26&amp;person=1839&amp;club=307\">Heublein,
+        Michael</a>\n    \t\t\n\t    </td>\n\t    <td>\n        <a alt=\"Spielerportrait
+        und head-to-head\" target=\"_top\" title=\"Spielerportrait und head-to-head\"
+        href=\"/cgi-bin/WebObjects/nuLigaBILLARDDE.woa/wa/playerPortrait?federation=BBV&amp;season=Pool+2025%2F26&amp;person=14881&amp;club=383\">Fischer,
+        Jörg</a>\n    \t\t\n\t    </td>\n\t    \n\t\t\t\t\t\n\t\t\t\t\t\t<td>\n\t\t\t\t\t\t\t60:58\n\t\t\t\t\t\t\t\t<br
+        />\n\t\t\t\t\t\t\t\t<span style=\"font-size:80%\">\n\t\t\t\t\t\t\t\t\tBälle\n\t\t\t\t\t\t\t\t</span>\n\t\t\t\t\t\t</td>\n\t\t\t\t\t\t<td>\n\t\t\t\t\t\t\t30:30\n\t\t\t\t\t\t\t\t<br/>\n\t\t\t\t\t\t\t\t<span
+        style=\"font-size:80%\">\n\t\t\t\t\t\t\t\t\tAufn.\n\t\t\t\t\t\t\t\t</span>\n\t\t\t\t\t\t</td>\n\t\t\t\t\t\t<td>\n\t\t\t\t\t\t\t7:4\n\t\t\t\t\t\t\t<br
+        />\n\t\t\t\t\t\t\t<span style=\"font-size:80%\">\n\t\t\t\t\t\t\t\tHS\n\t\t\t\t\t\t\t</span>\n\t\t\t\t\t\t</td>\n\t\t\t\t\t\n\t\t\t\t\t\n\t\t\t\t\t\n\t\t\t\t\t<td
+        align = \"center\">\n\t\t\t\t\t\t2:0\n\t\t\t\t\t</td>\n\t\t\t\t\t<td align
+        = \"center\">\n\t\t\t      \n\t\t\t        1:0\n\t\t\t      \n\t\t     \t</td>\n\t
+        \   \n\t    \n\t  </tr>\n\t\n\t  \n\t  <tr>\n\t    <td>8-Ball</td>\n\t    <td>\n
+        \   \t\t<a alt=\"Spielerportrait und head-to-head\" target=\"_top\" title=\"Spielerportrait
+        und head-to-head\" href=\"/cgi-bin/WebObjects/nuLigaBILLARDDE.woa/wa/playerPortrait?federation=BBV&amp;season=Pool+2025%2F26&amp;person=1841&amp;club=307\">Thorpe,
+        Thomas</a>\n    \t\t\n\t    </td>\n\t    <td>\n        <a alt=\"Spielerportrait
+        und head-to-head\" target=\"_top\" title=\"Spielerportrait und head-to-head\"
+        href=\"/cgi-bin/WebObjects/nuLigaBILLARDDE.woa/wa/playerPortrait?federation=BBV&amp;season=Pool+2025%2F26&amp;person=2234&amp;club=383\">Schmidt,
+        Linus</a>\n    \t\t\n\t    </td>\n\t    \n\t\t\t\t\t\n\t\t\t\t\t\n\t\t\t\t\t\t<td
+        colspan=\"3\">&nbsp;</td>\n\t\t\t\t\t\n\t\t\t\t\t\n\t\t\t\t\t<td align = \"center\">\n\t\t\t\t\t\t5:3\n\t\t\t\t\t</td>\n\t\t\t\t\t<td
+        align = \"center\">\n\t\t\t      \n\t\t\t        1:0\n\t\t\t      \n\t\t     \t</td>\n\t
+        \   \n\t    \n\t  </tr>\n\t\n\t  \n\t  <tr>\n\t    <td>9-Ball</td>\n\t    <td>\n
+        \   \t\t<a alt=\"Spielerportrait und head-to-head\" target=\"_top\" title=\"Spielerportrait
+        und head-to-head\" href=\"/cgi-bin/WebObjects/nuLigaBILLARDDE.woa/wa/playerPortrait?federation=BBV&amp;season=Pool+2025%2F26&amp;person=13041&amp;club=307\">Konopka,
+        Frank</a>\n    \t\t\n\t    </td>\n\t    <td>\n        <a alt=\"Spielerportrait
+        und head-to-head\" target=\"_top\" title=\"Spielerportrait und head-to-head\"
+        href=\"/cgi-bin/WebObjects/nuLigaBILLARDDE.woa/wa/playerPortrait?federation=BBV&amp;season=Pool+2025%2F26&amp;person=2230&amp;club=383\">Müller,
+        Steffen</a>\n    \t\t\n\t    </td>\n\t    \n\t\t\t\t\t\n\t\t\t\t\t\n\t\t\t\t\t\t<td
+        colspan=\"3\">&nbsp;</td>\n\t\t\t\t\t\n\t\t\t\t\t\n\t\t\t\t\t<td align = \"center\">\n\t\t\t\t\t\t7:2\n\t\t\t\t\t</td>\n\t\t\t\t\t<td
+        align = \"center\">\n\t\t\t      \n\t\t\t        1:0\n\t\t\t      \n\t\t     \t</td>\n\t
+        \   \n\t    \n\t  </tr>\n\t\n\t  \n\t  <tr>\n\t    <td>10-Ball</td>\n\t    <td>\n
+        \   \t\t<a alt=\"Spielerportrait und head-to-head\" target=\"_top\" title=\"Spielerportrait
+        und head-to-head\" href=\"/cgi-bin/WebObjects/nuLigaBILLARDDE.woa/wa/playerPortrait?federation=BBV&amp;season=Pool+2025%2F26&amp;person=10281&amp;club=307\">Rekic,
+        Elvedin</a>\n    \t\t\n\t    </td>\n\t    <td>\n        <a alt=\"Spielerportrait
+        und head-to-head\" target=\"_top\" title=\"Spielerportrait und head-to-head\"
+        href=\"/cgi-bin/WebObjects/nuLigaBILLARDDE.woa/wa/playerPortrait?federation=BBV&amp;season=Pool+2025%2F26&amp;person=1625&amp;club=383\">Kürschner,
+        Enrico</a>\n    \t\t\n\t    </td>\n\t    \n\t\t\t\t\t\n\t\t\t\t\t\n\t\t\t\t\t\t<td
+        colspan=\"3\">&nbsp;</td>\n\t\t\t\t\t\n\t\t\t\t\t\n\t\t\t\t\t<td align = \"center\">\n\t\t\t\t\t\t6:1\n\t\t\t\t\t</td>\n\t\t\t\t\t<td
+        align = \"center\">\n\t\t\t      \n\t\t\t        1:0\n\t\t\t      \n\t\t     \t</td>\n\t
+        \   \n\t    \n\t  </tr>\n\t\n\t  \n\t    <tr>\n\t      <td colspan = \"99\">&nbsp;</td>\n\t
+        \   </tr>\n\t  \n\t  <tr>\n\t    <td>9-Ball  Doppel</td>\n\t    <td>\n    \t\t<a
+        alt=\"Spielerportrait und head-to-head\" target=\"_top\" title=\"Spielerportrait
+        und head-to-head\" href=\"/cgi-bin/WebObjects/nuLigaBILLARDDE.woa/wa/playerPortrait?federation=BBV&amp;season=Pool+2025%2F26&amp;person=13041&amp;club=307\">Konopka,
+        Frank</a>\n    \t\t\n    \t\t\t <br />\n    \t\t\t <a alt=\"Spielerportrait
+        und head-to-head\" target=\"_top\" title=\"Spielerportrait und head-to-head\"
+        href=\"/cgi-bin/WebObjects/nuLigaBILLARDDE.woa/wa/playerPortrait?federation=BBV&amp;season=Pool+2025%2F26&amp;person=1839&amp;club=307\">Heublein,
+        Michael</a>\n    \t\t\n\t    </td>\n\t    <td>\n        <a alt=\"Spielerportrait
+        und head-to-head\" target=\"_top\" title=\"Spielerportrait und head-to-head\"
+        href=\"/cgi-bin/WebObjects/nuLigaBILLARDDE.woa/wa/playerPortrait?federation=BBV&amp;season=Pool+2025%2F26&amp;person=2230&amp;club=383\">Müller,
+        Steffen</a>\n    \t\t\n\t\t\t\t\t <br />    \t\t\t\t\n    \t\t\t <a alt=\"Spielerportrait
+        und head-to-head\" target=\"_top\" title=\"Spielerportrait und head-to-head\"
+        href=\"/cgi-bin/WebObjects/nuLigaBILLARDDE.woa/wa/playerPortrait?federation=BBV&amp;season=Pool+2025%2F26&amp;person=2234&amp;club=383\">Schmidt,
+        Linus</a>\n    \t\t\n\t    </td>\n\t    \n\t\t\t\t\t\n\t\t\t\t\t\n\t\t\t\t\t\t<td
+        colspan=\"3\">&nbsp;</td>\n\t\t\t\t\t\n\t\t\t\t\t\n\t\t\t\t\t<td align = \"center\">\n\t\t\t\t\t\t3:6\n\t\t\t\t\t</td>\n\t\t\t\t\t<td
+        align = \"center\">\n\t\t\t      \n\t\t\t        0:1\n\t\t\t      \n\t\t     \t</td>\n\t
+        \   \n\t    \n\t  </tr>\n\t\n\t  \n\t  <tr>\n\t    <td>10-Ball  Doppel</td>\n\t
+        \   <td>\n    \t\t<a alt=\"Spielerportrait und head-to-head\" target=\"_top\"
+        title=\"Spielerportrait und head-to-head\" href=\"/cgi-bin/WebObjects/nuLigaBILLARDDE.woa/wa/playerPortrait?federation=BBV&amp;season=Pool+2025%2F26&amp;person=1841&amp;club=307\">Thorpe,
+        Thomas</a>\n    \t\t\n    \t\t\t <br />\n    \t\t\t <a alt=\"Spielerportrait
+        und head-to-head\" target=\"_top\" title=\"Spielerportrait und head-to-head\"
+        href=\"/cgi-bin/WebObjects/nuLigaBILLARDDE.woa/wa/playerPortrait?federation=BBV&amp;season=Pool+2025%2F26&amp;person=10281&amp;club=307\">Rekic,
+        Elvedin</a>\n    \t\t\n\t    </td>\n\t    <td>\n        <a alt=\"Spielerportrait
+        und head-to-head\" target=\"_top\" title=\"Spielerportrait und head-to-head\"
+        href=\"/cgi-bin/WebObjects/nuLigaBILLARDDE.woa/wa/playerPortrait?federation=BBV&amp;season=Pool+2025%2F26&amp;person=14881&amp;club=383\">Fischer,
+        Jörg</a>\n    \t\t\n\t\t\t\t\t <br />    \t\t\t\t\n    \t\t\t <a alt=\"Spielerportrait
+        und head-to-head\" target=\"_top\" title=\"Spielerportrait und head-to-head\"
+        href=\"/cgi-bin/WebObjects/nuLigaBILLARDDE.woa/wa/playerPortrait?federation=BBV&amp;season=Pool+2025%2F26&amp;person=1625&amp;club=383\">Kürschner,
+        Enrico</a>\n    \t\t\n\t    </td>\n\t    \n\t\t\t\t\t\n\t\t\t\t\t\n\t\t\t\t\t\t<td
+        colspan=\"3\">&nbsp;</td>\n\t\t\t\t\t\n\t\t\t\t\t\n\t\t\t\t\t<td align = \"center\">\n\t\t\t\t\t\t5:2\n\t\t\t\t\t</td>\n\t\t\t\t\t<td
+        align = \"center\">\n\t\t\t      \n\t\t\t        1:0\n\t\t\t      \n\t\t     \t</td>\n\t
+        \   \n\t    \n\t  </tr>\n\t\n\t  \n\t    <tr>\n\t      <td colspan = \"99\">&nbsp;</td>\n\t
+        \   </tr>\n\t  \n\t  <tr>\n\t    <td>14.1</td>\n\t    <td>\n    \t\t<a alt=\"Spielerportrait
+        und head-to-head\" target=\"_top\" title=\"Spielerportrait und head-to-head\"
+        href=\"/cgi-bin/WebObjects/nuLigaBILLARDDE.woa/wa/playerPortrait?federation=BBV&amp;season=Pool+2025%2F26&amp;person=10281&amp;club=307\">Rekic,
+        Elvedin</a>\n    \t\t\n\t    </td>\n\t    <td>\n        <a alt=\"Spielerportrait
+        und head-to-head\" target=\"_top\" title=\"Spielerportrait und head-to-head\"
+        href=\"/cgi-bin/WebObjects/nuLigaBILLARDDE.woa/wa/playerPortrait?federation=BBV&amp;season=Pool+2025%2F26&amp;person=1625&amp;club=383\">Kürschner,
+        Enrico</a>\n    \t\t\n\t    </td>\n\t    \n\t\t\t\t\t\n\t\t\t\t\t\t<td>\n\t\t\t\t\t\t\t60:54\n\t\t\t\t\t\t\t\t<br
+        />\n\t\t\t\t\t\t\t\t<span style=\"font-size:80%\">\n\t\t\t\t\t\t\t\t\tBälle\n\t\t\t\t\t\t\t\t</span>\n\t\t\t\t\t\t</td>\n\t\t\t\t\t\t<td>\n\t\t\t\t\t\t\t16:15\n\t\t\t\t\t\t\t\t<br/>\n\t\t\t\t\t\t\t\t<span
+        style=\"font-size:80%\">\n\t\t\t\t\t\t\t\t\tAufn.\n\t\t\t\t\t\t\t\t</span>\n\t\t\t\t\t\t</td>\n\t\t\t\t\t\t<td>\n\t\t\t\t\t\t\t19:28\n\t\t\t\t\t\t\t<br
+        />\n\t\t\t\t\t\t\t<span style=\"font-size:80%\">\n\t\t\t\t\t\t\t\tHS\n\t\t\t\t\t\t\t</span>\n\t\t\t\t\t\t</td>\n\t\t\t\t\t\n\t\t\t\t\t\n\t\t\t\t\t\n\t\t\t\t\t<td
+        align = \"center\">\n\t\t\t\t\t\t2:0\n\t\t\t\t\t</td>\n\t\t\t\t\t<td align
+        = \"center\">\n\t\t\t      \n\t\t\t        1:0\n\t\t\t      \n\t\t     \t</td>\n\t
+        \   \n\t    \n\t  </tr>\n\t\n\t  \n\t  <tr>\n\t    <td>8-Ball</td>\n\t    <td>\n
+        \   \t\t<a alt=\"Spielerportrait und head-to-head\" target=\"_top\" title=\"Spielerportrait
+        und head-to-head\" href=\"/cgi-bin/WebObjects/nuLigaBILLARDDE.woa/wa/playerPortrait?federation=BBV&amp;season=Pool+2025%2F26&amp;person=13041&amp;club=307\">Konopka,
+        Frank</a>\n    \t\t\n\t    </td>\n\t    <td>\n        <a alt=\"Spielerportrait
+        und head-to-head\" target=\"_top\" title=\"Spielerportrait und head-to-head\"
+        href=\"/cgi-bin/WebObjects/nuLigaBILLARDDE.woa/wa/playerPortrait?federation=BBV&amp;season=Pool+2025%2F26&amp;person=2230&amp;club=383\">Müller,
+        Steffen</a>\n    \t\t\n\t    </td>\n\t    \n\t\t\t\t\t\n\t\t\t\t\t\n\t\t\t\t\t\t<td
+        colspan=\"3\">&nbsp;</td>\n\t\t\t\t\t\n\t\t\t\t\t\n\t\t\t\t\t<td align = \"center\">\n\t\t\t\t\t\t5:2\n\t\t\t\t\t</td>\n\t\t\t\t\t<td
+        align = \"center\">\n\t\t\t      \n\t\t\t        1:0\n\t\t\t      \n\t\t     \t</td>\n\t
+        \   \n\t    \n\t  </tr>\n\t\n\t  \n\t  <tr>\n\t    <td>9-Ball</td>\n\t    <td>\n
+        \   \t\t<a alt=\"Spielerportrait und head-to-head\" target=\"_top\" title=\"Spielerportrait
+        und head-to-head\" href=\"/cgi-bin/WebObjects/nuLigaBILLARDDE.woa/wa/playerPortrait?federation=BBV&amp;season=Pool+2025%2F26&amp;person=1841&amp;club=307\">Thorpe,
+        Thomas</a>\n    \t\t\n\t    </td>\n\t    <td>\n        <a alt=\"Spielerportrait
+        und head-to-head\" target=\"_top\" title=\"Spielerportrait und head-to-head\"
+        href=\"/cgi-bin/WebObjects/nuLigaBILLARDDE.woa/wa/playerPortrait?federation=BBV&amp;season=Pool+2025%2F26&amp;person=14881&amp;club=383\">Fischer,
+        Jörg</a>\n    \t\t\n\t    </td>\n\t    \n\t\t\t\t\t\n\t\t\t\t\t\n\t\t\t\t\t\t<td
+        colspan=\"3\">&nbsp;</td>\n\t\t\t\t\t\n\t\t\t\t\t\n\t\t\t\t\t<td align = \"center\">\n\t\t\t\t\t\t7:2\n\t\t\t\t\t</td>\n\t\t\t\t\t<td
+        align = \"center\">\n\t\t\t      \n\t\t\t        1:0\n\t\t\t      \n\t\t     \t</td>\n\t
+        \   \n\t    \n\t  </tr>\n\t\n\t  \n\t  <tr>\n\t    <td>10-Ball</td>\n\t    <td>\n
+        \   \t\t<a alt=\"Spielerportrait und head-to-head\" target=\"_top\" title=\"Spielerportrait
+        und head-to-head\" href=\"/cgi-bin/WebObjects/nuLigaBILLARDDE.woa/wa/playerPortrait?federation=BBV&amp;season=Pool+2025%2F26&amp;person=1839&amp;club=307\">Heublein,
+        Michael</a>\n    \t\t\n\t    </td>\n\t    <td>\n        <a alt=\"Spielerportrait
+        und head-to-head\" target=\"_top\" title=\"Spielerportrait und head-to-head\"
+        href=\"/cgi-bin/WebObjects/nuLigaBILLARDDE.woa/wa/playerPortrait?federation=BBV&amp;season=Pool+2025%2F26&amp;person=2234&amp;club=383\">Schmidt,
+        Linus</a>\n    \t\t\n\t    </td>\n\t    \n\t\t\t\t\t\n\t\t\t\t\t\n\t\t\t\t\t\t<td
+        colspan=\"3\">&nbsp;</td>\n\t\t\t\t\t\n\t\t\t\t\t\n\t\t\t\t\t<td align = \"center\">\n\t\t\t\t\t\t6:5\n\t\t\t\t\t</td>\n\t\t\t\t\t<td
+        align = \"center\">\n\t\t\t      \n\t\t\t        1:0\n\t\t\t      \n\t\t     \t</td>\n\t
+        \   \n\t    \n\t  </tr>\n\t\n\t<tr>\n\t  <td colspan=\"3\">&nbsp;</td>\n\t
+        \ \n\t  \t\t\n\t  \t\t\n\t  \t\t\t<td>&nbsp;</td>\n\t\t  \t\t<td>&nbsp;</td>\n\t
+        \ \t\t\n\t  \t\t<td>&nbsp;</td>\n\t  \t\n\t  \t<td align=\"center\">\n\t\t
+        \   <b>\n\t\t      48:23\n\t\t    </b>\n\t\t  </td>\n\t\t  <td align=\"center\">\n\t\t
+        \   <b>\n\t\t      9:1\n\t\t    </b>\n\t\t  </td>\n\t  \n    \n\t</tr>\n</table>\n
+        \         \n          \n          \n          <p>Spielbeginn: 14:00 Uhr -
+        Spielende: 17:30 Uhr</p>\n          \n          \n          \n            <p>Bemerkungen:
+        </p>\n          \n          <p>Spielbericht durch Spielleiter genehmigt.</p>\n
+        \         \n          \n          \n          <p>\n            <a target=\"_blank\"
+        class=\"picto-pdf\" href=\"/cgi-bin/WebObjects/nuLigaDokumentBILLARDDE.woa/wa/nuDokument?dokument=MeetingReportTTFOP&meeting=7112978&historicalDataToken=62%2B5gGjFIC745YBx6rkAlA%3D%3D\">Spielbericht
+        (pdf)</a>\n          </p>\n          <p>\n            Letzte Änderung Verein:
+        10.05.2026, 09:19 Uhr\n            <br />\n            Letzte Änderung Admin:
+        12.05.2026, 19:51 Uhr\n          </p>\n        \n        \n      \n    \n
+        \ </div>\n  <div id=\"content-col1\"> </div>\n  <div id=\"content-col2\">
+        </div>\n  <div id=\"content-row2\"> </div>\n</div>\n        </div>\n      \n\n
+        \   </div>\n  </div>\n\n      </main>\n      <div id=\"footer-external\">\n
+        \       \n      </div>\n      <footer id=\"footer\">\n      \t<div id=\"footer-left\">\n
+        \   \t    \n\t        \n\t        \t<div id=\"footer-copyright\">Für den Inhalt
+        verantwortlich:&nbsp;Bayerischer Billardverband e.V. </div>\n\t        \n\t
+        \       <div id=\"footer-link\">\n\t        \t&copy;&nbsp;1999-2026&nbsp;<a
+        target=\"_blank\" href=\"http://www.datenautomaten.nu\">nu Datenautomaten
+        GmbH - Automatisierte internetgestützte Netzwerklösungen</a>\n\t        </div>\n\t
+        \       <div id=\"footer-navigation\">\n\t          <a href=\"http://bbv-billard.liga.nu/cgi-bin/WebObjects/nuLigaBILLARDDE.woa/wa/contact?federation=BBV\">Kontakt</a>,\n\t
+        \         <a href=\"http://bbv-billard.liga.nu/cgi-bin/WebObjects/nuLigaBILLARDDE.woa/wa/legalNotice?federation=BBV\">Impressum</a>,\n\t
+        \           <a href=\"http://bbv-billard.liga.nu/cgi-bin/WebObjects/nuLigaBILLARDDE.woa/wa/dataProtection?federation=BBV\">Datenschutz</a>\n\t
+        \         \n\t        </div>\n\t        \n       </div>\n      <div id=\"footer-right\">\n
+        \     \t<script type=\"text/javascript\">\n\t          if (typeof fedBanner104
+        === 'function') {\n\t            fedBanner104();\n\t          }\n    \t</script>\n
+        \     </div>\n  \t</footer>\n    </div>\n    <script>\n        document.addEventListener(\"DOMContentLoaded\",
+        function () {\n            const sidebar = document.getElementById(\"navigation\");\n
+        \           const btn = document.getElementById(\"hamburger-btn\");\n            if
+        (!sidebar || !btn) return;\n\n            btn.addEventListener(\"click\",
+        function (e) {\n                e.stopPropagation();\n                sidebar.classList.toggle(\"open\");\n
+        \           });\n\n            document.addEventListener(\"click\", function
+        (e) {\n                if (!sidebar.contains(e.target) && !btn.contains(e.target))
+        {\n                    sidebar.classList.remove(\"open\");\n                }\n
+        \           });\n        });\n    </script>\n    <script type=\"text/javascript\"
+        src=\"/WebObjects/nuLiga.woa/Frameworks/nuLigaWebResources.framework/WebServerResources/js/bootstrap.bundle.min.js?nlv=9b272e78\"></script>\n
+        \   \n    <script language=\"JavaScript\" type=\"text/javascript\"><!-- Dynamic
+        client side script from WebObjects\n\n//-->\n</script>\n  </body>\n</html>\n"
+  recorded_at: Wed, 15 Jul 2026 11:43:28 GMT
+recorded_with: VCR 6.4.0

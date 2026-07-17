@@ -10,9 +10,9 @@
       <% if @rankings_by_discipline[discipline].present? %>
         <h2 class="text-2xl font-bold mb-4"><%= discipline.name %> Rankings</h2>
         <div class="overflow-x-auto">
-          <table class="min-w-full bg-white border border-gray-300">
+          <table class="min-w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600">
             <thead>
-              <tr class="bg-gray-100">
+              <tr class="bg-gray-100 dark:bg-gray-800">
                 <th class="px-4 py-2 border">Rank</th>
                 <th class="px-4 py-2 border">Player</th>
                 <th class="px-4 py-2 border">Club</th>
@@ -24,7 +24,7 @@
             </thead>
             <tbody>
               <% @rankings_by_discipline[discipline].each do |ranking| %>
-                <tr class="hover:bg-gray-50">
+                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
                   <td class="px-4 py-2 border text-center"><%= ranking[:rank] %></td>
                   <td class="px-4 py-2 border"><%=link_to ranking[:player].name, player_path(ranking[:player]) %></td>
                   <td class="px-4 py-2 border"><%= ranking[:club]&.name || '-' %></td>
@@ -42,7 +42,7 @@
           </table>
         </div>
       <% else %>
-<!--        <p class="text-gray-500 italic">No rankings available for this discipline.</p>-->
+<!--        <p class="text-gray-500 dark:text-gray-400 italic">No rankings available for this discipline.</p>-->
       <% end %>
     </section>
   <% end %>

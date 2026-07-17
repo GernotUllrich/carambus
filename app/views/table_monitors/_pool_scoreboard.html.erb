@@ -237,14 +237,14 @@
             <div class="flex flex-1 items-center font-bold text-center text-<%= vw2 %>"><%= options[:tournament_title] %></div>
               <div class="flex flex-1 items-center text-center text-<%= vw2 %>"><%= options[:name] %></div>
             <%- if options[:current_round].present? %>
-              <div class="flex flex-1 items-center text-center text-<%= vw2 %>">Runde <%= options[:current_round] %></div>
+              <div class="flex flex-1 items-center text-center text-<%= vw2 %>"><%= t("table_monitor.round") %> <%= options[:current_round] %></div>
             <%- end %>
             <div class="flex flex-1 items-center text-center text-<%= vw2 %>"><%= options[:game_name] %></div>
             <%- if options[:sets_to_win].to_i > 1 && options[:free_game_form] != 'pool' %>
-              <div class="flex flex-1 items-center text-center text-<%= vw2 %>"><%= "#{options[:sets_to_win].to_i} Gewinnsätze" %></div>
+              <div class="flex flex-1 items-center text-center text-<%= vw2 %>"><%= t("table_monitor.winning_sets", count: options[:sets_to_win].to_i) %></div>
             <%- end %>
             <%- if options[:sets_to_play].to_i > 1 %>
-              <div class="flex flex-1 items-center text-center text-<%= vw2 %>"><%= "maximal #{options[:sets_to_play].to_i} Sätze" %></div>
+              <div class="flex flex-1 items-center text-center text-<%= vw2 %>"><%= t("table_monitor.max_sets", count: options[:sets_to_play].to_i) %></div>
             <%- end %>
           </div>
           <%- if left_player[:discipline] == "14.1 endlos" %>
@@ -294,7 +294,7 @@
                 <%- end %>
               <%- end %>
             </div>
-            <div class="flex h-1/3 font-bold text-<%= vw2 %> text-red-500"><%= "Halted" if table_monitor.timer_halt_at.present? %></div>
+            <div class="flex h-1/3 font-bold text-<%= vw2 %> text-red-500"><%= t("table_monitor.halted") if table_monitor.timer_halt_at.present? %></div>
           </div>
         <%- end %>
       </div>

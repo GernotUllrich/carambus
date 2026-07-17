@@ -64,13 +64,13 @@ class McpServer::Tools::RegisterForTournamentTest < ActiveSupport::TestCase
     # Plan 14-G.13: Multi-Player-Output-Format auch für single-Player-Input.
     assert_match(/Registered 0\/1 player\(s\) into meldeliste_cc_id=1310/, text)
     assert_match(/player_cc_ids: \[99999\]/, text)
-    # Plan 14-G.13 Task 0: Workflow ist N×(add+check) + save + verify.
-    # Single-Player nach Fix-3: 1×init-check (edit=LEER, lädt DB-State in Scratch)
-    # + 1×add + 1×save + 1×verify = 4 POSTs.
+    # Plan 31-fix (2026-06-10, HAR-Goldvorlage): Workflow ist init(editUp) + N×(add+post-check) + save + verify.
+    # Single-Player: 1×init-check (editUp=LEER, lädt DB-State) + 1×add + 1×post-check
+    # + 1×save + 1×verify = 5 POSTs.
     posts = @mock.calls.select { |verb, _, _, opts| verb == :post && opts[:armed] }
     actions = posts.map { |_, action, _, _| action }
-    assert_equal %w[sportwart-editMeldelisteCheck addPlayerToMeldeliste saveMeldeliste showCommittedMeldeliste], actions,
-      "Erwarte 4 POSTs in genau dieser Reihenfolge — got #{actions.inspect}"
+    assert_equal %w[sportwart-editMeldelisteCheck addPlayerToMeldeliste sportwart-editMeldelisteCheck saveMeldeliste showCommittedMeldeliste], actions,
+      "Erwarte 5 POSTs in genau dieser Reihenfolge (add gefolgt von post-add-check) — got #{actions.inspect}"
     # Default-MockClient liefert body="" → verified=false (kein Marker im Mock-HTML)
     assert_match(/verified_in_committed_list: false/, text)
   end
@@ -279,17 +279,18 @@ class McpServer::Tools::RegisterForTournamentTest < ActiveSupport::TestCase
     refute response.error?
     posts = @mock.calls.select { |verb, _, _, opts| verb == :post && opts[:armed] }
     actions = posts.map { |_, action, _, _| action }
-    # Plan 14-G.13 Task 0 Fix-3 (HAR-empirisch via scripts/cc_probe_edit_empty.rb 2026-05-18):
-    # Erwartete Sequenz: 1× init-editMeldelisteCheck (edit=LEER lädt DB-Scratch) + N× add
-    # + 1× save + 1× verify = 5 POSTs für N=2. Der per-Player-Check wurde durch
-    # init-only ersetzt: cc_add appendet in einen bereits vorbereiteten Scratch.
+    # Plan 31-fix (2026-06-10, HAR-Goldvorlage tmp/Schnellanmeldung.har):
+    # Erwartete Sequenz: 1× init-editMeldelisteCheck (editUp=LEER lädt DB-Scratch)
+    # + N×(add + post-add-check) + 1× save + 1× verify = 7 POSTs für N=2.
+    # Der post-add-Check persistiert den frisch-addierten Spieler in den Scratch.
     expected_actions = %w[
       sportwart-editMeldelisteCheck
-      addPlayerToMeldeliste addPlayerToMeldeliste
+      addPlayerToMeldeliste sportwart-editMeldelisteCheck
+      addPlayerToMeldeliste sportwart-editMeldelisteCheck
       saveMeldeliste showCommittedMeldeliste
     ]
     assert_equal expected_actions, actions,
-      "Erwarte 1×init-check + 2×add + 1×save + 1×verify — got #{actions.inspect}"
+      "Erwarte 1×init-check + 2×(add+post-check) + 1×save + 1×verify — got #{actions.inspect}"
     # Verify die zwei adds mit den richtigen player_cc_ids
     add_calls = posts.select { |_, action, _, _| action == "addPlayerToMeldeliste" }
     add_player_ids = add_calls.map { |_, _, params, _| params[:a] }
@@ -352,11 +353,11 @@ class McpServer::Tools::RegisterForTournamentTest < ActiveSupport::TestCase
     refute response.error?
     posts = @mock.calls.select { |verb, _, _, opts| verb == :post && opts[:armed] }
     actions = posts.map { |_, action, _, _| action }
-    # Plan 14-G.13 Task 0 Fix-3: Single-Player-Pfad nutzt selbe Mechanik wie Multi-Player.
-    # Sequenz: 1×init-check (edit=LEER) + 1×add + 1×save + 1×verify = 4 POSTs.
+    # Plan 31-fix (2026-06-10): Single-Player-Pfad nutzt selbe Mechanik wie Multi-Player.
+    # Sequenz: 1×init-check (editUp=LEER) + 1×add + 1×post-check + 1×save + 1×verify = 5 POSTs.
     # Backwards-Compat-Constraint: player_cc_id (singular) → intern player_cc_ids:[singular].
-    assert_equal %w[sportwart-editMeldelisteCheck addPlayerToMeldeliste saveMeldeliste showCommittedMeldeliste], actions,
-      "Single-Player-Pfad muss 1×init-check + 1×add + 1×save + 1×verify durchlaufen — got #{actions.inspect}"
+    assert_equal %w[sportwart-editMeldelisteCheck addPlayerToMeldeliste sportwart-editMeldelisteCheck saveMeldeliste showCommittedMeldeliste], actions,
+      "Single-Player-Pfad muss 1×init-check + 1×add + 1×post-check + 1×save + 1×verify durchlaufen — got #{actions.inspect}"
   end
 
   test "M6: weder player_cc_id noch player_cc_ids gesetzt → klare Diagnose-Message" do
@@ -430,14 +431,16 @@ class McpServer::Tools::RegisterForTournamentTest < ActiveSupport::TestCase
     refute response.error?
     posts = @mock.calls.select { |verb, _, _, opts| verb == :post && opts[:armed] }
     actions = posts.map { |_, action, _, _| action }
-    # Fix-3: 1×init-check (edit=LEER) + 3×add + 1×save + 1×verify = 6 POSTs
+    # Plan 31-fix: 1×init-check (editUp=LEER) + 3×(add+post-check) + 1×save + 1×verify = 9 POSTs
     expected_actions = %w[
       sportwart-editMeldelisteCheck
-      addPlayerToMeldeliste addPlayerToMeldeliste addPlayerToMeldeliste
+      addPlayerToMeldeliste sportwart-editMeldelisteCheck
+      addPlayerToMeldeliste sportwart-editMeldelisteCheck
+      addPlayerToMeldeliste sportwart-editMeldelisteCheck
       saveMeldeliste showCommittedMeldeliste
     ]
     assert_equal expected_actions, actions,
-      "3-Player-Multi-Add muss 1×init-check + 3×add + save + verify durchlaufen — got #{actions.inspect}"
+      "3-Player-Multi-Add muss 1×init-check + 3×(add+post-check) + save + verify durchlaufen — got #{actions.inspect}"
 
     # Plus: alle add-Calls kommen NACH dem init-check, VOR dem save.
     init_check_idx = actions.index("sportwart-editMeldelisteCheck")
@@ -470,17 +473,17 @@ class McpServer::Tools::RegisterForTournamentTest < ActiveSupport::TestCase
       assert add_params.key?(key), "#{key} muss im cc_add-Payload sein (FULL form) — got #{add_params.keys.sort.inspect}"
     end
 
-    # init-editMeldelisteCheck: lädt DB-Scratch, kein `a`, KEY edit muss LEER sein (Browser-Pattern)
+    # init-editMeldelisteCheck: lädt DB-Scratch, kein `a`, KEY editUp muss LEER sein (HAR-Goldvorlage)
     check_call = @mock.calls.find { |verb, action, _, _| verb == :post && action == "sportwart-editMeldelisteCheck" }
     assert check_call, "sportwart-editMeldelisteCheck (init) muss aufgerufen worden sein"
     _, _, check_params, check_opts = check_call
     refute check_params.key?(:a), "a darf NICHT im init-Check-Payload sein — got #{check_params.keys.sort.inspect}"
     refute check_params.key?(:rang), "rang darf NICHT im init-Check-Payload sein — got #{check_params.keys.sort.inspect}"
     assert check_params.key?(:clubId), "clubId MUSS im init-Check-Payload sein (specific, lädt Club-Scope) — got #{check_params.keys.sort.inspect}"
-    # edit="" muss als blank-Key durchkommen (keep_blanks: [:edit] im opts)
-    assert_includes Array(check_opts[:keep_blanks]), :edit,
-      "keep_blanks: [:edit] muss in opts sein, damit edit=LEER nicht gefiltert wird"
-    assert_equal "", check_params[:edit], "edit muss LEER sein (PHP isset+empty triggert DB-Scratch-Load)"
+    # editUp="" muss als blank-Key durchkommen (keep_blanks: [:editUp] im opts) — HAR-belegt
+    assert_includes Array(check_opts[:keep_blanks]), :editUp,
+      "keep_blanks: [:editUp] muss in opts sein, damit editUp=LEER nicht gefiltert wird"
+    assert_equal "", check_params[:editUp], "editUp muss LEER sein (lädt DB-Scratch, HAR-Goldvorlage)"
 
     # saveMeldeliste: FULL form + save + a
     save_call = @mock.calls.find { |verb, action, _, _| verb == :post && action == "saveMeldeliste" }

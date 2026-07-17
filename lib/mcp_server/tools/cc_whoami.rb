@@ -25,7 +25,8 @@ module McpServer
                   "automatisch zu Sessionbeginn aufrufen (siehe server.instructions). " \
                   "Returns: { scenario_name, region: {shortname, name, cc_id} | nil, " \
                   "default_season, user: {id, email} | nil, sportwart_locations: [...], " \
-                  "sportwart_disciplines: [...] }. Keine sensitiven Felder; idempotent; read-only."
+                  "sportwart_disciplines: [...], personas: [...], can_write_cc: bool }. " \
+                  "Keine sensitiven Felder; idempotent; read-only."
       input_schema(properties: {})
       annotations(read_only_hint: true, destructive_hint: false)
 
@@ -36,7 +37,9 @@ module McpServer
           default_season: resolve_default_season(server_context),
           user: resolve_user_envelope(server_context),
           sportwart_locations: resolve_sportwart_locations(server_context),
-          sportwart_disciplines: resolve_sportwart_disciplines(server_context)
+          sportwart_disciplines: resolve_sportwart_disciplines(server_context),
+          personas: resolve_personas(server_context),
+          can_write_cc: resolve_can_write_cc(server_context)
         }
         text(JSON.generate(payload))
       rescue => e
@@ -100,7 +103,20 @@ module McpServer
         return nil if user_id.blank?
         u = User.find_by(id: user_id)
         return nil unless u
-        {id: u.id, email: u.email}
+        envelope = {id: u.id, email: u.email}
+        envelope[:first_name] = u.first_name if u.first_name.present?
+        # D-35/D-38: verknuepften Player (current_user.player) exposen, damit der Chat die echte
+        # Person kennt (Name + Verein) und den Nutzer mit seinem Spieler-Namen ansprechen kann.
+        if (player = u.player)
+          envelope[:player] = {
+            id: player.id,
+            firstname: player.firstname,
+            lastname: player.lastname,
+            fullname: player.fullname,
+            club: player.club&.shortname
+          }.compact
+        end
+        envelope
       rescue => e
         Rails.logger.warn "[CcWhoami.resolve_user_envelope] #{e.class}: #{e.message}"
         nil
@@ -113,6 +129,9 @@ module McpServer
         return [] if user_id.blank?
         u = User.find_by(id: user_id)
         return [] unless u&.respond_to?(:sportwart_locations)
+        # D-38: Wirkbereich nur für EXPLIZITE Sportwarte exponieren — ein club_admin/player mit
+        # latenten sportwart_locations-Joins (aber ohne persona_grant) ist KEIN Sportwart.
+        return [] unless u.respond_to?(:sportwart?) && u.sportwart?
         u.sportwart_locations.pluck(:id, :name).map { |id, name| {id: id, name: name} }
       rescue => e
         Rails.logger.warn "[CcWhoami.resolve_sportwart_locations] #{e.class}: #{e.message}"
@@ -120,21 +139,63 @@ module McpServer
       end
 
       # Sportwart-Disciplines mit branch_cc_id (CC admin branch ID für Tool-Calls wie
-      # cc_lookup_meldeliste_for_tournament). branch_cc_id aus BranchCc-Lookup per
-      # discipline_id + context — nil wenn kein BranchCc-Eintrag existiert.
+      # cc_lookup_meldeliste_for_tournament). branch_cc_id via root_chain aufgelöst
+      # (siehe resolve_branch_cc_id) — nil nur wenn keine Wurzel der Hierarchie einen
+      # BranchCc-Eintrag im aktiven Kontext hat.
       def self.resolve_sportwart_disciplines(server_context)
         user_id = server_context&.dig(:user_id)
         return [] if user_id.blank?
         u = User.find_by(id: user_id)
         return [] unless u&.respond_to?(:sportwart_disciplines)
+        # D-38: nur für EXPLIZITE Sportwarte (analog resolve_sportwart_locations).
+        return [] unless u.respond_to?(:sportwart?) && u.sportwart?
         ctx = Carambus.config.context.to_s.presence
         u.sportwart_disciplines.map do |d|
-          branch_cc_id = BranchCc.find_by(discipline_id: d.id, context: ctx)&.cc_id
-          {id: d.id, name: d.name, branch_cc_id: branch_cc_id}
+          {id: d.id, name: d.name, branch_cc_id: resolve_branch_cc_id(d, ctx)}
         end
       rescue => e
         Rails.logger.warn "[CcWhoami.resolve_sportwart_disciplines] #{e.class}: #{e.message}"
         []
+      end
+
+      # branch_cc_id (CC admin branch ID) zu einer Disziplin. BranchCc-Records existieren nur
+      # für die Wurzel-Disziplinen einer Hierarchie (z.B. Karambol[50]→cc_id 10, Kegel[55]→cc_id 8),
+      # NICHT für Sub-Disziplinen (Cadre/Dreiband/…). Deshalb über die root_chain auflösen und die
+      # erste Disziplin der Kette (self … root) nehmen, zu der ein BranchCc existiert — praktisch
+      # die Wurzel = der Branch. Ohne diese Wurzel-Auflösung liefert ein Sub-Disziplin-Sportwart
+      # branch_cc_id=nil und alle darauf aufbauenden Write-Tools/Prompts verlieren ihren Scope
+      # (LSW-Kegel-Befund 2026-06-14: „Die Top-Hierarchie der Discipline IST der Branch.").
+      def self.resolve_branch_cc_id(discipline, ctx)
+        discipline.root_chain.each do |d|
+          bc = BranchCc.find_by(discipline_id: d.id, context: ctx)
+          return bc.cc_id if bc
+        end
+        nil
+      end
+
+      # Abgeleitete Personas des Users (UserPersonas-Concern, Phase 34-01):
+      # z.B. ["player"] / ["player","sportwart"] / ["club_admin","turnierleiter"].
+      def self.resolve_personas(server_context)
+        user_id = server_context&.dig(:user_id)
+        return [] if user_id.blank?
+        u = User.find_by(id: user_id)
+        return [] unless u&.respond_to?(:personas)
+        u.personas.map(&:to_s)
+      rescue => e
+        Rails.logger.warn "[CcWhoami.resolve_personas] #{e.class}: #{e.message}"
+        []
+      end
+
+      # CC-Schreibrecht der Persona (34-01 cc_write_access?): true für Sportwart/TL/Admin.
+      def self.resolve_can_write_cc(server_context)
+        user_id = server_context&.dig(:user_id)
+        return false if user_id.blank?
+        u = User.find_by(id: user_id)
+        return false unless u&.respond_to?(:cc_write_access?)
+        u.cc_write_access?
+      rescue => e
+        Rails.logger.warn "[CcWhoami.resolve_can_write_cc] #{e.class}: #{e.message}"
+        false
       end
     end
   end

@@ -24,6 +24,24 @@ class League::ClubCloudScraper < ApplicationService
 
   private
 
+  # Folgt HTTP-Redirects — Net::HTTP.get tut das NICHT. Nötig, weil manche ClubCloud-Tenants
+  # (z.B. blmr.club-cloud.de) per 302 auf ihre öffentliche Verbandsdomain (billard-blmr.de)
+  # umleiten; ohne Folgen bekäme der Scraper nur den leeren Redirect-Body (0 Tabellen → Abbruch).
+  # Hosts ohne Redirect (z.B. ndbv.de) liefern den Body direkt → unverändertes Verhalten.
+  def http_get(url, limit = 5)
+    raise ArgumentError, "zu viele HTTP-Redirects für #{url}" if limit <= 0
+    response = Net::HTTP.get_response(URI(url.to_s))
+    case response
+    when Net::HTTPSuccess
+      response.body
+    when Net::HTTPRedirection
+      http_get(URI.join(url.to_s, response["location"]).to_s, limit - 1)
+    else
+      Rails.logger.info "==== scrape ==== HTTP #{response.code} für #{url}"
+      response.body
+    end
+  end
+
   def scrape_league
     @region_id = ((@league.organizer_type == "Region") ? @league.organizer_id : nil)
     @global_context = @region_id == League::DBU_ID
@@ -38,6 +56,12 @@ class League::ClubCloudScraper < ApplicationService
 
     organizer = @league.organizer
     if organizer.is_a?(Region) && organizer.shortname == "BBV"
+      # Phase 18-03: deprecated — BBV läuft über NuLiga (nu_liga:import_bbv). Alt-CC-Server abgeschaltet.
+      # Notausgang: FORCE_LEGACY_BBV_SCRAPE=1. Andere Regionen: scrape_from_club_cloud (unverändert).
+      unless ENV["FORCE_LEGACY_BBV_SCRAPE"] == "1"
+        Rails.logger.warn("ClubCloudScraper(BBV league #{@league.id}): deprecated — BBV läuft über NuLiga. Übersprungen.")
+        return nil
+      end
       @league_url, _ = @league.scrape_single_bbv_league(organizer, @opts)
     else
       scrape_from_club_cloud
@@ -61,7 +85,7 @@ class League::ClubCloudScraper < ApplicationService
     @league_url = url + league_p
     Rails.logger.info "reading #{@league_url}"
     uri = URI(@league_url)
-    league_html = Net::HTTP.get(uri)
+    league_html = http_get(uri)
     league_doc = Nokogiri::HTML(league_html)
 
     # TODO what's the following code about??
@@ -69,7 +93,7 @@ class League::ClubCloudScraper < ApplicationService
       staffel_link = @league.source_url
       Rails.logger.info "reading #{staffel_link}"
       uri = URI(staffel_link)
-      staffel_html = Net::HTTP.get(uri)
+      staffel_html = http_get(uri)
       staffel_doc = Nokogiri::HTML(staffel_html)
       details_table = staffel_doc.css("aside > section > table")[0]
       skip = false
@@ -115,7 +139,7 @@ class League::ClubCloudScraper < ApplicationService
       team_url = url + team_link
       Rails.logger.info "reading #{team_url}"
       uri = URI(team_url)
-      team_html = Net::HTTP.get(uri)
+      team_html = http_get(uri)
       team_doc = Nokogiri::HTML(team_html)
       team_club_table = team_doc.css("aside > section > table")[2]
       if team_club_table.blank?
@@ -131,7 +155,7 @@ class League::ClubCloudScraper < ApplicationService
         team_club_url = url + team_club_link
         Rails.logger.info "reading #{team_club_url}"
         uri = URI(team_club_url)
-        team_club_html = Net::HTTP.get(uri)
+        team_club_html = http_get(uri)
         team_club_doc = Nokogiri::HTML(team_club_html)
         team_club_dbu_nr = nil
         team_club_doc.css("aside section table")[0].css("tr").each do |tr__|
@@ -289,10 +313,42 @@ class League::ClubCloudScraper < ApplicationService
     end
   end
 
+  # Robustes Datums-Parsing für CC-Spielplan-Zellen. `DateTime.parse` ist zu lax und erzeugt bei malformten
+  # Zellen stille Garbage-Datteln: "21.02.206"→0206-02-21, "21.02.20"→2021, "9.1.1"→2009, "21.2."→HEUTE,
+  # "01.01.1970"→1970. Wir extrahieren nur ein echtes DD.MM.YYYY (+optional HH:MM) mit 4-stelligem, plausiblem
+  # Jahr (2000..2100) — alles andere → nil (statt Garbage, das dann als Party-Datum landet).
+  def parse_cc_datetime(raw)
+    s = raw.to_s.gsub("<br>", " ").gsub(" Uhr", "")
+    m = s.match(/(\d{1,2})\.(\d{1,2})\.(\d{4})(?:[^\d]+(\d{1,2}):(\d{2}))?/)
+    return nil unless m
+    return nil unless m[3].to_i.between?(2000, 2100)
+
+    DateTime.parse("#{m[1]}.#{m[2]}.#{m[3]} #{m[4] || "00"}:#{m[5] || "00"}")
+  rescue
+    nil
+  end
+
   def parse_parties(league_doc, url)
     header = []
-    table = league_doc.css("aside > section > table")[2]
-    table = league_doc.css("aside > section > table")[3] if /Location/.match?(table.text)
+    # Liga ohne Teams (z.B. Relegation): parse_teams returnt früh und setzt @league_teams_cache NICHT
+    # → war nil → `.find` crashte (Z.397). Ohne Teams gibt es nichts zu matchen → überspringen.
+    return if @league_teams_cache.blank?
+    # Spielplan-Tabelle per Inhalt finden (Zeile mit HEIM- UND GAST-Header) statt per hartem Index [2].
+    # Grund: manche Ligen (z.B. Senioren) führen das Wort "Location" in der Spielplan-Tabelle selbst →
+    # die alte Heuristik (/Location/ → [3]) wechselte auf die nicht existente Tabelle [3] → nil →
+    # Liga übersprungen → 0 Ergebnisse (Standings all-zero). Inhaltsbasiert ist das robust.
+    tables = league_doc.css("aside > section > table")
+    table = tables.find do |t|
+      t.css("tr").any? do |tr|
+        hs = tr.css("th").map { |x| x.text.strip.downcase }
+        hs.include?("heim") && hs.include?("gast")
+      end
+    end
+    table ||= tables[2] # Fallback auf alten Index, falls keine HEIM/GAST-Zeile gefunden
+    if table.nil?
+      Rails.logger.info "==== scrape ==== parse_parties: keine Spielplan-Tabelle für #{url} — Liga übersprungen"
+      return
+    end
     @game_plan_data = League::GAME_PARAMETER_DEFAULTS[@league.branch.name.downcase.to_sym].compact
     @game_plan_data[:rows] = []
     @disciplines = {}
@@ -304,7 +360,17 @@ class League::ClubCloudScraper < ApplicationService
     shift = 0
     party_count = 0
     table.css("tr").each do |tr|
-      if tr.css("th").count > 0 && tr.css("th")[0][:class] == "bb1"
+      th_texts = tr.css("th").map { |th_| th_.text.strip }
+      # Spalten-Header per Inhalt erkennen (HEIM + GAST) — unabhaengig von der th-Klasse. Manche
+      # ClubCloud-Instanzen (z.B. blmr.club-cloud.de) geben AUCH der Spalten-Header-Zeile class='bb1',
+      # wodurch sie sonst von der naechsten Regel als Rundenname verschluckt wuerde (header bleibt []
+      # -> jede Datenzeile "ScrapeError problem with header []", nichts importiert). ndbv.de unveraendert.
+      is_column_header = th_texts.any? { |t| t.casecmp?("heim") } && th_texts.any? { |t| t.casecmp?("gast") }
+      if is_column_header
+        header = th_texts
+        header.pop while header.last == "" # nachgestellte Leer-Spalten weg -> Pattern-Match Z.319/344
+        shift = (tr.css("th")[0]["colspan"].to_i == 2) ? 1 : 0
+      elsif tr.css("th").count > 0 && tr.css("th")[0][:class] == "bb1"
         round_name = tr.css("th").text
       elsif tr.css("th").count > 1
         header = tr.css("th").map(&:text)
@@ -324,11 +390,7 @@ class League::ClubCloudScraper < ApplicationService
           next if tr.css("td").count < 8
 
           day_seqno = tr.css("td")[0 + shift].text.to_i
-          date = begin
-            DateTime.parse(tr.css("td")[1 + shift].inner_html.gsub("<br>", " ").gsub(" Uhr", ""))
-          rescue
-            nil
-          end
+          date = parse_cc_datetime(tr.css("td")[1 + shift].inner_html)
           league_team_a_name = tr.css("td")[2 + shift].text.strip
           league_team_a = @league_teams_cache.find { |lt| lt.name == league_team_a_name }
           league_team_b_name = tr.css("td")[6 + shift].text.strip
@@ -344,12 +406,9 @@ class League::ClubCloudScraper < ApplicationService
               remarks = remark_a[0]["title"].gsub("Memo: ", "")
             end
           end
+          next if tr.css("td").count < 8 # Zeile ohne vollständige HEIM/Erg./GAST-Spalten (spielfrei/Trenner)
           day_seqno = tr.css("td")[shift + 0].text.to_i
-          date = begin
-            DateTime.parse(tr.css("td")[shift + 1].inner_html.gsub("<br>", " ").gsub(" Uhr", ""))
-          rescue
-            nil
-          end
+          date = parse_cc_datetime(tr.css("td")[shift + 1].inner_html)
           league_team_a_name = tr.css("td")[shift + 2].text.strip
           league_team_a = @league_teams_cache.find { |lt| lt.name == league_team_a_name }
           league_team_b_name = tr.css("td")[shift + 6].text.strip
@@ -379,6 +438,9 @@ class League::ClubCloudScraper < ApplicationService
             league_team_a: league_team_a,
             league_team_b: league_team_b
           ).first
+          # Fallback: bestehende Party per (ligaweit eindeutiger) cc_id finden, falls round_name
+          # zwischen Scrape und Bestand abweicht — verhindert Dubletten mit gleicher cc_id.
+          party ||= @league.parties.where(cc_id: party_cc_id).first if party_cc_id.present?
           # If a result/cc_id is now available, update the party
           if party && party.cc_id.nil? && party_cc_id.present?
             party.assign_attributes(cc_id: party_cc_id, round_name: round_name, data: {result: result, points: points}.compact)
@@ -395,12 +457,20 @@ class League::ClubCloudScraper < ApplicationService
               global_context: @global_context
             )
             party.save
+          elsif party && result.to_s =~ /\d/ &&
+                (party.data&.dig("result") || party.data&.dig(:result)).to_s != result.to_s
+            # Re-Scrape-Reparatur: bestehende Party MIT cc_id hatte leeres/abweichendes Ergebnis.
+            # Der alte Code setzte data NUR beim Erst-Import (cc_id.nil?), nie beim Re-Scrape →
+            # einmal leer angelegte Parties blieben für immer leer (Standings zählte sie ungespielt).
+            # Jetzt: bei vorliegendem Ziffern-Ergebnis nachtragen/korrigieren.
+            party.assign_attributes(data: {result: result, points: points}.compact)
+            party.save if party.changed?
           end
           last_cc_id = party_cc_id
           game_report_url = url + game_report_link
           Rails.logger.info "reading #{game_report_url}"
           uri = URI(game_report_url)
-          game_report_html = Net::HTTP.get(uri)
+          game_report_html = http_get(uri)
           party_url = game_report_url
           game_report_doc = Nokogiri::HTML(game_report_html)
           game_report_table = game_report_doc.css("aside > section > table")[2]
@@ -513,12 +583,14 @@ class League::ClubCloudScraper < ApplicationService
                     header_g
                   elsif header_g == ["Partie-Nr.", "Heim-Mannschaft", "", "Gast-Mannschaft", "Datum"]
                     structure = "party"
-                  elsif header_g & ["", "Brett", "Heim-Spieler", "Erg.", "Gast-Spieler",
-                    "Punkte"] == ["", "Brett", "Heim-Spieler", "Erg.", "Gast-Spieler", "Punkte"] ||
-                      header_g & ["", "Paarung", "Heim-Spieler", "Erg.", "Gast-Spieler",
-                        "Punkte"] == ["", "Paarung", "Heim-Spieler", "Erg.", "Gast-Spieler", "Punkte"]
-                    @game_plan_data[:bez_brett] = header_g[header_g.index("Paarung") || header_g.index("Brett")]
-                    raise StandardError "Format Error 1 Party[#{party.id}]" unless (m = header_g[1].match(/Runde (\d+)/))
+                  elsif header_g.include?("Heim-Spieler") && header_g.include?("Gast-Spieler") &&
+                      (brett_label = header_g.find { |h| h == "Paarung" || h == "Brett" })
+                    # runde+brett: praesenzbasiert (Heim-/Gast-Spieler + Brett/Paarung), robust gegen
+                    # Instanz-Varianten — z.B. billard-niederrhein.de: Rundenname in header_g[1] und
+                    # "Erg."-Spalte leer ("") statt beschriftet. Nur Spaltenpraesenz zaehlt, nicht das
+                    # exakte Label-Array; td-Layout ist identisch (7 Spalten, Erg. an gleicher Position).
+                    @game_plan_data[:bez_brett] = brett_label
+                    raise StandardError, "Format Error 1 Party[#{party.id}] header_g=#{header_g.inspect}" unless (m = header_g[1].match(/Runde (\d+)/))
 
                     structure = "runde+brett"
                     r_no = m[1].to_i
@@ -529,9 +601,8 @@ class League::ClubCloudScraper < ApplicationService
                     tables = [tables, games_per_round].max
                     games_per_round = 0
 
-                  elsif header_g & ["", "Heim-Spieler", "Erg.", "Gast-Spieler",
-                    "Punkte"] == ["", "Heim-Spieler", "Erg.", "Gast-Spieler", "Punkte"]
-                    raise StandardError "Format Error 2 Party[#{party.id}]" unless (m = header_g[1].match(/Runde (\d+)/))
+                  elsif header_g.include?("Heim-Spieler") && header_g.include?("Gast-Spieler")
+                    raise StandardError, "Format Error 2 Party[#{party.id}] header_g=#{header_g.inspect}" unless (m = header_g[1].match(/Runde (\d+)/))
 
                     structure = "runde"
                     r_no = m[1].to_i
@@ -542,7 +613,7 @@ class League::ClubCloudScraper < ApplicationService
                     games_per_round = 0
 
                   else
-                    raise StandardError "Format Error 3 Party[#{party.id}]"
+                    raise StandardError, "Format Error 3 Party[#{party.id}] unbekanntes header_g=#{header_g.inspect}"
                   end
                 end
               elsif tr_g.text.match(/(MGD \(Heim\)|MGD \(Gast\)|BED)/).present?
@@ -805,28 +876,45 @@ class League::ClubCloudScraper < ApplicationService
             end
           end
         else
-          party_cc_id = last_cc_id + 1
-          last_cc_id = party_cc_id
+          # 46.5-02: Ungespielte Termine (kein Ergebnis-Link) über den region-scoped NATÜRLICHEN
+          # Schlüssel suchen — wie der gespielte Pfad oben (Z.376) —, NICHT über einen synthetischen
+          # cc_id (last_cc_id+1). Der war iterationsabhängig instabil und erzeugte bei JEDEM Re-Scrape
+          # ein neues Phantom (vgl. project_cc_id_not_unique). cc_id bleibt nil, bis ein Ergebnis
+          # vorliegt; der gespielte Pfad setzt dann die echte cc_id (gleicher natürlicher Schlüssel →
+          # sauberer Übergang ungespielt → gespielt).
           party_attrs = {
             day_seqno: day_seqno,
+            round_name: round_name,
             remarks: {remarks: remarks.to_s},
             data: {result: result_text}.compact,
-            cc_id: party_cc_id,
             league_team_a_id: league_team_a.andand.id,
             league_team_b_id: league_team_b.andand.id,
             source_url: party_url,
             host_league_team: nil,
             location: defined?(location) ? location : league_team_a.andand.club.andand.location
           }.compact
-          party = Party.where(party_attrs).first
-          party ||= Party.new(league_id: @league.id)
+          party = @league.parties.where(
+            day_seqno: day_seqno,
+            round_name: round_name,
+            league_team_a: league_team_a,
+            league_team_b: league_team_b
+          ).first
+          party ||= @league.parties.new
           party.assign_attributes(party_attrs.merge(date: date))
           if party.changed?
             party.region_id = @region_id
             party.global_context = @global_context
             party.save!
           end
-          Party.where(party_attrs.merge(league_id: @league.id, cc_id: nil)).destroy_all
+          # Mehrfach-nil-cc_id-Einträge desselben Termins entfernen (den gerade upserteten behalten);
+          # synthetische-cc_id-Altlast-Phantome bleiben unberührt → das räumt der Cleanup-Rake (46.5-03).
+          @league.parties.where(
+            day_seqno: day_seqno,
+            round_name: round_name,
+            league_team_a: league_team_a,
+            league_team_b: league_team_b,
+            cc_id: nil
+          ).where.not(id: party.id).destroy_all
         end
         party
       end

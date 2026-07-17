@@ -197,6 +197,21 @@ class Seeding < ApplicationRecord
     Rails.logger.info "Seeding[#{id}] created."
   end
 
+  # Erspielte End-Platzierung des Seedings aus der gescrapten Gesamtrangliste.
+  # Maszgebliche Quelle fuer historische/CC-Turniere ist data["result"]; die DB-Spalte
+  # `rank` wird nur vom Carambus-TournamentMonitor (lokal gespielte Turniere) gesetzt
+  # und dient hier als Fallback. Der Platzierungs-Key ist disziplinabhaengig:
+  # "Rang" (Karambol regional, dt.) | "Rank" (Snooker/Pool, engl.) | "#".
+  # Rueckgabe: Integer oder nil (nil = noch nicht gespielt / keine Ergebnisdaten).
+  def final_rank
+    gr = data.is_a?(Hash) ? data.dig("result", "Gesamtrangliste") : nil
+    if gr.is_a?(Hash)
+      val = gr["Rang"] || gr["Rank"] || gr["#"]
+      return val.to_i if val.present?
+    end
+    rank
+  end
+
   def self.result_display(seeding)
     ret = []
     result = seeding.data.andand["result"]

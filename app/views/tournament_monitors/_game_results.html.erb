@@ -10,12 +10,12 @@
         method: :post, 
         class: "btn btn-warning",
         data: { confirm: "Alle Spiele werden in den 'Playing'-Status versetzt. Danach können Ergebnisse manuell eingegeben werden." } %>
-    <p class="text-sm text-gray-600 mt-2">
+    <p class="text-sm text-gray-600 dark:text-gray-300 mt-2">
       ℹ️ Schritt 1: Spiele starten → Schritt 2: Ergebnisse eingeben und "update" klicken
     </p>
   </div>
 <% end %>
-<div class="flex space-x-20 p-4 bg-white dark:bg-black">
+<div class="flex space-x-20 p-4 bg-white dark:bg-gray-800">
   <div class="w-full">
     <%= form_tag update_games_tournament_monitor_path(tournament_monitor), id: "update_games", method: :post do %>
       <table class='w-full'>
@@ -79,7 +79,7 @@
             <%- end %>
           <%- end %>
         <% end %>
-        <p><%= edit_games_modus ? submit_tag("update", class: "btn btn-primary bg-blue-600") : "" %></p>
+        <p><%= edit_games_modus ? submit_tag("update", class: "btn btn-primary bg-primary-600") : "" %></p>
         </tbody>
       </table>
     <% end %>

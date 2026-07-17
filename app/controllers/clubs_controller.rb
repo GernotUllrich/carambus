@@ -1,5 +1,6 @@
 class ClubsController < ApplicationController
-  before_action :admin_only_check, except: %i[show index]
+  before_action :admin_only_check, except: %i[show index reload_from_cc reload_from_cc_with_details]
+  before_action :data_sync_access_check, only: %i[reload_from_cc reload_from_cc_with_details]
   before_action :set_club,
                 only: %i[new_club_tournament show edit update destroy get_club_details new_club_guest add_club_guest new_club_location
                          reload_from_cc reload_from_cc_with_details]

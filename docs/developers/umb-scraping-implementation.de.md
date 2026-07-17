@@ -1,13 +1,13 @@
 # UMB Scraping — Architektur
 
-Der `Umb::`-Namespace übernimmt das Scraping von Turnierdaten der Union Mondiale de Billard (UMB) von der offiziellen Webseite [files.umb-carom.org](https://files.umb-carom.org). Er besteht aus **10 Services** in zwei Sub-Namespaces: `Umb::` (7 Klassen + 1 Modul) und `Umb::PdfParser::` (3 Klassen).
+Der `Umb::`-Namespace übernimmt das Scraping von Turnierdaten der Union Mondiale de Billard (UMB) von der offiziellen Webseite [files.umb-carom.org](https://files.umb-carom.org). Er besteht aus **10 Services** in zwei Sub-Namespaces: `Umb::` (6 Klassen + 1 Modul) und `Umb::PdfParser::` (3 Klassen).
 
 ## Namespace-Übersicht
 
 | Klasse | Datei | Beschreibung |
 |--------|-------|--------------|
 | `Umb::HttpClient` | `app/services/umb/http_client.rb` | Zustandsloser HTTP-Transport — ruft HTML und PDF-Inhalte von UMB-URLs ab, behandelt SSL, Weiterleitungen und Timeouts |
-| `Umb::DisciplineDetector` | `app/services/umb/discipline_detector.rb` | Zustandsloses PORO — ordnet Turniernamen via Regex + DB-ILIKE-Fallback `Discipline`-Datensätzen zu |
+| `Umb::DisciplineDetector` | `app/services/umb/discipline_detector.rb` | Zustandsloses PORO — ordnet Turniernamen `Discipline`-Datensätzen zu. `detect` nutzt Regex + DB-ILIKE-Lookup; `detect_with_title_fallback` wendet zusätzlich `Discipline.classify_from_title` (kuratierte Titel-Overrides + Synonym-/Struktur-Regeln) an, wenn `detect` nichts findet |
 | `Umb::DateHelpers` | `app/services/umb/date_helpers.rb` | Modul mit `module_function` — parst UMB-Datumsbereich-Strings in `{start_date:, end_date:}`-Hashes |
 | `Umb::PlayerResolver` | `app/services/umb/player_resolver.rb` | Sucht oder erstellt `Player`-Datensätze aus UMB-Groß-/Kleinschreibungspaaren, ergänzt umb_player_id und nationality |
 | `Umb::FutureScraper` | `app/services/umb/future_scraper.rb` | Scrapt `FutureTournaments.aspx`, parst HTML-Tabelle inkl. monatsübergreifender Ereignisse, erstellt/aktualisiert `InternationalTournament`-Datensätze |
@@ -61,6 +61,15 @@ Sie führen weder eigene HTTP-Logik noch eigenes Datums-Parsing durch.
 ### e. InternationalGame STI
 
 `DetailsScraper` erstellt Game-Datensätze mit `type: 'InternationalGame'` (STI). Das Weglassen führt zu falschem ActiveRecord-Verhalten, da `Game` die Basisklasse ist.
+
+### f. Zweistufige Disziplin-Erkennung
+
+`Umb::DisciplineDetector` bietet zwei Einstiegspunkte:
+
+- `detect(name)` — nur Regex + DB-ILIKE-Lookup (`detect_by_db_lookup` → `detect_by_string_map`). Gibt `nil` zurück, wenn nichts passt.
+- `detect_with_title_fallback(name)` — führt zuerst `detect` aus und greift nur bei leerem Ergebnis auf `Discipline.classify_from_title(name)` zurück. Diese Model-Methode wendet kuratierte `TITLE_DISCIPLINE_OVERRIDES`, strukturelle Regeln (Kegel/Snooker/Cadre/Karambol-Familien) und einen Längsten-Synonym-Match gegen die `Discipline.synonyms`-Spalte an (Synonyme werden via `rake disciplines:extend_title_synonyms` befüllt).
+
+`FutureScraper` und `ArchiveScraper` nutzen `detect_with_title_fallback` (breitere Abdeckung für deutsche/abgekürzte Titel); `DetailsScraper` und der V1-`UmbScraper`-Shim nutzen weiterhin das reine `detect`. Alle drei Scraper legen ihren eigenen finalen Default (`%dreiband%groß%`) über ein `nil`-Ergebnis.
 
 ## Datenfluss
 

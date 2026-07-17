@@ -1,0 +1,117 @@
+---
+http_interactions:
+- request:
+    method: get
+    uri: https://ligen.billard.center/api/leagues/5/ranking
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - application/json
+      User-Agent:
+      - Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML,
+        like Gecko) Chrome/120 Safari/537.36
+      Host:
+      - ligen.billard.center
+      Referer:
+      - https://ligen.billard.center/landesverband-thueringen
+      Origin:
+      - https://ligen.billard.center
+      X-Requested-With:
+      - XMLHttpRequest
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Date:
+      - Tue, 14 Jul 2026 16:07:22 GMT
+      Server:
+      - Apache
+      Expires:
+      - Thu, 19 Nov 1981 08:52:00 GMT
+      Cache-Control:
+      - no-store, no-cache, must-revalidate
+      Pragma:
+      - no-cache
+      Access-Control-Allow-Origin:
+      - https://ligen.billard.center
+      Access-Control-Allow-Methods:
+      - GET, POST, PUT, DELETE, OPTIONS
+      Access-Control-Allow-Headers:
+      - Content-Type, Authorization, X-Requested-With, X-CSRF-Token
+      Access-Control-Allow-Credentials:
+      - 'true'
+      Access-Control-Max-Age:
+      - '86400'
+      Set-Cookie:
+      - PHPSESSID=1b9603fa102bbc6ee342e1398e5b2cc7; path=/
+      X-Xss-Protection:
+      - 1; mode=block
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Content-Security-Policy:
+      - default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';
+        img-src 'self' data:; font-src 'self'
+      Upgrade:
+      - h2
+      Connection:
+      - Upgrade
+      Transfer-Encoding:
+      - chunked
+      Content-Type:
+      - application/json; charset=utf-8
+    body:
+      encoding: UTF-8
+      string: '{"success":true,"message":"Rangliste erfolgreich abgerufen","data":{"1band":[{"Rang":1,"Spielername":"Schumann,
+        Jens","Mannschaft":"TuS Weida Mehrkampf 1","club_id":16,"team_id":15,"player_id":275,"Beg":"10","Gew":"7","Verl":"3","Quote":"70.00","Punkte":"656","Aufn":"199","HS":17,"GD":"3.30","HGD":"5.26"},{"Rang":2,"Spielername":"Schmidt,
+        Fabian","Mannschaft":"TuS Weida Mehrkampf 2","club_id":16,"team_id":16,"player_id":274,"Beg":"12","Gew":"7","Verl":"5","Quote":"58.33","Punkte":"615","Aufn":"239","HS":17,"GD":"2.57","HGD":"4.75"},{"Rang":3,"Spielername":"Bucher,
+        Tobias","Mannschaft":"USV Jena Mehrkampf 1","club_id":17,"team_id":13,"player_id":45,"Beg":"8","Gew":"3","Verl":"5","Quote":"37.50","Punkte":"406","Aufn":"160","HS":33,"GD":"2.54","HGD":"3.90"},{"Rang":4,"Spielername":"Orttmann,
+        Manuel","Mannschaft":"TuS Weida Mehrkampf 1","club_id":16,"team_id":15,"player_id":208,"Beg":"2","Gew":"2","Verl":"0","Quote":"100.00","Punkte":"200","Aufn":"31","HS":22,"GD":"6.45","HGD":"7.14"},{"Rang":5,"Spielername":"Weiß,
+        Heiko","Mannschaft":"1. Erfurter BC Mehrkampf 1","club_id":5,"team_id":14,"player_id":54,"Beg":"6","Gew":"2","Verl":"4","Quote":"33.33","Punkte":"182","Aufn":"120","HS":12,"GD":"1.52","HGD":"2.65"},{"Rang":6,"Spielername":"Beensen,
+        Frank","Mannschaft":"USV Jena Mehrkampf 1","club_id":17,"team_id":13,"player_id":281,"Beg":"2","Gew":"1","Verl":"1","Quote":"50.00","Punkte":"112","Aufn":"40","HS":14,"GD":"2.80","HGD":"3.20"},{"Rang":7,"Spielername":"Schmitz,
+        Gerd","Mannschaft":"USV Jena Mehrkampf 1","club_id":17,"team_id":13,"player_id":289,"Beg":"2","Gew":"1","Verl":"1","Quote":"50.00","Punkte":"60","Aufn":"40","HS":25,"GD":"1.50","HGD":"2.40"},{"Rang":8,"Spielername":"Hoffarth,
+        Horst","Mannschaft":"1. Erfurter BC Mehrkampf 1","club_id":5,"team_id":14,"player_id":56,"Beg":"6","Gew":"1","Verl":"5","Quote":"16.67","Punkte":"313","Aufn":"111","HS":15,"GD":"2.82","HGD":"3.45"}],"cadre352":[{"Rang":1,"Spielername":"Orttmann,
+        Manuel","Mannschaft":"TuS Weida Mehrkampf 1","club_id":16,"team_id":15,"player_id":208,"Beg":"10","Gew":"10","Verl":"0","Quote":"100.00","Punkte":"1500","Aufn":"41","HS":124,"GD":"36.59","HGD":"75.00"},{"Rang":2,"Spielername":"Hoffarth,
+        Horst","Mannschaft":"1. Erfurter BC Mehrkampf 1","club_id":5,"team_id":14,"player_id":56,"Beg":"6","Gew":"5","Verl":"1","Quote":"83.33","Punkte":"659","Aufn":"109","HS":40,"GD":"6.05","HGD":"8.82"},{"Rang":3,"Spielername":"Beensen,
+        Frank","Mannschaft":"USV Jena Mehrkampf 1","club_id":17,"team_id":13,"player_id":281,"Beg":"10","Gew":"5","Verl":"5","Quote":"50.00","Punkte":"954","Aufn":"120","HS":53,"GD":"7.95","HGD":"35.00"},{"Rang":4,"Spielername":"Dressel,
+        Christian","Mannschaft":"1. Erfurter BC Mehrkampf 1","club_id":5,"team_id":14,"player_id":57,"Beg":"2","Gew":"2","Verl":"0","Quote":"100.00","Punkte":"300","Aufn":"17","HS":81,"GD":"17.65","HGD":"18.75"},{"Rang":5,"Spielername":"Schumann,
+        Jens","Mannschaft":"TuS Weida Mehrkampf 1","club_id":16,"team_id":15,"player_id":275,"Beg":"2","Gew":"2","Verl":"0","Quote":"100.00","Punkte":"289","Aufn":"39","HS":27,"GD":"7.41","HGD":"7.89"},{"Rang":6,"Spielername":"Rauh,
+        Mike","Mannschaft":"TuS Weida Mehrkampf 2","club_id":16,"team_id":16,"player_id":270,"Beg":"12","Gew":"0","Verl":"12","Quote":"0.00","Punkte":"482","Aufn":"176","HS":28,"GD":"2.74","HGD":"9.00"},{"Rang":7,"Spielername":"Schröter,
+        Jonas","Mannschaft":"USV Jena Mehrkampf 1","club_id":17,"team_id":13,"player_id":52,"Beg":"2","Gew":"0","Verl":"2","Quote":"0.00","Punkte":"166","Aufn":"17","HS":55,"GD":"9.76","HGD":"16.25"},{"Rang":8,"Spielername":"Weiß,
+        Heiko","Mannschaft":"1. Erfurter BC Mehrkampf 1","club_id":5,"team_id":14,"player_id":54,"Beg":"2","Gew":"0","Verl":"2","Quote":"0.00","Punkte":"146","Aufn":"39","HS":20,"GD":"3.74","HGD":"5.26"},{"Rang":9,"Spielername":"Lange,
+        Uwe","Mannschaft":"1. Erfurter BC Mehrkampf 1","club_id":5,"team_id":14,"player_id":50,"Beg":"2","Gew":"0","Verl":"2","Quote":"0.00","Punkte":"23","Aufn":"14","HS":8,"GD":"1.64","HGD":"2.00"}],"libre":[{"Rang":1,"Spielername":"Dressel,
+        Christian","Mannschaft":"1. Erfurter BC Mehrkampf 1","club_id":5,"team_id":14,"player_id":57,"Beg":"10","Gew":"9","Verl":"0","Quote":"90.00","Punkte":"2000","Aufn":"71","HS":167,"GD":"28.17","HGD":"66.67"},{"Rang":2,"Spielername":"Wetzel,
+        Holger","Mannschaft":"TuS Weida Mehrkampf 1","club_id":16,"team_id":15,"player_id":278,"Beg":"12","Gew":"7","Verl":"5","Quote":"58.33","Punkte":"1592","Aufn":"125","HS":119,"GD":"12.74","HGD":"33.33"},{"Rang":3,"Spielername":"Schröter,
+        Jonas","Mannschaft":"USV Jena Mehrkampf 1","club_id":17,"team_id":13,"player_id":52,"Beg":"8","Gew":"4","Verl":"3","Quote":"50.00","Punkte":"1294","Aufn":"101","HS":151,"GD":"12.81","HGD":"22.22"},{"Rang":4,"Spielername":"Weiß,
+        Heiko","Mannschaft":"1. Erfurter BC Mehrkampf 1","club_id":5,"team_id":14,"player_id":54,"Beg":"2","Gew":"1","Verl":"1","Quote":"50.00","Punkte":"152","Aufn":"40","HS":28,"GD":"3.80","HGD":"4.45"},{"Rang":5,"Spielername":"Bucher,
+        Tobias","Mannschaft":"USV Jena Mehrkampf 1","club_id":17,"team_id":13,"player_id":45,"Beg":"2","Gew":"1","Verl":"1","Quote":"50.00","Punkte":"148","Aufn":"40","HS":19,"GD":"3.70","HGD":"3.75"},{"Rang":6,"Spielername":"Wobisch,
+        Nils Roy","Mannschaft":"TuS Weida Mehrkampf 2","club_id":16,"team_id":16,"player_id":279,"Beg":"8","Gew":"1","Verl":"7","Quote":"12.50","Punkte":"845","Aufn":"102","HS":49,"GD":"8.28","HGD":"16.80"},{"Rang":7,"Spielername":"Schmitz,
+        Gerd","Mannschaft":"USV Jena Mehrkampf 1","club_id":17,"team_id":13,"player_id":289,"Beg":"2","Gew":"0","Verl":"2","Quote":"0.00","Punkte":"43","Aufn":"14","HS":13,"GD":"3.07","HGD":"4.67"},{"Rang":8,"Spielername":"Reichelt,
+        Uwe","Mannschaft":"TuS Weida Mehrkampf 2","club_id":16,"team_id":16,"player_id":271,"Beg":"3","Gew":"0","Verl":"3","Quote":"0.00","Punkte":"43","Aufn":"33","HS":4,"GD":"1.30","HGD":"1.56"},{"Rang":9,"Spielername":"Gaumitz,
+        Jakob","Mannschaft":"TuS Weida Mehrkampf 2","club_id":16,"team_id":16,"player_id":280,"Beg":"1","Gew":"0","Verl":"1","Quote":"0.00","Punkte":"12","Aufn":"6","HS":3,"GD":"2.00","HGD":"2.00"}],"0":[{"Disziplin":"Gesamt","Rang":1,"Spielername":"Orttmann,
+        Manuel","Mannschaft":"TuS Weida Mehrkampf 1","club_id":16,"team_id":15,"player_id":208,"Beg":"12","Gew":"12","Verl":"0","Quote":"100.00","Punkte":"1700","Aufn":"72","HS":124,"GD":"23.61","GD_Hoechst":"75.00"},{"Disziplin":"Gesamt","Rang":2,"Spielername":"Dressel,
+        Christian","Mannschaft":"1. Erfurter BC Mehrkampf 1","club_id":5,"team_id":14,"player_id":57,"Beg":"12","Gew":"11","Verl":"0","Quote":"91.67","Punkte":"2300","Aufn":"88","HS":167,"GD":"26.14","GD_Hoechst":"66.67"},{"Disziplin":"Gesamt","Rang":3,"Spielername":"Schumann,
+        Jens","Mannschaft":"TuS Weida Mehrkampf 1","club_id":16,"team_id":15,"player_id":275,"Beg":"12","Gew":"9","Verl":"3","Quote":"75.00","Punkte":"945","Aufn":"238","HS":27,"GD":"3.97","GD_Hoechst":"7.89"},{"Disziplin":"Gesamt","Rang":4,"Spielername":"Wetzel,
+        Holger","Mannschaft":"TuS Weida Mehrkampf 1","club_id":16,"team_id":15,"player_id":278,"Beg":"12","Gew":"7","Verl":"5","Quote":"58.33","Punkte":"1592","Aufn":"125","HS":119,"GD":"12.74","GD_Hoechst":"33.33"},{"Disziplin":"Gesamt","Rang":5,"Spielername":"Schmidt,
+        Fabian","Mannschaft":"TuS Weida Mehrkampf 2","club_id":16,"team_id":16,"player_id":274,"Beg":"12","Gew":"7","Verl":"5","Quote":"58.33","Punkte":"615","Aufn":"239","HS":17,"GD":"2.57","GD_Hoechst":"4.75"},{"Disziplin":"Gesamt","Rang":6,"Spielername":"Beensen,
+        Frank","Mannschaft":"USV Jena Mehrkampf 1","club_id":17,"team_id":13,"player_id":281,"Beg":"12","Gew":"6","Verl":"6","Quote":"50.00","Punkte":"1066","Aufn":"160","HS":53,"GD":"6.66","GD_Hoechst":"35.00"},{"Disziplin":"Gesamt","Rang":7,"Spielername":"Hoffarth,
+        Horst","Mannschaft":"1. Erfurter BC Mehrkampf 1","club_id":5,"team_id":14,"player_id":56,"Beg":"12","Gew":"6","Verl":"6","Quote":"50.00","Punkte":"972","Aufn":"220","HS":40,"GD":"4.42","GD_Hoechst":"8.82"},{"Disziplin":"Gesamt","Rang":8,"Spielername":"Schröter,
+        Jonas","Mannschaft":"USV Jena Mehrkampf 1","club_id":17,"team_id":13,"player_id":52,"Beg":"10","Gew":"4","Verl":"5","Quote":"40.00","Punkte":"1460","Aufn":"118","HS":151,"GD":"12.37","GD_Hoechst":"22.22"},{"Disziplin":"Gesamt","Rang":9,"Spielername":"Bucher,
+        Tobias","Mannschaft":"USV Jena Mehrkampf 1","club_id":17,"team_id":13,"player_id":45,"Beg":"10","Gew":"4","Verl":"6","Quote":"40.00","Punkte":"554","Aufn":"200","HS":33,"GD":"2.77","GD_Hoechst":"3.90"},{"Disziplin":"Gesamt","Rang":10,"Spielername":"Weiß,
+        Heiko","Mannschaft":"1. Erfurter BC Mehrkampf 1","club_id":5,"team_id":14,"player_id":54,"Beg":"10","Gew":"3","Verl":"7","Quote":"30.00","Punkte":"480","Aufn":"199","HS":28,"GD":"2.41","GD_Hoechst":"5.26"},{"Disziplin":"Gesamt","Rang":11,"Spielername":"Schmitz,
+        Gerd","Mannschaft":"USV Jena Mehrkampf 1","club_id":17,"team_id":13,"player_id":289,"Beg":"4","Gew":"1","Verl":"3","Quote":"25.00","Punkte":"103","Aufn":"54","HS":25,"GD":"1.91","GD_Hoechst":"4.67"},{"Disziplin":"Gesamt","Rang":12,"Spielername":"Wobisch,
+        Nils Roy","Mannschaft":"TuS Weida Mehrkampf 2","club_id":16,"team_id":16,"player_id":279,"Beg":"8","Gew":"1","Verl":"7","Quote":"12.50","Punkte":"845","Aufn":"102","HS":49,"GD":"8.28","GD_Hoechst":"16.80"},{"Disziplin":"Gesamt","Rang":13,"Spielername":"Rauh,
+        Mike","Mannschaft":"TuS Weida Mehrkampf 2","club_id":16,"team_id":16,"player_id":270,"Beg":"12","Gew":"0","Verl":"12","Quote":"0.00","Punkte":"482","Aufn":"176","HS":28,"GD":"2.74","GD_Hoechst":"9.00"},{"Disziplin":"Gesamt","Rang":14,"Spielername":"Reichelt,
+        Uwe","Mannschaft":"TuS Weida Mehrkampf 2","club_id":16,"team_id":16,"player_id":271,"Beg":"3","Gew":"0","Verl":"3","Quote":"0.00","Punkte":"43","Aufn":"33","HS":4,"GD":"1.30","GD_Hoechst":"1.56"},{"Disziplin":"Gesamt","Rang":15,"Spielername":"Lange,
+        Uwe","Mannschaft":"1. Erfurter BC Mehrkampf 1","club_id":5,"team_id":14,"player_id":50,"Beg":"2","Gew":"0","Verl":"2","Quote":"0.00","Punkte":"23","Aufn":"14","HS":8,"GD":"1.64","GD_Hoechst":"2.00"},{"Disziplin":"Gesamt","Rang":16,"Spielername":"Gaumitz,
+        Jakob","Mannschaft":"TuS Weida Mehrkampf 2","club_id":16,"team_id":16,"player_id":280,"Beg":"1","Gew":"0","Verl":"1","Quote":"0.00","Punkte":"12","Aufn":"6","HS":3,"GD":"2.00","GD_Hoechst":"2.00"}]}}'
+  recorded_at: Tue, 14 Jul 2026 16:07:22 GMT
+recorded_with: VCR 6.4.0

@@ -20,6 +20,13 @@ class Umb::DisciplineDetector
     detect_by_string_map(tournament_name)
   end
 
+  # Phase 04 (v0.2): additiver Titel-Fallback. detect() bleibt fuehrend; nur wenn es nichts
+  # findet, greift der vollstaendigere Discipline.classify_from_title (Match gegen synonyms +
+  # table_kind/Cadre/Kegel-Regeln). Liefert Discipline oder nil.
+  def self.detect_with_title_fallback(tournament_name)
+    detect(tournament_name) || Discipline.classify_from_title(tournament_name)
+  end
+
   # --- Private Implementierung ---
 
   def self.detect_by_db_lookup(name)

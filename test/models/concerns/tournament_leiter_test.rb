@@ -32,4 +32,15 @@ class TournamentLeiterTest < ActiveSupport::TestCase
     assert_not @tournament.leiter?(@other_user)
     assert @tournament.has_active_leiter?
   end
+
+  # Phase 34-03 (D-34-5): Union — leiter?/has_active_leiter? auch via lokale UserTournament.
+  test "Union: leiter? true via UserTournament (ohne globales turnier_leiter_user_id)" do
+    t = tournaments(:local)
+    t.update_column(:turnier_leiter_user_id, nil)
+    UserTournament.create!(user: @user, tournament: t, role: "turnier_leiter")
+    t.reload
+    assert t.leiter?(@user)
+    assert t.has_active_leiter?
+    assert_not t.leiter?(@other_user)
+  end
 end

@@ -22,7 +22,7 @@ class YoutubeScraper
   def initialize(source = nil)
     @youtube = Google::Apis::YoutubeV3::YouTubeService.new
     # Try credentials first, fallback to ENV
-    @youtube.key = Rails.application.credentials.youtube_api_key || ENV['YOUTUBE_API_KEY']
+    @youtube.key = Carambus.youtube_api_key || ENV['YOUTUBE_API_KEY']
     @source = source
     
     if @youtube.key.blank?

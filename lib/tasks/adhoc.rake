@@ -73,13 +73,6 @@ namespace :adhoc do
     end
   end
 
-  desc "Translate page content"
-  task translate_page_content: :environment do
-    page = Page[4]
-    translated_content = DeeplTranslationService.translate(page.content, 'de', 'en')
-    # page.update(content: translated_content)
-    puts translated_content
-  end
   desc "Current Test old"
   task test_old: :environment do
     Region.find_by_shortname("NBV").scrape_clubs_old(player_details: true)
@@ -171,9 +164,10 @@ namespace :adhoc do
     # puts "last is still: #{TableMonitor.last.id}"
     # t = Tournament[17385]
     # t.scrape_single_tournament_public(reload_seedings: true)
-    tournament = InternationalTournament.find_by(external_id: '363')
-    scraper = UmbScraper.new
-    scraper.scrape_tournament_details(tournament, create_games: true, parse_pdfs: true)
+    Tournament.find(18520).scrape_single_tournament_public(Season.current_season)
+    #tournament = InternationalTournament.find_by(external_id: '363')
+    #scraper = UmbScraper.new
+    #scraper.scrape_tournament_details(tournament, create_games: true, parse_pdfs: true)
   end
 
   desc "Sequence Reset"

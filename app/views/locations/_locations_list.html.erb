@@ -1,0 +1,35 @@
+<div class="bg-surface-card dark:bg-gray-800 rounded-card border border-gray-200 dark:border-gray-700 overflow-hidden">
+  <% @locations ||= records %>
+  <% @pagy ||= defined?(pagy) ? pagy : nil %>
+  <% @locations.each do |location| %>
+    <div class="group flex items-center gap-3 px-4 py-3 border-t border-gray-100 dark:border-gray-700 first:border-t-0 hover:bg-surface-page dark:hover:bg-gray-700/60">
+      <div class="flex-1 min-w-0">
+        <%# Location-Show ist speziell (Scoreboard-naher Pfad) -> data-turbo=false = voller Reload, wie in _locations_table. %>
+        <%= custom_link_to(location.name.presence || "—", location_path(location),
+              class: "font-medium text-gray-900 dark:text-gray-100 hover:text-primary-600",
+              :"data-turbo" => false) %>
+        <div class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+          <%# Subzeile "Ort · Club-Kürzel". Keine scope-Marker: Region ist im Scope fixiert (kein Badge), %>
+          <%# 3. Facette = none. Ort = erste nicht-leere Adresszeile (nicht die volle mehrzeilige Adresse). %>
+          <% ort = location.address.to_s.split("\n").map(&:strip).find(&:present?) %>
+          <% clubs = location.clubs.map { |c| c.shortname.presence }.compact.join(", ").presence %>
+          <%= safe_join([ort, clubs].select(&:present?), " · ") %>
+        </div>
+      </div>
+    </div>
+  <% end %>
+</div>
+
+<%- unless local_server? %>
+  <%= form_tag merge_locations_path, method: :post, class: "mt-4 flex flex-wrap items-center gap-2" do %>
+    <%= label_tag "merge" %><%= number_field_tag "merge", nil, placeholder: "master location id", class: "px-4 py-2 rounded-md border border-gray-300 bg-white text-gray-800 placeholder-gray-400 shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-200 dark:placeholder-gray-400" %>
+    <%= label_tag "with duplicates (comma-separated ids)" %><%= text_field_tag "with", nil, placeholder: "slave location id", class: "px-4 py-2 rounded-md border border-gray-300 bg-white text-gray-800 placeholder-gray-400 shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-200 dark:placeholder-gray-400" %>
+    <%= submit_tag "merge and delete slave", class: "btn btn-primary" %>
+  <% end %>
+<%- end %>
+
+<% if @pagy.present? && @pagy.pages > 1 %>
+  <div class="text-center my-6">
+    <%= pagy_nav(@pagy).html_safe %>
+  </div>
+<% end %>

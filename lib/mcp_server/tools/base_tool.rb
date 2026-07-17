@@ -54,6 +54,61 @@ module McpServer
         McpServer::CcSession
       end
 
+      # ---------------------------------------------------------------------------------------
+      # Plan 39-03 (D-39-2/-3/-6/-7/-8/-9): Per-User-CC-Identitäts-Naht für die CC-Write-Tools.
+      # Hält den Per-Tool-Diff 1-zeilig (analog authorize!). Read-Tools nutzen diese Naht NICHT
+      # (bleiben auf der geteilten Default-Session). Jargonfreie Sportwart-Sprache (MCP-Language-
+      # Direktive) — KEINE Begriffe wie Token/Session/Cache/Credential-Store.
+      # ---------------------------------------------------------------------------------------
+      CC_IDENTITY_REQUIRED_MSG =
+        "Für Änderungen in der ClubCloud brauche ich deinen persönlichen ClubCloud-Zugang. " \
+        "Bitte hinterlege deinen ClubCloud-Benutzernamen und dein Passwort in deinem Profil — " \
+        "danach kann ich die Aktion unter deinem Namen ausführen."
+
+      # Löst den effektiven CC-Account für diesen Tool-Call auf (D-39-2/-3/-6).
+      # user = server_context[:user_id] (D-39-7); tournament (optional) ermöglicht die TL-Vererbung.
+      # Liefert IMMER ein CcAccount (kann :none sein) — der Block erfolgt am armed-Gate via
+      # cc_write_identity_block (D-39-8), NICHT hier (sonst bräche der Dry-Run).
+      def self.resolve_cc_account(tournament:, server_context:)
+        user = User.find_by(id: server_context&.dig(:user_id))
+        McpServer::CcAccountResolver.resolve(user: user, tournament: tournament)
+      rescue => e
+        Rails.logger.warn "[BaseTool.resolve_cc_account] #{e.class}: #{e.message}"
+        McpServer::CcAccountResolver.none(nil)
+      end
+
+      # Hard-Block-Gate (D-39-8): error-Response NUR wenn ein echter Schreibvorgang (armed:true)
+      # OHNE auflösbare CC-Identität (:none) liefe. Sonst nil. Dry-Run (armed:false) wird NIE
+      # geblockt — Vorschau bleibt (+ cc_identity_hint als Note).
+      #
+      # D-39-10: Der Block greift NUR im authentifizierten Kontext (server_context[:user_id] aufgelöst
+      # → account.acting_user_id gesetzt). Der User-lose Stdio-/Legacy-Pfad (bin/mcp-server,
+      # technische-Stellvertretung; acting_user_id nil) nutzt weiterhin die geteilte Admin-Session
+      # (D-13-01-F Backwards-Compat) — kein Block, kein Profil zum Hinterlegen.
+      def self.cc_write_identity_block(account, armed:)
+        return nil if account&.resolved?
+        return nil unless armed
+        return nil if account.nil? || account.acting_user_id.blank?
+        error(CC_IDENTITY_REQUIRED_MSG)
+      end
+
+      # Nicht-blockierender Hinweis für Dry-Run-Antworten, wenn ein AUTHENTIFIZIERTER User keine
+      # eigene CC-Identität hat (D-39-10: gated wie cc_write_identity_block — Stdio-Pfad ohne User
+      # bekommt keinen Hinweis). nil bei resolved? ODER fehlendem acting_user_id.
+      def self.cc_identity_hint(account)
+        return nil if account&.resolved?
+        return nil if account.nil? || account.acting_user_id.blank?
+        CC_IDENTITY_REQUIRED_MSG
+      end
+
+      # AuditTrail-operator = CC-Login-Account des aktiven CC-Accounts (D-39-2: zweischichtig —
+      # operator = CC-Seite; user_id = echter Carambus-Akteur via account.acting_user_id).
+      # Ersetzt das duplizierte `cc_session.respond_to?(:cc_login_user) ? … : "unknown"`-Inline.
+      def self.cc_audit_operator
+        return "unknown" unless cc_session.respond_to?(:cc_login_user)
+        cc_session.cc_login_user.to_s.presence || "unknown"
+      end
+
       # Plan 10-05 Task 4 (Befund #8 D-10-03-5): Pre-Read-Verify-Status-Helper für Write-Tools.
       # Sportwart kann manuell eingegebene cc_id (meldeliste_cc_id, player_cc_id) nicht
       # selbständig verifizieren. Vorhandenes Pattern `read_back_match` zeigt nach-Schreib-Status,
@@ -160,6 +215,94 @@ module McpServer
         [nil, "Player-Auto-Resolve-Exception: #{e.class.name}"]
       end
 
+      # Plan 34-04 (D-34-5): Aufloesung eines Carambus-Users als (kuenftiger) Turnierleiter.
+      # email/username exakt (unique) ODER Name-Token-Suche (first_name/last_name/username).
+      # Returns [user, nil] | [nil, error_response]. KEINE internen IDs in Fehlertexten.
+      def self.resolve_tl_user(email: nil, name: nil, server_context: nil)
+        if email.present?
+          key = email.to_s.downcase
+          u = User.find_by("LOWER(email) = ?", key) || User.find_by("LOWER(username) = ?", key)
+          return [u, nil] if u
+          return [nil, error("Kein Benutzerkonto zu '#{email}' gefunden. Der Turnierleiter braucht ein Carambus-Benutzerkonto.")]
+        end
+        if name.present?
+          tokens = tokenize_search_query(name)
+          # Auch über den verknüpften Player suchen (Phase 35): User-Namensfelder sind oft leer
+          # (Live-Befund 2026-06-16: User 50000003 first_name/last_name/username = nil), die
+          # Identität steckt im verknüpften Player (firstname="Dr. Jörg", lastname="Unger"). So
+          # findet „Dr. Jörg Unger" den User über players.firstname/lastname — der Titel „Dr."
+          # matcht player.firstname. ß/Umlaut-Normalisierung greift via apply_token_search_filter.
+          scope = User.left_joins(:player).distinct
+          columns = %w[users.first_name users.last_name users.username players.firstname players.lastname]
+          matches = apply_token_search_filter(scope, tokens, columns).limit(6).to_a
+          case matches.size
+          when 0
+            [nil, error("Kein Benutzerkonto zu '#{name}' gefunden. Der Turnierleiter braucht ein Carambus-Benutzerkonto.")]
+          when 1
+            [matches.first, nil]
+          else
+            [nil, error("Mehrere Nutzer passen zu '#{name}': #{matches.map(&:display_name).join(", ")}. Bitte praeziser angeben (Email oder Benutzername).")]
+          end
+        else
+          [nil, error("Bitte Email/Benutzername oder Namen des Turnierleiters angeben.")]
+        end
+      rescue => e
+        Rails.logger.warn "[BaseTool.resolve_tl_user] #{e.class}: #{e.message}"
+        [nil, error("Turnierleiter-Aufloesung fehlgeschlagen (defensive): #{e.class.name}")]
+      end
+
+      # Plan 35-01 (D-35-1): Aufloesung des EIGENEN Players via dbu_nr (primaer) / ba_id (Fallback),
+      # REGION-SCOPED (dbu_nr ist im Authority-Mirror nicht eindeutig — Cross-Region-Dupes; vgl.
+      # project_cc_id_not_unique). Returns [player, nil] | [nil, error_response].
+      def self.resolve_own_player(dbu_nr: nil, ba_id: nil, server_context: nil)
+        if dbu_nr.blank? && ba_id.blank?
+          return [nil, error("Bitte deine DBU-Nummer (oder BA-ID) angeben.")]
+        end
+        region_shortname = effective_cc_region(server_context).to_s.upcase
+        region_id = (Region.find_by(shortname: region_shortname)&.id if region_shortname.present?)
+        scope = region_id ? Player.where(region_id: region_id) : Player.all
+
+        player = nil
+        player = scope.where.not(dbu_nr: [nil, 0]).find_by(dbu_nr: dbu_nr.to_i) if dbu_nr.present?
+        player ||= scope.find_by(ba_id: ba_id.to_i) if ba_id.present?
+
+        if player
+          [player, nil]
+        else
+          [nil, error("Kein Spieler zu dieser Nummer in deiner Region gefunden. Pruefe deine DBU-Nummer (oder BA-ID).")]
+        end
+      rescue => e
+        Rails.logger.warn "[BaseTool.resolve_own_player] #{e.class}: #{e.message}"
+        [nil, error("Spieler-Aufloesung fehlgeschlagen (defensive): #{e.class.name}")]
+      end
+
+      # Plan 35-02: Aufloesung des EIGENEN, bereits verknuepften Players (current_user.player)
+      # fuer die "Mein Billard"-Lese-Tools (cc_my_tournaments/results/ranking). Self-scoped —
+      # ausschliesslich ueber server_context[:user_id], NIE ueber einen player_id-Parameter
+      # (Sicherheitseigenschaft: niemand kann fremde Spielerdaten lesen).
+      # Returns:
+      #   [player, nil]            — User verknuepft, Player aufgeloest
+      #   [nil, text(...)]         — NICHT verknuepft → freundlicher Gate-Hinweis (KEIN Fehler)
+      #   [nil, error(...)]        — nicht angemeldet / defensive Exception
+      # Verwendung im Tool: `player, resp = current_player(server_context); return resp if resp`
+      def self.current_player(server_context)
+        user = User.find_by(id: server_context&.dig(:user_id))
+        return [nil, error("Nicht angemeldet — bitte zuerst einloggen.")] if user.nil?
+
+        player = user.player
+        if player.nil?
+          return [nil, text(
+            "Du hast noch kein Spielerprofil verknuepft. Nutze zuerst cc_link_my_player mit deiner " \
+            "DBU-Nummer, dann zeige ich dir deine Turniere, Ergebnisse und deine Rangliste."
+          )]
+        end
+
+        [player, nil]
+      rescue => e
+        Rails.logger.warn "[BaseTool.current_player] #{e.class}: #{e.message}"
+        [nil, error("Profil-Aufloesung fehlgeschlagen (defensive): #{e.class.name}")]
+      end
+
       # Liefert die ClubCloud federation_id als Default-Fallback für Tools.
       # Priorität:
       #   1. ENV["CC_FED_ID"] (expliziter Override — höchste Prio)
@@ -203,7 +346,12 @@ module McpServer
       # Min-Token-Länge 2 Zeichen (kürzere Tokens raus — verhindert Wildcard-Explosion).
       def self.tokenize_search_query(query)
         return [] if query.blank?
-        query.to_s.strip.split(/\s+/).map(&:strip).reject { |t| t.size < 2 }
+        # Whitespace-Split + führende/abschließende Satzzeichen pro Token strippen, damit das
+        # Meldeliste-Anzeigeformat "Nachname, Vorname" matcht ("Schröder, Hans-Jörg" → ["Schröder",
+        # "Hans-Jörg"]). Interne Bindestriche (z.B. "Hans-Jörg") bleiben erhalten.
+        query.to_s.strip.split(/\s+/)
+          .map { |t| t.gsub(/\A[[:punct:]]+|[[:punct:]]+\z/, "") }
+          .reject { |t| t.size < 2 }
       end
 
       # Plan 14-02.2 / Befund E-1: DRY-Filter-Helper für Token-Search.
@@ -214,11 +362,28 @@ module McpServer
       def self.apply_token_search_filter(scope, tokens, columns)
         return scope if tokens.empty?
         tokens.reduce(scope) do |current_scope, token|
-          escaped = ActiveRecord::Base.sanitize_sql_like(token)
+          # ß/Umlaut-insensitive Suche (User-Befund 2026-06-16: „Meissner" fand „Meißner" nicht).
+          # Beide Seiten auf ASCII normalisieren (ß→ss, ä→ae, ö→oe, ü→ue) — symmetrisch, d.h.
+          # „Meissner"↔„Meißner" und „Mueller"↔„Müller" matchen jeweils gegenseitig.
+          escaped = ActiveRecord::Base.sanitize_sql_like(normalize_for_search(token))
           like_pattern = "%#{escaped}%"
-          token_clause = columns.map { |col| "#{col} ILIKE ?" }.join(" OR ")
+          token_clause = columns.map { |col| "#{search_normalize_sql(col)} ILIKE ?" }.join(" OR ")
           current_scope.where(token_clause, *Array.new(columns.size, like_pattern))
         end
+      end
+
+      # Ruby-seitige ASCII-Normalisierung eines Suchbegriffs (ß/Umlaute → Mehrbuchstaben-ASCII).
+      # force_encoding("UTF-8")+scrub: Eingaben können ASCII-8BIT sein (z.B. CC-Net::HTTP-Bodies,
+      # vgl. D-33-3) → gsub mit UTF-8-Literalen würde sonst Encoding::CompatibilityError werfen.
+      def self.normalize_for_search(str)
+        str.to_s.dup.force_encoding("UTF-8").scrub.downcase
+          .gsub("ß", "ss").gsub("ä", "ae").gsub("ö", "oe").gsub("ü", "ue")
+      end
+
+      # SQL-Pendant: normalisiert eine (vertrauenswürdige, hartkodierte) Spalte gleich wie
+      # normalize_for_search. ß→ss/ä→ae sind 1→2-Ersetzungen → replace (nicht translate).
+      def self.search_normalize_sql(col)
+        "replace(replace(replace(replace(lower(#{col}), 'ß', 'ss'), 'ä', 'ae'), 'ö', 'oe'), 'ü', 'ue')"
       end
 
       # Plan 14-02.2: Detect Title-Präfixe im Query (Dr./Prof./Dr.-Ing./Dipl.-Ing./Mag./
@@ -363,6 +528,160 @@ module McpServer
         collected.uniq
       end
 
+      # Plan 45-01: Liga-taugliche Disziplin-Aufloesung. resolve_discipline_or_branch
+      # liefert bei einem Branch-Treffer nur den Subtree OHNE den Branch-Root.
+      # Turniere haengen an Sub-Disziplinen (z.B. "9-Ball") — Ligen aber direkt am
+      # Branch-Root (z.B. "Pool"=23, type=Branch). Daher den getroffenen Knoten selbst
+      # mit aufnehmen, sonst verfehlt ein "Pool"-Filter alle Pool-Ligen.
+      def self.resolve_discipline_ids_inclusive(filter_string)
+        ids, branch_name = resolve_discipline_or_branch(filter_string)
+        return [nil, nil] if ids.blank?
+        if branch_name.present?
+          node = Discipline.find_by("name ILIKE ?", filter_string.to_s.strip)
+          ids = ([node.id] + ids).uniq if node
+        end
+        [ids, branch_name]
+      end
+
+      # Plan 45-02: zentrale, REGION-SCOPE-geprüfte League-Auflösung für die Liga-/Party-
+      # Lese-Tools (cc_league_standings/-schedule/cc_party_lineup). Mirror des DB-Pfads aus
+      # cc_lookup_league, hier wiederverwendbar gebündelt — KEIN Cross-Region-Leak.
+      # Rückgabe: {league: <League>} bei Erfolg, {error: <Response>} bei Fehler/Mehrdeutigkeit.
+      def self.resolve_league(server_context, league_id: nil, cc_id: nil, discipline: nil, season: nil)
+        region_name = effective_cc_region(server_context)
+        return {error: scenario_config_missing_error} if region_name.blank?
+        region = Region.find_by(shortname: region_name)
+        return {error: error("Region '#{region_name}' nicht in Carambus gefunden — bitte LSW/SysAdmin informieren.")} if region.nil?
+
+        league = nil
+        if league_id.present?
+          league = League.find_by(id: league_id)
+          return {error: error("Liga nicht gefunden (league_id=#{league_id}). Nutze cc_list_leagues zum Auflisten.")} if league.nil?
+        elsif cc_id.present?
+          league = LeagueCc.find_by(cc_id: cc_id)&.league
+          return {error: error("Liga nicht gefunden (cc_id=#{cc_id}). Nutze cc_list_leagues zum Auflisten.")} if league.nil?
+        end
+
+        if league
+          unless league.organizer_type == "Region" && league.organizer_id == region.id
+            return {error: error("Liga (#{league_id || cc_id}) gehört nicht zur Region #{region.shortname}.")}
+          end
+          return {league: league}
+        end
+
+        # Fallback ohne id: region-/saison-/disziplin-gefiltert (Muster aus cc_lookup_league).
+        season_obj = effective_season(server_context, override: season)
+        rel = League.where(organizer_type: "Region", organizer_id: region.id)
+        rel = rel.where(season_id: season_obj.id) if season_obj
+        if discipline.present?
+          discipline_ids, = resolve_discipline_ids_inclusive(discipline)
+          return {error: error("Discipline oder Branch nicht gefunden: '#{discipline}'. Beispiele: 'Pool', 'Snooker', 'Karambol', '8-Ball'.")} if discipline_ids.blank?
+          rel = rel.where(discipline_id: discipline_ids)
+        end
+
+        matches = rel.limit(25).to_a
+        if matches.empty?
+          disc_part = discipline.present? ? ", Disziplin '#{discipline}'" : ""
+          return {error: error("Keine Liga gefunden (Region #{region.shortname}, Saison #{season_obj&.name}#{disc_part}). Nutze cc_list_leagues oder gib league_id an.")}
+        elsif matches.size > 1
+          listing = matches.first(10).map { |l| "#{l.name} (league_id=#{l.id}, cc_id=#{l.cc_id})" }.join("; ")
+          return {error: text("Mehrere Ligen passen (#{matches.size}). Bitte über cc_list_leagues eingrenzen und dann mit `league_id` erneut anfragen. Treffer: #{listing}")}
+        end
+        {league: matches.first}
+      end
+
+      # Plan 45-02 (45-01-Live-Befund): ECHTE öffentliche Liga-Ansicht (Spielplan+Tabelle).
+      # Spiegelt League#cc_id_link, aber mit nil-Guards (kein Müll-Link) — damit das LLM einen
+      # realen Link relayt statt zu halluzinieren (Befund: erfundener www.billard.de-Link).
+      def self.public_league_url_from(base:, fed:, season:, cc_id:, cc_id2: nil)
+        base = base.presence
+        return nil if base.blank? || fed.blank? || season.blank? || cc_id.blank?
+        "#{base}sb_spielplan.php?p=#{fed}--#{season}-#{cc_id}#{"-#{cc_id2}" if cc_id2.present?}"
+      end
+
+      def self.public_league_url(league)
+        return nil if league.nil?
+        org = league.organizer
+        return nil unless org.respond_to?(:public_cc_url_base) && org.respond_to?(:region_cc)
+        public_league_url_from(
+          base: org.public_cc_url_base,
+          fed: org.region_cc&.cc_id,
+          season: league.season&.name,
+          cc_id: league.cc_id,
+          cc_id2: league.try(:cc_id2)
+        )
+      rescue => e
+        Rails.logger.warn "[BaseTool.public_league_url] #{e.class}: #{e.message}"
+        nil
+      end
+
+      # Plan 46-01: REGION-SCOPE-geprüfte Party-Auflösung für die Party-Vorbereitungs-Tools.
+      # party_id direkt ODER league_id/cc_id + (day_seqno|date) — Mirror der cc_party_lineup-
+      # Auflösung, hier gebündelt wiederverwendbar. Region-Scope erbt aus resolve_league
+      # (kein Cross-Region-Leak). Rückgabe: {party: <Party>} | {error: <Response>}.
+      def self.resolve_party(server_context, party_id: nil, league_id: nil, cc_id: nil, day_seqno: nil, date: nil, discipline: nil, season: nil)
+        if party_id.present?
+          party = Party.find_by(id: party_id)
+          return {error: error("Party nicht gefunden (party_id=#{party_id}).")} if party.nil?
+          resolved = resolve_league(server_context, league_id: party.league_id)
+          return {error: resolved[:error]} if resolved[:error]
+          return {party: party}
+        end
+
+        resolved = resolve_league(server_context, league_id: league_id, cc_id: cc_id, discipline: discipline, season: season)
+        return {error: resolved[:error]} if resolved[:error]
+        league = resolved[:league]
+        rel = league.parties
+        if day_seqno.present?
+          rel = rel.where(day_seqno: day_seqno)
+        elsif date.present?
+          d = begin
+            Date.parse(date.to_s)
+          rescue
+            nil
+          end
+          return {error: error("Datum nicht lesbar: #{date.inspect} (erwartet YYYY-MM-DD).")} if d.nil?
+          rel = rel.where("date::date = ?", d)
+        else
+          return {error: error("Bitte party_id ODER league_id + (day_seqno ODER date) angeben.")}
+        end
+        matches = rel.to_a
+        return {error: error("Keine Party gefunden (league_id=#{league.id}, day_seqno=#{day_seqno}, date=#{date}).")} if matches.empty?
+        if matches.size > 1
+          listing = matches.map { |p| "party_id=#{p.id} #{p.league_team_a&.name} vs #{p.league_team_b&.name} (#{p.date&.to_date})" }.join("; ")
+          return {error: text("Mehrere Parties passen (#{matches.size}). Bitte party_id angeben: #{listing}")}
+        end
+        {party: matches.first}
+      end
+
+      # Plan 46-01: Berechtigung für die Party-Vorbereitung (Aufstellung setzen). Baut auf das
+      # bestehende Persona-/Scope-Backbone (KEINE neue Policy — extend-before-build). Region ist
+      # bereits über resolve_party/resolve_league erzwungen; hier zählt Disziplin-Scope.
+      # DEV-46-01-A: bewusst OHNE Location-Filter (anders als in_sportwart_scope? für Turniere) —
+      # Ligen sind nicht venue-gebunden (Mannschaftskämpfe wechseln den Austragungsort je Spieltag);
+      # der Disziplin-Match folgt derselben root_chain-Logik wie SportwartScope#in_sportwart_scope?.
+      def self.party_preparation_authorized?(party:, server_context:)
+        user = User.find_by(id: server_context&.dig(:user_id))
+        return false if user.nil? || !user.cc_write_access?
+        return true if user.try(:system_admin?)
+        return true if user.try(:landessportwart?)
+        return false unless user.try(:sportwart?)
+        disc_ids = Array(user.try(:sportwart_discipline_ids))
+        return true if disc_ids.empty? # leer = alle Disziplinen
+        league_disc = party&.league&.discipline
+        return true if league_disc.nil? # keine Liga-Disziplin → nicht blockieren
+        (Array(league_disc.root_chain).map(&:id) & disc_ids).any?
+      rescue => e
+        Rails.logger.warn "[BaseTool.party_preparation_authorized?] #{e.class}: #{e.message}"
+        false
+      end
+
+      # Convenience: nil bei Erlaubnis, error(...)-Response bei Denial (1-Zeilen-Pattern in Tools).
+      def self.authorize_party_preparation!(party:, server_context:)
+        return nil if party_preparation_authorized?(party: party, server_context: server_context)
+        error("Du bist für die Aufstellung dieses Mannschaftskampfs nicht zuständig — das übernimmt der zuständige (Landes-)Sportwart der Liga.")
+      end
+
       # Plan 14-G.2 / D-14-G4 + D-14-G5: Authority-Helper für Write-Tools.
       # Konsumiert Pundit-TournamentPolicy (4 Methoden aus 14-G.1).
       # Returnt nil bei Allow, error(...)-Response bei Denial.
@@ -371,7 +690,7 @@ module McpServer
       #   return err if (err = authorize!(action: :update_deadline, tournament: ml.tournament, server_context: server_context))
       #
       # Boundary: KEINE Tool-Code-Edits in 14-G.2 (14-G.4-Scope) — Helper steht bereit.
-      ALLOWED_AUTHORITY_ACTIONS = %i[assign_leiter update_deadline manage_teilnehmerliste enter_results].freeze
+      ALLOWED_AUTHORITY_ACTIONS = %i[assign_leiter update_deadline manage_teilnehmerliste enter_results prepare_tournament].freeze
 
       def self.authorize!(action:, tournament:, server_context:)
         unless ALLOWED_AUTHORITY_ACTIONS.include?(action.to_sym)
@@ -424,6 +743,109 @@ module McpServer
       rescue => e
         Rails.logger.warn "[BaseTool.resolve_tournament] #{e.class}: #{e.message}"
         nil
+      end
+
+      # Strang 2 (LSW-Kegel-Befund 2026-06-14): Soft-Hinweis, wenn ein scoped Sportwart ein
+      # Turnier AUSSERHALB seines Disziplin-Wirkbereichs aufruft (z.B. HaJo/Kegel öffnet ein
+      # Karambol-Turnier). Liefert einen freundlichen, FÜHRENDEN Hinweistext (String) ODER nil.
+      #
+      # Bewusst NUR Disziplin (nicht Location) — der User-Entscheid ist "Soft-Hinweis": der
+      # (Landes-)Sportwart darf fremde Disziplinen read-only ansehen; die Meldung erklärt nur,
+      # warum es "nicht seine Liste" ist, und beugt der irreführenden Narration vor ("Meldeliste
+      # nicht verknüpft / Konfigurationsproblem"). Hierarchie-bewusst via discipline.root_chain —
+      # spiegelt exakt die discipline_match-Logik aus SportwartScope#in_sportwart_scope?.
+      #
+      # nil (= kein Hinweis) bei: keinem Turnier, keinem User, Nicht-Sportwart, leerem
+      # Disziplin-Scope (leer = alle Disziplinen), oder wenn das Turnier IM Wirkbereich liegt.
+      def self.discipline_scope_note(tournament:, server_context: nil)
+        return nil if tournament.nil?
+        user = User.find_by(id: server_context&.dig(:user_id))
+        return nil if user.nil?
+        return nil unless user.respond_to?(:sportwart?) && user.sportwart?
+
+        disc_ids = Array(user.try(:sportwart_discipline_ids))
+        return nil if disc_ids.empty? # leer = alle Disziplinen → kein Mismatch
+
+        t_disc = tournament.discipline
+        return nil if t_disc.nil?
+        chain_ids = Array(t_disc.root_chain).map(&:id)
+        return nil if (chain_ids & disc_ids).any? # im Wirkbereich → kein Hinweis
+
+        own_names = Discipline.where(id: disc_ids).pluck(:name).compact.join(", ").presence || "(keine)"
+        branch = t_disc.root&.name
+        disc_label = (branch && branch != t_disc.name) ? "#{t_disc.name} (#{branch})" : t_disc.name
+        "Hinweis: Dieses Turnier ist #{disc_label}. Dein Sportwart-Wirkbereich ist #{own_names} — " \
+          "für diese Disziplin bist du nicht zuständig. Du kannst die Daten read-only ansehen, " \
+          "aber Anmeldungen und Akkreditierungen liegen beim zuständigen Sportwart."
+      rescue => e
+        Rails.logger.warn "[BaseTool.discipline_scope_note] #{e.class}: #{e.message}"
+        nil
+      end
+
+      # Live-Test 2026-06-14 (User-Direktive „einfacher"): Statt die ÖFFENTLICHE CC-Seite zu
+      # parsen, geben wir bei Read-Fragen/-Fehlern einfach den LINK auf die öffentliche Turnier-
+      # Ansicht (sb_meisterschaft.php) — die kennt jeder club_admin und sie braucht KEINEN
+      # Admin-Scope/kein branch_cc (genau die Lücke, an der der Admin-Read scheiterte).
+      # Liefert die URL ODER nil (wenn region/fed/season/tournament_cc_id fehlen).
+      def self.public_tournament_url(tournament)
+        return nil if tournament.nil?
+        region = (tournament.organizer if tournament.try(:organizer_type) == "Region") || tournament.try(:region)
+        public_tournament_url_from(
+          base: region&.public_cc_url_base,
+          fed: region&.region_cc&.cc_id,
+          season: tournament.season&.name,
+          tcc_id: tournament.tournament_cc&.cc_id
+        )
+      rescue => e
+        Rails.logger.warn "[BaseTool.public_tournament_url] #{e.class}: #{e.message}"
+        nil
+      end
+
+      # Variante mit expliziten Teilen — für Listen-Tools, die region/fed EINMAL auflösen
+      # (kein N+1) und pro Zeile nur season + tournament_cc_id einsetzen.
+      # Form aus Tournament::PublicCcScraper (leeres branch-Feld — bewusst, kein branch_cc nötig).
+      def self.public_tournament_url_from(base:, fed:, season:, tcc_id:)
+        base = base.presence
+        return nil if base.blank? || fed.blank? || season.blank? || tcc_id.blank?
+        "#{base}sb_meisterschaft.php?p=#{fed}--#{season}-#{tcc_id}----1-100000-"
+      end
+
+      # Anhängbarer Hinweis-Suffix mit dem öffentlichen Link (oder "" wenn nicht baubar).
+      def self.public_view_hint(tournament)
+        url = public_tournament_url(tournament)
+        url ? " Öffentliche Ansicht (für alle einsehbar): #{url}" : ""
+      end
+
+      # Quellen-Attribution (Phase 40, D-40-1/D-40-2): die INTERNE Datenquelle rechte-gegated
+      # benennen. Der ÖFFENTLICHE Link (public_view_hint) bleibt für ALLE; die interne Quelle
+      # (DB-Abbild vs. Live-CC-Abruf) wird NUR Usern mit CC-Schreibrecht (cc_write_access?)
+      # genannt. Read-only User + User-loser Stdio-Pfad (kein server_context[:user_id]) bekommen
+      # KEINE interne Quellennote. Wording jargonfrei (server.instructions-Verbotsliste beachtet).
+      SOURCE_NOTES = {
+        db_mirror: "Quelle: Carambus-Datenbank (Abbild der ClubCloud).",
+        live_cc: "Quelle: direkt aus der ClubCloud abgerufen."
+      }.freeze
+
+      # Hat der handelnde User (server_context[:user_id]) CC-Schreibrecht? false ohne User.
+      def self.acting_can_write_cc?(server_context)
+        User.find_by(id: server_context&.dig(:user_id))&.cc_write_access? || false
+      rescue => e
+        Rails.logger.warn "[BaseTool.acting_can_write_cc?] #{e.class}: #{e.message}"
+        false
+      end
+
+      # Bare Quellen-Label (gated) — für JSON-Antworten (meta.source). "" wenn nicht
+      # schreibberechtigt (D-40-1) oder unbekannte Quellenart.
+      def self.source_label(server_context, kind)
+        return "" unless acting_can_write_cc?(server_context)
+        SOURCE_NOTES[kind] || ""
+      end
+
+      # Anhängbarer Quellen-Suffix (führendes Leerzeichen, analog public_view_hint) — für
+      # Prosa-Antworten. "" wenn nicht schreibberechtigt oder unbekannte Quellenart.
+      def self.source_note(server_context, kind)
+        label = source_label(server_context, kind)
+        label.empty? ? "" : " #{label}"
       end
 
       # Plan 14-G.12 Task 4 / D-14-G.12-B:
@@ -492,32 +914,6 @@ module McpServer
       rescue => e
         Rails.logger.warn "[BaseTool.resolve_club_cc_id] #{e.class}: #{e.message}"
         [nil, error("Authority-Check (club_cc_id) fehlgeschlagen (defensive): #{e.class.name}")]
-      end
-
-      # Plan 23-01 T4: Transitive Discipline-Permission-Check.
-      # Prüft, ob ein Tournament (oder direkt eine discipline_id) im Sportwart-
-      # Wirkbereich des Users liegt — bezogen auf die Discipline-Hierarchie.
-      # Beispiel: User-sportwart_disciplines=[Karambol(50)], Tournament-Discipline=
-      # Dreiband-groß(31) → erlaubt, weil Karambol in der root_chain liegt.
-      #
-      # Returns true wenn überschneidung in der Hierarchie, false sonst.
-      # Defensive: missing user / missing discipline / Errors → false.
-      def self.discipline_permission?(user, discipline_or_tournament)
-        return false unless user.respond_to?(:sportwart_disciplines)
-
-        discipline = if discipline_or_tournament.respond_to?(:discipline)
-          discipline_or_tournament.discipline
-        else
-          discipline_or_tournament
-        end
-        return false if discipline.nil?
-
-        chain_ids = discipline.root_chain.map(&:id)
-        allowed_ids = user.sportwart_disciplines.pluck(:id)
-        (chain_ids & allowed_ids).any?
-      rescue => e
-        Rails.logger.warn "[BaseTool.discipline_permission?] #{e.class}: #{e.message}"
-        false
       end
 
       # Plan 14-G.13.1 Task 1: Per-Tool-Call-Cache für idempotente Read-Endpoints

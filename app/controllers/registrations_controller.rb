@@ -43,6 +43,8 @@ class RegistrationsController < Devise::RegistrationsController
         timezone
         theme
         locale
+        cc_username
+        cc_password
       ])
     # Plan 41-02 Task 1 (Rule 2 auto-fix): :sign_up permittiert terms_of_service +
     # first_name/last_name, damit die User-Modell-Validation `validates :terms_of_service,
@@ -62,6 +64,25 @@ class RegistrationsController < Devise::RegistrationsController
     resource.preferences ||= {}
     %i[theme timezone locale].each do |key|
       resource.preferences[key.to_s] = params.delete(key) if params[key]
+    end
+
+    # D-39-11 (v1.1): Normalisierung der eigenen CC-Zugangsdaten (Provisionierungs-UI).
+    # Das Passwort-Feld zeigt aus Sicherheitsgruenden nie den gespeicherten Wert — ein
+    # leeres Feld ist mehrdeutig. Regel (Wipe-Schutz):
+    #   * cc_username-Key NICHT im Update (z.B. partieller/API-Update ohne CC-Felder)
+    #     -> beide CC-Keys verwerfen, bestehende Creds bleiben unberuehrt.
+    #   * cc_username leer (Feld bewusst geleert) -> beide Felder loeschen (Entfernen).
+    #   * cc_username gesetzt + cc_password leer -> "nicht aendern": Passwort behalten.
+    #   * beide gesetzt -> unveraendert durchreichen (Hinterlegen/Aendern).
+    if params.key?(:cc_username)
+      if params[:cc_username].blank?
+        params[:cc_username] = nil
+        params[:cc_password] = nil
+      elsif params[:cc_password].blank?
+        params.delete(:cc_password)
+      end
+    else
+      params.delete(:cc_password)
     end
 
     # Handle password update

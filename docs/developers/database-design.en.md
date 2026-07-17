@@ -74,21 +74,18 @@ Several models use serialized columns for flexible data storage:
 The `RegionTaggable` concern provides intelligent region handling:
 
 ```ruby
-# Example from RegionTaggable
+# Example from RegionTaggable#find_associated_region_id (returns a single region_id)
 when Seeding
   if tournament_id.present?
-    # Handle tournament-based region tagging
-    tournament ? [
-      tournament.region_id,
-      (tournament.organizer_type == "Region" ? tournament.organizer_id : nil),
-      find_dbu_region_id_if_global
-    ].compact : []
+    # Tournament-based region tagging (polymorphic tournament_type)
+    if tournament_type == "Region"
+      tournament&.organizer_type == "Region" ? tournament.organizer_id : tournament&.region_id
+    elsif tournament_type == "Party"
+      tournament&.league&.organizer_type == "Region" ? tournament.league.organizer_id : nil
+    end
   elsif league_team_id.present?
-    # Handle league team-based region tagging
-    league_team&.league ? [
-      (league_team.league.organizer_type == "Region" ? league_team.league.organizer_id : nil),
-      find_dbu_region_id_if_global
-    ].compact : []
+    # League-team-based region tagging
+    league_team&.league&.organizer_type == "Region" ? league_team.league.organizer_id : nil
   end
 ```
 

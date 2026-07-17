@@ -1,0 +1,24 @@
+<%# H19: „Demnächst"-Block (nur Standard-Blick/Seite 1, im Controller via @show_upcoming gesetzt). %>
+<% if @show_upcoming && @upcoming_tournaments.present? %>
+  <h2 class="h5 mb-2 text-gray-700 dark:text-gray-300"><%= t('tournaments.index.upcoming_heading') %></h2>
+  <div class="bg-surface-card dark:bg-gray-800 rounded-card border border-primary-200 dark:border-primary-800 overflow-hidden mb-6">
+    <% @upcoming_tournaments.each do |tournament| %>
+      <%= render partial: 'tournaments/tournament_row', locals: { tournament: tournament } %>
+    <% end %>
+  </div>
+  <h2 class="h5 mb-2 text-gray-700 dark:text-gray-300"><%= t('tournaments.index.all_heading') %></h2>
+<% end %>
+
+<div class="bg-surface-card dark:bg-gray-800 rounded-card border border-gray-200 dark:border-gray-700 overflow-hidden">
+  <% @tournaments ||= records %>
+  <% @pagy ||= defined?(pagy) ? pagy : nil %>
+  <% @tournaments.each do |tournament| %>
+    <%= render partial: 'tournaments/tournament_row', locals: { tournament: tournament } %>
+  <% end %>
+</div>
+
+<% if @pagy.present? && @pagy.pages > 1 %>
+  <div class="text-center my-6">
+    <%= pagy_nav(@pagy).html_safe %>
+  </div>
+<% end %>

@@ -1,19 +1,19 @@
 <%= render "admin/application/multilingual_form_header", form: form %>
 
-<div class="multilingual-input-section">
-  <h3 style="margin-bottom: 15px; color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 5px;">
+<div class="multilingual-input-section p-5 rounded-lg mb-6 bg-gray-50 dark:bg-gray-800">
+  <h3 class="mb-4 pb-1 border-b-2 border-info-500 text-gray-800 dark:text-gray-100">
     📝 Texte in allen Sprachen
   </h3>
-  
+
   <% unless form.object.translations_in_sync? %>
-    <div class="alert alert-warning" style="background: #fff3cd; border: 1px solid #ffc107; padding: 12px; border-radius: 6px; margin-bottom: 20px;">
+    <div class="alert alert-warning bg-warning-50 dark:bg-warning-900/30 border border-warning-400 text-gray-800 dark:text-gray-100 p-3 rounded-md mb-5">
       ⚠️ <strong>Übersetzungen nicht synchronisiert</strong><br>
-      <span style="font-size: 0.9em;">
-        Original-Text wurde geändert. Klicken Sie nach dem Speichern auf "Translate" um die Übersetzungen zu aktualisieren.
+      <span class="text-[0.9em]">
+        Original-Text wurde geändert. Klicke nach dem Speichern auf "Translate", um die Übersetzungen zu aktualisieren.
       </span>
     </div>
   <% end %>
-  
+
   <%= render "admin/application/multilingual_text_fields",
              form: form,
              resource: form.object,
@@ -22,55 +22,55 @@
                { name: :short_description, type: :text_area, label: "Kurzbeschreibung", rows: 3 },
                { name: :full_description, type: :text_area, label: "Ausführliche Beschreibung", rows: 10 }
              ] %>
-  
+
   <% if form.object.persisted? && form.object.translations_synced_at.present? %>
-    <div class="sync-info" style="background: #d4edda; border: 1px solid #28a745; padding: 10px; border-radius: 6px; margin-top: 15px;">
+    <div class="sync-info bg-success-50 dark:bg-success-900/30 border border-success-500 p-2.5 rounded-md mt-4">
       ✅ Zuletzt synchronisiert: <%= form.object.translations_synced_at.strftime('%d.%m.%Y %H:%M') %>
     </div>
   <% end %>
-  
-  <div class="field-unit" style="background: #fff9e6; border: 2px solid #ffc107; padding: 15px; border-radius: 6px; margin-top: 20px;">
+
+  <div class="bg-warning-50 dark:bg-warning-900/30 border-2 border-warning-400 p-4 rounded-md mt-5">
     <label class="field-unit__label">
-      <%= check_box_tag 'training_concept[translate_after_save]', '1', false, style: "margin-right: 8px;", id: 'translate_checkbox' %>
+      <%= check_box_tag 'training_concept[translate_after_save]', '1', false, class: "mr-2", id: 'translate_checkbox' %>
       🌐 <strong>Nach dem Speichern automatisch übersetzen</strong>
     </label>
-    
-    <div id="translation_method" style="margin-left: 24px; margin-top: 10px;">
-      <p class="field-hint" style="margin-bottom: 8px;">
+
+    <div id="translation_method" class="ml-6 mt-2.5">
+      <p class="field-hint text-gray-500 dark:text-gray-400 mb-2">
         <strong>Übersetzungsmethode:</strong>
       </p>
-      <label style="display: block; margin-bottom: 6px;">
-        <%= radio_button_tag 'training_concept[translation_method]', 'deepl', true, style: "margin-right: 6px;" %>
+      <label class="block mb-1.5">
+        <%= radio_button_tag 'training_concept[translation_method]', 'deepl', true, class: "mr-1.5" %>
         💰 <strong>DeepL mit Glossar</strong> (schnell, günstig, gut für EN/NL↔DE)
       </label>
-      <label style="display: block;">
-        <%= radio_button_tag 'training_concept[translation_method]', 'ai', false, style: "margin-right: 6px;" %>
+      <label class="block">
+        <%= radio_button_tag 'training_concept[translation_method]', 'ai', false, class: "mr-1.5" %>
         🤖 <strong>AI (Claude)</strong> (beste Qualität, versteht Kontext, für alle Sprachen)
       </label>
     </div>
-    
-    <p class="field-hint" style="margin-left: 24px; margin-top: 10px;">
+
+    <p class="field-hint text-gray-500 dark:text-gray-400 ml-6 mt-2.5">
       Die geänderten Felder werden nach dem Speichern in alle Sprachen übersetzt
     </p>
   </div>
-  
+
   <script>
     function setupTranslationToggle() {
       const checkbox = document.getElementById('translate_checkbox');
       const methodDiv = document.getElementById('translation_method');
-      
+
       if (checkbox && methodDiv) {
         methodDiv.style.display = checkbox.checked ? 'block' : 'none';
-        
+
         checkbox.addEventListener('change', function() {
           methodDiv.style.display = this.checked ? 'block' : 'none';
         });
       }
     }
-    
+
     document.addEventListener('DOMContentLoaded', setupTranslationToggle);
     document.addEventListener('turbo:load', setupTranslationToggle);
-    
+
     if (document.readyState === 'loading') {
     } else {
       setupTranslationToggle();
@@ -81,45 +81,45 @@
 <div class="field-unit field-unit--disciplines">
   <%= form.label :disciplines, "Disziplinen (optional)", class: "field-unit__label" %>
   <div class="field-unit__field">
-    <p class="field-hint">Keine Auswahl = Konzept gilt für alle Disziplinen</p>
-    
-    <div style="display: grid; grid-template-columns: 200px 1fr; gap: 20px; margin-top: 10px;">
+    <p class="field-hint text-gray-500 dark:text-gray-400">Keine Auswahl = Konzept gilt für alle Disziplinen</p>
+
+    <div class="grid grid-cols-[200px_1fr] gap-5 mt-2.5">
       <!-- Hauptdisziplinen -->
       <div>
         <strong>Hauptdisziplin:</strong>
-        <% 
+        <%
           main_disciplines = Discipline.where(name: ["Dreiband", "Cadre", "Einband", "Freie Partie"])
                                        .order(:name)
         %>
-        <%= form.collection_check_boxes :discipline_ids, 
-                                        main_disciplines, 
-                                        :id, 
+        <%= form.collection_check_boxes :discipline_ids,
+                                        main_disciplines,
+                                        :id,
                                         :name do |b| %>
-          <div class="checkbox-wrapper">
+          <div class="checkbox-wrapper my-1.5 [&_input]:mr-2">
             <%= b.check_box %>
             <%= b.label %>
           </div>
         <% end %>
       </div>
-      
+
       <!-- Tischgröße (optional) -->
       <div>
         <strong>Tischgröße (optional):</strong>
-        <p class="field-hint" style="margin: 5px 0;">Nur auswählen, wenn spezifisch für eine Tischgröße</p>
-        <% 
+        <p class="field-hint text-gray-500 dark:text-gray-400 my-1.5">Nur auswählen, wenn spezifisch für eine Tischgröße</p>
+        <%
           # Hole alle TableKinds
           table_kinds = TableKind.where(name: ["Small Billard", "Half Match Billard", "Match Billard"])
                                  .order(:name)
         %>
         <% table_kinds.each do |tk| %>
-          <div class="checkbox-wrapper">
-            <input type="checkbox" 
-                   name="table_kind_filter[]" 
-                   value="<%= tk.name %>" 
+          <div class="checkbox-wrapper my-1.5 [&_input]:mr-2">
+            <input type="checkbox"
+                   name="table_kind_filter[]"
+                   value="<%= tk.name %>"
                    id="table_kind_<%= tk.id %>"
                    disabled>
             <label for="table_kind_<%= tk.id %>"><%= tk.name %></label>
-            <span class="field-hint">(in Entwicklung)</span>
+            <span class="field-hint text-gray-500 dark:text-gray-400">(in Entwicklung)</span>
           </div>
         <% end %>
       </div>
@@ -130,24 +130,24 @@
 <div class="field-unit field-unit--tags">
   <%= form.label :tags, "Tags", class: "field-unit__label" %>
   <div class="field-unit__field">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-      <p class="field-hint" style="margin: 0;">Wählen Sie bestehende Tags aus den Kategorien:</p>
-      <%= link_to "Tag-Verwaltung", admin_tags_path, target: "_blank", class: "button", 
-                  style: "padding: 5px 10px; background: #4CAF50; color: white; text-decoration: none; border-radius: 3px; font-size: 0.9em;" %>
+    <div class="flex justify-between items-center mb-2.5">
+      <p class="field-hint text-gray-500 dark:text-gray-400 m-0">Wähle bestehende Tags aus den Kategorien:</p>
+      <%= link_to "Tag-Verwaltung", admin_tags_path, target: "_blank",
+                  class: "bg-success-600 hover:bg-success-700 text-white px-2.5 py-1 rounded text-[0.9em] no-underline" %>
     </div>
-    
+
     <% Tag::CATEGORIES.each do |category| %>
       <% category_tags = Tag.where(category: category).order(:name) %>
       <% if category_tags.any? %>
-        <div class="tag-category">
+        <div class="tag-category my-2.5 p-2.5 rounded bg-gray-50 dark:bg-gray-800">
           <strong><%= category %>:</strong>
-          <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 5px;">
-            <%= form.collection_check_boxes :tag_ids, 
-                                            category_tags, 
-                                            :id, 
+          <div class="grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-1.5">
+            <%= form.collection_check_boxes :tag_ids,
+                                            category_tags,
+                                            :id,
                                             :name,
                                             { checked: form.object.tag_ids } do |b| %>
-              <div class="checkbox-wrapper">
+              <div class="checkbox-wrapper my-1.5 [&_input]:mr-2">
                 <%= b.check_box %>
                 <%= b.label %>
               </div>
@@ -156,15 +156,15 @@
         </div>
       <% end %>
     <% end %>
-    
+
     <% if Tag.count == 0 %>
-      <div class="tag-input-wrapper" style="margin-top: 15px;">
-        <p style="color: #ff6b6b; font-weight: bold;">⚠ Noch keine Tags vorhanden!</p>
-        <p>Bitte erstellen Sie zuerst Tags über die <%= link_to "Tag-Verwaltung", admin_tags_path, target: "_blank" %>, 
+      <div class="tag-input-wrapper mt-4">
+        <p class="text-danger-500 font-bold">⚠ Noch keine Tags vorhanden!</p>
+        <p>Bitte erstelle zuerst Tags über die<%= link_to "Tag-Verwaltung", admin_tags_path, target: "_blank" %>,
            um Redundanz zu vermeiden.</p>
-        <p style="font-size: 0.9em; margin-top: 10px;">
-          Oder laden Sie Beispiel-Tags: 
-          <code style="background: #f4f4f4; padding: 2px 5px; border-radius: 3px;">
+        <p class="text-[0.9em] mt-2.5">
+          Oder lade Beispiel-Tags:
+          <code class="bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded">
             rails runner db/seeds/tags.rb
           </code>
         </p>
@@ -172,52 +172,3 @@
     <% end %>
   </div>
 </div>
-
-<style>
-  .multilingual-input-section {
-    background: #f8f9fa;
-    padding: 20px;
-    border-radius: 8px;
-    margin-bottom: 25px;
-  }
-  .checkbox-wrapper {
-    margin: 5px 0;
-  }
-  .checkbox-wrapper input[type="checkbox"] {
-    margin-right: 8px;
-  }
-  .field-unit__select {
-    width: 100%;
-    padding: 8px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-  }
-  .field-unit__input,
-  .field-unit__textarea {
-    width: 100%;
-    padding: 10px;
-    border: 2px solid #ddd;
-    border-radius: 4px;
-    font-size: 1em;
-    transition: border-color 0.3s;
-  }
-  .field-unit__input:focus,
-  .field-unit__textarea:focus {
-    border-color: #667eea;
-    outline: none;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-  }
-  .field-hint {
-    color: #666;
-    font-size: 0.9em;
-    font-style: italic;
-    margin-top: 5px;
-    margin-bottom: 10px;
-  }
-  .tag-category {
-    margin: 10px 0;
-    padding: 10px;
-    background: #f9f9f9;
-    border-radius: 4px;
-  }
-</style>

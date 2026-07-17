@@ -69,6 +69,32 @@ namespace :scenario do
     generate_configuration_files(scenario_name, environment)
   end
 
+  desc "Generate/merge encrypted credentials from carambus_data/secrets.yml per config.yml features"
+  task :generate_credentials, [:scenario_name, :environment] => :environment do |task, args|
+    scenario_name = args[:scenario_name]
+    environment = args[:environment] || 'production'
+
+    if scenario_name.nil?
+      puts "Usage: rake scenario:generate_credentials[scenario_name,environment]"
+      puts "Default: DRY-RUN (zeigt nur die Key-Struktur). Schreiben mit WRITE=true."
+      exit 1
+    end
+
+    dry_run = ENV['WRITE'] != 'true'
+    generate_scenario_credentials(scenario_name, environment, dry_run: dry_run)
+  end
+
+  desc "Soft-Credentials (clubcloud/ai/translation/google_service) additiv auf den Server mergen — bewahrt secret_key_base/AR/devise_jwt. DRY-RUN default; WRITE=true (+RESTART=true). Auch für Authority (kein DB-Schritt → kein Guard). Usage: rake scenario:push_credentials[<name>]"
+  task :push_credentials, [:scenario_name] => :environment do |_, args|
+    scenario_name = args[:scenario_name]
+    if scenario_name.to_s.empty?
+      puts "Usage: rake scenario:push_credentials[<name>]"
+      puts "  DRY-RUN default; WRITE=true zum Schreiben, RESTART=true für Puma-Restart."
+      exit 1
+    end
+    push_credentials_to_server(scenario_name, write: ENV['WRITE'] == 'true', restart: ENV['RESTART'] == 'true')
+  end
+
   desc "Create Rails root folder for a scenario"
   task :create_rails_root, [:scenario_name] => :environment do |task, args|
     scenario_name = args[:scenario_name]
@@ -111,6 +137,23 @@ namespace :scenario do
     prepare_scenario_for_deployment(scenario_name)
   end
 
+  desc "DESTRUKTIV: DB auf Server zurücksetzen und neu befüllen (Migrations + Dump + DB-Reset auf Server)"
+  task :reset_server_db, [:scenario_name] => :environment do |task, args|
+    scenario_name = args[:scenario_name]
+
+    if scenario_name.nil?
+      puts "Usage: rake scenario:reset_server_db[scenario_name]"
+      puts "Example: rake scenario:reset_server_db[carambus_nbv]"
+      puts ""
+      puts "⚠️  DESTRUKTIV: Dropt und recreiert die Production-DB auf dem Server!"
+      puts "   Nur für Local-Server-Szenarien (cap_role: local) verwenden."
+      puts "   Voraussetzung: rake scenario:prepare_deploy[name] muss bereits gelaufen sein."
+      exit 1
+    end
+
+    reset_server_database(scenario_name)
+  end
+
   desc "Deploy scenario to production (pure Capistrano deployment with automatic service management)"
   task :deploy, [:scenario_name] => :environment do |task, args|
     scenario_name = args[:scenario_name]
@@ -123,7 +166,11 @@ namespace :scenario do
       exit 1
     end
 
-    deploy_scenario(scenario_name)
+    # Propagate failure: deploy_scenario returns false when (e.g.) the
+    # Capistrano deployment aborts. Without a non-zero exit code the calling
+    # shell script (deploy-scenario.sh) treats a failed deploy as success and
+    # prints "COMPLETE WORKFLOW SUCCESSFUL". exit 1 makes the failure visible.
+    abort("❌ scenario:deploy[#{scenario_name}] failed") unless deploy_scenario(scenario_name)
   end
 
   desc "Update scenario with git pull (preserves local changes)"
@@ -491,6 +538,19 @@ namespace :scenario do
     scenario_config['environments'].keys
   end
 
+  # DB-Passwort aus carambus_data/secrets.yml (gitignored) lesen — per_scenario-Override,
+  # sonst shared. nil wenn nicht vorhanden. Quelle seit Secret-Extraktion 2026-06-19
+  # (kein Klartext-DB-Passwort mehr in der versionierten config.yml).
+  def scenario_db_password(scenario_name)
+    pool_file = File.join(carambus_data_path, 'secrets.yml')
+    return nil unless File.exist?(pool_file)
+    pool = YAML.load_file(pool_file) || {}
+    pool.dig('per_scenario', scenario_name, 'database_password') ||
+      pool.dig('shared', 'database_password')
+  rescue
+    nil
+  end
+
   def generate_configuration_files(scenario_name, environment)
     puts "Generating configuration files for #{scenario_name} (#{environment})..."
 
@@ -507,6 +567,15 @@ namespace :scenario do
     if env_config.nil?
       puts "Error: Environment '#{environment}' not found in scenario configuration"
       return false
+    end
+
+    # DB-Passwort aus secrets.yml ziehen, falls nicht in config.yml (Secret-Extraktion 2026-06-19:
+    # die versionierte config.yml enthält kein Klartext-DB-Passwort mehr). secrets.yml (gitignored)
+    # ist die Quelle → fließt in database.yml + env.production. NUR production (dev/test nutzen
+    # lokale Auth ohne Secret-Passwort — dort NICHT injizieren).
+    if environment == 'production' && env_config['database_password'].to_s.strip.empty?
+      db_pw = scenario_db_password(scenario_name)
+      env_config = env_config.merge('database_password' => db_pw) if db_pw
     end
 
     # Create environment directory
@@ -573,6 +642,250 @@ namespace :scenario do
     puts "✅ Configuration files generated for #{scenario_name} (#{environment})"
     puts "   Location: #{env_dir}"
     true
+  end
+
+  # ---------------------------------------------------------------------------
+  # Credential-Generator (Phase C): merged Feature-Keys aus carambus_data/secrets.yml
+  # (laut config.yml scenario.credentials.features) in die bestehenden, verschlüsselten
+  # <env>.yml.enc — MERGE statt Regenerate (secret_key_base etc. bleiben erhalten).
+  # Doku: carambus_master/docs/developers/scenario-credentials.de.md
+  # ---------------------------------------------------------------------------
+  FEATURE_KEY_GROUPS = {
+    'ai' => %w[anthropic openai],
+    'translation' => %w[deepl google],
+    'scraping' => %w[youtube kozoom]
+  }.freeze
+  PRESERVE_KEYS = %w[secret_key_base active_record_encryption devise_jwt_secret_key
+    location_id location_calendar_id].freeze
+  LEGACY_FLAT_KEYS = %w[anthropic_key deepl_key youtube_api_key].freeze
+
+  def generate_scenario_credentials(scenario_name, environment = 'production', dry_run: true)
+    require 'securerandom'
+    require 'active_support/encrypted_configuration'
+    require 'active_support/core_ext/hash/deep_merge'
+
+    config_file = File.join(scenarios_path, scenario_name, 'config.yml')
+    unless File.exist?(config_file)
+      puts "❌ config.yml nicht gefunden: #{config_file}"; return false
+    end
+    config = YAML.load_file(config_file)
+    decl = config.dig('scenario', 'credentials') || {}
+    features = Array(decl['features']).map(&:to_s)
+    features = %w[ai translation] if features.empty? # Default: Backup überall
+    cc_ctx = decl['clubcloud_context']
+
+    pool_file = File.join(carambus_data_path, 'secrets.yml')
+    unless File.exist?(pool_file)
+      puts "❌ Secret-Pool fehlt: #{pool_file}"
+      puts "   Aus Vorlage anlegen: cp #{pool_file}.example #{pool_file} (gitignored, chmod 600)"
+      return false
+    end
+    pool = YAML.load_file(pool_file) || {}
+    shared = pool['shared'] || {}
+    per = (pool['per_scenario'] || {})[scenario_name] || {}
+
+    creds_dir = File.join(scenarios_path, scenario_name, 'production', 'credentials')
+    enc_path = File.join(creds_dir, "#{environment}.yml.enc")
+    key_path = File.join(creds_dir, "#{environment}.key")
+    unless File.exist?(key_path)
+      puts "❌ Key fehlt: #{key_path} (Credentials müssen mindestens initial existieren)"; return false
+    end
+
+    enc = ActiveSupport::EncryptedConfiguration.new(
+      config_path: enc_path, key_path: key_path,
+      env_key: 'RAILS_MASTER_KEY', raise_if_missing_key: true
+    )
+    existing = {}
+    if File.exist?(enc_path)
+      existing = YAML.safe_load(enc.read.to_s, permitted_classes: [Symbol], aliases: true) || {}
+    end
+
+    merged = deep_stringify(existing)
+    # (3) historische flache Leaves entfernen — nested ersetzt sie
+    removed = LEGACY_FLAT_KEYS.select { |k| merged.key?(k) }
+    LEGACY_FLAT_KEYS.each { |k| merged.delete(k) }
+    # (2) secret_key_base bewahren; nur bei Neuanlage erzeugen
+    generated_skb = false
+    if merged['secret_key_base'].to_s.strip.empty?
+      merged['secret_key_base'] = SecureRandom.hex(64)
+      generated_skb = true
+    end
+    # Feature-Keys aus shared mergen (nested)
+    added = []
+    features.each do |f|
+      Array(FEATURE_KEY_GROUPS[f]).each do |grp|
+        next unless shared[grp]
+        merged[grp] = (merged[grp] || {}).deep_merge(deep_stringify(shared[grp]))
+        added << grp
+      end
+    end
+    # clubcloud (kontext-gewählt; per_scenario-Override, sonst shared).
+    # WICHTIG: Setting.get_cc_credentials liest mit context.downcase.to_sym →
+    # der Credential-Key MUSS kleingeschrieben sein (z.B. clubcloud.nbv).
+    if features.include?('clubcloud') && cc_ctx
+      ck = cc_ctx.to_s.downcase
+      cc = per.dig('clubcloud', cc_ctx) || per.dig('clubcloud', ck) ||
+        shared.dig('clubcloud', cc_ctx) || shared.dig('clubcloud', ck)
+      if cc
+        merged['clubcloud'] = (merged['clubcloud'] || {}).merge(ck => deep_stringify(cc))
+        added << "clubcloud.#{ck}"
+      end
+    end
+    # google_service immer (per_scenario-Override, sonst shared)
+    gsvc = per['google_service'] || shared['google_service']
+    if gsvc
+      merged['google_service'] = deep_stringify(gsvc)
+      added << 'google_service'
+    end
+
+    puts "── generate_credentials #{scenario_name} [#{environment}] #{dry_run ? '(DRY-RUN)' : '(WRITE)'} ──"
+    puts "   features: #{features.join(', ')}#{cc_ctx ? "  clubcloud_context=#{cc_ctx}" : ''}"
+    puts "   entfernte flache Leaves: #{removed.empty? ? '—' : removed.join(', ')}"
+    puts "   secret_key_base: #{generated_skb ? 'NEU generiert' : 'bewahrt'}"
+    puts "   gemergte Gruppen: #{added.uniq.join(', ')}"
+    puts "   resultierende Key-Struktur:"
+    credential_key_paths(merged).each { |p| puts "     #{p}" }
+
+    if dry_run
+      puts "   (DRY-RUN — nichts geschrieben. Schreiben mit WRITE=true)"
+    else
+      enc.write(merged.to_yaml)
+      puts "   ✅ geschrieben: #{enc_path}"
+      puts "   ⚠️  secret_key_base neu — in #{File.join(carambus_data_path, 'secrets.yml')} per_scenario sichern!" if generated_skb
+    end
+    true
+  end
+
+  # Soft-Feature-Keys (clubcloud/anthropic/deepl/google/youtube/kozoom/google_service) aus
+  # secrets.yml für ein Scenario bauen — NUR weiche, frei-updatebare Keys, NIE secret_key_base/
+  # active_record_encryption/devise_jwt. Basis für scenario:push_credentials.
+  def build_feature_keys_from_pool(scenario_name)
+    config = YAML.load_file(File.join(scenarios_path, scenario_name, 'config.yml'))
+    decl = config.dig('scenario', 'credentials') || {}
+    features = Array(decl['features']).map(&:to_s)
+    cc_ctx = decl['clubcloud_context']
+    pool = YAML.load_file(File.join(carambus_data_path, 'secrets.yml')) || {}
+    shared = pool['shared'] || {}
+    per = (pool['per_scenario'] || {})[scenario_name] || {}
+    out = {}
+    features.each do |f|
+      Array(FEATURE_KEY_GROUPS[f]).each do |grp|
+        next unless shared[grp]
+        out[grp] = (out[grp] || {}).deep_merge(deep_stringify(shared[grp]))
+      end
+    end
+    if features.include?('clubcloud') && cc_ctx
+      ck = cc_ctx.to_s.downcase
+      cc = per.dig('clubcloud', cc_ctx) || per.dig('clubcloud', ck) ||
+        shared.dig('clubcloud', cc_ctx) || shared.dig('clubcloud', ck)
+      out['clubcloud'] = (out['clubcloud'] || {}).merge(ck => deep_stringify(cc)) if cc
+    end
+    gsvc = per['google_service'] || shared['google_service']
+    out['google_service'] = deep_stringify(gsvc) if gsvc
+    out
+  end
+
+  # Server-seitiger Ruby-Runner (wird auf den Server kopiert + via `rails runner <file> <mode>`
+  # ausgeführt): mergt die Soft-Additions additiv in die LIVE-.enc und BEWAHRT die fragilen Keys
+  # (secret_key_base/active_record_encryption/devise_jwt) — Abbruch ohne Schreiben, wenn die sich
+  # ändern würden. Schreibt (+ Backup) nur bei mode=='write'.
+  def credentials_merge_runner_script
+    <<~'RUBY'
+      require "yaml"; require "fileutils"
+      mode = ARGV[0].to_s
+      add  = YAML.safe_load(File.read("/tmp/carambus_cred_additions.yml"), permitted_classes: [Symbol], aliases: true) || {}
+      path = "config/credentials/production.yml.enc"
+      keyp = "config/credentials/production.key"
+      enc = ActiveSupport::EncryptedConfiguration.new(config_path: path, key_path: keyp,
+              env_key: "RAILS_MASTER_KEY", raise_if_missing_key: true)
+      cur = YAML.safe_load(enc.read.to_s, permitted_classes: [Symbol], aliases: true) || {}
+      fragile = lambda { |h| { "skb" => h["secret_key_base"], "ar" => h["active_record_encryption"],
+                               "jwt" => h["devise_jwt_secret_key"] } }
+      before = fragile.call(cur)
+      merged = cur.deep_merge(add)
+      abort("ABBRUCH: fragile Keys (secret_key_base/AR/devise_jwt) wuerden sich aendern - nichts geschrieben.") unless fragile.call(merged) == before
+      new_keys = add.keys.reject { |k| cur.key?(k) }
+      chg_keys = add.keys.select { |k| cur.key?(k) && cur[k] != merged[k] }
+      puts "  Additions: #{add.keys.join(', ')}"
+      puts "  NEU:       #{new_keys.empty? ? '-' : new_keys.join(', ')}"
+      puts "  GEAENDERT: #{chg_keys.empty? ? '-' : chg_keys.join(', ')}"
+      puts "  fragile Keys: unveraendert (verifiziert)"
+      if mode == "write"
+        bak = "#{path}.bak.#{Time.now.strftime('%Y%m%d%H%M%S')}"
+        FileUtils.cp(path, bak)
+        enc.write(merged.to_yaml)
+        puts "  WRITE ok - Backup: #{bak}"
+      else
+        puts "  DRY-RUN - nichts geschrieben (WRITE=true zum Schreiben)."
+      end
+    RUBY
+  end
+
+  # scenario:push_credentials — Soft-Credentials additiv + sicher auf einen Server mergen.
+  def push_credentials_to_server(scenario_name, write:, restart:)
+    cfg_file = File.join(scenarios_path, scenario_name, 'config.yml')
+    unless File.exist?(cfg_file)
+      puts "❌ config.yml nicht gefunden: #{cfg_file}"; return false
+    end
+    cfg = YAML.load_file(cfg_file)
+    prod = cfg.dig('environments', 'production') || {}
+    ssh_host = prod['ssh_host']; ssh_port = prod['ssh_port'] || 22
+    deploy_to = prod['deploy_to'] || "/var/www/#{scenario_name}"
+    if ssh_host.to_s.strip.empty?
+      puts "❌ ssh_host fehlt in #{scenario_name} (environments.production)"; return false
+    end
+
+    additions = build_feature_keys_from_pool(scenario_name)
+    if additions.empty?
+      puts "Keine Soft-Feature-Keys zu mergen — config.yml features / secrets.yml prüfen."; return false
+    end
+    puts "── push_credentials #{scenario_name} #{write ? '(WRITE)' : '(DRY-RUN)'} → #{ssh_host}:#{ssh_port} ──"
+    puts "   Gruppen: #{additions.keys.join(', ')}  (fragile Keys werden NICHT angefasst)"
+
+    require 'tmpdir'
+    Dir.mktmpdir do |tmp|
+      add_file = File.join(tmp, 'carambus_cred_additions.yml')
+      run_file = File.join(tmp, 'carambus_merge_creds.rb')
+      File.write(add_file, additions.to_yaml); File.chmod(0o600, add_file)
+      File.write(run_file, credentials_merge_runner_script)
+      base = "ssh -p #{ssh_port} www-data@#{ssh_host}"
+      unless system("scp -P #{ssh_port} #{add_file} #{run_file} www-data@#{ssh_host}:/tmp/")
+        puts "❌ scp fehlgeschlagen"; return false
+      end
+      system("#{base} 'chmod 600 /tmp/carambus_cred_additions.yml'")
+      rbenv = "RBENV_ROOT=/var/www/.rbenv PATH=/var/www/.rbenv/shims:$PATH RBENV_VERSION=3.2.1 RAILS_ENV=production"
+      ok = system("#{base} 'cd #{deploy_to}/current && #{rbenv} bundle exec rails runner /tmp/carambus_merge_creds.rb #{write ? 'write' : 'dry'}'")
+      system("#{base} 'rm -f /tmp/carambus_cred_additions.yml /tmp/carambus_merge_creds.rb'")
+      unless ok
+        puts "❌ Merge-Runner meldete Fehler / Abbruch — nichts geschrieben."; return false
+      end
+      if write && restart
+        svc = "puma-#{prod['basename'] || cfg.dig('scenario', 'basename') || scenario_name}"
+        puts "   Puma-Restart: #{svc}"
+        system("#{base} 'sudo systemctl restart #{svc}'")
+      elsif write
+        puts "   ⚠️  Puma NICHT neugestartet (RESTART=true zum Anwenden, oder manuell: sudo systemctl restart puma-<basename>)."
+      end
+    end
+    true
+  end
+
+  # rekursiv String-Keys (für stabiles deep_merge zwischen Pool/Bestand)
+  def deep_stringify(obj)
+    case obj
+    when Hash then obj.each_with_object({}) { |(k, v), h| h[k.to_s] = deep_stringify(v) }
+    when Array then obj.map { |e| deep_stringify(e) }
+    else obj
+    end
+  end
+
+  # Liste der Blatt-Pfade (ohne Werte) — für Dry-Run-Anzeige
+  def credential_key_paths(obj, prefix = "")
+    return [prefix] unless obj.is_a?(Hash)
+    obj.sort_by { |k, _| k.to_s }.flat_map do |k, v|
+      np = prefix.empty? ? k.to_s : "#{prefix}.#{k}"
+      v.is_a?(Hash) ? credential_key_paths(v, np) : [np]
+    end
   end
 
   def generate_carambus_yml(scenario_config, env_config, env_dir)
@@ -807,6 +1120,7 @@ YAML
     actioncable_url = env_config['actioncable_url'] || "ws://localhost:3000/cable"
     redis_db = env_config['redis_database'] || 1
     webserver_port = env_config['webserver_port'] || 3000
+    basename = scenario_config['scenario']['basename'] || scenario_config['scenario']['name']
 
     content = <<~RUBY
 require "active_support/core_ext/integer/time"
@@ -814,12 +1128,15 @@ require "active_support/logger"
 require "active_support/broadcast_logger"
 
 Rails.application.configure do
+  # Scenario-spezifischer Session-Namespace: mehrere Scenario-Server auf localhost teilen sonst
+  # dieselbe Session (Cookie portagnostisch + gleiche Redis-DB + key_prefix) → falscher Kontext-Leak.
   config.session_store :redis_session_store,
+    key: "_#{basename}_session",
     serializer: :json,
     on_redis_down: ->(*args) { Rails.logger.error("Redis down! \#{args.inspect}") },
     redis: {
       expire_after: 120.minutes,
-      key_prefix: "session:",
+      key_prefix: "session:#{basename}:",
       url: ENV.fetch("REDIS_URL") { "redis://localhost:6379/#{redis_db}" }
     }
 
@@ -1004,6 +1321,7 @@ ENV
     redis_db = env_config['redis_database'] || 0
     webserver_port = env_config['webserver_port'] || 3000
     webserver_host = env_config['webserver_host'] || 'localhost'
+    basename = scenario_config['scenario']['basename'] || scenario_config['scenario']['name']
 
     # Plan 14-G.7.1 / D-14-G.7.1-A: HTTPS-conditional Port-Klausel für default_url_options.
     # Pre-Fix Bug: `port: #{webserver_port}` unkonditional setzte port:80 für HTTPS-Scenarios
@@ -1034,12 +1352,15 @@ ENV
 require "active_support/core_ext/integer/time"
 
 Rails.application.configure do
+  # Scenario-spezifischer Session-Namespace: mehrere Scenario-Server auf demselben Host teilen sonst
+  # dieselbe Session (Cookie portagnostisch + gleiche Redis-DB + key_prefix) → falscher Kontext-Leak.
   config.session_store :redis_session_store,
+    key: "_#{basename}_session",
     serializer: :json,
     on_redis_down: ->(*args) { Rails.logger.error("Redis down! \#{args.inspect}") },
     redis: {
       expire_after: 120.minutes,
-      key_prefix: "session:",
+      key_prefix: "session:#{basename}:",
       url: ENV.fetch("REDIS_URL") { "redis://localhost:6379/#{redis_db}" }
     }
 
@@ -1189,6 +1510,7 @@ RUBY
                     .gsub('#{raspberry_pi_hosts}', raspberry_pi_hosts)
                     .gsub('#{duckdns_hosts}', duckdns_hosts)
                     .gsub('#{port_clause}', port_clause)
+                    .gsub('#{basename}', basename)
 
     File.write(File.join(env_dir, 'production.rb'), content)
     puts "   Generated: #{File.join(env_dir, 'production.rb')}"
@@ -2992,20 +3314,20 @@ ENV
           # Backup shared directory before removing application folders
           echo "💾 Backing up shared directory..."
           if [ -d "/var/www/#{basename}/shared" ]; then
-            sudo cp -r /var/www/#{basename}/shared /tmp/#{basename}_shared_backup
+            sudo cp -r /var/www/#{basename}/shared /var/www/#{basename}_shared_backup_pre_reset
             echo "✅ Shared directory backed up"
           else
             echo "ℹ️  No existing shared directory to backup"
           fi
-          
+
           # Remove existing application folders (including old trials)
           echo "📁 Removing application folders..."
           sudo rm -rf /var/www/#{basename}
-          
+
           # Drop and recreate database with verification
           echo "🗑️  Dropping existing database..."
           sudo -u postgres psql -c "DROP DATABASE IF EXISTS #{production_database};" || echo "Database did not exist"
-          
+
           # Ensure database role exists (with password and privileges)
           echo "👤 Ensuring database role exists..."
           if sudo -u postgres psql -tAc "SELECT 1 FROM pg_roles WHERE rolname='#{db_username}'" | grep -q 1; then
@@ -3017,10 +3339,10 @@ ENV
           # Always enforce password and required privileges
           sudo -u postgres psql -c "ALTER ROLE #{db_username} WITH PASSWORD '#{db_password}';"
           sudo -u postgres psql -c "ALTER ROLE #{db_username} SUPERUSER CREATEROLE CREATEDB REPLICATION;"
-          
+
           echo "🆕 Creating new database..."
           sudo -u postgres psql -c "CREATE DATABASE #{production_database} OWNER #{db_username};"
-          
+
           # Verify database was created successfully
           echo "🔍 Verifying database creation..."
           if sudo -u postgres psql -c "\\l" | grep -q "#{production_database}"; then
@@ -3029,14 +3351,14 @@ ENV
             echo "❌ Database creation failed"
             exit 1
           fi
-          
+
           # Restore shared directory after database creation
           echo "🔄 Restoring shared directory..."
-          if [ -d "/tmp/#{basename}_shared_backup" ]; then
+          if [ -d "/var/www/#{basename}_shared_backup_pre_reset" ]; then
             sudo mkdir -p /var/www/#{basename}
-            sudo cp -r /tmp/#{basename}_shared_backup /var/www/#{basename}/shared
+            sudo cp -r /var/www/#{basename}_shared_backup_pre_reset /var/www/#{basename}/shared
             sudo chown -R www-data:www-data /var/www/#{basename}
-            sudo rm -rf /tmp/#{basename}_shared_backup
+            sudo rm -rf /var/www/#{basename}_shared_backup_pre_reset
             echo "✅ Shared directory restored"
           else
             echo "ℹ️  No shared directory backup to restore"
@@ -3250,6 +3572,16 @@ ENV
     production_config = scenario_config['environments']['production']
     scenario = scenario_config['scenario']
 
+    # Authority-Server-Guard: prepare_deploy darf nie auf dem Authority-Server laufen
+    # (Infra-Vorfall 2026-06-09: unbeabsichtigter prepare_deploy droppte Production-DB)
+    cap_role = production_config['cap_role']
+    if cap_role == 'api'
+      puts "❌ GUARD: #{scenario_name} hat cap_role: api (Authority-Server)."
+      puts "   prepare_deploy ist NUR für Local-Server-Szenarien (cap_role: local)."
+      puts "   Für den Authority-Server Capistrano direkt verwenden: cap production deploy"
+      return false
+    end
+
     puts "   Target: #{production_config['webserver_host']}:#{production_config['webserver_port']}"
     puts "   SSH: #{production_config['ssh_host']}:#{production_config['ssh_port']}"
 
@@ -3334,67 +3666,64 @@ ENV
       return false
     end
 
-    # Step 5: Ensure development database has all migrations applied
-    puts "\n🔄 Step 5: Ensuring development database has all migrations applied..."
-
-    # Change to the Rails root directory and run migrations
-    rails_root_dir = File.join(File.expand_path('..', Rails.root), scenario_name)
-    if Dir.exist?(rails_root_dir)
-      puts "   Running migrations on development database..."
-      migrate_cmd = "cd #{rails_root_dir} && RAILS_ENV=development bundle exec rails db:migrate"
-      if system(migrate_cmd)
-        puts "   ✅ Development database migrations completed"
-      else
-        puts "   ❌ Development database migrations failed"
-        return false
+    # Step 4.6: carambus_app ausliefern (nur wenn serve_tournament_app:true) — Turniermanagement
+    # ohne Carambus-Scoreboards (z.B. BG Hamburg). Kopiert die statische SPA in den
+    # (universellen) public/app-linked_dir auf dem Server → Auslieferung unter /app/.
+    # Fehlschlag blockiert das Deployment NICHT (die App ist ein optionales Add-on).
+    if scenario['serve_tournament_app']
+      puts "\n🎱 Step 4.6: serve_tournament_app aktiv — carambus_app auf den Server kopieren..."
+      unless copy_tournament_app_to_server(scenario_name, production_config)
+        puts "   ⚠️  carambus_app-Kopie fehlgeschlagen — Deployment läuft weiter, /app/ liefert ggf. 404."
       end
-    else
-      puts "   ❌ Rails root directory not found: #{rails_root_dir}"
-      return false
     end
 
-    # Step 6: Create production database dump from scenario development database
-    puts "\n💾 Step 6: Creating production database dump from #{scenario_name}_development..."
-
-    # Check if development database exists
-    dev_database_name = "#{scenario_name}_development"
-    unless system("psql -lqt | cut -d \\| -f 1 | grep -qw #{dev_database_name}")
-      puts "❌ Development database #{dev_database_name} not found!"
-      puts "   Run 'rake scenario:prepare_development[#{scenario_name},development]' first"
-      return false
-    end
-
-    # Create production dump from development database
-    unless create_production_dump_from_development(scenario_name)
-      puts "❌ Failed to create production dump from development database"
-      return false
-    end
-
-    # Step 7: Upload and load database dump to server
-    puts "\n💾 Step 7: Uploading and loading database dump to server..."
-    unless upload_and_load_database_dump(scenario_name, production_config)
-      puts "❌ Failed to upload and load database dump"
-      return false
-    end
-
-    # Step 8: Upload configuration files to server
-    puts "\n📤 Step 8: Uploading configuration files to server..."
-    unless upload_configuration_files_to_server(scenario_name, production_config)
-      puts "❌ Failed to upload configuration files to server"
-      return false
-    end
-
-    puts "\n✅ Scenario #{scenario_name} prepared for deployment!"
+    puts "\n✅ Scenario #{scenario_name} für Deployment vorbereitet (Config + Server-Setup)!"
     puts "   Rails root: #{rails_root}"
     puts "   Production config: #{File.join(scenarios_path, scenario_name, 'production')}"
-    puts "   Database dump: #{File.join(scenarios_path, scenario_name, 'database_dumps')}"
-    puts "   Configuration files: Uploaded to server"
-    puts "   Database: Loaded and verified on server"
     puts ""
     puts "Next steps:"
-    puts "  1. Run 'rake scenario:deploy[#{scenario_name}]' to execute Capistrano deployment"
-    puts "  2. Or manually deploy using Capistrano: cd #{rails_root} && cap production deploy"
+    puts "  1. rake scenario:reset_server_db[#{scenario_name}]  # DB auf Server zurücksetzen (DESTRUKTIV)"
+    puts "  2. rake scenario:deploy[#{scenario_name}]           # Capistrano-Deploy"
+    puts "  Oder direkt: cd #{rails_root} && cap production deploy"
 
+    true
+  end
+
+  # Den SAUBEREN Servable-Subdir der carambus_app (carambus_app/public/ — nur index.html +
+  # Assets) nach <deploy_to>/shared/public/app auf dem Server kopieren. NICHT der Repo-Root:
+  # der enthält .git, IDE-/Doku-Dateien und PRIVATE Backups (z.B. chat-backup.jsonl), die
+  # niemals auf den öffentlichen Server gehören. Der App-Dev pflegt carambus_app/public/
+  # (separates Repo 3band-turnier). Befüllt den universellen public/app-linked_dir
+  # (config/deploy.rb) → Auslieferung unter /app/. Nur bei serve_tournament_app:true.
+  # Defensiv: false (keine Exception) bei fehlender Quelle oder ssh_host.
+  def copy_tournament_app_to_server(scenario_name, production_config)
+    app_source = File.expand_path("../carambus_app/public", carambus_data_path)
+    unless File.exist?(File.join(app_source, "index.html"))
+      puts "   ⚠️  carambus_app/public/index.html fehlt (#{app_source}) — die App stellt noch keinen"
+      puts "       bereinigten Servable-Ordner bereit. Kopie übersprungen (App-Dev muss public/ anlegen)."
+      return false
+    end
+
+    ssh_host = production_config['ssh_host']
+    ssh_port = production_config['ssh_port'] || 22
+    if ssh_host.nil? || ssh_host.to_s.strip.empty?
+      puts "   ❌ ssh_host nicht gesetzt — Kopie übersprungen"
+      return false
+    end
+
+    deploy_to = production_config['deploy_to'] || "/var/www/#{scenario_name}"
+    remote_dir = "#{deploy_to}/shared/public/app"
+
+    puts "   📤 rsync #{app_source}/ → www-data@#{ssh_host}:#{remote_dir}/"
+    unless system("ssh -p #{ssh_port} www-data@#{ssh_host} 'mkdir -p #{remote_dir}'")
+      puts "   ❌ mkdir #{remote_dir} auf Server fehlgeschlagen"
+      return false
+    end
+    unless system("rsync -az --delete --exclude='.git' --exclude='.DS_Store' -e 'ssh -p #{ssh_port}' #{app_source}/ www-data@#{ssh_host}:#{remote_dir}/")
+      puts "   ❌ rsync fehlgeschlagen"
+      return false
+    end
+    puts "   ✅ carambus_app nach #{remote_dir} kopiert (/app/ wird ausgeliefert)"
     true
   end
 
@@ -5588,6 +5917,65 @@ EOF
       puts "\n   Example:"
       puts "   rake scenario:restart_table_scoreboard[#{scenario_name},\"#{tables.first.name}\"]"
     end
+  end
+
+  def reset_server_database(scenario_name)
+    config_file = File.join(scenarios_path, scenario_name, 'config.yml')
+    unless File.exist?(config_file)
+      puts "Error: Scenario configuration not found: #{config_file}"
+      return false
+    end
+
+    scenario_config = YAML.load_file(config_file)
+    production_config = scenario_config['environments']['production']
+
+    # Authority-Guard: auch hier absichern
+    if production_config['cap_role'] == 'api'
+      puts "❌ GUARD: #{scenario_name} ist der Authority-Server (cap_role: api)."
+      puts "   DB-Reset auf dem Authority-Server ist verboten."
+      return false
+    end
+
+    # Step 5: Ensure development database has all migrations applied
+    puts "\n🔄 Step 5: Ensuring development database has all migrations applied..."
+    rails_root_dir = File.join(File.expand_path('..', Rails.root), scenario_name)
+    if Dir.exist?(rails_root_dir)
+      puts "   Running migrations on development database..."
+      migrate_cmd = "cd #{rails_root_dir} && RAILS_ENV=development bundle exec rails db:migrate"
+      if system(migrate_cmd)
+        puts "   ✅ Development database migrations completed"
+      else
+        puts "   ❌ Development database migrations failed"
+        return false
+      end
+    else
+      puts "   ❌ Rails root directory not found: #{rails_root_dir}"
+      return false
+    end
+
+    # Step 6: Create production database dump from scenario development database
+    puts "\n💾 Step 6: Creating production database dump from #{scenario_name}_development..."
+    dev_database_name = "#{scenario_name}_development"
+    unless system("psql -lqt | cut -d \\| -f 1 | grep -qw #{dev_database_name}")
+      puts "❌ Development database #{dev_database_name} not found!"
+      puts "   Run 'rake scenario:prepare_development[#{scenario_name},development]' first"
+      return false
+    end
+    unless create_production_dump_from_development(scenario_name)
+      puts "❌ Failed to create production dump from development database"
+      return false
+    end
+
+    # Step 7: Upload and load database dump to server
+    puts "\n💾 Step 7: Uploading and loading database dump to server..."
+    unless upload_and_load_database_dump(scenario_name, production_config)
+      puts "❌ Failed to upload and load database dump"
+      return false
+    end
+
+    puts "\n✅ Server-DB für #{scenario_name} zurückgesetzt und befüllt!"
+    puts "   Nächster Schritt: rake scenario:deploy[#{scenario_name}]"
+    true
   end
 
 

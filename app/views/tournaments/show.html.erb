@@ -10,25 +10,6 @@
     <%= render :partial => "show", locals: { tournament: @tournament, subtitle: "", show_edit_back: true } %>
   </div>
 
-  <!-- Warnung wenn Turnier ClubCloud-Ergebnisse hat (schreibgeschützt) -->
-  <% if @tournament.has_clubcloud_results? %>
-    <div class="container mx-auto my-4 px-4">
-      <div class="max-w-6xl mx-auto">
-        <div class="bg-yellow-50 border border-yellow-400 dark:border-yellow-700 rounded-lg p-4 mb-4">
-          <div class="flex items-start">
-            <span class="text-2xl mr-3">🔒</span>
-            <div>
-              <h3 class="font-semibold text-yellow-900 dark:text-yellow-200 mb-1"><%= t('tournaments.show.readonly_heading') %></h3>
-              <p class="text-yellow-800 dark:text-yellow-300">
-                <%= t('tournaments.show.readonly_body_html').html_safe %>
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  <% end %>
-
   <!-- New Wizard UI (Version 2 mit überarbeiteter Reihenfolge) - Nur für Spielleiter auf lokalen Servern ohne ClubCloud-Ergebnisse -->
   <% if tournament_director?(current_user) && local_server? && !@tournament.has_clubcloud_results? %>
     <%= render 'wizard_steps_v2', tournament: @tournament %>
@@ -53,7 +34,7 @@
               @tournament.source_url,
               target: "_blank",
               rel: "noopener",
-              class: "inline-flex items-center gap-1 text-blue-700 hover:text-blue-900 dark:text-blue-300 dark:hover:text-blue-100" %>
+              class: "inline-flex items-center gap-1 text-primary-700 hover:text-primary-900 dark:text-primary-300 dark:hover:text-primary-100" %>
         </p>
       <% end %>
 
@@ -93,18 +74,20 @@
 
   <!-- Rankings Section -->
   <div class="seedings-table-container">
-    <h2><%= I18n.t("tournaments.show.rankings") %></h2>
-      <div class="flex-1 flex-wrap space-y-5  rounded shadow p-8">
+    <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3 mt-6"><%= I18n.t("tournaments.show.rankings") %></h2>
+      <div class="flex flex-col gap-6 bg-surface-card dark:bg-gray-800 rounded-card border border-gray-200 dark:border-gray-700 p-4 overflow-x-auto">
         <%- lists = @tournament.seedings.where(seeding_scope).joins(:player).order("players.lastname, players.firstname").map { |s| s.data["result"].keys rescue [] }.inject([]) { |a, memo| memo |= a; memo } %>
         <%- lists.each do |list| %>
           <div class="flex flex-col">
             <h3><%= list %></h3>
+            <%# Spalten in Originalreihenfolge; Zeilen wie bisher nach Rank/Rang sortiert (unverändertes %>
+            <%# Verhalten). HINWEIS: das gescrapte Rank-Feld ist bei alten Turnieren teils historisch %>
+            <%# unzuverlässig (Daten-/Sync-Thema, carambus_api) — daher NICHT prominent nach vorne gezogen. %>
             <table class="flex-1">
               <thead>
               <tr>
                 <%- @tournament.seedings.where(seeding_scope).select { |seeding| seeding.data["result"].andand[list].present? }.first.data["result"][list].keys.each do |k| %>
-                  <%#- next if k == "Rank" %>
-                  <th><%= k %></th>
+                  <th class="text-left text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 p-2 whitespace-nowrap"><%= k %></th>
                 <%- end %>
               </tr>
               </thead>
@@ -120,8 +103,7 @@
               end.each do |seeding| %>
                 <tr>
                   <%- seeding.data["result"][list].each do |k, v| %>
-                    <%#- next if k == "Rank" %>
-                    <td><%= v %></td>
+                    <td class="p-2 text-sm text-gray-900 dark:text-gray-100 border-t border-gray-100 dark:border-gray-700"><%= v %></td>
                   <%- end %>
                 </tr>
               <%- end %>
@@ -135,14 +117,14 @@
   <!-- Games Section -->
   <%- game_scope = @tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").count > 0 ? "games.id >= #{Game::MIN_ID}" : "games.id < #{Game::MIN_ID}" %>
   <div class="seedings-table-container">
-    <h2><%= I18n.t("tournaments.show.games") %></h2>
-      <div class="flex flex-wrap space-y-5  rounded shadow p-8">
+    <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3 mt-6"><%= I18n.t("tournaments.show.games") %></h2>
+      <div class="bg-surface-card dark:bg-gray-800 rounded-card border border-gray-200 dark:border-gray-700 p-4 overflow-x-auto">
         <%- if @tournament.games.where(game_scope).present? %>
           <table class="flex-1">
             <thead>
             <tr>
               <%- @tournament.games.where(game_scope).first.data.keys.each do |k| %>
-                <th><%= k %></th>
+                <th class="text-left text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 p-2 whitespace-nowrap"><%= k %></th>
               <%- end %>
             </tr>
             </thead>
@@ -156,7 +138,7 @@
                 <%- game.data.each do |k, v| %>
                   <%- skip = true if %w{Heim Gast}.include?(k) && v.blank? %>
                   <%- unless skip %>
-                    <td><%= v %></td>
+                    <td class="p-2 text-sm text-gray-900 dark:text-gray-100 border-t border-gray-100 dark:border-gray-700"><%= v %></td>
                   <%- end %>
                 <%- end %>
               </tr>
@@ -169,7 +151,7 @@
 
   <!-- Admin Actions -->
   <% if local_server? %>
-    <div class="admin-actions-container" style="margin-top: 2rem;">
+    <div class="admin-actions-container flex flex-wrap items-center gap-2 mt-8">
       <%- games = @tournament.games.where(game_scope).order(seqno: :asc) %>
 
       <!-- Regular Admin Actions (only for tournaments without ClubCloud results) -->

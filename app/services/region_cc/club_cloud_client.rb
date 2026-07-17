@@ -276,6 +276,9 @@ class RegionCc::ClubCloudClient
     # catId: *
     # season: 2010/2011
     "showMeldeliste" => ["/admin/einzel/meldelisten/showMeldeliste.php", true],
+    # Turnier-spezifische Meldeliste (persistiert, stabil) — Plan 31-01 Bug-Fix.
+    # p=<fedId>-<branchId>-*-<season>-*--<meisterschaftsId>-2
+    "meisterschaft-showMeldeliste" => ["/admin/einzel/meisterschaft/showMeldeliste.php", true],
     # fedId: 20
     # branchId: 10
     # disciplinId: *
@@ -304,9 +307,24 @@ class RegionCc::ClubCloudClient
     # KEIN finalize-State (Kapitalbefund Plan 07-02 D-7-5): Add/Remove werden via Save direkt persistiert.
     "assignPlayer" => ["/admin/einzel/meisterschaft/assignPlayer.php", false],
     "removePlayer" => ["/admin/einzel/meisterschaft/removePlayer.php", false],
+    # Plan 33-fix (2026-06-10, HAR-Goldvorlage): atomarer Akkreditierungs-Toggle pro Spieler.
+    # POST mit pid=<player_cc_id> verschiebt einen Spieler Meldeliste→Teilnehmerliste (bzw. zurück).
+    # Ersetzt den race-anfälligen assignPlayer/meldungId[]-Edit-Buffer-Workflow.
+    "showMeldeliste_teilnahme" => ["/admin/einzel/meisterschaft/showMeldeliste_teilnahme.php", false],
     "editTeilnehmerlisteCheck" => ["/admin/einzel/meisterschaft/editTeilnehmerlisteCheck.php", false],
     "editTeilnehmerlisteSave" => ["/admin/einzel/meisterschaft/editTeilnehmerlisteSave.php", false],
     "showTeilnehmerliste" => ["/admin/einzel/meisterschaft/showTeilnehmerliste.php", true],
+    # Plan 32-01 cc_fast_assign — Schnellanmeldung (DEFER-D2-2): Spieler direkt via foundpid in
+    # Teilnehmerliste eintragen. Kein Pre-Read/Edit-Buffer nötig. Params: meisterschaftsId + foundpid
+    # + akkpid (leer=add, befüllt=swap) + fedId + branchId. URL-Pfad basiert auf DEFER-D2-2-HAR-Befund;
+    # Live-Smoke empfohlen falls URL-Drift festgestellt wird.
+    "cc_fast_assign" => ["/admin/einzel/meisterschaft/cc_fast_assign.php", false],
+    # Plan 33-01 (2026-06-11, HAR-Goldvorlage schnellanmeldung_entfernen): atomares Entfernen eines
+    # Schnellanmeldungs-Spielers (ohne Meldeliste-Eintrag) GANZ aus der Teilnehmerliste. Spiegel zu
+    # cc_fast_assign: dort foundpid=<add>, hier akkpid=<player_cc_id zum Entfernen>, foundpid leer.
+    # Kein Edit-Buffer/Save. Für :accredited-Spieler (mit Meldeliste-Eintrag) stattdessen den
+    # showMeldeliste_teilnahme-Toggle nutzen (der schiebt zurück in die Meldeliste).
+    "cc_remove_tn" => ["/admin/einzel/meisterschaft/cc_remove_tn.php", false],
     #
     # --- Vereins-Sicht (myclub/meldewesen/single) — Plan 04-04 register-Tool ---
     # Diese 3 Endpoints liegen im VEREINS-Bereich (admin/myclub/meldewesen/single),
@@ -402,6 +420,9 @@ class RegionCc::ClubCloudClient
     # meldelisteId: cc_id_ml
     # release: ""
     "createMeisterschaftSave" => ["/admin/einzel/meisterschaft/createMeisterschaftSave.php", false],
+    # v1.3 Phase 50-02: Turnier-Klon (createMeisterschaftCheck = Prep vor Save; cc_turnier_status = "Verbergen")
+    "createMeisterschaftCheck" => ["/admin/einzel/meisterschaft/createMeisterschaftCheck.php", false],
+    "cc_turnier_status" => ["/admin/einzel/meisterschaft/cc_turnier_status.php", false],
     "editMeisterschaftCheck" => ["/admin/einzel/meisterschaft/editMeisterschaftCheck.php", false],
     "editMeisterschaftSave" => ["/admin/einzel/meisterschaft/editMeisterschaftSave.php", false],
     "deleteMeldeliste" => ["/admin/einzel/meldelisten/deleteMeldeliste.php", false],

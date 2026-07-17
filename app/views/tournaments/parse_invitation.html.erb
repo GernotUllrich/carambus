@@ -10,8 +10,8 @@
     </div>
 
     <!-- LINK-03: Detailanleitung im Handbuch -->
-    <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg p-4 mb-6">
-      <p class="text-sm text-blue-900 dark:text-blue-200">
+    <div class="bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-700 rounded-lg p-4 mb-6">
+      <p class="text-sm text-primary-900 dark:text-primary-200">
         📖 <strong><%= t('tournaments.docs.form_help_prefix') %></strong>
         <%= mkdocs_link('managers/tournament-management', anchor: 'seeding-list', text: t('tournaments.docs.form_help_link'), options: { class: 'underline font-medium' }) %>
       </p>
@@ -37,18 +37,18 @@
 
       <!-- Gruppenbildung Preview (wenn extrahiert) -->
       <% if @extraction_result[:group_assignment].present? %>
-        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-          <h3 class="font-semibold text-blue-900 mb-3">
+        <div class="bg-primary-50 border border-primary-200 rounded-lg p-4 mb-6">
+          <h3 class="font-semibold text-primary-900 mb-3">
             <%= t('tournaments.parse_invitation.extracted_groups_heading') %>
           </h3>
           <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
             <% @extraction_result[:group_assignment].each do |group_no, player_positions| %>
-              <div class="bg-white p-3 rounded border">
-                <h4 class="font-bold text-blue-900 mb-2"><%= t('tournaments.parse_invitation.group_number', group_no: group_no) %></h4>
+              <div class="bg-white dark:bg-gray-800 p-3 rounded border">
+                <h4 class="font-bold text-primary-900 mb-2"><%= t('tournaments.parse_invitation.group_number', group_no: group_no) %></h4>
                 <ol class="list-decimal list-inside text-sm">
                   <% player_positions.each do |pos| %>
                     <% matched = @match_result[:matched].find { |m| m[:position] == pos } %>
-                    <li class="text-blue-800">
+                    <li class="text-primary-800">
                       <% if matched %>
                         <%= matched[:player].fullname %>
                       <% else %>
@@ -60,14 +60,14 @@
               </div>
             <% end %>
           </div>
-          <p class="text-sm text-blue-700 mt-3">
+          <p class="text-sm text-primary-700 mt-3">
             <%= t('tournaments.parse_invitation.assignment_used_in_step5') %>
           </p>
         </div>
       <% end %>
 
       <!-- Matched Players -->
-      <div class="bg-white  dark:bg-slate-900 rounded-lg shadow p-6 mb-6">
+      <div class="bg-white dark:bg-gray-800  dark:bg-slate-900 rounded-lg shadow p-6 mb-6">
         <h2 class="text-xl font-bold mb-4">
           <%= t('tournaments.parse_invitation.detected_players_heading', rate: @match_result[:match_rate]) %>
         </h2>
@@ -97,7 +97,7 @@
                       <% end %>
                       <span><%= player.fullname %></span>
                       <% if player.dbu_nr.present? && player.dbu_nr > 0 %>
-                        <span class="text-xs text-gray-500">(DBU: <%= player.dbu_nr %>)</span>
+                        <span class="text-xs text-gray-500 dark:text-gray-400">(DBU: <%= player.dbu_nr %>)</span>
                       <% end %>
                     </div>
                     <%= hidden_field_tag 'seeding_order[]', player.id %>
@@ -105,7 +105,7 @@
                   </td>
                   <td class="p-3">
                     <% if match[:balls_goal].present? %>
-                      <span class="font-semibold text-blue-600"><%= t('tournaments.parse_invitation.points_suffix', balls_goal: match[:balls_goal]) %></span>
+                      <span class="font-semibold text-primary-600"><%= t('tournaments.parse_invitation.points_suffix', balls_goal: match[:balls_goal]) %></span>
                     <% else %>
                       <span class="text-gray-400">–</span>
                     <% end %>
@@ -150,7 +150,7 @@
 
       <!-- Raw Text Preview (für Debugging) -->
       <details class="bg-gray-50 dark:bg-slate-900 rounded-lg p-4">
-        <summary class="cursor-pointer font-semibold text-gray-700">
+        <summary class="cursor-pointer font-semibold text-gray-700 dark:text-gray-200">
           <%= t('tournaments.parse_invitation.show_extracted_text') %>
         </summary>
         <pre class="mt-4 p-4 bg-white dark:bg-slate-900 border rounded text-xs overflow-auto max-h-96"><%= @extraction_result[:raw_text] %></pre>
@@ -179,7 +179,7 @@
         <% if @extraction_result[:raw_text].present? %>
           <details class="mt-4">
             <summary class="cursor-pointer text-red-700"><%= t('tournaments.parse_invitation.show_extracted_text_short') %></summary>
-            <pre class="mt-2 p-4 bg-white border rounded text-xs overflow-auto max-h-96"><%= @extraction_result[:raw_text] %></pre>
+            <pre class="mt-2 p-4 bg-white dark:bg-gray-800 border rounded text-xs overflow-auto max-h-96"><%= @extraction_result[:raw_text] %></pre>
           </details>
         <% end %>
       </div>

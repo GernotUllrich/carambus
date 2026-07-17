@@ -1,13 +1,13 @@
 <div class="container mx-auto px-4 py-8 max-w-2xl">
   <div class="mb-6">
-    <%= link_to '← Back to Messages', admin_scoreboard_messages_path, class: 'text-blue-600 hover:text-blue-900' %>
+    <%= link_to '← Back to Messages', admin_scoreboard_messages_path, class: 'text-primary-600 hover:text-primary-900' %>
   </div>
 
   <h1 class="text-3xl font-bold mb-6">Send Message to Scoreboard</h1>
 
-  <%= form_with model: @message, url: admin_scoreboard_messages_path, local: true, class: 'bg-white shadow-md rounded-lg p-6' do |f| %>
+  <%= form_with model: @message, url: admin_scoreboard_messages_path, local: true, class: 'bg-white dark:bg-gray-800 shadow-md rounded-lg p-6' do |f| %>
     <% if @message.errors.any? %>
-      <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
+      <div class="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 text-red-700 px-4 py-3 rounded mb-4">
         <h3 class="font-bold">Please fix the following errors:</h3>
         <ul class="list-disc list-inside mt-2">
           <% @message.errors.full_messages.each do |message| %>
@@ -18,43 +18,43 @@
     <% end %>
 
     <div class="mb-4">
-      <%= f.label :location_id, 'Location *', class: 'block text-sm font-medium text-gray-700 mb-2' %>
+      <%= f.label :location_id, 'Location *', class: 'block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2' %>
       <%= f.select :location_id, 
                    options_for_select(@locations.map { |l| [l.name, l.id] }, @message.location_id),
                    { prompt: 'Select a location' },
-                   class: 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500',
+                   class: 'w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500',
                    required: true,
                    data: { controller: 'location-select', action: 'change->location-select#updateTables' } %>
-      <p class="mt-1 text-sm text-gray-500">Select the location where the message should appear</p>
+      <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Select the location where the message should appear</p>
     </div>
 
     <div class="mb-4">
-      <%= f.label :table_monitor_id, 'Target Table', class: 'block text-sm font-medium text-gray-700 mb-2' %>
+      <%= f.label :table_monitor_id, 'Target Table', class: 'block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2' %>
       <%= f.select :table_monitor_id,
                    options_for_select([['All Tables in Location', nil]], @message.table_monitor_id),
                    {},
-                   class: 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500',
+                   class: 'w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500',
                    data: { 'location-select-target': 'tableSelect' } %>
-      <p class="mt-1 text-sm text-gray-500">Leave empty to send to all tables in the location, or select a specific table</p>
+      <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Leave empty to send to all tables in the location, or select a specific table</p>
     </div>
 
     <div class="mb-6">
-      <%= f.label :message, 'Message *', class: 'block text-sm font-medium text-gray-700 mb-2' %>
+      <%= f.label :message, 'Message *', class: 'block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2' %>
       <%= f.text_area :message, 
                       rows: 4,
-                      class: 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500',
+                      class: 'w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500',
                       required: true,
                       maxlength: 500,
                       placeholder: 'Enter your message (max 500 characters)' %>
-      <p class="mt-1 text-sm text-gray-500">
+      <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
         This message will appear as a popup on the scoreboard(s) and must be acknowledged by the user.
         It will automatically expire after 30 minutes.
       </p>
     </div>
 
-    <div class="bg-blue-50 border border-blue-200 rounded-md p-4 mb-6">
-      <h3 class="font-semibold text-blue-900 mb-2">ℹ️ Important Notes:</h3>
-      <ul class="list-disc list-inside text-sm text-blue-800 space-y-1">
+    <div class="bg-primary-50 dark:bg-primary-900/30 border border-primary-200 dark:border-primary-700 rounded-md p-4 mb-6">
+      <h3 class="font-semibold text-primary-900 mb-2">ℹ️ Important Notes:</h3>
+      <ul class="list-disc list-inside text-sm text-primary-800 space-y-1">
         <li>Messages appear immediately on active scoreboards</li>
         <li>Acknowledging the message on any table will dismiss it on all tables</li>
         <li>Messages automatically expire after 30 minutes</li>

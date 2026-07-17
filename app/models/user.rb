@@ -4,6 +4,7 @@
 class User < ApplicationRecord
   include Theme
   include SportwartScope
+  include UserPersonas
 
   enum :role, {
     player: 0,
@@ -11,11 +12,35 @@ class User < ApplicationRecord
     system_admin: 2
   }, default: :player
 
+  # D-38 (v1.0): Explizite, nur-system_admin-setzbare Sportwart-Persona-Grants (Spalte
+  # users.persona_grants, jsonb-Array — Name wg. Kollision mit der abgeleiteten UserPersonas#personas).
+  # `sportwart` = location-scoped, `landessportwart` = region-weit (alle Locations).
+  # Quelle für Form-Optionen + UserPersonas-Predicates. NICHT die role (player/club_admin/system_admin).
+  PERSONA_GRANTS = %w[sportwart landessportwart].freeze
+
   # D-14-G5: Sportwart-Wirkbereich via M:N-Join-Tables.
   has_many :sportwart_location_assignments, class_name: "SportwartLocation", dependent: :destroy
   has_many :sportwart_locations, through: :sportwart_location_assignments, source: :location
   has_many :sportwart_discipline_assignments, class_name: "SportwartDiscipline", dependent: :destroy
   has_many :sportwart_disciplines, through: :sportwart_discipline_assignments, source: :discipline
+
+  # D-34-5: Lokale User<->Turnier-Zuordnungen (UserTournament, ApiProtector).
+  has_many :user_tournaments, dependent: :destroy
+  has_many :led_tournaments, through: :user_tournaments, source: :tournament
+
+  # D-35-1: User↔Player-Verknüpfung (users.player_id existierte als toter FK; hier reaktiviert).
+  belongs_to :player, optional: true
+
+  # D-39-1 (v1.1): Eigene CC-Admin-Credentials des Users, verschlüsselt at rest (Rails 7 encrypts,
+  # Muster wie StreamConfiguration#youtube_stream_key). Quelle der per-User-CC-Identität
+  # (effective_cc_account, Phase 39-02). cc_password hält den Klartext, den der bestehende
+  # CC-Login-Flow (Setting.login_to_cc) intern zu MD5 macht.
+  encrypts :cc_password, deterministic: false
+
+  # D-39-1: Hat dieser User eigene CC-Credentials hinterlegt? (vom Resolver in 39-02 genutzt.)
+  def cc_credentials_present?
+    cc_username.present? && cc_password.present?
+  end
 
   PRIVILEGED = %w[gernot.ullrich@gmx.de nla@ph.at wcauel@gmail.com joerg.unger@hamburg.de].freeze
 
@@ -23,6 +48,7 @@ class User < ApplicationRecord
 
   before_save :set_paper_trail_whodunnit
   before_validation :set_default_role, on: :create
+  before_validation :normalize_persona_grants
 
   # Plan 13-06.2 / D-13-06.1-C: JWT-Token-Auth via devise-jwt + JTIMatcher-Revocation.
   # Backwards-Compat: Cookie-Auth (database_authenticatable + Session) bleibt parallel aktiv.
@@ -59,6 +85,24 @@ class User < ApplicationRecord
     unless Rails.env == "test"
       User.find_by_email("scoreboard@carambus.de")
     end
+  end
+
+  # Bot-Schutz: loescht selbst-registrierte, NIE bestaetigte Accounts, die aelter als
+  # `older_than` sind und sich nie eingeloggt haben. Seit der Umstellung auf
+  # verpflichtende Confirmation (allow_unconfirmed_access_for = 0) sind unbestaetigte
+  # Accounts ohnehin login-gesperrt -> dieser Task raeumt die Karteileichen weg.
+  # Whitelist schuetzt System-/Admin-/privilegierte Accounts; nur role=player wird
+  # angefasst, mit player_id IS NULL und ohne je erfolgten Login (defense in depth).
+  # Gibt die geloeschten [id, email]-Paare zurueck (fuer Logging/Tests).
+  def self.purge_unconfirmed!(older_than: 7.days)
+    scope = where(confirmed_at: nil)
+      .where(player_id: nil, role: roles[:player])
+      .where("created_at < ?", older_than.ago)
+      .where("sign_in_count IS NULL OR sign_in_count = 0")
+      .where.not(email: PRIVILEGED + ["scoreboard@carambus.de"])
+    deleted = scope.pluck(:id, :email)
+    scope.destroy_all
+    deleted
   end
 
   def skip_confirmation!
@@ -155,6 +199,12 @@ class User < ApplicationRecord
 
   def set_default_role
     self.role ||= :player
+  end
+
+  # D-38: persona_grants bereinigen — leeres Fallback-Input ("") + Duplikate + unbekannte Werte raus.
+  # So bleibt z.B. ["", "landessportwart"] (aus dem Checkbox-Fallback) als ["landessportwart"].
+  def normalize_persona_grants
+    self.persona_grants = Array(persona_grants).map(&:to_s).reject(&:blank?).uniq & PERSONA_GRANTS
   end
 
   def set_paper_trail_whodunnit

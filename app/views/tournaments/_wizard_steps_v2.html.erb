@@ -6,7 +6,7 @@
 <div class="wizard-header">
   <h2 class="wizard-title">
     <span class="tournament-icon">🎯</span>
-    Turnier-Setup: <%= tournament.title %>
+    <%= t("tournaments.wizard_steps_v2.header_title") %> <%= tournament.title %>
   </h2>
 
   <!-- Dominant AASM state badge (FIX-04) -->
@@ -19,7 +19,7 @@
   <!-- Bucket chips (FIX-03, D-01) -->
   <div class="flex flex-wrap justify-center gap-2 mb-2">
     <% wizard_bucket_chips(tournament).each do |chip| %>
-      <span class="px-3 py-1 rounded-full text-sm font-medium border <%= chip[:active] ? 'bg-blue-600 text-white border-blue-700 shadow' : 'bg-gray-100 text-gray-600 border-gray-300' %>">
+      <span class="px-3 py-1 rounded-full text-sm font-medium border <%= chip[:active] ? 'bg-gray-600 text-white border-gray-700 shadow' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-300 dark:border-gray-600' %>">
         <%= chip[:label] %>
       </span>
     <% end %>
@@ -38,18 +38,18 @@
         </div>
         <div class="wizard-step-content">
           <div class="wizard-step-number-title">
-            <h4 class="step-title">Meldeliste von ClubCloud laden</h4>
+            <h4 class="step-title"><%= t("tournaments.wizard_steps_v2.step1_title") %></h4>
             <% if wizard_step_status(tournament, 1) == :completed %>
-              <span class="status-badge badge-success">Geladen</span>
+              <span class="status-badge badge-success"><%= t("tournaments.wizard_steps_v2.step1_badge_loaded") %></span>
             <% elsif sync_needed?(tournament) %>
-              <span class="status-badge badge-warning">Empfohlen</span>
+              <span class="status-badge badge-warning"><%= t("tournaments.wizard_steps_v2.step1_badge_recommended") %></span>
             <% else %>
-              <span class="status-badge badge-info">Optional</span>
+              <span class="status-badge badge-info"><%= t("tournaments.wizard_steps_v2.step1_badge_optional") %></span>
             <% end %>
           </div>
 
           <div class="step-info">
-            Lädt die <strong>Meldeliste</strong> (wer hat sich gemeldet) von der ClubCloud
+            <%= t("tournaments.wizard_steps_v2.step1_info_html").html_safe %>
           </div>
 
           <div class="step-info" style="margin-top: 0.5rem;">
@@ -58,24 +58,18 @@
 
           <% if tournament.accredation_end %>
             <div class="step-info" style="margin-top: 0.5rem;">
-              📅 Meldeschluss: <%= l(tournament.accredation_end, format: :short) %>
+              <%= t("tournaments.wizard_steps_v2.step1_deadline_label") %> <%= l(tournament.accredation_end, format: :short) %>
             </div>
           <% end %>
 
           <div class="step-help">
             <details<%= " open" if wizard_step_status(tournament, 1) == :active %>>
-              <summary>💡 Was ist die Meldeliste?</summary>
+              <summary><%= t("tournaments.wizard_steps_v2.step1_help_summary") %></summary>
               <p>
-                Die <strong>Meldeliste</strong> enthält alle Spieler, die sich für das Turnier
-                <em>angemeldet</em> haben. Diese Liste kommt von der ClubCloud und wird täglich
-                bis zum Meldeschluss aktualisiert.<br><br>
-
-                <strong>Nicht verwechseln mit:</strong><br>
-                • <strong>Setzliste</strong> = Reihenfolge nach Ranking (kommt in Schritt 2)<br>
-                • <strong>Teilnehmerliste</strong> = Wer tatsächlich da ist (Schritt 3)
+                <%= t("tournaments.wizard_steps_v2.step1_help_body_html").html_safe %>
               </p>
               <p class="step-docs-link mt-2">
-                <%= mkdocs_link('managers/tournament-management', text: t('tournaments.docs.walkthrough_link'), options: { class: 'text-blue-600 dark:text-blue-400 underline text-sm' }) %>
+                <%= mkdocs_link('managers/tournament-management', text: t('tournaments.docs.walkthrough_link'), options: { class: 'text-primary-600 dark:text-primary-400 underline text-sm' }) %>
               </p>
             </details>
           </div>
@@ -83,22 +77,22 @@
       </div>
 
       <div class="wizard-step-actions">
-        <%= button_to 'Jetzt synchronisieren', reload_from_cc_tournament_path(tournament, reload_seedings: true),
+        <%= button_to t("tournaments.wizard_steps_v2.step1_sync_now"), reload_from_cc_tournament_path(tournament, reload_seedings: true),
             method: :post,
             class: "btn btn-primary #{'btn-pulse' if sync_needed?(tournament)}" %>
 
         <!-- Ergebnisse laden (nach Turnier-Ende) -->
         <% if %w[tournament_started playing_groups playing_finals finals_finished results_published].include?(tournament.state) %>
-          <%= button_to '📊 Ergebnisse von ClubCloud laden',
+          <%= button_to t("tournaments.wizard_steps_v2.step1_load_results"),
               reload_from_cc_tournament_path(tournament, reload_games: true),
               method: :post,
               class: 'btn btn-warning btn-sm ml-2',
-              data: { confirm: "⚠️ ACHTUNG: Lädt Spiele und Ergebnisse von ClubCloud.\n\nLokale Änderungen gehen verloren!\n\nNur verwenden wenn Turnier abgeschlossen und Ergebnisse hochgeladen wurden." },
-              title: 'Für Archivierung nach Turnier-Ende' %>
+              data: { confirm: t("tournaments.wizard_steps_v2.step1_load_results_confirm") },
+              title: t("tournaments.wizard_steps_v2.step1_load_results_title") %>
         <% end %>
 
         <% if tournament.source_url.present? %>
-          <%= link_to '🔗 ClubCloud öffnen', tournament.source_url,
+          <%= link_to t("tournaments.wizard_steps_v2.step1_open_clubcloud"), tournament.source_url,
               target: '_blank',
               class: 'btn btn-secondary btn-sm ml-2',
               rel: 'noopener' %>
@@ -109,32 +103,32 @@
       <div class="mt-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded">
         <details>
           <summary class="cursor-pointer text-sm font-semibold text-yellow-800 dark:text-yellow-200">
-            ⚠️ Turnier nicht gefunden? Hier klicken für Hilfe
+            <%= t("tournaments.wizard_steps_v2.step1_troubleshoot_summary") %>
           </summary>
           <div class="mt-3 text-sm text-yellow-900 dark:text-yellow-100 space-y-3">
             <div>
-              <p class="font-semibold mb-1">Empfohlen: Nur anstehende Turniere aktualisieren</p>
-              <%= button_to '🔄 Anstehende Turniere laden (nächste 30 Tage)',
+              <p class="font-semibold mb-1"><%= t("tournaments.wizard_steps_v2.step1_troubleshoot_recommended_heading") %></p>
+              <%= button_to t("tournaments.wizard_steps_v2.step1_load_upcoming"),
                   reload_upcoming_tournaments_region_path(tournament.organizer),
                   method: :post,
                   class: 'btn btn-sm btn-warning',
-                  data: { disable_with: 'API scraped...' },
+                  data: { disable_with: t("tournaments.wizard_steps_v2.step1_load_upcoming_disable_with") },
                   params: { days_ahead: 30, tournament_id: tournament.id } %>
               <p class="text-xs text-yellow-700 dark:text-yellow-300 mt-1">
-                ⏱️ Schnell (10-30 Sekunden) - Nur Turniere der nächsten 30 Tage
+                <%= t("tournaments.wizard_steps_v2.step1_load_upcoming_hint") %>
               </p>
             </div>
 
             <div class="border-t border-yellow-300 dark:border-yellow-600 pt-2">
-              <p class="font-semibold mb-1">Alternative: Alle Turniere aktualisieren</p>
-              <%= button_to '🔄 Alle Turniere vom API Server laden',
+              <p class="font-semibold mb-1"><%= t("tournaments.wizard_steps_v2.step1_troubleshoot_alternative_heading") %></p>
+              <%= button_to t("tournaments.wizard_steps_v2.step1_load_all"),
                   reload_tournaments_region_path(tournament.organizer),
                   method: :post,
                   class: 'btn btn-sm btn-outline-warning',
-                  data: { disable_with: 'API scraped alle... (1-2 Minuten)' },
+                  data: { disable_with: t("tournaments.wizard_steps_v2.step1_load_all_disable_with") },
                   params: { tournament_id: tournament.id } %>
               <p class="text-xs text-yellow-700 dark:text-yellow-300 mt-1">
-                ⏱️ Langsamer - Alle Turniere der Region
+                <%= t("tournaments.wizard_steps_v2.step1_load_all_hint") %>
               </p>
             </div>
           </div>
@@ -151,16 +145,16 @@
       </div>
       <div class="wizard-step-content">
         <div class="wizard-step-number-title">
-          <h4 class="step-title">Setzliste aus Einladung übernehmen</h4>
+          <h4 class="step-title"><%= t("tournaments.wizard_steps_v2.step2_title") %></h4>
         </div>
 
         <% if tournament.data['invitation_filename'].present? %>
           <div class="step-info">
-            ✓ Einladung hochgeladen: <%= tournament.data['invitation_filename'] %>
+            <%= t("tournaments.wizard_steps_v2.step2_invitation_uploaded") %> <%= tournament.data['invitation_filename'] %>
           </div>
         <% else %>
           <div class="step-info">
-            Laden Sie die PDF-Einladung oder Screenshot hoch
+            <%= t("tournaments.wizard_steps_v2.step2_upload_prompt") %>
           </div>
         <% end %>
 
@@ -169,35 +163,25 @@
         <% if non_local_seedings_count > 0 && wizard_step_status(tournament, 2) == :active %>
           <%# G-01 Revision: step-info durch text-sm ersetzt, weil .step-info per CSS color setzt und Tailwind dark:text-green-100 überstimmt (tournament_wizard.css:227-235). ERB-Interpolation korrigiert (#{} ist keine ERB-Syntax). %>
           <div class="text-sm mt-2 bg-green-50 dark:bg-green-900/30 border border-green-600 dark:border-green-500 text-green-900 dark:text-green-100 p-2 rounded">
-            ℹ️ <strong>Es sind bereits <%= non_local_seedings_count %> Spieler vorhanden</strong>
-            <br>Sie können diese direkt übernehmen (siehe unten)
+            <%= t("tournaments.wizard_steps_v2.step2_existing_players_info_html", count: non_local_seedings_count).html_safe %>
           </div>
         <% end %>
 
         <% if wizard_step_status(tournament, 2) == :active && !tournament.data['invitation_filename'].present? && non_local_seedings_count == 0 %>
           <div class="step-warning">
             <span class="warning-icon">⚠️</span>
-            Dieser Schritt ist noch offen
+            <%= t("tournaments.wizard_step.pending_default") %>
           </div>
         <% end %>
 
         <div class="step-help">
           <details<%= " open" if wizard_step_status(tournament, 2) == :active %>>
-            <summary>💡 Was macht dieser Schritt?</summary>
+            <summary><%= t("tournaments.wizard_step.help_summary") %></summary>
             <p>
-              Laden Sie die <strong>offizielle Einladung</strong> vom Landessportwart hoch.
-              Carambus extrahiert automatisch:<br>
-              • <strong>Setzliste</strong> (Reihenfolge nach Ranking)<br>
-              • <strong>Vorgaben</strong> bei Vorgabeturnieren (Punktzahlen)<br><br>
-              Unterstützt PDF oder Screenshot (PNG/JPG).<br>
-              Zweispaltige Tabellen werden automatisch erkannt.<br><br>
-              <strong>Alternative:</strong> Falls keine Einladung vorliegt, können Sie auch direkt mit der
-              Meldeliste von ClubCloud (aus Schritt 1) zu Schritt 3 weitergehen.<br><br>
-              <strong>Hinweis:</strong> Die Setzliste (Reihenfolge/Position der Spieler) können Sie in <strong>Schritt 3</strong>
-              bei Bedarf anpassen (↑↓ Buttons oder direkte Positionseingabe).
+              <%= t("tournaments.wizard_steps_v2.step2_help_body_html").html_safe %>
             </p>
             <p class="step-docs-link mt-2">
-              <%= mkdocs_link('managers/tournament-management', anchor: 'seeding-list', text: t('tournaments.docs.walkthrough_link'), options: { class: 'text-blue-600 dark:text-blue-400 underline text-sm' }) %>
+              <%= mkdocs_link('managers/tournament-management', anchor: 'seeding-list', text: t('tournaments.docs.walkthrough_link'), options: { class: 'text-primary-600 dark:text-primary-400 underline text-sm' }) %>
             </p>
           </details>
         </div>
@@ -212,42 +196,42 @@
       <% total_seedings = tournament.seedings.count %>
 
       <% if step_2_status == :active %>
-        <%= button_to tournament.data['invitation_filename'].present? ? 'Setzliste prüfen' : 'Einladung hochladen',
+        <%= button_to tournament.data['invitation_filename'].present? ? t("tournaments.wizard_steps_v2.step2_check_seedings") : t("tournaments.wizard_steps_v2.step2_upload_invitation"),
             compare_seedings_tournament_path(tournament),
             method: :get,
             class: "btn btn-primary #{'btn-pulse' if !tournament.data['invitation_filename'].present? && total_seedings == 0}" %>
 
         <%# IMMER anzeigen wenn Seedings vorhanden sind (egal ob ClubCloud oder manuell) %>
         <% if total_seedings > 0 %>
-          <div class="mt-3 p-3 bg-gradient-to-r from-blue-50 to-green-50 dark:from-blue-900/20 dark:to-green-900/20 border-2 border-blue-300 dark:border-blue-600 rounded-lg shadow-sm">
-            <p class="text-sm font-semibold text-blue-900 dark:text-blue-200 mb-2">
-              ✓ <strong>Es sind bereits <%= total_seedings %> Spieler vorhanden</strong>
+          <div class="mt-3 p-3 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm">
+            <p class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-2">
+              <%= t("tournaments.wizard_steps_v2.step2_players_available_html", count: total_seedings).html_safe %>
             </p>
             <p class="text-xs text-gray-700 dark:text-gray-300 mb-3">
               <% if non_local_seedings_count > 0 && local_seedings_count == 0 %>
-                Übernehmen Sie diese Spieler, um mit Schritt 3 fortzufahren.
+                <%= t("tournaments.wizard_steps_v2.step2_continue_hint") %>
               <% elsif local_seedings_count > 0 %>
-                <%= local_seedings_count %> Spieler bereits als Teilnehmer übernommen.
+                <%= t("tournaments.wizard_steps_v2.step2_players_taken", count: local_seedings_count) %>
               <% end %>
             </p>
-            <%= button_to "→ Weiter zu Schritt 3 mit diesen #{total_seedings} Spielern",
+            <%= button_to t("tournaments.wizard_steps_v2.step2_continue_button", count: total_seedings),
                 use_clubcloud_as_participants_tournament_path(tournament),
                 method: :post,
                 class: 'btn btn-success btn-lg w-full',
-                data: { confirm: "Diese #{total_seedings} Spieler als Teilnehmerliste übernehmen?\n\nDie Spieler werden automatisch nach ihrer Position sortiert." },
-                title: 'Übernimmt die vorhandenen Spieler und aktiviert Schritt 3' %>
+                data: { confirm: t("tournaments.wizard_steps_v2.step2_continue_confirm", count: total_seedings) },
+                title: t("tournaments.wizard_steps_v2.step2_continue_title") %>
           </div>
         <% end %>
 
       <% elsif step_2_status == :completed %>
-        <%= button_to tournament.data['invitation_filename'].present? ? 'Setzliste prüfen' : 'Einladung hochladen',
+        <%= button_to tournament.data['invitation_filename'].present? ? t("tournaments.wizard_steps_v2.step2_check_seedings") : t("tournaments.wizard_steps_v2.step2_upload_invitation"),
             compare_seedings_tournament_path(tournament),
             method: :get,
             class: 'btn btn-secondary btn-sm' %>
 
       <% else %>
         <span class="disabled-text">
-          Erst verfügbar nach vorherigem Schritt
+          <%= t("tournaments.wizard_step.pending_hint") %>
         </span>
       <% end %>
     </div>
@@ -256,43 +240,38 @@
   <!-- Schritt 3: Teilnehmerliste bearbeiten (vor Ort!) -->
   <%= render 'wizard_step',
       number: tournament.organizer.is_a?(Region) ? 3 : 2,
-      title: "Teilnehmerliste bearbeiten (am Turniertag)",
+      title: t("tournaments.wizard_steps_v2.step3_title"),
       status: wizard_step_status(tournament, 3),
       action: {
-        text: 'Teilnehmer prüfen',
+        text: t("tournaments.wizard_steps_v2.step3_action_text"),
         path: define_participants_tournament_path(tournament),
         method: :get
       },
       info: seedings_info_text(tournament),
-      warning: wizard_step_status(tournament, 3) == :active ? "Dieser Schritt bleibt offen bis zur endgültigen Festschreibung in Schritt 4" : false,
+      warning: wizard_step_status(tournament, 3) == :active ? t("tournaments.wizard_steps_v2.step3_warning") : false,
       danger: false,
-      help: "Passen Sie die <strong>Teilnehmerliste</strong> direkt am Turniertag an:<br>
-             • ☑️ Checkboxen: Teilnehmer aktivieren/deaktivieren (No-Shows)<br>
-             #{tournament.handicap_tournier? ? '• 🎯 <strong>Vorgaben korrigieren</strong> falls nötig (Punktzahlen)<br>' : ''}
-             • ✏️ Änderungen werden sofort gespeichert<br>
-             • ➕ Kurzfristige Nachmeldungen: Spieler aus Meldeliste aktivieren<br><br>
-             <strong>Wichtig:</strong> Dieser Schritt bleibt aktiv bis Sie in Schritt 4 die Liste finalisieren!<br><br>
-             <strong>Für Tests:</strong> #{link_to '📝 Direkt zur Teilnehmerliste (für manuelle Eingabe)', define_participants_tournament_path(tournament), class: 'text-blue-600 dark:text-blue-400 underline'}",
+      help: t("tournaments.wizard_steps_v2.step3_help_html",
+              handicap_line: tournament.handicap_tournier? ? t("tournaments.wizard_steps_v2.step3_help_handicap_line_html") : "",
+              test_link: link_to(t("tournaments.wizard_steps_v2.step3_help_test_link_text"), define_participants_tournament_path(tournament), class: 'text-primary-600 dark:text-primary-400 underline')),
       docs_path: 'managers/tournament-management',
       docs_anchor: 'participants' %>
 
   <!-- Schritt 4: Teilnehmerliste finalisieren -->
   <%= render 'wizard_step',
       number: tournament.organizer.is_a?(Region) ? 4 : 3,
-      title: "Teilnehmerliste finalisieren",
+      title: t("tournaments.wizard_steps_v2.step4_title"),
       status: wizard_step_status(tournament, 4),
       action: {
-        text: 'Teilnehmerliste abschließen',
+        text: t("tournaments.wizard_steps_v2.step4_action_text"),
         path: finish_seeding_tournament_path(tournament),
         method: :post,
-        confirm: "⚠️ ACHTUNG: Nach diesem Schritt können keine Spieler mehr hinzugefügt oder entfernt werden!\n\nIst die Teilnehmerliste vollständig und korrekt?",
+        confirm: t("tournaments.wizard_steps_v2.step4_confirm"),
         class: wizard_step_status(tournament, 4) != :active ? 'opacity-25' : ''
       },
       info: nil,
       warning: false,
       danger: true,
-      help: "⚠️ WICHTIG: Diese Aktion ist nicht umkehrbar! Die finale <strong>Teilnehmerliste</strong>
-             wird fest gespeichert und die Gruppeneinteilung wird basierend auf dieser Reihenfolge berechnet.",
+      help: t("tournaments.wizard_steps_v2.step4_help_html"),
       docs_path: 'managers/tournament-management',
       docs_anchor: 'participants' %>
 
@@ -302,7 +281,7 @@
       title: I18n.t("tournaments.show.finalize_tournament_modus", default: "Turniermodus wählen"),
       status: wizard_step_status(tournament, 5),
       action: {
-        text: 'Modus auswählen',
+        text: t("tournaments.wizard_steps_v2.step5_action_text"),
         path: finalize_modus_tournament_path(tournament),
         method: :get,
         class: wizard_step_status(tournament, 5) != :active ? 'opacity-25' : ''
@@ -310,8 +289,7 @@
       info: mode_info_text(tournament),
       warning: false,
       danger: false,
-      help: "Wählen Sie den Turniermodus (z.B. T07, T10) basierend auf der Anzahl der Teilnehmer.
-             Der Modus bestimmt Gruppenaufteilung und K.O.-Runden.",
+      help: t("tournaments.wizard_steps_v2.step5_help"),
       docs_path: 'managers/tournament-management',
       docs_anchor: 'mode-selection' %>
 
@@ -323,35 +301,31 @@
       </div>
       <div class="wizard-step-content">
         <div class="wizard-step-number-title">
-          <h4 class="step-title">Verwaltung der Turnierspiele</h4>
+          <h4 class="step-title"><%= t("tournaments.wizard_steps_v2.step6_title") %></h4>
           <% if tournament.tournament_started %>
-            <span class="status-badge badge-success">Läuft</span>
+            <span class="status-badge badge-success"><%= t("tournaments.wizard_steps_v2.step6_running_badge") %></span>
           <% end %>
         </div>
 
         <% if wizard_step_status(tournament, 6) == :active && !tournament.tournament_started %>
           <div class="step-warning">
             <span class="warning-icon">⚠️</span>
-            Turnier noch nicht gestartet
+            <%= t("tournaments.wizard_steps_v2.step6_warning") %>
           </div>
         <% end %>
 
         <div class="step-help">
           <details<%= " open" if wizard_step_status(tournament, 6) == :active %>>
-            <summary>💡 Was macht dieser Schritt?</summary>
+            <summary><%= t('tournaments.wizard_step.help_summary') %></summary>
             <p>
               <% if tournament.tournament_started %>
-                Das Turnier läuft bereits. Verwenden Sie den <strong>Tournament Monitor</strong> um:
-                <br>• Spiele zu starten und zu verwalten
-                <br>• Tische zuzuordnen
-                <br>• Ergebnisse zu kontrollieren
-                <br>• Den Turnierverlauf zu überwachen
+                <%= t("tournaments.wizard_steps_v2.step6_help_running_html").html_safe %>
               <% else %>
-                Startet das Turnier und öffnet den Tournament-Monitor für die Verwaltung der Spiele und Tischzuordnungen.
+                <%= t("tournaments.wizard_steps_v2.step6_help_pending") %>
               <% end %>
             </p>
             <p class="step-docs-link mt-2">
-              <%= mkdocs_link('managers/tournament-management', anchor: 'start-parameters', text: t('tournaments.docs.walkthrough_link'), options: { class: 'text-blue-600 dark:text-blue-400 underline text-sm' }) %>
+              <%= mkdocs_link('managers/tournament-management', anchor: 'start-parameters', text: t('tournaments.docs.walkthrough_link'), options: { class: 'text-primary-600 dark:text-primary-400 underline text-sm' }) %>
             </p>
           </details>
         </div>
@@ -361,23 +335,23 @@
     <div class="wizard-step-actions">
       <% if tournament.tournament_started && tournament.tournament_monitor.present? %>
         <!-- Prominenter Button wenn Turnier läuft -->
-        <%= link_to '🎮 Tournament Monitor öffnen',
+        <%= link_to t("tournaments.wizard_steps_v2.step6_open_monitor"),
             tournament_monitor_path(tournament.tournament_monitor),
             class: 'btn btn-success btn-lg',
             style: 'font-weight: bold;' %>
       <% elsif wizard_step_status(tournament, 6) == :active %>
         <!-- Button zum Starten wenn noch nicht gestartet -->
-        <%= link_to 'Turnier starten',
+        <%= link_to t("tournaments.wizard_steps_v2.step6_start_tournament"),
             tournament_monitor_tournament_path(tournament),
             class: 'btn btn-primary btn-pulse' %>
       <% elsif wizard_step_status(tournament, 6) == :completed %>
         <!-- Button auch wenn Schritt abgeschlossen (falls Turnier zurückgesetzt wurde) -->
-        <%= link_to 'Turnier starten',
+        <%= link_to t("tournaments.wizard_steps_v2.step6_start_tournament"),
             tournament_monitor_tournament_path(tournament),
             class: 'btn btn-secondary btn-sm' %>
       <% else %>
         <span class="disabled-text">
-          Erst verfügbar nach vorherigem Schritt
+          <%= t('tournaments.wizard_step.pending_hint') %>
         </span>
       <% end %>
     </div>
@@ -386,17 +360,17 @@
 </div>
 
 <!-- Hilfe-Box -->
-<div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg p-4 mb-6">
-  <h4 class="font-semibold text-blue-900 dark:text-blue-200 mb-2">📖 Begriffserklärung</h4>
-  <dl class="text-sm text-blue-800 dark:text-blue-200 space-y-2">
-    <dt class="font-semibold">Meldeliste:</dt>
-    <dd class="ml-4">Wer hat sich für das Turnier <em>angemeldet</em> (aus ClubCloud)</dd>
+<div class="bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg p-4 mb-6">
+  <h4 class="font-semibold text-gray-900 dark:text-gray-100 mb-2"><%= t("tournaments.wizard_steps_v2.glossary_heading") %></h4>
+  <dl class="text-sm text-gray-700 dark:text-gray-300 space-y-2">
+    <dt class="font-semibold"><%= t("tournaments.wizard_steps_v2.glossary_meldeliste_term") %></dt>
+    <dd class="ml-4"><%= t("tournaments.wizard_steps_v2.glossary_meldeliste_desc_html").html_safe %></dd>
 
-    <dt class="font-semibold">Setzliste:</dt>
-    <dd class="ml-4">Offizielle <em>Reihenfolge</em> nach Ranking (aus Einladung vom Landessportwart)</dd>
+    <dt class="font-semibold"><%= t("tournaments.wizard_steps_v2.glossary_setzliste_term") %></dt>
+    <dd class="ml-4"><%= t("tournaments.wizard_steps_v2.glossary_setzliste_desc_html").html_safe %></dd>
 
-    <dt class="font-semibold">Teilnehmerliste:</dt>
-    <dd class="ml-4">Wer ist <em>tatsächlich da</em> am Turniertag (= Setzliste ± Änderungen)</dd>
+    <dt class="font-semibold"><%= t("tournaments.wizard_steps_v2.glossary_teilnehmerliste_term") %></dt>
+    <dd class="ml-4"><%= t("tournaments.wizard_steps_v2.glossary_teilnehmerliste_desc_html").html_safe %></dd>
   </dl>
 </div>
 

@@ -1,0 +1,31 @@
+<div class="bg-surface-card dark:bg-gray-800 rounded-card border border-gray-200 dark:border-gray-700 overflow-hidden">
+  <% @players ||= records %>
+  <% @pagy ||= defined?(pagy) ? pagy : nil %>
+  <% @players.each do |player| %>
+    <div class="group flex items-center gap-3 px-4 py-3 border-t border-gray-100 dark:border-gray-700 first:border-t-0 hover:bg-surface-page dark:hover:bg-gray-700/60">
+      <div class="flex-1 min-w-0">
+        <%= custom_link_to(player.fullname, player, class: "font-medium text-gray-900 dark:text-gray-100 hover:text-primary-600") %>
+        <div class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+          <%# Subzeile = Club des Spielers IN der Scope-Saison (konsistent zum saison-gebundenen %>
+          <%# Club-Filter); Fallback = letzter Club (player.club), falls keine Participation in der Saison. %>
+          <%# Region ist scope-fixiert → nur als Badge bei Abweichung, nicht inline. %>
+          <% season_club = player.season_participations.find_by(season_id: current_season_id)&.club || player.club %>
+          <%= season_club&.name %>
+        </div>
+      </div>
+      <%# Kein Disziplin-Chip: Spieler sind nicht disziplin-gebunden. %>
+      <%# Region-Badge nur bei Abweichung zur Scope-Region. Bei national/global registrierten Spielern %>
+      <%# (Region mit global_context-Spalte, z.B. DBU) die echte Club-Region zeigen statt „DBU" (player_home_region). %>
+      <% home_region = player_home_region(player, season_club) %>
+      <% if home_region.present? && home_region.id != current_region_id %>
+        <%= region_badge(home_region) %>
+      <% end %>
+    </div>
+  <% end %>
+</div>
+
+<% if @pagy.present? && @pagy.pages > 1 %>
+  <div class="text-center my-6">
+    <%= pagy_nav(@pagy).html_safe %>
+  </div>
+<% end %>

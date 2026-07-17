@@ -17,8 +17,8 @@
 
 <!-- LINK-03: Detailanleitung im Handbuch -->
 <div class="container mx-auto mt-6 px-4">
-  <div class="max-w-3xl mx-auto bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg p-4 mb-6">
-    <p class="text-sm text-blue-900 dark:text-blue-200">
+  <div class="max-w-3xl mx-auto bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-700 rounded-lg p-4 mb-6">
+    <p class="text-sm text-primary-900 dark:text-primary-200">
       📖 <strong><%= t('tournaments.docs.form_help_prefix') %></strong>
       <%= mkdocs_link('managers/tournament-management', anchor: 'mode-selection', text: t('tournaments.docs.form_help_link'), options: { class: 'underline font-medium' }) %>
     </p>
@@ -102,7 +102,7 @@
               </div>
 
               <!-- Vergleich: Extrahiert vs. Berechnet -->
-              <details class="bg-white p-3 rounded border border-red-200">
+              <details class="bg-white dark:bg-gray-800 p-3 rounded border border-red-200">
                 <summary class="cursor-pointer font-semibold text-red-900">
                   <%= t('tournaments.finalize_modus.show_comparison') %>
                 </summary>
@@ -119,10 +119,10 @@
               </details>
             </div>
           <% elsif @groups_source == :algorithm %>
-            <div class="mb-4 p-3 bg-blue-50 border border-blue-200 rounded">
+            <div class="mb-4 p-3 bg-primary-50 border border-primary-200 rounded">
               <div class="flex items-center justify-between">
                 <div>
-                  <p class="text-blue-900 text-sm">
+                  <p class="text-primary-900 text-sm">
                     <%= t('tournaments.finalize_modus.groups_auto_calculated_html').html_safe %>
                   </p>
                 </div>
@@ -131,12 +131,12 @@
                     <summary class="btn btn-sm btn-outline-secondary cursor-pointer">
                       <%= t('tournaments.finalize_modus.manually_adjust') %>
                     </summary>
-                    <div class="absolute z-10 mt-2 p-4 bg-white border border-gray-300 rounded shadow-lg" style="min-width: 300px;">
-                      <p class="text-sm text-gray-700 mb-3">
+                    <div class="absolute z-10 mt-2 p-4 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded shadow-lg" style="min-width: 300px;">
+                      <p class="text-sm text-gray-700 dark:text-gray-200 mb-3">
                         <strong><%= t('tournaments.finalize_modus.landessportwart_quote') %></strong><br>
                         <%= t('tournaments.finalize_modus.manual_correct_hint') %>
                       </p>
-                      <p class="text-xs text-gray-600 mb-3">
+                      <p class="text-xs text-gray-600 dark:text-gray-300 mb-3">
                         <%= t('tournaments.finalize_modus.in_development_html').html_safe %><br>
                         <%= t('tournaments.finalize_modus.current_workaround') %>
                       </p>

@@ -84,6 +84,13 @@ module McpServer
         effective_fed = fed_cc_id || default_fed_id(server_context)
         effective_season_name = season.presence || (effective_season(server_context)&.name rescue nil)
 
+        # #3-Fix 2026-06-16 (User-Befund): Branch aus dem TURNIER ableiten, wenn nicht mitgegeben.
+        # Multi-Disziplin-Sportwarte (z.B. Kegel+Karambol) → das LLM gibt branch_cc_id oft nicht mit
+        # → Resolver lief scope_given=false → 0 Kandidaten. Der Branch des Turniers
+        # (tournament_cc.branch_cc) ist deterministisch + scope-unabhängig korrekt. ||= = nur füllen
+        # wenn leer (explizit gegebener Branch bleibt unangetastet).
+        branch_cc_id ||= resolve_tournament_branch_cc_id(tournament_cc_id, server_context)
+
         Rails.logger.info "[LookupMeldelistе] start tournament_cc_id=#{tournament_cc_id} club_cc_id=#{effective_club_cc_id || "-"} (explicit=#{!club_cc_id.nil?}) fed=#{effective_fed || "-"} branch=#{branch_cc_id || "-"} season=#{effective_season_name || "-"} force_refresh=#{force_refresh}"
 
         # Plan 14-G.12 / NEU primary path-0: Sportwart-Discovery via club-scoped showMeldelistenList.
@@ -149,13 +156,18 @@ module McpServer
 
         # Plan 14-02.3 / F-5: Pfad 3 legacy-fallback — showMeldelistenList-Parser.
         if candidates.empty? || force_refresh
+          # Bug B (2026-06-19): path-3 muss den EFFEKTIVEN Scope-Tupel durchreichen, nicht die
+          # rohen (oft nil) fed_cc_id/season. path-0 nutzte effective_fed/effective_season_name
+          # bereits korrekt; path-3 wurde beim Hotfix #2 übersehen → unvollständiger CC-Scope
+          # (nur branchId, ohne fedId/season) → CC liefert Pool-Default statt der gescopten Liste
+          # → 0 Treffer trotz existierender Meldeliste (Live-Befund „NDM Test Cadre 35/2" → 1347).
           live_candidates = fetch_from_cc(
             tournament_cc_id,
-            fed_cc_id: fed_cc_id, branch_cc_id: branch_cc_id,
-            season: season, disciplin_id: disciplin_id, cat_id: cat_id,
+            fed_cc_id: effective_fed, branch_cc_id: branch_cc_id,
+            season: effective_season_name, disciplin_id: disciplin_id, cat_id: cat_id,
             server_context: server_context
           )
-          Rails.logger.info "[LookupMeldelistе] path-3 cc-live (scope_given=#{scope_filter_given?(fed_cc_id, branch_cc_id, season, disciplin_id, cat_id)}): #{live_candidates.size} candidate(s)"
+          Rails.logger.info "[LookupMeldelistе] path-3 cc-live (scope_given=#{scope_filter_given?(effective_fed, branch_cc_id, effective_season_name, disciplin_id, cat_id)}): #{live_candidates.size} candidate(s)"
           # Live-Candidates haben Vorrang nur bei force_refresh oder DB-empty
           candidates = live_candidates if !live_candidates.empty?
         end
@@ -191,6 +203,16 @@ module McpServer
 
         case candidates.size
         when 0
+          # Strang 2 (LSW-Kegel-Befund 2026-06-14): Ist der anfragende Sportwart fachlich gar
+          # nicht zuständig (Turnier-Disziplin außerhalb seines Wirkbereichs), führt ein KLARER
+          # Scope-Hinweis — statt der irreführenden „branch_cc_id fehlt / anderen Branch probieren",
+          # die das LLM als „Meldeliste nicht verknüpft / Konfigurationsproblem" narriert.
+          t = resolve_tournament(tournament_cc_id: tournament_cc_id, server_context: server_context)
+          scope_note = discipline_scope_note(tournament: t, server_context: server_context)
+          if scope_note
+            return error("#{scope_note} (Technisch: Für tournament_cc_id=#{tournament_cc_id} wurde im Branch deines Wirkbereichs keine Meldeliste gefunden — die Meldeliste IST verknüpft, nur in einer anderen Disziplin.)#{public_view_hint(t)}")
+          end
+
           # Plan 14-02.3 / F-6: Sportwart-Vokabular statt Entwickler-Diagnose. Behält
           # interne attempted-Pfade als Diagnose-Tail (für Audit-Trail), aber führender
           # User-facing Text ist klar und lösungsorientiert.
@@ -257,6 +279,21 @@ module McpServer
         )
       rescue => e
         error("Tool exception: #{e.class.name} (details suppressed; check Rails.logger on stderr).")
+      end
+
+      # #3-Fix 2026-06-16: Branch-cc_id aus dem Turnier ableiten (tournament_cc.branch_cc).
+      # Context-scoped (cc_id ist regions-eindeutig, D-14-02-D). nil-sicher.
+      def self.resolve_tournament_branch_cc_id(tournament_cc_id, server_context)
+        context = effective_cc_region(server_context).to_s.downcase
+        tcc = if context.present?
+          TournamentCc.find_by(cc_id: tournament_cc_id, context: context)
+        else
+          TournamentCc.find_by(cc_id: tournament_cc_id)
+        end
+        tcc&.branch_cc&.cc_id
+      rescue => e
+        Rails.logger.warn "[LookupMeldelisteForTournament.resolve_tournament_branch_cc_id] #{e.class}: #{e.message}"
+        nil
       end
 
       # DB-first Lookup via TournamentCc.meldeliste_cc_id (Plan 23-01 T3d).

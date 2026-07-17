@@ -9,12 +9,12 @@
     <div class="flex flex-col h-screen space-y-4 rounded-lg border-2 border border-gray-300 dark:bg-black dark:text-white">
       <!-- Title -->
       <div class="flex flex-row items-center justify-center h-1/8 pt-4">
-        <h1 class="text-6vw font-bold">Foul</h1>
+        <h1 class="text-6vw font-bold"><%= t("table_monitor.foul.title") %></h1>
       </div>
 
       <!-- Ball Selection -->
       <div class="flex flex-col items-center justify-center h-1/4 space-y-2">
-        <div class="text-3vw font-semibold mb-2">Foul-Kugel</div>
+        <div class="text-3vw font-semibold mb-2"><%= t("table_monitor.foul.ball") %></div>
         <div class="flex flex-row flex-wrap items-center justify-center gap-2 px-4">
           <!-- All snooker balls with their point values -->
           <%- ball_map = { 
@@ -46,7 +46,7 @@
       <div class="flex flex-col items-center justify-center h-1/4 space-y-4 px-4">
         <!-- Miss Checkbox -->
         <div class="flex flex-row items-center justify-center space-x-4 w-full">
-          <label class="text-3vw font-semibold">Miss</label>
+          <label class="text-3vw font-semibold"><%= t("table_monitor.foul.miss") %></label>
           <%= content_tag "div",
                           data: { reflex: "click->TableMonitorReflex#foul_toggle_miss", id: table_monitor.id },
                           class: "flex items-center justify-center w-12 h-12 border-2 #{miss ? 'bg-green-500 border-green-600' : 'bg-gray-200 border-gray-400'} rounded",
@@ -60,7 +60,7 @@
 
         <!-- Free Ball Checkbox -->
         <div class="flex flex-row items-center justify-center space-x-4 w-full">
-          <label class="text-3vw font-semibold">Free ball</label>
+          <label class="text-3vw font-semibold"><%= t("table_monitor.foul.free_ball") %></label>
           <%= content_tag "div",
                           data: { reflex: "click->TableMonitorReflex#foul_toggle_free_ball", id: table_monitor.id },
                           class: "flex items-center justify-center w-12 h-12 border-2 #{free_ball ? 'bg-green-500 border-green-600' : 'bg-gray-200 border-gray-400'} rounded",
@@ -74,7 +74,7 @@
 
         <!-- Remove Reds Stepper -->
         <div class="flex flex-row items-center justify-center space-x-4 w-full">
-          <label class="text-3vw font-semibold">Remove reds</label>
+          <label class="text-3vw font-semibold"><%= t("table_monitor.foul.remove_reds") %></label>
           <div class="flex flex-row items-center space-x-2">
             <%= content_tag "div",
                             data: { reflex: "click->TableMonitorReflex#foul_decrease_reds", id: table_monitor.id },
@@ -104,14 +104,14 @@
                         class: "flex items-center justify-center px-8 py-4 bg-gray-300 dark:bg-gray-700 rounded-lg text-3vw font-semibold hover:bg-gray-400",
                         id: "foul_cancel",
                         tabindex: 5 do %>
-          Cancel
+          <%= t("table_monitor.inning_edit.cancel") %>
         <%- end %>
         <%= content_tag "div",
                         data: { reflex: "click->TableMonitorReflex#foul_submit", id: table_monitor.id },
                         class: "flex items-center justify-center px-8 py-4 bg-green-500 rounded-lg text-3vw font-semibold hover:bg-green-600 text-white",
                         id: "foul_submit",
                         tabindex: 5 do %>
-          Submit
+          <%= t("table_monitor.foul.submit") %>
         <%- end %>
       </div>
     </div>

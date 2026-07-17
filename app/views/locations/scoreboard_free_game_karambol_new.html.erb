@@ -329,7 +329,7 @@
               Each row pair consists of (label div, content div) — 8 sibling divs total,
               plugging directly into the parent grid-cols-6 grid at line 264 (NO intermediate
               col-span-6 wrapper — that was the GAP-02 anti-pattern the previous block used).
-              Pattern: large labelled buttons with hidden radios (sr-only), bg-blue-600 active state
+              Pattern: large labelled buttons with hidden radios (sr-only), bg-primary-600 active state
               (mirrors _radio_select partial). Hidden form inputs at lines 241-253 are unchanged
               and continue to bind to the same Alpine state slots these touch-buttons write to. %>
 
@@ -354,7 +354,7 @@
                 ["bk2_kombi", "BK-2kombi"]
               ].each_with_index do |(val, label), ix| %>
                 <label class="group relative border rounded-md py-3 px-4 flex items-center justify-center text-2vw font-medium uppercase focus:outline-none shadow-sm cursor-pointer"
-                       :class="{ 'bg-blue-600 text-white': (kegel_choice == '<%= val %>'),
+                       :class="{ 'bg-primary-600 text-white': (kegel_choice == '<%= val %>'),
                                  ' text-gray-200': !(kegel_choice == '<%= val %>') }">
                   <input type="radio" name="kegel_choice" value="<%= val %>" class="sr-only"
                          aria-labelledby="kegel-choice-<%= ix %>-label"
@@ -382,7 +382,7 @@
             <div class="grid gap-4" :class="`grid-cols-${bk_ballziel_choices.length || 1}`">
               <template x-for="(choice, ix) in bk_ballziel_choices" :key="choice">
                 <label class="group relative border rounded-md py-3 px-4 flex items-center justify-center text-2vw font-medium uppercase focus:outline-none sm:flex-1 shadow-sm cursor-pointer"
-                       :class="{ 'bg-blue-600 text-white': (bk_balls_goal == choice),
+                       :class="{ 'bg-primary-600 text-white': (bk_balls_goal == choice),
                                  ' text-gray-200': !(bk_balls_goal == choice),
                                  'opacity-75 cursor-default': is_bk_fixed_goal }">
                   <input type="radio" name="bk_balls_goal_choice" :value="choice"
@@ -400,7 +400,7 @@
             <div class="flex gap-2 items-center justify-center w-full max-w-md" x-show="!is_bk_fixed_goal">
               <div class="flex text-4vw justify-center items-center font-bold cursor-pointer w-12"
                    @click="bk_balls_goal = Math.max(0, parseInt(bk_balls_goal || 0) - 5)">−</div>
-              <span class="flex items-center justify-center text-center text-2vw font-medium shadow-sm bg-blue-600 text-gray-200 border rounded-md py-3 px-4 min-w-24"
+              <span class="flex items-center justify-center text-center text-2vw font-medium shadow-sm bg-primary-600 text-gray-200 border rounded-md py-3 px-4 min-w-24"
                     x-text="bk_balls_goal || 0"></span>
               <div class="flex text-4vw justify-center items-center font-bold cursor-pointer w-12"
                    @click="bk_balls_goal = parseInt(bk_balls_goal || 0) + 5">+</div>

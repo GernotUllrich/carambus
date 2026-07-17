@@ -22,6 +22,8 @@ tauscht mit Carambus über REST folgende Daten aus:
 | Carambus → App | `GET /api/external_tournament/player_rankings` | Disziplin-Ranking-Setzliste (Vorsaison) | ✅ v0.6 (Plan 19-01) |
 | Carambus → App | `GET /api/external_tournament/disciplines` | Region-relevante Disziplinen + Format-/Klassen-Matrix (TournamentPlans) | ✅ v0.6 (Plan 20-01) |
 | Carambus → App | `GET /api/external_tournament/categories` | Kategorie-/Klassen-Listen (player_classes + age_classes + genders + categories[]) für den Selektor | ✅ v0.6 (Plan 20-02) |
+| Carambus → App | `GET /api/external_tournament/registration_lists` | ClubCloud-Meldelisten einer Region (deadline/status + discipline/category, optional tournament_cc-Link) | ✅ v0.6 (Plan 21-05) |
+| App ↔ Carambus | `GET party` / `POST party_game_result` / `POST party_close` | Autarker Liga-Spieltag: Spieltag + Kader laden, Einzelspiel-Ergebnisse pushen, Spielbericht abschließen | ✅ (Plan 48-04..48-08) |
 
 **Eliminiert die Doppel-Erfassung** zwischen externer App und Carambus-Scoreboards.
 
@@ -82,13 +84,13 @@ Service-Account — egal ob lokal, per-Region oder global:
 ```bash
 # Lokales Scenario am Spielort (Default)
 cd /path/to/carambus_bcw      # z.B. carambus_bcw im Clubheim
-rake service_accounts:create_2band[BCW]
-# → legt 2band-bcw-bridge@carambus.local an, gibt Password einmalig aus
+rake service_accounts:create_carambus_app[BCW]
+# → legt carambus-app-bcw-bridge@carambus.local an, gibt Password einmalig aus
 
 # Alternative: Per-Region Cloud (Multi-Location-Turnier)
 cd /path/to/carambus_master   # global oder per-region wie nbv
-rake service_accounts:create_2band[NBV]
-# → legt 2band-nbv-bridge@carambus.de an
+rake service_accounts:create_carambus_app[NBV]
+# → legt carambus-app-nbv-bridge@carambus.de an
 ```
 
 Bearer-Token holen — Base-URL je nach Topologie:
@@ -97,14 +99,14 @@ Bearer-Token holen — Base-URL je nach Topologie:
 # Local Scenario via WLAN
 curl -X POST http://carambus.local:3000/login \
   -H "Content-Type: application/json" \
-  -d '{"user":{"email":"2band-bcw-bridge@carambus.local","password":"…"}}' \
+  -d '{"user":{"email":"carambus-app-bcw-bridge@carambus.local","password":"…"}}' \
   -i | grep -i Authorization
 # Authorization: Bearer eyJhbGciOiJIUzI1NiJ9…
 
 # Per-Region Cloud (Beispiel NBV)
 curl -X POST https://nbv.carambus.de/login \
   -H "Content-Type: application/json" \
-  -d '{"user":{"email":"2band-nbv-bridge@carambus.de","password":"…"}}' \
+  -d '{"user":{"email":"carambus-app-nbv-bridge@carambus.de","password":"…"}}' \
   -i | grep -i Authorization
 ```
 
@@ -813,6 +815,36 @@ curl -H "Authorization: Bearer <jwt>" \
 | 401 | Fehlende/ungültige JWT |
 | 404 | Region nicht gefunden **oder** `season`/`discipline`/`category` angegeben, aber nicht auflösbar |
 
+## Endpoint 11: Party — autarker Liga-Spieltag (Plan 48)
+
+Ein paralleles Schema für **Liga-Spieltage** („Spieltag"). Es teilt sich den Bridge-Controller und
+den `/api/external_tournament/*`-Namespace, arbeitet aber auf `Party` / `PartyMonitor` statt auf
+einem `Tournament`. Die externe App lädt einen Spieltag + Kader, pusht Einzelspiel-Ergebnisse direkt
+und schließt den Spielbericht ab — alles ohne `TableMonitor`.
+
+### `GET /api/external_tournament/party?region=NBV&party_id=…`  (oder `&party_cc_id=…`)
+
+Lädt einen Liga-Spieltag für das autarke carambus_app-Schema „spieltag". Response
+`carambus.party/v1`: `party` + `team_a`/`team_b` (inkl. Kader) + `party_monitor.data`. `party_id` hat
+Vorrang vor `party_cc_id`; die Region wird über `league.organizer` aufgelöst. Read-only.
+Fehler: `401` / `404` (Region/Party) / `422` (weder `party_id` noch `party_cc_id`).
+
+### `POST /api/external_tournament/party_game_result`
+
+Direkteingabe-Push (`carambus.party_game_result/v1`): schreibt das Endergebnis **einer** Einzelpartie
+direkt (`Party#build_game_for_row!` + `Party#record_game_result!`) — **ohne TableMonitor**. Ein
+Mehrfach-Push überschreibt (TL-Korrektur). Die Zeile wird über `gname = "<seqno>-<type>"` identifiziert;
+`Spieler1`/`Spieler2` sind `dbu_nr` (kanonisch, Plan 48-06). Bei Satz-Disziplinen sind `Sets1/2`
+maßgeblich, mit Fallback auf `Ergebnis1/2`. Die Response liefert `intermediate_result`
+(`game_points` + `match_points`). Nicht schreibbar (LocalProtector-Honest-Refusal) → `422`;
+unbekannter `gname` → `404`.
+
+### `POST /api/external_tournament/party_close`
+
+Schließt den Spielbericht ab (`carambus.party_close/v1`) via `PartyMonitor#close_with_result!(event:
+:end_of_party)` — der autarke API-Pfad treibt die Web-AASM **nicht**. Vollständigkeits-Guard: wenn nicht
+alle Spiele ein `ended_at` haben, `409` mit `missing_gnames`. Bereits geschlossen → `422`.
+
 ## Teardown & Garbage-Collection (Plan 16-01)
 
 **Carambus hält kein Gedächtnis der App-Turnierdaten.** Die App führt ihr eigenes
@@ -955,7 +987,7 @@ per-Spieler `player_class`-Feld via `PlayerRanking.player_class_id` (Batch, kein
 |----------|-------------|
 | D-15-01-A | Authority-Modell = Service-Account analog G.14 |
 | D-15-02-A | Mapping-Decisions (synonyms-newline-split + balls_goal→target_points etc.) |
-| D-15-02-B | Service-Account-Email = `2band-{region}-bridge@carambus.de` |
+| D-15-02-B | Service-Account-Email = `carambus-app-{region}-bridge@carambus.de` |
 | D-15-03-A | Tisch-Identifikation via `Table.name == table_no.to_s` (**superseded durch D-15-06-A**) |
 | D-15-04-A | Round-Result: leere Runde → `200 OK` mit `results: []` |
 | D-15-04-B | Laufende Games (`ended_at: nil`) sind im Round-Result enthalten |

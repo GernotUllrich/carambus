@@ -37,6 +37,19 @@ class Player < ApplicationRecord
 
   belongs_to :region, optional: true
 
+  # Scope-Band-Zusatzfacette: fuer Spieler ist der Club (aus season_participations) der zentrale
+  # Filter — nicht Branch. Siehe ApplicationRecord.scope_extra_facet.
+  def self.scope_extra_facet
+    :club
+  end
+
+  # Region-Scope strikt: ein Spieler ist in genau EINER Region registriert. global_context-Spieler
+  # aus anderen Regionen (76% des NBV-Ausschnitts: 7.968 vs. 1.926 echte NBV) sind ein Sync-Marker
+  # und werden im Region-Ausschnitt nie eingeblendet. Siehe ApplicationRecord.
+  def self.scope_region_strict?
+    true
+  end
+
   validates :pin4,
             uniqueness: true,
             length: { is: 4 },

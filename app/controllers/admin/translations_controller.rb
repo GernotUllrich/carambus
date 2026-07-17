@@ -4,7 +4,6 @@ module Admin
   # Provides a UI for translating arbitrary text using:
   # - DeepL API with billiard-specific glossaries (default)
   # - Anthropic Claude for AI-powered translation
-  # - OpenAI GPT-4 (optional)
   #
   # Accessible at: /admin/translations
   class TranslationsController < Admin::ApplicationController
@@ -49,13 +48,6 @@ module Admin
           use_glossary: true
         )
       when 'anthropic'
-        service = AnthropicTranslationService.new
-        service.translate(
-          text: text,
-          source_lang: source_lang,
-          target_lang: target_lang
-        )
-      when 'openai'
         service = AnthropicTranslationService.new
         service.translate(
           text: text,

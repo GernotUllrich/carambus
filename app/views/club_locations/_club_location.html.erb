@@ -1,14 +1,9 @@
 <div id="<%= dom_id club_location %>">
-  <div class="mb-4">
-    <p class="text-sm font-medium text-gray-500">Club</p>
-    <%= club_location.club_id %>
+  <div class="font-medium text-gray-900 dark:text-gray-100">
+    <%= custom_link_to (club_location.club&.shortname.presence || club_location.club&.name || "Club ##{club_location.club_id}"), club_location.club, class: "hover:underline" %>
   </div>
-  <div class="mb-4">
-    <p class="text-sm font-medium text-gray-500">Location</p>
-    <%= club_location.location_id %>
-  </div>
-  <div class="mb-4">
-    <p class="text-sm font-medium text-gray-500">Status</p>
-    <%= club_location.status %>
+  <div class="text-sm text-gray-500 dark:text-gray-400">
+    <%= custom_link_to (club_location.location&.name.presence || "Location ##{club_location.location_id}"), club_location.location, class: "text-primary-600 dark:text-primary-400" %>
+    <span class="mx-1">·</span>Status: <%= club_location.status %>
   </div>
 </div>

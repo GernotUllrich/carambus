@@ -287,4 +287,26 @@ class PartyMonitorAasmTest < ActiveSupport::TestCase
     )
     skip "reset_party_monitor has pre-existing NoMethodError (nil.to_hash) when party has no game_plan — known characterization finding"
   end
+
+  # ============================================================================
+  # 9. Einstiegspunkt-Kontrakt (find-Zweig) — Phase 47-01 Proof-Slice
+  # ============================================================================
+
+  test "entry-point find-or-create contract: party.party_monitor is singular and seeding_mode" do
+    # Der Web-Einstiegspunkt parties_controller#party_monitor (parties_controller.rb:57)
+    # nutzt das Idiom: @party_monitor = @party.party_monitor; @party_monitor ||= @party.create_party_monitor
+    # Dieser Test nagelt den FIND-Zweig + die has_one-Singularität fest (auf der die
+    # Idempotenz der Action beruht). Der CREATE-Zweig + der local_server?-Guard sind in
+    # parties_controller_test.rb (:55 "creates or redirects" / :61 "redirects on non-local server")
+    # charakterisiert — local_server? ist im carambus_api-Test FALSE (api_url leer), daher läuft
+    # der echte find-or-create-Lauf auf einem Local-Server (carambus_pbv, Phase-47-01-human-verify).
+    party = @party
+    pm = @pm
+
+    assert_equal "seeding_mode", party.party_monitor.state
+    assert_equal pm.id, (party.party_monitor || party.create_party_monitor).id,
+      "find-Zweig: vorhandener PartyMonitor wird zurückgegeben, kein Duplikat"
+    assert_equal 1, PartyMonitor.where(party_id: party.id).count,
+      "has_one: genau ein PartyMonitor je Party"
+  end
 end

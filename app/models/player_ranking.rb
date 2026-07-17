@@ -49,8 +49,22 @@ class PlayerRanking < ApplicationRecord
   # belongs_to :pp_player_class, foreign_key: :pp_player_class_id, class_name: "PlayerClass"
   # belongs_to :tournament_player_class, foreign_key: :tournament_player_class_id, class_name: "PlayerClass"
 
-  serialize :remarks, coder: YAML, type: Hash
-  serialize :t_ids, coder: YAML, type: Array
+  # 12-15 (S3): Kuratierte Spaltenauswahl für die generische sortierbare Index-Tabelle
+  # (shared/_scaffold_sortable_table). rank zuerst (wichtigste Größe) + FK-Kontext als Links + Kernwerte.
+  def self.scaffold_index_columns_default
+    %w[rank player_id discipline_id season_id points quote gd hs]
+  end
+
+  # 2026-06-17: Coder YAML → JSON (analog zu allen anderen Sync-Modellen). Der strikte
+  # YAML-Coder (assert_valid_value type: Hash/Array) warf beim Sync-Apply
+  # SerializationTypeMismatch, wenn der Wert als String ankam → stiller Verlust (der
+  # innere rescue verschluckte es, der Cursor lief trotzdem hoch). JSON-Coder ist
+  # nachsichtig wie bei Tournament.data/Player.data etc. ⚠️ Migrations-kritisch:
+  # bestehende YAML-Werte sind mit JSON-Coder NICHT lesbar → vor/mit dem Deploy müssen
+  # die PlayerRankings neu generiert werden (Authority: delete_all + update_ranking_tables;
+  # Local-Server: delete_all unprotected + Re-Sync). Siehe Deploy-Reihenfolge im Handoff.
+  serialize :remarks, coder: JSON, type: Hash
+  serialize :t_ids, coder: JSON, type: Array
 
   KEY_MAPPINGS = {
     "Punkte" => :points,

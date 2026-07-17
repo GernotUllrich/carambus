@@ -1,4 +1,5 @@
 class ChampionshipTypeCcsController < ApplicationController
+  before_action :system_admin_only
   before_action :set_championship_type_cc, only: %i[show edit update destroy]
 
   # GET /championship_type_ccs

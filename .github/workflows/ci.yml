@@ -43,6 +43,9 @@ jobs:
       - name: Erblint
         run: bundle exec erblint --lint-all
 
+      - name: UI-Guardrail (keine neuen hartkodierten Farb-Hex)
+        run: ruby bin/ui-hex-guard
+
   test:
     timeout-minutes: 10
     runs-on: ubuntu-latest

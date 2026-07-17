@@ -22,7 +22,6 @@ class League::StandingsCalculator
       parties_home = @league.parties.where(league_team_a: team)
       parties_away = @league.parties.where(league_team_b: team)
       parties_all = parties_home + parties_away
-      spiele = parties_all.size
       gewonnen = 0
       unentschieden = 0
       verloren = 0
@@ -34,12 +33,10 @@ class League::StandingsCalculator
       parties_all.each do |party|
         # Annahme: Ergebnis steht in party.data[:result] oder party.data["result"] als "x:y"
         result = party.data["result"] || party.data[:result]
-        next unless result.present? && result.include?(":")
-        if result == ":"
-          left, right = [0, 0]
-        else
-          left, right = result.split(":").map(&:to_i)
-        end
+        # 46.5-01: nur "x:y"-Ergebnisse mit Ziffer werten; leere Platzhalter (":") überspringen,
+        # sonst zählen ungespielte Phantom-Parties als 0:0-Remis. Echte Remis ("4:4") bleiben.
+        next unless result.present? && result.include?(":") && result.match?(/\d/)
+        left, right = result.split(":").map(&:to_i)
         if party.league_team_a_id == team.id
           team_for = left
           team_against = right
@@ -60,6 +57,7 @@ class League::StandingsCalculator
           verloren += 1
         end
       end
+      spiele = gewonnen + unentschieden + verloren # 46.5-01: nur gewertete Parties zählen
       {
         team: team,
         name: team.name,
@@ -85,7 +83,6 @@ class League::StandingsCalculator
       parties_home = @league.parties.where(league_team_a: team)
       parties_away = @league.parties.where(league_team_b: team)
       parties_all = parties_home + parties_away
-      spiele = parties_all.size
       gewonnen = 0
       unentschieden = 0
       verloren = 0
@@ -97,12 +94,10 @@ class League::StandingsCalculator
       parties_all.each do |party|
         # Annahme: Ergebnis steht in party.data[:result] oder party.data["result"] als "x:y"
         result = party.data["result"] || party.data[:result]
-        next unless result.present? && result.include?(":")
-        if result == ":"
-          left, right = [0, 0]
-        else
-          left, right = result.split(":").map(&:to_i)
-        end
+        # 46.5-01: nur "x:y"-Ergebnisse mit Ziffer werten; leere Platzhalter (":") überspringen,
+        # sonst zählen ungespielte Phantom-Parties als 0:0-Remis. Echte Remis ("4:4") bleiben.
+        next unless result.present? && result.include?(":") && result.match?(/\d/)
+        left, right = result.split(":").map(&:to_i)
         if party.league_team_a_id == team.id
           team_for = left
           team_against = right
@@ -123,6 +118,7 @@ class League::StandingsCalculator
           verloren += 1
         end
       end
+      spiele = gewonnen + unentschieden + verloren # 46.5-01: nur gewertete Parties zählen
       {
         team: team,
         name: team.name,
@@ -148,7 +144,6 @@ class League::StandingsCalculator
       parties_home = @league.parties.where(league_team_a: team)
       parties_away = @league.parties.where(league_team_b: team)
       parties_all = parties_home + parties_away
-      spiele = parties_all.size
       gewonnen = 0
       unentschieden = 0
       verloren = 0
@@ -160,12 +155,10 @@ class League::StandingsCalculator
       parties_all.each do |party|
         # Annahme: Ergebnis steht in party.data[:result] oder party.data["result"] als "x:y"
         result = party.data["result"] || party.data[:result]
-        next unless result.present? && result.include?(":")
-        if result == ":"
-          left, right = [0, 0]
-        else
-          left, right = result.split(":").map(&:to_i)
-        end
+        # 46.5-01: nur "x:y"-Ergebnisse mit Ziffer werten; leere Platzhalter (":") überspringen,
+        # sonst zählen ungespielte Phantom-Parties als 0:0-Remis. Echte Remis ("4:4") bleiben.
+        next unless result.present? && result.include?(":") && result.match?(/\d/)
+        left, right = result.split(":").map(&:to_i)
         if party.league_team_a_id == team.id
           team_for = left
           team_against = right
@@ -186,6 +179,7 @@ class League::StandingsCalculator
           verloren += 1
         end
       end
+      spiele = gewonnen + unentschieden + verloren # 46.5-01: nur gewertete Parties zählen
       {
         team: team,
         name: team.name,

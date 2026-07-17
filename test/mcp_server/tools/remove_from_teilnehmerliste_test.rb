@@ -2,24 +2,71 @@
 
 require "test_helper"
 
-# Tests für cc_remove_from_teilnehmerliste (Plan 07-04 Inline-Patch — D-7-8).
-# Mock-only Scope analog assign_player_to_teilnehmerliste_test.rb.
-
+# Tests für cc_remove_from_teilnehmerliste (Plan 33-01 Toggle-Umbau).
+# Mock-only Scope. Neue Architektur: Live-State aus showTeilnehmerliste Tab-3
+# (akkreditierte) + meisterschaft-showMeldeliste Tab-2 (gemeldete); zwei atomare
+# Entfernungs-Pfade je nach Zustand:
+#   :accredited    → showMeldeliste_teilnahme (Toggle, zurück in Meldeliste)
+#   :fast_assigned → cc_remove_tn (Schnellanmeldung, verschwindet ganz)
+#   :reported_only / :not_in_tournament → Ablehnung
 class McpServer::Tools::RemoveFromTeilnehmerlisteTest < ActiveSupport::TestCase
-  # Reuse the build_check_html-Helper from assign-test (gleicher HTML-Struktur).
-  def self.build_check_html(teilnehmer_options: [], meldung_options: [], tournament_name: "MOCK NDM Endrunde Eurokegel")
-    McpServer::Tools::AssignPlayerToTeilnehmerlisteTest.build_check_html(
-      teilnehmer_options: teilnehmer_options,
-      meldung_options: meldung_options,
-      tournament_name: tournament_name
-    )
+  # Stateful MockClient für die neue Live-State-Architektur.
+  # teilnehmer / gemeldete: Arrays von [cc_id, "Nachname", "Vorname"].
+  # gemeldete enthält ALLE Gemeldeten (auch akkreditierte) — wie CC Tab-2 (live verifiziert 2026-06-11).
+  # ascii8bit: simuliert den Net::HTTP-Rohbody (Encoding-Regression).
+  def build_state_mock(teilnehmer:, gemeldete:, ascii8bit: false)
+    t = teilnehmer.dup
+    g = gemeldete.dup
+    enc = ascii8bit
+    mock = McpServer::Tools::MockClient.new
+    mock.define_singleton_method(:get) do |action, params, opts|
+      @calls << [:get, action, params, opts]
+      body = case action
+      when "showTeilnehmerliste"
+        rows = t.map { |cc_id, nach, vor| %(<a href="showTeilnehmer.php?p=x-#{cc_id}&" title="#{nach}, #{vor} (#{cc_id})" class="cc_bluelink">#{nach}</a>) }.join("\n")
+        "<html><body>#{rows}</body></html>"
+      when "meisterschaft-showMeldeliste"
+        rows = g.map { |cc_id, nach, vor| "<tr><td class='bb1'><b>#{nach}</b></td><td class='bb1'><b>#{vor}</b></td><td class='bb1' align='center'>#{cc_id}</td></tr>" }.join("\n")
+        "<html><body><table>#{rows}</table></body></html>"
+      else
+        "<html><body>MOCK GET #{action}</body></html>"
+      end
+      body = body.dup.force_encoding("ASCII-8BIT") if enc
+      [Struct.new(:code, :message, :body).new("200", "OK", body), Nokogiri::HTML(body)]
+    end
+    mock.define_singleton_method(:post) do |action, params, opts|
+      @calls << [:post, action, params, opts]
+      case action
+      when "showMeldeliste_teilnahme"
+        pid = params[:pid].to_i
+        if t.any? { |id, _, _| id == pid }
+          t.reject! { |id, _, _| id == pid }
+        else
+          row = g.find { |id, _, _| id == pid }
+          t << row if row
+        end
+        [Struct.new(:code, :message, :body).new("200", "OK", "ok"), Nokogiri::HTML("<html><body>ok</body></html>")]
+      when "cc_remove_tn"
+        pid = params[:akkpid].to_i
+        t.reject! { |id, _, _| id == pid }
+        [Struct.new(:code, :message, :body).new("200", "OK", "ok"), Nokogiri::HTML("<html><body>ok</body></html>")]
+      else
+        [Struct.new(:code, :message, :body).new("200", "OK", "ok"), Nokogiri::HTML("<html><body>MOCK POST #{action}</body></html>")]
+      end
+    end
+    mock
   end
+
+  # Standard-Setup: Kämmer + Schröder akkreditiert (in Teilnehmerliste + Meldeliste),
+  # Meyer nur gemeldet, Ullrich per Schnellanmeldung (Teilnehmer ohne Meldeliste-Eintrag).
+  TEILNEHMER = [[10686, "Kämmer", "Lothar"], [10024, "Schröder", "Hans-Jörg"], [10031, "Ullrich", "Gernot"]].freeze
+  GEMELDETE = [[10686, "Kämmer", "Lothar"], [10024, "Schröder", "Hans-Jörg"], [10021, "Meyer", "Manfred"]].freeze
 
   setup do
     McpServer::CcSession.reset!
     McpServer::CcSession.session_id = "TEST_SESSION_ID"
     McpServer::CcSession.session_started_at = Time.now
-    @mock = build_stateful_mock
+    @mock = build_state_mock(teilnehmer: TEILNEHMER.map(&:dup), gemeldete: GEMELDETE.map(&:dup))
     McpServer::CcSession._client_override = @mock
   end
 
@@ -28,112 +75,91 @@ class McpServer::Tools::RemoveFromTeilnehmerlisteTest < ActiveSupport::TestCase
     McpServer::CcSession.reset!
   end
 
-  # Stateful MockClient für Remove: simuliert State-Transition (Spieler verschwindet aus Teilnehmerliste).
-  def build_stateful_mock(initial_teilnehmer: [[11683, "Nachtmann, Georg (11683)"], [10024, "Schröder, Hans-Jörg (10024)"]],
-    initial_meldung: [], tournament_name: "MOCK NDM Endrunde Eurokegel")
-    current_teilnehmer = initial_teilnehmer.dup
-    current_meldung = initial_meldung.dup
-    helper = self.class
-    mock = McpServer::Tools::MockClient.new
-    mock.define_singleton_method(:post) do |action, params, opts|
-      @calls << [:post, action, params, opts]
-      case action
-      when "editTeilnehmerlisteCheck"
-        body = helper.build_check_html(
-          teilnehmer_options: current_teilnehmer,
-          meldung_options: current_meldung,
-          tournament_name: tournament_name
-        )
-        [Struct.new(:code, :message, :body).new("200", "OK", body), Nokogiri::HTML(body)]
-      when "removePlayer"
-        # State-Mutation: remove teilnehmerId from current_teilnehmer
-        removed_id = params[:teilnehmerId].to_i
-        removed = current_teilnehmer.find { |id, _| id == removed_id }
-        current_teilnehmer.delete(removed) if removed
-        [Struct.new(:code, :message, :body).new("200", "OK", ""),
-          Nokogiri::HTML("<html><body>MOCK POST removePlayer OK</body></html>")]
-      when "editTeilnehmerlisteSave"
-        [Struct.new(:code, :message, :body).new("200", "OK", ""),
-          Nokogiri::HTML("<html><body>MOCK POST editTeilnehmerlisteSave Saved</body></html>")]
-      else
-        [Struct.new(:code, :message, :body).new("200", "OK", ""),
-          Nokogiri::HTML("<html><body>MOCK POST #{action} OK</body></html>")]
-      end
-    end
-    mock
-  end
-
-  test "armed:false (default) returns Detail-Echo ohne CC-Mutation-Call" do
-    response = McpServer::Tools::RemoveFromTeilnehmerliste.call(
-      tournament_cc_id: 890, player_cc_id: 11683,
-      fed_cc_id: 20, branch_cc_id: 8, season: "2025/2026",
-      server_context: nil
-    )
-    refute response.error?, "Expected success, got: #{response.content.first[:text]}"
-    text = response.content.first[:text]
-    assert_match(/\[DRY-RUN\] Would remove player_cc_id=11683/, text)
-    assert_match(/Nachtmann/, text)
-    assert_match(/teilnehmerliste_count_before: 2/, text)
-    assert_match(/teilnehmerliste_count_after:  1/, text)
-    # Schicht 1: kein Write-Call
-    write_calls = @mock.calls.select { |verb, action, _, _| verb == :post && %w[removePlayer editTeilnehmerlisteSave].include?(action) }
-    assert write_calls.empty?, "Dry-Run darf removePlayer/Save NICHT aufrufen"
-  end
-
-  test "armed:true ruft Pre-Read → removePlayer → Save → Read-Back in genau dieser Reihenfolge" do
-    response = McpServer::Tools::RemoveFromTeilnehmerliste.call(
-      tournament_cc_id: 890, player_cc_id: 11683,
-      fed_cc_id: 20, branch_cc_id: 8, season: "2025/2026",
-      armed: true, server_context: nil
-    )
-    refute response.error?, "Expected success, got: #{response.content.first[:text]}"
-    text = response.content.first[:text]
-    assert_match(/Removed player_cc_id=11683.*tournament_cc_id=890/, text)
-    assert_match(/teilnehmerliste_count_after:  1/, text)
-    assert_match(/read_back_match: true/, text)
-    actions = @mock.calls.select { |verb, _, _, _| verb == :post }.map { |_, a, _, _| a }
-    assert_equal ["editTeilnehmerlisteCheck", "removePlayer", "editTeilnehmerlisteCheck", "editTeilnehmerlisteSave", "editTeilnehmerlisteCheck"], actions,
-      "Erwarte Pre-Read → removePlayer → Re-Render → Save → Read-Back (Plan 07-04 Risk A) — got #{actions.inspect}"
-  end
-
-  test "removePlayer-Payload enthält teilnehmerId Single (KEIN Array) + 9-Felder-Base" do
+  def call_remove(player_cc_id:, armed: false, read_back: true)
     McpServer::Tools::RemoveFromTeilnehmerliste.call(
-      tournament_cc_id: 890, player_cc_id: 11683,
-      fed_cc_id: 20, branch_cc_id: 8, season: "2025/2026",
-      armed: true, server_context: nil
+      tournament_cc_id: 939, player_cc_id: player_cc_id,
+      fed_cc_id: 20, branch_cc_id: 10, season: "2025/2026",
+      armed: armed, read_back: read_back, server_context: nil
     )
-    rm_call = @mock.calls.find { |verb, action, _, _| verb == :post && action == "removePlayer" }
-    refute_nil rm_call, "removePlayer muss aufgerufen worden sein"
-    _, _, params, _ = rm_call
-    # Plan 07-04 Inline-Patch v2: zusätzlich :referer (Real-Client setzt als HTTP-Header, nicht im Body)
-    required_keys = %i[fedId branchId disciplinId catId season meisterTypeId meisterschaftsId sortedBy firstEntry teilnehmerId]
-    missing_keys = required_keys - params.keys
-    assert_empty missing_keys, "Remove-Payload fehlen Felder: #{missing_keys.inspect}; got #{params.keys.sort.inspect}"
-    assert_equal 11683, params[:teilnehmerId], "teilnehmerId muss Single Integer sein (NICHT Array)"
   end
 
-  test "Validation: player_cc_id NICHT in Teilnehmerliste → ToolError" do
-    response = McpServer::Tools::RemoveFromTeilnehmerliste.call(
-      tournament_cc_id: 890, player_cc_id: 99999, # NICHT in Teilnehmerliste
-      fed_cc_id: 20, branch_cc_id: 8, season: "2025/2026",
-      armed: true, server_context: nil
-    )
-    assert response.error?
+  # --- Dry-Run + Pfad-Wahl ---
+
+  test "armed:false akkreditierter Spieler → Dry-Run Toggle-Pfad, kein Write" do
+    response = call_remove(player_cc_id: 10024) # Schröder = :accredited
+    refute response.error?, "Expected success, got: #{response.content.first[:text]}"
     text = response.content.first[:text]
-    assert_match(/Player 99999 not in Teilnehmerliste/, text)
-    assert_match(/cc_assign_player_to_teilnehmerliste/, text)
-    # Kein removePlayer-Call
-    rm_calls = @mock.calls.select { |verb, action, _, _| verb == :post && action == "removePlayer" }
-    assert rm_calls.empty?, "Validation-Fail darf removePlayer NICHT auslösen"
+    assert_match(/\[DRY-RUN\] Would remove player_cc_id=10024/, text)
+    assert_match(/Live-Zustand: accredited/, text)
+    assert_match(/Toggle showMeldeliste_teilnahme/, text)
+    write_calls = @mock.calls.select { |verb, action, _, _| verb == :post }
+    assert write_calls.empty?, "Dry-Run darf KEINEN POST auslösen — got #{write_calls.inspect}"
   end
 
-  # Plan 10-05.1 Task 1 (D-10-04-B Pivot): Phase-4-Schicht-3 (Production-Block) DEPRECATED.
-  # Vorheriger Test entfernt. Pre-Validation-First-Pattern (Task 4) macht Tool zum Sicherheitsnetz.
+  test "armed:true akkreditierter Spieler → Toggle showMeldeliste_teilnahme + Read-Back, KEIN removePlayer/Save" do
+    response = call_remove(player_cc_id: 10024, armed: true)
+    refute response.error?, "Expected success, got: #{response.content.first[:text]}"
+    text = response.content.first[:text]
+    assert_match(/Removed player_cc_id=10024/, text)
+    assert_match(/read_back_match: true/, text)
+    posts = @mock.calls.select { |verb, _, _, _| verb == :post }.map { |_, a, _, _| a }
+    assert_equal ["showMeldeliste_teilnahme"], posts, "akkreditiert → genau 1 Toggle-POST — got #{posts.inspect}"
+    refute posts.include?("removePlayer"), "removePlayer-Pfad darf NICHT mehr genutzt werden"
+    refute posts.include?("editTeilnehmerlisteSave"), "Edit-Buffer-Save darf NICHT mehr genutzt werden"
+  end
+
+  test "Toggle-Payload enthält pid + Base-Felder ohne firstEntry/save" do
+    call_remove(player_cc_id: 10024, armed: true)
+    toggle = @mock.calls.find { |verb, action, _, _| verb == :post && action == "showMeldeliste_teilnahme" }
+    refute_nil toggle, "showMeldeliste_teilnahme muss aufgerufen worden sein"
+    _, _, params, _ = toggle
+    assert_equal 10024, params[:pid]
+    assert_equal 939, params[:meisterschaftsId]
+    refute params.key?(:firstEntry), "firstEntry darf nicht im Toggle-Payload sein"
+    refute params.key?(:save), "save darf nicht im Toggle-Payload sein"
+  end
+
+  test "armed:true Schnellanmeldungs-Spieler → cc_remove_tn (akkpid), NICHT Toggle" do
+    response = call_remove(player_cc_id: 10031, armed: true) # Ullrich = :fast_assigned
+    refute response.error?, "Expected success, got: #{response.content.first[:text]}"
+    text = response.content.first[:text]
+    assert_match(/Removed player_cc_id=10031/, text)
+    posts = @mock.calls.select { |verb, _, _, _| verb == :post }.map { |_, a, _, _| a }
+    assert_equal ["cc_remove_tn"], posts, "Schnellanmeldung → genau 1 cc_remove_tn-POST — got #{posts.inspect}"
+    rm = @mock.calls.find { |verb, action, _, _| verb == :post && action == "cc_remove_tn" }
+    _, _, params, _ = rm
+    assert_equal 10031, params[:akkpid], "cc_remove_tn identifiziert den Spieler via akkpid"
+  end
+
+  # --- Pre-Validation (Ablehnungen) ---
+
+  test "nur gemeldeter (nicht akkreditierter) Spieler → Ablehnung, kein Write" do
+    response = call_remove(player_cc_id: 10021, armed: true) # Meyer = :reported_only
+    assert response.error?
+    assert_match(/nur gemeldet.*nicht akkreditiert|nicht akkreditiert/, response.content.first[:text])
+    assert @mock.calls.select { |verb, _, _, _| verb == :post }.empty?, "Ablehnung darf keinen Write auslösen"
+  end
+
+  test "Spieler weder gemeldet noch Teilnehmer → Ablehnung" do
+    response = call_remove(player_cc_id: 99999, armed: true)
+    assert response.error?
+    assert_match(/weder gemeldet noch Teilnehmer/, response.content.first[:text])
+  end
+
+  # --- Encoding-Regression (Live-Bug 2026-06-11) ---
+
+  test "Umlaut-Name aus ASCII-8BIT-Body crasht NICHT (Encoding-Regression Kämmer)" do
+    McpServer::CcSession._client_override =
+      build_state_mock(teilnehmer: TEILNEHMER.map(&:dup), gemeldete: GEMELDETE.map(&:dup), ascii8bit: true)
+    response = call_remove(player_cc_id: 10686) # Kämmer (ä), Dry-Run
+    refute response.error?, "Umlaut-Name darf nicht zu Encoding::CompatibilityError führen: #{response.content.first[:text]}"
+    assert_match(/Kämmer/, response.content.first[:text])
+  end
+
+  # --- Schema + Registration ---
 
   test "Validation: fehlendes player_cc_id → Missing-required-error" do
-    response = McpServer::Tools::RemoveFromTeilnehmerliste.call(
-      tournament_cc_id: 890, server_context: nil
-    )
+    response = McpServer::Tools::RemoveFromTeilnehmerliste.call(tournament_cc_id: 939, server_context: nil)
     assert response.error?
     assert_match(/Missing required parameter/i, response.content.first[:text])
     assert_match(/player_cc_id/, response.content.first[:text])

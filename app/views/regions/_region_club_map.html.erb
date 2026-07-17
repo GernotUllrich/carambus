@@ -1,0 +1,90 @@
+<%# 08-06: Zoombare regionale Club-Karte. Region-Umriss (08-05-Polygon) + Clubs an ihren
+    Standorten (Location-PLZ projiziert, gleiche Projektion wie die Deutschlandkarte). Kreise
+    (klickbar -> clubs/show) werden beim Zoom zu Logos. Zoom/Pan via map_zoom_controller.js
+    (viewBox-Manipulation, self-contained). Inline-SVG (CSP), Token-Farben, kein Hex, Dark-Mode. %>
+<% pts = region_club_points(@region) %>
+<% if pts.any? %>
+  <% path = region_map_path(@region.shortname) %>
+  <% bbox = region_map_bbox(@region.shortname) %>
+  <%# viewBox = Union aus Region-Bounding-Box (falls Polygon vorhanden) und allen Club-Punkten,
+      damit kein Verein aus dem Ausschnitt faellt. %>
+  <% xs = pts.map { |p| p[:x] }; ys = pts.map { |p| p[:y] } %>
+  <% minx = ([bbox&.at(0), xs.min].compact.min); miny = ([bbox&.at(1), ys.min].compact.min) %>
+  <% maxx = ([bbox && bbox[0] + bbox[2], xs.max].compact.max); maxy = ([bbox && bbox[1] + bbox[3], ys.max].compact.max) %>
+  <% pad = 6 %>
+  <% vb = [(minx - pad).round(1), (miny - pad).round(1), (maxx - minx + 2 * pad).round(1), (maxy - miny + 2 * pad).round(1)] %>
+
+  <div class="mt-8 p-4 rounded-xl ring-1 ring-gray-200 dark:ring-gray-700 bg-white dark:bg-gray-900">
+    <div class="flex items-center justify-between gap-3 mb-2">
+      <span class="font-bold text-gray-800 dark:text-gray-100">
+        <%= t("region.show.map_heading", default: "Vereine in der Region") %>
+      </span>
+      <span class="text-xs text-gray-500 dark:text-gray-400">
+        <%= t("region.show.map_hint", default: "Scrollen zum Zoomen · Ziehen zum Verschieben") %>
+      </span>
+    </div>
+
+    <svg viewBox="<%= vb.join(' ') %>" role="img" tabindex="0"
+         data-controller="map-zoom"
+         aria-label="<%= t('region.show.map_aria', region: @region.name, default: "Vereinskarte #{@region.name}") %>"
+         class="w-full h-auto max-h-[70vh] touch-none cursor-grab select-none
+                rounded-lg ring-1 ring-gray-100 dark:ring-gray-800
+                focus:outline-none focus:ring-2 focus:ring-primary-500">
+      <%# Ebene 1: Region-Umriss (falls Geometrie vorhanden) %>
+      <% if path %>
+        <path d="<%= path %>"
+              class="fill-gray-50 dark:fill-gray-800 stroke-gray-300 dark:stroke-gray-600"
+              stroke-width="0.6" stroke-linejoin="round" />
+      <% end %>
+
+      <%# Ebene 2: Club-Marker (Kreise), klickbar -> clubs/show, nativer Tooltip <title> %>
+      <g data-map-zoom-target="markers">
+        <% pts.each do |p| %>
+          <% tip = [p[:shortname]] %>
+          <% tip << p[:branches].join(", ") if p[:branches].any? %>
+          <% tip << "#{p[:players]} #{t('region.show.map_players', default: 'Spieler')}" %>
+          <a href="<%= p[:href] %>" data-turbo-frame="_top" aria-label="<%= p[:shortname] %>" class="group">
+            <title><%= tip.join(" · ") %></title>
+            <circle cx="<%= p[:x] %>" cy="<%= p[:y] %>" r="1.1"
+                    stroke-width="0.4"
+                    class="fill-primary-500 stroke-white dark:stroke-gray-900
+                           group-hover:fill-primary-600 group-focus:fill-primary-600 transition-colors" />
+          </a>
+        <% end %>
+      </g>
+
+      <%# Ebene 3: Club-Logos (erst ab Zoom-Schwelle sichtbar). Jede Kachel ist eine um ihren
+          Mittelpunkt (data-cx/cy) gruppierte Einheit, gezeichnet relativ zum Ursprung; der
+          map-zoom-Controller haelt sie per Gegen-Skalierung in konstanter Bildschirmgroesse. %>
+      <g data-map-zoom-target="logos" class="hidden">
+        <% s = 10 %>
+        <% h = s / 2.0 %>
+        <% lp = 1.2 %>
+        <% pts.each do |p| %>
+          <% tip = [p[:shortname]] %>
+          <% tip << p[:branches].join(", ") if p[:branches].any? %>
+          <% tip << "#{p[:players]} #{t('region.show.map_players', default: 'Spieler')}" %>
+          <a href="<%= p[:href] %>" data-turbo-frame="_top" aria-label="<%= p[:shortname] %>" class="group">
+            <g class="js-logo-marker" data-cx="<%= p[:x] %>" data-cy="<%= p[:y] %>"
+               transform="translate(<%= p[:x] %> <%= p[:y] %>)">
+              <title><%= tip.join(" · ") %></title>
+              <rect x="<%= -h %>" y="<%= -h %>" width="<%= s %>" height="<%= s %>" rx="1" stroke-width="0.3"
+                    class="fill-white stroke-gray-300 dark:stroke-gray-500
+                           group-hover:stroke-primary-500 group-focus:stroke-primary-500 transition-colors" />
+              <text x="0" y="0" text-anchor="middle" dominant-baseline="central"
+                    class="fill-primary-800 dark:fill-gray-100 text-[4px] font-semibold pointer-events-none select-none <%= 'opacity-0' if p[:logo] %>">
+                <%= p[:shortname].to_s[0, 4] %>
+              </text>
+              <% if p[:logo] %>
+                <image href="<%= p[:logo] %>" x="<%= (-h + lp).round(2) %>" y="<%= (-h + lp).round(2) %>"
+                       width="<%= (s - 2 * lp).round(2) %>" height="<%= (s - 2 * lp).round(2) %>"
+                       preserveAspectRatio="xMidYMid meet" class="pointer-events-none"
+                       onerror="this.previousElementSibling.classList.remove('opacity-0'); this.remove();" />
+              <% end %>
+            </g>
+          </a>
+        <% end %>
+      </g>
+    </svg>
+  </div>
+<% end %>

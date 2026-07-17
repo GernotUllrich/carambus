@@ -80,6 +80,11 @@ module RegionTaggable
 
   # Class method to update all existing versions for this model
   def self.update_existing_versions
+    unless ENV["FORCE_DERIVATION_RETAG"] == "1"
+      raise "RegionTaggable.update_existing_versions ist deaktiviert (Recurrence-Schutz). " \
+            "Siehe rake region_taggings:update_all_region_id / fix_international_organizer_context. " \
+            "Override: FORCE_DERIVATION_RETAG=1."
+    end
     # Get all models that include RegionTaggable
     models_with_region_taggable = [
       Region, Club, Tournament, League, Party, Location,

@@ -241,11 +241,13 @@ class McpServer::Tools::BaseToolTest < ActiveSupport::TestCase
       scope = Player.all
       result = McpServer::Tools::BaseTool.apply_token_search_filter(scope, %w[Gernot Ullrich], %w[firstname lastname])
       sql = result.to_sql
-      # Beide Tokens müssen als ILIKE-Clauses im SQL erscheinen
-      assert_match(/firstname ILIKE.*Gernot/i, sql)
-      assert_match(/lastname ILIKE.*Gernot/i, sql)
-      assert_match(/firstname ILIKE.*Ullrich/i, sql)
-      assert_match(/lastname ILIKE.*Ullrich/i, sql)
+      # Beide Tokens müssen als ILIKE-Clauses im SQL erscheinen. Seit dem ß/Umlaut-Fix
+      # (2026-06-16) sind die Spalten in replace(lower(...)) gewrappt und die Werte
+      # normalisiert/lowercased (z.B. '%gernot%') — daher lower(col)…ILIKE…<token>.
+      assert_match(/lower\(firstname\).*ILIKE.*gernot/i, sql)
+      assert_match(/lower\(lastname\).*ILIKE.*gernot/i, sql)
+      assert_match(/lower\(firstname\).*ILIKE.*ullrich/i, sql)
+      assert_match(/lower\(lastname\).*ILIKE.*ullrich/i, sql)
     end
   end
 
@@ -529,6 +531,184 @@ class McpServer::Tools::BaseToolTest < ActiveSupport::TestCase
       val = McpServer::Tools::BaseTool.cc_cache_get_or_set("k1") { "v1" }
       assert_equal "v1", val
       assert_equal({"k1" => "v1"}, Thread.current[:cc_cache])
+    end
+  end
+
+  # Plan 39-03 Task 1 (D-39-8/-9): Per-User-CC-Identitäts-Naht für die CC-Write-Tools.
+  class CcIdentitySeamTest < ActiveSupport::TestCase
+    CcAccount = McpServer::CcAccountResolver::CcAccount
+    Seam = McpServer::Tools::BaseTool
+
+    setup do
+      @prev_mock = ENV["CARAMBUS_MCP_MOCK"]
+      McpServer::CcSession.reset!
+    end
+
+    teardown do
+      ENV["CARAMBUS_MCP_MOCK"] = @prev_mock
+      McpServer::CcSession.reset!
+    end
+
+    def own_account(user_id: 1)
+      CcAccount.new(login_username: "sw-eigen", password: "pw", source: :own, acting_user_id: user_id)
+    end
+
+    def none_account
+      # Authentifizierter User OHNE eigene Creds (acting_user_id gesetzt) → Block greift.
+      CcAccount.new(source: :none, acting_user_id: 7)
+    end
+
+    def none_account_stdio
+      # User-loser Stdio-/Legacy-Pfad (acting_user_id nil) → kein Block (D-39-10).
+      CcAccount.new(source: :none, acting_user_id: nil)
+    end
+
+    # --- resolve_cc_account (DB-Wiring um den Resolver) ---
+
+    test "resolve_cc_account: User mit eigenen Creds → :own" do
+      user = User.create!(email: "seam-own@test.de", password: "password123",
+        cc_username: "seam-own-cc", cc_password: "seam-own-pw")
+      acc = Seam.resolve_cc_account(tournament: nil, server_context: {user_id: user.id})
+      assert_equal :own, acc.source
+      assert acc.resolved?
+      assert_equal "seam-own-cc", acc.login_username
+      assert_equal user.id, acc.acting_user_id
+    end
+
+    test "resolve_cc_account: kein/unbekannter user_id → :none" do
+      assert_equal :none, Seam.resolve_cc_account(tournament: nil, server_context: {}).source
+      assert_equal :none, Seam.resolve_cc_account(tournament: nil, server_context: nil).source
+      assert_equal :none, Seam.resolve_cc_account(tournament: nil, server_context: {user_id: 999_999_999}).source
+    end
+
+    # --- cc_write_identity_block (D-39-8: Block NUR bei armed:true + :none) ---
+
+    test "cc_write_identity_block: aufgelöster Account → kein Block (armed egal)" do
+      assert_nil Seam.cc_write_identity_block(own_account, armed: true)
+      assert_nil Seam.cc_write_identity_block(own_account, armed: false)
+    end
+
+    test "cc_write_identity_block: :none + armed:true → Block mit jargonfreier Meldung" do
+      resp = Seam.cc_write_identity_block(none_account, armed: true)
+      refute_nil resp
+      assert resp.error?
+      text = resp.content.map { |c| c[:text] }.join
+      assert_equal Seam::CC_IDENTITY_REQUIRED_MSG, text
+      refute_match(/Token|Session|Cache|Credential/i, text, "keine IT-Jargon-Begriffe (MCP-Language-Direktive)")
+    end
+
+    test "cc_write_identity_block: :none + Dry-Run (armed:false) → KEIN Block" do
+      assert_nil Seam.cc_write_identity_block(none_account, armed: false)
+    end
+
+    test "cc_write_identity_block: Stdio-Pfad (:none ohne acting_user_id) + armed:true → KEIN Block (D-39-10)" do
+      assert_nil Seam.cc_write_identity_block(none_account_stdio, armed: true),
+        "User-loser Stdio-/Legacy-Pfad behält die geteilte Admin-Session (D-13-01-F)"
+    end
+
+    # --- cc_identity_hint (nicht-blockierender Dry-Run-Hinweis) ---
+
+    test "cc_identity_hint: authentifizierter :none → Hinweis; aufgelöst/Stdio → nil" do
+      assert_equal Seam::CC_IDENTITY_REQUIRED_MSG, Seam.cc_identity_hint(none_account)
+      assert_nil Seam.cc_identity_hint(own_account)
+      assert_nil Seam.cc_identity_hint(none_account_stdio), "Stdio-Pfad ohne User → kein Hinweis (D-39-10)"
+    end
+
+    # --- cc_audit_operator (CC-Login-Account des aktiven Slots) ---
+
+    test "cc_audit_operator: ohne aktive Session → 'unknown'" do
+      assert_equal "unknown", Seam.cc_audit_operator
+    end
+
+    test "cc_audit_operator: nach per-Account-Login → dessen CC-Login-Name" do
+      ENV["CARAMBUS_MCP_MOCK"] = "1"
+      McpServer::CcSession.cookie_for(own_account)  # mock-Login setzt aktiven Account = login_username
+      assert_equal "sw-eigen", Seam.cc_audit_operator
+    end
+
+    # Zweischichtige Attribution (D-39-2): operator = CC-Login des Granters, user_id = echter TL.
+    test "tl_inherited: operator = Granter-CC-Login, user_id-Quelle = echter TL" do
+      ENV["CARAMBUS_MCP_MOCK"] = "1"
+      tl_acc = CcAccount.new(login_username: "sw-granter", password: "pw",
+        source: :tl_inherited, acting_user_id: 99, granted_by_user_id: 5)
+      assert tl_acc.resolved?
+      assert_nil Seam.cc_write_identity_block(tl_acc, armed: true), "tl_inherited darf nicht blocken"
+      McpServer::CcSession.cookie_for(tl_acc)
+      assert_equal "sw-granter", Seam.cc_audit_operator, "operator = CC-Login des einsetzenden Sportwarts"
+      assert_equal 99, tl_acc.acting_user_id, "user_id-Quelle = echter Turnierleiter"
+    end
+  end
+
+  # Plan 46-01: resolve_party (Region-Scope) + party_preparation_authorized? (Persona-Backbone).
+  class ResolvePartyAndAuthorityTest < ActiveSupport::TestCase
+    Seam = McpServer::Tools::BaseTool
+
+    setup do
+      @nbv = regions(:nbv)
+      @season = seasons(:current)
+      @pool = Branch.create!(name: "Pool")
+      @league = League.create!(name: "P4601B Pool Liga", shortname: "P4601B-PL",
+        organizer: @nbv, season: @season, discipline: @pool, cc_id: 946_011)
+      @a = LeagueTeam.create!(league: @league, name: "P4601B A")
+      @b = LeagueTeam.create!(league: @league, name: "P4601B B")
+      @party = Party.create!(league: @league, league_team_a: @a, league_team_b: @b,
+        host_league_team: @a, day_seqno: 1, date: Date.new(2026, 3, 20), data: {})
+      @ctx = {cc_region: "NBV"}
+    end
+
+    test "resolve_party: party_id-Pfad (region-scoped)" do
+      r = Seam.resolve_party(@ctx, party_id: @party.id)
+      assert_nil r[:error], "got: #{r[:error]&.content&.first&.dig(:text)}"
+      assert_equal @party.id, r[:party].id
+    end
+
+    test "resolve_party: league_id + day_seqno-Pfad findet dieselbe Party" do
+      r = Seam.resolve_party(@ctx, league_id: @league.id, day_seqno: 1)
+      assert_nil r[:error]
+      assert_equal @party.id, r[:party].id
+    end
+
+    test "resolve_party: Cross-Region → error (kein Leak)" do
+      skip "fixture bbv fehlt" unless regions(:bbv)
+      ol = League.create!(name: "P4601B BBV", shortname: "P4601B-BBV",
+        organizer: regions(:bbv), season: @season, discipline: @pool, cc_id: 946_012)
+      oa = LeagueTeam.create!(league: ol, name: "P4601B BBV A")
+      ob = LeagueTeam.create!(league: ol, name: "P4601B BBV B")
+      op = Party.create!(league: ol, league_team_a: oa, league_team_b: ob,
+        host_league_team: oa, day_seqno: 1, date: Date.new(2026, 3, 20), data: {})
+      r = Seam.resolve_party(@ctx, party_id: op.id)
+      assert r[:error], "Cross-Region muss error liefern"
+    end
+
+    test "authority: system_admin → erlaubt" do
+      assert Seam.party_preparation_authorized?(party: @party, server_context: {user_id: users(:system_admin).id})
+    end
+
+    test "authority: read-only player → verweigert" do
+      refute Seam.party_preparation_authorized?(party: @party, server_context: {user_id: users(:player).id})
+    end
+
+    test "authority: landessportwart → erlaubt (region-weit)" do
+      lsw = User.create!(email: "p4601b_lsw@test.de", password: "password123", persona_grants: ["landessportwart"])
+      assert Seam.party_preparation_authorized?(party: @party, server_context: {user_id: lsw.id})
+    end
+
+    test "authority: Sportwart mit passender Disziplin → erlaubt; mit fremder Disziplin → verweigert" do
+      sw_pool = User.create!(email: "p4601b_swp@test.de", password: "password123", persona_grants: ["sportwart"])
+      sw_pool.sportwart_disciplines << @pool
+      assert Seam.party_preparation_authorized?(party: @party, server_context: {user_id: sw_pool.id})
+
+      karambol = Branch.create!(name: "Karambol P4601B")
+      sw_kar = User.create!(email: "p4601b_swk@test.de", password: "password123", persona_grants: ["sportwart"])
+      sw_kar.sportwart_disciplines << karambol
+      refute Seam.party_preparation_authorized?(party: @party, server_context: {user_id: sw_kar.id})
+    end
+
+    test "authorize_party_preparation!: nil bei Erlaubnis, error bei Denial" do
+      assert_nil Seam.authorize_party_preparation!(party: @party, server_context: {user_id: users(:system_admin).id})
+      denied = Seam.authorize_party_preparation!(party: @party, server_context: {user_id: users(:player).id})
+      assert denied.error?
+      assert_match(/nicht zuständig/i, denied.content.first[:text])
     end
   end
 end

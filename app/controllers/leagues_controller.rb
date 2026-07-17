@@ -1,6 +1,7 @@
 class LeaguesController < ApplicationController
   include FiltersHelper
-  before_action :admin_only_check, except: %i[show index]
+  before_action :admin_only_check, except: %i[show index reload_from_cc reload_from_cc_with_details reload_from_cc_all_new]
+  before_action :data_sync_access_check, only: %i[reload_from_cc reload_from_cc_with_details reload_from_cc_all_new]
   before_action :set_league, only: %i[show edit update destroy reload_from_cc reload_from_cc_with_details reload_from_cc_all_new]
 
   # GET /leagues

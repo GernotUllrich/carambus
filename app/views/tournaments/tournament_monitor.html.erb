@@ -29,13 +29,14 @@
   <div class="max-w-3xl mx-auto flex flex-col space-y-5 justify-center">
 
     <!-- LINK-03: Detailanleitung im Handbuch (form-top link per D-16; Phase 36b tooltips on parameter fields below are NOT modified) -->
-    <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg p-4 mb-6">
-      <p class="text-sm text-blue-900 dark:text-blue-200">
+    <div class="bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-700 rounded-lg p-4 mb-6">
+      <p class="text-sm text-primary-900 dark:text-primary-200">
         📖 <strong><%= t('tournaments.docs.form_help_prefix') %></strong>
         <%= mkdocs_link('managers/tournament-management', anchor: 'start-parameters', text: t('tournaments.docs.form_help_link'), options: { class: 'underline font-medium' }) %>
       </p>
     </div>
 
+    <% if @tournament.tournament_plan.present? %>
     <div class=" rounded shadow p-8">
       <p><%= @tournament.tournament_plan.rulesystem %></p>
       <p class="mt-4 mb-4"><%= @tournament.tournament_plan.more_description %></p>
@@ -94,16 +95,16 @@
           <div class="space-y-3 rounded shadow p-8">
             <h4 class="mb-4"><%= t('tournaments.monitor.tournament_parameters_heading') %></h4>
             <div class="flex flex-row space-x-4 items-center">
-              <span class="w-1/2 text-right text-sm" data-controller="tooltip" data-tooltip-content-value="<%= t('tournaments.monitor_form.tooltips.balls_goal') %>"><%= label_tag t('tournaments.monitor_form.labels.balls_goal') %></span><span id="tournament_balls_goal"><%= number_field_tag :balls_goal, @tournament.balls_goal || @tournament.data['extracted_balls_goal'], class: "border-2", data: { reflex: "change->TournamentReflex#balls_goal", id: @tournament.id } %></span>
+              <span class="w-1/2 text-right text-sm" data-controller="tooltip" data-tooltip-content-value="<%= t('tournaments.monitor_form.tooltips.balls_goal') %>"><%= label_tag t('tournaments.monitor_form.labels.balls_goal') %></span><span id="tournament_balls_goal"><%= number_field_tag :balls_goal, @tournament.balls_goal || @tournament.data['extracted_balls_goal'], class: "form-control", data: { reflex: "change->TournamentReflex#balls_goal", id: @tournament.id } %></span>
             </div>
             <div class="flex flex-row space-x-4 items-center">
-              <span class="w-1/2 text-right text-sm" data-controller="tooltip" data-tooltip-content-value="<%= t('tournaments.monitor_form.tooltips.innings_goal') %>"><%= label_tag t('tournaments.monitor_form.labels.innings_goal') %></span><span id="tournament_innings_goal"><%= number_field_tag :innings_goal, @tournament.innings_goal || @tournament.data['extracted_innings_goal'], class: "border-2", data: { reflex: "change->TournamentReflex#innings_goal", id: @tournament.id } %></span>
+              <span class="w-1/2 text-right text-sm" data-controller="tooltip" data-tooltip-content-value="<%= t('tournaments.monitor_form.tooltips.innings_goal') %>"><%= label_tag t('tournaments.monitor_form.labels.innings_goal') %></span><span id="tournament_innings_goal"><%= number_field_tag :innings_goal, @tournament.innings_goal || @tournament.data['extracted_innings_goal'], class: "form-control", data: { reflex: "change->TournamentReflex#innings_goal", id: @tournament.id } %></span>
             </div>
             <div class="flex flex-row space-x-4 items-center">
-              <span class="w-1/2 text-right text-sm" data-controller="tooltip" data-tooltip-content-value="<%= t('tournaments.monitor_form.tooltips.timeout') %>"><%= label_tag t('tournaments.monitor_form.labels.timeout') %></span><span id="tournament_timeout"><%= number_field_tag :timeout, @tournament.timeout || 0, class: "border-2", data: { reflex: "change->TournamentReflex#timeout", id: @tournament.id } %></span>
+              <span class="w-1/2 text-right text-sm" data-controller="tooltip" data-tooltip-content-value="<%= t('tournaments.monitor_form.tooltips.timeout') %>"><%= label_tag t('tournaments.monitor_form.labels.timeout') %></span><span id="tournament_timeout"><%= number_field_tag :timeout, @tournament.timeout || 0, class: "form-control", data: { reflex: "change->TournamentReflex#timeout", id: @tournament.id } %></span>
             </div>
             <div class="flex flex-row space-x-4 items-center">
-              <span class="w-1/2 text-right text-sm" data-controller="tooltip" data-tooltip-content-value="<%= t('tournaments.monitor_form.tooltips.timeouts') %>"><%= label_tag t('tournaments.monitor_form.labels.timeouts') %></span><span id="tournament_timeouts"><%= number_field_tag :timeouts, @tournament.timeouts, class: "border-2", data: { reflex: "change->TournamentReflex#timeouts", id: @tournament.id } %></span>
+              <span class="w-1/2 text-right text-sm" data-controller="tooltip" data-tooltip-content-value="<%= t('tournaments.monitor_form.tooltips.timeouts') %>"><%= label_tag t('tournaments.monitor_form.labels.timeouts') %></span><span id="tournament_timeouts"><%= number_field_tag :timeouts, @tournament.timeouts, class: "form-control", data: { reflex: "change->TournamentReflex#timeouts", id: @tournament.id } %></span>
             </div>
             <div class="flex flex-row space-x-4 items-center">
               <span class="w-1/2 text-right text-sm" data-controller="tooltip" data-tooltip-content-value="<%= t('tournaments.monitor_form.tooltips.auto_upload_to_cc') %>"><%= label_tag t('tournaments.monitor_form.labels.auto_upload_to_cc') %></span><span id="tournament_auto_upload_to_cc"><%= check_box_tag :auto_upload_to_cc, "1", @tournament.auto_upload_to_cc?, class: "border-2", data: { reflex: "change->TournamentReflex#auto_upload_to_cc", id: @tournament.id } %></span>
@@ -115,13 +116,13 @@
               <span class="w-1/2 text-right text-sm" data-controller="tooltip" data-tooltip-content-value="<%= t('tournaments.monitor_form.tooltips.gd_has_prio') %>"><%= label_tag t('tournaments.monitor_form.labels.gd_has_prio') %></span><span id="tournament_gd_has_prio"><%= check_box_tag :gd_has_prio, "1", @tournament.gd_has_prio?, class: "border-2", data: { reflex: "change->TournamentReflex#gd_has_prio", id: @tournament.id } %></span>
             </div>
             <div class="flex flex-row space-x-4 items-center">
-              <span class="w-1/2 text-right text-sm" data-controller="tooltip" data-tooltip-content-value="<%= t('tournaments.monitor_form.tooltips.time_out_warm_up_first_min') %>"><%= label_tag t('tournaments.monitor_form.labels.time_out_warm_up_first_min') %></span><span id="tournament_time_out_warm_up_first_min"><%= number_field_tag :time_out_warm_up_first_min, @tournament.time_out_warm_up_first_min, class: "border-2", data: { reflex: "change->TournamentReflex#time_out_warm_up_first_min", id: @tournament.id } %></span>
+              <span class="w-1/2 text-right text-sm" data-controller="tooltip" data-tooltip-content-value="<%= t('tournaments.monitor_form.tooltips.time_out_warm_up_first_min') %>"><%= label_tag t('tournaments.monitor_form.labels.time_out_warm_up_first_min') %></span><span id="tournament_time_out_warm_up_first_min"><%= number_field_tag :time_out_warm_up_first_min, @tournament.time_out_warm_up_first_min, class: "form-control", data: { reflex: "change->TournamentReflex#time_out_warm_up_first_min", id: @tournament.id } %></span>
             </div>
             <div class="flex flex-row space-x-4 items-center">
-              <span class="w-1/2 text-right text-sm" data-controller="tooltip" data-tooltip-content-value="<%= t('tournaments.monitor_form.tooltips.time_out_warm_up_follow_up_min') %>"><%= label_tag t('tournaments.monitor_form.labels.time_out_warm_up_follow_up_min') %></span><span id="tournament_time_out_warm_up_follow_up_min"><%= number_field_tag :time_out_warm_up_follow_up_min, @tournament.time_out_warm_up_follow_up_min, class: "border-2", data: { reflex: "change->TournamentReflex#time_out_warm_up_follow_up_min", id: @tournament.id } %></span>
+              <span class="w-1/2 text-right text-sm" data-controller="tooltip" data-tooltip-content-value="<%= t('tournaments.monitor_form.tooltips.time_out_warm_up_follow_up_min') %>"><%= label_tag t('tournaments.monitor_form.labels.time_out_warm_up_follow_up_min') %></span><span id="tournament_time_out_warm_up_follow_up_min"><%= number_field_tag :time_out_warm_up_follow_up_min, @tournament.time_out_warm_up_follow_up_min, class: "form-control", data: { reflex: "change->TournamentReflex#time_out_warm_up_follow_up_min", id: @tournament.id } %></span>
             </div>
             <div class="flex flex-row space-x-4 items-center">
-              <span class="w-1/2 text-right text-sm" data-controller="tooltip" data-tooltip-content-value="<%= t('tournaments.monitor_form.tooltips.kickoff_switches_with') %>"><%= label_tag t('tournaments.monitor_form.labels.kickoff_switches_with') %></span><span id="tournament_kickoff_switches_with"><%= select_tag :kickoff_switches_with, options_for_select(["", "set", "winner"], @tournament.kickoff_switches_with), class: "border-2", data: { reflex: "change->TournamentReflex#kickoff_switches_with", id: @tournament.id } %></span>
+              <span class="w-1/2 text-right text-sm" data-controller="tooltip" data-tooltip-content-value="<%= t('tournaments.monitor_form.tooltips.kickoff_switches_with') %>"><%= label_tag t('tournaments.monitor_form.labels.kickoff_switches_with') %></span><span id="tournament_kickoff_switches_with"><%= select_tag :kickoff_switches_with, options_for_select(["", "set", "winner"], @tournament.kickoff_switches_with), class: "form-control", data: { reflex: "change->TournamentReflex#kickoff_switches_with", id: @tournament.id } %></span>
             </div>
             <div class="flex flex-row space-x-4 items-center">
               <span class="w-1/2 text-right text-sm" data-controller="tooltip" data-tooltip-content-value="<%= t('tournaments.monitor_form.tooltips.allow_follow_up') %>"><%= label_tag t('tournaments.monitor_form.labels.allow_follow_up') %></span><span id="allow_follow_up"><%= check_box_tag :allow_follow_up, "1", @tournament.allow_follow_up, class: "border-2", data: { reflex: "change->TournamentReflex#allow_follow_up", id: @tournament.id } %></span>
@@ -133,13 +134,13 @@
               <span class="w-1/2 text-right text-sm" data-controller="tooltip" data-tooltip-content-value="<%= t('tournaments.monitor_form.tooltips.allow_overflow') %>"><%= label_tag t('tournaments.monitor_form.labels.allow_overflow') %></span><span id="tournament_allow_overflow"><%= check_box_tag :allow_overflow, "1", @tournament.allow_overflow?, class: "border-2", data: { reflex: "change->TournamentReflex#allow_overflow", id: @tournament.id } %></span>
             </div>
             <div class="flex flex-row space-x-4 items-center">
-              <span class="w-1/2 text-right text-sm" data-controller="tooltip" data-tooltip-content-value="<%= t('tournaments.monitor_form.tooltips.fixed_display_left') %>"><%= label_tag t('tournaments.monitor_form.labels.fixed_display_left') %></span><span id="tournament_fixed_display_left"><%= select_tag :fixed_display_left, options_for_select([["Kick-Off Left", ""], ["Player A", "playera"], ["Player B", "playerb"]]), class: "border-2", data: { reflex: "change->TournamentReflex#fixed_display_left", id: @tournament.id } %></span>
+              <span class="w-1/2 text-right text-sm" data-controller="tooltip" data-tooltip-content-value="<%= t('tournaments.monitor_form.tooltips.fixed_display_left') %>"><%= label_tag t('tournaments.monitor_form.labels.fixed_display_left') %></span><span id="tournament_fixed_display_left"><%= select_tag :fixed_display_left, options_for_select([["Kick-Off Left", ""], ["Player A", "playera"], ["Player B", "playerb"]]), class: "form-control", data: { reflex: "change->TournamentReflex#fixed_display_left", id: @tournament.id } %></span>
             </div>
             <div class="flex flex-row space-x-4 items-center">
-              <span class="w-1/2 text-right text-sm" data-controller="tooltip" data-tooltip-content-value="<%= t('tournaments.monitor_form.tooltips.sets_to_play') %>"><%= label_tag t('tournaments.monitor_form.labels.sets_to_play') %></span><span id="tournament_sets_to_play"><%= select_tag :sets_to_play, options_for_select([["-", 0], [2, 2], [3, 3], [4, 4], [5, 5], [6, 6], [7, 7], ["no limit", 999]], @tournament.sets_to_play), class: "border-2", data: { reflex: "change->TournamentReflex#sets_to_play", id: @tournament.id } %></span>
+              <span class="w-1/2 text-right text-sm" data-controller="tooltip" data-tooltip-content-value="<%= t('tournaments.monitor_form.tooltips.sets_to_play') %>"><%= label_tag t('tournaments.monitor_form.labels.sets_to_play') %></span><span id="tournament_sets_to_play"><%= select_tag :sets_to_play, options_for_select([["-", 0], [2, 2], [3, 3], [4, 4], [5, 5], [6, 6], [7, 7], ["no limit", 999]], @tournament.sets_to_play), class: "form-control", data: { reflex: "change->TournamentReflex#sets_to_play", id: @tournament.id } %></span>
             </div>
             <div class="flex flex-row space-x-4 items-center">
-              <span class="w-1/2 text-right text-sm" data-controller="tooltip" data-tooltip-content-value="<%= t('tournaments.monitor_form.tooltips.sets_to_win') %>"><%= label_tag t('tournaments.monitor_form.labels.sets_to_win') %></span><span id="tournament_sets_to_win"><%= select_tag :sets_to_win, options_for_select([["-", 0], [2, 2], [3, 3], [4, 4]], @tournament.sets_to_win), class: "border-2", data: { reflex: "change->TournamentReflex#sets_to_win", id: @tournament.id } %></span>
+              <span class="w-1/2 text-right text-sm" data-controller="tooltip" data-tooltip-content-value="<%= t('tournaments.monitor_form.tooltips.sets_to_win') %>"><%= label_tag t('tournaments.monitor_form.labels.sets_to_win') %></span><span id="tournament_sets_to_win"><%= select_tag :sets_to_win, options_for_select([["-", 0], [2, 2], [3, 3], [4, 4]], @tournament.sets_to_win), class: "form-control", data: { reflex: "change->TournamentReflex#sets_to_win", id: @tournament.id } %></span>
             </div>
           </div>
 
@@ -158,5 +159,13 @@
       <% end %>
       <%= render partial: "groups", locals: { tournament_plan: @tournament.tournament_plan, groups: @groups } %>
     </div>
+    <% else %>
+    <div class=" rounded shadow p-8">
+      <p class="text-sm text-gray-700 dark:text-gray-300"><%= t("tournaments.monitor.no_plan_hint", default: "Diesem Turnier ist noch kein Turnierplan zugewiesen. Bitte zuerst den Modus/Turnierplan wählen.") %></p>
+      <div class="mt-4">
+        <%= custom_link_to t('tournaments.monitor.back_to_mode_selection'), finalize_modus_tournament_path(@tournament) %>
+      </div>
+    </div>
+    <% end %>
   </div>
 </div>

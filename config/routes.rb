@@ -73,7 +73,7 @@ Rails.application.routes.draw do
     end
 
     # Plan 15-02: External-Tournament-Bridge Seeding-Endpoint (devise-jwt-authentifiziert)
-    # D-15-01-A: Service-Account-Pattern analog G.14 (2band-{region}-bridge@carambus.de).
+    # D-15-01-A: Service-Account-Pattern analog G.14 (carambus-app-{region}-bridge@carambus.de).
     get "external_tournament/seeding",
         to: "external_tournaments#seeding",
         as: :external_tournament_seeding
@@ -137,6 +137,17 @@ Rails.application.routes.draw do
     get "external_tournament/player_rankings",
         to: "external_tournaments#player_rankings",
         as: :external_tournament_player_rankings
+    # Plan 48-04 (Party-API, b1): Liga-Spieltag laden / Direkteingabe-Push / Spielbericht schließen
+    # für das autarke carambus_app-Schema "spieltag". Dünn über den 48-03-Nähten.
+    get "external_tournament/party",
+        to: "external_tournaments#party",
+        as: :external_tournament_party
+    post "external_tournament/party_game_result",
+         to: "external_tournaments#party_game_result",
+         as: :external_tournament_party_game_result
+    post "external_tournament/party_close",
+         to: "external_tournaments#party_close",
+         as: :external_tournament_party_close
     # Plan 20-01 (Setup-Discovery F3): region-relevante Disziplinen + TournamentPlan-Matrix
     # fuer den App-Disziplin-Selektor (carambus.disciplines/v1).
     get "external_tournament/disciplines",
@@ -354,7 +365,16 @@ Rails.application.routes.draw do
       post :test_tournament_status_update
     end
   end
-  resources :users
+  resources :users do
+    member do
+      # Pretender: system_admin schluepft in die Identitaet dieses Users.
+      post :impersonate
+    end
+    collection do
+      # Pretender: zurueck zum eigenen Konto.
+      delete :stop_impersonating
+    end
+  end
   resources :season_participations
   resources :game_participations
   resources :games
@@ -421,8 +441,6 @@ Rails.application.routes.draw do
     get :search
     get :index_t
     get :training
-
-    get :database_syncing
 
     # Neue Routen für integrierte MkDocs-Dokumentation
     # Use *path to match paths with slashes (e.g., managers/tournament-management)
@@ -516,7 +534,17 @@ Rails.application.routes.draw do
   #   end
 
   namespace :admin do
-    resources :users
+    resources :users do
+      collection do
+        # Phase 37-01: Player-Cascade (Club -> Spieler aktuelle Saison) im Admin-User-Formular.
+        get :players_by_club
+        # 2026-06-20: Vorgeschaltete Region-Stufe fuer Server OHNE Region-Context (carambus.de, Authority).
+        get :clubs_by_region
+        get :locations_by_region
+      end
+    end
+    # Phase 37-03: Turnierleiter-Zuordnungen (UserTournament) verwalten (Local-Server).
+    resources :user_tournaments, only: %i[index show new create destroy]
     resources :settings, only: %i[index create update] do
       collection do
         patch :update
@@ -558,20 +586,6 @@ Rails.application.routes.draw do
     resources :international_sources
     resources :videos
 
-    resources :pages do
-      member do
-        post :publish
-        post :archive
-        get :preview
-        post :translate
-      end
-
-      collection do
-        post :preview, defaults: { format: :json }
-        get :preview, defaults: { format: :json }
-      end
-    end
-    
     resources :training_concepts do
       member do
         post :translate
@@ -613,18 +627,6 @@ Rails.application.routes.draw do
 
   scope module: :users do
     resource :profile, only: %i[edit update], controller: "profiles"
-  end
-
-  # Add routes for pages
-  resources :pages do
-    member do
-      post :publish
-      post :archive
-    end
-
-    collection do
-      post :preview
-    end
   end
 
   resources :rankings, only: %i[index show]
