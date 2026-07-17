@@ -147,4 +147,42 @@ class LeagueTest < ActiveSupport::TestCase
     assert result.nil? || result.is_a?(GamePlan),
            "reconstruct_game_plan_from_existing_data returns GamePlan or nil"
   end
+
+  # --- Change-Gate-Content (21-02): cc_standings_content ---
+
+  def cc_doc(rows_html)
+    Nokogiri::HTML(<<~HTML)
+      <aside><section>
+        <table><tr><th>Info</th></tr></table>
+        <table>
+          <tr><th>Nr</th><th>Heim</th><th>Gast</th><th>Datum</th><th>Ergebnis</th></tr>
+          #{rows_html}
+        </table>
+      </section></aside>
+    HTML
+  end
+
+  test "cc_standings_content extrahiert ergebnistragende Zeilen, sortiert" do
+    doc = cc_doc(<<~ROWS)
+      <tr><td>1</td><td>Team B</td><td>Team A</td><td>2026-01-10</td><td>5:3</td></tr>
+      <tr><td>2</td><td>Team A</td><td>Team C</td><td>2026-01-17</td><td>4:4</td></tr>
+    ROWS
+    content = League.send(:cc_standings_content, doc)
+    assert_includes content, "Team B|Team A|2026-01-10|5:3"
+    assert_includes content, "Team A|Team C|2026-01-17|4:4"
+  end
+
+  test "cc_standings_content: geändertes Ergebnis ändert den content (digest kippt)" do
+    base = League.send(:cc_standings_content,
+      cc_doc("<tr><td>1</td><td>H</td><td>G</td><td>2026-01-10</td><td>5:3</td></tr>"))
+    changed = League.send(:cc_standings_content,
+      cc_doc("<tr><td>1</td><td>H</td><td>G</td><td>2026-01-10</td><td>6:2</td></tr>"))
+    refute_equal base, changed
+  end
+
+  test "cc_standings_content: fehlende Tabelle bzw. nil → leerer String (führt zu stale→deep)" do
+    assert_equal "", League.send(:cc_standings_content, nil)
+    no_table = Nokogiri::HTML("<aside><section><table><tr><th>x</th></tr></table></section></aside>")
+    assert_equal "", League.send(:cc_standings_content, no_table)
+  end
 end

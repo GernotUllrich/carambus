@@ -29,6 +29,18 @@ class ScrapeFingerprint < ApplicationRecord
     find_or_initialize_by(fingerprintable: record, scope: scope)
   end
 
+  # Geteilte Skip-Entscheidung für EINEN Knoten (Change-Gate). Trägt sowohl NuLigas Filter-Nutzung
+  # (active_nuliga_leagues) als auch den CC-Inline-Gate: stale/neu → true (Deep nötig); unverändert →
+  # nur checked_at fortschreiben (armed) + false (Deep überspringen). `commit!` bleibt SEPARAT und wird
+  # vom Aufrufer NACH erfolgreichem Deep aufgerufen (all-or-nothing).
+  def self.deep?(record, scope, content, armed: true)
+    fp = self.for(record, scope)
+    return true if fp.stale?(content)
+
+    fp.touch_checked! if armed
+    false
+  end
+
   # Weicht der Inhalt vom gespeicherten digest ab (oder ist der Fingerprint neu)? → Deep-Scrape nötig.
   def stale?(content)
     !persisted? || digest != self.class.digest_for(content)

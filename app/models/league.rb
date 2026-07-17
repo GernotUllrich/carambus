@@ -416,8 +416,16 @@ class League < ApplicationRecord
             end
 
             if opts[:league_details]
-              # Collect all records from league details for batch tagging
-              league.scrape_single_league_from_cc(opts)
+              # Change-Gate (21-02, Ebene C): unveränderte Standings → teuren Deep-Scrape überspringen.
+              # Content aus dem BEREITS gefetchten staffel_doc (fetch-frei). Guard cc_season_available?
+              # lief bereits oben (VOR dem Gate). commit erst NACH erfolgreichem Deep (all-or-nothing) —
+              # eine Deep-Exception (siehe rescue der Methode) verhindert den commit → nächster Lauf prüft erneut.
+              content = cc_standings_content(staffel_doc)
+              if ScrapeFingerprint.deep?(league, "standings", content)
+                # Collect all records from league details for batch tagging
+                league.scrape_single_league_from_cc(opts)
+                ScrapeFingerprint.for(league, "standings").commit!(content)
+              end
             end
           end
         end
@@ -429,6 +437,31 @@ class League < ApplicationRecord
     raise StandardError, "====== problem with leagues in region #{region.name} - leagues_url: #{leagues_url} e93 \
 #{e} #{e.backtrace&.to_a&.join("/n")}"
   end
+
+  # Change-Gate-Content (21-02, Ebene C): normalisierte, ergebnistragende Zellen der HEIM/GAST-Spielplan-
+  # Tabelle des Staffel-Dokuments (Selektor-Muster wie League::ClubCloudScraper#parse_parties). Eine
+  # neue/geänderte Begegnung ändert eine Zeile → digest kippt → Deep-Scrape läuft. Leere/fehlende Tabelle
+  # → "" (führt zu stale → deep, kein Fehl-Skip). Deterministisch sortiert = fetch-freier, stabiler Hash-Input.
+  def self.cc_standings_content(staffel_doc)
+    return "" if staffel_doc.nil?
+
+    tables = staffel_doc.css("aside > section > table")
+    table = tables.find do |t|
+      t.css("tr").any? do |tr|
+        hs = tr.css("th").map { |x| x.text.strip.downcase }
+        hs.include?("heim") && hs.include?("gast")
+      end
+    end
+    return "" if table.nil?
+
+    table.css("tr").filter_map do |tr|
+      tds = tr.css("td").map { |td| td.text.strip.gsub(/\s+/, " ") }
+      next if tds.empty?
+
+      tds.join("|")
+    end.sort.join("\n")
+  end
+  private_class_method :cc_standings_content
 
   def self.scrape_leagues_optimized(region, season, opts = {})
     Rails.logger.info "===== scrape ===== Starting optimized league scraping for region #{region.shortname}"
