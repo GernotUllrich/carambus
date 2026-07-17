@@ -86,16 +86,21 @@ module NuLiga
     def create_leagues
       scope = League.where(region_id: @region_id, season_id: @season_id)
       index = scope.includes(:discipline).index_by { |l| league_key(l.discipline&.name, l.name) }
-      by_source = scope.where.not(source_url: nil).index_by(&:source_url)
+      # Idempotenz-Index über die STABILE group-ID (nicht den vollen URL-String): übersteht
+      # source_url-Formatwechsel (z.B. +championship-Param) — wichtig für kollisions-umbenannte
+      # Ligen („VL Nord (Snooker)"), die der Name-Key-Fallback nicht trifft.
+      by_group = scope.where.not(source_url: nil)
+        .index_by { |l| l.source_url.to_s[/[?&]group=(\d+)/, 1] }
+      by_group.delete(nil)
       matched = 0
       created = 0
       updated = 0
       skipped = []
 
       nuliga_leagues.each do |l|
-        src = league_source_url(l[:group_id])
-        # Idempotenz PRIMÄR über die NuLiga-source_url (stabil, sparten-eindeutig), dann Name-Key.
-        existing = by_source[src] || index[league_key(l[:branch], l[:name])]
+        src = league_source_url(l[:group_id], l[:branch])
+        # Idempotenz PRIMÄR über die NuLiga-group-ID (stabil, sparten-eindeutig), dann Name-Key.
+        existing = by_group[l[:group_id].to_s] || index[league_key(l[:branch], l[:name])]
         if existing
           matched += 1
           updated += 1 if apply_source_url(existing, src)
@@ -113,7 +118,7 @@ module NuLiga
           league = create_league(l, discipline)
           if league
             created += 1
-            by_source[src] = league
+            by_group[l[:group_id].to_s] = league
             index[league_key(l[:branch], league.name)] = league
             @leagues_by_group[l[:group_id]] = league
           else
@@ -275,8 +280,9 @@ module NuLiga
       meetings_failed = 0
 
       carambus_parties_without_games.each do |party|
-        meeting_id = party.source_url.to_s[%r{groupMeetingReport\?meeting=(\d+)}, 1]
-        group_id = party.league&.source_url.to_s[%r{groupPage\?group=(\d+)}, 1]
+        # [?&]-Regex: matcht altes (meeting= direkt nach ?) UND neues Format (championship=…&meeting=).
+        meeting_id = party.source_url.to_s[/[?&]meeting=(\d+)/, 1]
+        group_id = party.league&.source_url.to_s[/[?&]group=(\d+)/, 1]
         branch = party.league&.discipline&.name
         unless meeting_id && group_id && branch
           parties_skipped += 1
@@ -366,7 +372,7 @@ module NuLiga
           discipline_id: discipline.id,
           name: name,
           shortname: name,
-          source_url: league_source_url(nu_league[:group_id])
+          source_url: league_source_url(nu_league[:group_id], nu_league[:branch])
         )
       end
     end
@@ -542,7 +548,18 @@ module NuLiga
     end
 
     def party_source_url(meeting_id, league = nil)
-      return "#{nuliga_base}/groupMeetingReport?meeting=#{meeting_id}" if meeting_id.present?
+      if meeting_id.present?
+        # groupMeetingReport braucht championship+group als Kontext, sonst „Willkommen"-Fehlerseite.
+        # branch = Liga-Disziplin (NuLiga-Ligen tragen die Sparte); group aus der Liga-source_url
+        # ([?&]group= matcht altes UND neues Format). Ohne Kontext: nackte URL als Fallback.
+        branch = league&.discipline&.name
+        group_id = league&.source_url.to_s[/[?&]group=(\d+)/, 1]
+        if branch.present? && group_id.present?
+          return "#{nuliga_base}/groupMeetingReport?" \
+                 "#{URI.encode_www_form(championship: championship_for(branch), group: group_id, meeting: meeting_id)}"
+        end
+        return "#{nuliga_base}/groupMeetingReport?meeting=#{meeting_id}"
+      end
       # Archiv-Begegnung ohne Einzelspiel-Link → groupPage-URL der Liga als NuLiga-Provenienz (statt nil);
       # unterscheidet NuLiga-Archiv-Parties von Legacy-Billardarea (source_url nil). Kein groupMeetingReport →
       # import_party_games/carambus_parties_without_games überspringen sie weiterhin korrekt.
@@ -664,6 +681,10 @@ module NuLiga
     def mark_season_participation(player, club, person_id)
       return nil unless player && club
 
+      # Heilt NUR bereits vorhandene NuLiga-playerPortrait-URLs aufs gültige Format (+federation);
+      # Player ohne/mit fremder Provenienz bleiben unangetastet (Design 16-02: Provenienz am SP).
+      apply_source_url(player, player_source_url(person_id)) if player.source_url.to_s.include?("playerPortrait")
+
       sp = SeasonParticipation.find_by(player_id: player.id, club_id: club.id, season_id: @season_id)
       if sp
         apply_source_url(sp, player_source_url(person_id)) ? :updated : nil
@@ -685,17 +706,30 @@ module NuLiga
     end
 
     # --- Provenienz-URLs (NuLiga-Ressourcen; stabil + eindeutig) ---
+    # BEFUND 2026-07-17 (carambus.de/leagues/9939): groupPage/groupMeetingReport/playerPortrait sind
+    # OHNE Kontext-Parameter als Link ungültig (404 + „Willkommen zu nuLiga"-Fehlerseite) — groupPage/
+    # groupMeetingReport brauchen championship=, playerPortrait braucht federation=. Nur clubInfoDisplay
+    # und teamPortrait funktionieren mit der ID allein. Idempotenz hängt NICHT am URL-String (Ligen:
+    # group-ID-Index + Name-Key; Parties/SPs: Naturschlüssel) — Formatwechsel heilt via apply_source_url.
 
     def nuliga_base
       "#{Client::DEFAULT_BASE_URL}#{Client::WA_PATH}"
+    end
+
+    def championship_for(branch)
+      Client.championship(federation: @federation, branch: branch, season_name: season_name)
+    end
+
+    def season_name
+      @season_name ||= Season.find(@season_id).name
     end
 
     def club_source_url(club_id)
       "#{nuliga_base}/clubInfoDisplay?club=#{club_id}"
     end
 
-    def league_source_url(group_id)
-      "#{nuliga_base}/groupPage?group=#{group_id}"
+    def league_source_url(group_id, branch)
+      "#{nuliga_base}/groupPage?#{URI.encode_www_form(championship: championship_for(branch), group: group_id)}"
     end
 
     def team_source_url(teamtable_id)
@@ -703,7 +737,7 @@ module NuLiga
     end
 
     def player_source_url(person_id)
-      "#{nuliga_base}/playerPortrait?person=#{person_id}"
+      "#{nuliga_base}/playerPortrait?#{URI.encode_www_form(federation: @federation, person: person_id)}"
     end
   end
 end

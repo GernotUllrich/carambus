@@ -105,7 +105,9 @@ module NuLiga
       league = League.find_by(region_id: @region.id, season_id: @season.id, name: "NuLiga Testliga A")
       assert league, "League should be created"
       assert_equal @discipline.id, league.discipline_id
-      assert_match(/groupPage\?group=9001/, league.source_url)
+      # Gültiger Human-Link: groupPage braucht den championship-Kontext (Befund 2026-07-17)
+      assert_match(/groupPage\?championship=BBV\+/, league.source_url)
+      assert_match(/[?&]group=9001/, league.source_url)
 
       # 2. Lauf (frische Instanz) findet die Liga über den Natur-Key → 0 created
       r2 = build_importer(scraper).create_leagues
@@ -145,6 +147,27 @@ module NuLiga
       r2 = imp2.create_leagues
       assert_equal 0, r2[:created]
       assert_equal 1, r2[:matched]
+    end
+
+    # Befund 2026-07-17: source_url-Format wurde um championship erweitert (gültiger Human-Link).
+    # Bestand mit ALTEM Format (groupPage?group=…) muss über die group-ID gematcht (kein Duplikat)
+    # und aufs neue Format geheilt werden — auch kollisions-umbenannte Ligen, die der Name-Key verfehlt.
+    test "create_leagues matches legacy source_url format via group-ID and heals it (no duplicate)" do
+      legacy = League.skip_cable_ready_updates do
+        League.create!(region_id: @region.id, season_id: @season.id, organizer_type: "Region",
+          organizer_id: @region.id, discipline_id: @discipline.id,
+          name: "VL Ost (Pool)", shortname: "VL Ost (Pool)",
+          source_url: "https://bbv-billard.liga.nu/cgi-bin/WebObjects/nuLigaBILLARDDE.woa/wa/groupPage?group=9042")
+      end
+
+      # NuLiga-Name „VL Ost" ≠ DB-Name „VL Ost (Pool)" → Name-Key trifft NICHT, nur die group-ID.
+      scraper = FakeScraper.new(leagues: {"Pool" => [{group_id: 9042, name: "VL Ost"}]})
+      r = build_importer(scraper).create_leagues
+      assert_equal 1, r[:matched], "Legacy-URL muss über die group-ID matchen"
+      assert_equal 0, r[:created], "kein Duplikat trotz Formatwechsel"
+      legacy.reload
+      assert_match(/groupPage\?championship=BBV\+/, legacy.source_url, "source_url wird aufs neue Format geheilt")
+      assert_match(/[?&]group=9042/, legacy.source_url)
     end
 
     test "create_teams creates league teams with club via VNr and is idempotent" do
@@ -340,7 +363,8 @@ module NuLiga
       assert_equal "6:4", party.data["result"]
       refute_match(/groupMeetingReport/, party.source_url.to_s)
       # 18-02 fix-first: Archiv-Party trägt die groupPage-URL der Liga als NuLiga-Provenienz (statt nil)
-      assert_match(/groupPage\?group=9032/, party.source_url.to_s)
+      assert_match(/groupPage\?championship=BBV\+/, party.source_url.to_s)
+      assert_match(/[?&]group=9032/, party.source_url.to_s)
       assert_equal league.source_url, party.source_url
       assert_equal 0, imp.import_party_games[:games_created], "Archiv-Party hat keine Einzelspiele"
     end
