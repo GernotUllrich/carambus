@@ -102,25 +102,32 @@ module NuLiga
     # davor; Datum per Regex (der Header spannt "Tag Datum Zeit" über mehrere Datenspalten).
     # Eine Begegnungszeile des vollen Spielplans (displayTyp=gesamt). Positionsbasiert statt über den
     # Report-Link, damit ARCHIV-Saisons (ohne Einzelspiel-Link) ebenfalls funktionieren.
-    # Anker = die „Nr."-Spalte (4–6-stellige Begegnungsnummer); Heim/Gast/Ergebnis stehen direkt danach
-    # (Header: … Nr. · Heimmannschaft · Gastmannschaft · Partien). Ergebnis kommt aus der PARTIEN-Zelle.
-    # meeting_id (interne groupMeetingReport-ID) nur gesetzt, wenn die Ergebniszelle einen Report-Link trägt
-    # (aktuelle Saison); im Archiv nil. Nur gespielte Begegnungen (Ergebnis „d:d") werden zurückgegeben.
+    # Anker = die ERGEBNIS-Zelle; Heim/Gast stehen direkt davor (… Heim · Gast · Partien).
+    # Ergebnis-Zelle = die mit dem groupMeetingReport-Link (gespielte Begegnung, aktuelle Saison),
+    # sonst die letzte „d:d"-Zelle (Archiv-Ergebnis ohne Link); die Zeit-Spalte („HH:MM") wird dabei
+    # ausgeschlossen. Robust gegen die je Sparte unterschiedliche Nr.-Spalte: Pool hat eine 5-stellige
+    # Begegnungsnummer, Karambol nur eine einstellige laufende Nr. → ein Nr.-Anker verfehlte Karambol.
+    # meeting_id nur, wenn die Ergebniszelle einen Report-Link trägt; im Archiv nil.
     def meeting_row(tr)
-      tds = tr.css("td")
-      nr_idx = tds.index { |td| td.text.strip.match?(/\A\d{4,6}\z/) }
-      return nil unless nr_idx && tds[nr_idx + 3]
-
+      tds = tr.css("td").to_a
       date_cell = tds.find { |td| td.text =~ %r{\d{2}\.\d{2}\.\d{4}} }
-      result = clean_text(tds[nr_idx + 3])
-      return nil unless date_cell && result =~ /\A\d+\s*:\s*\d+\z/
+      return nil unless date_cell
 
-      link = tds[nr_idx + 3].at_css('a[href*="groupMeetingReport"]')
+      time_idx = tds.index { |td| /\A\d{1,2}:\d{2}\z/.match?(clean_text(td)) }
+      result_idx = tds.index { |td| td.at_css('a[href*="groupMeetingReport"]') }
+      # kein Report-Link (Archiv) → letzte „d:d"-Zelle jenseits der Zeit-Spalte (von hinten suchen)
+      result_idx ||= (tds.length - 1).downto(0).find { |i| i != time_idx && /\A\d+\s*:\s*\d+\z/.match?(clean_text(tds[i])) }
+      return nil unless result_idx && result_idx >= 2
+
+      result = clean_text(tds[result_idx])
+      return nil unless /\A\d+\s*:\s*\d+\z/.match?(result)
+
+      link = tds[result_idx].at_css('a[href*="groupMeetingReport"]')
       {
         meeting_id: link && link["href"][/meeting=(\d+)/, 1]&.to_i,
         date: date_cell.text[%r{\d{2}\.\d{2}\.\d{4}}],
-        home_team: clean_text(tds[nr_idx + 1]),
-        guest_team: clean_text(tds[nr_idx + 2]),
+        home_team: clean_text(tds[result_idx - 2]),
+        guest_team: clean_text(tds[result_idx - 1]),
         result: result
       }
     end

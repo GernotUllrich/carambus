@@ -59,13 +59,15 @@ module NuLiga
       end
     end
 
-    # Einzelspiel-Zeile: 6 oder 8 Zellen, Disziplin in td[0] gesetzt, Spielernamen in td[1] vorhanden.
+    # Einzelspiel-Zeile: Disziplin in td[0] gesetzt, Spielernamen in td[1] vorhanden.
+    # 6 = ohne Statistik; 8 = Pool/Snooker mit Inline-Statistik (Bälle/Aufn./HS);
+    # 9 = Karambol (Dreiband): zusätzliche GD-Spalte (Generaldurchschnitt) zwischen HS und Sätzen.
     def game_row?(tds)
-      [6, 8].include?(tds.size) && cell(tds[0]).present? && cell(tds[1]).present?
+      [6, 8, 9].include?(tds.size) && cell(tds[0]).present? && cell(tds[1]).present?
     end
 
     def build_game(tds, pos)
-      stats = (tds.size == 8) ? parse_stats(tds) : nil
+      stats = (tds.size >= 8) ? parse_stats(tds) : nil
       {
         position: pos,
         discipline: cell(tds[0]),
@@ -86,14 +88,16 @@ module NuLiga
       text.empty? ? [] : [text]
     end
 
-    # Inline-Statistik der 8-Zellen-Zeile: Bälle/Aufnahmen/HS je Heim/Gast.
+    # Inline-Statistik: Bälle/Aufnahmen/HS je Heim/Gast (td[3..5]); bei Karambol (9 Zellen) zusätzlich
+    # der Generaldurchschnitt (GD, td[6], Dezimalzahl mit Komma, z. B. „1,142:0,342").
     def parse_stats(tds)
       balls = scores(tds[3])
       innings = scores(tds[4])
       hs = scores(tds[5])
-      return nil unless balls || innings || hs
+      gd = (tds.size == 9) ? decimal_scores(tds[6]) : nil
+      return nil unless balls || innings || hs || gd
 
-      {balls: balls, innings: innings, hs: hs}
+      {balls: balls, innings: innings, hs: hs, gd: gd}.compact
     end
 
     def scores(td)
@@ -101,11 +105,19 @@ module NuLiga
       m && {home: m[1].to_i, guest: m[2].to_i}
     end
 
-    # Endstand aus der Summen-Schlusszeile: [6]-Zeile mit leeren Spielernamen, letzte Zelle "H:G".
+    # Karambol-GD: „1,142:0,342" (Komma-Dezimal) → {home: 1.142, guest: 0.342}.
+    def decimal_scores(td)
+      m = cell(td).match(/([\d,]+)\s*:\s*([\d,]+)/)
+      m && {home: m[1].tr(",", ".").to_f, guest: m[2].tr(",", ".").to_f}
+    end
+
+    # Endstand aus der Summen-Schlusszeile: Spalte 0 leer (keine Disziplin → kein Einzelspiel),
+    # letzte Zelle "H:G". Pool/Snooker = 6 Zellen (Spielernamen leer); Karambol = 7 Zellen (td[1]/[2]
+    # tragen die Ball-Summen) — daher NUR td[0] als Leer-Diskriminator, nicht td[1].
     def final_result(rows)
       row = rows.reverse.find do |tr|
         tds = tr.css("td")
-        tds.size == 6 && cell(tds[0]).empty? && cell(tds[1]).empty? && cell(tds[-1]).match?(SCORE_RE)
+        [6, 7].include?(tds.size) && cell(tds[0]).empty? && cell(tds[-1]).match?(SCORE_RE)
       end
       return nil unless row
 

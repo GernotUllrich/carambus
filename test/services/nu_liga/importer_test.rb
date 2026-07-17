@@ -465,5 +465,63 @@ module NuLiga
       end
       refute called, "Alt-BBV-CC-Scrape darf nicht mehr laufen (deprecated)"
     end
+
+    # --- Karambol: Feindisziplin-Ableitung + Namens-Expansion (BEFUND B) ---
+    def karambol_setup
+      @kg = Discipline.find_by(name: "Karambol großes Billard") || Discipline.create!(name: "Karambol großes Billard")
+      @kk = Discipline.find_by(name: "Karambol kleines Billard") || Discipline.create!(name: "Karambol kleines Billard")
+      Importer.new(federation: "BBV", region_id: @region.id, season_id: @season.id, branches: ["Karambol"], armed: true, scraper: FakeScraper.new(leagues: {}))
+    end
+
+    test "karambol_discipline: Dreiband-Ligabetrieb → großes Billard, Rest → kleines Billard" do
+      imp = karambol_setup
+      # Dreiband (Ligabetrieb) → großes Billard
+      ["Oberliga Dreiband", "Verbandsliga Nord Dreiband", "OL_3Bd", "VL 3Bd Süd", "OL_3Bd Rel"].each do |n|
+        assert_equal @kg.id, imp.send(:karambol_discipline, n)&.id, "#{n} → großes Billard"
+      end
+      # Freie Partie / Mehrkampf / Vierkampf → kleines Billard
+      ["Oberliga Mehrkampf", "VL FP Nord", "BayMM_4K", "LMM Vierkampf (TB)"].each do |n|
+        assert_equal @kk.id, imp.send(:karambol_discipline, n)&.id, "#{n} → kleines Billard"
+      end
+    end
+
+    test "karambol_discipline Override: Meisterschaft Dreiband → kleines Billard" do
+      imp = karambol_setup
+      ["BayMM_3Bd", "LMM Dreiband (TB)", "BayMM Dreiband"].each do |n|
+        assert_equal @kk.id, imp.send(:karambol_discipline, n)&.id, "#{n} (MS Dreiband) → kleines Billard"
+      end
+    end
+
+    test "expand_karambol_name: Kürzel → Langname mit Region hinter der Liga-Ebene" do
+      imp = karambol_setup
+      {
+        "OL_3Bd" => "Oberliga Dreiband",
+        "VL 3Bd Nord" => "Verbandsliga Nord Dreiband",
+        "VL FP Süd" => "Verbandsliga Süd Freie Partie",
+        "OL_MK" => "Oberliga Mehrkampf",
+        "BayMM_3Bd" => "BayMM Dreiband",
+        # schon lange Namen (24/25+25/26) bleiben identisch
+        "Verbandsliga Nord Dreiband" => "Verbandsliga Nord Dreiband",
+        "LMM Vierkampf (TB)" => "LMM Vierkampf (TB)"
+      }.each do |raw, expected|
+        assert_equal expected, imp.send(:expand_karambol_name, raw)
+      end
+    end
+
+    test "create_leagues für Karambol: feine Disziplin + expandierter Name" do
+      karambol_setup # setzt @kg/@kk
+      sc = FakeScraper.new(leagues: {"Karambol" => [
+        {group_id: 8001, name: "VL 3Bd Nord"},   # → großes Billard, „Verbandsliga Nord Dreiband"
+        {group_id: 8002, name: "BayMM_3Bd"}       # → kleines Billard (Override), „BayMM Dreiband"
+      ]})
+      imp2 = Importer.new(federation: "BBV", region_id: @region.id, season_id: @season.id, branches: ["Karambol"], armed: true, scraper: sc)
+      imp2.create_leagues
+      l1 = League.find_by(region_id: @region.id, season_id: @season.id, name: "Verbandsliga Nord Dreiband")
+      l2 = League.find_by(region_id: @region.id, season_id: @season.id, name: "BayMM Dreiband")
+      assert l1, "Dreiband-Liga mit expandiertem Namen angelegt"
+      assert_equal @kg.id, l1.discipline_id, "Dreiband-Ligabetrieb → großes Billard"
+      assert l2, "Meisterschafts-Liga angelegt"
+      assert_equal @kk.id, l2.discipline_id, "BayMM Dreiband → kleines Billard (Override)"
+    end
   end
 end

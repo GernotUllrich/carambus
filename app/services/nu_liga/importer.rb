@@ -108,7 +108,7 @@ module NuLiga
           next
         end
 
-        discipline = Discipline.find_by(name: l[:branch])
+        discipline = resolve_league_discipline(l)
         unless discipline
           skipped << "#{l[:group_id]} — #{l[:name]} (#{l[:branch]}: keine Discipline)"
           next
@@ -283,7 +283,9 @@ module NuLiga
         # [?&]-Regex: matcht altes (meeting= direkt nach ?) UND neues Format (championship=…&meeting=).
         meeting_id = party.source_url.to_s[/[?&]meeting=(\d+)/, 1]
         group_id = party.league&.source_url.to_s[/[?&]group=(\d+)/, 1]
-        branch = party.league&.discipline&.name
+        # NuLiga-Sparte (Pool/Snooker/Karambol) für die championship — NICHT die feine League-Disziplin
+        # (Karambol-Ligen tragen „Karambol großes/kleines Billard", NuLiga kennt nur „Karambol").
+        branch = nuliga_branch_for(party.league&.discipline)
         unless meeting_id && group_id && branch
           parties_skipped += 1
           next
@@ -344,12 +346,12 @@ module NuLiga
     # abgeleitet (Validierung verlangt shortname bei organizer_type=='Region'). nil bei Validierungsfehler
     # (z.B. Name-Kollision im uniqueness-Scope) — der Aufrufer meldet den Fehldruck, statt abzubrechen.
     def create_league(nu_league, discipline)
-      build_league(nu_league[:name], nu_league, discipline)
+      build_league(display_league_name(nu_league), nu_league, discipline)
     rescue ActiveRecord::RecordInvalid => e
       # League-Uniqueness (name+season+organizer+staffel_text) IGNORIERT die Disziplin. NuLiga nutzt
       # dieselben Kurznamen („VL Nord") in Pool UND Snooker → Kollision. Fix: Sparte an den Namen hängen.
-      qualified = "#{nu_league[:name]} (#{nu_league[:branch]})"
-      if e.message.include?("unique within the same region") && !nu_league[:name].to_s.include?("(#{nu_league[:branch]})")
+      qualified = "#{display_league_name(nu_league)} (#{nu_league[:branch]})"
+      if e.message.include?("unique within the same region") && !display_league_name(nu_league).include?("(#{nu_league[:branch]})")
         begin
           build_league(qualified, nu_league, discipline)
         rescue ActiveRecord::RecordInvalid => e2
@@ -375,6 +377,62 @@ module NuLiga
           source_url: league_source_url(nu_league[:group_id], nu_league[:branch])
         )
       end
+    end
+
+    # --- Karambol: Feindisziplin-Ableitung + Namens-Expansion (BBV-spezifisch) ---
+    # NuLiga liefert die generische Sparte „Karambol"; Carambus modelliert fein (großes/kleines
+    # Billard, wie der 21/22-CC-Bestand). Ableitung aus dem Liga-Namen per Regel + Override.
+    # Nur Karambol — Pool/Snooker laufen unverändert über Discipline.find_by(name: branch).
+
+    # Kürzel → Langname; nur 22/23+23/24 tragen Kürzel, 24/25+25/26 sind schon ausgeschrieben
+    # (unbekannte Tokens werden durchgereicht → lange Namen bleiben unverändert).
+    KARAMBOL_NAME_TOKENS = {
+      "OL" => "Oberliga", "VL" => "Verbandsliga", "LL" => "Landesliga", "BL" => "Bezirksliga",
+      "3Bd" => "Dreiband", "MK" => "Mehrkampf", "FP" => "Freie Partie", "4K" => "Vierkampf",
+      "Rel" => "Relegation"
+    }.freeze
+
+    def resolve_league_discipline(nu_league)
+      return karambol_discipline(nu_league[:name]) if nu_league[:branch] == "Karambol"
+      Discipline.find_by(name: nu_league[:branch])
+    end
+
+    # NuLiga-Sparte (Wurzel-Disziplin) aus einer ggf. feinen League-Disziplin: „Karambol großes
+    # Billard" → „Karambol", „Pool" → „Pool". Für die championship-Bildung im meeting_report.
+    def nuliga_branch_for(discipline)
+      return nil unless discipline
+      root = discipline
+      root = root.super_discipline while root.super_discipline
+      root.name
+    end
+
+    # Regel: Dreiband-Ligabetrieb → großes Billard; Freie Partie/Mehrkampf/Vierkampf → kleines.
+    # Override (an der 21/22-Referenz belegt): Meisterschaft (BayMM/LMM) mit Dreiband → kleines Billard.
+    def karambol_discipline(name)
+      n = name.to_s.downcase
+      dreiband = n.match?(/3bd|dreiband/)
+      meisterschaft = n.match?(/baymm|lmm/)
+      fine = (dreiband && !meisterschaft) ? "Karambol großes Billard" : "Karambol kleines Billard"
+      Discipline.find_by(name: fine)
+    end
+
+    def display_league_name(nu_league)
+      return nu_league[:name] unless nu_league[:branch] == "Karambol"
+      expand_karambol_name(nu_league[:name])
+    end
+
+    KARAMBOL_REGIONS = %w[Nord Süd Mitte Ost West].freeze
+
+    # OL_3Bd → „Oberliga Dreiband"; VL 3Bd Nord → „Verbandsliga Nord Dreiband". Die Region wird
+    # direkt hinter die Liga-Ebene gezogen, damit expandierte (22/23+23/24) und native (24/25+25/26)
+    # Namen derselben Liga-Reihe identisch sind. Schon-lange Namen bleiben unverändert.
+    def expand_karambol_name(name)
+      tokens = name.to_s.tr("_", " ").split.map { |tok| KARAMBOL_NAME_TOKENS[tok] || tok }
+      if (reg = tokens.find { |t| KARAMBOL_REGIONS.include?(t) })
+        tokens.delete_at(tokens.index(reg))
+        tokens.insert(1, reg)
+      end
+      tokens.join(" ")
     end
 
     def create_team(league, nu_team, club)
