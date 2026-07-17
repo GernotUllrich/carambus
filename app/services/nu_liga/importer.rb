@@ -50,7 +50,12 @@ module NuLiga
     end
 
     def run
-      {clubs: reconcile_clubs, leagues: create_leagues, teams: create_teams,
+      # create_leagues ZUERST: das Change-Gate (active_nuliga_leagues) braucht @leagues_by_group.
+      # reconcile_clubs zieht über nuliga_teams die Teams → würde das Gate sonst mit leerem
+      # @leagues_by_group memoisieren (alle Ligen „neu"). create_leagues hängt nicht von Clubs ab;
+      # create_teams braucht beide (Ligen + Club-Zuordnung).
+      leagues = create_leagues
+      {leagues: leagues, clubs: reconcile_clubs, teams: create_teams,
        players: reconcile_players, seedings: reconcile_seedings,
        parties: reconcile_parties, party_games: import_party_games}
     end
@@ -239,7 +244,7 @@ module NuLiga
       filled = 0
       unmatched = []
 
-      nuliga_leagues.each do |l|
+      active_nuliga_leagues.each do |l|
         league = @leagues_by_group[l[:group_id]]
         next unless league
 
@@ -263,9 +268,13 @@ module NuLiga
             create_party(league, a, b, date, m[:result], m[:meeting_id]) if @armed
           end
         end
+        # Letzte per-Liga-Deep-Phase → Standings-Fingerprint festschreiben (import_party_games danach
+        # ist ohnehin idempotent über carambus_parties_without_games, kein Gate nötig).
+        commit_standings_fingerprint(league, l[:group_id], l[:branch])
       end
 
-      {matched: matched, created: created, filled: filled, unmatched: unmatched.uniq.sort}
+      {matched: matched, created: created, filled: filled, unmatched: unmatched.uniq.sort,
+       skipped_unchanged: @skipped_leagues.to_i}
     end
 
     # Einzelspiel-Import: je Party mit meeting-source_url ohne PartyGames den Spielbericht holen und je game
@@ -635,10 +644,53 @@ module NuLiga
       end
     end
 
+    # --- Change-Gate (Ebene C: Ligatabelle) ---
+    # Ein group()-Fetch je Liga = die Ligatabelle. Gecacht, damit active-Gate + create_teams ihn teilen.
+    def group_for(group_id, branch)
+      (@group_cache ||= {})[group_id] ||= @scraper.group(group_id, branch: branch)
+    rescue => e
+      Rails.logger.warn("NuLiga::Importer group(#{group_id}) übersprungen: #{e.message}")
+      (@group_cache ||= {})[group_id] = {teams: []}
+    end
+
+    # Normalisierte Standings (nur ergebnis-tragende Zellen, deterministisch sortiert) = Fingerprint-Input.
+    # Eine neue/geänderte Begegnung ändert Begegnungen/Partien/Punkte eines Teams → digest kippt.
+    def standings_content(group_id, branch)
+      group_for(group_id, branch)[:teams]
+        .sort_by { |t| t[:name].to_s }
+        .map { |t| "#{t[:name]}|#{(t[:data] || {}).sort.to_h}" }
+        .join("\n")
+    end
+
+    # Nur Ligen mit geänderter/neuer Ligatabelle deep verarbeiten (Standings-Fingerprint). Unveränderte
+    # → nur checked_at fortschreiben (der billige group()-Fetch bleibt = der Gate-Check). @skipped_leagues
+    # für den Report. Die Deep-Quellen (nuliga_teams/roster, reconcile_parties) iterieren hierüber.
+    def active_nuliga_leagues
+      @active_nuliga_leagues ||= begin
+        @skipped_leagues = 0
+        nuliga_leagues.select do |l|
+          league = @leagues_by_group[l[:group_id]]
+          next true unless league # neue Liga (noch nicht angelegt / dry-run) → immer deep
+          if ScrapeFingerprint.for(league, "standings").stale?(standings_content(l[:group_id], l[:branch]))
+            true
+          else
+            ScrapeFingerprint.for(league, "standings").touch_checked! if @armed
+            @skipped_leagues += 1
+            false
+          end
+        end
+      end
+    end
+
+    def commit_standings_fingerprint(league, group_id, branch)
+      return unless @armed && league
+      ScrapeFingerprint.for(league, "standings").commit!(standings_content(group_id, branch))
+    end
+
     # [{group_id:, branch:, teamtable_id:, name:, club_id:}] — Team + NuLiga-club_id (via teamPortrait).
     def nuliga_teams
-      @nuliga_teams ||= nuliga_leagues.flat_map do |l|
-        @scraper.group(l[:group_id], branch: l[:branch])[:teams].map do |t|
+      @nuliga_teams ||= active_nuliga_leagues.flat_map do |l|
+        group_for(l[:group_id], l[:branch])[:teams].map do |t|
           {group_id: l[:group_id], branch: l[:branch], teamtable_id: t[:teamtable_id], name: t[:name],
            club_id: team_club_id(t[:teamtable_id], l[:group_id], l[:branch])}
         end
@@ -668,7 +720,7 @@ module NuLiga
     # Roster je Liga (player_ranking) mit aufgelöstem Carambus-LeagueTeam (über team_name).
     # [{person_id:, name:, league_team:}] — league_team nil, wenn die Liga (dry-run) noch nicht angelegt ist.
     def nuliga_roster
-      @nuliga_roster ||= nuliga_leagues.flat_map do |l|
+      @nuliga_roster ||= active_nuliga_leagues.flat_map do |l|
         league = @leagues_by_group[l[:group_id]]
         # Frischer Team-Index (nach create_teams gebaut) — NICHT die create_teams-Memo (die entstand vor der Anlage).
         lt_index = league ? LeagueTeam.where(league_id: league.id).index_by { |t| Comparison.normalize_key(t.name) } : {}

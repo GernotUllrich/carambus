@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_07_11_102735) do
+ActiveRecord::Schema[7.2].define(version: 2026_07_17_175301) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -859,6 +859,18 @@ ActiveRecord::Schema[7.2].define(version: 2026_07_11_102735) do
     t.index ["location_id"], name: "index_scoreboard_messages_on_location_id"
     t.index ["sender_id"], name: "index_scoreboard_messages_on_sender_id"
     t.index ["table_monitor_id"], name: "index_scoreboard_messages_on_table_monitor_id"
+  end
+
+  create_table "scrape_fingerprints", force: :cascade do |t|
+    t.string "fingerprintable_type", null: false
+    t.bigint "fingerprintable_id", null: false
+    t.string "scope", null: false
+    t.string "digest", null: false
+    t.datetime "checked_at", null: false
+    t.datetime "changed_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["fingerprintable_type", "fingerprintable_id", "scope"], name: "idx_scrape_fingerprints_owner_scope", unique: true
   end
 
   create_table "scraping_logs", force: :cascade do |t|

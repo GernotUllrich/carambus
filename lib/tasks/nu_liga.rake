@@ -180,7 +180,7 @@ namespace :nu_liga do
     pa = report[:parties]
     if pa
       puts "  PARTIES     matched=#{pa[:matched]}  #{armed ? "created" : "würde-anlegen"}=#{pa[:created]}  " \
-           "filled=#{pa[:filled]}  unmatched=#{pa[:unmatched].size}"
+           "filled=#{pa[:filled]}  unmatched=#{pa[:unmatched].size}  ligen_unverändert=#{pa[:skipped_unchanged]}"
       print_nu_list("unmatched (Begegnung ohne LeagueTeam)", pa[:unmatched].first(20))
     end
 

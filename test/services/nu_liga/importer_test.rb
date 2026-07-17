@@ -523,5 +523,43 @@ module NuLiga
       assert l2, "Meisterschafts-Liga angelegt"
       assert_equal @kk.id, l2.discipline_id, "BayMM Dreiband → kleines Billard (Override)"
     end
+
+    # --- Change-Gate (Ebene C: Standings-Fingerprint) ---
+    test "Change-Gate: unveränderte Standings überspringen den Deep-Scrape im 2. Lauf" do
+      scraper = party_scenario
+      imp1 = build_importer(scraper)
+      imp1.create_leagues
+      imp1.create_teams
+      r1 = imp1.reconcile_parties
+      assert_equal 1, r1[:created], "1. Lauf legt die Party an"
+      league = League.find_by(region_id: @region.id, season_id: @season.id, name: "NuLiga Testliga R")
+      assert ScrapeFingerprint.for(league, "standings").persisted?, "Standings-Fingerprint committet"
+
+      imp2 = build_importer(scraper)
+      imp2.create_leagues
+      imp2.create_teams
+      r2 = imp2.reconcile_parties
+      assert_equal 1, r2[:skipped_unchanged], "unveränderte Liga wird übersprungen"
+      assert_equal 0, r2[:created], "keine neue Party"
+      assert_equal 0, r2[:matched], "Deep-Scrape (meetings) übersprungen → nichts gematcht"
+    end
+
+    test "Change-Gate: geänderte Standings lösen erneuten Deep-Scrape aus" do
+      imp1 = build_importer(party_scenario)
+      imp1.create_leagues
+      imp1.create_teams
+      imp1.reconcile_parties
+
+      # Ligatabelle „ändert sich" → digest kippt (hier direkt verfälscht)
+      league = League.find_by(region_id: @region.id, season_id: @season.id, name: "NuLiga Testliga R")
+      ScrapeFingerprint.for(league, "standings").update_column(:digest, "CHANGED")
+
+      imp2 = build_importer(party_scenario)
+      imp2.create_leagues
+      imp2.create_teams
+      r2 = imp2.reconcile_parties
+      assert_equal 0, r2[:skipped_unchanged], "geänderte Liga wird NICHT übersprungen"
+      assert_operator r2[:matched], :>, 0, "Deep-Scrape erneut ausgeführt"
+    end
   end
 end
