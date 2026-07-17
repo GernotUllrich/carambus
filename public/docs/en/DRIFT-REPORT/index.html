@@ -20,7 +20,7 @@
     
     
       
-        <title>Drift-Report: Dokumentation vs. Code — Abschluss - Carambus Documentation</title>
+        <title>Drift-Report: Dokumentation vs. Code — Re-Verifikation nach Refactor - Carambus Documentation</title>
       
     
     
@@ -76,7 +76,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#drift-report-dokumentation-vs-code-abschluss" class="md-skip">
+        <a href="#drift-report-dokumentation-vs-code-re-verifikation-nach-refactor" class="md-skip">
           Skip to content
         </a>
       
@@ -116,7 +116,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Drift-Report: Dokumentation vs. Code — Abschluss
+              Drift-Report: Dokumentation vs. Code — Re-Verifikation nach Refactor
             
           </span>
         </div>
@@ -3226,18 +3226,18 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#gesamtbilanz" class="md-nav__link">
+  <a href="#scope-dieses-laufs" class="md-nav__link">
     <span class="md-ellipsis">
-      Gesamtbilanz
+      Scope dieses Laufs
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#coverage-auflosung-pro-batch" class="md-nav__link">
+  <a href="#gesamtbilanz" class="md-nav__link">
     <span class="md-ellipsis">
-      Coverage &amp; Auflösung pro Batch
+      Gesamtbilanz
     </span>
   </a>
   
@@ -3250,72 +3250,48 @@
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Behobene Befunde im Detail">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#batch-1-developers-reference" class="md-nav__link">
-    <span class="md-ellipsis">
-      Batch 1 — developers/ + reference/
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#batch-2-architektur-struktur-docs-training_database-architecture-monitoring-ops-guides" class="md-nav__link">
-    <span class="md-ellipsis">
-      Batch 2 — Architektur-/Struktur-Docs (training_database, *-architecture, monitoring, Ops-Guides)
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#batch-3a-managers-nutzer-workflow-docs" class="md-nav__link">
-    <span class="md-ellipsis">
-      Batch 3a — managers/ (Nutzer-/Workflow-Docs)
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#batch-3b-administrators-server-deployment-streaming-raspi-ops" class="md-nav__link">
-    <span class="md-ellipsis">
-      Batch 3b — administrators/ (Server-/Deployment-/Streaming-/Raspi-Ops)
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
 </li>
       
         <li class="md-nav__item">
-  <a href="#bewusst-zuruckgestellt-niedrig-out-of-scope" class="md-nav__link">
+  <a href="#was-der-refactor-an-neuen-fahigkeiten-brachte-jetzt-dokumentiert" class="md-nav__link">
     <span class="md-ellipsis">
-      Bewusst zurückgestellt (niedrig / out-of-scope)
+      Was der Refactor an neuen Fähigkeiten brachte (jetzt dokumentiert)
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#verbleibende-code-punkte-an-paul-ubergeben-tdd" class="md-nav__link">
+  <a href="#nachgezogen-nach-dem-re-audit-erledigt" class="md-nav__link">
     <span class="md-ellipsis">
-      Verbleibende Code-Punkte → an PAUL übergeben (TDD)
+      Nachgezogen (nach dem Re-Audit erledigt)
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#wichtige-einordnung-graphify-caveat" class="md-nav__link">
+  <a href="#offen-niedrig" class="md-nav__link">
     <span class="md-ellipsis">
-      Wichtige Einordnung (graphify-Caveat)
+      Offen (niedrig)
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#verbleibende-code-punkte-an-paul-unverandert" class="md-nav__link">
+    <span class="md-ellipsis">
+      Verbleibende Code-Punkte → an PAUL (unverändert)
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#einordnung-graphify-caveat" class="md-nav__link">
+    <span class="md-ellipsis">
+      Einordnung (graphify-Caveat)
     </span>
   </a>
   
@@ -3340,387 +3316,106 @@
   
 
 
-<h1 id="drift-report-dokumentation-vs-code-abschluss">Drift-Report: Dokumentation vs. Code — Abschluss<a class="headerlink" href="#drift-report-dokumentation-vs-code-abschluss" title="Permanent link">&para;</a></h1>
+<h1 id="drift-report-dokumentation-vs-code-re-verifikation-nach-refactor">Drift-Report: Dokumentation vs. Code — Re-Verifikation nach Refactor<a class="headerlink" href="#drift-report-dokumentation-vs-code-re-verifikation-nach-refactor" title="Permanent link">&para;</a></h1>
 <blockquote>
-<p>Vollständiger Code-↔-Docs-Abgleich von <code>docs/</code> gegen den Code (Stand origin/master @ <code>b0ddcd68</code> + lokale Commits). Methodik: pro Doc konkrete Claims (Assoziationen, AASM-States, Methoden/Signaturen, Routes, Rake-Tasks, Skripte, Config-Keys) gegen die echte Quelle prüfen → MATCH / DRIFT / GAP, jeder Befund mit <code>Datei:Zeile</code> belegt. Verifier-Fan-out (general-purpose-Agenten), verify-before-edit, de/en synchron.</p>
+<p>Neuer Abgleich der <strong>struktur-gekoppelten technischen Docs</strong> gegen den aktuellen Code, nachdem ein breiter Refactor gelandet ist (<strong>116 geänderte + 16 gelöschte <code>.rb</code>-Dateien</strong> seit dem letzten Audit: Scoping, User-Personas, Discipline-Detection, CC-Controller, MCP-Umbau, Party-/Liga-Spieltag, Tournament::CcSync). Der graphify-Graph wurde zuvor auf denselben Stand aktualisiert (3.992 Nodes).</p>
 </blockquote>
-<p><strong>Status: alle geplanten Batches abgeschlossen und committet.</strong> Bewusst NICHT geprüft: historische Postmortems in <code>docs/internal/bug-fixes</code> + <code>implementation-notes</code> (changelog-artig, beschreiben absichtlich einen vergangenen Stand) sowie <code>archive/obsolete/changelog</code>.</p>
+<p><strong>Methodik:</strong> pro Doc konkrete Claims (Klassen/Services, AASM-States, Methoden-Signaturen, Assoziationen, Routes, Config) gegen die echte Quelle prüfen → MATCH / DRIFT / GAP, <code>Datei:Zeile</code>-belegt; Verifier-Fan-out (9 Agenten), verify-before-edit, de/en synchron.</p>
+<h2 id="scope-dieses-laufs">Scope dieses Laufs<a class="headerlink" href="#scope-dieses-laufs" title="Permanent link">&para;</a></h2>
+<p>Verifiziert (~23 eindeutige Docs): <code>developers/services/*</code> (tournament-monitor, table-monitor, tournament, party-monitor, region-cc, league, umb, video-crossref), <code>developers/</code> (mcp-architektur-naht, per-user-cc-identitaet, clubcloud-mcp-server, external-tournament-bridge, tournament-architecture-overview, umb-scraping-implementation/methods, er-diagram, database-design, region-tagging-cleanup-summary, developer-guide, clubcloud-upload), <code>reference/</code> (api, search, glossary).</p>
+<p>Nicht in diesem Lauf (Code unverändert oder nutzer-/prozedural): übrige <code>developers/</code>-Docs, <code>managers/</code>, <code>administrators/</code>, historische <code>internal/</code>-Notes.</p>
 <h2 id="gesamtbilanz">Gesamtbilanz<a class="headerlink" href="#gesamtbilanz" title="Permanent link">&para;</a></h2>
 <ul>
-<li><strong>163 handlungsrelevante Befunde</strong> (DRIFT + GAP) über alle Batches — davon <strong>142 behoben</strong>, Rest als „bereits korrekt" verifiziert oder bewusst zurückgestellt (siehe je Batch).</li>
-<li><strong>~188 Aussagen als korrekt verifiziert</strong> (MATCH / already-correct) — die Docs sind strukturell überwiegend solide.</li>
-<li>Die wenigen verbleibenden Punkte sind <strong>Code-Bugs</strong>, kein Doku-Drift mehr — an PAUL übergeben (s. u.).</li>
+<li><strong>22 handlungsrelevante Befunde</strong> (14 DRIFT, 8 GAP) — Schweregrad 4 hoch, 11 mittel, 7 niedrig.</li>
+<li><strong>16 behoben und committet</strong>, 6 bewusst zurückgestellt (niedrig / neue Doku nötig).</li>
+<li><strong>72 Aussagen als korrekt verifiziert</strong> (MATCH) — der Refactor hat die dokumentierte Struktur überwiegend NICHT verletzt.</li>
 </ul>
-<h2 id="coverage-auflosung-pro-batch">Coverage &amp; Auflösung pro Batch<a class="headerlink" href="#coverage-auflosung-pro-batch" title="Permanent link">&para;</a></h2>
-<table>
-<thead>
-<tr>
-<th>Batch</th>
-<th>Scope</th>
-<th style="text-align: right;">Befunde (DRIFT/GAP)</th>
-<th style="text-align: right;">behoben</th>
-<th style="text-align: right;">MATCH/ok</th>
-<th>Commit</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><strong>Batch 1</strong></td>
-<td>developers/ + reference/</td>
-<td style="text-align: right;">71</td>
-<td style="text-align: right;">71</td>
-<td style="text-align: right;">~159</td>
-<td><code>c8f17259 (high) · f394c189 (medium) · b0ddcd68 (low)</code></td>
-</tr>
-<tr>
-<td><strong>Batch 2</strong></td>
-<td>Architektur-/Struktur-Docs (training_database, *-architecture, monitoring, Ops-Guides)</td>
-<td style="text-align: right;">29</td>
-<td style="text-align: right;">28</td>
-<td style="text-align: right;">~58</td>
-<td><code>7597dd8a</code></td>
-</tr>
-<tr>
-<td><strong>Batch 3a</strong></td>
-<td>managers/ (Nutzer-/Workflow-Docs)</td>
-<td style="text-align: right;">31</td>
-<td style="text-align: right;">20</td>
-<td style="text-align: right;">~85</td>
-<td><code>528b3d0d</code></td>
-</tr>
-<tr>
-<td><strong>Batch 3b</strong></td>
-<td>administrators/ (Server-/Deployment-/Streaming-/Raspi-Ops)</td>
-<td style="text-align: right;">32</td>
-<td style="text-align: right;">23</td>
-<td style="text-align: right;">~76</td>
-<td><code>ebf485d9</code></td>
-</tr>
-</tbody>
-</table>
+<p>Kernmuster: fast aller Drift entstand, weil der Refactor <strong>neue Fähigkeiten hinzufügte</strong>, die die Docs noch nicht kannten — nicht durch widersprüchliche Umbenennungen. Gelöschte Features (Page-CMS, Subscriptions/Billing) waren nie dokumentiert → keine Geister.</p>
 <h2 id="behobene-befunde-im-detail">Behobene Befunde im Detail<a class="headerlink" href="#behobene-befunde-im-detail" title="Permanent link">&para;</a></h2>
-<h3 id="batch-1-developers-reference">Batch 1 — developers/ + reference/<a class="headerlink" href="#batch-1-developers-reference" title="Permanent link">&para;</a></h3>
-<p><strong><code>docs/developers/clubcloud-mcp-server.de.md</code></strong></p>
+<p><strong><code>clubcloud-mcp-server.de.md §2 (Hinweis zwei Tool-Listing-Pfade)</code></strong></p>
 <ul>
-<li><code>[DRIFT·high]</code> The MCP server has 11 tool classes (10 Read-Tools + 1 Write-Tool cc_finalize_teilnehmerliste).</li>
-<li><code>[DRIFT·medium]</code> ApiSurface exposes 15 cc://api/{action} resources with a 15-entry ALLOWLIST.</li>
-<li><code>[DRIFT·medium]</code> WorkflowScenarios whitelists 3 scenario slugs.</li>
-<li><code>[GAP·medium]</code> The file layout block enumerates the lib/mcp_server/ source files (server.rb, cc_session.rb, transport/boot.rb, tools/, resources/) with no other top-level lib files.</li>
+<li><code>[DRIFT·medium]</code> HTTP path uses the hardcoded RoleToolMap::ALL_TOOLS list via ToolRegistry.tool_classes_for(user); a new tool must additionally be entered in RoleToolMap::ALL_TOOLS.</li>
 </ul>
-<p><strong><code>docs/developers/clubcloud-upload.en.md</code></strong></p>
+<p><strong><code>clubcloud-mcp-server.de.md §6 (ToolRegistry + RoleToolMap reference)</code></strong></p>
 <ul>
-<li><code>[DRIFT·high]</code> The auto-upload call (Setting.upload_game_to_cc) lives in lib/tournament_monitor_state.rb#finalize_game_result.</li>
-<li><code>[DRIFT·high]</code> RegionCc holds credentials in region_cc.login_username and region_cc.login_password.</li>
+<li><code>[DRIFT·high]</code> ToolRegistry.tools_for(user) returns RoleToolMap::ALL_TOOLS for every authenticated user; tool_count_for(_role_key) is a stub returning ALL_TOOLS.size for every key; the Final-Stub delivers ALL_TOOLS to all authenticated users.</li>
 </ul>
-<p><strong><code>docs/developers/database-design.en.md</code></strong></p>
+<p><strong><code>docs/developers/database-design.en.md (and .de.md)</code></strong></p>
 <ul>
-<li><code>[DRIFT·low]</code> Seeding: <code>belongs_to :player, optional: true</code></li>
+<li><code>[DRIFT·high]</code> RegionTaggable Seeding example returns an ARRAY of region ids and calls find_dbu_region_id_if_global: <code>tournament ? [tournament.region_id, (...organizer_id...), find_dbu_region_id_if_global].compact : []</code></li>
 </ul>
-<p><strong><code>docs/developers/database-partitioning.en.md</code></strong></p>
+<p><strong><code>docs/developers/region-tagging-cleanup-summary.de.md</code></strong></p>
 <ul>
-<li><code>[DRIFT·medium]</code> The Version for_region scope is: where("region_id IS NULL OR region_id = ?", region_id).</li>
-<li><code>[DRIFT·medium]</code> 13 models include RegionTaggable, including PartyGame and Location.</li>
-<li><code>[DRIFT·low]</code> RegionTaggable registers callbacks after_save :update_region_tagging and after_destroy :update_region_tagging.</li>
-<li><code>[DRIFT·low]</code> Rake task is region_taggings:update_all_region_ids (plural 'ids').</li>
+<li><code>[DRIFT·medium]</code> 'Noch zu erledigen' section: league.rb, region.rb, tournament.rb, club.rb, player.rb STILL contain <code>region_ids |= [region.id]</code> and must be updated to <code>region_id = region.id</code></li>
 </ul>
-<p><strong><code>docs/developers/debugging/websocket-logging.de.md</code></strong></p>
+<p><strong><code>docs/developers/services/umb.en.md:10 / umb.de.md:10 (DisciplineDetector row)</code></strong></p>
 <ul>
-<li><code>[DRIFT·high]</code> Manual change required in app/models/table_monitor.rb: insert logging lines after line 71 'after_update_commit lambda {'; uses skip_update_callbacks flag and previous_changes.inspect.</li>
-<li><code>[DRIFT·medium]</code> Callback enqueues jobs via <code>TableMonitorJob.perform_later(self, "table_scores")</code> etc., and contains a line <code>TableMonitorJob.perform_later(self, "")</code> (line 88) with empty string that 'should maybe b…</li>
+<li><code>[DRIFT·medium]</code> DisciplineDetector 'Maps tournament names to Discipline records via regex and DB ILIKE fallback' — no mention of title-based derivation</li>
 </ul>
-<p><strong><code>docs/developers/developer-guide.en.md</code></strong></p>
+<p><strong><code>docs/developers/services/umb.en.md:24-25 / umb.de.md:24-25 (Detailed Documentation links)</code></strong></p>
 <ul>
-<li><code>[GAP·high]</code> cp config/database.yml.example config/database.yml</li>
-<li><code>[GAP·high]</code> cp config/application.yml.example config/application.yml; Edit application.yml with your configuration</li>
-<li><code>[DRIFT·high]</code> RSpec: Unit and integration tests</li>
-<li><code>[DRIFT·medium]</code> class Seeding includes SourceHandler (include SourceHandler) and belongs_to :player, optional: true</li>
-<li><code>[DRIFT·medium]</code> rake scenario:deploy[scenario_name,target_environment] (two args); link to scenario-management.md</li>
-<li><code>[GAP·medium]</code> Links to database-setup.md, scoreboard-autostart.md, database-design.md, tournament-management.md, installation-overview.md, developer-guide.md#operations</li>
-<li><code>[GAP·low]</code> Implies LocalProtector and SourceHandler are concerns in app/models/concerns/</li>
+<li><code>[DRIFT·medium]</code> Links point to ../umb-scraping-implementation.md and ../umb-scraping-methods.md</li>
 </ul>
-<p><strong><code>docs/developers/index.en.md</code></strong></p>
+<p><strong><code>docs/developers/services/video-crossref.en.md:115-116 / de:115-116 (AI fallback model)</code></strong></p>
 <ul>
-<li><code>[GAP·high]</code> Link '<a href="streaming-dev-setup.md">YouTube Streaming Development Setup</a>' references an existing doc.</li>
-<li><code>[GAP·medium]</code> Links '<a href="developer-guide.en.md#frontend">Developer Guide - Frontend</a>' (twice) point to a Frontend section anchor.</li>
+<li><code>[DRIFT·high]</code> AI fallback uses model gpt-4o-mini with response_format: { type: "json_object" } (OpenAI)</li>
 </ul>
-<p><strong><code>docs/developers/pool-scoreboard-changelog.en.md</code></strong></p>
+<p><strong><code>external-tournament-bridge.en.md / .de.md (summary endpoint table + body)</code></strong></p>
 <ul>
-<li><code>[DRIFT·high]</code> Added balls_left() method to app/javascript/controllers/table_monitor_controller.js that calls this.stimulate('TableMonitor#balls_left', this.element)</li>
-<li><code>[DRIFT·medium]</code> start_game() in app/models/table_monitor.rb checks existing_party_game = game if game.present? &amp;&amp; game.tournament_type.present?</li>
-<li><code>[DRIFT·medium]</code> Pool quickstart config in config/carambus.yml.erb uses keys 'sets:' / 'kickoff_switches_with' under flat pool: 8-Ball: hash with 'Best of N' labels</li>
-<li><code>[DRIFT·low]</code> User manual at docs/pool_scoreboard_benutzerhandbuch.de.md</li>
+<li><code>[GAP·medium]</code> The bridge exposes /api/external_tournament/* endpoints tables, seeding, round_start, round_result, tournament/lock_table/start_game/acknowledge_result/end_tournament, player_reconcile, clubs, club_players, player_rankings, disciplines, …</li>
 </ul>
-<p><strong><code>docs/developers/services/party-monitor.en.md</code></strong></p>
+<p><strong><code>external-tournament-bridge.en.md:12-24 / .de.md:12-24 (summary table)</code></strong></p>
 <ul>
-<li><code>[DRIFT·medium]</code> do_placement takes exactly 3 parameters: game, r_no (round number), t_no (table number).</li>
-<li><code>[DRIFT·medium]</code> All AASM events (e.g., <code>finish_match!</code>, <code>close_match!</code>) are fired on <code>@party_monitor</code> or the respective <code>table_monitor</code> record.</li>
-<li><code>[DRIFT·low]</code> The cattr_accessor value <code>allow_change_tables</code> is accessed as <code>PartyMonitor.allow_change_tables</code> (class level), not as <code>TournamentMonitor.allow_change_tables</code>.</li>
-<li><code>[GAP·low]</code> accumulate_results returns nil and merely aggregates GameParticipation results into @party_monitor.data["rankings"].</li>
+<li><code>[GAP·low]</code> Summary endpoint table enumerates the bridge endpoints.</li>
 </ul>
-<p><strong><code>docs/developers/services/region-cc.en.md</code></strong></p>
+<p><strong><code>mcp-architektur-naht.en.md / .de.md §4 (Layer 1 tier gating)</code></strong></p>
 <ul>
-<li><code>[DRIFT·high]</code> All sync operations are dispatched via <code>RegionCc.synchronize(opts)</code> on the model</li>
-<li><code>[DRIFT·high]</code> <code>RegionCc::MetadataSyncer.call(... operation: :sync_metadata ...)</code> — operation key is :sync_metadata</li>
-<li><code>[GAP·medium]</code> <code>RegionCc::GamePlanSyncer.call(... operation: :sync_game_plans ...)</code> — only :sync_game_plans operation shown</li>
-<li><code>[GAP·medium]</code> <code>RegionCc::TournamentSyncer</code> ... 'multiple operations'; example shows only operation: :sync_tournaments</li>
+<li><code>[DRIFT·medium]</code> ToolRegistry.tools_for(user) filters on cc_write_access?: a read-only user does not receive write tools.</li>
 </ul>
-<p><strong><code>docs/developers/services/table-monitor.en.md</code></strong></p>
+<p><strong><code>mcp-architektur-naht.en.md / .de.md §8 (checklist item 7)</code></strong></p>
 <ul>
-<li><code>[DRIFT·low]</code> "Tischnummer" =&gt; Integer  # table ID</li>
+<li><code>[DRIFT·high]</code> A new CC write tool must be registered in role_tool_map.rb (WRITE_TOOLS) AND in SpielleiterChatService::TOOL_CLASSES (two separate lists — drift trap!).</li>
 </ul>
-<p><strong><code>docs/developers/services/tournament-monitor.en.md</code></strong></p>
+<p><strong><code>table-monitor.{en,de}.md</code></strong></p>
 <ul>
-<li><code>[DRIFT·high]</code> distribute_to_group / distribute_with_sizes return Hash { Integer =&gt; Array<Integer> }, i.e. keys are the integer group number (group_no =&gt; [player_ids]).</li>
-<li><code>[GAP·high]</code> "fin.w" is a valid rule_str meaning 'Winner of the final (KO bracket reference)'.</li>
-<li><code>[DRIFT·medium]</code> processor.update_game_participations is a public entry point that 'updates GameParticipation records' (shown called with no arguments).</li>
-<li><code>[GAP·low]</code> game.with_lock covers exactly: write_game_result_data + finish_match!.</li>
+<li><code>[GAP·medium]</code> save_result return hash keys: Gruppe, Partie, Spieler&frac12;, Innings&frac12;, Ergebnis&frac12;, Aufnahmen&frac12;, Höchstserie&frac12;, Tischnummer</li>
 </ul>
-<p><strong><code>docs/developers/services/tournament.en.md</code></strong></p>
+<p><strong><code>tournament-monitor.{en,de}.md</code></strong></p>
 <ul>
-<li><code>[GAP·low]</code> calculate_and_cache_rankings updates 'the tournament's data hash with calculated rankings' (no preconditions stated).</li>
+<li><code>[GAP·medium]</code> ResultProcessor entry points list (report_result, accumulate_results, update_ranking, update_game_participations) — omits public advance_round_after_match_close</li>
 </ul>
-<p><strong><code>docs/developers/setup/development-logging.de.md</code></strong></p>
+<p><strong><code>tournament.en.md / tournament.de.md</code></strong></p>
 <ul>
-<li><code>[DRIFT·low]</code> Edit config/environments/development.rb at 'Zeile 13-16' for the logger change.</li>
+<li><code>[GAP·medium]</code> The Tournament:: namespace consists of exactly 3 services in app/services/tournament/ (PublicCcScraper, RankingCalculator, TableReservationService).</li>
 </ul>
-<p><strong><code>docs/developers/streaming-architecture.en.md</code></strong></p>
+<p><strong><code>umb-scraping-implementation.{en,de}.md</code></strong></p>
 <ul>
-<li><code>[DRIFT·high]</code> stream_configurations has a location reference / belongs_to :location, and t.references :location null:false foreign_key:true</li>
-<li><code>[GAP·high]</code> StreamConfiguration only encrypts youtube_stream_key and only supports YouTube RTMP; rtmp_url generates rtmp://a.rtmp.youtube.com/live2/:stream_key</li>
-<li><code>[GAP·high]</code> deploy_all action deploys all streams (doc lists it as a valid custom action)</li>
-<li><code>[GAP·medium]</code> Migration/columns listed: youtube fields, camera, overlay, status, network, quality only</li>
-<li><code>[DRIFT·medium]</code> scoreboard_overlay_url is .../scoreboard_overlay?table=N (table number)</li>
-<li><code>[DRIFT·medium]</code> streaming_overlay_controller.js connect() calls subscribeToTableMonitor() (ActionCable real-time updates active)</li>
-<li><code>[DRIFT·medium]</code> scoreboard_overlay.html.erb uses @game.player_a.display_name / @game.score_a / .overlay-container / .player-section / 'VS' / 'Kein aktives Spiel'</li>
-<li><code>[DRIFT·medium]</code> Tests written in RSpec (spec/models/stream_configuration_spec.rb, spec/jobs/..., spec/system/...)</li>
-<li><code>[DRIFT·low]</code> streaming_overlay.html.erb layout uses body { background: rgba(0,0,0,0.75); } with fixed 1920x200 overlay dimensions</li>
-<li><code>[DRIFT·low]</code> ssh_user defaults to 'pi'</li>
+<li><code>[GAP·medium]</code> Umb::DisciplineDetector maps tournament names to Discipline records via regex + DB-ILIKE fallback (only).</li>
+<li><code>[DRIFT·medium]</code> The Umb:: sub-namespace contains 7 classes + 1 module (part of 10 services total).</li>
 </ul>
-<p><strong><code>docs/developers/test-implementation-summary.de.md</code></strong></p>
+<h2 id="was-der-refactor-an-neuen-fahigkeiten-brachte-jetzt-dokumentiert">Was der Refactor an neuen Fähigkeiten brachte (jetzt dokumentiert)<a class="headerlink" href="#was-der-refactor-an-neuen-fahigkeiten-brachte-jetzt-dokumentiert" title="Permanent link">&para;</a></h2>
 <ul>
-<li><code>[GAP·high]</code> References docs contributors should read: QUICKSTART_TESTS.md, TESTING.md, INSTALL_TESTS.md, TEST_SETUP_SUMMARY.md, TEST_ERFOLG.md.</li>
-<li><code>[DRIFT·medium]</code> Rake tasks listed: test:critical, test:coverage, test:concerns, test:scraping, test:stats, test:list, test:validate, test:rerecord_vcr.</li>
+<li><strong><code>Tournament::CcSync::</code></strong> Sub-Namespace (AccreditationPush / FinalizePush, Phase 44) — Tournament-Services 3→5.</li>
+<li><strong><code>advance_round_after_match_close</code></strong> (Phase 38.8) — deferred Runden-Progressions-Kaskade nach <code>close_match!</code>.</li>
+<li><strong>Party-/Liga-Spieltag-Endpoints</strong> (Plan 48): <code>party</code> / <code>party_game_result</code> / <code>party_close</code> an der External-Tournament-Bridge.</li>
+<li><strong>Zweistufige Discipline-Detection</strong> — <code>DisciplineDetector#detect_with_title_fallback</code> + <code>Discipline.classify_from_title</code> (title-basierte Ableitung, curated overrides).</li>
+<li><strong>MCP Persona-Gating</strong> — <code>ToolRegistry.tools_for(user)</code> liefert persona-gefilterte Subsets (nicht mehr <code>ALL_TOOLS</code> für alle); Write-Tools nur bei <code>cc_write_access? &amp;&amp; local_server?</code>; Single-Source-Tool-Registrierung (D-34-3).</li>
+<li><strong>Video-KI</strong> nutzt Anthropic Claude Haiku (nicht OpenAI) für Metadaten-Extraktion.</li>
+<li><strong>RegionTaggable</strong> liefert jetzt eine einzelne Region-ID (Verzweigung nach <code>tournament_type</code>), nicht mehr ein Array.</li>
 </ul>
-<p><strong><code>docs/developers/tournament-architecture-overview.en.md</code></strong></p>
+<h2 id="nachgezogen-nach-dem-re-audit-erledigt">Nachgezogen (nach dem Re-Audit erledigt)<a class="headerlink" href="#nachgezogen-nach-dem-re-audit-erledigt" title="Permanent link">&para;</a></h2>
 <ul>
-<li><code>[DRIFT·high]</code> Inspect TournamentMonitor::PlayerGroupDistributor#do_placement to step through how the next Game is actively scheduled</li>
-<li><code>[DRIFT·medium]</code> TournamentMonitor handles algorithms for distributing players to groups (distribute_to_group, distribute_with_sizes), determining group ranks (group_rank), and KO rankings (ko_ranking)</li>
-<li><code>[DRIFT·medium]</code> TournamentMonitorState (lib/tournament_monitor_state.rb) holds state machine logic ... e.g. finalize_game_result, all_table_monitors_finished?, finalize_round, group_phase_finished?</li>
-<li><code>[DRIFT·medium]</code> Trace TournamentMonitor methods like #rank_from_group_ranks and #distribute_to_group</li>
+<li><strong>MCP-Tool-Inventar voll-refresht</strong> (<code>clubcloud-mcp-server.de.md</code>): von veraltet 23 auf real <strong>46 registrierte Tools (29 Read / 16 Write / 1 Self-Service)</strong> aktualisiert, inkl. Persona-Gating (<code>cc_write_access? &amp;&amp; local_server?</code>). Dabei aufgedeckt: der <strong>Drift-Guard-Test ist ROT</strong> — <code>EXPECTED_TOOL_NAMES</code> (39) hinkt der dynamischen Registry (46) hinterher, 7 Tools fehlen (cc_clone_tournament(s), cc_open_in_tournament_app, cc_open_party_in_app, cc_party_status, cc_prepare_tournament, cc_start_party_day). Als Code/Test-Fix ausgelagert (Chip). Korrigiert die frühere Fehlannahme „Smoke-Test synchron".</li>
+<li><strong><code>BranchTaggable</code> / <code>Scopable</code>-Subsystem dokumentiert</strong> — neues Doc <code>developers/branch-scoping.{de,en}.md</code>. Zentrale Erkenntnis: das <code>branch_taggings.rake</code>-Backfill wurde wieder entfernt (update_columns umgeht before_save + LocalProtector sperrt Globals → <code>branch_id</code> bleibt NULL auf synchronisierten Records); Branch-Facette wird zur <strong>Query-Zeit</strong> über <code>discipline.root</code> / <code>Branch.discipline_ids_for</code> aufgelöst. Stalen Kommentar-Verweis in <code>branch_taggable.rb</code> als Code-Fix ausgelagert (Chip).</li>
 </ul>
-<p><strong><code>docs/developers/tournament-duplicate-handling.en.md</code></strong></p>
+<h2 id="offen-niedrig">Offen (niedrig)<a class="headerlink" href="#offen-niedrig" title="Permanent link">&para;</a></h2>
 <ul>
-<li><code>[DRIFT·high]</code> The duplicate-handling system runs automatically via <code>rake scrape:tournaments_optimized</code>.</li>
-<li><code>[DRIFT·high]</code> <code>Region#scrape_tournaments_optimized</code> now groups tournaments by name before processing, detects duplicates and applies selection logic, marking abandoned cc_ids.</li>
-<li><code>[DRIFT·high]</code> Selection prioritizes in order: 1) Has games, 2) Has seedings, 3) No seedings/games, 4) Highest cc_id.</li>
-<li><code>[DRIFT·high]</code> Abandoned cc_ids are stored in <code>abandoned_tournament_ccs</code> via the <code>AbandonedTournamentCc</code> model with fields region_shortname/season_name/tournament_name/reason/replaced_by_cc_id/replaced_by_tournam…</li>
-<li><code>[GAP·high]</code> New private methods <code>process_single_tournament</code> and <code>process_duplicate_tournaments</code> handle individual tournaments and duplicate groups.</li>
-<li><code>[DRIFT·medium]</code> Example log shows 'Marked cc_id 123 as abandoned ... (keeping 456)' and a per-region summary 'Processed 15 tournaments, skipped 5, abandoned 2 duplicates'.</li>
+<li>Einige vor-refactor bestehende Label-Ungenauigkeiten (z. B. „ApplicationService" für PORO-Scraper) — surgical belassen.</li>
 </ul>
-<p><strong><code>docs/reference/api.en.md</code></strong></p>
-<ul>
-<li><code>[DRIFT·high]</code> POST /tournaments/{id}/generate_game_plan endpoint generates a tournament game plan.</li>
-<li><code>[DRIFT·high]</code> REST CRUD endpoints: POST /tournaments, PATCH /tournaments/{id}, DELETE /tournaments/{id}, and list/get for players and parties returning JSON:API-style {data:{type,attributes,relationships}} paylo…</li>
-<li><code>[GAP·high]</code> POST /api/sync/ba/players, /api/sync/ba/tournaments, /api/sync/cc/competitions, /api/sync/cc/results sync endpoints exist.</li>
-<li><code>[GAP·medium]</code> Rate limiting (1000/100 req/hr with X-RateLimit-* headers), JS 'carambus-api-client' npm package, and Ruby 'carambus_api' gem client.</li>
-<li><code>[GAP·medium]</code> The external tournament bridge exposes exactly 4 endpoints: tables, seeding, round_start, round_result.</li>
-<li><code>[DRIFT·low]</code> PATCH /table_monitors/{id} with body {table_monitor:{balls_a, balls_b}} updates the monitor.</li>
-</ul>
-<p><strong><code>docs/reference/search.en.md</code></strong></p>
-<ul>
-<li><code>[DRIFT·low]</code> Club search searches in 'Club name (full and short name)' and 'Homepage'.</li>
-<li><code>[DRIFT·low]</code> Tournament free-text search searches in 'Region/Organizer'.</li>
-</ul>
-<h3 id="batch-2-architektur-struktur-docs-training_database-architecture-monitoring-ops-guides">Batch 2 — Architektur-/Struktur-Docs (training_database, *-architecture, monitoring, Ops-Guides)<a class="headerlink" href="#batch-2-architektur-struktur-docs-training_database-architecture-monitoring-ops-guides" title="Permanent link">&para;</a></h3>
-<p><strong><code>both</code></strong></p>
-<ul>
-<li><code>[DRIFT·high]</code> Sync API-&gt;Local via 'rake sync:from_api[region_id]'</li>
-<li><code>[DRIFT·high]</code> Upload Local-&gt;API via 'rake sync:to_api[local_data]'</li>
-<li><code>[DRIFT·medium]</code> FAQ: A Local Server can filter multiple regions, configurable via 'region_ids' array</li>
-</ul>
-<p><strong><code>docs/administrators/server-architecture.de.md</code></strong></p>
-<ul>
-<li><code>[DRIFT·high]</code> Local data upload via 'POST /api/tournaments' (DE-only 'Synchronisation von Local Data' block)</li>
-</ul>
-<p><strong><code>docs/internal/implementation-notes/monitoring-architecture.md</code></strong></p>
-<ul>
-<li><code>[DRIFT·high]</code> CLI rake tasks: scrape:stats, scrape:health, scrape:errors, scrape:export</li>
-<li><code>[DRIFT·medium]</code> ScrapingMonitor is the Concern with track_scraping/record_* methods</li>
-<li><code>[DRIFT·medium]</code> scrape_monitored.rake contains [7 Tasks]</li>
-<li><code>[DRIFT·medium]</code> Production cron: daily scraping 3:00 AM; health check 6:00 AM; weekly cleanup Sunday 4:00 AM</li>
-<li><code>[GAP·medium]</code> scraping_logs SQL schema columns and indexes (errors_json, executed_at, etc.) — no model_stats column</li>
-<li><code>[GAP·medium]</code> Migrations list only create_scraping_logs and add_unchanged_count_to_scraping_logs</li>
-<li><code>[DRIFT·medium]</code> Documentation files: docs/SCRAPING_MONITORING.md, docs/SCRAPING_MONITORING_QUICKSTART.md, docs/MONITORING_ARCHITECTURE.md, MONITORING_SYSTEM.md, test/README.md</li>
-<li><code>[GAP·low]</code> check_anomalies performs 3 checks: error rate, slow duration, and 'no recent runs'</li>
-</ul>
-<p><strong><code>docs/internal/performance-analysis/PERFORMANCE_MEASUREMENT_GUIDE.md</code></strong></p>
-<ul>
-<li><code>[GAP·medium]</code> Cross-reference 'docs/JSON_BROADCASTING_FINAL_SUCCESS.md' and 'JSON_BROADCASTING_FINAL_SUCCESS.md' for JSON Broadcasting which is 'bereits implementiert, nur aktivieren'</li>
-</ul>
-<p><strong><code>docs/internal/performance-analysis/SCOREBOARD_ARCHITECTURE.md</code></strong></p>
-<ul>
-<li><code>[DRIFT·high]</code> Client channel app/javascript/channels/table_monitor_channel.js is 25 lines, a simple channel that just performs CableReady operations with no filtering/context awareness/complex logic.</li>
-<li><code>[DRIFT·high]</code> Background job perform signature is perform(table_monitor, operation_type) and calls table_monitor.reload for fresh data; ~115 lines.</li>
-<li><code>[DRIFT·high]</code> Lessons Learned: Optimistic UI and JSON Broadcasting did NOT work and were removed/avoided.</li>
-<li><code>[DRIFT·high]</code> Callback config: after_update_commit enqueues TableMonitorJob.perform_later(self, 'table_scores') or perform_later(self, 'score_update') based on relevant_keys.any?.</li>
-<li><code>[GAP·medium]</code> Configuration defines a Ruby constant STREAM_NAME = "table-monitor-stream".</li>
-<li><code>[GAP·medium]</code> Server-side ActionCable channel (app/channels/table_monitor_channel.rb) is not documented.</li>
-<li><code>[DRIFT·medium]</code> Reflex file is 674 lines; add_n is a minimal method (find, add_n_balls, do_play, save!).</li>
-<li><code>[DRIFT·medium]</code> ~258 lines of core code (vs ~1,500+ in complex version).</li>
-<li><code>[DRIFT·low]</code> Client controller table_monitor_controller.js is 118 lines; add_n reads n then stimulates.</li>
-</ul>
-<p><strong><code>docs/training_database_implementation.md</code></strong></p>
-<ul>
-<li><code>[DRIFT·medium]</code> TrainingConcept declares <code>has_many :tags, as: :taggable</code> (polymorphic tags association)</li>
-<li><code>[GAP·medium]</code> TrainingConcept/TrainingExample/StartPosition model snippets only <code>include Translatable</code> (Taggable omitted); associations missing training_concept_disciplines, source_attributions/training_sources</li>
-<li><code>[DRIFT·medium]</code> Routes: only nested shots have move_up/move_down; training_concepts has no member routes; no tags resource</li>
-<li><code>[GAP·medium]</code> test/fixtures/shots.yml exists as a fixture</li>
-<li><code>[GAP·medium]</code> test/models/shot_test.rb exists with shot_type/sequence_number tests</li>
-<li><code>[DRIFT·low]</code> TrainingSource through-associations written without source:/source_type:</li>
-</ul>
-<h3 id="batch-3a-managers-nutzer-workflow-docs">Batch 3a — managers/ (Nutzer-/Workflow-Docs)<a class="headerlink" href="#batch-3a-managers-nutzer-workflow-docs" title="Permanent link">&para;</a></h3>
-<p><strong><code>docs/managers/AUTO_RESERVE_README.md</code></strong></p>
-<ul>
-<li><code>[DRIFT·medium]</code> Criterion #1 '✅ single_or_league = single' as a selection filter for auto-reservation.</li>
-</ul>
-<p><strong><code>docs/managers/admin-roles.de.md / admin-roles.en.md</code></strong></p>
-<ul>
-<li><code>[DRIFT·high]</code> Permission check example uses <code>current_user.can_create_tournaments?</code></li>
-<li><code>[DRIFT·high]</code> Permission check example uses <code>current_user.is_system_admin?</code></li>
-</ul>
-<p><strong><code>docs/managers/automatische_tischreservierung.de.md</code></strong></p>
-<ul>
-<li><code>[DRIFT·medium]</code> Criterion #1 'Turniertyp: Nur Einzelmeisterschaften (keine Ligen)' — i.e. the task filters to single tournaments only, excluding leagues.</li>
-</ul>
-<p><strong><code>docs/managers/clubcloud-integration.de.md / .en.md</code></strong></p>
-<ul>
-<li><code>[DRIFT·medium]</code> Automatic daily scrape is triggered via 'rake regions:scrape_all'.</li>
-<li><code>[DRIFT·medium]</code> Manual scraping via UI is done by calling model methods: Region#reload_from_cc, Tournament#reload_from_cc, League#reload_from_cc_with_details.</li>
-</ul>
-<p><strong><code>docs/managers/clubcloud-mcp-cloud-quickstart.de.md</code></strong></p>
-<ul>
-<li><code>[DRIFT·high]</code> Tool-Anzahl je nach Rolle: LSW 22, Turnierleiter 19, Sportwart 16 Tools.</li>
-</ul>
-<p><strong><code>docs/managers/clubcloud-mcp-klickreduktion-anmeldung-aus-email.de.md</code></strong></p>
-<ul>
-<li><code>[DRIFT·medium]</code> Workflow runs 'in Claude Desktop' (intro, Nachher-section, Vorher/Nachher table, spickzettel sentence, image alt-text).</li>
-</ul>
-<p><strong><code>docs/managers/clubcloud-mcp-setup-service.de.md</code></strong></p>
-<ul>
-<li><code>[DRIFT·high]</code> Section 5 Authority table: Sportwart=16, Turnierleiter=19, LSW=22 Tools; intro 'welche der 22 MCP-Tools sichtbar sind'.</li>
-<li><code>[DRIFT·high]</code> Section 5.3 + Section 6: verification expects subset 16 / 19 / 22; Troubleshooting row 'Tool-Anzahl falsch (16 statt 22 fuer LSW)'.</li>
-</ul>
-<p><strong><code>docs/managers/clubcloud-scenarios/cc-roles.de.md</code></strong></p>
-<ul>
-<li><code>[DRIFT·high]</code> MCP-Server has '22 MCP-Tools'; per-role Tool-Subsets: Sportwart 16, Turnierleiter 19, LSW 22.</li>
-</ul>
-<p><strong><code>docs/managers/clubcloud-scenarios/endrangliste-eintragen.de.md</code></strong></p>
-<ul>
-<li><code>[DRIFT·high]</code> Die Endranglisten-Funktion (<code>cc_submit_endrangliste</code>) ist Teil der Phase-40.1-Erweiterung. — presented as a concrete/named tool tied to a phase.</li>
-</ul>
-<p><strong><code>docs/managers/external-tournament-bridge.de.md</code></strong></p>
-<ul>
-<li><code>[DRIFT·medium]</code> Smoke-Test zeigt '5 Schritte mit ✓ (Login → Tournament-Lookup → Seeding → Round-Start → Round-Result)'.</li>
-</ul>
-<p><strong><code>docs/managers/external-tournament-bridge.en.md</code></strong></p>
-<ul>
-<li><code>[DRIFT·medium]</code> Smoke test 'prints five ✓ steps (login → tournament lookup → seeding → round start → round result)'.</li>
-</ul>
-<p><strong><code>table_reservation_heating_control.de.md</code></strong></p>
-<ul>
-<li><code>[DRIFT·medium]</code> Vorheizzeit Match Billard / Snooker = 3 Stunden (Regel 1, System-Parameter, Beispiel ab 15:00)</li>
-<li><code>[DRIFT·medium]</code> Event-Window: Events werden bis zu 3 Stunden im Voraus geprüft</li>
-</ul>
-<p><strong><code>table_reservation_heating_control.en.md</code></strong></p>
-<ul>
-<li><code>[DRIFT·high]</code> Heaters deactivated if no Scoreboard activity 'for one hour' after reservation start / without reservation</li>
-<li><code>[DRIFT·medium]</code> Heaters activated 2 hours (3 hours for match billards) before a reservation</li>
-</ul>
-<p><strong><code>tischreservierung_heizungssteuerung.de.md</code></strong></p>
-<ul>
-<li><code>[DRIFT·high]</code> Heaters on 2 hours before reservation; off if no activity 'for one hour'</li>
-</ul>
-<p><strong><code>tischreservierung_heizungssteuerung.en.md</code></strong></p>
-<ul>
-<li><code>[DRIFT·high]</code> Same as tischreservierung_heizungssteuerung.de.md (file is mislabeled — contains German content identical to the .de.md sibling)</li>
-</ul>
-<h3 id="batch-3b-administrators-server-deployment-streaming-raspi-ops">Batch 3b — administrators/ (Server-/Deployment-/Streaming-/Raspi-Ops)<a class="headerlink" href="#batch-3b-administrators-server-deployment-streaming-raspi-ops" title="Permanent link">&para;</a></h3>
-<p><strong><code>docs/administrators/MIGRATION_NEW_TO_PRODUCTION_DOMAINS.de.md</code></strong></p>
-<ul>
-<li><code>[DRIFT·high]</code> bundle exec rails prepare_development (to auto-update config from master)</li>
-</ul>
-<p><strong><code>docs/administrators/index.de.md</code></strong></p>
-<ul>
-<li><code>[DRIFT·medium]</code> Links to installation-overview.de.md#cloud-hosting (x2), #on-premise (x2), #sicherheit</li>
-</ul>
-<p><strong><code>docs/administrators/index.en.md</code></strong></p>
-<ul>
-<li><code>[DRIFT·medium]</code> Links to installation-overview.en.md#cloud-hosting (x2), #on-premise (x2), #security</li>
-</ul>
-<p><strong><code>docs/administrators/installation-overview.de.md / .en.md</code></strong></p>
-<ul>
-<li><code>[DRIFT·high]</code> rake "scenario:setup[carambus_location_5101,development]" to set up the development environment</li>
-<li><code>[DRIFT·high]</code> rake "scenario:create[carambus_location_5101]" to create a new scenario</li>
-<li><code>[DRIFT·medium]</code> Service status check: systemctl status puma-carambus</li>
-<li><code>[DRIFT·medium]</code> Production deployment is done via a single rake "scenario:deploy[...]" command</li>
-</ul>
-<p><strong><code>docs/administrators/raspberry-pi-client.en.md</code></strong></p>
-<ul>
-<li><code>[DRIFT·low]</code> EN integration link annotated '(German only for now)'</li>
-</ul>
-<p><strong><code>docs/administrators/raspberry-pi-quickstart.de.md, docs/administrators/raspberry-pi-quickstart.en.md</code></strong></p>
-<ul>
-<li><code>[DRIFT·high]</code> rake "scenario:deploy_complete[carambus_bcw]" performs the full one-shot deployment (quickstart Step 3.2 + 'COMPLETE WORKFLOW SUCCESSFUL' expected-output block)</li>
-<li><code>[DRIFT·high]</code> Base server provisioning via: ansible-playbook -i ansible/inventory/production.yml ansible/playbooks/raspberry_pi_server.yml (quickstart Step 2.1)</li>
-<li><code>[DRIFT·medium]</code> rake "scenario:deploy[carambus_bcw,production]" (Update Application Code section)</li>
-</ul>
-<p><strong><code>docs/administrators/raspberry_pi_client_integration.de.md, docs/administrators/raspberry_pi_client_integration.en.md</code></strong></p>
-<ul>
-<li><code>[DRIFT·medium]</code> Scoreboard URL = http://host:port/locations/<md5>?sb_state=welcome (integration doc URL example + embedded Ruby snippet)</li>
-</ul>
-<p><strong><code>docs/administrators/raspberry_pi_scripts.{de,en}.md</code></strong></p>
-<ul>
-<li><code>[DRIFT·high]</code> bin/install-scoreboard-client.sh installs scoreboard client software</li>
-</ul>
-<p><strong><code>docs/administrators/server-scripts.{de,en}.md</code></strong></p>
-<ul>
-<li><code>[DRIFT·high]</code> Rails console wrappers bin/console-api.sh, bin/console-local.sh, bin/console-production.sh exist and are runnable</li>
-<li><code>[DRIFT·high]</code> bin/debug-production.sh <scenario_name> collects production debug info and is runnable</li>
-</ul>
-<p><strong><code>docs/administrators/streaming-comparison.de.md</code></strong></p>
-<ul>
-<li><code>[DRIFT·medium]</code> Support-Liste verweist auf Repo-Datei <code>STREAMING_OVERLAY_README.md</code> - Overlay-System.</li>
-<li><code>[GAP·low]</code> Alle Streaming-Ansaetze streamen '-&gt; YouTube RTMP'; das Dokument beschreibt nur YouTube als Ziel.</li>
-<li><code>[GAP·low]</code> Beispiel-Views app/views/locations/scoreboard_overlay_multi.html.erb und _scoreboard_compact.html.erb (Multi-Table 2x2 Grid).</li>
-</ul>
-<p><strong><code>docs/administrators/streaming-consolidation-testing-guide.md</code></strong></p>
-<ul>
-<li><code>[DRIFT·high]</code> Streaming software installed via <code>rake streaming:setup_raspi</code></li>
-<li><code>[DRIFT·medium]</code> Local RTMP stream URL is <code>rtmp://&lt;ip&gt;:1935/live/table&lt;id&gt;</code> (OBS Media Source input, ffplay test commands, multi-stream table)</li>
-</ul>
-<p><strong><code>streaming-setup.de.md / streaming-setup.en.md</code></strong></p>
-<ul>
-<li><code>[DRIFT·medium]</code> Overlay/scoreboard URL uses query param <code>?table=1</code> (in troubleshooting curl example and Quick Reference 'Overlay-Vorschau/Overlay Preview').</li>
-<li><code>[DRIFT·medium]</code> Admin config 'Basis-Einstellungen / Basic Settings' presents only a 'YouTube-Konfiguration / YouTube Configuration' block (Stream-Key, Channel-ID). Implies YouTube is the only destination.</li>
-<li><code>[DRIFT·medium]</code> Document title and Overview frame the feature as 'YouTube Live Streaming ... directly to YouTube'.</li>
-</ul>
-<h2 id="bewusst-zuruckgestellt-niedrig-out-of-scope">Bewusst zurückgestellt (niedrig / out-of-scope)<a class="headerlink" href="#bewusst-zuruckgestellt-niedrig-out-of-scope" title="Permanent link">&para;</a></h2>
-<ul>
-<li><code>Batch 2</code> <code>docs/internal/performance-analysis/PERFORMANCE_MEASUREMENT_GUIDE.md</code> — Client log format: '⚡ Performance [#full_screen_table_monitor_50000001]: { network: "125ms", dom: "1234ms", total: "1359ms" }'</li>
-<li><code>Batch 3b</code> <code>docs/administrators/streaming-production-deployment.md</code> — Architecture/overlay mechanism: Pi runs a background curl to the scoreboard_text endpoint every 1 second and feeds an FFmpeg drawtext filter; key file locati…</li>
-<li><code>Batch 3b</code> <code>docs/administrators/streaming-production-deployment.md</code> — Manual Pi config file keys: YOUTUBE_KEY, CAMERA_*, OVERLAY_WIDTH, TABLE_ID, TABLE_NUMBER, LOCATION_MD5, SERVER_URL.</li>
-<li><code>Batch 3b</code> <code>CODE BUG (not documented in either file)</code> — admin/stream_configurations#deploy_all (route collection POST deploy_all) enqueues StreamDeployJob.perform_later</li>
-</ul>
-<h2 id="verbleibende-code-punkte-an-paul-ubergeben-tdd">Verbleibende Code-Punkte → an PAUL übergeben (TDD)<a class="headerlink" href="#verbleibende-code-punkte-an-paul-ubergeben-tdd" title="Permanent link">&para;</a></h2>
-<p>Diese sind reine Code-Bugs (keine Doku); Handoff: <code>carambus_gu/.paul/handoffs/HANDOFF-2026-06-08-code-fixes-from-docs-audit.md</code>.</p>
-<ol>
-<li><strong><code>StreamDeployJob</code> fehlt</strong> → <code>deploy_all</code> wirft NameError (<code>config/routes.rb:544</code>, <code>admin/stream_configurations_controller.rb:127</code>). Job implementieren oder tote Route/Action entfernen.</li>
-<li><strong><code>Shot include Translatable</code> ohne <code>source_language</code>-Spalte</strong> (<code>app/models/shot.rb:2</code>, <code>translatable.rb:5</code>). <code>shots</code> hat bereits das <code>_de/_en</code>-Muster → Fix-Richtung: Spalte ergänzen.</li>
-<li><strong><code>Table#pre_heating_time_in_hours</code> Token-Bug</strong> (<code>app/models/table.rb:225</code>): <code>%w[Match Billard Snooker]</code> statt <code>["Match Billard", "Snooker"]</code> → Match-Billard-Tische bekommen 2h statt 4h.</li>
-</ol>
-<p><em>Nicht (mehr) zu tun:</em> MCP-Tool-Registry-Smoke-Test ist synchron (EXPECTED_TOOL_NAMES = 23 = reale Tools). Das Cheatsheet <code>docs/managers/clubcloud-scenarios/meldeliste-finalisieren.de.json</code> (falsche Parameternamen) ist ein kleiner Doc-Artefakt-Fix, offen.</p>
-<h2 id="wichtige-einordnung-graphify-caveat">Wichtige Einordnung (graphify-Caveat)<a class="headerlink" href="#wichtige-einordnung-graphify-caveat" title="Permanent link">&para;</a></h2>
-<p>Der graphify-Wissensgraph ist eine <strong>Landkarte/Discovery-Hilfe, kein Drift-Detektor</strong>: seine <code>INFERRED</code>-Kanten (besonders <code>calls</code>) sind verrauscht und blähen God-Node-/Bridge-Rankings auf (an <code>Current</code>/<code>Game</code> verifiziert — Phantom-Edges; die echten Kopplungen stehen in den ActiveRecord-Assoziationen). Der belastbare Abgleich gelang nur durch Ground-Truth-Prüfung gegen den Code. Für Rails gilt: nur <code>EXTRACTED</code>-Struktur + echtem Code trauen.</p>
+<h2 id="verbleibende-code-punkte-an-paul-unverandert">Verbleibende Code-Punkte → an PAUL (unverändert)<a class="headerlink" href="#verbleibende-code-punkte-an-paul-unverandert" title="Permanent link">&para;</a></h2>
+<p>Reine Code-Bugs aus früheren Läufen (Handoff: <code>carambus_gu/.paul/handoffs/HANDOFF-2026-06-08-code-fixes-from-docs-audit.md</code>): fehlender <code>StreamDeployJob</code> (<code>deploy_all</code>), <code>Shot include Translatable</code> ohne <code>source_language</code>-Spalte, <code>Table#pre_heating_time_in_hours</code> Token-Bug.</p>
+<h2 id="einordnung-graphify-caveat">Einordnung (graphify-Caveat)<a class="headerlink" href="#einordnung-graphify-caveat" title="Permanent link">&para;</a></h2>
+<p>Der graphify-Graph ist Landkarte/Discovery, kein Drift-Detektor: <code>INFERRED</code>-Kanten sind verrauscht. Der belastbare Abgleich lief gegen den echten Code (<code>EXTRACTED</code>-Struktur + Quelle).</p>
 
 
 

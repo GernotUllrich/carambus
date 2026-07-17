@@ -3616,7 +3616,7 @@
 <p><code>UserPersonas#cc_write_access?</code> (<code>app/models/concerns/user_personas.rb</code>):</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">cc_write_access?</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">system_admin?</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">sportwart?</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">turnierleiter?</span>
 </code></pre></div>
-<p><code>ToolRegistry.tools_for(user)</code> filters on this: a read-only user (player/club_admin without persona/TL) does <strong>not even receive</strong> the write tools in the tool list. <code>sportwart?</code> derives from the explicit <code>users.persona_grants</code> column (<code>sportwart</code> location-scoped, <code>landessportwart</code> region-wide — Phase 38).</p>
+<p><code>ToolRegistry.tools_for(user)</code> filters on this: a read-only user (player/club_admin without persona/TL) does <strong>not even receive</strong> the write tools in the tool list. There is a second, orthogonal gate: write tools are appended <strong>only if <code>cc_write_access? &amp;&amp; local_server?</code></strong> — so on the Authority (<code>carambus_api_url</code> blank) even a <code>system_admin</code> gets a read-only tool set (Phase 39). <code>sportwart?</code> derives from the explicit <code>users.persona_grants</code> column (<code>sportwart</code> location-scoped, <code>landessportwart</code> region-wide — Phase 38).</p>
 <h3 id="layer-2-fine-per-record-authority-may-this-user-do-this-action-on-this-tournament">Layer 2 — fine per-record authority (may this user do THIS action on THIS tournament?)<a class="headerlink" href="#layer-2-fine-per-record-authority-may-this-user-do-this-action-on-this-tournament" title="Permanent link">&para;</a></h3>
 <p><code>authorize!</code> → <code>TournamentPolicy</code> (<code>app/policies/tournament_policy.rb</code>):</p>
 <pre class="mermaid"><code>graph TD
@@ -3749,7 +3749,7 @@
 <li><code>resolve_cc_account</code> + <code>cc_write_identity_block(account, armed:)</code> before the POST.</li>
 <li>POST under <code>cc_session.cookie_for(account)</code> (NOT <code>cookie</code>).</li>
 <li>AuditTrail with <code>operator: cc_audit_operator</code>, <code>user_id: account.acting_user_id</code>.</li>
-<li>Register the tool in <code>role_tool_map.rb</code> (WRITE_TOOLS) <strong>and</strong> in <code>SpielleiterChatService::TOOL_CLASSES</code> (two separate lists — drift trap!).</li>
+<li>Register the tool in <code>role_tool_map.rb</code> (<code>WRITE_TOOLS</code>) — that is the <strong>single</strong> source for the HTTP path. <code>ToolRegistry.tool_classes_for(user)</code> and <code>SpielleiterChatService</code> both consume it; there is <strong>no</strong> second <code>TOOL_CLASSES</code> list (D-34-3 collapsed the old two-list drift trap). Write tools reach a user only if <code>cc_write_access? &amp;&amp; local_server?</code>.</li>
 <li>Pre-validation-first: check all constraints BEFORE <code>armed:true</code>.</li>
 </ol>
 <hr />

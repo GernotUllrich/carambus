@@ -4602,7 +4602,7 @@
 <p><strong>Zielgruppe:</strong> Carambus-Entwickler. Deckt Onboarding, Erweiterung (Phase 40.1+), Operations/Debugging und API-Referenz ab.
 <strong>Setup-Quickstart für Sportwarte/Endanwender:</strong> <a href="../../managers/clubcloud-mcp-cloud-quickstart/"><code>docs/managers/clubcloud-mcp-cloud-quickstart.de.md</code></a> (User-facing)
 <strong>Per-Region-Admin-Setup:</strong> <a href="../../managers/clubcloud-mcp-setup-service/"><code>docs/managers/clubcloud-mcp-setup-service.de.md</code></a> (Carambus-Tech-Admin)
-<strong>Stand:</strong> Phase 40 abgeschlossen 2026-05-07. Phase 40.1 in Vorbereitung.</p>
+<strong>Stand:</strong> Phase 40 legte die Architektur (2026-05-07). Der Tool-Bestand ist seither auf <strong>46 registrierte Tools</strong> gewachsen (29 Read / 16 Write / 1 Self-Service — verifiziert gegen <code>lib/mcp_server/tools/*.rb</code> + <code>RoleToolMap::ALL_TOOLS</code>). Die frozen Referenzliste <code>EXPECTED_TOOL_NAMES</code> im Smoke-Test hinkt aktuell bei 39 Namen hinterher (siehe §8).</p>
 </blockquote>
 <hr />
 <h2 id="inhaltsverzeichnis">Inhaltsverzeichnis<a class="headerlink" href="#inhaltsverzeichnis" title="Permanent link">&para;</a></h2>
@@ -4662,18 +4662,25 @@
 </tr>
 <tr>
 <td><strong>Read-Tools (Lookup)</strong></td>
-<td><code>cc_whoami</code> + <code>cc_lookup_*</code> + <code>cc_list_*</code> + <code>cc_search_*</code> + <code>cc_check_*</code></td>
-<td>17 Tools</td>
+<td><code>cc_whoami</code> + <code>cc_lookup_*</code> + <code>cc_list_*</code> + <code>cc_league_*</code> + <code>cc_party_*</code> + <code>cc_search_*</code> + <code>cc_check_*</code> + <code>cc_my_*</code> + <code>cc_doc_search</code>/<code>cc_smart_search</code></td>
+<td>29 Tools</td>
 <td>beide</td>
 </tr>
 <tr>
 <td><strong>Write-Tools (Mutation)</strong></td>
-<td><code>cc_register_*</code> / <code>cc_unregister_*</code> / <code>cc_*_teilnehmerliste</code> / <code>cc_update_tournament_deadline</code></td>
-<td>6 Tools</td>
-<td>Sportwart</td>
+<td><code>cc_*_teilnehmerliste</code> / <code>cc_register_*</code>·<code>cc_unregister_*</code> / <code>cc_*_tournament_leiter</code> / <code>cc_prepare_tournament</code> / <code>cc_clone_tournament(s)</code> / <code>cc_set_party_lineup</code> / <code>cc_open_*</code>·<code>cc_start_party_day</code> / <code>cc_update_tournament_deadline</code></td>
+<td>16 Tools</td>
+<td>Sportwart/Turnierleiter</td>
+</tr>
+<tr>
+<td><strong>Self-Service (self-scoped Write)</strong></td>
+<td><code>cc_link_my_player</code></td>
+<td>1 Tool</td>
+<td>jeder auth. User</td>
 </tr>
 </tbody>
 </table>
+<p><strong>Gesamt: 46 registrierte Tools.</strong> Die Read/Write-Klassifikation folgt der Annotation <code>read_only_hint:</code> (<code>true</code> = Read, <code>false</code> = Write). Von den 16 Write-Tools sind 12 <code>destructive_hint: true</code>; vier (<code>cc_prepare_tournament</code>, <code>cc_open_in_tournament_app</code>, <code>cc_start_party_day</code>, <code>cc_open_party_in_app</code>) sind nicht-destruktive Aktionen, laufen aber im Write-Tier. Persona-Gating: Read + Self-Service für jeden authentifizierten User; die Write-Tools nur, wenn <code>user.cc_write_access?</code> (system_admin/Sportwart/Turnierleiter) <strong>und</strong> der Server ein Local-Server ist (siehe §6).</p>
 <hr />
 <h2 id="2-architektur-ubersicht">2. Architektur-Übersicht<a class="headerlink" href="#2-architektur-ubersicht" title="Permanent link">&para;</a></h2>
 <blockquote>
@@ -4687,7 +4694,7 @@
     Boot["McpServer::Transport::Boot&lt;br/&gt;(Logger→STDERR, SIGINT/TERM)"]
 
     subgraph "lib/mcp_server/"
-        Tools["Tools::*&lt;br/&gt;(23 Klassen)"]
+        Tools["Tools::*&lt;br/&gt;(46 Klassen)"]
         Resources["Resources::*&lt;br/&gt;(3 Registries)"]
         BaseTool["BaseTool&lt;br/&gt;(error/text/validate)"]
         CcSession["CcSession&lt;br/&gt;(Login + 30min TTL + Reauth)"]
@@ -4743,7 +4750,7 @@
     classDef key fill:#dbeafe,stroke:#3b82f6
     class Eager,Handler key</code></pre>
 <p><strong>Konsequenz:</strong> Eine neue Tool-Klasse unter <code>lib/mcp_server/tools/</code> (Subklasse von <code>McpServer::Tools::BaseTool</code>) wird beim nächsten Server-Boot automatisch entdeckt — kein Edit von <code>server.rb</code> nötig.</p>
-<p><strong>Hinweis (zwei Tool-Listing-Pfade):</strong> Die Auto-Registry via <code>collect_tools</code> gilt nur für den <strong>Stdio-Pfad</strong> (<code>Server.build</code>). Der <strong>HTTP-Pfad</strong> (<code>McpController</code>-Mount) nutzt stattdessen die hardcoded <code>RoleToolMap::ALL_TOOLS</code>-Liste, ausgeliefert über <code>ToolRegistry.tool_classes_for(user)</code> (<code>lib/mcp_server/tool_registry.rb</code> + <code>role_tool_map.rb</code>). <code>ToolRegistry</code> ersetzt die Auto-Registry <strong>nicht</strong> — beide koexistieren. Eine neue Tool-Klasse muss daher zusätzlich in <code>RoleToolMap::ALL_TOOLS</code> eingetragen werden, damit sie auch über HTTP sichtbar ist.</p>
+<p><strong>Hinweis (zwei Tool-Listing-Pfade):</strong> Die Auto-Registry via <code>collect_tools</code> gilt nur für den <strong>Stdio-Pfad</strong> (<code>Server.build</code>). Der <strong>HTTP-Pfad</strong> (<code>McpController</code>-Mount) nutzt stattdessen die hardcoded <code>RoleToolMap</code>-Tiers, persona-gefiltert ausgeliefert über <code>ToolRegistry.tool_classes_for(user)</code> (<code>lib/mcp_server/tool_registry.rb</code> + <code>role_tool_map.rb</code>). <code>ToolRegistry</code> ersetzt die Auto-Registry <strong>nicht</strong> — beide koexistieren. Eine neue Tool-Klasse muss daher zusätzlich in den passenden <code>RoleToolMap</code>-Tier eingetragen werden (<code>BASE_READ_TOOLS</code>, <code>WRITE_TOOLS</code> oder <code>SELF_SERVICE_TOOLS</code> — <code>ALL_TOOLS</code> wird daraus komponiert), damit sie auch über HTTP sichtbar ist.</p>
 <p><strong>Ein einziger zentraler <code>resources_read_handler</code></strong> dispatched alle <code>cc://</code>-URIs per Regex an die richtige Registry-Klasse (<code>WorkflowScenarios.read</code>, <code>WorkflowMeta.read</code>, <code>ApiSurface.read</code>). Das verhindert SDK-Konflikte (das MCP-SDK akzeptiert nur einen Handler pro Server) und macht parallele Plan-Entwicklung konfliktfrei (Phase-40-Wave-2-Lehre).</p>
 <hr />
 <h2 id="3-datenfluss">3. Datenfluss<a class="headerlink" href="#3-datenfluss" title="Permanent link">&para;</a></h2>
@@ -4824,77 +4831,104 @@
 <a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>│   ├── server.rb                       # 177 LOC — Auto-Registry (Stdio) + zentraler read_handler
 <a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>│   ├── cc_session.rb                   # 106 LOC — Login + 30min TTL + Reauth
 <a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>│   ├── audit_trail.rb                  # 81 LOC — JSON-Lines-Audit-Trail für jeden armed:true-Write-Call
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>│   ├── role_tool_map.rb                # 50 LOC — ALL_TOOLS-Liste (HTTP-Pfad/McpController, hardcoded statt collect_tools)
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>│   ├── tool_registry.rb                # 34 LOC — tools_for(user)/tool_classes_for (HTTP-Pfad-Mount, liefert ALL_TOOLS)
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>│   ├── role_tool_map.rb                # Tool-Tiers BASE_READ_TOOLS(29)/WRITE_TOOLS(16)/SELF_SERVICE_TOOLS(1) → ALL_TOOLS(46), HTTP-Pfad/McpController, hardcoded statt collect_tools
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>│   ├── tool_registry.rb                # tools_for(user)/tool_classes_for — persona-gefiltert (Read+Self-Service immer, Write nur bei cc_write_access? &amp;&amp; local_server?)
 <a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>│   ├── transport/
 <a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>│   │   └── boot.rb                     # 35 LOC — Logger→STDERR, SIGINT/TERM trap, StdioTransport.open
 <a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>│   ├── tools/
 <a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>│   │   ├── base_tool.rb                # 43 LOC — BaseTool &lt; MCP::Tool — error/text/validate Helpers
 <a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>│   │   ├── mock_client.rb              # 42 LOC — Drop-in für CARAMBUS_MCP_MOCK=1
-<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>│   │   ├── cc_whoami.rb                             # READ — Session-Kontext (scenario/region/season/Sportwart-Scope), kein CC-Call
-<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>│   │   ├── lookup_region.rb                       # READ DB-first — kanonisches Template
-<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>│   │   ├── lookup_league.rb                        # READ DB-first
-<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>│   │   ├── lookup_tournament.rb                     # READ DB-first
-<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>│   │   ├── lookup_teilnehmerliste.rb               # READ DB-first
-<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>│   │   ├── lookup_club.rb                           # READ DB-first (cc_id ODER Name/Synonym-Suche)
-<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>│   │   ├── lookup_meldeliste_for_tournament.rb     # READ DB-first + Live-Fallback
-<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>│   │   ├── search_player.rb                         # READ DB-first (Disambiguation-Output)
-<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>│   │   ├── list_clubs_by_discipline.rb             # READ DB-first
-<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>│   │   ├── list_open_tournaments.rb                # READ DB-first
-<a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>│   │   ├── list_players_by_club_and_discipline.rb  # READ DB-first
-<a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>│   │   ├── list_players_by_name.rb                  # READ DB-first (kein CC-Call)
-<a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>│   │   ├── check_player_discipline_experience.rb   # READ DB-first
-<a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>│   │   ├── lookup_team.rb                           # READ live-only
-<a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>│   │   ├── lookup_spielbericht.rb                  # READ live-only
-<a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>│   │   ├── lookup_category.rb                       # READ live-only
-<a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>│   │   ├── lookup_serie.rb                          # READ live-only
-<a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a>│   │   ├── finalize_teilnehmerliste.rb             # WRITE — armed-flag + parse_cc_error + Reauth-Retry
-<a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a>│   │   ├── assign_player_to_teilnehmerliste.rb     # WRITE
-<a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a>│   │   ├── remove_from_teilnehmerliste.rb          # WRITE
-<a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a>│   │   ├── register_for_tournament.rb              # WRITE
-<a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a>│   │   ├── unregister_for_tournament.rb            # WRITE
-<a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a>│   │   └── update_tournament_deadline.rb           # WRITE
-<a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a>│   └── resources/
-<a id="__codelineno-0-37" name="__codelineno-0-37" href="#__codelineno-0-37"></a>│       ├── workflow_scenarios.rb       # cc://workflow/scenarios/* (8 Slugs whitelisted)
-<a id="__codelineno-0-38" name="__codelineno-0-38" href="#__codelineno-0-38"></a>│       ├── workflow_meta.rb            # cc://workflow/{roles,glossary}
-<a id="__codelineno-0-39" name="__codelineno-0-39" href="#__codelineno-0-39"></a>│       └── api_surface.rb              # cc://api/{action} (26 ALLOWLIST entries)
-<a id="__codelineno-0-40" name="__codelineno-0-40" href="#__codelineno-0-40"></a>bin/
-<a id="__codelineno-0-41" name="__codelineno-0-41" href="#__codelineno-0-41"></a>└── mcp-server                          # 0755 — require config/environment + Boot.run
-<a id="__codelineno-0-42" name="__codelineno-0-42" href="#__codelineno-0-42"></a>
-<a id="__codelineno-0-43" name="__codelineno-0-43" href="#__codelineno-0-43"></a>docs/
-<a id="__codelineno-0-44" name="__codelineno-0-44" href="#__codelineno-0-44"></a>├── managers/
-<a id="__codelineno-0-45" name="__codelineno-0-45" href="#__codelineno-0-45"></a>│   ├── clubcloud-mcp-setup.de.md       # Sportwart-Setup-Quickstart
-<a id="__codelineno-0-46" name="__codelineno-0-46" href="#__codelineno-0-46"></a>│   └── clubcloud-scenarios/
-<a id="__codelineno-0-47" name="__codelineno-0-47" href="#__codelineno-0-47"></a>│       ├── teilnehmerliste-finalisieren.de.md
-<a id="__codelineno-0-48" name="__codelineno-0-48" href="#__codelineno-0-48"></a>│       ├── player-anlegen.de.md
-<a id="__codelineno-0-49" name="__codelineno-0-49" href="#__codelineno-0-49"></a>│       ├── endrangliste-eintragen.de.md
-<a id="__codelineno-0-50" name="__codelineno-0-50" href="#__codelineno-0-50"></a>│       ├── cc-roles.de.md
-<a id="__codelineno-0-51" name="__codelineno-0-51" href="#__codelineno-0-51"></a>│       └── cc-glossary.de.md
-<a id="__codelineno-0-52" name="__codelineno-0-52" href="#__codelineno-0-52"></a>└── developers/
-<a id="__codelineno-0-53" name="__codelineno-0-53" href="#__codelineno-0-53"></a>    └── clubcloud-mcp-server.de.md      # ← diese Datei
-<a id="__codelineno-0-54" name="__codelineno-0-54" href="#__codelineno-0-54"></a>
-<a id="__codelineno-0-55" name="__codelineno-0-55" href="#__codelineno-0-55"></a>test/mcp_server/
-<a id="__codelineno-0-56" name="__codelineno-0-56" href="#__codelineno-0-56"></a>├── server_smoke_test.rb                # 6 Tests — Auto-Registry + Boot
-<a id="__codelineno-0-57" name="__codelineno-0-57" href="#__codelineno-0-57"></a>├── cc_session_test.rb                  # 8 Tests — Login + TTL + Reauth + Mock-Failsafe
-<a id="__codelineno-0-58" name="__codelineno-0-58" href="#__codelineno-0-58"></a>├── resources/
-<a id="__codelineno-0-59" name="__codelineno-0-59" href="#__codelineno-0-59"></a>│   ├── workflow_scenarios_test.rb
-<a id="__codelineno-0-60" name="__codelineno-0-60" href="#__codelineno-0-60"></a>│   ├── workflow_meta_test.rb
-<a id="__codelineno-0-61" name="__codelineno-0-61" href="#__codelineno-0-61"></a>│   └── api_surface_test.rb             # inkl. PATH_MAP-Drift-Guard
-<a id="__codelineno-0-62" name="__codelineno-0-62" href="#__codelineno-0-62"></a>├── tools/
-<a id="__codelineno-0-63" name="__codelineno-0-63" href="#__codelineno-0-63"></a>│   ├── lookup_region_test.rb           # DB-first acceptance
-<a id="__codelineno-0-64" name="__codelineno-0-64" href="#__codelineno-0-64"></a>│   ├── lookup_teilnehmerliste_test.rb  # D-18 acceptance story
-<a id="__codelineno-0-65" name="__codelineno-0-65" href="#__codelineno-0-65"></a>│   ├── search_player_test.rb           # live-only
-<a id="__codelineno-0-66" name="__codelineno-0-66" href="#__codelineno-0-66"></a>│   ├── finalize_teilnehmerliste_test.rb # 6 Tests inkl. Reauth-Retry
-<a id="__codelineno-0-67" name="__codelineno-0-67" href="#__codelineno-0-67"></a>│   └── lookup_smoke_test.rb            # Tool-Namen Drift-Detection (EXPECTED_TOOL_NAMES, 23 Tools inkl. cc_whoami)
-<a id="__codelineno-0-68" name="__codelineno-0-68" href="#__codelineno-0-68"></a>└── integration/
-<a id="__codelineno-0-69" name="__codelineno-0-69" href="#__codelineno-0-69"></a>    └── stdio_e2e_test.rb               # 6 E2E — bin/mcp-server Subprocess + JSON-RPC
-<a id="__codelineno-0-70" name="__codelineno-0-70" href="#__codelineno-0-70"></a>
-<a id="__codelineno-0-71" name="__codelineno-0-71" href="#__codelineno-0-71"></a>lib/capistrano/tasks/
-<a id="__codelineno-0-72" name="__codelineno-0-72" href="#__codelineno-0-72"></a>└── mcp_server.rake                     # chmod 0755 bin/mcp-server nach bundle:install
-<a id="__codelineno-0-73" name="__codelineno-0-73" href="#__codelineno-0-73"></a>
-<a id="__codelineno-0-74" name="__codelineno-0-74" href="#__codelineno-0-74"></a>.mcp.json.example                       # Vorlage — .mcp.json ist gitignored
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>│   │   │  # ── READ (29, read_only_hint: true) ──
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>│   │   ├── cc_whoami.rb                             # READ — Session-Kontext (scenario/region/season/Sportwart-Scope), kein CC-Call
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>│   │   ├── lookup_region.rb                       # READ DB-first — kanonisches Template
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>│   │   ├── lookup_league.rb                        # READ DB-first
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>│   │   ├── lookup_tournament.rb                     # READ DB-first
+<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>│   │   ├── lookup_teilnehmerliste.rb               # READ DB-first
+<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>│   │   ├── lookup_club.rb                           # READ DB-first (cc_id ODER Name/Synonym-Suche)
+<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>│   │   ├── lookup_meldeliste_for_tournament.rb     # READ DB-first + Live-Fallback
+<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>│   │   ├── search_player.rb                         # READ DB-first (Disambiguation-Output)
+<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>│   │   ├── list_clubs_by_discipline.rb             # READ DB-first
+<a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>│   │   ├── list_leagues.rb                          # READ DB-first
+<a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>│   │   ├── list_open_tournaments.rb                # READ DB-first
+<a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>│   │   ├── list_players_by_club_and_discipline.rb  # READ DB-first
+<a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>│   │   ├── list_players_by_name.rb                  # READ DB-first (kein CC-Call)
+<a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>│   │   ├── check_player_discipline_experience.rb   # READ DB-first
+<a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>│   │   ├── league_standings.rb                      # READ — Tabellenstand
+<a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>│   │   ├── league_schedule.rb                       # READ — Spielplan
+<a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a>│   │   ├── party_lineup.rb                          # READ — Mannschaftsaufstellung
+<a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a>│   │   ├── party_status.rb                          # READ — Party-/Begegnungsstatus
+<a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a>│   │   ├── my_tournaments.rb                        # READ — self-scoped (verknüpfter Spieler)
+<a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a>│   │   ├── my_results.rb                            # READ — self-scoped
+<a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a>│   │   ├── my_ranking.rb                            # READ — self-scoped
+<a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a>│   │   ├── my_teams.rb                              # READ — self-scoped
+<a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a>│   │   ├── my_party_games.rb                        # READ — self-scoped
+<a id="__codelineno-0-37" name="__codelineno-0-37" href="#__codelineno-0-37"></a>│   │   ├── doc_search.rb                            # READ — Doku-Suche (cc_doc_search)
+<a id="__codelineno-0-38" name="__codelineno-0-38" href="#__codelineno-0-38"></a>│   │   ├── smart_search.rb                          # READ — semantische Suche (cc_smart_search)
+<a id="__codelineno-0-39" name="__codelineno-0-39" href="#__codelineno-0-39"></a>│   │   ├── lookup_team.rb                           # READ live-only
+<a id="__codelineno-0-40" name="__codelineno-0-40" href="#__codelineno-0-40"></a>│   │   ├── lookup_spielbericht.rb                  # READ live-only
+<a id="__codelineno-0-41" name="__codelineno-0-41" href="#__codelineno-0-41"></a>│   │   ├── lookup_category.rb                       # READ live-only
+<a id="__codelineno-0-42" name="__codelineno-0-42" href="#__codelineno-0-42"></a>│   │   ├── lookup_serie.rb                          # READ live-only
+<a id="__codelineno-0-43" name="__codelineno-0-43" href="#__codelineno-0-43"></a>│   │   │  # ── WRITE (16, read_only_hint: false; 12 davon destructive_hint: true) ──
+<a id="__codelineno-0-44" name="__codelineno-0-44" href="#__codelineno-0-44"></a>│   │   ├── finalize_teilnehmerliste.rb             # WRITE — armed-flag + parse_cc_error + Reauth-Retry (Referenz-Template)
+<a id="__codelineno-0-45" name="__codelineno-0-45" href="#__codelineno-0-45"></a>│   │   ├── assign_player_to_teilnehmerliste.rb     # WRITE
+<a id="__codelineno-0-46" name="__codelineno-0-46" href="#__codelineno-0-46"></a>│   │   ├── fast_assign_to_teilnehmerliste.rb       # WRITE
+<a id="__codelineno-0-47" name="__codelineno-0-47" href="#__codelineno-0-47"></a>│   │   ├── remove_from_teilnehmerliste.rb          # WRITE
+<a id="__codelineno-0-48" name="__codelineno-0-48" href="#__codelineno-0-48"></a>│   │   ├── register_for_tournament.rb              # WRITE
+<a id="__codelineno-0-49" name="__codelineno-0-49" href="#__codelineno-0-49"></a>│   │   ├── unregister_for_tournament.rb            # WRITE
+<a id="__codelineno-0-50" name="__codelineno-0-50" href="#__codelineno-0-50"></a>│   │   ├── update_tournament_deadline.rb           # WRITE
+<a id="__codelineno-0-51" name="__codelineno-0-51" href="#__codelineno-0-51"></a>│   │   ├── assign_tournament_leiter.rb             # WRITE — Turnierleiter zuordnen
+<a id="__codelineno-0-52" name="__codelineno-0-52" href="#__codelineno-0-52"></a>│   │   ├── remove_tournament_leiter.rb             # WRITE — Turnierleiter entfernen
+<a id="__codelineno-0-53" name="__codelineno-0-53" href="#__codelineno-0-53"></a>│   │   ├── clone_tournament.rb                     # WRITE
+<a id="__codelineno-0-54" name="__codelineno-0-54" href="#__codelineno-0-54"></a>│   │   ├── clone_tournaments.rb                    # WRITE
+<a id="__codelineno-0-55" name="__codelineno-0-55" href="#__codelineno-0-55"></a>│   │   ├── set_party_lineup.rb                     # WRITE
+<a id="__codelineno-0-56" name="__codelineno-0-56" href="#__codelineno-0-56"></a>│   │   ├── prepare_tournament.rb                   # WRITE (nicht-destruktiv, destructive_hint: false)
+<a id="__codelineno-0-57" name="__codelineno-0-57" href="#__codelineno-0-57"></a>│   │   ├── open_in_tournament_app.rb              # WRITE (nicht-destruktiv — App-Deeplink)
+<a id="__codelineno-0-58" name="__codelineno-0-58" href="#__codelineno-0-58"></a>│   │   ├── start_party_day.rb                     # WRITE (nicht-destruktiv)
+<a id="__codelineno-0-59" name="__codelineno-0-59" href="#__codelineno-0-59"></a>│   │   ├── open_party_in_app.rb                   # WRITE (nicht-destruktiv — App-Deeplink)
+<a id="__codelineno-0-60" name="__codelineno-0-60" href="#__codelineno-0-60"></a>│   │   │  # ── SELF-SERVICE (1, read_only_hint: false + destructive_hint: false) ──
+<a id="__codelineno-0-61" name="__codelineno-0-61" href="#__codelineno-0-61"></a>│   │   └── link_my_player.rb                       # SELF-SERVICE — eigenes Spielerprofil verknüpfen
+<a id="__codelineno-0-62" name="__codelineno-0-62" href="#__codelineno-0-62"></a>│   └── resources/
+<a id="__codelineno-0-63" name="__codelineno-0-63" href="#__codelineno-0-63"></a>│       ├── workflow_scenarios.rb       # cc://workflow/scenarios/* (8 Slugs whitelisted)
+<a id="__codelineno-0-64" name="__codelineno-0-64" href="#__codelineno-0-64"></a>│       ├── workflow_meta.rb            # cc://workflow/{roles,glossary}
+<a id="__codelineno-0-65" name="__codelineno-0-65" href="#__codelineno-0-65"></a>│       ├── api_surface.rb              # cc://api/{action} (26 ALLOWLIST entries)
+<a id="__codelineno-0-66" name="__codelineno-0-66" href="#__codelineno-0-66"></a>│       └── context_current.rb          # cc://context/current (Session-/Kontext-Resource)
+<a id="__codelineno-0-67" name="__codelineno-0-67" href="#__codelineno-0-67"></a>bin/
+<a id="__codelineno-0-68" name="__codelineno-0-68" href="#__codelineno-0-68"></a>└── mcp-server                          # 0755 — require config/environment + Boot.run
+<a id="__codelineno-0-69" name="__codelineno-0-69" href="#__codelineno-0-69"></a>
+<a id="__codelineno-0-70" name="__codelineno-0-70" href="#__codelineno-0-70"></a>docs/
+<a id="__codelineno-0-71" name="__codelineno-0-71" href="#__codelineno-0-71"></a>├── managers/
+<a id="__codelineno-0-72" name="__codelineno-0-72" href="#__codelineno-0-72"></a>│   ├── clubcloud-mcp-setup.de.md       # Sportwart-Setup-Quickstart
+<a id="__codelineno-0-73" name="__codelineno-0-73" href="#__codelineno-0-73"></a>│   └── clubcloud-scenarios/
+<a id="__codelineno-0-74" name="__codelineno-0-74" href="#__codelineno-0-74"></a>│       ├── teilnehmerliste-finalisieren.de.md
+<a id="__codelineno-0-75" name="__codelineno-0-75" href="#__codelineno-0-75"></a>│       ├── player-anlegen.de.md
+<a id="__codelineno-0-76" name="__codelineno-0-76" href="#__codelineno-0-76"></a>│       ├── endrangliste-eintragen.de.md
+<a id="__codelineno-0-77" name="__codelineno-0-77" href="#__codelineno-0-77"></a>│       ├── cc-roles.de.md
+<a id="__codelineno-0-78" name="__codelineno-0-78" href="#__codelineno-0-78"></a>│       └── cc-glossary.de.md
+<a id="__codelineno-0-79" name="__codelineno-0-79" href="#__codelineno-0-79"></a>└── developers/
+<a id="__codelineno-0-80" name="__codelineno-0-80" href="#__codelineno-0-80"></a>    └── clubcloud-mcp-server.de.md      # ← diese Datei
+<a id="__codelineno-0-81" name="__codelineno-0-81" href="#__codelineno-0-81"></a>
+<a id="__codelineno-0-82" name="__codelineno-0-82" href="#__codelineno-0-82"></a>test/mcp_server/
+<a id="__codelineno-0-83" name="__codelineno-0-83" href="#__codelineno-0-83"></a>├── server_smoke_test.rb                # 6 Tests — Auto-Registry + Boot
+<a id="__codelineno-0-84" name="__codelineno-0-84" href="#__codelineno-0-84"></a>├── cc_session_test.rb                  # 8 Tests — Login + TTL + Reauth + Mock-Failsafe
+<a id="__codelineno-0-85" name="__codelineno-0-85" href="#__codelineno-0-85"></a>├── resources/
+<a id="__codelineno-0-86" name="__codelineno-0-86" href="#__codelineno-0-86"></a>│   ├── workflow_scenarios_test.rb
+<a id="__codelineno-0-87" name="__codelineno-0-87" href="#__codelineno-0-87"></a>│   ├── workflow_meta_test.rb
+<a id="__codelineno-0-88" name="__codelineno-0-88" href="#__codelineno-0-88"></a>│   └── api_surface_test.rb             # inkl. PATH_MAP-Drift-Guard
+<a id="__codelineno-0-89" name="__codelineno-0-89" href="#__codelineno-0-89"></a>├── tools/
+<a id="__codelineno-0-90" name="__codelineno-0-90" href="#__codelineno-0-90"></a>│   ├── lookup_region_test.rb           # DB-first acceptance
+<a id="__codelineno-0-91" name="__codelineno-0-91" href="#__codelineno-0-91"></a>│   ├── lookup_teilnehmerliste_test.rb  # D-18 acceptance story
+<a id="__codelineno-0-92" name="__codelineno-0-92" href="#__codelineno-0-92"></a>│   ├── search_player_test.rb           # live-only
+<a id="__codelineno-0-93" name="__codelineno-0-93" href="#__codelineno-0-93"></a>│   ├── finalize_teilnehmerliste_test.rb # 6 Tests inkl. Reauth-Retry
+<a id="__codelineno-0-94" name="__codelineno-0-94" href="#__codelineno-0-94"></a>│   └── lookup_smoke_test.rb            # Tool-Namen Drift-Detection (EXPECTED_TOOL_NAMES — frozen bei 39, hinkt den 46 live-registrierten hinterher; Drift-Guard aktuell rot)
+<a id="__codelineno-0-95" name="__codelineno-0-95" href="#__codelineno-0-95"></a>└── integration/
+<a id="__codelineno-0-96" name="__codelineno-0-96" href="#__codelineno-0-96"></a>    └── stdio_e2e_test.rb               # 6 E2E — bin/mcp-server Subprocess + JSON-RPC
+<a id="__codelineno-0-97" name="__codelineno-0-97" href="#__codelineno-0-97"></a>
+<a id="__codelineno-0-98" name="__codelineno-0-98" href="#__codelineno-0-98"></a>lib/capistrano/tasks/
+<a id="__codelineno-0-99" name="__codelineno-0-99" href="#__codelineno-0-99"></a>└── mcp_server.rake                     # chmod 0755 bin/mcp-server nach bundle:install
+<a id="__codelineno-0-100" name="__codelineno-0-100" href="#__codelineno-0-100"></a>
+<a id="__codelineno-0-101" name="__codelineno-0-101" href="#__codelineno-0-101"></a>.mcp.json.example                       # Vorlage — .mcp.json ist gitignored
 </code></pre></div>
-<p><strong>Gesamt:</strong> 31 Source-Files, ~1100 LOC Production-Code, 65 Tests / 220 Assertions.</p>
+<p><strong>Gesamt:</strong> 59 Ruby-Files unter <code>lib/mcp_server/</code> — davon <strong>46 registrierte Tool-Klassen</strong> (+ <code>base_tool.rb</code>/<code>mock_client.rb</code>), 4 Resource-Registries und das Wiring (<code>server.rb</code>, <code>cc_session.rb</code>, <code>audit_trail.rb</code>, <code>role_tool_map.rb</code>, <code>tool_registry.rb</code>, <code>transport/boot.rb</code>).</p>
 <hr />
 <h2 id="5-setup-fur-entwickler">5. Setup für Entwickler<a class="headerlink" href="#5-setup-fur-entwickler" title="Permanent link">&para;</a></h2>
 <h3 id="mock-mode-kein-cc-account-notig">Mock-Mode (kein CC-Account nötig)<a class="headerlink" href="#mock-mode-kein-cc-account-notig" title="Permanent link">&para;</a></h3>
@@ -5167,9 +5201,9 @@ Ohne passenden Block: <code>RuntimeError "ClubCloud username not configured for 
 <p>JSON-Lines-Audit-Trail (append-only) für jeden <code>armed:true</code>-Write-Call — Forensik + Cleanup-Routing bei Live-Datenschäden (D-10-04-D). Storage: <code>log/mcp-audit-trail.log</code>. Defensiv: <code>rescue StandardError</code> — ein Logger-Failure darf das Tool nie crashen.</p>
 <p>7-Feld-Schema: <code>zeitpunkt</code> (ISO-8601 UTC), <code>operator</code> (CC-Login-User, <code>"unknown"</code> falls fehlend), <code>tool</code> (name+version), <code>payload</code> (vollständig inkl. cc_ids), <code>pre_validation_results</code>, <code>read_back_status</code> (<code>match</code>/<code>mismatch</code>/<code>skipped</code>/nil), <code>result</code> (<code>success</code>/<code>cc-error</code>/<code>exception</code>).</p>
 <h3 id="mcpserverroletoolmap-libmcp_serverrole_tool_maprb"><code>McpServer::RoleToolMap</code> (<code>lib/mcp_server/role_tool_map.rb</code>)<a class="headerlink" href="#mcpserverroletoolmap-libmcp_serverrole_tool_maprb" title="Permanent link">&para;</a></h3>
-<p>Hardcoded Tool-Listen (<code>BASE_READ_TOOLS</code>, <code>ALL_TOOLS</code>) für den <strong>HTTP-Pfad</strong> (<code>McpController</code>-Mount). Der HTTP-Pfad nutzt diese Liste statt der Stdio-<code>collect_tools</code>-Auto-Registry — neue Tools müssen hier zusätzlich eingetragen werden, um über HTTP sichtbar zu sein. Der Final-Stub (Plan 14-G.2) liefert allen authentifizierten Usern <code>ALL_TOOLS</code>; die Per-Record-Authority erfolgt in <code>BaseTool.authorize!</code> (TournamentPolicy), nicht hier.</p>
+<p>Hardcoded Tool-Listen für den <strong>HTTP-Pfad</strong> (<code>McpController</code>-Mount): <code>BASE_READ_TOOLS</code>, <code>WRITE_TOOLS</code>, <code>SELF_SERVICE_TOOLS</code> und die daraus komponierte <code>ALL_TOOLS = (BASE_READ_TOOLS + SELF_SERVICE_TOOLS + WRITE_TOOLS).uniq</code>. Der HTTP-Pfad nutzt diese Listen statt der Stdio-<code>collect_tools</code>-Auto-Registry — neue Tools müssen hier zusätzlich eingetragen werden, um über HTTP sichtbar zu sein. Das Tier-Gating (welcher Tier für welche Persona) erfolgt in <code>ToolRegistry.tools_for</code> (s.u.); die feine Per-Record-Authority in <code>BaseTool.authorize!</code> (TournamentPolicy).</p>
 <h3 id="mcpservertoolregistry-libmcp_servertool_registryrb"><code>McpServer::ToolRegistry</code> (<code>lib/mcp_server/tool_registry.rb</code>)<a class="headerlink" href="#mcpservertoolregistry-libmcp_servertool_registryrb" title="Permanent link">&para;</a></h3>
-<p>Liefert die Tool-Klassen für den HTTP-Mount auf Basis von <code>RoleToolMap::ALL_TOOLS</code>.</p>
+<p>Komponiert das persona-gefilterte Tool-Set für den HTTP-Mount aus den <code>RoleToolMap</code>-Tiers — <strong>nicht</strong> pauschal <code>ALL_TOOLS</code>.</p>
 <table>
 <thead>
 <tr>
@@ -5182,7 +5216,12 @@ Ohne passenden Block: <code>RuntimeError "ClubCloud username not configured for 
 <tr>
 <td><code>.tools_for</code></td>
 <td><code>(user)</code> → <code>Array&lt;Symbol&gt;</code></td>
-<td><code>[]</code> bei nil-User, sonst <code>RoleToolMap::ALL_TOOLS</code>.</td>
+<td><code>[]</code> bei nil-User; sonst <code>BASE_READ_TOOLS + SELF_SERVICE_TOOLS</code>, <strong>plus</strong> <code>WRITE_TOOLS</code> nur wenn <code>user.cc_write_access? &amp;&amp; local_server?</code>.</td>
+</tr>
+<tr>
+<td><code>.local_server?</code></td>
+<td>→ <code>Boolean</code></td>
+<td><code>Carambus.config.carambus_api_url.present?</code> — die Authority (zentrale API/Scraper) hat keine, Local-Server schon.</td>
 </tr>
 <tr>
 <td><code>.tool_classes_for</code></td>
@@ -5191,11 +5230,12 @@ Ohne passenden Block: <code>RuntimeError "ClubCloud username not configured for 
 </tr>
 <tr>
 <td><code>.tool_count_for</code></td>
-<td><code>(_role_key)</code> → <code>Integer</code></td>
-<td>Stub — gibt <code>ALL_TOOLS.size</code> für jeden Key zurück.</td>
+<td><code>(user)</code> → <code>Integer</code></td>
+<td><code>tools_for(user).size</code> (persona-gefiltert), <strong>nicht</strong> <code>ALL_TOOLS.size</code>.</td>
 </tr>
 </tbody>
 </table>
+<p><strong>Wichtig (Authority = read-only):</strong> Write-Tools werden nur auf <strong>Local-Servern</strong> ausgeliefert. Auf der Authority (<code>carambus_api_url</code> blank) bekommt selbst ein <code>system_admin</code> KEINE Write-Tools — Turnierverwaltung gehört auf die Local-Server (Phase 39). <code>SpielleiterChatService</code> konsumiert dieselbe <code>tool_classes_for(user)</code>-Quelle (D-34-3: EINE Tool-Quelle, keine zweite <code>TOOL_CLASSES</code>-Liste).</p>
 <p><strong>Wichtig:</strong> <code>ToolRegistry</code>/<code>RoleToolMap</code> ersetzen die Stdio-Auto-Registry (<code>Server.collect_tools</code>) <strong>nicht</strong> — beide Listing-Pfade koexistieren (siehe §2 Auto-Registry-Mechanismus).</p>
 <hr />
 <h2 id="7-how-to-erweitern">7. How-To: Erweitern<a class="headerlink" href="#7-how-to-erweitern" title="Permanent link">&para;</a></h2>
@@ -5372,7 +5412,7 @@ Ohne passenden Block: <code>RuntimeError "ClubCloud username not configured for 
 <tr>
 <td>Smoke</td>
 <td><code>test/mcp_server/tools/lookup_smoke_test.rb</code></td>
-<td>Drift-Detection für 23 Tool-Namen inkl. <code>cc_whoami</code> (<code>EXPECTED_TOOL_NAMES</code>)</td>
+<td>Drift-Detection der Tool-Namen (<code>EXPECTED_TOOL_NAMES</code>) — frozen bei <strong>39</strong>, gegenübergestellt der dynamischen <code>collect_tools</code>-Ableitung</td>
 <td>schnell</td>
 </tr>
 <tr>
@@ -5389,6 +5429,9 @@ Ohne passenden Block: <code>RuntimeError "ClubCloud username not configured for 
 </tr>
 </tbody>
 </table>
+<blockquote>
+<p><strong>Aktueller Drift-Stand (Wartungshinweis):</strong> Der Live-Server registriert <strong>46 Tools</strong> (<code>Server.collect_tools</code> = alle <code>BaseTool</code>-Subklassen; deckungsgleich mit <code>RoleToolMap::ALL_TOOLS</code>). <code>EXPECTED_TOOL_NAMES</code> listet dagegen nur <strong>39</strong> — es fehlen die sieben Tournament-/Party-Lifecycle-Tools <code>cc_clone_tournament</code>, <code>cc_clone_tournaments</code>, <code>cc_open_in_tournament_app</code>, <code>cc_open_party_in_app</code>, <code>cc_party_status</code>, <code>cc_prepare_tournament</code>, <code>cc_start_party_day</code>. Der <code>test_dynamic_tool_registry_matches_frozen_reference</code>-Test schlägt daher aktuell fehl; wer den Drift-Guard grün ziehen will, ergänzt diese sieben Namen in <code>EXPECTED_TOOL_NAMES</code>. Die vollständige aktuelle Tool-Liste (grup­piert Read/Write/Self-Service) steht im <a href="#4-datei-layout">Datei-Layout §4</a>.</p>
+</blockquote>
 <h3 id="test-pattern-fur-db-first-tool">Test-Pattern für DB-first-Tool<a class="headerlink" href="#test-pattern-fur-db-first-tool" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="nb">require</span><span class="w"> </span><span class="s2">&quot;test_helper&quot;</span>
 <a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>

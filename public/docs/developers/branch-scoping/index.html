@@ -1,6 +1,6 @@
 
 <!doctype html>
-<html lang="en" class="no-js">
+<html lang="de" class="no-js">
   <head>
     
       <meta charset="utf-8">
@@ -10,28 +10,24 @@
       
       
       
-        <link rel="canonical" href="https://GernotUllrich.github.io/carambus/en/developers/umb-scraping-implementation/">
+        <link rel="canonical" href="https://GernotUllrich.github.io/carambus/developers/branch-scoping/">
       
       
-        <link rel="prev" href="../testing/fixture-collection-guide/">
       
       
-        <link rel="next" href="../umb-scraping-methods/">
-      
-      
-      <link rel="icon" href="../../../assets/images/favicon.png">
+      <link rel="icon" href="../../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.15">
     
     
       
-        <title>UMB Scraping Implementation - Carambus Documentation</title>
+        <title>Branch-Tagging & Scope-Band - Carambus Documentation</title>
       
     
     
-      <link rel="stylesheet" href="../../../assets/stylesheets/main.342714a4.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.342714a4.min.css">
       
         
-        <link rel="stylesheet" href="../../../assets/stylesheets/palette.06af60db.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
       
       
 
@@ -50,11 +46,11 @@
       
     
     
-      <link rel="stylesheet" href="../../../stylesheets/extra.css">
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
     
-      <link rel="stylesheet" href="../../../stylesheets/print.css">
+      <link rel="stylesheet" href="../../stylesheets/print.css">
     
-    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -80,8 +76,8 @@
     <div data-md-component="skip">
       
         
-        <a href="#umb-scraping-architecture" class="md-skip">
-          Skip to content
+        <a href="#branch-tagging-scope-band" class="md-skip">
+          Zum Inhalt
         </a>
       
     </div>
@@ -99,8 +95,8 @@
   
 
 <header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
-  <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="../../" title="Carambus Documentation" class="md-header__button md-logo" aria-label="Carambus Documentation" data-md-component="logo">
+  <nav class="md-header__inner md-grid" aria-label="Kopfzeile">
+    <a href="../.." title="Carambus Documentation" class="md-header__button md-logo" aria-label="Carambus Documentation" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -120,7 +116,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              UMB Scraping Implementation
+              Branch-Tagging &amp; Scope-Band
             
           </span>
         </div>
@@ -160,20 +156,20 @@
       <div class="md-header__option">
   <div class="md-select">
     
-    <button class="md-header__button md-icon" aria-label="Select language">
+    <button class="md-header__button md-icon" aria-label="Sprache wechseln">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"/></svg>
     </button>
     <div class="md-select__inner">
       <ul class="md-select__list">
         
           <li class="md-select__item">
-            <a href="../../../developers/umb-scraping-implementation/" hreflang="de" class="md-select__link">
+            <a href="./" hreflang="de" class="md-select__link">
               Deutsch
             </a>
           </li>
         
           <li class="md-select__item">
-            <a href="./" hreflang="en" class="md-select__link">
+            <a href="../../en/developers/branch-scoping/" hreflang="en" class="md-select__link">
               English
             </a>
           </li>
@@ -194,16 +190,16 @@
   <label class="md-search__overlay" for="__search"></label>
   <div class="md-search__inner" role="search">
     <form class="md-search__form" name="search">
-      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <input type="text" class="md-search__input" name="query" aria-label="Suche" placeholder="Suche" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
       <label class="md-search__icon md-icon" for="__search">
         
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
         
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
       </label>
-      <nav class="md-search__options" aria-label="Search">
+      <nav class="md-search__options" aria-label="Suche">
         
-        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+        <button type="reset" class="md-search__icon md-icon" title="Zurücksetzen" aria-label="Zurücksetzen" tabindex="-1">
           
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
         </button>
@@ -216,7 +212,7 @@
       <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
         <div class="md-search-result" data-md-component="search-result">
           <div class="md-search-result__meta">
-            Initializing search
+            Suche wird initialisiert
           </div>
           <ol class="md-search-result__list" role="presentation"></ol>
         </div>
@@ -228,7 +224,7 @@
     
     
       <div class="md-header__source">
-        <a href="https://github.com/GernotUllrich/carambus" title="Go to repository" class="md-source" data-md-component="source">
+        <a href="https://github.com/GernotUllrich/carambus" title="Zum Repository" class="md-source" data-md-component="source">
   <div class="md-source__icon md-icon">
     
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
@@ -243,7 +239,7 @@
   
     
       
-<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+<nav class="md-tabs" aria-label="Hauptnavigation" data-md-component="tabs">
   <div class="md-grid">
     <ul class="md-tabs__list">
       
@@ -253,13 +249,13 @@
   
   
     <li class="md-tabs__item">
-      <a href="../../" class="md-tabs__link">
+      <a href="../.." class="md-tabs__link">
         
   
   
     
   
-  Home
+  Startseite
 
       </a>
     </li>
@@ -280,7 +276,7 @@
   
     
   
-  Decision Makers
+  Für Entscheider
 
         </a>
       </li>
@@ -302,7 +298,7 @@
   
     
   
-  Players
+  Für Spieler
 
         </a>
       </li>
@@ -324,7 +320,7 @@
   
     
   
-  Managers
+  Für Turniermanager
 
         </a>
       </li>
@@ -346,7 +342,7 @@
   
     
   
-  Administrators
+  Für Systemadministratoren
 
         </a>
       </li>
@@ -358,19 +354,17 @@
   
   
   
-    
-  
   
     
     
-      <li class="md-tabs__item md-tabs__item--active">
+      <li class="md-tabs__item">
         <a href="../" class="md-tabs__link">
           
   
   
     
   
-  Developers
+  Für Entwickler
 
         </a>
       </li>
@@ -392,7 +386,7 @@
   
     
   
-  Reference
+  Referenz
 
         </a>
       </li>
@@ -414,7 +408,7 @@
   
     
   
-  About
+  Über
 
         </a>
       </li>
@@ -450,7 +444,7 @@
 
 <nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="../../" title="Carambus Documentation" class="md-nav__button md-logo" aria-label="Carambus Documentation" data-md-component="logo">
+    <a href="../.." title="Carambus Documentation" class="md-nav__button md-logo" aria-label="Carambus Documentation" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -460,7 +454,7 @@
   </label>
   
     <div class="md-nav__source">
-      <a href="https://github.com/GernotUllrich/carambus" title="Go to repository" class="md-source" data-md-component="source">
+      <a href="https://github.com/GernotUllrich/carambus" title="Zum Repository" class="md-source" data-md-component="source">
   <div class="md-source__icon md-icon">
     
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
@@ -480,12 +474,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../../" class="md-nav__link">
+      <a href="../.." class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Home
+    Startseite
     
   </span>
   
@@ -538,7 +532,7 @@
   
   
   <span class="md-ellipsis">
-    Decision Makers
+    Für Entscheider
     
   </span>
   
@@ -555,7 +549,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_2">
             <span class="md-nav__icon md-icon"></span>
-            Decision Makers
+            Für Entscheider
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -596,7 +590,7 @@
   
   
   <span class="md-ellipsis">
-    Features Overview
+    Feature-Übersicht
     
   </span>
   
@@ -619,7 +613,7 @@
   
   
   <span class="md-ellipsis">
-    Deployment Options
+    Deployment-Optionen
     
   </span>
   
@@ -680,7 +674,7 @@
   
   
   <span class="md-ellipsis">
-    Players
+    Für Spieler
     
   </span>
   
@@ -697,7 +691,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
-            Players
+            Für Spieler
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -715,7 +709,7 @@
   
   
   <span class="md-ellipsis">
-    Scoreboard Guide
+    Scoreboard-Anleitung
     
   </span>
   
@@ -738,7 +732,7 @@
   
   
   <span class="md-ellipsis">
-    Tournament Participation
+    Turnierteilnahme
     
   </span>
   
@@ -761,7 +755,7 @@
   
   
   <span class="md-ellipsis">
-    AI-Powered Search
+    KI-gestützte Suche
     
   </span>
   
@@ -838,7 +832,7 @@
   
   
   <span class="md-ellipsis">
-    Managers
+    Für Turniermanager
     
   </span>
   
@@ -855,7 +849,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
-            Managers
+            Für Turniermanager
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -873,7 +867,7 @@
   
   
   <span class="md-ellipsis">
-    Tournament Management
+    Turnierverwaltung
     
   </span>
   
@@ -896,7 +890,7 @@
   
   
   <span class="md-ellipsis">
-    Tournament Quick Reference
+    Turnier-Schnellreferenz
     
   </span>
   
@@ -919,7 +913,7 @@
   
   
   <span class="md-ellipsis">
-    League Management
+    Liga-Management
     
   </span>
   
@@ -942,7 +936,7 @@
   
   
   <span class="md-ellipsis">
-    Single Tournament
+    Einzelturnier
     
   </span>
   
@@ -965,7 +959,7 @@
   
   
   <span class="md-ellipsis">
-    Table Reservation
+    Tischreservierung
     
   </span>
   
@@ -988,7 +982,7 @@
   
   
   <span class="md-ellipsis">
-    Admin Roles
+    Admin-Rollen
     
   </span>
   
@@ -1011,7 +1005,7 @@
   
   
   <span class="md-ellipsis">
-    ClubCloud Integration
+    ClubCloud-Integration
     
   </span>
   
@@ -1139,7 +1133,7 @@
   
   
   <span class="md-ellipsis">
-    External Tournament Bridge
+    External-Tournament-Bridge
     
   </span>
   
@@ -1342,7 +1336,7 @@
   
   
   <span class="md-ellipsis">
-    Search & Filters
+    Suche & Filter
     
   </span>
   
@@ -1415,7 +1409,7 @@
   
   
   <span class="md-ellipsis">
-    Administrators
+    Für Systemadministratoren
     
   </span>
   
@@ -1432,7 +1426,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_5">
             <span class="md-nav__icon md-icon"></span>
-            Administrators
+            Für Systemadministratoren
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -1450,7 +1444,7 @@
   
   
   <span class="md-ellipsis">
-    Installation Overview
+    Installations-Übersicht
     
   </span>
   
@@ -1542,7 +1536,7 @@
   
   
   <span class="md-ellipsis">
-    Server Architecture
+    Server-Architektur
     
   </span>
   
@@ -1565,7 +1559,7 @@
   
   
   <span class="md-ellipsis">
-    Email Configuration
+    Email-Konfiguration
     
   </span>
   
@@ -1588,7 +1582,7 @@
   
   
   <span class="md-ellipsis">
-    Database Setup
+    Datenbank-Setup
     
   </span>
   
@@ -1656,8 +1650,6 @@
       
   
   
-    
-  
   
   
     
@@ -1723,19 +1715,18 @@
     
     
       
-        
-        
-      
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" checked>
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
         
           
           <div class="md-nav__link md-nav__container">
@@ -1744,7 +1735,7 @@
   
   
   <span class="md-ellipsis">
-    Developers
+    Für Entwickler
     
   </span>
   
@@ -1752,16 +1743,16 @@
             </a>
             
               
-              <label class="md-nav__link " for="__nav_6" id="__nav_6_label" tabindex="">
+              <label class="md-nav__link " for="__nav_6" id="__nav_6_label" tabindex="0">
                 <span class="md-nav__icon md-icon"></span>
               </label>
             
           </div>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_6">
             <span class="md-nav__icon md-icon"></span>
-            Developers
+            Für Entwickler
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -1802,7 +1793,7 @@
   
   
   <span class="md-ellipsis">
-    Developer Guide
+    Entwickler-Leitfaden
     
   </span>
   
@@ -1825,7 +1816,7 @@
   
   
   <span class="md-ellipsis">
-    Database Design
+    Datenbank-Design
     
   </span>
   
@@ -1848,7 +1839,7 @@
   
   
   <span class="md-ellipsis">
-    ER Diagram
+    ER-Diagramm
     
   </span>
   
@@ -1871,7 +1862,7 @@
   
   
   <span class="md-ellipsis">
-    Scenario Management
+    Scenario-Management
     
   </span>
   
@@ -1894,7 +1885,7 @@
   
   
   <span class="md-ellipsis">
-    Scenario Workflow
+    Scenario-Workflow
     
   </span>
   
@@ -1947,13 +1938,10 @@
       
       
         
-          
-          
-        
       
     
     
-    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
@@ -1962,7 +1950,7 @@
         <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6_9" >
         
           
-          <label class="md-nav__link" for="__nav_6_9" id="__nav_6_9_label" tabindex="">
+          <label class="md-nav__link" for="__nav_6_9" id="__nav_6_9_label" tabindex="0">
             
   
   
@@ -2017,7 +2005,7 @@
   
   
   <span class="md-ellipsis">
-    Fixture Collection Guide
+    Fixture Sammlung Anleitung
     
   </span>
   
@@ -2040,10 +2028,8 @@
                 
   
   
-    
   
   
-  
     
     
       
@@ -2056,21 +2042,20 @@
     
       
       
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
         
           
-          
         
-      
-    
-    
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
-      
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6_10" checked>
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6_10" >
         
           
-          <label class="md-nav__link" for="__nav_6_10" id="__nav_6_10_label" tabindex="">
+          <label class="md-nav__link" for="__nav_6_10" id="__nav_6_10_label" tabindex="0">
             
   
   
@@ -2083,7 +2068,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_10_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_10_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_6_10">
             <span class="md-nav__icon md-icon"></span>
             UMB Scraping
@@ -2094,158 +2079,20 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    UMB Scraping Implementation
-    
-  </span>
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../umb-scraping-implementation/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    UMB Scraping Implementation
+    UMB Scraping Implementierung
     
   </span>
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#namespace-overview" class="md-nav__link">
-    <span class="md-ellipsis">
-      Namespace Overview
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#architecture-decisions" class="md-nav__link">
-    <span class="md-ellipsis">
-      Architecture Decisions
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Architecture Decisions">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#a-poro-vs-applicationservice" class="md-nav__link">
-    <span class="md-ellipsis">
-      a. PORO vs. ApplicationService
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#b-module-vs-class" class="md-nav__link">
-    <span class="md-ellipsis">
-      b. Module vs. Class
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#c-delegation-pattern" class="md-nav__link">
-    <span class="md-ellipsis">
-      c. Delegation Pattern
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#d-optional-pdf-pipeline" class="md-nav__link">
-    <span class="md-ellipsis">
-      d. Optional PDF Pipeline
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#e-internationalgame-sti" class="md-nav__link">
-    <span class="md-ellipsis">
-      e. InternationalGame STI
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#f-two-tier-discipline-detection" class="md-nav__link">
-    <span class="md-ellipsis">
-      f. Two-tier discipline detection
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#data-flow" class="md-nav__link">
-    <span class="md-ellipsis">
-      Data Flow
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#entry-points" class="md-nav__link">
-    <span class="md-ellipsis">
-      Entry Points
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -2263,7 +2110,7 @@
   
   
   <span class="md-ellipsis">
-    UMB Scraping Methods
+    UMB Scraping Methoden
     
   </span>
   
@@ -2305,13 +2152,10 @@
       
       
         
-          
-          
-        
       
     
     
-    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
@@ -2320,7 +2164,7 @@
         <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6_11" >
         
           
-          <label class="md-nav__link" for="__nav_6_11" id="__nav_6_11_label" tabindex="">
+          <label class="md-nav__link" for="__nav_6_11" id="__nav_6_11_label" tabindex="0">
             
   
   
@@ -2452,7 +2296,7 @@
   
   
   <span class="md-ellipsis">
-    External Tournament Bridge
+    External-Tournament-Bridge
     
   </span>
   
@@ -2494,13 +2338,10 @@
       
       
         
-          
-          
-        
       
     
     
-    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
@@ -2509,7 +2350,7 @@
         <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6_13" >
         
           
-          <label class="md-nav__link" for="__nav_6_13" id="__nav_6_13_label" tabindex="">
+          <label class="md-nav__link" for="__nav_6_13" id="__nav_6_13_label" tabindex="0">
             
   
   
@@ -2587,7 +2428,7 @@
   
   
   <span class="md-ellipsis">
-    Tournament
+    Turnier
     
   </span>
   
@@ -2610,7 +2451,7 @@
   
   
   <span class="md-ellipsis">
-    Tournament Monitor
+    Turnier-Monitor
     
   </span>
   
@@ -2633,7 +2474,7 @@
   
   
   <span class="md-ellipsis">
-    League
+    Liga
     
   </span>
   
@@ -2656,7 +2497,7 @@
   
   
   <span class="md-ellipsis">
-    Party Monitor
+    Party-Monitor
     
   </span>
   
@@ -2679,7 +2520,7 @@
   
   
   <span class="md-ellipsis">
-    UMB Services
+    UMB-Services
     
   </span>
   
@@ -2702,7 +2543,7 @@
   
   
   <span class="md-ellipsis">
-    Video Cross-Reference
+    Video-Querverweise
     
   </span>
   
@@ -2779,7 +2620,7 @@
   
   
   <span class="md-ellipsis">
-    Deployment Workflow
+    Deployment-Workflow
     
   </span>
   
@@ -2797,12 +2638,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../developers/overcommit-hooks.md" class="md-nav__link">
+      <a href="../overcommit-hooks.md" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Overcommit Hooks (MkDocsBuild)
+    Overcommit-Hooks (MkDocsBuild)
     
   </span>
   
@@ -2825,7 +2666,7 @@
   
   
   <span class="md-ellipsis">
-    Data Management
+    Datenverwaltung
     
   </span>
   
@@ -2848,7 +2689,7 @@
   
   
   <span class="md-ellipsis">
-    Database Partitioning
+    Datenbank-Partitionierung
     
   </span>
   
@@ -2871,7 +2712,7 @@
   
   
   <span class="md-ellipsis">
-    Paper Trail Optimization
+    PaperTrail-Optimierung
     
   </span>
   
@@ -2894,7 +2735,7 @@
   
   
   <span class="md-ellipsis">
-    Game Plan Reconstruction
+    Spielplan-Rekonstruktion
     
   </span>
   
@@ -2917,7 +2758,7 @@
   
   
   <span class="md-ellipsis">
-    Tournament Duplicates
+    Turnier-Duplikate
     
   </span>
   
@@ -2940,7 +2781,7 @@
   
   
   <span class="md-ellipsis">
-    Region Tagging
+    Regions-Tagging
     
   </span>
   
@@ -2963,7 +2804,7 @@
   
   
   <span class="md-ellipsis">
-    YouTube Streaming Architecture
+    YouTube Streaming Architektur
     
   </span>
   
@@ -3009,7 +2850,7 @@
   
   
   <span class="md-ellipsis">
-    Deployment Checklist Production
+    Deployment-Checkliste (Prod)
     
   </span>
   
@@ -3032,7 +2873,7 @@
   
   
   <span class="md-ellipsis">
-    UMB Deployment Checklist
+    UMB Deployment-Checkliste
     
   </span>
   
@@ -3096,7 +2937,7 @@
   
   
   <span class="md-ellipsis">
-    Reference
+    Referenz
     
   </span>
   
@@ -3107,7 +2948,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_7">
             <span class="md-nav__icon md-icon"></span>
-            Reference
+            Referenz
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -3146,7 +2987,7 @@
   
   
   <span class="md-ellipsis">
-    Glossary
+    Glossar
     
   </span>
   
@@ -3169,7 +3010,7 @@
   
   
   <span class="md-ellipsis">
-    Terms
+    AGB
     
   </span>
   
@@ -3192,7 +3033,7 @@
   
   
   <span class="md-ellipsis">
-    Privacy
+    Datenschutz
     
   </span>
   
@@ -3313,7 +3154,7 @@
   
   
   <span class="md-ellipsis">
-    About
+    Über
     
   </span>
   
@@ -3324,7 +3165,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_8">
             <span class="md-nav__icon md-icon"></span>
-            About
+            Über
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -3340,7 +3181,7 @@
   
   
   <span class="md-ellipsis">
-    About
+    Über
     
   </span>
   
@@ -3371,7 +3212,7 @@
                   <div class="md-sidebar__inner">
                     
 
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+<nav class="md-nav md-nav--secondary" aria-label="Inhaltsverzeichnis">
   
   
   
@@ -3380,78 +3221,60 @@
   
     <label class="md-nav__title" for="__toc">
       <span class="md-nav__icon md-icon"></span>
-      Table of contents
+      Inhaltsverzeichnis
     </label>
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#namespace-overview" class="md-nav__link">
+  <a href="#1-zweck-uberblick" class="md-nav__link">
     <span class="md-ellipsis">
-      Namespace Overview
+      1. Zweck / Überblick
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#architecture-decisions" class="md-nav__link">
+  <a href="#2-branchtaggable-concern" class="md-nav__link">
     <span class="md-ellipsis">
-      Architecture Decisions
+      2. BranchTaggable-Concern
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Architecture Decisions">
+    <nav class="md-nav" aria-label="2. BranchTaggable-Concern">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#a-poro-vs-applicationservice" class="md-nav__link">
+  <a href="#ableitung-der-branch_id" class="md-nav__link">
     <span class="md-ellipsis">
-      a. PORO vs. ApplicationService
+      Ableitung der branch_id
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#b-module-vs-class" class="md-nav__link">
+  <a href="#includer" class="md-nav__link">
     <span class="md-ellipsis">
-      b. Module vs. Class
+      Includer
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#c-delegation-pattern" class="md-nav__link">
+  <a href="#bewusst-schlankes-design-kein-papertrail" class="md-nav__link">
     <span class="md-ellipsis">
-      c. Delegation Pattern
+      Bewusst schlankes Design (kein PaperTrail)
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#d-optional-pdf-pipeline" class="md-nav__link">
+  <a href="#backfill-globaler-records-historischer-hinweis-gotcha" class="md-nav__link">
     <span class="md-ellipsis">
-      d. Optional PDF Pipeline
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#e-internationalgame-sti" class="md-nav__link">
-    <span class="md-ellipsis">
-      e. InternationalGame STI
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#f-two-tier-discipline-detection" class="md-nav__link">
-    <span class="md-ellipsis">
-      f. Two-tier discipline detection
+      Backfill globaler Records — historischer Hinweis (Gotcha)
     </span>
   </a>
   
@@ -3463,18 +3286,156 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#data-flow" class="md-nav__link">
+  <a href="#3-scopable-concern-das-scope-band" class="md-nav__link">
     <span class="md-ellipsis">
-      Data Flow
+      3. Scopable-Concern (das Scope-Band)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Scopable-Concern (das Scope-Band)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#scope_facets-facette-fk-spalte" class="md-nav__link">
+    <span class="md-ellipsis">
+      SCOPE_FACETS — Facette → FK-Spalte
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#request-verdrahtung" class="md-nav__link">
+    <span class="md-ellipsis">
+      Request-Verdrahtung
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#die-kein-alle-auer-branch-regel" class="md-nav__link">
+    <span class="md-ellipsis">
+      Die „kein Alle außer Branch"-Regel
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#defaults-scoperesolver" class="md-nav__link">
+    <span class="md-ellipsis">
+      Defaults (ScopeResolver)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scope_extra_facet-welche-3-facette-zeigt-das-band" class="md-nav__link">
+    <span class="md-ellipsis">
+      scope_extra_facet — welche 3. Facette zeigt das Band?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#drill-down-modus-drill_focus_keys" class="md-nav__link">
+    <span class="md-ellipsis">
+      Drill-down-Modus (DRILL_FOCUS_KEYS)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#currentscope-currentdrill" class="md-nav__link">
+    <span class="md-ellipsis">
+      Current.scope / Current.drill
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#anwendung-durch-searchservice-fk-filter" class="md-nav__link">
+    <span class="md-ellipsis">
+      Anwendung durch SearchService (FK-Filter)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#options-quellen-fur-die-band-view" class="md-nav__link">
+    <span class="md-ellipsis">
+      Options-Quellen für die Band-View
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-verhaltnis-zu-regiontaggable" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. Verhältnis zu RegionTaggable
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#entry-points" class="md-nav__link">
+  <a href="#5-db-spalten-rake-backfill-tasks" class="md-nav__link">
     <span class="md-ellipsis">
-      Entry Points
+      5. DB-Spalten &amp; Rake-Backfill-Tasks
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. DB-Spalten &amp; Rake-Backfill-Tasks">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#migration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Migration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      Schema
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rake-backfill-tasks" class="md-nav__link">
+    <span class="md-ellipsis">
+      Rake-Backfill-Tasks
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-gotchas" class="md-nav__link">
+    <span class="md-ellipsis">
+      6. Gotchas
     </span>
   </a>
   
@@ -3499,147 +3460,423 @@
   
 
 
-<h1 id="umb-scraping-architecture">UMB Scraping — Architecture<a class="headerlink" href="#umb-scraping-architecture" title="Permanent link">&para;</a></h1>
-<p>The <code>Umb::</code> namespace handles scraping of tournament data from the Union Mondiale de Billard (UMB) official website <a href="https://files.umb-carom.org">files.umb-carom.org</a>. It consists of <strong>10 services</strong> across two sub-namespaces: <code>Umb::</code> (6 classes + 1 module) and <code>Umb::PdfParser::</code> (3 classes).</p>
-<h2 id="namespace-overview">Namespace Overview<a class="headerlink" href="#namespace-overview" title="Permanent link">&para;</a></h2>
-<table>
-<thead>
-<tr>
-<th>Class</th>
-<th>File</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>Umb::HttpClient</code></td>
-<td><code>app/services/umb/http_client.rb</code></td>
-<td>Stateless HTTP transport — fetches HTML and PDF content from UMB URLs, handles SSL, redirects, and timeouts</td>
-</tr>
-<tr>
-<td><code>Umb::DisciplineDetector</code></td>
-<td><code>app/services/umb/discipline_detector.rb</code></td>
-<td>Stateless PORO — maps tournament names to <code>Discipline</code> DB records. <code>detect</code> uses regex + DB-ILIKE lookup; <code>detect_with_title_fallback</code> additionally applies <code>Discipline.classify_from_title</code> (curated title overrides + synonym/structural rules) when <code>detect</code> returns nothing</td>
-</tr>
-<tr>
-<td><code>Umb::DateHelpers</code></td>
-<td><code>app/services/umb/date_helpers.rb</code></td>
-<td>Module with <code>module_function</code> — parses UMB date range strings into <code>{start_date:, end_date:}</code> hashes</td>
-</tr>
-<tr>
-<td><code>Umb::PlayerResolver</code></td>
-<td><code>app/services/umb/player_resolver.rb</code></td>
-<td>Finds or creates <code>Player</code> records from UMB caps/mixed-case name pairs, enriches umb_player_id and nationality</td>
-</tr>
-<tr>
-<td><code>Umb::FutureScraper</code></td>
-<td><code>app/services/umb/future_scraper.rb</code></td>
-<td>Scrapes <code>FutureTournaments.aspx</code>, parses HTML table including cross-month events, creates/updates <code>InternationalTournament</code> records</td>
-</tr>
-<tr>
-<td><code>Umb::ArchiveScraper</code></td>
-<td><code>app/services/umb/archive_scraper.rb</code></td>
-<td>Sequential ID scan of <code>TournametDetails.aspx?ID=N</code>, discovers and saves historical tournament records</td>
-</tr>
-<tr>
-<td><code>Umb::DetailsScraper</code></td>
-<td><code>app/services/umb/details_scraper.rb</code></td>
-<td>Scrapes a tournament detail page, extracts PDF links, creates <code>InternationalGame</code> records, and orchestrates the PDF pipeline</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Umb::PdfParser:: sub-namespace:</strong></p>
-<table>
-<thead>
-<tr>
-<th>Class</th>
-<th>File</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>Umb::PdfParser::PlayerListParser</code></td>
-<td><code>app/services/umb/pdf_parser/player_list_parser.rb</code></td>
-<td>Pure PORO — parses player seeding list PDF text into <code>{caps_name:, mixed_name:, nationality:, position:}</code> hashes</td>
-</tr>
-<tr>
-<td><code>Umb::PdfParser::GroupResultParser</code></td>
-<td><code>app/services/umb/pdf_parser/group_result_parser.rb</code></td>
-<td>Pure PORO — parses group result PDF text into match pairs using a pair-accumulator pattern</td>
-</tr>
-<tr>
-<td><code>Umb::PdfParser::RankingParser</code></td>
-<td><code>app/services/umb/pdf_parser/ranking_parser.rb</code></td>
-<td>Pure PORO — parses final or weekly ranking PDF text; supports <code>:final</code> and <code>:weekly</code> type modes</td>
-</tr>
-</tbody>
-</table>
-<h2 id="architecture-decisions">Architecture Decisions<a class="headerlink" href="#architecture-decisions" title="Permanent link">&para;</a></h2>
-<h3 id="a-poro-vs-applicationservice">a. PORO vs. ApplicationService<a class="headerlink" href="#a-poro-vs-applicationservice" title="Permanent link">&para;</a></h3>
-<p>Services are divided based on side effects:</p>
+<h1 id="branch-tagging-scope-band">Branch-Tagging &amp; Scope-Band<a class="headerlink" href="#branch-tagging-scope-band" title="Permanent link">&para;</a></h1>
+<h2 id="1-zweck-uberblick">1. Zweck / Überblick<a class="headerlink" href="#1-zweck-uberblick" title="Permanent link">&para;</a></h2>
+<p>Das <strong>Scope-Band</strong> ist ein globaler, session-persistenter Ausschnitt der Daten
+entlang mehrerer Facetten — <strong>Region</strong>, <strong>Saison</strong>, <strong>Branch</strong> (Billard-Sparte)
+und kontext-sensitiv <strong>Club</strong>. Es beantwortet die Frage „welchen Ausschnitt der
+Welt sieht dieser Nutzer gerade?" und wendet ihn als <strong>Fremdschlüssel-Filter</strong>
+auf die Index-Listen an (Turniere, Ligen, Spieler …).</p>
+<p>Zwei Bausteine bilden das Subsystem:</p>
 <ul>
-<li><strong>POROs</strong> (no DB access): <code>Umb::DisciplineDetector</code>, <code>Umb::DateHelpers</code>, <code>Umb::PdfParser::PlayerListParser</code>, <code>Umb::PdfParser::GroupResultParser</code>, <code>Umb::PdfParser::RankingParser</code></li>
-<li><strong>ApplicationService</strong> (DB side effects): <code>Umb::FutureScraper</code>, <code>Umb::ArchiveScraper</code>, <code>Umb::DetailsScraper</code>, <code>Umb::PlayerResolver</code></li>
+<li><strong><code>BranchTaggable</code></strong> (Model-Concern) — leitet aus der Disziplin eines Records
+  eine <code>branch_id</code> ab (Pool/Snooker/Karambol/Kegel), analog zu <code>region_id</code>. Die
+  Spalte liegt auf <code>tournaments</code> und <code>leagues</code>.</li>
+<li><strong><code>Scopable</code></strong> (Controller-Concern) — hält Region/Saison/Branch/Club als
+  Session-Scope, stellt sie über <code>Current.scope</code> bereit und lässt sie von
+  <code>SearchService</code> als FK-Filter anwenden.</li>
 </ul>
-<h3 id="b-module-vs-class">b. Module vs. Class<a class="headerlink" href="#b-module-vs-class" title="Permanent link">&para;</a></h3>
-<p><code>Umb::DateHelpers</code> is a <code>module</code> with <code>module_function</code> and is called statically:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="no">Umb</span><span class="o">::</span><span class="no">DateHelpers</span><span class="o">.</span><span class="n">parse_date_range</span><span class="p">(</span><span class="s2">&quot;18-21 Dec 2025&quot;</span><span class="p">)</span>
+<p><strong>Zentrale Design-Entscheidung — kein Leck ins Suchfeld:</strong> Der Scope wird
+<strong>getrennt</strong> von der Volltext-Nutzersuche (<code>params[:sSearch]</code>) angewendet. Das
+Band filtert über echte FK-Spalten (<code>region_id</code>, <code>season_id</code>, <code>discipline_id</code>
+…); es fasst den Suchstring des Nutzers nie an. So bleiben „Ausschnitt wählen"
+und „im Ausschnitt suchen" zwei unabhängige Achsen.
+(Quelle: <code>app/controllers/concerns/scopable.rb:1-13</code>,
+<code>app/services/search_service.rb:51-52</code>.)</p>
+<p><strong>„Kein Alle" — mit einer Ausnahme:</strong> Region und Saison sind <strong>immer</strong> ein
+konkreter Wert (es gibt keinen „Alle Regionen"-Zustand). Nur <strong>Branch</strong> (und die
+kontext-sensitive Club-Facette) darf leer sein und bedeutet dann „Alle Branchen"
+bzw. „Alle Clubs". Branch ist genuin quer-interessant, und (noch) unklassifizierte
+Disziplinen (<code>branch_id = nil</code>) fielen bei erzwungener Auswahl durchs Raster.
+(Quelle: <code>scopable.rb:8-13</code>.)</p>
+<hr />
+<h2 id="2-branchtaggable-concern">2. <code>BranchTaggable</code>-Concern<a class="headerlink" href="#2-branchtaggable-concern" title="Permanent link">&para;</a></h2>
+<p>Datei: <code>app/models/concerns/branch_taggable.rb</code></p>
+<h3 id="ableitung-der-branch_id">Ableitung der <code>branch_id</code><a class="headerlink" href="#ableitung-der-branch_id" title="Permanent link">&para;</a></h3>
+<p>Der Concern registriert genau einen Callback und drei Methoden:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">included</span><span class="w"> </span><span class="k">do</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="n">before_save</span><span class="w"> </span><span class="ss">:set_branch_id</span><span class="p">,</span><span class="w"> </span><span class="k">if</span><span class="p">:</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">will_save_change_to_discipline_id?</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">branch_id</span><span class="o">.</span><span class="n">nil?</span><span class="w"> </span><span class="p">}</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="k">end</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="k">def</span><span class="w"> </span><span class="nf">find_associated_branch_id</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">  </span><span class="n">root</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">discipline</span><span class="o">&amp;.</span><span class="n">root</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">  </span><span class="n">root</span><span class="o">.</span><span class="n">is_a?</span><span class="p">(</span><span class="no">Branch</span><span class="p">)</span><span class="w"> </span><span class="p">?</span><span class="w"> </span><span class="n">root</span><span class="o">.</span><span class="n">id</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="kp">nil</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="k">end</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="k">def</span><span class="w"> </span><span class="nf">set_branch_id</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="w">  </span><span class="nb">self</span><span class="o">.</span><span class="n">branch_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">find_associated_branch_id</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="k">end</span>
 </code></pre></div>
-<p>All other nine services are classes.</p>
-<h3 id="c-delegation-pattern">c. Delegation Pattern<a class="headerlink" href="#c-delegation-pattern" title="Permanent link">&para;</a></h3>
-<p>The three scraper classes (<code>FutureScraper</code>, <code>ArchiveScraper</code>, <code>DetailsScraper</code>) delegate:
-- HTTP requests to <code>Umb::HttpClient</code>
-- Date parsing to <code>Umb::DateHelpers</code>
-- Discipline detection to <code>Umb::DisciplineDetector</code></p>
-<p>They do not perform their own HTTP logic or date parsing.</p>
-<h3 id="d-optional-pdf-pipeline">d. Optional PDF Pipeline<a class="headerlink" href="#d-optional-pdf-pipeline" title="Permanent link">&para;</a></h3>
-<p><code>DetailsScraper#call</code> defaults to <code>parse_pdfs: false</code>. When enabled, all three PdfParser services are run <strong>independently</strong> — no short-circuit on individual failures:</p>
+<p>(Quelle: <code>branch_taggable.rb:9-22</code>.)</p>
+<ul>
+<li><code>discipline.root</code> läuft die <code>super_discipline</code>-Kette bis zur Baumwurzel hoch
+  (<code>app/models/discipline.rb:585-587</code>).</li>
+<li>Ist die Wurzel ein <strong><code>Branch</code></strong> (Pool/Snooker/Karambol/Kegel), wird deren <code>id</code>
+  gesetzt; sonst <code>nil</code> (z. B. eine Disziplin, die noch nicht unter einem Branch
+  wurzelt — Beispiel im Code: 10-Ball bis zum Authority-Baum-Fix).</li>
+<li>Der Callback feuert nur bei geänderter <code>discipline_id</code> <strong>oder</strong> wenn
+  <code>branch_id</code> noch <code>nil</code> ist — er rechnet nicht bei jedem Save neu.</li>
+</ul>
+<h3 id="includer">Includer<a class="headerlink" href="#includer" title="Permanent link">&para;</a></h3>
+<p>Nur zwei Modelle führen die Spalte und den Concern:</p>
+<ul>
+<li><code>Tournament</code> — <code>app/models/tournament.rb:65</code></li>
+<li><code>League</code> — <code>app/models/league.rb:37</code></li>
+</ul>
+<h3 id="bewusst-schlankes-design-kein-papertrail">Bewusst schlankes Design (kein PaperTrail)<a class="headerlink" href="#bewusst-schlankes-design-kein-papertrail" title="Permanent link">&para;</a></h3>
+<p>Anders als <code>RegionTaggable</code> betreibt <code>BranchTaggable</code> <strong>keine</strong> Version-/
+PaperTrail-Maschinerie. Es gibt keine <code>after_save</code>/<code>after_destroy</code>-Callbacks, die
+Versionen nachtaggen — nur die Live-Spalte <code>branch_id</code>. Der Concern ist bewusst
+minimal gehalten (<code>branch_taggable.rb:3-5</code>).</p>
+<h3 id="backfill-globaler-records-historischer-hinweis-gotcha">Backfill globaler Records — historischer Hinweis (Gotcha)<a class="headerlink" href="#backfill-globaler-records-historischer-hinweis-gotcha" title="Permanent link">&para;</a></h3>
+<blockquote>
+<p><strong>Achtung — veralteter Kommentar im Code.</strong> Der Kopfkommentar in
+<code>branch_taggable.rb:5</code> verweist auf einen Backfill-Task
+<code>lib/tasks/branch_taggings.rake</code>. <strong>Diese Datei existiert nicht mehr</strong> — sie
+wurde in Commit <code>56e67264</code> (Phase 17 17-03, „Branch-Facette Scope-Band auf
+discipline.root", SB-2) entfernt.</p>
+</blockquote>
+<p>Der ursprüngliche Ansatz war ein <code>update_all</code>-Backfill über <code>discipline.root</code>
+(bypasst <code>LocalProtector</code>, weil <code>update_all</code> keine Callbacks auslöst). Er wurde
+verworfen, weil er für <strong>gesyncte globale Records</strong> (<code>id &lt; MIN_ID</code>) prinzipiell
+nicht zuverlässig funktioniert:</p>
 <ol>
-<li><code>Umb::PdfParser::PlayerListParser</code> → Seeding records</li>
-<li><code>Umb::PdfParser::GroupResultParser</code> → <code>InternationalGame</code> + <code>GameParticipation</code></li>
-<li><code>Umb::PdfParser::RankingParser</code> → Seedings with final position</li>
+<li>Der Version-Apply schreibt Attribute per <code>update_columns</code> — das umgeht den
+   <code>BranchTaggable</code>-<code>before_save</code>, <code>branch_id</code> wird also nicht gefüllt.</li>
+<li><code>LocalProtector</code> sperrt anschließend jeden Re-Save globaler Records auf lokalen
+   Servern.</li>
+<li>→ <code>branch_id</code> bleibt auf gesyncten Global-Records <strong>NULL</strong>.</li>
 </ol>
-<h3 id="e-internationalgame-sti">e. InternationalGame STI<a class="headerlink" href="#e-internationalgame-sti" title="Permanent link">&para;</a></h3>
-<p><code>DetailsScraper</code> creates game records with <code>type: 'InternationalGame'</code> (STI). Omitting this causes incorrect ActiveRecord behavior, since <code>Game</code> is the base class.</p>
-<h3 id="f-two-tier-discipline-detection">f. Two-tier discipline detection<a class="headerlink" href="#f-two-tier-discipline-detection" title="Permanent link">&para;</a></h3>
-<p><code>Umb::DisciplineDetector</code> exposes two entry points:</p>
-<ul>
-<li><code>detect(name)</code> — regex + DB-ILIKE lookup only (<code>detect_by_db_lookup</code> → <code>detect_by_string_map</code>). Returns <code>nil</code> when nothing matches.</li>
-<li><code>detect_with_title_fallback(name)</code> — runs <code>detect</code> first and, only if it finds nothing, falls back to <code>Discipline.classify_from_title(name)</code>. That model method applies curated <code>TITLE_DISCIPLINE_OVERRIDES</code>, structural rules (Kegel/Snooker/Cadre/Karambol families), and a longest-synonym match against the <code>Discipline.synonyms</code> column (synonyms are seeded via <code>rake disciplines:extend_title_synonyms</code>).</li>
-</ul>
-<p><code>FutureScraper</code> and <code>ArchiveScraper</code> use <code>detect_with_title_fallback</code> (broader coverage for German/abbreviated titles); <code>DetailsScraper</code> and the V1 <code>UmbScraper</code> shim still use plain <code>detect</code>. All three scrapers layer their own final default (<code>%dreiband%groß%</code>) on top of a <code>nil</code> result.</p>
-<h2 id="data-flow">Data Flow<a class="headerlink" href="#data-flow" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>UMB Website
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>  ├── FutureTournaments.aspx ──→ Umb::FutureScraper
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>  │                                    ├── Umb::HttpClient (fetch HTML)
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>  │                                    ├── Umb::DateHelpers (parse dates)
-<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>  │                                    └── Umb::DisciplineDetector (match discipline)
-<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>  │                                         → InternationalTournament (upsert)
-<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>  │
-<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>  ├── TournametDetails.aspx?ID=N ──→ Umb::ArchiveScraper
-<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>  │                                        ├── Umb::HttpClient (fetch HTML)
-<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>  │                                        ├── Umb::DateHelpers (parse dates)
-<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>  │                                        └── Umb::DisciplineDetector (match discipline)
-<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>  │                                             → InternationalTournament (create)
-<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>  │
-<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>  └── TournametDetails.aspx?ID=N ──→ Umb::DetailsScraper
-<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a>           ├── Umb::HttpClient (fetch HTML + PDFs)
-<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a>           ├── Umb::PlayerResolver (find/create Player)
-<a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a>           ├── PDF pipeline (optional, parse_pdfs: true):
-<a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a>           │     ├── PdfParser::PlayerListParser → Seeding records
-<a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a>           │     ├── PdfParser::GroupResultParser → InternationalGame + GameParticipation
-<a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a>           │     └── PdfParser::RankingParser → Seedings with final position
-<a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a>           └── InternationalGame records (HTML-based, create_games: true)
+<p>Deshalb löst das Scope-Band die Branch-Facette <strong>zur Query-Zeit</strong> über
+<code>discipline.root</code> auf statt die (bei Global-Records leere) <code>branch_id</code>-Spalte
+abzufragen — siehe Abschnitt 3 und <code>Branch.discipline_ids_for</code>
+(<code>app/models/branch.rb:22-58</code>). Die <code>branch_id</code>-Spalte wird auf der Authority
+über den <code>before_save</code> beim normalen Speichern gefüllt und dient dort als
+abgeleitete Dimension; für die Filterung ist sie jedoch <strong>nicht</strong> die Quelle der
+Wahrheit.</p>
+<hr />
+<h2 id="3-scopable-concern-das-scope-band">3. <code>Scopable</code>-Concern (das Scope-Band)<a class="headerlink" href="#3-scopable-concern-das-scope-band" title="Permanent link">&para;</a></h2>
+<p>Datei: <code>app/controllers/concerns/scopable.rb</code>.
+Eingebunden in <code>ApplicationController</code> (<code>app/controllers/application_controller.rb:21</code>).</p>
+<h3 id="scope_facets-facette-fk-spalte"><code>SCOPE_FACETS</code> — Facette → FK-Spalte<a class="headerlink" href="#scope_facets-facette-fk-spalte" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="no">SCOPE_FACETS</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="s2">&quot;region&quot;</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="s2">&quot;region_id&quot;</span><span class="p">,</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span><span class="s2">&quot;season&quot;</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="s2">&quot;season_id&quot;</span><span class="p">,</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">  </span><span class="s2">&quot;branch&quot;</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="s2">&quot;branch_id&quot;</span><span class="p">,</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">  </span><span class="s2">&quot;club&quot;</span><span class="w">   </span><span class="o">=&gt;</span><span class="w"> </span><span class="s2">&quot;club_id&quot;</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="p">}</span><span class="o">.</span><span class="n">freeze</span>
 </code></pre></div>
-<h2 id="entry-points">Entry Points<a class="headerlink" href="#entry-points" title="Permanent link">&para;</a></h2>
-<p>The three primary entry points for operation:</p>
+<p>(Quelle: <code>scopable.rb:19-24</code>.) <code>club</code> ist die kontext-sensitive 3. Facette für
+Modelle mit <code>scope_extra_facet == :club</code> (Player) und wird join-basiert
+gefiltert.</p>
+<h3 id="request-verdrahtung">Request-Verdrahtung<a class="headerlink" href="#request-verdrahtung" title="Permanent link">&para;</a></h3>
+<p><code>ApplicationController</code> reiht zwei before_actions ein
+(<code>application_controller.rb:42-43</code>):</p>
+<ol>
+<li><strong><code>capture_scope</code></strong> — liest <code>params[:scope]</code> und merged die Werte in
+   <code>session[:scope]</code>. Werte sind konkrete IDs (kein „Alle"). Bei echter Änderung
+   wird zusätzlich <code>persist_scope_preference</code> aufgerufen
+   (<code>scopable.rb:47-60</code>).</li>
+<li><strong><code>set_current_scope</code></strong> — legt den aufgelösten FK-Scope in <code>Current.scope</code> ab,
+   den <code>SearchService</code> pro Request konsumiert (<code>scopable.rb:79-94</code>).</li>
+</ol>
+<p><strong>Write-back in User-Preferences:</strong> Angemeldete Nutzer merken sich ihren
+Ausschnitt über Sessions hinweg in <code>preferences["scope"]</code>. Geleerte Facetten
+(„Alle Branchen") werden aus der Preference entfernt, damit der Default wieder
+greift. Das Schreiben ist fehlerrobust — ein fehlgeschlagener Preference-Write
+bricht den Request nie ab (<code>scopable.rb:65-76</code>).</p>
+<h3 id="die-kein-alle-auer-branch-regel">Die „kein Alle außer Branch"-Regel<a class="headerlink" href="#die-kein-alle-auer-branch-regel" title="Permanent link">&para;</a></h3>
+<p>Die konkreten Default-/Leer-Regeln liegen im <code>ScopeResolver</code> (Abschnitt zu
+Defaults unten). Für das Band gilt:</p>
 <ul>
-<li><code>Umb::FutureScraper.new.call</code> — scrapes upcoming tournaments from the UMB site, no parameters</li>
-<li><code>Umb::ArchiveScraper.new.call(start_id:, end_id:)</code> — scans historical tournament IDs within a range</li>
-<li><code>Umb::DetailsScraper.new.call(tournament_id_or_record)</code> — enriches one tournament with games and PDF data</li>
+<li><strong>Region, Saison:</strong> immer konkret. Fallback-Kette Session → Preference →
+  Server-Kontext (nur Region) → Default.</li>
+<li><strong>Branch, Club:</strong> dürfen leer bleiben (<code>nil</code>), was „Alle Branchen"/„Alle Clubs"
+  bedeutet — dann wird für diese Facette <strong>kein</strong> Filter gesetzt.</li>
 </ul>
-<p>For a complete method reference with signatures, return values, and parameters, see the <a href="../umb-scraping-methods/">Method Reference</a>.</p>
+<h3 id="defaults-scoperesolver">Defaults (<code>ScopeResolver</code>)<a class="headerlink" href="#defaults-scoperesolver" title="Permanent link">&para;</a></h3>
+<p>Datei: <code>app/services/scope_resolver.rb</code>. Der Resolver ist reine Ableitung aus
+Session + User und wird sowohl vom HTTP-Controller (<code>Scopable</code>) <strong>als auch</strong> vom
+<code>SearchReflex</code> (ActionCable-Live-Suche) genutzt — so existieren die Default-Regeln
+nur an einer Stelle (<code>scope_resolver.rb:1-12</code>, <code>app/reflexes/search_reflex.rb:44</code>).</p>
+<ul>
+<li><strong>Region</strong> (<code>scope_resolver.rb:32-34</code>): Session → Preference →
+  Server-Kontext-Region → <strong>NBV</strong> (per <code>shortname</code>, sonst erste Region;
+  <code>scope_resolver.rb:76-78</code>). Regionale Server setzen die Region aus dem
+  Server-Kontext (<code>Carambus.config.context</code> = Region-Shortname,
+  <code>scope_resolver.rb:68-73</code>); der globale Server nutzt den NBV-Default.</li>
+<li><strong>Saison</strong> (<code>scope_resolver.rb:37-39</code>): Session → Preference → aktuelle Saison;
+  im <strong>Saison-Umbruch</strong> (heute ≤ 15.08. des Startjahres) gilt die <strong>Vorsaison</strong>
+  als Default (<code>scope_resolver.rb:82-98</code>). <code>season_transition?</code> meldet diesen
+  Zustand für einen dezenten Band-Hinweis (<code>scope_resolver.rb:53-55</code>).</li>
+<li><strong>Branch</strong> (<code>scope_resolver.rb:42-44</code>): Session → Preference; sonst <code>nil</code> =
+  „Alle Branchen". Eine gesetzte Branch-Preference wird als Default respektiert.</li>
+<li><strong>Club</strong> (<code>scope_resolver.rb:47-49</code>): analog Branch.</li>
+</ul>
+<p><code>fk_scope</code> baut den Hash <code>{ "region_id" =&gt; …, "season_id" =&gt; …, "branch_id" =&gt; …,
+"club_id" =&gt; … }</code> und <strong>entfernt <code>nil</code>-Werte per <code>compact</code></strong> — leere Facetten
+erzeugen so keinen Filter (<code>scope_resolver.rb:22-29</code>).</p>
+<h3 id="scope_extra_facet-welche-3-facette-zeigt-das-band"><code>scope_extra_facet</code> — welche 3. Facette zeigt das Band?<a class="headerlink" href="#scope_extra_facet-welche-3-facette-zeigt-das-band" title="Permanent link">&para;</a></h3>
+<p>Neben Region und Saison zeigt das Band eine kontext-abhängige dritte Facette. Sie
+richtet sich nach dem aktuellen Controller-Modell über die Klassenmethode
+<code>scope_extra_facet</code> (<code>scopable.rb:207-215</code>):</p>
+<table>
+<thead>
+<tr>
+<th>Modell</th>
+<th><code>scope_extra_facet</code></th>
+<th>Quelle</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Default (<code>ApplicationRecord</code>)</td>
+<td><code>:branch</code></td>
+<td><code>application_record.rb:50-52</code></td>
+</tr>
+<tr>
+<td><code>Player</code></td>
+<td><code>:club</code></td>
+<td><code>player.rb:42-44</code></td>
+</tr>
+<tr>
+<td><code>Club</code></td>
+<td><code>:none</code></td>
+<td><code>club.rb:54-56</code></td>
+</tr>
+<tr>
+<td><code>Location</code></td>
+<td><code>:none</code></td>
+<td><code>location.rb:90-92</code></td>
+</tr>
+</tbody>
+</table>
+<p>Bei unbekanntem Controller fällt <code>scope_extra_facet</code> defensiv auf <code>:branch</code>
+zurück (<code>scopable.rb:213-215</code>).</p>
+<h3 id="drill-down-modus-drill_focus_keys">Drill-down-Modus (<code>DRILL_FOCUS_KEYS</code>)<a class="headerlink" href="#drill-down-modus-drill_focus_keys" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="no">DRILL_FOCUS_KEYS</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="sx">%w[tournament_id league_id club_id party_id]</span><span class="o">.</span><span class="n">freeze</span>
+</code></pre></div>
+<p>(Quelle: <code>scopable.rb:30</code>.) Der Drill-down ist die Verallgemeinerung des früheren
+<code>region_focus</code>: ein <strong>ephemerer Ankunftskontext</strong> aus <code>params[:drill] =
+{ &lt;parent_fk&gt; =&gt; &lt;id&gt; }</code>, der die Kind-Liste auf einen Parent einengt (z. B.
+„zeige die Ligen dieses Clubs").</p>
+<ul>
+<li>Die <strong>Allowlist</strong> <code>DRILL_FOCUS_KEYS</code> verhindert <strong>Column-Injection</strong>: nur diese
+  vier FK-Spalten landen im Drill-Kontext (<code>scopable.rb:101-114</code>).</li>
+<li>Ein aktiver Drill ersetzt das Scope-Band durch <strong>Breadcrumbs</strong>
+  (<code>drill_focus_crumbs</code>, <code>scopable.rb:122-147</code>) und wird <strong>getrennt</strong> vom
+  Scope-Band gehalten: <code>set_current_scope</code> setzt <code>Current.drill</code> und leert
+  <code>Current.scope</code> (<code>scopable.rb:80-86</code>).</li>
+<li>Der Drill schreibt <strong>nichts</strong> in die Session (ephemer).</li>
+</ul>
+<p>Ein <strong>temporärer Region-Fokus</strong> (<code>params[:region_focus]</code>, aus <code>regions/show</code>) ist
+ein separater, ebenfalls ephemerer Param mit <strong>höherer Priorität</strong> als der
+persistente Band-Wert: er überschreibt <code>region_id</code> nur für diesen Request, ohne
+<code>session[:scope]</code> zu ändern (<code>scopable.rb:88-92</code>, <code>scopable.rb:160-176</code>).</p>
+<h3 id="currentscope-currentdrill"><code>Current.scope</code> / <code>Current.drill</code><a class="headerlink" href="#currentscope-currentdrill" title="Permanent link">&para;</a></h3>
+<p><code>Current</code> (<code>app/models/current.rb</code>) ist ein <code>ActiveSupport::CurrentAttributes</code>
+mit u. a. zwei Attributen:</p>
+<ul>
+<li><strong><code>Current.scope</code></strong> — der FK-Filter-Hash des Scope-Bands, pro Request gesetzt
+  (<code>current.rb:8</code>).</li>
+<li><strong><code>Current.drill</code></strong> — der ephemere Parent-FK des Drill-downs, <strong>getrennt</strong> vom
+  Scope-Band, damit <code>SearchService</code> ihn direkt (<code>where(fk =&gt; id)</code>) filtert und
+  nicht die Facetten-Spezial-Logik (club_id-Join) durchläuft (<code>current.rb:12</code>).</li>
+</ul>
+<h3 id="anwendung-durch-searchservice-fk-filter">Anwendung durch <code>SearchService</code> (FK-Filter)<a class="headerlink" href="#anwendung-durch-searchservice-fk-filter" title="Permanent link">&para;</a></h3>
+<p>Datei: <code>app/services/search_service.rb</code>. Der Service ruft in <code>call</code> erst
+<code>apply_scope</code>, dann <code>apply_drill</code> auf — <strong>vor</strong> der Volltextsuche
+(<code>search_service.rb:22-28</code>).</p>
+<p><strong><code>apply_scope</code></strong> (<code>search_service.rb:57-113</code>):</p>
+<ol>
+<li>Ist <code>Current.scope</code> leer → unverändert zurück (<code>:59</code>).</li>
+<li><strong>Column-Injection-Allowlist:</strong> Modelle können sich per <code>scope_exempt?</code> ganz
+   ausnehmen (Picker-Listen wie <code>Region</code>) → early-return (<code>:61</code>,
+   <code>region.rb:136</code>). Andernfalls wird jede Facette nur angewandt, wenn das Modell
+   die Spalte tatsächlich führt (<code>cols.include?(col)</code>, <code>:95</code>).</li>
+<li><strong>Club</strong> (<code>:72-83</code>): join-basiert und saison-gebunden. Nur Modelle mit einer
+   <code>season_participations</code>-Assoziation (Player) werden gefiltert
+   (<code>joins(:season_participations).where(club_id:, season_id:)</code>, distinct); andere
+   Modelle ignorieren die Club-Facette.</li>
+<li><strong>Branch</strong> (<code>:88-93</code>): Die <code>branch_id</code>-Spalte wird <strong>nicht</strong> abgefragt (bei
+   Global-Records NULL, SB-2). Stattdessen Auflösung über den Disziplin-Teilbaum:
+   <code>where(discipline_id: Branch.discipline_ids_for(value))</code>. Modelle ohne
+   <code>discipline_id</code> ignorieren die Branch-Facette (verhaltensneutral).</li>
+<li><strong>Region</strong> (<code>:97-110</code>): Strikte Modelle (<code>scope_region_strict? == true</code>:
+   Location/Player/Club) zeigen ausschließlich die eigene <code>region_id</code>.
+   Nicht-strikte Modelle (Ligen/Turniere) schließen zusätzlich
+   <code>global_context = TRUE</code> ein (regionsübergreifend gültige Records, z. B.
+   DBU-Ligen).</li>
+</ol>
+<p><strong><code>apply_drill</code></strong> (<code>search_service.rb:38-49</code>): filtert jeden vorhandenen
+Drill-FK direkt per <code>where(col =&gt; value)</code> — defensiv nur für Spalten, die das
+Modell führt.</p>
+<p><code>Branch.discipline_ids_for(branch_id)</code> (<code>app/models/branch.rb:32-58</code>) liefert alle
+Disziplin-<code>id</code>s, deren Baum-Wurzel diese Branch ist (inkl. der Branch-<code>id</code>
+selbst). Es baut einmalig einen prozessweit memoisierten Baum-Index (<code>ids_by_root</code>,
+ein <code>pluck</code>, kein N+1-Root-Walk); <code>reset_discipline_ids_cache!</code> erzwingt
+Neuberechnung. Der Baum ändert sich nur per Sync/Scrape, der Cache wird bei
+Code-Reload (dev) bzw. Deploy/Neustart (prod) frisch aufgebaut.</p>
+<h3 id="options-quellen-fur-die-band-view">Options-Quellen für die Band-View<a class="headerlink" href="#options-quellen-fur-die-band-view" title="Permanent link">&para;</a></h3>
+<p>Alle Options-Helper liefern <code>[Anzeige, id]</code>-Paare (Werte = IDs, kein „Alle"):</p>
+<ul>
+<li><code>scope_region_options</code> — alle Regionen außer <code>UNKNOWN</code>, nach shortname
+  (<code>scopable.rb:269-271</code>).</li>
+<li><code>scope_season_options</code> — echte „yyyy/yyyy+1"-Namen von 2009 bis
+  aktuelles Jahr + 2, absteigend (<code>scopable.rb:275-280</code>).</li>
+<li><code>scope_branch_options</code> — <code>Branch.order(:name)</code> (<code>scopable.rb:282-284</code>).</li>
+<li><code>scope_club_options</code> — Clubs der aktuellen Scope-Region, Anzeige
+  <code>COALESCE(shortname, name)</code>, namenlose Stubs ausgelassen (<code>scopable.rb:289-295</code>).</li>
+</ul>
+<hr />
+<h2 id="4-verhaltnis-zu-regiontaggable">4. Verhältnis zu <code>RegionTaggable</code><a class="headerlink" href="#4-verhaltnis-zu-regiontaggable" title="Permanent link">&para;</a></h2>
+<p><code>BranchTaggable</code> ist bewusst als <strong>schlankes Analogon</strong> zu <code>RegionTaggable</code>
+(<code>app/models/concerns/region_taggable.rb</code>) gebaut. Gemeinsamkeit: beide leiten
+eine FK-Dimension aus dem Record ab und speisen sie in den Scope-Filter. Die
+Unterschiede:</p>
+<table>
+<thead>
+<tr>
+<th>Aspekt</th>
+<th><code>RegionTaggable</code></th>
+<th><code>BranchTaggable</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Abgeleitete Spalte</td>
+<td><code>region_id</code> (+ <code>global_context</code>)</td>
+<td><code>branch_id</code></td>
+</tr>
+<tr>
+<td>Ableitungslogik</td>
+<td><code>find_associated_region_id</code> — großes <code>case</code> über Modell-Klasse <strong>und</strong> <code>tournament_type</code>; liefert eine <strong>einzelne</strong> ID (<code>region_taggable.rb:11-53</code>)</td>
+<td><code>find_associated_branch_id</code> — nur <code>discipline.root</code>, ein Zweig (<code>branch_taggable.rb:15-18</code>)</td>
+</tr>
+<tr>
+<td>Version-/PaperTrail-Tagging</td>
+<td>ja — <code>after_save</code>/<code>after_destroy :update_version_region_data</code>, taggt Versionen für Region-Sync (<code>region_taggable.rb:7-8</code>, <code>:123-143</code>)</td>
+<td><strong>nein</strong> — nur Live-Spalte, keine Version-Maschinerie</td>
+</tr>
+<tr>
+<td><code>global_context</code></td>
+<td>ja — <code>global_context?</code> markiert regionsübergreifend gültige Records (<code>region_taggable.rb:55-79</code>)</td>
+<td>nein</td>
+</tr>
+<tr>
+<td>Includer</td>
+<td>16 Modelle (Region, Club, Tournament, League, Party, Player, Game, …)</td>
+<td>2 Modelle (Tournament, League)</td>
+</tr>
+<tr>
+<td>Backfill-Task</td>
+<td><code>lib/tasks/region_taggings.rake</code> (existiert, kuratiert)</td>
+<td>entfernt — Query-Zeit-Auflösung via <code>discipline.root</code></td>
+</tr>
+</tbody>
+</table>
+<p>Der frühere <code>find_associated_region_ids</code> (Array) wurde auf eine <strong>einzelne</strong> ID
+vereinfacht (<code>find_associated_region_id</code>); siehe
+<a href="../region-tagging-cleanup-summary/"><code>region-tagging-cleanup-summary.de.md</code></a>.
+<code>BranchTaggable</code> übernahm diese schlanke Form von Anfang an — plus den Verzicht auf
+die Version-Maschinerie.</p>
+<p><strong>Filter-Asymmetrie in <code>SearchService</code>:</strong> <code>region_id</code> wird direkt als Spalte
+gefiltert (mit <code>global_context</code>-OR bei nicht-strikten Modellen). <code>branch_id</code>
+dagegen <strong>nie</strong> als Spalte, sondern immer über <code>discipline.root</code> aufgelöst —
+genau wegen des NULL-Problems bei gesyncten Global-Records (Abschnitt 2).</p>
+<hr />
+<h2 id="5-db-spalten-rake-backfill-tasks">5. DB-Spalten &amp; Rake-Backfill-Tasks<a class="headerlink" href="#5-db-spalten-rake-backfill-tasks" title="Permanent link">&para;</a></h2>
+<h3 id="migration">Migration<a class="headerlink" href="#migration" title="Permanent link">&para;</a></h3>
+<p><code>db/migrate/20260702061649_add_branch_id_to_tournaments_and_leagues.rb</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">disable_ddl_transaction!</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="n">add_column</span><span class="w"> </span><span class="ss">:tournaments</span><span class="p">,</span><span class="w"> </span><span class="ss">:branch_id</span><span class="p">,</span><span class="w"> </span><span class="ss">:integer</span><span class="w"> </span><span class="k">unless</span><span class="w"> </span><span class="n">column_exists?</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="n">add_column</span><span class="w"> </span><span class="ss">:leagues</span><span class="p">,</span><span class="w">     </span><span class="ss">:branch_id</span><span class="p">,</span><span class="w"> </span><span class="ss">:integer</span><span class="w"> </span><span class="k">unless</span><span class="w"> </span><span class="n">column_exists?</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="n">add_index</span><span class="w">  </span><span class="ss">:tournaments</span><span class="p">,</span><span class="w"> </span><span class="ss">:branch_id</span><span class="p">,</span><span class="w"> </span><span class="ss">algorithm</span><span class="p">:</span><span class="w"> </span><span class="ss">:concurrently</span><span class="w"> </span><span class="k">unless</span><span class="w"> </span><span class="o">...</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="n">add_index</span><span class="w">  </span><span class="ss">:leagues</span><span class="p">,</span><span class="w">     </span><span class="ss">:branch_id</span><span class="p">,</span><span class="w"> </span><span class="ss">algorithm</span><span class="p">:</span><span class="w"> </span><span class="ss">:concurrently</span><span class="w"> </span><span class="k">unless</span><span class="w"> </span><span class="o">...</span>
+</code></pre></div>
+<p>Abgeleitete FK-Dimension analog <code>region_id</code>: <strong>nullable</strong>, <strong>kein</strong>
+FK-Constraint (Discipline ist global), Index concurrently (strong_migrations).</p>
+<h3 id="schema">Schema<a class="headerlink" href="#schema" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>tournaments.branch_id</code> (integer) + <code>index_tournaments_on_branch_id</code>
+  (<code>db/schema.rb:1462</code>, <code>:1464</code>).</li>
+<li><code>leagues.branch_id</code> (integer) + <code>index_leagues_on_branch_id</code>
+  (<code>db/schema.rb:542</code>, <code>:544</code>).</li>
+</ul>
+<h3 id="rake-backfill-tasks">Rake-Backfill-Tasks<a class="headerlink" href="#rake-backfill-tasks" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Branch:</strong> <strong>kein aktiver Task.</strong> Der frühere
+  <code>lib/tasks/branch_taggings.rake</code> (<code>namespace :branch_taggings</code>, Task
+  <code>update_all_branch_id</code>) wurde in <code>56e67264</code> entfernt (siehe Abschnitt 2). Ein
+  Backfill globaler Records ist nicht möglich; das Band löst die Branch-Facette
+  zur Query-Zeit auf.</li>
+<li><strong>Region (Analogon):</strong> <code>lib/tasks/region_taggings.rake</code> existiert und ist die
+  kuratierte Quelle der Wahrheit für DE-Tagging. Wichtige Tasks:</li>
+<li><code>region_taggings:update_all_region_id</code> — organische Region-Ableitung top-down
+    (Region → Club → SeasonParticipation → Player usw.).</li>
+<li><code>region_taggings:fix_international_organizer_context</code> — taggt internationale
+    Organizer-Regionen als <code>global_context</code> (nur Authority, PaperTrail-getrackt;
+    <code>ARMED=1</code> mutiert). DRY-RUN als Default.</li>
+<li>Ein <strong>Recurrence-Schutz</strong> (<code>guard_derivation_retag!</code>,
+    <code>region_taggings.rake:126-137</code>) sperrt die derivation-basierten Re-Tag-Tasks,
+    weil <code>RegionTaggable#global_context?</code>/<code>#find_associated_region_id</code>
+    unvollständig sind und die kuratierte globale Taggung still herunterrissen.
+    Override: <code>FORCE_DERIVATION_RETAG=1</code>.</li>
+</ul>
+<hr />
+<h2 id="6-gotchas">6. Gotchas<a class="headerlink" href="#6-gotchas" title="Permanent link">&para;</a></h2>
+<ol>
+<li>
+<p><strong><code>branch_id = nil</code> bei unklassifizierten Disziplinen.</strong> Disziplinen, deren
+   Baumwurzel (noch) kein <code>Branch</code> ist, liefern <code>find_associated_branch_id == nil</code>
+   (<code>branch_taggable.rb:15-18</code>). Solche Records tragen keine Branch und erscheinen
+   nur im Zustand „Alle Branchen". Das ist der Grund für die „kein Alle außer
+   Branch"-Ausnahme (<code>scopable.rb:11-13</code>).</p>
+</li>
+<li>
+<p><strong><code>branch_id</code>-Spalte ist NICHT die Filter-Quelle.</strong> Auf gesyncten
+   Global-Records (<code>id &lt; MIN_ID</code>) bleibt <code>branch_id</code> NULL (update_columns beim
+   Version-Apply umgeht den <code>before_save</code>, <code>LocalProtector</code> sperrt den Re-Save).
+   <code>SearchService</code> fragt deshalb <strong>nie</strong> <code>branch_id</code> ab, sondern löst über
+   <code>Branch.discipline_ids_for</code> / <code>discipline.root</code> auf
+   (<code>search_service.rb:88-93</code>). Wer die Spalte für eine eigene Query nutzt, muss
+   diese Lücke kennen.</p>
+</li>
+<li>
+<p><strong>Veralteter Backfill-Verweis im Concern-Kommentar.</strong> <code>branch_taggable.rb:5</code>
+   nennt <code>lib/tasks/branch_taggings.rake</code> — die Datei existiert nicht mehr (in
+   <code>56e67264</code> entfernt). Kein Backfill vorhanden.</p>
+</li>
+<li>
+<p><strong>Globaler vs. regionaler Server — Region-Default.</strong> Regionale Server setzen
+   die Default-Region aus <code>Carambus.config.context</code> (Region-Shortname). Der
+   globale Server (leerer Context) fällt auf <strong>NBV</strong> zurück (aktuell die einzige
+   real genutzte Region; <code>scope_resolver.rb:31-34</code>, <code>:66-78</code>). DBU ist einfach
+   eine wählbare Region, kein Sonderzustand.</p>
+</li>
+<li>
+<p><strong>Saison-Umbruch verschiebt den Default.</strong> Bis zum 15.08. des Startjahres der
+   aktuellen Saison ist die <strong>Vorsaison</strong> der Saison-Default (Endergebnisse/
+   Ranglisten stehen, die neue Saison ist noch in Planung;
+   <code>scope_resolver.rb:82-98</code>). <code>scope_season_transition?</code> signalisiert das für den
+   Band-Hinweis.</p>
+</li>
+<li>
+<p><strong>Region-strikte vs. nicht-strikte Modelle.</strong> Bei <code>region_id</code>-Filterung zeigen
+   strikte Modelle (Player/Club/Location, <code>scope_region_strict? == true</code>)
+   <strong>ausschließlich</strong> die eigene Region; <code>global_context</code> ist dort ein
+   Sync-Retention-Marker und wird nie eingeblendet. Nicht-strikte Modelle
+   (Turniere/Ligen) inkludieren <code>global_context = TRUE</code>
+   (<code>search_service.rb:97-110</code>, <code>player.rb:49</code>, <code>club.rb:61</code>, <code>location.rb:97</code>).</p>
+</li>
+<li>
+<p><strong><code>SearchReflex</code> umgeht die Controller-before_actions.</strong> Die ActionCable-
+   Live-Suche läuft nicht durch <code>set_current_scope</code>. Sie setzt <code>Current.scope</code>
+   selbst über denselben <code>ScopeResolver</code>
+   (<code>search_reflex.rb:44</code>) — sonst wäre der Scope in der Live-Suche <code>nil</code>.</p>
+</li>
+</ol>
 
 
 
@@ -3714,12 +3951,12 @@
     
     
       
-      <script id="__config" type="application/json">{"base": "../../..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.expand", "navigation.indexes", "search.suggest", "search.highlight", "header.autohide", "toc.follow"], "search": "../../../assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+      <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.expand", "navigation.indexes", "search.suggest", "search.highlight", "header.autohide", "toc.follow"], "search": "../../assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "In Zwischenablage kopiert", "clipboard.copy": "In Zwischenablage kopieren", "search.result.more.one": "1 weiteres Suchergebnis auf dieser Seite", "search.result.more.other": "# weitere Suchergebnisse auf dieser Seite", "search.result.none": "Keine Suchergebnisse", "search.result.one": "1 Suchergebnis", "search.result.other": "# Suchergebnisse", "search.result.placeholder": "Suchbegriff eingeben", "search.result.term.missing": "Es fehlt", "select.version": "Version ausw\u00e4hlen"}, "version": {"provider": "mike"}}</script>
     
     
-      <script src="../../../assets/javascripts/bundle.56ea9cef.min.js"></script>
+      <script src="../../assets/javascripts/bundle.56ea9cef.min.js"></script>
       
-        <script src="../../../javascripts/mathjax.js"></script>
+        <script src="../../javascripts/mathjax.js"></script>
       
         <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
       
@@ -3727,7 +3964,7 @@
       
         <script src="https://unpkg.com/mermaid@10/dist/mermaid.min.js"></script>
       
-        <script src="../../../javascripts/mermaid-init.js"></script>
+        <script src="../../javascripts/mermaid-init.js"></script>
       
     
   </body>

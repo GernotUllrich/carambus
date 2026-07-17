@@ -2710,6 +2710,48 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#endpoint-11-party-autarker-liga-spieltag-plan-48" class="md-nav__link">
+    <span class="md-ellipsis">
+      Endpoint 11: Party — autarker Liga-Spieltag (Plan 48)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Endpoint 11: Party — autarker Liga-Spieltag (Plan 48)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#get-apiexternal_tournamentpartyregionnbvparty_id-oder-party_cc_id" class="md-nav__link">
+    <span class="md-ellipsis">
+      GET /api/external_tournament/party?region=NBV&amp;party_id=… (oder &amp;party_cc_id=…)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#post-apiexternal_tournamentparty_game_result" class="md-nav__link">
+    <span class="md-ellipsis">
+      POST /api/external_tournament/party_game_result
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#post-apiexternal_tournamentparty_close" class="md-nav__link">
+    <span class="md-ellipsis">
+      POST /api/external_tournament/party_close
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#teardown-garbage-collection-plan-16-01" class="md-nav__link">
     <span class="md-ellipsis">
       Teardown &amp; Garbage-Collection (Plan 16-01)
@@ -4132,6 +4174,48 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#endpoint-11-party-autarker-liga-spieltag-plan-48" class="md-nav__link">
+    <span class="md-ellipsis">
+      Endpoint 11: Party — autarker Liga-Spieltag (Plan 48)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Endpoint 11: Party — autarker Liga-Spieltag (Plan 48)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#get-apiexternal_tournamentpartyregionnbvparty_id-oder-party_cc_id" class="md-nav__link">
+    <span class="md-ellipsis">
+      GET /api/external_tournament/party?region=NBV&amp;party_id=… (oder &amp;party_cc_id=…)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#post-apiexternal_tournamentparty_game_result" class="md-nav__link">
+    <span class="md-ellipsis">
+      POST /api/external_tournament/party_game_result
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#post-apiexternal_tournamentparty_close" class="md-nav__link">
+    <span class="md-ellipsis">
+      POST /api/external_tournament/party_close
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#teardown-garbage-collection-plan-16-01" class="md-nav__link">
     <span class="md-ellipsis">
       Teardown &amp; Garbage-Collection (Plan 16-01)
@@ -4375,6 +4459,18 @@ tauscht mit Carambus über REST folgende Daten aus:</p>
 <td><code>GET /api/external_tournament/categories</code></td>
 <td>Kategorie-/Klassen-Listen (player_classes + age_classes + genders + categories[]) für den Selektor</td>
 <td>✅ v0.6 (Plan 20-02)</td>
+</tr>
+<tr>
+<td>Carambus → App</td>
+<td><code>GET /api/external_tournament/registration_lists</code></td>
+<td>ClubCloud-Meldelisten einer Region (deadline/status + discipline/category, optional tournament_cc-Link)</td>
+<td>✅ v0.6 (Plan 21-05)</td>
+</tr>
+<tr>
+<td>App ↔ Carambus</td>
+<td><code>GET party</code> / <code>POST party_game_result</code> / <code>POST party_close</code></td>
+<td>Autarker Liga-Spieltag: Spieltag + Kader laden, Einzelspiel-Ergebnisse pushen, Spielbericht abschließen</td>
+<td>✅ (Plan 48-04..48-08)</td>
 </tr>
 </tbody>
 </table>
@@ -5269,6 +5365,28 @@ ist davon unabhängig und vollständig getestet.</p>
 </tr>
 </tbody>
 </table>
+<h2 id="endpoint-11-party-autarker-liga-spieltag-plan-48">Endpoint 11: Party — autarker Liga-Spieltag (Plan 48)<a class="headerlink" href="#endpoint-11-party-autarker-liga-spieltag-plan-48" title="Permanent link">&para;</a></h2>
+<p>Ein paralleles Schema für <strong>Liga-Spieltage</strong> („Spieltag"). Es teilt sich den Bridge-Controller und
+den <code>/api/external_tournament/*</code>-Namespace, arbeitet aber auf <code>Party</code> / <code>PartyMonitor</code> statt auf
+einem <code>Tournament</code>. Die externe App lädt einen Spieltag + Kader, pusht Einzelspiel-Ergebnisse direkt
+und schließt den Spielbericht ab — alles ohne <code>TableMonitor</code>.</p>
+<h3 id="get-apiexternal_tournamentpartyregionnbvparty_id-oder-party_cc_id"><code>GET /api/external_tournament/party?region=NBV&amp;party_id=…</code>  (oder <code>&amp;party_cc_id=…</code>)<a class="headerlink" href="#get-apiexternal_tournamentpartyregionnbvparty_id-oder-party_cc_id" title="Permanent link">&para;</a></h3>
+<p>Lädt einen Liga-Spieltag für das autarke carambus_app-Schema „spieltag". Response
+<code>carambus.party/v1</code>: <code>party</code> + <code>team_a</code>/<code>team_b</code> (inkl. Kader) + <code>party_monitor.data</code>. <code>party_id</code> hat
+Vorrang vor <code>party_cc_id</code>; die Region wird über <code>league.organizer</code> aufgelöst. Read-only.
+Fehler: <code>401</code> / <code>404</code> (Region/Party) / <code>422</code> (weder <code>party_id</code> noch <code>party_cc_id</code>).</p>
+<h3 id="post-apiexternal_tournamentparty_game_result"><code>POST /api/external_tournament/party_game_result</code><a class="headerlink" href="#post-apiexternal_tournamentparty_game_result" title="Permanent link">&para;</a></h3>
+<p>Direkteingabe-Push (<code>carambus.party_game_result/v1</code>): schreibt das Endergebnis <strong>einer</strong> Einzelpartie
+direkt (<code>Party#build_game_for_row!</code> + <code>Party#record_game_result!</code>) — <strong>ohne TableMonitor</strong>. Ein
+Mehrfach-Push überschreibt (TL-Korrektur). Die Zeile wird über <code>gname = "&lt;seqno&gt;-&lt;type&gt;"</code> identifiziert;
+<code>Spieler1</code>/<code>Spieler2</code> sind <code>dbu_nr</code> (kanonisch, Plan 48-06). Bei Satz-Disziplinen sind <code>Sets1/2</code>
+maßgeblich, mit Fallback auf <code>Ergebnis1/2</code>. Die Response liefert <code>intermediate_result</code>
+(<code>game_points</code> + <code>match_points</code>). Nicht schreibbar (LocalProtector-Honest-Refusal) → <code>422</code>;
+unbekannter <code>gname</code> → <code>404</code>.</p>
+<h3 id="post-apiexternal_tournamentparty_close"><code>POST /api/external_tournament/party_close</code><a class="headerlink" href="#post-apiexternal_tournamentparty_close" title="Permanent link">&para;</a></h3>
+<p>Schließt den Spielbericht ab (<code>carambus.party_close/v1</code>) via <code>PartyMonitor#close_with_result!(event:
+:end_of_party)</code> — der autarke API-Pfad treibt die Web-AASM <strong>nicht</strong>. Vollständigkeits-Guard: wenn nicht
+alle Spiele ein <code>ended_at</code> haben, <code>409</code> mit <code>missing_gnames</code>. Bereits geschlossen → <code>422</code>.</p>
 <h2 id="teardown-garbage-collection-plan-16-01">Teardown &amp; Garbage-Collection (Plan 16-01)<a class="headerlink" href="#teardown-garbage-collection-plan-16-01" title="Permanent link">&para;</a></h2>
 <p><strong>Carambus hält kein Gedächtnis der App-Turnierdaten.</strong> Die App führt ihr eigenes
 Ergebnis-Gedächtnis (über <code>acknowledge_result</code> live abgeholt), daher darf Carambus ein

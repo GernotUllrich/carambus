@@ -3844,7 +3844,7 @@
 <h3 id="ki-fallback">KI-Fallback<a class="headerlink" href="#ki-fallback" title="Permanent link">&para;</a></h3>
 <p>Der KI-Fallback greift nur dann, wenn <strong>alle</strong> Regex-Extraktionswerte leer sind <strong>und</strong> <code>ai_extraction_enabled: true</code> explizit gesetzt wurde:</p>
 <ul>
-<li><strong>Modell:</strong> <code>gpt-4o-mini</code> mit <code>response_format: { type: "json_object" }</code></li>
+<li><strong>Modell:</strong> <code>claude-haiku-4-5-20251001</code> via <code>Anthropic::Client</code> (<code>Carambus.anthropic_api_key</code>). Der Prompt fordert reines JSON an; ```-Code-Fences in der Antwort werden vor dem Parsen entfernt.</li>
 <li><strong>Standard:</strong> deaktiviert (<code>ai_extraction_enabled: false</code>) — verhindert unerwartete OpenAI-Aufrufe in Batch-Kontexten</li>
 <li><strong>Fehlerbehandlung:</strong> Exceptions werden abgefangen und zurueck geben ein leeres Hash zurueck (kein Raise)</li>
 </ul>

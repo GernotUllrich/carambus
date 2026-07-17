@@ -3616,7 +3616,7 @@
 <p><code>UserPersonas#cc_write_access?</code> (<code>app/models/concerns/user_personas.rb</code>):</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">cc_write_access?</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">system_admin?</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">sportwart?</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">turnierleiter?</span>
 </code></pre></div>
-<p><code>ToolRegistry.tools_for(user)</code> filtert darauf: ein read-only User (player/club_admin ohne Persona/TL) bekommt die Write-Tools <strong>gar nicht erst</strong> in die Tool-Liste. <code>sportwart?</code> leitet sich aus der expliziten <code>users.persona_grants</code>-Spalte ab (<code>sportwart</code> location-scoped, <code>landessportwart</code> region-weit — Phase 38).</p>
+<p><code>ToolRegistry.tools_for(user)</code> filtert darauf: ein read-only User (player/club_admin ohne Persona/TL) bekommt die Write-Tools <strong>gar nicht erst</strong> in die Tool-Liste. Es gibt ein zweites, orthogonales Gate: Write-Tools werden <strong>nur bei <code>cc_write_access? &amp;&amp; local_server?</code></strong> angehängt — auf der Authority (<code>carambus_api_url</code> blank) bekommt also selbst ein <code>system_admin</code> ein read-only Tool-Set (Phase 39). <code>sportwart?</code> leitet sich aus der expliziten <code>users.persona_grants</code>-Spalte ab (<code>sportwart</code> location-scoped, <code>landessportwart</code> region-weit — Phase 38).</p>
 <h3 id="schicht-2-feine-per-record-authority-darf-dieser-user-diese-aktion-an-diesem-turnier">Schicht 2 — feine Per-Record-Authority (darf dieser User DIESE Aktion an DIESEM Turnier?)<a class="headerlink" href="#schicht-2-feine-per-record-authority-darf-dieser-user-diese-aktion-an-diesem-turnier" title="Permanent link">&para;</a></h3>
 <p><code>authorize!</code> → <code>TournamentPolicy</code> (<code>app/policies/tournament_policy.rb</code>):</p>
 <pre class="mermaid"><code>graph TD
@@ -3749,7 +3749,7 @@
 <li><code>resolve_cc_account</code> + <code>cc_write_identity_block(account, armed:)</code> vor dem POST.</li>
 <li>POST unter <code>cc_session.cookie_for(account)</code> (NICHT <code>cookie</code>).</li>
 <li>AuditTrail mit <code>operator: cc_audit_operator</code>, <code>user_id: account.acting_user_id</code>.</li>
-<li>Tool in <code>role_tool_map.rb</code> (WRITE_TOOLS) <strong>und</strong> in <code>SpielleiterChatService::TOOL_CLASSES</code> eintragen (zwei getrennte Listen — Drift-Falle!).</li>
+<li>Tool in <code>role_tool_map.rb</code> (<code>WRITE_TOOLS</code>) eintragen — das ist die <strong>einzige</strong> Quelle für den HTTP-Pfad. <code>ToolRegistry.tool_classes_for(user)</code> und <code>SpielleiterChatService</code> konsumieren sie beide; es gibt <strong>keine</strong> zweite <code>TOOL_CLASSES</code>-Liste (D-34-3 hat die alte Zwei-Listen-Drift-Falle aufgelöst). Write-Tools erreichen einen User nur, wenn <code>cc_write_access? &amp;&amp; local_server?</code>.</li>
 <li>Pre-Validation-First: alle Constraints VOR <code>armed:true</code> prüfen.</li>
 </ol>
 <hr />

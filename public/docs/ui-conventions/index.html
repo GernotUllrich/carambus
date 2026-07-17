@@ -1,6 +1,6 @@
 
 <!doctype html>
-<html lang="en" class="no-js">
+<html lang="de" class="no-js">
   <head>
     
       <meta charset="utf-8">
@@ -10,28 +10,24 @@
       
       
       
-        <link rel="canonical" href="https://GernotUllrich.github.io/carambus/en/developers/umb-scraping-implementation/">
+        <link rel="canonical" href="https://GernotUllrich.github.io/carambus/ui-conventions/">
       
       
-        <link rel="prev" href="../testing/fixture-collection-guide/">
       
       
-        <link rel="next" href="../umb-scraping-methods/">
-      
-      
-      <link rel="icon" href="../../../assets/images/favicon.png">
+      <link rel="icon" href="../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.15">
     
     
       
-        <title>UMB Scraping Implementation - Carambus Documentation</title>
+        <title>UI-/CSS-Konventionen (Carambus) - Carambus Documentation</title>
       
     
     
-      <link rel="stylesheet" href="../../../assets/stylesheets/main.342714a4.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.342714a4.min.css">
       
         
-        <link rel="stylesheet" href="../../../assets/stylesheets/palette.06af60db.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
       
       
 
@@ -50,11 +46,11 @@
       
     
     
-      <link rel="stylesheet" href="../../../stylesheets/extra.css">
+      <link rel="stylesheet" href="../stylesheets/extra.css">
     
-      <link rel="stylesheet" href="../../../stylesheets/print.css">
+      <link rel="stylesheet" href="../stylesheets/print.css">
     
-    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -80,8 +76,8 @@
     <div data-md-component="skip">
       
         
-        <a href="#umb-scraping-architecture" class="md-skip">
-          Skip to content
+        <a href="#ui-css-konventionen-carambus" class="md-skip">
+          Zum Inhalt
         </a>
       
     </div>
@@ -99,8 +95,8 @@
   
 
 <header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
-  <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="../../" title="Carambus Documentation" class="md-header__button md-logo" aria-label="Carambus Documentation" data-md-component="logo">
+  <nav class="md-header__inner md-grid" aria-label="Kopfzeile">
+    <a href=".." title="Carambus Documentation" class="md-header__button md-logo" aria-label="Carambus Documentation" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -120,7 +116,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              UMB Scraping Implementation
+              UI-/CSS-Konventionen (Carambus)
             
           </span>
         </div>
@@ -160,20 +156,20 @@
       <div class="md-header__option">
   <div class="md-select">
     
-    <button class="md-header__button md-icon" aria-label="Select language">
+    <button class="md-header__button md-icon" aria-label="Sprache wechseln">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"/></svg>
     </button>
     <div class="md-select__inner">
       <ul class="md-select__list">
         
           <li class="md-select__item">
-            <a href="../../../developers/umb-scraping-implementation/" hreflang="de" class="md-select__link">
+            <a href="./" hreflang="de" class="md-select__link">
               Deutsch
             </a>
           </li>
         
           <li class="md-select__item">
-            <a href="./" hreflang="en" class="md-select__link">
+            <a href="../en/ui-conventions/" hreflang="en" class="md-select__link">
               English
             </a>
           </li>
@@ -194,16 +190,16 @@
   <label class="md-search__overlay" for="__search"></label>
   <div class="md-search__inner" role="search">
     <form class="md-search__form" name="search">
-      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <input type="text" class="md-search__input" name="query" aria-label="Suche" placeholder="Suche" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
       <label class="md-search__icon md-icon" for="__search">
         
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
         
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
       </label>
-      <nav class="md-search__options" aria-label="Search">
+      <nav class="md-search__options" aria-label="Suche">
         
-        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+        <button type="reset" class="md-search__icon md-icon" title="Zurücksetzen" aria-label="Zurücksetzen" tabindex="-1">
           
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
         </button>
@@ -216,7 +212,7 @@
       <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
         <div class="md-search-result" data-md-component="search-result">
           <div class="md-search-result__meta">
-            Initializing search
+            Suche wird initialisiert
           </div>
           <ol class="md-search-result__list" role="presentation"></ol>
         </div>
@@ -228,7 +224,7 @@
     
     
       <div class="md-header__source">
-        <a href="https://github.com/GernotUllrich/carambus" title="Go to repository" class="md-source" data-md-component="source">
+        <a href="https://github.com/GernotUllrich/carambus" title="Zum Repository" class="md-source" data-md-component="source">
   <div class="md-source__icon md-icon">
     
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
@@ -243,7 +239,7 @@
   
     
       
-<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+<nav class="md-tabs" aria-label="Hauptnavigation" data-md-component="tabs">
   <div class="md-grid">
     <ul class="md-tabs__list">
       
@@ -253,13 +249,13 @@
   
   
     <li class="md-tabs__item">
-      <a href="../../" class="md-tabs__link">
+      <a href=".." class="md-tabs__link">
         
   
   
     
   
-  Home
+  Startseite
 
       </a>
     </li>
@@ -274,13 +270,13 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../decision-makers/" class="md-tabs__link">
+        <a href="../decision-makers/" class="md-tabs__link">
           
   
   
     
   
-  Decision Makers
+  Für Entscheider
 
         </a>
       </li>
@@ -296,13 +292,13 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../players/" class="md-tabs__link">
+        <a href="../players/" class="md-tabs__link">
           
   
   
     
   
-  Players
+  Für Spieler
 
         </a>
       </li>
@@ -318,13 +314,13 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../managers/" class="md-tabs__link">
+        <a href="../managers/" class="md-tabs__link">
           
   
   
     
   
-  Managers
+  Für Turniermanager
 
         </a>
       </li>
@@ -340,37 +336,13 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../administrators/" class="md-tabs__link">
+        <a href="../administrators/" class="md-tabs__link">
           
   
   
     
   
-  Administrators
-
-        </a>
-      </li>
-    
-  
-
-      
-        
-  
-  
-  
-    
-  
-  
-    
-    
-      <li class="md-tabs__item md-tabs__item--active">
-        <a href="../" class="md-tabs__link">
-          
-  
-  
-    
-  
-  Developers
+  Für Systemadministratoren
 
         </a>
       </li>
@@ -386,13 +358,13 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../reference/api/" class="md-tabs__link">
+        <a href="../developers/" class="md-tabs__link">
           
   
   
     
   
-  Reference
+  Für Entwickler
 
         </a>
       </li>
@@ -408,13 +380,35 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../about/" class="md-tabs__link">
+        <a href="../reference/api/" class="md-tabs__link">
           
   
   
     
   
-  About
+  Referenz
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../about/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Über
 
         </a>
       </li>
@@ -450,7 +444,7 @@
 
 <nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="../../" title="Carambus Documentation" class="md-nav__button md-logo" aria-label="Carambus Documentation" data-md-component="logo">
+    <a href=".." title="Carambus Documentation" class="md-nav__button md-logo" aria-label="Carambus Documentation" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -460,7 +454,7 @@
   </label>
   
     <div class="md-nav__source">
-      <a href="https://github.com/GernotUllrich/carambus" title="Go to repository" class="md-source" data-md-component="source">
+      <a href="https://github.com/GernotUllrich/carambus" title="Zum Repository" class="md-source" data-md-component="source">
   <div class="md-source__icon md-icon">
     
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
@@ -480,12 +474,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../../" class="md-nav__link">
+      <a href=".." class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Home
+    Startseite
     
   </span>
   
@@ -533,12 +527,12 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../decision-makers/" class="md-nav__link ">
+            <a href="../decision-makers/" class="md-nav__link ">
               
   
   
   <span class="md-ellipsis">
-    Decision Makers
+    Für Entscheider
     
   </span>
   
@@ -555,7 +549,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_2">
             <span class="md-nav__icon md-icon"></span>
-            Decision Makers
+            Für Entscheider
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -568,7 +562,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../decision-makers/executive-summary/" class="md-nav__link">
+      <a href="../decision-makers/executive-summary/" class="md-nav__link">
         
   
   
@@ -591,12 +585,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../../decision-makers/features-overview/" class="md-nav__link">
+      <a href="../decision-makers/features-overview/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Features Overview
+    Feature-Übersicht
     
   </span>
   
@@ -614,12 +608,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../../decision-makers/deployment-options/" class="md-nav__link">
+      <a href="../decision-makers/deployment-options/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Deployment Options
+    Deployment-Optionen
     
   </span>
   
@@ -675,12 +669,12 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../players/" class="md-nav__link ">
+            <a href="../players/" class="md-nav__link ">
               
   
   
   <span class="md-ellipsis">
-    Players
+    Für Spieler
     
   </span>
   
@@ -697,7 +691,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
-            Players
+            Für Spieler
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -710,12 +704,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../../players/scoreboard-guide/" class="md-nav__link">
+      <a href="../players/scoreboard-guide/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Scoreboard Guide
+    Scoreboard-Anleitung
     
   </span>
   
@@ -733,12 +727,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../../players/tournament-participation/" class="md-nav__link">
+      <a href="../players/tournament-participation/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Tournament Participation
+    Turnierteilnahme
     
   </span>
   
@@ -756,12 +750,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../../players/ai-search/" class="md-nav__link">
+      <a href="../players/ai-search/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    AI-Powered Search
+    KI-gestützte Suche
     
   </span>
   
@@ -833,12 +827,12 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../managers/" class="md-nav__link ">
+            <a href="../managers/" class="md-nav__link ">
               
   
   
   <span class="md-ellipsis">
-    Managers
+    Für Turniermanager
     
   </span>
   
@@ -855,7 +849,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
-            Managers
+            Für Turniermanager
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -868,12 +862,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../../managers/tournament-management/" class="md-nav__link">
+      <a href="../managers/tournament-management/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Tournament Management
+    Turnierverwaltung
     
   </span>
   
@@ -891,12 +885,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../../managers/tournament-quick-reference/" class="md-nav__link">
+      <a href="../managers/tournament-quick-reference/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Tournament Quick Reference
+    Turnier-Schnellreferenz
     
   </span>
   
@@ -914,12 +908,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../../managers/league-management/" class="md-nav__link">
+      <a href="../managers/league-management/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    League Management
+    Liga-Management
     
   </span>
   
@@ -937,12 +931,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../../managers/single-tournament/" class="md-nav__link">
+      <a href="../managers/single-tournament/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Single Tournament
+    Einzelturnier
     
   </span>
   
@@ -960,12 +954,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../../managers/table-reservation/" class="md-nav__link">
+      <a href="../managers/table-reservation/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Table Reservation
+    Tischreservierung
     
   </span>
   
@@ -983,12 +977,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../../managers/admin-roles/" class="md-nav__link">
+      <a href="../managers/admin-roles/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Admin Roles
+    Admin-Rollen
     
   </span>
   
@@ -1006,12 +1000,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../../managers/clubcloud-integration/" class="md-nav__link">
+      <a href="../managers/clubcloud-integration/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    ClubCloud Integration
+    ClubCloud-Integration
     
   </span>
   
@@ -1080,7 +1074,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../managers/clubcloud-mcp-cloud-quickstart/" class="md-nav__link">
+      <a href="../managers/clubcloud-mcp-cloud-quickstart/" class="md-nav__link">
         
   
   
@@ -1103,7 +1097,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../managers/clubcloud-mcp-setup-service/" class="md-nav__link">
+      <a href="../managers/clubcloud-mcp-setup-service/" class="md-nav__link">
         
   
   
@@ -1134,12 +1128,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../../managers/external-tournament-bridge/" class="md-nav__link">
+      <a href="../managers/external-tournament-bridge/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    External Tournament Bridge
+    External-Tournament-Bridge
     
   </span>
   
@@ -1214,7 +1208,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../managers/clubcloud-scenarios/cc-glossary/" class="md-nav__link">
+      <a href="../managers/clubcloud-scenarios/cc-glossary/" class="md-nav__link">
         
   
   
@@ -1237,7 +1231,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../managers/clubcloud-scenarios/cc-roles/" class="md-nav__link">
+      <a href="../managers/clubcloud-scenarios/cc-roles/" class="md-nav__link">
         
   
   
@@ -1260,7 +1254,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../managers/clubcloud-scenarios/endrangliste-eintragen/" class="md-nav__link">
+      <a href="../managers/clubcloud-scenarios/endrangliste-eintragen/" class="md-nav__link">
         
   
   
@@ -1283,7 +1277,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../managers/clubcloud-scenarios/player-anlegen/" class="md-nav__link">
+      <a href="../managers/clubcloud-scenarios/player-anlegen/" class="md-nav__link">
         
   
   
@@ -1306,7 +1300,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../managers/clubcloud-scenarios/teilnehmerliste-finalisieren/" class="md-nav__link">
+      <a href="../managers/clubcloud-scenarios/teilnehmerliste-finalisieren/" class="md-nav__link">
         
   
   
@@ -1337,12 +1331,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../../managers/search-filters/" class="md-nav__link">
+      <a href="../managers/search-filters/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Search & Filters
+    Suche & Filter
     
   </span>
   
@@ -1410,12 +1404,12 @@
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../administrators/" class="md-nav__link ">
+            <a href="../administrators/" class="md-nav__link ">
               
   
   
   <span class="md-ellipsis">
-    Administrators
+    Für Systemadministratoren
     
   </span>
   
@@ -1432,7 +1426,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_5">
             <span class="md-nav__icon md-icon"></span>
-            Administrators
+            Für Systemadministratoren
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -1445,12 +1439,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../../administrators/installation-overview/" class="md-nav__link">
+      <a href="../administrators/installation-overview/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Installation Overview
+    Installations-Übersicht
     
   </span>
   
@@ -1468,7 +1462,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../administrators/raspberry-pi-quickstart/" class="md-nav__link">
+      <a href="../administrators/raspberry-pi-quickstart/" class="md-nav__link">
         
   
   
@@ -1491,7 +1485,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../administrators/raspberry-pi-client/" class="md-nav__link">
+      <a href="../administrators/raspberry-pi-client/" class="md-nav__link">
         
   
   
@@ -1514,7 +1508,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../administrators/scoreboard-autostart/" class="md-nav__link">
+      <a href="../administrators/scoreboard-autostart/" class="md-nav__link">
         
   
   
@@ -1537,12 +1531,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../../administrators/server-architecture/" class="md-nav__link">
+      <a href="../administrators/server-architecture/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Server Architecture
+    Server-Architektur
     
   </span>
   
@@ -1560,12 +1554,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../../administrators/email-configuration/" class="md-nav__link">
+      <a href="../administrators/email-configuration/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Email Configuration
+    Email-Konfiguration
     
   </span>
   
@@ -1583,12 +1577,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../../administrators/database-setup/" class="md-nav__link">
+      <a href="../administrators/database-setup/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Database Setup
+    Datenbank-Setup
     
   </span>
   
@@ -1606,7 +1600,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../administrators/streaming-quickstart/" class="md-nav__link">
+      <a href="../administrators/streaming-quickstart/" class="md-nav__link">
         
   
   
@@ -1629,7 +1623,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../administrators/streaming-setup/" class="md-nav__link">
+      <a href="../administrators/streaming-setup/" class="md-nav__link">
         
   
   
@@ -1656,8 +1650,6 @@
       
   
   
-    
-  
   
   
     
@@ -1723,28 +1715,27 @@
     
     
       
-        
-        
-      
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" checked>
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../" class="md-nav__link ">
+            <a href="../developers/" class="md-nav__link ">
               
   
   
   <span class="md-ellipsis">
-    Developers
+    Für Entwickler
     
   </span>
   
@@ -1752,16 +1743,16 @@
             </a>
             
               
-              <label class="md-nav__link " for="__nav_6" id="__nav_6_label" tabindex="">
+              <label class="md-nav__link " for="__nav_6" id="__nav_6_label" tabindex="0">
                 <span class="md-nav__icon md-icon"></span>
               </label>
             
           </div>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_6">
             <span class="md-nav__icon md-icon"></span>
-            Developers
+            Für Entwickler
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -1774,7 +1765,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../getting-started/" class="md-nav__link">
+      <a href="../developers/getting-started/" class="md-nav__link">
         
   
   
@@ -1797,12 +1788,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../developer-guide/" class="md-nav__link">
+      <a href="../developers/developer-guide/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Developer Guide
+    Entwickler-Leitfaden
     
   </span>
   
@@ -1820,12 +1811,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../database-design/" class="md-nav__link">
+      <a href="../developers/database-design/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Database Design
+    Datenbank-Design
     
   </span>
   
@@ -1843,12 +1834,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../er-diagram/" class="md-nav__link">
+      <a href="../developers/er-diagram/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    ER Diagram
+    ER-Diagramm
     
   </span>
   
@@ -1866,12 +1857,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../scenario-management/" class="md-nav__link">
+      <a href="../developers/scenario-management/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Scenario Management
+    Scenario-Management
     
   </span>
   
@@ -1889,12 +1880,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../scenario-workflow/" class="md-nav__link">
+      <a href="../developers/scenario-workflow/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Scenario Workflow
+    Scenario-Workflow
     
   </span>
   
@@ -1912,7 +1903,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../rubymine-setup/" class="md-nav__link">
+      <a href="../developers/rubymine-setup/" class="md-nav__link">
         
   
   
@@ -1947,13 +1938,10 @@
       
       
         
-          
-          
-        
       
     
     
-    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
@@ -1962,7 +1950,7 @@
         <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6_9" >
         
           
-          <label class="md-nav__link" for="__nav_6_9" id="__nav_6_9_label" tabindex="">
+          <label class="md-nav__link" for="__nav_6_9" id="__nav_6_9_label" tabindex="0">
             
   
   
@@ -1989,7 +1977,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../testing/testing-quickstart/" class="md-nav__link">
+      <a href="../developers/testing/testing-quickstart/" class="md-nav__link">
         
   
   
@@ -2012,12 +2000,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../testing/fixture-collection-guide/" class="md-nav__link">
+      <a href="../developers/testing/fixture-collection-guide/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Fixture Collection Guide
+    Fixture Sammlung Anleitung
     
   </span>
   
@@ -2040,10 +2028,8 @@
                 
   
   
-    
   
   
-  
     
     
       
@@ -2056,21 +2042,20 @@
     
       
       
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
         
           
-          
         
-      
-    
-    
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
-      
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6_10" checked>
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6_10" >
         
           
-          <label class="md-nav__link" for="__nav_6_10" id="__nav_6_10_label" tabindex="">
+          <label class="md-nav__link" for="__nav_6_10" id="__nav_6_10_label" tabindex="0">
             
   
   
@@ -2083,7 +2068,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_10_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_10_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_6_10">
             <span class="md-nav__icon md-icon"></span>
             UMB Scraping
@@ -2094,158 +2079,20 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    UMB Scraping Implementation
-    
-  </span>
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../developers/umb-scraping-implementation/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    UMB Scraping Implementation
+    UMB Scraping Implementierung
     
   </span>
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#namespace-overview" class="md-nav__link">
-    <span class="md-ellipsis">
-      Namespace Overview
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#architecture-decisions" class="md-nav__link">
-    <span class="md-ellipsis">
-      Architecture Decisions
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Architecture Decisions">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#a-poro-vs-applicationservice" class="md-nav__link">
-    <span class="md-ellipsis">
-      a. PORO vs. ApplicationService
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#b-module-vs-class" class="md-nav__link">
-    <span class="md-ellipsis">
-      b. Module vs. Class
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#c-delegation-pattern" class="md-nav__link">
-    <span class="md-ellipsis">
-      c. Delegation Pattern
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#d-optional-pdf-pipeline" class="md-nav__link">
-    <span class="md-ellipsis">
-      d. Optional PDF Pipeline
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#e-internationalgame-sti" class="md-nav__link">
-    <span class="md-ellipsis">
-      e. InternationalGame STI
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#f-two-tier-discipline-detection" class="md-nav__link">
-    <span class="md-ellipsis">
-      f. Two-tier discipline detection
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#data-flow" class="md-nav__link">
-    <span class="md-ellipsis">
-      Data Flow
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#entry-points" class="md-nav__link">
-    <span class="md-ellipsis">
-      Entry Points
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -2258,12 +2105,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../umb-scraping-methods/" class="md-nav__link">
+      <a href="../developers/umb-scraping-methods/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    UMB Scraping Methods
+    UMB Scraping Methoden
     
   </span>
   
@@ -2305,13 +2152,10 @@
       
       
         
-          
-          
-        
       
     
     
-    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
@@ -2320,7 +2164,7 @@
         <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6_11" >
         
           
-          <label class="md-nav__link" for="__nav_6_11" id="__nav_6_11_label" tabindex="">
+          <label class="md-nav__link" for="__nav_6_11" id="__nav_6_11_label" tabindex="0">
             
   
   
@@ -2347,7 +2191,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../clubcloud-mcp-server/" class="md-nav__link">
+      <a href="../developers/clubcloud-mcp-server/" class="md-nav__link">
         
   
   
@@ -2370,7 +2214,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../mcp-architektur-naht/" class="md-nav__link">
+      <a href="../developers/mcp-architektur-naht/" class="md-nav__link">
         
   
   
@@ -2393,7 +2237,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../per-user-cc-identitaet/" class="md-nav__link">
+      <a href="../developers/per-user-cc-identitaet/" class="md-nav__link">
         
   
   
@@ -2416,7 +2260,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../clubcloud-mcp-workflow-scenarios/" class="md-nav__link">
+      <a href="../developers/clubcloud-mcp-workflow-scenarios/" class="md-nav__link">
         
   
   
@@ -2447,12 +2291,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../external-tournament-bridge/" class="md-nav__link">
+      <a href="../developers/external-tournament-bridge/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    External Tournament Bridge
+    External-Tournament-Bridge
     
   </span>
   
@@ -2494,13 +2338,10 @@
       
       
         
-          
-          
-        
       
     
     
-    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
@@ -2509,7 +2350,7 @@
         <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6_13" >
         
           
-          <label class="md-nav__link" for="__nav_6_13" id="__nav_6_13_label" tabindex="">
+          <label class="md-nav__link" for="__nav_6_13" id="__nav_6_13_label" tabindex="0">
             
   
   
@@ -2536,7 +2377,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../services/table-monitor/" class="md-nav__link">
+      <a href="../developers/services/table-monitor/" class="md-nav__link">
         
   
   
@@ -2559,7 +2400,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../services/region-cc/" class="md-nav__link">
+      <a href="../developers/services/region-cc/" class="md-nav__link">
         
   
   
@@ -2582,12 +2423,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../services/tournament/" class="md-nav__link">
+      <a href="../developers/services/tournament/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Tournament
+    Turnier
     
   </span>
   
@@ -2605,12 +2446,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../services/tournament-monitor/" class="md-nav__link">
+      <a href="../developers/services/tournament-monitor/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Tournament Monitor
+    Turnier-Monitor
     
   </span>
   
@@ -2628,12 +2469,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../services/league/" class="md-nav__link">
+      <a href="../developers/services/league/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    League
+    Liga
     
   </span>
   
@@ -2651,12 +2492,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../services/party-monitor/" class="md-nav__link">
+      <a href="../developers/services/party-monitor/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Party Monitor
+    Party-Monitor
     
   </span>
   
@@ -2674,12 +2515,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../services/umb/" class="md-nav__link">
+      <a href="../developers/services/umb/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    UMB Services
+    UMB-Services
     
   </span>
   
@@ -2697,12 +2538,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../services/video-crossref/" class="md-nav__link">
+      <a href="../developers/services/video-crossref/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Video Cross-Reference
+    Video-Querverweise
     
   </span>
   
@@ -2728,7 +2569,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../frontend-sti-migration/" class="md-nav__link">
+      <a href="../developers/frontend-sti-migration/" class="md-nav__link">
         
   
   
@@ -2751,7 +2592,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../rake-tasks-debugging/" class="md-nav__link">
+      <a href="../developers/rake-tasks-debugging/" class="md-nav__link">
         
   
   
@@ -2774,12 +2615,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../deployment-workflow/" class="md-nav__link">
+      <a href="../developers/deployment-workflow/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Deployment Workflow
+    Deployment-Workflow
     
   </span>
   
@@ -2797,12 +2638,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../developers/overcommit-hooks.md" class="md-nav__link">
+      <a href="../developers/overcommit-hooks.md" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Overcommit Hooks (MkDocsBuild)
+    Overcommit-Hooks (MkDocsBuild)
     
   </span>
   
@@ -2820,12 +2661,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../data-management/" class="md-nav__link">
+      <a href="../developers/data-management/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Data Management
+    Datenverwaltung
     
   </span>
   
@@ -2843,12 +2684,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../database-partitioning/" class="md-nav__link">
+      <a href="../developers/database-partitioning/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Database Partitioning
+    Datenbank-Partitionierung
     
   </span>
   
@@ -2866,12 +2707,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../paper-trail-optimization/" class="md-nav__link">
+      <a href="../developers/paper-trail-optimization/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Paper Trail Optimization
+    PaperTrail-Optimierung
     
   </span>
   
@@ -2889,12 +2730,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../game-plan-reconstruction/" class="md-nav__link">
+      <a href="../developers/game-plan-reconstruction/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Game Plan Reconstruction
+    Spielplan-Rekonstruktion
     
   </span>
   
@@ -2912,12 +2753,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../tournament-duplicate-handling/" class="md-nav__link">
+      <a href="../developers/tournament-duplicate-handling/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Tournament Duplicates
+    Turnier-Duplikate
     
   </span>
   
@@ -2935,12 +2776,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../region-tagging-cleanup-summary/" class="md-nav__link">
+      <a href="../developers/region-tagging-cleanup-summary/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Region Tagging
+    Regions-Tagging
     
   </span>
   
@@ -2958,12 +2799,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../streaming-architecture/" class="md-nav__link">
+      <a href="../developers/streaming-architecture/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    YouTube Streaming Architecture
+    YouTube Streaming Architektur
     
   </span>
   
@@ -2981,7 +2822,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../pool-scoreboard-changelog/" class="md-nav__link">
+      <a href="../developers/pool-scoreboard-changelog/" class="md-nav__link">
         
   
   
@@ -3004,12 +2845,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../deployment-checklist/" class="md-nav__link">
+      <a href="../developers/deployment-checklist/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Deployment Checklist Production
+    Deployment-Checkliste (Prod)
     
   </span>
   
@@ -3027,12 +2868,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../umb-deployment-checklist/" class="md-nav__link">
+      <a href="../developers/umb-deployment-checklist/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    UMB Deployment Checklist
+    UMB Deployment-Checkliste
     
   </span>
   
@@ -3096,7 +2937,7 @@
   
   
   <span class="md-ellipsis">
-    Reference
+    Referenz
     
   </span>
   
@@ -3107,7 +2948,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_7">
             <span class="md-nav__icon md-icon"></span>
-            Reference
+            Referenz
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -3118,7 +2959,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/api/" class="md-nav__link">
+      <a href="../reference/api/" class="md-nav__link">
         
   
   
@@ -3141,12 +2982,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/glossary/" class="md-nav__link">
+      <a href="../reference/glossary/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Glossary
+    Glossar
     
   </span>
   
@@ -3164,12 +3005,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/terms/" class="md-nav__link">
+      <a href="../reference/terms/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Terms
+    AGB
     
   </span>
   
@@ -3187,12 +3028,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/privacy/" class="md-nav__link">
+      <a href="../reference/privacy/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Privacy
+    Datenschutz
     
   </span>
   
@@ -3210,7 +3051,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/config-lock-files/" class="md-nav__link">
+      <a href="../reference/config-lock-files/" class="md-nav__link">
         
   
   
@@ -3233,7 +3074,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/search/" class="md-nav__link">
+      <a href="../reference/search/" class="md-nav__link">
         
   
   
@@ -3256,7 +3097,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/mkdocs_documentation/" class="md-nav__link">
+      <a href="../reference/mkdocs_documentation/" class="md-nav__link">
         
   
   
@@ -3313,7 +3154,7 @@
   
   
   <span class="md-ellipsis">
-    About
+    Über
     
   </span>
   
@@ -3324,7 +3165,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_8">
             <span class="md-nav__icon md-icon"></span>
-            About
+            Über
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -3335,12 +3176,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../../about/" class="md-nav__link">
+      <a href="../about/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    About
+    Über
     
   </span>
   
@@ -3371,7 +3212,7 @@
                   <div class="md-sidebar__inner">
                     
 
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+<nav class="md-nav md-nav--secondary" aria-label="Inhaltsverzeichnis">
   
   
   
@@ -3380,101 +3221,50 @@
   
     <label class="md-nav__title" for="__toc">
       <span class="md-nav__icon md-icon"></span>
-      Table of contents
+      Inhaltsverzeichnis
     </label>
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#namespace-overview" class="md-nav__link">
+  <a href="#1-grundregeln" class="md-nav__link">
     <span class="md-ellipsis">
-      Namespace Overview
+      1. Grundregeln
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#architecture-decisions" class="md-nav__link">
+  <a href="#2-dark-mode-pflicht" class="md-nav__link">
     <span class="md-ellipsis">
-      Architecture Decisions
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Architecture Decisions">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#a-poro-vs-applicationservice" class="md-nav__link">
-    <span class="md-ellipsis">
-      a. PORO vs. ApplicationService
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#b-module-vs-class" class="md-nav__link">
-    <span class="md-ellipsis">
-      b. Module vs. Class
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#c-delegation-pattern" class="md-nav__link">
-    <span class="md-ellipsis">
-      c. Delegation Pattern
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#d-optional-pdf-pipeline" class="md-nav__link">
-    <span class="md-ellipsis">
-      d. Optional PDF Pipeline
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#e-internationalgame-sti" class="md-nav__link">
-    <span class="md-ellipsis">
-      e. InternationalGame STI
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#f-two-tier-discipline-detection" class="md-nav__link">
-    <span class="md-ellipsis">
-      f. Two-tier discipline detection
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#data-flow" class="md-nav__link">
-    <span class="md-ellipsis">
-      Data Flow
+      2. Dark-Mode (Pflicht)
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#entry-points" class="md-nav__link">
+  <a href="#3-mapping-tabelle-flatui-alt-palette-token-utility" class="md-nav__link">
     <span class="md-ellipsis">
-      Entry Points
+      3. Mapping-Tabelle: Flatui-Alt-Palette → Token-Utility
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-precompile-falle-wichtig" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. Precompile-Falle (wichtig!)
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-die-wache-rake-uino_hardcoded_hex" class="md-nav__link">
+    <span class="md-ellipsis">
+      5. Die Wache (rake ui:no_hardcoded_hex)
     </span>
   </a>
   
@@ -3499,147 +3289,238 @@
   
 
 
-<h1 id="umb-scraping-architecture">UMB Scraping — Architecture<a class="headerlink" href="#umb-scraping-architecture" title="Permanent link">&para;</a></h1>
-<p>The <code>Umb::</code> namespace handles scraping of tournament data from the Union Mondiale de Billard (UMB) official website <a href="https://files.umb-carom.org">files.umb-carom.org</a>. It consists of <strong>10 services</strong> across two sub-namespaces: <code>Umb::</code> (6 classes + 1 module) and <code>Umb::PdfParser::</code> (3 classes).</p>
-<h2 id="namespace-overview">Namespace Overview<a class="headerlink" href="#namespace-overview" title="Permanent link">&para;</a></h2>
+<h1 id="ui-css-konventionen-carambus">UI-/CSS-Konventionen (Carambus)<a class="headerlink" href="#ui-css-konventionen-carambus" title="Permanent link">&para;</a></h1>
+<p>Verbindliche Regeln für UI-Code seit dem Redesign („Richtung A" — helle SaaS-
+Ästhetik, ruhiger Teal-Akzent, warmes Neutralgrau). Ziel: <strong>keine hartkodierten
+Farben mehr</strong>, überall Design-Token, überall Dark-Mode.</p>
+<p>Die mechanische Wache <code>rake ui:no_hardcoded_hex</code> (pre-commit + CI) erzwingt den
+Kern dieser Regeln. Der Migrations-Workflow steckt im Skill
+<code>.agents/skills/hex-to-token-migration/</code>.</p>
+<hr />
+<h2 id="1-grundregeln">1. Grundregeln<a class="headerlink" href="#1-grundregeln" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>ERB-Views:</strong> ausschließlich Tailwind-Utility-Klassen. <strong>KEINE</strong> inline
+  <code>style="…"</code> mit Farbe, <strong>KEINE</strong> <code>&lt;style&gt;</code>-Blöcke.
+  <code>theme()</code> löst in ERB <strong>nicht</strong> auf (kein PostCSS-Durchlauf) — dort also
+  Utility-Klassen (<code>bg-primary-600</code>, <code>text-gray-800</code>, …), nicht <code>theme()</code>.</li>
+<li><strong>Kompiliertes CSS</strong> (die per <code>@import</code> in
+  <code>app/assets/stylesheets/application.tailwind.css</code> eingebundenen <code>.css</code>-Dateien):
+  Farben über <code>theme('colors.x.y')</code> beziehen, nie als Hex hartkodieren.</li>
+<li><strong>Token sind Single-Source:</strong> alle Farben leiten aus <code>tailwind.config.js</code> ab
+  (Ramps <code>primary</code>, <code>gray</code>, <code>danger</code>, <code>success</code>, <code>warning</code>, <code>info</code> sowie
+  <code>surface.*</code> und <code>discipline.*</code>). Neue Farbe nötig? → erst Token definieren,
+  dann verwenden. Kein „schnelles Hex".</li>
+<li><strong>Dark-Mode ist Pflicht</strong> auf farbigen Flächen (siehe §2).</li>
+<li><strong>Ausnahmen</strong> (Kiosk/Scoreboard, Print, Vendor-Widgets) sind bewusst aus dem
+  Scope: siehe <code>config/ui_hex_allowlist.txt</code>. Nur dort eintragen, wenn eine
+  Datei GENUINE außerhalb der Token-Ästhetik liegt — nicht, um eine unbequeme
+  Migration zu umgehen.</li>
+</ul>
+<hr />
+<h2 id="2-dark-mode-pflicht">2. Dark-Mode (Pflicht)<a class="headerlink" href="#2-dark-mode-pflicht" title="Permanent link">&para;</a></h2>
+<p>Dark-Mode ist <strong>class-basiert</strong> (<code>.dark</code> am <code>&lt;html&gt;</code>), <strong>nicht</strong>
+<code>prefers-color-scheme</code>. Auf jeder farbigen Fläche gehört zur Light-Utility die
+passende <code>dark:</code>-Variante:</p>
 <table>
 <thead>
 <tr>
-<th>Class</th>
-<th>File</th>
-<th>Description</th>
+<th>Zweck</th>
+<th>Light</th>
+<th>+ Dark</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><code>Umb::HttpClient</code></td>
-<td><code>app/services/umb/http_client.rb</code></td>
-<td>Stateless HTTP transport — fetches HTML and PDF content from UMB URLs, handles SSL, redirects, and timeouts</td>
+<td>Panel / Fläche</td>
+<td><code>bg-white</code> / <code>bg-gray-50</code></td>
+<td><code>dark:bg-gray-800</code> / <code>-gray-900</code></td>
 </tr>
 <tr>
-<td><code>Umb::DisciplineDetector</code></td>
-<td><code>app/services/umb/discipline_detector.rb</code></td>
-<td>Stateless PORO — maps tournament names to <code>Discipline</code> DB records. <code>detect</code> uses regex + DB-ILIKE lookup; <code>detect_with_title_fallback</code> additionally applies <code>Discipline.classify_from_title</code> (curated title overrides + synonym/structural rules) when <code>detect</code> returns nothing</td>
+<td>Text (dunkel)</td>
+<td><code>text-gray-800</code></td>
+<td><code>dark:text-gray-100</code></td>
 </tr>
 <tr>
-<td><code>Umb::DateHelpers</code></td>
-<td><code>app/services/umb/date_helpers.rb</code></td>
-<td>Module with <code>module_function</code> — parses UMB date range strings into <code>{start_date:, end_date:}</code> hashes</td>
+<td>Text (sekundär)</td>
+<td><code>text-gray-500/600</code></td>
+<td><code>dark:text-gray-300/400</code></td>
 </tr>
 <tr>
-<td><code>Umb::PlayerResolver</code></td>
-<td><code>app/services/umb/player_resolver.rb</code></td>
-<td>Finds or creates <code>Player</code> records from UMB caps/mixed-case name pairs, enriches umb_player_id and nationality</td>
-</tr>
-<tr>
-<td><code>Umb::FutureScraper</code></td>
-<td><code>app/services/umb/future_scraper.rb</code></td>
-<td>Scrapes <code>FutureTournaments.aspx</code>, parses HTML table including cross-month events, creates/updates <code>InternationalTournament</code> records</td>
-</tr>
-<tr>
-<td><code>Umb::ArchiveScraper</code></td>
-<td><code>app/services/umb/archive_scraper.rb</code></td>
-<td>Sequential ID scan of <code>TournametDetails.aspx?ID=N</code>, discovers and saves historical tournament records</td>
-</tr>
-<tr>
-<td><code>Umb::DetailsScraper</code></td>
-<td><code>app/services/umb/details_scraper.rb</code></td>
-<td>Scrapes a tournament detail page, extracts PDF links, creates <code>InternationalGame</code> records, and orchestrates the PDF pipeline</td>
+<td>Border</td>
+<td><code>border-gray-200/300</code></td>
+<td><code>dark:border-gray-700</code></td>
 </tr>
 </tbody>
 </table>
-<p><strong>Umb::PdfParser:: sub-namespace:</strong></p>
+<p>Faustregel: helle Panels → <code>dark:bg-gray-800/900</code>, dunkler Text →
+<code>dark:text-gray-100</code>, Borders → <code>dark:border-gray-700</code>.</p>
+<hr />
+<h2 id="3-mapping-tabelle-flatui-alt-palette-token-utility">3. Mapping-Tabelle: Flatui-Alt-Palette → Token-Utility<a class="headerlink" href="#3-mapping-tabelle-flatui-alt-palette-token-utility" title="Permanent link">&para;</a></h2>
+<p>Die alten Views nutzten eine „flatui"-Hex-Palette. Beim Migrieren jeden Hex
+über diese Tabelle auf ein Token ziehen. (ERB → Utility-Klasse; CSS →
+<code>theme('colors.…')</code> mit gleicher Ramp/Shade.)</p>
+<p><strong>Neutral / Grund:</strong></p>
 <table>
 <thead>
 <tr>
-<th>Class</th>
-<th>File</th>
-<th>Description</th>
+<th>Alt-Hex</th>
+<th>Token</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><code>Umb::PdfParser::PlayerListParser</code></td>
-<td><code>app/services/umb/pdf_parser/player_list_parser.rb</code></td>
-<td>Pure PORO — parses player seeding list PDF text into <code>{caps_name:, mixed_name:, nationality:, position:}</code> hashes</td>
+<td><code>#fff</code> <code>#ffffff</code></td>
+<td><code>white</code></td>
 </tr>
 <tr>
-<td><code>Umb::PdfParser::GroupResultParser</code></td>
-<td><code>app/services/umb/pdf_parser/group_result_parser.rb</code></td>
-<td>Pure PORO — parses group result PDF text into match pairs using a pair-accumulator pattern</td>
+<td><code>#000</code></td>
+<td><code>black</code></td>
 </tr>
 <tr>
-<td><code>Umb::PdfParser::RankingParser</code></td>
-<td><code>app/services/umb/pdf_parser/ranking_parser.rb</code></td>
-<td>Pure PORO — parses final or weekly ranking PDF text; supports <code>:final</code> and <code>:weekly</code> type modes</td>
+<td><code>#f8f9fa</code> <code>#f8f8f8</code> <code>#f3f4f6</code></td>
+<td><code>gray-50/100</code></td>
+</tr>
+<tr>
+<td><code>#e2e8f0</code> <code>#dee2e6</code> <code>#ddd</code> <code>#d1d5db</code> <code>#e9ecef</code></td>
+<td><code>gray-200/300</code></td>
+</tr>
+<tr>
+<td><code>#ccc</code></td>
+<td><code>gray-300</code></td>
+</tr>
+<tr>
+<td><code>#6c757d</code> <code>#6b7280</code> <code>#7f8c8d</code></td>
+<td><code>gray-500</code></td>
+</tr>
+<tr>
+<td><code>#666</code></td>
+<td><code>gray-500/600</code></td>
+</tr>
+<tr>
+<td><code>#495057</code> <code>#4a5568</code></td>
+<td><code>gray-600/700</code></td>
+</tr>
+<tr>
+<td><code>#374151</code> <code>#2d3748</code></td>
+<td><code>gray-700/800</code></td>
+</tr>
+<tr>
+<td><code>#1a202c</code></td>
+<td><code>gray-900</code></td>
 </tr>
 </tbody>
 </table>
-<h2 id="architecture-decisions">Architecture Decisions<a class="headerlink" href="#architecture-decisions" title="Permanent link">&para;</a></h2>
-<h3 id="a-poro-vs-applicationservice">a. PORO vs. ApplicationService<a class="headerlink" href="#a-poro-vs-applicationservice" title="Permanent link">&para;</a></h3>
-<p>Services are divided based on side effects:</p>
-<ul>
-<li><strong>POROs</strong> (no DB access): <code>Umb::DisciplineDetector</code>, <code>Umb::DateHelpers</code>, <code>Umb::PdfParser::PlayerListParser</code>, <code>Umb::PdfParser::GroupResultParser</code>, <code>Umb::PdfParser::RankingParser</code></li>
-<li><strong>ApplicationService</strong> (DB side effects): <code>Umb::FutureScraper</code>, <code>Umb::ArchiveScraper</code>, <code>Umb::DetailsScraper</code>, <code>Umb::PlayerResolver</code></li>
-</ul>
-<h3 id="b-module-vs-class">b. Module vs. Class<a class="headerlink" href="#b-module-vs-class" title="Permanent link">&para;</a></h3>
-<p><code>Umb::DateHelpers</code> is a <code>module</code> with <code>module_function</code> and is called statically:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="no">Umb</span><span class="o">::</span><span class="no">DateHelpers</span><span class="o">.</span><span class="n">parse_date_range</span><span class="p">(</span><span class="s2">&quot;18-21 Dec 2025&quot;</span><span class="p">)</span>
+<blockquote>
+<p>Hinweis: <code>gray</code> ist im Projekt eine <strong>warme</strong> Neutral-Ramp (<code>warmGray</code>), die
+die kühlen Alt-Greys bewusst wärmer harmonisiert — das ist gewollt.</p>
+</blockquote>
+<p><strong>Akzent:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Alt</th>
+<th>Token</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Teal-Töne</td>
+<td><code>primary.&lt;shade&gt;</code> (600 = Accent)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Status:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Bedeutung</th>
+<th>Alt-Hex</th>
+<th>Token</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>success</td>
+<td><code>#10b981</code> <code>#28a745</code> <code>#27ae60</code> <code>#4CAF50</code></td>
+<td><code>success</code></td>
+</tr>
+<tr>
+<td>warning</td>
+<td><code>#fbbf24</code> <code>#f59e0b</code> <code>#f39c12</code> <code>#f67f32</code> <code>#ffc107</code></td>
+<td><code>warning</code></td>
+</tr>
+<tr>
+<td>danger</td>
+<td><code>#ef4444</code> <code>#e53e3e</code> <code>#e74c3c</code> <code>#dc3545</code> <code>#ff6b6b</code></td>
+<td><code>danger</code></td>
+</tr>
+<tr>
+<td>info/blau</td>
+<td><code>#3957f4</code> <code>#2f87ee</code> <code>#3498db</code> <code>#007bff</code></td>
+<td><code>info</code></td>
+</tr>
+<tr>
+<td>violet</td>
+<td><code>#8b5cf6</code></td>
+<td><code>violet</code> (Tailwind-Default)</td>
+</tr>
+<tr>
+<td>indigo/purple-Gradient</td>
+<td><code>#667eea</code> → <code>#764ba2</code></td>
+<td><code>indigo-500</code> → <code>purple-800</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Beispiel (ERB):</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="cp">&lt;%#</span><span class="c"> vorher </span><span class="cp">%&gt;</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="x">&lt;div style=&quot;background: #f8f9fa; border: 2px solid #dee2e6; color: #2c3e50;&quot;&gt;</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="cp">&lt;%#</span><span class="c"> nachher </span><span class="cp">%&gt;</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="x">&lt;div class=&quot;bg-gray-50 dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-700 text-gray-800 dark:text-gray-100&quot;&gt;</span>
 </code></pre></div>
-<p>All other nine services are classes.</p>
-<h3 id="c-delegation-pattern">c. Delegation Pattern<a class="headerlink" href="#c-delegation-pattern" title="Permanent link">&para;</a></h3>
-<p>The three scraper classes (<code>FutureScraper</code>, <code>ArchiveScraper</code>, <code>DetailsScraper</code>) delegate:
-- HTTP requests to <code>Umb::HttpClient</code>
-- Date parsing to <code>Umb::DateHelpers</code>
-- Discipline detection to <code>Umb::DisciplineDetector</code></p>
-<p>They do not perform their own HTTP logic or date parsing.</p>
-<h3 id="d-optional-pdf-pipeline">d. Optional PDF Pipeline<a class="headerlink" href="#d-optional-pdf-pipeline" title="Permanent link">&para;</a></h3>
-<p><code>DetailsScraper#call</code> defaults to <code>parse_pdfs: false</code>. When enabled, all three PdfParser services are run <strong>independently</strong> — no short-circuit on individual failures:</p>
-<ol>
-<li><code>Umb::PdfParser::PlayerListParser</code> → Seeding records</li>
-<li><code>Umb::PdfParser::GroupResultParser</code> → <code>InternationalGame</code> + <code>GameParticipation</code></li>
-<li><code>Umb::PdfParser::RankingParser</code> → Seedings with final position</li>
-</ol>
-<h3 id="e-internationalgame-sti">e. InternationalGame STI<a class="headerlink" href="#e-internationalgame-sti" title="Permanent link">&para;</a></h3>
-<p><code>DetailsScraper</code> creates game records with <code>type: 'InternationalGame'</code> (STI). Omitting this causes incorrect ActiveRecord behavior, since <code>Game</code> is the base class.</p>
-<h3 id="f-two-tier-discipline-detection">f. Two-tier discipline detection<a class="headerlink" href="#f-two-tier-discipline-detection" title="Permanent link">&para;</a></h3>
-<p><code>Umb::DisciplineDetector</code> exposes two entry points:</p>
-<ul>
-<li><code>detect(name)</code> — regex + DB-ILIKE lookup only (<code>detect_by_db_lookup</code> → <code>detect_by_string_map</code>). Returns <code>nil</code> when nothing matches.</li>
-<li><code>detect_with_title_fallback(name)</code> — runs <code>detect</code> first and, only if it finds nothing, falls back to <code>Discipline.classify_from_title(name)</code>. That model method applies curated <code>TITLE_DISCIPLINE_OVERRIDES</code>, structural rules (Kegel/Snooker/Cadre/Karambol families), and a longest-synonym match against the <code>Discipline.synonyms</code> column (synonyms are seeded via <code>rake disciplines:extend_title_synonyms</code>).</li>
-</ul>
-<p><code>FutureScraper</code> and <code>ArchiveScraper</code> use <code>detect_with_title_fallback</code> (broader coverage for German/abbreviated titles); <code>DetailsScraper</code> and the V1 <code>UmbScraper</code> shim still use plain <code>detect</code>. All three scrapers layer their own final default (<code>%dreiband%groß%</code>) on top of a <code>nil</code> result.</p>
-<h2 id="data-flow">Data Flow<a class="headerlink" href="#data-flow" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>UMB Website
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>  ├── FutureTournaments.aspx ──→ Umb::FutureScraper
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>  │                                    ├── Umb::HttpClient (fetch HTML)
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>  │                                    ├── Umb::DateHelpers (parse dates)
-<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>  │                                    └── Umb::DisciplineDetector (match discipline)
-<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>  │                                         → InternationalTournament (upsert)
-<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>  │
-<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>  ├── TournametDetails.aspx?ID=N ──→ Umb::ArchiveScraper
-<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>  │                                        ├── Umb::HttpClient (fetch HTML)
-<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>  │                                        ├── Umb::DateHelpers (parse dates)
-<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>  │                                        └── Umb::DisciplineDetector (match discipline)
-<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>  │                                             → InternationalTournament (create)
-<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>  │
-<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>  └── TournametDetails.aspx?ID=N ──→ Umb::DetailsScraper
-<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a>           ├── Umb::HttpClient (fetch HTML + PDFs)
-<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a>           ├── Umb::PlayerResolver (find/create Player)
-<a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a>           ├── PDF pipeline (optional, parse_pdfs: true):
-<a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a>           │     ├── PdfParser::PlayerListParser → Seeding records
-<a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a>           │     ├── PdfParser::GroupResultParser → InternationalGame + GameParticipation
-<a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a>           │     └── PdfParser::RankingParser → Seedings with final position
-<a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a>           └── InternationalGame records (HTML-based, create_games: true)
+<p><strong>Beispiel (kompiliertes CSS):</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c">/* vorher */</span><span class="w">  </span><span class="nt">background</span><span class="o">:</span><span class="w"> </span><span class="p">#</span><span class="nn">0f5f56</span><span class="o">;</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="c">/* nachher */</span><span class="w"> </span><span class="nt">background</span><span class="o">:</span><span class="w"> </span><span class="nt">theme</span><span class="o">(</span><span class="s1">&#39;colors.primary.600&#39;</span><span class="o">);</span>
 </code></pre></div>
-<h2 id="entry-points">Entry Points<a class="headerlink" href="#entry-points" title="Permanent link">&para;</a></h2>
-<p>The three primary entry points for operation:</p>
+<p>Referenz-Commits als Muster: <code>faa29460</code> (Status-Tokens + Core-CSS),
+<code>d61441ee</code> (Admin-View inline <code>style=</code> → Utilities+Dark),
+<code>4c6a20f6</code> (Admin-View inkl. Tabelle/Badges/Buttons).</p>
+<hr />
+<h2 id="4-precompile-falle-wichtig">4. Precompile-Falle (wichtig!)<a class="headerlink" href="#4-precompile-falle-wichtig" title="Permanent link">&para;</a></h2>
+<p>Preview/Dev serviert <strong>precompiled</strong> Assets. Neue Utility-Klassen (die Tailwind
+erst beim Build aus den Views scannt) erscheinen <strong>nicht</strong> automatisch — erst
+nach:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>yarn<span class="w"> </span>build:css<span class="w">                 </span><span class="c1"># Tailwind neu kompilieren (scannt Views/CSS)</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>bin/rails<span class="w"> </span>assets:precompile<span class="w">    </span><span class="c1"># precompiled Assets erneuern</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="c1"># danach Server neu starten</span>
+</code></pre></div>
+<p>Beim Deploy passiert das automatisch. Lokal führt „ich habe die Klasse doch
+hinzugefügt, sie greift aber nicht" fast immer auf diesen Schritt zurück.</p>
+<hr />
+<h2 id="5-die-wache-rake-uino_hardcoded_hex">5. Die Wache (<code>rake ui:no_hardcoded_hex</code>)<a class="headerlink" href="#5-die-wache-rake-uino_hardcoded_hex" title="Permanent link">&para;</a></h2>
+<p>Verhindert, dass <strong>neue</strong> hartkodierte Farben in den In-Scope-Bereich rutschen
+(Admin-Views + bereits migrierte Core-CSS).</p>
 <ul>
-<li><code>Umb::FutureScraper.new.call</code> — scrapes upcoming tournaments from the UMB site, no parameters</li>
-<li><code>Umb::ArchiveScraper.new.call(start_id:, end_id:)</code> — scans historical tournament IDs within a range</li>
-<li><code>Umb::DetailsScraper.new.call(tournament_id_or_record)</code> — enriches one tournament with games and PDF data</li>
+<li><strong>Grün ab Tag 1</strong> über eine Ratchet-Baseline (<code>config/ui_hex_baseline.yml</code>):
+  sie „grandfahtert" die Anzahl bekannter Verstoß-Zeilen je noch-nicht-
+  migrierter Datei. Die Wache failt nur bei <strong>neuen</strong> Verstößen — mehr Hex in
+  einer Datei als in der Baseline, oder Verstöße in einer nicht gelisteten Datei.</li>
+<li><strong>Beim Migrieren</strong> einer Datei ihren Baseline-Eintrag <strong>entfernen</strong> → sie muss
+  danach dauerhaft sauber (0) bleiben.</li>
+<li><strong>Nach absichtlichen Änderungen</strong> Baseline neu erzeugen:
+  <code>bin/rails ui:no_hardcoded_hex:baseline</code>. Niemals die Zahlen von Hand
+  hochsetzen, um die Wache stumm zu schalten.</li>
+<li><strong>Ausnahmen:</strong> <code>config/ui_hex_allowlist.txt</code> (Kiosk/Print/Vendor).</li>
 </ul>
-<p>For a complete method reference with signatures, return values, and parameters, see the <a href="../umb-scraping-methods/">Method Reference</a>.</p>
+<p><strong>Lokal auslösen:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>bin/rails<span class="w"> </span>ui:no_hardcoded_hex<span class="w">        </span><span class="c1"># oder direkt: ruby bin/ui-hex-guard</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>bundle<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>overcommit<span class="w"> </span>--install<span class="w">     </span><span class="c1"># einmalig: pre-commit-Hook scharf schalten</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>bundle<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>overcommit<span class="w"> </span>--sign<span class="w">        </span><span class="c1"># nach Änderung an .overcommit.yml</span>
+</code></pre></div>
+<p><strong>In CI:</strong> läuft als Schritt „UI-Guardrail" im <code>lint</code>-Job von
+<code>.github/workflows/ci.yml</code>.</p>
+<p>Implementierung: <code>lib/ui_hex_guard.rb</code> (Logik, Rails-frei),
+<code>bin/ui-hex-guard</code> (Standalone-Einstieg), <code>lib/tasks/ui.rake</code> (rake-Wrapper).</p>
 
 
 
@@ -3714,12 +3595,12 @@
     
     
       
-      <script id="__config" type="application/json">{"base": "../../..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.expand", "navigation.indexes", "search.suggest", "search.highlight", "header.autohide", "toc.follow"], "search": "../../../assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+      <script id="__config" type="application/json">{"base": "..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.expand", "navigation.indexes", "search.suggest", "search.highlight", "header.autohide", "toc.follow"], "search": "../assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "In Zwischenablage kopiert", "clipboard.copy": "In Zwischenablage kopieren", "search.result.more.one": "1 weiteres Suchergebnis auf dieser Seite", "search.result.more.other": "# weitere Suchergebnisse auf dieser Seite", "search.result.none": "Keine Suchergebnisse", "search.result.one": "1 Suchergebnis", "search.result.other": "# Suchergebnisse", "search.result.placeholder": "Suchbegriff eingeben", "search.result.term.missing": "Es fehlt", "select.version": "Version ausw\u00e4hlen"}, "version": {"provider": "mike"}}</script>
     
     
-      <script src="../../../assets/javascripts/bundle.56ea9cef.min.js"></script>
+      <script src="../assets/javascripts/bundle.56ea9cef.min.js"></script>
       
-        <script src="../../../javascripts/mathjax.js"></script>
+        <script src="../javascripts/mathjax.js"></script>
       
         <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
       
@@ -3727,7 +3608,7 @@
       
         <script src="https://unpkg.com/mermaid@10/dist/mermaid.min.js"></script>
       
-        <script src="../../../javascripts/mermaid-init.js"></script>
+        <script src="../javascripts/mermaid-init.js"></script>
       
     
   </body>

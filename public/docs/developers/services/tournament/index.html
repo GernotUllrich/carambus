@@ -2500,6 +2500,21 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Namespace-Übersicht">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ccsync-sub-namespace-lokal-clubcloud-push" class="md-nav__link">
+    <span class="md-ellipsis">
+      CcSync-Sub-Namespace (lokal → ClubCloud-Push)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -3397,6 +3412,21 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Namespace-Übersicht">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ccsync-sub-namespace-lokal-clubcloud-push" class="md-nav__link">
+    <span class="md-ellipsis">
+      CcSync-Sub-Namespace (lokal → ClubCloud-Push)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -3513,7 +3543,7 @@
 
 <h1 id="tournament-architektur">Tournament:: — Architektur<a class="headerlink" href="#tournament-architektur" title="Permanent link">&para;</a></h1>
 <p>Der <code>Tournament::</code>-Namespace stellt Services für den lokalen Turnier-Lebenszyklus bereit — Scraping öffentlicher ClubCloud-Seiten, Berechnung von Spieler-Rankings und Erstellung von Google-Calendar-Tischreservierungen.</p>
-<p>Der Namespace besteht aus <strong>3 Services</strong> in <code>app/services/tournament/</code>.</p>
+<p>Der Namespace besteht aus <strong>3 Top-Level-Services</strong> in <code>app/services/tournament/</code>, zuzüglich eines <code>Tournament::CcSync::</code>-Sub-Namespace (<strong>2 Services</strong>), der lokale Änderungen in die ClubCloud zurückschreibt (Phase 44).</p>
 <h2 id="namespace-ubersicht">Namespace-Übersicht<a class="headerlink" href="#namespace-ubersicht" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
@@ -3541,6 +3571,29 @@
 </tr>
 </tbody>
 </table>
+<h3 id="ccsync-sub-namespace-lokal-clubcloud-push">CcSync-Sub-Namespace (lokal → ClubCloud-Push)<a class="headerlink" href="#ccsync-sub-namespace-lokal-clubcloud-push" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Klasse</th>
+<th>Datei</th>
+<th>Beschreibung</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Tournament::CcSync::AccreditationPush</code></td>
+<td><code>app/services/tournament/cc_sync/accreditation_push.rb</code></td>
+<td>Schreibt eine einzelne lokale Akkreditierungs-/Teilnahme-Änderung atomar und idempotent in die ClubCloud zurück (liest zuerst den Live-CC-Zustand, führt dann genau eine zustandsabhängige Aktion aus)</td>
+</tr>
+<tr>
+<td><code>Tournament::CcSync::FinalizePush</code></td>
+<td><code>app/services/tournament/cc_sync/finalize_push.rb</code></td>
+<td>Finalisiert die CC-Meldeliste (<code>releaseMeldeliste</code>), wenn der Turnierleiter die Teilnehmerliste lokal abschließt (<code>finish_seeding</code>)</td>
+</tr>
+</tbody>
+</table>
+<p>Beide erben von <code>ApplicationService</code>, sind MCP-frei (aus Job/Reflex aufrufbar) und laufen unter Per-User-CC-Identität (Phase 39, via <code>McpServer::CcAccountResolver</code>).</p>
 <h2 id="offentliche-schnittstelle">Öffentliche Schnittstelle<a class="headerlink" href="#offentliche-schnittstelle" title="Permanent link">&para;</a></h2>
 <h3 id="publicccscraper">PublicCcScraper<a class="headerlink" href="#publicccscraper" title="Permanent link">&para;</a></h3>
 <p><strong>Einstiegspunkt:</strong></p>

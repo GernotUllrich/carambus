@@ -2500,6 +2500,21 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Namespace Overview">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ccsync-sub-namespace-local-clubcloud-push" class="md-nav__link">
+    <span class="md-ellipsis">
+      CcSync Sub-namespace (local → ClubCloud push)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -3397,6 +3412,21 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Namespace Overview">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ccsync-sub-namespace-local-clubcloud-push" class="md-nav__link">
+    <span class="md-ellipsis">
+      CcSync Sub-namespace (local → ClubCloud push)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -3513,7 +3543,7 @@
 
 <h1 id="tournament-architecture">Tournament:: — Architecture<a class="headerlink" href="#tournament-architecture" title="Permanent link">&para;</a></h1>
 <p>The <code>Tournament::</code> namespace provides services for the local tournament lifecycle — scraping public ClubCloud pages, computing player rankings, and creating Google Calendar table reservations.</p>
-<p>The namespace consists of <strong>3 services</strong> in <code>app/services/tournament/</code>.</p>
+<p>The namespace consists of <strong>3 top-level services</strong> in <code>app/services/tournament/</code>, plus a <code>Tournament::CcSync::</code> sub-namespace (<strong>2 services</strong>) that pushes local changes back to ClubCloud (Phase 44).</p>
 <h2 id="namespace-overview">Namespace Overview<a class="headerlink" href="#namespace-overview" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
@@ -3541,6 +3571,29 @@
 </tr>
 </tbody>
 </table>
+<h3 id="ccsync-sub-namespace-local-clubcloud-push">CcSync Sub-namespace (local → ClubCloud push)<a class="headerlink" href="#ccsync-sub-namespace-local-clubcloud-push" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Class</th>
+<th>File</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Tournament::CcSync::AccreditationPush</code></td>
+<td><code>app/services/tournament/cc_sync/accreditation_push.rb</code></td>
+<td>Writes a single local accreditation/participation change atomically and idempotently back to ClubCloud (reads live CC state first, then performs exactly one state-dependent action)</td>
+</tr>
+<tr>
+<td><code>Tournament::CcSync::FinalizePush</code></td>
+<td><code>app/services/tournament/cc_sync/finalize_push.rb</code></td>
+<td>Finalizes the CC registration list (<code>releaseMeldeliste</code>) when the tournament director closes the participant list locally (<code>finish_seeding</code>)</td>
+</tr>
+</tbody>
+</table>
+<p>Both inherit from <code>ApplicationService</code>, are MCP-free (callable from a job/reflex), and run under per-user CC identity (Phase 39, via <code>McpServer::CcAccountResolver</code>).</p>
 <h2 id="public-interface">Public Interface<a class="headerlink" href="#public-interface" title="Permanent link">&para;</a></h2>
 <h3 id="publicccscraper">PublicCcScraper<a class="headerlink" href="#publicccscraper" title="Permanent link">&para;</a></h3>
 <p><strong>Entry point:</strong></p>

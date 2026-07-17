@@ -3844,7 +3844,7 @@
 <h3 id="ai-fallback">AI Fallback<a class="headerlink" href="#ai-fallback" title="Permanent link">&para;</a></h3>
 <p>The AI fallback fires only when <strong>all</strong> regex extraction values are blank <strong>and</strong> <code>ai_extraction_enabled: true</code> is explicitly set:</p>
 <ul>
-<li><strong>Model:</strong> <code>gpt-4o-mini</code> with <code>response_format: { type: "json_object" }</code></li>
+<li><strong>Model:</strong> <code>claude-haiku-4-5-20251001</code> via <code>Anthropic::Client</code> (<code>Carambus.anthropic_api_key</code>). The prompt requests raw JSON; any ```-code fences in the response are stripped before parsing.</li>
 <li><strong>Default:</strong> disabled (<code>ai_extraction_enabled: false</code>) — prevents unexpected OpenAI calls in batch/background contexts</li>
 <li><strong>Error handling:</strong> exceptions are rescued and an empty hash is returned (no re-raise)</li>
 </ul>

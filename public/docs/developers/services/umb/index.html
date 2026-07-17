@@ -3399,7 +3399,7 @@
 <tr>
 <td><code>Umb::DisciplineDetector</code></td>
 <td><code>app/services/umb/discipline_detector.rb</code></td>
-<td>Ordnet Turniernamen via Regex und DB-ILIKE-Fallback <code>Discipline</code>-Records zu</td>
+<td>Ordnet Turniernamen via Regex und DB-ILIKE-Lookup <code>Discipline</code>-Records zu (<code>detect</code>); <code>detect_with_title_fallback</code> ergänzt einen titelbasierten <code>Discipline.classify_from_title</code>-Fallback (genutzt von Future-/Archive-Scraper)</td>
 </tr>
 <tr>
 <td><code>Umb::DateHelpers</code></td>

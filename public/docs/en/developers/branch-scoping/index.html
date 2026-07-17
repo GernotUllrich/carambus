@@ -10,13 +10,9 @@
       
       
       
-        <link rel="canonical" href="https://GernotUllrich.github.io/carambus/en/developers/umb-scraping-implementation/">
+        <link rel="canonical" href="https://GernotUllrich.github.io/carambus/en/developers/branch-scoping/">
       
       
-        <link rel="prev" href="../testing/fixture-collection-guide/">
-      
-      
-        <link rel="next" href="../umb-scraping-methods/">
       
       
       <link rel="icon" href="../../../assets/images/favicon.png">
@@ -24,7 +20,7 @@
     
     
       
-        <title>UMB Scraping Implementation - Carambus Documentation</title>
+        <title>Branch Tagging & Scope Band - Carambus Documentation</title>
       
     
     
@@ -80,7 +76,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#umb-scraping-architecture" class="md-skip">
+        <a href="#branch-tagging-scope-band" class="md-skip">
           Skip to content
         </a>
       
@@ -120,7 +116,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              UMB Scraping Implementation
+              Branch Tagging &amp; Scope Band
             
           </span>
         </div>
@@ -167,7 +163,7 @@
       <ul class="md-select__list">
         
           <li class="md-select__item">
-            <a href="../../../developers/umb-scraping-implementation/" hreflang="de" class="md-select__link">
+            <a href="../../../developers/branch-scoping/" hreflang="de" class="md-select__link">
               Deutsch
             </a>
           </li>
@@ -358,12 +354,10 @@
   
   
   
-    
-  
   
     
     
-      <li class="md-tabs__item md-tabs__item--active">
+      <li class="md-tabs__item">
         <a href="../" class="md-tabs__link">
           
   
@@ -1656,8 +1650,6 @@
       
   
   
-    
-  
   
   
     
@@ -1723,19 +1715,18 @@
     
     
       
-        
-        
-      
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" checked>
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
         
           
           <div class="md-nav__link md-nav__container">
@@ -1752,13 +1743,13 @@
             </a>
             
               
-              <label class="md-nav__link " for="__nav_6" id="__nav_6_label" tabindex="">
+              <label class="md-nav__link " for="__nav_6" id="__nav_6_label" tabindex="0">
                 <span class="md-nav__icon md-icon"></span>
               </label>
             
           </div>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_6">
             <span class="md-nav__icon md-icon"></span>
             Developers
@@ -1947,13 +1938,10 @@
       
       
         
-          
-          
-        
       
     
     
-    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
@@ -1962,7 +1950,7 @@
         <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6_9" >
         
           
-          <label class="md-nav__link" for="__nav_6_9" id="__nav_6_9_label" tabindex="">
+          <label class="md-nav__link" for="__nav_6_9" id="__nav_6_9_label" tabindex="0">
             
   
   
@@ -2040,10 +2028,8 @@
                 
   
   
-    
   
   
-  
     
     
       
@@ -2056,21 +2042,20 @@
     
       
       
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
         
           
-          
         
-      
-    
-    
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
-      
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6_10" checked>
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6_10" >
         
           
-          <label class="md-nav__link" for="__nav_6_10" id="__nav_6_10_label" tabindex="">
+          <label class="md-nav__link" for="__nav_6_10" id="__nav_6_10_label" tabindex="0">
             
   
   
@@ -2083,7 +2068,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_10_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_10_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_6_10">
             <span class="md-nav__icon md-icon"></span>
             UMB Scraping
@@ -2094,32 +2079,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    UMB Scraping Implementation
-    
-  </span>
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../umb-scraping-implementation/" class="md-nav__link">
         
   
   
@@ -2130,122 +2093,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#namespace-overview" class="md-nav__link">
-    <span class="md-ellipsis">
-      Namespace Overview
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#architecture-decisions" class="md-nav__link">
-    <span class="md-ellipsis">
-      Architecture Decisions
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Architecture Decisions">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#a-poro-vs-applicationservice" class="md-nav__link">
-    <span class="md-ellipsis">
-      a. PORO vs. ApplicationService
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#b-module-vs-class" class="md-nav__link">
-    <span class="md-ellipsis">
-      b. Module vs. Class
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#c-delegation-pattern" class="md-nav__link">
-    <span class="md-ellipsis">
-      c. Delegation Pattern
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#d-optional-pdf-pipeline" class="md-nav__link">
-    <span class="md-ellipsis">
-      d. Optional PDF Pipeline
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#e-internationalgame-sti" class="md-nav__link">
-    <span class="md-ellipsis">
-      e. InternationalGame STI
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#f-two-tier-discipline-detection" class="md-nav__link">
-    <span class="md-ellipsis">
-      f. Two-tier discipline detection
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#data-flow" class="md-nav__link">
-    <span class="md-ellipsis">
-      Data Flow
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#entry-points" class="md-nav__link">
-    <span class="md-ellipsis">
-      Entry Points
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -2305,13 +2152,10 @@
       
       
         
-          
-          
-        
       
     
     
-    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
@@ -2320,7 +2164,7 @@
         <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6_11" >
         
           
-          <label class="md-nav__link" for="__nav_6_11" id="__nav_6_11_label" tabindex="">
+          <label class="md-nav__link" for="__nav_6_11" id="__nav_6_11_label" tabindex="0">
             
   
   
@@ -2494,13 +2338,10 @@
       
       
         
-          
-          
-        
       
     
     
-    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
@@ -2509,7 +2350,7 @@
         <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6_13" >
         
           
-          <label class="md-nav__link" for="__nav_6_13" id="__nav_6_13_label" tabindex="">
+          <label class="md-nav__link" for="__nav_6_13" id="__nav_6_13_label" tabindex="0">
             
   
   
@@ -3385,73 +3226,55 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#namespace-overview" class="md-nav__link">
+  <a href="#1-purpose-overview" class="md-nav__link">
     <span class="md-ellipsis">
-      Namespace Overview
+      1. Purpose / Overview
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#architecture-decisions" class="md-nav__link">
+  <a href="#2-branchtaggable-concern" class="md-nav__link">
     <span class="md-ellipsis">
-      Architecture Decisions
+      2. BranchTaggable Concern
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Architecture Decisions">
+    <nav class="md-nav" aria-label="2. BranchTaggable Concern">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#a-poro-vs-applicationservice" class="md-nav__link">
+  <a href="#deriving-branch_id" class="md-nav__link">
     <span class="md-ellipsis">
-      a. PORO vs. ApplicationService
+      Deriving branch_id
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#b-module-vs-class" class="md-nav__link">
+  <a href="#includers" class="md-nav__link">
     <span class="md-ellipsis">
-      b. Module vs. Class
+      Includers
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#c-delegation-pattern" class="md-nav__link">
+  <a href="#deliberately-lean-design-no-papertrail" class="md-nav__link">
     <span class="md-ellipsis">
-      c. Delegation Pattern
+      Deliberately lean design (no PaperTrail)
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#d-optional-pdf-pipeline" class="md-nav__link">
+  <a href="#backfill-of-global-records-historical-note-gotcha" class="md-nav__link">
     <span class="md-ellipsis">
-      d. Optional PDF Pipeline
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#e-internationalgame-sti" class="md-nav__link">
-    <span class="md-ellipsis">
-      e. InternationalGame STI
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#f-two-tier-discipline-detection" class="md-nav__link">
-    <span class="md-ellipsis">
-      f. Two-tier discipline detection
+      Backfill of global records — historical note (gotcha)
     </span>
   </a>
   
@@ -3463,18 +3286,156 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#data-flow" class="md-nav__link">
+  <a href="#3-scopable-concern-the-scope-band" class="md-nav__link">
     <span class="md-ellipsis">
-      Data Flow
+      3. Scopable Concern (the Scope Band)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Scopable Concern (the Scope Band)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#scope_facets-facet-fk-column" class="md-nav__link">
+    <span class="md-ellipsis">
+      SCOPE_FACETS — facet → FK column
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#request-wiring" class="md-nav__link">
+    <span class="md-ellipsis">
+      Request wiring
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-no-all-except-branch-rule" class="md-nav__link">
+    <span class="md-ellipsis">
+      The "No All except Branch" rule
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#defaults-scoperesolver" class="md-nav__link">
+    <span class="md-ellipsis">
+      Defaults (ScopeResolver)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scope_extra_facet-which-3rd-facet-does-the-band-show" class="md-nav__link">
+    <span class="md-ellipsis">
+      scope_extra_facet — which 3rd facet does the band show?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#drill-down-mode-drill_focus_keys" class="md-nav__link">
+    <span class="md-ellipsis">
+      Drill-down mode (DRILL_FOCUS_KEYS)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#currentscope-currentdrill" class="md-nav__link">
+    <span class="md-ellipsis">
+      Current.scope / Current.drill
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#application-by-searchservice-fk-filter" class="md-nav__link">
+    <span class="md-ellipsis">
+      Application by SearchService (FK filter)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#option-sources-for-the-band-view" class="md-nav__link">
+    <span class="md-ellipsis">
+      Option sources for the band view
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-relation-to-regiontaggable" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. Relation to RegionTaggable
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#entry-points" class="md-nav__link">
+  <a href="#5-db-columns-rake-backfill-tasks" class="md-nav__link">
     <span class="md-ellipsis">
-      Entry Points
+      5. DB columns &amp; rake backfill tasks
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. DB columns &amp; rake backfill tasks">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#migration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Migration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      Schema
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rake-backfill-tasks" class="md-nav__link">
+    <span class="md-ellipsis">
+      Rake backfill tasks
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-gotchas" class="md-nav__link">
+    <span class="md-ellipsis">
+      6. Gotchas
     </span>
   </a>
   
@@ -3499,147 +3460,417 @@
   
 
 
-<h1 id="umb-scraping-architecture">UMB Scraping — Architecture<a class="headerlink" href="#umb-scraping-architecture" title="Permanent link">&para;</a></h1>
-<p>The <code>Umb::</code> namespace handles scraping of tournament data from the Union Mondiale de Billard (UMB) official website <a href="https://files.umb-carom.org">files.umb-carom.org</a>. It consists of <strong>10 services</strong> across two sub-namespaces: <code>Umb::</code> (6 classes + 1 module) and <code>Umb::PdfParser::</code> (3 classes).</p>
-<h2 id="namespace-overview">Namespace Overview<a class="headerlink" href="#namespace-overview" title="Permanent link">&para;</a></h2>
-<table>
-<thead>
-<tr>
-<th>Class</th>
-<th>File</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>Umb::HttpClient</code></td>
-<td><code>app/services/umb/http_client.rb</code></td>
-<td>Stateless HTTP transport — fetches HTML and PDF content from UMB URLs, handles SSL, redirects, and timeouts</td>
-</tr>
-<tr>
-<td><code>Umb::DisciplineDetector</code></td>
-<td><code>app/services/umb/discipline_detector.rb</code></td>
-<td>Stateless PORO — maps tournament names to <code>Discipline</code> DB records. <code>detect</code> uses regex + DB-ILIKE lookup; <code>detect_with_title_fallback</code> additionally applies <code>Discipline.classify_from_title</code> (curated title overrides + synonym/structural rules) when <code>detect</code> returns nothing</td>
-</tr>
-<tr>
-<td><code>Umb::DateHelpers</code></td>
-<td><code>app/services/umb/date_helpers.rb</code></td>
-<td>Module with <code>module_function</code> — parses UMB date range strings into <code>{start_date:, end_date:}</code> hashes</td>
-</tr>
-<tr>
-<td><code>Umb::PlayerResolver</code></td>
-<td><code>app/services/umb/player_resolver.rb</code></td>
-<td>Finds or creates <code>Player</code> records from UMB caps/mixed-case name pairs, enriches umb_player_id and nationality</td>
-</tr>
-<tr>
-<td><code>Umb::FutureScraper</code></td>
-<td><code>app/services/umb/future_scraper.rb</code></td>
-<td>Scrapes <code>FutureTournaments.aspx</code>, parses HTML table including cross-month events, creates/updates <code>InternationalTournament</code> records</td>
-</tr>
-<tr>
-<td><code>Umb::ArchiveScraper</code></td>
-<td><code>app/services/umb/archive_scraper.rb</code></td>
-<td>Sequential ID scan of <code>TournametDetails.aspx?ID=N</code>, discovers and saves historical tournament records</td>
-</tr>
-<tr>
-<td><code>Umb::DetailsScraper</code></td>
-<td><code>app/services/umb/details_scraper.rb</code></td>
-<td>Scrapes a tournament detail page, extracts PDF links, creates <code>InternationalGame</code> records, and orchestrates the PDF pipeline</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Umb::PdfParser:: sub-namespace:</strong></p>
-<table>
-<thead>
-<tr>
-<th>Class</th>
-<th>File</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>Umb::PdfParser::PlayerListParser</code></td>
-<td><code>app/services/umb/pdf_parser/player_list_parser.rb</code></td>
-<td>Pure PORO — parses player seeding list PDF text into <code>{caps_name:, mixed_name:, nationality:, position:}</code> hashes</td>
-</tr>
-<tr>
-<td><code>Umb::PdfParser::GroupResultParser</code></td>
-<td><code>app/services/umb/pdf_parser/group_result_parser.rb</code></td>
-<td>Pure PORO — parses group result PDF text into match pairs using a pair-accumulator pattern</td>
-</tr>
-<tr>
-<td><code>Umb::PdfParser::RankingParser</code></td>
-<td><code>app/services/umb/pdf_parser/ranking_parser.rb</code></td>
-<td>Pure PORO — parses final or weekly ranking PDF text; supports <code>:final</code> and <code>:weekly</code> type modes</td>
-</tr>
-</tbody>
-</table>
-<h2 id="architecture-decisions">Architecture Decisions<a class="headerlink" href="#architecture-decisions" title="Permanent link">&para;</a></h2>
-<h3 id="a-poro-vs-applicationservice">a. PORO vs. ApplicationService<a class="headerlink" href="#a-poro-vs-applicationservice" title="Permanent link">&para;</a></h3>
-<p>Services are divided based on side effects:</p>
+<h1 id="branch-tagging-scope-band">Branch Tagging &amp; Scope Band<a class="headerlink" href="#branch-tagging-scope-band" title="Permanent link">&para;</a></h1>
+<h2 id="1-purpose-overview">1. Purpose / Overview<a class="headerlink" href="#1-purpose-overview" title="Permanent link">&para;</a></h2>
+<p>The <strong>Scope Band</strong> is a global, session-persistent slice of the data along
+several facets — <strong>Region</strong>, <strong>Season</strong>, <strong>Branch</strong> (billiard discipline family)
+and, context-sensitively, <strong>Club</strong>. It answers the question "which slice of the
+world is this user currently looking at?" and applies it as a <strong>foreign-key
+filter</strong> to the index lists (tournaments, leagues, players …).</p>
+<p>Two building blocks make up the subsystem:</p>
 <ul>
-<li><strong>POROs</strong> (no DB access): <code>Umb::DisciplineDetector</code>, <code>Umb::DateHelpers</code>, <code>Umb::PdfParser::PlayerListParser</code>, <code>Umb::PdfParser::GroupResultParser</code>, <code>Umb::PdfParser::RankingParser</code></li>
-<li><strong>ApplicationService</strong> (DB side effects): <code>Umb::FutureScraper</code>, <code>Umb::ArchiveScraper</code>, <code>Umb::DetailsScraper</code>, <code>Umb::PlayerResolver</code></li>
+<li><strong><code>BranchTaggable</code></strong> (model concern) — derives a <code>branch_id</code> from a record's
+  discipline (Pool/Snooker/Karambol/Kegel), analogous to <code>region_id</code>. The column
+  lives on <code>tournaments</code> and <code>leagues</code>.</li>
+<li><strong><code>Scopable</code></strong> (controller concern) — holds Region/Season/Branch/Club as a
+  session scope, exposes them via <code>Current.scope</code>, and has <code>SearchService</code> apply
+  them as an FK filter.</li>
 </ul>
-<h3 id="b-module-vs-class">b. Module vs. Class<a class="headerlink" href="#b-module-vs-class" title="Permanent link">&para;</a></h3>
-<p><code>Umb::DateHelpers</code> is a <code>module</code> with <code>module_function</code> and is called statically:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="no">Umb</span><span class="o">::</span><span class="no">DateHelpers</span><span class="o">.</span><span class="n">parse_date_range</span><span class="p">(</span><span class="s2">&quot;18-21 Dec 2025&quot;</span><span class="p">)</span>
+<p><strong>Core design decision — no leak into the search box:</strong> The scope is applied
+<strong>separately</strong> from the full-text user search (<code>params[:sSearch]</code>). The band
+filters over real FK columns (<code>region_id</code>, <code>season_id</code>, <code>discipline_id</code> …); it
+never touches the user's search string. "Choose a slice" and "search within the
+slice" stay two independent axes.
+(Source: <code>app/controllers/concerns/scopable.rb:1-13</code>,
+<code>app/services/search_service.rb:51-52</code>.)</p>
+<p><strong>"No All" — with one exception:</strong> Region and Season are <strong>always</strong> a concrete
+value (there is no "All Regions" state). Only <strong>Branch</strong> (and the
+context-sensitive Club facet) may be empty, meaning "All Branches" / "All Clubs".
+Branch is genuinely cross-cutting, and (still) unclassified disciplines
+(<code>branch_id = nil</code>) would slip through the grid if a choice were forced.
+(Source: <code>scopable.rb:8-13</code>.)</p>
+<hr />
+<h2 id="2-branchtaggable-concern">2. <code>BranchTaggable</code> Concern<a class="headerlink" href="#2-branchtaggable-concern" title="Permanent link">&para;</a></h2>
+<p>File: <code>app/models/concerns/branch_taggable.rb</code></p>
+<h3 id="deriving-branch_id">Deriving <code>branch_id</code><a class="headerlink" href="#deriving-branch_id" title="Permanent link">&para;</a></h3>
+<p>The concern registers exactly one callback and three methods:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">included</span><span class="w"> </span><span class="k">do</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="n">before_save</span><span class="w"> </span><span class="ss">:set_branch_id</span><span class="p">,</span><span class="w"> </span><span class="k">if</span><span class="p">:</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">will_save_change_to_discipline_id?</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">branch_id</span><span class="o">.</span><span class="n">nil?</span><span class="w"> </span><span class="p">}</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="k">end</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="k">def</span><span class="w"> </span><span class="nf">find_associated_branch_id</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">  </span><span class="n">root</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">discipline</span><span class="o">&amp;.</span><span class="n">root</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">  </span><span class="n">root</span><span class="o">.</span><span class="n">is_a?</span><span class="p">(</span><span class="no">Branch</span><span class="p">)</span><span class="w"> </span><span class="p">?</span><span class="w"> </span><span class="n">root</span><span class="o">.</span><span class="n">id</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="kp">nil</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="k">end</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="k">def</span><span class="w"> </span><span class="nf">set_branch_id</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="w">  </span><span class="nb">self</span><span class="o">.</span><span class="n">branch_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">find_associated_branch_id</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="k">end</span>
 </code></pre></div>
-<p>All other nine services are classes.</p>
-<h3 id="c-delegation-pattern">c. Delegation Pattern<a class="headerlink" href="#c-delegation-pattern" title="Permanent link">&para;</a></h3>
-<p>The three scraper classes (<code>FutureScraper</code>, <code>ArchiveScraper</code>, <code>DetailsScraper</code>) delegate:
-- HTTP requests to <code>Umb::HttpClient</code>
-- Date parsing to <code>Umb::DateHelpers</code>
-- Discipline detection to <code>Umb::DisciplineDetector</code></p>
-<p>They do not perform their own HTTP logic or date parsing.</p>
-<h3 id="d-optional-pdf-pipeline">d. Optional PDF Pipeline<a class="headerlink" href="#d-optional-pdf-pipeline" title="Permanent link">&para;</a></h3>
-<p><code>DetailsScraper#call</code> defaults to <code>parse_pdfs: false</code>. When enabled, all three PdfParser services are run <strong>independently</strong> — no short-circuit on individual failures:</p>
+<p>(Source: <code>branch_taggable.rb:9-22</code>.)</p>
+<ul>
+<li><code>discipline.root</code> walks the <code>super_discipline</code> chain up to the tree root
+  (<code>app/models/discipline.rb:585-587</code>).</li>
+<li>If the root is a <strong><code>Branch</code></strong> (Pool/Snooker/Karambol/Kegel), its <code>id</code> is set;
+  otherwise <code>nil</code> (e.g. a discipline not yet rooted under a Branch — the code's
+  own example: 10-Ball until the authority-tree fix).</li>
+<li>The callback fires only when <code>discipline_id</code> changed <strong>or</strong> when <code>branch_id</code> is
+  still <code>nil</code> — it does not recompute on every save.</li>
+</ul>
+<h3 id="includers">Includers<a class="headerlink" href="#includers" title="Permanent link">&para;</a></h3>
+<p>Only two models carry the column and the concern:</p>
+<ul>
+<li><code>Tournament</code> — <code>app/models/tournament.rb:65</code></li>
+<li><code>League</code> — <code>app/models/league.rb:37</code></li>
+</ul>
+<h3 id="deliberately-lean-design-no-papertrail">Deliberately lean design (no PaperTrail)<a class="headerlink" href="#deliberately-lean-design-no-papertrail" title="Permanent link">&para;</a></h3>
+<p>Unlike <code>RegionTaggable</code>, <code>BranchTaggable</code> runs <strong>no</strong> version/PaperTrail
+machinery. There are no <code>after_save</code>/<code>after_destroy</code> callbacks that back-tag
+versions — only the live <code>branch_id</code> column. The concern is deliberately minimal
+(<code>branch_taggable.rb:3-5</code>).</p>
+<h3 id="backfill-of-global-records-historical-note-gotcha">Backfill of global records — historical note (gotcha)<a class="headerlink" href="#backfill-of-global-records-historical-note-gotcha" title="Permanent link">&para;</a></h3>
+<blockquote>
+<p><strong>Caution — stale comment in the code.</strong> The header comment in
+<code>branch_taggable.rb:5</code> references a backfill task
+<code>lib/tasks/branch_taggings.rake</code>. <strong>That file no longer exists</strong> — it was
+removed in commit <code>56e67264</code> (Phase 17 17-03, "Branch facet scope band on
+discipline.root", SB-2).</p>
+</blockquote>
+<p>The original approach was an <code>update_all</code> backfill over <code>discipline.root</code>
+(bypassing <code>LocalProtector</code>, because <code>update_all</code> fires no callbacks). It was
+abandoned because it fundamentally cannot work reliably for <strong>synced global
+records</strong> (<code>id &lt; MIN_ID</code>):</p>
 <ol>
-<li><code>Umb::PdfParser::PlayerListParser</code> → Seeding records</li>
-<li><code>Umb::PdfParser::GroupResultParser</code> → <code>InternationalGame</code> + <code>GameParticipation</code></li>
-<li><code>Umb::PdfParser::RankingParser</code> → Seedings with final position</li>
+<li>The version apply writes attributes via <code>update_columns</code> — which bypasses the
+   <code>BranchTaggable</code> <code>before_save</code>, so <code>branch_id</code> is not populated.</li>
+<li><code>LocalProtector</code> then locks any re-save of global records on local servers.</li>
+<li>→ <code>branch_id</code> stays <strong>NULL</strong> on synced global records.</li>
 </ol>
-<h3 id="e-internationalgame-sti">e. InternationalGame STI<a class="headerlink" href="#e-internationalgame-sti" title="Permanent link">&para;</a></h3>
-<p><code>DetailsScraper</code> creates game records with <code>type: 'InternationalGame'</code> (STI). Omitting this causes incorrect ActiveRecord behavior, since <code>Game</code> is the base class.</p>
-<h3 id="f-two-tier-discipline-detection">f. Two-tier discipline detection<a class="headerlink" href="#f-two-tier-discipline-detection" title="Permanent link">&para;</a></h3>
-<p><code>Umb::DisciplineDetector</code> exposes two entry points:</p>
-<ul>
-<li><code>detect(name)</code> — regex + DB-ILIKE lookup only (<code>detect_by_db_lookup</code> → <code>detect_by_string_map</code>). Returns <code>nil</code> when nothing matches.</li>
-<li><code>detect_with_title_fallback(name)</code> — runs <code>detect</code> first and, only if it finds nothing, falls back to <code>Discipline.classify_from_title(name)</code>. That model method applies curated <code>TITLE_DISCIPLINE_OVERRIDES</code>, structural rules (Kegel/Snooker/Cadre/Karambol families), and a longest-synonym match against the <code>Discipline.synonyms</code> column (synonyms are seeded via <code>rake disciplines:extend_title_synonyms</code>).</li>
-</ul>
-<p><code>FutureScraper</code> and <code>ArchiveScraper</code> use <code>detect_with_title_fallback</code> (broader coverage for German/abbreviated titles); <code>DetailsScraper</code> and the V1 <code>UmbScraper</code> shim still use plain <code>detect</code>. All three scrapers layer their own final default (<code>%dreiband%groß%</code>) on top of a <code>nil</code> result.</p>
-<h2 id="data-flow">Data Flow<a class="headerlink" href="#data-flow" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>UMB Website
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>  ├── FutureTournaments.aspx ──→ Umb::FutureScraper
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>  │                                    ├── Umb::HttpClient (fetch HTML)
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>  │                                    ├── Umb::DateHelpers (parse dates)
-<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>  │                                    └── Umb::DisciplineDetector (match discipline)
-<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>  │                                         → InternationalTournament (upsert)
-<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>  │
-<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>  ├── TournametDetails.aspx?ID=N ──→ Umb::ArchiveScraper
-<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>  │                                        ├── Umb::HttpClient (fetch HTML)
-<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>  │                                        ├── Umb::DateHelpers (parse dates)
-<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>  │                                        └── Umb::DisciplineDetector (match discipline)
-<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>  │                                             → InternationalTournament (create)
-<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>  │
-<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>  └── TournametDetails.aspx?ID=N ──→ Umb::DetailsScraper
-<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a>           ├── Umb::HttpClient (fetch HTML + PDFs)
-<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a>           ├── Umb::PlayerResolver (find/create Player)
-<a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a>           ├── PDF pipeline (optional, parse_pdfs: true):
-<a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a>           │     ├── PdfParser::PlayerListParser → Seeding records
-<a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a>           │     ├── PdfParser::GroupResultParser → InternationalGame + GameParticipation
-<a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a>           │     └── PdfParser::RankingParser → Seedings with final position
-<a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a>           └── InternationalGame records (HTML-based, create_games: true)
+<p>Therefore the scope band resolves the Branch facet <strong>at query time</strong> via
+<code>discipline.root</code> instead of querying the (empty-on-global-records) <code>branch_id</code>
+column — see section 3 and <code>Branch.discipline_ids_for</code>
+(<code>app/models/branch.rb:22-58</code>). The <code>branch_id</code> column <em>is</em> populated on the
+authority via the <code>before_save</code> during normal saves and serves as a derived
+dimension there; but for filtering it is <strong>not</strong> the source of truth.</p>
+<hr />
+<h2 id="3-scopable-concern-the-scope-band">3. <code>Scopable</code> Concern (the Scope Band)<a class="headerlink" href="#3-scopable-concern-the-scope-band" title="Permanent link">&para;</a></h2>
+<p>File: <code>app/controllers/concerns/scopable.rb</code>.
+Included into <code>ApplicationController</code> (<code>app/controllers/application_controller.rb:21</code>).</p>
+<h3 id="scope_facets-facet-fk-column"><code>SCOPE_FACETS</code> — facet → FK column<a class="headerlink" href="#scope_facets-facet-fk-column" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="no">SCOPE_FACETS</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="s2">&quot;region&quot;</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="s2">&quot;region_id&quot;</span><span class="p">,</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span><span class="s2">&quot;season&quot;</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="s2">&quot;season_id&quot;</span><span class="p">,</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">  </span><span class="s2">&quot;branch&quot;</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="s2">&quot;branch_id&quot;</span><span class="p">,</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">  </span><span class="s2">&quot;club&quot;</span><span class="w">   </span><span class="o">=&gt;</span><span class="w"> </span><span class="s2">&quot;club_id&quot;</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="p">}</span><span class="o">.</span><span class="n">freeze</span>
 </code></pre></div>
-<h2 id="entry-points">Entry Points<a class="headerlink" href="#entry-points" title="Permanent link">&para;</a></h2>
-<p>The three primary entry points for operation:</p>
+<p>(Source: <code>scopable.rb:19-24</code>.) <code>club</code> is the context-sensitive 3<sup>rd</sup> facet for
+models with <code>scope_extra_facet == :club</code> (Player) and is filtered via a join.</p>
+<h3 id="request-wiring">Request wiring<a class="headerlink" href="#request-wiring" title="Permanent link">&para;</a></h3>
+<p><code>ApplicationController</code> queues two before_actions
+(<code>application_controller.rb:42-43</code>):</p>
+<ol>
+<li><strong><code>capture_scope</code></strong> — reads <code>params[:scope]</code> and merges the values into
+   <code>session[:scope]</code>. Values are concrete IDs (no "All"). On a real change it
+   additionally calls <code>persist_scope_preference</code> (<code>scopable.rb:47-60</code>).</li>
+<li><strong><code>set_current_scope</code></strong> — places the resolved FK scope into <code>Current.scope</code>,
+   which <code>SearchService</code> consumes per request (<code>scopable.rb:79-94</code>).</li>
+</ol>
+<p><strong>Write-back to user preferences:</strong> Logged-in users remember their slice across
+sessions in <code>preferences["scope"]</code>. Cleared facets ("All Branches") are removed
+from the preference so the default kicks in again. The write is fault-tolerant —
+a failed preference write never aborts the request (<code>scopable.rb:65-76</code>).</p>
+<h3 id="the-no-all-except-branch-rule">The "No All except Branch" rule<a class="headerlink" href="#the-no-all-except-branch-rule" title="Permanent link">&para;</a></h3>
+<p>The concrete default/empty rules live in <code>ScopeResolver</code> (defaults section below).
+For the band:</p>
 <ul>
-<li><code>Umb::FutureScraper.new.call</code> — scrapes upcoming tournaments from the UMB site, no parameters</li>
-<li><code>Umb::ArchiveScraper.new.call(start_id:, end_id:)</code> — scans historical tournament IDs within a range</li>
-<li><code>Umb::DetailsScraper.new.call(tournament_id_or_record)</code> — enriches one tournament with games and PDF data</li>
+<li><strong>Region, Season:</strong> always concrete. Fallback chain Session → Preference →
+  server context (Region only) → default.</li>
+<li><strong>Branch, Club:</strong> may stay empty (<code>nil</code>), meaning "All Branches"/"All Clubs" —
+  in which case <strong>no</strong> filter is set for that facet.</li>
 </ul>
-<p>For a complete method reference with signatures, return values, and parameters, see the <a href="../umb-scraping-methods/">Method Reference</a>.</p>
+<h3 id="defaults-scoperesolver">Defaults (<code>ScopeResolver</code>)<a class="headerlink" href="#defaults-scoperesolver" title="Permanent link">&para;</a></h3>
+<p>File: <code>app/services/scope_resolver.rb</code>. The resolver is a pure derivation from
+session + user and is used by both the HTTP controller (<code>Scopable</code>) <strong>and</strong> the
+<code>SearchReflex</code> (ActionCable live search) — so the default rules exist in a single
+place (<code>scope_resolver.rb:1-12</code>, <code>app/reflexes/search_reflex.rb:44</code>).</p>
+<ul>
+<li><strong>Region</strong> (<code>scope_resolver.rb:32-34</code>): Session → Preference → server-context
+  region → <strong>NBV</strong> (by <code>shortname</code>, else first Region; <code>scope_resolver.rb:76-78</code>).
+  Regional servers set the region from the server context
+  (<code>Carambus.config.context</code> = region shortname, <code>scope_resolver.rb:68-73</code>); the
+  global server uses the NBV default.</li>
+<li><strong>Season</strong> (<code>scope_resolver.rb:37-39</code>): Session → Preference → current season;
+  during the <strong>season transition</strong> (today ≤ Aug 15 of the start year) the
+  <strong>previous season</strong> is the default (<code>scope_resolver.rb:82-98</code>).
+  <code>season_transition?</code> reports this state for a discreet band hint
+  (<code>scope_resolver.rb:53-55</code>).</li>
+<li><strong>Branch</strong> (<code>scope_resolver.rb:42-44</code>): Session → Preference; otherwise <code>nil</code> =
+  "All Branches". A set branch preference is respected as the default.</li>
+<li><strong>Club</strong> (<code>scope_resolver.rb:47-49</code>): analogous to Branch.</li>
+</ul>
+<p><code>fk_scope</code> builds the hash <code>{ "region_id" =&gt; …, "season_id" =&gt; …, "branch_id" =&gt;
+…, "club_id" =&gt; … }</code> and <strong>removes <code>nil</code> values via <code>compact</code></strong> — empty facets
+thus produce no filter (<code>scope_resolver.rb:22-29</code>).</p>
+<h3 id="scope_extra_facet-which-3rd-facet-does-the-band-show"><code>scope_extra_facet</code> — which 3<sup>rd</sup> facet does the band show?<a class="headerlink" href="#scope_extra_facet-which-3rd-facet-does-the-band-show" title="Permanent link">&para;</a></h3>
+<p>Besides Region and Season, the band shows a context-dependent third facet. It
+follows the current controller model via the class method <code>scope_extra_facet</code>
+(<code>scopable.rb:207-215</code>):</p>
+<table>
+<thead>
+<tr>
+<th>Model</th>
+<th><code>scope_extra_facet</code></th>
+<th>Source</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Default (<code>ApplicationRecord</code>)</td>
+<td><code>:branch</code></td>
+<td><code>application_record.rb:50-52</code></td>
+</tr>
+<tr>
+<td><code>Player</code></td>
+<td><code>:club</code></td>
+<td><code>player.rb:42-44</code></td>
+</tr>
+<tr>
+<td><code>Club</code></td>
+<td><code>:none</code></td>
+<td><code>club.rb:54-56</code></td>
+</tr>
+<tr>
+<td><code>Location</code></td>
+<td><code>:none</code></td>
+<td><code>location.rb:90-92</code></td>
+</tr>
+</tbody>
+</table>
+<p>For an unknown controller, <code>scope_extra_facet</code> defensively falls back to
+<code>:branch</code> (<code>scopable.rb:213-215</code>).</p>
+<h3 id="drill-down-mode-drill_focus_keys">Drill-down mode (<code>DRILL_FOCUS_KEYS</code>)<a class="headerlink" href="#drill-down-mode-drill_focus_keys" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="no">DRILL_FOCUS_KEYS</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="sx">%w[tournament_id league_id club_id party_id]</span><span class="o">.</span><span class="n">freeze</span>
+</code></pre></div>
+<p>(Source: <code>scopable.rb:30</code>.) The drill-down is the generalization of the former
+<code>region_focus</code>: an <strong>ephemeral arrival context</strong> from <code>params[:drill] =
+{ &lt;parent_fk&gt; =&gt; &lt;id&gt; }</code> that narrows the child list to a parent (e.g. "show the
+leagues of this club").</p>
+<ul>
+<li>The <strong>allowlist</strong> <code>DRILL_FOCUS_KEYS</code> prevents <strong>column injection</strong>: only these
+  four FK columns land in the drill context (<code>scopable.rb:101-114</code>).</li>
+<li>An active drill replaces the scope band with <strong>breadcrumbs</strong>
+  (<code>drill_focus_crumbs</code>, <code>scopable.rb:122-147</code>) and is kept <strong>separate</strong> from the
+  scope band: <code>set_current_scope</code> sets <code>Current.drill</code> and empties <code>Current.scope</code>
+  (<code>scopable.rb:80-86</code>).</li>
+<li>The drill writes <strong>nothing</strong> to the session (ephemeral).</li>
+</ul>
+<p>A <strong>temporary region focus</strong> (<code>params[:region_focus]</code>, from <code>regions/show</code>) is a
+separate, also ephemeral param with <strong>higher priority</strong> than the persistent band
+value: it overrides <code>region_id</code> for this request only, without changing
+<code>session[:scope]</code> (<code>scopable.rb:88-92</code>, <code>scopable.rb:160-176</code>).</p>
+<h3 id="currentscope-currentdrill"><code>Current.scope</code> / <code>Current.drill</code><a class="headerlink" href="#currentscope-currentdrill" title="Permanent link">&para;</a></h3>
+<p><code>Current</code> (<code>app/models/current.rb</code>) is an <code>ActiveSupport::CurrentAttributes</code> with,
+among others, two attributes:</p>
+<ul>
+<li><strong><code>Current.scope</code></strong> — the scope band's FK filter hash, set per request
+  (<code>current.rb:8</code>).</li>
+<li><strong><code>Current.drill</code></strong> — the ephemeral parent FK of the drill-down, kept
+  <strong>separate</strong> from the scope band so <code>SearchService</code> filters it directly
+  (<code>where(fk =&gt; id)</code>) rather than running the facet special logic (club_id join)
+  (<code>current.rb:12</code>).</li>
+</ul>
+<h3 id="application-by-searchservice-fk-filter">Application by <code>SearchService</code> (FK filter)<a class="headerlink" href="#application-by-searchservice-fk-filter" title="Permanent link">&para;</a></h3>
+<p>File: <code>app/services/search_service.rb</code>. In <code>call</code>, the service invokes
+<code>apply_scope</code> first, then <code>apply_drill</code> — <strong>before</strong> the full-text search
+(<code>search_service.rb:22-28</code>).</p>
+<p><strong><code>apply_scope</code></strong> (<code>search_service.rb:57-113</code>):</p>
+<ol>
+<li>If <code>Current.scope</code> is empty → return unchanged (<code>:59</code>).</li>
+<li><strong>Column-injection allowlist:</strong> models can exempt themselves entirely via
+   <code>scope_exempt?</code> (picker lists like <code>Region</code>) → early return (<code>:61</code>,
+   <code>region.rb:136</code>). Otherwise each facet is applied only if the model actually
+   carries the column (<code>cols.include?(col)</code>, <code>:95</code>).</li>
+<li><strong>Club</strong> (<code>:72-83</code>): join-based and season-bound. Only models with a
+   <code>season_participations</code> association (Player) are filtered
+   (<code>joins(:season_participations).where(club_id:, season_id:)</code>, distinct); other
+   models ignore the Club facet.</li>
+<li><strong>Branch</strong> (<code>:88-93</code>): The <code>branch_id</code> column is <strong>not</strong> queried (NULL on
+   global records, SB-2). Instead resolution over the discipline subtree:
+   <code>where(discipline_id: Branch.discipline_ids_for(value))</code>. Models without
+   <code>discipline_id</code> ignore the Branch facet (behavior-neutral).</li>
+<li><strong>Region</strong> (<code>:97-110</code>): Strict models (<code>scope_region_strict? == true</code>:
+   Location/Player/Club) show only their own <code>region_id</code>. Non-strict models
+   (leagues/tournaments) additionally include <code>global_context = TRUE</code>
+   (cross-region records, e.g. DBU leagues).</li>
+</ol>
+<p><strong><code>apply_drill</code></strong> (<code>search_service.rb:38-49</code>): filters each present drill FK
+directly via <code>where(col =&gt; value)</code> — defensively only for columns the model
+carries.</p>
+<p><code>Branch.discipline_ids_for(branch_id)</code> (<code>app/models/branch.rb:32-58</code>) returns all
+discipline <code>id</code>s whose tree root is that Branch (including the Branch <code>id</code>
+itself). It builds a process-wide memoized tree index once (<code>ids_by_root</code>, one
+<code>pluck</code>, no N+1 root walk); <code>reset_discipline_ids_cache!</code> forces recomputation.
+The tree only changes via sync/scrape, so the cache is rebuilt on code reload
+(dev) or deploy/restart (prod).</p>
+<h3 id="option-sources-for-the-band-view">Option sources for the band view<a class="headerlink" href="#option-sources-for-the-band-view" title="Permanent link">&para;</a></h3>
+<p>All option helpers return <code>[label, id]</code> pairs (values = IDs, no "All"):</p>
+<ul>
+<li><code>scope_region_options</code> — all regions except <code>UNKNOWN</code>, by shortname
+  (<code>scopable.rb:269-271</code>).</li>
+<li><code>scope_season_options</code> — real "yyyy/yyyy+1" names from 2009 up to
+  current year + 2, descending (<code>scopable.rb:275-280</code>).</li>
+<li><code>scope_branch_options</code> — <code>Branch.order(:name)</code> (<code>scopable.rb:282-284</code>).</li>
+<li><code>scope_club_options</code> — clubs of the current scope region, label
+  <code>COALESCE(shortname, name)</code>, nameless stubs omitted (<code>scopable.rb:289-295</code>).</li>
+</ul>
+<hr />
+<h2 id="4-relation-to-regiontaggable">4. Relation to <code>RegionTaggable</code><a class="headerlink" href="#4-relation-to-regiontaggable" title="Permanent link">&para;</a></h2>
+<p><code>BranchTaggable</code> is deliberately built as a <strong>lean analogue</strong> of <code>RegionTaggable</code>
+(<code>app/models/concerns/region_taggable.rb</code>). Commonality: both derive an FK
+dimension from the record and feed it into the scope filter. The differences:</p>
+<table>
+<thead>
+<tr>
+<th>Aspect</th>
+<th><code>RegionTaggable</code></th>
+<th><code>BranchTaggable</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Derived column</td>
+<td><code>region_id</code> (+ <code>global_context</code>)</td>
+<td><code>branch_id</code></td>
+</tr>
+<tr>
+<td>Derivation logic</td>
+<td><code>find_associated_region_id</code> — big <code>case</code> over model class <strong>and</strong> <code>tournament_type</code>; returns a <strong>single</strong> ID (<code>region_taggable.rb:11-53</code>)</td>
+<td><code>find_associated_branch_id</code> — only <code>discipline.root</code>, one branch (<code>branch_taggable.rb:15-18</code>)</td>
+</tr>
+<tr>
+<td>Version/PaperTrail tagging</td>
+<td>yes — <code>after_save</code>/<code>after_destroy :update_version_region_data</code>, tags versions for region sync (<code>region_taggable.rb:7-8</code>, <code>:123-143</code>)</td>
+<td><strong>no</strong> — live column only, no version machinery</td>
+</tr>
+<tr>
+<td><code>global_context</code></td>
+<td>yes — <code>global_context?</code> marks cross-region records (<code>region_taggable.rb:55-79</code>)</td>
+<td>no</td>
+</tr>
+<tr>
+<td>Includers</td>
+<td>16 models (Region, Club, Tournament, League, Party, Player, Game, …)</td>
+<td>2 models (Tournament, League)</td>
+</tr>
+<tr>
+<td>Backfill task</td>
+<td><code>lib/tasks/region_taggings.rake</code> (exists, curated)</td>
+<td>removed — query-time resolution via <code>discipline.root</code></td>
+</tr>
+</tbody>
+</table>
+<p>The former <code>find_associated_region_ids</code> (array) was simplified to a <strong>single</strong> ID
+(<code>find_associated_region_id</code>); see
+<a href="../region-tagging-cleanup-summary/"><code>region-tagging-cleanup-summary.en.md</code></a>.
+<code>BranchTaggable</code> adopted this lean form from the start — plus the omission of the
+version machinery.</p>
+<p><strong>Filter asymmetry in <code>SearchService</code>:</strong> <code>region_id</code> is filtered directly as a
+column (with a <code>global_context</code> OR for non-strict models). <code>branch_id</code>, by
+contrast, is <strong>never</strong> filtered as a column but always resolved via
+<code>discipline.root</code> — precisely because of the NULL problem on synced global
+records (section 2).</p>
+<hr />
+<h2 id="5-db-columns-rake-backfill-tasks">5. DB columns &amp; rake backfill tasks<a class="headerlink" href="#5-db-columns-rake-backfill-tasks" title="Permanent link">&para;</a></h2>
+<h3 id="migration">Migration<a class="headerlink" href="#migration" title="Permanent link">&para;</a></h3>
+<p><code>db/migrate/20260702061649_add_branch_id_to_tournaments_and_leagues.rb</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">disable_ddl_transaction!</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="n">add_column</span><span class="w"> </span><span class="ss">:tournaments</span><span class="p">,</span><span class="w"> </span><span class="ss">:branch_id</span><span class="p">,</span><span class="w"> </span><span class="ss">:integer</span><span class="w"> </span><span class="k">unless</span><span class="w"> </span><span class="n">column_exists?</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="n">add_column</span><span class="w"> </span><span class="ss">:leagues</span><span class="p">,</span><span class="w">     </span><span class="ss">:branch_id</span><span class="p">,</span><span class="w"> </span><span class="ss">:integer</span><span class="w"> </span><span class="k">unless</span><span class="w"> </span><span class="n">column_exists?</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="n">add_index</span><span class="w">  </span><span class="ss">:tournaments</span><span class="p">,</span><span class="w"> </span><span class="ss">:branch_id</span><span class="p">,</span><span class="w"> </span><span class="ss">algorithm</span><span class="p">:</span><span class="w"> </span><span class="ss">:concurrently</span><span class="w"> </span><span class="k">unless</span><span class="w"> </span><span class="o">...</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="n">add_index</span><span class="w">  </span><span class="ss">:leagues</span><span class="p">,</span><span class="w">     </span><span class="ss">:branch_id</span><span class="p">,</span><span class="w"> </span><span class="ss">algorithm</span><span class="p">:</span><span class="w"> </span><span class="ss">:concurrently</span><span class="w"> </span><span class="k">unless</span><span class="w"> </span><span class="o">...</span>
+</code></pre></div>
+<p>Derived FK dimension analogous to <code>region_id</code>: <strong>nullable</strong>, <strong>no</strong> FK constraint
+(Discipline is global), index concurrently (strong_migrations).</p>
+<h3 id="schema">Schema<a class="headerlink" href="#schema" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>tournaments.branch_id</code> (integer) + <code>index_tournaments_on_branch_id</code>
+  (<code>db/schema.rb:1462</code>, <code>:1464</code>).</li>
+<li><code>leagues.branch_id</code> (integer) + <code>index_leagues_on_branch_id</code>
+  (<code>db/schema.rb:542</code>, <code>:544</code>).</li>
+</ul>
+<h3 id="rake-backfill-tasks">Rake backfill tasks<a class="headerlink" href="#rake-backfill-tasks" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Branch:</strong> <strong>no active task.</strong> The former <code>lib/tasks/branch_taggings.rake</code>
+  (<code>namespace :branch_taggings</code>, task <code>update_all_branch_id</code>) was removed in
+  <code>56e67264</code> (see section 2). A backfill of global records is not possible; the
+  band resolves the Branch facet at query time.</li>
+<li><strong>Region (analogue):</strong> <code>lib/tasks/region_taggings.rake</code> exists and is the
+  curated source of truth for DE tagging. Key tasks:</li>
+<li><code>region_taggings:update_all_region_id</code> — organic region derivation top-down
+    (Region → Club → SeasonParticipation → Player etc.).</li>
+<li><code>region_taggings:fix_international_organizer_context</code> — tags international
+    organizer regions as <code>global_context</code> (authority only, PaperTrail-tracked;
+    <code>ARMED=1</code> mutates). DRY-RUN by default.</li>
+<li>A <strong>recurrence guard</strong> (<code>guard_derivation_retag!</code>,
+    <code>region_taggings.rake:126-137</code>) locks the derivation-based re-tag tasks,
+    because <code>RegionTaggable#global_context?</code>/<code>#find_associated_region_id</code> are
+    incomplete and would silently tear down the curated global tagging. Override:
+    <code>FORCE_DERIVATION_RETAG=1</code>.</li>
+</ul>
+<hr />
+<h2 id="6-gotchas">6. Gotchas<a class="headerlink" href="#6-gotchas" title="Permanent link">&para;</a></h2>
+<ol>
+<li>
+<p><strong><code>branch_id = nil</code> for unclassified disciplines.</strong> Disciplines whose tree root
+   is (still) not a <code>Branch</code> yield <code>find_associated_branch_id == nil</code>
+   (<code>branch_taggable.rb:15-18</code>). Such records carry no Branch and appear only in
+   the "All Branches" state. This is the reason for the "No All except Branch"
+   exception (<code>scopable.rb:11-13</code>).</p>
+</li>
+<li>
+<p><strong>The <code>branch_id</code> column is NOT the filter source.</strong> On synced global records
+   (<code>id &lt; MIN_ID</code>), <code>branch_id</code> stays NULL (update_columns during version apply
+   bypasses the <code>before_save</code>, <code>LocalProtector</code> locks the re-save).
+   <code>SearchService</code> therefore <strong>never</strong> queries <code>branch_id</code> but resolves via
+   <code>Branch.discipline_ids_for</code> / <code>discipline.root</code> (<code>search_service.rb:88-93</code>).
+   Anyone using the column for their own query must know this gap.</p>
+</li>
+<li>
+<p><strong>Stale backfill reference in the concern comment.</strong> <code>branch_taggable.rb:5</code>
+   names <code>lib/tasks/branch_taggings.rake</code> — the file no longer exists (removed in
+   <code>56e67264</code>). No backfill present.</p>
+</li>
+<li>
+<p><strong>Global vs. regional server — region default.</strong> Regional servers set the
+   default region from <code>Carambus.config.context</code> (region shortname). The global
+   server (empty context) falls back to <strong>NBV</strong> (currently the only region in real
+   use; <code>scope_resolver.rb:31-34</code>, <code>:66-78</code>). DBU is simply a selectable region,
+   not a special state.</p>
+</li>
+<li>
+<p><strong>Season transition shifts the default.</strong> Until Aug 15 of the current season's
+   start year, the <strong>previous season</strong> is the season default (final
+   results/rankings are settled, the new season is still being planned;
+   <code>scope_resolver.rb:82-98</code>). <code>scope_season_transition?</code> signals this for the band
+   hint.</p>
+</li>
+<li>
+<p><strong>Region-strict vs. non-strict models.</strong> For <code>region_id</code> filtering, strict
+   models (Player/Club/Location, <code>scope_region_strict? == true</code>) show <strong>only</strong>
+   their own region; <code>global_context</code> there is a sync-retention marker and is
+   never shown. Non-strict models (tournaments/leagues) include
+   <code>global_context = TRUE</code> (<code>search_service.rb:97-110</code>, <code>player.rb:49</code>,
+   <code>club.rb:61</code>, <code>location.rb:97</code>).</p>
+</li>
+<li>
+<p><strong><code>SearchReflex</code> bypasses the controller before_actions.</strong> The ActionCable
+   live search does not run through <code>set_current_scope</code>. It sets <code>Current.scope</code>
+   itself via the same <code>ScopeResolver</code> (<code>search_reflex.rb:44</code>) — otherwise the
+   scope would be <code>nil</code> in the live search.</p>
+</li>
+</ol>
 
 
 

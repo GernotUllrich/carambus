@@ -2917,9 +2917,9 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#1-modell-code-bereinigung" class="md-nav__link">
+  <a href="#1-modell-code-bereinigung-abgeschlossen" class="md-nav__link">
     <span class="md-ellipsis">
-      1. Modell-Code Bereinigung
+      1. Modell-Code Bereinigung ✅ ABGESCHLOSSEN
     </span>
   </a>
   
@@ -3620,9 +3620,9 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#1-modell-code-bereinigung" class="md-nav__link">
+  <a href="#1-modell-code-bereinigung-abgeschlossen" class="md-nav__link">
     <span class="md-ellipsis">
-      1. Modell-Code Bereinigung
+      1. Modell-Code Bereinigung ✅ ABGESCHLOSSEN
     </span>
   </a>
   
@@ -3918,23 +3918,16 @@
 <li>✅ Ordentliche Regionsfilterung für lokale Server-Synchronisation</li>
 </ul>
 <h2 id="noch-zu-erledigen">Noch zu erledigen<a class="headerlink" href="#noch-zu-erledigen" title="Permanent link">&para;</a></h2>
-<h3 id="1-modell-code-bereinigung">1. Modell-Code Bereinigung<a class="headerlink" href="#1-modell-code-bereinigung" title="Permanent link">&para;</a></h3>
-<p>Die folgenden Modelle enthalten noch Referenzen zum alten <code>region_ids |= [region.id]</code> Muster, die aktualisiert werden müssen:</p>
-<h4 id="hochprioritats-modelle">Hochprioritäts-Modelle:<a class="headerlink" href="#hochprioritats-modelle" title="Permanent link">&para;</a></h4>
-<ul>
-<li><code>app/models/league.rb</code> - Mehrere Instanzen von <code>region_ids |= [region.id]</code></li>
-<li><code>app/models/region.rb</code> - Mehrere Instanzen von <code>region_ids |= [region.id]</code></li>
-<li><code>app/models/tournament.rb</code> - Mehrere Instanzen von <code>region_ids |= [region.id]</code></li>
-<li><code>app/models/club.rb</code> - Mehrere Instanzen von <code>region_ids |= [region.id]</code></li>
-<li><code>app/models/player.rb</code> - Eine Instanz von <code>region_ids |= [region.id]</code></li>
-</ul>
-<h4 id="erforderliche-anderungen">Erforderliche Änderungen:<a class="headerlink" href="#erforderliche-anderungen" title="Permanent link">&para;</a></h4>
-<p>Ersetzen Sie alle Instanzen von:
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">record</span><span class="o">.</span><span class="n">region_ids</span><span class="w"> </span><span class="o">|=</span><span class="w"> </span><span class="o">[</span><span class="n">region</span><span class="o">.</span><span class="n">id</span><span class="o">]</span>
-</code></pre></div></p>
-<p>Durch:
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">record</span><span class="o">.</span><span class="n">region_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">region</span><span class="o">.</span><span class="n">id</span>
-</code></pre></div></p>
+<h3 id="1-modell-code-bereinigung-abgeschlossen">1. Modell-Code Bereinigung ✅ ABGESCHLOSSEN<a class="headerlink" href="#1-modell-code-bereinigung-abgeschlossen" title="Permanent link">&para;</a></h3>
+<p>Das alte <code>region_ids |= [region.id]</code> Muster wurde in allen Modellen entfernt.
+Es sind KEINE Instanzen mehr vorhanden (Stand: Prüfung 2026-07 —
+<code>grep -rn "region_ids |=" app/models/</code> liefert keinen Treffer).</p>
+<p>Die betroffenen Modelle (<code>league.rb</code>, <code>region.rb</code>, <code>tournament.rb</code>, <code>club.rb</code>,
+<code>player.rb</code> u.a.) führen die alte Array-Spalte nur noch als
+<code>self.ignored_columns = ["region_ids"]</code> (die DB-Spalte wurde durch Migration
+<code>20250624000001_remove_region_ids_columns.rb</code> entfernt). Das Region-Tagging
+läuft jetzt ausschließlich über die einzelne <code>region_id</code>-Spalte
+(<code>RegionTaggable#find_associated_region_id</code>) plus <code>global_context</code>.</p>
 <h3 id="2-tests-aktualisieren">2. Tests aktualisieren<a class="headerlink" href="#2-tests-aktualisieren" title="Permanent link">&para;</a></h3>
 <ul>
 <li>✅ Alle bestehenden Tests aktualisieren, um das neue System zu verwenden</li>
@@ -3968,54 +3961,54 @@
 </ul>
 <h2 id="implementierungsrichtlinien">Implementierungsrichtlinien<a class="headerlink" href="#implementierungsrichtlinien" title="Permanent link">&para;</a></h2>
 <h3 id="fur-neue-modelle">Für neue Modelle<a class="headerlink" href="#fur-neue-modelle" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">NewModel</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="no">ApplicationRecord</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="kp">include</span><span class="w"> </span><span class="no">RegionTaggable</span>
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>
-<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">  </span><span class="c1"># Automatisches Regions-Tagging wird über PaperTrail gehandhabt</span>
-<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">  </span><span class="c1"># Keine manuellen region_ids Zuweisungen erforderlich</span>
-<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="k">end</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">NewModel</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="no">ApplicationRecord</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="kp">include</span><span class="w"> </span><span class="no">RegionTaggable</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">  </span><span class="c1"># Automatisches Regions-Tagging wird über PaperTrail gehandhabt</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">  </span><span class="c1"># Keine manuellen region_ids Zuweisungen erforderlich</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="k">end</span>
 </code></pre></div>
 <h3 id="fur-bestehende-modelle">Für bestehende Modelle<a class="headerlink" href="#fur-bestehende-modelle" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">ExistingModel</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="no">ApplicationRecord</span>
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="kp">include</span><span class="w"> </span><span class="no">RegionTaggable</span>
-<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>
-<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">  </span><span class="c1"># Alte region_ids Logik entfernen</span>
-<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">  </span><span class="c1"># before_save :set_region_ids  # ENTFERNEN</span>
-<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>
-<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="w">  </span><span class="c1"># Neue region_id Logik (falls erforderlich)</span>
-<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="w">  </span><span class="n">before_save</span><span class="w"> </span><span class="ss">:set_region_id</span>
-<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>
-<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="w">  </span><span class="kp">private</span>
-<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a>
-<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="w">  </span><span class="k">def</span><span class="w"> </span><span class="nf">set_region_id</span>
-<a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a><span class="w">    </span><span class="c1"># Einfache region_id Zuweisung</span>
-<a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a><span class="w">    </span><span class="nb">self</span><span class="o">.</span><span class="n">region_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">determine_region_id</span>
-<a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a><span class="w">  </span><span class="k">end</span>
-<a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a><span class="k">end</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">ExistingModel</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="no">ApplicationRecord</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="kp">include</span><span class="w"> </span><span class="no">RegionTaggable</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">  </span><span class="c1"># Alte region_ids Logik entfernen</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">  </span><span class="c1"># before_save :set_region_ids  # ENTFERNEN</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">  </span><span class="c1"># Neue region_id Logik (falls erforderlich)</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">  </span><span class="n">before_save</span><span class="w"> </span><span class="ss">:set_region_id</span>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="w">  </span><span class="kp">private</span>
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="w">  </span><span class="k">def</span><span class="w"> </span><span class="nf">set_region_id</span>
+<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="w">    </span><span class="c1"># Einfache region_id Zuweisung</span>
+<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="w">    </span><span class="nb">self</span><span class="o">.</span><span class="n">region_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">determine_region_id</span>
+<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="w">  </span><span class="k">end</span>
+<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a><span class="k">end</span>
 </code></pre></div>
 <h2 id="uberprufung-und-validierung">Überprüfung und Validierung<a class="headerlink" href="#uberprufung-und-validierung" title="Permanent link">&para;</a></h2>
 <h3 id="datenbank-integritat">Datenbank-Integrität<a class="headerlink" href="#datenbank-integritat" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1"># Überprüfen Sie die Datenbank-Constraints</span>
-<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>rails<span class="w"> </span>db:schema:dump
-<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>grep<span class="w"> </span>-r<span class="w"> </span><span class="s2">&quot;region_id&quot;</span><span class="w"> </span>db/schema.rb
-<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>
-<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="c1"># Überprüfen Sie die Indizes</span>
-<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>rails<span class="w"> </span>dbconsole
-<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="se">\d</span><span class="w"> </span>table_name
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># Überprüfen Sie die Datenbank-Constraints</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>rails<span class="w"> </span>db:schema:dump
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>grep<span class="w"> </span>-r<span class="w"> </span><span class="s2">&quot;region_id&quot;</span><span class="w"> </span>db/schema.rb
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="c1"># Überprüfen Sie die Indizes</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>rails<span class="w"> </span>dbconsole
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="se">\d</span><span class="w"> </span>table_name
 </code></pre></div>
 <h3 id="code-qualitat">Code-Qualität<a class="headerlink" href="#code-qualitat" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c1"># Suchen Sie nach verbleibenden region_ids Referenzen</span>
-<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>grep<span class="w"> </span>-r<span class="w"> </span><span class="s2">&quot;region_ids&quot;</span><span class="w"> </span>app/models/
-<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>grep<span class="w"> </span>-r<span class="w"> </span><span class="s2">&quot;region_ids&quot;</span><span class="w"> </span>app/controllers/
-<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>grep<span class="w"> </span>-r<span class="w"> </span><span class="s2">&quot;region_ids&quot;</span><span class="w"> </span>app/views/
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># Suchen Sie nach verbleibenden region_ids Referenzen</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>grep<span class="w"> </span>-r<span class="w"> </span><span class="s2">&quot;region_ids&quot;</span><span class="w"> </span>app/models/
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>grep<span class="w"> </span>-r<span class="w"> </span><span class="s2">&quot;region_ids&quot;</span><span class="w"> </span>app/controllers/
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>grep<span class="w"> </span>-r<span class="w"> </span><span class="s2">&quot;region_ids&quot;</span><span class="w"> </span>app/views/
 </code></pre></div>
 <h3 id="tests-ausfuhren">Tests ausführen<a class="headerlink" href="#tests-ausfuhren" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1"># Alle Tests ausführen</span>
-<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>rails<span class="w"> </span><span class="nb">test</span>
-<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>
-<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="c1"># Spezifische Tests für Regions-Funktionalität</span>
-<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>rails<span class="w"> </span><span class="nb">test</span><span class="w"> </span>test/models/concerns/region_taggable_test.rb
-<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>rails<span class="w"> </span><span class="nb">test</span><span class="w"> </span>test/models/version_test.rb
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1"># Alle Tests ausführen</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>rails<span class="w"> </span><span class="nb">test</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="c1"># Spezifische Tests für Regions-Funktionalität</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>rails<span class="w"> </span><span class="nb">test</span><span class="w"> </span>test/models/concerns/region_taggable_test.rb
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>rails<span class="w"> </span><span class="nb">test</span><span class="w"> </span>test/models/version_test.rb
 </code></pre></div>
 <h2 id="nachste-schritte">Nächste Schritte<a class="headerlink" href="#nachste-schritte" title="Permanent link">&para;</a></h2>
 <h3 id="kurzfristig-1-2-wochen">Kurzfristig (1-2 Wochen)<a class="headerlink" href="#kurzfristig-1-2-wochen" title="Permanent link">&para;</a></h3>

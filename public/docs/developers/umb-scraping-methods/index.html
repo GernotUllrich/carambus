@@ -3684,6 +3684,7 @@
 </tr>
 </tbody>
 </table>
+<p><code>Umb::DisciplineDetector</code> bietet zwei Klassenmethoden: <code>detect(name)</code> (nur Regex + DB-ILIKE) und <code>detect_with_title_fallback(name)</code> (ergänzt einen titelbasierten <code>Discipline.classify_from_title</code>-Fallback mit kuratierten Overrides + Synonymen). <code>FutureScraper</code> und <code>ArchiveScraper</code> rufen die Fallback-Variante auf; <code>DetailsScraper</code> nutzt das reine <code>detect</code>. Details in der <a href="../umb-scraping-implementation/">Architektur-Dokumentation</a> (Abschnitt f).</p>
 <p>Eine vollständige Beschreibung dieser Services findet sich in der <a href="../umb-scraping-implementation/">Architektur-Dokumentation</a>.</p>
 
 

@@ -3684,6 +3684,7 @@
 </tr>
 </tbody>
 </table>
+<p><code>Umb::DisciplineDetector</code> offers two class methods: <code>detect(name)</code> (regex + DB-ILIKE only) and <code>detect_with_title_fallback(name)</code> (adds a <code>Discipline.classify_from_title</code> title-based fallback with curated overrides + synonyms). <code>FutureScraper</code> and <code>ArchiveScraper</code> call the fallback variant; <code>DetailsScraper</code> calls plain <code>detect</code>. See the <a href="../umb-scraping-implementation/">Architecture Documentation</a> (section f) for details.</p>
 <p>For full descriptions of these services, see the <a href="../umb-scraping-implementation/">Architecture Documentation</a>.</p>
 
 
