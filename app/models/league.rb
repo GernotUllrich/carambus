@@ -343,6 +343,8 @@ class League < ApplicationRecord
       table = leagues_doc.css("article table.silver")[1]
 
       if table.present?
+        cc_gate_deep = 0        # Change-Gate-Metrik (Phase 22): tief gescrapte Ligen
+        cc_gate_skipped = 0     # Change-Gate-Metrik: unveränderte, übersprungene Ligen
         table.css("tr").each do |tr|
           cc_id2s = []
           staffel_texts = []
@@ -422,13 +424,18 @@ class League < ApplicationRecord
               # eine Deep-Exception (siehe rescue der Methode) verhindert den commit → nächster Lauf prüft erneut.
               content = cc_standings_content(staffel_doc)
               if ScrapeFingerprint.deep?(league, "standings", content)
+                cc_gate_deep += 1
                 # Collect all records from league details for batch tagging
                 league.scrape_single_league_from_cc(opts)
                 ScrapeFingerprint.for(league, "standings").commit!(content)
+              else
+                cc_gate_skipped += 1
               end
             end
           end
         end
+        Rails.logger.info "===== scrape ===== CC-Change-Gate #{region.shortname}: " \
+                          "deep=#{cc_gate_deep} skipped_unchanged=#{cc_gate_skipped}"
       end
     end
   rescue StandardError => e
