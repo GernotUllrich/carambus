@@ -84,12 +84,24 @@ class LeagueScrapingTest < ActiveSupport::TestCase
     end
   end
 
+  # Saison-Selektor für den Rollover-Guard (Region#cc_season_available?), der die
+  # parameterlose sb_spielplan.php VOR dem eigentlichen Liga-Fetch liest.
+  def season_selector_html(season_name)
+    <<~HTML
+      <html><body><select name="s"><option value="#{season_name}">#{season_name}</option></select></body></html>
+    HTML
+  end
+
   # --- timeout handling ---
 
   test "scrape_leagues_from_cc raises on timeout (re-raises as StandardError)" do
     region = create_scrapable_region
     stub_request(:get, /#{Regexp.escape(CC_URL_BASE)}sb_spielplan/)
       .to_timeout
+    # Guard-Fetch (parameterlos) muss passieren, damit der Timeout den echten Liga-Fetch trifft.
+    # Später deklarierte Stubs haben in WebMock Vorrang.
+    stub_request(:get, "#{CC_URL_BASE}sb_spielplan.php")
+      .to_return(status: 200, body: season_selector_html(seasons(:current).name), headers: { "Content-Type" => "text/html" })
 
     # scrape_leagues_from_cc re-raises any StandardError — Timeout is a subclass
     assert_raises(StandardError) do
