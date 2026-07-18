@@ -617,8 +617,8 @@ image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9"
     has_open = Tournament.where(season: season, organizer: self).left_joins(:games)
                          .where(games: { id: nil }).exists?
     unless ScrapeFingerprint.deep?(self, list_scope, list_content) || has_open || opts[:force]
-      Rails.logger.info "===== scrape ===== Tournament-Gate #{shortname} #{season.name}: " \
-                        "Liste unverändert, keine offenen Turniere — übersprungen"
+      Rails.logger.info "===== scrape ===== CC-Change-Gate Tournaments #{shortname} #{season.name}: " \
+                        "deep=0 skipped_unchanged=1 (Liste unverändert, keine offenen Turniere)"
       return
     end
     einzel_doc.css("article table.silver").andand[1].andand.css("tr").to_a[2..].to_a.each do |tr|
@@ -712,6 +712,8 @@ image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9"
     # Deep erfolgreich → Turnier-Listen-digest festschreiben (nächster Lauf überspringt bei gleicher
     # Liste, sofern keine offenen Turniere).
     ScrapeFingerprint.for(self, list_scope).commit!(list_content)
+    Rails.logger.info "===== scrape ===== CC-Change-Gate Tournaments #{shortname} #{season.name}: " \
+                      "deep=1 skipped_unchanged=0"
   rescue StandardError => e
     Rails.logger.info "!!!!!!!!! Error #{e} tournament[#{tournament.andand.id}]#{e.backtrace&.join("\n")}"
   end
@@ -801,6 +803,7 @@ image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9"
           doc_clubs = Nokogiri::HTML(html_clubs)
           clubs_table = doc_clubs.css("article table.silver")[1]
           clubs = clubs_table.css("a")
+          gate_stats = { deep: 0, skipped: 0 }
           clubs.each do |club_a|
             # if shortname == "DBU"
             ref = club_a.attributes["href"].value
@@ -868,8 +871,10 @@ image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9"
               club.save!
             end
 
-            club.scrape_club(season, ref, url, opts.merge(called_from_portal: shortname == "DBU"))
+            club.scrape_club(season, ref, url, opts.merge(called_from_portal: shortname == "DBU", gate_stats: gate_stats))
           end
+          Rails.logger.info "===== scrape ===== CC-Change-Gate Clubs #{shortname}: " \
+                            "deep=#{gate_stats[:deep]} skipped_unchanged=#{gate_stats[:skipped]}"
         else
           Rails.logger.info "===== scrape ===== clubs_url: #{clubs_url} No ClubCloud Url for Region #{name}(#{shortname})"
         end

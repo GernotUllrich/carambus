@@ -277,10 +277,12 @@ class Club < ApplicationRecord
       roster_content = self.class.roster_content(doc_players)
       roster_scope = "roster_#{season&.name}"
       unless ScrapeFingerprint.deep?(self, roster_scope, roster_content) || opts[:force]
+        opts[:gate_stats][:skipped] += 1 if opts[:gate_stats]
         Rails.logger.info "===== scrape ===== Roster-Gate #{name}[#{id}] #{season&.name}: " \
                           "unverändert — Spieler-Deep übersprungen"
         return
       end
+      opts[:gate_stats][:deep] += 1 if opts[:gate_stats]
       player_urls = doc_players.css("aside table.silver")[1].css("a.cc_bluelink")
       player_urls.each do |pl_url_cc|
         purl = pl_url_cc["href"]
