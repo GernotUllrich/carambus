@@ -61,23 +61,6 @@ class LeagueScrapingTest < ActiveSupport::TestCase
     HTML
   end
 
-  # Minimal HTML for a league detail page with no team table
-  def minimal_league_html_no_teams
-    <<~HTML
-      <html>
-        <body>
-          <aside>
-            <section>
-              <table>
-                <tr><td>Wettbewerb</td><td>Karambol: Dreiband</td></tr>
-              </table>
-            </section>
-          </aside>
-        </body>
-      </html>
-    HTML
-  end
-
   # --- scrape_leagues_from_cc ---
 
   test "scrape_leagues_from_cc returns without error when HTTP stubbed with empty table" do
@@ -101,59 +84,6 @@ class LeagueScrapingTest < ActiveSupport::TestCase
     end
   end
 
-  test "scrape_leagues_optimized returns without error when HTTP stubbed with empty table" do
-    region = create_scrapable_region
-    stub_request(:get, /#{Regexp.escape(CC_URL_BASE)}sb_spielplan/)
-      .to_return(status: 200, body: minimal_leagues_html, headers: { "Content-Type" => "text/html" })
-
-    assert_nothing_raised do
-      League.scrape_leagues_optimized(region, seasons(:current))
-    end
-  end
-
-  # --- scrape_league_optimized (instance method) ---
-
-  test "scrape_league_optimized processes stubbed HTML without error when no team table" do
-    region = create_scrapable_region
-    league = create_scrapable_league(region)
-
-    stub_request(:get, /#{Regexp.escape(CC_URL_BASE)}sb_spielplan/)
-      .to_return(status: 200, body: minimal_league_html_no_teams, headers: { "Content-Type" => "text/html" })
-
-    # Should not raise — returns early when no team table found
-    assert_nothing_raised do
-      league.scrape_league_optimized
-    end
-  end
-
-  # --- scrape_league_teams_optimized ---
-
-  test "scrape_league_teams_optimized processes stubbed HTML without error when no team table" do
-    region = create_scrapable_region
-    league = create_scrapable_league(region)
-
-    stub_request(:get, /#{Regexp.escape(CC_URL_BASE)}sb_spielplan/)
-      .to_return(status: 200, body: minimal_league_html_no_teams, headers: { "Content-Type" => "text/html" })
-
-    assert_nothing_raised do
-      league.scrape_league_teams_optimized
-    end
-  end
-
-  # --- scrape_party_games_optimized ---
-
-  test "scrape_party_games_optimized processes stubbed HTML without error when no team table" do
-    region = create_scrapable_region
-    league = create_scrapable_league(region)
-
-    stub_request(:get, /#{Regexp.escape(CC_URL_BASE)}sb_spielplan/)
-      .to_return(status: 200, body: minimal_league_html_no_teams, headers: { "Content-Type" => "text/html" })
-
-    assert_nothing_raised do
-      league.scrape_party_games_optimized
-    end
-  end
-
   # --- timeout handling ---
 
   test "scrape_leagues_from_cc raises on timeout (re-raises as StandardError)" do
@@ -164,21 +94,6 @@ class LeagueScrapingTest < ActiveSupport::TestCase
     # scrape_leagues_from_cc re-raises any StandardError — Timeout is a subclass
     assert_raises(StandardError) do
       League.scrape_leagues_from_cc(region, seasons(:current))
-    end
-  end
-
-  test "scrape_league_optimized handles timeout gracefully via broad rescue in scrape_single_league_from_cc" do
-    region = create_scrapable_region
-    league = create_scrapable_league(region)
-
-    stub_request(:get, /#{Regexp.escape(CC_URL_BASE)}sb_spielplan/)
-      .to_timeout
-
-    # scrape_single_league_from_cc has a top-level rescue StandardError (line ~1391) that
-    # swallows all exceptions including Net::OpenTimeout. Document that the method returns nil
-    # without propagating the error — matching the CLAUDE.md broad-rescue pattern.
-    assert_nothing_raised do
-      league.scrape_league_optimized
     end
   end
 end

@@ -111,16 +111,8 @@ Klassenmethoden:
 ### Automatische Behandlung
 Die inkrementelle Deduplizierung läuft automatisch als Teil des öffentlichen
 Turnier-Scrapes (`Season#scrape_single_tournaments_public_cc` →
-`Region#scrape_single_tournament_public`), der von den regulären
-Scraping-Aufgaben aufgerufen wird (z.B. `scrape:daily_update`).
-
-> **Hinweis zu `scrape:scrape_tournaments_optimized`:** Es existiert eine
-> separate Rake-Aufgabe `scrape:scrape_tournaments_optimized`, die
-> `Season#scrape_tournaments_optimized` aufruft, das wiederum
-> `Region#scrape_tournaments_optimized(season, opts)` aufruft. **Diese
-> Region-Methode ist derzeit nicht definiert**, daher ist diese Aufgabe kein
-> funktionierender Einstiegspunkt für die oben beschriebene Deduplizierung. Der
-> funktionierende Dedup-Pfad ist `Region#scrape_single_tournament_public`.
+`Region#scrape_single_tournament_public`), der vom täglichen Scrape
+`scrape:daily_update_monitored` aufgerufen wird.
 
 ### Manuelle Verwaltung
 

@@ -32,10 +32,7 @@ bin/rails db:migrate
 ### 2. Gemonitortes Scraping starten
 
 ```bash
-# Statt:
-rake scrape:daily_update
-
-# Neu (mit Monitoring):
+# Der Standard-Scrape (mit Monitoring + Change-Gate):
 rake scrape:daily_update_monitored
 ```
 
