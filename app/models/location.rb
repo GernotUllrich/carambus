@@ -142,23 +142,23 @@ class Location < ApplicationRecord
   end
 
   def self.scrape_locations
+    loc_deep = 0
+    loc_skipped = 0
     Region.where(shortname: Region::SHORTNAMES_CARAMBUS_USERS + Region::SHORTNAMES_OTHERS).all.each do |region|
-      region.scrape_locations
-    end
-  end
-
-  def self.scrape_locations_optimized
-    Rails.logger.info "===== scrape ===== Starting optimized location scraping"
-
-    Region.where(shortname: Region::SHORTNAMES_CARAMBUS_USERS + Region::SHORTNAMES_OTHERS).all.each do |region|
-      last_sync = region.sync_date || 1.year.ago
-      if last_sync < 1.day.ago
-        Rails.logger.info "===== scrape ===== Syncing locations for region #{region.shortname} (last sync: #{last_sync})"
+      # Change-Gate (Phase 23, Ebene B — Merkle-„fast node"): Location-LISTE als billiger Knoten. Deep
+      # (pro-Location-Detailfetches) nur bei geänderter Liste; sonst Region überspringen. Listen-Fetch
+      # bleibt tägliche Grundkost. commit erst NACH Erfolg; leere/fehlerhafte Liste → stale → deep.
+      content = region.location_list_content
+      if ScrapeFingerprint.deep?(region, "locations", content)
         region.scrape_locations
+        ScrapeFingerprint.for(region, "locations").commit!(content)
+        loc_deep += 1
       else
-        Rails.logger.info "===== scrape ===== Skipping locations for region #{region.shortname} - last sync: #{last_sync}"
+        loc_skipped += 1
       end
     end
+    Rails.logger.info "===== scrape ===== CC-Change-Gate Locations: " \
+                      "deep=#{loc_deep} skipped_unchanged=#{loc_skipped}"
   end
 
   def self.merge_locations(location_ok_id, with_location_ids = [])

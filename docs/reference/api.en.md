@@ -587,12 +587,10 @@ External data is collected by service objects (see `app/services/`):
 The main synchronization entry points are rake tasks (run via cron / whenever):
 
 ```bash
-rake scrape:daily_update              # daily regional/club/tournament/league sync
-rake scrape:daily_update_monitored    # monitored variant (cron @ 04:00 daily)
-rake scrape:update_seasons
-rake scrape:scrape_clubs
-rake scrape:scrape_tournaments_optimized
-rake scrape:scrape_leagues_optimized
+rake scrape:daily_update_monitored    # daily regional/location/club/tournament/league sync
+                                      # with monitoring + change-gate (cron @ 04:00 daily)
+rake scrape:stats                     # scraping statistics for the last 7 days
+rake scrape:check_health              # check for anomalies
 ```
 
 Additional source-specific tasks live under the `umb:`, `cuesco:`,

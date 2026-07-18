@@ -65,13 +65,7 @@ Zentraler CC-Scrape läuft über den `scrape:`-Namespace (Monitoring bevorzugt).
 
 | Task | Was | Wann/Hinweis |
 |---|---|---|
-| `scrape:daily_update_monitored` | Täglicher CC-Update **mit Monitoring** | **Empfohlener** Standard-Scrape; Cron-Ziel |
-| `scrape:daily_update` | Täglicher CC-Update (ohne Monitoring) | Fallback / manuell |
-| `scrape:optimized_daily_update` | Nur Änderungen seit letzter Synchronisation | schneller Inkrement-Scrape |
-| `scrape:scrape_clubs` / `scrape:scrape_clubs_optimized` | Vereine scrapen | |
-| `scrape:scrape_leagues_optimized` | Ligen scrapen (optimiert) | |
-| `scrape:scrape_tournaments_optimized` | Turniere scrapen (optimiert) | |
-| `scrape:update_seasons` | Saisons aktualisieren | bei Saison-Rollover |
+| `scrape:daily_update_monitored` | Täglicher CC-Update **mit Monitoring** + Change-Gate (Regionen/Locations/Clubs/Turniere/Ligen) | **Der** Standard-Scrape; Cron-Ziel. Ersetzt die früheren `daily_update`/`*_optimized`-Tasks |
 | `scrape:check_health` | Scraping-Gesundheit / Anomalien prüfen | erste Diagnose bei Verdacht |
 | `scrape:recent_errors` | Letzte Scraping-Errors zeigen | |
 | `scrape:stats[operation]` | Scraping-Statistiken | opt. `operation_name` |

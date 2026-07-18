@@ -55,13 +55,10 @@ rake scrape:check_health
 
 ## 🔄 Täglicher Betrieb
 
-### Ersetze alten Cron Job:
+### Cron Job:
 
 ```bash
-# ALT (ohne Monitoring):
-0 3 * * * cd /var/www/carambus && rake scrape:daily_update
-
-# NEU (mit Monitoring):
+# Standard-Scrape (mit Monitoring + Change-Gate):
 0 3 * * * cd /var/www/carambus && rake scrape:daily_update_monitored
 ```
 

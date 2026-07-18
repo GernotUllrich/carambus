@@ -591,12 +591,10 @@ Die wichtigsten Synchronisations-Einstiegspunkte sind Rake-Tasks (ausgeführt
 via cron / whenever):
 
 ```bash
-rake scrape:daily_update              # tägliche Region-/Club-/Turnier-/Liga-Sync
-rake scrape:daily_update_monitored    # überwachte Variante (cron @ 04:00 täglich)
-rake scrape:update_seasons
-rake scrape:scrape_clubs
-rake scrape:scrape_tournaments_optimized
-rake scrape:scrape_leagues_optimized
+rake scrape:daily_update_monitored    # täglicher Region-/Location-/Club-/Turnier-/Liga-Sync
+                                      # mit Monitoring + Change-Gate (cron @ 04:00 täglich)
+rake scrape:stats                     # Scraping-Statistiken der letzten 7 Tage
+rake scrape:check_health              # Anomalien prüfen
 ```
 
 Zusätzliche quellenspezifische Tasks liegen unter den Namespaces `umb:`,

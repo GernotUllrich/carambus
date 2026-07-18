@@ -108,16 +108,8 @@ Class methods:
 
 Incremental deduplication runs automatically as part of the public tournament
 scrape (`Season#scrape_single_tournaments_public_cc` →
-`Region#scrape_single_tournament_public`), which is invoked by the regular
-scraping tasks (e.g. `scrape:daily_update`).
-
-> **Note on `scrape:scrape_tournaments_optimized`:** A separate rake task
-> `scrape:scrape_tournaments_optimized` exists and calls
-> `Season#scrape_tournaments_optimized`, which in turn calls
-> `Region#scrape_tournaments_optimized(season, opts)`. **That Region method is
-> not currently defined**, so this task is not a working entry point for the
-> deduplication logic described above. The working dedup path is
-> `Region#scrape_single_tournament_public`.
+`Region#scrape_single_tournament_public`), which is invoked by the daily
+`scrape:daily_update_monitored` task.
 
 ### Manual Management
 

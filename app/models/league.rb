@@ -343,6 +343,8 @@ class League < ApplicationRecord
       table = leagues_doc.css("article table.silver")[1]
 
       if table.present?
+        cc_gate_deep = 0        # Change-Gate-Metrik (Phase 22): tief gescrapte Ligen
+        cc_gate_skipped = 0     # Change-Gate-Metrik: unveränderte, übersprungene Ligen
         table.css("tr").each do |tr|
           cc_id2s = []
           staffel_texts = []
@@ -416,11 +418,24 @@ class League < ApplicationRecord
             end
 
             if opts[:league_details]
-              # Collect all records from league details for batch tagging
-              league.scrape_single_league_from_cc(opts)
+              # Change-Gate (21-02, Ebene C): unveränderte Standings → teuren Deep-Scrape überspringen.
+              # Content aus dem BEREITS gefetchten staffel_doc (fetch-frei). Guard cc_season_available?
+              # lief bereits oben (VOR dem Gate). commit erst NACH erfolgreichem Deep (all-or-nothing) —
+              # eine Deep-Exception (siehe rescue der Methode) verhindert den commit → nächster Lauf prüft erneut.
+              content = cc_standings_content(staffel_doc)
+              if ScrapeFingerprint.deep?(league, "standings", content)
+                cc_gate_deep += 1
+                # Collect all records from league details for batch tagging
+                league.scrape_single_league_from_cc(opts)
+                ScrapeFingerprint.for(league, "standings").commit!(content)
+              else
+                cc_gate_skipped += 1
+              end
             end
           end
         end
+        Rails.logger.info "===== scrape ===== CC-Change-Gate #{region.shortname}: " \
+                          "deep=#{cc_gate_deep} skipped_unchanged=#{cc_gate_skipped}"
       end
     end
   rescue StandardError => e
@@ -430,177 +445,30 @@ class League < ApplicationRecord
 #{e} #{e.backtrace&.to_a&.join("/n")}"
   end
 
-  def self.scrape_leagues_optimized(region, season, opts = {})
-    Rails.logger.info "===== scrape ===== Starting optimized league scraping for region #{region.shortname}"
+  # Change-Gate-Content (21-02, Ebene C): normalisierte, ergebnistragende Zellen der HEIM/GAST-Spielplan-
+  # Tabelle des Staffel-Dokuments (Selektor-Muster wie League::ClubCloudScraper#parse_parties). Eine
+  # neue/geänderte Begegnung ändert eine Zeile → digest kippt → Deep-Scrape läuft. Leere/fehlende Tabelle
+  # → "" (führt zu stale → deep, kein Fehl-Skip). Deterministisch sortiert = fetch-freier, stabiler Hash-Input.
+  def self.cc_standings_content(staffel_doc)
+    return "" if staffel_doc.nil?
 
-    if region.shortname == "BBV"
-      # BBV uses a different scraping method, use the original for now
-      scrape_leagues_from_cc(region, season, opts)
-    else
-      # Rollover-Guard — siehe scrape_leagues_from_cc / Region#cc_season_available?
-      unless region.cc_season_available?(season)
-        Rails.logger.warn "===== scrape ===== League.scrape_leagues_optimized(#{region.shortname}): " \
-                          "Saison #{season.name} nicht im CC-Saison-Selektor — übersprungen (Rollover-Guard)"
-        return
-      end
-      url = region.public_cc_url_base
-      leagues_url = "#{url}sb_spielplan.php?eps=100000&s=#{season.name}"
-      Rails.logger.info "reading #{leagues_url} - region #{region.shortname} league tournaments season #{season.name}"
-      leagues_html = cc_http_get(leagues_url)
-      leagues_doc = Nokogiri::HTML(leagues_html)
-      table = leagues_doc.css("article table.silver")[1]
-
-      if table.present?
-        processed_leagues = 0
-        skipped_leagues = 0
-
-        table.css("tr").each do |tr|
-          cc_id2s = []
-          staffel_texts = []
-          next unless (a = tr.css("td a.cc_bluelink")).present?
-
-          link = a[0]["href"]
-          params = link.split("p=")[1].split(/[-|]/)
-          region_cc_id = params[0].to_i
-          season_name = params[2]
-          league_cc_id = params[3].to_i
-          next if region_cc_id != region.cc_id || season_name != season.name
-
-          title = a[0].text.strip
-          short = tr.css("td")[1].text.strip
-          n_staffel = tr.css("td")[2].text.strip.to_i
-          staffel_link = url + link
-
-          # Check if we need to scrape this league
-          league = League.find_by(cc_id: league_cc_id, organizer: region, season: season)
-
-          if league.present?
-            last_sync = league.sync_date || 1.year.ago
-            force_sync = opts[:force] || last_sync < 1.day.ago
-            has_unreported_party_games = league.parties.joins(:party_games).where(party_games: { result: nil }).exists?
-
-            if force_sync || has_unreported_party_games
-              Rails.logger.info "===== scrape ===== Syncing league #{league.name} (last sync: #{last_sync}, unreported party games: #{has_unreported_party_games})"
-              league.scrape_league_optimized(opts)
-              processed_leagues += 1
-            else
-              Rails.logger.info "===== scrape ===== Skipping league #{league.name} - last sync: #{last_sync}, no unreported party games"
-              skipped_leagues += 1
-            end
-          else
-            # New league, need to scrape it fully
-            Rails.logger.info "===== scrape ===== New league #{title}, scraping fully"
-            scrape_league_details(region, season, title, short, n_staffel, staffel_link, league_cc_id, opts)
-            processed_leagues += 1
-          end
-        end
-
-        Rails.logger.info "===== scrape ===== Region #{region.shortname}: Processed #{processed_leagues} leagues, skipped #{skipped_leagues} leagues"
+    tables = staffel_doc.css("aside > section > table")
+    table = tables.find do |t|
+      t.css("tr").any? do |tr|
+        hs = tr.css("th").map { |x| x.text.strip.downcase }
+        hs.include?("heim") && hs.include?("gast")
       end
     end
-  rescue StandardError => e
-    Rails.logger.info "====== problem with leagues in region #{region.name} - leagues_url: #{leagues_url} e93 \
-#{e} #{e.backtrace&.to_a&.join("/n")}"
-    raise StandardError, "====== problem with leagues in region #{region.name} - leagues_url: #{leagues_url} e93 \
-#{e} #{e.backtrace&.to_a&.join("/n")}"
+    return "" if table.nil?
+
+    table.css("tr").filter_map do |tr|
+      tds = tr.css("td").map { |td| td.text.strip.gsub(/\s+/, " ") }
+      next if tds.empty?
+
+      tds.join("|")
+    end.sort.join("\n")
   end
-
-  def self.scrape_league_details(region, season, title, short, n_staffel, staffel_link, league_cc_id, opts)
-    Rails.logger.info "reading #{staffel_link}"
-    staffel_html = cc_http_get(staffel_link)
-    staffel_doc = Nokogiri::HTML(staffel_html)
-    details_table = staffel_doc.css("aside > section > table")[0]
-    branch = nil
-    skip = false
-    details_table.css("tr").each do |trx|
-      if trx.css("td")[0].text == "Wettbewerb"
-        branch_str = trx.css("td")[1].text.split(":")[0].strip
-        branch = Branch.find_by_name(branch_str)
-      end
-      if trx.css("td")[0].text == "Quelle"
-        skip = true
-        break
-      end
-    end
-    return if skip
-
-    cc_id2s = []
-    staffel_texts = []
-    if n_staffel > 1
-      tabstrip_a = staffel_doc.css("aside > section > table.silver ul.tabstrip li a")
-      tabstrip_a.each do |ax|
-        cc_id2s << ax["href"].split("p=")[1].split(/[-|]/)[4].to_i
-        staffel_texts << ax.text.strip
-      end
-    end
-    cc_id2s = cc_id2s.presence || [nil]
-    cc_id2s.each_with_index do |cc_id2, ix|
-      # Primary lookup: Find by CC IDs (most specific and reliable)
-      attrs = { cc_id: league_cc_id, organizer: region, staffel_text: staffel_texts[ix], season: season,
-                cc_id2: cc_id2 }.compact
-      league = League.where(attrs).first
-
-      unless league.present?
-        # Secondary lookup: If not found by CC IDs, try by name and other attributes
-        attrs = { season: season, name: title, staffel_text: staffel_texts[ix],
-                  discipline: branch, organizer: region }.compact
-        league = League.where(attrs).first
-
-        # If still not found, create a new league
-        league ||= League.new(season: season, name: title, staffel_text: staffel_texts[ix], discipline: branch,
-                              organizer: region)
-      end
-
-      # Update league attributes - cc_id and cc_id2 are the primary identifiers
-      attrs = { shortname: short, cc_id: league_cc_id, cc_id2: cc_id2, discipline: branch,
-                staffel_text: staffel_texts[ix] }.compact
-      league.assign_attributes(attrs)
-      league.source_url = staffel_link
-      if league.changed?
-        league.region_id = region.id
-        league.save
-      end
-
-      if opts[:league_details]
-        # Collect all records from league details for batch tagging
-        league.scrape_single_league_from_cc(opts)
-      end
-    end
-  end
-
-  def scrape_league_optimized(opts = {})
-    # Check if we need to sync league teams (only if no party games have been reported)
-    # result is stored in party_games.data JSON, not a separate column
-    has_reported_party_games = parties.joins(:party_games).where("party_games.data IS NOT NULL AND party_games.data NOT IN ('null', '{}', '')").exists?
-
-    if !has_reported_party_games
-      Rails.logger.info "===== scrape ===== Syncing league teams for league #{name} (no reported party games)"
-      scrape_league_teams_optimized(opts)
-    else
-      Rails.logger.info "===== scrape ===== Skipping league teams for league #{name} (has reported party games)"
-    end
-
-    # Always check for new party games
-    scrape_party_games_optimized(opts)
-  end
-
-  def scrape_league_teams_optimized(opts = {})
-    # Only sync league teams if no party games have been reported
-    # result is stored in party_games.data JSON, not a separate column
-    return if parties.joins(:party_games).where("party_games.data IS NOT NULL AND party_games.data NOT IN ('null', '{}', '')").exists?
-
-    Rails.logger.info "===== scrape ===== Syncing league teams for league #{name}"
-    # This would call the existing league team scraping logic
-    # For now, we'll use the existing method
-    scrape_single_league_from_cc(opts.merge(league_details: true))
-  end
-
-  def scrape_party_games_optimized(opts = {})
-    Rails.logger.info "===== scrape ===== Checking for new party games in league #{name}"
-    # This would call the existing party game scraping logic
-    # For now, we'll use the existing method
-    scrape_single_league_from_cc(opts.merge(league_details: true))
-  end
+  private_class_method :cc_standings_content
 
   # scrape_single_league_from_cc
   def scrape_single_league_from_cc(opts = {})

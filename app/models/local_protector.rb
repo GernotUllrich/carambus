@@ -3,18 +3,22 @@ module LocalProtector
   included do
     attr_accessor :unprotected
 
-    # Configure PaperTrail - but don't ignore columns, instead skip versions when only timestamps change
+    # Configure PaperTrail - but don't ignore columns, instead skip versions when only timestamps change.
     # This ensures all columns are included in versions (needed for sync) but prevents
-    # unnecessary version records during scraping operations
+    # unnecessary version records during scraping operations.
+    #
+    # WICHTIG: Das Gate läuft über :unless (von PaperTrail#save_version? je Create/Update
+    # ausgewertet), NICHT über :skip — :skip/:ignore erwarten Spaltennamen und steuern nur die
+    # Serialisierung, kein bedingtes Versionieren. Ein Lambda an :skip ist wirkungslos.
     has_paper_trail(
-      skip: lambda { |obj|
+      unless: lambda { |obj|
         # Skip creating a version if only updated_at and/or sync_date changed
         return false unless obj.saved_changes.present?
-        
+
         changed_attrs = obj.saved_changes.keys.map(&:to_s)
         ignorable_attrs = ['updated_at']
         ignorable_attrs << 'sync_date' if obj.class.column_names.include?('sync_date')
-        
+
         # Only skip if ALL changes are ignorable (i.e., no substantive changes)
         (changed_attrs - ignorable_attrs).empty?
       }

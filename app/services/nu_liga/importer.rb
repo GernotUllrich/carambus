@@ -671,10 +671,10 @@ module NuLiga
         nuliga_leagues.select do |l|
           league = @leagues_by_group[l[:group_id]]
           next true unless league # neue Liga (noch nicht angelegt / dry-run) → immer deep
-          if ScrapeFingerprint.for(league, "standings").stale?(standings_content(l[:group_id], l[:branch]))
+          # Geteilter Change-Gate-Helfer (21-02): stale/neu → deep; unverändert → touch_checked! + skip.
+          if ScrapeFingerprint.deep?(league, "standings", standings_content(l[:group_id], l[:branch]), armed: @armed)
             true
           else
-            ScrapeFingerprint.for(league, "standings").touch_checked! if @armed
             @skipped_leagues += 1
             false
           end

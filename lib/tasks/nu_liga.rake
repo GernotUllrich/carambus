@@ -105,7 +105,7 @@ namespace :nu_liga do
   task daily_import: :environment do
     federation = ENV["FEDERATION"].presence || "BBV"
     region_id = (ENV["REGION_ID"] || 3).to_i
-    branches = ENV["BRANCHES"].present? ? ENV["BRANCHES"].split(",").map(&:strip) : %w[Pool Snooker]
+    branches = ENV["BRANCHES"].present? ? ENV["BRANCHES"].split(",").map(&:strip) : %w[Pool Snooker Karambol]
 
     season = NuLiga::Importer.current_nuliga_season(federation: federation, branch: branches.first)
     unless season
