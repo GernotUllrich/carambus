@@ -8,6 +8,8 @@
 #   rake scrape:stats[tournaments]
 #   rake scrape:check_health
 #   rake scrape:cleanup_logs[90]
+#
+# dummy change for auto-update testing
 
 namespace :scrape do
   desc "Daily Update mit Monitoring (empfohlen!)"
