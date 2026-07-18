@@ -143,7 +143,16 @@ class Location < ApplicationRecord
 
   def self.scrape_locations
     Region.where(shortname: Region::SHORTNAMES_CARAMBUS_USERS + Region::SHORTNAMES_OTHERS).all.each do |region|
-      region.scrape_locations
+      # Change-Gate (Phase 23, Ebene B — Merkle-„fast node"): Location-LISTE als billiger Knoten. Deep
+      # (pro-Location-Detailfetches) nur bei geänderter Liste; sonst Region überspringen. Listen-Fetch
+      # bleibt tägliche Grundkost. commit erst NACH Erfolg; leere/fehlerhafte Liste → stale → deep.
+      content = region.location_list_content
+      if ScrapeFingerprint.deep?(region, "locations", content)
+        region.scrape_locations
+        ScrapeFingerprint.for(region, "locations").commit!(content)
+      else
+        Rails.logger.info "===== scrape ===== Location-Gate #{region.shortname}: unverändert — übersprungen"
+      end
     end
   end
 

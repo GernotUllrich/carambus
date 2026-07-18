@@ -270,6 +270,17 @@ class Club < ApplicationRecord
     html_players = Net::HTTP.get(uri)
     doc_players = Nokogiri::HTML(html_players)
     if doc_players.present? && doc_players.css("aside table.silver")[1].present?
+      # Change-Gate (Phase 23, Roster): unveränderte Mitgliederliste → teure pro-Spieler-Deep-Fetches
+      # überspringen. Content aus der BEREITS gefetchten mitglieder-Seite (fetch-frei). Club-Stammdaten
+      # (oben, save!) werden immer aktualisiert; nur die Spieler-Lawine ist gegatet. commit erst NACH
+      # erfolgreichem Deep (all-or-nothing). Leere/fehlende Liste → stale → deep (kein Fehl-Skip).
+      roster_content = self.class.roster_content(doc_players)
+      roster_scope = "roster_#{season&.name}"
+      unless ScrapeFingerprint.deep?(self, roster_scope, roster_content) || opts[:force]
+        Rails.logger.info "===== scrape ===== Roster-Gate #{name}[#{id}] #{season&.name}: " \
+                          "unverändert — Spieler-Deep übersprungen"
+        return
+      end
       player_urls = doc_players.css("aside table.silver")[1].css("a.cc_bluelink")
       player_urls.each do |pl_url_cc|
         purl = pl_url_cc["href"]
@@ -357,9 +368,24 @@ class Club < ApplicationRecord
           end
         end
       end
+      # Deep erfolgreich → Roster-digest festschreiben (nächster Lauf überspringt bei gleichem Roster).
+      ScrapeFingerprint.for(self, roster_scope).commit!(roster_content)
     else
       Rails.logger.info "== scrape == No Players for club #{name} #{players_url}"
     end
+  end
+
+  # Change-Gate-Content (Phase 23, Roster): normalisierte Spielerzeilen der Mitgliederliste
+  # (mitglieder-Seite, aside table.silver[1]). Jeder Spielerlink (a.cc_bluelink) trägt Name + href
+  # (mit Spieler-cc_id) — ein neuer/entfernter Spieler ändert eine Zeile → digest kippt → Deep läuft.
+  # Deterministisch sortiert = stabiler, fetch-freier Hash-Input. Fehlende Tabelle/nil → "" (stale→deep).
+  def self.roster_content(doc_players)
+    return "" if doc_players.nil?
+
+    table = doc_players.css("aside table.silver")[1]
+    return "" if table.nil?
+
+    table.css("a.cc_bluelink").map { |a| "#{a.text.strip}|#{a["href"]}" }.sort.join("\n")
   end
 
   def scrape_club_optimized(season, ref = nil, url = nil, opts = {})

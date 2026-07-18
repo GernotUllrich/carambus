@@ -61,7 +61,9 @@ namespace :scrape do
       begin
         Rails.logger.info "##-##-##-##-##-## UPDATE TOURNAMENTS ##-##-##-##-##-##"
         count_before = Tournament.count
-        season.scrape_single_tournaments_public_cc(optimize_api_access: false)
+        # Phase 23: optimize_api_access=true → pro-Turnier-Skip (abgeschlossene überspringen) +
+        # Region-Listen-Gate (Merkle-fast-node) in scrape_single_tournament_public.
+        season.scrape_single_tournaments_public_cc(optimize_api_access: true)
         count_after = Tournament.count
         (count_after - count_before).times { m.record_created(Tournament.new) }
         m.track_method("Season.scrape_single_tournaments_public_cc")
