@@ -58,6 +58,65 @@ RELATIONS_SEED = [
            "allgemeineren Sicherungs-Primats: beide Konzepte sind nicht " \
            "gleichrangig, sondern follow_over_point ist ein konkreter " \
            "Anwendungsfall."
+  },
+
+  # Conti-Tetra: parallels zwischen den vier Werkzeugen ----------------
+  #
+  # Anmerkung zur Relation-Wahl: 'parallels' wird hier als "verwandt im
+  # pädagogischen Korpus" genutzt — die einzige Relation im Enum, die für
+  # "gehört zur selben Werkzeug-Familie" passt. Semantisch sauberer wären
+  # 'risk_of' und 'is_inverse_of', die es noch nicht gibt (Schema-Arbeit,
+  # siehe Out-of-Scope im Handoff 2026-05-12).
+  {
+    source: "the_dam", target: "austauschen", relation: "parallels",
+    notes: "Sperre und Austauschen sind verwandte Werkzeuge der " \
+           "Conti-Tetra; Austauschen ist die strenge Linien-Spiel-" \
+           "Variante mit B1-Re-Hit-Erfordernis, Sperre die " \
+           "allgemeinere Form (B2/B3-Brille, Re-Hit anzustreben " \
+           "aber nicht zwingend)."
+  },
+  {
+    source: "the_dam", target: "auffangen", relation: "parallels",
+    notes: "Sperre und Auffangen sind beide defensive Stellungs-" \
+           "werkzeuge der Conti-Tetra; Auffangen agiert zeitlich " \
+           "früher (Ball noch in Bewegung), Sperre baut die " \
+           "End-Konstellation."
+  },
+  {
+    source: "auffangen", target: "gather_shot", relation: "parallels",
+    notes: "Auffangen und Holen sind beide korrektive Werkzeuge " \
+           "der Conti-Tetra für Bälle, die aus der Stellung laufen; " \
+           "Auffangen wirkt früher (Ball in Bewegung abfangen), " \
+           "Holen später (entlaufenen Ball über Bande(n) zurück)."
+  },
+
+  # Dominanz-Verlust als Risiko der Stellungs-Werkzeuge -----------------
+  {
+    source: "the_dam", target: "dominanz_verlust", relation: "parallels",
+    notes: "Misslungene Sperre mündet typisch im Dominanz-Verlust " \
+           "(Mapping-Doc §2.2 Rang 5): B1 läuft in den Rücken. " \
+           "Bessere Relation wäre 'risk_of', aber das ist noch nicht " \
+           "im Enum (siehe Out-of-Scope)."
+  },
+  {
+    source: "austauschen", target: "dominanz_verlust", relation: "parallels",
+    notes: "Misslungener Austausch (B2 trifft B1 nicht oder zu " \
+           "schwach) → Dominanz-Verlust. 'parallels' ist Notbehelf " \
+           "bis 'risk_of'-Relation existiert."
+  },
+  {
+    source: "dominance", target: "dominanz_verlust", relation: "parallels",
+    notes: "Dominanz und Dominanz-Verlust sind das positive und " \
+           "negative Konzept derselben Achse. 'is_inverse_of' wäre " \
+           "die saubere Relation, fehlt aktuell im Enum."
+  },
+
+  # Austauschen wird in Linienserien angewandt -------------------------
+  {
+    source: "line_series", target: "austauschen", relation: "applies",
+    notes: "Linienserie wendet Austauschen als Schlüsselwerkzeug " \
+           "an: B2 schließt nach Bandenreise mit B1-Re-Hit auf der " \
+           "Linie, B2/B3 in Brille."
   }
 ].freeze
 

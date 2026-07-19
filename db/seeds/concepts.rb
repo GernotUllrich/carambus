@@ -229,6 +229,83 @@ CONCEPTS_SEED = [
                       "Operationalisiert das abstrakte " \
                       "follow_over_point-Prinzip.",
     importance_order: 12
+  },
+
+  # --- Conti-Tetra: die vier Stellungs-Werkzeuge --------------------
+  #
+  # Conti-Buch-TOC führt vier Werkzeuge: Holen (= gather_shot),
+  # Auffangen, Sperren (= the_dam) und Austauschen. Auffangen und
+  # Austauschen fehlten bisher im Katalog.
+  # Quelle: TRAINING_SOURCES/mapping/2026-05-12_holen_auffangen_sperren_bm_to_ontology.md
+
+  {
+    key: "auffangen",
+    title: "Auffangen",
+    kind: "strategic_maxim",
+    axis: "conception",
+    short_description: "Bewegten Ball mit dem Spielball abfangen, " \
+                       "bevor er die Stellung verlässt.",
+    full_description: "Drittes Werkzeug der Conti-Tetra (Holen, " \
+                      "Auffangen, Sperren, Austauschen). Während " \
+                      "Holen einen bereits entlaufenen Ball über " \
+                      "Bande(n) zurückbringt, fängt das Auffangen " \
+                      "einen Ball ab, der gerade erst in Bewegung " \
+                      "gerät, bevor er aus der aktiven Stellung " \
+                      "läuft. Conti: 'capture'. Gretillat hat dafür " \
+                      "keine 1:1-Übersetzung — Lücke im englisch-" \
+                      "französischen Vokabular dokumentiert.",
+    gretillat_ref: nil, # Gretillat hat kein 1:1-Wort
+    importance_order: 13
+  },
+  {
+    key: "austauschen",
+    title: "Austauschen",
+    kind: "strategic_maxim",
+    axis: "conception",
+    short_description: "Werkzeug der Amerika- und Cadre-Linien-" \
+                       "Serien: B2 trifft B1 zuerst zurück → " \
+                       "Positions-Tausch.",
+    full_description: "Viertes Werkzeug der Conti-Tetra (neben " \
+                      "Holen, Auffangen, Sperren). Disziplin-Scope: " \
+                      "primär Amerika-Serie (Freie Partie) und " \
+                      "Cadre-Linien-Serien (47/2, 71/2) — Disziplinen " \
+                      "mit fixer Linien-Wiederholung. Mechanik: der " \
+                      "zurücklaufende B2 trifft B1 zuerst erneut, " \
+                      "und damit wird die Position von B1 mit der " \
+                      "von B2 ausgetauscht. Ziel ist das Schließen " \
+                      "von B2/B3 auf der Linie. Gernots Definition " \
+                      "kanonisch (2026-05-12): 'Beim Austausch kommt " \
+                      "B2 zurück, trifft B1 erneut.' Auf Stoß-Ebene " \
+                      "korrespondiert dazu das ShotEvent " \
+                      "`austausch`. Disziplin-Scope sollte als " \
+                      "echte belongs_to_discipline-Relation modelliert " \
+                      "werden, sobald das Schema das unterstützt — " \
+                      "bis dahin prosabasiert hier dokumentiert.",
+    gretillat_ref: nil,
+    importance_order: 14
+  },
+  {
+    key: "dominanz_verlust",
+    title: "Dominanz-Verlust",
+    kind: "strategic_maxim",
+    axis: "conception",
+    short_description: "Anti-Pattern: B1 läuft in den Rücken, " \
+                       "Dominante über B2/B3 verloren.",
+    full_description: "Negativ-Lehre aus der Qualitäts-Hierarchie " \
+                      "der End-Konstellationen (Mapping-Doc 2026-" \
+                      "05-12, §2.2 Rang 5): Schlimmstes Resultat " \
+                      "eines Stellungs-Versuchs (Sperre, Austausch). " \
+                      "B1 läuft nach dem Stoß in den 'Rücken' " \
+                      "(hinter B2/B3 aus Sicht der Folgespielrichtung) " \
+                      "und verliert damit die Dominanz im Sinne von " \
+                      "ONTOLOGY §dominance / TrainingConcept " \
+                      "`dominance`. Folge: kein Folgespiel möglich, " \
+                      "Serie reißt ab. Pädagogisch: hilft beim " \
+                      "Klassifizieren misslungener Stöße in " \
+                      "Shot.notes oder als Anker für Risk-Factor-" \
+                      "Analysis (Gretillat).",
+    gretillat_ref: nil,
+    importance_order: 15
   }
 ].freeze
 
