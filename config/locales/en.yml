@@ -81,6 +81,23 @@ en:
         party: Spieltag
         reset_party_monitor: Spieltag-Monitor komplett zurücksetzen
         state: Status
+      shot_event:
+        ball_involved:
+          b1: Cue ball (B1)
+          b2: Object ball (B2)
+          b3: Ball 3
+        cushion_involved:
+          long_far: long cushion far
+          long_near: long cushion near
+          short_left: short cushion left
+          short_right: short cushion right
+        event_type:
+          austausch: Position exchange (B1↔B2)
+          cushion_contact: Cushion contact
+          final_carambolage: Carom (B3 hit)
+          initial_contact: Initial contact B1↔B2
+          near_miss: Near miss
+          sperre: Barrage state (B2/B3 close)
       tournament:
         accredation_end: 'Register until:'
         age_restriction: Access restrictions

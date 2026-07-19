@@ -81,6 +81,23 @@ de:
         party: Spieltag
         reset_party_monitor: Spieltag-Monitor komplett zurücksetzen
         state: Status
+      shot_event:
+        ball_involved:
+          b1: Spielball (B1)
+          b2: Anspielball (B2)
+          b3: Ball 3
+        cushion_involved:
+          long_far: lange Bande fern
+          long_near: lange Bande nah
+          short_left: kurze Bande links
+          short_right: kurze Bande rechts
+        event_type:
+          austausch: Austausch (B1↔B2)
+          cushion_contact: Bandenkontakt
+          final_carambolage: Carambolage (Treffer B3)
+          initial_contact: Initialkontakt B1↔B2
+          near_miss: Knapp verfehlt
+          sperre: Sperre (Brille B2/B3)
       tournament:
         accredation_end: Registrierung bis
         age_restriction: Zugangs-beschränkungen
