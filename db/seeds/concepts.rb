@@ -68,16 +68,27 @@ CONCEPTS_SEED = [
 
   {
     key: "the_dam",
-    title: "Der Damm",
+    title: "Sperre / Damm",
     kind: "strategic_maxim",
     axis: "conception",
-    short_description: "Reserve-Sicherheitsmarge.",
-    full_description: "Gretillats Sicherheitsreserve: lieber einen Punkt " \
-                      "liegen lassen als die aufgebaute Position aufgeben. " \
-                      "'Le barrage' — defensive Grenze, die nicht " \
-                      "überschritten wird, auch wenn der direkte Punkt " \
-                      "lockt.",
-    gretillat_ref: "book 1 Part 2 Conception, S. 282",
+    short_description: "Wand aus Spielball und Ball 3, die den " \
+                       "zurückkehrenden Ball 2 am Passieren hindert.",
+    full_description: "Gretillat (book 1, S. 282-284): Platzierung des " \
+                      "Spielballs am Ball 3, um die Rückkehr von Ball 2 " \
+                      "aufzunehmen. Ball 1 und Ball 3 bilden eine Wand, " \
+                      "die Ball 2 am Durchlaufen hindert. Gretillat " \
+                      "beschränkt den Begriff ausdrücklich auf " \
+                      "Sammelstoß-Kontexte. Voraussetzung ist " \
+                      "Energie-Kontrolle: B1 muss B3 sanft berühren, um " \
+                      "daneben liegen zu bleiben. Deckt sich mit der " \
+                      "karambolage-deutschen Tradition (BM-Glossar: " \
+                      "Sperre/Damm = Wand aus Spielball und Ball 3).",
+    # Korrektur 2026-07-19: Der frühere Text las 'le barrage' als
+    # Risiko-Maxime ("lieber einen Punkt liegen lassen"). Verifikation am
+    # Original (Task 5 des Handoffs 2026-05-12) ergab Variante (A):
+    # Gretillat meint die strukturelle Wand. BM-Glossar und Gretillat
+    # stimmen überein — ein separates Concept `sperre_wall` entfällt damit.
+    gretillat_ref: "book 1 Part 2 Conception, S. 282-284",
     importance_order: 4
   },
   {
