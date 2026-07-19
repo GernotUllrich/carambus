@@ -255,6 +255,52 @@ or (regions.address ilike :search)",
   }.freeze
 
   # scrape_locations
+  # Change-Gate-Content (Phase 23, Ebene B): normalisierte Zeilen der Location-LISTE (alle Seiten,
+  # OHNE die teuren pro-Location-Detailfetches). Name/Adresse/Link je Location — eine neue/entfernte/
+  # umbenannte Location oder geänderte Listen-Adresse ändert eine Zeile → digest kippt → Deep. Spiegelt
+  # das Listen-Parsing von #scrape_locations (fetch-frei bzgl. Detailseiten). Fehler/leer → "" (stale →
+  # deep, kein Fehl-Skip). NB: reine Detailseiten-Änderungen (z.B. Vereins-Verknüpfung) sind hier nicht
+  # sichtbar — bewusste Rest-Lücke, analog zum Roster-Gate.
+  def location_list_content
+    base_url = public_cc_url_base
+    return "" if base_url.blank? || region_cc.blank?
+
+    first_doc = Nokogiri::HTML(Net::HTTP.get(URI(base_url + "location.php?p=#{region_cc.cc_id}|||||||1")))
+    table = first_doc.css("article > section > table")[1]
+    return "" if table.nil?
+
+    no_pages = table.css("tr table tr td")[1].text.gsub(/[  ]*/, "").match(/Seite(\d+)von(\d+)/).andand[2].to_i
+    rows = []
+    (1..[no_pages, 1].max).each do |p_no|
+      page_doc = p_no == 1 ? first_doc : Nokogiri::HTML(Net::HTTP.get(URI(base_url + "location.php?p=#{region_cc.cc_id}|||||||#{p_no}")))
+      page_table = page_doc.css("article > section > table")[1]
+      next if page_table.nil?
+
+      page_table.css("tr").each do |tr|
+        next if tr.css("th").count.positive?
+        break if tr.css("td > table").count.positive?
+
+        row = self.class.location_row_content(tr)
+        rows << row if row
+      end
+    end
+    rows.sort.join("\n")
+  rescue StandardError => e
+    Rails.logger.info "===== scrape ===== Location-Gate content error #{shortname}: #{e}"
+    ""
+  end
+
+  # Change-Signal einer einzelnen Location-Listen-Zeile: normalisierte Zellen + Detail-Link (trägt
+  # cc_id). Ohne Link (Kopf-/Footer-Zeile) → nil. Name/Adresse-Änderung oder neue Location → anderer
+  # String → digest kippt. Rein (doc-Zeile → String), unit-testbar.
+  def self.location_row_content(tr)
+    a = tr.css("td a")[0]
+    return nil if a.nil?
+
+    tds = tr.css("td").map { |td| td.text.strip.gsub(/\s+/, " ") }
+    "#{tds.join("|")}|#{a["href"]}"
+  end
+
   def scrape_locations
     base_url = public_cc_url_base
     url = "location.php?p=#{region_cc.cc_id}|||||||1"
@@ -559,6 +605,22 @@ image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9"
                                           .joins("left outer join games on games.tournament_id = tournaments.id")
                                           .where(tournaments: { organizer_id: 1, organizer_type: "Region" })
                                           .where(games: { id: nil }).uniq.map(&:cc_id)
+
+    # Change-Gate (Phase 23, Ebene B — Merkle-„fast node"): die Turnier-LISTE ist der billige Knoten,
+    # der verrät, ob sich der Turnier-Teilbaum der Region geändert hat. Deep nur wenn (a) die Liste
+    # kippt (neues/geändertes Turnier) ODER (b) die Region offene (ergebnislose) Turniere hat — deren
+    # Ergebnisse liegen NICHT in der Liste, nur auf der Detailseite (Befund A). Sonst wird die ganze
+    # Region übersprungen. commit erst NACH erfolgreichem Deep. optimize_api_access überspringt
+    # zusätzlich abgeschlossene Turniere pro Zeile (siehe unten).
+    list_content = self.class.tournament_list_content(einzel_doc)
+    list_scope = "tournaments_#{season.name}"
+    has_open = Tournament.where(season: season, organizer: self).left_joins(:games)
+                         .where(games: { id: nil }).exists?
+    unless ScrapeFingerprint.deep?(self, list_scope, list_content) || has_open || opts[:force]
+      Rails.logger.info "===== scrape ===== CC-Change-Gate Tournaments #{shortname} #{season.name}: " \
+                        "deep=0 skipped_unchanged=1 (Liste unverändert, keine offenen Turniere)"
+      return
+    end
     einzel_doc.css("article table.silver").andand[1].andand.css("tr").to_a[2..].to_a.each do |tr|
       lfnr = tr.css("td")[0].text.to_i
 
@@ -647,8 +709,32 @@ image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9"
     rescue StandardError => e
       Rails.logger.info "!!!!!!!!! Error #{e} tournament[#{tournament.andand.id}]#{e.backtrace&.join("\n")}"
     end
+    # Deep erfolgreich → Turnier-Listen-digest festschreiben (nächster Lauf überspringt bei gleicher
+    # Liste, sofern keine offenen Turniere).
+    ScrapeFingerprint.for(self, list_scope).commit!(list_content)
+    Rails.logger.info "===== scrape ===== CC-Change-Gate Tournaments #{shortname} #{season.name}: " \
+                      "deep=1 skipped_unchanged=0"
   rescue StandardError => e
     Rails.logger.info "!!!!!!!!! Error #{e} tournament[#{tournament.andand.id}]#{e.backtrace&.join("\n")}"
+  end
+
+  # Change-Gate-Content (Phase 23, Ebene B): normalisierte Zeilen der Turnier-Liste (article
+  # table.silver[1]) inkl. Detail-Link (trägt cc_id). Ein neues/geändertes Turnier ändert eine Zeile
+  # → digest kippt → Deep. Deterministisch sortiert = stabiler, fetch-freier Hash-Input. Fehlende
+  # Tabelle/nil → "" (stale → deep, kein Fehl-Skip).
+  def self.tournament_list_content(einzel_doc)
+    return "" if einzel_doc.nil?
+
+    table = einzel_doc.css("article table.silver").andand[1]
+    return "" if table.nil?
+
+    table.css("tr").to_a[2..].to_a.filter_map do |tr|
+      tds = tr.css("td").map { |td| td.text.strip.gsub(/\s+/, " ") }
+      next if tds.empty?
+
+      link = tr.css("a")[0].andand["href"].to_s
+      "#{tds.join("|")}|#{link}"
+    end.sort.join("\n")
   end
 
   def self.scrape_regions_cc(season)
@@ -717,6 +803,7 @@ image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9"
           doc_clubs = Nokogiri::HTML(html_clubs)
           clubs_table = doc_clubs.css("article table.silver")[1]
           clubs = clubs_table.css("a")
+          gate_stats = { deep: 0, skipped: 0 }
           clubs.each do |club_a|
             # if shortname == "DBU"
             ref = club_a.attributes["href"].value
@@ -784,8 +871,10 @@ image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9"
               club.save!
             end
 
-            club.scrape_club(season, ref, url, opts.merge(called_from_portal: shortname == "DBU"))
+            club.scrape_club(season, ref, url, opts.merge(called_from_portal: shortname == "DBU", gate_stats: gate_stats))
           end
+          Rails.logger.info "===== scrape ===== CC-Change-Gate Clubs #{shortname}: " \
+                            "deep=#{gate_stats[:deep]} skipped_unchanged=#{gate_stats[:skipped]}"
         else
           Rails.logger.info "===== scrape ===== clubs_url: #{clubs_url} No ClubCloud Url for Region #{name}(#{shortname})"
         end

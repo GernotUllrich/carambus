@@ -55,7 +55,7 @@ class StaticController < ApplicationController
     end
 
     # Security: Only allow updates from local network
-    if remote_request? && !current_user.admin?
+    if remote_request? && !current_user&.admin?
       redirect_to repo_version_path, alert: "Update is only available from local network (request from: #{request.remote_ip})"
       return
     end

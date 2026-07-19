@@ -4,10 +4,10 @@
 
 ## 🎯 Übersicht
 
-Die `scrape:daily_update` Task zeigt alle Scraping-Operationen:
+Die `scrape:daily_update_monitored` Task zeigt alle Scraping-Operationen:
 
 ```ruby
-# lib/tasks/scrape.rake - daily_update
+# lib/tasks/scrape_monitored.rake - daily_update_monitored
 1. Season.update_seasons
 2. Region.scrape_regions
 3. Location.scrape_locations  
