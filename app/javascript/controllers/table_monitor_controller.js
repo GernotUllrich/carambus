@@ -76,6 +76,25 @@ export default class extends ApplicationController {
     this.stimulate('TableMonitor#foul')
   }
 
+  /* Pool 14.1 endlos: Ball-Eingabezeile (Restbälle + Foul-Bälle).
+     Element mit uebergeben — die Reflexe lesen ball_no bzw. id aus dem dataset. */
+
+  balls_left () {
+    const ballNo = this.element.dataset.ballNo
+    console.log(`TableMonitor balls_left called with ball_no=${ballNo}`)
+    this.stimulate('TableMonitor#balls_left', this.element)
+  }
+
+  foul_one () {
+    console.log('TableMonitor foul_one called')
+    this.stimulate('TableMonitor#foul_one', this.element)
+  }
+
+  foul_two () {
+    console.log('TableMonitor foul_two called')
+    this.stimulate('TableMonitor#foul_two', this.element)
+  }
+
   concede_snooker_frame () {
     console.log('TableMonitor concede_snooker_frame called')
     if (confirm('Möchten Sie das Frame wirklich aufgeben? Der Gegner gewinnt.')) {
