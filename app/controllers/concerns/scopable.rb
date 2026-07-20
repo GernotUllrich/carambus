@@ -38,7 +38,7 @@ module Scopable
                   :current_region_shortname, :current_season_name, :current_branch_name,
                   :scope_indicator_label, :scope_indicator_primary, :scope_indicator_extra,
                   :region_focus_active?, :region_focus_shortname, :without_region_focus_path,
-                  :drill_focus_active?, :drill_focus_crumbs
+                  :drill_focus_active?, :drill_focus_crumbs, :scope_band_form_path
   end
 
   private
@@ -173,6 +173,25 @@ module Scopable
   # Aktueller Pfad OHNE region_focus (fuer den "Fokus verlassen"-Link im Scope-Band).
   def without_region_focus_path
     url_for(request.query_parameters.except("region_focus").merge(only_path: true))
+  end
+
+  # --- Ziel des Scope-Band-Formulars -------------------------------------------------------
+  # Auf Listen (Collection) bleibt eine Ausschnitt-Aenderung auf der Seite. Auf Detail-Ansichten
+  # (Member, params[:id]) fuehrt sie zurueck auf die Liste DIESES Modells im NEUEN Ausschnitt.
+  #
+  # Grund: Current.scope filtert ausschliesslich Listen (SearchService). Eine Detailseite rendert
+  # den Record aus :id und ignoriert den Ausschnitt — das Band aenderte also still session[:scope]
+  # (inkl. persistenter User-Preference), waehrend die Anzeige unveraendert dem alten Ausschnitt
+  # entsprach. Ergebnis war ein widerspruechlicher Zustand ("Pool" im Band, Karambol-Liga im Inhalt).
+  #
+  # Ohne Index-Route (z.B. nur :show) bleiben wir auf dem aktuellen Pfad — dann greift das alte
+  # Verhalten, aber immerhin ohne Route-Fehler.
+  def scope_band_form_path
+    return request.path if params[:id].blank?
+
+    url_for(action: :index, id: nil, only_path: true)
+  rescue ActionController::UrlGenerationError, ActionController::RoutingError
+    request.path
   end
 
   # Gemeinsame Ableitung (Session + User) — dieselbe Einheit nutzt auch SearchReflex (Live-Suche),
