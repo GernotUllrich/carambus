@@ -4768,12 +4768,10 @@ nicht über eine eingehende REST-API.</p>
 <h3 id="geplante-sync-tasks">Geplante Sync-Tasks<a class="headerlink" href="#geplante-sync-tasks" title="Permanent link">&para;</a></h3>
 <p>Die wichtigsten Synchronisations-Einstiegspunkte sind Rake-Tasks (ausgeführt
 via cron / whenever):</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-38-1" name="__codelineno-38-1" href="#__codelineno-38-1"></a>rake<span class="w"> </span>scrape:daily_update<span class="w">              </span><span class="c1"># tägliche Region-/Club-/Turnier-/Liga-Sync</span>
-<a id="__codelineno-38-2" name="__codelineno-38-2" href="#__codelineno-38-2"></a>rake<span class="w"> </span>scrape:daily_update_monitored<span class="w">    </span><span class="c1"># überwachte Variante (cron @ 04:00 täglich)</span>
-<a id="__codelineno-38-3" name="__codelineno-38-3" href="#__codelineno-38-3"></a>rake<span class="w"> </span>scrape:update_seasons
-<a id="__codelineno-38-4" name="__codelineno-38-4" href="#__codelineno-38-4"></a>rake<span class="w"> </span>scrape:scrape_clubs
-<a id="__codelineno-38-5" name="__codelineno-38-5" href="#__codelineno-38-5"></a>rake<span class="w"> </span>scrape:scrape_tournaments_optimized
-<a id="__codelineno-38-6" name="__codelineno-38-6" href="#__codelineno-38-6"></a>rake<span class="w"> </span>scrape:scrape_leagues_optimized
+<div class="highlight"><pre><span></span><code><a id="__codelineno-38-1" name="__codelineno-38-1" href="#__codelineno-38-1"></a>rake<span class="w"> </span>scrape:daily_update_monitored<span class="w">    </span><span class="c1"># täglicher Region-/Location-/Club-/Turnier-/Liga-Sync</span>
+<a id="__codelineno-38-2" name="__codelineno-38-2" href="#__codelineno-38-2"></a><span class="w">                                      </span><span class="c1"># mit Monitoring + Change-Gate (cron @ 04:00 täglich)</span>
+<a id="__codelineno-38-3" name="__codelineno-38-3" href="#__codelineno-38-3"></a>rake<span class="w"> </span>scrape:stats<span class="w">                     </span><span class="c1"># Scraping-Statistiken der letzten 7 Tage</span>
+<a id="__codelineno-38-4" name="__codelineno-38-4" href="#__codelineno-38-4"></a>rake<span class="w"> </span>scrape:check_health<span class="w">              </span><span class="c1"># Anomalien prüfen</span>
 </code></pre></div>
 <p>Zusätzliche quellenspezifische Tasks liegen unter den Namespaces <code>umb:</code>,
 <code>cuesco:</code>, <code>youtube:</code> und <code>international:</code> (z. B.

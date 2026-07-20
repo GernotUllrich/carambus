@@ -98,7 +98,6 @@ Vollständige Regeln, Flatui→Token-Mapping und der Migrations-Workflow:
 **[`docs/ui-conventions.md`](docs/ui-conventions.md)**. Die Wache
 `rake ui:no_hardcoded_hex` (pre-commit + CI) blockiert neue Verstöße.
 
-<!-- GSD:project-start source:PROJECT.md -->
 ## Project
 
 **Carambus API — Model Refactoring & Test Coverage**
@@ -114,9 +113,7 @@ A focused refactoring effort to break the god-object model `TableMonitor` into s
 - **Behavior preservation**: All existing functionality must continue to work identically
 - **Incremental**: Each extraction must be independently deployable
 - **Test-first**: Characterization tests before any refactoring
-<!-- GSD:project-end -->
 
-<!-- GSD:stack-start source:codebase/STACK.md -->
 ## Technology Stack
 
 ## Languages
@@ -246,9 +243,7 @@ A focused refactoring effort to break the god-object model `TableMonitor` into s
 - **Background Jobs**: Async queue adapter in development; Sidekiq available for production
 - **Session Storage**: Redis-based with fallback handling on Redis failures
 - **Email**: Gmail SMTP in production; letter_opener_web for development preview
-<!-- GSD:stack-end -->
 
-<!-- GSD:conventions-start source:CONVENTIONS.md -->
 ## Conventions
 
 ## Naming Patterns
@@ -343,9 +338,7 @@ A focused refactoring effort to break the god-object model `TableMonitor` into s
 - All services inherit from `ApplicationService`
 - Single public method: `def call`
 - Invoked via: `ServiceName.call(params_hash)` or `ServiceName.new(params).call`
-<!-- GSD:conventions-end -->
 
-<!-- GSD:architecture-start source:ARCHITECTURE.md -->
 ## Architecture
 
 ## Pattern Overview
@@ -441,9 +434,7 @@ A focused refactoring effort to break the god-object model `TableMonitor` into s
 - `ErrorsController` (app/controllers/errors_controller.rb) handles 404/500
 - Routes configured: `config.exceptions_app = routes`
 ## Cross-Cutting Concerns
-<!-- GSD:architecture-end -->
 
-<!-- GSD:skills-start source:skills/ -->
 ## Project Skills
 
 | Skill | Description | Path |
@@ -451,23 +442,21 @@ A focused refactoring effort to break the god-object model `TableMonitor` into s
 | scenario-management | Manages multi-tenant deployment workflow for Carambus project with multiple git checkouts. Use when working with carambus_master, carambus_bcw, carambus_phat, or carambus_api directories, when modifying code, committing changes, or when user mentions scenarios, deployments, or debugging mode. | `.agents/skills/scenario-management/SKILL.md` |
 | extend-before-build | When adding a feature/addon to an existing codebase, prefer extending existing structures (legacy paths, predicates, lifecycles) with small guards over building parallel state machines. Refactoring for quality can come later. Use whenever introducing discipline-specific behavior, scoring rules, multiset variants, or any feature that overlaps with the legacy karambol path. | `.agents/skills/extend-before-build/SKILL.md` |
 | hex-to-token-migration | Migrates hardcoded color hex (`#rgb`/`#rrggbb`), `<style>` blocks and inline `style="…color…"` in UI code to Tailwind design-token utilities with class-based dark mode. Use when migrating an admin/UI view or CSS file off hardcoded colors, or when `rake ui:no_hardcoded_hex` flags a new violation. | `.agents/skills/hex-to-token-migration/SKILL.md` |
-<!-- GSD:skills-end -->
 
-<!-- GSD:workflow-start source:GSD defaults -->
 ## Workflow (Paul-first)
 
-Prefer the lightweight **Paul** framework (`/paul:*`) or direct interactive work. GSD's multi-agent orchestration (`/gsd:plan-phase`, `/gsd:execute-phase` with researcher/planner/checker/executor subagents) proved painfully slow for this repo's operational work and is now **opt-in only** — use it only when the user explicitly asks for it.
+Use the lightweight **Paul** framework (`/paul:*`) or direct interactive work.
+
+Das GSD-Framework wurde am 2026-07-20 **entfernt** (`.planning/`, `.claude/get-shit-done`,
+`gsd-*`-Agents/Hooks/Commands). Seine Multi-Agent-Orchestrierung war für die operative Arbeit
+in diesem Repo zu langsam. Archivierte Planungsartefakte: `docs/archive/2026-07-planning/`.
 
 - Operational / investigative / data / prod-ops work (debugging, sync reconciliation, migrations): work **directly and interactively** — no planning ceremony, no subagent orchestration.
 - Feature work that benefits from structure: `/paul:discuss` → `/paul:plan` → `/paul:apply` → `/paul:verify`.
-- Direct `Edit`/`Write` is fine — you do **not** need to route changes through a GSD command first.
+- Direct `Edit`/`Write` is fine — no need to route changes through a planning command first.
 
-Do not spin up GSD (or heavy Paul subagent) orchestration unless the user explicitly requests that scale.
-<!-- GSD:workflow-end -->
+Do not spin up heavy subagent orchestration unless the user explicitly requests that scale.
 
-<!-- GSD:profile-start -->
 ## Developer Profile
 
-> Profile not yet configured. Run `/gsd-profile-user` to generate your developer profile.
-> This section is managed by `generate-claude-profile` -- do not edit manually.
-<!-- GSD:profile-end -->
+> Not configured. (Wurde früher von GSD's `/gsd-profile-user` generiert — Framework entfernt.)
