@@ -9,11 +9,9 @@ class RankingsController < ApplicationController
     @region = Region.find(params[:id])
     @current_season = Season.current_season
 
-    # Get the last 3 seasons in reverse chronological order
-    @seasons = Season.where('id <= ?', @current_season.id)
-                    .order(id: :desc)
-                    .limit(3)
-                    .reverse
+    # Die letzten 3 Saisons, chronologisch aufsteigend. Recency ueber den Saison-NAMEN
+    # (id/ba_id sind durch internationales Scrapen verrutscht).
+    @seasons = Season.recent_valid(3, up_to: @current_season)
 
     # 1. Aggregate discipline counts for games with a valid data["Disziplin"]
     counts_with_data = Game.joins(tournament: :discipline)

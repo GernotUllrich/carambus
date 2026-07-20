@@ -134,7 +134,8 @@
     <div class="max-w-5xl mx-auto mt-6 bg-surface-card dark:bg-gray-800 rounded-card border border-gray-200 dark:border-gray-700 p-6 text-gray-900 dark:text-gray-100">
       <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
         <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100"><%= t('home.index.season') %> <%= season.name %></h2>
-        <%- if season.id >= Season.current_season.id %>
+        <%# Vergleich über den Saison-NAMEN (id ist durch internationales Scrapen verrutscht). %>
+        <%- if season.name >= Season.current_season&.name.to_s %>
           <%= button_to t('club.new_club_tournament'), new_club_tournament_club_path(@club, tournament: { season_id: season.id }), disabled: !current_user&.admin?, data: { turbo: false }, class: "btn btn-flat btn-primary shrink-0" %>
         <%- end -%>
       </div>

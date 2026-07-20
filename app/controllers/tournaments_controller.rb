@@ -110,12 +110,13 @@ class TournamentsController < ApplicationController
         if @tournament.handicap_tournier
           hash[seeding] = -seeding.balls_goal.to_i
         else
-          diff = Season.current_season&.name == "2021/2022" ? 2 : 1
+          # Vorsaison name-basiert (Season#previous). Der frühere ba_id-Versatz inkl.
+          # "2021/2022 ? 2 : 1"-Hack kompensierte eine ba_id-Lücke und ist damit hinfällig.
           hash[seeding] = if @tournament.team_size > 1
                             999
                           else
                             seeding.player.player_rankings.where(discipline_id: Discipline.find_by_name("Freie Partie klein"),
-                                                                 season_id: Season.find_by_ba_id(Season.current_season&.ba_id.to_i - diff))
+                                                                 season_id: Season.current_season&.previous&.id)
                                    .first&.rank.presence || 999
                           end
         end
@@ -932,8 +933,8 @@ class TournamentsController < ApplicationController
       if local_server?
         # Berechne effektive Rankings (wie in calculate_and_cache_rankings)
         if @tournament.organizer.is_a?(Region) && @tournament.discipline.present?
-          current_season = Season.current_season
-          seasons = Season.where("id <= ?", current_season.id).order(id: :desc).limit(3).reverse
+          # Recency ueber den Saison-NAMEN (id/ba_id sind durch internationales Scrapen verrutscht).
+          seasons = Season.recent_valid(3)
 
           all_rankings = PlayerRanking.where(
             discipline_id: @tournament.discipline_id,

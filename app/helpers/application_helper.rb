@@ -667,7 +667,9 @@ module ApplicationHelper
 
     # Season fields
     if column_def.include?('seasons.name')
-      seasons = Season.order(id: :desc).limit(10).pluck(:id, :name)
+      # Recency ueber den Saison-NAMEN; Platzhalter-/Fremd-Saisons ausgeschlossen
+      # (id/ba_id sind durch internationales Scrapen verrutscht).
+      seasons = Season.with_valid_name.order(name: :desc).limit(10).pluck(:id, :name)
       return 'select', 'select', seasons.map { |id, name| { value: id, label: name } }
     end
 
