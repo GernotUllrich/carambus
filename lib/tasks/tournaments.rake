@@ -58,4 +58,67 @@ namespace :tournaments do
     puts "Sichtbar über den Umschalter „Entwürfe anzeigen“ (/tournaments?drafts=1)." if result.created.positive?
     puts "\nDRY-RUN — für echtes Schreiben ARMED=1 setzen." unless armed
   end
+
+  # Plan 29-02: Trägt die Gesamtrangliste für bereits abgeschlossene Turniere nach.
+  #
+  # Im Normalbetrieb schreibt sie der Turnier-Abschluss selbst (ResultProcessor#write_final_ranking).
+  # Dieser Task ist für zwei Fälle da: (1) Turniere, die vor der Einführung abgeschlossen wurden,
+  # (2) ein erneuter Lauf, falls der Writer je korrigiert werden muss — die Entscheidung für den
+  # Schreib-Adapter (29-01 §5.0) nimmt in Kauf, dass Fehler persistiert werden; der Preis dafür ist
+  # bezahlbar, solange ein Nachlauf genügt und kein Reparaturskript nötig ist.
+  #
+  # BLAST-RADIUS: genau EINE Region und EINE Saison. Keine Defaults.
+  #
+  # ⚠️ Aus der ClubCloud gescrapte Gesamtranglisten werden NIE überschrieben — nur eigene.
+  #
+  #   bin/rails tournaments:write_final_rankings REGION=NBV SEASON=2025/2026           # dry-run
+  #   ARMED=1 bin/rails tournaments:write_final_rankings REGION=NBV SEASON=2025/2026   # schreibt
+  desc "Gesamtrangliste abgeschlossener Turniere nachtragen — dry-run default, ARMED=1 schreibt"
+  task write_final_rankings: :environment do
+    shortname = ENV["REGION"].to_s.strip
+    season_name = ENV["SEASON"].to_s.strip
+    armed = ENV["ARMED"].present?
+
+    if shortname.blank? || season_name.blank?
+      puts "Usage: bin/rails tournaments:write_final_rankings REGION=NBV SEASON=2025/2026 [ARMED=1]"
+      exit 1
+    end
+
+    region = Region.find_by("UPPER(shortname) = ?", shortname.upcase)
+    season = Season.find_by(name: season_name)
+    abort "Region '#{shortname}' nicht gefunden" if region.nil?
+    abort "Saison '#{season_name}' nicht gefunden" if season.nil?
+
+    puts "=" * 78
+    puts "Gesamtrangliste nachtragen #{region.shortname} #{season.name}"
+    puts armed ? "MODUS: ARMED — es wird geschrieben" : "MODUS: dry-run — es wird NICHTS geschrieben"
+    puts "Blast-Radius: nur Region #{region.shortname}, nur Saison #{season.name}"
+    puts "=" * 78
+
+    totals = Hash.new(0)
+    Tournament
+      .where(season_id: season.id, organizer_type: "Region", organizer_id: region.id)
+      .order(:date).each do |tournament|
+      result = Tournament::FinalRankingWriter.new(tournament: tournament, armed: armed).call
+
+      totals[:seedings] += result.seedings_written
+      totals[:no_monitor] += result.skipped_no_monitor
+      totals[:discipline] += result.skipped_discipline
+      totals[:no_results] += result.skipped_no_results
+      totals[:foreign] += result.skipped_foreign_result
+      next unless result.seedings_written.positive?
+
+      totals[:tournaments] += 1
+      puts format("  %-45s %d Meldungen", tournament.title.to_s[0, 45], result.seedings_written)
+    end
+
+    puts "\nErgebnis:"
+    puts "  Turniere mit Rangliste:        #{totals[:tournaments]}"
+    puts "  geschriebene Platzierungen:    #{totals[:seedings]}"
+    puts "  übersprungen (kein Monitor):   #{totals[:no_monitor]}"
+    puts "  übersprungen (nicht Karambol): #{totals[:discipline]}"
+    puts "  übersprungen (keine Ergebnisse): #{totals[:no_results]}"
+    puts "  übersprungen (fremde Rangliste): #{totals[:foreign]}"
+    puts "\nDRY-RUN — für echtes Schreiben ARMED=1 setzen." unless armed
+  end
 end

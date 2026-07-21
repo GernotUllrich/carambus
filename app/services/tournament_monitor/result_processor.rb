@@ -131,6 +131,7 @@ class TournamentMonitor::ResultProcessor
         if @tournament_monitor.finals_finished?
           @tournament_monitor.decr_current_round!
           update_ranking
+          write_final_ranking
           write_finale_csv_for_upload
           # noinspection RubyResolve
           @tournament_monitor.end_of_tournament!
@@ -239,6 +240,27 @@ class TournamentMonitor::ResultProcessor
     @tournament_monitor.data_will_change!
     @tournament_monitor.data["rankings"] = rankings
     @tournament_monitor.save!
+  end
+
+  # Plan 29-02: Schreibt die Gesamtrangliste je Seeding, direkt nach `update_ranking` — erst dort
+  # stehen die Platzierungen fest. Bis hierher hat nur die ClubCloud diese Struktur berechnet
+  # (Befund 29-01 §0.A), weshalb selbst gespielte Turniere bisher ohne Ergebnis dastanden.
+  #
+  # BEWUSST FEHLERTOLERANT: Ein Fehler beim Schreiben der Rangliste darf den Turnier-Abschluss NICHT
+  # verhindern — die nachfolgenden State-Transitions (end_of_tournament!/finish_tournament!/
+  # have_results_published!) muessen laufen. Ein haengengebliebenes Turnier waere schlimmer als eine
+  # fehlende Rangliste, und `rake tournaments:write_final_rankings` kann sie jederzeit nachtragen.
+  def write_final_ranking
+    result = Tournament::FinalRankingWriter.new(
+      tournament: @tournament_monitor.tournament, armed: true
+    ).call
+    Rails.logger.info "[write_final_ranking] Turnier[#{@tournament_monitor.tournament_id}] " \
+                      "geschrieben=#{result.seedings_written} " \
+                      "fremd_uebersprungen=#{result.skipped_foreign_result}"
+  rescue StandardError => e
+    Rails.logger.error "[write_final_ranking] Turnier[#{@tournament_monitor.tournament_id}] " \
+                       "fehlgeschlagen: #{e.message} — Turnier-Abschluss laeuft weiter, " \
+                       "Nachtrag via rake tournaments:write_final_rankings"
   end
 
   # Delegiert an update_game_participations_for_game (alte API, für Abwärtskompatibilität).
