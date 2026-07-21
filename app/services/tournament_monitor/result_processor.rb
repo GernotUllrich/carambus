@@ -228,13 +228,13 @@ class TournamentMonitor::ResultProcessor
         rule.each do |rule_part|
           player_id = tm.player_id_from_ranking(rule_part, executor_params: executor_params)
           rankings["total"][player_id.to_s]["rank"] = ix
-          @tournament_monitor.tournament.seedings.where(seedings: { player_id: player_id }).first&.update(rank: ix + 1)
+          @tournament_monitor.tournament.seedings.where(seedings: { player_id: player_id }).first&.update(rank: ix)
         end
         ix += rule.count
       else
         player_id = tm.player_id_from_ranking(rule, executor_params: executor_params)
         rankings["total"][player_id.to_s]["rank"] = ix
-        @tournament_monitor.tournament.seedings.where(seedings: { player_id: player_id }).first&.update(rank: ix + 1)
+        @tournament_monitor.tournament.seedings.where(seedings: { player_id: player_id }).first&.update(rank: ix)
         ix += 1
       end
     end
