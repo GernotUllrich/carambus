@@ -565,7 +565,14 @@ class TournamentsController < ApplicationController
       render :edit
     end
   rescue StandardError => e
-    Rails.logger.info "#{e} #{e.backtrace.join("\n")}"
+    # Vorher wurde hier nur geloggt — ohne Render/Redirect antwortete Rails mit
+    # 204 No Content, das Update war fuer den Nutzer stillschweigend verschwunden.
+    Rails.logger.error "#{e} #{e.backtrace.join("\n")}"
+    raise if performed? # Fehler nach dem Rendern — nicht noch einmal rendern
+
+    flash.now[:alert] = I18n.t("tournaments.errors.update_failed",
+      default: "Aktualisierung fehlgeschlagen: %{message}", message: e.message)
+    render :edit, status: :unprocessable_entity
   end
 
   # DELETE /tournaments/1

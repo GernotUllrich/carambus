@@ -561,7 +561,10 @@ class TournamentsControllerTest < ActionDispatch::IntegrationTest
 
   test "PATCH update mit TL-change — Sportwart-im-Wirkbereich-User → success + TL updated" do
     Carambus.config.carambus_api_url = "http://local.test"
-    sportwart = User.create!(email: "ctrl_sw@test.de", password: "password123", confirmed_at: Time.current)
+    # D-38: Sportwart-Mitgliedschaft ist EXPLIZIT (persona_grants), nicht aus der
+    # Join-Praesenz abgeleitet — ohne Grant liefert in_sportwart_scope? false.
+    sportwart = User.create!(email: "ctrl_sw@test.de", password: "password123",
+      confirmed_at: Time.current, persona_grants: ["sportwart"])
     sportwart.sportwart_locations << locations(:one)
     sportwart.sportwart_disciplines << disciplines(:carom_3band)
     # Repair fixture-rot: ensure tournament has matching location + discipline
@@ -573,6 +576,8 @@ class TournamentsControllerTest < ActionDispatch::IntegrationTest
     patch tournament_url(@tournament), params: {tournament: {turnier_leiter_user_id: new_tl.id}}
 
     assert_includes [200, 302], response.status, "update should succeed"
+    # 302 ist mehrdeutig (Erfolg UND Pundit-Deny redirecten) — Deny explizit ausschliessen.
+    assert_nil flash[:alert], "kein Authority-Deny erwartet"
     @tournament.reload
     assert_equal new_tl.id, @tournament.turnier_leiter_user_id, "TL muss gesetzt sein"
   end
@@ -617,6 +622,21 @@ class TournamentsControllerTest < ActionDispatch::IntegrationTest
     assert_includes [200, 302], response.status, "update OHNE TL-change muss durchgehen"
     @tournament.reload
     assert_equal "Updated Title Smoke", @tournament.title
+  end
+
+  test "PATCH update meldet unerwartete Fehler sichtbar statt still (vorher: 204 No Content)" do
+    Carambus.config.carambus_api_url = "http://local.test"
+    original_title = @tournament.title
+
+    # organizer_type auf eine nicht existierende Klasse => NameError beim Speichern.
+    patch tournament_url(@tournament), params: {tournament: {
+      title: "Darf nicht durchkommen", organizer_type: "NoSuchClassXY", organizer_id: 1
+    }}
+
+    assert_response :unprocessable_entity, "Fehler muss sichtbar werden, nicht als 204 verschwinden"
+    assert_match(/Aktualisierung fehlgeschlagen/, flash[:alert].to_s)
+    @tournament.reload
+    assert_equal original_title, @tournament.title
   end
 
   # ---------------------------------------------------------------------------
