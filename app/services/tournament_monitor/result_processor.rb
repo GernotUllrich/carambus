@@ -520,7 +520,7 @@ result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
     f = File.new("#{Rails.root}/tmp/result-#{@tournament_monitor.tournament.cc_id}.csv", "w")
     f.write(game_data.join("\n"))
     f.close
-    emails = ["gernot.ullrich@gmx.de"]
+    emails = []
 
     # Safely try to fetch current_admin email without crashing
     begin
