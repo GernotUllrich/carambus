@@ -101,12 +101,20 @@ class TournamentsControllerTest < ActionDispatch::IntegrationTest
   # Auth guard: write actions require sign-in
   # ---------------------------------------------------------------------------
 
-  test "unauthenticated POST create redirects to sign in" do
+  # BEFUND (Plan 25-01): Der Test hiess frueher "unauthenticated POST create redirects to
+  # sign in" und prueft NICHT, was der Name behauptete — TournamentsController hat KEIN
+  # `authenticate_user!`. Der beobachtete 302 kam vom `redirect_back` des Validierungsfehlers,
+  # nicht von einem Login-Redirect. Seit 25-01 rendert #create bei Fehlern 422, wodurch das
+  # sichtbar wurde. Verhalten unveraendert gelassen (Boundary: keine Autorisierungsaenderung),
+  # aber gemeldet. Was der Test tatsaechlich sichert: es wird nichts angelegt.
+  test "unauthenticated POST create does not persist a tournament" do
     sign_out @user
     Carambus.config.carambus_api_url = "http://local.test"
-    post tournaments_url, params: { tournament: { title: "New Tournament" } }
-    # Either redirects to sign-in or is blocked by ensure_local_server (tournaments_path)
-    assert_includes [302], response.status
+
+    assert_no_difference("Tournament.count") do
+      post tournaments_url, params: { tournament: { title: "New Tournament" } }
+    end
+    assert_includes [302, 422], response.status
   end
 
   # ---------------------------------------------------------------------------
@@ -553,7 +561,10 @@ class TournamentsControllerTest < ActionDispatch::IntegrationTest
 
   test "PATCH update mit TL-change — Sportwart-im-Wirkbereich-User → success + TL updated" do
     Carambus.config.carambus_api_url = "http://local.test"
-    sportwart = User.create!(email: "ctrl_sw@test.de", password: "password123", confirmed_at: Time.current)
+    # D-38: Sportwart-Mitgliedschaft ist EXPLIZIT (persona_grants), nicht aus der
+    # Join-Praesenz abgeleitet — ohne Grant liefert in_sportwart_scope? false.
+    sportwart = User.create!(email: "ctrl_sw@test.de", password: "password123",
+      confirmed_at: Time.current, persona_grants: ["sportwart"])
     sportwart.sportwart_locations << locations(:one)
     sportwart.sportwart_disciplines << disciplines(:carom_3band)
     # Repair fixture-rot: ensure tournament has matching location + discipline
@@ -565,6 +576,8 @@ class TournamentsControllerTest < ActionDispatch::IntegrationTest
     patch tournament_url(@tournament), params: {tournament: {turnier_leiter_user_id: new_tl.id}}
 
     assert_includes [200, 302], response.status, "update should succeed"
+    # 302 ist mehrdeutig (Erfolg UND Pundit-Deny redirecten) — Deny explizit ausschliessen.
+    assert_nil flash[:alert], "kein Authority-Deny erwartet"
     @tournament.reload
     assert_equal new_tl.id, @tournament.turnier_leiter_user_id, "TL muss gesetzt sein"
   end
@@ -609,5 +622,204 @@ class TournamentsControllerTest < ActionDispatch::IntegrationTest
     assert_includes [200, 302], response.status, "update OHNE TL-change muss durchgehen"
     @tournament.reload
     assert_equal "Updated Title Smoke", @tournament.title
+  end
+
+  test "PATCH update meldet unerwartete Fehler sichtbar statt still (vorher: 204 No Content)" do
+    Carambus.config.carambus_api_url = "http://local.test"
+    original_title = @tournament.title
+
+    # organizer_type auf eine nicht existierende Klasse => NameError beim Speichern.
+    patch tournament_url(@tournament), params: {tournament: {
+      title: "Darf nicht durchkommen", organizer_type: "NoSuchClassXY", organizer_id: 1
+    }}
+
+    assert_response :unprocessable_entity, "Fehler muss sichtbar werden, nicht als 204 verschwinden"
+    assert_match(/Aktualisierung fehlgeschlagen/, flash[:alert].to_s)
+    @tournament.reload
+    assert_equal original_title, @tournament.title
+  end
+
+  # ---------------------------------------------------------------------------
+  # Plan 25-01: Anlage-Blocker. Bis hierher war KEIN manueller Anlage-Weg im UI
+  # benutzbar — _form.html.erb rief `@tournament.id < MIN_ID` bei id == nil
+  # (NoMethodError). Die bestehenden Guard-Tests oben tolerieren Status 500
+  # ausdruecklich ("view dependency") und haben den Blocker deshalb nie gefangen.
+  # Die folgenden Tests verlangen 200 strikt.
+  # ---------------------------------------------------------------------------
+
+  test "GET new renders the form (regression: NoMethodError on nil id)" do
+    Carambus.config.carambus_api_url = "http://local.test"
+    get new_tournament_url
+
+    assert_response :success, "new muss das Formular rendern, nicht mit 500 sterben"
+    assert_select "form" do
+      assert_select "input[name=?]", "tournament[title]"
+      assert_select "input[name=?]", "tournament[shortname]"
+      assert_select "input[name=?]", "tournament[date]"
+      assert_select "input[name=?]", "tournament[end_date]"
+      assert_select "input[name=?]", "tournament[source_url]"
+    end
+  end
+
+  test "GET new leaves source_url editable for a new record" do
+    Carambus.config.carambus_api_url = "http://local.test"
+    get new_tournament_url
+
+    assert_response :success
+    assert_select "input[name=?][disabled]", "tournament[source_url]", 0,
+      "source_url darf bei Neuanlage NICHT disabled sein"
+  end
+
+  test "GET edit keeps source_url disabled for an imported (global) tournament" do
+    Carambus.config.carambus_api_url = "http://local.test"
+    imported = tournaments(:imported)
+    assert imported.id < Tournament::MIN_ID, "Fixture-Vorbedingung: globales Turnier"
+
+    get edit_tournament_url(imported)
+
+    assert_response :success
+    # Hinweis: keine Message als 3. Argument — assert_select deutet sie als Equality-Test.
+    assert_select "input[name=?][disabled]", "tournament[source_url]"
+  end
+
+  test "POST create persists tournament and disables auto_upload_to_cc" do
+    Carambus.config.carambus_api_url = "http://local.test"
+
+    assert_difference("Tournament.count", 1) do
+      post tournaments_url, params: {tournament: {
+        title: "CC-loses Turnier",
+        shortname: "CCL",
+        date: 2.weeks.from_now,
+        end_date: 2.weeks.from_now + 1.day,
+        season_id: 50_000_001,
+        organizer_id: 50_000_001,
+        organizer_type: "Region"
+      }}
+    end
+
+    created = Tournament.order(:id).last
+    assert_redirected_to created
+    assert_equal "CC-loses Turnier", created.title
+    refute created.auto_upload_to_cc, "CC-los angelegte Turniere duerfen nicht automatisch hochgeladen werden"
+  end
+
+  test "POST create re-renders with errors instead of silently redirecting" do
+    Carambus.config.carambus_api_url = "http://local.test"
+
+    assert_no_difference("Tournament.count") do
+      # season fehlt — belongs_to :season ist nicht optional
+      post tournaments_url, params: {tournament: {
+        title: "Turnier ohne Saison",
+        shortname: "TOS",
+        organizer_id: 50_000_001,
+        organizer_type: "Region"
+      }}
+    end
+
+    assert_response :unprocessable_entity,
+      "Validierungsfehler muessen sichtbar werden (vorher: stiller redirect_back)"
+    assert_select "form"
+  end
+
+  # ---------------------------------------------------------------------------
+  # Plan 26-01: players_by_club — speist die Club->Spieler-Kaskade der Meldeliste.
+  # Bei Region-Turnieren war die Teilnehmerauswahl bisher zirkulaer (nur Spieler MIT
+  # Seeding in genau diesem Turnier) und damit immer leer.
+  # ---------------------------------------------------------------------------
+
+  def seed_club_with_players
+    club = Club.create!(name: "Testverein 26", shortname: "TV26", region_id: 50_000_001)
+    # Saison des Turniers — der Endpunkt filtert danach (nicht nach Season.current_season,
+    # die in der Testumgebung nil ist).
+    season = @tournament.season
+    a = Player.create!(lastname: "ALPHA", firstname: "Anna", fl_name: "A. Alpha", dbu_nr: "111111")
+    b = Player.create!(lastname: "BETA", firstname: "Bert", fl_name: "B. Beta", dbu_nr: "222222")
+    [a, b].each { |pl| SeasonParticipation.create!(player: pl, club: club, season: season) }
+    [club, a, b]
+  end
+
+  test "GET players_by_club returns the club players with dbu_nr" do
+    Carambus.config.carambus_api_url = "http://local.test"
+    club, a, b = seed_club_with_players
+
+    get players_by_club_tournament_url(@tournament, club_id: club.id)
+
+    assert_response :success
+    rows = JSON.parse(response.body)
+    assert_equal 2, rows.size
+    assert_equal [a.id, b.id].sort, rows.map { |r| r["id"] }.sort
+    assert_equal [111_111, 222_222], rows.map { |r| r["dbu_nr"] }.sort  # dbu_nr ist integer
+    assert rows.all? { |r| r["label"].present? }, "label muss gesetzt sein"
+  end
+
+  test "GET players_by_club without club_id returns an empty list" do
+    Carambus.config.carambus_api_url = "http://local.test"
+
+    get players_by_club_tournament_url(@tournament)
+
+    assert_response :success
+    assert_equal [], JSON.parse(response.body)
+  end
+
+  test "GET players_by_club omits players already seeded in this tournament" do
+    Carambus.config.carambus_api_url = "http://local.test"
+    club, a, _b = seed_club_with_players
+    @tournament.seedings.create!(player_id: a.id, position: 1)
+
+    get players_by_club_tournament_url(@tournament, club_id: club.id)
+
+    rows = JSON.parse(response.body)
+    refute_includes rows.map { |r| r["id"] }, a.id,
+      "bereits gemeldeter Spieler darf nicht erneut angeboten werden"
+    assert_equal 1, rows.size
+  end
+
+  test "GET players_by_club redirects to tournaments_path when not local server" do
+    Carambus.config.carambus_api_url = nil
+
+    get players_by_club_tournament_url(@tournament, club_id: 1)
+
+    assert_redirected_to tournaments_path
+  end
+
+  test "GET define_participants renders the club cascade for a region tournament" do
+    Carambus.config.carambus_api_url = "http://local.test"
+    club, _a, _b = seed_club_with_players
+
+    get define_participants_tournament_url(@tournament)
+
+    assert_response :success
+    assert_select "[data-controller='dependent-select']", 1,
+      "Kaskaden-Block muss bei Region-Turnieren gerendert werden"
+    assert_select "select[name=?]", "entry_list_club_id" do
+      assert_select "option[value=?]", club.id.to_s
+    end
+    # Das Spieler-Select speist add_player_by_dbu direkt (name=dbu_nr).
+    assert_select "form[action=?] select[name=?]",
+      add_player_by_dbu_tournament_path(@tournament), "dbu_nr"
+    # Das bestehende DBU-Textfeld bleibt als Weg fuer Gastspieler erhalten.
+    assert_select "input[name=?]", "dbu_nr"
+  end
+
+  # Plan 27-01: Entwuerfe aus der Saison-Kopie sind in der regulaeren Liste ausgeblendet.
+
+  # Plan 27-01: Entwurfs-Ausblendung im Index.
+  #
+  # BEFUND: Ein Integrationstest kann den Listeninhalt hier nicht pruefen — der SearchService
+  # liefert im Testkontext generell 0 Records (13 Turniere in der DB, `results.count == 0`
+  # schon VOR jedem Draft-Filter). Das ist vorbestehend und unabhaengig von dieser Aenderung.
+  # Geprueft wird daher, dass der Index mit und ohne `drafts`-Param fehlerfrei rendert
+  # (Regression: die Scopes muessen `tournaments.data` qualifizieren, sonst PG::AmbiguousColumn).
+  # Die Trennung der Mengen deckt tournament_test.rb ueber die Scopes ab.
+  test "GET index rendert mit und ohne drafts-Param" do
+    Carambus.config.carambus_api_url = "http://local.test"
+    Tournament.create!(title: "Entwurfskopie", season: @tournament.season,
+      organizer: regions(:nbv), date: 3.weeks.from_now, data: {"draft" => true})
+
+    get tournaments_url
+    assert_response :success
+
+    get tournaments_url(drafts: 1)
+    assert_response :success
   end
 end

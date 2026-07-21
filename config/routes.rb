@@ -66,6 +66,10 @@ Rails.application.routes.draw do
       end
     end
 
+    # Plan 28-01: Meldeliste einer Region/Saison als JSON — die Authority holt sie sich hier ab
+    # (Pull, analog CC-Scrape) und uebersetzt die lokalen IDs in globale.
+    resources :entry_lists, only: [:index]
+
     resources :locations, only: [] do
       collection do
         get :autocomplete
@@ -361,6 +365,8 @@ Rails.application.routes.draw do
       post :use_clubcloud_as_participants
       post :update_seeding_position
       post :add_player_by_dbu
+      # Plan 26-01: Spieler eines Vereins (JSON) fuer die Club->Spieler-Kaskade der Meldeliste.
+      get :players_by_club
       post :recalculate_groups
       post :test_tournament_status_update
     end

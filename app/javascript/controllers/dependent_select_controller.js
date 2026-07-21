@@ -5,7 +5,14 @@ import { Controller } from "@hotwired/stimulus"
 // Eine bestehende Auswahl (verknuepfter Spieler) bleibt erhalten, falls weiterhin in der Liste.
 export default class extends Controller {
   static targets = ["source", "dest"]
-  static values = { url: String, placeholder: { type: String, default: "— Spieler wählen —" } }
+  // Plan 26-01: valueKey erlaubt es, ein anderes Feld als `id` als option-value zu nutzen
+  // (Meldeliste: `dbu_nr`, damit das Select direkt das add_player_by_dbu-Formular speist).
+  // Default "id" = bisheriges Verhalten — der Admin-Konsument bleibt unberührt.
+  static values = {
+    url: String,
+    placeholder: { type: String, default: "— Spieler wählen —" },
+    valueKey: { type: String, default: "id" }
+  }
 
   connect() {
     // Bei bereits vorausgewaehltem Verein die volle Spielerliste laden (verknuepfter
@@ -41,9 +48,10 @@ export default class extends Controller {
     this.resetDest()
     players.forEach((p) => {
       const opt = document.createElement("option")
-      opt.value = p.id
+      const value = p[this.valueKeyValue] ?? p.id
+      opt.value = value
       opt.textContent = p.label
-      if (String(p.id) === String(previous)) opt.selected = true
+      if (String(value) === String(previous)) opt.selected = true
       this.destTarget.appendChild(opt)
     })
   }

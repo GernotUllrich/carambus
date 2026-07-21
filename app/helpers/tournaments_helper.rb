@@ -66,4 +66,41 @@ module TournamentsHelper
   def tournament_director?(user)
     user&.club_admin? || user&.system_admin?
   end
+
+  # Plan 26-01: Vereinsauswahl für die Meldeliste eines Region-Turniers.
+  #
+  # Liefert [[label, id], ...] für ein select — Vereine der ausrichtenden Region, "die wichtigsten
+  # zuerst", ohne neue Datenhaltung und ohne Konfiguration:
+  #   1. Vereine, aus denen bereits Teilnehmer DIESES Turniers gemeldet sind (wächst mit der Meldung)
+  #   2. Verein(e) des Austragungsorts
+  #   3. alle übrigen alphabetisch
+  # Ist keine Region bestimmbar, bleibt die Liste leer — der Helfer errät nichts.
+  def entry_list_clubs_for(tournament)
+    region = tournament.region || (tournament.organizer if tournament.organizer.is_a?(Region))
+    return [] if region.blank?
+
+    clubs = Club.where(region_id: region.id).order(:name).to_a
+    return [] if clubs.empty?
+
+    # Vereinszugehörigkeit über SeasonParticipation der TURNIERSAISON — dieselbe Quelle wie
+    # TournamentsController#players_by_club. (Player hat zwar eine club_id-Spalte, aber kein
+    # belongs_to :club; maßgeblich ist season_participations.club_id.)
+    seeded_player_ids = tournament.seedings.pluck(:player_id).compact
+    seeded_club_ids = if seeded_player_ids.any?
+      SeasonParticipation
+        .where(player_id: seeded_player_ids, season_id: tournament.season_id)
+        .pluck(:club_id).compact.to_set
+    else
+      Set.new
+    end
+    # Location hat KEIN belongs_to :club (club_id ist ignored_column) — der Bezug läuft über
+    # club_locations, es können mehrere Vereine an einem Spielort sein.
+    location_club_ids = Array(tournament.location&.clubs&.map(&:id)).to_set
+
+    ranked, rest = clubs.partition { |c| seeded_club_ids.include?(c.id) || location_club_ids.include?(c.id) }
+    # Innerhalb der Vorauswahl: Vereine mit Meldungen vor reinen Austragungsort-Vereinen.
+    ranked.sort_by! { |c| [seeded_club_ids.include?(c.id) ? 0 : 1, c.name.to_s] }
+
+    ranked.map { |c| [c.name, c.id] } + rest.map { |c| [c.name, c.id] }
+  end
 end
