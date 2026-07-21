@@ -394,6 +394,50 @@
           </div>
         <% end %>
 
+        <%# Plan 26-01: Meldung über Verein → Spieler (nur Region-Turniere — bei Club-Turnieren
+            listet der Block oben bereits die Vereinsspieler). Speist bewusst das bestehende
+            add_player_by_dbu-Formular: das Spieler-Select trägt die dbu_nr als Wert. %>
+        <%- if @tournament.organizer.is_a?(Region) %>
+          <%- entry_list_clubs = entry_list_clubs_for(@tournament) %>
+          <%- if entry_list_clubs.any? %>
+            <div class="mt-6 p-4 rounded border border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-800"
+                 data-controller="dependent-select"
+                 data-dependent-select-url-value="<%= players_by_club_tournament_path(@tournament) %>"
+                 data-dependent-select-value-key-value="dbu_nr"
+                 data-dependent-select-placeholder-value="<%= t('tournaments.define_participants.select_player_blank', default: '— Spieler wählen —') %>">
+              <h4 class="font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                <%= t('tournaments.define_participants.add_by_club_heading', default: 'Teilnehmer über den Verein melden') %>
+              </h4>
+              <p class="text-sm text-gray-600 dark:text-gray-300 mb-3">
+                <%= t('tournaments.define_participants.add_by_club_hint',
+                      default: 'Verein wählen, dann den Spieler. Vereine mit bereits gemeldeten Teilnehmern und der Austragungsort stehen oben.') %>
+              </p>
+
+              <div class="flex gap-2 items-start flex-wrap">
+                <div class="flex-1 min-w-[12rem]">
+                  <%= select_tag :entry_list_club_id,
+                        options_for_select(entry_list_clubs),
+                        include_blank: t('tournaments.define_participants.select_club_blank', default: '— Verein wählen —'),
+                        class: 'form-control',
+                        data: { dependent_select_target: 'source', action: 'dependent-select#load' } %>
+                </div>
+
+                <%= form_with url: add_player_by_dbu_tournament_path(@tournament), method: :post, local: true,
+                              class: 'flex gap-2 items-start flex-1 min-w-[14rem]' do |f| %>
+                  <div class="flex-1">
+                    <%= select_tag :dbu_nr, nil, class: 'form-control',
+                          required: true,
+                          data: { dependent_select_target: 'dest' } %>
+                  </div>
+                  <%= f.submit t('tournaments.define_participants.add_player_button'),
+                        class: 'btn btn-sm btn-primary',
+                        data: { disable_with: t('tournaments.define_participants.searching') } %>
+                <% end %>
+              </div>
+            </div>
+          <%- end %>
+        <%- end %>
+
         <!-- Spieler hinzufügen (kurzfristige Nachmeldung) -->
         <div class="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded">
           <h4 class="font-semibold text-yellow-900 mb-2"><%= t('tournaments.define_participants.late_registration_heading') %></h4>

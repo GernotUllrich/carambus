@@ -700,4 +700,84 @@ class TournamentsControllerTest < ActionDispatch::IntegrationTest
       "Validierungsfehler muessen sichtbar werden (vorher: stiller redirect_back)"
     assert_select "form"
   end
+
+  # ---------------------------------------------------------------------------
+  # Plan 26-01: players_by_club — speist die Club->Spieler-Kaskade der Meldeliste.
+  # Bei Region-Turnieren war die Teilnehmerauswahl bisher zirkulaer (nur Spieler MIT
+  # Seeding in genau diesem Turnier) und damit immer leer.
+  # ---------------------------------------------------------------------------
+
+  def seed_club_with_players
+    club = Club.create!(name: "Testverein 26", shortname: "TV26", region_id: 50_000_001)
+    # Saison des Turniers — der Endpunkt filtert danach (nicht nach Season.current_season,
+    # die in der Testumgebung nil ist).
+    season = @tournament.season
+    a = Player.create!(lastname: "ALPHA", firstname: "Anna", fl_name: "A. Alpha", dbu_nr: "111111")
+    b = Player.create!(lastname: "BETA", firstname: "Bert", fl_name: "B. Beta", dbu_nr: "222222")
+    [a, b].each { |pl| SeasonParticipation.create!(player: pl, club: club, season: season) }
+    [club, a, b]
+  end
+
+  test "GET players_by_club returns the club players with dbu_nr" do
+    Carambus.config.carambus_api_url = "http://local.test"
+    club, a, b = seed_club_with_players
+
+    get players_by_club_tournament_url(@tournament, club_id: club.id)
+
+    assert_response :success
+    rows = JSON.parse(response.body)
+    assert_equal 2, rows.size
+    assert_equal [a.id, b.id].sort, rows.map { |r| r["id"] }.sort
+    assert_equal [111_111, 222_222], rows.map { |r| r["dbu_nr"] }.sort  # dbu_nr ist integer
+    assert rows.all? { |r| r["label"].present? }, "label muss gesetzt sein"
+  end
+
+  test "GET players_by_club without club_id returns an empty list" do
+    Carambus.config.carambus_api_url = "http://local.test"
+
+    get players_by_club_tournament_url(@tournament)
+
+    assert_response :success
+    assert_equal [], JSON.parse(response.body)
+  end
+
+  test "GET players_by_club omits players already seeded in this tournament" do
+    Carambus.config.carambus_api_url = "http://local.test"
+    club, a, _b = seed_club_with_players
+    @tournament.seedings.create!(player_id: a.id, position: 1)
+
+    get players_by_club_tournament_url(@tournament, club_id: club.id)
+
+    rows = JSON.parse(response.body)
+    refute_includes rows.map { |r| r["id"] }, a.id,
+      "bereits gemeldeter Spieler darf nicht erneut angeboten werden"
+    assert_equal 1, rows.size
+  end
+
+  test "GET players_by_club redirects to tournaments_path when not local server" do
+    Carambus.config.carambus_api_url = nil
+
+    get players_by_club_tournament_url(@tournament, club_id: 1)
+
+    assert_redirected_to tournaments_path
+  end
+
+  test "GET define_participants renders the club cascade for a region tournament" do
+    Carambus.config.carambus_api_url = "http://local.test"
+    club, _a, _b = seed_club_with_players
+
+    get define_participants_tournament_url(@tournament)
+
+    assert_response :success
+    assert_select "[data-controller='dependent-select']", 1,
+      "Kaskaden-Block muss bei Region-Turnieren gerendert werden"
+    assert_select "select[name=?]", "entry_list_club_id" do
+      assert_select "option[value=?]", club.id.to_s
+    end
+    # Das Spieler-Select speist add_player_by_dbu direkt (name=dbu_nr).
+    assert_select "form[action=?] select[name=?]",
+      add_player_by_dbu_tournament_path(@tournament), "dbu_nr"
+    # Das bestehende DBU-Textfeld bleibt als Weg fuer Gastspieler erhalten.
+    assert_select "input[name=?]", "dbu_nr"
+  end
 end

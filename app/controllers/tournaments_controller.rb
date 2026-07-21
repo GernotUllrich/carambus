@@ -7,7 +7,7 @@ class TournamentsController < ApplicationController
                 only: %i[show edit update destroy order_by_ranking_or_handicap finish_seeding edit_games reload_from_cc new_team
                          finalize_modus select_modus tournament_monitor reset start define_participants add_team placement
                          upload_invitation parse_invitation apply_seeding_order compare_seedings add_player_by_dbu
-                         use_clubcloud_as_participants update_seeding_position
+                         use_clubcloud_as_participants update_seeding_position players_by_club
                          recalculate_groups test_tournament_status_update]
   before_action :ensure_rankings_cached, only: %i[show]
   before_action :load_clubcloud_seedings, only: %i[show]
@@ -16,7 +16,7 @@ class TournamentsController < ApplicationController
                                                finalize_modus select_modus reset start define_participants add_team
                                                upload_invitation parse_invitation apply_seeding_order compare_seedings
                                                add_player_by_dbu use_clubcloud_as_participants update_seeding_position
-                                               recalculate_groups]
+                                               players_by_club recalculate_groups]
 
   # UI-07 D-18 / Phase 39 D-12: Felder, die vor dem Turnierstart gegen
   # Discipline#parameter_ranges geprüft werden. Reihenfolge matcht die
@@ -880,6 +880,41 @@ class TournamentsController < ApplicationController
                 message_type => messages.join(' | ')
   end
 
+  # GET /tournaments/:id/players_by_club?club_id=N (JSON)
+  #
+  # Plan 26-01: speist die Club->Spieler-Kaskade der Meldeliste. Liefert die Spieler eines Vereins
+  # aus der laufenden Saison, OHNE die bereits gemeldeten — die `dbu_nr` im Payload traegt die
+  # Uebernahme in den bestehenden add_player_by_dbu-Pfad.
+  #
+  # Abgrenzung zu Admin::UsersController#players_by_club: der ist `system_admin?`-only und damit
+  # fuer Sportwarte nicht nutzbar. Schutz hier = `ensure_local_server` wie bei define_participants.
+  def players_by_club
+    club_id = params[:club_id]
+    return render(json: []) if club_id.blank?
+
+    already_seeded = @tournament.seedings.where(entry_list_seeding_scope).pluck(:player_id).compact.to_set
+
+    # Saison des TURNIERS, nicht die laufende: Meldungen gehoeren zur Turniersaison. Bei einem
+    # Turnier der Vorsaison zeigte `Season.current_season` sonst die falschen Spieler — und sie
+    # ist nicht immer gesetzt (in der Testumgebung nil, wenn die Saison noch nicht angelegt ist).
+    season_id = @tournament.season_id || Season.current_season&.id
+
+    rows = SeasonParticipation
+      .where(club_id: club_id, season_id: season_id)
+      .includes(:player)
+      .filter_map do |sp|
+        player = sp.player
+        next if player.nil? || player.fullname.blank?
+        next if already_seeded.include?(player.id)
+
+        {id: player.id, label: player.fullname, dbu_nr: player.dbu_nr}
+      end
+      .uniq { |h| h[:id] }
+      .sort_by { |h| h[:label].to_s }
+
+    render json: rows
+  end
+
   # POST /tournaments/:id/apply_seeding_order
   def apply_seeding_order
     seeding_order = params[:seeding_order] # Array von Player IDs in Reihenfolge
@@ -1179,6 +1214,17 @@ class TournamentsController < ApplicationController
                                        :sets_to_win, :sets_to_play, :team_size, :kickoff_switches_with, :fixed_display_left,
                                        :color_remains_with_set, :allow_overflow, :allow_follow_up,
                                        :turnier_leiter_user_id, :source_url)
+  end
+
+  # Plan 26-01: aktiver Seeding-Scope des Turniers — lokale Seedings haben Vorrang, sonst die
+  # globalen. Spiegelt bewusst die Logik aus add_player_by_dbu (dort inline), damit beide Pfade
+  # dasselbe "bereits gemeldet" verstehen; Konsolidierung gehoert in den Flow von Phase 28.
+  def entry_list_seeding_scope
+    if @tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").any?
+      "seedings.id >= #{Seeding::MIN_ID}"
+    else
+      "seedings.id < #{Seeding::MIN_ID}"
+    end
   end
 
   # Phase 25-01: Server-Region aus der Scenario-Config (Carambus.config.context) fuer die

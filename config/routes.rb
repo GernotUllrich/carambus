@@ -361,6 +361,8 @@ Rails.application.routes.draw do
       post :use_clubcloud_as_participants
       post :update_seeding_position
       post :add_player_by_dbu
+      # Plan 26-01: Spieler eines Vereins (JSON) fuer die Club->Spieler-Kaskade der Meldeliste.
+      get :players_by_club
       post :recalculate_groups
       post :test_tournament_status_update
     end
