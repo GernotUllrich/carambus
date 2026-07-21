@@ -500,7 +500,11 @@ class TournamentsController < ApplicationController
 
   # GET /tournaments/new
   def new
-    @tournament = Tournament.new
+    # Phase 25-01: Vorbelegung von season/organizer — ohne beide schlaegt #create still fehl
+    # (belongs_to :season und :organizer sind nicht optional). Region aus Carambus.config.context
+    # wie in Admin::UserFormHelper#server_region (region-agnostisch, kein hartes Shortname).
+    @season = Season.current_season
+    @tournament = Tournament.new(season: @season, organizer: server_region_for_new)
   end
 
   # GET /tournaments/1/edit
@@ -518,10 +522,16 @@ class TournamentsController < ApplicationController
     else
       @tournament.single_or_league = "single"
     end
+    # Phase 25-01: CC-lose Neuanlage — kein automatischer CC-Upload. Nur im create-Pfad,
+    # der Spalten-Default bleibt unberuehrt (Setter schreibt bei new_record? direkt ins Attribut).
+    @tournament.auto_upload_to_cc = false
+
     if @tournament.save
       redirect_to @tournament, notice: "Tournament was successfully created."
     else
-      redirect_back(fallback_location: tournaments_path)
+      # Fehler sichtbar machen statt still zurueckzuleiten (redirect_back verwarf sie).
+      @season = @tournament.season || Season.current_season
+      render :new, status: :unprocessable_entity
     end
   end
 
@@ -1168,7 +1178,19 @@ class TournamentsController < ApplicationController
                                        :handicap_tournier, :league_id, :organizer_id, :organizer_type, :manual_assignment, :continuous_placements,
                                        :sets_to_win, :sets_to_play, :team_size, :kickoff_switches_with, :fixed_display_left,
                                        :color_remains_with_set, :allow_overflow, :allow_follow_up,
-                                       :turnier_leiter_user_id)
+                                       :turnier_leiter_user_id, :source_url)
+  end
+
+  # Phase 25-01: Server-Region aus der Scenario-Config (Carambus.config.context) fuer die
+  # Organizer-Vorbelegung bei Neuanlage. Muster aus Admin::UserFormHelper#server_region.
+  # nil, wenn kein Kontext gesetzt ist — dann muss der Organizer im Formular gewaehlt werden.
+  def server_region_for_new
+    ctx = (Carambus.config.context.to_s if Carambus.config.respond_to?(:context))
+    return nil if ctx.blank?
+
+    Region.find_by("UPPER(shortname) = ?", ctx.upcase)
+  rescue
+    nil
   end
 
   # Stellt sicher, dass Turniermanagement nur auf lokalen Servern möglich ist

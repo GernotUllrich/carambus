@@ -101,12 +101,20 @@ class TournamentsControllerTest < ActionDispatch::IntegrationTest
   # Auth guard: write actions require sign-in
   # ---------------------------------------------------------------------------
 
-  test "unauthenticated POST create redirects to sign in" do
+  # BEFUND (Plan 25-01): Der Test hiess frueher "unauthenticated POST create redirects to
+  # sign in" und prueft NICHT, was der Name behauptete — TournamentsController hat KEIN
+  # `authenticate_user!`. Der beobachtete 302 kam vom `redirect_back` des Validierungsfehlers,
+  # nicht von einem Login-Redirect. Seit 25-01 rendert #create bei Fehlern 422, wodurch das
+  # sichtbar wurde. Verhalten unveraendert gelassen (Boundary: keine Autorisierungsaenderung),
+  # aber gemeldet. Was der Test tatsaechlich sichert: es wird nichts angelegt.
+  test "unauthenticated POST create does not persist a tournament" do
     sign_out @user
     Carambus.config.carambus_api_url = "http://local.test"
-    post tournaments_url, params: { tournament: { title: "New Tournament" } }
-    # Either redirects to sign-in or is blocked by ensure_local_server (tournaments_path)
-    assert_includes [302], response.status
+
+    assert_no_difference("Tournament.count") do
+      post tournaments_url, params: { tournament: { title: "New Tournament" } }
+    end
+    assert_includes [302, 422], response.status
   end
 
   # ---------------------------------------------------------------------------
@@ -609,5 +617,87 @@ class TournamentsControllerTest < ActionDispatch::IntegrationTest
     assert_includes [200, 302], response.status, "update OHNE TL-change muss durchgehen"
     @tournament.reload
     assert_equal "Updated Title Smoke", @tournament.title
+  end
+
+  # ---------------------------------------------------------------------------
+  # Plan 25-01: Anlage-Blocker. Bis hierher war KEIN manueller Anlage-Weg im UI
+  # benutzbar — _form.html.erb rief `@tournament.id < MIN_ID` bei id == nil
+  # (NoMethodError). Die bestehenden Guard-Tests oben tolerieren Status 500
+  # ausdruecklich ("view dependency") und haben den Blocker deshalb nie gefangen.
+  # Die folgenden Tests verlangen 200 strikt.
+  # ---------------------------------------------------------------------------
+
+  test "GET new renders the form (regression: NoMethodError on nil id)" do
+    Carambus.config.carambus_api_url = "http://local.test"
+    get new_tournament_url
+
+    assert_response :success, "new muss das Formular rendern, nicht mit 500 sterben"
+    assert_select "form" do
+      assert_select "input[name=?]", "tournament[title]"
+      assert_select "input[name=?]", "tournament[shortname]"
+      assert_select "input[name=?]", "tournament[date]"
+      assert_select "input[name=?]", "tournament[end_date]"
+      assert_select "input[name=?]", "tournament[source_url]"
+    end
+  end
+
+  test "GET new leaves source_url editable for a new record" do
+    Carambus.config.carambus_api_url = "http://local.test"
+    get new_tournament_url
+
+    assert_response :success
+    assert_select "input[name=?][disabled]", "tournament[source_url]", 0,
+      "source_url darf bei Neuanlage NICHT disabled sein"
+  end
+
+  test "GET edit keeps source_url disabled for an imported (global) tournament" do
+    Carambus.config.carambus_api_url = "http://local.test"
+    imported = tournaments(:imported)
+    assert imported.id < Tournament::MIN_ID, "Fixture-Vorbedingung: globales Turnier"
+
+    get edit_tournament_url(imported)
+
+    assert_response :success
+    # Hinweis: keine Message als 3. Argument — assert_select deutet sie als Equality-Test.
+    assert_select "input[name=?][disabled]", "tournament[source_url]"
+  end
+
+  test "POST create persists tournament and disables auto_upload_to_cc" do
+    Carambus.config.carambus_api_url = "http://local.test"
+
+    assert_difference("Tournament.count", 1) do
+      post tournaments_url, params: {tournament: {
+        title: "CC-loses Turnier",
+        shortname: "CCL",
+        date: 2.weeks.from_now,
+        end_date: 2.weeks.from_now + 1.day,
+        season_id: 50_000_001,
+        organizer_id: 50_000_001,
+        organizer_type: "Region"
+      }}
+    end
+
+    created = Tournament.order(:id).last
+    assert_redirected_to created
+    assert_equal "CC-loses Turnier", created.title
+    refute created.auto_upload_to_cc, "CC-los angelegte Turniere duerfen nicht automatisch hochgeladen werden"
+  end
+
+  test "POST create re-renders with errors instead of silently redirecting" do
+    Carambus.config.carambus_api_url = "http://local.test"
+
+    assert_no_difference("Tournament.count") do
+      # season fehlt — belongs_to :season ist nicht optional
+      post tournaments_url, params: {tournament: {
+        title: "Turnier ohne Saison",
+        shortname: "TOS",
+        organizer_id: 50_000_001,
+        organizer_type: "Region"
+      }}
+    end
+
+    assert_response :unprocessable_entity,
+      "Validierungsfehler muessen sichtbar werden (vorher: stiller redirect_back)"
+    assert_select "form"
   end
 end
