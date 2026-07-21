@@ -4764,12 +4764,10 @@ inbound REST API.</p>
 <code>YoutubeScraper</code>.</p>
 <h3 id="scheduled-sync-tasks">Scheduled Sync Tasks<a class="headerlink" href="#scheduled-sync-tasks" title="Permanent link">&para;</a></h3>
 <p>The main synchronization entry points are rake tasks (run via cron / whenever):</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-38-1" name="__codelineno-38-1" href="#__codelineno-38-1"></a>rake<span class="w"> </span>scrape:daily_update<span class="w">              </span><span class="c1"># daily regional/club/tournament/league sync</span>
-<a id="__codelineno-38-2" name="__codelineno-38-2" href="#__codelineno-38-2"></a>rake<span class="w"> </span>scrape:daily_update_monitored<span class="w">    </span><span class="c1"># monitored variant (cron @ 04:00 daily)</span>
-<a id="__codelineno-38-3" name="__codelineno-38-3" href="#__codelineno-38-3"></a>rake<span class="w"> </span>scrape:update_seasons
-<a id="__codelineno-38-4" name="__codelineno-38-4" href="#__codelineno-38-4"></a>rake<span class="w"> </span>scrape:scrape_clubs
-<a id="__codelineno-38-5" name="__codelineno-38-5" href="#__codelineno-38-5"></a>rake<span class="w"> </span>scrape:scrape_tournaments_optimized
-<a id="__codelineno-38-6" name="__codelineno-38-6" href="#__codelineno-38-6"></a>rake<span class="w"> </span>scrape:scrape_leagues_optimized
+<div class="highlight"><pre><span></span><code><a id="__codelineno-38-1" name="__codelineno-38-1" href="#__codelineno-38-1"></a>rake<span class="w"> </span>scrape:daily_update_monitored<span class="w">    </span><span class="c1"># daily regional/location/club/tournament/league sync</span>
+<a id="__codelineno-38-2" name="__codelineno-38-2" href="#__codelineno-38-2"></a><span class="w">                                      </span><span class="c1"># with monitoring + change-gate (cron @ 04:00 daily)</span>
+<a id="__codelineno-38-3" name="__codelineno-38-3" href="#__codelineno-38-3"></a>rake<span class="w"> </span>scrape:stats<span class="w">                     </span><span class="c1"># scraping statistics for the last 7 days</span>
+<a id="__codelineno-38-4" name="__codelineno-38-4" href="#__codelineno-38-4"></a>rake<span class="w"> </span>scrape:check_health<span class="w">              </span><span class="c1"># check for anomalies</span>
 </code></pre></div>
 <p>Additional source-specific tasks live under the <code>umb:</code>, <code>cuesco:</code>,
 <code>youtube:</code>, and <code>international:</code> namespaces (e.g.

@@ -206,12 +206,13 @@ class TournamentReflex < ApplicationReflex
     seeding_scope = "seedings.id >= #{Seeding::MIN_ID}"
     
     tournament.seedings.where(seeding_scope).each do |seeding|
-      diff = Season.current_season&.name == "2021/2022" ? 2 : 1
+      # Vorsaison name-basiert (Season#previous). Der frühere ba_id-Versatz inkl.
+      # "2021/2022 ? 2 : 1"-Hack kompensierte eine ba_id-Lücke und ist damit hinfällig.
       hash[seeding] = if tournament.team_size > 1
                         999
                       else
                         seeding.player.player_rankings.where(discipline_id: Discipline.find_by_name("Freie Partie klein"),
-                                                             season_id: Season.find_by_ba_id(Season.current_season&.ba_id.to_i - diff))
+                                                             season_id: Season.current_season&.previous&.id)
                                .first&.rank.presence || 999
                       end
     end

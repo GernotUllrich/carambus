@@ -41,8 +41,8 @@
         <%= custom_link_to t('tournaments.define_participants.new_team'), new_team_tournament_path %>
       <%- else %>
         <%- # Berechne Rankings basierend auf effective_gd (wie in rankings_controller.rb) %>
-        <%- current_season = Season.current_season %>
-        <%- seasons = Season.where('id <= ?', current_season.id).order(id: :desc).limit(3).reverse %>
+        <%- # Recency über den Saison-NAMEN (id/ba_id sind durch internationales Scrapen verrutscht). %>
+        <%- seasons = Season.recent_valid(3) %>
 
         <%- # Lade alle Rankings für die Disziplin und Region %>
         <%- if @tournament.organizer.is_a?(Region) %>

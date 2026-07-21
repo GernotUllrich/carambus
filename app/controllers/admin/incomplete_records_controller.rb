@@ -38,7 +38,7 @@ module Admin
       
       # Load options for dropdowns
       @disciplines = Discipline.where.not(name: 'Unknown Discipline').order(:name)
-      @seasons = Season.where.not(name: 'Unknown Season').order(name: :desc)
+      @seasons = Season.with_valid_name.order(name: :desc)
       @locations = Location.where.not(name: 'Unknown Location').order(:name).limit(100)
       @organizers = Region.where.not(shortname: 'UNKNOWN').order(:name)
     end
@@ -70,7 +70,7 @@ module Admin
         
         flash.now[:error] = "Failed to update tournament: #{e.message}"
         @disciplines = Discipline.where.not(name: 'Unknown Discipline').order(:name)
-        @seasons = Season.where.not(name: 'Unknown Season').order(name: :desc)
+        @seasons = Season.with_valid_name.order(name: :desc)
         @locations = Location.where.not(name: 'Unknown Location').order(:name).limit(100)
         @organizers = Region.where.not(shortname: 'UNKNOWN').order(:name)
         render :show

@@ -168,8 +168,8 @@
       if player_rank.blank? && tournament.organizer.is_a?(Region) && tournament.discipline.present?
         Rails.logger.info "[_tournament_status] Rankings not cached for tournament #{tournament.id}, calculating now..."
 
-        current_season = Season.current_season
-        seasons = Season.where('id <= ?', current_season.id).order(id: :desc).limit(3).reverse
+        # Recency ueber den Saison-NAMEN (id/ba_id sind durch internationales Scrapen verrutscht).
+        seasons = Season.recent_valid(3)
 
         all_rankings = PlayerRanking.where(
           discipline_id: tournament.discipline_id,

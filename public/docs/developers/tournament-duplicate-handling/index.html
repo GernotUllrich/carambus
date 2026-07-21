@@ -4028,17 +4028,8 @@ dieses Modell.</p>
 <h3 id="automatische-behandlung">Automatische Behandlung<a class="headerlink" href="#automatische-behandlung" title="Permanent link">&para;</a></h3>
 <p>Die inkrementelle Deduplizierung läuft automatisch als Teil des öffentlichen
 Turnier-Scrapes (<code>Season#scrape_single_tournaments_public_cc</code> →
-<code>Region#scrape_single_tournament_public</code>), der von den regulären
-Scraping-Aufgaben aufgerufen wird (z.B. <code>scrape:daily_update</code>).</p>
-<blockquote>
-<p><strong>Hinweis zu <code>scrape:scrape_tournaments_optimized</code>:</strong> Es existiert eine
-separate Rake-Aufgabe <code>scrape:scrape_tournaments_optimized</code>, die
-<code>Season#scrape_tournaments_optimized</code> aufruft, das wiederum
-<code>Region#scrape_tournaments_optimized(season, opts)</code> aufruft. <strong>Diese
-Region-Methode ist derzeit nicht definiert</strong>, daher ist diese Aufgabe kein
-funktionierender Einstiegspunkt für die oben beschriebene Deduplizierung. Der
-funktionierende Dedup-Pfad ist <code>Region#scrape_single_tournament_public</code>.</p>
-</blockquote>
+<code>Region#scrape_single_tournament_public</code>), der vom täglichen Scrape
+<code>scrape:daily_update_monitored</code> aufgerufen wird.</p>
 <h3 id="manuelle-verwaltung">Manuelle Verwaltung<a class="headerlink" href="#manuelle-verwaltung" title="Permanent link">&para;</a></h3>
 <h4 id="duplikate-analysieren">Duplikate analysieren<a class="headerlink" href="#duplikate-analysieren" title="Permanent link">&para;</a></h4>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>rake<span class="w"> </span>scrape:analyze_duplicates<span class="w"> </span><span class="nv">REGION</span><span class="o">=</span>NBV<span class="w"> </span><span class="nv">SEASON</span><span class="o">=</span><span class="m">2023</span>/2024

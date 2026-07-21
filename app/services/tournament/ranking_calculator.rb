@@ -25,8 +25,8 @@ class Tournament::RankingCalculator
     Tournament.logger.info "[calculate_and_cache_rankings] for local tournament #{@tournament.id}"
 
     # Berechne Rankings basierend auf effective_gd (wie in define_participants)
-    current_season = Season.current_season
-    seasons = Season.where("id <= ?", current_season.id).order(id: :desc).limit(3).reverse
+    # Recency ueber den Saison-NAMEN (id/ba_id sind durch internationales Scrapen verrutscht).
+    seasons = Season.recent_valid(3)
 
     # Lade alle Rankings fuer die Disziplin und Region
     all_rankings = PlayerRanking.where(

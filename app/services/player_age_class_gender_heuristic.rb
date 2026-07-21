@@ -137,7 +137,8 @@ class PlayerAgeClassGenderHeuristic < ApplicationService
     current = Season.current_season
     return [] unless current
 
-    Season.where("name < ?", current.name)
+    # with_valid_name haertet zusaetzlich gegen Platzhalter-/Fremd-Saisons ("Unknown Season").
+    Season.with_valid_name.where("name < ?", current.name)
       .order(name: :desc)
       .limit(2)
       .pluck(:name)

@@ -3814,17 +3814,8 @@ path does <strong>not</strong> write to it.</p>
 <h3 id="automatic-handling">Automatic Handling<a class="headerlink" href="#automatic-handling" title="Permanent link">&para;</a></h3>
 <p>Incremental deduplication runs automatically as part of the public tournament
 scrape (<code>Season#scrape_single_tournaments_public_cc</code> →
-<code>Region#scrape_single_tournament_public</code>), which is invoked by the regular
-scraping tasks (e.g. <code>scrape:daily_update</code>).</p>
-<blockquote>
-<p><strong>Note on <code>scrape:scrape_tournaments_optimized</code>:</strong> A separate rake task
-<code>scrape:scrape_tournaments_optimized</code> exists and calls
-<code>Season#scrape_tournaments_optimized</code>, which in turn calls
-<code>Region#scrape_tournaments_optimized(season, opts)</code>. <strong>That Region method is
-not currently defined</strong>, so this task is not a working entry point for the
-deduplication logic described above. The working dedup path is
-<code>Region#scrape_single_tournament_public</code>.</p>
-</blockquote>
+<code>Region#scrape_single_tournament_public</code>), which is invoked by the daily
+<code>scrape:daily_update_monitored</code> task.</p>
 <h3 id="manual-management">Manual Management<a class="headerlink" href="#manual-management" title="Permanent link">&para;</a></h3>
 <h4 id="analyze-duplicates">Analyze Duplicates<a class="headerlink" href="#analyze-duplicates" title="Permanent link">&para;</a></h4>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>rake<span class="w"> </span>scrape:analyze_duplicates<span class="w"> </span><span class="nv">REGION</span><span class="o">=</span>NBV<span class="w"> </span><span class="nv">SEASON</span><span class="o">=</span><span class="m">2023</span>/2024
