@@ -66,6 +66,10 @@ Rails.application.routes.draw do
       end
     end
 
+    # Plan 28-01: Meldeliste einer Region/Saison als JSON — die Authority holt sie sich hier ab
+    # (Pull, analog CC-Scrape) und uebersetzt die lokalen IDs in globale.
+    resources :entry_lists, only: [:index]
+
     resources :locations, only: [] do
       collection do
         get :autocomplete
