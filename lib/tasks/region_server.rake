@@ -36,6 +36,7 @@ namespace :region_server do
     puts "=" * 78
     puts "Meldelisten-Ingest #{region.shortname} #{season.name}"
     puts "Quelle: #{effective_base}"
+    puts "Zugang: #{RegionServer::EntryListImporter.credential_source(region.shortname)}"
     puts armed ? "MODUS: ARMED — es wird geschrieben" : "MODUS: dry-run — es wird NICHTS geschrieben"
     puts "Blast-Radius: nur Region #{region.shortname}, nur Saison #{season.name}"
     puts "=" * 78
@@ -45,7 +46,11 @@ namespace :region_server do
         region: region, season: season, base_url: base_url, armed: armed
       ).call
     rescue => e
-      abort "Ingest abgebrochen: #{e.message}"
+      # Mehrzeilige Meldungen (fehlender Zugang) ungekuerzt durchreichen — ihr Wert ist die
+      # Handlungsanweisung, und ein einzeiliges "Ingest abgebrochen: …" wuerde sie unlesbar machen.
+      puts "\nIngest abgebrochen:"
+      puts e.message
+      exit 1
     end
 
     puts "\nErgebnis:"

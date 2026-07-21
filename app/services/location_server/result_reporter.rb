@@ -23,8 +23,9 @@ module LocationServer
 
     # ZUGANG: ein Service-Account JE REGION auf dem Region Server (Betreiber-Entscheidung 2026-07-21),
     # angelegt mit `rake service_accounts:create_carambus_app[NBV]`. Alle Location Server einer Region
-    # teilen ihn. Die Zugangsdaten stehen in der Instanz-Konfiguration (`config/carambus.yml`), nicht
-    # im Code und nicht in der Datenbank — dieselbe Ebene wie `carambus_api_url`.
+    # teilen ihn. Die Zugangsdaten stehen seit Plan 29-05 in den verschluesselten Rails-Credentials
+    # (`region_server.<region>.username/password`, ueber die Szenario-Generierung ausgeliefert);
+    # der flache `carambus.yml`-Schluessel aus 29-03 bleibt als Fallback gueltig.
     #
     # Fehlen sie, meldet der Service das verstaendlich, statt unauthentifiziert loszulaufen und am
     # 401 zu scheitern.
@@ -87,30 +88,26 @@ module LocationServer
       end
     end
 
-    # Holt ein JWT beim Region Server (devise-jwt, Muster aus service_accounts.rake:78-81).
-    # Ein Token wird pro Aufruf besorgt — die Meldung geschieht einmal je Turnier, ein Cache waere
-    # unnoetige Zustandshaltung.
+    # Plan 29-05: Anmeldung an `ServiceAccountToken` delegiert (geteilt mit dem Meldelisten-Ingest
+    # der Authority), Zugangsdaten an `Carambus.region_server_credentials`.
+    #
+    # Die Region kommt vom Turnier: der Phase-28-Ingest setzt `region_id` beim Anlegen
+    # (entry_list_importer.rb `build_tournament`), und genau diese Turniere sind es, die hier
+    # gemeldet werden. Ist sie ausnahmsweise nicht gesetzt, loest der Aufruf ohne Kontext auf und
+    # der carambus.yml-Fallback greift — fuer einen Location Server richtig, er bedient eine Region.
     def token_for(base)
       return @token if @token.present?
 
-      email = Carambus.config.region_server_user
-      password = Carambus.config.region_server_password
-      if email.blank? || password.blank?
-        raise "Kein Zugang zum Region Server konfiguriert — `region_server_user`/`region_server_password` " \
+      credentials = Carambus.region_server_credentials(@tournament.region&.shortname)
+      if credentials.nil?
+        raise "Kein Zugang zum Region Server konfiguriert — `region_server.<region>.username/password` " \
+              "in den Rails-Credentials (ueber carambus_data/secrets.yml + " \
+              "`rake scenario:generate_credentials`) oder `region_server_user`/`region_server_password` " \
               "in config/carambus.yml setzen (Service-Account je Region, siehe " \
               "`rake service_accounts:create_carambus_app[<REGION>]`)"
       end
 
-      uri = URI("#{base}/login")
-      request = Net::HTTP::Post.new(uri, "Content-Type" => "application/json")
-      request.body = {user: {email: email, password: password}}.to_json
-      response = Net::HTTP.start(uri.hostname, uri.port, use_ssl: uri.scheme == "https") do |http|
-        http.request(request)
-      end
-      raise "Anmeldung am Region Server fehlgeschlagen (HTTP #{response.code}): #{uri}" unless response.is_a?(Net::HTTPSuccess)
-
-      response["Authorization"].to_s.sub(/\ABearer /, "").presence ||
-        raise("Region Server lieferte kein Authorization-Header bei der Anmeldung")
+      ServiceAccountToken.fetch(base_url: base, **credentials)
     end
 
     def post(target, entries)

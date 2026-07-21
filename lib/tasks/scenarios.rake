@@ -731,6 +731,18 @@ namespace :scenario do
         added << "clubcloud.#{ck}"
       end
     end
+    # Plan 29-05: region_server (Service-Account je Region, gelesen von
+    # Carambus.region_server_credentials — Key kleingeschrieben wie clubcloud).
+    # Anders als clubcloud eine LISTE: die Authority holt Meldelisten von MEHREREN Region Servern.
+    region_server_contexts(decl).each do |ctx|
+      rk = ctx.to_s.downcase
+      rs = per.dig('region_server', ctx) || per.dig('region_server', rk) ||
+        shared.dig('region_server', ctx) || shared.dig('region_server', rk)
+      next unless rs
+
+      merged['region_server'] = (merged['region_server'] || {}).merge(rk => deep_stringify(rs))
+      added << "region_server.#{rk}"
+    end
     # google_service immer (per_scenario-Override, sonst shared)
     gsvc = per['google_service'] || shared['google_service']
     if gsvc
@@ -780,9 +792,25 @@ namespace :scenario do
         shared.dig('clubcloud', cc_ctx) || shared.dig('clubcloud', ck)
       out['clubcloud'] = (out['clubcloud'] || {}).merge(ck => deep_stringify(cc)) if cc
     end
+    # Plan 29-05: region_server MUSS auch hier stehen — diese Methode ist die Basis fuer
+    # scenario:push_credentials. Nur generate_scenario_credentials zu erweitern hiesse: der
+    # Schluessel liegt lokal vor und erreicht den Server nie.
+    region_server_contexts(decl).each do |ctx|
+      rk = ctx.to_s.downcase
+      rs = per.dig('region_server', ctx) || per.dig('region_server', rk) ||
+        shared.dig('region_server', ctx) || shared.dig('region_server', rk)
+      out['region_server'] = (out['region_server'] || {}).merge(rk => deep_stringify(rs)) if rs
+    end
     gsvc = per['google_service'] || shared['google_service']
     out['google_service'] = deep_stringify(gsvc) if gsvc
     out
+  end
+
+  # Deklaration aus scenario.credentials: `region_server_contexts: [NBV, BVNR]`.
+  # Einzelwert wird toleriert (Array()), damit ein `region_server_contexts: NBV` nicht still
+  # ins Leere laeuft.
+  def region_server_contexts(decl)
+    Array(decl['region_server_contexts']).compact
   end
 
   # Server-seitiger Ruby-Runner (wird auf den Server kopiert + via `rails runner <file> <mode>`

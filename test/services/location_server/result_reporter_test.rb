@@ -154,4 +154,21 @@ class LocationServer::ResultReporterTest < ActiveSupport::TestCase
 
     assert_match(/Anmeldung am Region Server fehlgeschlagen/, error.message)
   end
+
+  # Plan 29-05: Die verschluesselten Rails-Credentials sind der generierte, kanonische Ort;
+  # carambus.yml bleibt Fallback. Steht beides, gewinnt der Credential-Eintrag.
+  test "Credentials haben Vorrang vor carambus.yml" do
+    login = stub_request(:post, "https://nbv.carambus.de/login")
+      .with { |request| JSON.parse(request.body).dig("user", "email") == "aus-credentials@carambus.de" }
+      .to_return(status: 200, headers: {"Authorization" => "Bearer test-jwt"}, body: "{}")
+    stub_request(:post, "https://nbv.carambus.de/api/tournament_results")
+      .to_return(status: 200, body: {accepted: 1}.to_json)
+
+    credentials = {region_server: {nbv: {username: "aus-credentials@carambus.de", password: "geheim"}}}
+    Rails.application.credentials.stub(:region_server, credentials[:region_server]) do
+      with_region_credentials { reporter(armed: true).call }
+    end
+
+    assert_requested login
+  end
 end

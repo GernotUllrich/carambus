@@ -21,12 +21,13 @@ module RegionServer
       :players_unresolved, :skipped_no_source_id,
       :rankings_imported, :rankings_skipped_foreign, keyword_init: true)
 
-    def initialize(region:, season:, base_url: nil, armed: false, document: nil)
+    def initialize(region:, season:, base_url: nil, armed: false, document: nil, token: nil)
       @region = region
       @season = season
       @base_url = (base_url.presence || default_base_url).to_s.chomp("/")
       @armed = armed
       @document = document
+      @token = token
     end
 
     def call
@@ -41,6 +42,16 @@ module RegionServer
       result
     end
 
+    # Fuer die Kopfzeile des Rake-Tasks: woraus bedient sich der Lauf? Beantwortet im Probelauf die
+    # Frage, ob der Credential-Weg schon traegt oder noch der carambus.yml-Fallback greift.
+    def self.credential_source(region_shortname)
+      group = Rails.application.credentials.region_server
+      return "credentials" if group.present? && group[region_shortname.to_s.downcase.to_sym].present?
+      return "carambus.yml" if Carambus.config.region_server_user.present?
+
+      "—"
+    end
+
     private
 
     # Konvention statt Datenhaltung: Region hat KEINE Spalte fuer ihre Server-URL
@@ -49,13 +60,41 @@ module RegionServer
       "https://#{@region.shortname.to_s.downcase}.carambus.de"
     end
 
+    # Plan 29-05: Der Endpunkt steht hinter `authenticate_user!` — ein unauthentifizierter Fetch
+    # bekommt einen Login-Redirect und meldete frueher "Quelle nicht erreichbar (HTTP 302)", was die
+    # Ursache verschwieg.
     def fetch_document
       uri = URI("#{@base_url}/api/entry_lists?region=#{CGI.escape(@region.shortname.to_s)}" \
                 "&season=#{CGI.escape(@season.name.to_s)}")
-      response = Net::HTTP.get_response(uri)
+      request = Net::HTTP::Get.new(uri)
+      request["Authorization"] = "Bearer #{token}"
+
+      response = Net::HTTP.start(uri.hostname, uri.port, use_ssl: uri.scheme == "https") do |http|
+        http.request(request)
+      end
       raise "Quelle nicht erreichbar (HTTP #{response.code}): #{uri}" unless response.is_a?(Net::HTTPSuccess)
 
       JSON.parse(response.body)
+    end
+
+    # Zugang zum Region Server: ein Service-Account je Region (Betreiber-Entscheidung 2026-07-21),
+    # aufgeloest ueber `Carambus.region_server_credentials`. Fehlt er, bricht der Lauf mit einer
+    # Meldung ab, die die drei noetigen Handgriffe benennt — statt am 401 zu scheitern.
+    def token
+      return @token if @token.present?
+
+      credentials = Carambus.region_server_credentials(@region.shortname)
+      if credentials.nil?
+        raise "Kein Zugang zum Region Server #{@base_url} konfiguriert. Noetig sind: " \
+              "(1) `rake service_accounts:create_carambus_app[#{@region.shortname}]` AUF DEM REGION SERVER, " \
+              "(2) die Zugangsdaten unter `shared.region_server.#{@region.shortname.to_s.downcase}` " \
+              "in carambus_data/secrets.yml und `region_server_contexts: [#{@region.shortname}]` " \
+              "in der config.yml des Szenarios, " \
+              "(3) `rake scenario:generate_credentials[<szenario>,production]` + " \
+              "`rake scenario:push_credentials[<szenario>]`."
+      end
+
+      @token = ServiceAccountToken.fetch(base_url: @base_url, **credentials)
     end
 
     def import_tournament(payload, result)

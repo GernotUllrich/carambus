@@ -208,4 +208,63 @@ class RegionServer::EntryListImporterTest < ActiveSupport::TestCase
     assert_equal 0, result.rankings_imported
     assert_equal scraped, seeding.reload.data.dig("result", "Gesamtrangliste")
   end
+
+  # ---- Plan 29-05: Zugang -----------------------------------------------------------------------
+  # Der Endpunkt steht hinter `authenticate_user!`. Ohne Token bekam der Ingest einen
+  # Login-Redirect und meldete "Quelle nicht erreichbar (HTTP 302)" — die Ursache blieb verborgen.
+
+  # Kein `document:` — dieser Zweig ist der einzige, der wirklich fetcht.
+  def fetching_importer(token: nil)
+    RegionServer::EntryListImporter.new(
+      region: @region, season: @season, base_url: @base_url, armed: false, token: token
+    )
+  end
+
+  def with_yaml_credentials
+    config = Carambus.config
+    before = [config.region_server_user, config.region_server_password]
+    config.region_server_user = "carambus-app-nbv-bridge@carambus.de"
+    config.region_server_password = "geheim"
+    yield
+  ensure
+    config.region_server_user, config.region_server_password = before
+  end
+
+  test "der Meldelisten-Fetch traegt das Bearer-Token" do
+    login = stub_request(:post, "#{@base_url}/login")
+      .to_return(status: 200, headers: {"Authorization" => "Bearer test-jwt"}, body: "{}")
+    fetch = stub_request(:get, "#{@base_url}/api/entry_lists")
+      .with(query: {region: @region.shortname, season: @season.name},
+        headers: {"Authorization" => "Bearer test-jwt"})
+      .to_return(status: 200, body: document.to_json)
+
+    result = with_yaml_credentials { fetching_importer.call }
+
+    assert_requested login
+    assert_requested fetch
+    assert_equal 1, result.seedings_created, "der dry-run zaehlt die Meldungen"
+  end
+
+  test "ohne Zugang bricht der Ingest verstaendlich ab" do
+    error = assert_raises(RuntimeError) { fetching_importer.call }
+
+    assert_match(/create_carambus_app/, error.message,
+      "die Meldung muss sagen, WIE der Service-Account entsteht")
+    assert_match(/secrets\.yml/, error.message,
+      "und ueber welchen Weg die Zugangsdaten ausgeliefert werden")
+    refute_match(/HTTP 302/, error.message)
+  end
+
+  test "abgelehnte Anmeldung wird als solche gemeldet" do
+    stub_request(:post, "#{@base_url}/login").to_return(status: 401, body: "")
+
+    error = assert_raises(RuntimeError) { with_yaml_credentials { fetching_importer.call } }
+
+    assert_match(/Anmeldung am Region Server fehlgeschlagen \(HTTP 401\)/, error.message)
+  end
+
+  # Der document:-Pfad darf keinen Zugang verlangen — die 8 Tests oben fahren darauf.
+  test "injiziertes Dokument braucht keine Zugangsdaten" do
+    assert_nothing_raised { importer.call }
+  end
 end
