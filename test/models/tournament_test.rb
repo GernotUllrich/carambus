@@ -194,4 +194,38 @@ class TournamentTest < ActiveSupport::TestCase
     )
     assert_nil t.reload.player_class
   end
+  # ---------------------------------------------------------------------------
+  # Plan 27-01: Entwuerfe aus der Saison-Kopie. Kennzeichen liegt im serialisierten data-Hash
+  # (text-Spalte, coder: JSON) — Rohformat verifiziert: {"draft":true,...}
+  # ---------------------------------------------------------------------------
+
+  test "draft? erkennt das Entwurfs-Kennzeichen" do
+    draft = Tournament.create!(title: "Entwurf", season: seasons(:current), organizer: regions(:nbv),
+      date: Time.zone.local(2026, 10, 10), data: {"draft" => true})
+    regular = Tournament.create!(title: "Regulaer", season: seasons(:current), organizer: regions(:nbv),
+      date: Time.zone.local(2026, 10, 11))
+
+    assert draft.draft?
+    refute regular.draft?
+  end
+
+  test "Scopes drafts / without_drafts trennen die Mengen" do
+    draft = Tournament.create!(title: "Entwurf S", season: seasons(:current), organizer: regions(:nbv),
+      date: Time.zone.local(2026, 10, 12), data: {"draft" => true, "copied_from_tournament_id" => 7})
+    regular = Tournament.create!(title: "Regulaer S", season: seasons(:current), organizer: regions(:nbv),
+      date: Time.zone.local(2026, 10, 13), data: {"table_ids" => []})
+
+    assert_includes Tournament.drafts.pluck(:id), draft.id
+    refute_includes Tournament.drafts.pluck(:id), regular.id
+
+    refute_includes Tournament.without_drafts.pluck(:id), draft.id
+    assert_includes Tournament.without_drafts.pluck(:id), regular.id
+  end
+
+  test "without_drafts enthaelt auch Turniere ohne data" do
+    plain = Tournament.create!(title: "Ohne data", season: seasons(:current), organizer: regions(:nbv),
+      date: Time.zone.local(2026, 10, 14))
+
+    assert_includes Tournament.without_drafts.pluck(:id), plain.id
+  end
 end

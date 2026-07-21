@@ -38,6 +38,13 @@ class TournamentsController < ApplicationController
 
     results = SearchService.call(Tournament.search_hash(search_params))
 
+    # Plan 27-01: Entwuerfe aus der Saison-Kopie sind standardmaessig ausgeblendet — sie tragen ein
+    # geschaetztes Datum und sind noch nicht vom Sportwart geprueft. `?drafts=1` macht sie sichtbar,
+    # damit sie nach einem Kopier-Lauf auffindbar bleiben. Der Filter greift VOR dem H19-Block,
+    # damit „Demnächst" dieselbe Menge sieht.
+    @show_drafts = params[:drafts].present?
+    results = @show_drafts ? results.drafts : results.without_drafts
+
     # H19: „Demnächst"-Block — anstehende Turniere (nächste 14 Tage) im Standard-Blick
     # oben abgesetzt, aus der datum-absteigenden Hauptliste ausgeklammert.
     @show_upcoming = false

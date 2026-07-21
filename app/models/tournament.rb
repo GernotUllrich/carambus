@@ -105,6 +105,15 @@ class Tournament < ApplicationRecord
   scope :upcoming, -> { where('date >= ?', Date.today).order(date: :asc) }
   scope :in_year, ->(year) { year.present? ? where('EXTRACT(YEAR FROM date) = ?', year) : all }
 
+  # Plan 27-01: Entwuerfe aus der Saison-Kopie (Tournament::SeasonCopier). Kein eigener AASM-State und
+  # keine Spalte — das Kennzeichen liegt im serialisierten data-Hash (text-Spalte, coder: JSON).
+  # Rohformat verifiziert: {"draft":true,"copied_from_tournament_id":42} — ohne Leerzeichen.
+  # Spalte MUSS qualifiziert sein: der SearchService joint Tabellen, die ebenfalls eine data-Spalte
+  # haben (PG::AmbiguousColumn im tournaments#index).
+  DRAFT_MARKER = '"draft":true'
+  scope :drafts, -> { where("tournaments.data LIKE ?", "%#{DRAFT_MARKER}%") }
+  scope :without_drafts, -> { where("tournaments.data IS NULL OR tournaments.data NOT LIKE ?", "%#{DRAFT_MARKER}%") }
+
   #   data:
   #     {:table_ids=>["2", "4"],
   #      :balls_goal=>0,
@@ -530,6 +539,14 @@ class Tournament < ApplicationRecord
 
   def name
     title || shortname
+  end
+
+  # Plan 27-01: Entwurf aus der Saison-Kopie — noch nicht vom Sportwart freigegeben und deshalb aus
+  # der regulaeren Turnierliste ausgeblendet. Tolerant gegen String/Boolean und leeres data.
+  def draft?
+    return false unless data.is_a?(Hash)
+
+    ActiveModel::Type::Boolean.new.cast(data["draft"]).present?
   end
 
   # Prüft ob dieses Turnier ClubCloud-Ergebnisse hat

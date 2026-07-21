@@ -16,6 +16,23 @@
   </div>
 <% end %>
 
+<%# Plan 27-01: Entwuerfe aus der Saison-Kopie sind standardmaessig ausgeblendet. Der Umschalter macht
+    sie auffindbar — ohne ihn waeren sie nach einem Kopier-Lauf unsichtbar. %>
+<% if local_server? %>
+  <div class="container mx-auto px-4 mb-2 text-sm">
+    <% if @show_drafts %>
+      <span class="inline-block rounded px-2 py-1 bg-warning-100 text-warning-900 dark:bg-warning-900 dark:text-warning-100">
+        <%= t('tournaments.index.showing_drafts', default: 'Es werden nur Entwürfe angezeigt (aus der Saison-Kopie).') %>
+      </span>
+      <%= link_to t('tournaments.index.show_regular', default: 'Reguläre Turniere anzeigen'),
+            tournaments_path, class: 'ml-2 text-primary-600 dark:text-primary-300 underline' %>
+    <% else %>
+      <%= link_to t('tournaments.index.show_drafts', default: 'Entwürfe anzeigen'),
+            tournaments_path(drafts: 1), class: 'text-primary-600 dark:text-primary-300 underline' %>
+    <% end %>
+  </div>
+<% end %>
+
 <%= render partial: 'shared/index_with_search', locals: {
   model_class: Tournament,
   records: @tournaments,

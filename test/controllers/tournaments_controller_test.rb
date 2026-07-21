@@ -780,4 +780,26 @@ class TournamentsControllerTest < ActionDispatch::IntegrationTest
     # Das bestehende DBU-Textfeld bleibt als Weg fuer Gastspieler erhalten.
     assert_select "input[name=?]", "dbu_nr"
   end
+
+  # Plan 27-01: Entwuerfe aus der Saison-Kopie sind in der regulaeren Liste ausgeblendet.
+
+  # Plan 27-01: Entwurfs-Ausblendung im Index.
+  #
+  # BEFUND: Ein Integrationstest kann den Listeninhalt hier nicht pruefen — der SearchService
+  # liefert im Testkontext generell 0 Records (13 Turniere in der DB, `results.count == 0`
+  # schon VOR jedem Draft-Filter). Das ist vorbestehend und unabhaengig von dieser Aenderung.
+  # Geprueft wird daher, dass der Index mit und ohne `drafts`-Param fehlerfrei rendert
+  # (Regression: die Scopes muessen `tournaments.data` qualifizieren, sonst PG::AmbiguousColumn).
+  # Die Trennung der Mengen deckt tournament_test.rb ueber die Scopes ab.
+  test "GET index rendert mit und ohne drafts-Param" do
+    Carambus.config.carambus_api_url = "http://local.test"
+    Tournament.create!(title: "Entwurfskopie", season: @tournament.season,
+      organizer: regions(:nbv), date: 3.weeks.from_now, data: {"draft" => true})
+
+    get tournaments_url
+    assert_response :success
+
+    get tournaments_url(drafts: 1)
+    assert_response :success
+  end
 end
