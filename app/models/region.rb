@@ -617,11 +617,14 @@ image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9"
     has_open = Tournament.where(season: season, organizer: self).left_joins(:games)
                          .where(games: { id: nil }).exists?
     unless ScrapeFingerprint.deep?(self, list_scope, list_content) || has_open || opts[:force]
+      ScrapeListGuard.warn_if_empty("Tournaments #{shortname} #{season.name}", list_content.lines.size,
+                                    Tournament.where(season:, organizer: self).count)
       Rails.logger.info "===== scrape ===== CC-Change-Gate Tournaments #{shortname} #{season.name}: " \
                         "deep=0 skipped_unchanged=1 (Liste unverändert, keine offenen Turniere)"
       return
     end
-    einzel_doc.css("article table.silver").andand[1].andand.css("tr").to_a[2..].to_a.each do |tr|
+    tournament_rows = einzel_doc.css("article table.silver").andand[1].andand.css("tr").to_a[2..].to_a
+    tournament_rows.each do |tr|
       lfnr = tr.css("td")[0].text.to_i
 
       #TODO remove following after successfull test!!!
@@ -712,6 +715,8 @@ image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9"
     # Deep erfolgreich → Turnier-Listen-digest festschreiben (nächster Lauf überspringt bei gleicher
     # Liste, sofern keine offenen Turniere).
     ScrapeFingerprint.for(self, list_scope).commit!(list_content)
+    ScrapeListGuard.warn_if_empty("Tournaments #{shortname} #{season.name}", tournament_rows.size,
+                                  Tournament.where(season:, organizer: self).count)
     Rails.logger.info "===== scrape ===== CC-Change-Gate Tournaments #{shortname} #{season.name}: " \
                       "deep=1 skipped_unchanged=0"
   rescue StandardError => e
@@ -873,6 +878,7 @@ image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9"
 
             club.scrape_club(season, ref, url, opts.merge(called_from_portal: shortname == "DBU", gate_stats: gate_stats))
           end
+          ScrapeListGuard.warn_if_empty("Clubs #{shortname}", clubs.size, Club.where(region_id: id).count)
           Rails.logger.info "===== scrape ===== CC-Change-Gate Clubs #{shortname}: " \
                             "deep=#{gate_stats[:deep]} skipped_unchanged=#{gate_stats[:skipped]}"
         else
