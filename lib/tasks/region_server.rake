@@ -53,6 +53,8 @@ namespace :region_server do
     puts "  Turniere bereits vorhanden: #{result.tournaments_matched}"
     puts "  Meldungen neu:             #{result.seedings_created}"
     puts "  ohne Quell-Kennung übersprungen: #{result.skipped_no_source_id}"
+    puts "  Ergebnisse übernommen:     #{result.rankings_imported}"
+    puts "  Ergebnisse übersprungen (fremde Rangliste): #{result.rankings_skipped_foreign}"
 
     if result.players_unresolved.any?
       puts "\n⚠️  #{result.players_unresolved.size} Meldung(en) NICHT zuordenbar — diese Spieler kennt die"

@@ -81,4 +81,31 @@ class Api::EntryListsControllerTest < ActionDispatch::IntegrationTest
     get_entry_lists(season: "1999/2000")
     assert_response :not_found
   end
+
+  # ---- Plan 29-03: Ergebnis reist mit ----------------------------------------------------------
+
+  # REGRESSIONSPROBE Phase 28: ohne Ergebnis muss das Dokument unveraendert bleiben.
+  test "ohne Ergebnis enthaelt die Meldung keine Gesamtrangliste" do
+    sign_in @user
+    get_entry_lists
+
+    entry = JSON.parse(response.body)["tournaments"]
+      .find { |t| t["source_tournament_id"] == @tournament.id }["entries"].first
+    refute entry.key?("Gesamtrangliste"), "ohne Ergebnis darf der Schluessel gar nicht auftauchen"
+  end
+
+  test "mit Ergebnis reist die Gesamtrangliste mit" do
+    @tournament.seedings.first.update!(data: {
+      "result" => {"Gesamtrangliste" => {"Rang" => 1, "Bälle" => 120, "Punkte" => 4}},
+      "result_source" => "carambus"
+    })
+
+    sign_in @user
+    get_entry_lists
+
+    entry = JSON.parse(response.body)["tournaments"]
+      .find { |t| t["source_tournament_id"] == @tournament.id }["entries"].first
+    assert_equal 1, entry.dig("Gesamtrangliste", "Rang")
+    assert_equal 120, entry.dig("Gesamtrangliste", "Bälle")
+  end
 end

@@ -17,6 +17,13 @@ default:
   force_update: 'true'
   no_local_protection: 'false'
   club_id: nil
+  # Plan 29-03: Zugang des Location Servers zum Region Server, um den Turnier-Abschluss zu melden.
+  # EIN Service-Account je Region (Betreiber-Entscheidung 2026-07-21) — alle Location Server einer
+  # Region teilen ihn. Anlegen mit `rake service_accounts:create_carambus_app[<REGION>]` AUF DEM
+  # REGION SERVER; das dort ausgegebene Passwort hier eintragen. Leer lassen auf Instanzen, die keine
+  # Turniere durchfuehren (Authority, Region Server selbst).
+  region_server_user:
+  region_server_password:
   # Wenn true, zeigt der Scoreboard im Training-Mode (kein tournament_monitor)
   # für registrierte Nicht-Team-Nicht-Gast-Spieler den vollständigen Namen
   # statt der disambiguierten Kurzform. Default false → unverändertes Verhalten.

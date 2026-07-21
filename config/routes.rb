@@ -70,6 +70,10 @@ Rails.application.routes.draw do
     # (Pull, analog CC-Scrape) und uebersetzt die lokalen IDs in globale.
     resources :entry_lists, only: [:index]
 
+    # Plan 29-03: Der Location Server meldet hier den Abschluss eines Turniers an den Region Server.
+    # Von dort traegt ihn der Ingest (28-01) auf die Authority — die bleibt schreibgeschuetzt.
+    resources :tournament_results, only: [:create]
+
     resources :locations, only: [] do
       collection do
         get :autocomplete

@@ -130,4 +130,82 @@ class RegionServer::EntryListImporterTest < ActiveSupport::TestCase
       importer(doc: {"schema" => "carambus.entry_list/v1"}).call
     end
   end
+
+  # ---- Plan 29-03: Ergebnis-Transport ----------------------------------------------------------
+
+  def ranking
+    {"Rang" => 1, "Name" => "Global, Gerd", "Bälle" => 120, "Aufn" => 106,
+     "GD" => 1.132, "HS" => 5, "BED" => 1.29, "Punkte" => 4}
+  end
+
+  def document_with_ranking
+    doc = document
+    doc["tournaments"].first["entries"].first["Gesamtrangliste"] = ranking
+    doc
+  end
+
+  # REGRESSIONSPROBE Phase 28: ohne Ergebnis muss sich der Meldelisten-Weg exakt wie vorher verhalten.
+  test "ohne Ergebnis bleibt der Meldelisten-Ingest unveraendert" do
+    result = importer(armed: true).call
+
+    assert_equal 1, result.tournaments_created
+    assert_equal 1, result.seedings_created
+    assert_equal 0, result.rankings_imported
+    seeding = Tournament.find_by(source_url: "#{@base_url}/tournaments/#{@source_id}").seedings.first
+    assert seeding.data.blank? || seeding.data.dig("result", "Gesamtrangliste").blank?
+  end
+
+  test "ARMED traegt die Gesamtrangliste auf das globale Seeding" do
+    result = importer(armed: true, doc: document_with_ranking).call
+
+    assert_equal 1, result.rankings_imported
+    seeding = Tournament.find_by(source_url: "#{@base_url}/tournaments/#{@source_id}").seedings.first
+    entry = seeding.data.dig("result", "Gesamtrangliste")
+    assert_equal 1, entry["Rang"]
+    assert_equal 120, entry["Bälle"]
+    assert_equal 4, entry["Punkte"]
+    assert_equal "carambus", seeding.data["result_source"]
+  end
+
+  test "dry-run meldet das Ergebnis, schreibt es aber nicht" do
+    result = nil
+    assert_no_difference("Seeding.count") do
+      result = importer(doc: document_with_ranking).call
+    end
+
+    assert_equal 1, result.rankings_imported
+  end
+
+  test "zweiter Lauf mit Ergebnis erzeugt keine Dubletten" do
+    importer(armed: true, doc: document_with_ranking).call
+    importer(armed: true, doc: document_with_ranking).call
+
+    tournament = Tournament.find_by(source_url: "#{@base_url}/tournaments/#{@source_id}")
+    assert_equal 1, tournament.seedings.count
+    assert_equal 1, tournament.seedings.first.data["result"].keys.size
+  end
+
+  # Ein spaeter nachgemeldetes Ergebnis muss ein bereits bestehendes Seeding erreichen.
+  test "Ergebnis erreicht ein bereits bestehendes Seeding" do
+    importer(armed: true).call
+    result = importer(armed: true, doc: document_with_ranking).call
+
+    assert_equal 0, result.seedings_created, "die Meldung existiert schon"
+    assert_equal 1, result.rankings_imported
+    seeding = Tournament.find_by(source_url: "#{@base_url}/tournaments/#{@source_id}").seedings.first
+    assert_equal 1, seeding.data.dig("result", "Gesamtrangliste", "Rang")
+  end
+
+  test "gescrapte Gesamtrangliste wird nicht ueberschrieben" do
+    importer(armed: true).call
+    seeding = Tournament.find_by(source_url: "#{@base_url}/tournaments/#{@source_id}").seedings.first
+    scraped = {"Rang" => 9, "Name" => "Aus der CC"}
+    seeding.update!(data: {"result" => {"Gesamtrangliste" => scraped}})
+
+    result = importer(armed: true, doc: document_with_ranking).call
+
+    assert_equal 1, result.rankings_skipped_foreign
+    assert_equal 0, result.rankings_imported
+    assert_equal scraped, seeding.reload.data.dig("result", "Gesamtrangliste")
+  end
 end

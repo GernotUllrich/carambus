@@ -132,6 +132,7 @@ class TournamentMonitor::ResultProcessor
           @tournament_monitor.decr_current_round!
           update_ranking
           write_final_ranking
+          report_final_ranking
           write_finale_csv_for_upload
           # noinspection RubyResolve
           @tournament_monitor.end_of_tournament!
@@ -261,6 +262,26 @@ class TournamentMonitor::ResultProcessor
     Rails.logger.error "[write_final_ranking] Turnier[#{@tournament_monitor.tournament_id}] " \
                        "fehlgeschlagen: #{e.message} — Turnier-Abschluss laeuft weiter, " \
                        "Nachtrag via rake tournaments:write_final_rankings"
+  end
+
+  # Plan 29-03: Meldet den Abschluss an den Region Server, damit er ueber den Ingest (28-01) auf die
+  # Authority und von dort per Sync an alle Instanzen gelangt. Laeuft nach `write_final_ranking` —
+  # es kann nur gemeldet werden, was vorher geschrieben wurde.
+  #
+  # FEHLERTOLERANT AUS DEMSELBEN GRUND wie write_final_ranking, hier sogar noch dringender: die
+  # Gegenstelle ist ein anderer Server. Ein Netzausfall im Vereinslokal darf kein Turnier blockieren.
+  # Nachtrag via `rake tournaments:report_results TOURNAMENT=<id> ARMED=1`.
+  def report_final_ranking
+    result = LocationServer::ResultReporter.new(
+      tournament: @tournament_monitor.tournament, armed: true
+    ).call
+    Rails.logger.info "[report_final_ranking] Turnier[#{@tournament_monitor.tournament_id}] " \
+                      "gemeldet=#{result.reported} " \
+                      "ohne_source_url=#{result.skipped_no_source_url}"
+  rescue StandardError => e
+    Rails.logger.error "[report_final_ranking] Turnier[#{@tournament_monitor.tournament_id}] " \
+                       "fehlgeschlagen: #{e.message} — Turnier-Abschluss laeuft weiter, " \
+                       "Nachtrag via rake tournaments:report_results"
   end
 
   # Delegiert an update_game_participations_for_game (alte API, für Abwärtskompatibilität).

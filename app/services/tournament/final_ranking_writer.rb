@@ -32,6 +32,36 @@ class Tournament::FinalRankingWriter
   Result = Struct.new(:seedings_written, :skipped_no_monitor, :skipped_discipline,
     :skipped_no_results, :skipped_foreign_result, :planned, keyword_init: true)
 
+  class << self
+    # Schutzlinie gegen Datenverlust: eine aus der ClubCloud gescrapte Gesamtrangliste wird NIE
+    # ueberschrieben. Eigene Schreibungen dagegen schon — nur so bleibt der Vorgang wiederholbar
+    # (29-01 §5.0: ein korrigierter Writer soll erneut laufen koennen statt ein Reparaturskript
+    # zu brauchen).
+    #
+    # Auf Klassenebene, weil dieselbe Regel entlang der ganzen Kette gilt: hier beim Erzeugen,
+    # in Api::TournamentResultsController beim Empfangen auf dem Region Server und im
+    # RegionServer::EntryListImporter beim Hochtragen auf die Authority (Plan 29-03). Eine Kopie je
+    # Station wuerde frueher oder spaeter auseinanderlaufen.
+    def writable?(seeding)
+      data = seeding.data
+      return true unless data.is_a?(Hash)
+      return true if data.dig("result", "Gesamtrangliste").blank?
+
+      data["result_source"] == SOURCE_MARKER
+    end
+
+    # Schreibt eine Gesamtrangliste auf ein Seeding und setzt die Provenienz-Marke.
+    # Geteilt aus demselben Grund wie `writable?`.
+    def write_gesamtrangliste(seeding, entry)
+      ::Seeding.skip_cable_ready_updates do
+        data = seeding.data.is_a?(Hash) ? seeding.data.deep_dup : {}
+        data["result"] = (data["result"].is_a?(Hash) ? data["result"] : {}).merge("Gesamtrangliste" => entry)
+        data["result_source"] = SOURCE_MARKER
+        seeding.update!(data: data)
+      end
+    end
+  end
+
   def initialize(tournament:, armed: false)
     @tournament = tournament
     @armed = armed
@@ -109,15 +139,8 @@ class Tournament::FinalRankingWriter
     scope.includes(:player).index_by(&:player_id)
   end
 
-  # Schutzlinie gegen Datenverlust: eine aus der ClubCloud gescrapte Gesamtrangliste wird NIE
-  # ueberschrieben. Eigene Schreibungen dagegen schon — nur so bleibt der Vorgang wiederholbar
-  # (29-01 §5.0: ein korrigierter Writer soll erneut laufen koennen statt ein Reparaturskript zu brauchen).
   def writable?(seeding)
-    data = seeding.data
-    return true unless data.is_a?(Hash)
-    return true if data.dig("result", "Gesamtrangliste").blank?
-
-    data["result_source"] == SOURCE_MARKER
+    self.class.writable?(seeding)
   end
 
   # Zielsatz aus 29-01 §4.4. Zwei Festlegungen, die nicht kosmetisch sind:
@@ -171,11 +194,6 @@ class Tournament::FinalRankingWriter
   end
 
   def write(seeding, entry)
-    ::Seeding.skip_cable_ready_updates do
-      data = seeding.data.is_a?(Hash) ? seeding.data.deep_dup : {}
-      data["result"] = (data["result"].is_a?(Hash) ? data["result"] : {}).merge("Gesamtrangliste" => entry)
-      data["result_source"] = SOURCE_MARKER
-      seeding.update!(data: data)
-    end
+    self.class.write_gesamtrangliste(seeding, entry)
   end
 end

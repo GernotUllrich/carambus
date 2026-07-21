@@ -18,7 +18,8 @@ module RegionServer
   # ("CC-less" != "CC-frei"). Unaufloesbare Meldungen werden berichtet.
   class EntryListImporter
     Result = Struct.new(:tournaments_created, :tournaments_matched, :seedings_created,
-      :players_unresolved, :skipped_no_source_id, keyword_init: true)
+      :players_unresolved, :skipped_no_source_id,
+      :rankings_imported, :rankings_skipped_foreign, keyword_init: true)
 
     def initialize(region:, season:, base_url: nil, armed: false, document: nil)
       @region = region
@@ -33,7 +34,8 @@ module RegionServer
       raise ArgumentError, "Antwort enthält keine tournaments-Liste" unless doc.is_a?(Hash) && doc["tournaments"].is_a?(Array)
 
       result = Result.new(tournaments_created: 0, tournaments_matched: 0, seedings_created: 0,
-        players_unresolved: [], skipped_no_source_id: 0)
+        players_unresolved: [], skipped_no_source_id: 0,
+        rankings_imported: 0, rankings_skipped_foreign: 0)
 
       doc["tournaments"].each { |payload| import_tournament(payload, result) }
       result
@@ -105,19 +107,45 @@ module RegionServer
 
         # tournament ist im dry-run nil (noch nicht angelegt) — dann existiert zwangslaeufig noch
         # keine Meldung, alle zaehlen als neu.
-        next if tournament&.seedings&.exists?(player_id: player.id)
+        seeding = tournament&.seedings&.find_by(player_id: player.id)
 
-        result.seedings_created += 1
-        next unless @armed && tournament
-
-        ::Seeding.skip_cable_ready_updates do
-          tournament.seedings.create!(
-            player_id: player.id,
-            position: entry["position"],
-            balls_goal: entry["balls_goal"]
-          )
+        if seeding.nil?
+          result.seedings_created += 1
+          seeding = create_seeding(tournament, player, entry) if @armed && tournament
         end
+
+        import_ranking(seeding, entry, result)
       end
+    end
+
+    def create_seeding(tournament, player, entry)
+      ::Seeding.skip_cable_ready_updates do
+        tournament.seedings.create!(
+          player_id: player.id,
+          position: entry["position"],
+          balls_goal: entry["balls_goal"]
+        )
+      end
+    end
+
+    # Plan 29-03: Traegt das Ergebnis mit hoch, wenn eines mitgereist ist. Damit erreicht der
+    # Turnier-Abschluss die Authority ueber denselben Pull, der die Meldung holt — die Authority bleibt
+    # fuer Schreibzugriffe von aussen geschlossen.
+    def import_ranking(seeding, entry, result)
+      ranking = entry["Gesamtrangliste"]
+      return if ranking.blank?
+
+      # Dieselbe Schutzregel wie entlang der ganzen Kette: gescrapte Ranglisten gehoeren der ClubCloud.
+      # Im dry-run ist `seeding` noch nil — dann gibt es zwangslaeufig nichts zu ueberschreiben.
+      if seeding.present? && !::Tournament::FinalRankingWriter.writable?(seeding)
+        result.rankings_skipped_foreign += 1
+        return
+      end
+
+      result.rankings_imported += 1
+      return unless @armed && seeding
+
+      ::Tournament::FinalRankingWriter.write_gesamtrangliste(seeding, ranking)
     end
 
     # dbu_nr ist global eindeutig (Memory carambus-club-player-identity-numbers). Kein Fallback auf

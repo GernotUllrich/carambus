@@ -121,4 +121,55 @@ namespace :tournaments do
     puts "  übersprungen (fremde Rangliste): #{totals[:foreign]}"
     puts "\nDRY-RUN — für echtes Schreiben ARMED=1 setzen." unless armed
   end
+
+  # Plan 29-03: Meldet den Abschluss eines Turniers an den Region Server nach.
+  #
+  # Im Normalbetrieb geschieht das automatisch beim Turnier-Abschluss
+  # (ResultProcessor#report_final_ranking). Dieser Task ist der Nachtrag, wenn die Meldung damals
+  # scheiterte — etwa weil im Vereinslokal das Netz weg war. Genau dafür ist der Abschluss
+  # fehlertolerant gebaut: er läuft durch, und die Meldung holt man hiermit nach.
+  #
+  # LÄUFT AUF DEM LOCATION SERVER (dort liegen die erspielten Ergebnisse).
+  # BLAST-RADIUS: genau EIN Turnier.
+  #
+  #   bin/rails tournaments:report_results TOURNAMENT=12345            # dry-run
+  #   ARMED=1 bin/rails tournaments:report_results TOURNAMENT=12345    # meldet
+  desc "Turnier-Abschluss an den Region Server nachmelden — dry-run default, ARMED=1 meldet"
+  task report_results: :environment do
+    tournament_id = ENV["TOURNAMENT"].to_s.strip
+    armed = ENV["ARMED"].present?
+
+    if tournament_id.blank?
+      puts "Usage: bin/rails tournaments:report_results TOURNAMENT=12345 [ARMED=1]"
+      exit 1
+    end
+
+    tournament = Tournament.find_by(id: tournament_id)
+    abort "Turnier '#{tournament_id}' nicht gefunden" if tournament.nil?
+
+    puts "=" * 78
+    puts "Abschluss nachmelden: #{tournament.title} (##{tournament.id})"
+    puts "Ziel: #{tournament.source_url.presence || "— kein source_url, nichts zu melden"}"
+    puts armed ? "MODUS: ARMED — es wird gemeldet" : "MODUS: dry-run — es wird NICHTS gemeldet"
+    puts "Blast-Radius: nur dieses eine Turnier"
+    puts "=" * 78
+
+    begin
+      result = LocationServer::ResultReporter.new(tournament: tournament, armed: armed).call
+    rescue => e
+      abort "Meldung abgebrochen: #{e.message}"
+    end
+
+    puts "\nErgebnis:"
+    puts "  zu meldende Platzierungen:      #{result.reported}"
+    puts "  übersprungen (kein source_url): #{result.skipped_no_source_url}"
+    puts "  übersprungen (keine eigene Rangliste): #{result.skipped_no_own_ranking}"
+    puts "  Antwort des Region Servers:     #{result.response.inspect}" if result.response.present?
+
+    if result.skipped_no_source_url.positive?
+      puts "\nHinweis: Ohne source_url gibt es keinen Region Server, der dieses Turnier führt —"
+      puts "         es stammt vermutlich aus der ClubCloud."
+    end
+    puts "\nDRY-RUN — für echtes Melden ARMED=1 setzen." unless armed
+  end
 end

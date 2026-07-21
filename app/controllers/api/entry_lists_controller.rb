@@ -74,7 +74,7 @@ module Api
         player = seeding.player
         next if player.nil?
 
-        {
+        entry = {
           "dbu_nr" => player.dbu_nr,
           "lastname" => player.lastname,
           "firstname" => player.firstname,
@@ -82,6 +82,14 @@ module Api
           "position" => seeding.position,
           "balls_goal" => seeding.balls_goal
         }
+
+        # Plan 29-03: Liegt ein Ergebnis vor, reist es mit — so erreicht der Abschluss die Authority
+        # ueber denselben Pull, der die Meldung holt. NUR wenn vorhanden: fuer Turniere ohne Ergebnis
+        # bleibt das Dokument byte-gleich zu dem, was Plan 28-01 ausgeliefert hat.
+        ranking = seeding.data.is_a?(Hash) ? seeding.data.dig("result", "Gesamtrangliste") : nil
+        entry["Gesamtrangliste"] = ranking if ranking.present?
+
+        entry
       end
     end
 
