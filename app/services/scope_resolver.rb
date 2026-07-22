@@ -69,7 +69,13 @@ class ScopeResolver
     return @server_context_region_id if defined?(@server_context_region_id)
 
     ctx = Carambus.config.context.to_s.strip.presence
-    @server_context_region_id = ctx && Region.find_by(shortname: ctx)&.id
+    # UPPER-Vergleich, weil `context` in den Szenario-Configs uneinheitlich geschrieben ist
+    # ("tbv" und "nbv" klein, "NBV"/"TBV" gross). Ein exaktes find_by(shortname:) traf dort nie
+    # und fiel still auf den NBV-Default zurueck — auf nbv unsichtbar (Fallback = NBV), auf
+    # tbv.carambus.de sichtbar als falsche Region im Scope-Band.
+    # Gleiches Muster wie Admin::UserFormHelper#server_region und
+    # TournamentsController#server_region_for_new.
+    @server_context_region_id = ctx && Region.find_by("UPPER(shortname) = ?", ctx.upcase)&.id
   end
 
   # Default-Region: pragmatisch NBV (per shortname, sonst erste Region).
