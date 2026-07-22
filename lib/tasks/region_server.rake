@@ -53,12 +53,17 @@ namespace :region_server do
       exit 1
     end
 
-    puts "\nErgebnis:"
-    puts "  Turniere neu:              #{result.tournaments_created}"
+    # Die Zaehler laufen im dry-run mit (sie sind seine eigentliche Information), gezaehlt wird
+    # VOR dem Schreib-Abbruch. Ohne ARMED heisst "neu" deshalb "wuerde entstehen" — sonst liest
+    # sich ein Probelauf wie ein vollzogener Import.
+    konjunktiv = armed ? "" : " (würden)"
+    ueberschrift = armed ? "Ergebnis:" : "Ergebnis des Probelaufs:"
+    puts "\n#{ueberschrift}"
+    puts "  Turniere neu#{konjunktiv}:              #{result.tournaments_created}"
     puts "  Turniere bereits vorhanden: #{result.tournaments_matched}"
-    puts "  Meldungen neu:             #{result.seedings_created}"
+    puts "  Meldungen neu#{konjunktiv}:             #{result.seedings_created}"
     puts "  ohne Quell-Kennung übersprungen: #{result.skipped_no_source_id}"
-    puts "  Ergebnisse übernommen:     #{result.rankings_imported}"
+    puts "  Ergebnisse übernommen#{konjunktiv}:     #{result.rankings_imported}"
     puts "  Ergebnisse übersprungen (fremde Rangliste): #{result.rankings_skipped_foreign}"
 
     if result.players_unresolved.any?
