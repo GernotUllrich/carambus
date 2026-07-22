@@ -11,8 +11,13 @@ namespace :tournaments do
   #
   # ⚠️ Kopiert NIEMALS Ergebnisse, Seedings, Spiele oder fremde Provenienz (ba_id/source_url/...).
   #
-  #   bin/rails tournaments:copy_season REGION=NBV FROM=2024/2025 TO=2026/2027           # dry-run
-  #   ARMED=1 bin/rails tournaments:copy_season REGION=NBV FROM=2024/2025 TO=2026/2027   # schreibt
+  # FROM = in aller Regel die VORSAISON: sie hat den aktuellsten Turnierzuschnitt, und der
+  # Datums-Shift bleibt bei einer Saison Abstand am kleinsten. 52 Wochen sind 364 Tage — der
+  # Wochentag bleibt erhalten (so gewollt), das Datum wandert dafuer 1-2 Tage pro Saison nach
+  # vorn. Ueber zwei Saisons sind es schon 2-3 Tage.
+  #
+  #   bin/rails tournaments:copy_season REGION=NBV FROM=2025/2026 TO=2026/2027           # dry-run
+  #   ARMED=1 bin/rails tournaments:copy_season REGION=NBV FROM=2025/2026 TO=2026/2027   # schreibt
   desc "Turnier-Struktur einer Saison in eine Zielsaison kopieren (Entwürfe) — dry-run default, ARMED=1 schreibt"
   task copy_season: :environment do
     shortname = ENV["REGION"].to_s.strip
