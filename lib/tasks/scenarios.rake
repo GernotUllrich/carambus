@@ -4770,7 +4770,21 @@ ENV
     temp_database = "#{scenario_name}_migration_temp"
     backup_file = File.join(backup_dir, "local_data_#{timestamp}.sql")
 
+    # Existiert die Produktionsdatenbank ueberhaupt? Bei einem NEU angelegten Szenario nicht —
+    # dann gibt es keine Altdaten zu migrieren und dieser ganze Schritt ist gegenstandslos.
+    # Ohne diese Pruefung lief das Script mit einem LEEREN Dump weiter und meldete
+    # "Old schema detected", weil in einer leeren DB natuerlich keine region_id-Spalte steht.
     puts "\n   📥 Step 1: Downloading production database..."
+    db_exists = system(
+      "ssh -p #{ssh_port} www-data@#{ssh_host} 'sudo -u postgres psql -lqt' 2>/dev/null " \
+      "| cut -d'|' -f1 | grep -qw #{production_database}"
+    )
+    unless db_exists
+      puts "   ℹ️  Datenbank #{production_database} existiert auf #{ssh_host} nicht."
+      puts "      Neues Szenario ⇒ keine Altdaten, keine Migration noetig. Schritt uebersprungen."
+      return false
+    end
+
     temp_dump = "/tmp/#{production_database}_#{timestamp}.sql.gz"
     download_cmd = "ssh -p #{ssh_port} www-data@#{ssh_host} 'sudo -u postgres pg_dump #{production_database} | gzip' > #{temp_dump}"
 
@@ -4778,7 +4792,19 @@ ENV
       puts "   ❌ Failed to download production database"
       return false
     end
-    puts "   ✅ Downloaded: #{File.size(temp_dump) / 1024 / 1024} MB"
+
+    # ⚠️ Der Exit-Code oben traegt NICHT: in der Remote-Pipeline `pg_dump | gzip` meldet nur gzip
+    # seinen Status, ein gescheitertes pg_dump bleibt unsichtbar (gzip eines leeren Streams
+    # gelingt und ergibt ~20 Byte). Deshalb hier eine Plausibilitaetspruefung der Groesse.
+    dump_size = File.size(temp_dump)
+    if dump_size < 1024
+      puts "   ❌ Dump ist leer oder unvollstaendig (#{dump_size} Byte) — pg_dump ist vermutlich"
+      puts "      fehlgeschlagen. Fehlermeldung siehe oben."
+      File.delete(temp_dump)
+      return false
+    end
+    human_size = (dump_size < 1_048_576) ? "#{dump_size / 1024} KB" : "#{dump_size / 1024 / 1024} MB"
+    puts "   ✅ Downloaded: #{human_size}"
 
     puts "\n   🗄️  Step 2: Creating temporary local database..."
     # Drop temp database if it exists
