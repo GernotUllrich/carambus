@@ -3587,6 +3587,10 @@ Kiosk-Client (<code>scenario:setup_raspberry_pi_client</code> / <code>deploy_ras
 <td><code>Setting.get_cc_credentials</code> (⚠️ <strong>kleingeschrieben</strong>: <code>context.downcase</code> → <code>clubcloud.nbv</code>)</td>
 </tr>
 <tr>
+<td><code>region_server.&lt;ctx&gt;</code></td>
+<td><code>Carambus.region_server_credentials("TBV")</code> → <code>{username:, password:}</code> oder <code>nil</code> (⚠️ <strong>kleingeschrieben</strong> wie clubcloud; Fallback: <code>carambus.yml</code> <code>region_server_user</code>/<code>_password</code>)</td>
+</tr>
+<tr>
 <td><code>google_service</code></td>
 <td><code>credentials.dig(:google_service, …)</code></td>
 </tr>
@@ -3596,18 +3600,47 @@ Kiosk-Client (<code>scenario:setup_raspberry_pi_client</code> / <code>deploy_ras
 </tr>
 </tbody>
 </table>
+<h4 id="welches-muster-wann">Welches Muster wann?<a class="headerlink" href="#welches-muster-wann" title="Permanent link">&para;</a></h4>
+<p><strong>(a) <code>credentials.dig(:gruppe, :key)</code></strong> — für Gruppen, die nur an einer Stelle gelesen werden.
+nil-tolerant: fehlt die Gruppe, kommt <code>nil</code> statt einer Exception.</p>
+<p><strong>(b) Toleranter Helfer <code>Carambus.&lt;name&gt;</code></strong> — wenn ein Key historisch <strong>flach</strong> hiess und heute
+<strong>nested</strong> liegt. Der Helfer liest nested-first und faellt auf die alte Schreibweise zurueck:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="k">def</span><span class="w"> </span><span class="nc">self</span><span class="o">.</span><span class="nf">anthropic_api_key</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="n">creds</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">Rails</span><span class="o">.</span><span class="n">application</span><span class="o">.</span><span class="n">credentials</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span><span class="n">creds</span><span class="o">.</span><span class="n">dig</span><span class="p">(</span><span class="ss">:anthropic</span><span class="p">,</span><span class="w"> </span><span class="ss">:api_key</span><span class="p">)</span><span class="o">.</span><span class="n">presence</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">creds</span><span class="o">.</span><span class="n">dig</span><span class="p">(</span><span class="ss">:anthropic_key</span><span class="p">)</span><span class="o">.</span><span class="n">presence</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="k">end</span>
+</code></pre></div>
+<p>Er ist die <strong>einzige</strong> Quelle fuer alle Aufrufer — so steht die Doppelschreibweise an genau einer
+Stelle statt in jedem Service.</p>
+<p><strong>&copy; Kontext-gewaehlte Gruppe</strong> (<code>clubcloud.&lt;ctx&gt;</code>, <code>region_server.&lt;ctx&gt;</code>) — ein Service-Account
+<strong>je Region</strong>, der Kontext waehlt den Untereintrag:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">group</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">Rails</span><span class="o">.</span><span class="n">application</span><span class="o">.</span><span class="n">credentials</span><span class="o">.</span><span class="n">region_server</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="n">entry</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">group</span><span class="o">.</span><span class="n">presence</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">group</span><span class="o">[</span><span class="n">shortname</span><span class="o">.</span><span class="n">to_s</span><span class="o">.</span><span class="n">downcase</span><span class="o">.</span><span class="n">to_sym</span><span class="o">]</span><span class="w">   </span><span class="c1"># &lt;- downcase</span>
+</code></pre></div>
+<div class="admonition warning">
+<p class="admonition-title">Der Credential-Key ist KLEINGESCHRIEBEN</p>
+<p><code>region_server_credentials("TBV")</code> sucht <code>region_server.tbv</code>. Steht der Kontext in
+<code>secrets.yml</code> gross, findet der Code ihn <strong>nie</strong> — und meldet nicht „falsch geschrieben",
+sondern „keine Zugangsdaten". Derselbe Fallstrick wie bei <code>clubcloud.&lt;ctx&gt;</code>.</p>
+</div>
+<p><strong>(d) Introspektion ueber <code>.config</code></strong> — wenn nicht ein Wert, sondern die vorhandenen <strong>Schluessel</strong>
+gebraucht werden (so ermittelt <code>doctor:chain</code>, welche Kontexte auf der Instanz angekommen sind):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="no">Rails</span><span class="o">.</span><span class="n">application</span><span class="o">.</span><span class="n">credentials</span><span class="o">.</span><span class="n">config</span><span class="o">[</span><span class="ss">:region_server</span><span class="o">].</span><span class="n">keys</span><span class="w">   </span><span class="c1"># =&gt; [:nbv, :tbv, :private_key]</span>
+</code></pre></div>
+<p>Gibt den entschluesselten Baum als Hash zurueck. Fuer Diagnose gedacht, nicht zum Lesen einzelner
+Werte — und <code>private_key</code> ist dabei <strong>kein</strong> Kontext, sondern ein Nachbar-Key.</p>
 <h3 id="42-secret-pool-carambus_datasecretsyml-gitignored">4.2 Secret-Pool <code>carambus_data/secrets.yml</code> (gitignored)<a class="headerlink" href="#42-secret-pool-carambus_datasecretsyml-gitignored" title="Permanent link">&para;</a></h3>
-<p><div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nt">shared</span><span class="p">:</span><span class="w">                 </span><span class="c1"># fleet-weit identische Werte (Backup überall)</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="nt">anthropic</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt"> api_key</span><span class="p">:</span><span class="w"> </span><span class="nv">...</span><span class="w"> </span><span class="p p-Indicator">}</span>
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span><span class="nt">deepl</span><span class="p">:</span><span class="w">     </span><span class="p p-Indicator">{</span><span class="nt"> key</span><span class="p">:</span><span class="w"> </span><span class="nv">...</span><span class="w"> </span><span class="p p-Indicator">}</span>
-<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">  </span><span class="nt">google</span><span class="p">:</span><span class="w">    </span><span class="p p-Indicator">{</span><span class="nt"> translate_api_key</span><span class="p">:</span><span class="w"> </span><span class="nv">...</span><span class="w"> </span><span class="p p-Indicator">}</span>
-<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">  </span><span class="nt">youtube</span><span class="p">:</span><span class="w">   </span><span class="p p-Indicator">{</span><span class="nt"> api_key</span><span class="p">:</span><span class="w"> </span><span class="nv">...</span><span class="w"> </span><span class="p p-Indicator">}</span>
-<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">  </span><span class="nt">kozoom</span><span class="p">:</span><span class="w">    </span><span class="p p-Indicator">{</span><span class="nt"> email</span><span class="p">:</span><span class="w"> </span><span class="nv">...</span><span class="p p-Indicator">,</span><span class="nt"> password</span><span class="p">:</span><span class="w"> </span><span class="nv">...</span><span class="w"> </span><span class="p p-Indicator">}</span>
-<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="w">  </span><span class="nt">google_service</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="w"> </span><span class="nv">...</span><span class="w"> </span><span class="p p-Indicator">}</span>
-<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="w">  </span><span class="nt">clubcloud</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt"> nbv</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt"> username</span><span class="p">:</span><span class="w"> </span><span class="nv">...</span><span class="p p-Indicator">,</span><span class="nt"> password</span><span class="p">:</span><span class="w"> </span><span class="nv">...</span><span class="w"> </span><span class="p p-Indicator">}</span><span class="w"> </span><span class="p p-Indicator">}</span><span class="w">   </span><span class="c1"># kleingeschrieben!</span>
-<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="w">  </span><span class="nt">database_password</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">...</span><span class="w">   </span><span class="c1"># Production-DB-Passwort (fleet-uniform); seit 2026-06-19 NICHT mehr in config.yml</span>
-<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="nt">per_scenario</span><span class="p">:</span><span class="w">           </span><span class="c1"># nur echte Abweichungen je Szenario (Override)</span>
-<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="w">  </span><span class="nt">carambus_bcw</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt"> club_wlan_password</span><span class="p">:</span><span class="w"> </span><span class="nv">...</span><span class="w"> </span><span class="p p-Indicator">}</span><span class="w">   </span><span class="c1"># WLAN-Passwort (network.club_wlan); NICHT mehr in config.yml</span>
+<p><div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nt">shared</span><span class="p">:</span><span class="w">                 </span><span class="c1"># fleet-weit identische Werte (Backup überall)</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">  </span><span class="nt">anthropic</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt"> api_key</span><span class="p">:</span><span class="w"> </span><span class="nv">...</span><span class="w"> </span><span class="p p-Indicator">}</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">  </span><span class="nt">deepl</span><span class="p">:</span><span class="w">     </span><span class="p p-Indicator">{</span><span class="nt"> key</span><span class="p">:</span><span class="w"> </span><span class="nv">...</span><span class="w"> </span><span class="p p-Indicator">}</span>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="w">  </span><span class="nt">google</span><span class="p">:</span><span class="w">    </span><span class="p p-Indicator">{</span><span class="nt"> translate_api_key</span><span class="p">:</span><span class="w"> </span><span class="nv">...</span><span class="w"> </span><span class="p p-Indicator">}</span>
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="w">  </span><span class="nt">youtube</span><span class="p">:</span><span class="w">   </span><span class="p p-Indicator">{</span><span class="nt"> api_key</span><span class="p">:</span><span class="w"> </span><span class="nv">...</span><span class="w"> </span><span class="p p-Indicator">}</span>
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="w">  </span><span class="nt">kozoom</span><span class="p">:</span><span class="w">    </span><span class="p p-Indicator">{</span><span class="nt"> email</span><span class="p">:</span><span class="w"> </span><span class="nv">...</span><span class="p p-Indicator">,</span><span class="nt"> password</span><span class="p">:</span><span class="w"> </span><span class="nv">...</span><span class="w"> </span><span class="p p-Indicator">}</span>
+<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="w">  </span><span class="nt">google_service</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="w"> </span><span class="nv">...</span><span class="w"> </span><span class="p p-Indicator">}</span>
+<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="w">  </span><span class="nt">clubcloud</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt"> nbv</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt"> username</span><span class="p">:</span><span class="w"> </span><span class="nv">...</span><span class="p p-Indicator">,</span><span class="nt"> password</span><span class="p">:</span><span class="w"> </span><span class="nv">...</span><span class="w"> </span><span class="p p-Indicator">}</span><span class="w"> </span><span class="p p-Indicator">}</span><span class="w">   </span><span class="c1"># kleingeschrieben!</span>
+<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="w">  </span><span class="nt">database_password</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">...</span><span class="w">   </span><span class="c1"># Production-DB-Passwort (fleet-uniform); seit 2026-06-19 NICHT mehr in config.yml</span>
+<a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="nt">per_scenario</span><span class="p">:</span><span class="w">           </span><span class="c1"># nur echte Abweichungen je Szenario (Override)</span>
+<a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a><span class="w">  </span><span class="nt">carambus_bcw</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt"> club_wlan_password</span><span class="p">:</span><span class="w"> </span><span class="nv">...</span><span class="w"> </span><span class="p p-Indicator">}</span><span class="w">   </span><span class="c1"># WLAN-Passwort (network.club_wlan); NICHT mehr in config.yml</span>
 </code></pre></div>
 Anlegen: <code>cp carambus_data/secrets.yml.example carambus_data/secrets.yml</code> → echte
 Werte eintragen → <code>chmod 600</code>. <strong>Niemals committen.</strong></p>
@@ -3624,10 +3657,10 @@ Git-Repo</strong> (<code>github.com/GernotUllrich/carambus_data</code>); <code>*
 <code>.git</code>-Archiv <code>carambus_data-gitbackup-*.tar.gz</code>).</p>
 </blockquote>
 <h3 id="43-deklaration-in-configyml">4.3 Deklaration in <code>config.yml</code><a class="headerlink" href="#43-deklaration-in-configyml" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nt">scenario</span><span class="p">:</span>
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="nt">credentials</span><span class="p">:</span>
-<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">    </span><span class="nt">features</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">ai</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">translation</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">scraping</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">clubcloud</span><span class="p p-Indicator">]</span>
-<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">    </span><span class="nt">clubcloud_context</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">NBV</span><span class="w">        </span><span class="c1"># wird intern kleingeschrieben</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="nt">scenario</span><span class="p">:</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">  </span><span class="nt">credentials</span><span class="p">:</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">    </span><span class="nt">features</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">ai</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">translation</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">scraping</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">clubcloud</span><span class="p p-Indicator">]</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">    </span><span class="nt">clubcloud_context</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">NBV</span><span class="w">        </span><span class="c1"># wird intern kleingeschrieben</span>
 </code></pre></div>
 <blockquote>
 <p>⚠️ <strong>Für ClubCloud beide Felder setzen:</strong> <code>clubcloud</code> muss in <code>features</code> stehen <strong>UND</strong>
@@ -3693,32 +3726,32 @@ Server übereinstimmen — geheimnisfrei per serverseitigem Hash-Vergleich
 <code>production.rb</code> liest <code>ENV["SMTP_USERNAME"]</code>/<code>ENV["SMTP_PASSWORD"]</code>. Ein
 <strong>Fail-Fast-Guard</strong> (<code>config/initializers/smtp_guard.rb</code>) bricht den
 Production-Boot ab, wenn beide fehlen (Opt-out: <code>SKIP_SMTP_GUARD=1</code>).</p>
-<p><div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>ssh<span class="w"> </span>&lt;host&gt;
-<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>sudo<span class="w"> </span>install<span class="w"> </span>-o<span class="w"> </span>root<span class="w"> </span>-g<span class="w"> </span>www-data<span class="w"> </span>-m<span class="w"> </span><span class="m">640</span><span class="w"> </span>/dev/stdin<span class="w"> </span>/etc/&lt;basename&gt;.env<span class="w"> </span><span class="s">&lt;&lt;&#39;ENV&#39;</span>
-<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="s">SMTP_USERNAME=...@gmail.com</span>
-<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="s">SMTP_PASSWORD=...</span>
-<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="s">ENV</span>
-<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>sudo<span class="w"> </span>systemctl<span class="w"> </span>restart<span class="w"> </span>puma-&lt;basename&gt;
+<p><div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>ssh<span class="w"> </span>&lt;host&gt;
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>sudo<span class="w"> </span>install<span class="w"> </span>-o<span class="w"> </span>root<span class="w"> </span>-g<span class="w"> </span>www-data<span class="w"> </span>-m<span class="w"> </span><span class="m">640</span><span class="w"> </span>/dev/stdin<span class="w"> </span>/etc/&lt;basename&gt;.env<span class="w"> </span><span class="s">&lt;&lt;&#39;ENV&#39;</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="s">SMTP_USERNAME=...@gmail.com</span>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="s">SMTP_PASSWORD=...</span>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="s">ENV</span>
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>sudo<span class="w"> </span>systemctl<span class="w"> </span>restart<span class="w"> </span>puma-&lt;basename&gt;
 </code></pre></div>
 Der Datei-Name muss <code>&lt;basename&gt;.env</code> heißen (vom <code>puma.service</code>-Template erzeugt).
 Diese Datei wird von <strong>keinem</strong> Rake-Task erzeugt — rein manuell.</p>
 <hr />
 <h2 id="6-verifizieren-troubleshooting">6. Verifizieren &amp; Troubleshooting<a class="headerlink" href="#6-verifizieren-troubleshooting" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c1"># Dienst-Health (active, kein Crash-Loop, 2 Worker):</span>
-<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>ssh<span class="w"> </span>&lt;host&gt;<span class="w"> </span><span class="s1">&#39;systemctl show puma-&lt;basename&gt; -p ActiveState -p SubState -p NRestarts --value; \</span>
-<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="s1">  mpid=$(systemctl show puma-&lt;basename&gt; -p MainPID --value); pgrep -P $mpid | wc -l&#39;</span>
-<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>
-<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="c1"># HTTP (öffentliche Szenarien):</span>
-<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>curl<span class="w"> </span>-s<span class="w"> </span>-o<span class="w"> </span>/dev/null<span class="w"> </span>-w<span class="w"> </span><span class="s2">&quot;%{http_code}\n&quot;</span><span class="w"> </span>https://&lt;host&gt;/<span class="w">      </span><span class="c1"># 200 ok; 403 = Bot-Block (erwartet)</span>
-<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>
-<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="c1"># Credential-Lesbarkeit (nur Boolean, kein Wert):</span>
-<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>ssh<span class="w"> </span>&lt;host&gt;<span class="w"> </span><span class="s1">&#39;cd /var/www/&lt;basename&gt;/current &amp;&amp; RBENV_ROOT=/var/www/.rbenv \</span>
-<a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="s1">  PATH=$RBENV_ROOT/shims:$PATH RBENV_VERSION=3.2.1 RAILS_ENV=production \</span>
-<a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a><span class="s1">  bundle exec rails runner &quot;puts Carambus.deepl_key.present?&quot;&#39;</span>
-<a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a>
-<a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a><span class="c1"># Config-Drift (Server-live vs. frisch generiert):</span>
-<a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a>diff<span class="w"> </span>&lt;<span class="o">(</span>ssh<span class="w"> </span>&lt;host&gt;<span class="w"> </span>cat<span class="w"> </span>/var/www/&lt;basename&gt;/shared/config/cable.yml<span class="o">)</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-5-15" name="__codelineno-5-15" href="#__codelineno-5-15"></a><span class="w">     </span>carambus_data/scenarios/&lt;szenario&gt;/production/cable.yml
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c1"># Dienst-Health (active, kein Crash-Loop, 2 Worker):</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>ssh<span class="w"> </span>&lt;host&gt;<span class="w"> </span><span class="s1">&#39;systemctl show puma-&lt;basename&gt; -p ActiveState -p SubState -p NRestarts --value; \</span>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="s1">  mpid=$(systemctl show puma-&lt;basename&gt; -p MainPID --value); pgrep -P $mpid | wc -l&#39;</span>
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="c1"># HTTP (öffentliche Szenarien):</span>
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>curl<span class="w"> </span>-s<span class="w"> </span>-o<span class="w"> </span>/dev/null<span class="w"> </span>-w<span class="w"> </span><span class="s2">&quot;%{http_code}\n&quot;</span><span class="w"> </span>https://&lt;host&gt;/<span class="w">      </span><span class="c1"># 200 ok; 403 = Bot-Block (erwartet)</span>
+<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a>
+<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a><span class="c1"># Credential-Lesbarkeit (nur Boolean, kein Wert):</span>
+<a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a>ssh<span class="w"> </span>&lt;host&gt;<span class="w"> </span><span class="s1">&#39;cd /var/www/&lt;basename&gt;/current &amp;&amp; RBENV_ROOT=/var/www/.rbenv \</span>
+<a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a><span class="s1">  PATH=$RBENV_ROOT/shims:$PATH RBENV_VERSION=3.2.1 RAILS_ENV=production \</span>
+<a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a><span class="s1">  bundle exec rails runner &quot;puts Carambus.deepl_key.present?&quot;&#39;</span>
+<a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a>
+<a id="__codelineno-8-13" name="__codelineno-8-13" href="#__codelineno-8-13"></a><span class="c1"># Config-Drift (Server-live vs. frisch generiert):</span>
+<a id="__codelineno-8-14" name="__codelineno-8-14" href="#__codelineno-8-14"></a>diff<span class="w"> </span>&lt;<span class="o">(</span>ssh<span class="w"> </span>&lt;host&gt;<span class="w"> </span>cat<span class="w"> </span>/var/www/&lt;basename&gt;/shared/config/cable.yml<span class="o">)</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-8-15" name="__codelineno-8-15" href="#__codelineno-8-15"></a><span class="w">     </span>carambus_data/scenarios/&lt;szenario&gt;/production/cable.yml
 </code></pre></div>
 <p><strong>Nach jedem Puma-Restart ~5–10 s warten</strong> (eager_load) — ein 502 unmittelbar
 danach ist meist nur Boot-Timing, kein Fehler.</p>
