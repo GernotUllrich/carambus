@@ -417,6 +417,37 @@ step_one_five_check_preconditions() {
 
     local missing=0
 
+    # (0) Namens-Konsistenz — faengt den KLON-FALLSTRICK ab.
+    #
+    # Ein neues Szenario entsteht meist als Kopie eines bestehenden. Bleiben dabei `name`,
+    # `basename` oder `database_name` der Vorlage stehen, arbeitet der Deploy unter FREMDEM
+    # Namen weiter — und `reset_server_db` ist dann sogar destruktiv am falschen Ort:
+    # es dropt `database_name` und loescht `/var/www/<basename>`.
+    # Live beobachtet an carambus_ebc (2026-07-22): name/basename/database_name zeigten
+    # noch auf carambus_phat.
+    local cfg_name=$(ruby -ryaml -e "puts YAML.load_file('$config_file')['scenario']['name']" 2>/dev/null)
+    local cfg_basename=$(ruby -ryaml -e "puts YAML.load_file('$config_file')['scenario']['basename']" 2>/dev/null)
+    local name_mismatch=0
+    [ -n "$cfg_name" ] && [ "$cfg_name" != "$SCENARIO_NAME" ] && name_mismatch=1
+    [ -n "$cfg_basename" ] && [ "$cfg_basename" != "$SCENARIO_NAME" ] && name_mismatch=1
+    case "$db_name" in
+      "${SCENARIO_NAME}_production") ;;
+      *) name_mismatch=1 ;;
+    esac
+
+    if [ "$name_mismatch" -eq 1 ]; then
+        warning "  ❌ Namen passen nicht zum Szenario '$SCENARIO_NAME':"
+        warning "       scenario.name     = ${cfg_name:-<leer>}"
+        warning "       scenario.basename = ${cfg_basename:-<leer>}"
+        warning "       database_name     = $db_name"
+        warning "     ⚠️  Sieht nach einer nicht angepassten KOPIE aus. reset_server_db würde"
+        warning "        die Datenbank '$db_name' droppen und /var/www/${cfg_basename:-?} löschen"
+        warning "        — also womöglich eine FREMDE Instanz treffen."
+        missing=$((missing + 1))
+    else
+        info "  ✅ Namen konsistent ($SCENARIO_NAME)"
+    fi
+
     # (1) Production-Datenbank
     if ssh -p "$ssh_port" "www-data@$ssh_host" 'sudo -u postgres psql -lqt' 2>/dev/null \
         | cut -d'|' -f1 | grep -qw "$db_name"; then
