@@ -399,6 +399,75 @@ step_two_prepare_deploy() {
     echo ""
 }
 
+# Step 2.5: Ensure the production database exists on the server
+#
+# Bei einem NEU angelegten Szenario gibt es sie noch nicht — `deploy:migrate` scheitert dann mit
+# "We could not find your database", nachdem der Deploy schon Minuten in bundle install gesteckt
+# hat. `prepare_deploy` nennt reset_server_db selbst als naechsten Schritt, das Skript hat ihn aber
+# nie ausgefuehrt.
+#
+# ⚠️ reset_server_db ist DESTRUKTIV (dropt die DB, loescht /var/www/<basename>). Deshalb laeuft er
+# hier ausschliesslich, wenn die Datenbank nachweislich FEHLT. Ist sie da, passiert nichts.
+step_two_five_ensure_database() {
+    log "🗄️  Step 2.5: Production-Datenbank prüfen"
+    log "========================================"
+
+    local config_file="$CARAMBUS_DATA/scenarios/$SCENARIO_NAME/config.yml"
+    if [ ! -f "$config_file" ]; then
+        error "config.yml nicht gefunden: $config_file"
+        return 1
+    fi
+
+    local prod_cfg="YAML.load_file('$config_file')['environments']['production']"
+    local ssh_host=$(ruby -ryaml -e "puts $prod_cfg['ssh_host']" 2>/dev/null)
+    local ssh_port=$(ruby -ryaml -e "puts $prod_cfg['ssh_port'] || 22" 2>/dev/null)
+    local db_name=$(ruby -ryaml -e "puts $prod_cfg['database_name']" 2>/dev/null)
+
+    if [ -z "$ssh_host" ] || [ -z "$db_name" ]; then
+        error "ssh_host oder database_name fehlen in $config_file"
+        return 1
+    fi
+
+    info "Server: $ssh_host:$ssh_port · Datenbank: $db_name"
+
+    # Erreichbarkeit ZUERST pruefen: eine fehlgeschlagene SSH-Verbindung darf nicht als
+    # "Datenbank fehlt" durchgehen — das wuerde im -y-Modus einen destruktiven Reset ausloesen.
+    if ! ssh -p "$ssh_port" -o ConnectTimeout=10 "www-data@$ssh_host" true 2>/dev/null; then
+        error "Server $ssh_host:$ssh_port nicht erreichbar — Datenbankstatus unbekannt."
+        error "Abbruch, statt einen destruktiven Reset auf einer Vermutung zu starten."
+        return 1
+    fi
+
+    if ssh -p "$ssh_port" "www-data@$ssh_host" 'sudo -u postgres psql -lqt' 2>/dev/null \
+        | cut -d'|' -f1 | grep -qw "$db_name"; then
+        log "✅ Datenbank $db_name existiert bereits — Schritt übersprungen"
+        echo ""
+        return 0
+    fi
+
+    warning "Datenbank $db_name existiert auf $ssh_host NICHT."
+    info "Das ist bei einem neu angelegten Szenario normal. Ohne sie scheitert der Deploy"
+    info "am db:migrate — erst nach mehreren Minuten bundle install."
+    info ""
+    info "reset_server_db legt sie an. Dabei wird ausserdem:"
+    info "  - /var/www/<basename> entfernt (shared/ wird gesichert und zurückgespielt)"
+    info "  - der Dump aus ${SCENARIO_NAME}_development erzeugt und eingespielt"
+
+    if ! confirm "Production-Datenbank jetzt anlegen (reset_server_db)?" "y"; then
+        error "Ohne Datenbank schlägt der folgende Deploy fehl. Abgebrochen."
+        return 1
+    fi
+
+    log "Running: rake scenario:reset_server_db[$SCENARIO_NAME]"
+    if ! rake "scenario:reset_server_db[$SCENARIO_NAME]"; then
+        error "reset_server_db fehlgeschlagen - aborting workflow."
+        return 1
+    fi
+
+    log "✅ Step 2.5 completed: Production-Datenbank angelegt"
+    echo ""
+}
+
 # Step 3: Deploy
 step_three_deploy() {
     log "🚀 Step 3: Deploy to Server"
@@ -546,6 +615,13 @@ main() {
         exit 1
     fi
     
+    # Step 2.5: Production-DB anlegen, falls sie fehlt (neues Szenario)
+    step_two_five_ensure_database
+    if [ $? -ne 0 ]; then
+        log "Workflow cancelled at database preparation"
+        exit 1
+    fi
+
     # Step 3: Deploy
     step_three_deploy
     if [ $? -ne 0 ]; then
