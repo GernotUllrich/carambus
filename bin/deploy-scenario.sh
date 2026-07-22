@@ -451,6 +451,53 @@ step_one_five_check_preconditions() {
         missing=$((missing + 1))
     fi
 
+    # (4) Zugang zum Region Server (Plan 29-05) — nur fuer Instanzen, die ihn BRAUCHEN:
+    #
+    #   Location Server (location_id gesetzt): meldet den Turnier-Abschluss an seinen
+    #     Region Server  -> braucht dessen Kontext
+    #   Authority (cap_role: api): holt die Meldelisten von N Region Servern
+    #     -> braucht deren Kontexte
+    #   Region Server (nur region_id): ist ZIEL, nicht Aufrufer -> braucht nichts
+    #
+    # Diese Luecke faellt sonst erst auf, wenn wirklich ein Turnier gespielt und abgeschlossen
+    # wird — also im Ernstfall. Anders als (1)-(3) ist das rein lokal pruefbar.
+    local location_id=$(ruby -ryaml -e "puts YAML.load_file('$config_file')['scenario']['location_id']" 2>/dev/null)
+    local cap_role=$(ruby -ryaml -e "puts $prod_cfg['cap_role']" 2>/dev/null)
+
+    if [ -n "$location_id" ] || [ "$cap_role" = "api" ]; then
+        local rs_report=$(ruby -ryaml -e "
+          decl = (YAML.load_file('$config_file')['scenario']['credentials'] || {})['region_server_contexts']
+          ctxs = Array(decl).compact
+          if ctxs.empty?
+            puts 'MISSING_DECL'
+          else
+            pool_file = File.join('$CARAMBUS_DATA', 'secrets.yml')
+            pool = File.exist?(pool_file) ? ((YAML.load_file(pool_file) || {})['shared'] || {})['region_server'] || {} : {}
+            gaps = ctxs.reject { |c| pool.key?(c.to_s) || pool.key?(c.to_s.downcase) }
+            puts gaps.empty? ? \"OK #{ctxs.join(',')}\" : \"NO_SECRET #{gaps.join(',')}\"
+          end" 2>/dev/null)
+
+        case "$rs_report" in
+          OK*)
+            info "  ✅ region_server_contexts: ${rs_report#OK }" ;;
+          MISSING_DECL)
+            warning "  ❌ region_server_contexts fehlt in der config.yml (scenario.credentials)"
+            warning "     Diese Instanz meldet Ergebnisse an einen Region Server bzw. holt von dort."
+            warning "     Ohne den Eintrag scheitert das erst beim Turnier-Abschluss."
+            warning "     Beispiel:      region_server_contexts: [TBV]"
+            missing=$((missing + 1)) ;;
+          NO_SECRET*)
+            warning "  ❌ Kein Zugang in secrets.yml für: ${rs_report#NO_SECRET }"
+            warning "     Erwartet unter shared.region_server.<kontext>.username/password"
+            warning "     Anlegen mit: rake \"service_accounts:create_carambus_app[<REGION>]\" AUF DEM REGION SERVER"
+            missing=$((missing + 1)) ;;
+          *)
+            warning "  ⚠️  region_server_contexts nicht prüfbar (config.yml lesbar?)" ;;
+        esac
+    else
+        info "  ⏭️  Region-Server-Zugang nicht nötig (Region Server ist Ziel, nicht Aufrufer)"
+    fi
+
     if [ "$missing" -eq 0 ]; then
         log "✅ Alle Vorbedingungen erfüllt"
         echo ""
