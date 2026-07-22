@@ -3289,13 +3289,32 @@ ENV
     puts "   Config: #{File.join(scenario_path, 'config.yml')}"
   end
 
+  # Passwort der GETEILTEN PostgreSQL-Rolle (www_data).
+  #
+  # ⚠️ Seit der Secret-Bereinigung steht es in carambus_data/secrets.yml unter
+  # `shared.database_password`; die `database_password`-Felder der config.yml sind LEER.
+  # Wer sie direkt liest, bekommt "" — und ein damit gebautes
+  # `ALTER ROLE www_data WITH PASSWORD ''` sperrt JEDE Instanz aus, weil die Rolle geteilt ist.
+  # Genau das ist am 2026-07-22 beim Aufsetzen von carambus_tbv passiert.
+  #
+  # Reihenfolge: secrets.yml zuerst, config.yml nur als Fallback (falls jemand sie doch pflegt).
+  # Ein leeres Ergebnis ist zulaessig — die Aufrufer duerfen damit nur NICHTS anfassen.
+  def resolve_shared_database_password(production_config)
+    pool_file = File.join(carambus_data_path, 'secrets.yml')
+    if File.exist?(pool_file)
+      from_pool = ((YAML.load_file(pool_file) || {})['shared'] || {})['database_password'].to_s
+      return from_pool unless from_pool.empty?
+    end
+    production_config['database_password'].to_s
+  end
+
   def upload_and_load_database_dump(scenario_name, production_config)
     puts "💾 Uploading and loading database dump..."
 
     # Get basename from production config or derive from scenario name
     basename = production_config['basename'] || scenario_name
     db_username = production_config['database_username']
-    db_password = production_config['database_password']
+    db_password = resolve_shared_database_password(production_config)
     ssh_host = production_config['ssh_host']
     ssh_port = production_config['ssh_port']
     production_database = production_config['database_name']
@@ -3356,17 +3375,27 @@ ENV
           echo "🗑️  Dropping existing database..."
           sudo -u postgres psql -c "DROP DATABASE IF EXISTS #{production_database};" || echo "Database did not exist"
 
-          # Ensure database role exists (with password and privileges)
+          # Rolle sicherstellen — NUR anlegen, wenn sie fehlt.
+          #
+          # ⚠️ #{db_username} ist eine von ALLEN Instanzen geteilte Rolle. Ein Szenario-Reset darf
+          # weder ihr Passwort noch ihre Rechte aendern: die frueher hier stehende Zeile
+          #   ALTER ROLE #{db_username} WITH PASSWORD '<database_password aus config.yml>';
+          # lief bedingungslos und setzte das Passwort auf "" (das config.yml-Feld ist seit der
+          # Secret-Bereinigung leer) — am 2026-07-22 waren damit api, nbv, train und carambus
+          # gleichzeitig ausgesperrt.
           echo "👤 Ensuring database role exists..."
           if sudo -u postgres psql -tAc "SELECT 1 FROM pg_roles WHERE rolname='#{db_username}'" | grep -q 1; then
-            echo "   Role #{db_username} exists"
+            echo "   Role #{db_username} exists - Passwort und Rechte bleiben UNVERAENDERT (geteilte Rolle)"
           else
+            if [ -z "#{db_password}" ]; then
+              echo "❌ Rolle #{db_username} fehlt, aber kein Passwort verfuegbar."
+              echo "   Erwartet in carambus_data/secrets.yml unter shared.database_password."
+              exit 1
+            fi
             echo "   Creating role #{db_username}"
-            sudo -u postgres psql -c "CREATE ROLE #{db_username} WITH LOGIN PASSWORD '#{db_password}';"
+            sudo -u postgres psql -c "CREATE ROLE #{db_username} WITH LOGIN PASSWORD '#{db_password.gsub("'", "''")}';"
+            sudo -u postgres psql -c "ALTER ROLE #{db_username} SUPERUSER CREATEROLE CREATEDB REPLICATION;"
           fi
-          # Always enforce password and required privileges
-          sudo -u postgres psql -c "ALTER ROLE #{db_username} WITH PASSWORD '#{db_password}';"
-          sudo -u postgres psql -c "ALTER ROLE #{db_username} SUPERUSER CREATEROLE CREATEDB REPLICATION;"
 
           echo "🆕 Creating new database..."
           sudo -u postgres psql -c "CREATE DATABASE #{production_database} OWNER #{db_username};"
