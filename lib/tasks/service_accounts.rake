@@ -67,6 +67,13 @@ namespace :service_accounts do
       user.password = password
       user.password_confirmation = password
       user.role = :player
+      # Plan 29-05: User ist :confirmable — ohne confirmed_at lehnt devise JEDEN Login
+      # mit 401 ab, unabhaengig vom Passwort. Ein Service-Account hat kein Postfach,
+      # das eine Bestaetigungsmail empfangen koennte.
+      # ⚠️ `skip_confirmation!` NICHT verwenden: die Methode existiert (respond_to? == true),
+      # laesst confirmed_at hier aber nachweislich nil (auf Dev gemessen, 2026-07-22).
+      # Das Attribut wird deshalb explizit gesetzt.
+      user.confirmed_at = Time.current
       user.save!
       puts "✓ Created carambus-app-bridge service-account: #{email}"
       puts ""
@@ -76,17 +83,43 @@ namespace :service_accounts do
       puts "Next steps (in 3BandMannschaftsTurnier-App):"
       puts "  1. POST https://#{shortname.downcase}.carambus.de/login"
       puts "     Headers: Content-Type: application/json"
+      puts "              Accept: application/json     <-- PFLICHT, sonst HTTP 422:"
+      puts "              der SessionsController skippt CSRF nur bei request.format.json?,"
+      puts "              und das Format kommt vom Accept-Header, nicht vom Content-Type."
       puts "     Body:    {\"user\":{\"email\":\"#{email}\",\"password\":\"<password>\"}}"
       puts "  2. Capture Authorization: Bearer ... header from response"
       puts "  3. Use this JWT in 'Authorization: Bearer ...' header for all"
       puts "     GET /api/external_tournament/* calls (Long-Lived 90d via D-14-G7)."
+    elsif ENV["ROTATE"].present?
+      # Plan 29-05: Rotation als TASK statt als Copy-Paste-Anleitung. Die alte Anleitung
+      # liess `user.update!(password: SecureRandom...)` ausfuehren, ohne das Passwort
+      # auszugeben — es war danach unwiederbringlich weg (live passiert am 2026-07-22).
+      user.confirm if user.confirmed_at.nil?
+      user.update!(password: password, password_confirmation: password)
+      user.update_column(:jti, SecureRandom.uuid) # revoked alle bestehenden JWTs (D-13-06.2-C)
+
+      puts "✓ Passwort rotiert: #{email}"
+      puts "  confirmed_at: #{user.reload.confirmed_at.inspect}"
+      puts "  Alle bisherigen JWTs sind ungueltig."
+      puts ""
+      puts "Neues Passwort (wird NUR JETZT angezeigt):"
+      puts "  #{password}"
+      puts ""
+      puts "Eintragen in carambus_data/secrets.yml unter"
+      puts "  shared.region_server.#{shortname.downcase}.password"
+      puts "dann `rake scenario:generate_credentials[<szenario>,production]` + `scenario:push_credentials`."
+      puts ""
+      puts "(Ein fehlgeschlagener 'DeviseMailJob' im Log ist folgenlos — der Service-Account"
+      puts " hat kein Postfach; das Passwort ist trotzdem gesetzt.)"
     else
       puts "carambus-app-bridge service-account exists: #{email}"
+      puts "  confirmed_at: #{user.confirmed_at.inspect}#{"   ⚠️  UNBESTAETIGT — jeder Login endet mit 401" if user.confirmed_at.nil?}"
       puts ""
-      puts "To rotate password (revokes existing JWTs via JTIMatcher D-13-06.2-C):"
-      puts "  user = User.find_by(email: '#{email}')"
-      puts "  user.update!(password: SecureRandom.urlsafe_base64(32))"
-      puts "  user.update_column(:jti, SecureRandom.uuid)"
+      puts "Passwort neu setzen und ausgeben (revoked bestehende JWTs, bestaetigt den Account):"
+      puts "  ROTATE=1 rake \"service_accounts:create_carambus_app[#{shortname}]\""
+      puts ""
+      puts "⚠️  NICHT von Hand `user.update!(password: SecureRandom.urlsafe_base64(32))` —"
+      puts "    das setzt ein Passwort, das nie ausgegeben wird und danach niemand kennt."
     end
   end
 end
