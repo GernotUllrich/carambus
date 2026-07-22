@@ -2,7 +2,11 @@
 namespace :cleanup do
   desc "Remove records not associated with the local server's region"
   task remove_non_region_records: :environment do
-    region = Region.find_by_shortname(ENV["REGION_SHORTNAME"] || Carambus.config.context)
+    # UPPER-Vergleich: `context` ist in den Szenario-Configs uneinheitlich geschrieben
+    # ("tbv" klein, "TBV" gross) — ein exaktes find_by_shortname traf die kleingeschriebenen nie
+    # und lief in das FATAL unten. Gleiches Muster wie ScopeResolver#server_context_region_id.
+    shortname = (ENV["REGION_SHORTNAME"].presence || Carambus.config.context).to_s
+    region = Region.find_by("UPPER(shortname) = ?", shortname.upcase)
     if region.blank?
       puts "FATAL - no REGION_SHORTNAME env set and no Carambus.config.context"
       exit

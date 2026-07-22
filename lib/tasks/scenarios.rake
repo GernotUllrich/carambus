@@ -525,6 +525,29 @@ namespace :scenario do
     end
   end
 
+  # Region-Shortname fuer den Datenfilter (cleanup:remove_non_region_records).
+  #
+  # ⚠️ HIER STAND EIN HARTKODIERTES `|| 'NBV'`. Da KEINE config.yml das Feld `region_shortname`
+  # fuehrt, griff dieser Default IMMER — jedes Nicht-NBV-Szenario bekam damit eine mit NBV
+  # gefilterte Datenbank. Auf carambus_tbv (2026-07-23) waren es 1205 NBV-Turniere und 0 TBV.
+  # Der Fehler ist fail-silent und faellt auf NBV-Szenarien naturgemaess nie auf.
+  #
+  # Quellen in dieser Reihenfolge: explizites Feld -> `context` -> Region aus `region_id`.
+  # Kein Fallback auf eine Verlegenheitsregion: lieber abbrechen als still fremde Daten laden.
+  # Rueckgabe GROSSGESCHRIEBEN, weil cleanup.rake per Shortname sucht.
+  def resolve_region_shortname(scenario_data)
+    explicit = scenario_data['region_shortname'].presence
+    return explicit.to_s.upcase if explicit
+
+    context = scenario_data['context'].presence
+    return context.to_s.upcase if context
+
+    region_id = scenario_data['region_id']
+    return nil if region_id.blank?
+
+    Region.find_by(id: region_id)&.shortname&.upcase
+  end
+
   def list_scenarios
     scenarios = Dir.glob(File.join(scenarios_path, '*')).select { |f| File.directory?(f) }
     scenarios.map { |s| File.basename(s) }
@@ -2691,10 +2714,18 @@ ENV
           puts "✅ Development database created successfully: #{database_name}"
           true
         else
-          puts "   🔄 Applying region filtering (region_id: #{region_id})..."
+          region_shortname = resolve_region_shortname(scenario_data)
+          if region_shortname.blank?
+            puts "   ❌ Region-Shortname nicht bestimmbar (weder region_shortname, context noch region_id)."
+            puts "      Abbruch statt Filterung mit einer Verlegenheitsregion — sonst entstuende"
+            puts "      eine Datenbank mit den Daten einer FREMDEN Region."
+            return false
+          end
+
+          puts "   🔄 Applying region filtering (#{region_shortname}, region_id: #{region_id})..."
 
           # Set environment variable for region filtering
-          ENV['REGION_SHORTNAME'] = scenario_data['region_shortname'] || 'NBV'
+          ENV['REGION_SHORTNAME'] = region_shortname
 
           # Change to the Rails root directory and run the cleanup task
           if Dir.chdir(rails_root) do
@@ -3876,10 +3907,17 @@ ENV
       puts "   ✅ Created temporary database: #{temp_db_name} (using template)"
 
       # Apply region filtering using the cleanup task
-      puts "   🔄 Applying region filtering (region_id: #{region_id})..."
+      region_shortname = resolve_region_shortname(scenario_data)
+      if region_shortname.blank?
+        puts "   ❌ Region-Shortname nicht bestimmbar (weder region_shortname, context noch region_id)."
+        puts "      Abbruch statt Filterung mit einer Verlegenheitsregion."
+        return false
+      end
+
+      puts "   🔄 Applying region filtering (#{region_shortname}, region_id: #{region_id})..."
 
       # Set environment variable for region filtering
-      ENV['REGION_SHORTNAME'] = scenario_data['region_shortname'] || 'NBV'
+      ENV['REGION_SHORTNAME'] = region_shortname
 
       # Create a temporary Rails environment to run the cleanup task
       temp_rails_root = File.join(scenarios_path, scenario_name)
