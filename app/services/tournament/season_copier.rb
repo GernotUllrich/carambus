@@ -34,11 +34,40 @@ class Tournament::SeasonCopier
 
   Result = Struct.new(:created, :skipped_existing, :skipped_no_date, :planned, keyword_init: true)
 
-  def initialize(region:, from_season:, to_season:, armed: false)
+  # Ein Quellturnier mit seinem Kopier-Status. Traegt das Turnier-Objekt selbst, damit die UI
+  # daraus Disziplin, Branch und Datum rendern kann, ohne die Auswahllogik nachzubauen.
+  #   :copyable       wird kopiert
+  #   :already_copied liegt in der Zielsaison bereits als Kopie
+  #   :no_date        Platzhalter-Datum (Epoch) — als Vorlage unbrauchbar
+  Candidate = Struct.new(:tournament, :status, :new_date, keyword_init: true) do
+    def copyable? = status == :copyable
+  end
+
+  # `only_source_ids: nil` = alle (Verhalten des Rake-Tasks, unveraendert).
+  # Eine LEERE Liste bedeutet "nichts ausgewaehlt" und kopiert bewusst nichts — nicht "alle".
+  def initialize(region:, from_season:, to_season:, armed: false, only_source_ids: nil)
     @region = region
     @from_season = from_season
     @to_season = to_season
     @armed = armed
+    @only_source_ids = only_source_ids&.map(&:to_i)
+  end
+
+  # Vorschau fuer die UI: alle Quellturniere mit Status, ohne etwas zu schreiben.
+  # Ignoriert `only_source_ids` — die Auswahl trifft der Anwender ja erst auf dieser Liste.
+  def candidates
+    distance = season_distance
+    return [] if distance.nil? || !distance.positive?
+
+    all_source_tournaments.map do |source|
+      if !usable_date?(source.date)
+        Candidate.new(tournament: source, status: :no_date)
+      elsif already_copied?(source)
+        Candidate.new(tournament: source, status: :already_copied)
+      else
+        Candidate.new(tournament: source, status: :copyable, new_date: shift(source.date, distance))
+      end
+    end
   end
 
   def call
@@ -59,7 +88,7 @@ class Tournament::SeasonCopier
       end
 
       new_date = shift(source.date, distance)
-      result.planned << {title: source.title, from: source.date.to_date, to: new_date.to_date}
+      result.planned << {id: source.id, title: source.title, from: source.date.to_date, to: new_date.to_date}
 
       next unless @armed
 
@@ -75,20 +104,36 @@ class Tournament::SeasonCopier
   # Einzelmeisterschaften der Quellsaison, die diese Region ausrichtet. Liga-Turniere bleiben aussen
   # vor — deren Struktur kommt aus dem Liga-Betrieb, nicht aus einer Saison-Kopie.
   def source_tournaments
+    scope = all_source_tournaments
+    scope = scope.where(id: @only_source_ids) unless @only_source_ids.nil?
+    scope
+  end
+
+  def all_source_tournaments
     ::Tournament
       .where(season_id: @from_season.id, organizer_type: "Region", organizer_id: @region.id)
       # NICHT `where.not(single_or_league: "league")`: SQL schliesst NULL-Werte aus einem !=-Vergleich
       # aus — und die meisten Turniere haben dort NULL. Sie waeren stillschweigend nie kopiert worden.
       .where("single_or_league IS NULL OR single_or_league != ?", "league")
+      .includes(:discipline)
       .order(:date)
   end
 
   # Idempotenz: in der Zielsaison darf pro Quellturnier hoechstens eine Kopie liegen. Der Schluessel
   # steht im data-Hash, weil es dafuer keine Spalte gibt (und keine Migration geben soll).
-  def already_copied?(source)
-    ::Tournament
+  #
+  # Die Ziel-Turniere werden EINMAL eingesammelt statt je Quellturnier neu geladen: seit `candidates`
+  # dieselbe Pruefung fuer die Vorschau nutzt, liefe die alte Fassung sonst zweimal ueber die
+  # gesamte Zielsaison, je Quellturnier.
+  def copied_source_ids
+    @copied_source_ids ||= ::Tournament
       .where(season_id: @to_season.id, organizer_type: "Region", organizer_id: @region.id)
-      .any? { |t| t.data.is_a?(Hash) && t.data["copied_from_tournament_id"].to_i == source.id }
+      .filter_map { |t| t.data["copied_from_tournament_id"].to_i if t.data.is_a?(Hash) }
+      .to_set
+  end
+
+  def already_copied?(source)
+    copied_source_ids.include?(source.id)
   end
 
   def create_copy(source, distance)

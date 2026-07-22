@@ -30,6 +30,14 @@
       <%= link_to t('tournaments.index.show_drafts', default: 'Entwürfe anzeigen'),
             tournaments_path(drafts: 1), class: 'text-primary-600 dark:text-primary-300 underline' %>
     <% end %>
+
+    <%# Saison-Kopie: Sportwart-Aufgabe auf dem REGION Server. Auf einem Location Server (mit
+        location_id) waere sie sinnlos — dort werden Turniere gespielt, nicht ausgeschrieben. %>
+    <% if Carambus.config.location_id.to_i.zero? %>
+      <%= link_to t('tournaments.index.copy_season', default: 'Turniere aus Vorsaison übernehmen'),
+            copy_season_tournaments_path,
+            class: 'ml-3 text-primary-600 dark:text-primary-300 underline' %>
+    <% end %>
   </div>
 <% end %>
 

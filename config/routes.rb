@@ -374,6 +374,11 @@ Rails.application.routes.draw do
       post :recalculate_groups
       post :test_tournament_status_update
     end
+    collection do
+      # Saison-Kopie mit Auswahl (Sportwart-Weg zum bestehenden Rake-Task tournaments:copy_season).
+      get :copy_season
+      post :copy_season_execute
+    end
   end
   resources :users do
     member do

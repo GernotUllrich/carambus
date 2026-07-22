@@ -802,4 +802,75 @@ class TournamentsControllerTest < ActionDispatch::IntegrationTest
     get tournaments_url(drafts: 1)
     assert_response :success
   end
+
+  # ---------------------------------------------------------------------------
+  # Saison-Kopie mit Auswahl (Sportwart-Weg zum Rake-Task tournaments:copy_season).
+  # Zielsaison wird explizit uebergeben, damit der Test nicht an Season.current_season haengt.
+  # ---------------------------------------------------------------------------
+
+  def enable_region_server(shortname = "NBV")
+    Carambus.config.carambus_api_url = "http://local.test"
+    @original_context = Carambus.config.context
+    Carambus.config.context = shortname
+  end
+
+  def vorsaison_turnier(title: "LM Dreiband Vorlage")
+    Tournament.create!(title: title, season: seasons(:previous), organizer: regions(:nbv),
+      region_id: regions(:nbv).id, date: Time.zone.local(2024, 10, 12, 10, 0))
+  end
+
+  test "GET copy_season zeigt die Vorsaison-Turniere zur Auswahl" do
+    enable_region_server
+    quelle = vorsaison_turnier
+
+    get copy_season_tournaments_url(to_season_id: seasons(:current).id)
+
+    assert_response :success
+    assert_select "input[type=checkbox][name='source_ids[]'][value=?]", quelle.id.to_s
+    assert_select "[data-action='checkbox-group#selectAll']", 1, "Button 'alle auswaehlen'"
+  ensure
+    Carambus.config.context = @original_context
+  end
+
+  test "GET copy_season auf dem API-Server wird abgewiesen" do
+    # carambus_api_url bleibt leer => Authority => ensure_local_server greift
+    get copy_season_tournaments_url
+
+    assert_redirected_to tournaments_path
+  end
+
+  test "POST copy_season_execute kopiert nur die Auswahl" do
+    enable_region_server
+    quelle = vorsaison_turnier
+    ignoriert = vorsaison_turnier(title: "Nicht ausgewaehlt")
+
+    assert_difference("Tournament.count", 1) do
+      post copy_season_execute_tournaments_url,
+        params: {to_season_id: seasons(:current).id, source_ids: [quelle.id]}
+    end
+
+    assert_redirected_to tournaments_path(drafts: 1)
+    kopie = Tournament.where(season_id: seasons(:current).id)
+      .find { |t| t.data.is_a?(Hash) && t.data["copied_from_tournament_id"] == quelle.id }
+    assert kopie, "Kopie des ausgewaehlten Turniers"
+    assert kopie.data["draft"], "Kopien sind Entwuerfe"
+    refute Tournament.where(season_id: seasons(:current).id)
+      .any? { |t| t.data.is_a?(Hash) && t.data["copied_from_tournament_id"] == ignoriert.id }
+  ensure
+    Carambus.config.context = @original_context
+  end
+
+  # Ein leeres Formular darf NICHT als "alle kopieren" durchgehen.
+  test "POST copy_season_execute ohne Auswahl kopiert nichts" do
+    enable_region_server
+    vorsaison_turnier
+
+    assert_no_difference("Tournament.count") do
+      post copy_season_execute_tournaments_url, params: {to_season_id: seasons(:current).id}
+    end
+
+    assert_response :redirect
+  ensure
+    Carambus.config.context = @original_context
+  end
 end

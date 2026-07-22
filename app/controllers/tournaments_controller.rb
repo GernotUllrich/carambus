@@ -16,7 +16,8 @@ class TournamentsController < ApplicationController
                                                finalize_modus select_modus reset start define_participants add_team
                                                upload_invitation parse_invitation apply_seeding_order compare_seedings
                                                add_player_by_dbu use_clubcloud_as_participants update_seeding_position
-                                               players_by_club recalculate_groups]
+                                               players_by_club recalculate_groups
+                                               copy_season copy_season_execute]
 
   # UI-07 D-18 / Phase 39 D-12: Felder, die vor dem Turnierstart gegen
   # Discipline#parameter_ranges geprüft werden. Reihenfolge matcht die
@@ -75,6 +76,50 @@ class TournamentsController < ApplicationController
         render("index")
       end
     end
+  end
+
+  # GET /tournaments/copy_season
+  #
+  # Sportwart-Weg zum bestehenden Rake-Task `tournaments:copy_season`: zeigt die Turniere der
+  # Vorsaison zur Auswahl, gefiltert nach Branch. Schreibt nichts — die Vorschau ist der dry-run.
+  def copy_season
+    return unless prepare_season_copy
+
+    all_candidates = season_copier.candidates
+    # Branch-Liste aus dem VOLLEN Satz, nicht aus der gefilterten Menge: sonst verschwaende der
+    # aktive Filter die uebrigen Branches aus der Auswahl und man kaeme nicht mehr zurueck.
+    @branches = all_candidates.filter_map { |c| branch_name(c.tournament) }.uniq.sort
+    @branch_filter = params[:branch].presence
+    @candidates = if @branch_filter
+      all_candidates.select { |c| branch_name(c.tournament) == @branch_filter }
+    else
+      all_candidates
+    end
+  end
+
+  # POST /tournaments/copy_season_execute
+  def copy_season_execute
+    return unless prepare_season_copy
+
+    source_ids = Array(params[:source_ids]).reject(&:blank?)
+    if source_ids.empty?
+      redirect_to copy_season_tournaments_path(to_season_id: @to_season.id, branch: params[:branch]),
+        alert: t("tournaments.copy_season.nothing_selected", default: "Es war kein Turnier ausgewählt.")
+      return
+    end
+
+    result = Tournament::SeasonCopier.new(
+      region: @region, from_season: @from_season, to_season: @to_season,
+      armed: true, only_source_ids: source_ids
+    ).call
+
+    # Ziel ist die Entwurfs-Ansicht: die Kopien sind Entwuerfe und waeren in der regulaeren Liste
+    # unsichtbar — ein „12 Turniere kopiert" ohne sichtbares Ergebnis wuerde wie ein Fehler wirken.
+    redirect_to tournaments_path(drafts: 1),
+      notice: t("tournaments.copy_season.created", count: result.created, season: @to_season.name,
+        default: "%{count} Turnier(e) als Entwurf in %{season} angelegt.")
+  rescue ArgumentError => e
+    redirect_to tournaments_path, alert: e.message
   end
 
   # GET /tournaments/1
@@ -1245,6 +1290,43 @@ class TournamentsController < ApplicationController
   rescue
     nil
   end
+
+  # Setzt @region, @to_season und @from_season fuer die Saison-Kopie.
+  # false + redirect, wenn eine der drei nicht bestimmbar ist.
+  def prepare_season_copy
+    @region = server_region_for_new
+    if @region.nil?
+      redirect_to tournaments_path,
+        alert: t("tournaments.copy_season.no_region",
+          default: "Diese Instanz hat keine Region (scenario.context). Saison-Kopie nicht möglich.")
+      return false
+    end
+
+    # Zielsaison ist die AKTUELLE Saison, nicht die des Scope-Bands: dessen Default ist bis zum
+    # 15.08. bewusst die VORsaison (ScopeResolver#transition_previous_season). Der Sportwart will im
+    # Sommer aber genau die kommende Saison fuellen — der Scope-Default waere hier ein Fallstrick.
+    @to_season = Season.find_by(id: params[:to_season_id]) || Season.current_season
+    @from_season = @to_season&.previous
+
+    if @to_season.nil? || @from_season.nil?
+      redirect_to tournaments_path,
+        alert: t("tournaments.copy_season.no_season",
+          default: "Ziel- oder Vorsaison nicht bestimmbar.")
+      return false
+    end
+
+    true
+  end
+
+  def season_copier
+    Tournament::SeasonCopier.new(region: @region, from_season: @from_season, to_season: @to_season)
+  end
+
+  # Branch = Wurzel des Disziplin-Baums (Karambol/Pool/Snooker/Kegel).
+  def branch_name(tournament)
+    tournament.discipline&.root&.name
+  end
+  helper_method :branch_name
 
   # Stellt sicher, dass Turniermanagement nur auf lokalen Servern möglich ist
   # API Server dient nur zum Lesen und als Datenquelle

@@ -133,4 +133,65 @@ class Tournament::SeasonCopierTest < ActiveSupport::TestCase
       copier(from: @to, to: @from).call
     end
   end
+
+  # --- Auswahl einzelner Turniere (UI auf Tournament#index) ---
+
+  test "candidates zeigt jedes Quellturnier mit Status, ohne zu schreiben" do
+    zweites = Tournament.create!(title: "LM Einband", season: @from, organizer: @region,
+      region_id: @region.id, date: Time.zone.local(2024, 11, 9, 10, 0))
+
+    candidates = nil
+    assert_no_difference("Tournament.count") do
+      candidates = copier.candidates
+    end
+
+    assert_equal 2, candidates.size
+    assert candidates.all?(&:copyable?)
+    assert_equal [@source.id, zweites.id].sort, candidates.map { |c| c.tournament.id }.sort
+    # Das Turnier-Objekt haengt dran, damit die UI Disziplin/Branch rendern kann.
+    assert_kind_of Tournament, candidates.first.tournament
+    assert_equal @source.date.to_date + 52.weeks, candidates.find { |c| c.tournament.id == @source.id }.new_date.to_date
+  end
+
+  test "candidates markiert bereits kopierte Turniere" do
+    copier(armed: true).call
+
+    statuses = copier.candidates.map(&:status)
+
+    assert_equal [:already_copied], statuses
+  end
+
+  test "only_source_ids kopiert nur die Auswahl" do
+    zweites = Tournament.create!(title: "LM Einband", season: @from, organizer: @region,
+      region_id: @region.id, date: Time.zone.local(2024, 11, 9, 10, 0))
+
+    result = Tournament::SeasonCopier.new(region: @region, from_season: @from, to_season: @to,
+      armed: true, only_source_ids: [zweites.id]).call
+
+    assert_equal 1, result.created
+    # Auf die KOPIEN einschraenken: in der Zielsaison liegen bereits Fixture-Turniere der Region.
+    kopien = Tournament.where(season_id: @to.id, organizer: @region)
+      .select { |t| t.data.is_a?(Hash) && t.data["copied_from_tournament_id"].present? }
+    assert_equal ["LM Einband"], kopien.map(&:title)
+    assert_equal zweites.id, kopien.first.data["copied_from_tournament_id"]
+  end
+
+  # Eine leere Auswahl ist eine AUSSAGE ("nichts angehakt"), kein fehlender Parameter — sonst
+  # wuerde ein versehentlich leeres Formular die ganze Saison kopieren.
+  test "leere Auswahl kopiert nichts" do
+    result = nil
+    assert_no_difference("Tournament.count") do
+      result = Tournament::SeasonCopier.new(region: @region, from_season: @from, to_season: @to,
+        armed: true, only_source_ids: []).call
+    end
+
+    assert_equal 0, result.created
+    assert_empty result.planned
+  end
+
+  test "planned traegt die Quell-ID fuer die Auswahl" do
+    result = copier.call
+
+    assert_equal [@source.id], result.planned.map { |h| h[:id] }
+  end
 end
