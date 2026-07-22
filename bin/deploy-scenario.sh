@@ -484,18 +484,31 @@ step_one_five_check_preconditions() {
 
     # (4) Zugang zum Region Server (Plan 29-05) — nur fuer Instanzen, die ihn BRAUCHEN:
     #
-    #   Location Server (location_id gesetzt): meldet den Turnier-Abschluss an seinen
-    #     Region Server  -> braucht dessen Kontext
     #   Authority (cap_role: api): holt die Meldelisten von N Region Servern
     #     -> braucht deren Kontexte
-    #   Region Server (nur region_id): ist ZIEL, nicht Aufrufer -> braucht nichts
+    #   Location Server (location_id gesetzt) in einer CC-LOSEN Region: meldet den
+    #     Turnier-Abschluss direkt an seinen Region Server -> braucht dessen Kontext
+    #   Location Server in einer Region MIT ClubCloud (feature `clubcloud`): wird komplett
+    #     aus der CC gefuettert, der Rueckweg laeuft ueber die CC -> braucht nichts.
+    #     So liegt der Fall bei carambus_bcw (NBV hat weiterhin eine ClubCloud).
+    #   Region Server (weder location_id noch cap_role api): ist ZIEL, nicht Aufrufer.
+    #
+    # Das `clubcloud`-Feature ist hier der Diskriminator: es sagt genau aus, ob die Region
+    # ihren Turnier-Lebenszyklus noch ueber die CC faehrt (v0.7: CC-less).
     #
     # Diese Luecke faellt sonst erst auf, wenn wirklich ein Turnier gespielt und abgeschlossen
     # wird — also im Ernstfall. Anders als (1)-(3) ist das rein lokal pruefbar.
     local location_id=$(ruby -ryaml -e "puts YAML.load_file('$config_file')['scenario']['location_id']" 2>/dev/null)
     local cap_role=$(ruby -ryaml -e "puts $prod_cfg['cap_role']" 2>/dev/null)
+    local has_cc=$(ruby -ryaml -e "
+      cr = (YAML.load_file('$config_file')['scenario']['credentials'] || {})
+      puts Array(cr['features']).map(&:to_s).include?('clubcloud') ? 'yes' : 'no'" 2>/dev/null)
 
-    if [ -n "$location_id" ] || [ "$cap_role" = "api" ]; then
+    local needs_rs=no
+    [ "$cap_role" = "api" ] && needs_rs=yes
+    [ -n "$location_id" ] && [ "$has_cc" != "yes" ] && needs_rs=yes
+
+    if [ "$needs_rs" = "yes" ]; then
         local rs_report=$(ruby -ryaml -e "
           decl = (YAML.load_file('$config_file')['scenario']['credentials'] || {})['region_server_contexts']
           ctxs = Array(decl).compact
@@ -526,7 +539,11 @@ step_one_five_check_preconditions() {
             warning "  ⚠️  region_server_contexts nicht prüfbar (config.yml lesbar?)" ;;
         esac
     else
-        info "  ⏭️  Region-Server-Zugang nicht nötig (Region Server ist Ziel, nicht Aufrufer)"
+        if [ -n "$location_id" ]; then
+            info "  ⏭️  Region-Server-Zugang nicht nötig (Region hat ClubCloud — Rückweg läuft über die CC)"
+        else
+            info "  ⏭️  Region-Server-Zugang nicht nötig (Region Server ist Ziel, nicht Aufrufer)"
+        fi
     fi
 
     if [ "$missing" -eq 0 ]; then
