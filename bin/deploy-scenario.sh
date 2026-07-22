@@ -370,6 +370,105 @@ step_one_prepare_development() {
     echo ""
 }
 
+# Step 1.5: Vorbedingungen auf dem Server pruefen
+#
+# WARUM ZUSAMMEN UND WARUM HIER: Beim Aufsetzen von carambus_tbv (2026-07-22) sind drei
+# Voraussetzungen NACHEINANDER aufgeschlagen — jede erst, nachdem der vorige Fehler behoben
+# und minutenlang neu deployt war:
+#   1. Production-DB fehlte        -> `deploy:migrate` bricht ab
+#   2. Let's-Encrypt-Zertifikat    -> nginx wird REGLOAD-UNFAEHIG (betrifft ALLE Sites!)
+#   3. /etc/<basename>.env (SMTP)  -> Puma-Crashloop, 502
+# Gemeinsam ist ihnen: bei bestehenden Instanzen wurden sie irgendwann von Hand eingerichtet,
+# bei einer Neuanlage fehlen sie. Dieser Schritt macht alle drei auf EINEN Blick sichtbar.
+#
+# Der Zeitpunkt ist bewusst VOR prepare_deploy: dort entsteht die nginx-Config, die ohne
+# Zertifikat den Reload aller Sites blockiert. Die Datenbank dagegen kann erst DANACH angelegt
+# werden (reset_server_db braucht die generierte Config) — sie wird hier nur gemeldet und in
+# Schritt 2.5 behandelt.
+step_one_five_check_preconditions() {
+    log "🔍 Step 1.5: Vorbedingungen auf dem Server prüfen"
+    log "================================================"
+
+    local config_file="$CARAMBUS_DATA/scenarios/$SCENARIO_NAME/config.yml"
+    if [ ! -f "$config_file" ]; then
+        error "config.yml nicht gefunden: $config_file"
+        return 1
+    fi
+
+    local prod_cfg="YAML.load_file('$config_file')['environments']['production']"
+    local ssh_host=$(ruby -ryaml -e "puts $prod_cfg['ssh_host']" 2>/dev/null)
+    local ssh_port=$(ruby -ryaml -e "puts $prod_cfg['ssh_port'] || 22" 2>/dev/null)
+    local db_name=$(ruby -ryaml -e "puts $prod_cfg['database_name']" 2>/dev/null)
+    local web_host=$(ruby -ryaml -e "puts $prod_cfg['webserver_host']" 2>/dev/null)
+    local ssl_enabled=$(ruby -ryaml -e "puts($prod_cfg['ssl_enabled'] ? 'true' : 'false')" 2>/dev/null)
+    local basename=$(ruby -ryaml -e "puts $prod_cfg['basename'] || '$SCENARIO_NAME'" 2>/dev/null)
+
+    if [ -z "$ssh_host" ] || [ -z "$db_name" ]; then
+        error "ssh_host oder database_name fehlen in $config_file"
+        return 1
+    fi
+
+    # Erreichbarkeit ZUERST: eine fehlgeschlagene Verbindung darf nicht als "alles fehlt"
+    # durchgehen — das wuerde im -y-Modus einen destruktiven DB-Reset ausloesen.
+    if ! ssh -p "$ssh_port" -o ConnectTimeout=10 "www-data@$ssh_host" true 2>/dev/null; then
+        error "Server $ssh_host:$ssh_port nicht erreichbar — Vorbedingungen nicht prüfbar."
+        return 1
+    fi
+
+    local missing=0
+
+    # (1) Production-Datenbank
+    if ssh -p "$ssh_port" "www-data@$ssh_host" 'sudo -u postgres psql -lqt' 2>/dev/null \
+        | cut -d'|' -f1 | grep -qw "$db_name"; then
+        info "  ✅ Datenbank $db_name"
+    else
+        warning "  ❌ Datenbank $db_name fehlt  → wird in Schritt 2.5 angelegt (reset_server_db)"
+        missing=$((missing + 1))
+    fi
+
+    # (2) SSL-Zertifikat — nur wenn die Instanz ueberhaupt HTTPS fahren soll
+    if [ "$ssl_enabled" = "true" ] && [ -n "$web_host" ]; then
+        if ssh -p "$ssh_port" "www-data@$ssh_host" "sudo test -d /etc/letsencrypt/live/$web_host" 2>/dev/null; then
+            info "  ✅ Zertifikat für $web_host"
+        else
+            warning "  ❌ Zertifikat für $web_host fehlt"
+            warning "     ⚠️  OHNE ES MACHT prepare_deploy nginx REGLOAD-UNFÄHIG — das trifft ALLE Sites"
+            warning "     Beheben:  bin/issue-letsencrypt-cert.sh $basename $web_host"
+            missing=$((missing + 1))
+        fi
+    else
+        info "  ⏭️  SSL nicht aktiviert (ssl_enabled=$ssl_enabled) — Zertifikat nicht nötig"
+    fi
+
+    # (3) EnvironmentFile mit den SMTP-Zugangsdaten
+    if ssh -p "$ssh_port" "www-data@$ssh_host" "sudo test -f /etc/$basename.env" 2>/dev/null; then
+        info "  ✅ /etc/$basename.env"
+    else
+        warning "  ❌ /etc/$basename.env fehlt  → Puma startet nicht (smtp_guard), 502"
+        warning "     Beheben (übernimmt den SMTP-Absender einer laufenden Instanz):"
+        warning "       ssh -p $ssh_port www-data@$ssh_host \"sudo cp -p /etc/carambus_nbv.env /etc/$basename.env\""
+        warning "     Oder bewusst ohne Mailversand:  SKIP_SMTP_GUARD=1 in die Datei schreiben"
+        missing=$((missing + 1))
+    fi
+
+    if [ "$missing" -eq 0 ]; then
+        log "✅ Alle Vorbedingungen erfüllt"
+        echo ""
+        return 0
+    fi
+
+    echo ""
+    warning "$missing Vorbedingung(en) offen (siehe oben)."
+    info "Die Datenbank erledigt Schritt 2.5 automatisch. Zertifikat und .env-Datei brauchen"
+    info "die genannten Befehle — am besten JETZT, bevor prepare_deploy die nginx-Config schreibt."
+
+    if ! confirm "Trotzdem mit prepare_deploy fortfahren?"; then
+        log "Workflow angehalten. Nach dem Beheben einfach erneut starten."
+        return 1
+    fi
+    echo ""
+}
+
 # Step 2: Prepare Deploy
 step_two_prepare_deploy() {
     log "📦 Step 2: Prepare Deployment"
@@ -608,6 +707,13 @@ main() {
         echo ""
     fi
     
+    # Step 1.5: Vorbedingungen auf dem Server (DB, Zertifikat, .env) — alle auf einen Blick
+    step_one_five_check_preconditions
+    if [ $? -ne 0 ]; then
+        log "Workflow cancelled at precondition check"
+        exit 1
+    fi
+
     # Step 2: Prepare Deploy
     step_two_prepare_deploy
     if [ $? -ne 0 ]; then
