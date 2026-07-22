@@ -45,9 +45,21 @@ module Api
 
     # Einzelmeisterschaften dieser Region/Saison — OHNE Entwuerfe: eine Saison-Kopie (Plan 27-01)
     # ist noch nicht vom Sportwart freigegeben und darf nicht global werden.
+    # NUR HIER LOKAL ANGELEGTE Turniere (id >= MIN_ID). Ein Turnier mit globaler ID ist per Sync
+    # von der Authority eingetroffen — meist aus der ClubCloud gescrapt. Es zurueckzuliefern waere
+    # nicht bloss ueberfluessig: der Importer keyt ueber
+    # `source_url = "<region-base>/tournaments/<lokale-id>"`, das globale Original traegt auf der
+    # Authority aber seine eigene Provenienz (CC-source_url). Kein Treffer ⇒ er legte einen
+    # DUPLIKAT-Zwilling desselben Wettbewerbs an.
+    #
+    # Live aufgefallen (2026-07-22): der erste Probelauf gegen nbv meldete "Turniere neu: 1" fuer
+    # ein aus der CC gesynctes Test-Turnier.
+    #
+    # Entwuerfe bleiben ebenfalls aussen vor: eine Saison-Kopie (Plan 27-01) ist nicht freigegeben.
     def tournaments_for(region, season)
       ::Tournament
         .where(season_id: season.id, organizer_type: "Region", organizer_id: region.id)
+        .where(::Tournament.arel_table[:id].gteq(::ApplicationRecord::MIN_ID))
         .without_drafts
         .order(:date)
     end

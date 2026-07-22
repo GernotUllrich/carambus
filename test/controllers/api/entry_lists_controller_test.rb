@@ -72,6 +72,28 @@ class Api::EntryListsControllerTest < ActionDispatch::IntegrationTest
     refute_includes ids, draft.id, "nicht freigegebene Entwuerfe duerfen nicht global werden"
   end
 
+  # Plan 29-05, live aufgefallen: ein aus der ClubCloud gescraptes und per Sync eingetroffenes
+  # Turnier traegt eine GLOBALE id (< MIN_ID). Wird es mitgeliefert, findet der Importer auf der
+  # Authority kein Turnier mit `source_url = "<region-base>/tournaments/<id>"` (das Original traegt
+  # dort sein CC-source_url) und legt einen Duplikat-Zwilling an.
+  test "global gesynctes Turnier wird NICHT ausgeliefert" do
+    global = Tournament.create!(
+      id: 12_345, title: "Aus der ClubCloud", shortname: "CCT",
+      season: @season, organizer: @region, region_id: @region.id,
+      date: Time.zone.local(2026, 10, 12, 10, 0),
+      source_url: "https://nbv.club-cloud.de/tournament/12345"
+    )
+    global.seedings.create!(player_id: @player.id, position: 1)
+
+    sign_in @user
+    get_entry_lists
+
+    titles = JSON.parse(response.body)["tournaments"].map { |t| t["title"] }
+    refute_includes titles, "Aus der ClubCloud",
+      "globale Turniere gehoeren der Authority — sie zurueckzuliefern erzeugt Duplikate"
+    assert_includes titles, "Landesmeisterschaft Einband", "lokale Turniere weiterhin ausliefern"
+  end
+
   test "unbekannte Region und Saison werden abgewiesen" do
     sign_in @user
 
