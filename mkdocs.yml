@@ -83,6 +83,7 @@ plugins:
             Raspberry Pi Client: Raspberry Pi Client
             Scoreboard Autostart: Scoreboard Autostart
             Server Architecture: Server-Architektur
+            CC-less Tournament Management: CC-loses Turniermanagement
             Email Configuration: Email-Konfiguration
             Database Setup: Datenbank-Setup
             YouTube Streaming Quickstart: YouTube Streaming Quickstart
@@ -190,6 +191,7 @@ nav:
       - Raspberry Pi Client: administrators/raspberry-pi-client.md
       - Scoreboard Autostart: administrators/scoreboard-autostart.md
       - Server Architecture: administrators/server-architecture.md
+      - CC-less Tournament Management: administrators/cc-less-tournament-management.md
       - Email Configuration: administrators/email-configuration.md
       - Database Setup: administrators/database-setup.md
       - YouTube Streaming Quickstart: administrators/streaming-quickstart.md
