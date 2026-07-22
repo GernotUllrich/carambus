@@ -18,9 +18,17 @@
 # waere unnoetige Zustandshaltung.
 class ServiceAccountToken
   # Gibt den reinen Bearer-Wert zurueck (ohne "Bearer "-Praefix).
+  #
+  # ⚠️ `Accept: application/json` ist NICHT optional: `SessionsController` skippt den
+  # CSRF-Schutz nur `if: -> { request.format.json? }` (sessions_controller.rb:22), und
+  # `request.format` kommt vom ACCEPT-Header — nicht vom Content-Type. Ohne ihn greift
+  # `protect_from_forgery with: :exception` und der Login antwortet mit **HTTP 422 ohne
+  # Body**; genau dieser Fall ist im SessionsController seit Plan 13-06.3 beschrieben und
+  # ist am 2026-07-22 gegen nbv.carambus.de live aufgetreten.
   def self.fetch(base_url:, username:, password:)
     uri = URI("#{base_url}/login")
-    request = Net::HTTP::Post.new(uri, "Content-Type" => "application/json")
+    request = Net::HTTP::Post.new(uri,
+      "Content-Type" => "application/json", "Accept" => "application/json")
     request.body = {user: {email: username, password: password}}.to_json
 
     response = Net::HTTP.start(uri.hostname, uri.port, use_ssl: uri.scheme == "https") do |http|

@@ -26,6 +26,19 @@ class ServiceAccountTokenTest < ActiveSupport::TestCase
     assert_requested stub
   end
 
+  # Regression: ohne Accept-Header ist `request.format` HTML, der bedingte
+  # `skip_forgery_protection` im SessionsController greift nicht, und der Login antwortet
+  # mit 422 statt ein Token auszustellen. Live aufgetreten am 2026-07-22.
+  test "sendet Accept: application/json — sonst antwortet der Login mit 422" do
+    stub = stub_request(:post, "#{BASE}/login")
+      .with(headers: {"Accept" => "application/json"})
+      .to_return(status: 200, headers: {"Authorization" => "Bearer test-jwt"}, body: "{}")
+
+    fetch
+
+    assert_requested stub
+  end
+
   test "abgelehnte Anmeldung nennt Status und Ziel" do
     stub_request(:post, "#{BASE}/login").to_return(status: 401, body: "")
 
