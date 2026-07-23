@@ -299,6 +299,7 @@ class Version < PaperTrail::Version
     region_id ||= opts[:reload_leagues_with_details]
     region_id ||= opts[:update_region_from_cc]
     region_id ||= opts[:scrape_upcoming_tournaments]
+    region_id ||= opts[:import_entry_list]
     league_id = opts[:update_league_from_cc]
     club_id = opts[:update_club_from_cc]
     force = opts[:force]
@@ -337,7 +338,9 @@ class Version < PaperTrail::Version
       "&league_details=#{league_details}" if league_details
     }#{
       "&days_ahead=#{days_ahead}" if days_ahead
-    }&season_id=#{Season.current_season&.id}")
+    }#{
+      "&import_entry_list=#{region_id}" if opts[:import_entry_list].present?
+    }&season_id=#{opts[:season_id].presence || Season.current_season&.id}")
     Rails.logger.info ">>>>>>>>>>>>>>>> GET #{url} <<<<<<<<<<<<<<<<"
     uri = URI(url)
     json_io = http_get_with_ssl_bypass(uri)
