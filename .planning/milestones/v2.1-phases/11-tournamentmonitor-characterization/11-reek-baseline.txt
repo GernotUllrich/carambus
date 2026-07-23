@@ -1,0 +1,17 @@
+=== TournamentMonitor Reek/Size Baseline ===
+Date: Fri Apr 10 23:12:40 CEST 2026
+Note: reek not in Gemfile; using wc/grep baseline instead
+
+--- app/models/tournament_monitor.rb ---
+Lines:      499
+Methods: 20
+
+--- lib/tournament_monitor_support.rb ---
+Lines:     1078
+Methods: 10
+
+--- lib/tournament_monitor_state.rb ---
+Lines:      522
+Methods: 8
+
+=== End Baseline ===

@@ -1,0 +1,31 @@
+phase: 35
+plan: 01
+baseline_measured_at: 2026-04-13T17:33:21Z
+mkdocs_build_strict_exit_code: 1
+warning_log_lines: 191
+warning_entries: 191
+phase_34_documented_baseline: 94 warnings (191 WARNING log lines per 34-VERIFICATION.md)
+notes: Baseline recorded BEFORE Plan 35-01 edits. Downstream plans MUST NOT exceed warning_log_lines count.
+post_plan_01_warning_log_lines: 191
+post_plan_01_measured_at: 2026-04-13T17:34:00Z
+post_plan_01_delta: 0
+post_plan_02_warning_log_lines: 191
+post_plan_02_measured_at: 2026-04-13T17:40:00Z
+post_plan_02_delta: 0
+plan_02_commit_sha: 2db7c09e
+post_plan_03_de_warning_log_lines: 191
+post_plan_03_en_warning_log_lines: 191
+post_plan_03_measured_at: 2026-04-13T17:45:00Z
+post_plan_03_delta: 0
+plan_03_commit_sha_de: 079338e6
+plan_03_commit_sha_en: 867b097c
+post_plan_04_de_warning_log_lines: 191
+post_plan_04_de_measured_at: 2026-04-13T17:51:30Z
+post_plan_04_de_delta: 0
+post_plan_04_en_warning_log_lines: 191
+post_plan_04_en_measured_at: 2026-04-13T17:52:30Z
+post_plan_04_en_delta: 0
+final_mkdocs_build_strict_exit_code: 1
+final_warning_log_lines: 191
+final_measured_at: 2026-04-13T18:00:00Z
+delta_vs_baseline: 0
