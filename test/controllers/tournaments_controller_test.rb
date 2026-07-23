@@ -873,4 +873,66 @@ class TournamentsControllerTest < ActionDispatch::IntegrationTest
   ensure
     Carambus.config.context = @original_context
   end
+
+  # ---------------------------------------------------------------------------
+  # Entwurf freigeben / löschen (Saison-Kopie).
+  # ---------------------------------------------------------------------------
+
+  def draft_tournament(overrides = {})
+    Tournament.create!({
+      title: "Entwurf LM Dreiband", shortname: "ELM3B",
+      season: seasons(:current), organizer: regions(:nbv), region_id: regions(:nbv).id,
+      discipline: disciplines(:one), date: Time.zone.local(2025, 10, 11, 10, 0),
+      data: {"draft" => true, "copied_from_tournament_id" => 42}
+    }.merge(overrides))
+  end
+
+  test "POST release_draft entfernt das draft-Flag" do
+    Carambus.config.carambus_api_url = "http://local.test"
+    t = draft_tournament
+
+    post release_draft_tournament_url(t)
+
+    assert_redirected_to tournaments_path
+    refute t.reload.draft?, "draft-Flag entfernt"
+    # copied_from_tournament_id bleibt (Idempotenz-Schlüssel des Ingests).
+    assert_equal 42, t.data["copied_from_tournament_id"]
+  end
+
+  test "release_draft verweigert bei fehlender Disziplin und nennt das Feld" do
+    Carambus.config.carambus_api_url = "http://local.test"
+    t = draft_tournament(discipline: nil)
+
+    post release_draft_tournament_url(t)
+
+    assert_redirected_to tournaments_path(drafts: 1)
+    assert t.reload.draft?, "bleibt Entwurf"
+  end
+
+  test "release_draft verweigert bei Platzhalter-Datum" do
+    Carambus.config.carambus_api_url = "http://local.test"
+    t = draft_tournament(date: Time.at(0))
+
+    post release_draft_tournament_url(t)
+
+    assert_redirected_to tournaments_path(drafts: 1)
+    assert t.reload.draft?
+  end
+
+  test "release_draft auf dem API-Server wird abgewiesen" do
+    # carambus_api_url leer => Authority => ensure_local_server greift
+    t = draft_tournament
+    post release_draft_tournament_url(t)
+    assert_redirected_to tournaments_path
+    assert t.reload.draft?
+  end
+
+  test "DELETE destroy löscht einen Entwurf" do
+    Carambus.config.carambus_api_url = "http://local.test"
+    t = draft_tournament
+
+    assert_difference("Tournament.count", -1) do
+      delete tournament_url(t)
+    end
+  end
 end

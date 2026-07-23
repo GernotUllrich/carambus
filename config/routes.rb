@@ -373,6 +373,9 @@ Rails.application.routes.draw do
       get :players_by_club
       post :recalculate_groups
       post :test_tournament_status_update
+      # Entwurf aus der Saison-Kopie freigeben (data["draft"] entfernen) — danach holt ihn der
+      # Meldelisten-Ingest der Authority. Loeschen laeuft ueber das Standard-DELETE (destroy).
+      post :release_draft
     end
     collection do
       # Saison-Kopie mit Auswahl (Sportwart-Weg zum bestehenden Rake-Task tournaments:copy_season).

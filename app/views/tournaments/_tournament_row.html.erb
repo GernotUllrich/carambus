@@ -21,4 +21,23 @@
   <% if tournament.region_id != current_region_id %>
     <%= region_badge(tournament.organizer) %>
   <% end %>
+
+  <%# Entwurfs-Aktionen (Saison-Kopie): nur auf dem lokalen Server und nur für Entwürfe.
+      Freigeben entfernt data["draft"] → Ingest holt es; Löschen verwirft die Kopie. %>
+  <% if local_server? && tournament.draft? %>
+    <div class="flex items-center gap-2 shrink-0">
+      <%= button_to t('tournaments.release_draft.button', default: 'Freigeben'),
+            release_draft_tournament_path(tournament), method: :post,
+            form: { data: { turbo_confirm: t('tournaments.release_draft.confirm',
+              title: tournament.title,
+              default: "„%{title}“ freigeben? Das Turnier wird beim nächsten Meldelisten-Abruf von der Authority übernommen.") } },
+            class: 'rounded bg-primary-600 px-2.5 py-1 text-xs text-white hover:bg-primary-700' %>
+      <%= button_to t('tournaments.release_draft.delete', default: 'Löschen'),
+            tournament_path(tournament), method: :delete,
+            form: { data: { turbo_confirm: t('tournaments.release_draft.delete_confirm',
+              title: tournament.title,
+              default: "Entwurf „%{title}“ endgültig löschen?") } },
+            class: 'rounded border border-danger-300 text-danger-700 dark:text-danger-300 px-2.5 py-1 text-xs hover:bg-danger-50 dark:hover:bg-danger-900/30' %>
+    </div>
+  <% end %>
 </div>

@@ -8,7 +8,7 @@ class TournamentsController < ApplicationController
                          finalize_modus select_modus tournament_monitor reset start define_participants add_team placement
                          upload_invitation parse_invitation apply_seeding_order compare_seedings add_player_by_dbu
                          use_clubcloud_as_participants update_seeding_position players_by_club
-                         recalculate_groups test_tournament_status_update]
+                         recalculate_groups test_tournament_status_update release_draft]
   before_action :ensure_rankings_cached, only: %i[show]
   before_action :load_clubcloud_seedings, only: %i[show]
   before_action :ensure_local_server, only: %i[new create edit update destroy order_by_ranking_or_handicap
@@ -17,7 +17,7 @@ class TournamentsController < ApplicationController
                                                upload_invitation parse_invitation apply_seeding_order compare_seedings
                                                add_player_by_dbu use_clubcloud_as_participants update_seeding_position
                                                players_by_club recalculate_groups
-                                               copy_season copy_season_execute]
+                                               copy_season copy_season_execute release_draft]
 
   # UI-07 D-18 / Phase 39 D-12: Felder, die vor dem Turnierstart gegen
   # Discipline#parameter_ranges geprüft werden. Reihenfolge matcht die
@@ -617,6 +617,34 @@ class TournamentsController < ApplicationController
   def destroy
     @tournament.destroy
     redirect_to tournaments_url, notice: "Tournament was successfully destroyed."
+  end
+
+  # POST /tournaments/1/release_draft
+  #
+  # Gibt einen Saison-Kopie-Entwurf frei: entfernt `data["draft"]`, sodass ihn der
+  # Meldelisten-Ingest der Authority holt (der Endpunkt liefert nur `without_drafts`).
+  # Vorher werden die Felder geprueft, die ein Turnier fuer den Ingest tragbar machen — ein
+  # freigegebenes Turnier ohne Disziplin oder mit Platzhalter-Datum waere auf der Authority Muell.
+  def release_draft
+    unless @tournament.draft?
+      redirect_to tournaments_path(drafts: 1),
+        alert: t("tournaments.release_draft.not_a_draft", default: "Dieses Turnier ist kein Entwurf.")
+      return
+    end
+
+    missing = draft_release_blockers(@tournament)
+    if missing.any?
+      redirect_to tournaments_path(drafts: 1),
+        alert: t("tournaments.release_draft.incomplete", fields: missing.join(", "),
+          default: "Freigabe nicht möglich — es fehlt: %{fields}.")
+      return
+    end
+
+    @tournament.unprotected = true
+    @tournament.update!(data: @tournament.data.except("draft"))
+    redirect_to tournaments_path,
+      notice: t("tournaments.release_draft.done", title: @tournament.title,
+        default: "„%{title}“ ist freigegeben und wird beim nächsten Meldelisten-Abruf übernommen.")
   end
 
   def define_participants
@@ -1327,6 +1355,19 @@ class TournamentsController < ApplicationController
     tournament.discipline&.root&.name
   end
   helper_method :branch_name
+
+  # Felder, ohne die ein freigegebenes Turnier auf der Authority unbrauchbar waere. Als Liste
+  # zurueckgegeben, damit die Freigabe dem Sportwart genau sagt, was noch fehlt.
+  # `tournament_plan_id` ist bewusst NICHT dabei — der Plan wird erst im Turniermanagement anhand
+  # der Spielerzahl gesetzt.
+  def draft_release_blockers(tournament)
+    blockers = []
+    blockers << t("tournament.shortname", default: "Kurzname") if tournament.shortname.blank?
+    blockers << t("tournament.discipline", default: "Disziplin") if tournament.discipline_id.blank?
+    # copy_season verschiebt das Datum; ein Platzhalter (Epoch) bedeutet "kein echtes Datum".
+    blockers << t("tournament.date", default: "Datum") if tournament.date.blank? || tournament.date.year <= 1970
+    blockers
+  end
 
   # Stellt sicher, dass Turniermanagement nur auf lokalen Servern möglich ist
   # API Server dient nur zum Lesen und als Datenquelle
