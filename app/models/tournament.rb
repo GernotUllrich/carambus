@@ -614,6 +614,20 @@ class Tournament < ApplicationRecord
     end
   end
 
+  # Konzern B (Plan 32-04, Modell X): transitioniert die effektiven (nicht-no_show) Seedings in einen
+  # Teilnahme-Zustand (event: :seed | :participate). Reine Instrumentierung — effective_seedings liest
+  # bis 32-05 noch MIN_ID-basiert, daher verhaltensneutral. Nur effektive Seedings (Location Server:
+  # die lokalen >= MIN_ID; die CC-Meldung < MIN_ID bliebe ohnehin durch LocalProtector geschuetzt).
+  def mark_effective_seedings!(event)
+    # Nur LOKALE (schreibbare, >= MIN_ID) effektive Seedings transitionieren: auf dem Location Server sind
+    # die Teilnehmer lokal (die CC-Meldung < MIN_ID waere ohnehin LocalProtector-geschuetzt und wird nicht
+    # finalisiert), auf dem Region Server sind alle lokal. Verhindert ein save!-Brechen bei CC-only.
+    effective_seedings
+      .where.not(state: "no_show")
+      .where("seedings.id >= ?", Seeding::MIN_ID)
+      .find_each { |s| s.public_send("#{event}!") }
+  end
+
   # ===== Automatic Table Reservation for Heating Control =====
   
   # Calculates the required number of tables for the tournament

@@ -236,6 +236,9 @@ class TournamentsController < ApplicationController
       @tournament.reload
       # Berechne Rankings explizit (falls after_enter callback nicht funktioniert hat)
       @tournament.calculate_and_cache_rankings if @tournament.data["player_rankings"].blank?
+      # Plan 32-04 (Konzern B, Modell X): Teilnehmer-Seedings auf participated transitionieren.
+      # Verhaltensneutral (effective_seedings liest bis 32-05 noch MIN_ID-basiert).
+      @tournament.mark_effective_seedings!(:participate)
       # Plan 44-03: Teilnehmerliste-Abschluss atomar in die CC zurückpushen (releaseMeldeliste, async).
       FinalizeTeilnehmerlisteJob.enqueue_for(tournament: @tournament, acting_user: current_user)
     else
@@ -1040,6 +1043,10 @@ class TournamentsController < ApplicationController
         end
       end
 
+      # Plan 32-04 (Konzern B, Modell X): Setzliste gesetzt → Teilnehmer-Seedings auf seeded
+      # transitionieren. Verhaltensneutral (effective_seedings liest bis 32-05 noch MIN_ID-basiert).
+      @tournament.mark_effective_seedings!(:seed)
+
       # Info-Message: Mit/ohne Vorgaben
       has_handicaps = balls_goal_hash.values.any?(&:present?)
       notice_text = if has_handicaps
@@ -1134,6 +1141,10 @@ class TournamentsController < ApplicationController
           seeding.update(position: ix + 1)
         end
       end
+
+      # Plan 32-04 (Konzern B, Modell X): Meldeliste als Teilnehmer uebernommen/sortiert → auf seeded
+      # transitionieren. Verhaltensneutral (effective_seedings liest bis 32-05 noch MIN_ID-basiert).
+      @tournament.mark_effective_seedings!(:seed)
 
       redirect_to define_participants_tournament_path(@tournament),
                   notice: "✅ Meldeliste übernommen und nach Rangliste sortiert (#{clubcloud_seedings.count} Spieler)"
