@@ -64,6 +64,16 @@ class ApplicationController < ActionController::Base
   end
   helper_method :local_server?
 
+  # Instanz-Rollen-Praedikate fuer Views/Controller (Plan 32-02). Delegieren an die Single Source of
+  # Truth ApplicationRecord (application_record.rb). Ermoeglichen der Rollen-abhaengigen Turnier-Sicht,
+  # region_server? / location_server? zu fragen statt local_server? && organizer.is_a?(Region).
+  def authority? = ApplicationRecord.authority?
+
+  def region_server? = ApplicationRecord.region_server?
+
+  def location_server? = ApplicationRecord.location_server?
+  helper_method :authority?, :region_server?, :location_server?
+
   def default_url_options
     # Only add locale to URL if it's different from the default locale
     return {} if I18n.locale == I18n.default_locale

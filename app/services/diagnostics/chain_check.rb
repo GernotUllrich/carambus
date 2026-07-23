@@ -46,12 +46,10 @@ module Diagnostics
 
     # :authority | :region_server | :location_server
     #
-    # `local_server?` (== carambus_api_url gesetzt) ist die im Code etablierte Unterscheidung
-    # (application_record.rb:75). location_id trennt darunter Location- von Region Server.
+    # Delegiert an ApplicationRecord.instance_role (Single Source of Truth, application_record.rb).
+    # Die Ableitung (local_server? + location_id) lebt dort, damit Views/Controller sie teilen koennen.
     def role
-      return :authority unless ApplicationRecord.local_server?
-
-      (location_id.to_i > 0) ? :location_server : :region_server
+      ApplicationRecord.instance_role
     end
 
     private
