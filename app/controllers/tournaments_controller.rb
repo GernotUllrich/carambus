@@ -47,6 +47,12 @@ class TournamentsController < ApplicationController
     @show_drafts = params[:drafts].present?
     results = @show_drafts ? results.drafts : results.without_drafts
 
+    # Plan 32-01: den globalen Round-Trip-Zwilling eines CC-los angelegten Turniers auf der
+    # Ursprungs-Instanz ausblenden — nur das lokale Original bleibt sichtbar. Reiner Display-Filter,
+    # selbst-scopend (greift nur, wo das lokale Original existiert). Vor dem H19-Block, damit
+    # „Demnächst" dieselbe Menge sieht.
+    results = results.without_roundtrip_twins
+
     # H19: „Demnächst"-Block — anstehende Turniere (nächste 14 Tage) im Standard-Blick
     # oben abgesetzt, aus der datum-absteigenden Hauptliste ausgeklammert.
     @show_upcoming = false

@@ -114,6 +114,27 @@ class Tournament < ApplicationRecord
   scope :drafts, -> { where("tournaments.data LIKE ?", "%#{DRAFT_MARKER}%") }
   scope :without_drafts, -> { where("tournaments.data IS NULL OR tournaments.data NOT LIKE ?", "%#{DRAFT_MARKER}%") }
 
+  # Plan 32-01: Round-Trip-Zwilling. Ein CC-los angelegtes Turnier (lokales Original, id >= MIN_ID)
+  # kehrt als GLOBALE Kopie (Authority-Ingest, id < MIN_ID) per Versions-Sync zur URSPRUNGS-Instanz
+  # zurueck und liegt dort neben dem Original. Kennzeichen: der Zwilling traegt
+  # source_url = "https://<region>.carambus.de/tournaments/<lokale-id>" (gesetzt vom EntryListImporter).
+  # Der Scope blendet solche Zwillinge aus — SELBST-SCOPEND: er greift nur, wo das referenzierte lokale
+  # Original tatsaechlich existiert (also auf der Ursprungs-Instanz). Auf der Authority und auf einem
+  # Location Server (kein lokales Original) bleibt der globale Datensatz sichtbar. Reiner Display-Filter,
+  # kein Eingriff in Sync/Ingest. Fremde Provenienzen (CC/LigaManager/NuLiga) treffen das Muster nicht.
+  # NULL-source_url ist explizit ausgenommen, damit globale Turniere ohne source_url sichtbar bleiben.
+  scope :without_roundtrip_twins, lambda {
+    where(
+      "NOT (tournaments.id < :min " \
+      "AND tournaments.source_url IS NOT NULL " \
+      "AND tournaments.source_url ~ '/tournaments/[0-9]+$' " \
+      "AND CAST(substring(tournaments.source_url FROM '/tournaments/([0-9]+)$') AS bigint) >= :min " \
+      "AND EXISTS (SELECT 1 FROM tournaments t2 " \
+      "WHERE t2.id = CAST(substring(tournaments.source_url FROM '/tournaments/([0-9]+)$') AS bigint)))",
+      min: MIN_ID
+    )
+  }
+
   #   data:
   #     {:table_ids=>["2", "4"],
   #      :balls_goal=>0,
@@ -547,6 +568,22 @@ class Tournament < ApplicationRecord
     return false unless data.is_a?(Hash)
 
     ActiveModel::Type::Boolean.new.cast(data["draft"]).present?
+  end
+
+  # Plan 32-01: Ist dieses (globale) Turnier ein Round-Trip-Zwilling eines HIER existierenden lokalen
+  # Originals? Ruby-Pendant zu scope :without_roundtrip_twins — fuer Views/Tests. Selbst-scopend:
+  # true nur, wenn das in source_url referenzierte lokale Original (id >= MIN_ID) hier vorliegt.
+  def roundtrip_twin?
+    return false unless id && id < MIN_ID
+    return false if source_url.blank?
+
+    match = source_url.match(%r{/tournaments/(\d+)\z})
+    return false unless match
+
+    local_id = match[1].to_i
+    return false unless local_id >= MIN_ID
+
+    Tournament.where(id: local_id).exists?
   end
 
   # Prüft ob dieses Turnier ClubCloud-Ergebnisse hat
