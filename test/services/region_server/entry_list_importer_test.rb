@@ -267,4 +267,87 @@ class RegionServer::EntryListImporterTest < ActiveSupport::TestCase
   test "injiziertes Dokument braucht keine Zugangsdaten" do
     assert_nothing_raised { importer.call }
   end
+
+  # --- Plan 29-06: der Ingest aktualisiert und entfernt jetzt (nicht mehr nur anlegen) ---
+
+  # Ein zweiter Spieler in der Meldeliste, damit Prune/Update etwas zu greifen haben.
+  def second_player
+    @second_player ||= Player.create!(lastname: "ZWEIT", firstname: "Zoe", fl_name: "Z. Zweit", dbu_nr: 888_888)
+  end
+
+  def entry_for(player, position:, balls_goal: 150)
+    {"dbu_nr" => player.dbu_nr, "lastname" => player.lastname, "firstname" => player.firstname,
+     "club" => "Testverein", "position" => position, "balls_goal" => balls_goal}
+  end
+
+  test "zweiter Lauf aktualisiert Titel und Datum eines bestehenden Turniers" do
+    importer(armed: true).call
+    t = Tournament.find_by(source_url: "#{@base_url}/tournaments/#{@source_id}")
+
+    doc = document
+    doc["tournaments"][0]["title"] = "LM Dreiband (verlegt)"
+    doc["tournaments"][0]["date"] = "2026-11-15T10:00:00+01:00"
+
+    result = importer(armed: true, doc: doc).call
+
+    assert_equal 1, result.tournaments_matched
+    assert_equal 1, result.tournaments_updated
+    assert_equal "LM Dreiband (verlegt)", t.reload.title
+    assert_equal Date.new(2026, 11, 15), t.date.to_date
+  end
+
+  test "eine auf der Quelle geloeschte Meldung wird auf der Authority entfernt" do
+    two = document(entries: [entry_for(@player, position: 1), entry_for(second_player, position: 2)])
+    importer(armed: true, doc: two).call
+    t = Tournament.find_by(source_url: "#{@base_url}/tournaments/#{@source_id}")
+    assert_equal 2, t.seedings.count
+
+    one = document(entries: [entry_for(@player, position: 1)])
+    result = importer(armed: true, doc: one).call
+
+    assert_equal 1, result.seedings_removed
+    assert_equal [@player.id], t.reload.seedings.pluck(:player_id)
+  end
+
+  test "eine bereits gespielte Meldung (mit Ergebnis) wird NIE entfernt" do
+    two = document(entries: [entry_for(@player, position: 1), entry_for(second_player, position: 2)])
+    importer(armed: true, doc: two).call
+    t = Tournament.find_by(source_url: "#{@base_url}/tournaments/#{@source_id}")
+    gespielt = t.seedings.find_by(player_id: second_player.id)
+    gespielt.update!(data: {"result" => {"Gesamtrangliste" => {"Rang" => 1}}})
+
+    one = document(entries: [entry_for(@player, position: 1)])
+    result = importer(armed: true, doc: one).call
+
+    assert_equal 0, result.seedings_removed, "Ergebnis-Seeding ist geschuetzt"
+    assert t.reload.seedings.exists?(player_id: second_player.id)
+  end
+
+  test "geaenderte Setzposition wird nachgezogen" do
+    importer(armed: true, doc: document(entries: [entry_for(@player, position: 5)])).call
+    t = Tournament.find_by(source_url: "#{@base_url}/tournaments/#{@source_id}")
+    assert_equal 5, t.seedings.first.position
+
+    importer(armed: true, doc: document(entries: [entry_for(@player, position: 1)])).call
+
+    assert_equal 1, t.reload.seedings.first.position
+  end
+
+  test "dry-run des zweiten Laufs schreibt weder Update noch Loeschung" do
+    two = document(entries: [entry_for(@player, position: 1), entry_for(second_player, position: 2)])
+    importer(armed: true, doc: two).call
+    t = Tournament.find_by(source_url: "#{@base_url}/tournaments/#{@source_id}")
+
+    one = document(entries: [entry_for(@player, position: 1)])
+    one["tournaments"][0]["title"] = "Geaendert"
+
+    result = nil
+    assert_no_difference("Seeding.count") do
+      result = importer(armed: false, doc: one).call
+    end
+    assert_equal 1, result.seedings_removed, "der Probelauf MELDET die Loeschung"
+    assert_equal 1, result.tournaments_updated
+    assert_equal 2, t.reload.seedings.count, "aber schreibt sie nicht"
+    refute_equal "Geaendert", t.title
+  end
 end

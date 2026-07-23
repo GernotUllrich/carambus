@@ -17,7 +17,8 @@ module RegionServer
   # ⚠️ Spieler werden AUFGELOEST, nie neu angelegt — Stammdaten bleiben DBU-CC-gepflegt
   # ("CC-less" != "CC-frei"). Unaufloesbare Meldungen werden berichtet.
   class EntryListImporter
-    Result = Struct.new(:tournaments_created, :tournaments_matched, :seedings_created,
+    Result = Struct.new(:tournaments_created, :tournaments_matched, :tournaments_updated,
+      :seedings_created, :seedings_removed,
       :players_unresolved, :skipped_no_source_id,
       :rankings_imported, :rankings_skipped_foreign, keyword_init: true)
 
@@ -34,7 +35,8 @@ module RegionServer
       doc = @document || fetch_document
       raise ArgumentError, "Antwort enthält keine tournaments-Liste" unless doc.is_a?(Hash) && doc["tournaments"].is_a?(Array)
 
-      result = Result.new(tournaments_created: 0, tournaments_matched: 0, seedings_created: 0,
+      result = Result.new(tournaments_created: 0, tournaments_matched: 0, tournaments_updated: 0,
+        seedings_created: 0, seedings_removed: 0,
         players_unresolved: [], skipped_no_source_id: 0,
         rankings_imported: 0, rankings_skipped_foreign: 0)
 
@@ -107,13 +109,50 @@ module RegionServer
       source_url = "#{@base_url}/tournaments/#{source_id}"
       existing = ::Tournament.find_by(source_url: source_url)
 
-      tournament = existing || build_tournament(payload, source_url, result)
-      result.tournaments_matched += 1 if existing
+      if existing
+        result.tournaments_matched += 1
+        tournament = update_tournament(existing, payload, result)
+      else
+        tournament = build_tournament(payload, source_url, result)
+      end
 
-      # Auch im dry-run (tournament == nil) die Meldungen durchgehen: die Zahl der entstehenden
-      # Seedings und vor allem die UNAUFLOESBAREN Spieler sind die eigentliche Information eines
-      # Probelaufs.
-      import_entries(tournament, payload["entries"], result)
+      # Auch im dry-run (tournament == nil bei Neuanlage) die Meldungen durchgehen: die Zahl der
+      # entstehenden Seedings und vor allem die UNAUFLOESBAREN Spieler sind die eigentliche
+      # Information eines Probelaufs. `import_entries` liefert die aufgeloesten Spieler-IDs zurueck,
+      # damit `prune_removed_entries` weiss, welche Meldungen auf der Quelle geloescht wurden.
+      keep_player_ids = import_entries(tournament, payload["entries"], result)
+      prune_removed_entries(tournament, keep_player_ids, result)
+    end
+
+    # Ein bereits uebernommenes Turnier bekommt Struktur- und Datumsaenderungen der Quelle nach.
+    # OHNE dies erreichte eine Datums-/Titelkorrektur des Sportwarts die Authority NIE (Plan 29-05
+    # Backlog). Nur die Meldelisten-Phase-Felder werden aktualisiert; ein bereits GESPIELTES Turnier
+    # (state != Meldephase) bleibt unangetastet, damit der Ingest keine Ergebnisstruktur ueberschreibt.
+    def update_tournament(tournament, payload, result)
+      return tournament if tournament_in_play?(tournament)
+
+      attrs = payload.slice(*::Tournament::SeasonCopier::STRUCTURE_ATTRIBUTES)
+      attrs["date"] = payload["date"] if payload.key?("date")
+      attrs["end_date"] = payload["end_date"] if payload.key?("end_date")
+
+      changed = attrs.any? { |k, v| tournament.public_send(k).to_s != v.to_s }
+      return tournament unless changed
+
+      result.tournaments_updated += 1
+      return tournament unless @armed
+
+      ::Tournament.skip_cable_ready_updates do
+        tournament.update!(attrs)
+      end
+      tournament
+    end
+
+    # Turnier ist ueber die reine Meldelisten-Phase hinaus (gestartet/gespielt): dann NICHT mehr aus
+    # der Quelle strukturell ueberschreiben. `new_tournament` ist der Default frisch angelegter
+    # (auch kopierter) Turniere; alles andere ist Bearbeitung/Spielbetrieb.
+    def tournament_in_play?(tournament)
+      tournament.tournament_started == true ||
+        (tournament.respond_to?(:state) && tournament.state.present? && tournament.state != "new_tournament")
     end
 
     def build_tournament(payload, source_url, result)
@@ -136,13 +175,16 @@ module RegionServer
       end
     end
 
+    # Gibt die aufgeloesten Spieler-IDs der eingehenden Meldeliste zurueck (fuer prune_removed_entries).
     def import_entries(tournament, entries, result)
+      keep_player_ids = []
       Array(entries).each do |entry|
         player = resolve_player(entry)
         if player.nil?
           result.players_unresolved << entry_label(entry)
           next
         end
+        keep_player_ids << player.id
 
         # tournament ist im dry-run nil (noch nicht angelegt) — dann existiert zwangslaeufig noch
         # keine Meldung, alle zaehlen als neu.
@@ -151,10 +193,36 @@ module RegionServer
         if seeding.nil?
           result.seedings_created += 1
           seeding = create_seeding(tournament, player, entry) if @armed && tournament
+        elsif @armed
+          update_seeding(seeding, entry)
         end
 
         import_ranking(seeding, entry, result)
       end
+      keep_player_ids
+    end
+
+    # Meldungen, die auf der Quelle GELOESCHT wurden, auch auf der Authority entfernen — sonst bliebe
+    # ein zurueckgezogener Spieler fuer immer gemeldet (Plan 29-05 Backlog: "eintragen/loeschen").
+    # Schutz: nur Meldungen OHNE Ergebnis werden entfernt, damit ein bereits gespieltes Seeding
+    # niemals verloren geht. Im dry-run (tournament nil bei Neuanlage) gibt es nichts zu pruefen.
+    def prune_removed_entries(tournament, keep_player_ids, result)
+      return if tournament.nil?
+
+      orphans = tournament.seedings.where.not(player_id: keep_player_ids)
+        .reject { |s| seeding_has_result?(s) }
+      return if orphans.empty?
+
+      result.seedings_removed += orphans.size
+      return unless @armed
+
+      ::Seeding.skip_cable_ready_updates do
+        orphans.each(&:destroy!)
+      end
+    end
+
+    def seeding_has_result?(seeding)
+      seeding.data.is_a?(Hash) && seeding.data["result"].present?
     end
 
     def create_seeding(tournament, player, entry)
@@ -164,6 +232,17 @@ module RegionServer
           position: entry["position"],
           balls_goal: entry["balls_goal"]
         )
+      end
+    end
+
+    # Position/Ball-Vorgabe einer bestehenden Meldung nachziehen (der Sportwart kann die Setzliste
+    # auf der Quelle aendern). Das Ergebnis bleibt import_ranking vorbehalten.
+    def update_seeding(seeding, entry)
+      attrs = {position: entry["position"], balls_goal: entry["balls_goal"]}
+      return if attrs.all? { |k, v| seeding.public_send(k).to_s == v.to_s }
+
+      ::Seeding.skip_cable_ready_updates do
+        seeding.update!(attrs)
       end
     end
 
