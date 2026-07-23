@@ -642,9 +642,15 @@ class TournamentsController < ApplicationController
 
     @tournament.unprotected = true
     @tournament.update!(data: @tournament.data.except("draft"))
+
+    # ① CC-loser Short-Circuit: die Authority sofort (fehlertolerant, im Hintergrund) anstoßen, die
+    # Meldeliste einzulesen — statt bis zum stündlichen Cron zu warten. Scheitert der Job, bleibt die
+    # Freigabe trotzdem gültig (lokaler Stand führt); der Cron bzw. ein On-demand-Reload zieht nach.
+    EntryListSyncJob.enqueue_for(tournament: @tournament)
+
     redirect_to tournaments_path,
       notice: t("tournaments.release_draft.done", title: @tournament.title,
-        default: "„%{title}“ ist freigegeben und wird beim nächsten Meldelisten-Abruf übernommen.")
+        default: "„%{title}“ ist freigegeben und wird von der Authority übernommen.")
   end
 
   def define_participants

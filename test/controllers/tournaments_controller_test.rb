@@ -887,14 +887,18 @@ class TournamentsControllerTest < ActionDispatch::IntegrationTest
     }.merge(overrides))
   end
 
-  test "POST release_draft entfernt das draft-Flag" do
+  test "POST release_draft entfernt das draft-Flag und stößt den Authority-Sync an" do
     Carambus.config.carambus_api_url = "http://local.test"
     t = draft_tournament
 
-    post release_draft_tournament_url(t)
+    notified = nil
+    EntryListSyncJob.stub(:enqueue_for, ->(tournament:) { notified = tournament }) do
+      post release_draft_tournament_url(t)
+    end
 
     assert_redirected_to tournaments_path
     refute t.reload.draft?, "draft-Flag entfernt"
+    assert_equal t.id, notified&.id, "release_draft stößt den Authority-Sync an"
     # copied_from_tournament_id bleibt (Idempotenz-Schlüssel des Ingests).
     assert_equal 42, t.data["copied_from_tournament_id"]
   end
