@@ -47,11 +47,8 @@
           <div class="bg-red-50 border border-red-200 rounded p-4 mb-4">
             <h4 class="text-red-900 font-semibold mb-2">⚠️ Fehler beim Initialisieren des Turniers</h4>
             <%
-              has_local_seedings = @tournament_monitor.tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").any?
-              seeding_scope = has_local_seedings ?
-                                "seedings.id >= #{Seeding::MIN_ID}" :
-                                "seedings.id < #{Seeding::MIN_ID}"
-              used_seedings_count = @tournament_monitor.tournament.seedings.where.not(state: "no_show").where(seeding_scope).count
+              # Plan 32-03: effective_seedings (lokale bevorzugen, sonst ClubCloud) statt dupliziertem has_local-Idiom
+              used_seedings_count = @tournament_monitor.tournament.effective_seedings.where.not(state: "no_show").count
               total_seedings_count = @tournament_monitor.tournament.seedings.count
               plan = @tournament_monitor.tournament.tournament_plan
               plan_mismatch = plan && plan.players != used_seedings_count
@@ -100,14 +97,9 @@
   <% if @tournament_monitor.data['groups'].present? %>
     <% @groups = @tournament_monitor.data['groups'] %>
   <% else %>
-    <%
-      has_local_seedings = @tournament_monitor.tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").any?
-      seeding_scope = has_local_seedings ?
-                        "seedings.id >= #{Seeding::MIN_ID}" :
-                        "seedings.id < #{Seeding::MIN_ID}"
-    %>
+    <%# Plan 32-03: effective_seedings (lokale bevorzugen, sonst ClubCloud) statt dupliziertem has_local-Idiom %>
     <% @groups = TournamentMonitor.distribute_to_group(
-      @tournament_monitor.tournament.seedings.where.not(state: "no_show").where(seeding_scope).order(:position).map(&:player),
+      @tournament_monitor.tournament.effective_seedings.where.not(state: "no_show").order(:position).map(&:player),
       @tournament_monitor.tournament.tournament_plan.ngroups,
       @tournament_monitor.tournament.tournament_plan.group_sizes
     ) %>

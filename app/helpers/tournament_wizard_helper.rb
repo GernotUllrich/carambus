@@ -48,11 +48,9 @@ module TournamentWizardHelper
   def wizard_current_step(tournament)
     case tournament.state
     when "new_tournament"
-      # Check for local seedings first (for manual/test entries)
-      has_local_seedings = tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").exists?
-
+      # Check for local seedings first (for manual/test entries) — Plan 32-03: has_local_seedings?
       # If we have local seedings, we're at least at step 3 (editing participants)
-      return 3 if has_local_seedings
+      return 3 if tournament.has_local_seedings?
 
       # Schritt 1: Meldeliste laden (ClubCloud-Seedings vorhanden?)
       has_clubcloud_seedings = tournament.seedings.where("seedings.id < #{Seeding::MIN_ID}").exists?
@@ -187,14 +185,9 @@ module TournamentWizardHelper
   # Intelligente Spielerzahl: Zählt entweder lokale ODER ClubCloud Seedings
   # Verhindert Doppelzählung bei parallelen Seeding-Sets
   def participant_count(tournament)
-    has_local_seedings = tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").any?
-    seeding_scope = has_local_seedings ?
-                      "seedings.id >= #{Seeding::MIN_ID}" :
-                      "seedings.id < #{Seeding::MIN_ID}"
-
-    tournament.seedings
+    # Plan 32-03: effective_seedings (lokale bevorzugen, sonst ClubCloud) statt dupliziertem has_local-Idiom
+    tournament.effective_seedings
       .where.not(state: "no_show")
-      .where(seeding_scope)
       .count
   end
 

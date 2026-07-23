@@ -93,17 +93,10 @@ class TournamentMonitor::RankingResolver
   def group_rank(match)
     group_no = match[1]
     seeding_index = match[2].to_i
-    seeding_scope = if @tournament_monitor.tournament
-                       .seedings
-                       .where("seedings.id >= #{Seeding::MIN_ID}")
-                       .count.positive?
-                      "seedings.id >= #{Seeding::MIN_ID}"
-                    else
-                      "seedings.id< #{Seeding::MIN_ID}"
-                    end
+    # Plan 32-03: effective_seedings (lokale bevorzugen, sonst ClubCloud) statt dupliziertem has_local-Idiom
     # D-05: Direkter Aufruf von PlayerGroupDistributor — kein Umweg über TournamentMonitor.distribute_to_group
     groups = TournamentMonitor::PlayerGroupDistributor.distribute_to_group(
-      @tournament_monitor.tournament.seedings.where(seeding_scope).order(:position).map(&:player),
+      @tournament_monitor.tournament.effective_seedings.order(:position).map(&:player),
       @tournament_monitor.tournament.tournament_plan.ngroups,
       @tournament_monitor.tournament.tournament_plan.group_sizes # NEU: Gruppengrößen aus executor_params
     )

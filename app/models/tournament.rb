@@ -597,6 +597,23 @@ class Tournament < ApplicationRecord
     end
   end
 
+  # Meldung<->Teilnahme-Diskriminator (Konzern A, Plan 32-03). Reproduziert das bisher ~10x duplizierte
+  # has_local-Idiom EXAKT: lokale Seedings (>= MIN_ID) haben Vorrang, sonst die CC-Meldung (< MIN_ID).
+  # effective_seedings filtert state NICHT (der no_show-Ausschluss bleibt Sache der Aufrufer) und ordnet
+  # nicht — beides haengt der Aufrufer wie bisher selbst an. Konzern B (32-04) macht die Auswahl auf dem
+  # Region Server state-basiert, auf dem Location Server MIN_ID-verhaltensgleich; die Aufrufer bleiben.
+  def has_local_seedings?
+    seedings.where("seedings.id >= ?", Seeding::MIN_ID).exists?
+  end
+
+  def effective_seedings
+    if has_local_seedings?
+      seedings.where("seedings.id >= ?", Seeding::MIN_ID)
+    else
+      seedings.where("seedings.id < ?", Seeding::MIN_ID)
+    end
+  end
+
   # ===== Automatic Table Reservation for Heating Control =====
   
   # Calculates the required number of tables for the tournament

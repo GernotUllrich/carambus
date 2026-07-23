@@ -283,18 +283,9 @@ class TournamentsController < ApplicationController
     else
       @tournament.seedings.where(player_id: nil).destroy_all
 
-      # Intelligentes Zählen: Wenn lokale Seedings existieren, nur diese zählen
-      # Ansonsten ClubCloud-Seedings zählen (verhindert Duplikat-Zählung)
-      has_local_seedings = @tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").any?
-      @seeding_scope = if has_local_seedings
-                         "seedings.id >= #{Seeding::MIN_ID}"
-                       else
-                         "seedings.id < #{Seeding::MIN_ID}"
-                       end
-
-      @participant_count = @tournament.seedings
+      # Plan 32-03: effective_seedings (lokale bevorzugen, sonst ClubCloud) statt dupliziertem has_local-Idiom
+      @participant_count = @tournament.effective_seedings
                                       .where.not(state: "no_show")
-                                      .where(@seeding_scope)
                                       .count
 
       # Versuche TournamentPlan anhand extrahierter Info zu finden (z.B. "T21", aber NICHT T0/T00)
@@ -325,7 +316,7 @@ class TournamentsController < ApplicationController
       if @proposed_discipline_tournament_plan.present?
         # Berechne IMMER die NBV-Standard-Gruppenbildung (MIT Gruppengrößen aus executor_params!)
         @nbv_groups = TournamentMonitor.distribute_to_group(
-          @tournament.seedings.where.not(state: "no_show").where(@seeding_scope).order(:position).map(&:player),
+          @tournament.effective_seedings.where.not(state: "no_show").order(:position).map(&:player),
           @proposed_discipline_tournament_plan.ngroups,
           @proposed_discipline_tournament_plan.group_sizes # NEU: Gruppengrößen aus executor_params
         )
@@ -700,17 +691,9 @@ class TournamentsController < ApplicationController
     # Berechne mögliche Turnierpläne und Gruppenzuordnungen (wie in finalize_modus)
     @tournament.seedings.where(player_id: nil).destroy_all
 
-    # Intelligentes Zählen: Wenn lokale Seedings existieren, nur diese zählen
-    has_local_seedings = @tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").any?
-    @seeding_scope = if has_local_seedings
-                       "seedings.id >= #{Seeding::MIN_ID}"
-                     else
-                       "seedings.id < #{Seeding::MIN_ID}"
-                     end
-
-    @participant_count = @tournament.seedings
+    # Plan 32-03: effective_seedings (lokale bevorzugen, sonst ClubCloud) statt dupliziertem has_local-Idiom
+    @participant_count = @tournament.effective_seedings
                                     .where.not(state: "no_show")
-                                    .where(@seeding_scope)
                                     .count
 
     # Versuche TournamentPlan anhand extrahierter Info zu finden (z.B. "T21", aber NICHT T0/T00)
@@ -749,7 +732,7 @@ class TournamentsController < ApplicationController
     if @proposed_discipline_tournament_plan.present?
       # Berechne IMMER die NBV-Standard-Gruppenbildung
       @nbv_groups = TournamentMonitor.distribute_to_group(
-        @tournament.seedings.where.not(state: "no_show").where(@seeding_scope).order(:position).map(&:player),
+        @tournament.effective_seedings.where.not(state: "no_show").order(:position).map(&:player),
         @proposed_discipline_tournament_plan.ngroups,
         @proposed_discipline_tournament_plan.group_sizes
       )
@@ -939,12 +922,7 @@ class TournamentsController < ApplicationController
     # Split by comma and clean up whitespace
     dbu_numbers = dbu_input.split(',').map(&:strip).reject(&:blank?)
 
-    # Determine seeding scope once
-    seeding_scope = if @tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").any?
-                      "seedings.id >= #{Seeding::MIN_ID}"
-                    else
-                      "seedings.id < #{Seeding::MIN_ID}"
-                    end
+    # Plan 32-03: effective_seedings (lokale bevorzugen, sonst ClubCloud) statt dupliziertem has_local-Idiom
 
     # Track results
     added = []
@@ -962,7 +940,7 @@ class TournamentsController < ApplicationController
       end
 
       # Check if player already in tournament
-      existing_seeding = @tournament.seedings.where(seeding_scope).where(player_id: player.id).first
+      existing_seeding = @tournament.effective_seedings.where(player_id: player.id).first
 
       if existing_seeding
         already_exists << "#{player.fullname} (#{dbu_nr}, Pos. #{existing_seeding.position})"
@@ -970,7 +948,7 @@ class TournamentsController < ApplicationController
       end
 
       # Add player to seeding list
-      max_position = @tournament.seedings.where(seeding_scope).maximum(:position) || 0
+      max_position = @tournament.effective_seedings.maximum(:position) || 0
 
       @tournament.seedings.create!(
         player_id: player.id,
@@ -1018,7 +996,7 @@ class TournamentsController < ApplicationController
     club_id = params[:club_id]
     return render(json: []) if club_id.blank?
 
-    already_seeded = @tournament.seedings.where(entry_list_seeding_scope).pluck(:player_id).compact.to_set
+    already_seeded = @tournament.effective_seedings.pluck(:player_id).compact.to_set
 
     # Saison des TURNIERS, nicht die laufende: Meldungen gehoeren zur Turniersaison. Bei einem
     # Turnier der Vorsaison zeigte `Season.current_season` sonst die falschen Spieler — und sie
@@ -1285,15 +1263,9 @@ class TournamentsController < ApplicationController
   # Input: { 1 => [1, 5, 9], 2 => [2, 6, 10], ... } (Positionen)
   # Output: { "group1" => [player_id1, player_id5, ...], ... }
   def convert_position_groups_to_player_groups(position_groups, tournament)
-    # Verwende @seeding_scope wenn verfügbar, sonst intelligente Erkennung
-    scope = @seeding_scope || begin
-      has_local = tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").any?
-      has_local ? "seedings.id >= #{Seeding::MIN_ID}" : "seedings.id < #{Seeding::MIN_ID}"
-    end
-
-    seedings = tournament.seedings
+    # Plan 32-03: effective_seedings (lokale bevorzugen, sonst ClubCloud) statt dupliziertem has_local-Idiom
+    seedings = tournament.effective_seedings
                          .where.not(state: "no_show")
-                         .where(scope)
                          .order(:position)
                          .to_a
 
@@ -1340,17 +1312,6 @@ class TournamentsController < ApplicationController
                                        :sets_to_win, :sets_to_play, :team_size, :kickoff_switches_with, :fixed_display_left,
                                        :color_remains_with_set, :allow_overflow, :allow_follow_up,
                                        :turnier_leiter_user_id, :source_url)
-  end
-
-  # Plan 26-01: aktiver Seeding-Scope des Turniers — lokale Seedings haben Vorrang, sonst die
-  # globalen. Spiegelt bewusst die Logik aus add_player_by_dbu (dort inline), damit beide Pfade
-  # dasselbe "bereits gemeldet" verstehen; Konsolidierung gehoert in den Flow von Phase 28.
-  def entry_list_seeding_scope
-    if @tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").any?
-      "seedings.id >= #{Seeding::MIN_ID}"
-    else
-      "seedings.id < #{Seeding::MIN_ID}"
-    end
   end
 
   # Phase 25-01: Server-Region aus der Scenario-Config (Carambus.config.context) fuer die

@@ -31,14 +31,9 @@ module TournamentsHelper
     if tournament_monitor.data['groups'].present?
       tournament_monitor.data['groups']
     else
-      # Berechne Gruppen neu
-      has_local_seedings = tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").any?
-      seeding_scope = has_local_seedings ? 
-                      "seedings.id >= #{Seeding::MIN_ID}" : 
-                      "seedings.id < #{Seeding::MIN_ID}"
-      
+      # Berechne Gruppen neu (Plan 32-03: effective_seedings statt dupliziertem has_local-Idiom)
       TournamentMonitor.distribute_to_group(
-        tournament.seedings.where.not(state: "no_show").where(seeding_scope).order(:position).map(&:player), 
+        tournament.effective_seedings.where.not(state: "no_show").order(:position).map(&:player),
         tournament.tournament_plan.ngroups,
         tournament.tournament_plan.group_sizes
       )

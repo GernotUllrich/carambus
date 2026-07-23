@@ -1,7 +1,8 @@
 <%- tournament_monitor = local_assigns[:tournament_monitor] %>
 <%- edit_games_modus = local_assigns[:edit_games_modus] %>
 <h2><%= t("tournament_monitors.game_results.game_results") %></h2>
-<%- game_scope = tournament_monitor.tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").count > 0 ? "games.id >= #{Game::MIN_ID}" : "games.id < #{Game::MIN_ID}" %>
+<%# Plan 32-03: has_local_seedings? entscheidet lokale vs. globale Games (Game-Scope bleibt games.id-basiert) %>
+<%- game_scope = tournament_monitor.tournament.has_local_seedings? ? "games.id >= #{Game::MIN_ID}" : "games.id < #{Game::MIN_ID}" %>
 <%- has_games_to_start = tournament_monitor.table_monitors.includes(:game).where.not(game_id: nil).any? { |tm| %i[ready warmup warmup_a warmup_b match_shootout].include?(tm.state.to_sym) } %>
 <% if edit_games_modus && has_games_to_start %>
   <div class="mb-4">

@@ -107,8 +107,8 @@
           </tr>
           </thead>
           <tbody>
-          <%- seeding_scope = @tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").count > 0 ? "seedings.id >= #{Seeding::MIN_ID}" : "seedings.id < #{Seeding::MIN_ID}" %>
-          <%- active_seedings = @tournament.seedings.where(seeding_scope).to_a %>
+          <%# Plan 32-03: effective_seedings (lokale bevorzugen, sonst ClubCloud) statt dupliziertem has_local-Idiom %>
+          <%- active_seedings = @tournament.effective_seedings.to_a %>
 
           <%# Sortiere und aktualisiere Positionen NUR wenn keine Einladung hochgeladen wurde %>
           <%# UND nur wenn Positionen noch nicht gesetzt sind (erstes Mal) %>
@@ -208,9 +208,9 @@
           <% end %>
 
           <%# Zeige Spieler ohne Seeding (falls vorhanden) %>
-          <%- seeding_scope = @tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").count > 0 ? "seedings.id >= #{Seeding::MIN_ID}" : "seedings.id < #{Seeding::MIN_ID}" %>
           <%- players_with_seedings = active_seedings.map(&:player_id).to_set %>
-          <%- players = @tournament.organizer.is_a?(Region) ? Player.all.joins(:seedings).where(seedings: { tournament_id: @tournament.id }).where(seeding_scope) : @tournament.organizer.season_participations.where(season: Season.current_season).map(&:player).compact %>
+          <%# Plan 32-03: effective_seedings (lokale bevorzugen, sonst ClubCloud) statt dupliziertem has_local-Idiom %>
+          <%- players = @tournament.organizer.is_a?(Region) ? @tournament.effective_seedings.includes(:player).map(&:player).compact : @tournament.organizer.season_participations.where(season: Season.current_season).map(&:player).compact %>
           <%- club_players = players.uniq.reject { |p| players_with_seedings.include?(p.id) }.sort_by { |player| player.fl_name }.to_a %>
           <%- guest_players = @tournament.organizer.is_a?(Region) ? [] : @tournament.organizer.players.where(guest: true).order(:lastname).to_a.reject { |p| players_with_seedings.include?(p.id) } %>
 
@@ -328,7 +328,7 @@
                         <% end %>
                       </div>
                       <% alternative_groups = TournamentMonitor.distribute_to_group(
-                           @tournament.seedings.where.not(state: "no_show").where(@seeding_scope).order(:position).map(&:player),
+                           @tournament.effective_seedings.where.not(state: "no_show").order(:position).map(&:player),
                            alternative.ngroups,
                            alternative.group_sizes) %>
                       <%= render partial: "groups_compact", locals: { tournament_plan: alternative, groups: alternative_groups } %>
@@ -367,7 +367,7 @@
                         <% end %>
                       </div>
                       <% alternative_groups = TournamentMonitor.distribute_to_group(
-                           @tournament.seedings.where.not(state: "no_show").where(@seeding_scope).order(:position).map(&:player),
+                           @tournament.effective_seedings.where.not(state: "no_show").order(:position).map(&:player),
                            alternative.ngroups,
                            alternative.group_sizes) %>
                       <%= render partial: "groups_compact", locals: { tournament_plan: alternative, groups: alternative_groups } %>

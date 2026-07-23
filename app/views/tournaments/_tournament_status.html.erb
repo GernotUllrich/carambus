@@ -157,10 +157,7 @@
 
     <!-- Setzliste (read-only) -->
     <%
-      seeding_scope = tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").count > 0 ?
-                      "seedings.id >= #{Seeding::MIN_ID}" :
-                      "seedings.id < #{Seeding::MIN_ID}"
-
+      # Plan 32-03: effective_seedings (lokale bevorzugen, sonst ClubCloud) statt dupliziertem has_local-Idiom
       # Verwende gecachte Rankings aus tournament.data (berechnet beim Finalisieren der Seedings)
       player_rank = tournament.data['player_rankings']
 
@@ -219,7 +216,7 @@
             </tr>
           </thead>
           <tbody>
-            <% tournament.seedings.where(seeding_scope).where.not(state: "no_show").includes(:player => :player_rankings).joins(:player).order("seedings.position").each do |seeding| %>
+            <% tournament.effective_seedings.where.not(state: "no_show").includes(:player => :player_rankings).joins(:player).order("seedings.position").each do |seeding| %>
               <% club = tournament.season.season_participations.where("season_participations.player_id = ?", seeding.player.id).first&.club %>
               <tr class="border-b border-primary-100 dark:border-gray-700">
                 <td class="px-3 py-2 dark:text-gray-300"><%= seeding.position %></td>

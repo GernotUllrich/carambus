@@ -243,7 +243,8 @@ class TournamentCc < ApplicationRecord
   def upload_csv(opts)
     # GRUPPE/RUNDE;PARTIE;SATZ-NR.;PASS-NR. SPIELER 1;PASS-NR. SPIELER 2;PUNKTE SPIELER 1;PUNKTE SPIELER 2;AUFNAHMEN SPIELER 1;AUFNAHMEN SPIELER 2;HÖCHSTSERIE SPIELER 1;HÖCHSTSERIE SPIELER 2
     game_data = []
-    game_scope = tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").count > 0 ? "games.id >= #{Game::MIN_ID}" : "games.id < #{Game::MIN_ID}"
+    # Plan 32-03: has_local_seedings? entscheidet lokale vs. globale Games (Game-Scope bleibt games.id-basiert)
+    game_scope = tournament.has_local_seedings? ? "games.id >= #{Game::MIN_ID}" : "games.id < #{Game::MIN_ID}"
     tournament.games.where(game_scope).each do |game|
       game.gname = game.gname.presence || "Gruppe 1"
       if (m = game.gname.match(/^G(\d)-/))
@@ -286,9 +287,9 @@ class TournamentCc < ApplicationRecord
       meisterTypeId: "*",
       meisterschaftsId: tournament_cc.cc_id
     }
-    seeding_scope = tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").count > 0 ? "seedings.id >= #{Seeding::MIN_ID}" : "seedings.id < #{Seeding::MIN_ID}"
     begin
-      ranking_data = tournament.seedings.where(seeding_scope).select do |seeding|
+      # Plan 32-03: effective_seedings (lokale bevorzugen, sonst ClubCloud) statt dupliziertem has_local-Idiom
+      ranking_data = tournament.effective_seedings.select do |seeding|
                        seeding.data["result"].andand["Gesamtrangliste"].present?
                      end.sort_by { |seeding| seeding.final_rank.to_i }.map do |s|
         # Platzierung robust via Seeding#final_rank (disziplinabhaengiger Key

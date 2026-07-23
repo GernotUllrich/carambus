@@ -194,7 +194,7 @@
               </div>
             </div>
             <div class="flex-1">
-              <% @alternative_groups = TournamentMonitor.distribute_to_group(@tournament.seedings.where.not(state: "no_show").where(@seeding_scope).order(:position).map(&:player), alternative.ngroups, alternative.group_sizes) %>
+              <% @alternative_groups = TournamentMonitor.distribute_to_group(@tournament.effective_seedings.where.not(state: "no_show").order(:position).map(&:player), alternative.ngroups, alternative.group_sizes) %>
               <%= render partial: "groups", locals: {tournament_plan: alternative, groups: @alternative_groups} %>
             </div>
           </div>
@@ -220,7 +220,7 @@
               </div>
             </div>
             <div class="flex-1">
-              <% @alternative_other_groups = TournamentMonitor.distribute_to_group(@tournament.seedings.where.not(state: "no_show").where(@seeding_scope).order(:position).map(&:player), alternative.ngroups, alternative.group_sizes) %>
+              <% @alternative_other_groups = TournamentMonitor.distribute_to_group(@tournament.effective_seedings.where.not(state: "no_show").order(:position).map(&:player), alternative.ngroups, alternative.group_sizes) %>
               <%= render partial: "groups", locals: {tournament_plan: alternative, groups: @alternative_other_groups} %>
             </div>
           </div>
