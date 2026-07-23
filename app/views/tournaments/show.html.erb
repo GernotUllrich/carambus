@@ -221,6 +221,17 @@
     </div>
   <% end %>
 
+  <%# CC-loser On-demand-Reload (Plan 29-06 AC-5): der managende Local Server holt die frische
+      Meldeliste von der Authority. Nur bei CC-losem Turnier (kein tournament_cc), das über den
+      Region-Server-Ingest entstanden ist (source_url gesetzt). Analog dem CC-Reload, ohne ClubCloud. %>
+  <% if local_server? && @tournament.tournament_cc.blank? && @tournament.source_url.present? %>
+    <%= button_to t("tournaments.reload_entry_list.button", default: "Meldeliste neu laden"),
+                  reload_entry_list_tournament_path(@tournament),
+                  method: :post,
+                  class: "btn btn-flat btn-primary",
+                  style: "float: left; margin-right: 10px;" %>
+  <% end %>
+
   <!-- Sysadmin: Force Reload from API Server (for closed tournaments with results) -->
   <!-- if on API Server force full scraping again -->
   <% if current_user&.privileged_access? %>

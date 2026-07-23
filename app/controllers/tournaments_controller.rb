@@ -8,7 +8,7 @@ class TournamentsController < ApplicationController
                          finalize_modus select_modus tournament_monitor reset start define_participants add_team placement
                          upload_invitation parse_invitation apply_seeding_order compare_seedings add_player_by_dbu
                          use_clubcloud_as_participants update_seeding_position players_by_club
-                         recalculate_groups test_tournament_status_update release_draft]
+                         recalculate_groups test_tournament_status_update release_draft reload_entry_list]
   before_action :ensure_rankings_cached, only: %i[show]
   before_action :load_clubcloud_seedings, only: %i[show]
   before_action :ensure_local_server, only: %i[new create edit update destroy order_by_ranking_or_handicap
@@ -17,7 +17,8 @@ class TournamentsController < ApplicationController
                                                upload_invitation parse_invitation apply_seeding_order compare_seedings
                                                add_player_by_dbu use_clubcloud_as_participants update_seeding_position
                                                players_by_club recalculate_groups
-                                               copy_season copy_season_execute release_draft]
+                                               copy_season copy_season_execute release_draft
+                                               reload_entry_list]
 
   # UI-07 D-18 / Phase 39 D-12: Felder, die vor dem Turnierstart gegen
   # Discipline#parameter_ranges geprüft werden. Reihenfolge matcht die
@@ -120,6 +121,39 @@ class TournamentsController < ApplicationController
         default: "%{count} Turnier(e) als Entwurf in %{season} angelegt.")
   rescue ArgumentError => e
     redirect_to tournaments_path, alert: e.message
+  end
+
+  # POST /tournaments/1/reload_entry_list
+  #
+  # AC-5 (Baustein ③): der managende Local Server holt die frische Meldeliste ON-DEMAND von der
+  # Authority — analog reload_from_cc, nur ohne ClubCloud. SYNCHRON (nicht wie die Freigabe im
+  # Hintergrund): der LSW klickt „neu laden" und soll SEHEN, dass die frische Liste da ist.
+  #
+  # Der Weg nutzt den Kern (get_updates?import_entry_list=…): die Authority liest die Meldeliste des
+  # Region Servers frisch ein und liefert die entstandenen Versionen in derselben Antwort zurück,
+  # die dieser Server sofort anwendet.
+  def reload_entry_list
+    unless local_server?
+      redirect_to @tournament, alert: t("tournaments.reload_entry_list.api_server",
+        default: "Nur auf einem lokalen Server möglich.")
+      return
+    end
+    if @tournament.region_id.blank? || @tournament.season_id.blank?
+      redirect_to @tournament, alert: t("tournaments.reload_entry_list.no_scope",
+        default: "Turnier ohne Region/Saison — Meldeliste nicht abrufbar.")
+      return
+    end
+
+    Version.update_from_carambus_api(
+      import_entry_list: @tournament.region_id, season_id: @tournament.season_id,
+      region_id: @tournament.region_id
+    )
+    redirect_to @tournament, notice: t("tournaments.reload_entry_list.done",
+      default: "Meldeliste von der Authority neu geladen.")
+  rescue => e
+    Rails.logger.error "[reload_entry_list] Turnier[#{@tournament&.id}] fehlgeschlagen: #{e.message}"
+    redirect_to @tournament, alert: t("tournaments.reload_entry_list.failed",
+      default: "Meldeliste konnte nicht geladen werden (Authority nicht erreichbar?).")
   end
 
   # GET /tournaments/1

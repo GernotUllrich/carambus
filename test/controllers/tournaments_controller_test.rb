@@ -939,4 +939,52 @@ class TournamentsControllerTest < ActionDispatch::IntegrationTest
       delete tournament_url(t)
     end
   end
+
+  # ---------------------------------------------------------------------------
+  # AC-5: On-demand-Reload der Meldeliste auf dem managenden Local Server.
+  # ---------------------------------------------------------------------------
+
+  test "reload_entry_list ruft update_from_carambus_api mit import_entry_list" do
+    Carambus.config.carambus_api_url = "http://local.test"
+    t = released_tournament_with_scope
+
+    captured = nil
+    Version.stub(:update_from_carambus_api, ->(opts) { captured = opts }) do
+      post reload_entry_list_tournament_url(t)
+    end
+
+    assert_redirected_to tournament_path(t)
+    assert_equal t.region_id, captured[:import_entry_list]
+    assert_equal t.season_id, captured[:season_id]
+    assert_equal t.region_id, captured[:region_id]
+  end
+
+  test "reload_entry_list auf dem API-Server wird abgewiesen" do
+    # carambus_api_url leer => Authority
+    t = released_tournament_with_scope
+    called = false
+    Version.stub(:update_from_carambus_api, ->(*) { called = true }) do
+      post reload_entry_list_tournament_url(t)
+    end
+    refute called
+  end
+
+  test "reload_entry_list meldet Fehler statt zu crashen, wenn die Authority nicht erreichbar ist" do
+    Carambus.config.carambus_api_url = "http://local.test"
+    t = released_tournament_with_scope
+
+    Version.stub(:update_from_carambus_api, ->(*) { raise "connection refused" }) do
+      post reload_entry_list_tournament_url(t)
+    end
+
+    assert_redirected_to tournament_path(t)
+    assert flash[:alert].present?, "ein Netzfehler wird als flash gemeldet, nicht als 500"
+  end
+
+  def released_tournament_with_scope
+    Tournament.create!(title: "CC-los", shortname: "CCL", season: seasons(:current),
+      organizer: regions(:nbv), region_id: regions(:nbv).id, discipline: disciplines(:one),
+      date: Time.zone.local(2025, 10, 11, 10, 0),
+      source_url: "https://nbv.carambus.de/tournaments/50000123")
+  end
 end
