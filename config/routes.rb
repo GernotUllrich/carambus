@@ -78,6 +78,13 @@ Rails.application.routes.draw do
     # Abgrenzung zu tournament_results: dort die Gesamtrangliste beim Abschluss, hier je Spiel.
     resources :game_results, only: [:create]
 
+    # Plan 32-10 / Betreiber-Entscheidung D9: LESEN ist oeffentlich, SCHREIBEN authentifiziert —
+    # wie beim CC, wo der Admin-Account fuers Scrapen aufgegeben wurde. Der Scope (region+season)
+    # ist der Schutz, nicht ein Token. Eigener Namespace, damit die Trennung sichtbar bleibt.
+    namespace :public do
+      resources :game_results, only: [:index]
+    end
+
     resources :locations, only: [] do
       collection do
         get :autocomplete
