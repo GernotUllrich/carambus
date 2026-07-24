@@ -369,6 +369,18 @@ class TournamentMonitor::ResultProcessor
         # Fehler ist bereits in tournament.data["cc_upload_errors"] geloggt
         # Nicht weiterwerfen, damit finalize_game_result nicht fehlschlägt
       end
+    elsif @tournament_monitor.tournament.tournament_cc.blank? &&
+        @tournament_monitor.tournament.source_url.present?
+      # Plan 32-09: CC-loser Ergebnisweg. Der Region Server nimmt die Rolle der ClubCloud ein —
+      # er haelt die Ergebniszeile, bis die Authority sie holt (32-10).
+      #
+      # `elsif` MIT ABSICHT: ein Turnier ist entweder CC-gefuehrt oder CC-los, nie beides. Ein
+      # zweites `if` wuerde bei einem CC-Turnier doppelt melden.
+      #
+      # `tournament_cc.blank?` MUSS mitgeprueft werden und ist nicht durch das `elsif` abgedeckt:
+      # ein CC-Turnier mit abgeschaltetem `auto_upload_to_cc?` faellt sonst hier hinein und meldet
+      # an den Region Server, obwohl seine Ergebnisse der ClubCloud gehoeren.
+      report_game_result_to_region_server(game)
     end
 
     # Update game participations unless manual assignment is enabled
@@ -402,6 +414,24 @@ class TournamentMonitor::ResultProcessor
 
     # TableMonitor wird NICHT hier gecleared - das passiert erst in populate_tables,
     # wenn alle Games der Runde fertig sind. So bleiben die Ergebnisse am Scoreboard sichtbar.
+  end
+
+  # Plan 32-09: Meldet EIN abgeschlossenes Spiel an den Region Server (CC-loser Ergebnisweg).
+  #
+  # FEHLER BRECHEN DEN SPIELBETRIEB NICHT AB — dieselbe Zusage, die der CC-Zweig gibt (oben) und
+  # die `report_final_ranking` fuer den Turnier-Abschluss gibt: der lokale Stand fuehrt. Der
+  # Authority-Pull (32-10) liest ohnehin den Gesamtstand der Source, deshalb ist ein verpasster
+  # Einzel-Push kein Datenverlust, solange spaeter noch einer durchgeht.
+  def report_game_result_to_region_server(game)
+    result = LocationServer::GameResultReporter.new(game: game, armed: true).call
+    Rails.logger.info "[report_game_result] game[#{game.id}] (#{game.gname}) " \
+                      "gemeldet=#{result.reported} " \
+                      "ohne_source_url=#{result.skipped_no_source_url} " \
+                      "nicht_abbildbar=#{result.skipped_unmappable_name} " \
+                      "unvollstaendig=#{result.skipped_incomplete}"
+  rescue StandardError => e
+    Rails.logger.error "[report_game_result] game[#{game.id}] fehlgeschlagen: #{e.message} — " \
+                       "Spielbetrieb laeuft weiter, der Authority-Pull holt den Gesamtstand"
   end
 
   # Aktualisiert GameParticipation-Records für ein bestimmtes Game mit den gegebenen Daten.
