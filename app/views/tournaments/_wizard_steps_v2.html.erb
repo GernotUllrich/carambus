@@ -29,8 +29,11 @@
 <!-- Wizard Steps -->
 <div class="wizard-steps">
 
+  <%# Plan 32-06: Rollen-Sicht — Melde-Zyklus (Schritte 1–5) nur auf dem Region Server (bei CC-losen Turnieren); CC-Turniere unverändert %>
+  <% if wizard_show_melde_cycle?(tournament) %>
+
   <!-- Schritt 1: Meldeliste von ClubCloud laden -->
-  <% if tournament.organizer.is_a?(Region) %>
+  <% if tournament.organizer.is_a?(Region) && tournament.organizer.region_cc.present? %>
     <div class="wizard-step <%= step_class(wizard_step_status(tournament, 1)) %> wizard-step-optional">
       <div class="wizard-step-header">
         <div class="wizard-step-icon">
@@ -292,7 +295,11 @@
       help: t("tournaments.wizard_steps_v2.step5_help"),
       docs_path: 'managers/tournament-management',
       docs_anchor: 'mode-selection' %>
+  <% end %>
+  <%# Ende Melde-Zyklus (Plan 32-06) %>
 
+  <%# Plan 32-06: Spiel-Zyklus (Schritt 6) nur auf dem Location Server (bei CC-losen Turnieren); CC-Turniere unverändert %>
+  <% if wizard_show_game_cycle?(tournament) %>
   <!-- Schritt 6: Turnier starten & verwalten -->
   <div class="wizard-step <%= step_class(wizard_step_status(tournament, 6)) %>">
     <div class="wizard-step-header">
@@ -356,6 +363,8 @@
       <% end %>
     </div>
   </div>
+  <% end %>
+  <%# Ende Spiel-Zyklus (Plan 32-06) %>
 
 </div>
 

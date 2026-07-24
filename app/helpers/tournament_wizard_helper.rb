@@ -195,4 +195,21 @@ module TournamentWizardHelper
   def step_enabled?(tournament, step_number)
     wizard_step_status(tournament, step_number) == :active
   end
+
+  # CC-los (Plan 32-06) = organizer ist eine Region OHNE ClubCloud. Nur dann greift der Rollen-Split;
+  # CC-Turniere (region_cc vorhanden) behalten die volle Leiste auf beiden Rollen (Verhaltenserhalt NBV u.a.).
+  def wizard_cc_less?(tournament)
+    tournament.organizer.is_a?(Region) && tournament.organizer.region_cc.blank?
+  end
+
+  # Melde-Zyklus (Schritte 1–5): bei CC-Turnieren immer; bei CC-losen nur auf dem Region Server.
+  # Liest die Instanz-Rolle (32-02) über die Klassenmethode (im Helper-Test stubbar).
+  def wizard_show_melde_cycle?(tournament)
+    !wizard_cc_less?(tournament) || ApplicationRecord.region_server?
+  end
+
+  # Spiel-Zyklus (Schritt 6): bei CC-Turnieren immer; bei CC-losen nur auf dem Location Server.
+  def wizard_show_game_cycle?(tournament)
+    !wizard_cc_less?(tournament) || ApplicationRecord.location_server?
+  end
 end
