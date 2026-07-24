@@ -74,6 +74,10 @@ Rails.application.routes.draw do
     # Von dort traegt ihn der Ingest (28-01) auf die Authority — die bleibt schreibgeschuetzt.
     resources :tournament_results, only: [:create]
 
+    # Plan 32-08: Der Location Server meldet hier EINZELNE Spielergebnisse waehrend des Turniers.
+    # Abgrenzung zu tournament_results: dort die Gesamtrangliste beim Abschluss, hier je Spiel.
+    resources :game_results, only: [:create]
+
     resources :locations, only: [] do
       collection do
         get :autocomplete
