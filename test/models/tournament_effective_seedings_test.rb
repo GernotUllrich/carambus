@@ -88,4 +88,52 @@ class TournamentEffectiveSeedingsTest < ActiveSupport::TestCase
     # Gegenprobe: der Aufrufer-typische no_show-Ausschluss wirkt weiterhin
     assert_equal [LOCAL + 20], t.effective_seedings.where.not(state: "no_show").order(:id).pluck(:id)
   end
+
+  # ── Konzern B (Plan 32-05): state-aware Auswahl NUR im all-lokalen Fall auf region_server ──
+  # cc_less_seedings? liest ApplicationRecord.region_server? → je Test stubben (minitest/mock, wie 32-02).
+
+  test "(e) AC-1: globale Meldung vorhanden → MIN_ID-Zweig, state der lokalen egal (NBV-historisch-sicher)" do
+    t = build_tournament(9_600_005)
+    add_seeding(t, 9_600_300, state: "registered", position: 1)   # CC-Meldung (< MIN_ID)
+    add_seeding(t, LOCAL + 110, state: "registered", position: 2) # lokaler Teilnehmer, noch registered (historisch)
+
+    # Selbst als region_server bleibt es beim MIN_ID-Zweig, weil eine globale Meldung existiert.
+    ApplicationRecord.stub(:region_server?, true) do
+      assert_equal [LOCAL + 110], t.effective_seedings.order(:id).pluck(:id)
+      assert_equal raw_idiom_ids(t), t.effective_seedings.order(:id).pluck(:id)
+    end
+  end
+
+  test "(f) AC-2: all-lokal + region_server + finalisiert → seeded/participated, nicht registered" do
+    t = build_tournament(9_600_006)
+    add_seeding(t, LOCAL + 120, state: "registered", position: 1)   # nur gemeldet, nicht angetreten
+    add_seeding(t, LOCAL + 121, state: "seeded", position: 2)       # Teilnehmer
+    add_seeding(t, LOCAL + 122, state: "participated", position: 3) # Teilnehmer
+
+    ApplicationRecord.stub(:region_server?, true) do
+      assert_equal [LOCAL + 121, LOCAL + 122], t.effective_seedings.order(:id).pluck(:id)
+    end
+  end
+
+  test "(g) AC-2: all-lokal + region_server + nur registered (vor Finalisierung) → registered als Fallback" do
+    t = build_tournament(9_600_007)
+    add_seeding(t, LOCAL + 130, state: "registered", position: 1)
+    add_seeding(t, LOCAL + 131, state: "registered", position: 2)
+
+    ApplicationRecord.stub(:region_server?, true) do
+      assert_equal [LOCAL + 130, LOCAL + 131], t.effective_seedings.order(:id).pluck(:id)
+    end
+  end
+
+  test "(h) Gate: all-lokal aber region_server? false → MIN_ID-Zweig (Rolle gated den State-Zweig)" do
+    t = build_tournament(9_600_008)
+    add_seeding(t, LOCAL + 140, state: "registered", position: 1)
+    add_seeding(t, LOCAL + 141, state: "seeded", position: 2)
+
+    ApplicationRecord.stub(:region_server?, false) do
+      # kein State-Zweig: MIN_ID liefert BEIDE lokalen unabhaengig vom state
+      assert_equal [LOCAL + 140, LOCAL + 141], t.effective_seedings.order(:id).pluck(:id)
+      assert_equal raw_idiom_ids(t), t.effective_seedings.order(:id).pluck(:id)
+    end
+  end
 end

@@ -607,7 +607,10 @@ class Tournament < ApplicationRecord
   end
 
   def effective_seedings
-    if has_local_seedings?
+    if cc_less_seedings?
+      participants = seedings.where(state: %w[seeded participated])
+      participants.exists? ? participants : seedings.where(state: "registered")
+    elsif has_local_seedings?
       seedings.where("seedings.id >= ?", Seeding::MIN_ID)
     else
       seedings.where("seedings.id < ?", Seeding::MIN_ID)
@@ -688,6 +691,16 @@ class Tournament < ApplicationRecord
   end
 
   private
+
+  # CC-los (Konzern B, Plan 32-05): alle Seedings lokal (>= MIN_ID) UND region_server-Rolle → MIN_ID kann
+  # Meldung/Teilnehmer nicht trennen, Seeding.state diskriminiert. Bei vorhandener globaler Meldung
+  # (< MIN_ID, z.B. Location Server ODER historisches NBV-Region-Turnier) bleibt es beim MIN_ID-Zweig —
+  # der all-lokal-Guard schuetzt den NBV-Verhaltenserhalt (Teilnehmer dort noch registered).
+  def cc_less_seedings?
+    ApplicationRecord.region_server? &&
+      seedings.exists? &&
+      !seedings.where("seedings.id < ?", Seeding::MIN_ID).exists?
+  end
 
   def before_all_events
     Tournament.logger.info "[tournament] #{aasm.current_event.inspect}"
