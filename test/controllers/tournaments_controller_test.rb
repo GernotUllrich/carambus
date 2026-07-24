@@ -472,6 +472,7 @@ class TournamentsControllerTest < ActionDispatch::IntegrationTest
 
   test "POST add_player_by_dbu redirects when dbu_nr blank" do
     Carambus.config.carambus_api_url = "http://local.test"
+    sign_in users(:admin) # Plan 32-07: manage_teilnehmerliste?-Gate — autorisierter User, Test prüft Action-Body
     post add_player_by_dbu_tournament_url(@tournament), params: { dbu_nr: "" }
     assert_redirected_to define_participants_tournament_path(@tournament)
   end
@@ -484,6 +485,7 @@ class TournamentsControllerTest < ActionDispatch::IntegrationTest
 
   test "POST apply_seeding_order redirects when no seeding_order provided" do
     Carambus.config.carambus_api_url = "http://local.test"
+    sign_in users(:admin) # Plan 32-07: manage_teilnehmerliste?-Gate — autorisierter User, Test prüft Action-Body
     post apply_seeding_order_tournament_url(@tournament)
     assert_redirected_to compare_seedings_tournament_path(@tournament)
   end
@@ -510,6 +512,7 @@ class TournamentsControllerTest < ActionDispatch::IntegrationTest
 
   test "POST update_seeding_position returns ok or bad_request when local server" do
     Carambus.config.carambus_api_url = "http://local.test"
+    sign_in users(:admin) # Plan 32-07: manage_teilnehmerliste?-Gate — autorisierter User, Test prüft Action-Body
     # nil seeding_id and 0 position → bad_request
     post update_seeding_position_tournament_url(@tournament), params: { seeding_id: nil, position: 0 }
     assert_includes [200, 400], response.status,
@@ -520,6 +523,34 @@ class TournamentsControllerTest < ActionDispatch::IntegrationTest
     Carambus.config.carambus_api_url = nil
     post update_seeding_position_tournament_url(@tournament)
     assert_redirected_to tournaments_path
+  end
+
+  # ---------------------------------------------------------------------------
+  # Plan 32-07: Schreib-Gate manage_teilnehmerliste? (TL / Sportwart im Wirkbereich / Admin)
+  # ---------------------------------------------------------------------------
+
+  test "AC-2: nicht-autorisierter User wird bei finish_seeding abgewiesen" do
+    Carambus.config.carambus_api_url = "http://local.test"
+    # @user (users(:one)) ist weder Admin (club_admin?/system_admin?) noch TL noch Sportwart → Gate greift.
+    sign_in @user
+    post finish_seeding_tournament_url(@tournament)
+    assert_redirected_to tournament_path(@tournament)
+    assert flash[:alert].present?, "Ablehnung muss eine Flash-Meldung setzen"
+  end
+
+  test "AC-1: Admin darf define_participants (Action-Body erreicht, keine Gate-Ablehnung)" do
+    Carambus.config.carambus_api_url = "http://local.test"
+    sign_in users(:admin)
+    get define_participants_tournament_url(@tournament)
+    assert_response :success
+  end
+
+  test "AC-1: TL des Turniers darf define_participants (leiter?-Zweig)" do
+    Carambus.config.carambus_api_url = "http://local.test"
+    @tournament.update_column(:turnier_leiter_user_id, @user.id)
+    sign_in @user # users(:one): weder Admin noch Sportwart, aber TL dieses Turniers
+    get define_participants_tournament_url(@tournament)
+    assert_response :success
   end
 
   test "POST add_team passes guard when local server" do
@@ -764,6 +795,7 @@ class TournamentsControllerTest < ActionDispatch::IntegrationTest
 
   test "GET define_participants renders the club cascade for a region tournament" do
     Carambus.config.carambus_api_url = "http://local.test"
+    sign_in users(:admin) # Plan 32-07: manage_teilnehmerliste?-Gate — autorisierter User, Test prüft Action-Body
     club, _a, _b = seed_club_with_players
 
     get define_participants_tournament_url(@tournament)

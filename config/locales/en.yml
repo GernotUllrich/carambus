@@ -985,6 +985,7 @@ en:
       turnier_leiter_blank_option: "— no TL —"
     errors:
       assign_leiter_denied: "Authority-Denied: no permission to assign Tournament Director for this tournament."
+      manage_teilnehmerliste_denied: "Not authorized to manage this tournament's participant list."
     groups:
       groups: Groups
     index:

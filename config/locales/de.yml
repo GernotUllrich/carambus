@@ -1011,6 +1011,7 @@ de:
       turnier_leiter_blank_option: "— kein TL —"
     errors:
       assign_leiter_denied: "Authority-Denied: kein Recht TL zu benennen für dieses Turnier."
+      manage_teilnehmerliste_denied: "Nicht berechtigt, die Teilnehmerliste dieses Turniers zu bearbeiten."
     groups:
       groups: Gruppen
     index:

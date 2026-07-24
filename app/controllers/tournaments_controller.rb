@@ -19,6 +19,12 @@ class TournamentsController < ApplicationController
                                                players_by_club recalculate_groups
                                                copy_season copy_season_execute release_draft
                                                reload_entry_list]
+  # Plan 32-07: Schreib-Gate für die Teilnehmerliste. NACH ensure_local_server, damit nicht-lokale
+  # Anfragen weiterhin zuerst dort umgeleitet werden. Bindet die vorhandene Policy
+  # manage_teilnehmerliste? (TL / Sportwart im Wirkbereich / Admin) an alle mutierenden Meldelisten-Actions.
+  before_action :authorize_manage_teilnehmerliste,
+                only: %i[finish_seeding use_clubcloud_as_participants define_participants
+                         add_player_by_dbu update_seeding_position apply_seeding_order]
 
   # UI-07 D-18 / Phase 39 D-12: Felder, die vor dem Turnierstart gegen
   # Discipline#parameter_ranges geprüft werden. Reihenfolge matcht die
@@ -1390,6 +1396,15 @@ class TournamentsController < ApplicationController
   # Stellt sicher, dass Turniermanagement nur auf lokalen Servern möglich ist
   # API Server dient nur zum Lesen und als Datenquelle
   # Auch auf lokalen Servern: Wenn ClubCloud-Ergebnisse vorliegen, ist das Turnier schreibgeschützt
+  # Plan 32-07: Pundit-Gate für die Teilnehmerlisten-Schreibaktionen. Ablehnung → Flash + Redirect auf das
+  # Turnier (before_action-Redirect halted die Kette). Muster wie der assign_leiter?-Guard in #update.
+  def authorize_manage_teilnehmerliste
+    authorize @tournament, :manage_teilnehmerliste?
+  rescue Pundit::NotAuthorizedError
+    flash[:alert] = I18n.t("tournaments.errors.manage_teilnehmerliste_denied")
+    redirect_to(@tournament)
+  end
+
   def ensure_local_server
     unless local_server?
       flash[:alert] =
