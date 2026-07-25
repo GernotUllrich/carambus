@@ -21,9 +21,34 @@ class TournamentWizardHelperTest < ActionView::TestCase
     @cc_region.reload
   end
 
-  test "wizard_cc_less? = Region ohne region_cc" do
+  test "wizard_cc_less? = Region nicht in SHORTNAMES_CC" do
     assert wizard_cc_less?(tournament_with(@cc_less_region))
     assert_not wizard_cc_less?(tournament_with(@cc_region))
+  end
+
+  # Der Grund für die Umstellung von region_cc auf SHORTNAMES_CC (Vorab-Fix vor Phase 34):
+  # eine migrierte Region (z.B. TBV, seit v0.4 LigaManager) trägt noch einen ALT-region_cc, ist aber
+  # CC-los. Die alte Logik (region_cc.blank?) läge hier falsch und zeigte die CC-Setup-Leiste inkl.
+  # Scoreboards auf dem Region Server — genau der Runbook-C2-Befund.
+  test "migrierte Region mit Alt-region_cc, aber nicht in SHORTNAMES_CC → CC-los" do
+    migrated = Region.create!(name: "Migriert", shortname: "TBV", country: @cc_region.country)
+    RegionCc.create!(region: migrated, context: "alt-tbv", cc_id: 999_002)
+    migrated.reload
+
+    assert_not Region::SHORTNAMES_CC.include?(migrated.shortname), "Testvoraussetzung: TBV ∉ SHORTNAMES_CC"
+    assert migrated.region_cc.present?, "Testvoraussetzung: Alt-region_cc vorhanden"
+
+    t = tournament_with(migrated)
+    assert wizard_cc_less?(t), "trotz Alt-region_cc CC-los, weil nicht in SHORTNAMES_CC"
+    assert_not wizard_region_uses_cc?(t), "kein CC-Meldelisten-Schritt"
+
+    ApplicationRecord.stub(:region_server?, true) do
+      ApplicationRecord.stub(:location_server?, false) do
+        assert wizard_show_melde_cycle?(t)
+        assert_not wizard_show_game_cycle?(t),
+          "auf dem Region Server kein Spiel-Zyklus (Modus/Start/Scoreboard)"
+      end
+    end
   end
 
   test "AC-1: CC-Turnier zeigt beide Zyklen, Rolle egal (Verhaltenserhalt)" do

@@ -196,10 +196,19 @@ module TournamentWizardHelper
     wizard_step_status(tournament, step_number) == :active
   end
 
+  # Nutzt die Region die ClubCloud? Kanonisch über die Scrape-Quellen-Liste `Region::SHORTNAMES_CC`,
+  # NICHT über `region_cc.present?` — Letzteres trägt bei migrierten Regionen (z.B. TBV, seit v0.4
+  # LigaManager) noch einen Alt-Datensatz und zeigt fälschlich CC an. (Vorab-Fix vor Phase 34, die
+  # das per saison-abhängigem `source_kind` am Objekt löst.)
+  def wizard_region_uses_cc?(tournament)
+    tournament.organizer.is_a?(Region) &&
+      Region::SHORTNAMES_CC.include?(tournament.organizer.shortname)
+  end
+
   # CC-los (Plan 32-06) = organizer ist eine Region OHNE ClubCloud. Nur dann greift der Rollen-Split;
-  # CC-Turniere (region_cc vorhanden) behalten die volle Leiste auf beiden Rollen (Verhaltenserhalt NBV u.a.).
+  # CC-Turniere behalten die volle Leiste auf beiden Rollen (Verhaltenserhalt NBV u.a.).
   def wizard_cc_less?(tournament)
-    tournament.organizer.is_a?(Region) && tournament.organizer.region_cc.blank?
+    tournament.organizer.is_a?(Region) && !wizard_region_uses_cc?(tournament)
   end
 
   # Melde-Zyklus (Schritte 1–5): bei CC-Turnieren immer; bei CC-losen nur auf dem Region Server.

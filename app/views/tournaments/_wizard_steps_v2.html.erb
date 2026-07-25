@@ -33,7 +33,7 @@
   <% if wizard_show_melde_cycle?(tournament) %>
 
   <!-- Schritt 1: Meldeliste von ClubCloud laden -->
-  <% if tournament.organizer.is_a?(Region) && tournament.organizer.region_cc.present? %>
+  <% if wizard_region_uses_cc?(tournament) %>
     <div class="wizard-step <%= step_class(wizard_step_status(tournament, 1)) %> wizard-step-optional">
       <div class="wizard-step-header">
         <div class="wizard-step-icon">
@@ -258,6 +258,14 @@
               test_link: link_to(t("tournaments.wizard_steps_v2.step3_help_test_link_text"), define_participants_tournament_path(tournament), class: 'text-primary-600 dark:text-primary-400 underline')),
       docs_path: 'managers/tournament-management',
       docs_anchor: 'participants' %>
+  <% end %>
+  <%# Ende Melde-Zyklus — auf dem Region Server endet die Sicht hier (nur Meldeliste). %>
+
+  <%# Plan 35 (Vorab): Finalisieren / Modus / Start = Spielort (Location Server). Modus bestimmt der
+      Turnierleiter nach Erscheinen; auf einem CC-losen Region Server gibt es kein Tourniermanagement.
+      Zieht Schritte 4–5 aus dem Melde- in den Spiel-Zyklus — korrigiert zugleich, dass der Modus
+      bisher nur auf dem Region Server statt auf dem Location Server sichtbar war. %>
+  <% if wizard_show_game_cycle?(tournament) %>
 
   <!-- Schritt 4: Teilnehmerliste finalisieren -->
   <%= render 'wizard_step',
@@ -295,11 +303,7 @@
       help: t("tournaments.wizard_steps_v2.step5_help"),
       docs_path: 'managers/tournament-management',
       docs_anchor: 'mode-selection' %>
-  <% end %>
-  <%# Ende Melde-Zyklus (Plan 32-06) %>
 
-  <%# Plan 32-06: Spiel-Zyklus (Schritt 6) nur auf dem Location Server (bei CC-losen Turnieren); CC-Turniere unverändert %>
-  <% if wizard_show_game_cycle?(tournament) %>
   <!-- Schritt 6: Turnier starten & verwalten -->
   <div class="wizard-step <%= step_class(wizard_step_status(tournament, 6)) %>">
     <div class="wizard-step-header">
