@@ -943,6 +943,13 @@ en:
       tournament_plans: "Tournament Plans"
       new_tournament_plan: "New Tournament Plan"
   tournaments:
+    region_server_actions:
+      heading: "Administration — %{title}"
+      subline: "Region Server: maintain the registration list and results. Mode, start and scoreboards run at the venue (Location Server)."
+      meldeliste: Maintain registration list
+      ergebnisse: Maintain results
+      pending_badge: soon
+      ergebnisse_pending_title: "Manual result entry (games from match reports) is coming in Phase 35."
     edit:
       back: Back
       cancel: Cancel

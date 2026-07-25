@@ -1,0 +1,27 @@
+<%# Region-Server-Sicht (Vorab zu Phase 35): KEIN Tournament-Wizard.
+    Der Wizard ist Tournament-Management für den Location Server (Modus/Start/Scoreboards) und
+    CC-behaftet. Auf dem Region Server (LSW-Verwaltungsplatz, CC-Ersatz) reichen zwei Aktionen:
+    Meldeliste pflegen und Ergebnisse pflegen. Betreiber-Entscheidung 2026-07-25. %>
+<div class="my-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 p-4">
+  <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">
+    <%= t("tournaments.region_server_actions.heading", title: tournament.title) %>
+  </h2>
+  <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
+    <%= t("tournaments.region_server_actions.subline") %>
+  </p>
+
+  <div class="flex flex-wrap gap-3">
+    <%= link_to define_participants_tournament_path(tournament),
+                class: "inline-flex items-center px-4 py-2 rounded text-white text-sm bg-primary-600 hover:bg-primary-700" do %>
+      📝 <%= t("tournaments.region_server_actions.meldeliste") %>
+    <% end %>
+
+    <%# Ergebnis-Eingabe (Games aus Bericht-gname gegen den Akzeptanz-Selektor) = Phase 35.
+        Bis dahin ehrlich als ausstehend markiert, statt auf einen nicht funktionierenden Weg zu leiten. %>
+    <span class="inline-flex items-center px-4 py-2 rounded text-sm bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed"
+          title="<%= t("tournaments.region_server_actions.ergebnisse_pending_title") %>">
+      🏁 <%= t("tournaments.region_server_actions.ergebnisse") %>
+      <span class="ml-2 text-xs uppercase tracking-wide"><%= t("tournaments.region_server_actions.pending_badge") %></span>
+    </span>
+  </div>
+</div>

@@ -10,9 +10,16 @@
     <%= render :partial => "show", locals: { tournament: @tournament, subtitle: "", show_edit_back: true } %>
   </div>
 
-  <!-- New Wizard UI (Version 2 mit überarbeiteter Reihenfolge) - Nur für Spielleiter auf lokalen Servern ohne ClubCloud-Ergebnisse -->
+  <!-- Nur für Spielleiter auf lokalen Servern ohne ClubCloud-Ergebnisse -->
   <% if tournament_director?(current_user) && local_server? && !@tournament.has_clubcloud_results? %>
-    <%= render 'wizard_steps_v2', tournament: @tournament %>
+    <% if ApplicationRecord.region_server? && wizard_cc_less?(@tournament) %>
+      <%# Region Server (CC-los): kein Wizard — der ist Location-Server-Tournament-Management mit
+          CC-Bias. Zwei Aktionen genügen (Betreiber-Entscheidung 2026-07-25). %>
+      <%= render 'region_server_actions', tournament: @tournament %>
+    <% else %>
+      <%# Location Server / CC-Turniere: der volle Wizard (Modus/Start/Scoreboards). %>
+      <%= render 'wizard_steps_v2', tournament: @tournament %>
+    <% end %>
   <% end %>
 
   <!-- Tournament Status Overview - Für alle sichtbar wenn Turnier läuft/abgeschlossen -->

@@ -969,6 +969,13 @@ de:
       tournament_plans: "Turnierpläne"
       new_tournament_plan: "Neuer Turnierplan"
   tournaments:
+    region_server_actions:
+      heading: "Verwaltung — %{title}"
+      subline: "Region Server: Meldeliste und Ergebnisse pflegen. Modus, Start und Scoreboards laufen am Spielort (Location Server)."
+      meldeliste: Meldeliste pflegen
+      ergebnisse: Ergebnisse pflegen
+      pending_badge: folgt
+      ergebnisse_pending_title: "Manuelle Ergebniseingabe (Games aus Spielberichten) kommt mit Phase 35."
     edit:
       back: Zurück
       cancel: Abbrechen
