@@ -56,4 +56,25 @@ class ClubTest < ActiveSupport::TestCase
     no_table = Nokogiri::HTML("<aside><table class=\"silver\"><tr><th>x</th></tr></table></aside>")
     assert_equal "", Club.roster_content(no_table)
   end
+
+  # cc_source_region: aus welcher CC werden Vereinsdaten gezogen? Regionen ohne eigene CC → DBU-CC.
+  # Der Grund für den Fix: TBV (migriert, public_cc_url_base leer) wurde bisher nie gescrapt.
+  test "cc_source_region: Region mit eigener CC-URL scrapt aus ihrer eigenen CC" do
+    region = regions(:nbv)
+    region.update_column(:public_cc_url_base, "https://ndbv.de/")
+    assert_equal region, Club.new(region: region).cc_source_region
+  end
+
+  test "cc_source_region: CC-lose Region ohne CC-URL (z.B. TBV) fällt auf die DBU-CC zurück" do
+    region = regions(:nbv) # als CC-lose Region simuliert: URL entfernt
+    region.update_column(:public_cc_url_base, nil)
+    assert_equal regions(:dbu), Club.new(region: region).cc_source_region
+  end
+
+  test "cc_source_region: BBV fällt weiterhin auf die DBU-CC zurück (Verhaltenserhalt)" do
+    region = regions(:bbv)
+    region.update_column(:public_cc_url_base, "https://billardbayern.de/")
+    assert_equal regions(:dbu), Club.new(region: region).cc_source_region,
+      "BBV muss trotz eigener URL auf die DBU-CC fallen (hartkodiert erhalten)"
+  end
 end

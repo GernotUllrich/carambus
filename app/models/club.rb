@@ -175,10 +175,25 @@ class Club < ApplicationRecord
     Player.where(type: nil).where("title ~ 'Frau.'").all.each { |p| p.update(title: "Frau") }
   end
 
+  # Aus welcher ClubCloud werden die Vereinsdaten (inkl. Roster → SeasonParticipations) gezogen?
+  #
+  # Regionen OHNE eigene ClubCloud ziehen aus der DBU-CC (billard-union.net) — Kern von
+  # „CC-less != CC-frei": Vereine/Spieler bleiben DBU-CC-gepflegt, auch wenn der Turnier-Lebenszyklus
+  # CC-los läuft. Früher nur hartkodiert `%w[BBV HBU]`; das ließ migrierte Regionen wie TBV (seit v0.4
+  # LigaManager, `public_cc_url_base` leer) außen vor → ihre Vereine wurden nie gescrapt → keine
+  # SeasonParticipations → leere Meldelisten. Jetzt fällt JEDE Region ohne eigene CC-URL auf die DBU-CC
+  # zurück. (Sauberes, saison-abhängiges Signal folgt mit Phase 34/source_kind.)
+  def cc_source_region
+    if %w[BBV HBU].include?(region.shortname) || region.public_cc_url_base.blank?
+      Region.find_by_shortname("DBU")
+    else
+      region
+    end
+  end
+
   def scrape_club(season, ref = nil, url = nil, opts = {})
-    region_ = region
     if ref.blank?
-      region_ = Region.find_by_shortname("DBU") if %w[BBV HBU].include?(region_.shortname)
+      region_ = cc_source_region
       url ||= region_.public_cc_url_base
       clubs_url = "#{url}verein-details.php?eps=100000"
       uri = URI(clubs_url)
