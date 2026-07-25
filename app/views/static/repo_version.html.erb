@@ -23,14 +23,34 @@
       <%- revision = nil -%>
     <%- end -%>
   <%- end %>
+  <%- if local_server? %>
+    <%- local_data_version = Setting.key_get_value("last_version_id").to_i %>
+    <%- api_data_version = Version.last_version %>
+  <%- else %>
+    <%- api_data_version = Version.last_version %>
+  <%- end %>
   <pre>
     Rails:    <%= Rails.version %>
     Environment: <%= Rails.env %>
     <%= "API Server: #{Carambus.config.carambus_api_url}" if local_server? %>
-    Carambus Sync Status: <%= "local: #{Setting.key_get_value("last_version_id")} - " if local_server? %>API Server: <%= Version.last_version %>
+    Carambus Sync Status: <%= "local: #{local_data_version} - " if local_server? %>API Server: <%= api_data_version %>
     Repo-Branch: <%= branch %>
     Last: <%= version %>
   </pre>
+
+  <%- if local_server? && current_user&.admin? && api_data_version.is_a?(Integer) && local_data_version < api_data_version %>
+    <div class="mb-4">
+      <div class="text-amber-700 dark:text-amber-500 mb-2 text-sm">
+        ⏳ <%= t("static.sync_data.behind_html", behind: api_data_version - local_data_version,
+                 default: "Daten hinken der Authority um %{behind} Versionen hinterher.") %>
+      </div>
+      <%= button_to t("static.sync_data.button", default: "🔄 Daten jetzt synchronisieren"),
+                    sync_data_path,
+                    method: :post,
+                    data: {disable_with: t("static.sync_data.running", default: "Synchronisiere …")},
+                    class: "bg-primary-500 hover:bg-primary-700 text-white font-bold py-2 px-4 rounded" %>
+    </div>
+  <%- end %>
 
   <%- if local_server? && revision.present? && revision != repo_version -%>
     <%- # Check if API server version is newer using git merge-base -%>

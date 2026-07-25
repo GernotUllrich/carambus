@@ -568,6 +568,14 @@ en:
       region_season: "(%{region}, season %{season})"
       help: How can I help you?
   static:
+    sync_data:
+      button: "🔄 Sync data now"
+      running: "Syncing …"
+      behind_html: "Data is %{behind} versions behind the authority."
+      done: "Data sync complete: fetched %{count} new versions (now at %{version})."
+      api_server: "Data sync is only available on local servers."
+      forbidden: "Administrators only."
+      failed: "Data sync failed (authority unreachable?)."
     about:
       content: |
         <i>

@@ -484,6 +484,7 @@ Rails.application.routes.draw do
   match "/500", to: "errors#internal_server_error", via: :all
   get "/repo_version", to: "static#repo_version"
   post "/update_version", to: "static#update_version"
+  post "/sync_data", to: "static#sync_data"
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
   # Can be used by load balancers and uptime monitors to verify that the app is live.

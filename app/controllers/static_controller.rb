@@ -125,6 +125,50 @@ class StaticController < ApplicationController
                 notice: "Deployment started in background (PID: #{pid}). The application will restart automatically. Please refresh this page in 1-2 minutes. Check log/deploy.log for progress."
   end
 
+  # On-demand-Datensync von der Authority — dasselbe, was der Stunden-Cron
+  # (carambus:retrieve_updates) tut, nur auf Knopfdruck. Fuer den Betrieb, wenn ein Local Server
+  # nicht bis zum naechsten Cron auf frische Daten warten soll (z. B. ein frisch freigegebenes
+  # Turnier, das auf dem Location Server erscheinen soll).
+  #
+  # Nur DATEN (Versions-Delta), NICHT der Code — dafuer ist update_version zustaendig.
+  def sync_data
+    unless local_server?
+      redirect_to repo_version_path, alert: t("static.sync_data.api_server",
+        default: "Datensync ist nur auf lokalen Servern möglich.")
+      return
+    end
+    unless current_user&.admin?
+      redirect_to repo_version_path, alert: t("static.sync_data.forbidden",
+        default: "Nur für Administratoren.")
+      return
+    end
+
+    # region_id wie im Cron aus dem Kontext ableiten (nil-sicher: ein Full-Mirror ohne Kontext
+    # zieht ungefiltert). EBC/context=TBV → Region 16.
+    region_id = Region.find_by_shortname(Carambus.config.context)&.id
+    args = region_id.present? ? {region_id: region_id} : {}
+
+    before = Setting.key_get_value("last_version_id").to_i
+    prev = before
+    # Ein Aufruf holt einen Batch; bis zu 10× wie der Cron, aber Abbruch sobald nichts mehr nachkommt.
+    10.times do
+      Version.update_from_carambus_api(args)
+      now = Setting.key_get_value("last_version_id").to_i
+      break if now <= prev
+
+      prev = now
+    end
+    after = Setting.key_get_value("last_version_id").to_i
+
+    redirect_to repo_version_path, notice: t("static.sync_data.done",
+      count: after - before, version: after,
+      default: "Datensync abgeschlossen: #{after - before} neue Versionen geholt (Stand #{after}).")
+  rescue => e
+    Rails.logger.error "[sync_data] fehlgeschlagen: #{e.message}"
+    redirect_to repo_version_path, alert: t("static.sync_data.failed",
+      default: "Datensync fehlgeschlagen (Authority nicht erreichbar?).")
+  end
+
   def pricing
     plans = Plan.visible.sorted
     unless plans.any?

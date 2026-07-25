@@ -580,6 +580,14 @@ de:
       region_season: "(%{region}, Saison %{season})"
       help: Wie kann ich dir helfen?
   static:
+    sync_data:
+      button: "🔄 Daten jetzt synchronisieren"
+      running: "Synchronisiere …"
+      behind_html: "Daten hinken der Authority um %{behind} Versionen hinterher."
+      done: "Datensync abgeschlossen: %{count} neue Versionen geholt (Stand %{version})."
+      api_server: "Datensync ist nur auf lokalen Servern möglich."
+      forbidden: "Nur für Administratoren."
+      failed: "Datensync fehlgeschlagen (Authority nicht erreichbar?)."
     about:
       content: |
         <i>
