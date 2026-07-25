@@ -12,7 +12,7 @@
 
   <!-- Nur für Spielleiter auf lokalen Servern ohne ClubCloud-Ergebnisse -->
   <% if tournament_director?(current_user) && local_server? && !@tournament.has_clubcloud_results? %>
-    <% if ApplicationRecord.region_server? && wizard_cc_less?(@tournament) %>
+    <% if region_server_lsw_view?(@tournament) %>
       <%# Region Server (CC-los): kein Wizard — der ist Location-Server-Tournament-Management mit
           CC-Bias. Zwei Aktionen genügen (Betreiber-Entscheidung 2026-07-25). %>
       <%= render 'region_server_actions', tournament: @tournament %>
@@ -26,7 +26,9 @@
   <!-- Enthält jetzt auch die Setzliste mit Rankings -->
   <%= render 'tournament_status', tournament: @tournament %>
 
-  <% if !@tournament.has_clubcloud_results? %>
+  <%# ClubCloud-Meldeliste-Block: CC-behaftet (Titel, Wizard-Schritt-1-Verweis) → auf dem CC-losen
+      Region Server ausgeblendet. Die aktuelle Meldeliste sieht der LSW ohnehin in der Setzliste/Rangliste. %>
+  <% if !@tournament.has_clubcloud_results? && !region_server_lsw_view?(@tournament) %>
     <div class="seedings-table-container">
       <h2>
         <%= t("tournaments.show.clubcloud_registration_list.title") %>
@@ -157,8 +159,10 @@
       </div>
   </div>
 
-  <!-- Admin Actions -->
-  <% if local_server? %>
+  <!-- Admin Actions (TableMonitor-Reset, Force-Reset, Sysadmin-Reload) — Tournament-Management,
+       gehört auf den Location Server; auf dem CC-losen Region Server ausgeblendet. Die Meldeliste-
+       Pflege liegt im Zwei-Link-Panel oben. -->
+  <% if local_server? && !region_server_lsw_view?(@tournament) %>
     <div class="admin-actions-container flex flex-wrap items-center gap-2 mt-8">
       <%- games = @tournament.games.where(game_scope).order(seqno: :asc) %>
 

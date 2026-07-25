@@ -211,6 +211,13 @@ module TournamentWizardHelper
     tournament.organizer.is_a?(Region) && !wizard_region_uses_cc?(tournament)
   end
 
+  # Region Server + CC-los = LSW-Verwaltungsplatz: die Turnier-Show-Seite zeigt NUR die
+  # Meldeliste-Verwaltung (zwei Links). KEIN Tournament-Wizard, KEINE ClubCloud-Abschnitte, KEINE
+  # TableMonitor-Admin-Aktionen — die gehören auf den Location Server (Betreiber 2026-07-25).
+  def region_server_lsw_view?(tournament)
+    ApplicationRecord.region_server? && wizard_cc_less?(tournament)
+  end
+
   # Melde-Zyklus (Schritte 1–5): bei CC-Turnieren immer; bei CC-losen nur auf dem Region Server.
   # Liest die Instanz-Rolle (32-02) über die Klassenmethode (im Helper-Test stubbar).
   def wizard_show_melde_cycle?(tournament)
