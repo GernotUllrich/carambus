@@ -391,6 +391,14 @@ Rails.application.routes.draw do
       # Authority (analog reload_from_cc, nur ohne ClubCloud).
       post :reload_entry_list
     end
+
+    # Plan 35-01: CC-loser MELDELISTEN-Fluss auf dem Region Server (LSW-Verwaltungsplatz).
+    # Eigener Controller statt eines Zweigs in define_participants — der ist zur Haelfte
+    # Modus-Findung und gehoert damit auf den Location Server, nicht hierher.
+    resource :entry_list, only: %i[show create], controller: "tournaments/entry_lists" do
+      get :players_by_club, on: :collection
+      delete ":id", action: :destroy, as: :seeding, on: :collection
+    end
     collection do
       # Saison-Kopie mit Auswahl (Sportwart-Weg zum bestehenden Rake-Task tournaments:copy_season).
       get :copy_season

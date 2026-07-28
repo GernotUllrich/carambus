@@ -955,6 +955,41 @@ en:
       cancel: Cancel
       editing_tournament: Editing Tournament
       show: Show
+    # Plan 35-01: CC-less registration list flow on the Region Server.
+    entry_list:
+      heading: "Registration list — %{title}"
+      subline: "Who is registered for this tournament. Seeding and playing mode are decided at the venue."
+      season: Season
+      count: "%{count} registrations"
+      draft_notice: "This tournament is still a draft. After release the Authority takes over the registration list."
+      release: Release registration list
+      back_to_tournament: Back to tournament
+      list_heading: Registered players
+      empty: Nobody registered yet.
+      col_position: Pos.
+      col_player: Player
+      col_club: Club
+      col_dbu_nr: DBU no.
+      withdraw: Withdraw registration
+      withdraw_confirm: "Withdraw the registration of %{player}?"
+      add_by_club_heading: Register via club
+      add_by_club_hint: Choose a club, then the player.
+      select_club_blank: — choose club —
+      select_player_blank: — choose player —
+      add_by_dbu_heading: Register via DBU number
+      add_by_dbu_hint: Separate multiple numbers with commas.
+      dbu_nr_placeholder: "e.g. 123456, 234567"
+      submit: Register
+      submitting: Registering…
+      flash:
+        added: "✅ %{count} registered: %{players}"
+        already: "ℹ️ %{count} already registered: %{players}"
+        not_found: "❌ %{count} not found (DBU): %{numbers}"
+        nothing_given: Please provide a player or a DBU number.
+        withdrawn: "Withdrew the registration of %{player}."
+        withdraw_failed: This registration could not be withdrawn.
+        local_server_only: The registration list is maintained on the Region Server, not on the API server.
+        cc_tournament: This tournament runs via the ClubCloud — participants are maintained there.
     finalize_modus:
       alternatives_other_disciplines: 'More Alternatives:'
       alternatives_same_discipline: 'Alternatives same discipline:'

@@ -1,0 +1,148 @@
+<%# Plan 35-01: CC-lose Meldeliste auf dem Region Server (LSW-Verwaltungsplatz).
+    BEWUSST SCHLANK: nur melden, zurückziehen, freigeben. Kein Turnierplan-Vorschlag, keine
+    Gruppenbildung, keine ClubCloud-Übernahme — das ist Tournament-Management und gehört auf den
+    Location Server (Betreiber-Entscheidung 2026-07-25). %>
+<div class="max-w-4xl mx-auto p-4">
+
+  <div class="mb-6">
+    <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">
+      <%= t("tournaments.entry_list.heading", title: @tournament.title) %>
+    </h1>
+    <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+      <%= t("tournaments.entry_list.subline") %>
+    </p>
+    <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">
+      <%= t("tournaments.entry_list.season") %>: <%= @tournament.season&.name %>
+      &middot;
+      <%= t("tournaments.entry_list.count", count: @seedings.size) %>
+    </p>
+  </div>
+
+  <% if @tournament.draft? %>
+    <div class="mb-6 rounded-lg border border-warning-200 dark:border-warning-700 bg-warning-50 dark:bg-warning-900 p-4">
+      <p class="text-sm text-warning-900 dark:text-warning-100 mb-3">
+        <%= t("tournaments.entry_list.draft_notice") %>
+      </p>
+      <%# Freigabe = der bestehende, unveränderte Propagationsweg (release_draft → EntryListSyncJob). %>
+      <%= button_to t("tournaments.entry_list.release"),
+            release_draft_tournament_path(@tournament), method: :post,
+            class: "btn btn-primary",
+            form: { data: { turbo_confirm: t("tournaments.release_draft.confirm",
+                            default: "Turnier freigeben?") } } %>
+    </div>
+  <% end %>
+
+  <%# --- Gemeldete Spieler --------------------------------------------------- %>
+  <div class="mb-8">
+    <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">
+      <%= t("tournaments.entry_list.list_heading") %>
+    </h2>
+
+    <% if @seedings.empty? %>
+      <p class="text-sm text-gray-500 dark:text-gray-400 italic">
+        <%= t("tournaments.entry_list.empty") %>
+      </p>
+    <% else %>
+      <div class="overflow-x-auto">
+        <table class="min-w-full text-sm">
+          <thead>
+            <tr class="border-b border-gray-200 dark:border-gray-700 text-left text-gray-600 dark:text-gray-400">
+              <th class="py-2 pr-4 font-medium"><%= t("tournaments.entry_list.col_position") %></th>
+              <th class="py-2 pr-4 font-medium"><%= t("tournaments.entry_list.col_player") %></th>
+              <th class="py-2 pr-4 font-medium"><%= t("tournaments.entry_list.col_club") %></th>
+              <th class="py-2 pr-4 font-medium"><%= t("tournaments.entry_list.col_dbu_nr") %></th>
+              <th class="py-2"></th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @seedings.each do |seeding| %>
+              <tr class="border-b border-gray-100 dark:border-gray-800">
+                <td class="py-2 pr-4 text-gray-500 dark:text-gray-400"><%= seeding.position %></td>
+                <td class="py-2 pr-4 text-gray-900 dark:text-gray-100"><%= seeding.player&.fullname %></td>
+                <td class="py-2 pr-4 text-gray-600 dark:text-gray-400"><%= seeding.player&.club&.shortname %></td>
+                <td class="py-2 pr-4 text-gray-600 dark:text-gray-400"><%= seeding.player&.dbu_nr %></td>
+                <td class="py-2 text-right">
+                  <%# Nur lokale Meldungen sind hier rückziehbar; globale gehören der Authority. %>
+                  <% if seeding.id >= Seeding::MIN_ID %>
+                    <%= button_to t("tournaments.entry_list.withdraw"),
+                          seeding_tournament_entry_list_path(@tournament, seeding.id),
+                          method: :delete,
+                          class: "btn btn-sm btn-danger",
+                          form: { data: { turbo_confirm: t("tournaments.entry_list.withdraw_confirm",
+                                          player: seeding.player&.fullname) } } %>
+                  <% end %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    <% end %>
+  </div>
+
+  <%# --- Melden über den Verein ---------------------------------------------- %>
+  <% if @clubs.any? %>
+    <div class="mb-6 p-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800"
+         data-controller="dependent-select"
+         data-dependent-select-url-value="<%= players_by_club_tournament_entry_list_path(@tournament) %>"
+         data-dependent-select-value-key-value="dbu_nr"
+         data-dependent-select-placeholder-value="<%= t("tournaments.entry_list.select_player_blank") %>">
+      <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">
+        <%= t("tournaments.entry_list.add_by_club_heading") %>
+      </h2>
+      <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">
+        <%= t("tournaments.entry_list.add_by_club_hint") %>
+      </p>
+
+      <div class="flex gap-2 items-start flex-wrap">
+        <div class="flex-1 min-w-[12rem]">
+          <%= select_tag :entry_list_club_id,
+                options_for_select(@clubs.map { |c| [c.shortname.presence || c.name, c.id] }),
+                include_blank: t("tournaments.entry_list.select_club_blank"),
+                class: "form-control",
+                data: { dependent_select_target: "source", action: "dependent-select#load" } %>
+        </div>
+
+        <%= form_with url: tournament_entry_list_path(@tournament), method: :post, local: true,
+                      class: "flex gap-2 items-start flex-1 min-w-[14rem]" do |f| %>
+          <div class="flex-1">
+            <%= select_tag :dbu_nr, nil, class: "form-control", required: true,
+                  data: { dependent_select_target: "dest" } %>
+          </div>
+          <%= f.submit t("tournaments.entry_list.submit"),
+                class: "btn btn-sm btn-primary",
+                data: { disable_with: t("tournaments.entry_list.submitting") } %>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+
+  <%# --- Melden über die DBU-Nummer ------------------------------------------- %>
+  <div class="mb-6 p-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+    <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">
+      <%= t("tournaments.entry_list.add_by_dbu_heading") %>
+    </h2>
+    <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">
+      <%= t("tournaments.entry_list.add_by_dbu_hint") %>
+    </p>
+
+    <%= form_with url: tournament_entry_list_path(@tournament), method: :post, local: true,
+                  class: "flex gap-2 items-start" do |f| %>
+      <div class="flex-1">
+        <%= text_field_tag :dbu_nr, nil,
+              placeholder: t("tournaments.entry_list.dbu_nr_placeholder"),
+              class: "form-control",
+              pattern: '[\d,\s]+',
+              autocomplete: "off",
+              required: true %>
+      </div>
+      <%= f.submit t("tournaments.entry_list.submit"),
+            class: "btn btn-sm btn-primary",
+            data: { disable_with: t("tournaments.entry_list.submitting") } %>
+    <% end %>
+  </div>
+
+  <p class="text-sm">
+    <%= link_to t("tournaments.entry_list.back_to_tournament"), tournament_path(@tournament) %>
+  </p>
+</div>

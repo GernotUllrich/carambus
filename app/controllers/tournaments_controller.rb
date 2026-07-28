@@ -935,52 +935,18 @@ class TournamentsController < ApplicationController
       return
     end
 
-    # Split by comma and clean up whitespace
-    dbu_numbers = dbu_input.split(',').map(&:strip).reject(&:blank?)
+    # Plan 35-01: Melde-Datenschicht liegt in RegionServer::PlayerRegistration — geteilt mit dem
+    # CC-losen Meldelisten-Fluss, damit die dbu_nr-Auflösung nicht in zwei Kopien driftet.
+    # Verhalten unverändert: Split/Strip, Dublettencheck über effective_seedings (Plan 32-03),
+    # fortlaufende Position, CC-Push (Plan 44-02, no-op ohne tournament_cc).
+    result = RegionServer::PlayerRegistration.register_by_dbu(
+      tournament: @tournament, dbu_input: dbu_input, acting_user: current_user
+    )
 
-    # Plan 32-03: effective_seedings (lokale bevorzugen, sonst ClubCloud) statt dupliziertem has_local-Idiom
-
-    # Track results
-    added = []
-    already_exists = []
-    not_found = []
-
-    # Process each DBU number
-    dbu_numbers.each do |dbu_nr|
-      # Find player by DBU number
-      player = Player.find_by(dbu_nr: dbu_nr)
-
-      unless player
-        not_found << dbu_nr
-        next
-      end
-
-      # Check if player already in tournament
-      existing_seeding = @tournament.effective_seedings.where(player_id: player.id).first
-
-      if existing_seeding
-        already_exists << "#{player.fullname} (#{dbu_nr}, Pos. #{existing_seeding.position})"
-        next
-      end
-
-      # Add player to seeding list
-      max_position = @tournament.effective_seedings.maximum(:position) || 0
-
-      @tournament.seedings.create!(
-        player_id: player.id,
-        position: max_position + 1
-      )
-
-      # Plan 44-02: kurzfristige dbu_nr-Nachmeldung atomar in die CC pushen — analog zum
-      # change_seeding-Reflex. Ohne das landet die Nachmeldung lokal, aber NICHT in der CC
-      # (Live-Befund 2026-06-19). enqueue_for ist no-op ohne tournament_cc.
-      PushAccreditationToCcJob.enqueue_for(
-        tournament: @tournament, player: player,
-        target: :ensure_participant, acting_user: current_user
-      )
-
-      added << "#{player.fullname} (#{dbu_nr}, Pos. #{max_position + 1})"
-    end
+    # Wortlaute bleiben wie gewachsen — die Formulierung gehört dem Controller, nicht dem Service.
+    added = result.added.map { |e| "#{e[:player].fullname} (#{e[:dbu_nr]}, Pos. #{e[:position]})" }
+    already_exists = result.already_exists.map { |e| "#{e[:player].fullname} (#{e[:dbu_nr]}, Pos. #{e[:position]})" }
+    not_found = result.not_found
 
     # Build summary message
     messages = []
@@ -1009,30 +975,11 @@ class TournamentsController < ApplicationController
   # Abgrenzung zu Admin::UsersController#players_by_club: der ist `system_admin?`-only und damit
   # fuer Sportwarte nicht nutzbar. Schutz hier = `ensure_local_server` wie bei define_participants.
   def players_by_club
-    club_id = params[:club_id]
-    return render(json: []) if club_id.blank?
-
-    already_seeded = @tournament.effective_seedings.pluck(:player_id).compact.to_set
-
-    # Saison des TURNIERS, nicht die laufende: Meldungen gehoeren zur Turniersaison. Bei einem
-    # Turnier der Vorsaison zeigte `Season.current_season` sonst die falschen Spieler — und sie
-    # ist nicht immer gesetzt (in der Testumgebung nil, wenn die Saison noch nicht angelegt ist).
-    season_id = @tournament.season_id || Season.current_season&.id
-
-    rows = SeasonParticipation
-      .where(club_id: club_id, season_id: season_id)
-      .includes(:player)
-      .filter_map do |sp|
-        player = sp.player
-        next if player.nil? || player.fullname.blank?
-        next if already_seeded.include?(player.id)
-
-        {id: player.id, label: player.fullname, dbu_nr: player.dbu_nr}
-      end
-      .uniq { |h| h[:id] }
-      .sort_by { |h| h[:label].to_s }
-
-    render json: rows
+    # Plan 35-01: Query liegt in RegionServer::PlayerRegistration (geteilt mit dem CC-losen
+    # Meldelisten-Fluss). Verhalten unverändert, inkl. Turniersaison-Fallstrick und Sortierung.
+    render json: RegionServer::PlayerRegistration.selectable_players(
+      tournament: @tournament, club_id: params[:club_id]
+    )
   end
 
   # POST /tournaments/:id/apply_seeding_order

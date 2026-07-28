@@ -13,7 +13,9 @@
   <div class="flex flex-wrap gap-3">
     <%# .btn .btn-primary (nicht rohe Utilities): base.css `a:not(.btn)` würde sonst die Link-Farbe
         über `text-white` setzen → dunkler Text auf Grün (buttons.css:44). %>
-    <%= link_to define_participants_tournament_path(tournament), class: "btn btn-primary" do %>
+    <%# Plan 35-01: der zweckgebaute CC-lose Meldelisten-Fluss — nicht mehr define_participants,
+        das zur Hälfte Modus-Findung (Turnierplan, Gruppen) und damit Location-Server-Sache ist. %>
+    <%= link_to tournament_entry_list_path(tournament), class: "btn btn-primary" do %>
       📝 <%= t("tournaments.region_server_actions.meldeliste") %>
     <% end %>
 

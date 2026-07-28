@@ -981,6 +981,41 @@ de:
       cancel: Abbrechen
       editing_tournament: Editiere Turnier
       show: Zeigen
+    # Plan 35-01: CC-loser Meldelisten-Fluss auf dem Region Server.
+    entry_list:
+      heading: "Meldeliste — %{title}"
+      subline: "Wer ist für dieses Turnier gemeldet. Die Setzung und der Spielmodus werden am Spielort festgelegt."
+      season: Saison
+      count: "%{count} Meldungen"
+      draft_notice: "Dieses Turnier ist noch ein Entwurf. Nach der Freigabe übernimmt die Authority die Meldeliste."
+      release: Meldeliste freigeben
+      back_to_tournament: Zurück zum Turnier
+      list_heading: Gemeldete Spieler
+      empty: Noch niemand gemeldet.
+      col_position: Pos.
+      col_player: Spieler
+      col_club: Verein
+      col_dbu_nr: DBU-Nr.
+      withdraw: Meldung zurückziehen
+      withdraw_confirm: "Meldung von %{player} zurückziehen?"
+      add_by_club_heading: Über den Verein melden
+      add_by_club_hint: Verein wählen, dann den Spieler.
+      select_club_blank: — Verein wählen —
+      select_player_blank: — Spieler wählen —
+      add_by_dbu_heading: Über die DBU-Nummer melden
+      add_by_dbu_hint: Mehrere Nummern durch Komma trennen.
+      dbu_nr_placeholder: "z.B. 123456, 234567"
+      submit: Melden
+      submitting: Melde…
+      flash:
+        added: "✅ %{count} gemeldet: %{players}"
+        already: "ℹ️ %{count} bereits gemeldet: %{players}"
+        not_found: "❌ %{count} nicht gefunden (DBU): %{numbers}"
+        nothing_given: Bitte einen Spieler oder eine DBU-Nummer angeben.
+        withdrawn: "Meldung von %{player} zurückgezogen."
+        withdraw_failed: Diese Meldung konnte nicht zurückgezogen werden.
+        local_server_only: Die Meldeliste wird auf dem Region Server gepflegt, nicht auf dem API Server.
+        cc_tournament: Dieses Turnier läuft über die ClubCloud — die Teilnehmer werden dort gepflegt.
     finalize_modus:
       alternatives_other_disciplines: 'Weitere Alternativen:'
       alternatives_same_discipline: 'Alternativen mit der gleichen Disziplin:'
