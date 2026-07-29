@@ -89,16 +89,32 @@ class RegionServer::GameResultIngestTest < ActiveSupport::TestCase
     assert_equal [12, 13], @tournament.games.order(:seqno).pluck(:seqno)
   end
 
-  # AC-2c
-  test "Spielname ausserhalb des Turnierplans wird abgewiesen" do
+  # AC-2c — Plan 35-02 ANGEPASST.
+  #
+  # Alte Erwartung (32-08): "Gruppe Q" wurde abgewiesen, weil der EXEKUTIERBARE Plan (T06) nur
+  # g1/g2 fuehrt. Diese Erwartung war falsch — sie machte eine Entscheidung am Spielort zum
+  # Filter fuer Ergebnisse. "Gruppe Q" ist ein voellig regulaerer Spielname; dass dieses Turnier
+  # nach T06 gespielt wurde, macht ihn nicht ungueltig. Geprueft wird jetzt gegen den
+  # Akzeptanz-Namensraum, und der faengt Tippfehler statt Planabweichungen.
+  test "ein Spielname ausserhalb des akzeptierten Namensraums wird abgewiesen" do
     result = nil
     assert_no_difference("Game.count") do
-      result = ingest([row(group: "Gruppe Q")])
+      result = ingest([row(group: "Halbfinaie")]) # Tippfehler
     end
 
     assert_equal 0, result.accepted
     assert_equal 1, result.unresolved.size
-    assert_includes result.unresolved.first, "Gruppe Q"
+    assert_includes result.unresolved.first, "Halbfinaie"
+  end
+
+  # AC-4: Der exekutierbare Plan (T06) fuehrt KEIN Viertelfinale — angenommen wird es trotzdem.
+  # Genau das ist die Entkopplung, die Plan 35-02 herstellt.
+  test "ein Spielname, den der exekutierbare Plan nicht fuehrt, wird angenommen" do
+    result = ingest([row(group: "Viertelfinale", seqno: 40)])
+
+    assert_equal 1, result.accepted
+    assert_empty result.unresolved
+    assert_equal "Viertelfinale", @tournament.games.order(:seqno).last.gname
   end
 
   test "alle Namen des Turnierplans werden akzeptiert" do
@@ -160,13 +176,28 @@ class RegionServer::GameResultIngestTest < ActiveSupport::TestCase
     assert_equal 0, @tournament.games.count, "bei Planabweichung wird nichts eingelesen"
   end
 
-  # Fail-open: die Namenspruefung ist eine Absicherung gegen Tippfehler, kein Zugangsschutz.
-  # Ein Turnier ohne ableitbaren Plan darf keine gueltigen Ergebnisse verlieren.
-  test "ohne Turnierplan wird der Name nicht geprueft" do
+  # Plan 35-02 ANGEPASST — die Zusicherung bleibt, der Mechanismus aendert sich.
+  #
+  # Alte Erwartung (32-08): ohne Turnierplan wurde GAR NICHT geprueft (Fail-open), also ging auch
+  # "Irgendein Name" durch. Das war die Kehrseite der Plan-Ableitung: kein Plan, kein Namensraum.
+  # Der universelle Namensraum ist dagegen IMMER bildbar — es wird also immer geprueft.
+  #
+  # Die eigentliche Zusicherung ist dadurch NICHT verletzt: ein Turnier ohne Plan darf keine
+  # gueltigen Ergebnisse verlieren. Das ist der Normalfall (tournament_plan_id wird erst beim
+  # lokalen Turniermanagement gesetzt), und genau das prueft dieser Test.
+  test "ohne Turnierplan werden regulaere Spielnamen weiterhin angenommen" do
+    @tournament.update_column(:tournament_plan_id, nil)
+    result = ingest([row(group: "Gruppe C")])
+
+    assert_equal 1, result.accepted
+    assert_equal "Gruppe C", @tournament.games.sole.gname
+  end
+
+  test "ohne Turnierplan bleibt der Tippfehler-Schutz wirksam" do
     @tournament.update_column(:tournament_plan_id, nil)
     result = ingest([row(group: "Irgendein Name")])
 
-    assert_equal 1, result.accepted
-    assert_equal "Irgendein Name", @tournament.games.sole.gname
+    assert_equal 0, result.accepted
+    assert_equal 1, result.unresolved.size
   end
 end

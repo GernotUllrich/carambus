@@ -14,6 +14,10 @@ module RegionServer
   # ExecutorParams (`group1:2-3`, `hf1`, `p<3-4>`), die fuer die Uebermittlung VEREINFACHT wird
   # ("Gruppe A", "Halbfinale", "Spiel um Platz 3").
   #
+  # WO DER NAMENSRAUM HERKOMMT (Plan 35-02): aus `RegionServer::AcceptancePlan` — dem universellen
+  # Karambol-Akzeptanzplan. NICHT mehr aus den ExecutorParams des exekutierbaren Plans; das war der
+  # Fehler in 32-08 (Zwei-Plaene-Modell, Betreiber 2026-07-25). Die Begruendung steht dort.
+  #
   # DESHALB IST (gname, seqno) DER SCHLUESSEL, NICHT gname ALLEIN: die Vereinfachung ist
   # viele-zu-eins — `hf1` und `hf2` werden beide zu "Halbfinale". Genau so traegt es die CC-Zeile:
   # `Gruppe;Partie` (tournament_monitor/result_processor.rb:559). Ohne seqno im Schluessel wuerde
@@ -36,10 +40,8 @@ module RegionServer
         return result
       end
 
-      allowed = allowed_group_names
-
       @games.each do |row|
-        ingest_row(row, allowed, result)
+        ingest_row(row, result)
       end
 
       result
@@ -48,8 +50,12 @@ module RegionServer
     private
 
     # Die Location meldet, fuer welchen Plan sie sich entschieden hat (D2: sie entscheidet, der
-    # Region Server schlaegt hoechstens vor). Daraus leitet sich der erlaubte Namensraum ab.
-    # TournamentPlans sind GLOBALE Records — die ID traegt ueber Instanzgrenzen, ohne Uebersetzung.
+    # Region Server schlaegt hoechstens vor). TournamentPlans sind GLOBALE Records — die ID traegt
+    # ueber Instanzgrenzen, ohne Uebersetzung.
+    #
+    # Plan 35-02: Der erlaubte Namensraum leitet sich NICHT mehr hieraus ab (siehe AcceptancePlan).
+    # Diese Meldung bleibt trotzdem: dass die Location ihren Plan bekanntgibt und eine Abweichung
+    # auffaellt, ist eine eigene, weiterhin gueltige Zusicherung.
     #
     # Ein Wechsel des Plans mitten im Turnier ist kein Ergebnis-, sondern ein Ablauf-Ereignis und
     # braucht eine eigene Betrachtung — hier wird er gemeldet, nicht stillschweigend uebernommen.
@@ -67,56 +73,7 @@ module RegionServer
       "Turnierplan weicht ab: lokal #{current}, gemeldet #{@tournament_plan_id}"
     end
 
-    # Der SELEKTOR — das CC-Pendant ist `tournament_cc.group_cc.data["positions"]`.
-    #
-    # Quelle sind die ExecutorParams-Schluessel des Plans: sie fuehren nicht nur die Gruppen
-    # ("g1", "g2"), sondern auch KO- und Platzierungsspiele ("hf1", "fin", "p<9-10>") — siehe den
-    # Kommentar an TournamentPlan#rounds_count. Jeder Schluessel wird durch dieselbe Vereinfachung
-    # geschickt, die der Sender benutzt; das Ergebnis ist der erlaubte Namensraum.
-    #
-    # FAIL-OPEN: Laesst sich kein Namensraum ableiten (Plan fehlt oder ohne ExecutorParams), wird
-    # NICHT geprueft. Ein Turnier ohne ableitbaren Plan darf keine gueltigen Ergebnisse verlieren —
-    # die Pruefung ist eine Absicherung gegen Tippfehler, kein Zugangsschutz.
-    def allowed_group_names
-      plan = @tournament.tournament_plan
-      return nil if plan.nil?
-
-      names = executor_param_keys(plan).filter_map do |key|
-        Setting.map_game_gname_to_cc_group_name(normalize_plan_key(key))
-      end.to_set
-
-      if names.empty?
-        Rails.logger.warn(
-          "[GameResultIngest] Kein Namensraum aus TournamentPlan[#{plan.id}] ableitbar — " \
-          "Spielnamen werden nicht geprüft"
-        )
-        return nil
-      end
-
-      names
-    end
-
-    # Nur Schluessel, deren Wert ein Hash ist — "RK" (Rangliste) und Skalare wie "GK" sind keine
-    # Spiele. Dieselbe Abgrenzung trifft TournamentPlan#rounds_count.
-    def executor_param_keys(plan)
-      return [] if plan.executor_params.blank?
-
-      JSON.parse(plan.executor_params).filter_map do |key, value|
-        key if key != "RK" && value.is_a?(Hash)
-      end
-    rescue JSON::ParserError => e
-      Rails.logger.warn "[GameResultIngest] ExecutorParams von TournamentPlan[#{plan.id}] unlesbar: #{e.message}"
-      []
-    end
-
-    # ExecutorParams fuehren Gruppen als "g1", `game.gname` schreibt "group1:2-3" —
-    # map_game_gname_to_cc_group_name kennt nur die zweite Form. KO- und Platzierungsschluessel
-    # ("hf1", "fin", "p<9-10>") stimmen dagegen bereits ueberein.
-    def normalize_plan_key(key)
-      /\Ag(\d+)\z/.match?(key) ? "group#{key[1..]}:" : key
-    end
-
-    def ingest_row(row, allowed, result)
+    def ingest_row(row, result)
       group = row["group"].to_s.strip
       seqno = row["seqno"]
 
@@ -125,8 +82,19 @@ module RegionServer
         return
       end
 
-      if allowed.present? && !allowed.include?(group)
-        result.unresolved << "#{row_label(row)} — Spielname '#{group}' ist für diesen Turnierplan nicht vorgesehen"
+      # Plan 35-02: Geprueft wird gegen den AKZEPTANZ-Plan, nicht mehr gegen die ExecutorParams des
+      # exekutierbaren Plans (so noch in 32-08). Der exekutierbare Plan beschreibt, was der
+      # TableMonitor am Spielort abspielt; er darf nicht bestimmen, welche Ergebnisse der Region
+      # Server annimmt. Ergebnisse koennen manuell aus Spielberichten stammen und Spielnamen
+      # tragen, die dieser Plan nie erzeugt haette.
+      #
+      # VERHALTENSAENDERUNG gegenueber 32-08: Dort gab es einen FAIL-OPEN-Zweig — ohne ableitbaren
+      # Plan wurde gar nicht geprueft. Der universelle Namensraum ist IMMER bildbar, also wird
+      # jetzt immer geprueft. Das ist gewollt: die Pruefung bleibt ein Tippfehler-Schutz, und ein
+      # Turnier ohne Plan (in der Praxis der Normalfall — `tournament_plan_id` wird erst beim
+      # lokalen Turniermanagement gesetzt) nimmt weiterhin jeden regulaeren Spielnamen an.
+      unless AcceptancePlan.accepts?(group)
+        result.unresolved << "#{row_label(row)} — Spielname '#{group}' gehört nicht zum akzeptierten Namensraum"
         return
       end
 
