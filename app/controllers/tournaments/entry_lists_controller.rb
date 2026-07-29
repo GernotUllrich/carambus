@@ -85,10 +85,19 @@ module Tournaments
 
     # Vereine der Turnierregion für den Picker. Fällt auf alle Vereine zurück, wenn das Turnier
     # keiner Region zugeordnet ist (der Picker wäre sonst leer und der LSW ohne Weg).
+    #
+    # NAMENLOSE VEREINE RAUS (live aufgefallen 2026-07-29 auf tbv): 571 der 1841 Vereine tragen
+    # weder `name` noch `shortname` — Altlast-Platzhalter von 2020 mit synthetischer ba_id
+    # (999-Präfix), ausnahmslos `status: "passiv"`, ohne cc_id und ohne eine einzige
+    # SeasonParticipation. Da der leere String VOR jedem anderen sortiert, standen sie geschlossen
+    # am Anfang der Liste und ließen den Picker leer aussehen (TBV: 12 Leerzeilen vor 29 Vereinen).
+    # Aus ihnen lässt sich ohnehin niemand melden. Gefiltert wird über den Namen, nicht über
+    # `status` — ein passiver Verein MIT Namen kann noch Mitglieder haben.
+    # Dieselbe Bedingung nutzen admin/users_controller.rb:70 und admin/settings_controller.rb:17.
     def selectable_clubs
       region = @tournament.organizer.is_a?(Region) ? @tournament.organizer : @tournament.region
       scope = region.present? ? Club.where(region_id: region.id) : Club.all
-      scope.order(:shortname)
+      scope.where.not(name: [nil, ""]).order(:shortname)
     end
 
     # Wie im Bestand (add_player_by_dbu): erfolgreiche Meldungen führen zur Erfolgsmeldung,
