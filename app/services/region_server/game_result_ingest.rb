@@ -104,17 +104,36 @@ module RegionServer
         return
       end
 
-      game = @tournament.games.find_by(gname: group, seqno: seqno)
-      existing = game.present?
-      game ||= @tournament.games.new
+      # Plan 35-03: Geschrieben wird ueber GameResultWriter — denselben Weg, den die manuelle
+      # Erfassung nimmt. Vorher schrieb der Ingest kein `game.data`, wodurch die gepushten Spiele
+      # auf der Turnierseite unsichtbar blieben (show.html.erb:146 filtert auf "Ergebnis"/"Punkte").
+      #
+      # Die Reihenfolge A/B kommt aus der gemeldeten `role`, nicht aus der Array-Position: der
+      # Sender fuehrt sie explizit, und ein vertauschtes Paar waere ein falsches Ergebnis.
+      written = GameResultWriter.new(
+        tournament: @tournament,
+        gname: group,
+        seqno: seqno,
+        ended_at: row["ended_at"],
+        participations: writer_participations(resolved)
+      ).call
 
-      game.assign_attributes(gname: group, seqno: seqno, ended_at: row["ended_at"])
-      game.region_id = @tournament.region_id
-      game.save!
+      written.created ? result.accepted += 1 : result.updated += 1
+    end
 
-      resolved.each { |participation_row, player| upsert_participation(game, participation_row, player, group) }
+    # Bringt die aufgeloesten Paare in die Reihenfolge, die der Writer erwartet (A, B).
+    def writer_participations(resolved)
+      ordered = resolved.sort_by { |participation_row, _player| participation_row["role"].to_s }
 
-      existing ? result.updated += 1 : result.accepted += 1
+      ordered.map do |participation_row, player|
+        {
+          player: player,
+          result: participation_row["result"],
+          innings: participation_row["innings"],
+          hs: participation_row["hs"],
+          gd: participation_row["gd"]
+        }
+      end
     end
 
     # Spieler werden ueber `dbu_nr` aufgeloest — IDs sind je Instanz verschieden und taugen nicht
@@ -133,30 +152,6 @@ module RegionServer
       return nil if pairs.any? { |_participation, player| player.nil? }
 
       pairs
-    end
-
-    def upsert_participation(game, participation_row, player, group)
-      role = participation_row["role"].to_s
-      gp = game.game_participations.find_by(role: role) || game.game_participations.new(role: role)
-
-      gp.assign_attributes(
-        player_id: player.id,
-        result: participation_row["result"],
-        innings: participation_row["innings"],
-        gd: participation_row["gd"],
-        hs: participation_row["hs"],
-        data: {
-          "results" => {
-            "Gr." => group,
-            "Ergebnis" => participation_row["result"],
-            "Aufnahme" => participation_row["innings"],
-            "GD" => participation_row["gd"],
-            "HS" => participation_row["hs"]
-          }.compact
-        }
-      )
-      gp.region_id = @tournament.region_id
-      gp.save!
     end
 
     def row_label(row)

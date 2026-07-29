@@ -1,0 +1,148 @@
+<%# Plan 35-03: CC-lose Ergebnisliste auf dem Region Server (LSW-Verwaltungsplatz).
+    Entkoppelt vom TableMonitor: der läuft am Spielort. Hier werden Ergebnisse aus Spielberichten
+    übertragen — kein Modus, kein Start, kein Scoreboard. %>
+<div class="max-w-5xl mx-auto p-4">
+
+  <div class="mb-6">
+    <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">
+      <%= t("tournaments.game_results.heading", title: @tournament.title) %>
+    </h1>
+    <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+      <%= t("tournaments.game_results.subline") %>
+    </p>
+    <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">
+      <%= t("tournaments.game_results.count", count: @games.size) %>
+    </p>
+  </div>
+
+  <%# --- Erfasste Spiele ------------------------------------------------------ %>
+  <div class="mb-8">
+    <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">
+      <%= t("tournaments.game_results.list_heading") %>
+    </h2>
+
+    <% if @games.empty? %>
+      <p class="text-sm text-gray-500 dark:text-gray-400 italic">
+        <%= t("tournaments.game_results.empty") %>
+      </p>
+    <% else %>
+      <div class="overflow-x-auto">
+        <table class="min-w-full text-sm">
+          <thead>
+            <tr class="border-b border-gray-200 dark:border-gray-700 text-left text-gray-600 dark:text-gray-400">
+              <th class="py-2 pr-4 font-medium"><%= t("tournaments.game_results.col_game") %></th>
+              <th class="py-2 pr-4 font-medium"><%= t("tournaments.game_results.col_seqno") %></th>
+              <th class="py-2 pr-4 font-medium"><%= t("tournaments.game_results.col_player") %></th>
+              <th class="py-2 pr-4 font-medium text-right"><%= t("tournaments.game_results.col_balls") %></th>
+              <th class="py-2 pr-4 font-medium text-right"><%= t("tournaments.game_results.col_innings") %></th>
+              <th class="py-2 pr-4 font-medium text-right"><%= t("tournaments.game_results.col_average") %></th>
+              <th class="py-2 pr-4 font-medium text-right"><%= t("tournaments.game_results.col_hs") %></th>
+              <th class="py-2"></th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @games.each do |game| %>
+              <% parts = game.game_participations.sort_by { |gp| gp.role.to_s } %>
+              <% parts.each_with_index do |gp, ix| %>
+                <tr class="<%= "border-b border-gray-100 dark:border-gray-800" if ix == parts.size - 1 %>">
+                  <td class="py-2 pr-4 text-gray-900 dark:text-gray-100">
+                    <%= game.gname if ix.zero? %>
+                  </td>
+                  <td class="py-2 pr-4 text-gray-500 dark:text-gray-400">
+                    <%= game.seqno if ix.zero? %>
+                  </td>
+                  <td class="py-2 pr-4 text-gray-900 dark:text-gray-100"><%= gp.player&.fullname %></td>
+                  <td class="py-2 pr-4 text-right text-gray-900 dark:text-gray-100"><%= gp.result %></td>
+                  <td class="py-2 pr-4 text-right text-gray-600 dark:text-gray-400"><%= gp.innings %></td>
+                  <td class="py-2 pr-4 text-right text-gray-600 dark:text-gray-400"><%= gp.gd %></td>
+                  <td class="py-2 pr-4 text-right text-gray-600 dark:text-gray-400"><%= gp.hs %></td>
+                  <td class="py-2 text-right">
+                    <%# Nur lokale Spiele sind hier entfernbar; globale gehören der Authority. %>
+                    <% if ix.zero? && game.id >= Game::MIN_ID %>
+                      <%= button_to t("tournaments.game_results.delete"),
+                            game_tournament_game_results_path(@tournament, game.id),
+                            method: :delete,
+                            class: "btn btn-sm btn-danger",
+                            form: { data: { turbo_confirm: t("tournaments.game_results.delete_confirm",
+                                            gname: game.gname, seqno: game.seqno) } } %>
+                    <% end %>
+                  </td>
+                </tr>
+              <% end %>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    <% end %>
+  </div>
+
+  <%# --- Ergebnis erfassen ---------------------------------------------------- %>
+  <div class="mb-6 p-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+    <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">
+      <%= t("tournaments.game_results.form_heading") %>
+    </h2>
+    <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
+      <%= t("tournaments.game_results.form_hint") %>
+    </p>
+
+    <%= form_with url: tournament_game_results_path(@tournament), method: :post, local: true do |f| %>
+      <div class="flex gap-3 flex-wrap mb-4">
+        <div class="min-w-[12rem]">
+          <%= label_tag :gname, t("tournaments.game_results.select_game"),
+                class: "block text-sm text-gray-700 dark:text-gray-300 mb-1" %>
+          <%# Auswahl statt Freitext: der Namensraum kennt "Runde 1", nicht "1. Runde". %>
+          <%= select_tag :gname,
+                options_for_select(@selectable_names),
+                include_blank: t("tournaments.game_results.select_game_blank"),
+                class: "form-control", required: true %>
+        </div>
+        <div class="w-28">
+          <%= label_tag :seqno, t("tournaments.game_results.seqno"),
+                class: "block text-sm text-gray-700 dark:text-gray-300 mb-1" %>
+          <%= number_field_tag :seqno, nil, class: "form-control", min: 1,
+                autocomplete: "off", required: true %>
+        </div>
+      </div>
+
+      <% [["a", t("tournaments.game_results.player_a")],
+          ["b", t("tournaments.game_results.player_b")]].each do |side, label| %>
+        <div class="flex gap-3 flex-wrap mb-3 items-end">
+          <div class="flex-1 min-w-[14rem]">
+            <%= label_tag :"player_#{side}_id", label,
+                  class: "block text-sm text-gray-700 dark:text-gray-300 mb-1" %>
+            <%= select_tag :"player_#{side}_id",
+                  options_for_select(@selectable_players.map { |p| [p.fullname, p.id] }),
+                  include_blank: t("tournaments.game_results.select_player_blank"),
+                  class: "form-control", required: true %>
+          </div>
+          <div class="w-24">
+            <%= label_tag :"result_#{side}", t("tournaments.game_results.balls"),
+                  class: "block text-sm text-gray-700 dark:text-gray-300 mb-1" %>
+            <%= number_field_tag :"result_#{side}", nil, class: "form-control", min: 0,
+                  autocomplete: "off", required: true %>
+          </div>
+          <div class="w-24">
+            <%= label_tag :"innings_#{side}", t("tournaments.game_results.innings"),
+                  class: "block text-sm text-gray-700 dark:text-gray-300 mb-1" %>
+            <%= number_field_tag :"innings_#{side}", nil, class: "form-control", min: 0,
+                  autocomplete: "off", required: true %>
+          </div>
+          <div class="w-24">
+            <%= label_tag :"hs_#{side}", t("tournaments.game_results.hs"),
+                  class: "block text-sm text-gray-700 dark:text-gray-300 mb-1" %>
+            <%= number_field_tag :"hs_#{side}", nil, class: "form-control", min: 0,
+                  autocomplete: "off" %>
+          </div>
+        </div>
+      <% end %>
+
+      <%= f.submit t("tournaments.game_results.submit"),
+            class: "btn btn-primary mt-2",
+            data: { disable_with: t("tournaments.game_results.submitting") } %>
+    <% end %>
+  </div>
+
+  <p class="text-sm">
+    <%= link_to t("tournaments.game_results.back_to_tournament"), tournament_path(@tournament) %>
+  </p>
+</div>

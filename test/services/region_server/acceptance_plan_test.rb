@@ -58,6 +58,42 @@ class RegionServer::AcceptancePlanTest < ActiveSupport::TestCase
     assert RegionServer::AcceptancePlan.accepts?("  Finale  ")
   end
 
+  # --- Plan 35-03: Auswahlliste (AC-3) ----------------------------------------
+
+  # DIE ZENTRALE ZUSICHERUNG: Was das Formular anbietet, muss der Ingest annehmen. Andernfalls
+  # koennte der LSW ein Ergebnis erfassen, das ueber die API nicht einlieferbar waere.
+  test "jeder waehlbare Name wird auch akzeptiert" do
+    rejected = RegionServer::AcceptancePlan.selectable_names.reject do |name|
+      RegionServer::AcceptancePlan.accepts?(name)
+    end
+
+    assert_empty rejected, "waehlbar, aber nicht akzeptiert"
+  end
+
+  test "die Auswahlliste deckt die gebraeuchlichen Formen ab" do
+    names = RegionServer::AcceptancePlan.selectable_names
+
+    assert_includes names, "Gruppe A"
+    assert_includes names, "Gruppe H"
+    assert_includes names, "Halbfinale"
+    assert_includes names, "Finale"
+    assert_includes names, "Hauptrunde"
+    assert_includes names, "Runde 1"
+    assert_includes names, "Spiel um Platz 3"
+  end
+
+  test "die Auswahlliste ist eine Teilmenge des Akzeptierten, nicht deckungsgleich" do
+    # Gruppe Z ist akzeptiert, aber bewusst nicht waehlbar — die Liste bleibt bedienbar.
+    assert RegionServer::AcceptancePlan.accepts?("Gruppe Z")
+    refute_includes RegionServer::AcceptancePlan.selectable_names, "Gruppe Z"
+  end
+
+  test "die Auswahlliste ist dublettenfrei" do
+    names = RegionServer::AcceptancePlan.selectable_names
+
+    assert_equal names.uniq.size, names.size
+  end
+
   # --- AC-6: Konsistenz Sender -> Empfaenger -----------------------------------
 
   # Alle Spielnamen-Formen, die in ExecutorParams real vorkommen (Gruppen, KO-Stufen,

@@ -19,12 +19,10 @@
       📝 <%= t("tournaments.region_server_actions.meldeliste") %>
     <% end %>
 
-    <%# Ergebnis-Eingabe (Games aus Bericht-gname gegen den Akzeptanz-Selektor) = Phase 35.
-        Bis dahin ehrlich als ausstehend markiert, statt auf einen nicht funktionierenden Weg zu leiten. %>
-    <span class="btn btn-secondary opacity-50 cursor-not-allowed"
-          title="<%= t("tournaments.region_server_actions.ergebnisse_pending_title") %>">
+    <%# Plan 35-03: eingelöst — manuelle Ergebniserfassung aus Spielberichten, gegen den
+        Akzeptanz-Namensraum und entkoppelt vom TableMonitor (der läuft am Spielort). %>
+    <%= link_to tournament_game_results_path(tournament), class: "btn btn-primary" do %>
       🏁 <%= t("tournaments.region_server_actions.ergebnisse") %>
-      <span class="ml-2 text-xs uppercase tracking-wide"><%= t("tournaments.region_server_actions.pending_badge") %></span>
-    </span>
+    <% end %>
   </div>
 </div>

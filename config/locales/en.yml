@@ -948,13 +948,53 @@ en:
       subline: "Region Server: maintain the registration list and results. Mode, start and scoreboards run at the venue (Location Server)."
       meldeliste: Maintain registration list
       ergebnisse: Maintain results
-      pending_badge: soon
-      ergebnisse_pending_title: "Manual result entry (games from match reports) is coming in Phase 35."
     edit:
       back: Back
       cancel: Cancel
       editing_tournament: Editing Tournament
       show: Show
+    # Plan 35-03: CC-less result list (manual entry from match reports).
+    game_results:
+      heading: "Results — %{title}"
+      subline: "Transfer match results from the match reports. Play happens at the venue; results are recorded here."
+      count: "%{count} matches recorded"
+      list_heading: Recorded matches
+      empty: No results recorded yet.
+      col_game: Match
+      col_seqno: No.
+      col_player: Player
+      col_balls: Balls
+      col_innings: Innings
+      col_average: Avg
+      col_hs: HR
+      delete: Remove
+      delete_confirm: "Remove result %{gname} / match %{seqno}?"
+      form_heading: Record a result
+      form_hint: Choose match and number, then enter both players with their figures. Recording the same match again corrects the existing result.
+      select_game: Match
+      select_game_blank: — choose match —
+      seqno: Match number
+      player_a: Player A
+      player_b: Player B
+      select_player_blank: — choose player —
+      balls: Balls
+      innings: Innings
+      hs: Highest run
+      submit: Save result
+      submitting: Saving…
+      back_to_tournament: Back to tournament
+      flash:
+        recorded: "Result %{gname} / match %{seqno} recorded."
+        updated: "Result %{gname} / match %{seqno} corrected."
+        deleted: Result removed.
+        delete_failed: This result could not be removed.
+        name_invalid: Please choose a match from the list.
+        seqno_missing: Please provide a match number.
+        players_missing: Please choose both players.
+        players_equal: A player cannot play against themselves.
+        players_unknown: Both players must be registered for this tournament.
+        local_server_only: Results are maintained on the Region Server, not on the API server.
+        cc_tournament: This tournament runs via the ClubCloud — results are maintained there.
     # Plan 35-01: CC-less registration list flow on the Region Server.
     entry_list:
       heading: "Registration list — %{title}"

@@ -399,6 +399,12 @@ Rails.application.routes.draw do
       get :players_by_club, on: :collection
       delete ":id", action: :destroy, as: :seeding, on: :collection
     end
+
+    # Plan 35-03: CC-lose ERGEBNISLISTE (manuelle Erfassung aus Spielberichten). Geschwister-
+    # ressource zur Meldeliste; entkoppelt vom TableMonitor, der am Spielort laeuft.
+    resource :game_results, only: %i[show create], controller: "tournaments/game_results" do
+      delete ":id", action: :destroy, as: :game, on: :collection
+    end
     collection do
       # Saison-Kopie mit Auswahl (Sportwart-Weg zum bestehenden Rake-Task tournaments:copy_season).
       get :copy_season

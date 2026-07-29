@@ -974,13 +974,53 @@ de:
       subline: "Region Server: Meldeliste und Ergebnisse pflegen. Modus, Start und Scoreboards laufen am Spielort (Location Server)."
       meldeliste: Meldeliste pflegen
       ergebnisse: Ergebnisse pflegen
-      pending_badge: folgt
-      ergebnisse_pending_title: "Manuelle Ergebniseingabe (Games aus Spielberichten) kommt mit Phase 35."
     edit:
       back: Zurück
       cancel: Abbrechen
       editing_tournament: Editiere Turnier
       show: Zeigen
+    # Plan 35-03: CC-lose Ergebnisliste (manuelle Erfassung aus Spielberichten).
+    game_results:
+      heading: "Ergebnisse — %{title}"
+      subline: "Spielergebnisse aus den Spielberichten übertragen. Gespielt wird am Spielort; hier werden die Ergebnisse festgehalten."
+      count: "%{count} Spiele erfasst"
+      list_heading: Erfasste Spiele
+      empty: Noch keine Ergebnisse erfasst.
+      col_game: Spiel
+      col_seqno: Partie
+      col_player: Spieler
+      col_balls: Bälle
+      col_innings: Aufnahmen
+      col_average: GD
+      col_hs: HS
+      delete: Entfernen
+      delete_confirm: "Ergebnis %{gname} / Partie %{seqno} entfernen?"
+      form_heading: Ergebnis erfassen
+      form_hint: Spiel und Partie-Nummer wählen, dann beide Spieler mit ihren Werten eintragen. Eine erneute Erfassung derselben Partie korrigiert das bestehende Ergebnis.
+      select_game: Spiel
+      select_game_blank: — Spiel wählen —
+      seqno: Partie-Nummer
+      player_a: Spieler A
+      player_b: Spieler B
+      select_player_blank: — Spieler wählen —
+      balls: Bälle
+      innings: Aufnahmen
+      hs: Höchstserie
+      submit: Ergebnis speichern
+      submitting: Speichere…
+      back_to_tournament: Zurück zum Turnier
+      flash:
+        recorded: "Ergebnis %{gname} / Partie %{seqno} erfasst."
+        updated: "Ergebnis %{gname} / Partie %{seqno} korrigiert."
+        deleted: Ergebnis entfernt.
+        delete_failed: Dieses Ergebnis konnte nicht entfernt werden.
+        name_invalid: Bitte ein Spiel aus der Liste wählen.
+        seqno_missing: Bitte eine Partie-Nummer angeben.
+        players_missing: Bitte beide Spieler wählen.
+        players_equal: Ein Spieler kann nicht gegen sich selbst spielen.
+        players_unknown: Beide Spieler müssen für dieses Turnier gemeldet sein.
+        local_server_only: Ergebnisse werden auf dem Region Server gepflegt, nicht auf dem API Server.
+        cc_tournament: Dieses Turnier läuft über die ClubCloud — die Ergebnisse werden dort gepflegt.
     # Plan 35-01: CC-loser Meldelisten-Fluss auf dem Region Server.
     entry_list:
       heading: "Meldeliste — %{title}"

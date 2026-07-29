@@ -117,6 +117,21 @@ class RegionServer::GameResultIngestTest < ActiveSupport::TestCase
     assert_equal "Viertelfinale", @tournament.games.order(:seqno).last.gname
   end
 
+  # AC-1 (Plan 35-03): DER REGRESSIONSSCHUTZ FUER DEN data-BUG.
+  #
+  # Bis 35-03 schrieb der Ingest kein `game.data`. Die gepushten Ergebnisse lagen korrekt in der DB,
+  # waren auf der Turnierseite aber unsichtbar: show.html.erb:146 ueberspringt jedes Spiel ohne
+  # "Ergebnis" ODER "Punkte". Nie aufgefallen, weil die Kette nie live lief.
+  test "ein per Ingest angelegtes Spiel ist auf der Turnierseite sichtbar" do
+    ingest([row(group: "Gruppe A", seqno: 50)])
+    game = @tournament.games.find_by(gname: "Gruppe A", seqno: 50)
+
+    assert game.data.present?, "leeres data macht das Spiel auf der Turnierseite unsichtbar"
+    assert game.data["Ergebnis"].present? || game.data["Punkte"].present?,
+      "show.html.erb:146 verlangt 'Ergebnis' oder 'Punkte'"
+    assert_equal "Gruppe A", game.data["Gruppe"]
+  end
+
   test "alle Namen des Turnierplans werden akzeptiert" do
     %w[Halbfinale Finale].each_with_index do |group, ix|
       result = ingest([row(group: group, seqno: 20 + ix)])

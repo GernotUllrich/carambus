@@ -80,6 +80,26 @@ module RegionServer
       def fixed_names
         FIXED_NAMES
       end
+
+      # Plan 35-03: Die AUSWAHLLISTE fuer die manuelle Erfassung.
+      #
+      # Bewusst eine TEILMENGE dessen, was `accepts?` durchlaesst: `accepts?` bleibt grosszuegig
+      # (Gruppe A–Z, Runde 1–n, Spiel um Platz n), damit ein gemeldetes Ergebnis nicht an einer
+      # ungewoehnlichen, aber regulaeren Bezeichnung scheitert. Die Auswahl bleibt dagegen
+      # bedienbar — eine Liste mit 26 Gruppen waere im Formular unbrauchbar.
+      #
+      # WARUM AUSWAHL STATT FREITEXT: Der Namensraum kennt "Runde 1", nicht "1. Runde"; "Hauptrunde",
+      # nicht "HR". Beides sind Schreibweisen, die real vorkommen und die ein Turnierleiter plausibel
+      # eintippt. Was nicht waehlbar ist, kann nicht falsch getippt werden.
+      #
+      # Die Zusicherung, dass jeder waehlbare Name auch akzeptiert wird, haelt ein Test fest.
+      def selectable_names(groups: 8, rounds: 8, places: 8)
+        names = ("A"..).first(groups).map { |letter| "Gruppe #{letter}" }
+        names += FIXED_NAMES
+        names += (1..rounds).map { |n| "Runde #{n}" }
+        names += (1..places).map { |n| "Spiel um Platz #{n}" }
+        names
+      end
     end
   end
 end
