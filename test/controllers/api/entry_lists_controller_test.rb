@@ -130,4 +130,30 @@ class Api::EntryListsControllerTest < ActionDispatch::IntegrationTest
     assert_equal 1, entry.dig("Gesamtrangliste", "Rang")
     assert_equal 120, entry.dig("Gesamtrangliste", "Bälle")
   end
+
+  # Plan 36-01: Der Test darueber setzt die Rangliste direkt aufs Seeding — er belegt den Payload,
+  # nicht den WEG dorthin. Hier wird sie ueber dieselbe Schicht geschrieben, die die
+  # Erfassungsseite benutzt: damit ist die Kette Erfassung → Ausliefer-Dokument belegt und nicht
+  # nur behauptet. Genau diese Luecke fuehrte in Phase 32 dazu, dass eine gliedweise gepruefte Kette
+  # als Ganzes nie trug.
+  test "eine auf dem Region Server erfasste Rangliste erreicht das Ausliefer-Dokument" do
+    RegionServer::RankingWriter.new(tournament: @tournament).call(
+      @tournament.seedings.first.id => {"Rang" => "1", "Bälle" => "44", "Aufn" => "105", "Punkte" => "6"}
+    )
+
+    sign_in @user
+    get_entry_lists
+
+    entry = JSON.parse(response.body)["tournaments"]
+      .find { |t| t["source_tournament_id"] == @tournament.id }["entries"].first
+    ranking = entry["Gesamtrangliste"]
+
+    assert_equal 1, ranking["Rang"]
+    assert_equal 44, ranking["Bälle"]
+    assert_equal 6, ranking["Punkte"]
+    # GD reist als Float — RegionServer::EntryListImporter reicht den Wert unveraendert an
+    # FinalRankingWriter.write_gesamtrangliste weiter, und carambus.rake:765 schnitte einen
+    # Integer auf 0 ab.
+    assert_instance_of Float, ranking["GD"]
+  end
 end

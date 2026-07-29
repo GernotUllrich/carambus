@@ -24,5 +24,11 @@
     <%= link_to tournament_game_results_path(tournament), class: "btn btn-primary" do %>
       🏁 <%= t("tournaments.region_server_actions.ergebnisse") %>
     <% end %>
+
+    <%# Plan 36-01: die Abschlusswerte je Spieler — Erfassung wie in der ClubCloud, keine
+        Berechnung. Schließt den CC-losen Fluss von der Meldung bis zur Auswertung. %>
+    <%= link_to tournament_ranking_path(tournament), class: "btn btn-primary" do %>
+      🏆 <%= t("tournaments.region_server_actions.rangliste") %>
+    <% end %>
   </div>
 </div>

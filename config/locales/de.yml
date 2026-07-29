@@ -974,6 +974,7 @@ de:
       subline: "Region Server: Meldeliste und Ergebnisse pflegen. Modus, Start und Scoreboards laufen am Spielort (Location Server)."
       meldeliste: Meldeliste pflegen
       ergebnisse: Ergebnisse pflegen
+      rangliste: Rangliste pflegen
     edit:
       back: Zurück
       cancel: Abbrechen
@@ -1021,6 +1022,24 @@ de:
         players_unknown: Beide Spieler müssen für dieses Turnier gemeldet sein.
         local_server_only: Ergebnisse werden auf dem Region Server gepflegt, nicht auf dem API Server.
         cc_tournament: Dieses Turnier läuft über die ClubCloud — die Ergebnisse werden dort gepflegt.
+    # Plan 36-01: CC-lose Rangliste (Erfassung der Abschlusswerte, keine Berechnung).
+    rankings:
+      heading: "Rangliste — %{title}"
+      subline: "Die Abschlusswerte je gemeldetem Spieler. Platz und Punkte trägt der Sportwart ein — wie in der ClubCloud."
+      discipline: "Spalten der Disziplin %{root}"
+      discipline_fallback: "(Disziplin nicht zugeordnet — Karambol-Spalten)"
+      empty: Für dieses Turnier ist niemand gemeldet.
+      form_heading: Rangliste erfassen
+      form_hint: Platz und Punkte werden eingetragen. Die übrigen Werte sind Vorschläge aus den erfassten Spielen und lassen sich überschreiben. Leere Zeilen werden nicht gespeichert.
+      col_player: Spieler
+      col_club: Verein
+      submit: Rangliste speichern
+      submitting: Speichere…
+      back_to_tournament: Zurück zum Turnier
+      flash:
+        saved: "%{written} Platzierungen gespeichert, %{skipped} übersprungen (aus der ClubCloud)."
+        local_server_only: Die Rangliste wird auf dem Region Server gepflegt, nicht auf dem API Server.
+        cc_tournament: Dieses Turnier läuft über die ClubCloud — die Rangliste wird dort gepflegt.
     # Plan 35-01: CC-loser Meldelisten-Fluss auf dem Region Server.
     entry_list:
       heading: "Meldeliste — %{title}"
