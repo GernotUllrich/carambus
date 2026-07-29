@@ -63,6 +63,13 @@ class McpServer::Tools::LookupSmokeTest < ActiveSupport::TestCase
     cc_set_party_lineup
     cc_doc_search
     cc_smart_search
+    cc_party_status
+    cc_clone_tournament
+    cc_clone_tournaments
+    cc_open_in_tournament_app
+    cc_open_party_in_app
+    cc_prepare_tournament
+    cc_start_party_day
   ].freeze
 
   WRITE_TOOL_NAMES = %w[
@@ -76,13 +83,21 @@ class McpServer::Tools::LookupSmokeTest < ActiveSupport::TestCase
     cc_assign_tournament_leiter
     cc_remove_tournament_leiter
     cc_set_party_lineup
+    cc_clone_tournament
+    cc_clone_tournaments
   ].freeze
 
-  # Phase 35-01: Self-Service-Write (eigenes Profil verknuepfen) — nicht-destruktiv und kein
-  # Read; passt in keine der binaeren read/write-Annotations-Kategorien
-  # (read_only_hint:false + destructive_hint:false). Aus den Hint-Asserts ausgenommen.
+  # Nicht-destruktive Aktions-/Self-Service-Tools: kein Read, aber auch nicht destruktiv
+  # (read_only_hint:false + destructive_hint:false) — passen in keine der binaeren
+  # read/write-Kategorien. Umfasst Self-Writes (eigenes Profil verknuepfen, Phase 35-01) und
+  # nicht-destruktive Aktionen (App-Deep-Links, Turnier vorbereiten, Spieltag starten).
+  # Aus den read/write-Hint-Asserts ausgenommen.
   SELF_SERVICE_TOOL_NAMES = %w[
     cc_link_my_player
+    cc_open_in_tournament_app
+    cc_open_party_in_app
+    cc_prepare_tournament
+    cc_start_party_day
   ].freeze
 
   test "dynamic tool registry matches frozen reference (drift detection both ways)" do
