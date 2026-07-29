@@ -81,6 +81,18 @@ module RegionServer
           result.added << {player: player, dbu_nr: dbu_nr, position: position}
         end
 
+        # Plan 36-02: das CC-lose GEGENSTÜCK zum Push oben. Ohne diesen Anstoß blieb eine Meldung
+        # nach der Freigabe auf dem Region Server liegen: `EntryListSyncJob.enqueue_for` wurde
+        # bisher NUR beim Freigeben gerufen (tournaments_controller.rb:696), einen Authority-Cron
+        # dafür gibt es nicht (29-06 AC-6 deferiert), und der On-demand-Button verlangt eine
+        # `source_url`, die das lokal angelegte Original nicht hat.
+        # LIVE BELEGT (2026-07-29, tbv): drei Meldungen lagen wochenlang unbemerkt fest — der
+        # Ingest-Dry-Run auf der Authority meldete `seedings_created=3, players_unresolved=[]`.
+        #
+        # NACH der Schleife, nicht darin: sonst löste eine Eingabe mit zehn Nummern zehn
+        # Roundtrips aus, deren jeder die ganze Region/Saison einliest.
+        EntryListSyncJob.enqueue_for(tournament: tournament) if result.added.any?
+
         result
       end
 
@@ -93,6 +105,13 @@ module RegionServer
 
         player = seeding.player
         seeding.destroy!
+
+        # Plan 36-02: wie beim Melden — auch ein Rückzug muss oben ankommen, sonst bliebe der
+        # zurückgezogene Spieler global gemeldet. Erst hier, nach dem tatsächlichen Entfernen:
+        # die beiden `return nil` oben (globales oder unbekanntes Seeding) haben nichts geändert
+        # und dürfen deshalb auch nichts anstoßen.
+        EntryListSyncJob.enqueue_for(tournament: tournament)
+
         player
       end
 
