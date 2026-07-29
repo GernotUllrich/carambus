@@ -194,7 +194,7 @@ module RegionServer
           result.seedings_created += 1
           seeding = create_seeding(tournament, player, entry) if @armed && tournament
         elsif @armed
-          update_seeding(seeding, entry)
+          update_seeding(tournament, seeding, entry)
         end
 
         import_ranking(seeding, entry, result)
@@ -225,20 +225,31 @@ module RegionServer
       seeding.data.is_a?(Hash) && seeding.data["result"].present?
     end
 
+    # REGION-TAGGING IST HIER NICHT KOSMETIK (live aufgefallen 2026-07-29): `Version.for_region`
+    # lautet `region_id IS NULL OR region_id = ?` (version.rb:48) — ein UNGETAGGTES Seeding wird
+    # damit nicht etwa gar nicht, sondern an JEDEN Server verteilt. Location Server anderer
+    # Regionen kennen das referenzierte Turnier nicht und laufen beim Anwenden in Fehler.
+    # Der CC-Scraper taggt Seedings an elf Stellen (`seeding.region_id = region.id`), und der
+    # Ergebnis-Weg tut es ebenso (game_result_importer.rb:120/174) — nur dieser Pfad tat es nicht.
     def create_seeding(tournament, player, entry)
       ::Seeding.skip_cable_ready_updates do
         tournament.seedings.create!(
           player_id: player.id,
           position: entry["position"],
-          balls_goal: entry["balls_goal"]
+          balls_goal: entry["balls_goal"],
+          region_id: tournament.region_id
         )
       end
     end
 
     # Position/Ball-Vorgabe einer bestehenden Meldung nachziehen (der Sportwart kann die Setzliste
     # auf der Quelle aendern). Das Ergebnis bleibt import_ranking vorbehalten.
-    def update_seeding(seeding, entry)
-      attrs = {position: entry["position"], balls_goal: entry["balls_goal"]}
+    # Zieht zugleich ein fehlendes `region_id` nach. Damit heilen Meldungen, die vor dem Tagging-Fix
+    # ungetaggt entstanden sind, beim naechsten regulaeren Ingest — ohne Reparaturskript. Der
+    # Gleichheits-Check davor verhindert, dass daraus PaperTrail-Churn bei jedem Lauf wird.
+    def update_seeding(tournament, seeding, entry)
+      attrs = {position: entry["position"], balls_goal: entry["balls_goal"],
+               region_id: tournament&.region_id}
       return if attrs.all? { |k, v| seeding.public_send(k).to_s == v.to_s }
 
       ::Seeding.skip_cable_ready_updates do
