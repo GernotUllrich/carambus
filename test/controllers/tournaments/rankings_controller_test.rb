@@ -15,6 +15,13 @@ class Tournaments::RankingsControllerTest < ActionDispatch::IntegrationTest
     @original_api_url = Carambus.config.carambus_api_url
     Carambus.config.carambus_api_url = "http://local.test"
 
+    # Plan 36-03: zwei Tests hier erfassen Spiele ueber RegionServer::GameResultWriter, der jetzt
+    # GameResultSyncJob anstoesst. Unter dem :inline-Adapter aus test_helper.rb:139 liefe der Job
+    # synchron samt HTTP-Call an die Authority (von WebMock blockiert). Begruendung wie in
+    # game_results_controller_test.rb.
+    @original_adapter = ActiveJob::Base.queue_adapter
+    ActiveJob::Base.queue_adapter = :test
+
     @anna = Player.create!(lastname: "ANNA", firstname: "Anna", fl_name: "A. Anna", dbu_nr: 411_111)
     @bodo = Player.create!(lastname: "BODO", firstname: "Bodo", fl_name: "B. Bodo", dbu_nr: 422_222)
     @seedings = [@anna, @bodo].each_with_index.map do |player, ix|
@@ -26,6 +33,7 @@ class Tournaments::RankingsControllerTest < ActionDispatch::IntegrationTest
 
   teardown do
     Carambus.config.carambus_api_url = @original_api_url
+    ActiveJob::Base.queue_adapter = @original_adapter
   end
 
   def save_ranking(entries)
