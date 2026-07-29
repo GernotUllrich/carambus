@@ -169,4 +169,57 @@ class RegionServer::GameResultImporterTest < ActiveSupport::TestCase
 
     assert_match(/tournaments/, error.message)
   end
+
+  # --- Loeschung (live aufgefallen 2026-07-29) --------------------------------
+  #
+  # Der Importer machte ausschliesslich Upserts. Ein auf dem Region Server geloeschtes Spiel blieb
+  # global stehen — und floss weiter ins Ranking ein. Das Muster ist von
+  # EntryListImporter#prune_removed_entries uebernommen; Schluessel wie beim Upsert: (gname, seqno).
+
+  test "ein auf der Quelle geloeschtes Spiel verschwindet global" do
+    import(document(games: [game_row(seqno: 1), game_row(seqno: 2)]))
+    assert_equal 2, @tournament.games.count
+
+    result = import(document(games: [game_row(seqno: 1)]))
+
+    assert_equal 1, result.games_removed
+    assert_equal [1], @tournament.games.reload.pluck(:seqno)
+  end
+
+  test "eine leere Spieleliste raeumt das Turnier vollstaendig" do
+    import
+    result = import(document(games: []))
+
+    assert_equal 1, result.games_removed
+    assert_equal 0, @tournament.games.reload.count
+  end
+
+  test "unveraenderter Quellstand loescht nichts" do
+    import
+    result = import
+
+    assert_equal 0, result.games_removed
+    assert_equal 1, @tournament.games.reload.count
+  end
+
+  test "dry-run loescht nicht, meldet die Loeschung aber" do
+    import
+    result = nil
+
+    assert_no_difference -> { @tournament.games.count } do
+      result = import(document(games: []), armed: false)
+    end
+    assert_equal 1, result.games_removed
+  end
+
+  # Ein Spiel, dessen Spieler nicht aufloesbar ist, EXISTIERT auf der Quelle — es zu loeschen waere
+  # die falsche Schlussfolgerung aus einem Stammdaten-Problem.
+  test "ein Spiel mit unaufloesbarem Spieler wird nicht geloescht" do
+    import
+    result = import(document(games: [game_row(dbu_b: "999999")]))
+
+    assert_equal 1, result.players_unresolved.size
+    assert_equal 0, result.games_removed
+    assert_equal 1, @tournament.games.reload.count
+  end
 end

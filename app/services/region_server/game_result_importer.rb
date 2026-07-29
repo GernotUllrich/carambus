@@ -20,7 +20,7 @@ module RegionServer
   #
   # ⚠️ Spieler werden AUFGELOEST, nie neu angelegt; Turniere ebenso. Unaufloesbares wird berichtet.
   class GameResultImporter
-    Result = Struct.new(:games_created, :games_updated, :games_unchanged,
+    Result = Struct.new(:games_created, :games_updated, :games_unchanged, :games_removed,
       :tournaments_matched, :tournaments_unmatched, :tournaments_skipped_cc,
       :players_unresolved, keyword_init: true)
 
@@ -38,7 +38,7 @@ module RegionServer
         raise ArgumentError, "Antwort enthält keine tournaments-Liste"
       end
 
-      result = Result.new(games_created: 0, games_updated: 0, games_unchanged: 0,
+      result = Result.new(games_created: 0, games_updated: 0, games_unchanged: 0, games_removed: 0,
         tournaments_matched: 0, tournaments_unmatched: [], tournaments_skipped_cc: 0,
         players_unresolved: [])
 
@@ -89,18 +89,50 @@ module RegionServer
       end
 
       result.tournaments_matched += 1
-      Array(payload["games"]).each { |row| import_game(tournament, row, result) }
+      keep_keys = Array(payload["games"]).filter_map { |row| import_game(tournament, row, result) }
+      prune_removed_games(tournament, keep_keys, result)
     end
 
+    # Ein auf dem Region Server GELOESCHTES Spiel muss auch global verschwinden — sonst bliebe eine
+    # zurueckgezogene Ergebniszeile fuer immer stehen und floesse ins Ranking ein.
+    #
+    # Live aufgefallen 2026-07-29: `import_game` allein macht Upserts; ohne Gegenstueck kannte der
+    # Weg keine Loeschung. Das Muster ist von `EntryListImporter#prune_removed_entries` uebernommen,
+    # der Schluessel ist derselbe wie beim Upsert: (gname, seqno).
+    #
+    # ⚠️ DIE QUELLE IST FUEHREND: liefert sie fuer ein Turnier keine Spiele mehr, verschwinden auch
+    # global alle. Das ist gewollt (dasselbe gilt fuer Meldungen), macht den Weg aber empfindlich
+    # gegen ein fehlerhaft LEERES Dokument — derselbe fail-silent-Fall, den ScrapeListGuard fuer die
+    # CC-Listen adressiert. Bewusst nicht zusaetzlich abgesichert: hier ist die Quelle die eigene
+    # Instanz, nicht ein fremder Anbieter.
+    def prune_removed_games(tournament, keep_keys, result)
+      orphans = tournament.games.reject { |g| keep_keys.include?([g.gname.to_s, g.seqno.to_i]) }
+      return if orphans.empty?
+
+      result.games_removed += orphans.size
+      return unless @armed
+
+      ::Game.skip_cable_ready_updates do
+        orphans.each(&:destroy!)
+      end
+    end
+
+    # Gibt den Schluessel [gname, seqno] zurueck, damit `prune_removed_games` weiss, welche Spiele
+    # die Quelle noch fuehrt — oder nil, wenn die Zeile unbrauchbar ist.
     def import_game(tournament, row, result)
       gname = row["group"].to_s.strip
       seqno = row["seqno"]
-      return if gname.blank? || seqno.blank?
+      return nil if gname.blank? || seqno.blank?
+
+      key = [gname, seqno.to_i]
 
       participations = resolve_participations(row)
       if participations.nil?
         result.players_unresolved << row_label(row)
-        return
+        # Der Schluessel zaehlt TROTZDEM als vorhanden: ein Spiel, dessen Spieler (noch) nicht
+        # aufloesbar ist, existiert auf der Quelle. Es zu loeschen waere die falsche Schlussfolgerung
+        # aus einem Stammdaten-Problem.
+        return key
       end
 
       game = tournament.games.find_by(gname: gname, seqno: seqno)
@@ -108,7 +140,7 @@ module RegionServer
 
       unless @armed
         existing ? result.games_updated += 1 : result.games_created += 1
-        return
+        return key
       end
 
       ::Game.skip_cable_ready_updates do
@@ -128,6 +160,8 @@ module RegionServer
 
         write_participations(game, gname, participations)
       end
+
+      key
     end
 
     # Rollen-Abbildung: der Transportweg nutzt die lokale Konvention playera/playerb, die GLOBALEN

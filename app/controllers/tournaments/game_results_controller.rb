@@ -56,6 +56,13 @@ module Tournaments
       end
 
       game.destroy!
+
+      # Plan 36-03: auch eine Löschung muss oben ankommen — sonst bliebe die zurückgezogene
+      # Ergebniszeile global stehen und flösse weiter ins Ranking ein. Der Anstoß im
+      # GameResultWriter deckt nur das Schreiben ab; dieser Pfad läuft nicht durch ihn.
+      # (Das Gegenstück auf der Authority ist GameResultImporter#prune_removed_games.)
+      GameResultSyncJob.enqueue_for(tournament: @tournament)
+
       redirect_to tournament_game_results_path(@tournament),
         notice: t("tournaments.game_results.flash.deleted")
     end
