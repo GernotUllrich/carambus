@@ -54,6 +54,7 @@ class AnthropicTranslationService
       system: system_prompt,
       messages: [{role: "user", content: text}]
     )
+    AiUsageEvent.record_response(model: "claude-sonnet-4-6", response: response, feature: "translation")
     response.content.first&.text
   rescue => e
     Rails.logger.error("Anthropic Translation error: #{e.message}")

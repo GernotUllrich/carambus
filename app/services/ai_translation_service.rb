@@ -74,11 +74,13 @@ class AiTranslationService
 
   def call_claude_api(prompt)
     client = Anthropic::Client.new(api_key: @api_key)
-    client.messages.create(
+    response = client.messages.create(
       model: "claude-haiku-4-5-20251001",
       max_tokens: 2048,
       messages: [{role: "user", content: prompt}]
     )
+    AiUsageEvent.record_response(model: "claude-haiku-4-5-20251001", response: response, feature: "translation")
+    response
   rescue => e
     Rails.logger.error("Claude API Error: #{e.message}")
     nil
