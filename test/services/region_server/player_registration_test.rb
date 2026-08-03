@@ -9,6 +9,9 @@ require "test_helper"
 # Fallstricke, die im Ursprungscode auskommentiert waren: die Turniersaison (nicht
 # Season.current_season) und die fortlaufende Position innerhalb einer Mehrfach-Eingabe.
 class RegionServer::PlayerRegistrationTest < ActiveSupport::TestCase
+  # Plan 36-02: fuer assert_enqueued_with/-jobs (der Anstoss an die Authority).
+  include ActiveJob::TestHelper
+
   setup do
     @tournament = tournaments(:local)
     @season = @tournament.season
@@ -143,7 +146,96 @@ class RegionServer::PlayerRegistrationTest < ActiveSupport::TestCase
     assert_nil RegionServer::PlayerRegistration.withdraw(tournament: @tournament, seeding_id: 999_999_999)
   end
 
+  # --- Plan 36-02: Anstoß an die Authority ------------------------------------
+  #
+  # LIVE-BEFUND, der diese Tests ausgeloest hat (2026-07-29, read-only auf Prod): auf dem Region
+  # Server tbv lagen drei Meldungen, die nie oben ankamen. Der Ingest-Dry-Run auf der Authority
+  # meldete `seedings_created=3, players_unresolved=[]` — die Strecke trug vollstaendig, es fehlte
+  # nur der Ausloeser. `enqueue_for` wurde ausschliesslich beim FREIGEBEN gerufen.
+
+  test "eine Meldung stoesst den Authority-Ingest an" do
+    as_region_server do
+      assert_enqueued_with(job: EntryListSyncJob,
+        args: [{region_id: regions(:nbv).id, season_id: @tournament.season_id}]) do
+        register("111111")
+      end
+    end
+  end
+
+  test "eine Mehrfach-Eingabe stoesst genau einmal an" do
+    # Je Nummer anzustossen hiesse, die ganze Region/Saison mehrfach einzulesen.
+    as_region_server do
+      assert_enqueued_jobs 1, only: EntryListSyncJob do
+        register("111111,222222")
+      end
+    end
+  end
+
+  test "eine Eingabe ohne neue Meldung stoesst nichts an" do
+    as_region_server do
+      register("111111")
+
+      assert_no_enqueued_jobs only: EntryListSyncJob do
+        register("111111")      # Dublette
+        register("999999")      # unaufloesbar
+        register("")            # leer
+      end
+    end
+  end
+
+  test "ein Rueckzug stoesst an" do
+    seeding = @tournament.seedings.create!(player_id: @alpha.id, position: 1)
+
+    as_region_server do
+      assert_enqueued_with(job: EntryListSyncJob) do
+        RegionServer::PlayerRegistration.withdraw(tournament: @tournament, seeding_id: seeding.id)
+      end
+    end
+  end
+
+  test "ein folgenloser Rueckzug stoesst nichts an" do
+    global = @tournament.seedings.create!(player_id: @alpha.id, position: 1)
+    global.update_column(:id, 4_711) # < MIN_ID = Hoheit der Authority
+
+    as_region_server do
+      assert_no_enqueued_jobs only: EntryListSyncJob do
+        RegionServer::PlayerRegistration.withdraw(tournament: @tournament, seeding_id: 4_711)
+        RegionServer::PlayerRegistration.withdraw(tournament: @tournament, seeding_id: 999_999_999)
+      end
+    end
+  end
+
+  test "auf der Authority wird nichts eingereiht" do
+    # carambus_api_url leer => Authority. Sie stoesst sich nicht selbst an.
+    @tournament.update_columns(region_id: regions(:nbv).id)
+
+    assert_no_enqueued_jobs only: EntryListSyncJob do
+      register("111111")
+    end
+  end
+
+  test "ein Entwurf stoesst nichts an" do
+    as_region_server do
+      @tournament.update_column(:data, (@tournament.data || {}).merge("draft" => true))
+
+      assert_no_enqueued_jobs only: EntryListSyncJob do
+        register("111111")
+      end
+    end
+  end
+
   private
+
+  # enqueue_for reiht nur auf einem LOKALEN Server ein und nur fuer ein freigegebenes Turnier mit
+  # Region und Saison — beides hier herstellen.
+  def as_region_server
+    original = Carambus.config.carambus_api_url
+    Carambus.config.carambus_api_url = "http://local.test"
+    @tournament.update_columns(region_id: regions(:nbv).id)
+    yield
+  ensure
+    Carambus.config.carambus_api_url = original
+  end
 
   def register(input)
     RegionServer::PlayerRegistration.register_by_dbu(

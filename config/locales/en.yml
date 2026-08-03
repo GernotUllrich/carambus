@@ -948,6 +948,7 @@ en:
       subline: "Region Server: maintain the registration list and results. Mode, start and scoreboards run at the venue (Location Server)."
       meldeliste: Maintain registration list
       ergebnisse: Maintain results
+      rangliste: Maintain final ranking
     edit:
       back: Back
       cancel: Cancel
@@ -995,6 +996,24 @@ en:
         players_unknown: Both players must be registered for this tournament.
         local_server_only: Results are maintained on the Region Server, not on the API server.
         cc_tournament: This tournament runs via the ClubCloud — results are maintained there.
+    # Plan 36-01: CC-less final ranking (data entry, not computation).
+    rankings:
+      heading: "Final ranking — %{title}"
+      subline: "The final figures per registered player. Place and points are entered by the sports officer — just as in the ClubCloud."
+      discipline: "Columns for discipline %{root}"
+      discipline_fallback: "(discipline not assigned — using Karambol columns)"
+      empty: No one is registered for this tournament.
+      form_heading: Enter final ranking
+      form_hint: Place and points are entered by hand. The remaining figures are suggestions derived from the recorded games and can be overwritten. Empty rows are not saved.
+      col_player: Player
+      col_club: Club
+      submit: Save final ranking
+      submitting: Saving…
+      back_to_tournament: Back to tournament
+      flash:
+        saved: "%{written} placements saved, %{skipped} skipped (owned by the ClubCloud)."
+        local_server_only: The final ranking is maintained on the Region Server, not on the API server.
+        cc_tournament: This tournament runs via the ClubCloud — the final ranking is maintained there.
     # Plan 35-01: CC-less registration list flow on the Region Server.
     entry_list:
       heading: "Registration list — %{title}"

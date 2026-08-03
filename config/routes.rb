@@ -405,6 +405,10 @@ Rails.application.routes.draw do
     resource :game_results, only: %i[show create], controller: "tournaments/game_results" do
       delete ":id", action: :destroy, as: :game, on: :collection
     end
+
+    # Plan 36-01: CC-lose RANGLISTE — die Abschlusswerte je gemeldetem Spieler. Dritte
+    # Geschwisterressource; erfassend, nicht berechnend (Rang und Punkte sind Handeingabe).
+    resource :ranking, only: %i[show create], controller: "tournaments/rankings"
     collection do
       # Saison-Kopie mit Auswahl (Sportwart-Weg zum bestehenden Rake-Task tournaments:copy_season).
       get :copy_season

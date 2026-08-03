@@ -15,6 +15,14 @@ class Tournaments::GameResultsControllerTest < ActionDispatch::IntegrationTest
     @original_api_url = Carambus.config.carambus_api_url
     Carambus.config.carambus_api_url = "http://local.test"
 
+    # Plan 36-03: test_helper.rb:139 zwingt Integration-Tests auf den :inline-Adapter (fuer die
+    # Mailer-Charakterisierung). GameResultSyncJob liefe damit SYNCHRON im Request — samt echtem
+    # HTTP-Call an die Authority, den WebMock zu Recht blockt (500 statt Redirect). In Produktion
+    # laeuft der Job im Hintergrund; hier also :test, damit dieser Test den CONTROLLER misst.
+    # Dass der Anstoss ueberhaupt erfolgt, sichert game_result_writer_test.rb.
+    @original_adapter = ActiveJob::Base.queue_adapter
+    ActiveJob::Base.queue_adapter = :test
+
     @anna = Player.create!(lastname: "ANNA", firstname: "Anna", fl_name: "A. Anna", dbu_nr: 111_111)
     @bodo = Player.create!(lastname: "BODO", firstname: "Bodo", fl_name: "B. Bodo", dbu_nr: 222_222)
     [@anna, @bodo].each_with_index do |player, ix|
@@ -26,6 +34,7 @@ class Tournaments::GameResultsControllerTest < ActionDispatch::IntegrationTest
 
   teardown do
     Carambus.config.carambus_api_url = @original_api_url
+    ActiveJob::Base.queue_adapter = @original_adapter
   end
 
   def record(overrides = {})
@@ -157,6 +166,30 @@ class Tournaments::GameResultsControllerTest < ActionDispatch::IntegrationTest
 
     assert_difference -> { @tournament.games.count }, -1 do
       delete game_tournament_game_results_path(@tournament, Game::MIN_ID + 501)
+    end
+  end
+
+  # Live aufgefallen 2026-07-29: die Löschung erreichte die Authority nicht. Der Anstoß im
+  # GameResultWriter deckt nur das Schreiben ab — der Löschpfad läuft nicht durch ihn.
+  # Gegenstück auf der Authority: GameResultImporter#prune_removed_games.
+  test "DELETE stoesst den Authority-Ingest an" do
+    record
+    game = @tournament.games.find_by(gname: "Gruppe A", seqno: 1)
+    game.update_column(:id, Game::MIN_ID + 502)
+
+    assert_enqueued_with(job: GameResultSyncJob,
+      args: [{region_id: @tournament.region_id, season_id: @tournament.season_id}]) do
+      delete game_tournament_game_results_path(@tournament, Game::MIN_ID + 502)
+    end
+  end
+
+  test "ein abgewiesenes DELETE stoesst nichts an" do
+    record
+    game = @tournament.games.find_by(gname: "Gruppe A", seqno: 1)
+    game.update_column(:id, 4_712) # < MIN_ID = Hoheit der Authority
+
+    assert_no_enqueued_jobs only: GameResultSyncJob do
+      delete game_tournament_game_results_path(@tournament, 4_712)
     end
   end
 

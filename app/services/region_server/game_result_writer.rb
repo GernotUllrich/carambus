@@ -55,6 +55,13 @@ module RegionServer
 
       rows.each_with_index { |row, ix| upsert_participation(game, row, ix.zero? ? ROLE_A : ROLE_B) }
 
+      # Plan 36-03: die Authority anstossen, die Ergebniszeilen einzulesen. Hier und nicht in den
+      # beiden Aufrufern, weil BEIDE Wege oben ankommen muessen — der Push vom Location Server
+      # (GameResultIngest) genauso wie die manuelle Erfassung. Ohne diesen Anstoss blieben Spiele
+      # auf dem Region Server liegen: der Authority-Empfang existiert seit 32-10, aber niemand rief
+      # ihn (live aufgefallen 2026-07-29). Dieselbe Luecke wie bei den Meldungen vor Plan 36-02.
+      GameResultSyncJob.enqueue_for(tournament: @tournament)
+
       Result.new(game: game, created: created)
     end
 

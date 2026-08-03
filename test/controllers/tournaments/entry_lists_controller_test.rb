@@ -41,6 +41,19 @@ class Tournaments::EntryListsControllerTest < ActionDispatch::IntegrationTest
     assert_match @alpha.fullname, response.body
   end
 
+  # Live aufgefallen 2026-07-29 auf tbv: 12 namenlose Altlast-Vereine sortierten als Leerzeilen an
+  # den Anfang des Pickers, wodurch er leer aussah. Regionsweit betrifft das 571 von 1841 Vereinen.
+  test "der Vereinspicker zeigt keine namenlosen Vereine" do
+    namenlos = Club.create!(name: "", shortname: "", region_id: regions(:bbv).id)
+
+    get tournament_entry_list_path(@tournament)
+
+    assert_response :success
+    werte = css_select("select[name='entry_list_club_id'] option").map { |o| o["value"] }
+    assert_includes werte, @club.id.to_s, "benannte Vereine muessen waehlbar bleiben"
+    assert_not_includes werte, namenlos.id.to_s, "ein Verein ohne Namen ist nicht waehlbar"
+  end
+
   test "die Seite traegt keine Modus-Findung und keine ClubCloud-Bausteine" do
     get tournament_entry_list_path(@tournament)
 

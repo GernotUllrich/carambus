@@ -73,6 +73,42 @@ class RegionServer::EntryListImporterTest < ActiveSupport::TestCase
     assert_equal @player.id, imported.seedings.first.player_id
   end
 
+  # --- Region-Tagging -----------------------------------------------------------
+  #
+  # LIVE AUFGEFALLEN (2026-07-29): importierte Seedings trugen kein region_id. Version.for_region
+  # lautet "region_id IS NULL OR region_id = ?" (version.rb:48) — ein ungetaggtes Seeding wird
+  # deshalb an JEDEN Server verteilt, nicht an keinen. Location Server fremder Regionen kennen das
+  # referenzierte Turnier nicht und laufen beim Anwenden in Fehler.
+
+  test "ein importiertes Seeding traegt die Region des Turniers" do
+    importer(armed: true).call
+    imported = Tournament.find_by(source_url: "#{@base_url}/tournaments/#{@source_id}")
+
+    assert_equal @region.id, imported.region_id, "Vorbedingung: das Turnier ist getaggt"
+    assert_equal @region.id, imported.seedings.first.region_id,
+      "ohne region_id wuerde die Meldung an alle Server verteilt"
+  end
+
+  test "ein ungetaggtes Bestands-Seeding heilt beim naechsten Lauf" do
+    importer(armed: true).call
+    seeding = Tournament.find_by(source_url: "#{@base_url}/tournaments/#{@source_id}").seedings.first
+    seeding.update_column(:region_id, nil) # Zustand vor dem Tagging-Fix
+
+    importer(armed: true).call
+
+    assert_equal @region.id, seeding.reload.region_id
+  end
+
+  test "ein bereits korrekt getaggtes Seeding erzeugt keine neue Version" do
+    importer(armed: true).call
+    seeding = Tournament.find_by(source_url: "#{@base_url}/tournaments/#{@source_id}").seedings.first
+
+    # Sonst entstuende bei jedem Ingest-Lauf PaperTrail-Churn — gegen die v0.6-Effizienzarbeit.
+    assert_no_difference -> { seeding.versions.count } do
+      importer(armed: true).call
+    end
+  end
+
   test "zweiter Lauf legt keine Dubletten an" do
     importer(armed: true).call
 

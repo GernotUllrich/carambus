@@ -7,6 +7,9 @@ require "test_helper"
 # Der wichtigste Test ist "data traegt die Anzeigeform" — genau daran scheiterte der Ingest-Weg
 # bisher stillschweigend (tournaments/show.html.erb:146 filtert auf "Ergebnis"/"Punkte").
 class RegionServer::GameResultWriterTest < ActiveSupport::TestCase
+  # Plan 36-03: fuer assert_enqueued_with/-jobs (der Anstoss an die Authority).
+  include ActiveJob::TestHelper
+
   setup do
     @tournament = tournaments(:local)
     # Explizit gesetzt: ohne region_id pruefen die Regions-Assertions unten nil gegen nil.
@@ -130,5 +133,50 @@ class RegionServer::GameResultWriterTest < ActiveSupport::TestCase
   test "die Participations tragen die Region des Turniers" do
     assert_equal [@tournament.region_id] * 2,
       write.game.game_participations.pluck(:region_id)
+  end
+
+  # --- Plan 36-03: Anstoß an die Authority ------------------------------------
+  #
+  # LIVE AUFGEFALLEN (2026-07-29): erfasste Spiele erschienen nicht auf der Authority. Der
+  # Empfangsweg existiert seit 32-10 (versions_controller.rb:112), aber `import_game_results` wurde
+  # ausschliesslich vom Rake-Task gesendet — es gab weder Job noch Cron. Der Anstoss sitzt im
+  # Writer, damit BEIDE Wege oben ankommen: der Push vom Location Server und die manuelle Erfassung.
+
+  test "ein erfasstes Spiel stoesst den Authority-Ingest an" do
+    as_region_server do
+      assert_enqueued_with(job: GameResultSyncJob,
+        args: [{region_id: @tournament.region_id, season_id: @tournament.season_id}]) do
+        write
+      end
+    end
+  end
+
+  test "auch eine Korrektur stoesst an" do
+    as_region_server do
+      write(seqno: 5)
+
+      # Eine Ergebniskorrektur muss nachreisen (Entscheidung D6 aus 32-SPIKE) — sonst bliebe oben
+      # der falsche Stand stehen.
+      assert_enqueued_jobs 1, only: GameResultSyncJob do
+        write(seqno: 5, a: {result: 120})
+      end
+    end
+  end
+
+  test "auf der Authority wird nichts eingereiht" do
+    # carambus_api_url leer => Authority. Sie stoesst sich nicht selbst an.
+    assert_no_enqueued_jobs only: GameResultSyncJob do
+      write
+    end
+  end
+
+  private
+
+  def as_region_server
+    original = Carambus.config.carambus_api_url
+    Carambus.config.carambus_api_url = "http://local.test"
+    yield
+  ensure
+    Carambus.config.carambus_api_url = original
   end
 end
