@@ -353,6 +353,7 @@ class TournamentMonitor::ResultProcessor
     end
 
     # Automatische Übertragung in die ClubCloud
+    report_to_region_server = false
     if @tournament_monitor.tournament.tournament_cc.present? && @tournament_monitor.tournament.auto_upload_to_cc?
       Rails.logger.info "[TournamentMonitorState] Attempting ClubCloud upload for game[#{game.id}]..."
       result = Setting.upload_game_to_cc(table_monitor)
@@ -380,7 +381,10 @@ class TournamentMonitor::ResultProcessor
       # `tournament_cc.blank?` MUSS mitgeprueft werden und ist nicht durch das `elsif` abgedeckt:
       # ein CC-Turnier mit abgeschaltetem `auto_upload_to_cc?` faellt sonst hier hinein und meldet
       # an den Region Server, obwohl seine Ergebnisse der ClubCloud gehoeren.
-      report_game_result_to_region_server(game)
+      #
+      # HIER WIRD NUR ENTSCHIEDEN, NICHT GEMELDET: der Aufruf steht weiter unten, NACH
+      # `update_game_participations_for_game`. Warum, siehe dort.
+      report_to_region_server = true
     end
 
     # Update game participations unless manual assignment is enabled
@@ -388,6 +392,22 @@ class TournamentMonitor::ResultProcessor
     # durch populate_tables zu einem neuen Game reassigned werden könnte!
     Rails.logger.info "[finalize_game_result] manual_assignment=#{@tournament_monitor.tournament.manual_assignment}, calling update_game_participations=#{!@tournament_monitor.tournament.manual_assignment}"
     update_game_participations_for_game(game, table_monitor.data) unless @tournament_monitor.tournament.manual_assignment
+
+    # ERST HIER, NICHT OBEN IM elsif-ZWEIG: Der Reporter liest `game.game_participations` —
+    # `result`/`innings`/`hs`/`gd` stehen dort aber erst, nachdem
+    # `update_game_participations_for_game` sie geschrieben hat (Zeile 508). Die Spiele entstehen
+    # bei der Tischbelegung nur mit `player_id` und `role` (table_populator.rb:747); vorher sind
+    # die Ergebnisspalten NULL.
+    #
+    # Bis Plan 36-04 stand der Aufruf oben — der Region Server bekam damit jedes Spiel mit leerem
+    # Ergebnis ("Punkte" => ":"), und die Authority verteilte es so weiter. Der CC-Zweig war nie
+    # betroffen: er liest `table_monitor.data["ba_results"]` (setting.rb:1023), das bereits
+    # innerhalb des Locks geschrieben wurde. Deshalb fiel es am produktiven Weg nicht auf.
+    #
+    # Bei `manual_assignment` bleiben die Spalten hier leer — dort traegt der Turnierleiter die
+    # Ergebnisse spaeter selbst nach (tournament_monitors_controller.rb:114), und der Reporter
+    # meldet, was zu diesem Zeitpunkt dasteht.
+    report_game_result_to_region_server(game) if report_to_region_server
     Rails.logger.info "[finalize_game_result] DONE"
 
     # For KO tournaments: Remove finished game from placements to free up the table
@@ -428,7 +448,18 @@ class TournamentMonitor::ResultProcessor
                       "gemeldet=#{result.reported} " \
                       "ohne_source_url=#{result.skipped_no_source_url} " \
                       "nicht_abbildbar=#{result.skipped_unmappable_name} " \
-                      "unvollstaendig=#{result.skipped_incomplete}"
+                      "unvollstaendig=#{result.skipped_incomplete} " \
+                      "angenommen=#{result.response&.dig("accepted").inspect} " \
+                      "aktualisiert=#{result.response&.dig("updated").inspect}"
+
+    # Plan 36-04: Die Antwort des Region Servers gehoert ins Log. Ohne sie sieht eine komplett
+    # abgewiesene Meldung ({"accepted":0,"unresolved":[...]}) genauso aus wie eine erfolgreiche —
+    # `gemeldet=1` sagt nur, dass gesendet wurde, nicht dass angekommen ist.
+    unresolved = Array(result.response&.dig("unresolved"))
+    if unresolved.present?
+      Rails.logger.warn "[report_game_result] game[#{game.id}] vom Region Server ABGEWIESEN: " \
+                        "#{unresolved.join(" | ")}"
+    end
   rescue StandardError => e
     Rails.logger.error "[report_game_result] game[#{game.id}] fehlgeschlagen: #{e.message} — " \
                        "Spielbetrieb laeuft weiter, der Authority-Pull holt den Gesamtstand"
