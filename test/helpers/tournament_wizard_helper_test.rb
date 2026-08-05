@@ -80,14 +80,27 @@ class TournamentWizardHelperTest < ActionView::TestCase
     end
   end
 
-  test "AC-2: CC-los auf Location Server → Spiel-Zyklus an, Melde-Zyklus aus" do
+  # REVIDIERT 2026-08-05 (Betreiber): Frueher hiess dieses AC "Melde-Zyklus aus". Das war falsch —
+  # die Arbeit des Turnierleiters am Spielort ist im CC-losen Fall dieselbe wie im CC-Fall, nur die
+  # Quelle der Meldeliste ist eine andere (Region Server statt ClubCloud). Der Melde-Zyklus gehoert
+  # deshalb auf JEDEN Location Server; live aufgefallen auf ebc, wo Schritt 2 und 3 fehlten.
+  test "CC-los auf Location Server → beide Zyklen (wie im CC-Fall)" do
     t = tournament_with(@cc_less_region)
 
     ApplicationRecord.stub(:region_server?, false) do
       ApplicationRecord.stub(:location_server?, true) do
-        assert_not wizard_show_melde_cycle?(t)
+        assert wizard_show_melde_cycle?(t),
+          "der Turnierleiter am Spielort braucht Meldeliste-Uebernahme und Teilnehmerliste"
         assert wizard_show_game_cycle?(t)
       end
     end
+  end
+
+  # Schritt 1 bleibt die einzige wirklich CC-spezifische Stelle: CC-los gibt es nichts zu laden,
+  # die Meldeliste trifft per Sync von der Authority ein. Das Gate dafuer sitzt in der View.
+  test "CC-los zeigt keinen ClubCloud-Ladeschritt" do
+    t = tournament_with(@cc_less_region)
+
+    assert_not wizard_region_uses_cc?(t)
   end
 end

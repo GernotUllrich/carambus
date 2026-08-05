@@ -218,10 +218,25 @@ module TournamentWizardHelper
     ApplicationRecord.region_server? && wizard_cc_less?(tournament)
   end
 
-  # Melde-Zyklus (Schritte 1–5): bei CC-Turnieren immer; bei CC-losen nur auf dem Region Server.
-  # Liest die Instanz-Rolle (32-02) über die Klassenmethode (im Helper-Test stubbar).
-  def wizard_show_melde_cycle?(tournament)
-    !wizard_cc_less?(tournament) || ApplicationRecord.region_server?
+  # Melde-Zyklus (Schritte 1–3): überall, wo der Wizard überhaupt gezeigt wird.
+  #
+  # BETREIBER-KORREKTUR 2026-08-05: Es gibt KEINEN prinzipiellen Unterschied zum CC-Fall. Der
+  # CC-lose Region Server ERSETZT die CC-Admin-Schnittstelle — dort wird die Meldeliste gepflegt,
+  # so wie sonst über die ClubCloud. Die Arbeit des Turnierleiters am Spielort (Meldeliste
+  # übernehmen, Teilnehmerliste bearbeiten) ist in beiden Fällen dieselbe und gehört deshalb auf
+  # JEDEN Location Server.
+  #
+  # Vorher: `!wizard_cc_less?(tournament) || ApplicationRecord.region_server?` — und diese zweite
+  # Hälfte war WIRKUNGSLOS: auf einem CC-losen Region Server rendert show.html.erb:15 statt des
+  # Wizards das Zwei-Link-Panel (`region_server_lsw_view?`, dieselbe Bedingung). Für CC-lose
+  # Turniere waren die Schritte 2 und 3 damit ÜBERALL unerreichbar; am Spielort blieb nur der
+  # Direktlink aus dem Admin-Block (show.html.erb:173).
+  #
+  # Schritt 1 (Meldeliste von der ClubCloud laden) bleibt CC-spezifisch — er hängt an seinem
+  # eigenen `wizard_region_uses_cc?`-Gate in der View (_wizard_steps_v2.html.erb:36). CC-los gibt
+  # es dort nichts zu laden: die Meldeliste trifft per Sync von der Authority ein.
+  def wizard_show_melde_cycle?(_tournament)
+    true
   end
 
   # Spiel-Zyklus (Schritt 6): bei CC-Turnieren immer; bei CC-losen nur auf dem Location Server.
