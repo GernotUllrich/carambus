@@ -1026,8 +1026,13 @@ class TournamentsController < ApplicationController
   # POST /tournaments/:id/use_clubcloud_as_participants
   # Konvertiert ClubCloud-Seedings zu lokalen Seedings, sortiert nach Rangliste und leitet zu Schritt 3 weiter
   def use_clubcloud_as_participants
+    # Plan 36-05: Gestrichene (`no_show`) werden NICHT uebernommen (Betreiber 2026-08-05). Bisher
+    # kopierte die Uebernahme sie mit, und die Kopie startete im Initialzustand "registered"
+    # (seeding.rb:29) — ein in der Quelle gestrichener Spieler kam damit als regulaerer Teilnehmer
+    # zurueck. Wer ihn doch braucht, hakt ihn in der Teilnehmerliste an.
     clubcloud_seedings = @tournament.seedings
                                     .where("seedings.id < #{Seeding::MIN_ID}")
+                                    .where.not(state: "no_show")
                                     .order(:position)
 
     if clubcloud_seedings.any?

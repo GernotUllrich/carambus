@@ -510,6 +510,30 @@ class TournamentsControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to tournaments_path
   end
 
+  # Plan 36-05: Ein in der Quelle GESTRICHENER Spieler darf bei der Uebernahme nicht als regulaerer
+  # Teilnehmer zurueckkehren. Bisher kopierte die Uebernahme ihn mit, und die Kopie startete im
+  # Initialzustand "registered" (seeding.rb:29) — live gesehen 2026-08-05 an Turnier 18612.
+  test "POST use_clubcloud_as_participants uebernimmt gestrichene Spieler nicht" do
+    Carambus.config.carambus_api_url = "http://local.test"
+    sign_in users(:admin)
+
+    tournament = Tournament.create!(
+      id: 23_461, title: "Uebernahme 36-05", shortname: "UEB3605",
+      season: @tournament.season, organizer: regions(:nbv), region_id: regions(:nbv).id,
+      date: Time.zone.local(2026, 10, 10, 10, 0)
+    )
+    taken = Player.create!(lastname: "TAKEN", firstname: "Tim", fl_name: "T. Taken", dbu_nr: "661111")
+    struck = Player.create!(lastname: "STRUCK", firstname: "Sven", fl_name: "S. Struck", dbu_nr: "662222")
+    Seeding.create!(id: 23_471, tournament: tournament, player: taken, position: 1)
+    Seeding.create!(id: 23_472, tournament: tournament, player: struck, position: 2, state: "no_show")
+
+    post use_clubcloud_as_participants_tournament_url(tournament)
+
+    local = tournament.reload.seedings.where("seedings.id >= ?", Seeding::MIN_ID)
+    assert_equal [taken.id], local.map(&:player_id),
+      "nur der nicht gestrichene Spieler darf uebernommen werden"
+  end
+
   test "POST update_seeding_position returns ok or bad_request when local server" do
     Carambus.config.carambus_api_url = "http://local.test"
     sign_in users(:admin) # Plan 32-07: manage_teilnehmerliste?-Gate — autorisierter User, Test prüft Action-Body

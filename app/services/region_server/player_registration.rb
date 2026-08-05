@@ -65,6 +65,10 @@ module RegionServer
             next
           end
 
+          # Plan 36-05: Die bestehende Liste MUSS lokal sein, bevor angehängt wird — sonst macht
+          # das erste Anhängen alle bisherigen unsichtbar. Idempotent, siehe dort.
+          materialize_effective_seedings!(tournament)
+
           # Position fortlaufend INNERHALB der Schleife bestimmen, damit mehrere Nummern in einer
           # Eingabe aufeinanderfolgende Plätze bekommen (Verhalten des Ursprungscodes).
           position = (tournament.effective_seedings.maximum(:position) || 0) + 1
@@ -96,6 +100,75 @@ module RegionServer
         result
       end
 
+      # Plan 36-05: Macht die effektive Liste LOKAL, bevor jemand sie verändert.
+      #
+      # WARUM: `Tournament#effective_seedings` ist ein Entweder-oder (tournament.rb:609) — sobald
+      # EIN lokales Seeding existiert, zaehlen nur noch die lokalen. Ein Anhaengen ohne
+      # Materialisierung liess deshalb die gesamte bisherige Liste unsichtbar werden: der neu
+      # gemeldete Spieler stand allein da. Live gesehen 2026-08-05 (ebc, Turnier 18614) und am
+      # CC-Turnier 18612 reproduziert — der Fehler ist NICHT CC-los-spezifisch.
+      #
+      # DIESELBE MECHANIK WIE DER WIZARD-SCHRITT "Meldeliste uebernehmen"
+      # (TournamentsController#use_clubcloud_as_participants), nur ausgeloest durch die erste
+      # Aenderung statt durch den Knopf. Wer ueber einen der Direktlinks in die Teilnehmerliste
+      # kommt (show.html.erb:173, _admin_tournament_info.html.erb:105, Hilfetext von Schritt 3),
+      # ueberspringt den Knopf — und genau dann greift das hier.
+      #
+      # `position` REIST MIT (anders als beim Wizard-Knopf, der anschliessend neu sortiert): hier
+      # wird nur ergaenzt oder gestrichen, die bestehende Reihenfolge darf sich dabei nicht aendern.
+      #
+      # GESTRICHENE BLEIBEN DRAUSSEN (Betreiber-Entscheidung 2026-08-05) — wie beim Wizard-Knopf.
+      # Ein `no_show` bekommt keine lokale Kopie; wer ihn zurueckholen will, hakt ihn an
+      # (set_participation legt dann eine an).
+      #
+      # IDEMPOTENT: liegt schon eine lokale Liste vor, passiert nichts. Damit ist der gesamte
+      # Wizard-Fluss unberuehrt — dort ist die Liste beim ersten Klick bereits lokal.
+      def materialize_effective_seedings!(tournament)
+        return if tournament.has_local_seedings?
+
+        tournament.effective_seedings.where.not(state: "no_show").order(:position).each do |seeding|
+          tournament.seedings.create!(
+            player_id: seeding.player_id,
+            balls_goal: seeding.balls_goal,
+            position: seeding.position
+          )
+        end
+      end
+
+      # Teilnehmer-Haken in der Teilnehmerliste. Aufgerufen aus TournamentReflex#change_seeding —
+      # dort extrahiert, damit das Verhalten ohne StimulusReflex-Infrastruktur pruefbar ist
+      # (dieselbe Begruendung wie bei register_by_dbu, Plan 35-01).
+      #
+      # VERHALTENSERHALT (Betreiber 2026-08-05): Loeschen ueber den Haken und Wiederhinzufuegen
+      # funktionieren im Wizard-Fluss und bleiben unveraendert — dort ist die Liste bereits lokal,
+      # die Materialisierung ist ein no-op, und Suche/Anlage/Loeschung treffen dieselben Records
+      # wie zuvor.
+      #
+      # NEU (Betreiber 2026-08-05): Ein `no_show` wird beim Anhaken ZURUECKGESETZT. Bisher fand der
+      # checked-Zweig das vorhandene Seeding, gab es unveraendert zurueck und tat nichts — ein
+      # gestrichener Spieler liess sich nicht wieder aufnehmen (live gesehen an "Schroeder,
+      # Hans-Joerg", Turnier 18612).
+      def set_participation(tournament:, player:, participating:)
+        materialize_effective_seedings!(tournament)
+        seeding = local_seeding_for(tournament, player)
+
+        if participating
+          # Kein lokales Seeding: entweder war der Spieler gar nicht gemeldet, oder er war als
+          # `no_show` von der Materialisierung ausgenommen. Beides fuehrt zur selben Handlung.
+          return tournament.seedings.create(player_id: player.id) if seeding.nil?
+
+          seeding.reset_seeding_state! if seeding.state == "no_show"
+          seeding
+        else
+          # NUR lokale Seedings loeschen: ein globales wuerde LocalProtector ohnehin still
+          # zurueckrollen (local_protector.rb:27). Im all-lokalen Wizard-Fall ist das dieselbe
+          # Menge wie zuvor — das Verhalten dort aendert sich nicht.
+          tournament.seedings.where("seedings.id >= ?", Seeding::MIN_ID)
+            .where(player_id: player.id).destroy_all
+          nil
+        end
+      end
+
       # Zieht eine Meldung zurück. Nur LOKALE Seedings (id >= MIN_ID) dürfen fallen — globale
       # gehören der Authority und kämen beim nächsten Sync ohnehin zurück.
       # Rückgabe: der entfernte Spieler oder nil, wenn nichts (Zulässiges) zu entfernen war.
@@ -116,6 +189,13 @@ module RegionServer
       end
 
       private
+
+      # Nach der Materialisierung ist die effektive Liste immer die lokale — die Suche darf
+      # deshalb nicht auf das globale Original treffen (das waere nicht schreibbar).
+      def local_seeding_for(tournament, player)
+        tournament.seedings.where("seedings.id >= ?", Seeding::MIN_ID)
+          .find_by(player_id: player.id)
+      end
 
       # Saison des TURNIERS, nicht die laufende: Meldungen gehören zur Turniersaison. Bei einem
       # Turnier der Vorsaison zeigte `Season.current_season` sonst die falschen Spieler — und sie

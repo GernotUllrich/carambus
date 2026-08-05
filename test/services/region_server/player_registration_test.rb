@@ -224,7 +224,109 @@ class RegionServer::PlayerRegistrationTest < ActiveSupport::TestCase
     end
   end
 
+  # --- Plan 36-05: Materialisierung vor der ersten Aenderung -------------------
+  #
+  # WARUM DIESE TESTS EXISTIEREN: `effective_seedings` ist ein Entweder-oder (tournament.rb:609).
+  # Solange die Meldeliste global ist (ClubCloud ODER Authority-Sync) und noch kein lokales Seeding
+  # existiert, machte die erste Aenderung die gesamte bisherige Liste unsichtbar — der neue Spieler
+  # stand allein da. Live gesehen 2026-08-05 an einem CC-losen UND einem CC-Turnier.
+
+  test "Anhaengen an eine globale Meldeliste uebernimmt sie zuerst lokal" do
+    global_list_of_three
+
+    register("111111", tournament: @global)
+
+    effective = @global.reload.effective_seedings.order(:position)
+    assert_equal 4, effective.count, "die drei Gemeldeten duerfen nicht verschwinden"
+    assert effective.all? { |s| s.id >= Seeding::MIN_ID }, "die effektive Liste muss lokal sein"
+    assert_equal [1, 2, 3, 4], effective.map(&:position), "die Reihenfolge bleibt, der Neue haengt an"
+    assert_equal @alpha.id, effective.last.player_id
+  end
+
+  test "Uebernahme laesst gestrichene Spieler draussen" do
+    global_list_of_three
+    @global.seedings.find_by(player_id: @delta.id).update_column(:state, "no_show")
+
+    register("111111", tournament: @global)
+
+    players = @global.reload.effective_seedings.map(&:player_id)
+    assert_equal 3, players.size, "zwei uebernommene plus der neue"
+    refute_includes players, @delta.id, "ein gestrichener Spieler wird nicht uebernommen"
+  end
+
+  test "eine bereits lokale Liste wird nicht ein zweites Mal uebernommen" do
+    local = @tournament
+    local.seedings.create!(player_id: @beta.id, position: 1)
+
+    register("111111")
+
+    assert_equal 2, local.reload.effective_seedings.count, "keine Verdopplung"
+  end
+
+  # --- Plan 36-05: set_participation (Teilnehmer-Haken) ------------------------
+
+  test "Anhaken setzt einen gestrichenen Spieler zurueck" do
+    seeding = @tournament.seedings.create!(player_id: @alpha.id, position: 1)
+    seeding.update_column(:state, "no_show")
+
+    RegionServer::PlayerRegistration.set_participation(
+      tournament: @tournament, player: @alpha, participating: true
+    )
+
+    assert_equal "registered", seeding.reload.state
+  end
+
+  test "Anhaken holt einen global gestrichenen Spieler ueber ein lokales Seeding zurueck" do
+    global_list_of_three
+    @global.seedings.find_by(player_id: @delta.id).update_column(:state, "no_show")
+
+    RegionServer::PlayerRegistration.set_participation(
+      tournament: @global, player: @delta, participating: true
+    )
+
+    seeding = @global.reload.effective_seedings.find_by(player_id: @delta.id)
+    assert_not_nil seeding, "der Spieler muss wieder in der Liste stehen"
+    assert seeding.id >= Seeding::MIN_ID, "und zwar als lokales, schreibbares Seeding"
+    assert_equal "registered", seeding.state
+  end
+
+  # VERHALTENSERHALT (Betreiber 2026-08-05): im all-lokalen Wizard-Fluss funktionieren Loeschen
+  # und Wiederhinzufuegen — daran darf sich nichts aendern.
+  test "Haken entfernen loescht das lokale Seeding wie bisher" do
+    @tournament.seedings.create!(player_id: @alpha.id, position: 1)
+
+    assert_difference("Seeding.count", -1) do
+      RegionServer::PlayerRegistration.set_participation(
+        tournament: @tournament, player: @alpha, participating: false
+      )
+    end
+  end
+
+  test "Anhaken eines Spielers ohne Seeding legt eines an wie bisher" do
+    assert_difference("Seeding.count", 1) do
+      RegionServer::PlayerRegistration.set_participation(
+        tournament: @tournament, player: @alpha, participating: true
+      )
+    end
+  end
+
   private
+
+  # Ein GLOBALES Turnier mit GLOBALER Meldeliste — die Ausgangslage auf einem Location Server,
+  # gleich ob die Meldung aus der ClubCloud oder per Sync von der Authority kam.
+  def global_list_of_three
+    @gamma = Player.create!(lastname: "GAMMA", firstname: "Gerd", fl_name: "G. Gamma", dbu_nr: "444444")
+    @delta = Player.create!(lastname: "DELTA", firstname: "Dirk", fl_name: "D. Delta", dbu_nr: "555555")
+    @global = Tournament.create!(
+      id: 23_460, title: "Globales Turnier 36-05", shortname: "GLOB3605",
+      season: @season, organizer: regions(:nbv), region_id: regions(:nbv).id,
+      date: Time.zone.local(2026, 10, 10, 10, 0)
+    )
+    [@beta, @gamma, @delta].each_with_index do |player, ix|
+      Seeding.create!(id: 23_461 + ix, tournament: @global, player: player, position: ix + 1)
+    end
+    @global
+  end
 
   # enqueue_for reiht nur auf einem LOKALEN Server ein und nur fuer ein freigegebenes Turnier mit
   # Region und Saison — beides hier herstellen.
@@ -237,9 +339,9 @@ class RegionServer::PlayerRegistrationTest < ActiveSupport::TestCase
     Carambus.config.carambus_api_url = original
   end
 
-  def register(input)
+  def register(input, tournament: @tournament)
     RegionServer::PlayerRegistration.register_by_dbu(
-      tournament: @tournament, dbu_input: input, acting_user: nil
+      tournament: tournament, dbu_input: input, acting_user: nil
     )
   end
 end

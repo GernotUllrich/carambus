@@ -120,13 +120,12 @@ class TournamentReflex < ApplicationReflex
     tournament = Tournament.find(element.dataset["id"])
     checked = element.attributes["checked"]
     player = Player.find(element.attributes["id"].split("-")[1].to_i)
-    seeding = nil
-    if checked
-      seeding = tournament.seedings.where(player_id: player.id).first ||
-        tournament.seedings.create(player_id: player.id)
-    else
-      tournament.seedings.where(player_id: player.id).destroy_all
-    end
+    # Plan 36-05: Logik in RegionServer::PlayerRegistration — sie muss vor jeder Aenderung die
+    # Liste materialisieren (sonst verdeckt die erste Aenderung alle bisherigen Teilnehmer) und
+    # ist dort ohne StimulusReflex-Infrastruktur pruefbar.
+    RegionServer::PlayerRegistration.set_participation(
+      tournament: tournament, player: player, participating: checked
+    )
     tournament.save!
 
     # Plan 44-02: Mitgliedschaftsänderung atomar in die CC zurückpushen (async, Queue+Retry).
