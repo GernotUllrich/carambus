@@ -1247,7 +1247,7 @@ de:
       step2_continue_hint: Übernimm diese Spieler, um mit Schritt 3 fortzufahren.
       step2_continue_title: Übernimmt die vorhandenen Spieler und aktiviert Schritt 3
       step2_existing_players_info_html: "ℹ️ <strong>Es sind bereits %{count} Spieler vorhanden</strong><br>Du kannst diese direkt übernehmen (siehe unten)"
-      step2_help_body_html: "Lade die <strong>offizielle Einladung</strong> vom Landessportwart hoch. Carambus extrahiert automatisch:<br>• <strong>Setzliste</strong> (Reihenfolge nach Ranking)<br>• <strong>Vorgaben</strong> bei Vorgabeturnieren (Punktzahlen)<br><br>Unterstützt PDF oder Screenshot (PNG/JPG).<br>Zweispaltige Tabellen werden automatisch erkannt.<br><br><strong>Alternative:</strong> Falls keine Einladung vorliegt, kannst du auch direkt mit der Meldeliste von ClubCloud (aus Schritt 1) zu Schritt 3 weitergehen.<br><br><strong>Hinweis:</strong> Die Setzliste (Reihenfolge/Position der Spieler) kannst du in <strong>Schritt 3</strong> bei Bedarf anpassen (↑↓ Buttons oder direkte Positionseingabe)."
+      step2_help_body_html: "Lade die <strong>offizielle Einladung</strong> vom Landessportwart hoch. Carambus extrahiert automatisch:<br>• <strong>Setzliste</strong> (Reihenfolge nach Ranking)<br>• <strong>Vorgaben</strong> bei Vorgabeturnieren (Punktzahlen)<br><br>Unterstützt PDF oder Screenshot (PNG/JPG).<br>Zweispaltige Tabellen werden automatisch erkannt.<br><br><strong>Alternative:</strong> Falls keine Einladung vorliegt, kannst du auch direkt mit der Meldeliste zu Schritt 3 weitergehen.<br><br><strong>Hinweis:</strong> Die Setzliste (Reihenfolge/Position der Spieler) kannst du in <strong>Schritt 3</strong> bei Bedarf anpassen (↑↓ Buttons oder direkte Positionseingabe)."
       step2_invitation_uploaded: "✓ Einladung hochgeladen:"
       step2_players_available_html: "✓ <strong>Es sind bereits %{count} Spieler vorhanden</strong>"
       step2_players_taken: "%{count} Spieler bereits als Teilnehmer übernommen."
@@ -1274,25 +1274,25 @@ de:
       step6_title: Verwaltung der Turnierspiele
       step6_warning: Turnier noch nicht gestartet
     compare_seedings:
-      alt_clubcloud_body_html: "Falls keine Einladung vorliegt, kannst du mit der <strong>Meldeliste von ClubCloud</strong> direkt zu Schritt 3 (Teilnehmerliste bearbeiten) weitermachen."
-      alt_clubcloud_heading: "📊 Alternative: Mit ClubCloud-Meldeliste weitermachen"
+      alt_clubcloud_body_html: "Falls keine Einladung vorliegt, kannst du mit der <strong>Meldeliste</strong> direkt zu Schritt 3 (Teilnehmerliste bearbeiten) weitermachen."
+      alt_clubcloud_heading: "📊 Alternative: Mit der Meldeliste weitermachen"
       alt_manual_heading: "✏️ Alternative: Manuell sortieren"
       auto_extract_note: Die Setzliste wird automatisch extrahiert!
       back: ← Zurück
       choose_file: Datei auswählen
-      clubcloud_list_heading: "ClubCloud-Meldeliste (%{count} Spieler):"
-      confirm_use_clubcloud_as_is: "ClubCloud-Reihenfolge exakt wie sie ist als Setzliste übernehmen und zu Schritt 3 weitergehen?"
-      confirm_use_clubcloud_by_ranking: "Meldeliste von ClubCloud als Teilnehmerliste übernehmen und nach Rangliste sortieren?\n\nDie Spieler werden automatisch nach der Carambus-Rangliste sortiert."
+      clubcloud_list_heading: "Meldeliste (%{count} Spieler):"
+      confirm_use_clubcloud_as_is: "Reihenfolge der Meldeliste exakt wie sie ist als Setzliste übernehmen und zu Schritt 3 weitergehen?"
+      confirm_use_clubcloud_by_ranking: "Meldeliste als Teilnehmerliste übernehmen und nach Rangliste sortieren?\n\nDie Spieler werden automatisch nach der Carambus-Rangliste sortiert."
       drop_file_here: Datei hier ablegen
       file_types: PDF oder Screenshot (PNG, JPG)
       heading: "Setzliste übernehmen:"
       how_it_works: "💡 So funktioniert's:"
       invitation_present: "✅ Einladung vorhanden:"
-      load_clubcloud_hint: Bitte zuerst in Schritt 1 die Meldeliste von ClubCloud laden.
+      load_clubcloud_hint: Es liegt noch keine Meldeliste vor.
       manual_sort_body: "Oder sortiere die Liste automatisch nach aktueller Rangliste:"
-      no_clubcloud_data: "⚠️ Keine ClubCloud-Daten verfügbar."
-      open_clubcloud: 🔗 ClubCloud öffnen (zum Vergleich)
-      option_as_clubcloud_html: "<strong>Wie in ClubCloud:</strong> Übernimmt die Reihenfolge exakt wie sie in ClubCloud steht"
+      no_clubcloud_data: "⚠️ Keine Meldeliste verfügbar."
+      open_clubcloud: 🔗 Quelle öffnen (zum Vergleich)
+      option_as_clubcloud_html: "<strong>Wie gemeldet:</strong> Übernimmt die Reihenfolge exakt wie sie in der Meldeliste steht"
       option_by_ranking_html: "<strong>Nach Rangliste sortiert:</strong> Carambus sortiert automatisch nach der aktuellen Rangliste (empfohlen für Landesturniere)"
       or_drag_file: 💡 Oder Datei hierher ziehen (z.B. aus E-Mail)
       processing: Wird verarbeitet...
@@ -1306,7 +1306,7 @@ de:
       two_options_label: "Zwei Möglichkeiten:"
       upload_and_parse: Hochladen & automatisch parsen
       upload_heading: 📧 Offizielle Einladung hochladen
-      use_clubcloud_as_is: Diese Reihenfolge übernehmen (wie in ClubCloud)
+      use_clubcloud_as_is: Diese Reihenfolge übernehmen (wie gemeldet)
       use_clubcloud_by_ranking: "→ Mit Meldeliste zu Schritt 3 (nach Rangliste sortiert)"
     define_participants:
       add_player_button: Spieler hinzufügen

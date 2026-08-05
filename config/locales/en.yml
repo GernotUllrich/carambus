@@ -1221,7 +1221,7 @@ en:
       step2_continue_hint: Import these players to proceed to step 3.
       step2_continue_title: Imports the existing players and activates step 3
       step2_existing_players_info_html: "ℹ️ <strong>%{count} players already available</strong><br>You can import them directly (see below)"
-      step2_help_body_html: "Upload the <strong>official invitation</strong> from the regional sports officer. Carambus automatically extracts:<br>• <strong>Seeding list</strong> (order by ranking)<br>• <strong>Handicap presets</strong> for handicap tournaments (point targets)<br><br>Supports PDF or screenshot (PNG/JPG).<br>Two-column tables are detected automatically.<br><br><strong>Alternative:</strong> If no invitation is available, you can also proceed directly to step 3 with the ClubCloud registration list (from step 1).<br><br><strong>Note:</strong> You can adjust the seeding (player order/position) in <strong>step 3</strong> if needed (↑↓ buttons or direct position entry)."
+      step2_help_body_html: "Upload the <strong>official invitation</strong> from the regional sports officer. Carambus automatically extracts:<br>• <strong>Seeding list</strong> (order by ranking)<br>• <strong>Handicap presets</strong> for handicap tournaments (point targets)<br><br>Supports PDF or screenshot (PNG/JPG).<br>Two-column tables are detected automatically.<br><br><strong>Alternative:</strong> If no invitation is available, you can also proceed directly to step 3 with the registration list.<br><br><strong>Note:</strong> You can adjust the seeding (player order/position) in <strong>step 3</strong> if needed (↑↓ buttons or direct position entry)."
       step2_invitation_uploaded: "✓ Invitation uploaded:"
       step2_players_available_html: "✓ <strong>%{count} players already available</strong>"
       step2_players_taken: "%{count} players already imported as participants."
@@ -1248,25 +1248,25 @@ en:
       step6_title: Manage tournament games
       step6_warning: Tournament not started yet
     compare_seedings:
-      alt_clubcloud_body_html: "If no invitation is available, you can proceed with the <strong>ClubCloud registration list</strong> directly to step 3 (edit participants list)."
-      alt_clubcloud_heading: "📊 Alternative: Continue with ClubCloud registration list"
+      alt_clubcloud_body_html: "If no invitation is available, you can proceed with the <strong>registration list</strong> directly to step 3 (edit participants list)."
+      alt_clubcloud_heading: "📊 Alternative: Continue with the registration list"
       alt_manual_heading: "✏️ Alternative: Sort manually"
       auto_extract_note: The seeding list will be extracted automatically!
       back: ← Back
       choose_file: Choose file
-      clubcloud_list_heading: "ClubCloud registration list (%{count} players):"
-      confirm_use_clubcloud_as_is: "Take the ClubCloud order exactly as-is as the seeding list and proceed to step 3?"
-      confirm_use_clubcloud_by_ranking: "Take the ClubCloud registration list as the participants list and sort by ranking?\n\nPlayers will be sorted automatically by the Carambus ranking."
+      clubcloud_list_heading: "Registration list (%{count} players):"
+      confirm_use_clubcloud_as_is: "Take the registration list order exactly as-is as the seeding list and proceed to step 3?"
+      confirm_use_clubcloud_by_ranking: "Take the registration list as the participants list and sort by ranking?\n\nPlayers will be sorted automatically by the Carambus ranking."
       drop_file_here: Drop file here
       file_types: PDF or screenshot (PNG, JPG)
       heading: "Apply seeding list:"
       how_it_works: "💡 How it works:"
       invitation_present: "✅ Invitation present:"
-      load_clubcloud_hint: Please first load the ClubCloud registration list in step 1.
+      load_clubcloud_hint: No registration list available yet.
       manual_sort_body: "Or sort the list automatically by the current ranking:"
-      no_clubcloud_data: "⚠️ No ClubCloud data available."
-      open_clubcloud: 🔗 Open ClubCloud (for comparison)
-      option_as_clubcloud_html: "<strong>As in ClubCloud:</strong> Takes the order exactly as it appears in ClubCloud"
+      no_clubcloud_data: "⚠️ No registration list available."
+      open_clubcloud: 🔗 Open source (for comparison)
+      option_as_clubcloud_html: "<strong>As registered:</strong> Takes the order exactly as it appears in the registration list"
       option_by_ranking_html: "<strong>Sorted by ranking:</strong> Carambus sorts automatically by the current ranking (recommended for regional tournaments)"
       or_drag_file: 💡 Or drag a file here (e.g. from email)
       processing: Processing...
@@ -1280,7 +1280,7 @@ en:
       two_options_label: "Two options:"
       upload_and_parse: Upload & auto-parse
       upload_heading: 📧 Upload official invitation
-      use_clubcloud_as_is: Use this order (as in ClubCloud)
+      use_clubcloud_as_is: Use this order (as registered)
       use_clubcloud_by_ranking: "→ With registration list to step 3 (sorted by ranking)"
     define_participants:
       add_player_button: Add player
