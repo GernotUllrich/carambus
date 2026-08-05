@@ -1618,7 +1618,8 @@ en:
   view: View
   warning: Warning
   welcome: Welcome
-  welcome_to_carambus: Welcome to Carambus
+  welcome_to_carambus: Carambus
+  carambus_subtitle: Open-Source-Software for Billiards
   documentation_not_available: Documentation not available
   preferences:
     preferences: preferences
@@ -1729,7 +1730,7 @@ en:
     edit_in_mkdocs: "Edit in MkDocs"
     back_to_documentation: "Back to Documentation"
     related_documentation: "Related Documentation"
-  
+
   ai_assistant:
     title: "AI Assistant"
     close: "Close"

@@ -1654,7 +1654,8 @@ de:
   view: Ansehen
   warning: Warnung
   welcome: Willkommen
-  welcome_to_carambus: Willkommen - Carambus
+  welcome_to_carambus: Carambus
+  carambus_subtitle: Open-Source-Software für Billard
   administrate:
     dashboards:
       user:
@@ -1815,7 +1816,7 @@ de:
     edit_in_mkdocs: "In MkDocs bearbeiten"
     back_to_documentation: "Zurück zur Dokumentation"
     related_documentation: "Verwandte Dokumentation"
-  
+
   ai_assistant:
     title: "KI-Assistent"
     close: "Schließen"
@@ -1853,7 +1854,7 @@ de:
     errors:
       generic: "Ein Fehler ist aufgetreten. Bitte versuche es erneut."
       no_docs_found: "Keine Antwort in der Dokumentation gefunden."
-  
+
   views:
     pagination:
       first: "&laquo; Erste"
