@@ -131,7 +131,9 @@ module RegionServer
       def materialize_effective_seedings!(tournament)
         return if tournament.has_local_seedings?
 
-        tournament.effective_seedings.order(:position).each do |seeding|
+        # `player_id: nil` kommt vor (define_participants räumt solche Reste selbst auf) und würde
+        # hier an der `belongs_to :player`-Pflicht scheitern — überspringen statt sprengen.
+        tournament.effective_seedings.where.not(player_id: nil).order(:position).each do |seeding|
           attrs = {
             player_id: seeding.player_id,
             balls_goal: seeding.balls_goal,

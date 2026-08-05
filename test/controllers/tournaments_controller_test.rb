@@ -510,6 +510,36 @@ class TournamentsControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to tournaments_path
   end
 
+  # Plan 36-06: Das Oeffnen der Teilnehmerliste macht sie lokal. Ohne das blieb der Ablauf stecken —
+  # "Teilnehmerliste abschliessen" wird erst erreichbar, wenn lokale Seedings existieren
+  # (wizard_current_step steigt sonst nicht auf 3). Live aufgefallen 2026-08-06 auf ebc.
+  test "GET define_participants uebernimmt die Meldeliste lokal" do
+    Carambus.config.carambus_api_url = "http://local.test"
+    sign_in users(:admin)
+
+    tournament = Tournament.create!(
+      id: 23_462, title: "Oeffnen 36-06", shortname: "OEF3606",
+      season: @tournament.season, organizer: regions(:nbv), region_id: regions(:nbv).id,
+      date: Time.zone.local(2026, 10, 10, 10, 0)
+    )
+    a = Player.create!(lastname: "AA", firstname: "Anna", fl_name: "A. AA", dbu_nr: "663311")
+    b = Player.create!(lastname: "BB", firstname: "Bodo", fl_name: "B. BB", dbu_nr: "663322")
+    Seeding.create!(id: 23_481, tournament: tournament, player: a, position: 1)
+    Seeding.create!(id: 23_482, tournament: tournament, player: b, position: 2)
+
+    assert_not tournament.has_local_seedings?, "Vorbedingung: nur globale Meldungen"
+
+    get define_participants_tournament_url(tournament)
+
+    assert tournament.reload.has_local_seedings?, "das Oeffnen muss die Liste lokal machen"
+    local = tournament.seedings.where("seedings.id >= ?", Seeding::MIN_ID)
+    assert_equal [a.id, b.id].sort, local.map(&:player_id).sort
+    assert_equal [1, 2], local.order(:position).map(&:position), "die Reihenfolge bleibt"
+
+    # Idempotent — ein zweites Oeffnen darf nichts verdoppeln.
+    assert_no_difference("Seeding.count") { get define_participants_tournament_url(tournament) }
+  end
+
   # Plan 36-05: Ein in der Quelle GESTRICHENER Spieler darf bei der Uebernahme nicht als regulaerer
   # Teilnehmer zurueckkehren — bisher startete jede Kopie im Initialzustand "registered"
   # (seeding.rb:29), live gesehen 2026-08-05 an Turnier 18612. Er muss aber SICHTBAR bleiben

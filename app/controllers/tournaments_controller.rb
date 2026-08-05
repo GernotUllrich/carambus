@@ -701,6 +701,19 @@ class TournamentsController < ApplicationController
   end
 
   def define_participants
+    # Plan 36-06 (Betreiber 2026-08-06): Die Liste wird beim ÖFFNEN lokal, nicht erst bei der ersten
+    # Änderung. Grund ist der Ablauf: "Teilnehmerliste abschließen" (finish_seeding) wird erst
+    # erreichbar, wenn lokale Seedings existieren — `wizard_current_step` steigt sonst nicht auf 3
+    # (tournament_wizard_helper.rb:53). Wer über den Direktlink der Detailseite hereinkommt, blieb
+    # damit im Ablauf stecken, obwohl die Liste vor ihm stand.
+    #
+    # Dass ein GET schreibt, ist hier vertretbar: die Action ist doppelt gegated
+    # (`ensure_local_server` + `authorize_manage_teilnehmerliste`), und dieses Formular ZU ÖFFNEN
+    # ist genau der Vorgang, die Meldeliste in die lokale Bearbeitung zu übernehmen — dasselbe, was
+    # der Wizard-Knopf in Schritt 2 ausdrücklich tut. Idempotent: liegt schon eine lokale Liste vor,
+    # passiert nichts.
+    RegionServer::PlayerRegistration.materialize_effective_seedings!(@tournament)
+
     @seedings = @tournament.seedings
     @league = @tournament.league
 
