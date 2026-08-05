@@ -117,21 +117,28 @@ module RegionServer
       # `position` REIST MIT (anders als beim Wizard-Knopf, der anschliessend neu sortiert): hier
       # wird nur ergaenzt oder gestrichen, die bestehende Reihenfolge darf sich dabei nicht aendern.
       #
-      # GESTRICHENE BLEIBEN DRAUSSEN (Betreiber-Entscheidung 2026-08-05) — wie beim Wizard-Knopf.
-      # Ein `no_show` bekommt keine lokale Kopie; wer ihn zurueckholen will, hakt ihn an
-      # (set_participation legt dann eine an).
+      # GESTRICHENE REISEN ALS `no_show` MIT (Betreiber-Entscheidung 2026-08-05, nach dem Test auf
+      # bcw). Sie duerfen nicht als regulaere Teilnehmer zurueckkehren — aber sie ganz wegzulassen
+      # waere die andere Uebertreibung: dann verschwinden sie aus der Liste und lassen sich nur
+      # ueber die Spielereingabe zurueckholen. Als `no_show` kopiert stehen sie mit leerem Haken da
+      # und sind mit einem Klick wieder dabei (set_participation setzt den Zustand zurueck).
+      #
+      # NUR `no_show` wird uebernommen, jeder andere Zustand startet bei "registered": eine frische
+      # Arbeitsliste soll nicht `participated` aus einem frueheren Lauf erben.
       #
       # IDEMPOTENT: liegt schon eine lokale Liste vor, passiert nichts. Damit ist der gesamte
       # Wizard-Fluss unberuehrt — dort ist die Liste beim ersten Klick bereits lokal.
       def materialize_effective_seedings!(tournament)
         return if tournament.has_local_seedings?
 
-        tournament.effective_seedings.where.not(state: "no_show").order(:position).each do |seeding|
-          tournament.seedings.create!(
+        tournament.effective_seedings.order(:position).each do |seeding|
+          attrs = {
             player_id: seeding.player_id,
             balls_goal: seeding.balls_goal,
             position: seeding.position
-          )
+          }
+          attrs[:state] = "no_show" if seeding.state == "no_show"
+          tournament.seedings.create!(attrs)
         end
       end
 

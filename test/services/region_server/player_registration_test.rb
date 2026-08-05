@@ -243,15 +243,20 @@ class RegionServer::PlayerRegistrationTest < ActiveSupport::TestCase
     assert_equal @alpha.id, effective.last.player_id
   end
 
-  test "Uebernahme laesst gestrichene Spieler draussen" do
+  # Betreiber-Entscheidung 2026-08-05 (nach dem Test auf bcw): ein gestrichener Spieler bleibt
+  # SICHTBAR, aber gestrichen. Ganz wegzulassen hiesse, dass er nur ueber die Spielereingabe
+  # zurueckzuholen waere; als regulaerer Teilnehmer zurueckzukehren waere schlicht falsch.
+  test "Uebernahme haelt gestrichene Spieler als no_show fest" do
     global_list_of_three
     @global.seedings.find_by(player_id: @delta.id).update_column(:state, "no_show")
 
     register("111111", tournament: @global)
 
-    players = @global.reload.effective_seedings.map(&:player_id)
-    assert_equal 3, players.size, "zwei uebernommene plus der neue"
-    refute_includes players, @delta.id, "ein gestrichener Spieler wird nicht uebernommen"
+    effective = @global.reload.effective_seedings
+    assert_includes effective.map(&:player_id), @delta.id, "der gestrichene Spieler bleibt sichtbar"
+    assert_equal "no_show", effective.find_by(player_id: @delta.id).state,
+      "aber er kehrt nicht als Teilnehmer zurueck"
+    assert_equal 3, effective.where.not(state: "no_show").count, "zwei uebernommene plus der neue"
   end
 
   test "eine bereits lokale Liste wird nicht ein zweites Mal uebernommen" do
@@ -276,7 +281,7 @@ class RegionServer::PlayerRegistrationTest < ActiveSupport::TestCase
     assert_equal "registered", seeding.reload.state
   end
 
-  test "Anhaken holt einen global gestrichenen Spieler ueber ein lokales Seeding zurueck" do
+  test "Anhaken holt einen gestrichenen Spieler aus der globalen Liste zurueck" do
     global_list_of_three
     @global.seedings.find_by(player_id: @delta.id).update_column(:state, "no_show")
 

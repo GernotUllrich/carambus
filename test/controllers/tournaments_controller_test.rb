@@ -511,9 +511,10 @@ class TournamentsControllerTest < ActionDispatch::IntegrationTest
   end
 
   # Plan 36-05: Ein in der Quelle GESTRICHENER Spieler darf bei der Uebernahme nicht als regulaerer
-  # Teilnehmer zurueckkehren. Bisher kopierte die Uebernahme ihn mit, und die Kopie startete im
-  # Initialzustand "registered" (seeding.rb:29) — live gesehen 2026-08-05 an Turnier 18612.
-  test "POST use_clubcloud_as_participants uebernimmt gestrichene Spieler nicht" do
+  # Teilnehmer zurueckkehren — bisher startete jede Kopie im Initialzustand "registered"
+  # (seeding.rb:29), live gesehen 2026-08-05 an Turnier 18612. Er muss aber SICHTBAR bleiben
+  # (Betreiber, nach dem Test auf bcw): mit leerem Haken ist er mit einem Klick wieder dabei.
+  test "POST use_clubcloud_as_participants uebernimmt gestrichene Spieler als no_show" do
     Carambus.config.carambus_api_url = "http://local.test"
     sign_in users(:admin)
 
@@ -530,8 +531,11 @@ class TournamentsControllerTest < ActionDispatch::IntegrationTest
     post use_clubcloud_as_participants_tournament_url(tournament)
 
     local = tournament.reload.seedings.where("seedings.id >= ?", Seeding::MIN_ID)
-    assert_equal [taken.id], local.map(&:player_id),
-      "nur der nicht gestrichene Spieler darf uebernommen werden"
+    assert_equal [taken.id, struck.id].sort, local.map(&:player_id).sort,
+      "beide werden uebernommen — der gestrichene muss sichtbar bleiben"
+    assert_equal "no_show", local.find_by(player_id: struck.id).state,
+      "aber er kehrt nicht als Teilnehmer zurueck"
+    assert_equal [taken.id], local.where.not(state: "no_show").map(&:player_id)
   end
 
   test "POST update_seeding_position returns ok or bad_request when local server" do

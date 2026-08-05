@@ -1026,13 +1026,8 @@ class TournamentsController < ApplicationController
   # POST /tournaments/:id/use_clubcloud_as_participants
   # Konvertiert ClubCloud-Seedings zu lokalen Seedings, sortiert nach Rangliste und leitet zu Schritt 3 weiter
   def use_clubcloud_as_participants
-    # Plan 36-05: Gestrichene (`no_show`) werden NICHT uebernommen (Betreiber 2026-08-05). Bisher
-    # kopierte die Uebernahme sie mit, und die Kopie startete im Initialzustand "registered"
-    # (seeding.rb:29) — ein in der Quelle gestrichener Spieler kam damit als regulaerer Teilnehmer
-    # zurueck. Wer ihn doch braucht, hakt ihn in der Teilnehmerliste an.
     clubcloud_seedings = @tournament.seedings
                                     .where("seedings.id < #{Seeding::MIN_ID}")
-                                    .where.not(state: "no_show")
                                     .order(:position)
 
     if clubcloud_seedings.any?
@@ -1042,11 +1037,17 @@ class TournamentsController < ApplicationController
         @tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").destroy_all
 
         # Erstelle neue lokale Seedings (ohne Position, wird gleich sortiert)
+        #
+        # Plan 36-05: Ein `no_show` reist ALS `no_show` mit (Betreiber 2026-08-05, nach dem Test auf
+        # bcw). Bisher startete jede Kopie im Initialzustand "registered" (seeding.rb:29) — ein in
+        # der Quelle gestrichener Spieler kam damit als regulaerer Teilnehmer zurueck. Ihn gar nicht
+        # zu kopieren waere die andere Uebertreibung: dann verschwindet er aus der Liste und laesst
+        # sich nur ueber die Spielereingabe zurueckholen. Als `no_show` kopiert steht er mit leerem
+        # Haken da und ist mit einem Klick wieder dabei — genau wie vor der Uebernahme.
         clubcloud_seedings.each do |cc_seeding|
-          @tournament.seedings.create!(
-            player_id: cc_seeding.player_id,
-            balls_goal: cc_seeding.balls_goal
-          )
+          attrs = {player_id: cc_seeding.player_id, balls_goal: cc_seeding.balls_goal}
+          attrs[:state] = "no_show" if cc_seeding.state == "no_show"
+          @tournament.seedings.create!(attrs)
         end
       end
 
