@@ -53,8 +53,10 @@ class Api::Public::GameResultsControllerTest < ActionDispatch::IntegrationTest
     assert_equal "carambus.game_result/v1", body["schema"]
     assert_equal @region.shortname, body.dig("region", "shortname")
 
-    payload = body["tournaments"].sole
-    assert_equal @tournament.id, payload["source_tournament_id"]
+    # Nicht mehr `.sole`: das Dokument fuehrt seit dem Pruning-Fix auch Turniere ohne Spiele,
+    # also die uebrigen Fixture-Turniere der Region/Saison. Geprueft wird das eigene.
+    payload = body["tournaments"].find { |t| t["source_tournament_id"] == @tournament.id }
+    assert payload, "das bespielte Turnier muss enthalten sein"
     assert_equal @plan.id, payload["tournament_plan_id"]
 
     row = payload["games"].sole
@@ -85,6 +87,12 @@ class Api::Public::GameResultsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
   end
 
+  # Die folgenden drei Tests pruefen je einen FILTER. Sie stuetzten sich frueher darauf, dass die
+  # Liste genau ein Element hat — seit Turniere ohne Spiele mit ausgeliefert werden (fuer das
+  # Pruning, siehe unten), enthaelt sie auch die uebrigen Fixture-Turniere der Region/Saison.
+  # Die Zusicherung ist dieselbe geblieben, nur zielgerichtet auf das jeweilige Turnier formuliert.
+  def delivered_ids = body["tournaments"].map { |t| t["source_tournament_id"] }
+
   test "Turniere anderer Saisons sind nicht enthalten" do
     other = Season.where.not(id: @season.id).first
     skip "keine zweite Saison in den Fixtures" if other.nil?
@@ -92,7 +100,7 @@ class Api::Public::GameResultsControllerTest < ActionDispatch::IntegrationTest
     get_results(season: other.name)
 
     assert_response :success
-    assert_empty body["tournaments"]
+    assert_not_includes delivered_ids, @tournament.id
   end
 
   # AC-4 — was aus der ClubCloud stammt, gehoert der ClubCloud
@@ -102,7 +110,7 @@ class Api::Public::GameResultsControllerTest < ActionDispatch::IntegrationTest
     get_results
 
     assert_response :success
-    assert_empty body["tournaments"]
+    assert_not_includes delivered_ids, @tournament.id
   end
 
   test "globale Turniere werden nicht ausgeliefert" do
@@ -115,15 +123,74 @@ class Api::Public::GameResultsControllerTest < ActionDispatch::IntegrationTest
 
     get_results
 
-    assert_equal [@tournament.id], body["tournaments"].map { |t| t["source_tournament_id"] }
+    assert_not_includes delivered_ids, global.id, "id < MIN_ID gehört der Authority"
+    assert_includes delivered_ids, @tournament.id
   end
 
-  test "Turniere ohne Spiele erscheinen nicht" do
+  # UMGESCHRIEBEN 2026-08-05. Der Test hielt zuvor fest, dass Turniere ohne Spiele NICHT erscheinen
+  # ("wäre nur Ballast"). Das galt, solange der Importer ausschliesslich Upserts machte. Seit er
+  # geloeschte Spiele entfernt (GameResultImporter#prune_removed_games), ist die leere Liste die
+  # EINZIGE Moeglichkeit auszudruecken, dass alle Spiele zurueckgezogen wurden — fehlt das Turnier,
+  # laeuft das Pruning fuer es nie.
+  #
+  # LIVE AUFGEFALLEN: nach dem Loeschen aller Spiele auf tbv lieferte der Endpunkt
+  # `"tournaments":[]`; der Ingest lief folgenlos durch, die globalen Spiele blieben stehen.
+  test "Turniere ohne Spiele erscheinen mit leerer Spieleliste" do
     @tournament.games.destroy_all
 
     get_results
 
     assert_response :success
-    assert_empty body["tournaments"]
+    payload = body["tournaments"].find { |t| t["source_tournament_id"] == @tournament.id }
+
+    assert payload, "das Turnier muss enthalten bleiben, sonst kann die Authority nicht aufräumen"
+    assert_empty payload["games"]
+  end
+
+  # --- KETTENTEST Sender → Empfänger -----------------------------------------
+  #
+  # WARUM DIESER TEST EXISTIERT: Sender und Empfänger waren einzeln getestet und beide grün —
+  # der Fehler saß in ihrer VERBINDUNG. Der Endpunkt lieferte Turniere ohne Spiele gar nicht aus
+  # ("wäre nur Ballast"), das Pruning des Importers lief für sie deshalb nie, und gelöschte Spiele
+  # blieben global stehen. Live aufgefallen 2026-08-05.
+  #
+  # Genau diese Klasse von Fehlern — Mechanik intakt, Verbindung ungeprüft — ist heute mehrfach
+  # aufgetreten. Der Test füttert deshalb die ECHTE Endpunkt-Antwort in den ECHTEN Importer,
+  # statt beide Seiten gegen ein handgeschriebenes Dokument zu prüfen.
+  test "eine Löschung auf der Quelle räumt über den echten Endpunkt auch global auf" do
+    # Das globale Gegenstück auf der Authority, wie es ein früherer Ingest angelegt hätte.
+    global = Tournament.create!(
+      id: 23_457, title: "Landesmeisterschaft Dreiband", shortname: "LM3B457",
+      season: @season, organizer: @region, region_id: @region.id,
+      source_url: "https://nbv.carambus.de/tournaments/#{@tournament.id}",
+      date: Time.zone.local(2026, 10, 10, 10, 0)
+    )
+    global.games.create!(gname: "Gruppe A", seqno: 7, region_id: @region.id)
+    assert_equal 1, global.games.count
+
+    # Der Sportwart löscht das Spiel auf dem Region Server.
+    @tournament.games.destroy_all
+
+    get_results
+    assert_response :success
+
+    result = RegionServer::GameResultImporter.new(
+      region: @region, season: @season, base_url: "https://nbv.carambus.de",
+      armed: true, document: body
+    ).call
+
+    assert_equal 1, result.games_removed, "der Importer muss die Löschung erkennen"
+    assert_equal 0, global.games.reload.count, "das globale Spiel muss verschwunden sein"
+  end
+
+  test "ein CC-Turnier bleibt auch ohne Spiele draussen" do
+    @tournament.games.destroy_all
+    TournamentCc.create!(tournament: @tournament, cc_id: 987_654)
+
+    get_results
+
+    assert_response :success
+    assert_not_includes delivered_ids, @tournament.id,
+      "CC-Turniere gehören der ClubCloud — auch leer nicht ausliefern"
   end
 end

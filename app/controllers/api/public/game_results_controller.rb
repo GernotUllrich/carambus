@@ -76,13 +76,23 @@ module Api
       # Der Diskriminator ist `tournament_cc`, NICHT `region.region_cc`: ein CC-loses Turnier in
       # einer CC-Region ist CC-los, und genau so entscheidet auch der Sender (Plan 32-09).
       #
-      # Turniere ohne lokale Spiele liefern nichts — ein Ergebnis-Dokument, das leere Turniere
-      # auffuehrt, waere nur Ballast.
+      # TURNIERE OHNE SPIELE WERDEN MIT LEERER LISTE AUSGELIEFERT.
+      #
+      # Frueher galt hier `return nil if games.empty?` mit der Begruendung, leere Turniere seien
+      # "nur Ballast". Das stimmte, SOLANGE der Importer ausschliesslich Upserts machte. Seit er
+      # geloeschte Spiele entfernt (GameResultImporter#prune_removed_games), kehrt sich die Aussage
+      # um: ein leeres Turnier ist die EINZIGE Moeglichkeit auszudruecken, dass alle Spiele
+      # zurueckgezogen wurden. Fehlt das Turnier im Dokument, laeuft das Pruning fuer es nie —
+      # die geloeschten Spiele blieben global stehen.
+      #
+      # LIVE AUFGEFALLEN (2026-08-05): nach dem Loeschen aller Spiele lieferte der Endpunkt
+      # `"tournaments":[]`, der Ingest lief folgenlos durch, und die globalen Spiele blieben.
+      # Der Meldelisten-Endpunkt entscheidet dieselbe Frage seit Plan 28-01 andersherum
+      # ("Turnier ohne Meldungen erscheint mit leerer Liste") — hier wird nachgezogen.
       def tournament_payload(tournament)
         return nil if tournament.tournament_cc.present?
 
         games = local_games(tournament)
-        return nil if games.empty?
 
         {
           "source_tournament_id" => tournament.id,
