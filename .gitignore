@@ -104,3 +104,6 @@ db/schema_baseline_*.backup
 # MCP-Client-Konfiguration (enthält CC-Zugangsdaten — NICHT einchecken).
 # Vorlage: .mcp.json.example (tracked).
 /.mcp.json
+
+# Bestandsuebersichten: auf dem Server erzeugt (rake coverage:pages), Capistrano-linked_dir
+/public/uebersichten

@@ -29,7 +29,8 @@ namespace :coverage do
       headline: "Turnier-Abdeckung nach Region, Saison und Disziplin-Zweig",
       lede: tournament_lede(tournaments),
       footnote_heading: "Woher die Zahlen kommen",
-      footnotes: tournament_footnotes(tournaments),
+      footnotes: tournament_footnotes(tournaments) + source_footnotes(tournaments, "Turniere"),
+      item_label: "Turniere",
       data: tournaments, generated_at: generated_at)
 
     write_page(out_dir.join("liga-abdeckung.html"),
@@ -37,7 +38,8 @@ namespace :coverage do
       headline: "Liga-Abdeckung nach Region, Saison und Disziplin-Zweig",
       lede: league_lede(leagues),
       footnote_heading: "Woher die Zahlen kommen — und was gegenüber den Turnieren auffällt",
-      footnotes: league_footnotes(tournaments, leagues),
+      footnotes: league_footnotes(tournaments, leagues) + source_footnotes(leagues, "Ligen"),
+      item_label: "Ligen",
       data: leagues, generated_at: generated_at)
 
     write_index(out_dir.join("index.html"), tournaments, leagues, generated_at)
@@ -146,6 +148,34 @@ def league_footnotes(tournaments, leagues)
              "eine Aussage über die Datenquelle, nicht über den Verband.")
 end
 
+# Herkunft: was stammt NICHT aus der ClubCloud. Die Zahlen kommen aus dem gemessenen
+# `source_url`-Muster, die Regionsliste aus `Region::SHORTNAMES_CC` — also aus dem Code, der den
+# Scrape tatsächlich steuert, nicht aus einer gepflegten Nebenliste.
+def source_footnotes(data, label)
+  s = data.meta[:sources]
+  nicht_cc = s[:nu_liga] + s[:liga_manager] + s[:carambus] + s[:other]
+  ohne_cc_anschluss = data.regions.reject { |r| r[:cc] }.map { |r| r[:short] }
+
+  notes = li("<b>Was nicht aus der ClubCloud stammt</b> ist farbig markiert — im Modus „Quelle“ " \
+             "flächig, sonst als Balken links in der Zelle. Nachweislich nicht aus einer CC stammen " \
+             "<b>#{num(nicht_cc)}</b> #{label}: #{num(s[:nu_liga])} aus NuLiga, " \
+             "#{num(s[:liga_manager])} aus dem LigaManager, #{num(s[:carambus])} aus Carambus selbst " \
+             "(CC-loser Ablauf), #{num(s[:other])} aus sonstigen Quellen. Aus einer ClubCloud kommen " \
+             "#{num(s[:cc])}, erkannt am URL-Muster des Quellsystems.")
+  notes += li("<b>Die größte Gruppe trägt gar keine Quellenangabe:</b> #{num(s[:none])} #{label} " \
+              "ohne <code>source_url</code> — Altbestand, dessen Herkunft sich aus dem Datensatz nicht " \
+              "mehr ableiten lässt. Diese Zellen sind schraffiert und bleiben ungefärbt; sie als " \
+              "„ClubCloud“ zu zählen wäre geraten.")
+  unless ohne_cc_anschluss.empty?
+    notes += li("<b>Ohne CC-Anschluss</b> (Kennzeichnung an der Region): " \
+                "#{ohne_cc_anschluss.join(", ")}. Diese Verbände stehen nicht in " \
+                "<code>Region::SHORTNAMES_CC</code>, werden also heute nicht aus einer ClubCloud " \
+                "gescrapt — bei TBV etwa seit dem LigaManager-Cutover, weshalb dort trotzdem älterer " \
+                "CC-Bestand liegt.")
+  end
+  notes
+end
+
 # --- Ausgabe ------------------------------------------------------------------------------------
 
 def render(template, bindings)
@@ -158,7 +188,8 @@ def write_page(path, data:, **copy)
     branches: data.branches,
     seasons: data.seasons,
     regions: data.regions,
-    cells: data.cells
+    cells: data.cells,
+    sources: data.sources
   }
   File.write(path, render("page.html.erb", copy.merge(payload_json: JSON.generate(payload))))
 end

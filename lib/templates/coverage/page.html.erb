@@ -15,6 +15,7 @@
   --accent:#2E6B4E; --accent-ink:#FFFFFF;
   --h0:#EFF2EE; --h1:#DCE9E0; --h2:#B9D6C4; --h3:#7FB697; --h4:#3F8460; --h5:#1D4E38;
   --h4-ink:#FFFFFF; --h5-ink:#FFFFFF; --h3-ink:#12241B; --h0-ink:#96A29B;
+  --s-cc:#CDD6D0; --s-none:#F1F3F0; --s-none-line:#E1E6E2; --s-nu:#3F7CA8; --s-lm:#A9762A; --s-ca:#2E6B4E; --s-ot:#77689E;
   --shadow:0 1px 2px rgba(20,40,30,.06), 0 8px 24px -16px rgba(20,40,30,.25);
   --text:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
   --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
@@ -26,6 +27,7 @@
     --accent:#57A87F; --accent-ink:#0C1310;
     --h0:#1B2420; --h1:#22362B; --h2:#2C5140; --h3:#3E7A5C; --h4:#59A57E; --h5:#7FC7A0;
     --h4-ink:#0C1310; --h5-ink:#0C1310; --h3-ink:#F2F7F4; --h0-ink:#55645C;
+    --s-cc:#333F39; --s-none:#161E1A; --s-none-line:#202A25; --s-nu:#5EA3CE; --s-lm:#CC9A45; --s-ca:#57A87F; --s-ot:#9C8CC4;
     --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -16px rgba(0,0,0,.8);
   }
 }
@@ -34,6 +36,7 @@
   --ink:#E6EBE7; --ink-2:#AEBCB4; --muted:#84968C;
   --accent:#57A87F; --accent-ink:#0C1310;
   --h0:#1B2420; --h1:#22362B; --h2:#2C5140; --h3:#3E7A5C; --h4:#59A57E; --h5:#7FC7A0;
+  --s-cc:#333F39; --s-none:#161E1A; --s-none-line:#202A25; --s-nu:#5EA3CE; --s-lm:#CC9A45; --s-ca:#57A87F; --s-ot:#9C8CC4;
   --h4-ink:#0C1310; --h5-ink:#0C1310; --h3-ink:#F2F7F4; --h0-ink:#55645C;
   --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -16px rgba(0,0,0,.8);
 }
@@ -42,6 +45,7 @@
   --ink:#16211C; --ink-2:#41504A; --muted:#6E7B74;
   --accent:#2E6B4E; --accent-ink:#FFFFFF;
   --h0:#EFF2EE; --h1:#DCE9E0; --h2:#B9D6C4; --h3:#7FB697; --h4:#3F8460; --h5:#1D4E38;
+  --s-cc:#CDD6D0; --s-none:#F1F3F0; --s-none-line:#E1E6E2; --s-nu:#3F7CA8; --s-lm:#A9762A; --s-ca:#2E6B4E; --s-ot:#77689E;
   --h4-ink:#FFFFFF; --h5-ink:#FFFFFF; --h3-ink:#12241B; --h0-ink:#96A29B;
   --shadow:0 1px 2px rgba(20,40,30,.06), 0 8px 24px -16px rgba(20,40,30,.25);
 }
@@ -110,6 +114,22 @@ footer ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:7px;
   color:var(--ink-2);font-size:13.5px;max-width:78ch}
 footer code{font-family:var(--mono);font-size:12.5px;background:var(--h0);padding:1px 5px;
   border-radius:3px;color:var(--ink)}
+
+/* Quellen-Kennzeichnung. Die ClubCloud ist der Normalfall und bleibt deshalb still;
+   Farbe bekommt nur, was NICHT von dort kommt. */
+.s-cc{background:var(--s-cc);color:var(--ink-2)}
+.s-none{background:var(--s-none);color:var(--h0-ink);
+  background-image:repeating-linear-gradient(45deg,transparent,transparent 3px,var(--s-none-line) 3px,var(--s-none-line) 4px)}
+.s-nu_liga{background:var(--s-nu);color:#fff}
+.s-liga_manager{background:var(--s-lm);color:#fff}
+.s-carambus{background:var(--s-ca);color:#fff}
+.s-other{background:var(--s-ot);color:#fff}
+.mark{box-shadow:inset 3px 0 0 var(--mark)}
+.badge{display:inline-block;font-family:var(--mono);font-size:9.5px;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--s-nu);border:1px solid var(--s-nu);border-radius:3px;
+  padding:0 4px;margin-left:6px;vertical-align:1px;font-weight:500}
+.key{display:inline-flex;align-items:center;gap:5px;margin-right:12px;white-space:nowrap}
+.key i{width:13px;height:13px;border-radius:3px;display:inline-block;flex:0 0 auto}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 <div class="wrap">
@@ -126,6 +146,7 @@ footer code{font-family:var(--mono);font-size:12.5px;background:var(--h0);paddin
     <div class="seg" role="group" aria-label="Darstellung">
       <button type="button" data-mode="count" aria-pressed="true">Anzahl</button>
       <button type="button" data-mode="presence" aria-pressed="false">Nur Abdeckung</button>
+      <button type="button" data-mode="source" aria-pressed="false">Quelle</button>
     </div>
     <span class="hint" id="legend-hint"></span>
   </div>
@@ -141,24 +162,46 @@ footer code{font-family:var(--mono);font-size:12.5px;background:var(--h0);paddin
 
 <script>
 const DATA = <%= payload_json %>;
+const ITEM_LABEL = "<%= item_label %>";
 
 const BRANCH_ORDER = ["Karambol","Pool","Snooker","Kegel"];
 const branches = [...DATA.branches].sort(
   (a,b)=>BRANCH_ORDER.indexOf(a.name)-BRANCH_ORDER.indexOf(b.name));
-const seasons = DATA.seasons, regions = DATA.regions, cells = DATA.cells;
-const get=(b,r,s)=>cells[b+"|"+r+"|"+s]||0;
+const seasons = DATA.seasons, regions = DATA.regions, cells = DATA.cells, sources = DATA.sources||{};
+const key=(b,r,s)=>b+"|"+r+"|"+s;
+const get=(b,r,s)=>cells[key(b,r,s)]||0;
+const src=(b,r,s)=>sources[key(b,r,s)]||{};
 const CURRENT = seasons[seasons.length-1];
 let mode="count";
 
+// Die ClubCloud ist der Normalfall; Farbe bekommt, was NICHT von dort kommt.
+const SOURCE_LABEL={cc:"ClubCloud",nu_liga:"NuLiga",liga_manager:"LigaManager",
+  carambus:"Carambus (CC-los)",other:"andere Quelle",none:"ohne Quellenangabe"};
+const SOURCE_SHORT={cc:"CC",nu_liga:"NL",liga_manager:"LM",carambus:"CA",other:"?",none:"·"};
+const NON_CC=["nu_liga","liga_manager","carambus","other"];
+
+function dominant(s){
+  let best=null, n=-1;
+  for(const k of Object.keys(s)){ if(s[k]>n){ n=s[k]; best=k; } }
+  return best;
+}
+function nonCcKind(s){
+  let best=null, n=0;
+  for(const k of NON_CC){ if((s[k]||0)>n){ n=s[k]; best=k; } }
+  return best;
+}
 function level(n,max){
   if(!n) return 0;
   const t=Math.log(n+1)/Math.log(max+1);
   if(t<=.18) return 1; if(t<=.36) return 2; if(t<=.58) return 3; if(t<=.80) return 4; return 5;
 }
+function tip(r,s,n,so){
+  const parts=Object.keys(so).filter(k=>so[k]).map(k=>`${SOURCE_LABEL[k]}: ${so[k]}`);
+  return `${r.short} · ${s.name} · ${n}` + (parts.length?` — ${parts.join(", ")}`:"");
+}
 
 function renderCards(){
-  const el=document.getElementById("cards");
-  el.innerHTML = branches.map(b=>{
+  document.getElementById("cards").innerHTML = branches.map(b=>{
     let total=0, regs=new Set(), cur=0, first=null;
     for(const r of regions) for(const s of seasons){
       const n=get(b.id,r.id,s.id);
@@ -176,26 +219,33 @@ function renderCards(){
 }
 
 function renderMatrices(){
-  const host=document.getElementById("matrices");
-  host.innerHTML = branches.map(b=>{
+  document.getElementById("matrices").innerHTML = branches.map(b=>{
     let max=0, total=0, regs=new Set();
     for(const r of regions) for(const s of seasons){
       const n=get(b.id,r.id,s.id); if(n>max) max=n; total+=n; if(n) regs.add(r.id);
     }
     const rows = regions.filter(r=>regs.has(r.id)).map(r=>{
       const tds = seasons.map(s=>{
-        const n=get(b.id,r.id,s.id);
-        const lv = mode==="presence" ? (n?3:0) : level(n,max);
-        const label = mode==="presence" ? (n?"●":"·") : (n||"·");
-        return `<td><span class="cell l${lv}" title="${r.short} · ${s.name} · ${n} Turniere">${label}</span></td>`;
+        const n=get(b.id,r.id,s.id), so=src(b.id,r.id,s.id);
+        let cls, label, style="";
+        if(!n){ cls="l0"; label="·"; }
+        else if(mode==="source"){ const d=dominant(so); cls="s-"+d; label=SOURCE_SHORT[d]; }
+        else if(mode==="presence"){ cls="l3"; label="●"; }
+        else {
+          cls="l"+level(n,max); label=n;
+          const nc=nonCcKind(so);
+          if(nc){ cls+=" mark"; style=` style="--mark:var(--s-${nc==="nu_liga"?"nu":nc==="liga_manager"?"lm":nc==="carambus"?"ca":"ot"})"`; }
+        }
+        return `<td><span class="cell ${cls}"${style} title="${tip(r,s,n,so)}">${label}</span></td>`;
       }).join("");
-      return `<tr><th scope="row"><span class="short">${r.short}</span>
+      const badge = r.cc===false ? '<span class="badge">kein CC-Anschluss</span>' : "";
+      return `<tr><th scope="row"><span class="short">${r.short}${badge}</span>
         <span class="full">${r.name}</span></th>${tds}</tr>`;
     }).join("");
     return `<section class="branch">
       <div class="bhead">
         <h2>${b.name}</h2>
-        <span class="meta">${total.toLocaleString("de-DE")} Turniere · ${regs.size} Regionen · max. ${max} in einer Zelle</span>
+        <span class="meta">${total.toLocaleString("de-DE")} ${ITEM_LABEL} · ${regs.size} Regionen · max. ${max} in einer Zelle</span>
       </div>
       <div class="scroll"><table>
         <thead><tr><th class="rowhead">Region</th>
@@ -206,15 +256,24 @@ function renderMatrices(){
   }).join("");
 }
 
+function swatch(varName,label){ return `<span class="key"><i style="background:var(--${varName})"></i>${label}</span>`; }
+
 function renderLegendHint(){
   const el=document.getElementById("legend-hint");
-  el.innerHTML = mode==="presence"
-    ? "● = mindestens ein Turnier erfasst · · = keines"
-    : `wenig <span class="swatch" style="background:var(--h1)"></span>`+
-      `<span class="swatch" style="background:var(--h2)"></span>`+
-      `<span class="swatch" style="background:var(--h3)"></span>`+
-      `<span class="swatch" style="background:var(--h4)"></span>`+
-      `<span class="swatch" style="background:var(--h5)"></span> viel · Skala je Zweig`;
+  if(mode==="presence"){ el.innerHTML="● = mindestens ein Datensatz · · = keiner"; return; }
+  if(mode==="source"){
+    el.innerHTML = swatch("s-cc","CC — ClubCloud")+swatch("s-nu","NL — NuLiga")+
+      swatch("s-lm","LM — LigaManager")+swatch("s-ca","CA — Carambus, CC-los")+
+      swatch("s-none","· — ohne Quellenangabe")+
+      '<span class="key">Farbe = überwiegende Quelle der Zelle</span>';
+    return;
+  }
+  el.innerHTML = `wenig <span class="swatch" style="background:var(--h1)"></span>`+
+    `<span class="swatch" style="background:var(--h2)"></span>`+
+    `<span class="swatch" style="background:var(--h3)"></span>`+
+    `<span class="swatch" style="background:var(--h4)"></span>`+
+    `<span class="swatch" style="background:var(--h5)"></span> viel · `+
+    `<span class="key"><i style="background:var(--s-nu)"></i>Balken links = enthält Daten, die NICHT aus der ClubCloud stammen</span>`;
 }
 
 document.querySelectorAll(".seg button").forEach(btn=>{

@@ -88,6 +88,43 @@ class Reports::CoverageDataTest < ActiveSupport::TestCase
       "Saisons chronologisch ueber den Namen (id/ba_id sind verrutscht)"
   end
 
+  # Die Herkunft haengt am URL-MUSTER des Quellsystems, nicht an der Domain: jeder Landesverband
+  # betreibt seine ClubCloud unter eigenem Namen, liefert aber dieselben Skripte aus.
+  test "erkennt die Quelle am URL-Muster, nicht an der Domain" do
+    tournament(@dreiband, source_url: "https://ndbv.de/sb_meisterschaft.php?p=20--2026/2027-46-")
+    tournament(@dreiband, source_url: "https://www.blv-sa.de/sb_meisterschaft.php?p=21--2026/2027-2-")
+    tournament(@dreiband, source_url: "https://bbv-billard.liga.nu/cgi-bin/WebObjects/nuLigaBILLARDDE.woa/wa/x")
+    tournament(@dreiband, source_url: "https://ligen.billard.center/api/leagues/1")
+    tournament(@dreiband, source_url: "https://tbv.carambus.de/tournaments/50000021")
+    tournament(@dreiband, source_url: nil)
+
+    kinds = Reports::CoverageData.for(Tournament).sources["#{@karambol.id}|#{@region.id}|#{@season.id}"]
+
+    assert_equal 2, kinds[:cc], "beide CC-Installationen zaehlen als ClubCloud, trotz anderer Domain"
+    assert_equal 1, kinds[:nu_liga]
+    assert_equal 1, kinds[:liga_manager]
+    assert_equal 1, kinds[:carambus]
+    assert_equal 1, kinds[:none], "ohne source_url bleibt es bei 'keine Angabe' — nicht bei 'CC'"
+  end
+
+  test "kennzeichnet Regionen ohne CC-Anschluss" do
+    tournament(@dreiband)
+
+    region = Reports::CoverageData.for(Tournament).regions.find { |r| r[:id] == @region.id }
+
+    assert_equal Region::SHORTNAMES_CC.key?(@region.shortname), region[:cc],
+      "das Flag muss der Liste folgen, die den Scrape wirklich steuert"
+  end
+
+  test "meta weist die Quellenverteilung aus" do
+    tournament(@dreiband, source_url: "https://ndbv.de/sb_spielplan.php?p=20--2026/2027-1")
+
+    meta = Reports::CoverageData.for(Tournament).meta
+
+    assert_operator meta[:sources][:cc], :>=, 1
+    assert meta[:sources].key?(:none), "die Gruppe ohne Quellenangabe muss sichtbar bleiben"
+  end
+
   test "liefert dieselbe Form fuer Ligen" do
     League.create!(name: "Testliga 1", shortname: "TL1", season: @season,
       region_id: @region.id, discipline: @acht)
