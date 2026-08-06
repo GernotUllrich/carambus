@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Liga-Abdeckung — Regionen, Saisons, Disziplin-Zweige</title>
+<style>*,*::before,*::after{box-sizing:border-box}body{margin:0}img,svg{display:block;max-width:100%}</style>
+</head>
+<body>
+<style>
+:root{
+  --ground:#F6F7F4; --panel:#FFFFFF; --line:#DDE3DE; --line-soft:#EAEFEA;
+  --ink:#16211C; --ink-2:#41504A; --muted:#6E7B74;
+  --accent:#2E6B4E; --accent-ink:#FFFFFF;
+  --h0:#EFF2EE; --h1:#DCE9E0; --h2:#B9D6C4; --h3:#7FB697; --h4:#3F8460; --h5:#1D4E38;
+  --h4-ink:#FFFFFF; --h5-ink:#FFFFFF; --h3-ink:#12241B; --h0-ink:#96A29B;
+  --shadow:0 1px 2px rgba(20,40,30,.06), 0 8px 24px -16px rgba(20,40,30,.25);
+  --text:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --ground:#0F1513; --panel:#171F1B; --line:#2A3630; --line-soft:#212B26;
+    --ink:#E6EBE7; --ink-2:#AEBCB4; --muted:#84968C;
+    --accent:#57A87F; --accent-ink:#0C1310;
+    --h0:#1B2420; --h1:#22362B; --h2:#2C5140; --h3:#3E7A5C; --h4:#59A57E; --h5:#7FC7A0;
+    --h4-ink:#0C1310; --h5-ink:#0C1310; --h3-ink:#F2F7F4; --h0-ink:#55645C;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -16px rgba(0,0,0,.8);
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#0F1513; --panel:#171F1B; --line:#2A3630; --line-soft:#212B26;
+  --ink:#E6EBE7; --ink-2:#AEBCB4; --muted:#84968C;
+  --accent:#57A87F; --accent-ink:#0C1310;
+  --h0:#1B2420; --h1:#22362B; --h2:#2C5140; --h3:#3E7A5C; --h4:#59A57E; --h5:#7FC7A0;
+  --h4-ink:#0C1310; --h5-ink:#0C1310; --h3-ink:#F2F7F4; --h0-ink:#55645C;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -16px rgba(0,0,0,.8);
+}
+:root[data-theme="light"]{
+  --ground:#F6F7F4; --panel:#FFFFFF; --line:#DDE3DE; --line-soft:#EAEFEA;
+  --ink:#16211C; --ink-2:#41504A; --muted:#6E7B74;
+  --accent:#2E6B4E; --accent-ink:#FFFFFF;
+  --h0:#EFF2EE; --h1:#DCE9E0; --h2:#B9D6C4; --h3:#7FB697; --h4:#3F8460; --h5:#1D4E38;
+  --h4-ink:#FFFFFF; --h5-ink:#FFFFFF; --h3-ink:#12241B; --h0-ink:#96A29B;
+  --shadow:0 1px 2px rgba(20,40,30,.06), 0 8px 24px -16px rgba(20,40,30,.25);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--text);
+  font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1180px;margin:0 auto;padding:48px 24px 72px;display:flex;flex-direction:column;gap:40px}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--muted);margin:0 0 10px}
+h1{font-size:clamp(26px,3.4vw,38px);line-height:1.12;margin:0 0 12px;letter-spacing:-.02em;
+  text-wrap:balance;font-weight:650}
+.lede{margin:0;max-width:64ch;color:var(--ink-2);font-size:16px}
+.lede b{color:var(--ink);font-weight:620}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px 18px;
+  box-shadow:var(--shadow);display:flex;flex-direction:column;gap:2px}
+.card .name{font-size:13px;font-weight:640;letter-spacing:.01em}
+.card .big{font-family:var(--mono);font-size:28px;font-weight:600;letter-spacing:-.02em;
+  font-variant-numeric:tabular-nums;line-height:1.2}
+.card .sub{font-family:var(--mono);font-size:11.5px;color:var(--muted);letter-spacing:.02em}
+.bar{height:3px;border-radius:2px;background:var(--h2);margin-top:8px}
+.controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--panel)}
+.seg button{appearance:none;border:0;background:transparent;color:var(--ink-2);cursor:pointer;
+  font-family:var(--mono);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;
+  padding:8px 14px}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+.seg button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.hint{font-family:var(--mono);font-size:11.5px;color:var(--muted)}
+section.branch{display:flex;flex-direction:column;gap:12px}
+.bhead{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.bhead h2{margin:0;font-size:19px;font-weight:640;letter-spacing:-.01em}
+.bhead .meta{font-family:var(--mono);font-size:11.5px;color:var(--muted);letter-spacing:.02em}
+.scroll{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--panel);
+  box-shadow:var(--shadow)}
+table{border-collapse:separate;border-spacing:0;width:100%;font-variant-numeric:tabular-nums}
+th,td{padding:0;text-align:center}
+thead th{position:sticky;top:0;background:var(--panel);z-index:2;font-family:var(--mono);
+  font-size:10.5px;font-weight:500;color:var(--muted);letter-spacing:.04em;padding:9px 6px;
+  border-bottom:1px solid var(--line);white-space:nowrap}
+thead th.rowhead{left:0;z-index:3;text-align:left;padding-left:14px}
+tbody th{position:sticky;left:0;background:var(--panel);z-index:1;text-align:left;
+  padding:0 12px 0 14px;border-right:1px solid var(--line);border-bottom:1px solid var(--line-soft);
+  white-space:nowrap}
+tbody th .short{font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.03em}
+tbody th .full{display:block;font-size:10.5px;color:var(--muted);font-weight:400;
+  max-width:190px;overflow:hidden;text-overflow:ellipsis}
+tbody td{border-bottom:1px solid var(--line-soft);border-right:1px solid var(--line-soft)}
+tbody tr:last-child td,tbody tr:last-child th{border-bottom:0}
+.cell{display:block;font-family:var(--mono);font-size:11.5px;padding:7px 4px;min-width:42px}
+.l0{background:var(--h0);color:var(--h0-ink)}
+.l1{background:var(--h1);color:var(--ink-2)}
+.l2{background:var(--h2);color:var(--h3-ink)}
+.l3{background:var(--h3);color:var(--h3-ink)}
+.l4{background:var(--h4);color:var(--h4-ink)}
+.l5{background:var(--h5);color:var(--h5-ink)}
+tbody tr:hover td{filter:brightness(1.06)}
+tbody tr:hover th{color:var(--accent)}
+.legend{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-family:var(--mono);
+  font-size:11px;color:var(--muted);letter-spacing:.03em}
+.swatch{width:24px;height:12px;border-radius:2px;display:inline-block}
+footer{border-top:1px solid var(--line);padding-top:20px;display:flex;flex-direction:column;gap:10px}
+footer h3{margin:0;font-size:12px;font-family:var(--mono);letter-spacing:.14em;text-transform:uppercase;
+  color:var(--muted);font-weight:500}
+footer ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:7px;
+  color:var(--ink-2);font-size:13.5px;max-width:78ch}
+footer code{font-family:var(--mono);font-size:12.5px;background:var(--h0);padding:1px 5px;
+  border-radius:3px;color:var(--ink)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+<div class="wrap">
+  <p class="eyebrow" style="margin:0"><a href="./" style="color:inherit">← Übersichten</a></p>
+  <header>
+    <p class="eyebrow">Carambus · Authority-Bestand · Stand 6. August 2026</p>
+    <h1>Liga-Abdeckung nach Region, Saison und Disziplin-Zweig</h1>
+    <p class="lede"><b>6 418</b> Ligen über <b>17 Regionen</b>, <b>18 Saisons</b> und vier Zweige —
+      und anders als bei den Turnieren trägt hier <b>jede einzelne</b> eine Region und eine Disziplin.
+      An den Ligen hängen <b>223 182 Partien</b>, ausnahmslos zugeordnet. Der Zweig kommt wieder aus der
+      <b>Wurzel des Disziplin-Baums</b>, nicht aus <code>branch_id</code>.</p>
+  </header>
+
+  <div class="cards" id="cards"></div>
+
+  <div class="controls">
+    <div class="seg" role="group" aria-label="Darstellung">
+      <button type="button" data-mode="count" aria-pressed="true">Anzahl</button>
+      <button type="button" data-mode="presence" aria-pressed="false">Nur Abdeckung</button>
+    </div>
+    <span class="hint" id="legend-hint"></span>
+  </div>
+
+  <div id="matrices"></div>
+
+  <footer>
+    <h3>Woher die Zahlen kommen — und was gegenüber den Turnieren auffällt</h3>
+    <ul>
+      <li><b>Der Ligabestand ist vollständiger:</b> 0 Ligen ohne <code>region_id</code>, 0 ohne
+        <code>discipline_id</code>. Bei den Turnieren fehlt 433-mal die Region. Ligen entstehen
+        ausschließlich über die Verbands-Scrapes (ClubCloud, LigaManager, NuLiga), die beides immer
+        mitliefern — Turniere kommen zusätzlich aus internationalen Quellen ohne Regionsbezug.</li>
+      <li><b>Zweig-Zuordnung wie bei den Turnieren</b> über <code>Discipline#root</code>. Auch hier ist
+        <code>leagues.branch_id</code> unbrauchbar: nur 608 von 6 418 Ligen tragen sie.</li>
+      <li><b>Die Zweige verteilen sich anders als bei den Turnieren.</b> Snooker ist im Ligabetrieb mit
+        <b>17 von 17</b> Regionen am breitesten aufgestellt, obwohl es beim Turnierbestand nur 14 sind.
+        Kegel geht den umgekehrten Weg: 11 Regionen mit Turnieren, aber nur <b>3</b> mit Ligen.</li>
+      <li><b>Auch hier heißt eine leere Zelle „in Carambus nicht erfasst"</b>, nicht „kein Spielbetrieb".
+        HBU etwa führt 1 021 Turniere, aber nur 14 Ligen — das ist eine Aussage über die Datenquelle,
+        nicht über den hessischen Ligabetrieb.</li>
+    </ul>
+  </footer>
+</div>
+
+<script>
+const DATA = {"branches": [{"id": 23, "name": "Pool"}, {"id": 24, "name": "Snooker"}, {"id": 50, "name": "Karambol"}, {"id": 55, "name": "Kegel"}], "seasons": [{"id": 1, "name": "2009/2010"}, {"id": 2, "name": "2010/2011"}, {"id": 3, "name": "2011/2012"}, {"id": 4, "name": "2012/2013"}, {"id": 5, "name": "2013/2014"}, {"id": 6, "name": "2014/2015"}, {"id": 7, "name": "2015/2016"}, {"id": 8, "name": "2016/2017"}, {"id": 9, "name": "2017/2018"}, {"id": 10, "name": "2018/2019"}, {"id": 11, "name": "2019/2020"}, {"id": 12, "name": "2020/2021"}, {"id": 13, "name": "2021/2022"}, {"id": 14, "name": "2022/2023"}, {"id": 15, "name": "2023/2024"}, {"id": 16, "name": "2024/2025"}, {"id": 17, "name": "2025/2026"}, {"id": 18, "name": "2026/2027"}], "regions": [{"id": 3, "short": "BBV", "name": "Bayerischer Billardverband e.V."}, {"id": 12, "short": "BVW", "name": "Billard-Verband Westfalen e.V."}, {"id": 9, "short": "BVNR", "name": "Billard-Verband Niederrhein e.V."}, {"id": 8, "short": "BVBW", "name": "Billard-Verband Baden-Württemberg"}, {"id": 6, "short": "BLVN", "name": "Billard Landesverband Niedersachsen"}, {"id": 4, "short": "BLMR", "name": "Billard Landesverband Mittleres Rheinland"}, {"id": 14, "short": "BVS", "name": "Billard-Verband-Saar"}, {"id": 15, "short": "SBV", "name": "Sächsischer Billardverband"}, {"id": 1, "short": "NBV", "name": "Norddeutscher Billard Verband e.V."}, {"id": 10, "short": "BVRP", "name": "Billard Verband Rheinland-Pfalz 1989 e.V."}, {"id": 17, "short": "DBU", "name": "Deutsche Billard-Union"}, {"id": 16, "short": "TBV", "name": "Thüringer Billard Verband"}, {"id": 5, "short": "BLVSA", "name": "Billard Landesverband Sachsen-Anhalt"}, {"id": 7, "short": "BVB", "name": "Billard-Verband Berlin"}, {"id": 2, "short": "BBBV", "name": "Brandenburgischer Billardverband e.V."}, {"id": 13, "short": "HBU", "name": "Hessische Billard Union"}, {"id": 11, "short": "BVNRW", "name": "Billard-Verband Nordrhein-Westfalen e.V."}], "cells": {"23|4|9": 10, "50|5|4": 1, "50|9|5": 55, "24|15|7": 2, "23|16|9": 2, "23|15|9": 4, "23|16|10": 2, "55|12|9": 1, "50|14|8": 13, "50|8|9": 5, "23|1|17": 14, "23|8|2": 3, "24|14|11": 1, "23|9|16": 5, "23|10|9": 11, "55|12|10": 1, "23|4|14": 15, "24|7|17": 1, "50|17|16": 8, "50|6|6": 3, "24|7|16": 1, "50|1|7": 5, "24|5|4": 1, "24|1|8": 3, "24|9|8": 2, "23|3|1": 76, "50|3|12": 13, "50|12|11": 31, "24|5|3": 1, "24|10|3": 2, "50|3|3": 11, "24|6|5": 2, "23|16|2": 3, "55|17|15": 1, "23|15|15": 4, "23|3|2": 61, "50|3|16": 9, "50|12|10": 31, "23|8|9": 28, "24|8|10": 5, "23|8|16": 24, "23|16|1": 4, "24|14|10": 1, "23|5|10": 5, "23|2|14": 5, "23|3|10": 60, "50|10|11": 1, "24|10|11": 2, "24|2|16": 1, "23|8|15": 25, "24|14|7": 4, "23|5|2": 4, "24|1|13": 4, "23|9|12": 5, "24|6|2": 2, "50|3|15": 10, "23|3|9": 59, "23|6|9": 23, "50|10|5": 1, "50|12|2": 52, "24|12|16": 3, "50|3|11": 13, "23|6|1": 7, "50|8|6": 3, "50|1|15": 3, "23|10|10": 10, "24|1|4": 1, "50|1|3": 2, "24|17|15": 4, "23|16|11": 2, "50|6|3": 3, "24|5|6": 1, "23|6|16": 17, "24|15|12": 1, "50|9|10": 39, "23|12|7": 15, "50|14|17": 10, "50|3|8": 13, "50|9|8": 44, "24|8|2": 3, "50|3|6": 10, "50|6|5": 3, "24|16|3": 1, "24|5|13": 1, "50|9|6": 44, "50|3|9": 13, "24|15|17": 1, "50|16|1": 4, "24|5|5": 1, "50|8|14": 3, "23|14|12": 7, "24|6|14": 1, "24|8|6": 4, "24|8|15": 5, "50|12|1": 27, "50|12|4": 50, "24|6|11": 1, "50|3|4": 11, "24|16|1": 1, "23|7|18": 7, "50|12|12": 30, "50|6|4": 3, "50|10|6": 1, "50|6|10": 7, "50|5|9": 1, "50|10|4": 1, "23|7|15": 8, "23|1|2": 8, "50|10|9": 1, "23|10|7": 12, "24|16|15": 1, "23|9|3": 6, "55|15|1": 25, "23|15|7": 7, "50|14|11": 9, "24|13|13": 2, "50|3|13": 13, "23|3|5": 56, "23|14|10": 7, "23|12|1": 23, "24|8|8": 4, "50|17|17": 8, "23|2|18": 7, "50|6|12": 8, "50|7|18": 2, "24|16|16": 1, "24|15|15": 1, "50|9|7": 43, "24|14|8": 2, "50|5|11": 1, "50|1|13": 5, "50|12|13": 59, "24|10|13": 3, "50|1|2": 2, "24|6|9": 1, "50|14|7": 12, "50|14|18": 10, "23|4|15": 18, "23|10|13": 15, "23|16|6": 2, "23|3|17": 55, "23|15|1": 6, "23|9|1": 7, "50|12|5": 44, "50|3|14": 10, "24|6|10": 1, "24|16|13": 1, "23|16|4": 2, "50|6|13": 5, "23|4|4": 27, "24|15|14": 1, "24|9|12": 2, "23|9|18": 7, "24|16|12": 1, "55|12|6": 1, "50|14|2": 9, "50|6|11": 8, "50|7|15": 2, "24|6|3": 2, "55|15|10": 3, "50|5|3": 1, "23|1|18": 11, "23|8|5": 31, "23|3|8": 54, "50|9|13": 59, "23|1|3": 6, "50|8|5": 3, "23|7|13": 2, "50|9|1": 22, "23|12|16": 17, "24|9|13": 2, "24|10|9": 2, "23|12|17": 17, "24|6|17": 1, "24|9|6": 2, "23|1|12": 8, "23|10|4": 11, "24|5|1": 1, "50|3|1": 13, "24|17|13": 3, "24|3|6": 19, "50|10|13": 2, "23|3|3": 61, "23|17|2": 2, "24|14|5": 1, "50|1|4": 2, "50|14|13": 16, "50|8|2": 2, "50|5|15": 2, "24|2|18": 2, "50|14|10": 7, "50|14|15": 7, "55|15|17": 1, "24|14|6": 2, "55|15|7": 22, "24|1|6": 3, "23|12|11": 16, "50|1|6": 4, "50|1|1": 2, "50|10|17": 1, "50|1|8": 5, "23|6|13": 36, "50|9|12": 42, "24|14|3": 1, "55|12|11": 2, "23|13|13": 11, "24|12|14": 3, "24|9|4": 2, "23|14|14": 8, "23|5|13": 4, "50|14|6": 14, "23|9|9": 5, "50|12|18": 12, "50|12|9": 30, "50|14|12": 11, "24|17|2": 1, "55|15|13": 5, "24|1|9": 3, "23|10|1": 15, "50|12|6": 41, "24|9|10": 2, "24|16|11": 1, "23|1|13": 9, "24|1|3": 2, "23|17|14": 15, "24|3|5": 15, "24|6|13": 4, "23|5|1": 4, "24|16|6": 1, "50|17|13": 7, "24|15|4": 1, "55|17|13": 1, "50|6|2": 2, "23|14|8": 7, "24|15|9": 2, "24|15|13": 1, "50|14|3": 9, "50|5|14": 2, "24|15|3": 1, "24|1|10": 3, "24|10|1": 2, "23|10|17": 12, "24|9|1": 2, "23|1|8": 8, "24|7|18": 2, "50|9|4": 55, "23|5|15": 4, "23|6|11": 21, "23|6|3": 26, "24|1|18": 6, "24|15|2": 1, "23|4|2": 30, "23|15|17": 4, "50|14|9": 15, "23|16|15": 3, "23|1|11": 8, "50|5|2": 1, "23|8|17": 29, "50|6|14": 2, "24|3|18": 8, "23|5|14": 4, "50|6|15": 2, "50|8|10": 5, "50|9|9": 42, "24|6|7": 2, "50|16|2": 5, "50|8|11": 3, "50|1|9": 5, "24|17|18": 3, "24|6|8": 2, "23|12|4": 19, "24|16|7": 1, "23|3|16": 55, "23|1|5": 8, "50|9|3": 51, "24|14|9": 1, "23|10|5": 10, "50|9|14": 33, "23|14|5": 3, "24|3|3": 21, "23|12|6": 18, "23|1|4": 7, "50|5|12": 1, "50|7|17": 2, "24|10|8": 2, "55|15|6": 24, "24|1|14": 3, "50|9|18": 12, "24|5|8": 1, "50|3|2": 13, "24|1|15": 4, "24|16|4": 1, "23|14|7": 7, "50|5|8": 1, "24|9|9": 2, "23|3|6": 59, "50|17|14": 9, "50|8|8": 4, "23|12|9": 16, "50|8|4": 4, "23|3|12": 61, "24|5|11": 1, "50|8|7": 4, "50|12|16": 36, "23|6|15": 16, "23|1|7": 8, "23|12|8": 18, "23|6|17": 17, "50|3|18": 8, "50|16|7": 5, "24|15|1": 1, "23|6|6": 21, "23|4|1": 31, "50|17|15": 10, "23|15|10": 4, "50|16|3": 4, "24|10|4": 2, "50|10|8": 1, "50|14|5": 4, "50|8|12": 3, "23|15|5": 7, "23|6|12": 22, "23|5|4": 4, "24|1|16": 4, "50|9|16": 25, "23|15|13": 6, "23|12|13": 30, "24|3|9": 13, "23|14|11": 7, "50|8|13": 4, "24|3|14": 6, "24|8|16": 7, "23|16|5": 2, "55|15|9": 1, "24|5|9": 1, "24|14|13": 2, "50|1|12": 5, "23|15|2": 6, "55|15|11": 3, "23|4|6": 25, "50|16|12": 4, "50|5|6": 1, "23|16|7": 2, "24|15|16": 1, "23|15|16": 4, "23|12|3": 19, "23|15|12": 3, "23|5|6": 4, "24|1|12": 4, "55|15|3": 26, "50|8|17": 4, "23|9|7": 6, "24|6|6": 2, "50|12|3": 51, "55|12|12": 2, "24|15|5": 2, "24|6|15": 1, "24|8|12": 5, "50|12|17": 32, "24|9|15": 3, "23|12|2": 43, "23|9|17": 6, "24|2|13": 1, "23|8|7": 29, "23|9|15": 6, "24|12|15": 3, "24|5|7": 1, "23|10|15": 10, "24|8|11": 5, "24|8|5": 8, "24|9|7": 2, "23|4|12": 10, "24|6|4": 2, "23|6|4": 22, "24|1|2": 2, "23|15|6": 7, "23|9|13": 10, "50|3|10": 13, "23|1|6": 8, "23|14|18": 8, "24|3|13": 15, "23|9|10": 5, "23|16|8": 2, "23|6|7": 21, "23|10|3": 11, "50|17|18": 3, "50|8|18": 4, "50|6|7": 3, "50|16|6": 5, "50|1|11": 5, "23|14|13": 12, "23|4|8": 10, "23|8|8": 25, "50|6|9": 5, "55|15|2": 25, "24|8|7": 4, "24|3|17": 7, "23|1|14": 6, "23|4|3": 28, "50|3|5": 10, "50|5|5": 1, "24|3|4": 22, "23|16|14": 3, "23|3|15": 52, "50|5|7": 1, "23|10|2": 12, "50|7|14": 4, "23|3|4": 55, "23|15|3": 7, "23|16|17": 4, "23|9|8": 5, "24|8|1": 3, "23|8|6": 28, "23|10|16": 10, "50|8|1": 2, "50|9|17": 24, "24|15|6": 2, "23|8|18": 31, "24|1|7": 3, "24|3|2": 20, "23|6|14": 15, "23|5|3": 4, "50|16|16": 5, "24|3|12": 14, "50|5|13": 1, "24|7|14": 1, "24|10|10": 2, "23|12|5": 20, "55|15|15": 1, "24|6|18": 3, "23|12|12": 16, "24|8|18": 4, "24|3|15": 7, "24|16|17": 2, "23|2|17": 9, "24|1|5": 2, "23|4|10": 10, "24|3|11": 12, "50|9|11": 44, "23|9|2": 7, "50|16|5": 5, "24|9|2": 2, "23|10|11": 10, "23|5|9": 4, "24|2|17": 2, "24|5|10": 1, "50|10|7": 1, "50|14|16": 7, "24|15|11": 2, "50|6|8": 5, "23|2|13": 6, "23|3|13": 58, "50|10|10": 1, "23|2|16": 7, "23|16|3": 3, "24|6|16": 1, "23|16|16": 4, "24|15|8": 2, "23|3|18": 50, "50|6|17": 2, "24|10|15": 1, "24|14|17": 1, "23|9|4": 7, "24|10|7": 2, "24|17|16": 4, "24|9|5": 2, "50|16|14": 5, "23|14|17": 11, "24|14|12": 1, "24|8|13": 4, "55|15|12": 3, "23|17|18": 8, "55|12|13": 1, "23|4|5": 26, "24|16|5": 1, "23|15|18": 4, "23|6|18": 20, "23|15|14": 3, "23|8|12": 25, "50|5|10": 1, "24|10|14": 1, "50|10|14": 7, "23|5|12": 4, "23|8|14": 21, "23|1|15": 7, "24|3|16": 7, "50|12|8": 32, "23|17|17": 11, "23|2|15": 6, "23|15|11": 3, "23|3|7": 54, "23|4|7": 10, "24|3|7": 13, "23|1|9": 8, "23|10|6": 10, "23|1|16": 8, "23|14|2": 11, "23|12|10": 17, "23|15|8": 8, "23|5|11": 4, "23|16|13": 4, "23|7|14": 9, "23|9|11": 5, "50|1|17": 6, "23|4|13": 25, "50|9|2": 50, "50|11|14": 1, "55|15|5": 20, "55|15|8": 22, "24|8|17": 8, "50|12|7": 33, "23|6|10": 21, "24|5|15": 1, "23|3|14": 51, "23|17|16": 10, "23|17|13": 18, "23|4|11": 10, "50|14|14": 7, "50|3|7": 13, "50|16|13": 9, "23|6|2": 25, "24|16|14": 1, "23|5|5": 4, "23|8|1": 3, "23|5|8": 4, "24|16|8": 1, "50|14|1": 9, "23|4|17": 27, "23|1|10": 8, "23|8|10": 26, "24|9|11": 2, "23|9|6": 7, "50|16|4": 5, "24|16|9": 1, "55|17|14": 1, "24|1|11": 4, "23|12|14": 18, "23|16|12": 3, "23|15|4": 7, "24|16|2": 1, "23|6|8": 21, "24|10|5": 6, "24|10|12": 2, "50|3|17": 7, "23|4|18": 21, "50|16|8": 5, "24|1|17": 6, "24|9|14": 3, "23|3|11": 60, "24|14|4": 1, "50|16|17": 5, "50|10|12": 1, "23|12|18": 14, "24|3|10": 12, "23|8|13": 37, "23|14|15": 10, "24|2|14": 1, "50|6|16": 2, "24|5|2": 1, "55|15|4": 22, "23|9|14": 7, "24|8|4": 4, "50|1|10": 5, "24|15|10": 2, "50|8|15": 3, "24|3|1": 16, "24|10|6": 2, "24|7|15": 1, "50|16|15": 3, "23|14|4": 3, "50|8|16": 3, "24|7|13": 1, "50|7|16": 2, "24|4|13": 1, "50|9|15": 29, "23|8|11": 25, "23|5|7": 5, "23|10|8": 12, "24|17|14": 4, "23|14|6": 8, "50|12|14": 37, "24|9|3": 2, "24|8|9": 5, "24|6|12": 2, "23|14|9": 7, "24|8|14": 3, "24|3|8": 13, "50|16|11": 4, "23|17|15": 16, "55|15|16": 2, "50|13|13": 1, "50|12|15": 35, "23|9|5": 7, "24|5|12": 1, "50|1|16": 3, "24|17|17": 4, "50|16|10": 5, "55|12|8": 1, "23|1|1": 8, "55|15|14": 1, "50|16|9": 3, "23|14|16": 8, "24|10|2": 2, "24|16|10": 1, "23|14|1": 13, "55|12|5": 1, "23|12|15": 18, "24|2|15": 1, "23|6|5": 23, "23|4|16": 19, "24|10|16": 1, "24|11|14": 3, "23|14|3": 10, "23|7|16": 7, "24|10|17": 1, "24|1|1": 2, "23|10|14": 7, "23|10|12": 9, "23|7|17": 7, "23|8|4": 15}};
+
+const BRANCH_ORDER = ["Karambol","Pool","Snooker","Kegel"];
+const branches = [...DATA.branches].sort(
+  (a,b)=>BRANCH_ORDER.indexOf(a.name)-BRANCH_ORDER.indexOf(b.name));
+const seasons = DATA.seasons, regions = DATA.regions, cells = DATA.cells;
+const get=(b,r,s)=>cells[b+"|"+r+"|"+s]||0;
+const CURRENT = seasons[seasons.length-1];
+let mode="count";
+
+function level(n,max){
+  if(!n) return 0;
+  const t=Math.log(n+1)/Math.log(max+1);
+  if(t<=.18) return 1; if(t<=.36) return 2; if(t<=.58) return 3; if(t<=.80) return 4; return 5;
+}
+
+function renderCards(){
+  const el=document.getElementById("cards");
+  el.innerHTML = branches.map(b=>{
+    let total=0, regs=new Set(), cur=0, first=null;
+    for(const r of regions) for(const s of seasons){
+      const n=get(b.id,r.id,s.id);
+      if(n){ total+=n; regs.add(r.id); if(s.id===CURRENT.id) cur+=n;
+             if(first===null||s.name<first) first=s.name; }
+    }
+    return `<div class="card">
+      <span class="name">${b.name}</span>
+      <span class="big">${total.toLocaleString("de-DE")}</span>
+      <span class="sub">${regs.size} von ${regions.length} Regionen · ab ${first}</span>
+      <span class="sub">${cur} in ${CURRENT.name}</span>
+      <span class="bar" style="background:var(--h${Math.min(5,Math.max(2,Math.ceil(regs.size/regions.length*5)))})"></span>
+    </div>`;
+  }).join("");
+}
+
+function renderMatrices(){
+  const host=document.getElementById("matrices");
+  host.innerHTML = branches.map(b=>{
+    let max=0, total=0, regs=new Set();
+    for(const r of regions) for(const s of seasons){
+      const n=get(b.id,r.id,s.id); if(n>max) max=n; total+=n; if(n) regs.add(r.id);
+    }
+    const rows = regions.filter(r=>regs.has(r.id)).map(r=>{
+      const tds = seasons.map(s=>{
+        const n=get(b.id,r.id,s.id);
+        const lv = mode==="presence" ? (n?3:0) : level(n,max);
+        const label = mode==="presence" ? (n?"●":"·") : (n||"·");
+        return `<td><span class="cell l${lv}" title="${r.short} · ${s.name} · ${n} Turniere">${label}</span></td>`;
+      }).join("");
+      return `<tr><th scope="row"><span class="short">${r.short}</span>
+        <span class="full">${r.name}</span></th>${tds}</tr>`;
+    }).join("");
+    return `<section class="branch">
+      <div class="bhead">
+        <h2>${b.name}</h2>
+        <span class="meta">${total.toLocaleString("de-DE")} Turniere · ${regs.size} Regionen · max. ${max} in einer Zelle</span>
+      </div>
+      <div class="scroll"><table>
+        <thead><tr><th class="rowhead">Region</th>
+          ${seasons.map(s=>`<th>${s.name.slice(2,4)}/${s.name.slice(-2)}</th>`).join("")}</tr></thead>
+        <tbody>${rows}</tbody>
+      </table></div>
+    </section>`;
+  }).join("");
+}
+
+function renderLegendHint(){
+  const el=document.getElementById("legend-hint");
+  el.innerHTML = mode==="presence"
+    ? "● = mindestens ein Turnier erfasst · · = keines"
+    : `wenig <span class="swatch" style="background:var(--h1)"></span>`+
+      `<span class="swatch" style="background:var(--h2)"></span>`+
+      `<span class="swatch" style="background:var(--h3)"></span>`+
+      `<span class="swatch" style="background:var(--h4)"></span>`+
+      `<span class="swatch" style="background:var(--h5)"></span> viel · Skala je Zweig`;
+}
+
+document.querySelectorAll(".seg button").forEach(btn=>{
+  btn.addEventListener("click",()=>{
+    mode=btn.dataset.mode;
+    document.querySelectorAll(".seg button").forEach(o=>
+      o.setAttribute("aria-pressed", String(o.dataset.mode===mode)));
+    renderMatrices(); renderLegendHint();
+  });
+});
+
+renderCards(); renderMatrices(); renderLegendHint();
+</script>
+
+</body>
+</html>
