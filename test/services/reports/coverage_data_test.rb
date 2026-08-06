@@ -107,6 +107,29 @@ class Reports::CoverageDataTest < ActiveSupport::TestCase
     assert_equal 1, kinds[:none], "ohne source_url bleibt es bei 'keine Angabe' — nicht bei 'CC'"
   end
 
+  # Betreiber 2026-08-06: der Altbestand ohne source_url stammt aus der BillardArea. Die Quelle ist
+  # offline, deshalb gibt es keine URL — die `ba_id` ist die einzige Spur. Gegenprobe in den Daten:
+  # von 4 719 Turnieren MIT source_url trug kein einziges eine ba_id.
+  test "ohne source_url, aber mit ba_id ist BillardArea" do
+    tournament(@dreiband, ba_id: 4711)
+    tournament(@dreiband, source_url: nil, ba_id: nil)
+
+    kinds = Reports::CoverageData.for(Tournament).sources["#{@karambol.id}|#{@region.id}|#{@season.id}"]
+
+    assert_equal 1, kinds[:billard_area]
+    assert_equal 1, kinds[:none], "ohne beide Spuren bleibt es bei 'keine Angabe'"
+  end
+
+  test "eine spaeter nachgescrapte CC-URL schlaegt die ba_id" do
+    tournament(@dreiband, ba_id: 4712,
+      source_url: "https://ndbv.de/sb_meisterschaft.php?p=20--2026/2027-46-")
+
+    kinds = Reports::CoverageData.for(Tournament).sources["#{@karambol.id}|#{@region.id}|#{@season.id}"]
+
+    assert_equal 1, kinds[:cc], "wo eine Quell-URL steht, gewinnt sie"
+    assert_equal 0, kinds[:billard_area], "die ba_id darf daneben nicht mitzaehlen"
+  end
+
   test "kennzeichnet Regionen ohne CC-Anschluss" do
     tournament(@dreiband)
 

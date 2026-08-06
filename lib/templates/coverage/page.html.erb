@@ -15,7 +15,7 @@
   --accent:#2E6B4E; --accent-ink:#FFFFFF;
   --h0:#EFF2EE; --h1:#DCE9E0; --h2:#B9D6C4; --h3:#7FB697; --h4:#3F8460; --h5:#1D4E38;
   --h4-ink:#FFFFFF; --h5-ink:#FFFFFF; --h3-ink:#12241B; --h0-ink:#96A29B;
-  --s-cc:#CDD6D0; --s-none:#F1F3F0; --s-none-line:#E1E6E2; --s-nu:#3F7CA8; --s-lm:#A9762A; --s-ca:#2E6B4E; --s-ot:#77689E;
+  --s-cc:#CDD6D0; --s-none:#F1F3F0; --s-none-line:#E1E6E2; --s-nu:#3F7CA8; --s-lm:#A9762A; --s-ca:#2E6B4E; --s-ot:#77689E; --s-ba:#B3A489;
   --shadow:0 1px 2px rgba(20,40,30,.06), 0 8px 24px -16px rgba(20,40,30,.25);
   --text:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
   --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
@@ -27,7 +27,7 @@
     --accent:#57A87F; --accent-ink:#0C1310;
     --h0:#1B2420; --h1:#22362B; --h2:#2C5140; --h3:#3E7A5C; --h4:#59A57E; --h5:#7FC7A0;
     --h4-ink:#0C1310; --h5-ink:#0C1310; --h3-ink:#F2F7F4; --h0-ink:#55645C;
-    --s-cc:#333F39; --s-none:#161E1A; --s-none-line:#202A25; --s-nu:#5EA3CE; --s-lm:#CC9A45; --s-ca:#57A87F; --s-ot:#9C8CC4;
+    --s-cc:#333F39; --s-none:#161E1A; --s-none-line:#202A25; --s-nu:#5EA3CE; --s-lm:#CC9A45; --s-ca:#57A87F; --s-ot:#9C8CC4; --s-ba:#6E6350;
     --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -16px rgba(0,0,0,.8);
   }
 }
@@ -36,7 +36,7 @@
   --ink:#E6EBE7; --ink-2:#AEBCB4; --muted:#84968C;
   --accent:#57A87F; --accent-ink:#0C1310;
   --h0:#1B2420; --h1:#22362B; --h2:#2C5140; --h3:#3E7A5C; --h4:#59A57E; --h5:#7FC7A0;
-  --s-cc:#333F39; --s-none:#161E1A; --s-none-line:#202A25; --s-nu:#5EA3CE; --s-lm:#CC9A45; --s-ca:#57A87F; --s-ot:#9C8CC4;
+  --s-cc:#333F39; --s-none:#161E1A; --s-none-line:#202A25; --s-nu:#5EA3CE; --s-lm:#CC9A45; --s-ca:#57A87F; --s-ot:#9C8CC4; --s-ba:#6E6350;
   --h4-ink:#0C1310; --h5-ink:#0C1310; --h3-ink:#F2F7F4; --h0-ink:#55645C;
   --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -16px rgba(0,0,0,.8);
 }
@@ -45,7 +45,7 @@
   --ink:#16211C; --ink-2:#41504A; --muted:#6E7B74;
   --accent:#2E6B4E; --accent-ink:#FFFFFF;
   --h0:#EFF2EE; --h1:#DCE9E0; --h2:#B9D6C4; --h3:#7FB697; --h4:#3F8460; --h5:#1D4E38;
-  --s-cc:#CDD6D0; --s-none:#F1F3F0; --s-none-line:#E1E6E2; --s-nu:#3F7CA8; --s-lm:#A9762A; --s-ca:#2E6B4E; --s-ot:#77689E;
+  --s-cc:#CDD6D0; --s-none:#F1F3F0; --s-none-line:#E1E6E2; --s-nu:#3F7CA8; --s-lm:#A9762A; --s-ca:#2E6B4E; --s-ot:#77689E; --s-ba:#B3A489;
   --h4-ink:#FFFFFF; --h5-ink:#FFFFFF; --h3-ink:#12241B; --h0-ink:#96A29B;
   --shadow:0 1px 2px rgba(20,40,30,.06), 0 8px 24px -16px rgba(20,40,30,.25);
 }
@@ -123,6 +123,7 @@ footer code{font-family:var(--mono);font-size:12.5px;background:var(--h0);paddin
 .s-nu_liga{background:var(--s-nu);color:#fff}
 .s-liga_manager{background:var(--s-lm);color:#fff}
 .s-carambus{background:var(--s-ca);color:#fff}
+.s-billard_area{background:var(--s-ba);color:#fff}
 .s-other{background:var(--s-ot);color:#fff}
 .mark{box-shadow:inset 3px 0 0 var(--mark)}
 .badge{display:inline-block;font-family:var(--mono);font-size:9.5px;letter-spacing:.06em;
@@ -175,20 +176,24 @@ const CURRENT = seasons[seasons.length-1];
 let mode="count";
 
 // Die ClubCloud ist der Normalfall; Farbe bekommt, was NICHT von dort kommt.
-const SOURCE_LABEL={cc:"ClubCloud",nu_liga:"NuLiga",liga_manager:"LigaManager",
-  carambus:"Carambus (CC-los)",other:"andere Quelle",none:"ohne Quellenangabe"};
-const SOURCE_SHORT={cc:"CC",nu_liga:"NL",liga_manager:"LM",carambus:"CA",other:"?",none:"·"};
-const NON_CC=["nu_liga","liga_manager","carambus","other"];
+const SOURCE_LABEL={cc:"ClubCloud",billard_area:"BillardArea (offline)",nu_liga:"NuLiga",
+  liga_manager:"LigaManager",carambus:"Carambus (CC-los)",other:"andere Quelle",
+  none:"ohne Quellenangabe"};
+const SOURCE_SHORT={cc:"CC",billard_area:"BA",nu_liga:"NL",liga_manager:"LM",carambus:"CA",
+  other:"?",none:"·"};
+const NON_CC=["carambus","liga_manager","nu_liga","other","billard_area"];
+const MARK_VAR={carambus:"ca",liga_manager:"lm",nu_liga:"nu",other:"ot",billard_area:"ba"};
 
 function dominant(s){
   let best=null, n=-1;
   for(const k of Object.keys(s)){ if(s[k]>n){ n=s[k]; best=k; } }
   return best;
 }
+// Reihenfolge, nicht Menge: in einer Zelle mit BillardArea-Altbestand UND einer aktiven
+// Nicht-CC-Quelle soll die aktive den Balken bestimmen.
 function nonCcKind(s){
-  let best=null, n=0;
-  for(const k of NON_CC){ if((s[k]||0)>n){ n=s[k]; best=k; } }
-  return best;
+  for(const k of NON_CC){ if(s[k]) return k; }
+  return null;
 }
 function level(n,max){
   if(!n) return 0;
@@ -234,7 +239,7 @@ function renderMatrices(){
         else {
           cls="l"+level(n,max); label=n;
           const nc=nonCcKind(so);
-          if(nc){ cls+=" mark"; style=` style="--mark:var(--s-${nc==="nu_liga"?"nu":nc==="liga_manager"?"lm":nc==="carambus"?"ca":"ot"})"`; }
+          if(nc){ cls+=" mark"; style=` style="--mark:var(--s-${MARK_VAR[nc]})"`; }
         }
         return `<td><span class="cell ${cls}"${style} title="${tip(r,s,n,so)}">${label}</span></td>`;
       }).join("");
@@ -264,7 +269,7 @@ function renderLegendHint(){
   if(mode==="source"){
     el.innerHTML = swatch("s-cc","CC — ClubCloud")+swatch("s-nu","NL — NuLiga")+
       swatch("s-lm","LM — LigaManager")+swatch("s-ca","CA — Carambus, CC-los")+
-      swatch("s-none","· — ohne Quellenangabe")+
+      swatch("s-ba","BA — BillardArea, offline")+swatch("s-none","· — ohne Quellenangabe")+
       '<span class="key">Farbe = überwiegende Quelle der Zelle</span>';
     return;
   }

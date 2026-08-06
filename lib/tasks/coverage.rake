@@ -153,19 +153,26 @@ end
 # Scrape tatsächlich steuert, nicht aus einer gepflegten Nebenliste.
 def source_footnotes(data, label)
   s = data.meta[:sources]
-  nicht_cc = s[:nu_liga] + s[:liga_manager] + s[:carambus] + s[:other]
+  nicht_cc = s[:nu_liga] + s[:liga_manager] + s[:carambus] + s[:other] + s[:billard_area]
   ohne_cc_anschluss = data.regions.reject { |r| r[:cc] }.map { |r| r[:short] }
 
   notes = li("<b>Was nicht aus der ClubCloud stammt</b> ist farbig markiert — im Modus „Quelle“ " \
              "flächig, sonst als Balken links in der Zelle. Nachweislich nicht aus einer CC stammen " \
-             "<b>#{num(nicht_cc)}</b> #{label}: #{num(s[:nu_liga])} aus NuLiga, " \
-             "#{num(s[:liga_manager])} aus dem LigaManager, #{num(s[:carambus])} aus Carambus selbst " \
-             "(CC-loser Ablauf), #{num(s[:other])} aus sonstigen Quellen. Aus einer ClubCloud kommen " \
-             "#{num(s[:cc])}, erkannt am URL-Muster des Quellsystems.")
-  notes += li("<b>Die größte Gruppe trägt gar keine Quellenangabe:</b> #{num(s[:none])} #{label} " \
-              "ohne <code>source_url</code> — Altbestand, dessen Herkunft sich aus dem Datensatz nicht " \
-              "mehr ableiten lässt. Diese Zellen sind schraffiert und bleiben ungefärbt; sie als " \
-              "„ClubCloud“ zu zählen wäre geraten.")
+             "<b>#{num(nicht_cc)}</b> #{label}: #{num(s[:billard_area])} aus der BillardArea, " \
+             "#{num(s[:nu_liga])} aus NuLiga, #{num(s[:liga_manager])} aus dem LigaManager, " \
+             "#{num(s[:carambus])} aus Carambus selbst (CC-loser Ablauf), #{num(s[:other])} aus " \
+             "sonstigen Quellen. Aus einer ClubCloud kommen #{num(s[:cc])}, erkannt am URL-Muster " \
+             "des Quellsystems.")
+  notes += li("<b>Der Altbestand kommt aus der BillardArea:</b> #{num(s[:billard_area])} #{label} tragen " \
+              "keine <code>source_url</code>, aber eine <code>ba_id</code> — die Quelle ist seit Jahren " \
+              "offline, deshalb gibt es dafür keine URL mehr. Die beiden Felder schließen einander " \
+              "praktisch aus, was die Zuordnung eindeutig macht. Auch das ist <b>nicht</b> ClubCloud, " \
+              "bekommt aber einen ruhigen Ton: es ist Archiv, kein laufender Kanal.")
+  if s[:none].positive?
+    notes += li("<b>Wirklich ohne Herkunftsspur</b> bleiben #{num(s[:none])} #{label} — weder " \
+                "<code>source_url</code> noch <code>ba_id</code>. Diese Zellen sind schraffiert und " \
+                "bleiben ungefärbt; sie einer Quelle zuzuschlagen wäre geraten.")
+  end
   unless ohne_cc_anschluss.empty?
     notes += li("<b>Ohne CC-Anschluss</b> (Kennzeichnung an der Region): " \
                 "#{ohne_cc_anschluss.join(", ")}. Diese Verbände stehen nicht in " \

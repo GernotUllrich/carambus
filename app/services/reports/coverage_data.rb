@@ -28,8 +28,8 @@ module Reports
       carambus: ["carambus.de"]
     }.freeze
 
-    # Reihenfolge der Auswertung/Anzeige; :none = Record ohne `source_url`.
-    SOURCE_KINDS = %i[cc nu_liga liga_manager carambus other none].freeze
+    # Reihenfolge der Auswertung/Anzeige; :none = Record ohne jede Herkunftsspur.
+    SOURCE_KINDS = %i[cc billard_area nu_liga liga_manager carambus other none].freeze
 
     def self.for(model)
       new(model).call
@@ -44,14 +44,14 @@ module Reports
       sources = Hash.new { |h, k| h[k] = Hash.new(0) }
       unmapped = 0
 
-      @model.where.not(region_id: nil).pluck(:region_id, :season_id, :discipline_id, :source_url)
-        .each do |region_id, season_id, discipline_id, source_url|
+      @model.where.not(region_id: nil).pluck(:region_id, :season_id, :discipline_id, :source_url, :ba_id)
+        .each do |region_id, season_id, discipline_id, source_url, ba_id|
         branch_id = branch_of_discipline[discipline_id]
         next unmapped += 1 if branch_id.nil? || season_id.nil?
 
         key = [branch_id, region_id, season_id]
         cells[key] += 1
-        sources[key][source_kind(source_url)] += 1
+        sources[key][source_kind(source_url, ba_id)] += 1
       end
 
       Result.new(
@@ -76,8 +76,18 @@ module Reports
     # steht oben, was die meisten Leser zuerst suchen. Unbekannte Zweige hängen hinten an.
     BRANCH_ORDER = %w[Karambol Pool Snooker Kegel].freeze
 
-    def source_kind(source_url)
-      return :none if source_url.blank?
+    # `source_url` gewinnt, wo sie steht: ein Datensatz, der spaeter aus einer CC nachgescrapt
+    # wurde, traegt beides (32 Ligen) und gehoert dann zur CC.
+    #
+    # OHNE `source_url`, ABER MIT `ba_id` = BillardArea (Betreiber 2026-08-06). Die Quelle ist
+    # nicht mehr online, deshalb gibt es dafuer keine URL. Gemessen: bei den Ligen tragen ALLE
+    # 4 558 Datensaetze ohne source_url eine ba_id und enden exakt mit 2021/2022; bei den Turnieren
+    # 12 974 von 13 342. Die beiden Felder schliessen einander sonst aus — von 4 719 Turnieren mit
+    # source_url hat kein einziges eine ba_id.
+    def source_kind(source_url, ba_id)
+      if source_url.blank?
+        return ba_id.present? ? :billard_area : :none
+      end
 
       SOURCE_PATTERNS.each do |kind, needles|
         return kind if needles.any? { |needle| source_url.include?(needle) }
