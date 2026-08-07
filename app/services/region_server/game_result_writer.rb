@@ -15,9 +15,10 @@ module RegionServer
   # Nie aufgefallen, weil die Kette nie live lief.
   #
   # ROLLEN SIND NICHT FREI WAEHLBAR: "playera"/"playerb". Der Authority-Importer mappt sie ueber
-  # ROLE_MAP auf "Heim"/"Gast" und verwirft Zeilen mit unbekannter Rolle STILL
-  # (game_result_importer.rb:135-152) — ein Spiel mit "Heim"/"Gast" saehe lokal richtig aus und
-  # verschwaende beim Authority-Pull spurlos.
+  # ROLE_MAP auf "Heim"/"Gast" (game_result_importer.rb:170) und verwirft in resolve_participations
+  # jedes Spiel mit unbekannter Rolle (game_result_importer.rb:174-186) — ein Spiel mit "Heim"/"Gast"
+  # wuerde global nie entstehen. Es verschwindet nicht spurlos (es zaehlt unter players_unresolved),
+  # ist dort aber nicht von einer echten Spieler-Luecke (DBU-Nr nicht gefunden) zu unterscheiden.
   class GameResultWriter
     ROLE_A = "playera"
     ROLE_B = "playerb"
