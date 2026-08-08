@@ -45,8 +45,10 @@ class PartyMonitorsControllerTest < ActionDispatch::IntegrationTest
 
   test "should create party_monitor" do
     assert_difference("PartyMonitor.count") do
+      # party_id muss gesetzt sein: das Broadcast-Template des Controllers greift
+      # ueber party.league zu und lief mit party_id: nil in einen 500er.
       post party_monitors_url, params: { party_monitor: {
-        party_id: nil,
+        party_id: parties(:party_one).id,
         state: "seeding_mode",
         started_at: @party_monitor.started_at,
         ended_at: @party_monitor.ended_at

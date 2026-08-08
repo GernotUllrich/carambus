@@ -171,7 +171,10 @@ class McpServer::Tools::LookupTeilnehmerlisteTest < ActiveSupport::TestCase
   test "DEFER-25-9: branchId Default nutzt branch_cc.cc_id (admin-cc-id), nicht Rails-FK" do
     region_cc_stub = Struct.new(:cc_id).new(20)
     branch_cc_stub = Struct.new(:cc_id, :region_cc).new(7, region_cc_stub)
-    tournament_cc_stub = Struct.new(:branch_cc, :branch_cc_id, :season, :name).new(branch_cc_stub, 3, "2025/2026", nil)
+    # :tournament muss im Stub existieren — live_lookup fragt tournament_cc.tournament
+    # fuer discipline_scope_note/public_view_hint ab (nil ist hier der richtige Wert).
+    tournament_cc_stub = Struct.new(:branch_cc, :branch_cc_id, :season, :name, :tournament)
+      .new(branch_cc_stub, 3, "2025/2026", nil, nil)
 
     captured_p_params = []
     show_body = "<html><body><table></table></body></html>"

@@ -18,8 +18,7 @@ class JwtLoginRouteTest < ActionDispatch::IntegrationTest
     @user = User.create!(
       email: "jwt-login-route@test.de",
       password: "password123",
-
-
+      confirmed_at: Time.zone.now # User ist :confirmable → ohne Bestätigung liefert POST /login 401
     )
   end
 

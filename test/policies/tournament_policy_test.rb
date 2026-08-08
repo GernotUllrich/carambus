@@ -12,6 +12,9 @@ class TournamentPolicyTest < ActiveSupport::TestCase
     @location = locations(:one)
     @discipline = disciplines(:carom_3band)
 
+    # D-38: Sportwart-Mitgliedschaft ist EXPLIZIT über persona_grants — Listen-Präsenz
+    # allein macht keinen Sportwart mehr (siehe UserPersonas#sportwart?).
+    @sportwart_user.update!(persona_grants: ["sportwart"])
     @sportwart_user.sportwart_locations << @location
     @sportwart_user.sportwart_disciplines << @discipline
 

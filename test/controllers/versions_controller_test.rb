@@ -41,9 +41,9 @@ class VersionsControllerTest < ActionDispatch::IntegrationTest
     end
 
     assert_response :success
-    # In der Testumgebung liefert Season.current_season nichts (keine per-Datum aktuelle Fixture) —
-    # entscheidend ist, dass der Fallback DARAUF greift und nicht auf einen falschen Wert.
-    assert_nil captured[:season], "ohne season_id + ohne current_season => nil (kein Fehlgriff)"
+    # Fallback ist Season.current_season — nie ein beliebiger anderer Wert.
+    assert_equal Season.current_season&.id, captured[:season]&.id,
+      "ohne season_id => current_season (kein Fehlgriff)"
   end
 
   # Ohne den Parameter bleibt get_updates der reine Versions-Pull — der Importer darf NICHT laufen.

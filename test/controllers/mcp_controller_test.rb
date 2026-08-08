@@ -8,18 +8,19 @@ class McpControllerTest < ActionDispatch::IntegrationTest
   include Devise::Test::IntegrationHelpers
 
   setup do
+    # confirmed_at: User ist :confirmable → ohne Bestätigung endet sign_in im 302 auf /login
     @public_read_user = User.create!(
       email: "mcp_public@example.com", password: "password123",
-
+      confirmed_at: Time.zone.now
     )
     # Plan 14-02.1-fix / D-14-02-G: cc_region ist Pflicht für mcp_role > public_read
     @sportwart_user = User.create!(
       email: "mcp_sport@example.com", password: "password123",
-
+      confirmed_at: Time.zone.now
     )
     @admin_user = User.create!(
       email: "mcp_admin@example.com", password: "password123",
-
+      confirmed_at: Time.zone.now
     )
   end
 
@@ -49,12 +50,18 @@ class McpControllerTest < ActionDispatch::IntegrationTest
   # Plan 14-G.2 / D-14-G6: Per-Role-Tool-Subset-Tests (mcp_public_read/sportwart) gelöscht
   # (Stub gibt ALL_TOOLS; Per-Record-Authority via BaseTool.authorize! in 14-G.4).
 
-  test "POST /mcp with any authenticated user returns all 22 Tools (Stub: ALL_TOOLS for everyone)" do
+  # Die Liste kommt aus McpServer::ToolRegistry.tool_classes_for(current_user) und ist
+  # rollenabhaengig (nicht mehr ALL_TOOLS fuer jeden). Der Drift-Guard auf die
+  # Gesamtmenge lebt in test/mcp_server/role_tool_map_test.rb; hier zaehlt nur, dass
+  # ein authentifizierter User die fuer seine Rolle vorgesehene Liste bekommt.
+  test "POST /mcp with an authenticated user returns the role's tool list" do
     sign_in @admin_user
     post "/mcp?stateless=1", params: tools_list_payload.to_json, headers: {"Content-Type" => "application/json"}
     assert_response :success
     body = JSON.parse(response.body)
-    assert_equal 22, body.dig("result", "tools").size, "Stub: alle authentifizierten User bekommen 22 Tools"
+    expected = McpServer::ToolRegistry.tool_classes_for(@admin_user).size
+    assert_operator expected, :>, 0, "Rolle muss ueberhaupt Tools bekommen"
+    assert_equal expected, body.dig("result", "tools").size
   end
 
   test "POST /mcp?stateless=1 initialisiert StreamableHTTPTransport ohne Crash" do

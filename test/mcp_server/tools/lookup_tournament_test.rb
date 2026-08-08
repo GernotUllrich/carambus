@@ -148,9 +148,11 @@ class McpServer::Tools::LookupTournamentTest < ActiveSupport::TestCase
     assert @mock.calls.empty?, "Ohne with_committed_list darf KEIN CC-Call passieren — got #{@mock.calls.inspect}"
   end
 
-  test "with_committed_list: ohne registration_list_cc-Beziehung → committed_players:nil + meta-Warnung" do
-    sample = TournamentCc.where.not(cc_id: nil).where.not(context: nil).where(registration_list_cc_id: nil).first
-    skip "No TournamentCc without registration_list_cc available" unless sample
+  # Plan 23-01 T1a/T1b: meldeliste_cc_id liegt direkt am TournamentCc; die
+  # RegistrationListCc-Zwischentabelle (und die FK-Spalte) wurden gedroppt.
+  test "with_committed_list: ohne meldeliste_cc_id → committed_players:nil + meta-Warnung" do
+    sample = TournamentCc.where.not(cc_id: nil).where.not(context: nil).where(meldeliste_cc_id: nil).first
+    skip "No TournamentCc without meldeliste_cc_id available" unless sample
 
     response = McpServer::Tools::LookupTournament.call(
       meisterschaft_id: sample.cc_id,

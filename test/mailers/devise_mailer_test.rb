@@ -64,18 +64,15 @@ class DeviseMailerTest < ActionMailer::TestCase
     # CHARAKTERISIERUNG der Sender-Diskrepanz (T-41-INFRA-01):
     # - ApplicationMailer.default from: Carambus.config.support_email (parent_mailer-Pfad)
     # - Devise.mailer_sender = ENV["SMTP_USERNAME"] || "no-reply@carambus.de"
-    # Im Test-Env ist Carambus.config.support_email = nil (carambus.yml test-Section),
-    # daher greift der Devise.mailer_sender-Fallback ("no-reply@carambus.de").
-    # In Production hingegen ist support_email = "gernot.ullrich@gmx.de" gesetzt — dort
-    # divergieren die beiden Sender. Plan-04 wird diese Divergenz angleichen; dieser
-    # Test lockt den IST-Wert pro Env.
+    # Devise-Mails gehen IMMER ueber Devise.mailer_sender — auch dann, wenn
+    # Carambus.config.support_email gesetzt ist (im default-Block der carambus.yml
+    # ist es das). Genau das ist die Divergenz; Plan-04 wird sie angleichen.
     I18n.with_locale(:de) do
       @user.send_reset_password_instructions
     end
     mail = last_email
     refute_nil mail.from, "from-Header muss gesetzt sein"
-    expected_sender = Carambus.config.support_email.presence || Devise.mailer_sender
-    assert_includes mail.from, expected_sender,
-      "from sollte support_email (wenn gesetzt) sonst Devise.mailer_sender enthalten — Divergenz dokumentiert in T-41-INFRA-01"
+    assert_includes mail.from, Devise.mailer_sender,
+      "Devise-Mails nutzen Devise.mailer_sender, NICHT support_email — Divergenz dokumentiert in T-41-INFRA-01"
   end
 end

@@ -17,7 +17,10 @@ class RemoveTournamentLeiterTest < ActiveSupport::TestCase
       date: 1.week.from_now
     )
     @tcc = TournamentCc.create!(cc_id: 80_202, context: "nbv", tournament: @tournament)
-    @sportwart = User.create!(email: "rtl_sw@test.de", password: "password123")
+    # D-38: Sportwart-Persona EXPLIZIT via persona_grants; die Listen darunter
+    # verfeinern nur den Wirkbereich (siehe UserPersonas#sportwart?).
+    @sportwart = User.create!(email: "rtl_sw@test.de", password: "password123",
+      persona_grants: ["sportwart"])
     @sportwart.sportwart_locations << @location
     @sportwart.sportwart_disciplines << @discipline
     @random = User.create!(email: "rtl_random@test.de", password: "password123")

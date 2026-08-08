@@ -22,18 +22,9 @@ class McpServer::Tools::BaseToolResolvedEchoTest < ActiveSupport::TestCase
     assert_equal false, resolved[:ambiguous]
   end
 
-  test "RegistrationListCc-Entity liefert resolved-Hash mit registration_list_-Feldern" do
-    rl = RegistrationListCc.first
-    skip "No RegistrationListCc fixtures loaded" unless rl
-
-    result = McpServer::Tools::BaseTool.resolved_echo(entity: rl, matched_by: "name_match")
-    resolved = result[:resolved]
-    assert_equal rl.id, resolved[:registration_list_id]
-    assert_equal rl.cc_id, resolved[:registration_list_cc_id]
-    assert_equal rl.context, resolved[:region]
-    assert_equal "name_match", resolved[:matched_by]
-    assert_equal false, resolved[:ambiguous]
-  end
+  # Der frueher hier getestete RegistrationListCc-Zweig von resolved_echo ist
+  # entfallen: die Zwischentabelle wurde in Plan 23-01 T1b ersatzlos gedroppt,
+  # die meldeliste-Felder liegen seither direkt am TournamentCc (Test oben).
 
   test "nil-Entity liefert {resolved: nil} (kein crash)" do
     result = McpServer::Tools::BaseTool.resolved_echo(entity: nil)
