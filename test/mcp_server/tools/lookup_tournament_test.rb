@@ -12,7 +12,10 @@ require "test_helper"
 # - F-6 Sportwart-Vokabular in Error-Messages
 class McpServer::Tools::LookupTournamentTest < ActiveSupport::TestCase
   setup do
-    ENV["CARAMBUS_MCP_MOCK"] = "1"
+    # KEIN ENV["CARAMBUS_MCP_MOCK"] hier: CcSession#client_for prueft mock_mode? VOR
+    # _client_override und liefert dann einen frischen generischen MockClient — der
+    # @mock unten (samt seiner ueberschriebenen post-Methode) käme nie zum Zug.
+    # Etabliertes Muster ist `_client_override` + `reset!` (vgl. LookupTeilnehmerlisteTest).
     ENV["CC_FED_ID"] = nil
     ENV["CC_REGION"] = nil
     McpServer::CcSession.reset!
@@ -23,7 +26,6 @@ class McpServer::Tools::LookupTournamentTest < ActiveSupport::TestCase
   end
 
   teardown do
-    ENV["CARAMBUS_MCP_MOCK"] = nil
     ENV["CC_FED_ID"] = nil
     ENV["CC_REGION"] = nil
     McpServer::CcSession._client_override = nil
@@ -164,9 +166,10 @@ class McpServer::Tools::LookupTournamentTest < ActiveSupport::TestCase
 
     assert_nil body["committed_players"]
     assert body["meta"], "meta soll Warnung enthalten"
-    assert_match(/registration_list_cc/i, body["meta"]["committed_list_warning"])
-    # Defensive: kein CC-Call gemacht (nichts aufzulösen)
-    assert @mock.calls.empty?
+    # Der Live-Fix von 2026-06-15/16 versucht die meldeliste_cc_id erst ueber CC
+    # aufzuloesen (leerer Mirror = Sync-Loch, nicht "keine Meldeliste"); erst wenn
+    # das nichts Eindeutiges liefert, kommt der Hinweis an den Sportwart.
+    assert_match(/Meldeliste.*nicht aufgelöst/i, body["meta"]["committed_list_warning"])
   end
 
   test "with_committed_list: meldeliste_cc_id-Override → CC-Call mit 8-Felder-Payload + Player-cc_ids geparst" do

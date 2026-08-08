@@ -1,0 +1,52 @@
+# TournamentCc-Fixtures (CC-Spiegel der Turniere)
+#
+# Die MCP-Lookup-Tests suchen sich ihr Sample per Query aus der DB
+# (`TournamentCc.where.not(cc_id: nil).where.not(context: nil).first` u.ae.) und
+# skippten ohne diese Datei samt und sonders. Damit `.first` — das ohne ORDER BY
+# keine feste Reihenfolge garantiert — nie einen untauglichen Datensatz liefert,
+# erfuellen BEIDE Records die allgemeinen Bedingungen: cc_id, context und name
+# sind gesetzt, season ist die laufende Saison.
+#
+# context ist kleingeschrieben ("nbv"): die Tools leiten daraus per
+# `context.to_s.upcase` die User-Region ab und suchen umgekehrt mit
+# `effective_cc_region(...).downcase` (BaseTool#resolve_tournament_cc).
+#
+# FKs explizit statt Label-Verweise — siehe den Kommentar in tournaments.yml:
+# Rails hasht Fixture-Labels auf eigene ids, die Assoziation liefe sonst ins Leere.
+<% y = (Date.today - 6.months).year %>
+
+# Vollstaendiger Datensatz: mit Tournament-Beziehung und Meldeliste.
+nbv_dreiband:
+  id: 50_000_001
+  cc_id: 30_101
+  context: "nbv"
+  name: "NBV Dreiband Landesmeisterschaft"
+  shortname: "NBV-3B-LM"
+  status: "Freigegeben"
+  season: "<%= y %>/<%= y + 1 %>"
+  # tournaments(:scraped) — NICHT :local: tournament_ccs.tournament_id ist UNIQUE, und
+  # mehrere Tests legen fuer :local (id 50_000_001) selbst einen TournamentCc an.
+  tournament_id: 50_000_002
+  meldeliste_cc_id: 31_101
+  location_text: "Billard-Zentrum Hannover"
+  tournament_start: <%= 3.weeks.from_now %>
+  tournament_end: <%= 3.weeks.from_now + 2.days %>
+  created_at: <%= 2.months.ago %>
+  updated_at: <%= 1.day.ago %>
+
+# Gegenstueck ohne meldeliste_cc_id: deckt den Zweig ab, in dem die Meldeliste
+# nicht im Mirror haengt (LookupTournament loest sie dann live ueber CC auf).
+nbv_pool_ohne_meldeliste:
+  id: 50_000_002
+  cc_id: 30_102
+  context: "nbv"
+  name: "NBV Pool 9-Ball Landesmeisterschaft"
+  shortname: "NBV-9B-LM"
+  status: "Freigegeben"
+  season: "<%= y %>/<%= y + 1 %>"
+  meldeliste_cc_id:
+  location_text: "Billard-Cafe Braunschweig"
+  tournament_start: <%= 5.weeks.from_now %>
+  tournament_end: <%= 5.weeks.from_now + 1.day %>
+  created_at: <%= 2.months.ago %>
+  updated_at: <%= 1.day.ago %>
