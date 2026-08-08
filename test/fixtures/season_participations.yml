@@ -1,0 +1,32 @@
+# SeasonParticipation-Fixtures (Spieler ↔ Verein je Saison)
+#
+# Club#players laeuft `through: :season_participations` — ohne diese Datei ist
+# jedes `Club.joins(players: ...)` leer und die club-scoped Player-Tools skippten.
+# Auch der Admin-Endpoint players_by_club liest ueber SeasonParticipation.
+#
+# belongs_to season/player/club sind alle PFLICHT. FKs explizit statt
+# Label-Verweise (siehe Kommentar in tournaments.yml).
+
+ullrich_bcw:
+  id: 50_000_001
+  season_id: 50_000_001
+  player_id: 50_001_010
+  club_id: 50_000_001
+  created_at: <%= 6.months.ago %>
+  updated_at: <%= 1.day.ago %>
+
+andresen_bcw:
+  id: 50_000_002
+  season_id: 50_000_001
+  player_id: 50_001_011
+  club_id: 50_000_001
+  created_at: <%= 6.months.ago %>
+  updated_at: <%= 1.day.ago %>
+
+hansen_example_club:
+  id: 50_000_003
+  season_id: 50_000_001
+  player_id: 50_001_012
+  club_id: 50_000_002
+  created_at: <%= 6.months.ago %>
+  updated_at: <%= 1.day.ago %>

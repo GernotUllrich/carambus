@@ -1,0 +1,88 @@
+# PlayerRanking-Fixtures (Ranglisten-Eintraege je Spieler/Disziplin/Region/Saison)
+#
+# Ohne diese Datei skippten alle region-scoped Player-Suchen der MCP-Tools: sie
+# holen ihr Sample per `Player.joins(:player_rankings).where(player_rankings:
+# {region_id: nbv.id})` bzw. pruefen Disziplin-Erfahrung ueber PlayerRanking.
+#
+# PlayerRanking hat vier PFLICHT-belongs_to (player, region, season, discipline) —
+# alle vier FKs muessen auf existierende Fixtures zeigen, sonst schlaegt schon das
+# Laden fehl. FKs explizit statt Label-Verweise (siehe Kommentar in tournaments.yml).
+#
+# Disziplinen: Dreiband (50_000_001) fuer die Namens-Suchen, "Freie Partie klein"
+# (50_000_004) zusaetzlich fuer ListPlayersByClubAndDiscipline, das genau diese
+# Disziplin sucht.
+
+ullrich_dreiband:
+  id: 50_000_001
+  player_id: 50_001_010
+  region_id: 50_000_001
+  season_id: 50_000_001
+  discipline_id: 50_000_001
+  org_level: "regional"
+  rank: 1
+  points: 24
+  innings: 400
+  gd: 1.25
+  hs: 12
+  created_at: <%= 6.months.ago %>
+  updated_at: <%= 1.day.ago %>
+
+ullrich_freie_partie_klein:
+  id: 50_000_002
+  player_id: 50_001_010
+  region_id: 50_000_001
+  season_id: 50_000_001
+  discipline_id: 50_000_004
+  org_level: "regional"
+  rank: 3
+  points: 16
+  innings: 220
+  gd: 4.8
+  hs: 31
+  created_at: <%= 6.months.ago %>
+  updated_at: <%= 1.day.ago %>
+
+andresen_dreiband:
+  id: 50_000_003
+  player_id: 50_001_011
+  region_id: 50_000_001
+  season_id: 50_000_001
+  discipline_id: 50_000_001
+  org_level: "regional"
+  rank: 2
+  points: 20
+  innings: 380
+  gd: 1.05
+  hs: 9
+  created_at: <%= 6.months.ago %>
+  updated_at: <%= 1.day.ago %>
+
+andresen_freie_partie_klein:
+  id: 50_000_004
+  player_id: 50_001_011
+  region_id: 50_000_001
+  season_id: 50_000_001
+  discipline_id: 50_000_004
+  org_level: "regional"
+  rank: 5
+  points: 12
+  innings: 260
+  gd: 3.9
+  hs: 24
+  created_at: <%= 6.months.ago %>
+  updated_at: <%= 1.day.ago %>
+
+hansen_dreiband:
+  id: 50_000_005
+  player_id: 50_001_012
+  region_id: 50_000_001
+  season_id: 50_000_001
+  discipline_id: 50_000_001
+  org_level: "regional"
+  rank: 4
+  points: 14
+  innings: 350
+  gd: 0.92
+  hs: 8
+  created_at: <%= 6.months.ago %>
+  updated_at: <%= 1.day.ago %>

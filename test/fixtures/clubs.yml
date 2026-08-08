@@ -1,8 +1,15 @@
 # Clubs for testing
+#
+# region_id/cc_id: die MCP-Tools suchen Vereine region-scoped und geben cc_id als
+# Primary aus (Club.find_by(cc_id:)); ohne beides blieben die club-scoped Queries
+# leer. region_id explizit statt Label-Verweis (siehe Kommentar in tournaments.yml).
 bcw:
   id: 50_000_001
   name: "Billardclub Wedel 61 e.V."
   shortname: "BCW"
+  synonyms: "BC Wedel"
+  cc_id: 41_001
+  region_id: 50_000_001
   created_at: <%= 2.years.ago %>
   updated_at: <%= 1.day.ago %>
 
@@ -10,6 +17,8 @@ example_club:
   id: 50_000_002
   name: "Example Billard Club"
   shortname: "EBC"
+  cc_id: 41_002
+  region_id: 50_000_001
   created_at: <%= 1.year.ago %>
   updated_at: <%= 1.month.ago %>
 
