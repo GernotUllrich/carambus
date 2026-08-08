@@ -65,14 +65,13 @@ class TournamentPapertrailTest < ActiveSupport::TestCase
     end
   end
 
-  # Baseline: update!(sync_date) -> 1 version.
-  # The skip lambda in LocalProtector is defined as a lambda passed to the `skip:` option
-  # of has_paper_trail. In PaperTrail, the `skip:` option accepts an array of attribute names
-  # to exclude from version diffs — a lambda is accepted but does NOT prevent version creation.
-  # Therefore sync_date-only updates still create a version (the lambda is not a guard).
-  # This is the ACTUAL behavior of the production system — characterize it as-is.
-  test "update! with only sync_date change produces 1 version (skip lambda does not prevent version creation)" do
-    assert_difference "@tournament.versions.count", 1 do
+  # Baseline: update!(sync_date) -> 0 versions.
+  # Das Gate in LocalProtector haengt seit Plan 19-01 am `unless:`-Option von
+  # has_paper_trail (frueher wirkungslos am `skip:`) und wird von PaperTrail je Save
+  # ausgewertet. Operative-only-Aenderungen (sync_date/updated_at) erzeugen daher
+  # KEINE Version mehr — genau die beabsichtigte Scrape-Hygiene.
+  test "update! with only sync_date change produces no version (unless gate skips operative-only changes)" do
+    assert_no_difference "@tournament.versions.count" do
       @tournament.update!(sync_date: Time.current)
     end
   end

@@ -4,6 +4,19 @@
 module ApplicationHelper
   include Pagy::Frontend
 
+  # current_user, das auch ausserhalb eines Requests funktioniert.
+  #
+  # Partials, die per Turbo-Stream gebroadcastet werden (z.B. party_monitors/_party_monitor),
+  # rendern im Job-Kontext OHNE Warden-Proxy — dort wirft Devises current_user. Fuer die
+  # Anzeige heisst "kein Request" schlicht "kein bekannter User": nil, also die konservative
+  # Variante (Admin-Aktionen bleiben deaktiviert).
+  def current_user_if_available
+    return nil unless respond_to?(:current_user)
+    current_user
+  rescue Devise::MissingWarden
+    nil
+  end
+
   # Date-only-Anzeige (TT.MM.JJJJ) fuer Datetime-/Date-Werte; nil -> nil (Aufrufer blendet dann aus).
   def format_date(value)
     return if value.nil?
