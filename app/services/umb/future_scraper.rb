@@ -301,16 +301,29 @@ class Umb::FutureScraper
 
         tournament_type = determine_tournament_type(data[:name], data[:tournament_type_hint])
 
-        # Duplikat-Prüfung: gleicher Titel + Ort + Datum (±30 Tage)
+        # Duplikat-Pruefung: gleicher Titel + Datum (±30 Tage).
+        #
+        # location_text ist bewusst KEIN Filter mehr: der Wert haengt am
+        # Ausgabeformat der UMB-Uebersicht, und als das 2026 von "CITY (Country)"
+        # auf "CITY / Country (Country)" wechselte, lieferte extract_location
+        # ploetzlich ", Turkey" statt "Ankara, Turkey". Damit fand die Pruefung
+        # bestehende Turniere nicht mehr wieder und legte bei JEDEM Lauf eine
+        # neue Dublette an — im Produktionsbestand 43 Gruppen mit 132 Datensaetzen
+        # (Stand 2026-08-09), die mangels external_id auch nicht aktualisierbar
+        # sind ("Failed to update" im umb:update-Log).
+        #
+        # Der Ort bleibt als Tiebreaker erhalten: passt er, wird dieser Kandidat
+        # bevorzugt; sonst entscheidet die Datumsnaehe.
         candidates = InternationalTournament
           .where(title: data[:name])
-          .where(location_text: data[:location])
           .where("date BETWEEN ? AND ?",
             dates[:start_date] - 30.days,
             dates[:start_date] + 30.days)
           .to_a
 
-        existing = candidates.min_by { |t| (t.date.to_date - dates[:start_date]).abs }
+        existing = candidates.min_by { |t|
+          [t.location_text == data[:location] ? 0 : 1, (t.date.to_date - dates[:start_date]).abs]
+        }
 
         tournament = existing || InternationalTournament.new(
           title: data[:name],

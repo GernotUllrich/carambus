@@ -236,4 +236,27 @@ class Umb::FutureScraperTest < ActiveSupport::TestCase
     result = scraper.call
     assert result >= 0
   end
+
+  # --- Duplikat-Erkennung -----------------------------------------------------
+  #
+  # Regressionsschutz: solange location_text Teil des Filters war, legte jede
+  # Formatumstellung der UMB-Uebersicht bei jedem Lauf neue Dubletten an
+  # (Produktionsbestand 2026-08-09: 43 Gruppen, 132 Datensaetze).
+
+  test "erkennt bestehendes Turnier auch bei geaendertem location_text" do
+    stub_request(:get, FUTURE_URL).to_return(status: 200, body: SINGLE_TOURNAMENT_HTML)
+    scraper = Umb::FutureScraper.new
+    scraper.call
+    nachher_erster = InternationalTournament.where(title: "World Cup 3-Cushion Nice").count
+    assert_equal 1, nachher_erster, "Erster Lauf muss genau ein Turnier anlegen"
+
+    # Gleiches Turnier, aber die Seite liefert den Ort jetzt im neuen Format —
+    # extract_location gibt damit einen anderen location_text zurueck.
+    neues_format = SINGLE_TOURNAMENT_HTML.sub("NICE (France)", "NICE / France (France)")
+    stub_request(:get, FUTURE_URL).to_return(status: 200, body: neues_format)
+    Umb::FutureScraper.new.call
+
+    assert_equal 1, InternationalTournament.where(title: "World Cup 3-Cushion Nice").count,
+      "Zweiter Lauf darf trotz abweichendem location_text keine Dublette anlegen"
+  end
 end

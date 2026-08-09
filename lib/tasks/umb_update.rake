@@ -1,5 +1,12 @@
 # frozen_string_literal: true
 
+# external_id ist eine STRING-Spalte. Ein SQL-MAX darauf vergleicht lexikografisch
+# und liefert "99" als groessten Wert, obwohl 419 existiert. Mit diesem falschen
+# Maximum sprang die Suche nach neuen Turnieren auf [99, 350].max = 350 — der
+# gesamte Bereich 100..349 wurde nie geprueft (24 Luecken im Bestand, Stand
+# 2026-08-09). Deshalb ueberall numerisch casten statt `.maximum(:external_id)`.
+UMB_MAX_EXTERNAL_ID = Arel.sql("MAX(NULLIF(regexp_replace(external_id, '\\D', '', 'g'), '')::bigint)")
+
 namespace :umb do
   desc "Efficiently update UMB tournaments (incremental scraping)"
   task update: :environment do
@@ -50,7 +57,7 @@ namespace :umb do
     current_max = InternationalTournament
       .where(international_source: umb_source)
       .where.not(external_id: nil)
-      .maximum(:external_id)
+      .pick(UMB_MAX_EXTERNAL_ID)
       .to_i
     
     # Check from current_max to current_max + 100 for new tournaments
@@ -177,7 +184,7 @@ namespace :umb do
     current_max = InternationalTournament
       .where(international_source: umb_source)
       .where.not(external_id: nil)
-      .maximum(:external_id)
+      .pick(UMB_MAX_EXTERNAL_ID)
       .to_i
     
     check_from = [current_max - 10, 1].max
@@ -375,7 +382,7 @@ namespace :umb do
       max_external_id = InternationalTournament
         .where(international_source: umb_source)
         .where.not(external_id: nil)
-        .maximum(:external_id)
+        .pick(UMB_MAX_EXTERNAL_ID)
         .to_i
       
       puts "Database Status:"
