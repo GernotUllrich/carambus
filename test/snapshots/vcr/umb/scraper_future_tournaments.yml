@@ -1,0 +1,779 @@
+---
+http_interactions:
+- request:
+    method: get
+    uri: https://files.umb-carom.org/public/FutureTournaments.aspx
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+      User-Agent:
+      - Carambus International Bot/1.0
+      Host:
+      - files.umb-carom.org
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Cache-Control:
+      - private
+      Content-Type:
+      - text/html; charset=utf-8
+      Server:
+      - Microsoft-IIS/10.0
+      X-Aspnet-Version:
+      - 4.0.30319
+      X-Powered-By:
+      - ASP.NET
+      Date:
+      - Sun, 09 Aug 2026 01:19:24 GMT
+      Content-Length:
+      - '87907'
+    body:
+      encoding: UTF-8
+      string: "\r\n\r\n<!DOCTYPE html>\r\n\r\n<html xmlns=\"http://www.w3.org/1999/xhtml\">\r\n<head><title>\r\n\r\n</title>\r\n
+        \   <script type=\"text/javascript\">\r\n        function CallPrint(strid)
+        {\r\n            var prtContent = document.getElementById(strid);\r\n            var
+        WinPrint = window.open('', '', 'letf=0,top=0,width=700,height=400,toolbar=0,scrollbars=0,status=0');\r\n
+        \           WinPrint.document.write(prtContent.innerHTML);\r\n            WinPrint.document.close();\r\n
+        \           WinPrint.focus();\r\n            WinPrint.print();\r\n            WinPrint.close();\r\n\r\n
+        \       }\r\n    </script>\r\n</head>\r\n<span id=\"LabelUMBHeadText\"><b><font
+        color=\"#FF3300\" size=\"5\">*UMB reserves the right to change event date
+        till the official invitation is published!</font></b></span>\r\n<body>\r\n
+        \   <form method=\"post\" action=\"./FutureTournaments.aspx\" id=\"form1\">\r\n<input
+        type=\"hidden\" name=\"__VIEWSTATE\" id=\"__VIEWSTATE\" value=\"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\"
+        />\r\n\r\n<input type=\"hidden\" name=\"__VIEWSTATEGENERATOR\" id=\"__VIEWSTATEGENERATOR\"
+        value=\"BF5EEF76\" />\r\n<input type=\"hidden\" name=\"__VIEWSTATEENCRYPTED\"
+        id=\"__VIEWSTATEENCRYPTED\" value=\"\" />\r\n<input type=\"hidden\" name=\"__EVENTVALIDATION\"
+        id=\"__EVENTVALIDATION\" value=\"JKK1U5qnGZonW06Ebfp3YCX2WDor4u8Z0KLRPvMTfMAL6ezswO+6+2XWIjseDFGbGO8/LYYC+hOAvQxyvG2SKKw6AAEmucSmj9I476bbHN9MTusA7VfCPIzxc8EXZcDjezv7F/iI1ry862AkGIR2cQ==\"
+        />\r\n        <div>\r\n            \r\n            <div id=\"divPrint\">\r\n
+        \               <div>\r\n\t<table cellspacing=\"0\" cellpadding=\"4\" id=\"gvYears\"
+        width=\"100%\">\r\n\t\t<tr>\r\n\t\t\t<th scope=\"col\"><font color=\"#0099CC\">&nbsp;</font></th>\r\n\t\t</tr><tr>\r\n\t\t\t<td
+        align=\"center\"><font color=\"#333333\">\r\n                                    <div
+        style=\"font-weight: bold; font-size: large; background-color: white\">\r\n
+        \                                       <span id=\"gvYears_lblYears_0\"><font
+        color=\"#003366\">2026</font></span>\r\n                                    </div>\r\n\r\n
+        \                                   <div>\r\n\t\t\t\t<table cellspacing=\"0\"
+        id=\"gvYears_gvHeader_0\" width=\"100%\">\r\n\t\t\t\t\t<tr>\r\n\t\t\t\t\t\t<td
+        align=\"center\" bgcolor=\"#003366\" height=\"25\" width=\"5%\"><font color=\"#333333\">\r\n
+        \                                                   <span id=\"gvYears_gvHeader_0_Date_0\"><b><font
+        color=\"White\">Date</font></b></span>\r\n\r\n                                                </font></td><td
+        align=\"center\" bgcolor=\"#003366\" width=\"30%\"><font color=\"#333333\">\r\n
+        \                                                   <span id=\"gvYears_gvHeader_0_Tournament_0\"><b><font
+        color=\"White\">Tournament</font></b></span>\r\n                                                </font></td><td
+        align=\"center\" bgcolor=\"#003366\" width=\"20%\"><font color=\"#333333\">\r\n
+        \                                                   <span id=\"gvYears_gvHeader_0_Type_0\"><b><font
+        color=\"White\">Type</font></b></span>\r\n                                                </font></td><td
+        align=\"center\" bgcolor=\"#003366\" width=\"10%\"><font color=\"#333333\">\r\n
+        \                                                   <span id=\"gvYears_gvHeader_0_Organization_0\"><b><font
+        color=\"White\">Organization</font></b></span>\r\n                                                </font></td><td
+        align=\"center\" bgcolor=\"#003366\" width=\"35%\"><font color=\"#333333\">\r\n
+        \                                                   <span id=\"gvYears_gvHeader_0_Place_0\"><b><font
+        color=\"White\">Place</font></b></span>\r\n                                                </font></td>\r\n\t\t\t\t\t</tr><tr
+        bgcolor=\"White\">\r\n\t\t\t\t\t\t<td><font color=\"#333333\">&nbsp;</font></td><td><font
+        color=\"#333333\">&nbsp;</font></td><td><font color=\"#333333\">&nbsp;</font></td><td><font
+        color=\"#333333\">&nbsp;</font></td><td><font color=\"#333333\">&nbsp;</font></td>\r\n\t\t\t\t\t</tr>\r\n\t\t\t\t</table>\r\n\t\t\t</div>\r\n
+        \                                   <div>\r\n\t\t\t\t<table cellspacing=\"0\"
+        bordercolor=\"#507CD1\" id=\"gvYears_gvMonthes_0\" width=\"100%\">\r\n\t\t\t\t\t<tr>\r\n\t\t\t\t\t\t<td><font
+        color=\"#333333\">\r\n                                                    <div
+        style=\"text-align: center; background-color: #507CD1; height: 20px\">\r\n
+        \                                                       <span id=\"gvYears_gvMonthes_0_lblMonth_7\"
+        title=\"8\"><b><font color=\"White\">August</font></b></span>\r\n                                                    </div>\r\n\r\n
+        \                                                   <div>\r\n\t\t\t\t\t\t\t<table
+        cellspacing=\"0\" cellpadding=\"2\" bordercolor=\"White\" id=\"gvYears_gvMonthes_0_GridView1_7\"
+        width=\"100%\">\r\n\t\t\t\t\t\t\t\t<tr bgcolor=\"#E8E8EC\">\r\n\t\t\t\t\t\t\t\t\t<td
+        align=\"center\" bgcolor=\"#507CD1\" width=\"5%\"><font color=\"#333333\">\r\n
+        \                                                                   <span
+        id=\"gvYears_gvMonthes_0_GridView1_7_Label3_0\" style=\"display:inline-block;\"><font
+        color=\"White\">25 - 30</font></span>\r\n                                                                </font></td><td
+        align=\"center\" width=\"30%\"><font color=\"#333333\">World Championship
+        5-Pins Individual Open</font></td><td align=\"center\" width=\"20%\"><font
+        color=\"#333333\">World Championship</font></td><td align=\"center\" width=\"10%\"><font
+        color=\"#333333\">UMB</font></td><td align=\"center\" width=\"35%\"><font
+        color=\"#333333\">\r\n                                                                    <span
+        id=\"gvYears_gvMonthes_0_GridView1_7_lblPlace_0\">MARCOS JUAREZ / Argentina
+        (Argentina)</span>\r\n                                                                </font></td>\r\n\t\t\t\t\t\t\t\t</tr><tr
+        bgcolor=\"Silver\">\r\n\t\t\t\t\t\t\t\t\t<td align=\"center\" bgcolor=\"#507CD1\"
+        width=\"5%\"><font color=\"#333333\">\r\n                                                                    <span
+        id=\"gvYears_gvMonthes_0_GridView1_7_Label3_1\" style=\"display:inline-block;\"><font
+        color=\"White\">28 - 30</font></span>\r\n                                                                </font></td><td
+        align=\"center\" width=\"30%\"><font color=\"#333333\">World Championship
+        5 Pins U22</font></td><td align=\"center\" width=\"20%\"><font color=\"#333333\">World
+        Championship</font></td><td align=\"center\" width=\"10%\"><font color=\"#333333\">UMB</font></td><td
+        align=\"center\" width=\"35%\"><font color=\"#333333\">\r\n                                                                    <span
+        id=\"gvYears_gvMonthes_0_GridView1_7_lblPlace_1\">MARCOS JUAREZ / Argentina
+        (Argentina)</span>\r\n                                                                </font></td>\r\n\t\t\t\t\t\t\t\t</tr><tr
+        bgcolor=\"#E8E8EC\">\r\n\t\t\t\t\t\t\t\t\t<td align=\"center\" bgcolor=\"#507CD1\"
+        width=\"5%\"><font color=\"#333333\">\r\n                                                                    <span
+        id=\"gvYears_gvMonthes_0_GridView1_7_Label3_2\" style=\"display:inline-block;\"><font
+        color=\"White\">31 - </font></span>\r\n                                                                </font></td><td
+        align=\"center\" width=\"30%\"><font color=\"#333333\">World Cup 3-Cushion</font></td><td
+        align=\"center\" width=\"20%\"><font color=\"#333333\">World Cup</font></td><td
+        align=\"center\" width=\"10%\"><font color=\"#333333\">UMB / CEB</font></td><td
+        align=\"center\" width=\"35%\"><font color=\"#333333\">\r\n                                                                    <span
+        id=\"gvYears_gvMonthes_0_GridView1_7_lblPlace_2\">LIER / Belgium (Belgium)</span>\r\n
+        \                                                               </font></td>\r\n\t\t\t\t\t\t\t\t</tr><tr
+        bgcolor=\"#507CD1\">\r\n\t\t\t\t\t\t\t\t\t<td><font color=\"White\"><b>&nbsp;</b></font></td><td><font
+        color=\"White\"><b>&nbsp;</b></font></td><td><font color=\"White\"><b>&nbsp;</b></font></td><td><font
+        color=\"White\"><b>&nbsp;</b></font></td><td><font color=\"White\"><b>&nbsp;</b></font></td>\r\n\t\t\t\t\t\t\t\t</tr>\r\n\t\t\t\t\t\t\t</table>\r\n\t\t\t\t\t\t</div>\r\n
+        \                                                   <div style=\"height: 10px;
+        background-color: white\"></div>\r\n                                                </font></td>\r\n\t\t\t\t\t</tr><tr>\r\n\t\t\t\t\t\t<td><font
+        color=\"#333333\">\r\n                                                    <div
+        style=\"text-align: center; background-color: #507CD1; height: 20px\">\r\n
+        \                                                       <span id=\"gvYears_gvMonthes_0_lblMonth_8\"
+        title=\"9\"><b><font color=\"White\">September</font></b></span>\r\n                                                    </div>\r\n\r\n
+        \                                                   <div>\r\n\t\t\t\t\t\t\t<table
+        cellspacing=\"0\" cellpadding=\"2\" bordercolor=\"White\" id=\"gvYears_gvMonthes_0_GridView1_8\"
+        width=\"100%\">\r\n\t\t\t\t\t\t\t\t<tr bgcolor=\"#E8E8EC\">\r\n\t\t\t\t\t\t\t\t\t<td
+        align=\"center\" bgcolor=\"#507CD1\" width=\"5%\"><font color=\"#333333\">\r\n
+        \                                                                   <span
+        id=\"gvYears_gvMonthes_0_GridView1_8_Label3_0\" style=\"display:inline-block;\"><font
+        color=\"White\"> - 06</font></span>\r\n                                                                </font></td><td
+        align=\"center\" width=\"30%\"><font color=\"#333333\">World Cup 3-Cushion</font></td><td
+        align=\"center\" width=\"20%\"><font color=\"#333333\">World Cup</font></td><td
+        align=\"center\" width=\"10%\"><font color=\"#333333\">UMB / CEB</font></td><td
+        align=\"center\" width=\"35%\"><font color=\"#333333\">\r\n                                                                    <span
+        id=\"gvYears_gvMonthes_0_GridView1_8_lblPlace_0\">LIER / Belgium (Belgium)</span>\r\n
+        \                                                               </font></td>\r\n\t\t\t\t\t\t\t\t</tr><tr
+        bgcolor=\"Silver\">\r\n\t\t\t\t\t\t\t\t\t<td align=\"center\" bgcolor=\"#507CD1\"
+        width=\"5%\"><font color=\"#333333\">\r\n                                                                    <span
+        id=\"gvYears_gvMonthes_0_GridView1_8_Label3_1\" style=\"display:inline-block;\"><font
+        color=\"White\">15 - 17</font></span>\r\n                                                                </font></td><td
+        align=\"center\" width=\"30%\"><font color=\"#333333\">World Championship
+        Ladies 3-Cushion</font></td><td align=\"center\" width=\"20%\"><font color=\"#333333\">World
+        Championship</font></td><td align=\"center\" width=\"10%\"><font color=\"#333333\">UMB</font></td><td
+        align=\"center\" width=\"35%\"><font color=\"#333333\">\r\n                                                                    <span
+        id=\"gvYears_gvMonthes_0_GridView1_8_lblPlace_1\">GRADIGNAN / France (France)</span>\r\n
+        \                                                               </font></td>\r\n\t\t\t\t\t\t\t\t</tr><tr
+        bgcolor=\"#E8E8EC\">\r\n\t\t\t\t\t\t\t\t\t<td align=\"center\" bgcolor=\"#507CD1\"
+        width=\"5%\"><font color=\"#333333\">\r\n                                                                    <span
+        id=\"gvYears_gvMonthes_0_GridView1_8_Label3_2\" style=\"display:inline-block;\"><font
+        color=\"White\">18 - 20</font></span>\r\n                                                                </font></td><td
+        align=\"center\" width=\"30%\"><font color=\"#333333\">World Championship
+        3-Cushion Juniors</font></td><td align=\"center\" width=\"20%\"><font color=\"#333333\">World
+        Championship</font></td><td align=\"center\" width=\"10%\"><font color=\"#333333\">UMB</font></td><td
+        align=\"center\" width=\"35%\"><font color=\"#333333\">\r\n                                                                    <span
+        id=\"gvYears_gvMonthes_0_GridView1_8_lblPlace_2\">GRADIGNAN / France (France)</span>\r\n
+        \                                                               </font></td>\r\n\t\t\t\t\t\t\t\t</tr><tr
+        bgcolor=\"Silver\">\r\n\t\t\t\t\t\t\t\t\t<td align=\"center\" bgcolor=\"#507CD1\"
+        width=\"5%\"><font color=\"#333333\">\r\n                                                                    <span
+        id=\"gvYears_gvMonthes_0_GridView1_8_Label3_3\" style=\"display:inline-block;\"><font
+        color=\"White\">23 - 27</font></span>\r\n                                                                </font></td><td
+        align=\"center\" width=\"30%\"><font color=\"#333333\">World Championship
+        3-Cushion</font></td><td align=\"center\" width=\"20%\"><font color=\"#333333\">World
+        Championship</font></td><td align=\"center\" width=\"10%\"><font color=\"#333333\">UMB</font></td><td
+        align=\"center\" width=\"35%\"><font color=\"#333333\">\r\n                                                                    <span
+        id=\"gvYears_gvMonthes_0_GridView1_8_lblPlace_3\">BLOIS / France (France)</span>\r\n
+        \                                                               </font></td>\r\n\t\t\t\t\t\t\t\t</tr><tr
+        bgcolor=\"#507CD1\">\r\n\t\t\t\t\t\t\t\t\t<td><font color=\"White\"><b>&nbsp;</b></font></td><td><font
+        color=\"White\"><b>&nbsp;</b></font></td><td><font color=\"White\"><b>&nbsp;</b></font></td><td><font
+        color=\"White\"><b>&nbsp;</b></font></td><td><font color=\"White\"><b>&nbsp;</b></font></td>\r\n\t\t\t\t\t\t\t\t</tr>\r\n\t\t\t\t\t\t\t</table>\r\n\t\t\t\t\t\t</div>\r\n
+        \                                                   <div style=\"height: 10px;
+        background-color: white\"></div>\r\n                                                </font></td>\r\n\t\t\t\t\t</tr><tr>\r\n\t\t\t\t\t\t<td><font
+        color=\"#333333\">\r\n                                                    <div
+        style=\"text-align: center; background-color: #507CD1; height: 20px\">\r\n
+        \                                                       <span id=\"gvYears_gvMonthes_0_lblMonth_9\"
+        title=\"10\"><b><font color=\"White\">October</font></b></span>\r\n                                                    </div>\r\n\r\n
+        \                                                   <div>\r\n\t\t\t\t\t\t\t<table
+        cellspacing=\"0\" cellpadding=\"2\" bordercolor=\"White\" id=\"gvYears_gvMonthes_0_GridView1_9\"
+        width=\"100%\">\r\n\t\t\t\t\t\t\t\t<tr bgcolor=\"#E8E8EC\">\r\n\t\t\t\t\t\t\t\t\t<td
+        align=\"center\" bgcolor=\"#507CD1\" width=\"5%\"><font color=\"#333333\">\r\n
+        \                                                                   <span
+        id=\"gvYears_gvMonthes_0_GridView1_9_Label3_0\" style=\"display:inline-block;\"><font
+        color=\"White\">12 - 15</font></span>\r\n                                                                </font></td><td
+        align=\"center\" width=\"30%\"><font color=\"#333333\">WCBS Games</font></td><td
+        align=\"center\" width=\"20%\"><font color=\"#333333\">Games</font></td><td
+        align=\"center\" width=\"10%\"><font color=\"#333333\">WCBS</font></td><td
+        align=\"center\" width=\"35%\"><font color=\"#333333\">\r\n                                                                    <span
+        id=\"gvYears_gvMonthes_0_GridView1_9_lblPlace_0\">POSTPONED - DOHA / Qatar
+        (Qatar)</span>\r\n                                                                </font></td>\r\n\t\t\t\t\t\t\t\t</tr><tr
+        bgcolor=\"Silver\">\r\n\t\t\t\t\t\t\t\t\t<td align=\"center\" bgcolor=\"#507CD1\"
+        width=\"5%\"><font color=\"#333333\">\r\n                                                                    <span
+        id=\"gvYears_gvMonthes_0_GridView1_9_Label3_1\" style=\"display:inline-block;\"><font
+        color=\"White\">24 - 24</font></span>\r\n                                                                </font></td><td
+        align=\"center\" width=\"30%\"><font color=\"#333333\">34th UMB General Assembly</font></td><td
+        align=\"center\" width=\"20%\"><font color=\"#333333\">General Assembly</font></td><td
+        align=\"center\" width=\"10%\"><font color=\"#333333\">UMB</font></td><td
+        align=\"center\" width=\"35%\"><font color=\"#333333\">\r\n                                                                    <span
+        id=\"gvYears_gvMonthes_0_GridView1_9_lblPlace_1\">ISTANBUL / Turkey (Turkey)</span>\r\n
+        \                                                               </font></td>\r\n\t\t\t\t\t\t\t\t</tr><tr
+        bgcolor=\"#507CD1\">\r\n\t\t\t\t\t\t\t\t\t<td><font color=\"White\"><b>&nbsp;</b></font></td><td><font
+        color=\"White\"><b>&nbsp;</b></font></td><td><font color=\"White\"><b>&nbsp;</b></font></td><td><font
+        color=\"White\"><b>&nbsp;</b></font></td><td><font color=\"White\"><b>&nbsp;</b></font></td>\r\n\t\t\t\t\t\t\t\t</tr>\r\n\t\t\t\t\t\t\t</table>\r\n\t\t\t\t\t\t</div>\r\n
+        \                                                   <div style=\"height: 10px;
+        background-color: white\"></div>\r\n                                                </font></td>\r\n\t\t\t\t\t</tr><tr>\r\n\t\t\t\t\t\t<td><font
+        color=\"#333333\">\r\n                                                    <div
+        style=\"text-align: center; background-color: #507CD1; height: 20px\">\r\n
+        \                                                       <span id=\"gvYears_gvMonthes_0_lblMonth_10\"
+        title=\"11\"><b><font color=\"White\">November</font></b></span>\r\n                                                    </div>\r\n\r\n
+        \                                                   <div>\r\n\t\t\t\t\t\t\t<table
+        cellspacing=\"0\" cellpadding=\"2\" bordercolor=\"White\" id=\"gvYears_gvMonthes_0_GridView1_10\"
+        width=\"100%\">\r\n\t\t\t\t\t\t\t\t<tr bgcolor=\"#E8E8EC\">\r\n\t\t\t\t\t\t\t\t\t<td
+        align=\"center\" bgcolor=\"#507CD1\" width=\"5%\"><font color=\"#333333\">\r\n
+        \                                                                   <span
+        id=\"gvYears_gvMonthes_0_GridView1_10_Label3_0\" style=\"display:inline-block;\"><font
+        color=\"White\">02 - 08</font></span>\r\n                                                                </font></td><td
+        align=\"center\" width=\"30%\"><font color=\"#333333\">World Cup 3-Cushion</font></td><td
+        align=\"center\" width=\"20%\"><font color=\"#333333\">World Cup</font></td><td
+        align=\"center\" width=\"10%\"><font color=\"#333333\">UMB / ACBC</font></td><td
+        align=\"center\" width=\"35%\"><font color=\"#333333\">\r\n                                                                    <span
+        id=\"gvYears_gvMonthes_0_GridView1_10_lblPlace_0\">N/A / Korea (Korea)</span>\r\n
+        \                                                               </font></td>\r\n\t\t\t\t\t\t\t\t</tr><tr
+        bgcolor=\"#507CD1\">\r\n\t\t\t\t\t\t\t\t\t<td><font color=\"White\"><b>&nbsp;</b></font></td><td><font
+        color=\"White\"><b>&nbsp;</b></font></td><td><font color=\"White\"><b>&nbsp;</b></font></td><td><font
+        color=\"White\"><b>&nbsp;</b></font></td><td><font color=\"White\"><b>&nbsp;</b></font></td>\r\n\t\t\t\t\t\t\t\t</tr>\r\n\t\t\t\t\t\t\t</table>\r\n\t\t\t\t\t\t</div>\r\n
+        \                                                   <div style=\"height: 10px;
+        background-color: white\"></div>\r\n                                                </font></td>\r\n\t\t\t\t\t</tr><tr>\r\n\t\t\t\t\t\t<td><font
+        color=\"#333333\">\r\n                                                    <div
+        style=\"text-align: center; background-color: #507CD1; height: 20px\">\r\n
+        \                                                       <span id=\"gvYears_gvMonthes_0_lblMonth_11\"
+        title=\"12\"><b><font color=\"White\">December</font></b></span>\r\n                                                    </div>\r\n\r\n
+        \                                                   <div>\r\n\t\t\t\t\t\t\t<table
+        cellspacing=\"0\" cellpadding=\"2\" bordercolor=\"White\" id=\"gvYears_gvMonthes_0_GridView1_11\"
+        width=\"100%\">\r\n\t\t\t\t\t\t\t\t<tr bgcolor=\"#E8E8EC\">\r\n\t\t\t\t\t\t\t\t\t<td
+        align=\"center\" bgcolor=\"#507CD1\" width=\"5%\"><font color=\"#333333\">\r\n
+        \                                                                   <span
+        id=\"gvYears_gvMonthes_0_GridView1_11_Label3_0\" style=\"display:inline-block;\"><font
+        color=\"White\">06 - 12</font></span>\r\n                                                                </font></td><td
+        align=\"center\" width=\"30%\"><font color=\"#333333\">World Cup 3-Cushion</font></td><td
+        align=\"center\" width=\"20%\"><font color=\"#333333\">World Cup</font></td><td
+        align=\"center\" width=\"10%\"><font color=\"#333333\">UMB / AMECC</font></td><td
+        align=\"center\" width=\"35%\"><font color=\"#333333\">\r\n                                                                    <span
+        id=\"gvYears_gvMonthes_0_GridView1_11_lblPlace_0\">N/A / Egypt (Egypt)</span>\r\n
+        \                                                               </font></td>\r\n\t\t\t\t\t\t\t\t</tr><tr
+        bgcolor=\"#507CD1\">\r\n\t\t\t\t\t\t\t\t\t<td><font color=\"White\"><b>&nbsp;</b></font></td><td><font
+        color=\"White\"><b>&nbsp;</b></font></td><td><font color=\"White\"><b>&nbsp;</b></font></td><td><font
+        color=\"White\"><b>&nbsp;</b></font></td><td><font color=\"White\"><b>&nbsp;</b></font></td>\r\n\t\t\t\t\t\t\t\t</tr>\r\n\t\t\t\t\t\t\t</table>\r\n\t\t\t\t\t\t</div>\r\n
+        \                                                   <div style=\"height: 10px;
+        background-color: white\"></div>\r\n                                                </font></td>\r\n\t\t\t\t\t</tr>\r\n\t\t\t\t</table>\r\n\t\t\t</div>\r\n\r\n
+        \                                   \r\n                                </font></td>\r\n\t\t</tr><tr>\r\n\t\t\t<td
+        align=\"center\"><font color=\"#333333\">\r\n                                    <div
+        style=\"font-weight: bold; font-size: large; background-color: white\">\r\n
+        \                                       <span id=\"gvYears_lblYears_1\"><font
+        color=\"#003366\">2027</font></span>\r\n                                    </div>\r\n\r\n
+        \                                   \r\n                                    <div>\r\n\t\t\t\t<table
+        cellspacing=\"0\" bordercolor=\"#507CD1\" id=\"gvYears_gvMonthes_1\" width=\"100%\">\r\n\t\t\t\t\t<tr>\r\n\t\t\t\t\t\t<td><font
+        color=\"#333333\">\r\n                                                    <div
+        style=\"text-align: center; background-color: #507CD1; height: 20px\">\r\n
+        \                                                       <span id=\"gvYears_gvMonthes_1_lblMonth_1\"
+        title=\"2\"><b><font color=\"White\">February</font></b></span>\r\n                                                    </div>\r\n\r\n
+        \                                                   <div>\r\n\t\t\t\t\t\t\t<table
+        cellspacing=\"0\" cellpadding=\"2\" bordercolor=\"White\" id=\"gvYears_gvMonthes_1_GridView1_1\"
+        width=\"100%\">\r\n\t\t\t\t\t\t\t\t<tr bgcolor=\"#E8E8EC\">\r\n\t\t\t\t\t\t\t\t\t<td
+        align=\"center\" bgcolor=\"#507CD1\" width=\"5%\"><font color=\"#333333\">\r\n
+        \                                                                   <span
+        id=\"gvYears_gvMonthes_1_GridView1_1_Label3_0\" style=\"display:inline-block;\"><font
+        color=\"White\">18 - 21</font></span>\r\n                                                                </font></td><td
+        align=\"center\" width=\"30%\"><font color=\"#333333\">World Championship
+        Nat. Teams 3-Cushion</font></td><td align=\"center\" width=\"20%\"><font color=\"#333333\">World
+        Championship</font></td><td align=\"center\" width=\"10%\"><font color=\"#333333\">UMB</font></td><td
+        align=\"center\" width=\"35%\"><font color=\"#333333\">\r\n                                                                    <span
+        id=\"gvYears_gvMonthes_1_GridView1_1_lblPlace_0\">VIERSEN / Germany (Germany)</span>\r\n
+        \                                                               </font></td>\r\n\t\t\t\t\t\t\t\t</tr><tr
+        bgcolor=\"#507CD1\">\r\n\t\t\t\t\t\t\t\t\t<td><font color=\"White\"><b>&nbsp;</b></font></td><td><font
+        color=\"White\"><b>&nbsp;</b></font></td><td><font color=\"White\"><b>&nbsp;</b></font></td><td><font
+        color=\"White\"><b>&nbsp;</b></font></td><td><font color=\"White\"><b>&nbsp;</b></font></td>\r\n\t\t\t\t\t\t\t\t</tr>\r\n\t\t\t\t\t\t\t</table>\r\n\t\t\t\t\t\t</div>\r\n
+        \                                                   <div style=\"height: 10px;
+        background-color: white\"></div>\r\n                                                </font></td>\r\n\t\t\t\t\t</tr><tr>\r\n\t\t\t\t\t\t<td><font
+        color=\"#333333\">\r\n                                                    <div
+        style=\"text-align: center; background-color: #507CD1; height: 20px\">\r\n
+        \                                                       <span id=\"gvYears_gvMonthes_1_lblMonth_3\"
+        title=\"4\"><b><font color=\"White\">April</font></b></span>\r\n                                                    </div>\r\n\r\n
+        \                                                   <div>\r\n\t\t\t\t\t\t\t<table
+        cellspacing=\"0\" cellpadding=\"2\" bordercolor=\"White\" id=\"gvYears_gvMonthes_1_GridView1_3\"
+        width=\"100%\">\r\n\t\t\t\t\t\t\t\t<tr bgcolor=\"#E8E8EC\">\r\n\t\t\t\t\t\t\t\t\t<td
+        align=\"center\" bgcolor=\"#507CD1\" width=\"5%\"><font color=\"#333333\">\r\n
+        \                                                                   <span
+        id=\"gvYears_gvMonthes_1_GridView1_3_Label3_0\" style=\"display:inline-block;\"><font
+        color=\"White\">05 - 11</font></span>\r\n                                                                </font></td><td
+        align=\"center\" width=\"30%\"><font color=\"#333333\">World Cup 3-Cushion</font></td><td
+        align=\"center\" width=\"20%\"><font color=\"#333333\">World Cup</font></td><td
+        align=\"center\" width=\"10%\"><font color=\"#333333\">UMB / CPB</font></td><td
+        align=\"center\" width=\"35%\"><font color=\"#333333\">\r\n                                                                    <span
+        id=\"gvYears_gvMonthes_1_GridView1_3_lblPlace_0\">N/A / Colombia (Colombia)</span>\r\n
+        \                                                               </font></td>\r\n\t\t\t\t\t\t\t\t</tr><tr
+        bgcolor=\"#507CD1\">\r\n\t\t\t\t\t\t\t\t\t<td><font color=\"White\"><b>&nbsp;</b></font></td><td><font
+        color=\"White\"><b>&nbsp;</b></font></td><td><font color=\"White\"><b>&nbsp;</b></font></td><td><font
+        color=\"White\"><b>&nbsp;</b></font></td><td><font color=\"White\"><b>&nbsp;</b></font></td>\r\n\t\t\t\t\t\t\t\t</tr>\r\n\t\t\t\t\t\t\t</table>\r\n\t\t\t\t\t\t</div>\r\n
+        \                                                   <div style=\"height: 10px;
+        background-color: white\"></div>\r\n                                                </font></td>\r\n\t\t\t\t\t</tr><tr>\r\n\t\t\t\t\t\t<td><font
+        color=\"#333333\">\r\n                                                    <div
+        style=\"text-align: center; background-color: #507CD1; height: 20px\">\r\n
+        \                                                       <span id=\"gvYears_gvMonthes_1_lblMonth_4\"
+        title=\"5\"><b><font color=\"White\">May</font></b></span>\r\n                                                    </div>\r\n\r\n
+        \                                                   <div>\r\n\t\t\t\t\t\t\t<table
+        cellspacing=\"0\" cellpadding=\"2\" bordercolor=\"White\" id=\"gvYears_gvMonthes_1_GridView1_4\"
+        width=\"100%\">\r\n\t\t\t\t\t\t\t\t<tr bgcolor=\"#E8E8EC\">\r\n\t\t\t\t\t\t\t\t\t<td
+        align=\"center\" bgcolor=\"#507CD1\" width=\"5%\"><font color=\"#333333\">\r\n
+        \                                                                   <span
+        id=\"gvYears_gvMonthes_1_GridView1_4_Label3_0\" style=\"display:inline-block;\"><font
+        color=\"White\">17 - 23</font></span>\r\n                                                                </font></td><td
+        align=\"center\" width=\"30%\"><font color=\"#333333\">World Cup 3-Cushion</font></td><td
+        align=\"center\" width=\"20%\"><font color=\"#333333\">World Cup</font></td><td
+        align=\"center\" width=\"10%\"><font color=\"#333333\">UMB / ACBC</font></td><td
+        align=\"center\" width=\"35%\"><font color=\"#333333\">\r\n                                                                    <span
+        id=\"gvYears_gvMonthes_1_GridView1_4_lblPlace_0\">HO CHI MINH CITY / Vietnam
+        (Vietnam)</span>\r\n                                                                </font></td>\r\n\t\t\t\t\t\t\t\t</tr><tr
+        bgcolor=\"#507CD1\">\r\n\t\t\t\t\t\t\t\t\t<td><font color=\"White\"><b>&nbsp;</b></font></td><td><font
+        color=\"White\"><b>&nbsp;</b></font></td><td><font color=\"White\"><b>&nbsp;</b></font></td><td><font
+        color=\"White\"><b>&nbsp;</b></font></td><td><font color=\"White\"><b>&nbsp;</b></font></td>\r\n\t\t\t\t\t\t\t\t</tr>\r\n\t\t\t\t\t\t\t</table>\r\n\t\t\t\t\t\t</div>\r\n
+        \                                                   <div style=\"height: 10px;
+        background-color: white\"></div>\r\n                                                </font></td>\r\n\t\t\t\t\t</tr><tr>\r\n\t\t\t\t\t\t<td><font
+        color=\"#333333\">\r\n                                                    <div
+        style=\"text-align: center; background-color: #507CD1; height: 20px\">\r\n
+        \                                                       <span id=\"gvYears_gvMonthes_1_lblMonth_5\"
+        title=\"6\"><b><font color=\"White\">June</font></b></span>\r\n                                                    </div>\r\n\r\n
+        \                                                   <div>\r\n\t\t\t\t\t\t\t<table
+        cellspacing=\"0\" cellpadding=\"2\" bordercolor=\"White\" id=\"gvYears_gvMonthes_1_GridView1_5\"
+        width=\"100%\">\r\n\t\t\t\t\t\t\t\t<tr bgcolor=\"#E8E8EC\">\r\n\t\t\t\t\t\t\t\t\t<td
+        align=\"center\" bgcolor=\"#507CD1\" width=\"5%\"><font color=\"#333333\">\r\n
+        \                                                                   <span
+        id=\"gvYears_gvMonthes_1_GridView1_5_Label3_0\" style=\"display:inline-block;\"><font
+        color=\"White\">07 - 13</font></span>\r\n                                                                </font></td><td
+        align=\"center\" width=\"30%\"><font color=\"#333333\">World Cup 3-Cushion</font></td><td
+        align=\"center\" width=\"20%\"><font color=\"#333333\">World Cup</font></td><td
+        align=\"center\" width=\"10%\"><font color=\"#333333\">UMB / CEB</font></td><td
+        align=\"center\" width=\"35%\"><font color=\"#333333\">\r\n                                                                    <span
+        id=\"gvYears_gvMonthes_1_GridView1_5_lblPlace_0\">ANKARA / Turkey (Turkey)</span>\r\n
+        \                                                               </font></td>\r\n\t\t\t\t\t\t\t\t</tr><tr
+        bgcolor=\"#507CD1\">\r\n\t\t\t\t\t\t\t\t\t<td><font color=\"White\"><b>&nbsp;</b></font></td><td><font
+        color=\"White\"><b>&nbsp;</b></font></td><td><font color=\"White\"><b>&nbsp;</b></font></td><td><font
+        color=\"White\"><b>&nbsp;</b></font></td><td><font color=\"White\"><b>&nbsp;</b></font></td>\r\n\t\t\t\t\t\t\t\t</tr>\r\n\t\t\t\t\t\t\t</table>\r\n\t\t\t\t\t\t</div>\r\n
+        \                                                   <div style=\"height: 10px;
+        background-color: white\"></div>\r\n                                                </font></td>\r\n\t\t\t\t\t</tr><tr>\r\n\t\t\t\t\t\t<td><font
+        color=\"#333333\">\r\n                                                    <div
+        style=\"text-align: center; background-color: #507CD1; height: 20px\">\r\n
+        \                                                       <span id=\"gvYears_gvMonthes_1_lblMonth_6\"
+        title=\"7\"><b><font color=\"White\">July</font></b></span>\r\n                                                    </div>\r\n\r\n
+        \                                                   <div>\r\n\t\t\t\t\t\t\t<table
+        cellspacing=\"0\" cellpadding=\"2\" bordercolor=\"White\" id=\"gvYears_gvMonthes_1_GridView1_6\"
+        width=\"100%\">\r\n\t\t\t\t\t\t\t\t<tr bgcolor=\"#E8E8EC\">\r\n\t\t\t\t\t\t\t\t\t<td
+        align=\"center\" bgcolor=\"#507CD1\" width=\"5%\"><font color=\"#333333\">\r\n
+        \                                                                   <span
+        id=\"gvYears_gvMonthes_1_GridView1_6_Label3_0\" style=\"display:inline-block;\"><font
+        color=\"White\">04 - 10</font></span>\r\n                                                                </font></td><td
+        align=\"center\" width=\"30%\"><font color=\"#333333\">World Cup 3-Cushion</font></td><td
+        align=\"center\" width=\"20%\"><font color=\"#333333\">World Cup</font></td><td
+        align=\"center\" width=\"10%\"><font color=\"#333333\">UMB / CEB</font></td><td
+        align=\"center\" width=\"35%\"><font color=\"#333333\">\r\n                                                                    <span
+        id=\"gvYears_gvMonthes_1_GridView1_6_lblPlace_0\">PORTO / Portugal (Portugal)</span>\r\n
+        \                                                               </font></td>\r\n\t\t\t\t\t\t\t\t</tr><tr
+        bgcolor=\"#507CD1\">\r\n\t\t\t\t\t\t\t\t\t<td><font color=\"White\"><b>&nbsp;</b></font></td><td><font
+        color=\"White\"><b>&nbsp;</b></font></td><td><font color=\"White\"><b>&nbsp;</b></font></td><td><font
+        color=\"White\"><b>&nbsp;</b></font></td><td><font color=\"White\"><b>&nbsp;</b></font></td>\r\n\t\t\t\t\t\t\t\t</tr>\r\n\t\t\t\t\t\t\t</table>\r\n\t\t\t\t\t\t</div>\r\n
+        \                                                   <div style=\"height: 10px;
+        background-color: white\"></div>\r\n                                                </font></td>\r\n\t\t\t\t\t</tr><tr>\r\n\t\t\t\t\t\t<td><font
+        color=\"#333333\">\r\n                                                    <div
+        style=\"text-align: center; background-color: #507CD1; height: 20px\">\r\n
+        \                                                       <span id=\"gvYears_gvMonthes_1_lblMonth_8\"
+        title=\"9\"><b><font color=\"White\">September</font></b></span>\r\n                                                    </div>\r\n\r\n
+        \                                                   <div>\r\n\t\t\t\t\t\t\t<table
+        cellspacing=\"0\" cellpadding=\"2\" bordercolor=\"White\" id=\"gvYears_gvMonthes_1_GridView1_8\"
+        width=\"100%\">\r\n\t\t\t\t\t\t\t\t<tr bgcolor=\"#E8E8EC\">\r\n\t\t\t\t\t\t\t\t\t<td
+        align=\"center\" bgcolor=\"#507CD1\" width=\"5%\"><font color=\"#333333\">\r\n
+        \                                                                   <span
+        id=\"gvYears_gvMonthes_1_GridView1_8_Label3_0\" style=\"display:inline-block;\"><font
+        color=\"White\">21 - 23</font></span>\r\n                                                                </font></td><td
+        align=\"center\" width=\"30%\"><font color=\"#333333\">World Championship
+        Ladies 3-Cushion</font></td><td align=\"center\" width=\"20%\"><font color=\"#333333\">World
+        Championship</font></td><td align=\"center\" width=\"10%\"><font color=\"#333333\">UMB</font></td><td
+        align=\"center\" width=\"35%\"><font color=\"#333333\">\r\n                                                                    <span
+        id=\"gvYears_gvMonthes_1_GridView1_8_lblPlace_0\">ANKARA / Turkey (Turkey)</span>\r\n
+        \                                                               </font></td>\r\n\t\t\t\t\t\t\t\t</tr><tr
+        bgcolor=\"Silver\">\r\n\t\t\t\t\t\t\t\t\t<td align=\"center\" bgcolor=\"#507CD1\"
+        width=\"5%\"><font color=\"#333333\">\r\n                                                                    <span
+        id=\"gvYears_gvMonthes_1_GridView1_8_Label3_1\" style=\"display:inline-block;\"><font
+        color=\"White\">24 - 26</font></span>\r\n                                                                </font></td><td
+        align=\"center\" width=\"30%\"><font color=\"#333333\">World Championship
+        3-Cushion Juniors</font></td><td align=\"center\" width=\"20%\"><font color=\"#333333\">World
+        Championship</font></td><td align=\"center\" width=\"10%\"><font color=\"#333333\">UMB</font></td><td
+        align=\"center\" width=\"35%\"><font color=\"#333333\">\r\n                                                                    <span
+        id=\"gvYears_gvMonthes_1_GridView1_8_lblPlace_1\">ANKARA / Turkey (Turkey)</span>\r\n
+        \                                                               </font></td>\r\n\t\t\t\t\t\t\t\t</tr><tr
+        bgcolor=\"#507CD1\">\r\n\t\t\t\t\t\t\t\t\t<td><font color=\"White\"><b>&nbsp;</b></font></td><td><font
+        color=\"White\"><b>&nbsp;</b></font></td><td><font color=\"White\"><b>&nbsp;</b></font></td><td><font
+        color=\"White\"><b>&nbsp;</b></font></td><td><font color=\"White\"><b>&nbsp;</b></font></td>\r\n\t\t\t\t\t\t\t\t</tr>\r\n\t\t\t\t\t\t\t</table>\r\n\t\t\t\t\t\t</div>\r\n
+        \                                                   <div style=\"height: 10px;
+        background-color: white\"></div>\r\n                                                </font></td>\r\n\t\t\t\t\t</tr><tr>\r\n\t\t\t\t\t\t<td><font
+        color=\"#333333\">\r\n                                                    <div
+        style=\"text-align: center; background-color: #507CD1; height: 20px\">\r\n
+        \                                                       <span id=\"gvYears_gvMonthes_1_lblMonth_9\"
+        title=\"10\"><b><font color=\"White\">October</font></b></span>\r\n                                                    </div>\r\n\r\n
+        \                                                   <div>\r\n\t\t\t\t\t\t\t<table
+        cellspacing=\"0\" cellpadding=\"2\" bordercolor=\"White\" id=\"gvYears_gvMonthes_1_GridView1_9\"
+        width=\"100%\">\r\n\t\t\t\t\t\t\t\t<tr bgcolor=\"#E8E8EC\">\r\n\t\t\t\t\t\t\t\t\t<td
+        align=\"center\" bgcolor=\"#507CD1\" width=\"5%\"><font color=\"#333333\">\r\n
+        \                                                                   <span
+        id=\"gvYears_gvMonthes_1_GridView1_9_Label3_0\" style=\"display:inline-block;\"><font
+        color=\"White\">04 - 10</font></span>\r\n                                                                </font></td><td
+        align=\"center\" width=\"30%\"><font color=\"#333333\">World Cup 3-Cushion</font></td><td
+        align=\"center\" width=\"20%\"><font color=\"#333333\">World Cup</font></td><td
+        align=\"center\" width=\"10%\"><font color=\"#333333\">UMB / CEB</font></td><td
+        align=\"center\" width=\"35%\"><font color=\"#333333\">\r\n                                                                    <span
+        id=\"gvYears_gvMonthes_1_GridView1_9_lblPlace_0\">ANTWERP / Belgium (Belgium)</span>\r\n
+        \                                                               </font></td>\r\n\t\t\t\t\t\t\t\t</tr><tr
+        bgcolor=\"Silver\">\r\n\t\t\t\t\t\t\t\t\t<td align=\"center\" bgcolor=\"#507CD1\"
+        width=\"5%\"><font color=\"#333333\">\r\n                                                                    <span
+        id=\"gvYears_gvMonthes_1_GridView1_9_Label3_1\" style=\"display:inline-block;\"><font
+        color=\"White\">20 - 24</font></span>\r\n                                                                </font></td><td
+        align=\"center\" width=\"30%\"><font color=\"#333333\">World Championship
+        3-Cushion</font></td><td align=\"center\" width=\"20%\"><font color=\"#333333\">World
+        Championship</font></td><td align=\"center\" width=\"10%\"><font color=\"#333333\">UMB</font></td><td
+        align=\"center\" width=\"35%\"><font color=\"#333333\">\r\n                                                                    <span
+        id=\"gvYears_gvMonthes_1_GridView1_9_lblPlace_1\">ANKARA / Turkey (Turkey)</span>\r\n
+        \                                                               </font></td>\r\n\t\t\t\t\t\t\t\t</tr><tr
+        bgcolor=\"#507CD1\">\r\n\t\t\t\t\t\t\t\t\t<td><font color=\"White\"><b>&nbsp;</b></font></td><td><font
+        color=\"White\"><b>&nbsp;</b></font></td><td><font color=\"White\"><b>&nbsp;</b></font></td><td><font
+        color=\"White\"><b>&nbsp;</b></font></td><td><font color=\"White\"><b>&nbsp;</b></font></td>\r\n\t\t\t\t\t\t\t\t</tr>\r\n\t\t\t\t\t\t\t</table>\r\n\t\t\t\t\t\t</div>\r\n
+        \                                                   <div style=\"height: 10px;
+        background-color: white\"></div>\r\n                                                </font></td>\r\n\t\t\t\t\t</tr><tr>\r\n\t\t\t\t\t\t<td><font
+        color=\"#333333\">\r\n                                                    <div
+        style=\"text-align: center; background-color: #507CD1; height: 20px\">\r\n
+        \                                                       <span id=\"gvYears_gvMonthes_1_lblMonth_10\"
+        title=\"11\"><b><font color=\"White\">November</font></b></span>\r\n                                                    </div>\r\n\r\n
+        \                                                   <div>\r\n\t\t\t\t\t\t\t<table
+        cellspacing=\"0\" cellpadding=\"2\" bordercolor=\"White\" id=\"gvYears_gvMonthes_1_GridView1_10\"
+        width=\"100%\">\r\n\t\t\t\t\t\t\t\t<tr bgcolor=\"#E8E8EC\">\r\n\t\t\t\t\t\t\t\t\t<td
+        align=\"center\" bgcolor=\"#507CD1\" width=\"5%\"><font color=\"#333333\">\r\n
+        \                                                                   <span
+        id=\"gvYears_gvMonthes_1_GridView1_10_Label3_0\" style=\"display:inline-block;\"><font
+        color=\"White\">01 - 07</font></span>\r\n                                                                </font></td><td
+        align=\"center\" width=\"30%\"><font color=\"#333333\">World Cup 3-Cushion</font></td><td
+        align=\"center\" width=\"20%\"><font color=\"#333333\">World Cup</font></td><td
+        align=\"center\" width=\"10%\"><font color=\"#333333\">UMB / ACBC</font></td><td
+        align=\"center\" width=\"35%\"><font color=\"#333333\">\r\n                                                                    <span
+        id=\"gvYears_gvMonthes_1_GridView1_10_lblPlace_0\">N/A / Korea (Korea)</span>\r\n
+        \                                                               </font></td>\r\n\t\t\t\t\t\t\t\t</tr><tr
+        bgcolor=\"#507CD1\">\r\n\t\t\t\t\t\t\t\t\t<td><font color=\"White\"><b>&nbsp;</b></font></td><td><font
+        color=\"White\"><b>&nbsp;</b></font></td><td><font color=\"White\"><b>&nbsp;</b></font></td><td><font
+        color=\"White\"><b>&nbsp;</b></font></td><td><font color=\"White\"><b>&nbsp;</b></font></td>\r\n\t\t\t\t\t\t\t\t</tr>\r\n\t\t\t\t\t\t\t</table>\r\n\t\t\t\t\t\t</div>\r\n
+        \                                                   <div style=\"height: 10px;
+        background-color: white\"></div>\r\n                                                </font></td>\r\n\t\t\t\t\t</tr><tr>\r\n\t\t\t\t\t\t<td><font
+        color=\"#333333\">\r\n                                                    <div
+        style=\"text-align: center; background-color: #507CD1; height: 20px\">\r\n
+        \                                                       <span id=\"gvYears_gvMonthes_1_lblMonth_11\"
+        title=\"12\"><b><font color=\"White\">December</font></b></span>\r\n                                                    </div>\r\n\r\n
+        \                                                   <div>\r\n\t\t\t\t\t\t\t<table
+        cellspacing=\"0\" cellpadding=\"2\" bordercolor=\"White\" id=\"gvYears_gvMonthes_1_GridView1_11\"
+        width=\"100%\">\r\n\t\t\t\t\t\t\t\t<tr bgcolor=\"#E8E8EC\">\r\n\t\t\t\t\t\t\t\t\t<td
+        align=\"center\" bgcolor=\"#507CD1\" width=\"5%\"><font color=\"#333333\">\r\n
+        \                                                                   <span
+        id=\"gvYears_gvMonthes_1_GridView1_11_Label3_0\" style=\"display:inline-block;\"><font
+        color=\"White\">05 - 11</font></span>\r\n                                                                </font></td><td
+        align=\"center\" width=\"30%\"><font color=\"#333333\">World Cup 3-Cushion</font></td><td
+        align=\"center\" width=\"20%\"><font color=\"#333333\">World Cup</font></td><td
+        align=\"center\" width=\"10%\"><font color=\"#333333\">UMB / AMECC</font></td><td
+        align=\"center\" width=\"35%\"><font color=\"#333333\">\r\n                                                                    <span
+        id=\"gvYears_gvMonthes_1_GridView1_11_lblPlace_0\">N/A / Egypt (Egypt)</span>\r\n
+        \                                                               </font></td>\r\n\t\t\t\t\t\t\t\t</tr><tr
+        bgcolor=\"#507CD1\">\r\n\t\t\t\t\t\t\t\t\t<td><font color=\"White\"><b>&nbsp;</b></font></td><td><font
+        color=\"White\"><b>&nbsp;</b></font></td><td><font color=\"White\"><b>&nbsp;</b></font></td><td><font
+        color=\"White\"><b>&nbsp;</b></font></td><td><font color=\"White\"><b>&nbsp;</b></font></td>\r\n\t\t\t\t\t\t\t\t</tr>\r\n\t\t\t\t\t\t\t</table>\r\n\t\t\t\t\t\t</div>\r\n
+        \                                                   <div style=\"height: 10px;
+        background-color: white\"></div>\r\n                                                </font></td>\r\n\t\t\t\t\t</tr>\r\n\t\t\t\t</table>\r\n\t\t\t</div>\r\n\r\n
+        \                                   \r\n                                </font></td>\r\n\t\t</tr><tr>\r\n\t\t\t<td
+        align=\"center\"><font color=\"#333333\">\r\n                                    <div
+        style=\"font-weight: bold; font-size: large; background-color: white\">\r\n
+        \                                       <span id=\"gvYears_lblYears_2\"><font
+        color=\"#003366\">2028</font></span>\r\n                                    </div>\r\n\r\n
+        \                                   \r\n                                    <div>\r\n\t\t\t\t<table
+        cellspacing=\"0\" bordercolor=\"#507CD1\" id=\"gvYears_gvMonthes_2\" width=\"100%\">\r\n\t\t\t\t\t<tr>\r\n\t\t\t\t\t\t<td><font
+        color=\"#333333\">\r\n                                                    <div
+        style=\"text-align: center; background-color: #507CD1; height: 20px\">\r\n
+        \                                                       <span id=\"gvYears_gvMonthes_2_lblMonth_2\"
+        title=\"3\"><b><font color=\"White\">March</font></b></span>\r\n                                                    </div>\r\n\r\n
+        \                                                   <div>\r\n\t\t\t\t\t\t\t<table
+        cellspacing=\"0\" cellpadding=\"2\" bordercolor=\"White\" id=\"gvYears_gvMonthes_2_GridView1_2\"
+        width=\"100%\">\r\n\t\t\t\t\t\t\t\t<tr bgcolor=\"#E8E8EC\">\r\n\t\t\t\t\t\t\t\t\t<td
+        align=\"center\" bgcolor=\"#507CD1\" width=\"5%\"><font color=\"#333333\">\r\n
+        \                                                                   <span
+        id=\"gvYears_gvMonthes_2_GridView1_2_Label3_0\" style=\"display:inline-block;\"><font
+        color=\"White\">09 - 12</font></span>\r\n                                                                </font></td><td
+        align=\"center\" width=\"30%\"><font color=\"#333333\">World Championship
+        Nat. Teams 3-Cushion</font></td><td align=\"center\" width=\"20%\"><font color=\"#333333\">World
+        Championship</font></td><td align=\"center\" width=\"10%\"><font color=\"#333333\">UMB</font></td><td
+        align=\"center\" width=\"35%\"><font color=\"#333333\">\r\n                                                                    <span
+        id=\"gvYears_gvMonthes_2_GridView1_2_lblPlace_0\">VIERSEN / Germany (Germany)</span>\r\n
+        \                                                               </font></td>\r\n\t\t\t\t\t\t\t\t</tr><tr
+        bgcolor=\"#507CD1\">\r\n\t\t\t\t\t\t\t\t\t<td><font color=\"White\"><b>&nbsp;</b></font></td><td><font
+        color=\"White\"><b>&nbsp;</b></font></td><td><font color=\"White\"><b>&nbsp;</b></font></td><td><font
+        color=\"White\"><b>&nbsp;</b></font></td><td><font color=\"White\"><b>&nbsp;</b></font></td>\r\n\t\t\t\t\t\t\t\t</tr>\r\n\t\t\t\t\t\t\t</table>\r\n\t\t\t\t\t\t</div>\r\n
+        \                                                   <div style=\"height: 10px;
+        background-color: white\"></div>\r\n                                                </font></td>\r\n\t\t\t\t\t</tr><tr>\r\n\t\t\t\t\t\t<td><font
+        color=\"#333333\">\r\n                                                    <div
+        style=\"text-align: center; background-color: #507CD1; height: 20px\">\r\n
+        \                                                       <span id=\"gvYears_gvMonthes_2_lblMonth_4\"
+        title=\"5\"><b><font color=\"White\">May</font></b></span>\r\n                                                    </div>\r\n\r\n
+        \                                                   <div>\r\n\t\t\t\t\t\t\t<table
+        cellspacing=\"0\" cellpadding=\"2\" bordercolor=\"White\" id=\"gvYears_gvMonthes_2_GridView1_4\"
+        width=\"100%\">\r\n\t\t\t\t\t\t\t\t<tr bgcolor=\"#E8E8EC\">\r\n\t\t\t\t\t\t\t\t\t<td
+        align=\"center\" bgcolor=\"#507CD1\" width=\"5%\"><font color=\"#333333\">\r\n
+        \                                                                   <span
+        id=\"gvYears_gvMonthes_2_GridView1_4_Label3_0\" style=\"display:inline-block;\"><font
+        color=\"White\">15 - 21</font></span>\r\n                                                                </font></td><td
+        align=\"center\" width=\"30%\"><font color=\"#333333\">World Cup 3-Cushion</font></td><td
+        align=\"center\" width=\"20%\"><font color=\"#333333\">World Cup</font></td><td
+        align=\"center\" width=\"10%\"><font color=\"#333333\">UMB / ACBC</font></td><td
+        align=\"center\" width=\"35%\"><font color=\"#333333\">\r\n                                                                    <span
+        id=\"gvYears_gvMonthes_2_GridView1_4_lblPlace_0\">HO CHI MINH CITY / Vietnam
+        (Vietnam)</span>\r\n                                                                </font></td>\r\n\t\t\t\t\t\t\t\t</tr><tr
+        bgcolor=\"#507CD1\">\r\n\t\t\t\t\t\t\t\t\t<td><font color=\"White\"><b>&nbsp;</b></font></td><td><font
+        color=\"White\"><b>&nbsp;</b></font></td><td><font color=\"White\"><b>&nbsp;</b></font></td><td><font
+        color=\"White\"><b>&nbsp;</b></font></td><td><font color=\"White\"><b>&nbsp;</b></font></td>\r\n\t\t\t\t\t\t\t\t</tr>\r\n\t\t\t\t\t\t\t</table>\r\n\t\t\t\t\t\t</div>\r\n
+        \                                                   <div style=\"height: 10px;
+        background-color: white\"></div>\r\n                                                </font></td>\r\n\t\t\t\t\t</tr><tr>\r\n\t\t\t\t\t\t<td><font
+        color=\"#333333\">\r\n                                                    <div
+        style=\"text-align: center; background-color: #507CD1; height: 20px\">\r\n
+        \                                                       <span id=\"gvYears_gvMonthes_2_lblMonth_5\"
+        title=\"6\"><b><font color=\"White\">June</font></b></span>\r\n                                                    </div>\r\n\r\n
+        \                                                   <div>\r\n\t\t\t\t\t\t\t<table
+        cellspacing=\"0\" cellpadding=\"2\" bordercolor=\"White\" id=\"gvYears_gvMonthes_2_GridView1_5\"
+        width=\"100%\">\r\n\t\t\t\t\t\t\t\t<tr bgcolor=\"#E8E8EC\">\r\n\t\t\t\t\t\t\t\t\t<td
+        align=\"center\" bgcolor=\"#507CD1\" width=\"5%\"><font color=\"#333333\">\r\n
+        \                                                                   <span
+        id=\"gvYears_gvMonthes_2_GridView1_5_Label3_0\" style=\"display:inline-block;\"><font
+        color=\"White\">05 - 11</font></span>\r\n                                                                </font></td><td
+        align=\"center\" width=\"30%\"><font color=\"#333333\">World Cup 3-Cushion</font></td><td
+        align=\"center\" width=\"20%\"><font color=\"#333333\">World Cup</font></td><td
+        align=\"center\" width=\"10%\"><font color=\"#333333\">UMB / CEB</font></td><td
+        align=\"center\" width=\"35%\"><font color=\"#333333\">\r\n                                                                    <span
+        id=\"gvYears_gvMonthes_2_GridView1_5_lblPlace_0\">ANKARA / Turkey (Turkey)</span>\r\n
+        \                                                               </font></td>\r\n\t\t\t\t\t\t\t\t</tr><tr
+        bgcolor=\"#507CD1\">\r\n\t\t\t\t\t\t\t\t\t<td><font color=\"White\"><b>&nbsp;</b></font></td><td><font
+        color=\"White\"><b>&nbsp;</b></font></td><td><font color=\"White\"><b>&nbsp;</b></font></td><td><font
+        color=\"White\"><b>&nbsp;</b></font></td><td><font color=\"White\"><b>&nbsp;</b></font></td>\r\n\t\t\t\t\t\t\t\t</tr>\r\n\t\t\t\t\t\t\t</table>\r\n\t\t\t\t\t\t</div>\r\n
+        \                                                   <div style=\"height: 10px;
+        background-color: white\"></div>\r\n                                                </font></td>\r\n\t\t\t\t\t</tr><tr>\r\n\t\t\t\t\t\t<td><font
+        color=\"#333333\">\r\n                                                    <div
+        style=\"text-align: center; background-color: #507CD1; height: 20px\">\r\n
+        \                                                       <span id=\"gvYears_gvMonthes_2_lblMonth_8\"
+        title=\"9\"><b><font color=\"White\">September</font></b></span>\r\n                                                    </div>\r\n\r\n
+        \                                                   <div>\r\n\t\t\t\t\t\t\t<table
+        cellspacing=\"0\" cellpadding=\"2\" bordercolor=\"White\" id=\"gvYears_gvMonthes_2_GridView1_8\"
+        width=\"100%\">\r\n\t\t\t\t\t\t\t\t<tr bgcolor=\"#E8E8EC\">\r\n\t\t\t\t\t\t\t\t\t<td
+        align=\"center\" bgcolor=\"#507CD1\" width=\"5%\"><font color=\"#333333\">\r\n
+        \                                                                   <span
+        id=\"gvYears_gvMonthes_2_GridView1_8_Label3_0\" style=\"display:inline-block;\"><font
+        color=\"White\">19 - 21</font></span>\r\n                                                                </font></td><td
+        align=\"center\" width=\"30%\"><font color=\"#333333\">World Championship
+        Ladies 3-Cushion</font></td><td align=\"center\" width=\"20%\"><font color=\"#333333\">World
+        Championship</font></td><td align=\"center\" width=\"10%\"><font color=\"#333333\">UMB</font></td><td
+        align=\"center\" width=\"35%\"><font color=\"#333333\">\r\n                                                                    <span
+        id=\"gvYears_gvMonthes_2_GridView1_8_lblPlace_0\">ANKARA / Turkey (Turkey)</span>\r\n
+        \                                                               </font></td>\r\n\t\t\t\t\t\t\t\t</tr><tr
+        bgcolor=\"Silver\">\r\n\t\t\t\t\t\t\t\t\t<td align=\"center\" bgcolor=\"#507CD1\"
+        width=\"5%\"><font color=\"#333333\">\r\n                                                                    <span
+        id=\"gvYears_gvMonthes_2_GridView1_8_Label3_1\" style=\"display:inline-block;\"><font
+        color=\"White\">22 - 24</font></span>\r\n                                                                </font></td><td
+        align=\"center\" width=\"30%\"><font color=\"#333333\">World Championship
+        3-Cushion Juniors</font></td><td align=\"center\" width=\"20%\"><font color=\"#333333\">World
+        Championship</font></td><td align=\"center\" width=\"10%\"><font color=\"#333333\">UMB</font></td><td
+        align=\"center\" width=\"35%\"><font color=\"#333333\">\r\n                                                                    <span
+        id=\"gvYears_gvMonthes_2_GridView1_8_lblPlace_1\">ANKARA / Turkey (Turkey)</span>\r\n
+        \                                                               </font></td>\r\n\t\t\t\t\t\t\t\t</tr><tr
+        bgcolor=\"#507CD1\">\r\n\t\t\t\t\t\t\t\t\t<td><font color=\"White\"><b>&nbsp;</b></font></td><td><font
+        color=\"White\"><b>&nbsp;</b></font></td><td><font color=\"White\"><b>&nbsp;</b></font></td><td><font
+        color=\"White\"><b>&nbsp;</b></font></td><td><font color=\"White\"><b>&nbsp;</b></font></td>\r\n\t\t\t\t\t\t\t\t</tr>\r\n\t\t\t\t\t\t\t</table>\r\n\t\t\t\t\t\t</div>\r\n
+        \                                                   <div style=\"height: 10px;
+        background-color: white\"></div>\r\n                                                </font></td>\r\n\t\t\t\t\t</tr><tr>\r\n\t\t\t\t\t\t<td><font
+        color=\"#333333\">\r\n                                                    <div
+        style=\"text-align: center; background-color: #507CD1; height: 20px\">\r\n
+        \                                                       <span id=\"gvYears_gvMonthes_2_lblMonth_11\"
+        title=\"12\"><b><font color=\"White\">December</font></b></span>\r\n                                                    </div>\r\n\r\n
+        \                                                   <div>\r\n\t\t\t\t\t\t\t<table
+        cellspacing=\"0\" cellpadding=\"2\" bordercolor=\"White\" id=\"gvYears_gvMonthes_2_GridView1_11\"
+        width=\"100%\">\r\n\t\t\t\t\t\t\t\t<tr bgcolor=\"#E8E8EC\">\r\n\t\t\t\t\t\t\t\t\t<td
+        align=\"center\" bgcolor=\"#507CD1\" width=\"5%\"><font color=\"#333333\">\r\n
+        \                                                                   <span
+        id=\"gvYears_gvMonthes_2_GridView1_11_Label3_0\" style=\"display:inline-block;\"><font
+        color=\"White\">03 - 09</font></span>\r\n                                                                </font></td><td
+        align=\"center\" width=\"30%\"><font color=\"#333333\">World Cup 3-Cushion</font></td><td
+        align=\"center\" width=\"20%\"><font color=\"#333333\">World Cup</font></td><td
+        align=\"center\" width=\"10%\"><font color=\"#333333\">UMB / AMECC</font></td><td
+        align=\"center\" width=\"35%\"><font color=\"#333333\">\r\n                                                                    <span
+        id=\"gvYears_gvMonthes_2_GridView1_11_lblPlace_0\">N/A / Egypt (Egypt)</span>\r\n
+        \                                                               </font></td>\r\n\t\t\t\t\t\t\t\t</tr><tr
+        bgcolor=\"#507CD1\">\r\n\t\t\t\t\t\t\t\t\t<td><font color=\"White\"><b>&nbsp;</b></font></td><td><font
+        color=\"White\"><b>&nbsp;</b></font></td><td><font color=\"White\"><b>&nbsp;</b></font></td><td><font
+        color=\"White\"><b>&nbsp;</b></font></td><td><font color=\"White\"><b>&nbsp;</b></font></td>\r\n\t\t\t\t\t\t\t\t</tr>\r\n\t\t\t\t\t\t\t</table>\r\n\t\t\t\t\t\t</div>\r\n
+        \                                                   <div style=\"height: 10px;
+        background-color: white\"></div>\r\n                                                </font></td>\r\n\t\t\t\t\t</tr>\r\n\t\t\t\t</table>\r\n\t\t\t</div>\r\n\r\n
+        \                                   \r\n                                </font></td>\r\n\t\t</tr><tr>\r\n\t\t\t<td
+        align=\"center\"><font color=\"#333333\">\r\n                                    <div
+        style=\"font-weight: bold; font-size: large; background-color: white\">\r\n
+        \                                       <span id=\"gvYears_lblYears_3\"><font
+        color=\"#003366\">2029</font></span>\r\n                                    </div>\r\n\r\n
+        \                                   \r\n                                    <div>\r\n\t\t\t\t<table
+        cellspacing=\"0\" bordercolor=\"#507CD1\" id=\"gvYears_gvMonthes_3\" width=\"100%\">\r\n\t\t\t\t\t<tr>\r\n\t\t\t\t\t\t<td><font
+        color=\"#333333\">\r\n                                                    <div
+        style=\"text-align: center; background-color: #507CD1; height: 20px\">\r\n
+        \                                                       <span id=\"gvYears_gvMonthes_3_lblMonth_1\"
+        title=\"2\"><b><font color=\"White\">February</font></b></span>\r\n                                                    </div>\r\n\r\n
+        \                                                   <div>\r\n\t\t\t\t\t\t\t<table
+        cellspacing=\"0\" cellpadding=\"2\" bordercolor=\"White\" id=\"gvYears_gvMonthes_3_GridView1_1\"
+        width=\"100%\">\r\n\t\t\t\t\t\t\t\t<tr bgcolor=\"#E8E8EC\">\r\n\t\t\t\t\t\t\t\t\t<td
+        align=\"center\" bgcolor=\"#507CD1\" width=\"5%\"><font color=\"#333333\">\r\n
+        \                                                                   <span
+        id=\"gvYears_gvMonthes_3_GridView1_1_Label3_0\" style=\"display:inline-block;\"><font
+        color=\"White\">22 - 25</font></span>\r\n                                                                </font></td><td
+        align=\"center\" width=\"30%\"><font color=\"#333333\">World Championship
+        Nat. Teams 3-Cushion</font></td><td align=\"center\" width=\"20%\"><font color=\"#333333\">World
+        Championship</font></td><td align=\"center\" width=\"10%\"><font color=\"#333333\">UMB</font></td><td
+        align=\"center\" width=\"35%\"><font color=\"#333333\">\r\n                                                                    <span
+        id=\"gvYears_gvMonthes_3_GridView1_1_lblPlace_0\">VIERSEN / Germany (Germany)</span>\r\n
+        \                                                               </font></td>\r\n\t\t\t\t\t\t\t\t</tr><tr
+        bgcolor=\"#507CD1\">\r\n\t\t\t\t\t\t\t\t\t<td><font color=\"White\"><b>&nbsp;</b></font></td><td><font
+        color=\"White\"><b>&nbsp;</b></font></td><td><font color=\"White\"><b>&nbsp;</b></font></td><td><font
+        color=\"White\"><b>&nbsp;</b></font></td><td><font color=\"White\"><b>&nbsp;</b></font></td>\r\n\t\t\t\t\t\t\t\t</tr>\r\n\t\t\t\t\t\t\t</table>\r\n\t\t\t\t\t\t</div>\r\n
+        \                                                   <div style=\"height: 10px;
+        background-color: white\"></div>\r\n                                                </font></td>\r\n\t\t\t\t\t</tr><tr>\r\n\t\t\t\t\t\t<td><font
+        color=\"#333333\">\r\n                                                    <div
+        style=\"text-align: center; background-color: #507CD1; height: 20px\">\r\n
+        \                                                       <span id=\"gvYears_gvMonthes_3_lblMonth_4\"
+        title=\"5\"><b><font color=\"White\">May</font></b></span>\r\n                                                    </div>\r\n\r\n
+        \                                                   <div>\r\n\t\t\t\t\t\t\t<table
+        cellspacing=\"0\" cellpadding=\"2\" bordercolor=\"White\" id=\"gvYears_gvMonthes_3_GridView1_4\"
+        width=\"100%\">\r\n\t\t\t\t\t\t\t\t<tr bgcolor=\"#E8E8EC\">\r\n\t\t\t\t\t\t\t\t\t<td
+        align=\"center\" bgcolor=\"#507CD1\" width=\"5%\"><font color=\"#333333\">\r\n
+        \                                                                   <span
+        id=\"gvYears_gvMonthes_3_GridView1_4_Label3_0\" style=\"display:inline-block;\"><font
+        color=\"White\">14 - 20</font></span>\r\n                                                                </font></td><td
+        align=\"center\" width=\"30%\"><font color=\"#333333\">World Cup 3-Cushion</font></td><td
+        align=\"center\" width=\"20%\"><font color=\"#333333\">World Cup</font></td><td
+        align=\"center\" width=\"10%\"><font color=\"#333333\">UMB / ACBC</font></td><td
+        align=\"center\" width=\"35%\"><font color=\"#333333\">\r\n                                                                    <span
+        id=\"gvYears_gvMonthes_3_GridView1_4_lblPlace_0\">HO CHI MINH CITY / Vietnam
+        (Vietnam)</span>\r\n                                                                </font></td>\r\n\t\t\t\t\t\t\t\t</tr><tr
+        bgcolor=\"#507CD1\">\r\n\t\t\t\t\t\t\t\t\t<td><font color=\"White\"><b>&nbsp;</b></font></td><td><font
+        color=\"White\"><b>&nbsp;</b></font></td><td><font color=\"White\"><b>&nbsp;</b></font></td><td><font
+        color=\"White\"><b>&nbsp;</b></font></td><td><font color=\"White\"><b>&nbsp;</b></font></td>\r\n\t\t\t\t\t\t\t\t</tr>\r\n\t\t\t\t\t\t\t</table>\r\n\t\t\t\t\t\t</div>\r\n
+        \                                                   <div style=\"height: 10px;
+        background-color: white\"></div>\r\n                                                </font></td>\r\n\t\t\t\t\t</tr><tr>\r\n\t\t\t\t\t\t<td><font
+        color=\"#333333\">\r\n                                                    <div
+        style=\"text-align: center; background-color: #507CD1; height: 20px\">\r\n
+        \                                                       <span id=\"gvYears_gvMonthes_3_lblMonth_5\"
+        title=\"6\"><b><font color=\"White\">June</font></b></span>\r\n                                                    </div>\r\n\r\n
+        \                                                   <div>\r\n\t\t\t\t\t\t\t<table
+        cellspacing=\"0\" cellpadding=\"2\" bordercolor=\"White\" id=\"gvYears_gvMonthes_3_GridView1_5\"
+        width=\"100%\">\r\n\t\t\t\t\t\t\t\t<tr bgcolor=\"#E8E8EC\">\r\n\t\t\t\t\t\t\t\t\t<td
+        align=\"center\" bgcolor=\"#507CD1\" width=\"5%\"><font color=\"#333333\">\r\n
+        \                                                                   <span
+        id=\"gvYears_gvMonthes_3_GridView1_5_Label3_0\" style=\"display:inline-block;\"><font
+        color=\"White\">04 - 10</font></span>\r\n                                                                </font></td><td
+        align=\"center\" width=\"30%\"><font color=\"#333333\">World Cup 3-Cushion</font></td><td
+        align=\"center\" width=\"20%\"><font color=\"#333333\">World Cup</font></td><td
+        align=\"center\" width=\"10%\"><font color=\"#333333\">UMB / CEB</font></td><td
+        align=\"center\" width=\"35%\"><font color=\"#333333\">\r\n                                                                    <span
+        id=\"gvYears_gvMonthes_3_GridView1_5_lblPlace_0\">ANKARA / Turkey (Turkey)</span>\r\n
+        \                                                               </font></td>\r\n\t\t\t\t\t\t\t\t</tr><tr
+        bgcolor=\"#507CD1\">\r\n\t\t\t\t\t\t\t\t\t<td><font color=\"White\"><b>&nbsp;</b></font></td><td><font
+        color=\"White\"><b>&nbsp;</b></font></td><td><font color=\"White\"><b>&nbsp;</b></font></td><td><font
+        color=\"White\"><b>&nbsp;</b></font></td><td><font color=\"White\"><b>&nbsp;</b></font></td>\r\n\t\t\t\t\t\t\t\t</tr>\r\n\t\t\t\t\t\t\t</table>\r\n\t\t\t\t\t\t</div>\r\n
+        \                                                   <div style=\"height: 10px;
+        background-color: white\"></div>\r\n                                                </font></td>\r\n\t\t\t\t\t</tr><tr>\r\n\t\t\t\t\t\t<td><font
+        color=\"#333333\">\r\n                                                    <div
+        style=\"text-align: center; background-color: #507CD1; height: 20px\">\r\n
+        \                                                       <span id=\"gvYears_gvMonthes_3_lblMonth_11\"
+        title=\"12\"><b><font color=\"White\">December</font></b></span>\r\n                                                    </div>\r\n\r\n
+        \                                                   <div>\r\n\t\t\t\t\t\t\t<table
+        cellspacing=\"0\" cellpadding=\"2\" bordercolor=\"White\" id=\"gvYears_gvMonthes_3_GridView1_11\"
+        width=\"100%\">\r\n\t\t\t\t\t\t\t\t<tr bgcolor=\"#E8E8EC\">\r\n\t\t\t\t\t\t\t\t\t<td
+        align=\"center\" bgcolor=\"#507CD1\" width=\"5%\"><font color=\"#333333\">\r\n
+        \                                                                   <span
+        id=\"gvYears_gvMonthes_3_GridView1_11_Label3_0\" style=\"display:inline-block;\"><font
+        color=\"White\">02 - 08</font></span>\r\n                                                                </font></td><td
+        align=\"center\" width=\"30%\"><font color=\"#333333\">World Cup 3-Cushion</font></td><td
+        align=\"center\" width=\"20%\"><font color=\"#333333\">World Cup</font></td><td
+        align=\"center\" width=\"10%\"><font color=\"#333333\">UMB / AMECC</font></td><td
+        align=\"center\" width=\"35%\"><font color=\"#333333\">\r\n                                                                    <span
+        id=\"gvYears_gvMonthes_3_GridView1_11_lblPlace_0\">N/A / Egypt (Egypt)</span>\r\n
+        \                                                               </font></td>\r\n\t\t\t\t\t\t\t\t</tr><tr
+        bgcolor=\"#507CD1\">\r\n\t\t\t\t\t\t\t\t\t<td><font color=\"White\"><b>&nbsp;</b></font></td><td><font
+        color=\"White\"><b>&nbsp;</b></font></td><td><font color=\"White\"><b>&nbsp;</b></font></td><td><font
+        color=\"White\"><b>&nbsp;</b></font></td><td><font color=\"White\"><b>&nbsp;</b></font></td>\r\n\t\t\t\t\t\t\t\t</tr>\r\n\t\t\t\t\t\t\t</table>\r\n\t\t\t\t\t\t</div>\r\n
+        \                                                   <div style=\"height: 10px;
+        background-color: white\"></div>\r\n                                                </font></td>\r\n\t\t\t\t\t</tr>\r\n\t\t\t\t</table>\r\n\t\t\t</div>\r\n\r\n
+        \                                   \r\n                                </font></td>\r\n\t\t</tr><tr>\r\n\t\t\t<td
+        align=\"center\"><font color=\"#333333\">\r\n                                    <div
+        style=\"font-weight: bold; font-size: large; background-color: white\">\r\n
+        \                                       <span id=\"gvYears_lblYears_4\"><font
+        color=\"#003366\">2030</font></span>\r\n                                    </div>\r\n\r\n
+        \                                   \r\n                                    <div>\r\n\t\t\t\t<table
+        cellspacing=\"0\" bordercolor=\"#507CD1\" id=\"gvYears_gvMonthes_4\" width=\"100%\">\r\n\t\t\t\t\t<tr>\r\n\t\t\t\t\t\t<td><font
+        color=\"#333333\">\r\n                                                    <div
+        style=\"text-align: center; background-color: #507CD1; height: 20px\">\r\n
+        \                                                       <span id=\"gvYears_gvMonthes_4_lblMonth_4\"
+        title=\"5\"><b><font color=\"White\">May</font></b></span>\r\n                                                    </div>\r\n\r\n
+        \                                                   <div>\r\n\t\t\t\t\t\t\t<table
+        cellspacing=\"0\" cellpadding=\"2\" bordercolor=\"White\" id=\"gvYears_gvMonthes_4_GridView1_4\"
+        width=\"100%\">\r\n\t\t\t\t\t\t\t\t<tr bgcolor=\"#E8E8EC\">\r\n\t\t\t\t\t\t\t\t\t<td
+        align=\"center\" bgcolor=\"#507CD1\" width=\"5%\"><font color=\"#333333\">\r\n
+        \                                                                   <span
+        id=\"gvYears_gvMonthes_4_GridView1_4_Label3_0\" style=\"display:inline-block;\"><font
+        color=\"White\">13 - 19</font></span>\r\n                                                                </font></td><td
+        align=\"center\" width=\"30%\"><font color=\"#333333\">World Cup 3-Cushion</font></td><td
+        align=\"center\" width=\"20%\"><font color=\"#333333\">World Cup</font></td><td
+        align=\"center\" width=\"10%\"><font color=\"#333333\">UMB / ACBC</font></td><td
+        align=\"center\" width=\"35%\"><font color=\"#333333\">\r\n                                                                    <span
+        id=\"gvYears_gvMonthes_4_GridView1_4_lblPlace_0\">HO CHI MINH CITY / Vietnam
+        (Vietnam)</span>\r\n                                                                </font></td>\r\n\t\t\t\t\t\t\t\t</tr><tr
+        bgcolor=\"#507CD1\">\r\n\t\t\t\t\t\t\t\t\t<td><font color=\"White\"><b>&nbsp;</b></font></td><td><font
+        color=\"White\"><b>&nbsp;</b></font></td><td><font color=\"White\"><b>&nbsp;</b></font></td><td><font
+        color=\"White\"><b>&nbsp;</b></font></td><td><font color=\"White\"><b>&nbsp;</b></font></td>\r\n\t\t\t\t\t\t\t\t</tr>\r\n\t\t\t\t\t\t\t</table>\r\n\t\t\t\t\t\t</div>\r\n
+        \                                                   <div style=\"height: 10px;
+        background-color: white\"></div>\r\n                                                </font></td>\r\n\t\t\t\t\t</tr><tr>\r\n\t\t\t\t\t\t<td><font
+        color=\"#333333\">\r\n                                                    <div
+        style=\"text-align: center; background-color: #507CD1; height: 20px\">\r\n
+        \                                                       <span id=\"gvYears_gvMonthes_4_lblMonth_5\"
+        title=\"6\"><b><font color=\"White\">June</font></b></span>\r\n                                                    </div>\r\n\r\n
+        \                                                   <div>\r\n\t\t\t\t\t\t\t<table
+        cellspacing=\"0\" cellpadding=\"2\" bordercolor=\"White\" id=\"gvYears_gvMonthes_4_GridView1_5\"
+        width=\"100%\">\r\n\t\t\t\t\t\t\t\t<tr bgcolor=\"#E8E8EC\">\r\n\t\t\t\t\t\t\t\t\t<td
+        align=\"center\" bgcolor=\"#507CD1\" width=\"5%\"><font color=\"#333333\">\r\n
+        \                                                                   <span
+        id=\"gvYears_gvMonthes_4_GridView1_5_Label3_0\" style=\"display:inline-block;\"><font
+        color=\"White\">03 - 09</font></span>\r\n                                                                </font></td><td
+        align=\"center\" width=\"30%\"><font color=\"#333333\">World Cup 3-Cushion</font></td><td
+        align=\"center\" width=\"20%\"><font color=\"#333333\">World Cup</font></td><td
+        align=\"center\" width=\"10%\"><font color=\"#333333\">UMB / CEB</font></td><td
+        align=\"center\" width=\"35%\"><font color=\"#333333\">\r\n                                                                    <span
+        id=\"gvYears_gvMonthes_4_GridView1_5_lblPlace_0\">ANKARA / Turkey (Turkey)</span>\r\n
+        \                                                               </font></td>\r\n\t\t\t\t\t\t\t\t</tr><tr
+        bgcolor=\"#507CD1\">\r\n\t\t\t\t\t\t\t\t\t<td><font color=\"White\"><b>&nbsp;</b></font></td><td><font
+        color=\"White\"><b>&nbsp;</b></font></td><td><font color=\"White\"><b>&nbsp;</b></font></td><td><font
+        color=\"White\"><b>&nbsp;</b></font></td><td><font color=\"White\"><b>&nbsp;</b></font></td>\r\n\t\t\t\t\t\t\t\t</tr>\r\n\t\t\t\t\t\t\t</table>\r\n\t\t\t\t\t\t</div>\r\n
+        \                                                   <div style=\"height: 10px;
+        background-color: white\"></div>\r\n                                                </font></td>\r\n\t\t\t\t\t</tr><tr>\r\n\t\t\t\t\t\t<td><font
+        color=\"#333333\">\r\n                                                    <div
+        style=\"text-align: center; background-color: #507CD1; height: 20px\">\r\n
+        \                                                       <span id=\"gvYears_gvMonthes_4_lblMonth_11\"
+        title=\"12\"><b><font color=\"White\">December</font></b></span>\r\n                                                    </div>\r\n\r\n
+        \                                                   <div>\r\n\t\t\t\t\t\t\t<table
+        cellspacing=\"0\" cellpadding=\"2\" bordercolor=\"White\" id=\"gvYears_gvMonthes_4_GridView1_11\"
+        width=\"100%\">\r\n\t\t\t\t\t\t\t\t<tr bgcolor=\"#E8E8EC\">\r\n\t\t\t\t\t\t\t\t\t<td
+        align=\"center\" bgcolor=\"#507CD1\" width=\"5%\"><font color=\"#333333\">\r\n
+        \                                                                   <span
+        id=\"gvYears_gvMonthes_4_GridView1_11_Label3_0\" style=\"display:inline-block;\"><font
+        color=\"White\">01 - 07</font></span>\r\n                                                                </font></td><td
+        align=\"center\" width=\"30%\"><font color=\"#333333\">World Cup 3-Cushion</font></td><td
+        align=\"center\" width=\"20%\"><font color=\"#333333\">World Cup</font></td><td
+        align=\"center\" width=\"10%\"><font color=\"#333333\">UMB / AMECC</font></td><td
+        align=\"center\" width=\"35%\"><font color=\"#333333\">\r\n                                                                    <span
+        id=\"gvYears_gvMonthes_4_GridView1_11_lblPlace_0\">N/A / Egypt (Egypt)</span>\r\n
+        \                                                               </font></td>\r\n\t\t\t\t\t\t\t\t</tr><tr
+        bgcolor=\"#507CD1\">\r\n\t\t\t\t\t\t\t\t\t<td><font color=\"White\"><b>&nbsp;</b></font></td><td><font
+        color=\"White\"><b>&nbsp;</b></font></td><td><font color=\"White\"><b>&nbsp;</b></font></td><td><font
+        color=\"White\"><b>&nbsp;</b></font></td><td><font color=\"White\"><b>&nbsp;</b></font></td>\r\n\t\t\t\t\t\t\t\t</tr>\r\n\t\t\t\t\t\t\t</table>\r\n\t\t\t\t\t\t</div>\r\n
+        \                                                   <div style=\"height: 10px;
+        background-color: white\"></div>\r\n                                                </font></td>\r\n\t\t\t\t\t</tr>\r\n\t\t\t\t</table>\r\n\t\t\t</div>\r\n\r\n
+        \                                   \r\n                                </font></td>\r\n\t\t</tr>\r\n\t</table>\r\n</div>\r\n
+        \           </div>\r\n            <input name=\"btnPrint\" type=\"button\"
+        id=\"btnPrint\" value=\"print \" onclick=\"javascript: CallPrint(&#39;divPrint&#39;)\"
+        />\r\n        </div>\r\n    </form>\r\n</body>\r\n</html>\r\n"
+  recorded_at: Sun, 09 Aug 2026 01:19:24 GMT
+recorded_with: VCR 6.4.0

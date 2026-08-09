@@ -26,9 +26,10 @@
 #   SKIP_LEDGER=0      — Guard komplett aus (z. B. fuer Bisect-Laeufe).
 module SkipLedger
   # Aktueller Stand (Vollauf 2026-08-09, nach den Fixture-Ergaenzungen
-  # tournament_ccs/player_rankings/branches: 57 → 23 Skips, davon 12
-  # datenbedingt). Beim Schliessen einer Luecke MIT herunterzaehlen — der Guard
-  # soll die Zahl nach unten druecken, nicht konservieren.
+  # tournament_ccs/player_rankings/branches und den UMB-VCR-Kassetten:
+  # 57 → 19 Skips, davon 12 datenbedingt). Beim Schliessen einer Luecke MIT
+  # herunterzaehlen — der Guard soll die Zahl nach unten druecken, nicht
+  # konservieren.
   #
   # `STRICT_FIXTURES=1 bin/rails test` listet die 12 auf einen Schlag als
   # Failures — praktisch beim Abarbeiten.
