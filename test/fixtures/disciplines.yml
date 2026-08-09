@@ -98,8 +98,14 @@ branch_karambol:
   created_at: <%= 2.years.ago %>
   updated_at: <%= 1.day.ago %>
 
-# Blatt-Disziplinen unter Karambol. Genau diese beiden Namen sucht der
-# Branch-Resolver-Test (base_tool_test) als Ebene-2-Nachweis.
+# Blatt-Disziplin unter Karambol als Ebene-2-Nachweis fuer den
+# Branch-Resolver-Test (base_tool_test).
+#
+# BEWUSST NUR "Cadre 35/2": ein Fixture-Record "Dreiband groß" machte
+# Umb::DisciplineDetectorTest flaky — der legt selbst eine Discipline dieses
+# Namens an und erwartet sie von `detect` zurueck; bei zwei gleichnamigen
+# Records entscheidet die DB-Reihenfolge. Der Resolver-Test kommt mit einer
+# der beiden Blatt-Disziplinen aus.
 #
 # carom_3band ("Dreiband") bleibt bewusst eine eigene Wurzel und wird NICHT
 # unter Karambol gehaengt: mehrere Tests nutzen es als von Pool unabhaengigen
@@ -112,9 +118,3 @@ karambol_cadre_35_2:
   created_at: <%= 2.years.ago %>
   updated_at: <%= 1.day.ago %>
 
-karambol_dreiband_gross:
-  id: 50_000_023
-  name: "Dreiband groß"
-  super_discipline_id: 50_000_021
-  created_at: <%= 2.years.ago %>
-  updated_at: <%= 1.day.ago %>
