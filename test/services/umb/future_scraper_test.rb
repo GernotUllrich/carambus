@@ -97,6 +97,7 @@ class Umb::FutureScraperTest < ActiveSupport::TestCase
     assert result >= 0
   end
 
+  # Altes Seitenformat — bleibt unterstuetzt (aeltere Kassetten/Archivseiten).
   test "extract_location handles 'NICE (France)' format" do
     scraper = Umb::FutureScraper.new
     result = scraper.send(:extract_location, "NICE (France)")
@@ -107,6 +108,36 @@ class Umb::FutureScraperTest < ActiveSupport::TestCase
     scraper = Umb::FutureScraper.new
     result = scraper.send(:extract_location, "N/A (Korea)")
     assert_equal "Korea", result
+  end
+
+  # Aktuelles Seitenformat (Stand 2026): "CITY / Country (Country)".
+  # Vorher lieferte die Stadt/Land-Regex hier ", Argentina" — der Ort ging
+  # bei JEDEM Future-Turnier verloren.
+  test "extract_location handles 'CITY / Country (Country)' format" do
+    scraper = Umb::FutureScraper.new
+    assert_equal "Marcos Juarez, Argentina",
+      scraper.send(:extract_location, "MARCOS JUAREZ / Argentina (Argentina)")
+    assert_equal "Ankara, Turkey",
+      scraper.send(:extract_location, "ANKARA / Turkey (Turkey)")
+  end
+
+  test "extract_location handles mehrteilige Ortsnamen im neuen Format" do
+    scraper = Umb::FutureScraper.new
+    assert_equal "Ho Chi Minh City, Vietnam",
+      scraper.send(:extract_location, "HO CHI MINH CITY / Vietnam (Vietnam)")
+  end
+
+  test "extract_location handles 'N/A / Country (Country)' — nur Land" do
+    scraper = Umb::FutureScraper.new
+    assert_equal "Korea", scraper.send(:extract_location, "N/A / Korea (Korea)")
+  end
+
+  # Statuspraefixe bleiben stehen (Information wuerde sonst verloren gehen);
+  # der Bindestrich darf dabei nicht zu Leerzeichen werden.
+  test "extract_location behaelt Statuspraefix und Interpunktion" do
+    scraper = Umb::FutureScraper.new
+    assert_equal "Postponed - Doha, Qatar",
+      scraper.send(:extract_location, "POSTPONED - DOHA / Qatar (Qatar)")
   end
 
   test "extract_location returns nil for org text" do

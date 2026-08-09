@@ -231,26 +231,49 @@ class Umb::FutureScraper
 
   # Bereinigt Ortstext: "NICE (France)" → "Nice, France", "N/A (Korea)" → "Korea"
   # @return [String, nil]
+  # Extrahiert "Stadt, Land" aus der Place-Spalte der UMB-Uebersicht.
+  #
+  # Die Seite liefert seit 2026 das Format "CITY / Country (Country)"
+  # (z.B. "MARCOS JUAREZ / Argentina (Argentina)"); frueher stand dort
+  # "CITY (Country)". Beide werden unterstuetzt — das alte, weil aeltere
+  # VCR-Kassetten und Archiv-Seiten es noch enthalten koennen.
+  #
+  # Sonderfaelle aus den realen Daten:
+  #   "N/A / Korea (Korea)"          → "Korea"        (Ort noch nicht bekannt)
+  #   "POSTPONED - DOHA / Qatar (…)" → "Postponed - Doha, Qatar"
+  #     Statuspraefixe bleiben stehen: die Menge moeglicher Praefixe ist
+  #     unbekannt, und ein blindes Strippen wuerde Information verlieren.
   def extract_location(text)
     return nil if text.blank?
-
-    # N/A-Muster zuerst prüfen
-    if (match = text.match(/N\/A\s*\(([^)]+)\)/i))
-      return match[1].strip
-    end
 
     # Organisations-Infos überspringen
     return nil if text.match?(/^UMB\s*\//)
     return nil if text.match?(/^WCBS/)
 
-    # "CITY (Country)" → "City, Country"
+    # N/A zuerst — sonst zerlegt die Stadt/Land-Regex den Schrägstrich in "N/A".
+    if (match = text.match(%r{\AN/A\b.*?\(([^)]+)\)}i))
+      return match[1].strip
+    end
+
+    # Neues Format: "CITY / Country (Country)" → "City, Country".
+    # Land aus der Klammer, nicht aus der Mitte: die Klammer ist bei allen
+    # beobachteten Datensaetzen der verlaessliche Traeger des Laendernamens.
+    if (match = text.match(%r{\A(.+?)\s*/\s*[^(]*\(([^)]+)\)\s*\z}))
+      return "#{titleize_place(match[1])}, #{match[2].strip}"
+    end
+
+    # Altes Format: "CITY (Country)" → "City, Country"
     if (match = text.match(/([A-Z\s]+)\s*\(([^)]+)\)/))
-      city = match[1].strip.titleize
-      country = match[2].strip
-      return "#{city}, #{country}"
+      return "#{titleize_place(match[1])}, #{match[2].strip}"
     end
 
     text.strip
+  end
+
+  # Wie String#titleize, aber Interpunktion bleibt erhalten: titleize wuerde aus
+  # "POSTPONED - DOHA" ein "Postponed   Doha" machen (Bindestrich → Leerzeichen).
+  def titleize_place(text)
+    text.to_s.strip.split(/(\s+)/).map { |part| part.match?(/\A\s+\z/) ? part : part.capitalize }.join
   end
 
   # Speichert/aktualisiert alle geparsten Turniere in der Datenbank.

@@ -18,6 +18,8 @@ class Umb::PlayerResolver
   def resolve(caps_name, mixed_name, nationality: nil, umb_player_id: nil)
     return nil if caps_name.blank? && mixed_name.blank?
 
+    nationality = normalize_nationality(nationality)
+
     # Strategie 1: Suche via umb_player_id (schnellste, zuverlässigste Methode)
     if umb_player_id.present? && umb_player_id.to_i > 0
       player = Player.find_by(umb_player_id: umb_player_id.to_i)
@@ -37,6 +39,17 @@ class Umb::PlayerResolver
 
     # Strategie 3: Neuen internationalen Spieler erstellen
     create_international_player(caps_name, mixed_name, nationality: nationality, umb_player_id: umb_player_id)
+  end
+
+  # Player validiert `nationality` auf GENAU 2 Zeichen (allow_blank). Die UMB-PDFs
+  # liefern aber nicht immer ISO-2: Junioren-Listen schreiben das Land aus
+  # ("Mexico"), gelegentlich stehen dort 3-Buchstaben-Codes. Ohne Normalisierung
+  # scheitert das Speichern des ganzen Spielers an der Laengenvalidierung — der
+  # Datensatz ginge komplett verloren, nur wegen eines Nebenfeldes.
+  # Nicht-ISO-2-Werte werden daher verworfen, der Spieler bleibt erhalten.
+  def normalize_nationality(value)
+    code = value.to_s.strip
+    (code.length == 2) ? code.upcase : nil
   end
 
   # Sucht Spieler anhand von caps_name und mixed_name in allen Namensreihenfolgen.
