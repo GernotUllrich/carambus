@@ -106,14 +106,14 @@ class Umb::PdfParser::PlayerListParserTest < ActiveSupport::TestCase
   test "parse liest das aktuelle Format (Country/Confed./Registered as)" do
     result = Umb::PdfParser::PlayerListParser.new(File.read(FIXTURE_2026)).parse
     assert_operator result.size, :>=, 15, "Auszug enthaelt ~20 Spieler"
-    assert_equal({position: 1, caps_name: "DERICKS", mixed_name: "Rene", nationality: "NL"}, result.first)
+    assert_equal({position: 1, caps_name: "DERICKS", mixed_name: "Rene", nationality: "NL", stage: "main"}, result.first)
     assert_equal (1..result.size).to_a, result.map { |p| p[:position] }, "Positionen muessen lueckenlos sein"
   end
 
   test "parse liest das Archiv-Format (Nat/Ranking Pos/Ranking Pts)" do
     result = Umb::PdfParser::PlayerListParser.new(File.read(FIXTURE_LEGACY)).parse
     assert_operator result.size, :>=, 15
-    assert_equal({position: 1, caps_name: "BLOMDAHL", mixed_name: "Torbjorn", nationality: "SE"}, result.first)
+    assert_equal({position: 1, caps_name: "BLOMDAHL", mixed_name: "Torbjorn", nationality: "SE", stage: "main"}, result.first)
   end
 
   test "parse erkennt Akzente und Umlaute in Namen" do
@@ -132,11 +132,44 @@ class Umb::PdfParser::PlayerListParserTest < ActiveSupport::TestCase
   test "parse liest das Junioren-Format (ausgeschriebenes Land + Geburtsdatum)" do
     result = Umb::PdfParser::PlayerListParser.new(File.read(FIXTURE_JUNIORS)).parse
     assert_operator result.size, :>=, 8
-    assert_equal({position: 1, caps_name: "SANCHEZ", mixed_name: "Ubaldo", nationality: "Mexico"}, result.first)
+    assert_equal({position: 1, caps_name: "SANCHEZ", mixed_name: "Ubaldo", nationality: "Mexico", stage: "main"}, result.first)
   end
 
   test "parse ignoriert Platzhalter-Zeilen ohne echten Spieler" do
     text = "101      Reserved Local PPPQ-1                CO\n102      Reserved Local PPPQ-2                CO\n"
     assert_equal [], Umb::PdfParser::PlayerListParser.new(text).parse
+  end
+
+  # --- stage: gesetztes Hauptfeld vs. Qualifikation ---------------------------
+  #
+  # World-Cup-Listen enthalten beides; "main" heisst "war gesetzt", nicht "hat in
+  # der Hauptrunde gespielt" (Qualifikanten, die sich durchsetzen, bleiben
+  # "qualification").
+
+  test "parse markiert gesetzte Spieler als stage main" do
+    text = <<~TXT
+      1      BLOMDAHL Torbjorn       SE   1   402   Main Tournament   Confirmed
+      2      CAUDRON Frédéric        BE   2   371   Main Tournament   Confirmed
+      44     MUELLER Hans            DE   44  120
+      45     SCHMIDT Peter           AT   45  118
+    TXT
+    result = Umb::PdfParser::PlayerListParser.new(text).parse
+    assert_equal %w[main main qualification qualification], result.map { |r| r[:stage] }
+  end
+
+  test "parse wertet Wildcards als gesetzt" do
+    text = <<~TXT
+      1      DERICKS Rene            NL   CEB   Title Holder   UMB-1
+      2      SINGER Bernd            DE   CEB   Wildcard UMB
+    TXT
+    assert_equal %w[main main], Umb::PdfParser::PlayerListParser.new(text).parse.map { |r| r[:stage] }
+  end
+
+  # Junioren-/WM-Listen haben gar kein Qualifikationsfeld — dort darf der
+  # Marker-Vergleich nicht dazu fuehren, dass alles herausfaellt.
+  test "parse behandelt markerlose Listen vollstaendig als gesetzt" do
+    result = Umb::PdfParser::PlayerListParser.new(File.read(FIXTURE_JUNIORS)).parse
+    assert result.any?
+    assert(result.all? { |r| r[:stage] == "main" })
   end
 end

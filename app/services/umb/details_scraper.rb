@@ -505,6 +505,10 @@ class Umb::DetailsScraper
       seeding.data["source"] = "player_list_pdf"
       seeding.data["position"] = player_data[:position]
       seeding.data["nationality"] = player_data[:nationality]
+      # stage trennt Hauptrunde vom Qualifikationsfeld (bei World Cups sind ~90 %
+      # der Listeneintraege Qualifikanten). Fuer die Video-Zuordnung zaehlt nur die
+      # Hauptrunde — von der Gruppenphase gibt es kaum Videos.
+      seeding.data["stage"] = player_data[:stage] if player_data[:stage].present?
       seeding.state = "confirmed"
 
       if seeding.save
