@@ -141,8 +141,90 @@ namespace :umb do
         puts "   #{u[:title][0, 44]} (#{u[:date].to_date}) — IDs #{u[:ids].join(", ")}"
       end
       puts "   Hier ist von aussen nicht entscheidbar, welcher Eintrag gilt."
-      puts "   Auf files.umb-carom.org/public/TournametDetails.aspx?ID=<id> nachsehen:"
-      puts "   liefert eine der IDs HTTP 500, existiert sie dort nicht mehr."
+      puts "   Mit PURGE_DEAD=1 werden diese Gruppen live gegen UMB geprueft und"
+      puts "   geloescht, wenn dort KEINE der IDs mehr existiert."
+    end
+
+    # Zurueckgezogene Turniere: liefert die Detailseite zu JEDER external_id der
+    # Gruppe HTTP 500, hat UMB den Eintrag entfernt. Solche Termine stehen sonst
+    # mit state "finished" im Bestand, obwohl sie nie stattgefunden haben — und
+    # ziehen im Video-Matcher Videos an, weil ihr Datumsfenster passt.
+    # Geloescht wird nur, was nachweislich weg ist UND woran nichts haengt.
+    if ENV["PURGE_DEAD"].present? && uebersprungen.any?
+      puts
+      puts "-" * 78
+      puts "PRUEFE ZURUECKGEZOGENE TURNIERE GEGEN UMB"
+      puts "-" * 78
+      details = Umb::DetailsScraper.new
+      purge_gruppen = 0
+      purge_records = 0
+
+      uebersprungen.each do |u|
+        records = scope.where(title: u[:title], date: u[:date]).to_a
+        lebt = u[:ids].select { |ext| details.send(:fetch_tournament_basic_data, ext.to_i).present? }
+        anhang = records.sum { |r| r.games.count + r.seedings.count } +
+          Video.where(videoable_type: "Tournament", videoable_id: records.map(&:id)).count
+
+        puts "#{u[:title][0, 44]} (#{u[:date].to_date})"
+        if lebt.any?
+          puts "   BEHALTEN — bei UMB existiert noch: #{lebt.join(", ")}"
+          next
+        elsif anhang > 0
+          puts "   BEHALTEN — bei UMB weg, aber #{anhang} Games/Seedings/Videos haengen daran"
+          next
+        end
+
+        puts "   bei UMB entfernt (alle IDs #{u[:ids].join(", ")} liefern 500), nichts haengt daran"
+        puts "   -> #{records.size} Datensaetze #{armed ? "werden geloescht" : "wuerden geloescht"}"
+        if armed
+          records.each(&:destroy!)
+          purge_records += records.size
+        end
+        purge_gruppen += 1
+      end
+
+      puts
+      puts armed ? "Geloescht: #{purge_records} Datensaetze aus #{purge_gruppen} Gruppen" : "Wuerde #{purge_gruppen} Gruppen loeschen (ARMED=1 zum Ausfuehren)"
+    end
+    puts "=" * 78
+  end
+end
+
+namespace :umb do
+  desc "Setzt state (planned/finished) anhand des Turnierdatums — Trockenlauf, schreibt nur mit ARMED=1"
+  task fix_states: :environment do
+    # Der DetailsScraper setzte den State pauschal auf "finished" — auch fuer
+    # Termine, die noch bevorstehen (im Bestand bis 2030). FutureScraper und
+    # ArchiveScraper machen es datumsabhaengig richtig; seit dem Fix tut es der
+    # DetailsScraper auch. Dieser Task zieht den Altbestand nach.
+    #
+    # "planned"/"finished" sind KEINE AASM-States der Tournament-Statemaschine,
+    # sondern eine eigene Konvention der internationalen Scraper — deshalb hier
+    # update_columns statt AASM-Events.
+    armed = ENV["ARMED"].present? && ENV["ARMED"] != "0"
+    umb_source = InternationalSource.find_by(source_type: "umb")
+    abort "UMB-Quelle nicht gefunden." if umb_source.nil?
+
+    scope = InternationalTournament.where(international_source: umb_source).where.not(date: nil)
+    zu_planned = scope.where(state: "finished").where("date > ?", Date.current)
+    zu_finished = scope.where(state: "planned").where("date < ?", Date.current)
+
+    puts "\n" + "=" * 78
+    puts armed ? "UMB-STATES KORRIGIEREN (ARMED — schreibt!)" : "UMB-STATES — TROCKENLAUF (schreibt nichts)"
+    puts "=" * 78
+    puts "finished, aber Datum in der Zukunft: #{zu_planned.count}  -> planned"
+    puts "planned, aber Datum in der Vergangenheit: #{zu_finished.count}  -> finished"
+    puts
+
+    zu_planned.order(:date).limit(8).each { |t| puts "   #{t.date.to_date}  #{t.title[0, 50]}" }
+    puts "   ..." if zu_planned.count > 8
+
+    if armed
+      p_count = zu_planned.update_all(state: "planned")
+      f_count = zu_finished.update_all(state: "finished")
+      puts "\nKorrigiert: #{p_count} -> planned, #{f_count} -> finished"
+    else
+      puts "\nEs wurde NICHTS geschrieben — mit ARMED=1 ausfuehren."
     end
     puts "=" * 78
   end

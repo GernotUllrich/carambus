@@ -183,7 +183,12 @@ class Umb::DetailsScraper
       modus: "international",
       plan_or_show: "show",
       single_or_league: "single",
-      state: "finished",
+      # Datumsabhaengig wie in FutureScraper und ArchiveScraper. Vorher stand hier
+      # pauschal "finished" — dadurch galten auch kuenftige Termine als gespielt
+      # (im Bestand 37 Turniere, darunter Termine bis 2030). Fuer die
+      # Video-Zuordnung ist das schaedlich: ein "beendetes" Turnier ohne
+      # Ergebnisse zieht Videos an, die es nie gab.
+      state: (start_date && start_date > Date.current) ? "planned" : "finished",
       source_url: data[:url],
       season_id: season&.id,
       organizer_id: umb_organizer&.id,
