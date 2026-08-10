@@ -14,7 +14,16 @@ Umb::FutureScraper.new.call
 
 **Parameter:** keine
 
-**Beschreibung:** Scrapt `FutureTournaments.aspx` der UMB-Webseite. Parst die HTML-Tabelle inkl. monatsübergreifender Ereignisse und wendet Duplikat-Prüfung (Titel + Ort + Datum ±30 Tage) an.
+**Beschreibung:** Scrapt `FutureTournaments.aspx` der UMB-Webseite. Parst die HTML-Tabelle inkl. monatsübergreifender Ereignisse und wendet Duplikat-Prüfung (Titel + Datum ±30 Tage) an.
+
+!!! warning "Duplikat-Prüfung nutzt den Ort NICHT als Filter"
+    Bis 2026-08 floss `location_text` in die Prüfung ein. Als die UMB-Übersicht
+    das Ortsformat von `CITY (Country)` auf `CITY / Country (Country)` umstellte,
+    lieferte `extract_location` plötzlich `", Turkey"` statt `"Ankara, Turkey"` —
+    die Prüfung fand bestehende Turniere nicht mehr wieder und legte bei **jedem
+    Lauf** eine neue Kopie an (43 Dubletten-Gruppen im Produktionsbestand).
+    Der Ort dient jetzt nur noch als Tiebreaker bei mehreren Kandidaten.
+    Bereinigung des Altbestands: `rake umb:dedupe_tournaments`.
 
 **DB-Effekte:**
 - Erstellt oder aktualisiert `InternationalTournament`-Datensätze
@@ -93,8 +102,9 @@ Umb::PdfParser::PlayerListParser.new(pdf_text).parse
 
 ```ruby
 [
-  { position: 1, caps_name: "JASPERS", mixed_name: "Dick", nationality: "NL" },
-  { position: 2, caps_name: "CAUDRON", mixed_name: "Frederic", nationality: "FR" },
+  { position: 1, caps_name: "JASPERS", mixed_name: "Dick", nationality: "NL", stage: "main" },
+  { position: 2, caps_name: "CAUDRON", mixed_name: "Frédéric", nationality: "BE", stage: "main" },
+  { position: 44, caps_name: "MUELLER", mixed_name: "Hans", nationality: "DE", stage: "qualification" },
   # ...
 ]
 ```
@@ -104,6 +114,27 @@ Umb::PdfParser::PlayerListParser.new(pdf_text).parse
 - Gibt `[]` zurück bei nil/leerem Input oder fehlenden Spielerzeilen
 - `caps_name` ist der Nachname in Großbuchstaben (aus UMB-PDF-Konvention)
 - `mixed_name` ist der Vorname in gemischter Schreibweise
+- `stage` trennt das gesetzte Hauptfeld vom Qualifikationsfeld
+
+**Drei unterstützte PDF-Layouts.** Stabil sind nur die ersten vier Spalten; was
+dahinter steht, hat die UMB mehrfach umgestellt:
+
+| Layout | Beispielzeile |
+|---|---|
+| Archiv (ab 2013) | `1  BLOMDAHL Torbjorn  SE  1  402  Main Tournament` |
+| aktuell (seit 2026) | `1  DERICKS Rene  NL  CEB  Title Holder  UMB-1` |
+| Junioren | `1  SANCHEZ Ubaldo  Mexico  15/12/2007  8041  World Champion` |
+
+Das Junioren-Layout führt das Land ausgeschrieben; dort dient das Geburtsdatum
+als Anker, weil sich Vorname und Land sonst nicht trennen lassen.
+
+!!! danger "`stage: \"main\"` heißt „war gesetzt“, nicht „hat gespielt“"
+    Die Spielerliste entsteht **vor** dem Turnier. Wer sich aus der Qualifikation
+    ins Hauptfeld durchsetzt, bleibt hier `"qualification"` — empirisch bestätigt
+    am World Cup 2024 (Videos wie `[VEWC2024_L8] F. CAUDRON vs T. TASDEMIR`
+    betreffen Spieler, die in der Liste nicht gesetzt waren). Ein harter Filter
+    auf `stage == "main"` verliert diese Partien. Für die tatsächliche
+    Hauptrunden-Besetzung wären die `MTResults`-PDFs auszuwerten.
 
 ---
 

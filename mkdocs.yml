@@ -118,6 +118,7 @@ plugins:
             UMB Scraping: UMB Scraping
             UMB Scraping Implementation: UMB Scraping Implementierung
             UMB Scraping Methods: UMB Scraping Methoden
+            UMB Operations: UMB Betrieb und Wartung
             ClubCloud MCP Server: ClubCloud MCP-Server
             External Tournament Bridge: External-Tournament-Bridge
             Services: Services
@@ -211,6 +212,7 @@ nav:
       - UMB Scraping:
           - UMB Scraping Implementation: developers/umb-scraping-implementation.md
           - UMB Scraping Methods: developers/umb-scraping-methods.md
+          - UMB Operations: developers/umb-betrieb.md
       - ClubCloud MCP:
           - Server-Handbuch: developers/clubcloud-mcp-server.md
           - Architektur-Naht (Identität/Autorisierung): developers/mcp-architektur-naht.md

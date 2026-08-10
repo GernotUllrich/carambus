@@ -14,7 +14,15 @@ Umb::FutureScraper.new.call
 
 **Parameters:** none
 
-**Description:** Scrapes `FutureTournaments.aspx` on the UMB website. Parses the HTML table including cross-month events and applies duplicate detection (title + location + date ±30 days).
+**Description:** Scrapes `FutureTournaments.aspx` on the UMB website. Parses the HTML table including cross-month events and applies duplicate detection (title + date ±30 days).
+
+!!! warning "Duplicate detection does NOT filter on location"
+    Until 2026-08 `location_text` was part of the filter. When the UMB overview
+    changed its location format from `CITY (Country)` to `CITY / Country (Country)`,
+    `extract_location` started returning `", Turkey"` instead of `"Ankara, Turkey"` —
+    the check no longer recognised existing tournaments and created a fresh copy
+    on **every run** (43 duplicate groups in production). Location now only acts
+    as a tie-breaker between candidates. To clean up: `rake umb:dedupe_tournaments`.
 
 **DB effects:**
 - Creates or updates `InternationalTournament` records
@@ -104,6 +112,27 @@ Umb::PdfParser::PlayerListParser.new(pdf_text).parse
 - Returns `[]` for nil/empty input or when no player lines are found
 - `caps_name` is the surname in uppercase (UMB PDF convention)
 - `mixed_name` is the given name in mixed case
+- `stage` separates the seeded main field from the qualification field
+
+**Three supported PDF layouts.** Only the first four columns are stable; UMB has
+repeatedly changed what follows:
+
+| Layout | Sample line |
+|---|---|
+| archive (2013 onwards) | `1  BLOMDAHL Torbjorn  SE  1  402  Main Tournament` |
+| current (since 2026) | `1  DERICKS Rene  NL  CEB  Title Holder  UMB-1` |
+| juniors | `1  SANCHEZ Ubaldo  Mexico  15/12/2007  8041  World Champion` |
+
+The juniors layout spells out the country; there the date of birth serves as the
+anchor, because given name and country cannot otherwise be told apart.
+
+!!! danger "`stage: \"main\"` means \"was seeded\", not \"played\""
+    The player list is produced **before** the tournament. Players who advance
+    from qualification stay `"qualification"` here — confirmed empirically at the
+    2024 World Cup (videos such as `[VEWC2024_L8] F. CAUDRON vs T. TASDEMIR`
+    involve players who were not seeded). Filtering strictly on
+    `stage == "main"` loses those matches. For the actual main-round line-up the
+    `MTResults` PDFs would have to be parsed.
 
 ---
 
