@@ -102,6 +102,12 @@
     <% end %>
   </div>
 
+  <!-- KO-Diagramm der Hauptrunde -->
+  <% if @ko_rounds.present? %>
+    <%= render partial: "international/tournaments/ko_bracket",
+               locals: { ko_rounds: @ko_rounds, game_videos_by_game_id: @game_videos_by_game_id } %>
+  <% end %>
+
   <!-- Tournament Videos -->
   <section class="mb-12">
     <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6">Tournament Videos</h2>

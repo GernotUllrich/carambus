@@ -46,6 +46,17 @@ module InternationalHelper
     "BLOMDAHL" => { full_name: "Torbjorn BLOMDAHL", country: "SE", rank: 32 }
   }.freeze
 
+  # Wandelt einen ISO-3166-1-alpha-2-Ländercode ("KR", "NL") in ein Flaggen-Emoji.
+  # Gibt nil zurück, wenn kein gültiger 2-Buchstaben-Code vorliegt.
+  def country_flag_emoji(code)
+    return nil if code.blank?
+
+    cc = code.to_s.strip.upcase
+    return nil unless cc.match?(/\A[A-Z]{2}\z/)
+
+    cc.codepoints.map { |cp| (cp - 65 + 0x1F1E6) }.pack("U*")
+  end
+
   # Get all discipline IDs for a group name
   def self.discipline_ids_for_group(group_name)
     discipline_names = DISCIPLINE_GROUPS[group_name]

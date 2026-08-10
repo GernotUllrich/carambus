@@ -94,6 +94,25 @@ class Umb::DetailsScraper
     false
   end
 
+  # Parst die bereits gescrapten Hauptrunden-PDFs (Quarter Final / Semi Final & Final)
+  # eines Turniers erneut und legt daraus die einzelnen K.-o.-Match-Games an.
+  # Nutzt die auf den Phase-Games gespeicherte data["umb_pdf_url"] — kein erneutes
+  # Scrapen der Detailseite nötig. Idempotent. Für Backfill bestehender Turniere.
+  #
+  # @return [Integer] Anzahl erzeugter/aktualisierter K.-o.-Match-Games
+  def backfill_knockout_results(tournament)
+    total = 0
+    phase_games = tournament.games.select do |g|
+      data = g.data
+      data.is_a?(Hash) && data["umb_category"] == "main_tournament" && data["umb_pdf_url"].present?
+    end
+
+    phase_games.each do |phase_game|
+      total += parse_knockout_results_pdf_for_game(phase_game, phase_game.data["umb_pdf_url"])
+    end
+    total
+  end
+
   private
 
   # Löst tournament_id_or_record auf: Integer → DB-Lookup oder Neuerstellung via fetch_tournament_basic_data
@@ -394,6 +413,8 @@ class Umb::DetailsScraper
             Timeout.timeout(60) do
               if game_type[:pdf_filename].match?(/GroupResults/i)
                 parse_group_results_pdf_for_game(game, game_type[:pdf_url])
+              elsif game_type[:pdf_filename].match?(/MTResults/i)
+                parse_knockout_results_pdf_for_game(game, game_type[:pdf_url])
               end
             end
           rescue Timeout::Error
@@ -590,6 +611,98 @@ class Umb::DetailsScraper
     return 0 if parsed_matches.empty?
 
     create_games_from_group_results(phase_game.tournament, parsed_matches)
+  end
+
+  # Parst ein MTResults-PDF (Hauptrunde: Quarter Final / Semi Final / Final) für
+  # das zugehörige Phase-Game und legt daraus einzelne K.-o.-Match-Games an.
+  def parse_knockout_results_pdf_for_game(phase_game, pdf_url)
+    pdf_text = @http.fetch_pdf_text(pdf_url)
+    return 0 unless pdf_text.present?
+
+    parsed_matches = Umb::PdfParser::MainTournamentParser.new(pdf_text).parse
+    return 0 if parsed_matches.empty?
+
+    create_games_from_knockout_results(phase_game, parsed_matches)
+  end
+
+  # Erstellt InternationalGame + GameParticipation aus MainTournamentParser-Output.
+  # Anders als GroupResults: gname eindeutig pro Match ("<Runde> - Match N") und
+  # data["phase_game_id"] verweist auf das übergeordnete Phase-Game — damit die
+  # Matches unter ihrer Hauptrunden-Phase (Controller/View) auffindbar sind.
+  # Idempotent via find_or_initialize_by(gname:) (kein Duplikat beim Re-Scrape).
+  def create_games_from_knockout_results(phase_game, parsed_matches)
+    tournament = phase_game.tournament
+    created_count = 0
+    round_counters = Hash.new(0)
+
+    parsed_matches.each do |match_data|
+      round = match_data[:round] # "Quarter Final" | "Semi Final" | "Final"
+      round_counters[round] += 1
+      match_number = round_counters[round]
+
+      player_a_data = match_data[:player_a]
+      player_b_data = match_data[:player_b]
+
+      player_a = resolve_player_from_name(player_a_data[:name], player_a_data[:nationality])
+      player_b = resolve_player_from_name(player_b_data[:name], player_b_data[:nationality])
+
+      unless player_a && player_b
+        Rails.logger.warn "[Umb::DetailsScraper] Could not resolve players for knockout match #{round} ##{match_number}"
+        next
+      end
+
+      winner_role = (match_data[:winner_name] == player_a_data[:name]) ? "1" : "2"
+
+      total_points = player_a_data[:points] + player_b_data[:points]
+      total_innings = player_a_data[:innings] + player_b_data[:innings]
+      gd = total_innings > 0 ? (total_points.to_f / total_innings).round(3) : 0.0
+
+      game = tournament.games.find_or_initialize_by(gname: "#{round} - Match #{match_number}")
+      game.type = "InternationalGame"
+      game.data = {
+        phase: phase_game.gname,
+        phase_game_id: phase_game.id,
+        round_name: round,
+        umb_match_number: match_number,
+        winner_role: winner_role,
+        gd: gd,
+        state: "finished",
+        source: "knockout_results_pdf",
+        scraped_at: Time.current.iso8601
+      }
+
+      if game.save(validate: false)
+        create_knockout_participation(game, player_a, player_a_data, "1")
+        create_knockout_participation(game, player_b, player_b_data, "2")
+        created_count += 1
+      else
+        Rails.logger.error "[Umb::DetailsScraper] Failed to save knockout game: #{game.errors.full_messages}"
+      end
+    end
+
+    Rails.logger.info "[Umb::DetailsScraper] Created/updated #{created_count} games from knockout results (#{phase_game.gname})"
+    created_count
+  end
+
+  # GameParticipation für ein K.-o.-Match. result = erzielte Punkte (T-Car), damit
+  # Score-Anzeige und Ranglisten-Aggregation (Controller summiert result) stimmen.
+  def create_knockout_participation(game, player, player_data, role)
+    participation = GameParticipation.find_or_initialize_by(game: game, player: player)
+
+    participation.assign_attributes(
+      role: role,
+      result: player_data[:points],
+      innings: player_data[:innings],
+      gd: player_data[:average],
+      hs: player_data[:hs].to_i,
+      data: {
+        match_points: player_data[:match_points],
+        nationality: player_data[:nationality],
+        source: "knockout_results_pdf"
+      }
+    )
+
+    participation.save(validate: false)
   end
 
   # Erstellt Seedings mit finaler Position aus RankingParser-Output.

@@ -86,6 +86,10 @@ module International
       # Hash für schnelle Zuweisung in der Game-Tabelle
       @game_videos_by_game_id = @videos.select { |v| v.videoable_type == "Game" }.index_by(&:videoable_id)
 
+      # KO-Diagramm der Hauptrunde (aus den MTResults-PDFs geparste Einzel-K.-o.-Spiele).
+      # Reihenfolge Achtel- → Viertel- → Halb- → Finale; leer, wenn keine Endrunde vorliegt.
+      @ko_rounds = load_ko_rounds(@tournament)
+
       # Phase Games (without "Match" in name)
       @phase_games = @tournament.games
                                 .where("gname NOT LIKE ?", "%Match%")
@@ -138,6 +142,28 @@ module International
     end
 
     private
+
+    # Reihenfolge der K.-o.-Runden im Diagramm (von links nach rechts).
+    # Dient zugleich als Whitelist: Runden, die hier nicht gelistet sind (z.B. reine
+    # Platzierungsspiele), erscheinen NICHT im Baum. UMB benennt das Achtelfinale als
+    # "Rank 8" (die Runde, die die Top 8 ermittelt).
+    KO_ROUND_ORDER = ["Round of 32", "Rank 16", "Round of 16", "Rank 8",
+                      "Quarter Final", "Semi Final", "Final"].freeze
+
+    # Lädt die aus den MTResults-PDFs geparsten K.-o.-Match-Spiele und gruppiert sie nach Runde.
+    # @return [Array<Array(String, Array<Game>)>] z.B. [["Rank 8", [..8..]], ["Quarter Final", [..4..]], ...]
+    def load_ko_rounds(tournament)
+      ko_games = tournament.games
+                           .where("data LIKE ?", "%knockout_results_pdf%")
+                           .includes(game_participations: :player)
+                           .to_a
+                           .select { |g| g.data.is_a?(Hash) && g.data["source"] == "knockout_results_pdf" }
+
+      ko_games.group_by { |g| g.data["round_name"] }
+              .reject { |round, _| round.blank? || KO_ROUND_ORDER.exclude?(round) }
+              .sort_by { |round, _| KO_ROUND_ORDER.index(round) }
+              .map { |round, games| [round, games.sort_by { |g| g.data["umb_match_number"].to_i }] }
+    end
 
     def set_tournament
       @tournament = Tournament.international
