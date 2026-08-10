@@ -126,11 +126,20 @@ namespace :umb do
     # Get tournaments from last 2 years that need updates
     # (either no games or haven't been updated recently)
     cutoff_date = 2.years.ago
+    # Sortierung nach ABSTAND zum heutigen Tag, nicht nach Datum absteigend:
+    # UMB pflegt Termine bis 2030 vor, und `date: :desc` stellte genau diese nach
+    # vorne — Turniere, die noch gar nicht stattgefunden haben und deshalb keine
+    # Ergebnis-PDFs besitzen koennen. Sie bekommen nie Games, fallen damit bei
+    # JEDEM Lauf erneut in die Auswahl und verbrauchten die 50er-Quote (Lauf vom
+    # 2026-08-10: 24 der 44 Kandidaten lagen in 2027..2030).
+    # Nach Naehe sortiert kommen zuerst die gerade gespielten Turniere dran, dann
+    # die unmittelbar bevorstehenden (die haben oft schon eine Spielerliste), und
+    # die ferne Zukunft zuletzt.
     all_recent = InternationalTournament
       .where(international_source: umb_source)
       .where('date >= ?', cutoff_date)
       .includes(:games)
-      .order(date: :desc)
+      .order(Arel.sql("ABS(EXTRACT(EPOCH FROM (date - CURRENT_DATE)))"))
     
     recent_tournaments = all_recent.select do |t|
       t.games.empty? || (t.data.is_a?(Hash) && t.data['detail_scraped_at'].nil?) || 
