@@ -16,7 +16,7 @@
         <link rel="prev" href="../umb-scraping-implementation/">
       
       
-        <link rel="next" href="../clubcloud-mcp-server/">
+        <link rel="next" href="../umb-betrieb/">
       
       
       <link rel="icon" href="../../../assets/images/favicon.png">
@@ -2076,6 +2076,8 @@
       
         
       
+        
+      
     
     
     
@@ -2291,6 +2293,29 @@
   
 </nav>
       
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../umb-betrieb/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    UMB Operations
+    
+  </span>
+  
+
+      </a>
     </li>
   
 
@@ -3526,7 +3551,16 @@
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="no">Umb</span><span class="o">::</span><span class="no">FutureScraper</span><span class="o">.</span><span class="n">new</span><span class="o">.</span><span class="n">call</span>
 </code></pre></div>
 <p><strong>Parameters:</strong> none</p>
-<p><strong>Description:</strong> Scrapes <code>FutureTournaments.aspx</code> on the UMB website. Parses the HTML table including cross-month events and applies duplicate detection (title + location + date ±30 days).</p>
+<p><strong>Description:</strong> Scrapes <code>FutureTournaments.aspx</code> on the UMB website. Parses the HTML table including cross-month events and applies duplicate detection (title + date ±30 days).</p>
+<div class="admonition warning">
+<p class="admonition-title">Duplicate detection does NOT filter on location</p>
+<p>Until 2026-08 <code>location_text</code> was part of the filter. When the UMB overview
+changed its location format from <code>CITY (Country)</code> to <code>CITY / Country (Country)</code>,
+<code>extract_location</code> started returning <code>", Turkey"</code> instead of <code>"Ankara, Turkey"</code> —
+the check no longer recognised existing tournaments and created a fresh copy
+on <strong>every run</strong> (43 duplicate groups in production). Location now only acts
+as a tie-breaker between candidates. To clean up: <code>rake umb:dedupe_tournaments</code>.</p>
+</div>
 <p><strong>DB effects:</strong>
 - Creates or updates <code>InternationalTournament</code> records
 - Creates <code>Location</code>, <code>Season</code>, and <code>Region</code> (UMB organizer) records as needed</p>
@@ -3632,7 +3666,43 @@
 - Pure PORO — no DB access
 - Returns <code>[]</code> for nil/empty input or when no player lines are found
 - <code>caps_name</code> is the surname in uppercase (UMB PDF convention)
-- <code>mixed_name</code> is the given name in mixed case</p>
+- <code>mixed_name</code> is the given name in mixed case
+- <code>stage</code> separates the seeded main field from the qualification field</p>
+<p><strong>Three supported PDF layouts.</strong> Only the first four columns are stable; UMB has
+repeatedly changed what follows:</p>
+<table>
+<thead>
+<tr>
+<th>Layout</th>
+<th>Sample line</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>archive (2013 onwards)</td>
+<td><code>1  BLOMDAHL Torbjorn  SE  1  402  Main Tournament</code></td>
+</tr>
+<tr>
+<td>current (since 2026)</td>
+<td><code>1  DERICKS Rene  NL  CEB  Title Holder  UMB-1</code></td>
+</tr>
+<tr>
+<td>juniors</td>
+<td><code>1  SANCHEZ Ubaldo  Mexico  15/12/2007  8041  World Champion</code></td>
+</tr>
+</tbody>
+</table>
+<p>The juniors layout spells out the country; there the date of birth serves as the
+anchor, because given name and country cannot otherwise be told apart.</p>
+<div class="admonition danger">
+<p class="admonition-title"><code>stage: \"main\"</code> means \"was seeded\", not \"played\"</p>
+<p>The player list is produced <strong>before</strong> the tournament. Players who advance
+from qualification stay <code>"qualification"</code> here — confirmed empirically at the
+2024 World Cup (videos such as <code>[VEWC2024_L8] F. CAUDRON vs T. TASDEMIR</code>
+involve players who were not seeded). Filtering strictly on
+<code>stage == "main"</code> loses those matches. For the actual main-round line-up the
+<code>MTResults</code> PDFs would have to be parsed.</p>
+</div>
 <hr />
 <h3 id="umbpdfparsergroupresultparser"><code>Umb::PdfParser::GroupResultParser</code><a class="headerlink" href="#umbpdfparsergroupresultparser" title="Permanent link">&para;</a></h3>
 <p><strong>File:</strong> <code>app/services/umb/pdf_parser/group_result_parser.rb</code></p>
