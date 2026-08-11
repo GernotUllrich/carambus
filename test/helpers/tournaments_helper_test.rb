@@ -82,4 +82,43 @@ class TournamentsHelperTest < ActionView::TestCase
 
     assert_equal [], entry_list_clubs_for(club_tournament)
   end
+
+  # PR #64: K.-o.-Baum aus Ergebniszeilen. Verankerte Regexes + deterministischer Tie-Break.
+
+  test "kanonisches Scoring trifft nur die passende Rundengröße" do
+    assert_equal 3, ko_round_score("Finale", 1)
+    assert_equal 3, ko_round_score("F", 1)
+    # Substring-Falle: 'Halbfinale' enthält 'finale', darf aber NICHT den Finale-Slot treffen
+    assert_equal 1, ko_round_score("Halbfinale", 1)
+    assert_equal 3, ko_round_score("Halbfinale", 2)
+    # Doppel-K.-o.-Einzüge sind nicht das echte Finale
+    assert_equal 1, ko_round_score("Einzug Finale GwR", 1)
+    assert_equal 1, ko_round_score("Einzug Finale VerlR", 1)
+  end
+
+  test "Bruchschreibweise landet in der richtigen Rundengröße" do
+    assert_equal 3, ko_round_score("1/2 Finale", 2)
+    assert_equal 3, ko_round_score("1/4 Finale", 4)
+    assert_equal 3, ko_round_score("1/8 Finale", 8)
+    # '1/2 Finale' ist ein Halbfinale, kein Finale
+    assert_equal 1, ko_round_score("1/2 Finale", 1)
+  end
+
+  test "Trostrunden werden zurueckgestuft" do
+    assert_equal 0, ko_round_score("1. Verliererrunde", 4)
+    assert_equal 0, ko_round_score("1. GR", 4)
+    assert_equal 0, ko_round_score("Trostrunde", 2)
+  end
+
+  test "fuehrende Anfuehrungszeichen stoeren den Anker nicht" do
+    assert_equal "Finale", ko_normalize("\"Finale")
+    assert_equal 3, ko_round_score("\"Finale", 1)
+  end
+
+  test "Tie-Break waehlt das echte Finale, nicht die Array-Reihenfolge" do
+    # Genau der T#145-Fall: das echte 'Finale' muss den Finale-Slot belegen
+    candidates = ["Einzug Finale GwR", "7. Verliererrunde", "Einzug Finale VerlR", "Finale"]
+    picked = candidates.min_by { |n| [-ko_round_score(n, 1), ko_normalize(n).length, n] }
+    assert_equal "Finale", picked
+  end
 end

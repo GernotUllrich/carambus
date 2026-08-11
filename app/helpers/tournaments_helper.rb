@@ -8,10 +8,16 @@ module TournamentsHelper
   KO_PLACE_RE = /(Platz|Plätze|kleines Finale)/i
   # Trostrunden (Gewinner-/Verliererrunde) — nur nachrangig in den Haupt-Baum.
   KO_CONSOL_RE = /(Verlierer|Gewinner|Trost|\bVR\b|\bGR\b)/i
-  # Kanonische Rundennamen je Rundengröße (bevorzugt im Haupt-Baum).
+  # Kanonische Rundennamen je Rundengröße, verankert am (normalisierten) Namensanfang,
+  # damit "Halbfinale", "1/2 Finale" oder "Einzug Finale GwR" NICHT den Finale-Slot treffen.
+  # Bruchschreibweise (1/2, 1/4, 1/8, 1/16) wird der jeweils richtigen Rundengröße zugeordnet.
   KO_CANON = {
-    1 => /finale/i, 2 => /halbfinale|\bhf\b/i, 4 => /viertelfinale|\bvf\b/i,
-    8 => /achtelfinale|hauptrunde|\bhr\b/i, 16 => /sechzehntel|hauptrunde/i, 32 => /hauptrunde/i
+    1 => %r{\A(finale|f)\b}i,
+    2 => %r{\A(halbfinale|hf|1/2[\s-]*finale)}i,
+    4 => %r{\A(viertelfinale|vf|1/4[\s-]*finale)}i,
+    8 => %r{\A(achtelfinale|af|hauptrunde|hr|1/8[\s-]*finale)}i,
+    16 => %r{\A(sechzehntelfinale|sechzehntel|hauptrunde|hr|1/16[\s-]*finale)}i,
+    32 => %r{\A(hauptrunde|hr)}i
   }.freeze
 
   # Baut aus den Ergebniszeilen (Games) eines regionalen Turniers die K.-o.-Struktur.
@@ -43,8 +49,10 @@ module TournamentsHelper
       candidates = counts.select { |n, c| c == size && used.exclude?(n) }.keys
       break if candidates.empty?
 
-      # Bei mehreren Runden gleicher Größe: kanonischen Namen bevorzugen, Trostrunde zurückstufen
-      name = candidates.max_by { |n| ko_round_score(n, size) }
+      # Bei mehreren Runden gleicher Größe: kanonischen Namen bevorzugen, Trostrunde zurückstufen.
+      # Tie-Break deterministisch: höchster Score, dann kürzester Name (schlichtes "Finale" vor
+      # "Finale, Gruppensieger"), dann alphabetisch — nie mehr die Array-Reihenfolge.
+      name = candidates.min_by { |n| [-ko_round_score(n, size), ko_normalize(n).length, n] }
       tree.unshift([ko_round_label(size), sort_ko_games(by_name[name])])
       used << name
       size *= 2
@@ -63,10 +71,17 @@ module TournamentsHelper
 
   # Bewertet einen gname als Haupt-Baum-Runde einer Größe: kanonisch (3) > neutral (1) > Trostrunde (0).
   def ko_round_score(name, round_size)
-    return 3 if KO_CANON[round_size]&.match?(name)
-    return 0 if name.match?(KO_CONSOL_RE)
+    norm = ko_normalize(name)
+    return 3 if KO_CANON[round_size]&.match?(norm)
+    return 0 if norm.match?(KO_CONSOL_RE)
 
     1
+  end
+
+  # Normalisiert einen gname für den kanonischen Abgleich: führende Anführungszeichen und
+  # Leerzeichen entfernen (CC liefert teils `"Finale`), damit die \A-Anker greifen.
+  def ko_normalize(name)
+    name.to_s.sub(/\A[\s"']+/, "")
   end
 
   # Deutsches Rundenlabel aus der Spielanzahl der Runde.
