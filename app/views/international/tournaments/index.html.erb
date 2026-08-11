@@ -56,9 +56,31 @@
     <% end %>
   </div>
 
-  <!-- View Mode Toggle -->
-  <div class="flex justify-end mb-6">
-    <div class="inline-flex rounded-lg shadow-sm" role="group">
+  <!-- Zeitraum- und View-Umschalter -->
+  <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
+    <!-- Time Period Filter -->
+    <%
+      current_period = params[:filter].presence
+      period_base = { type: params[:type], discipline_id: params[:discipline_id], year: params[:year],
+                      official_umb: params[:official_umb], view: params[:view] }
+      period_options = [["upcoming", "Upcoming"], ["past", "Past"], [nil, "All"]]
+    %>
+    <div>
+      <span class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1 uppercase tracking-wider">Time period</span>
+      <div class="inline-flex rounded-lg shadow-sm" role="group">
+        <% period_options.each_with_index do |(value, label), idx| %>
+          <% active = (current_period == value) %>
+          <% rounding = idx.zero? ? "rounded-l-lg" : (idx == period_options.size - 1 ? "rounded-r-lg" : "") %>
+          <%= link_to international_tournaments_path(period_base.merge(filter: value)),
+              class: "px-4 py-2 text-sm font-medium #{'border-l-0' unless idx.zero?} border border-gray-300 #{rounding} transition-colors #{active ? 'bg-primary-600 text-white' : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700'}" do %>
+            <%= label %>
+          <% end %>
+        <% end %>
+      </div>
+    </div>
+
+    <!-- View Mode Toggle -->
+    <div class="inline-flex rounded-lg shadow-sm self-start sm:self-auto" role="group">
       <%= link_to international_tournaments_path(view: 'grid', type: params[:type], discipline_id: params[:discipline_id], year: params[:year], official_umb: params[:official_umb]), 
           class: "px-4 py-2 text-sm font-medium #{params[:view] != 'table' ? 'bg-primary-600 text-white' : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700'} border border-gray-300 rounded-l-lg transition-colors inline-flex items-center" do %>
         <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
