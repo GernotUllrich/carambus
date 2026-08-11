@@ -71,9 +71,10 @@
         <% period_options.each_with_index do |(value, label), idx| %>
           <% active = (current_period == value) %>
           <% rounding = idx.zero? ? "rounded-l-lg" : (idx == period_options.size - 1 ? "rounded-r-lg" : "") %>
+          <%# Textfarbe auf inneres span: umgeht die globale a:not(.btn)-Regel (base.css), sonst grün auf grün %>
           <%= link_to international_tournaments_path(period_base.merge(filter: value)),
-              class: "px-4 py-2 text-sm font-medium #{'border-l-0' unless idx.zero?} border border-gray-300 #{rounding} transition-colors #{active ? 'bg-primary-600 text-white' : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700'}" do %>
-            <%= label %>
+              class: "px-4 py-2 text-sm font-medium #{'border-l-0' unless idx.zero?} border border-gray-300 #{rounding} transition-colors #{active ? 'bg-primary-600' : 'bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700'}" do %>
+            <span class="<%= active ? 'text-white' : 'text-gray-700 dark:text-gray-200' %>"><%= label %></span>
           <% end %>
         <% end %>
       </div>
@@ -81,19 +82,23 @@
 
     <!-- View Mode Toggle -->
     <div class="inline-flex rounded-lg shadow-sm self-start sm:self-auto" role="group">
-      <%= link_to international_tournaments_path(view: 'grid', type: params[:type], discipline_id: params[:discipline_id], year: params[:year], official_umb: params[:official_umb]), 
-          class: "px-4 py-2 text-sm font-medium #{params[:view] != 'table' ? 'bg-primary-600 text-white' : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700'} border border-gray-300 rounded-l-lg transition-colors inline-flex items-center" do %>
-        <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-          <path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM11 13a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
-        </svg>
-        Grid
+      <%= link_to international_tournaments_path(view: 'grid', type: params[:type], discipline_id: params[:discipline_id], year: params[:year], official_umb: params[:official_umb]),
+          class: "px-4 py-2 text-sm font-medium #{params[:view] != 'table' ? 'bg-primary-600' : 'bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700'} border border-gray-300 rounded-l-lg transition-colors inline-flex items-center" do %>
+        <span class="inline-flex items-center <%= params[:view] != 'table' ? 'text-white' : 'text-gray-700 dark:text-gray-200' %>">
+          <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM11 13a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
+          </svg>
+          Grid
+        </span>
       <% end %>
-      <%= link_to international_tournaments_path(view: 'table', type: params[:type], discipline_id: params[:discipline_id], year: params[:year], official_umb: params[:official_umb]), 
-          class: "px-4 py-2 text-sm font-medium #{params[:view] == 'table' ? 'bg-primary-600 text-white' : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700'} border-l-0 border border-gray-300 rounded-r-lg transition-colors inline-flex items-center" do %>
-        <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-          <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"/>
-        </svg>
-        Table
+      <%= link_to international_tournaments_path(view: 'table', type: params[:type], discipline_id: params[:discipline_id], year: params[:year], official_umb: params[:official_umb]),
+          class: "px-4 py-2 text-sm font-medium #{params[:view] == 'table' ? 'bg-primary-600' : 'bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700'} border-l-0 border border-gray-300 rounded-r-lg transition-colors inline-flex items-center" do %>
+        <span class="inline-flex items-center <%= params[:view] == 'table' ? 'text-white' : 'text-gray-700 dark:text-gray-200' %>">
+          <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"/>
+          </svg>
+          Table
+        </span>
       <% end %>
     </div>
   </div>
