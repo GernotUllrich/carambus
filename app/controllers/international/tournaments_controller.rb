@@ -12,20 +12,19 @@ module International
       tournaments_query = Tournament.international
                                     .includes(:discipline, :international_source, :videos)
 
-      # Filter by time period
-      tournaments_query = if params[:filter] == "past"
+      # Filter by time period (Default: upcoming)
+      tournaments_query = case params[:filter]
+                          when "past"
                             # Only past tournaments
                             tournaments_query.where("date < ?", Date.today)
                                              .order(date: :desc)
-                          elsif params[:filter] == "upcoming"
-                            # Only upcoming tournaments (max 6 months)
+                          when "all"
+                            # All tournaments (past and future)
+                            tournaments_query.order(date: :desc)
+                          else
+                            # Default (also filter=upcoming): upcoming tournaments (max 6 months), chronological
                             tournaments_query.where("date >= ? AND date <= ?", Date.today, six_months_from_now)
                                              .order(date: :asc)
-                          else
-                            # Default: All tournaments (but future limited to 6 months)
-                            tournaments_query.where("date < ? OR (date >= ? AND date <= ?)",
-                                                    Date.today, Date.today, six_months_from_now)
-                                             .order(date: :desc)
                           end
 
       # SQL Filters (can use database)

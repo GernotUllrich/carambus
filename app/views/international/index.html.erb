@@ -99,7 +99,7 @@
   <section>
     <div class="flex justify-between items-center mb-6">
       <h2 class="text-3xl font-bold text-gray-900 dark:text-gray-100">Recent Tournaments</h2>
-      <%= link_to 'All Tournaments →', international_tournaments_path(filter: 'past'), class: 'text-primary-600 dark:text-primary-400 hover:text-primary-800 dark:hover:text-primary-300 font-semibold' %>
+      <%= link_to 'All Tournaments →', international_tournaments_path(filter: 'all'), class: 'text-primary-600 dark:text-primary-400 hover:text-primary-800 dark:hover:text-primary-300 font-semibold' %>
     </div>
 
     <% if @recent_tournaments.any? %>
