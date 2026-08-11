@@ -2,6 +2,94 @@ module TournamentsHelper
 end
 
 module TournamentsHelper
+  # Erkennt Gruppen-/Vorrunden-Spiele (kein K.-o.), die NICHT in den Baum gehören.
+  KO_GROUP_RE = /\A(Gruppe|Vorrunde|Zwischenrunde|Qualifikation|Setzrunde|Endrunde|Poule)/i
+  # Platzierungsspiele (Platz 3 etc.) — als separater Abschnitt, nicht im Haupt-Baum.
+  KO_PLACE_RE = /(Platz|Plätze|kleines Finale)/i
+  # Trostrunden (Gewinner-/Verliererrunde) — nur nachrangig in den Haupt-Baum.
+  KO_CONSOL_RE = /(Verlierer|Gewinner|Trost|\bVR\b|\bGR\b)/i
+  # Kanonische Rundennamen je Rundengröße (bevorzugt im Haupt-Baum).
+  KO_CANON = {
+    1 => /finale/i, 2 => /halbfinale|\bhf\b/i, 4 => /viertelfinale|\bvf\b/i,
+    8 => /achtelfinale|hauptrunde|\bhr\b/i, 16 => /sechzehntel|hauptrunde/i, 32 => /hauptrunde/i
+  }.freeze
+
+  # Baut aus den Ergebniszeilen (Games) eines regionalen Turniers die K.-o.-Struktur.
+  # Der Haupt-Baum wird sprachunabhängig über die Spielanzahl als Halbierungskette ab
+  # "Finale" (1 → 2 → 4 → 8 …) erkannt; Labels ergeben sich aus der Rundengröße.
+  # Zusätzlich: Platzierungsspiele und übrige K.-o.-Runden (Trostrunden) als Extras.
+  #
+  # @return [Hash, nil] { tree: [[label, [Game,…]], …], extras: [[label, [Game,…]], …] } oder nil
+  def regional_ko_bracket(tournament)
+    # Internationale Turniere haben ihr eigenes Diagramm (international/tournaments/show)
+    return nil if tournament.is_a?(InternationalTournament)
+
+    games = tournament.games.includes(game_participations: :player).to_a
+    return nil if games.empty?
+
+    non_group = games.reject { |g| g.gname.to_s.match?(KO_GROUP_RE) }
+    place_games = non_group.select { |g| g.gname.to_s.match?(KO_PLACE_RE) }
+    ko_games = non_group - place_games
+    return nil if ko_games.empty?
+
+    by_name = ko_games.group_by { |g| g.gname.to_s }
+    counts = by_name.transform_values(&:size)
+
+    # Halbierungskette ab Finale (Größe 1) aufbauen
+    tree = []
+    used = []
+    size = 1
+    loop do
+      candidates = counts.select { |n, c| c == size && used.exclude?(n) }.keys
+      break if candidates.empty?
+
+      # Bei mehreren Runden gleicher Größe: kanonischen Namen bevorzugen, Trostrunde zurückstufen
+      name = candidates.max_by { |n| ko_round_score(n, size) }
+      tree.unshift([ko_round_label(size), sort_ko_games(by_name[name])])
+      used << name
+      size *= 2
+    end
+    return nil if tree.size < 2
+
+    # Extras: Platzierungsspiele + nicht verwendete K.-o.-Runden (Trostrunden)
+    extras = []
+    extras << ["Spiel um Platz 3", sort_ko_games(place_games)] if place_games.any?
+    by_name.each do |name, gs|
+      extras << [name, sort_ko_games(gs)] if used.exclude?(name)
+    end
+
+    { tree: tree, extras: extras }
+  end
+
+  # Bewertet einen gname als Haupt-Baum-Runde einer Größe: kanonisch (3) > neutral (1) > Trostrunde (0).
+  def ko_round_score(name, round_size)
+    return 3 if KO_CANON[round_size]&.match?(name)
+    return 0 if name.match?(KO_CONSOL_RE)
+
+    1
+  end
+
+  # Deutsches Rundenlabel aus der Spielanzahl der Runde.
+  def ko_round_label(round_size)
+    { 1 => "Finale", 2 => "Halbfinale", 4 => "Viertelfinale",
+      8 => "Achtelfinale", 16 => "Sechzehntelfinale", 32 => "1/32-Finale" }[round_size] ||
+      "Runde der letzten #{round_size * 2}"
+  end
+
+  # Sortiert die Spiele einer Runde stabil (seqno, dann id).
+  def sort_ko_games(games)
+    games.sort_by { |g| [g.seqno.to_i, g.id] }
+  end
+
+  # Ermittelt die Gewinner-Rolle eines K.-o.-Spiels aus den Ergebnissen (höheres result).
+  # @return [GameParticipation, nil]
+  def ko_game_winner(game)
+    parts = game.game_participations.to_a
+    return nil if parts.size < 2 || parts.any? { |p| p.result.nil? }
+
+    parts.max_by { |p| p.result.to_i } if parts.map(&:result).uniq.size > 1
+  end
+
   def hash_diff(first, second)
     first
       .dup
