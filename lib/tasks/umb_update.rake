@@ -7,6 +7,42 @@
 # 2026-08-09). Deshalb ueberall numerisch casten statt `.maximum(:external_id)`.
 UMB_MAX_EXTERNAL_ID = Arel.sql("MAX(NULLIF(regexp_replace(external_id, '\\D', '', 'g'), '')::bigint)")
 
+# Kandidaten-Praedikat fuer Step 4 (Detail-Scrape mit parse_pdfs).
+#
+# Die ersten beiden Bedingungen sind Bestand: keine Games oder nie im Detail
+# gescrapt.
+#
+# Die dritte schliesst eine Luecke, die drei Cron-Laeufe lang unbemerkt blieb:
+# Turniere, die VOR der PlayerListParser-Reparatur (2026-08-10) gescrapt wurden,
+# tragen Games UND `detail_scraped_at` — und fielen damit nie wieder in die
+# Auswahl, obwohl ihre Spielerliste nie erfolgreich geparst wurde. Stand
+# 2026-08-13 waren das 18 von 26 vergangenen Turnieren ohne Seedings, und jedes
+# einzelne trug ein `players_list`-PDF (Stichprobe ext=362: 298 Spieler sauber
+# parsbar). Ohne Seedings kann der Video-Matcher sein Spieler-Signal nicht nutzen.
+#
+# Die PDF-Bedingung ist NICHT optional: ein blosses `seedings.empty?` liesse
+# Turniere ohne Spielerliste (Mannschafts-WMs, Generalversammlungen, Absagen)
+# bei JEDEM Lauf erneut die 50er-Quote fressen — genau der Fehler, den die
+# Sortierung nach Terminnaehe behoben hat.
+def umb_needs_detail_update?(tournament)
+  return true if tournament.games.empty?
+
+  data = tournament.data
+
+  if data.is_a?(Hash)
+    return true if data["detail_scraped_at"].nil?
+
+    pdf_links = data["pdf_links"]
+    tournament.seedings.empty? && pdf_links.is_a?(Hash) && pdf_links.key?("players_list")
+  elsif data.is_a?(String)
+    return true unless data.include?("detail_scraped_at")
+
+    tournament.seedings.empty? && data.include?("players_list")
+  else
+    false
+  end
+end
+
 namespace :umb do
   desc "Efficiently update UMB tournaments (incremental scraping)"
   task update: :environment do
@@ -138,13 +174,10 @@ namespace :umb do
     all_recent = InternationalTournament
       .where(international_source: umb_source)
       .where('date >= ?', cutoff_date)
-      .includes(:games)
+      .includes(:games, :seedings)
       .order(Arel.sql("ABS(EXTRACT(EPOCH FROM (date - CURRENT_DATE)))"))
-    
-    recent_tournaments = all_recent.select do |t|
-      t.games.empty? || (t.data.is_a?(Hash) && t.data['detail_scraped_at'].nil?) || 
-        (t.data.is_a?(String) && !t.data.include?('detail_scraped_at'))
-    end.first(50)
+
+    recent_tournaments = all_recent.select { |t| umb_needs_detail_update?(t) }.first(50)
     
     puts "Found #{recent_tournaments.count} recent tournaments to update"
     
