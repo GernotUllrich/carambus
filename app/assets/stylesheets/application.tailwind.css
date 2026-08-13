@@ -10,6 +10,7 @@
 */
 @import "components/base.css";
 @import "components/alert.css";
+@import "components/bracket.css";
 @import "components/animation.css";
 @import "components/carambus.css";
 @import "components/avatars.css";

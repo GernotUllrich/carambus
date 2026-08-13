@@ -9,7 +9,7 @@
 <% else %>
 <% bracket = regional_ko_bracket(tournament) %>
 <% if bracket.present? %>
-  <div class="mt-8 pt-4 border-t border-primary-300" id="regional-ko-bracket-<%= tournament.id %>">
+  <div class="mt-8 pt-4 border-t border-primary-300" id="regional-ko-bracket-<%= tournament.id %>" data-controller="player-highlight">
     <h3 class="text-lg font-semibold text-primary-800 dark:text-primary-200 mb-3">Hauptrunde (K.-o.)</h3>
 
     <%# --- Haupt-Baum --- %>
