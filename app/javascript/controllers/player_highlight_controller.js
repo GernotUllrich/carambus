@@ -24,8 +24,14 @@ export default class extends Controller {
 
   highlight(playerId) {
     this.activeId = playerId
+    // aktiven Spieler für den dko-bracket-Controller hinterlegen (Linien nach Resize-Redraw)
+    this.element.dataset.hlPlayer = playerId || ""
     this.element.querySelectorAll("[data-player-id]").forEach((el) => {
       el.classList.toggle("ko-hl-name", playerId != null && el.dataset.playerId === playerId)
+    })
+    // Verbindungslinien desselben Spielers mit hervorheben
+    this.element.querySelectorAll("[data-edge-player]").forEach((el) => {
+      el.classList.toggle("ko-hl-edge", playerId != null && el.dataset.edgePlayer === playerId)
     })
   }
 }

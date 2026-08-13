@@ -148,6 +148,7 @@ export default class extends Controller {
       path.setAttribute("fill", "none")
       path.setAttribute("stroke", "currentColor")
       path.setAttribute("stroke-width", "1.5")
+      if (edge.player_id != null) path.dataset.edgePlayer = edge.player_id
       if (edge.kind === "loss") {
         path.setAttribute("stroke-dasharray", "4 3")
         path.setAttribute("opacity", "0.45")
@@ -155,6 +156,14 @@ export default class extends Controller {
         path.setAttribute("opacity", "0.8")
       }
       svg.appendChild(path)
+    }
+
+    // aktives Spieler-Highlight nach dem Neuzeichnen wieder auf die Linien anwenden
+    const active = this.element.dataset.hlPlayer
+    if (active) {
+      svg.querySelectorAll("[data-edge-player]").forEach((p) => {
+        p.classList.toggle("ko-hl-edge", p.dataset.edgePlayer === active)
+      })
     }
   }
 }

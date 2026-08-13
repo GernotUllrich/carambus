@@ -162,7 +162,7 @@ module TournamentsHelper
         seen[[a.id, b.id]] = true
         winner = ko_game_winner(a)
         kind = winner && winner.player_id == pid ? "win" : "loss"
-        edges << { from: a.id, to: b.id, kind: kind }
+        edges << { from: a.id, to: b.id, kind: kind, player_id: pid }
       end
     end
     edges

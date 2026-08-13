@@ -147,6 +147,9 @@ class TournamentsHelperTest < ActionView::TestCase
     loss = edges.find { |e| e[:from] == g1.id && e[:to] == g2.id }
     assert_equal "win", win[:kind], "A gewann g1 und zog weiter → win-Kante"
     assert_equal "loss", loss[:kind], "B verlor g1 und stieg ab → loss-Kante"
+    # Jede Kante trägt den Spieler, der sie durchläuft (fürs Linien-Highlight)
+    assert_equal :a, win[:player_id], "win-Kante gehört Spieler A"
+    assert_equal :b, loss[:player_id], "loss-Kante gehört Spieler B"
   end
 
   private
