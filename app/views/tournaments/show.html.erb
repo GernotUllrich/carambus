@@ -26,6 +26,9 @@
   <!-- Enthält jetzt auch die Setzliste mit Rankings -->
   <%= render 'tournament_status', tournament: @tournament %>
 
+  <%# Regionales K.-o.-Diagramm der Hauptrunde (aus den Ergebniszeilen; unabhängig vom tournament_monitor) %>
+  <%= render 'ko_bracket_regional', tournament: @tournament %>
+
   <%# ClubCloud-Meldeliste-Block: CC-behaftet (Titel, Wizard-Schritt-1-Verweis) → auf dem CC-losen
       Region Server ausgeblendet. Die aktuelle Meldeliste sieht der LSW ohnehin in der Setzliste/Rangliste. %>
   <% if !@tournament.has_clubcloud_results? && !region_server_lsw_view?(@tournament) %>

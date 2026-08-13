@@ -1,0 +1,20 @@
+/* K.-o.-Diagramme: Hervorhebung eines Spielers in allen seinen Spielen (Klick auf den Namen).
+   Token-basiert, class-basierter Dark-Mode. Toggle via player-highlight-Stimulus-Controller. */
+.ko-hl-name {
+  @apply bg-warning-200 text-warning-900 ring-1 ring-warning-400;
+}
+
+.dark .ko-hl-name {
+  @apply bg-warning-500/30 text-warning-50 ring-warning-500;
+}
+
+/* Verbindungslinien eines hervorgehobenen Spielers (SVG-Pfade im dko-bracket) */
+.ko-hl-edge {
+  @apply stroke-warning-500;
+  stroke-width: 2.5px;
+  opacity: 1;
+}
+
+.dark .ko-hl-edge {
+  @apply stroke-warning-400;
+}
