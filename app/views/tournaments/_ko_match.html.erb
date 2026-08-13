@@ -6,7 +6,7 @@
   parts = game.game_participations.to_a.sort_by { |p| p.role.to_s == "Heim" ? 0 : 1 }
   winner = ko_game_winner(game)
 %>
-<div class="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm overflow-hidden">
+<div class="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm overflow-hidden" data-game-id="<%= game.id %>">
   <div class="px-2 py-1 bg-gray-100 dark:bg-gray-700/60">
     <span class="text-[11px] font-semibold text-gray-500 dark:text-gray-400"><%= label %> · <%= number %></span>
   </div>

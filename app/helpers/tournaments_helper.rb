@@ -105,6 +105,69 @@ module TournamentsHelper
     parts.max_by { |p| p.result.to_i } if parts.map(&:result).uniq.size > 1
   end
 
+  # Verliererrunden eines Doppel-K.-o. (Gewinner-/Verlierer-Bracket).
+  DKO_LB_RE = /(Verlierer|VerlR|\bVR\b)/i
+
+  # Baut aus den Ergebniszeilen eines Doppel-K.-o.-Turniers Gewinner-Baum, Verlierer-Baum,
+  # Finale und die exakten Kanten (aus dem Spielerfluss: wer aus welchem Spiel weiterzieht).
+  # sprachunabhängig über seqno; kein Vorgänger-Link in den Daten nötig.
+  #
+  # @return [Hash, nil] { wb: [[label, [Game,…]], …], lb: […], final: Game|nil,
+  #                       edges: [{from:, to:, kind: "win"|"loss"}, …] } — nil wenn kein Doppel-K.-o.
+  def regional_dko_bracket(tournament)
+    return nil if tournament.is_a?(InternationalTournament)
+
+    games = tournament.games.includes(game_participations: :player).to_a
+    ko = games.reject { |g| g.gname.to_s.match?(KO_GROUP_RE) }.sort_by { |g| g.seqno.to_i }
+    return nil if ko.size < 4
+
+    lb = ko.select { |g| g.gname.to_s.match?(DKO_LB_RE) }
+    return nil if lb.empty? # kein Doppel-K.-o.
+
+    non_lb = ko - lb
+    final = non_lb.select { |g| dko_grand_final?(g) }.max_by { |g| g.seqno.to_i }
+    wb = non_lb - [final].compact
+    return nil if wb.empty?
+
+    { wb: dko_rounds(wb), lb: dko_rounds(lb), final: final, edges: dko_edges(ko) }
+  end
+
+  # Grand Final = zusammenführendes Endspiel (exakter Finale-Name, kein "Einzug Finale …").
+  def dko_grand_final?(game)
+    norm = ko_normalize(game.gname)
+    norm.match?(/\A(finale|f)\b/i) && !norm.match?(/Einzug/i)
+  end
+
+  # Gruppiert Spiele zu Runden (nach gname), geordnet nach frühester seqno.
+  def dko_rounds(games)
+    games.group_by { |g| g.gname.to_s }
+      .sort_by { |_, gs| gs.map { |g| g.seqno.to_i }.min }
+      .map { |name, gs| [ko_normalize(name), sort_ko_games(gs)] }
+  end
+
+  # Rekonstruiert die Bracket-Kanten über den Spielerfluss: für jeden Spieler die in seqno
+  # aufeinanderfolgenden Spiele; kind = "win" (gewann Quellspiel, zog weiter) / "loss" (verlor,
+  # fiel in die Verliererrunde). Jede Kante (a→b) gehört genau einem Spieler.
+  def dko_edges(games)
+    by_player = Hash.new { |h, k| h[k] = [] }
+    games.each { |g| g.game_participations.each { |gp| by_player[gp.player_id] << g if gp.player_id } }
+
+    seen = {}
+    edges = []
+    by_player.each do |pid, gs|
+      gs.sort_by! { |g| g.seqno.to_i }
+      gs.each_cons(2) do |a, b|
+        next if seen[[a.id, b.id]]
+
+        seen[[a.id, b.id]] = true
+        winner = ko_game_winner(a)
+        kind = winner && winner.player_id == pid ? "win" : "loss"
+        edges << { from: a.id, to: b.id, kind: kind }
+      end
+    end
+    edges
+  end
+
   def hash_diff(first, second)
     first
       .dup

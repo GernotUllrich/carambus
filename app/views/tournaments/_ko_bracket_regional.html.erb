@@ -3,6 +3,10 @@
   Erwartet local: tournament. Rendert nichts, wenn keine K.-o.-Struktur erkennbar ist.
   Sieger = höheres Ergebnis; keine Videos (regionale Games haben keine).
 %>
+<% dko = regional_dko_bracket(tournament) %>
+<% if dko.present? %>
+  <%= render partial: "tournaments/dko_bracket_regional", locals: { tournament: tournament, dko: dko } %>
+<% else %>
 <% bracket = regional_ko_bracket(tournament) %>
 <% if bracket.present? %>
   <div class="mt-8 pt-4 border-t border-primary-300" id="regional-ko-bracket-<%= tournament.id %>">
@@ -41,4 +45,5 @@
       </div>
     <% end %>
   </div>
+<% end %>
 <% end %>

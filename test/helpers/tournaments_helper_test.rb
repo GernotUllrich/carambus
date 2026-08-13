@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "test_helper"
+require "ostruct"
 
 # Plan 26-01: Vereinsauswahl für die Meldeliste eines Region-Turniers.
 # Reihenfolge: Vereine mit gemeldeten Teilnehmern → Austragungsort-Verein → Rest alphabetisch.
@@ -120,5 +121,39 @@ class TournamentsHelperTest < ActionView::TestCase
     candidates = ["Einzug Finale GwR", "7. Verliererrunde", "Einzug Finale VerlR", "Finale"]
     picked = candidates.min_by { |n| [-ko_round_score(n, 1), ko_normalize(n).length, n] }
     assert_equal "Finale", picked
+  end
+
+  # Doppel-K.-o.: Grand-Final-Erkennung + Kanten-Rekonstruktion aus dem Spielerfluss.
+
+  test "dko_grand_final? erkennt nur das zusammenfuehrende Endspiel" do
+    assert dko_grand_final?(OpenStruct.new(gname: "Finale"))
+    assert dko_grand_final?(OpenStruct.new(gname: "F"))
+    refute dko_grand_final?(OpenStruct.new(gname: "Einzug Finale GwR"))
+    refute dko_grand_final?(OpenStruct.new(gname: "Einzug Finale VerlR"))
+    refute dko_grand_final?(OpenStruct.new(gname: "Halbfinale"))
+    refute dko_grand_final?(OpenStruct.new(gname: "3. Verliererrunde"))
+  end
+
+  test "dko_edges rekonstruiert Sieger- und Abstiegskanten aus dem Spielerfluss" do
+    # g1: A schlägt B (A weiter, B faellt in die Verliererrunde)
+    # A zieht nach g3 (Gewinner-Baum), B nach g2 (Verlierer-Baum)
+    g1 = dko_game(1, {a: 5, b: 3})
+    g2 = dko_game(2, {b: 5, c: 2})
+    g3 = dko_game(3, {a: 5, d: 4})
+
+    edges = dko_edges([g1, g2, g3])
+
+    win = edges.find { |e| e[:from] == g1.id && e[:to] == g3.id }
+    loss = edges.find { |e| e[:from] == g1.id && e[:to] == g2.id }
+    assert_equal "win", win[:kind], "A gewann g1 und zog weiter → win-Kante"
+    assert_equal "loss", loss[:kind], "B verlor g1 und stieg ab → loss-Kante"
+  end
+
+  private
+
+  # Baut ein Spiel als Stub: seqno, id und zwei Teilnehmer {spieler_key => result}.
+  def dko_game(seqno, results)
+    parts = results.map { |player_key, result| OpenStruct.new(player_id: player_key, result: result) }
+    OpenStruct.new(id: seqno * 10, seqno: seqno, game_participations: parts)
   end
 end
