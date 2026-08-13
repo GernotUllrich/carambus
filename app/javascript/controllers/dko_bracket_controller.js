@@ -102,6 +102,40 @@ export default class extends Controller {
         wrap.style.height = `${colHeight}px`
       }
     }
+
+    this.positionFinal()
+  }
+
+  // Setzt das Grand Final absolut in den Spalt zwischen Gewinner- und Verliererband,
+  // horizontal rechts neben den rechtesten Speiser (Einzug Gewinner-/Verliererbaum).
+  positionFinal() {
+    const host = this.hostTarget
+    const wrap = host.querySelector("[data-dko-final]")
+    if (!wrap) return
+    const finalCell = wrap.querySelector("[data-game-id]")
+    if (!finalCell) return
+
+    const finalId = finalCell.dataset.gameId
+    const feederIds = this.edgesValue.filter((e) => String(e.to) === finalId).map((e) => e.from)
+    const origin = host.getBoundingClientRect()
+    const boxes = feederIds
+      .map((id) => host.querySelector(`[data-game-id="${id}"]`))
+      .filter(Boolean)
+      .map((el) => el.getBoundingClientRect())
+    if (!boxes.length) return
+
+    // vertikal: Mitte des Spalts zwischen den beiden Bändern
+    const wb = host.querySelector('[data-band="wb"]')
+    const lb = host.querySelector('[data-band="lb"]')
+    const wbBottom = wb.getBoundingClientRect().bottom - origin.top
+    const lbTop = lb.getBoundingClientRect().top - origin.top
+    const centerY = (wbBottom + lbTop) / 2
+
+    const rightX = Math.max(...boxes.map((b) => b.right - origin.left))
+    const GAP_X = 56
+
+    wrap.style.left = `${rightX + GAP_X}px`
+    wrap.style.top = `${centerY - wrap.offsetHeight / 2}px`
   }
 
   render() {

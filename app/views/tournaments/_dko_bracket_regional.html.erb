@@ -44,16 +44,6 @@
             <% dko[:wb].each do |round_label, round_games| %>
               <%= render partial: "tournaments/dko_round", locals: { label: round_label, games: round_games } %>
             <% end %>
-            <% if dko[:final].present? %>
-              <div class="flex flex-col min-w-[14rem]" data-dko-col>
-                <h4 class="text-xs font-bold uppercase tracking-wider text-primary-600 dark:text-primary-300 text-center mb-2">
-                  Finale
-                </h4>
-                <div class="relative flex flex-col gap-4" data-dko-matches>
-                  <%= render partial: "tournaments/ko_match", locals: { game: dko[:final], number: 1, label: "Finale" } %>
-                </div>
-              </div>
-            <% end %>
           </div>
         </div>
 
@@ -69,6 +59,16 @@
           </div>
         </div>
       </div>
+
+      <%# Grand Final: vom Controller absolut zwischen die Bänder gesetzt (Mitte der beiden Einzüge) %>
+      <% if dko[:final].present? %>
+        <div class="absolute z-10 w-56" data-dko-final>
+          <h4 class="text-xs font-bold uppercase tracking-wider text-primary-600 dark:text-primary-300 text-center mb-2">
+            Finale
+          </h4>
+          <%= render partial: "tournaments/ko_match", locals: { game: dko[:final], number: 1, label: "Finale" } %>
+        </div>
+      <% end %>
     </div>
   </div>
 </div>
