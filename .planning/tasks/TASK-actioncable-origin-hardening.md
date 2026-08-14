@@ -1,8 +1,10 @@
 # TASK: ActionCable Origin-/CSRF-Härtung
 
 **Erstellt:** 2026-08-14
-**Status:** Messung auf der Authority **abgeschlossen** (2026-08-14), Probe wieder entfernt.
-Flag **unverändert** — die Umstellung ist auf der Authority allein nicht validierbar (siehe 4a).
+**Status:** Flag **unverändert**. Authority-Messung abgeschlossen (`would_reject=true` = 0),
+Probe dort entfernt. NBV-Messung **angefangen, aber unvollständig** — es fehlt die
+OBS-Session, also genau der Fall (R4), der über die Umstellung entscheidet.
+Nächster Schritt und Zwischenstand: Abschnitt 4a und „Zwischenstand NBV-Messung" am Dateiende.
 **Herkunft:** CONCERNS.md, Sektionen „ActionCable Forgery Protection Disabled" +
 „Broad ActionCable Origin Validation"
 **Risiko bei Umsetzung:** mittel — kann WebSocket-Verbindungen (Scoreboards) brechen
@@ -336,3 +338,53 @@ Bewusst getrennt gehalten, weil der Fix Kenntnis darüber braucht, wie Scoreboar
 (die typischerweise *keinen* eingeloggten User haben) authentifiziert werden sollen —
 das ist eine Design-Entscheidung, keine Config-Änderung. **Eigener Task.**
 In CONCERNS.md bislang nicht erfasst.
+
+---
+
+## Zwischenstand NBV-Messung (2026-08-14)
+
+> Das ausführliche Runbook (Deploy des Probe-Branches, welche Client-Fälle zu erzeugen
+> sind, Auswertungskommandos, Entscheidungsregel) liegt **nur auf dem Branch**
+> `scenario/nbv/actioncable-origin-probe`, im Anhang derselben Datei. Hier steht nur der
+> Stand, damit er auf `master` nicht verlorengeht.
+
+Der Probe-Branch `scenario/nbv/actioncable-origin-probe` wurde deployt und hat Daten
+geliefert. **Noch nicht auswertbar**, weil ein Client-Typ fehlt.
+
+Erfasste Verteilung:
+
+```
+grep "origin-probe" log/production.log | grep -o "client=[a-z:]*" | sort | uniq -c
+  2 client=anonymous
+  4 client=scoreboard
+  8 client=user
+```
+
+`client=scoreboard` kam erst zustande, nachdem sich der Betreiber **abgemeldet** und die
+Location-Seite neu aufgerufen hat — `LocationsController#show` meldet nur dann per
+`bypass_sign_in(User.scoreboard)` an, wenn niemand eingeloggt ist. Eingeloggt geöffnete
+Scoreboards erscheinen als `client=user`.
+
+> **Bekannte Schwäche der Attribution:** `client_kind` erkennt die *Identität*, nicht den
+> *Seitentyp*. Ein Scoreboard, das ein angemeldeter Nutzer öffnet, ist nicht von einem
+> normalen Browser-Tab zu unterscheiden. Für die Origin-Frage ist das verkraftbar (es geht
+> um `Origin` vs. `Host`), für die Zuordnung eines etwaigen `would_reject=true` aber nicht.
+> Wer das schärfer braucht, sollte zusätzlich auf `HTTP_REFERER`/Route schauen.
+
+**Was fehlt: die OBS-Session.** Das ist Risiko R4 — Clients, die gar keinen `Origin`-Header
+senden. Ohne diesen Fall bleibt der kritischste Teil ungemessen, und `would_reject=true` = 0
+wäre ein Trugschluss.
+
+### Achtung vor dem nächsten Deploy dieses Branches
+
+Der Branch enthält seit `afa30779` einen Merge von `master` und damit die Absicherung des
+Administrate-Bereichs (`99ce08b9`). **Vor jedem weiteren Deploy erneut `master` mergen** —
+sonst rollt der Branch inzwischen entstandene Sicherheitskorrekturen zurück.
+
+Deploy-Umstellung (lokal, ohne Commit — `config/deploy/production.rb` ist gitignored):
+
+```ruby
+set :branch, 'scenario/nbv/actioncable-origin-probe'
+```
+
+**Danach zwingend wieder auf `'master'` zurückstellen.**
