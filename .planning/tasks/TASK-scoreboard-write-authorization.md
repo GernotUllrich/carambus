@@ -55,6 +55,26 @@ Daraus die gewünschten Stufen:
 - Die zweistufige Variante („Warnung + Einwilligung") ist UI-Arbeit, kein reines Gate: Der
   Zustand der Einwilligung muss pro Verbindung/Session gehalten werden.
 
+## 3a. Geltungsbereich (Betreiber, 2026-08-14)
+
+Das Topologie-Modell gilt **ausschließlich für die Tisch- und Protokoll-Pfade**:
+
+| Reflex | im Modell | Schreibops |
+|---|---|---|
+| `table_monitor_reflex.rb` | ✅ | 46 |
+| `game_protocol_reflex.rb` | ✅ | 15 |
+| `party_monitor_reflex.rb` | ❌ | 10 (hat bereits 2 `admin?`-Gates) |
+| `tournament_reflex.rb` | ❌ | 7 |
+
+Das ist der fachlich richtige Schnitt: Nur an diesen beiden hängt ein **physisches Gerät am
+Tisch**, dessen Standort überhaupt eine Aussage trägt. Turnier- und Party-Verwaltung
+passiert nicht am Scoreboard, sondern durch Turnierleitung — dort ist die Netz-Herkunft
+kein sinnvolles Kriterium.
+
+> **Randnotiz, nicht Teil dieses Tasks:** `TournamentReflex` hat damit weder ein
+> Rollen-Gate (0) noch fällt es unter das Topologie-Modell. Ob seine 7 Schreibpfade auf
+> anderem Weg abgesichert sind, ist eine eigene, hier bewusst **nicht** verfolgte Frage.
+
 ## 4. Offene Fragen vor dem Entwurf
 
 1. **Wo liegt die IP↔Tisch-Zuordnung heute?** Die Tischheizungs-Steuerung nutzt sie
@@ -64,8 +84,8 @@ Daraus die gewünschten Stufen:
 3. **Wie verhält sich das bei Cloud-Instanzen?** Siehe Abschnitt 5 — dort gibt es keine
    physischen Scoreboards, das Modell müsste dort entweder alles Schreiben verbieten oder
    für Demo-Zwecke bewusst ausnehmen.
-4. Gilt dasselbe für `PartyMonitorReflex` und `TournamentReflex`, oder nur für die
-   Tisch-/Protokoll-Pfade?
+4. ~~Gilt dasselbe für `PartyMonitorReflex` und `TournamentReflex`?~~ — **geklärt
+   (Betreiber, 2026-08-14): nur die Tisch- und Protokoll-Pfade.** Siehe Abschnitt 3a.
 
 ## 5. ⚠️ Cloud-Instanzen haben keine echten Scoreboards
 
