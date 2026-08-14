@@ -24,8 +24,12 @@ module ApplicationCable
     protected
 
     def find_verified_user
-      # Temporär für Debugging:
-      User.first || reject_unauthorized_connection
+      # Devise/Warden-Standard. NICHT durch User.first ersetzen (vgl. c1e473cb vom
+      # 2025-02-25): das authentifiziert jede WebSocket-Verbindung als ersten User
+      # der Tabelle, unabhaengig von Session und Login.
+      # Scoreboards sind hier regulaer angemeldet — LocationsController ruft
+      # bypass_sign_in(User.scoreboard) auf und legt damit eine echte Session an.
+      env["warden"]&.user || reject_unauthorized_connection
     end
 
     def user_signed_in?

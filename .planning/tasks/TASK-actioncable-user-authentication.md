@@ -1,7 +1,7 @@
 # TASK: ActionCable — Authentifizierung statt `User.first`
 
 **Erstellt:** 2026-08-14
-**Status:** offen — noch nicht umgesetzt
+**Status:** Code-Fix umgesetzt + Test grün (2026-08-14) — **Verifikation auf Staging/Prod offen**
 **Herkunft:** Befund bei der Ausarbeitung von `TASK-actioncable-origin-hardening.md`;
 in CONCERNS.md (2026-04-09) **nicht** enthalten
 **Risiko bei Umsetzung:** mittel — kann Scoreboard-/Reflex-Verbindungen brechen
@@ -89,6 +89,31 @@ Weitere bestätigende Belege, dass `scoreboard@carambus.de` ein vollwertiger Acc
 - `app/models/user.rb:102` — von `purge_unconfirmed!` ausgenommen
 - `app/models/user.rb:234` — eigenes Default-Theme (`dark`)
 - `lib/tasks/installation.rake:118` — wird bei der Installation angelegt
+
+---
+
+## 3a. ⚠ Bekannte Verhaltensänderung — vor dem Deploy prüfen
+
+Der Fix **weist anonyme Verbindungen jetzt ab** (vorher: stillschweigend `User.first`).
+Es gibt **keine** globale `authenticate_user!` in `ApplicationController` — anonymes
+Browsen ist also möglich, und anonyme Besucher hatten bisher eine funktionierende
+Cable-Verbindung (unter fremder Identität).
+
+Betroffen ist insbesondere `app/views/shared/_search_with_filter.html.erb` (nutzt einen
+Reflex und erscheint auf öffentlichen Index-Seiten) sowie `demo/scoreboard`
+(`table_monitors#demo_scoreboard`, kein `bypass_sign_in`).
+
+**Auf Staging zwingend zu prüfen:**
+- [ ] Suche/Filter auf einer öffentlichen Index-Seite **ohne Login**
+- [ ] `demo/scoreboard` ohne Login
+- [ ] Öffentliche Turnier-/Party-Ansichten ohne Login
+
+**Falls das bricht** — Variante C statt Ablehnung: anonyme Verbindung mit
+`current_user = nil` zulassen, statt sie zu verwerfen. Erfordert zusätzlich:
+`connection.rb:21` (`logger.add_tags "… User #{current_user.id}"`) gegen `nil` absichern
+und die Channels/Reflexes daraufhin durchsehen, ob sie `current_user` als gesetzt annehmen.
+Das ist die sicherheitstechnisch ebenfalls saubere, aber aufwendigere Lösung —
+sie trennt „anonym" von „fremde Identität" statt beides zu erlauben.
 
 ---
 
