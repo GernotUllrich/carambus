@@ -4,6 +4,17 @@ module Admin
     # App-Helper sind im View-Kontext nicht automatisch verfuegbar. Explizit einbinden.
     helper Admin::UserFormHelper
 
+    # Diese drei Endpunkte rendern JSON fuer Stimulus-Fetches (dependent-select,
+    # location-picker) und pruefen system_admin? selbst mit `head :forbidden` — fuer
+    # AJAX die passende Antwort, waehrend das Klassen-Gate auf root_path umleitet und
+    # damit HTML liefern wuerde, das der Client nicht parsen kann.
+    #
+    # ACHTUNG: Der Schutz haengt hier an den `return head :forbidden unless
+    # current_user&.system_admin?`-Zeilen in den Actions selbst. Wer die entfernt,
+    # macht die Endpunkte ungeschuetzt.
+    skip_before_action :authenticate_admin,
+      only: %i[players_by_club clubs_by_region locations_by_region]
+
     # Overwrite any of the RESTful controller actions to implement custom behavior
     # For example, you may want to send an email after a foo is updated.
     #
@@ -38,8 +49,10 @@ module Admin
 
     # Phase 37-01: JSON-Endpoint fuer den gestaffelten Player-Selektor im User-Formular.
     # Liefert die Spieler eines Clubs der AKTUELLEN Saison (SeasonParticipation).
-    # ⚠️ Admin::ApplicationController#authenticate_admin ist aktuell ein No-Op → eigene
-    # system_admin?-Pruefung Pflicht (kein ungeschuetzter Spieler-Listen-Leak).
+    # Eigene system_admin?-Pruefung, weil dieser Endpunkt vom Klassen-Gate ausgenommen ist
+    # (skip_before_action oben) und mit 403 statt Redirect antworten muss.
+    # Historie: authenticate_admin war bis 2026-08-14 ein No-Op — daher stammt diese lokale
+    # Absicherung. Das zentrale Gate greift inzwischen.
     def players_by_club
       return head :forbidden unless current_user&.system_admin?
 

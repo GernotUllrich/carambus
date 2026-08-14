@@ -4,8 +4,11 @@ module Admin
   # Controller for managing incomplete records (with placeholder references)
   class IncompleteRecordsController < ApplicationController
     layout 'admin/incomplete_records'
-    # before_action :authenticate_admin! # Uncomment when auth is ready
-    
+    # Erbt NICHT von Admin::ApplicationController, bekommt dessen Gate also nicht.
+    # Zuvor vollstaendig ungeschuetzt (auskommentierter Platzhalter); #update,
+    # #auto_fix_all und #create_location_from_text schreiben.
+    before_action :system_admin_only
+
     def index
       @tournaments = InternationalTournament.with_placeholders
                                             .includes(:discipline, :season, :location, :organizer, :international_source)
