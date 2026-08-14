@@ -12,6 +12,7 @@ module ApplicationCable
     DEBUG = Rails.env != "production"
 
     def connect
+      log_origin_probe
       self.current_user = find_verified_user
       set_request_details
       assign_connection_token
@@ -37,6 +38,32 @@ module ApplicationCable
     end
 
     private
+
+    # TEMPORAER (Origin-Haertung, siehe .planning/tasks/TASK-actioncable-origin-hardening.md).
+    # Dry-Run: bildet die Pruefung aus ActionCable::Connection::Base#allow_request_origin?
+    # fuer den ZIELZUSTAND nach (Forgery-Protection aktiv, allowed_request_origins leer,
+    # allow_same_origin_as_host = true) und protokolliert nur, was dann passieren wuerde.
+    # Kein Verhaltenswechsel — dient dazu, das Umlegen des Flags zu belegen statt zu raten.
+    #
+    # Bewusst ueber Rails.logger statt ueber den Cable-Logger: letzterer ist in Production
+    # auf Logger.new(nil) gesetzt (config/initializers/action_cable.rb) und wuerde die
+    # Zeilen verschlucken.
+    #
+    # Nach der Auswertung wieder entfernen.
+    def log_origin_probe
+      origin = env["HTTP_ORIGIN"]
+      host = env["HTTP_HOST"]
+      proto = request.ssl? ? "https" : "http"
+      same_origin = origin == "#{proto}://#{host}"
+
+      Rails.logger.info(
+        "[ActionCable][origin-probe] origin=#{origin.inspect} host=#{host.inspect} " \
+        "proto=#{proto} same_origin=#{same_origin} would_reject=#{!same_origin}"
+      )
+    rescue => e
+      # Die Probe darf den Verbindungsaufbau unter keinen Umstaenden verhindern.
+      Rails.logger.warn "[ActionCable][origin-probe] fehlgeschlagen: #{e.class}: #{e.message}"
+    end
 
     def assign_connection_token
       self.connection_token = SecureRandom.uuid

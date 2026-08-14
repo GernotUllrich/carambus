@@ -1,7 +1,7 @@
 # TASK: ActionCable Origin-/CSRF-Härtung
 
 **Erstellt:** 2026-08-14
-**Status:** offen — noch nicht umgesetzt
+**Status:** Dry-Run-Probe implementiert (2026-08-14) — **wartet auf Messdaten aus Production**
 **Herkunft:** CONCERNS.md, Sektionen „ActionCable Forgery Protection Disabled" +
 „Broad ActionCable Origin Validation"
 **Risiko bei Umsetzung:** mittel — kann WebSocket-Verbindungen (Scoreboards) brechen
@@ -105,20 +105,45 @@ Nötig sind `proxy_set_header Host $host;` **und** `X-Forwarded-Proto $scheme;` 
 ansehen (`config.assume_ssl` / `force_ssl` bzw. `ActionDispatch::SSL`) — sonst R3.
 **Ergebnis hier eintragen:** _______________
 
-**V3 — Origin der Overlay-Clients messen** *(ohne Verhaltensänderung!)*
-Temporär in `ApplicationCable::Connection#connect` mitloggen:
-```ruby
-Rails.logger.info "[ActionCable][origin-probe] origin=#{request.env['HTTP_ORIGIN'].inspect} " \
-                  "host=#{request.env['HTTP_HOST'].inspect} proto=#{request.ssl? ? 'https' : 'http'}"
+**V3 — Origin der Clients messen** — ✔ IMPLEMENTIERT (2026-08-14)
+
+`ApplicationCable::Connection#log_origin_probe` ist als **Dry-Run ohne
+Verhaltensänderung** eingebaut. Sie bildet die Prüfung für den *Zielzustand* nach
+(Forgery-Protection aktiv, Whitelist leer) und schreibt pro Verbindungsaufbau eine Zeile:
+
 ```
-Ein bis zwei Tage im Normalbetrieb laufen lassen (inkl. **einer Streaming-Session mit OBS**
-und **mindestens einem Scoreboard**), dann auswerten:
+[ActionCable][origin-probe] origin="https://api.carambus.de" host="api.carambus.de" proto=https same_origin=true would_reject=false
+```
+
+Bewusst über `Rails.logger` statt über den Cable-Logger — letzterer ist in Production auf
+`Logger.new(nil)` gesetzt und würde die Zeilen verschlucken. Damit ist die Auswertung
+unabhängig davon, ob der Logger-Punkt (Schritt 1) schon erledigt ist.
+
+Im Fehlerfall schluckt ein `rescue` die Probe weg: sie darf einen Verbindungsaufbau
+unter keinen Umständen verhindern.
+Nach dem Deploy im Normalbetrieb laufen lassen — zwingend inklusive **einer
+Streaming-Session mit OBS** und **mindestens einem Scoreboard**, das sind die
+kritischen Fälle. Dann auswerten:
+
 ```bash
-grep "origin-probe" log/production.log | sort -u | head -50
+grep "origin-probe" log/production.log | sed 's/.*\[origin-probe\] //' | sort | uniq -c | sort -rn
 ```
-**Erfolgskriterium für den eigentlichen Fix:** Jede beobachtete Zeile erfüllt
-`origin == "#{proto}://#{host}"`. Jede Abweichung ist ein Kandidat für die Whitelist —
-oder ein Grund, den Fix zu vertagen.
+
+Direkt die Problemfälle herausziehen:
+```bash
+grep "origin-probe" log/production.log | grep "would_reject=true"
+```
+
+**Erfolgskriterium für den eigentlichen Fix:** `would_reject=true` kommt nicht vor
+(oder nur für Clients, die nachweislich egal sind). Jede Abweichung ist ein Kandidat
+für die Whitelist — oder ein Grund, den Fix zu vertagen.
+
+**Achtung `origin=nil`:** Clients, die gar keinen `Origin`-Header senden (native
+WebSocket-Clients, je nach Version auch OBS), erscheinen als `origin=nil` und damit als
+`would_reject=true`. Das ist Risiko R4 und **kein** Messfehler — sie würden nach der
+Umstellung tatsächlich abgewiesen. Eine Whitelist hilft dort nicht (sie matcht gegen
+`HTTP_ORIGIN`, das ja fehlt); nötig wäre dann eine bewusste Ausnahme im Code.
+
 **Ergebnis hier eintragen:** _______________
 
 > Diese Probe ist der Kern des Tasks. Ohne sie ist die Umstellung geraten, nicht belegt.
