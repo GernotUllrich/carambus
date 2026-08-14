@@ -92,28 +92,52 @@ Weitere bestätigende Belege, dass `scoreboard@carambus.de` ein vollwertiger Acc
 
 ---
 
-## 3a. ⚠ Bekannte Verhaltensänderung — vor dem Deploy prüfen
+## 3a. Variante C — anonyme Verbindungen zulassen (UMGESETZT)
 
-Der Fix **weist anonyme Verbindungen jetzt ab** (vorher: stillschweigend `User.first`).
-Es gibt **keine** globale `authenticate_user!` in `ApplicationController` — anonymes
-Browsen ist also möglich, und anonyme Besucher hatten bisher eine funktionierende
-Cable-Verbindung (unter fremder Identität).
+**Chronologie:** Die erste Fassung des Fixes hat anonyme Verbindungen *abgewiesen*
+(`env["warden"]&.user || reject_unauthorized_connection`). In Production hat das die
+Live-Suche auf `api.carambus.de` lahmgelegt — nachgewiesen am Handshake:
 
-Betroffen ist insbesondere `app/views/shared/_search_with_filter.html.erb` (nutzt einen
-Reflex und erscheint auf öffentlichen Index-Seiten) sowie `demo/scoreboard`
-(`table_monitors#demo_scoreboard`, kein `bypass_sign_in`).
+```
+{"type":"disconnect","reason":"unauthorized","reconnect":false}
+```
 
-**Auf Staging zwingend zu prüfen:**
-- [ ] Suche/Filter auf einer öffentlichen Index-Seite **ohne Login**
-- [ ] `demo/scoreboard` ohne Login
-- [ ] Öffentliche Turnier-/Party-Ansichten ohne Login
+Ursache: Es gibt **keine** globale `authenticate_user!` in `ApplicationController`.
+Anonymes Browsen ist vorgesehen, und öffentliche Seiten nutzen Reflexes — u. a.
+`app/views/shared/_search_with_filter.html.erb` (Live-Suche) und
+`demo/scoreboard` (`table_monitors#demo_scoreboard`, ohne `bypass_sign_in`).
+Ohne Cable-Verbindung sind die tot.
 
-**Falls das bricht** — Variante C statt Ablehnung: anonyme Verbindung mit
-`current_user = nil` zulassen, statt sie zu verwerfen. Erfordert zusätzlich:
-`connection.rb:21` (`logger.add_tags "… User #{current_user.id}"`) gegen `nil` absichern
-und die Channels/Reflexes daraufhin durchsehen, ob sie `current_user` als gesetzt annehmen.
-Das ist die sicherheitstechnisch ebenfalls saubere, aber aufwendigere Lösung —
-sie trennt „anonym" von „fremde Identität" statt beides zu erlauben.
+Das ist zugleich die plausibelste Erklärung dafür, **warum der `User.first`-Hack
+2025-02-25 entstand**: Er hat das Symptom beseitigt (Verbindung kommt zustande),
+zum Preis einer fremden Identität für jeden.
+
+**Zielbild:** anonyme Verbindung **zulassen**, aber mit `current_user = nil` — analog
+zum HTTP-Teil. Die Autorisierung liegt bei den einzelnen Reflexes/Channels, wo sie
+ohnehin schon stattfindet (`current_user&.admin?`-Gates in `TableMonitorReflex:353/463`,
+`PartyMonitorReflex:311`).
+
+```ruby
+def find_verified_user
+  env["warden"]&.user      # nil = anonym, KEIN reject
+end
+```
+
+**Audit auf nil-Sicherheit durchgeführt** — alle Konsumenten sind bereits nil-fest:
+
+| Stelle | Status |
+|---|---|
+| `connection.rb:22` `logger.add_tags "… User #{current_user.id}"` | **war der einzige harte Blocker** → jetzt `current_user ? … : "anonymous"` |
+| `connection.rb:20` `current_user.id if current_user` | bereits geguardet |
+| `application_record.rb:105` (PaperTrail whodunnit) | `current_user&.id` |
+| `SearchReflex:44` → `ScopeResolver` | `preferred` macht `return nil unless @user.respond_to?(:preferences)` |
+| `TournamentReflex:134/155` → Jobs | `acting_user&.id`, dann `User.find_by(id:)` |
+| `TableMonitorReflex:353/463`, `PartyMonitorReflex:309/311/313` | `current_user&.admin?` |
+| `Current.user` (Views/Helper/Controller) | durchgehend `&.` bzw. `.andand` |
+
+**Sicherheitsbewertung:** Die Lücke bleibt geschlossen. Vorher bekam jeder eine
+*fremde, u. U. privilegierte* Identität; jetzt bekommt ein Anonymer *keine*. Die
+Channels streamen ohnehin öffentliche Turnier-/Scoreboard-Daten.
 
 ---
 
