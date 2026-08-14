@@ -1,7 +1,8 @@
 # TASK: ActionCable Origin-/CSRF-Härtung
 
 **Erstellt:** 2026-08-14
-**Status:** Dry-Run-Probe implementiert (2026-08-14) — **wartet auf Messdaten aus Production**
+**Status:** Messung auf der Authority **abgeschlossen** (2026-08-14), Probe wieder entfernt.
+Flag **unverändert** — die Umstellung ist auf der Authority allein nicht validierbar (siehe 4a).
 **Herkunft:** CONCERNS.md, Sektionen „ActionCable Forgery Protection Disabled" +
 „Broad ActionCable Origin Validation"
 **Risiko bei Umsetzung:** mittel — kann WebSocket-Verbindungen (Scoreboards) brechen
@@ -147,6 +148,43 @@ Umstellung tatsächlich abgewiesen. Eine Whitelist hilft dort nicht (sie matcht 
 **Ergebnis hier eintragen:** _______________
 
 > Diese Probe ist der Kern des Tasks. Ohne sie ist die Umstellung geraten, nicht belegt.
+
+---
+
+## 4a. Messergebnis Authority (2026-08-14) — und warum das Flag trotzdem liegen bleibt
+
+Probe lief in Production auf `api.carambus.de`:
+
+```
+grep "origin-probe" log/production.log | grep -c "would_reject=true"
+→ 0
+```
+
+Beispielzeile:
+```
+origin="https://api.carambus.de" host="api.carambus.de" proto=https
+same_origin=true would_reject=false
+```
+
+**Für den Web-Traffic der Authority ist die Umstellung damit belegt unkritisch.** Auch R3
+(fehlendes `X-Forwarded-Proto`) ist entkräftet: `proto=https` wird korrekt erkannt, der
+Proxy reicht das Schema durch.
+
+**Trotzdem nicht umgestellt.** Auf der Authority laufen **weder Scoreboards noch
+OBS-Overlays** — genau die beiden Fälle, die den Task riskant machen (R4: Clients ohne
+`Origin`-Header). Gemessen wurde also ausschließlich der unkritische Teil.
+
+Da `config/application.rb` und `config/initializers/action_cable.rb` **geteilter Code**
+über alle Instanzen sind, würde das Umlegen des Flags die lokalen/regionalen Server
+mittreffen — dort, wo die ungemessenen Clients sitzen.
+
+**Voraussetzung für die Umstellung:** dieselbe Probe auf einem lokalen Server mit
+Scoreboard (nbv/bcw/phat) laufen lassen, inklusive einer OBS-Streaming-Session, und dort
+`would_reject=true` auf 0 prüfen. Die Probe ist auf der Authority entfernt; für den
+lokalen Einsatz kann sie aus Commit `9cc4579b` / `098fce80` wiederhergestellt werden.
+
+Die beiden Fallstricke aus Schritt 1 (R0: Initializer überschreibt `application.rb`;
+`Logger.new(nil)` verschluckt `"Request origin not allowed"`) gelten dort unverändert.
 
 ---
 

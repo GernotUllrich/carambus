@@ -2,7 +2,11 @@
 
 module Admin
   class PlayerDuplicatesController < ApplicationController
-    before_action :authenticate_user!
+    # Erbt NICHT von Admin::ApplicationController, bekommt dessen Gate also nicht.
+    # authenticate_user! allein reicht hier nicht: LocationsController meldet jeden
+    # anonymen Besucher per bypass_sign_in als scoreboard@carambus.de an — "angemeldet"
+    # ist damit keine Huerde. #merge fuehrt Player.merge_players aus und ist irreversibel.
+    before_action :system_admin_only
     before_action :load_duplicates, only: [:index]
     before_action :load_duplicate_group, only: [:show]
 
