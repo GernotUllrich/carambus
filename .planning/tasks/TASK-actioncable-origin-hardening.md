@@ -330,9 +330,32 @@ Die gekürzte `ua` identifiziert OBS-Browser-Sources und native WebSocket-Client
 Dazu liegt die Probe bewusst **nach** `find_verified_user` in `connect` — nur so ist die
 Identität beim Loggen schon bekannt.
 
+### Deploy eines Feature-Branches
+
+Der Standard-Deploy rollt **nur `master`** aus: `config/deploy.rb:10` und
+`config/deploy/production.rb:14` setzen beide `set :branch, 'master'`, und die Stage-Datei
+gewinnt (sie lädt zuletzt). Ein ENV-Override existiert nicht.
+
+`config/deploy/production.rb` ist aber **gitignored** und damit pro Checkout lokal — die
+Umstellung ist deshalb eine reine Betriebsänderung ohne Commit. Im nbv-Checkout Zeile 14:
+
+```ruby
+set :branch, 'scenario/nbv/actioncable-origin-probe'
+```
+
+Danach wie gewohnt deployen.
+
+> ⚠️ **Zurückstellen nicht vergessen.** Nach der Messung Zeile 14 wieder auf
+> `set :branch, 'master'`. Bleibt sie stehen, rollt **jeder** künftige Deploy dieses
+> Checkouts weiter den Probe-Branch aus — der dann keine Master-Updates mehr bekommt.
+> Vor jedem Deploy kurz prüfen:
+> ```bash
+> grep -n "set :branch" config/deploy/production.rb
+> ```
+
 ### Ablauf
 
-1. Branch auf dem NBV-Server ausrollen (Deploy führt der Betreiber).
+1. Branch auf dem lokalen Server ausrollen (Deploy führt der Betreiber, siehe oben).
 2. **Normalbetrieb erzeugen** — und zwar zwingend alle drei Fälle:
    - [ ] mindestens ein **Scoreboard** aktiv (idealerweise über die LAN-IP geöffnet, nicht nur über den Hostnamen)
    - [ ] eine **OBS-Streaming-Session** mit Overlay
