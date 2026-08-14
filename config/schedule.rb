@@ -36,6 +36,8 @@ set :path, @path
 job_type :rake, "cd :path && RAILS_ENV=:environment /var/www/.rbenv/shims/bundle exec rake :task :output"
 job_type :runner,
          "cd :path && RAILS_ENV=:environment /var/www/.rbenv/shims/bundle exec rails runner -e :environment ':task' :output"
+# Shell-Skripte ohne Rails-Boot (Backup: muss auch laufen, wenn die App nicht startet)
+job_type :bash, "cd :path && /bin/bash :task :output"
 
 # ============================================================================
 # INTERNATIONAL CONTENT SCRAPING
@@ -173,6 +175,28 @@ end
 # ============================================================================
 # MAINTENANCE TASKS
 # ============================================================================
+
+# Naechtliches PostgreSQL-Backup aller "*_production"-Datenbanken des Clusters.
+#
+# Um 0:30 und damit VOR allen Scrape-Jobs (ab 2:00) — der Stand des Vortages
+# wird gesichert, bevor ihn der naechste Scrape-Lauf veraendert.
+#
+# roles: [:api] — der Job landet nur in der Crontab des carambus_api-Deployments.
+# Das genuegt: alle Instanzen teilen sich einen PostgreSQL-Cluster auf derselben
+# Maschine, das Skript sichert sie in einem Lauf mit (carambus, nbv, tbv, train,
+# provision). Ein Job je Deployment wuerde dieselben Daten mehrfach dumpen.
+#
+# Stellschrauben per ENV (systemd Environment= oder Crontab): BACKUP_DIR,
+# KEEP_DAILY, KEEP_WEEKLY, MIN_FREE_MB. Defaults stehen in bin/pg_backup.sh und
+# sind wegen der knappen Platte bewusst konservativ (3 Tages-, 4 Wochenstaende).
+#
+# ⚠️ Damit ist erst die Haelfte getan: die Dumps liegen auf derselben Platte wie
+# die Datenbank. Gegen Platten-/VM-Verlust schuetzt nur eine Kopie vom Host
+# herunter (z.B. rsync von /var/www/backups im Zuge des naechsten
+# scenario:sync_production_db).
+every 1.day, at: "0:30 am", roles: [:api] do
+  bash "bin/pg_backup.sh"
+end
 
 # Weekly: Clean up old logs (keep last 90 days)
 # Runs every Sunday at 6:00 AM
