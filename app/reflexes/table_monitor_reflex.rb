@@ -22,7 +22,7 @@ class TableMonitorReflex < ApplicationReflex
   #
   # Learn more at: https://docs.stimulusreflex.com
   #
-  DEBUG = true
+  DEBUG = Rails.env != "production"
   (0..9).each do |i|
     define_method :"nnn_#{i}" do
       Rails.logger.info "+++++++++++++++++>>> #{"nnn_#{i}"} <<<++++++++++++++++++++++++++++++++++++++" if DEBUG

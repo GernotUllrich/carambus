@@ -1,14 +1,16 @@
 # Codebase Concerns
 
 **Analysis Date:** 2026-04-09
+**Re-verified:** 2026-08-14 — mehrere Befunde des Auto-Audits waren veraltet oder
+falsch-positiv und wurden korrigiert (siehe `✔ ERLEDIGT` / `⚠ KORRIGIERT`-Marker).
 
 ## Tech Debt
 
 **Oversized Model Classes:**
 - Issue: Multiple model classes exceed 2000+ lines, containing both business logic and relationships in monolithic files
 - Files: 
-  - `app/models/table_monitor.rb` (3903 lines, 96 methods)
-  - `app/models/region_cc.rb` (2728 lines)
+  - `app/models/table_monitor.rb` (3903 lines, 96 methods) — ⚠ Refactoring nach `carambus_nbv` ausgelagert (lokale Entität, `ApiProtector`); NICHT in diesem Repo bearbeiten
+  - `app/models/region_cc.rb` — ⚠ bereits zerlegt (~500 Z., 11 Syncer unter `app/services/region_cc/`, Commit `a510f3f5`)
   - `app/models/league.rb` (2219 lines)
   - `app/models/tournament.rb` (1775 lines)
 - Impact: Difficult to maintain, test, and modify. Complex state management in TableMonitor affects reflex interactions. Risk of unintended side effects when changing behavior.
@@ -35,26 +37,25 @@
 - Impact: Type safety problems, migrations difficult, no schema validation, data integrity risks, hard to query
 - Fix approach: Migrate to structured JSON columns with schema validation, create separate tables for complex nested data
 
-**Rails Version at Beta:**
-- Issue: Application uses Rails 7.2.0.beta2 (beta, not stable)
-- File: `Gemfile` line 10
-- Impact: Risk of breaking changes, incompatible gem updates, unsupported in production, security vulnerabilities may not be patched
-- Fix approach: Upgrade to stable Rails 7.2.x release once available, test thoroughly before production deployment
+**Rails Version at Beta:** — ✔ ERLEDIGT (2026-08-14)
+- War: Rails 7.2.0.beta2. Aktuell: `Gemfile` nutzt `gem "rails", "~> 7.2.2"` (stable).
 
-**Disabled SSL Verification in Development:**
-- Issue: SSL verification disabled in development environment for external API calls
-- File: `app/services/umb_scraper_v2.rb` line 65: `http.verify_mode = OpenSSL::SSL::VERIFY_NONE if Rails.env.development?`
-- Impact: Masked SSL errors, potential for MITM attacks in development, inconsistent behavior between environments
-- Fix approach: Use proper certificate management or self-signed certificate handling, avoid disabling verification
+**Disabled SSL Verification:** — ⚠ KORRIGIERT (2026-08-14)
+- Ursprünglicher Befund (`umb_scraper_v2.rb:65`) ist gegenstandslos: die Datei
+  existiert nicht mehr, und der aktuelle UMB-Client `app/services/umb/http_client.rb:21`
+  macht es korrekt env-abhängig (`Rails.env.production? ? VERIFY_PEER : VERIFY_NONE`).
+- Realer Restbefund: ~13 **unbedingte** `VERIFY_NONE`-Stellen ohne Env-Guard in
+  `app/models/setting.rb`, `app/models/version.rb`, `app/models/tournament_cc.rb`,
+  `app/services/kozoom_scraper.rb`, `app/services/sooplive_scraper.rb`.
+- Impact: Kein Zertifikatscheck auch in production (MITM-Risiko).
+- Fix approach: **Kein Quick-Win** — Umstellung auf `VERIFY_PEER` in production kann
+  Scraping gegen Verbandsserver mit schlechten Zertifikaten brechen; pro Quelle testen.
 
 ## Known Bugs
 
-**Database Configuration Syntax Error:**
-- Symptoms: Database configuration file contains duplicate `test:` blocks and malformed YAML
-- Files: `config/database.yml` lines 14-18
-- Trigger: Database initialization or migration attempts
-- Impact: Potential connection pool initialization failure, migrations may not run properly
-- Fix: Remove duplicate test configuration block, ensure valid YAML syntax
+**Database Configuration Syntax Error:** — ✔ FALSCH-POSITIV (2026-08-14)
+- `config/database.yml` ist sauber: genau ein `default`/`development`/`test`-Block,
+  gültiges YAML. Keine Duplikate. Kein Handlungsbedarf.
 
 **HTTP Timeout Not Properly Handled:**
 - Issue: External API calls use 30-second timeout but missing timeout exception handling in some cases
@@ -65,24 +66,35 @@
 
 ## Security Considerations
 
-**ActionCable Forgery Protection Disabled:**
-- Risk: WebSocket connections can bypass CSRF protection
-- Files: `config/application.rb` line 119: `config.action_cable.disable_request_forgery_protection = true`
-- Current mitigation: Allowed request origins regex allows both http and https
-- Recommendations: 
-  - Re-enable CSRF protection for ActionCable if scoreboards authenticate via session
-  - Document why this was disabled (appears to be for scoreboard connections)
-  - Consider implementing origin validation for public scoreboards
-  - Ensure WebSocket connections authenticate users properly before trusting them
+**ActionCable Forgery Protection Disabled + Broad Origin Validation:** — ⚠ ZUSAMMENGEFASST (2026-08-14)
+- Die beiden ursprünglich getrennten Punkte sind **ein** Befund. Zeilennummern korrigiert:
+  `config/application.rb:175-177` (nicht 118/119).
+- **Kernpunkt (in Rails-Quelle verifiziert):** `disable_request_forgery_protection = true`
+  macht `allowed_request_origins` zu **totem Code** — `actioncable-7.2.2.2`
+  `lib/action_cable/connection/base.rb:229` kehrt vorher zurück. Ein „Regex verschärfen"
+  ändert am Laufzeitverhalten **nichts**.
+- Die Regexe sind zudem falsch formuliert: `/http:\/\/*/` = „`http:` + null-oder-mehr `/`",
+  unverankert — auch als Whitelist wirkungslos.
+- Entwarnung: `allow_same_origin_as_host = true` (Zeile 232, wird zuerst geprüft) deckt den
+  Normalfall ab; `app/javascript/channels/consumer.js:8` nutzt die relative URL `/cable`.
+  Eine Whitelist wird daher vermutlich gar nicht gebraucht.
+- **Ausgearbeiteter Task mit Testplan und Risikoanalyse:**
+  `.planning/tasks/TASK-actioncable-origin-hardening.md`
 
-**Broad ActionCable Origin Validation:**
-- Risk: Regex `/http:\/\/.*/ and /https:\/\/.*/` allows any origin
-- Files: `config/application.rb` line 118
-- Current mitigation: None visible
-- Recommendations:
-  - Restrict to known domains/IPs
-  - Use specific hostname validation instead of catch-all regex
-  - Implement origin header validation for scoreboards
+**ActionCable-Verbindung authentifiziert als `User.first`:** — ⚠ NEU (2026-08-14, nicht im Original-Audit)
+- Risk: `app/channels/application_cable/connection.rb:28` — `find_verified_user` gibt
+  `User.first || reject_unauthorized_connection` zurück, Kommentar „Temporär für Debugging".
+- Impact: **Jede** WebSocket-Verbindung erhält die Identität des ersten Users der Tabelle,
+  unabhängig von Session/Login. Ist das ein Admin, gilt das für alle Channels und Reflexes.
+- Bewertung: sachlich **schwerwiegender** als die Origin-Konfiguration — Origin-Prüfung
+  schützt vor fremden *Seiten*, nicht vor einer Verbindung, die sich selbst zum ersten User erklärt.
+- Historie: war ursprünglich korrekt (`env["warden"].user`), ersetzt am **2025-02-25** im
+  Commit `c1e473cb` („checkpoint") und nie zurückgenommen.
+- Design-Frage **geklärt** (Betreiber, 2026-08-14): Scoreboards laufen als
+  `scoreboard@carambus.de` und sind via `bypass_sign_in` (`locations_controller.rb:633`)
+  **regulär angemeldet** — der Devise-Standard genügt, kein Sonderweg nötig.
+- **Ausgearbeiteter Task:** `.planning/tasks/TASK-actioncable-user-authentication.md`
+  (vor der Origin-Härtung umzusetzen)
 
 **Credentials File Modified Recently:**
 - Issue: Production credentials file (`config/credentials/production.yml.enc`) modified 2 days ago (Feb 27)
@@ -102,12 +114,12 @@
   - Implement file access controls
   - Add virus scanning for uploaded files
 
-**Excessive Debug Logging in Production:**
+**Excessive Debug Logging in Production:** — teilweise ✔ ERLEDIGT (2026-08-14)
 - Issue: DEBUG constants and debug logging throughout critical code paths
 - Files: 
-  - `app/models/table_monitor.rb` line 39: `DEBUG = Rails.env != "production"`
-  - `app/reflexes/table_monitor_reflex.rb` line 25: `DEBUG = true` (always enabled)
-  - Many logging statements with emoji indicators
+  - `app/models/table_monitor.rb` line 39: `DEBUG = Rails.env != "production"` (war bereits korrekt)
+  - `app/reflexes/table_monitor_reflex.rb` line 25: ✔ gefixt — jetzt `DEBUG = Rails.env != "production"` (vorher hart `true`)
+  - Many logging statements with emoji indicators (offen)
 - Impact: Production logs bloated with unnecessary output, potential PII leakage, performance impact
 - Recommendations:
   - Remove or conditionally disable DEBUG=true in reflexes
@@ -314,11 +326,13 @@
 - Impact: Docker builds fail if tesseract not included, deployment risk
 - Recommendation: Document tesseract system package requirement, add to deployment scripts
 
-**Andand Gem:**
-- Risk: Provides `&.` safe navigation syntax, deprecated in modern Ruby
+**Andand Gem:** — ⚠ AUFWAND KORRIGIERT (2026-08-14)
+- Risk: `andand` ist durch Rubys eingebautes `&.` (seit 2.3) überflüssig.
 - Files: `Gemfile` line 14: `gem "andand"`
-- Impact: Safe navigation now built-in to Ruby (`.&.`), gem unnecessary and adds dependency
-- Recommendation: Remove gem, refactor to use Ruby 2.3+ safe navigation operator
+- **Kein Quick-Win**: 612 Verwendungen in 103 Dateien (`grep -rn "\.andand" app lib`).
+  `.andand` und `&.` sind zudem nicht 1:1 äquivalent (andand ruft bei `false`/`0`
+  anders), also nicht rein mechanisch ersetzbar — jede Stelle muss geprüft werden.
+- Recommendation: Größeres, eigenständiges Refactoring; nur schrittweise.
 
 ## Missing Critical Features
 
