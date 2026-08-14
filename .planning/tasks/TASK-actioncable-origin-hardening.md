@@ -2,8 +2,10 @@
 
 **Erstellt:** 2026-08-14
 **Status:** Flag **unverändert**. Authority-Messung abgeschlossen (`would_reject=true` = 0),
-Probe dort entfernt. NBV-Messung **angefangen, aber unvollständig** — es fehlt die
-OBS-Session, also genau der Fall (R4), der über die Umstellung entscheidet.
+Probe dort entfernt. NBV-Messung **am falschen Ort** — siehe „Messort" unten: Cloud-Instanzen
+haben per definitionem keine physischen Scoreboards, die dort erfassten
+`client=scoreboard`-Zeilen waren Demo-Aufrufe. Der real entscheidende Fall (Raspi im
+Vereins-LAN) und die OBS-Session (R4) sind damit **beide ungemessen**.
 Nächster Schritt und Zwischenstand: Abschnitt 4a und „Zwischenstand NBV-Messung" am Dateiende.
 **Herkunft:** CONCERNS.md, Sektionen „ActionCable Forgery Protection Disabled" +
 „Broad ActionCable Origin Validation"
@@ -388,3 +390,35 @@ set :branch, 'scenario/nbv/actioncable-origin-probe'
 ```
 
 **Danach zwingend wieder auf `'master'` zurückstellen.**
+
+---
+
+## Messort — Korrektur (2026-08-14, Betreiber-Klarstellung)
+
+> *„nbv.carambus.de ist bzgl. der Scoreboards eigentlich Unsinn — per definitionem kann in
+> der Cloud kein physikalisches Scoreboard dranhängen. Das ist nur gut für Tests und
+> Demo-Zwecke."*
+
+Damit ist die bisherige Messstrategie **zweimal danebengegangen**:
+
+| Messort | Was gemessen wurde | Was fehlt |
+|---|---|---|
+| `api.carambus.de` (Authority) | Browser-Traffic. `would_reject=true` = 0 | Scoreboards, OBS — gibt es dort nicht |
+| `nbv.carambus.de` (Cloud) | Browser-Traffic + **Demo**-Scoreboards | echte Raspis, OBS |
+
+Ein realer Scoreboard-Client ist ein **Raspberry Pi mit fester IP im Vereins-LAN**, der sich
+gegen einen **lokalen** Server verbindet — typischerweise über eine LAN-IP wie
+`http://192.168.x.x:3000` statt über einen Cloud-Hostnamen. Origin und Host sehen dort
+anders aus als in allem, was bisher gemessen wurde.
+
+**Konsequenz:** Die Messung gehört auf eine **produktive Vereinsinstallation**, nicht auf
+eine Cloud-Instanz. Solange das nicht passiert ist, bleibt `would_reject=true` = 0 eine
+Aussage über Browser — nicht über die Clients, die das Flag gefährdet.
+
+Das Kriterium aus dem Runbook („kam `client=scoreboard` vor?") war deshalb **notwendig,
+aber nicht hinreichend**: Es hat korrekt angezeigt, dass Scoreboard-Verbindungen fehlten,
+konnte aber nicht unterscheiden, ob es echte oder Demo-Verbindungen waren.
+
+Verwandt: `.planning/tasks/TASK-scoreboard-write-authorization.md` — dort ist das
+Topologie-Modell (Raspi-IP ↔ Tisch, LAN vs. außerhalb) ausformuliert, das für diese Frage
+denselben Kontext liefert.
