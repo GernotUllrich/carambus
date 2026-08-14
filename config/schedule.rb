@@ -182,9 +182,15 @@ end
 # wird gesichert, bevor ihn der naechste Scrape-Lauf veraendert.
 #
 # roles: [:api] — der Job landet nur in der Crontab des carambus_api-Deployments.
-# Das genuegt: alle Instanzen teilen sich einen PostgreSQL-Cluster auf derselben
-# Maschine, das Skript sichert sie in einem Lauf mit (carambus, nbv, tbv, train,
-# provision). Ein Job je Deployment wuerde dieselben Daten mehrfach dumpen.
+# Das genuegt: die fuenf Instanzen (carambus, carambus_api, carambus_nbv,
+# carambus_tbv, carambus_train) teilen sich einen PostgreSQL-Cluster auf
+# derselben Maschine, das Skript sichert sie in einem Lauf mit. Ein Job je
+# Deployment wuerde dieselben Daten mehrfach dumpen.
+#
+# Das Muster "*_production" trifft zusaetzlich provision_production (8,7 MB) —
+# ein 2023 ausgemustertes Deployment ohne nginx-Site und ohne Dienst. Bewusst
+# nicht ausgenommen: eine Ausnahmeliste wuerde die selbstpflegende Eigenschaft
+# des Musters kosten (neue Szenarien werden sonst nicht mehr mitgesichert).
 #
 # Stellschrauben per ENV (systemd Environment= oder Crontab): BACKUP_DIR,
 # KEEP_DAILY, KEEP_WEEKLY, MIN_FREE_MB. Defaults stehen in bin/pg_backup.sh und

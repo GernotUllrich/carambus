@@ -5,10 +5,15 @@
 # Bewusst ohne Rails: laeuft rein ueber pg_dump, damit ein Backup auch dann
 # entsteht, wenn die Anwendung nicht bootet.
 #
-# Auswahl: alle Datenbanken mit Endung "_production". Das trifft genau die
-# echten Instanz-DBs und laesst Altkopien wie "carambus_api_production_backup"
-# oder "carambus_api_production_20260505_1048" aussen vor. Neue Szenarien
-# werden automatisch mitgesichert.
+# Auswahl: alle Datenbanken mit Endung "_production". Das trifft die fuenf
+# Instanz-DBs (carambus, carambus_api, carambus_nbv, carambus_tbv,
+# carambus_train) plus provision_production — ein 2023 ausgemustertes
+# Deployment ohne nginx-Site und ohne Dienst, mit 8,7 MB nicht der Rede wert.
+#
+# Ausgenommen sind damit die Altkopien "carambus_api_production_backup" und
+# "carambus_api_production_20260505_1048" (2,7 GB tote Staende vom Mai), die
+# das Muster nicht erfuellen. Neue Szenarien werden automatisch mitgesichert;
+# genau dafuer steht hier ein Muster und keine gepflegte Liste.
 #
 # ⚠️ Dieses Skript legt die Dumps auf DERSELBEN Platte ab wie die Datenbank.
 # Das schuetzt gegen versehentliches Loeschen und fehlerhafte Migrationen,
