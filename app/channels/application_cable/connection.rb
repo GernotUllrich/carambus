@@ -76,6 +76,13 @@ module ApplicationCable
     # Zeilen verschlucken.
     #
     # Nach der Auswertung wieder entfernen.
+    # Nur Schluesselnamen, nie Werte (PII/Secrets).
+    def session_key_names
+      request.session.keys.sort.first(12)
+    rescue => e
+      "raised:#{e.class}"
+    end
+
     def log_origin_probe
       origin = env["HTTP_ORIGIN"]
       host = env["HTTP_HOST"]
@@ -96,10 +103,25 @@ module ApplicationCable
         "raised:#{e.class}"
       end
 
+      # Unterscheidet "gar keine Session" von "leere Session" von "Session ohne User".
+      # Nur Schluesselnamen und Praesenz protokollieren — keine Werte (PII/Secrets).
+      rack_session = env["rack.session"]
+      session_diag = begin
+        {
+          rack_session_class: rack_session.class.name,
+          session_keys: session_key_names,
+          cookie_key: Rails.application.config.session_options[:key],
+          cookie_present: request.cookies.key?(Rails.application.config.session_options[:key].to_s)
+        }
+      rescue => e
+        {error: "#{e.class}: #{e.message}"}
+      end
+
       Rails.logger.info(
         "[ActionCable][origin-probe] origin=#{origin.inspect} host=#{host.inspect} " \
         "proto=#{proto} same_origin=#{same_origin} would_reject=#{!same_origin} " \
-        "warden=#{warden_present} warden_user=#{warden_user.inspect} session_user=#{session_key.inspect}"
+        "warden=#{warden_present} warden_user=#{warden_user.inspect} session_user=#{session_key.inspect} " \
+        "diag=#{session_diag.inspect}"
       )
     rescue => e
       # Die Probe darf den Verbindungsaufbau unter keinen Umstaenden verhindern.
