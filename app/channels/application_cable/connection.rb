@@ -40,8 +40,23 @@ module ApplicationCable
     #
     # Scoreboards sind hier regulaer angemeldet — LocationsController ruft
     # bypass_sign_in(User.scoreboard) auf und legt damit eine echte Session an.
+    # Warden ist beim WebSocket-Handshake nicht immer befuellt (in Production auf
+    # api.carambus.de liefert env["warden"]&.user auch fuer eingeloggte Nutzer nil,
+    # Log-Tag "[anonymous]"). Deshalb zusaetzlich die Session direkt auswerten:
+    # Devise legt dort unter "warden.user.user.key" [[user_id], salt] ab.
+    # ActionCable ist per `mount ActionCable.server` (routes.rb) im Router eingehaengt,
+    # laeuft also durch den vollen Middleware-Stack — request.session ist verfuegbar.
     def find_verified_user
-      env["warden"]&.user
+      env["warden"]&.user || user_from_session
+    end
+
+    def user_from_session
+      user_id = request.session["warden.user.user.key"]&.dig(0, 0)
+      User.find_by(id: user_id) if user_id
+    rescue => e
+      # Identitaetsermittlung darf den Verbindungsaufbau nie sprengen.
+      Rails.logger.warn "[ActionCable] Session-Lookup fehlgeschlagen: #{e.class}: #{e.message}"
+      nil
     end
 
     def user_signed_in?
@@ -67,9 +82,24 @@ module ApplicationCable
       proto = request.ssl? ? "https" : "http"
       same_origin = origin == "#{proto}://#{host}"
 
+      # Auth-Diagnose (temporaer, zusammen mit der Origin-Probe): zeigt, ob Warden
+      # befuellt ist und ob der Session-Fallback greift.
+      warden_present = !env["warden"].nil?
+      warden_user = begin
+        env["warden"]&.user&.id
+      rescue => e
+        "raised:#{e.class}"
+      end
+      session_key = begin
+        request.session["warden.user.user.key"]&.dig(0, 0)
+      rescue => e
+        "raised:#{e.class}"
+      end
+
       Rails.logger.info(
         "[ActionCable][origin-probe] origin=#{origin.inspect} host=#{host.inspect} " \
-        "proto=#{proto} same_origin=#{same_origin} would_reject=#{!same_origin}"
+        "proto=#{proto} same_origin=#{same_origin} would_reject=#{!same_origin} " \
+        "warden=#{warden_present} warden_user=#{warden_user.inspect} session_user=#{session_key.inspect}"
       )
     rescue => e
       # Die Probe darf den Verbindungsaufbau unter keinen Umstaenden verhindern.

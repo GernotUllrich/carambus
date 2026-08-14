@@ -141,6 +141,62 @@ Channels streamen ohnehin öffentliche Turnier-/Scoreboard-Daten.
 
 ---
 
+## 3b. Warden liefert nichts — Session-Fallback ergänzt (2026-08-14)
+
+**In Production gemessen.** Der Log-Tag aus `connect` zeigte bei einem **eingeloggten**
+Nutzer durchgehend `[anonymous]`:
+
+```
+[Connection 69ec79a7-…] [ActionCable] [anonymous] Rendering table with 1 records
+```
+
+`env["warden"]&.user` ist beim WebSocket-Handshake also `nil`, obwohl die HTTP-Session
+angemeldet ist. Damit ist die Frage aus Abschnitt 4 empirisch beantwortet: **H1/H2 treffen
+zu.** Vor dem Fix war das unsichtbar, weil `User.first` jede Verbindung „authentifizierte".
+
+**Auswirkung ohne Fallback:** Reflexes sehen niemanden als angemeldet → die
+`current_user&.admin?`-Gates (`TableMonitorReflex:353/463`, `PartyMonitorReflex:311`)
+greifen nie, administrative Reflex-Aktionen schlagen fehl. Vorher „funktionierten" sie,
+weil jede Verbindung die Identität von `User.first` trug — aus dem falschen Grund.
+
+**Fix:** zusätzlich die Devise-Session direkt auswerten. Devise legt dort
+`"warden.user.user.key" => [[user_id], salt]` ab. ActionCable ist per
+`mount ActionCable.server => "/cable"` (`config/routes.rb:528`) im **Router** eingehängt und
+läuft damit durch den vollen Middleware-Stack — `request.session` ist verfügbar.
+
+```ruby
+def find_verified_user
+  env["warden"]&.user || user_from_session
+end
+
+def user_from_session
+  user_id = request.session["warden.user.user.key"]&.dig(0, 0)
+  User.find_by(id: user_id) if user_id
+rescue => e
+  Rails.logger.warn "[ActionCable] Session-Lookup fehlgeschlagen: #{e.class}: #{e.message}"
+  nil
+end
+```
+
+Warden behält Vorrang (falls es doch befüllt ist); der Fallback greift nur sonst. Ein
+`rescue` kapselt ihn ab — die Identitätsermittlung darf den Verbindungsaufbau nie sprengen.
+
+**Verifikation nach dem Deploy** — die Probe protokolliert jetzt beide Quellen:
+
+```bash
+grep "origin-probe" log/production.log | grep -o "warden=.*" | sort | uniq -c
+```
+
+Erwartung für einen eingeloggten Nutzer: `warden_user=nil session_user=<id>` (Fallback
+greift). Der Log-Tag in den Folgezeilen muss dann `[User <id>]` statt `[anonymous]` zeigen.
+Bleibt auch `session_user` nil, ist die Session im Cable-Kontext ebenfalls leer — dann
+bliebe nur der Weg über das verschlüsselte Session-Cookie (`cookies.encrypted[...]`), und
+vorher wäre zu klären, welchen Session-Store Production tatsächlich nutzt
+(`config/environments/production.rb` ist generiert und nicht im Repo; nur
+`development.rb:4` setzt explizit `:redis_session_store`).
+
+---
+
 ## 4. Die offene Frage — und wie sie beantwortet wird
 
 **Warum lieferte `env["warden"].user` 2025-02-25 nicht?** Ohne Antwort führt ein Rückbau
