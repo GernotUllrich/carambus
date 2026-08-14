@@ -59,29 +59,24 @@ module ApplicationCable
       assert_nothing_raised { connect }
     end
 
-    # Fallback: Warden ist beim WebSocket-Handshake nicht immer befuellt (auf
-    # api.carambus.de war es das fuer eingeloggte Nutzer nie). Dann muss die Devise-
-    # Session direkt ausgewertet werden.
-    test "erkennt den user ueber die session wenn warden fehlt" do
+    # Die Identitaet kommt ausschliesslich aus Warden. Eine Devise-Session ohne
+    # befuelltes Warden reicht bewusst NICHT — auf api.carambus.de ist Warden beim
+    # Handshake verfuegbar (per Probe belegt), ein Session-Fallback waere Code ohne Anlass.
+    test "session allein ohne warden ergibt anonym" do
       user = users(:one)
       connect session: {"warden.user.user.key" => [[user.id], "salt"]}
 
-      assert_equal user.id, connection.current_user.id
-    end
-
-    test "warden hat vorrang vor der session" do
-      warden_user = users(:one)
-      session_user = users(:admin)
-      connect env: {"warden" => FakeWarden.new(warden_user)},
-        session: {"warden.user.user.key" => [[session_user.id], "salt"]}
-
-      assert_equal warden_user.id, connection.current_user.id
-    end
-
-    test "unbekannte user-id in der session ergibt anonym" do
-      connect session: {"warden.user.user.key" => [[999_999_999], "salt"]}
-
       assert_nil connection.current_user
+    end
+
+    # Die temporaere Probe darf den Verbindungsaufbau unter keinen Umstaenden stoeren.
+    test "probe stoert den verbindungsaufbau nicht" do
+      user = users(:one)
+
+      assert_nothing_raised do
+        connect env: {"warden" => FakeWarden.new(user), "HTTP_USER_AGENT" => "Mozilla/5.0 OBS/30"}
+      end
+      assert_equal user.id, connection.current_user.id
     end
   end
 end

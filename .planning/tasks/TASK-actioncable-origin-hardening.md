@@ -298,3 +298,78 @@ Bewusst getrennt gehalten, weil der Fix Kenntnis darüber braucht, wie Scoreboar
 (die typischerweise *keinen* eingeloggten User haben) authentifiziert werden sollen —
 das ist eine Design-Entscheidung, keine Config-Änderung. **Eigener Task.**
 In CONCERNS.md bislang nicht erfasst.
+
+---
+
+# ANHANG (nur auf `scenario/nbv/actioncable-origin-probe`)
+
+## Messung auf dem lokalen Server — Runbook
+
+**Zweck:** Die Authority-Messung (2026-08-14) ergab `would_reject=true` = **0**, deckte aber
+nur Browser-Traffic ab. Auf `api.carambus.de` laufen **weder Scoreboards noch OBS-Overlays** —
+genau die Clients, die über das Flag entscheiden (Risiko **R4**: Clients ohne `Origin`-Header
+werden nach der Umstellung abgewiesen, und eine Whitelist hilft dort nicht, weil sie gegen
+`HTTP_ORIGIN` matcht).
+
+Weil `config/application.rb` **geteilter Code** über alle Instanzen ist, würde ein Umlegen
+des Flags die lokalen Server mittreffen. Diese Messung schließt die Lücke.
+
+### Was diese Probe zusätzlich kann
+
+Gegenüber der Authority-Variante ordnet sie jede Verbindung einem **Client-Typ** zu —
+sonst ließe sich ein `would_reject=true` hinterher nicht zuordnen:
+
+```
+[ActionCable][origin-probe] client=scoreboard origin="http://192.168.1.50:3000"
+  host="192.168.1.50:3000" proto=http same_origin=true would_reject=false ua="Mozilla/5.0 …"
+```
+
+`client` ist `scoreboard` (User `scoreboard@carambus.de`), `user` oder `anonymous`.
+Die gekürzte `ua` identifiziert OBS-Browser-Sources und native WebSocket-Clients.
+
+Dazu liegt die Probe bewusst **nach** `find_verified_user` in `connect` — nur so ist die
+Identität beim Loggen schon bekannt.
+
+### Ablauf
+
+1. Branch auf dem NBV-Server ausrollen (Deploy führt der Betreiber).
+2. **Normalbetrieb erzeugen** — und zwar zwingend alle drei Fälle:
+   - [ ] mindestens ein **Scoreboard** aktiv (idealerweise über die LAN-IP geöffnet, nicht nur über den Hostnamen)
+   - [ ] eine **OBS-Streaming-Session** mit Overlay
+   - [ ] ein paar normale Browser-Zugriffe (eingeloggt und anonym)
+3. Auswerten:
+
+```bash
+grep "origin-probe" log/production.log | grep -c "would_reject=true"
+```
+
+```bash
+grep "origin-probe" log/production.log | grep "would_reject=true" | sed 's/.*\[origin-probe\] //' | sort | uniq -c | sort -rn
+```
+
+Verteilung über alle Client-Typen (zeigt auch, ob überhaupt alle drei Fälle erfasst wurden —
+fehlt `client=scoreboard`, war die Messung unvollständig):
+
+```bash
+grep "origin-probe" log/production.log | grep -o "client=[a-z:]*" | sort | uniq -c
+```
+
+### Entscheidungsregel
+
+| Ergebnis | Konsequenz |
+|---|---|
+| `would_reject=true` = 0 **und** alle drei Client-Typen kamen vor | Umstellung belegt sicher → Schritt 1 des Tasks umsetzen |
+| `would_reject=true` > 0 mit `client=user`/`anonymous` | Whitelist-Kandidat, Origin aus dem Log übernehmen (verankert: `\A…\z`) |
+| `would_reject=true` > 0 mit `client=scoreboard` **oder** `origin=nil` | **Nicht umstellen.** Whitelist hilft bei fehlendem `Origin` nicht — es bräuchte eine bewusste Code-Ausnahme |
+
+### Nicht vergessen
+
+- Die Probe schreibt **eine Zeile pro Verbindungsaufbau**. Auf der Authority war `/` bei
+  85,2 % — vor längerem Betrieb den Plattenplatz prüfen.
+- **Dieser Branch wird nicht nach `master` gemergt.** Er trägt nur die Messung. Nach der
+  Auswertung: Ergebnis in Abschnitt 4a des Tasks auf `master` eintragen, Branch verwerfen.
+- Der eigentliche Fix (Schritt 1) hat zwei Fallstricke, die hier unverändert gelten:
+  **R0** — `config/initializers/action_cable.rb:4` setzt `disable_request_forgery_protection`
+  erneut und überschreibt `application.rb`; **Logger** — `ActionCable.server.config.logger =
+  Logger.new(nil)` in Production verschluckt `"Request origin not allowed"` und macht jede
+  Abnahme blind.
