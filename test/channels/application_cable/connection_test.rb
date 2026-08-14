@@ -68,5 +68,15 @@ module ApplicationCable
 
       assert_nil connection.current_user
     end
+
+    # Die temporaere Probe darf den Verbindungsaufbau unter keinen Umstaenden stoeren.
+    test "probe stoert den verbindungsaufbau nicht" do
+      user = users(:one)
+
+      assert_nothing_raised do
+        connect env: {"warden" => FakeWarden.new(user), "HTTP_USER_AGENT" => "Mozilla/5.0 OBS/30"}
+      end
+      assert_equal user.id, connection.current_user.id
+    end
   end
 end
