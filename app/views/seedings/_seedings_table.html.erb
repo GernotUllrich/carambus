@@ -26,7 +26,7 @@
           <% if seeding.tournament.present? && seeding.tournament.organizer_type == "Region" %>
             <%= custom_link_to(seeding.tournament.organizer.shortname, region_path(seeding.tournament.organizer)) %>
           <% elsif seeding.league_team.present? &&  seeding.league_team.league&.organizer_type == 'Region' %>
-            <%= custom_link_to(seeding.league_team.league.organizer.shortname, region_path(seeding.tournament.league_team.league.organizer)) if seeding.tournament.league_team.league.organizer.present? %>
+            <%= custom_link_to(seeding.league_team.league.organizer.shortname, region_path(seeding.league_team.league.organizer)) if seeding.league_team.league.organizer.present? %>
           <% end %>
         </td>
         <td class="p-3"><%= custom_link_to(seeding.player.fullname, player_path(seeding.player)) %></td>
