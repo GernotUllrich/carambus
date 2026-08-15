@@ -21,10 +21,25 @@ class SearchReflex < ApplicationReflex
     # Store search parameters
     session["#{model_name.underscore}_search"] ||= {}
 
-    # Update search parameters
-    if params[:sSearch].present?
-      session["#{model_name.underscore}_search"][:sSearch] = params[:sSearch]
-    end
+    # Suchstring aus dem AUSLOESENDEN Element lesen, nicht aus der Form-Serialisierung.
+    # data-reflex-serialize-form lieferte waehrend des Morphs zeitweise den
+    # server-gerenderten Leerwert (value="", weil @sSearch nil ist) statt des getippten
+    # Werts -> params[:sSearch] kam leer an und die Live-Suche filterte nicht
+    # (Diagnose: .planning/debug/live-search-empty-ssearch.md).
+    # Der SR-Client setzt attrs.value immer aus dem live .value-Property des Triggers
+    # (stimulus_reflex/javascript/attributes.js:72) -> race-frei.
+    #
+    # Leerstring ist ein GUELTIGER Wert (Suchfeld geleert = Filter zuruecksetzen),
+    # daher kein present?-Guard: der alte Guard liess einen geleerten Suchbegriff in
+    # der Session stehen, die Liste blieb gefiltert.
+    typed_search = element.value
+    search_string = typed_search.nil? ? params[:sSearch].to_s : typed_search.to_s
+    session["#{model_name.underscore}_search"][:sSearch] = search_string
+    # Kanonischer Schluessel des HTTP-Pfads: ApplicationController und
+    # SortableHelper#sortable lesen session[:"s_<controller>"]. Ohne ihn verlieren
+    # Sortier-Links und der naechste HTTP-Request den Suchbegriff, sobald der
+    # Controller nicht mehr per Page-Morph mitlaeuft (siehe Selector-Morph unten).
+    session[:"s_#{params[:controller]}"] = search_string
 
     # Handle sorting parameters
     if params[:sort].present?
@@ -74,6 +89,18 @@ class SearchReflex < ApplicationReflex
     # Render partial: das tatsaechlich von der Index-Seite gerenderte table_partial (Default _table),
     # damit die Live-Suche das richtige DOM-Ziel morpht (UAT-001; tournaments/index rendert tournaments_list).
     table_partial = element.dataset["table-partial"].presence || "#{model_name.underscore.pluralize}_table"
-    render partial: table_partial, locals: {pagy: @pagy, model_class: @model, records: records}
+
+    # Selector-Morph statt Page-Morph. Der Page-Morph liess den Controller erneut
+    # laufen; dessen before_action ueberschrieb @sSearch aus dem (leeren)
+    # params[:sSearch] und verwarf damit das komplette Reflex-Ergebnis — die Suche
+    # oben war faktisch wirkungslos. Der gezielte Morph macht den Reflex autoritativ
+    # und rendert nur noch die Ergebnisliste statt bei jedem Tastendruck die ganze
+    # Seite (der Page-Morph war zugleich das Performance-Thema aus der Diagnose).
+    morph "#table_wrapper", render(partial: "shared/search_results_frame", locals: {
+      records: records,
+      table_partial: table_partial,
+      search_string: @sSearch,
+      table_locals: {pagy: @pagy, model_class: @model, records: records}
+    })
   end
 end
