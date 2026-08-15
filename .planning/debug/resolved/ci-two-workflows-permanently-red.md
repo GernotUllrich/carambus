@@ -72,3 +72,35 @@ und den anderen entfernen. Alles andere kuriert Symptome.
 - Auf `master` liefen zuletzt am 2026-08-09 Runs (`9e060b44`); die Pushes vom 2026-08-14
   (`67dfa40f`, `098fce80`, `99ce08b9`) erzeugten keine sichtbaren Master-Runs — ebenfalls
   klärungsbedürftig, ggf. Trigger-Konfiguration.
+
+---
+
+## ✅ Gelöst (2026-08-15)
+
+Der Empfehlung gefolgt: **`tests.yml` ist der maßgebliche Workflow, `ci.yml` wurde entfernt.**
+
+Begründung der Wahl — `ci.yml` war die unveränderte Rails-Vorlage und in vier Punkten
+nicht an dieses Repo angepasst:
+
+| Punkt | Befund |
+|---|---|
+| Trigger | `push: main` — dieses Repo nutzt `master`. Erklärt die fehlenden Master-Runs vom 14.08. |
+| `test` | `node-version-file: '.node-version'` — Datei existiert nicht, Abbruch im Setup |
+| `lint` | `standardrb` repo-weit → mehrere hundert Alt-Verstöße |
+| `test` | `test:system` ohne Browser und ohne `RAILS_MASTER_KEY` |
+
+`tests.yml` dagegen ist angepasst (Trigger auf `master`, Config aus Template,
+`bin/rails test:critical`) und lokal verifiziert grün: 20 runs, 40 assertions.
+
+**Ursache von `scan` nachgetragen** (in der Erstfassung „nicht weiter untersucht"):
+`brakeman` liefert keinen Sicherheitsbefund, sondern **stürzt ab** — Segfault im
+Prism-Parser (`prism-1.6.0/lib/prism/translation/ruby_parser.rb:1832`, SIGABRT/134).
+Als Gate damit ungeeignet, läuft in `tests.yml` bewusst `continue-on-error`.
+
+**Was jetzt wirklich blockt:** `test:critical` und der `ui-hex-guard` (lokal exit 0).
+Bewusst nicht blockierend: `standardrb` (Bestands-Backlog) und `brakeman` (Absturz) —
+beide bleiben sichtbar, sind aber im Workflow als nicht-verwertbar kommentiert.
+
+**Verbleibende Einschränkung, offen benannt:** `test:critical` deckt nur Concerns +
+Scraping ab. Die volle Suite ist vorbestehend rot und taugt heute nicht als Gate. Das
+Gate ist damit echt, aber schmal — es zu verbreitern hängt daran, die Suite zu sanieren.
