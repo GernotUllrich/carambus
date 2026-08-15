@@ -33,6 +33,13 @@
 # Ignore master key for decrypting credentials and more.
 /config/master.key
 
+# Per-Environment-Master-Keys: gehoeren NIE ins Repo — mit ihnen ist jede
+# config/credentials/*.yml.enc im Klartext lesbar. Die .enc-Dateien bleiben
+# getrackt, die Schluessel kommen ueber die Scenario-Pipeline auf den Server
+# (carambus_data/secrets.yml -> generate_credentials -> prepare_deploy);
+# config/credentials ist dort ein linked_dir und wird vom Deploy nicht ueberschrieben.
+config/credentials/*.key
+
 /public/app
 /public/packs
 /public/packs-test
