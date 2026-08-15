@@ -48,18 +48,43 @@ class Version < PaperTrail::Version
     where("region_id IS NULL OR region_id = ? OR global_context = TRUE", region_id)
   }
 
+  # Sprechender User-Agent statt Rubys Default "Ruby".
+  #
+  # Nicht Kosmetik: /versions/* liegt auf der Authority hinter dem
+  # nginx-Bot-Filter (map $http_user_agent $carambus_block_bot), der u.a. den
+  # LEEREN User-Agent und Muster wie "scraper"/"curl/" mit 403 abweist. Dass der
+  # Sync bisher lief, hing allein daran, dass "Ruby" zufaellig kein Muster traf.
+  # Ein benannter Agent macht die Ausnahme auf der nginx-Seite ueberhaupt erst
+  # formulierbar und den Verkehr im Access-Log zuordenbar.
+  SYNC_USER_AGENT = "Carambus-Sync (+https://carambus.de)"
+
   # Helper method to perform HTTP GET requests with SSL verification disabled
   # This is useful in development environments where SSL certificates might not be properly configured
   # (e.g. connecting by IP when the cert is for a hostname, or self-signed certs)
-  def self.http_get_with_ssl_bypass(uri)
+  #
+  # nil_on_error: fuer die JSON-Aufrufer. Ohne den Schalter kam der Rumpf einer
+  # Fehlerantwort ungeprueft zurueck und landete in JSON.parse — ein 403 war von
+  # Daten nicht zu unterscheiden und erschien als "JSON::ParserError: unexpected
+  # end of input". Die HTML-Aufrufer (PublicCcScraper, AbandonedTournamentCc,
+  # repo_version) behalten das alte Verhalten, deshalb Default false.
+  def self.http_get_with_ssl_bypass(uri, nil_on_error: false)
     http = Net::HTTP.new(uri.host, uri.port)
     if uri.scheme == "https"
       http.use_ssl = true
       http.verify_mode = OpenSSL::SSL::VERIFY_NONE
       http.verify_hostname = false
     end
-    request = Net::HTTP::Get.new(uri.request_uri)
+    request = Net::HTTP::Get.new(uri.request_uri, "User-Agent" => SYNC_USER_AGENT)
     response = http.request(request)
+    unless response.is_a?(Net::HTTPSuccess)
+      # Immer loggen, auch fuer die HTML-Aufrufer: ein stiller 403 war die
+      # Ursache dafuer, dass der Sync auf bc-wedel monatelang unbemerkt stand.
+      Rails.logger.warn(
+        "http_get_with_ssl_bypass: #{uri.host}#{uri.path} antwortete " \
+        "#{response.code} #{response.message} (#{response.body.to_s.bytesize} Byte)"
+      )
+      return nil if nil_on_error
+    end
     response.body
   end
 
@@ -103,7 +128,7 @@ class Version < PaperTrail::Version
     url = URI("#{Carambus.config.carambus_api_url}/versions/current_revision")
     Rails.logger.info ">>>>>>>>>>>>>>>> GET #{url} <<<<<<<<<<<<<<<<"
     uri = URI(url)
-    json_io = http_get_with_ssl_bypass(uri)
+    json_io = http_get_with_ssl_bypass(uri, nil_on_error: true)
     vers = parse_api_json(json_io)
     if vers.nil?
       Rails.logger.warn("update_carambus: keine gültige API-Antwort von #{url} — übersprungen")
@@ -199,7 +224,7 @@ class Version < PaperTrail::Version
 
     url = "#{Carambus.config.carambus_api_url}/versions/last_version"
     uri = URI(url)
-    json_io = http_get_with_ssl_bypass(uri)
+    json_io = http_get_with_ssl_bypass(uri, nil_on_error: true)
     parsed = parse_api_json(json_io)
     parsed.is_a?(Hash) ? parsed["last_version"] : Version.last&.id
   rescue OpenURI::HTTPError => e
@@ -346,7 +371,7 @@ class Version < PaperTrail::Version
     }&season_id=#{opts[:season_id].presence || Season.current_season&.id}")
     Rails.logger.info ">>>>>>>>>>>>>>>> GET #{url} <<<<<<<<<<<<<<<<"
     uri = URI(url)
-    json_io = http_get_with_ssl_bypass(uri)
+    json_io = http_get_with_ssl_bypass(uri, nil_on_error: true)
     vers = parse_api_json(json_io)
     raise ApiUnavailableError, "Keine gültige Antwort von #{url}" if vers.nil?
 
