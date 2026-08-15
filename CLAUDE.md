@@ -98,25 +98,42 @@ Vollständige Regeln, Flatui→Token-Mapping und der Migrations-Workflow:
 **[`docs/ui-conventions.md`](docs/ui-conventions.md)**. Die Wache
 `rake ui:no_hardcoded_hex` (pre-commit + CI) blockiert neue Verstöße.
 
-<!-- GSD:project-start source:PROJECT.md -->
 ## Project
 
-**Carambus API — Model Refactoring & Test Coverage**
+**Carambus API — Authority-Server für Karambol-Turnierverwaltung**
 
-A focused refactoring effort to break the god-object model `TableMonitor` into smaller, well-tested collaborators. `RegionCc` — once named as the second target — is no longer a god-object (~500 lines, already decomposed into 11 syncers under `app/services/region_cc/`, commit `a510f3f5`) and is out of scope. This is a refactoring initiative — no new features, no architecture changes.
+Die zentrale Instanz: scrapet externe Verbandsquellen (UMB/Cuesco/SoopLive/Ko-Zoom sowie die Liga-Quellen
+ClubCloud, LigaManager und NuLiga), hält die kanonischen **globalen** Daten und repliziert sie per
+PaperTrail-Versions-Sync an regionale und lokale Carambus-Server. Deployt nach `api.carambus.de`.
 
-**Status (2026-07-15):** The TableMonitor-Refactoring milestone (carambus_nbv, branch `scenario/nbv/tablemonitor-refactor`) extracted two cohesive collaborators via thin delegation — behaviour strictly preserved, characterization tests first: `TableMonitor::InningsEditor` (innings-history orchestration, Phase 53) and `TableMonitor::PanelPresenter` (read-only presentation/view-data, Phase 54). `app/models/table_monitor.rb` went from 2132 to 1996 lines; the scoring engine (`table_monitor/score_engine.rb` ~1354) and `options_presenter.rb` were extracted earlier. The remaining core is the tightly-coupled AASM/scoring lifecycle (`end_of_set?`, `undo`/`redo`, `force_next_state`, `evaluate_result`, `add_n_balls`/`terminate_current_inning`) — live-scoring/state-machine bound and left as a dedicated characterization-first follow-up, not part of this milestone.
+**Core Value:** Globale Turnierdaten bleiben korrekt und replizieren sauber an jeden Regional-Server —
+damit jedes Turnier (inkl. internationaler) überall richtig läuft und angezeigt wird.
 
-**Core Value:** Reduce the worst god-object model (`TableMonitor`) into maintainable, testable units without changing external behavior.
+**Aktueller Meilenstein (v0.7, seit 2026-07-20): CC-less Tournament Management (Einzelmeisterschaften).**
+Nach Einschätzung des Betreibers nutzen nur noch wenige Landesverbände die ClubCloud für ihre
+Einzelmeisterschaften — womit sie stattdessen arbeiten, ist nicht systematisch erhoben. Carambus soll
+Turnier-Anlage, Meldeliste/Setzliste und Ergebniserfassung CC-los tragen. **Wichtig: „CC-less" ≠ „CC-frei"** —
+Vereine und Spieler bleiben voraussichtlich über die DBU-ClubCloud gepflegt (die Landesverbände sind
+DBU-Mitglieder); entkoppelt wird nur der Turnier-Lebenszyklus. Dies ist ein **Feature-Meilenstein**; eine
+Architekturänderung (Betriebsmodell/Sync-Richtung) ist ergebnisoffen Gegenstand von Phase 24.
+Details + Phasenschnitt: `.paul/ROADMAP.md`.
+
+Abgeschlossen: v0.1 Sync-Tagging-Härtung · v0.2 Disziplin-Backfill · v0.3/v0.4 LigaManager (TBV-Cutover) ·
+v0.5 NuLiga (BBV-Cutover) · v0.6 Scrape- & Sync-Effizienz (CC-Change-Gate live).
+
+**Nicht in diesem Repo:** Das `TableMonitor`-God-Object-Refactoring ist nach **carambus_nbv** ausgelagert
+(TableMonitor ist eine lokale Entität, `ApiProtector` greift auf der Authority). `RegionCc` ist bereits
+zerlegt (~500 Z., 11 Syncer unter `app/services/region_cc/`, Commit `a510f3f5`).
 
 ### Constraints
 
-- **Behavior preservation**: All existing functionality must continue to work identically
-- **Incremental**: Each extraction must be independently deployable
-- **Test-first**: Characterization tests before any refactoring
-<!-- GSD:project-end -->
+- **Global vs Local**: `id < 50_000_000` = global (Authority-Hoheit, per Sync verteilt), `id >= MIN_ID` = lokal;
+  `LocalProtector`/`ApiProtector` schützen die jeweilige Seite — Eingriffe hier nur bewusst und belegt
+- **Verhaltenserhalt**: bestehende Funktionalität bleibt identisch; bei Umbau Characterization-Tests zuerst
+- **Inkrementell**: jede Änderung eigenständig deploybar
+- **Prod-Sicherheit**: Prod-/Datenänderungen nur nach expliziter Freigabe; Deploy führt der Betreiber aus
+  (Claude verifiziert read-only); bei Bulk broadcast-frei (`Model.skip_cable_ready_updates`)
 
-<!-- GSD:stack-start source:codebase/STACK.md -->
 ## Technology Stack
 
 ## Languages
@@ -246,9 +263,7 @@ A focused refactoring effort to break the god-object model `TableMonitor` into s
 - **Background Jobs**: Async queue adapter in development; Sidekiq available for production
 - **Session Storage**: Redis-based with fallback handling on Redis failures
 - **Email**: Gmail SMTP in production; letter_opener_web for development preview
-<!-- GSD:stack-end -->
 
-<!-- GSD:conventions-start source:CONVENTIONS.md -->
 ## Conventions
 
 ## Naming Patterns
@@ -343,9 +358,7 @@ A focused refactoring effort to break the god-object model `TableMonitor` into s
 - All services inherit from `ApplicationService`
 - Single public method: `def call`
 - Invoked via: `ServiceName.call(params_hash)` or `ServiceName.new(params).call`
-<!-- GSD:conventions-end -->
 
-<!-- GSD:architecture-start source:ARCHITECTURE.md -->
 ## Architecture
 
 ## Pattern Overview
@@ -441,9 +454,7 @@ A focused refactoring effort to break the god-object model `TableMonitor` into s
 - `ErrorsController` (app/controllers/errors_controller.rb) handles 404/500
 - Routes configured: `config.exceptions_app = routes`
 ## Cross-Cutting Concerns
-<!-- GSD:architecture-end -->
 
-<!-- GSD:skills-start source:skills/ -->
 ## Project Skills
 
 | Skill | Description | Path |
@@ -451,23 +462,21 @@ A focused refactoring effort to break the god-object model `TableMonitor` into s
 | scenario-management | Manages multi-tenant deployment workflow for Carambus project with multiple git checkouts. Use when working with carambus_master, carambus_bcw, carambus_phat, or carambus_api directories, when modifying code, committing changes, or when user mentions scenarios, deployments, or debugging mode. | `.agents/skills/scenario-management/SKILL.md` |
 | extend-before-build | When adding a feature/addon to an existing codebase, prefer extending existing structures (legacy paths, predicates, lifecycles) with small guards over building parallel state machines. Refactoring for quality can come later. Use whenever introducing discipline-specific behavior, scoring rules, multiset variants, or any feature that overlaps with the legacy karambol path. | `.agents/skills/extend-before-build/SKILL.md` |
 | hex-to-token-migration | Migrates hardcoded color hex (`#rgb`/`#rrggbb`), `<style>` blocks and inline `style="…color…"` in UI code to Tailwind design-token utilities with class-based dark mode. Use when migrating an admin/UI view or CSS file off hardcoded colors, or when `rake ui:no_hardcoded_hex` flags a new violation. | `.agents/skills/hex-to-token-migration/SKILL.md` |
-<!-- GSD:skills-end -->
 
-<!-- GSD:workflow-start source:GSD defaults -->
 ## Workflow (Paul-first)
 
-Prefer the lightweight **Paul** framework (`/paul:*`) or direct interactive work. GSD's multi-agent orchestration (`/gsd:plan-phase`, `/gsd:execute-phase` with researcher/planner/checker/executor subagents) proved painfully slow for this repo's operational work and is now **opt-in only** — use it only when the user explicitly asks for it.
+Use the lightweight **Paul** framework (`/paul:*`) or direct interactive work.
+
+Das GSD-Framework wurde am 2026-07-20 **entfernt** (`.planning/`, `.claude/get-shit-done`,
+`gsd-*`-Agents/Hooks/Commands). Seine Multi-Agent-Orchestrierung war für die operative Arbeit
+in diesem Repo zu langsam. Archivierte Planungsartefakte: `docs/archive/2026-07-planning/`.
 
 - Operational / investigative / data / prod-ops work (debugging, sync reconciliation, migrations): work **directly and interactively** — no planning ceremony, no subagent orchestration.
 - Feature work that benefits from structure: `/paul:discuss` → `/paul:plan` → `/paul:apply` → `/paul:verify`.
-- Direct `Edit`/`Write` is fine — you do **not** need to route changes through a GSD command first.
+- Direct `Edit`/`Write` is fine — no need to route changes through a planning command first.
 
-Do not spin up GSD (or heavy Paul subagent) orchestration unless the user explicitly requests that scale.
-<!-- GSD:workflow-end -->
+Do not spin up heavy subagent orchestration unless the user explicitly requests that scale.
 
-<!-- GSD:profile-start -->
 ## Developer Profile
 
-> Profile not yet configured. Run `/gsd-profile-user` to generate your developer profile.
-> This section is managed by `generate-claude-profile` -- do not edit manually.
-<!-- GSD:profile-end -->
+> Not configured. (Wurde früher von GSD's `/gsd-profile-user` generiert — Framework entfernt.)

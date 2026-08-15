@@ -6,11 +6,9 @@ module Admin
       @disciplines = Discipline.all
       @dashboard = RegionDashboard.new
 
-      # Get the last 3 seasons in reverse chronological order
-      @seasons = Season.where('id <= ?', @current_season.id)
-                      .order(id: :desc)
-                      .limit(3)
-                      .reverse
+      # Die letzten 3 Saisons, chronologisch aufsteigend. Recency ueber den Saison-NAMEN
+      # (id/ba_id sind durch internationales Scrapen verrutscht).
+      @seasons = Season.recent_valid(3, up_to: @current_season)
 
       # Prepare rankings for each discipline
       @rankings_by_discipline = @disciplines.each_with_object({}) do |discipline, hash|

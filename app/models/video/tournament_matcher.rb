@@ -7,7 +7,8 @@ require "text"
 # Scores each unassigned Video against InternationalTournament records using
 # three weighted signals:
 #   - Date overlap    (0.40): video.published_at within tournament date range (+3 day grace)
-#   - Player intersection (0.35): Jaccard similarity of detected player tags
+#   - Player intersection (0.35): Anteil der im Video erkannten Spieler, die im
+#     Turnier antreten (Containment — NICHT Jaccard, siehe player_intersection_score)
 #   - Title similarity (0.25): normalized Levenshtein distance
 #
 # Auto-assigns videos scoring >= CONFIDENCE_THRESHOLD (0.75). D-02: no review
@@ -89,16 +90,32 @@ class Video::TournamentMatcher < ApplicationService
     range.cover?(video.published_at.to_date) ? 1.0 : 0.0
   end
 
-  # Jaccard similarity between detected video player tags and tournament seedings.
+  # Anteil der im Video erkannten Spieler, die im Turnier antreten (Containment).
+  #
+  # Frueher Jaccard (Schnitt/Vereinigung) — das war fuer diesen Zweck die falsche
+  # Metrik: ein Video zeigt zwei bis drei Spieler, ein World-Cup-Feld hat bis zu
+  # 300. Die Vereinigung wird also von der Turniergroesse dominiert, und der Wert
+  # sinkt, je vollstaendiger die Teilnehmerdaten sind — ausgerechnet gute Daten
+  # wurden bestraft.
+  #
+  # Rechnerisch war die Schwelle von 0.75 damit unerreichbar: bei zwei erkannten
+  # Spielern haette das Turnier hoechstens zwei bis drei Tags haben duerfen.
+  # Gemessen am World Cup 2024 (292 Seedings, 80 Videos im Zeitfenster): bester
+  # Score 0.48, keine einzige Zuordnung. Mit Containment: 20 Zuordnungen, bester
+  # Score 0.80 — ein Video mit "D. JASPERS vs M. ABDIN" trifft jetzt 1.0, weil
+  # Jaspers tatsaechlich im Feld steht.
+  #
+  # Bezugsgroesse ist bewusst die VIDEO-Seite: gefragt ist "spielen die gezeigten
+  # Spieler in diesem Turnier?", nicht "wie gross ist die Ueberlappung beider
+  # Mengen?".
   def player_intersection_score(detected_tags, tournament)
     return 0.0 if detected_tags.blank?
 
     seeded_tags = tournament_player_tags(tournament)
     return 0.0 if seeded_tags.empty?
 
-    intersection = (detected_tags & seeded_tags).size
-    union = (detected_tags | seeded_tags).size
-    (union > 0) ? intersection.to_f / union : 0.0
+    detected = detected_tags.uniq
+    (detected & seeded_tags).size.to_f / detected.size
   end
 
   # Maps tournament seedings to lowercase WORLD_CUP_TOP_32 tag keys.

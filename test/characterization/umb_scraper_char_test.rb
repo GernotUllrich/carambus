@@ -150,8 +150,10 @@ class UmbScraperCharTest < ActiveSupport::TestCase
 
   test "fetch_tournament_basic_data returns hash or nil for valid ID" do
     with_vcr_cassette("umb/scraper_basic_data") do
-      # Bekannte UMB-ID (ID 1 — erster Eintrag im Archiv)
-      result = @scraper.fetch_tournament_basic_data(1)
+      # Bekannte UMB-ID (ID 1 — erster Eintrag im Archiv).
+      # send: die Methode ist bewusst privat und wird auch produktiv so gerufen
+      # ("Rake Tasks rufen diese via .send() auf" — umb_scraper.rb:139).
+      result = @scraper.send(:fetch_tournament_basic_data, 1)
       # Dokumentiert: entweder Hash mit :name und :external_id oder nil (nicht gefunden)
       assert(result.nil? || result.is_a?(Hash),
         "fetch_tournament_basic_data muss Hash oder nil zurueckgeben, bekam: #{result.class}")

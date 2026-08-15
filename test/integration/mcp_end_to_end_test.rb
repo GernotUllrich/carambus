@@ -17,9 +17,7 @@ class McpEndToEndTest < ActionDispatch::IntegrationTest
     @sportwart = User.create!(
       email: "sportwart-e2e@test.de",
       password: "password123",
-
-
-
+      confirmed_at: Time.zone.now # User ist :confirmable → ohne Bestätigung scheitert der Login
     )
   end
 

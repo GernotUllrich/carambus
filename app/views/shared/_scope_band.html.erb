@@ -4,7 +4,10 @@
 <%# via Current.scope (region_id/season_id/branch_id) als FK-Filter. %>
 <div id="scope-band" tabindex="-1" class="border-b border-gray-300 dark:border-gray-700 bg-gray-300 dark:bg-gray-800 scroll-mt-4 transition-shadow duration-300">
   <div class="px-4 py-2">
-    <%= form_tag request.path, method: :get, class: "flex items-center gap-2 flex-nowrap overflow-x-auto" do %>
+    <%# Auf Detailseiten zielt das Formular auf die Liste des Modells (Scopable#scope_band_form_path): %>
+    <%# eine Ausschnitt-Aenderung fuehrt dann zurueck aufs Listen-Level im NEUEN Ausschnitt, statt %>
+    <%# still den Scope zu verschieben, waehrend die Detailansicht unveraendert stehen bleibt. %>
+    <%= form_tag scope_band_form_path, method: :get, class: "flex items-center gap-2 flex-nowrap overflow-x-auto" do %>
       <%# Sortierung erhalten (Suche liegt in der Session, braucht kein Hidden-Feld). %>
       <%= hidden_field_tag :sort, params[:sort] if params[:sort].present? %>
       <%= hidden_field_tag :direction, params[:direction] if params[:direction].present? %>

@@ -342,6 +342,7 @@ class League < ApplicationRecord
       leagues_doc = Nokogiri::HTML(leagues_html)
       table = leagues_doc.css("article table.silver")[1]
 
+      cc_list_count = 0         # Listeneinträge für diese Region/Saison (0 = Verdacht auf leere Liste)
       if table.present?
         cc_gate_deep = 0        # Change-Gate-Metrik (Phase 22): tief gescrapte Ligen
         cc_gate_skipped = 0     # Change-Gate-Metrik: unveränderte, übersprungene Ligen
@@ -357,6 +358,7 @@ class League < ApplicationRecord
           league_cc_id = params[3].to_i
           next if region_cc_id != region.cc_id || season_name != season.name
 
+          cc_list_count += 1
           title = a[0].text.strip
           short = tr.css("td")[1].text.strip
           n_staffel = tr.css("td")[2].text.strip.to_i
@@ -437,6 +439,8 @@ class League < ApplicationRecord
         Rails.logger.info "===== scrape ===== CC-Change-Gate #{region.shortname}: " \
                           "deep=#{cc_gate_deep} skipped_unchanged=#{cc_gate_skipped}"
       end
+      ScrapeListGuard.warn_if_empty("Leagues #{region.shortname} #{season.name}", cc_list_count,
+                                    League.where(season: season, organizer: region).count)
     end
   rescue StandardError => e
     Rails.logger.info "====== problem with leagues in region #{region.name} - leagues_url: #{leagues_url} e93 \

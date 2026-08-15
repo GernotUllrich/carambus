@@ -1,18 +1,24 @@
 # Seasons for testing
+#
+# Die Namen werden aus dem aktuellen Datum abgeleitet (gleiche Regel wie
+# Season.current_season / Season.season_from_date: Saisonwechsel im Juli).
+# Feste Namen liessen die Fixtures jedes Jahr veralten — Season.current_season
+# lieferte dann nil und jede Tournament-Anlage schlug an der season-Validierung fehl.
+<% y = (Date.today - 6.months).year %>
 current:
   id: 50_000_001
-  name: "2025/2026"
+  name: "<%= y %>/<%= y + 1 %>"
   created_at: <%= 1.year.ago %>
   updated_at: <%= 1.day.ago %>
 
 previous:
   id: 50_000_002
-  name: "2024/2025"
+  name: "<%= y - 1 %>/<%= y %>"
   created_at: <%= 2.years.ago %>
   updated_at: <%= 1.month.ago %>
 
 season_2024:
   id: 50_000_003
-  name: "2023/2024"
+  name: "<%= y - 2 %>/<%= y - 1 %>"
   created_at: <%= 3.years.ago %>
   updated_at: <%= 2.years.ago %>

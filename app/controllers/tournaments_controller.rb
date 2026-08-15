@@ -7,8 +7,8 @@ class TournamentsController < ApplicationController
                 only: %i[show edit update destroy order_by_ranking_or_handicap finish_seeding edit_games reload_from_cc new_team
                          finalize_modus select_modus tournament_monitor reset start define_participants add_team placement
                          upload_invitation parse_invitation apply_seeding_order compare_seedings add_player_by_dbu
-                         use_clubcloud_as_participants update_seeding_position
-                         recalculate_groups test_tournament_status_update]
+                         use_clubcloud_as_participants update_seeding_position players_by_club
+                         recalculate_groups test_tournament_status_update release_draft reload_entry_list]
   before_action :ensure_rankings_cached, only: %i[show]
   before_action :load_clubcloud_seedings, only: %i[show]
   before_action :ensure_local_server, only: %i[new create edit update destroy order_by_ranking_or_handicap
@@ -16,7 +16,15 @@ class TournamentsController < ApplicationController
                                                finalize_modus select_modus reset start define_participants add_team
                                                upload_invitation parse_invitation apply_seeding_order compare_seedings
                                                add_player_by_dbu use_clubcloud_as_participants update_seeding_position
-                                               recalculate_groups]
+                                               players_by_club recalculate_groups
+                                               copy_season copy_season_execute release_draft
+                                               reload_entry_list]
+  # Plan 32-07: Schreib-Gate für die Teilnehmerliste. NACH ensure_local_server, damit nicht-lokale
+  # Anfragen weiterhin zuerst dort umgeleitet werden. Bindet die vorhandene Policy
+  # manage_teilnehmerliste? (TL / Sportwart im Wirkbereich / Admin) an alle mutierenden Meldelisten-Actions.
+  before_action :authorize_manage_teilnehmerliste,
+                only: %i[finish_seeding use_clubcloud_as_participants define_participants
+                         add_player_by_dbu update_seeding_position apply_seeding_order]
 
   # UI-07 D-18 / Phase 39 D-12: Felder, die vor dem Turnierstart gegen
   # Discipline#parameter_ranges geprüft werden. Reihenfolge matcht die
@@ -37,6 +45,19 @@ class TournamentsController < ApplicationController
     search_params[:direction] ||= "desc"
 
     results = SearchService.call(Tournament.search_hash(search_params))
+
+    # Plan 27-01: Entwuerfe aus der Saison-Kopie sind standardmaessig ausgeblendet — sie tragen ein
+    # geschaetztes Datum und sind noch nicht vom Sportwart geprueft. `?drafts=1` macht sie sichtbar,
+    # damit sie nach einem Kopier-Lauf auffindbar bleiben. Der Filter greift VOR dem H19-Block,
+    # damit „Demnächst" dieselbe Menge sieht.
+    @show_drafts = params[:drafts].present?
+    results = @show_drafts ? results.drafts : results.without_drafts
+
+    # Plan 32-01: den globalen Round-Trip-Zwilling eines CC-los angelegten Turniers auf der
+    # Ursprungs-Instanz ausblenden — nur das lokale Original bleibt sichtbar. Reiner Display-Filter,
+    # selbst-scopend (greift nur, wo das lokale Original existiert). Vor dem H19-Block, damit
+    # „Demnächst" dieselbe Menge sieht.
+    results = results.without_roundtrip_twins
 
     # H19: „Demnächst"-Block — anstehende Turniere (nächste 14 Tage) im Standard-Blick
     # oben abgesetzt, aus der datum-absteigenden Hauptliste ausgeklammert.
@@ -68,6 +89,83 @@ class TournamentsController < ApplicationController
         render("index")
       end
     end
+  end
+
+  # GET /tournaments/copy_season
+  #
+  # Sportwart-Weg zum bestehenden Rake-Task `tournaments:copy_season`: zeigt die Turniere der
+  # Vorsaison zur Auswahl, gefiltert nach Branch. Schreibt nichts — die Vorschau ist der dry-run.
+  def copy_season
+    return unless prepare_season_copy
+
+    all_candidates = season_copier.candidates
+    # Branch-Liste aus dem VOLLEN Satz, nicht aus der gefilterten Menge: sonst verschwaende der
+    # aktive Filter die uebrigen Branches aus der Auswahl und man kaeme nicht mehr zurueck.
+    @branches = all_candidates.filter_map { |c| branch_name(c.tournament) }.uniq.sort
+    @branch_filter = params[:branch].presence
+    @candidates = if @branch_filter
+      all_candidates.select { |c| branch_name(c.tournament) == @branch_filter }
+    else
+      all_candidates
+    end
+  end
+
+  # POST /tournaments/copy_season_execute
+  def copy_season_execute
+    return unless prepare_season_copy
+
+    source_ids = Array(params[:source_ids]).reject(&:blank?)
+    if source_ids.empty?
+      redirect_to copy_season_tournaments_path(to_season_id: @to_season.id, branch: params[:branch]),
+        alert: t("tournaments.copy_season.nothing_selected", default: "Es war kein Turnier ausgewählt.")
+      return
+    end
+
+    result = Tournament::SeasonCopier.new(
+      region: @region, from_season: @from_season, to_season: @to_season,
+      armed: true, only_source_ids: source_ids
+    ).call
+
+    # Ziel ist die Entwurfs-Ansicht: die Kopien sind Entwuerfe und waeren in der regulaeren Liste
+    # unsichtbar — ein „12 Turniere kopiert" ohne sichtbares Ergebnis wuerde wie ein Fehler wirken.
+    redirect_to tournaments_path(drafts: 1),
+      notice: t("tournaments.copy_season.created", count: result.created, season: @to_season.name,
+        default: "%{count} Turnier(e) als Entwurf in %{season} angelegt.")
+  rescue ArgumentError => e
+    redirect_to tournaments_path, alert: e.message
+  end
+
+  # POST /tournaments/1/reload_entry_list
+  #
+  # AC-5 (Baustein ③): der managende Local Server holt die frische Meldeliste ON-DEMAND von der
+  # Authority — analog reload_from_cc, nur ohne ClubCloud. SYNCHRON (nicht wie die Freigabe im
+  # Hintergrund): der LSW klickt „neu laden" und soll SEHEN, dass die frische Liste da ist.
+  #
+  # Der Weg nutzt den Kern (get_updates?import_entry_list=…): die Authority liest die Meldeliste des
+  # Region Servers frisch ein und liefert die entstandenen Versionen in derselben Antwort zurück,
+  # die dieser Server sofort anwendet.
+  def reload_entry_list
+    unless local_server?
+      redirect_to @tournament, alert: t("tournaments.reload_entry_list.api_server",
+        default: "Nur auf einem lokalen Server möglich.")
+      return
+    end
+    if @tournament.region_id.blank? || @tournament.season_id.blank?
+      redirect_to @tournament, alert: t("tournaments.reload_entry_list.no_scope",
+        default: "Turnier ohne Region/Saison — Meldeliste nicht abrufbar.")
+      return
+    end
+
+    Version.update_from_carambus_api(
+      import_entry_list: @tournament.region_id, season_id: @tournament.season_id,
+      region_id: @tournament.region_id
+    )
+    redirect_to @tournament, notice: t("tournaments.reload_entry_list.done",
+      default: "Meldeliste von der Authority neu geladen.")
+  rescue => e
+    Rails.logger.error "[reload_entry_list] Turnier[#{@tournament&.id}] fehlgeschlagen: #{e.message}"
+    redirect_to @tournament, alert: t("tournaments.reload_entry_list.failed",
+      default: "Meldeliste konnte nicht geladen werden (Authority nicht erreichbar?).")
   end
 
   # GET /tournaments/1
@@ -110,12 +208,13 @@ class TournamentsController < ApplicationController
         if @tournament.handicap_tournier
           hash[seeding] = -seeding.balls_goal.to_i
         else
-          diff = Season.current_season&.name == "2021/2022" ? 2 : 1
+          # Vorsaison name-basiert (Season#previous). Der frühere ba_id-Versatz inkl.
+          # "2021/2022 ? 2 : 1"-Hack kompensierte eine ba_id-Lücke und ist damit hinfällig.
           hash[seeding] = if @tournament.team_size > 1
                             999
                           else
                             seeding.player.player_rankings.where(discipline_id: Discipline.find_by_name("Freie Partie klein"),
-                                                                 season_id: Season.find_by_ba_id(Season.current_season&.ba_id.to_i - diff))
+                                                                 season_id: Season.current_season&.previous&.id)
                                    .first&.rank.presence || 999
                           end
         end
@@ -143,6 +242,9 @@ class TournamentsController < ApplicationController
       @tournament.reload
       # Berechne Rankings explizit (falls after_enter callback nicht funktioniert hat)
       @tournament.calculate_and_cache_rankings if @tournament.data["player_rankings"].blank?
+      # Plan 32-04 (Konzern B, Modell X): Teilnehmer-Seedings auf participated transitionieren.
+      # Verhaltensneutral (effective_seedings liest bis 32-05 noch MIN_ID-basiert).
+      @tournament.mark_effective_seedings!(:participate)
       # Plan 44-03: Teilnehmerliste-Abschluss atomar in die CC zurückpushen (releaseMeldeliste, async).
       FinalizeTeilnehmerlisteJob.enqueue_for(tournament: @tournament, acting_user: current_user)
     else
@@ -190,18 +292,9 @@ class TournamentsController < ApplicationController
     else
       @tournament.seedings.where(player_id: nil).destroy_all
 
-      # Intelligentes Zählen: Wenn lokale Seedings existieren, nur diese zählen
-      # Ansonsten ClubCloud-Seedings zählen (verhindert Duplikat-Zählung)
-      has_local_seedings = @tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").any?
-      @seeding_scope = if has_local_seedings
-                         "seedings.id >= #{Seeding::MIN_ID}"
-                       else
-                         "seedings.id < #{Seeding::MIN_ID}"
-                       end
-
-      @participant_count = @tournament.seedings
+      # Plan 32-03: effective_seedings (lokale bevorzugen, sonst ClubCloud) statt dupliziertem has_local-Idiom
+      @participant_count = @tournament.effective_seedings
                                       .where.not(state: "no_show")
-                                      .where(@seeding_scope)
                                       .count
 
       # Versuche TournamentPlan anhand extrahierter Info zu finden (z.B. "T21", aber NICHT T0/T00)
@@ -232,7 +325,7 @@ class TournamentsController < ApplicationController
       if @proposed_discipline_tournament_plan.present?
         # Berechne IMMER die NBV-Standard-Gruppenbildung (MIT Gruppengrößen aus executor_params!)
         @nbv_groups = TournamentMonitor.distribute_to_group(
-          @tournament.seedings.where.not(state: "no_show").where(@seeding_scope).order(:position).map(&:player),
+          @tournament.effective_seedings.where.not(state: "no_show").order(:position).map(&:player),
           @proposed_discipline_tournament_plan.ngroups,
           @proposed_discipline_tournament_plan.group_sizes # NEU: Gruppengrößen aus executor_params
         )
@@ -499,7 +592,11 @@ class TournamentsController < ApplicationController
 
   # GET /tournaments/new
   def new
-    @tournament = Tournament.new
+    # Phase 25-01: Vorbelegung von season/organizer — ohne beide schlaegt #create still fehl
+    # (belongs_to :season und :organizer sind nicht optional). Region aus Carambus.config.context
+    # wie in Admin::UserFormHelper#server_region (region-agnostisch, kein hartes Shortname).
+    @season = Season.current_season
+    @tournament = Tournament.new(season: @season, organizer: server_region_for_new)
   end
 
   # GET /tournaments/1/edit
@@ -517,10 +614,16 @@ class TournamentsController < ApplicationController
     else
       @tournament.single_or_league = "single"
     end
+    # Phase 25-01: CC-lose Neuanlage — kein automatischer CC-Upload. Nur im create-Pfad,
+    # der Spalten-Default bleibt unberuehrt (Setter schreibt bei new_record? direkt ins Attribut).
+    @tournament.auto_upload_to_cc = false
+
     if @tournament.save
       redirect_to @tournament, notice: "Tournament was successfully created."
     else
-      redirect_back(fallback_location: tournaments_path)
+      # Fehler sichtbar machen statt still zurueckzuleiten (redirect_back verwarf sie).
+      @season = @tournament.season || Season.current_season
+      render :new, status: :unprocessable_entity
     end
   end
 
@@ -547,7 +650,14 @@ class TournamentsController < ApplicationController
       render :edit
     end
   rescue StandardError => e
-    Rails.logger.info "#{e} #{e.backtrace.join("\n")}"
+    # Vorher wurde hier nur geloggt — ohne Render/Redirect antwortete Rails mit
+    # 204 No Content, das Update war fuer den Nutzer stillschweigend verschwunden.
+    Rails.logger.error "#{e} #{e.backtrace.join("\n")}"
+    raise if performed? # Fehler nach dem Rendern — nicht noch einmal rendern
+
+    flash.now[:alert] = I18n.t("tournaments.errors.update_failed",
+      default: "Aktualisierung fehlgeschlagen: %{message}", message: e.message)
+    render :edit, status: :unprocessable_entity
   end
 
   # DELETE /tournaments/1
@@ -556,24 +666,63 @@ class TournamentsController < ApplicationController
     redirect_to tournaments_url, notice: "Tournament was successfully destroyed."
   end
 
+  # POST /tournaments/1/release_draft
+  #
+  # Gibt einen Saison-Kopie-Entwurf frei: entfernt `data["draft"]`, sodass ihn der
+  # Meldelisten-Ingest der Authority holt (der Endpunkt liefert nur `without_drafts`).
+  # Vorher werden die Felder geprueft, die ein Turnier fuer den Ingest tragbar machen — ein
+  # freigegebenes Turnier ohne Disziplin oder mit Platzhalter-Datum waere auf der Authority Muell.
+  def release_draft
+    unless @tournament.draft?
+      redirect_to tournaments_path(drafts: 1),
+        alert: t("tournaments.release_draft.not_a_draft", default: "Dieses Turnier ist kein Entwurf.")
+      return
+    end
+
+    missing = draft_release_blockers(@tournament)
+    if missing.any?
+      redirect_to tournaments_path(drafts: 1),
+        alert: t("tournaments.release_draft.incomplete", fields: missing.join(", "),
+          default: "Freigabe nicht möglich — es fehlt: %{fields}.")
+      return
+    end
+
+    @tournament.unprotected = true
+    @tournament.update!(data: @tournament.data.except("draft"))
+
+    # ① CC-loser Short-Circuit: die Authority sofort (fehlertolerant, im Hintergrund) anstoßen, die
+    # Meldeliste einzulesen — statt bis zum stündlichen Cron zu warten. Scheitert der Job, bleibt die
+    # Freigabe trotzdem gültig (lokaler Stand führt); der Cron bzw. ein On-demand-Reload zieht nach.
+    EntryListSyncJob.enqueue_for(tournament: @tournament)
+
+    redirect_to tournaments_path,
+      notice: t("tournaments.release_draft.done", title: @tournament.title,
+        default: "„%{title}“ ist freigegeben und wird von der Authority übernommen.")
+  end
+
   def define_participants
+    # Plan 36-06 (Betreiber 2026-08-06): Die Liste wird beim ÖFFNEN lokal, nicht erst bei der ersten
+    # Änderung. Grund ist der Ablauf: "Teilnehmerliste abschließen" (finish_seeding) wird erst
+    # erreichbar, wenn lokale Seedings existieren — `wizard_current_step` steigt sonst nicht auf 3
+    # (tournament_wizard_helper.rb:53). Wer über den Direktlink der Detailseite hereinkommt, blieb
+    # damit im Ablauf stecken, obwohl die Liste vor ihm stand.
+    #
+    # Dass ein GET schreibt, ist hier vertretbar: die Action ist doppelt gegated
+    # (`ensure_local_server` + `authorize_manage_teilnehmerliste`), und dieses Formular ZU ÖFFNEN
+    # ist genau der Vorgang, die Meldeliste in die lokale Bearbeitung zu übernehmen — dasselbe, was
+    # der Wizard-Knopf in Schritt 2 ausdrücklich tut. Idempotent: liegt schon eine lokale Liste vor,
+    # passiert nichts.
+    RegionServer::PlayerRegistration.materialize_effective_seedings!(@tournament)
+
     @seedings = @tournament.seedings
     @league = @tournament.league
 
     # Berechne mögliche Turnierpläne und Gruppenzuordnungen (wie in finalize_modus)
     @tournament.seedings.where(player_id: nil).destroy_all
 
-    # Intelligentes Zählen: Wenn lokale Seedings existieren, nur diese zählen
-    has_local_seedings = @tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").any?
-    @seeding_scope = if has_local_seedings
-                       "seedings.id >= #{Seeding::MIN_ID}"
-                     else
-                       "seedings.id < #{Seeding::MIN_ID}"
-                     end
-
-    @participant_count = @tournament.seedings
+    # Plan 32-03: effective_seedings (lokale bevorzugen, sonst ClubCloud) statt dupliziertem has_local-Idiom
+    @participant_count = @tournament.effective_seedings
                                     .where.not(state: "no_show")
-                                    .where(@seeding_scope)
                                     .count
 
     # Versuche TournamentPlan anhand extrahierter Info zu finden (z.B. "T21", aber NICHT T0/T00)
@@ -612,7 +761,7 @@ class TournamentsController < ApplicationController
     if @proposed_discipline_tournament_plan.present?
       # Berechne IMMER die NBV-Standard-Gruppenbildung
       @nbv_groups = TournamentMonitor.distribute_to_group(
-        @tournament.seedings.where.not(state: "no_show").where(@seeding_scope).order(:position).map(&:player),
+        @tournament.effective_seedings.where.not(state: "no_show").order(:position).map(&:player),
         @proposed_discipline_tournament_plan.ngroups,
         @proposed_discipline_tournament_plan.group_sizes
       )
@@ -799,57 +948,18 @@ class TournamentsController < ApplicationController
       return
     end
 
-    # Split by comma and clean up whitespace
-    dbu_numbers = dbu_input.split(',').map(&:strip).reject(&:blank?)
+    # Plan 35-01: Melde-Datenschicht liegt in RegionServer::PlayerRegistration — geteilt mit dem
+    # CC-losen Meldelisten-Fluss, damit die dbu_nr-Auflösung nicht in zwei Kopien driftet.
+    # Verhalten unverändert: Split/Strip, Dublettencheck über effective_seedings (Plan 32-03),
+    # fortlaufende Position, CC-Push (Plan 44-02, no-op ohne tournament_cc).
+    result = RegionServer::PlayerRegistration.register_by_dbu(
+      tournament: @tournament, dbu_input: dbu_input, acting_user: current_user
+    )
 
-    # Determine seeding scope once
-    seeding_scope = if @tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").any?
-                      "seedings.id >= #{Seeding::MIN_ID}"
-                    else
-                      "seedings.id < #{Seeding::MIN_ID}"
-                    end
-
-    # Track results
-    added = []
-    already_exists = []
-    not_found = []
-
-    # Process each DBU number
-    dbu_numbers.each do |dbu_nr|
-      # Find player by DBU number
-      player = Player.find_by(dbu_nr: dbu_nr)
-
-      unless player
-        not_found << dbu_nr
-        next
-      end
-
-      # Check if player already in tournament
-      existing_seeding = @tournament.seedings.where(seeding_scope).where(player_id: player.id).first
-
-      if existing_seeding
-        already_exists << "#{player.fullname} (#{dbu_nr}, Pos. #{existing_seeding.position})"
-        next
-      end
-
-      # Add player to seeding list
-      max_position = @tournament.seedings.where(seeding_scope).maximum(:position) || 0
-
-      @tournament.seedings.create!(
-        player_id: player.id,
-        position: max_position + 1
-      )
-
-      # Plan 44-02: kurzfristige dbu_nr-Nachmeldung atomar in die CC pushen — analog zum
-      # change_seeding-Reflex. Ohne das landet die Nachmeldung lokal, aber NICHT in der CC
-      # (Live-Befund 2026-06-19). enqueue_for ist no-op ohne tournament_cc.
-      PushAccreditationToCcJob.enqueue_for(
-        tournament: @tournament, player: player,
-        target: :ensure_participant, acting_user: current_user
-      )
-
-      added << "#{player.fullname} (#{dbu_nr}, Pos. #{max_position + 1})"
-    end
+    # Wortlaute bleiben wie gewachsen — die Formulierung gehört dem Controller, nicht dem Service.
+    added = result.added.map { |e| "#{e[:player].fullname} (#{e[:dbu_nr]}, Pos. #{e[:position]})" }
+    already_exists = result.already_exists.map { |e| "#{e[:player].fullname} (#{e[:dbu_nr]}, Pos. #{e[:position]})" }
+    not_found = result.not_found
 
     # Build summary message
     messages = []
@@ -867,6 +977,22 @@ class TournamentsController < ApplicationController
 
     redirect_to define_participants_tournament_path(@tournament),
                 message_type => messages.join(' | ')
+  end
+
+  # GET /tournaments/:id/players_by_club?club_id=N (JSON)
+  #
+  # Plan 26-01: speist die Club->Spieler-Kaskade der Meldeliste. Liefert die Spieler eines Vereins
+  # aus der laufenden Saison, OHNE die bereits gemeldeten — die `dbu_nr` im Payload traegt die
+  # Uebernahme in den bestehenden add_player_by_dbu-Pfad.
+  #
+  # Abgrenzung zu Admin::UsersController#players_by_club: der ist `system_admin?`-only und damit
+  # fuer Sportwarte nicht nutzbar. Schutz hier = `ensure_local_server` wie bei define_participants.
+  def players_by_club
+    # Plan 35-01: Query liegt in RegionServer::PlayerRegistration (geteilt mit dem CC-losen
+    # Meldelisten-Fluss). Verhalten unverändert, inkl. Turniersaison-Fallstrick und Sortierung.
+    render json: RegionServer::PlayerRegistration.selectable_players(
+      tournament: @tournament, club_id: params[:club_id]
+    )
   end
 
   # POST /tournaments/:id/apply_seeding_order
@@ -889,6 +1015,10 @@ class TournamentsController < ApplicationController
           )
         end
       end
+
+      # Plan 32-04 (Konzern B, Modell X): Setzliste gesetzt → Teilnehmer-Seedings auf seeded
+      # transitionieren. Verhaltensneutral (effective_seedings liest bis 32-05 noch MIN_ID-basiert).
+      @tournament.mark_effective_seedings!(:seed)
 
       # Info-Message: Mit/ohne Vorgaben
       has_handicaps = balls_goal_hash.values.any?(&:present?)
@@ -920,11 +1050,17 @@ class TournamentsController < ApplicationController
         @tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").destroy_all
 
         # Erstelle neue lokale Seedings (ohne Position, wird gleich sortiert)
+        #
+        # Plan 36-05: Ein `no_show` reist ALS `no_show` mit (Betreiber 2026-08-05, nach dem Test auf
+        # bcw). Bisher startete jede Kopie im Initialzustand "registered" (seeding.rb:29) — ein in
+        # der Quelle gestrichener Spieler kam damit als regulaerer Teilnehmer zurueck. Ihn gar nicht
+        # zu kopieren waere die andere Uebertreibung: dann verschwindet er aus der Liste und laesst
+        # sich nur ueber die Spielereingabe zurueckholen. Als `no_show` kopiert steht er mit leerem
+        # Haken da und ist mit einem Klick wieder dabei — genau wie vor der Uebernahme.
         clubcloud_seedings.each do |cc_seeding|
-          @tournament.seedings.create!(
-            player_id: cc_seeding.player_id,
-            balls_goal: cc_seeding.balls_goal
-          )
+          attrs = {player_id: cc_seeding.player_id, balls_goal: cc_seeding.balls_goal}
+          attrs[:state] = "no_show" if cc_seeding.state == "no_show"
+          @tournament.seedings.create!(attrs)
         end
       end
 
@@ -932,8 +1068,8 @@ class TournamentsController < ApplicationController
       if local_server?
         # Berechne effektive Rankings (wie in calculate_and_cache_rankings)
         if @tournament.organizer.is_a?(Region) && @tournament.discipline.present?
-          current_season = Season.current_season
-          seasons = Season.where("id <= ?", current_season.id).order(id: :desc).limit(3).reverse
+          # Recency ueber den Saison-NAMEN (id/ba_id sind durch internationales Scrapen verrutscht).
+          seasons = Season.recent_valid(3)
 
           all_rankings = PlayerRanking.where(
             discipline_id: @tournament.discipline_id,
@@ -984,6 +1120,10 @@ class TournamentsController < ApplicationController
           seeding.update(position: ix + 1)
         end
       end
+
+      # Plan 32-04 (Konzern B, Modell X): Meldeliste als Teilnehmer uebernommen/sortiert → auf seeded
+      # transitionieren. Verhaltensneutral (effective_seedings liest bis 32-05 noch MIN_ID-basiert).
+      @tournament.mark_effective_seedings!(:seed)
 
       redirect_to define_participants_tournament_path(@tournament),
                   notice: "✅ Meldeliste übernommen und nach Rangliste sortiert (#{clubcloud_seedings.count} Spieler)"
@@ -1113,15 +1253,9 @@ class TournamentsController < ApplicationController
   # Input: { 1 => [1, 5, 9], 2 => [2, 6, 10], ... } (Positionen)
   # Output: { "group1" => [player_id1, player_id5, ...], ... }
   def convert_position_groups_to_player_groups(position_groups, tournament)
-    # Verwende @seeding_scope wenn verfügbar, sonst intelligente Erkennung
-    scope = @seeding_scope || begin
-      has_local = tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").any?
-      has_local ? "seedings.id >= #{Seeding::MIN_ID}" : "seedings.id < #{Seeding::MIN_ID}"
-    end
-
-    seedings = tournament.seedings
+    # Plan 32-03: effective_seedings (lokale bevorzugen, sonst ClubCloud) statt dupliziertem has_local-Idiom
+    seedings = tournament.effective_seedings
                          .where.not(state: "no_show")
-                         .where(scope)
                          .order(:position)
                          .to_a
 
@@ -1167,12 +1301,83 @@ class TournamentsController < ApplicationController
                                        :handicap_tournier, :league_id, :organizer_id, :organizer_type, :manual_assignment, :continuous_placements,
                                        :sets_to_win, :sets_to_play, :team_size, :kickoff_switches_with, :fixed_display_left,
                                        :color_remains_with_set, :allow_overflow, :allow_follow_up,
-                                       :turnier_leiter_user_id)
+                                       :turnier_leiter_user_id, :source_url)
+  end
+
+  # Phase 25-01: Server-Region aus der Scenario-Config (Carambus.config.context) fuer die
+  # Organizer-Vorbelegung bei Neuanlage. Muster aus Admin::UserFormHelper#server_region.
+  # nil, wenn kein Kontext gesetzt ist — dann muss der Organizer im Formular gewaehlt werden.
+  def server_region_for_new
+    ctx = (Carambus.config.context.to_s if Carambus.config.respond_to?(:context))
+    return nil if ctx.blank?
+
+    Region.find_by("UPPER(shortname) = ?", ctx.upcase)
+  rescue
+    nil
+  end
+
+  # Setzt @region, @to_season und @from_season fuer die Saison-Kopie.
+  # false + redirect, wenn eine der drei nicht bestimmbar ist.
+  def prepare_season_copy
+    @region = server_region_for_new
+    if @region.nil?
+      redirect_to tournaments_path,
+        alert: t("tournaments.copy_season.no_region",
+          default: "Diese Instanz hat keine Region (scenario.context). Saison-Kopie nicht möglich.")
+      return false
+    end
+
+    # Zielsaison ist die AKTUELLE Saison, nicht die des Scope-Bands: dessen Default ist bis zum
+    # 15.08. bewusst die VORsaison (ScopeResolver#transition_previous_season). Der Sportwart will im
+    # Sommer aber genau die kommende Saison fuellen — der Scope-Default waere hier ein Fallstrick.
+    @to_season = Season.find_by(id: params[:to_season_id]) || Season.current_season
+    @from_season = @to_season&.previous
+
+    if @to_season.nil? || @from_season.nil?
+      redirect_to tournaments_path,
+        alert: t("tournaments.copy_season.no_season",
+          default: "Ziel- oder Vorsaison nicht bestimmbar.")
+      return false
+    end
+
+    true
+  end
+
+  def season_copier
+    Tournament::SeasonCopier.new(region: @region, from_season: @from_season, to_season: @to_season)
+  end
+
+  # Branch = Wurzel des Disziplin-Baums (Karambol/Pool/Snooker/Kegel).
+  def branch_name(tournament)
+    tournament.discipline&.root&.name
+  end
+  helper_method :branch_name
+
+  # Felder, ohne die ein freigegebenes Turnier auf der Authority unbrauchbar waere. Als Liste
+  # zurueckgegeben, damit die Freigabe dem Sportwart genau sagt, was noch fehlt.
+  # `tournament_plan_id` ist bewusst NICHT dabei — der Plan wird erst im Turniermanagement anhand
+  # der Spielerzahl gesetzt.
+  def draft_release_blockers(tournament)
+    blockers = []
+    blockers << t("tournament.shortname", default: "Kurzname") if tournament.shortname.blank?
+    blockers << t("tournament.discipline", default: "Disziplin") if tournament.discipline_id.blank?
+    # copy_season verschiebt das Datum; ein Platzhalter (Epoch) bedeutet "kein echtes Datum".
+    blockers << t("tournament.date", default: "Datum") if tournament.date.blank? || tournament.date.year <= 1970
+    blockers
   end
 
   # Stellt sicher, dass Turniermanagement nur auf lokalen Servern möglich ist
   # API Server dient nur zum Lesen und als Datenquelle
   # Auch auf lokalen Servern: Wenn ClubCloud-Ergebnisse vorliegen, ist das Turnier schreibgeschützt
+  # Plan 32-07: Pundit-Gate für die Teilnehmerlisten-Schreibaktionen. Ablehnung → Flash + Redirect auf das
+  # Turnier (before_action-Redirect halted die Kette). Muster wie der assign_leiter?-Guard in #update.
+  def authorize_manage_teilnehmerliste
+    authorize @tournament, :manage_teilnehmerliste?
+  rescue Pundit::NotAuthorizedError
+    flash[:alert] = I18n.t("tournaments.errors.manage_teilnehmerliste_denied")
+    redirect_to(@tournament)
+  end
+
   def ensure_local_server
     unless local_server?
       flash[:alert] =

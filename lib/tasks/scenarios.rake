@@ -525,6 +525,29 @@ namespace :scenario do
     end
   end
 
+  # Region-Shortname fuer den Datenfilter (cleanup:remove_non_region_records).
+  #
+  # ⚠️ HIER STAND EIN HARTKODIERTES `|| 'NBV'`. Da KEINE config.yml das Feld `region_shortname`
+  # fuehrt, griff dieser Default IMMER — jedes Nicht-NBV-Szenario bekam damit eine mit NBV
+  # gefilterte Datenbank. Auf carambus_tbv (2026-07-23) waren es 1205 NBV-Turniere und 0 TBV.
+  # Der Fehler ist fail-silent und faellt auf NBV-Szenarien naturgemaess nie auf.
+  #
+  # Quellen in dieser Reihenfolge: explizites Feld -> `context` -> Region aus `region_id`.
+  # Kein Fallback auf eine Verlegenheitsregion: lieber abbrechen als still fremde Daten laden.
+  # Rueckgabe GROSSGESCHRIEBEN, weil cleanup.rake per Shortname sucht.
+  def resolve_region_shortname(scenario_data)
+    explicit = scenario_data['region_shortname'].presence
+    return explicit.to_s.upcase if explicit
+
+    context = scenario_data['context'].presence
+    return context.to_s.upcase if context
+
+    region_id = scenario_data['region_id']
+    return nil if region_id.blank?
+
+    Region.find_by(id: region_id)&.shortname&.upcase
+  end
+
   def list_scenarios
     scenarios = Dir.glob(File.join(scenarios_path, '*')).select { |f| File.directory?(f) }
     scenarios.map { |s| File.basename(s) }
@@ -731,6 +754,18 @@ namespace :scenario do
         added << "clubcloud.#{ck}"
       end
     end
+    # Plan 29-05: region_server (Service-Account je Region, gelesen von
+    # Carambus.region_server_credentials — Key kleingeschrieben wie clubcloud).
+    # Anders als clubcloud eine LISTE: die Authority holt Meldelisten von MEHREREN Region Servern.
+    region_server_contexts(decl).each do |ctx|
+      rk = ctx.to_s.downcase
+      rs = per.dig('region_server', ctx) || per.dig('region_server', rk) ||
+        shared.dig('region_server', ctx) || shared.dig('region_server', rk)
+      next unless rs
+
+      merged['region_server'] = (merged['region_server'] || {}).merge(rk => deep_stringify(rs))
+      added << "region_server.#{rk}"
+    end
     # google_service immer (per_scenario-Override, sonst shared)
     gsvc = per['google_service'] || shared['google_service']
     if gsvc
@@ -780,9 +815,25 @@ namespace :scenario do
         shared.dig('clubcloud', cc_ctx) || shared.dig('clubcloud', ck)
       out['clubcloud'] = (out['clubcloud'] || {}).merge(ck => deep_stringify(cc)) if cc
     end
+    # Plan 29-05: region_server MUSS auch hier stehen — diese Methode ist die Basis fuer
+    # scenario:push_credentials. Nur generate_scenario_credentials zu erweitern hiesse: der
+    # Schluessel liegt lokal vor und erreicht den Server nie.
+    region_server_contexts(decl).each do |ctx|
+      rk = ctx.to_s.downcase
+      rs = per.dig('region_server', ctx) || per.dig('region_server', rk) ||
+        shared.dig('region_server', ctx) || shared.dig('region_server', rk)
+      out['region_server'] = (out['region_server'] || {}).merge(rk => deep_stringify(rs)) if rs
+    end
     gsvc = per['google_service'] || shared['google_service']
     out['google_service'] = deep_stringify(gsvc) if gsvc
     out
+  end
+
+  # Deklaration aus scenario.credentials: `region_server_contexts: [NBV, BVNR]`.
+  # Einzelwert wird toleriert (Array()), damit ein `region_server_contexts: NBV` nicht still
+  # ins Leere laeuft.
+  def region_server_contexts(decl)
+    Array(decl['region_server_contexts']).compact
   end
 
   # Server-seitiger Ruby-Runner (wird auf den Server kopiert + via `rails runner <file> <mode>`
@@ -2663,10 +2714,18 @@ ENV
           puts "✅ Development database created successfully: #{database_name}"
           true
         else
-          puts "   🔄 Applying region filtering (region_id: #{region_id})..."
+          region_shortname = resolve_region_shortname(scenario_data)
+          if region_shortname.blank?
+            puts "   ❌ Region-Shortname nicht bestimmbar (weder region_shortname, context noch region_id)."
+            puts "      Abbruch statt Filterung mit einer Verlegenheitsregion — sonst entstuende"
+            puts "      eine Datenbank mit den Daten einer FREMDEN Region."
+            return false
+          end
+
+          puts "   🔄 Applying region filtering (#{region_shortname}, region_id: #{region_id})..."
 
           # Set environment variable for region filtering
-          ENV['REGION_SHORTNAME'] = scenario_data['region_shortname'] || 'NBV'
+          ENV['REGION_SHORTNAME'] = region_shortname
 
           # Change to the Rails root directory and run the cleanup task
           if Dir.chdir(rails_root) do
@@ -3261,13 +3320,32 @@ ENV
     puts "   Config: #{File.join(scenario_path, 'config.yml')}"
   end
 
+  # Passwort der GETEILTEN PostgreSQL-Rolle (www_data).
+  #
+  # ⚠️ Seit der Secret-Bereinigung steht es in carambus_data/secrets.yml unter
+  # `shared.database_password`; die `database_password`-Felder der config.yml sind LEER.
+  # Wer sie direkt liest, bekommt "" — und ein damit gebautes
+  # `ALTER ROLE www_data WITH PASSWORD ''` sperrt JEDE Instanz aus, weil die Rolle geteilt ist.
+  # Genau das ist am 2026-07-22 beim Aufsetzen von carambus_tbv passiert.
+  #
+  # Reihenfolge: secrets.yml zuerst, config.yml nur als Fallback (falls jemand sie doch pflegt).
+  # Ein leeres Ergebnis ist zulaessig — die Aufrufer duerfen damit nur NICHTS anfassen.
+  def resolve_shared_database_password(production_config)
+    pool_file = File.join(carambus_data_path, 'secrets.yml')
+    if File.exist?(pool_file)
+      from_pool = ((YAML.load_file(pool_file) || {})['shared'] || {})['database_password'].to_s
+      return from_pool unless from_pool.empty?
+    end
+    production_config['database_password'].to_s
+  end
+
   def upload_and_load_database_dump(scenario_name, production_config)
     puts "💾 Uploading and loading database dump..."
 
     # Get basename from production config or derive from scenario name
     basename = production_config['basename'] || scenario_name
     db_username = production_config['database_username']
-    db_password = production_config['database_password']
+    db_password = resolve_shared_database_password(production_config)
     ssh_host = production_config['ssh_host']
     ssh_port = production_config['ssh_port']
     production_database = production_config['database_name']
@@ -3328,17 +3406,27 @@ ENV
           echo "🗑️  Dropping existing database..."
           sudo -u postgres psql -c "DROP DATABASE IF EXISTS #{production_database};" || echo "Database did not exist"
 
-          # Ensure database role exists (with password and privileges)
+          # Rolle sicherstellen — NUR anlegen, wenn sie fehlt.
+          #
+          # ⚠️ #{db_username} ist eine von ALLEN Instanzen geteilte Rolle. Ein Szenario-Reset darf
+          # weder ihr Passwort noch ihre Rechte aendern: die frueher hier stehende Zeile
+          #   ALTER ROLE #{db_username} WITH PASSWORD '<database_password aus config.yml>';
+          # lief bedingungslos und setzte das Passwort auf "" (das config.yml-Feld ist seit der
+          # Secret-Bereinigung leer) — am 2026-07-22 waren damit api, nbv, train und carambus
+          # gleichzeitig ausgesperrt.
           echo "👤 Ensuring database role exists..."
           if sudo -u postgres psql -tAc "SELECT 1 FROM pg_roles WHERE rolname='#{db_username}'" | grep -q 1; then
-            echo "   Role #{db_username} exists"
+            echo "   Role #{db_username} exists - Passwort und Rechte bleiben UNVERAENDERT (geteilte Rolle)"
           else
+            if [ -z "#{db_password}" ]; then
+              echo "❌ Rolle #{db_username} fehlt, aber kein Passwort verfuegbar."
+              echo "   Erwartet in carambus_data/secrets.yml unter shared.database_password."
+              exit 1
+            fi
             echo "   Creating role #{db_username}"
-            sudo -u postgres psql -c "CREATE ROLE #{db_username} WITH LOGIN PASSWORD '#{db_password}';"
+            sudo -u postgres psql -c "CREATE ROLE #{db_username} WITH LOGIN PASSWORD '#{db_password.gsub("'", "''")}';"
+            sudo -u postgres psql -c "ALTER ROLE #{db_username} SUPERUSER CREATEROLE CREATEDB REPLICATION;"
           fi
-          # Always enforce password and required privileges
-          sudo -u postgres psql -c "ALTER ROLE #{db_username} WITH PASSWORD '#{db_password}';"
-          sudo -u postgres psql -c "ALTER ROLE #{db_username} SUPERUSER CREATEROLE CREATEDB REPLICATION;"
 
           echo "🆕 Creating new database..."
           sudo -u postgres psql -c "CREATE DATABASE #{production_database} OWNER #{db_username};"
@@ -3819,10 +3907,17 @@ ENV
       puts "   ✅ Created temporary database: #{temp_db_name} (using template)"
 
       # Apply region filtering using the cleanup task
-      puts "   🔄 Applying region filtering (region_id: #{region_id})..."
+      region_shortname = resolve_region_shortname(scenario_data)
+      if region_shortname.blank?
+        puts "   ❌ Region-Shortname nicht bestimmbar (weder region_shortname, context noch region_id)."
+        puts "      Abbruch statt Filterung mit einer Verlegenheitsregion."
+        return false
+      end
+
+      puts "   🔄 Applying region filtering (#{region_shortname}, region_id: #{region_id})..."
 
       # Set environment variable for region filtering
-      ENV['REGION_SHORTNAME'] = scenario_data['region_shortname'] || 'NBV'
+      ENV['REGION_SHORTNAME'] = region_shortname
 
       # Create a temporary Rails environment to run the cleanup task
       temp_rails_root = File.join(scenarios_path, scenario_name)
@@ -4742,7 +4837,21 @@ ENV
     temp_database = "#{scenario_name}_migration_temp"
     backup_file = File.join(backup_dir, "local_data_#{timestamp}.sql")
 
+    # Existiert die Produktionsdatenbank ueberhaupt? Bei einem NEU angelegten Szenario nicht —
+    # dann gibt es keine Altdaten zu migrieren und dieser ganze Schritt ist gegenstandslos.
+    # Ohne diese Pruefung lief das Script mit einem LEEREN Dump weiter und meldete
+    # "Old schema detected", weil in einer leeren DB natuerlich keine region_id-Spalte steht.
     puts "\n   📥 Step 1: Downloading production database..."
+    db_exists = system(
+      "ssh -p #{ssh_port} www-data@#{ssh_host} 'sudo -u postgres psql -lqt' 2>/dev/null " \
+      "| cut -d'|' -f1 | grep -qw #{production_database}"
+    )
+    unless db_exists
+      puts "   ℹ️  Datenbank #{production_database} existiert auf #{ssh_host} nicht."
+      puts "      Neues Szenario ⇒ keine Altdaten, keine Migration noetig. Schritt uebersprungen."
+      return false
+    end
+
     temp_dump = "/tmp/#{production_database}_#{timestamp}.sql.gz"
     download_cmd = "ssh -p #{ssh_port} www-data@#{ssh_host} 'sudo -u postgres pg_dump #{production_database} | gzip' > #{temp_dump}"
 
@@ -4750,7 +4859,19 @@ ENV
       puts "   ❌ Failed to download production database"
       return false
     end
-    puts "   ✅ Downloaded: #{File.size(temp_dump) / 1024 / 1024} MB"
+
+    # ⚠️ Der Exit-Code oben traegt NICHT: in der Remote-Pipeline `pg_dump | gzip` meldet nur gzip
+    # seinen Status, ein gescheitertes pg_dump bleibt unsichtbar (gzip eines leeren Streams
+    # gelingt und ergibt ~20 Byte). Deshalb hier eine Plausibilitaetspruefung der Groesse.
+    dump_size = File.size(temp_dump)
+    if dump_size < 1024
+      puts "   ❌ Dump ist leer oder unvollstaendig (#{dump_size} Byte) — pg_dump ist vermutlich"
+      puts "      fehlgeschlagen. Fehlermeldung siehe oben."
+      File.delete(temp_dump)
+      return false
+    end
+    human_size = (dump_size < 1_048_576) ? "#{dump_size / 1024} KB" : "#{dump_size / 1024 / 1024} MB"
+    puts "   ✅ Downloaded: #{human_size}"
 
     puts "\n   🗄️  Step 2: Creating temporary local database..."
     # Drop temp database if it exists

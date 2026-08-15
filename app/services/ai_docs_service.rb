@@ -276,6 +276,7 @@ class AiDocsService < ApplicationService
         {role: "user", content: @query}
       ]
     )
+    AiUsageEvent.record_response(model: "claude-haiku-4-5-20251001", response: response, feature: "docs")
 
     answer = response.content.first&.text
 

@@ -1,0 +1,103 @@
+---
+http_interactions:
+- request:
+    method: get
+    uri: https://files.umb-carom.org/public/TournametDetails.aspx?ID=1
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+      User-Agent:
+      - Carambus International Bot/1.0
+      Host:
+      - files.umb-carom.org
+  response:
+    status:
+      code: 500
+      message: Internal Server Error
+    headers:
+      Cache-Control:
+      - private
+      Content-Type:
+      - text/html; charset=utf-8
+      Server:
+      - Microsoft-IIS/10.0
+      X-Aspnet-Version:
+      - 4.0.30319
+      X-Powered-By:
+      - ASP.NET
+      Date:
+      - Sun, 09 Aug 2026 01:20:10 GMT
+      Content-Length:
+      - '5119'
+    body:
+      encoding: UTF-8
+      string: "<!DOCTYPE html>\r\n<html>\r\n    <head>\r\n        <title>Object reference
+        not set to an instance of an object.</title>\r\n        <meta name=\"viewport\"
+        content=\"width=device-width\" />\r\n        <style>\r\n         body {font-family:\"Verdana\";font-weight:normal;font-size:
+        .7em;color:black;} \r\n         p {font-family:\"Verdana\";font-weight:normal;color:black;margin-top:
+        -5px}\r\n         b {font-family:\"Verdana\";font-weight:bold;color:black;margin-top:
+        -5px}\r\n         H1 { font-family:\"Verdana\";font-weight:normal;font-size:18pt;color:red
+        }\r\n         H2 { font-family:\"Verdana\";font-weight:normal;font-size:14pt;color:maroon
+        }\r\n         pre {font-family:\"Consolas\",\"Lucida Console\",Monospace;font-size:11pt;margin:0;padding:0.5em;line-height:14pt}\r\n
+        \        .marker {font-weight: bold; color: black;text-decoration: none;}\r\n
+        \        .version {color: gray;}\r\n         .error {margin-bottom: 10px;}\r\n
+        \        .expandable { text-decoration:underline; font-weight:bold; color:navy;
+        cursor:pointer; }\r\n         @media screen and (max-width: 639px) {\r\n          pre
+        { width: 440px; overflow: auto; white-space: pre-wrap; word-wrap: break-word;
+        }\r\n         }\r\n         @media screen and (max-width: 479px) {\r\n          pre
+        { width: 280px; }\r\n         }\r\n        </style>\r\n    </head>\r\n\r\n
+        \   <body bgcolor=\"white\">\r\n\r\n            <span><H1>Server Error in
+        '/' Application.<hr width=100% size=1 color=silver></H1>\r\n\r\n            <h2>
+        <i>Object reference not set to an instance of an object.</i> </h2></span>\r\n\r\n
+        \           <font face=\"Arial, Helvetica, Geneva, SunSans-Regular, sans-serif
+        \">\r\n\r\n            <b> Description: </b>An unhandled exception occurred
+        during the execution of the current web request. Please review the stack trace
+        for more information about the error and where it originated in the code.\r\n\r\n
+        \           <br><br>\r\n\r\n            <b> Exception Details: </b>System.NullReferenceException:
+        Object reference not set to an instance of an object.<br><br>\r\n\r\n            <b>Source
+        Error:</b> <br><br>\r\n\r\n            <table width=100% bgcolor=\"#ffffcc\">\r\n
+        \              <tr>\r\n                  <td>\r\n                      <code>\r\n\r\nAn
+        unhandled exception was generated during the execution of the current web
+        request. Information regarding the origin and location of the exception can
+        be identified using the exception stack trace below.                      </code>\r\n\r\n
+        \                 </td>\r\n               </tr>\r\n            </table>\r\n\r\n
+        \           <br>\r\n\r\n            <b>Stack Trace:</b> <br><br>\r\n\r\n            <table
+        width=100% bgcolor=\"#ffffcc\">\r\n               <tr>\r\n                  <td>\r\n
+        \                     <code><pre>\r\n\r\n[NullReferenceException: Object reference
+        not set to an instance of an object.]\r\n   UMB.DAL.TournamentHelper.ConvertToEntity(UMB_Tour
+        p) +84\r\n   UMB.Public.TournametDetails.Page_Load(Object sender, EventArgs
+        e) +340\r\n   System.Web.UI.Control.OnLoad(EventArgs e) +107\r\n   System.Web.UI.Control.LoadRecursive()
+        +89\r\n   System.Web.UI.Page.ProcessRequestMain(Boolean includeStagesBeforeAsyncPoint,
+        Boolean includeStagesAfterAsyncPoint) +1532\r\n</pre>                      </code>\r\n\r\n
+        \                 </td>\r\n               </tr>\r\n            </table>\r\n\r\n
+        \           <br>\r\n\r\n            <hr width=100% size=1 color=silver>\r\n\r\n
+        \           <b>Version Information:</b>&nbsp;Microsoft .NET Framework Version:4.0.30319;
+        ASP.NET Version:4.8.4770.0\r\n\r\n            </font>\r\n\r\n    </body>\r\n</html>\r\n<!--
+        \r\n[NullReferenceException]: Object reference not set to an instance of an
+        object.\r\n   at UMB.DAL.TournamentHelper.ConvertToEntity(UMB_Tour p)\r\n
+        \  at UMB.Public.TournametDetails.Page_Load(Object sender, EventArgs e)\r\n
+        \  at System.Web.UI.Control.OnLoad(EventArgs e)\r\n   at System.Web.UI.Control.LoadRecursive()\r\n
+        \  at System.Web.UI.Page.ProcessRequestMain(Boolean includeStagesBeforeAsyncPoint,
+        Boolean includeStagesAfterAsyncPoint)\r\n[HttpUnhandledException]: Exception
+        of type &#39;System.Web.HttpUnhandledException&#39; was thrown.\r\n   at System.Web.UI.Page.HandleError(Exception
+        e)\r\n   at System.Web.UI.Page.ProcessRequestMain(Boolean includeStagesBeforeAsyncPoint,
+        Boolean includeStagesAfterAsyncPoint)\r\n   at System.Web.UI.Page.ProcessRequest(Boolean
+        includeStagesBeforeAsyncPoint, Boolean includeStagesAfterAsyncPoint)\r\n   at
+        System.Web.UI.Page.ProcessRequest()\r\n   at System.Web.UI.Page.ProcessRequest(HttpContext
+        context)\r\n   at ASP.public_tournametdetails_aspx.ProcessRequest(HttpContext
+        context) in c:\\Windows\\Microsoft.NET\\Framework64\\v4.0.30319\\Temporary
+        ASP.NET Files\\root\\ee8ac487\\2ba74ff1\\App_Web_tm2xyk1u.4.cs:line 0\r\n
+        \  at System.Web.HttpApplication.CallHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()\r\n
+        \  at System.Web.HttpApplication.ExecuteStepImpl(IExecutionStep step)\r\n
+        \  at System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean&
+        completedSynchronously)\r\n--><!-- \r\nThis error page might contain sensitive
+        information because ASP.NET is configured to show verbose error messages using
+        &lt;customErrors mode=\"Off\"/&gt;. Consider using &lt;customErrors mode=\"On\"/&gt;
+        or &lt;customErrors mode=\"RemoteOnly\"/&gt; in production environments.-->"
+  recorded_at: Sun, 09 Aug 2026 01:20:10 GMT
+recorded_with: VCR 6.4.0

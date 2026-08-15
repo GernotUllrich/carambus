@@ -51,9 +51,7 @@
       <!-- Setzliste -->
       <div class="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
         <h3 class="text-lg font-semibold text-gray-800 mb-2"><%= t('tournaments.show.seeding_heading') %></h3>
-        <% seeding_scope = @tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").count > 0 ? 
-                          "seedings.id >= #{Seeding::MIN_ID}" : 
-                          "seedings.id < #{Seeding::MIN_ID}" %>
+        <%# Plan 32-03: effective_seedings (lokale bevorzugen, sonst ClubCloud) statt dupliziertem has_local-Idiom %>
         
         <div class="max-h-64 overflow-y-auto">
           <table class="w-full text-sm">
@@ -67,7 +65,7 @@
               </tr>
             </thead>
             <tbody>
-              <% @tournament.seedings.where(seeding_scope).where.not(state: "no_show").order(:position).limit(20).each do |seeding| %>
+              <% @tournament.effective_seedings.where.not(state: "no_show").order(:position).limit(20).each do |seeding| %>
                 <tr class="border-b border-gray-200 dark:border-gray-700">
                   <td class="px-2 py-1"><%= seeding.position %></td>
                   <td class="px-2 py-1"><%= seeding.player.fullname %></td>
@@ -78,7 +76,7 @@
               <% end %>
             </tbody>
           </table>
-          <% total_count = @tournament.seedings.where(seeding_scope).where.not(state: "no_show").count %>
+          <% total_count = @tournament.effective_seedings.where.not(state: "no_show").count %>
           <% if total_count > 20 %>
             <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">
               <%= t('tournaments.show.more_players', count: total_count - 20) %>

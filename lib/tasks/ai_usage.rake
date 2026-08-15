@@ -27,19 +27,22 @@ namespace :ai_usage do
       next
     end
 
-    puts format("%-10s %-10s %-8s %7s %12s %12s %14s",
-      "Scenario", bucket.to_s.capitalize, "Modell", "Turns", "In-Tok", "Out-Tok", "€ (Schätzung)")
-    puts "-" * 78
+    puts format("%-10s %-11s %-10s %-8s %7s %12s %12s %14s",
+      "Scenario", "Feature", bucket.to_s.capitalize, "Modell", "Turns", "In-Tok", "Out-Tok", "€ (Schätzung)")
+    puts "-" * 90
     by_scenario = Hash.new(0.0)
+    by_feature = Hash.new(0.0)
     by_scenario_model = Hash.new(0.0)
     rows.each do |r|
       m = short_model.call(r[:model])
-      puts format("%-10s %-10s %-8s %7d %12d %12d %14.4f",
-        r[:scenario], r[:bucket].to_date.iso8601, m, r[:events], r[:input], r[:output], r[:cost_eur])
+      puts format("%-10s %-11s %-10s %-8s %7d %12d %12d %14.4f",
+        r[:scenario], r[:feature], r[:bucket].to_date.iso8601, m, r[:events], r[:input], r[:output], r[:cost_eur])
       by_scenario[r[:scenario]] += r[:cost_eur]
+      by_feature[r[:feature]] += r[:cost_eur]
       by_scenario_model[[r[:scenario], m]] += r[:cost_eur]
     end
-    puts "-" * 78
+    puts "-" * 90
+    by_feature.sort.each { |feature, cost| puts format("Summe Feature %-11s %14.4f €", feature, cost) }
     by_scenario_model.sort.each { |(sc, m), cost| puts format("Summe %-10s / %-8s %14.4f €", sc, m, cost) }
     by_scenario.sort.each { |sc, cost| puts format("Summe %-10s (gesamt) %12.4f €", sc, cost) }
     puts "\nHinweis: € ist eine Schätzung aus AiUsageEvent::MODEL_RATES_EUR_PER_MTOK (pflegen)."

@@ -205,8 +205,10 @@ class McpServer::Tools::BaseToolTest < ActiveSupport::TestCase
       assert_equal ["Gernot", "Ullrich"], McpServer::Tools::BaseTool.tokenize_search_query("Gernot Ullrich")
     end
 
-    test "tokenize_search_query: 'Dr. Gernot Ullrich' → ['Dr.', 'Gernot', 'Ullrich']" do
-      assert_equal ["Dr.", "Gernot", "Ullrich"], McpServer::Tools::BaseTool.tokenize_search_query("Dr. Gernot Ullrich")
+    # Fuehrende/abschliessende Satzzeichen werden pro Token gestrippt (damit das
+    # Meldeliste-Format "Nachname, Vorname" matcht) — "Dr." wird also zu "Dr".
+    test "tokenize_search_query: 'Dr. Gernot Ullrich' → ['Dr', 'Gernot', 'Ullrich']" do
+      assert_equal ["Dr", "Gernot", "Ullrich"], McpServer::Tools::BaseTool.tokenize_search_query("Dr. Gernot Ullrich")
     end
 
     test "tokenize_search_query: tokens < 2 chars werden gefiltert" do

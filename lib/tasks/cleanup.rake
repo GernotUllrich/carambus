@@ -2,13 +2,32 @@
 namespace :cleanup do
   desc "Remove records not associated with the local server's region"
   task remove_non_region_records: :environment do
-    region = Region.find_by_shortname(ENV["REGION_SHORTNAME"] || Carambus.config.context)
+    # UPPER-Vergleich: `context` ist in den Szenario-Configs uneinheitlich geschrieben
+    # ("tbv" klein, "TBV" gross) — ein exaktes find_by_shortname traf die kleingeschriebenen nie
+    # und lief in das FATAL unten. Gleiches Muster wie ScopeResolver#server_context_region_id.
+    shortname = (ENV["REGION_SHORTNAME"].presence || Carambus.config.context).to_s
+    region = Region.find_by("UPPER(shortname) = ?", shortname.upcase)
     if region.blank?
       puts "FATAL - no REGION_SHORTNAME env set and no Carambus.config.context"
       exit
     end
     region_id = region.id
     puts "\nDeleting records in dependency order..."
+
+    # Die (globale) Settings-Zeile traegt ein "aktuelles Turnier" (settings.tournament_id, FK
+    # fk_rails_a139899776). Sie ueberlebt die Regionsfilterung, ihr Zeiger kann aber auf ein
+    # Turnier AUSSERHALB der Region deuten (aus der Master-DB) — dann blockiert die FK dessen
+    # Loeschung. Nach einem Region-Rebuild ist dieser Zeiger ohnehin bedeutungslos: loslassen,
+    # wenn das Ziel nicht zur Region gehoert. (Unter dem alten NBV-Default fiel das nie auf, weil
+    # das referenzierte Turnier zufaellig NBV war und erhalten blieb.)
+    keep_clause = "region_id = #{region_id} OR region_id IS NULL OR global_context = TRUE"
+    orphaned_refs = Setting.where.not(tournament_id: nil)
+      .where("tournament_id NOT IN (SELECT id FROM tournaments WHERE #{keep_clause})")
+    orphan_count = orphaned_refs.count
+    if orphan_count.positive?
+      orphaned_refs.update_all(tournament_id: nil)
+      puts "  Settings: #{orphan_count} tournament_id-Referenz auf regionsfremde Turniere geloest"
+    end
 
     # Define deletion order (most dependent first)
     deletion_order = [

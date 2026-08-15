@@ -66,6 +66,25 @@ Rails.application.routes.draw do
       end
     end
 
+    # Plan 28-01: Meldeliste einer Region/Saison als JSON — die Authority holt sie sich hier ab
+    # (Pull, analog CC-Scrape) und uebersetzt die lokalen IDs in globale.
+    resources :entry_lists, only: [:index]
+
+    # Plan 29-03: Der Location Server meldet hier den Abschluss eines Turniers an den Region Server.
+    # Von dort traegt ihn der Ingest (28-01) auf die Authority — die bleibt schreibgeschuetzt.
+    resources :tournament_results, only: [:create]
+
+    # Plan 32-08: Der Location Server meldet hier EINZELNE Spielergebnisse waehrend des Turniers.
+    # Abgrenzung zu tournament_results: dort die Gesamtrangliste beim Abschluss, hier je Spiel.
+    resources :game_results, only: [:create]
+
+    # Plan 32-10 / Betreiber-Entscheidung D9: LESEN ist oeffentlich, SCHREIBEN authentifiziert —
+    # wie beim CC, wo der Admin-Account fuers Scrapen aufgegeben wurde. Der Scope (region+season)
+    # ist der Schutz, nicht ein Token. Eigener Namespace, damit die Trennung sichtbar bleibt.
+    namespace :public do
+      resources :game_results, only: [:index]
+    end
+
     resources :locations, only: [] do
       collection do
         get :autocomplete
@@ -361,8 +380,39 @@ Rails.application.routes.draw do
       post :use_clubcloud_as_participants
       post :update_seeding_position
       post :add_player_by_dbu
+      # Plan 26-01: Spieler eines Vereins (JSON) fuer die Club->Spieler-Kaskade der Meldeliste.
+      get :players_by_club
       post :recalculate_groups
       post :test_tournament_status_update
+      # Entwurf aus der Saison-Kopie freigeben (data["draft"] entfernen) — danach holt ihn der
+      # Meldelisten-Ingest der Authority. Loeschen laeuft ueber das Standard-DELETE (destroy).
+      post :release_draft
+      # CC-loser On-demand-Reload: der managende Local Server holt die frische Meldeliste von der
+      # Authority (analog reload_from_cc, nur ohne ClubCloud).
+      post :reload_entry_list
+    end
+
+    # Plan 35-01: CC-loser MELDELISTEN-Fluss auf dem Region Server (LSW-Verwaltungsplatz).
+    # Eigener Controller statt eines Zweigs in define_participants — der ist zur Haelfte
+    # Modus-Findung und gehoert damit auf den Location Server, nicht hierher.
+    resource :entry_list, only: %i[show create], controller: "tournaments/entry_lists" do
+      get :players_by_club, on: :collection
+      delete ":id", action: :destroy, as: :seeding, on: :collection
+    end
+
+    # Plan 35-03: CC-lose ERGEBNISLISTE (manuelle Erfassung aus Spielberichten). Geschwister-
+    # ressource zur Meldeliste; entkoppelt vom TableMonitor, der am Spielort laeuft.
+    resource :game_results, only: %i[show create], controller: "tournaments/game_results" do
+      delete ":id", action: :destroy, as: :game, on: :collection
+    end
+
+    # Plan 36-01: CC-lose RANGLISTE — die Abschlusswerte je gemeldetem Spieler. Dritte
+    # Geschwisterressource; erfassend, nicht berechnend (Rang und Punkte sind Handeingabe).
+    resource :ranking, only: %i[show create], controller: "tournaments/rankings"
+    collection do
+      # Saison-Kopie mit Auswahl (Sportwart-Weg zum bestehenden Rake-Task tournaments:copy_season).
+      get :copy_season
+      post :copy_season_execute
     end
   end
   resources :users do
@@ -452,6 +502,7 @@ Rails.application.routes.draw do
   match "/500", to: "errors#internal_server_error", via: :all
   get "/repo_version", to: "static#repo_version"
   post "/update_version", to: "static#update_version"
+  post "/sync_data", to: "static#sync_data"
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
   # Can be used by load balancers and uptime monitors to verify that the app is live.

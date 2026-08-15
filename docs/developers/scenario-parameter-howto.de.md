@@ -110,8 +110,50 @@ Einheitlich **layered**; Einzelwert-Keys werden über tolerante Helfer gelesen
 | `google.translate_api_key` | `credentials.dig(:google, :translate_api_key)` |
 | `kozoom.{email,password}` | `credentials.dig(:kozoom, …)` |
 | `clubcloud.<ctx>` | `Setting.get_cc_credentials` (⚠️ **kleingeschrieben**: `context.downcase` → `clubcloud.nbv`) |
+| `region_server.<ctx>` | `Carambus.region_server_credentials("TBV")` → `{username:, password:}` oder `nil` (⚠️ **kleingeschrieben** wie clubcloud; Fallback: `carambus.yml` `region_server_user`/`_password`) |
 | `google_service` | `credentials.dig(:google_service, …)` |
 | `secret_key_base`, `active_record_encryption.*`, `devise_jwt_secret_key` | Rails-intern — **niemals rotieren** |
+
+#### Welches Muster wann?
+
+**(a) `credentials.dig(:gruppe, :key)`** — für Gruppen, die nur an einer Stelle gelesen werden.
+nil-tolerant: fehlt die Gruppe, kommt `nil` statt einer Exception.
+
+**(b) Toleranter Helfer `Carambus.<name>`** — wenn ein Key historisch **flach** hiess und heute
+**nested** liegt. Der Helfer liest nested-first und faellt auf die alte Schreibweise zurueck:
+
+```ruby
+def self.anthropic_api_key
+  creds = Rails.application.credentials
+  creds.dig(:anthropic, :api_key).presence || creds.dig(:anthropic_key).presence
+end
+```
+
+Er ist die **einzige** Quelle fuer alle Aufrufer — so steht die Doppelschreibweise an genau einer
+Stelle statt in jedem Service.
+
+**(c) Kontext-gewaehlte Gruppe** (`clubcloud.<ctx>`, `region_server.<ctx>`) — ein Service-Account
+**je Region**, der Kontext waehlt den Untereintrag:
+
+```ruby
+group = Rails.application.credentials.region_server
+entry = group.presence && group[shortname.to_s.downcase.to_sym]   # <- downcase
+```
+
+!!! warning "Der Credential-Key ist KLEINGESCHRIEBEN"
+    `region_server_credentials("TBV")` sucht `region_server.tbv`. Steht der Kontext in
+    `secrets.yml` gross, findet der Code ihn **nie** — und meldet nicht „falsch geschrieben",
+    sondern „keine Zugangsdaten". Derselbe Fallstrick wie bei `clubcloud.<ctx>`.
+
+**(d) Introspektion ueber `.config`** — wenn nicht ein Wert, sondern die vorhandenen **Schluessel**
+gebraucht werden (so ermittelt `doctor:chain`, welche Kontexte auf der Instanz angekommen sind):
+
+```ruby
+Rails.application.credentials.config[:region_server].keys   # => [:nbv, :tbv, :private_key]
+```
+
+Gibt den entschluesselten Baum als Hash zurueck. Fuer Diagnose gedacht, nicht zum Lesen einzelner
+Werte — und `private_key` ist dabei **kein** Kontext, sondern ein Nachbar-Key.
 
 ### 4.2 Secret-Pool `carambus_data/secrets.yml` (gitignored)
 ```yaml

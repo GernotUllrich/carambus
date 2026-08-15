@@ -4,8 +4,11 @@ module Admin
   # Controller for managing incomplete records (with placeholder references)
   class IncompleteRecordsController < ApplicationController
     layout 'admin/incomplete_records'
-    # before_action :authenticate_admin! # Uncomment when auth is ready
-    
+    # Erbt NICHT von Admin::ApplicationController, bekommt dessen Gate also nicht.
+    # Zuvor vollstaendig ungeschuetzt (auskommentierter Platzhalter); #update,
+    # #auto_fix_all und #create_location_from_text schreiben.
+    before_action :system_admin_only
+
     def index
       @tournaments = InternationalTournament.with_placeholders
                                             .includes(:discipline, :season, :location, :organizer, :international_source)
@@ -38,7 +41,7 @@ module Admin
       
       # Load options for dropdowns
       @disciplines = Discipline.where.not(name: 'Unknown Discipline').order(:name)
-      @seasons = Season.where.not(name: 'Unknown Season').order(name: :desc)
+      @seasons = Season.with_valid_name.order(name: :desc)
       @locations = Location.where.not(name: 'Unknown Location').order(:name).limit(100)
       @organizers = Region.where.not(shortname: 'UNKNOWN').order(:name)
     end
@@ -70,7 +73,7 @@ module Admin
         
         flash.now[:error] = "Failed to update tournament: #{e.message}"
         @disciplines = Discipline.where.not(name: 'Unknown Discipline').order(:name)
-        @seasons = Season.where.not(name: 'Unknown Season').order(name: :desc)
+        @seasons = Season.with_valid_name.order(name: :desc)
         @locations = Location.where.not(name: 'Unknown Location').order(:name).limit(100)
         @organizers = Region.where.not(shortname: 'UNKNOWN').order(:name)
         render :show

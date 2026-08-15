@@ -30,6 +30,23 @@ class Seeding < ApplicationRecord
     state :seeded
     state :participated
     state :no_show
+
+    # Konzern B (Plan 32-04, Modell X): Meldung->Teilnahme ist EIN Seeding-Set, das seinen state
+    # transitioniert. Ziel-Zustaende idempotent (from-Listen enthalten das Ziel), da die Schritte
+    # (Setzliste/Finalisierung) wiederholbar sind. skip_validation_on_save bleibt: bestehende direkte
+    # state-Schreiber (public_cc_scraper, umb) duerfen nicht brechen.
+    event :seed do
+      transitions from: %i[registered seeded], to: :seeded
+    end
+    event :participate do
+      transitions from: %i[registered seeded participated], to: :participated
+    end
+    event :mark_no_show do
+      transitions to: :no_show
+    end
+    event :reset_seeding_state do
+      transitions to: :registered
+    end
   end
   belongs_to :player
   belongs_to :tournament, polymorphic: true, optional: true

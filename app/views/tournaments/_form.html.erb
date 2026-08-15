@@ -10,6 +10,18 @@
 <!--<br>-->
 <%= form_with model: @tournament do |form| %>
 
+  <%- if @tournament.errors.any? %>
+    <div class="form-group rounded border border-danger-500 bg-danger-50 p-4 text-danger-700 dark:bg-danger-900 dark:text-danger-200">
+      <p class="font-semibold"><%= t('tournaments.form.errors_headline', count: @tournament.errors.count,
+                                     default: "Das Turnier konnte nicht gespeichert werden:") %></p>
+      <ul class="list-disc ml-5">
+        <%- @tournament.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <%- end %>
+      </ul>
+    </div>
+  <%- end %>
+
   <%- loc_ids = (Array(Location.joins(:tables).where(organizer_type: @tournament.organizer_type, organizer_id: @tournament.organizer_id).andand.map(&:id)) +
     Array(@tournament.andand.region.andand.clubs.andand.map { |club| club.locations.andand.joins(:tables).to_a }.andand.flatten.andand.map(&:id))).uniq
   %>
@@ -24,6 +36,18 @@
     <%= form.label :title %>
     <%= form.text_field :title, class: "border rounded border-gray-500" %>
   </div>
+  <div class="form-group">
+    <%= form.label :shortname %>
+    <%= form.text_field :shortname, class: "border rounded border-gray-500" %>
+  </div>
+  <div class="form-group">
+    <%= form.label :date %>
+    <%= form.datetime_field :date, class: "border rounded border-gray-500" %>
+  </div>
+  <div class="form-group">
+    <%= form.label :end_date %>
+    <%= form.datetime_field :end_date, class: "border rounded border-gray-500" %>
+  </div>
   <%- if @tournament.new_record? && @tournament.organizer.present? %>
     <div class="form-group">
       <%= form.label :organizer %>
@@ -33,7 +57,7 @@
     </div>
     <div class="form-group">
       <%= form.label :season_id %>
-      <%= season.name %>
+      <%= @tournament.season.andand.name %>
       <%= form.hidden_field :season_id %>
     </div>
   <%- end %>
@@ -128,8 +152,8 @@
 
   <div class="field-unit">
     <%= form.label :source_url, t('tournaments.form.clubcloud_url') %>
-    <%= form.text_field :source_url, disabled: @tournament.id < Tournament::MIN_ID %>
-    <% if @tournament.id < Tournament::MIN_ID %>
+    <%= form.text_field :source_url, disabled: @tournament.id.present? && @tournament.id < Tournament::MIN_ID %>
+    <% if @tournament.id.present? && @tournament.id < Tournament::MIN_ID %>
       <small class="hint"><%= t('tournaments.form.imported_tournament_note') %></small>
     <% end %>
   </div>

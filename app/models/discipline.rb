@@ -233,10 +233,8 @@ class Discipline < ApplicationRecord
   # never matches a row → parameter_ranges returns {} → verification modal
   # never fires (Phase 39 UAT Gap-01).
   def effective_player_count(tournament)
-    local_count = tournament.seedings.where("seedings.id >= ?", Seeding::MIN_ID).count
-    return local_count if local_count > 0
-
-    tournament.seedings.where("seedings.id < ?", Seeding::MIN_ID).count
+    # Plan 32-03: effective_seedings (lokale bevorzugen, sonst ClubCloud) statt dupliziertem has_local-Idiom
+    tournament.effective_seedings.count
   end
 
   # D-08 Lenient-OR-Modus: Range = (canonical * 0.75).floor .. canonical.

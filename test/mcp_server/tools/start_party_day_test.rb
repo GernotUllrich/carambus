@@ -65,15 +65,17 @@ class McpServer::Tools::StartPartyDayTest < ActiveSupport::TestCase
     assert_equal 0, PartyMonitor.where(party_id: @party.id).count
   end
 
-  test "AC-1: Erzeugung schlägt fehl (kein game_plan) → reason open_failed + web_url" do
-    # Frische Party ohne PartyMonitor: create_party_monitor löst reset_party_monitor aus,
-    # das ohne league.game_plan crasht (bekannter Runtime-Befund) → Opener fängt es ab.
+  # Frische Party ohne PartyMonitor: create_party_monitor loest reset_party_monitor aus.
+  # Das crashte frueher ohne league.game_plan (Opener fing es als reason open_failed ab);
+  # inzwischen laeuft der Pfad durch und legt den Monitor regulaer an.
+  test "AC-1: Erzeugung ohne vorhandenen PartyMonitor legt ihn an + liefert Web-Link" do
     res = call(party_id: @party.id)
-    refute res.error?
+    refute res.error?, "got: #{res.content.first[:text]}"
     b = body(res)
-    assert_equal false, b["ok"]
-    assert_equal "open_failed", b["reason"]
+    assert_equal true, b["ok"]
+    assert_equal "seeding_mode", b["party_monitor_state"]
     assert b["web_url"].to_s.include?("party_monitor")
+    assert_equal 1, PartyMonitor.where(party_id: @party.id).count
   end
 
   test "non-local-server → reason not_local_server + web_url (kein Öffnen)" do

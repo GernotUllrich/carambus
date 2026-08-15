@@ -19,7 +19,10 @@ class BaseToolAuthorityTest < ActiveSupport::TestCase
       state: "tournament_mode_defined",
       date: 1.week.from_now
     )
-    @sportwart = User.create!(email: "authority_sportwart@test.de", password: "password123")
+    # D-38: Sportwart-Persona EXPLIZIT via persona_grants — die Listen unten
+    # verfeinern nur den Wirkbereich, sie begruenden ihn nicht mehr.
+    @sportwart = User.create!(email: "authority_sportwart@test.de", password: "password123",
+      persona_grants: ["sportwart"])
     @tl_user = User.create!(email: "authority_tl@test.de", password: "password123")
     @random_user = User.create!(email: "authority_random@test.de", password: "password123")
 
@@ -192,13 +195,10 @@ class BaseToolAuthorityTest < ActiveSupport::TestCase
     assert_nil result
   end
 
-  test "resolve_tournament: meldeliste_cc_id mit gültiger RegistrationListCc→TournamentCc→Tournament-Kette → Tournament" do
-    # save(validate: false) — Test-Setup umgeht RegistrationListCc-belongs_to-Validations
-    # (branch_cc/season/discipline/category_cc); für Authority-Resolver ist nur die
-    # cc_id+context-Such-Kette relevant.
-    rlc = RegistrationListCc.new(cc_id: 90_001, context: "nbv")
-    rlc.save(validate: false)
-    TournamentCc.create!(cc_id: 80_001, context: "nbv", tournament: @tournament, registration_list_cc: rlc)
+  test "resolve_tournament: meldeliste_cc_id mit gültiger TournamentCc→Tournament-Kette → Tournament" do
+    # Seit Plan 23-01 T1a liegt die meldeliste_cc_id direkt auf TournamentCc
+    # (die RegistrationListCc-Zwischentabelle wurde in T1b ersatzlos gedroppt).
+    TournamentCc.create!(cc_id: 80_001, context: "nbv", tournament: @tournament, meldeliste_cc_id: 90_001)
     result = McpServer::Tools::BaseTool.resolve_tournament(
       meldeliste_cc_id: 90_001, tournament_cc_id: nil, server_context: {cc_region: "NBV"}
     )

@@ -48,11 +48,9 @@ module TournamentWizardHelper
   def wizard_current_step(tournament)
     case tournament.state
     when "new_tournament"
-      # Check for local seedings first (for manual/test entries)
-      has_local_seedings = tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").exists?
-
+      # Check for local seedings first (for manual/test entries) — Plan 32-03: has_local_seedings?
       # If we have local seedings, we're at least at step 3 (editing participants)
-      return 3 if has_local_seedings
+      return 3 if tournament.has_local_seedings?
 
       # Schritt 1: Meldeliste laden (ClubCloud-Seedings vorhanden?)
       has_clubcloud_seedings = tournament.seedings.where("seedings.id < #{Seeding::MIN_ID}").exists?
@@ -187,19 +185,62 @@ module TournamentWizardHelper
   # Intelligente Spielerzahl: Zählt entweder lokale ODER ClubCloud Seedings
   # Verhindert Doppelzählung bei parallelen Seeding-Sets
   def participant_count(tournament)
-    has_local_seedings = tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").any?
-    seeding_scope = has_local_seedings ?
-                      "seedings.id >= #{Seeding::MIN_ID}" :
-                      "seedings.id < #{Seeding::MIN_ID}"
-
-    tournament.seedings
+    # Plan 32-03: effective_seedings (lokale bevorzugen, sonst ClubCloud) statt dupliziertem has_local-Idiom
+    tournament.effective_seedings
       .where.not(state: "no_show")
-      .where(seeding_scope)
       .count
   end
 
   # Prüft ob Schritt aktivierbar ist
   def step_enabled?(tournament, step_number)
     wizard_step_status(tournament, step_number) == :active
+  end
+
+  # Nutzt die Region die ClubCloud? Kanonisch über die Scrape-Quellen-Liste `Region::SHORTNAMES_CC`,
+  # NICHT über `region_cc.present?` — Letzteres trägt bei migrierten Regionen (z.B. TBV, seit v0.4
+  # LigaManager) noch einen Alt-Datensatz und zeigt fälschlich CC an. (Vorab-Fix vor Phase 34, die
+  # das per saison-abhängigem `source_kind` am Objekt löst.)
+  def wizard_region_uses_cc?(tournament)
+    tournament.organizer.is_a?(Region) &&
+      Region::SHORTNAMES_CC.include?(tournament.organizer.shortname)
+  end
+
+  # CC-los (Plan 32-06) = organizer ist eine Region OHNE ClubCloud. Nur dann greift der Rollen-Split;
+  # CC-Turniere behalten die volle Leiste auf beiden Rollen (Verhaltenserhalt NBV u.a.).
+  def wizard_cc_less?(tournament)
+    tournament.organizer.is_a?(Region) && !wizard_region_uses_cc?(tournament)
+  end
+
+  # Region Server + CC-los = LSW-Verwaltungsplatz: die Turnier-Show-Seite zeigt NUR die
+  # Meldeliste-Verwaltung (zwei Links). KEIN Tournament-Wizard, KEINE ClubCloud-Abschnitte, KEINE
+  # TableMonitor-Admin-Aktionen — die gehören auf den Location Server (Betreiber 2026-07-25).
+  def region_server_lsw_view?(tournament)
+    ApplicationRecord.region_server? && wizard_cc_less?(tournament)
+  end
+
+  # Melde-Zyklus (Schritte 1–3): überall, wo der Wizard überhaupt gezeigt wird.
+  #
+  # BETREIBER-KORREKTUR 2026-08-05: Es gibt KEINEN prinzipiellen Unterschied zum CC-Fall. Der
+  # CC-lose Region Server ERSETZT die CC-Admin-Schnittstelle — dort wird die Meldeliste gepflegt,
+  # so wie sonst über die ClubCloud. Die Arbeit des Turnierleiters am Spielort (Meldeliste
+  # übernehmen, Teilnehmerliste bearbeiten) ist in beiden Fällen dieselbe und gehört deshalb auf
+  # JEDEN Location Server.
+  #
+  # Vorher: `!wizard_cc_less?(tournament) || ApplicationRecord.region_server?` — und diese zweite
+  # Hälfte war WIRKUNGSLOS: auf einem CC-losen Region Server rendert show.html.erb:15 statt des
+  # Wizards das Zwei-Link-Panel (`region_server_lsw_view?`, dieselbe Bedingung). Für CC-lose
+  # Turniere waren die Schritte 2 und 3 damit ÜBERALL unerreichbar; am Spielort blieb nur der
+  # Direktlink aus dem Admin-Block (show.html.erb:173).
+  #
+  # Schritt 1 (Meldeliste von der ClubCloud laden) bleibt CC-spezifisch — er hängt an seinem
+  # eigenen `wizard_region_uses_cc?`-Gate in der View (_wizard_steps_v2.html.erb:36). CC-los gibt
+  # es dort nichts zu laden: die Meldeliste trifft per Sync von der Authority ein.
+  def wizard_show_melde_cycle?(_tournament)
+    true
+  end
+
+  # Spiel-Zyklus (Schritt 6): bei CC-Turnieren immer; bei CC-losen nur auf dem Location Server.
+  def wizard_show_game_cycle?(tournament)
+    !wizard_cc_less?(tournament) || ApplicationRecord.location_server?
   end
 end

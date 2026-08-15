@@ -120,13 +120,12 @@ class TournamentReflex < ApplicationReflex
     tournament = Tournament.find(element.dataset["id"])
     checked = element.attributes["checked"]
     player = Player.find(element.attributes["id"].split("-")[1].to_i)
-    seeding = nil
-    if checked
-      seeding = tournament.seedings.where(player_id: player.id).first ||
-        tournament.seedings.create(player_id: player.id)
-    else
-      tournament.seedings.where(player_id: player.id).destroy_all
-    end
+    # Plan 36-05: Logik in RegionServer::PlayerRegistration — sie muss vor jeder Aenderung die
+    # Liste materialisieren (sonst verdeckt die erste Aenderung alle bisherigen Teilnehmer) und
+    # ist dort ohne StimulusReflex-Infrastruktur pruefbar.
+    RegionServer::PlayerRegistration.set_participation(
+      tournament: tournament, player: player, participating: checked
+    )
     tournament.save!
 
     # Plan 44-02: Mitgliedschaftsänderung atomar in die CC zurückpushen (async, Queue+Retry).
@@ -145,10 +144,10 @@ class TournamentReflex < ApplicationReflex
     player = Player.find(element.attributes["id"].split("-")[1].to_i)
     seeding = tournament.seedings.where(player_id: player.id)
     if checked
-      seeding.update(state: "no_show")
+      seeding.find_each(&:mark_no_show!)
       target = :deaccredit
     else
-      seeding.update(state: "registered")
+      seeding.find_each(&:reset_seeding_state!)
       target = :accredit
     end
     # Plan 44-01: TL-Akkreditierungsänderung atomar in die CC zurückpushen (async, Queue+Retry).
@@ -206,12 +205,13 @@ class TournamentReflex < ApplicationReflex
     seeding_scope = "seedings.id >= #{Seeding::MIN_ID}"
     
     tournament.seedings.where(seeding_scope).each do |seeding|
-      diff = Season.current_season&.name == "2021/2022" ? 2 : 1
+      # Vorsaison name-basiert (Season#previous). Der frühere ba_id-Versatz inkl.
+      # "2021/2022 ? 2 : 1"-Hack kompensierte eine ba_id-Lücke und ist damit hinfällig.
       hash[seeding] = if tournament.team_size > 1
                         999
                       else
                         seeding.player.player_rankings.where(discipline_id: Discipline.find_by_name("Freie Partie klein"),
-                                                             season_id: Season.find_by_ba_id(Season.current_season&.ba_id.to_i - diff))
+                                                             season_id: Season.current_season&.previous&.id)
                                .first&.rank.presence || 999
                       end
     end

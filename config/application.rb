@@ -45,6 +45,38 @@ module Carambus
     creds.dig(:youtube, :api_key).presence || creds.dig(:youtube_api_key).presence
   end
 
+  # Plan 29-05: Zugang zu einem REGION SERVER — gebraucht von zwei Stationen mit
+  # entgegengesetzter Blickrichtung: die Authority holt dort die Meldeliste
+  # (RegionServer::EntryListImporter), der Location Server meldet dorthin den Abschluss
+  # (LocationServer::ResultReporter). Deshalb liegt der Zugriff hier und nicht bei einem der beiden.
+  #
+  # Form 1:1 nach `Setting.get_cc_credentials` (setting.rb) — strukturell derselbe Fall: ein
+  # Service-Account je Region, kontext-gewaehlt, Credential-Key KLEINGESCHRIEBEN. Der Eintrag wird
+  # nicht von Hand gepflegt, sondern generiert: carambus_data/secrets.yml →
+  # scenarios/<name>/config.yml (`region_server_contexts`) → scenario:generate_credentials →
+  # scenario:push_credentials.
+  #
+  # Der carambus.yml-Fallback stammt aus Plan 29-03 und bleibt bewusst: ein Location Server bedient
+  # genau EINE Region, dort ist der flache Schluessel ausreichend und bereits im Einsatz.
+  #
+  # Rueckgabe {username:, password:} oder nil — halbe Zugangsdaten sind keine; das nil erzeugt bei
+  # den Aufrufern eine verstaendliche Meldung statt eines 401.
+  def self.region_server_credentials(region_shortname = nil)
+    if region_shortname.present?
+      group = Rails.application.credentials.region_server
+      entry = group.presence && group[region_shortname.to_s.downcase.to_sym]
+      if entry.present? && entry[:username].present? && entry[:password].present?
+        return {username: entry[:username], password: entry[:password]}
+      end
+    end
+
+    user = config.region_server_user
+    password = config.region_server_password
+    return nil if user.blank? || password.blank?
+
+    {username: user, password: password}
+  end
+
   def self.save_config(create_lock: false)
     yaml = YAML.load_file(Rails.root.join('config', 'carambus.yml'))
 

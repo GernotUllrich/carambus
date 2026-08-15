@@ -22,15 +22,41 @@ class Season < ApplicationRecord
   has_many :season_ccs
   has_many :leagues
 
+  @year = (Date.today - 6.month).year
+  @current_season = Season.find_by_name("#{@year}/#{@year + 1}")
+
   REFLECTION_KEYS = %w[tournaments season_participations]
   MAX_BA_SEASON = "2021/2022"
 
+  # Verlässlicher Recency-Anker: NUR der Name im Format "yyyy/yyyy+1" ist verlässlich.
+  # id und ba_id sind durch das Scrapen internationaler Turniere verrutscht; Platzhalter-/
+  # Fremd-Saisons ("Unknown Season", leere Zukunfts-Saisons) haben ba_id = nil und ungültige
+  # Namen. Recency-Logik muss daher über den Namen laufen, nicht über id/ba_id.
+  VALID_NAME_REGEX = %r{\A\d{4}/\d{4}\z}
+  VALID_NAME_SQL = "seasons.name ~ '^[0-9]{4}/[0-9]{4}$'"
+
+  # Nur Saisons mit gültigem Namen (schließt "Unknown Season" & Fremd-Platzhalter aus).
+  scope :with_valid_name, -> { where(Arel.sql(VALID_NAME_SQL)) }
+
+  # Die neuesten `limit` Saisons mit gültigem Namen bis einschließlich `up_to`
+  # (Default: current_season), chronologisch aufsteigend (älteste zuerst).
+  # Ersetzt das unzuverlässige `where("id <= ?", current.id).order(id: :desc).limit(n).reverse`.
+  def self.recent_valid(limit, up_to: current_season)
+    rel = with_valid_name.order(name: :desc)
+    rel = rel.where("seasons.name <= ?", up_to.name) if up_to&.name
+    rel.limit(limit).to_a.reverse
+  end
+
   def self.current_season
-    year = (Date.today - 6.month).year
-    Season.find_by_name("#{year}/#{year + 1}") || (
-      Season.update_seasons
-      Season.find_by_name("#{year}/#{year + 1}")
-    )
+    if (Date.today - 6.month).year != @year
+      @year = (Date.today - 6.month).year
+      @current_season = Season.find_by_name("#{@year}/#{@year + 1}")
+      unless @current_season.present?
+        Season.update_seasons
+        @current_season = Season.find_by_name("#{@year}/#{@year + 1}")
+      end
+    end
+    @current_season
   end
 
   def self.season_from_date(date)
@@ -53,7 +79,7 @@ class Season < ApplicationRecord
   end
 
   def previous
-    @previous || Season.find_by_ba_id(ba_id - 1)
+    @previous || adjacent_season(-1)
   end
 
   def includes_date(date)
@@ -63,7 +89,7 @@ class Season < ApplicationRecord
   end
 
   def next_season
-    @pnext_season || Season.find_by_ba_id(ba_id + 1)
+    @pnext_season || adjacent_season(1)
   end
 
   # H28: seasons/index zeigt nur den (selbsterklaerenden) Namen — keine Subzeile.
@@ -87,5 +113,19 @@ class Season < ApplicationRecord
         )
       end
     end
+  end
+
+  private
+
+  # Nachbar-Saison verlässlich über den Namen ("yyyy/yyyy+1" um `delta` Jahre versetzt);
+  # nur wenn der eigene Name gültig ist. Fallback auf ba_id (nil-sicher), wenn kein
+  # name-basierter Treffer existiert — deckt Alt-/Randfälle ab.
+  def adjacent_season(delta)
+    if VALID_NAME_REGEX.match?(name.to_s)
+      start_year = name[0, 4].to_i + delta
+      found = Season.find_by_name("#{start_year}/#{start_year + 1}")
+      return found if found
+    end
+    ba_id && Season.find_by_ba_id(ba_id + delta)
   end
 end

@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title><%= title %></title>
+<style>*,*::before,*::after{box-sizing:border-box}body{margin:0}img,svg{display:block;max-width:100%}</style>
+</head>
+<body>
+<style>
+:root{
+  --ground:#F6F7F4; --panel:#FFFFFF; --line:#DDE3DE; --line-soft:#EAEFEA;
+  --ink:#16211C; --ink-2:#41504A; --muted:#6E7B74;
+  --accent:#2E6B4E; --accent-ink:#FFFFFF;
+  --h0:#EFF2EE; --h1:#DCE9E0; --h2:#B9D6C4; --h3:#7FB697; --h4:#3F8460; --h5:#1D4E38;
+  --h4-ink:#FFFFFF; --h5-ink:#FFFFFF; --h3-ink:#12241B; --h0-ink:#96A29B;
+  --s-cc:#CDD6D0; --s-none:#F1F3F0; --s-none-line:#E1E6E2; --s-nu:#3F7CA8; --s-lm:#A9762A; --s-ca:#2E6B4E; --s-ot:#77689E; --s-ba:#B3A489;
+  --shadow:0 1px 2px rgba(20,40,30,.06), 0 8px 24px -16px rgba(20,40,30,.25);
+  --text:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --ground:#0F1513; --panel:#171F1B; --line:#2A3630; --line-soft:#212B26;
+    --ink:#E6EBE7; --ink-2:#AEBCB4; --muted:#84968C;
+    --accent:#57A87F; --accent-ink:#0C1310;
+    --h0:#1B2420; --h1:#22362B; --h2:#2C5140; --h3:#3E7A5C; --h4:#59A57E; --h5:#7FC7A0;
+    --h4-ink:#0C1310; --h5-ink:#0C1310; --h3-ink:#F2F7F4; --h0-ink:#55645C;
+    --s-cc:#333F39; --s-none:#161E1A; --s-none-line:#202A25; --s-nu:#5EA3CE; --s-lm:#CC9A45; --s-ca:#57A87F; --s-ot:#9C8CC4; --s-ba:#6E6350;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -16px rgba(0,0,0,.8);
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#0F1513; --panel:#171F1B; --line:#2A3630; --line-soft:#212B26;
+  --ink:#E6EBE7; --ink-2:#AEBCB4; --muted:#84968C;
+  --accent:#57A87F; --accent-ink:#0C1310;
+  --h0:#1B2420; --h1:#22362B; --h2:#2C5140; --h3:#3E7A5C; --h4:#59A57E; --h5:#7FC7A0;
+  --s-cc:#333F39; --s-none:#161E1A; --s-none-line:#202A25; --s-nu:#5EA3CE; --s-lm:#CC9A45; --s-ca:#57A87F; --s-ot:#9C8CC4; --s-ba:#6E6350;
+  --h4-ink:#0C1310; --h5-ink:#0C1310; --h3-ink:#F2F7F4; --h0-ink:#55645C;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -16px rgba(0,0,0,.8);
+}
+:root[data-theme="light"]{
+  --ground:#F6F7F4; --panel:#FFFFFF; --line:#DDE3DE; --line-soft:#EAEFEA;
+  --ink:#16211C; --ink-2:#41504A; --muted:#6E7B74;
+  --accent:#2E6B4E; --accent-ink:#FFFFFF;
+  --h0:#EFF2EE; --h1:#DCE9E0; --h2:#B9D6C4; --h3:#7FB697; --h4:#3F8460; --h5:#1D4E38;
+  --s-cc:#CDD6D0; --s-none:#F1F3F0; --s-none-line:#E1E6E2; --s-nu:#3F7CA8; --s-lm:#A9762A; --s-ca:#2E6B4E; --s-ot:#77689E; --s-ba:#B3A489;
+  --h4-ink:#FFFFFF; --h5-ink:#FFFFFF; --h3-ink:#12241B; --h0-ink:#96A29B;
+  --shadow:0 1px 2px rgba(20,40,30,.06), 0 8px 24px -16px rgba(20,40,30,.25);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--text);
+  font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1180px;margin:0 auto;padding:48px 24px 72px;display:flex;flex-direction:column;gap:40px}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--muted);margin:0 0 10px}
+h1{font-size:clamp(26px,3.4vw,38px);line-height:1.12;margin:0 0 12px;letter-spacing:-.02em;
+  text-wrap:balance;font-weight:650}
+.lede{margin:0;max-width:64ch;color:var(--ink-2);font-size:16px}
+.lede b{color:var(--ink);font-weight:620}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px 18px;
+  box-shadow:var(--shadow);display:flex;flex-direction:column;gap:2px}
+.card .name{font-size:13px;font-weight:640;letter-spacing:.01em}
+.card .big{font-family:var(--mono);font-size:28px;font-weight:600;letter-spacing:-.02em;
+  font-variant-numeric:tabular-nums;line-height:1.2}
+.card .sub{font-family:var(--mono);font-size:11.5px;color:var(--muted);letter-spacing:.02em}
+.bar{height:3px;border-radius:2px;background:var(--h2);margin-top:8px}
+.controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--panel)}
+.seg button{appearance:none;border:0;background:transparent;color:var(--ink-2);cursor:pointer;
+  font-family:var(--mono);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;
+  padding:8px 14px}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+.seg button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.hint{font-family:var(--mono);font-size:11.5px;color:var(--muted)}
+section.branch{display:flex;flex-direction:column;gap:12px}
+.bhead{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.bhead h2{margin:0;font-size:19px;font-weight:640;letter-spacing:-.01em}
+.bhead .meta{font-family:var(--mono);font-size:11.5px;color:var(--muted);letter-spacing:.02em}
+.scroll{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--panel);
+  box-shadow:var(--shadow)}
+table{border-collapse:separate;border-spacing:0;width:100%;font-variant-numeric:tabular-nums}
+th,td{padding:0;text-align:center}
+thead th{position:sticky;top:0;background:var(--panel);z-index:2;font-family:var(--mono);
+  font-size:10.5px;font-weight:500;color:var(--muted);letter-spacing:.04em;padding:9px 6px;
+  border-bottom:1px solid var(--line);white-space:nowrap}
+thead th.rowhead{left:0;z-index:3;text-align:left;padding-left:14px}
+tbody th{position:sticky;left:0;background:var(--panel);z-index:1;text-align:left;
+  padding:0 12px 0 14px;border-right:1px solid var(--line);border-bottom:1px solid var(--line-soft);
+  white-space:nowrap}
+tbody th .short{font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.03em}
+tbody th .full{display:block;font-size:10.5px;color:var(--muted);font-weight:400;
+  max-width:190px;overflow:hidden;text-overflow:ellipsis}
+tbody td{border-bottom:1px solid var(--line-soft);border-right:1px solid var(--line-soft)}
+tbody tr:last-child td,tbody tr:last-child th{border-bottom:0}
+.cell{display:block;font-family:var(--mono);font-size:11.5px;padding:7px 4px;min-width:42px}
+.l0{background:var(--h0);color:var(--h0-ink)}
+.l1{background:var(--h1);color:var(--ink-2)}
+.l2{background:var(--h2);color:var(--h3-ink)}
+.l3{background:var(--h3);color:var(--h3-ink)}
+.l4{background:var(--h4);color:var(--h4-ink)}
+.l5{background:var(--h5);color:var(--h5-ink)}
+tbody tr:hover td{filter:brightness(1.06)}
+tbody tr:hover th{color:var(--accent)}
+.legend{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-family:var(--mono);
+  font-size:11px;color:var(--muted);letter-spacing:.03em}
+.swatch{width:24px;height:12px;border-radius:2px;display:inline-block}
+footer{border-top:1px solid var(--line);padding-top:20px;display:flex;flex-direction:column;gap:10px}
+footer h3{margin:0;font-size:12px;font-family:var(--mono);letter-spacing:.14em;text-transform:uppercase;
+  color:var(--muted);font-weight:500}
+footer ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:7px;
+  color:var(--ink-2);font-size:13.5px;max-width:78ch}
+footer code{font-family:var(--mono);font-size:12.5px;background:var(--h0);padding:1px 5px;
+  border-radius:3px;color:var(--ink)}
+
+/* Quellen-Kennzeichnung. Die ClubCloud ist der Normalfall und bleibt deshalb still;
+   Farbe bekommt nur, was NICHT von dort kommt. */
+.s-cc{background:var(--s-cc);color:var(--ink-2)}
+.s-none{background:var(--s-none);color:var(--h0-ink);
+  background-image:repeating-linear-gradient(45deg,transparent,transparent 3px,var(--s-none-line) 3px,var(--s-none-line) 4px)}
+.s-nu_liga{background:var(--s-nu);color:#fff}
+.s-liga_manager{background:var(--s-lm);color:#fff}
+.s-carambus{background:var(--s-ca);color:#fff}
+.s-billard_area{background:var(--s-ba);color:#fff}
+.s-other{background:var(--s-ot);color:#fff}
+.mark{box-shadow:inset 3px 0 0 var(--mark)}
+.badge{display:inline-block;font-family:var(--mono);font-size:9.5px;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--s-nu);border:1px solid var(--s-nu);border-radius:3px;
+  padding:0 4px;margin-left:6px;vertical-align:1px;font-weight:500}
+.key{display:inline-flex;align-items:center;gap:5px;margin-right:12px;white-space:nowrap}
+.key i{width:13px;height:13px;border-radius:3px;display:inline-block;flex:0 0 auto}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+<div class="wrap">
+  <p class="eyebrow" style="margin:0"><a href="/uebersichten/" style="color:inherit">← Übersichten</a></p>
+  <header>
+    <p class="eyebrow">Carambus · Authority-Bestand · Stand <%= generated_at %></p>
+    <h1><%= headline %></h1>
+    <p class="lede"><%= lede %></p>
+  </header>
+
+  <div class="cards" id="cards"></div>
+
+  <div class="controls">
+    <div class="seg" role="group" aria-label="Darstellung">
+      <button type="button" data-mode="count" aria-pressed="true">Anzahl</button>
+      <button type="button" data-mode="presence" aria-pressed="false">Nur Abdeckung</button>
+      <button type="button" data-mode="source" aria-pressed="false">Quelle</button>
+    </div>
+    <span class="hint" id="legend-hint"></span>
+  </div>
+
+  <div id="matrices"></div>
+
+  <footer>
+    <h3><%= footnote_heading %></h3>
+    <ul>
+<%= footnotes %>    </ul>
+  </footer>
+</div>
+
+<script>
+const DATA = <%= payload_json %>;
+const ITEM_LABEL = "<%= item_label %>";
+
+const BRANCH_ORDER = ["Karambol","Pool","Snooker","Kegel"];
+const branches = [...DATA.branches].sort(
+  (a,b)=>BRANCH_ORDER.indexOf(a.name)-BRANCH_ORDER.indexOf(b.name));
+const seasons = DATA.seasons, regions = DATA.regions, cells = DATA.cells, sources = DATA.sources||{};
+const key=(b,r,s)=>b+"|"+r+"|"+s;
+const get=(b,r,s)=>cells[key(b,r,s)]||0;
+const src=(b,r,s)=>sources[key(b,r,s)]||{};
+const CURRENT = seasons[seasons.length-1];
+let mode="count";
+
+// Die ClubCloud ist der Normalfall; Farbe bekommt, was NICHT von dort kommt.
+const SOURCE_LABEL={cc:"ClubCloud",billard_area:"BillardArea (offline)",nu_liga:"NuLiga",
+  liga_manager:"LigaManager",carambus:"Carambus (CC-los)",other:"andere Quelle",
+  none:"ohne Quellenangabe"};
+const SOURCE_SHORT={cc:"CC",billard_area:"BA",nu_liga:"NL",liga_manager:"LM",carambus:"CA",
+  other:"?",none:"·"};
+const NON_CC=["carambus","liga_manager","nu_liga","other","billard_area"];
+const MARK_VAR={carambus:"ca",liga_manager:"lm",nu_liga:"nu",other:"ot",billard_area:"ba"};
+
+function dominant(s){
+  let best=null, n=-1;
+  for(const k of Object.keys(s)){ if(s[k]>n){ n=s[k]; best=k; } }
+  return best;
+}
+// Reihenfolge, nicht Menge: in einer Zelle mit BillardArea-Altbestand UND einer aktiven
+// Nicht-CC-Quelle soll die aktive den Balken bestimmen.
+function nonCcKind(s){
+  for(const k of NON_CC){ if(s[k]) return k; }
+  return null;
+}
+function level(n,max){
+  if(!n) return 0;
+  const t=Math.log(n+1)/Math.log(max+1);
+  if(t<=.18) return 1; if(t<=.36) return 2; if(t<=.58) return 3; if(t<=.80) return 4; return 5;
+}
+function tip(r,s,n,so){
+  const parts=Object.keys(so).filter(k=>so[k]).map(k=>`${SOURCE_LABEL[k]}: ${so[k]}`);
+  return `${r.short} · ${s.name} · ${n}` + (parts.length?` — ${parts.join(", ")}`:"");
+}
+
+function renderCards(){
+  document.getElementById("cards").innerHTML = branches.map(b=>{
+    let total=0, regs=new Set(), cur=0, first=null;
+    for(const r of regions) for(const s of seasons){
+      const n=get(b.id,r.id,s.id);
+      if(n){ total+=n; regs.add(r.id); if(s.id===CURRENT.id) cur+=n;
+             if(first===null||s.name<first) first=s.name; }
+    }
+    return `<div class="card">
+      <span class="name">${b.name}</span>
+      <span class="big">${total.toLocaleString("de-DE")}</span>
+      <span class="sub">${regs.size} von ${regions.length} Regionen · ab ${first}</span>
+      <span class="sub">${cur} in ${CURRENT.name}</span>
+      <span class="bar" style="background:var(--h${Math.min(5,Math.max(2,Math.ceil(regs.size/regions.length*5)))})"></span>
+    </div>`;
+  }).join("");
+}
+
+function renderMatrices(){
+  document.getElementById("matrices").innerHTML = branches.map(b=>{
+    let max=0, total=0, regs=new Set();
+    for(const r of regions) for(const s of seasons){
+      const n=get(b.id,r.id,s.id); if(n>max) max=n; total+=n; if(n) regs.add(r.id);
+    }
+    const rows = regions.filter(r=>regs.has(r.id)).map(r=>{
+      const tds = seasons.map(s=>{
+        const n=get(b.id,r.id,s.id), so=src(b.id,r.id,s.id);
+        let cls, label, style="";
+        if(!n){ cls="l0"; label="·"; }
+        else if(mode==="source"){ const d=dominant(so); cls="s-"+d; label=SOURCE_SHORT[d]; }
+        else if(mode==="presence"){ cls="l3"; label="●"; }
+        else {
+          cls="l"+level(n,max); label=n;
+          const nc=nonCcKind(so);
+          if(nc){ cls+=" mark"; style=` style="--mark:var(--s-${MARK_VAR[nc]})"`; }
+        }
+        return `<td><span class="cell ${cls}"${style} title="${tip(r,s,n,so)}">${label}</span></td>`;
+      }).join("");
+      const badge = r.cc===false ? '<span class="badge">kein CC-Anschluss</span>' : "";
+      return `<tr><th scope="row"><span class="short">${r.short}${badge}</span>
+        <span class="full">${r.name}</span></th>${tds}</tr>`;
+    }).join("");
+    return `<section class="branch">
+      <div class="bhead">
+        <h2>${b.name}</h2>
+        <span class="meta">${total.toLocaleString("de-DE")} ${ITEM_LABEL} · ${regs.size} Regionen · max. ${max} in einer Zelle</span>
+      </div>
+      <div class="scroll"><table>
+        <thead><tr><th class="rowhead">Region</th>
+          ${seasons.map(s=>`<th>${s.name.slice(2,4)}/${s.name.slice(-2)}</th>`).join("")}</tr></thead>
+        <tbody>${rows}</tbody>
+      </table></div>
+    </section>`;
+  }).join("");
+}
+
+function swatch(varName,label){ return `<span class="key"><i style="background:var(--${varName})"></i>${label}</span>`; }
+
+function renderLegendHint(){
+  const el=document.getElementById("legend-hint");
+  if(mode==="presence"){ el.innerHTML="● = mindestens ein Datensatz · · = keiner"; return; }
+  if(mode==="source"){
+    el.innerHTML = swatch("s-cc","CC — ClubCloud")+swatch("s-nu","NL — NuLiga")+
+      swatch("s-lm","LM — LigaManager")+swatch("s-ca","CA — Carambus, CC-los")+
+      swatch("s-ba","BA — BillardArea, offline")+swatch("s-none","· — ohne Quellenangabe")+
+      '<span class="key">Farbe = überwiegende Quelle der Zelle</span>';
+    return;
+  }
+  el.innerHTML = `wenig <span class="swatch" style="background:var(--h1)"></span>`+
+    `<span class="swatch" style="background:var(--h2)"></span>`+
+    `<span class="swatch" style="background:var(--h3)"></span>`+
+    `<span class="swatch" style="background:var(--h4)"></span>`+
+    `<span class="swatch" style="background:var(--h5)"></span> viel · `+
+    `<span class="key"><i style="background:var(--s-nu)"></i>Balken links = enthält Daten, die NICHT aus der ClubCloud stammen</span>`;
+}
+
+document.querySelectorAll(".seg button").forEach(btn=>{
+  btn.addEventListener("click",()=>{
+    mode=btn.dataset.mode;
+    document.querySelectorAll(".seg button").forEach(o=>
+      o.setAttribute("aria-pressed", String(o.dataset.mode===mode)));
+    renderMatrices(); renderLegendHint();
+  });
+});
+
+renderCards(); renderMatrices(); renderLegendHint();
+</script>
+
+</body>
+</html>

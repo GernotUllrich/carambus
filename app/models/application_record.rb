@@ -76,6 +76,30 @@ class ApplicationRecord < ActiveRecord::Base
     Carambus.config.carambus_api_url.present?
   end
 
+  # Single Source of Truth fuer die Instanz-Rolle (:authority | :region_server | :location_server).
+  # Die im Code etablierte Unterscheidung ist `local_server?` (== carambus_api_url gesetzt); location_id
+  # trennt darunter Location- von Region Server. Diagnostics::ChainCheck#role delegiert hierher.
+  def self.instance_role
+    return :authority unless local_server?
+
+    (location_id_config.to_i > 0) ? :location_server : :region_server
+  end
+
+  # Als eigenstaendige Praedikate (nicht instance_role == :x beim Aufrufer), damit eine spaetere
+  # Kombi-Instanz (Region+Location auf einem Host) sie unabhaengig ueberschreiben kann, ohne Aufrufer
+  # zu brechen.
+  def self.authority? = instance_role == :authority
+
+  def self.region_server? = instance_role == :region_server
+
+  def self.location_server? = instance_role == :location_server
+
+  # Instanz-KONFIG-Wert (Carambus.config.location_id), defensiv wie in Diagnostics::ChainCheck
+  # (chain_check.rb:65). Nicht mit dem AR-Spalten-Attribut location_id konkreter Modelle verwechseln.
+  def self.location_id_config
+    Carambus.config.respond_to?(:location_id) ? Carambus.config.location_id : nil
+  end
+
   def set_paper_trail_whodunnit
     # Use connection's current_user in reflex context, fallback to regular current_user
     PaperTrail.request.whodunnit = respond_to?(:connection) ? connection.current_user&.id : Current.user&.id

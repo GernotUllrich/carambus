@@ -8,8 +8,11 @@ class Admin::UsersPlayersByClubTest < ActionDispatch::IntegrationTest
   include Devise::Test::IntegrationHelpers
 
   setup do
-    @admin = User.create!(email: "pbc_admin@test.de", password: "password123", role: :system_admin)
-    @plain = User.create!(email: "pbc_plain@test.de", password: "password123", role: :player)
+    # confirmed_at: User ist :confirmable → ohne Bestätigung endet sign_in im 401/302
+    @admin = User.create!(email: "pbc_admin@test.de", password: "password123", role: :system_admin,
+      confirmed_at: Time.zone.now)
+    @plain = User.create!(email: "pbc_plain@test.de", password: "password123", role: :player,
+      confirmed_at: Time.zone.now)
   end
 
   test "nicht-system_admin → forbidden (kein Spieler-Leak)" do
@@ -48,6 +51,9 @@ class Admin::UsersPlayersByClubTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_includes @response.body, "Sportwart-Disziplinen"
     assert_includes @response.body, "Sportwart-Spielorte"
-    assert_includes @response.body, "data-controller=\"dependent-select\""
+    # Die Cascade-Stimulus-Controller heissen inzwischen location-picker (Spielorte)
+    # und region-player-picker (Region → Verein → Spieler), nicht mehr dependent-select.
+    assert_includes @response.body, "data-controller=\"region-player-picker\""
+    assert_includes @response.body, "data-controller=\"location-picker\""
   end
 end

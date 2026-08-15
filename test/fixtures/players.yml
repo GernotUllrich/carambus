@@ -29,3 +29,47 @@ tasdemir:
   guest: false
   created_at: <%= 2.years.ago %>
   updated_at: <%= 1.day.ago %>
+
+# --- NBV-Spieler fuer die MCP-Player-Tools -----------------------------------
+#
+# Die drei oben sind international (kein Region-Bezug) und taugen nicht fuer die
+# region-scoped Suchen. Diese drei haengen an regions(:nbv), haben cc_id (die
+# Tools geben cc_id als Primary aus) und je ein PlayerRanking — siehe
+# player_rankings.yml und season_participations.yml.
+#
+# "Dr. Gernot" traegt das Titel-Praefix bewusst im firstname: der Token-Search
+# muss ihn auch ueber die Query "Gernot Ullrich" finden (Befund E-1).
+# Andresen/Hansen enthalten beide "an" — die Disambiguation-Tests brauchen
+# mindestens zwei Treffer auf diesen Suchbegriff.
+nbv_ullrich:
+  id: 50_001_010
+  lastname: "Ullrich"
+  firstname: "Dr. Gernot"
+  fl_name: "Dr. Gernot Ullrich"
+  cc_id: 40_101
+  region_id: 50_000_001
+  guest: false
+  created_at: <%= 2.years.ago %>
+  updated_at: <%= 1.day.ago %>
+
+nbv_andresen:
+  id: 50_001_011
+  lastname: "Andresen"
+  firstname: "Lars"
+  fl_name: "Lars Andresen"
+  cc_id: 40_102
+  region_id: 50_000_001
+  guest: false
+  created_at: <%= 2.years.ago %>
+  updated_at: <%= 1.day.ago %>
+
+nbv_hansen:
+  id: 50_001_012
+  lastname: "Hansen"
+  firstname: "Birte"
+  fl_name: "Birte Hansen"
+  cc_id: 40_103
+  region_id: 50_000_001
+  guest: false
+  created_at: <%= 2.years.ago %>
+  updated_at: <%= 1.day.ago %>

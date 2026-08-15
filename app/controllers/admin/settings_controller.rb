@@ -5,7 +5,9 @@ module Admin
     def index
       @config = Carambus.config
       @contexts = Region.order(:shortname).map { |region| [region.name, region.shortname] }
-      @region = Region.find_by_shortname(@config.context)
+      # UPPER-Vergleich: `context` ist in den Szenario-Configs uneinheitlich geschrieben
+      # ("tbv" klein, "TBV" gross) — siehe ScopeResolver#server_context_region_id.
+      @region = Region.find_by("UPPER(shortname) = ?", @config.context.to_s.upcase)
 
       if @region
         @locations = Location.where(organizer_type: "Region", organizer_id: @region.id)

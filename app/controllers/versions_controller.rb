@@ -99,6 +99,24 @@ class VersionsController < ApplicationController
       @league = League[league_id]
       @region = @league&.organizer
       League[league_id]&.scrape_single_league_from_cc(league_details: league_details)
+    elsif (region_id = params[:import_entry_list]).present?
+      # Plan 29-06 (CC-less Short-Circuit): analog zu update_tournament_from_cc, nur ohne ClubCloud.
+      # Die Authority holt die Meldeliste des Region Servers frisch (RegionServer::EntryListImporter,
+      # armed) — das erzeugt/aktualisiert/entfernt globale Records und damit Versionen, die weiter
+      # unten in DERSELBEN Antwort zurueckgehen. So wird eine Freigabe/Meldungsaenderung sofort
+      # sichtbar, ohne auf den stuendlichen Cron zu warten. Auth: die Authority nutzt den
+      # Service-Account, den sie ohnehin auf dem Region Server hat (region_server_contexts).
+      @region = Region.find(region_id)
+      season = Season[params[:season_id]] || Season.current_season
+      RegionServer::EntryListImporter.new(region: @region, season: season, armed: true).call
+    elsif (region_id = params[:import_game_results]).present?
+      # Plan 32-10 (CC-loser Ergebnisweg ③): Gegenstueck zu import_entry_list, nur fuer SPIELE.
+      # Die Authority holt die Ergebniszeilen des Region Servers (oeffentlich, ohne Token —
+      # Betreiber-Entscheidung D9) und baut daraus globale Game/GameParticipation. Die dabei
+      # entstehenden Versionen gehen in DERSELBEN Antwort zurueck, wie beim Meldelisten-Ingest.
+      @region = Region.find(region_id)
+      season = Season[params[:season_id]] || Season.current_season
+      RegionServer::GameResultImporter.new(region: @region, season: season, armed: true).call
     end
     if last_version_id.present?
       attrs = []

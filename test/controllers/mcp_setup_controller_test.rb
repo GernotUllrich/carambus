@@ -10,7 +10,8 @@ class McpSetupControllerTest < ActionDispatch::IntegrationTest
   setup do
     @user = User.create!(
       email: "mcp_setup_test@example.com",
-      password: "password123"
+      password: "password123",
+      confirmed_at: Time.zone.now # User ist :confirmable → ohne Bestätigung endet sign_in im 302 auf /login
     )
   end
 

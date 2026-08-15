@@ -10,7 +10,8 @@ module Api
   class ExternalTournamentsDiscoveryTest < ActionDispatch::IntegrationTest
     setup do
       @nbv = regions(:nbv)
-      @service_user = User.create!(email: "test-carambus-app-discovery@carambus.de", password: "password123")
+      @service_user = User.create!(email: "test-carambus-app-discovery@carambus.de", password: "password123",
+        confirmed_at: Time.zone.now) # User ist :confirmable → ohne Bestätigung scheitert login_jwt mit 401
       @season = Season.create!(name: "ROSTER-CTRL-2099/2100")
       @club = Club.create!(region: @nbv, cc_id: 180_201, shortname: "TST-DC", name: "Discovery Test Club")
       @club2 = Club.create!(region: @nbv, cc_id: 180_202, shortname: "TST-DC2", name: "Discovery Test Club 2")

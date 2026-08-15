@@ -1,0 +1,82 @@
+<h2 class="sr-only">Redesign-Richtung A: helles, ruhiges SaaS-Layout für Carambus mit Top-Navigation, Region-Umschalter und aufgeräumter Turnierliste</h2>
+<div style="font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; background: #eceae5; border-radius: 16px; padding: 14px; color: #26251f;">
+  <style>
+    .a-frame{background:#faf9f6;border:1px solid #e2ded4;border-radius:12px;overflow:hidden}
+    .a-nav a{color:#57534e;text-decoration:none;font-size:13px;padding:6px 10px;border-radius:8px}
+    .a-nav a.on{background:#e7f0ee;color:#0f5f56}
+    .a-row{display:flex;align-items:center;gap:12px;padding:12px 16px;border-top:1px solid #eeece5;background:#fff}
+    .a-row:hover{background:#f6f5f1}
+    .a-chip{font-size:11px;padding:2px 9px;border-radius:20px;font-weight:500}
+    .a-badge{font-size:11px;color:#8a857a;border:1px solid #e2ded4;padding:1px 8px;border-radius:6px}
+    .a-btn{background:#0f5f56;color:#fff;border:none;border-radius:9px;padding:10px 16px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit}
+  </style>
+  <div class="a-frame">
+    <div style="display:flex;align-items:center;gap:14px;padding:12px 16px;border-bottom:1px solid #e2ded4;background:#fff">
+      <span style="font-weight:600;font-size:15px;letter-spacing:-0.2px">Carambus</span>
+      <span class="a-nav" style="display:flex;gap:2px;margin-left:6px">
+        <a class="on" href="#">Turniere</a><a href="#">Ligen</a><a href="#">Spieler</a><a href="#">Orte</a>
+      </span>
+      <span style="margin-left:auto;display:flex;align-items:center;gap:10px">
+        <span style="display:flex;align-items:center;gap:6px;font-size:12px;color:#57534e;border:1px solid #e2ded4;padding:5px 10px;border-radius:8px;background:#faf9f6"><i class="ti ti-world" aria-hidden="true"></i> Alle Regionen <i class="ti ti-chevron-down" style="font-size:14px" aria-hidden="true"></i></span>
+        <span style="width:28px;height:28px;border-radius:50%;background:#e7f0ee;color:#0f5f56;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500">GU</span>
+      </span>
+    </div>
+    <div style="padding:16px 16px 6px;display:flex;align-items:baseline;gap:10px">
+      <span style="font-size:19px;font-weight:600;letter-spacing:-0.3px">Turniere</span>
+      <span style="font-size:12px;color:#8a857a">312 · alle Regionen · Saison 2025/2026</span>
+      <input placeholder="Suchen…" style="margin-left:auto;width:150px;font-size:12px;padding:6px 10px;border:1px solid #e2ded4;border-radius:8px;background:#fff;color:#26251f"/>
+    </div>
+    <div style="margin:8px 0 0">
+      <div class="a-row">
+        <div style="flex:1">
+          <div style="font-size:14px;font-weight:500">Dreiband Bezirksliga</div>
+          <div style="font-size:12px;color:#8a857a;margin-top:2px">14.–16. Feb 2026 · BC Wedel</div>
+        </div>
+        <span class="a-chip" style="background:#eaf2ff;color:#1e498c">3-Band</span>
+        <span class="a-badge">NBV</span>
+        <i class="ti ti-chevron-right" style="color:#c3bfb4" aria-hidden="true"></i>
+      </div>
+      <div class="a-row">
+        <div style="flex:1">
+          <div style="font-size:14px;font-weight:500">Snooker Verbandsliga</div>
+          <div style="font-size:12px;color:#8a857a;margin-top:2px">21. Feb 2026 · PBC Waghäusel</div>
+        </div>
+        <span class="a-chip" style="background:#e9f7ee;color:#1c6b3f">Snooker</span>
+        <span class="a-badge">BVBW</span>
+        <i class="ti ti-chevron-right" style="color:#c3bfb4" aria-hidden="true"></i>
+      </div>
+      <div class="a-row">
+        <div style="flex:1">
+          <div style="font-size:14px;font-weight:500">Pool 9-Ball Landesmeisterschaft</div>
+          <div style="font-size:12px;color:#8a857a;margin-top:2px">07. Mär 2026 · BC Schrebergarten</div>
+        </div>
+        <span class="a-chip" style="background:#fdeede;color:#8a5a12">Pool</span>
+        <span class="a-badge">NRW</span>
+        <i class="ti ti-chevron-right" style="color:#c3bfb4" aria-hidden="true"></i>
+      </div>
+      <div class="a-row" style="background:#f3f8f7;border-left:3px solid #0f5f56">
+        <div style="flex:1">
+          <div style="font-size:14px;font-weight:500">Karambol Oberliga Vierkampf</div>
+          <div style="font-size:12px;color:#8a857a;margin-top:2px">14. Mär 2026 · Johannes Schule</div>
+        </div>
+        <span class="a-chip" style="background:#efeafd;color:#4b3a8c">Karambol</span>
+        <span class="a-badge">DBU</span>
+        <i class="ti ti-chevron-right" style="color:#0f5f56" aria-hidden="true"></i>
+      </div>
+    </div>
+    <div style="padding:14px 16px;background:#faf9f6;border-top:1px solid #e2ded4">
+      <div style="font-size:13px;font-weight:500;margin-bottom:8px">Karambol Oberliga Vierkampf</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 20px;font-size:12px">
+        <div style="display:flex;justify-content:space-between;border-bottom:1px solid #eeece5;padding-bottom:5px"><span style="color:#8a857a">Disziplin</span><span>Karambol klein</span></div>
+        <div style="display:flex;justify-content:space-between;border-bottom:1px solid #eeece5;padding-bottom:5px"><span style="color:#8a857a">Ausrichter</span><span>DBU</span></div>
+        <div style="display:flex;justify-content:space-between;border-bottom:1px solid #eeece5;padding-bottom:5px"><span style="color:#8a857a">Ort</span><span>Johannes Schule</span></div>
+        <div style="display:flex;justify-content:space-between;border-bottom:1px solid #eeece5;padding-bottom:5px"><span style="color:#8a857a">Teilnehmer</span><span>16</span></div>
+      </div>
+      <div style="font-size:11px;color:#b0aba0;margin-top:8px">Quelle: billard-niederrhein.de · zuletzt synchronisiert 17.03.2025</div>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:12px;margin-top:12px">
+    <button class="a-btn" onclick="sendPrompt('Ich tendiere zu Richtung A (Klar & Redaktionell). Baue diese Richtung weiter aus.')">Richtung A wählen ↗</button>
+    <span style="font-size:12px;color:#6b675e">Hell · Neutralgrau · ein ruhiger Teal-Akzent · Top-Nav · tabellenarm</span>
+  </div>
+</div>

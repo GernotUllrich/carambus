@@ -9,7 +9,8 @@ module Api
   class ExternalTournamentsCategoriesTest < ActionDispatch::IntegrationTest
     setup do
       @nbv = regions(:nbv)
-      @service_user = User.create!(email: "test-carambus-app-cat@carambus.de", password: "password123")
+      @service_user = User.create!(email: "test-carambus-app-cat@carambus.de", password: "password123",
+        confirmed_at: Time.zone.now) # User ist :confirmable → ohne Bestätigung scheitert login_jwt mit 401
       @region_cc = RegionCc.create!(region: @nbv, context: "nbv", cc_id: 70_101, shortname: "NBV",
         name: "CAT-CTRL RegionCc")
 

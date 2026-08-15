@@ -117,4 +117,22 @@ class Umb::PlayerResolverTest < ActiveSupport::TestCase
     player = resolver.find_by_caps_and_mixed("NONEXISTENT", "Nobody")
     assert_nil player
   end
+
+  # Player validiert nationality auf genau 2 Zeichen. UMB-Junioren-Listen liefern
+  # ausgeschriebene Laender ("Mexico"), gelegentlich 3-Buchstaben-Codes — ohne
+  # Normalisierung scheiterte das Speichern des GANZEN Spielers daran.
+  test "resolve verwirft Nationalitaeten, die nicht ISO-2 sind" do
+    resolver = Umb::PlayerResolver.new
+    player = resolver.resolve("TESTJUNIOR", "Ubaldo", nationality: "Mexico")
+    assert player, "Spieler darf wegen des Laenderfeldes nicht verloren gehen"
+    assert player.persisted?
+    assert_nil player.nationality
+  end
+
+  test "resolve normalisiert gueltige ISO-2-Codes auf Grossbuchstaben" do
+    resolver = Umb::PlayerResolver.new
+    player = resolver.resolve("TESTISO", "Rene", nationality: "nl")
+    assert player&.persisted?
+    assert_equal "NL", player.nationality
+  end
 end

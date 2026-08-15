@@ -131,6 +131,8 @@ class TournamentMonitor::ResultProcessor
         if @tournament_monitor.finals_finished?
           @tournament_monitor.decr_current_round!
           update_ranking
+          write_final_ranking
+          report_final_ranking
           write_finale_csv_for_upload
           # noinspection RubyResolve
           @tournament_monitor.end_of_tournament!
@@ -226,19 +228,60 @@ class TournamentMonitor::ResultProcessor
         rule.each do |rule_part|
           player_id = tm.player_id_from_ranking(rule_part, executor_params: executor_params)
           rankings["total"][player_id.to_s]["rank"] = ix
-          @tournament_monitor.tournament.seedings.where(seedings: { player_id: player_id }).first&.update(rank: ix + 1)
+          @tournament_monitor.tournament.seedings.where(seedings: { player_id: player_id }).first&.update(rank: ix)
         end
         ix += rule.count
       else
         player_id = tm.player_id_from_ranking(rule, executor_params: executor_params)
         rankings["total"][player_id.to_s]["rank"] = ix
-        @tournament_monitor.tournament.seedings.where(seedings: { player_id: player_id }).first&.update(rank: ix + 1)
+        @tournament_monitor.tournament.seedings.where(seedings: { player_id: player_id }).first&.update(rank: ix)
         ix += 1
       end
     end
     @tournament_monitor.data_will_change!
     @tournament_monitor.data["rankings"] = rankings
     @tournament_monitor.save!
+  end
+
+  # Plan 29-02: Schreibt die Gesamtrangliste je Seeding, direkt nach `update_ranking` — erst dort
+  # stehen die Platzierungen fest. Bis hierher hat nur die ClubCloud diese Struktur berechnet
+  # (Befund 29-01 §0.A), weshalb selbst gespielte Turniere bisher ohne Ergebnis dastanden.
+  #
+  # BEWUSST FEHLERTOLERANT: Ein Fehler beim Schreiben der Rangliste darf den Turnier-Abschluss NICHT
+  # verhindern — die nachfolgenden State-Transitions (end_of_tournament!/finish_tournament!/
+  # have_results_published!) muessen laufen. Ein haengengebliebenes Turnier waere schlimmer als eine
+  # fehlende Rangliste, und `rake tournaments:write_final_rankings` kann sie jederzeit nachtragen.
+  def write_final_ranking
+    result = Tournament::FinalRankingWriter.new(
+      tournament: @tournament_monitor.tournament, armed: true
+    ).call
+    Rails.logger.info "[write_final_ranking] Turnier[#{@tournament_monitor.tournament_id}] " \
+                      "geschrieben=#{result.seedings_written} " \
+                      "fremd_uebersprungen=#{result.skipped_foreign_result}"
+  rescue StandardError => e
+    Rails.logger.error "[write_final_ranking] Turnier[#{@tournament_monitor.tournament_id}] " \
+                       "fehlgeschlagen: #{e.message} — Turnier-Abschluss laeuft weiter, " \
+                       "Nachtrag via rake tournaments:write_final_rankings"
+  end
+
+  # Plan 29-03: Meldet den Abschluss an den Region Server, damit er ueber den Ingest (28-01) auf die
+  # Authority und von dort per Sync an alle Instanzen gelangt. Laeuft nach `write_final_ranking` —
+  # es kann nur gemeldet werden, was vorher geschrieben wurde.
+  #
+  # FEHLERTOLERANT AUS DEMSELBEN GRUND wie write_final_ranking, hier sogar noch dringender: die
+  # Gegenstelle ist ein anderer Server. Ein Netzausfall im Vereinslokal darf kein Turnier blockieren.
+  # Nachtrag via `rake tournaments:report_results TOURNAMENT=<id> ARMED=1`.
+  def report_final_ranking
+    result = LocationServer::ResultReporter.new(
+      tournament: @tournament_monitor.tournament, armed: true
+    ).call
+    Rails.logger.info "[report_final_ranking] Turnier[#{@tournament_monitor.tournament_id}] " \
+                      "gemeldet=#{result.reported} " \
+                      "ohne_source_url=#{result.skipped_no_source_url}"
+  rescue StandardError => e
+    Rails.logger.error "[report_final_ranking] Turnier[#{@tournament_monitor.tournament_id}] " \
+                       "fehlgeschlagen: #{e.message} — Turnier-Abschluss laeuft weiter, " \
+                       "Nachtrag via rake tournaments:report_results"
   end
 
   # Delegiert an update_game_participations_for_game (alte API, für Abwärtskompatibilität).
@@ -310,6 +353,7 @@ class TournamentMonitor::ResultProcessor
     end
 
     # Automatische Übertragung in die ClubCloud
+    report_to_region_server = false
     if @tournament_monitor.tournament.tournament_cc.present? && @tournament_monitor.tournament.auto_upload_to_cc?
       Rails.logger.info "[TournamentMonitorState] Attempting ClubCloud upload for game[#{game.id}]..."
       result = Setting.upload_game_to_cc(table_monitor)
@@ -326,6 +370,21 @@ class TournamentMonitor::ResultProcessor
         # Fehler ist bereits in tournament.data["cc_upload_errors"] geloggt
         # Nicht weiterwerfen, damit finalize_game_result nicht fehlschlägt
       end
+    elsif @tournament_monitor.tournament.tournament_cc.blank? &&
+        @tournament_monitor.tournament.source_url.present?
+      # Plan 32-09: CC-loser Ergebnisweg. Der Region Server nimmt die Rolle der ClubCloud ein —
+      # er haelt die Ergebniszeile, bis die Authority sie holt (32-10).
+      #
+      # `elsif` MIT ABSICHT: ein Turnier ist entweder CC-gefuehrt oder CC-los, nie beides. Ein
+      # zweites `if` wuerde bei einem CC-Turnier doppelt melden.
+      #
+      # `tournament_cc.blank?` MUSS mitgeprueft werden und ist nicht durch das `elsif` abgedeckt:
+      # ein CC-Turnier mit abgeschaltetem `auto_upload_to_cc?` faellt sonst hier hinein und meldet
+      # an den Region Server, obwohl seine Ergebnisse der ClubCloud gehoeren.
+      #
+      # HIER WIRD NUR ENTSCHIEDEN, NICHT GEMELDET: der Aufruf steht weiter unten, NACH
+      # `update_game_participations_for_game`. Warum, siehe dort.
+      report_to_region_server = true
     end
 
     # Update game participations unless manual assignment is enabled
@@ -333,6 +392,22 @@ class TournamentMonitor::ResultProcessor
     # durch populate_tables zu einem neuen Game reassigned werden könnte!
     Rails.logger.info "[finalize_game_result] manual_assignment=#{@tournament_monitor.tournament.manual_assignment}, calling update_game_participations=#{!@tournament_monitor.tournament.manual_assignment}"
     update_game_participations_for_game(game, table_monitor.data) unless @tournament_monitor.tournament.manual_assignment
+
+    # ERST HIER, NICHT OBEN IM elsif-ZWEIG: Der Reporter liest `game.game_participations` —
+    # `result`/`innings`/`hs`/`gd` stehen dort aber erst, nachdem
+    # `update_game_participations_for_game` sie geschrieben hat (Zeile 508). Die Spiele entstehen
+    # bei der Tischbelegung nur mit `player_id` und `role` (table_populator.rb:747); vorher sind
+    # die Ergebnisspalten NULL.
+    #
+    # Bis Plan 36-04 stand der Aufruf oben — der Region Server bekam damit jedes Spiel mit leerem
+    # Ergebnis ("Punkte" => ":"), und die Authority verteilte es so weiter. Der CC-Zweig war nie
+    # betroffen: er liest `table_monitor.data["ba_results"]` (setting.rb:1023), das bereits
+    # innerhalb des Locks geschrieben wurde. Deshalb fiel es am produktiven Weg nicht auf.
+    #
+    # Bei `manual_assignment` bleiben die Spalten hier leer — dort traegt der Turnierleiter die
+    # Ergebnisse spaeter selbst nach (tournament_monitors_controller.rb:114), und der Reporter
+    # meldet, was zu diesem Zeitpunkt dasteht.
+    report_game_result_to_region_server(game) if report_to_region_server
     Rails.logger.info "[finalize_game_result] DONE"
 
     # For KO tournaments: Remove finished game from placements to free up the table
@@ -359,6 +434,35 @@ class TournamentMonitor::ResultProcessor
 
     # TableMonitor wird NICHT hier gecleared - das passiert erst in populate_tables,
     # wenn alle Games der Runde fertig sind. So bleiben die Ergebnisse am Scoreboard sichtbar.
+  end
+
+  # Plan 32-09: Meldet EIN abgeschlossenes Spiel an den Region Server (CC-loser Ergebnisweg).
+  #
+  # FEHLER BRECHEN DEN SPIELBETRIEB NICHT AB — dieselbe Zusage, die der CC-Zweig gibt (oben) und
+  # die `report_final_ranking` fuer den Turnier-Abschluss gibt: der lokale Stand fuehrt. Der
+  # Authority-Pull (32-10) liest ohnehin den Gesamtstand der Source, deshalb ist ein verpasster
+  # Einzel-Push kein Datenverlust, solange spaeter noch einer durchgeht.
+  def report_game_result_to_region_server(game)
+    result = LocationServer::GameResultReporter.new(game: game, armed: true).call
+    Rails.logger.info "[report_game_result] game[#{game.id}] (#{game.gname}) " \
+                      "gemeldet=#{result.reported} " \
+                      "ohne_source_url=#{result.skipped_no_source_url} " \
+                      "nicht_abbildbar=#{result.skipped_unmappable_name} " \
+                      "unvollstaendig=#{result.skipped_incomplete} " \
+                      "angenommen=#{result.response&.dig("accepted").inspect} " \
+                      "aktualisiert=#{result.response&.dig("updated").inspect}"
+
+    # Plan 36-04: Die Antwort des Region Servers gehoert ins Log. Ohne sie sieht eine komplett
+    # abgewiesene Meldung ({"accepted":0,"unresolved":[...]}) genauso aus wie eine erfolgreiche —
+    # `gemeldet=1` sagt nur, dass gesendet wurde, nicht dass angekommen ist.
+    unresolved = Array(result.response&.dig("unresolved"))
+    if unresolved.present?
+      Rails.logger.warn "[report_game_result] game[#{game.id}] vom Region Server ABGEWIESEN: " \
+                        "#{unresolved.join(" | ")}"
+    end
+  rescue StandardError => e
+    Rails.logger.error "[report_game_result] game[#{game.id}] fehlgeschlagen: #{e.message} — " \
+                       "Spielbetrieb laeuft weiter, der Authority-Pull holt den Gesamtstand"
   end
 
   # Aktualisiert GameParticipation-Records für ein bestimmtes Game mit den gegebenen Daten.
@@ -520,7 +624,7 @@ result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
     f = File.new("#{Rails.root}/tmp/result-#{@tournament_monitor.tournament.cc_id}.csv", "w")
     f.write(game_data.join("\n"))
     f.close
-    emails = ["gernot.ullrich@gmx.de"]
+    emails = []
 
     # Safely try to fetch current_admin email without crashing
     begin

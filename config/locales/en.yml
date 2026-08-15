@@ -585,6 +585,14 @@ en:
       region_season: "(%{region}, season %{season})"
       help: How can I help you?
   static:
+    sync_data:
+      button: "🔄 Sync data now"
+      running: "Syncing …"
+      behind_html: "Data is %{behind} versions behind the authority."
+      done: "Data sync complete: fetched %{count} new versions (now at %{version})."
+      api_server: "Data sync is only available on local servers."
+      forbidden: "Administrators only."
+      failed: "Data sync failed (authority unreachable?)."
     about:
       content: |
         <i>
@@ -952,11 +960,112 @@ en:
       tournament_plans: "Tournament Plans"
       new_tournament_plan: "New Tournament Plan"
   tournaments:
+    region_server_actions:
+      heading: "Administration — %{title}"
+      subline: "Region Server: maintain the registration list and results. Mode, start and scoreboards run at the venue (Location Server)."
+      meldeliste: Maintain registration list
+      ergebnisse: Maintain results
+      rangliste: Maintain final ranking
     edit:
       back: Back
       cancel: Cancel
       editing_tournament: Editing Tournament
       show: Show
+    # Plan 35-03: CC-less result list (manual entry from match reports).
+    game_results:
+      heading: "Results — %{title}"
+      subline: "Transfer match results from the match reports. Play happens at the venue; results are recorded here."
+      count: "%{count} matches recorded"
+      list_heading: Recorded matches
+      empty: No results recorded yet.
+      col_game: Match
+      col_seqno: No.
+      col_player: Player
+      col_balls: Balls
+      col_innings: Innings
+      col_average: Avg
+      col_hs: HR
+      delete: Remove
+      delete_confirm: "Remove result %{gname} / match %{seqno}?"
+      form_heading: Record a result
+      form_hint: Choose match and number, then enter both players with their figures. Recording the same match again corrects the existing result.
+      select_game: Match
+      select_game_blank: — choose match —
+      seqno: Match number
+      player_a: Player A
+      player_b: Player B
+      select_player_blank: — choose player —
+      balls: Balls
+      innings: Innings
+      hs: Highest run
+      submit: Save result
+      submitting: Saving…
+      back_to_tournament: Back to tournament
+      flash:
+        recorded: "Result %{gname} / match %{seqno} recorded."
+        updated: "Result %{gname} / match %{seqno} corrected."
+        deleted: Result removed.
+        delete_failed: This result could not be removed.
+        name_invalid: Please choose a match from the list.
+        seqno_missing: Please provide a match number.
+        players_missing: Please choose both players.
+        players_equal: A player cannot play against themselves.
+        players_unknown: Both players must be registered for this tournament.
+        local_server_only: Results are maintained on the Region Server, not on the API server.
+        cc_tournament: This tournament runs via the ClubCloud — results are maintained there.
+    # Plan 36-01: CC-less final ranking (data entry, not computation).
+    rankings:
+      heading: "Final ranking — %{title}"
+      subline: "The final figures per registered player. Place and points are entered by the sports officer — just as in the ClubCloud."
+      discipline: "Columns for discipline %{root}"
+      discipline_fallback: "(discipline not assigned — using Karambol columns)"
+      empty: No one is registered for this tournament.
+      form_heading: Enter final ranking
+      form_hint: Place and points are entered by hand. The remaining figures are suggestions derived from the recorded games and can be overwritten. Empty rows are not saved.
+      col_player: Player
+      col_club: Club
+      submit: Save final ranking
+      submitting: Saving…
+      back_to_tournament: Back to tournament
+      flash:
+        saved: "%{written} placements saved, %{skipped} skipped (owned by the ClubCloud)."
+        local_server_only: The final ranking is maintained on the Region Server, not on the API server.
+        cc_tournament: This tournament runs via the ClubCloud — the final ranking is maintained there.
+    # Plan 35-01: CC-less registration list flow on the Region Server.
+    entry_list:
+      heading: "Registration list — %{title}"
+      subline: "Who is registered for this tournament. Seeding and playing mode are decided at the venue."
+      season: Season
+      count: "%{count} registrations"
+      draft_notice: "This tournament is still a draft. After release the Authority takes over the registration list."
+      release: Release registration list
+      back_to_tournament: Back to tournament
+      list_heading: Registered players
+      empty: Nobody registered yet.
+      col_position: Pos.
+      col_player: Player
+      col_club: Club
+      col_dbu_nr: DBU no.
+      withdraw: Withdraw registration
+      withdraw_confirm: "Withdraw the registration of %{player}?"
+      add_by_club_heading: Register via club
+      add_by_club_hint: Choose a club, then the player.
+      select_club_blank: — choose club —
+      select_player_blank: — choose player —
+      add_by_dbu_heading: Register via DBU number
+      add_by_dbu_hint: Separate multiple numbers with commas.
+      dbu_nr_placeholder: "e.g. 123456, 234567"
+      submit: Register
+      submitting: Registering…
+      flash:
+        added: "✅ %{count} registered: %{players}"
+        already: "ℹ️ %{count} already registered: %{players}"
+        not_found: "❌ %{count} not found (DBU): %{numbers}"
+        nothing_given: Please provide a player or a DBU number.
+        withdrawn: "Withdrew the registration of %{player}."
+        withdraw_failed: This registration could not be withdrawn.
+        local_server_only: The registration list is maintained on the Region Server, not on the API server.
+        cc_tournament: This tournament runs via the ClubCloud — participants are maintained there.
     finalize_modus:
       alternatives_other_disciplines: 'More Alternatives:'
       alternatives_same_discipline: 'Alternatives same discipline:'
@@ -1002,6 +1111,7 @@ en:
       turnier_leiter_blank_option: "— no TL —"
     errors:
       assign_leiter_denied: "Authority-Denied: no permission to assign Tournament Director for this tournament."
+      manage_teilnehmerliste_denied: "Not authorized to manage this tournament's participant list."
     groups:
       groups: Groups
     index:
@@ -1128,7 +1238,7 @@ en:
       step2_continue_hint: Import these players to proceed to step 3.
       step2_continue_title: Imports the existing players and activates step 3
       step2_existing_players_info_html: "ℹ️ <strong>%{count} players already available</strong><br>You can import them directly (see below)"
-      step2_help_body_html: "Upload the <strong>official invitation</strong> from the regional sports officer. Carambus automatically extracts:<br>• <strong>Seeding list</strong> (order by ranking)<br>• <strong>Handicap presets</strong> for handicap tournaments (point targets)<br><br>Supports PDF or screenshot (PNG/JPG).<br>Two-column tables are detected automatically.<br><br><strong>Alternative:</strong> If no invitation is available, you can also proceed directly to step 3 with the ClubCloud registration list (from step 1).<br><br><strong>Note:</strong> You can adjust the seeding (player order/position) in <strong>step 3</strong> if needed (↑↓ buttons or direct position entry)."
+      step2_help_body_html: "Upload the <strong>official invitation</strong> from the regional sports officer. Carambus automatically extracts:<br>• <strong>Seeding list</strong> (order by ranking)<br>• <strong>Handicap presets</strong> for handicap tournaments (point targets)<br><br>Supports PDF or screenshot (PNG/JPG).<br>Two-column tables are detected automatically.<br><br><strong>Alternative:</strong> If no invitation is available, you can also proceed directly to step 3 with the registration list.<br><br><strong>Note:</strong> You can adjust the seeding (player order/position) in <strong>step 3</strong> if needed (↑↓ buttons or direct position entry)."
       step2_invitation_uploaded: "✓ Invitation uploaded:"
       step2_players_available_html: "✓ <strong>%{count} players already available</strong>"
       step2_players_taken: "%{count} players already imported as participants."
@@ -1155,25 +1265,25 @@ en:
       step6_title: Manage tournament games
       step6_warning: Tournament not started yet
     compare_seedings:
-      alt_clubcloud_body_html: "If no invitation is available, you can proceed with the <strong>ClubCloud registration list</strong> directly to step 3 (edit participants list)."
-      alt_clubcloud_heading: "📊 Alternative: Continue with ClubCloud registration list"
+      alt_clubcloud_body_html: "If no invitation is available, you can proceed with the <strong>registration list</strong> directly to step 3 (edit participants list)."
+      alt_clubcloud_heading: "📊 Alternative: Continue with the registration list"
       alt_manual_heading: "✏️ Alternative: Sort manually"
       auto_extract_note: The seeding list will be extracted automatically!
       back: ← Back
       choose_file: Choose file
-      clubcloud_list_heading: "ClubCloud registration list (%{count} players):"
-      confirm_use_clubcloud_as_is: "Take the ClubCloud order exactly as-is as the seeding list and proceed to step 3?"
-      confirm_use_clubcloud_by_ranking: "Take the ClubCloud registration list as the participants list and sort by ranking?\n\nPlayers will be sorted automatically by the Carambus ranking."
+      clubcloud_list_heading: "Registration list (%{count} players):"
+      confirm_use_clubcloud_as_is: "Take the registration list order exactly as-is as the seeding list and proceed to step 3?"
+      confirm_use_clubcloud_by_ranking: "Take the registration list as the participants list and sort by ranking?\n\nPlayers will be sorted automatically by the Carambus ranking."
       drop_file_here: Drop file here
       file_types: PDF or screenshot (PNG, JPG)
       heading: "Apply seeding list:"
       how_it_works: "💡 How it works:"
       invitation_present: "✅ Invitation present:"
-      load_clubcloud_hint: Please first load the ClubCloud registration list in step 1.
+      load_clubcloud_hint: No registration list available yet.
       manual_sort_body: "Or sort the list automatically by the current ranking:"
-      no_clubcloud_data: "⚠️ No ClubCloud data available."
-      open_clubcloud: 🔗 Open ClubCloud (for comparison)
-      option_as_clubcloud_html: "<strong>As in ClubCloud:</strong> Takes the order exactly as it appears in ClubCloud"
+      no_clubcloud_data: "⚠️ No registration list available."
+      open_clubcloud: 🔗 Open source (for comparison)
+      option_as_clubcloud_html: "<strong>As registered:</strong> Takes the order exactly as it appears in the registration list"
       option_by_ranking_html: "<strong>Sorted by ranking:</strong> Carambus sorts automatically by the current ranking (recommended for regional tournaments)"
       or_drag_file: 💡 Or drag a file here (e.g. from email)
       processing: Processing...
@@ -1187,7 +1297,7 @@ en:
       two_options_label: "Two options:"
       upload_and_parse: Upload & auto-parse
       upload_heading: 📧 Upload official invitation
-      use_clubcloud_as_is: Use this order (as in ClubCloud)
+      use_clubcloud_as_is: Use this order (as registered)
       use_clubcloud_by_ranking: "→ With registration list to step 3 (sorted by ranking)"
     define_participants:
       add_player_button: Add player
@@ -1525,7 +1635,8 @@ en:
   view: View
   warning: Warning
   welcome: Welcome
-  welcome_to_carambus: Welcome to Carambus
+  welcome_to_carambus: Carambus
+  carambus_subtitle: Open-Source-Software for Billiards
   documentation_not_available: Documentation not available
   preferences:
     preferences: preferences
@@ -1636,7 +1747,7 @@ en:
     edit_in_mkdocs: "Edit in MkDocs"
     back_to_documentation: "Back to Documentation"
     related_documentation: "Related Documentation"
-  
+
   ai_assistant:
     title: "AI Assistant"
     close: "Close"

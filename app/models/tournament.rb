@@ -105,6 +105,36 @@ class Tournament < ApplicationRecord
   scope :upcoming, -> { where('date >= ?', Date.today).order(date: :asc) }
   scope :in_year, ->(year) { year.present? ? where('EXTRACT(YEAR FROM date) = ?', year) : all }
 
+  # Plan 27-01: Entwuerfe aus der Saison-Kopie (Tournament::SeasonCopier). Kein eigener AASM-State und
+  # keine Spalte — das Kennzeichen liegt im serialisierten data-Hash (text-Spalte, coder: JSON).
+  # Rohformat verifiziert: {"draft":true,"copied_from_tournament_id":42} — ohne Leerzeichen.
+  # Spalte MUSS qualifiziert sein: der SearchService joint Tabellen, die ebenfalls eine data-Spalte
+  # haben (PG::AmbiguousColumn im tournaments#index).
+  DRAFT_MARKER = '"draft":true'
+  scope :drafts, -> { where("tournaments.data LIKE ?", "%#{DRAFT_MARKER}%") }
+  scope :without_drafts, -> { where("tournaments.data IS NULL OR tournaments.data NOT LIKE ?", "%#{DRAFT_MARKER}%") }
+
+  # Plan 32-01: Round-Trip-Zwilling. Ein CC-los angelegtes Turnier (lokales Original, id >= MIN_ID)
+  # kehrt als GLOBALE Kopie (Authority-Ingest, id < MIN_ID) per Versions-Sync zur URSPRUNGS-Instanz
+  # zurueck und liegt dort neben dem Original. Kennzeichen: der Zwilling traegt
+  # source_url = "https://<region>.carambus.de/tournaments/<lokale-id>" (gesetzt vom EntryListImporter).
+  # Der Scope blendet solche Zwillinge aus — SELBST-SCOPEND: er greift nur, wo das referenzierte lokale
+  # Original tatsaechlich existiert (also auf der Ursprungs-Instanz). Auf der Authority und auf einem
+  # Location Server (kein lokales Original) bleibt der globale Datensatz sichtbar. Reiner Display-Filter,
+  # kein Eingriff in Sync/Ingest. Fremde Provenienzen (CC/LigaManager/NuLiga) treffen das Muster nicht.
+  # NULL-source_url ist explizit ausgenommen, damit globale Turniere ohne source_url sichtbar bleiben.
+  scope :without_roundtrip_twins, lambda {
+    where(
+      "NOT (tournaments.id < :min " \
+      "AND tournaments.source_url IS NOT NULL " \
+      "AND tournaments.source_url ~ '/tournaments/[0-9]+$' " \
+      "AND CAST(substring(tournaments.source_url FROM '/tournaments/([0-9]+)$') AS bigint) >= :min " \
+      "AND EXISTS (SELECT 1 FROM tournaments t2 " \
+      "WHERE t2.id = CAST(substring(tournaments.source_url FROM '/tournaments/([0-9]+)$') AS bigint)))",
+      min: MIN_ID
+    )
+  }
+
   #   data:
   #     {:table_ids=>["2", "4"],
   #      :balls_goal=>0,
@@ -532,6 +562,30 @@ class Tournament < ApplicationRecord
     title || shortname
   end
 
+  # Plan 27-01: Entwurf aus der Saison-Kopie — noch nicht vom Sportwart freigegeben und deshalb aus
+  # der regulaeren Turnierliste ausgeblendet. Tolerant gegen String/Boolean und leeres data.
+  def draft?
+    return false unless data.is_a?(Hash)
+
+    ActiveModel::Type::Boolean.new.cast(data["draft"]).present?
+  end
+
+  # Plan 32-01: Ist dieses (globale) Turnier ein Round-Trip-Zwilling eines HIER existierenden lokalen
+  # Originals? Ruby-Pendant zu scope :without_roundtrip_twins — fuer Views/Tests. Selbst-scopend:
+  # true nur, wenn das in source_url referenzierte lokale Original (id >= MIN_ID) hier vorliegt.
+  def roundtrip_twin?
+    return false unless id && id < MIN_ID
+    return false if source_url.blank?
+
+    match = source_url.match(%r{/tournaments/(\d+)\z})
+    return false unless match
+
+    local_id = match[1].to_i
+    return false unless local_id >= MIN_ID
+
+    Tournament.where(id: local_id).exists?
+  end
+
   # Prüft ob dieses Turnier ClubCloud-Ergebnisse hat
   # ClubCloud-Daten sind erkennbar an:
   # - Seedings mit id < MIN_ID (50_000_000)
@@ -541,6 +595,40 @@ class Tournament < ApplicationRecord
     seedings.where("seedings.id < ?", Seeding::MIN_ID).any? do |seeding|
       seeding.data.present? && seeding.data["result"].present? && seeding.data["result"].is_a?(Hash) && seeding.data["result"].any?
     end
+  end
+
+  # Meldung<->Teilnahme-Diskriminator (Konzern A, Plan 32-03). Reproduziert das bisher ~10x duplizierte
+  # has_local-Idiom EXAKT: lokale Seedings (>= MIN_ID) haben Vorrang, sonst die CC-Meldung (< MIN_ID).
+  # effective_seedings filtert state NICHT (der no_show-Ausschluss bleibt Sache der Aufrufer) und ordnet
+  # nicht — beides haengt der Aufrufer wie bisher selbst an. Konzern B (32-04) macht die Auswahl auf dem
+  # Region Server state-basiert, auf dem Location Server MIN_ID-verhaltensgleich; die Aufrufer bleiben.
+  def has_local_seedings?
+    seedings.where("seedings.id >= ?", Seeding::MIN_ID).exists?
+  end
+
+  def effective_seedings
+    if cc_less_seedings?
+      participants = seedings.where(state: %w[seeded participated])
+      participants.exists? ? participants : seedings.where(state: "registered")
+    elsif has_local_seedings?
+      seedings.where("seedings.id >= ?", Seeding::MIN_ID)
+    else
+      seedings.where("seedings.id < ?", Seeding::MIN_ID)
+    end
+  end
+
+  # Konzern B (Plan 32-04, Modell X): transitioniert die effektiven (nicht-no_show) Seedings in einen
+  # Teilnahme-Zustand (event: :seed | :participate). Reine Instrumentierung — effective_seedings liest
+  # bis 32-05 noch MIN_ID-basiert, daher verhaltensneutral. Nur effektive Seedings (Location Server:
+  # die lokalen >= MIN_ID; die CC-Meldung < MIN_ID bliebe ohnehin durch LocalProtector geschuetzt).
+  def mark_effective_seedings!(event)
+    # Nur LOKALE (schreibbare, >= MIN_ID) effektive Seedings transitionieren: auf dem Location Server sind
+    # die Teilnehmer lokal (die CC-Meldung < MIN_ID waere ohnehin LocalProtector-geschuetzt und wird nicht
+    # finalisiert), auf dem Region Server sind alle lokal. Verhindert ein save!-Brechen bei CC-only.
+    effective_seedings
+      .where.not(state: "no_show")
+      .where("seedings.id >= ?", Seeding::MIN_ID)
+      .find_each { |s| s.public_send("#{event}!") }
   end
 
   # ===== Automatic Table Reservation for Heating Control =====
@@ -603,6 +691,16 @@ class Tournament < ApplicationRecord
   end
 
   private
+
+  # CC-los (Konzern B, Plan 32-05): alle Seedings lokal (>= MIN_ID) UND region_server-Rolle → MIN_ID kann
+  # Meldung/Teilnehmer nicht trennen, Seeding.state diskriminiert. Bei vorhandener globaler Meldung
+  # (< MIN_ID, z.B. Location Server ODER historisches NBV-Region-Turnier) bleibt es beim MIN_ID-Zweig —
+  # der all-lokal-Guard schuetzt den NBV-Verhaltenserhalt (Teilnehmer dort noch registered).
+  def cc_less_seedings?
+    ApplicationRecord.region_server? &&
+      seedings.exists? &&
+      !seedings.where("seedings.id < ?", Seeding::MIN_ID).exists?
+  end
 
   def before_all_events
     Tournament.logger.info "[tournament] #{aasm.current_event.inspect}"

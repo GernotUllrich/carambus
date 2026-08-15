@@ -21,6 +21,12 @@ append :linked_dirs, "log", "tmp/pids", "tmp/cache", "tmp/sockets", "public/syst
 # durch scenario:prepare_deploy; sonst bleibt es leer (→ /app/ 404, harmlos).
 append :linked_dirs, "public/app"
 
+# public/uebersichten: die statischen Bestandsuebersichten (rake coverage:pages). Sie werden auf
+# dem Server ERZEUGT, nicht mitdeployt — deshalb ein linked_dir und nicht ein Verzeichnis im Repo:
+# so ueberlebt der Stand jeden Deploy, und niemand muss generierte Dateien committen. Universell
+# wie public/app: bleibt das Verzeichnis leer, liefert nginx 404 — harmlos.
+append :linked_dirs, "public/uebersichten"
+
 # Default value for keep_releases is 5
 set :keep_releases, 5
 

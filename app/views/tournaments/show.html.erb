@@ -10,16 +10,28 @@
     <%= render :partial => "show", locals: { tournament: @tournament, subtitle: "", show_edit_back: true } %>
   </div>
 
-  <!-- New Wizard UI (Version 2 mit überarbeiteter Reihenfolge) - Nur für Spielleiter auf lokalen Servern ohne ClubCloud-Ergebnisse -->
+  <!-- Nur für Spielleiter auf lokalen Servern ohne ClubCloud-Ergebnisse -->
   <% if tournament_director?(current_user) && local_server? && !@tournament.has_clubcloud_results? %>
-    <%= render 'wizard_steps_v2', tournament: @tournament %>
+    <% if region_server_lsw_view?(@tournament) %>
+      <%# Region Server (CC-los): kein Wizard — der ist Location-Server-Tournament-Management mit
+          CC-Bias. Zwei Aktionen genügen (Betreiber-Entscheidung 2026-07-25). %>
+      <%= render 'region_server_actions', tournament: @tournament %>
+    <% else %>
+      <%# Location Server / CC-Turniere: der volle Wizard (Modus/Start/Scoreboards). %>
+      <%= render 'wizard_steps_v2', tournament: @tournament %>
+    <% end %>
   <% end %>
 
   <!-- Tournament Status Overview - Für alle sichtbar wenn Turnier läuft/abgeschlossen -->
   <!-- Enthält jetzt auch die Setzliste mit Rankings -->
   <%= render 'tournament_status', tournament: @tournament %>
 
-  <% if !@tournament.has_clubcloud_results? %>
+  <%# Regionales K.-o.-Diagramm der Hauptrunde (aus den Ergebniszeilen; unabhängig vom tournament_monitor) %>
+  <%= render 'ko_bracket_regional', tournament: @tournament %>
+
+  <%# ClubCloud-Meldeliste-Block: CC-behaftet (Titel, Wizard-Schritt-1-Verweis) → auf dem CC-losen
+      Region Server ausgeblendet. Die aktuelle Meldeliste sieht der LSW ohnehin in der Setzliste/Rangliste. %>
+  <% if !@tournament.has_clubcloud_results? && !region_server_lsw_view?(@tournament) %>
     <div class="seedings-table-container">
       <h2>
         <%= t("tournaments.show.clubcloud_registration_list.title") %>
@@ -70,13 +82,13 @@
     </div>
   <% end %>
 
-  <%- seeding_scope = @tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").count > 0 ? "seedings.id >= #{Seeding::MIN_ID}" : "seedings.id < #{Seeding::MIN_ID}" %>
+  <%# Plan 32-03: effective_seedings (lokale bevorzugen, sonst ClubCloud) statt dupliziertem has_local-Idiom %>
 
   <!-- Rankings Section -->
   <div class="seedings-table-container">
     <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3 mt-6"><%= I18n.t("tournaments.show.rankings") %></h2>
       <div class="flex flex-col gap-6 bg-surface-card dark:bg-gray-800 rounded-card border border-gray-200 dark:border-gray-700 p-4 overflow-x-auto">
-        <%- lists = @tournament.seedings.where(seeding_scope).joins(:player).order("players.lastname, players.firstname").map { |s| s.data["result"].keys rescue [] }.inject([]) { |a, memo| memo |= a; memo } %>
+        <%- lists = @tournament.effective_seedings.joins(:player).order("players.lastname, players.firstname").map { |s| s.data["result"].keys rescue [] }.inject([]) { |a, memo| memo |= a; memo } %>
         <%- lists.each do |list| %>
           <div class="flex flex-col">
             <h3><%= list %></h3>
@@ -86,13 +98,13 @@
             <table class="flex-1">
               <thead>
               <tr>
-                <%- @tournament.seedings.where(seeding_scope).select { |seeding| seeding.data["result"].andand[list].present? }.first.data["result"][list].keys.each do |k| %>
+                <%- @tournament.effective_seedings.select { |seeding| seeding.data["result"].andand[list].present? }.first.data["result"][list].keys.each do |k| %>
                   <th class="text-left text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 p-2 whitespace-nowrap"><%= k %></th>
                 <%- end %>
               </tr>
               </thead>
               <tbody>
-              <%- @tournament.seedings.where(seeding_scope).select do |seeding|
+              <%- @tournament.effective_seedings.select do |seeding|
                 seeding.data["result"].andand[list].present?
               end.sort_by do |seeding|
                 if seeding.data["result"][list]["Rank"].present?
@@ -115,7 +127,8 @@
   </div>
 
   <!-- Games Section -->
-  <%- game_scope = @tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").count > 0 ? "games.id >= #{Game::MIN_ID}" : "games.id < #{Game::MIN_ID}" %>
+  <%# Plan 32-03: has_local_seedings? entscheidet lokale vs. globale Games (Game-Scope bleibt games.id-basiert) %>
+  <%- game_scope = @tournament.has_local_seedings? ? "games.id >= #{Game::MIN_ID}" : "games.id < #{Game::MIN_ID}" %>
   <div class="seedings-table-container">
     <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3 mt-6"><%= I18n.t("tournaments.show.games") %></h2>
       <div class="bg-surface-card dark:bg-gray-800 rounded-card border border-gray-200 dark:border-gray-700 p-4 overflow-x-auto">
@@ -149,8 +162,10 @@
       </div>
   </div>
 
-  <!-- Admin Actions -->
-  <% if local_server? %>
+  <!-- Admin Actions (TableMonitor-Reset, Force-Reset, Sysadmin-Reload) — Tournament-Management,
+       gehört auf den Location Server; auf dem CC-losen Region Server ausgeblendet. Die Meldeliste-
+       Pflege liegt im Zwei-Link-Panel oben. -->
+  <% if local_server? && !region_server_lsw_view?(@tournament) %>
     <div class="admin-actions-container flex flex-wrap items-center gap-2 mt-8">
       <%- games = @tournament.games.where(game_scope).order(seqno: :asc) %>
 
@@ -219,6 +234,17 @@
         <% end %>
       <% end %>
     </div>
+  <% end %>
+
+  <%# CC-loser On-demand-Reload (Plan 29-06 AC-5): der managende Local Server holt die frische
+      Meldeliste von der Authority. Nur bei CC-losem Turnier (kein tournament_cc), das über den
+      Region-Server-Ingest entstanden ist (source_url gesetzt). Analog dem CC-Reload, ohne ClubCloud. %>
+  <% if local_server? && @tournament.tournament_cc.blank? && @tournament.source_url.present? %>
+    <%= button_to t("tournaments.reload_entry_list.button", default: "Meldeliste neu laden"),
+                  reload_entry_list_tournament_path(@tournament),
+                  method: :post,
+                  class: "btn btn-flat btn-primary",
+                  style: "float: left; margin-right: 10px;" %>
   <% end %>
 
   <!-- Sysadmin: Force Reload from API Server (for closed tournaments with results) -->

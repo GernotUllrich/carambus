@@ -1,5 +1,48 @@
 # frozen_string_literal: true
 
+# external_id ist eine STRING-Spalte. Ein SQL-MAX darauf vergleicht lexikografisch
+# und liefert "99" als groessten Wert, obwohl 419 existiert. Mit diesem falschen
+# Maximum sprang die Suche nach neuen Turnieren auf [99, 350].max = 350 — der
+# gesamte Bereich 100..349 wurde nie geprueft (24 Luecken im Bestand, Stand
+# 2026-08-09). Deshalb ueberall numerisch casten statt `.maximum(:external_id)`.
+UMB_MAX_EXTERNAL_ID = Arel.sql("MAX(NULLIF(regexp_replace(external_id, '\\D', '', 'g'), '')::bigint)")
+
+# Kandidaten-Praedikat fuer Step 4 (Detail-Scrape mit parse_pdfs).
+#
+# Die ersten beiden Bedingungen sind Bestand: keine Games oder nie im Detail
+# gescrapt.
+#
+# Die dritte schliesst eine Luecke, die drei Cron-Laeufe lang unbemerkt blieb:
+# Turniere, die VOR der PlayerListParser-Reparatur (2026-08-10) gescrapt wurden,
+# tragen Games UND `detail_scraped_at` — und fielen damit nie wieder in die
+# Auswahl, obwohl ihre Spielerliste nie erfolgreich geparst wurde. Stand
+# 2026-08-13 waren das 18 von 26 vergangenen Turnieren ohne Seedings, und jedes
+# einzelne trug ein `players_list`-PDF (Stichprobe ext=362: 298 Spieler sauber
+# parsbar). Ohne Seedings kann der Video-Matcher sein Spieler-Signal nicht nutzen.
+#
+# Die PDF-Bedingung ist NICHT optional: ein blosses `seedings.empty?` liesse
+# Turniere ohne Spielerliste (Mannschafts-WMs, Generalversammlungen, Absagen)
+# bei JEDEM Lauf erneut die 50er-Quote fressen — genau der Fehler, den die
+# Sortierung nach Terminnaehe behoben hat.
+def umb_needs_detail_update?(tournament)
+  return true if tournament.games.empty?
+
+  data = tournament.data
+
+  if data.is_a?(Hash)
+    return true if data["detail_scraped_at"].nil?
+
+    pdf_links = data["pdf_links"]
+    tournament.seedings.empty? && pdf_links.is_a?(Hash) && pdf_links.key?("players_list")
+  elsif data.is_a?(String)
+    return true unless data.include?("detail_scraped_at")
+
+    tournament.seedings.empty? && data.include?("players_list")
+  else
+    false
+  end
+end
+
 namespace :umb do
   desc "Efficiently update UMB tournaments (incremental scraping)"
   task update: :environment do
@@ -50,7 +93,7 @@ namespace :umb do
     current_max = InternationalTournament
       .where(international_source: umb_source)
       .where.not(external_id: nil)
-      .maximum(:external_id)
+      .pick(UMB_MAX_EXTERNAL_ID)
       .to_i
     
     # Check from current_max to current_max + 100 for new tournaments
@@ -119,16 +162,22 @@ namespace :umb do
     # Get tournaments from last 2 years that need updates
     # (either no games or haven't been updated recently)
     cutoff_date = 2.years.ago
+    # Sortierung nach ABSTAND zum heutigen Tag, nicht nach Datum absteigend:
+    # UMB pflegt Termine bis 2030 vor, und `date: :desc` stellte genau diese nach
+    # vorne — Turniere, die noch gar nicht stattgefunden haben und deshalb keine
+    # Ergebnis-PDFs besitzen koennen. Sie bekommen nie Games, fallen damit bei
+    # JEDEM Lauf erneut in die Auswahl und verbrauchten die 50er-Quote (Lauf vom
+    # 2026-08-10: 24 der 44 Kandidaten lagen in 2027..2030).
+    # Nach Naehe sortiert kommen zuerst die gerade gespielten Turniere dran, dann
+    # die unmittelbar bevorstehenden (die haben oft schon eine Spielerliste), und
+    # die ferne Zukunft zuletzt.
     all_recent = InternationalTournament
       .where(international_source: umb_source)
       .where('date >= ?', cutoff_date)
-      .includes(:games)
-      .order(date: :desc)
-    
-    recent_tournaments = all_recent.select do |t|
-      t.games.empty? || (t.data.is_a?(Hash) && t.data['detail_scraped_at'].nil?) || 
-        (t.data.is_a?(String) && !t.data.include?('detail_scraped_at'))
-    end.first(50)
+      .includes(:games, :seedings)
+      .order(Arel.sql("ABS(EXTRACT(EPOCH FROM (date - CURRENT_DATE)))"))
+
+    recent_tournaments = all_recent.select { |t| umb_needs_detail_update?(t) }.first(50)
     
     puts "Found #{recent_tournaments.count} recent tournaments to update"
     
@@ -177,7 +226,7 @@ namespace :umb do
     current_max = InternationalTournament
       .where(international_source: umb_source)
       .where.not(external_id: nil)
-      .maximum(:external_id)
+      .pick(UMB_MAX_EXTERNAL_ID)
       .to_i
     
     check_from = [current_max - 10, 1].max
@@ -375,7 +424,7 @@ namespace :umb do
       max_external_id = InternationalTournament
         .where(international_source: umb_source)
         .where.not(external_id: nil)
-        .maximum(:external_id)
+        .pick(UMB_MAX_EXTERNAL_ID)
         .to_i
       
       puts "Database Status:"

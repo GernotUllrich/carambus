@@ -43,8 +43,36 @@ module InternationalHelper
     "UYMAZ" => { full_name: "Birol UYMAZ", country: "TR", rank: 28 },
     "KANG" => { full_name: "KANG Ja In", country: "KR", rank: 30 },
     "COSTA" => { full_name: "Rui Manuel COSTA", country: "PT", rank: 31 },
-    "BLOMDAHL" => { full_name: "Torbjorn BLOMDAHL", country: "SE", rank: 32 }
+    "BLOMDAHL" => { full_name: "Torbjorn BLOMDAHL", country: "SE", rank: 32 },
+
+    # Weitere World-Cup-3C-Halbfinalisten (aus geparsten KO-Daten ermittelt).
+    # Ohne aktuelles Weltranking, daher rank: nil. Nur eindeutige Nachnamen —
+    # kurze/häufige (NGUYEN, CHA, SEO, NGO) bewusst ausgelassen, da der
+    # Substring-Match in detect_player_tags sonst zu viele Fehltreffer erzeugt.
+    "SANCHEZ" => { full_name: "Daniel SANCHEZ", country: "ES", rank: nil },
+    "SAYGINER" => { full_name: "Semih SAYGINER", country: "TR", rank: nil },
+    "COKLU" => { full_name: "Murat Naci COKLU", country: "TR", rank: nil },
+    "CENET" => { full_name: "Lütfi CENET", country: "TR", rank: nil },
+    "HASHAS" => { full_name: "Burak HASHAS", country: "TR", rank: nil },
+    "DE BRUIJN" => { full_name: "Jean Paul DE BRUIJN", country: "NL", rank: nil },
+    "PALAZON" => { full_name: "Javier PALAZON", country: "ES", rank: nil },
+    "MONTES" => { full_name: "Antonio MONTES", country: "ES", rank: nil },
+    "MORALES" => { full_name: "Robinson MORALES", country: "CO", rank: nil },
+    "MARECHAL" => { full_name: "Gwendal MARECHAL", country: "FR", rank: nil },
+    "KASIDOKOSTAS" => { full_name: "Filipos KASIDOKOSTAS", country: "GR", rank: nil },
+    "JEONG" => { full_name: "JEONG Ye Sung", country: "KR", rank: nil }
   }.freeze
+
+  # Wandelt einen ISO-3166-1-alpha-2-Ländercode ("KR", "NL") in ein Flaggen-Emoji.
+  # Gibt nil zurück, wenn kein gültiger 2-Buchstaben-Code vorliegt.
+  def country_flag_emoji(code)
+    return nil if code.blank?
+
+    cc = code.to_s.strip.upcase
+    return nil unless cc.match?(/\A[A-Z]{2}\z/)
+
+    cc.codepoints.map { |cp| (cp - 65 + 0x1F1E6) }.pack("U*")
+  end
 
   # Get all discipline IDs for a group name
   def self.discipline_ids_for_group(group_name)
@@ -105,7 +133,8 @@ module InternationalHelper
       grouped[country] ||= []
       grouped[country] << { tag: tag, name: info[:full_name], rank: info[:rank] }
     end
-    grouped.transform_values { |players| players.sort_by { |p| p[:rank] } }
+    # rank kann nil sein (Halbfinalisten ohne Weltranking) → ans Ende sortieren
+    grouped.transform_values { |players| players.sort_by { |p| p[:rank] || Float::INFINITY } }
   end
 
   # Badge colors for tournament types

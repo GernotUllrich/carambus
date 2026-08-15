@@ -69,7 +69,13 @@ class ScopeResolver
     return @server_context_region_id if defined?(@server_context_region_id)
 
     ctx = Carambus.config.context.to_s.strip.presence
-    @server_context_region_id = ctx && Region.find_by(shortname: ctx)&.id
+    # UPPER-Vergleich, weil `context` in den Szenario-Configs uneinheitlich geschrieben ist
+    # ("tbv" und "nbv" klein, "NBV"/"TBV" gross). Ein exaktes find_by(shortname:) traf dort nie
+    # und fiel still auf den NBV-Default zurueck — auf nbv unsichtbar (Fallback = NBV), auf
+    # tbv.carambus.de sichtbar als falsche Region im Scope-Band.
+    # Gleiches Muster wie Admin::UserFormHelper#server_region und
+    # TournamentsController#server_region_for_new.
+    @server_context_region_id = ctx && Region.find_by("UPPER(shortname) = ?", ctx.upcase)&.id
   end
 
   # Default-Region: pragmatisch NBV (per shortname, sonst erste Region).
@@ -97,9 +103,10 @@ class ScopeResolver
     end
   end
 
-  # Vorsaison ueber ba_id (ordnungsstabil, unabhaengig von lokalen id>=MIN_ID-Records).
+  # Vorsaison name-basiert (Season#previous): NUR der Name "yyyy/yyyy+1" ist verlaesslich —
+  # id und ba_id sind durch das Scrapen internationaler Turniere verrutscht. Wichtig, weil
+  # das im Saison-Umbruch der Default-Ausschnitt des Scope-Bands ist.
   def previous_season(season)
-    return nil unless season&.ba_id
-    Season.where("ba_id < ?", season.ba_id).order(ba_id: :desc).first
+    season&.previous
   end
 end

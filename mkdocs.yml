@@ -83,6 +83,7 @@ plugins:
             Raspberry Pi Client: Raspberry Pi Client
             Scoreboard Autostart: Scoreboard Autostart
             Server Architecture: Server-Architektur
+            CC-less Tournament Management: CC-loses Turniermanagement
             Email Configuration: Email-Konfiguration
             Database Setup: Datenbank-Setup
             YouTube Streaming Quickstart: YouTube Streaming Quickstart
@@ -117,6 +118,7 @@ plugins:
             UMB Scraping: UMB Scraping
             UMB Scraping Implementation: UMB Scraping Implementierung
             UMB Scraping Methods: UMB Scraping Methoden
+            UMB Operations: UMB Betrieb und Wartung
             ClubCloud MCP Server: ClubCloud MCP-Server
             External Tournament Bridge: External-Tournament-Bridge
             Services: Services
@@ -190,6 +192,7 @@ nav:
       - Raspberry Pi Client: administrators/raspberry-pi-client.md
       - Scoreboard Autostart: administrators/scoreboard-autostart.md
       - Server Architecture: administrators/server-architecture.md
+      - CC-less Tournament Management: administrators/cc-less-tournament-management.md
       - Email Configuration: administrators/email-configuration.md
       - Database Setup: administrators/database-setup.md
       - YouTube Streaming Quickstart: administrators/streaming-quickstart.md
@@ -209,6 +212,7 @@ nav:
       - UMB Scraping:
           - UMB Scraping Implementation: developers/umb-scraping-implementation.md
           - UMB Scraping Methods: developers/umb-scraping-methods.md
+          - UMB Operations: developers/umb-betrieb.md
       - ClubCloud MCP:
           - Server-Handbuch: developers/clubcloud-mcp-server.md
           - Architektur-Naht (Identität/Autorisierung): developers/mcp-architektur-naht.md

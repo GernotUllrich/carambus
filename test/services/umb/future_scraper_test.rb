@@ -97,6 +97,7 @@ class Umb::FutureScraperTest < ActiveSupport::TestCase
     assert result >= 0
   end
 
+  # Altes Seitenformat — bleibt unterstuetzt (aeltere Kassetten/Archivseiten).
   test "extract_location handles 'NICE (France)' format" do
     scraper = Umb::FutureScraper.new
     result = scraper.send(:extract_location, "NICE (France)")
@@ -107,6 +108,36 @@ class Umb::FutureScraperTest < ActiveSupport::TestCase
     scraper = Umb::FutureScraper.new
     result = scraper.send(:extract_location, "N/A (Korea)")
     assert_equal "Korea", result
+  end
+
+  # Aktuelles Seitenformat (Stand 2026): "CITY / Country (Country)".
+  # Vorher lieferte die Stadt/Land-Regex hier ", Argentina" — der Ort ging
+  # bei JEDEM Future-Turnier verloren.
+  test "extract_location handles 'CITY / Country (Country)' format" do
+    scraper = Umb::FutureScraper.new
+    assert_equal "Marcos Juarez, Argentina",
+      scraper.send(:extract_location, "MARCOS JUAREZ / Argentina (Argentina)")
+    assert_equal "Ankara, Turkey",
+      scraper.send(:extract_location, "ANKARA / Turkey (Turkey)")
+  end
+
+  test "extract_location handles mehrteilige Ortsnamen im neuen Format" do
+    scraper = Umb::FutureScraper.new
+    assert_equal "Ho Chi Minh City, Vietnam",
+      scraper.send(:extract_location, "HO CHI MINH CITY / Vietnam (Vietnam)")
+  end
+
+  test "extract_location handles 'N/A / Country (Country)' — nur Land" do
+    scraper = Umb::FutureScraper.new
+    assert_equal "Korea", scraper.send(:extract_location, "N/A / Korea (Korea)")
+  end
+
+  # Statuspraefixe bleiben stehen (Information wuerde sonst verloren gehen);
+  # der Bindestrich darf dabei nicht zu Leerzeichen werden.
+  test "extract_location behaelt Statuspraefix und Interpunktion" do
+    scraper = Umb::FutureScraper.new
+    assert_equal "Postponed - Doha, Qatar",
+      scraper.send(:extract_location, "POSTPONED - DOHA / Qatar (Qatar)")
   end
 
   test "extract_location returns nil for org text" do
@@ -204,5 +235,28 @@ class Umb::FutureScraperTest < ActiveSupport::TestCase
     scraper = Umb::FutureScraper.new
     result = scraper.call
     assert result >= 0
+  end
+
+  # --- Duplikat-Erkennung -----------------------------------------------------
+  #
+  # Regressionsschutz: solange location_text Teil des Filters war, legte jede
+  # Formatumstellung der UMB-Uebersicht bei jedem Lauf neue Dubletten an
+  # (Produktionsbestand 2026-08-09: 43 Gruppen, 132 Datensaetze).
+
+  test "erkennt bestehendes Turnier auch bei geaendertem location_text" do
+    stub_request(:get, FUTURE_URL).to_return(status: 200, body: SINGLE_TOURNAMENT_HTML)
+    scraper = Umb::FutureScraper.new
+    scraper.call
+    nachher_erster = InternationalTournament.where(title: "World Cup 3-Cushion Nice").count
+    assert_equal 1, nachher_erster, "Erster Lauf muss genau ein Turnier anlegen"
+
+    # Gleiches Turnier, aber die Seite liefert den Ort jetzt im neuen Format —
+    # extract_location gibt damit einen anderen location_text zurueck.
+    neues_format = SINGLE_TOURNAMENT_HTML.sub("NICE (France)", "NICE / France (France)")
+    stub_request(:get, FUTURE_URL).to_return(status: 200, body: neues_format)
+    Umb::FutureScraper.new.call
+
+    assert_equal 1, InternationalTournament.where(title: "World Cup 3-Cushion Nice").count,
+      "Zweiter Lauf darf trotz abweichendem location_text keine Dublette anlegen"
   end
 end

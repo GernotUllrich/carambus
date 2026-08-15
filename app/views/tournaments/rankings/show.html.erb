@@ -1,0 +1,87 @@
+<%# Plan 36-01: CC-lose Rangliste auf dem Region Server (LSW-Verwaltungsplatz).
+    Erfassung, keine Berechnung: Platz und Punkte trägt der Sportwart ein, die übrigen Werte sind
+    Vorschläge aus den erfassten Spielen. Spaltensatz je Disziplin aus RegionServer::RankingSchema. %>
+<div class="max-w-6xl mx-auto p-4">
+
+  <div class="mb-6">
+    <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">
+      <%= t("tournaments.rankings.heading", title: @tournament.title) %>
+    </h1>
+    <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+      <%= t("tournaments.rankings.subline") %>
+    </p>
+    <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">
+      <%= t("tournaments.rankings.discipline", root: @schema.root) %>
+      <% if @schema.fallback? %>
+        <span class="text-warning-700 dark:text-warning-400">
+          <%= t("tournaments.rankings.discipline_fallback") %>
+        </span>
+      <% end %>
+    </p>
+  </div>
+
+  <% if @seedings.empty? %>
+    <p class="text-sm text-gray-500 dark:text-gray-400 italic mb-6">
+      <%= t("tournaments.rankings.empty") %>
+    </p>
+  <% else %>
+    <div class="mb-6 p-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+      <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">
+        <%= t("tournaments.rankings.form_heading") %>
+      </h2>
+      <%# Ohne diesen Hinweis liest der Sportwart Vorschlagswerte als bestätigte Ergebnisse. %>
+      <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
+        <%= t("tournaments.rankings.form_hint") %>
+      </p>
+
+      <%= form_with url: tournament_ranking_path(@tournament), method: :post, local: true do |f| %>
+        <div class="overflow-x-auto">
+          <table class="min-w-full text-sm">
+            <thead>
+              <tr class="border-b border-gray-200 dark:border-gray-700 text-left text-gray-600 dark:text-gray-400">
+                <th class="py-2 pr-4 font-medium"><%= t("tournaments.rankings.col_player") %></th>
+                <th class="py-2 pr-4 font-medium"><%= t("tournaments.rankings.col_club") %></th>
+                <%# Feldnamen sind zugleich die Datenschlüssel der CC-Struktur und bleiben
+                    deshalb in beiden Sprachen unübersetzt. %>
+                <% @schema.input_fields.each do |field| %>
+                  <th class="py-2 pr-4 font-medium text-right"><%= field.key %></th>
+                <% end %>
+              </tr>
+            </thead>
+            <tbody>
+              <% @seedings.each do |seeding| %>
+                <% row = @rows[seeding.id] || {} %>
+                <tr class="border-b border-gray-100 dark:border-gray-800">
+                  <td class="py-2 pr-4 text-gray-900 dark:text-gray-100 whitespace-nowrap">
+                    <%= seeding.player&.fullname %>
+                  </td>
+                  <td class="py-2 pr-4 text-gray-500 dark:text-gray-400 whitespace-nowrap">
+                    <%= @clubs[seeding.player_id] %>
+                  </td>
+                  <% @schema.input_fields.each do |field| %>
+                    <td class="py-2 pr-4">
+                      <%= text_field_tag "rankings[#{seeding.id}][#{field.key}]",
+                            row[field.key],
+                            class: "form-control w-24 text-right",
+                            autocomplete: "off",
+                            inputmode: (field.type == :integer ? "numeric" : "decimal"),
+                            "aria-label": "#{seeding.player&.fullname} #{field.key}" %>
+                    </td>
+                  <% end %>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+
+        <%= f.submit t("tournaments.rankings.submit"),
+              class: "btn btn-primary mt-4",
+              data: { disable_with: t("tournaments.rankings.submitting") } %>
+      <% end %>
+    </div>
+  <% end %>
+
+  <p class="text-sm">
+    <%= link_to t("tournaments.rankings.back_to_tournament"), tournament_path(@tournament) %>
+  </p>
+</div>

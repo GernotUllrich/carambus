@@ -143,14 +143,16 @@ class RegionTaggableSyncTest < ActiveSupport::TestCase
     region_version = region_intl.versions.reload.last
 
     before = tournament.versions.count
-    # tournament.touch erzwingt eine Version trotz Null-Attribut-Diff
-    # (Events::Update#changed_notably? touch-Spezialfall, siehe 41-RESEARCH.md Q3).
-    tournament.touch
+    # save_with_version erzwingt eine Version trotz Null-Attribut-Diff. Ein blosses
+    # touch reicht NICHT: das :unless-Gate in LocalProtector schluckt reine
+    # updated_at-Aenderungen (Scrape-Hygiene, Plan 19-01 AC-1). Die Redelivery in
+    # lib/tasks/region_taggings.rake nutzt denselben Weg.
+    tournament.paper_trail.save_with_version
 
     tv = tournament.versions.reload.last
-    assert_equal before + 1, tournament.versions.count, "touch muss trotz Null-Attribut-Diff eine Version erzeugen"
-    assert tv.object_changes.blank?, "touch-Version darf keine object_changes speichern"
-    assert tv.object.present?, "touch-Version muss den vollen object-Snapshot speichern (Client-Apply-Fallback)"
+    assert_equal before + 1, tournament.versions.count, "save_with_version muss trotz Null-Attribut-Diff eine Version erzeugen"
+    assert tv.changeset.blank?, "erzwungene Version darf keinen Attribut-Diff tragen (object_changes ist ein leeres YAML-Hash)"
+    assert tv.object.present?, "erzwungene Version muss den vollen object-Snapshot speichern (Client-Apply-Fallback)"
     assert tv.id > region_version.id, "Tournament-Version muss NACH der Region-Version geordnet sein (organizer muss beim Apply schon existieren)"
   end
 end

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_07_17_175301) do
+ActiveRecord::Schema[7.2].define(version: 2026_08_03_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -98,6 +98,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_07_17_175301) do
     t.decimal "est_cost_eur", precision: 10, scale: 6, default: "0.0", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "feature", default: "chat", null: false
     t.index ["scenario_context", "created_at"], name: "index_ai_usage_events_on_scenario_context_and_created_at"
   end
 

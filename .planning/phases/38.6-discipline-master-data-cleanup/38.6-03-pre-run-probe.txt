@@ -1,0 +1,22 @@
+Phase 38.6-03 — Pre-run Probe Output
+Run at: 2026-04-29
+Database: carambus_api_development
+Rails.env: development
+
+Present losers (6):
+  [57, "BK 2kombi"], [61, "BK 50"], [59, "BK2-Kombi"],
+  [60, "BK 2-100"], [62, "BK 100"], [95, "BK-2 Kombi"]
+
+Present winners (5):
+  [108, "BK50"], [109, "BK100"], [110, "BK-2"], [111, "BK-2plus"], [107, "BK2-Kombi"]
+
+PATH: B — Full merge path: dev-DB has all 5 winners + 6 losers.
+Script will perform live merge (wrapped in rolled-back transaction for dry-run mode).
+
+Baseline discipline count: 79
+Winner 107 name (pre-merge): "BK2-Kombi"
+
+Decision: PROCEED to Task 2 with dry-run transaction wrapper.
+  - Path A (idempotent): NO
+  - Path B (full merge): YES — wrapped in ActiveRecord::Rollback so dev DB untouched after run
+  - Path C (blocker): NO — all 5 winners present

@@ -194,4 +194,90 @@ class TournamentTest < ActiveSupport::TestCase
     )
     assert_nil t.reload.player_class
   end
+  # ---------------------------------------------------------------------------
+  # Plan 27-01: Entwuerfe aus der Saison-Kopie. Kennzeichen liegt im serialisierten data-Hash
+  # (text-Spalte, coder: JSON) — Rohformat verifiziert: {"draft":true,...}
+  # ---------------------------------------------------------------------------
+
+  test "draft? erkennt das Entwurfs-Kennzeichen" do
+    draft = Tournament.create!(title: "Entwurf", season: seasons(:current), organizer: regions(:nbv),
+      date: Time.zone.local(2026, 10, 10), data: {"draft" => true})
+    regular = Tournament.create!(title: "Regulaer", season: seasons(:current), organizer: regions(:nbv),
+      date: Time.zone.local(2026, 10, 11))
+
+    assert draft.draft?
+    refute regular.draft?
+  end
+
+  test "Scopes drafts / without_drafts trennen die Mengen" do
+    draft = Tournament.create!(title: "Entwurf S", season: seasons(:current), organizer: regions(:nbv),
+      date: Time.zone.local(2026, 10, 12), data: {"draft" => true, "copied_from_tournament_id" => 7})
+    regular = Tournament.create!(title: "Regulaer S", season: seasons(:current), organizer: regions(:nbv),
+      date: Time.zone.local(2026, 10, 13), data: {"table_ids" => []})
+
+    assert_includes Tournament.drafts.pluck(:id), draft.id
+    refute_includes Tournament.drafts.pluck(:id), regular.id
+
+    refute_includes Tournament.without_drafts.pluck(:id), draft.id
+    assert_includes Tournament.without_drafts.pluck(:id), regular.id
+  end
+
+  test "without_drafts enthaelt auch Turniere ohne data" do
+    plain = Tournament.create!(title: "Ohne data", season: seasons(:current), organizer: regions(:nbv),
+      date: Time.zone.local(2026, 10, 14))
+
+    assert_includes Tournament.without_drafts.pluck(:id), plain.id
+  end
+
+  # ---------------------------------------------------------------------------
+  # Plan 32-01: Round-Trip-Zwilling — ein CC-los angelegtes lokales Original (id >= MIN_ID) kehrt als
+  # globale Kopie (id < MIN_ID, source_url auf das Original) per Sync zur Ursprungs-Instanz zurueck.
+  # Scope :without_roundtrip_twins / roundtrip_twin? blenden den Zwilling dort aus — selbst-scopend.
+  # ---------------------------------------------------------------------------
+
+  test "roundtrip_twin? erkennt den globalen Zwilling nur bei vorhandenem lokalem Original" do
+    original = Tournament.create!(id: 50_000_810, title: "LM Original", season: seasons(:current),
+      organizer: regions(:nbv), date: Time.zone.local(2026, 10, 20))
+    twin = Tournament.create!(id: 40_000_001, title: "LM Original", season: seasons(:current),
+      organizer: regions(:nbv), date: Time.zone.local(2026, 10, 20),
+      source_url: "https://tbv.carambus.de/tournaments/#{original.id}")
+
+    assert twin.roundtrip_twin?, "globaler Datensatz mit source_url auf vorhandenes lokales Original"
+    refute original.roundtrip_twin?, "das lokale Original selbst ist kein Zwilling"
+  end
+
+  test "roundtrip_twin? ist false, wenn das lokale Original NICHT existiert (Selbst-Scoping)" do
+    twin = Tournament.create!(id: 40_000_002, title: "Ohne Original", season: seasons(:current),
+      organizer: regions(:nbv), date: Time.zone.local(2026, 10, 21),
+      source_url: "https://tbv.carambus.de/tournaments/50009999")
+
+    refute twin.roundtrip_twin?, "kein lokales Original 50009999 vorhanden ⇒ auf dieser Instanz kein Zwilling"
+  end
+
+  test "roundtrip_twin? ist false fuer fremde Provenienz (CC-source_url)" do
+    cc = Tournament.create!(id: 40_000_003, title: "CC Turnier", season: seasons(:current),
+      organizer: regions(:nbv), date: Time.zone.local(2026, 10, 22),
+      source_url: "https://nbv.club-cloud.de/cc/seasons/42/tournaments/99")
+
+    refute cc.roundtrip_twin?, "CC-source_url matcht das Region-Server-Muster /tournaments/<lokale-id> nicht"
+  end
+
+  test "Scope without_roundtrip_twins blendet den Zwilling aus, behaelt Original und Solo-Global" do
+    original = Tournament.create!(id: 50_000_811, title: "LM Scope", season: seasons(:current),
+      organizer: regions(:nbv), date: Time.zone.local(2026, 10, 23))
+    twin = Tournament.create!(id: 40_000_010, title: "LM Scope", season: seasons(:current),
+      organizer: regions(:nbv), date: Time.zone.local(2026, 10, 23),
+      source_url: "https://tbv.carambus.de/tournaments/#{original.id}")
+    solo_global = Tournament.create!(id: 40_000_011, title: "Global ohne Original", season: seasons(:current),
+      organizer: regions(:nbv), date: Time.zone.local(2026, 10, 24),
+      source_url: "https://tbv.carambus.de/tournaments/50008888")
+    plain = Tournament.create!(id: 50_000_812, title: "Ohne source_url", season: seasons(:current),
+      organizer: regions(:nbv), date: Time.zone.local(2026, 10, 25))
+
+    ids = Tournament.without_roundtrip_twins.pluck(:id)
+    refute_includes ids, twin.id, "Zwilling ausgeblendet (lokales Original existiert hier)"
+    assert_includes ids, original.id, "lokales Original sichtbar"
+    assert_includes ids, solo_global.id, "Global ohne lokales Original bleibt sichtbar (Selbst-Scoping, AC-2)"
+    assert_includes ids, plain.id, "Turnier ohne source_url bleibt sichtbar (NULL-Guard)"
+  end
 end

@@ -388,7 +388,10 @@ namespace :region_taggings do
         klass.where(organizer_type: "Region", organizer_id: region.id, region_id: nil).find_each do |rec|
           last_v_time = rec.versions.maximum(:created_at)
           next if last_v_time && last_v_time > fix_version.created_at # Idempotenz: bereits nach dem Fix reversioniert → skip
-          rec.touch # erzwingt frische Version trotz 0 Attribut-Diff (PaperTrail on: touch)
+          # save_with_version statt touch: das :unless-Gate in LocalProtector schluckt
+          # reine updated_at-Aenderungen (Scrape-Hygiene, Plan 19-01 AC-1) — ein touch
+          # wuerde hier also gar keine Version erzeugen und die Redelivery liefe leer.
+          rec.paper_trail.save_with_version
         end
       end
       puts "  Region ##{region.id} #{region.shortname}: global_context=true (Version ##{fix_version.id}), Turniere/Ligen redelivered"
@@ -411,7 +414,7 @@ namespace :region_taggings do
       n_games = 0
       Game.skip_cable_ready_updates do
         Game.where(tournament_id: intl_tids).find_each(batch_size: 500) do |game|
-          game.touch
+          game.paper_trail.save_with_version # s.o.: touch erzeugt wegen des :unless-Gates keine Version
           n_games += 1
         end
       end
@@ -420,7 +423,7 @@ namespace :region_taggings do
       n_gp = 0
       GameParticipation.skip_cable_ready_updates do
         GameParticipation.where(game_id: Game.where(tournament_id: intl_tids).select(:id)).find_each(batch_size: 500) do |gp|
-          gp.touch
+          gp.paper_trail.save_with_version # s.o.: touch erzeugt wegen des :unless-Gates keine Version
           n_gp += 1
         end
       end

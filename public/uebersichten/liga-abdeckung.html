@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Liga-Abdeckung — Regionen, Saisons, Disziplin-Zweige</title>
+<style>*,*::before,*::after{box-sizing:border-box}body{margin:0}img,svg{display:block;max-width:100%}</style>
+</head>
+<body>
+<style>
+:root{
+  --ground:#F6F7F4; --panel:#FFFFFF; --line:#DDE3DE; --line-soft:#EAEFEA;
+  --ink:#16211C; --ink-2:#41504A; --muted:#6E7B74;
+  --accent:#2E6B4E; --accent-ink:#FFFFFF;
+  --h0:#EFF2EE; --h1:#DCE9E0; --h2:#B9D6C4; --h3:#7FB697; --h4:#3F8460; --h5:#1D4E38;
+  --h4-ink:#FFFFFF; --h5-ink:#FFFFFF; --h3-ink:#12241B; --h0-ink:#96A29B;
+  --s-cc:#CDD6D0; --s-none:#F1F3F0; --s-none-line:#E1E6E2; --s-nu:#3F7CA8; --s-lm:#A9762A; --s-ca:#2E6B4E; --s-ot:#77689E; --s-ba:#B3A489;
+  --shadow:0 1px 2px rgba(20,40,30,.06), 0 8px 24px -16px rgba(20,40,30,.25);
+  --text:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --ground:#0F1513; --panel:#171F1B; --line:#2A3630; --line-soft:#212B26;
+    --ink:#E6EBE7; --ink-2:#AEBCB4; --muted:#84968C;
+    --accent:#57A87F; --accent-ink:#0C1310;
+    --h0:#1B2420; --h1:#22362B; --h2:#2C5140; --h3:#3E7A5C; --h4:#59A57E; --h5:#7FC7A0;
+    --h4-ink:#0C1310; --h5-ink:#0C1310; --h3-ink:#F2F7F4; --h0-ink:#55645C;
+    --s-cc:#333F39; --s-none:#161E1A; --s-none-line:#202A25; --s-nu:#5EA3CE; --s-lm:#CC9A45; --s-ca:#57A87F; --s-ot:#9C8CC4; --s-ba:#6E6350;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -16px rgba(0,0,0,.8);
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#0F1513; --panel:#171F1B; --line:#2A3630; --line-soft:#212B26;
+  --ink:#E6EBE7; --ink-2:#AEBCB4; --muted:#84968C;
+  --accent:#57A87F; --accent-ink:#0C1310;
+  --h0:#1B2420; --h1:#22362B; --h2:#2C5140; --h3:#3E7A5C; --h4:#59A57E; --h5:#7FC7A0;
+  --s-cc:#333F39; --s-none:#161E1A; --s-none-line:#202A25; --s-nu:#5EA3CE; --s-lm:#CC9A45; --s-ca:#57A87F; --s-ot:#9C8CC4; --s-ba:#6E6350;
+  --h4-ink:#0C1310; --h5-ink:#0C1310; --h3-ink:#F2F7F4; --h0-ink:#55645C;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -16px rgba(0,0,0,.8);
+}
+:root[data-theme="light"]{
+  --ground:#F6F7F4; --panel:#FFFFFF; --line:#DDE3DE; --line-soft:#EAEFEA;
+  --ink:#16211C; --ink-2:#41504A; --muted:#6E7B74;
+  --accent:#2E6B4E; --accent-ink:#FFFFFF;
+  --h0:#EFF2EE; --h1:#DCE9E0; --h2:#B9D6C4; --h3:#7FB697; --h4:#3F8460; --h5:#1D4E38;
+  --s-cc:#CDD6D0; --s-none:#F1F3F0; --s-none-line:#E1E6E2; --s-nu:#3F7CA8; --s-lm:#A9762A; --s-ca:#2E6B4E; --s-ot:#77689E; --s-ba:#B3A489;
+  --h4-ink:#FFFFFF; --h5-ink:#FFFFFF; --h3-ink:#12241B; --h0-ink:#96A29B;
+  --shadow:0 1px 2px rgba(20,40,30,.06), 0 8px 24px -16px rgba(20,40,30,.25);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--text);
+  font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1180px;margin:0 auto;padding:48px 24px 72px;display:flex;flex-direction:column;gap:40px}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--muted);margin:0 0 10px}
+h1{font-size:clamp(26px,3.4vw,38px);line-height:1.12;margin:0 0 12px;letter-spacing:-.02em;
+  text-wrap:balance;font-weight:650}
+.lede{margin:0;max-width:64ch;color:var(--ink-2);font-size:16px}
+.lede b{color:var(--ink);font-weight:620}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px 18px;
+  box-shadow:var(--shadow);display:flex;flex-direction:column;gap:2px}
+.card .name{font-size:13px;font-weight:640;letter-spacing:.01em}
+.card .big{font-family:var(--mono);font-size:28px;font-weight:600;letter-spacing:-.02em;
+  font-variant-numeric:tabular-nums;line-height:1.2}
+.card .sub{font-family:var(--mono);font-size:11.5px;color:var(--muted);letter-spacing:.02em}
+.bar{height:3px;border-radius:2px;background:var(--h2);margin-top:8px}
+.controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--panel)}
+.seg button{appearance:none;border:0;background:transparent;color:var(--ink-2);cursor:pointer;
+  font-family:var(--mono);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;
+  padding:8px 14px}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+.seg button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.hint{font-family:var(--mono);font-size:11.5px;color:var(--muted)}
+section.branch{display:flex;flex-direction:column;gap:12px}
+.bhead{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.bhead h2{margin:0;font-size:19px;font-weight:640;letter-spacing:-.01em}
+.bhead .meta{font-family:var(--mono);font-size:11.5px;color:var(--muted);letter-spacing:.02em}
+.scroll{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--panel);
+  box-shadow:var(--shadow)}
+table{border-collapse:separate;border-spacing:0;width:100%;font-variant-numeric:tabular-nums}
+th,td{padding:0;text-align:center}
+thead th{position:sticky;top:0;background:var(--panel);z-index:2;font-family:var(--mono);
+  font-size:10.5px;font-weight:500;color:var(--muted);letter-spacing:.04em;padding:9px 6px;
+  border-bottom:1px solid var(--line);white-space:nowrap}
+thead th.rowhead{left:0;z-index:3;text-align:left;padding-left:14px}
+tbody th{position:sticky;left:0;background:var(--panel);z-index:1;text-align:left;
+  padding:0 12px 0 14px;border-right:1px solid var(--line);border-bottom:1px solid var(--line-soft);
+  white-space:nowrap}
+tbody th .short{font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.03em}
+tbody th .full{display:block;font-size:10.5px;color:var(--muted);font-weight:400;
+  max-width:190px;overflow:hidden;text-overflow:ellipsis}
+tbody td{border-bottom:1px solid var(--line-soft);border-right:1px solid var(--line-soft)}
+tbody tr:last-child td,tbody tr:last-child th{border-bottom:0}
+.cell{display:block;font-family:var(--mono);font-size:11.5px;padding:7px 4px;min-width:42px}
+.l0{background:var(--h0);color:var(--h0-ink)}
+.l1{background:var(--h1);color:var(--ink-2)}
+.l2{background:var(--h2);color:var(--h3-ink)}
+.l3{background:var(--h3);color:var(--h3-ink)}
+.l4{background:var(--h4);color:var(--h4-ink)}
+.l5{background:var(--h5);color:var(--h5-ink)}
+tbody tr:hover td{filter:brightness(1.06)}
+tbody tr:hover th{color:var(--accent)}
+.legend{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-family:var(--mono);
+  font-size:11px;color:var(--muted);letter-spacing:.03em}
+.swatch{width:24px;height:12px;border-radius:2px;display:inline-block}
+footer{border-top:1px solid var(--line);padding-top:20px;display:flex;flex-direction:column;gap:10px}
+footer h3{margin:0;font-size:12px;font-family:var(--mono);letter-spacing:.14em;text-transform:uppercase;
+  color:var(--muted);font-weight:500}
+footer ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:7px;
+  color:var(--ink-2);font-size:13.5px;max-width:78ch}
+footer code{font-family:var(--mono);font-size:12.5px;background:var(--h0);padding:1px 5px;
+  border-radius:3px;color:var(--ink)}
+
+/* Quellen-Kennzeichnung. Die ClubCloud ist der Normalfall und bleibt deshalb still;
+   Farbe bekommt nur, was NICHT von dort kommt. */
+.s-cc{background:var(--s-cc);color:var(--ink-2)}
+.s-none{background:var(--s-none);color:var(--h0-ink);
+  background-image:repeating-linear-gradient(45deg,transparent,transparent 3px,var(--s-none-line) 3px,var(--s-none-line) 4px)}
+.s-nu_liga{background:var(--s-nu);color:#fff}
+.s-liga_manager{background:var(--s-lm);color:#fff}
+.s-carambus{background:var(--s-ca);color:#fff}
+.s-billard_area{background:var(--s-ba);color:#fff}
+.s-other{background:var(--s-ot);color:#fff}
+.mark{box-shadow:inset 3px 0 0 var(--mark)}
+.badge{display:inline-block;font-family:var(--mono);font-size:9.5px;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--s-nu);border:1px solid var(--s-nu);border-radius:3px;
+  padding:0 4px;margin-left:6px;vertical-align:1px;font-weight:500}
+.key{display:inline-flex;align-items:center;gap:5px;margin-right:12px;white-space:nowrap}
+.key i{width:13px;height:13px;border-radius:3px;display:inline-block;flex:0 0 auto}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+<div class="wrap">
+  <p class="eyebrow" style="margin:0"><a href="/uebersichten/" style="color:inherit">← Übersichten</a></p>
+  <header>
+    <p class="eyebrow">Carambus · Authority-Bestand · Stand 6. August 2026</p>
+    <h1>Liga-Abdeckung nach Region, Saison und Disziplin-Zweig</h1>
+    <p class="lede"><b>6 412</b> Ligen über <b>17 Regionen</b>, <b>18 Saisons</b> und 4 Zweige — und anders als bei den Turnieren trägt hier <b>jede einzelne</b> eine Region und eine Disziplin. An den Ligen hängen <b>223 182 Partien</b>. Der Zweig kommt wieder aus der <b>Wurzel des Disziplin-Baums</b>, nicht aus <code>branch_id</code>.</p>
+  </header>
+
+  <div class="cards" id="cards"></div>
+
+  <div class="controls">
+    <div class="seg" role="group" aria-label="Darstellung">
+      <button type="button" data-mode="count" aria-pressed="true">Anzahl</button>
+      <button type="button" data-mode="presence" aria-pressed="false">Nur Abdeckung</button>
+      <button type="button" data-mode="source" aria-pressed="false">Quelle</button>
+    </div>
+    <span class="hint" id="legend-hint"></span>
+  </div>
+
+  <div id="matrices"></div>
+
+  <footer>
+    <h3>Woher die Zahlen kommen — und was gegenüber den Turnieren auffällt</h3>
+    <ul>
+      <li><b>Vollständigkeit:</b> 0 Ligen ohne <code>region_id</code>, 0 ohne <code>discipline_id</code> — bei den Turnieren fehlt 433-mal die Region. Ligen entstehen ausschließlich über die Verbands-Scrapes (ClubCloud, LigaManager, NuLiga), die beides immer mitliefern; Turniere kommen zusätzlich aus internationalen Quellen ohne Regionsbezug.</li>
+      <li><b>Zweig-Zuordnung wie bei den Turnieren</b> über <code>Discipline#root</code>. Auch hier ist <code>leagues.branch_id</code> unbrauchbar: nur 602 von 6 412 Ligen tragen sie überhaupt.</li>
+      <li><b>Die Zweige verteilen sich anders als bei den Turnieren.</b> Snooker ist im Ligabetrieb mit <b>17 von 17</b> Regionen breiter aufgestellt als im Turnierbestand (14). Kegel geht den umgekehrten Weg: 11 Regionen mit Turnieren, aber nur <b>3</b> mit Ligen.</li>
+      <li><b>Auch hier heißt eine leere Zelle „in Carambus nicht erfasst“</b>, nicht „kein Spielbetrieb“ — eine Aussage über die Datenquelle, nicht über den Verband.</li>
+      <li><b>Was nicht aus der ClubCloud stammt</b> ist farbig markiert — im Modus „Quelle“ flächig, sonst als Balken links in der Zelle. Nachweislich nicht aus einer CC stammen <b>4 909</b> Ligen: 4 558 aus der BillardArea, 342 aus NuLiga, 9 aus dem LigaManager, 0 aus Carambus selbst (CC-loser Ablauf), 0 aus sonstigen Quellen. Aus einer ClubCloud kommen 1 503, erkannt am URL-Muster des Quellsystems.</li>
+      <li><b>Der Altbestand kommt aus der BillardArea:</b> 4 558 Ligen tragen keine <code>source_url</code>, aber eine <code>ba_id</code> — die Quelle ist seit Jahren offline, deshalb gibt es dafür keine URL mehr. Die beiden Felder schließen einander praktisch aus, was die Zuordnung eindeutig macht. Auch das ist <b>nicht</b> ClubCloud, bekommt aber einen ruhigen Ton: es ist Archiv, kein laufender Kanal.</li>
+      <li><b>Ohne CC-Anschluss</b> (Kennzeichnung an der Region): BBV, TBV, BLVSA, HBU. Diese Verbände stehen nicht in <code>Region::SHORTNAMES_CC</code>, werden also heute nicht aus einer ClubCloud gescrapt — bei TBV etwa seit dem LigaManager-Cutover, weshalb dort trotzdem älterer CC-Bestand liegt.</li>
+    </ul>
+  </footer>
+</div>
+
+<script>
+const DATA = {"branches":[{"id":50,"name":"Karambol"},{"id":23,"name":"Pool"},{"id":24,"name":"Snooker"},{"id":55,"name":"Kegel"}],"seasons":[{"id":1,"name":"2009/2010"},{"id":2,"name":"2010/2011"},{"id":3,"name":"2011/2012"},{"id":4,"name":"2012/2013"},{"id":5,"name":"2013/2014"},{"id":6,"name":"2014/2015"},{"id":7,"name":"2015/2016"},{"id":8,"name":"2016/2017"},{"id":9,"name":"2017/2018"},{"id":10,"name":"2018/2019"},{"id":11,"name":"2019/2020"},{"id":12,"name":"2020/2021"},{"id":13,"name":"2021/2022"},{"id":14,"name":"2022/2023"},{"id":15,"name":"2023/2024"},{"id":16,"name":"2024/2025"},{"id":17,"name":"2025/2026"},{"id":18,"name":"2026/2027"}],"regions":[{"id":3,"short":"BBV","name":"Bayerischer Billardverband e.V.","cc":false},{"id":12,"short":"BVW","name":"Billard-Verband Westfalen e.V.","cc":true},{"id":9,"short":"BVNR","name":"Billard-Verband Niederrhein e.V.","cc":true},{"id":8,"short":"BVBW","name":"Billard-Verband Baden-Württemberg","cc":true},{"id":6,"short":"BLVN","name":"Billard Landesverband Niedersachsen","cc":true},{"id":4,"short":"BLMR","name":"Billard Landesverband Mittleres Rheinland","cc":true},{"id":14,"short":"BVS","name":"Billard-Verband-Saar","cc":true},{"id":15,"short":"SBV","name":"Sächsischer Billardverband","cc":true},{"id":1,"short":"NBV","name":"Norddeutscher Billard Verband e.V.","cc":true},{"id":10,"short":"BVRP","name":"Billard Verband Rheinland-Pfalz 1989 e.V.","cc":true},{"id":17,"short":"DBU","name":"Deutsche Billard-Union","cc":true},{"id":16,"short":"TBV","name":"Thüringer Billard Verband","cc":false},{"id":5,"short":"BLVSA","name":"Billard Landesverband Sachsen-Anhalt","cc":false},{"id":7,"short":"BVB","name":"Billard-Verband Berlin","cc":true},{"id":2,"short":"BBBV","name":"Brandenburgischer Billardverband e.V.","cc":true},{"id":13,"short":"HBU","name":"Hessische Billard Union","cc":false},{"id":11,"short":"BVNRW","name":"Billard-Verband Nordrhein-Westfalen e.V.","cc":true}],"cells":{"50|17|13":7,"55|17|15":1,"50|17|14":9,"50|17|16":8,"23|17|15":16,"23|17|13":18,"24|17|14":4,"23|3|14":51,"50|8|17":4,"23|8|17":29,"23|17|17":11,"24|17|17":4,"50|17|17":8,"23|15|4":7,"23|3|1":76,"24|8|17":8,"23|1|17":14,"24|1|17":6,"50|1|17":6,"23|2|17":9,"24|3|6":19,"23|7|17":7,"24|7|17":1,"23|3|12":61,"23|4|17":27,"50|9|17":24,"50|10|17":1,"23|6|17":17,"24|2|17":2,"23|3|6":59,"23|10|17":12,"24|10|17":1,"23|9|17":6,"24|14|17":1,"23|12|2":43,"23|12|17":17,"23|3|16":55,"50|14|17":10,"50|12|17":32,"23|14|17":11,"50|9|13":59,"55|15|17":1,"23|15|13":6,"50|16|17":5,"24|16|17":2,"50|9|6":44,"50|9|2":50,"23|8|12":25,"23|10|10":10,"23|12|12":16,"23|12|11":16,"50|14|13":16,"24|1|6":3,"50|5|8":1,"23|4|10":10,"23|16|17":4,"23|4|1":31,"24|8|7":4,"24|6|2":2,"23|15|7":7,"50|16|5":5,"23|6|3":26,"50|12|15":35,"23|1|1":8,"23|3|4":55,"23|3|3":61,"23|3|8":54,"23|15|17":4,"50|3|8":13,"24|3|7":13,"23|3|10":60,"55|15|3":26,"55|15|8":22,"55|15|1":25,"55|15|13":5,"50|14|7":12,"24|15|14":1,"23|15|2":6,"55|15|5":20,"50|9|15":29,"23|9|14":7,"50|9|12":42,"23|9|3":6,"24|9|3":2,"23|9|6":7,"50|9|8":44,"50|9|16":25,"23|9|15":6,"23|9|9":5,"24|9|10":2,"50|9|10":39,"23|9|2":7,"50|9|9":42,"24|1|8":3,"23|1|5":8,"23|1|7":8,"23|9|13":10,"23|8|13":37,"23|8|16":24,"50|8|4":4,"23|8|10":26,"23|8|6":28,"24|8|5":8,"50|8|14":3,"23|1|8":8,"23|10|4":11,"23|10|13":15,"23|10|9":11,"23|10|16":10,"23|10|14":7,"23|10|1":15,"50|10|14":7,"50|12|3":51,"23|12|5":20,"50|12|13":59,"23|12|1":23,"50|12|5":44,"55|12|5":1,"55|15|12":3,"23|7|15":8,"23|7|16":7,"24|7|13":1,"23|7|14":9,"24|7|15":1,"23|6|16":17,"50|16|11":4,"50|16|6":5,"23|6|15":16,"23|6|10":21,"50|6|10":7,"23|14|10":7,"24|1|5":2,"50|5|12":1,"50|5|15":2,"23|5|12":4,"23|5|8":4,"50|5|6":1,"23|5|5":4,"23|5|15":4,"23|5|4":4,"23|14|5":3,"24|14|5":1,"50|14|5":4,"50|14|3":9,"50|14|16":7,"23|14|16":8,"23|14|13":12,"23|14|1":13,"50|14|8":13,"23|4|3":28,"50|14|14":7,"23|14|14":8,"23|14|8":7,"23|14|3":10,"23|16|1":4,"50|16|16":5,"50|16|7":5,"23|16|7":2,"24|16|7":1,"24|16|6":1,"23|4|13":25,"50|17|15":10,"23|17|14":15,"24|17|13":3,"50|16|2":5,"23|4|5":26,"23|6|4":22,"23|17|16":10,"24|17|16":4,"50|9|3":51,"50|10|7":1,"23|12|10":17,"23|6|13":36,"23|6|1":7,"23|6|2":25,"23|6|12":22,"50|1|13":5,"50|1|16":3,"24|1|15":4,"23|5|3":4,"24|14|13":2,"50|16|13":9,"24|16|11":1,"23|4|16":19,"23|4|11":10,"23|4|8":10,"23|6|9":23,"23|1|9":8,"23|1|10":8,"24|5|3":1,"24|5|2":1,"50|5|2":1,"24|5|8":1,"24|14|10":1,"50|16|8":5,"23|16|6":2,"50|16|12":4,"23|16|11":2,"24|16|12":1,"23|4|14":15,"23|10|8":12,"23|12|7":15,"23|12|13":30,"23|12|6":18,"23|12|16":17,"23|13|13":11,"50|7|14":4,"23|2|14":5,"23|6|5":23,"23|6|14":15,"24|5|4":1,"50|5|4":1,"50|14|6":14,"23|14|2":11,"50|14|2":9,"23|16|5":2,"24|16|5":1,"23|4|15":18,"23|4|12":10,"23|4|2":30,"24|4|13":1,"24|10|5":6,"50|12|8":32,"24|2|14":1,"50|6|3":3,"23|6|6":21,"50|1|7":5,"50|1|8":5,"23|1|16":8,"23|1|12":8,"23|1|13":9,"23|5|9":4,"23|16|9":2,"24|16|9":1,"50|16|9":3,"23|16|8":2,"23|9|7":6,"23|8|7":29,"23|14|15":10,"50|14|15":7,"24|16|16":1,"24|16|13":1,"24|16|1":1,"50|16|1":4,"50|10|8":1,"23|10|7":12,"23|10|3":11,"23|12|3":19,"55|12|6":1,"50|6|13":5,"23|6|7":21,"50|6|2":2,"50|1|15":3,"50|6|12":8,"23|1|2":8,"23|1|11":8,"24|1|7":3,"23|1|14":6,"50|5|9":1,"23|5|10":5,"24|14|8":2,"50|8|16":3,"23|2|13":6,"23|6|11":21,"23|6|8":21,"50|1|4":2,"50|1|6":4,"50|16|15":3,"23|16|15":3,"50|16|14":5,"23|16|16":4,"23|4|4":27,"50|9|1":22,"23|8|8":25,"24|8|10":5,"50|8|10":5,"23|2|15":6,"50|1|9":5,"24|1|10":3,"24|1|11":4,"24|1|12":4,"24|5|13":1,"24|15|8":2,"50|9|7":43,"23|8|9":28,"23|10|6":10,"50|12|16":36,"50|12|7":33,"50|1|1":2,"23|16|13":4,"23|16|3":3,"24|16|3":1,"50|16|3":4,"24|9|15":3,"50|8|8":4,"50|6|11":8,"50|6|16":2,"23|5|11":4,"24|5|11":1,"50|5|11":1,"50|14|9":15,"50|14|12":11,"24|8|2":3,"50|8|2":2,"50|10|13":2,"24|10|7":2,"23|10|2":12,"50|12|4":50,"23|12|8":18,"50|12|1":27,"50|12|14":37,"23|5|7":5,"23|5|6":4,"24|5|6":1,"24|10|15":1,"23|10|15":10,"24|6|5":2,"50|6|5":3,"24|2|13":1,"24|1|9":3,"50|14|10":7,"24|14|9":1,"50|14|1":9,"24|5|12":1,"50|14|11":9,"24|16|8":1,"24|16|2":1,"23|5|13":4,"50|9|5":55,"50|9|4":55,"24|6|3":2,"50|6|14":2,"50|5|14":2,"23|5|14":4,"23|4|9":10,"55|17|14":1,"24|5|15":1,"24|5|1":1,"24|17|15":4,"50|9|14":33,"23|8|5":31,"24|8|13":4,"50|7|15":2,"24|6|9":1,"50|6|9":5,"24|5|7":1,"24|1|14":3,"24|16|14":1,"23|8|11":25,"23|10|12":9,"23|10|11":10,"50|6|6":3,"50|16|10":5,"23|4|7":10,"23|4|6":25,"50|9|11":44,"23|8|4":15,"24|8|1":3,"50|8|1":2,"23|8|15":25,"50|5|7":1,"50|12|11":31,"23|7|13":2,"24|10|1":2,"50|1|10":5,"23|1|15":7,"23|9|8":5,"24|11|14":3,"24|10|10":2,"50|12|10":31,"23|2|16":7,"24|1|2":2,"50|1|2":2,"24|10|6":2,"50|12|6":41,"50|12|2":52,"23|16|4":2,"24|16|4":1,"50|16|4":5,"24|8|12":5,"23|8|14":21,"24|10|9":2,"50|11|14":1,"50|8|13":4,"23|12|14":18,"23|12|15":18,"24|6|7":2,"50|6|7":3,"23|1|6":8,"23|1|4":7,"24|1|1":2,"23|1|3":6,"24|1|13":4,"23|14|7":7,"55|15|10":3,"24|6|12":2,"23|16|12":3,"55|15|2":25,"24|2|16":1,"50|5|13":1,"23|17|2":2,"23|9|4":7,"24|8|16":7,"50|12|12":30,"50|12|9":30,"23|5|2":4,"24|13|13":2,"24|2|15":1,"23|5|1":4,"24|5|5":1,"23|16|10":2,"24|16|10":1,"55|17|13":1,"24|10|13":3,"50|13|13":1,"50|6|15":2,"24|6|11":1,"50|1|11":5,"50|1|12":5,"24|5|9":1,"23|16|14":3,"24|10|11":2,"24|10|4":2,"50|8|12":3,"24|5|10":1,"50|5|10":1,"50|10|6":1,"50|10|5":1,"23|12|9":16,"50|6|8":5,"23|10|5":10,"24|14|4":1,"23|14|12":7,"23|14|11":7,"24|14|11":1,"24|17|2":1,"50|5|5":1,"23|9|1":7,"24|1|16":4,"23|14|4":3,"50|3|2":13,"24|3|4":22,"24|3|12":14,"23|3|7":54,"23|3|9":59,"50|3|1":13,"24|3|5":15,"50|3|7":13,"24|3|10":12,"23|3|11":60,"50|3|4":11,"50|3|5":10,"23|3|2":61,"24|3|9":13,"24|3|2":20,"23|3|5":56,"24|3|8":13,"24|3|3":21,"50|3|3":11,"50|3|10":13,"24|3|11":12,"50|3|12":13,"23|3|13":58,"24|3|13":15,"50|3|13":13,"50|3|6":10,"50|3|11":13,"50|3|9":13,"24|3|1":16,"24|15|7":2,"55|15|7":22,"23|15|8":8,"23|15|6":7,"24|15|6":2,"55|15|6":24,"55|15|4":22,"23|15|12":3,"24|15|12":1,"23|15|5":7,"24|15|5":2,"23|15|9":4,"24|15|9":2,"55|15|9":1,"23|15|3":7,"24|15|3":1,"23|15|14":3,"23|15|16":4,"55|15|16":2,"23|15|1":6,"24|15|1":1,"23|15|15":4,"23|15|10":4,"55|15|14":1,"24|15|13":1,"24|15|16":1,"23|9|5":7,"24|15|4":1,"23|15|11":3,"24|15|10":2,"24|15|2":1,"24|15|15":1,"24|15|11":2,"55|15|11":3,"55|15|15":1,"24|9|14":3,"24|9|4":2,"24|9|1":2,"24|9|9":2,"24|9|13":2,"23|9|11":5,"24|9|11":2,"23|9|10":5,"24|9|6":2,"23|9|16":5,"24|9|7":2,"23|9|12":5,"24|9|5":2,"24|9|12":2,"24|9|2":2,"24|9|8":2,"24|8|9":5,"50|8|9":5,"24|8|8":4,"24|8|6":4,"50|8|6":3,"23|8|2":3,"24|8|14":3,"23|8|1":3,"24|8|4":4,"50|8|5":3,"24|8|15":5,"50|8|15":3,"24|8|11":5,"50|8|11":3,"50|8|7":4,"24|10|12":2,"50|10|12":1,"50|10|9":1,"24|10|14":1,"24|10|2":2,"50|10|10":1,"24|10|8":2,"24|10|3":2,"50|10|11":1,"50|10|4":1,"24|10|16":1,"55|12|9":1,"23|12|4":19,"24|12|16":3,"55|12|11":2,"55|12|8":1,"24|12|14":3,"24|12|15":3,"55|12|12":2,"55|12|13":1,"55|12|10":1,"50|7|16":2,"24|7|14":1,"24|7|16":1,"24|6|6":2,"24|6|13":4,"24|6|8":2,"24|6|14":1,"24|6|15":1,"24|6|10":1,"24|6|4":2,"50|6|4":3,"24|6|16":1,"50|1|3":2,"24|1|3":2,"24|1|4":1,"50|5|3":1,"23|14|6":8,"24|14|6":2,"24|14|7":4,"24|14|12":1,"24|14|3":1,"23|14|9":7,"23|16|2":3,"24|16|15":1,"24|15|17":1,"50|6|17":2,"24|6|17":1,"50|7|17":2,"24|3|16":7,"23|3|17":55,"50|3|14":10,"23|17|18":8,"24|17|18":3,"50|17|18":3,"23|2|18":7,"23|8|18":31,"24|7|18":2,"24|2|18":2,"24|6|18":3,"24|8|18":4,"50|7|18":2,"23|7|18":7,"23|4|18":21,"23|6|18":20,"23|1|18":11,"24|1|18":6,"50|8|18":4,"23|3|15":52,"24|3|15":7,"24|3|14":6,"24|3|17":7,"50|3|15":10,"50|3|16":9,"50|3|17":7,"50|12|18":12,"50|9|18":12,"23|3|18":50,"23|15|18":4,"50|3|18":8,"50|14|18":10,"23|14|18":8,"24|3|18":8,"23|9|18":7,"23|12|18":8},"sources":{"50|17|13":{"cc":7},"55|17|15":{"cc":1},"50|17|14":{"cc":9},"50|17|16":{"cc":8},"23|17|15":{"cc":16},"23|17|13":{"cc":18},"24|17|14":{"cc":4},"23|3|14":{"nu_liga":51},"50|8|17":{"cc":4},"23|8|17":{"cc":29},"23|17|17":{"cc":11},"24|17|17":{"cc":4},"50|17|17":{"cc":8},"23|15|4":{"billard_area":7},"23|3|1":{"billard_area":76},"24|8|17":{"cc":8},"23|1|17":{"cc":14},"24|1|17":{"cc":6},"50|1|17":{"cc":6},"23|2|17":{"cc":9},"24|3|6":{"billard_area":19},"23|7|17":{"cc":7},"24|7|17":{"cc":1},"23|3|12":{"billard_area":61},"23|4|17":{"cc":27},"50|9|17":{"cc":24},"50|10|17":{"cc":1},"23|6|17":{"cc":17},"24|2|17":{"cc":2},"23|3|6":{"billard_area":59},"23|10|17":{"cc":12},"24|10|17":{"cc":1},"23|9|17":{"cc":6},"24|14|17":{"cc":1},"23|12|2":{"billard_area":43},"23|12|17":{"cc":17},"23|3|16":{"nu_liga":55},"50|14|17":{"cc":10},"50|12|17":{"cc":32},"23|14|17":{"cc":11},"50|9|13":{"billard_area":43,"cc":16},"55|15|17":{"cc":1},"23|15|13":{"cc":3,"billard_area":3},"50|16|17":{"cc":1,"liga_manager":4},"24|16|17":{"cc":1,"liga_manager":1},"50|9|6":{"billard_area":44},"50|9|2":{"billard_area":50},"23|8|12":{"billard_area":25},"23|10|10":{"billard_area":10},"23|12|12":{"billard_area":16},"23|12|11":{"billard_area":16},"50|14|13":{"billard_area":11,"cc":5},"24|1|6":{"billard_area":3},"50|5|8":{"billard_area":1},"23|4|10":{"billard_area":10},"23|16|17":{"liga_manager":4},"23|4|1":{"billard_area":31},"24|8|7":{"billard_area":4},"24|6|2":{"billard_area":2},"23|15|7":{"billard_area":7},"50|16|5":{"billard_area":5},"23|6|3":{"billard_area":26},"50|12|15":{"cc":35},"23|1|1":{"billard_area":8},"23|3|4":{"billard_area":55},"23|3|3":{"billard_area":61},"23|3|8":{"billard_area":54},"23|15|17":{"cc":4},"50|3|8":{"billard_area":13},"24|3|7":{"billard_area":13},"23|3|10":{"billard_area":60},"55|15|3":{"billard_area":26},"55|15|8":{"billard_area":22},"55|15|1":{"billard_area":25},"55|15|13":{"cc":2,"billard_area":3},"50|14|7":{"billard_area":12},"24|15|14":{"cc":1},"23|15|2":{"billard_area":6},"55|15|5":{"billard_area":20},"50|9|15":{"cc":29},"23|9|14":{"cc":7},"50|9|12":{"billard_area":42},"23|9|3":{"billard_area":6},"24|9|3":{"billard_area":2},"23|9|6":{"billard_area":7},"50|9|8":{"billard_area":44},"50|9|16":{"cc":25},"23|9|15":{"cc":6},"23|9|9":{"billard_area":5},"24|9|10":{"billard_area":2},"50|9|10":{"billard_area":39},"23|9|2":{"billard_area":7},"50|9|9":{"billard_area":42},"24|1|8":{"billard_area":3},"23|1|5":{"billard_area":8},"23|1|7":{"billard_area":8},"23|9|13":{"billard_area":5,"cc":5},"23|8|13":{"cc":21,"billard_area":16},"23|8|16":{"cc":24},"50|8|4":{"billard_area":4},"23|8|10":{"billard_area":26},"23|8|6":{"billard_area":28},"24|8|5":{"billard_area":8},"50|8|14":{"cc":3},"23|1|8":{"billard_area":8},"23|10|4":{"billard_area":11},"23|10|13":{"billard_area":8,"cc":7},"23|10|9":{"billard_area":11},"23|10|16":{"cc":10},"23|10|14":{"cc":7},"23|10|1":{"billard_area":15},"50|10|14":{"cc":7},"50|12|3":{"billard_area":51},"23|12|5":{"billard_area":20},"50|12|13":{"billard_area":29,"cc":30},"23|12|1":{"billard_area":23},"50|12|5":{"billard_area":44},"55|12|5":{"billard_area":1},"55|15|12":{"billard_area":3},"23|7|15":{"cc":8},"23|7|16":{"cc":7},"24|7|13":{"cc":1},"23|7|14":{"cc":9},"24|7|15":{"cc":1},"23|6|16":{"cc":17},"50|16|11":{"billard_area":4},"50|16|6":{"billard_area":5},"23|6|15":{"cc":16},"23|6|10":{"billard_area":21},"50|6|10":{"billard_area":7},"23|14|10":{"billard_area":7},"24|1|5":{"billard_area":2},"50|5|12":{"billard_area":1},"50|5|15":{"cc":2},"23|5|12":{"billard_area":4},"23|5|8":{"billard_area":4},"50|5|6":{"billard_area":1},"23|5|5":{"billard_area":4},"23|5|15":{"cc":4},"23|5|4":{"billard_area":4},"23|14|5":{"billard_area":3},"24|14|5":{"billard_area":1},"50|14|5":{"billard_area":4},"50|14|3":{"billard_area":9},"50|14|16":{"cc":7},"23|14|16":{"cc":8},"23|14|13":{"billard_area":5,"cc":7},"23|14|1":{"billard_area":13},"50|14|8":{"billard_area":13},"23|4|3":{"billard_area":28},"50|14|14":{"cc":7},"23|14|14":{"cc":8},"23|14|8":{"billard_area":7},"23|14|3":{"billard_area":10},"23|16|1":{"billard_area":4},"50|16|16":{"cc":5},"50|16|7":{"billard_area":5},"23|16|7":{"billard_area":2},"24|16|7":{"billard_area":1},"24|16|6":{"billard_area":1},"23|4|13":{"cc":15,"billard_area":10},"50|17|15":{"cc":10},"23|17|14":{"cc":15},"24|17|13":{"cc":3},"50|16|2":{"billard_area":5},"23|4|5":{"billard_area":26},"23|6|4":{"billard_area":22},"23|17|16":{"cc":10},"24|17|16":{"cc":4},"50|9|3":{"billard_area":51},"50|10|7":{"billard_area":1},"23|12|10":{"billard_area":17},"23|6|13":{"cc":14,"billard_area":22},"23|6|1":{"billard_area":7},"23|6|2":{"billard_area":25},"23|6|12":{"billard_area":22},"50|1|13":{"cc":2,"billard_area":3},"50|1|16":{"cc":3},"24|1|15":{"cc":4},"23|5|3":{"billard_area":4},"24|14|13":{"billard_area":1,"cc":1},"50|16|13":{"billard_area":4,"cc":5},"24|16|11":{"billard_area":1},"23|4|16":{"cc":19},"23|4|11":{"billard_area":10},"23|4|8":{"billard_area":10},"23|6|9":{"billard_area":23},"23|1|9":{"billard_area":8},"23|1|10":{"billard_area":8},"24|5|3":{"billard_area":1},"24|5|2":{"billard_area":1},"50|5|2":{"billard_area":1},"24|5|8":{"billard_area":1},"24|14|10":{"billard_area":1},"50|16|8":{"billard_area":5},"23|16|6":{"billard_area":2},"50|16|12":{"billard_area":4},"23|16|11":{"billard_area":2},"24|16|12":{"billard_area":1},"23|4|14":{"cc":15},"23|10|8":{"billard_area":12},"23|12|7":{"billard_area":15},"23|12|13":{"billard_area":9,"cc":21},"23|12|6":{"billard_area":18},"23|12|16":{"cc":17},"23|13|13":{"billard_area":11},"50|7|14":{"cc":4},"23|2|14":{"cc":5},"23|6|5":{"billard_area":23},"23|6|14":{"cc":15},"24|5|4":{"billard_area":1},"50|5|4":{"billard_area":1},"50|14|6":{"billard_area":14},"23|14|2":{"billard_area":11},"50|14|2":{"billard_area":9},"23|16|5":{"billard_area":2},"24|16|5":{"billard_area":1},"23|4|15":{"cc":18},"23|4|12":{"billard_area":10},"23|4|2":{"billard_area":30},"24|4|13":{"cc":1},"24|10|5":{"billard_area":6},"50|12|8":{"billard_area":32},"24|2|14":{"cc":1},"50|6|3":{"billard_area":3},"23|6|6":{"billard_area":21},"50|1|7":{"billard_area":5},"50|1|8":{"billard_area":5},"23|1|16":{"cc":8},"23|1|12":{"billard_area":8},"23|1|13":{"billard_area":3,"cc":6},"23|5|9":{"billard_area":4},"23|16|9":{"billard_area":2},"24|16|9":{"billard_area":1},"50|16|9":{"billard_area":3},"23|16|8":{"billard_area":2},"23|9|7":{"billard_area":6},"23|8|7":{"billard_area":29},"23|14|15":{"cc":10},"50|14|15":{"cc":7},"24|16|16":{"cc":1},"24|16|13":{"cc":1},"24|16|1":{"billard_area":1},"50|16|1":{"billard_area":4},"50|10|8":{"billard_area":1},"23|10|7":{"billard_area":12},"23|10|3":{"billard_area":11},"23|12|3":{"billard_area":19},"55|12|6":{"billard_area":1},"50|6|13":{"billard_area":3,"cc":2},"23|6|7":{"billard_area":21},"50|6|2":{"billard_area":2},"50|1|15":{"cc":3},"50|6|12":{"billard_area":8},"23|1|2":{"billard_area":8},"23|1|11":{"billard_area":8},"24|1|7":{"billard_area":3},"23|1|14":{"cc":6},"50|5|9":{"billard_area":1},"23|5|10":{"billard_area":5},"24|14|8":{"billard_area":2},"50|8|16":{"cc":3},"23|2|13":{"cc":6},"23|6|11":{"billard_area":21},"23|6|8":{"billard_area":21},"50|1|4":{"billard_area":2},"50|1|6":{"billard_area":4},"50|16|15":{"cc":3},"23|16|15":{"cc":3},"50|16|14":{"cc":5},"23|16|16":{"cc":4},"23|4|4":{"billard_area":27},"50|9|1":{"billard_area":22},"23|8|8":{"billard_area":25},"24|8|10":{"billard_area":5},"50|8|10":{"billard_area":5},"23|2|15":{"cc":6},"50|1|9":{"billard_area":5},"24|1|10":{"billard_area":3},"24|1|11":{"billard_area":4},"24|1|12":{"billard_area":4},"24|5|13":{"billard_area":1},"24|15|8":{"billard_area":2},"50|9|7":{"billard_area":43},"23|8|9":{"billard_area":28},"23|10|6":{"billard_area":10},"50|12|16":{"cc":36},"50|12|7":{"billard_area":33},"50|1|1":{"billard_area":2},"23|16|13":{"cc":4},"23|16|3":{"billard_area":3},"24|16|3":{"billard_area":1},"50|16|3":{"billard_area":4},"24|9|15":{"cc":3},"50|8|8":{"billard_area":4},"50|6|11":{"billard_area":8},"50|6|16":{"cc":2},"23|5|11":{"billard_area":4},"24|5|11":{"billard_area":1},"50|5|11":{"billard_area":1},"50|14|9":{"billard_area":15},"50|14|12":{"billard_area":11},"24|8|2":{"billard_area":3},"50|8|2":{"billard_area":2},"50|10|13":{"billard_area":1,"cc":1},"24|10|7":{"billard_area":2},"23|10|2":{"billard_area":12},"50|12|4":{"billard_area":50},"23|12|8":{"billard_area":18},"50|12|1":{"billard_area":27},"50|12|14":{"cc":37},"23|5|7":{"billard_area":5},"23|5|6":{"billard_area":4},"24|5|6":{"billard_area":1},"24|10|15":{"cc":1},"23|10|15":{"cc":10},"24|6|5":{"billard_area":2},"50|6|5":{"billard_area":3},"24|2|13":{"cc":1},"24|1|9":{"billard_area":3},"50|14|10":{"billard_area":7},"24|14|9":{"billard_area":1},"50|14|1":{"billard_area":9},"24|5|12":{"billard_area":1},"50|14|11":{"billard_area":9},"24|16|8":{"billard_area":1},"24|16|2":{"billard_area":1},"23|5|13":{"billard_area":4},"50|9|5":{"billard_area":55},"50|9|4":{"billard_area":55},"24|6|3":{"billard_area":2},"50|6|14":{"cc":2},"50|5|14":{"cc":2},"23|5|14":{"cc":4},"23|4|9":{"billard_area":10},"55|17|14":{"cc":1},"24|5|15":{"cc":1},"24|5|1":{"billard_area":1},"24|17|15":{"cc":4},"50|9|14":{"cc":33},"23|8|5":{"billard_area":31},"24|8|13":{"cc":4},"50|7|15":{"cc":2},"24|6|9":{"billard_area":1},"50|6|9":{"billard_area":5},"24|5|7":{"billard_area":1},"24|1|14":{"cc":3},"24|16|14":{"cc":1},"23|8|11":{"billard_area":25},"23|10|12":{"billard_area":9},"23|10|11":{"billard_area":10},"50|6|6":{"billard_area":3},"50|16|10":{"billard_area":5},"23|4|7":{"billard_area":10},"23|4|6":{"billard_area":25},"50|9|11":{"billard_area":44},"23|8|4":{"billard_area":15},"24|8|1":{"billard_area":3},"50|8|1":{"billard_area":2},"23|8|15":{"cc":25},"50|5|7":{"billard_area":1},"50|12|11":{"billard_area":31},"23|7|13":{"cc":2},"24|10|1":{"billard_area":2},"50|1|10":{"billard_area":5},"23|1|15":{"cc":7},"23|9|8":{"billard_area":5},"24|11|14":{"cc":3},"24|10|10":{"billard_area":2},"50|12|10":{"billard_area":31},"23|2|16":{"cc":7},"24|1|2":{"billard_area":2},"50|1|2":{"billard_area":2},"24|10|6":{"billard_area":2},"50|12|6":{"billard_area":41},"50|12|2":{"billard_area":52},"23|16|4":{"billard_area":2},"24|16|4":{"billard_area":1},"50|16|4":{"billard_area":5},"24|8|12":{"billard_area":5},"23|8|14":{"cc":21},"24|10|9":{"billard_area":2},"50|11|14":{"cc":1},"50|8|13":{"cc":4},"23|12|14":{"cc":18},"23|12|15":{"cc":18},"24|6|7":{"billard_area":2},"50|6|7":{"billard_area":3},"23|1|6":{"billard_area":8},"23|1|4":{"billard_area":7},"24|1|1":{"billard_area":2},"23|1|3":{"billard_area":6},"24|1|13":{"cc":3,"billard_area":1},"23|14|7":{"billard_area":7},"55|15|10":{"billard_area":3},"24|6|12":{"billard_area":2},"23|16|12":{"billard_area":3},"55|15|2":{"billard_area":25},"24|2|16":{"cc":1},"50|5|13":{"billard_area":1},"23|17|2":{"billard_area":2},"23|9|4":{"billard_area":7},"24|8|16":{"cc":7},"50|12|12":{"billard_area":30},"50|12|9":{"billard_area":30},"23|5|2":{"billard_area":4},"24|13|13":{"billard_area":2},"24|2|15":{"cc":1},"23|5|1":{"billard_area":4},"24|5|5":{"billard_area":1},"23|16|10":{"billard_area":2},"24|16|10":{"billard_area":1},"55|17|13":{"cc":1},"24|10|13":{"cc":1,"billard_area":2},"50|13|13":{"billard_area":1},"50|6|15":{"cc":2},"24|6|11":{"billard_area":1},"50|1|11":{"billard_area":5},"50|1|12":{"billard_area":5},"24|5|9":{"billard_area":1},"23|16|14":{"cc":3},"24|10|11":{"billard_area":2},"24|10|4":{"billard_area":2},"50|8|12":{"billard_area":3},"24|5|10":{"billard_area":1},"50|5|10":{"billard_area":1},"50|10|6":{"billard_area":1},"50|10|5":{"billard_area":1},"23|12|9":{"billard_area":16},"50|6|8":{"billard_area":5},"23|10|5":{"billard_area":10},"24|14|4":{"billard_area":1},"23|14|12":{"billard_area":7},"23|14|11":{"billard_area":7},"24|14|11":{"billard_area":1},"24|17|2":{"billard_area":1},"50|5|5":{"billard_area":1},"23|9|1":{"billard_area":7},"24|1|16":{"cc":4},"23|14|4":{"billard_area":3},"50|3|2":{"billard_area":13},"24|3|4":{"billard_area":22},"24|3|12":{"billard_area":14},"23|3|7":{"billard_area":54},"23|3|9":{"billard_area":59},"50|3|1":{"billard_area":13},"24|3|5":{"billard_area":15},"50|3|7":{"billard_area":13},"24|3|10":{"billard_area":12},"23|3|11":{"billard_area":60},"50|3|4":{"billard_area":11},"50|3|5":{"billard_area":10},"23|3|2":{"billard_area":61},"24|3|9":{"billard_area":13},"24|3|2":{"billard_area":20},"23|3|5":{"billard_area":56},"24|3|8":{"billard_area":13},"24|3|3":{"billard_area":21},"50|3|3":{"billard_area":11},"50|3|10":{"billard_area":13},"24|3|11":{"billard_area":12},"50|3|12":{"billard_area":13},"23|3|13":{"billard_area":58},"24|3|13":{"billard_area":15},"50|3|13":{"billard_area":13},"50|3|6":{"billard_area":10},"50|3|11":{"billard_area":13},"50|3|9":{"billard_area":13},"24|3|1":{"billard_area":16},"24|15|7":{"billard_area":2},"55|15|7":{"billard_area":22},"23|15|8":{"billard_area":8},"23|15|6":{"billard_area":7},"24|15|6":{"billard_area":2},"55|15|6":{"billard_area":24},"55|15|4":{"billard_area":22},"23|15|12":{"billard_area":3},"24|15|12":{"billard_area":1},"23|15|5":{"billard_area":7},"24|15|5":{"billard_area":2},"23|15|9":{"billard_area":4},"24|15|9":{"billard_area":2},"55|15|9":{"billard_area":1},"23|15|3":{"billard_area":7},"24|15|3":{"billard_area":1},"23|15|14":{"cc":3},"23|15|16":{"cc":4},"55|15|16":{"cc":2},"23|15|1":{"billard_area":6},"24|15|1":{"billard_area":1},"23|15|15":{"cc":4},"23|15|10":{"billard_area":4},"55|15|14":{"cc":1},"24|15|13":{"billard_area":1},"24|15|16":{"cc":1},"23|9|5":{"billard_area":7},"24|15|4":{"billard_area":1},"23|15|11":{"billard_area":3},"24|15|10":{"billard_area":2},"24|15|2":{"billard_area":1},"24|15|15":{"cc":1},"24|15|11":{"billard_area":2},"55|15|11":{"billard_area":3},"55|15|15":{"cc":1},"24|9|14":{"cc":3},"24|9|4":{"billard_area":2},"24|9|1":{"billard_area":2},"24|9|9":{"billard_area":2},"24|9|13":{"billard_area":2},"23|9|11":{"billard_area":5},"24|9|11":{"billard_area":2},"23|9|10":{"billard_area":5},"24|9|6":{"billard_area":2},"23|9|16":{"cc":5},"24|9|7":{"billard_area":2},"23|9|12":{"billard_area":5},"24|9|5":{"billard_area":2},"24|9|12":{"billard_area":2},"24|9|2":{"billard_area":2},"24|9|8":{"billard_area":2},"24|8|9":{"billard_area":5},"50|8|9":{"billard_area":5},"24|8|8":{"billard_area":4},"24|8|6":{"billard_area":4},"50|8|6":{"billard_area":3},"23|8|2":{"billard_area":3},"24|8|14":{"cc":3},"23|8|1":{"billard_area":3},"24|8|4":{"billard_area":4},"50|8|5":{"billard_area":3},"24|8|15":{"cc":5},"50|8|15":{"cc":3},"24|8|11":{"billard_area":5},"50|8|11":{"billard_area":3},"50|8|7":{"billard_area":4},"24|10|12":{"billard_area":2},"50|10|12":{"billard_area":1},"50|10|9":{"billard_area":1},"24|10|14":{"cc":1},"24|10|2":{"billard_area":2},"50|10|10":{"billard_area":1},"24|10|8":{"billard_area":2},"24|10|3":{"billard_area":2},"50|10|11":{"billard_area":1},"50|10|4":{"billard_area":1},"24|10|16":{"cc":1},"55|12|9":{"billard_area":1},"23|12|4":{"billard_area":19},"24|12|16":{"cc":3},"55|12|11":{"billard_area":2},"55|12|8":{"billard_area":1},"24|12|14":{"cc":3},"24|12|15":{"cc":3},"55|12|12":{"billard_area":2},"55|12|13":{"billard_area":1},"55|12|10":{"billard_area":1},"50|7|16":{"cc":2},"24|7|14":{"cc":1},"24|7|16":{"cc":1},"24|6|6":{"billard_area":2},"24|6|13":{"cc":2,"billard_area":2},"24|6|8":{"billard_area":2},"24|6|14":{"cc":1},"24|6|15":{"cc":1},"24|6|10":{"billard_area":1},"24|6|4":{"billard_area":2},"50|6|4":{"billard_area":3},"24|6|16":{"cc":1},"50|1|3":{"billard_area":2},"24|1|3":{"billard_area":2},"24|1|4":{"billard_area":1},"50|5|3":{"billard_area":1},"23|14|6":{"billard_area":8},"24|14|6":{"billard_area":2},"24|14|7":{"billard_area":4},"24|14|12":{"billard_area":1},"24|14|3":{"billard_area":1},"23|14|9":{"billard_area":7},"23|16|2":{"billard_area":3},"24|16|15":{"cc":1},"24|15|17":{"cc":1},"50|6|17":{"cc":2},"24|6|17":{"cc":1},"50|7|17":{"cc":2},"24|3|16":{"nu_liga":7},"23|3|17":{"nu_liga":55},"50|3|14":{"nu_liga":10},"23|17|18":{"cc":8},"24|17|18":{"cc":3},"50|17|18":{"cc":3},"23|2|18":{"cc":7},"23|8|18":{"cc":31},"24|7|18":{"cc":2},"24|2|18":{"cc":2},"24|6|18":{"cc":3},"24|8|18":{"cc":4},"50|7|18":{"cc":2},"23|7|18":{"cc":7},"23|4|18":{"cc":21},"23|6|18":{"cc":20},"23|1|18":{"cc":11},"24|1|18":{"cc":6},"50|8|18":{"cc":4},"23|3|15":{"nu_liga":52},"24|3|15":{"nu_liga":7},"24|3|14":{"nu_liga":6},"24|3|17":{"nu_liga":7},"50|3|15":{"nu_liga":10},"50|3|16":{"nu_liga":9},"50|3|17":{"nu_liga":7},"50|12|18":{"cc":12},"50|9|18":{"cc":12},"23|3|18":{"nu_liga":50},"23|15|18":{"cc":4},"50|3|18":{"nu_liga":8},"50|14|18":{"cc":10},"23|14|18":{"cc":8},"24|3|18":{"nu_liga":8},"23|9|18":{"cc":7},"23|12|18":{"cc":8}}};
+const ITEM_LABEL = "Ligen";
+
+const BRANCH_ORDER = ["Karambol","Pool","Snooker","Kegel"];
+const branches = [...DATA.branches].sort(
+  (a,b)=>BRANCH_ORDER.indexOf(a.name)-BRANCH_ORDER.indexOf(b.name));
+const seasons = DATA.seasons, regions = DATA.regions, cells = DATA.cells, sources = DATA.sources||{};
+const key=(b,r,s)=>b+"|"+r+"|"+s;
+const get=(b,r,s)=>cells[key(b,r,s)]||0;
+const src=(b,r,s)=>sources[key(b,r,s)]||{};
+const CURRENT = seasons[seasons.length-1];
+let mode="count";
+
+// Die ClubCloud ist der Normalfall; Farbe bekommt, was NICHT von dort kommt.
+const SOURCE_LABEL={cc:"ClubCloud",billard_area:"BillardArea (offline)",nu_liga:"NuLiga",
+  liga_manager:"LigaManager",carambus:"Carambus (CC-los)",other:"andere Quelle",
+  none:"ohne Quellenangabe"};
+const SOURCE_SHORT={cc:"CC",billard_area:"BA",nu_liga:"NL",liga_manager:"LM",carambus:"CA",
+  other:"?",none:"·"};
+const NON_CC=["carambus","liga_manager","nu_liga","other","billard_area"];
+const MARK_VAR={carambus:"ca",liga_manager:"lm",nu_liga:"nu",other:"ot",billard_area:"ba"};
+
+function dominant(s){
+  let best=null, n=-1;
+  for(const k of Object.keys(s)){ if(s[k]>n){ n=s[k]; best=k; } }
+  return best;
+}
+// Reihenfolge, nicht Menge: in einer Zelle mit BillardArea-Altbestand UND einer aktiven
+// Nicht-CC-Quelle soll die aktive den Balken bestimmen.
+function nonCcKind(s){
+  for(const k of NON_CC){ if(s[k]) return k; }
+  return null;
+}
+function level(n,max){
+  if(!n) return 0;
+  const t=Math.log(n+1)/Math.log(max+1);
+  if(t<=.18) return 1; if(t<=.36) return 2; if(t<=.58) return 3; if(t<=.80) return 4; return 5;
+}
+function tip(r,s,n,so){
+  const parts=Object.keys(so).filter(k=>so[k]).map(k=>`${SOURCE_LABEL[k]}: ${so[k]}`);
+  return `${r.short} · ${s.name} · ${n}` + (parts.length?` — ${parts.join(", ")}`:"");
+}
+
+function renderCards(){
+  document.getElementById("cards").innerHTML = branches.map(b=>{
+    let total=0, regs=new Set(), cur=0, first=null;
+    for(const r of regions) for(const s of seasons){
+      const n=get(b.id,r.id,s.id);
+      if(n){ total+=n; regs.add(r.id); if(s.id===CURRENT.id) cur+=n;
+             if(first===null||s.name<first) first=s.name; }
+    }
+    return `<div class="card">
+      <span class="name">${b.name}</span>
+      <span class="big">${total.toLocaleString("de-DE")}</span>
+      <span class="sub">${regs.size} von ${regions.length} Regionen · ab ${first}</span>
+      <span class="sub">${cur} in ${CURRENT.name}</span>
+      <span class="bar" style="background:var(--h${Math.min(5,Math.max(2,Math.ceil(regs.size/regions.length*5)))})"></span>
+    </div>`;
+  }).join("");
+}
+
+function renderMatrices(){
+  document.getElementById("matrices").innerHTML = branches.map(b=>{
+    let max=0, total=0, regs=new Set();
+    for(const r of regions) for(const s of seasons){
+      const n=get(b.id,r.id,s.id); if(n>max) max=n; total+=n; if(n) regs.add(r.id);
+    }
+    const rows = regions.filter(r=>regs.has(r.id)).map(r=>{
+      const tds = seasons.map(s=>{
+        const n=get(b.id,r.id,s.id), so=src(b.id,r.id,s.id);
+        let cls, label, style="";
+        if(!n){ cls="l0"; label="·"; }
+        else if(mode==="source"){ const d=dominant(so); cls="s-"+d; label=SOURCE_SHORT[d]; }
+        else if(mode==="presence"){ cls="l3"; label="●"; }
+        else {
+          cls="l"+level(n,max); label=n;
+          const nc=nonCcKind(so);
+          if(nc){ cls+=" mark"; style=` style="--mark:var(--s-${MARK_VAR[nc]})"`; }
+        }
+        return `<td><span class="cell ${cls}"${style} title="${tip(r,s,n,so)}">${label}</span></td>`;
+      }).join("");
+      const badge = r.cc===false ? '<span class="badge">kein CC-Anschluss</span>' : "";
+      return `<tr><th scope="row"><span class="short">${r.short}${badge}</span>
+        <span class="full">${r.name}</span></th>${tds}</tr>`;
+    }).join("");
+    return `<section class="branch">
+      <div class="bhead">
+        <h2>${b.name}</h2>
+        <span class="meta">${total.toLocaleString("de-DE")} ${ITEM_LABEL} · ${regs.size} Regionen · max. ${max} in einer Zelle</span>
+      </div>
+      <div class="scroll"><table>
+        <thead><tr><th class="rowhead">Region</th>
+          ${seasons.map(s=>`<th>${s.name.slice(2,4)}/${s.name.slice(-2)}</th>`).join("")}</tr></thead>
+        <tbody>${rows}</tbody>
+      </table></div>
+    </section>`;
+  }).join("");
+}
+
+function swatch(varName,label){ return `<span class="key"><i style="background:var(--${varName})"></i>${label}</span>`; }
+
+function renderLegendHint(){
+  const el=document.getElementById("legend-hint");
+  if(mode==="presence"){ el.innerHTML="● = mindestens ein Datensatz · · = keiner"; return; }
+  if(mode==="source"){
+    el.innerHTML = swatch("s-cc","CC — ClubCloud")+swatch("s-nu","NL — NuLiga")+
+      swatch("s-lm","LM — LigaManager")+swatch("s-ca","CA — Carambus, CC-los")+
+      swatch("s-ba","BA — BillardArea, offline")+swatch("s-none","· — ohne Quellenangabe")+
+      '<span class="key">Farbe = überwiegende Quelle der Zelle</span>';
+    return;
+  }
+  el.innerHTML = `wenig <span class="swatch" style="background:var(--h1)"></span>`+
+    `<span class="swatch" style="background:var(--h2)"></span>`+
+    `<span class="swatch" style="background:var(--h3)"></span>`+
+    `<span class="swatch" style="background:var(--h4)"></span>`+
+    `<span class="swatch" style="background:var(--h5)"></span> viel · `+
+    `<span class="key"><i style="background:var(--s-nu)"></i>Balken links = enthält Daten, die NICHT aus der ClubCloud stammen</span>`;
+}
+
+document.querySelectorAll(".seg button").forEach(btn=>{
+  btn.addEventListener("click",()=>{
+    mode=btn.dataset.mode;
+    document.querySelectorAll(".seg button").forEach(o=>
+      o.setAttribute("aria-pressed", String(o.dataset.mode===mode)));
+    renderMatrices(); renderLegendHint();
+  });
+});
+
+renderCards(); renderMatrices(); renderLegendHint();
+</script>
+
+</body>
+</html>

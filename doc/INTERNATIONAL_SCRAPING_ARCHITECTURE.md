@@ -1,6 +1,6 @@
 # International Video Scraping Architecture (SOOP Live & Kozoom)
 
-This document summarizes the architecture, implementation details, and deployment configuration for scraping international carom billiards videos from SOOP Live and Kozoom. It is intended for developers and LLMs to quickly understand the current state of the system.
+This document summarizes the architecture, implementation details, and deployment configuration for scraping international billiards videos from SOOP Live and Kozoom. It is intended for developers and LLMs to quickly understand the current state of the system.
 
 ## 1. Automated Scraper Jobs (`carambus_api`)
 

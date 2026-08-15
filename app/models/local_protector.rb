@@ -11,6 +11,10 @@ module LocalProtector
     # ausgewertet), NICHT über :skip — :skip/:ignore erwarten Spaltennamen und steuern nur die
     # Serialisierung, kein bedingtes Versionieren. Ein Lambda an :skip ist wirkungslos.
     has_paper_trail(
+      # ACHTUNG: Dieses Gate schluckt auch `touch` (touch aendert nur updated_at). Wer eine
+      # Version ERZWINGEN will — z.B. die Redelivery haengengebliebener Records in
+      # lib/tasks/region_taggings.rake — muss `record.paper_trail.save_with_version` nutzen;
+      # ein blosses `touch` erzeugt hier KEINE Version.
       unless: lambda { |obj|
         # Skip creating a version if only updated_at and/or sync_date changed
         return false unless obj.saved_changes.present?

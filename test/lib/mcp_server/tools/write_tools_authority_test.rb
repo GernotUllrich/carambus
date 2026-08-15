@@ -5,8 +5,8 @@ require "test_helper"
 # Plan 14-G.4 / F5-C: Authority-Denial-Tests für 6 Write-Tools.
 # Verifiziert dass authorize!-Check in jedem Tool Random-User blockt + Sportwart durchlässt.
 #
-# Setup: Tournament + RegistrationListCc (validate: false — umgeht belongs_to-Pflichten) +
-# TournamentCc, sodass resolve_tournament den Tournament-Record findet.
+# Setup: Tournament + TournamentCc (mit meldeliste_cc_id direkt am TCc, seit Plan 23-01 T1a),
+# sodass resolve_tournament den Tournament-Record findet.
 # Sportwart hat sportwart_locations + sportwart_disciplines passend.
 # Random-User hat keinen Wirkbereich → wird via Pundit-TournamentPolicy denied.
 class WriteToolsAuthorityTest < ActiveSupport::TestCase
@@ -24,13 +24,15 @@ class WriteToolsAuthorityTest < ActiveSupport::TestCase
       state: "tournament_mode_defined",
       date: 1.week.from_now
     )
-    @rlc = RegistrationListCc.new(cc_id: 90_001, context: "nbv")
-    @rlc.save(validate: false)
+    @meldeliste_cc_id = 90_001
     @tournament_cc = TournamentCc.create!(
       cc_id: 80_001, context: "nbv",
-      tournament: @tournament, registration_list_cc: @rlc
+      tournament: @tournament, meldeliste_cc_id: @meldeliste_cc_id
     )
-    @sportwart = User.create!(email: "wta_sw@test.de", password: "password123")
+    # D-38: Sportwart-Persona muss EXPLIZIT gesetzt sein (persona_grants), sonst
+    # liefert in_sportwart_scope? false — unabhaengig von den Listen unten.
+    @sportwart = User.create!(email: "wta_sw@test.de", password: "password123",
+      persona_grants: ["sportwart"])
     @sportwart.sportwart_locations << @location
     @sportwart.sportwart_disciplines << @discipline
     @random_user = User.create!(email: "wta_random@test.de", password: "password123")
@@ -43,7 +45,7 @@ class WriteToolsAuthorityTest < ActiveSupport::TestCase
   test "cc_register_for_tournament: Random-User → Authority-Denied" do
     result = McpServer::Tools::RegisterForTournament.call(
       fed_id: 1, branch_cc_id: 50, season: "2025/2026",
-      meldeliste_cc_id: @rlc.cc_id,
+      meldeliste_cc_id: @meldeliste_cc_id,
       player_cc_id: 100, club_cc_id: 200, armed: false,
       server_context: @random_ctx
     )
@@ -54,7 +56,7 @@ class WriteToolsAuthorityTest < ActiveSupport::TestCase
   test "cc_register_for_tournament: Sportwart-im-Wirkbereich → kein Authority-Block" do
     result = McpServer::Tools::RegisterForTournament.call(
       fed_id: 1, branch_cc_id: 50, season: "2025/2026",
-      meldeliste_cc_id: @rlc.cc_id,
+      meldeliste_cc_id: @meldeliste_cc_id,
       player_cc_id: 100, club_cc_id: 200, armed: false,
       server_context: @sw_ctx
     )
@@ -66,7 +68,7 @@ class WriteToolsAuthorityTest < ActiveSupport::TestCase
   test "cc_unregister_for_tournament: Random-User → Authority-Denied" do
     result = McpServer::Tools::UnregisterForTournament.call(
       fed_id: 1, branch_cc_id: 50, season: "2025/2026",
-      meldeliste_cc_id: @rlc.cc_id,
+      meldeliste_cc_id: @meldeliste_cc_id,
       player_cc_id: 100, club_cc_id: 200, armed: false,
       server_context: @random_ctx
     )
@@ -77,7 +79,7 @@ class WriteToolsAuthorityTest < ActiveSupport::TestCase
   test "cc_unregister_for_tournament: Sportwart-im-Wirkbereich → kein Authority-Block" do
     result = McpServer::Tools::UnregisterForTournament.call(
       fed_id: 1, branch_cc_id: 50, season: "2025/2026",
-      meldeliste_cc_id: @rlc.cc_id,
+      meldeliste_cc_id: @meldeliste_cc_id,
       player_cc_id: 100, club_cc_id: 200, armed: false,
       server_context: @sw_ctx
     )
@@ -131,7 +133,7 @@ class WriteToolsAuthorityTest < ActiveSupport::TestCase
   test "cc_finalize_teilnehmerliste: Random-User → Authority-Denied" do
     result = McpServer::Tools::FinalizeTeilnehmerliste.call(
       fed_id: 1, branch_id: 50, season: "2025/2026",
-      meldeliste_id: @rlc.cc_id, armed: false,
+      meldeliste_id: @meldeliste_cc_id, armed: false,
       server_context: @random_ctx
     )
     assert result.error?
@@ -141,7 +143,7 @@ class WriteToolsAuthorityTest < ActiveSupport::TestCase
   test "cc_finalize_teilnehmerliste: Sportwart → kein Authority-Block" do
     result = McpServer::Tools::FinalizeTeilnehmerliste.call(
       fed_id: 1, branch_id: 50, season: "2025/2026",
-      meldeliste_id: @rlc.cc_id, armed: false,
+      meldeliste_id: @meldeliste_cc_id, armed: false,
       server_context: @sw_ctx
     )
     refute_match(/Authority-Denied/, result.content.first[:text]) if result.error?
@@ -151,7 +153,7 @@ class WriteToolsAuthorityTest < ActiveSupport::TestCase
 
   test "cc_update_tournament_deadline: Random-User → Authority-Denied" do
     result = McpServer::Tools::UpdateTournamentDeadline.call(
-      meldeliste_cc_id: @rlc.cc_id,
+      meldeliste_cc_id: @meldeliste_cc_id,
       new_deadline: "2026-12-31", armed: false,
       server_context: @random_ctx
     )
@@ -161,7 +163,7 @@ class WriteToolsAuthorityTest < ActiveSupport::TestCase
 
   test "cc_update_tournament_deadline: Sportwart → kein Authority-Block" do
     result = McpServer::Tools::UpdateTournamentDeadline.call(
-      meldeliste_cc_id: @rlc.cc_id,
+      meldeliste_cc_id: @meldeliste_cc_id,
       new_deadline: "2026-12-31", armed: false,
       server_context: @sw_ctx
     )

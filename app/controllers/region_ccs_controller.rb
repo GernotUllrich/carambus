@@ -204,7 +204,9 @@ class RegionCcsController < ApplicationController
     @context = cookies[:context]
     cookies[:context] = @context = "nbv" unless @context.present?
     @season_name = cookies[:season_name]
-    cookies[:season_name] = @season_name = Season.last.name unless @season_name.present?
+    # Season.last liefert die zuletzt ANGELEGTE Saison (Insert-Reihenfolge), nicht die
+    # aktuellste — durch internationales Scrapen konnte das eine Fremd-/Platzhalter-Saison sein.
+    cookies[:season_name] = @season_name = Season.current_season&.name unless @season_name.present?
     @force_update = cookies[:force_update]
     @opts = {
       season_name: @season_name,

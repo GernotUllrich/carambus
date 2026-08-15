@@ -154,6 +154,31 @@ class TournamentMonitor::ResultProcessorTest < ActiveSupport::TestCase
       "update_ranking must call player_id_from_ranking on @tournament_monitor"
   end
 
+  test "update_ranking writes 1-based rank to seedings (same base as rankings)" do
+    executor_params = JSON.parse(@tournament.tournament_plan.executor_params)
+    skip "Tournament plan has no RK rules" unless executor_params["RK"].present?
+
+    @tm.data["rankings"] = { "total" => @players.to_h { |p| [p.id.to_s, { "points" => 0, "gd" => 0.0 }] } }
+    @tm.save!
+
+    # Ohne gespielte Partien liefert player_id_from_ranking keine IDs — daher deterministisch
+    # stubben: die RK-Regeln werden der Reihe nach auf die Testspieler abgebildet.
+    queue = @players.map(&:id).cycle
+    @tm.define_singleton_method(:player_id_from_ranking) { |_rule, _opts = {}| queue.next }
+
+    @processor.update_ranking
+
+    total = @tm.reload.data["rankings"]["total"]
+    ranked = @tournament.seedings.where.not(rank: nil)
+    assert_predicate ranked, :any?, "update_ranking must assign ranks"
+
+    ranked.each do |seeding|
+      assert_equal total[seeding.player_id.to_s]["rank"], seeding.rank,
+        "seedings.rank must match rankings['total'][player]['rank'] (1-based, winner = 1)"
+    end
+    assert_equal 1, ranked.minimum(:rank), "winner must have rank 1, not 2"
+  end
+
   # ============================================================================
   # Test 5: update_game_participations_for_game updates GameParticipation records
   # ============================================================================

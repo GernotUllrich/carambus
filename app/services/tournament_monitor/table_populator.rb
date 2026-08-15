@@ -544,15 +544,9 @@ class TournamentMonitor::TablePopulator
     if @tournament_plan.present?
       initialize_table_monitors unless @tournament_monitor.tournament.manual_assignment
 
-      # Intelligentes seeding_scope: Lokale Seedings bevorzugen, sonst ClubCloud
-      has_local_seedings = @tournament_monitor.tournament.seedings.where("seedings.id >= #{Seeding::MIN_ID}").any?
-
-      # Debug: Logging der verwendeten Seedings
-      if has_local_seedings
-        seedings_query = @tournament_monitor.tournament.seedings.where.not(state: "no_show").where("seedings.id >= ?", Seeding::MIN_ID).order(:position)
-      else
-        seedings_query = @tournament_monitor.tournament.seedings.where.not(state: "no_show").where("seedings.id < ?", Seeding::MIN_ID).order(:position)
-      end
+      # Intelligentes seeding_scope: Lokale Seedings bevorzugen, sonst ClubCloud (Plan 32-03: effective_seedings)
+      has_local_seedings = @tournament_monitor.tournament.has_local_seedings?
+      seedings_query = @tournament_monitor.tournament.effective_seedings.where.not(state: "no_show").order(:position)
 
       seedings_count = seedings_query.count
       Tournament.logger.info "[tmon-reset_tournament_monitor] Seedings: #{seedings_count} (has_local: #{has_local_seedings})"

@@ -1,0 +1,66 @@
+<h2 class="sr-only">Redesign-Richtung C: warmes, wertiges Heritage-Layout für Carambus mit Creme-Tönen, Billardtuch-Grün, Messing-Akzent, Serifen-Überschriften, Seitennavigation und Region-Umschalter</h2>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600&display=swap">
+<div style="font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; background:#e5dcc7; border-radius:16px; padding:12px;">
+  <style>
+    .c-serif{font-family:'Playfair Display',Georgia,'Times New Roman',serif}
+    .c-frame{display:flex;background:#f7f2e8;border:1px solid #d9ceb5;border-radius:12px;overflow:hidden;min-height:430px}
+    .c-nav a{display:flex;align-items:center;gap:9px;color:#6d6450;text-decoration:none;font-size:13px;padding:8px 11px;border-radius:8px}
+    .c-nav a.on{background:#e9e0cb;color:#14532d;box-shadow:inset 3px 0 0 #a8814a}
+    .c-row{display:flex;align-items:center;gap:12px;padding:13px 18px;border-bottom:1px solid #ece3d0}
+    .c-row:hover{background:#f1ead9}
+    .c-chip{font-size:11px;padding:2px 10px;border-radius:20px;font-weight:500}
+    .c-reg{font-size:11px;color:#8a8069;border:1px solid #d9ceb5;padding:1px 8px;border-radius:20px}
+    .c-btn{background:#14532d;color:#f7f2e8;border:none;border-radius:9px;padding:10px 18px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit}
+  </style>
+  <div class="c-frame">
+    <div style="width:162px;background:#efe7d6;border-right:1px solid #d9ceb5;padding:16px 11px;flex-shrink:0">
+      <div style="display:flex;align-items:center;gap:8px;padding:0 4px 14px">
+        <span style="width:22px;height:22px;border-radius:50%;background:#14532d;border:2px solid #a8814a;display:inline-block"></span>
+        <span class="c-serif" style="font-weight:600;font-size:17px;color:#2c2a22">Carambus</span>
+      </div>
+      <div style="font-size:10px;color:#a79a7d;text-transform:uppercase;letter-spacing:1.5px;padding:4px 5px 5px">Ansicht</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;background:#f7f2e8;border:1px solid #d9ceb5;border-radius:8px;padding:7px 10px;font-size:12px;color:#3a352c;margin-bottom:14px"><span><i class="ti ti-world" style="color:#a8814a;font-size:14px;vertical-align:-2px" aria-hidden="true"></i> Alle Regionen</span><i class="ti ti-chevron-down" style="font-size:14px;color:#8a8069" aria-hidden="true"></i></div>
+      <div class="c-nav" style="display:flex;flex-direction:column;gap:3px">
+        <a class="on" href="#"><i class="ti ti-trophy" aria-hidden="true"></i> Turniere</a>
+        <a href="#"><i class="ti ti-chart-bar" aria-hidden="true"></i> Ligen</a>
+        <a href="#"><i class="ti ti-users" aria-hidden="true"></i> Spieler</a>
+        <a href="#"><i class="ti ti-map-pin" aria-hidden="true"></i> Orte</a>
+      </div>
+    </div>
+    <div style="flex:1;background:#f7f2e8">
+      <div style="padding:16px 18px 12px;border-bottom:1px solid #e4dbc6">
+        <div class="c-serif" style="font-size:22px;color:#2c2a22;font-weight:600;letter-spacing:-0.2px">Turniere</div>
+        <div style="font-size:12px;color:#a79a7d;margin-top:2px">312 Turniere · alle Regionen · Saison 2025/2026</div>
+      </div>
+      <div class="c-row">
+        <div style="flex:1"><div class="c-serif" style="font-size:15px;color:#2c2a22;font-weight:500">Dreiband Bezirksliga</div><div style="font-size:12px;color:#a79a7d;margin-top:2px">14.–16. Feb 2026 · BC Wedel</div></div>
+        <span class="c-chip" style="background:#e7eef0;color:#26576b">3-Band</span><span class="c-reg">NBV</span>
+      </div>
+      <div class="c-row">
+        <div style="flex:1"><div class="c-serif" style="font-size:15px;color:#2c2a22;font-weight:500">Snooker Verbandsliga</div><div style="font-size:12px;color:#a79a7d;margin-top:2px">21. Feb 2026 · PBC Waghäusel</div></div>
+        <span class="c-chip" style="background:#e4eee4;color:#14532d">Snooker</span><span class="c-reg">BVBW</span>
+      </div>
+      <div class="c-row">
+        <div style="flex:1"><div class="c-serif" style="font-size:15px;color:#2c2a22;font-weight:500">Pool 9-Ball Landesmeisterschaft</div><div style="font-size:12px;color:#a79a7d;margin-top:2px">07. Mär 2026 · BC Schrebergarten</div></div>
+        <span class="c-chip" style="background:#f3e8d4;color:#8a5a12">Pool</span><span class="c-reg">NRW</span>
+      </div>
+      <div class="c-row" style="background:#f1ead9;box-shadow:inset 3px 0 0 #a8814a">
+        <div style="flex:1"><div class="c-serif" style="font-size:15px;color:#2c2a22;font-weight:500">Karambol Oberliga Vierkampf</div><div style="font-size:12px;color:#a79a7d;margin-top:2px">14. Mär 2026 · Johannes Schule</div></div>
+        <span class="c-chip" style="background:#ece4f2;color:#5b3f77">Karambol</span><span class="c-reg">DBU</span>
+      </div>
+      <div style="padding:14px 18px;background:#efe7d6;border-top:1px solid #e4dbc6">
+        <div class="c-serif" style="font-size:15px;font-weight:500;color:#2c2a22;margin-bottom:9px">Karambol Oberliga Vierkampf</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 20px;font-size:12px">
+          <div style="display:flex;justify-content:space-between;border-bottom:1px solid #e0d6bf;padding-bottom:5px"><span style="color:#a79a7d">Disziplin</span><span style="color:#3a352c">Karambol klein</span></div>
+          <div style="display:flex;justify-content:space-between;border-bottom:1px solid #e0d6bf;padding-bottom:5px"><span style="color:#a79a7d">Ausrichter</span><span style="color:#3a352c">DBU</span></div>
+          <div style="display:flex;justify-content:space-between;border-bottom:1px solid #e0d6bf;padding-bottom:5px"><span style="color:#a79a7d">Ort</span><span style="color:#3a352c">Johannes Schule</span></div>
+          <div style="display:flex;justify-content:space-between;border-bottom:1px solid #e0d6bf;padding-bottom:5px"><span style="color:#a79a7d">Teilnehmer</span><span style="color:#3a352c">16</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:12px;margin-top:12px">
+    <button class="c-btn" onclick="sendPrompt('Ich tendiere zu Richtung C (Premium & Heritage). Baue diese Richtung weiter aus.')">Richtung C wählen ↗</button>
+    <span style="font-size:12px;color:#6d6450">Creme · Tuch-Grün + Messing · Serifen-Titel · Seiten-Nav · wertig</span>
+  </div>
+</div>

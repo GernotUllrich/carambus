@@ -3,8 +3,15 @@
 one:
   id: 50_000_001
   name: "Test League One"
-  organizer: nbv (Region)
+  # FKs explizit statt Label-Verweise: die referenzierten Fixtures vergeben eigene
+  # ids, ein `organizer: nbv (Region)` traegt stattdessen einen generierten
+  # Fixture-Hash ein und die Assoziation laeuft ins Leere.
+  organizer_id: 50_000_001
   organizer_type: "Region"
-  discipline: one
+  discipline_id: 50_000_005
+  # Ohne Saison lief jede View, die @league.season.name rendert, in einen 500er.
+  # season_id explizit statt `season: current` — seasons.yml vergibt eigene ids,
+  # der Label-Verweis wuerde stattdessen einen generierten Fixture-Hash eintragen.
+  season_id: 50_000_001
   created_at: <%= 2.years.ago %>
   updated_at: <%= 1.day.ago %>

@@ -136,4 +136,48 @@ class Video::TournamentMatcherTest < ActiveSupport::TestCase
     score = matcher.confidence_score(video, tournament)
     assert score < 0.75, "Expected score < 0.75, got #{score}"
   end
+
+  # ------------------------------------------------------------------
+  # Regressionsschutz Metrik: grosses Teilnehmerfeld
+  # ------------------------------------------------------------------
+  #
+  # Die Fixture-Turniere haben nur zwei Seedings — damit funktionierte auch die
+  # frueher verwendete Jaccard-Metrik. In der Realitaet hat ein World-Cup-Feld
+  # bis zu 300 Teilnehmer, waehrend ein Video zwei Spieler zeigt; Jaccard sank
+  # dann auf ~0.05 und die Schwelle war rechnerisch unerreichbar (gemessen am
+  # World Cup 2024: bester Score 0.48, null Zuordnungen).
+  #
+  # Dieser Test blaeht das Feld kuenstlich auf: der Score darf davon NICHT
+  # abhaengen, solange die gezeigten Spieler im Turnier sind.
+  test "grosses Teilnehmerfeld drueckt den Score nicht unter die Schwelle" do
+    tournament = tournaments(:wc_2024)
+    video = videos(:jaspers_cho_wc_2024)
+    matcher = Video::TournamentMatcher.new
+    score_klein = matcher.confidence_score(video, tournament)
+
+    # Weitere Top-32-Spieler ins Feld legen (Namen aus WORLD_CUP_TOP_32, damit sie
+    # von tournament_player_tags auch als Tags gezaehlt werden).
+    %w[TASDEMIR MERCKX ZANETTI SIDHOM KARAKURT HORN KIM BURY HOFMAN].each_with_index do |name, i|
+      player = Player.create!(lastname: name, firstname: "Test#{i}", guest: false)
+      Seeding.create!(player: player, tournament: tournament, state: "seeded", tournament_type: "Tournament")
+    end
+    tournament.reload
+
+    score_gross = matcher.confidence_score(video, tournament)
+    assert_operator score_gross, :>=, 0.75,
+      "Score faellt bei grossem Feld unter die Schwelle (#{score_gross}) — Metrik haengt an der Turniergroesse"
+    assert_in_delta score_klein, score_gross, 0.001,
+      "Der Score darf sich durch zusaetzliche Teilnehmer ueberhaupt nicht aendern"
+  end
+
+  test "player_intersection_score misst den Anteil der erkannten Spieler" do
+    tournament = tournaments(:wc_2024)  # Seedings: JASPERS, CHO
+    matcher = Video::TournamentMatcher.new
+
+    assert_in_delta 1.0, matcher.send(:player_intersection_score, ["jaspers"], tournament), 0.001
+    assert_in_delta 1.0, matcher.send(:player_intersection_score, %w[jaspers cho], tournament), 0.001
+    # Nur einer von zweien spielt mit -> 0.5
+    assert_in_delta 0.5, matcher.send(:player_intersection_score, %w[jaspers merckx], tournament), 0.001
+    assert_in_delta 0.0, matcher.send(:player_intersection_score, ["merckx"], tournament), 0.001
+  end
 end

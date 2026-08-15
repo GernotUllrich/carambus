@@ -1,0 +1,34 @@
+<%# Region-Server-Sicht (Vorab zu Phase 35): KEIN Tournament-Wizard.
+    Der Wizard ist Tournament-Management für den Location Server (Modus/Start/Scoreboards) und
+    CC-behaftet. Auf dem Region Server (LSW-Verwaltungsplatz, CC-Ersatz) reichen zwei Aktionen:
+    Meldeliste pflegen und Ergebnisse pflegen. Betreiber-Entscheidung 2026-07-25. %>
+<div class="my-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 p-4">
+  <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">
+    <%= t("tournaments.region_server_actions.heading", title: tournament.title) %>
+  </h2>
+  <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
+    <%= t("tournaments.region_server_actions.subline") %>
+  </p>
+
+  <div class="flex flex-wrap gap-3">
+    <%# .btn .btn-primary (nicht rohe Utilities): base.css `a:not(.btn)` würde sonst die Link-Farbe
+        über `text-white` setzen → dunkler Text auf Grün (buttons.css:44). %>
+    <%# Plan 35-01: der zweckgebaute CC-lose Meldelisten-Fluss — nicht mehr define_participants,
+        das zur Hälfte Modus-Findung (Turnierplan, Gruppen) und damit Location-Server-Sache ist. %>
+    <%= link_to tournament_entry_list_path(tournament), class: "btn btn-primary" do %>
+      📝 <%= t("tournaments.region_server_actions.meldeliste") %>
+    <% end %>
+
+    <%# Plan 35-03: eingelöst — manuelle Ergebniserfassung aus Spielberichten, gegen den
+        Akzeptanz-Namensraum und entkoppelt vom TableMonitor (der läuft am Spielort). %>
+    <%= link_to tournament_game_results_path(tournament), class: "btn btn-primary" do %>
+      🏁 <%= t("tournaments.region_server_actions.ergebnisse") %>
+    <% end %>
+
+    <%# Plan 36-01: die Abschlusswerte je Spieler — Erfassung wie in der ClubCloud, keine
+        Berechnung. Schließt den CC-losen Fluss von der Meldung bis zur Auswertung. %>
+    <%= link_to tournament_ranking_path(tournament), class: "btn btn-primary" do %>
+      🏆 <%= t("tournaments.region_server_actions.rangliste") %>
+    <% end %>
+  </div>
+</div>

@@ -85,7 +85,7 @@ class McpServer::Tools::UnregisterForTournamentTest < ActiveSupport::TestCase
     refute_includes actions, "saveMeldeliste"
   end
 
-  test "armed:true Mock-Success ruft 3-Step-Chain (Pre-Read → remove → Save → Read-Back)" do
+  test "armed:true Mock-Success ruft die volle CC-Chain (Pre-Read → init → remove → re-render → Save → Read-Back)" do
     with_stateful_mock
     response = McpServer::Tools::UnregisterForTournament.call(
       fed_id: 20, branch_cc_id: 8, season: "2025/2026",
@@ -96,11 +96,15 @@ class McpServer::Tools::UnregisterForTournamentTest < ActiveSupport::TestCase
     text = response.content.first[:text]
     assert_match(/Unregistered player_cc_id=10031/, text)
     assert_match(/Steps completed:/, text)
-    # 5-Step-Chain in genau dieser Reihenfolge
+    # Chain in genau dieser Reihenfolge. Die beiden sportwart-editMeldelisteCheck-Posts
+    # sind die HAR-empirisch nachgezogenen Steps (Plan 14-G.13 Bug #2 / Plan 08-03
+    # Inline-Patch v1): dla=1 laedt DB→Server-Scratch vor dem remove, firstEntry=1
+    # rendert die Working-Session vor dem Save neu.
     posts = @mock.calls.select { |verb, _, _, _| verb == :post }
     actions = posts.map { |_, action, _, _| action }
-    expected = %w[showCommittedMeldeliste removePlayerFromMeldeliste saveMeldeliste showCommittedMeldeliste]
-    assert_equal expected, actions, "Erwarte 4-Step-Chain (Pre-Read → remove → Save → Read-Back) — got #{actions.inspect}"
+    expected = %w[showCommittedMeldeliste sportwart-editMeldelisteCheck removePlayerFromMeldeliste
+      sportwart-editMeldelisteCheck saveMeldeliste showCommittedMeldeliste]
+    assert_equal expected, actions, "Erwarte die volle CC-Chain — got #{actions.inspect}"
     # read_back_match: true (Stateful-Mock zeigt player NICHT mehr nach save)
     assert_match(/read_back_match: true/, text)
   end
@@ -186,8 +190,11 @@ class McpServer::Tools::UnregisterForTournamentTest < ActiveSupport::TestCase
     refute response.error?
     text = response.content.first[:text]
     assert_match(/read_back_match: skipped/, text)
-    # 3 Steps statt 4 (Pre-Read + Remove + Save; KEIN Read-Back)
+    # Genau ein Post weniger als mit Read-Back: der abschliessende showCommittedMeldeliste entfaellt.
     posts = @mock.calls.select { |verb, _, _, _| verb == :post }
-    assert_equal 3, posts.size, "Mit read_back:false erwartet 3 Posts, got #{posts.size}"
+    actions = posts.map { |_, action, _, _| action }
+    expected = %w[showCommittedMeldeliste sportwart-editMeldelisteCheck removePlayerFromMeldeliste
+      sportwart-editMeldelisteCheck saveMeldeliste]
+    assert_equal expected, actions, "Mit read_back:false darf kein Read-Back-Post folgen — got #{actions.inspect}"
   end
 end

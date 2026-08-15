@@ -104,4 +104,38 @@ class RegionTest < ActiveSupport::TestCase
   test "location_row_content: Zeile ohne Link (Kopf/Footer) → nil" do
     assert_nil Region.location_row_content(location_tr("<td>kein Link</td>"))
   end
+
+  # --- Fail-silent-Wächter (Befund 2026-07-21 SBV-Clubs): ScrapeListGuard ---
+
+  def captured_scrape_warnings
+    old_logger = Rails.logger
+    io = StringIO.new
+    Rails.logger = Logger.new(io)
+    yield
+    io.string
+  ensure
+    Rails.logger = old_logger
+  end
+
+  test "warn_if_empty: leere Liste trotz DB-Bestand → warn mit Label und Erwartung" do
+    log = captured_scrape_warnings do
+      assert ScrapeListGuard.warn_if_empty("Clubs SBV", 0, 209)
+    end
+    assert_includes log, "LEERE LISTE Clubs SBV"
+    assert_includes log, "209 in der DB"
+  end
+
+  test "warn_if_empty: leere Liste ohne DB-Bestand → still (Neuanlage ist kein Fehler)" do
+    log = captured_scrape_warnings do
+      refute ScrapeListGuard.warn_if_empty("Clubs XYZ", 0, 0)
+    end
+    refute_includes log, "LEERE LISTE"
+  end
+
+  test "warn_if_empty: nicht-leere Liste → still" do
+    log = captured_scrape_warnings do
+      refute ScrapeListGuard.warn_if_empty("Clubs SBV", 27, 209)
+    end
+    refute_includes log, "LEERE LISTE"
+  end
 end

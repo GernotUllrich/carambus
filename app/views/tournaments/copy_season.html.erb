@@ -1,0 +1,113 @@
+<%# Saison-Kopie mit Auswahl (Sportwart-Weg zum Rake-Task tournaments:copy_season).
+    Diese Seite SCHREIBT NICHTS — sie ist die Vorschau; erst der Submit kopiert. %>
+<div class="container mx-auto px-4 py-4">
+
+  <h1 class="text-2xl font-semibold text-gray-900 dark:text-gray-100">
+    <%= t('tournaments.copy_season.title', default: 'Turniere aus der Vorsaison übernehmen') %>
+  </h1>
+
+  <p class="mt-2 text-sm text-gray-700 dark:text-gray-300">
+    <%= t('tournaments.copy_season.intro',
+          region: @region.shortname, from: @from_season.name, to: @to_season.name,
+          default: 'Region %{region}: Struktur der Turniere aus %{from} als Entwürfe in %{to} anlegen.') %>
+  </p>
+
+  <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
+    <%= t('tournaments.copy_season.structure_only',
+          default: 'Kopiert werden nur Stammdaten (Titel, Disziplin, Modus, Spielort). Niemals Ergebnisse, Meldungen oder Spiele. Das Datum wird um 52 Wochen verschoben, damit der Wochentag erhalten bleibt.') %>
+  </p>
+
+  <%# Branch-Filter: reine Ansichtssache, aendert die Auswahl nicht. %>
+  <% if @branches.size > 1 %>
+    <div class="mt-4 flex flex-wrap items-center gap-2 text-sm">
+      <span class="text-gray-600 dark:text-gray-400"><%= t('scope_band.branch', default: 'Branch') %>:</span>
+      <%= link_to t('tournaments.copy_season.all_branches', default: 'Alle'),
+            copy_season_tournaments_path(to_season_id: @to_season.id),
+            class: "rounded-pill border px-3 py-1 #{@branch_filter.nil? ? 'bg-primary-600 text-white border-primary-600' : 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200'}" %>
+      <% @branches.each do |branch| %>
+        <%= link_to branch,
+              copy_season_tournaments_path(to_season_id: @to_season.id, branch: branch),
+              class: "rounded-pill border px-3 py-1 #{@branch_filter == branch ? 'bg-primary-600 text-white border-primary-600' : 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200'}" %>
+      <% end %>
+    </div>
+  <% end %>
+
+  <% if @candidates.empty? %>
+    <div class="mt-6 rounded border border-gray-300 dark:border-gray-700 p-4 text-gray-700 dark:text-gray-300">
+      <%= t('tournaments.copy_season.empty', from: @from_season.name,
+            default: 'In %{from} gibt es keine Einzelturniere dieser Region, die als Vorlage dienen könnten.') %>
+    </div>
+  <% else %>
+    <%= form_with url: copy_season_execute_tournaments_path, method: :post, local: true,
+                  data: { controller: 'checkbox-group' } do %>
+      <%= hidden_field_tag :to_season_id, @to_season.id %>
+      <%= hidden_field_tag :branch, @branch_filter %>
+
+      <div class="mt-4 flex flex-wrap items-center gap-2">
+        <button type="button" data-action="checkbox-group#selectAll"
+                class="rounded border border-gray-300 dark:border-gray-600 px-3 py-1 text-sm text-gray-700 dark:text-gray-200">
+          <%= t('tournaments.copy_season.select_all', default: 'Alle auswählen') %>
+        </button>
+        <button type="button" data-action="checkbox-group#selectNone"
+                class="rounded border border-gray-300 dark:border-gray-600 px-3 py-1 text-sm text-gray-700 dark:text-gray-200">
+          <%= t('tournaments.copy_season.select_none', default: 'Auswahl aufheben') %>
+        </button>
+        <span class="text-sm text-gray-600 dark:text-gray-400">
+          <span data-checkbox-group-target="count">0</span>
+          <%= t('tournaments.copy_season.selected_suffix', default: 'ausgewählt') %>
+        </span>
+      </div>
+
+      <div class="mt-3 overflow-x-auto">
+        <table class="min-w-full text-sm">
+          <thead class="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200">
+            <tr>
+              <th class="px-3 py-2 text-left w-8"></th>
+              <th class="px-3 py-2 text-left"><%= t('tournament.title', default: 'Turnier') %></th>
+              <th class="px-3 py-2 text-left"><%= t('tournament.discipline', default: 'Disziplin') %></th>
+              <th class="px-3 py-2 text-left"><%= t('tournaments.copy_season.date_from', default: 'Datum bisher') %></th>
+              <th class="px-3 py-2 text-left"><%= t('tournaments.copy_season.date_to', default: 'neues Datum') %></th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @candidates.each do |candidate| %>
+              <% t_source = candidate.tournament %>
+              <tr class="border-b border-gray-200 dark:border-gray-700 <%= 'opacity-60' unless candidate.copyable? %>">
+                <td class="px-3 py-2">
+                  <%= check_box_tag 'source_ids[]', t_source.id, candidate.copyable?,
+                        id: "source_#{t_source.id}",
+                        disabled: !candidate.copyable?,
+                        data: { checkbox_group_target: 'checkbox', action: 'checkbox-group#refresh' },
+                        class: 'rounded border-gray-300 dark:border-gray-600' %>
+                </td>
+                <td class="px-3 py-2">
+                  <label for="source_<%= t_source.id %>" class="cursor-pointer">
+                    <%= t_source.title %>
+                    <% unless candidate.copyable? %>
+                      <span class="ml-2 text-xs rounded-pill bg-gray-200 dark:bg-gray-700 px-2 py-0.5">
+                        <%= candidate.status == :already_copied ?
+                              t('tournaments.copy_season.already_copied', default: 'bereits übernommen') :
+                              t('tournaments.copy_season.no_date', default: 'kein verwertbares Datum') %>
+                      </span>
+                    <% end %>
+                  </label>
+                </td>
+                <td class="px-3 py-2 text-gray-600 dark:text-gray-400"><%= t_source.discipline&.name %></td>
+                <td class="px-3 py-2 text-gray-600 dark:text-gray-400"><%= l(t_source.date.to_date, format: :default) if t_source.date.present? %></td>
+                <td class="px-3 py-2"><%= l(candidate.new_date.to_date, format: :default) if candidate.new_date.present? %></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="mt-4 flex items-center gap-3">
+        <%= submit_tag t('tournaments.copy_season.submit', default: 'Ausgewählte übernehmen'),
+              data: { checkbox_group_target: 'submit' },
+              class: 'rounded bg-primary-600 px-4 py-2 text-white disabled:opacity-50' %>
+        <%= link_to t('cancel', default: 'Abbrechen'), tournaments_path,
+              class: 'text-gray-600 dark:text-gray-400 underline' %>
+      </div>
+    <% end %>
+  <% end %>
+</div>

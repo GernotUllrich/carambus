@@ -794,7 +794,27 @@ class Setting < ApplicationRecord
       /^Platz\s*11[-\/]12$/i => "Spiel um Platz 11",
       /^p<11-12>$/i => "Spiel um Platz 11",
       /^Platz\s*13[-\/]14$/i => "Spiel um Platz 13",
-      /^p<13-14>$/i => "Spiel um Platz 13"
+      /^p<13-14>$/i => "Spiel um Platz 13",
+
+      # Plan 35-02: KO-Stufen unterhalb des Halbfinales. Sie fehlten bisher komplett — 68 der 116
+      # TournamentPlans fuehren solche Keys (alle KO_*/DKO_*, EK11, EK12, Biathlon16). Ohne sie
+      # meldete der Sender diese Spiele gar nicht (game_result_reporter.rb:84, bewusst ohne
+      # Fallback) und der Empfaenger haette sie abgewiesen — ein stiller Datenverlust-Pfad.
+      #
+      # Die Benennung folgt Game::RANKING_KEY_PATTERNS (game.rb:244-265), NICHT einer eigenen
+      # Lesart: dort heisst 16f "1/16 Finale" und nicht "Sechzehntelfinale". Zwei Namen fuer
+      # dasselbe Spiel in Anzeige und Ergebnisannahme waeren eine Fehlerquelle.
+      #
+      # `vf` (Viertelfinale) und `af` (Achtelfinale) kommen in ExecutorParams und in
+      # party_monitor/result_processor.rb:227-240 vor, fehlen aber in RANKING_KEY_PATTERNS —
+      # sie werden hier auf denselben Namen wie `qf` bzw. `8f` abgebildet.
+      /^(?:qf|vf)\d*$/i => "Viertelfinale",
+      /^(?:8f|af)\d*$/i => "Achtelfinale",
+      /^16f\d*$/i => "1/16 Finale",
+      /^32f\d*$/i => "1/32 Finale",
+      /^64f\d*$/i => "1/64 Finale",
+      /^Viertelfinale$/i => "Viertelfinale",
+      /^Achtelfinale$/i => "Achtelfinale"
     }
 
     # Versuche direkte Mappings
@@ -809,7 +829,11 @@ class Setting < ApplicationRecord
     # === DYNAMISCHE GRUPPENEXTRAKTION ===
     # Extrahiere Gruppennummer aus verschiedenen Formaten
     # group1, group2, Gruppe 1, etc.
-    if (m = normalized.match(/group(\d+)/i))
+    #
+    # Plan 35-02: Die Schreibweise "Gruppe 7" traf hier bisher NICHT — nach "group" folgt in
+    # "Gruppe" ein "e", nicht die Ziffer. Ueber "Gruppe 6" hinaus lieferte die Methode deshalb nil,
+    # obwohl "Gruppe G"/"Gruppe H" real vorkommen (899 Spiele in der Dev-DB).
+    if (m = normalized.match(/(?:group|Gruppe\s*)(\d+)/i))
       group_no = m[1].to_i
       # Mappe Nummer zu Buchstabe: 1→A, 2→B, 3→C, ...
       if group_no >= 1 && group_no <= 26
@@ -818,9 +842,22 @@ class Setting < ApplicationRecord
       end
     end
 
+    # === DYNAMISCHE DOPPEL-KO-RUNDEN ===
+    # Plan 35-02: w<runde>.<partie> / l<runde>.<partie> aus den DKO-Plaenen. Die Vereinfachung ist
+    # wie ueberall viele-zu-eins: die Partie-Nummer faellt weg, die Runde traegt den Namen.
+    # Formulierung wie in Game::RANKING_KEY_PATTERNS (game.rb:255-256).
+    if (m = normalized.match(/^w(\d+)\.(\d+)$/i))
+      return "#{m[1]}. Gewinnerrunde"
+    end
+    if (m = normalized.match(/^l(\d+)\.(\d+)$/i))
+      return "#{m[1]}. Verliererrunde"
+    end
+
     # === DYNAMISCHE PLATZIERUNGSSPIELE ===
     # Extrahiere Platzierungen: "Platz 5-6", "p<5-6>", etc.
-    if (m = normalized.match(/(?:Platz|p<)\s*(\d+)[-\/](\d+)>?/i))
+    # Plan 35-02: zusaetzlich die Doppelpunkt-Notation "p<3..4>", die
+    # party_monitor/result_processor.rb:227-240 als gueltige Form fuehrt.
+    if (m = normalized.match(/(?:Platz|p<)\s*(\d+)(?:\.\.|[-\/])(\d+)>?/i))
       place1 = m[1].to_i
       place2 = m[2].to_i
       lower_place = [place1, place2].min

@@ -16,7 +16,7 @@
         <link rel="prev" href="../umb-scraping-implementation/">
       
       
-        <link rel="next" href="../clubcloud-mcp-server/">
+        <link rel="next" href="../umb-betrieb/">
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
@@ -1391,6 +1391,8 @@
       
         
       
+        
+      
     
     
     
@@ -1543,6 +1545,29 @@
   
   <span class="md-ellipsis">
     Server-Architektur
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../administrators/cc-less-tournament-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    CC-loses Turniermanagement
     
   </span>
   
@@ -2051,6 +2076,8 @@
       
         
       
+        
+      
     
     
     
@@ -2266,6 +2293,29 @@
   
 </nav>
       
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../umb-betrieb/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    UMB Betrieb und Wartung
+    
+  </span>
+  
+
+      </a>
     </li>
   
 
@@ -3501,7 +3551,17 @@
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="no">Umb</span><span class="o">::</span><span class="no">FutureScraper</span><span class="o">.</span><span class="n">new</span><span class="o">.</span><span class="n">call</span>
 </code></pre></div>
 <p><strong>Parameter:</strong> keine</p>
-<p><strong>Beschreibung:</strong> Scrapt <code>FutureTournaments.aspx</code> der UMB-Webseite. Parst die HTML-Tabelle inkl. monatsübergreifender Ereignisse und wendet Duplikat-Prüfung (Titel + Ort + Datum ±30 Tage) an.</p>
+<p><strong>Beschreibung:</strong> Scrapt <code>FutureTournaments.aspx</code> der UMB-Webseite. Parst die HTML-Tabelle inkl. monatsübergreifender Ereignisse und wendet Duplikat-Prüfung (Titel + Datum ±30 Tage) an.</p>
+<div class="admonition warning">
+<p class="admonition-title">Duplikat-Prüfung nutzt den Ort NICHT als Filter</p>
+<p>Bis 2026-08 floss <code>location_text</code> in die Prüfung ein. Als die UMB-Übersicht
+das Ortsformat von <code>CITY (Country)</code> auf <code>CITY / Country (Country)</code> umstellte,
+lieferte <code>extract_location</code> plötzlich <code>", Turkey"</code> statt <code>"Ankara, Turkey"</code> —
+die Prüfung fand bestehende Turniere nicht mehr wieder und legte bei <strong>jedem
+Lauf</strong> eine neue Kopie an (43 Dubletten-Gruppen im Produktionsbestand).
+Der Ort dient jetzt nur noch als Tiebreaker bei mehreren Kandidaten.
+Bereinigung des Altbestands: <code>rake umb:dedupe_tournaments</code>.</p>
+</div>
 <p><strong>DB-Effekte:</strong>
 - Erstellt oder aktualisiert <code>InternationalTournament</code>-Datensätze
 - Erstellt bei Bedarf <code>Location</code>-, <code>Season</code>- und <code>Region</code> (UMB Organizer)-Datensätze</p>
@@ -3598,16 +3658,53 @@
 <p><strong>Eingabe:</strong> Extrahierter PDF-Text (String) einer UMB-Spielerliste (Setzliste)</p>
 <p><strong>Ausgabe:</strong> Array von Hashes mit diesen Schlüsseln:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="o">[</span>
-<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="ss">position</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="ss">caps_name</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;JASPERS&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">mixed_name</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Dick&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">nationality</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;NL&quot;</span><span class="w"> </span><span class="p">},</span>
-<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="ss">position</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="ss">caps_name</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;CAUDRON&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">mixed_name</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Frederic&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">nationality</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;FR&quot;</span><span class="w"> </span><span class="p">},</span>
-<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">  </span><span class="c1"># ...</span>
-<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="o">]</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="ss">position</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="ss">caps_name</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;JASPERS&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">mixed_name</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Dick&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">nationality</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;NL&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">stage</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;main&quot;</span><span class="w"> </span><span class="p">},</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="ss">position</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="ss">caps_name</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;CAUDRON&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">mixed_name</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Frédéric&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">nationality</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;BE&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">stage</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;main&quot;</span><span class="w"> </span><span class="p">},</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="ss">position</span><span class="p">:</span><span class="w"> </span><span class="mi">44</span><span class="p">,</span><span class="w"> </span><span class="ss">caps_name</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;MUELLER&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">mixed_name</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Hans&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">nationality</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;DE&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">stage</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;qualification&quot;</span><span class="w"> </span><span class="p">},</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">  </span><span class="c1"># ...</span>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="o">]</span>
 </code></pre></div>
 <p><strong>Hinweise:</strong>
 - Reines PORO — kein DB-Zugriff
 - Gibt <code>[]</code> zurück bei nil/leerem Input oder fehlenden Spielerzeilen
 - <code>caps_name</code> ist der Nachname in Großbuchstaben (aus UMB-PDF-Konvention)
-- <code>mixed_name</code> ist der Vorname in gemischter Schreibweise</p>
+- <code>mixed_name</code> ist der Vorname in gemischter Schreibweise
+- <code>stage</code> trennt das gesetzte Hauptfeld vom Qualifikationsfeld</p>
+<p><strong>Drei unterstützte PDF-Layouts.</strong> Stabil sind nur die ersten vier Spalten; was
+dahinter steht, hat die UMB mehrfach umgestellt:</p>
+<table>
+<thead>
+<tr>
+<th>Layout</th>
+<th>Beispielzeile</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Archiv (ab 2013)</td>
+<td><code>1  BLOMDAHL Torbjorn  SE  1  402  Main Tournament</code></td>
+</tr>
+<tr>
+<td>aktuell (seit 2026)</td>
+<td><code>1  DERICKS Rene  NL  CEB  Title Holder  UMB-1</code></td>
+</tr>
+<tr>
+<td>Junioren</td>
+<td><code>1  SANCHEZ Ubaldo  Mexico  15/12/2007  8041  World Champion</code></td>
+</tr>
+</tbody>
+</table>
+<p>Das Junioren-Layout führt das Land ausgeschrieben; dort dient das Geburtsdatum
+als Anker, weil sich Vorname und Land sonst nicht trennen lassen.</p>
+<div class="admonition danger">
+<p class="admonition-title"><code>stage: \"main\"</code> heißt „war gesetzt“, nicht „hat gespielt“</p>
+<p>Die Spielerliste entsteht <strong>vor</strong> dem Turnier. Wer sich aus der Qualifikation
+ins Hauptfeld durchsetzt, bleibt hier <code>"qualification"</code> — empirisch bestätigt
+am World Cup 2024 (Videos wie <code>[VEWC2024_L8] F. CAUDRON vs T. TASDEMIR</code>
+betreffen Spieler, die in der Liste nicht gesetzt waren). Ein harter Filter
+auf <code>stage == "main"</code> verliert diese Partien. Für die tatsächliche
+Hauptrunden-Besetzung wären die <code>MTResults</code>-PDFs auszuwerten.</p>
+</div>
 <hr />
 <h3 id="umbpdfparsergroupresultparser"><code>Umb::PdfParser::GroupResultParser</code><a class="headerlink" href="#umbpdfparsergroupresultparser" title="Permanent link">&para;</a></h3>
 <p><strong>Datei:</strong> <code>app/services/umb/pdf_parser/group_result_parser.rb</code></p>

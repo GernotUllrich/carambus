@@ -3,8 +3,13 @@
 require "test_helper"
 
 class TableLocalsControllerTest < ActionDispatch::IntegrationTest
+  include Devise::Test::IntegrationHelpers
+
   setup do
     @table_local = table_locals(:one)
+    # TableLocalsController haengt an before_action :system_admin_only — ohne
+    # angemeldeten System-Admin endet jede Action im 302 auf /.
+    sign_in users(:system_admin)
   end
 
   test "should get index" do

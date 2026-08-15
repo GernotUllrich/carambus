@@ -149,6 +149,8 @@ class Location < ApplicationRecord
       # (pro-Location-Detailfetches) nur bei geänderter Liste; sonst Region überspringen. Listen-Fetch
       # bleibt tägliche Grundkost. commit erst NACH Erfolg; leere/fehlerhafte Liste → stale → deep.
       content = region.location_list_content
+      ScrapeListGuard.warn_if_empty("Locations #{region.shortname}", content.lines.size,
+                                    Location.where(organizer: region).count)
       if ScrapeFingerprint.deep?(region, "locations", content)
         region.scrape_locations
         ScrapeFingerprint.for(region, "locations").commit!(content)

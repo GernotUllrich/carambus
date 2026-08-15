@@ -5,15 +5,20 @@ carom_3band:
   created_at: <%= 2.years.ago %>
   updated_at: <%= 1.day.ago %>
 
+# super_discipline_id: haengt an branches(:branch_pool) weiter unten — der
+# Branch-Resolver der MCP-Tools sammelt den Teilbaum rekursiv und braucht
+# mindestens eine Sub-Disziplin, sonst ist der Pool-Branch leer.
 pool_8ball:
   id: 50_000_002
   name: "8-Ball"
+  super_discipline_id: 50_000_020
   created_at: <%= 2.years.ago %>
   updated_at: <%= 1.day.ago %>
 
 pool_9ball:
   id: 50_000_003
   name: "9-Ball"
+  super_discipline_id: 50_000_020
   created_at: <%= 2.years.ago %>
   updated_at: <%= 1.day.ago %>
 
@@ -67,3 +72,49 @@ bk_2plus:
   data: '{"free_game_form":"bk_2plus","ballziel_choices":[50,60,70,80,90,100],"allow_negative_score_input":true,"negative_credits_opponent":true}'
   created_at: <%= 1.year.ago %>
   updated_at: <%= 1.day.ago %>
+
+# --- Branches (STI auf disciplines, type: Branch) -----------------------------
+#
+# Branch ist KEINE eigene Tabelle (class Branch < Discipline) — die Records
+# gehoeren deshalb hierher, eine branches.yml wuerde ins Leere schreiben.
+#
+# Die MCP-Tools loesen Disziplin-Angaben ueber `Branch.find_by("name ILIKE ?")`
+# auf und sammeln dann rekursiv den Teilbaum (BaseTool#collect_subtree_ids);
+# ohne diese Records skippten alle Branch-Faelle.
+#
+# Achtung beim Erweitern: der Unique-Index laeuft ueber (name, table_kind_id),
+# und mehrere Testdateien legen selbst `Branch.create!(name: "Pool")` an.
+branch_pool:
+  id: 50_000_020
+  name: "Pool"
+  type: "Branch"
+  created_at: <%= 2.years.ago %>
+  updated_at: <%= 1.day.ago %>
+
+branch_karambol:
+  id: 50_000_021
+  name: "Karambol"
+  type: "Branch"
+  created_at: <%= 2.years.ago %>
+  updated_at: <%= 1.day.ago %>
+
+# Blatt-Disziplin unter Karambol als Ebene-2-Nachweis fuer den
+# Branch-Resolver-Test (base_tool_test).
+#
+# BEWUSST NUR "Cadre 35/2": ein Fixture-Record "Dreiband groß" machte
+# Umb::DisciplineDetectorTest flaky — der legt selbst eine Discipline dieses
+# Namens an und erwartet sie von `detect` zurueck; bei zwei gleichnamigen
+# Records entscheidet die DB-Reihenfolge. Der Resolver-Test kommt mit einer
+# der beiden Blatt-Disziplinen aus.
+#
+# carom_3band ("Dreiband") bleibt bewusst eine eigene Wurzel und wird NICHT
+# unter Karambol gehaengt: mehrere Tests nutzen es als von Pool unabhaengigen
+# Baum (z.B. sportwart_scope_test prueft "falsche Disziplin" mit 8-Ball
+# gegen Dreiband) — ein Umhaengen wuerde deren Semantik verschieben.
+karambol_cadre_35_2:
+  id: 50_000_022
+  name: "Cadre 35/2"
+  super_discipline_id: 50_000_021
+  created_at: <%= 2.years.ago %>
+  updated_at: <%= 1.day.ago %>
+

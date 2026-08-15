@@ -44,7 +44,11 @@ module McpServer
           default_season: McpServer::Tools::CcWhoami.resolve_default_season(nil),
           user: nil,
           sportwart_locations: [],
-          sportwart_disciplines: []
+          sportwart_disciplines: [],
+          # Ohne Auth-Context gibt es keine Personas und kein CC-Schreibrecht — die
+          # Schluessel muessen dennoch da sein (Konsistenz-Vertrag mit cc_whoami).
+          personas: [],
+          can_write_cc: false
         }
         {content: JSON.generate(payload), mime_type: "application/json"}
       rescue => e
