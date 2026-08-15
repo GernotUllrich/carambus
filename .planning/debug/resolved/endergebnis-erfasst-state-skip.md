@@ -113,3 +113,17 @@ fix: |
 
 verification:
 files_changed: []
+
+---
+
+## ✅ Gelöst — Phase 38.8 (nachgetragen 2026-08-15)
+
+Auto-Rematch gelöscht, Operator-Gate wiederhergestellt: `finish_match!` wird explizit
+gefeuert, AASM landet in `:final_match_score` ("Endergebnis erfasst"). Weiterschalten
+über das `:start_rematch`-Event am "Nächstes Spiel"-Button.
+
+Fundstelle: [result_recorder.rb:506-517](app/services/table_monitor/result_recorder.rb) —
+das im Befund beschriebene `update(state: "playing")` existiert dort nur noch als
+Kommentar, der die entfernte Regression aus `c3dedb69` dokumentiert.
+
+Human-UAT: `4b1bb5b3` — Phase 38.7/38.8/38.9, 11/11 PASS.
