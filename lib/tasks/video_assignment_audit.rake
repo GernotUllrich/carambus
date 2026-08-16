@@ -23,6 +23,7 @@ namespace :videos do
     puts "Turnier-Zuordnungen: #{scope.count}  (von #{Video.where.not(videoable_id: nil).count} Zuordnungen gesamt)"
 
     fremd = []
+    serie = []
     jahr = []
     geprueft = 0
 
@@ -33,6 +34,8 @@ namespace :videos do
       geprueft += 1
       if matcher.send(:foreign_discipline?, video.title)
         fremd << [video, tournament]
+      elsif matcher.send(:foreign_series?, video.title)
+        serie << [video, tournament]
       elsif matcher.send(:conflicting_year?, video.title, tournament)
         jahr << [video, tournament]
       end
@@ -44,12 +47,16 @@ namespace :videos do
     fremd.first(12).each { |v, t| puts "     #{v.title.to_s[0, 62]}\n        -> #{t.title.to_s[0, 46]}" }
     puts "     ... (#{fremd.size - 12} weitere)" if fremd.size > 12
     puts
-    puts "B) abweichendes Jahr im Videotitel: #{jahr.size}"
+    puts "B) fremde Turnierserie (PBA/LPBA-Liga): #{serie.size}"
+    serie.first(12).each { |v, t| puts "     #{v.title.to_s[0, 62]}\n        -> #{t.title.to_s[0, 46]}" }
+    puts "     ... (#{serie.size - 12} weitere)" if serie.size > 12
+    puts
+    puts "C) abweichendes Jahr im Videotitel: #{jahr.size}"
     jahr.first(12).each { |v, t| puts "     #{v.title.to_s[0, 62]}\n        -> #{t.title.to_s[0, 40]} (#{t.date&.to_date})" }
     puts "     ... (#{jahr.size - 12} weitere)" if jahr.size > 12
     puts
 
-    betroffen = fremd + jahr
+    betroffen = fremd + serie + jahr
     if betroffen.empty?
       puts "Nichts zu tun."
     elsif armed

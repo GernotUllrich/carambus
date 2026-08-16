@@ -105,8 +105,35 @@ class Video::TournamentMatcher < ApplicationService
   # wird zugeordnet, OHNE dass der Titel irgendetwas beitragen muss. Der Titel
   # kann eine Fehlzuordnung also nicht verhindern, nur noch zwischen mehreren
   # Turnieren entscheiden. Diese beiden Regeln geben ihm ein Veto.
+  # Turnierserien neben der UMB, erkannt an Serienname + Turnierwort.
+  FOREIGN_SERIES_PATTERN = /
+    l?pba [^[:alpha:]]{0,3}
+      (?: tour | league | championship | 팀리그 | 리그 | 챔피언십 | 월드챔피언십 )
+    |
+    (?: 팀리그 | 챔피언십 | 월드챔피언십 ) [^[:alpha:]]{0,3} l?pba
+  /xi
+
   def disqualified?(video, tournament)
-    foreign_discipline?(video.title) || conflicting_year?(video.title, tournament)
+    foreign_discipline?(video.title) ||
+      foreign_series?(video.title) ||
+      conflicting_year?(video.title, tournament)
+  end
+
+  # Fremde Turnierserie: die PBA ist zwar Karambol, aber ein eigenes Ligasystem
+  # neben der UMB. Ihre Uebertragungen gehoeren nie zu einem UMB-Turnier.
+  #
+  # Entscheidend ist die Kombination aus Serienname UND Turnierwort — "PBA"
+  # allein taugt nicht: in vietnamesischen Videos ist es ein SPIELER-Suffix
+  # ("TY NGUYEN PBA vs ...") und bezeichnet dort einen Profi, nicht das Event.
+  # Ein Ausschluss auf das blosse Kuerzel wuerde also aus dem falschen Grund
+  # greifen.
+  #
+  # Koreanische Turnierwoerter muessen mit rein: die drei real fehlzugeordneten
+  # Videos hiessen "PBA 월드챔피언십" (World Championship), "PBA팀리그"
+  # (Teamliga) und "PBA챔피언십". Koreanisch setzt keine Leerzeichen zwischen
+  # Serie und Turnierwort, deshalb keine Wortgrenzen im Muster.
+  def foreign_series?(title)
+    title.to_s.match?(FOREIGN_SERIES_PATTERN)
   end
 
   def foreign_discipline?(title)

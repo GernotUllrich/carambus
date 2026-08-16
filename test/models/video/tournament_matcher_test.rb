@@ -255,4 +255,52 @@ class Video::TournamentMatcherTest < ActiveSupport::TestCase
     assert_equal 1, result[:assigned_count]
     assert_equal tournament, video.reload.videoable
   end
+
+  # ------------------------------------------------------------------
+  # Fremde Turnierserie (2026-08-16)
+  #
+  # Die PBA ist Karambol wie die UMB, aber ein eigenes Ligasystem — ihre
+  # Uebertragungen gehoeren nie zu einem UMB-Turnier. Entscheidend ist die
+  # Kombination Serienname + Turnierwort: "PBA" allein ist in vietnamesischen
+  # Videos ein SPIELER-Suffix und darf nicht ausschliessen.
+  # ------------------------------------------------------------------
+
+  test "koreanisches PBA-Liga-Event wird nicht zugeordnet" do
+    video = videos(:jaspers_cho_wc_2024)
+    video.update_column(:title, "JASPERS vs CHO | PBA-PBA팀리그")
+
+    Video::TournamentMatcher.call(video_scope: Video.where(id: video.id))
+
+    assert_nil video.reload.videoable
+  end
+
+  test "PBA Championship in koreanischer Schreibweise ohne Leerzeichen" do
+    video = videos(:jaspers_cho_wc_2024)
+    video.update_column(:title, "JASPERS vs CHO | 하이원리조트PBA챔피언십")
+
+    Video::TournamentMatcher.call(video_scope: Video.where(id: video.id))
+
+    assert_nil video.reload.videoable
+  end
+
+  test "PBA Tour auf Englisch schliesst aus" do
+    video = videos(:jaspers_cho_wc_2024)
+    video.update_column(:title, "PBA Tour Final - JASPERS vs CHO")
+
+    Video::TournamentMatcher.call(video_scope: Video.where(id: video.id))
+
+    assert_nil video.reload.videoable
+  end
+
+  test "PBA als Spieler-Suffix schliesst NICHT aus" do
+    tournament = tournaments(:wc_2024)
+    video = videos(:jaspers_cho_wc_2024)
+    video.update_column(:title, "JASPERS vs CHO PBA - Round of 16")
+
+    result = Video::TournamentMatcher.call(video_scope: Video.where(id: video.id))
+
+    assert_equal 1, result[:assigned_count],
+      "PBA hinter einem Spielernamen bezeichnet den Profi, nicht das Event"
+    assert_equal tournament, video.reload.videoable
+  end
 end
