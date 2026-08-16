@@ -180,4 +180,79 @@ class Video::TournamentMatcherTest < ActiveSupport::TestCase
     assert_in_delta 0.5, matcher.send(:player_intersection_score, %w[jaspers merckx], tournament), 0.001
     assert_in_delta 0.0, matcher.send(:player_intersection_score, ["merckx"], tournament), 0.001
   end
+
+  # ------------------------------------------------------------------
+  # Harte Ausschluesse (2026-08-16)
+  #
+  # Datum (0.40) + Spieler (0.35) ergeben exakt die Schwelle 0.75 — der Titel
+  # kann eine Fehlzuordnung sonst nicht verhindern. In Produktion hingen
+  # dadurch 60 Pool-Videos an Karambol-Turnieren und Re-Uploads alter Matches
+  # an aktuellen World Cups.
+  # ------------------------------------------------------------------
+
+  test "Video mit fremder Disziplin im Titel wird nicht zugeordnet" do
+    tournament = tournaments(:wc_2024)
+    video = videos(:jaspers_cho_wc_2024)
+    video.update_column(:title, "Panamericano de Pool  Bola 10 | JASPERS vs CHO")
+
+    result = Video::TournamentMatcher.call(video_scope: Video.where(id: video.id))
+
+    assert_equal 0, result[:assigned_count]
+    assert_nil video.reload.videoable
+    assert tournament.present?
+  end
+
+  test "Snooker im Titel schliesst aus" do
+    video = videos(:jaspers_cho_wc_2024)
+    video.update_column(:title, "Snooker Masters - JASPERS vs CHO")
+
+    Video::TournamentMatcher.call(video_scope: Video.where(id: video.id))
+
+    assert_nil video.reload.videoable
+  end
+
+  test "abweichendes Jahr im Videotitel schliesst aus" do
+    tournament = tournaments(:wc_2024)
+    video = videos(:jaspers_cho_wc_2024)
+    video.update_column(:title, "3-Cushion Lausanne Masters 2019 Final - JASPERS vs CHO")
+
+    Video::TournamentMatcher.call(video_scope: Video.where(id: video.id))
+
+    assert_nil video.reload.videoable,
+      "Re-Upload eines 2019er Matches darf nicht an einem #{tournament.date.year}er Turnier haengen"
+  end
+
+  test "passendes Jahr im Titel schliesst NICHT aus" do
+    tournament = tournaments(:wc_2024)
+    video = videos(:jaspers_cho_wc_2024)
+    video.update_column(:title, "World Cup #{tournament.date.year} - JASPERS vs CHO")
+
+    result = Video::TournamentMatcher.call(video_scope: Video.where(id: video.id))
+
+    assert_equal 1, result[:assigned_count]
+    assert_equal tournament, video.reload.videoable
+  end
+
+  test "Saison-Schreibweise deckt beide Jahre ab" do
+    tournament = tournaments(:wc_2024)
+    vorjahr = tournament.date.year - 1
+    video = videos(:jaspers_cho_wc_2024)
+    video.update_column(:title, "Season #{vorjahr}-#{tournament.date.year.to_s[2, 2]} - JASPERS vs CHO")
+
+    result = Video::TournamentMatcher.call(video_scope: Video.where(id: video.id))
+
+    assert_equal 1, result[:assigned_count],
+      "#{vorjahr}-#{tournament.date.year.to_s[2, 2]} schliesst #{tournament.date.year} ein"
+  end
+
+  test "Titel ohne Jahreszahl bleibt unberuehrt" do
+    tournament = tournaments(:wc_2024)
+    video = videos(:jaspers_cho_wc_2024)
+    video.update_column(:title, "JASPERS vs CHO - Full Match")
+
+    result = Video::TournamentMatcher.call(video_scope: Video.where(id: video.id))
+
+    assert_equal 1, result[:assigned_count]
+    assert_equal tournament, video.reload.videoable
+  end
 end

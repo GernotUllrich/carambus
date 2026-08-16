@@ -23,6 +23,20 @@ class Video::TournamentMatcher < ApplicationService
   PLAYER_WEIGHT = 0.35
   TITLE_WEIGHT = 0.25
 
+  # Sportarten, die es bei der UMB (Karambol) nicht gibt. Nennt ein Videotitel
+  # eine davon, gehoert das Video zu einem anderen Ereignis — egal wie gut Datum
+  # und Spielernamen passen.
+  #
+  # Anlass: die Serie "Panamericano de Pool Bola 10 | Mesa 2..5" hing an den
+  # "World Championships Artistic", allein ueber den Tag `tran`. Insgesamt 60 der
+  # 2.239 automatisch zugeordneten Videos nannten Pool, Snooker oder 9-Ball.
+  FOREIGN_DISCIPLINE_PATTERN = /
+    \b(
+      pool | snooker | carom\s*pool |
+      bola\s*\d+ | \d+\s*-?\s*ball | billar\s+de\s+bolas
+    )\b
+  /xi
+
   def initialize(kwargs = {})
     @video_scope = kwargs[:video_scope] || Video.unassigned
     @results = []
@@ -70,6 +84,8 @@ class Video::TournamentMatcher < ApplicationService
   # Public so tests can call it directly.
   def confidence_score(video, tournament, metadata = nil)
     metadata ||= Video::MetadataExtractor.new(video).extract_all
+    return 0.0 if disqualified?(video, tournament)
+
     score = 0.0
     score += date_overlap_score(video, tournament) * DATE_WEIGHT
     score += player_intersection_score(metadata[:players], tournament) * PLAYER_WEIGHT
@@ -82,6 +98,47 @@ class Video::TournamentMatcher < ApplicationService
   # Returns 1.0 if video.published_at falls within the tournament date range
   # (with a +3 day grace period after end_date). Falls back to date + 7 days
   # when end_date is nil (D-06 from context: nil end_date fallback).
+  # Harte Ausschluesse, unabhaengig vom Score.
+  #
+  # Noetig, weil Datum (0.40) und Spieler (0.35) zusammen exakt die Schwelle von
+  # 0.75 ergeben: ein Video im Turnierfenster mit einem passenden Spielernamen
+  # wird zugeordnet, OHNE dass der Titel irgendetwas beitragen muss. Der Titel
+  # kann eine Fehlzuordnung also nicht verhindern, nur noch zwischen mehreren
+  # Turnieren entscheiden. Diese beiden Regeln geben ihm ein Veto.
+  def disqualified?(video, tournament)
+    foreign_discipline?(video.title) || conflicting_year?(video.title, tournament)
+  end
+
+  def foreign_discipline?(title)
+    title.to_s.match?(FOREIGN_DISCIPLINE_PATTERN)
+  end
+
+  # Nennt der Videotitel Jahreszahlen und ist das Turnierjahr nicht darunter,
+  # stammt das Video von einem anderen Ereignis — typisch fuer Re-Uploads, die
+  # zufaellig waehrend eines laufenden Turniers hochgeladen werden
+  # ("3-Cushion Lausanne Masters 2019 Final" landete am World Cup 2024).
+  #
+  # Saison-Schreibweisen zaehlen mit BEIDEN Jahren ("2025-26" deckt 2025 und
+  # 2026 ab), sonst wuerde eine korrekte Zuordnung faelschlich verworfen.
+  def conflicting_year?(title, tournament)
+    return false if tournament.date.blank?
+
+    years = years_in(title)
+    years.any? && years.exclude?(tournament.date.year)
+  end
+
+  def years_in(title)
+    text = title.to_s
+    years = text.scan(/\b(20\d{2})\b/).flatten.map(&:to_i)
+    # Saison-Spannen: "2025-26", "2025/26", "2025-2026"
+    text.scan(%r{\b(20\d{2})\s*[-/]\s*(\d{2}|20\d{2})\b}).each do |from, to|
+      start_year = from.to_i
+      years << start_year
+      years << ((to.length == 2) ? (start_year / 100 * 100) + to.to_i : to.to_i)
+    end
+    years.uniq
+  end
+
   def date_overlap_score(video, tournament)
     return 0.0 if video.published_at.blank? || tournament.date.blank?
 
