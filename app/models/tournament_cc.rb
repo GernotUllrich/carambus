@@ -64,6 +64,23 @@ class TournamentCc < ApplicationRecord
   belongs_to :tournament_plan_cc, optional: true
   belongs_to :tournament, optional: true
 
+  # Phase 34-01: Der CC-Scrape legt erst das Turnier an und danach diesen Datensatz. Traegt das Turnier
+  # keine Quell-URL, waere es nach der Stempel-Regel als `carambus` (also lokal angelegt)
+  # markiert — und damit in 34-02 faelschlich CC-los. Genau so sind die Altfaelle ohne `source_url`
+  # entstanden. Der Nachstempel schliesst das Loch bei der Neuanlage.
+  after_create :stamp_tournament_source_kind
+
+  # Bewusst `private def` statt eines nackten `private`: das wuerde alles Folgende in dieser
+  # Klasse mit privat schalten.
+  private def stamp_tournament_source_kind
+    parent = tournament
+    return if parent.nil? || parent.source_url.present?
+    return unless parent.source_kind.nil? || parent.source_carambus?
+
+    # update! statt update_column: ohne PaperTrail-Version erreicht der Wert die Regional-Server nie.
+    parent.class.skip_cable_ready_updates { parent.update!(source_kind: :club_cloud) }
+  end
+
   # Plan 14-G.7 / Task 3 / F11: Season-Resolution mit Fallback aus tournament_start.
   # DB-Mirror kann season=null haben (pre-Backfill-Records oder fehlgeschlagene Syncs).
   # Read-Side-Tools nutzen `effective_season` statt `season` für robuste Default-Filter.

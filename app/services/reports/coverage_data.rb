@@ -17,15 +17,18 @@ module Reports
   class CoverageData
     Result = Struct.new(:branches, :seasons, :regions, :cells, :sources, :meta, keyword_init: true)
 
-    # Herkunft am URL-MUSTER der Quellsysteme erkannt, nicht an der Domain: jeder Landesverband
-    # betreibt seine ClubCloud unter eigenem Namen (ndbv.de, westfalenbillard.net, blv-sa.de …),
-    # aber alle liefern dieselben Skripte aus. Eine Domain-Liste wäre schon beim nächsten Umzug
-    # falsch — das Muster hält.
-    SOURCE_PATTERNS = {
-      cc: ["sb_meisterschaft.php", "sb_spielplan.php"],
-      liga_manager: ["billard.center"],
-      nu_liga: ["liga.nu", "nuLigaBILLARD"],
-      carambus: ["carambus.de"]
+    # Die Herkunft bestimmt `Provenance::Classifier` — dieselbe Stelle, die auch die Spalte
+    # `source_kind` füllt (Phase 34-01). Damit können Report und Datenbestand nicht auseinanderlaufen.
+    # Hier steht nur noch die Übersetzung in die Anzeige-Schlüssel dieser Seite.
+    DISPLAY_KIND = {
+      :club_cloud => :cc,
+      :ba => :billard_area,
+      :nu_liga => :nu_liga,
+      :liga_manager => :liga_manager,
+      :carambus => :carambus,
+      :umb => :other,     # internationale Turniere tragen keine Region und fallen ohnehin heraus
+      :none => :none,
+      nil => :other    # URL vorhanden, Muster unbekannt
     }.freeze
 
     # Reihenfolge der Auswertung/Anzeige; :none = Record ohne jede Herkunftsspur.
@@ -44,14 +47,14 @@ module Reports
       sources = Hash.new { |h, k| h[k] = Hash.new(0) }
       unmapped = 0
 
-      @model.where.not(region_id: nil).pluck(:region_id, :season_id, :discipline_id, :source_url, :ba_id)
-        .each do |region_id, season_id, discipline_id, source_url, ba_id|
+      @model.where.not(region_id: nil).pluck(:id, :region_id, :season_id, :discipline_id, :source_url, :ba_id)
+        .each do |id, region_id, season_id, discipline_id, source_url, ba_id|
         branch_id = branch_of_discipline[discipline_id]
         next unmapped += 1 if branch_id.nil? || season_id.nil?
 
         key = [branch_id, region_id, season_id]
         cells[key] += 1
-        sources[key][source_kind(source_url, ba_id)] += 1
+        sources[key][source_kind(source_url, ba_id, cc_ids.include?(id))] += 1
       end
 
       Result.new(
@@ -76,23 +79,25 @@ module Reports
     # steht oben, was die meisten Leser zuerst suchen. Unbekannte Zweige hängen hinten an.
     BRANCH_ORDER = %w[Karambol Pool Snooker Kegel].freeze
 
-    # `source_url` gewinnt, wo sie steht: ein Datensatz, der spaeter aus einer CC nachgescrapt
-    # wurde, traegt beides (32 Ligen) und gehoert dann zur CC.
+    # Kaskade `source_url` > `ba_id` > `*_cc`, begruendet in `Provenance::Classifier`.
     #
     # OHNE `source_url`, ABER MIT `ba_id` = BillardArea (Betreiber 2026-08-06). Die Quelle ist
     # nicht mehr online, deshalb gibt es dafuer keine URL. Gemessen: bei den Ligen tragen ALLE
     # 4 558 Datensaetze ohne source_url eine ba_id und enden exakt mit 2021/2022; bei den Turnieren
     # 12 974 von 13 342. Die beiden Felder schliessen einander sonst aus — von 4 719 Turnieren mit
     # source_url hat kein einziges eine ba_id.
-    def source_kind(source_url, ba_id)
-      if source_url.blank?
-        return ba_id.present? ? :billard_area : :none
-      end
+    def source_kind(source_url, ba_id, cc_present)
+      DISPLAY_KIND.fetch(
+        Provenance::Classifier.call(source_url: source_url, ba_id: ba_id, cc_present: cc_present)
+      )
+    end
 
-      SOURCE_PATTERNS.each do |kind, needles|
-        return kind if needles.any? { |needle| source_url.include?(needle) }
-      end
-      :other
+    # Die dritte Stufe der Kaskade: Datensaetze, die weder eine URL noch eine `ba_id` tragen, aber
+    # einen `tournament_cc`/`league_cc` haben — 366 Turniere im Bestand. Ohne diese Abfrage wies der
+    # Report sie als "keine Herkunftsspur" aus, obwohl sie belegbar aus einer CC stammen.
+    # `LeagueCc` UNSCOPED plucken: `League#league_cc` ist auf `context: "nbv"` gescopt.
+    def cc_ids
+      @cc_ids ||= ((@model <= Tournament) ? TournamentCc.distinct.pluck(:tournament_id) : LeagueCc.distinct.pluck(:league_id)).compact.to_set
     end
 
     def stringify(hash)

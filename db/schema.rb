@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_08_03_120000) do
+ActiveRecord::Schema[7.2].define(version: 2026_08_16_150000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -541,6 +541,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_08_03_120000) do
     t.integer "region_id"
     t.boolean "global_context", default: false
     t.integer "branch_id"
+    t.string "source_kind"
     t.index ["ba_id", "ba_id2"], name: "index_leagues_on_ba_id_and_ba_id2", unique: true
     t.index ["branch_id"], name: "index_leagues_on_branch_id"
     t.index ["cc_id", "cc_id2", "organizer_id", "organizer_type"], name: "index_leagues_on_cc_ids_organizer_unique", unique: true, where: "((cc_id IS NOT NULL) AND ((organizer_type)::text = 'Region'::text))"
@@ -1473,6 +1474,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_08_03_120000) do
     t.bigint "international_source_id"
     t.bigint "turnier_leiter_user_id"
     t.integer "branch_id"
+    t.string "source_kind"
     t.index ["ba_id"], name: "index_tournaments_on_ba_id", unique: true
     t.index ["branch_id"], name: "index_tournaments_on_branch_id"
     t.index ["external_id", "international_source_id"], name: "idx_tournaments_external_id_source", unique: true, where: "((external_id IS NOT NULL) AND (international_source_id IS NOT NULL))"

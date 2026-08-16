@@ -33,6 +33,7 @@
 class League < ApplicationRecord
   include LocalProtector
   include SourceHandler
+  include ProvenanceStamped
   include RegionTaggable
   include BranchTaggable
 
