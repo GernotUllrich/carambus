@@ -18,6 +18,9 @@ class SyncHealthTaskTest < ActiveSupport::TestCase
     Rake::Task.clear
     ENV.delete("MODELS")
     ENV.delete("IDS")
+    ENV.delete("LIMIT")
+    ENV.delete("ONLY_IDS")
+    ENV.delete("ARMED")
   end
 
   # Eine GLOBALE Liga (id < MIN_ID), die die heutige Pflichtpruefung verletzt — dasselbe Vorbild wie
@@ -36,6 +39,13 @@ class SyncHealthTaskTest < ActiveSupport::TestCase
   def run_task(name)
     Rake::Task[name].reenable
     capture_io { Rake::Task[name].invoke }.first
+  end
+
+  def run_task_armed(name)
+    ENV["ARMED"] = "1"
+    run_task(name)
+  ensure
+    ENV.delete("ARMED")
   end
 
   # AC-2 — das Modell-Set wird entdeckt, nicht gepflegt.
@@ -133,5 +143,149 @@ class SyncHealthTaskTest < ActiveSupport::TestCase
     run_task("sync_health:stale_tracer")
 
     assert_equal versions_before, Version.count
+  end
+
+  # ---------------------------------------------------------------------------
+  # 37-03 — der Nachlauf. Ab hier wird GESCHRIEBEN.
+  # ---------------------------------------------------------------------------
+
+  # AC-1 — der Trockenlauf zaehlt, was der Census zaehlt, und schreibt nichts.
+  test "AC-1 (37-03): der Trockenlauf nennt die Menge und schreibt nichts" do
+    invalid_global_league(id: 3_900_001)
+    versions_before = Version.count
+    ENV["MODELS"] = "League"
+
+    output = run_task("sync_health:redeliver")
+
+    assert_match(/DRY-RUN/, output)
+    assert_match(/League\s+\d+ Records wuerden je eine neue Version bekommen/, output)
+    assert_equal versions_before, Version.count, "der Trockenlauf darf nichts schreiben"
+  end
+
+  # AC-2 — genau eine Version, Record unveraendert und weiterhin ungueltig.
+  test "AC-2 (37-03): der ARMED-Lauf erzeugt genau eine Version und aendert den Record nicht" do
+    skip_unless_api_server
+
+    league = invalid_global_league(id: 3_900_002)
+    versions_before = league.versions.count
+    ENV["MODELS"] = "League"
+    ENV["ONLY_IDS"] = league.id.to_s
+
+    run_task_armed("sync_health:redeliver")
+
+    league.reload
+    assert_equal versions_before + 1, league.versions.count, "genau eine neue Version"
+    assert_nil league.shortname, "der Nachlauf repariert keine Daten"
+    assert_not league.valid?, "der Record bleibt ungueltig — er wird nur ausgeliefert"
+  end
+
+  # AC-3 — keine Kollateral-Aenderung durch fremde Callbacks.
+  test "AC-3 (37-03): branch_id bleibt nil, die Version traegt keine branch_id-Aenderung" do
+    skip_unless_api_server
+
+    league = invalid_global_league(id: 3_900_003)
+    league.update_columns(branch_id: nil)
+    ENV["MODELS"] = "League"
+    ENV["ONLY_IDS"] = league.id.to_s
+
+    run_task_armed("sync_health:redeliver")
+
+    assert_nil league.reload.branch_id, "set_branch_id muss ausgehaengt sein (trifft 5 810 Ligen auf Prod)"
+    changes = league.versions.last.object_changes.to_s
+    assert_no_match(/branch_id/, changes, "keine unbeauftragte branch_id-Aenderung im Sync-Batch")
+  end
+
+  # AC-4 — Begrenzung, damit der erste Prod-Lauf klein bleiben kann.
+  test "AC-4 (37-03): LIMIT begrenzt die Menge je Modell" do
+    skip_unless_api_server
+
+    3.times { |i| invalid_global_league(id: 3_900_010 + i) }
+    versions_before = Version.count
+    ENV["MODELS"] = "League"
+    ENV["LIMIT"] = "1"
+
+    run_task_armed("sync_health:redeliver")
+
+    assert_equal versions_before + 1, Version.count, "LIMIT=1 schreibt genau eine Version"
+  end
+
+  # AC-5 (neu, aus der Generalprobe) — die Version muss die Region des Records tragen.
+  # Ohne sie greift der Sync-Filter `region_id IS NULL OR region_id = ?` fuer JEDE Instanz, und wo der
+  # Record lokal fehlt, legt der Apply ihn an: tbv bekaeme tausende NBV-Ligen.
+  test "AC-5 (37-03): die Nachlauf-Version traegt region_id und global_context des Records" do
+    skip_unless_api_server
+
+    league = invalid_global_league(id: 3_900_030)
+    league.update_columns(region_id: regions(:nbv).id, global_context: false)
+    ENV["MODELS"] = "League"
+    ENV["ONLY_IDS"] = league.id.to_s
+
+    run_task_armed("sync_health:redeliver")
+
+    version = league.reload.versions.order(:id).last
+    assert_equal regions(:nbv).id, version.region_id,
+      "ungetaggt reiste die Version an ALLE Instanzen — auch an Server ohne diesen Record"
+    assert_equal false, version.global_context
+  end
+
+  test "AC-5 (37-03): Modelle ohne region_id bleiben korrekt ungetaggt" do
+    # DisciplineCc/TournamentPlan tragen keine Region — sie sind global, und `nil` ist dort richtig.
+    assert_nothing_raised do
+      SyncHealthCensus.stamp_region!(TournamentPlan.new, Version.new)
+    end
+  end
+
+  # AC-2 (verschaerft, aus der Generalprobe): der Nachlauf soll AUSLIEFERN, nicht aendern.
+  # Auf der Dev-DB stempelte `stamp_source_kind` nebenbei 4 430 Ligen — weil dort `source_kind` leer
+  # war. Der Task muss so etwas ZEIGEN, statt es still im Sync-Batch mitreisen zu lassen.
+  test "AC-2 (37-03): Zusatzaenderungen fremder Callbacks werden gemeldet" do
+    skip_unless_api_server
+
+    league = invalid_global_league(id: 3_900_040)
+    # Ohne source_url, aber mit ba_id klassifiziert `Provenance::Classifier` als :ba — der Stempel
+    # greift also und macht den Record beim Speichern dirty.
+    league.update_columns(source_kind: nil, source_url: nil, ba_id: 990_001)
+    ENV["MODELS"] = "League"
+    ENV["ONLY_IDS"] = league.id.to_s
+
+    output = run_task_armed("sync_health:redeliver")
+
+    assert_match(/ZUSATZAENDERUNGEN/, output, "der Stempel-Callback muss sichtbar werden")
+    assert_match(/source_kind/, output)
+  end
+
+  test "AC-2 (37-03): der Trockenlauf zeigt die Zusatzaenderung vorab — ohne zu schreiben" do
+    league = invalid_global_league(id: 3_900_041)
+    league.update_columns(source_kind: nil, source_url: nil, ba_id: 990_002)
+    versions_before = Version.count
+    ENV["MODELS"] = "League"
+
+    output = run_task("sync_health:redeliver")
+
+    assert_match(/Stichprobe/, output)
+    assert_match(/source_kind/, output)
+    assert_equal versions_before, Version.count, "die Vorschau laeuft in einer zurueckgerollten Transaktion"
+    assert_nil league.reload.source_kind, "und darf den Record nicht veraendern"
+  end
+
+  # Die Gegenprobe zur zentralen Option: ohne `validate: false` ginge es nicht.
+  # Haelt fest, WARUM sie im Task steht — genau daran ist der erste ARMED-Lauf in 34-01 gescheitert.
+  test "Gegenprobe: ein Speichern MIT Validierung scheitert an genau diesen Records" do
+    league = invalid_global_league(id: 3_900_020)
+
+    assert_not league.save, "Vorbedingung: mit Validierung nicht speicherbar"
+    assert league.save(validate: false), "ohne Validierung schon — deshalb steht die Option im Task"
+  end
+
+  # Die Aushaengung darf keinen Callback an Modelle haengen, die ihn nie hatten.
+  test "without_branch_tagging fasst nur BranchTaggable-Modelle an" do
+    before = Seeding._save_callbacks.select { |c| c.kind == :before }.map(&:filter)
+
+    SyncHealthCensus.without_branch_tagging([League, Seeding]) { nil }
+
+    after = Seeding._save_callbacks.select { |c| c.kind == :before }.map(&:filter)
+    assert_equal before, after, "Seeding kennt set_branch_id nicht und darf ihn nicht bekommen"
+    assert_includes League._save_callbacks.select { |c| c.kind == :before }.map(&:filter), :set_branch_id,
+      "League muss den Callback danach wieder tragen"
   end
 end
