@@ -209,6 +209,17 @@ class StaticController < ApplicationController
       Rails.root.join('docs', path, "#{locale}.md"),                # Sehr alte Struktur: about/de.md
     ]
 
+    # Sprachneutrale Datei ohne Locale-Suffix: 215 der 437 Doku-Dateien heissen
+    # schlicht <name>.md (z.B. docs/developers/camera-calibration.md). Sie waren
+    # ueber docs_page gar nicht abrufbar — jeder Link darauf lief in den 404,
+    # obwohl die Datei existiert. Kollisionsfrei: keine einzige dieser Dateien
+    # hat daneben eine .de/.en-Variante (geprueft ueber den ganzen docs-Baum).
+    #
+    # Reihenfolge: nach der exakt passenden Sprache, aber VOR dem Rueckfall auf
+    # die Fremdsprache — eine sprachneutrale Seite ist der bessere Treffer als
+    # eine in der falschen Sprache.
+    possible_paths << Rails.root.join("docs", "#{path}.md")
+
     # Auch mit anderem Locale versuchen falls nicht gefunden
     other_locale = locale == 'de' ? 'en' : 'de'
     possible_paths += [
