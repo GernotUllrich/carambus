@@ -45,6 +45,31 @@ module Carambus
     creds.dig(:youtube, :api_key).presence || creds.dig(:youtube_api_key).presence
   end
 
+  # EINZIGE Quelle für den TLS-Verify-Modus aller ausgehenden HTTPS-Aufrufe
+  # (ClubCloud, Authority-Sync, Auth0, Kozoom, SoopLive).
+  #
+  # Vorher stand an 15 Stellen unbedingt `VERIFY_NONE` — also kein Zertifikatscheck,
+  # auch in production. Betroffen war unter anderem der Auth0-Token-Endpoint, über
+  # den Zugangsdaten laufen, und der Versions-Sync zur Authority.
+  #
+  # Gemessen am 2026-08-15 (Ruby/OpenSSL, VERIFY_PEER): api.carambus.de, Auth0,
+  # der ClubCloud-Tenant, kozoom.com und sooplive.co.kr liefern alle ein gültiges
+  # Zertifikat. Die Annahme "Verbandsserver haben schlechte Zertifikate" trifft für
+  # keinen der genutzten Hosts zu.
+  #
+  # Notausstieg: CARAMBUS_TLS_INSECURE=1 schaltet zurück auf VERIFY_NONE — gedacht
+  # für den Fall, dass ein Verbandsserver sein Zertifikat verschlampt und ein
+  # Turnier läuft. Als systemd-`Environment=` setzbar, wirkt ohne Deploy und
+  # protokolliert jede Nutzung. Kein Dauerzustand.
+  def self.ssl_verify_mode
+    if ENV["CARAMBUS_TLS_INSECURE"] == "1"
+      Rails.logger.warn "[TLS] CARAMBUS_TLS_INSECURE=1 — Zertifikatsprüfung ist DEAKTIVIERT (Notausstieg)"
+      OpenSSL::SSL::VERIFY_NONE
+    else
+      OpenSSL::SSL::VERIFY_PEER
+    end
+  end
+
   # Plan 29-05: Zugang zu einem REGION SERVER — gebraucht von zwei Stationen mit
   # entgegengesetzter Blickrichtung: die Authority holt dort die Meldeliste
   # (RegionServer::EntryListImporter), der Location Server meldet dorthin den Abschluss

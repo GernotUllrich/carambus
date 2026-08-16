@@ -40,6 +40,28 @@ class LeaguesControllerTest < ActionDispatch::IntegrationTest
     assert_includes [200, 500], response.status
   end
 
+  # Regressionsschutz fuer shared/_search_results_frame (Live-Suche):
+  # Der <turbo-frame id="table_wrapper"> MUSS im gerenderten HTML stehen. Der
+  # SearchReflex morpht auf genau diesen Selektor; fehlt er im Ergebnis, ersetzt
+  # StimulusReflex das Ziel komplett statt nur die Kinder zu morphen und der Frame
+  # (RETURN-Submit via target="table_wrapper", pagy-url) geht verloren.
+  test "index renders the table_wrapper turbo frame" do
+    get leagues_url
+    assert_response :success
+    assert_match(/<turbo-frame[^>]+id="table_wrapper"/, response.body)
+  end
+
+  # Zero-Results-Zweig desselben Partials: bei erfolgloser Suche erscheint der
+  # Hinweis STATT der Tabelle — und der Frame bleibt erhalten.
+  test "index with non-matching search shows no_results hint inside the frame" do
+    get leagues_url(sSearch: "ZZZ_KEIN_TREFFER_ZZZ")
+    assert_response :success
+    assert_match(/<turbo-frame[^>]+id="table_wrapper"/, response.body)
+    # html_escape: der View escapt die Apostrophe der Uebersetzung zu &#39;
+    assert_includes response.body,
+      ERB::Util.html_escape(I18n.t("shared.search.no_results", query: "ZZZ_KEIN_TREFFER_ZZZ"))
+  end
+
   test "should show league" do
     get league_url(@league)
     assert_includes [200, 302, 500], response.status

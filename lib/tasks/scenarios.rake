@@ -673,8 +673,13 @@ namespace :scenario do
   # <env>.yml.enc — MERGE statt Regenerate (secret_key_base etc. bleiben erhalten).
   # Doku: carambus_master/docs/developers/scenario-credentials.de.md
   # ---------------------------------------------------------------------------
+  # 'openai' entfernt (2026-08-15): ruby-openai ist seit Phase 36 aus dem Gemfile
+  # (einzige AI-Integration ist `anthropic`), und carambus_data/secrets.yml fuehrt
+  # keinen openai-Eintrag — die Gruppe lief wegen `next unless shared[grp]` also
+  # ohnehin ins Leere. Der verwaiste openai-Wert in den Credentials wird dadurch
+  # nicht mehr mitgeschleppt.
   FEATURE_KEY_GROUPS = {
-    'ai' => %w[anthropic openai],
+    'ai' => %w[anthropic],
     'translation' => %w[deepl google],
     'scraping' => %w[youtube kozoom]
   }.freeze

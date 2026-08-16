@@ -138,7 +138,7 @@ class Setting < ApplicationRecord
     uri = URI(url)
     http = Net::HTTP.new(uri.host, uri.port)
     http.use_ssl = true
-    http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+    http.verify_mode = Carambus.ssl_verify_mode
     http.read_timeout = 30
     http.open_timeout = 10
     req = Net::HTTP::Get.new(uri.request_uri)
@@ -169,7 +169,7 @@ class Setting < ApplicationRecord
       end
       http = Net::HTTP.new(redirect_uri.host, redirect_uri.port)
       http.use_ssl = true
-      http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+      http.verify_mode = Carambus.ssl_verify_mode
       http.read_timeout = 30
       http.open_timeout = 10
       req = Net::HTTP::Get.new(redirect_uri.request_uri)
@@ -235,7 +235,7 @@ class Setting < ApplicationRecord
     
     login_http = Net::HTTP.new(login_uri.host, login_uri.port)
     login_http.use_ssl = true
-    login_http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+    login_http.verify_mode = Carambus.ssl_verify_mode
     login_http.read_timeout = 30
     login_http.open_timeout = 10
     
@@ -314,7 +314,7 @@ class Setting < ApplicationRecord
         
         redirect_http = Net::HTTP.new(redirect_uri.host, redirect_uri.port)
         redirect_http.use_ssl = true
-        redirect_http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+        redirect_http.verify_mode = Carambus.ssl_verify_mode
         redirect_http.read_timeout = 30
         redirect_http.open_timeout = 10
         
@@ -548,7 +548,7 @@ class Setting < ApplicationRecord
     sanity_uri = URI(region_cc.base_url.chomp("/") + "/admin/verband.php")
     sanity_http = Net::HTTP.new(sanity_uri.host, sanity_uri.port)
     sanity_http.use_ssl = true
-    sanity_http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+    sanity_http.verify_mode = Carambus.ssl_verify_mode
     sanity_http.read_timeout = 15
     sanity_http.open_timeout = 10
 
@@ -587,7 +587,7 @@ class Setting < ApplicationRecord
     uri = URI(url)
     http = Net::HTTP.new(uri.host, uri.port)
     http.use_ssl = true
-    http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+    http.verify_mode = Carambus.ssl_verify_mode
     req = Net::HTTP::Post.new(uri.request_uri)
     req["cookie"] = "PHPSESSID=#{session_id}"
     req["Content-Type"] = "application/x-www-form-urlencoded"
@@ -624,7 +624,7 @@ class Setting < ApplicationRecord
     uri = URI(url)
     http = Net::HTTP.new(uri.host, uri.port)
     http.use_ssl = true
-    http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+    http.verify_mode = Carambus.ssl_verify_mode
     http.read_timeout = 10
     http.open_timeout = 5
     
@@ -1177,7 +1177,7 @@ class Setting < ApplicationRecord
     uri = URI(url)
     http = Net::HTTP.new(uri.host, uri.port)
     http.use_ssl = true
-    http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+    http.verify_mode = Carambus.ssl_verify_mode
     http.read_timeout = 30
     http.open_timeout = 10
 
@@ -1326,7 +1326,7 @@ class Setting < ApplicationRecord
       url = URI("https://dev-r4djmvaa.eu.auth0.com/oauth/token")
       http = Net::HTTP.new(url.host, url.port)
       http.use_ssl = true
-      http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+      http.verify_mode = Carambus.ssl_verify_mode
       request = Net::HTTP::Post.new(url)
       request["content-type"] = "application/json"
       request.body = "{\"client_id\":\"aqAJY7zNMsw0jiThccQyKOO1WyjKP0AC\",\"client_secret\":\"7PN4bsl0tikD8fylkoOY_j2RudtlayXVCI0SlPzG2Tfr7ewLUETiEYHFwVL9Rk1Q\",\"audience\":\"https://api.carambus.de\",\"grant_type\":\"client_credentials\"}"

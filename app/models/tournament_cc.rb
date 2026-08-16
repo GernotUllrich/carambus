@@ -380,7 +380,7 @@ class TournamentCc < ApplicationRecord
     meisterschaft_uri = URI(meisterschaft_url)
     meisterschaft_http = Net::HTTP.new(meisterschaft_uri.host, meisterschaft_uri.port)
     meisterschaft_http.use_ssl = true
-    meisterschaft_http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+    meisterschaft_http.verify_mode = Carambus.ssl_verify_mode
     meisterschaft_http.read_timeout = 30
     meisterschaft_http.open_timeout = 10
     
@@ -480,7 +480,7 @@ class TournamentCc < ApplicationRecord
     uri = URI(url)
     http = Net::HTTP.new(uri.host, uri.port)
     http.use_ssl = true
-    http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+    http.verify_mode = Carambus.ssl_verify_mode
     http.read_timeout = 30
     http.open_timeout = 10
 

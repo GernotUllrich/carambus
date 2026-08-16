@@ -204,6 +204,34 @@ every 1.day, at: "0:30 am", roles: [:api] do
   bash "bin/pg_backup.sh"
 end
 
+# Eigenstaendige Standorte sichern ihre eigene Datenbank selbst.
+#
+# Warum nicht ueber roles: [:local]: die Rolle unterscheidet nicht zwischen
+# "eigene Maschine" und "teilt sich die Maschine mit der Authority". Ein
+# :local-Job landete auch in den vier :local-Crontabs auf api.carambus.de und
+# wuerde dort denselben PostgreSQL-Cluster ein weiteres Mal dumpen, den der
+# :api-Job oben bereits vollstaendig abdeckt.
+#
+# Ein Vereins-Raspi dagegen traegt Daten, die es sonst nirgends gibt: lokale
+# Turniere, Spiele und Gastspieler (id >= MIN_ID) reisen nicht zur Authority.
+# Auf bc-wedel sind das gut 3 500 Spiele aus 41 Turnieren.
+#
+# 1:20 Uhr, weil der stuendliche carambus:retrieve_updates jeweils zur vollen
+# Stunde laeuft — kein Grund, den Sync und einen pg_dump auf einem Raspi
+# gleichzeitig zu fahren.
+#
+# ⚠️ Ohne gesetztes BACKUP_DIR landen die Dumps auf der SD-Karte. Das schuetzt
+# gegen versehentliches Loeschen und misslungene Migrationen, NICHT gegen den
+# Kartentod — und genau der ist auf einem Raspi der erwartbare Ausfall.
+# Sobald ein USB-Stick steckt: BACKUP_DIR dorthin, MIN_FREE_MB an dessen
+# Groesse anpassen (Default 3000 MB ist fuer einen kleinen Stick zu hoch).
+STANDALONE_BACKUP_SCENARIOS = %w[carambus_bcw].freeze
+if STANDALONE_BACKUP_SCENARIOS.include?(@scenarioname)
+  every 1.day, at: "1:20 am" do
+    bash "bin/pg_backup.sh"
+  end
+end
+
 # Weekly: Clean up old logs (keep last 90 days)
 # Runs every Sunday at 6:00 AM
 every :sunday, at: "6:00 am", roles: [:api] do

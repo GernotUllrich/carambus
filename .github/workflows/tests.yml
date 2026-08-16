@@ -1,3 +1,11 @@
+# Einziger Test-/Lint-Workflow des Repos.
+#
+# .github/workflows/ci.yml (unveraenderte Rails-Vorlage) wurde 2026-08-15 entfernt:
+# sie triggerte auf `push: main` (dieses Repo nutzt master), verlangte eine nie
+# angelegte .node-version, liess standardrb repo-weit gegen mehrere hundert
+# Alt-Verstoesse laufen und rief test:system ohne Browser/Master-Key auf. Ergebnis
+# waren doppelte, gegensaetzliche Checks je PR — ein roter Haken hiess dort "nie
+# ausgefuehrt", nicht "Test fehlgeschlagen". Details: .planning/debug/resolved/.
 name: Tests
 
 on:
@@ -95,10 +103,21 @@ jobs:
         ruby-version: .ruby-version
         bundler-cache: true
     
-    - name: Run Standard
+    # Hartes Gate: blockt neue hartkodierte Farb-Hex (docs/ui-conventions.md).
+    # Laeuft gegen eine Baseline, ist auf master gruen — deshalb blockierend.
+    - name: UI-Guardrail (keine neuen hartkodierten Farb-Hex)
+      run: ruby bin/ui-hex-guard
+    
+    # Ab hier bewusst NICHT blockierend — beides ist heute kein verwertbares
+    # Signal, soll aber sichtbar bleiben:
+    #   standardrb: mehrere hundert Verstoesse im Bestandscode. Erst nach einem
+    #     eigenen Aufraeum-Durchlauf (standardrb --fix) als Gate sinnvoll.
+    #   brakeman:   stuerzt derzeit im Prism-Parser mit SIGABRT ab (Segfault in
+    #     prism-1.6.0), liefert also gar keinen Befund. Kein Sicherheitsurteil.
+    - name: Run Standard (nicht blockierend)
       run: bundle exec standardrb --format progress
       continue-on-error: true
     
-    - name: Run Brakeman
+    - name: Run Brakeman (nicht blockierend)
       run: bundle exec brakeman --no-pager
       continue-on-error: true

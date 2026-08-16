@@ -296,4 +296,43 @@ class VersionTest < ActiveSupport::TestCase
       assert_nothing_raised { Version.update_carambus }
     end
   end
+  # === http_get_with_ssl_bypass: Statusbehandlung + User-Agent ===
+  # Hintergrund: /versions/* liegt auf der Authority hinter dem nginx-Bot-Filter.
+  # Ein 403 kam frueher ungeprueft als Rumpf zurueck und landete in JSON.parse —
+  # der Sync auf bc-wedel stand dadurch monatelang unbemerkt.
+
+  test "http_get_with_ssl_bypass returns nil on 403 when nil_on_error" do
+    stub_request(:get, "https://api.example.test/versions/get_updates")
+      .to_return(status: 403, body: "Forbidden\n")
+    assert_nil Version.http_get_with_ssl_bypass(
+      URI("https://api.example.test/versions/get_updates"), nil_on_error: true
+    )
+  end
+
+  test "http_get_with_ssl_bypass still returns the body on 403 by default (HTML-Aufrufer unberuehrt)" do
+    stub_request(:get, "https://api.example.test/x").to_return(status: 403, body: "Forbidden\n")
+    assert_equal "Forbidden\n", Version.http_get_with_ssl_bypass(URI("https://api.example.test/x"))
+  end
+
+  test "http_get_with_ssl_bypass returns the body on success even with nil_on_error" do
+    stub_request(:get, "https://api.example.test/x").to_return(status: 200, body: "[]")
+    assert_equal "[]", Version.http_get_with_ssl_bypass(URI("https://api.example.test/x"), nil_on_error: true)
+  end
+
+  test "http_get_with_ssl_bypass sends the named User-Agent" do
+    stub = stub_request(:get, "https://api.example.test/x")
+      .with(headers: {"User-Agent" => Version::SYNC_USER_AGENT})
+      .to_return(status: 200, body: "[]")
+    Version.http_get_with_ssl_bypass(URI("https://api.example.test/x"))
+    assert_requested(stub)
+  end
+
+  test "SYNC_USER_AGENT trips none of the nginx bot-block patterns" do
+    # Muster gespiegelt aus templates/nginx/carambus_bot_block.conf
+    # (map $http_user_agent $carambus_block_bot). Faellt der Agent hier durch,
+    # antwortet die Authority mit 403 und der Sync steht still.
+    refute_empty Version::SYNC_USER_AGENT, "leerer User-Agent wird vom Bot-Filter geblockt"
+    refute_match(/(bot|crawler|spider|scraper|wget|curl\/|python-requests)/i,
+      Version::SYNC_USER_AGENT)
+  end
 end

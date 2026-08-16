@@ -180,4 +180,201 @@ class Video::TournamentMatcherTest < ActiveSupport::TestCase
     assert_in_delta 0.5, matcher.send(:player_intersection_score, %w[jaspers merckx], tournament), 0.001
     assert_in_delta 0.0, matcher.send(:player_intersection_score, ["merckx"], tournament), 0.001
   end
+
+  # ------------------------------------------------------------------
+  # Harte Ausschluesse (2026-08-16)
+  #
+  # Datum (0.40) + Spieler (0.35) ergeben exakt die Schwelle 0.75 — der Titel
+  # kann eine Fehlzuordnung sonst nicht verhindern. In Produktion hingen
+  # dadurch 60 Pool-Videos an Karambol-Turnieren und Re-Uploads alter Matches
+  # an aktuellen World Cups.
+  # ------------------------------------------------------------------
+
+  test "Video mit fremder Disziplin im Titel wird nicht zugeordnet" do
+    tournament = tournaments(:wc_2024)
+    video = videos(:jaspers_cho_wc_2024)
+    video.update_column(:title, "Panamericano de Pool  Bola 10 | JASPERS vs CHO")
+
+    result = Video::TournamentMatcher.call(video_scope: Video.where(id: video.id))
+
+    assert_equal 0, result[:assigned_count]
+    assert_nil video.reload.videoable
+    assert tournament.present?
+  end
+
+  test "Snooker im Titel schliesst aus" do
+    video = videos(:jaspers_cho_wc_2024)
+    video.update_column(:title, "Snooker Masters - JASPERS vs CHO")
+
+    Video::TournamentMatcher.call(video_scope: Video.where(id: video.id))
+
+    assert_nil video.reload.videoable
+  end
+
+  test "abweichendes Jahr im Videotitel schliesst aus" do
+    tournament = tournaments(:wc_2024)
+    video = videos(:jaspers_cho_wc_2024)
+    video.update_column(:title, "3-Cushion Lausanne Masters 2019 Final - JASPERS vs CHO")
+
+    Video::TournamentMatcher.call(video_scope: Video.where(id: video.id))
+
+    assert_nil video.reload.videoable,
+      "Re-Upload eines 2019er Matches darf nicht an einem #{tournament.date.year}er Turnier haengen"
+  end
+
+  test "passendes Jahr im Titel schliesst NICHT aus" do
+    tournament = tournaments(:wc_2024)
+    video = videos(:jaspers_cho_wc_2024)
+    video.update_column(:title, "World Cup #{tournament.date.year} - JASPERS vs CHO")
+
+    result = Video::TournamentMatcher.call(video_scope: Video.where(id: video.id))
+
+    assert_equal 1, result[:assigned_count]
+    assert_equal tournament, video.reload.videoable
+  end
+
+  test "Saison-Schreibweise deckt beide Jahre ab" do
+    tournament = tournaments(:wc_2024)
+    vorjahr = tournament.date.year - 1
+    video = videos(:jaspers_cho_wc_2024)
+    video.update_column(:title, "World Cup Season #{vorjahr}-#{tournament.date.year.to_s[2, 2]} - JASPERS vs CHO")
+
+    result = Video::TournamentMatcher.call(video_scope: Video.where(id: video.id))
+
+    assert_equal 1, result[:assigned_count],
+      "#{vorjahr}-#{tournament.date.year.to_s[2, 2]} schliesst #{tournament.date.year} ein"
+  end
+
+  test "Titel ohne Jahreszahl bleibt unberuehrt" do
+    tournament = tournaments(:wc_2024)
+    video = videos(:jaspers_cho_wc_2024)
+    video.update_column(:title, "World Cup - JASPERS vs CHO - Full Match")
+
+    result = Video::TournamentMatcher.call(video_scope: Video.where(id: video.id))
+
+    assert_equal 1, result[:assigned_count]
+    assert_equal tournament, video.reload.videoable
+  end
+
+  # ------------------------------------------------------------------
+  # Fremde Turnierserie (2026-08-16)
+  #
+  # Die PBA ist Karambol wie die UMB, aber ein eigenes Ligasystem — ihre
+  # Uebertragungen gehoeren nie zu einem UMB-Turnier. Entscheidend ist die
+  # Kombination Serienname + Turnierwort: "PBA" allein ist in vietnamesischen
+  # Videos ein SPIELER-Suffix und darf nicht ausschliessen.
+  # ------------------------------------------------------------------
+
+  test "koreanisches PBA-Liga-Event wird nicht zugeordnet" do
+    video = videos(:jaspers_cho_wc_2024)
+    video.update_column(:title, "JASPERS vs CHO | PBA-PBA팀리그")
+
+    Video::TournamentMatcher.call(video_scope: Video.where(id: video.id))
+
+    assert_nil video.reload.videoable
+  end
+
+  test "PBA Championship in koreanischer Schreibweise ohne Leerzeichen" do
+    video = videos(:jaspers_cho_wc_2024)
+    video.update_column(:title, "JASPERS vs CHO | 하이원리조트PBA챔피언십")
+
+    Video::TournamentMatcher.call(video_scope: Video.where(id: video.id))
+
+    assert_nil video.reload.videoable
+  end
+
+  test "PBA Tour auf Englisch schliesst aus" do
+    video = videos(:jaspers_cho_wc_2024)
+    video.update_column(:title, "PBA Tour Final - JASPERS vs CHO")
+
+    Video::TournamentMatcher.call(video_scope: Video.where(id: video.id))
+
+    assert_nil video.reload.videoable
+  end
+
+  test "PBA als Spieler-Suffix schliesst NICHT aus" do
+    tournament = tournaments(:wc_2024)
+    video = videos(:jaspers_cho_wc_2024)
+    video.update_column(:title, "World Cup - JASPERS vs CHO PBA - Round of 16")
+
+    result = Video::TournamentMatcher.call(video_scope: Video.where(id: video.id))
+
+    assert_equal 1, result[:assigned_count],
+      "PBA hinter einem Spielernamen bezeichnet den Profi, nicht das Event"
+    assert_equal tournament, video.reload.videoable
+  end
+
+  # ------------------------------------------------------------------
+  # Mindest-Titelbezug (2026-08-16)
+  #
+  # Datum + Spieler reissen zusammen exakt die Schwelle; ohne diese Regel
+  # konnte der Titel nichts verhindern. Fremde Veranstaltungen landeten an
+  # UMB-Turnieren, sobald sie zeitgleich liefen und bekannte Profis zeigten.
+  # ------------------------------------------------------------------
+
+  test "Video ohne jeden Titelbezug wird nicht zugeordnet" do
+    video = videos(:jaspers_cho_wc_2024)
+    video.update_column(:title, "KNBB Liga - JASPERS vs CHO")
+
+    Video::TournamentMatcher.call(video_scope: Video.where(id: video.id))
+
+    assert_nil video.reload.videoable
+  end
+
+  test "gemeinsames Wort mit dem Turniertitel genuegt" do
+    tournament = tournaments(:wc_2024)
+    wort = tournament.title.split.find { |w| w.length > 3 }
+    video = videos(:jaspers_cho_wc_2024)
+    video.update_column(:title, "#{wort} - JASPERS vs CHO")
+
+    result = Video::TournamentMatcher.call(video_scope: Video.where(id: video.id))
+
+    assert_equal 1, result[:assigned_count], "gemeinsames Wort #{wort.inspect} stiftet Bezug"
+  end
+
+  test "Turniercode mit passendem Jahr genuegt" do
+    tournament = tournaments(:wc_2024)
+    video = videos(:jaspers_cho_wc_2024)
+    video.update_column(:title, "[WC#{tournament.date.year}_L32] JASPERS vs CHO")
+
+    result = Video::TournamentMatcher.call(video_scope: Video.where(id: video.id))
+
+    assert_equal 1, result[:assigned_count]
+    assert_equal tournament, video.reload.videoable
+  end
+
+  test "Turniercode mit falschem Jahr stiftet keinen Bezug" do
+    tournament = tournaments(:wc_2024)
+    video = videos(:jaspers_cho_wc_2024)
+    # anderes Jahr im Code, sonst kein gemeinsames Wort
+    video.update_column(:title, "[WC#{tournament.date.year - 3}_L32] JASPERS vs CHO")
+
+    Video::TournamentMatcher.call(video_scope: Video.where(id: video.id))
+
+    assert_nil video.reload.videoable
+  end
+
+  test "Broadcaster-Quelle ist von der Titelbezug-Pflicht ausgenommen" do
+    tournament = tournaments(:wc_2024)
+    video = videos(:jaspers_cho_wc_2024)
+    video.update_column(:title, "7-point high run! JASPERS turns the tables")
+    video.international_source.update_column(:source_type, "fivesix")
+
+    result = Video::TournamentMatcher.call(video_scope: Video.where(id: video.id))
+
+    assert_equal 1, result[:assigned_count],
+      "Highlight-Clips der Uebertragungskanaele tragen keinen Turnierbezug im Titel"
+    assert_equal tournament, video.reload.videoable
+  end
+
+  test "youtube-Kanal mit Broadcaster-aehnlichem Namen ist NICHT ausgenommen" do
+    video = videos(:jaspers_cho_wc_2024)
+    video.update_column(:title, "KNBB Kozoom League - JASPERS vs CHO")
+    video.international_source.update_column(:source_type, "youtube")
+
+    Video::TournamentMatcher.call(video_scope: Video.where(id: video.id))
+
+    assert_nil video.reload.videoable,
+      "der Typ entscheidet, nicht der Kanalname"
+  end
 end

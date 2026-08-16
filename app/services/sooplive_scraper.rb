@@ -134,7 +134,7 @@ class SoopliveScraper
     request['User-Agent'] = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)'
     request['Referer'] = 'https://www.sooplive.co.kr/'
     
-    response = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true, verify_mode: OpenSSL::SSL::VERIFY_NONE) do |http|
+    response = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true, verify_mode: Carambus.ssl_verify_mode) do |http|
       http.request(request)
     end
     

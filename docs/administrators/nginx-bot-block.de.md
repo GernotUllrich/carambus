@@ -15,6 +15,12 @@ Verbieten von Bot-/Crawler-Traffic am NGINX-Edge mittels User-Agent-Filter — e
 
 **Antwort:** HTTP `403 Forbidden`.
 
+**Ausnahme:** `/versions/*` ist vom Filter ausgenommen — der stündliche
+Sync der Regional-/Location-Server (`Version.update_from_carambus_api`) ist per
+Definition ein Skript. Ein 403 dort ist vom Client nicht von "keine Updates" zu
+unterscheiden und legt den Datenabgleich still. Realisiert über
+`$carambus_deny` statt `$carambus_block_bot`.
+
 ## Architektur
 
 ```
@@ -33,7 +39,7 @@ Zwei separate Files auf dem Server:
 | Datei | Was | Wann installieren |
 |---|---|---|
 | `/etc/nginx/conf.d/carambus_bot_block.conf` | `map`-Block (definiert `$carambus_block_bot` einmal pro Server) | EINMALIG pro Server |
-| `/etc/nginx/sites-available/<scenario>` | Server-Block mit `if ($carambus_block_bot) { return 403 }` | bei jeder nginx.conf-Änderung |
+| `/etc/nginx/sites-available/<scenario>` | Server-Block mit `if ($carambus_deny) { return 403 }` | bei jeder nginx.conf-Änderung |
 
 **Warum getrennt:** Auf Multi-Scenario-Servern (z. B. Hetzner mit `carambus.de` UND `carambus_api`) würde ein doppelt definierter `map`-Block `nginx -t` failen mit "duplicate map directive". Der Snippet liegt deshalb genau einmal in `conf.d/`, jedes Scenario referenziert nur die Variable.
 
@@ -148,7 +154,7 @@ Reihenfolge prüfen:
    ```bash
    sudo nginx -T 2>/dev/null | grep -A1 carambus_block_bot
    ```
-   Erwartet: `map ...` und `if ($carambus_block_bot)`. Wenn leer → Snippet oder sites-available-Datei nicht aktuell.
+   Erwartet: `map ...` und `if ($carambus_deny)`. Wenn leer → Snippet oder sites-available-Datei nicht aktuell.
 
 2. **Welche Datei lädt NGINX?**
    ```bash

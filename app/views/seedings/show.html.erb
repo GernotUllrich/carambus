@@ -6,14 +6,35 @@
     </div>
 
     <div class=" rounded shadow p-8">
-            <div class="mb-4">
+      <div class="mb-4">
         <h5>Player</h5>
-        <%= custom_link_to(@seeding.player.fullname, player_path(@seeding.player)) %>
+        <%# 2017 Bestands-Seedings tragen keinen Player; ohne Guard 500 statt Seite. %>
+        <% if @seeding.player.present? %>
+          <%= custom_link_to(@seeding.player.fullname, player_path(@seeding.player)) %>
+        <% else %>
+          <span class="text-gray-500 dark:text-gray-400">&mdash;</span>
+        <% end %>
       </div>
-            <div class="mb-4">
-        <h5>Tournament</h5>
-        <%= custom_link_to(@seeding.tournament.title, tournament_path(@seeding.tournament)).html_safe %>
-      </div>
+      <%# Ein Seeding haengt entweder an einem Turnier ODER an einer Mannschaft
+          (Seeding#exactly_one_association, tournament ist optional: true).
+          Die Seite kannte nur den Turnierfall und warf fuer die 69.660
+          Liga-Seedings 500. %>
+      <% if @seeding.tournament.present? %>
+        <div class="mb-4">
+          <h5>Tournament</h5>
+          <%= custom_link_to(@seeding.tournament.title, tournament_path(@seeding.tournament)) %>
+        </div>
+      <% elsif @seeding.league_team.present? %>
+        <div class="mb-4">
+          <h5>League team</h5>
+          <%= custom_link_to(@seeding.league_team.name, league_team_path(@seeding.league_team)) %>
+        </div>
+      <% else %>
+        <div class="mb-4">
+          <h5>Tournament</h5>
+          <span class="text-gray-500 dark:text-gray-400">&mdash;</span>
+        </div>
+      <% end %>
             <div class="mb-4">
         <h5>Ba state</h5>
         <%= @seeding.ba_state %>

@@ -81,7 +81,7 @@ class VersionsController < ApplicationController
       @club.scrape_club(Season.current_season, nil, nil, player_details: player_details, force: force)
     elsif (region_id = params[:update_region_from_cc]).present?
       @region = Region.find(region_id)
-      @region.scrape_clubs(player_details: player_details)
+      @region.scrape_clubs(Season.current_season, player_details: player_details)
     elsif (region_id = params[:scrape_upcoming_tournaments]).present?
       @region = Region.find(region_id)
       days_ahead = params[:days_ahead]&.to_i || 30
