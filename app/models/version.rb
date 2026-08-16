@@ -485,17 +485,37 @@ class Version < PaperTrail::Version
                     end
                   end
                 else
-                  args = YAML.load(h["object"])
-                  args["data"] = Version.safe_parse_for_text_column(args["data"]) if args["data"].present?
-                  coerce_serialized_args!(classz, args)
+                  # Der Record ist nach dem Delta-Apply ungueltig. Die urspruengliche Absicht dieses
+                  # Zweigs (seit dem initial commit) ist richtig: lieber den VOLLEN Datensatz
+                  # schreiben als ein unvollstaendiges Delta.
+                  #
+                  # FALSCH WAR DIE DATENQUELLE (Phase 37-01): `h["object"]` ist bei PaperTrail der
+                  # Zustand VOR der Aenderung. Der nackte Snapshot hat den Record damit auf seinen
+                  # alten Stand ZURUECKGESETZT — still, denn `update_columns` umgeht Validierungen,
+                  # es fliegt keine Exception und der Cursor laeuft weiter. Jeder global ungueltige
+                  # Record war so auf den Regional-Servern eingefroren (belegt an NBV: 49 Ligen).
+                  #
+                  # Deshalb: voller Snapshot als Basis, die neuen Werte gewinnen darueber.
+                  args = snapshot_with_changes(h, classz)
+
+                  # G2: sichtbar machen. Getrennt von den uebersprungenen Apply-Fehlern gesammelt —
+                  # deren Meldung sagt "uebersprungen, Cursor lief weiter", und das waere hier
+                  # FALSCH: diese Aenderung wird geschrieben. Der Unterschied ist genau die
+                  # Information, auf die die Bestandsaufnahme angewiesen ist.
+                  Rails.logger.warn "[Version.sync] ungültig nach Apply, Änderung trotzdem " \
+                    "geschrieben: #{h["item_type"]}[#{h["item_id"]}] v#{h["id"]}: " \
+                    "#{obj.errors.full_messages.join("; ")}"
+                  (Thread.current[:carambus_sync_invalid_applied] ||= []) <<
+                    {type: h["item_type"], id: h["item_id"], version: h["id"],
+                     errors: obj.errors.full_messages}
                 end
                 obj.update_columns(args)
               else
                 obj = classz.new
                 obj.id = h["item_id"]
-                args = YAML.load(h["object"])
-                args["data"] = Version.safe_parse_for_text_column(args["data"]) if args["data"].present?
-                coerce_serialized_args!(classz, args)
+                # Gleicher Denkfehler wie oben, gleiche Behebung (Phase 37-01): der Record entstand
+                # bisher im Zustand VOR der Aenderung, weil `h["object"]` genau das ist.
+                args = snapshot_with_changes(h, classz)
 
                 args.each do |k, v|
                   obj.write_attribute(k, v)
@@ -538,9 +558,37 @@ class Version < PaperTrail::Version
       Rails.logger.error "[Version.sync] #{fails.size} Version(en) beim Apply fehlgeschlagen (übersprungen, Cursor lief weiter): #{fails.first(20).inspect}"
       Thread.current[:carambus_sync_apply_failures] = nil
     end
+    # Phase 37-01 (G2): eigene Zeile, bewusst NICHT im selben Topf wie die uebersprungenen. Diese
+    # Records wurden GESCHRIEBEN — sie erfuellen nur die heutigen Validierungen nicht. Das ist ein
+    # Datenqualitaets-Befund, kein Sync-Fehler, und zugleich das Messinstrument dafuer, wie viel
+    # Altbestand in diesem Zustand steckt.
+    if (invalid = Thread.current[:carambus_sync_invalid_applied]).present?
+      Rails.logger.warn "[Version.sync] #{invalid.size} Record(s) waren nach dem Apply ungültig — " \
+        "Änderung wurde trotzdem geschrieben (update_columns umgeht Validierungen). " \
+        "Datenqualität prüfen: #{invalid.first(20).inspect}"
+      Thread.current[:carambus_sync_invalid_applied] = nil
+    end
   rescue OpenURI::HTTPError => e
     Rails.logger.info "===== #{e} cannot read from #{url}"
     e.to_s
+  end
+
+  # Voller PaperTrail-Snapshot des Records PLUS der Aenderung, die diese Version transportiert.
+  #
+  # `object` ist der Zustand VOR der Aenderung, `object_changes` traegt sie als [alt, neu]. Wer nur
+  # den Snapshot schreibt, setzt den Record zurueck; wer nur die Deltas schreibt, verliert bei
+  # unvollstaendigen Deltas den Rest. Beides zusammen ist die richtige Antwort.
+  #
+  # Ist `object_changes` leer, gibt es nichts zu mergen — dann IST der Snapshot alles, was die
+  # Version weiss.
+  def self.snapshot_with_changes(h, classz)
+    args = YAML.load(h["object"]) || {}
+    if h["object_changes"].present?
+      args = args.merge(YAML.load(h["object_changes"]).to_a.map { |v| [v[0], v[1][1]] }.to_h)
+    end
+    args["data"] = Version.safe_parse_for_text_column(args["data"]) if args["data"].present?
+    coerce_serialized_args!(classz, args)
+    args
   end
 
   def self.local_server?

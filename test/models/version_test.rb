@@ -335,4 +335,146 @@ class VersionTest < ActiveSupport::TestCase
     refute_match(/(bot|crawler|spider|scraper|wget|curl\/|python-requests)/i,
       Version::SYNC_USER_AGENT)
   end
+
+  # === Phase 37-01: Apply-Loop — ungueltige Records duerfen nicht zurueckgesetzt werden ===
+  #
+  # WARUM DIESE TESTS NICHT `skip_unless_local_server` NUTZEN: Die beiden vorhandenen Apply-Tests
+  # (Zeile 99 und 155) skippen in DIESEM Repo, weil carambus_api ohne `carambus_api_url` laeuft — der
+  # Apply-Loop ist hier also faktisch ungetestet. Fuer einen Eingriff in die Replikationsgrundlage
+  # aller Regional-Server ist das zu wenig. `Carambus.config=` erlaubt es, die URL fuer die Dauer
+  # eines Tests zu setzen; damit laeuft der Loop auch auf der Authority.
+
+  def with_api_url(url = "https://api.example.test")
+    previous = Carambus.config
+    Carambus.config = OpenStruct.new(previous.to_h.merge(carambus_api_url: url))
+    yield
+  ensure
+    Carambus.config = previous
+  end
+
+  def apply_version(item_type:, item_id:, object:, object_changes: nil, version_id: 999_001)
+    payload = [{
+      "id" => version_id,
+      "item_type" => item_type,
+      "item_id" => item_id,
+      "event" => "update",
+      "object" => YAML.dump(object),
+      "object_changes" => object_changes.present? ? YAML.dump(object_changes) : nil,
+      "created_at" => Time.current.to_s
+    }]
+    with_api_url do
+      stub_request(:get, %r{/versions/get_updates})
+        .to_return(status: 200, body: payload.to_json, headers: {"Content-Type" => "application/json"})
+      Version.update_from_carambus_api({})
+    end
+  end
+
+  # Der Sammel-Reset passiert am Ende von update_from_carambus_api, deshalb faengt der Test das Log.
+  def capture_sync_log
+    io = StringIO.new
+    previous = Rails.logger
+    Rails.logger = ActiveSupport::Logger.new(io)
+    yield
+    io.string
+  ensure
+    Rails.logger = previous
+  end
+
+  # Eine GLOBALE Liga (id < MIN_ID), die die heutige Pflichtpruefung verletzt — das echte Vorbild:
+  # `validates :shortname, presence: true, if: organizer_type == "Region"` trifft 4 430 der 6 436
+  # Ligen auf der Authority.
+  def invalid_global_league(id: 3_700_001)
+    l = League.new(id: id, name: "Alt-Liga #{id}", organizer_type: "Region",
+      organizer_id: regions(:nbv).id, season: seasons(:current))
+    l.shortname = nil
+    l.unprotected = true
+    l.save!(validate: false)
+    assert_not l.valid?, "Testvoraussetzung: der Record muss ungueltig sein"
+    l
+  end
+
+  # AC-1 — der Hauptbefund. Vor dem Fix schreibt der Apply den PaperTrail-`object`-Snapshot zurueck,
+  # und der ist der Zustand VOR der Aenderung: source_kind bliebe nil.
+  test "AC-1: eine Aenderung an einem ungueltigen Record kommt an" do
+    league = invalid_global_league
+    snapshot = league.attributes.merge("source_kind" => nil)
+
+    apply_version(item_type: "League", item_id: league.id, object: snapshot,
+      object_changes: {"source_kind" => [nil, "ba"]})
+
+    assert_equal "ba", league.reload.source_kind,
+      "der neue Wert muss stehen — nicht der Zustand vor der Aenderung"
+  end
+
+  # AC-2 — die Absicht des Fallbacks bleibt: vollstaendiger Datensatz statt unvollstaendigem Delta.
+  test "AC-2: der Fallback schreibt den vollen Snapshot, die neuen Werte gewinnen" do
+    league = invalid_global_league(id: 3_700_002)
+    league.update_column(:name, "lokal abgewichen")
+    snapshot = league.attributes.merge("name" => "Stand der Authority", "source_kind" => nil)
+
+    apply_version(item_type: "League", item_id: league.id, object: snapshot,
+      object_changes: {"source_kind" => [nil, "ba"]}, version_id: 999_002)
+
+    league.reload
+    assert_equal "ba", league.source_kind, "die Aenderung gewinnt"
+    assert_equal "Stand der Authority", league.name, "und der Rest kommt aus dem vollen Snapshot"
+  end
+
+  # AC-4 — derselbe Denkfehler an der zweiten Fundstelle (version.rb:496).
+  test "AC-4: ein lokal fehlender Record entsteht im neuen Zustand" do
+    id = 3_700_003
+    League.where(id: id).delete_all
+    snapshot = {"id" => id, "name" => "Neu-Liga", "shortname" => "NL",
+                "organizer_type" => "Region", "organizer_id" => regions(:nbv).id,
+                "season_id" => seasons(:current).id, "source_kind" => nil,
+                "created_at" => Time.current, "updated_at" => Time.current}
+
+    apply_version(item_type: "League", item_id: id, object: snapshot,
+      object_changes: {"source_kind" => [nil, "ba"]}, version_id: 999_003)
+
+    created = League.find_by(id: id)
+    assert_not_nil created, "der Record muss angelegt worden sein"
+    assert_equal "ba", created.source_kind, "und zwar im Zustand NACH der Aenderung"
+  end
+
+  # AC-5 — Verhaltenserhalt. Muss von Anfang an gruen sein: das ist das Sicherheitsnetz.
+  test "AC-5: ein gueltiger Record wird unveraendert appliziert" do
+    league = League.new(id: 3_700_004, name: "Gueltige Liga", shortname: "GL",
+      organizer_type: "Region", organizer_id: regions(:nbv).id, season: seasons(:current))
+    league.unprotected = true
+    league.save!
+    assert league.valid?
+
+    apply_version(item_type: "League", item_id: league.id,
+      object: league.attributes.merge("source_kind" => nil),
+      object_changes: {"source_kind" => [nil, "club_cloud"]}, version_id: 999_004)
+
+    assert_equal "club_cloud", league.reload.source_kind
+  end
+
+  # AC-3 — die Ungueltigkeit darf nicht mehr unsichtbar sein. Das ist zugleich das Messinstrument
+  # fuer die Bestandsaufnahme (Folgearbeit): "wie viel Altbestand steckt in diesem Zustand?"
+  #
+  # Geprueft wird die LOG-AUSGABE, nicht das Thread-Local: der Sammler wird am Durchlauf-Ende
+  # zurueckgesetzt, und im Betrieb ist ohnehin das Log der Kanal, den jemand liest.
+  test "AC-3: ein ungueltiger Record wird gemeldet, getrennt von uebersprungenen Versionen" do
+    league = invalid_global_league(id: 3_700_005)
+
+    logged = capture_sync_log do
+      apply_version(item_type: "League", item_id: league.id,
+        object: league.attributes.merge("source_kind" => nil),
+        object_changes: {"source_kind" => [nil, "ba"]}, version_id: 999_005)
+    end
+
+    assert_equal "ba", league.reload.source_kind, "geschrieben wird trotzdem"
+
+    assert_match(/ungültig/i, logged, "die Meldung nennt den Zustand")
+    assert_match(/trotzdem geschrieben/i, logged, "und sagt, dass die Aenderung ankam")
+    assert_match(/League/, logged, "Modell")
+    assert_match(/#{league.id}/, logged, "id")
+    assert_match(/999005/, logged, "Version-id")
+    assert_match(/Shortname/i, logged, "der Validierungsfehler gehoert dazu")
+    assert_no_match(/übersprungen/i, logged,
+      "NICHT im Topf der uebersprungenen Versionen — die werden ja gerade nicht geschrieben")
+  end
 end
