@@ -33,12 +33,20 @@
 # Ignore master key for decrypting credentials and more.
 /config/master.key
 
-# Per-Environment-Master-Keys: gehoeren NIE ins Repo — mit ihnen ist jede
-# config/credentials/*.yml.enc im Klartext lesbar. Die .enc-Dateien bleiben
-# getrackt, die Schluessel kommen ueber die Scenario-Pipeline auf den Server
-# (carambus_data/secrets.yml -> generate_credentials -> prepare_deploy);
-# config/credentials ist dort ein linked_dir und wird vom Deploy nicht ueberschrieben.
+# Credentials gehoeren NIE ins Repo — weder die Keys noch die damit
+# verschluesselten Dateien. Die Per-Environment-Keys lagen von 2025-08-13 bis
+# 2026-08-15 oeffentlich im Repo (config/credentials/*.key, Commit 44cd1b75),
+# womit der Inhalt jeder mit ihnen verschluesselten .enc lesbar war. Beide sind
+# jetzt ausgeschlossen; eine getrackte .enc ohne Key nuetzt einem frischen
+# Checkout ohnehin nichts.
+#
+# Woher die Dateien stattdessen kommen:
+#   production — Scenario-Pipeline (carambus_data/scenarios/<name>/production/
+#                credentials, per prepare_deploy in den linked_dir shared/config/credentials)
+#   dev/test   — ausserhalb des Repos weitergeben (Backup/Kopie von einem
+#                bestehenden Checkout)
 config/credentials/*.key
+config/credentials/*.yml.enc
 
 /public/app
 /public/packs
