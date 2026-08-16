@@ -697,6 +697,12 @@ class Tournament < ApplicationRecord
   # Meldung/Teilnehmer nicht trennen, Seeding.state diskriminiert. Bei vorhandener globaler Meldung
   # (< MIN_ID, z.B. Location Server ODER historisches NBV-Region-Turnier) bleibt es beim MIN_ID-Zweig —
   # der all-lokal-Guard schuetzt den NBV-Verhaltenserhalt (Teilnehmer dort noch registered).
+  # Übergangs-Fallback für `ProvenanceStamped#cc_sourced?` — reproduziert das Signal, das der
+  # Ergebnisweg bis 34-02 benutzt hat. Faellt weg, sobald `source_kind` ueberall angekommen ist.
+  def legacy_cc_signal?
+    tournament_cc.present?
+  end
+
   def cc_less_seedings?
     ApplicationRecord.region_server? &&
       seedings.exists? &&

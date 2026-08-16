@@ -565,4 +565,12 @@ class League < ApplicationRecord
   def self.delete_game_plans_for_season(season, opts = {})
     League::GamePlanReconstructor.call(season: season, operation: :delete_for_season, **opts)
   end
+
+  # Übergangs-Fallback für `ProvenanceStamped#cc_sourced?`, analog zu Tournament#legacy_cc_signal?.
+  # `League#league_cc` ist auf `context: "nbv"` gescopt — genau so lautete auch das Altsignal,
+  # der Fallback bildet es deshalb unveraendert ab.
+  def legacy_cc_signal?
+    league_cc.present?
+  end
+
 end

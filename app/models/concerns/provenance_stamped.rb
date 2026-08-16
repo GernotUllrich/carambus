@@ -37,6 +37,23 @@ module ProvenanceStamped
     before_save :stamp_source_kind
   end
 
+  # DER CC-los-Indikator (Plan 34-02, Ziel G2). Vorher beantworteten zwei Codestellen dieselbe Frage
+  # verschieden: der Wizard fragte DIE REGION (`Region::SHORTNAMES_CC` — hartkodiert und saison-blind),
+  # der Ergebnisweg den CC-ZWILLING (`tournament_cc` — ein Migrationsartefakt BillardArea→ClubCloud).
+  # Ein Turnier konnte bei der einen Stelle CC-los sein und bei der anderen nicht.
+  #
+  # ÜBERGANGS-FALLBACK (Betreiber 2026-08-16), **entfernbar**: `source_kind` ist auf der Authority
+  # gefüllt, erreicht die Region- und Location-Server aber erst mit dem nächsten Version-Sync. In
+  # diesem Fenster ist die Spalte dort `nil` — ohne Fallback sähe jeder Server jedes Turnier als
+  # CC-los und NBV verlöre schlagartig seine CC-Schritte. Der Fallback antwortet wie das bisherige
+  # Record-Signal und kippt von selbst um, sobald der Wert eintrifft. Kein Deploy-Reihenfolge-Zwang.
+  # Wenn `Tournament.where(source_kind: nil).count == 0` überall gilt, kann er weg.
+  def cc_sourced?
+    return source_club_cloud? if source_kind.present?
+
+    legacy_cc_signal?
+  end
+
   private
 
   def stamp_source_kind

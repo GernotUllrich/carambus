@@ -9,10 +9,21 @@ require "test_helper"
 class TournamentWizardHelperTest < ActionView::TestCase
   tests TournamentWizardHelper
 
-  # Leichtes Tournament-Double: die Helfer lesen ausschließlich #organizer.
-  def tournament_with(organizer)
-    Struct.new(:organizer).new(organizer)
+  # ECHTE Records statt eines `Struct.new(:organizer)`-Doubles (Plan 34-02, Task 1): ab 34-02 liest
+  # der Wizard nicht mehr nur #organizer, sondern die Provenienz am Turnier selbst. Ein Double
+  # koennte das nicht abbilden und wuerde die Umstellung an genau der Stelle blind machen, an der
+  # sie geprueft gehoert. Inhaltlich aendert sich hier nichts — die Erwartungen bleiben, wie sie waren.
+  def tournament_with(organizer, **attrs)
+    Tournament.create!(
+      {title: "T#{SecureRandom.hex(3)}", shortname: "S#{SecureRandom.hex(3)}",
+       season: seasons(:current), organizer: organizer,
+       date: Time.zone.local(2026, 10, 10, 10, 0)}.merge(attrs)
+    )
   end
+
+  # Eine aus der ClubCloud gescrapte Turnier-URL. Seit 34-02 macht ERST SIE ein Turnier zu einem
+  # CC-Turnier — vorher genuegte die Zugehoerigkeit zu einer CC-Region.
+  CC_URL = "https://ndbv.de/sb_meisterschaft.php?p=20--2026/2027-46-"
 
   setup do
     @cc_less_region = regions(:bbv) # keine region_cc → CC-los
@@ -21,9 +32,28 @@ class TournamentWizardHelperTest < ActionView::TestCase
     @cc_region.reload
   end
 
-  test "wizard_cc_less? = Region nicht in SHORTNAMES_CC" do
+  # Ein Turnier, das wirklich aus der ClubCloud stammt.
+  def cc_tournament(organizer = @cc_region)
+    tournament_with(organizer, source_url: CC_URL)
+  end
+
+  test "wizard_cc_less? = das Turnier stammt nicht aus der ClubCloud" do
     assert wizard_cc_less?(tournament_with(@cc_less_region))
-    assert_not wizard_cc_less?(tournament_with(@cc_region))
+    assert_not wizard_cc_less?(cc_tournament)
+  end
+
+  # DIE EINE BEABSICHTIGTE VERHALTENSAENDERUNG (Plan 34-02, AC-4).
+  #
+  # Vorher entschied die REGION: ein Turnier in NBV galt als CC-Turnier, egal woher es kam. Jetzt
+  # entscheidet die Herkunft des Turniers selbst. Ein lokal angelegtes Turnier hat keinen
+  # `tournament_cc` — Schritt 1 "Meldeliste von ClubCloud laden" koennte dort ohnehin nichts laden.
+  # Die Regionszugehoerigkeit war nie eine Aussage ueber DIESES Turnier.
+  test "AC-4: lokal angelegtes Turnier in einer CC-Region gilt als CC-los" do
+    t = tournament_with(@cc_region) # keine source_url → source_kind :carambus
+
+    assert_equal "carambus", t.source_kind, "Testvoraussetzung: lokal angelegt"
+    assert wizard_cc_less?(t), "kein CC-Zwilling → CC-los, anders als vor 34-02"
+    assert_not wizard_region_uses_cc?(t), "kein ClubCloud-Ladeschritt"
   end
 
   # Der Grund für die Umstellung von region_cc auf SHORTNAMES_CC (Vorab-Fix vor Phase 34):
@@ -39,7 +69,9 @@ class TournamentWizardHelperTest < ActionView::TestCase
     assert migrated.region_cc.present?, "Testvoraussetzung: Alt-region_cc vorhanden"
 
     t = tournament_with(migrated)
-    assert wizard_cc_less?(t), "trotz Alt-region_cc CC-los, weil nicht in SHORTNAMES_CC"
+    # Seit 34-02 gilt das noch strenger: nicht die Region entscheidet, sondern die Herkunft des
+    # Turniers (`source_kind :carambus`). Der Alt-`region_cc` ist damit endgueltig wirkungslos.
+    assert wizard_cc_less?(t), "trotz Alt-region_cc CC-los, weil das Turnier nicht aus einer CC stammt"
     assert_not wizard_region_uses_cc?(t), "kein CC-Meldelisten-Schritt"
 
     ApplicationRecord.stub(:region_server?, true) do
@@ -52,7 +84,7 @@ class TournamentWizardHelperTest < ActionView::TestCase
   end
 
   test "AC-1: CC-Turnier zeigt beide Zyklen, Rolle egal (Verhaltenserhalt)" do
-    t = tournament_with(@cc_region)
+    t = cc_tournament
 
     ApplicationRecord.stub(:region_server?, false) do
       ApplicationRecord.stub(:location_server?, false) do
@@ -94,6 +126,17 @@ class TournamentWizardHelperTest < ActionView::TestCase
         assert wizard_show_game_cycle?(t)
       end
     end
+  end
+
+  # CHARACTERIZATION (Plan 34-02, Task 1): Ein Turnier, das ein VEREIN ausrichtet, ist weder CC noch
+  # CC-los im Sinne des Wizards — es bekommt die volle Leiste. Beide Helfer haengen an
+  # `organizer.is_a?(Region)`, und genau diese Klammer ist beim Umbau auf `source_kind` leicht zu
+  # verlieren: ein Vereinsturnier traegt naemlich `source_kind :carambus` und saehe damit CC-los aus.
+  test "Verein als Ausrichter: weder CC-los noch CC-Ladeschritt" do
+    t = tournament_with(clubs(:bcw))
+
+    assert_not wizard_cc_less?(t), "Vereinsturniere behalten die volle Leiste"
+    assert_not wizard_region_uses_cc?(t), "und trotzdem keinen ClubCloud-Ladeschritt"
   end
 
   # Schritt 1 bleibt die einzige wirklich CC-spezifische Stelle: CC-los gibt es nichts zu laden,
