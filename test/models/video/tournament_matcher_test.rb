@@ -237,7 +237,7 @@ class Video::TournamentMatcherTest < ActiveSupport::TestCase
     tournament = tournaments(:wc_2024)
     vorjahr = tournament.date.year - 1
     video = videos(:jaspers_cho_wc_2024)
-    video.update_column(:title, "Season #{vorjahr}-#{tournament.date.year.to_s[2, 2]} - JASPERS vs CHO")
+    video.update_column(:title, "World Cup Season #{vorjahr}-#{tournament.date.year.to_s[2, 2]} - JASPERS vs CHO")
 
     result = Video::TournamentMatcher.call(video_scope: Video.where(id: video.id))
 
@@ -248,7 +248,7 @@ class Video::TournamentMatcherTest < ActiveSupport::TestCase
   test "Titel ohne Jahreszahl bleibt unberuehrt" do
     tournament = tournaments(:wc_2024)
     video = videos(:jaspers_cho_wc_2024)
-    video.update_column(:title, "JASPERS vs CHO - Full Match")
+    video.update_column(:title, "World Cup - JASPERS vs CHO - Full Match")
 
     result = Video::TournamentMatcher.call(video_scope: Video.where(id: video.id))
 
@@ -295,12 +295,86 @@ class Video::TournamentMatcherTest < ActiveSupport::TestCase
   test "PBA als Spieler-Suffix schliesst NICHT aus" do
     tournament = tournaments(:wc_2024)
     video = videos(:jaspers_cho_wc_2024)
-    video.update_column(:title, "JASPERS vs CHO PBA - Round of 16")
+    video.update_column(:title, "World Cup - JASPERS vs CHO PBA - Round of 16")
 
     result = Video::TournamentMatcher.call(video_scope: Video.where(id: video.id))
 
     assert_equal 1, result[:assigned_count],
       "PBA hinter einem Spielernamen bezeichnet den Profi, nicht das Event"
     assert_equal tournament, video.reload.videoable
+  end
+
+  # ------------------------------------------------------------------
+  # Mindest-Titelbezug (2026-08-16)
+  #
+  # Datum + Spieler reissen zusammen exakt die Schwelle; ohne diese Regel
+  # konnte der Titel nichts verhindern. Fremde Veranstaltungen landeten an
+  # UMB-Turnieren, sobald sie zeitgleich liefen und bekannte Profis zeigten.
+  # ------------------------------------------------------------------
+
+  test "Video ohne jeden Titelbezug wird nicht zugeordnet" do
+    video = videos(:jaspers_cho_wc_2024)
+    video.update_column(:title, "KNBB Liga - JASPERS vs CHO")
+
+    Video::TournamentMatcher.call(video_scope: Video.where(id: video.id))
+
+    assert_nil video.reload.videoable
+  end
+
+  test "gemeinsames Wort mit dem Turniertitel genuegt" do
+    tournament = tournaments(:wc_2024)
+    wort = tournament.title.split.find { |w| w.length > 3 }
+    video = videos(:jaspers_cho_wc_2024)
+    video.update_column(:title, "#{wort} - JASPERS vs CHO")
+
+    result = Video::TournamentMatcher.call(video_scope: Video.where(id: video.id))
+
+    assert_equal 1, result[:assigned_count], "gemeinsames Wort #{wort.inspect} stiftet Bezug"
+  end
+
+  test "Turniercode mit passendem Jahr genuegt" do
+    tournament = tournaments(:wc_2024)
+    video = videos(:jaspers_cho_wc_2024)
+    video.update_column(:title, "[WC#{tournament.date.year}_L32] JASPERS vs CHO")
+
+    result = Video::TournamentMatcher.call(video_scope: Video.where(id: video.id))
+
+    assert_equal 1, result[:assigned_count]
+    assert_equal tournament, video.reload.videoable
+  end
+
+  test "Turniercode mit falschem Jahr stiftet keinen Bezug" do
+    tournament = tournaments(:wc_2024)
+    video = videos(:jaspers_cho_wc_2024)
+    # anderes Jahr im Code, sonst kein gemeinsames Wort
+    video.update_column(:title, "[WC#{tournament.date.year - 3}_L32] JASPERS vs CHO")
+
+    Video::TournamentMatcher.call(video_scope: Video.where(id: video.id))
+
+    assert_nil video.reload.videoable
+  end
+
+  test "Broadcaster-Quelle ist von der Titelbezug-Pflicht ausgenommen" do
+    tournament = tournaments(:wc_2024)
+    video = videos(:jaspers_cho_wc_2024)
+    video.update_column(:title, "7-point high run! JASPERS turns the tables")
+    video.international_source.update_column(:source_type, "fivesix")
+
+    result = Video::TournamentMatcher.call(video_scope: Video.where(id: video.id))
+
+    assert_equal 1, result[:assigned_count],
+      "Highlight-Clips der Uebertragungskanaele tragen keinen Turnierbezug im Titel"
+    assert_equal tournament, video.reload.videoable
+  end
+
+  test "youtube-Kanal mit Broadcaster-aehnlichem Namen ist NICHT ausgenommen" do
+    video = videos(:jaspers_cho_wc_2024)
+    video.update_column(:title, "KNBB Kozoom League - JASPERS vs CHO")
+    video.international_source.update_column(:source_type, "youtube")
+
+    Video::TournamentMatcher.call(video_scope: Video.where(id: video.id))
+
+    assert_nil video.reload.videoable,
+      "der Typ entscheidet, nicht der Kanalname"
   end
 end

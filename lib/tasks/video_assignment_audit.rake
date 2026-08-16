@@ -25,6 +25,7 @@ namespace :videos do
     fremd = []
     serie = []
     jahr = []
+    ohne_bezug = []
     geprueft = 0
 
     scope.includes(:videoable).find_each(batch_size: 300) do |video|
@@ -38,6 +39,8 @@ namespace :videos do
         serie << [video, tournament]
       elsif matcher.send(:conflicting_year?, video.title, tournament)
         jahr << [video, tournament]
+      elsif matcher.send(:missing_title_reference?, video, tournament)
+        ohne_bezug << [video, tournament]
       end
     end
 
@@ -56,7 +59,13 @@ namespace :videos do
     puts "     ... (#{jahr.size - 12} weitere)" if jahr.size > 12
     puts
 
-    betroffen = fremd + serie + jahr
+    puts
+    puts "D) ohne Titelbezug (kein Code, kein gemeinsames Wort): #{ohne_bezug.size}"
+    ohne_bezug.first(12).each { |v, t| puts "     #{v.title.to_s[0, 62]}\n        -> #{t.title.to_s[0, 46]}" }
+    puts "     ... (#{ohne_bezug.size - 12} weitere)" if ohne_bezug.size > 12
+    puts
+
+    betroffen = fremd + serie + jahr + ohne_bezug
     if betroffen.empty?
       puts "Nichts zu tun."
     elsif armed

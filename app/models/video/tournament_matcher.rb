@@ -105,6 +105,23 @@ class Video::TournamentMatcher < ApplicationService
   # wird zugeordnet, OHNE dass der Titel irgendetwas beitragen muss. Der Titel
   # kann eine Fehlzuordnung also nicht verhindern, nur noch zwischen mehreren
   # Turnieren entscheiden. Diese beiden Regeln geben ihm ein Veto.
+  # Quellen, die UMB-Turniere selbst uebertragen. Ihre Highlight-Clips
+  # ("7-point high run! S. SIDHOM turns the tables") tragen keinen Turnierbezug
+  # im Titel, sind aber trotzdem korrekt zugeordnet — fuer sie entfaellt die
+  # Titelbezug-Pflicht.
+  #
+  # Der Typ trennt sauber: "Kozoom TV" (kozoom) ist der Broadcaster, waehrend
+  # "Kozoom Carom" (youtube) ein Kanal mit fremden Inhalten ist (Europameister-
+  # schaft, KNBB-Liga) — genau die Videos, die der Titelbezug fangen soll.
+  BROADCAST_SOURCE_TYPES = %w[fivesix kozoom].freeze
+
+  # Turniercode der offiziellen Uebertragungen: [WC2025_L32], [LBM2023_Q].
+  # Kuerzel + Jahr + Runde; das Jahr muss zum Turnier passen.
+  TOURNAMENT_CODE_PATTERN = /\[([A-Z]{2,6})(\d{4})_([A-Z0-9]{1,4})\]/
+
+  # Woerter, die keinen Bezug stiften.
+  TITLE_STOPWORDS = %w[the and vs von der die das und les des].freeze
+
   # Turnierserien neben der UMB, erkannt an Serienname + Turnierwort.
   FOREIGN_SERIES_PATTERN = /
     l?pba [^[:alpha:]]{0,3}
@@ -116,7 +133,50 @@ class Video::TournamentMatcher < ApplicationService
   def disqualified?(video, tournament)
     foreign_discipline?(video.title) ||
       foreign_series?(video.title) ||
-      conflicting_year?(video.title, tournament)
+      conflicting_year?(video.title, tournament) ||
+      missing_title_reference?(video, tournament)
+  end
+
+  # Mindest-Titelbezug: das Video muss das Turnier im Titel wenigstens
+  # streifen — ueber den offiziellen Turniercode oder ein gemeinsames Wort.
+  #
+  # Grund: Datum (0.40) und Spieler (0.35) reissen zusammen exakt die Schwelle,
+  # der Titel konnte bisher nichts verhindern. Dadurch landeten fremde
+  # Veranstaltungen an UMB-Turnieren, sobald sie zeitgleich liefen und bekannte
+  # Profis zeigten — Europameisterschaft, KNBB-Liga, D1 France und rund 170
+  # vietnamesische Lokalturniere.
+  #
+  # Ausgenommen sind die Broadcaster selbst (BROADCAST_SOURCE_TYPES): ihre
+  # Highlight-Clips tragen keinen Titelbezug, gehoeren aber zum Turnier.
+  def missing_title_reference?(video, tournament)
+    return false if broadcast_source?(video)
+    return false if tournament_code_matches?(video.title, tournament)
+
+    shared_title_words(video.title, tournament.title).empty?
+  end
+
+  def broadcast_source?(video)
+    BROADCAST_SOURCE_TYPES.include?(video.international_source&.source_type)
+  end
+
+  # Ein Code belegt den Bezug nur, wenn sein Jahr zum Turnier passt.
+  def tournament_code_matches?(title, tournament)
+    match = title.to_s.match(TOURNAMENT_CODE_PATTERN)
+    return false if match.nil? || tournament.date.blank?
+
+    match[2].to_i == tournament.date.year
+  end
+
+  def shared_title_words(video_title, tournament_title)
+    significant_words(video_title) & significant_words(tournament_title)
+  end
+
+  def significant_words(text)
+    text.to_s.downcase
+      .gsub(/[^[:alnum:][:space:]]/, " ")
+      .split
+      .reject { |w| w.size < 3 || TITLE_STOPWORDS.include?(w) }
+      .uniq
   end
 
   # Fremde Turnierserie: die PBA ist zwar Karambol, aber ein eigenes Ligasystem
