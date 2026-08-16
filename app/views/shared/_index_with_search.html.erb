@@ -12,17 +12,15 @@
         </div>
 
   <% if model_class.any? %>
-    <%= turbo_frame_tag 'table_wrapper', data: { controller: "pagy-url" } do %>
-      <% if records.blank? && params[:sSearch].present? %>
-        <div class="rounded shadow">
-          <div class="my-4 text-sm text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 rounded-md p-4 text-center">
-            <%= t('shared.search.no_results', query: params[:sSearch]) %>
-          </div>
-        </div>
-      <% else %>
-        <%= render partial: table_partial, locals: local_assigns %>
-      <% end %>
-    <% end %>
+    <%# Frame + Innenleben liegen in shared/_search_results_frame — dasselbe Partial
+        rendert der SearchReflex beim Selector-Morph, damit Live-Suche und HTTP-Pfad
+        identisch aussehen (inkl. Zero-Results-Hinweis). %>
+    <%= render partial: 'shared/search_results_frame', locals: {
+          records: records,
+          table_partial: table_partial,
+          search_string: params[:sSearch],
+          table_locals: local_assigns,
+        } %>
   <% else %>
     <div class="rounded shadow flex flex-col items-center justify-between p-8 lg:flex-row">
       <svg class="mx-auto h-12 w-12 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">

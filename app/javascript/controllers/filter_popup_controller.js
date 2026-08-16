@@ -90,9 +90,25 @@ export default class extends ApplicationController {
       if (name !== 'global' && !name.endsWith('_operator') && value) {
         const operator = formData.get(`${name}_operator`) || ''
         
-        // Check if this is a reference field that should use ID-based filtering
-        const isReferenceField = ['region_shortname', 'season_name', 'club_shortname', 'league_shortname', 'party_shortname'].includes(name)
-        console.log(`Debug: Field ${name}, isReferenceField: ${isReferenceField}`)
+        // Referenzfelder werden ID-basiert gefiltert: die numerische ID steht im
+        // data-id der gewaehlten Option, der sichtbare Wert ist der Shortname/Name.
+        //
+        // Erkennung primaer ueber das data-id der Auswahl statt ueber die Namensliste
+        // unten: determine_field_key (application_helper.rb) liefert fuer
+        // Referenzspalten inzwischen '<x>_id' (z.B. clubs.shortname -> 'club_id'),
+        // nicht mehr '<x>_shortname'. Die Namensliste griff dadurch nicht mehr und es
+        // wurde der Shortname unter dem ID-Schluessel gesendet ("club_id:BCW").
+        // apply_filters routet '*_id' in den numerischen Zweig -> to_i == 0 -> Sentinel
+        // -7235553 -> null Treffer (Spielersuche nach Club fand nichts).
+        // Die Namensliste bleibt als Fallback fuer Selects ohne data-id.
+        const referenceSelect = this.filterFormTarget.querySelector(`select[name="${name}"]`)
+        const referenceOption = referenceSelect && referenceSelect.selectedIndex >= 0
+          ? referenceSelect.options[referenceSelect.selectedIndex]
+          : null
+        const hasDataId = !!(referenceOption && referenceOption.dataset.id)
+        const isReferenceField = hasDataId ||
+          ['region_shortname', 'season_name', 'club_shortname', 'league_shortname', 'party_shortname'].includes(name)
+        console.log(`Debug: Field ${name}, isReferenceField: ${isReferenceField} (data-id: ${hasDataId})`)
         
         if (isReferenceField) {
           // For reference fields, use the selected option's data-id if available

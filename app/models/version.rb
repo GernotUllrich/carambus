@@ -67,12 +67,19 @@ class Version < PaperTrail::Version
   # Daten nicht zu unterscheiden und erschien als "JSON::ParserError: unexpected
   # end of input". Die HTML-Aufrufer (PublicCcScraper, AbandonedTournamentCc,
   # repo_version) behalten das alte Verhalten, deshalb Default false.
+  # NAME IST HISTORISCH: seit der TLS-Haertung gibt es keinen "ssl bypass" mehr —
+  # der Verify-Modus kommt aus Carambus.ssl_verify_mode (VERIFY_PEER, sofern nicht
+  # per CARAMBUS_TLS_INSECURE=1 notabgeschaltet). Nicht umbenannt, weil ~25 Aufrufer
+  # in app/, views/ und tests/ daran haengen; eigenes Refactoring wert.
   def self.http_get_with_ssl_bypass(uri, nil_on_error: false)
     http = Net::HTTP.new(uri.host, uri.port)
     if uri.scheme == "https"
       http.use_ssl = true
-      http.verify_mode = OpenSSL::SSL::VERIFY_NONE
-      http.verify_hostname = false
+      http.verify_mode = Carambus.ssl_verify_mode
+      # verify_hostname bleibt aktiv: ohne Hostname-Pruefung waere VERIFY_PEER
+      # halbherzig — ein gueltiges Zertifikat FUER EINEN ANDEREN HOST wuerde
+      # akzeptiert. Beim Notausstieg (VERIFY_NONE) ist die Einstellung ohnehin
+      # wirkungslos, Net::HTTP prueft den Hostnamen dann nicht.
     end
     request = Net::HTTP::Get.new(uri.request_uri, "User-Agent" => SYNC_USER_AGENT)
     response = http.request(request)

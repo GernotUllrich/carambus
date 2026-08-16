@@ -24,7 +24,7 @@ class KozoomScraper
     uri = URI("#{API_BASE_URL}/auth/login")
     http = Net::HTTP.new(uri.host, uri.port)
     http.use_ssl = true
-    http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+    http.verify_mode = Carambus.ssl_verify_mode
 
     request = Net::HTTP::Post.new(uri.path, { "Content-Type" => "application/json", "Accept" => "application/json" })
     request.body = { email: @email, password: @password }.to_json
@@ -126,7 +126,7 @@ class KozoomScraper
   def make_request(uri)
     http = Net::HTTP.new(uri.host, uri.port)
     http.use_ssl = true
-    http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+    http.verify_mode = Carambus.ssl_verify_mode
 
     request = Net::HTTP::Get.new(uri.request_uri)
     request["Authorization"] = "Bearer #{@token}"

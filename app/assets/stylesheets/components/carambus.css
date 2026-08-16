@@ -142,7 +142,11 @@ ul:not(.list-none) {
   }
 }
 .highlight {
-  background-color: theme('colors.gray.50');
+  /* Grund UND Schrift setzen: prose liefert fuer <pre> eine helle Codefarbe
+     (fuer dunklen Grund gedacht), waehrend .highlight den Grund hell macht —
+     ohne eigene Schriftfarbe stand hellgrau auf fast-weiss. */
+  background-color: theme('colors.code-400');
+  color: theme('colors.code-600');
   border: 1px solid theme('colors.gray.300');
   border-radius: 3px;
   padding: 10px;
@@ -158,6 +162,15 @@ ul:not(.list-none) {
 .highlight code {
   font-family: monospace;
   white-space: pre;
+}
+
+/* Dark Mode ist klassenbasiert (html.dark, siehe tailwind.config darkMode: 'class').
+   Ohne diese Regel blieb der Codeblock auf hellem Grund stehen, waehrend die
+   Schrift ins Helle kippte — der Code war unsichtbar. Grund und Schrift tauschen. */
+html.dark .highlight {
+  background-color: theme('colors.code-600');
+  border-color: theme('colors.gray.700');
+  color: theme('colors.code-400');
 }
 
 .pre-wrap {

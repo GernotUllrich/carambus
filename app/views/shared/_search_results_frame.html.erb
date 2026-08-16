@@ -1,0 +1,22 @@
+<%# Ergebnis-Frame der Such-Huelle: Zero-Results-Hinweis ODER Tabelle.
+    Eine Quelle fuer beide Render-Pfade — HTTP (_index_with_search) und
+    SearchReflex-Live-Suche (Selector-Morph auf #table_wrapper).
+
+    Der <turbo-frame> MUSS Teil des gerenderten HTML sein: StimulusReflex sucht
+    den Morph-Selektor im Ergebnis und morpht nur dessen Kinder; findet er ihn
+    nicht, ersetzt er das Ziel komplett und der Frame ginge verloren
+    (stimulus_reflex/broadcasters/selector_broadcaster.rb) — samt RETURN-Submit
+    (form target="table_wrapper") und pagy-url-Controller.
+
+    Locals: records, table_partial, search_string, table_locals %>
+<%= turbo_frame_tag 'table_wrapper', data: { controller: "pagy-url" } do %>
+  <% if records.blank? && search_string.present? %>
+    <div class="rounded shadow">
+      <div class="my-4 text-sm text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 rounded-md p-4 text-center">
+        <%= t('shared.search.no_results', query: search_string) %>
+      </div>
+    </div>
+  <% else %>
+    <%= render partial: table_partial, locals: table_locals %>
+  <% end %>
+<% end %>

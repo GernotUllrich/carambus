@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'pathname'
+
 # Custom Markdown renderer that uses Rouge for syntax highlighting
 # rubocop:disable Lint/MissingSuper
 
@@ -30,17 +32,21 @@ class MarkdownRenderer < Redcarpet::Render::HTML
       # This handles both old-style links and ensures compatibility
       path = path.sub(/\.(de|en)$/, '')
       
-      # Handle relative vs absolute paths
-      if path.start_with?('../')
-        # Parent directory reference - remove ../
-        path = path.gsub(/^\.\.\//, '')
-      elsif path.start_with?('./')
-        # Current directory reference - remove ./ and add current_path
-        path = path.sub(/^\.\//, '')
-        path = "#{@current_path}/#{path}" unless @current_path.empty?
-      elsif !path.start_with?('/')
-        # Relative path (no prefix) - it's in the same directory
-        path = "#{@current_path}/#{path}" unless @current_path.empty?
+      # Relative Pfade gegen das Verzeichnis des aktuellen Dokuments aufloesen.
+      #
+      # Vorher wurde '../' schlicht abgeschnitten, statt eine Ebene hoeher zu
+      # gehen: in docs/developers/services/party-monitor.de.md zeigte
+      # '../developer-guide.de.md' auf /docs_page/de/developer-guide statt auf
+      # .../de/developers/developer-guide — 29 Links im publizierten Teil der
+      # Doku liefen so ins Leere.
+      #
+      # Pathname#cleanpath rechnet '..' korrekt gegen @current_path. Fuehrt ein
+      # Link aus dem docs-Baum heraus (z.B. '../../CHANGELOG.md'), bleibt ein
+      # '..' im Ergebnis stehen; der Directory-Traversal-Guard in
+      # StaticController#docs_page faengt das als 404 ab.
+      unless path.start_with?('/')
+        base = @current_path.to_s.empty? ? Pathname.new('.') : Pathname.new(@current_path)
+        path = (base + path).cleanpath.to_s
       end
       
       # Convert to Rails docs_page route with locale
