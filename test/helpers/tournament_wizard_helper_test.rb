@@ -56,11 +56,16 @@ class TournamentWizardHelperTest < ActionView::TestCase
     assert_not wizard_region_uses_cc?(t), "kein ClubCloud-Ladeschritt"
   end
 
-  # Der Grund für die Umstellung von region_cc auf SHORTNAMES_CC (Vorab-Fix vor Phase 34):
-  # eine migrierte Region (z.B. TBV, seit v0.4 LigaManager) trägt noch einen ALT-region_cc, ist aber
-  # CC-los. Die alte Logik (region_cc.blank?) läge hier falsch und zeigte die CC-Setup-Leiste inkl.
-  # Scoreboards auf dem Region Server — genau der Runbook-C2-Befund.
-  test "migrierte Region mit Alt-region_cc, aber nicht in SHORTNAMES_CC → CC-los" do
+  # Der urspruengliche Runbook-C2-Befund: eine migrierte Region (TBV, seit v0.4 LigaManager) traegt
+  # noch einen ALT-`region_cc`, ist aber CC-los. Die damalige Logik (`region_cc.blank?`) zeigte dort
+  # faelschlich die CC-Setup-Leiste inklusive Scoreboards auf dem Region Server.
+  #
+  # DIE BEGRUENDUNG HAT SICH ZWEIMAL VERSCHOBEN, das Ergebnis nicht: erst entschied `SHORTNAMES_CC`
+  # (Vorab-Fix), dann `source_kind` mit `SHORTNAMES_CC` als Fallback (34-02) — und seit 34-03
+  # entscheidet **allein** `source_kind`. Der Test bleibt deshalb gueltig, prueft jetzt aber die
+  # Herkunft des TURNIERS; die `SHORTNAMES_CC`-Assertion steht nur noch als Testvoraussetzung da,
+  # nicht mehr als wirkende Ursache.
+  test "migrierte Region mit Alt-region_cc → CC-los, weil das TURNIER nicht aus einer CC stammt" do
     migrated = Region.create!(name: "Migriert", shortname: "TBV", country: @cc_region.country)
     RegionCc.create!(region: migrated, context: "alt-tbv", cc_id: 999_002)
     migrated.reload
@@ -69,8 +74,7 @@ class TournamentWizardHelperTest < ActionView::TestCase
     assert migrated.region_cc.present?, "Testvoraussetzung: Alt-region_cc vorhanden"
 
     t = tournament_with(migrated)
-    # Seit 34-02 gilt das noch strenger: nicht die Region entscheidet, sondern die Herkunft des
-    # Turniers (`source_kind :carambus`). Der Alt-`region_cc` ist damit endgueltig wirkungslos.
+    assert_equal "carambus", t.source_kind, "die wirkende Ursache: die Herkunft des Turniers"
     assert wizard_cc_less?(t), "trotz Alt-region_cc CC-los, weil das Turnier nicht aus einer CC stammt"
     assert_not wizard_region_uses_cc?(t), "kein CC-Meldelisten-Schritt"
 

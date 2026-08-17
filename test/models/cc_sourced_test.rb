@@ -4,6 +4,9 @@ require "test_helper"
 
 # `cc_sourced?` ist seit Plan 34-02 der EINZIGE CC-los-Indikator im System. Vorher beantworteten
 # Wizard und Ergebnisweg dieselbe Frage verschieden — die Region gegen den CC-Zwilling.
+#
+# Seit 34-03 ohne Uebergangs-Fallback: `source_kind` ist die alleinige Quelle, und ein Record ohne
+# Wert wird GEMELDET statt still ueber ein Altsignal beantwortet.
 class CcSourcedTest < ActiveSupport::TestCase
   CC_URL = "https://ndbv.de/sb_meisterschaft.php?p=20--2026/2027-46-"
   LM_URL = "https://ligen.billard.center/api/leagues/11"
@@ -19,6 +22,18 @@ class CcSourcedTest < ActiveSupport::TestCase
        season: @season, organizer: @region, region_id: @region.id,
        date: Time.zone.local(2026, 10, 10, 10, 0)}.merge(attrs)
     )
+  end
+
+  # Muster aus test/models/version_test.rb (37-01): die Meldung ist der Kanal, den im Betrieb jemand
+  # liest — also wird sie geprueft, nicht ein Interna-Zaehler.
+  def capture_log
+    io = StringIO.new
+    previous = Rails.logger
+    Rails.logger = ActiveSupport::Logger.new(io)
+    yield
+    io.string
+  ensure
+    Rails.logger = previous
   end
 
   def league(**attrs)
@@ -51,38 +66,41 @@ class CcSourcedTest < ActiveSupport::TestCase
   # mit dem naechsten Version-Sync. In diesem Fenster steht dort `nil` — ohne Fallback saehe jeder
   # Server jedes Turnier als CC-los und NBV verloere schlagartig seine CC-Schritte.
 
-  test "ohne source_kind antwortet der tournament_cc wie vor 34-02" do
+  # 34-03: Der Uebergangs-Fallback ist weg. Bis dahin sprang bei leerer Spalte das Altsignal ein —
+  # STILL. Genau diese Bauart war der Fehler von Phase 37: was lautlos kompensiert wird, faellt nie
+  # auf, und deshalb schloss sich das Uebergangsfenster nie. Jetzt gilt: CC-los UND gemeldet.
+  test "ohne source_kind ist es CC-los UND wird gemeldet" do
     t = tournament(source_url: CC_URL)
     TournamentCc.create!(tournament: t, name: "CC-Zwilling", cc_id: 771_001)
-    t.update_column(:source_kind, nil) # Server vor dem Sync
+    t.update_column(:source_kind, nil) # Server vor dem Sync / unbekanntes Muster
 
-    assert t.reload.cc_sourced?, "der CC-Zwilling traegt die Antwort, solange die Spalte leer ist"
+    logged = capture_log { assert_not t.reload.cc_sourced?, "der CC-Zwilling redet nicht mehr mit" }
+
+    assert_match(/ohne source_kind/, logged, "der Fall muss sichtbar sein, nicht kompensiert")
+    assert_match(/Tournament\[#{t.id}\]/, logged, "die Meldung nennt Modell und ID")
   end
 
-  test "ohne source_kind und ohne tournament_cc ist es CC-los" do
-    t = tournament(source_url: nil)
-    t.update_column(:source_kind, nil)
-
-    assert_not t.reload.cc_sourced?
-  end
-
-  test "ohne source_kind antwortet bei Ligen der league_cc" do
+  test "ohne source_kind gilt dasselbe fuer Ligen — der league_cc redet nicht mehr mit" do
     l = league(source_url: CC_URL)
     l.update_column(:source_kind, nil)
 
-    assert_not l.reload.cc_sourced?, "ohne league_cc CC-los"
+    logged = capture_log { assert_not l.reload.cc_sourced? }
+
+    assert_match(/League\[#{l.id}\]/, logged)
   end
 
-  # Sobald der Wert eintrifft, gewinnt er — ohne Deploy, ohne Neustart.
-  test "der Fallback tritt zurueck, sobald source_kind da ist" do
+  # Die Gegenprobe zum entfernten Fallback: ein Record, der BEIDE Signale traegt und bei dem sie sich
+  # widersprechen. Frueher gewann im nil-Fall der Zwilling; jetzt gibt es keinen nil-Fall mehr, in dem
+  # er gewinnen koennte. Wer den Fallback wieder einbaut, laesst diesen Test fallen.
+  test "source_kind ist die einzige Quelle — der CC-Zwilling kann sie nie ueberstimmen" do
     t = tournament(source_url: CC_URL)
     TournamentCc.create!(tournament: t, name: "CC-Zwilling", cc_id: 771_002)
 
-    t.update_column(:source_kind, nil)
-    assert t.reload.cc_sourced?, "Fallback aktiv"
-
     t.update_column(:source_kind, "liga_manager")
     assert_not t.reload.cc_sourced?, "die Spalte schlaegt den Zwilling"
+
+    t.update_column(:source_kind, nil)
+    assert_not t.reload.cc_sourced?, "und ohne Spalte springt der Zwilling NICHT mehr ein"
   end
 
   # Der einzige Fall, in dem sich `cc_sourced?` und das alte `tournament_cc.present?` im Bestand

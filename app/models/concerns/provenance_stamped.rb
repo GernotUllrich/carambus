@@ -37,21 +37,28 @@ module ProvenanceStamped
     before_save :stamp_source_kind
   end
 
-  # DER CC-los-Indikator (Plan 34-02, Ziel G2). Vorher beantworteten zwei Codestellen dieselbe Frage
-  # verschieden: der Wizard fragte DIE REGION (`Region::SHORTNAMES_CC` — hartkodiert und saison-blind),
-  # der Ergebnisweg den CC-ZWILLING (`tournament_cc` — ein Migrationsartefakt BillardArea→ClubCloud).
-  # Ein Turnier konnte bei der einen Stelle CC-los sein und bei der anderen nicht.
+  # DER CC-los-Indikator — eine Stelle, ein Feld (Plan 34-02 Ziel G2, vollendet in 34-03).
+  # Vorher beantworteten zwei Codestellen dieselbe Frage verschieden: der Wizard fragte DIE REGION
+  # (`Region::SHORTNAMES_CC` — hartkodiert und saison-blind), der Ergebnisweg den CC-ZWILLING
+  # (`tournament_cc` — ein Migrationsartefakt BillardArea→ClubCloud). Ein Turnier konnte bei der einen
+  # Stelle CC-los sein und bei der anderen nicht. Beide Altsignale sind als Indikator abgelöst; die
+  # Assoziationen selbst bleiben, sie tragen weiterhin die CC-Anbindung (Upload/Scrape).
   #
-  # ÜBERGANGS-FALLBACK (Betreiber 2026-08-16), **entfernbar**: `source_kind` ist auf der Authority
-  # gefüllt, erreicht die Region- und Location-Server aber erst mit dem nächsten Version-Sync. In
-  # diesem Fenster ist die Spalte dort `nil` — ohne Fallback sähe jeder Server jedes Turnier als
-  # CC-los und NBV verlöre schlagartig seine CC-Schritte. Der Fallback antwortet wie das bisherige
-  # Record-Signal und kippt von selbst um, sobald der Wert eintrifft. Kein Deploy-Reihenfolge-Zwang.
-  # Wenn `Tournament.where(source_kind: nil).count == 0` überall gilt, kann er weg.
+  # WARUM DER nil-FALL GEMELDET UND NICHT KOMPENSIERT WIRD (34-03): Bis 37-03 fing hier ein
+  # Übergangs-Fallback ab, dass `source_kind` einen Server noch nicht per Sync erreicht hatte — still.
+  # Genau diese Bauart war der Fehler von Phase 37: was lautlos kompensiert wird, faellt nie auf, und
+  # das Uebergangsfenster schloss sich deshalb nie (der Sync setzte ungueltige Records still zurueck).
+  # Heute traegt jeder Record auf jeder gemessenen Instanz einen Wert, und neue bekommen ihn beim
+  # Anlegen (`:none → :carambus` im Klassifikator). Bleibt trotzdem einer leer — etwa eine neue Quelle
+  # mit unbekanntem URL-Muster —, dann ist er CC-los UND sichtbar, statt sich als CC-los zu tarnen.
   def cc_sourced?
-    return source_club_cloud? if source_kind.present?
+    if source_kind.blank?
+      Rails.logger.warn "[provenance] #{self.class.name}[#{id}] ohne source_kind — als CC-los " \
+        "behandelt. Herkunft klaeren (unbekanntes source_url-Muster? Sync-Rueckstand?)."
+      return false
+    end
 
-    legacy_cc_signal?
+    source_club_cloud?
   end
 
   private

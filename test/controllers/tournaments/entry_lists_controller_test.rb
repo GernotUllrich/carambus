@@ -8,6 +8,7 @@ require "test_helper"
 # (Region::SHORTNAMES_CC). Fuer den CC-losen Weg wird der Organizer auf regions(:bbv)
 # umgehaengt; BBV steht in SHORTNAMES_CC bewusst auskommentiert (seit v0.5 NuLiga) und ist
 # damit CC-los im Sinne von wizard_cc_less?.
+# SEIT 34-03 entscheidet stattdessen `source_kind` — die Umhaengung bleibt als realistisches Szenario.
 class Tournaments::EntryListsControllerTest < ActionDispatch::IntegrationTest
   setup do
     @tournament = tournaments(:local)
@@ -181,8 +182,9 @@ class Tournaments::EntryListsControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to tournaments_path
   end
 
+  # Seit 34-03 macht die Region ein Turnier NICHT mehr zum CC-Turnier — allein `source_kind` tut das.
   test "CC-Turniere werden auf ihren gewachsenen Fluss zurueckgewiesen" do
-    @tournament.update_column(:organizer_id, regions(:nbv).id) # NBV = CC-Region
+    @tournament.update_columns(organizer_id: regions(:nbv).id, source_kind: "club_cloud")
 
     get tournament_entry_list_path(@tournament)
 

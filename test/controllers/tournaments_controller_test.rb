@@ -74,7 +74,9 @@ class TournamentsControllerTest < ActionDispatch::IntegrationTest
     @tournament.update_columns(
       organizer_id: regions(:nbv).id,
       organizer_type: "Region",
-      season_id: seasons(:current).id
+      season_id: seasons(:current).id,
+      # Seit 34-03 traegt die Herkunft des Turniers die CC-Aussage, nicht die Region.
+      source_kind: "club_cloud"
     )
     @tournament.reload
 

@@ -196,24 +196,20 @@ module TournamentWizardHelper
     wizard_step_status(tournament, step_number) == :active
   end
 
-  # Stammt DIESES Turnier aus der ClubCloud? Seit Plan 34-02 am Objekt beantwortet (`source_kind`),
-  # nicht mehr an der Region.
+  # Stammt DIESES Turnier aus der ClubCloud? Am Objekt beantwortet (`source_kind`, Plan 34-02), seit
+  # 34-03 ohne jeden Rückfall auf die Region.
   #
-  # WAS SICH DAMIT ÄNDERT: `Region::SHORTNAMES_CC` sagte nur, ob die Region *überhaupt* eine CC
-  # betreibt — eine Aussage über den Verband, nicht über dieses Turnier, und dazu saison-blind.
-  # Ein in einer CC-Region LOKAL angelegtes Turnier gilt deshalb ab jetzt als CC-los: es hat keinen
+  # WAS SICH GEGENÜBER FRÜHER ÄNDERT: `Region::SHORTNAMES_CC` sagte nur, ob die Region *überhaupt*
+  # eine CC betreibt — eine Aussage über den Verband, nicht über dieses Turnier, und dazu saison-blind.
+  # Ein in einer CC-Region LOKAL angelegtes Turnier gilt deshalb als CC-los: es hat keinen
   # `tournament_cc`, Schritt 1 könnte dort ohnehin nichts laden. Beabsichtigt, siehe 34-02 AC-4.
   #
-  # ÜBERGANGS-FALLBACK, **entfernbar**: solange `source_kind` einen Server noch nicht per Sync
-  # erreicht hat, antwortet der Wizard wie bisher — region-weit. Bewusst ein ANDERER Fallback als in
-  # `ProvenanceStamped#cc_sourced?` (dort: der `*_cc`-Zwilling): die beiden Flächen hatten
-  # verschiedene Altsignale, und ein gemeinsamer Fallback würde eine von beiden im Übergangsfenster
-  # verändern — genau das, was der Verhaltenserhalt (G3) verbietet. Beide fallen später zusammen weg.
+  # DIE KLAMMER `organizer.is_a?(Region)` BLEIBT und ist wesentlich: ein VEREINSturnier trägt
+  # `source_kind :carambus` und sähe ohne sie CC-los aus, obwohl die Frage dort gar nicht gilt.
   def wizard_region_uses_cc?(tournament)
     return false unless tournament.organizer.is_a?(Region)
-    return tournament.cc_sourced? if tournament.source_kind.present?
 
-    Region::SHORTNAMES_CC.include?(tournament.organizer.shortname)
+    tournament.cc_sourced?
   end
 
   # CC-los (Plan 32-06) = organizer ist eine Region OHNE ClubCloud. Nur dann greift der Rollen-Split;
