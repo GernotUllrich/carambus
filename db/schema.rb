@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_08_16_150000) do
+ActiveRecord::Schema[7.2].define(version: 2026_08_17_140000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -201,6 +201,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_08_16_150000) do
     t.datetime "updated_at", null: false
     t.integer "region_id"
     t.boolean "global_context", default: false
+    t.index ["club_id", "location_id"], name: "index_club_locations_on_club_id_and_location_id", unique: true
     t.index ["global_context"], name: "index_club_locations_on_global_context"
     t.index ["region_id"], name: "index_club_locations_on_region_id"
   end
