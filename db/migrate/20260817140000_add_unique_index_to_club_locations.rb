@@ -15,10 +15,22 @@
 class AddUniqueIndexToClubLocations < ActiveRecord::Migration[7.2]
   disable_ddl_transaction!
 
-  def change
+  INDEX_NAME = "index_club_locations_on_club_id_and_location_id"
+
+  def up
+    # Ein fehlgeschlagenes CREATE INDEX CONCURRENTLY laesst in PostgreSQL einen INVALIDEN Index
+    # zurueck (pg_index.indisvalid = false). Der blockiert den naechsten Versuch mit
+    # "relation already exists" — ein Folgefehler, der die eigentliche Ursache (Duplikate)
+    # verdeckt. Aufgefallen 2026-08-17 auf dem carambus-Checkout.
+    remove_index :club_locations, name: INDEX_NAME, algorithm: :concurrently if index_name_exists?(:club_locations, INDEX_NAME)
+
     add_index :club_locations, %i[club_id location_id],
       unique: true,
       algorithm: :concurrently,
-      name: "index_club_locations_on_club_id_and_location_id"
+      name: INDEX_NAME
+  end
+
+  def down
+    remove_index :club_locations, name: INDEX_NAME, algorithm: :concurrently if index_name_exists?(:club_locations, INDEX_NAME)
   end
 end
