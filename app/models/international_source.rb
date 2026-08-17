@@ -281,8 +281,19 @@ class InternationalSource < ApplicationRecord
   end
 
   # Mark as scraped
+  #
+  # Bewusst OHNE PaperTrail-Version (Phase 38-01): `last_scraped_at` ist ein reiner
+  # Betriebsstempel der Authority — gescrapt wird nur dort, und ausserhalb dieses
+  # Modells liest ihn nur das Administrate-Dashboard. Eine Version je Scrape-Lauf
+  # wären ~81/Tag Sync-Verkehr für einen Wert ohne Empfänger.
+  #
+  # Vorher entstand hier zusätzlich eine KAPUTTE Version: PaperTrail schreibt auf
+  # dem touch-Pfad grundsätzlich kein `object_changes` (paper_trail 15.2.0,
+  # `Events::Update#record_object_changes?` — Rails' `touch` macht kein
+  # Dirty-Tracking, Rails-Issue #33429), während `changed_notably?` für touch
+  # trotzdem `true` liefert. Der Apply-Loop hatte damit nichts zu mergen.
   def mark_scraped!
-    touch(:last_scraped_at)
+    PaperTrail.request(enabled: false) { touch(:last_scraped_at) }
   end
 
   # Check if scraping is needed
