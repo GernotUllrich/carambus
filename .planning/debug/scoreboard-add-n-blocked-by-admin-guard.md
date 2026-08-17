@@ -87,9 +87,53 @@ Zwei Punkte, die beim Bauen zählen:
   Scoreboard aus wie ein toter Knopf. Was auch immer blockt, sollte dem Bediener etwas
   anzeigen.
 
-## Sofortmaßnahme ohne Deploy
+## Sofortmaßnahme ohne Deploy — Scoreboards auf die LAN-Adresse umstellen
 
-Scoreboards über die **LAN-Adresse** des Pi öffnen statt über `bc-wedel.duckdns.org` — dann
-ist `remote_ip` wieder `192.168.x` und der Guard greift nicht. **Ungeprüft:** ob der Pi
-unter seiner LAN-IP sauber erreichbar ist (nginx `server_name` ist `bc-wedel.duckdns.org`,
-dazu TLS/Session).
+Die Scoreboards sind **eigene Raspberry Pis**, per WLAN mit dem carambus_bcw-Server
+verbunden. Sie erreichen den Server offenbar über `bc-wedel.duckdns.org`; der Router
+schickt das per NAT-Hairpin zurück ins LAN und ersetzt dabei die Quelladresse durch die
+öffentliche IP — daher die 131 Blockaden von `91.35.205.240`.
+
+**Topologie (erhoben 2026-08-17, read-only):**
+
+| | |
+|---|---|
+| Server (carambus_bcw) | `192.168.2.210`, Interface `eth0` (verkabelt) |
+| nginx | `listen 3131`, `server_name bc-wedel.duckdns.org` |
+| vermutete Scoreboard-Pis | `192.168.2.222` – `.227` im ARP-Cache, gleiches MAC-Präfix `cc:32:e5:` |
+| öffentliche IP des Vereins | `91.35.205.240` |
+
+**Server liefert unter der LAN-Adresse aus — geprüft:**
+`http://192.168.2.210:3131/` mit Browser-User-Agent → **HTTP 200**.
+(Mit curl-Default-UA kommt **403** — das ist der nginx-Bot-Block, kein
+Erreichbarkeitsproblem. Beim Nachprüfen `-A "Mozilla/5.0"` setzen.)
+
+**Umzustellende URL auf jedem Scoreboard-Pi:**
+
+```
+http://192.168.2.210:3131/locations/0819bf0d7893e629200c20497ef9cfff/scoreboard?sb_state=table_scores&locale=de
+```
+
+Damit sieht Rails `remote_ip = 192.168.2.x`, `remote_request?` ist false, der Guard greift
+nicht — ohne Deploy und ohne Codeänderung. Nebenwirkung: der Verkehr bleibt im LAN statt
+über den Router hinaus und zurück zu laufen, und er hängt nicht mehr davon ab, ob DynDNS
+gerade stimmt.
+
+**Wo die URL steht — Vorsicht, zwei Fallstricke:**
+
+1. `/var/www/carambus_bcw/shared/config/scoreboard_url` auf dem **Server** enthält
+   `http://localhost:3131/locations/0819…/scoreboard?…`. Das gilt für ein Scoreboard, das
+   *auf dem Server selbst* im Kiosk läuft — für die abgesetzten Pis ist `localhost` falsch.
+   Deren URL steht auf ihnen, nicht hier.
+2. [bin/autostart-scoreboard.sh](bin/autostart-scoreboard.sh) verdrahtet als Fallback
+   `http://192.168.178.107:82/…` bzw. `:3131` — ein **anderes Subnetz** als das heutige
+   `192.168.2.x`. Diese Adressen sind veraltet und führen beim Umstellen in die Irre.
+
+**Ungeprüft (Pis waren beim Erheben abgeschaltet):** ob die Scoreboards über `http` statt
+`https` sauber laufen. Der Kandidat für Ärger ist dabei nicht die Seite, sondern die
+ActionCable-Verbindung auf derselben Origin — beim ersten Einschalten kurz kontrollieren.
+
+## Abgrenzung
+
+Die URL-Umstellung **umgeht** den Guard, sie repariert ihn nicht. Er sitzt weiterhin auf
+2 von 58 Actions und schweigt, wenn er blockt. Der Codefix in carambus_nbv bleibt das Ziel.
