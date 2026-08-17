@@ -85,7 +85,16 @@ namespace :data_hygiene do
 
     # Die Probe aus 38-03: jede Loeschung MUSS eine Version erzeugt haben, sonst bleibt der
     # Record auf den Regional-Servern fuer immer liegen.
-    if new_versions == destroyed
+    #
+    # NUR auf der Authority sinnvoll: `LocalProtector` aktiviert `has_paper_trail` ausdruecklich
+    # nur, wenn `carambus_api_url` NICHT gesetzt ist. Auf einem local Server entstehen also
+    # korrekterweise KEINE Versionen (er empfaengt sie, er erzeugt sie nicht) — die Probe dort
+    # zu fahren erzeugt einen Fehlalarm, der wie Datenverlust aussieht. Aufgefallen 2026-08-17
+    # beim Lauf auf dem carambus-Checkout (38 Loeschungen, 0 Versionen, alles korrekt).
+    if ApplicationRecord.local_server?
+      puts "  ℹ️  local Server — PaperTrail ist hier per LocalProtector deaktiviert, " \
+           "0 Versionen sind erwartet (die Loeschung kommt ohnehin von der Authority)"
+    elsif new_versions == destroyed
       puts "  ✅ jede Loeschung hat eine Version erzeugt — die Replikation ist gesichert"
     else
       puts "  ⚠️  #{destroyed - new_versions} Loeschung(en) OHNE Version — diese Records bleiben " \
