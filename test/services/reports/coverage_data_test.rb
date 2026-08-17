@@ -120,6 +120,29 @@ class Reports::CoverageDataTest < ActiveSupport::TestCase
     assert_equal 1, kinds[:none], "ohne beide Spuren bleibt es bei 'keine Angabe'"
   end
 
+  # Dritte Stufe der Kaskade (Phase 34-01): 366 Turniere im Bestand tragen weder URL noch ba_id,
+  # aber einen tournament_cc. Vorher wies der Report sie als "keine Herkunftsspur" aus.
+  test "ohne URL und ohne ba_id zaehlt ein tournament_cc als ClubCloud" do
+    t = tournament(@dreiband, source_url: nil, ba_id: nil)
+    TournamentCc.create!(tournament: t, name: "CC-Zwilling", cc_id: 987_654)
+    tournament(@dreiband, source_url: nil, ba_id: nil)
+
+    kinds = Reports::CoverageData.for(Tournament).sources["#{@karambol.id}|#{@region.id}|#{@season.id}"]
+
+    assert_equal 1, kinds[:cc], "der CC-Zwilling ist der einzige verbliebene Herkunftsbeleg"
+    assert_equal 1, kinds[:none], "das Turnier ohne jede Spur bleibt bei 'keine Angabe'"
+  end
+
+  test "aber gegen eine ba_id verliert der tournament_cc" do
+    t = tournament(@dreiband, source_url: nil, ba_id: 4713)
+    TournamentCc.create!(tournament: t, name: "CC-Zwilling", cc_id: 987_655)
+
+    kinds = Reports::CoverageData.for(Tournament).sources["#{@karambol.id}|#{@region.id}|#{@season.id}"]
+
+    assert_equal 1, kinds[:billard_area], "der tournament_cc ist ein Migrationsartefakt, kein Beleg"
+    assert_equal 0, kinds[:cc]
+  end
+
   test "eine spaeter nachgescrapte CC-URL schlaegt die ba_id" do
     tournament(@dreiband, ba_id: 4712,
       source_url: "https://ndbv.de/sb_meisterschaft.php?p=20--2026/2027-46-")

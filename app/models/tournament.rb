@@ -61,6 +61,7 @@ require "net/http"
 class Tournament < ApplicationRecord
   include LocalProtector
   include SourceHandler
+  include ProvenanceStamped
   include RegionTaggable
   include BranchTaggable
   include Searchable

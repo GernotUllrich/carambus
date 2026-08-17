@@ -370,7 +370,7 @@ class TournamentMonitor::ResultProcessor
         # Fehler ist bereits in tournament.data["cc_upload_errors"] geloggt
         # Nicht weiterwerfen, damit finalize_game_result nicht fehlschlägt
       end
-    elsif @tournament_monitor.tournament.tournament_cc.blank? &&
+    elsif !@tournament_monitor.tournament.cc_sourced? &&
         @tournament_monitor.tournament.source_url.present?
       # Plan 32-09: CC-loser Ergebnisweg. Der Region Server nimmt die Rolle der ClubCloud ein —
       # er haelt die Ergebniszeile, bis die Authority sie holt (32-10).
@@ -378,9 +378,14 @@ class TournamentMonitor::ResultProcessor
       # `elsif` MIT ABSICHT: ein Turnier ist entweder CC-gefuehrt oder CC-los, nie beides. Ein
       # zweites `if` wuerde bei einem CC-Turnier doppelt melden.
       #
-      # `tournament_cc.blank?` MUSS mitgeprueft werden und ist nicht durch das `elsif` abgedeckt:
-      # ein CC-Turnier mit abgeschaltetem `auto_upload_to_cc?` faellt sonst hier hinein und meldet
-      # an den Region Server, obwohl seine Ergebnisse der ClubCloud gehoeren.
+      # Die CC-los-Pruefung MUSS mitlaufen und ist nicht durch das `elsif` abgedeckt: ein CC-Turnier
+      # mit abgeschaltetem `auto_upload_to_cc?` faellt sonst hier hinein und meldet an den Region
+      # Server, obwohl seine Ergebnisse der ClubCloud gehoeren.
+      #
+      # Seit Plan 34-02 fragt sie `cc_sourced?` (aus `source_kind`) statt `tournament_cc.blank?` —
+      # dieselbe Frage, die auch der Wizard stellt, statt zweier Signale, die sich widersprechen
+      # konnten. `source_url.present?` bleibt daneben stehen und ist KEINE Herkunftsfrage: sie
+      # liefert das Meldeziel. Ohne sie meldete ein rein lokal angelegtes Turnier ins Leere.
       #
       # HIER WIRD NUR ENTSCHIEDEN, NICHT GEMELDET: der Aufruf steht weiter unten, NACH
       # `update_game_participations_for_game`. Warum, siehe dort.

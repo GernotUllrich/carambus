@@ -85,3 +85,21 @@ fix: |
 
 verification:
 files_changed: []
+
+---
+
+## ✅ Gelöst (nachgetragen 2026-08-15)
+
+Umgesetzt wurde Fix-Ansatz #3: **PRG (Post/Redirect/Get)** statt `render :tournament_monitor`
+in eine TURBO_STREAM-Anfrage hinein. Der Verifikations-Payload geht über den Flash, danach
+Redirect auf die GET-Route
+([tournaments_controller.rb:428-442](app/controllers/tournaments_controller.rb)).
+
+Commits: `0ac7305a` (PRG-Umbau), `2fcce9d1` / `d6335bff` (Payload string-keys + Guard).
+
+**Fundort-Korrektur für spätere Leser:** Ursache und Fix liegen in
+`TournamentsController#start`, **nicht** in `tournament_monitors_controller.rb` — der
+Dateiname dieses Befunds führt dort hin und hat bei einer Nachprüfung am 2026-08-15
+bereits einmal in die Irre geführt.
+
+Human-UAT: `4b1bb5b3` — 11/11 PASS.

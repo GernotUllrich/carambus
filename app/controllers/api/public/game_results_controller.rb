@@ -90,7 +90,7 @@ module Api
       # Der Meldelisten-Endpunkt entscheidet dieselbe Frage seit Plan 28-01 andersherum
       # ("Turnier ohne Meldungen erscheint mit leerer Liste") — hier wird nachgezogen.
       def tournament_payload(tournament)
-        return nil if tournament.tournament_cc.present?
+        return nil if tournament.cc_sourced? # Plan 34-02: ein Signal statt zweier
 
         games = local_games(tournament)
 

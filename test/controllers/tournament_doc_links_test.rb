@@ -57,10 +57,14 @@ class TournamentDocLinksTest < ActionDispatch::IntegrationTest
     # test in tournaments_controller_test.rb). Without this, show.html.erb
     # crashes on `tournament.organizer.shortname` / `tournament.season.name`
     # before ever rendering the wizard partial.
+    # `source_kind` explizit: seit Plan 34-03 entscheidet AUSSCHLIESSLICH die Herkunft des Turniers,
+    # ob die volle CC-Wizard-Leiste rendert — nicht mehr die Region (der `SHORTNAMES_CC`-Fallback ist
+    # weg). Vorher trug die NBV-Zugehoerigkeit die Aussage; das war ein Uebergangs-Kruecke.
     @tournament.update_columns(
       organizer_id: regions(:nbv).id,
       organizer_type: "Region",
-      season_id: seasons(:current).id
+      season_id: seasons(:current).id,
+      source_kind: "club_cloud"
     )
     @tournament.reload
 

@@ -89,7 +89,11 @@
             <li><%= t('tournaments.define_participants.tip_check_boxes_html').html_safe %></li>
             <li><% if @tournament.handicap_tournier %><%= t('tournaments.define_participants.tip_handicap_html').html_safe %><% else %><%= t('tournaments.define_participants.tip_auto_save') %><% end %></li>
             <li><%= t('tournaments.define_participants.tip_position_html').html_safe %></li>
-            <li><%= t('tournaments.define_participants.tip_ranking_html', discipline: @tournament.discipline.name).html_safe %></li>
+            <%# Plan 38-02: `belongs_to :discipline` ist optional — ohne sie hat der Hinweis keine
+                Grundlage ("Ranking für  (letzten 2-3 Saisons)") und crashte zuvor mit 500. %>
+            <% if @tournament.discipline.present? %>
+              <li><%= t('tournaments.define_participants.tip_ranking_html', discipline: @tournament.discipline.name).html_safe %></li>
+            <% end %>
             <li><%= t('tournaments.define_participants.tip_late_registration') %></li>
           </ul>
         </div>

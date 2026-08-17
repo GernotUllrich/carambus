@@ -83,7 +83,12 @@ module RegionServer
 
       # Was aus der ClubCloud stammt, gehoert der ClubCloud — der PublicCcScraper bleibt fuer diese
       # Turniere der Weg. Der Region Server filtert bereits, das hier ist die zweite Linie.
-      if tournament.tournament_cc.present?
+      #
+      # Seit Plan 34-02 ueber `cc_sourced?` statt ueber den `tournament_cc`-Zwilling. Im Bestand
+      # unterscheiden sich beide nur bei 376 BillardArea-Turnieren mit Migrations-Zwilling — und die
+      # tragen per Definition keine `source_url`, koennen hier also gar nicht ankommen (der Match
+      # oben laeuft ueber `source_url`).
+      if tournament.cc_sourced?
         result.tournaments_skipped_cc += 1
         return
       end

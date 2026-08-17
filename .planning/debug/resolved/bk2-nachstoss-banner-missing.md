@@ -140,3 +140,23 @@ verification: NOT performed (diagnose-only mode).
       `<div>Nachstoß</div>` HTML in the post-second-inning render.
 
 files_changed: []  # diagnose-only, no fix applied
+
+---
+
+## ✅ Gelöst — Phase 38.9 Plan 01 (nachgetragen 2026-08-15)
+
+Umgesetzt wurde der im Befund empfohlene Weg: ein close-side Spiegel des
+Erste-Aufnahme-Gates in `TableMonitor#end_of_set?`
+([table_monitor.rb:1484-1507](app/models/table_monitor.rb)) — erreicht der
+Anstoß-Spieler `balls_goal` in Aufnahme >= 2, schließt der Satz **sofort**
+(`if anstoss_at_goal && anstoss_innings >= 2 → return true`), statt dass
+`ScoreEngine#terminate_inning_data` still `active_player` umschaltet und Spieler B
+eine unerlaubte Aufnahme spielt.
+
+Additiver Zweig auf dem bestehenden Prädikat, kein paralleler Automat
+(SKILL `extend-before-build`). Der Kommentar an der Fundstelle verweist auf diese Datei.
+
+Bestätigt die Einordnung des Befunds: **vorbestehender latenter Defekt**, eingeführt
+zusammen mit dem Erste-Aufnahme-Gate in `79328663` — keine Regression aus 38.7/38.8.
+
+Human-UAT: `4b1bb5b3` — 11/11 PASS.

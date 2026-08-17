@@ -134,7 +134,13 @@ class RegionServer::GameResultImporterTest < ActiveSupport::TestCase
   end
 
   # AC-4 — was aus der ClubCloud stammt, gehoert der ClubCloud
+  #
+  # SEIT PLAN 34-02 entscheidet das die PROVENIENZ (`cc_sourced?`), nicht mehr die blosse Existenz
+  # eines `tournament_cc`. Der Unterschied ist nicht kosmetisch: 376 Turniere im Bestand tragen einen
+  # CC-Zwilling aus der BillardArea-Migration, obwohl die ClubCloud sie nie gefuehrt hat (gemessen auf
+  # Produktion 2026-08-16). Die gehoeren der CC nicht — `tournament_cc.present?` behauptete es trotzdem.
   test "CC-Turniere werden nicht angefasst" do
+    @tournament.update!(source_kind: :club_cloud)
     TournamentCc.create!(tournament: @tournament, cc_id: 4711)
 
     result = nil
@@ -142,6 +148,26 @@ class RegionServer::GameResultImporterTest < ActiveSupport::TestCase
 
     assert_equal 1, result.tournaments_skipped_cc
     assert_equal 0, result.tournaments_matched
+  end
+
+  # Die Kehrseite derselben Umstellung, bewusst festgehalten: ein CC-ZWILLING ALLEIN reicht nicht
+  # mehr. Ein Turnier, das der Region Server angelegt hat (`source_kind :carambus`), wird importiert,
+  # auch wenn irgendwo ein `tournament_cc` daran haengt.
+  #
+  # Im Bestand existiert diese Kombination NICHT — kein einziges der Turniere mit `tournament_cc`
+  # traegt `:carambus` (Produktion 2026-08-16: 5 121x `club_cloud`, 376x `ba`, 0x `carambus`). Und
+  # entstehen kann sie kaum: sobald ein Turnier wirklich aus der CC gescrapt wird, traegt es eine
+  # CC-`source_url` und damit `:club_cloud`.
+  test "ein CC-Zwilling allein macht ein Region-Server-Turnier nicht zum CC-Turnier" do
+    TournamentCc.create!(tournament: @tournament, cc_id: 4712)
+
+    assert_equal "carambus", @tournament.reload.source_kind, "Testvoraussetzung: Region-Server-Herkunft"
+
+    result = nil
+    assert_difference("Game.count", 1) { result = import }
+
+    assert_equal 0, result.tournaments_skipped_cc
+    assert_equal 1, result.tournaments_matched
   end
 
   test "unbekanntes Turnier wird berichtet, nicht angelegt" do

@@ -7,6 +7,8 @@ require "test_helper"
 # Fixture-Hinweis wie beim Meldelisten-Test: tournaments(:local) haengt an regions(:nbv) — einer
 # CC-Region. Fuer den CC-losen Weg wird der Organizer auf regions(:bbv) umgehaengt (BBV steht in
 # Region::SHORTNAMES_CC bewusst auskommentiert, seit v0.5 NuLiga).
+# SEIT 34-03 ist die Region fuer diese Frage ohne Belang — `source_kind` allein entscheidet; die
+# Umhaengung bleibt trotzdem stehen, weil sie das Szenario realistisch haelt.
 class Tournaments::GameResultsControllerTest < ActionDispatch::IntegrationTest
   setup do
     @tournament = tournaments(:local)
@@ -215,8 +217,9 @@ class Tournaments::GameResultsControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to tournaments_path
   end
 
+  # Seit 34-03 macht die Region ein Turnier NICHT mehr zum CC-Turnier — allein `source_kind` tut das.
   test "CC-Turniere werden abgewiesen" do
-    @tournament.update_column(:organizer_id, regions(:nbv).id)
+    @tournament.update_columns(organizer_id: regions(:nbv).id, source_kind: "club_cloud")
 
     get tournament_game_results_path(@tournament)
 

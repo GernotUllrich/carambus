@@ -213,7 +213,13 @@ class LocationServer::GameResultReporterTest < ActiveSupport::TestCase
 
   # Die Falle, die das blosse `elsif` nicht abfaengt: auto_upload_to_cc? abgeschaltet macht aus
   # einem CC-Turnier kein CC-loses. Seine Ergebnisse gehoeren weiterhin der ClubCloud.
+  #
+  # Seit Plan 34-02 traegt die PROVENIENZ diese Aussage (`source_kind`), nicht mehr der blosse
+  # CC-Zwilling — deshalb steht sie hier jetzt explizit. Ein echtes CC-Turnier ist damit weiterhin
+  # geschuetzt; was wegfaellt, ist der Schutz fuer die Kombination "Region-Server-Herkunft PLUS
+  # CC-Zwilling", die es im Bestand nicht gibt (Produktion 2026-08-16: 0 Faelle).
   test "CC-Turnier mit abgeschaltetem Auto-Upload meldet trotzdem nicht an den Region Server" do
+    @tournament.update!(source_kind: :club_cloud)
     TournamentCc.create!(tournament: @tournament, cc_id: 4711)
     @tournament.update_column(:auto_upload_to_cc, false)
 

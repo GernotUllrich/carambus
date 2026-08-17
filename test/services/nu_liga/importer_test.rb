@@ -124,9 +124,12 @@ module NuLiga
       assert_equal 1, r[:skipped].size
     end
 
-    # 18-01: League-Uniqueness (name+season+organizer+staffel_text) ignoriert die Disziplin. NuLiga nutzt
-    # dieselben Kurznamen in Pool UND Snooker → Cross-Sparten-Kollision. Fix: Namen mit Branch qualifizieren.
-    test "create_leagues qualifies name with branch on cross-branch collision" do
+    # 18-01: League-Uniqueness ignorierte die Disziplin — NuLiga nutzt dieselben Kurznamen in Pool UND
+    # Snooker, was eine Cross-Sparten-Kollision auslöste; der Importer qualifizierte den Namen daraufhin
+    # mit der Sparte. Seit `discipline_id` im Uniqueness-Scope steht (League), kollidieren die beiden
+    # Ligen nicht mehr und behalten ihren echten Namen. Der Qualifizierungs-Zweig in `create_league`
+    # bleibt als Fangnetz für Kollisionen INNERHALB einer Sparte stehen.
+    test "create_leagues keeps plain name for same-name leagues in different branches" do
       snooker = Discipline.find_by(name: "Snooker") || Discipline.create!(name: "Snooker")
       build_importer(FakeScraper.new(leagues: {"Pool" => [{group_id: 7001, name: "VL Nord"}]})).create_leagues
 
@@ -134,12 +137,12 @@ module NuLiga
       imp = Importer.new(federation: "BBV", region_id: @region.id, season_id: @season.id,
         branches: ["Snooker"], armed: true, scraper: snk_scraper)
       r = imp.create_leagues
-      assert_equal 1, r[:created], "Snooker-Liga soll qualifiziert angelegt (nicht geskippt) werden"
+      assert_equal 1, r[:created], "Snooker-Liga soll angelegt (nicht geskippt) werden"
       assert_equal 0, r[:skipped].size
       snk = League.find_by(region_id: @region.id, season_id: @season.id, discipline_id: snooker.id)
-      assert_equal "VL Nord (Snooker)", snk.name
+      assert_equal "VL Nord", snk.name, "keine Kollision mehr → kein Sparten-Suffix"
       pool = League.find_by(region_id: @region.id, season_id: @season.id, discipline_id: @discipline.id)
-      assert_equal "VL Nord", pool.name, "bestehende Pool-Liga bleibt unqualifiziert"
+      assert_equal "VL Nord", pool.name, "bestehende Pool-Liga bleibt unverändert"
 
       # Idempotenz PRIMÄR über source_url (2. Lauf 0 created, matched)
       imp2 = Importer.new(federation: "BBV", region_id: @region.id, season_id: @season.id,

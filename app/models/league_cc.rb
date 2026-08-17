@@ -32,6 +32,23 @@ class LeagueCc < ApplicationRecord
 
   before_save :set_paper_trail_whodunnit
 
+  # Phase 34-01: Der CC-Scrape legt erst die Liga an und danach diesen Datensatz. Traegt die Liga
+  # keine Quell-URL, waere sie nach der Stempel-Regel als `carambus` (also lokal angelegt)
+  # markiert — und damit in 34-02 faelschlich CC-los. Genau so sind die Altfaelle ohne `source_url`
+  # entstanden. Der Nachstempel schliesst das Loch bei der Neuanlage.
+  after_create :stamp_league_source_kind
+
+  # Bewusst `private def` statt eines nackten `private`: das wuerde alles Folgende in dieser
+  # Klasse mit privat schalten.
+  private def stamp_league_source_kind
+    parent = league
+    return if parent.nil? || parent.source_url.present?
+    return unless parent.source_kind.nil? || parent.source_carambus?
+
+    # update! statt update_column: ohne PaperTrail-Version erreicht der Wert die Regional-Server nie.
+    parent.class.skip_cable_ready_updates { parent.update!(source_kind: :club_cloud) }
+  end
+
   def self.create_from_ba(league, opts = {})
     RegionCc.logger.info "REPORT [LeagueCc.create_from_ba] MUST CREATE MISSING League #{league.season.name} #{league.discipline.andand.name} #{league.name}"
     return

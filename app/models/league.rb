@@ -33,6 +33,7 @@
 class League < ApplicationRecord
   include LocalProtector
   include SourceHandler
+  include ProvenanceStamped
   include RegionTaggable
   include BranchTaggable
 
@@ -51,7 +52,16 @@ class League < ApplicationRecord
 
   # Validations to ensure proper uniqueness
   validates :name, presence: true
-  validates :shortname, presence: true, if: -> { organizer_type == 'Region' }
+
+  # `on: :create` GRANDFATHERT DEN ALTBESTAND (gemessen 2026-08-16: 4 430 von 6 436 Region-Ligen
+  # ohne shortname, ausnahmslos `source_kind == "ba"`, Saisons 2009/10-2021/22, angelegt beim
+  # einmaligen BillardArea-Import 2022). `shortname` ist ein ClubCloud-Feld — die BillardArea hat es
+  # nie geliefert (fehlender shortname korreliert exakt mit fehlender cc_id). Ohne diese
+  # Einschraenkung kippt jeder Massenlauf ueber Ligen an Records, die die Regel nie erfuellen
+  # konnten; der source_kind-Backfill musste deshalb auf `save(validate: false)` ausweichen.
+  # NICHT NACHTRAGEN: CC-Kuerzel sind Freitext und selbst inkonsistent (dieselbe Liga heisst je nach
+  # Saison "BL A" oder "BZLA", "KK C"/"KKC"/"KKL C"), fuer 81 % der Faelle gibt es keine Quelle.
+  validates :shortname, presence: true, if: -> { organizer_type == 'Region' }, on: :create
 
   # Primary uniqueness: CC IDs are the most important identifiers from scraping
   validates :cc_id, uniqueness: {
@@ -61,8 +71,13 @@ class League < ApplicationRecord
 
   # Secondary uniqueness: Ensure no duplicate leagues with same name and staffel
   # This is mainly for cases where cc_id might not be set yet
+  #
+  # `discipline_id` GEHOERT IN DEN SCOPE: ohne sie kollidieren legitim verschiedene Ligen. "Oberliga"
+  # Pool und "Oberliga" Snooker derselben NBV-Saison sind zwei Ligen, ebenso "Oberliga" Karambol
+  # gross/klein (gemessen: 384 Altbestands-Records in 157 solchen Gruppen). NuLiga::Importer umgeht
+  # den zu engen Scope bis heute, indem es die Sparte an den Namen haengt.
   validates :name, uniqueness: {
-    scope: [:season_id, :organizer_id, :organizer_type, :staffel_text],
+    scope: [:season_id, :organizer_id, :organizer_type, :staffel_text, :discipline_id],
     message: "must be unique within the same region, season, and staffel"
   }, if: -> { organizer_type == 'Region' && cc_id.blank? }
 
@@ -564,4 +579,5 @@ class League < ApplicationRecord
   def self.delete_game_plans_for_season(season, opts = {})
     League::GamePlanReconstructor.call(season: season, operation: :delete_for_season, **opts)
   end
+
 end
