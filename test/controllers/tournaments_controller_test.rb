@@ -512,6 +512,95 @@ class TournamentsControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to tournaments_path
   end
 
+  # Plan 38-02: `define_participants` und `finalize_modus` enthalten beide
+  # `seedings.where(player_id: nil).destroy_all` — was wie ein Datenverlust-Pfad fuer die 2 017
+  # verwaisten Seedings aussieht (1 227 davon tragen Ergebnisse mit Name und Verein im data-Blob,
+  # entstanden per `Player has_many :seedings, dependent: :nullify`, das ueber update_all laeuft und
+  # damit auch PaperTrail umgeht — es gibt keine Historie zum Rekonstruieren).
+  #
+  # ER IST ES NICHT, und diese Tests halten den Grund fest. Die Kette:
+  #
+  #   Seeding traegt data["result"] und ist global (id < MIN_ID)
+  #     -> Tournament#has_clubcloud_results? ist true          (tournament.rb:594)
+  #     -> ensure_local_server leitet auf die Detailseite um   (tournaments_controller.rb:1381)
+  #     -> der Action-Body und damit das destroy_all werden NIE erreicht
+  #
+  # Gemessen (2026-08-17, Dev-Abzug): von 761 Turnieren mit solchen Seedings sind **0** ungeschuetzt,
+  # und alle 1 227 Ergebnis-Seedings sind global. Der Schutz deckt die schuetzenswerte Menge
+  # lueckenlos ab. Wer die Löschzeile kuenftig fuer gefaehrlich haelt, findet hier die Gegenprobe —
+  # und wer `has_clubcloud_results?` aendert, bricht diese Tests und wird auf die Folge gestossen.
+  #
+  # Das Seeding muss per update_columns verwaist werden: `belongs_to :player` laesst ein
+  # player_id-nil-Seeding gar nicht erst anlegen — genau diese Pflicht umgeht :nullify im Bestand.
+  def orphaned_seeding_with_result(tournament, id:, position:)
+    filler = Player.create!(lastname: "ORPH", firstname: "Olga", fl_name: "O. Orph",
+      dbu_nr: "66#{id.to_s.last(4)}")
+    seeding = Seeding.create!(
+      id: id, tournament: tournament, player: filler, position: position,
+      data: {"result" => {"Gesamtrangliste" => {"Name" => "Braun, Stefan", "Verein" => "BC Testheim"}}}
+    )
+    seeding.update_columns(player_id: nil)
+    seeding
+  end
+
+  test "GET define_participants ist fuer Turniere mit CC-Ergebnissen schreibgeschuetzt" do
+    Carambus.config.carambus_api_url = "http://local.test"
+    sign_in users(:admin)
+
+    tournament = Tournament.create!(
+      id: 23_463, title: "Schreibschutz 38-02", shortname: "SCH3802",
+      season: @tournament.season, organizer: regions(:nbv), region_id: regions(:nbv).id,
+      date: Time.zone.local(2026, 10, 10, 10, 0)
+    )
+    orphan = orphaned_seeding_with_result(tournament, id: 23_491, position: 1)
+    assert tournament.has_clubcloud_results?, "Vorbedingung: das Ergebnis-Seeding macht das Turnier geschuetzt"
+
+    get define_participants_tournament_url(tournament)
+
+    assert_redirected_to tournament_path(tournament),
+      "der Schreibschutz muss den Action-Body verhindern — sonst waere das destroy_all erreichbar"
+    assert Seeding.exists?(orphan.id), "das Seeding ueberlebt"
+    assert_equal "Braun, Stefan", orphan.reload.data.dig("result", "Gesamtrangliste", "Name"),
+      "der Ergebnis-Blob bleibt unveraendert"
+  end
+
+  test "GET finalize_modus ist fuer Turniere mit CC-Ergebnissen schreibgeschuetzt" do
+    Carambus.config.carambus_api_url = "http://local.test"
+    sign_in users(:admin)
+
+    tournament = Tournament.create!(
+      id: 23_464, title: "Schreibschutz 38-02b", shortname: "SCH3802B",
+      season: @tournament.season, organizer: regions(:nbv), region_id: regions(:nbv).id,
+      date: Time.zone.local(2026, 10, 10, 10, 0)
+    )
+    orphan = orphaned_seeding_with_result(tournament, id: 23_492, position: 1)
+
+    get finalize_modus_tournament_url(tournament)
+
+    assert_redirected_to tournament_path(tournament)
+    assert Seeding.exists?(orphan.id), "das Seeding ueberlebt"
+  end
+
+  # Plan 38-02, Nebenbefund aus der Diagnose: die Ansicht rief `@tournament.discipline.name`, aber
+  # `belongs_to :discipline` ist `optional: true` — 8 von 18 635 Turnieren haben keine (alle alt und
+  # global, keines lokal, der Fall ist also selten). Ein 500er ist es trotzdem gewesen.
+  test "GET define_participants rendert auch ohne Disziplin" do
+    Carambus.config.carambus_api_url = "http://local.test"
+    sign_in users(:admin)
+
+    tournament = Tournament.create!(
+      id: 23_467, title: "Ohne Disziplin 38-02", shortname: "ODI3802",
+      season: @tournament.season, organizer: regions(:nbv), region_id: regions(:nbv).id,
+      date: Time.zone.local(2026, 10, 10, 10, 0)
+    )
+    assert_nil tournament.discipline, "Vorbedingung: Turnier ohne Disziplin"
+
+    get define_participants_tournament_url(tournament)
+
+    assert_not_equal 500, response.status,
+      "die Ansicht darf an einer fehlenden Disziplin nicht scheitern"
+  end
+
   # Plan 36-06: Das Oeffnen der Teilnehmerliste macht sie lokal. Ohne das blieb der Ablauf stecken —
   # "Teilnehmerliste abschliessen" wird erst erreichbar, wenn lokale Seedings existieren
   # (wizard_current_step steigt sonst nicht auf 3). Live aufgefallen 2026-08-06 auf ebc.
