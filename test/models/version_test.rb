@@ -380,13 +380,25 @@ class VersionTest < ActiveSupport::TestCase
     Rails.logger = previous
   end
 
-  # Eine GLOBALE Liga (id < MIN_ID), die die heutige Pflichtpruefung verletzt — das echte Vorbild:
-  # `validates :shortname, presence: true, if: organizer_type == "Region"` trifft 4 430 der 6 436
-  # Ligen auf der Authority.
+  # Eine GLOBALE Liga (id < MIN_ID), die eine heute noch greifende Validierung verletzt.
+  #
+  # NICHT MEHR UEBER `shortname`: seit `07d82ec0` gilt die Pflicht nur noch `on: :create` — der
+  # BillardArea-Altbestand konnte sie nie erfuellen, und jeder Massenlauf kippte daran.
+  # Bestandsrecords sind damit gueltig.
+  #
+  # STATTDESSEN DIE `cc_id`-EINDEUTIGKEIT (greift weiterhin auf UPDATE): zwei Ligen derselben Region
+  # und Saison mit derselben `cc_id`. Bewusst NICHT die Namens-Eindeutigkeit — die haengt am `name`,
+  # und Tests, die den Namen umschreiben (Snapshot-Faelle), machten den Record dabei versehentlich
+  # wieder gueltig.
   def invalid_global_league(id: 3_700_001)
-    l = League.new(id: id, name: "Alt-Liga #{id}", organizer_type: "Region",
-      organizer_id: regions(:nbv).id, season: seasons(:current))
-    l.shortname = nil
+    shared = {organizer_type: "Region", organizer_id: regions(:nbv).id,
+              season: seasons(:current), cc_id: 880_000 + (id % 1000)}
+
+    twin = League.new(shared.merge(id: id + 10_000_000, name: "Zwilling #{id}", shortname: "ZW"))
+    twin.unprotected = true
+    twin.save!(validate: false)
+
+    l = League.new(shared.merge(id: id, name: "Alt-Liga #{id}", shortname: "AL"))
     l.unprotected = true
     l.save!(validate: false)
     assert_not l.valid?, "Testvoraussetzung: der Record muss ungueltig sein"
@@ -473,7 +485,7 @@ class VersionTest < ActiveSupport::TestCase
     assert_match(/League/, logged, "Modell")
     assert_match(/#{league.id}/, logged, "id")
     assert_match(/999005/, logged, "Version-id")
-    assert_match(/Shortname/i, logged, "der Validierungsfehler gehoert dazu")
+    assert_match(/must be unique/i, logged, "der Validierungsfehler gehoert dazu")
     assert_no_match(/übersprungen/i, logged,
       "NICHT im Topf der uebersprungenen Versionen — die werden ja gerade nicht geschrieben")
   end

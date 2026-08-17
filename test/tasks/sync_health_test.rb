@@ -23,13 +23,25 @@ class SyncHealthTaskTest < ActiveSupport::TestCase
     ENV.delete("ARMED")
   end
 
-  # Eine GLOBALE Liga (id < MIN_ID), die die heutige Pflichtpruefung verletzt — dasselbe Vorbild wie
-  # in test/models/version_test.rb (37-01): `validates :shortname, presence: true` fuer
-  # Region-Veranstalter trifft 4 430 der 6 436 Ligen auf der Authority.
+  # Eine GLOBALE Liga (id < MIN_ID), die eine heute noch greifende Validierung verletzt.
+  #
+  # NICHT MEHR UEBER `shortname`: seit `07d82ec0` gilt die Pflicht nur noch `on: :create` — der
+  # BillardArea-Altbestand konnte sie nie erfuellen, und jeder Massenlauf kippte daran.
+  # Bestandsrecords sind damit gueltig.
+  #
+  # STATTDESSEN DIE `cc_id`-EINDEUTIGKEIT (greift weiterhin auf UPDATE): zwei Ligen derselben Region
+  # und Saison mit derselben `cc_id`. Bewusst NICHT die Namens-Eindeutigkeit — die haengt am `name`,
+  # und Tests, die den Namen umschreiben (Snapshot-Faelle), machten den Record dabei versehentlich
+  # wieder gueltig.
   def invalid_global_league(id: 3_800_001)
-    l = League.new(id: id, name: "Alt-Liga #{id}", organizer_type: "Region",
-      organizer_id: regions(:nbv).id, season: seasons(:current))
-    l.shortname = nil
+    shared = {organizer_type: "Region", organizer_id: regions(:nbv).id,
+              season: seasons(:current), cc_id: 880_000 + (id % 1000)}
+
+    twin = League.new(shared.merge(id: id + 10_000_000, name: "Zwilling #{id}", shortname: "ZW"))
+    twin.unprotected = true
+    twin.save!(validate: false)
+
+    l = League.new(shared.merge(id: id, name: "Alt-Liga #{id}", shortname: "AL"))
     l.unprotected = true
     l.save!(validate: false)
     assert_not l.valid?, "Testvoraussetzung: der Record muss ungueltig sein"
@@ -83,7 +95,7 @@ class SyncHealthTaskTest < ActiveSupport::TestCase
     assert_operator result[:invalid], :>=, 1
     message, ids = result[:by_message].find { |_msg, list| list.include?(league.id) }
     assert message.present?, "der Record muss unter einer Meldung gruppiert sein"
-    assert_match(/Shortname/i, message, "die Meldung nennt die verletzte Regel")
+    assert_match(/must be unique/i, message, "die Meldung nennt die verletzte Regel")
     assert_includes ids, league.id
   end
 
@@ -95,7 +107,7 @@ class SyncHealthTaskTest < ActiveSupport::TestCase
 
     assert_match(/League/, output)
     assert_match(/ungueltig=/, output)
-    assert_match(/Shortname/i, output)
+    assert_match(/must be unique/i, output)
     assert_match(/SUMME/, output)
   end
 
@@ -121,7 +133,7 @@ class SyncHealthTaskTest < ActiveSupport::TestCase
 
     assert_equal versions_before, Version.count, "kein Record wurde geschrieben"
     assert_equal updated_before.to_i, league.reload.updated_at.to_i
-    assert_nil league.shortname, "der ungueltige Record bleibt unangetastet"
+    assert_not league.valid?, "der ungueltige Record bleibt unangetastet"
   end
 
   # AC-3 — der Tracer trennt den BEWEIS von der blossen Ungueltigkeit.
@@ -175,7 +187,7 @@ class SyncHealthTaskTest < ActiveSupport::TestCase
 
     league.reload
     assert_equal versions_before + 1, league.versions.count, "genau eine neue Version"
-    assert_nil league.shortname, "der Nachlauf repariert keine Daten"
+    assert_not league.valid?, "der Nachlauf repariert keine Daten"
     assert_not league.valid?, "der Record bleibt ungueltig — er wird nur ausgeliefert"
   end
 
