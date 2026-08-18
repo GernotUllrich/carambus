@@ -57,7 +57,7 @@
               <%= image_tag(left_player[:logo], class: "object-contain h-10 w-20") if left_player[:logo].present? %>
             </div>
             <div class="flex-nowrap w-full text-left <%= "lg:pt-4" if show_tournament_monitor.andand.id.present? && left_player[:fullname].andand.length.to_i < 20 %> text-<%= fullscreen ? vw4 : "2vw" %>">
-              <%= left_player[:fullname] %>
+              <%= [country_flag_emoji(left_player[:nationality]), left_player[:fullname]].compact.join(" ") %>
             </div>
           </div>
           <%- if options[:sets_to_play].to_i > 1 %>
@@ -307,7 +307,7 @@
           <%- end %>
           <div class="flex <%= options[:sets_to_play].to_i > 1 ? "w-5/6" : "w-full" %>">
             <div class="flex-nowrap w-full mr-4 text-right <%= "lg:pt-4" if show_tournament_monitor.andand.id.present? && right_player[:fullname].andand.length.to_i < 20 %> text-<%= fullscreen ? vw4 : "2vw" %>">
-              <%= right_player[:fullname] %>
+              <%= [country_flag_emoji(right_player[:nationality]), right_player[:fullname]].compact.join(" ") %>
             </div>
             <div class="p-2 w-16">
               <%= image_tag(right_player[:logo], class: "object-contain h-10 w-20") if right_player[:logo].present? %>
