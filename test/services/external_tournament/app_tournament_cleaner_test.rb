@@ -113,5 +113,27 @@ module ExternalTournament
       assert Tournament.exists?(running.id), "laufendes mehrtaegiges Turnier bleibt erhalten"
       refute Tournament.exists?(expired.id), "abgelaufenes Turnier wird weiterhin abgeraeumt"
     end
+
+    # HANDOFF reset-app-tournament-task (2026-08-19): Attach-Turniere werden im Web/per Console
+    # angelegt -> external_id nil -> der tournament_external_id-Marker findet nichts und die
+    # App-Games blieben beim cleanup als Waisen liegen. Zweiter Pfad: "attach-<id>-…".
+    test "marker_games findet Attach-Games ueber das attach-Praefix (external_id nil)" do
+      t = app_tournament(external_id: "cln-attach")
+      t.update_columns(external_id: nil) # Attach-Turnier: kein LocalTournamentCreator-Marker
+      t.reload
+
+      attach_g = Game.create!(group_no: 1, seqno: rand(700000..799999), table_no: 1,
+        data: {"external_id" => "attach-#{t.id}-r1t1"})
+      fremd = Game.create!(group_no: 1, seqno: rand(700000..799999), table_no: 1,
+        data: {"external_id" => "attach-999999-r1t1"})
+
+      found = AppTournamentCleaner.app_games(t).map(&:id)
+      assert_includes found, attach_g.id, "Attach-Game ueber das Praefix gefunden"
+      refute_includes found, fremd.id, "Attach-Game eines anderen Turniers bleibt unberuehrt"
+
+      AppTournamentCleaner.cleanup(t)
+      refute Game.exists?(attach_g.id), "Attach-Game wird mit abgeraeumt (keine Waise mehr)"
+      assert Game.exists?(fremd.id), "fremdes Attach-Game bleibt"
+    end
   end
 end

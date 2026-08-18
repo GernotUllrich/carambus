@@ -27,6 +27,11 @@ module ExternalTournament
       new.sweep_closed_local
     end
 
+    # App-Spiele eines Turniers finden, ohne etwas abzuraeumen (reset_app_tournament-Task).
+    def self.app_games(tournament)
+      new.send(:marker_games, tournament)
+    end
+
     # Raeumt EIN lokales App-Turnier ab: zuerst dessen Marker-Games (+GameParticipation via
     # dependent:destroy), dann das Tournament selbst (kaskadiert TournamentMonitor/tournament_local/
     # seedings/teams/setting via Tournament-has_one/has_many dependent:destroy).
@@ -80,10 +85,26 @@ module ExternalTournament
     # Kein ba_results-Filter: auch unbeendete App-Spiele tragen den Marker und sollen
     # mit abgeraeumt werden.
     def marker_games(tournament)
+      (via_tournament_marker(tournament) + via_attach_prefix(tournament)).uniq
+    end
+
+    # Klassischer Pfad: von LocalTournamentCreator angelegte App-Turniere tragen eine
+    # external_id, die StartGameProcessor als tournament_external_id in game.data schreibt.
+    def via_tournament_marker(tournament)
       ext = tournament.external_id.to_s
       return [] if ext.blank?
       Game.where("data LIKE ?", "%#{ext}%")
         .select { |g| safe_data(g)["tournament_external_id"].to_s == ext }
+    end
+
+    # HANDOFF reset-app-tournament-task (2026-08-19): Attach-Turniere werden im Web bzw. per
+    # Console angelegt, NICHT ueber LocalTournamentCreator -> external_id ist nil, der Marker
+    # oben findet nichts und die App-Games blieben beim cleanup als Waisen liegen. Der
+    # Attach-Modus bildet die game-external_id deterministisch als "attach-<tournament_id>-<key>".
+    def via_attach_prefix(tournament)
+      prefix = "attach-#{tournament.id}-"
+      Game.where("data LIKE ?", "%#{prefix}%")
+        .select { |g| safe_data(g)["external_id"].to_s.start_with?(prefix) }
     end
 
     # Lokale App-Turniere mit abgeschlossenem (oder fehlendem) TournamentMonitor.
