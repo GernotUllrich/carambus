@@ -95,5 +95,23 @@ module ExternalTournament
       assert Tournament.exists?(active.id), "aktives lokales App-Turnier bleibt"
       assert Game.exists?(active_g.id), "Marker-Game des aktiven Turniers bleibt"
     end
+
+    # HANDOFF multiday-app-tournaments (2026-08-19): Der Mitternachts-GC loeschte ein laufendes
+    # mehrtaegiges Attach-Turnier am 2. Turniertag (samt aller erfassten Ergebnisse).
+    # end_date in der Zukunft -> schonen; abgelaufen/nil -> weiterhin abraeumen.
+    test "sweep_closed_local schont laufende mehrtaegige Turniere (end_date in der Zukunft)" do
+      running = app_tournament(external_id: "cln-sweep-multiday")
+      running.update_columns(end_date: 2.days.from_now)
+      running.tournament_monitor.update_columns(state: "closed")
+
+      expired = app_tournament(external_id: "cln-sweep-expired")
+      expired.update_columns(end_date: 1.day.ago)
+      expired.tournament_monitor.update_columns(state: "closed")
+
+      AppTournamentCleaner.sweep_closed_local
+
+      assert Tournament.exists?(running.id), "laufendes mehrtaegiges Turnier bleibt erhalten"
+      refute Tournament.exists?(expired.id), "abgelaufenes Turnier wird weiterhin abgeraeumt"
+    end
   end
 end

@@ -90,6 +90,13 @@ module ExternalTournament
     def closed_local_app_tournaments
       Tournament.where("id >= ?", ApplicationRecord::MIN_ID)
         .where(manual_assignment: true)
+        # HANDOFF multiday-app-tournaments (2026-08-19): Mehrtaegige Attach-Turniere deklarieren
+        # ihre Laufzeit ueber end_date. Solange die laeuft, nicht abraeumen — der Mitternachts-GC
+        # loeschte sonst am 2. Turniertag das Turnier samt aller erfassten Ergebnisse.
+        # end_date nil oder vergangen -> unveraendertes Verhalten (Safety-Net bleibt intakt).
+        # Nur der automatische Sweep; der explizite cleanup(t) aus end_tournament?cleanup=true
+        # bleibt bewusst ungefiltert (ausdruecklicher Bedienwunsch).
+        .where("end_date IS NULL OR end_date < ?", Time.current)
         .select do |t|
           tm = t.tournament_monitor
           tm.nil? || tm.state == "closed"

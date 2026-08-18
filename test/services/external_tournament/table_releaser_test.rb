@@ -89,5 +89,20 @@ module ExternalTournament
       assert_nil app_tm.reload.tournament_monitor_id, "lokales App-Turnier freigegeben"
       assert_equal managed.tournament_monitor.id, managed_tm.reload.tournament_monitor_id, "managed Turnier unberührt (AC-4)"
     end
+
+    # HANDOFF multiday-app-tournaments (2026-08-19): Schritt 1 des Mitternachts-Jobs schloss den
+    # Monitor und erzeugte damit erst die Bedingung, unter der der GC das Turnier loeschte.
+    # Laufende mehrtaegige Turniere (end_date Zukunft) bleiben gebunden und offen.
+    test "release_stale_local laesst laufendes mehrtaegiges Turnier gebunden (end_date Zukunft)" do
+      running = app_tournament(external_id: "rel-multiday")
+      running.update_columns(end_date: 2.days.from_now)
+      owner = running.tournament_monitor
+      tm = bind_tm(owner)
+
+      TableReleaser.release_stale_local
+
+      assert_equal owner.id, tm.reload.tournament_monitor_id, "Tischbindung bleibt bestehen"
+      refute_equal "closed", owner.reload.state, "Monitor wird nicht geschlossen"
+    end
   end
 end
