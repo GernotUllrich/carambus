@@ -1103,7 +1103,10 @@ module Api
 
     def build_tournament_meta(tournament, tournament_cc)
       {
-        cc_id: tournament_cc.cc_id,
+        # HANDOFF plan-attach App-Reply 2 (2026-08-18): Der tournament_id-Pfad (seeding-Action)
+        # erlaubt tournament_cc == nil (lokal per Console angelegtes Turnier ohne TournamentCc);
+        # blindes .cc_id warf dort 500. Safe-nav -> cc_id: null (App toleriert das bereits).
+        cc_id: tournament_cc&.cc_id,
         name: tournament.title,
         discipline: build_discipline(tournament.discipline),
         format: build_format(tournament),

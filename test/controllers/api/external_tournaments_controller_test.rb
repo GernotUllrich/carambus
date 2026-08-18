@@ -193,6 +193,24 @@ module Api
       assert_response :not_found
     end
 
+    # Regression (HANDOFF plan-attach App-Reply 2, 2026-08-18): Der tournament_id-Pfad erlaubt
+    # tournament_cc == nil (lokal per Console angelegtes Turnier ohne TournamentCc). build_tournament_meta
+    # warf 500 (NoMethodError cc_id für nil). Safe-nav -> 200 mit cc_id: null.
+    test "seeding via tournament_id without a linked TournamentCc returns 200 with cc_id null" do
+      @tournament.tournament_cc&.destroy
+      assert_nil @tournament.reload.tournament_cc
+      Seeding.create!(tournament: @tournament, player: @player, position: 1)
+      headers = {"Content-Type" => "application/json", "Accept" => "application/json",
+                 "Authorization" => "Bearer #{login_jwt}"}
+      get "/api/external_tournament/seeding",
+        params: {tournament_id: @tournament.id, region: "NBV"}, headers: headers
+      assert_response :success
+      body = JSON.parse(response.body)
+      assert_equal "carambus.seeding/v1", body["schema"]
+      assert body.dig("tournament").key?("cc_id"), "cc_id-Schlüssel immer präsent"
+      assert_nil body.dig("tournament", "cc_id")
+    end
+
     test "seeding via tournament_id with mismatched region returns 422" do
       @tournament.update_columns(region_id: regions(:bbv).id)
       headers = {"Content-Type" => "application/json", "Accept" => "application/json",
