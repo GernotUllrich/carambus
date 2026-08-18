@@ -568,6 +568,34 @@ module Api
       assert_nil body.dig("tournament", "location")
     end
 
+    # === HANDOFF-to-carambus-plan-attach (2026-08-18): tournament_plan im seeding-Payload ===
+
+    # App-Attach-Modus braucht name + executor_params (roher JSON-String) des verknuepften Plans.
+    test "seeding returns tournament_plan (name + executor_params) when a plan is linked" do
+      plan = tournament_plans(:t04_5)
+      @tournament.update!(tournament_plan: plan)
+      Seeding.create!(tournament: @tournament, player: @player, position: 1)
+
+      get_seeding(tournament_cc_id: 999_201, region: "NBV", jwt: login_jwt)
+      assert_response :success
+      body = JSON.parse(response.body)
+      tp = body.dig("tournament", "tournament_plan")
+      assert_equal plan.name, tp["name"]
+      assert_equal plan.executor_params, tp["executor_params"]
+    end
+
+    # Rueckwaertskompatibel: kein Plan verknuepft -> Feld ist null (App zeigt klare Fehlermeldung).
+    test "seeding returns null tournament_plan when no plan is linked" do
+      @tournament.update_columns(tournament_plan_id: nil)
+      Seeding.create!(tournament: @tournament, player: @player, position: 1)
+
+      get_seeding(tournament_cc_id: 999_201, region: "NBV", jwt: login_jwt)
+      assert_response :success
+      body = JSON.parse(response.body)
+      assert body.dig("tournament").key?("tournament_plan"), "Feld immer präsent"
+      assert_nil body.dig("tournament", "tournament_plan")
+    end
+
     # === Plan 48-04: Party-API (b1) ===
 
     test "party without Authorization header returns 401" do

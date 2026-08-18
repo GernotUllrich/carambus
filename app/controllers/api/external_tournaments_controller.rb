@@ -1108,7 +1108,23 @@ module Api
         discipline: build_discipline(tournament.discipline),
         format: build_format(tournament),
         starts_at: tournament.date&.iso8601,
-        location: build_location(tournament.location)
+        location: build_location(tournament.location),
+        tournament_plan: build_tournament_plan(tournament)
+      }
+    end
+
+    # HANDOFF-to-carambus-plan-attach (2026-08-18): Der App-Attach-Modus
+    # (?cb_tournament_id=<PK>) braucht das Spielgeruest des verknuepften Plans, um den
+    # Turnier-State server-seitig zu restaurieren (sq/RK je Plan verschieden, nicht ratbar).
+    # Direkte belongs_to :tournament_plan (nicht discipline_tournament_plan); executor_params
+    # roh als String durchgereicht (App parst) — analog DisciplineQuery (D-20-01-E).
+    # null wenn kein Plan verknuepft (freies Turnier) -> App zeigt klare Fehlermeldung.
+    def build_tournament_plan(tournament)
+      plan = tournament.tournament_plan
+      return nil unless plan
+      {
+        name: plan.name,
+        executor_params: plan.executor_params
       }
     end
 
