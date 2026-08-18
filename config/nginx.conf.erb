@@ -23,17 +23,6 @@ server {
     ssl_ciphers ECDHE-RSA-AES256-GCM-SHA512:DHE-RSA-AES256-GCM-SHA512:ECDHE-RSA-AES256-GCM-SHA384:DHE-RSA-AES256-GCM-SHA384;
     ssl_prefer_server_ciphers off;
     
-    # Statische Turnier-App (serve_tournament_app): stabile Dateinamen ohne Fingerprint
-    # -> niemals langfristig cachen, sonst sehen Turnierleiter nach einem App-Update weiter
-    # die alte Version. "no-cache" = vor jeder Nutzung beim Server revalidieren
-    # (ETag/Last-Modified bleiben wirksam; unveraenderte Dateien kosten nur einen 304).
-    # Leeres Verzeichnis (kein serve_tournament_app) -> 404, harmlos wie bisher.
-    location /app/ {
-        alias /var/www/<%= basename %>/shared/public/app/;
-        add_header Cache-Control "no-cache" always;
-        try_files $uri $uri/index.html =404;
-    }
-
     location / {
         proxy_pass http://<%= basename %>_upstream;
         proxy_set_header Host $host;
@@ -48,14 +37,6 @@ server {
     listen <%= nginx_port %>;
     server_name <%= domain %>;
     
-    # Statische Turnier-App — siehe Kommentar im ssl-Block. Auch im nicht-ssl-Pfad
-    # (nginx_port, z. B. bc-wedel:3131) darf /app/ nicht langfristig gecacht werden.
-    location /app/ {
-        alias /var/www/<%= basename %>/shared/public/app/;
-        add_header Cache-Control "no-cache" always;
-        try_files $uri $uri/index.html =404;
-    }
-
     location / {
         proxy_pass http://<%= basename %>_upstream;
         proxy_set_header Host $host;
