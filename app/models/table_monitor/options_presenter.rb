@@ -102,6 +102,10 @@ class TableMonitor::OptionsPresenter
                              ""
                            end,
           firstname: @gps[0]&.player&.firstname,
+          # HANDOFF scoreboard-flags (2026-08-18): Nationalitaets-Code (ISO-2) fuer die Flagge
+          # vor dem Namen; die View ruft country_flag_emoji. try(:nationality), weil player auch
+          # ein Team sein kann (kein nationality-Feld) -> dann nil, Anzeige unveraendert.
+          nationality: @gps[0]&.player.try(:nationality),
           fullname: if show_tournament_monitor&.id.present? ||
             @gps[0]&.player.is_a?(Team)
                       @gps[0]&.player&.fullname
@@ -138,6 +142,8 @@ class TableMonitor::OptionsPresenter
                              ""
                            end,
           firstname: @gps[1]&.player&.firstname,
+          # HANDOFF scoreboard-flags (2026-08-18): Nationalitaets-Code (ISO-2), analog player_a.
+          nationality: @gps[1]&.player.try(:nationality),
           fullname: if show_tournament_monitor&.id.present? ||
             @gps[1]&.player.is_a?(Team)
                       @gps[1]&.player&.fullname

@@ -164,6 +164,67 @@ namespace :external_tournament do
     gc = ExternalTournament::AppTournamentCleaner.sweep_closed_local
     puts "✓ Teardown-GC: #{gc[:tournaments_deleted]} App-Turnier(e) gelöscht, #{gc[:games_deleted]} Marker-Game(s) gelöscht"
   end
+
+  # HANDOFF reset-app-tournament-task (2026-08-19): Testlauf zuruecksetzen OHNE das Turnier zu
+  # loeschen — Setzliste, Plan, Format und tournament_plan_id bleiben. Fuellt die Luecke zwischen
+  # TableReleaser#release_tournament (Tische frei, Monitor closed) und AppTournamentCleaner#cleanup
+  # (loescht auch das Turnier). DRY_RUN=1 zeigt nur an, was passieren wuerde.
+  desc "Sysadmin: App-Turnier auf Anfang zuruecksetzen, Turnier behalten. " \
+       "Usage: rake \"external_tournament:reset_app_tournament[<tournament_id>]\" [DRY_RUN=1]"
+  task :reset_app_tournament, [:tournament_id] => :environment do |_, args|
+    dry_run = ENV["DRY_RUN"].to_s == "1"
+    t = Tournament.find_by(id: args[:tournament_id])
+    abort "Tournament #{args[:tournament_id].inspect} not found" if t.nil?
+
+    # Guard analog AppTournamentCleaner#local_app_tournament? — nie ein globales/managed Turnier.
+    unless t.id.to_i >= ApplicationRecord::MIN_ID && t.manual_assignment?
+      abort "Tournament #{t.id} ist kein lokales App-Turnier " \
+            "(id >= #{ApplicationRecord::MIN_ID} + manual_assignment). Abbruch."
+    end
+
+    puts "Turnier #{t.id}: #{t.title}#{"  [DRY RUN — es wird nichts geaendert]" if dry_run}"
+
+    # 1. Tische freigeben + Monitor schliessen. unacknowledged = am Scoreboard erfasste, von der
+    #    App nie abgeholte Ergebnisse — die gehen dabei verloren, deshalb sichtbar ausgeben.
+    owner = t.tournament_monitor
+    bound = owner ? TableMonitor.where(tournament_monitor_id: owner.id,
+      tournament_monitor_type: "TournamentMonitor").to_a : []
+    pending = bound.count(&:external_result_pending?)
+    puts "  gebundene Tische: #{bound.size}#{" (davon #{pending} mit UNBESTAETIGTEM Ergebnis!)" if pending.positive?}"
+
+    # 2. App-Spiele (Attach-Modus: "attach-<id>-…" bzw. tournament_external_id-Marker).
+    app_games = ExternalTournament::AppTournamentCleaner.app_games(t)
+    puts "  App-Spiele: #{app_games.size}"
+
+    if dry_run
+      puts "  → DRY RUN: #{bound.size} Tisch(e) wuerden freigegeben, #{app_games.size} App-Spiel(e) geloescht,"
+      puts "             TournamentMonitor neu initialisiert und die dabei erzeugten Plan-Games entfernt."
+      next
+    end
+
+    r = ExternalTournament::TableReleaser.release_tournament(t)
+    puts "  → freigegeben: #{r.released} Tisch(e), verworfen: #{r.unacknowledged} unbestaetigt"
+    app_games.each(&:destroy)
+    puts "  → #{app_games.size} App-Spiel(e) geloescht"
+
+    # 3. Monitor frisch: release_tournament laesst ihn "closed" zurueck, der naechste Attach
+    #    braucht einen offenen. initialize_tournament_monitor legt dabei die Plan-Games des
+    #    tournament_plan neu an (unabhaengig von manual_assignment — die Game-Erzeugung sitzt
+    #    VOR dem manual_assignment-Gate in TablePopulator, und ein games_count==0 wuerde dort
+    #    einen ERROR-Abbruch ausloesen). Die App fuehrt den Plan selbst aus und braucht sie
+    #    nicht -> hier gezielt wieder entfernen, statt die Engine global zu aendern.
+    t.tournament_monitor&.destroy
+    t.reload
+    t.initialize_tournament_monitor
+    t.reload
+    ghosts = t.games.count
+    t.games.destroy_all
+    puts "  → Monitor neu: #{t.tournament_monitor&.id} (state=#{t.tournament_monitor&.state}), #{ghosts} Plan-Game(s) entfernt"
+
+    t.reload
+    puts "✓ Fertig: monitor=#{t.tournament_monitor&.state} seedings=#{t.seedings.count} games=#{t.games.count}"
+    puts "  App-Seite: neu attachen (bzw. Setup-Tab -> 'Server-Stand neu laden')."
+  end
 end
 
 # Helper-Modul (kein top-level Pollution; Plan 15-05 Substrate)

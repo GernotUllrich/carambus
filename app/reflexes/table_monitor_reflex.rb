@@ -349,12 +349,6 @@ class TableMonitorReflex < ApplicationReflex
     Rails.logger.info "+++++++++++++++++>>> #{"minus_#{n}"} <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
     morph :nothing
 
-    # Security: Check if remote request requires admin rights
-    if remote_request? && !current_user&.admin?
-      Rails.logger.warn "🚫 Blocked minus_#{n} from remote IP #{request.remote_ip} - Admin required"
-      return
-    end
-
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
     @table_monitor.suppress_broadcast = true
     @table_monitor.panel_state = "inputs"
@@ -458,12 +452,6 @@ class TableMonitorReflex < ApplicationReflex
     n = element.andand.dataset[:n].to_i
     Rails.logger.info "+++++++++++++++++>>> #{"add_#{n}"} <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
     morph :nothing
-
-    # Security: Check if remote request requires admin rights
-    if remote_request? && !current_user&.admin?
-      Rails.logger.warn "🚫 Blocked add_#{n} from remote IP #{request.remote_ip} - Admin required"
-      return
-    end
 
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
     @table_monitor.suppress_broadcast = true
@@ -1031,14 +1019,6 @@ class TableMonitorReflex < ApplicationReflex
   end
 
   private
-
-  # Helper method to check if request is from remote (not localhost)
-  def remote_request?
-    return false unless request.present?
-    remote_ip = request.remote_ip
-    # Consider localhost, 127.0.0.1, and ::1 as local
-    !['127.0.0.1', '::1', 'localhost'].include?(remote_ip) && !remote_ip.start_with?('192.168.')
-  end
 
   def warmup_state_change(player)
     if DEBUG

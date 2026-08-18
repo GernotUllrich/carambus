@@ -20,9 +20,9 @@
         <%- left_player_active = options[:current_left_player] == "playera" ? options[:player_a_active] : options[:player_b_active] %>
         <%- right_player_active = options[:current_left_player] == "playera" ? options[:player_b_active] : options[:player_a_active] %>
         <div class="grid grid-cols-3 gap-4">
-          <div class="flex-auto text-3vw mt-10 <%= options[:free_game_form] == 'pool' || options[:current_left_color] == "white" ? "dark:bg-black  dark:text-gray-200 text-black" : "dark:bg-black  text-yellow-400" %> items-center text-center font-semibold"><%= left_player[:fullname] %></div>
+          <div class="flex-auto text-3vw mt-10 <%= options[:free_game_form] == 'pool' || options[:current_left_color] == "white" ? "dark:bg-black  dark:text-gray-200 text-black" : "dark:bg-black  text-yellow-400" %> items-center text-center font-semibold"><%= [country_flag_emoji(left_player[:nationality]), left_player[:fullname]].compact.join(" ") %></div>
           <%= render partial: 'table_monitors/menu', locals: { table_monitor: table_monitor } %>
-          <div class="flex-auto text-3vw mt-10 <%= options[:free_game_form] == 'pool' || options[:current_left_color] == "yellow" ? "dark:bg-black  dark:text-gray-200 text-black" : "dark:bg-black  text-yellow-400" %> items-center text-center font-semibold"><%= right_player[:fullname] %></div>
+          <div class="flex-auto text-3vw mt-10 <%= options[:free_game_form] == 'pool' || options[:current_left_color] == "yellow" ? "dark:bg-black  dark:text-gray-200 text-black" : "dark:bg-black  text-yellow-400" %> items-center text-center font-semibold"><%= [country_flag_emoji(right_player[:nationality]), right_player[:fullname]].compact.join(" ") %></div>
         </div>
       </div>
     </div>

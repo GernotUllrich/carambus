@@ -82,6 +82,18 @@ server {
         break;
     }
 
+    # Statische Turnier-App (/app/ -> shared/public/app/, per rsync aktualisiert): stabile
+    # Dateinamen ohne Fingerprint, deshalb nicht cachen. nginx liefert sie ohnehin direkt
+    # (location / + try_files), setzte aber KEIN Cache-Control -> Browser cachen heuristisch
+    # (Anteil des Last-Modified-Alters) und zeigen nach einem App-Update weiter die alte
+    # Version. "no-cache" = vor jeder Nutzung revalidieren; ETag/Last-Modified bleiben
+    # wirksam, unveraenderte Dateien kosten nur einen 304.
+    location /app/ {
+        root /var/www/<%= @scenario['basename'] %>/current/public;
+        add_header Cache-Control "no-cache" always;
+        try_files $uri $uri/index.html $uri.html @<%= @scenario['basename'] %>_upstream;
+    }
+
     location / {
         root /var/www/<%= @scenario['basename'] %>/current/public;
         try_files $uri $uri/index.html $uri.html @<%= @scenario['basename'] %>_upstream;
@@ -168,6 +180,18 @@ server {
         proxy_buffering off;
         proxy_redirect off;
         break;
+    }
+
+    # Statische Turnier-App (/app/ -> shared/public/app/, per rsync aktualisiert): stabile
+    # Dateinamen ohne Fingerprint, deshalb nicht cachen. nginx liefert sie ohnehin direkt
+    # (location / + try_files), setzte aber KEIN Cache-Control -> Browser cachen heuristisch
+    # (Anteil des Last-Modified-Alters) und zeigen nach einem App-Update weiter die alte
+    # Version. "no-cache" = vor jeder Nutzung revalidieren; ETag/Last-Modified bleiben
+    # wirksam, unveraenderte Dateien kosten nur einen 304.
+    location /app/ {
+        root /var/www/<%= @scenario['basename'] %>/current/public;
+        add_header Cache-Control "no-cache" always;
+        try_files $uri $uri/index.html $uri.html @<%= @scenario['basename'] %>_upstream;
     }
 
     location / {

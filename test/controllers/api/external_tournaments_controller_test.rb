@@ -193,6 +193,24 @@ module Api
       assert_response :not_found
     end
 
+    # Regression (HANDOFF plan-attach App-Reply 2, 2026-08-18): Der tournament_id-Pfad erlaubt
+    # tournament_cc == nil (lokal per Console angelegtes Turnier ohne TournamentCc). build_tournament_meta
+    # warf 500 (NoMethodError cc_id für nil). Safe-nav -> 200 mit cc_id: null.
+    test "seeding via tournament_id without a linked TournamentCc returns 200 with cc_id null" do
+      @tournament.tournament_cc&.destroy
+      assert_nil @tournament.reload.tournament_cc
+      Seeding.create!(tournament: @tournament, player: @player, position: 1)
+      headers = {"Content-Type" => "application/json", "Accept" => "application/json",
+                 "Authorization" => "Bearer #{login_jwt}"}
+      get "/api/external_tournament/seeding",
+        params: {tournament_id: @tournament.id, region: "NBV"}, headers: headers
+      assert_response :success
+      body = JSON.parse(response.body)
+      assert_equal "carambus.seeding/v1", body["schema"]
+      assert body.dig("tournament").key?("cc_id"), "cc_id-Schlüssel immer präsent"
+      assert_nil body.dig("tournament", "cc_id")
+    end
+
     test "seeding via tournament_id with mismatched region returns 422" do
       @tournament.update_columns(region_id: regions(:bbv).id)
       headers = {"Content-Type" => "application/json", "Accept" => "application/json",
@@ -566,6 +584,34 @@ module Api
       assert_response :success
       body = JSON.parse(response.body)
       assert_nil body.dig("tournament", "location")
+    end
+
+    # === HANDOFF-to-carambus-plan-attach (2026-08-18): tournament_plan im seeding-Payload ===
+
+    # App-Attach-Modus braucht name + executor_params (roher JSON-String) des verknuepften Plans.
+    test "seeding returns tournament_plan (name + executor_params) when a plan is linked" do
+      plan = tournament_plans(:t04_5)
+      @tournament.update!(tournament_plan: plan)
+      Seeding.create!(tournament: @tournament, player: @player, position: 1)
+
+      get_seeding(tournament_cc_id: 999_201, region: "NBV", jwt: login_jwt)
+      assert_response :success
+      body = JSON.parse(response.body)
+      tp = body.dig("tournament", "tournament_plan")
+      assert_equal plan.name, tp["name"]
+      assert_equal plan.executor_params, tp["executor_params"]
+    end
+
+    # Rueckwaertskompatibel: kein Plan verknuepft -> Feld ist null (App zeigt klare Fehlermeldung).
+    test "seeding returns null tournament_plan when no plan is linked" do
+      @tournament.update_columns(tournament_plan_id: nil)
+      Seeding.create!(tournament: @tournament, player: @player, position: 1)
+
+      get_seeding(tournament_cc_id: 999_201, region: "NBV", jwt: login_jwt)
+      assert_response :success
+      body = JSON.parse(response.body)
+      assert body.dig("tournament").key?("tournament_plan"), "Feld immer präsent"
+      assert_nil body.dig("tournament", "tournament_plan")
     end
 
     # === Plan 48-04: Party-API (b1) ===

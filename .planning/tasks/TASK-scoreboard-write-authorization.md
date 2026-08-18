@@ -14,7 +14,7 @@ Reflexes sind über ActionCable erreichbar; anonyme Verbindungen sind seit `67df
 
 | Reflex | Gates | Schreibops |
 |---|---|---|
-| `table_monitor_reflex.rb` | 2 (nur für `remote_request?`) | 46 |
+| `table_monitor_reflex.rb` | **0** (die 2 `remote_request?`-Gates 2026-08-17 entfernt, s. Abschnitt 7) | 46 |
 | `game_protocol_reflex.rb` | **0** | **15** (`increment_points`, `delete_inning`, `confirm_result`, …) |
 | `party_monitor_reflex.rb` | 2 | 10 |
 | `tournament_reflex.rb` | **0** | 7 |
@@ -107,6 +107,92 @@ anders aus. Der real relevante Fall ist damit **weiterhin ungemessen**.
 
 ## 6. Was dieser Task NICHT ist
 
-Kein Grund zur Eile: Der beschriebene Zustand besteht seit Langem und war vor den
-Änderungen vom 2026-08-14 nicht besser. Es ist ein **Härtungsvorhaben mit klarer fachlicher
-Zielvorstellung**, kein akuter Vorfall.
+Es ist ein **Härtungsvorhaben mit klarer fachlicher Zielvorstellung**, kein akuter
+Sicherheitsvorfall — der beschriebene Zustand besteht seit Langem und war vor den Änderungen
+vom 2026-08-14 nicht besser.
+
+**Korrektur 2026-08-17:** „Kein Grund zur Eile" stand hier ursprünglich unbedingt. Das war
+falsch. Nicht das Fehlen der Absicherung hat Kosten verursacht, sondern ihre **halbe**
+Umsetzung: zwei von 41 schreibenden Actions blockierten, die übrigen 39 nicht — Ergebnis war
+kein Schutz, aber ein Abend Fehlersuche an zwei Tischen. Siehe Abschnitt 7.
+
+---
+
+## 7. Feldbefund 2026-08-17 — die fehlende Messung aus 5(b), unfreiwillig nachgeholt
+
+Abschnitt 5(b) hielt fest, der real relevante Fall — ein echter Raspi im Vereins-LAN — sei
+**ungemessen**. Er ist jetzt gemessen, durch einen Betriebsvorfall bei BC Wedel.
+
+### Was passierte
+
+An **bcw6 und bcw7** zeigten die `add_n`/`minus_n`-Knöpfe keine Wirkung. Numpad, Protokoll
+und alles Übrige schrieben normal. An bcw1/3/5/8 funktionierte alles.
+
+Ursache: die beiden `remote_request?`-Gates waren fünf Monate lang **toter Code** — vor
+`1efa7995` gab ActionCable pauschal `User.first` zurück, auf bcw ein Admin. Seit die
+Identität ehrlich ist (`scoreboard@carambus.de`, `admin=false`), griffen sie erstmals.
+Vollständige Kette mit Belegen:
+`.planning/debug/scoreboard-add-n-blocked-by-admin-guard.md`.
+
+### Die eigentliche Erkenntnis für dieses Modell
+
+**Nicht alle Scoreboards kommen mit einer LAN-IP an.** Aus dem `production.log` von bcw:
+
+| Quelle | Gerät | Requests |
+|---|---|---|
+| `192.168.2.215` | bcw5 | 99 |
+| `192.168.2.218` | bcw8 | 38 |
+| `192.168.2.211` | bcw1 | 17 |
+| `192.168.2.213` | bcw3 | 15 |
+| **`91.35.205.240`** | **bcw6 + bcw7 (öffentliche IP des Vereins)** | **121** |
+
+bcw6 und bcw7 stehen **physisch am Tisch**, rufen den Server aber über
+`bc-wedel.duckdns.org` auf. Der Router schickt das per **NAT-Hairpin** zurück ins LAN und
+ersetzt dabei die Quelladresse durch die öffentliche IP.
+
+> **Für den Server sind sie von einem entfernten Browser nicht unterscheidbar.**
+> Beide melden `91.35.205.240`.
+
+Damit ist Abschnitt 3, Punkt 3 („hinter einem Reverse Proxy muss die echte Client-IP
+verfügbar sein") **notwendig, aber nicht hinreichend**. Die Client-IP ist hier korrekt
+durchgereicht — nginx setzt `X-Real-IP` und `X-Forwarded-For` sauber. Sie ist trotzdem
+wertlos, weil das **Routing** die Herkunft verwischt, nicht der Proxy.
+
+### Daraus folgt eine Voraussetzung, keine Krücke
+
+**Jedes Scoreboard muss den Server über die LAN-Adresse erreichen** (bei bcw:
+`http://192.168.2.210:3131/…`). Solange ein legitimes Scoreboard über die öffentliche IP
+hereinkommt, gilt:
+
+- eine IP-basierte Umsetzung von „außerhalb des LAN nie schreiben" **sperrt genau die
+  Geräte aus, die sie schützen soll** — im Kleinen ist das am 17.08. passiert;
+- jede Lockerung, die diese Geräte wieder hereinlässt, lässt zwangsläufig auch echte
+  Zugriffe von außen herein.
+
+Es gibt keine dritte Möglichkeit, solange die Unterscheidung allein an der IP hängt. Die
+URL-Umstellung ist deshalb **Teil dieses Tasks**, nicht eine Notmaßnahme daneben. Sie
+gehört vor die Implementierung, nicht danach — und sie braucht eine Absicherung dagegen,
+dass ein neu aufgesetztes Scoreboard wieder mit dem öffentlichen Hostnamen konfiguriert
+wird.
+
+### Zwischenmaßnahme am 2026-08-17
+
+Die beiden Gates **entfernt** (nicht repariert). Begründung: sie saßen auf 2 von 41
+schreibenden Actions; `key`, `nnn_enter`, `undo`, `redo`, `start_game`, `set_balls`,
+`numbers`, `foul` und 31 weitere schreiben ungeprüft. Wer scoren will, nimmt einen der
+anderen Wege — die Gates hinderten niemanden, kosteten aber die Bedienbarkeit.
+
+Die Alternative (Schwelle von `admin?` auf `current_user.present?`) hätte die Funktion
+ebenfalls hergestellt, aber eine Sperre erhalten, die keine ist — und damit den Eindruck
+von Schutz genährt. Der jetzige Zustand ist ehrlich: **null Absicherung schreibender
+Zugriffe, dokumentiert hier.**
+
+### Zwei Anschlussbefunde
+
+1. **Dasselbe Muster lebt weiter** in `app/controllers/static_controller.rb:58`
+   (`remote_request? && !current_user&.admin?`, gegen `ApplicationController#remote_request?`).
+   Nicht geprüft, ob es dort etwas Sinnvolles bewirkt oder derselbe Blindgänger ist.
+2. **Stilles Abweisen ist eine eigene Fehlerquelle.** Der Guard endete auf `return` ohne
+   Rückmeldung — am Tisch nicht von einem defekten Knopf zu unterscheiden. Was die künftige
+   Umsetzung abweist, muss dem Bediener **sichtbar** abgewiesen werden; das ist UI-Arbeit
+   und gehört in den Umfang, nicht als Nachgedanke.

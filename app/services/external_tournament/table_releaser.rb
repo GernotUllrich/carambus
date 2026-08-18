@@ -74,11 +74,20 @@ module ExternalTournament
         .where.not(tournament_monitor_id: nil)
         .distinct.pluck(:tournament_monitor_id)
       TournamentMonitor.where(id: owner_ids).where.not(state: "closed")
-        .select { |owner| local_app_tournament?(owner.tournament) }
+        .select { |owner| local_app_tournament?(owner.tournament) && !still_running?(owner.tournament) }
     end
 
     def local_app_tournament?(t)
       t.present? && t.id.to_i >= ApplicationRecord::MIN_ID && t.manual_assignment?
+    end
+
+    # HANDOFF multiday-app-tournaments (2026-08-19): Ein mehrtaegiges Attach-Turnier deklariert
+    # seine Laufzeit ueber end_date. Waehrenddessen darf das Mitternachts-Safety-Net weder die
+    # Tischbindungen loesen noch den Monitor schliessen — Letzteres erzeugte erst die Bedingung,
+    # unter der AppTournamentCleaner#sweep_closed_local das Turnier anschliessend loeschte.
+    # end_date nil oder vergangen -> unveraendertes Verhalten.
+    def still_running?(t)
+      t.end_date.present? && t.end_date > Time.current
     end
   end
 end

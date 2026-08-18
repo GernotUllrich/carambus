@@ -95,5 +95,45 @@ module ExternalTournament
       assert Tournament.exists?(active.id), "aktives lokales App-Turnier bleibt"
       assert Game.exists?(active_g.id), "Marker-Game des aktiven Turniers bleibt"
     end
+
+    # HANDOFF multiday-app-tournaments (2026-08-19): Der Mitternachts-GC loeschte ein laufendes
+    # mehrtaegiges Attach-Turnier am 2. Turniertag (samt aller erfassten Ergebnisse).
+    # end_date in der Zukunft -> schonen; abgelaufen/nil -> weiterhin abraeumen.
+    test "sweep_closed_local schont laufende mehrtaegige Turniere (end_date in der Zukunft)" do
+      running = app_tournament(external_id: "cln-sweep-multiday")
+      running.update_columns(end_date: 2.days.from_now)
+      running.tournament_monitor.update_columns(state: "closed")
+
+      expired = app_tournament(external_id: "cln-sweep-expired")
+      expired.update_columns(end_date: 1.day.ago)
+      expired.tournament_monitor.update_columns(state: "closed")
+
+      AppTournamentCleaner.sweep_closed_local
+
+      assert Tournament.exists?(running.id), "laufendes mehrtaegiges Turnier bleibt erhalten"
+      refute Tournament.exists?(expired.id), "abgelaufenes Turnier wird weiterhin abgeraeumt"
+    end
+
+    # HANDOFF reset-app-tournament-task (2026-08-19): Attach-Turniere werden im Web/per Console
+    # angelegt -> external_id nil -> der tournament_external_id-Marker findet nichts und die
+    # App-Games blieben beim cleanup als Waisen liegen. Zweiter Pfad: "attach-<id>-…".
+    test "marker_games findet Attach-Games ueber das attach-Praefix (external_id nil)" do
+      t = app_tournament(external_id: "cln-attach")
+      t.update_columns(external_id: nil) # Attach-Turnier: kein LocalTournamentCreator-Marker
+      t.reload
+
+      attach_g = Game.create!(group_no: 1, seqno: rand(700000..799999), table_no: 1,
+        data: {"external_id" => "attach-#{t.id}-r1t1"})
+      fremd = Game.create!(group_no: 1, seqno: rand(700000..799999), table_no: 1,
+        data: {"external_id" => "attach-999999-r1t1"})
+
+      found = AppTournamentCleaner.app_games(t).map(&:id)
+      assert_includes found, attach_g.id, "Attach-Game ueber das Praefix gefunden"
+      refute_includes found, fremd.id, "Attach-Game eines anderen Turniers bleibt unberuehrt"
+
+      AppTournamentCleaner.cleanup(t)
+      refute Game.exists?(attach_g.id), "Attach-Game wird mit abgeraeumt (keine Waise mehr)"
+      assert Game.exists?(fremd.id), "fremdes Attach-Game bleibt"
+    end
   end
 end

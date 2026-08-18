@@ -74,6 +74,7 @@ class TableMonitor::OptionsPresenterTest < ActiveSupport::TestCase
       lastname: player_a_attrs.fetch(:lastname, "Muster"),
       fl_name: "#{player_a_attrs.fetch(:firstname, 'Max')} #{player_a_attrs.fetch(:lastname, 'Muster')}",
       guest: player_a_attrs.fetch(:guest, false),
+      nationality: player_a_attrs.fetch(:nationality, nil),
       id: 50_000_000 + rand(1_000_000)
     )
     player_b = Player.create!(
@@ -81,6 +82,7 @@ class TableMonitor::OptionsPresenterTest < ActiveSupport::TestCase
       lastname: player_b_attrs.fetch(:lastname, "Beispiel"),
       fl_name: "#{player_b_attrs.fetch(:firstname, 'Erika')} #{player_b_attrs.fetch(:lastname, 'Beispiel')}",
       guest: player_b_attrs.fetch(:guest, false),
+      nationality: player_b_attrs.fetch(:nationality, nil),
       id: 50_000_000 + rand(1_000_000)
     )
 
@@ -150,10 +152,24 @@ class TableMonitor::OptionsPresenterTest < ActiveSupport::TestCase
     presenter = TableMonitor::OptionsPresenter.new(tm, locale: :de)
     result = presenter.call
 
-    %w[lastname firstname fullname balls_goal result hs gd innings discipline tc fouls_1 logo].each do |key|
+    %w[lastname firstname fullname nationality balls_goal result hs gd innings discipline tc fouls_1 logo].each do |key|
       assert result["player_a"].key?(key), "Expected player_a to contain key '#{key}'"
       assert result["player_b"].key?(key), "Expected player_b to contain key '#{key}'"
     end
+  end
+
+  # HANDOFF scoreboard-flags (2026-08-18): Presenter reicht players.nationality (ISO-2) durch,
+  # damit die Scoreboard-Views die Nationalflagge vor den Namen setzen koennen. nil, wenn nicht
+  # gesetzt (Anzeige unveraendert).
+  test "player_a/player_b nationality is passed through (nil when unset)" do
+    tm, _, _, _ = build_tm_with_game(
+      player_a_attrs: {nationality: "NL"},
+      player_b_attrs: {} # keine nationality
+    )
+    result = TableMonitor::OptionsPresenter.new(tm, locale: :de).call
+
+    assert_equal "NL", result["player_a"]["nationality"]
+    assert_nil result["player_b"]["nationality"]
   end
 
   # ---------------------------------------------------------------------------
