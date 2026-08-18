@@ -1294,7 +1294,7 @@ class TournamentsController < ApplicationController
 
   # Only allow a trusted parameter "white list" through.
   def tournament_params
-    params.require(:tournament).permit(:title, :discipline_id, :modus, :age_restriction, :date, :accredation_end,
+    permitted = params.require(:tournament).permit(:title, :discipline_id, :modus, :age_restriction, :date, :accredation_end,
                                        :location_text, :location_id, :ba_id, :season_id, :region_id, :end_date, :plan_or_show,
                                        :single_or_league, :shortname, :data, :ba_state, :state, :last_ba_sync_date,
                                        :player_class, :tournament_plan_id, :innings_goal, :timeouts, :timeout, :balls_goal,
@@ -1302,6 +1302,15 @@ class TournamentsController < ApplicationController
                                        :sets_to_win, :sets_to_play, :team_size, :kickoff_switches_with, :fixed_display_left,
                                        :color_remains_with_set, :allow_overflow, :allow_follow_up,
                                        :turnier_leiter_user_id, :source_url)
+    # Bugfix (HANDOFF tournament-create-500, 2026-08-18): Das "Lokale Konfiguration"-text_area
+    # im _form submittet `data` als String; `serialize :data, type: Hash` wirft sonst
+    # SerializationTypeMismatch beim Speichern (create + update, 100% Ausfall von /tournaments/new).
+    # Blank-String -> {}, sonst JSON parsen (ungueltiges JSON faellt auf {} zurueck).
+    if permitted[:data].is_a?(String)
+      raw = permitted[:data].strip
+      permitted[:data] = raw.empty? ? {} : (JSON.parse(raw) rescue {})
+    end
+    permitted
   end
 
   # Phase 25-01: Server-Region aus der Scenario-Config (Carambus.config.context) fuer die

@@ -330,6 +330,29 @@ class TournamentsControllerTest < ActionDispatch::IntegrationTest
       "create should redirect or render after save"
   end
 
+  # Regression (HANDOFF tournament-create-500, 2026-08-18): Das "Lokale Konfiguration"-text_area
+  # submittet `data` als String ("{}"); serialize :data (type: Hash) warf 500
+  # (SerializationTypeMismatch). tournament_params normalisiert String -> Hash.
+  test "POST create with data as String does not 500 and stores a Hash" do
+    Carambus.config.carambus_api_url = "http://local.test"
+    sign_in @club_admin
+    assert_difference("Tournament.count", 1) do
+      post tournaments_url, params: {
+        tournament: {
+          title: "Data-String Regression",
+          discipline_id: disciplines(:carom_3band).id,
+          season_id: seasons(:current).id,
+          date: 1.month.from_now,
+          organizer_id: regions(:nbv).id,
+          organizer_type: "Region",
+          data: "{}" # der Bug-Trigger: String statt Hash
+        }
+      }
+    end
+    assert_includes [200, 302], response.status, "kein 500 mehr"
+    assert_kind_of Hash, Tournament.find_by(title: "Data-String Regression").data
+  end
+
   test "PATCH update updates tournament and redirects when local server" do
     Carambus.config.carambus_api_url = "http://local.test"
     patch tournament_url(@tournament), params: { tournament: { title: "Updated Title" } }
