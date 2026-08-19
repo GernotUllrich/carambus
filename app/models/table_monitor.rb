@@ -304,7 +304,19 @@ class TableMonitor < ApplicationRecord
   # Events sind praktisch immer Doppelzustellungen (Touch+Click) oder
   # Nachlaeufer gegen den Zustand VOR dem Wechsel; echte Bedienung braucht
   # laenger (der Nachstoss-Spieler muss erst stossen).
+  #
+  # Die Frist ist GLEITEND: jeder verworfene Event schiebt sie nach vorn. Live
+  # belegt (2026-08-19, Tisch 2, TM 50000008): der Bediener klickte im 180-ms-Takt
+  # noch 1,3 s ueber das Ballziel hinaus weiter — mit festem Fenster liefen die
+  # Nachlaeufer ab +910 ms durch und schlossen den Satz mit 15:0. Solange die
+  # Events im Burst-Takt nachkommen, gehoeren sie noch zum selben Fingerlauf;
+  # erst eine echte Pause macht den naechsten Druck zur Absicht.
   AUTO_SWITCH_GRACE = 0.75
+
+  # Obergrenze fuer die gleitende Frist, gerechnet ab dem automatischen Wechsel.
+  # Verhindert, dass ein dauerhaft Events sendendes Scoreboard den Tisch
+  # unbedienbar macht — nach dieser Zeit greift der Guard nicht mehr.
+  AUTO_SWITCH_GRACE_MAX = 5.0
 
   serialize :data, coder: JSON, type: Hash
   serialize :prev_data, coder: JSON, type: Hash
@@ -1156,24 +1168,45 @@ class TableMonitor < ApplicationRecord
   # Merkt den Zeitpunkt des automatischen Spielerwechsels (:goal_reached) in data.
   # Siehe AUTO_SWITCH_GRACE.
   def stamp_auto_switch!
-    data["auto_switch_at"] = Time.current.to_f
+    now = Time.current.to_f
+    data["auto_switch_at"] = now
+    data["auto_switch_origin_at"] = now
     data_will_change!
   end
 
-  # True, wenn ein Tasten-Event unmittelbar auf einen automatischen
-  # Spielerwechsel folgt und daher als Nachlaeufer zu verwerfen ist.
+  # Entscheidet, ob ein Tasten-Event als Nachlaeufer eines automatischen
+  # Spielerwechsels zu VERWERFEN ist — und schiebt dabei die gleitende Frist
+  # nach vorn (siehe AUTO_SWITCH_GRACE). Kein reines Praedikat: ein verworfener
+  # Event verlaengert das Fenster, damit ein ganzer Klick-Burst als eine
+  # Bedienhandlung behandelt wird.
+  #
   # Bewusst nur fuer den AUTOMATISCHEN Wechsel: normale, benutzerausgeloeste
   # Aufnahmewechsel setzen keinen Zeitstempel und bleiben unberuehrt — schnelles
   # Durchklicken leerer Aufnahmen muss weiter funktionieren.
-  def stray_after_auto_switch?
+  def discard_stray_after_auto_switch?
     stamp = data["auto_switch_at"]
     return false if stamp.blank?
 
-    elapsed = Time.current.to_f - stamp.to_f
-    return false unless elapsed.between?(0, AUTO_SWITCH_GRACE)
+    now = Time.current.to_f
+    since_last = now - stamp.to_f
+    return false unless since_last.between?(0, AUTO_SWITCH_GRACE)
 
-    Rails.logger.info "[TableMonitor#stray_after_auto_switch?] TM[#{id}] Game[#{game_id}]: " \
-      "Tasten-Event #{(elapsed * 1000).round} ms nach automatischem Spielerwechsel verworfen (Nachstoss-Race-Guard)"
+    # Notbremse: ein Scoreboard, das dauerhaft Events schickt, darf den Tisch
+    # nicht unbedienbar machen.
+    since_switch = now - data["auto_switch_origin_at"].to_f
+    if data["auto_switch_origin_at"].present? && since_switch > AUTO_SWITCH_GRACE_MAX
+      Rails.logger.warn "[TableMonitor#discard_stray_after_auto_switch?] TM[#{id}] Game[#{game_id}]: " \
+        "Burst laeuft seit #{since_switch.round(1)} s — Guard gibt auf (AUTO_SWITCH_GRACE_MAX)"
+      return false
+    end
+
+    # Gleitende Frist: der naechste Event wird an DIESEM Event gemessen.
+    data["auto_switch_at"] = now
+    data_will_change!
+
+    Rails.logger.info "[TableMonitor#discard_stray_after_auto_switch?] TM[#{id}] Game[#{game_id}]: " \
+      "Tasten-Event #{(since_last * 1000).round} ms nach dem vorigen verworfen " \
+      "(#{(since_switch * 1000).round} ms nach automatischem Spielerwechsel, Nachstoss-Race-Guard)"
     true
   end
 
