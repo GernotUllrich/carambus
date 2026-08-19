@@ -73,6 +73,43 @@ class TableMonitorNachstossRaceTest < ActiveSupport::TestCase
       "der Satz darf nicht durch ein nachlaufendes Event geschlossen werden"
   end
 
+  # Live-Befund 2026-08-19 (Tisch 2, TM 50000008): der Bediener klickte im
+  # 180-ms-Takt noch 1,3 s ueber das Ballziel hinaus weiter. Ein FESTES Fenster
+  # ab dem Wechsel fing nur die ersten beiden Nachlaeufer (+349 ms, +394 ms);
+  # ab +910 ms liefen sie durch und schlossen den Satz mit 15:0. Die Frist muss
+  # deshalb gleitend sein — jeder verworfene Event schiebt sie nach vorn.
+  test "ein ganzer Klick-Burst wird verworfen, nicht nur die ersten Nachlaeufer" do
+    BALLS_GOAL.times { press_key_a }
+    switch_at = Time.current
+
+    [0.35, 0.75, 1.15, 1.55].each do |offset|
+      travel_to(switch_at + offset, with_usec: true) { press_key_a }
+    end
+
+    assert_equal 0, @tm.data.dig("playerb", "innings").to_i,
+      "auch spaete Events desselben Fingerlaufs duerfen dem Nachstoss-Spieler keine Aufnahme anrechnen"
+    assert_equal "playerb", @tm.data.dig("current_inning", "active_player")
+    assert_equal "playing", @tm.state
+  end
+
+  test "die Notbremse gibt den Tisch nach AUTO_SWITCH_GRACE_MAX wieder frei" do
+    BALLS_GOAL.times { press_key_a }
+    switch_at = Time.current
+
+    # Ein Scoreboard, das ununterbrochen Events schickt, darf den Tisch nicht
+    # dauerhaft unbedienbar machen.
+    offset = 0.5
+    while @tm.playing? && offset <= TableMonitor::AUTO_SWITCH_GRACE_MAX + 1.0
+      travel_to(switch_at + offset, with_usec: true) { press_key_a }
+      offset += 0.5
+    end
+
+    assert_equal 1, @tm.data.dig("playerb", "innings").to_i,
+      "nach AUTO_SWITCH_GRACE_MAX muss der Guard aufgeben, sonst ist der Tisch nicht mehr bedienbar"
+    assert_operator offset, :>, TableMonitor::AUTO_SWITCH_GRACE_MAX,
+      "der Guard darf erst NACH AUTO_SWITCH_GRACE_MAX aufgeben, nicht frueher"
+  end
+
   test "nach Ablauf der Schonfrist beendet key_a die Nachstoss-Aufnahme regulaer" do
     BALLS_GOAL.times { press_key_a }
 

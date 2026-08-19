@@ -179,7 +179,7 @@ class TableMonitorReflex < ApplicationReflex
       # including calling report_result and finish_match! (inside lock)
       # Nachstoss-Race-Guard: ein Nachlaeufer darf das Protokoll nicht selbsttaetig
       # bestaetigen — danach ist can_undo? tot und der Zustand nicht mehr korrigierbar.
-      @table_monitor.evaluate_result unless @table_monitor.stray_after_auto_switch?
+      @table_monitor.evaluate_result unless @table_monitor.discard_stray_after_auto_switch?
       # @table_monitor.acknowledge_result!
       # @table_monitor.prepare_final_game_result
     end
@@ -251,7 +251,7 @@ class TableMonitorReflex < ApplicationReflex
       # including calling report_result and finish_match! (inside lock)
       # Nachstoss-Race-Guard: ein Nachlaeufer darf das Protokoll nicht selbsttaetig
       # bestaetigen — danach ist can_undo? tot und der Zustand nicht mehr korrigierbar.
-      @table_monitor.evaluate_result unless @table_monitor.stray_after_auto_switch?
+      @table_monitor.evaluate_result unless @table_monitor.discard_stray_after_auto_switch?
       # @table_monitor.acknowledge_result!
       # @table_monitor.prepare_final_game_result
     end
@@ -1117,7 +1117,7 @@ class TableMonitorReflex < ApplicationReflex
   # nicht stillschweigend als "Aufnahme des Nachstoss-Spielers beenden"
   # ausgefuehrt werden — sonst faellt der Ausgleichsstoss lautlos aus.
   def terminate_current_inning_unless_stray(current_role)
-    return if @table_monitor.stray_after_auto_switch?
+    return if @table_monitor.discard_stray_after_auto_switch?
 
     @table_monitor.data[current_role]["fouls_1"] = 0
     @table_monitor.terminate_current_inning
