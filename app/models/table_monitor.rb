@@ -293,6 +293,19 @@ class TableMonitor < ApplicationRecord
   }.freeze
   NNN = "db" # store nnn in database table_monitor
 
+  # Nachstoss-Race-Guard: Schonfrist nach einem AUTOMATISCHEN Spielerwechsel.
+  # Erreicht der Anstoss-Spieler sein Ballziel, schliesst die Engine seine
+  # Aufnahme selbsttaetig und schaltet auf den Gegner um (:goal_reached).
+  # Weil die Scoreboard-Tasten POSITIONS- und nicht spielerbasiert sind, wird
+  # ein danach eintreffendes Tasten-Event stillschweigend umgedeutet: was als
+  # "Punkt fuer A" abgeschickt wurde, kommt als "Aufnahme von B beenden" an —
+  # der Nachstoss-Spieler bekommt eine Aufnahme angerechnet, ohne gestossen zu
+  # haben, und der Satz schliesst vorzeitig. Innerhalb dieser Frist verworfene
+  # Events sind praktisch immer Doppelzustellungen (Touch+Click) oder
+  # Nachlaeufer gegen den Zustand VOR dem Wechsel; echte Bedienung braucht
+  # laenger (der Nachstoss-Spieler muss erst stossen).
+  AUTO_SWITCH_GRACE = 0.75
+
   serialize :data, coder: JSON, type: Hash
   serialize :prev_data, coder: JSON, type: Hash
   # { "state" => "warmup", # ["warmup", "match_shootout", "playing", "set_over", "final_set_score", "final_match_score"]
@@ -837,7 +850,10 @@ class TableMonitor < ApplicationRecord
     result = score_engine.balls_left(n_balls_left)
     data_will_change!
     self.copy_from = nil
-    terminate_current_inning if result == :goal_reached
+    if result == :goal_reached
+      stamp_auto_switch!
+      terminate_current_inning
+    end
   rescue StandardError => e
     Rails.logger.error "ERROR: m6[#{id}]#{e}, #{e.backtrace&.join("\n")}"
     raise StandardError
@@ -902,6 +918,7 @@ class TableMonitor < ApplicationRecord
     if result == :goal_reached
       # BK-Familie folgt legacy karambol-Routing. BK-spezifische Logik liegt
       # in den Guards (follow_up?, end_of_set?, score_engine).
+      stamp_auto_switch!
       terminate_current_inning(player)
     end
   rescue StandardError => e
@@ -1071,6 +1088,7 @@ class TableMonitor < ApplicationRecord
     data_will_change!
     assign_attributes(nnn: nil, panel_state: change_to_pointer_mode ? "pointer_mode" : panel_state)
     if result == :goal_reached
+      stamp_auto_switch!
       save
       # BK-Familie folgt legacy karambol-Routing.
       terminate_current_inning
@@ -1133,6 +1151,30 @@ class TableMonitor < ApplicationRecord
     else
       nil
     end
+  end
+
+  # Merkt den Zeitpunkt des automatischen Spielerwechsels (:goal_reached) in data.
+  # Siehe AUTO_SWITCH_GRACE.
+  def stamp_auto_switch!
+    data["auto_switch_at"] = Time.current.to_f
+    data_will_change!
+  end
+
+  # True, wenn ein Tasten-Event unmittelbar auf einen automatischen
+  # Spielerwechsel folgt und daher als Nachlaeufer zu verwerfen ist.
+  # Bewusst nur fuer den AUTOMATISCHEN Wechsel: normale, benutzerausgeloeste
+  # Aufnahmewechsel setzen keinen Zeitstempel und bleiben unberuehrt — schnelles
+  # Durchklicken leerer Aufnahmen muss weiter funktionieren.
+  def stray_after_auto_switch?
+    stamp = data["auto_switch_at"]
+    return false if stamp.blank?
+
+    elapsed = Time.current.to_f - stamp.to_f
+    return false unless elapsed.between?(0, AUTO_SWITCH_GRACE)
+
+    Rails.logger.info "[TableMonitor#stray_after_auto_switch?] TM[#{id}] Game[#{game_id}]: " \
+      "Tasten-Event #{(elapsed * 1000).round} ms nach automatischem Spielerwechsel verworfen (Nachstoss-Race-Guard)"
+    true
   end
 
   def follow_up?
