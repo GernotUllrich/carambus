@@ -223,10 +223,20 @@ end
 # ⚠️ Ohne gesetztes BACKUP_DIR landen die Dumps auf der SD-Karte. Das schuetzt
 # gegen versehentliches Loeschen und misslungene Migrationen, NICHT gegen den
 # Kartentod — und genau der ist auf einem Raspi der erwartbare Ausfall.
-# Sobald ein USB-Stick steckt: BACKUP_DIR dorthin, MIN_FREE_MB an dessen
-# Groesse anpassen (Default 3000 MB ist fuer einen kleinen Stick zu hoch).
+# Seit 2026-08-20 steckt auf bc-wedel ein USB-Stick (SanDisk Ultra Fit, 14,5 GB,
+# ext4, LABEL=carambus-backup), per UUID mit nofail auf /mnt/backup eingehaengt.
+# MIN_FREE_MB bleibt beim Default 3000: bei 52 MB je Lauf und 15 GB Stick ist die
+# Schwelle unkritisch.
+#
+# BACKUP_REQUIRE_MOUNT ist die Gegenwache zu nofail. Faehrt der Pi ohne Stick
+# hoch, bootet er dank nofail durch — /mnt/backup existiert dann trotzdem, als
+# leeres Verzeichnis AUF DER SD-KARTE. Ohne die Wache sicherte das Backup
+# unbemerkt wieder genau dorthin, wovor es schuetzen soll, und meldete Erfolg.
 STANDALONE_BACKUP_SCENARIOS = %w[carambus_bcw].freeze
 if STANDALONE_BACKUP_SCENARIOS.include?(@scenarioname)
+  env :BACKUP_DIR, "/mnt/backup"
+  env :BACKUP_REQUIRE_MOUNT, "1"
+
   every 1.day, at: "1:20 am" do
     bash "bin/pg_backup.sh"
   end
