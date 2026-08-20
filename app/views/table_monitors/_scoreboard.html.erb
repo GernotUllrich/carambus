@@ -110,6 +110,26 @@
           <div id=clock class=" dark:bg-black text-gray-500 dark:text-gray-300 hover:text-black text-<%= vw2 %> text-center"></div>
         <%- end %>
       </div>
+      <%- if table_monitor.follow_up_lock? %>
+        <%# Nachstoss-Panel. Der Ausgleichsstoss laeuft; das Feld des Anstoss-Spielers
+            ist stillgelegt (siehe _player_score_panel). Gewertet wird ausschliesslich
+            ueber diesen beschrifteten Button — nicht mehr ueber eine Klickflaeche,
+            deren Bedeutung sich beim automatischen Spielerwechsel geaendert hat.
+            Bewusst im Mittelstreifen: dort nahm vorher niemand Punkte entgegen, ein
+            nachlaufender Tastendruck aus dem Spielerfeld kann den Button also nicht
+            treffen. %>
+        <div id="follow_up_panel_<%= table_monitor.id %>" class="flex flex-col items-center justify-center gap-2 p-2 border-4 border-warning-500 rounded-lg bg-warning-50 dark:bg-black">
+          <div class="font-bold text-warning-700 dark:text-warning-400 text-<%= vw2 %> text-center">
+            <%= t("table_monitor.follow_up") %>
+          </div>
+          <%= content_tag "button", data: { controller: "table-monitor", action: "click->table-monitor#finish_follow_up", id: table_monitor.id }, class: "w-full py-6 rounded-lg font-bold text-#{vw2} text-white bg-danger-600 hover:bg-danger-700 transition" do %>
+            <%= t("table_monitor.finish_follow_up") %>
+          <%- end %>
+          <%= content_tag "button", data: { controller: "table-monitor", action: "click->table-monitor#undo", id: table_monitor.id }, class: "w-full py-3 rounded-lg font-semibold text-white bg-gray-600 hover:bg-gray-700 transition" do %>
+            <%= t("table_monitor.undo") %>
+          <%- end %>
+        </div>
+      <%- end %>
       <%= content_tag "div", id: "game_state", class: "flex flex-col h-5/6 dark:text-gray-200 bg-gray-100 dark:bg-black" do %>
         <div class="flex flex-col h-2/6 <%= is_bk2_kombi ? "bk2-kombi-scoreboard" : "" %>" tabindex="3" id="pointer_mode">
           <%- if is_bk2_kombi %>

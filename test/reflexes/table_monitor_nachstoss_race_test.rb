@@ -138,7 +138,82 @@ class TableMonitorNachstossRaceTest < ActiveSupport::TestCase
       "ein normaler, benutzerausgeloester Aufnahmewechsel darf nicht verworfen werden"
   end
 
+  # ---------------------------------------------------------------------------
+  # Nachstoss-Panel: die mehrdeutige Klickflaeche verschwindet, statt sie per
+  # Timing zu erraten. Am Klick allein ist ein Nachlaeufer des Anstoss-Spielers
+  # NICHT von der legitimen Eingabe des Nachstoss-Spielers zu unterscheiden.
+  # ---------------------------------------------------------------------------
+
+  test "follow_up_lock? gilt genau waehrend der Ausgleichsaufnahme" do
+    refute @tm.follow_up_lock?, "vor dem Ballziel gibt es keinen Nachstoss"
+
+    BALLS_GOAL.times { press_key_a }
+    assert @tm.follow_up_lock?, "nach dem Ballziel laeuft der Nachstoss"
+
+    travel TableMonitor::AUTO_SWITCH_GRACE + 1.second do
+      press_key_a
+    end
+    refute @tm.follow_up_lock?, "nach dem Satzende ist der Nachstoss vorbei"
+  end
+
+  test "follow_up_lock? bleibt aus, wenn der Nachstoss abgeschaltet ist" do
+    @tm.update!(data: @tm.data.merge("allow_follow_up" => false))
+    BALLS_GOAL.times { press_key_a }
+
+    refute @tm.follow_up_lock?,
+      "ohne allow_follow_up darf kein Nachstoss-Panel erscheinen"
+  end
+
+  test "finish_follow_up wertet die Ausgleichsaufnahme" do
+    BALLS_GOAL.times { press_key_a }
+
+    travel TableMonitor::AUTO_SWITCH_GRACE + 1.second do
+      press_finish_follow_up
+    end
+
+    assert_equal 1, @tm.data.dig("playerb", "innings").to_i,
+      "der beschriftete Button muss die Aufnahme des Nachstoss-Spielers beenden"
+    assert_equal "set_over", @tm.state
+  end
+
+  test "finish_follow_up verpufft ausserhalb des Nachstosses" do
+    press_key_a # ein Punkt fuer A, kein Nachstoss in Sicht
+    refute @tm.follow_up_lock?
+
+    before = @tm.data.deep_dup
+    press_finish_follow_up
+
+    assert_equal before.dig("playerb", "innings"), @tm.data.dig("playerb", "innings"),
+      "ein veraltetes Button-Event aus einem anderen Zustand darf nichts bewirken"
+    assert_equal "playing", @tm.state
+  end
+
+  test "bei offenem Protokoll-Modal bestaetigt ein Feld-Klick das Ergebnis nicht mehr" do
+    BALLS_GOAL.times { press_key_a }
+    travel TableMonitor::AUTO_SWITCH_GRACE + 1.second do
+      press_finish_follow_up
+    end
+    assert_equal "set_over", @tm.state
+    assert @tm.protocol_modal_should_be_open?, "Voraussetzung: das Protokoll-Modal steht offen"
+
+    # Ohne den Guard liefe hier evaluate_result und der Satz waere bestaetigt.
+    travel TableMonitor::AUTO_SWITCH_GRACE + 2.seconds do
+      assert_nothing_raised { press_key_a }
+    end
+
+    assert_equal "set_over", @tm.state,
+      "bestaetigt wird nur ueber den Button im Protokoll-Modal, nicht durch einen Feld-Klick"
+  end
+
   private
+
+  def press_finish_follow_up
+    tm_id = @tm.id
+    TableMonitor.stub(:find, ->(_id) { TableMonitor.where(id: tm_id).first }) do
+      @reflex.finish_follow_up
+    end
+    @tm.reload
+  end
 
   def press_key_b
     tm_id = @tm.id

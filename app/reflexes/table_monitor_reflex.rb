@@ -177,9 +177,18 @@ class TableMonitorReflex < ApplicationReflex
     elsif (@table_monitor.set_over? && @table_monitor.player_controlled?) || @table_monitor.final_match_score? || @table_monitor.final_set_score?
       # FIX: Remove duplicate elsif block - evaluate_result handles everything
       # including calling report_result and finish_match! (inside lock)
-      # Nachstoss-Race-Guard: ein Nachlaeufer darf das Protokoll nicht selbsttaetig
-      # bestaetigen — danach ist can_undo? tot und der Zustand nicht mehr korrigierbar.
-      @table_monitor.evaluate_result unless @table_monitor.discard_stray_after_auto_switch?
+      #
+      # Solange das Protokoll-Modal offen steht, wird NUR ueber dessen eigenen
+      # beschrifteten Button bestaetigt (GameProtocolReflex#confirm_result).
+      # Der Feld-Klick war ein zweiter, unbeschrifteter Weg zum selben Ziel —
+      # und weil er dieselbe Flaeche benutzt wie "Punkt", bestaetigte ein
+      # nachlaufender Tastendruck das Protokoll selbsttaetig. Danach ist
+      # can_undo? tot und der Zustand nicht mehr korrigierbar.
+      # Die spaeteren Zustaende (final_set_score / final_match_score) behalten
+      # den Feld-Klick als "weiter"-Geste — dort steht kein Modal mehr.
+      unless @table_monitor.set_over? && @table_monitor.protocol_modal_should_be_open?
+        @table_monitor.evaluate_result unless @table_monitor.discard_stray_after_auto_switch?
+      end
       # @table_monitor.acknowledge_result!
       # @table_monitor.prepare_final_game_result
     end
@@ -249,9 +258,18 @@ class TableMonitorReflex < ApplicationReflex
     elsif (@table_monitor.set_over? && @table_monitor.player_controlled?) || @table_monitor.final_match_score? || @table_monitor.final_set_score?
       # FIX: Remove duplicate elsif block - evaluate_result handles everything
       # including calling report_result and finish_match! (inside lock)
-      # Nachstoss-Race-Guard: ein Nachlaeufer darf das Protokoll nicht selbsttaetig
-      # bestaetigen — danach ist can_undo? tot und der Zustand nicht mehr korrigierbar.
-      @table_monitor.evaluate_result unless @table_monitor.discard_stray_after_auto_switch?
+      #
+      # Solange das Protokoll-Modal offen steht, wird NUR ueber dessen eigenen
+      # beschrifteten Button bestaetigt (GameProtocolReflex#confirm_result).
+      # Der Feld-Klick war ein zweiter, unbeschrifteter Weg zum selben Ziel —
+      # und weil er dieselbe Flaeche benutzt wie "Punkt", bestaetigte ein
+      # nachlaufender Tastendruck das Protokoll selbsttaetig. Danach ist
+      # can_undo? tot und der Zustand nicht mehr korrigierbar.
+      # Die spaeteren Zustaende (final_set_score / final_match_score) behalten
+      # den Feld-Klick als "weiter"-Geste — dort steht kein Modal mehr.
+      unless @table_monitor.set_over? && @table_monitor.protocol_modal_should_be_open?
+        @table_monitor.evaluate_result unless @table_monitor.discard_stray_after_auto_switch?
+      end
       # @table_monitor.acknowledge_result!
       # @table_monitor.prepare_final_game_result
     end
@@ -320,6 +338,30 @@ class TableMonitorReflex < ApplicationReflex
     end
     @table_monitor.suppress_broadcast = false
     @table_monitor.save
+  end
+
+  # Nachstoss-Panel: beendet die Ausgleichsaufnahme ueber einen BESCHRIFTETEN
+  # Button statt ueber eine Klickflaeche, deren Bedeutung sich beim automatischen
+  # Spielerwechsel geaendert hat (siehe TableMonitor#follow_up_lock?).
+  # Nur hierueber wird im Nachstoss gewertet; das Feld des Anstoss-Spielers
+  # traegt in diesem Zustand keine Action mehr.
+  def finish_follow_up
+    Rails.logger.info "+++++++++++++++++>>> finish_follow_up <<<++++++++++++++++++++++++++++++++++++++"
+    morph :nothing
+    @table_monitor = TableMonitor.find(element.andand.dataset[:id])
+    @table_monitor.suppress_broadcast = true
+    return if @table_monitor.locked_scoreboard
+    # Der Button existiert nur im Nachstoss — ein Event aus einem anderen
+    # Zustand ist veraltet und wird verworfen.
+    return unless @table_monitor.follow_up_lock?
+
+    current_role = @table_monitor.data["current_inning"]["active_player"]
+    @table_monitor.reset_timer!
+    terminate_current_inning_unless_stray(current_role)
+    @table_monitor.assign_attributes(panel_state: "pointer_mode", current_element: "pointer_mode") unless @table_monitor.set_over?
+    @table_monitor.suppress_broadcast = false
+    @table_monitor.save
+    Rails.logger.info "finish_follow_up completed"
   end
 
   def undo
