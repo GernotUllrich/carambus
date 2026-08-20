@@ -701,7 +701,7 @@ de:
     halted: Angehalten
     inning: Aufnahme
     follow_up: Nachstoß
-    finish_follow_up: Nachstoß beendet – Spiel werten
+    finish_follow_up: "Spiel werten? Hier tippen"
     undo: zurück
     foul:
       title: Foul
