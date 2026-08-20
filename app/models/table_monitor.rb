@@ -1242,6 +1242,26 @@ class TableMonitor < ApplicationRecord
     raise StandardError
   end
 
+  # Nachstoss-Schutz: waehrend der Ausgleichsaufnahme wird das Feld des
+  # Anstoss-Spielers stillgelegt und die Wertung laeuft ausschliesslich ueber
+  # den beschrifteten Button im Mittelstreifen.
+  #
+  # Hintergrund: die Scoreboard-Tasten sind POSITIONS-, nicht spielerbasiert.
+  # Dieselbe Flaeche heisst "Punkt fuer den Anstoss-Spieler", solange der anstoesst,
+  # und "Aufnahme beenden" (= Spielende), sobald der Nachstoss-Spieler am Tisch
+  # ist. Der automatische Wechsel bei :goal_reached kippt diese Bedeutung, ohne
+  # dass sich am Bild etwas aendert — ein nachlaufender Tastendruck wird dadurch
+  # stillschweigend zum Spielende umgedeutet und der Ausgleichsstoss faellt aus.
+  # Am Klick allein ist der Nachlaeufer von der legitimen Eingabe des
+  # Nachstoss-Spielers NICHT zu unterscheiden; das laesst sich nur beheben,
+  # indem die mehrdeutige Flaeche verschwindet, nicht durch Timing-Heuristik.
+  #
+  # Das Feld des Nachstoss-Spielers bleibt aktiv — er muss im Ausgleich punkten
+  # koennen (bis hin zum Remis), und sein eigenes Feld ist eindeutig.
+  def follow_up_lock?
+    playing? && data["allow_follow_up"].present? && follow_up?
+  end
+
   def redo
     Rails.logger.debug { "----------------m6[#{id}]----->>> redo <<<------------------------------------------" }
     return unless playing?

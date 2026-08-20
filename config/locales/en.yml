@@ -682,6 +682,7 @@ en:
     halted: Halted
     inning: Inning
     follow_up: Follow-up
+    finish_follow_up: Follow-up done – score the game
     undo: back
     foul:
       title: Foul
