@@ -689,7 +689,11 @@ Rails.application.routes.draw do
     resource :profile, only: %i[edit update], controller: "profiles"
   end
 
-  resources :rankings, only: %i[index show]
+  resources :rankings, only: %i[index show] do
+    collection do
+      get :germany
+    end
+  end
 
   # Scraping Monitor Dashboard
   get "scraping_monitor", to: "scraping_monitor#index", as: :scraping_monitor
