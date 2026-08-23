@@ -48,6 +48,17 @@
 config/credentials/*.key
 config/credentials/*.yml.enc
 
+# Lokale, szenario-generierte Konfiguration — gehoert nicht ins Repo. Commit 8e21a8f6 hat
+# beide bereits aus dem Tracking genommen ("should not be saved to repository"), die
+# Ignore-Regel fehlte seither: Sie tauchten in jedem `git status` als untracked auf und
+# waeren durch ein `git add .` zurueckgekommen. Vor 8e21a8f6 trug database.yml gefuellte
+# username/password-Felder fuer development und test (production war nie betroffen).
+#
+# Woher sie stattdessen kommen: rake scenario:generate_configs[<name>,<env>] bzw. die
+# Vorlagen unter carambus_data/scenarios/<name>/<env>/.
+config/database.yml
+config/carambus.yml
+
 /public/app
 /public/packs
 /public/packs-test
