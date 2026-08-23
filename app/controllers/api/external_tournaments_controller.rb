@@ -123,23 +123,41 @@ module Api
     #   - 401 — fehlende/ungültige JWT
     #   - 404 — TournamentCc / Region nicht gefunden
     #   - 422 — Region-Mismatch / round_no fehlt oder nicht numerisch
+    # Zwei Zugaenge, weil App-Turniere keine ClubCloud-Entsprechung haben (cc_id = nil):
+    #   ?tournament_cc_id=…  -> ClubCloud-Turniere, round_no PFLICHT (unveraenderter Vertrag)
+    #   ?tournament_id=…     -> beliebige Turniere, round_no OPTIONAL
+    # Ohne round_no kommen alle Spiele, die Carambus zum Turnier kennt: Paarungen samt
+    # external_id und die Partie, die gerade am Tisch liegt. NICHT die Historie -- Carambus
+    # haelt bewusst nur die laufende Runde (die Turnierfuehrung liegt bei der App). Wer den
+    # kompletten Turnierstand braucht, ist auf die lokale Sicherung der App angewiesen.
     def round_result
       region = Region.find_by!(shortname: params[:region].to_s.upcase)
-      tournament_cc = TournamentCc.find_by!(
-        cc_id: params[:tournament_cc_id],
-        context: region.shortname.downcase
-      )
+      tournament_cc = nil
 
-      tournament = tournament_cc.tournament
-      if tournament.nil?
-        return render json: {error: "Tournament not yet linked"}, status: :unprocessable_entity
+      if params[:tournament_id].present?
+        # Analog zu #seeding: der globale DB-PK ist eindeutig und wird bevorzugt.
+        tournament = Tournament.find_by(id: params[:tournament_id])
+        return render json: {error: "Tournament not found"}, status: :not_found if tournament.nil?
+        tournament_cc = tournament.tournament_cc # bei App-Turnieren nil
+      else
+        tournament_cc = TournamentCc.find_by!(
+          cc_id: params[:tournament_cc_id],
+          context: region.shortname.downcase
+        )
+        tournament = tournament_cc.tournament
+        if tournament.nil?
+          return render json: {error: "Tournament not yet linked"}, status: :unprocessable_entity
+        end
       end
+
       if tournament.region_id != region.id
         return render json: {error: "Region mismatch"}, status: :unprocessable_entity
       end
 
       round_no = parse_round_no(params[:round_no])
-      if round_no.nil?
+      # Ueber cc_id bleibt round_no Pflicht -- bestehende Aufrufer sollen nicht ploetzlich
+      # das ganze Turnier bekommen, wenn sie den Parameter vergessen.
+      if round_no.nil? && params[:tournament_id].blank?
         return render json: {error: "round_no is required and must be numeric"}, status: :unprocessable_entity
       end
 
@@ -423,7 +441,13 @@ module Api
     # Response (200): carambus.ack/v1
     #   { schema, region:{shortname}, tournament:{id,external_id}, game:{id,external_id,gname},
     #     table:{id,name}|null, state, already_acknowledged, acknowledged_at,
-    #     result:{ ...ba_results..., "sets":[...] } }
+    #     result:{ ...ba_results..., "sets":[...] },
+    #     participants:[ { role, player:{...}, points, innings, high_series, sets } ] }
+    #
+    # participants ist additiv (Schema bleibt v1) und traegt die Spieler-IDENTITAET zu jedem
+    # Ergebniswert. Noetig, weil das Ausstossen am Tisch (switch_players) die Rollen
+    # persistent tauschen kann: danach gehoert Ergebnis1 einem anderen Spieler als beim
+    # start_game. Wer nur ueber die Position mappt, vertauscht Sieger und Verlierer.
     #
     # Errors: 401 (Auth) / 404 (Region) / 409 (NotReady — Ergebnis noch nicht erfasst)
     #         / 422 (Tournament/Game/TableMonitor not found)
@@ -445,7 +469,8 @@ module Api
         state: result.state,
         already_acknowledged: result.already_acknowledged,
         acknowledged_at: result.acknowledged_at&.iso8601,
-        result: result.result
+        result: result.result,
+        participants: serialize_ack_participants(g, result.result)
       }, status: :ok
     rescue ActiveRecord::RecordNotFound => e
       render json: {error: e.message}, status: :not_found
@@ -1027,6 +1052,33 @@ module Api
         dbu_nr: player.dbu_nr&.to_s, age_class: player.age_class, gender: player.gender,
         cc_id: player.cc_id, nationality: player.try(:nationality) || "DE"
       }
+    end
+
+    # Ergebnisse kommen rollenbasiert (Ergebnis1 = playera). Nach dem Ausstossen kann
+    # switch_players die Rollen getauscht haben -- ohne Spieler-Identitaet ist eine Zuordnung
+    # dann nicht mehr moeglich. ba_results.Spieler1/2 traegt nur die ba_id, die bei
+    # internationaler Beteiligung meist fehlt (Beispiel CEB Ladies: 1 von 6 Spielerinnen).
+    # Deshalb hier die volle Projektion inkl. Name -- ueber den laesst sich immer abgleichen.
+    def serialize_ack_participants(game, ba_results)
+      return [] if game.nil?
+
+      ba = ba_results.is_a?(Hash) ? ba_results.with_indifferent_access : {}.with_indifferent_access
+      participations = game.game_participations.to_a
+
+      %w[playera playerb].each_with_index.filter_map do |role, index|
+        gp = participations.find { |p| p.role == role }
+        next if gp.nil?
+
+        n = index + 1
+        {
+          role: role,
+          player: gp.player ? serialize_roster_player(gp.player) : nil,
+          points: ba["Ergebnis#{n}"],
+          innings: ba["Aufnahmen#{n}"],
+          high_series: ba["Höchstserie#{n}"],
+          sets: ba["Sets#{n}"]
+        }
+      end
     end
 
     # Vereins-Pool-Fallback: in der Saison spielberechtigte (active) Spieler des Team-Clubs.
