@@ -55,4 +55,21 @@ class SeasonTest < ActiveSupport::TestCase
     orphan = Season.create!(name: "Unknown Season", ba_id: nil)
     assert_nil orphan.previous
   end
+
+  # Plan 39-01: der Rollover legte die Vereinszugehoerigkeiten als `status: "temporary"` in
+  # die Folgesaison — 5 125 unbelegte Mitgliedschaften, die ueber `Player#club` (ohne
+  # Status-Filter) auf der oeffentlichen Seite als Tatsachen erschienen. Stillgelegt am
+  # 2026-08-24; dieser Test haelt die Stilllegung fest, damit sie nicht versehentlich
+  # zurueckkehrt.
+  test "copy_season_participations_to_next_season ist stillgelegt und legt nichts an" do
+    club = clubs(:bcw)
+    player = Player.create!(id: 53_910_001, lastname: "Rollover", firstname: "Test")
+    SeasonParticipation.create!(id: 53_910_001, season: @previous, club: club,
+      player: player, status: "active")
+    vorher = SeasonParticipation.count
+
+    assert_nil @previous.copy_season_participations_to_next_season
+    assert_equal vorher, SeasonParticipation.count
+    assert_equal 0, SeasonParticipation.where(season: @current, status: "temporary").count
+  end
 end

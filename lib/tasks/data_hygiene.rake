@@ -6,6 +6,11 @@
 #   club_location_duplicates — SCHREIBT bei ARMED=1. Entfernt die mehrfach angelegten
 #     ClubLocation-Kopien und behält je (club_id, location_id) den ÄLTESTEN Record.
 #
+#   temporary_season_participations — SCHREIBT bei ARMED=1. Entfernt ALLE SeasonParticipation
+#     im Status "temporary" (Betreiber-Entscheidung 2026-08-24, "Regel b"). Rollenbewusst:
+#     auf der Authority mit Version (die Loeschung repliziert nach unten), auf lokalen Servern
+#     versionslos die Drift, die dort nie eine Authority-Entsprechung hatte.
+#
 #   invalid_stammdaten — READ-ONLY. Meldet DisciplineCc ohne Disziplin und TournamentPlan
 #     ohne Tische. Bewusst NUR meldend (Betreiber-Entscheidung 2026-08-17): Stammdaten
 #     ohne Kenntnis ihrer Fachbedeutung zu löschen ist riskanter als sie stehen zu lassen.
@@ -23,6 +28,8 @@
 # Aufruf:
 #   bundle exec rake data_hygiene:club_location_duplicates            # DRY-RUN (Default)
 #   bundle exec rake data_hygiene:club_location_duplicates ARMED=1    # schreibt
+#   bundle exec rake data_hygiene:temporary_season_participations         # DRY-RUN (Default)
+#   bundle exec rake data_hygiene:temporary_season_participations ARMED=1 # schreibt
 #   bundle exec rake data_hygiene:invalid_stammdaten                  # read-only
 namespace :data_hygiene do
   desc "SCHREIBT bei ARMED=1: mehrfach angelegte ClubLocations entfernen (aeltesten behalten)"
@@ -94,6 +101,141 @@ namespace :data_hygiene do
     if ApplicationRecord.local_server?
       puts "  ℹ️  local Server — PaperTrail ist hier per LocalProtector deaktiviert, " \
            "0 Versionen sind erwartet (die Loeschung kommt ohnehin von der Authority)"
+    elsif new_versions == destroyed
+      puts "  ✅ jede Loeschung hat eine Version erzeugt — die Replikation ist gesichert"
+    else
+      puts "  ⚠️  #{destroyed - new_versions} Loeschung(en) OHNE Version — diese Records bleiben " \
+           "auf den Regional-Servern liegen (genau der Fehler aus 38-03)"
+    end
+  end
+
+  # Phase 39-01. Befund aus 38-03, Folgenfrage am 2026-08-20 beantwortet, Regel am 2026-08-24
+  # entschieden. Der Erzeuger war `Season#copy_season_participations_to_next_season` — mit diesem
+  # Plan stillgelegt, damit die Bereinigung kein Einmaleffekt bleibt.
+  #
+  # WARUM ueberhaupt: `Player#club` (player.rb:202) nimmt `season_participations.order(:season_id).last`
+  # OHNE Status-Filter. Damit gewinnt der "temporary"-Record der juengsten Saison immer und
+  # erscheint auf der oeffentlichen Vereins- und Spielerseite als Tatsache — obwohl ihn nie
+  # jemand belegt hat.
+  #
+  # ZWEI MENGEN, ZWEI MECHANISMEN (gemessen 2026-08-24):
+  #   * Authority (local_server? == false): PaperTrail ist hier aktiv, `.destroy` erzeugt die
+  #     destroy-Version, die die Loeschung an alle Regional-Server weitergibt. EIN Eingriff
+  #     raeumt die dort gespiegelte Menge ueberall mit.
+  #   * lokale Server: tragen zusaetzlich Records, die es auf der Authority NICHT (mehr) gibt —
+  #     nichts koennte deren Loeschung replizieren. Die muessen lokal weg. PaperTrail ist dort
+  #     fuer dieses Modell abgeschaltet ⇒ keine Version, keine Rueckreplikation.
+  #
+  # REIHENFOLGE: erst Authority, Sync abwarten, dann die lokalen Server. Dann raeumt der lokale
+  # Lauf nur noch die Drift. Umgekehrt ist nicht schaedlich (eine destroy-Version fuer einen
+  # lokal bereits fehlenden Record laeuft folgenlos ins Leere), nur unnoetig.
+  #
+  # Ausschliesslich `.destroy`, nie `delete`/`delete_all` — versionsloses Loeschen auf der
+  # Authority hat genau diesen Befund erzeugt (38-03).
+  desc "SCHREIBT bei ARMED=1: alle SeasonParticipation im Status 'temporary' entfernen (Regel b)"
+  task temporary_season_participations: :environment do
+    armed = ENV["ARMED"] == "1"
+    authority = !ApplicationRecord.local_server?
+    rolle = authority ? "AUTHORITY (Loeschung repliziert nach unten)" : "local Server (versionslos)"
+    puts "== data_hygiene:temporary_season_participations == #{armed ? "ARMED (SCHREIBT)" : "DRY-RUN (schreibt nicht)"}"
+    puts "Rolle: #{rolle}"
+
+    count_before = SeasonParticipation.count
+    versions_before = Version.where(item_type: "SeasonParticipation", event: "destroy").count
+
+    scope = SeasonParticipation.where(status: "temporary")
+    total = scope.count
+    if total.zero?
+      puts "Keine Records im Status 'temporary' — nichts zu tun (idempotent)."
+      next
+    end
+
+    puts "\n#{total} Record(s) im Status 'temporary':"
+    scope.joins(:season).group("seasons.name").count.sort.each do |season, n|
+      puts "  #{season}: #{n}"
+    end
+    global = scope.where("id < ?", 50_000_000).count
+    puts "  davon global (id < 50 Mio): #{global} | lokal: #{total - global}"
+
+    # Folgenabschaetzung: was zeigt `Player#club` nach der Loeschung? Drei Klassen —
+    # unveraendert, anderer Verein, oder gar keiner mehr. Die dritte ist der einzige echte
+    # Verlust und war beim Planen ausdruecklich akzeptiert: eine fehlende Zuordnung ist
+    # ehrlicher als eine erfundene.
+    temp_ids = scope.pluck(:id)
+    pids = scope.distinct.pluck(:player_id).compact
+    juengster_temp = {}
+    SeasonParticipation.where(id: temp_ids).order(:season_id).each { |sp| juengster_temp[sp.player_id] = sp }
+    juengster_rest = {}
+    SeasonParticipation.where(player_id: pids).where.not(id: temp_ids).order(:season_id)
+      .each { |sp| juengster_rest[sp.player_id] = sp }
+
+    gleich = anders = ohne = 0
+    juengster_temp.each do |pid, alt|
+      neu = juengster_rest[pid]
+      if neu.nil?
+        ohne += 1
+      elsif neu.club_id == alt.club_id
+        gleich += 1
+      else
+        anders += 1
+      end
+    end
+    puts "\nWirkung auf Player#club (#{pids.size} betroffene Spieler):"
+    puts "  gleicher Verein (Loeschung unsichtbar): #{gleich}"
+    puts "  anderer Verein (der zuletzt belegte):   #{anders}"
+    puts "  KEIN Verein mehr (Player#club -> nil):  #{ohne}"
+
+    unless armed
+      puts "\nDRY-RUN beendet — nichts geaendert. Mit ARMED=1 ausfuehren."
+      puts "SeasonParticipation.count unveraendert: #{SeasonParticipation.count == count_before}"
+      next
+    end
+
+    unless authority
+      puts "\nℹ️  Reihenfolge-Hinweis: laeuft dieser Server VOR der Authority, loescht er auch die " \
+           "Records, die die Authority ohnehin per destroy-Version mitgenommen haette. Folgenlos, " \
+           "aber die Authority zuerst zu fahren ist der kuerzere Weg."
+    end
+
+    destroyed = 0
+    failed = []
+    # Bulk ⇒ broadcast-frei (PROJECT.md-Constraint): tausende CableReady-Updates fuer eine
+    # Bereinigung haben keinen Empfaenger und wuerden nur die Leitung fluten.
+    SeasonParticipation.skip_cable_ready_updates do
+      SeasonParticipation.where(id: temp_ids).find_each do |rec|
+        # Alle Kandidaten sind global. Auf einem local Server blockt `before_destroy`
+        # (LocalProtector#disallow_saving_global_records) genau das — hier ist der Eingriff
+        # gewollt und belegt, also ausdruecklich entsperren. Auf der Authority ist der Guard
+        # ohnehin inaktiv; das Flag bleibt dort ungesetzt, damit der Rollenunterschied im
+        # Code sichtbar bleibt statt in einem pauschalen `unprotected = true` zu verschwinden.
+        rec.unprotected = true unless authority
+        if rec.destroy
+          destroyed += 1
+        else
+          failed << [rec.id, rec.errors.full_messages.join("; ")]
+        end
+      rescue => e
+        failed << [rec.id, "#{e.class}: #{e.message}"]
+      end
+    end
+
+    versions_after = Version.where(item_type: "SeasonParticipation", event: "destroy").count
+    new_versions = versions_after - versions_before
+
+    puts "\n== Ergebnis =="
+    puts "  geloescht:                  #{destroyed} von #{total}"
+    puts "  destroy-Versionen:          #{new_versions}"
+    puts "  SeasonParticipation.count:  #{count_before} -> #{SeasonParticipation.count}"
+    puts "  Rest im Status temporary:   #{SeasonParticipation.where(status: "temporary").count}"
+    failed.each { |id, msg| puts "  FEHLER id=#{id}: #{msg}" }
+
+    # Dieselbe Probe wie bei club_location_duplicates, aus demselben Grund: auf der Authority
+    # IST die Version der Zweck. Auf einem local Server sind 0 Versionen korrekt (LocalProtector
+    # aktiviert has_paper_trail nur, wenn carambus_api_url NICHT gesetzt ist) — die Probe dort
+    # zu fahren erzeugt einen Fehlalarm, der wie Datenverlust aussieht.
+    if !authority
+      puts "  ℹ️  local Server — PaperTrail ist hier per LocalProtector deaktiviert, " \
+           "0 Versionen sind erwartet"
     elsif new_versions == destroyed
       puts "  ✅ jede Loeschung hat eine Version erzeugt — die Replikation ist gesichert"
     else

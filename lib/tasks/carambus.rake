@@ -858,8 +858,16 @@ namespace :carambus do
     Season.last.scrape_tournaments(range.to_a)
   end
 
-  desc "copy season participations to next season"
+  # STILLGELEGT (Phase 39-01, 2026-08-24). Bewusst NICHT geloescht: ein verschwundener Task
+  # laesst den Aufrufer raetseln, ein sprechender erklaert sich. Begruendung im Quellkommentar
+  # von `Season#copy_season_participations_to_next_season` (app/models/season.rb).
+  desc "STILLGELEGT seit Phase 39-01 — legt keine 'temporary' SeasonParticipations mehr an"
   task copy_season_participations_to_next_season: :environment do
+    puts "Dieser Task ist seit Phase 39-01 (2026-08-24) stillgelegt und legt nichts mehr an."
+    puts "Die Fortschreibung von Vereinszugehoerigkeiten in die naechste Saison hat 5 125"
+    puts "unbelegte Mitgliedschaften erzeugt, die auf der oeffentlichen Seite als Tatsachen"
+    puts "erschienen. Ob ein Spieler noch in seinem Verein spielt, kann nur der Verband sagen."
+    puts "Altbestand bereinigen: rake data_hygiene:temporary_season_participations"
     Season.current_season.copy_season_participations_to_next_season
   end
 
