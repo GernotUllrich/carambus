@@ -155,7 +155,13 @@ module Api
         seedings_written: result[:seedings_written],
         games_written: result[:games_written],
         players_unmatched: result[:players_unmatched],
-        archived: true
+        archived: true,
+        # Plan 41-01 (Nachtrag): `archived` heisst "geschrieben", `durable` heisst "haelt".
+        # Solange der naechtliche GC archivierte Turniere noch loescht, waere es unehrlich,
+        # der App Dauerhaftigkeit zu melden — ihr Turnierleiter bekaeme "archiviert" fuer
+        # etwas, das am naechsten Morgen weg ist. Die Aussage kommt aus dem Cleaner selbst
+        # und kippt mit 41-02 von allein, ohne dass jemand daran denken muss.
+        durable: ExternalTournament::AppTournamentCleaner::ARCHIVE_AWARE
       }
     rescue ActiveRecord::RecordNotFound => e
       render json: {error: e.message}, status: :not_found

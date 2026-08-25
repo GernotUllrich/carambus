@@ -59,7 +59,18 @@ module Api
       assert_equal 1, body["seedings_written"]
       assert_equal 1, body["games_written"]
       assert_empty body["players_unmatched"]
-      assert body["archived"]
+      assert body["archived"], "archived heisst: geschrieben"
+    end
+
+    # Nachtrag auf Rueckfrage von carambus_app: `archived` sagt "geschrieben", `durable` sagt
+    # "haelt". Bis 41-02 loescht der naechtliche GC das Turnier weiterhin — die App soll ihrem
+    # Turnierleiter dann nicht "archiviert" anzeigen.
+    test "durable spiegelt, ob der GC archivierte Turniere verschont" do
+      post_archive
+
+      body = JSON.parse(response.body)
+      assert_equal ExternalTournament::AppTournamentCleaner::ARCHIVE_AWARE, body["durable"],
+        "Der Response muss die tatsaechliche Faehigkeit melden, nicht eine gepflegte Annahme"
     end
 
     test "unbekanntes Turnier ergibt 404 (AC-6)" do

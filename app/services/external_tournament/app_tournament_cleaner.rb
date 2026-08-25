@@ -19,6 +19,19 @@ module ExternalTournament
   # (coarse SQL-LIKE auf den external_id-String + exakter Marker-Abgleich). GameParticipations folgen via
   # Game#has_many(dependent: :destroy), gebundene TableMonitors via has_one(dependent: :nullify).
   class AppTournamentCleaner
+    # Plan 41-01 (Nachtrag auf Rueckfrage von carambus_app, 2026-08-25):
+    # Sagt aus, ob der AUTOMATISCHE Sweep archivierte Turniere (data["archived_at"]) verschont.
+    #
+    # Warum ueberhaupt: der Archiv-Endpoint meldet `archived: true`, sobald er geschrieben hat —
+    # aber "geschrieben" ist nicht "haelt". Solange der naechtliche GC das Turnier weiterhin
+    # loescht, waere es unehrlich, der App Dauerhaftigkeit zu melden; ihr Turnierleiter bekaeme
+    # "archiviert" angezeigt fuer etwas, das am naechsten Morgen weg ist.
+    #
+    # Diese Konstante ist KEINE Pflegeangabe: `app_tournament_cleaner_archive_test.rb` koppelt
+    # sie an das tatsaechliche Verhalten und faellt, wenn beide auseinanderlaufen — in BEIDE
+    # Richtungen. Plan 41-02 setzt sie auf true und dreht die Testrichtung mit.
+    ARCHIVE_AWARE = false
+
     def self.cleanup(tournament)
       new.cleanup(tournament)
     end
