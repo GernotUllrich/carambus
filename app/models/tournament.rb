@@ -360,9 +360,16 @@ class Tournament < ApplicationRecord
       transitions from: %i[tournament_started tournament_mode_defined tournament_started_waiting_for_monitors],
                   to: :tournament_started_waiting_for_monitors
     end
+    # `new_tournament` ist seit 2026-08-25 zulaessige Ausgangslage (Zusage an carambus_app):
+    # App-Turniere haben einen initialisierten TournamentMonitor, ohne je durch die
+    # Anlage-Kette gelaufen zu sein. Nebenwirkungsfrei, weil das Ziel `tournament_started`
+    # keine Callbacks traegt — im Gegensatz zu `tournament_seeding_finished`
+    # (calculate_and_cache_rankings) und `new_tournament` (reset_tournament), weshalb solche
+    # Turniere NICHT durch die State-Kette gefuehrt werden duerfen.
     event :signal_tournament_monitors_ready do
-      transitions from: %i[tournament_started tournament_mode_defined tournament_started_waiting_for_monitors],
-                  to: :tournament_started
+      transitions from: %i[new_tournament tournament_started tournament_mode_defined
+        tournament_started_waiting_for_monitors],
+        to: :tournament_started
     end
     event :reset_tmt_monitor do
       transitions to: :new_tournament, guard: %i[tournament_not_yet_started admin_can_reset_tournament?]
