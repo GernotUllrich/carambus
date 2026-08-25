@@ -11,5 +11,10 @@
 #
 class TableLocal < ApplicationRecord
   include ApiProtector
+
   belongs_to :table
+
+  # Plan 40-01: Grundsprache dieses Tisches — greift, wenn kein Turnier laeuft (Training) oder
+  # das laufende Turnier keine eigene Sprache gesetzt hat. `nil` = nicht konfiguriert.
+  validates :locale, inclusion: {in: I18n.available_locales.map(&:to_s)}, allow_nil: true
 end

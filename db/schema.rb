@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_08_25_110845) do
+ActiveRecord::Schema[7.2].define(version: 2026_08_25_113625) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -1163,6 +1163,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_08_25_110845) do
     t.boolean "scoreboard"
     t.datetime "scoreboard_on_at"
     t.datetime "scoreboard_off_at"
+    t.string "locale"
   end
 
   create_table "table_monitors", force: :cascade do |t|

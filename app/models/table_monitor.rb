@@ -74,11 +74,23 @@ class TableMonitor < ApplicationRecord
   # Liefert `nil`, wenn nichts konfiguriert ist. Der Aufrufer faellt dann auf seine bisherige
   # Kette zurueck; ein `nil` ist also kein Fehlerfall, sondern der Normalfall.
   #
+  # Zwei Stufen, absichtlich in dieser Reihenfolge:
+  #
+  #   1. das laufende Turnier (`tournament_monitors.locale`) — ein internationales Turnier
+  #      stellt alle beteiligten Tische um, ohne dass jeder einzeln angefasst wird
+  #   2. der Tisch selbst (`table_locals.locale`) — die Grundeinstellung des Ortes. Sie traegt
+  #      den TRAININGSBETRIEB, wo es gar kein Turnier gibt: ohne diese Stufe waere die Sprache
+  #      dort nicht einstellbar, weil der Broadcast-Pfad den URL-Parameter nie sieht
+  #
+  # `nil` auf einer Stufe heisst "nicht konfiguriert" und reicht weiter — nicht "Deutsch".
+  # Erst wenn beide leer sind, faellt der Aufrufer auf seine eigene Kette zurueck.
+  #
   # `tournament_monitor` ist polymorph und optional: ein freies Spiel hat gar keinen, ein
   # Liga-Spiel einen PartyMonitor OHNE locale-Spalte. Deshalb `respond_to?` statt einer
   # Typpruefung — wer spaeter eine Sprache am PartyMonitor ergaenzt, bekommt sie hier gratis.
   def display_locale
     configured = tournament_monitor.locale if tournament_monitor.respond_to?(:locale)
+    configured = table&.table_local&.locale if configured.blank?
     return nil if configured.blank?
 
     configured.to_sym
