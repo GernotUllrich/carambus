@@ -22,12 +22,21 @@ class TableLocalsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
   end
 
+  # `tables(:two)` hat bewusst noch kein TableLocal. Seit dem Unique-Index auf
+  # `table_locals.table_id` ist ein zweiter Eintrag fuer denselben Tisch nicht mehr moeglich —
+  # der Scaffold-Controller wuerde hier sonst eine Dublette anlegen.
   test "should create table_local" do
     assert_difference("TableLocal.count") do
-      post table_locals_url, params: {table_local: {ip_address: @table_local.ip_address, table_id: @table_local.table_id, tpl_ip_address: @table_local.tpl_ip_address}}
+      post table_locals_url, params: {table_local: {ip_address: @table_local.ip_address, table_id: tables(:two).id, tpl_ip_address: @table_local.tpl_ip_address}}
     end
 
     assert_redirected_to table_local_url(TableLocal.last)
+  end
+
+  test "ein zweites TableLocal fuer denselben Tisch wird abgewiesen" do
+    assert_no_difference("TableLocal.count") do
+      post table_locals_url, params: {table_local: {ip_address: "10.0.0.1", table_id: @table_local.table_id}}
+    end
   end
 
   test "should show table_local" do

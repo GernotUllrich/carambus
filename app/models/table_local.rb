@@ -14,6 +14,13 @@ class TableLocal < ApplicationRecord
 
   belongs_to :table
 
+  # Genau ein TableLocal je Tisch — `Table has_one :table_local` greift sonst einen beliebigen
+  # heraus, und die gesamte ortsgebundene Konfiguration (Scoreboard-IP, Tischheizung, Kalender,
+  # Sprache) wird unzuverlaessig. Die Validierung ist das Gegenstueck zum Unique-Index aus
+  # `AddUniqueIndexToTableLocals`: sie ist nicht atomar (deshalb der Index), macht den Konflikt
+  # in der Oberflaeche aber als Fehlermeldung sichtbar statt als 500.
+  validates :table_id, uniqueness: true, allow_nil: true
+
   # Plan 40-01: Grundsprache dieses Tisches — greift, wenn kein Turnier laeuft (Training) oder
   # das laufende Turnier keine eigene Sprache gesetzt hat. `nil` = nicht konfiguriert.
   validates :locale, inclusion: {in: I18n.available_locales.map(&:to_s)}, allow_nil: true

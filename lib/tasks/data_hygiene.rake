@@ -11,6 +11,11 @@
 #     auf der Authority mit Version (die Loeschung repliziert nach unten), auf lokalen Servern
 #     versionslos die Drift, die dort nie eine Authority-Entsprechung hatte.
 #
+#   table_local_duplicates — SCHREIBT bei ARMED=1. Entfernt die mehrfach angelegten TableLocal
+#     je Tisch und behaelt den AELTESTEN Record; rettet vorher dessen leere Konfigurationsfelder
+#     (ip_address, tpl_ip_address, locale) aus den juengeren Zwillingen. Lokale Entitaet
+#     (`ApiProtector`) — nichts repliziert, die Bereinigung ist auf JEDER Instanz einzeln zu fahren.
+#
 #   invalid_stammdaten — READ-ONLY. Meldet DisciplineCc ohne Disziplin und TournamentPlan
 #     ohne Tische. Bewusst NUR meldend (Betreiber-Entscheidung 2026-08-17): Stammdaten
 #     ohne Kenntnis ihrer Fachbedeutung zu löschen ist riskanter als sie stehen zu lassen.
@@ -30,6 +35,8 @@
 #   bundle exec rake data_hygiene:club_location_duplicates ARMED=1    # schreibt
 #   bundle exec rake data_hygiene:temporary_season_participations         # DRY-RUN (Default)
 #   bundle exec rake data_hygiene:temporary_season_participations ARMED=1 # schreibt
+#   bundle exec rake data_hygiene:table_local_duplicates              # DRY-RUN (Default)
+#   bundle exec rake data_hygiene:table_local_duplicates ARMED=1      # schreibt
 #   bundle exec rake data_hygiene:invalid_stammdaten                  # read-only
 namespace :data_hygiene do
   desc "SCHREIBT bei ARMED=1: mehrfach angelegte ClubLocations entfernen (aeltesten behalten)"
@@ -241,6 +248,135 @@ namespace :data_hygiene do
     else
       puts "  ⚠️  #{destroyed - new_versions} Loeschung(en) OHNE Version — diese Records bleiben " \
            "auf den Regional-Servern liegen (genau der Fehler aus 38-03)"
+    end
+  end
+
+  # Phase 40-01 (Folgebefund 2026-08-25). Dasselbe Muster wie 38-04 bei den ClubLocations:
+  # `table_locals` hat KEINEN Index auf `table_id` — schon gar keinen Unique-Index. Damit ist
+  # `Table has_one :table_local` bei mehreren Records je Tisch nicht deterministisch. Belegt in
+  # der Test-DB: `table.table_local` und `table_monitor.table.table_local` lieferten im selben
+  # Test VERSCHIEDENE Records — der Wert, den man setzt, ist nicht der, den man ausliest.
+  #
+  # ERZEUGER, beide nicht atomar:
+  #   * `table.rb:53` — `table_local.presence || create_table_local(...)` in jedem der 17
+  #     LOCAL_METHODS-Setter. Heizungs-Schleife und Scoreboard sehen gleichzeitig `nil` und
+  #     legen beide an. Genau die Lücke, die 38-04 bei `club_locations` hatte.
+  #   * `TableLocalsController#create` — Scaffold ohne jede Eindeutigkeitsprüfung.
+  #
+  # BETROFFEN ist nicht nur `locale` (40-01), sondern die bestehende Konfiguration:
+  # ip_address/tpl_ip_address (Scoreboard, Tischheizung) und event_id/event_start/event_end
+  # (Kalenderanbindung).
+  #
+  # REGEL — älteste id gewinnt, wie bei den ClubLocations. MIT EINEM UNTERSCHIED, der hier
+  # zählt: eine ClubLocation ist ein reines FK-Paar ohne Nutzlast, ein TableLocal trägt
+  # Konfiguration. Deshalb werden vor dem Löschen die KONFIGURATIONS-Felder (ip_address,
+  # tpl_ip_address, locale) auf dem Behalter nachgetragen, wo er leer ist und ein jüngerer
+  # Zwilling einen Wert hat — sonst verliert ein Tisch beim Aufräumen still seine Heizungs-IP.
+  # Die ZUSTANDS-Felder (heater*, scoreboard*, event*) werden bewusst NICHT gemischt: ein aus
+  # zwei Records zusammengesetzter Heizungszustand wäre schlechter als ein leerer, den die
+  # nächste Schaltung ohnehin neu setzt.
+  #
+  # TableLocal ist eine LOKALE Entität (`ApiProtector`) — es gibt hier nichts zu replizieren,
+  # die Probe „jede Löschung eine Version" aus 38-04 ist deshalb sinnlos. `unprotected = true`
+  # ist trotzdem nötig: `disallow_saving_local_records` rollt auf der Authority jedes Schreiben
+  # eines Records mit `id > MIN_ID` zurück.
+  desc "SCHREIBT bei ARMED=1: mehrfache TableLocals je Tisch entfernen (aeltesten behalten)"
+  task table_local_duplicates: :environment do
+    armed = ENV["ARMED"] == "1"
+    puts "== data_hygiene:table_local_duplicates == #{armed ? "ARMED (SCHREIBT)" : "DRY-RUN (schreibt nicht)"}"
+
+    count_before = TableLocal.count
+    groups = TableLocal.where.not(table_id: nil).group(:table_id).having("count(*) > 1").count
+
+    if groups.empty?
+      puts "Keine Mehrfachanlage je table_id gefunden — nichts zu tun (idempotent)."
+      puts "TableLocal.count: #{count_before}"
+      next
+    end
+
+    config_fields = %w[ip_address tpl_ip_address locale]
+    to_destroy = []
+    merges = []
+    rejected = 0
+
+    puts "#{groups.size} Tisch(e) mit mehr als einem TableLocal:"
+    groups.sort.each do |table_id, n|
+      recs = TableLocal.where(table_id: table_id).order(:id).to_a
+      keep = recs.first # aelteste id = urspruenglicher Eintrag (Regel aus 38-04)
+      drop = recs - [keep]
+      to_destroy.concat(drop)
+
+      puts "  table=#{table_id} (#{n} Records)"
+      puts "    BEHALTEN id=#{keep.id} (created #{keep.created_at&.to_date})"
+      drop.each { |r| puts "    loeschen  id=#{r.id} (created #{r.created_at&.to_date})" }
+
+      config_fields.each do |field|
+        next if keep.send(field).present?
+
+        donor = drop.reverse.find { |r| r.send(field).present? } # juengster Zwilling mit Wert
+        next if donor.nil?
+
+        # Der Wert wird schon hier zugewiesen, damit der DRY-RUN genau das zeigt, was ARMED
+        # dann speichert — inklusive der Werte, die eine Validierung ablehnt.
+        vorher = keep.send(field)
+        keep.send(:"#{field}=", donor.send(field))
+        if keep.valid?
+          merges << [keep, field, donor.send(field), donor.id]
+          puts "    nachtragen #{field}=#{donor.send(field).inspect} (aus id=#{donor.id})"
+        else
+          # Ein ungueltiger Wert (z.B. `locale: "fr"` aus einer alten Konfiguration) ist nichts
+          # wert — er darf aber auch nicht die ganze Bereinigung blockieren.
+          puts "    ⚠️  #{field}=#{donor.send(field).inspect} (aus id=#{donor.id}) NICHT uebernommen: " \
+               "#{keep.errors.full_messages.join("; ")}"
+          keep.send(:"#{field}=", vorher)
+          rejected += 1
+        end
+      end
+    end
+
+    puts "\nSumme: #{to_destroy.size} Record(s) zu loeschen, #{groups.size} bleiben, " \
+         "#{merges.size} Konfigurationsfeld(er) nachzutragen#{", #{rejected} abgelehnt" if rejected.positive?}."
+
+    unless armed
+      puts "\nDRY-RUN beendet — nichts geaendert. Mit ARMED=1 ausfuehren."
+      puts "TableLocal.count unveraendert: #{TableLocal.count == count_before}"
+      next
+    end
+
+    # Erst nachtragen, dann loeschen — in dieser Reihenfolge ist ein Abbruch dazwischen
+    # folgenlos: der Behalter hat die Werte schon, die Zwillinge stehen noch da, ein zweiter
+    # Lauf raeumt sie ab. Umgekehrt waere ein Abbruch Datenverlust.
+    merges.group_by(&:first).each do |keep, _entries|
+      keep.unprotected = true
+      keep.save! # die Werte stehen bereits am Objekt, geprueft beim Sammeln oben
+    end
+
+    destroyed = 0
+    failed = []
+    to_destroy.each do |rec|
+      rec.unprotected = true
+      if rec.destroy
+        destroyed += 1
+      else
+        failed << [rec.id, rec.errors.full_messages.join("; ")]
+      end
+    rescue => e
+      failed << [rec.id, "#{e.class}: #{e.message}"]
+    end
+
+    rest = TableLocal.where.not(table_id: nil).group(:table_id).having("count(*) > 1").count.size
+
+    puts "\n== Ergebnis =="
+    puts "  nachgetragen:       #{merges.size} Feld(er)#{" (#{rejected} als ungueltig abgelehnt)" if rejected.positive?}"
+    puts "  geloescht:          #{destroyed} von #{to_destroy.size}"
+    puts "  TableLocal.count:   #{count_before} -> #{TableLocal.count}"
+    puts "  Rest mit Dublette:  #{rest}"
+    failed.each { |id, msg| puts "  FEHLER id=#{id}: #{msg}" }
+
+    if rest.zero? && failed.empty?
+      puts "  ✅ je Tisch genau ein TableLocal — der Unique-Index (Migration) kann gesetzt werden"
+    else
+      puts "  ⚠️  noch nicht eindeutig — die Migration wuerde hier mit PG::UniqueViolation scheitern"
     end
   end
 

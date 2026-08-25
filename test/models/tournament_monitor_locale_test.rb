@@ -27,25 +27,16 @@ class TournamentMonitorLocaleTest < ActiveSupport::TestCase
   # TableLocals entstehen ausschliesslich auf den lokalen Servern (dort steht der Tisch).
   # Im Test wird der Guard deshalb ausdruecklich entsperrt, statt die Server-Rolle zu faelschen.
   #
-  # Zweite Fussangel, und die ist auch fachlich relevant: zu `tables(:one)` existieren ZWEI
-  # TableLocal-Fixtures (`one` und `two`, beide `table_id: 50000001`), und `table_locals` hat
-  # keinen Unique-Index auf `table_id`. `has_one` greift dann einen davon — nicht
-  # deterministisch: gemessen lieferten `table.table_local` und
-  # `table_monitor.table.table_local` verschiedene Records.
-  #
-  # Der Test geht deshalb ueber GENAU den Record, den die Aufloesung selbst nutzt. Fuer den
-  # Betrieb heisst derselbe Befund: solange ein Tisch mehrere TableLocals hat, ist die
-  # Tischsprache nicht verlaesslich — als eigener Punkt gemeldet, nicht hier geflickt.
+  # Die zweite Fussangel ist inzwischen an der Wurzel behoben: `tables(:one)` hatte ZWEI
+  # TableLocal-Fixtures (`one` und `two`, beide `table_id: 50000001`) und `table_locals` hatte
+  # keinen Unique-Index — `has_one` griff dann nicht deterministisch einen davon heraus.
+  # Seit `AddUniqueIndexToTableLocals` ist je Tisch genau ein Record moeglich, die Fixture ist
+  # aufgeteilt, und `find_by` hier ist wieder eindeutig statt ein Workaround.
   def set_table_locale!(table_monitor, locale)
     table = table_monitor.reload.table
     refute_nil table, "Vorbedingung: der TableMonitor muss an einem Tisch haengen"
 
-    # Dublette aufloesen, damit `has_one` eindeutig ist — sonst liefert jeder Zugriff
-    # potenziell einen anderen Record und der Test misst Zufall.
-    all = TableLocal.where(table_id: table.id).order(:id).to_a
-    keeper = all.first || TableLocal.new(table: table)
-    TableLocal.where(table_id: table.id).where.not(id: keeper.id).delete_all if keeper.persisted?
-
+    keeper = TableLocal.find_by(table_id: table.id) || TableLocal.new(table: table)
     keeper.unprotected = true
     keeper.locale = locale
     keeper.save!

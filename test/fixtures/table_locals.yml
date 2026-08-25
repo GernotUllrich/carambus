@@ -15,7 +15,9 @@ one:
   ip_address: MyString
   table_id: 50000001
 
-two:
-  tpl_ip_address: MyString
-  ip_address: MyString
-  table_id: 50000001
+# Bewusst NUR EIN Eintrag. Bis 40-01 stand hier ein zweiter (`two`) mit derselben
+# `table_id: 50000001` — `Table has_one :table_local` griff dann nicht deterministisch einen
+# davon heraus (gemessen: `table.table_local` und `table_monitor.table.table_local` lieferten
+# im selben Test verschiedene Records). Der Unique-Index auf `table_locals.table_id` laesst das
+# jetzt ohnehin nicht mehr zu. `tables(:two)` bleibt absichtlich ohne TableLocal — der
+# Controller-Test braucht einen freien Tisch zum Anlegen.
