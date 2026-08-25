@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_08_17_140000) do
+ActiveRecord::Schema[7.2].define(version: 2026_08_25_110845) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -1354,6 +1354,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_08_17_140000) do
     t.boolean "allow_follow_up", default: true, null: false
     t.boolean "allow_overflow"
     t.string "kickoff_switches_with"
+    t.string "locale"
   end
 
   create_table "tournament_plan_ccs", force: :cascade do |t|

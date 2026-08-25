@@ -47,6 +47,18 @@ class TournamentMonitor < ApplicationRecord
 
   serialize :data, coder: JSON, type: Hash
 
+  # Plan 40-01: Anzeigesprache des Scoreboards, an das Turnier gebunden.
+  #
+  # `nil` = nicht konfiguriert ⇒ die Aufloesung faellt auf die bestehende Kette zurueck
+  # (params → user → header → default). Ein ausdrueckliches "de" ist davon verschieden und
+  # gewinnt am Scoreboard auch gegen einen abweichenden URL-Parameter.
+  #
+  # Bewusst KEINE Ableitung aus der "Internationalitaet" des Turniers: gemessen am ausloesenden
+  # Fall (CEB Ladies BC-Wedel, 2026-08) ist die nicht erkennbar — `type` nil, kein
+  # `international_tournament_id`, Region NBV, `source_kind` "carambus", also von einem
+  # gewoehnlichen Vereinsturnier ununterscheidbar. Der Turnierleiter setzt es explizit.
+  validates :locale, inclusion: {in: I18n.available_locales.map(&:to_s)}, allow_nil: true
+
   before_save :log_state_change
   before_save :set_paper_trail_whodunnit
 

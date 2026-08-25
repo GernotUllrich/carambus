@@ -203,10 +203,36 @@ class ApplicationController < ActionController::Base
   end
 
   def set_locale
-    I18n.locale = locale_from_params ||
+    I18n.locale = locale_from_scoreboard ||
+                  locale_from_params ||
                   locale_from_user ||
                   locale_from_header ||
                   I18n.default_locale
+  end
+
+  # Plan 40-01: Am Scoreboard schlaegt die konfigurierte Turniersprache den URL-Parameter.
+  #
+  # Grund: die acht Pis rufen ihre Seite mit `?locale=` auf, aber derselbe Parameter erreicht
+  # den Broadcast-Pfad (TableMonitorJob) NIE — der rendert ohne Request. Solange der Parameter
+  # gewinnt, waere die Anzeige beim Aufruf anders als nach dem ersten Live-Update. Die
+  # Konfiguration ist die einzige Quelle, die beide Pfade kennen.
+  #
+  # Greift NUR, wenn sich aus den Params ein TableMonitor ergibt. Auf allen anderen Seiten
+  # bleibt die Kette params → user → header → default unveraendert.
+  def locale_from_scoreboard
+    scoreboard_table_monitor&.display_locale&.to_s
+  end
+
+  # Aufloesung aus den Params, nicht aus @table_monitor: `set_locale` ist ein before_action des
+  # ApplicationControllers und laeuft VOR `set_table_monitor` der Subklasse — und im
+  # LocationsController wird @table_monitor sogar erst in der Action gesetzt
+  # (locations_controller.rb:344).
+  def scoreboard_table_monitor
+    if controller_name == "table_monitors" && params[:id].present?
+      TableMonitor.find_by(id: params[:id])
+    elsif params[:table_id].present?
+      Table.find_by(id: params[:table_id])&.table_monitor
+    end
   end
 
   def locale_from_params

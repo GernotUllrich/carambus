@@ -63,6 +63,27 @@ class TableMonitor < ApplicationRecord
     table&.stream_configuration&.active?
   end
 
+  # Plan 40-01: die EINE Stelle, an der die Anzeigesprache dieses Scoreboards aufgeloest wird.
+  #
+  # Alle drei Renderpfade nutzen sie — Request (ApplicationController#set_locale), Reflex
+  # (ApplicationReflex#before_reflex) und Broadcast (TableMonitorJob). Bewusst nicht dreimal
+  # dieselbe Kette: die liefen sonst beim naechsten Umbau auseinander, und genau dieses
+  # Auseinanderlaufen ist der heutige Fehler — der URL-Parameter erreicht den Job nie, weil
+  # der ueber `ApplicationController.render` ohne Request arbeitet.
+  #
+  # Liefert `nil`, wenn nichts konfiguriert ist. Der Aufrufer faellt dann auf seine bisherige
+  # Kette zurueck; ein `nil` ist also kein Fehlerfall, sondern der Normalfall.
+  #
+  # `tournament_monitor` ist polymorph und optional: ein freies Spiel hat gar keinen, ein
+  # Liga-Spiel einen PartyMonitor OHNE locale-Spalte. Deshalb `respond_to?` statt einer
+  # Typpruefung — wer spaeter eine Sprache am PartyMonitor ergaenzt, bekommt sie hier gratis.
+  def display_locale
+    configured = tournament_monitor.locale if tournament_monitor.respond_to?(:locale)
+    return nil if configured.blank?
+
+    configured.to_sym
+  end
+
   before_create :on_create
   before_save :log_state_change
   # Invariante: im AASM-Zustand set_over MUSS panel_state "protocol_final" sein, damit das
