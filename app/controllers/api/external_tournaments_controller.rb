@@ -130,6 +130,39 @@ module Api
     # external_id und die Partie, die gerade am Tisch liegt. NICHT die Historie -- Carambus
     # haelt bewusst nur die laufende Runde (die Turnierfuehrung liegt bei der App). Wer den
     # kompletten Turnierstand braucht, ist auf die lokale Sicherung der App angewiesen.
+    # Plan 41-01: Ergebnisarchiv. Die App liefert eine FERTIGE Tabelle (sie bestimmt ihre
+    # Spalten selbst — jede Disziplin hat andere), Carambus legt sie als lokale Seedings und
+    # ArchivedGames ab und rendert sie mit der vorhandenen Turnierseite.
+    #
+    # Aufloesung von Region und Turnier bewusst wie in `round_result` — kein zweiter Weg.
+    def tournament_result
+      region = Region.find_by!(shortname: params[:region].to_s.upcase)
+      tournament = resolve_external_tournament(params, region)
+      # Kein zusaetzlicher Region-Check: `resolve_external_tournament` filtert bereits auf
+      # `region_id` (s. dort) — ein Turnier fremder Region kommt hier als nil an und wird 404.
+      return render json: {error: "Tournament not found"}, status: :not_found if tournament.nil?
+
+      result = ExternalTournament::TournamentResultArchiver.new(
+        tournament: tournament,
+        region: region,
+        payload: tournament_result_params
+      ).call
+
+      render json: {
+        schema: "carambus.tournament_result/v1",
+        region: {shortname: region.shortname},
+        tournament: {id: tournament.id, external_id: tournament.data.is_a?(Hash) ? tournament.data["external_id"] : nil},
+        seedings_written: result[:seedings_written],
+        games_written: result[:games_written],
+        players_unmatched: result[:players_unmatched],
+        archived: true
+      }
+    rescue ActiveRecord::RecordNotFound => e
+      render json: {error: e.message}, status: :not_found
+    rescue ActiveRecord::RecordInvalid => e
+      render json: {error: e.message}, status: :unprocessable_entity
+    end
+
     def round_result
       region = Region.find_by!(shortname: params[:region].to_s.upcase)
       tournament_cc = nil
@@ -797,6 +830,28 @@ module Api
     private
 
     # Plan 17-05: region-scoped Tournament-Resolve (tournament_id ODER tournament.external_id).
+    # Plan 41-01: Strong Parameters fuer das Ergebnisarchiv.
+    #
+    # `columns: {}` erlaubt BELIEBIGE Keys — das ist hier Absicht und Vertragsbestandteil:
+    # die App bestimmt ihre Spalten selbst, weil jede Disziplin andere hat (Dreiband liefert
+    # GD/HS, Pool etwas voellig anderes). Verbindlich ist allein `Rank` als Integer, und den
+    # setzt der Archiver aus `rank`, nicht aus `columns`.
+    def tournament_result_params
+      params.permit(
+        :region, :tournament_id, :scheme, :title,
+        tournament: [:external_id],
+        standings: [
+          :rank, :position,
+          {player: [:cc_id, :dbu_nr, :firstname, :lastname, :club_cc_id]},
+          {columns: {}}
+        ],
+        games: [
+          :gname, :seqno, :group_no, :round_no, :table_no, :started_at, :ended_at,
+          {columns: {}}
+        ]
+      )
+    end
+
     def resolve_external_tournament(payload, region)
       if payload[:tournament_id].present?
         Tournament.find_by(id: payload[:tournament_id], region_id: region.id)

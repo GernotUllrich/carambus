@@ -48,7 +48,25 @@ class Seeding < ApplicationRecord
       transitions to: :registered
     end
   end
-  belongs_to :player
+  # Plan 41-01: Player ist fuer GLOBALE Seedings weiterhin Pflicht, fuer LOKALE nicht.
+  #
+  # Anlass ist das Ergebnisarchiv von carambus_app: ein internationales Feld enthaelt
+  # Spielerinnen ohne `dbu_nr` und ohne cc_id, die der PlayerMatcher nicht aufloest. Sie duerfen
+  # laut Vertrag NICHT angelegt werden (kein Create in den Spielerstamm), ihre Zeile soll aber
+  # im Endstand stehen — der Name steht ohnehin in `data["result"]`.
+  #
+  # Warum nicht generell `optional: true`: auf der Authority entstehen Seedings aus dem
+  # CC-Scrape, dort IST der Spieler bekannt, und ein fehlender waere ein Datenfehler, den die
+  # Validierung zu Recht meldet. Ausserdem wuerde eine generelle Lockerung zusammen mit der
+  # geplanten `left_joins`-Anzeige (41-02) die 2 017 verwaisten Alt-Seedings sichtbar machen
+  # (1 227 davon mit Ergebnisdaten ueber 1 161 Turniere, 2009–2024) — eine Anzeigeaenderung an
+  # fremden Turnieren, die niemand bestellt hat.
+  #
+  # Zwei Faelle deckt `local_seeding?` ab: bereits gespeicherte lokale Records (id >= MIN_ID)
+  # und NEUE auf einem lokalen Server — dort ist `id` zur Validierungszeit noch nil, weil die
+  # Sequence sie erst beim Insert vergibt.
+  belongs_to :player, optional: true
+  validates :player, presence: true, unless: :local_seeding?
   belongs_to :tournament, polymorphic: true, optional: true
   belongs_to :playing_discipline, class_name: "Discipline", foreign_key: :playing_discipline_id, optional: true
   belongs_to :league_team, optional: true
@@ -62,6 +80,11 @@ class Seeding < ApplicationRecord
   validate :exactly_one_association
 
   after_create :loggit
+
+  # s. Kommentar an `belongs_to :player`
+  def local_seeding?
+    (id.present? && id >= MIN_ID) || (new_record? && ApplicationRecord.local_server?)
+  end
 
   acts_as_list scope: :tournament
 

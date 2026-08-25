@@ -109,6 +109,12 @@ Rails.application.routes.draw do
         to: "external_tournaments#round_result",
         as: :external_tournament_round_result
 
+    # Plan 41-01: Ergebnisarchiv — die App schickt Endstand + Spieletabelle, Carambus legt sie
+    # als lokale Records ab. Idempotent, bewusst mehrfach waehrend des Turniers aufrufbar.
+    post "external_tournament/tournament_result",
+         to: "external_tournaments#tournament_result",
+         as: :external_tournament_tournament_result
+
     # Plan 15-06: External-Tournament-Bridge Tables-Discovery-Endpoint (devise-jwt, read-only)
     # R1: liefert echte Table#name-Strings + table_kind + has_monitor pro Location,
     # damit externe Apps Tisch-Namen nicht raten müssen (D-15-06-A supersedes D-15-03-A).
