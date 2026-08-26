@@ -316,6 +316,7 @@ Rails.application.routes.draw do
       get :up
       get :down
       get :toggle_dark_mode
+      get :toggle_locale
     end
   end
   resources :settings do

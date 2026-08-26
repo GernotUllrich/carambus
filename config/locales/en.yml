@@ -681,6 +681,8 @@ en:
     max_frames: "max. %{count} frames"
     halted: Halted
     inning: Inning
+    toggle_locale: "Switch language"
+    locale_from_tournament: "Language set by the tournament"
     follow_up: Follow-up
     finish_follow_up: "Finish game? Touch here"
     undo: back
@@ -1769,3 +1771,10 @@ en:
     errors:
       generic: "An error occurred. Please try again."
       no_docs_found: "No answer found in the documentation."
+  table_locals:
+    locale_unset: "— not set"
+  # Plan 40-02: `locales:` fehlte in en.yml — der Sprachumschalter und die neuen Sprach-Selects
+  # fielen dort auf die deutschen Namen zurueck ("Englisch" statt "English").
+  locales:
+    de: "German"
+    en: "English"

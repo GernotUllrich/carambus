@@ -34,6 +34,10 @@ de:
       tournament_phase: "Turnierphase"
       playing: "Spielt"
       start_tournament: "Turnier starten"
+      display_language: "Anzeigesprache der Scoreboards"
+      display_language_unset: "— nicht gesetzt (die Tischsprache gilt)"
+      display_language_hint: "Gilt für alle Tische dieses Turniers und bleibt über Live-Updates hinweg bestehen. Ist nichts gesetzt, entscheidet die am Tisch hinterlegte Sprache."
+      display_language_save: "Sprache speichern"
     index:
       tournament_monitors: "Turniermonitore"
       tournamentmonitorversions: "Turniermonitor Versionen"

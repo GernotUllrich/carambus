@@ -700,6 +700,8 @@ de:
     max_frames: "maximal %{count} Frames"
     halted: Angehalten
     inning: Aufnahme
+    toggle_locale: "Sprache umschalten"
+    locale_from_tournament: "Sprache vom Turnier vorgegeben"
     follow_up: Nachstoß
     finish_follow_up: "Spiel werten? Hier tippen"
     undo: zurück
@@ -1665,6 +1667,8 @@ de:
     actions:
       cancel: "Abbrechen"
   documentation_not_available: Dokumentation nicht verfügbar
+  table_locals:
+    locale_unset: "— nicht gesetzt"
   locales:
     en: Englisch
     de: Deutsch

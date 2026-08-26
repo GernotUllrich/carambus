@@ -23,5 +23,9 @@ class TableLocal < ApplicationRecord
 
   # Plan 40-01: Grundsprache dieses Tisches — greift, wenn kein Turnier laeuft (Training) oder
   # das laufende Turnier keine eigene Sprache gesetzt hat. `nil` = nicht konfiguriert.
+  # Plan 40-02: ein leeres Select-Feld liefert "", nicht nil — und "" waere nach der
+  # Validierung unten UNGUELTIG (`allow_nil` greift dort nicht). Ohne diese Normalisierung
+  # koennte der Turnierleiter die Sprache nicht wieder auf "nicht gesetzt" zuruecksetzen.
+  normalizes :locale, with: ->(value) { value.presence }
   validates :locale, inclusion: {in: I18n.available_locales.map(&:to_s)}, allow_nil: true
 end

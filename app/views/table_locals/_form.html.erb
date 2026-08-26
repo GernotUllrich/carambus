@@ -11,6 +11,21 @@
     <%= form.text_field :ip_address, class: "form-control" %>
   </div>
 
+  <%# Plan 40-02: Grundsprache dieses Tisches. Greift, wenn kein Turnier laeuft oder das
+      laufende Turnier keine eigene Sprache gesetzt hat. Leer = nicht konfiguriert. %>
+  <div class="form-group">
+    <%= form.label :locale %>
+    <%= form.select :locale,
+                    options_for_select(
+                      [[t("table_locals.locale_unset"), ""],
+                       [t("locales.de"), "de"],
+                       [t("locales.en"), "en"]],
+                      form.object.locale.to_s
+                    ),
+                    {},
+                    class: "form-control" %>
+  </div>
+
   <div class="form-group">
     <%= form.label :table_id %>
     <%= form.number_field :table_id, class: "form-control" %>

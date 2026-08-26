@@ -84,7 +84,9 @@ class TableLocalsController < ApplicationController
 
   # Only allow a list of trusted parameters through.
   def table_local_params
-    params.require(:table_local).permit(:tpl_ip_address, :ip_address, :table_id)
+    # Plan 40-02: :locale = Grundsprache dieses Tisches (Trainingsbetrieb). Leerer Wert kommt
+    # durch die Normalisierung im Modell als nil an und heisst "nicht konfiguriert".
+    params.require(:table_local).permit(:tpl_ip_address, :ip_address, :table_id, :locale)
 
     # Uncomment to use Pundit permitted attributes
     # params.require(:table_local).permit(policy(@table_local).permitted_attributes)

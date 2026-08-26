@@ -161,22 +161,17 @@
   })();
 </script>
 
-<!-- Language Switcher Bottom Right (+ fullscreen toggle left) -->
-<% if I18n.locale.to_s == "de" %>
-  <div style="position: fixed; bottom: 20px; right: 20px; z-index: 1001;" class="flex items-center space-x-4">
-    <%= custom_link_to "javascript:tryResizeWindow()", :"data-turbo" => false do %>
-      <%= fa_icon "expand", weight: "fa-solid", id: "fullscreen-toggle-bottom", class: "responsive-svg fill-current icon-lg text-white inline-block", title: "toggle fullscreen / resize window" %>
-    <% end %>
-    <%= custom_link_to image_tag("flag_de.png", style: "width: 40px; height: 28px;"), { :locale => 'en' }, id: "language", data: { turbo: false }, tabindex: 0 %>
-  </div>
-<% else %>
-  <div style="position: fixed; bottom: 20px; right: 20px; z-index: 1001;" class="flex items-center space-x-4">
-    <%= custom_link_to "javascript:tryResizeWindow()", :"data-turbo" => false do %>
-      <%= fa_icon "expand", weight: "fa-solid", id: "fullscreen-toggle-bottom", class: "responsive-svg fill-current icon-lg text-white inline-block", title: "toggle fullscreen / resize window" %>
-    <% end %>
-    <%= custom_link_to image_tag("flag_en.png", style: "width: 40px; height: 28px;"), { :locale => 'de' }, id: "language", data: { turbo: false }, tabindex: 0 %>
-  </div>
-<% end %>
+<%# Plan 40-02: Der ortsweite Flaggen-Link ist entfallen. Er setzte nur `?locale=` — seit 40-01
+    entscheidet am Tisch-Scoreboard die gespeicherte Sprache, und die wird jetzt dort umgeschaltet
+    (Sprach-Icon in der Scoreboard-Icon-Leiste) bzw. am Turnier. Die Sprachwahl der WEBSITE traegt
+    unveraendert `shared/_language_switcher` im Footer jeder normalen Seite.
+    Damit faellt auch die if/else-Verzweigung weg: beide Zweige waren bis auf die Flagge gleich. %>
+<!-- Fullscreen toggle bottom right -->
+<div style="position: fixed; bottom: 20px; right: 20px; z-index: 1001;" class="flex items-center space-x-4">
+  <%= custom_link_to "javascript:tryResizeWindow()", :"data-turbo" => false do %>
+    <%= fa_icon "expand", weight: "fa-solid", id: "fullscreen-toggle-bottom", class: "responsive-svg fill-current icon-lg text-white inline-block", title: "toggle fullscreen / resize window" %>
+  <% end %>
+</div>
 
 <div class="p-14 w-full m-auto flex items-end flex-col bg-cover h-screen bg-center bg-no-repeat" style="background-image: url('<%= @location.background_image %>')">
   <h1 style="text-shadow: 2px 2px #000000" class="text-4vw flex mb-2 text-gray-200 "><%= t('welcome') + " - #{@location.name}" %></h1>

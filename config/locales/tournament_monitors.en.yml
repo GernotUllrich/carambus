@@ -34,6 +34,10 @@ en:
       tournament_phase: "Tournament Phase"
       playing: "Playing"
       start_tournament: "Start Tournament"
+      display_language: "Scoreboard display language"
+      display_language_unset: "— not set (the table language applies)"
+      display_language_hint: "Applies to every table of this tournament and persists across live updates. If nothing is set, the language configured at the table decides."
+      display_language_save: "Save language"
     index:
       tournament_monitors: "Tournament Monitors"
       tournamentmonitorversions: "Tournament Monitor Versions"

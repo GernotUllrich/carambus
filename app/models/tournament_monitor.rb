@@ -57,6 +57,10 @@ class TournamentMonitor < ApplicationRecord
   # Fall (CEB Ladies BC-Wedel, 2026-08) ist die nicht erkennbar — `type` nil, kein
   # `international_tournament_id`, Region NBV, `source_kind` "carambus", also von einem
   # gewoehnlichen Vereinsturnier ununterscheidbar. Der Turnierleiter setzt es explizit.
+  # Plan 40-02: ein leeres Select-Feld liefert "", nicht nil — und "" waere nach der
+  # Validierung unten UNGUELTIG (`allow_nil` greift dort nicht). Ohne diese Normalisierung
+  # koennte der Turnierleiter die Sprache nicht wieder auf "nicht gesetzt" zuruecksetzen.
+  normalizes :locale, with: ->(value) { value.presence }
   validates :locale, inclusion: {in: I18n.available_locales.map(&:to_s)}, allow_nil: true
 
   before_save :log_state_change
