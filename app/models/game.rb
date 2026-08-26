@@ -29,6 +29,14 @@ class Game < ApplicationRecord
   # belongs_to :tournament, polymorphic: true, optional: true
   belongs_to :tournament, optional: true
   has_many :game_participations, dependent: :destroy
+
+  # Alles ausser den Archiv-Zeilen aus dem App-Ergebnisarchiv (Phase 41).
+  #
+  # ⚠️ NICHT `where.not(type: "ArchivedGame")`: bei STI ist `type` fuer gewoehnliche Games NULL,
+  # und `NOT (type = 'x')` ist bei NULL nicht wahr — der naive Filter wuerde ausgerechnet die
+  # LIVE-Spiele herauswerfen. Die Falle stand vorher an mehreren Stellen ausgeschrieben; hier
+  # ist ihr Zuhause.
+  scope :without_archive, -> { where("games.type IS NULL OR games.type != ?", "ArchivedGame") }
   has_one :table_monitor, dependent: :nullify
   has_one :was_table_monitor, foreign_key: :prev_game_id, class_name: "TableMonitor", dependent: :nullify
 

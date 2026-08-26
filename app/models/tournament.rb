@@ -420,7 +420,10 @@ class Tournament < ApplicationRecord
       # http = TCPServer.new nil, 80
       # DNSSD.announce http, 'carambus server'
       # Setting.key_set_val(:carambus_server_status, "ready to accept connections from scoreboards")
-      games.where("games.id >= #{Game::MIN_ID}").destroy_all
+      # `.without_archive`: ein Turnier-Neustart raeumt die LIVE-Spiele ab, nicht das
+      # Ergebnisarchiv. Gemessen 2026-08-26 auf bcw — vier erfolgreiche Pushes, null Partien
+      # in der DB, weil ein Neuaufsetzen sie mitnahm. `durable` haette weiter `true` gemeldet.
+      games.where("games.id >= #{Game::MIN_ID}").without_archive.destroy_all
       unless tournament_monitor.present?
         # Erstelle TournamentMonitor mit initialisierten Parametern vom Tournament
         # DB-Defaults sind korrekt gesetzt, daher keine nil-Checks nötig
@@ -507,7 +510,7 @@ class Tournament < ApplicationRecord
         end
       end
     end
-    games.where("games.id >= #{Game::MIN_ID}").destroy_all
+    games.where("games.id >= #{Game::MIN_ID}").without_archive.destroy_all
     unless new_record? || (id.present? && id > Seeding::MIN_ID)
       self.unprotected = true
 

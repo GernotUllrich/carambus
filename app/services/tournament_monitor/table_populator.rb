@@ -537,7 +537,8 @@ class TournamentMonitor::TablePopulator
       fixed_display_left: @tournament_monitor.fixed_display_left.presence || @tournament_monitor.tournament.andand.fixed_display_left || "",
       color_remains_with_set: @tournament_monitor.color_remains_with_set.nil? ? @tournament_monitor.tournament.andand.color_remains_with_set : @tournament_monitor.color_remains_with_set
     )
-    @tournament_monitor.tournament.games.where("games.id >= #{Game::MIN_ID}").destroy_all
+    # `.without_archive`: das App-Ergebnisarchiv ueberlebt den Aufbau der TableMonitors (s. tournament.rb)
+    @tournament_monitor.tournament.games.where("games.id >= #{Game::MIN_ID}").without_archive.destroy_all
     # table_monitors.destroy_all
     @tournament_monitor.update(data: {}) unless @tournament_monitor.new_record?
     @tournament_plan ||= @tournament_monitor.tournament.tournament_plan

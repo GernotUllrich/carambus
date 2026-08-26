@@ -30,6 +30,13 @@ module ExternalTournament
     # Diese Konstante ist KEINE Pflegeangabe: `app_tournament_cleaner_archive_test.rb` koppelt
     # sie an das tatsaechliche Verhalten und faellt, wenn beide auseinanderlaufen — in BEIDE
     # Richtungen. Plan 41-02 setzt sie auf true und dreht die Testrichtung mit.
+    #
+    # NACHTRAG 2026-08-26: Die Konstante deckt den SWEEP ab, nicht jeden Loeschpfad. Ein
+    # Turnier-Neustart raeumte die Archiv-Partien trotzdem mit ab — drei Stellen loeschten
+    # bedingungslos `games.where("id >= MIN_ID")`. Gemessen auf bcw: vier erfolgreiche Pushes,
+    # NULL Partien in der DB, `durable: true` weiterhin gemeldet. Behoben ueber den Scope
+    # `Game.without_archive`; `tournament_archive_survives_reset_test.rb` haelt alle drei Pfade
+    # fest. Wer hier eine weitere Zusage aufmacht, pruefe zuerst, WELCHE Loeschpfade sie deckt.
     ARCHIVE_AWARE = true
 
     def self.cleanup(tournament)
