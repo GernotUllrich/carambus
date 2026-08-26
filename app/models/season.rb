@@ -22,8 +22,12 @@ class Season < ApplicationRecord
   has_many :season_ccs
   has_many :leagues
 
-  @year = (Date.today - 6.month).year
-  @current_season = Season.find_by_name("#{@year}/#{@year + 1}")
+  # Kein DB-Zugriff zur Class-Load-Zeit: beim ersten Laden kann die seasons-Tabelle
+  # noch leer sein (frisch aufgebaute Test-DB, leere Instanz). Das damals memoisierte
+  # nil blieb fuer die gesamte Prozesslaufzeit stehen, weil current_season nur beim
+  # Jahreswechsel nachgeladen hat. Memoisierung passiert daher lazy in current_season.
+  @year = nil
+  @current_season = nil
 
   REFLECTION_KEYS = %w[tournaments season_participations]
   MAX_BA_SEASON = "2021/2022"
@@ -48,12 +52,13 @@ class Season < ApplicationRecord
   end
 
   def self.current_season
-    if (Date.today - 6.month).year != @year
-      @year = (Date.today - 6.month).year
-      @current_season = Season.find_by_name("#{@year}/#{@year + 1}")
+    year = (Date.today - 6.month).year
+    if @current_season.nil? || year != @year
+      @year = year
+      @current_season = Season.find_by_name("#{year}/#{year + 1}")
       unless @current_season.present?
         Season.update_seasons
-        @current_season = Season.find_by_name("#{@year}/#{@year + 1}")
+        @current_season = Season.find_by_name("#{year}/#{year + 1}")
       end
     end
     @current_season
