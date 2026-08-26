@@ -88,7 +88,16 @@
   <div class="seedings-table-container">
     <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3 mt-6"><%= I18n.t("tournaments.show.rankings") %></h2>
       <div class="flex flex-col gap-6 bg-surface-card dark:bg-gray-800 rounded-card border border-gray-200 dark:border-gray-700 p-4 overflow-x-auto">
-        <%- lists = @tournament.effective_seedings.joins(:player).order("players.lastname, players.firstname").map { |s| s.data["result"].keys rescue [] }.inject([]) { |a, memo| memo |= a; memo } %>
+        <%# Plan 41-02: left_joins statt joins. Diese Zeile sammelt die LISTENNAMEN; ein INNER %>
+        <%# JOIN auf players liess Seedings ohne player_id nicht beitragen. Solange mindestens %>
+        <%# ein Seeding mit Player dieselbe Liste traegt, fiel das nicht auf — die Zeilen %>
+        <%# darunter rendern ohne Join. Ist aber KEINE Spielerin aufloesbar (internationales %>
+        <%# Feld ohne dbu_nr, genau der Fall des Ergebnisarchivs), wurde die Liste nie %>
+        <%# gesammelt und die Tabelle blieb komplett leer. %>
+        <%# Die Sortierung bleibt: sie haelt die Reihenfolge mehrerer Listen stabil. Zeilen %>
+        <%# ohne Player sortiert Postgres bei ASC ans Ende — die Tabellenzeilen selbst werden %>
+        <%# ohnehin nach Rank sortiert (s. unten), nicht nach Spielernamen. %>
+        <%- lists = @tournament.effective_seedings.left_joins(:player).order("players.lastname, players.firstname").map { |s| s.data["result"].keys rescue [] }.inject([]) { |a, memo| memo |= a; memo } %>
         <%- lists.each do |list| %>
           <div class="flex flex-col">
             <h3><%= list %></h3>
@@ -128,7 +137,19 @@
 
   <!-- Games Section -->
   <%# Plan 32-03: has_local_seedings? entscheidet lokale vs. globale Games (Game-Scope bleibt games.id-basiert) %>
-  <%- game_scope = @tournament.has_local_seedings? ? "games.id >= #{Game::MIN_ID}" : "games.id < #{Game::MIN_ID}" %>
+  <%# Plan 41-02: Archiv-Zeilen (ArchivedGame) und Live-Games duerfen NICHT gemischt werden — %>
+  <%# die Spaltenkoepfe stammen aus data.keys des ERSTEN Records, und Live-Games tragen dort %>
+  <%# TableMonitor-State (playera, innings_list), Archiv-Zeilen die Fachspalten der App. %>
+  <%# Sobald ein Archiv existiert, zeigt die Seite dieses: nach dem Turnier will man den %>
+  <%# Endstand sehen, nicht den Monitor-Zustand. Ohne Archiv bleibt alles wie bisher. %>
+  <%- has_archive = @tournament.games.where(type: "ArchivedGame").exists? %>
+  <%- game_scope = if has_archive
+        "games.type = 'ArchivedGame'"
+      elsif @tournament.has_local_seedings?
+        "games.id >= #{Game::MIN_ID} AND (games.type IS NULL OR games.type != 'ArchivedGame')"
+      else
+        "games.id < #{Game::MIN_ID}"
+      end %>
   <div class="seedings-table-container">
     <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3 mt-6"><%= I18n.t("tournaments.show.games") %></h2>
       <div class="bg-surface-card dark:bg-gray-800 rounded-card border border-gray-200 dark:border-gray-700 p-4 overflow-x-auto">
