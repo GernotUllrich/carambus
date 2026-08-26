@@ -56,6 +56,23 @@ class SeasonTest < ActiveSupport::TestCase
     assert_nil orphan.previous
   end
 
+  # Regression: current_season memoisierte frueher schon zur Class-Load-Zeit. Auf einer
+  # frisch aufgebauten Test-DB ist die seasons-Tabelle in diesem Moment leer (Fixtures
+  # kommen erst danach), das memoisierte nil blieb mangels Jahreswechsel den ganzen
+  # Prozess stehen — und liess genau den ersten Lauf nach db:test:prepare rot werden.
+  test "current_season laedt nach, wenn der Memo-Cache leer ist (Jahr unveraendert)" do
+    prior_season = Season.instance_variable_get(:@current_season)
+    prior_year = Season.instance_variable_get(:@year)
+    # Zustand nach Class-Load auf leerer DB nachstellen: Jahr gesetzt, Saison nil.
+    Season.instance_variable_set(:@current_season, nil)
+    Season.instance_variable_set(:@year, (Date.today - 6.months).year)
+
+    assert_equal @current.name, Season.current_season&.name
+  ensure
+    Season.instance_variable_set(:@current_season, prior_season)
+    Season.instance_variable_set(:@year, prior_year)
+  end
+
   # Plan 39-01: der Rollover legte die Vereinszugehoerigkeiten als `status: "temporary"` in
   # die Folgesaison — 5 125 unbelegte Mitgliedschaften, die ueber `Player#club` (ohne
   # Status-Filter) auf der oeffentlichen Seite als Tatsachen erschienen. Stillgelegt am
