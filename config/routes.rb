@@ -366,6 +366,10 @@ Rails.application.routes.draw do
   # Die kalender-eigenen Achsen bleiben Query-Parameter, damit ein Blatt teilbar ist:
   # month, dbu, view, kind, group, discipline.
   get "calendar", to: "calendars#show", as: :calendar
+  # Nachschub fuer den Kalender-Strom (42-04): eine Reihe Monatskacheln als HTML-Fragment.
+  # `from` = Monat, von dem aus geladen wird (exklusiv), `count` positiv = spaeter, negativ =
+  # frueher. Ausschnitt kommt aus der Session, nur die Achsen stehen im URL.
+  get "calendar/months", to: "calendars#months", as: :calendar_months
 
   resources :seasons
   resources :table_kinds

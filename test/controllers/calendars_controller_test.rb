@@ -37,6 +37,12 @@ class CalendarsControllerTest < ActionDispatch::IntegrationTest
     liga.reload
   end
 
+  # Haengt einem Turnier eine Turniergruppe an (championship_type_cc_name, siehe query.rb).
+  def gruppe!(offset, tournament, name)
+    TournamentCc.create!(id: BASE_ID + offset, tournament: tournament,
+      championship_type_cc_name: name, name: tournament.title)
+  end
+
   test "die Kalenderseite ist ohne Login erreichbar" do
     kalender(month: @monat)
     assert_response :success
@@ -167,6 +173,74 @@ class CalendarsControllerTest < ActionDispatch::IntegrationTest
       "ausserhalb des NBV ist category_cc_id durchgaengig nil — ein leerer Selektor waere Ballast")
   end
 
+  # --- Selektor-Optionen kommen aus dem Ausschnitt, nicht aus dem Zeitfenster ------------------
+
+  # Betreiber-Befund 2026-08-27: "NordCup" waehlen, in einen Monat ohne NordCup blaettern — und
+  # die Option verschwand aus der Leiste, obwohl der Filter weiter griff. Man sah nicht mehr,
+  # worauf man eingeschraenkt hatte.
+  test "eine Gruppe bleibt waehlbar, auch wenn der angezeigte Monat sie nicht hergibt" do
+    frueh = Date.current.beginning_of_month + 9
+    spaet = (Date.current + 3.months).beginning_of_month + 9
+
+    nordcup = Tournament.create!(id: BASE_ID + 50, title: "NordCup Dreiband", season: @season,
+      organizer: @region, organizer_type: "Region", region_id: @region.id,
+      discipline: disciplines(:pool_8ball), date: spaet.to_time + 11.hours)
+    gruppe!(51, nordcup, "NordCup")
+    anderes = Tournament.create!(id: BASE_ID + 52, title: "NDM Freie Partie", season: @season,
+      organizer: @region, organizer_type: "Region", region_id: @region.id,
+      discipline: disciplines(:pool_8ball), date: frueh.to_time + 11.hours)
+    gruppe!(53, anderes, "NDM")
+
+    # Angezeigt wird der Monat OHNE NordCup.
+    kalender(scope: {region: @region.id}, month: frueh.strftime("%Y-%m"))
+    assert_response :success
+    assert_match(/NordCup/, response.body,
+      "die Gruppe gehoert weiter in die Leiste — sonst sieht man nicht, worauf man filtern kann")
+
+    # Und mit gesetztem Filter erst recht: sonst waere der aktive Filter unsichtbar.
+    kalender(month: frueh.strftime("%Y-%m"), group: "NordCup")
+    assert_response :success
+    assert_match(/NordCup/, response.body,
+      "ein GESETZTER Filter darf nie aus der Leiste verschwinden")
+  end
+
+  # Betreiber-Befund 2026-08-27: "Karambol", "Karambol grosses/kleines Billard" standen im
+  # Disziplin-Selektor und lieferten nichts. Ursache: die Optionen kamen aus der Ligentabelle
+  # ohne Datumsfilter, der NBV hat in 26/27 aber null Spieltage.
+  test "eine Liga-Disziplin ohne Spieltage im Zeitraum wird nicht angeboten" do
+    # Zwei Turniere verschiedener Disziplin, damit der Selektor ueberhaupt rendert — bei nur
+    # EINER Option bleibt er absichtlich weg (Regel aus 42-02).
+    turnier!(56, "NDM 8-Ball", discipline: disciplines(:pool_8ball))
+    turnier!(57, "NDM 9-Ball", discipline: disciplines(:pool_9ball))
+
+    liga = liga_ohne_stempel!(54, "Verbandsliga Karambol", discipline: disciplines(:karambol_cadre_35_2))
+    assert_equal 0, Party.where(league_id: liga.id).count, "Vorbedingung: diese Liga hat keine Spieltage"
+
+    kalender(scope: {region: @region.id}, month: @monat)
+    assert_response :success
+    assert_match(/8-Ball/, response.body, "Vorbedingung: der Selektor wird ueberhaupt gerendert")
+    refute_match(/Cadre 35\/2/, response.body,
+      "eine Disziplin, die im Zeitraum nichts hergibt, gehoert nicht in den Selektor")
+
+    # Mit Spieltag taucht sie auf.
+    Party.create!(id: BASE_ID + 55, league: liga, date: @tag.to_time + 13.hours)
+    kalender(month: @monat)
+    assert_match(/Cadre 35\/2/, response.body)
+  end
+
+  test "der Anfang-Knopf erscheint nur bei gesetzten Filtern und raeumt sie ab" do
+    kalender(scope: {region: @region.id}, month: @monat)
+    refute_match(/#{Regexp.escape(I18n.t("calendars.filter.reset"))}/, response.body,
+      "ohne gesetzte Filter waere der Knopf Zierde")
+
+    kalender(month: @monat, kind: "single", view: "stream")
+    assert_response :success
+    assert_match(/#{Regexp.escape(I18n.t("calendars.filter.reset"))}/, response.body)
+    # Der Knopf behaelt die Ansicht und wirft nur die Achsen weg.
+    assert_match(%r{/calendar\?view=stream"}, response.body,
+      "zurueck zur Anfangssicht — Ansicht bleibt, Achsen und Monat fallen weg")
+  end
+
   # --- Monatsraster: Wochenstruktur (42-03) ---------------------------------------------------
 
   # Erster Tag des angezeigten Monats mit dem gesuchten Wochentag.
@@ -178,6 +252,13 @@ class CalendarsControllerTest < ActionDispatch::IntegrationTest
 
   # Alle Spur-Definitionen im Raster — es MUESSEN zwei sein (Kopfzeile und Zellen) und sie
   # muessen gleich lauten, sonst stehen die Wochentagsnamen ueber den falschen Spalten.
+  # Die Obergrenze des Stroms — dieselbe Rechnung wie im Helper, hier unabhaengig nachgezogen,
+  # damit der Test nicht die Implementierung gegen sich selbst prueft.
+  def calendar_month_bounds_fuer_test
+    startjahr = Season.current_season.name.split("/").first.to_i
+    [Date.new(2009, 7, 1), Date.new(startjahr + 3, 6, 1)]
+  end
+
   def raster_spur_definitionen
     response.body.scan(/grid-template-columns:\s*([^;]+);/).flatten
   end
@@ -226,6 +307,109 @@ class CalendarsControllerTest < ActionDispatch::IntegrationTest
     assert_equal CalendarsHelper::SPUR_BELEGT, raster_spuren[4],
       "ein Mittwoch mit Terminen darf nicht auf Zahlenbreite gequetscht werden"
     assert_match(/DBU Mittwoch/, response.body, "und der Termin muss im Raster stehen")
+  end
+
+  # --- Kalender-Strom (42-04) -----------------------------------------------------------------
+
+  # AC-1 / AC-6 — die Erstladung steht serverseitig im HTML.
+  test "die Stromansicht zeigt mehrere Monatskacheln ohne JavaScript" do
+    turnier!(40, "NDM Freie Partie")
+
+    kalender(scope: {region: @region.id}, month: @monat, view: "stream")
+    assert_response :success
+
+    kacheln = response.body.scan(/data-month="(\d{4}-\d{2})"/).flatten
+    assert_operator kacheln.size, :>, 1, "der Strom zeigt mehr als einen Monat"
+    assert_includes kacheln, @monat, "der Einstiegsmonat gehoert dazu"
+    assert_equal kacheln.sort, kacheln, "die Kacheln stehen chronologisch"
+    assert_match(/NDM Freie Partie/, response.body)
+    # Ein leerer Monat bekommt einen Hinweis, keine leere Kachel.
+    assert_match(/#{Regexp.escape(I18n.t("calendars.stream.empty_month"))}/, response.body)
+  end
+
+  # Der Seitenkopf muss im Strom erreichbar bleiben. Automatisches Nachladen nach oben haelt die
+  # Leseposition — damit kaeme man beim Hochscrollen NIE an Scope-Band und Filterleiste an.
+  # Deshalb: Filterleiste klebt oben, und fruehere Monate kommen per Knopf.
+  test "im Strom klebt die Filterleiste oben und frueheres kommt per Knopf" do
+    kalender(scope: {region: @region.id}, month: @monat, view: "stream")
+    assert_response :success
+    assert_match(/data-action="calendar-stream#loadEarlier"/, response.body,
+      "nach oben wird per Knopf geladen, nicht automatisch")
+    assert_match(/#{Regexp.escape(I18n.t("calendars.stream.load_earlier"))}/, response.body)
+    assert_match(/border-gray-700 sticky top-0/, response.body,
+      "die Filterleiste muss im Strom kleben, sonst scrollen die Selektoren weg")
+  end
+
+  test "ausserhalb des Stroms klebt die Filterleiste nicht" do
+    kalender(scope: {region: @region.id}, month: @monat, view: "agenda")
+    assert_response :success
+    # Auf die FILTERLEISTE eingegrenzt: "sticky top-0" kommt im Layout auch anderswo vor.
+    refute_match(/border-gray-700 sticky top-0/, response.body,
+      "in Agenda und Monatsraster erreicht man den Kopf durch normales Scrollen")
+    refute_match(/calendar-stream#loadEarlier/, response.body)
+  end
+
+  test "der Nachschub-Endpoint liefert spaetere und fruehere Monate" do
+    kalender(scope: {region: @region.id}, month: @monat, view: "stream")
+
+    get calendar_months_url(from: "2026-11", count: 3)
+    assert_response :success
+    assert_equal %w[2026-12 2027-01 2027-02], response.body.scan(/data-month="([\d-]+)"/).flatten
+
+    get calendar_months_url(from: "2026-11", count: -3)
+    assert_response :success
+    assert_equal %w[2026-08 2026-09 2026-10], response.body.scan(/data-month="([\d-]+)"/).flatten,
+      "rueckwaerts aufsteigend, damit sich die Kacheln am Stueck davorsetzen lassen"
+  end
+
+  test "der Nachschub-Endpoint antwortet ohne Layout" do
+    kalender(scope: {region: @region.id}, view: "stream")
+    get calendar_months_url(from: "2026-11", count: 1)
+    assert_response :success
+    refute_match(/<html|scope-band/, response.body,
+      "das Fragment darf weder Layout noch Scope-Band mitbringen")
+  end
+
+  # AC-4 — der Strom endet an den Saisongrenzen statt ins Leere zu laufen.
+  test "der Nachschub-Endpoint liefert an den Grenzen nichts" do
+    kalender(scope: {region: @region.id}, view: "stream")
+
+    get calendar_months_url(from: "2009-07", count: -6)
+    assert_response :success
+    assert_empty response.body.scan("data-month="), "vor Juli 2009 gibt es nichts"
+
+    _, obergrenze = calendar_month_bounds_fuer_test
+    get calendar_months_url(from: obergrenze.strftime("%Y-%m"), count: 6)
+    assert_response :success
+    assert_empty response.body.scan("data-month="), "hinter der Obergrenze gibt es nichts"
+  end
+
+  # AC-5 — nachgeladene Kacheln tragen denselben Ausschnitt und dieselben Achsen.
+  test "nachgeladene Kacheln tragen Ausschnitt und Achsen der ersten Ladung" do
+    tag = Date.new(2027, 1, 9)
+    Tournament.create!(id: BASE_ID + 41, title: "Strom Turnier", season: @season,
+      organizer: @region, organizer_type: "Region", region_id: @region.id,
+      discipline: disciplines(:pool_8ball), date: tag.to_time + 11.hours)
+    liga = liga_ohne_stempel!(42, "Strom Liga")
+    Party.create!(id: BASE_ID + 43, league: liga, date: tag.to_time + 13.hours)
+
+    kalender(scope: {region: @region.id}, view: "stream")
+
+    get calendar_months_url(from: "2026-12", count: 1)
+    assert_match(/Strom Turnier/, response.body)
+    assert_match(/Strom Liga/, response.body)
+
+    # Achse "Einzel" muss auch im Nachschub greifen.
+    get calendar_months_url(from: "2026-12", count: 1, kind: "single")
+    assert_match(/Strom Turnier/, response.body)
+    refute_match(/Strom Liga/, response.body,
+      "die Achse aus dem URL muss auch fuer nachgeladene Kacheln gelten")
+
+    # Und der Ausschnitt (Sparte) aus der Session ebenso.
+    kalender(scope: {branch: disciplines(:branch_karambol).id}, view: "stream")
+    get calendar_months_url(from: "2026-12", count: 1)
+    refute_match(/Strom Turnier/, response.body,
+      "die Sparte aus dem Scope-Band muss auch fuer nachgeladene Kacheln gelten")
   end
 
   test "ein leerer Monat zeigt einen Hinweis statt einer leeren Flaeche" do

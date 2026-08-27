@@ -22,6 +22,51 @@ module CalendarsHelper
     WDAY_ORDER.map { |wday| namen[wday] }
   end
 
+  # --- Grenzen des Kalender-Stroms -----------------------------------------------------------
+  #
+  # ⚠️ Die DATENRAENDER taugen NICHT als Grenze. Gemessen am 2026-08-27: `tournaments.date` laeuft
+  # von 0001-01-03 bis 2999-09-18, `parties.date` ab 2002, und der NBV traegt einen
+  # Epoch-Null-Monat 1970-01. Ein Strom, der sich an min/max haelt, scrollt ins Jahr 1.
+  #
+  # Genommen wird deshalb dieselbe Regel, die das Scope-Band schon benutzt
+  # (`Scopable#scope_season_options`): gueltige Saisons sind `2009..(aktuelles Startjahr + 2)`.
+  # Begruendung steht im Season-Modell — id und ba_id sind durch das Scrapen internationaler
+  # Turniere verrutscht, nur der Name "yyyy/yyyy+1" ist verlaesslich; "1911/1912" und
+  # "Unknown Season" sind Ausreisser. Saison = 1. Juli bis 30. Juni
+  # (`Season.season_from_date`: `(date - 6.month).year`).
+  ERSTE_SAISON = 2009
+
+  # [erster Monat, letzter Monat] des Stroms — heute 2009-07 .. 2029-06.
+  def calendar_month_bounds
+    startjahr = Season.current_season&.name.to_s[/\A(\d{4})/, 1]&.to_i
+    startjahr = (Date.current - 6.months).year if startjahr.nil? || startjahr.zero?
+
+    [Date.new(ERSTE_SAISON, 7, 1), Date.new(startjahr + 3, 6, 1)]
+  end
+
+  def calendar_month_in_bounds?(monat)
+    von, bis = calendar_month_bounds
+    monat.present? && monat >= von && monat <= bis
+  end
+
+  # `count` Monatsanfaenge ab `from` — positiv vorwaerts, negativ rueckwaerts (dann liegen sie
+  # VOR `from` und kommen aufsteigend zurueck, damit sie sich am Stueck davorsetzen lassen).
+  # Ausserhalb der Grenzen wird abgeschnitten, nicht gewuerfelt: der Strom endet dort.
+  def calendar_months(from, count)
+    return [] if from.blank? || count.to_i.zero?
+
+    start = from.beginning_of_month
+    schritte = count.to_i
+    monate =
+      if schritte.positive?
+        (1..schritte).map { |i| start >> i }
+      else
+        (1..schritte.abs).map { |i| start << i }.reverse
+      end
+
+    monate.select { |m| calendar_month_in_bounds?(m) }
+  end
+
   # Spurbreiten: belegt = Platz fuer einen Termin-Chip, leer = gerade die Tageszahl.
   SPUR_BELEGT = "minmax(6rem, 1fr)"
   SPUR_LEER = "2.5rem"
@@ -116,6 +161,28 @@ module CalendarsHelper
             view: ((@view_mode == "agenda") ? nil : @view_mode),
             kind: @kind, group: @group, discipline: @discipline_name}
     calendar_path(base.merge(overrides).compact)
+  end
+
+  # Die Achsen-Parameter fuer den Nachschub-Endpoint des Stroms — OHNE `month` und `view`
+  # (die bestimmt der Strom selbst) und ohne den Ausschnitt (der steht in der Session; ihn in den
+  # URL zu schreiben waere genau die Doppelstruktur, die 42-02 beseitigt hat).
+  def calendar_stream_params
+    {dbu: (@include_dbu ? nil : "0"), kind: @kind, group: @group,
+     discipline: @discipline_name}.compact
+  end
+
+  # Zurueck zur Anfangssicht: Einstiegsmonat und KEINE Achsen-Filter. Die Ansicht bleibt, wo sie
+  # ist — wer im Strom liest, will nicht zusaetzlich in die Agenda geworfen werden.
+  # Der Ausschnitt (Region/Saison/Sparte) bleibt ebenfalls: der gehoert dem Scope-Band, nicht
+  # dieser Seite.
+  def calendar_reset_path
+    calendar_path({view: ((@view_mode == "agenda") ? nil : @view_mode)}.compact)
+  end
+
+  # True, wenn ueberhaupt etwas zurueckzusetzen ist (sonst waere der Knopf Zierde).
+  def calendar_filters_active?
+    @kind.present? || @group.present? || @discipline_name.present? || !@include_dbu ||
+      @month != @default_month
   end
 
   # Anzeigetext einer Gruppen-Option. `Calendar::Query::GROUP_NONE` ist keine Kategorie, sondern

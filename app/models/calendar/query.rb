@@ -11,7 +11,8 @@ module Calendar
   class Query
     DBU_SHORTNAME = "DBU"
 
-    # Wahl "ohne Zuordnung" im Gruppen-Selektor (spiegelt CalendarsController::GROUP_NONE).
+    # Wahl "ohne Zuordnung" im Gruppen-Selektor (spiegelt CalendarsController::GROUP_NONE):
+    # Turniere ohne Meisterschaftstyp, einschliesslich der CC-losen.
     GROUP_NONE = "none"
 
     def initialize(region:, from:, to:, branch: nil, include_dbu: true,
@@ -39,17 +40,35 @@ module Calendar
     # ⚠️ Die Optionen ignorieren bewusst den JEWEILS EIGENEN Filter — sonst bliebe nach der ersten
     # Wahl genau ein Eintrag stehen und man kaeme nicht mehr heraus.
 
-    # Namen der Turniergruppen (`CategoryCc`) im Zeitraum, plus GROUP_NONE, wenn Turniere OHNE
-    # Zuordnung vorkommen.
+    # Namen der Turniergruppen im Zeitraum, plus GROUP_NONE, wenn Turniere ohne Gruppe vorkommen.
     #
-    # Der Weg ist `Tournament → tournament_cc → category_cc` als **LEFT JOIN**. Ein INNER JOIN
-    # wuerde die CC-losen Turniere schon aus der Zaehlung werfen — gemessen am 2026-08-27 haben
-    # ueber alle Saisons Zehntausende keinen Zwilling (BVNR 3237, BBV 2469, BVBW 1298 …), in
-    # 26/27 auch die beiden CC-losen TBV-Landesmeisterschaften (#18613, #18614).
+    # ⚠️ Quelle ist `tournament_ccs.championship_type_cc_name` — NICHT `CategoryCc`.
+    # 42-02 hatte CategoryCc gewaehlt und daraus geschlossen, der Selektor sei "faktisch ein
+    # NBV-Feature". Das war eine Folge der Feldwahl, keine Eigenschaft der Daten. Gemessen am
+    # 2026-08-27, Saison 26/27:
+    #
+    #   Region  Turniere  mit championship_type  mit category_cc
+    #   NBV           55                     55               49
+    #   BVNR         178                    178                0
+    #   DBU           71                     71                0
+    #   BVB           69                     69                0
+    #   BLMR          31                     31                0
+    #
+    # championship_type ist ueberall zu 100 % gepflegt und traegt reine Turnierserien (NDM,
+    # NordCup, Grand Prix, Vorgabepokal, NDJM, Bezirksmeisterschaft), waehrend CategoryCc Serien
+    # mit Alters-/Geschlechtsklassen mischt und in Einzelfaellen widerspricht (#18612 trug
+    # Kategorie "Grand Prix" bei Kurzname "1NC" und Typ "NordCup (NC)").
+    #
+    # Gruppiert wird ueber den DENORMALISIERTEN Namen, nicht ueber `championship_type_cc_id`:
+    # die Tabelle enthaelt vier gleichnamige "Norddeutsche Meisterschaft"-Records.
+    #
+    # LEFT JOIN, damit CC-lose Turniere nicht schon aus der Zaehlung fallen — ueber alle Saisons
+    # haben Zehntausende keinen Zwilling (BVNR 3237, BBV 2469, BVBW 1298 …), in 26/27 auch die
+    # beiden CC-losen TBV-Landesmeisterschaften (#18613, #18614).
     def group_options
       @group_options ||= begin
         rows = tournaments_filtered(ignore_group: true)
-          .map { |t| t.tournament_cc&.category_cc&.name }
+          .map { |t| gruppenname(t.tournament_cc&.championship_type_cc_name) }
         namen = rows.compact.uniq.sort
         namen << GROUP_NONE if rows.any?(&:nil?)
         namen
@@ -63,7 +82,7 @@ module Calendar
       @discipline_options ||= begin
         aus_turnieren = tournaments_filtered(ignore_discipline: true)
           .filter_map { |t| t.discipline&.name }
-        aus_ligen = leagues_in_scope(ignore_discipline: true)
+        aus_ligen = leagues_with_parties(ignore_discipline: true)
           .filter_map { |l| l.discipline&.name }
         (aus_turnieren + aus_ligen).uniq.sort
       end
@@ -94,19 +113,52 @@ module Calendar
         .where(date: from.beginning_of_day..to.end_of_day)
 
       unless ignore_group || group.blank?
-        scope = scope.left_joins(tournament_cc: :category_cc)
+        scope = scope.left_joins(:tournament_cc)
         scope = if group == GROUP_NONE
-          scope.where(category_ccs: {id: nil})
+          # Faengt beides: kein CC-Zwilling (NULL durch den LEFT JOIN) und Zwilling ohne Typ.
+          scope.where(tournament_ccs: {championship_type_cc_name: [nil, ""]})
         else
-          scope.where(category_ccs: {name: group})
+          scope.where(tournament_ccs: {championship_type_cc_name: group_rohwerte})
         end
       end
 
       unless ignore_discipline || discipline_name.blank?
-        scope = scope.joins(:discipline).where(disciplines: {name: discipline_name})
+        scope = scope.where(discipline_id: discipline_subtree_ids)
       end
 
       scope
+    end
+
+    # Die gewaehlte Disziplin UND alles darunter.
+    #
+    # ⚠️ Ein Namensvergleich reicht NICHT. Turniere haengen an Blatt-Disziplinen ("9-Ball"),
+    # Ligen dagegen am Branch-Record selbst ("Pool"). Wer "Pool" waehlte, sah deshalb nur
+    # Spieltage — "NDJM Pool 9-Ball" fiel raus, obwohl es Pool ist (Betreiber-Befund 2026-08-27).
+    #
+    # Ueber ALLE gleichnamigen Disziplinen, weil der Unique-Index auf (name, table_kind_id)
+    # laeuft: derselbe Name kann fuer zwei Tischgroessen existieren.
+    def discipline_subtree_ids
+      @discipline_subtree_ids ||=
+        Discipline.where(name: discipline_name).flat_map(&:subtree_ids).uniq.presence || [-1]
+    end
+
+    # Anzeigename einer Gruppe: doppelte Leerzeichen zusammengezogen.
+    #
+    # ⚠️ Gemessen am 2026-08-27: von 49 Rohwerten unterscheiden sich zwei NUR in der Anzahl der
+    # Leerzeichen ("Deutsche Jugend Meisterschaft (DJM)" vs. "… Meisterschaft  (DJM)"). Ohne das
+    # stuenden zwei optisch identische Knoepfe nebeneinander, die je die Haelfte der Turniere
+    # zeigen.
+    def gruppenname(rohwert)
+      rohwert.to_s.squeeze(" ").strip.presence
+    end
+
+    # Alle Rohwerte, die auf den gewaehlten Anzeigenamen normalisieren — der Filter muss beide
+    # Schreibweisen fangen. Die Werteliste ist klein (49 insgesamt), die Abfrage entsprechend billig.
+    def group_rohwerte
+      @group_rohwerte ||= TournamentCc.where.not(championship_type_cc_name: [nil, ""])
+        .distinct.pluck(:championship_type_cc_name)
+        .select { |v| gruppenname(v) == group }
+        .presence || [group]
     end
 
     # Turniere des Zeitraums NACH dem Sparten-Fallback. Der Sparten-Abgleich laeuft Ruby-seitig
@@ -115,7 +167,7 @@ module Calendar
     # "Karambol" munter Pool-Disziplinen an.
     def tournaments_filtered(ignore_group: false, ignore_discipline: false)
       scope = tournaments_in_scope(ignore_group: ignore_group, ignore_discipline: ignore_discipline)
-        .includes(:discipline, :location, tournament_cc: :category_cc)
+        .includes(:discipline, :location, :tournament_cc)
       return scope.to_a unless branch_name
 
       scope.select { |t| matches_branch?(branch_of_tournament(t)) }
@@ -145,10 +197,27 @@ module Calendar
     def leagues_in_scope(ignore_discipline: false)
       scope = League.where(region_id: regions.map(&:id)).includes(:discipline)
       unless ignore_discipline || discipline_name.blank?
-        scope = scope.joins(:discipline).where(disciplines: {name: discipline_name})
+        scope = scope.where(discipline_id: discipline_subtree_ids)
       end
       scope = scope.select { |l| matches_branch?(branch_of_league(l)) } if branch_name
       scope
+    end
+
+    # Ligen, die im Zeitraum WIRKLICH Spieltage haben.
+    #
+    # ⚠️ `leagues_in_scope` allein reicht fuer den Disziplin-Selektor NICHT: es filtert die Ligen,
+    # nicht ihre Spieltage. Gemessen am 2026-08-27 traegt der NBV 15 Ligen mit Disziplin
+    # "Karambol", 18 mit "Karambol grosses Billard" und 27 mit "Karambol kleines Billard" — in
+    # der Saison 26/27 aber NULL Spieltage (Saisonstart). Der Selektor bot diese Disziplinen an
+    # und lieferte dann nichts. Angeboten wird nur, was auch etwas hergibt.
+    def leagues_with_parties(ignore_discipline: false)
+      leagues = Array(leagues_in_scope(ignore_discipline: ignore_discipline))
+      return [] if leagues.empty?
+
+      mit_spieltagen = Party.where(league_id: leagues.map(&:id))
+        .where(date: from.beginning_of_day..to.end_of_day)
+        .distinct.pluck(:league_id).to_set
+      leagues.select { |l| mit_spieltagen.include?(l.id) }
     end
 
     def party_entries

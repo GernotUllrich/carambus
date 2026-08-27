@@ -1678,6 +1678,7 @@ de:
       prev_month: "Voriger Monat"
       next_month: "Nächster Monat"
       today: "Heute"
+      reset: "↺ Anfang"
       kind_all: "Alle"
       kind_single: "Einzel"
       kind_team: "Mannschaft"
@@ -1690,6 +1691,15 @@ de:
       region_only: "nur %{region}"
       agenda: "Agenda"
       grid: "Monat"
+      stream: "Strom"
+    stream:
+      count:
+        one: "1 Termin"
+        other: "%{count} Termine"
+      empty_month: "keine Termine"
+      load_earlier: "frühere Monate laden"
+      start_reached: "Anfang erreicht"
+      end_reached: "Ende erreicht"
     agenda:
       parties: 
         one: "1 Begegnung"

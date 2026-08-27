@@ -1782,6 +1782,7 @@ en:
       prev_month: "Previous month"
       next_month: "Next month"
       today: "Today"
+      reset: "↺ Start"
       kind_all: "All"
       kind_single: "Individual"
       kind_team: "Team"
@@ -1794,6 +1795,15 @@ en:
       region_only: "%{region} only"
       agenda: "Agenda"
       grid: "Month"
+      stream: "Stream"
+    stream:
+      count:
+        one: "1 fixture"
+        other: "%{count} fixtures"
+      empty_month: "nothing scheduled"
+      load_earlier: "load earlier months"
+      start_reached: "start reached"
+      end_reached: "end reached"
     agenda:
       parties:
         one: "1 match"

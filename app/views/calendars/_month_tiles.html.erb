@@ -1,0 +1,5 @@
+<%# Eine Ladung Kacheln. Dasselbe Partial fuer die Erstansicht UND die Antwort des
+    Nachschub-Endpoints — so kann eine nachgeladene Kachel gar nicht anders aussehen. %>
+<% kacheln.each do |monat, eintraege| %>
+  <%= render "month_tile", monat: monat, eintraege: eintraege %>
+<% end %>

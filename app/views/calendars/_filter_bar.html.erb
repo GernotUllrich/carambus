@@ -6,7 +6,11 @@
 
     Region, Saison und Sparte stehen NICHT hier: die kommen aus dem globalen Scope-Band ueber
     der Seite. 42-01 hatte sie hier ein zweites Mal — genau die Doppelstruktur, die 42-02 aufloest. %>
-<div class="flex flex-wrap items-center gap-2 mb-4 pb-3 border-b border-gray-200 dark:border-gray-700">
+<%# Im Strom klebt die Leiste oben: dort scrollt der Seitenkopf sonst weg und die Selektoren
+    waeren waehrend des Blaetterns nicht mehr erreichbar. Klassen ausgeschrieben, nicht
+    zusammengesetzt — Tailwind erkennt nur literale Klassennamen. %>
+<% sticky = (@view_mode == "stream") ? "sticky top-0 z-20 bg-gray-200 dark:bg-gray-900 pt-3" : "" %>
+<div class="flex flex-wrap items-center gap-2 mb-4 pb-3 border-b border-gray-200 dark:border-gray-700 <%= sticky %>">
 
   <%# Monatsnavigation %>
   <span class="inline-flex rounded-md border border-gray-300 dark:border-gray-600 overflow-hidden">
@@ -19,6 +23,14 @@
           class: "btn btn-white px-2 py-1 text-sm rounded-none border-0",
           "aria-label": t("calendars.filter.next_month") %>
   </span>
+
+  <%# Zurueck zur Anfangssicht: Einstiegsmonat, keine Achsen-Filter. Erscheint nur, wenn es
+      etwas zurueckzusetzen gibt. Im Strom ist das der Weg zurueck an den Anfang, ohne sich
+      durch die Monate hochzuklicken. %>
+  <% if calendar_filters_active? %>
+    <%= link_to t("calendars.filter.reset"), calendar_reset_path,
+          class: "btn btn-white px-2 py-1 text-xs rounded-pill" %>
+  <% end %>
 
   <%# Einzel/Mannschaft — die Achse, die Turniere von Liga-Spieltagen trennt. %>
   <span class="inline-flex rounded-full border border-gray-300 dark:border-gray-600 overflow-hidden">
@@ -76,5 +88,7 @@
           class: "btn #{@view_mode == 'agenda' ? 'btn-primary' : 'btn-white'} px-3 py-1 text-xs rounded-none border-0" %>
     <%= link_to t("calendars.filter.grid"), calendar_url(view: "grid"),
           class: "btn #{@view_mode == 'grid' ? 'btn-primary' : 'btn-white'} px-3 py-1 text-xs rounded-none border-0" %>
+    <%= link_to t("calendars.filter.stream"), calendar_url(view: "stream"),
+          class: "btn #{@view_mode == 'stream' ? 'btn-primary' : 'btn-white'} px-3 py-1 text-xs rounded-none border-0" %>
   </span>
 </div>

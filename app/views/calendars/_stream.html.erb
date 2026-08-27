@@ -1,0 +1,39 @@
+<%# Der Kalender-Strom: Monatskacheln nebeneinander.
+
+    Die Erstladung steht serverseitig im HTML — ohne JavaScript sieht man diese Monate, statt
+    einen leeren Bildschirm (AC-6). Der Stimulus-Controller haengt nur weitere an.
+
+    NACH UNTEN laedt er beim Scrollen automatisch nach. NACH OBEN ueber einen KNOPF — automatisch
+    waere hier eine Falle: das Nachladen haelt die Leseposition, dadurch kaeme man beim
+    Hochscrollen nie wieder am Seitenkopf mit Scope-Band und Filterleiste an. Vom Betreiber am
+    2026-08-27 so entschieden, nachdem genau das aufgefallen war.
+
+    Spaltenzahl kommt von `auto-fill`, nicht aus den Daten — deshalb genuegt hier eine literale
+    Tailwind-Klasse, anders als beim Monatsraster in 42-03.
+    `items-start`: Kacheln behalten ihre natuerliche Hoehe, statt auf die hoechste der Zeile
+    gedehnt zu werden. %>
+<div data-controller="calendar-stream"
+     data-calendar-stream-url-value="<%= calendar_months_path(calendar_stream_params) %>"
+     data-calendar-stream-batch-value="<%= CalendarsController::STREAM_BATCH %>">
+
+  <div class="py-3 text-center">
+    <button type="button"
+            data-action="calendar-stream#loadEarlier"
+            data-calendar-stream-target="earlier"
+            class="btn btn-white px-3 py-1 text-xs rounded-pill">
+      <%= t("calendars.stream.load_earlier") %>
+    </button>
+    <span data-calendar-stream-target="topNotice" hidden
+          class="text-xs text-gray-500 dark:text-gray-400"><%= t("calendars.stream.start_reached") %></span>
+  </div>
+
+  <div data-calendar-stream-target="tiles"
+       class="grid gap-4 items-start grid-cols-[repeat(auto-fill,minmax(20rem,1fr))]">
+    <%= render "month_tiles", kacheln: @stream_kacheln %>
+  </div>
+
+  <div data-calendar-stream-target="bottom"
+       class="py-3 text-center text-xs text-gray-500 dark:text-gray-400">
+    <span data-calendar-stream-target="bottomNotice" hidden><%= t("calendars.stream.end_reached") %></span>
+  </div>
+</div>
