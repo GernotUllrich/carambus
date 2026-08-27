@@ -127,25 +127,6 @@ class CalendarsControllerTest < ActionDispatch::IntegrationTest
     refute_match(/DBU Grand Prix/, response.body)
   end
 
-  # AC-4 — beide Ansichten zeigen dieselbe Menge.
-  test "Agenda und Monatsraster zeigen dieselben Termine" do
-    turnier!(8, "NDM Freie Partie")
-    liga = liga_ohne_stempel!(9, "Oberliga Pool")
-    Party.create!(id: BASE_ID + 10, league: liga, date: @tag.to_time + 13.hours)
-
-    # `assigns` braucht ein Extra-Gem — geprueft wird deshalb am gerenderten HTML: beide
-    # Ansichten muessen dieselben Termine NENNEN.
-    kalender(scope: {region: @region.id}, month: @monat, view: "agenda")
-    assert_response :success
-    assert_match(/NDM Freie Partie/, response.body)
-    assert_match(/Oberliga Pool/, response.body)
-
-    kalender(month: @monat, view: "grid")
-    assert_response :success
-    assert_match(/NDM Freie Partie/, response.body, "das Raster muss dieselben Turniere zeigen")
-    assert_match(/Oberliga Pool/, response.body, "das Raster muss dieselben Ligen zeigen")
-  end
-
   # AC-4 — Einzel/Mannschaft ist bedienbar und steht im URL.
   test "der Einzel-Mannschaft-Schalter trennt die beiden Arten" do
     turnier!(11, "NDM Freie Partie")
@@ -233,189 +214,20 @@ class CalendarsControllerTest < ActionDispatch::IntegrationTest
     refute_match(/#{Regexp.escape(I18n.t("calendars.filter.reset"))}/, response.body,
       "ohne gesetzte Filter waere der Knopf Zierde")
 
-    kalender(month: @monat, kind: "single", view: "stream")
+    kalender(month: @monat, kind: "single")
     assert_response :success
     assert_match(/#{Regexp.escape(I18n.t("calendars.filter.reset"))}/, response.body)
     # Der Knopf behaelt die Ansicht und wirft nur die Achsen weg.
-    assert_match(%r{/calendar\?view=stream"}, response.body,
-      "zurueck zur Anfangssicht — Ansicht bleibt, Achsen und Monat fallen weg")
+    assert_match(%r{href="/calendar"}, response.body,
+      "zurueck zur Anfangssicht — Achsen und Monat fallen weg")
   end
 
-  # --- Monatsraster: Wochenstruktur (42-03) ---------------------------------------------------
-
-  # Erster Tag des angezeigten Monats mit dem gesuchten Wochentag.
-  def erster_wochentag(wday)
-    tag = Date.current.beginning_of_month
-    tag += 1 while tag.wday != wday
-    tag
-  end
-
-  # Alle Spur-Definitionen im Raster — es MUESSEN zwei sein (Kopfzeile und Zellen) und sie
-  # muessen gleich lauten, sonst stehen die Wochentagsnamen ueber den falschen Spalten.
-  # Die Obergrenze des Stroms — dieselbe Rechnung wie im Helper, hier unabhaengig nachgezogen,
-  # damit der Test nicht die Implementierung gegen sich selbst prueft.
-  def calendar_month_bounds_fuer_test
-    startjahr = Season.current_season.name.split("/").first.to_i
-    [Date.new(2009, 7, 1), Date.new(startjahr + 3, 6, 1)]
-  end
-
-  def raster_spur_definitionen
-    response.body.scan(/grid-template-columns:\s*([^;]+);/).flatten
-  end
-
-  def raster_spuren
-    defs = raster_spur_definitionen
-    assert_equal 2, defs.size, "Kopfzeile und Zellen brauchen je eine Spur-Definition"
-    assert_equal defs.first, defs.last,
-      "Kopfzeile und Zellen muessen dieselben Spuren tragen, sonst laufen sie auseinander"
-    defs.first.scan(/minmax\([^)]*\)|[\d.]+rem/)
-  end
-
-  # AC-1 — die Kopfzeile im gerenderten Raster.
-  test "das Monatsraster beginnt die Woche am Samstag" do
-    turnier!(30, "NDM Freie Partie")
-    kalender(scope: {region: @region.id}, month: @monat, view: "grid")
-    assert_response :success
-
-    reihenfolge = response.body.scan(/tracking-wide text-gray-500 dark:text-gray-400">\s*(\w{2})\s*</).flatten.first(7)
-    assert_equal %w[Sa So Mo Di Mi Do Fr], reihenfolge
-  end
-
-  # AC-2 / AC-3 — die Spaltenbreite folgt den Terminen DIESES Monats.
-  test "das Raster schrumpft leere Wochentage und laesst belegte breit" do
-    samstag = erster_wochentag(6)
-    mittwoch = erster_wochentag(3)
-
-    # Nur ein Samstagstermin: alle Wochentage schrumpfen.
-    Tournament.create!(id: BASE_ID + 31, title: "NDM Samstag", season: @season,
-      organizer: @region, organizer_type: "Region", region_id: @region.id,
-      discipline: disciplines(:pool_8ball), date: samstag.to_time + 11.hours)
-
-    kalender(scope: {region: @region.id}, month: @monat, view: "grid")
-    assert_response :success
-    # Reihenfolge ist [Sa, So, Mo, Di, Mi, Do, Fr] — Mittwoch steht an Position 4.
-    assert_equal CalendarsHelper::SPUR_BELEGT, raster_spuren[0], "Samstag ist belegt"
-    assert_equal CalendarsHelper::SPUR_LEER, raster_spuren[4], "Mittwoch ist leer und schrumpft"
-
-    # Jetzt der BVNR-/DBU-Fall: ein Termin unter der Woche.
-    Tournament.create!(id: BASE_ID + 32, title: "DBU Mittwoch", season: @season,
-      organizer: @region, organizer_type: "Region", region_id: @region.id,
-      discipline: disciplines(:pool_8ball), date: mittwoch.to_time + 11.hours)
-
-    kalender(month: @monat, view: "grid")
-    assert_response :success
-    assert_equal CalendarsHelper::SPUR_BELEGT, raster_spuren[4],
-      "ein Mittwoch mit Terminen darf nicht auf Zahlenbreite gequetscht werden"
-    assert_match(/DBU Mittwoch/, response.body, "und der Termin muss im Raster stehen")
-  end
-
-  # --- Kalender-Strom (42-04) -----------------------------------------------------------------
-
-  # AC-1 / AC-6 — die Erstladung steht serverseitig im HTML.
-  test "die Stromansicht zeigt mehrere Monatskacheln ohne JavaScript" do
-    turnier!(40, "NDM Freie Partie")
-
-    kalender(scope: {region: @region.id}, month: @monat, view: "stream")
-    assert_response :success
-
-    kacheln = response.body.scan(/data-month="(\d{4}-\d{2})"/).flatten
-    assert_operator kacheln.size, :>, 1, "der Strom zeigt mehr als einen Monat"
-    assert_includes kacheln, @monat, "der Einstiegsmonat gehoert dazu"
-    assert_equal kacheln.sort, kacheln, "die Kacheln stehen chronologisch"
-    assert_match(/NDM Freie Partie/, response.body)
-    # Ein leerer Monat bekommt einen Hinweis, keine leere Kachel.
-    assert_match(/#{Regexp.escape(I18n.t("calendars.stream.empty_month"))}/, response.body)
-  end
-
-  # Der Seitenkopf muss im Strom erreichbar bleiben. Automatisches Nachladen nach oben haelt die
-  # Leseposition — damit kaeme man beim Hochscrollen NIE an Scope-Band und Filterleiste an.
-  # Deshalb: Filterleiste klebt oben, und fruehere Monate kommen per Knopf.
-  test "im Strom klebt die Filterleiste oben und frueheres kommt per Knopf" do
-    kalender(scope: {region: @region.id}, month: @monat, view: "stream")
-    assert_response :success
-    assert_match(/data-action="calendar-stream#loadEarlier"/, response.body,
-      "nach oben wird per Knopf geladen, nicht automatisch")
-    assert_match(/#{Regexp.escape(I18n.t("calendars.stream.load_earlier"))}/, response.body)
-    assert_match(/border-gray-700 sticky top-0/, response.body,
-      "die Filterleiste muss im Strom kleben, sonst scrollen die Selektoren weg")
-  end
-
-  test "ausserhalb des Stroms klebt die Filterleiste nicht" do
-    kalender(scope: {region: @region.id}, month: @monat, view: "agenda")
-    assert_response :success
-    # Auf die FILTERLEISTE eingegrenzt: "sticky top-0" kommt im Layout auch anderswo vor.
-    refute_match(/border-gray-700 sticky top-0/, response.body,
-      "in Agenda und Monatsraster erreicht man den Kopf durch normales Scrollen")
-    refute_match(/calendar-stream#loadEarlier/, response.body)
-  end
-
-  test "der Nachschub-Endpoint liefert spaetere und fruehere Monate" do
-    kalender(scope: {region: @region.id}, month: @monat, view: "stream")
-
-    get calendar_months_url(from: "2026-11", count: 3)
-    assert_response :success
-    assert_equal %w[2026-12 2027-01 2027-02], response.body.scan(/data-month="([\d-]+)"/).flatten
-
-    get calendar_months_url(from: "2026-11", count: -3)
-    assert_response :success
-    assert_equal %w[2026-08 2026-09 2026-10], response.body.scan(/data-month="([\d-]+)"/).flatten,
-      "rueckwaerts aufsteigend, damit sich die Kacheln am Stueck davorsetzen lassen"
-  end
-
-  test "der Nachschub-Endpoint antwortet ohne Layout" do
-    kalender(scope: {region: @region.id}, view: "stream")
-    get calendar_months_url(from: "2026-11", count: 1)
-    assert_response :success
-    refute_match(/<html|scope-band/, response.body,
-      "das Fragment darf weder Layout noch Scope-Band mitbringen")
-  end
-
-  # AC-4 — der Strom endet an den Saisongrenzen statt ins Leere zu laufen.
-  test "der Nachschub-Endpoint liefert an den Grenzen nichts" do
-    kalender(scope: {region: @region.id}, view: "stream")
-
-    get calendar_months_url(from: "2009-07", count: -6)
-    assert_response :success
-    assert_empty response.body.scan("data-month="), "vor Juli 2009 gibt es nichts"
-
-    _, obergrenze = calendar_month_bounds_fuer_test
-    get calendar_months_url(from: obergrenze.strftime("%Y-%m"), count: 6)
-    assert_response :success
-    assert_empty response.body.scan("data-month="), "hinter der Obergrenze gibt es nichts"
-  end
-
-  # AC-5 — nachgeladene Kacheln tragen denselben Ausschnitt und dieselben Achsen.
-  test "nachgeladene Kacheln tragen Ausschnitt und Achsen der ersten Ladung" do
-    tag = Date.new(2027, 1, 9)
-    Tournament.create!(id: BASE_ID + 41, title: "Strom Turnier", season: @season,
-      organizer: @region, organizer_type: "Region", region_id: @region.id,
-      discipline: disciplines(:pool_8ball), date: tag.to_time + 11.hours)
-    liga = liga_ohne_stempel!(42, "Strom Liga")
-    Party.create!(id: BASE_ID + 43, league: liga, date: tag.to_time + 13.hours)
-
-    kalender(scope: {region: @region.id}, view: "stream")
-
-    get calendar_months_url(from: "2026-12", count: 1)
-    assert_match(/Strom Turnier/, response.body)
-    assert_match(/Strom Liga/, response.body)
-
-    # Achse "Einzel" muss auch im Nachschub greifen.
-    get calendar_months_url(from: "2026-12", count: 1, kind: "single")
-    assert_match(/Strom Turnier/, response.body)
-    refute_match(/Strom Liga/, response.body,
-      "die Achse aus dem URL muss auch fuer nachgeladene Kacheln gelten")
-
-    # Und der Ausschnitt (Sparte) aus der Session ebenso.
-    kalender(scope: {branch: disciplines(:branch_karambol).id}, view: "stream")
-    get calendar_months_url(from: "2026-12", count: 1)
-    refute_match(/Strom Turnier/, response.body,
-      "die Sparte aus dem Scope-Band muss auch fuer nachgeladene Kacheln gelten")
-  end
-
-  test "ein leerer Monat zeigt einen Hinweis statt einer leeren Flaeche" do
+  # Seit dem Wegfall der Einzelmonats-Ansichten traegt die KACHEL den Hinweis: der Strom zeigt
+  # viele Monate, ein seitenweiter Leer-Hinweis waere dort sinnlos.
+  test "ein leerer Monat zeigt einen Hinweis in seiner Kachel" do
     kalender(scope: {region: @region.id}, month: (Date.current + 8.months).strftime("%Y-%m"))
     assert_response :success
-    assert_select "body", text: /#{Regexp.escape(I18n.t("calendars.show.empty_heading"))}/
+    assert_match(/#{Regexp.escape(I18n.t("calendars.stream.empty_month"))}/, response.body)
   end
 
   test "ein unsinniger Monat faellt auf den laufenden zurueck statt zu werfen" do

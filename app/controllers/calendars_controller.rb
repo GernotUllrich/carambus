@@ -10,11 +10,14 @@
 # Seite heraus wuerde den Ausschnitt still verschieben (siehe `Scopable#scope_band_form_path`).
 #
 # Die kalender-eigenen Achsen stehen im URL, damit ein Kalenderblatt teilbar bleibt:
-# `month`, `dbu`, `view`, `kind`, `group`, `discipline`.
+# `month`, `dbu`, `kind`, `group`, `discipline`.
+#
+# Es gibt genau EINE Ansicht: den Strom (Betreiber-Entscheidung 2026-08-27, "Strom ist die
+# einzig sinnvolle Anzeige"). Agenda und Monatsraster als eigene Ansichten sind entfallen;
+# die Agenda lebt als Inhalt der Monatskacheln weiter.
 class CalendarsController < ApplicationController
   include CalendarsHelper
 
-  VIEW_MODES = %w[agenda grid stream].freeze
   KINDS = %w[single team].freeze
 
   # Wahl "ohne Zuordnung" im Gruppen-Selektor. Eigener Wert, weil "" bereits "alle" heisst.
@@ -32,9 +35,6 @@ class CalendarsController < ApplicationController
     @month = parse_month(params[:month]) || @default_month
     @from = @month.beginning_of_month
     @to = @month.end_of_month
-    @view_mode = VIEW_MODES.include?(params[:view]) ? params[:view] : "agenda"
-
-    @entries = kalender_abfrage(@from, @to).call
 
     # Die Selektor-Optionen kommen aus dem AUSSCHNITT (Region · Saison · Sparte) — nicht aus dem
     # gerade sichtbaren Zeitfenster.
@@ -58,7 +58,7 @@ class CalendarsController < ApplicationController
     @season = Season.season_from_date(@from)
 
     # Erstladung des Stroms serverseitig: ohne JavaScript steht damit schon etwas da.
-    @stream_kacheln = stream_kacheln(stream_erstladung(@month)) if @view_mode == "stream"
+    @stream_kacheln = stream_kacheln(stream_erstladung(@month))
   end
 
   # Nachschub fuer den Strom: eine Reihe Monatskacheln als HTML-Fragment (ohne Layout).

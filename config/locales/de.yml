@@ -285,6 +285,7 @@ de:
         password: password
   home:
     index:
+      calendar: "Termine"
       about: Der Entwickler
       search: Das Suchen in Tabellen
       carambus_tournament_management: Carambus Turnierverwaltung
@@ -1689,9 +1690,6 @@ de:
       discipline_all: "Alle Disziplinen"
       with_dbu: "mit DBU"
       region_only: "nur %{region}"
-      agenda: "Agenda"
-      grid: "Monat"
-      stream: "Strom"
     stream:
       count:
         one: "1 Termin"

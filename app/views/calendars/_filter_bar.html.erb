@@ -1,16 +1,15 @@
-<%# Alle Filter als Links, damit jeder Zustand im URL steht und teilbar bleibt (AC-3).
+<%# Alle Filter als Links, damit jeder Zustand im URL steht und teilbar bleibt.
     ⚠️ Aktive Zustaende MUESSEN `btn` tragen: die projektweite Regel `a:not(.btn) { color: primary-600 }`
     (Spezifitaet 0,1,1) schlaegt sonst `text-white` (0,1,0) — der Text stand dann dunkelgruen auf
     dunkelgruenem Grund, also unsichtbar. `.btn` ist die vorgesehene Ausnahme; kein !important.
     Kein `.btn-dark` — bekannt kaputt (42-01, bewusst unrepariert).
 
     Region, Saison und Sparte stehen NICHT hier: die kommen aus dem globalen Scope-Band ueber
-    der Seite. 42-01 hatte sie hier ein zweites Mal — genau die Doppelstruktur, die 42-02 aufloest. %>
-<%# Im Strom klebt die Leiste oben: dort scrollt der Seitenkopf sonst weg und die Selektoren
-    waeren waehrend des Blaetterns nicht mehr erreichbar. Klassen ausgeschrieben, nicht
-    zusammengesetzt — Tailwind erkennt nur literale Klassennamen. %>
-<% sticky = (@view_mode == "stream") ? "sticky top-0 z-20 bg-gray-200 dark:bg-gray-900 pt-3" : "" %>
-<div class="flex flex-wrap items-center gap-2 mb-4 pb-3 border-b border-gray-200 dark:border-gray-700 <%= sticky %>">
+    der Seite. 42-01 hatte sie hier ein zweites Mal — genau die Doppelstruktur, die 42-02 aufloest.
+
+    Die Leiste klebt oben: der Strom laedt beim Scrollen nach, der Seitenkopf waere sonst
+    unerreichbar. Klassen ausgeschrieben — Tailwind erkennt nur literale Klassennamen. %>
+<div class="flex flex-wrap items-center gap-2 mb-4 pb-3 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-20 bg-gray-200 dark:bg-gray-900 pt-3">
 
   <%# Monatsnavigation %>
   <span class="inline-flex rounded-md border border-gray-300 dark:border-gray-600 overflow-hidden">
@@ -82,13 +81,4 @@
     </span>
   <% end %>
 
-  <%# Ansicht %>
-  <span class="inline-flex rounded-full border border-gray-300 dark:border-gray-600 overflow-hidden">
-    <%= link_to t("calendars.filter.agenda"), calendar_url(view: nil),
-          class: "btn #{@view_mode == 'agenda' ? 'btn-primary' : 'btn-white'} px-3 py-1 text-xs rounded-none border-0" %>
-    <%= link_to t("calendars.filter.grid"), calendar_url(view: "grid"),
-          class: "btn #{@view_mode == 'grid' ? 'btn-primary' : 'btn-white'} px-3 py-1 text-xs rounded-none border-0" %>
-    <%= link_to t("calendars.filter.stream"), calendar_url(view: "stream"),
-          class: "btn #{@view_mode == 'stream' ? 'btn-primary' : 'btn-white'} px-3 py-1 text-xs rounded-none border-0" %>
-  </span>
 </div>

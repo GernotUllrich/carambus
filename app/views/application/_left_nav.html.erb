@@ -66,6 +66,17 @@
 
         </ul>
       </li>
+      <%# Termine steht auf oberster Ebene und NICHT unter Turnieren oder Ligen: der Kalender
+          zeigt beide zusammen, eine Einordnung unter eines von beiden waere irrefuehrend. %>
+      <li class="mb-2">
+        <%= link_to calendar_path,
+              class: "flex items-center p-2 text-gray-800 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white rounded" do %>
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mr-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"/>
+          </svg>
+          <%= I18n.t("home.index.calendar", default: "Termine") %>
+        <% end %>
+      </li>
       <li>
         <button data-action="sidebar#toggle" class="w-full flex items-center justify-between p-2 text-gray-800 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white rounded">
           <span class="flex items-center">

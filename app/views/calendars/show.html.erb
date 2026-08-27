@@ -21,20 +21,9 @@
 
     <%= render "filter_bar" %>
 
-    <%# Der Strom steht VOR der Leer-Pruefung: er zeigt viele Monate, ein leerer Einstiegsmonat
-        heisst dort nichts. %>
-    <% if @view_mode == "stream" %>
-      <%= render "stream" %>
-    <% elsif @entries.empty? %>
-      <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-6 text-center">
-        <p class="text-gray-700 dark:text-gray-300 font-medium"><%= t("calendars.show.empty_heading") %></p>
-        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1"><%= t("calendars.show.empty_body") %></p>
-      </div>
-    <% elsif @view_mode == "grid" %>
-      <%= render "month_grid", entries: @entries %>
-    <% else %>
-      <%= render "agenda", entries: @entries %>
-    <% end %>
+    <%# Genau EINE Ansicht: der Strom. Ein Leer-Hinweis ist hier ueberfluessig — der Strom zeigt
+        viele Monate, und leere Monate tragen ihren Hinweis in der Kachel. %>
+    <%= render "stream" %>
 
   </div>
 </div>

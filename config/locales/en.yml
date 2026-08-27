@@ -283,6 +283,7 @@ en:
         password: password
   home:
     index:
+      calendar: "Fixtures"
       about: The Developer
       search: How to Search Tables
       carambus_tournament_management: Carambus Tournament Management
@@ -1793,9 +1794,6 @@ en:
       discipline_all: "All disciplines"
       with_dbu: "with DBU"
       region_only: "%{region} only"
-      agenda: "Agenda"
-      grid: "Month"
-      stream: "Stream"
     stream:
       count:
         one: "1 fixture"
