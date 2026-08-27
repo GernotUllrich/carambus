@@ -224,6 +224,100 @@ class CalendarsControllerTest < ActionDispatch::IntegrationTest
 
   # Seit dem Wegfall der Einzelmonats-Ansichten traegt die KACHEL den Hinweis: der Strom zeigt
   # viele Monate, ein seitenweiter Leer-Hinweis waere dort sinnlos.
+  # --- Ortsfilter, einklappbare Gruppen, Drucken (2026-08-28) --------------------------------
+
+  test "der Ortsfilter erscheint erst ab zwei Orten und filtert dann" do
+    ort_a = Location.find_or_create_by!(name: "Vereinsheim Wedel") { |l| l.organizer = @region }
+    turnier!(80, "NDM Wedel").update!(location: ort_a)
+
+    kalender(scope: {region: @region.id}, month: @monat)
+    refute_match(/#{Regexp.escape(I18n.t("calendars.filter.location_all"))}/, response.body,
+      "bei nur EINEM Ort waere der Selektor Zierde")
+
+    ort_b = Location.find_or_create_by!(name: "Vereinsheim Hamburg") { |l| l.organizer = @region }
+    turnier!(81, "NDM Hamburg").update!(location: ort_b)
+
+    kalender(month: @monat)
+    assert_match(/#{Regexp.escape(I18n.t("calendars.filter.location_all"))}/, response.body)
+
+    kalender(month: @monat, location: "Vereinsheim Wedel")
+    assert_match(/NDM Wedel/, response.body)
+    refute_match(/NDM Hamburg/, response.body)
+  end
+
+  # Der Ort muss auch fuer NACHGELADENE Kacheln gelten — sonst zeigt der Strom ab der zweiten
+  # Ladung etwas anderes als oben.
+  test "der Ortsfilter gilt auch im Nachschub" do
+    ort = Location.find_or_create_by!(name: "Vereinsheim Wedel") { |l| l.organizer = @region }
+    tag = Date.new(2027, 1, 9)
+    Tournament.create!(id: BASE_ID + 82, title: "Wedel Turnier", season: @season,
+      organizer: @region, organizer_type: "Region", region_id: @region.id,
+      discipline: disciplines(:pool_8ball), date: tag.to_time + 11.hours, location: ort)
+    Tournament.create!(id: BASE_ID + 83, title: "Anderswo Turnier", season: @season,
+      organizer: @region, organizer_type: "Region", region_id: @region.id,
+      discipline: disciplines(:pool_8ball), date: tag.to_time + 11.hours)
+
+    # ⚠️ Zuerst: der Ort muss ueberhaupt in den Nachschub-URL der SEITE gelangen — sonst laedt
+    # der Strom ab der zweiten Ladung ungefiltert nach, obwohl oben gefiltert ist.
+    kalender(scope: {region: @region.id}, location: "Vereinsheim Wedel")
+    assert_select "[data-calendar-stream-url-value*=?]", "location=Vereinsheim+Wedel", {minimum: 1},
+      "der Ortsfilter muss im Nachschub-URL stehen"
+
+    get calendar_months_url(from: "2026-12", count: 1, location: "Vereinsheim Wedel")
+    assert_response :success
+    assert_match(/Wedel Turnier/, response.body)
+    refute_match(/Anderswo Turnier/, response.body)
+  end
+
+  test "die Filtergruppen sind einklappbar" do
+    turnier!(84, "NDM 8-Ball", discipline: disciplines(:pool_8ball))
+    turnier!(85, "NDM 9-Ball", discipline: disciplines(:pool_9ball))
+
+    kalender(scope: {region: @region.id}, month: @monat)
+    assert_response :success
+    assert_select '[data-controller="filter-group"]', {minimum: 1},
+      "die Leiste traegt fuenf Achsen — ausgeschrieben fuellt sie den halben Bildschirm"
+    # Ohne JavaScript bleibt alles sichtbar: eingeklappt wird erst im `connect`.
+    assert_select '[data-filter-group-target="options"]', {minimum: 1}
+  end
+
+  # AC: gedruckt wird die GANZE Saison, ohne Navigation.
+  test "die Druckansicht zeigt die ganze Saison ohne Navigation" do
+    turnier!(86, "NDM Freie Partie")
+
+    kalender(scope: {region: @region.id}, month: @monat, print: "1")
+    assert_response :success
+    refute_match(/id="scope-band"/, response.body, "das Scope-Band gehoert nicht auf Papier")
+    refute_match(/data-controller="calendar-stream"/, response.body,
+      "im Ausdruck wird nichts nachgeladen")
+    assert_match(/NDM Freie Partie/, response.body)
+    # Der Ausdruck nennt Ausschnitt und Filter — auf Papier gibt es keine Filterleiste.
+    assert_match(/#{Regexp.escape(@region.shortname)}/, response.body)
+
+    # ⚠️ Der Kern der Anforderung: die GANZE Saison, nicht der geladene Ausschnitt. Ein Turnier
+    # weit weg vom Einstiegsmonat muss mit drin sein.
+    saison_start = Date.new(@season.name.split("/").first.to_i, 7, 1)
+    Tournament.create!(id: BASE_ID + 88, title: "Turnier im Saisonanfang", season: @season,
+      organizer: @region, organizer_type: "Region", region_id: @region.id,
+      discipline: disciplines(:pool_8ball), date: (saison_start + 5).to_time + 11.hours)
+    Tournament.create!(id: BASE_ID + 89, title: "Turnier am Saisonende", season: @season,
+      organizer: @region, organizer_type: "Region", region_id: @region.id,
+      discipline: disciplines(:pool_8ball), date: (saison_start + 11.months + 5).to_time + 11.hours)
+
+    kalender(month: @monat, print: "1")
+    assert_match(/Turnier im Saisonanfang/, response.body,
+      "die Druckansicht muss die ganze Saison umfassen, nicht den geladenen Ausschnitt")
+    assert_match(/Turnier am Saisonende/, response.body)
+  end
+
+  test "die Druckansicht laesst leere Monate weg" do
+    turnier!(87, "NDM Freie Partie")
+    kalender(scope: {region: @region.id}, month: @monat, print: "1")
+    assert_response :success
+    refute_match(/#{Regexp.escape(I18n.t("calendars.stream.empty_month"))}/, response.body,
+      "auf Papier ist eine Zeile 'keine Termine' nur Ballast")
+  end
+
   test "ein leerer Monat zeigt einen Hinweis in seiner Kachel" do
     kalender(scope: {region: @region.id}, month: (Date.current + 8.months).strftime("%Y-%m"))
     assert_response :success

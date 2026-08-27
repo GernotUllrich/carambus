@@ -42,32 +42,36 @@
           class: "btn #{@kind == 'team' ? 'btn-primary' : 'btn-white'} px-3 py-1 text-xs rounded-none border-0" %>
   </span>
 
-  <%# Turniergruppe — nur wenn der Ausschnitt ueberhaupt mehr als eine hergibt.
-      Ausserhalb des NBV ist `category_cc_id` durchgaengig nil; ein fester Selektor waere dort
-      ein leeres Bedienelement. %>
+  <%# Turniergruppe — nur wenn der Ausschnitt mehr als eine hergibt. %>
   <% if @group_options.size > 1 %>
-    <span class="inline-flex flex-wrap gap-1 items-center">
-      <span class="text-xs text-gray-600 dark:text-gray-400 whitespace-nowrap"><%= t("calendars.filter.group") %></span>
-      <%= link_to t("calendars.filter.group_all"), calendar_url(group: nil),
-            class: "btn #{@group.blank? ? 'btn-primary' : 'btn-white'} px-2 py-1 text-xs rounded-pill" %>
-      <% @group_options.each do |value| %>
-        <%= link_to calendar_group_label(value), calendar_url(group: value),
-              class: "btn #{@group == value ? 'btn-primary' : 'btn-white'} px-2 py-1 text-xs rounded-pill" %>
-      <% end %>
-    </span>
+    <%= render "filter_group",
+          label: t("calendars.filter.group"),
+          selected: @group.present? ? calendar_group_label(@group) : nil,
+          alle_text: t("calendars.filter.group_all"),
+          options: [[t("calendars.filter.group_all"), calendar_url(group: nil), @group.blank?]] +
+                   @group_options.map { |v| [calendar_group_label(v), calendar_url(group: v), @group == v] } %>
   <% end %>
 
   <%# Disziplin — wirkt auf beide Arten, denn Turnier UND Liga fuehren je eine. %>
   <% if @discipline_options.size > 1 %>
-    <span class="inline-flex flex-wrap gap-1 items-center">
-      <span class="text-xs text-gray-600 dark:text-gray-400 whitespace-nowrap"><%= t("calendars.filter.discipline") %></span>
-      <%= link_to t("calendars.filter.discipline_all"), calendar_url(discipline: nil),
-            class: "btn #{@discipline_name.blank? ? 'btn-primary' : 'btn-white'} px-2 py-1 text-xs rounded-pill" %>
-      <% @discipline_options.each do |name| %>
-        <%= link_to name, calendar_url(discipline: name),
-              class: "btn #{@discipline_name == name ? 'btn-primary' : 'btn-white'} px-2 py-1 text-xs rounded-pill" %>
-      <% end %>
-    </span>
+    <%= render "filter_group",
+          label: t("calendars.filter.discipline"),
+          selected: @discipline_name,
+          alle_text: t("calendars.filter.discipline_all"),
+          options: [[t("calendars.filter.discipline_all"), calendar_url(discipline: nil), @discipline_name.blank?]] +
+                   @discipline_options.map { |n| [n, calendar_url(discipline: n), @discipline_name == n] } %>
+  <% end %>
+
+  <%# Austragungsort. Gemessen (Saison 25/26): DBU 25 Turnier- und 110 Spieltag-Orte, BVNR 34/43
+      — die Liste wird lang, deshalb eingeklappt. Wo es weniger als zwei Orte gibt (BLVSA),
+      faellt der Selektor ganz weg. %>
+  <% if @location_options.size > 1 %>
+    <%= render "filter_group",
+          label: t("calendars.filter.location"),
+          selected: @location_name.present? ? calendar_location_label(@location_name) : nil,
+          alle_text: t("calendars.filter.location_all"),
+          options: [[t("calendars.filter.location_all"), calendar_url(location: nil), @location_name.blank?]] +
+                   @location_options.map { |n| [calendar_location_label(n), calendar_url(location: n), @location_name == n] } %>
   <% end %>
 
   <%# DBU-Schalter: eine Ueberlagerung, keine Scope-Facette — die ueberregionale Ebene kommt
@@ -80,5 +84,11 @@
             class: "btn #{@include_dbu ? 'btn-white' : 'btn-primary'} px-3 py-1 text-xs rounded-none border-0" %>
     </span>
   <% end %>
+
+  <%# Drucken: eigene Ansicht ueber die GANZE Saison, ohne Navigation. Neues Fenster, damit der
+      Strom, in dem man gerade liest, stehen bleibt. %>
+  <%= link_to t("calendars.filter.print"), calendar_url(print: "1"),
+        target: "_blank", rel: "noopener",
+        class: "btn btn-white px-2 py-1 text-xs rounded-pill" %>
 
 </div>

@@ -240,6 +240,56 @@ class Calendar::QueryTest < ActiveSupport::TestCase
       "wer 8-Ball waehlt, will nicht 9-Ball dazu"
   end
 
+  # --- Austragungsort ------------------------------------------------------------------------
+
+  def ort!(name)
+    Location.find_or_create_by!(name: name) { |l| l.organizer = @region }
+  end
+
+  test "der Ortsfilter trifft Turniere UND Spieltage" do
+    halle = ort!("Vereinsheim Wedel")
+    woanders = ort!("Vereinsheim Hamburg")
+
+    t = turnier!(70, "NDM Wedel", region: @region, discipline: disciplines(:pool_8ball))
+    t.update!(location: halle)
+    turnier!(71, "NDM Hamburg", region: @region, discipline: disciplines(:pool_8ball)).update!(location: woanders)
+
+    # ⚠️ ZWEI Spieltage an VERSCHIEDENEN Orten. Mit nur einem am gefilterten Ort waere der Test
+    # wertlos: er bliebe auch dann gruen, wenn der Ortsfilter Spieltage gar nicht anfasst.
+    liga = liga_ohne_stempel!(72, "Oberliga Pool", discipline: disciplines(:pool_8ball))
+    spieltag!(73, liga).update!(location: halle)
+    andere_liga = liga_ohne_stempel!(78, "Verbandsliga Pool", discipline: disciplines(:pool_8ball))
+    spieltag!(79, andere_liga).update!(location: woanders)
+
+    treffer = eintraege(location_name: "Vereinsheim Wedel").map(&:title).sort
+    assert_equal ["NDM Wedel", "Oberliga Pool"], treffer,
+      "der Ort haengt an Turnier UND Party — beide muessen gefiltert werden"
+    refute_includes treffer, "Verbandsliga Pool",
+      "ein Spieltag an einem anderen Ort muss wegfallen"
+  end
+
+  # Gemessen 2026-08-28 (Saison 25/26): 8 BVNR-Turniere und 15 BVNR-Spieltage tragen keinen Ort.
+  test "Termine ohne Ort sind ueber eine eigene Wahl erreichbar" do
+    halle = ort!("Vereinsheim Wedel")
+    turnier!(74, "NDM Wedel", region: @region, discipline: disciplines(:pool_8ball)).update!(location: halle)
+    ohne = turnier!(75, "NDM ohne Ort", region: @region, discipline: disciplines(:pool_8ball))
+    assert_nil ohne.location, "Vorbedingung: dieses Turnier hat keinen Ort"
+
+    assert_includes query.location_options, Calendar::Query::LOCATION_NONE
+    assert_equal ["NDM ohne Ort"],
+      eintraege(location_name: Calendar::Query::LOCATION_NONE).map(&:title)
+  end
+
+  test "die Orts-Optionen kommen aus dem Zeitraum" do
+    halle = ort!("Vereinsheim Wedel")
+    turnier!(76, "NDM Wedel", region: @region, discipline: disciplines(:pool_8ball)).update!(location: halle)
+    spaeter = turnier!(77, "NDM Spaeter", region: @region,
+      discipline: disciplines(:pool_8ball), tag: @von + 3.months + 5)
+    spaeter.update!(location: ort!("Vereinsheim Lueneburg"))
+
+    assert_equal ["Vereinsheim Wedel"], query.location_options
+  end
+
   test "die Disziplin-Optionen folgen der Sparte" do
     turnier!(43, "NDM 8-Ball", region: @region, discipline: disciplines(:pool_8ball))
     turnier!(44, "Cadre-Turnier", region: @region, discipline: disciplines(:karambol_cadre_35_2))

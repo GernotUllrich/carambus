@@ -1,0 +1,25 @@
+<%# Eine einklappbare Filtergruppe.
+    Eingeklappt: Beschriftung + der gewaehlte Wert. Aufgeklappt: alle Werte.
+    `options` ist ein Array [Anzeigetext, URL, aktiv?]. %>
+<span class="inline-flex flex-wrap gap-1 items-center"
+      data-controller="filter-group"
+      data-filter-group-selected="<%= selected %>">
+
+  <button type="button" data-action="filter-group#toggle" data-filter-group-target="toggle"
+          aria-expanded="false"
+          class="btn btn-white px-2 py-1 text-xs rounded-pill inline-flex items-center gap-1">
+    <span class="text-gray-600 dark:text-gray-400"><%= label %></span>
+    <%# Der gewaehlte Wert steht IM Knopf, damit er auch eingeklappt sichtbar bleibt. %>
+    <%# Ohne JavaScript bleibt der gewaehlte Wert hier stehen UND die Optionen darunter sichtbar —
+        bedienbar in beiden Faellen. `connect` klappt erst ein. %>
+    <span data-filter-group-target="summary" class="font-semibold"><%= selected.presence || alle_text %></span>
+    <span aria-hidden="true" class="text-gray-500">▾</span>
+  </button>
+
+  <span data-filter-group-target="options" class="inline-flex flex-wrap gap-1 items-center">
+    <% options.each do |text, url, aktiv| %>
+      <%= link_to text, url,
+            class: "btn #{aktiv ? 'btn-primary' : 'btn-white'} px-2 py-1 text-xs rounded-pill" %>
+    <% end %>
+  </span>
+</span>

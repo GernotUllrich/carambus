@@ -1792,8 +1792,16 @@ en:
       group_none: "unassigned"
       discipline: "Discipline"
       discipline_all: "All disciplines"
+      location: "Venue"
+      location_all: "All venues"
+      location_none: "no venue"
+      print: "🖨 Print"
       with_dbu: "with DBU"
       region_only: "%{region} only"
+    print:
+      title: "%{region} fixtures — season %{season}"
+      action: "🖨 Print"
+      empty: "No fixtures this season."
     stream:
       count:
         one: "1 fixture"

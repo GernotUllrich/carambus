@@ -1,0 +1,37 @@
+<% content_for :title, t("calendars.print.title", region: @region.shortname.presence || @region.name,
+                         season: @season&.name) %>
+<%# Die ganze Scope-Saison am Stueck. Monate ohne Termine fallen hier weg — auf Papier ist eine
+    Zeile "keine Termine" nur Ballast, waehrend sie im Strom die Luecke erklaert. %>
+<% gefuellt = @stream_kacheln.select { |_, eintraege| eintraege.any? } %>
+
+<header class="mb-6 pb-3 border-b border-gray-300">
+  <h1 class="text-xl font-semibold">
+    <%= t("calendars.print.title", region: @region.shortname.presence || @region.name,
+          season: @season&.name) %>
+  </h1>
+  <p class="text-xs text-gray-600 mt-1">
+    <%= calendar_print_scope_line %>
+  </p>
+  <%# `print:hidden` wirkt nur hier — im Ausdruck ist der Knopf weg, am Bildschirm nicht. %>
+  <button type="button" data-controller="print" data-action="print#now"
+          class="btn btn-primary px-3 py-1 text-xs rounded-pill mt-3 print:hidden">
+    <%= t("calendars.print.action") %>
+  </button>
+</header>
+
+<% if gefuellt.empty? %>
+  <p class="text-sm text-gray-600"><%= t("calendars.print.empty") %></p>
+<% else %>
+  <% gefuellt.each do |monat, eintraege| %>
+    <%# `break-inside-avoid` haelt einen Monat moeglichst auf einer Seite zusammen. %>
+    <section class="mb-6 break-inside-avoid">
+      <h2 class="text-base font-semibold border-b border-gray-200 pb-1 mb-2">
+        <%= l(monat, format: "%B %Y") %>
+        <span class="text-xs font-normal text-gray-600">
+          <%= t("calendars.stream.count", count: eintraege.size) %>
+        </span>
+      </h2>
+      <%= render "agenda", entries: eintraege %>
+    </section>
+  <% end %>
+<% end %>

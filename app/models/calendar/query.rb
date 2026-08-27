@@ -15,8 +15,13 @@ module Calendar
     # Turniere ohne Meisterschaftstyp, einschliesslich der CC-losen.
     GROUP_NONE = "none"
 
+    # Dasselbe fuer den Ort: gemessen am 2026-08-28 (Saison 25/26) tragen 8 BVNR-Turniere und
+    # 15 BVNR-Spieltage keinen Austragungsort, dazu 1 DBU-Spieltag. Ohne eigene Wahl waeren sie
+    # ueber den Ortsfilter unerreichbar.
+    LOCATION_NONE = "none"
+
     def initialize(region:, from:, to:, branch: nil, include_dbu: true,
-      kind: nil, group: nil, discipline_name: nil)
+      kind: nil, group: nil, discipline_name: nil, location_name: nil)
       @region = region
       @from = from.to_date
       @to = to.to_date
@@ -25,6 +30,7 @@ module Calendar
       @kind = kind.presence
       @group = group.presence
       @discipline_name = discipline_name.presence
+      @location_name = location_name.presence
     end
 
     def call
@@ -88,9 +94,31 @@ module Calendar
       end
     end
 
+    # Austragungsorte im Zeitraum — ueber BEIDE Arten, plus LOCATION_NONE, wenn Termine ohne Ort
+    # vorkommen.
+    #
+    # ⚠️ Die Liste kann LANG werden. Gemessen am 2026-08-28, Saison 25/26 — verschiedene Orte
+    # (Turniere / Spieltage): DBU 25/110, BVNR 34/43, BLMR 21/52, BVB 10/18, NBV 8/20, BLVSA 0/0.
+    # Ueber hundert Orte in einer Chip-Reihe waeren unbrauchbar; der Selektor ist deshalb
+    # eingeklappt und zeigt nur den gewaehlten Wert. Bei BLVSA faellt er ganz weg (< 2 Optionen).
+    def location_options
+      @location_options ||= begin
+        turniere = tournaments_filtered(ignore_location: true)
+        liga_ids = Array(leagues_in_scope).map(&:id)
+        spieltage = liga_ids.empty? ? [] : parties_in_scope(liga_ids, ignore_location: true).includes(:location)
+
+        namen = (turniere.map { |t| t.location&.name.presence } +
+                 spieltage.map { |p| p.location&.name.presence })
+        liste = namen.compact.uniq.sort
+        liste << LOCATION_NONE if namen.any?(&:nil?)
+        liste
+      end
+    end
+
     private
 
-    attr_reader :region, :from, :to, :branch_name, :include_dbu, :kind, :group, :discipline_name
+    attr_reader :region, :from, :to, :branch_name, :include_dbu, :kind, :group, :discipline_name,
+      :location_name
 
     def regions
       @regions ||= [region, (Region.find_by(shortname: DBU_SHORTNAME) if include_dbu)].compact.uniq
@@ -108,7 +136,7 @@ module Calendar
 
     # Der SQL-seitige Teil (Region, Zeitraum, Gruppe, Disziplin). Die Sparte bleibt bewusst
     # ausserhalb: sie braucht den Fallback ueber die Disziplin-Wurzel und ist deshalb Ruby-seitig.
-    def tournaments_in_scope(ignore_group: false, ignore_discipline: false)
+    def tournaments_in_scope(ignore_group: false, ignore_discipline: false, ignore_location: false)
       scope = Tournament.where(region_id: regions.map(&:id))
         .where(date: from.beginning_of_day..to.end_of_day)
 
@@ -124,6 +152,14 @@ module Calendar
 
       unless ignore_discipline || discipline_name.blank?
         scope = scope.where(discipline_id: discipline_subtree_ids)
+      end
+
+      unless ignore_location || location_name.blank?
+        scope = if location_name == LOCATION_NONE
+          scope.where(location_id: nil)
+        else
+          scope.left_joins(:location).where(locations: {name: location_name})
+        end
       end
 
       scope
@@ -165,8 +201,9 @@ module Calendar
     # (er braucht die Disziplin-Wurzel, siehe `branch_of_tournament`) — deshalb muessen auch die
     # Selektor-Optionen durch DIESE Einheit, sonst boete der Disziplin-Selektor bei Sparte
     # "Karambol" munter Pool-Disziplinen an.
-    def tournaments_filtered(ignore_group: false, ignore_discipline: false)
-      scope = tournaments_in_scope(ignore_group: ignore_group, ignore_discipline: ignore_discipline)
+    def tournaments_filtered(ignore_group: false, ignore_discipline: false, ignore_location: false)
+      scope = tournaments_in_scope(ignore_group: ignore_group, ignore_discipline: ignore_discipline,
+        ignore_location: ignore_location)
         .includes(:discipline, :location, :tournament_cc)
       return scope.to_a unless branch_name
 
@@ -229,8 +266,7 @@ module Calendar
       return [] if leagues.empty?
 
       by_league = leagues.index_by(&:id)
-      parties = Party.where(league_id: by_league.keys)
-        .where(date: from.beginning_of_day..to.end_of_day)
+      parties = parties_in_scope(by_league.keys)
         .includes(:league_team_a, :league_team_b, :location)
 
       parties.map do |p|
@@ -249,6 +285,23 @@ module Calendar
           record: p
         )
       end
+    end
+
+    # Spieltage im Zeitraum, mit Ortsfilter. Der Ort steht an der PARTY (jede Begegnung kann
+    # woanders stattfinden), nicht an der Liga.
+    def parties_in_scope(league_ids, ignore_location: false)
+      scope = Party.where(league_id: league_ids)
+        .where(date: from.beginning_of_day..to.end_of_day)
+
+      unless ignore_location || location_name.blank?
+        scope = if location_name == LOCATION_NONE
+          scope.where(location_id: nil)
+        else
+          scope.left_joins(:location).where(locations: {name: location_name})
+        end
+      end
+
+      scope
     end
 
     # --- Sparte ---------------------------------------------------------------------------

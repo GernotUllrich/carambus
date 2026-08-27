@@ -50,6 +50,7 @@ class CalendarsController < ApplicationController
     optionen = optionen_abfrage
     @group_options = optionen.group_options
     @discipline_options = optionen.discipline_options
+    @location_options = optionen.location_options
 
     # Die aus dem MONAT abgeleitete Saison, nicht die des Bands: die Monatsnavigation ist frei
     # (Betreiber-Entscheidung), Band und Inhalt koennen also auseinanderlaufen. Der Kopf nennt
@@ -59,6 +60,14 @@ class CalendarsController < ApplicationController
 
     # Erstladung des Stroms serverseitig: ohne JavaScript steht damit schon etwas da.
     @stream_kacheln = stream_kacheln(stream_erstladung(@month))
+
+    # Druckansicht: die GANZE Scope-Saison, unabhaengig davon, wie weit jemand gescrollt hat
+    # (Betreiber-Entscheidung 2026-08-28) — ein Ausdruck soll immer dasselbe bedeuten. Eigenes
+    # Layout ohne Navigation, Sidebar und Scope-Band: gedruckt wird nur der Inhalt.
+    return unless params[:print].present?
+
+    @stream_kacheln = stream_kacheln(saison_monate)
+    render :print, layout: "calendar_print"
   end
 
   # Nachschub fuer den Strom: eine Reihe Monatskacheln als HTML-Fragment (ohne Layout).
@@ -92,6 +101,7 @@ class CalendarsController < ApplicationController
     @include_dbu = params[:dbu] != "0"
     @group = params[:group].presence
     @discipline_name = params[:discipline].presence
+    @location_name = params[:location].presence
     # Eine gewaehlte Gruppe IST eine Turnier-Achse (Spieltage tragen keine Kategorie). Sie setzt
     # `kind` deshalb auf "single" — aber SICHTBAR: @kind steuert auch den Einzel/Mannschaft-
     # Schalter, der Nutzer sieht die Umschaltung, statt dass die Spieltage still verschwinden.
@@ -124,8 +134,23 @@ class CalendarsController < ApplicationController
     Calendar::Query.new(
       region: @region, from: von, to: bis,
       branch: @branch, include_dbu: @include_dbu,
-      kind: @kind, group: @group, discipline_name: @discipline_name
+      kind: @kind, group: @group, discipline_name: @discipline_name,
+      location_name: @location_name
     )
+  end
+
+  # Alle Monate der Scope-Saison, in denen etwas liegen KANN (Juli bis Juni) — Grundlage der
+  # Druckansicht. Leere Monate fallen erst beim Rendern weg, nicht hier: sonst haenge die
+  # Entscheidung "leer?" an einer zweiten Abfrage.
+  def saison_monate
+    von, bis = saison_zeitraum
+    monat = von.beginning_of_month
+    monate = []
+    while monat <= bis
+      monate << monat
+      monat >>= 1
+    end
+    monate.select { |m| calendar_month_in_bounds?(m) }
   end
 
   # Je Monat EINE Abfrage. Bewusst nicht eine ueber den ganzen Bereich mit nachtraeglicher

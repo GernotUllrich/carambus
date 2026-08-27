@@ -89,7 +89,8 @@ module CalendarsHelper
   def calendar_url(overrides = {})
     base = {month: @month.strftime("%Y-%m"),
             dbu: (@include_dbu ? nil : "0"),
-            kind: @kind, group: @group, discipline: @discipline_name}
+            kind: @kind, group: @group, discipline: @discipline_name,
+            location: @location_name}
     calendar_path(base.merge(overrides).compact)
   end
 
@@ -98,7 +99,7 @@ module CalendarsHelper
   # URL zu schreiben waere genau die Doppelstruktur, die 42-02 beseitigt hat).
   def calendar_stream_params
     {dbu: (@include_dbu ? nil : "0"), kind: @kind, group: @group,
-     discipline: @discipline_name}.compact
+     discipline: @discipline_name, location: @location_name}.compact
   end
 
   # Zurueck zur Anfangssicht: Einstiegsmonat und KEINE Achsen-Filter. Der Ausschnitt
@@ -109,8 +110,28 @@ module CalendarsHelper
 
   # True, wenn ueberhaupt etwas zurueckzusetzen ist (sonst waere der Knopf Zierde).
   def calendar_filters_active?
-    @kind.present? || @group.present? || @discipline_name.present? || !@include_dbu ||
-      @month != @default_month
+    @kind.present? || @group.present? || @discipline_name.present? || @location_name.present? ||
+      !@include_dbu || @month != @default_month
+  end
+
+  # Anzeigetext einer Orts-Option. `LOCATION_NONE` ist kein Ort, sondern der sichtbare Fall
+  # "Termin ohne Austragungsort" — im BVNR betrifft das ein knappes Dutzend Turniere je Saison.
+  def calendar_location_label(value)
+    (value == Calendar::Query::LOCATION_NONE) ? t("calendars.filter.location_none") : value
+  end
+
+  # Kopfzeile der Druckansicht: welcher Ausschnitt und welche Filter im Ausdruck stecken.
+  # Auf Papier gibt es keine Filterleiste — ohne diese Zeile weiss niemand mehr, was fehlt.
+  def calendar_print_scope_line
+    teile = [@region.shortname.presence || @region.name]
+    teile << @branch.name if @branch
+    teile << t("calendars.filter.kind_single") if @kind == "single"
+    teile << t("calendars.filter.kind_team") if @kind == "team"
+    teile << calendar_group_label(@group) if @group.present?
+    teile << @discipline_name if @discipline_name.present?
+    teile << calendar_location_label(@location_name) if @location_name.present?
+    teile << t("calendars.filter.region_only", region: @region.shortname.presence || @region.name) unless @include_dbu
+    teile.join(" · ")
   end
 
   # Anzeigetext einer Gruppen-Option. `Calendar::Query::GROUP_NONE` ist keine Kategorie, sondern

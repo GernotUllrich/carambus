@@ -1688,8 +1688,16 @@ de:
       group_none: "ohne Zuordnung"
       discipline: "Disziplin"
       discipline_all: "Alle Disziplinen"
+      location: "Ort"
+      location_all: "Alle Orte"
+      location_none: "ohne Ort"
+      print: "🖨 Drucken"
       with_dbu: "mit DBU"
       region_only: "nur %{region}"
+    print:
+      title: "Termine %{region} — Saison %{season}"
+      action: "🖨 Drucken"
+      empty: "Keine Termine in dieser Saison."
     stream:
       count:
         one: "1 Termin"
