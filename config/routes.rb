@@ -358,6 +358,11 @@ Rails.application.routes.draw do
       get :toggle_dark_mode
     end
   end
+  # Terminkalender je Region (Phase 42): Turniere und Liga-Spieltage gemeinsam, oeffentlich.
+  # Filter stehen als Query-Parameter im URL (month, branch, dbu, view), damit ein Kalenderblatt
+  # teilbar ist.
+  get "regions/:region_id/calendar", to: "calendars#show", as: :region_calendar
+
   resources :seasons
   resources :table_kinds
   resources :disciplines do

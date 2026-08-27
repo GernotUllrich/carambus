@@ -1,0 +1,28 @@
+<div class="container mx-auto my-4 px-4">
+  <div class="max-w-6xl mx-auto">
+
+    <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1 mb-1">
+      <h1 class="text-2xl font-semibold text-gray-900 dark:text-gray-100">
+        <%= t("calendars.show.title", region: @region.shortname.presence || @region.name) %>
+      </h1>
+      <span class="text-gray-500 dark:text-gray-400"><%= l(@month, format: "%B %Y") %></span>
+    </div>
+    <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">
+      <%= t("calendars.show.subtitle") %>
+    </p>
+
+    <%= render "filter_bar" %>
+
+    <% if @entries.empty? %>
+      <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-6 text-center">
+        <p class="text-gray-700 dark:text-gray-300 font-medium"><%= t("calendars.show.empty_heading") %></p>
+        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1"><%= t("calendars.show.empty_body") %></p>
+      </div>
+    <% elsif @view_mode == "grid" %>
+      <%= render "month_grid", entries: @entries %>
+    <% else %>
+      <%= render "agenda", entries: @entries %>
+    <% end %>
+
+  </div>
+</div>
