@@ -4,20 +4,27 @@
     Balkenlogik ueber Wochengrenzen lohnt dafuer nicht (s. Plan 42-01, Befund 5). %>
 <% by_day = Hash.new { |h, k| h[k] = [] }
    entries.each { |e| e.days.each { |d| by_day[d] << e if d >= @from && d <= @to } }
-   first_cell = @from.beginning_of_week(:monday)
-   last_cell  = @to.end_of_week(:monday) %>
+   first_cell = @from.beginning_of_week(CalendarsHelper::WEEK_START)
+   last_cell  = @to.end_of_week(CalendarsHelper::WEEK_START)
+   # Wochentage, an denen DIESER Monat etwas hat. by_day traegt nur Tage aus @from..@to,
+   # die Auswahl auf nicht-leere Listen schuetzt gegen die Default-Blocks des Hashes.
+   belegte_wdays = by_day.select { |_, liste| liste.any? }.keys.map(&:wday).uniq
+   grid_style = calendar_grid_style(belegte_wdays) %>
 
+<%# Spaltenbreite und Mindestbreite kommen aus den Daten (calendar_grid_style) — inline, weil
+    Tailwind nur literale Klassennamen erkennt. Kopfzeile und Zellen MUESSEN dieselbe
+    Spur-Definition tragen, sonst laufen sie auseinander: einmal berechnet, zweimal angewandt. %>
 <div class="overflow-x-auto border border-gray-200 dark:border-gray-700 rounded-lg">
-  <div class="min-w-[44rem]">
-    <div class="grid grid-cols-7 border-b border-gray-200 dark:border-gray-700">
-      <% %w[monday tuesday wednesday thursday friday saturday sunday].each_with_index do |_, i| %>
+  <div>
+    <div class="grid border-b border-gray-200 dark:border-gray-700" style="<%= grid_style %>">
+      <% calendar_weekday_labels.each do |label| %>
         <div class="px-2 py-1 text-[11px] uppercase tracking-wide text-gray-500 dark:text-gray-400">
-          <%= I18n.t("date.abbr_day_names")[(i + 1) % 7] %>
+          <%= label %>
         </div>
       <% end %>
     </div>
 
-    <div class="grid grid-cols-7">
+    <div class="grid" style="<%= grid_style %>">
       <% (first_cell..last_cell).each do |tag| %>
         <% im_monat = tag.month == @month.month
            wochenende = [6, 0].include?(tag.wday)

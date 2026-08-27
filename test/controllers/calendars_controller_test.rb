@@ -167,6 +167,67 @@ class CalendarsControllerTest < ActionDispatch::IntegrationTest
       "ausserhalb des NBV ist category_cc_id durchgaengig nil — ein leerer Selektor waere Ballast")
   end
 
+  # --- Monatsraster: Wochenstruktur (42-03) ---------------------------------------------------
+
+  # Erster Tag des angezeigten Monats mit dem gesuchten Wochentag.
+  def erster_wochentag(wday)
+    tag = Date.current.beginning_of_month
+    tag += 1 while tag.wday != wday
+    tag
+  end
+
+  # Alle Spur-Definitionen im Raster — es MUESSEN zwei sein (Kopfzeile und Zellen) und sie
+  # muessen gleich lauten, sonst stehen die Wochentagsnamen ueber den falschen Spalten.
+  def raster_spur_definitionen
+    response.body.scan(/grid-template-columns:\s*([^;]+);/).flatten
+  end
+
+  def raster_spuren
+    defs = raster_spur_definitionen
+    assert_equal 2, defs.size, "Kopfzeile und Zellen brauchen je eine Spur-Definition"
+    assert_equal defs.first, defs.last,
+      "Kopfzeile und Zellen muessen dieselben Spuren tragen, sonst laufen sie auseinander"
+    defs.first.scan(/minmax\([^)]*\)|[\d.]+rem/)
+  end
+
+  # AC-1 — die Kopfzeile im gerenderten Raster.
+  test "das Monatsraster beginnt die Woche am Samstag" do
+    turnier!(30, "NDM Freie Partie")
+    kalender(scope: {region: @region.id}, month: @monat, view: "grid")
+    assert_response :success
+
+    reihenfolge = response.body.scan(/tracking-wide text-gray-500 dark:text-gray-400">\s*(\w{2})\s*</).flatten.first(7)
+    assert_equal %w[Sa So Mo Di Mi Do Fr], reihenfolge
+  end
+
+  # AC-2 / AC-3 — die Spaltenbreite folgt den Terminen DIESES Monats.
+  test "das Raster schrumpft leere Wochentage und laesst belegte breit" do
+    samstag = erster_wochentag(6)
+    mittwoch = erster_wochentag(3)
+
+    # Nur ein Samstagstermin: alle Wochentage schrumpfen.
+    Tournament.create!(id: BASE_ID + 31, title: "NDM Samstag", season: @season,
+      organizer: @region, organizer_type: "Region", region_id: @region.id,
+      discipline: disciplines(:pool_8ball), date: samstag.to_time + 11.hours)
+
+    kalender(scope: {region: @region.id}, month: @monat, view: "grid")
+    assert_response :success
+    # Reihenfolge ist [Sa, So, Mo, Di, Mi, Do, Fr] — Mittwoch steht an Position 4.
+    assert_equal CalendarsHelper::SPUR_BELEGT, raster_spuren[0], "Samstag ist belegt"
+    assert_equal CalendarsHelper::SPUR_LEER, raster_spuren[4], "Mittwoch ist leer und schrumpft"
+
+    # Jetzt der BVNR-/DBU-Fall: ein Termin unter der Woche.
+    Tournament.create!(id: BASE_ID + 32, title: "DBU Mittwoch", season: @season,
+      organizer: @region, organizer_type: "Region", region_id: @region.id,
+      discipline: disciplines(:pool_8ball), date: mittwoch.to_time + 11.hours)
+
+    kalender(month: @monat, view: "grid")
+    assert_response :success
+    assert_equal CalendarsHelper::SPUR_BELEGT, raster_spuren[4],
+      "ein Mittwoch mit Terminen darf nicht auf Zahlenbreite gequetscht werden"
+    assert_match(/DBU Mittwoch/, response.body, "und der Termin muss im Raster stehen")
+  end
+
   test "ein leerer Monat zeigt einen Hinweis statt einer leeren Flaeche" do
     kalender(scope: {region: @region.id}, month: (Date.current + 8.months).strftime("%Y-%m"))
     assert_response :success
