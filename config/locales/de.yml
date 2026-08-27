@@ -1680,6 +1680,7 @@ de:
       next_month: "Nächster Monat"
       today: "Heute"
       reset: "↺ Anfang"
+      to_top: "↑ nach oben"
       kind_all: "Alle"
       kind_single: "Einzel"
       kind_team: "Mannschaft"
@@ -1695,7 +1696,6 @@ de:
         one: "1 Termin"
         other: "%{count} Termine"
       empty_month: "keine Termine"
-      load_earlier: "frühere Monate laden"
       start_reached: "Anfang erreicht"
       end_reached: "Ende erreicht"
     agenda:

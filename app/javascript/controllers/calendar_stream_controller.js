@@ -1,40 +1,54 @@
 import { Controller } from "@hotwired/stimulus"
 
-// Kalender-Strom: haengt weitere Monatskacheln an.
+// Kalender-Strom: haengt beim Scrollen weitere Monatskacheln an — nach unten spaetere, nach
+// oben fruehere.
 //
-// NACH UNTEN automatisch beim Scrollen. NACH OBEN ueber einen Knopf.
+// ⚠️ Nach OBEN ist das eine Falle, die schon einmal zugeschnappt ist: das Nachladen haelt die
+// Leseposition, also schiebt jeder Hochscroll-Versuch neuen Inhalt davor. Der Seitenkopf mit
+// Scope-Band und Filterleiste ist dadurch NICHT mehr durch Scrollen erreichbar. Das ist der
+// Preis dafuer, dass man ueberhaupt in die Vergangenheit scrollen kann — der Betreiber hat ihn
+// am 2026-08-27 bewusst gewaehlt. Der Ausweg ist der feste "Anfang"-Knopf oben rechts, der
+// die Seite neu laedt; ohne ihn waere dieser Controller eine Sackgasse.
 //
-// Warum oben nicht automatisch — zwei Gruende, beide beim Bauen aufgefallen:
-//   1. Ein Sentinel ueber der ersten Kachel steht beim Seitenaufbau bereits im Bild, loest
-//      sofort aus und bringt den naechsten ins Bild: eine Endlosschleife vor der ersten
-//      Nutzeraktion.
-//   2. Schwerer: automatisches Nachladen nach oben macht den Seitenkopf UNERREICHBAR. Wer
-//      hochscrollt, loest Nachschub aus, der oben eingefuegt wird — man kommt nie am Scope-Band
-//      und an der Filterleiste an. (Die Filterleiste klebt im Strom deshalb zusaetzlich oben.)
-//
-// Nach unten haette eine Turbo-Sentinel-Kette (<turbo-frame loading="lazy">) ohne eine Zeile
-// JavaScript gereicht. Da der Knopf oben ohnehin einen Controller braucht, traegt dieser beide
-// Richtungen — zwei Mechanismen fuer dasselbe Verhalten kosten bei jeder Aenderung doppelt.
+// Zwei Fallstricke, beide beim Bauen aufgetreten:
+//   1. Ein Sentinel ueber der ersten Kachel steht beim Seitenaufbau bereits im Bild und loest
+//      sofort aus — er wird deshalb erst nach der ersten Scrollbewegung scharf.
+//   2. Oben eingefuegter Inhalt verschiebt alles darunter. Gemessen wird die GESAMTHOEHE des
+//      Dokuments vor und nach dem Einfuegen, nicht die Hoehe des Fragments: das Grid fliesst
+//      beim Einfuegen um. Ohne diese Korrektur sprang der gelesene Monat 11736 px weg.
 //
 // Die Erstladung steht serverseitig im HTML; ohne JavaScript bleibt sie sichtbar.
 export default class extends Controller {
-  static targets = ["tiles", "bottom", "earlier", "topNotice", "bottomNotice"]
-  static values = { url: String, batch: { type: Number, default: 6 } }
+  static targets = ["tiles", "top", "bottom", "topNotice", "bottomNotice", "back"]
+  static values = { url: String, batch: { type: Number, default: 6 }, backAfter: { type: Number, default: 200 } }
 
   connect() {
     this.busy = { top: false, bottom: false }
     this.done = { top: false, bottom: false }
+
     this.bottomObserver = this.observe(this.bottomTarget, () => this.load("bottom"))
+
+    // Der obere Sentinel wird ERST nach der ersten Scrollbewegung scharf (Fallstrick 1).
+    this.armTop = () => {
+      window.removeEventListener("scroll", this.armTop)
+      this.topObserver = this.observe(this.topTarget, () => this.load("top"))
+    }
+    window.addEventListener("scroll", this.armTop, { once: true, passive: true })
+
+    // Der feste Knopf erscheint erst, wenn die Leisten oben weggescrollt sind — davor waere er
+    // nur im Weg, er laege ueber dem Scope-Band.
+    this.toggleBack = () => {
+      if (this.hasBackTarget) this.backTarget.hidden = window.scrollY < this.backAfterValue
+    }
+    this.toggleBack()
+    window.addEventListener("scroll", this.toggleBack, { passive: true })
   }
 
   disconnect() {
     this.bottomObserver?.disconnect()
-  }
-
-  // Knopf "frühere Monate laden".
-  loadEarlier(event) {
-    event.preventDefault()
-    this.load("top")
+    this.topObserver?.disconnect()
+    window.removeEventListener("scroll", this.armTop)
+    window.removeEventListener("scroll", this.toggleBack)
   }
 
   observe(element, onVisible) {
@@ -97,19 +111,16 @@ export default class extends Controller {
       return
     }
 
-    // Oben einfuegen. Weil das eine ausdrueckliche Nutzeraktion ist (Knopf), wird das Ergebnis
-    // GEZEIGT, statt die Leseposition zu halten — sonst klickt man und scheinbar passiert nichts.
-    // Angesteuert wird die erste neue Kachel; von dort laeuft der neue Block nach unten.
-    const bisher = this.tilesTarget.querySelector("[data-month]")
+    // Fallstrick 2: ueber die Gesamthoehe messen, nicht ueber die Fragmenthoehe.
+    const before = document.documentElement.scrollHeight
     this.tilesTarget.insertAdjacentHTML("afterbegin", html)
-    const ersteNeue = this.tilesTarget.querySelector("[data-month]")
-    if (ersteNeue && ersteNeue !== bisher) ersteNeue.scrollIntoView({ block: "start" })
+    window.scrollBy(0, document.documentElement.scrollHeight - before)
   }
 
   finish(direction) {
     this.done[direction] = true
     if (direction === "top") {
-      this.earlierTarget.hidden = true
+      this.topObserver?.disconnect()
       this.topNoticeTarget.hidden = false
     } else {
       this.bottomObserver?.disconnect()

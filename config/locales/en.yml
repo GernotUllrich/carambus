@@ -1784,6 +1784,7 @@ en:
       next_month: "Next month"
       today: "Today"
       reset: "↺ Start"
+      to_top: "↑ back to top"
       kind_all: "All"
       kind_single: "Individual"
       kind_team: "Team"
@@ -1799,7 +1800,6 @@ en:
         one: "1 fixture"
         other: "%{count} fixtures"
       empty_month: "nothing scheduled"
-      load_earlier: "load earlier months"
       start_reached: "start reached"
       end_reached: "end reached"
     agenda:

@@ -217,9 +217,42 @@ class CalendarsControllerTest < ActionDispatch::IntegrationTest
     kalender(month: @monat, kind: "single")
     assert_response :success
     assert_match(/#{Regexp.escape(I18n.t("calendars.filter.reset"))}/, response.body)
-    # Der Knopf behaelt die Ansicht und wirft nur die Achsen weg.
     assert_match(%r{href="/calendar"}, response.body,
       "zurueck zur Anfangssicht — Achsen und Monat fallen weg")
+  end
+
+  # Nach oben wird AUTOMATISCH nachgeladen — damit ist der Seitenkopf durch Scrollen nicht mehr
+  # erreichbar. Der feste Knopf ist deshalb kein Komfort, sondern der einzige Rueckweg.
+  test "der Strom hat einen festen Rueckweg nach oben" do
+    kalender(scope: {region: @region.id}, month: @monat, kind: "single")
+    assert_response :success
+    assert_select '[data-calendar-stream-target="back"].fixed', {minimum: 1},
+      "der Knopf muss `fixed` sein, nicht mitscrollen"
+    assert_select '[data-calendar-stream-target="top"]', {minimum: 1},
+      "oberer Sentinel fuer das automatische Nachladen"
+    # ⚠️ Er fuehrt auf den AKTUELLEN Ausschnitt, nicht auf die Anfangssicht: "zurueck" heisst
+    # zurueck nach oben, nicht "meine Filter weg".
+    assert_select '[data-calendar-stream-target="back"] a[href*=?]', "kind=single", {minimum: 1},
+      "der Rueckweg darf die gesetzten Achsen nicht verlieren"
+  end
+
+  # ⚠️ Gemessen am 2026-08-27: ohne `overflow-anchor: none` verankert der Browser die
+  # Scrollposition beim Einfuegen oberhalb des Viewports SELBST — zusammen mit der Korrektur im
+  # Stimulus-Controller wurde dann doppelt geschoben (Faktor exakt 2.0, 8358 px Versatz).
+  # Safari kennt die Verankerung nicht, weglassen der Controller-Korrektur ginge also auch nicht.
+  test "der Kachel-Container schaltet die Scroll-Verankerung ab" do
+    kalender(scope: {region: @region.id}, month: @monat)
+    assert_response :success
+    assert_select '[data-calendar-stream-target="tiles"][style*=?]', "overflow-anchor: none",
+      {minimum: 1},
+      "sonst korrigieren Browser und Controller beide — die Leseposition springt um das Doppelte"
+  end
+
+  test "die Filterleiste klebt NICHT oben" do
+    kalender(scope: {region: @region.id}, month: @monat)
+    assert_response :success
+    refute_match(/border-gray-700 sticky top-0/, response.body,
+      "die Leiste ist drei bis vier Zeilen hoch — sticky kostete den halben Bildschirm")
   end
 
   # Seit dem Wegfall der Einzelmonats-Ansichten traegt die KACHEL den Hinweis: der Strom zeigt
