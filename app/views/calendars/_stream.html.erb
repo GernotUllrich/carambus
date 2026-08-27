@@ -1,50 +1,33 @@
-<%# Der Kalender-Strom: Monatskacheln nebeneinander, Nachladen beim Scrollen in BEIDE Richtungen.
+<%# Der Kalender-Strom: Monatskacheln nebeneinander.
 
     Die Erstladung steht serverseitig im HTML — ohne JavaScript sieht man diese Monate, statt
-    einen leeren Bildschirm. Der Stimulus-Controller haengt nur weitere an.
+    einen leeren Bildschirm (AC-6). Der Stimulus-Controller haengt nur weitere an.
 
-    ⚠️ Weil nach oben automatisch nachgeladen wird, ist der Seitenkopf durch Scrollen NICHT mehr
-    erreichbar (das Nachladen haelt die Leseposition). Der feste "Anfang"-Knopf unten in diesem
-    Partial ist deshalb kein Komfort, sondern der einzige Rueckweg — Betreiber-Entscheidung vom
-    2026-08-27: lieber in die Vergangenheit scrollen koennen und dafuer einen Knopf haben.
+    NACH UNTEN laedt er beim Scrollen automatisch nach. NACH OBEN ueber einen KNOPF — automatisch
+    waere hier eine Falle: das Nachladen haelt die Leseposition, dadurch kaeme man beim
+    Hochscrollen nie wieder am Seitenkopf mit Scope-Band und Filterleiste an. Vom Betreiber am
+    2026-08-27 so entschieden, nachdem genau das aufgefallen war.
 
     Spaltenzahl kommt von `auto-fill`, nicht aus den Daten — deshalb genuegt hier eine literale
-    Tailwind-Klasse. `items-start`: Kacheln behalten ihre natuerliche Hoehe. %>
+    Tailwind-Klasse, anders als beim Monatsraster in 42-03.
+    `items-start`: Kacheln behalten ihre natuerliche Hoehe, statt auf die hoechste der Zeile
+    gedehnt zu werden. %>
 <div data-controller="calendar-stream"
      data-calendar-stream-url-value="<%= calendar_months_path(calendar_stream_params) %>"
      data-calendar-stream-batch-value="<%= CalendarsController::STREAM_BATCH %>">
 
-  <%# Fester Rueckweg. `fixed` statt `sticky`: er steht unabhaengig vom Inhalt.
-      Erscheint erst, wenn die Leisten oben weggescrollt sind (Controller#toggleBack).
-
-      ⚠️ Ziel ist der AKTUELLE Ausschnitt (`calendar_url` ohne Aenderung), nicht
-      `calendar_reset_path`: "zurueck" heisst zurueck nach oben, nicht "meine Filter weg".
-      `turbo: false` erzwingt einen vollen Seitenaufbau — ein Turbo-Besuch auf dieselbe URL
-      waere nicht verlaesslich, und genau der Aufbau von oben ist hier der Zweck. %>
-  <div data-calendar-stream-target="back" hidden
-       class="fixed top-3 right-4 z-50">
-    <%= link_to calendar_url, data: {turbo: false},
-          class: "btn btn-primary px-3 py-2 text-xs rounded-pill shadow-lg" do %>
-      <%= t("calendars.filter.to_top") %>
-    <% end %>
+  <div class="py-3 text-center">
+    <button type="button"
+            data-action="calendar-stream#loadEarlier"
+            data-calendar-stream-target="earlier"
+            class="btn btn-white px-3 py-1 text-xs rounded-pill">
+      <%= t("calendars.stream.load_earlier") %>
+    </button>
+    <span data-calendar-stream-target="topNotice" hidden
+          class="text-xs text-gray-500 dark:text-gray-400"><%= t("calendars.stream.start_reached") %></span>
   </div>
 
-  <%# Oberer Sentinel: der Controller schaltet ihn ERST nach der ersten Scrollbewegung scharf —
-      beim Seitenaufbau stuende er im Bild und loeste sich endlos selbst aus. %>
-  <div data-calendar-stream-target="top"
-       class="py-3 text-center text-xs text-gray-500 dark:text-gray-400">
-    <span data-calendar-stream-target="topNotice" hidden><%= t("calendars.stream.start_reached") %></span>
-  </div>
-
-  <%# ⚠️ `overflow-anchor: none` ist hier KEIN Feinschliff, sondern notwendig: Chrome, Edge und
-      Firefox verankern die Scrollposition beim Einfuegen oberhalb des Viewports von selbst
-      ("scroll anchoring"). Zusammen mit der Korrektur im Controller wurde dann DOPPELT
-      geschoben — gemessen am 2026-08-27: Dokument wuchs um 5114 px, die Scrollposition um
-      10228 px. Safari kennt die Verankerung nicht, weglassen ginge also auch nicht.
-      Abgeschaltet, damit genau EIN Weg gilt: der im Controller. Layout-Style ohne Farbe, vom
-      UI-Guard ausdruecklich erlaubt. %>
   <div data-calendar-stream-target="tiles"
-       style="overflow-anchor: none;"
        class="grid gap-4 items-start grid-cols-[repeat(auto-fill,minmax(20rem,1fr))]">
     <%= render "month_tiles", kacheln: @stream_kacheln %>
   </div>
