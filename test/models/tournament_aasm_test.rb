@@ -167,6 +167,34 @@ class TournamentAasmTest < ActiveSupport::TestCase
     assert_equal "tournament_started", tournament.reload.state
   end
 
+  # Zusage an carambus_app (2026-08-25): App-Turniere haben einen initialisierten
+  # TournamentMonitor, ohne je durch die Anlage-Kette gelaufen zu sein. Der Uebergang muss
+  # nebenwirkungsfrei bleiben — `tournament_started` traegt keine after_enter-Callbacks,
+  # und genau darauf beruht die Zusage.
+  test "signal_tournament_monitors_ready! akzeptiert new_tournament (App-Turniere)" do
+    tournament = create_tournament
+    tournament.update_column(:state, "new_tournament")
+    tournament.signal_tournament_monitors_ready!
+    assert_equal "tournament_started", tournament.reload.state
+  end
+
+  test "signal_tournament_monitors_ready! aus new_tournament loest keine Callbacks aus" do
+    tournament = create_tournament
+    tournament.update_column(:state, "new_tournament")
+
+    # reset_tournament haengt an new_tournament (after_enter), calculate_and_cache_rankings
+    # an tournament_seeding_finished. Beim Verlassen bzw. Umgehen dieser Zustaende darf
+    # keiner von beiden laufen.
+    called = []
+    tournament.define_singleton_method(:reset_tournament) { called << :reset_tournament }
+    tournament.define_singleton_method(:calculate_and_cache_rankings) { called << :rankings }
+
+    tournament.signal_tournament_monitors_ready!
+
+    assert_equal "tournament_started", tournament.reload.state
+    assert_empty called, "Der Uebergang nach tournament_started muss callback-frei bleiben"
+  end
+
   test "signal_tournament_monitors_ready! also accepts from tournament_started (idempotent)" do
     tournament = create_tournament
     tournament.update_column(:state, "tournament_started")

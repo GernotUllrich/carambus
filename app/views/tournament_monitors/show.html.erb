@@ -6,6 +6,28 @@
     <h2 class="text-center"><%= t("tournaments.tournament_monitor") %></h2>
     <h3 class="text-center"><%= custom_link_to @tournament_monitor.tournament.title, tournament_path(@tournament_monitor.tournament) %></h3>
 
+    <!-- Plan 40-02: Anzeigesprache der Scoreboards. Drei Zustaende — "nicht gesetzt" MUSS
+         waehlbar bleiben, weil nil an die Tischsprache weiterreicht, waehrend "de" sie
+         ausdruecklich ueberschreibt. -->
+    <div class="mb-4 flex justify-center">
+      <%= form_with(model: @tournament_monitor, class: "flex flex-wrap items-end justify-center gap-2") do |form| %>
+        <div class="form-group mb-0">
+          <%= form.label :locale, t("tournament_monitors.show.display_language"), class: "block text-sm" %>
+          <%= form.select :locale,
+                          options_for_select(
+                            [[t("tournament_monitors.show.display_language_unset"), ""],
+                             [t("locales.de"), "de"],
+                             [t("locales.en"), "en"]],
+                            @tournament_monitor.locale.to_s
+                          ),
+                          {},
+                          class: "form-control" %>
+        </div>
+        <%= form.button t("tournament_monitors.show.display_language_save"), class: "btn btn-primary btn-sm" %>
+      <% end %>
+    </div>
+    <p class="text-center text-sm text-gray-500 dark:text-gray-400 mb-4"><%= t("tournament_monitors.show.display_language_hint") %></p>
+
     <!-- Links zu Scoreboards (read-only) -->
     <% if @tournament_monitor.tournament.location.present? %>
       <div class="text-center mb-4">

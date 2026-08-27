@@ -16,7 +16,7 @@ class TableMonitorsController < ApplicationController
   }.freeze
 
   before_action :set_table_monitor,
-    only: %i[show start_game edit update destroy next_step evaluate_result set_balls toggle_dark_mode]
+    only: %i[show start_game edit update destroy next_step evaluate_result set_balls toggle_dark_mode toggle_locale]
   before_action :block_tournament_manipulation,
     only: %i[start_game update destroy]
 
@@ -59,6 +59,30 @@ class TableMonitorsController < ApplicationController
   # GET /@table_monitors/new
   def new
     # @table_monitor = TableMonitor.new
+  end
+
+  # Plan 40-02: Grundsprache DIESES Tisches am Scoreboard umschalten.
+  #
+  # Nach dem Muster von `toggle_dark_mode` (GET-Member-Route, `redirect_back`) — aber
+  # ausdruecklich NICHT an `current_user`: am Scoreboard ist typischerweise niemand
+  # eingeloggt, dort waere die Einstellung wirkungslos. Sie gehoert an den Tisch.
+  #
+  # Kein eigener Autorisierungs-Guard: wer am Scoreboard steht, kann dort bereits den
+  # SPIELSTAND aendern — die Anzeigesprache umzuschalten ist geringerwertig. Der
+  # ApiProtector-Guard von TableLocal sorgt zugleich dafuer, dass auf der Authority
+  # nichts geschrieben wird (dort steht kein Tisch).
+  def toggle_locale
+    return redirect_back(fallback_location: @table_monitor) if tournament_dictates_locale?
+
+    table_local = @table_monitor.table&.table_local
+    # Keinen Record anlegen: seit `AddUniqueIndexToTableLocals` haelt ein Unique-Index auf
+    # table_id, und ein Auto-Create hier wuerde mit dem regulaeren Anlagepfad konkurrieren.
+    return redirect_back(fallback_location: @table_monitor) if table_local.blank?
+
+    effective = @table_monitor.display_locale || I18n.default_locale
+    table_local.update(locale: ((effective.to_sym == :de) ? "en" : "de"))
+
+    redirect_back fallback_location: @table_monitor
   end
 
   def toggle_dark_mode
@@ -459,6 +483,14 @@ class TableMonitorsController < ApplicationController
   end
 
   # Verhindert Manipulationen an TableMonitor während eines Turniers
+  # Gibt das laufende Turnier die Sprache vor, ist die Tischsprache wirkungslos — dann darf sie
+  # auch nicht still veraendert werden. `tournament_monitor` ist polymorph: bei Liga-Spielen
+  # haengt dort ein PartyMonitor OHNE locale-Spalte.
+  def tournament_dictates_locale?
+    tm = @table_monitor.tournament_monitor
+    tm.respond_to?(:locale) && tm.locale.present?
+  end
+
   def block_tournament_manipulation
     if @table_monitor&.tournament_monitor_id.present?
       flash[:error] = I18n.t("errors.tournament_game_manipulation_blocked",

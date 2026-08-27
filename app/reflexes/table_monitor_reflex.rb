@@ -143,8 +143,7 @@ class TableMonitorReflex < ApplicationReflex
         when "playera"
           @table_monitor.reset_timer!
           if @table_monitor.data["current_left_player"] == "playerb"
-            @table_monitor.data[current_role]["fouls_1"] = 0
-            @table_monitor.terminate_current_inning
+            terminate_current_inning_unless_stray(current_role)
           else
             #+++++++
             @table_monitor.add_n_balls((@table_monitor.discipline == "Eurokegel" ? 2 : 1))
@@ -162,8 +161,7 @@ class TableMonitorReflex < ApplicationReflex
             #+++++++
             @table_monitor.add_n_balls((@table_monitor.discipline == "Eurokegel" ? 2 : 1))
           else
-            @table_monitor.data[current_role]["fouls_1"] = 0
-            @table_monitor.terminate_current_inning
+            terminate_current_inning_unless_stray(current_role)
           end
           @table_monitor.do_play
           # Lost-update-Guard: terminate_current_inning kann via AASM set_over ->
@@ -179,7 +177,18 @@ class TableMonitorReflex < ApplicationReflex
     elsif (@table_monitor.set_over? && @table_monitor.player_controlled?) || @table_monitor.final_match_score? || @table_monitor.final_set_score?
       # FIX: Remove duplicate elsif block - evaluate_result handles everything
       # including calling report_result and finish_match! (inside lock)
-      @table_monitor.evaluate_result
+      #
+      # Solange das Protokoll-Modal offen steht, wird NUR ueber dessen eigenen
+      # beschrifteten Button bestaetigt (GameProtocolReflex#confirm_result).
+      # Der Feld-Klick war ein zweiter, unbeschrifteter Weg zum selben Ziel —
+      # und weil er dieselbe Flaeche benutzt wie "Punkt", bestaetigte ein
+      # nachlaufender Tastendruck das Protokoll selbsttaetig. Danach ist
+      # can_undo? tot und der Zustand nicht mehr korrigierbar.
+      # Die spaeteren Zustaende (final_set_score / final_match_score) behalten
+      # den Feld-Klick als "weiter"-Geste — dort steht kein Modal mehr.
+      unless @table_monitor.set_over? && @table_monitor.protocol_modal_should_be_open?
+        @table_monitor.evaluate_result unless @table_monitor.discard_stray_after_auto_switch?
+      end
       # @table_monitor.acknowledge_result!
       # @table_monitor.prepare_final_game_result
     end
@@ -218,8 +227,7 @@ class TableMonitorReflex < ApplicationReflex
             #+++++++
             @table_monitor.add_n_balls((@table_monitor.discipline == "Eurokegel" ? 2 : 1))
           else
-            @table_monitor.data[current_role]["fouls_1"] = 0
-            @table_monitor.terminate_current_inning
+            terminate_current_inning_unless_stray(current_role)
           end
           @table_monitor.do_play
           # Lost-update-Guard: terminate_current_inning kann via AASM set_over ->
@@ -234,8 +242,7 @@ class TableMonitorReflex < ApplicationReflex
             #+++++++
             @table_monitor.add_n_balls((@table_monitor.discipline == "Eurokegel" ? 2 : 1))
           else
-            @table_monitor.data[current_role]["fouls_1"] = 0
-            @table_monitor.terminate_current_inning
+            terminate_current_inning_unless_stray(current_role)
           end
           @table_monitor.do_play
           # Lost-update-Guard: terminate_current_inning kann via AASM set_over ->
@@ -251,7 +258,18 @@ class TableMonitorReflex < ApplicationReflex
     elsif (@table_monitor.set_over? && @table_monitor.player_controlled?) || @table_monitor.final_match_score? || @table_monitor.final_set_score?
       # FIX: Remove duplicate elsif block - evaluate_result handles everything
       # including calling report_result and finish_match! (inside lock)
-      @table_monitor.evaluate_result
+      #
+      # Solange das Protokoll-Modal offen steht, wird NUR ueber dessen eigenen
+      # beschrifteten Button bestaetigt (GameProtocolReflex#confirm_result).
+      # Der Feld-Klick war ein zweiter, unbeschrifteter Weg zum selben Ziel —
+      # und weil er dieselbe Flaeche benutzt wie "Punkt", bestaetigte ein
+      # nachlaufender Tastendruck das Protokoll selbsttaetig. Danach ist
+      # can_undo? tot und der Zustand nicht mehr korrigierbar.
+      # Die spaeteren Zustaende (final_set_score / final_match_score) behalten
+      # den Feld-Klick als "weiter"-Geste — dort steht kein Modal mehr.
+      unless @table_monitor.set_over? && @table_monitor.protocol_modal_should_be_open?
+        @table_monitor.evaluate_result unless @table_monitor.discard_stray_after_auto_switch?
+      end
       # @table_monitor.acknowledge_result!
       # @table_monitor.prepare_final_game_result
     end
@@ -320,6 +338,30 @@ class TableMonitorReflex < ApplicationReflex
     end
     @table_monitor.suppress_broadcast = false
     @table_monitor.save
+  end
+
+  # Nachstoss-Panel: beendet die Ausgleichsaufnahme ueber einen BESCHRIFTETEN
+  # Button statt ueber eine Klickflaeche, deren Bedeutung sich beim automatischen
+  # Spielerwechsel geaendert hat (siehe TableMonitor#follow_up_lock?).
+  # Nur hierueber wird im Nachstoss gewertet; das Feld des Anstoss-Spielers
+  # traegt in diesem Zustand keine Action mehr.
+  def finish_follow_up
+    Rails.logger.info "+++++++++++++++++>>> finish_follow_up <<<++++++++++++++++++++++++++++++++++++++"
+    morph :nothing
+    @table_monitor = TableMonitor.find(element.andand.dataset[:id])
+    @table_monitor.suppress_broadcast = true
+    return if @table_monitor.locked_scoreboard
+    # Der Button existiert nur im Nachstoss — ein Event aus einem anderen
+    # Zustand ist veraltet und wird verworfen.
+    return unless @table_monitor.follow_up_lock?
+
+    current_role = @table_monitor.data["current_inning"]["active_player"]
+    @table_monitor.reset_timer!
+    terminate_current_inning_unless_stray(current_role)
+    @table_monitor.assign_attributes(panel_state: "pointer_mode", current_element: "pointer_mode") unless @table_monitor.set_over?
+    @table_monitor.suppress_broadcast = false
+    @table_monitor.save
+    Rails.logger.info "finish_follow_up completed"
   end
 
   def undo
@@ -1108,6 +1150,19 @@ class TableMonitorReflex < ApplicationReflex
   # und bk2_kombi_commit_if_active.
   def bk_family?
     Discipline::BK2_FREE_GAME_FORMS.include?(@table_monitor.data["free_game_form"])
+  end
+
+  # Nachstoss-Race-Guard (siehe TableMonitor::AUTO_SWITCH_GRACE).
+  # Beendet die laufende Aufnahme — ausser das Event ist ein Nachlaeufer, der
+  # unmittelbar auf den automatischen Spielerwechsel folgt. Ein Event, das als
+  # "Punkt fuer den Anstoss-Spieler" abgeschickt wurde, darf nach dem Wechsel
+  # nicht stillschweigend als "Aufnahme des Nachstoss-Spielers beenden"
+  # ausgefuehrt werden — sonst faellt der Ausgleichsstoss lautlos aus.
+  def terminate_current_inning_unless_stray(current_role)
+    return if @table_monitor.discard_stray_after_auto_switch?
+
+    @table_monitor.data[current_role]["fouls_1"] = 0
+    @table_monitor.terminate_current_inning
   end
 
 end

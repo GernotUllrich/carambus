@@ -19,6 +19,26 @@ module ExternalTournament
   # (coarse SQL-LIKE auf den external_id-String + exakter Marker-Abgleich). GameParticipations folgen via
   # Game#has_many(dependent: :destroy), gebundene TableMonitors via has_one(dependent: :nullify).
   class AppTournamentCleaner
+    # Plan 41-01 (Nachtrag auf Rueckfrage von carambus_app, 2026-08-25):
+    # Sagt aus, ob der AUTOMATISCHE Sweep archivierte Turniere (data["archived_at"]) verschont.
+    #
+    # Warum ueberhaupt: der Archiv-Endpoint meldet `archived: true`, sobald er geschrieben hat —
+    # aber "geschrieben" ist nicht "haelt". Solange der naechtliche GC das Turnier weiterhin
+    # loescht, waere es unehrlich, der App Dauerhaftigkeit zu melden; ihr Turnierleiter bekaeme
+    # "archiviert" angezeigt fuer etwas, das am naechsten Morgen weg ist.
+    #
+    # Diese Konstante ist KEINE Pflegeangabe: `app_tournament_cleaner_archive_test.rb` koppelt
+    # sie an das tatsaechliche Verhalten und faellt, wenn beide auseinanderlaufen — in BEIDE
+    # Richtungen. Plan 41-02 setzt sie auf true und dreht die Testrichtung mit.
+    #
+    # NACHTRAG 2026-08-26: Die Konstante deckt den SWEEP ab, nicht jeden Loeschpfad. Ein
+    # Turnier-Neustart raeumte die Archiv-Partien trotzdem mit ab — drei Stellen loeschten
+    # bedingungslos `games.where("id >= MIN_ID")`. Gemessen auf bcw: vier erfolgreiche Pushes,
+    # NULL Partien in der DB, `durable: true` weiterhin gemeldet. Behoben ueber den Scope
+    # `Game.without_archive`; `tournament_archive_survives_reset_test.rb` haelt alle drei Pfade
+    # fest. Wer hier eine weitere Zusage aufmacht, pruefe zuerst, WELCHE Loeschpfade sie deckt.
+    ARCHIVE_AWARE = true
+
     def self.cleanup(tournament)
       new.cleanup(tournament)
     end
@@ -122,6 +142,17 @@ module ExternalTournament
           tm = t.tournament_monitor
           tm.nil? || tm.state == "closed"
         end
+        # Plan 41-02: archivierte Turniere ueberleben den AUTOMATISCHEN Sweep.
+        #
+        # Ohne diese Zeile trifft der GC exakt den Zustand eines fertig archivierten Turniers
+        # (lokal + manual_assignment + end_date vorbei + Monitor geschlossen) und loescht das
+        # Archiv in der Nacht nach dem Turnier — also genau das, wofuer carambus_app den
+        # Endpoint vorgeschlagen hat.
+        #
+        # Nur hier, NICHT in `cleanup(t)`: wer per end_tournament?cleanup=true bewusst abraeumt,
+        # meint es auch bei einem archivierten Turnier so (gleiche Abgrenzung wie beim
+        # end_date-Filter darueber).
+        .reject { |t| safe_data(t)["archived_at"].present? }
     end
 
     # game.data ist serialized JSON (Game-Model serialize :data) — defensiv gegen Nicht-Hash/Parse-Fehler.

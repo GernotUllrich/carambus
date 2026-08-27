@@ -110,6 +110,34 @@
           <div id=clock class=" dark:bg-black text-gray-500 dark:text-gray-300 hover:text-black text-<%= vw2 %> text-center"></div>
         <%- end %>
       </div>
+      <%- if table_monitor.follow_up_lock? %>
+        <%# Nachstoss-Panel. Der Ausgleichsstoss laeuft; das Feld des Anstoss-Spielers
+            ist stillgelegt (siehe _player_score_panel). Gewertet wird ausschliesslich
+            ueber diesen beschrifteten Button — nicht mehr ueber eine Klickflaeche,
+            deren Bedeutung sich beim automatischen Spielerwechsel geaendert hat.
+            Bewusst im Mittelstreifen: dort nahm vorher niemand Punkte entgegen, ein
+            nachlaufender Tastendruck aus dem Spielerfeld kann den Button also nicht
+            treffen. %>
+        <div id="follow_up_panel_<%= table_monitor.id %>" class="flex flex-col items-center justify-center gap-2 p-2 border-4 border-warning-500 rounded-lg bg-warning-50 dark:bg-black">
+          <div class="font-bold text-warning-700 dark:text-warning-400 text-<%= vw2 %> text-center">
+            <%= t("table_monitor.follow_up") %>
+          </div>
+          <%# Aktionsfarbe statt Warnfarbe (2026-08-25): der Button war rot und stand in einem
+              ohnehin warngelben Panel — Rot las sich als Statusmeldung, nicht als Schaltflaeche.
+              Die Dringlichkeit traegt weiterhin das Panel; der Button traegt jetzt die Handlung.
+              Tipp-Symbol + Ring als Touch-Affordanz: am Scoreboard wird mit dem Finger bedient,
+              und ein Hover-Zustand existiert dort nicht. %>
+          <%= content_tag "button", data: { controller: "table-monitor", action: "click->table-monitor#finish_follow_up", id: table_monitor.id }, class: "flex w-full items-center justify-center gap-3 rounded-lg py-6 font-bold text-#{vw2} text-white bg-primary-600 hover:bg-primary-700 ring-4 ring-primary-300 dark:ring-primary-800 shadow-lg transition" do %>
+            <svg class="h-8 w-8 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M15.042 21.672 13.684 16.6m0 0-2.51 2.225.569-9.47 5.227 7.917-3.286-.672ZM12 2.25V4.5m5.834.166-1.591 1.591M20.25 10.5H18M7.757 14.743l-1.59 1.59M6 10.5H3.75m4.007-4.243-1.59-1.59" />
+            </svg>
+            <span><%= t("table_monitor.finish_follow_up") %></span>
+          <%- end %>
+          <%= content_tag "button", data: { controller: "table-monitor", action: "click->table-monitor#undo", id: table_monitor.id }, class: "w-full py-3 rounded-lg font-semibold text-white bg-gray-600 hover:bg-gray-700 transition" do %>
+            <%= t("table_monitor.undo") %>
+          <%- end %>
+        </div>
+      <%- end %>
       <%= content_tag "div", id: "game_state", class: "flex flex-col h-5/6 dark:text-gray-200 bg-gray-100 dark:bg-black" do %>
         <div class="flex flex-col h-2/6 <%= is_bk2_kombi ? "bk2-kombi-scoreboard" : "" %>" tabindex="3" id="pointer_mode">
           <%- if is_bk2_kombi %>

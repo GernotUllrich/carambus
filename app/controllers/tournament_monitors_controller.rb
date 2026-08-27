@@ -193,8 +193,12 @@ class TournamentMonitorsController < ApplicationController
 
   # Only allow a trusted parameter "white list" through.
   def tournament_monitor_params
+    # Plan 40-02: :locale gehoert in die Liste, sonst schluckt `update` die Anzeigesprache
+    # STILL — kein Fehler, keine Wirkung. Der Wert wird in TournamentMonitor gegen
+    # I18n.available_locales validiert (40-01); leerer String kommt als nil an und bedeutet
+    # "nicht konfiguriert" (die Tischsprache gilt weiter).
     params.require(:tournament_monitor).permit(:tournament_id, :date, :state, :innings_goal, :timeouts, :timeout,
-                                               :balls_goal)
+                                               :balls_goal, :locale)
   end
 
   # Sicherstellen dass nur Spielleiter (club_admin) Zugriff haben

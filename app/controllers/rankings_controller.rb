@@ -1,4 +1,15 @@
 class RankingsController < ApplicationController
+  # Verlaufsdiagramm: ab welcher Saison und wie viele Spieler je Disziplin
+  BTG_HISTORY_FIRST_SEASON = "2010/2011"
+  BTG_HISTORY_PLAYER_COUNT = 20
+  # Bundesweite Ansicht: weniger Spieler (der Median ist dort die Hauptaussage) und nur
+  # Disziplinen, die in mindestens zwei Verbaenden gespielt werden -- sonst gibt es nichts
+  # zu vergleichen.
+  NATIONAL_PLAYER_COUNT = 10
+  NATIONAL_MIN_REGIONS = 2
+  # Dachverband (DBU) -- eigene Ebene, nicht mit den Landesverbaenden verrechnen.
+  ROOF_SHORTNAMES = Region::SHORTNAMES_ROOF_ORGANIZATION
+
   def index
     @regions = Region.having_rankings
                     .includes(:country)
@@ -241,27 +252,190 @@ class RankingsController < ApplicationController
         Rails.logger.error "Error sorting chart data: #{e.message}"
       end
     end
+
+    # BTG-Verlauf der aktuell besten Spieler je Disziplin (Verlaufsdiagramm ueber der Tabelle)
+    @btg_chart_by_discipline = build_btg_history(@region)
+  end
+
+  # Bundesweiter Vergleich: je Disziplin die besten Spieler Deutschlands, darueber der
+  # Median Deutschlands als Bezugslinie, dazu die Mediane der einzelnen Landesverbaende.
+  def germany
+    @national_by_discipline = build_national_history
   end
 
   private
 
+  # Baut je Disziplin den BTG-Verlauf der aktuell besten Spieler seit BTG_HISTORY_FIRST_SEASON.
+  # "Aktuell" meint die juengste Saison, fuer die ueberhaupt Rankings vorliegen -- die laufende
+  # Saison ist in der Regel noch leer (Rankings entstehen erst im Saisonverlauf).
+  # Rueckgabe: { discipline_id => { seasons: [...], players: [{ id:, name:, values: [...] }] } }
+  # values enthaelt je Saison den BTG oder nil; nil laesst die Linie im Diagramm unterbrechen.
+  def build_btg_history(region)
+    rows = PlayerRanking
+      .joins(:season)
+      .where(region_id: region.id)
+      .where.not(btg: nil)
+      .where("seasons.name >= ?", BTG_HISTORY_FIRST_SEASON)
+      .pluck(:discipline_id, :player_id, "seasons.name", :btg)
+    return {} if rows.empty?
+
+    season_names = rows.map { |r| r[2] }.uniq.sort
+    latest_season = season_names.last
+    players_by_id = Player.where(id: rows.map { |r| r[1] }.uniq).index_by(&:id)
+
+    rows.group_by(&:first).each_with_object({}) do |(discipline_id, discipline_rows), acc|
+      top_ids = discipline_rows.select { |r| r[2] == latest_season }
+                               .sort_by { |r| -r[3] }
+                               .first(BTG_HISTORY_PLAYER_COUNT)
+                               .map { |r| r[1] }
+      next if top_ids.empty?
+
+      rows_by_player = discipline_rows.group_by { |r| r[1] }
+      acc[discipline_id] = {
+        seasons: season_names,
+        players: top_ids.map do |player_id|
+          btg_by_season = rows_by_player[player_id].to_h { |r| [r[2], r[3]] }
+          {
+            id: player_id,
+            name: players_by_id[player_id]&.fl_name || "##{player_id}",
+            values: season_names.map { |name| btg_by_season[name]&.round(3) }
+          }
+        end
+      }
+    end
+  end
+
   # No longer needed as we precompute this in the controller
   # def calculate_three_year_gd(player_id, discipline_id)
   #   rankings = @rankings_by_player[[player_id, discipline_id]] || []
-  # 
+  #
   #   # Map seasons to GD values in chronological order
   #   gd_values = @seasons.map do |season|
   #     ranking = rankings.find { |r| r.season_id == season.id }
   #     [ranking&.gd, ranking&.btg]
   #   end
-  # 
+  #
   #   # Calculate effective GD (current || previous || previous-1)
   #   effective_gd = gd_values[2]&.first || gd_values[1]&.first || gd_values[0]&.first
-  # 
+  #
   #   {
   #     gd_values: gd_values,
   #     effective_gd: effective_gd
   #   }
   # end
   # helper_method :calculate_three_year_gd
+
+  # Median statt Mittelwert: ein Viertel der Rankings stammt aus einem einzigen Turnier,
+  # ein Glueckstreffer wuerde einen Verband sonst nach oben ziehen.
+  def median(values)
+    return nil if values.blank?
+
+    sorted = values.compact.sort
+    return nil if sorted.empty?
+
+    middle = sorted.size / 2
+    sorted.size.odd? ? sorted[middle] : ((sorted[middle - 1] + sorted[middle]) / 2.0)
+  end
+
+  # Je Disziplin: Median Deutschland, Median je Landesverband und die besten Spieler
+  # bundesweit -- alles ueber dieselben Saisons, damit die Linien vergleichbar liegen.
+  # Rueckgabe: [{ id:, name:, seasons:, national_median:, regions: [...], players: [...] }]
+  def build_national_history
+    rows = PlayerRanking
+      .joins(:season, :region)
+      .where.not(btg: nil)
+      .where("seasons.name >= ?", BTG_HISTORY_FIRST_SEASON)
+      .pluck(:discipline_id, :player_id, "seasons.name", :btg, "regions.shortname")
+    return [] if rows.empty?
+
+    players_by_id = Player.where(id: rows.map { |r| r[1] }.uniq).index_by(&:id)
+    disciplines_by_id = Discipline.where(id: rows.map(&:first).uniq).index_by(&:id)
+
+    rows.group_by(&:first).filter_map do |discipline_id, discipline_rows|
+      # Der Dachverband ist KEIN Landesverband: Bei der DBU spielen die Qualifizierten, nicht
+      # der Querschnitt -- ihr Median liegt entsprechend hoeher (Dreiband klein 2025/26: 0,98
+      # gegen 0,56-0,85 der Laender). Sie wuerde den Vergleich verzerren und faelschlich als
+      # staerkster "Verband" erscheinen. Zudem sind Spieler doppelt gelistet (16 von 39), was
+      # den Bundesmedian nach oben zoege. Deshalb: raus aus Median und Verbandsliste, dafuer
+      # als eigene Bezugslinie "nationales Niveau".
+      roof, regional = discipline_rows.partition { |r| ROOF_SHORTNAMES.include?(r[4]) }
+      next if regional.map { |r| r[4] }.uniq.size < NATIONAL_MIN_REGIONS
+
+      seasons = discipline_rows.map { |r| r[2] }.uniq.sort
+      latest = seasons.last
+      regional_by_season = regional.group_by { |r| r[2] }
+      roof_by_season = roof.group_by { |r| r[2] }
+
+      # uniq nach sort_by: ein Spieler nur einmal, mit seinem besten Wert
+      top_rows = discipline_rows
+        .select { |r| r[2] == latest }
+        .sort_by { |r| -r[3] }
+        .uniq { |r| r[1] }
+        .first(NATIONAL_PLAYER_COUNT)
+      next if top_rows.empty?
+
+      rows_by_player = discipline_rows.group_by { |r| r[1] }
+
+      {
+        id: discipline_id,
+        name: disciplines_by_id[discipline_id]&.name || "##{discipline_id}",
+        seasons: seasons,
+        national_median: seasons.map { |name| median(regional_by_season[name]&.map { |r| r[3] })&.round(3) },
+        roof_median: roof.empty? ? nil : seasons.map { |name| median(roof_by_season[name]&.map { |r| r[3] })&.round(3) },
+        roof_name: roof.first&.at(4),
+        regions: regional.group_by { |r| r[4] }.map { |shortname, region_rows|
+          per_season = region_rows.group_by { |r| r[2] }
+          {
+            name: shortname,
+            values: seasons.map { |name| median(per_season[name]&.map { |r| r[3] })&.round(3) }
+          }
+        }.sort_by { |r| r[:name] },
+        players: top_rows.map { |row|
+          player_id = row[1]
+          # Ein Spieler kann pro Saison zwei Werte haben (Landesverband + DBU). Fuer eine
+          # Bestenliste zaehlt die bessere Leistung, sonst entstuenden Zacken aus dem Wechsel
+          # zwischen den Ebenen.
+          btg_by_season = rows_by_player[player_id]
+            .group_by { |r| r[2] }
+            .transform_values { |rs| rs.map { |r| r[3] }.compact.max }
+          {
+            id: player_id,
+            name: players_by_id[player_id]&.fl_name || "##{player_id}",
+            region: row[4],
+            values: seasons.map { |name| btg_by_season[name]&.round(3) }
+          }
+        }
+      }
+    end.sort_by { |d| -d[:players].size }.tap { |result| label_players_with_home_region!(result) }
+  end
+
+  # Der Spitzenwert eines Top-Spielers stammt meist aus der DBU-Rangliste -- dann stuende dort
+  # als Herkunft "DBU", was wie eine Vereinszugehoerigkeit gelesen wird und nichts aussagt.
+  # Ersetzt wird deshalb nur dieses Label, und zwar ueber den Verein: Er liefert den
+  # Heimatverband auch fuer Spieler, die in keiner Landesrangliste dieser Disziplin stehen
+  # (7 von 7 gepruefte Faelle; ueber Ranglisten waeren es nur 3 gewesen).
+  def label_players_with_home_region!(disciplines)
+    roof_player_ids = disciplines.flat_map do |d|
+      d[:players].select { |pl| ROOF_SHORTNAMES.include?(pl[:region]) }.map { |pl| pl[:id] }
+    end.uniq
+    return if roof_player_ids.empty?
+
+    # order deterministisch, falls ein Spieler mehrere Teilnahmen pro Saison hat
+    home_by_player = SeasonParticipation
+      .where(player_id: roof_player_ids)
+      .includes(club: :region)
+      .order(season_id: :desc, id: :desc)
+      .each_with_object({}) do |sp, acc|
+        shortname = sp.club&.region&.shortname
+        acc[sp.player_id] ||= shortname if shortname.present?
+      end
+
+    disciplines.each do |d|
+      d[:players].each do |player|
+        next unless ROOF_SHORTNAMES.include?(player[:region])
+
+        player[:region] = home_by_player[player[:id]] || player[:region]
+      end
+    end
+  end
 end

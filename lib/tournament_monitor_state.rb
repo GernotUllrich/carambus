@@ -57,22 +57,34 @@ module TournamentMonitorState
     accumulate_results
   end
 
+  # Plan 41-02: die lokalen SPIELBAREN Spiele dieses Turniers — ohne die Archiv-Zeilen, die
+  # carambus_app per tournament_result pusht (bewusst nach JEDER Runde, also waehrend hier
+  # noch gezaehlt wird).
+  #
+  # ⚠️ NICHT `where.not(type: "ArchivedGame")`: bei STI ist `type` fuer gewoehnliche Games
+  # NULL, und `NOT (type = 'x')` ist in SQL bei NULL nicht wahr — die Live-Games fielen mit
+  # heraus und beide Zaehler waeren 0 (also faelschlich "fertig"). Deshalb der explizite
+  # IS-NULL-Zweig. `InternationalGame` bleibt absichtlich drin: ausgeschlossen wird nur das
+  # Archiv, nicht jede Unterklasse.
+  def live_games
+    tournament.games
+      .where("games.id >= #{Game::MIN_ID}")
+      .where("games.type IS NULL OR games.type != ?", "ArchivedGame")
+  end
+
   def group_phase_finished?
-    n_group_games = tournament.games.where("games.id >= #{Game::MIN_ID}")
-                              .where("gname ilike 'group%'")
-                              .count
-    n_group_games_done = tournament.games
-                                   .where("games.id >= #{Game::MIN_ID}")
-                                   .where("gname ilike 'group%'")
-                                   .where.not(ended_at: nil)
-                                   .count
+    n_group_games = live_games.where("gname ilike 'group%'").count
+    n_group_games_done = live_games.where("gname ilike 'group%'").where.not(ended_at: nil).count
     n_group_games == n_group_games_done
   end
 
+  # Der kritische Fall fuer das Archiv: bei gesetztem `GK` ist `n_games` ein FESTER Sollwert,
+  # waehrend Archiv-Games mit `ended_at` nur `n_games_done` erhoehen wuerden. Die Gleichheit
+  # traefe dann nie zu und das Turnier koennte seine Endphase nicht abschliessen.
   def finals_finished?
     executor_params = JSON.parse(tournament.tournament_plan.executor_params)
-    n_games = executor_params["GK"] || tournament.games.where("games.id >= #{Game::MIN_ID}").count
-    n_games_done = tournament.games.where("games.id >= #{Game::MIN_ID}").where.not(ended_at: nil).count
+    n_games = executor_params["GK"] || live_games.count
+    n_games_done = live_games.where.not(ended_at: nil).count
     n_games == n_games_done
   end
 

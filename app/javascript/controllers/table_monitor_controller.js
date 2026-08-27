@@ -35,6 +35,14 @@ export default class extends ApplicationController {
     this.stimulate('TableMonitor#key_d')
   }
 
+  /* Nachstoss-Panel: beschrifteter Button statt mehrdeutiger Klickflaeche.
+     Siehe TableMonitor#follow_up_lock? */
+
+  finish_follow_up () {
+    console.log('FINISH_FOLLOW_UP called')
+    this.stimulate('TableMonitor#finish_follow_up')
+  }
+
   /* Score control buttons */
 
   add_n () {

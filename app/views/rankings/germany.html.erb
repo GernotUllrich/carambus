@@ -1,0 +1,96 @@
+<div class="container mx-auto px-4 py-6">
+  <div class="mb-6">
+    <div class="flex items-baseline justify-between gap-4 flex-wrap">
+      <h1 class="h3 mb-1">Deutschland &ndash; Ranglisten im Vergleich</h1>
+      <%= link_to "Nach Landesverb&auml;nden".html_safe, rankings_path,
+                  class: "text-sm text-primary-600 dark:text-primary-400 hover:underline" %>
+    </div>
+    <p class="text-sm text-gray-600 dark:text-gray-400 max-w-3xl">
+      Je Disziplin die besten <%= RankingsController::NATIONAL_PLAYER_COUNT %> Spieler Deutschlands,
+      dar&uuml;ber der <strong>Median Deutschland</strong> als Bezugsgr&ouml;&szlig;e. Der Abstand einer Linie
+      zum Median zeigt, wie weit ein Spieler &uuml;ber dem Bundesdurchschnitt liegt. Die Mediane der
+      Landesverb&auml;nde lassen sich zuschalten, um Verb&auml;nde untereinander zu vergleichen.
+      Die violette Linie zeigt das <strong>Niveau der Deutschen Meisterschaften</strong> (DBU).
+    </p>
+    <p class="text-xs text-gray-500 dark:text-gray-400 mt-2 max-w-3xl">
+      Alle Kennzahlen sind Mediane, keine Mittelwerte &ndash; ein Viertel der Ranglisten beruht auf
+      einem einzigen Turnier, ein Gl&uuml;ckstreffer w&uuml;rde einen Verband sonst nach oben ziehen.
+      Gezeigt werden nur Disziplinen, die in mindestens
+      <%= RankingsController::NATIONAL_MIN_REGIONS %> Landesverb&auml;nden gespielt werden.
+      Der Dachverband (DBU) bleibt aus Median und Verbandsvergleich heraus &ndash; dort spielen
+      die Qualifizierten, nicht der Querschnitt, und viele sind zus&auml;tzlich in ihrem
+      Landesverband gelistet. Die DBU-Linie beginnt erst <strong>2017/2018</strong>: F&uuml;r die
+      Jahre davor wurden die Einzelmeisterschaften nie erfasst, und die damalige Quelle
+      (BillardArea) ist abgeschaltet.
+    </p>
+  </div>
+
+  <% if @national_by_discipline.blank? %>
+    <div class="bg-white dark:bg-gray-800 rounded shadow p-6 text-gray-600 dark:text-gray-300">
+      Es liegen noch keine Ranglisten vor, die einen bundesweiten Vergleich erlauben.
+    </div>
+  <% else %>
+    <%# Sprungmarken zu den Disziplinen %>
+    <div class="bg-white dark:bg-gray-800 rounded shadow p-4 mb-6">
+      <h2 class="text-lg font-semibold mb-2">Disziplinen:</h2>
+      <div class="flex flex-wrap gap-2">
+        <% @national_by_discipline.each do |discipline| %>
+          <a href="#national-<%= discipline[:id] %>"
+             class="px-3 py-1 rounded bg-gray-100 dark:bg-gray-700 text-primary-700 dark:text-primary-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-sm">
+            <%= discipline[:name] %>
+          </a>
+        <% end %>
+      </div>
+    </div>
+
+    <% @national_by_discipline.each do |discipline| %>
+      <div id="national-<%= discipline[:id] %>" class="scroll-mt-20">
+        <div class="bg-white dark:bg-gray-800 rounded shadow overflow-hidden mb-8"
+             data-controller="national-history"
+             data-national-history-payload-value="<%= discipline.to_json %>">
+          <div class="p-4 border-b border-gray-200 dark:border-gray-700 flex items-baseline justify-between gap-2 flex-wrap">
+            <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100"><%= discipline[:name] %></h2>
+            <div class="flex items-baseline gap-3">
+              <button type="button"
+                      data-national-history-target="clearSelection"
+                      data-action="national-history#clearSelection"
+                      class="hidden text-xs px-2 py-1 rounded border border-primary-500 text-primary-700 hover:bg-primary-50 dark:text-primary-300 dark:hover:bg-primary-900 transition-colors">
+                Auswahl aufheben
+              </button>
+              <span class="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
+                <%= discipline[:seasons].first %> &ndash; <%= discipline[:seasons].last %>
+              </span>
+            </div>
+          </div>
+
+          <div class="p-4">
+            <div class="relative h-80 sm:h-96">
+              <canvas data-national-history-target="canvas"></canvas>
+            </div>
+
+            <div class="mt-4">
+              <h3 class="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1.5">
+                Spieler &ndash; Deutschlands beste
+              </h3>
+              <div data-national-history-target="playerLegend" class="flex flex-wrap gap-1.5"></div>
+            </div>
+
+            <div class="mt-4">
+              <h3 class="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1.5">
+                Landesverb&auml;nde &ndash; Median (zuschaltbar)
+              </h3>
+              <div data-national-history-target="regionLegend" class="flex flex-wrap gap-1.5"></div>
+            </div>
+
+            <p class="mt-3 text-xs text-gray-500 dark:text-gray-400">
+              Anklicken hebt eine Linie hervor; mehrere gleichzeitig sind m&ouml;glich. Die Skala
+              richtet sich dann nach der Auswahl.
+            </p>
+          </div>
+        </div>
+      </div>
+    <% end %>
+  <% end %>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.3.0/dist/chart.umd.min.js"></script>

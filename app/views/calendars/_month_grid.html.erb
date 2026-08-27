@@ -1,0 +1,56 @@
+<%# Entwurf A: Monatsraster. Turniere als Chip, Spieltage je Liga zu EINER Zeile mit Anzahl
+    verdichtet — 13 Paarungen einzeln sprengen die Zelle (gemessen NBV, 18.10.2025).
+    Mehrtaegige Turniere werden wiederholt statt als Balken gezogen: 14 Faelle von 379, eine
+    Balkenlogik ueber Wochengrenzen lohnt dafuer nicht (s. Plan 42-01, Befund 5). %>
+<% by_day = Hash.new { |h, k| h[k] = [] }
+   entries.each { |e| e.days.each { |d| by_day[d] << e if d >= @from && d <= @to } }
+   first_cell = @from.beginning_of_week(:monday)
+   last_cell  = @to.end_of_week(:monday) %>
+
+<div class="overflow-x-auto border border-gray-200 dark:border-gray-700 rounded-lg">
+  <div class="min-w-[44rem]">
+    <div class="grid grid-cols-7 border-b border-gray-200 dark:border-gray-700">
+      <% %w[monday tuesday wednesday thursday friday saturday sunday].each_with_index do |_, i| %>
+        <div class="px-2 py-1 text-[11px] uppercase tracking-wide text-gray-500 dark:text-gray-400">
+          <%= I18n.t("date.abbr_day_names")[(i + 1) % 7] %>
+        </div>
+      <% end %>
+    </div>
+
+    <div class="grid grid-cols-7">
+      <% (first_cell..last_cell).each do |tag| %>
+        <% im_monat = tag.month == @month.month
+           wochenende = [6, 0].include?(tag.wday)
+           tages_eintraege = by_day[tag] %>
+        <div class="min-h-[6rem] p-1.5 border-r border-b border-gray-200 dark:border-gray-700 flex flex-col gap-1 <%= "bg-gray-50 dark:bg-gray-800" if wochenende %>">
+          <span class="text-[11px] tabular-nums <%= im_monat ? "text-gray-500 dark:text-gray-400" : "text-gray-300 dark:text-gray-600" %>">
+            <%= tag.day %>
+          </span>
+
+          <% if im_monat %>
+            <% turniere, spieltage = tages_eintraege.partition(&:tournament?) %>
+            <% sichtbar = turniere.first(2) %>
+            <% sichtbar.each do |e| %>
+              <%= link_to tournament_path(e.record),
+                    class: "block text-[11px] leading-tight px-1.5 py-1 rounded border-l-2 #{calendar_branch_border(e.branch_name)} #{calendar_branch_classes(e.branch_name)} #{'border-dashed' if e.dbu?}" do %>
+                <span class="font-medium"><%= truncate(e.title, length: 34) %></span>
+              <% end %>
+            <% end %>
+
+            <% spieltage.group_by(&:league_name).sort_by { |n, _| n.to_s }.first(2).each do |liga, gruppe| %>
+              <span class="flex justify-between gap-1 text-[10px] leading-tight px-1.5 py-1 rounded border-l-2 <%= calendar_branch_border(gruppe.first.branch_name) %> <%= calendar_branch_classes(gruppe.first.branch_name) %>">
+                <span class="truncate"><%= truncate(liga.to_s, length: 22) %></span>
+                <span class="tabular-nums shrink-0"><%= gruppe.size %></span>
+              </span>
+            <% end %>
+
+            <% rest = turniere.size - sichtbar.size + [spieltage.group_by(&:league_name).size - 2, 0].max %>
+            <% if rest > 0 %>
+              <span class="text-[10px] text-gray-500 dark:text-gray-400 pl-1"><%= t("calendars.grid.more", count: rest) %></span>
+            <% end %>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

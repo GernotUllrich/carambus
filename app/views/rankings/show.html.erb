@@ -34,6 +34,46 @@
                 <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100"><%= discipline.name %></h2>
               </div>
 
+              <%# BTG-Verlauf der aktuell besten Spieler; Legende darunter blendet einzelne Linien hervor %>
+              <% btg_history = @btg_chart_by_discipline&.dig(discipline.id) %>
+              <% if btg_history.present? && btg_history[:players].size > 1 %>
+                <div class="p-4 border-b border-gray-200 dark:border-gray-700"
+                     data-controller="btg-history"
+                     data-btg-history-payload-value="<%= btg_history.to_json %>">
+                  <div class="flex items-baseline justify-between gap-2 mb-2">
+                    <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      BTG-Verlauf der aktuell besten <%= btg_history[:players].size %> Spieler
+                    </h3>
+                    <div class="flex items-baseline gap-3">
+                      <button type="button"
+                              data-btg-history-target="clearSelection"
+                              data-action="btg-history#clearSelection"
+                              class="hidden text-xs px-2 py-1 rounded border border-primary-500 text-primary-700 hover:bg-primary-50 dark:text-primary-300 dark:hover:bg-primary-900 transition-colors">
+                        Auswahl aufheben
+                      </button>
+                      <button type="button"
+                              data-btg-history-target="toggleAll"
+                              data-action="btg-history#toggleAll"
+                              class="text-xs px-2 py-1 rounded border border-gray-300 text-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700 transition-colors">
+                        Alle anzeigen
+                      </button>
+                      <span class="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
+                        <%= btg_history[:seasons].first %> &ndash; <%= btg_history[:seasons].last %>
+                      </span>
+                    </div>
+                  </div>
+                  <div class="relative h-72 sm:h-80">
+                    <canvas data-btg-history-target="canvas"></canvas>
+                  </div>
+                  <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                    Gezeigt sind die besten 5. Weitere Spieler per Klick dazunehmen &ndash;
+                    ein erneuter Klick nimmt sie wieder zur&uuml;ck. Mehrere Spieler lassen sich
+                    gleichzeitig ausw&auml;hlen; die Skala richtet sich dann nach der Auswahl.
+                  </p>
+                  <div data-btg-history-target="legend" class="mt-2 flex flex-wrap gap-1.5"></div>
+                </div>
+              <% end %>
+
               <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                   <thead class="bg-gray-50 dark:bg-gray-700">

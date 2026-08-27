@@ -29,12 +29,27 @@ KEEP_DAILY="${KEEP_DAILY:-3}"          # bewusst knapp: Platte ist eng
 KEEP_WEEKLY="${KEEP_WEEKLY:-4}"        # Sonntagslaeufe, als Hardlink (kostet nichts extra)
 MIN_FREE_MB="${MIN_FREE_MB:-3000}"     # darunter wird gar nicht erst gedumpt
 MIN_DUMP_BYTES="${MIN_DUMP_BYTES:-10000}"
+REQUIRE_MOUNT="${BACKUP_REQUIRE_MOUNT:-0}"  # 1 = BACKUP_DIR MUSS ein Mountpoint sein
 
 log()  { echo "[$(date +'%Y-%m-%d %H:%M:%S')] $*"; }
 fail() { echo "[$(date +'%Y-%m-%d %H:%M:%S')] BACKUP-FEHLER: $*" >&2; }
 
 stamp="$(date +'%Y%m%d_%H%M%S')"
 run_dir="$BACKUP_DIR/daily/$stamp"
+
+# --- Mount-Wache -------------------------------------------------------------
+# Nur fuer Standorte, die auf einen externen Datentraeger sichern (Vereins-Raspi
+# mit USB-Stick). Der fstab-Eintrag dort traegt "nofail", damit der Rechner auch
+# ohne Stick bootet — dann existiert BACKUP_DIR aber trotzdem, als leeres
+# Verzeichnis auf der internen Platte. Ohne diese Pruefung liefe das Backup
+# unbemerkt genau dorthin zurueck, wovor der Stick schuetzen soll, und meldete
+# Erfolg. Muss VOR dem mkdir stehen: sonst legt das Skript die Struktur selbst an.
+# Default 0 — auf api.carambus.de ist /var/www/backups kein Mountpoint und bleibt
+# unveraendert.
+if [ "$REQUIRE_MOUNT" = "1" ] && ! mountpoint -q "$BACKUP_DIR"; then
+  fail "$BACKUP_DIR ist nicht eingehaengt (Stick fehlt?) — Lauf abgebrochen, nichts gedumpt"
+  exit 1
+fi
 
 # --- Platten-Wache -----------------------------------------------------------
 # Ohne diese Pruefung fuellt das Backup im Fehlerfall die Platte und legt alle

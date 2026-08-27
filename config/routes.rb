@@ -109,6 +109,12 @@ Rails.application.routes.draw do
         to: "external_tournaments#round_result",
         as: :external_tournament_round_result
 
+    # Plan 41-01: Ergebnisarchiv — die App schickt Endstand + Spieletabelle, Carambus legt sie
+    # als lokale Records ab. Idempotent, bewusst mehrfach waehrend des Turniers aufrufbar.
+    post "external_tournament/tournament_result",
+         to: "external_tournaments#tournament_result",
+         as: :external_tournament_tournament_result
+
     # Plan 15-06: External-Tournament-Bridge Tables-Discovery-Endpoint (devise-jwt, read-only)
     # R1: liefert echte Table#name-Strings + table_kind + has_monitor pro Location,
     # damit externe Apps Tisch-Namen nicht raten müssen (D-15-06-A supersedes D-15-03-A).
@@ -310,6 +316,7 @@ Rails.application.routes.draw do
       get :up
       get :down
       get :toggle_dark_mode
+      get :toggle_locale
     end
   end
   resources :settings do
@@ -351,6 +358,11 @@ Rails.application.routes.draw do
       get :toggle_dark_mode
     end
   end
+  # Terminkalender je Region (Phase 42): Turniere und Liga-Spieltage gemeinsam, oeffentlich.
+  # Filter stehen als Query-Parameter im URL (month, branch, dbu, view), damit ein Kalenderblatt
+  # teilbar ist.
+  get "regions/:region_id/calendar", to: "calendars#show", as: :region_calendar
+
   resources :seasons
   resources :table_kinds
   resources :disciplines do
@@ -680,7 +692,11 @@ Rails.application.routes.draw do
     resource :profile, only: %i[edit update], controller: "profiles"
   end
 
-  resources :rankings, only: %i[index show]
+  resources :rankings, only: %i[index show] do
+    collection do
+      get :germany
+    end
+  end
 
   # Scraping Monitor Dashboard
   get "scraping_monitor", to: "scraping_monitor#index", as: :scraping_monitor

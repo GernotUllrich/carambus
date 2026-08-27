@@ -63,6 +63,39 @@ class TableMonitor < ApplicationRecord
     table&.stream_configuration&.active?
   end
 
+  # Plan 40-01: die EINE Stelle, an der die Anzeigesprache dieses Scoreboards aufgeloest wird.
+  #
+  # Alle drei Renderpfade nutzen sie — Request (ApplicationController#set_locale), Reflex
+  # (ApplicationReflex#before_reflex) und Broadcast (TableMonitorJob). Bewusst nicht dreimal
+  # dieselbe Kette: die liefen sonst beim naechsten Umbau auseinander, und genau dieses
+  # Auseinanderlaufen ist der heutige Fehler — der URL-Parameter erreicht den Job nie, weil
+  # der ueber `ApplicationController.render` ohne Request arbeitet.
+  #
+  # Liefert `nil`, wenn nichts konfiguriert ist. Der Aufrufer faellt dann auf seine bisherige
+  # Kette zurueck; ein `nil` ist also kein Fehlerfall, sondern der Normalfall.
+  #
+  # Zwei Stufen, absichtlich in dieser Reihenfolge:
+  #
+  #   1. das laufende Turnier (`tournament_monitors.locale`) — ein internationales Turnier
+  #      stellt alle beteiligten Tische um, ohne dass jeder einzeln angefasst wird
+  #   2. der Tisch selbst (`table_locals.locale`) — die Grundeinstellung des Ortes. Sie traegt
+  #      den TRAININGSBETRIEB, wo es gar kein Turnier gibt: ohne diese Stufe waere die Sprache
+  #      dort nicht einstellbar, weil der Broadcast-Pfad den URL-Parameter nie sieht
+  #
+  # `nil` auf einer Stufe heisst "nicht konfiguriert" und reicht weiter — nicht "Deutsch".
+  # Erst wenn beide leer sind, faellt der Aufrufer auf seine eigene Kette zurueck.
+  #
+  # `tournament_monitor` ist polymorph und optional: ein freies Spiel hat gar keinen, ein
+  # Liga-Spiel einen PartyMonitor OHNE locale-Spalte. Deshalb `respond_to?` statt einer
+  # Typpruefung — wer spaeter eine Sprache am PartyMonitor ergaenzt, bekommt sie hier gratis.
+  def display_locale
+    configured = tournament_monitor.locale if tournament_monitor.respond_to?(:locale)
+    configured = table&.table_local&.locale if configured.blank?
+    return nil if configured.blank?
+
+    configured.to_sym
+  end
+
   before_create :on_create
   before_save :log_state_change
   # Invariante: im AASM-Zustand set_over MUSS panel_state "protocol_final" sein, damit das
@@ -292,6 +325,31 @@ class TableMonitor < ApplicationRecord
     "protocol_final" => "confirm_result"
   }.freeze
   NNN = "db" # store nnn in database table_monitor
+
+  # Nachstoss-Race-Guard: Schonfrist nach einem AUTOMATISCHEN Spielerwechsel.
+  # Erreicht der Anstoss-Spieler sein Ballziel, schliesst die Engine seine
+  # Aufnahme selbsttaetig und schaltet auf den Gegner um (:goal_reached).
+  # Weil die Scoreboard-Tasten POSITIONS- und nicht spielerbasiert sind, wird
+  # ein danach eintreffendes Tasten-Event stillschweigend umgedeutet: was als
+  # "Punkt fuer A" abgeschickt wurde, kommt als "Aufnahme von B beenden" an —
+  # der Nachstoss-Spieler bekommt eine Aufnahme angerechnet, ohne gestossen zu
+  # haben, und der Satz schliesst vorzeitig. Innerhalb dieser Frist verworfene
+  # Events sind praktisch immer Doppelzustellungen (Touch+Click) oder
+  # Nachlaeufer gegen den Zustand VOR dem Wechsel; echte Bedienung braucht
+  # laenger (der Nachstoss-Spieler muss erst stossen).
+  #
+  # Die Frist ist GLEITEND: jeder verworfene Event schiebt sie nach vorn. Live
+  # belegt (2026-08-19, Tisch 2, TM 50000008): der Bediener klickte im 180-ms-Takt
+  # noch 1,3 s ueber das Ballziel hinaus weiter — mit festem Fenster liefen die
+  # Nachlaeufer ab +910 ms durch und schlossen den Satz mit 15:0. Solange die
+  # Events im Burst-Takt nachkommen, gehoeren sie noch zum selben Fingerlauf;
+  # erst eine echte Pause macht den naechsten Druck zur Absicht.
+  AUTO_SWITCH_GRACE = 0.75
+
+  # Obergrenze fuer die gleitende Frist, gerechnet ab dem automatischen Wechsel.
+  # Verhindert, dass ein dauerhaft Events sendendes Scoreboard den Tisch
+  # unbedienbar macht — nach dieser Zeit greift der Guard nicht mehr.
+  AUTO_SWITCH_GRACE_MAX = 5.0
 
   serialize :data, coder: JSON, type: Hash
   serialize :prev_data, coder: JSON, type: Hash
@@ -837,7 +895,10 @@ class TableMonitor < ApplicationRecord
     result = score_engine.balls_left(n_balls_left)
     data_will_change!
     self.copy_from = nil
-    terminate_current_inning if result == :goal_reached
+    if result == :goal_reached
+      stamp_auto_switch!
+      terminate_current_inning
+    end
   rescue StandardError => e
     Rails.logger.error "ERROR: m6[#{id}]#{e}, #{e.backtrace&.join("\n")}"
     raise StandardError
@@ -902,6 +963,7 @@ class TableMonitor < ApplicationRecord
     if result == :goal_reached
       # BK-Familie folgt legacy karambol-Routing. BK-spezifische Logik liegt
       # in den Guards (follow_up?, end_of_set?, score_engine).
+      stamp_auto_switch!
       terminate_current_inning(player)
     end
   rescue StandardError => e
@@ -1071,6 +1133,7 @@ class TableMonitor < ApplicationRecord
     data_will_change!
     assign_attributes(nnn: nil, panel_state: change_to_pointer_mode ? "pointer_mode" : panel_state)
     if result == :goal_reached
+      stamp_auto_switch!
       save
       # BK-Familie folgt legacy karambol-Routing.
       terminate_current_inning
@@ -1135,6 +1198,51 @@ class TableMonitor < ApplicationRecord
     end
   end
 
+  # Merkt den Zeitpunkt des automatischen Spielerwechsels (:goal_reached) in data.
+  # Siehe AUTO_SWITCH_GRACE.
+  def stamp_auto_switch!
+    now = Time.current.to_f
+    data["auto_switch_at"] = now
+    data["auto_switch_origin_at"] = now
+    data_will_change!
+  end
+
+  # Entscheidet, ob ein Tasten-Event als Nachlaeufer eines automatischen
+  # Spielerwechsels zu VERWERFEN ist — und schiebt dabei die gleitende Frist
+  # nach vorn (siehe AUTO_SWITCH_GRACE). Kein reines Praedikat: ein verworfener
+  # Event verlaengert das Fenster, damit ein ganzer Klick-Burst als eine
+  # Bedienhandlung behandelt wird.
+  #
+  # Bewusst nur fuer den AUTOMATISCHEN Wechsel: normale, benutzerausgeloeste
+  # Aufnahmewechsel setzen keinen Zeitstempel und bleiben unberuehrt — schnelles
+  # Durchklicken leerer Aufnahmen muss weiter funktionieren.
+  def discard_stray_after_auto_switch?
+    stamp = data["auto_switch_at"]
+    return false if stamp.blank?
+
+    now = Time.current.to_f
+    since_last = now - stamp.to_f
+    return false unless since_last.between?(0, AUTO_SWITCH_GRACE)
+
+    # Notbremse: ein Scoreboard, das dauerhaft Events schickt, darf den Tisch
+    # nicht unbedienbar machen.
+    since_switch = now - data["auto_switch_origin_at"].to_f
+    if data["auto_switch_origin_at"].present? && since_switch > AUTO_SWITCH_GRACE_MAX
+      Rails.logger.warn "[TableMonitor#discard_stray_after_auto_switch?] TM[#{id}] Game[#{game_id}]: " \
+        "Burst laeuft seit #{since_switch.round(1)} s — Guard gibt auf (AUTO_SWITCH_GRACE_MAX)"
+      return false
+    end
+
+    # Gleitende Frist: der naechste Event wird an DIESEM Event gemessen.
+    data["auto_switch_at"] = now
+    data_will_change!
+
+    Rails.logger.info "[TableMonitor#discard_stray_after_auto_switch?] TM[#{id}] Game[#{game_id}]: " \
+      "Tasten-Event #{(since_last * 1000).round} ms nach dem vorigen verworfen " \
+      "(#{(since_switch * 1000).round} ms nach automatischem Spielerwechsel, Nachstoss-Race-Guard)"
+    true
+  end
+
   def follow_up?
     override = bk_follow_up_override
     return false if override == false
@@ -1165,6 +1273,26 @@ class TableMonitor < ApplicationRecord
   rescue StandardError => e
     Rails.logger.error "ERROR: m6[#{id}]#{e}, #{e.backtrace&.join("\n")}"
     raise StandardError
+  end
+
+  # Nachstoss-Schutz: waehrend der Ausgleichsaufnahme wird das Feld des
+  # Anstoss-Spielers stillgelegt und die Wertung laeuft ausschliesslich ueber
+  # den beschrifteten Button im Mittelstreifen.
+  #
+  # Hintergrund: die Scoreboard-Tasten sind POSITIONS-, nicht spielerbasiert.
+  # Dieselbe Flaeche heisst "Punkt fuer den Anstoss-Spieler", solange der anstoesst,
+  # und "Aufnahme beenden" (= Spielende), sobald der Nachstoss-Spieler am Tisch
+  # ist. Der automatische Wechsel bei :goal_reached kippt diese Bedeutung, ohne
+  # dass sich am Bild etwas aendert — ein nachlaufender Tastendruck wird dadurch
+  # stillschweigend zum Spielende umgedeutet und der Ausgleichsstoss faellt aus.
+  # Am Klick allein ist der Nachlaeufer von der legitimen Eingabe des
+  # Nachstoss-Spielers NICHT zu unterscheiden; das laesst sich nur beheben,
+  # indem die mehrdeutige Flaeche verschwindet, nicht durch Timing-Heuristik.
+  #
+  # Das Feld des Nachstoss-Spielers bleibt aktiv — er muss im Ausgleich punkten
+  # koennen (bis hin zum Remis), und sein eigenes Feld ist eindeutig.
+  def follow_up_lock?
+    playing? && data["allow_follow_up"].present? && follow_up?
   end
 
   def redo

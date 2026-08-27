@@ -698,7 +698,10 @@ en:
     max_frames: "max. %{count} frames"
     halted: Halted
     inning: Inning
+    toggle_locale: "Switch language"
+    locale_from_tournament: "Language set by the tournament"
     follow_up: Follow-up
+    finish_follow_up: "Finish game? Touch here"
     undo: back
     foul:
       title: Foul
@@ -1785,3 +1788,35 @@ en:
     errors:
       generic: "An error occurred. Please try again."
       no_docs_found: "No answer found in the documentation."
+  calendars:
+    show:
+      title: "%{region} fixtures"
+      subtitle: "Tournaments and league match days in one view."
+      empty_heading: "Nothing scheduled this month."
+      empty_body: "Use the arrows for other months, or clear the filters."
+    filter:
+      prev_month: "Previous month"
+      next_month: "Next month"
+      today: "Today"
+      all_branches: "All disciplines"
+      with_dbu: "with DBU"
+      region_only: "%{region} only"
+      agenda: "Agenda"
+      grid: "Month"
+    agenda:
+      parties:
+        one: "1 match"
+        other: "%{count} matches"
+      party: "Match"
+      until: "until %{date}"
+    grid:
+      more:
+        one: "+1 more"
+        other: "+%{count} more"
+  table_locals:
+    locale_unset: "— not set"
+  # Plan 40-02: `locales:` fehlte in en.yml — der Sprachumschalter und die neuen Sprach-Selects
+  # fielen dort auf die deutschen Namen zurueck ("Englisch" statt "English").
+  locales:
+    de: "German"
+    en: "English"

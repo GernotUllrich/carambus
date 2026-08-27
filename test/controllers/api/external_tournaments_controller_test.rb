@@ -326,6 +326,95 @@ module Api
     # === Plan 15-04: Round-Result-Endpoint Tests ===
 
     # AC-1: ohne JWT → 401
+    # Wiederherstellungsfall (carambus_app, 2026-08-23): Die App hat ihren lokalen Zustand
+    # verloren (iOS raeumt den localStorage ohne Vorwarnung) und baut ihn aus dem Server neu
+    # auf. App-Turniere haben cc_id = nil, deshalb der Zugang ueber tournament_id -- und ohne
+    # round_no, weil der ganze Turnierstand gebraucht wird.
+    test "round_result via tournament_id ohne round_no liefert alle Spiele" do
+      g1 = Game.create!(tournament: @tournament, tournament_type: "Tournament", round_no: 1, seqno: 1, table_no: 1,
+        data: {"external_id" => "attach-x-g1"})
+      g2 = Game.create!(tournament: @tournament, tournament_type: "Tournament", round_no: 2, seqno: 2, table_no: 1,
+        data: {"external_id" => "attach-x-g2"})
+      GameParticipation.create!(game: g1, player: @player, role: "playera", points: 100, innings: 5)
+
+      headers = {"Content-Type" => "application/json", "Accept" => "application/json",
+                 "Authorization" => "Bearer #{login_jwt}"}
+      get "/api/external_tournament/round_result",
+        params: {tournament_id: @tournament.id, region: "NBV"}, headers: headers
+
+      assert_response :success
+      body = JSON.parse(response.body)
+      assert_equal "carambus.round_result/v1", body["schema"]
+      assert_equal @tournament.id, body.dig("tournament", "id")
+      assert_nil body["round_no"], "ohne Filter bleibt round_no leer"
+      ids = body["results"].map { |r| r["external_id"] }
+      assert_includes ids, "attach-x-g1"
+      assert_includes ids, "attach-x-g2", "Spiele ALLER Runden"
+
+      part = body["results"].find { |r| r["external_id"] == "attach-x-g1" }["participants"].first
+      assert_equal "playera", part["role"]
+      assert_equal 100, part["points"]
+      assert part.dig("player", "lastname").present?, "Identitaet fuer den Abgleich"
+    ensure
+      [g1, g2].compact.each { |g| GameParticipation.where(game_id: g.id).delete_all; g.destroy }
+    end
+
+    test "round_result via tournament_id mit round_no filtert weiterhin" do
+      g1 = Game.create!(tournament: @tournament, tournament_type: "Tournament", round_no: 1, seqno: 1, table_no: 1,
+        data: {"external_id" => "attach-y-g1"})
+      g2 = Game.create!(tournament: @tournament, tournament_type: "Tournament", round_no: 2, seqno: 2, table_no: 1,
+        data: {"external_id" => "attach-y-g2"})
+
+      headers = {"Content-Type" => "application/json", "Accept" => "application/json",
+                 "Authorization" => "Bearer #{login_jwt}"}
+      get "/api/external_tournament/round_result",
+        params: {tournament_id: @tournament.id, round_no: 1, region: "NBV"}, headers: headers
+
+      assert_response :success
+      ids = JSON.parse(response.body)["results"].map { |r| r["external_id"] }
+      assert_equal ["attach-y-g1"], ids
+    ensure
+      [g1, g2].compact.each { |g| GameParticipation.where(game_id: g.id).delete_all; g.destroy }
+    end
+
+    # Kern des Wiederherstellungsfalls: Das am Tisch gespielte Game traegt BEWUSST kein
+    # tournament_id (StartGameProcessor) -- es haengt nur ueber die external_id am Turnier.
+    # Ohne diesen Pfad lieferte die Wiederherstellung leere Marker statt der Ergebnisse.
+    test "round_result via tournament_id findet auch Games ohne tournament_id (Tisch-Games)" do
+      marker = Game.create!(tournament: @tournament, tournament_type: "Tournament",
+        round_no: 1, seqno: 1, table_no: 1,
+        data: {"external_id" => "attach-#{@tournament.id}-group1_1_6"})
+      # So entsteht es am Tisch: kein tournament_id, nur die external_id in data.
+      played = Game.create!(seqno: 2, table_no: 1,
+        data: {"external_id" => "attach-#{@tournament.id}-group1_2_5",
+               "ba_results" => {"Ergebnis1" => 16, "Ergebnis2" => 4}})
+      GameParticipation.create!(game: played, player: @player, role: "playera", points: 16, innings: 12)
+
+      headers = {"Content-Type" => "application/json", "Accept" => "application/json",
+                 "Authorization" => "Bearer #{login_jwt}"}
+      get "/api/external_tournament/round_result",
+        params: {tournament_id: @tournament.id, region: "NBV"}, headers: headers
+
+      assert_response :success
+      results = JSON.parse(response.body)["results"]
+      ids = results.map { |r| r["external_id"] }
+      assert_includes ids, "attach-#{@tournament.id}-group1_1_6", "Marker aus round_start"
+      assert_includes ids, "attach-#{@tournament.id}-group1_2_5", "am Tisch gespieltes Game"
+
+      gespielt = results.find { |r| r["external_id"] == "attach-#{@tournament.id}-group1_2_5" }
+      assert_equal 16, gespielt["participants"].first["points"]
+    ensure
+      [marker, played].compact.each { |g| GameParticipation.where(game_id: g.id).delete_all; g.destroy }
+    end
+
+    test "round_result via unbekannte tournament_id returns 404" do
+      headers = {"Content-Type" => "application/json", "Accept" => "application/json",
+                 "Authorization" => "Bearer #{login_jwt}"}
+      get "/api/external_tournament/round_result",
+        params: {tournament_id: 999_999_999, region: "NBV"}, headers: headers
+      assert_response :not_found
+    end
+
     test "round_result without Authorization returns 401" do
       get_round_result(tournament_cc_id: 999_201, round_no: 1, region: "NBV", jwt: nil)
       assert_response :unauthorized

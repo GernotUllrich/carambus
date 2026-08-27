@@ -705,15 +705,21 @@ namespace :carambus do
     # for all seasons - starting with earliest
     # season_from = ENV["SEASON_FROM"] ||= Season.order(name: :desc).to_a[2]&.name
     # Season.order(ba_id: :asc).where("name >= ?", season_from).each do |season|
-    Season.order(id: :asc).each do |season|
-      # for all regions
-      # TEST
-      #next unless season.name == "2024/2025"
+    # Gezielte Laeufe ohne Code-Aenderung (die auskommentierten TEST-Zeilen ersetzen):
+    #   rake carambus:update_ranking_tables REGIONS=DBU SEASONS=2024/2025,2025/2026
+    only_regions = ENV["REGIONS"].to_s.split(",").map(&:strip).reject(&:empty?)
+    only_seasons = ENV["SEASONS"].to_s.split(",").map(&:strip).reject(&:empty?)
 
-      Region.where(shortname: Region::SHORTNAMES_CARAMBUS_USERS + Region::SHORTNAMES_OTHERS).all.each do |region|
-        # for all disciplines
-        # TEST
-        #next unless region.shortname == "NBV"
+    Season.order(id: :asc).each do |season|
+      next if only_seasons.any? && only_seasons.exclude?(season.name)
+
+      # DBU (Dachverband) steht in SHORTNAMES_ROOF_ORGANIZATION und fehlte hier als einziger
+      # Stelle -- season.rb und scrape_monitored.rake nehmen die Liste laengst mit. Folge: fuer
+      # 240 Karambol-Turniere der DBU (Deutsche Meisterschaften) wurden nie Ranglisten gebaut.
+      Region.where(shortname: Region::SHORTNAMES_ROOF_ORGANIZATION +
+                              Region::SHORTNAMES_CARAMBUS_USERS +
+                              Region::SHORTNAMES_OTHERS).all.each do |region|
+        next if only_regions.any? && only_regions.exclude?(region.shortname)
 
         Discipline.all.each do |discipline|
           # for all relevant tournaments
@@ -852,8 +858,16 @@ namespace :carambus do
     Season.last.scrape_tournaments(range.to_a)
   end
 
-  desc "copy season participations to next season"
+  # STILLGELEGT (Phase 39-01, 2026-08-24). Bewusst NICHT geloescht: ein verschwundener Task
+  # laesst den Aufrufer raetseln, ein sprechender erklaert sich. Begruendung im Quellkommentar
+  # von `Season#copy_season_participations_to_next_season` (app/models/season.rb).
+  desc "STILLGELEGT seit Phase 39-01 — legt keine 'temporary' SeasonParticipations mehr an"
   task copy_season_participations_to_next_season: :environment do
+    puts "Dieser Task ist seit Phase 39-01 (2026-08-24) stillgelegt und legt nichts mehr an."
+    puts "Die Fortschreibung von Vereinszugehoerigkeiten in die naechste Saison hat 5 125"
+    puts "unbelegte Mitgliedschaften erzeugt, die auf der oeffentlichen Seite als Tatsachen"
+    puts "erschienen. Ob ein Spieler noch in seinem Verein spielt, kann nur der Verband sagen."
+    puts "Altbestand bereinigen: rake data_hygiene:temporary_season_participations"
     Season.current_season.copy_season_participations_to_next_season
   end
 

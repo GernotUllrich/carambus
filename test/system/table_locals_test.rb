@@ -17,7 +17,7 @@ class TableLocalsTest < ApplicationSystemTestCase
     click_on "New Table Local"
 
     fill_in "Ip address", with: @table_local.ip_address
-    fill_in "Table", with: @table_local.table_id
+    fill_in "Table", with: tables(:two).id # freier Tisch — je Tisch ist nur ein TableLocal erlaubt
     fill_in "Tpl ip address", with: @table_local.tpl_ip_address
     click_on "Create Table local"
 

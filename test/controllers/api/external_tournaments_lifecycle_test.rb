@@ -118,6 +118,59 @@ module Api
 
     # === Plan 17-04: acknowledge_result (Result-Hold + Pull) ===
 
+    # Befund 4 (carambus_app, 2026-08-23): Das Ausstossen am Tisch (switch_players) tauscht
+    # game_participation.role PERSISTENT. Danach gehoert Ergebnis1 einem anderen Spieler als
+    # beim start_game. Wer nur ueber die Position mappt, vertauscht Sieger und Verlierer --
+    # deshalb traegt die Antwort die Spieler-Identitaet zu jedem Wert.
+    test "acknowledge_result liefert participants mit Spieler-Identitaet" do
+      jwt = login_jwt
+      monitor, _game = setup_held_game(jwt, external_id: "ack-part1")
+
+      post_json("/api/external_tournament/acknowledge_result",
+        {region: {shortname: "NBV"}, tournament: {external_id: "ep-1"}, game: {external_id: "ack-part1"}}, jwt)
+      assert_response :ok
+      parts = JSON.parse(response.body)["participants"]
+
+      assert_equal %w[playera playerb], parts.map { |p| p["role"] }
+      a, b = parts
+      assert_equal "AckCtrlA", a.dig("player", "firstname"), "Identitaet muss am Wert haengen"
+      assert_equal 100, a["points"]
+      assert_equal "AckCtrlB", b.dig("player", "firstname")
+      assert_equal 60, b["points"]
+      assert_equal 5, a["innings"]
+      assert_equal 50, a["high_series"]
+    ensure
+      tables(:one).update_columns(table_monitor_id: nil)
+      TableMonitor.where(id: monitor.id).delete_all if defined?(monitor) && monitor
+    end
+
+    test "acknowledge_result: participants folgen dem Rollentausch aus switch_players" do
+      jwt = login_jwt
+      monitor, game = setup_held_game(jwt, external_id: "ack-part2")
+
+      # Genau das, was switch_players beim Ausstossen tut: Rollen persistent tauschen.
+      gps = game.game_participations.order(:id).to_a
+      roles = gps.map(&:role).reverse
+      gps.each_with_index { |gp, ix| gp.update_columns(role: roles[ix]) }
+
+      post_json("/api/external_tournament/acknowledge_result",
+        {region: {shortname: "NBV"}, tournament: {external_id: "ep-1"}, game: {external_id: "ack-part2"}}, jwt)
+      assert_response :ok
+      parts = JSON.parse(response.body)["participants"]
+
+      # Ergebnis1 (100) gehoert jetzt zu Spieler B -- die Identitaet wandert mit der Rolle mit.
+      a = parts.find { |p| p["role"] == "playera" }
+      b = parts.find { |p| p["role"] == "playerb" }
+      assert_equal "AckCtrlB", a.dig("player", "firstname"),
+        "nach dem Tausch steht Spieler B auf playera"
+      assert_equal 100, a["points"]
+      assert_equal "AckCtrlA", b.dig("player", "firstname")
+      assert_equal 60, b["points"]
+    ensure
+      tables(:one).update_columns(table_monitor_id: nil)
+      TableMonitor.where(id: monitor.id).delete_all if defined?(monitor) && monitor
+    end
+
     # AC-3: ohne Auth -> 401
     test "acknowledge_result ohne Auth gibt 401" do
       post_json("/api/external_tournament/acknowledge_result",

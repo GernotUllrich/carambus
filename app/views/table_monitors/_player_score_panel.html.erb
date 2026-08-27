@@ -105,7 +105,23 @@ end
       </div>
     <%- end %>
   </div>
-  <%= content_tag "div", data: { controller: "table-monitor", action: "click->table-monitor##{click_action}", id: table_monitor.id, discipline: player[:discipline] }, class: "flex flex-col h-5/6 #{bg_color} dark:bg-black border-solid #{ player_active ? "border-green-400 border-8" : "border-gray dark:border-gray-700 border-4" }", title: player_key, style: "letter-spacing: -5px;", id: position, tabindex: 1, onclick: "console.time('#{click_action}_click')" do %>
+  <%
+    # Stillgelegte Klickflaeche (siehe TableMonitor#follow_up_lock?):
+    #   1. Nachstoss laeuft -> das Feld des ANSTOSS-Spielers (= der gerade nicht
+    #      aktive) traegt keine Action mehr. Gewertet wird nur ueber den
+    #      beschrifteten Button im Mittelstreifen. Das Feld des Nachstoss-Spielers
+    #      bleibt aktiv, er muss im Ausgleich punkten koennen.
+    #   2. Protokoll-Modal offen -> bestaetigt wird nur ueber dessen eigenen
+    #      Button, nicht durch einen Klick irgendwo ins Spielerfeld.
+    # Beide Male gilt dasselbe Prinzip: eine Flaeche, deren Bedeutung sich durch
+    # einen automatischen Zustandswechsel aendert, darf nicht unveraendert an
+    # derselben Stelle klickbar bleiben.
+    panel_inert = (table_monitor.follow_up_lock? && !player_active) ||
+                  (table_monitor.set_over? && table_monitor.protocol_modal_should_be_open?)
+    panel_data = { controller: "table-monitor", id: table_monitor.id, discipline: player[:discipline] }
+    panel_data[:action] = "click->table-monitor##{click_action}" unless panel_inert
+  %>
+  <%= content_tag "div", data: panel_data, class: "flex flex-col h-5/6 #{bg_color} dark:bg-black border-solid #{ player_active ? "border-green-400 border-8" : "border-gray dark:border-gray-700 border-4" }", title: player_key, style: "letter-spacing: -5px;", id: position, tabindex: 1, onclick: (panel_inert ? nil : "console.time('#{click_action}_click')") do %>
     <%# Bei set_over zeigen wir jetzt das protocol_final Modal statt des alten innings_list %>
     <%- if !table_monitor.set_over? || table_monitor.protocol_modal_should_be_open? %>
       <div class="flex h-1/6">

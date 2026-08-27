@@ -22,8 +22,12 @@ class Season < ApplicationRecord
   has_many :season_ccs
   has_many :leagues
 
-  @year = (Date.today - 6.month).year
-  @current_season = Season.find_by_name("#{@year}/#{@year + 1}")
+  # Kein DB-Zugriff zur Class-Load-Zeit: beim ersten Laden kann die seasons-Tabelle
+  # noch leer sein (frisch aufgebaute Test-DB, leere Instanz). Das damals memoisierte
+  # nil blieb fuer die gesamte Prozesslaufzeit stehen, weil current_season nur beim
+  # Jahreswechsel nachgeladen hat. Memoisierung passiert daher lazy in current_season.
+  @year = nil
+  @current_season = nil
 
   REFLECTION_KEYS = %w[tournaments season_participations]
   MAX_BA_SEASON = "2021/2022"
@@ -48,12 +52,13 @@ class Season < ApplicationRecord
   end
 
   def self.current_season
-    if (Date.today - 6.month).year != @year
-      @year = (Date.today - 6.month).year
-      @current_season = Season.find_by_name("#{@year}/#{@year + 1}")
+    year = (Date.today - 6.month).year
+    if @current_season.nil? || year != @year
+      @year = year
+      @current_season = Season.find_by_name("#{year}/#{year + 1}")
       unless @current_season.present?
         Season.update_seasons
-        @current_season = Season.find_by_name("#{@year}/#{@year + 1}")
+        @current_season = Season.find_by_name("#{year}/#{year + 1}")
       end
     end
     @current_season
@@ -99,20 +104,30 @@ class Season < ApplicationRecord
     nil
   end
 
+  # STILLGELEGT (Phase 39-01, Betreiber-Entscheidung 2026-08-24).
+  #
+  # Diese Methode schrieb die Vereinszugehoerigkeiten einer Saison als `status: "temporary"`
+  # in die Folgesaison fort. Gemessen am 2026-08-24 waren daraus 5 125 Records geworden, die
+  # niemand je belegt hat — und sie waren nicht folgenlos: `Player#club` (player.rb:202) nimmt
+  # `season_participations.order(:season_id).last` OHNE Status-Filter, also gewann die
+  # Fortschreibung immer und erschien auf der oeffentlichen Vereins- und Spielerseite als
+  # Tatsache. 184 Vereine hatten ein Saison-Roster, das ausschliesslich daraus bestand.
+  #
+  # Der Grund fuer die Stilllegung ist nicht der Datenmuell, sondern die Zustaendigkeit: ob ein
+  # Spieler in der neuen Saison noch in seinem Verein spielt, kann nur der Verband sagen —
+  # ein Rollover kann es nur behaupten. Fehlt die Angabe, faellt `Player#club` auf die zuletzt
+  # belegte Saison zurueck; das ist die ehrlichere Auskunft.
+  #
+  # Bereinigung des Altbestands: `rake data_hygiene:temporary_season_participations`.
+  # Wenn eine Region eine Fortschreibung wirklich braucht, ist das ein eigener Plan mit
+  # eigener fachlicher Begruendung — nicht die Wiederbelebung dieser Methode.
   def copy_season_participations_to_next_season
-    new_season = next_season
-    unless new_season.season_participations.present?
-      season_participations.each do |sp|
-        sp_new = SeasonParticipation.create(
-          player_id: sp.player_id,
-          season_id: new_season.id,
-          club_id: sp.club_id,
-          status: "temporary",
-          region_id: sp.region_id,
-          global_context: false
-        )
-      end
-    end
+    Rails.logger.warn(
+      "Season#copy_season_participations_to_next_season ist seit Phase 39-01 stillgelegt " \
+      "(2026-08-24) — es werden keine 'temporary' SeasonParticipations mehr angelegt. " \
+      "Begruendung im Quellkommentar (app/models/season.rb)."
+    )
+    nil
   end
 
   private

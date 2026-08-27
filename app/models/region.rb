@@ -592,18 +592,17 @@ image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9"
         branch_cc.update!(cc_id: branch_cc_id)
       end
     end
-    # maximum_cc_id so far
-    # TODO: test the .maximimum(:cc_id), because RuboCop complains:
-    # <html>One of the following expectations should be satisfied:<br/>Expected DB field name of
-    # table 'tournament_cc', but found ':cc_id'<br/>Hash expected
-    cc_id_max = TournamentCc.joins(tournament: :season)
-                            .where(seasons: { id: season.id })
-                            .where(tournaments: { organizer_id: 1, organizer_type: "Region" })
-                            .maximum(:cc_id)
+    # Offene (ergebnislose) Turniere DIESER Region: ihre Ergebnisse stehen nicht in der Liste,
+    # nur auf der Detailseite — sie muessen also auch dann gelesen werden, wenn sie bekannt sind.
+    #
+    # `organizer_id: id` statt des frueheren Hardcodes `organizer_id: 1` (= NBV): die Liste wurde
+    # fuer JEDE Region aus NBV-Turnieren gebildet. Solange die Schwellen-Logik davor griff, fiel es
+    # nicht auf; ohne den Fix hier wuerde der Umbau unten fremde cc_ids gegen die eigene Liste
+    # pruefen und Turniere anderer Regionen ueberspringen.
     open_tournaments_cc_ids = TournamentCc.joins(tournament: :season)
                                           .where(seasons: { id: season.id })
                                           .joins("left outer join games on games.tournament_id = tournaments.id")
-                                          .where(tournaments: { organizer_id: 1, organizer_type: "Region" })
+                                          .where(tournaments: { organizer_id: id, organizer_type: "Region" })
                                           .where(games: { id: nil }).uniq.map(&:cc_id)
 
     # Change-Gate (Phase 23, Ebene B — Merkle-„fast node"): die Turnier-LISTE ist der billige Knoten,
@@ -643,10 +642,10 @@ image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9"
         next
       end
 
-      if opts[:optimize_api_access] && (cc_id <= cc_id_max)
-        date = DateTime.parse(tr.css("td")[1])
-        next if date > Time.now
-        next unless open_tournaments_cc_ids.include?(cc_id)
+      if opts[:optimize_api_access] &&
+         skip_known_tournament_row?(cc_id: cc_id, date: DateTime.parse(tr.css("td")[1]),
+                                    open_cc_ids: open_tournaments_cc_ids)
+        next
       end
       Rails.logger.info "reading #{url + tournament_link}"
       uri = URI(url + tournament_link)
@@ -727,6 +726,31 @@ image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9"
   # table.silver[1]) inkl. Detail-Link (trägt cc_id). Ein neues/geändertes Turnier ändert eine Zeile
   # → digest kippt → Deep. Deterministisch sortiert = stabiler, fetch-freier Hash-Input. Fehlende
   # Tabelle/nil → "" (stale → deep, kein Fehl-Skip).
+  # Darf diese Zeile der Turnierliste ohne Detail-Abruf uebersprungen werden?
+  #
+  # Nur ein BEKANNTES Turnier darf uebersprungen werden — alles andere muss gelesen werden,
+  # sonst entsteht es nie.
+  #
+  # ⚠️ Die fruehere Fassung fragte `cc_id <= cc_id_max` (groesste bekannte cc_id der Saison) und
+  # meinte damit "kennen wir schon". Das ist ein Fehlschluss: die ClubCloud vergibt ihre IDs nicht
+  # in der Reihenfolge, in der Carambus sie einsammelt. Gemessen am 2026-08-26 auf der Authority:
+  # NBV 2026/2027 hatte `cc_id_max = 1048` (Kegel- und Snooker-Turniere), waehrend die komplette
+  # Karambol-Serie unter `cc_id` 943–981 lief — 36 Turniere lagen unter der Schwelle, waren aber
+  # voellig unbekannt. Zusammen mit `date > Time.now` fielen sie JEDE Nacht durch und waeren erst
+  # nach ihrem Spieltag eingesammelt worden. Der Fehler war selbstverstaerkend: ein einziges
+  # Turnier mit hoher cc_id sperrt alle noch nicht geholten mit niedrigerer ID aus.
+  #
+  # Die drei Faelle:
+  #   unbekannt            -> lesen (der Fall, den die alte Fassung verlor)
+  #   bekannt, kuenftig    -> ueberspringen (Ergebnisse gibt es noch nicht)
+  #   bekannt, gespielt    -> lesen, WENN das Turnier noch ergebnislos ist
+  def skip_known_tournament_row?(cc_id:, date:, open_cc_ids:)
+    return false unless TournamentCc.exists?(cc_id: cc_id, context: region_cc.context)
+    return true if date > Time.now
+
+    !open_cc_ids.include?(cc_id)
+  end
+
   def self.tournament_list_content(einzel_doc)
     return "" if einzel_doc.nil?
 
