@@ -6,6 +6,14 @@
         <%= t("calendars.show.title", region: @region.shortname.presence || @region.name) %>
       </h1>
       <span class="text-gray-500 dark:text-gray-400"><%= l(@month, format: "%B %Y") %></span>
+      <%# Die aus dem MONAT abgeleitete Saison (Season.season_from_date), nicht die des Scope-Bands.
+          Die Monatsnavigation ist frei, beide koennen also auseinanderlaufen — dann soll man
+          sehen, zu welcher Saison der gezeigte Monat gehoert, statt es zu erraten. %>
+      <% if @season.present? %>
+        <span class="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
+          <%= t("calendars.show.season", season: @season.name) %>
+        </span>
+      <% end %>
     </div>
     <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">
       <%= t("calendars.show.subtitle") %>

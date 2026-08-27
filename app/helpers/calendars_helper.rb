@@ -55,9 +55,20 @@ module CalendarsHelper
   end
 
   # Filter-URL, die den bestehenden Zustand beibehaelt und nur einen Wert austauscht.
+  #
+  # Region, Saison und Sparte stehen NICHT darin — die kommen aus dem globalen Scope-Band
+  # (Session), nicht aus dem URL. Hier stehen nur die kalender-eigenen Achsen.
   def calendar_url(overrides = {})
-    base = {month: @month.strftime("%Y-%m"), branch: @branch_name,
-            dbu: (@include_dbu ? nil : "0"), view: ((@view_mode == "agenda") ? nil : @view_mode)}
-    region_calendar_path(@region, base.merge(overrides).compact)
+    base = {month: @month.strftime("%Y-%m"),
+            dbu: (@include_dbu ? nil : "0"),
+            view: ((@view_mode == "agenda") ? nil : @view_mode),
+            kind: @kind, group: @group, discipline: @discipline_name}
+    calendar_path(base.merge(overrides).compact)
+  end
+
+  # Anzeigetext einer Gruppen-Option. `Calendar::Query::GROUP_NONE` ist keine Kategorie, sondern
+  # der sichtbare Fall "Turnier ohne Zuordnung" — CC-lose Turniere duerfen nicht still wegfallen.
+  def calendar_group_label(value)
+    (value == Calendar::Query::GROUP_NONE) ? t("calendars.filter.group_none") : value
   end
 end
