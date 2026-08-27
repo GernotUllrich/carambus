@@ -1,42 +1,45 @@
-<%# Alle Filter als Links, damit jeder Zustand im URL steht und teilbar bleibt (AC-3). %>
+<%# Alle Filter als Links, damit jeder Zustand im URL steht und teilbar bleibt (AC-3).
+    ⚠️ Aktive Zustaende MUESSEN `btn` tragen: die projektweite Regel `a:not(.btn) { color: primary-600 }`
+    (Spezifitaet 0,1,1) schlaegt sonst `text-white` (0,1,0) — der Text stand dann dunkelgruen auf
+    dunkelgruenem Grund, also unsichtbar. `.btn` ist die vorgesehene Ausnahme; kein !important. %>
 <div class="flex flex-wrap items-center gap-2 mb-4 pb-3 border-b border-gray-200 dark:border-gray-700">
 
   <%# Monatsnavigation %>
   <span class="inline-flex rounded-md border border-gray-300 dark:border-gray-600 overflow-hidden">
     <%= link_to "‹", calendar_url(month: (@month - 1.month).strftime("%Y-%m")),
-          class: "px-2 py-1 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700",
+          class: "btn btn-white px-2 py-1 text-sm rounded-none border-0",
           "aria-label": t("calendars.filter.prev_month") %>
     <%= link_to t("calendars.filter.today"), calendar_url(month: Date.current.strftime("%Y-%m")),
-          class: "px-2 py-1 text-sm border-x border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700" %>
+          class: "btn btn-white px-2 py-1 text-sm rounded-none border-x border-y-0" %>
     <%= link_to "›", calendar_url(month: (@month + 1.month).strftime("%Y-%m")),
-          class: "px-2 py-1 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700",
+          class: "btn btn-white px-2 py-1 text-sm rounded-none border-0",
           "aria-label": t("calendars.filter.next_month") %>
   </span>
 
   <%# Sparten %>
   <span class="inline-flex flex-wrap gap-1">
     <%= link_to t("calendars.filter.all_branches"), calendar_url(branch: nil),
-          class: "px-2 py-1 text-xs rounded-full border #{@branch_name.blank? ? 'bg-gray-800 text-white border-gray-800 dark:bg-gray-100 dark:text-gray-900' : 'border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300'}" %>
+          class: "btn #{@branch_name.blank? ? 'btn-primary' : 'btn-white'} px-2 py-1 text-xs rounded-pill" %>
     <% @branch_names.each do |name| %>
       <% active = @branch_name.to_s.casecmp?(name) %>
       <%= link_to name, calendar_url(branch: name),
-            class: "px-2 py-1 text-xs rounded-full border #{calendar_branch_border(name)} #{active ? calendar_branch_classes(name) : 'text-gray-600 dark:text-gray-300 border-gray-300 dark:border-gray-600'}" %>
+            class: "btn btn-white px-2 py-1 text-xs rounded-pill border #{calendar_branch_border(name)} #{calendar_branch_classes(name) if active}" %>
     <% end %>
   </span>
 
   <%# DBU-Schalter %>
   <span class="inline-flex rounded-full border border-gray-300 dark:border-gray-600 overflow-hidden ml-auto">
     <%= link_to t("calendars.filter.with_dbu"), calendar_url(dbu: nil),
-          class: "px-3 py-1 text-xs #{@include_dbu ? 'bg-primary-600 text-white' : 'text-gray-600 dark:text-gray-300'}" %>
+          class: "btn #{@include_dbu ? 'btn-primary' : 'btn-white'} px-3 py-1 text-xs rounded-none border-0" %>
     <%= link_to t("calendars.filter.region_only", region: @region.shortname.presence || @region.name), calendar_url(dbu: "0"),
-          class: "px-3 py-1 text-xs #{@include_dbu ? 'text-gray-600 dark:text-gray-300' : 'bg-primary-600 text-white'}" %>
+          class: "btn #{@include_dbu ? 'btn-white' : 'btn-primary'} px-3 py-1 text-xs rounded-none border-0" %>
   </span>
 
   <%# Ansicht %>
   <span class="inline-flex rounded-full border border-gray-300 dark:border-gray-600 overflow-hidden">
     <%= link_to t("calendars.filter.agenda"), calendar_url(view: nil),
-          class: "px-3 py-1 text-xs #{@view_mode == 'agenda' ? 'bg-gray-800 text-white dark:bg-gray-100 dark:text-gray-900' : 'text-gray-600 dark:text-gray-300'}" %>
+          class: "btn #{@view_mode == 'agenda' ? 'btn-primary' : 'btn-white'} px-3 py-1 text-xs rounded-none border-0" %>
     <%= link_to t("calendars.filter.grid"), calendar_url(view: "grid"),
-          class: "px-3 py-1 text-xs #{@view_mode == 'grid' ? 'bg-gray-800 text-white dark:bg-gray-100 dark:text-gray-900' : 'text-gray-600 dark:text-gray-300'}" %>
+          class: "btn #{@view_mode == 'grid' ? 'btn-primary' : 'btn-white'} px-3 py-1 text-xs rounded-none border-0" %>
   </span>
 </div>
