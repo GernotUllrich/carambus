@@ -222,21 +222,22 @@
               Dort fuehrte der Knopf oben nach :start_rematch (weiterspielen); es gab
               keinen Weg nach :ready_for_new_match, der Tisch blieb belegt. Im Turnier
               erledigt das der Knopf oben selbst (close_match), deshalb hier nichts.
-              Eigener Reflex TableMonitorReflex#release_table: close_match allein
-              genuegt hier NICHT — es laesst game_id gesetzt, der Tisch bliebe in der
-              Tischliste belegt (UAT-Befund 2026-08-29). release_table finalisiert
-              vorsorglich und ruft dann reset_table_monitor (game_id: nil, ready),
-              ohne das Game zu loeschen.
+              Bewusst ein LINK auf den bestehenden Terminate-Pfad statt eines Reflexes
+              (UAT 2026-08-29): nach dem Freigeben soll die Tischliste erscheinen, und
+              genau dorthin fuehrt diese URL. Der Controller finalisiert dabei ueber
+              finalize_if_decided und gibt den Tisch per reset_table_monitor frei, OHNE
+              das Spiel zu loeschen — gleiches Muster wie "Partie abbrechen"
+              (_show.html.erb:88). close_match allein genuegte NICHT: es laesst game_id
+              gesetzt, der Tisch bliebe in der Tischliste belegt.
               "Naechstes Spiel" bleibt die primaere Aktion (gruen); die Freigabe tritt
               farblich zurueck. %>
-          <%- if table_monitor.tournament_monitor.blank? %>
-            <%= content_tag "div",
-                  data: { reflex: "click->TableMonitorReflex#release_table touchstart->TableMonitorReflex#release_table", id: table_monitor.id },
+          <%- if table_monitor.tournament_monitor.blank? && table_monitor.table&.location.present? %>
+            <%= custom_link_to t("table_monitor.release_table"),
+                  location_path(table_monitor.table.location, sb_state: "tables", terminate_game_id: table_monitor.game_id),
+                  data: { turbo: false },
                   id: "release_table_button",
                   class: "flex flex-col h-1/6 items-center justify-center font-bold text-gray-400 text-#{vw2} text-center cursor-pointer dark:bg-black hover:bg-gray-200 dark:hover:bg-gray-800 rounded",
-                  tabindex: 2 do %>
-              <%= t("table_monitor.release_table") %>
-            <%- end %>
+                  tabindex: 2 %>
           <%- end %>
         <%- end %>
         <div class="flex flex-col items-center h-1/6">

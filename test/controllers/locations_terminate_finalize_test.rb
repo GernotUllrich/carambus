@@ -85,6 +85,23 @@ class LocationsTerminateFinalizeTest < ActionDispatch::IntegrationTest
     assert_nil freed.game_id
   end
 
+  test "bereits finalisiertes Spiel wird beim Abbruch NICHT geloescht" do
+    # Genau der Zustand, in dem der "Tisch freigeben"-Link steht (final_match_score).
+    # Vor dem UAT-Fix meldete finalize_if_decided hier false -> destroy-Zweig ->
+    # das fertige Spiel samt Statistik waere geloescht worden.
+    game = build_training_game(decided: true)
+    tm = TableMonitor.find(@tm_id)
+    tm.update_columns(state: "final_match_score")
+    tm.reload
+
+    terminate(game)
+
+    assert Game.exists?(game.id), "fertiges Spiel darf beim Freigeben NICHT geloescht werden"
+    freed = TableMonitor.find(@tm_id)
+    assert_equal "ready", freed.state
+    assert_nil freed.game_id
+  end
+
   test "unentschiedenes Trainingsspiel wird beim Abbruch geloescht wie bisher" do
     game = build_training_game(decided: false)
     assert_not game.table_monitor.end_of_set?, "Vorbedingung: Spiel darf nicht entschieden sein"

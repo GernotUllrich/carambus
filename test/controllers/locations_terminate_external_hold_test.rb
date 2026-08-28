@@ -74,12 +74,24 @@ class LocationsTerminateExternalHoldTest < ActionDispatch::IntegrationTest
     assert_not Game.exists?(game.id), "acknowledged App-game terminates as before"
   end
 
-  test "terminate destroys non-external game (AC-4 regression)" do
+  # ⚠️ ERWARTUNG ABGELOEST durch Milestone v0.3 Plan 01-02 (2026-08-29).
+  # Urspruenglich hiess dieser Test "terminate destroys non-external game" und war ein
+  # Regressionsschutz fuer Phase 18: der App-Result-Hold sollte normale Spiele nicht
+  # blockieren. Das Spiel hier ist lokal, ohne tournament_id, ohne external_id und steht
+  # auf :final_match_score — nach neuer Regel ist das ein FERTIGES Trainingsspiel und
+  # wird bewusst BEHALTEN statt geloescht (sonst ginge die erfasste Statistik verloren).
+  # Der eigentliche Regressionsschutz bleibt erhalten: der Terminate-Pfad laeuft, der
+  # Hold greift nicht, und der Tisch wird freigegeben.
+  test "terminate keeps a finished non-external training game but frees the table" do
     game = build_app_game(external_id: nil)
     assert_not game.table_monitor&.external_result_pending?, "precondition: no external_id → not pending"
+    tm_id = game.table_monitor.id
 
     terminate(game)
 
-    assert_not Game.exists?(game.id), "non-external game terminates as before"
+    assert Game.exists?(game.id), "finished training game must be kept (v0.3 Plan 01-02)"
+    freed = TableMonitor.find(tm_id)
+    assert_equal "ready", freed.state, "terminate must still free the table"
+    assert_nil freed.game_id
   end
 end

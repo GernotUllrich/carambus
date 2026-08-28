@@ -889,8 +889,14 @@ class TableMonitor < ApplicationRecord
   # :final_match_score nie — es bekommt also auch keine Statistik (Plan 01-01), und
   # im Abbruch-Pfad wird es sogar geloescht (locations_controller.rb:98-100).
   #
-  # Der Rueckgabewert steuert genau diesen Abbruch-Pfad und muss verlaesslich sein:
-  # true = finalisiert, Spiel behalten; false = unveraendert, bisheriges Verhalten.
+  # BEDEUTUNG DES RUECKGABEWERTS (nach UAT-Fund 2026-08-29 praezisiert):
+  # true  = das Spiel IST finalisiert (soeben oder bereits vorher) und MUSS behalten werden
+  # false = kein finalisiertes Trainingsspiel -> bisheriges Verhalten (ggf. verwerfen)
+  #
+  # Die urspruengliche Fassung meldete fuer ein BEREITS finalisiertes Spiel false ("habe
+  # nichts getan"). Der Abbruch-Pfad fiel damit in den destroy-Zweig und haette ein
+  # fertiges Spiel samt Statistik geloescht — genau der Zustand, in dem der
+  # "Tisch freigeben"-Knopf steht.
   #
   # Es werden ausschliesslich die BESTEHENDEN AASM-Events benutzt, jede Stufe ueber
   # ihr may_*?-Praedikat abgesichert. Das deckt auch den Tiebreak ab: steht ein Pick
@@ -901,7 +907,7 @@ class TableMonitor < ApplicationRecord
     # Turnier/Liga finalisieren selbst ueber ihre ResultProcessor.
     return false if tournament_monitor.present?
     return false unless Game.training.exists?(game.id)
-    return false if final_match_score? || ready_for_new_match?
+    return true if final_match_score? || ready_for_new_match?
     # end_of_set? liest data["playera"]["innings"] direkt und wirft ausserhalb von
     # production erneut (table_monitor.rb:1713) — leeres data vorher abfangen.
     return false if data["playera"].blank? || data["playerb"].blank?

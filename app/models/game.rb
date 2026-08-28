@@ -39,13 +39,28 @@ class Game < ApplicationRecord
   scope :without_archive, -> { where("games.type IS NULL OR games.type != ?", "ArchivedGame") }
 
   # Freie Trainingsspiele (Milestone v0.3): am Scoreboard gespielt, ohne Turnier- oder
-  # Ligabindung. Zwei Bedingungen, beide notwendig:
+  # Ligabindung. Drei Bedingungen, alle notwendig:
   #   - id >= MIN_ID  -> lokal am Club-Server entstanden (globale Spiele kommen per Sync
   #     von der Authority und sind nie Trainingsspiele)
   #   - tournament_id NULL -> haengt an keinem Turnier und an keiner Liga-Partie
   #     (tournament ist die polymorphe Bindung, tournament_type = "Tournament"|"League")
+  #   - KEIN data["external_id"] -> App-gesteuerte Turnierspiele (Phase 17/18) sind
+  #     ebenfalls lokal UND ohne tournament_id und waeren sonst faelschlich
+  #     Trainingsspiele: sie bekaemen Trainingsstatistik und wuerden beim Terminate
+  #     nicht mehr verworfen. Befund aus dem UAT 2026-08-29.
+  #
+  # ⚠️ Der external_id-Ausschluss ist ein LIKE auf der serialisierten JSON-Textspalte —
+  # `data` ist kein jsonb (`serialize :data, coder: JSON`), ein Schluesselvergleich in
+  # SQL ist daher nicht moeglich. Der Bestandscode filtert dafuer in Ruby
+  # (external_tournament/round_start_processor.rb:105), was fuer einen Scope ausscheidet.
+  # Eine jsonb-Migration ist dort bereits als Option vermerkt.
+  #
   # Grundlage fuer die Statistik-Filterung Training/Turnier/kombiniert.
-  scope :training, -> { where(tournament_id: nil).where(arel_table[:id].gteq(MIN_ID)) }
+  scope :training, lambda {
+    where(tournament_id: nil)
+      .where(arel_table[:id].gteq(MIN_ID))
+      .where("games.data IS NULL OR games.data NOT LIKE ?", '%"external_id"%')
+  }
   has_one :table_monitor, dependent: :nullify
   has_one :was_table_monitor, foreign_key: :prev_game_id, class_name: "TableMonitor", dependent: :nullify
 

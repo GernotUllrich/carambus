@@ -118,12 +118,23 @@ class TableMonitorFinalizeIfDecidedTest < ActiveSupport::TestCase
     assert_equal "playing", tm.reload.state
   end
 
-  test "B2: bereits finalisiertes Spiel meldet false (keine Doppelverarbeitung)" do
+  test "B2: bereits finalisiertes Spiel meldet true (muss behalten werden)" do
+    # UAT-Befund 2026-08-29: hier stand urspruenglich assert_not. Der Rueckgabewert
+    # steuert den Abbruch-Pfad; false haette bedeutet, dass ein FERTIGES Spiel samt
+    # Statistik in den destroy-Zweig faellt. true = "ist finalisiert, behalten".
     tm = build_tm(game: create_game, state: "final_set_score")
     tm.finalize_if_decided
     assert_equal "final_match_score", tm.reload.state
 
-    assert_not tm.finalize_if_decided, "zweiter Aufruf darf nicht erneut finalisieren"
+    assert tm.finalize_if_decided, "bereits finalisiertes Spiel muss als behaltenswert gemeldet werden"
+    assert_equal "final_match_score", tm.reload.state, "der Zustand darf sich nicht erneut aendern"
+  end
+
+  test "B3: Spiel in ready_for_new_match meldet ebenfalls true" do
+    tm = build_tm(game: create_game, state: "ready_for_new_match")
+
+    assert tm.finalize_if_decided
+    assert_equal "ready_for_new_match", tm.reload.state
   end
 
   # ===========================================================================
