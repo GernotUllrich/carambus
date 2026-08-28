@@ -460,7 +460,20 @@ class TableMonitor < ApplicationRecord
       # guard covers everything else.
       transitions from: :set_over, to: :final_set_score, guard: :tiebreak_not_pending?
     end
-    event :finish_match, after: :set_end_time do
+    # Milestone v0.3 Plan 01-01: record_training_result verbucht das Endergebnis eines
+    # freien TRAININGSSPIELS in die GameParticipations. Im Turnier-/Ligabetrieb tun das
+    # TournamentMonitor::ResultProcessor bzw. PartyMonitor::ResultProcessor; im Training
+    # gibt es keinen tournament_monitor, weshalb ResultRecorder#perform_evaluate_result
+    # dort mit `tournament_monitor&.report_result` ins Leere lief (result_recorder.rb:510-531).
+    #
+    # Warum hier und nicht woanders:
+    #   - NICHT im state-after_enter (set_game_over): das ist der geschuetzte AASM-Kern,
+    #     und set_game_over teilen sich set_over/final_set_score/final_match_score.
+    #   - NICHT in ResultRecorder#perform_evaluate_result: deckt nur EINEN Aufrufpfad ab;
+    #     finish_match! wird auch anderswo gefeuert (z.B. Admin-Pfad).
+    #   - Der Event-after-Callback deckt ALLE finish_match!-Aufrufer ab und ist rein
+    #     additiv — set_end_time bleibt unveraendert erster Callback.
+    event :finish_match, after: [:set_end_time, :record_training_result] do
       transitions from: %i[final_set_score], to: :final_match_score
     end
     # Phase 38.8 — operator-gated rematch event. Replaces the auto-rematch
@@ -855,6 +868,15 @@ class TableMonitor < ApplicationRecord
   rescue StandardError => e
     Rails.logger.error "ERROR: #{e}, #{e.backtrace&.join("\n")}"
     raise StandardError unless Rails.env == "production"
+  end
+
+  # after-Callback des finish_match-Events (Milestone v0.3 Plan 01-01).
+  # Duenne Delegation wie start_game/assign_game; die gesamte Logik inklusive aller
+  # No-op-Bedingungen (Turnier/Liga, Nicht-Trainingsspiel, Gastbeteiligung) liegt im
+  # Service. Der Service faengt seine Fehler selbst ab und gibt false zurueck — eine
+  # fehlgeschlagene Verbuchung darf die Finalisierung nie verhindern.
+  def record_training_result
+    TableMonitor::TrainingResultRecorder.call(table_monitor: self)
   end
 
   def assign_game(game_p)
