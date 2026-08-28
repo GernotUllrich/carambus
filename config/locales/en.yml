@@ -300,6 +300,7 @@ en:
         password: password
   home:
     index:
+      calendar: "Fixtures"
       about: The Developer
       search: How to Search Tables
       carambus_tournament_management: Carambus Tournament Management
@@ -1794,15 +1795,38 @@ en:
       subtitle: "Tournaments and league match days in one view."
       empty_heading: "Nothing scheduled this month."
       empty_body: "Use the arrows for other months, or clear the filters."
+      season: "Season %{season}"
     filter:
       prev_month: "Previous month"
       next_month: "Next month"
       today: "Today"
-      all_branches: "All disciplines"
+      reset: "↺ Start"
+      kind_all: "All"
+      kind_single: "Individual"
+      kind_team: "Team"
+      group: "Group"
+      group_all: "All groups"
+      group_none: "unassigned"
+      discipline: "Discipline"
+      discipline_all: "All disciplines"
+      location: "Venue"
+      location_all: "All venues"
+      location_none: "no venue"
+      print: "🖨 Print"
       with_dbu: "with DBU"
       region_only: "%{region} only"
-      agenda: "Agenda"
-      grid: "Month"
+    print:
+      title: "%{region} fixtures — season %{season}"
+      action: "🖨 Print"
+      empty: "No fixtures this season."
+    stream:
+      count:
+        one: "1 fixture"
+        other: "%{count} fixtures"
+      empty_month: "nothing scheduled"
+      load_earlier: "load earlier months"
+      start_reached: "start reached"
+      end_reached: "end reached"
     agenda:
       parties:
         one: "1 match"

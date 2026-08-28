@@ -43,6 +43,18 @@ class Calendar::QueryTest < ActiveSupport::TestCase
     Calendar::Query.new(region: @region, from: @von, to: @bis, **opts).call
   end
 
+  def query(**opts)
+    Calendar::Query.new(region: @region, from: @von, to: @bis, **opts)
+  end
+
+  # Haengt einem Turnier eine Turniergruppe an. Quelle ist der DENORMALISIERTE
+  # `championship_type_cc_name` auf dem CC-Zwilling — nicht CategoryCc (siehe Kommentar in
+  # query.rb: nur im NBV gepflegt, mischt Serien mit Alters-/Geschlechtsklassen).
+  def gruppe!(id_offset, tournament, name)
+    TournamentCc.create!(id: BASE_ID + id_offset, tournament: tournament,
+      championship_type_cc_name: name, name: tournament.title)
+  end
+
   test "Turniere und Spieltage stehen gemeinsam und nach Datum sortiert" do
     turnier!(1, "NDM Freie Partie", region: @region, discipline: disciplines(:pool_8ball))
     liga = liga_ohne_stempel!(2, "Oberliga Pool", discipline: disciplines(:pool_8ball))
@@ -60,7 +72,7 @@ class Calendar::QueryTest < ActiveSupport::TestCase
     spieltag!(5, liga)
     assert_nil liga.reload.branch_id, "Vorbedingung: diese Liga traegt keinen Stempel"
 
-    treffer = eintraege(branch_name: "Pool")
+    treffer = eintraege(branch: disciplines(:branch_pool))
     assert_equal 1, treffer.size,
       "Ueber die Disziplin-Wurzel gehoert sie zu Pool — ein Filter auf branch_id allein verloere sie"
     assert_equal "Bezirksliga Mitte 1", treffer.first.title
@@ -70,7 +82,7 @@ class Calendar::QueryTest < ActiveSupport::TestCase
     liga = liga_ohne_stempel!(6, "Oberliga Pool", discipline: disciplines(:pool_8ball))
     spieltag!(7, liga)
 
-    assert_empty eintraege(branch_name: "Karambol")
+    assert_empty eintraege(branch: disciplines(:branch_karambol))
   end
 
   test "der DBU-Schalter blendet die ueberregionale Ebene aus" do
@@ -113,5 +125,181 @@ class Calendar::QueryTest < ActiveSupport::TestCase
 
     t.update!(end_date: nil)
     refute eintraege.first.multi_day?
+  end
+
+  # --- AC-4: Einzel/Mannschaft ---------------------------------------------------------------
+
+  test "die Einzel/Mannschaft-Achse trennt Turniere von Spieltagen" do
+    turnier!(20, "NDM Freie Partie", region: @region, discipline: disciplines(:pool_8ball))
+    liga = liga_ohne_stempel!(21, "Oberliga Pool", discipline: disciplines(:pool_8ball))
+    spieltag!(22, liga)
+
+    assert_equal 2, eintraege.size
+    assert_equal [:tournament], eintraege(kind: "single").map(&:kind).uniq
+    assert_equal [:party], eintraege(kind: "team").map(&:kind).uniq
+  end
+
+  # --- AC-5/AC-6: Turniergruppe --------------------------------------------------------------
+
+  # Gemessen 2026-08-27: von 49 Rohwerten unterscheiden sich zwei nur in der Anzahl der
+  # Leerzeichen. Ohne Normalisierung staenden zwei optisch gleiche Knoepfe nebeneinander,
+  # die je die Haelfte der Turniere zeigen.
+  test "Gruppennamen, die sich nur in Leerzeichen unterscheiden, sind EINE Gruppe" do
+    a = turnier!(60, "DJM Freie Partie A", region: @region, discipline: disciplines(:pool_8ball))
+    b = turnier!(61, "DJM Freie Partie B", region: @region, discipline: disciplines(:pool_8ball))
+    gruppe!(62, a, "Deutsche Jugend Meisterschaft (DJM)")
+    gruppe!(63, b, "Deutsche Jugend Meisterschaft  (DJM)")   # zwei Leerzeichen
+
+    assert_equal ["Deutsche Jugend Meisterschaft (DJM)"], query.group_options,
+      "beide Schreibweisen gehoeren zu EINER Option"
+    assert_equal ["DJM Freie Partie A", "DJM Freie Partie B"],
+      eintraege(group: "Deutsche Jugend Meisterschaft (DJM)").map(&:title).sort,
+      "und der Filter muss beide Schreibweisen fangen"
+  end
+
+  test "der Gruppenfilter zeigt nur die Turniere seiner Gruppe" do
+    ndm = turnier!(23, "NDM Freie Partie", region: @region, discipline: disciplines(:pool_8ball))
+    cup = turnier!(24, "NordCup Dreiband", region: @region, discipline: disciplines(:pool_8ball))
+    gruppe!(25, ndm, "NDM")
+    gruppe!(26, cup, "NordCup")
+
+    treffer = eintraege(group: "NDM")
+    assert_equal ["NDM Freie Partie"], treffer.map(&:title)
+  end
+
+  # AC-6 — der CC-lose Fall (TBV #18613/#18614 auf Produktion).
+  test "ein Turnier OHNE CC-Zwilling steht ungefiltert da und ist als ohne Zuordnung waehlbar" do
+    ndm = turnier!(27, "NDM Freie Partie", region: @region, discipline: disciplines(:pool_8ball))
+    gruppe!(28, ndm, "NDM")
+    ohne = turnier!(29, "LM Dreiband MB", region: @region, discipline: disciplines(:pool_8ball))
+    assert_nil ohne.tournament_cc, "Vorbedingung: dieses Turnier hat keinen CC-Zwilling"
+
+    assert_includes eintraege.map(&:title), "LM Dreiband MB",
+      "ohne Gruppenfilter darf ein CC-loses Turnier nicht wegfallen"
+    assert_equal ["LM Dreiband MB"],
+      eintraege(group: Calendar::Query::GROUP_NONE).map(&:title)
+    assert_equal ["NDM Freie Partie"], eintraege(group: "NDM").map(&:title)
+  end
+
+  test "die Gruppen-Optionen kommen aus dem Zeitraum, nicht aus allen bekannten Gruppen" do
+    ndm = turnier!(30, "NDM Freie Partie", region: @region, discipline: disciplines(:pool_8ball))
+    gruppe!(31, ndm, "NDM")
+    # Eine Gruppe, die es gibt, im Zeitraum aber nicht vorkommt (Turnier drei Monate spaeter).
+    spaeter = turnier!(32, "Grand Prix", region: @region,
+      discipline: disciplines(:pool_8ball), tag: @von + 3.months + 5)
+    gruppe!(33, spaeter, "Grand Prix")
+
+    assert_equal ["NDM"], query.group_options
+    refute_includes query.group_options, "Grand Prix",
+      "ein Selektor ueber alle bekannten Gruppen boete an, was der Zeitraum gar nicht hergibt"
+  end
+
+  test "die Gruppen-Optionen nennen ohne Zuordnung nur, wenn es solche Turniere gibt" do
+    ndm = turnier!(34, "NDM Freie Partie", region: @region, discipline: disciplines(:pool_8ball))
+    gruppe!(35, ndm, "NDM")
+    refute_includes query.group_options, Calendar::Query::GROUP_NONE
+
+    turnier!(36, "LM Dreiband MB", region: @region, discipline: disciplines(:pool_8ball))
+    assert_includes query(**{}).group_options, Calendar::Query::GROUP_NONE
+  end
+
+  # --- AC-7: Disziplin -----------------------------------------------------------------------
+
+  test "der Disziplin-Filter wirkt auf Turniere UND Spieltage" do
+    turnier!(37, "NDM 8-Ball", region: @region, discipline: disciplines(:pool_8ball))
+    turnier!(38, "NDM 9-Ball", region: @region, discipline: disciplines(:pool_9ball))
+    liga8 = liga_ohne_stempel!(39, "Oberliga 8-Ball", discipline: disciplines(:pool_8ball))
+    spieltag!(40, liga8)
+    liga9 = liga_ohne_stempel!(41, "Oberliga 9-Ball", discipline: disciplines(:pool_9ball))
+    spieltag!(42, liga9)
+
+    treffer = eintraege(discipline_name: "8-Ball").map(&:title).sort
+    assert_equal ["NDM 8-Ball", "Oberliga 8-Ball"], treffer,
+      "die Disziplin muss beide Arten filtern — Turnier und Liga fuehren je eine"
+  end
+
+  # Betreiber-Befund 2026-08-27: Sparte Pool gewaehlt, Disziplin "Pool" gewaehlt — es kamen nur
+  # Spieltage. Ursache: Turniere haengen an BLATT-Disziplinen ("8-Ball"), Ligen am Branch-Record
+  # selbst ("Pool"); der Filter verglich exakt auf den Namen.
+  test "die Disziplin trifft auch alles unterhalb — Branch-Name faengt die Blatt-Disziplinen" do
+    turnier!(45, "NDJM Pool 8-Ball", region: @region, discipline: disciplines(:pool_8ball))
+    # Eine Liga, die — wie in echt — den Branch-Record als Disziplin traegt.
+    liga = liga_ohne_stempel!(46, "Verbandsliga Pool", discipline: disciplines(:branch_pool))
+    spieltag!(47, liga)
+
+    treffer = eintraege(discipline_name: "Pool").map(&:title).sort
+    assert_equal ["NDJM Pool 8-Ball", "Verbandsliga Pool"], treffer,
+      "\"Pool\" muss das Turnier an der Blatt-Disziplin UND die Liga am Branch-Record fangen"
+  end
+
+  test "eine Blatt-Disziplin bleibt eng und zieht nicht den ganzen Branch herein" do
+    turnier!(48, "NDM 8-Ball", region: @region, discipline: disciplines(:pool_8ball))
+    turnier!(49, "NDM 9-Ball", region: @region, discipline: disciplines(:pool_9ball))
+
+    assert_equal ["NDM 8-Ball"], eintraege(discipline_name: "8-Ball").map(&:title),
+      "wer 8-Ball waehlt, will nicht 9-Ball dazu"
+  end
+
+  # --- Austragungsort ------------------------------------------------------------------------
+
+  def ort!(name)
+    Location.find_or_create_by!(name: name) { |l| l.organizer = @region }
+  end
+
+  test "der Ortsfilter trifft Turniere UND Spieltage" do
+    halle = ort!("Vereinsheim Wedel")
+    woanders = ort!("Vereinsheim Hamburg")
+
+    t = turnier!(70, "NDM Wedel", region: @region, discipline: disciplines(:pool_8ball))
+    t.update!(location: halle)
+    turnier!(71, "NDM Hamburg", region: @region, discipline: disciplines(:pool_8ball)).update!(location: woanders)
+
+    # ⚠️ ZWEI Spieltage an VERSCHIEDENEN Orten. Mit nur einem am gefilterten Ort waere der Test
+    # wertlos: er bliebe auch dann gruen, wenn der Ortsfilter Spieltage gar nicht anfasst.
+    liga = liga_ohne_stempel!(72, "Oberliga Pool", discipline: disciplines(:pool_8ball))
+    spieltag!(73, liga).update!(location: halle)
+    andere_liga = liga_ohne_stempel!(78, "Verbandsliga Pool", discipline: disciplines(:pool_8ball))
+    spieltag!(79, andere_liga).update!(location: woanders)
+
+    treffer = eintraege(location_name: "Vereinsheim Wedel").map(&:title).sort
+    assert_equal ["NDM Wedel", "Oberliga Pool"], treffer,
+      "der Ort haengt an Turnier UND Party — beide muessen gefiltert werden"
+    refute_includes treffer, "Verbandsliga Pool",
+      "ein Spieltag an einem anderen Ort muss wegfallen"
+  end
+
+  # Gemessen 2026-08-28 (Saison 25/26): 8 BVNR-Turniere und 15 BVNR-Spieltage tragen keinen Ort.
+  test "Termine ohne Ort sind ueber eine eigene Wahl erreichbar" do
+    halle = ort!("Vereinsheim Wedel")
+    turnier!(74, "NDM Wedel", region: @region, discipline: disciplines(:pool_8ball)).update!(location: halle)
+    ohne = turnier!(75, "NDM ohne Ort", region: @region, discipline: disciplines(:pool_8ball))
+    assert_nil ohne.location, "Vorbedingung: dieses Turnier hat keinen Ort"
+
+    assert_includes query.location_options, Calendar::Query::LOCATION_NONE
+    assert_equal ["NDM ohne Ort"],
+      eintraege(location_name: Calendar::Query::LOCATION_NONE).map(&:title)
+  end
+
+  test "die Orts-Optionen kommen aus dem Zeitraum" do
+    halle = ort!("Vereinsheim Wedel")
+    turnier!(76, "NDM Wedel", region: @region, discipline: disciplines(:pool_8ball)).update!(location: halle)
+    spaeter = turnier!(77, "NDM Spaeter", region: @region,
+      discipline: disciplines(:pool_8ball), tag: @von + 3.months + 5)
+    spaeter.update!(location: ort!("Vereinsheim Lueneburg"))
+
+    assert_equal ["Vereinsheim Wedel"], query.location_options
+  end
+
+  test "die Disziplin-Optionen folgen der Sparte" do
+    turnier!(43, "NDM 8-Ball", region: @region, discipline: disciplines(:pool_8ball))
+    turnier!(44, "Cadre-Turnier", region: @region, discipline: disciplines(:karambol_cadre_35_2))
+
+    alle = query.discipline_options
+    assert_includes alle, "8-Ball"
+    assert_includes alle, "Cadre 35/2"
+
+    nur_pool = query(branch: disciplines(:branch_pool)).discipline_options
+    assert_equal ["8-Ball"], nur_pool,
+      "bei Sparte Pool darf keine Karambol-Disziplin im Selektor stehen"
   end
 end

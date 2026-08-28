@@ -1,0 +1,19 @@
+<%# Druckansicht des Kalenders: NUR der Inhalt.
+    Bewusst ein eigenes Layout statt `print:hidden` im Anwendungslayout — so bleibt der Eingriff
+    auf diese Seite beschraenkt und keine andere Ansicht aendert ihr Druckverhalten mit. %>
+<!DOCTYPE html>
+<html lang="<%= I18n.locale %>">
+<head>
+  <title><%= yield :title %></title>
+  <%= csrf_meta_tags %>
+  <%= csp_meta_tag %>
+  <%= viewport_meta_tag %>
+  <%= javascript_include_tag "application", "data-turbo-track": "reload", defer: true %>
+  <%= stylesheet_link_tag "application", media: "all", "data-turbo-track": "reload" %>
+</head>
+<body class="font-sans antialiased bg-white text-gray-900">
+  <div class="p-6 max-w-5xl mx-auto">
+    <%= yield %>
+  </div>
+</body>
+</html>

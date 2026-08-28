@@ -5,6 +5,8 @@
 #   bin/rails doctor:chain                  # auf einer Instanz: kann sie ihren Platz einnehmen?
 #   NETWORK=0 bin/rails doctor:chain        # ohne Login-Proben (Offline/Wartung)
 #   bin/rails doctor:scenarios              # aus dem Checkout: passen die Szenarien zusammen?
+#   bin/rails doctor:tournament_types       # widerspricht sich eine CC-Turnierzuordnung selbst?
+#   VERBOSE=1 bin/rails doctor:tournament_types   # zusaetzlich Varianten innerhalb einer Familie
 #   bin/rails doctor                        # beides
 namespace :doctor do
   desc "Diagnose der laufenden Instanz: Rolle, Kontext, Zugaenge, Gegenstellen (read-only)"
@@ -12,6 +14,13 @@ namespace :doctor do
     checks = Diagnostics::ChainCheck.new(probe_network: ENV["NETWORK"] != "0").call
     DoctorOutput.render("Instanz-Diagnose", checks)
     exit(1) if checks.any?(&:failed?)
+  end
+
+  desc "Widersprueche in der CC-Turnierzuordnung: Kategorie/Titel gegen Meisterschaftstyp (read-only)"
+  task tournament_types: :environment do
+    checks = Diagnostics::TournamentTypeCheck.new(verbose: ENV["VERBOSE"] == "1").call
+    DoctorOutput.render("CC-Turnierzuordnung", checks)
+    # Kein exit(1): das sind Datenbefunde in einer Fremdquelle, keine Blocker der Instanz.
   end
 
   desc "Statischer Abgleich aller Szenario-Configs untereinander (read-only, kein Netzwerk)"

@@ -48,6 +48,29 @@ class Discipline < ApplicationRecord
     self.synonyms = (synonyms.to_s.split("\n") + [name]).uniq.join("\n")
   end
 
+  # Diese Disziplin UND alle darunter — iterativer BFS, unbegrenzte Tiefe, zyklus-defensiv.
+  #
+  # ⚠️ Ein Filter auf `discipline_id = x` allein ist fast immer falsch: Turniere haengen an
+  # BLATT-Disziplinen ("10-Ball", "Cadre 35/2"), Ligen dagegen oft am Branch-Record selbst
+  # (gemessen 2026-08-27: 11 NBV-Ligen tragen "Pool", 6 "Snooker", 1 "Karambol"). Wer "Pool"
+  # waehlt, meint auch "NDJM Pool 9-Ball" — dessen Disziplin ist aber "9-Ball".
+  #
+  # Dieselbe Falle ist in `MpcServer::Tools::BaseTool.collect_subtree_ids` schon einmal
+  # aufgetreten und dort separat geloest ("Pre-Fix: nur 1 Ebene tief"). Diese Methode ist der
+  # passende Ort dafuer; BaseTool koennte sie spaeter uebernehmen — das ist hier nicht angefasst.
+  def subtree_ids
+    gesammelt = [id]
+    schlange = [id]
+    until schlange.empty?
+      kinder = Discipline.where(super_discipline_id: schlange).where.not(id: gesammelt).pluck(:id)
+      break if kinder.empty?
+
+      gesammelt.concat(kinder)
+      schlange = kinder
+    end
+    gesammelt.uniq
+  end
+
   # --- Phase 03 (v0.2): Titel -> exakte Disziplin -------------------------------
   # Leitet aus einem Tournament#title die exakte Disziplin ab (oder nil = Triage).
   # Quelle: Discipline.synonyms (generischer Match) + strukturelle Regeln fuer

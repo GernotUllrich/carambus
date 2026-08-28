@@ -358,10 +358,18 @@ Rails.application.routes.draw do
       get :toggle_dark_mode
     end
   end
-  # Terminkalender je Region (Phase 42): Turniere und Liga-Spieltage gemeinsam, oeffentlich.
-  # Filter stehen als Query-Parameter im URL (month, branch, dbu, view), damit ein Kalenderblatt
-  # teilbar ist.
-  get "regions/:region_id/calendar", to: "calendars#show", as: :region_calendar
+  # Terminkalender (Phase 42): Turniere und Liga-Spieltage gemeinsam, oeffentlich.
+  #
+  # OHNE :region_id im Pfad — Region, Saison und Sparte kommen aus dem globalen Scope-Band
+  # (Scopable/Current.scope). 42-01 hatte die Region in den Pfad und die Sparte als eigene Chips
+  # gelegt und damit einen ZWEITEN Selektor neben das Band gestellt; 42-02 loest das auf.
+  # Die kalender-eigenen Achsen bleiben Query-Parameter, damit ein Blatt teilbar ist:
+  # month, dbu, view, kind, group, discipline.
+  get "calendar", to: "calendars#show", as: :calendar
+  # Nachschub fuer den Kalender-Strom (42-04): eine Reihe Monatskacheln als HTML-Fragment.
+  # `from` = Monat, von dem aus geladen wird (exklusiv), `count` positiv = spaeter, negativ =
+  # frueher. Ausschnitt kommt aus der Session, nur die Achsen stehen im URL.
+  get "calendar/months", to: "calendars#months", as: :calendar_months
 
   resources :seasons
   resources :table_kinds

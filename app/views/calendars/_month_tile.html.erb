@@ -1,0 +1,22 @@
+<%# Eine Monatskachel im Strom: Monatsname + die Agenda dieses Monats.
+    Bewusst die AGENDA und nicht das Monatsraster (Betreiber-Entscheidung): seit 42-03 braucht
+    ein Raster je nach Belegung 24,5–42 rem und erzwaenge waagerechtes Scrollen INNERHALB der
+    Kachel. Die Agenda hat kein Breitenproblem und ueberspringt leere Tage von selbst. %>
+<section class="calendar-tile flex flex-col gap-2" data-month="<%= monat.strftime("%Y-%m") %>">
+  <h2 class="flex items-baseline gap-2 text-sm font-semibold text-gray-900 dark:text-gray-100">
+    <%= l(monat, format: "%B %Y") %>
+    <% if eintraege.any? %>
+      <span class="text-xs font-normal text-gray-500 dark:text-gray-400 tabular-nums">
+        <%= t("calendars.stream.count", count: eintraege.size) %>
+      </span>
+    <% end %>
+  </h2>
+
+  <% if eintraege.any? %>
+    <%= render "agenda", entries: eintraege %>
+  <% else %>
+    <p class="border border-dashed border-gray-300 dark:border-gray-600 rounded-lg px-3 py-4 text-xs text-gray-500 dark:text-gray-400">
+      <%= t("calendars.stream.empty_month") %>
+    </p>
+  <% end %>
+</section>
