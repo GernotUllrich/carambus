@@ -660,6 +660,7 @@ en:
     next_game: Next Game
     next_game_id: next game id
     nnn: nnn
+    release_table: Release table
     set_finished: Set finished
     state: state
     status:
