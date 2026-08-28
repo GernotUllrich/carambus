@@ -879,6 +879,46 @@ class TableMonitor < ApplicationRecord
     TableMonitor::TrainingResultRecorder.call(table_monitor: self)
   end
 
+  # Treibt ein bereits ENTSCHIEDENES freies Trainingsspiel bis :final_match_score
+  # (Milestone v0.3 Plan 01-02). Gibt true zurueck, wenn finalisiert wurde.
+  #
+  # Warum es das braucht: Die Finalisierungskette wird bisher nur von
+  # ResultRecorder#perform_evaluate_result gefahren, und zwar ausschliesslich dann,
+  # wenn ein Punkte-Update end_of_set? ausloest (result_recorder.rb:497-531).
+  # Bricht der Bediener ab oder verlaesst er das Scoreboard, erreicht das Spiel
+  # :final_match_score nie — es bekommt also auch keine Statistik (Plan 01-01), und
+  # im Abbruch-Pfad wird es sogar geloescht (locations_controller.rb:98-100).
+  #
+  # Der Rueckgabewert steuert genau diesen Abbruch-Pfad und muss verlaesslich sein:
+  # true = finalisiert, Spiel behalten; false = unveraendert, bisheriges Verhalten.
+  #
+  # Es werden ausschliesslich die BESTEHENDEN AASM-Events benutzt, jede Stufe ueber
+  # ihr may_*?-Praedikat abgesichert. Das deckt auch den Tiebreak ab: steht ein Pick
+  # aus, liefert may_acknowledge_result? false (Guard tiebreak_not_pending?,
+  # table_monitor.rb:455) — statt AASM::InvalidTransition zu werfen, brechen wir ab.
+  def finalize_if_decided
+    return false if game.blank?
+    # Turnier/Liga finalisieren selbst ueber ihre ResultProcessor.
+    return false if tournament_monitor.present?
+    return false unless Game.training.exists?(game.id)
+    return false if final_match_score? || ready_for_new_match?
+    # end_of_set? liest data["playera"]["innings"] direkt und wirft ausserhalb von
+    # production erneut (table_monitor.rb:1713) — leeres data vorher abfangen.
+    return false if data["playera"].blank? || data["playerb"].blank?
+    return false unless end_of_set?
+
+    end_of_set! if playing? && may_end_of_set?
+    acknowledge_result! if set_over? && may_acknowledge_result?
+    finish_match! if final_set_score? && may_finish_match?
+
+    final_match_score?
+  rescue => e
+    # Eine gescheiterte Finalisierung darf den Bedienvorgang (Abbruch, Weggehen)
+    # nie blockieren — gleiche Haltung wie set_end_time (table_monitor.rb:868-871).
+    Rails.logger.error "ERROR: finalize_if_decided m6[#{id}]#{e}, #{e.backtrace&.join("\n")}"
+    false
+  end
+
   def assign_game(game_p)
     TableMonitor::GameSetup.assign(table_monitor: self, game_participation: game_p)
   end

@@ -95,6 +95,16 @@ class LocationsController < ApplicationController
       # POST acknowledge_result abholt. Solange external_result_pending? gilt,
       # Terminate komplett überspringen (kein reset, kein destroy).
       Rails.logger.info "+++ terminate_game SKIPPED — external result pending (game ##{game.id}, awaiting App acknowledge_result)"
+    elsif game.present? && game.tournament.blank? && game.table_monitor&.finalize_if_decided
+      # Milestone v0.3 Plan 01-02: Ein ENTSCHIEDENES freies Trainingsspiel darf beim
+      # Abbruch nicht verloren gehen. finalize_if_decided hat es soeben nach
+      # :final_match_score gefahren — damit ist die Statistik geschrieben (Plan 01-01).
+      # Statt zu loeschen wird der Tisch nur freigegeben.
+      # Unentschiedene Spiele liefern hier false und fallen in den destroy-Zweig
+      # darunter — deren Verhalten bleibt unveraendert (Betreiber-Entscheidung).
+      tm = game.table_monitor
+      tm.close_match! if tm.may_close_match?
+      Rails.logger.info "+++ terminate_game FINALIZED statt geloescht — Trainingsspiel ##{game.id} war entschieden"
     elsif game.present? && game.tournament.blank?
       game.table_monitor&.reset_table_monitor
       game.destroy
@@ -105,6 +115,13 @@ class LocationsController < ApplicationController
 
       case session[:sb_state]
       when "welcome"
+        # Milestone v0.3 Plan 01-02: Verlaesst der Bediener das Scoreboard, waehrend
+        # ein Trainingsspiel bereits entschieden ist, wuerde es sonst unfinalisiert in
+        # :playing haengenbleiben und nie Statistik bekommen. @table ist hier noch aus
+        # der Session restauriert (session[:scoreboard_table_id] wird nur fuer
+        # "start"/"tables" geleert). Rein additiv — No-op fuer Turnier/Liga und fuer
+        # unentschiedene Spiele.
+        @table&.table_monitor&.finalize_if_decided
         render "scoreboard_welcome"
       when "start"
         render "scoreboard_start", locals: { table: @table }
