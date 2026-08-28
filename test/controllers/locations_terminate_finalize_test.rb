@@ -43,7 +43,7 @@ class LocationsTerminateFinalizeTest < ActionDispatch::IntegrationTest
     game = Game.create!(id: @next_id, tournament_id: nil, data: {}, gname: "term_fin")
     GameParticipation.create!(game: game, player: @player_a, role: "playera")
     GameParticipation.create!(game: game, player: @player_b, role: "playerb")
-    TableMonitor.create!(
+    @tm_id = TableMonitor.create!(
       state: "playing", game: game,
       data: {
         "playera" => {"result" => decided ? 30 : 12, "innings" => 20, "hs" => 6, "balls_goal" => 30},
@@ -51,7 +51,7 @@ class LocationsTerminateFinalizeTest < ActionDispatch::IntegrationTest
         "innings_goal" => 0,
         "allow_follow_up" => false
       }
-    )
+    ).id
     game.reload
   end
 
@@ -74,8 +74,15 @@ class LocationsTerminateFinalizeTest < ActionDispatch::IntegrationTest
     assert_equal 30, a.result, "Statistik muss geschrieben sein (Plan 01-01)"
     assert_equal 18, b.result
     assert_equal 2, a.points
-    assert_not_equal "playing", game.table_monitor&.state.to_s,
-      "der Tisch darf nicht im laufenden Spiel haengenbleiben"
+    # UAT-Befund 2026-08-29: der urspruengliche Assert (!= "playing") war zu lax und
+    # liess durchgehen, dass der Tisch in :ready_for_new_match mit gesetztem game_id
+    # haengenblieb — die Tischliste zeigte ihn weiter als belegt. Jetzt wird geprueft,
+    # was "frei" tatsaechlich bedeutet.
+    tm = TableMonitor.find_by(game_id: game.id)
+    assert_nil tm, "kein TableMonitor darf noch auf das Spiel zeigen (game_id muss NULL sein)"
+    freed = TableMonitor.find(@tm_id)
+    assert_equal "ready", freed.state, "der Tisch muss wirklich frei sein"
+    assert_nil freed.game_id
   end
 
   test "unentschiedenes Trainingsspiel wird beim Abbruch geloescht wie bisher" do

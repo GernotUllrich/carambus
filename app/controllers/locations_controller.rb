@@ -102,8 +102,10 @@ class LocationsController < ApplicationController
       # Statt zu loeschen wird der Tisch nur freigegeben.
       # Unentschiedene Spiele liefern hier false und fallen in den destroy-Zweig
       # darunter — deren Verhalten bleibt unveraendert (Betreiber-Entscheidung).
-      tm = game.table_monitor
-      tm.close_match! if tm.may_close_match?
+      # reset_table_monitor gibt den Tisch WIRKLICH frei (force_ready! + game_id: nil)
+      # und loescht das Game dabei NICHT (table_monitor.rb:2073-2079). close_match
+      # allein liesse game_id gesetzt — der Tisch bliebe belegt (UAT-Befund 2026-08-29).
+      game.table_monitor&.reset_table_monitor
       Rails.logger.info "+++ terminate_game FINALIZED statt geloescht — Trainingsspiel ##{game.id} war entschieden"
     elsif game.present? && game.tournament.blank?
       game.table_monitor&.reset_table_monitor

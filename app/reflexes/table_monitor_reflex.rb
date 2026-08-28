@@ -924,6 +924,35 @@ class TableMonitorReflex < ApplicationReflex
     @table_monitor.save!
   end
 
+  # Milestone v0.3 Plan 01-02 — "Tisch freigeben" im TRAININGSMODUS.
+  #
+  # Warum nicht einfach close_match: das Event fuehrt nach :ready_for_new_match und
+  # laesst game_id ABSICHTLICH gesetzt ("previous game result still displayed here").
+  # Im Turnier ist das richtig — dort weist der TournamentMonitor danach zu. Im
+  # Training folgt nichts mehr, der Tisch blieb in diesem Zwischenzustand haengen und
+  # galt in der Tischliste weiter als belegt (scoreboard_tables.html.erb prueft
+  # game.present?). Befund aus dem UAT 2026-08-29.
+  #
+  # reset_table_monitor setzt force_ready! + game_id: nil + leert data — und LOESCHT
+  # das Game NICHT (table_monitor.rb:2073-2079). Die Historie samt Statistik bleibt
+  # also erhalten, der Tisch ist danach wirklich frei.
+  #
+  # finalize_if_decided davor ist die Absicherung fuer den Fall, dass der Knopf aus
+  # einem noch nicht finalisierten Zustand erreicht wird — ohne sie ginge das
+  # Ergebnis beim Freigeben verloren.
+  def release_table
+    Rails.logger.info "+++++++++++++++++>>> release_table <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
+    morph :nothing
+    @table_monitor = TableMonitor.find(element.andand.dataset[:id])
+    from_admin = element.andand.dataset[:from_admin]
+    return if @table_monitor.locked_scoreboard && !from_admin
+    # Turnier/Liga behalten ihren bisherigen Weg ueber close_match.
+    return if @table_monitor.tournament_monitor.present?
+
+    @table_monitor.finalize_if_decided
+    @table_monitor.reset_table_monitor
+  end
+
   def stop
     Rails.logger.info "+++++++++++++++++>>> stop <<<++++++++++++++++++++++++++++++++++++++" if DEBUG
     morph :nothing

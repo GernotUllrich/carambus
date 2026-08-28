@@ -222,14 +222,16 @@
               Dort fuehrte der Knopf oben nach :start_rematch (weiterspielen); es gab
               keinen Weg nach :ready_for_new_match, der Tisch blieb belegt. Im Turnier
               erledigt das der Knopf oben selbst (close_match), deshalb hier nichts.
-              Kein neuer Reflex noetig: TableMonitorReflex#close_match
-              (table_monitor_reflex.rb:914) ist modusneutral, guarded via
-              may_close_match? und respektiert locked_scoreboard.
+              Eigener Reflex TableMonitorReflex#release_table: close_match allein
+              genuegt hier NICHT — es laesst game_id gesetzt, der Tisch bliebe in der
+              Tischliste belegt (UAT-Befund 2026-08-29). release_table finalisiert
+              vorsorglich und ruft dann reset_table_monitor (game_id: nil, ready),
+              ohne das Game zu loeschen.
               "Naechstes Spiel" bleibt die primaere Aktion (gruen); die Freigabe tritt
               farblich zurueck. %>
           <%- if table_monitor.tournament_monitor.blank? %>
             <%= content_tag "div",
-                  data: { reflex: "click->TableMonitorReflex#close_match touchstart->TableMonitorReflex#close_match", id: table_monitor.id },
+                  data: { reflex: "click->TableMonitorReflex#release_table touchstart->TableMonitorReflex#release_table", id: table_monitor.id },
                   id: "release_table_button",
                   class: "flex flex-col h-1/6 items-center justify-center font-bold text-gray-400 text-#{vw2} text-center cursor-pointer dark:bg-black hover:bg-gray-200 dark:hover:bg-gray-800 rounded",
                   tabindex: 2 do %>
