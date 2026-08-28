@@ -2,7 +2,11 @@
 
 # Leitet branch_id aus discipline.root ab (wenn dieser ein Branch ist) — analog region_id/RegionTaggable.
 # Bewusst SCHLANK: nur die Live-Spalte, KEINE Version-/PaperTrail-Tagging-Maschinerie.
-# Backfill globaler Records (id<MIN_ID, LocalProtector) via update_all in lib/tasks/branch_taggings.rake.
+# Fuellt die Live-Spalte nur bei lokalen/neuen Saves: gesyncte Global-Records (id<MIN_ID) kommen per
+# update_columns an (umgeht before_save), LocalProtector sperrt lokale Modifikation -> branch_id bleibt
+# dort NULL (ein Backfill existiert nicht). Die Scope-Facette "branch" filtert deshalb NICHT ueber die
+# Spalte, sondern loest zur Query-Zeit ueber den Disziplin-Teilbaum auf
+# (SearchService#apply_scope -> Branch.discipline_ids_for, search_service.rb:85-92).
 module BranchTaggable
   extend ActiveSupport::Concern
 
