@@ -62,13 +62,16 @@ class TableMonitor::TrainingResultRecorderTest < ActiveSupport::TestCase
     game.reload
   end
 
-  def build_tm(game:, a: {}, b: {})
+  # `top:` fuellt die oberste Ebene von tm.data — dort stehen die gemeinsamen
+  # Spielparameter (innings_goal, sets_to_play), waehrend discipline/balls_goal
+  # pro Rolle liegen. Default leer, damit die Bestandstests unveraendert bleiben.
+  def build_tm(game:, a: {}, b: {}, top: {})
     tm = TableMonitor.create!(
       state: "final_set_score",
       data: {
         "playera" => {"result" => 30, "innings" => 20, "hs" => 6, "balls_goal" => 30}.merge(a),
         "playerb" => {"result" => 24, "innings" => 20, "hs" => 4, "balls_goal" => 30}.merge(b)
-      }
+      }.merge(top)
     )
     tm.update_columns(game_id: game.id)
     tm.reload
@@ -296,5 +299,131 @@ class TableMonitor::TrainingResultRecorderTest < ActiveSupport::TestCase
 
     second = gp(game.reload, "playera").attributes.slice("points", "result", "innings", "gd", "hs", "sets")
     assert_equal first, second
+  end
+
+  # ===========================================================================
+  # G. Spielkontext ueberlebt die Finalisierung (Plan 02-01, AC-1/AC-2)
+  #
+  # Disziplin und Distanz stehen nur in table_monitors.data und werden vom
+  # naechsten Spiel ueberschrieben. Ohne die Kopie ans Spiel traegt ein fertiges
+  # Trainingsspiel keine Angabe darueber, WAS gespielt wurde.
+  # ===========================================================================
+
+  test "G1: Disziplin und balls_goal landen pro Teilnehmer am Spiel" do
+    game = create_game
+    tm = build_tm(
+      game: game,
+      a: {"discipline" => "Freie Partie klein", "balls_goal" => 40},
+      b: {"discipline" => "Freie Partie klein", "balls_goal" => 30}
+    )
+
+    assert record(tm)
+
+    a = gp(game.reload, "playera")
+    b = gp(game.reload, "playerb")
+    assert_equal "Freie Partie klein", a.data["discipline"]
+    assert_equal "Freie Partie klein", b.data["discipline"]
+    # Getrennt pro Rolle — bei Handicap sind die Distanzen verschieden.
+    assert_equal 40, a.data["balls_goal"]
+    assert_equal 30, b.data["balls_goal"]
+  end
+
+  test "G2: innings_goal und sets_to_play landen am Game" do
+    game = create_game
+    tm = build_tm(game: game, top: {"innings_goal" => 20, "sets_to_play" => 1})
+
+    assert record(tm)
+
+    game.reload
+    assert_equal 20, game.data["innings_goal"]
+    assert_equal 1, game.data["sets_to_play"]
+  end
+
+  test "G3: das Spiel bleibt nach dem Schreiben im Game.training-Scope" do
+    game = create_game
+    tm = build_tm(
+      game: game,
+      a: {"discipline" => "Cadre 35/2"},
+      top: {"innings_goal" => 20, "sets_to_play" => 1}
+    )
+
+    assert record(tm)
+
+    game.reload
+    assert_includes Game.training.pluck(:id), game.id
+    # Der Scope filtert per LIKE auf "external_id" in der serialisierten Textspalte —
+    # der Recorder darf diesen Schluessel unter keinen Umstaenden erzeugen.
+    assert_not_includes game.data.keys, "external_id"
+    assert_not_includes game.read_attribute_before_type_cast(:data).to_s, "external_id"
+  end
+
+  test "G4: vorhandene data-Schluessel bleiben erhalten" do
+    game = create_game
+    gp(game, "playera").update!(data: {"note" => "vorher da"})
+    game.update!(data: {"note" => "vorher da"})
+    tm = build_tm(game: game, a: {"discipline" => "Einband"}, top: {"innings_goal" => 15})
+
+    assert record(tm)
+
+    assert_equal "vorher da", gp(game.reload, "playera").data["note"]
+    assert_equal "Einband", gp(game.reload, "playera").data["discipline"]
+    assert_equal "vorher da", game.reload.data["note"]
+    assert_equal 15, game.data["innings_goal"]
+  end
+
+  test "G5: fehlende Kontextangaben werden weggelassen, nicht als nil geschrieben" do
+    game = create_game
+    # build_tm setzt balls_goal, aber weder discipline noch die Top-Level-Ziele.
+    tm = build_tm(game: game)
+
+    assert record(tm)
+
+    a = gp(game.reload, "playera")
+    assert_not_includes a.data.keys, "discipline"
+    assert_equal 30, a.data["balls_goal"]
+    assert_not_includes game.reload.data.keys, "innings_goal"
+    assert_not_includes game.data.keys, "sets_to_play"
+  end
+
+  test "G6: Laufzeitzustand des Monitors wandert nicht mit ans Spiel" do
+    game = create_game
+    tm = build_tm(
+      game: game,
+      a: {"discipline" => "Dreiband", "innings_list" => [1, 0, 2], "innings_redo_list" => []},
+      top: {"innings_goal" => 20, "balls_counter_stack" => [15, -25], "current_left_player" => "playera"}
+    )
+
+    assert record(tm)
+
+    a = gp(game.reload, "playera")
+    assert_equal "Dreiband", a.data["discipline"]
+    assert_not_includes a.data.keys, "innings_list"
+    assert_not_includes game.reload.data.keys, "balls_counter_stack"
+    assert_not_includes game.data.keys, "current_left_player"
+  end
+
+  test "G7: kein Kontext bei Gastbeteiligung — der Guard greift zuerst" do
+    game = create_game
+    make_guest!(PLAYER_B)
+    tm = build_tm(game: game, a: {"discipline" => "Freie Partie klein"}, top: {"innings_goal" => 20})
+
+    assert_not record(tm)
+
+    assert_nil gp(game.reload, "playera").data["discipline"]
+    assert_nil game.reload.data["innings_goal"]
+  end
+
+  test "G8: zweifacher Aufruf schreibt denselben Kontext" do
+    game = create_game
+    tm = build_tm(game: game, a: {"discipline" => "Einband"}, top: {"innings_goal" => 20})
+
+    record(tm)
+    first = gp(game.reload, "playera").data.dup
+    first_game = game.data.dup
+
+    record(tm)
+
+    assert_equal first, gp(game.reload, "playera").data
+    assert_equal first_game, game.reload.data
   end
 end

@@ -90,6 +90,20 @@ class TableMonitor::TrainingResultRecorder < ApplicationService
     end
   end
 
+  # Spielkontext, der die Finalisierung ueberleben muss (Plan 02-01).
+  #
+  # Warum ueberhaupt kopiert wird: Disziplin und Distanz stehen ausschliesslich in
+  # table_monitors.data und werden vom naechsten Spiel am selben Tisch ueberschrieben.
+  # Ohne diese Kopie traegt ein abgeschlossenes Trainingsspiel keinerlei Angabe darueber,
+  # WAS gespielt wurde — weder das Ranking "schon mit diesen Parametern gespielt"
+  # (Plan 02-02) noch die Auswertung "GD/HS pro Disziplin" (Phase 3) waeren moeglich.
+  #
+  # Die Aufteilung folgt der Struktur von @tm.data: balls_goal und discipline stehen
+  # dort PRO ROLLE (bei Handicap unterscheiden sie sich zwischen den Spielern),
+  # innings_goal und sets_to_play gemeinsam auf oberster Ebene.
+  PARTICIPATION_CONTEXT_KEYS = %w[discipline balls_goal].freeze
+  GAME_CONTEXT_KEYS = %w[innings_goal sets_to_play].freeze
+
   # Wertberechnung wie im Turnierpfad fuer sets_to_play <= 1
   # (tournament_monitor/result_processor.rb:524-541). Trainingsspiele sind Einzelsaetze.
   def write_participations
@@ -104,9 +118,28 @@ class TableMonitor::TrainingResultRecorder < ApplicationService
         innings: v[:innings],
         gd: v[:gd],
         hs: v[:hs],
-        sets: 1
+        sets: 1,
+        data: (gp.data || {}).merge(participation_context(gp.role))
       )
     end
+
+    game.update(data: (game.data || {}).merge(game_context))
+  end
+
+  # ⚠️ Bewusst nur die benannten Schluessel kopieren, nie @tm.data als Ganzes:
+  # der Monitor-Hash enthaelt u.a. innings_list/balls_counter_stack (Laufzeitzustand)
+  # und waechst mit jedem Stoss. Fehlende Schluessel werden weggelassen (compact),
+  # nicht als nil eingetragen.
+  def participation_context(role)
+    (@tm.data[role] || {}).slice(*PARTICIPATION_CONTEXT_KEYS).compact
+  end
+
+  # ⚠️ Hier darf niemals ein Schluessel "external_id" entstehen — Game.training
+  # filtert per LIKE auf genau diese Zeichenkette in games.data (game.rb:62); das
+  # Spiel wuerde sich sonst selbst aus dem Trainings-Scope werfen. Die Whitelist
+  # oben stellt das sicher.
+  def game_context
+    (@tm.data || {}).slice(*GAME_CONTEXT_KEYS).compact
   end
 
   def computed_values(role)
