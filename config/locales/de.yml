@@ -409,6 +409,9 @@ de:
     clubs: Vereine
     created_at: created at
     data: Daten
+    free_game:
+      recent_players: Zuletzt
+      start_game: Spiel starten
     id: ID
     index:
       location: Spiellokal

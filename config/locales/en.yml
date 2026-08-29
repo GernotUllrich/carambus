@@ -406,6 +406,9 @@ en:
     clubs: Clubs
     created_at: created at
     data: data
+    free_game:
+      recent_players: Recently
+      start_game: Start game
     id: id
     index:
       location: Location

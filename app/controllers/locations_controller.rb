@@ -194,16 +194,16 @@ class LocationsController < ApplicationController
           }).where(id: (guest_player_ids + club_player_ids)).to_a
 
           guest_players_default = Player.where(id: [default_guest_a.player.id,
-                                                    default_guest_b.player.id]).order("fl_name")
+                                                    default_guest_b.player.id]).order(Player.sort_key_sql)
           guest_players_other = Player.joins(season_participations: %i[club season])
                                       .where(clubs: { id: club.id })
                                       .where.not(id: [default_guest_a.player.id,
                                                       default_guest_b.player.id])
                                       .where(season_participations: { status: "guest" })
                                       .where(seasons: { id: Season.current_season&.id })
-                                      .order("fl_name")
+                                      .order(Player.sort_key_sql)
 
-          club_players = Player.where(id: club_player_ids).order("fl_name")
+          club_players = Player.where(id: club_player_ids).order(Player.sort_key_sql)
 
           if @table.present?
             @bg_color ||= "#1B0909"
@@ -218,7 +218,8 @@ class LocationsController < ApplicationController
                      player_a: player_a,
                      player_b: player_b,
                      default_guest_a: default_guest_a,
-                     default_guest_b: default_guest_b
+                     default_guest_b: default_guest_b,
+                     recent_players: training_rankings_for(@table)
                    }
           end
         end
@@ -752,5 +753,41 @@ class LocationsController < ApplicationController
                      .map(&:table_kind)
                      .uniq
                      .sort_by(&:name)
+  end
+
+  # Vorberechnete Ranglisten fuer die Kopfgruppe "Zuletzt" im Spielerauswahl-Modal
+  # (Plan 02-02). Rueckgabe: { "Disziplin|Ballziel" => [player_id, ...] }.
+  #
+  # Warum vorberechnet und nicht per Nachladen: die Schnellstart-Seite laeuft auf einem
+  # Raspi und traegt ausdruecklich "NO Alpine.js, ultra-fast for Pi 3" — ein Roundtrip
+  # beim Oeffnen des Modals waere dort spuerbar. Die Datenmenge ist klein (hoechstens
+  # DEFAULT_LIMIT IDs je Parameterkombination).
+  #
+  # Ein Aufruf je Kombination, nicht je Knopf: Presets mit gleicher Disziplin und
+  # gleichem Ballziel teilen sich das Ranking.
+  def training_rankings_for(table)
+    presets = Carambus.config.quick_game_presets&.dig(quick_game_preset_key(table)) || []
+    location = table.location
+    return {} if location.blank?
+
+    buttons = presets.filter_map { |group| group["buttons"] if group.is_a?(Hash) }.flatten.compact
+    buttons.each_with_object({}) do |button, memo|
+      params = TrainingPartnerRanking.params_from_preset(button)
+      key = TrainingPartnerRanking.preset_key(params[:discipline], params[:balls_goal])
+      next if memo.key?(key)
+
+      memo[key] = TrainingPartnerRanking.call(params.merge(location: location))
+    end
+  end
+
+  # Dieselbe Zuordnung Tischart -> Preset-Gruppe wie in _quick_game_buttons.html.erb.
+  def quick_game_preset_key(table)
+    case table.table_kind&.name.to_s
+    when /Pool/i then "pool"
+    when /Snooker/i then "snooker"
+    when /klein/i, /Small/i then "small_billard"
+    when /groß|gross/i, /Match/i then "match_billard"
+    else "small_billard"
+    end
   end
 end

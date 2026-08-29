@@ -91,6 +91,11 @@
               innings_str = button['innings'] == 0 ? '-' : button['innings'].to_s
               label = "#{balls_str}/#{innings_str}"
             end
+
+            # Plan 02-02: Parameter fuer die Kopfgruppe "Zuletzt" im Auswahl-Modal.
+            # Ableitung liegt im Service, damit Controller und View dieselbe Regel
+            # benutzen — siehe TrainingPartnerRanking.params_from_preset.
+            ranking_params = TrainingPartnerRanking.params_from_preset(button)
           %>
           <%= form_tag start_game_table_monitor_path(table_monitor),
                        method: :post,
@@ -168,13 +173,18 @@
               <%= hidden_field_tag :first_break_choice, 0 %>
             <% end %>
 
-            <%= submit_tag label,
-                class: "px-8 py-6 text-4xl font-bold rounded-lg bg-primary-600 text-white hover:bg-primary-700 disabled:bg-gray-400 disabled:cursor-not-allowed quick-start-btn",
-                disabled: true,
+            <%# Plan 02-02: Der Knopf startet nicht mehr direkt, sondern oeffnet die
+                Spielerauswahl. Erst das Bestaetigen im Modal schickt DIESES Formular ab.
+                Grund: nur so sind Disziplin und Distanz bekannt, wenn die Auswahl
+                aufgeht — Voraussetzung fuer die Kopfgruppe "Zuletzt".
+                Deshalb auch kein `disabled` mehr: der Knopf ist jetzt der Einstieg
+                in die Auswahl, nicht ihr Abschluss. %>
+            <%= button_tag label,
+                type: "button",
+                class: "px-8 py-6 text-4xl font-bold rounded-lg bg-primary-600 text-white hover:bg-primary-700 cursor-pointer quick-start-btn",
                 data: {
                   form_id: "quick_player_a_#{button_id}",
-                  enabled_class: "bg-primary-600 hover:bg-primary-700 cursor-pointer",
-                  disabled_class: "bg-gray-400 cursor-not-allowed"
+                  ranking_key: TrainingPartnerRanking.preset_key(ranking_params[:discipline], ranking_params[:balls_goal])
                 } %>
           <% end %>
         <% end %>
@@ -204,39 +214,29 @@
 </div>
 
 <script>
-// Enable/disable quick start buttons based on player selection
+// Plan 02-02: Umgekehrter Bedienablauf — der Spiel-Knopf oeffnet die Spielerauswahl,
+// erst das Bestaetigen dort schickt das gemerkte Formular ab.
+//
+// Vorher schaltete dieses Skript die Knoepfe frei, sobald zwei Spieler gewaehlt waren.
+// Das ist entfallen: ohne Auswahl ist der Knopf jetzt der Einstieg, nicht das Ende.
+//
+// Bewusst reines inline-JS ohne Framework und ohne Roundtrip — die Seite traegt
+// ausdruecklich "NO Alpine.js, ultra-fast for Pi 3".
 document.addEventListener('DOMContentLoaded', function() {
-  function updateQuickButtons() {
-    var playerAId = document.getElementById('player_a_id')?.value;
-    var playerBId = document.getElementById('player_b_id')?.value;
-    var allButtons = document.querySelectorAll('.quick-start-btn');
-
-    allButtons.forEach(function(btn) {
-      var formId = btn.dataset.formId;
-      var playerAField = document.getElementById(formId);
-      var playerBField = document.getElementById(formId.replace('player_a', 'player_b'));
-
-      if (playerAId && playerBId && playerAId !== playerBId) {
-        btn.disabled = false;
-        btn.className = btn.className.replace(btn.dataset.disabledClass, btn.dataset.enabledClass);
-        if (playerAField) playerAField.value = playerAId;
-        if (playerBField) playerBField.value = playerBId;
+  document.querySelectorAll('.quick-start-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      // Welches Formular spaeter abgeschickt wird, und mit welchen Parametern die
+      // Kopfgruppe zu fuellen ist.
+      window.pendingQuickGame = {
+        formId: btn.dataset.formId,
+        rankingKey: btn.dataset.rankingKey || ''
+      };
+      if (typeof open_players_modal_for_game === 'function') {
+        open_players_modal_for_game();
       } else {
-        btn.disabled = true;
-        btn.className = btn.className.replace(btn.dataset.enabledClass, btn.dataset.disabledClass);
+        set_players_modal();
       }
     });
-  }
-
-  // Listen to player selection changes
-  document.addEventListener('change', function(e) {
-    if (e.target.id === 'player_a_id' || e.target.id === 'player_b_id' ||
-        e.target.name && (e.target.name.includes('playera') || e.target.name.includes('playerb'))) {
-      updateQuickButtons();
-    }
   });
-
-  // Initial update
-  setTimeout(updateQuickButtons, 100);
 });
 </script>
