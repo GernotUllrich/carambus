@@ -408,9 +408,11 @@ class TableMonitor::GameSetup < ApplicationService
   # Zweig: neues Game und GameParticipation-Datensaetze anlegen
   def create_new_game
     if @tm.game.present?
-      existing_game_id = @tm.game.id
-      @tm.game.update(table_monitor: nil)
+      existing_game = @tm.game
+      existing_game_id = existing_game.id
+      existing_game.update(table_monitor: nil)
       Rails.logger.debug { "Unlinked existing game #{existing_game_id} from table monitor #{@tm.id}" }
+      discard_if_substanceless(existing_game)
     end
 
     @game = Game.new(table_monitor: @tm)
@@ -431,6 +433,25 @@ class TableMonitor::GameSetup < ApplicationService
     )
 
     @tm.game = @game
+  end
+
+  # Raeumt die eben abgekoppelte Spielzeile weg, falls sie nichts traegt (Plan 02-01).
+  #
+  # Ohne das bleibt jeder Durchlauf der Spielerauswahl als leeres Game im Bestand
+  # stehen und verfaelscht spaeter jede Zaehlung ueber Game.training.
+  #
+  # ⚠️ `.destroy`, nie `delete` — nur destroy erzeugt die PaperTrail-Version, die die
+  # Loeschung repliziert (Befund Phase 38-03, dokumentiert in lib/tasks/data_hygiene.rake).
+  # ⚠️ Das Urteil faellt Game#substanceless? und sonst niemand: dieselbe Definition
+  # nutzt die Bereinigung des Altbestands, damit beide nicht auseinanderlaufen.
+  def discard_if_substanceless(game)
+    return unless game.reload.substanceless?
+
+    game.destroy
+    Rails.logger.debug { "Discarded substanceless game #{game.id} after unlinking from table monitor #{@tm.id}" }
+  rescue => e
+    # Eine fehlgeschlagene Aufraeumung darf den Spielstart nie verhindern.
+    Rails.logger.error "ERROR: discard_if_substanceless[#{game&.id}]#{e}"
   end
 
   # Baut den Result-Hash aus den Optionen auf (extrahiert aus start_game Zeilen 2052-2112).

@@ -142,8 +142,11 @@ class TableMonitor::GameSetupTest < ActiveSupport::TestCase
   # Test 4: vorheriges Spiel (ohne tournament_type) wird entkoppelt vor neuem
   # ---------------------------------------------------------------------------
 
+  # ⚠️ Diese Erwartung wurde in Plan 02-01 praezisiert: das alte Game traegt jetzt
+  # bewusst Substanz (ended_at). Ein Game GANZ ohne Substanz wird seit 02-01 beim
+  # Abkoppeln verworfen statt stehengelassen — siehe die Tests weiter unten.
   test "call unlinks previous game before creating new one when no tournament_type" do
-    old_game = Game.create!(data: {})
+    old_game = Game.create!(data: {}, ended_at: Time.current)
     @tm.update_columns(game_id: old_game.id)
     @tm.reload
 
@@ -157,6 +160,83 @@ class TableMonitor::GameSetupTest < ActiveSupport::TestCase
     @tm.reload
     assert_not_equal old_game.id, @tm.game_id,
       "TM muss ein neues Game erhalten"
+  end
+
+  # ---------------------------------------------------------------------------
+  # Plan 02-01: substanzlose Spielzeilen bleiben nicht zurueck (AC-4, AC-5)
+  #
+  # Jeder Aufruf der Spielerauswahl legt ein Game an; ohne Spielerparameter eines
+  # ohne jeden Teilnehmer. Vor 02-01 blieb das beim Start fuer immer stehen —
+  # gemessen 20 von 28 Trainingsspielen.
+  #
+  # ⚠️ Die Tests unten sind die Absicherung gegen UAT-Fehler 2 aus Plan 01-02, wo
+  # ein zu weit greifender Loeschzweig real Spiel 50000503 gekostet hat. Jede
+  # einzelne Substanz-Form muss den Start ueberleben.
+  # ---------------------------------------------------------------------------
+
+  test "call discards the previous game when it carries nothing at all" do
+    empty_game = Game.create!(data: {})
+    @tm.update_columns(game_id: empty_game.id)
+    @tm.reload
+
+    assert_difference "Game.where(id: #{empty_game.id}).count", -1 do
+      call_setup
+    end
+  end
+
+  test "call keeps a previous game that has a participant with a player" do
+    game = Game.create!(data: {})
+    GameParticipation.create!(game_id: game.id, player_id: @player_a.id, role: "playera")
+    @tm.update_columns(game_id: game.id)
+    @tm.reload
+
+    call_setup
+
+    assert Game.exists?(game.id), "Spiel mit zugeordnetem Spieler darf nie geloescht werden"
+    assert_nil game.reload.table_monitor, "es wird nur entkoppelt"
+  end
+
+  test "call keeps a previous game that has a recorded result" do
+    game = Game.create!(data: {})
+    # Teilnehmer ohne Spieler, aber mit Ergebnis — genau der Fall, den ein reiner
+    # player_id-Test uebersehen wuerde.
+    GameParticipation.create!(game_id: game.id, player_id: nil, role: "playera", result: 40)
+    @tm.update_columns(game_id: game.id)
+    @tm.reload
+
+    call_setup
+
+    assert Game.exists?(game.id), "Spiel mit Ergebnis darf nie geloescht werden"
+  end
+
+  test "call keeps a previous game that has ended" do
+    game = Game.create!(data: {}, ended_at: Time.current)
+    @tm.update_columns(game_id: game.id)
+    @tm.reload
+
+    call_setup
+
+    assert Game.exists?(game.id), "beendetes Spiel darf nie geloescht werden"
+  end
+
+  test "call keeps a previous game that belongs to a tournament" do
+    game = Game.create!(data: {}, tournament_id: tournaments(:local).id)
+    @tm.update_columns(game_id: game.id)
+    @tm.reload
+
+    call_setup
+
+    assert Game.exists?(game.id), "Turnierspiel darf nie geloescht werden"
+  end
+
+  test "call keeps a previous app-driven tournament game (external_id)" do
+    game = Game.create!(data: {"external_id" => "abc-123"})
+    @tm.update_columns(game_id: game.id)
+    @tm.reload
+
+    call_setup
+
+    assert Game.exists?(game.id), "App-gesteuertes Turnierspiel darf nie geloescht werden"
   end
 
   # ---------------------------------------------------------------------------

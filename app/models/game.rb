@@ -163,6 +163,31 @@ class Game < ApplicationRecord
 
   MIN_ID = 50_000_000
 
+  # Traegt dieses Spiel ueberhaupt nichts, was bewahrenswert waere? (Plan 02-01)
+  #
+  # Hintergrund: Jeder Aufruf der Spielerauswahl am Scoreboard legt ein Game an
+  # (locations_controller.rb:170) — ohne Spielerparameter eines ohne jeden Teilnehmer.
+  # Beim naechsten Start koppelt GameSetup#create_new_game es nur ab, und es bleibt
+  # fuer immer stehen. Gemessen 2026-08-29: 20 von 28 Trainingsspielen waren solche
+  # Karteileichen.
+  #
+  # ⚠️ Die Bedingung ist bewusst maximal streng. Im UAT zu Plan 01-02 hat ein zu weit
+  # greifender Loeschzweig real Spiel 50000503 gekostet. Im Zweifel bleibt ein Spiel
+  # stehen — ein ueberzaehliger Datensatz ist reparabel, ein geloeschtes Spiel nicht.
+  #
+  # Bewusst KEIN Kriterium: Zugehoerigkeit zu Game.training. Der Scope beschreibt,
+  # WOHIN ein Spiel gehoert, nicht ob es wertlos ist — ein entschiedenes
+  # Trainingsspiel faellt hinein und darf nie geloescht werden.
+  def substanceless?
+    return false if tournament_id.present?
+    return false if ended_at.present?
+    return false if data.present? && data.key?("external_id")
+    return false if game_participations.where.not(player_id: nil).exists?
+    return false if game_participations.where.not(result: nil).exists?
+
+    true
+  end
+
   before_create :log
 
   def log
