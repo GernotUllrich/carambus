@@ -1,10 +1,9 @@
 <div class="h-[calc(100vh-4rem)] overflow-y-auto">
   <div class="sidebar-menu">
-    <% if Current.user&.email == "scoreboard@carambus.de" && Carambus.config.location_id.present? %>
-      <%= link_to location_path(Carambus.config.location_id,
-                                sb_state: session[:sb_state],
-                                table_id: session[:table_id],
-                                collapse_menu: true),
+    <%# Bedingung und Ziel liegen in `ApplicationHelper#scoreboard_return_path` — die
+        Kalender-Filterleiste zeigt denselben Rueckweg. %>
+    <% if (scoreboard_back_path = scoreboard_return_path) %>
+      <%= link_to scoreboard_back_path,
                   class: "mb-4 block px-4 py-2 text-gray-800 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-md border-2 border-primary-500 dark:border-primary-400",
                   data: {
                     turbo: false,

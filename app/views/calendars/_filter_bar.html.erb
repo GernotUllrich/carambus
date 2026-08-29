@@ -11,6 +11,26 @@
     unerreichbar. Klassen ausgeschrieben — Tailwind erkennt nur literale Klassennamen. %>
 <div class="flex flex-wrap items-center gap-2 mb-4 pb-3 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-20 bg-gray-200 dark:bg-gray-900 pt-3">
 
+  <%# Rueckweg zum Scoreboard — nur auf einem Kiosk-Rechner (Bedingung und Ziel in
+      `ApplicationHelper#scoreboard_return_path`, geteilt mit dem Menue in `_left_nav`).
+      Fuer normale Besucher aendert sich nichts: dort ist der Helper nil.
+
+      Steht in der KLEBENDEN Leiste, nicht im Seitenkopf: der Strom laedt beim Scrollen nach,
+      ein Knopf im Kopf waere nach wenigen Kacheln unerreichbar. Am Touchdisplay war der
+      Kalender sonst eine Sackgasse — der Weg ueber das ausklappbare Menue ist dort praktisch
+      unauffindbar (Betreiber-Befund 2026-08-29).
+
+      Bewusst groesser als die Filterknoepfe (text-sm, py-2 statt text-xs, py-1): er wird mit
+      dem Finger getroffen, nicht mit der Maus.
+      Klassen ausgeschrieben — Tailwind erkennt nur literale Klassennamen. %>
+  <% if (scoreboard_back_path = scoreboard_return_path) %>
+    <%= link_to scoreboard_back_path, data: {turbo: false},
+          class: "btn btn-primary px-3 py-2 text-sm rounded-pill" do %>
+      <span aria-hidden="true">←</span>
+      <%= t("back_to_scoreboard") %>
+    <% end %>
+  <% end %>
+
   <%# Monatsnavigation %>
   <span class="inline-flex rounded-md border border-gray-300 dark:border-gray-600 overflow-hidden">
     <%= link_to "‹", calendar_url(month: (@month - 1.month).strftime("%Y-%m")),

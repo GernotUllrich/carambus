@@ -141,6 +141,29 @@ module ApplicationHelper
       (@location.present? && params[:sb_state].present?)
   end
 
+  # Pfad zurueck zum Scoreboard — nil, wenn es von hier keinen gibt.
+  #
+  # Bedingung und Ziel stammen aus `application/_left_nav` (dem ausklappbaren Menue): auf einem
+  # Kiosk-Rechner ist der Scoreboard-User angemeldet und `Carambus.config.location_id` gesetzt.
+  # Die Location kommt also aus der CONFIG, nicht aus dem URL — kein Link muss sie mitschleppen.
+  #
+  # Hier extrahiert, damit die Bedingung nur EINMAL existiert: die Kalender-Filterleiste zeigt
+  # denselben Rueckweg prominent, weil der Weg ueber das Menue am Touchdisplay praktisch
+  # unauffindbar ist (Betreiber-Befund 2026-08-29). Zwei Kopien liefen bei der naechsten
+  # Aenderung auseinander.
+  #
+  # `sb_state`/`table_id` aus der Session: zurueck geht es dorthin, wo man war — nicht
+  # pauschal auf die Startseite des Scoreboards.
+  def scoreboard_return_path
+    return nil unless Current.user&.email == "scoreboard@carambus.de"
+    return nil if Carambus.config.location_id.blank?
+
+    location_path(Carambus.config.location_id,
+      sb_state: session[:sb_state],
+      table_id: session[:table_id],
+      collapse_menu: true)
+  end
+
   # H47: /international-Seiten (International/Tournaments/Videos) liegen außerhalb der
   # DE-Regionen → das Scope-Band (Region·Saison·Branch) filtert dort nichts und wird ausgeblendet.
   def international_page?
