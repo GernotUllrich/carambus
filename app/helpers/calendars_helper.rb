@@ -84,21 +84,38 @@ module CalendarsHelper
 
   # Filter-URL, die den bestehenden Zustand beibehaelt und nur einen Wert austauscht.
   #
-  # Region, Saison und Sparte stehen NICHT darin — die kommen aus dem globalen Scope-Band
-  # (Session), nicht aus dem URL. Hier stehen nur die kalender-eigenen Achsen.
+  # Region und Saison stehen NICHT darin — die kommen aus dem globalen Scope-Band (Session).
+  # Die Sparten stehen nur dann darin, wenn sie SCHON aus dem URL kamen (`@url_branches`,
+  # gesetzt in `CalendarsController#ausschnitt_lesen`).
+  #
+  # ⚠️ Bewusst nicht `@branches`: sonst schriebe der erste Klick auf irgendeinen Filter die
+  # Band-Sparte in den URL und liesse sie dort kleben — eine spaetere Umstellung im Band bliebe
+  # dann wirkungslos, ohne dass man saehe warum.
   def calendar_url(overrides = {})
     base = {month: @month.strftime("%Y-%m"),
             dbu: (@include_dbu ? nil : "0"),
+            branch: calendar_branch_param(@url_branches),
             kind: @kind, group: @group, discipline: @discipline_name,
             location: @location_name}
     calendar_path(base.merge(overrides).compact)
   end
 
+  # Sparten-Namen -> Wert des `branch`-Parameters ("Karambol,Kegel"); leer -> nil, damit
+  # `compact` ihn aus dem URL wirft. Nimmt Branch-Records oder blanke Namen.
+  def calendar_branch_param(branches)
+    namen = Array.wrap(branches).filter_map { |b| b.respond_to?(:name) ? b.name.presence : b.presence }
+    namen.any? ? namen.join(",") : nil
+  end
+
   # Die Achsen-Parameter fuer den Nachschub-Endpoint des Stroms — OHNE `month` und `view`
   # (die bestimmt der Strom selbst) und ohne den Ausschnitt (der steht in der Session; ihn in den
   # URL zu schreiben waere genau die Doppelstruktur, die 42-02 beseitigt hat).
+  #
+  # Die URL-Sparten gehoeren hier hinein: sonst traegt die erste Kachel den Filter und jede
+  # nachgeladene nicht — beim Scrollen tauchten die fremden Sparten wieder auf.
   def calendar_stream_params
-    {dbu: (@include_dbu ? nil : "0"), kind: @kind, group: @group,
+    {dbu: (@include_dbu ? nil : "0"), branch: calendar_branch_param(@url_branches),
+     kind: @kind, group: @group,
      discipline: @discipline_name, location: @location_name}.compact
   end
 
@@ -109,9 +126,10 @@ module CalendarsHelper
   end
 
   # True, wenn ueberhaupt etwas zurueckzusetzen ist (sonst waere der Knopf Zierde).
+  # Die URL-Sparten zaehlen mit: sie sind eine Achse dieses Blatts und verschwinden beim Reset.
   def calendar_filters_active?
     @kind.present? || @group.present? || @discipline_name.present? || @location_name.present? ||
-      !@include_dbu || @month != @default_month
+      @url_branches.present? || !@include_dbu || @month != @default_month
   end
 
   # Anzeigetext einer Orts-Option. `LOCATION_NONE` ist kein Ort, sondern der sichtbare Fall
@@ -124,7 +142,7 @@ module CalendarsHelper
   # Auf Papier gibt es keine Filterleiste — ohne diese Zeile weiss niemand mehr, was fehlt.
   def calendar_print_scope_line
     teile = [@region.shortname.presence || @region.name]
-    teile << @branch.name if @branch
+    teile << @branches.map(&:name).join(" + ") if @branches.present?
     teile << t("calendars.filter.kind_single") if @kind == "single"
     teile << t("calendars.filter.kind_team") if @kind == "team"
     teile << calendar_group_label(@group) if @group.present?

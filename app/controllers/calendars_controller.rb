@@ -10,7 +10,11 @@
 # Seite heraus wuerde den Ausschnitt still verschieben (siehe `Scopable#scope_band_form_path`).
 #
 # Die kalender-eigenen Achsen stehen im URL, damit ein Kalenderblatt teilbar bleibt:
-# `month`, `dbu`, `kind`, `group`, `discipline`.
+# `month`, `dbu`, `kind`, `group`, `discipline`, `location`.
+#
+# Dazu `branch` als einzige Ausnahme von "kommt von oben": ein Link darf Sparten mitbringen
+# (kommagetrennt, mehrere erlaubt), ohne sie im Band zu setzen (siehe `ausschnitt_lesen`).
+
 #
 # Es gibt genau EINE Ansicht: den Strom (Betreiber-Entscheidung 2026-08-27, "Strom ist die
 # einzig sinnvolle Anzeige"). Agenda und Monatsraster als eigene Ansichten sind entfallen;
@@ -88,10 +92,42 @@ class CalendarsController < ApplicationController
 
   private
 
-  # Ausschnitt aus dem Scope-Band (Session), nicht aus dem URL.
+  # Ausschnitt aus dem Scope-Band (Session) — mit EINER Ausnahme: die Sparten darf der URL
+  # mitbringen (`?branch=Karambol,Kegel`, kommagetrennt).
+  #
+  # ⚠️ Das weicht von 42-02 ab, aber nur LESEND: das Band wird weiterhin nie geschrieben. Anlass
+  # ist der Kalender-Link am Scoreboard — an einem Karambol-Ort sind Pool- und Snooker-Termine
+  # Rauschen, und ein Link kann die Session-Sparte nicht setzen, ohne sie jedem stillschweigend
+  # umzustellen (genau das verbietet 42-02).
+  #
+  # ⚠️ MEHRERE, nicht eine: eine Tischart traegt mehrere Sparten. Auf dem kleinen Billard und
+  # dem Match Billard wird sowohl Karambol als auch Kegel gespielt (Betreiber-Auskunft
+  # 2026-08-29: die meisten Kegel-Disziplinen auf dem kleinen Tisch, 5-Pin auch auf dem
+  # grossen). Ein Spielort schraenkt deshalb auf eine MENGE ein — das Scope-Band kann das
+  # nicht, es fuehrt genau eine Sparte.
+  #
+  # Damit daraus kein unsichtbarer Filter wird, zeigt die Filterleiste einen eigenen Chip,
+  # sobald die Sparten aus dem URL kommen — das Scope-Band zeigt ja weiter den Session-Wert.
+  #
+  # Unbekannte Namen fallen still weg; bleibt nichts uebrig, greift wieder das Band (wie
+  # `parse_month`): ein kaputter Link soll eine Seite zeigen, keinen Fehler.
   def ausschnitt_lesen
     @region = Region.find(current_region_id)
-    @branch = current_branch_id && Branch.find_by(id: current_branch_id)
+    @url_branches = url_branches
+    @branches =
+      if @url_branches.any?
+        @url_branches
+      else
+        Array.wrap(current_branch_id && Branch.find_by(id: current_branch_id))
+      end
+  end
+
+  # Die Sparten aus dem URL, in der Reihenfolge des Parameters und ohne Dubletten.
+  def url_branches
+    namen = params[:branch].to_s.split(",").map(&:strip).reject(&:blank?).uniq
+    return [] if namen.empty?
+
+    namen.filter_map { |name| Branch.find_by(name: name) }
   end
 
   # Die kalender-eigenen Achsen. EINE Stelle fuer `show` UND `months` — zwei Kopien laufen
@@ -127,13 +163,13 @@ class CalendarsController < ApplicationController
   def optionen_abfrage
     von, bis = saison_zeitraum
     Calendar::Query.new(region: @region, from: von, to: bis,
-      branch: @branch, include_dbu: @include_dbu)
+      branch: @branches, include_dbu: @include_dbu)
   end
 
   def kalender_abfrage(von, bis)
     Calendar::Query.new(
       region: @region, from: von, to: bis,
-      branch: @branch, include_dbu: @include_dbu,
+      branch: @branches, include_dbu: @include_dbu,
       kind: @kind, group: @group, discipline_name: @discipline_name,
       location_name: @location_name
     )

@@ -31,6 +31,25 @@
           class: "btn btn-white px-2 py-1 text-xs rounded-pill" %>
   <% end %>
 
+  <%# Sparten aus dem URL (`?branch=Karambol,Kegel`, z.B. der Kalender-Link am Scoreboard).
+      MUSS sichtbar sein: das Scope-Band darueber zeigt weiter den Session-Wert, der Inhalt ist
+      aber auf diese Sparten eingeschraenkt — ohne Chip waere das ein unsichtbarer Filter, genau
+      der Zustand, den 42-02 beseitigt hat. Ein Klick entfernt sie; danach gilt wieder das Band.
+
+      ⚠️ Der GANZE Chip ist der Link, nicht nur das ×: ein eigenes `<a>` fuer das × traege kein
+      `.btn` und fiele damit unter die projektweite Regel `a:not(.btn) { color: primary-600 }`
+      (base.css:19) — dunkelgruen auf dunkelgruenem Grund, also unsichtbar. Nebeneffekt: am
+      Touchdisplay ist die Flaeche gross genug zum Treffen.
+      Klassen ausgeschrieben — Tailwind erkennt nur literale Klassennamen. %>
+  <% if @url_branches.present? %>
+    <%= link_to calendar_url(branch: nil),
+          class: "btn btn-primary inline-flex items-center gap-1 rounded-pill px-3 py-1 text-xs",
+          "aria-label": t("calendars.filter.branch_remove") do %>
+      <%= t("calendars.filter.branch", branch: @url_branches.map(&:name).join(" + ")) %>
+      <span aria-hidden="true" class="font-bold">×</span>
+    <% end %>
+  <% end %>
+
   <%# Einzel/Mannschaft — die Achse, die Turniere von Liga-Spieltagen trennt. %>
   <span class="inline-flex rounded-full border border-gray-300 dark:border-gray-600 overflow-hidden">
     <%= link_to t("calendars.filter.kind_all"), calendar_url(kind: nil, group: nil),

@@ -37,6 +37,34 @@ class TableKind < ApplicationRecord
     "5-Pin Billards" => "karambol_new"
   }
 
+  # Tischart -> Sparten (Branch-Namen). MEHRERE je Tischart: auf dem kleinen Billard und dem
+  # Match Billard wird sowohl Karambol als auch Kegel gespielt (Betreiber-Auskunft 2026-08-29 —
+  # die meisten Kegel-Disziplinen auf dem kleinen Tisch, 5-Pin auch auf dem grossen).
+  # Half Match Billard traegt bewusst NUR Karambol: dort wurde Kegel nicht genannt.
+  #
+  # Bewusst eine explizite Liste und KEINE Ableitung ueber `disciplines.table_kind_id`: dort ist
+  # die Zuordnung verrauscht — gemessen am 2026-08-29 haengen an der Tischart "Pool" auch
+  # Disziplinen, deren Wurzel "Snooker", "Dreiband klein" oder "Eurokegel" heisst. Umgekehrt
+  # traegt KEINE Kegel-Disziplin die Tischart "Match Billard", obwohl dort 5-Pin gespielt wird:
+  # die Praxis steht nicht in den Daten.
+  #
+  # Die Namen entsprechen den `Branch`-Records (Discipline-Wurzeln) und denselben Schluesseln
+  # wie `CalendarsHelper::BRANCH_STYLES`.
+  TABLE_KIND_BRANCHES = {
+    "Pool" => ["Pool"],
+    "Snooker" => ["Snooker"],
+    "Small Billard" => ["Karambol", "Kegel"],
+    "Half Match Billard" => ["Karambol"],
+    "Match Billard" => ["Karambol", "Kegel"],
+    "Biathlon" => ["Karambol"],
+    "Pin Billards" => ["Kegel"],
+    "5-Pin Billards" => ["Kegel"]
+  }
+
+  # Alle Sparten, die ueberhaupt vorkommen — Grundlage fuer "dieser Ort deckt alles ab, also
+  # ist eine Einschraenkung sinnlos" (`Location#branch_names`).
+  ALL_BRANCHES = TABLE_KIND_BRANCHES.values.flatten.uniq.freeze
+
   TABLE_KIND_DISCIPLINE_NAMES = {
     "Pin Billards" => [],
     "Biathlon" => [],

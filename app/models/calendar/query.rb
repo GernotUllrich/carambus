@@ -7,7 +7,11 @@ module Calendar
   # Darstellung, nicht im Inhalt — sonst zeigen sie frueher oder spaeter Verschiedenes.
   #
   # Region, Sparte und Saison kommen aus dem globalen Scope-Band (Scopable) und werden hier
-  # nur noch angewandt. `branch` ist ein `Branch`-Record (oder nil = alle Sparten).
+  # nur noch angewandt. `branch` ist ein `Branch`-Record, eine LISTE davon, oder nil
+  # (= alle Sparten). Mehrere sind zugelassen, weil eine Tischart mehrere Sparten traegt:
+  # auf dem kleinen Billard und dem Match Billard wird sowohl Karambol als auch Kegel
+  # gespielt (5-Pin auch auf dem grossen). Ein Spielort schraenkt deshalb auf eine MENGE ein,
+  # nicht auf eine einzelne Sparte.
   class Query
     DBU_SHORTNAME = "DBU"
 
@@ -25,7 +29,9 @@ module Calendar
       @region = region
       @from = from.to_date
       @to = to.to_date
-      @branch_name = branch&.name.presence
+      # `Array.wrap` statt `Array()`: bei einem einzelnen Record wuerde `Array()` dessen `to_a`
+      # suchen, `wrap` fragt nur nach `to_ary` und packt ihn sonst in ein Element.
+      @branch_names = Array.wrap(branch).filter_map { |b| b&.name.presence }
       @include_dbu = include_dbu
       @kind = kind.presence
       @group = group.presence
@@ -117,7 +123,7 @@ module Calendar
 
     private
 
-    attr_reader :region, :from, :to, :branch_name, :include_dbu, :kind, :group, :discipline_name,
+    attr_reader :region, :from, :to, :branch_names, :include_dbu, :kind, :group, :discipline_name,
       :location_name
 
     def regions
@@ -205,7 +211,7 @@ module Calendar
       scope = tournaments_in_scope(ignore_group: ignore_group, ignore_discipline: ignore_discipline,
         ignore_location: ignore_location)
         .includes(:discipline, :location, :tournament_cc)
-      return scope.to_a unless branch_name
+      return scope.to_a if branch_names.empty?
 
       scope.select { |t| matches_branch?(branch_of_tournament(t)) }
     end
@@ -236,7 +242,7 @@ module Calendar
       unless ignore_discipline || discipline_name.blank?
         scope = scope.where(discipline_id: discipline_subtree_ids)
       end
-      scope = scope.select { |l| matches_branch?(branch_of_league(l)) } if branch_name
+      scope = scope.select { |l| matches_branch?(branch_of_league(l)) } if branch_names.any?
       scope
     end
 
@@ -340,7 +346,7 @@ module Calendar
     end
 
     def matches_branch?(name)
-      name.present? && name.casecmp?(branch_name)
+      name.present? && branch_names.any? { |gesucht| name.casecmp?(gesucht) }
     end
 
     def format_time(value)

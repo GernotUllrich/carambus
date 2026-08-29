@@ -202,6 +202,34 @@ class Location < ApplicationRecord
     Rails.logger.info "===== scrape ===== FATAL ERROR  #{e}, #{e.backtrace&.join("/n")}"
   end
 
+  # Die Sparten, die an den Tischen dieses Spielorts gespielt werden koennen.
+  #
+  # MEHRERE, nicht eine: eine Tischart traegt mehrere Sparten (kleines Billard und Match
+  # Billard tragen Karambol UND Kegel, siehe `TableKind::TABLE_KIND_BRANCHES`). BC Wedel
+  # (4x Match, 4x Small Billard) ergibt deshalb ["Karambol", "Kegel"], nicht "Karambol".
+  #
+  # Leer, wenn nichts abzuleiten ist ODER der Ort ohnehin alle Sparten abdeckt — in beiden
+  # Faellen waere eine Einschraenkung sinnlos:
+  #   - ein Ort ohne (oder nur mit unbekannten) Tischarten wuerde sonst auf eine Sparte
+  #     filtern, die er gar nicht kennt;
+  #   - deckt er alles ab, filtert der Parameter nichts weg und der Chip waere nur Laerm.
+  #
+  # Gemessen am 2026-08-29: BC Wedel -> Karambol + Kegel; Pinneberg (16 Pool, 6 Snooker) ->
+  # Pool + Snooker; Funsportsbar (Pool + Small Billard) -> Pool + Karambol + Kegel.
+  #
+  # Genutzt fuer den Kalender-Link am Scoreboard: an einem Karambol-Ort sind Pool- und
+  # Snooker-Termine nur Rauschen.
+  def branch_names
+    namen = tables.includes(:table_kind)
+      .flat_map { |t| TableKind::TABLE_KIND_BRANCHES[t.table_kind&.name] || [] }
+      .uniq
+    return [] if namen.empty? || (TableKind::ALL_BRANCHES - namen).empty?
+
+    # Stabile Reihenfolge (nicht die zufaellige Tischsortierung): sonst wechselt der `branch`-
+    # Parameter des Kalender-Links seinen Wortlaut, und geteilte Links sehen verschieden aus.
+    TableKind::ALL_BRANCHES & namen
+  end
+
   def tables_status
     hash = {}
     tables.order(:name).each do |t|

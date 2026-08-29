@@ -430,6 +430,8 @@ en:
       naming_convention_intro: "Table assignment, tournament, participants, and automatic heating control are determined by a naming convention in the title."
       new_reservation: New reservation
       new_table_reservation: New table reservation
+    scoreboard_welcome:
+      calendar: Fixtures
     synonyms: Synonyms
     tables: Tables
     updated_at: updated at
@@ -1820,6 +1822,8 @@ en:
       location: "Venue"
       location_all: "All venues"
       location_none: "no venue"
+      branch: "Branch: %{branch}"
+      branch_remove: "Remove branch restriction"
       print: "🖨 Print"
       with_dbu: "with DBU"
       region_only: "%{region} only"
