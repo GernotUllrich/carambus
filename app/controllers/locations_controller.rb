@@ -267,7 +267,7 @@ class LocationsController < ApplicationController
             season_id: Season.current_season&.id, club_id: club.id
           }).where(id: (guest_player_ids + club_player_ids)).to_a
           guest_players_default = Player.where(id: [default_guest_a.player.id,
-                                                    default_guest_b.player.id]).order("fl_name")
+                                                    default_guest_b.player.id]).order(Player.sort_key_sql)
           guest_players_other = Player.joins(season_participations: %i[club
                                                                        season])
                                       .where(clubs: { id: club.id })
@@ -275,9 +275,9 @@ class LocationsController < ApplicationController
                                                       default_guest_b.player.id])
                                       .where(season_participations: { status: "guest" })
                                       .where(seasons: { id: Season.current_season&.id })
-                                      .order("fl_name")
+                                      .order(Player.sort_key_sql)
 
-          club_players = Player.where(id: club_player_ids).order("fl_name")
+          club_players = Player.where(id: club_player_ids).order(Player.sort_key_sql)
 
           player_names = players.map { |p| "#{p.firstname} #{p.lastname}" }
           player_ids = players.map(&:id)
@@ -306,7 +306,11 @@ class LocationsController < ApplicationController
                    player_a: player_a,
                    player_b: player_b,
                    default_guest_a: default_guest_a,
-                   default_guest_b: default_guest_b
+                   default_guest_b: default_guest_b,
+                   # Plan 02-03: Kopfgruppe "Zuletzt" auch auf der Detailseite. Bewusst
+                   # OHNE Disziplin/Distanz — die werden hier erst NACH der Auswahl
+                   # gesetzt, der Service liefert daher seine dritte Kaskadenstufe.
+                   recent_players: TrainingPartnerRanking.call(location: @table.location)
                  })
           nil
         end

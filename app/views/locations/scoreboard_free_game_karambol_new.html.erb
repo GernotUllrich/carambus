@@ -9,19 +9,144 @@
 <!--<script defer src="https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.x.x/dist/alpine.min.js"></script>-->
 <script defer src="/alpine.min.js"></script>
 <script src="/onscreen-keyboard.js?v=<%= Time.current.to_i %>"></script>
+<%# Plan 02-03: Namen und vorberechnetes Ranking fuer die Auswahl. Eingebettet statt
+    nachgeladen — dieselbe Ueberlegung wie im Schnellstart (Raspi, kein Roundtrip).
+    Das Ranking kommt hier OHNE Parameterbezug: zum Auswahlzeitpunkt stehen Disziplin
+    und Distanz noch nicht fest. %>
+<%- detail_player_names = (Array(guest_players_default) + Array(guest_players_other) + Array(club_players))
+      .index_by(&:id).transform_values(&:fl_name) %>
 <script type="text/javascript">
+  window.playerNamesById = <%= detail_player_names.to_json.html_safe %>;
+  window.recentPlayers = <%= (local_assigns[:recent_players] || []).to_json.html_safe %>;
 
   function players_mode() {
-    set_players_modal();
+    open_players_modal();
   }
 
   function new_player_mode() {
     set_new_player_modal();
   }
 
-  function set_checked_player(ab, ix, val) {
-    document.getElementById("player" + ab + "_" + ix).checked = true
-    document.getElementById("player_" + ab + "_id").value = val
+  // Plan 02-03: Auswahl als Liste von hoechstens zwei IDs — kein A/B in der Bedienung.
+  // Welcher Spieler intern playera wird, entscheidet allein die Reihenfolge der Griffe.
+  window.selectedPlayers = [];
+
+  // 0 gewaehlt -> Platz 1 · 1 gewaehlt: derselbe Name hebt auf, ein anderer fuellt
+  // Platz 2 · 2 gewaehlt -> Paarung verwerfen, neuer Name allein auf Platz 1.
+  function pick_player(playerId) {
+    var sel = window.selectedPlayers;
+    if (sel.length >= 2) {
+      window.selectedPlayers = [playerId];
+    } else if (sel.indexOf(playerId) !== -1) {
+      window.selectedPlayers = sel.filter(function (id) { return id !== playerId; });
+    } else {
+      sel.push(playerId);
+    }
+    render_pairing();
+  }
+
+  function clear_pairing_slot(index) {
+    var sel = window.selectedPlayers;
+    if (!sel[index]) { return; }
+    sel.splice(index, 1);
+    render_pairing();
+  }
+
+  // Zeichnet die Paarungszeile, markiert die Auswahl und spiegelt sie in die
+  // Dropdowns der Hauptseite — beide Wege muessen denselben Zustand zeigen.
+  function render_pairing() {
+    var sel = window.selectedPlayers;
+    var names = window.playerNamesById || {};
+
+    for (var i = 0; i < 2; i++) {
+      var slot = document.getElementById("pairing_slot_" + i);
+      if (!slot) { continue; }
+      var id = sel[i];
+      slot.textContent = id ? (names[id] || id) : "…";
+      slot.classList.toggle("opacity-60", !id);
+      slot.classList.toggle("border-dashed", !id);
+    }
+
+    document.querySelectorAll(".player-choice").forEach(function (btn) {
+      var chosen = sel.indexOf(parseInt(btn.dataset.playerId, 10)) !== -1;
+      btn.classList.toggle("ring-4", chosen);
+      btn.classList.toggle("ring-green-500", chosen);
+    });
+
+    sync_selects_from_pairing();
+    publish_player_names();
+  }
+
+  // Die bestehenden Dropdowns bleiben der Traeger fuer den Spielstart.
+  function sync_selects_from_pairing() {
+    var sel = window.selectedPlayers;
+    ["a", "b"].forEach(function (ab, i) {
+      var el = document.getElementById("player_" + ab + "_id");
+      if (!el) { return; }
+      el.value = sel[i] || "";
+    });
+  }
+
+  // Gegenrichtung: aendert der Bediener ein Dropdown, folgt die Paarung.
+  function sync_pairing_from_selects() {
+    var ids = ["a", "b"].map(function (ab) {
+      var el = document.getElementById("player_" + ab + "_id");
+      var v = el && el.value ? parseInt(el.value, 10) : null;
+      return Number.isNaN(v) ? null : v;
+    });
+    window.selectedPlayers = ids.filter(function (v) { return !!v; });
+    render_pairing();
+  }
+
+  // Plan 02-03 Task 2: die Namen ins Alpine-Modell heben, damit die Parameter-Header
+  // den gewaehlten Spielernamen zeigen statt eines blossen Buchstabens.
+  // (Kein Beispiel mit Klammern hier — dieses Skript landet im gerenderten HTML, und
+  // der Test D1 prueft genau auf solche Zeichenketten.)
+  function publish_player_names() {
+    var sel = window.selectedPlayers;
+    var names = window.playerNamesById || {};
+    var scope = document.getElementById("free_game_params");
+    if (!scope || !scope._x_dataStack) { return; }
+    var data = scope._x_dataStack[0];
+    data.name_a = sel[0] ? (names[sel[0]] || "") : "";
+    data.name_b = sel[1] ? (names[sel[1]] || "") : "";
+  }
+
+  function render_recent_players() {
+    var box = document.getElementById("recent-players");
+    if (!box) { return; }
+    box.innerHTML = "";
+    box.classList.add("hidden");
+
+    var ids = window.recentPlayers || [];
+    if (!ids.length) { return; }
+
+    var titleRe = new RegExp("<%= j Player::SORT_TITLE_PATTERN %>", "i");
+    var entries = ids.map(function (id) {
+      return { id: id, name: (window.playerNamesById || {})[id] };
+    }).filter(function (e) { return !!e.name; });
+    entries.sort(function (a, b) {
+      return a.name.replace(titleRe, "").localeCompare(b.name.replace(titleRe, ""), "de");
+    });
+    if (!entries.length) { return; }
+
+    var html = '<div class="text-2vw mb-2 opacity-80"><%= j t("location.free_game.recent_players") %></div>' +
+               '<div class="flex flex-wrap gap-3">';
+    entries.forEach(function (e) {
+      html += '<button type="button" class="player-choice px-4 py-3 border-2 rounded-lg text-2vw" ' +
+              'data-player-id="' + e.id + '" onclick="pick_player(' + e.id + ')">' + e.name + '</button>';
+    });
+    html += "</div>";
+    box.innerHTML = html;
+    box.classList.remove("hidden");
+  }
+
+  // Aufruf aus dem Link "Spieler-Auswahl". Uebernimmt den aktuellen Stand der
+  // Dropdowns, damit die Paarungszeile nicht bei jedem Oeffnen zurueckfaellt.
+  function open_players_modal() {
+    sync_pairing_from_selects();
+    render_recent_players();
+    set_players_modal();
   }
 
   function set_players_modal() {
@@ -45,82 +170,51 @@
       <div class="flex justify-around pt-5 space-x-10">
         <%= custom_link_to t('continue'), "javascript:set_players_modal()", data: { turbolinks: false }, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 btn btn-primary text-2vw", id: "cancel", tabindex: "1" %>
       </div>
-      <div class="flex justify-around w-full text-3vw">
-        <div class="">Spieler A</div>
-        <div class="">Spieler B</div>
+      <%# Plan 02-03: Paarungszeile statt A/B-Spalten — dieselbe Form wie im Schnellstart
+          (Plan 02-02). Die A/B-Zuordnung ergibt sich allein aus der Reihenfolge der
+          Griffe; welcher Spieler intern playera wird, ist fachlich bedeutungslos.
+          ⚠️ Anders als im Schnellstart STARTET das Bestaetigen hier nicht — auf der
+          Detailseite folgen danach die Parameter, die je Spieler gesetzt werden. %>
+      <div class="flex items-center justify-center gap-4 px-6 pt-4 pb-2 text-3vw">
+        <button type="button" id="pairing_slot_0" onclick="clear_pairing_slot(0)"
+                class="min-w-[12rem] px-4 py-3 border-2 border-dashed rounded-lg opacity-60"></button>
+        <span class="opacity-70">vs.</span>
+        <button type="button" id="pairing_slot_1" onclick="clear_pairing_slot(1)"
+                class="min-w-[12rem] px-4 py-3 border-2 border-dashed rounded-lg opacity-60"></button>
       </div>
+
+      <%# Kopfgruppe "Zuletzt". Hier OHNE Parameterbezug: zum Auswahlzeitpunkt stehen
+          Disziplin und Distanz noch nicht fest, der Service liefert daher seine dritte
+          Kaskadenstufe (zuletzt ueberhaupt trainiert). %>
+      <div id="recent-players" class="hidden px-6 pt-2"></div>
+
+      <%# players bleibt erhalten — die Dropdowns auf der Hauptseite speisen sich daraus. %>
       <%- players = [] %>
       <%- players += [["---Gäste---", ""]] +
-        Array(guest_players_default.andand.map { |p| ["#{p.firstname} #{p.lastname}".gsub("Dr. ", "") + (p.firstname =~ /Dr\./ ? ", Dr." : ""), p.id] }) +
-        Array(guest_players_other.andand.map { |p| ["#{p.firstname} #{p.lastname}".gsub("Dr. ", "") + (p.firstname =~ /Dr\./ ? ", Dr." : ""), p.id] })
-      %>
-      <%- players += [["---Club---", ""]] + Array(club_players.andand.map { |p| ["#{p.firstname} #{p.lastname}".gsub("Dr. ", "") + (p.firstname =~ /Dr\./ ? ", Dr." : ""), p.id] }) %>
-      <%- count = players.count %>
-      <div class="flex justify-between w-full text-2vw">
-        <div class="mr-2">
-          <%= content_tag :div, id: "player_a_w", tabindex: 1, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-2 rounded-lg p-3" do %>
-            <div class="flex flex-row w-full">
-              <div class="flex-col">
-                <%- (0..(count / 2 - 1)).each do |ix| %>
-                  <div class="flex mb-2">
-                    <div class="">
-                      <%- if players[ix][1].present? %>
-                        <%= radio_button_tag :player_a_id, players[ix][1], nil, class: "mr-4 text-4vw", id: "playera_#{ix}", onclick: "set_checked_player('a', #{ix}, #{players[ix][1]})", ontouch: "set_checked_player('a', #{ix}, #{players[ix][1]})" %>
-                      <%- end %>
-                    </div>
-                    <div class="" onclick="set_checked_player('a', <%= ix %>, <%= players[ix][1] %>)">
-                      <%= players[ix][0] %></div>
-                  </div>
-                <%- end %>
-              </div>
-              <div class="flex-col">
-                <%- ((count / 2)..count - 1).each do |ix| %>
-                  <div class="flex mb-2">
-                    <div class="">
-                      <%- if players[ix][1].present? %>
-                        <%= radio_button_tag :player_a_id, players[ix][1], nil, class: "mr-4 text-4vw", id: "playera_#{ix}", onclick: "set_checked_player('a', #{ix}, #{players[ix][1]})", ontouch: "set_checked_player('a', #{ix}, #{players[ix][1]})" %>
-                      <%- end %>
-                    </div>
-                    <div class="" onclick="set_checked_player('a', <%= ix %>, <%= players[ix][1] %>)">
-                      <%= players[ix][0] %></div>
-                  </div>
-                <%- end %>
-              </div>
-            </div>
-          <%- end %>
-        </div>
-        <div class="">
-          <%= content_tag :div, id: "player_b_w", tabindex: 1, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-2 rounded-lg p-3" do %>
-            <div class="flex flex-row w-full">
-              <div class="flex-col">
-                <%- (0..(count / 2 - 1)).each do |ix| %>
-                  <div class="flex mb-2">
-                    <div class="">
-                      <%- if players[ix][1].present? %>
-                        <%= radio_button_tag :player_b_id, players[ix][1], nil, class: "mr-4 text-4vw", id: "playerb_#{ix}", onclick: "set_checked_player('b', #{ix}, #{players[ix][1]})", ontouch: "set_checked_player('b', #{ix}, #{players[ix][1]})" %>
-                      <%- end %>
-                    </div>
-                    <div class="" onclick="set_checked_player('b', <%= ix %>, <%= players[ix][1] %>)">
-                      <%= players[ix][0] %></div>
-                  </div>
-                <%- end %>
-              </div>
-              <div class="flex-col">
-                <%- ((count / 2)..count - 1).each do |ix| %>
-                  <div class="flex mb-2">
-                    <div class="">
-                      <%- if players[ix][1].present? %>
-                        <%= radio_button_tag :player_b_id, players[ix][1], nil, class: "mr-4 text-4vw", id: "playerb_#{ix}", onclick: "set_checked_player('b', #{ix}, #{players[ix][1]})", ontouch: "set_checked_player('b', #{ix}, #{players[ix][1]})" %>
-                      <%- end %>
-                    </div>
-                    <div class="" onclick="set_checked_player('b', <%= ix %>, <%= players[ix][1] %>)">
-                      <%= players[ix][0] %></div>
-                  </div>
-                <%- end %>
-              </div>
-            </div>
-          <%- end %>
-        </div>
+        Array(guest_players_default.andand.map { |p| [p.fl_name, p.id] }) +
+        Array(guest_players_other.andand.map { |p| [p.fl_name, p.id] }) %>
+      <%- players += [["---Club---", ""]] + Array(club_players.andand.map { |p| [p.fl_name, p.id] }) %>
+
+      <%- selectable_groups = [
+        ["Gäste", Array(guest_players_default) + Array(guest_players_other)],
+        ["Club", Array(club_players)]
+      ] %>
+
+      <div class="px-6 pb-6">
+        <%- selectable_groups.each do |group_label, members| %>
+          <%- next if members.blank? %>
+          <div class="mt-4 text-2vw opacity-70"><%= group_label %></div>
+          <div class="flex flex-wrap gap-3 mt-2">
+            <%- members.each do |p| %>
+              <button type="button"
+                      class="player-choice px-4 py-3 border-2 rounded-lg text-2vw"
+                      data-player-id="<%= p.id %>"
+                      onclick="pick_player(<%= p.id %>)">
+                <%= p.fl_name %>
+              </button>
+            <%- end %>
+          </div>
+        <%- end %>
       </div>
     </div>
   </div>
@@ -181,8 +275,13 @@
         Phase 38.3-06: first_set_mode state slot removed (moved to shootout
         screen per Plan 38.3-05); replaced by bk2_dz_max_shots +
         bk2_sp_max_innings game-config state slots (D-17 / DR-06). %>
-    <div x-data="{
+    <%# Plan 02-03: id, damit die Auswahl die Namen ins Alpine-Modell schreiben kann
+        (publish_player_names oben). Der x-data-Scope bleibt derselbe — der Kommentar
+        weiter oben warnt ausdruecklich davor, ihn aufzubrechen. %>
+    <div id="free_game_params" x-data="{
       table_kind: '<%= table.andand.table_kind.andand.name || "Small Billard" %>',
+      name_a: '<%= j(player_a&.fl_name.to_s) %>',
+      name_b: '<%= j(player_b&.fl_name.to_s) %>',
       multiset: 0,
       last_direction: 'r',
       incr_d: {200:50, 100:10, 50:10, 30:10, 20:10, 10:5, 5:1},
@@ -277,14 +376,20 @@
               <%= custom_link_to "Spieler-Auswahl", "javascript:players_mode()", data: { turbolinks: false }, class: "flex w-full h-full border-4 focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 rounded-lg btn btn-primary text-white hover:text-white text-2vw", id: "cancel", tabindex: "1" %>
             </div>
             <%= content_tag :div, id: "player_a_w", tabindex: 1, class: "flex focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 rounded-lg" do %>
+              <%# Plan 02-03 (AC-5): Aenderung am Dropdown zieht die Paarungszeile und die
+                  Namen in den Parameter-Headern nach. %>
               <%= select_tag :player_a_id,
                 options_for_select(Array(players), player_a.andand.id || default_guest_a.player.id),
-                class: "py-3 px-4 text-2vw w-full bg-white dark:bg-gray-800 text-gray-900 dark:text-white border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-500" %>
+                class: "py-3 px-4 text-2vw w-full bg-white dark:bg-gray-800 text-gray-900 dark:text-white border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-500",
+                onchange: "sync_pairing_from_selects()" %>
             <%- end %>
             <%= content_tag :div, id: "player_b_w", tabindex: 1, class: "flex focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 rounded-lg" do %>
+              <%# Plan 02-03 (AC-5): Aenderung am Dropdown zieht die Paarungszeile und die
+                  Namen in den Parameter-Headern nach. %>
               <%= select_tag :player_b_id,
                 options_for_select(Array(players), player_a.andand.id || default_guest_b.player.id),
-                class: "py-3 px-4 text-2vw w-full bg-white dark:bg-gray-800 text-gray-900 dark:text-white border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-500" %>
+                class: "py-3 px-4 text-2vw w-full bg-white dark:bg-gray-800 text-gray-900 dark:text-white border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-500",
+                onchange: "sync_pairing_from_selects()" %>
             <%- end %>
           </div>
         </div>
@@ -434,7 +539,8 @@
           <%= render partial: "radio_select", locals: {
             table: table,
             show: "table_kind == 'Small Billard' && parameters == 1",
-            header: "Disziplin (A)",
+            header: "Disziplin",
+            player_slot: "a",
             varname: "discipline_a",
             values: [0, 1, 2, 3, 4, 5],
             maxval: 5,
@@ -446,7 +552,8 @@
           <%= render partial: "radio_select", locals: {
             table: table,
             show: "table_kind == 'Match Billard' && parameters == 1",
-            header: "Disziplin (A)",
+            header: "Disziplin",
+            player_slot: "a",
             varname: "discipline_a",
             values: [6, 7, 8, 9, 10, 11, 12, 13],
             maxval: 7,
@@ -458,7 +565,8 @@
           <%= render partial: "radio_select", locals: {
             table: table,
             show: "table_kind == 'Small Billard' && parameters == 2",
-            header: "Disziplin (B)",
+            header: "Disziplin",
+            player_slot: "b",
             varname: "discipline_b",
             values: [0, 1, 2, 3, 4, 5],
             maxval: 5,
@@ -470,7 +578,8 @@
           <%= render partial: "radio_select", locals: {
             table: table,
             show: "table_kind == 'Match Billard' && parameters == 2",
-            header: "Disziplin (B)",
+            header: "Disziplin",
+            player_slot: "b",
             varname: "discipline_b",
             values: [6, 7, 8, 9, 10, 11, 12, 13],
             maxval: 7,
@@ -500,7 +609,8 @@
           <%= render partial: "radio_select", locals: {
             table: table,
             show: "parameters == 1",
-            header: "Punktziel (A)",
+            header: "Punktziel",
+            player_slot: "a",
             varname: "balls_goal_a",
             values: ["0"] + Discipline::KARAMBOL_POINTS_MAP,
             maxval: 9999999,
@@ -511,7 +621,8 @@
           <%= render partial: "radio_select", locals: {
             table: table,
             show: "parameters == 2",
-            header: "Punktziel (B)",
+            header: "Punktziel",
+            player_slot: "b",
             varname: "balls_goal_b",
             values: ["0"] + Discipline::KARAMBOL_POINTS_MAP,
             maxval: 9999999,
