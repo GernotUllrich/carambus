@@ -127,34 +127,7 @@
     </div>
   </div>
 </div>
-<div style="z-index:900" class="hidden opacity-70 fixed inset-0 bg-black" id="modal-new-player-bg"></div>
-<div style="z-index:910" class="hidden overflow-x-hidden overflow-y-auto fixed inset-0 outline-none focus:outline-none justify-center items-center" id="modal-new-player">
-  <div id="new_player_modal_setup__2" class="border-2 border-gray-500 rounded-lg shadow-lg relative flex flex-col p-10 w-5/6 dark:text-gray-200 bg-white dark:bg-black  outline-none focus:outline-none">
-    <div class="flex flex-col">
-      <h2 class="flex mb-5">Anmeldung eines Gasts im Club <%= club.shortname %></h2>
-      <div class="flex justify-around w-full text-3vw">
-        <%= form_with(model: Player.new) do |form| %>
-          <%= hidden_field_tag :club_id, club.id %>
-          <%= hidden_field_tag :location_id, @location.id %>
-          <%= hidden_field_tag :season_id, Season.current_season.id %>
-          <%= hidden_field_tag :from, "new_guest" %>
-          <%= render "error_messages", resource: form.object %>
-          <div class="form-group">
-            <%= form.text_field :firstname, autocomplete: "off", class: "form-control text-2vw", placeholder: "Vorname" %>
-          </div>
-          <div class="form-group">
-            <%= form.text_field :lastname, autocomplete: "off", class: "form-control text-2vw", placeholder: "Nachname" %>
-          </div>
-          <div class="form-group">
-            <%= custom_link_to t('back'), "javascript:set_new_player_modal()", data: { turbolinks: false }, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 btn btn-primary text-2vw", id: "cancel", tabindex: "1" %>
-
-            <%= form.submit t('save'), class: "btn btn-primary text-2vw" %>
-          </div>
-          </div>
-        <% end %>
-    </div>
-  </div>
-</div>
+<%= render "new_player_modal", club: club %>
 <div class="w-1/12 grid grid-cols-2 gap-4 mr-4 fixed text-gray-300 hover:text-black text-2vw font-bold" style="right: 10px; top: -10px;">
   <%= custom_link_to scoreboard_location_path(@location.md5, sb_state: "tournament_scores", :"data-turbo" => false) do %>
     <%= render_svg "icons/information-outline", styles: "responsive-svg fill-current icon-lg m-4 text-white inline-block", title: "home" %>

@@ -1,0 +1,50 @@
+<%# Anlage eines Spielers direkt am Tisch (Plan 02-04).
+    Zuvor lag dieser Dialog DREIMAL fast identisch vor — in den Setup-Seiten fuer
+    Karambol-Detail, Pool und Snooker; Pool und Snooker waren byte-identisch, Karambol
+    unterschied sich nur in der Einrueckung einer schliessenden </div>. Wer den Dialog
+    aenderte, musste es dreimal tun.
+
+    Benoetigt: `club` (fuer die Ueberschrift und die SeasonParticipation). %>
+<div style="z-index:900" class="hidden opacity-70 fixed inset-0 bg-black" id="modal-new-player-bg"></div>
+<div style="z-index:910" class="hidden overflow-x-hidden overflow-y-auto fixed inset-0 outline-none focus:outline-none justify-center items-center" id="modal-new-player">
+  <div id="new_player_modal_setup__2" class="border-2 border-gray-500 rounded-lg shadow-lg relative flex flex-col p-10 w-5/6 dark:text-gray-200 bg-white dark:bg-black  outline-none focus:outline-none">
+    <div class="flex flex-col">
+      <h2 class="flex mb-5"><%= t("location.new_player.title", club: club.shortname) %></h2>
+      <div class="flex justify-around w-full text-3vw">
+        <%= form_with(model: Player.new) do |form| %>
+          <%= hidden_field_tag :club_id, club.id %>
+          <%= hidden_field_tag :location_id, @location.id %>
+          <%= hidden_field_tag :season_id, Season.current_season.id %>
+          <%= hidden_field_tag :from, "new_guest" %>
+          <%= render "error_messages", resource: form.object %>
+          <div class="form-group">
+            <%= form.text_field :firstname, autocomplete: "off", class: "form-control text-2vw", placeholder: "Vorname" %>
+          </div>
+          <div class="form-group">
+            <%= form.text_field :lastname, autocomplete: "off", class: "form-control text-2vw", placeholder: "Nachname" %>
+          </div>
+          <%# Plan 02-04: Gast oder passives Vereinsmitglied?
+              Der Unterschied ist keine Kosmetik: Player.remove_inactive_guests
+              (player.rb:763) loescht "guest" nach zwei Wochen ohne Spiel — samt
+              Spielerbezug der Trainingsspiele (dependent: :nullify). "passive" bleibt.
+              Vorbelegt ist "guest", der haeufigere Fall am Tisch. %>
+          <div class="form-group">
+            <label class="flex items-center gap-3 text-2vw mb-2">
+              <%= radio_button_tag :participation_status, "guest", true, class: "text-2vw" %>
+              <%= t("location.new_player.as_guest") %>
+            </label>
+            <label class="flex items-center gap-3 text-2vw">
+              <%= radio_button_tag :participation_status, "passive", false, class: "text-2vw" %>
+              <%= t("location.new_player.as_passive") %>
+            </label>
+          </div>
+          <div class="form-group">
+            <%= custom_link_to t('back'), "javascript:set_new_player_modal()", data: { turbolinks: false }, class: "focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 btn btn-primary text-2vw", id: "cancel", tabindex: "1" %>
+
+            <%= form.submit t('save'), class: "btn btn-primary text-2vw" %>
+          </div>
+          </div>
+        <% end %>
+        </div>
+  </div>
+</div>
