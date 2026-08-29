@@ -149,6 +149,21 @@ class Player < ApplicationRecord
     end
   end
 
+  # Akademische Titel, die beim Sortieren uebersprungen werden (Betreiber-Entscheidung
+  # 2026-08-29). Sortiert und angezeigt wird nach `fl_name` ("Vorname Nachname");
+  # "Dr. Gernot Ullrich" landete damit unter D statt unter G.
+  #
+  # ⚠️ Bewusst eine EXPLIZITE Liste statt eines generischen Musters wie ^(\S+\.\s+)+ :
+  # die haeufigsten Punkt-Praefixe in fl_name sind abgekuerzte VORNAMEN — "M." (43x),
+  # "J." (29x), "A." (27x), zusammen ueber 200 — und die sind der Sortierschluessel,
+  # nicht wegzuwerfender Ballast. Echte Titel im Bestand: nur Dr. (16x) und Prof. (1x).
+  SORT_TITLE_PATTERN = "^((Prof|Dr)\\.\\s*)+"
+
+  # Sortierschluessel fuer Namenslisten: fl_name ohne fuehrenden akademischen Titel.
+  def self.sort_key_sql
+    Arel.sql("regexp_replace(players.fl_name, '#{SORT_TITLE_PATTERN}', '', 'i')")
+  end
+
   def self.default_guest(ab, location)
     if @default_guest[ab][location.id].blank?
       club = location.club
