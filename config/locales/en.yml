@@ -409,6 +409,10 @@ en:
     free_game:
       recent_players: Recently
       start_game: Start game
+    new_player:
+      as_guest: Guest
+      as_passive: passive club member
+      title: 'Register a new player at club %{club}'
     id: id
     index:
       location: Location

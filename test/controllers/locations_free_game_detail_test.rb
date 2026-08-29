@@ -179,6 +179,35 @@ class LocationsFreeGameDetailTest < ActionDispatch::IntegrationTest
   end
 
   # ---------------------------------------------------------------------------
+  # F. Anlage-Dialog mit Wahl passiv/Gast (Plan 02-04, AC-1)
+  # ---------------------------------------------------------------------------
+
+  test "F1: der Anlage-Dialog bietet beide Statusarten an" do
+    get_detail
+
+    assert_select "#modal-new-player", 1
+    assert_select "input[type=radio][name=participation_status][value=guest]", 1
+    assert_select "input[type=radio][name=participation_status][value=passive]", 1
+  end
+
+  test "F2: Gast ist vorbelegt" do
+    get_detail
+
+    assert_select "input[type=radio][name=participation_status][value=guest][checked]", 1,
+      "der haeufigere Fall am Tisch ist der Gast"
+    assert_select "input[type=radio][name=participation_status][value=passive][checked]", 0
+  end
+
+  test "F3: die Beschriftungen kommen aus der Uebersetzung" do
+    get_detail
+
+    assert_match(/#{Regexp.escape(I18n.t("location.new_player.as_guest"))}/, response.body)
+    assert_match(/#{Regexp.escape(I18n.t("location.new_player.as_passive"))}/, response.body)
+    assert_no_match(/Anmeldung eines Gasts/, response.body,
+      "die alte hartkodierte Ueberschrift ist ersetzt")
+  end
+
+  # ---------------------------------------------------------------------------
   # E. Ranking und Namensdarstellung (AC-1, Sortierung)
   # ---------------------------------------------------------------------------
 

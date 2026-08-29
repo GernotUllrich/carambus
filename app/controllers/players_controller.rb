@@ -35,7 +35,8 @@ class PlayersController < ApplicationController
       @location = Location[params[:location_id]]
       @season = Season[params[:season_id]]
       if @club.present? && @season.present? && params[:from] == "new_guest"
-        @club.season_participations.create(player: @player, season: @season, status: "guest")
+        @club.season_participations.create(player: @player, season: @season,
+          status: participation_status_from_params)
         redirect_back_or_to(location_path(@location))
         return
       end
@@ -83,6 +84,31 @@ class PlayersController < ApplicationController
   end
 
   # Only allow a trusted parameter "white list" through.
+  # Zulaessige SeasonParticipation-Status bei der Anlage am Tisch (Plan 02-04).
+  #
+  # ⚠️ Die Whitelist ist Pflicht, kein Schmuck: `status` ist ein freies String-Feld
+  # (keine Enum, keine Validierung am Modell). Ohne Begrenzung liesse sich ueber das
+  # Formular "active" setzen — das ist Turnier-Spielberechtigung und hat am
+  # Trainingstisch nichts zu suchen.
+  #
+  # Der Unterschied zwischen den beiden erlaubten Werten ist fachlich erheblich:
+  # `Player.remove_inactive_guests` (player.rb:763) loescht "guest" nach zwei Wochen
+  # ohne Spiel — mitsamt dem Spielerbezug seiner Trainingsspiele
+  # (`has_many :game_participations, dependent: :nullify`). "passive" bleibt dauerhaft.
+  #
+  # ⚠️ NICHT zu verwechseln mit der Spalte `players.guest`: die existiert und steht in
+  # player_params, wird aber nirgends im Code gelesen (toter Code, Stand 2026-08-29).
+  ALLOWED_PARTICIPATION_STATUS = %w[guest passive].freeze
+  DEFAULT_PARTICIPATION_STATUS = "guest"
+
+  # Rueckfall auf "guest" bei fehlendem oder unbekanntem Wert — der haeufigere Fall am
+  # Tisch, und die konservativere Wahl: ein faelschlich als Gast Angelegter faellt beim
+  # naechsten Abraeumen auf, ein faelschlich passiv Angelegter bleibt still liegen.
+  def participation_status_from_params
+    value = params[:participation_status].to_s
+    ALLOWED_PARTICIPATION_STATUS.include?(value) ? value : DEFAULT_PARTICIPATION_STATUS
+  end
+
   def player_params
     params.require(:player).permit(:ba_id, :cc_id, :club_id, :guest, :lastname, :firstname, :nickname, :title)
   end

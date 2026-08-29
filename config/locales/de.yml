@@ -412,6 +412,10 @@ de:
     free_game:
       recent_players: Zuletzt
       start_game: Spiel starten
+    new_player:
+      as_guest: Gast
+      as_passive: passives Vereinsmitglied
+      title: 'Neuen Spieler im Club %{club} anmelden'
     id: ID
     index:
       location: Spiellokal
