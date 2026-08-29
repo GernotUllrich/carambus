@@ -20,6 +20,17 @@
 #     ohne Tische. Bewusst NUR meldend (Betreiber-Entscheidung 2026-08-17): Stammdaten
 #     ohne Kenntnis ihrer Fachbedeutung zu löschen ist riskanter als sie stehen zu lassen.
 #
+#   empty_training_games — SCHREIBT bei ARMED=1. Entfernt die substanzlosen Trainingsspiele:
+#     Zeilen aus `Game.training`, die weder Teilnehmer mit Spieler noch Ergebnis, ended_at,
+#     Turnierbindung oder external_id tragen. Erzeuger ist die Spielerauswahl am Scoreboard —
+#     jeder Aufruf von `sb_state=free_game` legt ein Game an (locations_controller.rb:170),
+#     ohne Spielerparameter eines ohne jeden Teilnehmer; beim Start wurde es bis Plan 02-01
+#     nur abgekoppelt und blieb stehen. Seit 02-01 raeumt GameSetup neu entstehende selbst
+#     ab (`Game#substanceless?`) — diese Task ist fuer den Altbestand.
+#     Herkunft des Befundes: UAT zu Plan 01-02; gemessen 2026-08-29 in der Dev-DB
+#     **20 von 28** Trainingsspielen ohne jeden Teilnehmer, nur 3 mit Ergebnis.
+#     Lokale Entitaet — auf JEDER Instanz einzeln zu fahren.
+#
 # Herkunft des Befundes: 37-02-Census. Struktur beim Planen von 38-04 gemessen —
 # 34 ungültige ClubLocations sind **6 Kombinationen mit je 5–6 Kopien**, nicht 34 Einzelfälle
 # (bei einer Uniqueness-Verletzung sind alle Beteiligten ungültig). Angelegt 2025-07-06 bis
@@ -38,6 +49,8 @@
 #   bundle exec rake data_hygiene:table_local_duplicates              # DRY-RUN (Default)
 #   bundle exec rake data_hygiene:table_local_duplicates ARMED=1      # schreibt
 #   bundle exec rake data_hygiene:invalid_stammdaten                  # read-only
+#   bundle exec rake data_hygiene:empty_training_games                # DRY-RUN (Default)
+#   bundle exec rake data_hygiene:empty_training_games ARMED=1        # schreibt
 namespace :data_hygiene do
   desc "SCHREIBT bei ARMED=1: mehrfach angelegte ClubLocations entfernen (aeltesten behalten)"
   task club_location_duplicates: :environment do
@@ -393,5 +406,75 @@ namespace :data_hygiene do
 
     puts "\nBewusst NUR gemeldet (Betreiber-Entscheidung 2026-08-17): eine fachliche Zuordnung " \
          "dieser Stammdaten steht aus. Read-only belegt: #{DisciplineCc.count + TournamentPlan.count == count_before}"
+  end
+
+  # Plan 02-01 (Milestone v0.3). Der Erzeuger ist seit demselben Plan gestopft —
+  # GameSetup#create_new_game verwirft substanzlose Zeilen jetzt beim Abkoppeln.
+  # Diese Task raeumt auf, was davor entstanden ist.
+  desc "SCHREIBT bei ARMED=1: substanzlose Trainingsspiele (ohne Teilnehmer/Ergebnis) entfernen"
+  task empty_training_games: :environment do
+    armed = ENV["ARMED"] == "1"
+    puts "== data_hygiene:empty_training_games == #{armed ? "ARMED (SCHREIBT)" : "DRY-RUN (schreibt nicht)"}"
+
+    count_before = Game.count
+    versions_before = Version.where(item_type: "Game", event: "destroy").count
+
+    training = Game.training.to_a
+    # ⚠️ Das Urteil faellt ausschliesslich Game#substanceless? — dieselbe Methode, die
+    # GameSetup beim Abkoppeln nutzt. Keine zweite Definition, die auseinanderlaufen kann.
+    to_destroy = training.select(&:substanceless?)
+
+    puts "Game.training gesamt: #{training.size}"
+    puts "davon substanzlos:    #{to_destroy.size}"
+    puts "bleiben stehen:       #{training.size - to_destroy.size}"
+
+    if to_destroy.empty?
+      puts "Nichts zu tun (idempotent)."
+      next
+    end
+
+    puts "\nZu loeschen:"
+    to_destroy.each do |g|
+      puts "  id=#{g.id} (created #{g.created_at&.to_date}, #{g.game_participations.count} Teilnehmer)"
+    end
+
+    unless armed
+      puts "\nDRY-RUN beendet — nichts geaendert. Mit ARMED=1 ausfuehren."
+      puts "Game.count unveraendert: #{Game.count == count_before}"
+      next
+    end
+
+    destroyed = 0
+    failed = []
+    to_destroy.each do |g|
+      # ⚠️ .destroy, nie delete/delete_all — nur destroy erzeugt die PaperTrail-Version,
+      # die die Loeschung repliziert (Befund 38-03, siehe Dateikopf).
+      if g.destroy
+        destroyed += 1
+      else
+        failed << [g.id, g.errors.full_messages.join("; ")]
+      end
+    rescue => e
+      failed << [g.id, "#{e.class}: #{e.message}"]
+    end
+
+    versions_after = Version.where(item_type: "Game", event: "destroy").count
+    new_versions = versions_after - versions_before
+
+    puts "\n== Ergebnis =="
+    puts "  geloescht:         #{destroyed} von #{to_destroy.size}"
+    puts "  destroy-Versionen: #{new_versions}"
+    puts "  Game.count:        #{count_before} -> #{Game.count}"
+    puts "  Game.training:     #{Game.training.count}"
+    failed.each { |id, msg| puts "  FEHLER id=#{id}: #{msg}" }
+
+    if ApplicationRecord.local_server?
+      puts "  ℹ️  local Server — PaperTrail ist hier per LocalProtector deaktiviert, " \
+           "0 Versionen sind erwartet"
+    elsif new_versions == destroyed
+      puts "  ✅ jede Loeschung hat eine Version erzeugt"
+    else
+      puts "  ⚠️  #{destroyed - new_versions} Loeschung(en) OHNE Version"
+    end
   end
 end
