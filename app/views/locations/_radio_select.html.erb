@@ -1,4 +1,10 @@
-<div x-show="<%= show.presence %>" x-init="increment_<%= varname %> = <%= increment %>"><%= header %></div>
+<%# Plan 02-03: optionaler Parameter `player_slot` ("a" oder "b"). Ist er gesetzt,
+    haengt der Header den NAMEN des jeweiligen Spielers an — auf der Detailseite werden
+    Disziplin und Punktziel je Spieler gesetzt, und "(A)" zwingt den Bediener, sich zu
+    merken, wer A ist. Ohne den Parameter rendert das Partial exakt wie zuvor.
+    Der Name muss per x-text kommen: `header` wird escaped ausgegeben, ein
+    Alpine-Ausdruck darin kaeme als Text an. %>
+<div x-show="<%= show.presence %>" x-init="increment_<%= varname %> = <%= increment %>"><%= header %><%- if local_assigns[:player_slot].present? %> (<span x-text="name_<%= local_assigns[:player_slot] %> || '<%= local_assigns[:player_slot].to_s.upcase %>'"></span>)<%- end %></div>
 <div x-show="<%= show.presence %>" class="col-span-4">
   <div class="grid grid-cols-<%= cols %> gap-4">
     <%- values.each_with_index do |val, ix| %>
