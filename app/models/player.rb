@@ -3,8 +3,7 @@
 # The Player class represents players in an application. It is associated with various models such as GameParticipation,
 # SeasonParticipation, Club, and others. It is responsible for maintaining player details, including their participation
 # in games, seasons, and associated clubs.
-# Validations are included for the pin4 attribute, which should be unique and a specific length. It also uses
-# a before_save callback to update a player's full name.
+# It uses a before_save callback to update a player's full name.
 # It includes several instance and class methods for functionality like forming teams from players, updating team names,
 # analyzing duplicate players, and more.
 class Player < ApplicationRecord
@@ -38,7 +37,18 @@ class Player < ApplicationRecord
   
   REFLECTION_KEYS = %w[club game_participations seedings season_participations].freeze
 
-  self.ignored_columns = ["region_ids"]
+  # ⚠️ `pin4` (Plan 02.1-03): die Spalte wird ausser Betrieb genommen und in Plan 02.1-04
+  # entfernt. Sie war global eindeutig validiert (bei vier Stellen systemweit max. ~9.980 PINs,
+  # und ein erratener PIN identifizierte einen Spieler), speicherte im KLARTEXT und war
+  # vollstaendig ungenutzt: 0 von 47.774 Spielern. Der Spieler-PIN lebt seit 3ab79224 in
+  # `PlayerLocal` — dort muss er nicht eindeutig sein und liegt als bcrypt-Hash.
+  #
+  # `ignored_columns` MUSS vor dem `remove_column` deployt sein: ActiveRecord cacht die
+  # Spaltenliste, sonst laeuft zwischen Migration und Neustart alter Code gegen eine fehlende
+  # Spalte. Vorbild im Repo: location.rb (club_id).
+  #
+  # Die bestehende Liste wird ERWEITERT, nicht ueberschrieben — `region_ids` bleibt ignoriert.
+  self.ignored_columns = ["region_ids", "pin4"]
 
   belongs_to :region, optional: true
 
@@ -55,13 +65,10 @@ class Player < ApplicationRecord
     true
   end
 
-  validates :pin4,
-            uniqueness: true,
-            length: { is: 4 },
-            exclusion: { in: %w[1234 1111 0000 1212 7777 1004 2000 4444 2222 6969 9999 3333 5555 6666 1122 1313 8888
-                                4321 2001 1010] },
-            unless: -> { pin4.blank? }
-  
+  # ⚠️ Die `pin4`-Validierung ist mit Plan 02.1-03 ENTFALLEN. Sie darf nicht bleiben:
+  # `ignored_columns` blendet das Attribut aus, eine Validierung darauf wuerde beim naechsten
+  # Speichern werfen. Die Blacklist trivialer PINs lebt in `PlayerLocal::TRIVIAL_PINS` weiter —
+  # sie wurde dorthin bewusst kopiert, damit sie dieses Abraeumen ueberlebt.
   validates :nationality, length: { is: 2 }, allow_blank: true
   validates :umb_player_id, uniqueness: true, allow_nil: true
 

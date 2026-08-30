@@ -302,6 +302,43 @@ class Version < PaperTrail::Version
   # PlayerRanking-Werte auf Local-Servern veraltet). Dieser Helper coerced
   # typ-bewusst: nur serialisierte Spalten, nur String-Werte → JSON, sonst YAML.
   # Mutiert args in-place (greift auch fuer das nachfolgende update_columns(args)).
+  # Entfernt aus `args` alle Schluessel, die die LOKALE Tabelle nicht kennt (Plan 02.1-03).
+  #
+  # WARUM: `has_paper_trail` ist nur auf der Authority aktiv (local_protector.rb:31). Dort
+  # entstehen die Versionen, lokale Server konsumieren sie — jeder Snapshot traegt daher ALLE
+  # Spalten der Authority. Faellt lokal eine Spalte weg (oder hinkt ein Server bei den
+  # Migrationen hinterher), traegt der Snapshot einen Schluessel, den es hier nicht gibt.
+  # `update_columns`/`write_attribute` wirft dann — und weil der Cursor trotzdem hochlaeuft
+  # (key_set_value am Schleifenende), ist die Version endgueltig verloren, mitsamt allen
+  # BEKANNTEN Werten, die sie transportiert haette.
+  #
+  # ⚠️ Das bleibt dauerhaft so: die BESTEHENDEN Authority-Versionen tragen eine einmal
+  # entfernte Spalte fuer immer in ihrem YAML und werden jedem nachhinkenden Server
+  # nachgespielt. Dieser Filter ist deshalb keine Uebergangsmassnahme.
+  #
+  # ⚠️ EHRLICHER NACHTEIL: Aus einem lauten Fehlschlag wird ein stiller Teilschreibvorgang.
+  # Hinkt ein Server bei den Migrationen hinterher, gingen seine Werte bisher mit Getoese
+  # verloren — kuenftig unbemerkt, bis auf diese eine Zeile. Deshalb `warn` statt `debug`, und
+  # deshalb nennt sie Klasse, id und die verworfenen Namen: sie ist die einzige Spur.
+  #
+  # Mutiert args in-place (wie coerce_serialized_args!) und gibt args zurueck.
+  def self.reject_unknown_columns!(klass, args, item_id = nil)
+    return args unless args.is_a?(Hash)
+
+    bekannt = klass.column_names
+    verworfen = args.keys.reject { |k| bekannt.include?(k.to_s) }
+    return args if verworfen.empty?
+
+    verworfen.each { |k| args.delete(k) }
+    Rails.logger.warn "[Version.sync] unbekannte Spalten verworfen: " \
+      "#{klass.name}[#{item_id}] #{verworfen.join(", ")}"
+    args
+  rescue => e
+    # Ein Fehler HIER darf den Apply nicht zusaetzlich gefaehrden.
+    Rails.logger.warn "[Version.reject_unknown_columns!] #{klass}: #{e.class}: #{e.message}"
+    args
+  end
+
   def self.coerce_serialized_args!(klass, args)
     return args unless args.is_a?(Hash)
     args.each do |k, v|
@@ -401,6 +438,9 @@ class Version < PaperTrail::Version
             begin
               classz = h["item_type"].constantize
               coerce_serialized_args!(classz, args)
+              # Plan 02.1-03 (create-Zweig): Schluessel, die die lokale Tabelle nicht kennt,
+              # verwerfen statt daran zu scheitern.
+              reject_unknown_columns!(classz, args, h["item_id"])
               item_id = h["item_id"]
               obj = nil
               case h["item_type"]
@@ -470,6 +510,9 @@ class Version < PaperTrail::Version
               # Sync-Apply-Fix (2026-06-17): serialize-Spalten (remarks/t_ids/data) typ-bewusst
               # zu Hash/Array coercen — sonst SerializationTypeMismatch + stiller Verlust.
               coerce_serialized_args!(classz, args)
+              # Plan 02.1-03 (update-Zweig): Schluessel, die die lokale Tabelle nicht kennt,
+              # verwerfen statt daran zu scheitern.
+              reject_unknown_columns!(classz, args, h["item_id"])
               obj = classz.where(id: h["item_id"]).first
               if obj.present?
                 args.each do |k, v|
@@ -588,6 +631,9 @@ class Version < PaperTrail::Version
     end
     args["data"] = Version.safe_parse_for_text_column(args["data"]) if args["data"].present?
     coerce_serialized_args!(classz, args)
+    # Plan 02.1-03 (Fallback- UND Create-aus-Snapshot-Pfad): Schluessel, die die lokale Tabelle nicht kennt,
+    # verwerfen statt daran zu scheitern.
+    reject_unknown_columns!(classz, args, h["item_id"])
     args
   end
 

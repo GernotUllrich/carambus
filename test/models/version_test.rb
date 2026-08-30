@@ -489,4 +489,122 @@ class VersionTest < ActiveSupport::TestCase
     assert_no_match(/übersprungen/i, logged,
       "NICHT im Topf der uebersprungenen Versionen — die werden ja gerade nicht geschrieben")
   end
+  # ===================================================================================
+  # Plan 02.1-03: unbekannte Spalten im Snapshot
+  #
+  # Diese Tests entstanden als CHARAKTERISIERUNG der Ist-Lage (Apply scheitert, bekannte Werte
+  # gehen mit verloren, Cursor laeuft hoch) und beschreiben nach dem Einbau des Filters das
+  # gewuenschte Verhalten. Der Sync ist die Replikationsgrundlage aller Regional-Server —
+  # deshalb zuerst der Beleg, dann der Eingriff.
+  #
+  # Warum das zaehlt: `has_paper_trail` ist NUR auf der Authority aktiv
+  # (`unless carambus_api_url.present?`, local_protector.rb:31). Dort entstehen die Versionen,
+  # lokale Server konsumieren sie — jeder Snapshot traegt daher ALLE Spalten der Authority.
+  # Faellt lokal eine Spalte weg (oder hinkt ein Server bei den Migrationen hinterher), traegt
+  # der Snapshot einen Schluessel, den die lokale Tabelle nicht kennt.
+  #
+  # ⚠️ Bewusst ein erfundener Spaltenname, NICHT `pin4`: geprueft wird der Mechanismus, nicht
+  # dieser eine Fall. Und bewusst `League` statt `Player` — weniger Fixture-Abhaengigkeit,
+  # gleiche Harness wie AC-1..AC-5.
+  # ===================================================================================
+
+  UNBEKANNTE_SPALTE = "zzz_gibt_es_lokal_nicht"
+
+  test "Update: eine unbekannte Spalte wird verworfen, die bekannten Werte kommen an" do
+    league = League.new(id: 3_700_010, name: "Filter-Liga U", shortname: "FU",
+      organizer_type: "Region", organizer_id: regions(:nbv).id, season: seasons(:current))
+    league.unprotected = true
+    league.save!
+
+    log = capture_sync_log do
+      apply_version(item_type: "League", item_id: league.id,
+        object: league.attributes.merge("source_kind" => nil),
+        object_changes: {"source_kind" => [nil, "ba"], UNBEKANNTE_SPALTE => [nil, "x"]},
+        version_id: 999_010)
+    end
+
+    refute_match(/APPLY FAILED/, log, "der Apply darf an der fremden Spalte nicht mehr scheitern")
+    assert_match(/unbekannte Spalten verworfen.*#{UNBEKANNTE_SPALTE}/o, log,
+      "das Verworfene MUSS nachvollziehbar sein — es ist die einzige Spur")
+    assert_equal "ba", league.reload.source_kind,
+      "der bekannte Wert kommt an, als waere die fremde Spalte nie dagewesen"
+  end
+
+  test "Create: eine unbekannte Spalte verhindert das Anlegen nicht mehr" do
+    id = 3_700_011
+    League.where(id: id).delete_all
+    snapshot = {"id" => id, "name" => "Filter-Liga C", "shortname" => "FC",
+                "organizer_type" => "Region", "organizer_id" => regions(:nbv).id,
+                "season_id" => seasons(:current).id, "source_kind" => nil,
+                UNBEKANNTE_SPALTE => "x",
+                "created_at" => Time.current, "updated_at" => Time.current}
+
+    log = capture_sync_log do
+      apply_version(item_type: "League", item_id: id, object: snapshot,
+        object_changes: {"source_kind" => [nil, "ba"]}, version_id: 999_011)
+    end
+
+    refute_match(/APPLY FAILED/, log)
+    created = League.find_by(id: id)
+    assert_not_nil created, "der Record muss trotz der fremden Spalte entstehen"
+    assert_equal "ba", created.source_kind, "und zwar im Zustand NACH der Aenderung"
+    assert_match(/unbekannte Spalten verworfen/, log)
+  end
+
+  # ⚠️ Der Cursor lief schon vor dem Filter hoch — DAS ist der Grund, warum ein Fehlschlag hier
+  # endgueltiger Verlust ist und nicht bloss ein Wiederholungsfall. Der Test haelt fest, dass
+  # der Filter daran nichts aendert: er verhindert den Fehlschlag, statt ihn zu wiederholen.
+  test "der Cursor laeuft weiter — der Filter aendert daran bewusst nichts" do
+    league = League.new(id: 3_700_012, name: "Filter-Liga X", shortname: "FX",
+      organizer_type: "Region", organizer_id: regions(:nbv).id, season: seasons(:current))
+    league.unprotected = true
+    league.save!
+
+    capture_sync_log do
+      apply_version(item_type: "League", item_id: league.id,
+        object: league.attributes.merge(UNBEKANNTE_SPALTE => "x"),
+        object_changes: {"source_kind" => [nil, "ba"]}, version_id: 999_012)
+    end
+
+    assert_equal 999_012, Setting.key_get_value("last_version_id").to_i,
+      "der Cursor steht hinter der gescheiterten Version — sie wird nie wieder geliefert " \
+      "(version.rb:549). Der Verlust ist laut, aber endgueltig."
+  end
+
+  # ===================================================================================
+  # Plan 02.1-03, Task 3: `players.pin4` ausser Betrieb
+  # ===================================================================================
+
+  test "pin4 ist fuer ActiveRecord unsichtbar, die Spalte steht aber noch in der Datenbank" do
+    refute Player.new.respond_to?(:pin4), "ignored_columns muss das Attribut ausblenden"
+    refute_includes Player.column_names, "pin4", "auch aus column_names — so wirkt ignored_columns"
+
+    # ⚠️ Die DATENBANKSPALTE bleibt: `remove_column` ist Plan 02.1-04, erst nach dem Deploy.
+    db_spalten = ActiveRecord::Base.connection.columns("players").map(&:name)
+    assert_includes db_spalten, "pin4", "die Spalte darf in diesem Plan NICHT entfernt sein"
+  end
+
+  test "region_ids bleibt weiter ignoriert — die Liste wurde erweitert, nicht ersetzt" do
+    assert_includes Player.ignored_columns, "region_ids"
+    assert_includes Player.ignored_columns, "pin4"
+  end
+
+  test "ein Player laesst sich ohne die pin4-Validierung speichern" do
+    p = Player.new(firstname: "Test", lastname: "Filter",
+      club_id: clubs(:bcw).id, type: "Player")
+    p.unprotected = true
+    assert p.save, "Speichern darf nicht an einer Validierung fuer ein ignoriertes Attribut scheitern: " \
+      "#{p.errors.full_messages.join("; ")}"
+  end
+
+  # ⚠️ Der eigentliche Zweck der Kombination: ein Authority-Snapshot mit `pin4` darf den
+  # Player-Sync nicht mehr zerlegen — und zwar SCHON JETZT, vor dem remove_column.
+  test "ein Authority-Snapshot mit pin4 verliert nur pin4, nicht die uebrigen Werte" do
+    args = {"firstname" => "Max", "lastname" => "Muster", "pin4" => "1234"}
+
+    log = capture_sync_log { Version.reject_unknown_columns!(Player, args, 42) }
+
+    assert_equal({"firstname" => "Max", "lastname" => "Muster"}, args)
+    assert_match(/unbekannte Spalten verworfen.*pin4/, log)
+  end
 end
