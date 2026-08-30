@@ -27,6 +27,15 @@ class AdminPlayerLocalsTest < ActionDispatch::IntegrationTest
     Carambus.config = @original_config
   end
 
+  test "der Index verlinkt auf die Massenpflege" do
+    get "/admin/player_locals"
+
+    assert_response :success
+    assert_includes response.body, "/admin/player_locals/bulk_edit"
+    # ⚠️ Der ueberschriebene _index_header darf den Standard-Knopf nicht verdraengen.
+    assert_includes response.body, "/admin/player_locals/new"
+  end
+
   test "Index rendert" do
     PlayerLocal.create!(player: @player, email: "max@example.com")
 
@@ -123,4 +132,103 @@ class AdminPlayerLocalsTest < ActionDispatch::IntegrationTest
     assert_response :unprocessable_entity
     assert_includes response.body, "4 bis 8 Ziffern"
   end
+  # ===================================================================================
+  # Massenpflege der E-Mail-Adressen (Quick-Task 2026-08-30)
+  # ===================================================================================
+
+  def bulk(rows)
+    patch "/admin/player_locals/bulk_update", params: {rows: rows}
+  end
+
+  test "die Massenpflege listet ALLE Clubmitglieder, auch ohne vorhandenen Datensatz" do
+    get "/admin/player_locals/bulk_edit"
+
+    assert_response :success
+    PlayerLocal.selectable_players.each do |p|
+      assert_includes response.body, p.fl_name, "#{p.fl_name} fehlt in der Tabelle"
+    end
+    assert_equal 0, PlayerLocal.count, "das blosse Anzeigen darf nichts anlegen"
+  end
+
+  test "mehrere Adressen in einem Zug" do
+    a = players(:nbv_ullrich)
+    b = players(:nbv_andresen)
+
+    bulk({a.id => {email: "A@Example.COM"}, b.id => {email: "b@example.com"}})
+
+    assert_redirected_to "/admin/player_locals/bulk_edit"
+    assert_equal "a@example.com", PlayerLocal.find_by(player_id: a.id).email, "Normalisierung muss greifen"
+    assert_equal "b@example.com", PlayerLocal.find_by(player_id: b.id).email
+  end
+
+  # ⚠️ Der teuerste denkbare Fehler: das Formular einmal leer abschicken und 23 leere
+  # Kontakte erzeugen.
+  test "leere Zeilen legen KEINE Datensaetze an" do
+    zeilen = PlayerLocal.selectable_players.to_h { |p| [p.id, {email: "", consent: "0"}] }
+
+    bulk(zeilen)
+
+    assert_equal 0, PlayerLocal.count, "eine leere Zeile ohne Bestand darf nichts anlegen"
+  end
+
+  test "Haken setzen macht anschreibbar, Haken wegnehmen widerruft — die Adresse bleibt" do
+    a = players(:nbv_ullrich)
+
+    bulk({a.id => {email: "a@example.com", consent: "1"}})
+    k = PlayerLocal.find_by(player_id: a.id)
+    assert k.contactable?, "der Haken muss die Einwilligung setzen"
+
+    bulk({a.id => {email: "a@example.com", consent: "0"}})
+    k.reload
+    refute k.contactable?, "der weggenommene Haken muss widerrufen"
+    assert k.revoked?
+    assert_equal "a@example.com", k.email, "der Widerruf darf die Adresse NICHT loeschen"
+  end
+
+  test "erneutes Anhaken nach Widerruf macht wieder anschreibbar" do
+    a = players(:nbv_ullrich)
+    bulk({a.id => {email: "a@example.com", consent: "1"}})
+    bulk({a.id => {email: "a@example.com", consent: "0"}})
+    bulk({a.id => {email: "a@example.com", consent: "1"}})
+
+    k = PlayerLocal.find_by(player_id: a.id)
+    assert k.contactable?
+    assert_nil k.consent_revoked_at
+  end
+
+  # ⚠️ Eine fehlerhafte Zeile darf die uebrigen nicht mitreissen.
+  test "eine ungueltige Adresse blockiert die gueltigen Zeilen nicht" do
+    a = players(:nbv_ullrich)
+    b = players(:nbv_andresen)
+
+    bulk({a.id => {email: "kein-at-zeichen"}, b.id => {email: "b@example.com"}})
+
+    assert_response :unprocessable_entity
+    assert_equal "b@example.com", PlayerLocal.find_by(player_id: b.id)&.email,
+      "die gueltige Zeile muss trotzdem gespeichert sein"
+    assert_nil PlayerLocal.find_by(player_id: a.id), "die ungueltige nicht"
+    assert_includes response.body, "kein-at-zeichen", "die Eingabe muss zurueckgezeigt werden"
+  end
+
+  # ⚠️ Der Zugriffsschutz dieser Aktion ist die Mitgliederliste, nicht die id aus dem Request.
+  test "eine untergeschobene fremde player_id bleibt folgenlos" do
+    fremd = Player.where.not(id: PlayerLocal.selectable_players.map(&:id)).first
+    refute_nil fremd, "Testvoraussetzung: es muss einen Nicht-Clubspieler geben"
+
+    bulk({fremd.id => {email: "fremd@example.com", consent: "1"}})
+
+    assert_nil PlayerLocal.find_by(player_id: fremd.id),
+      "nur Clubmitglieder duerfen ueber die Massenpflege entstehen"
+  end
+
+  test "ohne System-Admin ist die Massenpflege nicht erreichbar" do
+    sign_out :user
+
+    get "/admin/player_locals/bulk_edit"
+    assert_response :redirect
+
+    bulk({players(:nbv_ullrich).id => {email: "x@example.com"}})
+    assert_equal 0, PlayerLocal.count
+  end
+
 end

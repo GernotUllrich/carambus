@@ -163,6 +163,25 @@ en:
       system_settings: System Settings
       title: Settings
       update_configuration: Update Configuration
+    player_locals:
+      bulk:
+        back: Back to list
+        consent: Consent
+        email: Email address
+        hint: All club members of the current season. Enter the addresses and tick the box only where consent has actually been given. Unticking means withdrawal — the address itself is kept.
+        partial: "%{ok} saved, %{fehler} with errors — please check the highlighted rows."
+        player: Player
+        save: Save all
+        saved:
+          one: One row saved.
+          other: "%{count} rows saved."
+          zero: Nothing changed.
+        state: Status
+        state_contactable: contactable
+        state_empty: no address
+        state_no_consent: address without consent
+        state_revoked: withdrawn
+        title: Club members' email addresses
   add_tables: Add Tables
   application:
     account_navbar:

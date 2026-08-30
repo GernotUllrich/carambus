@@ -163,6 +163,25 @@ de:
       system_settings: Systemeinstellungen
       title: Einstellungen
       update_configuration: Konfiguration aktualisieren
+    player_locals:
+      bulk:
+        back: Zurück zur Liste
+        consent: Einwilligung
+        email: E-Mail-Adresse
+        hint: Alle Clubmitglieder der laufenden Saison. Trage die Adressen ein und setze den Haken nur dort, wo dir die Einwilligung wirklich vorliegt. Ein Haken weg bedeutet Widerruf — die Adresse bleibt dabei gespeichert.
+        partial: "%{ok} gespeichert, %{fehler} fehlerhaft — die markierten Zeilen bitte prüfen."
+        player: Spieler
+        save: Alle speichern
+        saved:
+          one: Eine Zeile gespeichert.
+          other: "%{count} Zeilen gespeichert."
+          zero: Nichts geändert.
+        state: Stand
+        state_contactable: anschreibbar
+        state_empty: keine Adresse
+        state_no_consent: Adresse ohne Einwilligung
+        state_revoked: widerrufen
+        title: E-Mail-Adressen der Clubmitglieder
   add_tables: Tische hinzufügen
   application:
     account_navbar:

@@ -1,0 +1,86 @@
+<%# Massenpflege der E-Mail-Adressen (Quick-Task 2026-08-30).
+
+    Alle Clubmitglieder der laufenden Saison in einer Tabelle, ein Speichern.
+    UI-Konventionen: nur Tailwind-Token, class-basierter Dark-Mode, keine hartkodierten Farben. %>
+
+<div class="max-w-4xl mx-auto p-4 space-y-6">
+  <div>
+    <h1 class="text-2xl font-semibold text-gray-900 dark:text-gray-100">
+      <%= t("admin.player_locals.bulk.title") %>
+    </h1>
+    <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
+      <%= t("admin.player_locals.bulk.hint") %>
+    </p>
+  </div>
+
+  <% if (alert = flash.now[:alert] || flash[:alert]).present? %>
+    <div class="rounded-lg border border-danger-300 bg-danger-50 p-3 text-danger-800
+                dark:border-danger-700 dark:bg-danger-900 dark:text-danger-100" role="alert">
+      <%= alert %>
+    </div>
+  <% end %>
+  <% if flash[:notice].present? %>
+    <div class="rounded-lg border border-success-300 bg-success-50 p-3 text-success-800
+                dark:border-success-700 dark:bg-success-900 dark:text-success-100" role="status">
+      <%= flash[:notice] %>
+    </div>
+  <% end %>
+
+  <%= form_with url: bulk_update_admin_player_locals_path, method: :patch, local: true do %>
+    <div class="overflow-x-auto">
+      <table class="min-w-full text-sm">
+        <thead>
+          <tr class="border-b border-gray-300 dark:border-gray-600 text-left">
+            <th class="py-2 pr-4 font-medium text-gray-700 dark:text-gray-300"><%= t("admin.player_locals.bulk.player") %></th>
+            <th class="py-2 pr-4 font-medium text-gray-700 dark:text-gray-300"><%= t("admin.player_locals.bulk.email") %></th>
+            <th class="py-2 pr-4 font-medium text-gray-700 dark:text-gray-300"><%= t("admin.player_locals.bulk.consent") %></th>
+            <th class="py-2 font-medium text-gray-700 dark:text-gray-300"><%= t("admin.player_locals.bulk.state") %></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @players.each do |player| %>
+            <% kontakt = @locals[player.id] %>
+            <% fehler = @fehler[player.id] %>
+            <tr class="border-b border-gray-200 dark:border-gray-700 <%= "bg-danger-50 dark:bg-danger-900/30" if fehler %>">
+              <td class="py-2 pr-4 text-gray-900 dark:text-gray-100 whitespace-nowrap">
+                <%= player.fl_name %>
+              </td>
+              <td class="py-2 pr-4">
+                <%= email_field_tag "rows[#{player.id}][email]", kontakt&.email,
+                      autocomplete: "off",
+                      class: "block w-64 rounded border-gray-300 bg-white py-1.5
+                              text-gray-900 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100" %>
+                <% if fehler %>
+                  <span class="block mt-1 text-xs text-danger-700 dark:text-danger-300"><%= fehler %></span>
+                <% end %>
+              </td>
+              <td class="py-2 pr-4">
+                <%# ⚠️ Hidden vor der Checkbox: eine nicht angehakte Box schickt gar nichts mit,
+                    ein Widerruf käme sonst nie beim Controller an. %>
+                <%= hidden_field_tag "rows[#{player.id}][consent]", "0" %>
+                <%= check_box_tag "rows[#{player.id}][consent]", "1", kontakt&.contactable?,
+                      class: "h-5 w-5 rounded border-gray-300 dark:border-gray-600" %>
+              </td>
+              <td class="py-2 text-xs text-gray-600 dark:text-gray-400">
+                <% if kontakt&.contactable? %>
+                  <%= t("admin.player_locals.bulk.state_contactable") %>
+                <% elsif kontakt&.revoked? %>
+                  <%= t("admin.player_locals.bulk.state_revoked") %>
+                <% elsif kontakt&.email.present? %>
+                  <%= t("admin.player_locals.bulk.state_no_consent") %>
+                <% else %>
+                  <%= t("admin.player_locals.bulk.state_empty") %>
+                <% end %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="mt-6 flex items-center gap-4">
+      <%= submit_tag t("admin.player_locals.bulk.save"), class: "btn btn-primary h-11" %>
+      <%= link_to t("admin.player_locals.bulk.back"), admin_player_locals_path, class: "btn btn-secondary h-11" %>
+    </div>
+  <% end %>
+</div>

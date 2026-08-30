@@ -656,7 +656,14 @@ Rails.application.routes.draw do
     # Lokale Kontaktdaten der Clubmitglieder (E-Mail + Einwilligung). Bewusst NUR hier im
     # Admin-Bereich: `Admin::ApplicationController` laesst ausschliesslich System-Admins durch,
     # und `clubs#show` — die oeffentliche Mitgliederliste — darf diese Daten nicht zeigen.
-    resources :player_locals
+    resources :player_locals do
+      # Massenpflege der E-Mail-Adressen (Quick-Task 2026-08-30). Die Einzelpflege ueber
+      # Administrate braucht ein Formular JE Datensatz — bei 23 Clubmitgliedern zu muehsam.
+      collection do
+        get :bulk_edit
+        patch :bulk_update
+      end
+    end
 
     resources :international_sources
     resources :videos
