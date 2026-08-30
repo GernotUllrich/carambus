@@ -1,0 +1,105 @@
+<%# Persoenlicher Bereich (Plan 02.1-02).
+
+    Touch zuerst — die Seite laeuft auch auf dem Touchdisplay am Trainingstisch.
+    UI-Konventionen: nur Tailwind-Token, class-basierter Dark-Mode, jeder Knopf traegt `.btn`
+    (ein <a> ohne `.btn` auf farbigem Grund ist unsichtbar, base.css:19). %>
+
+<div class="max-w-2xl mx-auto p-4 space-y-8">
+
+  <div class="flex items-center justify-between gap-4">
+    <h1 class="text-2xl font-semibold text-gray-900 dark:text-gray-100">
+      <%= t(".title", name: @player_local.player.fl_name) %>
+    </h1>
+    <%= button_to t(".sign_out"), player_session_path, method: :delete,
+                  class: "btn btn-secondary" %>
+  </div>
+
+  <% if flash[:notice].present? %>
+    <div class="rounded-lg border border-success-300 bg-success-50 p-3 text-success-800
+                dark:border-success-700 dark:bg-success-900 dark:text-success-100" role="status">
+      <%= flash[:notice] %>
+    </div>
+  <% end %>
+  <% if (alert = flash.now[:alert] || flash[:alert]).present? %>
+    <div class="rounded-lg border border-danger-300 bg-danger-50 p-3 text-danger-800
+                dark:border-danger-700 dark:bg-danger-900 dark:text-danger-100" role="alert">
+      <%= alert %>
+    </div>
+  <% end %>
+
+  <%# ---------------- Adresse ---------------- %>
+  <section class="space-y-3">
+    <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100"><%= t(".contact_heading") %></h2>
+    <p class="text-sm text-gray-600 dark:text-gray-400"><%= t(".contact_hint") %></p>
+
+    <%= form_with url: player_profile_path, method: :patch, local: true, class: "space-y-3" do %>
+      <%= label_tag "player_local_email", t(".email"),
+                    class: "block text-sm font-medium text-gray-700 dark:text-gray-300" %>
+      <%= email_field_tag "player_local[email]", @player_local.email,
+                          autocomplete: "email",
+                          class: "block w-full rounded-lg border-gray-300 bg-white py-3 text-lg
+                                  text-gray-900 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100" %>
+      <%= submit_tag t(".save"), class: "btn btn-primary h-12" %>
+    <% end %>
+  </section>
+
+  <%# ---------------- Einwilligung ---------------- %>
+  <section class="space-y-3">
+    <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100"><%= t(".consent_heading") %></h2>
+
+    <p class="text-sm text-gray-600 dark:text-gray-400">
+      <% if @player_local.contactable? %>
+        <%= t(".consent_active", datum: l(@player_local.consent_given_at.to_date)) %>
+      <% elsif @player_local.revoked? %>
+        <%= t(".consent_revoked", datum: l(@player_local.consent_revoked_at.to_date)) %>
+      <% else %>
+        <%= t(".consent_none") %>
+      <% end %>
+    </p>
+
+    <%# Zwei getrennte Formulare statt eines Umschalters: die Handlung soll benannt sein. %>
+    <div class="flex flex-wrap gap-3">
+      <% unless @player_local.contactable? %>
+        <%= button_to t(".consent_grant"), player_profile_path(consent: "grant"),
+                      method: :patch, class: "btn btn-primary h-12" %>
+      <% end %>
+      <% if @player_local.contactable? %>
+        <%= button_to t(".consent_revoke"), player_profile_path(consent: "revoke"),
+                      method: :patch, class: "btn btn-secondary h-12" %>
+      <% end %>
+    </div>
+  </section>
+
+  <%# ---------------- PIN ---------------- %>
+  <section class="space-y-3">
+    <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100"><%= t(".pin_heading") %></h2>
+    <p class="text-sm text-gray-600 dark:text-gray-400"><%= t(".pin_hint") %></p>
+
+    <%= form_with url: pin_player_profile_path, method: :patch, local: true, class: "space-y-4" do %>
+      <%# ⚠️ Zwei GETRENNTE Stimulus-Bereiche: `pin_pad_controller` haelt seinen Zustand je
+          Instanz in genau einem Wertfeld. Ein gemeinsamer Bereich liesse beide Ziffernbloecke
+          dasselbe Feld beschreiben. %>
+      <% [["current_pin", t(".pin_current")], ["new_pin", t(".pin_new")]].each do |feld, beschriftung| %>
+        <div data-controller="pin-pad" class="space-y-2">
+          <span class="block text-sm font-medium text-gray-700 dark:text-gray-300"><%= beschriftung %></span>
+          <div class="h-10 flex items-center justify-center rounded-lg bg-gray-100 text-xl
+                      tracking-[0.5em] text-gray-900 dark:bg-gray-800 dark:text-gray-100"
+               data-pin-pad-target="display" aria-live="polite"></div>
+          <%= hidden_field_tag feld, "", data: { pin_pad_target: "value" } %>
+          <div class="grid grid-cols-6 gap-2">
+            <% (1..9).to_a.push(0).each do |ziffer| %>
+              <button type="button" class="btn btn-secondary h-12 text-xl"
+                      data-action="pin-pad#push" data-digit="<%= ziffer %>"><%= ziffer %></button>
+            <% end %>
+            <button type="button" class="btn btn-secondary h-12 text-sm"
+                    data-action="pin-pad#back"><%= t(".pin_backspace") %></button>
+            <button type="button" class="btn btn-secondary h-12 text-sm"
+                    data-action="pin-pad#clear"><%= t(".pin_clear") %></button>
+          </div>
+        </div>
+      <% end %>
+
+      <%= submit_tag t(".pin_change"), class: "btn btn-primary h-12" %>
+    <% end %>
+  </section>
+</div>

@@ -433,6 +433,7 @@ en:
       new_table_reservation: New table reservation
     scoreboard_welcome:
       calendar: Fixtures
+      player_area: My area
     synonyms: Synonyms
     tables: Tables
     updated_at: updated at
@@ -519,6 +520,37 @@ en:
       coming_soon: The personal area is being built.
       sign_out: Sign out
       signed_in_as: Signed in as %{name}
+  player_profiles:
+    nav:
+      my_area: My player area
+    pin:
+      locked: Too many failed attempts. Please try again in %{minuten} minute(s).
+      pin_blank: Please enter a new PIN.
+      pin_changed: Your PIN has been changed.
+      wrong_current_pin: The current PIN is incorrect.
+    show:
+      consent_active: You consented on %{datum} and can be contacted.
+      consent_grant: Give consent
+      consent_heading: Consent to club communication
+      consent_none: You have not consented yet. Without consent you will not be contacted.
+      consent_revoke: Withdraw consent
+      consent_revoked: You withdrew consent on %{datum}. Your address is kept, but you will not be contacted.
+      contact_heading: My contact details
+      contact_hint: These details stay on the club server and are not shared.
+      email: Email address
+      pin_backspace: Back
+      pin_change: Change PIN
+      pin_clear: Clear
+      pin_current: Current PIN
+      pin_heading: My PIN
+      pin_hint: To change it, enter your current PIN first, then the new one (4 to 8 digits).
+      pin_new: New PIN
+      save: Save
+      sign_out: Sign out
+      title: My area — %{name}
+    sign_in_required: Please sign in first.
+    update:
+      saved: Saved.
   player_ranking:
     balls: balls
     bed: bavg

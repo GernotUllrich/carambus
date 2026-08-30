@@ -43,7 +43,9 @@ class PlayerSessionsTest < ActionDispatch::IntegrationTest
   test "richtiger PIN meldet an" do
     anmelden
 
-    assert_redirected_to "/player_session"
+    # Seit Plan 02.1-02 landet die Anmeldung direkt im persoenlichen Bereich; der
+    # Platzhalter-Landeplatz aus 02.1-01 ist dadurch ersetzt.
+    assert_redirected_to "/player_profile"
     follow_redirect!
     assert_response :success
     assert_includes response.body, @player.fl_name
@@ -88,11 +90,11 @@ class PlayerSessionsTest < ActionDispatch::IntegrationTest
 
   test "Untaetigkeit beendet die Anmeldung" do
     anmelden
-    get "/player_session"
+    get "/player_profile"
     assert_response :success
 
     travel_to(11.minutes.from_now) do
-      get "/player_session"
+      get "/player_profile"
       assert_redirected_to "/player_session/new", "nach Ablauf der Spanne muss abgemeldet sein"
     end
   end
@@ -102,11 +104,11 @@ class PlayerSessionsTest < ActionDispatch::IntegrationTest
 
     # Zwei Mal je 6 Minuten: zusammen mehr als die Spanne, aber nie eine Luecke groesser als 10.
     travel_to(6.minutes.from_now) do
-      get "/player_session"
+      get "/player_profile"
       assert_response :success
     end
     travel_to(12.minutes.from_now) do
-      get "/player_session"
+      get "/player_profile"
       assert_response :success, "die Anmeldung haette am Leben bleiben muessen"
     end
   end
@@ -115,10 +117,11 @@ class PlayerSessionsTest < ActionDispatch::IntegrationTest
     get "/player_session/new?locale=en"
     anmelden
 
-    get "/player_session"
+    get "/player_profile"
     assert_response :success
     # ⚠️ Beweist, dass `sign_in_player` kein `reset_session` macht — das risse session[:locale] mit.
-    assert_includes response.body, "Signed in as"
+    # Der Text stammt aus dem persoenlichen Bereich (player_profiles.show.title, Plan 02.1-02).
+    assert_includes response.body, "My area"
   end
 
   test "ohne Anmeldung bleibt current_player_local leer" do

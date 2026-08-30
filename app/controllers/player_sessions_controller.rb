@@ -15,10 +15,12 @@ class PlayerSessionsController < ApplicationController
     @players = PlayerLocal.selectable_players
   end
 
+  # Der Landeplatz aus 02.1-01 ist durch den persoenlichen Bereich ersetzt (Plan 02.1-02).
+  # Die Route bleibt bestehen, damit alte Links und Lesezeichen weiter funktionieren.
   def show
     return redirect_to new_player_session_path unless player_signed_in?
 
-    @player_local = current_player_local
+    redirect_to player_profile_path
   end
 
   def create
@@ -26,7 +28,7 @@ class PlayerSessionsController < ApplicationController
 
     if kontakt&.verify_pin(params[:pin])
       sign_in_player(kontakt)
-      return redirect_to player_session_path
+      return redirect_to player_profile_path
     end
 
     @players = PlayerLocal.selectable_players

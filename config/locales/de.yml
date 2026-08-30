@@ -436,6 +436,7 @@ de:
       new_table_reservation: Neue Tischreservierung
     scoreboard_welcome:
       calendar: Termine
+      player_area: Mein Bereich
     synonyms: Synonyme
     tables: Tische
     updated_at: updated at
@@ -533,6 +534,37 @@ de:
       coming_soon: Der persönliche Bereich entsteht gerade.
       sign_out: Abmelden
       signed_in_as: Angemeldet als %{name}
+  player_profiles:
+    nav:
+      my_area: Mein Spielerbereich
+    pin:
+      locked: Zu viele Fehlversuche. Bitte in %{minuten} Minute(n) noch einmal versuchen.
+      pin_blank: Bitte einen neuen PIN eingeben.
+      pin_changed: Der PIN ist geändert.
+      wrong_current_pin: Der bisherige PIN stimmt nicht.
+    show:
+      consent_active: Du hast am %{datum} zugestimmt und kannst angeschrieben werden.
+      consent_grant: Einwilligung erteilen
+      consent_heading: Einwilligung in die Vereinskommunikation
+      consent_none: Du hast noch nicht zugestimmt. Ohne Einwilligung wirst du nicht angeschrieben.
+      consent_revoke: Einwilligung widerrufen
+      consent_revoked: Du hast am %{datum} widerrufen. Deine Adresse bleibt gespeichert, du wirst aber nicht angeschrieben.
+      contact_heading: Meine Kontaktdaten
+      contact_hint: Diese Angaben bleiben auf dem Vereinsrechner und werden nicht weitergegeben.
+      email: E-Mail-Adresse
+      pin_backspace: Zurück
+      pin_change: PIN ändern
+      pin_clear: Löschen
+      pin_current: Bisheriger PIN
+      pin_heading: Mein PIN
+      pin_hint: Zum Ändern erst den bisherigen, dann den neuen PIN eingeben (4 bis 8 Ziffern).
+      pin_new: Neuer PIN
+      save: Speichern
+      sign_out: Abmelden
+      title: Mein Bereich — %{name}
+    sign_in_required: Bitte zuerst anmelden.
+    update:
+      saved: Gespeichert.
   player_ranking:
     balls: balls
     bed: BED

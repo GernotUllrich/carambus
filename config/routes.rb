@@ -718,5 +718,11 @@ Rails.application.routes.draw do
   # Anmeldung im Spielerkontext (Plan 02.1-01). Singular: es gibt genau eine je Browser.
   resource :player_session, only: %i[new create show destroy]
 
+  # Der persoenliche Bereich (Plan 02.1-02). Singular: es gibt genau einen je angemeldetem
+  # Mitglied — der Datensatz kommt IMMER aus der Sitzung, nie aus dem Pfad.
+  resource :player_profile, only: %i[show update] do
+    patch :pin
+  end
+
   get "demo/scoreboard", to: "table_monitors#demo_scoreboard"
 end

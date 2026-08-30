@@ -103,6 +103,21 @@ class PlayerLocal < ApplicationRecord
     consent_revoked_at.present?
   end
 
+  # Einwilligung erteilen — auch nach einem frueheren Widerruf.
+  #
+  # ⚠️ `consent_revoked_at` MUSS dabei zurueckgesetzt werden. Der Scope `contactable` (oben)
+  # verlangt `consent_revoked_at IS NULL`; ohne das Zuruecksetzen bliebe ein einmal
+  # Widerrufener dauerhaft nicht anschreibbar, obwohl er gerade erneut zugestimmt hat.
+  def grant_consent!
+    update!(consent_given_at: Time.current, consent_revoked_at: nil)
+  end
+
+  # Widerruf. ⚠️ Die Adresse bleibt bewusst stehen — der Widerruf sagt „nicht mehr
+  # anschreiben", nicht „Daten loeschen". Wer die Adresse entfernen will, leert das Feld.
+  def revoke_consent!
+    update!(consent_revoked_at: Time.current)
+  end
+
   # ---------------------------------------------------------------------------------------
   # Anmeldung im Spielerkontext (Plan 02.1-01)
   #

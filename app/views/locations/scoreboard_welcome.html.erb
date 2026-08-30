@@ -54,7 +54,8 @@
         "start": "intro",
         "intro": "reservations",
         "reservations": "calendar",
-        "calendar": "start"
+        "calendar": "player_area",
+        "player_area": "start"
       }
 
       if (event.keyCode in keyMap) {
@@ -200,6 +201,19 @@
       `Carambus.config.context` schon die richtige Region traegt. %>
   <span class="flex items-center flex-row h-1/4 space-x-20">
     <%= custom_link_to t('location.scoreboard_welcome.calendar'), calendar_path(branch: calendar_branch_param(@location.branch_names)), data: { turbo: false }, class: "dark:text-white focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 btn btn-primary text-3vw lg:mr-10 mr-4 lg:mt-4 mt-2", id: "calendar", tabindex: 1 %>
+  </span>
+  <%# Persoenlicher Bereich (Plan 02.1-02): eigene Adresse und Einwilligung pflegen, PIN
+      aendern. Eigene Zeile unter dem Terminkalender.
+
+      Betreiber-Entscheidung 2026-08-30: der Einstieg liegt HIER und im Menue — bewusst NICHT
+      im Spielerauswahl-Dialog. Anmelden bleibt optional, der Trainingsspiel-Ablauf aus Phase 2
+      wird nicht angefasst.
+
+      Die id `player_area` steht in der Kette `tabbed_elements` oben. Fehlt sie dort, springt
+      die Tastensteuerung den Knopf nie an; steht dort ein Eintrag OHNE Element, wirft
+      `getElementById(...).focus()` und die gesamte Tastensteuerung bricht. %>
+  <span class="flex items-center flex-row h-1/4 space-x-20">
+    <%= custom_link_to t('location.scoreboard_welcome.player_area'), player_profile_path, data: { turbo: false }, class: "dark:text-white focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 btn btn-primary text-3vw lg:mr-10 mr-4 lg:mt-4 mt-2", id: "player_area", tabindex: 1 %>
   </span>
   <% if Time.now.month == 12 %>
   <span class="flex items-center flex-row h-1/4 space-x-20">
