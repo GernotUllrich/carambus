@@ -149,8 +149,12 @@
 
 /* Print Styles */
 @media print {
-  /* Hide everything except the modal */
-  body > *:not(#game-protocol-modal) {
+  /* Alles ausser dem Modal ausblenden — aber NUR auf Seiten, die das Modal ueberhaupt haben.
+     ⚠️ Ohne das `:has()` galt die Regel anwendungsweit: jede andere Druckseite kam leer aus dem
+     Drucker, weil ihr gesamter Body-Inhalt ausgeblendet wurde. Aufgefallen am 2026-08-30 an der
+     Kalender-Druckansicht; `spielleiter_chat/print` traf es genauso.
+     `:has()` ist im Projekt bereits im Einsatz (components/modal.css:2). */
+  body:has(#game-protocol-modal) > *:not(#game-protocol-modal) {
     display: none !important;
   }
   
