@@ -6,14 +6,18 @@
     margin: 0.5cm;
   }
   
-  body {
+  body:has(.protocol-print-container) {
     margin: 0;
     padding: 0;
     background: white;
   }
   
-  /* Hide everything except print content */
-  body > *:not(.protocol-print-container) {
+  /* Alles ausser dem Druckcontainer ausblenden — aber NUR auf Seiten, die ihn ueberhaupt
+     haben. ⚠️ Dieselbe Falle wie in game_protocol_modal.css: ohne das `:has()` gilt die Regel
+     anwendungsweit (application.tailwind.css importiert diese Datei global), und jede andere
+     Druckseite kommt leer aus dem Drucker. Im Browser sieht die Seite dabei vollstaendig aus.
+     `:has()` ist im Projekt bereits im Einsatz (components/modal.css:2). */
+  body:has(.protocol-print-container) > *:not(.protocol-print-container) {
     display: none !important;
   }
   

@@ -70,14 +70,33 @@ class CalendarPrintTest < ActionDispatch::IntegrationTest
     assert_match(/#{Regexp.escape(I18n.t("calendars.print.empty"))}/, response.body)
   end
 
-  # ⚠️ Regressionsschutz fuer den eigentlichen Bug. Die Regel MUSS an das Modal gebunden
-  # bleiben — ohne `:has()` gilt sie anwendungsweit und jede andere Druckseite kommt leer
-  # aus dem Drucker. Im Browser ist das unsichtbar, deshalb hier.
-  test "die globale Druck-Ausblendung ist an das Protokoll-Modal gebunden" do
-    css = Rails.root.join("app/assets/stylesheets/components/game_protocol_modal.css").read
+  # ⚠️ Regressionsschutz fuer den eigentlichen Bug. Es gibt ZWEI Dateien mit derselben Falle —
+  # beim ersten Anlauf hatte ich nur eine gefunden, der Ausdruck blieb leer. Beide Regeln
+  # muessen an ihren Container gebunden bleiben; unbedingt gelten sie anwendungsweit und jede
+  # andere Druckseite kommt leer aus dem Drucker. Im Browser ist das unsichtbar, deshalb hier.
+  {
+    "game_protocol_modal.css" => "#game-protocol-modal",
+    "game_protocol_print.css" => ".protocol-print-container"
+  }.each do |datei, container|
+    test "die Druck-Ausblendung in #{datei} ist an ihren Container gebunden" do
+      css = Rails.root.join("app/assets/stylesheets/components", datei).read
+      escaped = Regexp.escape(container)
 
-    refute_match(/^\s*body\s*>\s*\*:not\(#game-protocol-modal\)/, css,
-      "eine unbedingte Regel blendet auf JEDER Druckseite alles aus")
-    assert_match(/body:has\(#game-protocol-modal\)\s*>\s*\*:not\(#game-protocol-modal\)/, css)
+      refute_match(/^\s*body\s*>\s*\*:not\(#{escaped}\)/, css,
+        "eine unbedingte Regel blendet auf JEDER Druckseite alles aus")
+      assert_match(/body:has\(#{escaped}\)\s*>\s*\*:not\(#{escaped}\)/, css)
+    end
+  end
+
+  # `game_protocol_print.css` setzt global `@page { size: A4 landscape }` — eine At-Rule laesst
+  # sich nicht an einen Selektor binden. Der Kalender setzt deshalb seine eigene Geometrie.
+  test "die Druckansicht setzt ihr eigenes Seitenformat" do
+    turnier!(5, "NDM Format")
+
+    get calendar_url(scope: {region: @region.id, season: @season.id}, month: @monat)
+    drucken
+    assert_response :success
+    assert_match(/@page\s*\{[^}]*portrait/, response.body,
+      "sonst kaeme der Kalender im Querformat des Spielprotokolls")
   end
 end

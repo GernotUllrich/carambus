@@ -10,6 +10,15 @@
   <%= viewport_meta_tag %>
   <%= javascript_include_tag "application", "data-turbo-track": "reload", defer: true %>
   <%= stylesheet_link_tag "application", media: "all", "data-turbo-track": "reload" %>
+  <%# ⚠️ `components/game_protocol_print.css` setzt global `@page { size: A4 landscape }` — die
+      Regel ist fuer das Spielprotokoll gedacht, gilt aber anwendungsweit und laesst sich nicht
+      an einen Selektor binden (At-Rules kennen keinen Kontext). Ein Terminkalender gehoert ins
+      Hochformat, deshalb hier die eigene Seitengeometrie: sie steht NACH dem Stylesheet und
+      gewinnt damit. Kein Verstoss gegen die Farb-Konvention — Seitengeometrie laesst sich
+      nicht als Utility-Klasse ausdruecken. %>
+  <style>
+      @page { size: A4 portrait; margin: 1cm; }
+  </style>
 </head>
 <body class="font-sans antialiased bg-white text-gray-900">
   <div class="p-6 max-w-5xl mx-auto">
