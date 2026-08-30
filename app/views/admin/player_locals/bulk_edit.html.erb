@@ -78,15 +78,24 @@
                     Grund — sichtbar, statt einen gesperrten Knopf zu zeigen, dessen Ursache
                     man raten muesste.
 
-                    ⚠️ Eigenes Formular je Zeile: ein `button_to` INNERHALB des grossen
-                    Speichern-Formulars waere verschachteltes HTML und wuerde nicht
-                    zuverlaessig funktionieren. %>
+                    ⚠️ LINK mit `turbo_method`, NICHT `button_to`. Wir stehen hier INNERHALB des
+                    grossen Speichern-Formulars; `button_to` erzeugt ein eigenes <form>, und
+                    verschachtelte Formulare sind ungueltiges HTML — der Browser verwirft das
+                    innere, und der Klick schickt das AEUSSERE Formular ab.
+
+                    Das ist real passiert (2026-08-30, BCW-Production): der Klick loeste ein
+                    `PATCH /bulk_update` aus statt des Versands, es kam keine Mail an, und im
+                    Log stand kein einziger Hinweis — weil der Controller nie erreicht wurde.
+                    Ein Test unten wacht jetzt gegen genau diese Verschachtelung.
+
+                    ⚠️ `link_to`, nicht `custom_link_to`: letzteres setzt `data-turbo: false`
+                    und macht `turbo_method` damit wirkungslos. %>
                 <% if kontakt&.contactable? %>
-                  <%= button_to t("admin.player_locals.bulk.invite"),
+                  <%= link_to t("admin.player_locals.bulk.invite"),
                         send_pin_invitation_admin_player_local_path(kontakt),
-                        method: :post, form: { class: "inline" },
                         class: "btn btn-secondary text-xs px-3 py-1",
-                        data: { turbo_confirm: t("admin.player_locals.bulk.invite_confirm", email: kontakt.email) } %>
+                        data: { turbo_method: :post,
+                                turbo_confirm: t("admin.player_locals.bulk.invite_confirm", email: kontakt.email) } %>
                 <% elsif kontakt.nil? || kontakt.email.blank? %>
                   <span class="text-gray-400 dark:text-gray-500"><%= t("admin.player_locals.bulk.invite_needs_email") %></span>
                 <% else %>

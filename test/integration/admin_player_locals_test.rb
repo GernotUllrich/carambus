@@ -301,6 +301,33 @@ class AdminPlayerLocalsTest < ActionDispatch::IntegrationTest
     assert_match(/fehlgeschlagen/i, response.body)
   end
 
+  # ⚠️ DER TEST, DER DEN PRODUKTIONSFEHLER GEFANGEN HAETTE (2026-08-30).
+  #
+  # Der Einladungs-Knopf stand als `button_to` INNERHALB des grossen Speichern-Formulars.
+  # `button_to` erzeugt ein eigenes <form> — verschachtelte Formulare sind ungueltiges HTML,
+  # der Browser verwirft das innere, und der Klick schickte das AEUSSERE Formular ab. Auf BCW
+  # kam dadurch keine Mail an, und im Log stand nichts: der Controller wurde nie erreicht.
+  #
+  # Der alte Test pruefte nur, dass die Beschriftung im HTML steht — die stand dort auch.
+  test "im Speichern-Formular steckt KEIN verschachteltes Formular" do
+    PlayerLocal.create!(player: @player, email: "max@example.com", consent_given_at: Time.current)
+
+    get "/admin/player_locals/bulk_edit"
+    assert_response :success
+
+    start = response.body.index("bulk_update")
+    refute_nil start, "das Speichern-Formular fehlt"
+    # Der erste </form> nach dem Oeffnen des aeusseren Formulars.
+    ende = response.body.index("</form>", start)
+    refute_nil ende
+    innen = response.body[start...ende]
+
+    refute_match(/<form/i, innen,
+      "verschachteltes <form> im Speichern-Formular — der Klick schickt das falsche ab")
+    assert_match(/data-turbo-method="post"/, innen,
+      "der Einladungs-Link muss per turbo_method posten")
+  end
+
   test "die Massenpflege zeigt den Einladungs-Knopf nur bei Einwilligung" do
     PlayerLocal.create!(player: @player, email: "max@example.com", consent_given_at: Time.current)
     PlayerLocal.create!(player: players(:nbv_andresen), email: "ohne@example.com")
