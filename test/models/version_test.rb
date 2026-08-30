@@ -575,16 +575,20 @@ class VersionTest < ActiveSupport::TestCase
   # Plan 02.1-03, Task 3: `players.pin4` ausser Betrieb
   # ===================================================================================
 
-  test "pin4 ist fuer ActiveRecord unsichtbar, die Spalte steht aber noch in der Datenbank" do
-    refute Player.new.respond_to?(:pin4), "ignored_columns muss das Attribut ausblenden"
-    refute_includes Player.column_names, "pin4", "auch aus column_names — so wirkt ignored_columns"
+  test "pin4 existiert nicht mehr — weder fuer ActiveRecord noch in der Datenbank" do
+    refute Player.new.respond_to?(:pin4)
+    refute_includes Player.column_names, "pin4"
 
-    # ⚠️ Die DATENBANKSPALTE bleibt: `remove_column` ist Plan 02.1-04, erst nach dem Deploy.
+    # Plan 02.1-04: die Spalte ist entfernt.
     db_spalten = ActiveRecord::Base.connection.columns("players").map(&:name)
-    assert_includes db_spalten, "pin4", "die Spalte darf in diesem Plan NICHT entfernt sein"
+    refute_includes db_spalten, "pin4", "die Migration RemovePin4FromPlayers muss gelaufen sein"
   end
 
-  test "region_ids bleibt weiter ignoriert — die Liste wurde erweitert, nicht ersetzt" do
+  # ⚠️ `ignored_columns` behaelt `pin4` BEWUSST, obwohl die Spalte weg ist — genau wie
+  # `Location` es nach dem Drop von `club_id` bis heute tut (location.rb:40). Es kostet nichts
+  # und schuetzt, falls jemand die Migration zurueckrollt oder eine Instanz beim Deploy
+  # zurueckbleibt. Dieser Test haelt fest, dass es kein Versehen ist.
+  test "ignored_columns behaelt pin4 auch nach dem Drop — und region_ids ebenfalls" do
     assert_includes Player.ignored_columns, "region_ids"
     assert_includes Player.ignored_columns, "pin4"
   end
@@ -597,8 +601,9 @@ class VersionTest < ActiveSupport::TestCase
       "#{p.errors.full_messages.join("; ")}"
   end
 
-  # ⚠️ Der eigentliche Zweck der Kombination: ein Authority-Snapshot mit `pin4` darf den
-  # Player-Sync nicht mehr zerlegen — und zwar SCHON JETZT, vor dem remove_column.
+  # ⚠️ Nach dem Drop (Plan 02.1-04) ist dieser Test ERST RECHT wichtig: die bestehenden
+  # Authority-Versionen tragen `pin4` fuer immer in ihrem YAML und werden nachhinkenden Servern
+  # nachgespielt. Ohne den Filter scheiterte dort ab sofort jeder Player-Apply.
   test "ein Authority-Snapshot mit pin4 verliert nur pin4, nicht die uebrigen Werte" do
     args = {"firstname" => "Max", "lastname" => "Muster", "pin4" => "1234"}
 

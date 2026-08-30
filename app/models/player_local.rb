@@ -124,7 +124,8 @@ class PlayerLocal < ApplicationRecord
   # Der PIN ist KEINE Benutzeranmeldung, sondern eine Bestaetigung: der Spieler ist zu diesem
   # Zeitpunkt bereits ausgewaehlt. Deshalb gibt es hier bewusst keinen zweiten Devise-Scope.
   #
-  # ⚠️ Warum nicht `players.pin4`? Die Spalte existiert, ist aber untauglich: sie ist GLOBAL
+  # ⚠️ Warum nicht `players.pin4`? Die Spalte war untauglich — und ist mit Plan 02.1-04
+  # inzwischen entfernt. Sie war GLOBAL
   # (LocalProtector verhindert, dass ein Clubserver sie ueberhaupt setzt), global EINDEUTIG
   # validiert (bei vier Stellen waeren systemweit hoechstens ~9.980 PINs vergebbar, und ein
   # erratener PIN identifizierte einen Spieler), sie speichert im KLARTEXT, und sie ist

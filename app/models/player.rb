@@ -37,15 +37,17 @@ class Player < ApplicationRecord
   
   REFLECTION_KEYS = %w[club game_participations seedings season_participations].freeze
 
-  # ⚠️ `pin4` (Plan 02.1-03): die Spalte wird ausser Betrieb genommen und in Plan 02.1-04
-  # entfernt. Sie war global eindeutig validiert (bei vier Stellen systemweit max. ~9.980 PINs,
-  # und ein erratener PIN identifizierte einen Spieler), speicherte im KLARTEXT und war
-  # vollstaendig ungenutzt: 0 von 47.774 Spielern. Der Spieler-PIN lebt seit 3ab79224 in
-  # `PlayerLocal` — dort muss er nicht eindeutig sein und liegt als bcrypt-Hash.
+  # ⚠️ `pin4` ist mit Plan 02.1-04 ENTFERNT (Migration 20260830190000). Sie war global
+  # eindeutig validiert (bei vier Stellen systemweit max. ~9.980 PINs, und ein erratener PIN
+  # identifizierte einen Spieler), speicherte im KLARTEXT und war vollstaendig ungenutzt:
+  # 0 von 47.774 Spielern. Der Spieler-PIN lebt seit 3ab79224 in `PlayerLocal` — dort muss er
+  # nicht eindeutig sein und liegt als bcrypt-Hash.
   #
-  # `ignored_columns` MUSS vor dem `remove_column` deployt sein: ActiveRecord cacht die
-  # Spaltenliste, sonst laeuft zwischen Migration und Neustart alter Code gegen eine fehlende
-  # Spalte. Vorbild im Repo: location.rb (club_id).
+  # ⚠️ Der Eintrag bleibt hier BEWUSST stehen, obwohl die Spalte weg ist — genau wie
+  # `location.rb` `club_id` bis heute fuehrt. Er kostet nichts und schuetzt, falls jemand die
+  # Migration zurueckrollt oder eine Instanz beim Deploy zurueckbleibt: ActiveRecord cacht die
+  # Spaltenliste, und ohne den Eintrag liefe zwischen Migration und Neustart alter Code gegen
+  # eine fehlende Spalte.
   #
   # Die bestehende Liste wird ERWEITERT, nicht ueberschrieben — `region_ids` bleibt ignoriert.
   self.ignored_columns = ["region_ids", "pin4"]

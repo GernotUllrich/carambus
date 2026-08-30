@@ -12,7 +12,6 @@
 #  lastname      :string
 #  nickname      :string
 #  nrw_nr        :integer
-#  pin4          :string
 #  source_url    :string
 #  sync_date     :datetime
 #  title         :string

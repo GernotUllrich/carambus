@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_08_30_150000) do
+ActiveRecord::Schema[7.2].define(version: 2026_08_30_190000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -798,7 +798,6 @@ ActiveRecord::Schema[7.2].define(version: 2026_08_30_150000) do
     t.string "source_url"
     t.datetime "sync_date"
     t.integer "nrw_nr"
-    t.string "pin4"
     t.string "logo"
     t.integer "region_id"
     t.boolean "global_context", default: false
