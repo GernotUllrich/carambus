@@ -710,8 +710,6 @@ en:
     max_frames: "max. %{count} frames"
     halted: Halted
     inning: Inning
-    toggle_locale: "Switch language"
-    locale_from_tournament: "Language set by the tournament"
     follow_up: Follow-up
     finish_follow_up: "Finish game? Touch here"
     undo: back
