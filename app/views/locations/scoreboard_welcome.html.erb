@@ -55,7 +55,8 @@
         "intro": "reservations",
         "reservations": "calendar",
         "calendar": "player_area",
-        "player_area": "start"
+        "player_area": "wissenswertes",
+        "wissenswertes": "start"
       }
 
       if (event.keyCode in keyMap) {
@@ -214,6 +215,16 @@
       `getElementById(...).focus()` und die gesamte Tastensteuerung bricht. %>
   <span class="flex items-center flex-row h-1/4 space-x-20">
     <%= custom_link_to t('location.scoreboard_welcome.player_area'), player_profile_path, data: { turbo: false }, class: "dark:text-white focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 btn btn-primary text-3vw lg:mr-10 mr-4 lg:mt-4 mt-2", id: "player_area", tabindex: 1 %>
+  </span>
+  <%# Wissenswertes (2026-08-30): Inhalte fuer die Mitglieder — Praesentationen, Anleitungen.
+      Statische Dateien unter public/wissenswertes (linked_dir, siehe deploy.rb), NICHT unter
+      public/uebersichten: dort schreibt `rake coverage:pages` eine eigene index.html.
+
+      Die id `wissenswertes` steht in der Kette `tabbed_elements` oben — ohne den Eintrag
+      wird der Knopf von der Tastensteuerung nie angesprungen, mit einem verwaisten Eintrag
+      bricht sie ganz. Ein Test wacht darueber (admin_player_locals_test / player_profiles_test). %>
+  <span class="flex items-center flex-row h-1/4 space-x-20">
+    <%= custom_link_to t('location.scoreboard_welcome.wissenswertes'), "/wissenswertes/", data: { turbo: false }, class: "dark:text-white focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 btn btn-primary text-3vw lg:mr-10 mr-4 lg:mt-4 mt-2", id: "wissenswertes", tabindex: 1 %>
   </span>
   <% if Time.now.month == 12 %>
   <span class="flex items-center flex-row h-1/4 space-x-20">

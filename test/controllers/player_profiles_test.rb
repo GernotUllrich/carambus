@@ -215,7 +215,21 @@ class PlayerProfilesTest < ActionDispatch::IntegrationTest
       assert_includes schluessel, ziel, "'#{ziel}' ist Sprungziel, aber kein Ausgangspunkt — Sackgasse"
     end
 
-    assert_includes schluessel, "player_area", "der neue Knopf wird nie angesprungen"
+    # ⚠️ Und die Gegenrichtung, VOLLSTAENDIG statt fuer einen fest verdrahteten Knopf:
+    # jedes Element mit einer `id:` auf dieser Seite MUSS in der Kette stehen, sonst springt
+    # die Tastensteuerung es nie an.
+    #
+    # Diese Pruefung entstand am 2026-08-30 beim Ergaenzen von „Wissenswertes": der Waechter
+    # pruefte bis dahin nur `player_area` namentlich — ein neuer Knopf konnte stumm aus der
+    # Kette fallen, ohne dass ein Test etwas merkte. Genau das ist beim Bauen passiert.
+    ids_auf_der_seite = quelle.scan(/id: "([a-z_]+)"/).flatten.uniq
+    refute_empty ids_auf_der_seite, "keine navigierbaren Elemente gefunden — Aufbau geaendert?"
+
+    ids_auf_der_seite.each do |id|
+      assert_includes schluessel, id,
+        "'#{id}' ist ein Knopf auf der Seite, steht aber nicht in tabbed_elements — " \
+        "die Tastensteuerung springt ihn nie an"
+    end
   end
 
   test "die Seitenleiste fuehrt zustandsabhaengig ins Profil oder zur Anmeldung" do

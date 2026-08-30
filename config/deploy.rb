@@ -27,6 +27,18 @@ append :linked_dirs, "public/app"
 # wie public/app: bleibt das Verzeichnis leer, liefert nginx 404 — harmlos.
 append :linked_dirs, "public/uebersichten"
 
+# public/wissenswertes: Inhalte FUER DIE MITGLIEDER (Praesentationen, Anleitungen), erreichbar
+# ueber den Knopf "Wissenswertes" auf der Scoreboard-Welcome-Page.
+#
+# ⚠️ BEWUSST NICHT in public/uebersichten: dort schreibt `rake coverage:pages` eine eigene
+# `index.html` (Bestandsuebersichten Turniere/Ligen) und ueberschreibt alles Gleichnamige
+# kommentarlos. Ausserdem sind das zwei verschiedene Dinge — interne Bestandsberichte hier,
+# Mitglieder-Inhalte dort.
+#
+# Wie uebersichten ein linked_dir und kein Repo-Verzeichnis: die Dateien werden auf dem Server
+# gepflegt und ueberleben so jeden Deploy. Bleibt es leer, liefert nginx 404 — harmlos.
+append :linked_dirs, "public/wissenswertes"
+
 # Default value for keep_releases is 5
 set :keep_releases, 5
 
