@@ -239,6 +239,26 @@ class PlayerLocal < ApplicationRecord
     )
   end
 
+  # ---------------------------------------------------------------------------------------
+  # Einladung: das Mitglied setzt seinen PIN selbst (Plan 02.2-01)
+  #
+  # ⚠️ Der PIN wird NICHT gemailt. Er laege sonst dauerhaft im Klartext im Postfach — und der
+  # Login gilt seit Plan 02.1-01 auch ueber das offene Netz. Verschickt wird ein Einmal-Link.
+  # ---------------------------------------------------------------------------------------
+
+  PIN_SETUP_TOKEN_VALIDITY = 7.days
+
+  # ⚠️ KEINE Spalte noetig: `generates_token_for` erzeugt einen SIGNIERTEN Token, der seinen
+  # Ablauf selbst traegt. Kein Aufraeum-Job, kein Zustand, der gepflegt werden muss.
+  #
+  # ⚠️ Der Block ist der Kern der Einmaligkeit: der Token bindet sich an `pin_digest`. Sobald
+  # ein PIN gesetzt wird, aendert sich der Digest — und JEDER frueher erzeugte Link wird damit
+  # ungueltig. Einmaligkeit entsteht aus der Konstruktion, nicht aus einem Flag, das jemand
+  # zuruecksetzen muesste.
+  generates_token_for :pin_setup, expires_in: PIN_SETUP_TOKEN_VALIDITY do
+    pin_digest
+  end
+
   # Einen PIN wieder entfernen. Bewusst ein eigener Weg — ein leeres Formularfeld tut es nicht.
   def clear_pin!
     update!(pin_digest: nil, failed_pin_attempts: 0, pin_locked_until: nil)

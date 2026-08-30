@@ -78,6 +78,44 @@ module Admin
       end
     end
 
+    # Einladung verschicken, mit der das Mitglied seinen PIN selbst setzt (Plan 02.2-01).
+    #
+    # ⚠️ `deliver_now`, NICHT `deliver_later` — und das ist belegt, keine Geschmacksfrage:
+    # Auf den Instanzen ist der Queue-Adapter auskommentiert (Rails-Standard `:async`,
+    # In-Process) und es laeuft KEIN Sidekiq. `deliver_later` legte die Mail in einen
+    # Speicher-Threadpool, der beim Neustart verschwindet, und verschluckte Fehler im Job.
+    # Mit `deliver_now` und `raise_delivery_errors = true` wird ein Fehlschlag SOFORT sichtbar —
+    # genau das, was man bei einem nie erprobten Mailpfad will.
+    #
+    # ⚠️ Deshalb auch KEIN Sammelversand: 22 synchrone Gmail-Sends in einem Request waeren ein
+    # Timeout-Risiko. Ein Knopf je Zeile ist gegenueber 23 getippten PINs bereits der Gewinn.
+    def send_pin_invitation
+      kontakt = PlayerLocal.find_by(id: params[:id])
+
+      # ⚠️ Nur Clubmitglieder — dieselbe Schranke wie in der Massenpflege.
+      unless kontakt && PlayerLocal.selectable_players.exists?(id: kontakt.player_id)
+        return redirect_to bulk_edit_admin_player_locals_path,
+          alert: t("admin.player_locals.invitation.unknown")
+      end
+
+      unless kontakt.contactable?
+        return redirect_to bulk_edit_admin_player_locals_path,
+          alert: t("admin.player_locals.invitation.not_contactable", name: kontakt.player&.fl_name)
+      end
+
+      PlayerLocalMailer.pin_setup(kontakt).deliver_now
+      redirect_to bulk_edit_admin_player_locals_path,
+        notice: t("admin.player_locals.invitation.sent", name: kontakt.player&.fl_name,
+          email: kontakt.email)
+    rescue => e
+      # ⚠️ `raise_delivery_errors = true` heisst: ein SMTP-Problem schlaegt als Exception durch.
+      # Der Admin bekommt eine verstaendliche Meldung statt eines 500 — und das Log den Grund.
+      Rails.logger.error "[PlayerLocalMailer] Versand fehlgeschlagen fuer " \
+        "PlayerLocal[#{params[:id]}]: #{e.class}: #{e.message}"
+      redirect_to bulk_edit_admin_player_locals_path,
+        alert: t("admin.player_locals.invitation.failed", fehler: e.message)
+    end
+
     # Nach dem Speichern zurueck zur Liste statt auf die Detailseite (Betreiber-Abnahme
     # 2026-08-30, Plan 02.1-01).
     #

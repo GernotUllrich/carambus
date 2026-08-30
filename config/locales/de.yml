@@ -170,6 +170,11 @@ de:
         email: E-Mail-Adresse
         hint: Alle Clubmitglieder der laufenden Saison. Trage die Adressen ein und setze den Haken nur dort, wo dir die Einwilligung wirklich vorliegt. Ein Haken weg bedeutet Widerruf — die Adresse bleibt dabei gespeichert.
         partial: "%{ok} gespeichert, %{fehler} fehlerhaft — die markierten Zeilen bitte prüfen."
+        invitation: Einladung
+        invite: Einladung senden
+        invite_confirm: Einladung an %{email} verschicken?
+        invite_needs_consent: Einwilligung fehlt
+        invite_needs_email: Adresse fehlt
         player: Spieler
         save: Alle speichern
         saved:
@@ -182,6 +187,11 @@ de:
         state_no_consent: Adresse ohne Einwilligung
         state_revoked: widerrufen
         title: E-Mail-Adressen der Clubmitglieder
+      invitation:
+        failed: "Der Versand ist fehlgeschlagen: %{fehler}"
+        not_contactable: "%{name} hat keine Adresse oder keine gültige Einwilligung — es wurde nichts verschickt."
+        sent: Einladung an %{name} verschickt (%{email}).
+        unknown: Unbekannter Datensatz — es wurde nichts verschickt.
   add_tables: Tische hinzufügen
   application:
     account_navbar:
@@ -531,6 +541,23 @@ de:
       player_classes: Spielerklassen
     shortname: Kurname
     updated_at: updated at
+  pin_setups:
+    edit:
+      backspace: Zurück
+      clear: Löschen
+      hint: 4 bis 8 Ziffern. Wähle nichts zu Naheliegendes — keine Geburtstage, keine 1234.
+      intro: Wähle dir einen PIN. Damit meldest du dich künftig an deinem persönlichen Bereich an — am Touchdisplay im Club oder im Browser.
+      pin: Dein neuer PIN
+      pin_confirmation: Zur Sicherheit noch einmal
+      save: PIN festlegen
+      title: Willkommen, %{name}
+    invalid:
+      body: Der Link ist abgelaufen oder wurde bereits verwendet. Wende dich an die Vereinsverwaltung, wenn du einen neuen brauchst.
+      title: Dieser Link gilt nicht mehr
+    update:
+      blank: Bitte einen PIN eingeben.
+      done: Dein PIN ist gesetzt — du bist angemeldet.
+      mismatch: Die beiden Eingaben stimmen nicht überein.
   player_local:
     pin_format: Der PIN besteht aus 4 bis 8 Ziffern.
     pin_trivial: Dieser PIN ist zu leicht zu erraten.
@@ -553,6 +580,16 @@ de:
       coming_soon: Der persönliche Bereich entsteht gerade.
       sign_out: Abmelden
       signed_in_as: Angemeldet als %{name}
+  player_local_mailer:
+    pin_setup:
+      button: PIN jetzt festlegen
+      fallback: "Falls der Knopf nicht funktioniert, öffne diese Adresse im Browser:"
+      greeting: Hallo %{name},
+      ignore: Wenn du damit nichts anfangen kannst, ignoriere diese Nachricht einfach — ohne deine Eingabe passiert nichts.
+      intro: für deinen persönlichen Bereich im Vereins-Billardsystem kannst du dir jetzt einen PIN festlegen. Damit siehst du künftig deine eigenen Daten und kannst sie selbst pflegen.
+      no_pin_notice: Aus Sicherheitsgründen steht in dieser E-Mail kein PIN — du wählst ihn selbst.
+      subject: Dein Zugang zum Vereins-Billardsystem
+      validity: Der Link ist bis zum %{datum} gültig und lässt sich nur einmal verwenden.
   player_profiles:
     nav:
       my_area: Mein Spielerbereich

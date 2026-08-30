@@ -663,6 +663,10 @@ Rails.application.routes.draw do
         get :bulk_edit
         patch :bulk_update
       end
+      # Einladung zum PIN-Setzen (Plan 02.2-01) — je Datensatz, kein Sammelversand.
+      member do
+        post :send_pin_invitation
+      end
     end
 
     resources :international_sources
@@ -724,6 +728,14 @@ Rails.application.routes.draw do
   # Demo route for testing optimistic updates
   # Anmeldung im Spielerkontext (Plan 02.1-01). Singular: es gibt genau eine je Browser.
   resource :player_session, only: %i[new create show destroy]
+
+  # PIN per Einmal-Link setzen (Plan 02.2-01).
+  #
+  # ⚠️ OEFFENTLICH — ohne jede Anmeldung erreichbar, und der Clubserver haengt per DynDNS am
+  # offenen Netz. Der Zugriffsschutz ist ALLEIN der signierte Token; es gibt hier bewusst
+  # keinen Pfad-Parameter mit einer id.
+  get "pin_setup/:token", to: "pin_setups#edit", as: :pin_setup
+  patch "pin_setup/:token", to: "pin_setups#update"
 
   # Der persoenliche Bereich (Plan 02.1-02). Singular: es gibt genau einen je angemeldetem
   # Mitglied — der Datensatz kommt IMMER aus der Sitzung, nie aus dem Pfad.

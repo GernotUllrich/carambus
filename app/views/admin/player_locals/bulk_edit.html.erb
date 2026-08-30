@@ -34,7 +34,8 @@
             <th class="py-2 pr-4 font-medium text-gray-700 dark:text-gray-300"><%= t("admin.player_locals.bulk.player") %></th>
             <th class="py-2 pr-4 font-medium text-gray-700 dark:text-gray-300"><%= t("admin.player_locals.bulk.email") %></th>
             <th class="py-2 pr-4 font-medium text-gray-700 dark:text-gray-300"><%= t("admin.player_locals.bulk.consent") %></th>
-            <th class="py-2 font-medium text-gray-700 dark:text-gray-300"><%= t("admin.player_locals.bulk.state") %></th>
+            <th class="py-2 pr-4 font-medium text-gray-700 dark:text-gray-300"><%= t("admin.player_locals.bulk.state") %></th>
+            <th class="py-2 font-medium text-gray-700 dark:text-gray-300"><%= t("admin.player_locals.bulk.invitation") %></th>
           </tr>
         </thead>
         <tbody>
@@ -61,7 +62,7 @@
                 <%= check_box_tag "rows[#{player.id}][consent]", "1", kontakt&.contactable?,
                       class: "h-5 w-5 rounded border-gray-300 dark:border-gray-600" %>
               </td>
-              <td class="py-2 text-xs text-gray-600 dark:text-gray-400">
+              <td class="py-2 pr-4 text-xs text-gray-600 dark:text-gray-400">
                 <% if kontakt&.contactable? %>
                   <%= t("admin.player_locals.bulk.state_contactable") %>
                 <% elsif kontakt&.revoked? %>
@@ -70,6 +71,26 @@
                   <%= t("admin.player_locals.bulk.state_no_consent") %>
                 <% else %>
                   <%= t("admin.player_locals.bulk.state_empty") %>
+                <% end %>
+              </td>
+              <td class="py-2 text-xs">
+                <%# ⚠️ Der Knopf erscheint NUR bei gueltiger Einwilligung. Sonst steht dort der
+                    Grund — sichtbar, statt einen gesperrten Knopf zu zeigen, dessen Ursache
+                    man raten muesste.
+
+                    ⚠️ Eigenes Formular je Zeile: ein `button_to` INNERHALB des grossen
+                    Speichern-Formulars waere verschachteltes HTML und wuerde nicht
+                    zuverlaessig funktionieren. %>
+                <% if kontakt&.contactable? %>
+                  <%= button_to t("admin.player_locals.bulk.invite"),
+                        send_pin_invitation_admin_player_local_path(kontakt),
+                        method: :post, form: { class: "inline" },
+                        class: "btn btn-secondary text-xs px-3 py-1",
+                        data: { turbo_confirm: t("admin.player_locals.bulk.invite_confirm", email: kontakt.email) } %>
+                <% elsif kontakt.nil? || kontakt.email.blank? %>
+                  <span class="text-gray-400 dark:text-gray-500"><%= t("admin.player_locals.bulk.invite_needs_email") %></span>
+                <% else %>
+                  <span class="text-gray-400 dark:text-gray-500"><%= t("admin.player_locals.bulk.invite_needs_consent") %></span>
                 <% end %>
               </td>
             </tr>

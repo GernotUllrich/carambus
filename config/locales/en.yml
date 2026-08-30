@@ -170,6 +170,11 @@ en:
         email: Email address
         hint: All club members of the current season. Enter the addresses and tick the box only where consent has actually been given. Unticking means withdrawal — the address itself is kept.
         partial: "%{ok} saved, %{fehler} with errors — please check the highlighted rows."
+        invitation: Invitation
+        invite: Send invitation
+        invite_confirm: Send an invitation to %{email}?
+        invite_needs_consent: consent missing
+        invite_needs_email: address missing
         player: Player
         save: Save all
         saved:
@@ -182,6 +187,11 @@ en:
         state_no_consent: address without consent
         state_revoked: withdrawn
         title: Club members' email addresses
+      invitation:
+        failed: "Sending failed: %{fehler}"
+        not_contactable: "%{name} has no address or no valid consent — nothing was sent."
+        sent: Invitation sent to %{name} (%{email}).
+        unknown: Unknown record — nothing was sent.
   add_tables: Add Tables
   application:
     account_navbar:
@@ -517,6 +527,23 @@ en:
       player_classes: Spielerklassen
     shortname: shortname
     updated_at: updated at
+  pin_setups:
+    edit:
+      backspace: Back
+      clear: Clear
+      hint: 4 to 8 digits. Avoid the obvious — no birthdays, no 1234.
+      intro: Choose a PIN. You will use it to sign in to your personal area — on the touch display at the club or in your browser.
+      pin: Your new PIN
+      pin_confirmation: Once more, to be sure
+      save: Set PIN
+      title: Welcome, %{name}
+    invalid:
+      body: This link has expired or has already been used. Please contact the club administration if you need a new one.
+      title: This link is no longer valid
+    update:
+      blank: Please enter a PIN.
+      done: Your PIN is set — you are signed in.
+      mismatch: The two entries do not match.
   player_local:
     pin_format: The PIN consists of 4 to 8 digits.
     pin_trivial: This PIN is too easy to guess.
@@ -539,6 +566,16 @@ en:
       coming_soon: The personal area is being built.
       sign_out: Sign out
       signed_in_as: Signed in as %{name}
+  player_local_mailer:
+    pin_setup:
+      button: Set your PIN now
+      fallback: "If the button does not work, open this address in your browser:"
+      greeting: Hello %{name},
+      ignore: If this means nothing to you, simply ignore this message — nothing happens without your input.
+      intro: you can now choose a PIN for your personal area in the club's billiards system. It lets you see and maintain your own data.
+      no_pin_notice: For security reasons this email contains no PIN — you choose it yourself.
+      subject: Your access to the club's billiards system
+      validity: The link is valid until %{datum} and can only be used once.
   player_profiles:
     nav:
       my_area: My player area

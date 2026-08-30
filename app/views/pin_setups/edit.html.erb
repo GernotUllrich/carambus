@@ -1,0 +1,47 @@
+<%# PIN per Einmal-Link setzen (Plan 02.2-01).
+
+    ⚠️ Der Name des Mitglieds wird hier GEZEIGT — das ist unbedenklich, weil man nur mit einem
+    gueltigen, signierten Token hierher kommt. Auf der Fehlerseite (`invalid`) steht er
+    bewusst NICHT. %>
+
+<div class="max-w-xl mx-auto p-4 space-y-6">
+  <h1 class="text-2xl font-semibold text-gray-900 dark:text-gray-100">
+    <%= t(".title", name: @kontakt.player&.fl_name) %>
+  </h1>
+  <p class="text-gray-600 dark:text-gray-400"><%= t(".intro") %></p>
+
+  <% if (alert = flash.now[:alert] || flash[:alert]).present? %>
+    <div class="rounded-lg border border-danger-300 bg-danger-50 p-3 text-danger-800
+                dark:border-danger-700 dark:bg-danger-900 dark:text-danger-100" role="alert">
+      <%= alert %>
+    </div>
+  <% end %>
+
+  <%= form_with url: pin_setup_path(token: params[:token]), method: :patch, local: true,
+                class: "space-y-5" do %>
+    <%# ⚠️ Zwei GETRENNTE Stimulus-Bereiche: `pin_pad_controller` haelt seinen Zustand je
+        Instanz in genau einem Wertfeld (Erkenntnis aus Plan 02.1-02). %>
+    <% [["pin", t(".pin")], ["pin_confirmation", t(".pin_confirmation")]].each do |feld, beschriftung| %>
+      <div data-controller="pin-pad" class="space-y-2">
+        <span class="block text-sm font-medium text-gray-700 dark:text-gray-300"><%= beschriftung %></span>
+        <div class="h-12 flex items-center justify-center rounded-lg bg-gray-100 text-2xl
+                    tracking-[0.5em] text-gray-900 dark:bg-gray-800 dark:text-gray-100"
+             data-pin-pad-target="display" aria-live="polite"></div>
+        <%= hidden_field_tag feld, "", data: { pin_pad_target: "value" } %>
+        <div class="grid grid-cols-6 gap-2">
+          <% (1..9).to_a.push(0).each do |ziffer| %>
+            <button type="button" class="btn btn-secondary h-12 text-xl"
+                    data-action="pin-pad#push" data-digit="<%= ziffer %>"><%= ziffer %></button>
+          <% end %>
+          <button type="button" class="btn btn-secondary h-12 text-sm"
+                  data-action="pin-pad#back"><%= t(".backspace") %></button>
+          <button type="button" class="btn btn-secondary h-12 text-sm"
+                  data-action="pin-pad#clear"><%= t(".clear") %></button>
+        </div>
+      </div>
+    <% end %>
+
+    <p class="text-sm text-gray-500 dark:text-gray-400"><%= t(".hint") %></p>
+    <%= submit_tag t(".save"), class: "btn btn-primary w-full h-14 text-lg" %>
+  <% end %>
+</div>

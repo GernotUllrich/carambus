@@ -309,4 +309,97 @@ class PlayerLocalTest < ActiveSupport::TestCase
     assert_includes zeile, "versuche=1"
     refute_includes zeile, "0815", "der eingegebene PIN darf NIEMALS im Protokoll stehen"
   end
+  # ---------------------------------------------------------------------------------------
+  # Einladung per Einmal-Link (Plan 02.2-01)
+  # ---------------------------------------------------------------------------------------
+
+  test "der Token loest den richtigen Datensatz auf" do
+    k = kontakt!(email: "max@example.com", consent_given_at: Time.current)
+
+    assert_equal k, PlayerLocal.find_by_token_for(:pin_setup, k.generate_token_for(:pin_setup))
+  end
+
+  # ⚠️ DAS ist die Einmaligkeit — sie kommt aus der Bindung an `pin_digest`, nicht aus einem
+  # Flag, das jemand zuruecksetzen muesste.
+  test "der Token wird ungueltig, sobald ein PIN gesetzt wird" do
+    k = kontakt!(email: "max@example.com", consent_given_at: Time.current)
+    t = k.generate_token_for(:pin_setup)
+
+    k.update!(pin: "4711")
+
+    assert_nil PlayerLocal.find_by_token_for(:pin_setup, t),
+      "der Link muss nach dem Setzen tot sein"
+  end
+
+  test "der Token laeuft ab" do
+    k = kontakt!(email: "max@example.com", consent_given_at: Time.current)
+    t = k.generate_token_for(:pin_setup)
+
+    travel_to(PlayerLocal::PIN_SETUP_TOKEN_VALIDITY.from_now + 1.hour) do
+      assert_nil PlayerLocal.find_by_token_for(:pin_setup, t)
+    end
+  end
+
+  test "ein erfundener Token loest nichts auf" do
+    assert_nil PlayerLocal.find_by_token_for(:pin_setup, "voellig-erfunden")
+  end
+
+  # ---------------------------------------------------------------------------------------
+  # Die Einladungs-Mail
+  # ---------------------------------------------------------------------------------------
+
+  test "die Einladung geht an die hinterlegte Adresse" do
+    k = kontakt!(email: "max@example.com", consent_given_at: Time.current)
+
+    mail = PlayerLocalMailer.pin_setup(k)
+
+    assert_equal ["max@example.com"], mail.to
+    assert_equal I18n.t("player_local_mailer.pin_setup.subject"), mail.subject
+  end
+
+  # ⚠️ Der Kern der Entscheidung „Einmal-Link statt PIN in der Mail".
+  test "in der Mail steht KEIN PIN und KEIN Digest" do
+    k = kontakt!(email: "max@example.com", consent_given_at: Time.current, pin: "4711")
+
+    rumpf = PlayerLocalMailer.pin_setup(k).body.encoded
+
+    refute_includes rumpf, "4711", "ein PIN darf niemals in der Mail landen"
+    refute_includes rumpf, k.pin_digest.to_s, "der Digest erst recht nicht"
+  end
+
+  test "die Mail traegt einen absoluten Link" do
+    k = kontakt!(email: "max@example.com", consent_given_at: Time.current)
+
+    rumpf = PlayerLocalMailer.pin_setup(k).body.encoded
+
+    assert_match(%r{https?://[^/]+/pin_setup/}, rumpf,
+      "ein relativer Pfad waere in einer Mail nutzlos")
+  end
+
+  test "die Mail hat einen Text- UND einen HTML-Teil" do
+    k = kontakt!(email: "max@example.com", consent_given_at: Time.current)
+
+    mail = PlayerLocalMailer.pin_setup(k)
+
+    # ⚠️ Reine HTML-Mails landen haeufiger im Spam — und dies ist die allererste Mail dieser
+    # Anwendung ueberhaupt.
+    assert mail.multipart?, "die Mail muss Text und HTML tragen"
+    assert_equal %w[text/plain text/html], mail.parts.map(&:mime_type).sort.reverse
+  end
+
+  # ⚠️ Der Guard steht im Mailer selbst, nicht nur beim Aufrufer.
+  test "ohne gueltige Einwilligung geht KEINE Mail raus" do
+    ohne_einwilligung = kontakt!(email: "max@example.com")
+    assert_nil PlayerLocalMailer.pin_setup(ohne_einwilligung).message_id
+
+    ohne_einwilligung.update!(consent_given_at: Time.current)
+    ohne_einwilligung.revoke_consent!
+    assert_nil PlayerLocalMailer.pin_setup(ohne_einwilligung.reload).message_id
+  end
+
+  test "ohne Adresse geht KEINE Mail raus" do
+    ohne_adresse = kontakt!(email: nil, consent_given_at: Time.current)
+
+    assert_nil PlayerLocalMailer.pin_setup(ohne_adresse).message_id
+  end
 end

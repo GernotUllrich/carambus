@@ -231,4 +231,94 @@ class AdminPlayerLocalsTest < ActionDispatch::IntegrationTest
     assert_equal 0, PlayerLocal.count
   end
 
+  # ===================================================================================
+  # Einladung zum PIN-Setzen (Plan 02.2-01)
+  # ===================================================================================
+
+  def einladen(kontakt)
+    post "/admin/player_locals/#{kontakt.id}/send_pin_invitation"
+  end
+
+  test "die Einladung geht an ein anschreibbares Mitglied" do
+    k = PlayerLocal.create!(player: @player, email: "max@example.com", consent_given_at: Time.current)
+
+    assert_difference "ActionMailer::Base.deliveries.size", 1 do
+      einladen(k)
+    end
+
+    assert_redirected_to "/admin/player_locals/bulk_edit"
+    assert_equal ["max@example.com"], ActionMailer::Base.deliveries.last.to
+  end
+
+  test "ohne Einwilligung geht KEINE Einladung raus" do
+    k = PlayerLocal.create!(player: @player, email: "max@example.com")
+
+    assert_no_difference "ActionMailer::Base.deliveries.size" do
+      einladen(k)
+    end
+    assert_redirected_to "/admin/player_locals/bulk_edit"
+  end
+
+  test "nach Widerruf geht KEINE Einladung raus" do
+    k = PlayerLocal.create!(player: @player, email: "max@example.com", consent_given_at: Time.current)
+    k.revoke_consent!
+
+    assert_no_difference "ActionMailer::Base.deliveries.size" do
+      einladen(k)
+    end
+  end
+
+  test "ohne Adresse geht KEINE Einladung raus" do
+    k = PlayerLocal.create!(player: @player, consent_given_at: Time.current)
+
+    assert_no_difference "ActionMailer::Base.deliveries.size" do
+      einladen(k)
+    end
+  end
+
+  # ⚠️ Dieselbe Schranke wie in der Massenpflege: die Mitgliederliste, nicht die id.
+  test "fuer einen Nicht-Clubspieler geht KEINE Einladung raus" do
+    fremd = Player.where.not(id: PlayerLocal.selectable_players.map(&:id)).first
+    k = PlayerLocal.new(player: fremd, email: "fremd@example.com", consent_given_at: Time.current)
+    k.save!(validate: false)
+
+    assert_no_difference "ActionMailer::Base.deliveries.size" do
+      einladen(k)
+    end
+  end
+
+  # ⚠️ `raise_delivery_errors = true` in Production: ein SMTP-Problem schlaegt als Exception
+  # durch. Der Admin darf davon keinen 500 sehen.
+  test "ein Versandfehler wird gemeldet statt als 500 zu enden" do
+    k = PlayerLocal.create!(player: @player, email: "max@example.com", consent_given_at: Time.current)
+
+    PlayerLocalMailer.stub :pin_setup, ->(_) { raise Net::SMTPAuthenticationError, "535 auth failed" } do
+      einladen(k)
+    end
+
+    assert_redirected_to "/admin/player_locals/bulk_edit"
+    follow_redirect!
+    assert_match(/fehlgeschlagen/i, response.body)
+  end
+
+  test "die Massenpflege zeigt den Einladungs-Knopf nur bei Einwilligung" do
+    PlayerLocal.create!(player: @player, email: "max@example.com", consent_given_at: Time.current)
+    PlayerLocal.create!(player: players(:nbv_andresen), email: "ohne@example.com")
+
+    get "/admin/player_locals/bulk_edit"
+
+    assert_response :success
+    assert_includes response.body, I18n.t("admin.player_locals.bulk.invite")
+    assert_includes response.body, I18n.t("admin.player_locals.bulk.invite_needs_consent")
+  end
+
+  test "ohne System-Admin geht keine Einladung raus" do
+    k = PlayerLocal.create!(player: @player, email: "max@example.com", consent_given_at: Time.current)
+    sign_out :user
+
+    assert_no_difference "ActionMailer::Base.deliveries.size" do
+      einladen(k)
+    end
+  end
+
 end
