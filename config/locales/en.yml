@@ -497,6 +497,28 @@ en:
       player_classes: Spielerklassen
     shortname: shortname
     updated_at: updated at
+  player_local:
+    pin_format: The PIN consists of 4 to 8 digits.
+    pin_trivial: This PIN is too easy to guess.
+  player_sessions:
+    create:
+      invalid: Name or PIN is incorrect.
+      locked: Too many failed attempts. Please try again in %{minuten} minute(s).
+    destroy:
+      signed_out: You have been signed out.
+    new:
+      backspace: Back
+      choose_player: Player
+      choose_player_blank: Please select …
+      clear: Clear
+      pin: PIN
+      pin_hint: 4 to 8 digits. The club administration assigns the first PIN.
+      sign_in: Sign in
+      title: Sign in
+    show:
+      coming_soon: The personal area is being built.
+      sign_out: Sign out
+      signed_in_as: Signed in as %{name}
   player_ranking:
     balls: balls
     bed: bavg

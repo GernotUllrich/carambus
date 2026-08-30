@@ -22,6 +22,7 @@ class ApplicationController < ActionController::Base
 
   before_action :check_mini_profiler if Rails.env != "production" && Rails.env != "test"
   before_action :set_paper_trail_whodunnit
+  before_action :touch_player_session
   before_action :set_model_class
   before_action do
     # Store search parameter in session and make it available for views
@@ -73,6 +74,89 @@ class ApplicationController < ActionController::Base
 
   def location_server? = ApplicationRecord.location_server?
   helper_method :authority?, :region_server?, :location_server?
+
+  # ---------------------------------------------------------------------------------------
+  # Anmeldung im Spielerkontext (Plan 02.1-01)
+  #
+  # ⚠️ KEIN zweiter Devise-Scope. Der PIN ist keine Benutzeranmeldung, sondern eine
+  # Bestaetigung: der Spieler ist zu diesem Zeitpunkt bereits ausgewaehlt. `current_user`
+  # bleibt unangetastet — am Kiosk ist das weiterhin der Scoreboard-Sammelaccount.
+  #
+  # ⚠️ Der Spieler-Login traegt KEINE Sprache. Die Sprachkette (`set_locale`) ist frisch
+  # entschieden und hat eigene Tests; sie wird hier nicht beruehrt.
+  # ---------------------------------------------------------------------------------------
+
+  # ⚠️ Code-Default, kein Verlass auf die Konfiguration: `config/carambus.yml` ist gitignored,
+  # der Schluessel fehlt auf allen Instanzen ausser dieser (dieselbe Falle wie bei
+  # `scoreboard_locale`). Ein fehlender Schluessel darf nicht zu `nil` werden.
+  PLAYER_SESSION_DEFAULT_TIMEOUT_MINUTES = 10
+
+  def player_session_timeout
+    minuten = Carambus.config.player_session_timeout_minutes.to_i
+    minuten = PLAYER_SESSION_DEFAULT_TIMEOUT_MINUTES unless minuten.positive?
+    minuten.minutes
+  end
+
+  def current_player_local
+    return @current_player_local if defined?(@current_player_local)
+
+    @current_player_local = resolve_current_player_local
+  end
+
+  def player_signed_in?
+    current_player_local.present?
+  end
+  helper_method :current_player_local, :player_signed_in?
+
+  def sign_in_player(player_local)
+    # ⚠️ KEIN `reset_session` — es risse `session[:locale]` mit (Sprachwahl aus Quick-Task 2).
+    session[:player_local_id] = player_local.id
+    session[:player_local_seen_at] = Time.current.iso8601
+    @current_player_local = player_local
+  end
+
+  def sign_out_player
+    clear_player_session
+    @current_player_local = nil
+  end
+
+  protected
+
+  def resolve_current_player_local
+    return nil if session[:player_local_id].blank?
+
+    gesehen = begin
+      Time.zone.parse(session[:player_local_seen_at].to_s)
+    rescue ArgumentError, TypeError
+      nil
+    end
+
+    # Kein oder unlesbarer Zeitstempel gilt als abgelaufen — lieber einmal zu viel abmelden.
+    if gesehen.nil? || gesehen < player_session_timeout.ago
+      clear_player_session
+      return nil
+    end
+
+    PlayerLocal.find_by(id: session[:player_local_id]).tap do |kontakt|
+      clear_player_session if kontakt.nil?
+    end
+  end
+
+  def clear_player_session
+    session.delete(:player_local_id)
+    session.delete(:player_local_seen_at)
+  end
+
+  # Haelt die Anmeldung am Leben, solange bedient wird.
+  # ⚠️ NUR wenn jemand angemeldet ist — sonst schriebe jeder anonyme Request die Session und
+  # erzeugte fuer jeden Besucher einen Session-Eintrag.
+  def touch_player_session
+    return if session[:player_local_id].blank?
+
+    session[:player_local_seen_at] = Time.current.iso8601 if current_player_local
+  end
+
+  public
 
   def default_url_options
     # Only add locale to URL if it's different from the default locale

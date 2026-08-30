@@ -715,5 +715,8 @@ Rails.application.routes.draw do
   get "scraping_monitor/:id", to: "scraping_monitor#operation", as: :scraping_monitor_operation
 
   # Demo route for testing optimistic updates
+  # Anmeldung im Spielerkontext (Plan 02.1-01). Singular: es gibt genau eine je Browser.
+  resource :player_session, only: %i[new create show destroy]
+
   get "demo/scoreboard", to: "table_monitors#demo_scoreboard"
 end

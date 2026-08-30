@@ -511,6 +511,28 @@ de:
       player_classes: Spielerklassen
     shortname: Kurname
     updated_at: updated at
+  player_local:
+    pin_format: Der PIN besteht aus 4 bis 8 Ziffern.
+    pin_trivial: Dieser PIN ist zu leicht zu erraten.
+  player_sessions:
+    create:
+      invalid: Name oder PIN stimmt nicht.
+      locked: Zu viele Fehlversuche. Bitte in %{minuten} Minute(n) noch einmal versuchen.
+    destroy:
+      signed_out: Du bist abgemeldet.
+    new:
+      backspace: Zurück
+      choose_player: Spieler
+      choose_player_blank: Bitte wählen …
+      clear: Löschen
+      pin: PIN
+      pin_hint: 4 bis 8 Ziffern. Den ersten PIN vergibt die Vereinsverwaltung.
+      sign_in: Anmelden
+      title: Anmelden
+    show:
+      coming_soon: Der persönliche Bereich entsteht gerade.
+      sign_out: Abmelden
+      signed_in_as: Angemeldet als %{name}
   player_ranking:
     balls: balls
     bed: BED

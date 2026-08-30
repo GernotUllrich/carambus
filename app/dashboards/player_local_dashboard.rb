@@ -18,33 +18,50 @@ class PlayerLocalDashboard < Administrate::BaseDashboard
     email: Field::String,
     consent_given_at: Field::DateTime,
     consent_revoked_at: Field::DateTime,
+
+    # PIN-Erstvergabe (Plan 02.1-01). `Field::Password` rendert immer LEER und spielt den Hash
+    # nicht zurueck ins Formular.
+    #
+    # ⚠️ Ein leeres Feld darf den vorhandenen PIN nicht loeschen — dafuer sorgt der Setter-Guard
+    # `PlayerLocal#pin=`. Ohne ihn verloere jedes Speichern der Adresse den PIN gleich mit.
+    pin: Field::Password,
+
+    # Damit der Admin sieht, wer sich ausgesperrt hat. Nur lesend — die Sperre faellt von selbst.
+    pin_locked_until: Field::DateTime,
+
     created_at: Field::DateTime,
     updated_at: Field::DateTime
   }.freeze
 
+  # ⚠️ `pin` steht hier bewusst NICHT — ein PIN gehoert in keine Liste, auch nicht als Hash.
   COLLECTION_ATTRIBUTES = %i[
     player
     email
     consent_given_at
     consent_revoked_at
+    pin_locked_until
   ].freeze
 
+  # ⚠️ Ebenfalls ohne `pin`: die Detailseite zeigt den Sperrzustand, nicht das Geheimnis.
   SHOW_PAGE_ATTRIBUTES = %i[
     id
     player
     email
     consent_given_at
     consent_revoked_at
+    pin_locked_until
     created_at
     updated_at
   ].freeze
 
   # `player` bleibt im Formular, damit sich der Bezug beim Anlegen setzen laesst.
+  # `pin` ist die Erstvergabe durch den System-Admin; das Mitglied aendert ihn spaeter selbst.
   FORM_ATTRIBUTES = %i[
     player
     email
     consent_given_at
     consent_revoked_at
+    pin
   ].freeze
 
   COLLECTION_FILTERS = {}.freeze

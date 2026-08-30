@@ -102,6 +102,10 @@ gem "i18n_yaml_sort", git: "https://github.com/GovTechSG/i18n_yaml_sort.git"
 gem "multipart-post"
 gem "paper_trail", "~> 15.2"
 gem "rails-i18n"
+# Ausdruecklich, nicht nur transitiv ueber Devise: `PlayerLocal` nutzt
+# `has_secure_password :pin` (Plan 02.1-01). Eine transitive Abhaengigkeit kann mit dem
+# naechsten Devise-Update wegbrechen.
+gem "bcrypt", "~> 3.1.7"
 gem "devise"
 gem "devise-i18n", "~> 1.10"
 gem "devise-jwt", "~> 0.12"  # Plan 13-06.2 / D-13-06.1-C: JWT-Token-Auth für MCP Multi-User-Skalierung

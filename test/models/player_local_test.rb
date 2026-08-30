@@ -147,4 +147,166 @@ class PlayerLocalTest < ActiveSupport::TestCase
       @player.destroy
     end
   end
+  # ---------------------------------------------------------------------------------------
+  # PIN / Anmeldung im Spielerkontext (Plan 02.1-01)
+  # ---------------------------------------------------------------------------------------
+
+  test "der PIN ist optional — Kontaktdaten funktionieren ohne ihn" do
+    k = kontakt!
+    assert_nil k.pin_digest
+    refute k.pin_set?
+  end
+
+  test "der PIN wird gehasht abgelegt, niemals im Klartext" do
+    k = kontakt!(pin: "4711")
+
+    assert k.pin_digest.present?
+    refute_includes k.pin_digest, "4711"
+    assert k.pin_digest.start_with?("$2a$", "$2b$", "$2y$"), "kein bcrypt-Hash: #{k.pin_digest}"
+    # Die Spalte `pin` gibt es gar nicht — nur `pin_digest`.
+    refute_includes PlayerLocal.column_names, "pin"
+  end
+
+  test "vier bis acht Ziffern sind erlaubt" do
+    %w[4711 47110 471104 4711047 47110471].each do |pin|
+      k = PlayerLocal.new(player: @player, pin: pin)
+      k.valid?
+      assert_empty k.errors[:pin], "#{pin} haette gelten muessen"
+    end
+  end
+
+  test "zu kurz, zu lang oder nicht numerisch wird abgewiesen" do
+    %w[471 471104711 abcd 47a1].each do |pin|
+      k = PlayerLocal.new(player: @player, pin: pin)
+      refute k.valid?, "#{pin} haette abgewiesen werden muessen"
+      refute_empty k.errors[:pin]
+    end
+  end
+
+  test "triviale PINs werden abgewiesen" do
+    k = PlayerLocal.new(player: @player, pin: "1234")
+
+    refute k.valid?
+    refute_empty k.errors[:pin]
+  end
+
+  test "ein leeres Feld loescht den vorhandenen PIN NICHT" do
+    k = kontakt!(pin: "4711")
+    vorher = k.pin_digest
+
+    # Genau das passiert beim Speichern der Adresse: Administrate schickt `pin` leer mit.
+    k.update!(email: "neu@example.com", pin: "")
+
+    assert_equal vorher, k.reload.pin_digest, "das leere Formularfeld hat den PIN geloescht"
+  end
+
+  test "clear_pin! entfernt den PIN und den Sperrzustand" do
+    k = kontakt!(pin: "4711")
+    k.update!(failed_pin_attempts: 3)
+
+    k.clear_pin!
+
+    refute k.pin_set?
+    assert_equal 0, k.failed_pin_attempts
+    assert_nil k.pin_locked_until
+  end
+
+  test "richtiger PIN meldet an und setzt den Zaehler zurueck" do
+    k = kontakt!(pin: "4711")
+    k.update!(failed_pin_attempts: 3)
+
+    assert k.verify_pin("4711")
+    assert_equal 0, k.reload.failed_pin_attempts
+  end
+
+  test "falscher PIN zaehlt hoch, sperrt aber noch nicht" do
+    k = kontakt!(pin: "4711")
+
+    4.times { refute k.verify_pin("0815") }
+
+    assert_equal 4, k.reload.failed_pin_attempts
+    refute k.pin_locked?, "vor dem fuenften Fehlversuch darf nicht gesperrt sein"
+  end
+
+  test "der fuenfte Fehlversuch sperrt eine Minute" do
+    k = kontakt!(pin: "4711")
+
+    5.times { k.verify_pin("0815") }
+
+    assert k.reload.pin_locked?
+    assert_in_delta 60, k.pin_lock_remaining, 2
+  end
+
+  test "jeder weitere Fehlversuch verdoppelt die Wartezeit" do
+    k = kontakt!(pin: "4711")
+    5.times { k.verify_pin("0815") }
+
+    # Waehrend der Sperre wird gar nicht geprueft — also die Sperre ablaufen lassen.
+    travel_to(k.pin_locked_until + 1.second) do
+      refute k.verify_pin("0815")
+      assert_in_delta 120, k.reload.pin_lock_remaining, 2
+    end
+  end
+
+  test "die Wartezeit ist bei einer Stunde gedeckelt" do
+    k = kontakt!(pin: "4711")
+    k.update!(failed_pin_attempts: 40)
+
+    k.register_failed_pin_attempt!
+
+    assert_operator k.reload.pin_lock_remaining, :<=, 3600
+    assert_operator k.pin_lock_remaining, :>, 3500
+  end
+
+  test "waehrend der Sperre wird auch der RICHTIGE PIN abgewiesen" do
+    k = kontakt!(pin: "4711")
+    5.times { k.verify_pin("0815") }
+
+    refute k.verify_pin("4711"), "sonst liesse sich waehrend der Sperre weiter durchprobieren"
+  end
+
+  test "nach Ablauf der Sperre gilt der richtige PIN wieder" do
+    k = kontakt!(pin: "4711")
+    5.times { k.verify_pin("0815") }
+
+    travel_to(k.pin_locked_until + 1.second) do
+      assert k.verify_pin("4711")
+      assert_equal 0, k.reload.failed_pin_attempts
+    end
+  end
+
+  test "ohne gesetzten PIN meldet niemand an" do
+    k = kontakt!
+
+    refute k.verify_pin("4711")
+    refute k.verify_pin("")
+  end
+
+  test "auf der Authority entsteht kein PIN" do
+    # Rolle auf Authority stellen: kein carambus_api_url.
+    Carambus.config = OpenStruct.new(@original_config.to_h.merge(carambus_api_url: nil))
+
+    k = PlayerLocal.new(player: @player, pin: "4711")
+
+    refute k.save, "der Guard nur_auf_lokalem_server haette greifen muessen"
+    assert_nil PlayerLocal.find_by(player_id: @player.id)
+  end
+
+  test "jeder Fehlversuch wird protokolliert — ohne den eingegebenen PIN" do
+    k = kontakt!(pin: "4711")
+    mitschrift = StringIO.new
+    vorher = Rails.logger
+    Rails.logger = Logger.new(mitschrift)
+
+    begin
+      k.verify_pin("0815")
+    ensure
+      Rails.logger = vorher
+    end
+
+    zeile = mitschrift.string
+    assert_includes zeile, "player_id=#{@player.id}"
+    assert_includes zeile, "versuche=1"
+    refute_includes zeile, "0815", "der eingegebene PIN darf NIEMALS im Protokoll stehen"
+  end
 end

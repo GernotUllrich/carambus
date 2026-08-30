@@ -102,4 +102,129 @@ class PlayerLocal < ApplicationRecord
   def revoked?
     consent_revoked_at.present?
   end
+
+  # ---------------------------------------------------------------------------------------
+  # Anmeldung im Spielerkontext (Plan 02.1-01)
+  #
+  # Der PIN ist KEINE Benutzeranmeldung, sondern eine Bestaetigung: der Spieler ist zu diesem
+  # Zeitpunkt bereits ausgewaehlt. Deshalb gibt es hier bewusst keinen zweiten Devise-Scope.
+  #
+  # ⚠️ Warum nicht `players.pin4`? Die Spalte existiert, ist aber untauglich: sie ist GLOBAL
+  # (LocalProtector verhindert, dass ein Clubserver sie ueberhaupt setzt), global EINDEUTIG
+  # validiert (bei vier Stellen waeren systemweit hoechstens ~9.980 PINs vergebbar, und ein
+  # erratener PIN identifizierte einen Spieler), sie speichert im KLARTEXT, und sie ist
+  # vollstaendig ungenutzt (0 von 47.774 Spielern). Hier entfaellt beides: der PIN muss nicht
+  # eindeutig sein, und er liegt als bcrypt-Hash.
+  # ---------------------------------------------------------------------------------------
+
+  # `validations: false` ist noetig: die Standard-Validierungen von `has_secure_password`
+  # verlangen Anwesenheit und eine `pin_confirmation`. Der PIN ist hier aber OPTIONAL — nicht
+  # jedes Mitglied hat einen, und die Adresspflege muss ohne ihn funktionieren.
+  has_secure_password :pin, validations: false
+
+  # 4 bis 8 Ziffern, Standard 4 (Betreiber-Entscheidung 2026-08-30). Der laengere PIN ist der
+  # Ausgleich dafuer, dass der Clubserver per DynDNS von aussen erreichbar ist; der Ziffernblock
+  # traegt jede Laenge, es braucht also keine zusaetzliche Oberflaeche.
+  PIN_FORMAT = /\A\d{4,8}\z/
+
+  # ⚠️ BEWUSST KOPIERT aus der Inline-Liste in player.rb (Validierung von `pin4`), statt sie
+  # dort herauszuziehen: `player.rb` ist ein globales Modell und funktioniert — ein Refactoring
+  # dort braechte keinen funktionalen Gewinn und beruehrte Authority-Hoheit.
+  TRIVIAL_PINS = %w[1234 1111 0000 1212 7777 1004 2000 4444 2222 6969 9999 3333 5555 6666
+    1122 1313 8888 4321 2001 1010].freeze
+
+  # Ab dem fuenften Fehlversuch wird gesperrt.
+  PIN_ATTEMPTS_BEFORE_LOCK = 5
+  # Die erste Sperre dauert eine Minute und verdoppelt sich mit jedem weiteren Fehlversuch.
+  PIN_LOCK_BASE = 1.minute
+  # ⚠️ Gedeckelt: eine unbegrenzte Verdopplung waere aus Versehen eine dauerhafte Aussperrung,
+  # und die Sperre ist auch ein Aergernis-Hebel (jeder kann fremde Konten sperren).
+  PIN_LOCK_MAX = 1.hour
+
+  # Ein leeres Formularfeld darf den vorhandenen PIN NICHT loeschen. Administrate rendert
+  # `Field::Password` immer leer; ohne diesen Guard verloere jedes Speichern der Adresse den
+  # PIN gleich mit. Zum Entfernen dient `clear_pin!`, nicht das leere Feld.
+  def pin=(wert)
+    return if wert.blank?
+
+    super
+  end
+
+  validate :pin_format_und_nicht_trivial, if: -> { pin_digest_changed? && pin.present? }
+
+  def pin_format_und_nicht_trivial
+    unless pin.match?(PIN_FORMAT)
+      errors.add(:pin, I18n.t("player_local.pin_format",
+        default: "Der PIN besteht aus 4 bis 8 Ziffern."))
+      return
+    end
+
+    if TRIVIAL_PINS.include?(pin)
+      errors.add(:pin, I18n.t("player_local.pin_trivial",
+        default: "Dieser PIN ist zu leicht zu erraten."))
+    end
+  end
+  private :pin_format_und_nicht_trivial
+
+  def pin_set?
+    pin_digest.present?
+  end
+
+  def pin_locked?
+    pin_locked_until.present? && pin_locked_until > Time.current
+  end
+
+  # Sekunden bis die Sperre faellt — fuer die Rueckmeldung an der Oberflaeche.
+  def pin_lock_remaining
+    return 0 unless pin_locked?
+
+    (pin_locked_until - Time.current).ceil
+  end
+
+  # Der einzige Weg, einen PIN zu pruefen. Wer `authenticate_pin` von `has_secure_password`
+  # direkt aufruft, umgeht die Sperre — deshalb hier ein eigener Name.
+  #
+  # Rueckgabe: true bei Erfolg, sonst false. Bei Sperre ebenfalls false, ohne den PIN
+  # ueberhaupt zu pruefen (sonst liesse sich waehrend der Sperre weiter durchprobieren).
+  def verify_pin(kandidat)
+    return false if pin_locked? || !pin_set?
+
+    if authenticate_pin(kandidat.to_s)
+      reset_pin_attempts!
+      true
+    else
+      register_failed_pin_attempt!
+      false
+    end
+  end
+
+  def reset_pin_attempts!
+    update!(failed_pin_attempts: 0, pin_locked_until: nil)
+  end
+
+  def register_failed_pin_attempt!
+    versuche = failed_pin_attempts + 1
+    attrs = {failed_pin_attempts: versuche}
+
+    if versuche >= PIN_ATTEMPTS_BEFORE_LOCK
+      # Der erste sperrende Fehlversuch gibt PIN_LOCK_BASE, jeder weitere verdoppelt.
+      faktor = 2**(versuche - PIN_ATTEMPTS_BEFORE_LOCK)
+      attrs[:pin_locked_until] = Time.current + [PIN_LOCK_BASE * faktor, PIN_LOCK_MAX].min
+    end
+
+    # ⚠️ `update!`, NICHT `update_columns`: letzteres umginge `nur_auf_lokalem_server` und
+    # liesse Zaehlerstaende auf der Authority entstehen.
+    update!(attrs)
+
+    # ⚠️ NIEMALS den eingegebenen PIN protokollieren.
+    Rails.logger.warn(
+      "[PlayerLocal] fehlgeschlagene PIN-Eingabe: player_id=#{player_id} " \
+      "versuche=#{versuche} gesperrt_bis=#{pin_locked_until&.iso8601 || "-"}"
+    )
+  end
+
+  # Einen PIN wieder entfernen. Bewusst ein eigener Weg — ein leeres Formularfeld tut es nicht.
+  def clear_pin!
+    update!(pin_digest: nil, failed_pin_attempts: 0, pin_locked_until: nil)
+  end
 end

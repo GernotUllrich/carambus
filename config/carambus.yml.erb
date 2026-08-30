@@ -7,6 +7,11 @@ default:
   # davon unberuehrt — dort waehlt jeder Besucher selbst. Fehlt der Schluessel, gilt die
   # Standardsprache.
   scoreboard_locale: de
+  # Wie lange eine Spieler-Anmeldung (PIN) ohne Bedienung gueltig bleibt, in Minuten.
+  # Am offen zugaenglichen Touchdisplay eher kurz halten. Fehlt der Schluessel, gelten 10
+  # Minuten aus dem Code (application_controller.rb) — diese Datei ist gitignored, der
+  # Schluessel fehlt auf den meisten Instanzen.
+  player_session_timeout_minutes: 10
   application_name: carambus
   basename: carambus
   support_email: gernot.ullrich@gmx.de

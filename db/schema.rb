@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_08_30_140000) do
+ActiveRecord::Schema[7.2].define(version: 2026_08_30_150000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -736,6 +736,9 @@ ActiveRecord::Schema[7.2].define(version: 2026_08_30_140000) do
     t.datetime "consent_revoked_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "pin_digest"
+    t.integer "failed_pin_attempts", default: 0, null: false
+    t.datetime "pin_locked_until"
     t.index ["player_id"], name: "index_player_locals_on_player_id", unique: true
   end
 
