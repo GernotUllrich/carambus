@@ -560,8 +560,12 @@ namespace :carambus do
         BEGIN;
         UPDATE public.table_locals SET id = id + 50000000 WHERE id < 50000000;
         UPDATE public.tournament_locals SET id = id + 50000000 WHERE id < 50000000;
+      UPDATE public.player_locals SET id = id + 50000000 WHERE id < 50000000;
+        UPDATE public.player_locals SET id = id + 50000000 WHERE id < 50000000;
         SELECT setval(pg_get_serial_sequence('public.table_locals','id'), GREATEST(1, (SELECT COALESCE(MAX(id),1) FROM public.table_locals)), true);
         SELECT setval(pg_get_serial_sequence('public.tournament_locals','id'), GREATEST(1, (SELECT COALESCE(MAX(id),1) FROM public.tournament_locals)), true);
+      SELECT setval(pg_get_serial_sequence('public.player_locals','id'), GREATEST(50000000, (SELECT COALESCE(MAX(id),50000000) FROM public.player_locals)), true);
+        SELECT setval(pg_get_serial_sequence('public.player_locals','id'), GREATEST(50000000, (SELECT COALESCE(MAX(id),50000000) FROM public.player_locals)), true);
         COMMIT;
       SQL
       system(%Q(psql #{database} -v ON_ERROR_STOP=1 -c "#{bump_sql.gsub("\n"," ").gsub('"','\\\"')}"))

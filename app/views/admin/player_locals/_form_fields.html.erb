@@ -1,0 +1,17 @@
+<%# Felder des Kontaktdaten-Formulars.
+
+    Das projekteigene `admin/application/_form.html.erb` rendert die Felder nicht selbst,
+    sondern erwartet je Ressource ein `_form_fields`-Partial — ohne das antwortet die Seite
+    mit 500 (MissingTemplate). Hier reicht die generische Schleife aus dem Administrate-
+    Original: die Felder ergeben sich aus `PlayerLocalDashboard::FORM_ATTRIBUTES`, es gibt
+    nichts ressourcenspezifisch aufzubauen.
+
+    Bewusst ohne eigene Farben und ohne eingebettete Stilregeln (Projektkonvention,
+    docs/ui-conventions.md) — die Administrate-Klassen `field-unit*` bringen ihre Darstellung
+    mit. Andere `_form_fields`-Partials im Admin tun das nicht; sie sind die Altlast, die
+    `rake ui:no_hardcoded_hex` bis heute meldet. %>
+<% page.attributes(controller.action_name).each do |attribute| %>
+  <div class="field-unit field-unit--<%= attribute.html_class %> field-unit--<%= requireness(attribute) %>">
+    <%= render_field attribute, f: form %>
+  </div>
+<% end %>

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_08_25_140000) do
+ActiveRecord::Schema[7.2].define(version: 2026_08_30_140000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -727,6 +727,16 @@ ActiveRecord::Schema[7.2].define(version: 2026_08_25_140000) do
     t.string "shortname"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+  end
+
+  create_table "player_locals", force: :cascade do |t|
+    t.bigint "player_id", null: false
+    t.string "email"
+    t.datetime "consent_given_at"
+    t.datetime "consent_revoked_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["player_id"], name: "index_player_locals_on_player_id", unique: true
   end
 
   create_table "player_rankings", force: :cascade do |t|
@@ -1734,6 +1744,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_08_25_140000) do
   add_foreign_key "mcp_audit_trails", "users", on_delete: :nullify
   add_foreign_key "parties", "regions", validate: false
   add_foreign_key "party_games", "regions", validate: false
+  add_foreign_key "player_locals", "players"
   add_foreign_key "player_rankings", "regions", validate: false
   add_foreign_key "players", "regions", validate: false
   add_foreign_key "regions", "regions", validate: false

@@ -21,6 +21,11 @@ class Player < ApplicationRecord
   has_many :party_a_games, foreign_key: :player_a_id, class_name: "PartyGame"
   has_many :party_b_games, foreign_key: :player_b_id, class_name: "PartyGame"
   has_one :admin_user, class_name: "User", foreign_key: "player_id", dependent: :nullify
+
+  # Lokale Kontaktdaten (Adresse, Einwilligung). Verlassen den lokalen Server nicht — siehe
+  # PlayerLocal. `dependent: :destroy`, damit die Adresse mit dem Spieler verschwindet: sie
+  # ohne Bezug zurueckzulassen waere ein personenbezogener Datensatz ohne Zweck.
+  has_one :player_local, dependent: :destroy
   
   # International associations
   # Note: International tournament participation is tracked via Seeding (not a separate model)

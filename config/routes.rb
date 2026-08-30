@@ -653,6 +653,11 @@ Rails.application.routes.draw do
       end
     end
 
+    # Lokale Kontaktdaten der Clubmitglieder (E-Mail + Einwilligung). Bewusst NUR hier im
+    # Admin-Bereich: `Admin::ApplicationController` laesst ausschliesslich System-Admins durch,
+    # und `clubs#show` — die oeffentliche Mitgliederliste — darf diese Daten nicht zeigen.
+    resources :player_locals
+
     resources :international_sources
     resources :videos
 
