@@ -119,6 +119,23 @@ module CalendarsHelper
      discipline: @discipline_name, location: @location_name}.compact
   end
 
+  # Die URL fuer den Sparten-Selektor: schaltet EINE Sparte in der aktuellen Menge an oder aus.
+  #
+  # Mehrfachauswahl, weil die Sparte hier eine MENGE ist (ein Karambol-Ort bringt „Karambol,
+  # Kegel" mit). Die anderen Selektoren der Leiste sind Einfachauswahl und tauschen ihren Wert;
+  # dieser rechnet die neue Menge aus.
+  def calendar_branch_toggle_url(name)
+    aktuell = Array.wrap(@url_branches).map(&:name)
+    neu = aktuell.include?(name) ? (aktuell - [name]) : (aktuell + [name])
+    calendar_url(branch: calendar_branch_param(neu))
+  end
+
+  # Anzeigetext der aktuellen Auswahl fuer den eingeklappten Selektor — leer, wenn keine
+  # Sparte gesetzt ist (dann zeigt das Partial „Alle Sparten").
+  def calendar_branch_summary
+    Array.wrap(@url_branches).map(&:name).join(" + ")
+  end
+
   # Zurueck zur Anfangssicht: Einstiegsmonat und KEINE Achsen-Filter. Der Ausschnitt
   # (Region/Saison/Sparte) bleibt: der gehoert dem Scope-Band, nicht dieser Seite.
   def calendar_reset_path

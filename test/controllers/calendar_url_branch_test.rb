@@ -96,18 +96,49 @@ class CalendarUrlBranchTest < ActionDispatch::IntegrationTest
     assert_match(/NDM 8-Ball zwei/, response.body, "ohne gueltige Sparte wird nicht gefiltert")
   end
 
-  # Ohne Chip waere es ein unsichtbarer Filter — das Scope-Band zeigt weiter den Session-Wert.
+  # Ohne sichtbaren Zustand waere es ein unsichtbarer Filter — das Scope-Band zeigt weiter den
+  # Session-Wert.
   test "die Filterleiste macht die URL-Sparte sichtbar und wieder abwaehlbar" do
     zwei_turniere!
 
     kalender(scope: {region: @region.id}, month: @monat)
-    refute_match(/Sparte: Karambol/, response.body, "ohne Parameter kein Chip")
+    refute_match(/Alle Sparten/, response.body, "ohne Parameter kein Sparten-Selektor")
 
     kalender(month: @monat, branch: "Karambol")
     assert_response :success
-    assert_match(/Sparte: Karambol/, response.body)
+    assert_match(/Karambol/, response.body)
     assert_select "a[href=?]", calendar_path(month: @monat),
-      {minimum: 1}, "das × muss auf dieselbe Seite ohne branch fuehren"
+      {minimum: 1}, "\"Alle Sparten\" fuehrt auf dieselbe Seite ohne branch"
+  end
+
+  # Betreiber-Befund 2026-08-30: der fruehere Chip konnte die Sparte nur ENTFERNEN. Erwartet
+  # wird ein Selektor, mit dem sich die gewuenschten Sparten einstellen lassen.
+  test "der Sparten-Selektor bietet alle Sparten zum Zu- und Abwaehlen an" do
+    zwei_turniere!
+    kegel_turnier!
+    Branch.find_or_create_by!(name: "Snooker") { |b| b.type = "Branch" }
+
+    kalender(scope: {region: @region.id}, month: @monat, branch: "Karambol")
+    assert_response :success
+
+    # Zuwaehlen: Kegel ist noch nicht gesetzt -> der Link fuehrt auf die Menge MIT Kegel.
+    assert_select "a[href*=?]", "branch=Karambol%2CKegel", {minimum: 1},
+      "eine weitere Sparte muss sich hinzuwaehlen lassen"
+
+    # Abwaehlen: Karambol ist gesetzt -> der Link fuehrt auf die leere Menge, also ohne Parameter.
+    assert_select "a[href=?]", calendar_path(month: @monat), {minimum: 1},
+      "die gesetzte Sparte muss sich abwaehlen lassen"
+  end
+
+  test "aus zwei Sparten laesst sich eine einzelne herausnehmen" do
+    zwei_turniere!
+    kegel_turnier!
+
+    kalender(scope: {region: @region.id}, month: @monat, branch: "Karambol,Kegel")
+    assert_response :success
+    assert_match(/Karambol \+ Kegel/, response.body, "der Selektor nennt die ganze Auswahl")
+    assert_select "a[href*=?]", "branch=Kegel", {minimum: 1},
+      "Karambol abwaehlen laesst Kegel stehen"
   end
 
   # Sonst traegt die erste Kachel den Filter und jede nachgeladene nicht.
@@ -169,13 +200,13 @@ class CalendarUrlBranchTest < ActionDispatch::IntegrationTest
       "ein Tippfehler darf den gueltigen Teil nicht entwerten")
   end
 
-  test "der Chip nennt alle gewaehlten Sparten" do
+  test "der Selektor nennt alle gewaehlten Sparten" do
     zwei_turniere!
     kegel_turnier!
 
     kalender(scope: {region: @region.id}, month: @monat, branch: "Karambol,Kegel")
     assert_response :success
-    assert_match(/Sparte: Karambol \+ Kegel/, response.body)
+    assert_match(/Karambol \+ Kegel/, response.body)
   end
 
   test "mehrere Sparten haengen auch am Nachschub des Stroms" do

@@ -51,23 +51,27 @@
           class: "btn btn-white px-2 py-1 text-xs rounded-pill" %>
   <% end %>
 
-  <%# Sparten aus dem URL (`?branch=Karambol,Kegel`, z.B. der Kalender-Link am Scoreboard).
-      MUSS sichtbar sein: das Scope-Band darueber zeigt weiter den Session-Wert, der Inhalt ist
-      aber auf diese Sparten eingeschraenkt — ohne Chip waere das ein unsichtbarer Filter, genau
-      der Zustand, den 42-02 beseitigt hat. Ein Klick entfernt sie; danach gilt wieder das Band.
+  <%# Sparten-Selektor. Erscheint NUR, wenn die Sparten aus dem URL kommen — also wenn man vom
+      Scoreboard kam (`?branch=Karambol,Kegel`). Auf der normalen Website fuehrt das Scope-Band
+      die Sparte; ein zweiter Selektor daneben waere genau die Doppelstruktur, die 42-02
+      aufgeloest hat.
 
-      ⚠️ Der GANZE Chip ist der Link, nicht nur das ×: ein eigenes `<a>` fuer das × traege kein
-      `.btn` und fiele damit unter die projektweite Regel `a:not(.btn) { color: primary-600 }`
-      (base.css:19) — dunkelgruen auf dunkelgruenem Grund, also unsichtbar. Nebeneffekt: am
-      Touchdisplay ist die Flaeche gross genug zum Treffen.
-      Klassen ausgeschrieben — Tailwind erkennt nur literale Klassennamen. %>
+      MEHRFACHauswahl, anders als die uebrigen Selektoren: die Sparte ist hier eine Menge (ein
+      Karambol-Ort bringt „Karambol, Kegel" mit). Jede Option schaltet ihre Sparte an oder aus,
+      „Alle Sparten" entfernt den Filter ganz — danach gilt wieder das Band.
+
+      Der gewaehlte Wert steht im eingeklappten Knopf; damit bleibt die Einschraenkung sichtbar,
+      obwohl das Scope-Band darueber weiter den Session-Wert zeigt. Ohne das waere es ein
+      unsichtbarer Filter — der Zustand, den 42-02 beseitigt hat. %>
   <% if @url_branches.present? %>
-    <%= link_to calendar_url(branch: nil),
-          class: "btn btn-primary inline-flex items-center gap-1 rounded-pill px-3 py-1 text-xs",
-          "aria-label": t("calendars.filter.branch_remove") do %>
-      <%= t("calendars.filter.branch", branch: @url_branches.map(&:name).join(" + ")) %>
-      <span aria-hidden="true" class="font-bold">×</span>
-    <% end %>
+    <%= render "filter_group",
+          label: t("calendars.filter.branch"),
+          selected: calendar_branch_summary,
+          alle_text: t("calendars.filter.branch_all"),
+          options: [[t("calendars.filter.branch_all"), calendar_url(branch: nil), @url_branches.blank?]] +
+                   Branch.order(:name).map { |b|
+                     [b.name, calendar_branch_toggle_url(b.name), @url_branches.include?(b)]
+                   } %>
   <% end %>
 
   <%# Einzel/Mannschaft — die Achse, die Turniere von Liga-Spieltagen trennt. %>
