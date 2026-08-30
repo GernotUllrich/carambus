@@ -42,9 +42,18 @@ class CreatePlayerLocals < ActiveRecord::Migration[7.2]
     # der sich spaeter aendern kann.
     # `reversible`, weil ein blankes `execute` in `change` nicht zurueckrollbar ist. Ein `down`
     # braucht es nicht: beim Rollback faellt die Tabelle und mit ihr die Sequence.
+    #
+    # ⚠️ `safety_assured` ist PFLICHT, nicht Kosmetik: `strong_migrations` kann in ein rohes
+    # `execute` nicht hineinsehen und bricht sonst jede Migration ab
+    # („Strong Migrations does not support inspecting what happens inside an execute call").
+    # Ohne diesen Block laeuft `bin/rails db:migrate` nur mit gesetztem `SAFETY_ASSURED=1` —
+    # beim Deploy auf die Instanzen faellt jede darueber. Unbedenklich ist es, weil `setval`
+    # allein den Startwert einer frisch angelegten, leeren Sequence setzt.
     reversible do |dir|
       dir.up do
-        execute "SELECT setval(pg_get_serial_sequence('player_locals', 'id'), 50000000, true)"
+        safety_assured do
+          execute "SELECT setval(pg_get_serial_sequence('player_locals', 'id'), 50000000, true)"
+        end
       end
     end
   end
