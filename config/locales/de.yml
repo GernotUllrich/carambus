@@ -159,6 +159,7 @@ de:
       note_body: Änderungen an der Konfiguration erfordern einen Neustart der Anwendung, um wirksam zu werden. Beim Speichern der Einstellungen wird eine Lock-Datei erstellt, um zu verhindern, dass Szenario-Deployment deine Anpassungen überschreibt.
       quick_game_presets_hint: Schnellspiel-Buttons für verschiedene Tischarten konfigurieren (JSON-Format)
       region: Region
+      scoreboard_locale: "Sprache der Scoreboard-Anzeigen"
       system_settings: Systemeinstellungen
       title: Einstellungen
       update_configuration: Konfiguration aktualisieren

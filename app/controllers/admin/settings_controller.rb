@@ -102,7 +102,7 @@ module Admin
         :application_name, :carambus_api_url, :carambus_domain, :queue_adapter,
         :season_name, :force_update, :context,
         :support_email, :business_name, :business_address,
-        :location_id, :club_id, :no_local_protection,
+        :location_id, :club_id, :no_local_protection, :scoreboard_locale,
         :quick_game_presets
       )
     end

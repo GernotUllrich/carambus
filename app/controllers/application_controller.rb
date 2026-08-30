@@ -202,12 +202,76 @@ class ApplicationController < ActionController::Base
     end
   end
 
+  # Zwei Welten, bewusst getrennt (Betreiber-Entscheidung 2026-08-30):
+  #
+  # 1. **Kiosk** — ein Geraet, das als Scoreboard angemeldet ist, zeigt EINE Sprache: die des
+  #    Servers. Keine Wahl, keine Preference, kein Browser-Header.
+  #    Grund: die Live-Seiten bekommen ihr HTML per Broadcast, serverseitig EINMAL gerendert
+  #    und an alle Abonnenten geschickt (`stream_from "table-monitor-stream"` — ein Stream fuer
+  #    alle Tische). Eine individuelle Sprache ist dort nicht darstellbar; eine Wahl anzubieten,
+  #    die beim naechsten Live-Update zurueckspringt, waere schlechter als keine.
+  #
+  # 2. **Website** — dort gibt es keine Broadcasts, also entscheidet der Betrachter:
+  #    seine Wahl bleibt in der Session, bis er sie selbst wieder aendert.
+  #
+  # Die Trennung laeuft ueber das GERAET, nicht ueber die Seitenart: ruft ein Kiosk eine
+  # normale Seite auf (z.B. den Terminkalender ueber den Knopf auf der Welcome-Page), gilt dort
+  # ebenfalls die Serversprache — sonst waere genau der Sprachwechsel zurueck, der den
+  # Betreiber urspruenglich gestoert hat.
   def set_locale
-    I18n.locale = locale_from_scoreboard ||
-                  locale_from_params ||
-                  locale_from_user ||
-                  locale_from_header ||
-                  I18n.default_locale
+    I18n.locale = kiosk_locale || website_locale
+  end
+
+  # Ein als Scoreboard angemeldetes Geraet. Der Auto-Login dafuer passiert in
+  # `LocationsController#scoreboard`; ein Mensch, der sich am selben Rechner anmeldet, faellt
+  # bewusst in die Website-Logik.
+  def scoreboard_device?
+    current_user&.email == "scoreboard@carambus.de"
+  end
+
+  # Turnier > Tisch > Server. Dieselbe Reihenfolge wie `TableMonitor#display_locale`, damit
+  # Request- und Broadcast-Pfad nicht auseinanderlaufen koennen.
+  def kiosk_locale
+    return nil unless scoreboard_device?
+
+    locale_from_scoreboard || locale_from_config || I18n.default_locale.to_s
+  end
+
+  # Die Anzeigesprache dieses Servers (`carambus.yml`, ueber die Admin-Settings umstellbar).
+  # Damit laesst sich ein Standort fuer die Dauer eines internationalen Turniers auf Englisch
+  # stellen, ohne Deploy.
+  def locale_from_config
+    locale = Carambus.config.scoreboard_locale.to_s
+    locale if I18n.available_locales.map(&:to_s).include?(locale)
+  end
+
+  # Die Wahl des Betrachters, gemerkt in seiner Session, bis er sie selbst wieder aendert.
+  def website_locale
+    remember_chosen_locale
+    locale_from_params || locale_from_session || initial_locale_for_browser
+  end
+
+  # Eine bewusste Wahl (`?locale=`) merken. Nur gueltige Werte — `locale_from_params` prueft
+  # gegen `I18n.available_locales`, Unsinn aus dem URL landet also nie in der Session.
+  #
+  # ⚠️ Die Wahl bleibt STRIKT im Browser. Es wird KEIN `TableLocal` geschrieben: ein
+  # Tisch-Scoreboard kann von mehreren Browsern zugleich betrachtet werden — dem Bildschirm am
+  # Tisch und einem Zuschauer zu Hause (Betreiber-Klarstellung 2026-08-30).
+  def remember_chosen_locale
+    chosen = locale_from_params
+    session[:locale] = chosen if chosen.present?
+  end
+
+  def locale_from_session
+    locale = session[:locale]
+    locale if locale.present? && I18n.available_locales.map(&:to_s).include?(locale.to_s)
+  end
+
+  # Voreinstellung fuer den ERSTEN Request eines Browsers — danach entscheidet die Session.
+  def initial_locale_for_browser
+    chosen = locale_from_user || locale_from_header || I18n.default_locale.to_s
+    session[:locale] = chosen.to_s
+    chosen
   end
 
   # Plan 40-01: Am Scoreboard schlaegt die konfigurierte Turniersprache den URL-Parameter.
@@ -241,8 +305,15 @@ class ApplicationController < ActionController::Base
     return locale if I18n.available_locales.map(&:to_s).include?(locale)
   end
 
+  # ⚠️ Der Scoreboard-User ist ein technischer Sammel-Account, kein Mensch — seine
+  # Preference ("de") ist keine persoenliche Wahl und darf deshalb nicht als Voreinstellung
+  # gelten. Sie war genau die Quelle der gemischten Sprache: ein mit `?locale=en` gestartetes
+  # Kiosk fiel auf jeder Folgeseite auf dieses "de" zurueck (Betreiber-Vorgabe 2026-08-30:
+  # "aus den Settings der Users ..., wenn dieser nicht der Scoreboard User ist").
   def locale_from_user
     return nil unless current_user&.preferences
+    return nil if current_user.email == "scoreboard@carambus.de"
+
     locale = current_user.preferences['locale']
     return locale if locale.present? && I18n.available_locales.map(&:to_s).include?(locale.to_s)
   end

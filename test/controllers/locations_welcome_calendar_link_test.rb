@@ -92,4 +92,30 @@ class LocationsWelcomeCalendarLinkTest < ActionDispatch::IntegrationTest
     assert_select "a#reservations", {count: 1},
       "der Kalender-Link tritt hinzu, er ersetzt nichts"
   end
+
+  # ⚠️ Am Kiosk gibt es bewusst KEINEN Sprachumschalter mehr: die Anzeigesprache kommt aus
+  # `Carambus.config.scoreboard_locale` (Betreiber-Entscheidung 2026-08-30). Eine Wahl
+  # anzubieten, die der naechste Broadcast ueberschreibt, waere schlechter als keine.
+  test "die Welcome-Page traegt keinen Sprachumschalter" do
+    tisch!("Match Billard")
+
+    welcome!
+    assert_response :success
+    assert_select "a#language", {count: 0}
+  end
+
+  # Die Tastensteuerung sprang auf `#language` — ein Element, das es seit Plan 40-02 nicht mehr
+  # gibt. `getElementById(null).focus()` warf und brach die ganze Fernbedienungs-Navigation.
+  test "die Tastensteuerung springt nur auf Elemente, die es gibt" do
+    tisch!("Match Billard")
+
+    welcome!
+    assert_response :success
+    refute_match(/"intro":\s*"language"/, response.body,
+      "der verwaiste Sprung muss weg sein")
+
+    %w[start intro reservations calendar].each do |id|
+      assert_select "##{id}", {minimum: 1}, "die Navigation zeigt auf ##{id}"
+    end
+  end
 end

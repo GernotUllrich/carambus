@@ -159,6 +159,7 @@ en:
       note_body: Changes to configuration require application restart to take effect. When you save settings, a lock file is created to prevent scenario deployment from overwriting your customizations.
       quick_game_presets_hint: Configure quick game buttons for different table kinds (JSON format)
       region: Region
+      scoreboard_locale: "Scoreboard display language"
       system_settings: System Settings
       title: Settings
       update_configuration: Update Configuration

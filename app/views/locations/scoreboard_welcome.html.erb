@@ -43,10 +43,18 @@
         40: "key_d",
         13: "key_d",
       }
+      // Nur Elemente, die es auf dieser Seite WIRKLICH gibt: `getElementById(...).focus()`
+      // wirft sonst und bricht die ganze Tastensteuerung. Genau das passierte seit Plan 40-02
+      // mit dem Eintrag fuer den Sprach-Link: der ist dort entfallen, der Sprung blieb stehen.
+      // Am Kiosk entscheidet die Serversprache (scoreboard_locale), es gibt hier also bewusst
+      // keinen Sprachumschalter mehr.
+      // (Bewusst ohne die Zeichenkette in Anfuehrungszeichen: JS-Kommentare landen im
+      // gerenderten HTML und koennen Testerwartungen ausloesen.)
       var tabbed_elements = {
         "start": "intro",
-        "intro": "language",
-        "language": "start"
+        "intro": "reservations",
+        "reservations": "calendar",
+        "calendar": "start"
       }
 
       if (event.keyCode in keyMap) {

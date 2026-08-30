@@ -96,6 +96,18 @@ class TableMonitor < ApplicationRecord
     configured.to_sym
   end
 
+  # Die tatsaechlich anzuzeigende Sprache dieses Scoreboards.
+  #
+  # `display_locale` meldet bewusst nur EXPLIZIT Konfiguriertes und reicht nil weiter (siehe
+  # dort); hier faellt die Kette weiter auf die Anzeigesprache des Servers und zuletzt auf die
+  # Standardsprache. EINE Stelle, weil beide Renderpfade sie brauchen: der Request-Pfad ueber
+  # `ApplicationController#kiosk_locale` und der Broadcast-Pfad in `TableMonitorJob`, der ohne
+  # Request laeuft. Laufen die beiden auseinander, zeigt ein Scoreboard beim Aufruf eine andere
+  # Sprache als nach dem ersten Live-Update (der Bruch aus Plan 40-01).
+  def effective_locale
+    display_locale || Carambus.config.scoreboard_locale.presence&.to_sym || I18n.default_locale
+  end
+
   before_create :on_create
   before_save :log_state_change
   # Invariante: im AASM-Zustand set_over MUSS panel_state "protocol_final" sein, damit das

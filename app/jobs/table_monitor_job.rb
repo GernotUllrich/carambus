@@ -62,7 +62,9 @@ class TableMonitorJob < ApplicationJob
     #
     # Fallback ist ausdruecklich `default_locale`, nicht `I18n.locale` — sonst bliebe fuer
     # unkonfigurierte Turniere genau der zufaellige Thread-Wert stehen, um den es geht.
-    I18n.with_locale(table_monitor.display_locale || I18n.default_locale) do
+    # `effective_locale` statt `display_locale`: dieselbe Kette, die auch der Request-Pfad
+    # nutzt (Konfiguration -> Serversprache -> Standard). Siehe TableMonitor.
+    I18n.with_locale(table_monitor.effective_locale) do
       case operation_type
       when "party_monitor_scores"
         row = table_monitor.data["row"]
