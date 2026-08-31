@@ -59,12 +59,28 @@ if [ -n "$PUMA_SERVICE" ]; then
     PUMA_MASTER_PID=$(systemctl show -p MainPID $PUMA_SERVICE --value 2>/dev/null)
     
     if [ -n "$PUMA_MASTER_PID" ] && [ "$PUMA_MASTER_PID" != "0" ]; then
-        # Check the number of worker processes (wait for at least 2)
-        while [ $(pgrep -P $PUMA_MASTER_PID | wc -l) -lt 2 ]; do
+        # Auf den ERSTEN Puma-Worker warten, nicht auf zwei.
+        #
+        # ⚠️ Hier stand "-lt 2". Das setzte stillschweigend voraus, dass Puma mit
+        # mindestens zwei Workern laeuft. Auf einem Raspi mit wenig RAM ist
+        # WEB_CONCURRENCY=1 die richtige Wahl — dann hat der Master nur ein Kind,
+        # die Bedingung wird nie wahr, und der Kiosk-Browser startet gar nicht mehr.
+        # Genau das ist am 2026-08-31 auf carambus_phat passiert: Dienst "active",
+        # Anwendung erreichbar, Bildschirm schwarz.
+        #
+        # Die Schleife ist jetzt zusaetzlich begrenzt. Ein Scoreboard, das eine
+        # Sekunde zu frueh aufmacht, ist besser als eine schwarze Wand im Clubraum.
+        WARTE=0
+        while [ $(pgrep -P $PUMA_MASTER_PID | wc -l) -lt 1 ] && [ $WARTE -lt 120 ]; do
             echo "Waiting for Puma server workers to start..."
             sleep 5
+            WARTE=$((WARTE + 5))
         done
-        echo "Puma server is ready!"
+        if [ $WARTE -ge 120 ]; then
+            echo "WARNUNG: nach ${WARTE}s kein Puma-Worker — starte den Browser trotzdem."
+        else
+            echo "Puma server is ready!"
+        fi
     else
         echo "Puma service found but no master PID, waiting 30 seconds..."
         sleep 30
