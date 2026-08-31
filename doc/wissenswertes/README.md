@@ -46,10 +46,12 @@ Bekannte Instanzen:
 |---|---|---|
 | `bcw` | `bc-wedel` | `/var/www/carambus_bcw` |
 | `gu` | `192.168.178.29`, Port 8910 | `/var/www/carambus_gu` |
-| `phat` | ssh-Alias `gu` | `/var/www/carambus_phat` |
+| `phat` | ssh-Alias `phat` → `192.168.178.84` | `/var/www/carambus_phat` |
 
-⚠️ **Namensfalle:** Der ssh-Alias `gu` zeigt auf die Maschine, auf der zurzeit
-`carambus_phat` läuft. Die Instanz `carambus_gu` liegt auf `192.168.178.29`.
+⚠️ Instanz- und ssh-Aliasnamen stimmen hier überein, das muss aber nicht so bleiben —
+im Zweifel `~/.ssh/config` lesen statt raten. Ein falsch eingetragener Alias fragt
+stillschweigend die **falsche Maschine**; genau das ist am 2026-08-31 passiert und kam
+als „Verzeichnis fehlt, erst deployen" heraus, obwohl das Verzeichnis längst da war.
 
 Auf einer Instanz, die den `linked_dir` noch nicht kennt (vor Commit `3ed8e41c`), bricht
 `publish.sh` mit einer Meldung ab — dort erst einmal `cap production deploy` laufen lassen.
@@ -64,6 +66,11 @@ Ränder Standard, Hintergrundgrafiken an.
 Per E-Mail an die Mitglieder ging **http://bc-wedel.duckdns.org:3131/wissenswertes/**.
 `publish.sh` ruft diese Adresse nach jedem Hochladen selbst auf und meldet, wenn sie nicht
 mit HTTP 200 antwortet.
+
+Die eigentliche Auslieferungsprüfung läuft dagegen **auf dem Server selbst** gegen
+`localhost:3131`. Grund: auf `phat` steht `iptables` auf `-P INPUT DROP`, Port 3131 ist von
+außen gar nicht erreichbar — der Kiosk-Browser greift ja lokal zu. Eine Prüfung vom
+Entwicklerrechner meldete dort einen Fehler, wo keiner war.
 
 ⚠️ **Beim Prüfen von Hand immer eine Browser-Kennung mitschicken.** nginx wertet auf allen
 Instanzen `$carambus_deny` aus (`/etc/nginx/conf.d/carambus_bot_block.conf`) und weist die
