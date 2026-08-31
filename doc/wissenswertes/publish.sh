@@ -77,6 +77,12 @@ for INSTANZ in "$@"; do
 
   scp -q "${SCP_OPT[@]}" "$BAU"              "$ZIEL:$VERZ/neu-im-august.html"
   scp -q "${SCP_OPT[@]}" "$HIER/index.html"  "$ZIEL:$VERZ/index.html"
+
+  # ⚠️ Rechte MUESSEN hier gesetzt werden, nicht vor dem Hochladen: scp vergibt den Modus nur
+  # beim ANLEGEN einer Datei. Existiert das Ziel bereits, schreibt es nur den Inhalt und laesst
+  # die alten Rechte stehen. Die gebaute Datei kommt aus mktemp und damit mit 0600 — auf einer
+  # Instanz, deren nginx nicht als Eigentuemer laeuft, waere das ein 403 ohne erkennbare Ursache.
+  ssh "${SSH_OPT[@]}" "$ZIEL" "chmod 644 '$VERZ/neu-im-august.html' '$VERZ/index.html'"
   echo "[$INSTANZ] abgelegt: /wissenswertes/ und /wissenswertes/neu-im-august.html"
 
   # --- Schritt 3: nachsehen, ob die Seite auch wirklich ausgeliefert wird ---
