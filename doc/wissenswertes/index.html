@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="de">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wissenswertes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Asap:wght@400;500;600&display=swap">
+<style>
+  /* Gleiche Sprache wie die Präsentation: Billardtuch als Grund, die drei Karambolkugeln
+     als Akzente. Bewusst einthemig — das läuft am Beamer und am Touchdisplay im Club. */
+  :root {
+    --tuch: #0E2A24; --tuch-hoch: #143A32; --elfenbein: #F4F1E6;
+    --gelb: #E8B93A; --gedaempft: #8FA9A1; --linie: #22493F;
+    --serif: "Fraunces", Georgia, serif;
+    --sans: "Asap", "Segoe UI", system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100svh;
+    background: var(--tuch); color: var(--elfenbein);
+    font-family: var(--sans);
+    font-size: clamp(1.05rem, 1.7vw, 1.4rem); line-height: 1.55;
+    display: flex; flex-direction: column; justify-content: center;
+    padding: clamp(1.5rem, 5vw, 5rem);
+  }
+  .innen { width: min(100%, 48rem); margin-inline: auto; }
+  h1 {
+    font-family: var(--serif); font-weight: 600; line-height: 1.05;
+    font-size: clamp(2.4rem, 7vw, 4.5rem); margin: 0 0 .6rem; text-wrap: balance;
+  }
+  .lead { color: var(--gedaempft); margin: 0 0 clamp(2rem, 5vh, 3rem); max-width: 42ch; }
+  ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 1rem; }
+  a.eintrag {
+    display: block; text-decoration: none; color: inherit;
+    background: var(--tuch-hoch); border: 1px solid var(--linie);
+    border-radius: 4px; padding: clamp(1rem, 2.5vw, 1.6rem);
+  }
+  a.eintrag:hover, a.eintrag:focus-visible { border-color: var(--gelb); }
+  a.eintrag:focus-visible { outline: 2px solid var(--gelb); outline-offset: 3px; }
+  .titel {
+    font-family: var(--serif); font-size: clamp(1.3rem, 2.6vw, 1.9rem);
+    font-weight: 600; margin: 0 0 .3rem; color: var(--elfenbein);
+  }
+  .zeile { margin: 0; color: var(--gedaempft); font-size: clamp(.95rem, 1.4vw, 1.15rem); }
+  .datum {
+    font-family: var(--sans); font-size: .8rem; font-weight: 600;
+    letter-spacing: .14em; text-transform: uppercase; color: var(--gelb);
+    margin: 0 0 .5rem; font-variant-numeric: tabular-nums;
+  }
+  /* Grosszuegige Beruehrungsflaeche — das laeuft am Touchdisplay, nicht mit der Maus. */
+  .zurueck {
+    display: inline-block; margin-top: clamp(2rem, 5vh, 3rem);
+    color: var(--gelb); text-decoration: none;
+    font-size: clamp(.95rem, 1.4vw, 1.15rem); font-weight: 600;
+    border: 1px solid var(--linie); border-radius: 999px;
+    padding: .7rem 1.4rem; background: var(--tuch-hoch);
+  }
+  .zurueck:hover, .zurueck:focus-visible { border-color: var(--gelb); color: var(--elfenbein); }
+  .zurueck:focus-visible { outline: 2px solid var(--gelb); outline-offset: 3px; }
+</style>
+
+<div class="innen">
+  <h1>Wissenswertes</h1>
+  <p class="lead">Unterlagen rund um den Spielbetrieb — zum Nachlesen am Tisch und zuhause.</p>
+
+  <ul>
+    <li>
+      <a class="eintrag" href="/wissenswertes/neu-im-august.html">
+        <p class="datum">31. August 2026</p>
+        <p class="titel">Zwei Wochen am Billardtisch</p>
+        <p class="zeile">Was sich am Scoreboard, im Terminkalender und rund um eure eigenen Daten getan hat.</p>
+      </a>
+    </li>
+  </ul>
+
+  <a class="zurueck" href="/locations/1?sb_state=welcome">&#8592; Zurück zum Scoreboard</a>
+</div>
+</html>

@@ -1,0 +1,463 @@
+<title>Carambus im August</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Asap:wght@400;500;600&display=swap">
+
+<style>
+  /* ---------------------------------------------------------------
+     Carambus im August — Projektion im Clubraum.
+
+     Bewusst EINTHEMIG: eine Beamer-Präsentation wechselt kein Theme.
+     Deshalb kein prefers-color-scheme, aber jede Farbe explizit gesetzt,
+     damit die Seite auf jedem Untergrund hält.
+
+     Palette aus der Sache: Billardtuch als Grund, die drei Karambol-
+     kugeln (Elfenbein, Gelb, Rot) als Akzente.
+     --------------------------------------------------------------- */
+  :root {
+    --tuch:        #0E2A24;
+    --tuch-hoch:   #143A32;
+    --tuch-tief:   #091C18;
+    --elfenbein:   #F4F1E6;
+    --gelb:        #E8B93A;
+    --rot:         #C4402F;
+    --gedaempft:   #8FA9A1;
+    --linie:       #22493F;
+
+    --serif: "Fraunces", Georgia, "Times New Roman", serif;
+    --sans:  "Asap", "Segoe UI", system-ui, -apple-system, sans-serif;
+
+    --rand: clamp(1.25rem, 4vw, 5rem);
+  }
+
+  * { box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    * { animation: none !important; transition: none !important; }
+  }
+
+  body {
+    margin: 0;
+    background: var(--tuch);
+    color: var(--elfenbein);
+    font-family: var(--sans);
+    font-size: clamp(1.05rem, 1.7vw, 1.5rem);
+    line-height: 1.55;
+    scroll-snap-type: y proximity;
+  }
+
+  /* ---------- Sprungleiste ---------- */
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    display: flex;
+    flex-wrap: wrap;
+    gap: .4rem;
+    padding: .7rem var(--rand);
+    background: color-mix(in srgb, var(--tuch-tief) 92%, transparent);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--linie);
+  }
+  nav a {
+    font-family: var(--sans);
+    font-size: clamp(.8rem, 1.1vw, 1rem);
+    font-weight: 500;
+    letter-spacing: .03em;
+    color: var(--gedaempft);
+    text-decoration: none;
+    padding: .4rem .8rem;
+    border-radius: 999px;
+    border: 1px solid transparent;
+    white-space: nowrap;
+  }
+  nav a:hover, nav a:focus-visible {
+    color: var(--elfenbein);
+    border-color: var(--linie);
+    background: var(--tuch-hoch);
+  }
+  nav a:focus-visible { outline: 2px solid var(--gelb); outline-offset: 2px; }
+  nav a.ruf { color: var(--gelb); }
+
+  /* ---------- Abschnitte ---------- */
+  section {
+    scroll-snap-align: start;
+    min-height: 100svh;
+    padding: clamp(2rem, 5vh, 4rem) var(--rand) clamp(3rem, 7vh, 5rem);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: clamp(1.2rem, 2.5vh, 2rem);
+    border-bottom: 1px solid var(--linie);
+  }
+  section:last-of-type { border-bottom: 0; }
+
+  .innen { width: min(100%, 62rem); margin-inline: auto; }
+
+  /* ---------- Typografie ---------- */
+  h1, h2 {
+    font-family: var(--serif);
+    font-weight: 600;
+    line-height: 1.05;
+    text-wrap: balance;
+    margin: 0;
+  }
+  h1 { font-size: clamp(2.6rem, 8vw, 6rem); }
+  h2 { font-size: clamp(1.9rem, 4.6vw, 3.6rem); }
+
+  .marke {
+    font-family: var(--sans);
+    font-size: clamp(.75rem, 1.1vw, .95rem);
+    font-weight: 600;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: var(--gelb);
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+    margin: 0 0 .6rem;
+  }
+  .marke::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--linie);
+  }
+
+  .lead {
+    font-size: clamp(1.15rem, 2.1vw, 1.8rem);
+    color: var(--gedaempft);
+    max-width: 46ch;
+    margin: 0;
+  }
+
+  /* ---------- Listen ---------- */
+  ul.punkte { list-style: none; margin: 0; padding: 0; display: grid; gap: clamp(.7rem, 1.6vh, 1.15rem); }
+  ul.punkte li {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: .9rem;
+    align-items: baseline;
+    max-width: 54ch;
+  }
+  ul.punkte li::before {
+    content: "◆";
+    color: var(--gelb);
+    font-size: .7em;
+    line-height: 1.9;
+  }
+  ul.punkte strong { font-weight: 600; color: var(--elfenbein); }
+  ul.punkte span { color: var(--gedaempft); }
+
+  /* ---------- Karten ---------- */
+  .karten { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); }
+  .karte {
+    background: var(--tuch-hoch);
+    border: 1px solid var(--linie);
+    border-radius: 4px;
+    padding: clamp(1rem, 2.2vw, 1.6rem);
+  }
+  .karte h3 {
+    font-family: var(--sans);
+    font-size: clamp(.95rem, 1.3vw, 1.1rem);
+    font-weight: 600;
+    letter-spacing: .02em;
+    margin: 0 0 .45rem;
+    color: var(--gelb);
+  }
+  .karte p { margin: 0; color: var(--gedaempft); font-size: clamp(.95rem, 1.3vw, 1.15rem); }
+
+  /* ---------- Kugeln (Titelbild) ---------- */
+  .kugeln { display: flex; gap: clamp(.6rem, 1.6vw, 1.4rem); margin-bottom: clamp(1rem, 3vh, 2rem); }
+  .kugel { width: clamp(2.2rem, 5vw, 4rem); aspect-ratio: 1; border-radius: 50%; position: relative; }
+  .kugel::after {
+    content: "";
+    position: absolute;
+    inset: 14% 44% 58% 18%;
+    border-radius: 50%;
+    background: rgba(255,255,255,.5);
+    filter: blur(2px);
+  }
+  .k-weiss { background: radial-gradient(circle at 32% 28%, #FFFDF6, #D8D2BE); }
+  .k-gelb  { background: radial-gradient(circle at 32% 28%, #F5CE5C, #B98D18); }
+  .k-rot   { background: radial-gradient(circle at 32% 28%, #DC5B47, #8E2A1D); }
+
+  /* ---------- Hervorhebung / Aufruf ---------- */
+  .ruf-block {
+    border-left: 4px solid var(--rot);
+    padding: clamp(.9rem, 2vw, 1.4rem) clamp(1rem, 2.4vw, 1.8rem);
+    background: color-mix(in srgb, var(--rot) 12%, var(--tuch-hoch));
+    border-radius: 0 4px 4px 0;
+    max-width: 54ch;
+  }
+  .ruf-block p { margin: 0; }
+  .ruf-block p + p { margin-top: .7rem; }
+
+  .klein { font-size: clamp(.85rem, 1.2vw, 1.05rem); color: var(--gedaempft); }
+
+  .zahl {
+    font-family: var(--serif);
+    font-size: clamp(2.6rem, 6vw, 4.6rem);
+    font-weight: 700;
+    color: var(--gelb);
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .duo { display: grid; gap: clamp(1.4rem, 3vw, 2.6rem); grid-template-columns: 1fr; }
+  @media (min-width: 60rem) { .duo { grid-template-columns: 1.1fr .9fr; align-items: start; } }
+
+  footer {
+    padding: clamp(2rem, 5vh, 3.5rem) var(--rand);
+    background: var(--tuch-tief);
+    color: var(--gedaempft);
+    font-size: clamp(.85rem, 1.2vw, 1rem);
+    text-align: center;
+  }
+
+  /* ---------- Druck / PDF ----------
+     Ein Abschnitt = eine Seite, HOCHFORMAT.
+
+     ⚠️ Querformat war der erste Versuch — naheliegend, weil die Abschnitte für die
+     Projektion gebaut sind. Im PDF klebte der Text dann aber an der linken Seitenhälfte:
+     die Zeilenlängen sind auf Lesbarkeit begrenzt (54ch), und die bleiben auf 297 mm
+     Breite eben schmal. Hochformat füllt die Spalte und liest sich als Dokument. */
+  @page { size: A4 portrait; margin: 0; }
+
+  @media print {
+    /* Ohne das druckt der Browser die Farben nicht — und ein Tuch-Grün, das zu Weiß
+       wird, nimmt der Seite ihren ganzen Charakter. */
+    html, body {
+      background: var(--tuch) !important;
+      print-color-adjust: exact;
+      -webkit-print-color-adjust: exact;
+    }
+
+    /* Die klebende Sprungleiste hat auf Papier keine Aufgabe. */
+    nav { display: none !important; }
+
+    body { scroll-snap-type: none; font-size: 12pt; }
+
+    /* ⚠️ Die Zeilenbegrenzungen der Bildschirmfassung (54ch / 46ch) sind dort richtig —
+       auf A4 lassen sie aber ein Drittel der Seite leer und lassen das Dokument
+       unfertig wirken. Im Druck bestimmt der Seitenrand das Maß. */
+    ul.punkte li, .lead, .ruf-block { max-width: none; }
+    .innen { width: 100%; }
+
+    section {
+      /* svh ergibt im Druck keinen Sinn — die Seitenhöhe bestimmt das Papier. */
+      min-height: auto;
+      height: auto;
+      break-after: page;
+      break-inside: avoid;
+      padding: 14mm 16mm;
+      border-bottom: 0;
+      justify-content: flex-start;
+    }
+    section:last-of-type { break-after: auto; }
+
+    /* Auf einer festen Seite trägt die fließende Skalierung nicht mehr — feste Größen,
+       die auf A4 hoch sicher passen. */
+    h1 { font-size: 30pt; }
+    h2 { font-size: 20pt; }
+    .lead { font-size: 12.5pt; }
+    .zahl { font-size: 26pt; }
+    .kugel { width: 14mm; }
+    .karte { break-inside: avoid; }
+
+    /* Die Zweispalter der Bildschirmfassung würden auf 180 mm Breite zu schmal —
+       im Druck untereinander. */
+    .duo { grid-template-columns: 1fr !important; }
+    .karten { grid-template-columns: 1fr 1fr !important; }
+
+    footer { break-before: avoid; padding: 8mm; }
+
+    a { text-decoration: none; color: inherit; }
+  }
+</style>
+
+<nav>
+  <a href="#start">Start</a>
+  <a href="#tisch">Am Tisch</a>
+  <a href="#training">Trainingsspiele</a>
+  <a href="#kalender">Termine</a>
+  <a href="#bereich">Mein Bereich</a>
+  <a href="#turnierleitung">Turnierleitung</a>
+  <a href="#bitte" class="ruf">Was ich brauche</a>
+</nav>
+
+<section id="start">
+  <div class="innen">
+    <div class="kugeln" aria-hidden="true">
+      <div class="kugel k-weiss"></div>
+      <div class="kugel k-gelb"></div>
+      <div class="kugel k-rot"></div>
+    </div>
+    <h1>Zwei Wochen<br>am Billardtisch</h1>
+    <p class="lead" style="margin-top:1.2rem">
+      Was sich seit Mitte August an unserem Scoreboard, im Terminkalender
+      und rund um eure eigenen Daten getan hat.
+    </p>
+  </div>
+</section>
+
+<section id="tisch">
+  <div class="innen">
+    <p class="marke">Eins — Am Tisch</p>
+    <h2>Die Bedienung folgt jetzt dem Spiel</h2>
+    <ul class="punkte" style="margin-top:1.6rem">
+      <li><span><strong>Der Nachstoß hat einen echten Knopf.</strong> Beschriftet, an einer festen Stelle — statt einer Fläche, die man erraten musste.</span></li>
+      <li><span><strong>Erst das Spiel, dann die Spieler.</strong> Wer zuletzt in dieser Aufstellung gespielt hat, steht ganz oben in der Liste.</span></li>
+      <li><span><strong>In den Feldern stehen eure Namen</strong> — nicht mehr „(A)" und „(B)".</span></li>
+      <li><span><strong>Neue Mitspieler direkt am Tisch anlegen.</strong> Gast oder Vereinsmitglied — der Unterschied zählt: Gäste werden nach zwei Wochen automatisch entfernt, Mitglieder bleiben.</span></li>
+      <li><span><strong>„Tisch freigeben"</strong> beendet sauber und gibt den Tisch für die Nächsten frei.</span></li>
+      <li><span><strong>Flagge am Namen.</strong> Bei Turnieren mit mehreren Nationen steht die Nationalflagge vor dem Spielernamen.</span></li>
+      <li><span><strong>Englisch auf Knopfdruck.</strong> Während eines internationalen Turniers lassen sich alle Scoreboards gemeinsam auf Englisch umstellen.</span></li>
+    </ul>
+  </div>
+</section>
+
+<section id="training">
+  <div class="innen">
+    <p class="marke">Zwei — Trainingsspiele</p>
+    <div class="duo">
+      <div>
+        <h2>Eure freien Spiele zählen jetzt</h2>
+        <ul class="punkte" style="margin-top:1.6rem">
+          <li><span><strong>Ergebnisse werden gespeichert</strong> — mit Disziplin und Distanz, nicht nur die nackte Zahl.</span></li>
+          <li><span><strong>Auch wenn ihr abbrecht</strong> oder das Scoreboard ausgeht: ein entschiedenes Spiel bleibt erhalten.</span></li>
+          <li><span><strong>Nur mit zwei echten Spielern.</strong> „Gast A gegen Gast B" wird nicht gewertet — sonst steht Unsinn in der Statistik.</span></li>
+        </ul>
+      </div>
+      <div class="karte">
+        <h3>Ehrlich gesagt</h3>
+        <p>
+          Bis jetzt sind erst <strong style="color:var(--elfenbein)">vier</strong> Trainingsergebnisse
+          erfasst — die Aufzeichnung läuft ja erst seit Ende August.
+        </p>
+        <p style="margin-top:.8rem">
+          Die Auswertung — GD-Entwicklung je Disziplin, monatliche Ranglisten — kommt
+          später. Sie braucht erst einmal Spiele. Also: spielt.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="kalender">
+  <div class="innen">
+    <p class="marke">Drei — Termine</p>
+    <h2>Turniere und Spieltage in einer Ansicht</h2>
+    <div class="karten" style="margin-top:1.8rem">
+      <div class="karte">
+        <h3>Alles an einem Ort</h3>
+        <p>Turniere und Liga-Spieltage nebeneinander, Monat für Monat, mit Nachladen nach vorn und zurück.</p>
+      </div>
+      <div class="karte">
+        <h3>Vom Scoreboard aus</h3>
+        <p>Ein Knopf „Termine" führt direkt hinein — und zeigt nur die Sparten, die es bei uns gibt.</p>
+      </div>
+      <div class="karte">
+        <h3>Filtern und drucken</h3>
+        <p>Nach Ort, Disziplin oder Gruppe eingrenzen. Und der Ausdruck für die Pinnwand funktioniert wieder.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="bereich">
+  <div class="innen">
+    <p class="marke">Vier — Mein Spielerbereich</p>
+    <h2>Ein eigener Bereich, ohne Benutzerkonto</h2>
+    <div class="duo" style="margin-top:1.6rem">
+      <ul class="punkte">
+        <li><span><strong>Anmelden mit Name und PIN</strong> — am Touchdisplay im Club und zuhause im Browser.</span></li>
+        <li><span><strong>Kein Konto, kein Passwort.</strong> Ihr wählt euren Namen aus der Liste, der PIN bestätigt, dass ihr es seid.</span></li>
+        <li><span><strong>Eure Adresse pflegt ihr selbst</strong> — und die Einwilligung könnt ihr jederzeit zurücknehmen, ohne jemanden zu fragen.</span></li>
+        <li><span><strong>Den PIN setzt ihr selbst.</strong> Ihr bekommt einen Link per Mail; der PIN entsteht erst in eurem Browser.</span></li>
+      </ul>
+      <div class="karte">
+        <h3>Wir kennen euren PIN nicht</h3>
+        <p>
+          In der Einladungs-Mail steht kein PIN — nur ein Link, der einmal funktioniert und
+          nach sieben Tagen verfällt.
+        </p>
+        <p style="margin-top:.8rem">
+          Gespeichert wird der PIN nur verschlüsselt. Auch ich kann ihn nicht auslesen.
+          Vergessen? Dann gibt es einen neuen Link.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="turnierleitung">
+  <div class="innen">
+    <p class="marke">Fünf — Für Sportwarte und Turnierleiter</p>
+    <h2>Turniere aufsetzen, führen, abrechnen</h2>
+
+    <div class="duo" style="margin-top:1.6rem">
+      <div>
+        <p class="marke" style="font-size:.72rem;margin-bottom:.9rem">Die überarbeitete Turnier-App</p>
+        <ul class="punkte">
+          <li><span><strong>Andocken statt doppelt anlegen.</strong> Die App hängt sich an ein bestehendes Carambus-Turnier und bindet die Tische gleich mit — kein zweiter Datensatz, keine Abgleicherei.</span></li>
+          <li><span><strong>Ergebnisse bleiben erhalten.</strong> Sie landen dauerhaft auf dem Vereinsrechner und überstehen auch einen Neustart des Turniers.</span></li>
+          <li><span><strong>Ein Runbook für die Turnierleitung</strong> — Aufsetzen, Bedienen, Übergeben — direkt in der App, nicht im Ordner auf irgendeinem Rechner.</span></li>
+          <li><span><strong>Behobene Stolperstellen:</strong> der Nachstoß am Scoreboard, die nächtliche Aufräumung, die mehrtägige Turniere löschte, und die Zuordnung beim Ausstoß-Tausch.</span></li>
+        </ul>
+      </div>
+
+      <div class="karte">
+        <h3>Die ClubCloud im Gespräch bedienen</h3>
+        <p>
+          Über den KI-Zugang lassen sich Aufgaben in der ClubCloud sagen statt klicken:
+          offene Turniere auflisten, ein Turnier klonen, die Teilnehmerliste füllen und
+          abschließen, einen Turnierleiter eintragen, Spieler nach Verein und Disziplin
+          suchen.
+        </p>
+        <p style="margin-top:.8rem">
+          Der Zugang arbeitet mit <strong style="color:var(--elfenbein)">eurem eigenen
+          ClubCloud-Konto</strong> — also genau mit euren Rechten, nicht mehr. Und jeder
+          schreibende Zugriff wird protokolliert.
+        </p>
+        <p style="margin-top:.8rem" class="klein">
+          Steht bereit; nichts davon passiert ohne ausdrückliche Freigabe.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="bitte">
+  <div class="innen">
+    <p class="marke" style="color:var(--rot)">Sechs — Was ich von euch brauche</p>
+    <h2>Eure E-Mail-Adresse — und eure Einwilligung</h2>
+
+    <div class="ruf-block" style="margin-top:1.6rem">
+      <p><strong>Wofür:</strong> die Einladung zu eurem Zugang, und später Vereins-Infos.</p>
+      <p><strong>Wo sie liegt:</strong> auf dem Vereinsrechner hier im Club. Nicht in der Cloud, nicht beim zentralen Server, nirgends sonst.</p>
+      <p><strong>Wie ihr sie loswerdet:</strong> die Einwilligung könnt ihr jederzeit selbst widerrufen — in eurem eigenen Bereich, ohne Nachfrage.</p>
+    </div>
+
+    <div class="karten" style="margin-top:1.8rem">
+      <div class="karte">
+        <h3>Was der PIN schützt</h3>
+        <p>Eure Adresse, eure Einstellungen — und später eure persönlichen Zahlen.</p>
+      </div>
+      <div class="karte">
+        <h3>Was er nicht verbirgt</h3>
+        <p>Die Vereins-Bestenliste bleibt für alle offen. Der sportliche Vergleich ist ja der Reiz.</p>
+      </div>
+      <div class="karte">
+        <h3>Ohne Einwilligung</h3>
+        <p>Geht keine Mail raus. Dann bekommt ihr euren Zugang eben persönlich eingerichtet.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  Carambus · BC Wedel · Stand 31. August 2026
+</footer>
