@@ -17,7 +17,6 @@
       .index_by(&:id).transform_values(&:fl_name) %>
 <script type="text/javascript">
   window.playerNamesById = <%= detail_player_names.to_json.html_safe %>;
-  window.recentPlayers = <%= (local_assigns[:recent_players] || []).to_json.html_safe %>;
 
   function players_mode() {
     open_players_modal();
@@ -112,40 +111,11 @@
     data.name_b = sel[1] ? (names[sel[1]] || "") : "";
   }
 
-  function render_recent_players() {
-    var box = document.getElementById("recent-players");
-    if (!box) { return; }
-    box.innerHTML = "";
-    box.classList.add("hidden");
-
-    var ids = window.recentPlayers || [];
-    if (!ids.length) { return; }
-
-    var titleRe = new RegExp("<%= j Player::SORT_TITLE_PATTERN %>", "i");
-    var entries = ids.map(function (id) {
-      return { id: id, name: (window.playerNamesById || {})[id] };
-    }).filter(function (e) { return !!e.name; });
-    entries.sort(function (a, b) {
-      return a.name.replace(titleRe, "").localeCompare(b.name.replace(titleRe, ""), "de");
-    });
-    if (!entries.length) { return; }
-
-    var html = '<div class="text-2vw mb-2 opacity-80"><%= j t("location.free_game.recent_players") %></div>' +
-               '<div class="flex flex-wrap gap-3">';
-    entries.forEach(function (e) {
-      html += '<button type="button" class="player-choice px-4 py-3 border-2 rounded-lg text-2vw" ' +
-              'data-player-id="' + e.id + '" onclick="pick_player(' + e.id + ')">' + e.name + '</button>';
-    });
-    html += "</div>";
-    box.innerHTML = html;
-    box.classList.remove("hidden");
-  }
 
   // Aufruf aus dem Link "Spieler-Auswahl". Uebernimmt den aktuellen Stand der
   // Dropdowns, damit die Paarungszeile nicht bei jedem Oeffnen zurueckfaellt.
   function open_players_modal() {
     sync_pairing_from_selects();
-    render_recent_players();
     set_players_modal();
   }
 
@@ -183,10 +153,18 @@
                 class="min-w-[12rem] px-4 py-3 border-2 border-dashed rounded-lg opacity-60"></button>
       </div>
 
-      <%# Kopfgruppe "Zuletzt". Hier OHNE Parameterbezug: zum Auswahlzeitpunkt stehen
-          Disziplin und Distanz noch nicht fest, der Service liefert daher seine dritte
-          Kaskadenstufe (zuletzt ueberhaupt trainiert). %>
-      <div id="recent-players" class="hidden px-6 pt-2"></div>
+      <%# ⚠️ Hier gibt es BEWUSST keine Kopfgruppe "Zuletzt" — anders als im Schnellstart.
+
+          Der Sinn der Gruppe waere: unter einer bestimmten Kombination aus Disziplin,
+          Baellen und Aufnahmen spielen immer nur sehr wenige dieselbe Partie, die stuenden
+          dann sofort oben. Auf DIESER Seite werden die Parameter aber erst NACH der
+          Spielerauswahl gesetzt. Der Service konnte deshalb nur seine dritte Kaskadenstufe
+          liefern — "zuletzt ueberhaupt trainiert" — und das ist keine Vorauswahl, sondern
+          eine zweite, willkuerliche Liste ueber der eigentlichen.
+
+          Betreiber-Befund 2026-09-01 am Scoreboard: "Ohne sie ist es sogar besser zu
+          bedienen." Im Schnellstart bleibt die Gruppe, dort stehen die Parameter seit dem
+          Knopfdruck fest und sie leistet, was sie soll. %>
 
       <%# players bleibt erhalten — die Dropdowns auf der Hauptseite speisen sich daraus. %>
       <%- players = [] %>
@@ -203,11 +181,11 @@
       <div class="px-6 pb-6">
         <%- selectable_groups.each do |group_label, members| %>
           <%- next if members.blank? %>
-          <div class="mt-4 text-2vw opacity-70"><%= group_label %></div>
-          <div class="flex flex-wrap gap-3 mt-2">
+          <div class="mt-3 text-1-5vw opacity-70"><%= group_label %></div>
+          <div class="flex flex-wrap gap-2 mt-1" data-player-pager>
             <%- members.each do |p| %>
               <button type="button"
-                      class="player-choice px-4 py-3 border-2 rounded-lg text-2vw"
+                      class="player-choice px-3 py-2 border-2 rounded-lg text-1-5vw"
                       data-player-id="<%= p.id %>"
                       onclick="pick_player(<%= p.id %>)">
                 <%= p.fl_name %>
@@ -745,3 +723,6 @@
     </div><%# /x-data wrapper — Phase 38.2-02 / UAT-GAP-02 scope lift %>
   <%- end %>
 </div>
+
+<%# Blaetterknoepfe fuer die Spielerliste — siehe docs/ui-conventions.md, Abschnitt 6. %>
+<%= render "player_pager" %>

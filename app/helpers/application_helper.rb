@@ -154,9 +154,18 @@ module ApplicationHelper
   #
   # `sb_state`/`table_id` aus der Session: zurueck geht es dorthin, wo man war — nicht
   # pauschal auf die Startseite des Scoreboards.
+  # Laeuft diese Anfrage auf einem Scoreboard im Vereinsheim?
+  #
+  # Das Merkmal lag bisher nur in `scoreboard_return_path` und war damit nur als
+  # "ist ein Rueckweg da?" abfragbar. Seit 2026-09-01 haengt mehr daran als der Rueckweg:
+  # auf 1280x720 sind die Bildlaufleisten unbedienbar, also duerfen dort keine Ansichten
+  # ausgeliefert werden, die auf Scrollen bauen. Siehe docs/ui-conventions.md, Abschnitt 6.
+  def scoreboard_context?
+    Current.user&.email == "scoreboard@carambus.de" && Carambus.config.location_id.present?
+  end
+
   def scoreboard_return_path
-    return nil unless Current.user&.email == "scoreboard@carambus.de"
-    return nil if Carambus.config.location_id.blank?
+    return nil unless scoreboard_context?
 
     location_path(Carambus.config.location_id,
       sb_state: session[:sb_state],

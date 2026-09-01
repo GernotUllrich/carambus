@@ -12,6 +12,19 @@
     Tailwind-Klasse, anders als beim Monatsraster in 42-03.
     `items-start`: Kacheln behalten ihre natuerliche Hoehe, statt auf die hoechste der Zeile
     gedehnt zu werden. %>
+<%# Auf dem Scoreboard KEIN Strom: dort sind die Bildlaufleisten unbedienbar, alles unterhalb
+    der ersten Bildschirmhoehe waere unerreichbar — und ein Controller, der beim Scrollen
+    nachlaedt, laeuft dort ohnehin nie an. Gezeigt wird der eine Monat, den der Controller
+    geladen hat; geblaettert wird mit den ‹ › der Filterleiste.
+    Siehe docs/ui-conventions.md, Abschnitt 6. %>
+<% if scoreboard_context? %>
+  <%# Volle Breite statt der 20rem-Spalte des Stroms: bei nur EINER Kachel liesse `auto-fill`
+      vier Fuenftel des Bildschirms leer (Bildschirmfoto vom 2026-09-01). Die Agenda selbst
+      bricht darin mehrspaltig um, siehe _agenda.html.erb. %>
+  <div class="mt-2">
+    <%= render "month_tiles", kacheln: @stream_kacheln %>
+  </div>
+<% else %>
 <div data-controller="calendar-stream"
      data-calendar-stream-url-value="<%= calendar_months_path(calendar_stream_params) %>"
      data-calendar-stream-batch-value="<%= CalendarsController::STREAM_BATCH %>">
@@ -37,3 +50,4 @@
     <span data-calendar-stream-target="bottomNotice" hidden><%= t("calendars.stream.end_reached") %></span>
   </div>
 </div>
+<% end %>

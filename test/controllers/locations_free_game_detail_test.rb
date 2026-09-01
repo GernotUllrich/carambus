@@ -96,6 +96,35 @@ class LocationsFreeGameDetailTest < ActionDispatch::IntegrationTest
     assert_includes ids, @player_a.id.to_s
   end
 
+  # Die Blaetterknoepfe selbst sind Browser-JavaScript und hier nicht pruefbar. Was hier
+  # geprueft wird, sind die beiden Anker, an denen sie haengen — faellt einer davon weg,
+  # blaettert nichts mehr, und zwar lautlos: die Liste saehe genauso aus wie vorher, nur
+  # dass ihr unteres Ende auf 1280x720 unerreichbar waere.
+  #
+  # Siehe docs/ui-conventions.md, Abschnitt 6, und app/views/locations/_player_pager.html.erb.
+  # ⚠️ Markiert ist JEDE Gruppenliste (Gaeste wie Club), nicht nur die lange — die Markierung
+  # sitzt in der Gruppenschleife. Das ist Absicht: der Pager wird erst ab 13 Eintraegen taetig,
+  # die Gaestegruppe mit ihren vier Namen bleibt also unveraendert. Deshalb wird hier nicht
+  # gezaehlt, sondern die Invariante geprueft, auf die es ankommt.
+  test "A4: jeder Auswahlknopf liegt in einer blaetterbaren Liste" do
+    get_detail
+
+    alle = css_select("button.player-choice")
+    innerhalb = css_select("[data-player-pager] button.player-choice")
+
+    assert alle.any?, "die Auswahlliste darf nicht leer sein"
+    assert_equal alle.size, innerhalb.size,
+      "ein Knopf ausserhalb einer markierten Liste waere auf 1280x720 unerreichbar"
+  end
+
+  test "A5: das Blaetter-Partial ist eingehaengt" do
+    get_detail
+
+    assert_match(/data-player-pager/, response.body)
+    assert_match(/init_player_pagers/, response.body,
+      "ohne das Skript aus _player_pager bleibt die Markierung wirkungslos")
+  end
+
   # ---------------------------------------------------------------------------
   # B. Paarungszeile (AC-2)
   # ---------------------------------------------------------------------------
@@ -107,9 +136,23 @@ class LocationsFreeGameDetailTest < ActionDispatch::IntegrationTest
     assert_select "#pairing_slot_1[onclick=?]", "clear_pairing_slot(1)", 1
   end
 
-  test "B2: Kopfgruppen-Container vorhanden und initial versteckt" do
+  # ⚠️ Umgekehrte Erwartung seit 2026-09-01: der Container ist WEG, nicht bloss versteckt.
+  #
+  # Bis dahin trug die Detailseite dieselbe Kopfgruppe "Zuletzt" wie der Schnellstart. Ihr
+  # Sinn ist, unter einer Kombination aus Disziplin, Baellen und Aufnahmen die wenigen
+  # anzuzeigen, die genau das spielen. Hier werden die Parameter aber erst NACH der
+  # Spielerauswahl gesetzt — der Service konnte deshalb nur "zuletzt ueberhaupt trainiert"
+  # liefern, also eine zweite, willkuerliche Liste ueber der eigentlichen.
+  #
+  # Betreiber-Befund am Scoreboard: "Ohne sie ist es sogar besser zu bedienen."
+  # Im Schnellstart bleibt die Gruppe — dort stehen die Parameter seit dem Knopfdruck fest.
+  test "B2: keine Kopfgruppe \"Zuletzt\" auf der Detailseite" do
     get_detail
-    assert_select "#recent-players.hidden", 1
+
+    assert_select "#recent-players", 0,
+      "ohne Parameterbezug ist die Gruppe keine Abkuerzung, sondern ein zweites Suchfeld"
+    assert_no_match(/render_recent_players/, response.body,
+      "und auch das Skript dazu darf nicht mehr ausgeliefert werden")
   end
 
   # ---------------------------------------------------------------------------
@@ -211,27 +254,20 @@ class LocationsFreeGameDetailTest < ActionDispatch::IntegrationTest
   # E. Ranking und Namensdarstellung (AC-1, Sortierung)
   # ---------------------------------------------------------------------------
 
-  test "E1: das Ranking wird ohne Parameterbezug mitgeliefert" do
-    get_detail
-    assert_match(/window\.recentPlayers\s*=/, response.body)
-    assert_match(/window\.playerNamesById\s*=/, response.body)
-  end
-
-  test "E2: nach einem gewerteten Trainingsspiel erscheinen dessen Spieler im Ranking" do
-    game = Game.create!(id: @next_id + 1, data: {}, gname: "det_#{SecureRandom.hex(3)}")
-    [[@player_a, "playera"], [@player_b, "playerb"]].each do |player, role|
-      GameParticipation.create!(game: game, player: player, role: role, result: 40,
-        data: {"discipline" => "Freie Partie klein", "balls_goal" => 40})
-    end
-
+  # E1 hiess bis 2026-09-01 "das Ranking wird ohne Parameterbezug mitgeliefert" und pruefte
+  # `window.recentPlayers`. Das Ranking ist von dieser Seite entfernt (siehe B2); geblieben
+  # ist das Namensverzeichnis, aus dem die Paarungszeile ihre Beschriftung zieht.
+  test "E1: das Namensverzeichnis wird weiter mitgeliefert" do
     get_detail
 
-    ranking = response.body[/window\.recentPlayers\s*=\s*(\[.*?\]);/m, 1].to_s
-    ids = JSON.parse(ranking.presence || "[]")
-    assert_includes ids, @player_a.id,
-      "ohne Parameterbezug muss die dritte Kaskadenstufe greifen"
-    assert_includes ids, @player_b.id
+    assert_match(/window\.playerNamesById\s*=/, response.body,
+      "ohne das Verzeichnis blieben die Plaetze der Paarungszeile leer")
   end
+
+  # Das frühere E2 prüfte, dass die dritte Kaskadenstufe von TrainingPartnerRanking greift,
+  # wenn keine Parameter vorliegen. Mit dem Ranking ist dieser Weg von der Detailseite weg;
+  # die Stufe selbst ist unveraendert und in test/services/training_partner_ranking_test.rb
+  # abgedeckt (B3, B4 und D5). Hier wurde sie nur ein zweites Mal geprueft.
 
   test "E3: Namen erscheinen als 'Vorname Nachname'" do
     get_detail

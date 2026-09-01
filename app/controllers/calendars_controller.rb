@@ -63,7 +63,16 @@ class CalendarsController < ApplicationController
     @season = Season.season_from_date(@from)
 
     # Erstladung des Stroms serverseitig: ohne JavaScript steht damit schon etwas da.
-    @stream_kacheln = stream_kacheln(stream_erstladung(@month))
+    # Auf dem Scoreboard genau EIN Monat statt des Stroms. Dort sind die Bildlaufleisten
+    # unbedienbar, ein Strom waere also ab der ersten Bildschirmhoehe unerreichbar.
+    # Geblaettert wird mit den ‹ › der Filterleiste, die es ohnehin schon gibt.
+    #
+    # Tragfaehig, weil ein Vereinskalender duenn ist: BC Wedel hat 3-9 Termine je Monat
+    # (gemessen 2026-09-01), das passt auf eine Seite. Ein regionsweiter Spitzenmonat mit
+    # dreistelliger Terminzahl wuerde auch hier ueberlaufen — dann braeuchte es zusaetzlich
+    # eine Blaetterung INNERHALB des Monats.
+    monate = helpers.scoreboard_context? ? [@month] : stream_erstladung(@month)
+    @stream_kacheln = stream_kacheln(monate)
 
     # Druckansicht: die GANZE Scope-Saison, unabhaengig davon, wie weit jemand gescrollt hat
     # (Betreiber-Entscheidung 2026-08-28) — ein Ausdruck soll immer dasselbe bedeuten. Eigenes

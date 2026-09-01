@@ -1,0 +1,89 @@
+<%# Blaetterknoepfe fuer lange Spielerlisten auf dem Scoreboard.
+
+    ⚠️ Hintergrund: Die Scoreboards im Vereinsheim laufen mit 1280x720, und ihre
+    Bildlaufleisten sind praktisch nicht bedienbar. Was ueber die Hoehe hinausragt, ist
+    damit nicht bloss unbequem, sondern unerreichbar. Am 2026-09-01 lief die
+    Spielerauswahl bei rund 30 Namen genau darauf auf.
+    Siehe docs/ui-conventions.md, Abschnitt 6.
+
+    Wirkung: Jede Liste mit dem Attribut data-player-pager, die mehr als SEITENGROESSE
+    Knoepfe enthaelt, wird seitenweise gezeigt und bekommt darunter eine Leiste
+    "‹  1 / 3  ›". Kuerzere Listen bleiben unveraendert — die Gaestegruppe mit ihren
+    vier Eintraegen sieht also aus wie bisher.
+
+    Bewusst kein Stimulus-Controller: die Scoreboard-Ansichten arbeiten durchgehend mit
+    globalen Funktionen und onclick, und diese Datei folgt dem, statt daneben ein
+    zweites Muster aufzumachen. %>
+<script>
+  (function () {
+    // Platzbudget bei 1280x720, gemessen am Bildschirmfoto vom 2026-09-01 und nach dem
+    // Verkleinern der Knoepfe (text-1-5vw statt text-2vw, px-3 py-2 statt px-4 py-3):
+    // eine Zeile ist noch rund 42 px hoch und traegt etwa sechs Namen. Fuer die Clubliste
+    // bleiben gut fuenf Zeilen — 24 Knoepfe passen also ohne Blaettern.
+    //
+    // ⚠️ Der Betreiber will "alles auf eine Seite, sonst blaettern" (siehe
+    // docs/ui-conventions.md, Abschnitt 6). Die Zahl ist deshalb bewusst so gross, dass ein
+    // Verein von BC-Wedel-Groesse (23 Namen) GAR NICHT blaettert. Erst ein groesserer
+    // Kader loest die Blaetterung aus — und dann traegt sie zuverlaessig.
+    var SEITENGROESSE = 24;
+
+    function pager_aufbauen(liste) {
+      var knoepfe = Array.prototype.slice.call(liste.querySelectorAll(".player-choice"));
+      if (knoepfe.length <= SEITENGROESSE) return;      // passt ohnehin
+      if (liste.dataset.pagerFertig === "1") return;    // nicht doppelt einhaengen
+      liste.dataset.pagerFertig = "1";
+
+      var seiten = Math.ceil(knoepfe.length / SEITENGROESSE);
+      var seite = 0;
+
+      function knopf(zeichen, schritt) {
+        var b = document.createElement("button");
+        b.type = "button";
+        b.textContent = zeichen;
+        b.className = "px-6 py-3 border-2 rounded-lg text-2vw";
+        b.addEventListener("click", function () {
+          seite = Math.min(Math.max(seite + schritt, 0), seiten - 1);
+          zeichnen();
+        });
+        return b;
+      }
+
+      var zurueck = knopf("‹", -1);
+      var vor = knopf("›", 1);
+      var anzeige = document.createElement("span");
+      anzeige.className = "text-2vw opacity-70 tabular-nums";
+
+      var leiste = document.createElement("div");
+      leiste.className = "flex items-center justify-center gap-6 mt-3";
+      leiste.appendChild(zurueck);
+      leiste.appendChild(anzeige);
+      leiste.appendChild(vor);
+      liste.parentNode.insertBefore(leiste, liste.nextSibling);
+
+      function zeichnen() {
+        knoepfe.forEach(function (b, i) {
+          b.classList.toggle("hidden", Math.floor(i / SEITENGROESSE) !== seite);
+        });
+        anzeige.textContent = (seite + 1) + " / " + seiten;
+        // Am Rand ausgrauen statt verstecken: ein verschwindender Knopf laesst die
+        // Leiste springen, und springende Ziele sind am Touchscreen unangenehm.
+        zurueck.classList.toggle("opacity-30", seite === 0);
+        vor.classList.toggle("opacity-30", seite === seiten - 1);
+      }
+
+      zeichnen();
+    }
+
+    // Global, damit nachtraeglich gerenderte Listen (etwa die Gruppe "Zuletzt") sich
+    // selbst anmelden koennen.
+    window.init_player_pagers = function () {
+      document.querySelectorAll("[data-player-pager]").forEach(pager_aufbauen);
+    };
+
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", window.init_player_pagers);
+    } else {
+      window.init_player_pagers();
+    }
+  })();
+</script>

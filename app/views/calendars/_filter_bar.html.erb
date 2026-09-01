@@ -31,15 +31,22 @@
     <% end %>
   <% end %>
 
-  <%# Monatsnavigation %>
-  <span class="inline-flex rounded-md border border-gray-300 dark:border-gray-600 overflow-hidden">
+  <%# Monatsnavigation.
+
+      ⚠️ Am Scoreboard ist sie das EINZIGE Fortbewegungsmittel: dort wird nur ein Monat
+      gezeigt (siehe CalendarsController#show), weil die Bildlaufleisten bei 1280x720 nicht
+      bedienbar sind. Entsprechend gross — die kleine Schaltergruppe vom Schreibtisch war
+      am Touchdisplay kaum zu treffen (Betreiber-Befund 2026-09-01).
+      Siehe docs/ui-conventions.md, Abschnitt 6. %>
+  <%- nav_klasse = scoreboard_context? ? "btn btn-white px-6 py-3 text-2xl rounded-none" : "btn btn-white px-2 py-1 text-sm rounded-none" %>
+  <span class="inline-flex rounded-md border <%= scoreboard_context? ? "border-2 border-gray-400 dark:border-gray-500" : "border-gray-300 dark:border-gray-600" %> overflow-hidden">
     <%= link_to "‹", calendar_url(month: (@month - 1.month).strftime("%Y-%m")),
-          class: "btn btn-white px-2 py-1 text-sm rounded-none border-0",
+          class: "#{nav_klasse} border-0",
           "aria-label": t("calendars.filter.prev_month") %>
     <%= link_to t("calendars.filter.today"), calendar_url(month: Date.current.strftime("%Y-%m")),
-          class: "btn btn-white px-2 py-1 text-sm rounded-none border-x border-y-0" %>
+          class: "#{nav_klasse} border-x border-y-0" %>
     <%= link_to "›", calendar_url(month: (@month + 1.month).strftime("%Y-%m")),
-          class: "btn btn-white px-2 py-1 text-sm rounded-none border-0",
+          class: "#{nav_klasse} border-0",
           "aria-label": t("calendars.filter.next_month") %>
   </span>
 

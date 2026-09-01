@@ -1,9 +1,20 @@
 <%# Entwurf B: nur Tage MIT Terminen. Turniere einzeln, Spieltage je Liga gruppiert —
     an einem Oktober-Samstag sind bis zu 13 Spieltage gemessen worden, einzeln aufgefuehrt
     verschwinden die Turniere darin. Aufklappbar per <details>, ohne JavaScript. %>
-<div class="divide-y divide-gray-200 dark:divide-gray-700 border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+<%# Am Scoreboard mehrspaltig statt untereinander.
+
+    ⚠️ Grund: dort steht nur EIN Monat auf der Seite (die Bildlaufleisten bei 1280x720 sind
+    nicht bedienbar), und eine einspaltige Liste mit sieben Terminen liess vier Fuenftel des
+    Bildschirms leer — waehrend gleichzeitig ein achter Termin unten herausgefallen waere.
+    Zwei Spalten verdoppeln die Kapazitaet, ohne dass etwas kleiner wird.
+
+    Die durchgehenden Trennlinien (`divide-y`) funktionieren nur in EINER Spalte; mehrspaltig
+    bekommt stattdessen jeder Tag seinen eigenen Rahmen.
+    Siehe docs/ui-conventions.md, Abschnitt 6. %>
+<%- mehrspaltig = scoreboard_context? %>
+<div class="<%= mehrspaltig ? "grid grid-cols-2 gap-3 items-start" : "divide-y divide-gray-200 dark:divide-gray-700 border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden" %>">
   <% entries.group_by(&:starts_on).sort.each do |tag, tages_eintraege| %>
-    <div class="grid grid-cols-[5rem_1fr] sm:grid-cols-[7rem_1fr]">
+    <div class="grid grid-cols-[5rem_1fr] sm:grid-cols-[7rem_1fr] <%= "border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden" if mehrspaltig %>">
 
       <div class="p-3 bg-gray-50 dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700">
         <div class="text-2xl font-semibold leading-none text-gray-900 dark:text-gray-100 tabular-nums">

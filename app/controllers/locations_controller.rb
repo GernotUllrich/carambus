@@ -306,11 +306,13 @@ class LocationsController < ApplicationController
                    player_a: player_a,
                    player_b: player_b,
                    default_guest_a: default_guest_a,
-                   default_guest_b: default_guest_b,
-                   # Plan 02-03: Kopfgruppe "Zuletzt" auch auf der Detailseite. Bewusst
-                   # OHNE Disziplin/Distanz — die werden hier erst NACH der Auswahl
-                   # gesetzt, der Service liefert daher seine dritte Kaskadenstufe.
-                   recent_players: TrainingPartnerRanking.call(location: @table.location)
+                   # 2026-09-01: kein `recent_players` mehr. Die Kopfgruppe "Zuletzt" ist von
+                   # dieser Seite entfernt — ohne Disziplin/Distanz konnte der Service nur
+                   # "zuletzt ueberhaupt trainiert" liefern, und das stand der Auswahl am
+                   # Scoreboard im Weg, statt sie abzukuerzen. Die Begruendung steht in
+                   # scoreboard_free_game_karambol_new.html.erb; im Schnellstart bleibt die
+                   # Gruppe, dort ist der Aufruf parametrisiert (training_rankings_for).
+                   default_guest_b: default_guest_b
                  })
           nil
         end

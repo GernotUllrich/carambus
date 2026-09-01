@@ -159,3 +159,29 @@ bundle exec overcommit --sign        # nach Änderung an .overcommit.yml
 
 Implementierung: `lib/ui_hex_guard.rb` (Logik, Rails-frei),
 `bin/ui-hex-guard` (Standalone-Einstieg), `lib/tasks/ui.rake` (rake-Wrapper).
+
+## 6. Scoreboard: 1280×720, ohne bedienbare Bildlaufleisten
+
+Die Scoreboards im Vereinsheim laufen mit **1280×720**, und die Bildlaufleisten sind dort
+**praktisch nicht bedienbar**. Alles, was über die Höhe hinausragt, ist damit faktisch
+unerreichbar — nicht unbequem, sondern weg.
+
+Für jede Ansicht, die unter `sb_state=…` auf einem Scoreboard landet, gilt deshalb:
+
+> **Entweder passt der Inhalt vollständig auf eine Seite, oder es gibt Knöpfe zum Vor- und
+> Zurückblättern.** Ein Scroll-Container ist keine Lösung.
+
+Das betrifft vor allem Ansichten mit Listen unbekannter Länge — Spielerauswahl, Reservierungen,
+Ergebnislisten. Die Länge hängt am Verein: BC Wedel hat in der Saison 2026/2027 28 Mitglieder
+plus Gäste, also rund 30 Namensknöpfe in der Spielerauswahl. Ein anderer Verein hat mehr.
+
+Beim Entwerfen und beim Review:
+
+- Faustwert bei `text-2vw` und `px-4 py-3`: rund **fünf Knöpfe je Zeile**, etwa **62 px je Zeile**.
+  Bei 720 px Höhe abzüglich Kopf- und Fußbereich bleiben grob **acht Zeilen**.
+- `overflow-y-auto` auf einem Scoreboard-Element ist ein Warnzeichen, kein Entwurfsmittel.
+- Wer eine Liste einbaut, gibt ihr entweder eine harte Obergrenze mit Blätterknöpfen oder eine
+  Vorfilterung (Suche, „zuletzt gespielt"), die die Restmenge zuverlässig klein hält.
+
+⚠️ Nicht am Entwicklerrechner beurteilen: ein Browserfenster auf dem Laptop ist höher und hat
+eine funktionierende Maus. Im Zweifel das Fenster auf 1280×720 zwingen und die Maus weglegen.
