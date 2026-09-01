@@ -779,7 +779,7 @@ class LocationsController < ApplicationController
     buttons = presets.filter_map { |group| group["buttons"] if group.is_a?(Hash) }.flatten.compact
     buttons.each_with_object({}) do |button, memo|
       params = TrainingPartnerRanking.params_from_preset(button)
-      key = TrainingPartnerRanking.preset_key(params[:discipline], params[:balls_goal])
+      key = TrainingPartnerRanking.preset_key(params[:discipline], params[:balls_goal], params[:innings_goal])
       next if memo.key?(key)
 
       memo[key] = TrainingPartnerRanking.call(params.merge(location: location))

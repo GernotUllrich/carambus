@@ -124,7 +124,21 @@
       return a.name.replace(titleRe, "").localeCompare(b.name.replace(titleRe, ""), "de");
     });
 
-    var html = '<div class="text-2vw mb-2 opacity-80"><%= j t("location.free_game.recent_players") %></div>' +
+    // Die Kombination hinter der Ueberschrift: erst damit ist zu sehen, WARUM gerade diese
+    // Namen herausgehoben sind. Sie ist genau der Schluessel, unter dem die Liste geholt
+    // wurde — Disziplin, Baelle, Aufnahmen (Betreiber-Befund 2026-09-01).
+    //
+    // ⚠️ Der i18n-Schluessel heisst weiterhin `recent_players`, der Text lautet aber
+    // "Schon gespielt von". Die Umbenennung war fachlich: die Gruppe trennt die typischen
+    // Dreibandspieler von den Technikern und dort wieder die Spielklassen — "Zuletzt" legte
+    // dagegen eine reine Zeitfolge nahe, die sie nie war.
+    //
+    // Textstufe wie bei "Gaeste"/"Club", damit die drei Gruppenueberschriften gleich wiegen.
+    var beschriftung = pending.presetLabel
+      ? ' <span class="opacity-60"> — ' + pending.presetLabel + '</span>'
+      : '';
+    var html = '<div class="text-1-5vw mb-2 opacity-80"><%= j t("location.free_game.recent_players") %>' +
+               beschriftung + '</div>' +
                '<div class="flex flex-wrap gap-2">';
     entries.forEach(function (e) {
       html += '<button type="button" class="player-choice px-3 py-2 border-2 rounded-lg text-1-5vw" ' +

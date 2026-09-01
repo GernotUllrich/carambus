@@ -184,7 +184,15 @@
                 class: "px-8 py-6 text-4xl font-bold rounded-lg bg-primary-600 text-white hover:bg-primary-700 cursor-pointer quick-start-btn",
                 data: {
                   form_id: "quick_player_a_#{button_id}",
-                  ranking_key: TrainingPartnerRanking.preset_key(ranking_params[:discipline], ranking_params[:balls_goal])
+                  ranking_key: TrainingPartnerRanking.preset_key(ranking_params[:discipline],
+                                                                 ranking_params[:balls_goal],
+                                                                 ranking_params[:innings_goal]),
+                  # Klartext derselben Kombination fuer die Ueberschrift der Kopfgruppe.
+                  # Ohne sie steht dort nur "Zuletzt" und niemand sieht, WARUM gerade diese
+                  # Namen herausgehoben sind (Betreiber-Befund 2026-09-01).
+                  preset_label: [ranking_params[:discipline],
+                                 ranking_params[:balls_goal].presence,
+                                 ranking_params[:innings_goal].presence].compact.join(" · ")
                 } %>
           <% end %>
         <% end %>
@@ -229,7 +237,8 @@ document.addEventListener('DOMContentLoaded', function() {
       // Kopfgruppe zu fuellen ist.
       window.pendingQuickGame = {
         formId: btn.dataset.formId,
-        rankingKey: btn.dataset.rankingKey || ''
+        rankingKey: btn.dataset.rankingKey || '',
+        presetLabel: btn.dataset.presetLabel || ''
       };
       if (typeof open_players_modal_for_game === 'function') {
         open_players_modal_for_game();

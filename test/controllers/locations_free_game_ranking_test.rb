@@ -175,15 +175,65 @@ class LocationsFreeGameRankingTest < ActionDispatch::IntegrationTest
     assert karambol_discipline.present?,
       "Fixture-/Config-Annahme: die Tischart hat mindestens ein Preset mit Disziplin"
 
-    create_training_game(discipline: karambol_discipline, balls_goal: karambol_balls_goal)
+    create_training_game(discipline: karambol_discipline, balls_goal: karambol_balls_goal,
+      innings_goal: karambol_innings_goal)
 
     get_free_game
 
     rankings = JSON.parse(ranking_json)
-    key = TrainingPartnerRanking.preset_key(karambol_discipline, karambol_balls_goal)
+    # Seit 2026-09-01 dreiteilig: der Schluessel ist der Schnellwahl-Knopf, also
+    # Disziplin UND Baelle UND Aufnahmen.
+    key = TrainingPartnerRanking.preset_key(karambol_discipline, karambol_balls_goal,
+      karambol_innings_goal)
     assert rankings.key?(key), "erwarteter Schluessel #{key.inspect} fehlt in #{rankings.keys.inspect}"
     assert_equal [@player_a.id, @player_b.id].sort, rankings[key].sort,
       "genau die beiden Spieler des Trainingsspiels gehoeren unter diesen Schluessel"
+  end
+
+  # Die Kopfgruppe hiess bis 2026-09-01 nur "Zuletzt" — am Scoreboard war damit nicht zu
+  # sehen, warum gerade diese Namen herausgehoben sind. Die Kombination steht jetzt daneben.
+  # Geprueft wird die Herkunft der Beschriftung, nicht ihr Aussehen: sie kommt aus dem
+  # Knopf-Dataset und muss dieselben Bestandteile tragen wie der Schluessel.
+  test "C3c: jeder Schnellwahl-Knopf traegt eine lesbare Beschriftung seiner Kombination" do
+    assert karambol_discipline.present?
+
+    get_free_game
+
+    knoepfe = css_select("button[data-ranking-key]")
+    assert knoepfe.any?, "ohne Schnellwahl-Knoepfe ist dieser Test wertlos"
+
+    beschriftungen = knoepfe.map { |b| b["data-preset-label"] }
+    assert beschriftungen.all?(&:present?),
+      "jeder Knopf mit Ranking braucht auch die Beschriftung dazu"
+    assert beschriftungen.any? { |l| l.include?(karambol_discipline.to_s) },
+      "die Disziplin muss in der Beschriftung stehen — sonst erklaert sie nichts"
+    if karambol_innings_goal.present?
+      assert beschriftungen.any? { |l| l.include?(karambol_innings_goal.to_s) },
+        "und die Aufnahmen, denn seit 2026-09-01 gehen sie in die Auswahl ein"
+    end
+  end
+
+  # ⚠️ Das Preset "-/20" (kein Ballziel) darf nicht mit einem Ballziel-Preset zusammenfallen.
+  #
+  # Es haengt an einer Feinheit: 0 ist in Ruby WAHR, deshalb ueberlebt sie sowohl
+  # `button['balls'] || 100` als auch `.presence`. Zerbrechlich wird es erst bei etwas, das
+  # die Null als "nicht gesetzt" liest — `to_i.nonzero? || 100` etwa. Dann waere der
+  # Schluessel von "-/20" identisch mit dem von "100/20" und die Kopfgruppe zeigte bei
+  # "-/20" jeden, der 100/20 gespielt hat. Betreiber-Einwand 2026-09-01.
+  #
+  # Genau mit dieser Verfaelschung ist geprueft, dass der Test hier anschlaegt.
+  test "C3d: ein Preset ohne Ballziel behaelt die Null im Schluessel" do
+    ohne_ziel = alle_presets.select { |b| b["balls"] == 0 }
+    skip "diese Tischart hat kein Preset ohne Ballziel" if ohne_ziel.blank?
+
+    get_free_game
+
+    schluessel = css_select("button[data-ranking-key]").map { |b| b["data-ranking-key"] }
+    ohne_ziel.each do |b|
+      erwartet = TrainingPartnerRanking.preset_key(b["discipline"], 0, b["innings"])
+      assert_includes schluessel, erwartet,
+        "der Schluessel muss die 0 tragen, nicht ein eingesetztes Standard-Ballziel"
+    end
   end
 
   test "C3b: ein Preset mit anderer Distanz erhaelt dieselben Spieler nur ueber den Fallback" do
@@ -270,6 +320,19 @@ class LocationsFreeGameRankingTest < ActionDispatch::IntegrationTest
   # Hilfsmethoden
   # ---------------------------------------------------------------------------
 
+  # Alle Preset-Knoepfe der Tischart, roh.
+  def alle_presets
+    key = case @table.table_kind&.name.to_s
+    when /Pool/i then "pool"
+    when /Snooker/i then "snooker"
+    when /klein/i, /Small/i then "small_billard"
+    when /groß|gross/i, /Match/i then "match_billard"
+    else "small_billard"
+    end
+    groups = Carambus.config.quick_game_presets&.dig(key) || []
+    groups.filter_map { |g| g.is_a?(Hash) ? g["buttons"] : nil }.flatten.compact
+  end
+
   # Erste Preset-Kombination der Tischart — genau die, fuer die der Controller
   # eine Rangliste vorberechnet.
   def first_preset
@@ -289,9 +352,15 @@ class LocationsFreeGameRankingTest < ActionDispatch::IntegrationTest
 
   def karambol_balls_goal = first_preset[:balls_goal]
 
-  def create_training_game(discipline:, balls_goal:)
+  def karambol_innings_goal = first_preset[:innings_goal]
+
+  # ⚠️ innings_goal gehoert an das SPIEL, discipline/balls_goal an die TEILNAHME —
+  # so teilt TrainingResultRecorder den Kontext auf. Ohne das Aufnahmenziel am Spiel
+  # findet die erste Kaskadenstufe nichts und der Test pruefte nur den Fallback.
+  def create_training_game(discipline:, balls_goal:, innings_goal: nil)
     @next_id += 1
-    game = Game.create!(id: @next_id, data: {}, gname: "rank_#{SecureRandom.hex(3)}")
+    game = Game.create!(id: @next_id, data: {"innings_goal" => innings_goal}.compact,
+      gname: "rank_#{SecureRandom.hex(3)}")
     [[@player_a, "playera"], [@player_b, "playerb"]].each do |player, role|
       GameParticipation.create!(game: game, player: player, role: role, result: 40,
         data: {"discipline" => discipline, "balls_goal" => balls_goal}.compact)

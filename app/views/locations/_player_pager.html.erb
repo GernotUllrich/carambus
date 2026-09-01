@@ -23,9 +23,13 @@
     //
     // ⚠️ Der Betreiber will "alles auf eine Seite, sonst blaettern" (siehe
     // docs/ui-conventions.md, Abschnitt 6). Die Zahl ist deshalb bewusst so gross, dass ein
-    // Verein von BC-Wedel-Groesse (23 Namen) GAR NICHT blaettert. Erst ein groesserer
-    // Kader loest die Blaetterung aus — und dann traegt sie zuverlaessig.
-    var SEITENGROESSE = 24;
+    // Verein von BC-Wedel-Groesse GAR NICHT blaettert. Erst ein groesserer Kader loest die
+    // Blaetterung aus — und dann traegt sie zuverlaessig.
+    //
+    // 2026-09-01 von 24 auf 36 erhoeht (zwei Zeilen mehr): am Clubabend blaetterte die
+    // Liste bei 28 Namen auf zwei Seiten, obwohl unter ihr ein gutes Drittel des
+    // Bildschirms leer blieb. Sechs Zeilen zu je etwa sechs Namen passen.
+    var SEITENGROESSE = 36;
 
     function pager_aufbauen(liste) {
       var knoepfe = Array.prototype.slice.call(liste.querySelectorAll(".player-choice"));

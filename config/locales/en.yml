@@ -437,7 +437,7 @@ en:
     created_at: created at
     data: data
     free_game:
-      recent_players: Recently
+      recent_players: Already played by
       start_game: Start game
     new_player:
       as_guest: Guest
