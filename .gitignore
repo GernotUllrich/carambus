@@ -133,3 +133,9 @@ db/schema_baseline_*.backup
 
 # Bestandsuebersichten: auf dem Server erzeugt (rake coverage:pages), Capistrano-linked_dir
 /public/uebersichten
+
+# Artefakte eines lokalen bin/deploy.sh-Laufs (deploy_to zeigt dann auf den Checkout):
+# repo/ ist ein bare Mirror-Clone von GitHub, releases/ ein git-archive-Auszug — beides
+# jederzeit reproduzierbar und zusammen mehrere hundert MB.
+/releases
+/repo
