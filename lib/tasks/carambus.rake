@@ -302,6 +302,88 @@ namespace :carambus do
     (1..10).each.map { |i| Version.update_from_carambus_api(args) }
   end
 
+  # Redelivery bestehender Records an Local-Server, deren Versionen weggeschnitten wurden.
+  #
+  # WOZU: Local-Server holen Aenderungen ausschliesslich als PaperTrail-Versionen ab
+  # (Version.update_from_carambus_api). Wird die versions-Tabelle der Authority gestutzt — das
+  # Idiom `Version.where("id < last").delete_all` steckt in scenarios.rake — sind alle Aenderungen
+  # unterhalb des Schnitts fuer jeden Server verloren, dessen Cursor noch darunter stand. Die
+  # Records SELBST sind auf der Authority intakt; es fehlt nur das Transportmittel. Ein
+  # Re-Scrape hilft nicht: er aendert nichts und erzeugt darum auch keine Version.
+  #
+  # Belegter Fall (2026-09-02): BC Wedel, Saison 2026/2027 — 21 Mitgliedschaften auf der
+  # Authority, aber nur eine mit ueberlebender Version. Auf carambus_phat stand am Scoreboard
+  # genau dieser eine Spieler.
+  desc "PaperTrail-Versionen bestehender Records neu ausspielen (Redelivery an Local-Server). " \
+       "Aufruf: rake 'carambus:reemit_versions[SeasonParticipation,499569,499570]'. " \
+       "Read-only Preview per Default; ARMED=1 zum Schreiben."
+  task :reemit_versions, [:model] => :environment do |_t, args|
+    # Guards wie in region_taggings:fix_international_organizer_context — ohne Authority und ohne
+    # aktives PaperTrail entstehen keine Versionen, der Task waere ein stiller No-op.
+    raise "Abbruch: Task nur auf der Authority ausführen (Carambus.config.carambus_api_url muss leer sein)" if ApplicationRecord.local_server?
+    unless PaperTrail.enabled? && PaperTrail.request.enabled?
+      raise "Abbruch: PaperTrail ist deaktiviert — ohne neue Versionen erreicht die Redelivery keinen Local-Server"
+    end
+
+    klass = args[:model].to_s.safe_constantize
+    raise "Abbruch: unbekanntes Model #{args[:model].inspect}" unless klass.respond_to?(:column_names)
+
+    ids = args.extras.map(&:to_i).uniq
+    raise "Abbruch: keine ids — Aufruf: rake 'carambus:reemit_versions[#{klass.name},<id>,<id>,...]'" if ids.empty?
+
+    records = klass.where(id: ids).order(:id).to_a
+    fehlend = ids - records.map(&:id)
+
+    # Die Reihenfolge hier IST die Apply-Reihenfolge auf dem Local-Server (aufsteigende version.id).
+    # Fehlt dort der Spieler, scheitert das Anlegen seiner Mitgliedschaft an der belongs_to-
+    # Validierung — deshalb gehen die referenzierten Player den Mitgliedschaften voran.
+    queue = if klass == SeasonParticipation
+      Player.where(id: records.map(&:player_id)).order(:id).to_a + records
+    else
+      records
+    end
+
+    armed = ENV["ARMED"] == "1"
+    puts "== carambus:reemit_versions — #{armed ? "ARMED (schreibt Versionen)" : "DRY-RUN (read-only)"} =="
+    puts "angefordert: #{klass.name}, #{ids.size} id(s)"
+    puts "NICHT gefunden (uebersprungen): #{fehlend.join(", ")}" if fehlend.any?
+    queue.each { |rec| puts "  #{rec.class.name}[#{rec.id}] bestehende Versionen=#{rec.versions.count}" }
+
+    unless armed
+      puts "DRY-RUN: nichts geschrieben. ARMED=1 spielt #{queue.size} Version(en) aus."
+      next
+    end
+
+    emitted = []
+    queue.each do |rec|
+      # paper_trail.update_columns statt save_with_version: letzteres erzeugt bei unveraenderten
+      # Records ein LEERES object_changes, woraus der Client ein `update_columns({})` baut — auf
+      # jedem Server, der den Record schon hat, ein ArgumentError im Sync-Log. Der frische
+      # Zeitstempel ist der einzige Datenunterschied und liefert zugleich ein nicht-leeres
+      # object_changes. Ein blosses `touch` scheidet aus: das :unless-Gate in LocalProtector
+      # schluckt reine updated_at-Aenderungen.
+      version = rec.paper_trail.update_columns("updated_at" => Time.current)
+      if version.nil? || version.errors.any?
+        puts "  !! keine Version für #{rec.class.name}[#{rec.id}]: #{version&.errors&.full_messages&.join("; ")}"
+        next
+      end
+      # update_columns umgeht den after_save-Hook RegionTaggable#update_version_region_data. Ohne
+      # das Nachziehen bliebe region_id NULL — die Version ginge dann an ALLE Server statt an die
+      # der Region.
+      if rec.respond_to?(:region_id) && rec.respond_to?(:global_context)
+        version.update_columns(region_id: rec.region_id, global_context: rec.global_context)
+      end
+      emitted << version.id
+    end
+
+    if emitted.any?
+      puts "geschrieben: #{emitted.size} Version(en), ids #{emitted.min}..#{emitted.max}"
+      puts "Local-Server holen sie beim nächsten carambus:retrieve_updates ab."
+    else
+      puts "keine Version geschrieben"
+    end
+  end
+
   desc "Init Disciplines"
   task init_disciplines: :environment do
     TABLE_KIND_DISCIPLINE_NAMES.each do |tk_name, v|
