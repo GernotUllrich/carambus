@@ -306,8 +306,11 @@ log_step "Creating symlinks for shared files..."
 /usr/bin/env mkdir -p "${NEW_RELEASE_PATH}/config/credentials"
 
 # Linked files (from deploy.rb)
+# Keep this list in sync with :linked_files in config/deploy.rb. Every entry here is
+# gitignored, so a missing symlink means the file is absent from the release entirely.
 linked_files=(
     "config/database.yml"
+    "config/cable.yml"
     "config/carambus.yml"
     "config/nginx.conf"
     "config/puma.rb"
@@ -329,7 +332,9 @@ for file in "${linked_files[@]}"; do
         /usr/bin/env ln -s "$source" "$target"
         log_info "  Linked: $file"
     else
-        log_warning "  Skipped (not in shared): $file"
+        log_error "  Missing in shared: $file"
+        log_error "  Aborting - the release would boot misconfigured (cap stops here too)."
+        exit 1
     fi
 done
 
@@ -350,6 +355,9 @@ linked_dirs=(
     "public/system"
     "storage"
     "config/credentials"
+    "public/app"
+    "public/uebersichten"
+    "public/wissenswertes"
 )
 
 for dir in "${linked_dirs[@]}"; do
@@ -359,6 +367,9 @@ for dir in "${linked_dirs[@]}"; do
     # Create parent directory if needed
     parent_dir=$(dirname "$target")
     /usr/bin/env mkdir -p "$parent_dir"
+
+    # Create the shared directory if it does not exist yet (cap does this in deploy:check)
+    /usr/bin/env mkdir -p "$source"
 
     # Remove if exists
     if [ -d "$target" ] || [ -L "$target" ]; then
