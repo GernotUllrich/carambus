@@ -1912,12 +1912,17 @@ class TableMonitor < ApplicationRecord
   # local servers have id >= MIN_ID (50_000_000), and the existing
   # bk2_kombi_tiebreak_auto_detect! follows the same write pattern in
   # production today.
+  #
+  # 2026-09-03: Eingeschränkt auf Spiele der KO-Kette (hf*/vf*/qf*/fin/...) — reine
+  # Platzierungsspiele (gname "p<N-M>") haben keinen Bracket-Nachfolger und sind seit
+  # Plan 02-01 ausgenommen. Siehe placement_game? unten.
   def playing_finals_force_tiebreak_required!
     return unless game.present?
     return if game.data&.[]("tiebreak_required") == true # idempotent
     return unless tournament_monitor.present?
     return unless tournament_monitor.is_a?(TournamentMonitor)
     return unless tournament_monitor.playing_finals?
+    return if placement_game?
 
     Rails.logger.info "[TableMonitor##{id}] playing_finals? override: forcing " \
       "tiebreak_required=true on game=#{game.id} (TournamentMonitor=#{tournament_monitor.id})"
@@ -1925,6 +1930,16 @@ class TableMonitor < ApplicationRecord
     game.save!
   end
   private :playing_finals_force_tiebreak_required!
+
+  # Platzierungsspiele (z.B. "p<7-8>", "p<9-10>") haben keinen Bracket-Nachfolger — im
+  # Gegensatz zu Halbfinale/Viertelfinale/Finale ("hf1", "vf1", "fin", ...) entscheidet
+  # ihr Ergebnis nur eine einzelne Platzierung, kein Fortkommen. gname == der
+  # executor_params-Bucket-Key, der das Spiel erzeugt hat (table_populator.rb:382) —
+  # "p<" ist als Präfix eindeutig, siehe TournamentPlan.RK / die p<N-M>-Bucket-Namen.
+  def placement_game?
+    game&.gname.to_s.start_with?("p<")
+  end
+  private :placement_game?
 
   def admin_ack_result
     return unless may_acknowledge_result?
