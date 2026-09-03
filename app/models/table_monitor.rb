@@ -2009,18 +2009,31 @@ class TableMonitor < ApplicationRecord
     # Without this no-op the release would crash/mis-advance. manual_assignment is the
     # project-wide "manually/externally driven" signal (cf. reset_table_monitor below).
     return if tournament_monitor.tournament&.manual_assignment?
-    if Thread.current[:_advancing_round_for_tm] == self.id
-      Rails.logger.info "[advance_tournament_round_if_present] m6[#{id}] sentinel SHORT-CIRCUIT (CR-02 per-TM re-entry guard)"
+    # Plan 05-01 (2026-09-03): Sperre von pro-Tisch (self.id) auf pro-Turnier
+    # (tournament_monitor.id) erweitert. Live-Vorfall selbigen Tags: finalize_round
+    # ruft close_match! synchron für mehrere TableMonitor-Zeilen desselben Turniers;
+    # mit self.id als Schlüssel greift die Sperre pro Tisch NICHT gegeneinander, jeder
+    # Tisch löst unabhängig eine volle verschachtelte Kaskade aus (current_round sprang
+    # live von 6 auf 12 in ~2s). tournament_monitor.id als Schlüssel lässt nur die ERSTE
+    # Kaskade pro Turnier durch, alle weiteren (anderer Tisch, gleiches Turnier) laufen
+    # NICHT erneut los.
+    if Thread.current[:_advancing_round_for_tm] == tournament_monitor.id
+      Rails.logger.info "[advance_tournament_round_if_present] m6[#{id}] sentinel SHORT-CIRCUIT (CR-02 per-tournament re-entry guard)"
       return
     end
-    Thread.current[:_advancing_round_for_tm] = self.id
+    # sentinel_owner: nur der Aufruf, der den Sentinel GESETZT hat, darf ihn im ensure
+    # wieder loeschen. Ohne dieses Flag wuerde der short-circuit-Zweig oben den Sentinel
+    # des noch laufenden aeusseren Aufrufs freigeben — der naechste Tisch derselben
+    # finalize_round-Schleife liefe dann doch wieder voll durch (Kaskade bliebe bestehen).
+    sentinel_owner = true
+    Thread.current[:_advancing_round_for_tm] = tournament_monitor.id
     Rails.logger.info "[advance_tournament_round_if_present] m6[#{id}] delegating to ResultProcessor#advance_round_after_match_close"
     TournamentMonitor::ResultProcessor.new(tournament_monitor).advance_round_after_match_close(self)
   rescue StandardError => e
     Rails.logger.error "[advance_tournament_round_if_present] m6[#{id}] ERROR: #{e}, #{e.backtrace&.first(3)&.join(" <- ")}"
     raise
   ensure
-    Thread.current[:_advancing_round_for_tm] = nil if Thread.current[:_advancing_round_for_tm] == self.id
+    Thread.current[:_advancing_round_for_tm] = nil if sentinel_owner
   end
 
   def force_next_state
