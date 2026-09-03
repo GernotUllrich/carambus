@@ -161,4 +161,52 @@ class TournamentMonitor::PlayerGroupDistributorTest < ActiveSupport::TestCase
     # With ngroups == 0 it falls through to GROUP_SIZES path using player count
     assert result.is_a?(Hash)
   end
+
+  # ============================================================================
+  # Teilnehmerzahlen ohne GROUP_SIZES-Eintrag (2026-09-03)
+  #
+  # GROUP_SIZES deckt nur 6..16 ab. Bei jeder anderen Teilnehmerzahl lief
+  # `GROUP_SIZES[players.count].count` auf nil — der NoMethodError wurde vom
+  # rescue am Methodenende geschluckt und die Methode gab {} zurueck. Ergebnis:
+  # ALLE Spieler verschwanden lautlos aus der Gruppeneinteilung, ohne Fehler
+  # nach aussen. Betroffen sind im Vereinsbetrieb realistische Zahlen wie 5, 17
+  # oder 18 Meldungen.
+  #
+  # Der Zig-Zag-/Round-Robin-Zweig darunter kann diese Faelle problemlos
+  # verteilen (17 auf 4 Gruppen = 5/4/4/4) — er wurde nur nie erreicht.
+  # ============================================================================
+
+  test "distribute_to_group verteilt Teilnehmerzahlen ohne GROUP_SIZES-Eintrag statt sie zu verschlucken" do
+    {17 => 4, 5 => 2, 18 => 4, 20 => 4}.each do |count, ngroups|
+      refute TournamentMonitor::PlayerGroupDistributor::GROUP_SIZES.key?(count),
+        "Vorbedingung: #{count} darf keinen GROUP_SIZES-Eintrag haben, sonst testet der Fall nichts"
+
+      result = TournamentMonitor::PlayerGroupDistributor.distribute_to_group((1..count).to_a, ngroups)
+
+      assert_equal ngroups, result.keys.length,
+        "#{count} Spieler auf #{ngroups} Gruppen: es muessen #{ngroups} Gruppen entstehen"
+      assert_equal count, result.values.flatten.length,
+        "#{count} Spieler auf #{ngroups} Gruppen: kein Spieler darf verloren gehen"
+      assert_equal (1..count).to_a.sort, result.values.flatten.sort,
+        "#{count} Spieler auf #{ngroups} Gruppen: jeder Spieler genau einmal"
+    end
+  end
+
+  test "distribute_to_group verteilt 17 Spieler auf 4 Gruppen moeglichst gleichmaessig" do
+    result = TournamentMonitor::PlayerGroupDistributor.distribute_to_group((1..17).to_a, 4)
+
+    sizes = result.values.map(&:length).sort
+    assert_equal [4, 4, 4, 5], sizes,
+      "Round-Robin muss 17 Spieler als 5/4/4/4 verteilen, nicht ungleich buendeln"
+  end
+
+  test "distribute_to_group liefert leeres Ergebnis, wenn weder ngroups noch GROUP_SIZES die Gruppenzahl hergeben" do
+    # ngroups == 0 UND keine bekannte Groessentabelle: die Gruppenzahl ist aus
+    # nichts ableitbar. Dann ist {} das ehrliche Ergebnis — aber es darf keine
+    # Exception fliegen und der Aufrufer bekommt einen Log-Eintrag.
+    result = assert_nothing_raised do
+      TournamentMonitor::PlayerGroupDistributor.distribute_to_group((1..17).to_a, 0)
+    end
+    assert_equal({}, result)
+  end
 end
