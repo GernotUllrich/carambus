@@ -98,6 +98,33 @@ button[disabled] .when-enabled { display: none; }
     @apply hover:bg-green-500 hover:text-white;
   }
 
+  /* 2026-09-03: .btn-warning und .btn-info fehlten hier, obwohl sie in mehreren
+     Views verwendet werden (admin/stream_configurations, admin/incomplete_records,
+     tournament_monitors). Sie waren nur in einem inline <style>-Block mit @apply
+     definiert — den kompiliert Tailwind nicht, der Browser verwirft ihn als
+     ungueltiges CSS. Die Buttons rendern deshalb bis heute ohne Variantenfarbe. */
+  .btn-warning {
+    @apply bg-warning-600 text-white focus-visible:outline-warning-500;
+    @apply hover:bg-warning-500 hover:text-white;
+    @apply focus:text-white focus-visible:text-white;
+  }
+
+  .btn-warning.btn-outline {
+    @apply bg-transparent border border-warning-500 text-warning-600 shadow-none;
+    @apply hover:bg-warning-500 hover:text-white;
+  }
+
+  .btn-info {
+    @apply bg-info-600 text-white focus-visible:outline-info-500;
+    @apply hover:bg-info-500 hover:text-white;
+    @apply focus:text-white focus-visible:text-white;
+  }
+
+  .btn-info.btn-outline {
+    @apply bg-transparent border border-info-500 text-info-600 shadow-none;
+    @apply hover:bg-info-500 hover:text-white;
+  }
+
   .btn-light,
   .btn-white,
   .btn-gray {

@@ -1,6 +1,6 @@
 <%= render "admin/application/multilingual_form_header", form: form %>
 
-<div class="field-unit field-unit--sequence-number" style="background: #e3f2fd; padding: 15px; border-radius: 6px; margin-bottom: 20px;">
+<div class="field-unit field-unit--sequence-number bg-info-50 dark:bg-info-950 p-4 rounded-card mb-5">
   <%= form.label :sequence_number, "📍 Beispiel-Nummer", class: "field-unit__label" %>
   <div class="field-unit__field">
     <%= form.number_field :sequence_number, class: "field-unit__input" %>
@@ -9,12 +9,12 @@
 </div>
 
 <div class="multilingual-input-section">
-  <h3 style="margin-bottom: 15px; color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 5px;">
+  <h3 class="mb-4 pb-1.5 border-b-2 border-info-500 text-gray-800 dark:text-gray-100">
     📝 Texte in allen Sprachen
   </h3>
   
   <% unless form.object.translations_in_sync? %>
-    <div class="alert alert-warning" style="background: #fff3cd; border: 1px solid #ffc107; padding: 12px; border-radius: 6px; margin-bottom: 20px;">
+    <div class="alert alert-warning bg-warning-50 dark:bg-warning-950 border border-warning-500 p-3 rounded-card mb-5">
       ⚠️ <strong>Übersetzungen nicht synchronisiert</strong>
     </div>
   <% end %>
@@ -28,24 +28,24 @@
              ] %>
   
   <% if form.object.persisted? && form.object.translations_synced_at.present? %>
-    <div class="sync-info" style="background: #d4edda; border: 1px solid #28a745; padding: 10px; border-radius: 6px; margin-top: 15px;">
+    <div class="sync-info bg-success-50 dark:bg-success-950 border border-success-500 p-2.5 rounded-card mt-4">
       ✅ Zuletzt synchronisiert: <%= form.object.translations_synced_at.strftime('%d.%m.%Y %H:%M') %>
     </div>
   <% end %>
   
-  <div class="field-unit" style="background: #f8f9fa; padding: 15px; border-radius: 6px; margin-top: 20px; border: 1px solid #dee2e6;">
-    <%= form.label :source_notes, "📚 Quellenangabe (optional)", class: "field-unit__label", style: "color: #6c757d; font-size: 0.9em;" %>
+  <div class="field-unit bg-gray-50 dark:bg-gray-800 p-4 rounded-card mt-5 border border-gray-200 dark:border-gray-700">
+    <%= form.label :source_notes, "📚 Quellenangabe (optional)", class: "field-unit__label text-gray-500 dark:text-gray-400 text-[0.9em]" %>
     <%= form.text_area :source_notes, 
                        rows: 2, 
                        class: "field-unit__textarea",
-                       style: "width: 100%; margin-top: 5px; font-size: 0.9em;",
+                       style: "margin-top: 5px; font-size: 0.9em;",
                        placeholder: "z.B. 'Ceulemans, Dreiband Trainingsprogramm, 1998, S.45' oder 'Kozoom Video XYZ'" %>
-    <p class="field-hint" style="color: #6c757d; font-size: 0.85em; margin-top: 5px;">
+    <p class="field-hint text-[0.85em]">
       Informelle Quellenangabe für interne Zwecke
     </p>
   </div>
   
-  <div class="field-unit" style="background: #fff9e6; border: 2px solid #ffc107; padding: 15px; border-radius: 6px; margin-top: 20px;">
+  <div class="field-unit bg-warning-50 dark:bg-warning-950 border-2 border-warning-500 p-4 rounded-card mt-5">
     <label class="field-unit__label">
       <%= check_box_tag 'training_example[translate_after_save]', '1', false, style: "margin-right: 8px;", id: 'translate_checkbox' %>
       🌐 <strong>Nach dem Speichern automatisch übersetzen</strong>
@@ -126,8 +126,8 @@
   <div class="field-unit__field">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
       <p class="field-hint" style="margin: 0;">Wähle relevante Tags (Technik, Spielart, etc.):</p>
-      <%= link_to "Neue Tags erstellen", admin_tags_path, target: "_blank", class: "button", 
-                  style: "padding: 5px 10px; background: #4CAF50; color: white; text-decoration: none; border-radius: 3px; font-size: 0.9em;" %>
+      <%= link_to "Neue Tags erstellen", admin_tags_path, target: "_blank",
+                  class: "btn btn-sm btn-success no-underline text-[0.9em]" %>
     </div>
     
     <% relevant_categories = ['Technik', 'Spielart', 'Schwierigkeit', 'Spezial'] %>
@@ -151,58 +151,3 @@
     <% end %>
   </div>
 </div>
-
-<style>
-  .field-unit__input,
-  .field-unit__textarea,
-  .field-unit__select {
-    width: 100%;
-    padding: 8px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-  }
-  
-  .field-hint {
-    color: #666;
-    font-size: 0.9em;
-    font-style: italic;
-    margin-top: 5px;
-  }
-  .multilingual-input-section {
-    background: #f8f9fa;
-    padding: 20px;
-    border-radius: 8px;
-    margin-bottom: 25px;
-  }
-  .field-unit__input,
-  .field-unit__textarea {
-    width: 100%;
-    padding: 10px;
-    border: 2px solid #ddd;
-    border-radius: 4px;
-    font-size: 1em;
-    transition: border-color 0.3s;
-  }
-  .field-unit__input:focus,
-  .field-unit__textarea:focus {
-    border-color: #667eea;
-    outline: none;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-  }
-  .tag-category-compact {
-    margin: 8px 0;
-    padding: 8px;
-    background: #f9f9f9;
-    border-radius: 4px;
-  }
-  .tag-checkbox-inline {
-    display: inline-flex;
-    align-items: center;
-    margin-right: 15px;
-    margin-bottom: 5px;
-    cursor: pointer;
-  }
-  .tag-checkbox-inline input[type="checkbox"] {
-    margin-right: 5px;
-  }
-</style>

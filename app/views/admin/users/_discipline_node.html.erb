@@ -11,7 +11,7 @@
         <button type="button"
                 data-action="discipline-tree#toggle"
                 aria-expanded="false"
-                style="border: none; background: none; cursor: pointer; width: 1.2em; font-size: 0.9em; line-height: 1;">▶</button>
+                class="border-none bg-transparent cursor-pointer w-[1.2em] text-[0.9em] leading-none">▶</button>
         <label style="font-weight: 600; cursor: pointer; margin: 0;">
           <%= check_box_tag "user[sportwart_discipline_ids][]", discipline.id, selected_ids.include?(discipline.id), id: nil %>
           <%= discipline.name %>

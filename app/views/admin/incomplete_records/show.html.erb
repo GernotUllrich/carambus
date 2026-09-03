@@ -213,15 +213,15 @@
 
 <!-- Modal for creating location from text -->
 <% if @tournament.location_text.present? %>
-  <div id="create-location-modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5);">
-    <div style="background-color: white; margin: 10% auto; padding: 30px; width: 500px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+  <div id="create-location-modal" class="hidden fixed inset-0 z-[1000] w-full h-full bg-black/50">
+    <div class="bg-white dark:bg-gray-800 mx-auto mt-[10%] p-[30px] w-[500px] rounded-lg shadow-md">
       <h3 style="margin-top: 0;">Create Location: <%= @tournament.location_text %></h3>
       
       <%= form_with url: create_location_from_text_admin_incomplete_record_path(@tournament), method: :post do |f| %>
         <div class="form-group">
           <label>Location Name</label>
-          <%= f.text_field :name, value: @tournament.location_text, class: "form-control", readonly: true, 
-                          style: "background-color: #f0f0f0;" %>
+          <%= f.text_field :name, value: @tournament.location_text, readonly: true,
+                          class: "form-control bg-gray-100 dark:bg-gray-700" %>
         </div>
         
         <div class="form-group">
@@ -240,7 +240,7 @@
         
         <div style="margin-top: 20px; display: flex; gap: 10px;">
           <%= f.submit "Create Location", class: "btn btn-warning" %>
-          <button type="button" class="btn" onclick="document.getElementById('create-location-modal').style.display='none'">
+          <button type="button" class="btn" onclick="document.getElementById('create-location-modal').classList.add('hidden')">
             Cancel
           </button>
         </div>
@@ -257,14 +257,14 @@
       if (trigger) {
         trigger.addEventListener('click', function(e) {
           e.preventDefault();
-          modal.style.display = 'block';
+          modal.classList.remove('hidden');
         });
       }
       
       // Close on outside click
       modal.addEventListener('click', function(e) {
         if (e.target === modal) {
-          modal.style.display = 'none';
+          modal.classList.add('hidden');
         }
       });
     });
