@@ -20,6 +20,19 @@ class TournamentMonitor::RankingResolver
     @tournament_monitor = tournament_monitor
   end
 
+  # §4.4.2 NBV-Ordnung: Platzierung bei Turnieren jeder gegen jeden (ebenso bei Gruppen)
+  # nach Punkten, dann GD (bzw. gd_pct bei Handicap), dann BED, dann Höchstserie.
+  # "Direkter Vergleich" (Stufe 3 der Ordnung) ist hier bewusst NICHT enthalten — er lässt
+  # sich nicht als zusätzlicher Sortierschlüssel ausdrücken (gilt nur relativ zu genau den
+  # gerade gleichauf liegenden Spielern), siehe Plan 03-02.
+  def group_standing_order
+    if @tournament_monitor.tournament.handicap_tournier?
+      %i[points gd_pct bed hs]
+    else
+      %i[points gd bed hs]
+    end
+  end
+
   def player_id_from_ranking(rule_str, opts = {})
     ordered_ranking_nos = opts[:ordered_ranking_nos]
     if (mm = rule_str.match(/\((.*)\)\.rk(\d+)$/).presence)
@@ -53,37 +66,16 @@ class TournamentMonitor::RankingResolver
         @tournament_monitor.tournament.seedings.where("id > #{Seeding::MIN_ID}").to_a[rk_no.to_i - 1]&.player_id
       when /^fg/
         TournamentMonitor.ranking(@tournament_monitor.data["rankings"]["endgames"]["group#{g_no}"],
-                                  order: (
-                                    if @tournament_monitor.tournament.handicap_tournier?
-                                      %i[points
-                                         gd_pct]
-                                    else
-                                      %i[points
-                                         gd]
-                                    end))[rk_no.to_i - 1].andand[0]
+                                  order: group_standing_order)[rk_no.to_i - 1].andand[0]
       when /^g/
         TournamentMonitor.ranking(@tournament_monitor.data["rankings"]["groups"]["group#{g_no}"],
-                                  order: (
-                                    if @tournament_monitor.tournament.handicap_tournier?
-                                      %i[points
-                                         gd_pct]
-                                    else
-                                      %i[points
-                                         gd]
-                                    end))[rk_no.to_i - 1].andand[0]
+                                  order: group_standing_order)[rk_no.to_i - 1].andand[0]
       else
         nil
       end
     elsif (m = rule_str.match(/^(64f|32f|16f|8f|vf|hf|rule|af|qf|fin|p<\d+(?:-|\.\.)\d+>)(\d+)?/))
       TournamentMonitor.ranking(@tournament_monitor.data["rankings"]["endgames"]["#{m[1]}#{m[2]}"],
-                                order: (
-                                  if @tournament_monitor.tournament.handicap_tournier?
-                                    %i[points
-                                       gd_pct]
-                                  else
-                                    %i[points
-                                       gd]
-                                  end))[rk_no.to_i - 1].andand[0]
+                                order: group_standing_order)[rk_no.to_i - 1].andand[0]
 
     elsif /^sl/.match?(rule_str)
       @tournament_monitor.tournament.seedings.where("id > #{Seeding::MIN_ID}").to_a[rk_no.to_i - 1]&.player_id
@@ -124,22 +116,10 @@ class TournamentMonitor::RankingResolver
           @tournament_monitor.tournament.seedings.where("id > #{Seeding::MIN_ID}").to_a[rk_no.to_i - 1].player_id
         when /^fg/
           TournamentMonitor.ranking(@tournament_monitor.data["rankings"]["endgames"]["group#{g_no}"],
-                                    order: (
-                                      if @tournament_monitor.tournament.handicap_tournier?
-                                        %i[points
-                                           gd_pct]
-                                      else
-                                        %i[points gd]
-                                      end))[rk_no.to_i - 1]
+                                    order: group_standing_order)[rk_no.to_i - 1]
         when /^g/
           TournamentMonitor.ranking(@tournament_monitor.data["rankings"]["groups"]["group#{g_no}"],
-                                    order: (
-                                      if @tournament_monitor.tournament.handicap_tournier?
-                                        %i[points
-                                           gd_pct]
-                                      else
-                                        %i[points gd]
-                                      end))[rk_no.to_i - 1]
+                                    order: group_standing_order)[rk_no.to_i - 1]
         else
           nil
         end
@@ -167,22 +147,10 @@ class TournamentMonitor::RankingResolver
           @tournament_monitor.tournament.seedings.where("id > #{Seeding::MIN_ID}").to_a[rk_no.to_i - 1].player_id
         when /^fg/
           TournamentMonitor.ranking(@tournament_monitor.data["rankings"]["endgames"]["group#{g_no}"],
-                                    order: (
-                                      if @tournament_monitor.tournament.handicap_tournier?
-                                        %i[points
-                                           gd_pct]
-                                      else
-                                        %i[points gd]
-                                      end))[rk_no.to_i - 1]
+                                    order: group_standing_order)[rk_no.to_i - 1]
         when /^g/
           TournamentMonitor.ranking(@tournament_monitor.data["rankings"]["groups"]["group#{g_no}"],
-                                    order: (
-                                      if @tournament_monitor.tournament.handicap_tournier?
-                                        %i[points
-                                           gd_pct]
-                                      else
-                                        %i[points gd]
-                                      end))[rk_no.to_i - 1]
+                                    order: group_standing_order)[rk_no.to_i - 1]
         when /^rule/
           player_id = player_id_from_ranking(opts[:executor_params]["rules"][member.split(".")[0]], opts)
           [player_id, @tournament_monitor.data["rankings"]["groups"]["total"][player_id]]
