@@ -31,9 +31,13 @@ module SkipLedger
   # herunterzaehlen — der Guard soll die Zahl nach unten druecken, nicht
   # konservieren.
   #
-  # `STRICT_FIXTURES=1 bin/rails test` listet die 12 auf einen Schlag als
-  # Failures — praktisch beim Abarbeiten.
-  MAX_DATA_SKIPS = 12
+  # `STRICT_FIXTURES=1 bin/rails test` listet sie auf einen Schlag als Failures —
+  # praktisch beim Abarbeiten.
+  #
+  # 2026-09-04: 12 → 11. Der CR-02-Regressionstest (result_processor_test) sprang
+  # mangels lokaler Spiele ab — genau der Fall, vor dem dieser Ledger warnt. Er legt
+  # seine Spiele jetzt selbst an.
+  MAX_DATA_SKIPS = 11
 
   # Skips, die NICHT an fehlenden Testdaten liegen und deshalb nicht zaehlen.
   # Bewusst als Positivliste: alles Unbekannte gilt als datenbedingt, damit ein

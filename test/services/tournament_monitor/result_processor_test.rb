@@ -7,6 +7,10 @@ require "test_helper"
 class TournamentMonitor::ResultProcessorTest < ActiveSupport::TestCase
   include KoTournamentTestHelper
 
+  # Eigener ID-Bereich fuer selbst angelegte Kaskaden-Spiele (>= Game::MIN_ID, siehe
+  # Kommentar im CR-02-Regressionstest).
+  CASCADE_BASE_ID = 62_000_000
+
   self.use_transactional_tests = true
 
   setup do
@@ -390,8 +394,21 @@ class TournamentMonitor::ResultProcessorTest < ActiveSupport::TestCase
     # confirm the TournamentMonitorState#finalize_round loop does NOT re-enter the SAME TM
     # via advance_tournament_round_if_present. Without the sentinel guard, this raises
     # SystemStackError after ~323 nested savepoints (live incident reproduction).
-    games = @tournament.games.where("games.id >= #{Game::MIN_ID}").limit(2).to_a
-    skip "Need at least 1 local game with id >= MIN_ID for cascade test" if games.empty?
+    # 2026-09-03: Dieser Test hat sich seit seiner Einfuehrung IMMER uebersprungen. Er
+    # holte die Spiele ueber `@tournament.games.where("id >= MIN_ID")`, aber weder
+    # `create_ko_tournament_with_seedings` noch `initialize_tournament_monitor` erzeugen
+    # in dieser Testumgebung lokale Spiele — die Menge war leer, der skip griff, und der
+    # Schutz des Vorfalls vom 2026-05-05 (SystemStackError nach ~323 verschachtelten
+    # Savepoints) war nominell statt real. Aufgefallen bei der Recherche zu Plan 05-01.
+    #
+    # Die Spiele werden deshalb selbst angelegt: ueber die Assoziation, damit
+    # `tournament_type` gesetzt ist (Game#belongs_to :tournament ist NICHT polymorph
+    # deklariert, Tournament#has_many :games aber schon — Lehre aus Plan 03-02), und mit
+    # expliziter ID >= MIN_ID, weil die Test-Sequenz vierstellige IDs vergibt und
+    # `live_games` auf `id >= Game::MIN_ID` filtert (Lehre aus Plan 06-01).
+    games = 2.times.map do |i|
+      @tournament.games.create!(id: CASCADE_BASE_ID + i, gname: "hf#{i + 1}", group_no: 1, data: {})
+    end
 
     # Stub TournamentMonitor cascade methods so finalize_round is reachable but does NOT
     # enqueue real jobs / advance the round. Per Phase 38.8 Plan 06 D-decision, instance
