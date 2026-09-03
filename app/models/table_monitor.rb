@@ -1882,8 +1882,22 @@ class TableMonitor < ApplicationRecord
       last_set = Array(data["sets"]).last
       a = last_set["Ergebnis1"].to_i
       b = last_set["Ergebnis2"].to_i
+      a == b
+    else
+      # Zwei unabhaengige Unentschieden-Faelle, beide gueltig (Plan 04-01 ERGAENZT die
+      # bestehende Pruefung, ersetzt sie NICHT):
+      #  1. a == b: Aufnahmenbegrenzung erreicht, rohe Ergebnisse gleich (der urspruengliche
+      #     Quick-260505-auq-Fall, z.B. 10:10 bei balls_goal=40 fuer beide — KEINER hat sein
+      #     Ziel erreicht, das Ergebnis ist trotzdem unentschieden).
+      #  2. beide haben IHR EIGENES Ziel erreicht (result >= balls_goal je Spieler) — bei
+      #     Vorgabe-Turnieren (unterschiedliche Ziele) faellt das nicht automatisch mit a==b
+      #     zusammen (z.B. 50/50 vs. 42/42), ist aber ebenso ein echtes Unentschieden.
+      # Konvention fuer Fall 2 konsistent mit end_of_set? (result >= balls_goal).
+      goal_a = data&.dig("playera", "balls_goal").to_i
+      goal_b = data&.dig("playerb", "balls_goal").to_i
+      own_goals_reached = goal_a.positive? && goal_b.positive? && a >= goal_a && b >= goal_b
+      a == b || own_goals_reached
     end
-    a == b
   end
 
   # Quick-260505-auq — TournamentMonitor#playing_finals? tiebreak override.

@@ -888,4 +888,39 @@ class TableMonitor::ResultRecorderTest < ActiveSupport::TestCase
     assert_equal true, @game.reload.data["tiebreak_required"],
       "R1: helper must persist game.data['tiebreak_required']=true so both read sites observe the override"
   end
+
+  # ---------------------------------------------------------------------------
+  # Plan 04-01: Vorgabe-bewusste Tie-Erkennung — Pendant zu R1 mit unterschiedlichen
+  # Zielen je Spieler (Vorgabe-Turnier). "1. Vorgabepokal" live: 50/50 vs. 42/42.
+  # ---------------------------------------------------------------------------
+
+  test "AC-1 (Recorder): Vorgabe-Gleichstand (50/50 vs. 42/42) forces modal to tiebreak_winner_choice" do
+    @tm.deep_merge_data!(
+      "free_game_form" => "karambol",
+      "playera" => {"result" => 50, "innings" => 20, "balls_goal" => 50},
+      "playerb" => {"result" => 42, "innings" => 20, "balls_goal" => 42},
+      "innings_goal" => 30,
+      "allow_follow_up" => false
+    )
+    @tm.save!
+    @game.update!(data: {})
+
+    tour_monitor = TournamentMonitor.create!(
+      tournament: tournaments(:local),
+      state: "new_tournament_monitor",
+      balls_goal: 40,
+      innings_goal: 30,
+      timeout: 0,
+      timeouts: 2
+    )
+    tour_monitor.update_columns(state: "playing_finals")
+    @tm.update!(tournament_monitor: tour_monitor)
+    @tm.reload
+
+    recorder = TableMonitor::ResultRecorder.new(table_monitor: @tm)
+    result = recorder.send(:tiebreak_pick_pending?)
+
+    assert_equal true, result,
+      "beide Spieler bei 100% ihres eigenen Vorgabe-Ziels (50/50, 42/42) muss als Gleichstand erkannt werden"
+  end
 end

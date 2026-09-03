@@ -355,16 +355,25 @@ class TableMonitor::ResultRecorder < ApplicationService
     return false if @tm.game.data["tiebreak_winner"].present?
 
     # "Tied" definition aligns with TableMonitor#tiebreak_pending_block? (D-08
-    # AASM guard predicate). Inning-based: data['playera']['result'] ==
-    # data['playerb']['result']. Simple-set: most recent set's Ergebnis1==Ergebnis2.
+    # AASM guard predicate; erweitert per Plan 04-01 um Vorgabe-Bewusstsein).
+    # Simple-set: most recent set's Ergebnis1==Ergebnis2. Inning-based: zwei unabhaengige,
+    # beide gueltige Faelle — a==b (Aufnahmenbegrenzung erreicht, roh gleich, der
+    # urspruengliche Quick-260505-auq-Fall) ODER beide haben IHR EIGENES Ziel erreicht
+    # (result >= balls_goal je Spieler — bei Vorgabe-Turnieren faellt das nicht automatisch
+    # mit a==b zusammen, siehe TableMonitor#tiebreak_pending_block?).
     a = @tm.data&.dig("playera", "result").to_i
     b = @tm.data&.dig("playerb", "result").to_i
     if @tm.simple_set_game? && @tm.data["sets"].present?
       last_set = Array(@tm.data["sets"]).last
       a = last_set["Ergebnis1"].to_i
       b = last_set["Ergebnis2"].to_i
+      a == b
+    else
+      goal_a = @tm.data&.dig("playera", "balls_goal").to_i
+      goal_b = @tm.data&.dig("playerb", "balls_goal").to_i
+      own_goals_reached = goal_a.positive? && goal_b.positive? && a >= goal_a && b >= goal_b
+      a == b || own_goals_reached
     end
-    a == b
   end
 
   # Phase 38.7 Plan 11 (Gap-03) — BK-2kombi BK-2-phase auto-detect helper.
