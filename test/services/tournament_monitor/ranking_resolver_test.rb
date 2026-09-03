@@ -129,4 +129,18 @@ class TournamentMonitor::RankingResolverTest < ActiveSupport::TestCase
     tm_result = @tm.player_id_from_ranking("sl.rk1", executor_params: {})
     assert_equal tm_result, resolver_result
   end
+
+  # ============================================================================
+  # Plan 03-01 (§4.4.2): group_standing_order — Punkte, GD/gd_pct, BED, Höchstserie
+  # ============================================================================
+
+  test "group_standing_order returns points, gd, bed, hs for non-handicap tournaments" do
+    @tournament.update!(handicap_tournier: false)
+    assert_equal %i[points gd bed hs], @resolver.group_standing_order
+  end
+
+  test "group_standing_order returns points, gd_pct, bed, hs for handicap tournaments" do
+    @tournament.update!(handicap_tournier: true)
+    assert_equal %i[points gd_pct bed hs], @resolver.group_standing_order
+  end
 end
