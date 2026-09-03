@@ -11,6 +11,18 @@ class TournamentMonitor::ResultProcessorTest < ActiveSupport::TestCase
   # Kommentar im CR-02-Regressionstest).
   CASCADE_BASE_ID = 62_000_000
 
+  # 2026-09-04: Zwei Tests holten ihr Spiel per
+  # `@tournament.games.where("id >= MIN_ID").first` und uebersprangen sich stumm, weil das
+  # KO-Setup in dieser Umgebung keine lokalen Spiele erzeugt. Sie legen es jetzt selbst an
+  # — ueber die Assoziation (wegen tournament_type) und mit expliziter ID >= MIN_ID, weil
+  # die Sequenz seit 2026-09-04 unterhalb MIN_ID verankert ist (test_helper.rb).
+  def local_game_with_participations!(offset)
+    game = @tournament.games.create!(id: 64_000_000 + offset, gname: "group1:#{offset}", group_no: 1, data: {})
+    GameParticipation.create!(game: game, player: @players[0], role: "playera", points: 2, result: 25)
+    GameParticipation.create!(game: game, player: @players[1], role: "playerb", points: 0, result: 20)
+    game.reload
+  end
+
   self.use_transactional_tests = true
 
   setup do
@@ -91,11 +103,7 @@ class TournamentMonitor::ResultProcessorTest < ActiveSupport::TestCase
   end
 
   test "accumulate_results writes rankings to tournament_monitor data" do
-    # Create a game with game participations for the tournament
-    game = @tournament.games.where("games.id >= #{Game::MIN_ID}").first
-
-    # Skip test if no local games exist (clean fixture state)
-    skip "No local games available for accumulate_results test" unless game.present?
+    local_game_with_participations!(1)
 
     @processor.accumulate_results
 
@@ -193,12 +201,7 @@ class TournamentMonitor::ResultProcessorTest < ActiveSupport::TestCase
   end
 
   test "update_game_participations delegates to update_game_participations_for_game" do
-    game = @tournament.games.where("games.id >= #{Game::MIN_ID}").first
-    skip "No local games available for update_game_participations test" unless game.present?
-
-    gp_a = game.game_participations.where(role: "playera").first
-    gp_b = game.game_participations.where(role: "playerb").first
-    skip "No game participations available" unless gp_a.present? && gp_b.present?
+    game = local_game_with_participations!(2)
 
     # Build a mock table_monitor data structure
     table_monitor_data = {

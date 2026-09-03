@@ -34,10 +34,17 @@ module SkipLedger
   # `STRICT_FIXTURES=1 bin/rails test` listet sie auf einen Schlag als Failures —
   # praktisch beim Abarbeiten.
   #
-  # 2026-09-04: 12 → 11. Der CR-02-Regressionstest (result_processor_test) sprang
-  # mangels lokaler Spiele ab — genau der Fall, vor dem dieser Ledger warnt. Er legt
-  # seine Spiele jetzt selbst an.
-  MAX_DATA_SKIPS = 11
+  # 2026-09-04: Der Guard stand auf 12, real waren es aber 16 — er schlug also laengst an,
+  # ohne dass es jemand aufloeste. Beim Gruenziehen der Suite fielen vier stumme Tests weg
+  # (CR-02-Regression, accumulate_results, update_game_participations, terminate-Keep): sie
+  # holten ihre Spiele per `where("id >= MIN_ID")` und sprangen ab, weil das KO-Setup keine
+  # lokalen Spiele erzeugt — genau der Fall, vor dem dieser Ledger warnt. Sie legen ihre
+  # Spiele jetzt selbst an. Ist-Stand danach: 12.
+  #
+  # Die verbleibenden 12 brauchen fehlende Testdaten (RegionCc/NBV-Turniere fuer die
+  # MCP-Tools, Shot-/TrainingConcept-/TrainingExample-Fixtures fuer die Admin-Smoke-Shows).
+  # `STRICT_FIXTURES=1 bin/rails test` listet sie auf einen Schlag.
+  MAX_DATA_SKIPS = 12
 
   # Skips, die NICHT an fehlenden Testdaten liegen und deshalb nicht zaehlen.
   # Bewusst als Positivliste: alles Unbekannte gilt als datenbedingt, damit ein

@@ -116,7 +116,17 @@ module Api
           "group" => game.gname,
           "seqno" => game.seqno,
           "ended_at" => game.ended_at,
-          "participations" => game.game_participations.filter_map { |gp| participation_payload(gp) }
+          # 2026-09-04: `sort_by(&:id)` statt der DB-Reihenfolge. Ohne ORDER BY liefert
+          # Postgres die Zeilen in beliebiger Folge — der Test sah zufaellig playerb vor
+          # playera. Fuer ein oeffentliches Dokument ist das ein echter Mangel: der
+          # Empfaenger vergleicht Staende, und eine wechselnde Reihenfolge erzeugt
+          # Scheinaenderungen. Die Spiele selbst werden aus demselben Grund geordnet
+          # (local_games unten). Sortiert wird nach id statt nach role, weil role je nach
+          # Domaene "playera"/"playerb" ODER "Heim"/"Gast" traegt — alphabetisch stuende
+          # dort der Gast vorn. Die Anlagereihenfolge ist in beiden Faellen die fachliche.
+          # `sort_by` statt `.order`: die Assoziation ist bereits preloaded (includes in
+          # local_games), ein .order wuerde sie erneut abfragen.
+          "participations" => game.game_participations.sort_by(&:id).filter_map { |gp| participation_payload(gp) }
         }
       end
 

@@ -6,17 +6,24 @@
 # World Cup 2024 - used in video/tournament_matcher_test.rb
 # IDs use 50_002_xxx range to avoid conflicts with inline Tournament.create!(id: 50_000_010/011...)
 # calls in source_handler_test.rb.
+# 2026-09-04: Datum von fest 2024-09-01 auf relativ umgestellt. Video::TournamentMatcher
+# sucht nur in `InternationalTournament.where("date >= ?", 2.years.ago)` — am 2026-09-02
+# fiel diese Fixture aus dem Fenster und riss neun Matcher-Tests mit. wc_no_end_date unten
+# war aus demselben Grund schon dynamisch; hier wurde es nur nie nachgezogen. Der Abstand
+# von 6 Monaten zu wc_no_end_date (18.months.ago) haelt die beiden Turniere getrennt, damit
+# ein Video nicht zum falschen matcht. Die Jahreszahl im Titel wird mitgezogen — die Tests
+# leiten sie ueber `tournament.date.year` ab, nicht hartkodiert.
 wc_2024:
   id: 50_002_001
   type: "InternationalTournament"
-  title: "UMB World Cup 2024 Antwerp"
+  title: "UMB World Cup <%= 12.months.ago.year %> Antwerp"
   season: current
   organizer: nbv (Region)
   organizer_type: "Region"
   discipline: carom_3band
   state: "registration"
-  date: <%= Date.new(2024, 9, 1) %>
-  end_date: <%= Date.new(2024, 9, 7) %>
+  date: <%= 12.months.ago.to_date %>
+  end_date: <%= 12.months.ago.to_date + 6 %>
   international_source: youtube_source
   created_at: <%= 1.year.ago %>
   updated_at: <%= 1.day.ago %>
