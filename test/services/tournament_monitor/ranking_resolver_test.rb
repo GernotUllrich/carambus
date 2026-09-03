@@ -143,4 +143,155 @@ class TournamentMonitor::RankingResolverTest < ActiveSupport::TestCase
     @tournament.update!(handicap_tournier: true)
     assert_equal %i[points gd_pct bed hs], @resolver.group_standing_order
   end
+
+  # ============================================================================
+  # Plan 03-02 (§4.4.2 Stufe 3): head_to_head_winner
+  # ============================================================================
+
+  def create_group_game(gname:, player_a:, player_b:, points_a:, points_b:)
+    # Ueber die Assoziation erzeugen (wie table_populator.rb:382), nicht Game.create!
+    # direkt — has_many :games, as: :tournament ist polymorph auf Tournament-Seite;
+    # Game#belongs_to :tournament ist es nicht, direktes Game.create!(tournament:) laesst
+    # tournament_type leer und macht das Spiel fuer tournament.games unauffindbar.
+    game = @tournament.games.create!(gname: gname, group_no: 1)
+    GameParticipation.create!(game: game, player: player_a, role: "playera", points: points_a)
+    GameParticipation.create!(game: game, player: player_b, role: "playerb", points: points_b)
+    game
+  end
+
+  test "head_to_head_winner returns the winner of a single direct match" do
+    create_group_game(gname: "group1:1-2", player_a: @players[0], player_b: @players[1],
+      points_a: 2, points_b: 0)
+
+    winner = @resolver.head_to_head_winner("group", 1, @players[0].id, @players[1].id)
+    assert_equal @players[0].id, winner
+  end
+
+  test "head_to_head_winner sums points across double round-robin encounters" do
+    create_group_game(gname: "group1:1-2/1", player_a: @players[0], player_b: @players[1],
+      points_a: 2, points_b: 0)
+    create_group_game(gname: "group1:1-2/2", player_a: @players[0], player_b: @players[1],
+      points_a: 0, points_b: 2)
+    create_group_game(gname: "group1:1-2/3", player_a: @players[0], player_b: @players[1],
+      points_a: 0, points_b: 2)
+
+    winner = @resolver.head_to_head_winner("group", 1, @players[0].id, @players[1].id)
+    assert_equal @players[1].id, winner,
+      "Spieler B gewinnt 2 von 3 Begegnungen in Punktesumme, muss den direkten Vergleich gewinnen"
+  end
+
+  test "head_to_head_winner returns nil when no common game exists" do
+    winner = @resolver.head_to_head_winner("group", 1, @players[0].id, @players[1].id)
+    assert_nil winner
+  end
+
+  test "head_to_head_winner returns nil when points are equal across all encounters" do
+    create_group_game(gname: "group1:1-2", player_a: @players[0], player_b: @players[1],
+      points_a: 1, points_b: 1)
+
+    winner = @resolver.head_to_head_winner("group", 1, @players[0].id, @players[1].id)
+    assert_nil winner
+  end
+
+  test "head_to_head_winner works identically for endgame groups (fg prefix)" do
+    create_group_game(gname: "fg1:1-2", player_a: @players[0], player_b: @players[1],
+      points_a: 2, points_b: 0)
+
+    winner = @resolver.head_to_head_winner("fg", 1, @players[0].id, @players[1].id)
+    assert_equal @players[0].id, winner
+  end
+
+  # ============================================================================
+  # Plan 03-02 (§4.4.2 vollständig): group_standing_ranking
+  # ============================================================================
+
+  test "group_standing_ranking: 2-way tie is resolved by direct comparison, overriding bed/hs" do
+    # p1/p2 gleichauf bei Punkten+GD; p1 schlaegt p2 direkt; BED/HS wuerden p2 vorne sehen,
+    # der direkte Vergleich muss das aber unabhaengig davon entscheiden.
+    create_group_game(gname: "group1:1-2", player_a: @players[0], player_b: @players[1],
+      points_a: 2, points_b: 0)
+
+    hash = {
+      @players[0].id => {"points" => 4, "gd" => 2.0, "bed" => 1.0, "hs" => 5},
+      @players[1].id => {"points" => 4, "gd" => 2.0, "bed" => 3.0, "hs" => 20},
+      @players[2].id => {"points" => 6, "gd" => 1.0, "bed" => 0.5, "hs" => 3}
+    }
+
+    result = @resolver.group_standing_ranking(hash, "group", 1)
+
+    assert_equal [@players[2].id, @players[0].id, @players[1].id], result.map(&:first),
+      "p3 fuehrt (mehr Punkte), p1 vor p2 per direktem Vergleich trotz schwaecherem BED/HS"
+  end
+
+  test "group_standing_ranking: 3-way tie skips direct comparison, falls back to bed/hs" do
+    # Alle drei gleichauf bei Punkten+GD; p1 schlaegt p2 direkt, aber bei 3 Gleichen greift
+    # der direkte Vergleich laut Entscheidung vom 2026-09-03 nicht — BED/HS entscheiden.
+    create_group_game(gname: "group1:1-2", player_a: @players[0], player_b: @players[1],
+      points_a: 2, points_b: 0)
+
+    hash = {
+      @players[0].id => {"points" => 4, "gd" => 2.0, "bed" => 1.0, "hs" => 5},
+      @players[1].id => {"points" => 4, "gd" => 2.0, "bed" => 3.0, "hs" => 20},
+      @players[2].id => {"points" => 4, "gd" => 2.0, "bed" => 2.0, "hs" => 10}
+    }
+
+    result = @resolver.group_standing_ranking(hash, "group", 1)
+
+    assert_equal [@players[1].id, @players[2].id, @players[0].id], result.map(&:first),
+      "Reihenfolge folgt BED (3.0 > 2.0 > 1.0), der direkte p1-vs-p2-Sieg wird bei 3-fachem Gleichstand ignoriert"
+  end
+
+  test "group_standing_ranking: 2-way tie without a findable direct match falls back to bed/hs" do
+    # Keine gemeinsame Partie angelegt — head_to_head_winner liefert nil, die Orchestrierung
+    # muss dann (wie vor diesem Plan) auf BED/HS zurueckfallen, nicht z.B. die urspruengliche
+    # Punkte/GD-Reihenfolge stehen lassen.
+    hash = {
+      @players[0].id => {"points" => 4, "gd" => 2.0, "bed" => 1.0, "hs" => 5},
+      @players[1].id => {"points" => 4, "gd" => 2.0, "bed" => 3.0, "hs" => 20}
+    }
+
+    result = @resolver.group_standing_ranking(hash, "group", 1)
+
+    assert_equal [@players[1].id, @players[0].id], result.map(&:first),
+      "Ohne auffindbare direkte Partie entscheidet BED (3.0 > 1.0)"
+  end
+
+  test "group_standing_ranking: single-player cluster (no tie) passes through unchanged" do
+    hash = {
+      @players[0].id => {"points" => 6, "gd" => 2.0, "bed" => 1.0, "hs" => 5},
+      @players[1].id => {"points" => 4, "gd" => 1.0, "bed" => 3.0, "hs" => 20}
+    }
+
+    result = @resolver.group_standing_ranking(hash, "group", 1)
+
+    assert_equal [@players[0].id, @players[1].id], result.map(&:first)
+  end
+
+  test "g1.rk1/g1.rk2 resolve via group_standing_ranking with string-keyed rankings hash (JSON round-trip)" do
+    # @tournament_monitor.data ist eine JSON-Spalte — nach dem Rundtrip sind die
+    # Spieler-ID-Keys STRINGS, nicht Integer. Dieser Test simuliert genau das und prueft,
+    # dass head_to_head_winner trotzdem korrekt gegen die Integer-player_id aus
+    # GameParticipation matcht (siehe Typ-Normalisierung in head_to_head_winner).
+    create_group_game(gname: "group1:1-2", player_a: @players[0], player_b: @players[1],
+      points_a: 2, points_b: 0)
+
+    @tm.data ||= {}
+    @tm.data["rankings"] ||= {}
+    @tm.data["rankings"]["groups"] ||= {}
+    @tm.data["rankings"]["groups"]["group1"] = {
+      @players[0].id.to_s => {"points" => 4, "gd" => 2.0, "bed" => 1.0, "hs" => 5},
+      @players[1].id.to_s => {"points" => 4, "gd" => 2.0, "bed" => 3.0, "hs" => 20}
+    }
+    @tm.save!
+
+    rk1 = @resolver.player_id_from_ranking("g1.rk1", executor_params: {})
+    rk2 = @resolver.player_id_from_ranking("g1.rk2", executor_params: {})
+
+    # Rueckgabe ist der Hash-Key aus @tournament_monitor.data — nach JSON-Rundtrip ein
+    # String. Das ist bestehendes, unveraendertes Verhalten von TournamentMonitor.ranking
+    # (gibt Hash-Paare unveraendert zurueck); nicht Teil dieser Aenderung.
+    assert_equal @players[0].id.to_s, rk1,
+      "g1.rk1 muss ueber ko_ranking -> group_standing_ranking -> head_to_head_winner aufgeloest werden"
+    assert_equal @players[1].id.to_s, rk2
+  end
 end
