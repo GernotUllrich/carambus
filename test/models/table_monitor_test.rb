@@ -693,6 +693,64 @@ class TableMonitorTest < ActiveSupport::TestCase
       "M1b: helper must persist tiebreak_required=true for KO-chain games"
   end
 
+  # ---------------------------------------------------------------------------
+  # Plan 04-01 — Vorgabe-bewusste Tie-Erkennung (result >= balls_goal je Spieler
+  # statt a == b). Live am "1. Vorgabepokal" gefunden: playera 50/50, playerb
+  # 42/42 — beide bei 100% ihres Ziels, aber 50 != 42.
+  # ---------------------------------------------------------------------------
+
+  def handicap_tied_data(result_a:, goal_a:, result_b:, goal_b:)
+    {
+      "free_game_form" => "karambol",
+      "playera" => {"result" => result_a, "innings" => 20, "balls_goal" => goal_a},
+      "playerb" => {"result" => result_b, "innings" => 20, "balls_goal" => goal_b},
+      "innings_goal" => 30,
+      "allow_follow_up" => false
+    }
+  end
+
+  def playing_finals_tm_for(game)
+    tour_monitor = TournamentMonitor.create!(
+      tournament: tournaments(:local),
+      state: "new_tournament_monitor",
+      balls_goal: 40,
+      innings_goal: 30,
+      timeout: 0,
+      timeouts: 2
+    )
+    tour_monitor.update_columns(state: "playing_finals")
+    @tm.update!(tournament_monitor: tour_monitor)
+    @tm.update_columns(game_id: game.id, state: "set_over")
+    @tm.reload
+  end
+
+  test "AC-1: Vorgabe-Spiel erkennt Gleichstand, wenn beide ihr eigenes Ziel erreicht haben" do
+    game = Game.create!(data: {}, group_no: 1, seqno: 6, table_no: 1, gname: "hf1")
+    @tm.update!(data: handicap_tied_data(result_a: 50, goal_a: 50, result_b: 42, goal_b: 42))
+    playing_finals_tm_for(game)
+
+    assert @tm.tiebreak_pending_block?,
+      "AC-1: beide bei 100% ihres jeweils eigenen Ziels (50/50, 42/42) muss als Gleichstand erkannt werden"
+  end
+
+  test "AC-2: Nicht-Vorgabe-Gleichstand bleibt erkannt (Regression)" do
+    game = Game.create!(data: {}, group_no: 1, seqno: 7, table_no: 1, gname: "hf1")
+    @tm.update!(data: handicap_tied_data(result_a: 40, goal_a: 40, result_b: 40, goal_b: 40))
+    playing_finals_tm_for(game)
+
+    assert @tm.tiebreak_pending_block?,
+      "AC-2: klassischer Gleichstand (gleiches Ziel, gleiches Ergebnis) muss weiterhin erkannt werden"
+  end
+
+  test "AC-3: nur ein Spieler erreicht sein Ziel — kein Gleichstand" do
+    game = Game.create!(data: {}, group_no: 1, seqno: 8, table_no: 1, gname: "hf1")
+    @tm.update!(data: handicap_tied_data(result_a: 50, goal_a: 50, result_b: 30, goal_b: 42))
+    playing_finals_tm_for(game)
+
+    refute @tm.tiebreak_pending_block?,
+      "AC-3: playera hat regulaer gewonnen (50>=50, playerb 30<42 nicht erreicht) — kein Gleichstand"
+  end
+
   # M1c (Plan 02-01): negative — placement game (gname "p<7-8>") has no bracket successor,
   # so the override must NOT fire even though the TournamentMonitor is playing_finals.
   test "playing_finals? override is a NO-OP for placement games (gname starts with p<)" do
