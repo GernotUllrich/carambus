@@ -669,6 +669,54 @@ class TableMonitorTest < ActiveSupport::TestCase
       "M1: AASM guard must block acknowledge_result? while tiebreak is pending"
   end
 
+  # M1b (Plan 02-01): positive — KO-chain game (gname "hf1") still gets the override,
+  # explicit regression guard now that placement games are excluded below.
+  test "playing_finals? override still fires for KO-chain games (gname hf1)" do
+    game = Game.create!(data: {}, group_no: 1, seqno: 5, table_no: 1, gname: "hf1")
+    @tm.update!(data: finale_data_10_10)
+    tour_monitor = TournamentMonitor.create!(
+      tournament: tournaments(:local),
+      state: "new_tournament_monitor",
+      balls_goal: 40,
+      innings_goal: 30,
+      timeout: 0,
+      timeouts: 2
+    )
+    tour_monitor.update_columns(state: "playing_finals")
+    @tm.update!(tournament_monitor: tour_monitor)
+    @tm.update_columns(game_id: game.id, state: "set_over")
+    @tm.reload
+
+    assert @tm.tiebreak_pending_block?,
+      "M1b: KO-chain game (gname hf1) must still trigger the override"
+    assert_equal true, game.reload.data["tiebreak_required"],
+      "M1b: helper must persist tiebreak_required=true for KO-chain games"
+  end
+
+  # M1c (Plan 02-01): negative — placement game (gname "p<7-8>") has no bracket successor,
+  # so the override must NOT fire even though the TournamentMonitor is playing_finals.
+  test "playing_finals? override is a NO-OP for placement games (gname starts with p<)" do
+    game = Game.create!(data: {}, group_no: 1, seqno: 6, table_no: 1, gname: "p<7-8>")
+    @tm.update!(data: finale_data_10_10)
+    tour_monitor = TournamentMonitor.create!(
+      tournament: tournaments(:local),
+      state: "new_tournament_monitor",
+      balls_goal: 40,
+      innings_goal: 30,
+      timeout: 0,
+      timeouts: 2
+    )
+    tour_monitor.update_columns(state: "playing_finals")
+    @tm.update!(tournament_monitor: tour_monitor)
+    @tm.update_columns(game_id: game.id, state: "set_over")
+    @tm.reload
+
+    refute @tm.tiebreak_pending_block?,
+      "M1c: placement game (gname p<7-8>) has no bracket successor — override must not fire"
+    refute_equal true, game.reload.data["tiebreak_required"],
+      "M1c: helper must NOT write tiebreak_required for placement games"
+  end
+
   # M2: negative — no tournament_monitor (training mode) => no override.
   test "playing_finals? override is a NO-OP when tournament_monitor is blank (training mode)" do
     game = Game.create!(data: {}, group_no: 1, seqno: 3, table_no: 1)
