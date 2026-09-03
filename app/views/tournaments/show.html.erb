@@ -228,6 +228,31 @@
             </button>
           <%- end %>
           <%- if (User::PRIVILEGED + [User.scoreboard.andand.email.andand.downcase]).include? current_user&.email&.downcase %>
+            <%# Sanfter Ruecksetzer: Spielverlauf abraeumen, Meldeliste und Modus behalten. %>
+            <%# Auch bei laufendem Turnier verfuegbar — der haeufige "nochmal von vorn"-Fall. %>
+            <%= form_tag reset_tournament_path(@tournament, soft_reset: true),
+                         method: :post,
+                         id: "soft-reset-tournament-form-#{@tournament.id}",
+                         style: "display: inline;" do %>
+            <% end %>
+            <%
+              soft_state_line = I18n.t("tournaments.show.reset_tournament_modal.state_line")
+              soft_games_line = I18n.t("tournaments.show.reset_tournament_modal.games_line")
+              soft_games_count = @tournament.games.where.not(ended_at: nil).count
+              soft_body = I18n.t("tournaments.show.soft_reset_tournament_modal.body") +
+                          "\n\n" + soft_state_line + " " + @tournament.state.to_s +
+                          "\n" + soft_games_line + " " + soft_games_count.to_s
+            %>
+            <button type="button"
+                    class="btn btn-flat btn-secondary"
+                    style="float: left; margin-right: 10px;"
+                    data-action="click->confirmation-modal#open"
+                    data-confirmation-modal-form-id-param="soft-reset-tournament-form-<%= @tournament.id %>"
+                    data-confirmation-modal-title-param="<%= I18n.t('tournaments.show.soft_reset_tournament_modal.title') %>"
+                    data-confirmation-modal-body-param="<%= soft_body %>"
+                    data-confirmation-modal-confirm-label-param="<%= I18n.t('tournaments.show.soft_reset_tournament_modal.confirm') %>">
+              <%= I18n.t("tournaments.show.soft_reset_tournament_monitor") %>
+            </button>
             <%= form_tag reset_tournament_path(@tournament, force_reset: true),
                          method: :post,
                          id: "force-reset-tournament-form-#{@tournament.id}",

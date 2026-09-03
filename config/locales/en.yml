@@ -1576,6 +1576,7 @@ en:
       reload_from_club_cloud_with_details: Reload From ClubCloud with all details
       reorder: Reorder
       reset_tournament_monitor: Reset Tournament Monitor
+      soft_reset_tournament_monitor: Restart tournament
       review_invitation_button: 📄 Review invitation
       seeding_heading: 📋 Seeding list
       show_extracted_groups: Show extracted group assignment
@@ -1610,6 +1611,12 @@ en:
         body: "DATA LOSS: all local seeding lists, running games, results and the tournament state will be irrecoverably lost."
         confirm: Yes, force reset
         title: Force reset tournament monitor
+      soft_reset_tournament_modal:
+        body: "Games and tournament state will be deleted. The entry list and the tournament mode are kept — the tournament can be restarted right away."
+        confirm: Yes, restart
+        denied: Not authorized to reset this tournament.
+        success: Tournament reset — entry list and tournament mode were kept.
+        title: Restart tournament (keep entry list)
     docs:
       walkthrough_link: "📖 Full walkthrough in handbook →"
       form_help_link: "📖 Full walkthrough in handbook →"

@@ -1601,6 +1601,7 @@ de:
       reload_from_club_cloud_with_details: Datenabgleich mit der Club Cloud mit allen Details
       reorder: Reihenfolge
       reset_tournament_monitor: Zurücksetzen des Turnier-Monitors
+      soft_reset_tournament_monitor: Turnier neu starten
       review_invitation_button: 📄 Einladung prüfen
       seeding_heading: 📋 Setzliste
       show_extracted_groups: Extrahierte Gruppenbildung anzeigen
@@ -1636,6 +1637,12 @@ de:
         body: "DATENVERLUST: Alle lokalen Setzlisten, laufenden Spiele, Ergebnisse und der Turnierstand gehen unwiderruflich verloren."
         confirm: Ja, zwangsweise zurücksetzen
         title: Turnier-Monitor zwangsweise zurücksetzen
+      soft_reset_tournament_modal:
+        body: "Spiele und Turnierstand werden gelöscht. Meldeliste und Turniermodus bleiben erhalten — das Turnier kann direkt neu gestartet werden."
+        confirm: Ja, neu starten
+        denied: Keine Berechtigung, dieses Turnier zurückzusetzen.
+        success: Turnier zurückgesetzt — Meldeliste und Turniermodus sind erhalten geblieben.
+        title: Turnier neu starten (Meldeliste behalten)
     docs:
       walkthrough_link: "📖 Detailanleitung im Handbuch →"
       form_help_link: "📖 Detailanleitung im Handbuch →"

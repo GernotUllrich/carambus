@@ -176,7 +176,18 @@ class TournamentsController < ApplicationController
   end
 
   def reset
-    if params[:force_reset].present?
+    if params[:soft_reset].present?
+      # Sanft: Spielverlauf abraeumen, Meldeliste und Turniermodus behalten.
+      # Bewusst auch bei laufendem Turnier erlaubt — genau dafuer ist er da.
+      if @tournament.admin_can_reset_tournament?
+        @tournament.soft_reset_tournament_monitor
+        flash[:notice] = t("tournaments.show.soft_reset_tournament_modal.success",
+          default: "Turnier zurückgesetzt — Meldeliste und Turniermodus sind erhalten geblieben.")
+      else
+        flash[:alert] = t("tournaments.show.soft_reset_tournament_modal.denied",
+          default: "Keine Berechtigung, dieses Turnier zurückzusetzen.")
+      end
+    elsif params[:force_reset].present?
       @tournament.forced_reset_tournament_monitor!
     elsif !@tournament.tournament_started
       @tournament.reset_tmt_monitor!

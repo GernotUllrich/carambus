@@ -487,6 +487,51 @@ class Tournament < ApplicationRecord
     # save!
   end
 
+  # Sanfter Rücksetzer: räumt nur den Spielverlauf ab (TournamentMonitor, Tische, lokale
+  # Spiele) und setzt das Turnier auf `tournament_mode_defined` zurück — Meldeliste
+  # (Seedings) und gewählter Turniermodus bleiben erhalten, der Sportwart kann direkt
+  # neu starten.
+  #
+  # Bewusst NICHT über die State Machine: beide vorhandenen Reset-Events
+  # (reset_tmt_monitor, forced_reset_tournament_monitor) führen nach `new_tournament`,
+  # dessen after_enter `reset_tournament` bei einem GLOBALEN Turnier (id < MIN_ID) mit
+  # `organizer != Club` die lokal ergänzten Seedings löscht und `tournament_plan_id`
+  # nullt — genau die Konstellation der Landesverbands-Turniere, die per Sync
+  # hereinkommen und im Verein lokal ergänzt werden (Vorfall Turnier 18931,
+  # 2026-09-03). Für den häufigen Fall "Turnier klemmt, gleicher Modus, gleiche
+  # Meldeliste, nochmal von vorn" ist das zu viel Verlust.
+  #
+  # Für lokale Turniere (id >= MIN_ID) fällt dieser Zweig heraus; dort unterscheidet
+  # sich der sanfte Weg nur noch im Ziel-State (tournament_mode_defined statt
+  # new_tournament), spart dem Sportwart also die erneute Modus-Auswahl.
+  def soft_reset_tournament_monitor
+    Tournament.logger.info "[soft_reset_tournament_monitor] Turnier[#{id}] state=#{state}..."
+    table_monitors_to_update = []
+
+    transaction do
+      if tournament_monitor.present?
+        table_monitors_to_update = tournament_monitor.table_monitors.to_a
+        tournament_monitor.destroy
+      end
+
+      # `.without_archive` wie in initialize_tournament_monitor: der Neustart raeumt die
+      # LIVE-Spiele ab, nicht das Ergebnisarchiv (gemessen 2026-08-26 auf bcw).
+      games.where("games.id >= #{Game::MIN_ID}").without_archive.destroy_all
+
+      table_monitors_to_update.each do |tm|
+        TableMonitor.find_by(id: tm.id)&.reset_table_monitor(force: true)
+      end
+
+      # update_columns statt eines AASM-Events: kein after_enter, damit reset_tournament
+      # nicht doch noch feuert, und kein LocalProtector-Block bei Turnieren mit
+      # id < MIN_ID (Hoheit der Authority).
+      update_columns(state: "tournament_mode_defined")
+    end
+
+    table_monitors_to_update.each { |tm| TableMonitorJob.perform_later(tm.id, "teaser") }
+    Tournament.logger.info "state:#{reload.state}...[soft_reset_tournament_monitor]"
+  end
+
   def reset_tournament
     Tournament.logger.info "[reset_tournament]..."
     # called from state machine only
