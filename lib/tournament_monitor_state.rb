@@ -1,7 +1,31 @@
 # frozen_string_literal: true
 
 module TournamentMonitorState
+  # Entscheidet, ob die Runde weiterschalten darf (Gate in
+  # TournamentMonitor::ResultProcessor#advance_round_after_match_close).
+  #
+  # Plan 06-01 (2026-09-03): Die Frage gilt den SPIELEN der Runde, nicht dem Zustand der
+  # Tische. Die frueher alleinige Tisch-Pruefung (unten, jetzt Fallback) hat drei
+  # Blindstellen, auf denen Tische "fertig" aussehen, obwohl Spiele offen sind:
+  #
+  #   1. `finalize_round` setzt nach `close_match!` `game_id: nil`, laesst den State aber
+  #      stehen; das `joins(:game)` (INNER JOIN) blendet solche Tische aus. Genau das stand
+  #      nach dem Vorfall vom 2026-09-03 in der DB: drei Tische in state="playing" ohne Spiel.
+  #   2. `do_placement` bricht bei Tischmangel ab — das Spiel der Runde ist unbeendet, liegt
+  #      aber auf keinem Tisch.
+  #   3. Im continuous_placements-Pfad wird ein laufendes Spiel vom Tisch verdraengt und in
+  #      `tmp_results` geparkt; auch dieses Spiel ist offen, der Tisch sieht frei aus.
+  #
+  # ⚠️ Der Fallback ist keine Bequemlichkeit, sondern Pflicht: `round_no` ist nur bei
+  # Spielen gesetzt, die ueber `do_placement` laufen (Datenstand 2026-09-03: 55 von 2497
+  # lokalen Live-Games; innerhalb von TournamentMonitor-Turnieren dagegen lueckenlos).
+  # Ohne Spiele der aktuellen Runde waere die Spiel-Pruefung eine leere Menge — `none?`
+  # traefe trivial zu und die Runde schaltete BEDINGUNGSLOS weiter. Deshalb greift sie nur,
+  # wenn es fuer diese Runde ueberhaupt Spiele gibt; sonst entscheidet weiterhin der Tisch.
   def all_table_monitors_finished?
+    round_games = live_games.where(round_no: current_round)
+    return round_games.where(ended_at: nil).none? if round_games.exists?
+
     !(table_monitors.joins(:game).map(&:state) & %w[warmup warmup_a warmup_b
                                                     match_shootout playing final_set_score set_over]).present?
   end
