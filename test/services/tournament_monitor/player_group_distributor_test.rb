@@ -30,6 +30,28 @@ class TournamentMonitor::PlayerGroupDistributorTest < ActiveSupport::TestCase
   # distribute_to_group — 2-group zig-zag
   # ============================================================================
 
+  test "distribute_to_group with 6 players 2 groups matches NBV Modus T6" do
+    players = (1..6).to_a
+    result = TournamentMonitor::PlayerGroupDistributor.distribute_to_group(players, 2)
+
+    # GROUP_SIZES[6] = [3, 3], uses GROUP_RULES[6] path
+    # Ordnung, Modus T6 ("Gruppenbildung"): Gruppe1={1,3,6}, Gruppe2={2,4,5}
+    assert_equal 2, result.keys.length
+    assert_equal [1, 3, 6], result["group1"].sort
+    assert_equal [2, 4, 5], result["group2"].sort
+  end
+
+  test "distribute_to_group with 7 players 2 groups matches NBV Modus T9/T10" do
+    players = (1..7).to_a
+    result = TournamentMonitor::PlayerGroupDistributor.distribute_to_group(players, 2)
+
+    # GROUP_SIZES[7] = [3, 4], uses GROUP_RULES[7] path
+    # Ordnung, Modus T9/T10 ("Gruppenbildung"): Gruppe1={1,4,5}, Gruppe2={2,3,6,7}
+    assert_equal 2, result.keys.length
+    assert_equal [1, 4, 5], result["group1"].sort
+    assert_equal [2, 3, 6, 7], result["group2"].sort
+  end
+
   test "distribute_to_group with 8 players 2 groups returns correct zig-zag assignment" do
     players = [1, 2, 3, 4, 5, 6, 7, 8]
     result = TournamentMonitor::PlayerGroupDistributor.distribute_to_group(players, 2)
@@ -60,17 +82,32 @@ class TournamentMonitor::PlayerGroupDistributorTest < ActiveSupport::TestCase
     assert_equal [3, 4, 9, 10], result["group3"].sort
   end
 
-  test "distribute_to_group with 16 players 4 groups returns correct GROUP_RULES[16] assignment" do
+  test "distribute_to_group with 16 players 4 groups matches NBV Modus T28" do
     players = (1..16).to_a
     result = TournamentMonitor::PlayerGroupDistributor.distribute_to_group(players, 4)
 
     # GROUP_SIZES[16] = [4, 4, 4, 4], uses GROUP_RULES[16] path
-    # GROUP_RULES[16] = [[1, 8, 9, 16], [2, 6, 10, 15], [3, 7, 11, 14], [4, 5, 12, 13]]
+    # Ordnung, Modus T28 ("Gruppenbildung"): Gruppe1={1,8,9,16}, Gruppe2={2,7,10,15},
+    # Gruppe3={3,6,11,14}, Gruppe4={4,5,12,13}
     assert_equal 4, result.keys.length
     assert_equal [1, 8, 9, 16], result["group1"].sort
-    assert_equal [2, 6, 10, 15], result["group2"].sort
-    assert_equal [3, 7, 11, 14], result["group3"].sort
+    assert_equal [2, 7, 10, 15], result["group2"].sort
+    assert_equal [3, 6, 11, 14], result["group3"].sort
     assert_equal [4, 5, 12, 13], result["group4"].sort
+  end
+
+  test "distribute_to_group with 14 players 4 groups matches NBV Modus T26" do
+    players = (1..14).to_a
+    result = TournamentMonitor::PlayerGroupDistributor.distribute_to_group(players, 4)
+
+    # GROUP_SIZES[14] = [4, 4, 3, 3], uses GROUP_RULES[14] path
+    # Ordnung, Modus T26 ("Gruppenbildung"): Gruppe1={1,8,9,13}, Gruppe2={2,6,12,14},
+    # Gruppe3={3,7,10}, Gruppe4={4,5,11}
+    assert_equal 4, result.keys.length
+    assert_equal [1, 8, 9, 13], result["group1"].sort
+    assert_equal [2, 6, 12, 14], result["group2"].sort
+    assert_equal [3, 7, 10], result["group3"].sort
+    assert_equal [4, 5, 11], result["group4"].sort
   end
 
   test "distribute_to_group with 9 players 3 groups returns 3 groups of 3" do

@@ -13,7 +13,7 @@
 #   TournamentMonitor::PlayerGroupDistributor.distribute_with_sizes(players, ngroups, sizes)
 class TournamentMonitor::PlayerGroupDistributor
   DIST_RULES = {
-    6 => [[1, 2], [4, 3], [6, 5]],
+    6 => [[1, 2], [3, 4], [6, 5]],
     7 => [[1, 2], [4, 3], [5, 6], [0, 7]],
     8 => [[1, 2], [4, 3], [5, 6], [8, 7]],
     9 => [[1, 2, 3], [4, 5, 6], [9, 8, 7]],
@@ -27,7 +27,8 @@ class TournamentMonitor::PlayerGroupDistributor
   }.freeze
 
   GROUP_RULES = {
-    6 => [[1, 4, 6], [2, 3, 5]],
+    # T6: Ordnung, Modus T6 ("Gruppenbildung"): Gruppe1={1,3,6}, Gruppe2={2,4,5}
+    6 => [[1, 3, 6], [2, 4, 5]],
     7 => [[1, 4, 5, 0], [2, 3, 6, 7]],
     8 => [[1, 4, 5, 8], [2, 3, 6, 7]],
     9 => [[1, 4, 9], [2, 5, 8], [3, 6, 7]],
@@ -37,7 +38,8 @@ class TournamentMonitor::PlayerGroupDistributor
     13 => [[1, 8, 9, 13], [2, 6, 12], [3, 7, 10], [4, 5, 11]],
     14 => [[1, 8, 9, 13], [2, 6, 12, 14], [3, 7, 10], [4, 5, 11]],
     15 => [[1, 8, 9, 15], [2, 6, 10, 14], [3, 7, 11, 13], [4, 5, 12]],
-    16 => [[1, 8, 9, 16], [2, 6, 10, 15], [3, 7, 11, 14], [4, 5, 12, 13]]
+    # T28: Ordnung, Modus T28 ("Gruppenbildung"): Gruppe2/3 hatten 6 und 7 vertauscht
+    16 => [[1, 8, 9, 16], [2, 7, 10, 15], [3, 6, 11, 14], [4, 5, 12, 13]]
   }.freeze
 
   GROUP_SIZES = {
