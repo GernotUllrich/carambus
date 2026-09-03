@@ -129,6 +129,34 @@ class TournamentMonitor::RoundCompletionTest < ActiveSupport::TestCase
       "Ein laufendes Spiel haelt die Runde offen — wie bisher"
   end
 
+  # ── finalize_round: beendete Spiele muessen vom Tisch (Checkpoint-Befund 06-01) ──
+  # `data` wird nur als Nebeneffekt gefuellt (tmp_results beim Verdraengen,
+  # tiebreak_required beim Tiebreak). Das letzte Spiel auf einem Tisch hat deshalb oft
+  # leeres `data` — es blieb am Tisch haengen, und die Ergebnistabelle zeigte dafuer
+  # weiterhin Eingabefelder (editable_game = game.table_monitor.present?).
+  test "finalize_round nimmt auch beendete Spiele OHNE data vom Tisch" do
+    ohne_data = round_game!("p<3-4>", round_no: 3, ended: true)
+    assert_empty ohne_data.data, "Vorbedingung: das Spiel traegt kein data"
+    tabmon = table_monitor!(state: "final_match_score", game: ohne_data)
+
+    @tm.finalize_round
+
+    assert_nil tabmon.reload.game_id,
+      "Ein beendetes Spiel muss vom Tisch genommen werden, auch wenn es kein data traegt — " \
+      "sonst zeigt die Ergebnistabelle dafuer dauerhaft Eingabefelder"
+  end
+
+  test "finalize_round laesst unbespielte Spiele ohne data und ohne ended_at am Tisch" do
+    offen = round_game!("p<5-6>", round_no: 3, ended: false)
+    tabmon = table_monitor!(state: "playing", game: offen)
+
+    @tm.finalize_round
+
+    assert_equal offen.id, tabmon.reload.game_id,
+      "Ein unbespieltes Spiel darf nicht abgeraeumt werden — das war der Zweck der " \
+      "urspruenglichen data-Pruefung und bleibt erhalten"
+  end
+
   # Spiele frueherer Runden duerfen die aktuelle Runde nicht blockieren.
   test "offene Spiele FRUEHERER Runden blockieren die aktuelle Runde nicht" do
     round_game!("group1:1", round_no: 1, ended: false) # Altlast aus Runde 1

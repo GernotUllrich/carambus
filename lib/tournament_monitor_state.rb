@@ -67,7 +67,18 @@ module TournamentMonitorState
     # }
     table_monitors.joins(:game).each do |tabmon|
       game = tabmon.game
-      next unless game.present? && game.data.present?
+      # Plan 06-01 (2026-09-03, Checkpoint-Befund): `game.data.present?` ist der falsche
+      # Test. `data` wird nur als NEBENEFFEKT gefuellt — `tmp_results`, wenn ein Folgespiel
+      # das Spiel vom Tisch verdraengt (do_placement), oder `tiebreak_required` bei einem
+      # Tiebreak. Das jeweils LETZTE Spiel auf einem Tisch wird nie verdraengt und hat ohne
+      # Tiebreak leeres `data`; es wurde hier uebersprungen, `game_id` blieb am Tisch
+      # stehen. Folge im Betrieb: die Ergebnistabelle zeigt fuer diese Spiele weiterhin
+      # Eingabefelder (`editable_game = game.table_monitor.present?`), obwohl das Turnier
+      # abgeschlossen ist — beobachtet am "1. Vorgabepokal" bei den Spielen um Platz 3/4,
+      # 5/6 und 7/8. Entscheidend ist, ob das Spiel BEENDET ist; `data` bleibt als
+      # zusaetzliches Kriterium erhalten, damit bespielte Spiele ohne `ended_at` weiterhin
+      # abgeraeumt werden.
+      next unless game.present? && (game.data.present? || game.ended_at.present?)
 
       # NOTE: update_game_participations wurde bereits in finalize_game_result aufgerufen!
       # Hier nochmal aufzurufen würde Race-Conditions verursachen, weil populate_tables
