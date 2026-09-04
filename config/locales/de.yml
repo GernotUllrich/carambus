@@ -966,6 +966,9 @@ de:
       submit_blocked_hint: "Bitte einen Sieger auswählen, bevor das Ergebnis bestätigt wird."
       winner_label: "Sieger: %{role}"
       submit_label: "Mit Sieger bestätigen"
+      # Plan 08-01: Verlängerungsaufnahme nach NBV STO Besonderer Teil Karambolage §4.4.3
+      extension_hint: "Verlängerungsaufnahme mit Anfangsball und Nachstoß (§4.4.3)."
+      extension_goal: "Verlängerung auf %{balls}"
     table_id: Tisch
     timer_finish_at: Timerende
     timer_halt_at: Timer angehalten

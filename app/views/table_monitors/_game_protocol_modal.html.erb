@@ -189,22 +189,43 @@
               <legend class="px-2 text-base font-bold text-yellow-900 dark:text-yellow-100">
                 <%= t("table_monitor.tiebreak.prompt") %>
               </legend>
-              <p class="text-sm text-gray-700 dark:text-gray-300 mb-3">
+              <p class="text-sm text-gray-700 dark:text-gray-300 mb-1">
                 <%= t("table_monitor.tiebreak.submit_blocked_hint") %>
               </p>
+              <%# Plan 08-01: §4.4.3 — die Verlaengerung laeuft am Tisch, das Modal sagt
+                  nur die Bedingungen und die Ballzahl je Spieler an. %>
+              <p class="text-sm text-gray-700 dark:text-gray-300 mb-3">
+                <%= t("table_monitor.tiebreak.extension_hint") %>
+              </p>
               <div class="flex gap-6 justify-center">
-                <label class="flex items-center gap-2 cursor-pointer">
+                <label class="flex items-start gap-2 cursor-pointer">
                   <input type="radio" name="tiebreak_winner" value="playera" required
-                         class="w-5 h-5 text-primary-600 focus:ring-primary-500">
-                  <span class="text-base font-semibold text-primary-900 dark:text-primary-200">
-                    <%= t("table_monitor.tiebreak.winner_label", role: history[:player_a][:shortname] || history[:player_a][:name]) %>
+                         class="w-5 h-5 mt-0.5 text-primary-600 focus:ring-primary-500">
+                  <span class="flex flex-col">
+                    <span class="text-base font-semibold text-primary-900 dark:text-primary-200">
+                      <%= t("table_monitor.tiebreak.winner_label", role: history[:player_a][:shortname] || history[:player_a][:name]) %>
+                    </span>
+                    <%# Plan 08-01: 10 % des EIGENEN Ziels (§4.4.3). Ohne Ballziel
+                        (Aufnahmenbegrenzung) wird nichts ausgegeben — auch keine 0. %>
+                    <%- if (ext_a = table_monitor.tiebreak_extension_goal("playera")) %>
+                      <span class="text-sm font-normal text-gray-700 dark:text-gray-300">
+                        <%= t("table_monitor.tiebreak.extension_goal", balls: ext_a) %>
+                      </span>
+                    <%- end %>
                   </span>
                 </label>
-                <label class="flex items-center gap-2 cursor-pointer">
+                <label class="flex items-start gap-2 cursor-pointer">
                   <input type="radio" name="tiebreak_winner" value="playerb" required
-                         class="w-5 h-5 text-green-600 focus:ring-green-500">
-                  <span class="text-base font-semibold text-green-900 dark:text-green-200">
-                    <%= t("table_monitor.tiebreak.winner_label", role: history[:player_b][:shortname] || history[:player_b][:name]) %>
+                         class="w-5 h-5 mt-0.5 text-green-600 focus:ring-green-500">
+                  <span class="flex flex-col">
+                    <span class="text-base font-semibold text-green-900 dark:text-green-200">
+                      <%= t("table_monitor.tiebreak.winner_label", role: history[:player_b][:shortname] || history[:player_b][:name]) %>
+                    </span>
+                    <%- if (ext_b = table_monitor.tiebreak_extension_goal("playerb")) %>
+                      <span class="text-sm font-normal text-gray-700 dark:text-gray-300">
+                        <%= t("table_monitor.tiebreak.extension_goal", balls: ext_b) %>
+                      </span>
+                    <%- end %>
                   </span>
                 </label>
               </div>

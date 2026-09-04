@@ -940,6 +940,9 @@ en:
       submit_blocked_hint: "Please select a winner before confirming the result."
       winner_label: "Winner: %{role}"
       submit_label: "Confirm with winner"
+      # Plan 08-01: extension inning per NBV STO Karambolage §4.4.3
+      extension_hint: "Extension inning with opening ball and equalising shot (§4.4.3)."
+      extension_goal: "Extension to %{balls}"
     table_id: table id
     timer_finish_at: timer finish at
     timer_halt_at: timer halt at

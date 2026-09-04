@@ -1861,6 +1861,39 @@ class TableMonitor < ApplicationRecord
     !tiebreak_pending_block?
   end
 
+  # Plan 08-01 — Verlaengerungs-Ballzahl fuer das Stechen, nach NBV Sport- &
+  # Turnierordnung, Besonderer Teil Karambolage (Juni 2026), §4.4.3:
+  #
+  #   "...eine Verlaengerungsaufnahme auf max. 10% (auf eine ganze Zahl aufzurunden)
+  #    der vorher zu erreichenden Ballzahl mit Anfangsball und Nachstoss."
+  #
+  # WICHTIG — was diese Methode NICHT tut: Carambus spielt die Verlaengerung nicht.
+  # Bei erkanntem Gleichstand fragt das Modal nur nach dem SIEGER
+  # (game.data['tiebreak_winner']); die Verlaengerung selbst laeuft am Tisch ab. Diese
+  # Methode liefert ausschliesslich die Zahl, die der Operator ansagt — sie darf nicht
+  # fuer den Einstieg in eine Verlaengerungs-Mechanik gehalten werden.
+  # Nebeneffekt dieser Arbeitsteilung: die Forderung aus §4.4.3, dass die in der
+  # Verlaengerung erzielten Ballzahlen und Aufnahmen NICHT schnittrelevant sind, bleibt
+  # erfuellt, weil das System sie gar nicht erst erfasst.
+  #
+  # "der vorher zu erreichenden Ballzahl" ist bei einem Vorgabe-Turnier je Spieler eine
+  # andere — jeder spielt auf 10% SEINES eigenen Ziels (Betreiber-Entscheidung
+  # 2026-09-04). Deshalb nimmt die Methode die Rolle entgegen und rechnet nicht auf einer
+  # gemeinsamen Ballzahl.
+  #
+  # AUFRUNDEN, nicht runden: bei Ziel 42 fordert die Ordnung 5 (4,2 aufgerundet), nicht 4.
+  #
+  # role: "playera" oder "playerb"
+  # Rueckgabe: die Ballzahl, oder nil wenn es kein Ballziel gibt (Aufnahmenbegrenzung —
+  # das Modal zeigt dort "∞"). Dann existiert keine 10%-Basis und es darf keine Zahl
+  # angesagt werden, auch keine 0.
+  def tiebreak_extension_goal(role)
+    goal = data&.dig(role, "balls_goal").to_i
+    return nil if goal <= 0
+
+    (goal / 10.0).ceil
+  end
+
   # Phase 38.7 Plan 05 — D-08 helper. Returns true iff a tiebreak winner pick is
   # still pending (= block the AASM :acknowledge_result transition).
   # Conditions (all must hold):
