@@ -33,6 +33,28 @@ class TournamentMonitor::RankingResolver
     end
   end
 
+  # §4.4.2 fuer die Cross-Gruppen-Rangfolge: nach welcher Ordnung Spieler aus VERSCHIEDENEN
+  # Gruppen gegeneinander gereiht werden (Regelstrings der Form "(g1.rk4 + g2.rk4).rk2" —
+  # "der Zweitbeste unter den Gruppenvierten"). Betreiber-Entscheidung 2026-09-04:
+  # §4.4.2 gilt auch hier, also Punkte -> GD -> BED -> Hoechstserie.
+  #
+  # Bei `gd_has_prio?` sind die ersten beiden Stufen bewusst VERTAUSCHT (GD vor Punkten) —
+  # eine Turnier-Option, kein Versehen. BED und HS werden in beiden Faellen angehaengt.
+  #
+  # "Direkter Vergleich" (Stufe 3 der Ordnung) fehlt hier ABSICHTLICH, anders als in
+  # group_standing_ranking: head_to_head_winner sucht die gemeinsame Partie ueber
+  # `gname LIKE "{prefix}{group_no}:%"`, also innerhalb EINER Gruppe. Cross-Gruppen-
+  # Nachruecker haben per Definition in verschiedenen Gruppen gespielt — es gibt dort in
+  # aller Regel keine gemeinsame Partie, die Stufe liefe ins Leere. Der Unterschied zur
+  # Gruppenwertung ist damit belegt und keine Inkonsistenz (Plan 07-01).
+  def inter_group_order
+    if @tournament_monitor.tournament.gd_has_prio?
+      @tournament_monitor.tournament.handicap_tournier? ? %i[gd_pct points bed hs] : %i[gd points bed hs]
+    else
+      @tournament_monitor.tournament.handicap_tournier? ? %i[points gd_pct bed hs] : %i[points gd bed hs]
+    end
+  end
+
   # Findet die gemeinsame(n) Partie(n) zweier Spieler innerhalb einer Gruppe (oder
   # Endspielgruppe) und summiert ihre Punkte über alle Begegnungen (Doppelrunden-sicher:
   # gname trägt bei repeats>1 ein "/{rp}"-Suffix, das hier keine Rolle spielt, weil wir über
@@ -170,11 +192,6 @@ class TournamentMonitor::RankingResolver
 
   def random_from_group_ranks(match, ordered_ranking_nos, rule_str)
     ordered_ranking_nos[rule_str] ||= (match[2].to_i..match[3].to_i).to_a.shuffle
-    inter_group_order = if @tournament_monitor.tournament.gd_has_prio?
-                          @tournament_monitor.tournament.handicap_tournier? ? %i[gd_pct points] : %i[gd points]
-                        else
-                          (@tournament_monitor.tournament.handicap_tournier? ? %i[points gd_pct] : %i[points gd])
-                        end
     players = match[1]
     rank = ordered_ranking_nos[rule_str].pop
     subset = {}
@@ -201,11 +218,6 @@ class TournamentMonitor::RankingResolver
   end
 
   def rank_from_group_ranks(match, opts = {})
-    inter_group_order = if @tournament_monitor.tournament.gd_has_prio?
-                          @tournament_monitor.tournament.handicap_tournier? ? %i[gd_pct points] : %i[gd points]
-                        else
-                          (@tournament_monitor.tournament.handicap_tournier? ? %i[points gd_pct] : %i[points gd])
-                        end
     players = match[1]
     rank = match[2]
     subset = {}

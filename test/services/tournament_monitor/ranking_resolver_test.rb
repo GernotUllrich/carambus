@@ -145,6 +145,79 @@ class TournamentMonitor::RankingResolverTest < ActiveSupport::TestCase
   end
 
   # ============================================================================
+  # Plan 07-01 (§4.4.2 fuer die Cross-Gruppen-Rangfolge): inter_group_order
+  # ============================================================================
+
+  test "inter_group_order returns points, gd, bed, hs for plain tournaments" do
+    @tournament.update!(gd_has_prio: false, handicap_tournier: false)
+    assert_equal %i[points gd bed hs], @resolver.inter_group_order
+  end
+
+  test "inter_group_order returns points, gd_pct, bed, hs for handicap tournaments" do
+    @tournament.update!(gd_has_prio: false, handicap_tournier: true)
+    assert_equal %i[points gd_pct bed hs], @resolver.inter_group_order
+  end
+
+  test "inter_group_order puts gd FIRST when gd_has_prio is set" do
+    @tournament.update!(gd_has_prio: true, handicap_tournier: false)
+    # Die Umkehrung der ersten beiden Stufen ist eine bewusste Turnier-Option, kein
+    # Versehen — BED und HS werden angehaengt, points/gd behalten ihre Reihenfolge.
+    assert_equal %i[gd points bed hs], @resolver.inter_group_order
+  end
+
+  test "inter_group_order puts gd_pct FIRST when gd_has_prio is set on a handicap tournament" do
+    @tournament.update!(gd_has_prio: true, handicap_tournier: true)
+    assert_equal %i[gd_pct points bed hs], @resolver.inter_group_order
+  end
+
+  # Verhaltenstest: der Gleichstand nach Punkten UND GD wird durch bed entschieden.
+  # Bewusst ZWEIMAL mit vertauschten bed-Werten — ohne die bed-Stufe kann hoechstens
+  # einer der beiden Tests zufaellig gruen werden (sort_by ist bei gleichen Schluesseln
+  # nicht garantiert stabil), sodass die Gegenprobe verlaesslich anschlaegt.
+  test "cross-group tie on points and gd is broken by bed (group 1 player ahead)" do
+    setup_cross_group_tie(bed_group1: 5.0, bed_group2: 2.0)
+
+    result = @resolver.player_id_from_ranking("(g1.rk1 + g2.rk1).rk1", executor_params: {})
+
+    assert_equal @players[0].id.to_s, result,
+      "Bei gleichen Punkten und gleichem GD muss der hoehere BED entscheiden (§4.4.2)"
+  end
+
+  test "cross-group tie on points and gd is broken by bed (group 2 player ahead)" do
+    setup_cross_group_tie(bed_group1: 2.0, bed_group2: 5.0)
+
+    result = @resolver.player_id_from_ranking("(g1.rk1 + g2.rk1).rk1", executor_params: {})
+
+    assert_equal @players[1].id.to_s, result,
+      "Der BED-Vergleich darf nicht von der Hash-Reihenfolge abhaengen"
+  end
+
+  test "cross-group ranking already separated by points is unchanged by the new stages" do
+    setup_cross_group_tie(bed_group1: 1.0, bed_group2: 99.0)
+    # Gruppe 1 bekommt mehr Punkte — die vorgelagerte Stufe muss gewinnen, obwohl der
+    # Spieler aus Gruppe 2 den weit hoeheren BED hat.
+    @tm.data["rankings"]["groups"]["group1"][@players[0].id.to_s]["points"] = 6
+    @tm.save!
+
+    result = @resolver.player_id_from_ranking("(g1.rk1 + g2.rk1).rk1", executor_params: {})
+
+    assert_equal @players[0].id.to_s, result,
+      "BED/HS sind nachgelagerte Stufen — sie duerfen einen Punktvorsprung nicht kippen"
+  end
+
+  # Legt je einen Spieler in Gruppe 1 und Gruppe 2 an, gleich in points/gd/hs und
+  # unterschiedlich nur im bed. String-Keys, weil data eine JSON-Spalte ist.
+  def setup_cross_group_tie(bed_group1:, bed_group2:)
+    @tm.data["rankings"]["groups"]["group1"] = {
+      @players[0].id.to_s => {"points" => 4, "gd" => 2.0, "bed" => bed_group1, "hs" => 10}
+    }
+    @tm.data["rankings"]["groups"]["group2"] = {
+      @players[1].id.to_s => {"points" => 4, "gd" => 2.0, "bed" => bed_group2, "hs" => 10}
+    }
+    @tm.save!
+  end
+
+  # ============================================================================
   # Plan 03-02 (§4.4.2 Stufe 3): head_to_head_winner
   # ============================================================================
 
