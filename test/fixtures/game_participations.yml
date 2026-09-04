@@ -1,0 +1,11 @@
+# 2026-09-04: Siehe Kommentar in games.yml — ohne diese Zeile fand
+# CheckPlayerDisciplineExperience keinen Kandidaten und uebersprang sich stumm.
+
+pool_experience_ullrich:
+  id: 900_001
+  game_id: 900_001             # games(:pool_experience)
+  player_id: 50_001_010        # players(:nbv_ullrich) — explizite ID statt Label
+  role: "playera"
+  points: 2
+  result: 80
+  innings: 40

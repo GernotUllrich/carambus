@@ -1,0 +1,14 @@
+# 2026-09-04: Siehe Kommentar in training_examples.yml ("No Shot record in test DB").
+# shot_type muss in %w[ideal alternative error] liegen (shot.rb), end_ball_configuration
+# ist optional.
+
+ideal_erster_stoss:
+  id: 50_006_201
+  # Explizite ID statt Label-Referenz: bei gesetzter `id` im Ziel-Fixture hasht Rails das
+  # Label auf eine ANDERE ID und die Foreign-Key-Pruefung schlaegt fehl (dieselbe Falle
+  # steht in tournaments.yml dokumentiert, Commit 260506-i6h).
+  training_example_id: 50_006_001
+  shot_type: ideal
+  sequence_number: 1
+  title_de: "Idealer Stoss"
+  title_en: "Ideal stroke"

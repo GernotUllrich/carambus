@@ -85,9 +85,16 @@ class McpServer::Tools::SearchPlayerTest < ActiveSupport::TestCase
   # für die keine Rankings berechnet wurden — waren per Name unauffindbar, weil der Region-Filter
   # einen Pflicht-Join auf player_rankings machte. Region jetzt ranking-unabhängig über Club→Region.
   test "ungerankter Spieler wird über Club->Region gefunden (region_id NULL, Kegel-Szenario)" do
+    # 2026-09-04: Der Test holte die Region aus `Carambus.config.context` und uebersprang
+    # sich stumm, weil die Testumgebung bewusst KEINEN Region-Kontext setzt (mit `nbv`
+    # schlagen 16 MCP- und Admin-Tests fehl, die das kontextlose Verhalten pruefen).
+    # Er stellt seine Voraussetzung jetzt selbst her. Das Config-Objekt wird AUSGETAUSCHT,
+    # nicht mutiert — es ist prozessweit memoisiert (config/application.rb:11); der
+    # test_helper setzt es nach jedem Test ohnehin zurueck.
+    region = regions(:nbv)
+    Carambus.config = OpenStruct.new(Carambus.config.to_h.merge(context: region.shortname))
     region_name = McpServer::Tools::BaseTool.effective_cc_region(nil)
-    skip "keine effektive Region in Test-Config" if region_name.blank?
-    region = Region.find_or_create_by!(shortname: region_name) { |r| r.name = region_name }
+    assert_equal region.shortname.upcase, region_name
     club = Club.create!(name: "Zz Kegelclub Test", region_id: region.id, cc_id: 990_001)
     season = Season.first || Season.create!(name: "2025/2026")
     # region_id bewusst NULL — Region kommt allein über den Club (Kegel-Realität auf Local-Servern).

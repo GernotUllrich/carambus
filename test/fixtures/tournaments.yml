@@ -85,7 +85,10 @@ imported:
   season: current
   organizer: nbv (Region)
   organizer_type: "Region"
-  discipline: pool_8ball
+  # 2026-09-04: discipline_id explizit statt Label — Rails hasht Labels auf falsche IDs
+  # (siehe Kommentar bei :local). CheckPlayerDisciplineExperience sucht ueber
+  # GameParticipation -> Game -> Tournament.discipline_id und braucht einen aufloesbaren Wert.
+  discipline_id: 50_000_002    # disciplines(:pool_8ball)
   state: "tournament_started"
   date: <%= 1.week.ago %>
   created_at: <%= 3.months.ago %>

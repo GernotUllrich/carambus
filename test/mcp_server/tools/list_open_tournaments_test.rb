@@ -3,6 +3,35 @@
 require "test_helper"
 
 class McpServer::Tools::ListOpenTournamentsTest < ActiveSupport::TestCase
+
+  # 2026-09-04: Das NBV-Turnier wird im Test angelegt statt per Fixture. Der Weg ueber
+  # `region_id` an den Turnier-Fixtures scheitert an Calendar::QueryTest: dort werden
+  # Termine selbst erzeugt und exakte Listen erwartet — region-getaggte Fixture-Turniere
+  # taeten dort zusaetzlich auf und rissen 11 Tests. Die Kalender- und MCP-Tests legen
+  # ihre Turniere deshalb beide selbst an.
+  def nbv_tournament!(region, title: "NBV Testturnier Dreiband")
+    Tournament.create!(
+      title: title,
+      region_id: region.id,
+      organizer_id: region.id,
+      organizer_type: "Region",
+      season_id: seasons(:current).id,
+      discipline_id: disciplines(:carom_3band).id,
+      date: 2.weeks.from_now
+    )
+  end
+
+  # 2026-09-04: RegionCc wird im Test angelegt statt per Fixture. Ein Fixture ist hier
+  # nicht moeglich: auf `context` liegt ein UNIQUE-Index, und ueber 60 bestehende Tests
+  # (RegionCcCharTest, die RegionCc::*Syncer, Calendar::Query, ExternalTournament::*)
+  # erzeugen ihren eigenen NBV-Datensatz mit context "nbv" — ein Fixture kollidierte mit
+  # jedem davon. Das Repo legt RegionCc deshalb ueberall im Test an; dem folgen wir.
+  def nbv_region_cc!(region)
+    region.region_cc || RegionCc.create!(
+      region: region, name: "NBV Test", shortname: "nbv", context: "nbv",
+      cc_id: 3, base_url: "https://test.club-cloud.de", username: "test", userpw: "test"
+    )
+  end
   setup do
     ENV["CARAMBUS_MCP_MOCK"] = "1"
     ENV["CC_FED_ID"] = nil
@@ -44,13 +73,14 @@ class McpServer::Tools::ListOpenTournamentsTest < ActiveSupport::TestCase
   test "Output struktur F-4: tournament_id + cc_id + branch + discipline_name + season" do
     nbv = Region.find_by(shortname: "NBV")
     skip "NBV fixtures missing" unless nbv
+    nbv_tournament!(nbv)
     response = McpServer::Tools::ListOpenTournaments.call(
       server_context: {cc_region: "NBV"},
       open_after: "2000-01-01"
     )
     refute response.error?
     body = JSON.parse(response.content.first[:text])
-    skip "No NBV data to verify schema" if body["data"].empty?
+    refute_empty body["data"], "das im Setup angelegte NBV-Turnier muss enthalten sein"
     sample = body["data"].first
     assert sample.key?("tournament_id"), "F-4: tournament_id muss im Output sein"
     assert sample.key?("cc_id"), "F-4: cc_id muss im Output sein"
@@ -232,12 +262,7 @@ class McpServer::Tools::ListOpenTournamentsTest < ActiveSupport::TestCase
     skip "NBV fixtures missing" unless nbv
 
     far_past = "2000-01-01"
-    sample = Tournament.where(region_id: nbv.id)
-      .where("date >= ?", far_past)
-      .where.not(title: [nil, ""])
-      .first
-    skip "No NBV tournaments with non-empty title" unless sample
-    skip "Sample title too short" if sample.title.to_s.length < 4
+    sample = nbv_tournament!(nbv)
 
     needle = sample.title[1, 3].downcase
 
@@ -306,8 +331,7 @@ class McpServer::Tools::ListOpenTournamentsTest < ActiveSupport::TestCase
   test "force_refresh: true with sync raising stays defensive (no crash)" do
     nbv = Region.find_by(shortname: "NBV")
     skip "NBV fixtures missing" unless nbv
-    region_cc = nbv.region_cc
-    skip "RegionCc missing for NBV" unless region_cc
+    region_cc = nbv_region_cc!(nbv)
 
     region_cc.stub(:sync_tournaments, ->(_) { raise StandardError, "stubbed sync failure" }) do
       response = McpServer::Tools::ListOpenTournaments.call(

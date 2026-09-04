@@ -4,6 +4,7 @@ require "test_helper"
 
 # Smoke-Tests für BaseTool-Helpers, die in Plan 10-05 hinzugefügt wurden.
 class McpServer::Tools::BaseToolTest < ActiveSupport::TestCase
+
   # Plan 10-05 Task 4 (Befund #8 D-10-03-5): format_pre_read_status Helper für 5 Write-Tools.
   test "format_pre_read_status: liefert verified + source Felder (DRY pre-read status)" do
     status = McpServer::Tools::BaseTool.format_pre_read_status(verified: true, source: "DB-resolver")
@@ -116,6 +117,18 @@ class McpServer::Tools::BaseToolTest < ActiveSupport::TestCase
   # Plan 14-02.1-fix / D-14-02-G: default_fed_id strict — kein ENV["CC_FED_ID"]-Shortcut;
   # Ableitung via effective_cc_region (jetzt strict) → Region → RegionCc.cc_id.
   class DefaultFedIdTest < ActiveSupport::TestCase
+
+    # 2026-09-04: RegionCc wird im Test angelegt statt per Fixture. Ein Fixture ist hier
+    # nicht moeglich: auf `context` liegt ein UNIQUE-Index, und ueber 60 bestehende Tests
+    # (RegionCcCharTest, die RegionCc::*Syncer, Calendar::Query, ExternalTournament::*)
+    # erzeugen ihren eigenen NBV-Datensatz mit context "nbv" — ein Fixture kollidierte mit
+    # jedem davon. Das Repo legt RegionCc deshalb ueberall im Test an; dem folgen wir.
+    def nbv_region_cc!(region)
+      region.region_cc || RegionCc.create!(
+        region: region, name: "NBV Test", shortname: "nbv", context: "nbv",
+        cc_id: 3, base_url: "https://test.club-cloud.de", username: "test", userpw: "test"
+      )
+    end
     setup do
       @original_env_region = ENV["CC_REGION"]
       @original_env_fed = ENV["CC_FED_ID"]
@@ -141,9 +154,9 @@ class McpServer::Tools::BaseToolTest < ActiveSupport::TestCase
 
     test "default_fed_id: server_context mit cc_region → korrekte fed_id via Region-Lookup" do
       region = Region.find_by(shortname: "NBV")
-      skip "Region NBV nicht in Test-DB" unless region&.region_cc&.cc_id
+      region_cc = nbv_region_cc!(region)
       result = McpServer::Tools::BaseTool.default_fed_id({cc_region: "NBV"})
-      assert_equal region.region_cc.cc_id, result
+      assert_equal region_cc.cc_id, result
     end
   end
 

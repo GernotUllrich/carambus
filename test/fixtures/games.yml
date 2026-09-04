@@ -1,0 +1,21 @@
+# 2026-09-04: Neu angelegt. McpServer::Tools::CheckPlayerDisciplineExperience sucht einen
+# Spieler, der ueber GameParticipation -> Game -> Tournament(discipline) Erfahrung hat, und
+# uebersprang sich mangels Daten stumm.
+#
+# BEWUSST GLOBALE ID (< Game::MIN_ID): fast alle Turnier-Tests zaehlen ueber
+# `where("games.id >= MIN_ID")` bzw. `live_games`. Eine lokale ID hier wuerde deren
+# Erwartungen verschieben. Das Turnier ist :imported, weil es in den Ablauf-Tests
+# (Rundenwechsel, KO, T04/T06) nicht vorkommt.
+#
+# tournament_type ist Pflicht: Tournament#has_many :games ist polymorph deklariert,
+# Game#belongs_to :tournament NICHT — ohne den Typ ist das Spiel fuer tournament.games
+# unsichtbar.
+
+pool_experience:
+  id: 900_001
+  tournament_id: 1000          # tournaments(:imported), Disziplin pool_8ball
+  tournament_type: "Tournament"
+  gname: "group1:1-2"
+  group_no: 1
+  seqno: 1
+  ended_at: <%= 3.months.ago %>
