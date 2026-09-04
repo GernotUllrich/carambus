@@ -124,6 +124,44 @@ class TournamentMonitor::RankingResolver
     end
   end
 
+  # Loest eine benannte Regel ("rule1", "rule2", ...) aus executor_params["rules"] auf.
+  #
+  # Der Schluessel "rules" liegt in den Turnierplan-Daten in ZWEI Formen vor:
+  #   Hash   {"rule1" => "(g1.rk2+g2.rk2+g3.rk2).rk1"}   z.B. TournamentPlan "T16|15B12-150"
+  #   String "(g1.rk2+g2.rk2+g3.rk2).rk1"                z.B. TournamentPlan 9 ("T16")
+  #
+  # Vor dieser Haertung nahm der Code nur die Hash-Form an. Auf der String-Form lieferte
+  # `rules["rule1"]` still nil (Ruby gibt bei String#[] den gesuchten Teilstring oder nil
+  # zurueck, es wirft nicht) — daraus wurde ein Spiel ohne Spieler, ohne Namen, ohne Ziel.
+  # Live gefunden am 2026-09-04 an Tournament 18931 (T16): beide Halbfinals blieben leer.
+  #
+  # Die String-Form traegt genau EINE Regel; sie wird als "rule1" angesprochen. Ein Verweis
+  # auf "rule2" o.ae. bei String-Form ist ein Datenfehler und wird laut geloggt statt still
+  # zu nil zu werden.
+  def named_rule(key, opts = {})
+    rules = opts[:executor_params].is_a?(Hash) ? opts[:executor_params]["rules"] : nil
+
+    case rules
+    when Hash
+      rules[key]
+    when String
+      return rules if key == "rule1"
+
+      Tournament.logger.error "[RankingResolver] executor_params['rules'] ist ein String " \
+        "(= genau eine Regel, ansprechbar als 'rule1'), referenziert wurde aber #{key.inspect}. " \
+        "Turnierplan-Daten pruefen."
+      nil
+    when nil
+      Tournament.logger.error "[RankingResolver] #{key.inspect} referenziert, aber " \
+        "executor_params['rules'] fehlt. Turnierplan-Daten pruefen."
+      nil
+    else
+      Tournament.logger.error "[RankingResolver] executor_params['rules'] hat einen " \
+        "unerwarteten Typ (#{rules.class}). Turnierplan-Daten pruefen."
+      nil
+    end
+  end
+
   def player_id_from_ranking(rule_str, opts = {})
     ordered_ranking_nos = opts[:ordered_ranking_nos]
     if (mm = rule_str.match(/\((.*)\)\.rk(\d+)$/).presence)
@@ -135,12 +173,16 @@ class TournamentMonitor::RankingResolver
     elsif (mm = rule_str.match(/g(\d+).(\d+)$/).presence)
       group_rank(mm)
     elsif (mm = rule_str.match(/(rule\d+)/)).presence
-      player_id_from_ranking(opts[:executor_params]["rules"][mm[1]], opts)
+      nested = named_rule(mm[1], opts)
+      nested.present? ? player_id_from_ranking(nested, opts) : nil
     else
       ko_ranking(rule_str)
     end
   rescue StandardError => e
-    Tournament.logger.info "player_id_from_ranking(#{rule_str}) #{e} #{e.backtrace&.join("\n")}"
+    # Frueher info-Level: der T16-Befund vom 2026-09-04 lag monatelang unbemerkt im Log,
+    # waehrend im Turnier Spiele ohne Spieler standen. Ein hier verschluckter Fehler
+    # bedeutet immer eine kaputte Paarung — das gehoert auf error.
+    Tournament.logger.error "player_id_from_ranking(#{rule_str}) #{e} #{e.backtrace&.join("\n")}"
     nil
   end
 
@@ -236,8 +278,21 @@ class TournamentMonitor::RankingResolver
           group_standing_ranking(@tournament_monitor.data["rankings"]["groups"]["group#{g_no}"],
             "group", g_no)[rk_no.to_i - 1]
         when /^rule/
-          player_id = player_id_from_ranking(opts[:executor_params]["rules"][member.split(".")[0]], opts)
-          [player_id, @tournament_monitor.data["rankings"]["groups"]["total"][player_id]]
+          nested = named_rule(member.split(".")[0], opts)
+          player_id = nested.present? ? player_id_from_ranking(nested, opts) : nil
+          # Ohne aufloesbaren Spieler NICHTS beisteuern. Ein [nil, nil]-Paar landete
+          # vorher als {nil => nil} im subset; TournamentMonitor.ranking greift dann auf
+          # nil["points"] zu, wirft, und der rescue unten machte daraus still nil fuer
+          # den GESAMTEN Ausdruck — ein einzelner unaufloesbarer Teilnehmer riss also
+          # die ganze Paarung mit. Jetzt faellt nur er selbst weg.
+          # Der Ranking-Hash traegt nach dem JSON-Rundtrip STRING-Keys, player_id kann je
+          # nach Zweig String oder Integer sein — deshalb auf String normalisieren.
+          if player_id.blank?
+            Tournament.logger.error "[RankingResolver] #{member.inspect} nicht aufloesbar " \
+              "— Teilnehmer wird uebersprungen (rule_str: #{players.inspect})"
+            next
+          end
+          [player_id, @tournament_monitor.data["rankings"]["groups"]["total"][player_id.to_s]]
         else
           next
         end

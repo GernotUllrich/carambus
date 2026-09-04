@@ -367,4 +367,74 @@ class TournamentMonitor::RankingResolverTest < ActiveSupport::TestCase
       "g1.rk1 muss ueber ko_ranking -> group_standing_ranking -> head_to_head_winner aufgeloest werden"
     assert_equal @players[1].id.to_s, rk2
   end
+
+  # ============================================================================
+  # T16-Befund (2026-09-04, live an Tournament 18931): executor_params["rules"]
+  # liegt in zwei Formen vor — als Hash mit benannten Regeln und als blanker
+  # String mit genau einer Regel. Der Resolver kannte nur die Hash-Form; auf der
+  # String-Form lieferte rules["rule1"] still nil und beide Halbfinals blieben
+  # ohne Spieler.
+  # ============================================================================
+
+  # Legt zwei Gruppen mit je einem Spieler an, sodass "(g1.rk1+g2.rk1+rule1).rkN"
+  # aufloesbar ist. rule1 zeigt auf den Gruppensieger von Gruppe 2.
+  def setup_named_rule_fixture
+    @tm.data["rankings"]["groups"]["group1"] = {
+      @players[0].id.to_s => {"points" => 6, "gd" => 3.0, "bed" => 3.0, "hs" => 10}
+    }
+    @tm.data["rankings"]["groups"]["group2"] = {
+      @players[1].id.to_s => {"points" => 4, "gd" => 2.0, "bed" => 2.0, "hs" => 8}
+    }
+    @tm.data["rankings"]["groups"]["total"] = {
+      @players[0].id.to_s => {"points" => 6, "gd" => 3.0, "bed" => 3.0, "hs" => 10},
+      @players[1].id.to_s => {"points" => 4, "gd" => 2.0, "bed" => 2.0, "hs" => 8}
+    }
+    @tm.save!
+  end
+
+  test "T16: rules als HASH loest die benannte Regel auf (bestehende Form)" do
+    setup_named_rule_fixture
+    ep = {"rules" => {"rule1" => "g2.rk1"}}
+
+    result = @resolver.player_id_from_ranking("(g1.rk1+rule1).rk1", executor_params: ep)
+
+    assert_equal @players[0].id.to_s, result,
+      "Gruppensieger von g1 (6 Punkte) muss vor dem via rule1 geholten Spieler (4) stehen"
+  end
+
+  test "T16: rules als STRING wird als 'rule1' verstanden (der Live-Befund)" do
+    # TournamentPlan 9 (T16) legt rules als blanken String ab. Vor der Haertung
+    # ergab "(...)"["rule1"] still nil -> Spiel ohne Spieler, ohne Namen, ohne Ziel.
+    setup_named_rule_fixture
+    ep = {"rules" => "g2.rk1"}
+
+    assert_equal @players[0].id.to_s,
+      @resolver.player_id_from_ranking("(g1.rk1+rule1).rk1", executor_params: ep),
+      "String-Form muss wie {'rule1' => ...} behandelt werden"
+    assert_equal @players[1].id.to_s,
+      @resolver.player_id_from_ranking("(g1.rk1+rule1).rk2", executor_params: ep),
+      "Der via rule1 geholte Spieler muss auf Rang 2 auftauchen — nicht verschwinden"
+  end
+
+  test "T16: ein unaufloesbarer Teilnehmer reisst die uebrige Paarung nicht mit" do
+    # Vorher landete [nil, nil] als {nil => nil} im subset; TournamentMonitor.ranking
+    # griff auf nil["points"] zu und der rescue machte daraus nil fuer den GANZEN
+    # Ausdruck. Ein einzelner kaputter Teilnehmer kostete damit die ganze Paarung.
+    setup_named_rule_fixture
+    ep = {"rules" => {"rule2" => "g2.rk1"}} # rule1 existiert nicht
+
+    result = @resolver.player_id_from_ranking("(g1.rk1+rule1).rk1", executor_params: ep)
+
+    assert_equal @players[0].id.to_s, result,
+      "g1.rk1 muss weiterhin aufgeloest werden, obwohl rule1 fehlt"
+  end
+
+  test "T16: fehlende executor_params fuehren nicht zu einer Exception" do
+    setup_named_rule_fixture
+
+    assert_nothing_raised do
+      @resolver.player_id_from_ranking("(g1.rk1+rule1).rk1", executor_params: {})
+      @resolver.player_id_from_ranking("(g1.rk1+rule1).rk1", {})
+    end
+  end
 end
