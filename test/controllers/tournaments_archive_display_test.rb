@@ -70,4 +70,43 @@ class TournamentsArchiveDisplayTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_match "20:5", response.body, "Ohne Archiv zeigt die Seite weiterhin die lokalen Games"
   end
+
+  # Live am 2026-09-05: ein einziger Spieler ohne Rang legte die komplette Turnierseite
+  # lahm — "comparison of NilClass with 4 failed" aus dem sort_by der Ergebnistabelle.
+  # Ursache war ein RK-Defekt im Turnierplan, der einem Spieler keinen Rang zuwies; die
+  # View hatte im if/elsif kein else und lieferte fuer ihn nil als Sortierschluessel.
+  # Ein fehlender Rang ist ein Datenbefund, kein Grund, die Seite zu verlieren.
+  def rankless_seeding!(offset, name)
+    s = Seeding.new(id: BASE_ID + offset, tournament_id: @tournament.id,
+      tournament_type: "Tournament", player: nil, rank: nil, state: "participated",
+      data: {"result" => {"Endstand" => {"Name" => name}}}) # weder "Rank" noch "Rang"
+    s.save!(validate: false)
+    s
+  end
+
+  test "ein Spieler OHNE Rang wirft die Ergebnistabelle nicht um" do
+    seeding!(10, 1, name: "Erster, Mit Rang")
+    seeding!(11, 2, name: "Zweiter, Mit Rang")
+    rankless_seeding!(12, "Ohnerang, Peter")
+
+    get tournament_path(@tournament)
+
+    assert_response :success
+    assert_match "Erster, Mit Rang", response.body
+    assert_match "Ohnerang, Peter", response.body,
+      "Der ranglose Spieler muss trotzdem in der Tabelle stehen"
+  end
+
+  test "der ranglose Spieler sortiert ans ENDE, nicht nach vorn" do
+    seeding!(13, 1, name: "Erster, Mit Rang")
+    rankless_seeding!(14, "Ohnerang, Peter")
+    seeding!(15, 2, name: "Zweiter, Mit Rang")
+
+    get tournament_path(@tournament)
+
+    assert_response :success
+    body = response.body
+    assert body.index("Ohnerang, Peter") > body.index("Zweiter, Mit Rang"),
+      "Ohne Rang gehoert ans Ende der Rangliste, nicht dazwischen oder davor"
+  end
 end

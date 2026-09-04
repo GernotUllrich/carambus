@@ -116,10 +116,19 @@
               <%- @tournament.effective_seedings.select do |seeding|
                 seeding.data["result"].andand[list].present?
               end.sort_by do |seeding|
-                if seeding.data["result"][list]["Rank"].present?
-                  seeding.data["result"][list]["Rank"].to_i
-                elsif seeding.data["result"][list]["Rang"].present?
-                  seeding.data["result"][list]["Rang"].to_i
+                # Ohne else lieferte dieser Block nil, sobald ein Spieler WEDER "Rank" NOCH
+                # "Rang" trug — sort_by verglich dann nil mit einer Zahl und die ganze Seite
+                # starb an "comparison of NilClass with N failed". Live am 2026-09-05: ein
+                # einziger Spieler ohne Rang (Folge eines RK-Defekts im Turnierplan) legte
+                # die komplette Turnieranzeige lahm. Ein fehlender Rang ist ein Datenbefund,
+                # kein Grund, die Seite zu verlieren — solche Spieler sortieren ans Ende.
+                row = seeding.data["result"][list]
+                if row["Rank"].present?
+                  row["Rank"].to_i
+                elsif row["Rang"].present?
+                  row["Rang"].to_i
+                else
+                  Float::INFINITY
                 end
               end.each do |seeding| %>
                 <tr>
