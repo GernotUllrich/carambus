@@ -15,9 +15,12 @@ module TournamentPreparation
   # falsches Datumsformat (DD.MM.YYYY statt YYYY-MM-DD), fehlender createMeldelisteCheck-
   # Prep-Schritt. Dieser Service bildet den ECHTEN Request-Flow aus dem HAR nach.
   #
-  # ⚠️ Der Meisterschaft-Teil (createMeisterschaftSave) ist noch NICHT HAR-verifiziert
-  #    (create_from_ba hat vermutlich dieselbe Drift) → der POST wird ZURÜCKGEHALTEN, bis
-  #    ein Meisterschaft-HAR vorliegt. call gibt die geplanten Args + Status zurück.
+  # ⚠️ ACHTUNG, armed:true MUTIERT DIE CLUBCLOUD: createMeisterschaftSave wird abgesetzt
+  #    (der frühere Hinweis "POST zurückgehalten" war überholt). Duplikat-Schutz ist ein
+  #    Titel-Match in der Ziel-Saison (read_meisterschaft_cc_id) — er greift NICHT, wenn
+  #    das bereits angelegte Turnier inzwischen umbenannt wurde. Ein Re-Run gegen eine
+  #    Saison, deren Turniere schon veröffentlicht sind, ist daher nur mit vorherigem
+  #    dry_run-Abgleich vertretbar.
   #
   # v1.3 Phase 50-01 (Proof/Weg 3).
   class TournamentCloner
@@ -171,10 +174,7 @@ module TournamentPreparation
     # HAR-getreu: createMeisterschaftSave (tmp/meisterschaft_anlegem.har). create_from_ba war
     # stale (fehlten tpid/scth/bos/qg/urksig/auzi/besch; countryId="free" statt 9; groupId gab's
     # gar nicht; Spielort fehlte). Format-Felder aus dem Quell-tournament_cc kopiert.
-    # ⚠️ Wird von call NOCH NICHT abgesetzt (POST zurückgehalten): offene 50-02-Punkte sind die
-    #    Spielort-Adressfelder (pubId → pubName/Street/Zip/City/Phone), tpid-Semantik (Quelle=1
-    #    vs. HAR-Test=1000), der Freigabe-Guard und das Auto-"Verbergen" (cc_turnier_status,
-    #    weil die Meisterschaft nach save SOFORT öffentlich ist).
+    # tpid siehe #resolve_tpid — die lokale tournament_plan_cc_id ist NICHT die CC-ID.
     def build_meisterschaft_args(region, branch_cc, target_season, new_start, new_end, melde_list_id:)
       tc = @src.tournament_cc
       {
@@ -190,7 +190,7 @@ module TournamentPreparation
         meldeListId: melde_list_id,
         mr: 1,
         meisterTypeId: meister_type_id(branch_cc).to_s,
-        tpid: (tc&.tournament_plan_cc_id || 1000),
+        tpid: resolve_tpid(tc),
         scth: (tc&.shot_clock_minutes || 60),
         bos: (tc&.best_of_sets || 1),
         auzi: "",
@@ -204,6 +204,36 @@ module TournamentPreparation
         besch: "",
         save: ""
       }.merge(venue_fields(@src.location))
+    end
+
+    # Die CC-seitige ID des Turnierplans für createMeisterschaftSave.
+    #
+    # ⚠️ NICHT `tournament_plan_cc_id` senden: das ist der lokale Fremdschlüssel auf die
+    # TournamentPlanCc-Zeile (bei NBV durchweg 1), nicht die ID, die die ClubCloud kennt.
+    # Genau diese Verwechslung hat die Klon-Welle vom August 2026 erzeugt — die CC verwarf
+    # die unbekannte tpid stillschweigend und legte 36 Turniere OHNE Turnierplan an, was in
+    # der CC nachträglich nicht mehr korrigierbar ist (Turnier muss neu angelegt werden).
+    #
+    # `TournamentPlanCc.cc_id` ist derzeit nicht befüllt: der Detail-Scrape liest nur den
+    # Plan-NAMEN (`<td>Turnierplan</td>…<b>NAME</b>`), die Seite enthält keine ID. Bis die
+    # ID vorliegt, bricht der Klon hier ab, statt zu raten — lieber kein Turnier als eines,
+    # das später nur durch Neuanlage zu reparieren ist. Bewusster Override: opts[:tpid].
+    def resolve_tpid(tournament_cc)
+      return @opts[:tpid] if @opts[:tpid].present?
+
+      plan = tournament_cc&.tournament_plan_cc
+      unless plan
+        raise "Quell-Turnier hat keinen Turnierplan hinterlegt — Klon abgebrochen. " \
+              "Erst in der ClubCloud einen Turnierplan setzen (sonst entsteht wieder ein " \
+              "Turnier ohne Plan) oder tpid bewusst via opts[:tpid] übergeben."
+      end
+      if plan.cc_id.blank?
+        raise "Turnierplan #{plan.name.inspect} (context #{plan.context.inspect}) hat keine " \
+              "CC-ID (tournament_plan_ccs.cc_id ist leer) — Klon abgebrochen, damit nicht " \
+              "erneut eine falsche tpid gesendet wird. CC-ID auf der Authority nachtragen " \
+              "oder tpid bewusst via opts[:tpid] übergeben."
+      end
+      plan.cc_id
     end
 
     # Spielort EXAKT aus der lokalen Location (D-50-01-B: Klon kopiert Quelle exakt).
