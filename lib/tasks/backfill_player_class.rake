@@ -17,9 +17,14 @@
 # Sicherheits-Mechanik:
 # - update_column umgeht Validations, Callbacks, PaperTrail und LocalProtector.
 #   Backfill ist eine Daten-Korrektur, kein User-Edit — keine Versionierung gewollt.
-# - PaperTrail ist auf carambus_api ohnehin nicht aktiviert (siehe LocalProtector:
-#   has_paper_trail nur wenn carambus_api_url.present?), auf Local-Servern aktiv.
-#   update_column umgeht die after_save-Trigger in beiden Faellen.
+# - ACHTUNG, hier stand es bis 2026-09-05 genau falsch herum: PaperTrail ist aktiv, wenn
+#   carambus_api_url LEER ist — also auf der AUTHORITY (carambus_api), nicht auf
+#   Local-Servern (LocalProtector: `has_paper_trail(...) unless carambus_api_url.present?`).
+#   Folge fuer diesen Task: Er laeuft laut Usage auf carambus_api, wo versioniert wuerde —
+#   update_column unterdrueckt die Versionen dort also tatsaechlich, und der Backfill
+#   erreicht die Local-Server NICHT per Sync; player_class bleibt dort nil, bis ein
+#   regulaerer Save (Scrape) den Wert erneut setzt. Wer die Werte replizieren will, muss
+#   statt update_column speichern (z.B. record.paper_trail.save_with_version).
 # - Restriction auf Parser-non-nil-Ergebnisse: kein nil-zu-nil-Update.
 
 namespace :tournaments do
