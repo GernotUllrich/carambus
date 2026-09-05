@@ -513,6 +513,23 @@ class Version < PaperTrail::Version
               # Plan 02.1-03 (update-Zweig): Schluessel, die die lokale Tabelle nicht kennt,
               # verwerfen statt daran zu scheitern.
               reject_unknown_columns!(classz, args, h["item_id"])
+              # Eine ERZWUNGENE Version (`record.paper_trail.save_with_version`, etwa um eine per
+              # `update_columns` geschriebene Korrektur nachtraeglich syncfaehig zu machen) traegt
+              # ein LEERES Delta. Die Authority liefert es als String "{}" aus — `present?` ist
+              # darauf wahr, das geparste Delta aber leer, weshalb der `else`-Zweig oben nie
+              # greift. Ohne diese Zeile entstuende `update_columns({})` und daraus ein
+              # "UPDATE ... WHERE ..." OHNE SET-Klausel: PG::SyntaxError.
+              #
+              # Der Folgeschaden waere der groessere: der Fehler vergiftet die Transaktion, in der
+              # weiter unten auch `Setting.key_set_value("last_version_id", ...)` steht — der
+              # Cursor bleibt dann stehen und der naechste Sync laeuft in exakt denselben Fehler.
+              # Belegt am 2026-09-05 an TournamentPlan[41] v13725800 (bc-wedel).
+              #
+              # `snapshot_with_changes` ist hier genau richtig: voller `object`-Snapshot als Basis,
+              # das Delta gewinnt darueber. Bei leerem Delta ist der Snapshot der Stand der
+              # Authority — und weil die Version ohne Attributaenderung entstand, ist "vorher"
+              # derselbe Zustand wie "nachher".
+              args = snapshot_with_changes(h, classz) if args.blank?
               obj = classz.where(id: h["item_id"]).first
               if obj.present?
                 args.each do |k, v|
@@ -552,7 +569,9 @@ class Version < PaperTrail::Version
                     {type: h["item_type"], id: h["item_id"], version: h["id"],
                      errors: obj.errors.full_messages}
                 end
-                obj.update_columns(args)
+                # Sicherheitsnetz: traegt auch der Snapshot nichts bei (leeres `object`), gibt es
+                # nichts zu schreiben. Ein leerer Hash wuerde hier SQL ohne SET-Klausel erzeugen.
+                obj.update_columns(args) if args.present?
               else
                 obj = classz.new
                 obj.id = h["item_id"]

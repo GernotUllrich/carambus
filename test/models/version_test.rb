@@ -352,14 +352,19 @@ class VersionTest < ActiveSupport::TestCase
     Carambus.config = previous
   end
 
-  def apply_version(item_type:, item_id:, object:, object_changes: nil, version_id: 999_001)
+  # raw_object_changes: das Feld EXAKT so durchreichen, wie die Authority es liefert. Noetig fuer
+  # den Fall des leeren Deltas ("{}"), den `object_changes.present?` unten sonst zu nil glaettet —
+  # und genau diese Glaettung wuerde den zu pruefenden Fehler verstecken.
+  def apply_version(item_type:, item_id:, object:, object_changes: nil, version_id: 999_001,
+    raw_object_changes: nil)
     payload = [{
       "id" => version_id,
       "item_type" => item_type,
       "item_id" => item_id,
       "event" => "update",
       "object" => YAML.dump(object),
-      "object_changes" => object_changes.present? ? YAML.dump(object_changes) : nil,
+      "object_changes" => raw_object_changes ||
+        (object_changes.present? ? YAML.dump(object_changes) : nil),
       "created_at" => Time.current.to_s
     }]
     with_api_url do
@@ -569,6 +574,73 @@ class VersionTest < ActiveSupport::TestCase
     assert_equal 999_012, Setting.key_get_value("last_version_id").to_i,
       "der Cursor steht hinter der gescheiterten Version — sie wird nie wieder geliefert " \
       "(version.rb:549). Der Verlust ist laut, aber endgueltig."
+  end
+
+  # ===================================================================================
+  # Erzwungene Version ohne Delta (2026-09-05, TournamentPlan[41] v13725800)
+  # ===================================================================================
+  #
+  # ANLASS: Eine Korrektur auf der Authority war per `update_columns` geschrieben worden — das
+  # umgeht die Callbacks und erzeugt KEINE Version, die Korrektur kam also nirgends an. Der
+  # Nachzieh-Versuch `record.paper_trail.save_with_version` erzeugte zwar eine Version, aber
+  # ohne Attributaenderung und damit mit leerem Delta. Der Apply lief daran auf einen
+  # PG::SyntaxError ("UPDATE ... WHERE" ohne SET), und weil der Fehler die Transaktion
+  # vergiftet, in der auch der Cursor fortgeschrieben wird, blieb dieser stehen: derselbe
+  # Fehler bei jedem weiteren Sync.
+  #
+  # Die Authority liefert das leere Delta als String "{}" aus — deshalb `raw_object_changes`
+  # statt `object_changes: {}`. Wuerde der Test es als nil durchreichen, griffe im Code der
+  # `else`-Zweig, und der Fehler waere gar nicht erst reproduziert.
+
+  # Ein GLOBALER Turnierplan (id < MIN_ID) mit einem veralteten Stand — der reale Fall.
+  def stale_global_plan(id: 3_700_020)
+    TournamentPlan.where(id: id).delete_all
+    plan = TournamentPlan.new(id: id, name: "Sync-Plan #{id}", players: 6, tables: 2,
+      executor_params: '{"GK":11,"kaputt":true}')
+    plan.unprotected = true
+    plan.save!
+    plan
+  end
+
+  test "eine Version ohne Delta kommt an, statt am leeren UPDATE zu scheitern" do
+    plan = stale_global_plan
+    korrigiert = '{"GK":11,"kaputt":false}'
+
+    log = capture_sync_log do
+      apply_version(item_type: "TournamentPlan", item_id: plan.id,
+        object: plan.attributes.merge("executor_params" => korrigiert),
+        raw_object_changes: "{}", version_id: 999_020)
+    end
+
+    assert_equal korrigiert, plan.reload.executor_params,
+      "bei leerem Delta muss der volle Snapshot greifen — er ist der Stand der Authority"
+    refute_match(/APPLY FAILED/, log, "kein Apply-Fehler: das leere UPDATE darf nicht entstehen")
+  end
+
+  test "eine Version ohne Delta laesst den Cursor weiterlaufen" do
+    plan = stale_global_plan(id: 3_700_021)
+
+    capture_sync_log do
+      apply_version(item_type: "TournamentPlan", item_id: plan.id,
+        object: plan.attributes.merge("executor_params" => '{"GK":11,"kaputt":false}'),
+        raw_object_changes: "{}", version_id: 999_021)
+    end
+
+    assert_equal 999_021, Setting.key_get_value("last_version_id").to_i,
+      "der Cursor muss stehen — sonst laeuft der naechste Sync in denselben Fehler"
+  end
+
+  test "traegt auch der Snapshot nichts bei, wird gar nicht geschrieben" do
+    plan = stale_global_plan(id: 3_700_022)
+    vorher = plan.executor_params
+
+    log = capture_sync_log do
+      apply_version(item_type: "TournamentPlan", item_id: plan.id,
+        object: {}, raw_object_changes: "{}", version_id: 999_022)
+    end
+
+    assert_equal vorher, plan.reload.executor_params, "nichts zu schreiben, nichts geaendert"
+    refute_match(/APPLY FAILED/, log, "und vor allem: kein SQL-Fehler")
   end
 
   # ===================================================================================
