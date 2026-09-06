@@ -417,6 +417,12 @@ class Version < PaperTrail::Version
     args
   end
 
+  # Rueckgabewert: Anzahl der UEBERNOMMENEN Versionen (Plan 03-02).
+  #
+  # Nicht die Cursor-Differenz — die zaehlt auch Versionen fremder Regionen mit, die dieser
+  # Server nie erhaelt, und laeuft ausserdem ueber fehlgeschlagene Anwendungen hinweg.
+  # Im Fehlerfall (rescue OpenURI::HTTPError) bleibt es beim bisherigen `e.to_s`; Aufrufer,
+  # die die Zahl brauchen, muessen deshalb auf Integer pruefen.
   def self.update_from_carambus_api(opts = {})
     tournament_id = opts[:update_tournament_from_cc]
     region_id = opts[:reload_tournaments]
@@ -475,6 +481,7 @@ class Version < PaperTrail::Version
     vers = parse_api_json(json_io)
     raise ApiUnavailableError, "Keine gültige Antwort von #{url}" if vers.nil?
 
+    applied = 0
     while vers.present?
       h = vers.shift
       break if h.blank?
@@ -666,6 +673,11 @@ class Version < PaperTrail::Version
           end
           Setting.key_set_value("last_version_id", last_version_id)
         end
+        # Erst NACH der Transaktion zaehlen: was im rescue landet, wurde nicht uebernommen
+        # (und ist ueber :carambus_sync_apply_failures ohnehin erfasst). Der Cursor laeuft in
+        # dem Fall trotzdem weiter — genau deshalb ist die Cursor-Differenz keine taugliche
+        # Angabe darueber, wie viel geholt wurde.
+        applied += 1
       rescue => e
         Rails.logger.info "===== FATAL #{e} #{e.backtrace} cannot continue"
       end
@@ -686,6 +698,7 @@ class Version < PaperTrail::Version
         "Datenqualität prüfen: #{invalid.first(20).inspect}"
       Thread.current[:carambus_sync_invalid_applied] = nil
     end
+    applied
   rescue OpenURI::HTTPError => e
     Rails.logger.info "===== #{e} cannot read from #{url}"
     e.to_s

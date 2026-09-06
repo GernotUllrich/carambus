@@ -148,11 +148,16 @@ class StaticController < ApplicationController
     region_id = Region.find_by_shortname(Carambus.config.context)&.id
     args = region_id.present? ? {region_id: region_id} : {}
 
-    before = Setting.key_get_value("last_version_id").to_i
-    prev = before
+    prev = Setting.key_get_value("last_version_id").to_i
     # Ein Aufruf holt einen Batch; bis zu 10× wie der Cron, aber Abbruch sobald nichts mehr nachkommt.
+    # `applied` summiert die tatsaechlich uebernommenen Records — frueher stand hier die
+    # Differenz der Cursor-Staende (`after - before`). Die zaehlt auch Versionen fremder
+    # Regionen mit, die dieser Server nie erhaelt: ein Sprung ueber 30.000 fremde Versionen
+    # mit 5 eigenen darin meldete "30.000 neue Versionen geholt".
+    applied = 0
     10.times do
-      Version.update_from_carambus_api(args)
+      result = Version.update_from_carambus_api(args)
+      applied += result if result.is_a?(Integer)
       now = Setting.key_get_value("last_version_id").to_i
       break if now <= prev
 
@@ -160,9 +165,14 @@ class StaticController < ApplicationController
     end
     after = Setting.key_get_value("last_version_id").to_i
 
-    redirect_to repo_version_path, notice: t("static.sync_data.done",
-      count: after - before, version: after,
-      default: "Datensync abgeschlossen: #{after - before} neue Versionen geholt (Stand #{after}).")
+    notice = if applied.positive?
+      t("static.sync_data.applied", count: applied, version: after,
+        default: "Datensync abgeschlossen: #{applied} Records übernommen (Stand #{after}).")
+    else
+      t("static.sync_data.nothing_new", version: after,
+        default: "Datensync abgeschlossen: keine neuen Daten (Stand #{after}).")
+    end
+    redirect_to repo_version_path, notice: notice
   rescue => e
     Rails.logger.error "[sync_data] fehlgeschlagen: #{e.message}"
     redirect_to repo_version_path, alert: t("static.sync_data.failed",

@@ -699,6 +699,7 @@ class VersionTest < ActiveSupport::TestCase
   # Der Bestandscode bildet "#{api_url}/versions/..." — bei einer URL mit Slash am Ende
   # entsteht ein doppelter Slash, den das Muster mit abdecken muss.
   SYNC_STATUS_URL_PATTERN = %r{#{Regexp.escape(SYNC_STATUS_API_URL)}/*versions/last_version}
+  GET_UPDATES_URL_PATTERN = %r{#{Regexp.escape(SYNC_STATUS_API_URL)}/*versions/get_updates}
 
   # Setzt beide Werte, von denen sync_status abhaengt, und restauriert sie (Konvention aus
   # test/SCENARIO_TESTING.md). `context` wird explizit gesetzt, statt sich darauf zu
@@ -787,5 +788,46 @@ class VersionTest < ActiveSupport::TestCase
 
     assert_equal :current, status[:state]
     assert_equal 0, status[:pending]
+  end
+
+  # === Rueckgabewert von update_from_carambus_api (Plan 03-02) ===
+  #
+  # Die Sync-Rueckmeldung nannte bisher die Differenz zweier Cursor-IDs. Die zaehlt auch
+  # Versionen fremder Regionen mit, die dieser Server nie erhaelt, und laeuft ueber
+  # fehlgeschlagene Anwendungen hinweg. Gebraucht wird die Zahl der UEBERNOMMENEN Records.
+
+  test "update_from_carambus_api liefert die Anzahl uebernommener Versionen" do
+    disc = Discipline.where(id: 50_000_098).first_or_initialize
+    disc.name = "TestBK-count"
+    disc.unprotected = true
+    disc.save!(validate: false)
+
+    disc_attrs = {"id" => 50_000_098, "name" => "TestBK-count",
+                  "created_at" => disc.created_at, "updated_at" => Time.current}
+    payload = [999_997, 999_998].map do |vid|
+      {"id" => vid, "item_type" => "Discipline", "item_id" => 50_000_098, "event" => "update",
+       "object" => YAML.dump(disc_attrs), "object_changes" => nil,
+       "created_at" => Time.current.to_s}
+    end
+
+    applied = with_authority_url do
+      stub_request(:get, GET_UPDATES_URL_PATTERN)
+        .to_return(status: 200, body: payload.to_json, headers: {"Content-Type" => "application/json"})
+      Version.update_from_carambus_api({})
+    end
+
+    assert_equal 2, applied
+  ensure
+    Discipline.where(id: 50_000_098).destroy_all
+  end
+
+  test "update_from_carambus_api liefert 0 wenn nichts zu holen ist" do
+    applied = with_authority_url do
+      stub_request(:get, GET_UPDATES_URL_PATTERN)
+        .to_return(status: 200, body: "[]", headers: {"Content-Type" => "application/json"})
+      Version.update_from_carambus_api({})
+    end
+
+    assert_equal 0, applied
   end
 end
