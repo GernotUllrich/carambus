@@ -72,9 +72,16 @@ class VersionsController < ApplicationController
     id = if params[:region_id].present?
       Version.for_region(params[:region_id]).order(id: :desc).pick(:id)
     else
-      Version.last.id
+      # `&.` statt `.id`: bei leerer Tabelle warf das bisher NoMethodError (HTTP 500) statt
+      # `null` zu liefern — auf der Authority nie eingetreten, von einem Test aus Plan 03-01
+      # aufgedeckt. `null` ist ohnehin ein moeglicher Antwortwert (siehe gefilterter Zweig).
+      Version.last&.id
     end
-    render json: { last_version: id }.to_json
+    # `region_id` wird zurueckquittiert, damit der Client eine Authority, die den Filter
+    # ANWENDET, von einer alten unterscheiden kann, die den Parameter ignoriert — die Zahl
+    # allein sieht in beiden Faellen gleich aus. Ohne Parameter steht hier null.
+    # Additiv: bestehende Clients lesen nur `last_version` (version.rb:236).
+    render json: { last_version: id, region_id: params[:region_id].presence&.to_i }.to_json
   end
 
   def current_revision

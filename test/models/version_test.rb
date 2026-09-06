@@ -684,4 +684,108 @@ class VersionTest < ActiveSupport::TestCase
     assert_equal({"firstname" => "Max", "lastname" => "Muster"}, args)
     assert_match(/unbekannte Spalten verworfen.*pin4/, log)
   end
+
+  # === sync_status (Plan 03-01) ===
+  #
+  # `carambus_api_url` ist in der Testumgebung nicht gesetzt; die Konvention aus
+  # test/SCENARIO_TESTING.md verlangt, den Originalwert zu merken und zu restaurieren —
+  # sonst vergiften diese Tests seed-abhaengig nachfolgende.
+  #
+  # Beantwortet "fehlt mir etwas, das mich betrifft?". Der lokale Cursor laeuft nur ueber
+  # Versionen der eigenen Region — ihn gegen den ungefilterten globalen Hoechststand zu
+  # halten ergab frueher einen Rueckstand, der nie auf null ging.
+
+  SYNC_STATUS_API_URL = "https://api.example.test/"
+  # Der Bestandscode bildet "#{api_url}/versions/..." — bei einer URL mit Slash am Ende
+  # entsteht ein doppelter Slash, den das Muster mit abdecken muss.
+  SYNC_STATUS_URL_PATTERN = %r{#{Regexp.escape(SYNC_STATUS_API_URL)}/*versions/last_version}
+
+  # Setzt beide Werte, von denen sync_status abhaengt, und restauriert sie (Konvention aus
+  # test/SCENARIO_TESTING.md). `context` wird explizit gesetzt, statt sich darauf zu
+  # verlassen, dass es in der Testumgebung zufaellig nil ist — davon haengt ab, ob
+  # sync_status eine Region ableitet.
+  def with_authority_url(context: nil)
+    original_url = Carambus.config.carambus_api_url
+    original_context = Carambus.config.context
+    Carambus.config.carambus_api_url = SYNC_STATUS_API_URL
+    Carambus.config.context = context
+    yield
+  ensure
+    Carambus.config.carambus_api_url = original_url
+    Carambus.config.context = original_context
+  end
+
+  def stub_last_version(body)
+    stub_request(:get, SYNC_STATUS_URL_PATTERN)
+      .to_return(status: 200, body: body.to_json, headers: {"Content-Type" => "application/json"})
+  end
+
+  test "sync_status meldet :current wenn der Cursor den gefilterten Hoechststand erreicht hat" do
+    Setting.key_set_value("last_version_id", 5000)
+    stub_last_version({"last_version" => 5000, "region_id" => 1})
+
+    status = with_authority_url { Version.sync_status(1) }
+
+    assert_equal :current, status[:state]
+    assert_equal 0, status[:pending]
+  end
+
+  test "sync_status beziffert einen echten Rueckstand gegen den GEFILTERTEN Hoechststand" do
+    Setting.key_set_value("last_version_id", 5000)
+    stub_last_version({"last_version" => 5007, "region_id" => 1})
+
+    status = with_authority_url { Version.sync_status(1) }
+
+    assert_equal :behind, status[:state]
+    assert_equal 7, status[:pending]
+  end
+
+  # Der Kern der Aenderung: eine Authority ohne Quittung hat den Filter NICHT angewandt.
+  # Die Zahlen liegen hier bewusst weit auseinander — genau dann behauptete die alte Anzeige
+  # einen Rueckstand, der aus Records fremder Regionen bestand.
+  test "sync_status meldet :unfiltered und behauptet keinen Rueckstand ohne Quittung" do
+    Setting.key_set_value("last_version_id", 5000)
+    stub_last_version({"last_version" => 13_731_076})
+
+    status = with_authority_url { Version.sync_status(1) }
+
+    assert_equal :unfiltered, status[:state]
+    assert_nil status[:pending], "ohne Quittung darf keine Rueckstandszahl entstehen"
+  end
+
+  # Zweiter Weg in :unfiltered — und der gefaehrlichere, weil die Antwort hier die Quittung
+  # TRAEGT (mit null): kann der Server seine eigene Region nicht bestimmen, hat er ohne
+  # Filter gefragt. Ohne diese Pruefung kaeme der alte Fehler zurueck.
+  test "sync_status meldet :unfiltered wenn der Server keine eigene Region kennt" do
+    Setting.key_set_value("last_version_id", 5000)
+    stub_last_version({"last_version" => 13_731_076, "region_id" => nil})
+
+    status = with_authority_url { Version.sync_status(nil) }
+
+    assert_equal :unfiltered, status[:state]
+    assert_nil status[:pending], "ohne eigene Region darf keine Rueckstandszahl entstehen"
+  end
+
+  test "sync_status meldet :unreachable wenn die Antwort nicht auswertbar ist" do
+    Setting.key_set_value("last_version_id", 5000)
+    stub_request(:get, SYNC_STATUS_URL_PATTERN)
+      .to_return(status: 500, body: "kaputt")
+
+    status = with_authority_url { Version.sync_status(1) }
+
+    assert_equal :unreachable, status[:state]
+    assert_nil status[:authority_version]
+  end
+
+  # Plan 02-01 hat null als moeglichen Antwortwert eingefuehrt (keine Version passt auf die
+  # Region). Dann gibt es nichts zu holen — kein Rueckstand, kein Fehler.
+  test "sync_status behandelt eine leere Authority-Antwort als :current" do
+    Setting.key_set_value("last_version_id", 0)
+    stub_last_version({"last_version" => nil, "region_id" => 1})
+
+    status = with_authority_url { Version.sync_status(1) }
+
+    assert_equal :current, status[:state]
+    assert_equal 0, status[:pending]
+  end
 end

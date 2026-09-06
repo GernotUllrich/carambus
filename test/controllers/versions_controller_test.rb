@@ -90,4 +90,26 @@ class VersionsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_equal eigene.id, JSON.parse(response.body)["last_version"]
   end
+
+  # Plan 03-01: Die Antwort quittiert das ANGEWANDTE region_id. Ohne diese Quittung koennte
+  # ein Client eine Authority, die filtert, nicht von einer alten unterscheiden, die den
+  # Parameter ignoriert — die Zahl sieht in beiden Faellen gleich aus. Erst dadurch kann die
+  # Statusanzeige "weiss ich nicht" von "kein Rueckstand" trennen.
+  test "last_version quittiert das angewandte region_id" do
+    get last_version_versions_url(region_id: regions(:nbv).id)
+
+    assert_response :success
+    assert_equal regions(:nbv).id, JSON.parse(response.body)["region_id"]
+  end
+
+  # Ohne Parameter ist der Schluessel vorhanden und null — vorhanden, damit der Client die
+  # neue Authority ueberhaupt erkennt; null, weil nicht gefiltert wurde.
+  test "last_version ohne region_id quittiert null" do
+    get last_version_versions_url
+
+    assert_response :success
+    body = JSON.parse(response.body)
+    assert body.key?("region_id"), "Schluessel muss vorhanden sein, sonst ist die Authority nicht erkennbar"
+    assert_nil body["region_id"]
+  end
 end

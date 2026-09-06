@@ -229,14 +229,70 @@ class Version < PaperTrail::Version
   def self.last_version
     return Version.last&.id if Carambus.config.carambus_api_url.blank?
 
-    url = "#{Carambus.config.carambus_api_url}/versions/last_version"
-    uri = URI(url)
-    json_io = http_get_with_ssl_bypass(uri, nil_on_error: true)
-    parsed = parse_api_json(json_io)
+    parsed = fetch_authority_last_version
     parsed.is_a?(Hash) ? parsed["last_version"] : Version.last&.id
   rescue OpenURI::HTTPError => e
-    Rails.logger.info "===== #{e} cannot read from #{url}"
+    Rails.logger.info "===== #{e} cannot read from #{Carambus.config.carambus_api_url}/versions/last_version"
     e.to_s
+  end
+
+  # Roher Zugriff auf /versions/last_version: liefert den GEPARSTEN Hash, nicht nur die Zahl.
+  # `last_version` (Zahl) und `sync_status` (Zustand) teilen sich diesen einen HTTP-Pfad —
+  # ein zweiter waere eine Quelle fuer auseinanderlaufendes Verhalten.
+  def self.fetch_authority_last_version(region_id = nil)
+    url = "#{Carambus.config.carambus_api_url}/versions/last_version"
+    url += "?region_id=#{region_id}" if region_id.present?
+    parse_api_json(http_get_with_ssl_bypass(URI(url), nil_on_error: true))
+  end
+  private_class_method :fetch_authority_last_version
+
+  # Beantwortet die Frage, die die Versionsanzeige stellen sollte: "fehlt mir etwas, das mich
+  # betrifft?"
+  #
+  # Der lokale Cursor laeuft nur ueber Versionen, die `get_updates` fuer DIESE Region
+  # ausliefert (`Version.for_region`). Ihn mit dem ungefilterten globalen Hoechststand zu
+  # vergleichen — wie es die Anzeige frueher tat — ergibt einen Rueckstand, der ueberwiegend
+  # aus Records fremder Regionen besteht und nie auf null geht.
+  #
+  # Zustaende:
+  #   :current      nichts offen (auch wenn die Authority global weiter ist)
+  #   :behind       `pending` Versionen betreffen diesen Server und fehlen ihm
+  #   :unfiltered   die Authority kennt den region_id-Parameter noch nicht (keine Quittung in
+  #                 der Antwort) — die Zahl sagt nichts ueber fehlende Records, es wird
+  #                 deshalb KEIN Rueckstand berechnet
+  #   :unreachable  keine auswertbare Antwort
+  #
+  # Liest nur — kein Cursor wird geschrieben, kein Sync ausgeloest.
+  def self.sync_status(region_id = nil)
+    region_id ||= Region.find_by_shortname(Carambus.config.context)&.id
+    local = Setting.key_get_value("last_version_id").to_i
+    base = {local_version: local, region_id: region_id, authority_version: nil, pending: nil}
+
+    # Ohne Authority-URL gibt es nichts zu vergleichen (Nicht-Local-Server) — dieselbe
+    # Vorbedingung, die `last_version` oben prueft.
+    return base.merge(state: :unreachable) if Carambus.config.carambus_api_url.blank?
+
+    parsed = fetch_authority_last_version(region_id)
+    return base.merge(state: :unreachable) unless parsed.is_a?(Hash)
+
+    # Ohne eigene Region wurde gar nicht gefiltert — die Antwort traegt dann zwar die
+    # Quittung (mit null), ist aber der globale Hoechststand. Ohne diese Pruefung wuerde
+    # genau der alte Fehler zurueckkehren: ein Rueckstand aus Records fremder Regionen.
+    return base.merge(state: :unfiltered, authority_version: parsed["last_version"]) if region_id.blank?
+
+    # Die Quittung entscheidet, ob die Zahl gefiltert ist. Ohne sie sehen alte und neue
+    # Authority identisch aus (beide antworten nur mit `last_version`).
+    return base.merge(state: :unfiltered, authority_version: parsed["last_version"]) unless parsed.key?("region_id")
+
+    authority = parsed["last_version"]
+    # nil = keine Version passt auf diese Region -> es gibt nichts zu holen.
+    return base.merge(state: :current, authority_version: authority, pending: 0) if authority.blank? || authority.to_i <= local
+
+    base.merge(state: :behind, authority_version: authority, pending: authority.to_i - local)
+  rescue OpenURI::HTTPError => e
+    Rails.logger.info "===== #{e} cannot read last_version from #{Carambus.config.carambus_api_url}"
+    {state: :unreachable, local_version: Setting.key_get_value("last_version_id").to_i,
+     region_id: region_id, authority_version: nil, pending: nil}
   end
 
   # Parse a text-column serialized payload. If it looks like JSON (starts with `{` or `[`)

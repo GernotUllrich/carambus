@@ -24,8 +24,9 @@
     <%- end -%>
   <%- end %>
   <%- if local_server? %>
-    <%- local_data_version = Setting.key_get_value("last_version_id").to_i %>
-    <%- api_data_version = Version.last_version %>
+    <%- sync = Version.sync_status %>
+    <%- local_data_version = sync[:local_version] %>
+    <%- api_data_version = sync[:authority_version] %>
   <%- else %>
     <%- api_data_version = Version.last_version %>
   <%- end %>
@@ -38,17 +39,46 @@
     Last: <%= version %>
   </pre>
 
-  <%- if local_server? && current_user&.admin? && api_data_version.is_a?(Integer) && local_data_version < api_data_version %>
+  <%# Der Zustand kommt aus Version.sync_status — die View rechnet nichts mehr selbst.
+      Frueher stand hier `api_data_version - local_data_version` als "Rueckstand"; diese
+      Differenz bestand ueberwiegend aus Versionen fremder Regionen, die dieser Server nie
+      bekommt, und ging deshalb nie auf null. %>
+  <%- if local_server? && current_user&.admin? %>
     <div class="mb-4">
-      <div class="text-amber-700 dark:text-amber-500 mb-2 text-sm">
-        ⏳ <%= t("static.sync_data.behind_html", behind: api_data_version - local_data_version,
-                 default: "Daten hinken der Authority um %{behind} Versionen hinterher.") %>
-      </div>
-      <%= button_to t("static.sync_data.button", default: "🔄 Daten jetzt synchronisieren"),
-                    sync_data_path,
-                    method: :post,
-                    data: {disable_with: t("static.sync_data.running", default: "Synchronisiere …")},
-                    class: "bg-primary-500 hover:bg-primary-700 text-white font-bold py-2 px-4 rounded" %>
+      <%- case sync[:state] %>
+      <%- when :behind %>
+        <div class="text-amber-700 dark:text-amber-500 mb-2 text-sm">
+          ⏳ <%= t("static.sync_data.pending_html", pending: sync[:pending],
+                   default: "%{pending} Versionen ausstehend, die diesen Server betreffen.") %>
+        </div>
+      <%- when :current %>
+        <div class="text-success-700 dark:text-success-500 mb-2 text-sm">
+          ✅ <%= t("static.sync_data.current_html", version: local_data_version,
+                   default: "Datenstand aktuell (Stand %{version}).") %>
+        </div>
+      <%- when :unfiltered %>
+        <%# Die Authority kennt den region_id-Parameter noch nicht (keine Quittung in der
+            Antwort). Ihre Zahl ist ungefiltert und sagt nichts darueber aus, ob diesem
+            Server etwas fehlt — hier wird deshalb bewusst KEIN Rueckstand beziffert. %>
+        <div class="text-info-700 dark:text-info-500 mb-2 text-sm">
+          ℹ️ <%= t("static.sync_data.unfiltered_html", local: local_data_version, authority: api_data_version,
+                   default: "Die Authority meldet einen ungefilterten Stand (Region-Filter noch nicht unterstützt) — lokal %{local}, Authority %{authority}. Ob Daten fehlen, lässt sich daraus nicht ablesen.") %>
+        </div>
+      <%- when :unreachable %>
+        <div class="text-danger-700 dark:text-danger-500 mb-2 text-sm">
+          ⚠️ <%= t("static.sync_data.unreachable", default: "Authority nicht erreichbar — Sync-Stand unbekannt.") %>
+        </div>
+      <%- end %>
+      <%# Button wie bisher: in genau den Zustaenden, in denen vorher ein Rueckstand
+          angezeigt wurde. Bei :unfiltered bleibt er erhalten, sonst waere der manuelle
+          Sync bis zum Authority-Deploy nicht mehr ausloesbar. %>
+      <%- if [:behind, :unfiltered].include?(sync[:state]) %>
+        <%= button_to t("static.sync_data.button", default: "🔄 Daten jetzt synchronisieren"),
+                      sync_data_path,
+                      method: :post,
+                      data: {disable_with: t("static.sync_data.running", default: "Synchronisiere …")},
+                      class: "bg-primary-500 hover:bg-primary-700 text-white font-bold py-2 px-4 rounded" %>
+      <%- end %>
     </div>
   <%- end %>
 
