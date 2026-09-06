@@ -419,11 +419,70 @@ Fragestellung die folgenden dedizierten Diagnose-Scripts.
 
 ---
 
-## Legacy/Deprecated Scripts
+## Deployment
 
-### `deploy.sh` ⚠️
-**Status**: Obsolet (durch `deploy-scenario.sh` ersetzt)  
-**Grund**: Altes Deployment-System ohne Scenario-Support
+Es gibt **zwei** Deployment-Wege. Sie sind komplementär, nicht Vorgänger und Nachfolger —
+welcher passt, hängt davon ab, ob der Zielserver gerade per SSH erreichbar ist.
+
+### `deploy-scenario.sh` — von der Entwicklungsmaschine aus
+
+**Zweck**: Vollständiger Deployment-Workflow für ein Scenario, orchestriert Capistrano
+
+**Verwendung**:
+```bash
+cd carambus_master
+./bin/deploy-scenario.sh carambus_location_5101
+```
+
+**Voraussetzung**: Der Zielserver muss per SSH erreichbar sein — bei Servern im
+Vereins- oder Firmennetz heißt das in der Regel: im selben Netz sitzen.
+
+### `bin/deploy.sh` — auf dem Server selbst
+
+**Zweck**: Repliziert die Capistrano-Schritte für die Ausführung **auf dem Server**.
+Der Server holt den Code selbst von GitHub, statt ihn zugeschickt zu bekommen.
+
+**Verwendung** (auf dem Server, **nicht** mit `bundle exec`):
+```bash
+/var/www/<basename>/current/bin/deploy.sh            # Branch master
+/var/www/<basename>/current/bin/deploy.sh master     # Branch explizit
+/var/www/<basename>/current/bin/deploy.sh master abc123   # Branch + Revision
+```
+
+**Wann**: Wenn der Server nicht von außen erreichbar ist (kein Port-Forwarding, kein VPN)
+oder niemand im lokalen Netz sitzt. Dann ist dies der einzige Weg.
+
+**Voraussetzung — GitHub-Zugang je Server**: Das Skript klont bzw. aktualisiert per
+`git@github.com:GernotUllrich/<application>.git` und prüft vorab `ssh -T git@github.com`.
+Ohne hinterlegten Schlüssel bricht es mit `Permission denied (publickey)` ab.
+
+Einrichtung (**einmal je Server**, empfohlen als **Deploy-Key ohne Schreibrecht**):
+
+```bash
+# 1. Auf dem Server: öffentlichen Schlüssel des Deploy-Users ausgeben
+ssh -p <ssh_port> www-data@<server> 'cat ~/.ssh/id_rsa.pub'
+
+# 2. Diesen Key im Repository hinterlegen:
+#    Settings -> Deploy keys -> Add deploy key
+#    Titel z. B. "carambus_phat (Pi 192.168.178.84, www-data)"
+#    "Allow write access" NICHT ankreuzen - das Skript liest nur
+
+# 3. Auf dem Server verifizieren
+ssh -p <ssh_port> www-data@<server> 'ssh -T git@github.com'
+#    Erwartet: "Hi <owner>/<repo>! You've successfully authenticated, ..."
+```
+
+Ein Deploy-Key gilt für genau ein Repository und lässt sich pro Server einzeln zurückziehen.
+Jeder Server braucht seinen **eigenen** Key — derselbe Schlüssel kann nicht bei mehreren
+Repositories als Deploy-Key liegen.
+
+**Ergebnis prüfen**: In `/var/www/<basename>/revisions.log` steht der ausführende User.
+Ein serverseitiger Lauf erscheint dort als `by www-data`, ein Capistrano-Deploy unter dem
+Namen desjenigen, der ihn angestoßen hat.
+
+---
+
+## Legacy/Deprecated Scripts
 
 ### `deploy-to-raspberry-pi.sh` ⚠️
 **Status**: Obsolet (durch `deploy-scenario.sh` ersetzt)  
@@ -598,10 +657,11 @@ sudo systemctl restart puma-carambus_location_5101
 4. ✅ Logs regelmäßig prüfen
 
 ### Deployment
-1. ✅ Vollständiges Deployment: `deploy-scenario.sh`
-2. ✅ Quick-Fixes: Nur bei Notfällen
-3. ✅ Nach Deployment: Browser auf RasPi neustarten
-4. ✅ Vor Deployment: Lokales Testing durchführen
+1. ✅ Vollständiges Deployment von der Entwicklungsmaschine: `deploy-scenario.sh`
+2. ✅ Server nicht erreichbar oder niemand im lokalen Netz: `bin/deploy.sh` auf dem Server
+3. ✅ Quick-Fixes: Nur bei Notfällen
+4. ✅ Nach Deployment: Browser auf RasPi neustarten
+5. ✅ Vor Deployment: Lokales Testing durchführen
 
 ---
 
