@@ -52,8 +52,29 @@ class VersionsController < ApplicationController
     redirect_to versions_url, notice: "Version was successfully destroyed."
   end
 
+  # Hoechster Versionsstand. Mit `region_id` wird derselbe Ausschnitt zugrunde gelegt, den
+  # get_updates ausliefert (`Version.for_region`) — der Client-Cursor kann nie darueber
+  # hinauslaufen, also ist das die Zahl, gegen die ein Local Server seinen Stand sinnvoll
+  # vergleicht. OHNE den Parameter bleibt es der globale Hoechststand, damit noch nicht
+  # aktualisierte Local Server unveraendert weiterlaufen.
+  #
+  # `order(id: :desc).pick(:id)` statt `maximum(:id)`: beide fuehren bei Postgres auf einen
+  # Index Scan Backward ueber versions_pkey (per EXPLAIN ANALYZE auf 369k Zeilen geprueft,
+  # 2026-09-06 — MAX(id) wird ueber einen InitPlan zu genau demselben Scan umgeschrieben,
+  # Kosten 0.65 vs 0.64). Die explizite Form haengt nicht daran, dass der Planner diese
+  # Umschreibung vornimmt, und macht im Code sichtbar, was passiert.
+  #
+  # Beiden gemeinsam bleibt der Worst Case: der Scan laeuft vom Tabellenende rueckwaerts und
+  # filtert (region_id IS NULL OR region_id = ? OR global_context). Hat eine FREMDE Region
+  # zuletzt viele Versionen am Stueck geschrieben, muss er durch diese hindurch. Im Normalfall
+  # ist der erste Treffer nah am Ende, weil die meisten Zeilen ohnehin passen.
   def last_version
-    render json: { last_version: Version.last.id }.to_json
+    id = if params[:region_id].present?
+      Version.for_region(params[:region_id]).order(id: :desc).pick(:id)
+    else
+      Version.last.id
+    end
+    render json: { last_version: id }.to_json
   end
 
   def current_revision

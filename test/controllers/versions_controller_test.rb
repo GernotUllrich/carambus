@@ -59,4 +59,35 @@ class VersionsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     refute called
   end
+
+  # Plan 02-01: last_version bekommt einen OPTIONALEN region_id-Filter. Ohne den Parameter
+  # muss die Antwort exakt bleiben wie bisher — Local Server, die noch nicht aktualisiert
+  # sind, fragen weiterhin ohne region_id und duerfen sich nicht anders verhalten.
+  test "last_version ohne region_id liefert den globalen Hoechststand" do
+    fremde = Version.create!(item_type: "Region", item_id: regions(:bbv).id,
+      event: "update", region_id: regions(:bbv).id)
+
+    get last_version_versions_url
+
+    assert_response :success
+    assert_equal fremde.id, JSON.parse(response.body)["last_version"]
+  end
+
+  # Der eigentliche Fix: die HOECHSTE Version gehoert hier bewusst einer FREMDEN Region.
+  # Genau so entsteht der Effekt im Betrieb — die Authority scrapet fuer alle Verbaende, und
+  # der Local Server meldete einen Rueckstand, der aus Records bestand, die er nie bekommt.
+  # Der Aufbau ist absichtlich so gewaehlt, dass der Test ohne den Filter fehlschlaegt.
+  test "last_version mit region_id ignoriert Versionen fremder Regionen" do
+    eigene = Version.create!(item_type: "Region", item_id: regions(:nbv).id,
+      event: "update", region_id: regions(:nbv).id)
+    fremde = Version.create!(item_type: "Region", item_id: regions(:bbv).id,
+      event: "update", region_id: regions(:bbv).id)
+    assert fremde.id > eigene.id,
+      "Testaufbau kaputt: die fremde Version muss die hoehere ID tragen"
+
+    get last_version_versions_url(region_id: regions(:nbv).id)
+
+    assert_response :success
+    assert_equal eigene.id, JSON.parse(response.body)["last_version"]
+  end
 end
