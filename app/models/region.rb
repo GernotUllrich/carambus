@@ -686,6 +686,12 @@ image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9"
         tc = TournamentCc.new(cc_id: cc_id, context: region_cc.context)
       end
       tc.assign_attributes(name:)
+      # Die Saison gehört auch auf den Mirror-Record: der Tournament-Record unten bekommt sie
+      # (Tournament.create(season:)), der TournamentCc blieb leer — mit der Folge, dass
+      # season-gefilterte Abfragen diese Turniere nicht finden. Stand 2026-09-06 waren so 104
+      # NBV-Records ohne season, davon 55 aus der laufenden Saison 2026/2027. Nur setzen, wenn
+      # eine Saison vorliegt, damit ein bereits korrekter Wert nicht durch nil ersetzt wird.
+      tc.assign_attributes(season: season.name) if season&.name.present?
       tc.save
       # tournament known but no cc entry yet?
       # Mapping primär über die cc_id-Verknüpfung (tc) statt über den Titel — Titel-Mapping
