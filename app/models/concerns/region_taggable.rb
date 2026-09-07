@@ -1,12 +1,17 @@
 module RegionTaggable
   extend ActiveSupport::Concern
 
-  included do
-    # Note: Version region_id and global_context are automatically set by PaperTrail initializer
-    # No need for after_save callbacks here
-    after_save :update_version_region_data
-    after_destroy :update_version_region_data
-  end
+  # Das Version-Tagging passiert seit Phase 47-01 beim SCHREIBEN der Version, ueber
+  # die :meta-Option von has_paper_trail (app/models/local_protector.rb). Der frueher
+  # hier registrierte after_save/after_destroy-Callback `update_version_region_data`
+  # ist entfallen: er rief `find_associated_region_id` nie auf, sondern las die
+  # gleichnamige SPALTE des Records — die bei den betroffenen Records leer ist — und
+  # ueberschrieb damit auch jeden korrekten Stempel wieder. Bei `destroy` konnte er
+  # ohnehin nichts ausrichten, weil `version.item` dort schon `nil` ist.
+  #
+  # `find_associated_region_id` und `global_context?` bleiben die fachliche Ableitung;
+  # aufgerufen wird von beiden nur `find_associated_region_id` (global_context? ist
+  # international-blind, siehe Phase-2-Research 2026-07-12).
 
   def find_associated_region_id
     case self
@@ -120,25 +125,4 @@ module RegionTaggable
     end
   end
 
-  def update_version_region_data
-    return unless PaperTrail.request.enabled?
-
-    # Update the most recent version for this record
-    record_versions = self.versions rescue []
-    if record_versions.any?
-      latest_version = record_versions.last
-      if latest_version && previous_changes.present?
-         latest_item = latest_version.item
-        region_id = latest_item.region_id if latest_item.respond_to?(:region_id)
-        global_context = latest_item.global_context if latest_item.respond_to?(:global_context)
-
-        latest_version.update_columns(
-          region_id: region_id,
-          global_context: global_context
-        ) if latest_item.respond_to?(:region_id) || latest_item.respond_to?(:global_context)
-      end
-    end
-  rescue StandardError => e
-    Rails.logger.warn("Error updating version region data: #{e.message}")
-  end
 end

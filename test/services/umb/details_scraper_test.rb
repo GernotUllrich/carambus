@@ -84,6 +84,9 @@ class Umb::DetailsScraperTest < ActiveSupport::TestCase
     InternationalSource.where(source_type: "umb").delete_all
     Discipline.where(id: 50_099_003).delete_all
     Season.where(name: "2023/2024").where("id >= 50000000").delete_all
+    # Seit Phase 47-01 tragen Versionen die abgeleitete region_id, und versions.region_id
+    # hat einen FK auf regions — ohne dieses Aufraeumen scheitert das Region-delete_all.
+    PaperTrail::Version.where(region_id: Region.where(shortname: "UMB").select(:id)).delete_all
     Region.where(shortname: "UMB").delete_all
     # Location-Löschung überspringen: fixtures haben FK-Referenzen auf tables-Tabelle
   end
