@@ -150,9 +150,11 @@ namespace :sync_health do
   # eine unbeauftragte Massenaenderung in denselben Sync-Batch (dieselbe Falle wie in 34-01).
   #
   # WARUM DIE REGION NACHGESTEMPELT WIRD (Befund aus der Generalprobe 37-03): `versions.region_id`
-  # setzt nicht PaperTrail, sondern der `after_save`-Callback `RegionTaggable#update_version_region_data`
-  # — und der steigt bei `previous_changes.blank?` aus. Ein Nachlauf aendert per Definition KEIN
-  # Attribut, also bliebe die Version ungetaggt. Folge waere schwerwiegend: der Sync-Filter ist
+  # setzte frueher nicht PaperTrail, sondern der `after_save`-Callback
+  # `RegionTaggable#update_version_region_data` — und der stieg bei `previous_changes.blank?` aus.
+  # Ein Nachlauf aendert per Definition KEIN Attribut, also bliebe die Version ungetaggt.
+  # SEIT PHASE 47-01 stempelt PaperTrail selbst (`meta:` in local_protector.rb), womit dieser
+  # Guard entfaellt — das Nachstempeln hier bleibt fuer Bestandsversionen dennoch gueltig. Folge waere schwerwiegend: der Sync-Filter ist
   # `region_id IS NULL OR region_id = ?` ⇒ eine ungetaggte Version reist an JEDE Instanz, und wo der
   # Record lokal fehlt, LEGT der Apply ihn an — tbv bekaeme so tausende NBV-Ligen. Deshalb traegt der
   # Task die Region des Records selbst nach, genau wie es der Callback bei einer echten Aenderung taete.
@@ -319,9 +321,10 @@ module SyncHealthCensus
     end
   end
 
-  # Traegt Region und global_context der Version nach — die Aufgabe, die sonst
-  # `RegionTaggable#update_version_region_data` uebernimmt, bei einem aenderungsfreien Speichern aber
-  # ueberspringt (Guard `previous_changes.present?`). Modelle ohne `region_id` (DisciplineCc,
+  # Traegt Region und global_context der Version nach — die Aufgabe, die seit Phase 47-01 die
+  # `meta:`-Option von `has_paper_trail` beim Schreiben erledigt (frueher: der inzwischen
+  # entfernte Callback `RegionTaggable#update_version_region_data` mit seinem Guard
+  # `previous_changes.present?`). Modelle ohne `region_id` (DisciplineCc,
   # TournamentPlan) sind global und bleiben korrekt ungetaggt.
   def stamp_region!(record, version)
     return if version.blank? || !version.is_a?(ActiveRecord::Base)

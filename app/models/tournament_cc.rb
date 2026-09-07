@@ -54,6 +54,8 @@
 #
 class TournamentCc < ApplicationRecord
   include LocalProtector
+  include RegionTaggable
+
   belongs_to :branch_cc, optional: true
   belongs_to :location, optional: true
   belongs_to :discipline, optional: true

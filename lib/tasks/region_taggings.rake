@@ -381,7 +381,7 @@ namespace :region_taggings do
     end
 
     regions_to_fix.find_each do |region|
-      region.update!(global_context: true) # echte Spaltenänderung → neue Version, von RegionTaggable#update_version_region_data getaggt
+      region.update!(global_context: true) # echte Spaltenänderung → neue Version, seit Phase 47-01 beim Schreiben getaggt (meta: in local_protector.rb)
       fix_version = region.versions.order(:id).last
       # Redelivery: Turniere/Ligen dieser Region NACH der Region-Version touchen (höhere Version-id → Organizer appliziert zuerst)
       [Tournament, League].each do |klass|

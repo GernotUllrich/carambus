@@ -39,6 +39,8 @@
 #
 class PlayerRanking < ApplicationRecord
   include LocalProtector
+  include RegionTaggable
+
   belongs_to :discipline
   belongs_to :player
   belongs_to :region

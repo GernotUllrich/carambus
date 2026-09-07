@@ -108,7 +108,7 @@ class RegionTaggableSyncTest < ActiveSupport::TestCase
 
     before = region_intl.versions.count
     # Echte Spaltenänderung -> normaler PaperTrail after_update-Callback feuert,
-    # anschließend tagt RegionTaggable#update_version_region_data die Version
+    # anschließend tagt die `meta:`-Option von has_paper_trail die Version (Phase 47-01)
     # aus den AKTUELLEN Record-Spalten (nicht aus global_context?).
     region_intl.update!(global_context: true)
 

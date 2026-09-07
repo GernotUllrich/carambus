@@ -26,14 +26,18 @@ module RegionTaggable
     when Party
       league&.organizer_type == "Region" ? league.organizer_id : nil
     when GameParticipation
-      if game&.tournament
-        game.tournament.organizer_type == "Region" ? game.tournament.organizer_id : game.tournament.region_id
-      end
+      # Delegiert an Game statt die Kette zu wiederholen — verhaltensgleich zur frueheren
+      # Fassung und automatisch mitkorrigiert, wenn der Game-Zweig sich aendert (Liga-Pfad).
+      game&.find_associated_region_id
     when PartyGame
       party&.league&.organizer_type == "Region" ? party.league.organizer_id : nil
     when Seeding
       if tournament_id.present?
-        if tournament_type == "Region"
+        # "Tournament", nicht "Region": `Tournament has_many :seedings, as: :tournament` setzt
+        # tournament_type auf den Klassennamen. Der frueher hier gepruefte Wert "Region" kann
+        # nie zutreffen — der Zweig lief ins Leere und liess in der Prod-Messung vom 2026-09-07
+        # 3 619 Seeding-Versionen ungetaggt.
+        if tournament_type == "Tournament"
           tournament&.organizer_type == "Region" ? tournament.organizer_id : tournament&.region_id
         elsif tournament_type == "Party"
           tournament&.league&.organizer_type == "Region" ? tournament.league.organizer_id : nil
@@ -46,7 +50,17 @@ module RegionTaggable
     when LeagueTeam
       league&.organizer_type == "Region" ? league.organizer_id : nil
     when Game
-      tournament&.organizer_type == "Region" ? tournament.organizer_id : tournament&.region_id
+      # `tournament` ist hier faktisch polymorph: `Party has_many :games, as: :tournament`
+      # setzt tournament_type = "Party", waehrend `belongs_to :tournament` in game.rb NICHT
+      # polymorph deklariert ist. Wer blind `tournament.organizer_type` aufruft, trifft bei
+      # Liga-Spielen eine Party — die kennt kein organizer_type (NoMethodError, in Phase 47-01
+      # ueber 13 PartyTest-Faelle sichtbar geworden). Deshalb ueber tournament_type gehen.
+      if tournament_type == "Party"
+        league = Party.find_by(id: tournament_id)&.league
+        (league&.organizer_type == "Region") ? league.organizer_id : nil
+      else
+        (tournament&.organizer_type == "Region") ? tournament.organizer_id : tournament&.region_id
+      end
     when Player
       # For players, we need to determine the primary region
       # This could be the region of their primary club or most recent participation
@@ -54,6 +68,13 @@ module RegionTaggable
       primary_club&.region_id
     when SeasonParticipation
       club&.region_id
+    when PlayerRanking
+      # Direktes belongs_to :region — die Spalte traegt den Wert bereits.
+      region_id
+    when TournamentCc
+      # branch_cc ist optional; ohne Kette bleibt es bei nil (der FK-Guard in
+      # LocalProtector verwirft ohnehin, was nicht auf eine echte Region zeigt).
+      branch_cc&.region_cc&.region_id
     end
   end
 

@@ -1,6 +1,24 @@
 module LocalProtector
   extend ActiveSupport::Concern
 
+  # Modelle, die als Ganzes keiner Region angehoeren (Phase 47-02).
+  #
+  # Ihre Versionen tragen `global_context = true` statt einer nichtssagenden NULL.
+  # **Am Sync aendert das nichts:** `Version.for_region` laesst
+  # `region_id IS NULL OR region_id = ? OR global_context = TRUE` passieren — NULL und TRUE
+  # sind dort gleichwertig. Der Gewinn ist diagnostisch: eine NULL bedeutet kuenftig "noch
+  # nicht eingeordnet" und nicht mehr "vielleicht global, vielleicht vergessen".
+  #
+  # Das ist kein Widerspruch zur Phase-2-Entscheidung. Dort ging es um die abgeleitete
+  # Methode `global_context?`, die fuer Turniere/Ligen/Player international blind ist und
+  # deshalb nicht zur Schreibzeit-Quelle werden darf. Diese Liste leitet nichts ab, sie
+  # stellt fest: `Video` haengt an einer `international_source` (UMB/Kozoom/YouTube),
+  # `InternationalSource` ist per Definition international, die uebrigen sind
+  # verbandsuebergreifende Stammdaten.
+  GLOBALLY_SCOPED_MODELS = %w[
+    Video InternationalSource TournamentPlan DisciplineCc GroupCc
+  ].freeze
+
   # Gueltige Region-IDs fuer den Version-Stempel (Phase 47-01).
   #
   # versions.region_id hat einen Fremdschluessel auf regions; ein Stempel mit
@@ -122,7 +140,11 @@ module LocalProtector
         # globalen Regionen false; faktische Quelle ist der Task update_all_region_id.
         # Commit f9bdc53d guardet Derivation-Retag genau gegen diese stille Regression.
         global_context: lambda { |record|
-          record.has_attribute?(:global_context) ? record.global_context : nil
+          if LocalProtector::GLOBALLY_SCOPED_MODELS.include?(record.class.base_class.name)
+            true
+          elsif record.has_attribute?(:global_context)
+            record.global_context
+          end
         }
       }
     ) unless Carambus.config.carambus_api_url.present?
