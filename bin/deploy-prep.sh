@@ -26,10 +26,11 @@ if [ -z "$SCENARIO" ]; then
   exit 1
 fi
 
-# Pfade auflösen: bin/deploy-prep.sh lebt in carambus_master/bin/
+# Pfade auflösen: relativ zu dem Checkout, in dem dieses Skript liegt (bin/deploy-prep.sh).
+# Funktioniert aus jedem Szenario-Checkout — es gibt keinen ausgezeichneten Master-Checkout.
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-MASTER_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
-BASE_DIR="$(cd "$MASTER_DIR/.." && pwd)"
+CHECKOUT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+BASE_DIR="$(cd "$CHECKOUT_DIR/.." && pwd)"
 
 DATA_DIR="$BASE_DIR/carambus_data"
 SCENARIO_DIR="$DATA_DIR/scenarios/$SCENARIO"
@@ -43,7 +44,7 @@ fi
 
 if [ ! -d "$TARGET_DIR" ]; then
   echo "❌ Scenario-Repo nicht gefunden: $TARGET_DIR"
-  echo "   (erwartet als Geschwister von carambus_master)"
+  echo "   (erwartet als Geschwister dieses Checkouts: $CHECKOUT_DIR)"
   exit 1
 fi
 
@@ -52,9 +53,9 @@ if [ ! -d "$TARGET_DIR/config/deploy" ]; then
   exit 1
 fi
 
-# Schritt 1: Re-Generate production configs (im carambus_master)
+# Schritt 1: Re-Generate production configs (im eigenen Checkout)
 echo "📋 Step 1: Re-Generate production configs für $SCENARIO …"
-cd "$MASTER_DIR"
+cd "$CHECKOUT_DIR"
 bundle exec rake "scenario:generate_configs[$SCENARIO,production]"
 
 # Schritt 2: Stage-File ins Scenario-Repo kopieren

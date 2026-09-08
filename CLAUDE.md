@@ -459,7 +459,7 @@ zerlegt (~500 Z., 11 Syncer unter `app/services/region_cc/`, Commit `a510f3f5`).
 
 | Skill | Description | Path |
 |-------|-------------|------|
-| scenario-management | Manages multi-tenant deployment workflow for Carambus project with multiple git checkouts. Use when working with carambus_master, carambus_bcw, carambus_phat, or carambus_api directories, when modifying code, committing changes, or when user mentions scenarios, deployments, or debugging mode. | `.agents/skills/scenario-management/SKILL.md` |
+| scenario-management | Regelt die Arbeit in den mehreren Carambus-Checkouts (carambus_bcw, carambus_api, carambus_phat, carambus_nbv, carambus_gu) — ein Repository, mehrere gleichberechtigte Arbeitsverzeichnisse. Use when modifying code, committing, creating feature branches, coordinating between scenarios, or when the user mentions scenarios or deployments. | `.agents/skills/scenario-management/SKILL.md` |
 | extend-before-build | When adding a feature/addon to an existing codebase, prefer extending existing structures (legacy paths, predicates, lifecycles) with small guards over building parallel state machines. Refactoring for quality can come later. Use whenever introducing discipline-specific behavior, scoring rules, multiset variants, or any feature that overlaps with the legacy karambol path. | `.agents/skills/extend-before-build/SKILL.md` |
 | hex-to-token-migration | Migrates hardcoded color hex (`#rgb`/`#rrggbb`), `<style>` blocks and inline `style="…color…"` in UI code to Tailwind design-token utilities with class-based dark mode. Use when migrating an admin/UI view or CSS file off hardcoded colors, or when `rake ui:no_hardcoded_hex` flags a new violation. | `.agents/skills/hex-to-token-migration/SKILL.md` |
 
