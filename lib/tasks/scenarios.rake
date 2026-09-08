@@ -369,7 +369,7 @@ namespace :scenario do
   # 2026-04-27: Bot-Block-Snippet einmalig pro Server in /etc/nginx/conf.d/ installieren.
   # Definiert die globale `map $http_user_agent $carambus_block_bot { ... }`, die von
   # allen Scenario-Server-Blöcken über `if ($carambus_block_bot)` referenziert wird.
-  # Quelle: carambus_master/templates/nginx/carambus_bot_block.conf
+  # Quelle: templates/nginx/carambus_bot_block.conf (im eigenen Checkout)
   # Per-Scenario-Opt-Out: bot_block_enabled: false in config.yml setzen (z. B. carambus.de).
   desc "Install /etc/nginx/conf.d/carambus_bot_block.conf snippet on a scenario's production server"
   task :install_bot_block, [:scenario_name, :environment] => :environment do |t, args|
@@ -518,11 +518,13 @@ namespace :scenario do
     end
   end
 
+  # Templates liegen im EIGENEN Checkout (git-tracked unter templates/), nicht bei einem
+  # Nachbarverzeichnis. Dateirelativ aufgeloest (lib/tasks/ -> Rails-Root -> templates/),
+  # damit die Methode auch ausserhalb eines vollen Rails-Kontexts korrekt aufloest.
+  # v0.3.5 / Phase 11: zeigte frueher auf carambus_master/templates — die Aufloesung brach,
+  # sobald dieser Checkout nicht mehr als Nachbar existierte.
   def templates_path
-    @templates_path ||= begin
-      load File.expand_path('../carambus_env.rb', __dir__) unless defined?(CarambusEnv)
-      File.join(CarambusEnv.base_path, 'carambus_master', 'templates')
-    end
+    @templates_path ||= File.expand_path('../../templates', __dir__)
   end
 
   # Region-Shortname fuer den Datenfilter (cleanup:remove_non_region_records).
