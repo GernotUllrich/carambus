@@ -556,6 +556,43 @@ image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9"
     @cc_selector_seasons = nil
   end
 
+  # Die Sparte einer Turnier-Detailseite als BranchCc.
+  #
+  # Warum ueber die Detailseite und nicht ueber den Link: Die Turnierliste wird als
+  # "Alle Sparten" geholt (`einzel_url` unten traegt keine branchId), und die Zeilen-Links
+  # tragen die branchId deshalb nicht — an der echten NBV-Liste 2025/2026
+  # (`test/fixtures/html/tournament_list_nbv_2025_2026.html`) ist Position 1 des
+  # `p=`-Parameters ueber ALLE 61 Zeilen leer. Gefuellt ist sie nur in den Tab-Links
+  # (`p=20-6-...` Pool, `-7-` Snooker, `-10-` Karambol, `-8-` Kegel).
+  #
+  # Die Detailseite dagegen nennt die Sparte im Klartext ("Sparte" | "Karambol"), und das
+  # ist der BranchCc-NAME: `scrape_single_tournament_public` legt BranchCc-Records mit genau
+  # dem Tab-Text als Namen an (siehe unten), und `league_team.rb:40` mappt "Sparte" ebenfalls
+  # auf `branch_cc.name`.
+  #
+  # `context` MUSS in den Lookup: cc_id und Name sind nur je Kontext eindeutig.
+  #
+  # Ohne die Zuordnung bleibt die create-Version des TournamentCc dauerhaft ungetaggt —
+  # `find_associated_region_id` leitet ueber `branch_cc -> region_cc -> region` ab
+  # (Prod-Messung 2026-09-09: 1 420 ungetaggte TournamentCc-Versionen).
+  def branch_cc_from_tournament_doc(tournament_doc)
+    return nil if tournament_doc.blank?
+
+    row = tournament_doc.css("aside table.silver tr").find do |tr|
+      tr.css("td")[0]&.text&.strip == "Sparte"
+    end
+    branch_name = row&.css("td")&.[](1)&.text&.strip
+    return nil if branch_name.blank?
+
+    # Ohne Kontext KEIN Lookup: `where(context: nil, ...)` wuerde auf kontextlose Records
+    # anderer Herkunft treffen und einen falschen Branch liefern — und ein falsches region_id
+    # laesst die Version lautlos aus dem Strom der richtigen Region fallen.
+    ctx = region_cc&.context
+    return nil if ctx.blank?
+
+    BranchCc.where(context: ctx, name: branch_name).first
+  end
+
   # crape_single_tournament_public
   def scrape_single_tournament_public(season, opts = {})
     unless cc_season_available?(season)
@@ -692,6 +729,13 @@ image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9"
       # NBV-Records ohne season, davon 55 aus der laufenden Saison 2026/2027. Nur setzen, wenn
       # eine Saison vorliegt, damit ein bereits korrekter Wert nicht durch nil ersetzt wird.
       tc.assign_attributes(season: season.name) if season&.name.present?
+      # VOR dem Save: PaperTrail wertet das Meta beim Schreiben aus, die Kette muss also
+      # schon in der create-Version stehen. `tournament_doc` liegt hier bereits vor (oben
+      # geholt), es entsteht kein zusaetzlicher Request und kein zusaetzlicher Schreibvorgang.
+      # `if present?` wie bei der Saison darueber: ein bereits korrekter Wert (z. B. vom
+      # Haupt-Syncer, region_cc/tournament_syncer.rb:284) darf nicht durch nil ersetzt werden.
+      tc_branch_cc = branch_cc_from_tournament_doc(tournament_doc)
+      tc.assign_attributes(branch_cc: tc_branch_cc) if tc_branch_cc.present?
       tc.save
       # tournament known but no cc entry yet?
       # Mapping primär über die cc_id-Verknüpfung (tc) statt über den Titel — Titel-Mapping
@@ -1155,7 +1199,21 @@ firstname: #{firstname}, lastname: #{lastname}, ba_id: #{should_be_ba_id}, club_
           tournament_doc = Nokogiri::HTML(tournament_html)
           
           # Erstelle/Update TournamentCc
-          tc = TournamentCc.where(cc_id: tournament_cc_id, context: region_cc.context).first_or_create(name: name)
+          # first_or_INITIALIZE, nicht first_or_create: der Branch muss vor dem INSERT gesetzt
+          # sein, sonst bleibt die create-Version ungetaggt (siehe
+          # branch_cc_from_tournament_doc). Ein nachgeschaltetes update waere eine ZWEITE
+          # Version fuer denselben Record — also zusaetzlicher Sync-Verkehr an jede Instanz.
+          tc = TournamentCc.where(cc_id: tournament_cc_id, context: region_cc.context).first_or_initialize
+          if tc.new_record?
+            # Nur der Neuanlage-Zweig — verhaltensgleich zum vorherigen `first_or_create(name:)`,
+            # das bestehende Records ebenfalls nicht angefasst hat. Ein Schreibvorgang auf einen
+            # BESTEHENDEN Record waere eine zusaetzliche Version und damit zusaetzlicher
+            # Sync-Verkehr an jede Instanz.
+            tc.assign_attributes(name: name)
+            tc_branch_cc = branch_cc_from_tournament_doc(tournament_doc)
+            tc.assign_attributes(branch_cc: tc_branch_cc) if tc_branch_cc.present?
+            tc.save
+          end
           
           # Erstelle/Update Tournament
           tournament = Tournament.where(season: current_season, organizer: self, title: name).first

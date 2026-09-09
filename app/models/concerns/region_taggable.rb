@@ -68,6 +68,12 @@ module RegionTaggable
       primary_club&.region_id
     when SeasonParticipation
       club&.region_id
+    when ClubLocation
+      # Ueber den Club, nicht ueber die Location: `Location` liefert nur bei
+      # `organizer_type == "Region"` eine Region (Prod-Messung 2026-09-09: 5 von 55
+      # Location-Versionen blieben deshalb nil). Der Club-Weg deckt alle 88 gemessenen
+      # ClubLocation-Faelle ab.
+      club&.region_id
     when PlayerRanking
       # Direktes belongs_to :region — die Spalte traegt den Wert bereits.
       region_id

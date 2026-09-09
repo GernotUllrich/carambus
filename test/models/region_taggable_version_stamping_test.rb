@@ -87,6 +87,150 @@ class RegionTaggableVersionStampingTest < ActiveSupport::TestCase
       "ausgewertet, waehrend der Record noch steht"
   end
 
+  # --- 47-04 AC-1: ClubLocation ------------------------------------------
+  #
+  # Die Prod-Messung vom 2026-09-09 fand 88 ungetaggte ClubLocation-Versionen —
+  # ALLE mit bereits geloeschtem Record. `ClubLocation` ist `RegionTaggable`,
+  # hatte aber keinen Zweig in `find_associated_region_id` und fiel deshalb in
+  # den `nil`-Rueckgabewert der `case`-Anweisung (kein `else`-Zweig).
+
+  test "47-04 AC-1 ClubLocation wird ueber ihren Club getaggt (create)" do
+    club_location = ClubLocation.create!(club: @club, location: build_fresh_location)
+
+    assert_equal @club.region_id, club_location.find_associated_region_id,
+      "Testvoraussetzung: die Ableitung fuehrt ueber den Club zur Region"
+
+    version = PaperTrail::Version.where(
+      item_type: "ClubLocation", item_id: club_location.id, event: "create"
+    ).last
+    assert_not_nil version, "es muss eine create-Version geben"
+    assert_equal @club.region_id, version.region_id,
+      "47-04 AC-1: schon die create-Version traegt die Region des Clubs"
+  end
+
+  test "47-04 AC-1 ClubLocation wird auch bei update und destroy getaggt" do
+    club_location = ClubLocation.create!(club: @club, location: build_fresh_location)
+
+    club_location.update!(status: "closed")
+    update_version = PaperTrail::Version.where(
+      item_type: "ClubLocation", item_id: club_location.id, event: "update"
+    ).last
+    assert_not_nil update_version, "es muss eine update-Version geben"
+    assert_equal @club.region_id, update_version.region_id,
+      "47-04 AC-1: auch die update-Version traegt die Region"
+
+    club_location.destroy!
+    destroy_version = PaperTrail::Version.where(
+      item_type: "ClubLocation", item_id: club_location.id, event: "destroy"
+    ).last
+    assert_not_nil destroy_version, "es muss eine destroy-Version geben"
+    assert_equal @club.region_id, destroy_version.region_id,
+      "47-04 AC-1: der destroy-Fall ist der gemessene — alle 88 ungetaggten " \
+      "ClubLocation-Versionen auf Prod hatten einen bereits geloeschten Record"
+  end
+
+  test "47-04 ClubLocation ohne Region am Club bleibt ungetaggt, ohne Fehler" do
+    regionless_club = Club.create!(name: "Verein ohne Region", shortname: "VOR")
+    club_location = nil
+
+    assert_nothing_raised do
+      club_location = ClubLocation.create!(club: regionless_club, location: build_fresh_location)
+    end
+
+    assert_nil club_location.find_associated_region_id,
+      "ohne Region am Club gibt es nichts abzuleiten"
+    version = PaperTrail::Version.where(
+      item_type: "ClubLocation", item_id: club_location.id, event: "create"
+    ).last
+    assert_nil version.region_id, "die Version bleibt ungetaggt — stillschweigend, aber fehlerfrei"
+  end
+
+  # --- 47-04 AC-2/AC-3: der Branch der beiden TournamentCc-Nebenpfade ----
+  #
+  # Der Haupt-Syncer (region_cc/tournament_syncer.rb:284) schreibt branch_cc_id im
+  # ersten update. Die beiden Nebenpfade in region.rb taten das nicht — ihre
+  # create-Versionen blieben deshalb dauerhaft ungetaggt. Der Branch steht NICHT im
+  # Zeilen-Link (die Liste wird als "Alle Sparten" geholt), wohl aber im Klartext
+  # auf der Detailseite, die beide Pfade ohnehin schon geladen haben.
+
+  test "47-04 AC-2 die Sparte der Detailseite loest auf den BranchCc auf" do
+    region_cc = RegionCc.create!(region: @region, name: "ZZ47 RegionCc B", cc_id: 947_101,
+      context: "zz47")
+    branch_cc = BranchCc.create!(region_cc: region_cc, name: "Karambol", cc_id: 947_102,
+      context: "zz47", discipline: disciplines(:carom_3band))
+    @region.stub(:region_cc, region_cc) do
+      doc = Nokogiri::HTML(file_fixture_html("tournament_details_nbv_870.html"))
+
+      assert_equal branch_cc, @region.branch_cc_from_tournament_doc(doc),
+        "47-04 AC-2: die echte NBV-Detailseite nennt 'Sparte | Karambol' — das ist der BranchCc-Name"
+    end
+  end
+
+  test "47-04 AC-2 der Lookup ist kontextabhaengig" do
+    region_cc = RegionCc.create!(region: @region, name: "ZZ47 RegionCc C", cc_id: 947_111,
+      context: "zz47c")
+    BranchCc.create!(region_cc: region_cc, name: "Karambol", cc_id: 947_112,
+      context: "ein_anderer_context", discipline: disciplines(:carom_3band))
+    @region.stub(:region_cc, region_cc) do
+      doc = Nokogiri::HTML(file_fixture_html("tournament_details_nbv_870.html"))
+
+      assert_nil @region.branch_cc_from_tournament_doc(doc),
+        "Name und cc_id sind nur JE KONTEXT eindeutig — ein Treffer im falschen Kontext " \
+        "darf nicht zurueckkommen"
+    end
+  end
+
+  test "47-04 AC-2 ohne region_cc gibt es gar keinen Lookup" do
+    # BranchCc verlangt ein region_cc — aber KEINEN context. Genau diese Konstellation
+    # ist die Falle: ein kontextloser Record, den ein ungeguardeter Lookup traefe.
+    fremdes_region_cc = RegionCc.create!(region: @dbu, name: "ZZ47 RegionCc E", cc_id: 947_130)
+    branch_cc_ohne_kontext = BranchCc.create!(region_cc: fremdes_region_cc, name: "Karambol",
+      cc_id: 947_131, discipline: disciplines(:carom_3band))
+    assert_nil branch_cc_ohne_kontext.context,
+      "Testvoraussetzung: dieser Record traegt keinen Kontext"
+
+    @region.stub(:region_cc, nil) do
+      doc = Nokogiri::HTML(file_fixture_html("tournament_details_nbv_870.html"))
+
+      assert_nil @region.branch_cc_from_tournament_doc(doc),
+        "ohne Kontext darf NICHT gesucht werden — `where(context: nil, ...)` traefe " \
+        "kontextlose Records fremder Herkunft und lieferte einen falschen Branch"
+    end
+  end
+
+  test "47-04 AC-3 die Turnierliste traegt den Branch NICHT im Zeilen-Link" do
+    doc = Nokogiri::HTML(file_fixture_html("tournament_list_nbv_2025_2026.html"))
+
+    tabs = doc.css("article ul.tabstrip li a").map { |a| a.attributes["href"].value.split("p=")[1].split("-")[1] }
+    assert_equal ["", "6", "7", "10", "8"], tabs,
+      "die Tab-Links tragen die branchId an Position 1 — der erste Tab ist 'Alle Sparten'"
+
+    rows = doc.css("article table.silver")[1].css("tr").to_a[2..]
+    hrefs = rows.filter_map { |tr| tr.css("a")[0]&.attributes&.[]("href")&.value }
+    positions = hrefs.map { |href| href.split("p=")[1].to_s.split("-")[1] }
+    assert positions.size >= 60, "die Fixture muss die echte Liste sein (#{positions.size} Zeilen)"
+    assert_equal [""], positions.uniq,
+      "47-04 AC-3: ueber ALLE Zeilen ist Position 1 leer — deshalb kann der Branch nicht " \
+      "aus dem Zeilen-Link kommen, sondern nur aus der Detailseite"
+  end
+
+  test "47-04 AC-2 ein TournamentCc mit Branch ist schon in der create-Version getaggt" do
+    region_cc = RegionCc.create!(region: @region, name: "ZZ47 RegionCc D", cc_id: 947_121,
+      context: "zz47d")
+    branch_cc = BranchCc.create!(region_cc: region_cc, name: "ZZ47 Branch D", cc_id: 947_122,
+      context: "zz47d", discipline: disciplines(:carom_3band))
+
+    tcc = TournamentCc.create!(branch_cc: branch_cc, name: "ZZ47 TurnierCc D", cc_id: 947_123)
+
+    create_version = PaperTrail::Version.where(
+      item_type: "TournamentCc", item_id: tcc.id, event: "create"
+    ).last
+    assert_not_nil create_version, "es muss eine create-Version geben"
+    assert_equal @region.id, create_version.region_id,
+      "47-04 AC-2: die Kette muss schon beim create stehen — ein spaeter nachgetragener " \
+      "branch_cc taggt diese Version nicht mehr"
+  end
+
   # --- 47-02 AC-1/AC-2: der Liga-Pfad ------------------------------------
 
   test "47-02 AC-1 Liga-Spiel leitet seine Region ueber die Party ab" do
@@ -266,6 +410,21 @@ class RegionTaggableVersionStampingTest < ActiveSupport::TestCase
   end
 
   private
+
+  def file_fixture_html(name)
+    File.read(Rails.root.join("test/fixtures/html", name))
+  end
+
+  # Jede ClubLocation braucht eine EIGENE Location: das Modell validiert
+  # club_id auf Eindeutigkeit im Scope location_id (club_location.rb:24).
+  def build_fresh_location
+    Location.create!(
+      name: "Testlokal #{SecureRandom.hex(4)}",
+      md5: SecureRandom.hex(16),
+      organizer: @region,
+      organizer_type: "Region"
+    )
+  end
 
   def create_region_tournament(organizer: @region, organizer_type: nil, title: nil)
     Tournament.create!(
