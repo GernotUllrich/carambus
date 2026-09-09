@@ -19,6 +19,10 @@ const Keyboard = {
     altPressed: false
   },
 
+  // Wurde an diesem Geraet eine ECHTE Taste gedrueckt? Dann gibt es eine physische
+  // Tastatur und die Bildschirmtastatur haelt sich heraus. Siehe _watchPhysicalKeyboard.
+  physicalKeyboardSeen: false,
+
   init() {
     // Create main elements
     Keyboard.elements.main = document.createElement("div");
@@ -38,6 +42,10 @@ const Keyboard = {
     document.querySelector('body').appendChild(Keyboard.elements.main);
 
     document.addEventListener('click', function (event) {
+      // Wer eine echte Tastatur hat, will die Bildschirmtastatur nicht — sie deckt
+      // das halbe Formular ab. Ein Klick ins Feld oeffnet sie dann gar nicht erst.
+      if (Keyboard.physicalKeyboardSeen) return;
+
       if (event.target.matches('input[type="email"]')) {
         Keyboard._setupKeyboard("alfa");
         Keyboard.selectedElement = event.target;
@@ -82,6 +90,54 @@ const Keyboard = {
 
       }
 
+    }, true);
+
+    Keyboard._watchPhysicalKeyboard();
+  },
+
+  // Erkennt eine physische Tastatur — nicht durch Raten, sondern durch Zusehen.
+  //
+  // Es gibt keine Web-API, die verlaesslich sagt, ob eine Tastatur angeschlossen ist:
+  // `navigator.keyboard` liefert nur ein Layout (und existiert auch ohne Geraet),
+  // `pointer: coarse` und `maxTouchPoints` sagen etwas ueber Touch, nichts ueber
+  // Tasten. Auch die Absender-IP taugt nicht: Die Scoreboards liegen im selben
+  // 192.168.2.x wie jedes Handy im Vereins-WLAN, und der Kiosk-Browser meldet sich
+  // ohnehin als 127.0.0.1, weil er auf dem Server selbst laeuft.
+  //
+  // Wer tippt, hat eine Tastatur — das ist keine Heuristik, sondern Beobachtung.
+  // `isTrusted` trennt dabei sauber: vom Browser erzeugte Events sind true, per
+  // `new KeyboardEvent()` erzeugte (wie in _fireAltSpaceEvent) immer false. Die
+  // Bildschirmtastatur kann sich also nicht selbst wegblenden.
+  _watchPhysicalKeyboard() {
+    // sessionStorage, nicht localStorage: Die Erkennung soll einen Reload ueberleben,
+    // aber nicht das Geraet fuer immer festlegen. Ein Kiosk, an den heute jemand eine
+    // Tastatur haengt, ist morgen wieder ein Kiosk.
+    try {
+      if (sessionStorage.getItem("carambus_physical_keyboard") === "1") {
+        Keyboard.physicalKeyboardSeen = true;
+      }
+    } catch (e) {
+      // Privater Modus oder blockierte Speicherung: dann eben je Seitenaufruf neu.
+    }
+
+    document.addEventListener("keydown", function (event) {
+      if (!event.isTrusted) return;
+      if (Keyboard.physicalKeyboardSeen) return;
+
+      Keyboard.physicalKeyboardSeen = true;
+      try {
+        sessionStorage.setItem("carambus_physical_keyboard", "1");
+      } catch (e) {
+        // s.o. — die Erkennung gilt dann nur fuer diese Seite.
+      }
+
+      // Steht sie gerade offen, verschwindet sie sofort. Bewusst nicht ueber close():
+      // das setzt zusaetzlich die Event-Handler zurueck und haengt an zwei freien
+      // Variablen (oninput/onclose), die nur zufaellig auf window aufloesen. Hier
+      // reicht Ausblenden — der Wert im Feld bleibt, wo er ist.
+      if (Keyboard.elements.main) {
+        Keyboard.elements.main.classList.add("keyboard--hidden");
+      }
     }, true);
   },
 
