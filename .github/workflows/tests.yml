@@ -97,10 +97,17 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
     
+    # Bewusst NICHT .ruby-version (3.2.1), sondern 3.2.2 — nur fuer diesen Job.
+    # Ruby 3.2.1 hat einen sporadischen Speicherfehler, der bei genug Parsing-Last
+    # zuschlaegt: brakeman stirbt dort mit SIGABRT, in nur ~2 von 6 Laeufen kommt ein
+    # Ergebnis (gemessen 2026-09-09). Unter 3.2.2 laufen alle Versuche durch.
+    # Der lint-Job bootet die Anwendung nicht — keine DB, kein Rails, kein
+    # stimulus_reflex —, deshalb ist die abweichende Version hier gefahrlos.
+    # Der test-Job bleibt bewusst auf .ruby-version, also auf dem Produktionsstand.
     - name: Set up Ruby
       uses: ruby/setup-ruby@v1
       with:
-        ruby-version: .ruby-version
+        ruby-version: 3.2.2
         bundler-cache: true
     
     # Hartes Gate: blockt neue hartkodierte Farb-Hex (docs/ui-conventions.md).
@@ -108,12 +115,18 @@ jobs:
     - name: UI-Guardrail (keine neuen hartkodierten Farb-Hex)
       run: ruby bin/ui-hex-guard
     
-    # Ab hier bewusst NICHT blockierend — beides ist heute kein verwertbares
-    # Signal, soll aber sichtbar bleiben:
+    # Ab hier bewusst NICHT blockierend — beides ist Altlast, kein fehlendes Signal:
     #   standardrb: mehrere hundert Verstoesse im Bestandscode. Erst nach einem
     #     eigenen Aufraeum-Durchlauf (standardrb --fix) als Gate sinnvoll.
-    #   brakeman:   stuerzt derzeit im Prism-Parser mit SIGABRT ab (Segfault in
-    #     prism-1.6.0), liefert also gar keinen Befund. Kein Sicherheitsurteil.
+    #   brakeman:   liefert seit 2026-09-09 wieder ein echtes Urteil (78 Befunde:
+    #     18 High, 27 Medium, 33 Weak). Die Befunde sind noch nicht gesichtet —
+    #     blockierend erst danach, sonst waere die CI nur rot statt aussagekraeftig.
+    #
+    # Lokal crasht brakeman weiterhin, solange 3.2.1 aktiv ist. Ausweg:
+    #   RBENV_VERSION=3.2.2 brakeman --no-pager
+    # Die frueheren Diagnosen an dieser Stelle waren falsch: es liegt weder an prism
+    # (--no-prism crasht ebenso) noch an brakeman (7.1.0 laeuft unter 3.2.2 sauber),
+    # sondern am Interpreter 3.2.1. Belege: .paul/phases/13-sicherheitsurteil/
     - name: Run Standard (nicht blockierend)
       run: bundle exec standardrb --format progress
       continue-on-error: true
