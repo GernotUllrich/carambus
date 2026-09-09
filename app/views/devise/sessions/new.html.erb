@@ -1,3 +1,14 @@
+<%# Virtuelle Tastatur fuer die Anmeldung am Scoreboard (2026-09-10).
+
+    Am Kiosk haengt keine Tastatur: Wer sich vom Scoreboard-Benutzer abmeldet, kam
+    ohne dieses Skript nicht wieder hinein. Das Keyboard bindet sich von selbst an
+    input[type=email|password|text|number] — hier ist nichts weiter zu verdrahten.
+
+    BEWUSST nur hier und in den Scoreboard-Views, nicht im Layout: Auf einem Geraet
+    MIT Tastatur springt die Bildschirmtastatur bei jedem Klick ins Feld auf und
+    steht im Weg. Der Cache-Buster folgt dem Muster der Scoreboard-Views. %>
+<script src="/onscreen-keyboard.js?v=<%= Time.current.to_i %>"></script>
+
 <% content_for :form_block do %>
   <div class="mb-4 text-center">
     <h2 class="mb-px"><%= t('.sign_in') %></h2>
