@@ -21,7 +21,23 @@ set -euo pipefail
 # ohne die echte Sperrliste eines laufenden Servers anzufassen.
 BLOCKLIST=${BLOCKLIST:-/etc/iptables/blocklist.v4}
 CHAIN=carambus-blocklist
-ACCESS_LOG=${ACCESS_LOG:-/var/log/carambus_bcw/access.log}
+
+# Das Zugriffslog haengt am Szenario, und das Szenario steht im eigenen Pfad:
+# auf dem Server liegt dieses Skript unter /var/www/<scenario>/current/bin/.
+# Dateirelativ ableiten statt fest eintragen — ein hartkodiertes carambus_bcw
+# waere in jedem anderen Checkout falsch, und das Repo ist fuer alle dasselbe
+# (vgl. Phase 11: Werkzeugpfade dateirelativ aufloesen).
+if [ -z "${ACCESS_LOG:-}" ]; then
+    _dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+    _scenario=$(printf '%s' "$_dir" | sed -n 's#^/var/www/\([^/]*\)/.*#\1#p')
+    for _c in "/var/log/${_scenario}/access.log" \
+              "/var/www/${_scenario}/shared/log/nginx.access.log"; do
+        [ -n "$_scenario" ] && [ -r "$_c" ] && { ACCESS_LOG=$_c; break; }
+    done
+    # Kein Rateweg als Rueckfall: lieber sagen, dass nichts gefunden wurde, als
+    # stillschweigend das Log eines fremden Szenarios auszuwerten.
+    ACCESS_LOG=${ACCESS_LOG:-}
+fi
 
 # Verkehrsquellen, die nie gesperrt werden dürfen.
 #
@@ -79,6 +95,10 @@ Sperrliste pflegen (Kette $CHAIN)
   $0 add <ip|cidr>     sperren (Datei schreiben, dann neu laden)
   $0 remove <ip|cidr>  entsperren
 
+Das Zugriffslog wird aus dem Pfad dieses Skripts abgeleitet
+(/var/www/<szenario>/current/bin/). Läuft es woanders:
+  ACCESS_LOG=/pfad/zum/access.log $0 suggest
+
 Beispiele:
   $0 suggest 30
   $0 add 203.0.113.7
@@ -119,7 +139,11 @@ cmd_status() {
     iptables -S ufw-user-input 2>/dev/null | grep -- "-j $CHAIN" || echo "FEHLT — die Kette wird nicht durchlaufen!"
     echo -n "Plugin: "
     [ -x /usr/share/netfilter-persistent/plugins.d/35-blocklist ] && echo "35-blocklist vorhanden" || echo "FEHLT"
-    echo "Log:    $ACCESS_LOG ($( [ -r "$ACCESS_LOG" ] && wc -l < "$ACCESS_LOG" || echo '?' ) Zeilen)"
+    if [ -n "$ACCESS_LOG" ] && [ -r "$ACCESS_LOG" ]; then
+        echo "Log:    $ACCESS_LOG ($(wc -l < "$ACCESS_LOG") Zeilen)"
+    else
+        echo "Log:    nicht gefunden — fuer 'suggest' ACCESS_LOG=<pfad> setzen"
+    fi
 }
 
 cmd_list() {
@@ -130,7 +154,14 @@ cmd_list() {
 
 cmd_suggest() {
     local days=${1:-30}
-    [ -r "$ACCESS_LOG" ] || { echo "Kein lesbares Zugriffslog: $ACCESS_LOG" >&2; exit 1; }
+    if [ -z "$ACCESS_LOG" ] || [ ! -r "$ACCESS_LOG" ]; then
+        echo "Kein lesbares Zugriffslog gefunden." >&2
+        echo "Gesucht unter /var/log/<szenario>/access.log und" >&2
+        echo "/var/www/<szenario>/shared/log/nginx.access.log, abgeleitet aus dem" >&2
+        echo "Pfad dieses Skripts. Laeuft es ausserhalb von /var/www/<szenario>/," >&2
+        echo "den Pfad angeben:  ACCESS_LOG=/pfad/zum/access.log $0 suggest" >&2
+        exit 1
+    fi
 
     local cutoff
     cutoff=$(date -d "-${days} days" +%Y%m%d 2>/dev/null) || { echo "Ungültige Tagesangabe: $days" >&2; exit 1; }
