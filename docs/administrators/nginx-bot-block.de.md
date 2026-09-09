@@ -132,6 +132,87 @@ curl -I -A "AhrefsBot/7.0" http://bc-wedel.duckdns.org:3131/   # → 403 Forbidd
 curl -I -A "Mozilla/5.0"   http://bc-wedel.duckdns.org:3131/   # → 200 OK
 ```
 
+## Die zweite Ebene: IP-Sperre in der Firewall
+
+Der Bot-Block filtert nach **Kennung** (User-Agent) und antwortet mit 403. Manche
+Besucher lassen sich damit nicht abwehren: wer eine Kennung fälscht, wer gar kein
+HTTP spricht (Portscans, SSH-Bruteforce), oder wer den 403 kassiert und trotzdem
+weiterhämmert. Dafür gibt es eine zweite Ebene — die iptables-Kette
+`carambus-blocklist`.
+
+| | Bot-Block (nginx) | Sperrliste (iptables) |
+|---|---|---|
+| Kriterium | User-Agent | Herkunfts-IP |
+| Antwort | 403 Forbidden | Paket verworfen, keine Antwort |
+| Reichweite | nur HTTP | jeder Port |
+| Pflege | Muster im conf.d-Snippet | `/etc/iptables/blocklist.v4` |
+| Geeignet für | Crawler, die sich zu erkennen geben | gezielte Angreifer, Scanner |
+
+**Suchmaschinen gehören NICHT in die IP-Sperrliste.** Googlebot und bingbot geben
+sich korrekt zu erkennen, der 403 des Bot-Blocks ist die richtige Antwort. Eine
+IP-Sperre träfe wechselnde Crawler-Netze und wäre Pflege ohne Ertrag.
+
+### Warum eine eigene Kette
+
+`/etc/iptables/rules.v4` gehört dem Ansible-Template
+(`roles/bootstrap/templates/rules.v4.j2`) und wird bei jedem Firewall-Lauf
+überschrieben. Eine dort eingetragene Sperre wäre beim nächsten Lauf weg — genau
+das ist auf bc-wedel beinahe passiert (Phase 14, 2026-09-09).
+
+Die Sperrliste liegt deshalb in `/etc/iptables/blocklist.v4`, die Ansible mit
+`force: no` **nie** anfasst, und wird vom netfilter-persistent-Plugin
+`35-blocklist` in die eigene Kette geladen:
+
+```
+INPUT → ufw-before-input → ufw-user-input → carambus-blocklist
+                                                    ↑
+                                    /etc/iptables/blocklist.v4
+```
+
+Der Sprung steht bewusst **vor** allen ACCEPT-Regeln.
+
+### Pflege
+
+`bin/blocklist.sh` läuft auf dem Server, nicht auf dem Entwicklungsrechner:
+
+```bash
+ssh <host> 'sudo /var/www/<scenario>/current/bin/blocklist.sh status'
+ssh <host> 'sudo /var/www/<scenario>/current/bin/blocklist.sh suggest 30'
+ssh <host> 'sudo /var/www/<scenario>/current/bin/blocklist.sh add 203.0.113.7'
+ssh <host> 'sudo /var/www/<scenario>/current/bin/blocklist.sh add 47.79.0.0/16'
+```
+
+`suggest` liest nur. Es wertet das Zugriffslog auf zwei Signale aus — Anfragepfade,
+die kein legitimer Client stellt (`.env`, `wp-admin`, `.git/` …), und absolute URLs
+auf einen **fremden** Host, also die Suche nach einem offenen Proxy.
+
+**Ein leeres Ergebnis ist der Normalfall**, nicht ein Fehler. Auf bc-wedel standen
+im gesamten Log von März bis September 2026 (55.796 Zeilen) genau 15 Proxy-Scans,
+jeder mit einem einzigen Treffer. Ein Host hinter einer Fritzbox mit zwei
+freigegebenen Ports sieht kaum Angriffsdruck.
+
+**Einzelne Treffer nicht sperren.** Ein Proxy-Test von einer Consumer-IP ist
+Hintergrundrauschen, und die Adresse gehört morgen jemand anderem. Eine Meldung
+wird erst interessant, wenn dieselbe Adresse mit vielen Treffern erscheint. Ganze
+Netze (`/16`) nur bei belegtem Muster.
+
+### Fallen
+
+- **`netfilter-persistent save` nicht zum Sichern benutzen.** Es ruft auch
+  `15-ip4tables` auf und überschreibt `rules.v4` mit dem laufenden Stand — danach
+  kollidiert jeder Ansible-Lauf damit. Immer erst die Datei schreiben, dann
+  `netfilter-persistent reload`. `bin/blocklist.sh` macht genau das.
+- **Vor dem ersten Firewall-Lauf auf einem Altsystem** die gewachsenen DROP-Einträge
+  nach `blocklist.v4` migrieren. Der Task „Seed blocklist file" legt die Datei aus
+  dem Template an (wenige IPs) und überschreibt sie wegen `force: no` **nie wieder** —
+  läuft Ansible zuerst, sind die alten Einträge dauerhaft weg. Der Migrationsbefehl
+  steht in `host_vars/<host>` im Ansible-Repo.
+- **Nicht nach Anfragevolumen sperren.** Die Top-IPs eines Vereinsservers sind die
+  eigenen Scoreboards, `127.0.0.1` und der eigene DSL-Anschluss mit wechselnden
+  Adressen. `bin/blocklist.sh` schließt private Netze aus und lehnt sie auch bei
+  `add` ab — die Prüfung von Hand bleibt trotzdem nötig, denn Vereinsmitglieder
+  kommen aus denselben Providernetzen wie der Anschluss des Vereinslokals.
+
 ## Troubleshooting
 
 ### `nginx -t` failt mit "unknown variable carambus_block_bot"
@@ -190,4 +271,14 @@ carambus_master/templates/nginx/nginx_conf.erb               ← ERB-Template (c
 carambus_master/lib/tasks/scenarios.rake                     ← install_bot_block + sync_nginx_conf
 carambus_data/scenarios/<name>/config.yml                    ← bot_block_enabled-Flag
 carambus_data/scenarios/<name>/production/nginx.conf         ← generiert
+```
+
+Für die zweite Ebene (IP-Sperre):
+
+```
+bin/blocklist.sh                                             ← Pflege der Sperrliste
+/etc/iptables/blocklist.v4                                   ← die Liste (Ansible fasst sie nicht an)
+/usr/share/netfilter-persistent/plugins.d/35-blocklist       ← lädt sie in die Kette
+~/DEV/ansible/roles/bootstrap/tasks/main.yml                 ← Firewall-Tasks (--tags firewall)
+~/DEV/ansible/roles/bootstrap/templates/rules.v4.j2          ← deklariert die Kette + Sprung
 ```
