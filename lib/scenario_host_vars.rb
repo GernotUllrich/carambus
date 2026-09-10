@@ -118,6 +118,9 @@ class ScenarioHostVars
 
     values["ipv6_firewall"] = section["ipv6_firewall"] if section.key?("ipv6_firewall")
     values["full_stack_managed"] = section["full_stack_managed"] if section.key?("full_stack_managed")
+    # Imager-Benutzer des Geraets (Plan 15-02): master.yml Play 1 verbindet als dieser, solange
+    # der Host nicht gebootstrapt ist. Fehlt er, gilt der Gruppenwert (group_vars/carambus_pi).
+    values["bootstrap_user"] = section["bootstrap_user"] if section.key?("bootstrap_user")
 
     # mDNS liefert fuer <name>.local auch die GUA, die rules.v6 droppt; ohne -4 laeuft jede
     # SSH-Verbindung erst in einen Timeout (ansible -m ping: 42 s statt 4 s, ansible@038da81).

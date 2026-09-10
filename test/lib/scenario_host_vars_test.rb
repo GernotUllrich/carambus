@@ -126,6 +126,17 @@ class ScenarioHostVarsTest < ActiveSupport::TestCase
       .key?("ansible_ssh_common_args")
   end
 
+  # --- bootstrap_user (Plan 15-02): Imager-Benutzer je Geraet, nur wenn gesetzt (Paar) -----------
+
+  test "bootstrap_user aus config.yml wird geschrieben" do
+    config = gu_config("ansible" => {"bootstrap_user" => "gullrich"})
+    assert_equal "gullrich", rendered_hash(config, existing: nil)["bootstrap_user"]
+  end
+
+  test "ohne bootstrap_user in config.yml bleibt der Schluessel weg (Gruppenwert gilt)" do
+    assert_not rendered_hash(gu_config, existing: GU_EXISTING).key?("bootstrap_user")
+  end
+
   # --- AC-2: Ansible-Schalter und Idempotenz ---------------------------------------------------
 
   test "die Ansible-Schalter werden mit ihrem Wert uebernommen, nicht aus config.yml erfunden" do
