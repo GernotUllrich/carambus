@@ -69,6 +69,19 @@ namespace :scenario do
     generate_configuration_files(scenario_name, environment)
   end
 
+  desc "Generate ~/DEV/ansible/host_vars/<inventory_name> from carambus_data/scenarios/<scenario>/config.yml (ANSIBLE_DIR overrides)"
+  task :generate_host_vars, [:scenario_name] => :environment do |task, args|
+    scenario_name = args[:scenario_name]
+
+    if scenario_name.nil?
+      puts "Usage: rake scenario:generate_host_vars[scenario_name]"
+      puts "Example: rake scenario:generate_host_vars[carambus_bcw]"
+      exit 1
+    end
+
+    exit 1 unless generate_host_vars(scenario_name)
+  end
+
   desc "Generate/merge encrypted credentials from carambus_data/secrets.yml per config.yml features"
   task :generate_credentials, [:scenario_name, :environment] => :environment do |task, args|
     scenario_name = args[:scenario_name]
@@ -527,6 +540,54 @@ namespace :scenario do
     @templates_path ||= File.expand_path('../../templates', __dir__)
   end
 
+  # Ansible-Checkout, in dessen host_vars/ generiert wird (Plan 15-01). ANSIBLE_DIR ueberschreibt.
+  def ansible_path
+    ENV['ANSIBLE_DIR'].presence || File.expand_path('~/DEV/ansible')
+  end
+
+  # host_vars/<inventory_name> aus config.yml (environments.production.ansible); die Logik steht in
+  # lib/scenario_host_vars.rb. Ein Konfigurationsfehler (z.B. Inventarname nicht im Inventar) bricht
+  # mit exit 1 ab — NICHT das Muster "Meldung auf stdout, exit 0" der uebrigen Generate.
+  # optional: true (Aufruf aus generate_configs) -> ein fehlender Ansible-Checkout ist nur ein Hinweis.
+  def generate_host_vars(scenario_name, optional: false)
+    load File.expand_path('../scenario_host_vars.rb', __dir__) unless defined?(ScenarioHostVars)
+
+    config_file = File.join(scenarios_path, scenario_name, 'config.yml')
+    unless File.exist?(config_file)
+      puts "Error: Scenario configuration not found: #{config_file}"
+      return false
+    end
+
+    inventory_file = File.join(ansible_path, 'hosts')
+    unless File.exist?(inventory_file)
+      puts "#{optional ? 'Hinweis' : 'Error'}: kein Ansible-Inventar unter #{inventory_file} " \
+           "(ANSIBLE_DIR setzen) — host_vars nicht erzeugt"
+      return optional
+    end
+
+    production = YAML.load_file(config_file).dig('environments', 'production')
+    inventory = File.read(inventory_file)
+    begin
+      name = ScenarioHostVars.new(scenario_name: scenario_name, production_config: production,
+                                  existing: nil, inventory: inventory).inventory_name
+      target = File.join(ansible_path, 'host_vars', name)
+      existing = File.exist?(target) ? File.read(target) : nil
+      content = ScenarioHostVars.new(scenario_name: scenario_name, production_config: production,
+                                     existing: existing, inventory: inventory).render
+    rescue ScenarioHostVars::Error => e
+      puts "❌ #{e.message}"
+      exit 1
+    end
+
+    if content == existing
+      puts "   Unchanged: #{target}"
+    else
+      File.write(target, content)
+      puts "   Generated: #{target}"
+    end
+    true
+  end
+
   # Region-Shortname fuer den Datenfilter (cleanup:remove_non_region_records).
   #
   # ⚠️ HIER STAND EIN HARTKODIERTES `|| 'NBV'`. Da KEINE config.yml das Feld `region_shortname`
@@ -662,6 +723,11 @@ namespace :scenario do
     # Generate env.production in environment directory (only for production)
     if environment == 'production'
       generate_env_production(scenario_config, env_config, env_dir)
+    end
+
+    # Ansible-host_vars (Plan 15-01) — nur fuer Szenarien mit Abschnitt `ansible:`.
+    if environment == 'production' && env_config['ansible']
+      generate_host_vars(scenario_name, optional: true)
     end
 
     puts "✅ Configuration files generated for #{scenario_name} (#{environment})"
