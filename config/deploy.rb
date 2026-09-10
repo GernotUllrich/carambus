@@ -39,6 +39,15 @@ append :linked_dirs, "public/uebersichten"
 # gepflegt und ueberleben so jeden Deploy. Bleibt es leer, liefert nginx 404 — harmlos.
 append :linked_dirs, "public/wissenswertes"
 
+# tmp/reports: Auswertungen, die auf dem Server ERZEUGT werden (`rake training:report[...,csv]`).
+#
+# Wie uebersichten und wissenswertes ein linked_dir: `tmp/` selbst ist NICHT verlinkt (nur
+# tmp/pids, tmp/cache, tmp/sockets), eine dort abgelegte Datei waere beim naechsten Deploy weg.
+# Ueber shared/ ueberlebt der Bestand, und der Code bleibt pfad-naiv — er schreibt schlicht nach
+# Rails.root/tmp/reports und muss nichts ueber das Capistrano-Layout wissen. Bleibt es leer,
+# passiert nichts.
+append :linked_dirs, "tmp/reports"
+
 # Default value for keep_releases is 5
 set :keep_releases, 5
 

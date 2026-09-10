@@ -23,7 +23,10 @@ namespace :training do
     end
 
     if format == "csv"
-      path = Rails.root.join("tmp", "training_#{since.to_date}_bis_#{Date.current}.csv")
+      # tmp/reports ist ein Capistrano-linked_dir (config/deploy.rb) und zeigt auf
+      # shared/ — die Auswertungen ueberleben dadurch jeden Deploy. In der Entwicklung
+      # ist es ein gewoehnliches Verzeichnis, das write_csv bei Bedarf anlegt.
+      path = Rails.root.join("tmp", "reports", "training_#{since.to_date}_bis_#{Date.current}.csv")
       TrainingReport.write_csv(rows, path)
       puts "#{rows.size} Trainingsspiele seit #{since.to_date}"
       puts path
