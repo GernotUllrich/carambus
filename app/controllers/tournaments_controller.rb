@@ -60,23 +60,30 @@ class TournamentsController < ApplicationController
     results = results.without_roundtrip_twins
 
     # H19: „Demnächst"-Block — anstehende Turniere (nächste 14 Tage) im Standard-Blick
-    # oben abgesetzt, aus der datum-absteigenden Hauptliste ausgeklammert.
+    # oben abgesetzt. Darunter wählt der Umschalter Kommend/Vergangen die Hauptliste: alles
+    # danach aufsteigend oder alles davor absteigend. Die drei Datumsbereiche überschneiden
+    # sich nicht, deshalb erscheint kein Turnier doppelt, auch nicht über Pagy-Seiten hinweg.
     @show_upcoming = false
     default_view = params[:sSearch].blank? && params[:sort].blank? && params[:direction].blank?
     if default_view
-      window = Date.current.beginning_of_day..(Date.current + 14.days).end_of_day
-      upcoming_scope = results.where(date: window)
-      upcoming_ids = upcoming_scope.pluck(:id)
-      if upcoming_ids.any?
-        # Ausklammerung über ALLE Seiten konsistent (sonst Duplikate/Offset-Bruch bei Pagy):
-        results = results.where.not(id: upcoming_ids)
-        # Anzeige des Blocks nur auf Seite 1:
-        if params[:page].to_i <= 1
-          @upcoming_tournaments = upcoming_scope.reorder(date: :asc)
-            .includes(:discipline, :season, :location, :tournament_cc).preload(:organizer)
-          @upcoming_tournaments.load
-          @show_upcoming = true
-        end
+      @period = (params[:period] == "past") ? "past" : "upcoming"
+      today = Date.current.beginning_of_day
+      window = today..(Date.current + 14.days).end_of_day
+
+      # Anzeige des Blocks nur auf Seite 1:
+      if params[:page].to_i <= 1
+        @upcoming_tournaments = results.where(date: window).reorder(date: :asc)
+          .includes(:discipline, :season, :location, :tournament_cc).preload(:organizer)
+        @upcoming_tournaments.load
+        @show_upcoming = @upcoming_tournaments.any?
+      end
+
+      # Turniere ohne Datum lassen sich keiner Seite zuordnen — sie stehen unter „Vergangen" am Ende.
+      results = if @period == "past"
+        results.where("tournaments.date < :today OR tournaments.date IS NULL", today: today)
+          .reorder(Arel.sql("tournaments.date DESC NULLS LAST"))
+      else
+        results.where("tournaments.date > ?", window.end).reorder(date: :asc)
       end
     end
 

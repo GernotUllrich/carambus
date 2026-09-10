@@ -128,6 +128,39 @@ class TournamentsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
   end
 
+  # Umschalter Kommend/Vergangen: „Demnächst" steht in beiden Ansichten oben, darunter folgt
+  # alles danach (aufsteigend) bzw. alles davor (absteigend).
+  def create_sort_tournaments
+    {"Sortierung Demnaechst" => 3, "Sortierung Zukunft fern" => 60, "Sortierung Vergangen nah" => -30,
+     "Sortierung Zukunft nah" => 30, "Sortierung Vergangen fern" => -60}.each do |title, days|
+      # region_id: der Standard-Scope filtert auf die Region, die Fixture laesst sie leer
+      @tournament.dup.tap { |t| t.assign_attributes(title: title, date: days.days.from_now, region_id: 50_000_001) }.save!
+    end
+  end
+
+  def assert_listed_in_order(expected, absent)
+    positions = expected.map { |title| response.body.index(title) }
+    assert positions.none?(&:nil?), "nicht alle Turniere auf Seite 1: #{expected.zip(positions).inspect}"
+    assert_equal positions.sort, positions
+    absent.each { |title| assert_not_includes response.body, title }
+  end
+
+  test "GET index default view (Kommend): Demnaechst, then later tournaments ascending" do
+    create_sort_tournaments
+    get tournaments_url
+    assert_response :success
+    assert_listed_in_order(["Sortierung Demnaechst", "Sortierung Zukunft nah", "Sortierung Zukunft fern"],
+      ["Sortierung Vergangen nah", "Sortierung Vergangen fern"])
+  end
+
+  test "GET index period=past (Vergangen): Demnaechst, then earlier tournaments descending" do
+    create_sort_tournaments
+    get tournaments_url(period: "past")
+    assert_response :success
+    assert_listed_in_order(["Sortierung Demnaechst", "Sortierung Vergangen nah", "Sortierung Vergangen fern"],
+      ["Sortierung Zukunft nah", "Sortierung Zukunft fern"])
+  end
+
   # ---------------------------------------------------------------------------
   # GET show — no local-server guard; may redirect when tournament has no monitor
   # ---------------------------------------------------------------------------
