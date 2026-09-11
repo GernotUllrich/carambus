@@ -75,7 +75,7 @@ hoch und überschreibt dabei Änderungen am Server.
 !!! warning "Herkunft von `production.key` für ein neues Szenario"
     Kein Task erzeugt den Schlüssel, und `carambus_data` versioniert `scenarios/*/production/` nicht.
     Woher ein neuer Verein seinen `production.key` bekommt, ist noch nicht geregelt; siehe
-    [Installations-Übersicht](../administrators/installation-overview.md#voraussetzungen).
+    [Installations-Übersicht](../administrators/installation-overview.md), Abschnitt „Voraussetzungen“.
 
 ## Datei-Struktur
 
