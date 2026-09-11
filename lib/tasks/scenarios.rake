@@ -637,6 +637,20 @@ namespace :scenario do
     nil
   end
 
+  # SMTP-Zugangsdaten fuer /etc/<basename>.env aus carambus_data/secrets.yml —
+  # per_scenario-Override, sonst shared (wie scenario_db_password). nil, wenn
+  # username oder password fehlt.
+  def scenario_smtp_credentials(scenario_name)
+    pool_file = File.join(carambus_data_path, 'secrets.yml')
+    return nil unless File.exist?(pool_file)
+    pool = YAML.load_file(pool_file) || {}
+    smtp = pool.dig('per_scenario', scenario_name, 'smtp') || pool.dig('shared', 'smtp') || {}
+    return nil if smtp['username'].to_s.empty? || smtp['password'].to_s.empty?
+    smtp
+  rescue
+    nil
+  end
+
   def generate_configuration_files(scenario_name, environment)
     puts "Generating configuration files for #{scenario_name} (#{environment})..."
 
@@ -4202,6 +4216,41 @@ ENV
       puts "   ✅ Redis installed and started"
     else
       puts "   ✅ Redis already running"
+    end
+
+    # Step 1.6: SMTP-EnvironmentFile /etc/<basename>.env — die Puma-Unit liest es
+    # (EnvironmentFile=-/etc/<basename>.env). Fehlt es, bricht
+    # config/initializers/smtp_guard.rb jeden Puma-Start ab: Endlos-Neustart, nginx 502
+    # (carambus-pbv, 2026-09-11, Plan 15-03). Bisher von Hand angelegt. Eine vorhandene
+    # Datei wird NIE ueberschrieben.
+    env_file = "/etc/#{basename}.env"
+    puts "   ✉️  Ensuring #{env_file} (SMTP for Puma)..."
+    if system("ssh -p #{ssh_port} www-data@#{ssh_host} 'sudo test -f #{env_file}'")
+      puts "   ✅ #{env_file} already exists (left unchanged)"
+    else
+      smtp = scenario_smtp_credentials(scenario_name)
+      if smtp
+        quote = ->(v) { '"' + v.to_s.gsub('\\', '\\\\\\\\').gsub('"', '\\"') + '"' }
+        env_content = "SMTP_USERNAME=#{quote.call(smtp['username'])}\nSMTP_PASSWORD=#{quote.call(smtp['password'])}\n"
+        source = "secrets.yml (smtp)"
+      elsif production_config['smtp_enabled'] == false
+        env_content = "# smtp_enabled: false in config.yml — Server ohne Mailversand\nSKIP_SMTP_GUARD=1\n"
+        source = "smtp_enabled: false"
+      else
+        puts "   ❌ #{env_file} fehlt, und es gibt keine SMTP-Zugangsdaten — Puma würde nicht starten."
+        puts "      Entweder in #{File.join(carambus_data_path, 'secrets.yml')}:"
+        puts "        shared:   { smtp: { username: ..., password: ... } }   (oder per_scenario: { #{scenario_name}: { smtp: ... } })"
+        puts "      oder bewusst ohne Mailversand in config.yml (environments.production): smtp_enabled: false"
+        return false
+      end
+      # Inhalt per stdin — das Passwort erscheint weder in der Kommandozeile noch im Log.
+      write_cmd = "sudo sh -c 'umask 077 && cat > #{env_file}'"
+      IO.popen(["ssh", "-p", ssh_port.to_s, "www-data@#{ssh_host}", write_cmd], "w") { |io| io.write(env_content) }
+      unless $?.success?
+        puts "   ❌ Failed to write #{env_file}"
+        return false
+      end
+      puts "   ✅ #{env_file} created from #{source} (mode 600, root)"
     end
 
     # Step 2: Upload configuration files to shared directory
