@@ -40,7 +40,11 @@ direkte Draht ist ③ — der Location Server meldet sein Ergebnis an den Region
 ### ① Meldeliste: Pull durch die Authority
 
 Der Sportwart legt Turnier und Meldeliste auf dem **Region Server** an — dort sind es **lokale**
-Records (`id >= 50.000.000`). Die Authority holt sie aktiv ab:
+Records (`id >= 50.000.000`). Die Authority holt sie aktiv ab.
+
+Normalerweise läuft ① **automatisch**: Die Freigabe eines Entwurfs und jede Nachmeldung auf dem Region
+Server stoßen die Authority an (`EntryListSyncJob`), und auf dem Location Server holt der Button
+„Meldeliste neu laden" sie sofort. Einen Cron gibt es nicht; der Rake-Task ist der manuelle Nachlauf:
 
 ```bash
 # auf der Authority
@@ -80,6 +84,11 @@ ARMED=1 bin/rails tournaments:report_results TOURNAMENT=<ID>
 Von dort holt **derselbe Ingest wie in ①** das Ergebnis auf die Authority: der Endpunkt hängt eine
 vorhandene `Gesamtrangliste` an den Eintrag an.
 
+Zusätzlich meldet der Location Server **jedes abgeschlossene Spiel** einzeln an den Region Server
+(`LocationServer::GameResultReporter`, `POST /api/game_results`). Die Authority holt die Spiele über
+`region_server:import_game_results`; angestoßen wird das automatisch per `GameResultSyncJob`, der
+Rake-Task ist der manuelle Nachlauf (dry-run per Default, `ARMED=1` schreibt).
+
 ## Die ID-Übersetzung: `source_url`
 
 Der Kern des Ganzen — und der Grund, warum keine Migration nötig war.
@@ -113,6 +122,9 @@ scenario:
     features: [ai, translation]        # ohne `clubcloud` = CC-lose Region
     region_server_contexts: [TBV]      # LISTE — die Authority holt von mehreren
 ```
+
+Die Beispiele auf dieser Seite nutzen die TBV-Kette (`carambus_tbv`, `carambus_ebc`, `tbv.carambus.de`)
+zur Illustration; in `carambus_data` führt `carambus_api` derzeit nur `region_server_contexts: [NBV]`.
 
 **Wer braucht `region_server_contexts`?**
 
@@ -241,23 +253,27 @@ wurde — sie lassen sich also in Skripte einbauen.
 | Task | Wo | Zweck |
 |---|---|---|
 | `tournaments:copy_season` | Region Server | Saison-Struktur aus der Vorsaison als Entwürfe |
-| `region_server:import_entry_lists` | Authority | Meldelisten **und** Ergebnisse holen |
+| `region_server:import_entry_lists` | Authority | Meldelisten **und** Gesamtranglisten holen |
+| `region_server:import_game_results` | Authority | Spielergebnisse holen |
 | `tournaments:report_results` | Location Server | Ergebnis nachmelden |
 | `tournaments:write_final_rankings` | Region Server / Authority | Ranglisten für Alt-Turniere |
 | `carambus:update_ranking_tables` | Authority | Ranglisten-Aggregation |
 
-Alle schreibenden Tasks sind **dry-run per Default**; `ARMED=1` schaltet scharf. **Kein** Task hat
+Die schreibenden Tasks sind **dry-run per Default**; `ARMED=1` schaltet scharf. Sie haben **keine**
 Defaults für Region oder Saison — ein implizites `current_season` hat beim ClubCloud-Rollover schon
 einmal Schaden angerichtet. Der Blast-Radius steht im Task-Header und wird zur Laufzeit ausgegeben.
+
+**Ausnahme: `carambus:update_ranking_tables`** schreibt sofort und läuft ohne `REGIONS=`/`SEASONS=` über
+alle Regionen und Saisons — immer eingrenzen, z. B. `REGIONS=TBV SEASONS=2026/2027`.
 
 `carambus:update_ranking_tables` steht bewusst **nicht** im Cron.
 
 ## Bekannte Fallstricke
 
-**Der Ingest aktualisiert bestehende Turniere nicht.**
-`existing || build_tournament` — verschiebt der Sportwart nach dem ersten Ingest das Datum oder
-korrigiert den Titel, erreicht das die Authority **nie, ohne Meldung**. Bis das behoben ist:
-Stammdaten des Turniers vor dem ersten Ingest final machen.
+**Der Ingest aktualisiert ein Turnier nur, solange es nicht gestartet ist.**
+Titel-, Struktur- und Datumsänderungen der Quelle zieht der Ingest nach und entfernt zurückgezogene
+Meldungen — aber nur, solange das Turnier auf der Authority noch im Zustand `new_tournament` ist. Danach
+bleiben Änderungen der Quelle ohne Wirkung.
 
 **Ein leeres Ergebnis ist zweideutig.**
 „0 Turniere" kann heißen: alles in Ordnung, es gibt nichts — oder: die Kette ist unterbrochen und die
@@ -265,9 +281,10 @@ Meldung wurde überlesen. Deshalb ist die **Kopfzeile** des Ingest wichtiger als
 `Zugang: credentials` bedeutet, der ausgerollte Weg trägt; `carambus.yml` heißt, der Fallback greift;
 `—` bricht mit einer Handlungsanweisung ab.
 
-**`Seeding#final_rank` meldet Platzierung+1** für lokal gespielte Turniere — der Sieger erscheint in
-der Alt-Anzeige als Zweiter. Vorbestehend und unabhängig von v0.7; der `FinalRankingWriter` umgeht
-es, indem er die 1-basierte Quelle nutzt.
+**Alt-Turniere mit Platzierung+1.** Bis zum 2026-07-21 (`f88c8ff2`) schrieb der Turnierabschluss die
+Rangliste um eins verschoben; bei Turnieren, die davor lokal abgeschlossen wurden und keine
+Gesamtrangliste haben, erscheint der Sieger in der Alt-Anzeige als Zweiter. Abhilfe:
+`tournaments:write_final_rankings`.
 
 **Der Server-Kontext muss zu einer Region passen.**
 Wird `context` nicht aufgelöst, fällt das Scope-Band still auf den Default zurück — die Instanz zeigt

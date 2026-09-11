@@ -35,7 +35,7 @@ Der **API Server** ist die zentrale Datenquelle für alle Carambus-Installatione
 - Hohe Bandbreite für Scraping
 - Große Datenbank (alle Regionen)
 
-**Beispiel:** carambus.de (API Server für ganz Deutschland)
+**Beispiel:** api.carambus.de (Authority für ganz Deutschland). `carambus.de` ist dagegen ein öffentlicher Local Server, der seine Daten selbst von api.carambus.de bezieht.
 
 ---
 
@@ -91,16 +91,17 @@ Local Server Hamburg (nur Hamburg-Daten + Global)
 Scoreboards, Turniere, etc.
 ```
 
-### 3. Local Data Upload (Local → API)
+### 3. Local Data bleibt lokal
 
 ```
 Local Server Hamburg
-    ↓ erstellt Turnier (Local Data, ID > 50.000.000)
-    ↓ Upload zu API Server
-API Server (speichert Local Data)
-    ↓ Synchronisation
-Andere Local Server (erhalten Hamburg's Local Data)
+    ↓ erstellt Turnier (Local Data, ID >= 50.000.000)
+    ↓ bleibt auf diesem Server
+(keine Übertragung zur Authority oder zu anderen Local Servern)
 ```
+
+CC-lose Turniere einer Region sind ein eigener Weg: Der Region Server meldet sie an die Authority, die sie
+als **neue globale** Records übernimmt. Siehe [CC-loses Turniermanagement](cc-less-tournament-management.md).
 
 ---
 
@@ -121,7 +122,7 @@ IDs: 50.000.000 - 99.999.999    → Local Data (lokal im Verein erstellt)
 
 **Warum wichtig?**
 - ✅ Local Server kann **offline** arbeiten
-- ✅ Keine ID-Konflikte zwischen Servern
+- ✅ Keine Konflikte zwischen globalen und lokalen IDs
 - ✅ Klare Unterscheidung: Extern vs. Intern
 - ✅ Verein hat volle Kontrolle über eigene Daten
 
@@ -233,30 +234,24 @@ BC Hamburg Local Server
   cc_id: NULL (nicht in ClubCloud)
 ```
 
-#### Optional: Upload zum API Server
+#### Sichern und wiederherstellen
 ```
-Local Server
-  ↓ rake scenario:backup_local_data[scenario] (falls gewünscht)
-API Server
-  ↓ speichert mit gleicher ID
-  ID: 50.012.345 bleibt erhalten!
+Local Server (Produktion)
+  ↓ rake scenario:backup_local_data[<szenario>]      (vom Admin-Rechner)
+Admin-Rechner: carambus_data/scenarios/<szenario>/local_data_backups/*.sql.gz
+  ↓ rake scenario:restore_local_data[<szenario>,<datei>]
+derselbe Local Server (Produktion)
 ```
 
-#### Synchronisation zu anderen Local Servern
-```
-API Server (hat jetzt BC Hamburg Local Data)
-  ↓ Synchronisation (regional gefiltert!)
-Andere NBV-Server bekommen es
-  ↓
-BV Wedel Local Server sieht:
-  "BC Hamburg Vereinsturnier" (read-only)
-```
+Die Sicherung verlässt den Admin-Rechner nicht Richtung Authority. Local Data wird **nicht** an andere
+Local Server verteilt.
 
 **Wichtig:**
-- Local Data bleibt **geschützt** (LocalProtector)
-- Nur der **Ersteller-Server** kann bearbeiten
-- Andere Server: **nur lesen**
-- Kein versehentliches Überschreiben
+- `LocalProtector` verhindert auf einem Local Server Änderungen an **globalen** Records (ID < 50.000.000):
+  sie gehören der Authority und kommen per Sync
+- Lokale Records (ID >= 50.000.000) sind auf ihrem Server frei bearbeitbar und bleiben dort
+- Ein automatisches Datenbank-Backup ist nicht für jeden Local Server eingerichtet, siehe
+  [Wartungs-Checkliste](index.md#wartungs-checkliste)
 
 ---
 
@@ -276,15 +271,6 @@ BV Wedel Local Server sieht:
 - ✅ Ranglisten-Turniere
 - ✅ Regionale Meisterschaften
 - ✅ Alles was in ClubCloud steht
-
-### Synchronisation von Local Data
-
-1. **Local Server:** Turnier erstellen (ID 50.001.234)
-2. **Backup der Local Data:** `rake scenario:backup_local_data[scenario]`
-3. **API Server:** Übernimmt die Local Data mit gleicher ID
-4. **Synchronisation:** Andere Local Server erhalten das Turnier über den
-   Version-Sync (`rake carambus:retrieve_updates`)
-5. **Regionale Filterung:** Nur relevante Regionen erhalten es
 
 ---
 
@@ -308,7 +294,7 @@ BV Wedel Local Server sieht:
 ### Setup 1: Einzelner Verein
 
 ```
-API Server (carambus.de)
+Authority (api.carambus.de)
     ↓ Synchronisation (gefiltert)
 Local Server (BC Hamburg, Raspberry Pi)
     ↓ LAN
@@ -318,14 +304,17 @@ Scoreboards (3 Tische im Vereinslokal)
 ### Setup 2: Landesverband
 
 ```
-API Server (carambus.de)
-    ↓ Synchronisation (NBV-Daten)
-Local Server Landesverband (NBV-Server)
-    ↓ Internet
-    ├─ Local Server BC Hamburg (Raspberry Pi)
-    ├─ Local Server BV Wedel (Raspberry Pi)
-    └─ Local Server SC Pinneberg (Raspberry Pi)
+Authority (api.carambus.de)
+    ├─ Synchronisation → Region Server Landesverband (z. B. nbv.carambus.de)
+    ├─ Synchronisation → Local Server BC Hamburg (Raspberry Pi)
+    ├─ Synchronisation → Local Server BV Wedel (Raspberry Pi)
+    └─ Synchronisation → Local Server SC Pinneberg (Raspberry Pi)
 ```
+
+Jeder Server synchronisiert direkt mit der Authority; ein Vereins-Pi hängt nicht am Server des
+Landesverbands. Zwischen Region Server und Vereins-Pi gibt es nur in CC-losen Regionen einen direkten Draht:
+der Pi meldet Ergebnisse an den Region Server
+(siehe [CC-loses Turniermanagement](cc-less-tournament-management.md)).
 
 ### Setup 3: Nur API Server (Development/Testing)
 
@@ -389,8 +378,10 @@ Tournament.where(region_id: nbv_id)
           .count # => 500 (nur Hamburg + Global)
 ```
 
-Die Region, auf die ein Local Server filtert, wird über `region_id` und
-`context` in `config/carambus.yml` konfiguriert (siehe `config/carambus.yml`).
+Die Region, auf die ein Local Server filtert, steht in `carambus_data/scenarios/<szenario>/config.yml`
+unter `scenario.context` (Region-Shortname in Großbuchstaben, z. B. `NBV`). `scenario:generate_configs`
+bzw. `prepare_deploy` übernehmen ihn nach `config/carambus.yml`; dort nicht von Hand ändern. Einen
+Schlüssel `region_id` gibt es in `config/carambus.yml` nicht.
 
 ### Synchronisation
 
@@ -407,10 +398,10 @@ rake carambus:retrieve_updates
 # - Alle Daten mit region_id = NULL
 ```
 
-**Von Local → API (Local Data):**
+**Local Data sichern (bleibt auf dem Server):**
 ```bash
-# Local Data (IDs >= 50.000.000) wird über die Scenario-Tasks
-# gesichert / wiederhergestellt, nicht über eine eigene Sync-Task:
+# Local Data (IDs >= 50.000.000) wird nicht synchronisiert. Sichern und
+# Wiederherstellen zwischen Produktionsserver und Admin-Rechner:
 rake scenario:backup_local_data[scenario_name]
 rake scenario:restore_local_data[scenario_name,backup_file]
 ```
@@ -435,19 +426,20 @@ A: Ja! Local Server ist vollständig funktionsfähig ohne API Server. Allerdings
 A: Nein. Vereine können auch direkt den API Server nutzen (über Browser). Local Server ist nur nötig für Scoreboards und Offline-Betrieb.
 
 **Q: Was passiert bei ID-Konflikten?**  
-A: Keine Konflikte möglich:
-- API Server: IDs < 50.000.000
+A: Zwischen globalen und lokalen Daten gibt es keine:
+- Authority: IDs < 50.000.000
 - Local Server: IDs >= 50.000.000
-- Unterschiedliche ID-Bereiche garantieren Eindeutigkeit
+- Alle Local Server nutzen denselben lokalen Bereich. Das ist unkritisch, weil Local Data ihren Server
+  nicht verlässt
 
 **Q: Wie wird die Region eines Local Servers konfiguriert?**  
-A: Über die Schlüssel `region_id` und `context` in `config/carambus.yml`. Der
-`context` (z.B. `NBV`) bestimmt, welche Region zusätzlich zu den global
-relevanten Daten synchronisiert wird.
+A: Über `scenario.context` in `carambus_data/scenarios/<szenario>/config.yml` (z. B. `NBV`). Er bestimmt,
+welche Region zusätzlich zu den global relevanten Daten synchronisiert wird, und landet per
+`generate_configs` in `config/carambus.yml`.
 
 ---
 
-**Version:** 1.1  
-**Letzte Aktualisierung:** Juni 2026  
+**Version:** 1.2  
+**Letzte Aktualisierung:** September 2026  
 **Status:** Production in Use
 
