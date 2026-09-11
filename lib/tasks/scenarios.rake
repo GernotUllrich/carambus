@@ -5756,6 +5756,11 @@ EOF
 
       # labwc-Zweig: siehe LABWC_SESSION oben
       if [ -n "$LABWC_SESSION" ]; then
+      # Feste Pause, gemessen: oeffnet Chromium 1-3 s nach einem Dienst-Neustart, greift
+      # die labwc-Fensterregel nicht (kein Vollbild); mit 5 s und 10 s zuverlaessig
+      # (carambus-pbv 2026-09-11, Plan 15-03). Ursache ungeklaert — vermutlich wickelt
+      # labwc das eben beendete Fenster noch ab. Nicht ohne neuen Test verkuerzen.
+      sleep 5
       $BROWSER_CMD \
         --ozone-platform=wayland \
         --class=carambus-scoreboard \
