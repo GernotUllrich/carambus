@@ -104,16 +104,29 @@ jobs:
     # Der lint-Job bootet die Anwendung nicht — keine DB, kein Rails, kein
     # stimulus_reflex —, deshalb ist die abweichende Version hier gefahrlos.
     # Der test-Job bleibt bewusst auf .ruby-version, also auf dem Produktionsstand.
+    #
+    # OHNE Bundler: das Gemfile verlangt per `ruby file: ".ruby-version"` genau 3.2.1,
+    # unter 3.2.2 bricht `bundle install` ab ("Your Ruby version is 3.2.2, but your
+    # Gemfile specified 3.2.1") — so scheiterte dieser Job seit 63d50594 (2026-09-09)
+    # schon beim Setup, und die UI-Guardrail lief nicht mehr. Die Lint-Werkzeuge
+    # brauchen das Bundle nicht; sie kommen als einzelne Gems in den Versionen aus
+    # Gemfile.lock (bei einem Update dort hier nachziehen).
     - name: Set up Ruby
       uses: ruby/setup-ruby@v1
       with:
         ruby-version: 3.2.2
-        bundler-cache: true
-    
+        bundler-cache: false
+
     # Hartes Gate: blockt neue hartkodierte Farb-Hex (docs/ui-conventions.md).
     # Laeuft gegen eine Baseline, ist auf master gruen — deshalb blockierend.
     - name: UI-Guardrail (keine neuen hartkodierten Farb-Hex)
       run: ruby bin/ui-hex-guard
+    
+    # Nach dem Gate und nicht blockierend: scheitert die Installation (z.B. die native
+    # Erweiterung von prism), darf das die UI-Guardrail oben nicht mitreissen.
+    - name: Install lint tools (Versionen aus Gemfile.lock, nicht blockierend)
+      run: gem install --no-document brakeman -v 7.1.0 && gem install --no-document standard -v 1.51.1
+      continue-on-error: true
     
     # Ab hier bewusst NICHT blockierend — beides ist Altlast, kein fehlendes Signal:
     #   standardrb: mehrere hundert Verstoesse im Bestandscode. Erst nach einem
@@ -128,9 +141,9 @@ jobs:
     # (--no-prism crasht ebenso) noch an brakeman (7.1.0 laeuft unter 3.2.2 sauber),
     # sondern am Interpreter 3.2.1. Belege: .paul/phases/13-sicherheitsurteil/
     - name: Run Standard (nicht blockierend)
-      run: bundle exec standardrb --format progress
+      run: standardrb --format progress
       continue-on-error: true
     
     - name: Run Brakeman (nicht blockierend)
-      run: bundle exec brakeman --no-pager
+      run: brakeman --no-pager
       continue-on-error: true
