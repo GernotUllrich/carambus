@@ -4561,44 +4561,6 @@ ENV
       return false
     end
 
-    # labwc-Fensterregel (Raspberry Pi OS 13 "trixie"): setzt das Kiosk-Fenster
-    # (app_id carambus-scoreboard, siehe Autostart-Skript) beim Oeffnen ins Vollbild.
-    # labwc laeuft dort mit -m, ~/.config/labwc/rc.xml wird mit der System-rc.xml
-    # zusammengefuehrt. Eine vorhandene rc.xml ohne die Regel wird NICHT angefasst.
-    # carambus_bcw Plan 15-03 (carambus-pbv, 2026-09-11).
-    puts "\n🪟 Ensuring labwc window rule for the kiosk..."
-    labwc_rule_script = <<~SH
-      grep -qsE '^(user-session|autologin-session)=.*labwc' /etc/lightdm/lightdm.conf || { echo "no-labwc"; exit 0; }
-      home=$(getent passwd #{kiosk_user} | cut -d: -f6)
-      rc="$home/.config/labwc/rc.xml"
-      if sudo test -f "$rc"; then
-        if sudo grep -q 'carambus-scoreboard' "$rc"; then echo "present"; else echo "foreign"; fi
-        exit 0
-      fi
-      sudo -u #{kiosk_user} mkdir -p "$home/.config/labwc"
-      printf '%s\\n' '<?xml version="1.0"?>' '<labwc_config>' '  <windowRules>' '    <windowRule identifier="carambus-scoreboard">' '      <action name="ToggleFullscreen"/>' '    </windowRule>' '  </windowRules>' '</labwc_config>' | sudo -u #{kiosk_user} tee "$rc" >/dev/null
-      pid=$(pgrep -x -u #{kiosk_user} labwc)
-      [ -n "$pid" ] && sudo -u #{kiosk_user} kill -HUP $pid
-      echo "created"
-    SH
-    labwc_result = IO.popen(["ssh", "-p", ssh_port.to_s, "#{ssh_user}@#{pi_ip}", "bash -s"], "r+") do |io|
-      io.write(labwc_rule_script)
-      io.close_write
-      io.read.to_s.strip
-    end
-    case labwc_result.lines.last.to_s.strip
-    when "no-labwc" then puts "   ⏭️  No labwc session (wayfire/X11) — no window rule needed"
-    when "present" then puts "   ✅ labwc window rule already present"
-    when "created" then puts "   ✅ labwc window rule created (#{kiosk_user}: ~/.config/labwc/rc.xml), labwc reloaded"
-    when "foreign"
-      puts "   ⚠️  ~/.config/labwc/rc.xml von #{kiosk_user} existiert ohne Kiosk-Regel — nicht angefasst."
-      puts "      Ohne sie startet das Scoreboard nicht im Vollbild. Innerhalb <labwc_config> ergänzen:"
-      puts '      <windowRules><windowRule identifier="carambus-scoreboard"><action name="ToggleFullscreen"/></windowRule></windowRules>'
-    else
-      puts "   ❌ labwc window rule check failed: #{labwc_result}"
-      return false
-    end
-
     # Enable and (re)start systemd service — restart, damit ein laufender Kiosk das
     # neue Skript sofort uebernimmt (start waere bei laufendem Dienst wirkungslos).
     puts "\n⚙️  Enabling systemd service..."
@@ -5642,16 +5604,14 @@ EOF
 
       # labwc (Standard ab Raspberry Pi OS 13 "trixie") setzt --start-fullscreen bei
       # Xwayland-Fenstern nicht um, und wmctrl findet das --app-Fenster nicht (Titel =
-      # Seitentitel). Dort startet Chromium nativ unter Wayland. Gemessen auf carambus-pbv
-      # 2026-09-11 (carambus_bcw Plan 15-03); wayfire/X11 bleiben unveraendert:
-      # - --start-fullscreen allein wirkt dort bei frischem Profil nicht; das Vollbild setzt
-      #   die labwc-Fensterregel fuer app_id "carambus-scoreboard" (--class), angelegt von
-      #   deploy_raspberry_pi_client in ~/.config/labwc/rc.xml.
-      # - Chromium uebernimmt die Groesse von labwc beim ersten Oeffnen nicht, deshalb
-      #   startet es gleich in Bildschirmgroesse (--window-size aus /sys/class/drm).
-      # - Bewusst NICHT --kiosk: der sperrt das Vollbild; so fuehrt das "X" am oberen Rand
-      #   auf den Desktop, und Schliessen des Fensters bringt den Kiosk zurueck (unten).
-      # - --password-store=basic verhindert die Schluesselbund-Abfrage.
+      # Seitentitel). Dort startet Chromium nativ unter Wayland im Kiosk-Modus — die einzige
+      # Variante, die unter Dienst-Bedingungen UND beim Kaltstart zuverlaessig Vollbild gab
+      # (carambus-pbv 2026-09-11, carambus_bcw Plan 15-03; wayfire/X11 bleiben unveraendert).
+      # Verworfen: --start-fullscreen (wirkt bei frischem Profil nicht), labwc-Fensterregel
+      # ToggleFullscreen (beim Kaltstart unzuverlaessig). Preis von --kiosk: Der Welcome-
+      # Button fuehrt nicht mehr auf den Desktop — dafuer `systemctl stop scoreboard-kiosk`.
+      # - --password-store=basic verhindert die Schluesselbund-Abfrage (D-Bus-Adresse).
+      # - Ohne D-Bus-Adresse blieb die Seite beim Kaltstart minutenlang weiss.
       LABWC_SESSION=""
       if grep -qsE '^(user-session|autologin-session)=.*labwc' /etc/lightdm/lightdm.conf; then
         LABWC_SESSION="true"
@@ -5757,17 +5717,17 @@ EOF
 
       # labwc-Zweig: siehe LABWC_SESSION oben
       if [ -n "$LABWC_SESSION" ]; then
-      # Feste Pause, gemessen: oeffnet Chromium 1-3 s nach einem Dienst-Neustart, greift
-      # die labwc-Fensterregel nicht (kein Vollbild); mit 5 s und 10 s zuverlaessig
-      # (carambus-pbv 2026-09-11, Plan 15-03). Ursache ungeklaert — vermutlich wickelt
-      # labwc das eben beendete Fenster noch ab. Nicht ohne neuen Test verkuerzen.
+      # Genau die Kombination, die beim Kaltstart (13:07) Vollbild gab — inkl. der 5-s-Pause
+      # (mit ihr unter Dienst-Bedingungen belegt) und --no-proxy-server (aenderte die
+      # Kaltstart-Wartezeit von ~97 s bis zur ersten Anfrage NICHT; Ursache offen).
+      # Nicht ohne neuen Kaltstart-Test veraendern.
       sleep 5
       $BROWSER_CMD \
         --ozone-platform=wayland \
-        --class=carambus-scoreboard \
         --window-position=0,0 \
         --window-size="${SCREEN_SIZE%x*},${SCREEN_SIZE#*x}" \
-        --start-fullscreen \
+        --kiosk \
+        --no-proxy-server \
         --password-store=basic \
         --disable-restore-session-state \
         --user-data-dir="$CHROMIUM_USER_DIR" \
@@ -5817,7 +5777,7 @@ EOF
       BROWSER_PID=$!
       echo "Browser started with PID: $BROWSER_PID"
 
-      # labwc: auf Chromium warten — wird das Fenster geschlossen, endet das Skript und
+      # labwc: auf Chromium warten — endet Chromium (Absturz, Alt+F4), endet das Skript und
       # systemd (Restart=always, RestartSec in create_systemd_service) holt den Kiosk im
       # Vollbild zurueck. Das wmctrl-sleep unten entfaellt dort (wmctrl greift nicht).
       if [ -n "$LABWC_SESSION" ]; then
