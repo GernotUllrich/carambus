@@ -15,7 +15,7 @@ ClubCloud-Zugangsdaten werden **lokal und verschlüsselt** in Rails Credentials 
 - ✅ **Sicher**: Credentials sind verschlüsselt und lokal
 - ✅ **Nicht synchronisiert**: Keine Verbreitung über API-Server
 - ✅ **Pro-Environment**: Unterschiedliche Credentials für Development/Production
-- ✅ **Versionskontrolle**: Key-File bleibt lokal (in `.gitignore`)
+- ✅ **Versionskontrolle**: weder `.key` noch `.yml.enc` liegen im Repo (beide in `.gitignore`); die Produktions-Dateien kommen aus `carambus_data/scenarios/<szenario>/production/credentials/`
 
 ## Setup
 
@@ -40,28 +40,59 @@ clubcloud:
 
 ### Production Environment
 
-```bash
-# Auf dem Production Server (z.B. bc-wedel.duckdns.org)
-ssh -p 8910 www-data@bc-wedel.duckdns.org
-cd /var/www/carambus_bcw/current
+In Produktion werden die Credentials **nicht auf dem Server editiert**. `prepare_deploy` lädt
+`production.key` und `production.yml.enc` aus `carambus_data/scenarios/<szenario>/production/credentials/`
+hoch und überschreibt dabei Änderungen am Server.
 
-# Credentials bearbeiten
-EDITOR=nano RAILS_ENV=production bundle exec rails credentials:edit --environment production
+1. ClubCloud-Login in `carambus_data/secrets.yml` eintragen (nicht versioniert), Kontext kleingeschrieben:
+   ```yaml
+   shared:
+     clubcloud:
+       nbv:
+         username: "your-email@example.com"
+         password: "your-password"
+   # oder nur für ein Szenario: per_scenario: { <szenario>: { clubcloud: { nbv: { ... } } } }
+   ```
+2. In `carambus_data/scenarios/<szenario>/config.yml` das Feature freischalten:
+   ```yaml
+   scenario:
+     credentials:
+       features: [ai, translation, clubcloud]
+       clubcloud_context: NBV
+   ```
+3. Credentials erzeugen und ausrollen (aus einem carambus-Checkout):
+   ```bash
+   # Probelauf (zeigt nur die Key-Struktur), dann schreiben
+   bin/rails "scenario:generate_credentials[<szenario>,production]"
+   WRITE=true bin/rails "scenario:generate_credentials[<szenario>,production]"
 
-# Gleiche Struktur wie oben hinzufügen
-```
+   # auf den Server bringen: beim nächsten prepare_deploy, oder gezielt
+   WRITE=true RESTART=true bin/rails "scenario:push_credentials[<szenario>]"
+   ```
+
+`generate_credentials` setzt voraus, dass `production.key` bereits existiert.
+
+!!! warning "Herkunft von `production.key` für ein neues Szenario"
+    Kein Task erzeugt den Schlüssel, und `carambus_data` versioniert `scenarios/*/production/` nicht.
+    Woher ein neuer Verein seinen `production.key` bekommt, ist noch nicht geregelt; siehe
+    [Installations-Übersicht](../administrators/installation-overview.md#voraussetzungen).
 
 ## Datei-Struktur
 
 Nach dem Setup existieren folgende Dateien:
 
 ```
-config/
-├── credentials/
-│   ├── development.key          # Lokal, NICHT committen! (in .gitignore)
-│   ├── development.yml.enc      # Verschlüsselt, kann committet werden
-│   ├── production.key           # Auf Server, NICHT committen!
-│   └── production.yml.enc       # Verschlüsselt, kann committet werden
+config/credentials/                       # im Checkout (Development)
+├── development.key          # lokal, NICHT committen (in .gitignore)
+└── development.yml.enc      # verschlüsselt, ebenfalls NICHT committen (in .gitignore)
+
+carambus_data/scenarios/<szenario>/production/credentials/   # Quelle für Produktion (nicht versioniert)
+├── production.key
+└── production.yml.enc
+
+/var/www/<basename>/shared/config/credentials/               # auf dem Server, von prepare_deploy hochgeladen
+├── production.key
+└── production.yml.enc
 ```
 
 ## Verwendung im Code
@@ -127,10 +158,9 @@ rails credentials:edit --environment development
 ```
 
 **Lösung Production**:
-```bash
-# Key-File vom Backup wiederherstellen ODER
-# Credentials neu anlegen (siehe oben)
-```
+Den passenden `production.key` nach `carambus_data/scenarios/<szenario>/production/credentials/` legen
+(aus dem Backup) und `prepare_deploy` erneut ausführen. Ein neu erzeugter Key kann die vorhandene
+`production.yml.enc` nicht mehr lesen.
 
 ### Key-File Backup
 
@@ -140,14 +170,14 @@ rails credentials:edit --environment development
 # Development
 cp config/credentials/development.key ~/carambus_credentials_backup/
 
-# Production (auf Server)
-cp config/credentials/production.key ~/carambus_credentials_backup/
+# Production (Quelle auf dem Admin-Rechner)
+cp ~/DEV/carambus/carambus_data/scenarios/<szenario>/production/credentials/production.key ~/carambus_credentials_backup/
 ```
 
 ## Sicherheit
 
 - ✅ `.key` Files sind in `.gitignore` und werden **NICHT** committet
-- ✅ `.yml.enc` Files sind verschlüsselt und können committet werden
+- ✅ `.yml.enc` Files sind ebenfalls in `.gitignore` (seit `6260afa6`) und werden **NICHT** committet
 - ✅ Credentials werden **NICHT** zwischen Servern synchronisiert
 - ✅ Jedes Environment hat eigene Credentials
 - ⚠️ **NIEMALS** `.key` Files in Git committen!

@@ -10,102 +10,112 @@ Carambus uses email for:
 
 ## Production Environment - SMTP Configuration
 
-### Problem with Sendmail
+### Why SMTP instead of Sendmail
 
-The original configuration used `sendmail`, which often leads to timeouts on Raspberry Pi servers because:
-- Sendmail/Postfix is not correctly configured
-- The service is not running properly
-- Timeouts block user registration
+Earlier configurations used `sendmail`, which often caused timeouts on Raspberry Pi servers because:
+- Sendmail/Postfix was not configured correctly
+- The service was not running properly
+- Timeouts blocked user registration
 
-### Solution: SMTP (Gmail)
+### SMTP (Gmail)
 
-Production environments are now switched to SMTP:
+All production environments send via SMTP through Gmail. Each instance's `production.rb` is **generated**:
+`scenario:prepare_deploy` or `scenario:generate_configs` create it from `lib/tasks/scenarios.rake`
+(`generate_production_rb_env`); on the server it lives at
+`/var/www/<basename>/shared/config/environments/production.rb`.
 
-**Files:**
-- `config/environments/production-bc-wedel.rb`
-- `config/environments/production-carambus-de.rb`
-
-**Configuration:**
+**Generated block:**
 ```ruby
 config.action_mailer.delivery_method = :smtp
 config.action_mailer.smtp_settings = {
-  address: 'smtp.gmail.com',
+  address: "smtp.gmail.com",
   port: 587,
-  domain: 'bc-wedel.de',  # or 'carambus.de'
-  user_name: ENV['SMTP_USERNAME'],
-  password: ENV['SMTP_PASSWORD'],
-  authentication: 'plain',
+  domain: "carambus.de",
+  user_name: ENV["SMTP_USERNAME"],
+  password: ENV["SMTP_PASSWORD"],
+  authentication: "plain",
   enable_starttls_auto: true,
   open_timeout: 5,
   read_timeout: 5
 }
+config.action_mailer.perform_deliveries = true
+config.action_mailer.raise_delivery_errors = true
+config.action_mailer.default_options = { from: ENV["SMTP_USERNAME"] || "no-reply@carambus.de" }
 ```
 
-## Setting up Environment Variables
+## Setting up Credentials
 
-### On Production Server
+### Via Scenario Management
 
-SSH to the server and set the environment variables:
+Puma runs as the systemd service `puma-<basename>` and reads the credentials **only** from
+`/etc/<basename>.env` (`EnvironmentFile=` in `templates/puma/puma.service.erb`). A `.bashrc` or `.profile`
+does not reach the service.
+
+1. Enter the credentials in `carambus_data/secrets.yml` (not versioned):
+   ```yaml
+   shared:
+     smtp:
+       username: "...@gmail.com"
+       password: "..."          # Gmail: app password, not the account password
+   # or for one scenario only:
+   per_scenario:
+     <scenario>:
+       smtp:
+         username: "..."
+         password: "..."
+   ```
+2. From the admin machine, in a carambus checkout:
+   ```bash
+   bin/rails "scenario:prepare_deploy[<scenario>]"
+   ```
+   `prepare_deploy` creates `/etc/<basename>.env` (mode 600, owner root) if the file is missing. Without
+   SMTP credentials and without `smtp_enabled: false` the task aborts with instructions.
+
+Do **not edit** the systemd unit `puma-<basename>.service` itself: `prepare_deploy` rewrites it on every run.
+
+### Changing the Credentials
+
+`prepare_deploy` never overwrites an existing `/etc/<basename>.env`. To change it on the server:
 
 ```bash
-# As www-data user
-sudo -u www-data -i
-
-# Set environment variables in .bashrc or .profile
-echo 'export SMTP_USERNAME="your-email@gmail.com"' >> ~/.bashrc
-echo 'export SMTP_PASSWORD="your-app-password"' >> ~/.bashrc
-
-# Reload
-source ~/.bashrc
-```
-
-### For Systemd Service
-
-If Puma runs as a systemd service, variables must be set in the service file:
-
-```bash
-sudo nano /etc/systemd/system/carambus_bcw.service
-```
-
-Add under `[Service]`:
-```ini
-Environment="SMTP_USERNAME=your-email@gmail.com"
-Environment="SMTP_PASSWORD=your-app-password"
-```
-
-Reload service:
-```bash
-sudo systemctl daemon-reload
-sudo systemctl restart carambus_bcw
+sudo nano /etc/<basename>.env
+sudo systemctl restart puma-<basename>
 ```
 
 ### Servers without real SMTP: `SKIP_SMTP_GUARD`
 
-In production, `config/initializers/smtp_guard.rb` checks at server/sidekiq boot whether
-`SMTP_USERNAME` and `SMTP_PASSWORD` are set and otherwise deliberately aborts startup
-(fail-fast, so Devise mails don't silently fail). Internal or scenario servers that need
+In production, `config/initializers/smtp_guard.rb` checks at server/Sidekiq boot whether
+`SMTP_USERNAME` and `SMTP_PASSWORD` are set, and deliberately aborts startup otherwise
+(fail-fast, so Devise emails don't fail silently). Internal or scenario servers that need
 **no real SMTP** (e.g. `carambus_gu`) set the opt-out flag instead — cleaner than storing
-dummy SMTP credentials:
+dummy SMTP credentials.
 
-```ini
-Environment="SKIP_SMTP_GUARD=1"
+The way to do this is the scenario's `config.yml`:
+
+```yaml
+environments:
+  production:
+    smtp_enabled: false
 ```
 
-When `SKIP_SMTP_GUARD` is set the guard is skipped and the server boots without SMTP
-credentials. **Without** the flag the fail-fast protection stays active unchanged — so omit it
-on real mail-sending servers.
+`prepare_deploy` then writes `SKIP_SMTP_GUARD=1` into `/etc/<basename>.env`. If the file already exists, add
+the line there by hand and restart `puma-<basename>`.
+
+When `SKIP_SMTP_GUARD` is set, the guard is skipped and the server boots without SMTP
+credentials. **Without** the flag, the fail-fast protection stays active as before — so omit
+it on real mail-sending servers.
 
 ## Creating a Gmail App Password
 
-**Important:** Don't use a regular Gmail password, but an app password!
+**Important:** Don't use your regular Gmail password, use an app password instead!
 
 ### Prerequisite: 2-Step Verification
 
-Gmail app passwords require 2-Step Verification to be enabled:
+Gmail app passwords require 2-step verification to be enabled:
 
 1. Go to: https://myaccount.google.com/security
-2. Click "2-Step Verification"
-3. Follow the setup instructions
+2. Click on "2-Step Verification"
+3. Follow the instructions to enable it
 
 ### Create App Password
 
@@ -117,15 +127,20 @@ Gmail app passwords require 2-Step Verification to be enabled:
 5. **Copy the 16-character password** (without spaces!)
    - Displayed: `abcd efgh ijkl mnop`
    - Use: `abcdefghijklmnop`
-6. Use as `SMTP_PASSWORD`
+6. Enter it as `password` under `smtp` in `secrets.yml`
 
 ## Testing
 
 ### Manual Test in Rails Console
 
+The console does not run under systemd and therefore does not know `SMTP_USERNAME`/`SMTP_PASSWORD`. Take
+the values for the session from the (root-only) file:
+
 ```bash
-cd ~/carambus_bcw/current
-RAILS_ENV=production bundle exec rails console
+ssh -p 8910 www-data@<server>
+cd /var/www/<basename>/current
+set -a; eval "$(sudo cat /etc/<basename>.env)"; set +a
+RAILS_ENV=production bin/rails console
 
 # Send test email
 ActionMailer::Base.mail(
@@ -142,10 +157,22 @@ ActionMailer::Base.mail(
 2. Create a new user
 3. Check logs for errors:
    ```bash
-   tail -f ~/carambus_bcw/current/log/production.log
+   tail -f /var/www/<basename>/shared/log/production.log
    ```
 
 ## Troubleshooting
+
+### Puma does not start, nginx reports 502
+
+**Symptom:** `FATAL: SMTP-ENV nicht gesetzt` in the journal.
+
+```bash
+sudo journalctl -u puma-<basename> -n 40 --no-pager
+```
+
+**Solution:** `/etc/<basename>.env` is missing or incomplete. Add the SMTP credentials to `secrets.yml` and run
+`prepare_deploy` again (it creates the file if missing), or complete the file by hand and restart
+`puma-<basename>`.
 
 ### Timeout Errors
 
@@ -155,21 +182,20 @@ Net::ReadTimeout (Net::ReadTimeout with #<TCPSocket:(closed)>)
 ```
 
 **Causes:**
-- SMTP server unreachable
-- Firewall blocking port 587
+- SMTP server not reachable
+- Firewall blocks port 587
 - Wrong SMTP credentials
-- `SMTP_PASSWORD` environment variable not set
 
 **Solution:**
 ```bash
 # Test SMTP connection
 telnet smtp.gmail.com 587
 
-# Check environment variables
-echo $SMTP_PASSWORD
+# Check that the credentials are set (don't paste the values into tickets)
+sudo cat /etc/<basename>.env
 
 # Check logs
-tail -100 ~/carambus_bcw/current/log/production.log
+tail -100 /var/www/<basename>/shared/log/production.log
 ```
 
 ### Authentication Errors
@@ -181,8 +207,8 @@ Net::SMTPAuthenticationError
 
 **Solution:**
 - Use a Gmail app password (16 characters, no spaces)
-- Check if username is correct (full email address)
-- Make sure 2-Step Verification is enabled
+- Check that username is correct (full email address)
+- Make sure 2-step verification is enabled
 - Create a new app password if unsure
 
 ### Port Blocked
@@ -194,17 +220,16 @@ Errno::ECONNREFUSED (Connection refused)
 
 **Solution:**
 ```bash
-# Test port 587
-sudo netstat -tuln | grep 587
-
-# Test alternative ports
-# Port 465 (SSL): config.action_mailer.smtp_settings[:port] = 465
-# Port 25 (unencrypted, not recommended)
+# Test the connection to port 587
+nc -vz smtp.gmail.com 587
 ```
+
+Port 465 (SSL) or 25 (unencrypted, not recommended) would be a change to the generated block, i.e. to the
+generator in `lib/tasks/scenarios.rake`.
 
 ## Alternative: Fix Sendmail (not recommended)
 
-If you still want to use sendmail:
+If you still want to use Sendmail:
 
 ```bash
 # Install Postfix
@@ -221,34 +246,37 @@ sudo systemctl start postfix
 echo "Test" | mail -s "Test Subject" gernot.ullrich@gmx.de
 ```
 
-**Problem:** Many ISPs block port 25, so outgoing emails won't work.
+**Problem:** Many ISPs block port 25, so outgoing emails don't work.
 
 ## Security Notes
 
-1. **Never commit passwords to Git**
-2. Always use environment variables for credentials
-3. Use app passwords instead of regular passwords
-4. Set `enable_starttls_auto: true` for encrypted connections
+1. **Never commit passwords to Git**: credentials live only in `carambus_data/secrets.yml` (not versioned)
+   and on the server in `/etc/<basename>.env` (mode 600)
+2. Use app passwords instead of regular passwords
+3. `enable_starttls_auto: true` is part of the generated block
 
 ## Deployment
 
-After changes to environment files:
+Changes to the SMTP block belong in the generator, not in a file under `config/environments/`:
 
 ```bash
-# In carambus_master
-git add config/environments/production-*.rb
-git commit -m "Switch from sendmail to SMTP for email delivery"
-git push
+# In any up-to-date carambus checkout
+# adjust lib/tasks/scenarios.rake (generate_production_rb_env), then
+git add lib/tasks/scenarios.rake
+git commit -m "..."
+git pull --rebase origin master && git push origin master
 
-# On production server
-cd ~/carambus_bcw/current
-git pull
-sudo systemctl restart carambus_bcw
+# Regenerate and roll out the configuration (from the admin machine)
+bin/rails "scenario:prepare_deploy[<scenario>]"
+bin/rails "scenario:deploy[<scenario>]"
 ```
+
+On the server, `current` is an unpacked release without Git; no `git pull` there. For a changed
+`/etc/<basename>.env` alone, `sudo systemctl restart puma-<basename>` on the server is enough.
 
 ## See Also
 
 - [Deployment Workflow](../developers/deployment-workflow.md)
 - [Server Architecture](server-architecture.md)
 - [Scenario Management](../developers/scenario-management.md)
-
+- [Raspberry Pi Quickstart, section 3.1](raspberry-pi-quickstart.md)

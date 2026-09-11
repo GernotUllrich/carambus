@@ -1,47 +1,80 @@
 # 🗄️ **Datenbank-Setup für Entwickler**
 
-Dieses Dokument beschreibt, wie Sie eine neue Entwicklungsdatenbank für Carambus einrichten können.
+Dieses Dokument beschreibt, wie Sie eine Entwicklungsdatenbank für ein Carambus-Szenario einrichten.
+
+Die Datenbank heißt `<szenario>_development` (z. B. `carambus_bcw_development`). Maßgeblich ist
+`database:` in `config/database.yml` des Szenario-Checkouts bzw. `database_name` in
+`carambus_data/scenarios/<szenario>/config.yml`.
 
 ## 🚀 **Schnellstart (Empfohlen)**
 
-### **Option 1: Datenbank-Dump importieren**
+### **Option 1: Über das Scenario Management**
 
-1. **Datenbank-Dump beschaffen**
-   - Von einem anderen Entwickler im Team
-   - Aus Ihrem lokalen `carambus_api` Ordner
-   - Vom Team Lead
-
-2. **Datenbank erstellen und Dump importieren**
-   ```bash
-   # Datenbank erstellen
-   createdb carambus_development
-   
-   # Dump importieren
-   psql -d carambus_development -f /pfad/zu/ihrem/dump.sql
-   
-   # Beispiel:
-   psql -d carambus_development -f tmp/carambus_api_development_20250813_230822.sql
-   ```
-
-3. **Erwartete Fehler (können ignoriert werden)**
-   ```
-   ERROR: relation "table_name" already exists
-   ERROR: multiple primary keys for table "table_name" are not allowed
-   ERROR: relation "index_name" already exists
-   ERROR: constraint "constraint_name" for relation "table_name" already exists
-   ERROR: duplicate key value violates unique constraint "ar_internal_metadata_pkey"
-   ```
-
-   Diese Fehler sind normal, wenn die Datenbank bereits teilweise initialisiert wurde.
-
-### **Option 2: Neue Datenbank erstellen**
+Der reguläre Weg, aus einem beliebigen aktuellen carambus-Checkout:
 
 ```bash
-# Nur verwenden, wenn kein Dump verfügbar ist
-rails db:create
-rails db:migrate
-rails db:seed
+bin/rails "scenario:prepare_development[<szenario>,development]"
 ```
+
+Der Task leitet `<szenario>_development` aus `carambus_api_development` ab (Vorlage per `createdb --template`)
+und setzt danach die Sequences für lokale Daten zurück.
+
+!!! warning "Voraussetzungen und Seiteneffekte"
+    - **SSH-Zugang zur Authority:** Ist `carambus_api_development` nicht vorhanden oder älter als die
+      Produktion der Authority, holt der Task sie per SSH als `www-data` von `api.carambus.de`. Diesen
+      Zugang haben derzeit nur die Betreiber von Carambus.
+    - **Ersetzt `carambus_api_development`:** Liegen bei der Authority neuere Daten, wird die lokale
+      `carambus_api_development` gesichert, gelöscht und neu aufgebaut; die Sicherung wird danach wieder
+      gelöscht. Das betrifft jeden Checkout, der dieselbe Datenbank nutzt.
+    - **Ersetzt `<szenario>_development`:** Eine vorhandene Szenario-Datenbank wird gelöscht und neu
+      angelegt. Enthält sie lokale Daten (IDs ab 50.000.000), bricht der Task ohne `FORCE=true` ab.
+
+### **Option 2: Datenbank-Dump importieren**
+
+Dumps entstehen und landen über die Scenario-Tasks an einer festen Stelle:
+
+```bash
+# Dump anlegen: carambus_data/scenarios/<szenario>/database_dumps/<szenario>_<env>_<YYYYMMDD_HHMMSS>.sql.gz
+bin/rails "scenario:create_database_dump[<szenario>,development]"
+
+# Jüngsten Dump dieses Szenarios einspielen (löscht die Ziel-Datenbank vorher)
+bin/rails "scenario:restore_database_dump[<szenario>,development]"
+```
+
+Von Hand einspielen:
+
+```bash
+createdb <szenario>_development
+gunzip -c /pfad/zu/<datei>.sql.gz | psql <szenario>_development
+```
+
+**Erwartete Meldungen (können ignoriert werden)**
+```
+ERROR: role "www_data" does not exist
+invalid command \restrict
+invalid command \unrestrict
+ERROR: relation "table_name" already exists
+ERROR: multiple primary keys for table "table_name" are not allowed
+ERROR: relation "index_name" already exists
+ERROR: constraint "constraint_name" for relation "table_name" already exists
+ERROR: duplicate key value violates unique constraint "ar_internal_metadata_pkey"
+```
+
+Die ersten drei stammen aus Dumps der Authority: Die Rolle `www_data` gibt es lokal nicht, und ein neueres
+`pg_dump` schreibt Meta-Befehle, die ein älteres lokales `psql` überspringt. Beide erscheinen auch während
+`scenario:prepare_development`; der Task meldet trotzdem Erfolg. Die übrigen treten auf, wenn die Datenbank
+bereits teilweise initialisiert war.
+
+### **Option 3: Leere Datenbank (nur Schema)**
+
+```bash
+bin/rails db:create
+bin/rails db:migrate
+```
+
+Danach enthält die Datenbank nur das Schema, **keine Stammdaten**. `db:seed` legt nichts an
+(`db/seeds.rb` enthält keinen ausführbaren Code). Für eine lauffähige Instanz führt der Weg über
+Option 1 oder 2.
 
 ## 🔧 **Detaillierte Anleitung**
 
@@ -49,59 +82,45 @@ rails db:seed
 
 - PostgreSQL ist installiert und läuft
 - `createdb` und `psql` Kommandos sind verfügbar
-- Sie haben Zugriff auf eine Datenbank-Dump-Datei
+- Für Option 1: SSH-Zugang zur Authority (siehe oben) oder eine aktuelle lokale `carambus_api_development`
+- Für Option 2: ein Dump unter `carambus_data/scenarios/<szenario>/database_dumps/`
 
-### **Dump-Datei vorbereiten**
+### **Dump-Datei prüfen**
 
-1. **Dump-Datei finden**
-   ```bash
-   # Typische Namen:
-   # - carambus_api_development_YYYYMMDD_HHMMSS.sql
-   # - carambus_development_dump.sql
-   # - carambus_api_development.sql
-   ```
+```bash
+# Vorhandene Dumps
+ls -lh ~/DEV/carambus/carambus_data/scenarios/<szenario>/database_dumps/
 
-2. **Dump-Datei überprüfen**
-   ```bash
-   # Dateigröße prüfen
-   ls -lh /pfad/zu/ihrem/dump.sql
-   
-   # Erste Zeilen anzeigen
-   head -20 /pfad/zu/ihrem/dump.sql
-   ```
+# Erste Zeilen anzeigen
+gunzip -c /pfad/zu/<datei>.sql.gz | head -20
+```
 
 ### **Datenbank erstellen**
 
 ```bash
 # Neue Datenbank erstellen
-createdb carambus_development
+createdb <szenario>_development
 
 # Oder mit spezifischen Parametern
-createdb -h localhost -U username carambus_development
+createdb -h localhost -U username <szenario>_development
 ```
 
 ### **Dump importieren**
 
 ```bash
 # Einfacher Import
-psql -d carambus_development -f /pfad/zu/ihrem/dump.sql
+gunzip -c /pfad/zu/<datei>.sql.gz | psql -d <szenario>_development
 
 # Mit spezifischen Parametern
-psql -h localhost -U username -d carambus_development -f /pfad/zu/ihrem/dump.sql
-
-# Mit Fortschrittsanzeige
-psql -d carambus_development -f /pfad/zu/ihrem/dump.sql -v ON_ERROR_STOP=0
+gunzip -c /pfad/zu/<datei>.sql.gz | psql -h localhost -U username -d <szenario>_development
 ```
 
 ### **Import überwachen**
 
 ```bash
-# Import-Logs anzeigen
-tail -f /var/log/postgresql/postgresql-*.log
-
 # Datenbank-Verbindung testen
-psql -d carambus_development -c "SELECT version();"
-psql -d carambus_development -c "\dt"
+psql -d <szenario>_development -c "SELECT version();"
+psql -d <szenario>_development -c "\dt"
 ```
 
 ## 🚨 **Fehlerbehebung**
@@ -120,17 +139,14 @@ psql -d carambus_development -c "\dt"
 2. **Datenbank existiert bereits**
    ```bash
    # Datenbank löschen und neu erstellen
-   dropdb carambus_development
-   createdb carambus_development
+   dropdb <szenario>_development
+   createdb <szenario>_development
    ```
 
 3. **Import schlägt fehl**
    ```bash
-   # Dump-Datei auf Syntax-Fehler prüfen
-   psql -d carambus_development -f dump.sql 2>&1 | grep -i error
-   
-   # Dump-Datei reparieren (falls nötig)
-   sed -i 's/CREATE SCHEMA IF NOT EXISTS "public";//' dump.sql
+   # Fehler aus dem Import herausfiltern
+   gunzip -c /pfad/zu/<datei>.sql.gz | psql -d <szenario>_development 2>&1 | grep -i error
    ```
 
 ### **Verifikation**
@@ -138,7 +154,7 @@ psql -d carambus_development -c "\dt"
 Nach dem Import sollten Sie folgende Tabellen sehen:
 
 ```bash
-psql -d carambus_development -c "\dt" | grep -E "(users|clubs|tournaments|leagues)"
+psql -d <szenario>_development -c "\dt" | grep -E "(users|clubs|tournaments|leagues)"
 ```
 
 ## 📚 **Weitere Ressourcen**
@@ -146,7 +162,8 @@ psql -d carambus_development -c "\dt" | grep -E "(users|clubs|tournaments|league
 - [PostgreSQL Dokumentation](https://www.postgresql.org/docs/)
 - [Rails Database Guide](https://guides.rubyonrails.org/active_record_migrations.html)
 - [Carambus Entwicklerhandbuch](../developers/developer-guide.md)
+- [Installations-Übersicht](installation-overview.md)
 
 ---
 
-**Tipp**: Verwenden Sie immer einen Datenbank-Dump für die Entwicklung, da dieser alle aktuellen Daten und das korrekte Schema enthält.
+**Tipp**: Verwenden Sie für die Entwicklung eine aus der Authority abgeleitete Datenbank (Option 1 oder 2); nur sie enthält die globalen Stammdaten und das aktuelle Schema.
