@@ -17,22 +17,26 @@ As a system administrator, you are responsible for:
 Choose your deployment variant:
 
 ### Option 1: Raspberry Pi All-in-One (Recommended for Individual Clubs)
-**Setup time**: 30-60 minutes  
-**Difficulty**: ⭐ Easy
+**Setup time**: about 1.5 hours (measured: system ~60 min, application ~15 min)  
+**Difficulty**: ⭐⭐ Medium (basic Linux and SSH knowledge required)
 
 ➡️ **[Raspberry Pi Quickstart Guide](raspberry-pi-quickstart.md)**
 
-### Option 2: Cloud Hosting (Recommended for Federations)
-**Setup time**: 2-4 hours  
-**Difficulty**: ⭐⭐ Medium
+!!! warning "Initial database load"
+    The initial load currently requires SSH access to the Authority (`api.carambus.de`). This needs the
+    Carambus operator, see [Installation Overview](installation-overview.md#prerequisites).
 
-➡️ **[Installation Overview - Cloud Setup](installation-overview.en.md)**
+### Option 2: Cloud Hosting (Federations)
+**Status**: not a proven path. The Ansible roles and the Quickstart have been walked for the Raspberry Pi;
+a fresh cloud server has not been set up this way so far.
+
+➡️ **[Installation Overview](installation-overview.md)**
 
 ### Option 3: On-Premise Server
-**Setup time**: 1-2 days  
-**Difficulty**: ⭐⭐⭐ Demanding
+**Status**: not a proven path (as option 2). A Raspberry Pi used purely as a server follows the path of
+option 1.
 
-➡️ **[Installation Overview - On-Premise](installation-overview.en.md)**
+➡️ **[Installation Overview](installation-overview.md)**
 
 ## 📚 Main Topics
 
@@ -40,10 +44,9 @@ Choose your deployment variant:
 
 **Basic installation**:
 - System requirements
-- Operating system setup (Ubuntu)
-- Install dependencies
-- Deploy Carambus
-- Initial configuration
+- Set up the system with Ansible (`~/DEV/ansible`, RUNBOOK)
+- Scenario configuration in `carambus_data`
+- Deploy Carambus via Scenario Management
 
 ➡️ **[Complete Installation Guide](installation-overview.md)**
 
@@ -63,7 +66,7 @@ Choose your deployment variant:
 ➡️ **[Email Configuration](email-configuration.md)**
 
 **Scoreboard setup**:
-- Automatic start on boot
+- Automatic start on boot (about 3 minutes from power-on to the scoreboard, desktop after ~1 minute)
 - Configure kiosk mode
 - Manage multiple displays
 
@@ -86,7 +89,7 @@ Choose your deployment variant:
 - Apply system updates
 - Perform Carambus updates
 - Backup checks
-- Log rotation
+- Check log sizes
 - Performance monitoring
 
 **Backup & Restore**:
@@ -97,21 +100,17 @@ Choose your deployment variant:
 
 ### 5. Security
 
-**System hardening**:
-- Firewall configuration (ufw)
-- Fail2ban against brute force
-- SSL/TLS certificates (Let's Encrypt)
-- Secure credential management
-- Access controls
+**System hardening** (on Raspberry Pis via Ansible):
+- Firewall with `iptables-persistent`: only port 3131 (web) and 8910 (SSH) open
+- SSH only on port 8910 as `www-data`
+- Block list against suspicious addresses (chain `carambus-blocklist`)
+- SSL/TLS certificates (Let's Encrypt) for publicly reachable servers
+- Secrets outside the deploy tree (`/etc/<basename>.env`, mode 600)
 
 **Best practices**:
 - Regular security updates
 - Enforce strong passwords
-- Enable 2FA (optional)
 - Log monitoring
-- Penetration tests
-
-➡️ **[Security Best Practices](installation-overview.en.md)**
 
 ### 6. Monitoring & Troubleshooting
 
@@ -124,7 +123,7 @@ Choose your deployment variant:
 
 **Log analysis**:
 - Application logs
-- Nginx/Apache logs
+- Nginx logs
 - PostgreSQL logs
 - Systemd logs
 
@@ -149,7 +148,7 @@ Choose your deployment variant:
 **Tournament streaming with existing scoreboards**:
 - Uses existing Scoreboard Raspberry Pis
 - USB webcam per table (~$80)
-- FFmpeg hardware encoding
+- FFmpeg (software encoding, `libx264`)
 - Automatic scoreboard overlay
 - Central management in admin interface
 
@@ -170,67 +169,126 @@ Choose your deployment variant:
 ### Raspberry Pi All-in-One
 
 **Hardware requirements**:
-- Raspberry Pi 4 (8GB RAM recommended) or Raspberry Pi 5
-- Micro SD card (64 GB, Class 10)
-- Power supply (USB-C, 3A)
-- HDMI cable
+- Raspberry Pi 4 or 5. 2 GB RAM works but is tight; 4 GB or more is recommended
+- MicroSD card (at least 16 GB, 32 GB+ recommended)
+- Official power supply
+- HDMI cable and monitor
 - Optional: Touch display (7" or larger)
 
-**Software setup**:
-1. **Download image**: Pre-configured Carambus image
-2. **Flash SD card**: With Balena Etcher or Raspberry Pi Imager
-3. **Initial configuration**: WiFi, club name, admin account
-4. **Done!**: System boots in kiosk mode
+**Software setup** (details in the [Quickstart](raspberry-pi-quickstart.md)):
+1. **Write the SD card**: Raspberry Pi Imager, standard Raspberry Pi OS with desktop, add your SSH key
+2. **Set up the system**: one Ansible run (`master.yml`, ~60 min)
+3. **Deploy the application**: rake tasks from the admin machine (~15 min)
+4. **Done**: The Pi boots into the scoreboard on its own (~3 min after power-on)
+
+**Advantages**:
+- ✅ Proven path, walked on fresh hardware
+- ✅ Very cost-effective (~150 EUR)
+- ✅ Server and scoreboard on one device
+
+**Disadvantages**:
+- ❌ Limited performance (sufficient for small clubs)
+- ❌ SD card can fail, and **no automatic database backup is set up for new club Pis** (see maintenance
+  checklist)
 
 ➡️ **[Detailed Raspberry Pi Guide](raspberry-pi-quickstart.md)**
 
 ### Cloud Hosting (VPS)
 
-**Provider recommendations**:
+**Provider examples**:
 - **Hetzner Cloud**: 8 EUR/month (CPX21: 3 vCPU, 4 GB RAM)
 - **DigitalOcean**: 24 USD/month (4 GB Droplet)
 - **AWS/Azure**: From 30 EUR/month (variable costs)
 
-**Installation steps**:
-1. Book and start VPS
-2. Install Ubuntu 22.04 LTS
-3. Harden base system
-4. Install dependencies
-5. Deploy Carambus
-6. Configure web server
-7. Set up SSL
-8. Configure systemd service
-9. Configure backup
-10. Set up monitoring
+**Installation steps** (application part as on the Pi, system part not proven):
+1. **Book and start a VPS**
+2. **Set up the system**: The Ansible roles have been walked for the Raspberry Pi; whether `master.yml` sets up
+   a fresh cloud server equivalently has not been checked
+3. **Create the scenario** in `carambus_data` (see [Installation Overview](installation-overview.md))
+4. **Deploy the application**: `prepare_deploy` → `prepare_development` → `reset_server_db` → `deploy`
+5. **Set up SSL**: issue the certificate before `prepare_deploy` (`ssl_enabled: true`)
+6. **Configure backup**: see maintenance checklist
+7. **Set up monitoring**: optional (e.g. UptimeRobot)
 
-➡️ **[Cloud Installation Guide](installation-overview.en.md)**
+**Advantages**:
+- ✅ Accessible from anywhere
+- ✅ Professional infrastructure
+
+**Disadvantages**:
+- ❌ Ongoing costs
+- ❌ Internet dependency
+- ❌ System part not a proven path
+
+➡️ **[Installation Overview](installation-overview.md)**
 
 ### On-Premise Server
 
 **Hardware options**:
-- **Budget**: Raspberry Pi 4 as server only (~100 EUR)
-- **Standard**: Intel NUC or mini PC (~400 EUR)
-- **Premium**: Tower server with RAID (~1,500 EUR)
+- **Budget**: Raspberry Pi as a pure server (path as option 1)
+- **Standard**: Intel NUC or mini PC
+- **Premium**: Tower server with RAID
 
-➡️ **[On-Premise Installation Guide](installation-overview.en.md)**
+**Installation steps**: as cloud hosting. Additionally: a static address or device name on the local
+network, backup to an external medium (USB HDD or NAS), UPS against power failures.
+
+**Advantages**:
+- ✅ Full data control
+- ✅ No ongoing hosting costs
+- ✅ Fast on the local network
+
+**Disadvantages**:
+- ❌ Hardware purchase
+- ❌ Responsible for maintenance yourself
+
+➡️ **[Installation Overview](installation-overview.md)**
+
+## ⚙️ Important Configuration Files
+
+A server's configuration is **not maintained by hand**. It is derived from
+`carambus_data/scenarios/<scenario>/config.yml` and `carambus_data/secrets.yml`; `prepare_deploy` generates
+the files and uploads them.
+
+| File on the server | Generated from | Change via |
+|---|---|---|
+| `shared/config/database.yml` | `templates/database/database.yml.erb` (role `www_data`, password from `secrets.yml` `shared.database_password`) | `config.yml` / `secrets.yml`, then `prepare_deploy` |
+| `shared/config/puma.rb` | `templates/puma/puma_rb.erb` (socket `/var/www/<basename>/shared/sockets/puma-production.sock`) | `prepare_deploy` |
+| `/etc/nginx/sites-available/<basename>` | `templates/nginx/nginx_conf.erb` | `bin/rails "scenario:sync_nginx_conf[<scenario>]"` |
+| `/etc/systemd/system/puma-<basename>.service` | `templates/puma/puma.service.erb` | `prepare_deploy` (do not edit by hand, it is rewritten) |
+| `/etc/<basename>.env` | `secrets.yml` `smtp` (or `smtp_enabled: false`) | by hand, never overwritten |
+| `shared/config/credentials/production.key` / `production.yml.enc` | `carambus_data/scenarios/<scenario>/production/credentials/` | `WRITE=true bin/rails "scenario:generate_credentials[<scenario>]"` (dry run without `WRITE=true`), then `prepare_deploy` |
+
+All paths without a leading `/` are under `/var/www/<basename>/`.
+
+!!! note "Credentials"
+    Do not edit them on the server with `rails credentials:edit`: `prepare_deploy` uploads the files from
+    `carambus_data` and overwrites changes made on the server. How a new club obtains its `production.key`
+    is not settled yet (see [Installation Overview](installation-overview.md#prerequisites)).
+
+Services on the server:
+```bash
+sudo systemctl status puma-<basename>
+sudo systemctl restart puma-<basename>
+systemctl is-active puma-<basename> redis-server nginx
+```
 
 ## 🔧 Maintenance Checklist
 
 ### Daily (automated)
-- ✅ Database backup
-- ✅ Log rotation
-- ✅ Monitoring checks
+- ✅ Database backup **only** for the Authority and for the sites listed in `STANDALONE_BACKUP_SCENARIOS`
+  (`config/schedule.rb`) (currently `carambus_bcw`, target `/mnt/backup`)
+- ⚠️ A new club Pi has **no automatic backup**: add the scenario to `STANDALONE_BACKUP_SCENARIOS` and mount a
+  USB stick at `/mnt/backup`, or set up `bin/pg_backup.sh` in cron yourself
 
 ### Weekly
 - 🔍 Check backup integrity
 - 🔍 Review logs for errors
-- 🔍 Check disk space
+- 🔍 Check disk space (`production.log` is not rotated automatically)
 - 🔍 View performance metrics
 
 ### Monthly
 - 🔄 Apply system updates (security)
-- 🔄 Check and install Carambus updates
-- 🔄 Check SSL certificate expiration
+- 🔄 Check and install Carambus updates (`bin/rails "scenario:deploy[<scenario>]"`)
+- 🔄 Check SSL certificate expiration (for publicly reachable servers)
 - 🔄 Test backup restore
 
 ### Quarterly
@@ -240,26 +298,28 @@ Choose your deployment variant:
 - 📊 Update documentation
 
 ### Annually
-- 🔒 Penetration test (optional)
 - 🔒 Disaster recovery test
 - 🔒 Check hardware condition
-- 🔒 License reviews
 
 ## 🆘 Troubleshooting Guide
 
 ### Problem: Application won't start
 
+**Symptoms**: *502 Bad Gateway*, service `puma-<basename>` keeps restarting
+
 **Debugging**:
 ```bash
-sudo systemctl status carambus
-sudo journalctl -u carambus -n 100
+# Check service status
+sudo systemctl status puma-<basename>
+
+# View logs
+sudo journalctl -u puma-<basename> -n 100 --no-pager
 ```
 
 **Common causes**:
+- `/etc/<basename>.env` missing (`FATAL: SMTP-ENV nicht gesetzt`), see [Email Configuration](email-configuration.md)
 - Database not reachable
 - Missing credentials
-- Port already in use
-- Missing dependencies
 
 ### Problem: WebSockets not working
 
@@ -267,26 +327,74 @@ sudo journalctl -u carambus -n 100
 
 **Checks**:
 ```bash
+# Check nginx WebSocket configuration
 sudo nginx -t
-tail -f log/production.log | grep Cable
-redis-cli ping  # if using Redis
+
+# Action Cable logs
+tail -f /var/www/<basename>/shared/log/production.log | grep Cable
+
+# Redis is required (ActionCable)
+systemctl is-active redis-server
+redis-cli ping
 ```
+
+**Solutions**:
+- Regenerate the nginx configuration with `scenario:sync_nginx_conf`
+- Start Redis: `sudo systemctl start redis-server`
 
 ### Problem: Slow performance
 
 **Diagnosis**:
 ```bash
+# CPU/RAM utilization
 htop
+free -m
+
+# Database connections
 sudo -u postgres psql -c "SELECT count(*) FROM pg_stat_activity;"
 ```
 
+**Optimizations**:
+- Check memory: are ClamAV/SpamAssassin running on the Pi, see [Quickstart, Troubleshooting](raspberry-pi-quickstart.md#troubleshooting)
+- Check database indexes
+- More RAM/CPU
+
 ### Problem: Disk space full
+
+**Diagnosis**:
+```bash
+# Disk usage
+df -h
+
+# Find largest directories
+du -sh /var/* | sort -h
+```
+
+**Solutions**:
+```bash
+# Delete old journal entries
+sudo journalctl --vacuum-time=7d
+
+# Clear the Rails log
+cd /var/www/<basename>/current && RAILS_ENV=production bin/rails log:clear
+
+# Delete old backups (check manually!)
+```
+
+### Problem: SSL certificate expired
+
+**Symptoms**: Browser warning, HTTPS doesn't work
 
 **Solution**:
 ```bash
-df -h
-sudo journalctl --vacuum-time=7d
-rails log:clear
+# Renew with certbot
+sudo certbot renew
+
+# Reload nginx
+sudo systemctl reload nginx
+
+# Check auto-renewal
+sudo systemctl status certbot.timer
 ```
 
 ## 📞 Support Resources
@@ -295,6 +403,7 @@ rails log:clear
 
 - **[Installation Overview](installation-overview.md)**: All deployment options
 - **[Raspberry Pi Quickstart](raspberry-pi-quickstart.md)**: RasPi setup
+- **[Raspberry Pi Client](raspberry-pi-client.md)**: RasPi as display
 - **[Server Architecture](server-architecture.md)**: System overview
 - **[Database Setup](database-setup.md)**: Configure PostgreSQL
 - **[Email Configuration](email-configuration.md)**: Set up SMTP
@@ -309,6 +418,21 @@ rails log:clear
 
 **Contact**:
 - Email: gernot.ullrich@gmx.de
+- For critical problems: detailed error description with logs
+
+### Further Information
+
+**Rails documentation**:
+- [Ruby on Rails Guides](https://guides.rubyonrails.org/)
+- [Rails API Docs](https://api.rubyonrails.org/)
+
+**PostgreSQL**:
+- [PostgreSQL Docs](https://www.postgresql.org/docs/)
+- [Performance Tuning](https://wiki.postgresql.org/wiki/Performance_Optimization)
+
+**Nginx**:
+- [Nginx Docs](https://nginx.org/en/docs/)
+- [WebSocket Proxying](https://nginx.org/en/docs/http/websocket.html)
 
 ## 🔗 All Administrator Documents
 
@@ -325,8 +449,4 @@ rails log:clear
 
 **Good luck with administration! 🖥️**
 
-*Tip: Document your specific installation (server details, passwords, specifics) in a separate, secure document.*
-
-
-
-
+*Tip: Document your specific installation (server details, specifics) in a separate, secure document. Credentials belong in `carambus_data/secrets.yml`, not in the documentation.*
