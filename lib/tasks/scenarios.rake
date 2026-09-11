@@ -5694,7 +5694,40 @@ EOF
       echo "Starting browser: $BROWSER_CMD with URL: $SCOREBOARD_URL"
       echo "Using profile directory: $CHROMIUM_USER_DIR"
 
-      if [ -z "$KIOSK" ]; then
+      # labwc (Standard ab Raspberry Pi OS 13 "trixie") setzt --start-fullscreen bei
+      # Xwayland-Fenstern nicht um, und wmctrl findet das --app-Fenster nicht (Titel =
+      # Seitentitel). Dort startet Chromium nativ unter Wayland im Kiosk-Modus;
+      # --password-store=basic verhindert die Schluesselbund-Abfrage. Gemessen auf
+      # carambus-pbv 2026-09-11 (carambus_bcw Plan 15-03). wayfire/X11 bleiben unveraendert.
+      LABWC_SESSION=""
+      if grep -qsE '^(user-session|autologin-session)=.*labwc' /etc/lightdm/lightdm.conf; then
+        LABWC_SESSION="true"
+        export XDG_RUNTIME_DIR="/run/user/$(id -u)"
+        export WAYLAND_DISPLAY="${WAYLAND_DISPLAY:-wayland-0}"
+        export DBUS_SESSION_BUS_ADDRESS="unix:path=$XDG_RUNTIME_DIR/bus"
+        for i in $(seq 1 60); do
+          [ -S "$XDG_RUNTIME_DIR/$WAYLAND_DISPLAY" ] && break
+          echo "Waiting for labwc ($XDG_RUNTIME_DIR/$WAYLAND_DISPLAY)..."
+          sleep 1
+        done
+      fi
+
+      if [ -n "$LABWC_SESSION" ]; then
+      $BROWSER_CMD \
+        --ozone-platform=wayland \
+        --kiosk \
+        --password-store=basic \
+        --disable-restore-session-state \
+        --user-data-dir="$CHROMIUM_USER_DIR" \
+        --disable-features=TranslateUI \
+        --disable-translate \
+        --disable-dev-shm-usage \
+        --no-first-run \
+        --noerrdialogs \
+        --disable-session-crashed-bubble \
+        --app="$SCOREBOARD_URL" \
+        >>/tmp/chromium-kiosk.log 2>&1 &
+      elif [ -z "$KIOSK" ]; then
       $BROWSER_CMD \
         --start-fullscreen \
         --disable-restore-session-state \
