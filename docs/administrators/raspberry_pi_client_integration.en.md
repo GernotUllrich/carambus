@@ -4,14 +4,21 @@
 
 The Raspberry Pi Client System has been integrated into the Scenario Management System to enable automatic deployment and management of kiosk browsers for Carambus scoreboards.
 
+This page is the reference for the kiosk rake tasks. The complete path from the SD card to the scoreboard
+is described in the [Raspberry Pi quickstart](raspberry-pi-quickstart.md).
+
+After power-on, a Pi with a local server takes about **3 minutes** to show the scoreboard: the desktop
+after about 1 minute, then the autostart script waits until the local server answers (Puma preloads the
+application; the script waits at most 300 s), after that Chromium starts.
+
 ## Architecture
 
 ### Components
 
-1. **Scenario Configuration**: Raspberry Pi Client settings in `config.yml`
-2. **Rake Tasks**: Automated setup, deployment, and management tasks
-3. **Systemd Service**: Kiosk mode as system service
-4. **Autostart Script**: Intelligent browser start script with display management
+1. **Scenario configuration**: Raspberry Pi client settings in `config.yml`
+2. **Rake tasks**: Automated setup, deployment and management tasks
+3. **Systemd service**: Kiosk mode as the system service `scoreboard-kiosk`
+4. **Autostart script**: Browser start script generated in `lib/tasks/scenarios.rake`
 
 ### How It Works
 
@@ -25,36 +32,42 @@ Scenario Config → Rake Task → SSH → Raspberry Pi
 
 ### Raspberry Pi Client Configuration
 
-Each scenario can contain Raspberry Pi Client settings:
+Each scenario can contain Raspberry Pi client settings. For a Pi set up with Ansible (SSH only as
+`www-data` on port 8910) it looks like this — as in the
+[quickstart, step 3.1](raspberry-pi-quickstart.md#31-configure-the-scenario):
 
 ```yaml
 environments:
   production:
+    webserver_host: <name>.local
+    ssh_host: <name>.local
+    webserver_port: 3131
+    ssh_port: 8910
     # ... other configurations ...
     raspberry_pi_client:
       enabled: true
-      ip_address: "192.168.178.92"  # Raspberry Pi IP
-      ssh_user: "pi"
-      ssh_password: "raspberry"
-      kiosk_user: "pi"
-      local_server_enabled: true  # Does this location host a local server?
-      local_server_port: 8910
-      autostart_enabled: true
-      browser_restart_command: "sudo systemctl restart scoreboard-kiosk"
+      ip_address: <name>.local          # device name, not an IP address
+      ssh_user: www-data
+      ssh_port: 8910
+      kiosk_user: <imager-user>         # the user created in the Imager (autologin)
+      local_server_enabled: true        # Does this Pi host the server itself?
+      local_server_port: 3131
 ```
 
 ### Configuration Options
 
 | Option | Description | Default |
 |--------|-------------|---------|
-| `enabled` | Enables Raspberry Pi Client for this scenario | `false` |
-| `ip_address` | IP address of the Raspberry Pi | - |
-| `ssh_user` | SSH username | `pi` |
-| `ssh_password` | SSH password | `raspberry` |
-| `kiosk_user` | User for kiosk mode | `pi` |
-| `local_server_enabled` | Does this location host a local server? | `false` |
-| `local_server_port` | Port of the local server | `8910` |
-| `autostart_enabled` | Automatic start on boot | `true` |
+| `enabled` | Enables the Raspberry Pi client for this scenario | off |
+| `ip_address` | SSH target of the Pi (device name or IP); also added to `config.hosts` | - |
+| `ssh_user` | SSH username (after Ansible: `www-data`) | - |
+| `ssh_password` | Leave empty: key-based login. Set: login via `sshpass` | - |
+| `ssh_port` | SSH port (after Ansible: 8910) | `22` |
+| `kiosk_user` | User the kiosk runs as — must be the autologin user of the desktop session | - |
+| `local_server_enabled` | Does this Pi host the server itself? Then the scoreboard URL points to `localhost` | off |
+| `local_server_port` | Port for `config.hosts` with `local_server_enabled`; the scoreboard URL uses `webserver_port` | - |
+| `sb_state` | Initial scoreboard state in the URL | `welcome` |
+| `autostart_enabled` | Currently not evaluated | - |
 | `browser_restart_command` | Command to restart the browser | `sudo systemctl restart scoreboard-kiosk` |
 
 ## Available Rake Tasks
@@ -62,67 +75,53 @@ environments:
 ### 1. Setup Raspberry Pi Client
 
 ```bash
-rake scenario:setup_raspberry_pi_client[scenario_name]
+bin/rails "scenario:setup_raspberry_pi_client[<scenario>]"
 ```
 
 **Purpose**: Initial setup of the Raspberry Pi for kiosk mode
 
 **Steps**:
-1. Tests SSH connection
-2. Installs required packages (chromium-browser, wmctrl, xdotool)
-3. Creates kiosk user (if required)
-4. Sets up autostart configuration
-5. Creates systemd service
-
-**Example**:
-```bash
-rake scenario:setup_raspberry_pi_client[carambus_location_2459]
-```
+1. Tests the SSH connection
+2. Installs `chromium` (fallback `chromium-browser`), `wmctrl` and `xdotool`
+3. Creates `kiosk_user` via `useradd` if it differs from the SSH user and does not exist yet — a user
+   created this way has no desktop session; the kiosk needs the autologin user
+4. Step "autostart configuration" — currently without effect; autostart runs through the service
+5. Creates the systemd service `scoreboard-kiosk`
 
 ### 2. Deploy Raspberry Pi Client
 
 ```bash
-rake scenario:deploy_raspberry_pi_client[scenario_name]
+bin/rails "scenario:deploy_raspberry_pi_client[<scenario>]"
 ```
 
-**Purpose**: Deployment of kiosk configuration to the Raspberry Pi
+**Purpose**: Deploy the kiosk configuration to the Raspberry Pi
 
 **Steps**:
-1. Generates scoreboard URL based on location_id (MD5 hash)
-2. Uploads scoreboard URL to Raspberry Pi
-3. Uploads and installs autostart script
-4. Enables and starts systemd service
-
-**Example**:
-```bash
-rake scenario:deploy_raspberry_pi_client[carambus_location_2459]
-```
+1. Generates the scoreboard URL from the location (see below)
+2. Stores the URL on the **server** (`production.ssh_host`) as `/var/www/<basename>/shared/config/scoreboard_url`
+3. Generates the autostart script and installs it on the Pi as `/usr/local/bin/autostart-scoreboard.sh`
+4. Enables `scoreboard-kiosk` and restarts it — changes take effect immediately
 
 ### 3. Restart Raspberry Pi Client
 
 ```bash
-rake scenario:restart_raspberry_pi_client[scenario_name]
+bin/rails "scenario:restart_raspberry_pi_client[<scenario>]"
 ```
 
-**Purpose**: Restart kiosk browser via SSH
+**Purpose**: Restart the kiosk browser via SSH
 
 **Functionality**:
 - Executes the configured restart command
-- Enables quick restart without Raspberry Pi reboot
-- Saves time for tests and updates
-
-**Example**:
-```bash
-rake scenario:restart_raspberry_pi_client[carambus_location_2459]
-```
+- Allows a quick restart without rebooting the Raspberry Pi
+- Saves time during tests and updates
 
 ### 4. Test Raspberry Pi Client
 
 ```bash
-rake scenario:test_raspberry_pi_client[scenario_name]
+bin/rails "scenario:test_raspberry_pi_client[<scenario>]"
 ```
 
-**Purpose**: Test of Raspberry Pi Client functionality
+**Purpose**: Test the Raspberry Pi client functionality
 
 **Tests**:
 1. SSH connection
@@ -130,10 +129,13 @@ rake scenario:test_raspberry_pi_client[scenario_name]
 3. Scoreboard URL file
 4. Browser process
 
-**Example**:
+### 5. View the autostart script
+
 ```bash
-rake scenario:test_raspberry_pi_client[carambus_location_2459]
+bin/rails "scenario:preview_autostart_script[<scenario>]"
 ```
+
+Prints the script that `deploy_raspberry_pi_client` would install, without changing anything.
 
 ## Scoreboard URL Generation
 
@@ -142,17 +144,21 @@ rake scenario:test_raspberry_pi_client[carambus_location_2459]
 The system automatically generates the correct scoreboard URL:
 
 ```ruby
-location_id = scenario_config['scenario']['location_id']
-location_md5 = Digest::MD5.hexdigest(location_id.to_s)
+location_md5 = Location.find(location_id).md5
+url_host = pi_config['local_server_enabled'] ? 'localhost' : webserver_host
 sb_state = pi_config['sb_state'] || 'welcome'
-scoreboard_url = "http://#{webserver_host}:#{webserver_port}/locations/#{location_md5}/scoreboard?sb_state=#{sb_state}&locale=de"
+scoreboard_url = "http://#{url_host}:#{webserver_port}/locations/#{location_md5}/scoreboard?sb_state=#{sb_state}&locale=de"
 ```
+
+The md5 value comes from the location in the database, not from a hash of the `location_id`.
 
 ### Example
 
-For `location_id: 2459`:
-- MD5 hash: `a1b2c3d4e5f6...`
-- URL: `http://192.168.178.107:3131/locations/a1b2c3d4e5f6.../scoreboard?sb_state=welcome&locale=de`
+For a Pi with a local server:
+- URL: `http://localhost:3131/locations/<md5>/scoreboard?sb_state=welcome&locale=de`
+
+The autostart script reads the `scoreboard_url` file only with `local_server_enabled: true` (on an
+all-in-one Pi the server is the Pi itself); without a local server it uses the URL built in at generation time.
 
 ## Systemd Service
 
@@ -165,11 +171,11 @@ After=graphical.target
 
 [Service]
 Type=simple
-User=pi
+User=<kiosk_user from config.yml>
 Environment=DISPLAY=:0
 ExecStart=/usr/local/bin/autostart-scoreboard.sh
 Restart=always
-RestartSec=10
+RestartSec=3
 
 [Install]
 WantedBy=graphical.target
@@ -195,46 +201,22 @@ sudo systemctl status scoreboard-kiosk
 
 ### Intelligent Browser Management
 
-The generated autostart script provides:
-
-1. **Display Management**: Waits for display readiness
-2. **Panel Hiding**: Hides desktop panels for fullscreen mode
-3. **Browser Optimization**: Special Chromium flags for kiosk mode
-4. **Error Handling**: Robust handling of display issues
+The script is produced by `generate_autostart_script_content` (`lib/tasks/scenarios.rake`); view it with
+`preview_autostart_script`. Do not edit it by hand — `deploy_raspberry_pi_client` overwrites it.
 
 ### Script Features
 
-```bash
-#!/bin/bash
-# Carambus Scoreboard Autostart Script
-
-# Set display environment
-export DISPLAY=:0
-
-# Wait for display to be ready
-sleep 5
-
-# Hide panel
-wmctrl -r "panel" -b add,hidden 2>/dev/null || true
-wmctrl -r "lxpanel" -b add,hidden 2>/dev/null || true
-
-# Get scoreboard URL
-SCOREBOARD_URL=$(cat /etc/scoreboard_url)
-
-# Start browser in fullscreen
-/usr/bin/chromium-browser \
-  --start-fullscreen \
-  --disable-restore-session-state \
-  --user-data-dir=/tmp/chromium-scoreboard \
-  --disable-features=VizDisplayCompositor \
-  --disable-dev-shm-usage \
-  --app="$SCOREBOARD_URL" \
-  >/dev/null 2>&1 &
-
-# Ensure fullscreen
-sleep 5
-wmctrl -r "Chromium" -b add,fullscreen 2>/dev/null || true
-```
+- **Detect the desktop**: If `/etc/lightdm/lightdm.conf` names a labwc session (Raspberry Pi OS 13
+  "trixie"), the script waits for the kiosk user's Wayland socket and starts Chromium natively under
+  Wayland in kiosk mode (`--ozone-platform=wayland --kiosk`). If Chromium exits, the script ends and
+  systemd restarts the kiosk.
+- **Other desktops** (wayfire, X11): Chromium with `--start-fullscreen`. In this branch the Chromium call
+  ends early because of a commented-out line (known bug in the generator): `--disable-gpu`, the log and
+  the subsequent full screen via `wmctrl` currently have no effect.
+- **Wait for the local server**: With `local_server_enabled`, the script polls the scoreboard URL every
+  second until it answers (HTTP 2xx/3xx), at most 300 s; after that the browser starts anyway.
+- **Fresh profile**: `/tmp/chromium-scoreboard-<user>` is deleted and recreated on every start.
+- **Browser**: `chromium`, otherwise `chromium-browser`. Log of the labwc branch: `/tmp/chromium-kiosk.log`.
 
 ## SSH Authentication
 
@@ -244,7 +226,7 @@ The system supports both SSH key and password authentication:
 
 ```bash
 # SSH key authentication (passwordless)
-ssh -p 8910 -o ConnectTimeout=10 -o StrictHostKeyChecking=no www-data@192.168.178.107 'command'
+ssh -p 8910 -o ConnectTimeout=10 -o StrictHostKeyChecking=no www-data@<name>.local 'command'
 
 # Password authentication (if required)
 sshpass -p 'password' ssh -p 8910 -o ConnectTimeout=10 -o StrictHostKeyChecking=no user@ip 'command'
@@ -252,8 +234,8 @@ sshpass -p 'password' ssh -p 8910 -o ConnectTimeout=10 -o StrictHostKeyChecking=
 
 ### Security Notes
 
-- **Prefer SSH keys**: Passwordless SSH is more secure and convenient
-- **www-data user**: Specially configured for server management
+- **SSH keys preferred**: Passwordless SSH is more secure and practical
+- **www-data user**: Specifically configured for server management
 - **Port 8910**: Non-standard port for additional security
 - **Firewall**: Restrict SSH access to trusted IPs
 
@@ -261,82 +243,96 @@ sshpass -p 'password' ssh -p 8910 -o ConnectTimeout=10 -o StrictHostKeyChecking=
 
 ### Complete Setup Workflow
 
+First the Pi's system via Ansible: `~/DEV/ansible/RUNBOOK`, section "NEUEN CARAMBUS-PI AUFSETZEN"
+(`host_vars` via `bin/rails "scenario:generate_host_vars[<scenario>]"`, one run of `master.yml`). Then
+from a carambus checkout, in the order of the [quickstart, step 3.2](raspberry-pi-quickstart.md#32-run-the-deployment):
+
 ```bash
-# 1. Prepare scenario for development
-rake scenario:prepare_development[carambus_location_2459,development]
+# 1. Configs, directories, Redis, Puma service, nginx, /etc/<basename>.env
+bin/rails "scenario:prepare_deploy[<scenario>]"
 
-# 2. Prepare scenario for deployment
-rake scenario:prepare_deploy[carambus_location_2459]
+# 2. Derive the development database on the admin computer from the Authority
+bin/rails "scenario:prepare_development[<scenario>,development]"
 
-# 3. Server deployment
-rake scenario:deploy[carambus_location_2459]
+# 3. Put the production database on the server — DESTRUCTIVE
+bin/rails "scenario:reset_server_db[<scenario>]"
 
-# 4. Raspberry Pi Client setup
-rake scenario:setup_raspberry_pi_client[carambus_location_2459]
+# 4. Server deployment
+bin/rails "scenario:deploy[<scenario>]"
 
-# 5. Raspberry Pi Client deployment
-rake scenario:deploy_raspberry_pi_client[carambus_location_2459]
-
-# 6. Test
-rake scenario:test_raspberry_pi_client[carambus_location_2459]
+# 5. Set up, deliver and test the Raspberry Pi client
+bin/rails "scenario:setup_raspberry_pi_client[<scenario>]"
+bin/rails "scenario:deploy_raspberry_pi_client[<scenario>]"
+bin/rails "scenario:test_raspberry_pi_client[<scenario>]"
 ```
+
+!!! warning "What you need to know"
+    - **Step 2** fetches the global data via SSH as `www-data` from the **Authority's production
+      database** (`api.carambus.de`). Currently only the Carambus operators have this access; for the
+      initial data load a club (still) needs the operator.
+    - **Step 2** replaces the local `carambus_api_development` if the Authority has newer data (backup
+      first, deleted again afterwards) — this affects every checkout that uses the same database. The log
+      shows many `ERROR: role "www_data" does not exist` and `invalid command \restrict` — both are
+      expected, the task still reports ✅.
+    - **Step 3** deletes the production database on the server and loads it again. A fresh Pi has none
+      yet; without it the deploy fails.
 
 ### Quick Browser Restart
 
 ```bash
-# Restart browser (without Raspberry Pi reboot)
-rake scenario:restart_raspberry_pi_client[carambus_location_2459]
+# Restart browser (without rebooting Raspberry Pi)
+bin/rails "scenario:restart_raspberry_pi_client[<scenario>]"
 ```
 
 ### Troubleshooting
 
 ```bash
 # Check client status
-rake scenario:test_raspberry_pi_client[carambus_location_2459]
+bin/rails "scenario:test_raspberry_pi_client[<scenario>]"
 
 # Check service status on Raspberry Pi
-ssh pi@192.168.178.92 "sudo systemctl status scoreboard-kiosk"
+ssh -p 8910 www-data@<name>.local "sudo systemctl status scoreboard-kiosk"
 
 # Check browser processes
-ssh pi@192.168.178.92 "pgrep chromium-browser"
+ssh -p 8910 www-data@<name>.local "pgrep -fa chromium"
 ```
 
 ## Different Location Types
 
-### Location with Local Server (e.g. carambus_location_2459)
+### Location with a local server (all-in-one Pi)
 
-- **Local Server**: Runs on port 8910
-- **SSH Access**: Via www-data user
-- **Scoreboard URL**: Points to local server
+- **Local server**: nginx on `webserver_port` (e.g. 3131)
+- **SSH access**: Via www-data user on port 8910
+- **Scoreboard URL**: `http://localhost:<webserver_port>/…`; the script waits until the server answers
 
-### Location without Local Server (e.g. carambus_location_2460)
+### Location without a local server (pure client)
 
-- **No Local Server**: Connects to API server
-- **SSH Access**: Via standard pi user
-- **Scoreboard URL**: Points to API server
+- **No local server**: `local_server_enabled: false`
+- **SSH access**: As configured in `raspberry_pi_client` (after Ansible: `www-data`, port 8910)
+- **Scoreboard URL**: `http://<webserver_host>:<webserver_port>/…`, built into the script
 
 ## Troubleshooting
 
-### Common Problems
+### Common Issues
 
-1. **SSH Connection Failed**
-   - Check IP address and network connection
+1. **SSH connection failed**
+   - Check `ip_address`, `ssh_user` and `ssh_port` in `config.yml` (without `ssh_port`, port 22 is used)
    - Check SSH service status on Raspberry Pi
    - Check firewall settings
 
-2. **Browser Won't Start**
-   - Check display environment (`echo $DISPLAY`)
+2. **Browser doesn't start**
+   - Check the logs: `sudo journalctl -u scoreboard-kiosk` and `sudo tail -50 /tmp/chromium-kiosk.log`
    - Check Chromium installation
    - Check scoreboard URL file
 
-3. **Fullscreen Mode Not Working**
-   - Check wmctrl installation
-   - Check desktop environment (LXDE)
+3. **Fullscreen mode doesn't work**
+   - Run `deploy_raspberry_pi_client` again (restarts the kiosk with the current script)
+   - Check the desktop session in `/etc/lightdm/lightdm.conf` (`user-session=`)
    - Check display resolution
 
-4. **Service Won't Start**
+4. **Service doesn't start**
    - Check systemd service definition
-   - Check user permissions
+   - Check that `kiosk_user` is the autologin user
    - Check logs: `sudo journalctl -u scoreboard-kiosk`
 
 ### Debug Commands
@@ -346,14 +342,16 @@ ssh pi@192.168.178.92 "pgrep chromium-browser"
 sudo journalctl -u scoreboard-kiosk -f
 
 # Show browser processes
-ps aux | grep chromium
+pgrep -fa chromium
 
-# Check display environment
-echo $DISPLAY
-xrandr
+# Chromium log (owned by the kiosk user)
+sudo tail -50 /tmp/chromium-kiosk.log
+
+# Check the desktop session
+grep -E '^(user-session|autologin)' /etc/lightdm/lightdm.conf
 
 # Check scoreboard URL
-cat /etc/scoreboard_url
+cat /var/www/<basename>/shared/config/scoreboard_url
 ```
 
 ## Security Considerations
@@ -362,7 +360,7 @@ cat /etc/scoreboard_url
 
 1. **Use SSH keys**: Replace password authentication
 2. **Configure firewall**: Restrict SSH access
-3. **Regular updates**: Keep Raspberry Pi OS up to date
+3. **Regular updates**: Keep Raspberry Pi OS current
 4. **Monitoring**: Monitor service status
 
 ### Network Security
@@ -407,6 +405,10 @@ The system enables efficient management of Raspberry Pi-based kiosk clients and 
 
 ### 2025-10-17: Compatibility with Debian Trixie and Utility Scripts
 
+*Historical entry (as of October 2025). Today the kiosk is set up with the rake tasks above, on trixie
+as well; `bin/setup-raspi-table-client.sh` produces its own, older kiosk configuration without labwc
+support.*
+
 **Changes:**
 
 1. **Chromium Package Name Updated** (Commit: ca4c665)
@@ -434,27 +436,22 @@ The system enables efficient management of Raspberry Pi-based kiosk clients and 
    - NetworkManager support in setup script present
    - Automatic detection of dhcpcd vs. NetworkManager
 
-**Compatibility:**
+**Compatibility (as of October 2025):**
 
 - ✅ Raspberry Pi OS (Debian Bullseye) - `chromium-browser` fallback available
 - ✅ Raspberry Pi OS (Debian Trixie/Bookworm) - Primary support
 - ✅ dhcpcd-based network configuration
 - ✅ NetworkManager-based configuration
 
-**Deployment Notes:**
+**Calling the script:**
 
-When setting up on new Raspberry Pi with Debian Trixie:
 ```bash
-sh bin/setup-raspi-table-client.sh carambus_bcw <current_ip> \
-  <ssid> <password> <static_ip> <table_number> [ssh_port] [ssh_user] [server_ip]
+bin/setup-raspi-table-client.sh <scenario> <current_ip> <table_no> \
+  --customer-ssid <SSID> --customer-password <PW> --customer-ip <static_IP> \
+  [--dev-ssid <SSID> --dev-password <PW>] [--ssh-port <N>] [--ssh-user <U>]
 ```
 
 The script automatically detects:
 - The correct Chromium package name
 - The network management system being used (dhcpcd/NetworkManager)
 - Configures WLAN and static IP accordingly
-
-
-
-
-
