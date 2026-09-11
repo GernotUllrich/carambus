@@ -1,173 +1,109 @@
 # Server Management Scripts
 
-Diese Dokumentation beschreibt alle verfügbaren Scripts für die Verwaltung von Carambus-Servern (Development, Production, API).
+Diese Dokumentation beschreibt die Scripts in `bin/` für die Verwaltung von Carambus-Servern
+(Development, Production, API) — was sie heute tatsächlich tun und welche davon Altlasten sind.
+
+!!! info "Einen Server aufsetzen"
+    Ein neuer Server wird nicht mit einem Skript aus `bin/` eingerichtet, sondern per Ansible
+    (`~/DEV/ansible/RUNBOOK`, Abschnitt „NEUEN CARAMBUS-PI AUFSETZEN“) und danach mit den Rake-Tasks
+    der [Raspberry-Pi-Quickstart](raspberry-pi-quickstart.md). Diese Seite beschreibt den Betrieb.
 
 ## Überblick
 
-Die Server Management Scripts befinden sich in `carambus_master/bin/` und decken folgende Bereiche ab:
-- **Development Server**: Lokale Entwicklungsumgebung starten/verwalten
-- **Production Server**: Service-Management (Puma, Nginx)
+Die Scripts liegen in `bin/` jedes Carambus-Checkouts (`carambus_bcw`, `carambus_api`, …) und laufen aus
+einem beliebigen aktuellen Checkout; `bin/lib/carambus_env.sh` ermittelt die Pfade dateirelativ. Die
+Beispiele unten verwenden Platzhalter:
+
+| Platzhalter | Bedeutung | Quelle |
+|---|---|---|
+| `<szenario>` | Szenario-Name, z. B. `carambus_pbv` | `carambus_data/scenarios/<szenario>/` |
+| `<basename>` | Name des Deployments auf dem Server (Dienst `puma-<basename>`, `/var/www/<basename>`) | `config.yml`, `scenario.basename` |
+| `<server>`, `<ssh_port>` | SSH-Ziel des Servers (Pis: `<name>.local`, Port 8910) | `config.yml`, `environments.production` |
+
+Die Bereiche:
+- **Development Server**: Lokale Entwicklungsumgebung starten
+- **Production Server**: Dienst `puma-<basename>` verwalten
 - **Rails Console**: Datenbank-Zugriff und Debugging
-- **Asset Management**: JavaScript/CSS neu bauen
-- **Utilities**: Setup, Restart, Cleanup
+- **Asset Management**: JavaScript/CSS neu bauen, Aufräumen
+- **Deployment**: Code auf den Server bringen
+- **Altlasten**: Scripts, die noch in `bin/` liegen, aber nicht mehr zum heutigen Weg passen
 
 ---
 
 ## Development Server
 
-### `start-api-server.sh`
-**Zweck**: Startet den API-Server (Development-Mode)
+Einen Szenario-Checkout startet man mit den Rails-Bordmitteln:
 
-**Verwendung**:
 ```bash
-cd carambus_master
-./bin/start-api-server.sh
+cd ~/DEV/carambus/<szenario>
+bin/rails server -p <port>
+
+# Bei JavaScript-/CSS-Änderungen zusätzlich (wie in Procfile.dev):
+yarn build --watch
+yarn build:css --watch
 ```
 
-**Was wird gemacht**:
-1. ✅ Prüft, ob Port 3000 frei ist
-2. ✅ Startet Puma-Server für carambus_api
-3. ✅ Lädt Development-Konfiguration
-4. ✅ Aktiviert Live-Reload
+**Voraussetzung**: Die Development-Datenbank ist mit `prepare_development` angelegt (siehe
+[Lokale Development-Session starten](#lokale-development-session-starten)).
 
-**Voraussetzungen**:
-- `carambus_api_development` Datenbank existiert
-- Dependencies installiert (`bundle install`)
-- Assets kompiliert
-
-**Zugriff**:
-```
-http://localhost:3000
-```
-
----
-
-### `start-local-server.sh`
-**Zweck**: Startet einen lokalen Scenario-Server (Development-Mode)
-
-**Verwendung**:
-```bash
-./bin/start-local-server.sh <scenario_name>
-```
-
-**Was wird gemacht**:
-1. ✅ Wechselt in Scenario-Verzeichnis
-2. ✅ Liest Port aus `config.yml`
-3. ✅ Startet Puma mit Scenario-spezifischer Config
-4. ✅ Aktiviert StimulusReflex/ActionCable
-
-**Beispiele**:
-```bash
-# Startet carambus_location_5101 auf Port 3003
-./bin/start-local-server.sh carambus_location_5101
-
-# Startet carambus_bcw auf Port 3007  
-./bin/start-local-server.sh carambus_bcw
-```
-
-**Voraussetzungen**:
-- Scenario mit `prepare_development` vorbereitet
-- `config.yml` existiert mit `webserver_port`
-
----
-
-### `start-both-servers.sh`
-**Zweck**: Startet API-Server und lokalen Server gleichzeitig
-
-**Verwendung**:
-```bash
-./bin/start-both-servers.sh <scenario_name>
-```
-
-**Was wird gemacht**:
-- Startet API-Server (Port 3000) im Hintergrund
-- Startet Scenario-Server (Port aus config.yml)
-- Beide Server laufen parallel
-
-**Use Cases**:
-- Vollständiges lokales Testing
-- API-Sync-Testing
-- Development mit mehreren Scenarios
-
-**Beispiel**:
-```bash
-./bin/start-both-servers.sh carambus_location_5101
-# API verfügbar: http://localhost:3000
-# Location verfügbar: http://localhost:3003
-```
-
-**Stop**pen:
-```bash
-# Beide Server beenden
-pkill -f puma
-```
+Die Scripts `start-api-server.sh`, `start-local-server.sh` und `start-both-servers.sh` gehören zum
+früheren API/LOCAL-Modus und nehmen kein Szenario — siehe [Altlasten](#altlasten).
 
 ---
 
 ## Production Server Management
 
+Auf dem Server läuft die Anwendung als systemd-Dienst `puma-<basename>` (Vorlage
+`templates/puma/puma.service.erb`, `Restart=always`). Der direkte Weg ist `systemctl`:
+
+```bash
+ssh -p <ssh_port> www-data@<server> 'sudo systemctl status puma-<basename>'
+ssh -p <ssh_port> www-data@<server> 'sudo systemctl restart puma-<basename>'
+ssh -p <ssh_port> www-data@<server> 'sudo systemctl stop puma-<basename>'
+```
+
 ### `manage-puma.sh`
-**Zweck**: Verwaltet Puma-Service auf Production-Server
+**Zweck**: Puma neu laden oder starten — so ruft Capistrano es beim Deploy auf
+(`manage-puma.sh <basename>`, `config/deploy.rb`).
 
 **Verwendung**:
 ```bash
-# Auf dem Server:
-./bin/manage-puma.sh [start|stop|restart|status]
+# Auf dem Server, aus dem Deployment-Verzeichnis (Basename wird aus dem Pfad ermittelt):
+cd /var/www/<basename>/current && ./bin/manage-puma.sh
 
-# Remote via SSH:
-ssh -p 8910 www-data@192.168.178.107 'cd /var/www/carambus_location_5101/current && ./bin/manage-puma.sh restart'
+# Oder mit Basename:
+/var/www/<basename>/current/bin/manage-puma.sh <basename>
 ```
 
-**Aktionen**:
-- `start`: Startet Puma-Service
-- `stop`: Stoppt Puma-Service sauber
-- `restart`: Stoppt und startet neu (verwendet von Capistrano)
-- `status`: Zeigt Service-Status
-
 **Was wird gemacht**:
-1. ✅ Prüft systemd-Service-Status
-2. ✅ Führt Aktion aus
-3. ✅ Wartet auf Service-Start
-4. ✅ Verifiziert Socket/PID
+- Läuft `puma-<basename>`: `systemctl reload` (sendet USR1 an Puma); läuft der Dienst danach nicht,
+  ein voller `restart`
+- Läuft der Dienst nicht: `systemctl start`
 
-**Wichtig**: Wird automatisch von Capistrano aufgerufen, manuelle Nutzung selten nötig.
+Das erste Argument ist der **Basename**, keine Aktion. Aufrufe wie `manage-puma.sh restart` oder
+`manage-puma.sh start` sprechen einen Dienst `puma-restart` bzw. `puma-start` an und scheitern.
+Für Stop und Status `systemctl` verwenden (siehe oben).
 
 ---
 
 ### `manage-puma-api.sh`
-**Zweck**: Verwaltet Puma-Service für API-Server
+**Zweck**: Wie `manage-puma.sh`, fest für den Dienst `puma-carambus_api`
 
-**Verwendung**:
+**Verwendung** (ohne Argument):
 ```bash
-./bin/manage-puma-api.sh [start|stop|restart|status]
+./bin/manage-puma-api.sh
 ```
 
-**Gleiche Funktionalität wie `manage-puma.sh`, speziell für API-Server**
+Läuft der Dienst, wird er neu gestartet (`restart`), sonst gestartet.
 
 ---
 
-### `restart-carambus.sh`
-**Zweck**: Quick-Restart für Carambus-Server
+### `puma-wrapper.sh`
+**Zweck**: Startskript des Dienstes `puma-<basename>` — `ExecStart` in
+`templates/puma/puma.service.erb`. Wechselt nach `/var/www/<basename>/current`, initialisiert rbenv und
+startet `bundle exec puma -C /var/www/<basename>/shared/config/puma.rb`.
 
-**Verwendung**:
-```bash
-# Lokal
-./bin/restart-carambus.sh
-
-# Remote
-ssh -p 8910 www-data@192.168.178.107 '/var/www/carambus_location_5101/current/bin/restart-carambus.sh'
-```
-
-**Was wird gemacht**:
-1. ✅ Stoppt Puma-Service
-2. ✅ Bereinigt PIDs/Sockets
-3. ✅ Startet Service neu
-4. ✅ Wartet auf Erfolg
-
-**Use Cases**:
-- Code-Änderungen ohne Capistrano deployen
-- Nach Konfigurationsänderungen
-- Schneller Restart bei Problemen
+Nicht von Hand aufrufen; Puma wird über den Dienst gesteuert.
 
 ---
 
@@ -181,11 +117,11 @@ Es gibt kein eigenes Console-Wrapper-Script. Verwende die Standard-Rails-Console
 **Verwendung**:
 ```bash
 # Im API-Checkout
-cd carambus_api
+cd ~/DEV/carambus/carambus_api
 bin/rails console
 
 # In einem Scenario-Checkout
-cd carambus_location_5101
+cd ~/DEV/carambus/<szenario>
 bin/rails console
 ```
 
@@ -197,8 +133,8 @@ bin/rails console
 > Version.last.id
 => 12227261
 
-> Setting.find_by(key: 'last_version_id').value
-=> "12227261"
+> Setting.key_get_value("last_version_id")
+=> 12227261
 
 # Lokale Daten prüfen (Datensätze mit id >= 50_000_000 sind lokal)
 > Game.where('id > 50000000').count
@@ -213,8 +149,8 @@ bin/rails console
 **Verwendung**:
 ```bash
 # Per SSH auf den Production-Server, dann Console im Deployment-Verzeichnis
-ssh -p 8910 www-data@192.168.178.107
-cd /var/www/carambus_location_5101/current
+ssh -p <ssh_port> www-data@<server>
+cd /var/www/<basename>/current
 RAILS_ENV=production bundle exec rails console
 ```
 
@@ -239,38 +175,28 @@ RAILS_ENV=production bundle exec rails console
 ## Asset Management
 
 ### `rebuild_js.sh`
-**Zweck**: JavaScript-Assets neu kompilieren
+**Zweck**: JavaScript im lokalen Checkout schnell neu bauen
 
-**Verwendung**:
+**Verwendung** (im Checkout):
 ```bash
-cd carambus_location_5101
-../carambus_master/bin/rebuild_js.sh
+cd ~/DEV/carambus/<szenario>
+./bin/rebuild_js.sh
 ```
 
 **Was wird gemacht**:
-1. ✅ `yarn build` (esbuild)
-2. ✅ `yarn build:css` (TailwindCSS)
-3. ✅ `rails assets:precompile` (Sprockets)
+1. Leert `tmp/cache/`
+2. `yarn build` (esbuild)
 
-**Use Cases**:
-- Nach JavaScript-Änderungen
-- Nach CSS-Änderungen
-- Asset-Build-Fehler beheben
+CSS baut es nicht mit. Dafür zusätzlich `yarn build:css`; für die Sprockets-Assets
+`bin/rails assets:precompile`.
 
-**Beispiel**:
-```bash
-# JavaScript geändert, neu bauen
-cd carambus_location_5101
-../carambus_master/bin/rebuild_js.sh
-
-# Entwicklungsserver neustarten
-./bin/start-local-server.sh carambus_location_5101
-```
+**Nur lokal.** Auf dem Server baut Capistrano die Assets beim Deploy selbst
+(`config/deploy.rb`, `deploy:assets:precompile`) — ein lokaler Rebuild vor dem Deploy ist nicht nötig.
 
 ---
 
 ### `cleanup_rails.sh`
-**Zweck**: Rails-Cache und temporäre Dateien bereinigen
+**Zweck**: Hängengebliebene Rails-/Puma-Prozesse auf dem **Entwicklungsrechner** beenden
 
 **Verwendung**:
 ```bash
@@ -278,125 +204,94 @@ cd carambus_location_5101
 ```
 
 **Was wird gemacht**:
-- Löscht `tmp/cache/`
-- Löscht `.sprockets-cache/`
-- Löscht `log/*.log` (optional)
-- Bereinigt Asset-Cache
+- `pkill -f "rails s"` und `pkill -f "puma"`
+- Entfernt `tmp/pids/server.pid` und `tmp/pids/puma.pid`
 
-**Use Cases**:
-- Asset-Probleme beheben
-- Speicherplatz freigeben
-- Nach großen Code-Änderungen
+Es löscht **keinen** Cache. **Nicht auf einem Server ausführen:** Als `www-data` beendet es dort die
+laufende Produktions-Puma; systemd startet sie zwar wieder, die Scoreboards verlieren aber die Verbindung.
+Den Rails-Cache leert `bin/rails tmp:cache:clear`.
 
 ---
 
 ### `cleanup_versions.sh`
-**Zweck**: Bereinigt alte Version-Einträge
+**Zweck**: Überträgt `region_id` und `global_context` von den Datensätzen in ihre Einträge der
+Versions-Tabelle (Wrapper um die Tasks `version_cleanup:*`)
 
-**Verwendung**:
+**Verwendung** (im Rails-Root):
 ```bash
-./bin/cleanup_versions.sh [--dry-run]
+./bin/cleanup_versions.sh fast     # SQL-basiert (schnell)
+./bin/cleanup_versions.sh safe     # über ActiveRecord (langsamer)
+./bin/cleanup_versions.sh stats    # Statistik
+./bin/cleanup_versions.sh verify   # Prüfung
 ```
 
-**Was wird gemacht**:
-- Löscht Versions-Einträge älter als X Tage
-- Behält letzte N Versionen
-- Optional: Nur Anzeige (--dry-run)
-
-**⚠️ WARNUNG**: Nur auf lokalen Servern verwenden! Nicht auf API-Server!
+Ohne Option zeigt es die Hilfe. Es löscht keine Versionen; eine Option `--dry-run` gibt es nicht
+(`Unknown option`, Exit 1).
 
 ---
 
 ## Debug & Testing
 
-Es gibt kein einzelnes `debug-production.sh` Script. Verwende je nach
-Fragestellung die folgenden dedizierten Diagnose-Scripts.
+Es gibt kein einzelnes `debug-production.sh` Script. Für einen beliebigen Server reichen die
+Bordmittel — auf dem Server ausführen:
 
-### `diagnose-puma-carambus.sh`
-**Zweck**: Detaillierte Diagnose von Puma-Socket-/Service-Verbindungsproblemen
-
-**Verwendung**:
 ```bash
-./bin/diagnose-puma-carambus.sh
+sudo systemctl status puma-<basename> nginx
+sudo journalctl -u puma-<basename> -n 50 --no-pager
+ls -la /var/www/<basename>/shared/sockets/
+tail -100 /var/www/<basename>/shared/log/production.log
 ```
-
-**Was wird geprüft**:
-1. ✅ Puma-Socket-Pfad und Berechtigungen
-2. ✅ Service-Status (Puma, Nginx)
-3. ✅ Process-Liste
-4. ✅ Aktuelle Log-Ausgabe
 
 ### `check-database-states.sh`
 **Zweck**: Aktuelle Datenbank-Zustände für ein Scenario prüfen
 
 **Verwendung**:
 ```bash
-./bin/check-database-states.sh <scenario_name>
-
-# Beispiel
-./bin/check-database-states.sh carambus_location_5101
+./bin/check-database-states.sh <szenario>
 ```
 
-### Weitere Diagnose-Scripts
-- `diagnose-nginx.sh` — Nginx-Konfiguration / Konnektivität
-- `diagnose-socket-issue.sh` — Puma/Nginx-Socket-Probleme
-- `check-puma-logs.sh` — aktuelle Puma-Log-Ausgabe
-- `check-actioncable-status.sh` — ActionCable / WebSocket-Status
+### Server-gebundene Diagnose-Scripts
+
+Diese Scripts sind fest auf bestimmte Server geschrieben und auf anderen nur nach Anpassung brauchbar:
+
+| Script | Fest auf |
+|---|---|
+| `diagnose-puma-carambus.sh` | `/var/www/carambus` (Server carambus.de) |
+| `check-puma-logs.sh` | `/var/www/carambus` |
+| `diagnose-socket-issue.sh` | Szenario `carambus_bcw` |
+| `diagnose-nginx.sh` | API-Server (`carambus`/`carambus_api`) |
+
+`check-actioncable-status.sh` (im Rails-Root) prüft `config/cable.yml` und die Erreichbarkeit von Redis.
 
 ---
 
 ## Setup & Installation
 
-### `carambus-install.sh`
-**Zweck**: Komplette Carambus-Installation auf neuem Server
+### Einen Server einrichten
 
-**Verwendung**:
+Den Weg beschreiben das Ansible-RUNBOOK (System) und die
+[Raspberry-Pi-Quickstart](raspberry-pi-quickstart.md) (Anwendung). Die Ansible-`host_vars` entstehen aus
+der Szenario-`config.yml`:
+
 ```bash
-./bin/carambus-install.sh
+bin/rails "scenario:generate_host_vars[<szenario>]"
 ```
 
-**Was wird installiert**:
-1. ✅ System-Dependencies (Ruby, Node, PostgreSQL)
-2. ✅ Nginx + SSL
-3. ✅ Redis (für ActionCable)
-4. ✅ Git + SSH-Keys
-5. ✅ Deployment-User (www-data)
-6. ✅ Verzeichnis-Struktur
-
-**Voraussetzungen**:
-- Frisches Ubuntu/Debian-System
-- Root-Zugriff
-- Internet-Verbindung
-
-**Dauer**: ~30 Minuten
-
----
-
-### `setup-local-dev.sh`
-**Zweck**: Lokale Development-Umgebung einrichten
-
-**Verwendung**:
-```bash
-./bin/setup-local-dev.sh
-```
-
-**Was wird gemacht**:
-1. ✅ Prüft System-Dependencies
-2. ✅ Installiert Ruby-Gems (`bundle install`)
-3. ✅ Installiert Node-Packages (`yarn install`)
-4. ✅ Erstellt lokale Datenbank
-5. ✅ Lädt Seed-Daten
-6. ✅ Kompiliert Assets
+`carambus-install.sh` und `setup-local-dev.sh` gehören nicht mehr zu diesem Weg — siehe
+[Altlasten](#altlasten).
 
 ---
 
 ### `generate-ssl-cert.sh`
-**Zweck**: SSL-Zertifikate für Development/Testing generieren
+**Zweck**: Selbst-signiertes SSL-Zertifikat für Development/Testing erzeugen
 
 **Verwendung**:
 ```bash
-./bin/generate-ssl-cert.sh [domain]
+./bin/generate-ssl-cert.sh -n <domain> [-d <tage>]
 ```
+
+Das Script nimmt nur Optionen (u. a. `-n`/`--name` für den Common Name, `-d`/`--days`); ein Domainname
+ohne `-n` endet mit `Unbekannte Option`.
 
 **Was wird gemacht**:
 - Generiert selbst-signiertes Zertifikat
@@ -411,31 +306,35 @@ Fragestellung die folgenden dedizierten Diagnose-Scripts.
 **Beispiel**:
 ```bash
 # Zertifikat für localhost
-./bin/generate-ssl-cert.sh localhost
+./bin/generate-ssl-cert.sh -n localhost
 
 # Zertifikat für Custom-Domain
-./bin/generate-ssl-cert.sh carambus.local
+./bin/generate-ssl-cert.sh -n carambus.local
 ```
 
 ---
 
 ## Deployment
 
-Es gibt **zwei** Deployment-Wege. Sie sind komplementär, nicht Vorgänger und Nachfolger —
-welcher passt, hängt davon ab, ob der Zielserver gerade per SSH erreichbar ist.
+Für Code-Änderungen gibt es zwei Wege. Welcher passt, hängt davon ab, ob der Zielserver gerade per SSH
+erreichbar ist. `deploy-scenario.sh` ist **kein** Update-Weg, sondern für den Neuaufbau eines Szenarios.
 
-### `deploy-scenario.sh` — von der Entwicklungsmaschine aus
+### `scenario:deploy` — vom Admin-Rechner aus
 
-**Zweck**: Vollständiger Deployment-Workflow für ein Scenario, orchestriert Capistrano
+**Zweck**: Führt `cap production deploy` im Szenario-Checkout `~/DEV/carambus/<szenario>` aus; Capistrano
+baut die Assets auf dem Server und lädt Puma neu.
 
-**Verwendung**:
+**Verwendung** (aus einem beliebigen carambus-Checkout):
 ```bash
-cd carambus_master
-./bin/deploy-scenario.sh carambus_location_5101
+bin/rails "scenario:deploy[<szenario>]"
 ```
 
-**Voraussetzung**: Der Zielserver muss per SSH erreichbar sein — bei Servern im
-Vereins- oder Firmennetz heißt das in der Regel: im selben Netz sitzen.
+**Voraussetzung**: Der Code ist nach `origin/master` gepusht, und der Zielserver ist per SSH erreichbar —
+bei Servern im Vereins- oder Firmennetz heißt das in der Regel: im selben Netz sitzen.
+
+`bin/rails "scenario:quick_deploy[<szenario>]"` ist die Variante für iterative Arbeit: Sie prüft den
+Szenario-Checkout auf lokale Änderungen, macht dort `git pull origin master`, baut die Frontend-Assets,
+deployt per Capistrano und startet `puma-<basename>` neu.
 
 ### `bin/deploy.sh` — auf dem Server selbst
 
@@ -480,21 +379,48 @@ Repositories als Deploy-Key liegen.
 Ein serverseitiger Lauf erscheint dort als `by www-data`, ein Capistrano-Deploy unter dem
 Namen desjenigen, der ihn angestoßen hat.
 
+### `deploy-scenario.sh` — Neuaufbau eines Szenarios
+
+**Zweck**: Kompletter Neuaufbau eines Szenarios von der Entwicklungsmaschine aus (Aufräumen,
+Vorbereitung, Capistrano)
+
+**Verwendung**:
+```bash
+./bin/deploy-scenario.sh <szenario> [--skip-cleanup | --production-only] [-y]
+```
+
+!!! danger "Standardmodus räumt den Server ab"
+    Ohne `--skip-cleanup` bzw. `--production-only` räumt Schritt 0 zuerst ab — nach einer einzigen
+    Rückfrage, mit `-y` ohne:
+
+    - lokal die Datenbank `<szenario>_development`
+    - auf dem Server den Dienst `puma-<szenario>` (stop, disable) und die nginx-Konfiguration
+    - auf dem Server das ganze Verzeichnis `/var/www/<szenario>` einschließlich `shared/`
+    - die Produktions-Datenbank, sofern sie weder lokale Daten noch eine neuere Version trägt
+
+    Das ist nur für einen Neuaufbau gedacht. Für Code-Änderungen `scenario:deploy` oder `bin/deploy.sh`
+    verwenden.
+
 ---
 
-## Legacy/Deprecated Scripts
+## Altlasten
 
-### `deploy-to-raspberry-pi.sh` ⚠️
-**Status**: Obsolet (durch `deploy-scenario.sh` ersetzt)  
-**Grund**: Integriert in neues Scenario-System
+Diese Scripts liegen noch in `bin/`, passen aber nicht mehr zum heutigen Weg. Nicht verwenden.
 
-### `puma-wrapper.sh` ⚠️
-**Status**: Obsolet (durch `manage-puma.sh` ersetzt)  
-**Grund**: Veraltete Service-Management-Logik
+| Script | Was es tatsächlich tut | Stattdessen |
+|---|---|---|
+| `start-api-server.sh` | Beendet einen Prozess auf Port 3000 (`kill -9`) und startet `rails server -e development-api` im Nachbar-Checkout `carambus_api` | `bin/rails server` im Checkout |
+| `start-local-server.sh` | Startet `carambus_api` auf Port 3001 mit `-e development-local`; ein Szenario-Argument wird nicht ausgewertet | `bin/rails server -p <port>` im Szenario-Checkout |
+| `start-both-servers.sh` | Startet die beiden obigen (Ports 3000/3001), auf macOS in zwei Terminal-Fenstern; kein Szenario-Argument | wie oben |
+| `restart-carambus.sh` | Ruft `/etc/init.d/unicorn_carambus_production start` auf (Unicorn-Zeit); nichts installiert dieses Init-Skript | `sudo systemctl restart puma-<basename>` |
+| `carambus-install.sh` | Docker-Installation auf einem Raspberry Pi (`/opt/carambus`, `docker-compose.yml`) — kein Ruby, kein www-data, kein SSL | Ansible-RUNBOOK + [Quickstart](raspberry-pi-quickstart.md) |
+| `setup-local-dev.sh` | Für `carambus_local_hetzner`: überschreibt `config/database.yml` mit `config/database.development.yml` und legt eine leere DB mit Seeds an | `bin/rails "scenario:prepare_development[<szenario>,development]"` |
 
-### `sync-carambus-folders.sh` ⚠️
-**Status**: Obsolet  
-**Grund**: Durch Git-Workflow ersetzt
+Die start-Scripts verwenden die Environments `development-api`/`development-local` aus dem früheren
+Modus-System; ob sie damit heute noch starten, ist nicht geprüft.
+
+Nicht mehr vorhanden (hier früher als obsolet geführt): `deploy-to-raspberry-pi.sh` und
+`sync-carambus-folders.sh`. Einen Raspberry Pi richtet man per Ansible und Quickstart ein.
 
 ---
 
@@ -503,81 +429,72 @@ Namen desjenigen, der ihn angestoßen hat.
 ### Lokale Development-Session starten
 
 ```bash
-# 1. Development-Umgebung vorbereiten
-rake "scenario:prepare_development[carambus_location_5101,development]"
+# 1. Development-Umgebung vorbereiten (aus einem carambus-Checkout)
+bin/rails "scenario:prepare_development[<szenario>,development]"
 
-# 2. Assets bauen
-cd carambus_location_5101
-../carambus_master/bin/rebuild_js.sh
-
-# 3. Server starten
-cd ../carambus_master
-./bin/start-both-servers.sh carambus_location_5101
-
-# API: http://localhost:3000
-# Location: http://localhost:3003
+# 2. Server starten
+cd ~/DEV/carambus/<szenario>
+bin/rails server -p <port>
 ```
 
-### Code-Änderung deployen (vollständig)
+!!! warning "Was `prepare_development` voraussetzt und verändert"
+    - Es holt die globalen Daten per SSH als `www-data` aus der **Produktions-Datenbank der Authority**
+      (`api.carambus.de`). Diesen Zugang haben derzeit nur die Betreiber von Carambus.
+    - Es vergleicht die lokale `carambus_api_development` mit der Authority und **ersetzt sie**, wenn
+      dort neuere Daten liegen (vorher Sicherung, danach wieder gelöscht) — das betrifft jeden Checkout,
+      der dieselbe Datenbank nutzt, auch `carambus_api`. Fehlt sie, wird sie angelegt.
+    - Im Log stehen zahlreiche `ERROR: role "www_data" does not exist` und `invalid command \restrict` —
+      beides ist erwartet, der Task meldet trotzdem ✅.
+
+### Code-Änderung deployen
 
 ```bash
-# 1. Code committen
-git add .
+# 1. Code committen und pushen
+git add <dateien>
 git commit -m "Feature: XYZ"
-git push carambus master
+git push origin master
 
-# 2. Scenario aktualisieren
-rake "scenario:update[carambus_location_5101]"
+# 2. Deployen (aus einem carambus-Checkout)
+bin/rails "scenario:deploy[<szenario>]"
 
-# 3. Assets neu bauen
-cd carambus_location_5101
-../carambus_master/bin/rebuild_js.sh
-
-# 4. Deployen
-cd ../carambus_master
-./bin/deploy-scenario.sh carambus_location_5101
-
-# 5. Browser auf RasPi neustarten
-ssh -p 8910 www-data@192.168.178.107 './bin/restart-scoreboard.sh'
+# 3. Optional: Scoreboard-Browser am Pi neu starten
+bin/rails "scenario:restart_raspberry_pi_client[<szenario>]"
 ```
 
-### Quick-Fix ohne komplettes Deployment
+### Quick-Fix ohne Admin-Rechner
+
+Ist der Server nicht erreichbar oder sitzt niemand im lokalen Netz, holt er den Code selbst:
 
 ```bash
-# 1. Kleine Änderung committen
+# 1. Änderung pushen
 git commit -am "Fix: typo"
-git push carambus master
+git push origin master
 
-# 2. Auf Production-Server pullen
-ssh -p 8910 www-data@192.168.178.107
-cd /var/www/carambus_location_5101/current
-git pull
+# 2. Auf dem Server deployen
+ssh -p <ssh_port> www-data@<server> '/var/www/<basename>/current/bin/deploy.sh'
 
-# 3. Server neustarten
-./bin/restart-carambus.sh
-exit
-
-# 4. Browser neustarten
-ssh -p 8910 www-data@192.168.178.107 './bin/restart-scoreboard.sh'
+# 3. Optional, wenn der Server zugleich der Scoreboard-Pi ist: Browser neu starten
+ssh -p <ssh_port> www-data@<server> 'sudo systemctl restart scoreboard-kiosk'
 ```
+
+Ein `git pull` in `/var/www/<basename>/current` funktioniert nicht: Releases sind entpackte Archive ohne
+`.git`.
 
 ### Debugging Production-Problem
 
 ```bash
-# 1. Debug-Infos sammeln
-./bin/diagnose-puma-carambus.sh > debug.log
-./bin/check-database-states.sh carambus_location_5101 >> debug.log
+# 1. Status und Logs (auf dem Server)
+ssh -p <ssh_port> www-data@<server>
+sudo systemctl status puma-<basename> nginx
+sudo journalctl -u puma-<basename> -n 100 --no-pager
+tail -200 /var/www/<basename>/shared/log/production.log
 
-# 2. Logs prüfen
-less debug.log
-
-# 3. Console öffnen (falls nötig)
-ssh -p 8910 www-data@192.168.178.107
-cd /var/www/carambus_location_5101/current
+# 2. Console öffnen (falls nötig)
+cd /var/www/<basename>/current
 RAILS_ENV=production bundle exec rails console
 
-# 4. Quick-Fix anwenden
-ssh -p 8910 www-data@192.168.178.107 'sudo systemctl restart puma-carambus_location_5101'
+# 3. Quick-Fix anwenden
+sudo systemctl restart puma-<basename>
 ```
 
 ---
@@ -587,28 +504,21 @@ ssh -p 8910 www-data@192.168.178.107 'sudo systemctl restart puma-carambus_locat
 ### Puma startet nicht
 
 ```bash
-# Problem: "Address already in use"
-# Lösung: Alte Prozesse beenden
-ssh -p 8910 www-data@192.168.178.107
-pkill -9 puma
-rm /var/www/carambus_location_5101/shared/pids/*.pid
-rm /var/www/carambus_location_5101/shared/sockets/*.sock
-./bin/manage-puma.sh start
+ssh -p <ssh_port> www-data@<server> 'sudo journalctl -u puma-<basename> -n 40 --no-pager'
+ssh -p <ssh_port> www-data@<server> 'sudo systemctl restart puma-<basename>'
 ```
+
+Häufigste Ursache nach einem Deploy ist eine fehlende `/etc/<basename>.env` (SMTP-Zugangsdaten) — siehe
+[Quickstart, Fehlerbehebung](raspberry-pi-quickstart.md#502-bad-gateway-nach-dem-deploy). PID-Dateien
+muss man nicht löschen: Die Puma-Konfiguration aus `templates/` legt keine an.
 
 ### Assets fehlen nach Deployment
 
-```bash
-# Problem: "Asset not found"
-# Lösung: Assets neu kompilieren
-cd carambus_location_5101
-../carambus_master/bin/rebuild_js.sh
+Capistrano baut die Assets beim Deploy auf dem Server. Fehlen sie, das Deploy-Log prüfen und erneut
+deployen:
 
-# Auf Server:
-ssh -p 8910 www-data@192.168.178.107
-cd /var/www/carambus_location_5101/current
-RAILS_ENV=production bundle exec rails assets:precompile
-./bin/restart-carambus.sh
+```bash
+bin/rails "scenario:deploy[<szenario>]"
 ```
 
 ### Datenbank-Verbindung schlägt fehl
@@ -616,52 +526,47 @@ RAILS_ENV=production bundle exec rails assets:precompile
 ```bash
 # Problem: "could not connect to server"
 # Lösung: PostgreSQL-Service prüfen
-ssh -p 8910 www-data@192.168.178.107
+ssh -p <ssh_port> www-data@<server>
 sudo systemctl status postgresql
 sudo systemctl start postgresql
 
 # Config prüfen
-cat /var/www/carambus_location_5101/shared/config/database.yml
+cat /var/www/<basename>/shared/config/database.yml
 ```
 
 ### Memory-Probleme
 
 ```bash
 # Problem: "Cannot allocate memory"
-# Lösung: Memory-Analyse und Cleanup
-ssh -p 8910 www-data@192.168.178.107 'free -h'
+ssh -p <ssh_port> www-data@<server> 'free -m'
 
-# Cache bereinigen
-ssh -p 8910 www-data@192.168.178.107
-cd /var/www/carambus_location_5101/current
-./bin/cleanup_rails.sh
-
-# Services neustarten
-sudo systemctl restart puma-carambus_location_5101
+# Puma neu starten
+ssh -p <ssh_port> www-data@<server> 'sudo systemctl restart puma-<basename>'
 ```
+
+Auf einem Raspberry Pi zuerst prüfen, ob ClamAV oder SpamAssassin laufen — siehe
+[Quickstart, Fehlerbehebung](raspberry-pi-quickstart.md#pi-reagiert-sehr-langsam).
 
 ---
 
 ## Best Practices
 
 ### Development
-1. ✅ Immer beide Server starten für vollständiges Testing
-2. ✅ Nach Asset-Änderungen `rebuild_js.sh` ausführen
-3. ✅ Console nutzen für schnelle Datenbank-Checks
-4. ✅ Regelmäßig `cleanup_rails.sh` ausführen
+1. ✅ Nach JavaScript-Änderungen `rebuild_js.sh` oder `yarn build --watch`
+2. ✅ Console nutzen für schnelle Datenbank-Checks
+3. ✅ Hängengebliebene lokale Prozesse mit `cleanup_rails.sh` beenden — nur auf dem Entwicklungsrechner
 
 ### Production
-1. ✅ Niemals manuell Puma starten/stoppen (Capistrano nutzen)
+1. ✅ Puma über den Dienst steuern (`systemctl … puma-<basename>`), nicht über Prozesse
 2. ✅ Console nur für Debugging, nicht für Daten-Änderungen
-3. ✅ Bei Problemen: Zuerst `diagnose-puma-carambus.sh` / `check-database-states.sh` ausführen
+3. ✅ Bei Problemen: zuerst `systemctl status` und `journalctl -u puma-<basename>`
 4. ✅ Logs regelmäßig prüfen
 
 ### Deployment
-1. ✅ Vollständiges Deployment von der Entwicklungsmaschine: `deploy-scenario.sh`
+1. ✅ Code-Änderungen vom Admin-Rechner: `scenario:deploy`
 2. ✅ Server nicht erreichbar oder niemand im lokalen Netz: `bin/deploy.sh` auf dem Server
-3. ✅ Quick-Fixes: Nur bei Notfällen
-4. ✅ Nach Deployment: Browser auf RasPi neustarten
-5. ✅ Vor Deployment: Lokales Testing durchführen
+3. ✅ `deploy-scenario.sh` nur für einen Neuaufbau — der Standardmodus räumt den Server ab
+4. ✅ Vor Deployment: Lokales Testing durchführen
 
 ---
 
@@ -671,56 +576,46 @@ sudo systemctl restart puma-carambus_location_5101
 
 ```bash
 # Service-Status
-ssh -p 8910 www-data@192.168.178.107 'systemctl status puma-carambus_location_5101'
+ssh -p <ssh_port> www-data@<server> 'systemctl status puma-<basename>'
 
 # Disk-Space
-ssh -p 8910 www-data@192.168.178.107 'df -h'
+ssh -p <ssh_port> www-data@<server> 'df -h'
 
 # Logs (Fehler)
-ssh -p 8910 www-data@192.168.178.107 'tail -100 /var/www/carambus_location_5101/current/log/production.log | grep ERROR'
+ssh -p <ssh_port> www-data@<server> 'tail -100 /var/www/<basename>/shared/log/production.log | grep ERROR'
 ```
 
 ### Wöchentliche Wartung
 
 ```bash
-# 1. Rails-Cache bereinigen
-ssh -p 8910 www-data@192.168.178.107 'cd /var/www/carambus_location_5101/current && ./bin/cleanup_rails.sh'
-
-# 2. Logs rotieren
-ssh -p 8910 www-data@192.168.178.107 'sudo logrotate -f /etc/logrotate.d/carambus'
-
-# 3. Disk-Space prüfen
-ssh -p 8910 www-data@192.168.178.107 'df -h'
+# Disk-Space und Log-Größe prüfen
+ssh -p <ssh_port> www-data@<server> 'df -h; du -sh /var/www/<basename>/shared/log'
 ```
+
+Eine Log-Rotation für `production.log` wird derzeit weder von Ansible noch von den Rake-Tasks eingerichtet;
+das Log wächst, bis man es von Hand kürzt.
 
 ### Monatliche Wartung
 
 ```bash
 # 1. System-Updates
-ssh -p 8910 www-data@192.168.178.107
+ssh -p <ssh_port> www-data@<server>
 sudo apt update && sudo apt upgrade -y
 
-# 2. Ruby/Node/Gems aktualisieren
-cd /var/www/carambus_location_5101/current
-bundle update
-yarn upgrade
-
-# 3. Services neustarten
-sudo systemctl restart puma-carambus_location_5101
+# 2. Services neustarten
+sudo systemctl restart puma-<basename>
 sudo systemctl restart nginx
 ```
+
+Gem- und Node-Updates gehören ins Repository und kommen per Deploy; ein `bundle update` im Release ändert
+nur die Kopie auf dem Server und wird beim nächsten Deploy überschrieben.
 
 ---
 
 ## Siehe auch
 
+- [Raspberry-Pi-Quickstart](raspberry-pi-quickstart.md) - Einrichtung eines Servers, Management-Befehle
 - [Deployment Workflow](../developers/deployment-workflow.md) - Vollständiger Deployment-Prozess
-- [Scenario Management](../developers/scenario-management.md) - Scenario-System-Übersicht  
+- [Scenario Management](../developers/scenario-management.md) - Scenario-System-Übersicht
 - [Raspberry Pi Scripts](raspberry_pi_scripts.md) - RasPi-Client-Management
 - [Database Syncing](../developers/database-partitioning.md) - Datenbank-Synchronisation
-
-
-
-
-
-
