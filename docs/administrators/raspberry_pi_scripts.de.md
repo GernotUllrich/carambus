@@ -1,325 +1,101 @@
 # Raspberry Pi Management Scripts
 
-Diese Dokumentation beschreibt alle verfügbaren Scripts für die Verwaltung von Raspberry Pi Clients im Carambus-System.
+Diese Dokumentation beschreibt, wie Raspberry Pi Clients im Carambus-System heute eingerichtet und bedient
+werden — und was die älteren Raspi-Scripts in `bin/` tatsächlich tun.
 
 ## Überblick
 
-Die Raspberry Pi Scripts befinden sich in `carambus_master/bin/` und decken folgende Bereiche ab:
-- **Setup & Installation**: Vollständige Einrichtung neuer RasPi-Clients
-- **Testing & Debugging**: Netzwerk-Scans und Funktionsprüfungen
-- **Scoreboard Management**: Kiosk-Mode und Browser-Steuerung
-- **Utilities**: SSH-Setup, SD-Karten-Vorbereitung
+Ein Raspberry Pi wird heute nicht mehr mit den Scripts aus `bin/` eingerichtet:
+
+- **System**: per Ansible — `~/DEV/ansible/RUNBOOK`, Abschnitt „NEUEN CARAMBUS-PI AUFSETZEN“
+- **Anwendung und Kiosk**: mit den Rake-Tasks der [Raspberry-Pi-Quickstart](raspberry-pi-quickstart.md)
+  (Referenz der Kiosk-Tasks: [Raspberry Pi Client Integration](raspberry_pi_client_integration.md))
+- **Bedienung**: über den systemd-Dienst `scoreboard-kiosk`
+
+Die Raspi-Scripts liegen in `bin/` jedes Carambus-Checkouts (z. B. `~/DEV/carambus/carambus_bcw/bin/`). Sie
+stammen aus der Zeit vor diesem Weg und passen nicht mehr dazu — siehe [Altlasten](#altlasten). Die
+Rake-Tasks laufen aus einem beliebigen aktuellen Checkout; `<szenario>` steht für den Szenario-Namen,
+`<name>` für den Gerätenamen des Pi.
 
 ---
 
-## Setup & Installation
+## Der heutige Weg
 
-### `setup-raspberry-pi.sh`
-**Zweck**: Vollständige Einrichtung eines Raspberry Pi als Carambus-Client
+### Einen neuen Raspberry Pi einrichten
 
-**Verwendung**:
+Vollständig in der [Quickstart](raspberry-pi-quickstart.md) beschrieben und am Gerät gegangen:
+
+1. SD-Karte mit dem Raspberry Pi Imager schreiben (Raspberry Pi OS mit Desktop, Benutzer mit Autologin,
+   SSH mit Schlüssel)
+2. System per Ansible — ein Aufruf von `master.yml`; danach SSH nur noch als `www-data` auf Port 8910
+3. Anwendung und Kiosk per Rake-Tasks (Quickstart, Schritt 3)
+
+### Den Kiosk bedienen
+
 ```bash
-cd carambus_master
-./bin/setup-raspberry-pi.sh <scenario_name>
+# Browser neu starten (vom Admin-Rechner)
+bin/rails "scenario:restart_raspberry_pi_client[<szenario>]"
+
+# Oder direkt am Dienst
+ssh -p 8910 www-data@<name>.local 'sudo systemctl restart scoreboard-kiosk'
+
+# Zum Desktop (Kiosk anhalten) und zurück
+ssh -p 8910 www-data@<name>.local 'sudo systemctl stop scoreboard-kiosk'
+ssh -p 8910 www-data@<name>.local 'sudo systemctl start scoreboard-kiosk'
+
+# Prüfen
+bin/rails "scenario:test_raspberry_pi_client[<szenario>]"
 ```
 
-**Was wird gemacht**:
-1. ✅ Installiert erforderliche Pakete (chromium, wmctrl, xdotool)
-2. ✅ Erstellt Kiosk-Benutzer
-3. ✅ Richtet systemd-Service ein
-4. ✅ Konfiguriert Autostart für Scoreboard
-5. ✅ Startet Kiosk-Mode
+### Ein Update auf den Pi bringen
 
-**Voraussetzungen**:
-- SSH-Zugang zum Raspberry Pi
-- Scenario-Konfiguration in `carambus_data/scenarios/<scenario_name>/config.yml`
-- Raspberry Pi läuft bereits mit OS
-
-**Dokumentiert in**: [Client-Only Installation](raspberry-pi-client.md)
-
-**Beispiel**:
 ```bash
-./bin/setup-raspberry-pi.sh carambus_location_5101
-# Richtet RasPi für Location 5101 ein
+bin/rails "scenario:deploy[<szenario>]"
 ```
+
+`deploy-scenario.sh` ist dafür nicht gedacht: Sein Standardmodus räumt das Server-Deployment ab und ggf.
+die Produktions-Datenbank — siehe [Server Management Scripts](server-scripts.md).
 
 ---
 
-### `install-client-only.sh`
-**Zweck**: Installation eines reinen Client-Systems (ohne lokalen Server)
+## Altlasten
 
-**Verwendung**:
-```bash
-./bin/install-client-only.sh <scenario_name>
-```
+Diese Scripts liegen noch in `bin/`, passen aber nicht mehr zum heutigen Weg. Nicht verwenden.
 
-**Was wird gemacht**:
-1. ✅ Konfiguriert Browser-Kiosk-Mode
-2. ✅ Richtet Autostart für Scoreboard ein
-3. ✅ Verbindet mit Remote-Server (kein lokaler Puma)
-4. ✅ Optimiert für minimale Ressourcennutzung
+### Setup & Installation
 
-**Use Case**: Tablet oder RasPi, das nur als Display dient
+| Script | Was es tatsächlich tut | Stattdessen |
+|---|---|---|
+| `setup-raspberry-pi.sh` | Bereitet einen Raspberry Pi 4 für eine Docker-Installation vor; nimmt nur Optionen, kein Szenario (`Unbekannte Option`) | Ansible-RUNBOOK + Quickstart |
+| `install-client-only.sh <scenario_name> <client_ip> [ssh_port] [ssh_user]` | Installiert per SSH `chromium-browser` ohne Rückfall auf `chromium` (auf trixie gibt es das Paket nicht) und eine eigene Autostart-Konfiguration ohne labwc-Zweig | Rake-Tasks mit `local_server_enabled: false`, siehe [Raspberry Pi als Client](raspberry-pi-client.md) |
+| `setup-phillips-table-ssh.sh` | Standortspezifisch: feste IP und Benutzer `pi`; prüft per `nmap` die Ports 22/8910 und gibt Anleitungen aus — erzeugt und kopiert keine Schlüssel | SSH-Schlüssel im Imager bzw. `ssh-copy-id <benutzer>@<name>.local` |
+| `prepare-sd-card.sh [OPTIONS] SD_CARD_PATH` | Legt auf einer bereits beschriebenen Karte nur `ssh` und `wpa_supplicant.conf` in der Boot-Partition an — formatiert nichts, installiert nichts | Raspberry Pi Imager (RUNBOOK) |
 
-**Dokumentiert in**: [Client-Only Installation](raspberry-pi-client.md)
+### Testing & Debugging
 
----
+| Script | Was es tatsächlich tut | Stattdessen |
+|---|---|---|
+| `find-raspberry-pi.sh --network <netz> [--ssh-test]` | Scannt ein Netz (Standard `192.168.1.0/24`) nach Pis; der SSH-Test läuft als `pi` auf Port 22 | Pis per Gerätename ansprechen (`<name>.local`) |
+| `test-raspberry-pi.sh` | Testet eine Docker-Installation (Optionen `-d`/`-c`/`--cleanup`); nimmt kein Szenario | `bin/rails "scenario:test_raspberry_pi_client[<szenario>]"` |
+| `test-raspberry-pi-restart.sh <scenario_name>` | Testet den Restart-Befehl per `sshpass`; einen Reboot testet es nicht | `bin/rails "scenario:test_raspberry_pi_client[<szenario>]"` |
 
-> **Hinweis:** Die Scoreboard-Client-Software wird über `install-client-only.sh`
-> installiert (siehe oben). Ein separates `install-scoreboard-client.sh` Script
-> gibt es nicht.
+### Scoreboard Management
 
-### `setup-phillips-table-ssh.sh`
-**Zweck**: SSH-Zugang für Phillips Table einrichten
+Diese Scripts stammen aus der LXDE-/X11-Zeit. Neben dem Dienst `scoreboard-kiosk` gestartet, öffnen sie einen
+zweiten Browser.
 
-**Verwendung**:
-```bash
-./bin/setup-phillips-table-ssh.sh
-```
+| Script | Was es tatsächlich tut | Stattdessen |
+|---|---|---|
+| `start-scoreboard.sh` | Startet fest `/usr/bin/chromium-browser` (auf trixie nicht vorhanden) mit der URL aus `../config/scoreboard_url`; ein Argument wird ignoriert | Dienst `scoreboard-kiosk` |
+| `autostart-scoreboard.sh` | Veraltete Zweitkopie der Kiosk-Logik mit festen Werten (`carambus_location_5101`, `chromium-browser`); legt keinen Dienst an | Das generierte `/usr/local/bin/autostart-scoreboard.sh` — erzeugt von `deploy_raspberry_pi_client`, ansehen mit `bin/rails "scenario:preview_autostart_script[<szenario>]"` |
+| `restart-scoreboard.sh` | Beendet `pcmanfm` und ruft `start-scoreboard.sh` auf; beendet Chromium nicht | `sudo systemctl restart scoreboard-kiosk` bzw. `scenario:restart_raspberry_pi_client` |
+| `exit-scoreboard.sh` | `pkill chromium-browser` (trifft `chromium` auf trixie nicht), blendet das LXDE-Panel ein, startet `pcmanfm` | `sudo systemctl stop scoreboard-kiosk` (zurück mit `start`) |
+| `cleanup-chromium.sh` | Beendet `chromium-browser` und löscht mit `sudo` `/tmp/chromium*` und `/tmp/.X*` — also auch das Profil des laufenden Kiosks und die X11-Sockets der laufenden Desktop-Sitzung | Nicht nötig: Der Kiosk legt sein Profil bei jedem Start neu an; bei Problemen `sudo systemctl restart scoreboard-kiosk` |
 
-**Was wird gemacht**:
-1. ✅ Generiert SSH-Schlüssel
-2. ✅ Kopiert Public Key zum RasPi
-3. ✅ Konfiguriert passwordless SSH
-4. ✅ Testet Verbindung
+### Nicht mehr vorhanden
 
-**Voraussetzungen**:
-- Initiales Passwort für RasPi bekannt
-- Netzwerkzugriff auf RasPi
-
-**Beispiel**:
-```bash
-./bin/setup-phillips-table-ssh.sh
-# Interaktiv: Fragt nach IP, Port, Passwort
-```
-
----
-
-## Testing & Debugging
-
-### `find-raspberry-pi.sh`
-**Zweck**: Findet Raspberry Pis im lokalen Netzwerk
-
-**Verwendung**:
-```bash
-./bin/find-raspberry-pi.sh [subnet]
-```
-
-**Was wird gemacht**:
-- Scannt Netzwerk nach RasPi-Hosts
-- Zeigt IP-Adressen und Hostnamen
-- Prüft SSH-Verfügbarkeit
-
-**Beispiele**:
-```bash
-# Standard-Scan im lokalen Netzwerk
-./bin/find-raspberry-pi.sh
-
-# Spezifisches Subnetz scannen
-./bin/find-raspberry-pi.sh 192.168.178.0/24
-```
-
-**Output-Beispiel**:
-```
-Scanning for Raspberry Pis in 192.168.178.0/24...
-Found: 192.168.178.107 (raspberrypi.local)
-  SSH: Available (Port 8910)
-  Service: puma-carambus_location_5101
-```
-
----
-
-### `test-raspberry-pi.sh`
-**Zweck**: Umfassende Tests für RasPi-Funktionalität
-
-**Verwendung**:
-```bash
-./bin/test-raspberry-pi.sh <scenario_name>
-```
-
-**Was wird getestet**:
-1. ✅ SSH-Verbindung
-2. ✅ Puma-Service-Status
-3. ✅ Nginx-Konfiguration
-4. ✅ Datenbank-Konnektivität
-5. ✅ Scoreboard-Erreichbarkeit
-6. ✅ Browser-Kiosk-Mode
-
-**Beispiel**:
-```bash
-./bin/test-raspberry-pi.sh carambus_location_5101
-# Führt alle Tests aus und zeigt Ergebnisse
-```
-
----
-
-### `test-raspberry-pi-restart.sh`
-**Zweck**: Testet RasPi-Restart-Funktionalität
-
-**Verwendung**:
-```bash
-./bin/test-raspberry-pi-restart.sh <scenario_name>
-```
-
-**Was wird getestet**:
-- Restart-Command funktioniert
-- Services starten korrekt nach Reboot
-- Scoreboard startet automatisch
-
----
-
-## Scoreboard Management
-
-### `start-scoreboard.sh`
-**Zweck**: Startet Scoreboard im Kiosk-Mode
-
-**Verwendung**:
-```bash
-# Auf dem RasPi:
-./bin/start-scoreboard.sh [url]
-
-# Remote von Development-Rechner:
-ssh pi@raspberrypi.local '/path/to/start-scoreboard.sh'
-```
-
-**Was wird gemacht**:
-1. ✅ Startet Chromium im Fullscreen-Mode
-2. ✅ Öffnet Scoreboard-URL
-3. ✅ Versteckt Panel/Taskbar
-4. ✅ Deaktiviert Screensaver
-
-**Voraussetzungen**:
-- X11-Display verfügbar
-- Chromium installiert
-
----
-
-### `autostart-scoreboard.sh`
-**Zweck**: Scoreboard-Autostart-Konfiguration
-
-**Verwendung**:
-```bash
-./bin/autostart-scoreboard.sh <scenario_name>
-```
-
-**Was wird gemacht**:
-- Erstellt systemd-Service
-- Konfiguriert Autostart bei Boot
-- Wartet auf Puma-Server
-- Startet Browser automatisch
-
-**Dokumentiert in**: [Scoreboard Autostart Setup](scoreboard-autostart.md)
-
----
-
-### `restart-scoreboard.sh`
-**Zweck**: Neustart des Scoreboard-Browsers
-
-**Verwendung**:
-```bash
-# Lokal auf RasPi:
-./bin/restart-scoreboard.sh
-
-# Remote via SSH:
-ssh -p 8910 www-data@192.168.178.107 './bin/restart-scoreboard.sh'
-```
-
-**Was wird gemacht**:
-1. ✅ Beendet laufende Chromium-Prozesse
-2. ✅ Bereinigt Cache
-3. ✅ Startet Browser neu mit Scoreboard-URL
-
-**Use Cases**:
-- Browser hängt oder ist langsam
-- Nach Software-Update
-- Nach Änderung der Scoreboard-URL
-
----
-
-### `exit-scoreboard.sh`
-**Zweck**: Beendet Scoreboard-Kiosk-Mode sauber
-
-**Verwendung**:
-```bash
-./bin/exit-scoreboard.sh
-```
-
-**Was wird gemacht**:
-- Beendet Chromium-Prozesse
-- Zeigt Panel/Taskbar wieder
-- Bereinigt temporäre Dateien
-
----
-
-### `cleanup-chromium.sh`
-**Zweck**: Bereinigt Chromium-Cache und temporäre Dateien
-
-**Verwendung**:
-```bash
-./bin/cleanup-chromium.sh
-```
-
-**Was wird gemacht**:
-- Löscht Browser-Cache
-- Entfernt Cookies
-- Bereinigt Downloads
-- Löscht Crash-Reports
-
-**Use Cases**:
-- Browser wird langsam
-- Zu wenig Speicherplatz
-- Nach längerer Laufzeit
-
----
-
-## Utilities
-
-### `prepare-sd-card.sh`
-**Zweck**: Bereitet SD-Karte für RasPi-Installation vor
-
-**Verwendung**:
-```bash
-./bin/prepare-sd-card.sh [device]
-```
-
-**Was wird gemacht**:
-1. ⚠️ Formatiert SD-Karte (ACHTUNG: Alle Daten werden gelöscht!)
-2. ✅ Installiert Raspberry Pi OS
-3. ✅ Konfiguriert SSH
-4. ✅ Konfiguriert WLAN (optional)
-5. ✅ Erstellt Basis-Konfiguration
-
-**Voraussetzungen**:
-- SD-Karte eingelegt
-- Raspberry Pi OS Image heruntergeladen
-- Admin-Rechte (sudo)
-
-**Beispiel**:
-```bash
-# Liste verfügbare Devices
-diskutil list
-
-# Bereite SD-Karte vor
-sudo ./bin/prepare-sd-card.sh /dev/disk2
-```
-
-**⚠️ WARNUNG**: Überprüfen Sie das Device sorgfältig! Falsches Device führt zu Datenverlust.
-
----
-
-## Legacy/Deprecated Scripts
-
-### `quick-start-raspberry-pi.sh` ⚠️
-**Status**: Obsolet (durch `setup-raspberry-pi.sh` ersetzt)
-
-### `auto-setup-raspberry-pi.sh` ⚠️
-**Status**: Obsolet (durch `setup-raspberry-pi.sh` ersetzt)
-
-### `start_scoreboard` ⚠️
-**Status**: Obsolet (durch `start-scoreboard.sh` ersetzt)
-
-### `start_scoreboard_delayed` ⚠️
-**Status**: Obsolet (durch `autostart-scoreboard.sh` ersetzt)
+Früher hier als obsolet geführt, inzwischen aus `bin/` entfernt: `quick-start-raspberry-pi.sh`,
+`auto-setup-raspberry-pi.sh`, `start_scoreboard`, `start_scoreboard_delayed`.
 
 ---
 
@@ -327,51 +103,46 @@ sudo ./bin/prepare-sd-card.sh /dev/disk2
 
 ### Neuer Raspberry Pi komplett einrichten
 
+Siehe [Quickstart](raspberry-pi-quickstart.md): Imager, dann Ansible, dann aus einem carambus-Checkout:
+
 ```bash
-# 1. SD-Karte vorbereiten
-sudo ./bin/prepare-sd-card.sh /dev/disk2
-
-# 2. RasPi booten und im Netzwerk finden
-./bin/find-raspberry-pi.sh
-
-# 3. SSH-Zugang einrichten
-./bin/setup-phillips-table-ssh.sh
-# IP: 192.168.178.107
-# Port: 22
-# Password: [initiales Passwort]
-
-# 4. Vollständige Installation
-./bin/setup-raspberry-pi.sh carambus_location_5101
-
-# 5. Testen
-./bin/test-raspberry-pi.sh carambus_location_5101
+bin/rails "scenario:prepare_deploy[<szenario>]"
+bin/rails "scenario:prepare_development[<szenario>,development]"
+bin/rails "scenario:reset_server_db[<szenario>]"        # DESTRUKTIV
+bin/rails "scenario:deploy[<szenario>]"
+bin/rails "scenario:setup_raspberry_pi_client[<szenario>]"
+bin/rails "scenario:deploy_raspberry_pi_client[<szenario>]"
+bin/rails "scenario:test_raspberry_pi_client[<szenario>]"
 ```
+
+Was diese Schritte voraussetzen (u. a. SSH-Zugang zur Authority für `prepare_development`) und verändern,
+steht in der Quickstart unter Schritt 3.2.
 
 ### Browser-Probleme beheben
 
 ```bash
-# 1. Chromium-Cache bereinigen
-ssh -p 8910 www-data@192.168.178.107 './bin/cleanup-chromium.sh'
+# 1. Kiosk neu starten
+ssh -p 8910 www-data@<name>.local 'sudo systemctl restart scoreboard-kiosk'
 
-# 2. Browser neustarten
-ssh -p 8910 www-data@192.168.178.107 './bin/restart-scoreboard.sh'
+# 2. Logs ansehen
+ssh -p 8910 www-data@<name>.local 'sudo journalctl -u scoreboard-kiosk -n 30'
+ssh -p 8910 www-data@<name>.local 'sudo tail -50 /tmp/chromium-kiosk.log'
 
-# 3. Falls immer noch Probleme: Service neustarten
-ssh -p 8910 www-data@192.168.178.107 'sudo systemctl restart scoreboard-kiosk'
+# 3. Kiosk-Script neu ausliefern (startet den Kiosk mit dem aktuellen Script neu)
+bin/rails "scenario:deploy_raspberry_pi_client[<szenario>]"
 ```
 
 ### Scenario-Update auf RasPi deployen
 
 ```bash
-# 1. Deployment von Development-Rechner
-cd carambus_master
-./bin/deploy-scenario.sh carambus_location_5101
+# 1. Deployment vom Admin-Rechner
+bin/rails "scenario:deploy[<szenario>]"
 
-# 2. Browser auf RasPi neustarten (um neue Assets zu laden)
-ssh -p 8910 www-data@192.168.178.107 './bin/restart-scoreboard.sh'
+# 2. Optional: Browser neu starten
+bin/rails "scenario:restart_raspberry_pi_client[<szenario>]"
 
 # 3. Testen
-./bin/test-raspberry-pi.sh carambus_location_5101
+bin/rails "scenario:test_raspberry_pi_client[<szenario>]"
 ```
 
 ---
@@ -380,35 +151,32 @@ ssh -p 8910 www-data@192.168.178.107 './bin/restart-scoreboard.sh'
 
 ### SSH-Verbindung schlägt fehl
 ```bash
-# Problem: "Connection refused"
-# Lösung: SSH manuell auf RasPi aktivieren
-# 1. Monitor + Tastatur an RasPi anschließen
-# 2. sudo raspi-config
-# 3. Interface Options → SSH → Enable
+# Nach Ansible: nur noch www-data auf Port 8910
+ssh -p 8910 www-data@<name>.local true
 
-# Problem: "Permission denied (publickey)"
-# Lösung: SSH-Keys neu einrichten
-./bin/setup-phillips-table-ssh.sh
+# Vor Ansible: der im Imager angelegte Benutzer auf Port 22
+ssh <benutzer>@<name>.local true
+
+# Problem: "Permission denied (publickey)" — Schlüssel nachtragen (vor Ansible)
+ssh-copy-id <benutzer>@<name>.local
 ```
+
+„Connection refused“ vor dem ersten Ansible-Lauf heißt meist: SSH wurde im Imager nicht angehakt. Den
+Haken muss man bei jedem Schreiben der Karte neu setzen.
 
 ### Browser startet nicht
 ```bash
-# Problem: "Display not available"
-# Lösung: X11-Display prüfen
-ssh -p 8910 www-data@raspberrypi 'echo $DISPLAY'
-# Sollte ":0" sein
-
-# Falls nicht gesetzt:
-ssh -p 8910 www-data@raspberrypi 'export DISPLAY=:0 && ./bin/start-scoreboard.sh'
+ssh -p 8910 www-data@<name>.local 'sudo systemctl status scoreboard-kiosk'
+ssh -p 8910 www-data@<name>.local 'sudo tail -50 /tmp/chromium-kiosk.log'
+bin/rails "scenario:test_raspberry_pi_client[<szenario>]"
 ```
+
+Weitere Ursachen und Abhilfen: [Raspberry Pi Client Integration, Fehlerbehebung](raspberry_pi_client_integration.md#fehlerbehebung).
 
 ### Scoreboard zeigt alte Version
 ```bash
-# Cache bereinigen und Browser neustarten
-ssh -p 8910 www-data@raspberrypi './bin/cleanup-chromium.sh && ./bin/restart-scoreboard.sh'
-
-# Falls das nicht hilft: Hard-Reload im Browser
-# Strg+Shift+R oder systemctl restart
+# Kiosk neu starten — das Browser-Profil wird dabei neu angelegt
+ssh -p 8910 www-data@<name>.local 'sudo systemctl restart scoreboard-kiosk'
 ```
 
 ---
@@ -416,32 +184,24 @@ ssh -p 8910 www-data@raspberrypi './bin/cleanup-chromium.sh && ./bin/restart-sco
 ## Best Practices
 
 ### RasPi-Setup
-1. ✅ Immer zuerst `find-raspberry-pi.sh` verwenden, um IP zu ermitteln
-2. ✅ SSH-Keys einrichten (passwordless) für Automatisierung
-3. ✅ Nach jedem Deployment Browser neustarten
-4. ✅ Regelmäßig Chromium-Cache bereinigen
+1. ✅ Pis per Gerätename (`<name>.local`) ansprechen, nicht per IP
+2. ✅ SSH-Schlüssel schon im Imager hinterlegen
+3. ✅ Zeigt das Scoreboard nach einem Deployment die alte Fassung: Kiosk neu starten
 
 ### Netzwerk
-1. ✅ Statische IP für Production-RasPis verwenden
-2. ✅ SSH-Port ändern (Standard: 8910 statt 22)
-3. ✅ Firewall auf RasPi konfigurieren
+1. ✅ SSH-Port 8910 und Firewall (nur 3131 + 8910) setzt Ansible
+2. ✅ Netzwerk per Kabel empfohlen; WLAN funktioniert
 
 ### Wartung
-1. ✅ Wöchentlich: `cleanup-chromium.sh` ausführen
-2. ✅ Monatlich: OS-Updates via `apt update && apt upgrade`
-3. ✅ Bei Problemen: Zuerst Browser-Restart, dann Service-Restart, dann Reboot
+1. ✅ Monatlich: OS-Updates via `sudo apt update && sudo apt upgrade`
+2. ✅ Bei Problemen: zuerst Kiosk-Neustart (`scoreboard-kiosk`), dann Reboot
 
 ---
 
 ## Siehe auch
 
-- [Client-Only Installation](raspberry-pi-client.md) - Detaillierte Installationsanleitung
-- [Scoreboard Autostart Setup](scoreboard-autostart.md) - Autostart-Konfiguration
-- [Deployment Workflow](../developers/deployment-workflow.md) - Vollständiger Deployment-Prozess
-- [Scenario Management](../developers/scenario-management.md) - Scenario-System-Übersicht
-
-
-
-
-
-
+- [Raspberry-Pi-Quickstart](raspberry-pi-quickstart.md) - Einrichtung von der SD-Karte bis zum Scoreboard
+- [Raspberry Pi Client Integration](raspberry_pi_client_integration.md) - Referenz der Kiosk-Rake-Tasks
+- [Client-Only Installation](raspberry-pi-client.md) - Pi als reines Display
+- [Scoreboard Autostart](scoreboard-autostart.md) - Wie der Kiosk startet
+- [Server Management Scripts](server-scripts.md) - Scripts für den Server
