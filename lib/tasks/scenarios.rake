@@ -5705,25 +5705,26 @@ EOF
       echo "Using scoreboard URL: $SCOREBOARD_URL"
 
       # Lokaler Server: warten, bis die Scoreboard-Seite antwortet (2xx/3xx) — Takt 1 s,
-      # hoechstens 180 s, danach startet der Browser trotzdem (lieber zu frueh als eine
-      # schwarze Wand). Vorher: Worker zaehlen im 5-s-Takt (mindestens ZWEI — bei
-      # WEB_CONCURRENCY=1 startete der Browser nie, vgl. bin/autostart-scoreboard.sh
+      # hoechstens 300 s, danach startet der Browser trotzdem (lieber zu frueh als eine
+      # schwarze Wand). Beim kalten Boot braucht Puma allein zum Vorladen ~94 s (Pi 5,
+      # 2 GB, gemessen 2026-09-11). Vorher: Worker zaehlen im 5-s-Takt (mindestens ZWEI —
+      # bei WEB_CONCURRENCY=1 startete der Browser nie, vgl. bin/autostart-scoreboard.sh
       # 03f61113), dann pauschal 10 s, ohne Puma-Dienst 30 s (carambus_bcw Plan 15-03).
       # Browser-User-Agent, weil der nginx-Bot-Block curl sonst mit 403 abweist.
       if [ "$LOCAL_SERVER_ENABLED" = "true" ]; then
           echo "Waiting for local server to answer..."
-          WAITED=0
+          WAIT_START=$SECONDS
           while true; do
               HTTP_CODE=$(curl -s -o /dev/null -w '%{http_code}' -A 'Mozilla/5.0' --max-time 5 "$SCOREBOARD_URL" 2>/dev/null)
+              WAITED=$((SECONDS - WAIT_START))
               case "$HTTP_CODE" in
                   2*|3*) echo "Local server ready after ${WAITED}s (HTTP $HTTP_CODE)"; break ;;
               esac
-              if [ $WAITED -ge 180 ]; then
+              if [ $WAITED -ge 300 ]; then
                   echo "WARNUNG: nach ${WAITED}s keine Antwort (HTTP $HTTP_CODE) — starte den Browser trotzdem."
                   break
               fi
               sleep 1
-              WAITED=$((WAITED + 1))
           done
       else
           echo "Remote server mode - skipping local server wait"
