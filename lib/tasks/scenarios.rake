@@ -5696,8 +5696,10 @@ EOF
 
       # labwc (Standard ab Raspberry Pi OS 13 "trixie") setzt --start-fullscreen bei
       # Xwayland-Fenstern nicht um, und wmctrl findet das --app-Fenster nicht (Titel =
-      # Seitentitel). Dort startet Chromium nativ unter Wayland im Kiosk-Modus;
-      # --password-store=basic verhindert die Schluesselbund-Abfrage. Gemessen auf
+      # Seitentitel). Dort startet Chromium nativ unter Wayland im Vollbild;
+      # --password-store=basic verhindert die Schluesselbund-Abfrage. Bewusst NICHT
+      # --kiosk: der sperrt das Vollbild, man kaeme zum Testen nicht mehr auf den Desktop
+      # (so: Maus/Finger an den oberen Rand, das "X" erscheint). Gemessen auf
       # carambus-pbv 2026-09-11 (carambus_bcw Plan 15-03). wayfire/X11 bleiben unveraendert.
       LABWC_SESSION=""
       if grep -qsE '^(user-session|autologin-session)=.*labwc' /etc/lightdm/lightdm.conf; then
@@ -5715,7 +5717,7 @@ EOF
       if [ -n "$LABWC_SESSION" ]; then
       $BROWSER_CMD \
         --ozone-platform=wayland \
-        --kiosk \
+        --start-fullscreen \
         --password-store=basic \
         --disable-restore-session-state \
         --user-data-dir="$CHROMIUM_USER_DIR" \
