@@ -1,6 +1,6 @@
 # ClubCloud-Glossar
 
-> **Status:** Aus `.planning/clubcloud-admin-appendix-DRAFT.md` (Phase 36c) extrahiert + Per-Region-Begriffe ergänzt (Plan 14-G.11, 2026-05-16). `[SME-CONFIRM]`-Marker bleiben verbatim — Auflösung in einem zukünftigen Doc-Promotion-Workflow.
+> **Status:** Aus dem damaligen Planungsentwurf `.planning/clubcloud-admin-appendix-DRAFT.md` (Phase 36c; die Datei existiert nicht mehr) extrahiert + Per-Region-Begriffe ergänzt (Plan 14-G.11, 2026-05-16). `[SME-CONFIRM]`-Marker bleiben verbatim — Auflösung in einem zukünftigen Doc-Promotion-Workflow.
 
 ## ClubCloud-Begriffe
 
@@ -37,12 +37,12 @@ Pflicht-Key in `config/carambus.yml`, der die Region-Identität der laufenden In
 Architektur-Konvention im Setup-Helper-UI (`/mcp/setup`), die den Setup-Befehl mit der Domain der aufgerufenen Instanz ableitet (z.B. `https://nbv.carambus.de/mcp?stateless=1`). Macht die Helper-UI über alle Per-Region-Scenarios hinweg ohne Code-Branch wiederverwendbar.
 
 **Region.shortname Convention**
-Region-Identifier sind in der DB lowercase persistiert (`nbv`, `bcw`, `bvbw`), werden für Display in der UI typisch UPPERCASE gerendert (`NBV`, `BCW`, `BVBW`). Match-Lookups (`Region.find_by(shortname: "nbv")`) sind case-sensitive — lowercase verwenden.
+`Region.shortname` ist in der DB UPPERCASE persistiert (`NBV`, `BVBW`). Lowercase ist nur der ClubCloud-Kontext `RegionCc.context` (`nbv`, `bvbw`). Match-Lookups (`Region.find_by(shortname: "NBV")`) sind case-sensitive — UPPERCASE verwenden. `bcw` ist keine Region, sondern ein Standort-Server der Region NBV.
 
 **Sportwart-Wirkbereich (Authority-Layer)**
-Tupel `(sportwart_location_ids, sportwart_discipline_ids)` am User, das pro Tool-Call entscheidet, ob der User Authority für eine Operation hat. Ersetzt das frühere globale `User.cc_role`-Enum. Details + Mapping zur CC-Rolle siehe [`cc-roles`](cc-roles.de.md).
+Explizite Persona am User (`persona_grants`: `sportwart` oder `landessportwart`) plus Spielorte (`sportwart_locations`; beim Landessportwart alle) und Disziplinen (`sportwart_disciplines`, leer = alle). Ohne Persona wirkt der Wirkbereich nicht. Er entscheidet pro Schreib-Aufruf, ob der User Authority für das Turnier hat. Ersetzt das frühere globale `User.cc_role`-Enum. Details + Mapping zur CC-Rolle siehe [`cc-roles`](cc-roles.de.md).
 
 **Tool-Authorization-Layer**
-Der MCP-Server prüft pro Tool-Call via `BaseTool.authorize!` (in `lib/mcp_server/tools/base_tool.rb`), ob der User Authority für die konkrete Operation hat (Wirkbereich-Match oder TL-FK-Match oder LSW-Bypass). Filterung erfolgt **vor** Ausführung — kein 403 vom CC nötig.
+Der MCP-Server prüft pro Tool-Call via `BaseTool.authorize!` (in `lib/mcp_server/tools/base_tool.rb`), ob der User Authority für die konkrete Operation hat (Wirkbereich-Match — beim Landessportwart mit regionweitem Spielort-Scope —, Turnierleiter-Match über FK oder `UserTournament`, oder `admin?`-Bypass für `club_admin`/`system_admin`). Filterung erfolgt **vor** Ausführung — kein 403 vom CC nötig.
 
-*Quelle: .planning/clubcloud-admin-appendix-DRAFT.md (Phase 36c, 2026-04-14) + Plan 14-G.11 Per-Region-Substrate (2026-05-16). [SME-CONFIRM]-Marker bleiben unaufgelöst — Resolution in einem zukünftigen Doc-Promotion-Workflow.*
+*Quelle: damaliger Planungsentwurf .planning/clubcloud-admin-appendix-DRAFT.md (Phase 36c, 2026-04-14; nicht mehr vorhanden) + Plan 14-G.11 Per-Region-Substrate (2026-05-16). [SME-CONFIRM]-Marker bleiben unaufgelöst — Resolution in einem zukünftigen Doc-Promotion-Workflow.*

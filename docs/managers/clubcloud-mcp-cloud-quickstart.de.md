@@ -75,9 +75,10 @@ carambus-remote:
 - Starte eine **neue Claude-Code-Session**
 - Frage: **„Welche carambus-remote Tools hast Du?"**
 
-Erwartet: **23 Tools** (die volle Suite). Jeder authentifizierte User sieht
-dieselben 23 Tools — die Rechte-Prüfung passiert nicht über das Ausblenden von
-Tools, sondern beim Aufruf: Liegt eine Aktion außerhalb Deines Wirkbereichs
+Erwartet: **rund 30 Tools** zum Lesen. Hast Du CC-Schreibrecht (Sportwart,
+Landessportwart, Turnierleiter) und bist mit dem Server Deiner Region bzw. Deines
+Spielorts verbunden, kommen die Schreib-Tools dazu (**rund 46**). Die Rechte-Prüfung
+passiert zusätzlich beim Aufruf: Liegt eine Aktion außerhalb Deines Wirkbereichs
 (Sportwart-Locations + -Disziplinen bzw. Turnierleiter-Zuweisung), lehnt der
 Server sie mit klarer Meldung ab — Claude erklärt dann, wen Du kontaktieren
 musst. Details in [`cc-roles`](clubcloud-scenarios/cc-roles.de.md).

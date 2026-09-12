@@ -170,59 +170,77 @@ User.find_by(email: "sportwart@verein.de").update!(jti: SecureRandom.uuid)
 
 ## 5. Authority-Layer (Sportwart-Wirkbereich + TL-FK)
 
-Alle 23 MCP-Tools sind für **jeden authentifizierten User** sichtbar + auflistbar
-(`ToolRegistry.tools_for` liefert die einheitliche `ALL_TOOLS`-Liste, Plan 14-G.2 /
-D-14-G6 — kein Per-Persona-Ausblenden mehr). Die Authority-Prüfung passiert
-**beim Aufruf** (`BaseTool.authorize!`), nicht beim Tool-Listing, und hängt an
-konkreten **Wirkbereichen**:
+Welche Tools ein User sieht, hängt seit Phase 34-01 von seiner **Persona** ab
+(`ToolRegistry.tools_for` in `lib/mcp_server/tool_registry.rb`, Tool-Tiers in
+`lib/mcp_server/role_tool_map.rb`):
 
-| Persona | Authority-Felder | Effektive Aktionen |
-|---------|------------------|--------------------|
-| **Sportwart** | `user.sportwart_location_ids = [...]`<br>`user.sportwart_discipline_ids = [...]` | Anmeldungs-Lebenszyklus vor Turnier für Locations/Disziplinen im Wirkbereich |
-| **Turnierleiter** | `tournament.turnier_leiter_user_id = user.id` (pro Turnier; Single-FK) | Akkreditierung am Turniertag für zugewiesene Turniere |
-| **Landessportwart (LSW)** | `user.admin?` (Bypass aller Wirkbereich-Checks) | volle Suite ohne Wirkbereich-Einschränkung |
-| **SysAdmin** | `user.super_user?` | volle Suite + Override |
+- **Jeder authentifizierte User** bekommt die 29 lesenden Tools und das Self-Service-Tool
+  `cc_link_my_player`, zusammen **30 Tools**.
+- **Die 16 Schreib-Tools** kommen nur dazu (zusammen **46**), wenn der User CC-Schreibrecht hat
+  (`user.cc_write_access?`: role `system_admin`, Sportwart-Persona oder Turnierleitung) **und**
+  die Instanz ein Region- oder Local-Server ist (`carambus_api_url` gesetzt).
+- **Auf der Authority** (api.carambus.de) ist der Chat für alle read-only, auch für `system_admin`.
 
-> **Hinweis:** Alle Personae sehen dieselben **23 Tools** im Tool-Listing. Der
-> Unterschied liegt darin, welche Write-Aktionen der Server pro User durchlässt —
-> nicht in der Anzahl gelisteter Tools.
+Danach prüft der Server **jeden Schreib-Aufruf** am konkreten Turnier (`BaseTool.authorize!`,
+siehe 5.1):
+
+| Persona | Voraussetzung | Wirkbereich |
+|---------|---------------|-------------|
+| **Sportwart** | `persona_grants: ["sportwart"]` | nur die zugeordneten Spielorte (`sportwart_locations`); Disziplinen laut Zuordnung (`sportwart_disciplines`, leer = alle; eine Oberdisziplin wie „Karambol“ deckt ihre Unterdisziplinen ab) |
+| **Landessportwart (LSW)** | `persona_grants: ["landessportwart"]` | alle Spielorte; der Disziplin-Filter gilt weiter |
+| **Turnierleiter** | `tournament.turnier_leiter_user_id = user.id` **oder** eine `UserTournament`-Zuordnung mit `role: "turnier_leiter"` | die zugewiesenen Turniere |
+| **Club-Admin / SysAdmin** | role `club_admin` bzw. `system_admin` (`user.admin?`) | `admin?`-Bypass in der TournamentPolicy. Schreib-Tools bekommt ein `club_admin` trotzdem nur mit Sportwart-Persona oder Turnierleitung |
+
+> **Hinweis:** Die Persona setzt nur ein `system_admin`, im Admin-Formular unter `/admin/users`
+> (Feld „Sportwart-Persona“). Spielorte und Disziplinen verfeinern den Wirkbereich; ohne Persona
+> bleiben sie wirkungslos. Einen „LSW-Bypass“ über `user.admin?` gibt es nicht.
 
 ### 5.1 Authority-Hook
 
-`lib/mcp_server/tools/base_tool.rb` enthält `authorize!`, das pro Tool prüft,
-ob der User Authority für die konkrete Operation hat (z.B. ist die betroffene
-Location im `sportwart_location_ids`-Array? Ist der User für das Ziel-Turnier als
-TL eingetragen?). Single Source of Truth: `lib/mcp_server/tool_registry.rb`
-listet pro Tool das benötigte Authority-Level.
+`lib/mcp_server/tools/base_tool.rb` enthält `authorize!`. Es fragt für jeden Schreib-Aufruf die
+`TournamentPolicy` (Aktionen `assign_leiter`, `update_deadline`, `manage_teilnehmerliste`,
+`enter_results`, `prepare_tournament`): Liegt das Turnier im Wirkbereich des Sportwarts? Ist der
+User Turnierleiter dieses Turniers? Welche Tools es gibt und in welchem Tier sie stehen, steht in
+`lib/mcp_server/role_tool_map.rb`; wer welche Aktion darf, in `app/policies/tournament_policy.rb`.
 
 ### 5.2 Console-Befehle (Authority-Setup)
 
 ```ruby
 user = User.find_by(email: "sportwart@verein.de")
 
-# Sportwart-Wirkbereich setzen:
+# Sportwart-Persona und Wirkbereich setzen (ohne Persona wirkt der Wirkbereich nicht):
 user.update!(
-  sportwart_location_ids: [Location.find_by!(shortname: "BCW").id],
-  sportwart_discipline_ids: Discipline.where(shortname: %w[FREI EUR DREIBAND]).pluck(:id)
+  persona_grants: ["sportwart"],
+  sportwart_location_ids: [Location.find_by!(name: "<Name des Spielorts>").id],
+  sportwart_discipline_ids: Discipline.where(name: ["Freie Partie klein", "Dreiband klein"]).pluck(:id)
 )
 
-# Turnierleiter pro Turnier zuweisen:
-Tournament.find_by!(title: "NDM Endrunde Eurokegel").update!(
-  turnier_leiter_user_id: user.id
-)
+# Landessportwart (alle Spielorte; der Disziplin-Filter bleibt):
+user.update!(persona_grants: ["landessportwart"])
 
-# LSW-Bypass:
-user.update!(admin: true)
+# Turnierleiter pro Turnier zuweisen. Auf einem Local-Server ist ein gescraptes Turnier
+# schreibgeschützt (LocalProtector); dort über die lokale Zuordnung (auch /admin/user_tournaments):
+turnier = Tournament.find_by!(title: "NDM Endrunde Eurokegel")
+UserTournament.create!(user: user, tournament: turnier, role: "turnier_leiter",
+  granted_by: User.find_by(email: "sportwart@verein.de"))  # einsetzender Sportwart, optional
+```
+
+Das Admin-Formular `/admin/users` setzt dieselben Felder (Persona, Spielorte, Disziplinbaum) ohne Console.
+
+```ruby
+# Persona entziehen (Wirkbereich bleibt gespeichert, wirkt aber nicht mehr):
+user.update!(persona_grants: [])
 ```
 
 ### 5.3 Verifikation aus User-Sicht
 
-Der User fragt in Claude: „Welche carambus-remote Tools hast Du?" — erwartet sind
-**23 Tools** (die volle Suite, für jeden authentifizierten User identisch). Ist die
-Liste **leer (0 Tools)**, ist der Login-Token nicht korrekt verbunden — nicht der
-Wirkbereich. Der Wirkbereich entscheidet erst beim Aufruf, welche Write-Aktionen
-durchgehen (siehe 5.1). Details für den User selbst in
-[Cloud-Quickstart §Tool-Anzahl](clubcloud-mcp-cloud-quickstart.de.md#smoke-test-in-claude-code).
+Der User fragt in Claude: „Welche carambus-remote Tools hast Du?" — erwartet sind **rund 30
+Tools** ohne CC-Schreibrecht und **rund 46** mit Schreibrecht auf einem Region- oder Local-Server
+(Zahlen siehe Sektion 5). Ist die Liste **leer (0 Tools)**, ist der Login-Token nicht verbunden,
+abgelaufen oder widerrufen — nicht der Wirkbereich. Fehlen nur die Schreib-Tools, fehlt die
+Persona bzw. Turnierleitung, oder die Instanz ist die Authority. Der Wirkbereich entscheidet
+danach beim Aufruf, welche Schreib-Aktionen durchgehen (siehe 5.1). Details für den User selbst in
+[Cloud-Quickstart, Schritt 3](clubcloud-mcp-cloud-quickstart.de.md#schritt-3-setup-befehl-in-terminal-pasten).
 
 ---
 
@@ -233,14 +251,18 @@ durchgehen (siehe 5.1). Details für den User selbst in
    User.create!(
      email: "sportwart@verein.de",
      password: "...",
-     # admin: false   (default)
+     confirmed_at: Time.current   # sonst erst nach Klick auf die Bestätigungsmail anmeldbar
    )
    ```
+   `User` ist `:confirmable`, ein unbestätigter Account kann sich nicht anmelden
+   (`allow_unconfirmed_access_for = 0.days`) und bekommt damit auch keinen Token. `skip_confirmation!`
+   ist in `User` überschrieben und wirkungslos. Ohne `confirmed_at` braucht es die Bestätigungsmail,
+   also funktionierenden Mailversand.
 2. **DSGVO-Einwilligung dokumentieren** (siehe Sektion 8 — `mcp_consent_at`).
-3. **Wirkbereich setzen** (Sektion 5.2).
+3. **Persona und Wirkbereich setzen** (Sektion 5.2).
 4. **User auf [Cloud-Quickstart](clubcloud-mcp-cloud-quickstart.de.md) verweisen** —
    Setup-Helper-UI führt durch den Rest.
-5. **Verifikation** durch erstes Tool-Listing in Claude Code (**23 Tools**;
+5. **Verifikation** durch erstes Tool-Listing in Claude Code (rund 30 bzw. 46 Tools, siehe 5.3;
    bei 0 Tools → Login-Token nicht verbunden).
 
 **Account-Off-Boarding:**
@@ -290,10 +312,12 @@ cap production deploy    # carambus.de (zentrale Master-API)
 | Daten | Format | Sensitivität | Persistenz |
 |-------|--------|--------------|------------|
 | `users.encrypted_password` | bcrypt | HOCH (Passwort-Material) | bis User-Löschung |
+| `users.cc_password` | verschlüsselt (Rails `encrypts`) | HOCH (eigener ClubCloud-Zugang) | bis User-Löschung |
+| `users.cc_username` | String | MITTEL (ClubCloud-Benutzername) | bis User-Löschung |
 | `users.jti` | String | NIEDRIG (Token-Revocation-ID) | bis User-Löschung |
-| `users.sportwart_location_ids` | Array | NIEDRIG (Authority-Wirkbereich) | bis User-Löschung |
-| `users.sportwart_discipline_ids` | Array | NIEDRIG (Authority-Wirkbereich) | bis User-Löschung |
-| `users.admin` | Boolean | NIEDRIG (LSW-Bypass) | bis User-Löschung |
+| `users.role`, `users.persona_grants` | Enum, jsonb-Array | NIEDRIG (Rolle, Sportwart-Persona) | bis User-Löschung |
+| `sportwart_locations`, `sportwart_disciplines` | M:N-Zuordnung | NIEDRIG (Authority-Wirkbereich) | bis User-Löschung |
+| `user_tournaments` | Zuordnung User × Turnier (inkl. `granted_by_user_id`) | NIEDRIG (lokale Turnierleitung) | bis User-Löschung |
 | `tournaments.turnier_leiter_user_id` | FK | NIEDRIG (Per-Turnier-Authority) | bis Turnier-Löschung |
 | `users.mcp_consent_at` | datetime | NIEDRIG (Metadatum) | bis User-Löschung |
 | `mcp_audit_trails.*` | DB-Zeile | MITTEL (Tool-Calls + Payload) | 1 Jahr (Retention); `user_id` wird bei User-Löschung NULL (`ON DELETE NULLIFY`) |
@@ -303,8 +327,9 @@ cap production deploy    # carambus.de (zentrale Master-API)
 
 - **`encrypted_password` + `jti`:** Authentifizierung via devise-jwt; `jti`
   ermöglicht serverseitige Token-Revocation (JTIMatcher).
-- **`sportwart_*` + `admin` + `tournaments.turnier_leiter_user_id`:** Authority-Filterung
-  pro Tool-Call (Wirkbereich-Modell, Plan 14-G3+G4).
+- **`role`, `persona_grants`, Wirkbereich, `user_tournaments` + `tournaments.turnier_leiter_user_id`:**
+  Tool-Gating und Authority-Prüfung pro Tool-Call (Persona- und Wirkbereich-Modell, Phasen 34-01/38).
+- **`cc_username` + `cc_password`:** eigener ClubCloud-Zugang für Schreibaktionen in der ClubCloud.
 - **`mcp_audit_trails`:** Forensik bei Live-CC-Fehlern + Multi-User-Filterung;
   `payload[armed]=true` ist Trigger für Daten-Mutations-Audit.
 - **`mcp_consent_at`:** Einwilligungs-Nachweis nach Art. 7 DSGVO.
@@ -323,9 +348,9 @@ cap production deploy    # carambus.de (zentrale Master-API)
 | Recht | Wie erfüllt? |
 |-------|--------------|
 | **Auskunft (Art. 15)** | `User.find(id).mcp_audit_trail_export.to_json` → an User-Email senden. `encrypted_password` wird NICHT exportiert. |
-| **Berichtigung (Art. 16)** | Carambus-Admin updated `sportwart_*`-Felder oder `tournaments.turnier_leiter_user_id` über Console. |
+| **Berichtigung (Art. 16)** | Carambus-Admin passt Persona, Wirkbereich oder Turnierleitung an (Admin-Formular `/admin/users` bzw. `/admin/user_tournaments` oder Console, Sektion 5.2). |
 | **Löschung / „Recht auf Vergessenwerden" (Art. 17)** | `User.find(id).destroy` — `mcp_audit_trails.user_id` wird NULL; Audit-Trail bleibt anonymisiert für Forensik (Art. 17 Abs. 3). |
-| **Widerruf der Einwilligung (Art. 7 Abs. 3)** | `user.update!(sportwart_location_ids: [], sportwart_discipline_ids: [], mcp_consent_at: nil, jti: SecureRandom.uuid)` — User behält Carambus-Account, MCP-Zugriff ist deaktiviert + alle aktiven Tokens revoked. |
+| **Widerruf der Einwilligung (Art. 7 Abs. 3)** | `user.update!(persona_grants: [], sportwart_location_ids: [], sportwart_discipline_ids: [], mcp_consent_at: nil, jti: SecureRandom.uuid)`, dazu `user.user_tournaments.destroy_all` und ggf. `turnier_leiter_user_id` an Turnieren entfernen. Damit entfallen Schreibrecht und Wirkbereich, alle aktiven Tokens sind ungültig. **Aber:** Carambus kennt keine Sperre, die an der Einwilligung hängt — `mcp_consent_at` wird nirgends geprüft. Mit einem neuen Login bekommt der User einen neuen Token und behält die lesenden Tools. Eine Kontosperre kennt `User` nicht; wer den MCP-Zugang ganz entziehen will, muss den Account löschen (Zeile darüber). |
 | **Datenübertragbarkeit (Art. 20)** | `mcp_audit_trail_export.to_json` ist maschinenlesbar. |
 
 ### 8.5 Einwilligungs-Operational-Flow
@@ -338,6 +363,9 @@ cap production deploy    # carambus.de (zentrale Master-API)
    user = User.find_by(email: "sportwart@verein.de")
    user.update!(mcp_consent_at: Time.current)
    ```
+
+`mcp_consent_at` ist ein Nachweis, keine Zugangsbedingung: Der MCP-Endpoint verlangt nur einen
+angemeldeten User (`authenticate_user!`) und prüft die Einwilligung nicht.
 
 ### 8.6 Verantwortlicher (Art. 4 Nr. 7 DSGVO)
 
@@ -356,8 +384,9 @@ cap production deploy    # carambus.de (zentrale Master-API)
 |---------|---------|--------|
 | Sportwart sieht im Login-Token-Banner Restlaufzeit „expired" | Token >90 Tage alt | Sportwart re-loginnen + neuen Setup-Befehl pasten |
 | `claude mcp get carambus-remote` → 401 trotz frischem Token | JWT-Secret-Inkonsistenz Server / Lokal | `RAILS_MASTER_KEY` + `devise_jwt_secret_key` in production-Credentials prüfen; Per-Region eigene Secrets verwenden |
-| Tool-Liste leer (0 Tools) trotz erfolgreichem Connect | Wirkbereich nicht konfiguriert | Sektion 5.2 — `sportwart_location_ids` / `sportwart_discipline_ids` setzen oder TL-FK zuweisen |
-| Write-Aktion abgelehnt trotz 23 gelisteter Tools | Wirkbereich deckt Location/Disziplin nicht ab, oder LSW-Flag fehlt | `sportwart_location_ids` / `sportwart_discipline_ids` setzen (Sektion 5.2) bzw. `user.update!(admin: true)` für LSW |
+| Tool-Liste leer (0 Tools) trotz erfolgreichem Connect | Login-Token fehlt, ist abgelaufen oder widerrufen (Auth-Problem; jeder angemeldete User bekommt mindestens die lesenden Tools) | Re-Login und neuen Setup-Befehl pasten (Sektion 3) |
+| Nur rund 30 Tools, Schreib-Tools fehlen | Keine Sportwart-Persona und keine Turnierleitung, oder die Instanz ist die Authority | Persona setzen bzw. Turnierleitung zuweisen (Sektion 5.2); für Schreibaktionen mit dem Region- oder Local-Server verbinden |
+| Schreib-Aktion abgelehnt trotz gelisteter Schreib-Tools | Wirkbereich deckt Spielort/Disziplin des Turniers nicht ab, oder User ist nicht Turnierleiter dieses Turniers | Wirkbereich oder Persona anpassen (`persona_grants: ["landessportwart"]` für alle Spielorte) bzw. Turnierleitung zuweisen (Sektion 5.2) |
 | `tools/list` 406 Not Acceptable | `Accept`-Header fehlt | Setup-Helper-UI generiert `Accept: application/json, text/event-stream` automatisch — alte manuell gebaute Configs prüfen |
 | `Authorization`-Header leer im Login-Response | devise-jwt-Dispatch-Regex matched Login-Route nicht | `dispatch_requests` in `config/initializers/devise.rb` prüfen — muss `^/login$` matchen |
 | Sportwart sieht falsche Region im Tool-Output | Falsches Per-Region-Scenario / falsche Domain | User auf richtige Region-Domain (z.B. `nbv.carambus.de`) verweisen — jede Region ist eigene Carambus-Instanz |
