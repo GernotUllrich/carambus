@@ -24,6 +24,9 @@ Details in der [Entwickler-Doku](../developers/external-tournament-bridge.md).
 
 ## Wann brauche ich das?
 
+Einfache Regel-Turniere laufen weiter über den **Turnier-Monitor** der Carambus-WebApp. Die externe App ist für
+den Fall gedacht, dass **mehrere Turniere an einer Location zusammenkommen**.
+
 - Du hast eine eigene Turnier-Software, die Carambus nicht abdeckt (z.B. ein
   spezifisches 3-Band-Mannschaftsformat mit eigener Tabellenlogik).
 - Vor-Ort-Setup auf iPad oder Laptop im Clubheim, das offline funktionieren muss.
@@ -201,15 +204,15 @@ gibt es außerdem den Endpoint `POST /api/external_tournament/player_reconcile`.
 
 ## Pilot-Story
 
-BC Wedel 3-Band-Mannschaftsmeisterschaft 2026-05-17 — erste Anwendung der
-Bridge mit der 3BandMannschaftsTurnier-App auf iPad im Clubheim-WLAN gegen
-lokales `carambus_bcw`-Scenario.
+Vorgesehen als erste Anwendung: BC Wedel 3-Band-Mannschaftsmeisterschaft
+2026-05-17, mit der 3BandMannschaftsTurnier-App auf iPad im Clubheim-WLAN gegen
+das lokale `carambus_bcw`-Scenario.
 
-Status: Im Juni 2026 lief ein Live-Test der Anbindung mit der App (Befunde u. a.
+Status: **Ein Praxistest im Turnierbetrieb steht noch aus** (Betreiber, 2026-09-12).
+Technisch lief im Juni 2026 ein Live-Test der Anbindung mit der App (Befunde u. a.
 zur Same-Origin-Auslieferung unter `/app/`, Commit `52337e16`); seit August gibt es
 Werkzeuge für lokale App-Turniere (`external_tournament:end`,
-`reset_app_tournament`, `release_stale_local_tables`). Ob der vollständige Roundtrip
-mit Scoreboards im Live-Betrieb validiert ist, geht aus dem Code nicht hervor.
+`reset_app_tournament`, `release_stale_local_tables`).
 
 ## Verwandte Doku
 

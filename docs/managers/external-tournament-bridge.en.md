@@ -24,6 +24,9 @@ reconciliation); details in the [developer docs](../developers/external-tourname
 
 ## When do I need this?
 
+Simple regular tournaments keep running through the **Tournament Monitor** of the Carambus web app. The
+external app is intended for the case where **several tournaments come together at one location**.
+
 - You have your own tournament software that Carambus does not cover (e.g.,
   a specific 3-cushion team format with custom standings logic).
 - On-site setup on iPad or laptop in the clubhouse that must work offline.
@@ -202,15 +205,15 @@ endpoint `POST /api/external_tournament/player_reconcile` for reconciliation.
 
 ## Pilot story
 
-BC Wedel 3-cushion team championship 2026-05-17 — first application of the
-bridge with the 3BandMannschaftsTurnier app on iPad in the clubhouse Wi-Fi
-against a local `carambus_bcw` scenario.
+Intended as the first application: BC Wedel 3-cushion team championship
+2026-05-17, with the 3BandMannschaftsTurnier app on iPad in the clubhouse Wi-Fi
+against the local `carambus_bcw` scenario.
 
-Status: In June 2026 a live test of the connection with the app took place
-(findings among others on same-origin delivery under `/app/`, commit `52337e16`);
-since August there are tools for local app tournaments (`external_tournament:end`,
-`reset_app_tournament`, `release_stale_local_tables`). Whether the full roundtrip
-with scoreboards has been validated in live operation cannot be told from the code.
+Status: **A practical test in tournament operation is still pending** (operator,
+2026-09-12). Technically, a live test of the connection with the app took place in
+June 2026 (findings among others on same-origin delivery under `/app/`, commit
+`52337e16`); since August there are tools for local app tournaments
+(`external_tournament:end`, `reset_app_tournament`, `release_stale_local_tables`).
 
 ## Related docs
 
