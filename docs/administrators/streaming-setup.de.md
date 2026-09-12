@@ -7,30 +7,28 @@ Das Carambus-System unterstützt Live-Streaming von Billard-Spielen. Dabei werde
 ### Architektur
 
 ```
-┌─────────────────────────────────────────────┐
-│  Scoreboard Raspi 4 (pro Tisch)            │
-│                                             │
-│  ┌──────────────────────────────────────┐  │
-│  │ Display :0                           │  │
-│  │  ↳ Chromium Kiosk → Scoreboard      │  │
-│  └──────────────────────────────────────┘  │
-│                                             │
-│  ┌──────────────────────────────────────┐  │
-│  │ Virtuelles Display :1                │  │
-│  │  ↳ Chromium Headless → Overlay      │  │
-│  └──────────────────────────────────────┘  │
-│                                             │
-│  ┌──────────────────────────────────────┐  │
-│  │ USB-Kamera (Logitech C922)           │  │
-│  │  ↳ /dev/video0 → FFmpeg              │  │
-│  └──────────────────────────────────────┘  │
-│                                             │
-│  ┌──────────────────────────────────────┐  │
-│  │ FFmpeg Compositing                   │  │
-│  │  Kamera + Overlay → YouTube RTMP     │  │
-│  └──────────────────────────────────────┘  │
-└─────────────────────────────────────────────┘
+┌───────────────────────────────────────────────────────┐
+│  Location-Server (Carambus, Port <webserver_port>)    │
+│   /locations/<md5>/scoreboard_text?table_id=<ID>      │
+└───────────────────────────▲───────────────────────────┘
+                            │ curl, jede Sekunde
+┌───────────────────────────┴───────────────────────────┐
+│  Scoreboard-Raspi 4 (pro Tisch)                       │
+│                                                       │
+│  Display :0 → Chromium-Kiosk → Scoreboard             │
+│  (Dienst scoreboard-kiosk, unabhängig vom Stream)     │
+│                                                       │
+│  carambus-stream@<TABLE_ID>.service                   │
+│   USB-Kamera /dev/video0 ──┐                          │
+│   Overlay-Text (Datei) ────┴→ FFmpeg: drawtext        │
+│                               + libx264 → RTMP-Ziel   │
+└───────────────────────────────────────────────────────┘
 ```
+
+Das Overlay ist ein **Text**, den FFmpeg per `drawtext` unten links ins Kamerabild schreibt. Den Text
+holt `carambus-stream.sh` jede Sekunde vom Location-Server (`bin/carambus-stream.sh`, Overlay-Zweig).
+Ein Browser rendert dabei nichts: `streaming:setup` installiert zwar Xvfb und Chromium, der
+Streaming-Pfad nutzt beide nicht. Der Chromium-Kiosk auf Display :0 ist das normale Scoreboard.
 
 ---
 
@@ -39,8 +37,8 @@ Das Carambus-System unterstützt Live-Streaming von Billard-Spielen. Dabei werde
 ### Pro gestreamtem Tisch
 
 1. **USB-Webcam: Logitech C922** (~80-90€)
-   - 1280x720 @ 60fps (empfohlen für flüssige Bewegungen)
-   - Alternativ: Logitech C920 (~60-70€, 30fps)
+   - Standard-Konfiguration: 640x360 @ 30 fps (siehe [Kamera-Einstellungen](#3-kamera-einstellungen))
+   - Alternativ: Logitech C920 (~60-70€)
    - USB 2.0/3.0 Anschluss
 
 2. **Raspberry Pi 4** (bereits vorhanden als Scoreboard)
@@ -54,8 +52,9 @@ Das Carambus-System unterstützt Live-Streaming von Billard-Spielen. Dabei werde
 
 ### Netzwerk-Anforderungen
 
-- **Upload-Bandbreite**: ~2-3 Mbit/s pro Stream bei 720p60
-- Beispiel: 4 parallele Streams = ~10-12 Mbit/s Upload nötig
+- **Upload-Bandbreite**: etwa Video- plus Audio-Bitrate je Stream, mit Spitzen bis Video-Bitrate + 500 kbit/s
+  (FFmpeg `-maxrate`). Bei den Standardwerten (1000 + 128 kbit/s) also rund 1,1–1,6 Mbit/s pro Stream
+- Beispiel: 4 parallele Streams mit Standardwerten = ~5-7 Mbit/s Upload nötig
 - Stabile LAN-Verbindung empfohlen (WLAN möglich, aber nicht ideal)
 
 ---
@@ -93,31 +92,61 @@ Das Carambus-System unterstützt Live-Streaming von Billard-Spielen. Dabei werde
 
 ## ⚙️ Software-Installation
 
+Alle Befehle dieses Abschnitts laufen auf dem **Location-Server**, im Deploy-Verzeichnis des Szenarios.
+Die Streaming-Tasks brauchen dessen Datenbank (`StreamConfiguration` existiert nur auf lokalen Servern);
+ein Entwickler-Checkout reicht nicht.
+
 ### 1. Raspberry Pi vorbereiten
 
-Auf dem **Location-Server** (Raspi 5):
+**SSH-Zugang.** Start, Stopp und Health-Check im Admin-Interface laufen als Job im Carambus-Dienst
+(`puma-<basename>`, Benutzer `www-data`). Der Job verbindet sich per SSH mit dem Scoreboard-Pi und nimmt:
+
+1. `RASPI_SSH_PASSWORD`, falls in der **Umgebung des Dienstes** gesetzt,
+2. sonst die Schlüssel aus `RASPI_SSH_KEYS` (kommagetrennte Pfade),
+3. sonst `~/.ssh/id_rsa`, `id_ed25519`, `id_ecdsa` oder `id_dsa` des Dienstbenutzers.
+
+Ein `export` in der Shell erreicht den Dienst nicht, er liest nur `/etc/<basename>.env`
+(`EnvironmentFile=` in `templates/puma/puma.service.erb`). Der übliche Weg ist deshalb ein Schlüssel für
+`www-data` auf dem Location-Server, dessen öffentlicher Teil auf dem Scoreboard-Pi hinterlegt ist:
 
 ```bash
-# SSH-Passwort als Environment-Variable setzen
-export RASPI_SSH_USER=pi
-export RASPI_SSH_PASSWORD=raspberry  # Durch echtes Passwort ersetzen!
-
-# Setup auf Scoreboard-Raspi ausführen
-cd /path/to/carambus_master
-rake streaming:setup[192.168.1.100]  # IP des Scoreboard-Raspis
+# Auf dem Location-Server, als www-data
+ls ~/.ssh/id_ed25519.pub || ssh-keygen -t ed25519 -C "carambus-streaming"
+cat ~/.ssh/id_ed25519.pub
+# Diese Zeile auf dem Scoreboard-Pi in ~/.ssh/authorized_keys des SSH-Benutzers eintragen
 ```
 
-Das Setup-Script installiert automatisch:
-- FFmpeg (Video-Encoding)
-- Xvfb (Virtueller Framebuffer für Overlay)
-- Chromium (Overlay-Rendering)
-- v4l-utils (Kamera-Tools)
-- Systemd Service-Dateien
+Ist der Scoreboard-Pi zugleich der Server, gilt dasselbe: Der Job verbindet sich dann per SSH mit sich selbst.
+
+**SSH-Benutzer und Port** kommen aus der Szenario-Config (`raspberry_pi_client`). Per Ansible eingerichtete
+Pis nehmen SSH nur als `www-data` auf Port 8910 an (siehe [Raspberry Pi Quickstart](raspberry-pi-quickstart.md)).
+Die Streaming-Tasks nehmen ohne Angabe `pi` und Port 22 an, deshalb:
+
+```bash
+cd /var/www/<basename>/current
+export RASPI_SSH_USER=www-data
+export RASPI_SSH_PORT=8910
+
+# Setup auf dem Scoreboard-Raspi ausführen
+RAILS_ENV=production bundle exec rake "streaming:setup[<IP des Scoreboard-Pis>]"
+```
+
+Das Setup installiert:
+- FFmpeg (Video-Encoding), v4l-utils (Kamera-Tools), curl
+- Xvfb, Chromium, ImageMagick, netcat (werden installiert, vom Streaming-Pfad derzeit nicht genutzt)
+- `/usr/local/bin/carambus-stream.sh` und die systemd-Vorlage `carambus-stream@.service`
+- `/usr/local/bin/carambus-overlay-updater.sh` und die Vorlage `carambus-overlay-updater@.service`
+- die Verzeichnisse `/etc/carambus` und `/var/log/carambus`
+
+!!! warning "Die Unit läuft als Benutzer `pi`"
+    `bin/carambus-stream.service` setzt fest `User=pi` und `Group=pi`. Gibt es auf dem Scoreboard-Pi keinen
+    Benutzer `pi`, verweigert systemd den Start des Dienstes. Das betrifft Pis, deren Imager-Benutzer anders
+    heißt.
 
 ### 2. Installation testen
 
 ```bash
-rake streaming:test[192.168.1.100]
+RAILS_ENV=production bundle exec rake "streaming:test[<IP des Scoreboard-Pis>]"
 ```
 
 Alle Tests sollten mit ✅ bestanden werden.
@@ -129,14 +158,13 @@ Alle Tests sollten mit ✅ bestanden werden.
 ### 1. Stream-Konfiguration erstellen
 
 1. Carambus Admin-Interface öffnen
-2. Navigation → **YouTube Live Streaming** (oder `/admin/stream_configurations`)
+2. Admin-Navigation → **Stream-Konfigurationen** (Seite „YouTube Live Streaming“, `/admin/stream_configurations`)
 3. **Neue Stream-Konfiguration** klicken
 
 ### 2. Basis-Einstellungen
 
-**Location & Tisch:**
-- Location auswählen
-- Tisch auswählen
+**Tisch:**
+- Tisch wählen (die Auswahl ist nach Location gruppiert; die Location wird aus dem Tisch übernommen)
 
 **Stream-Ziel (`stream_destination`):**
 - **`youtube`**: Direkt zu YouTube (Standard)
@@ -157,56 +185,96 @@ Alle Tests sollten mit ✅ bestanden werden.
 
 ### 3. Kamera-Einstellungen
 
-**Empfohlene Werte für Logitech C922:**
+**Standardwerte einer neuen Konfiguration** (seit Migration `20251231132304` auf Pi-4-Leistung gesenkt):
 ```
 Gerät:      /dev/video0
-Breite:     1280
-Höhe:       720
-Framerate:  60 fps
+Breite:     640
+Höhe:       360
+Framerate:  30 fps
 ```
 
-**Für Logitech C920:**
-```
-Framerate:  30 fps  (Rest gleich)
-```
+Das ist der empfohlene Start. 1280x720 @ 30 fps nur, wenn CPU und Upload Reserve haben; 60 fps nicht
+empfohlen. Kodiert wird in Software (siehe [Optimierung](#cpu-last-reduzieren)).
+
+!!! note "Manuelle Kamera- und Perspektivwerte"
+    Die Felder „Manuelle Kameraeinstellungen“ (Fokus, Belichtung, Helligkeit, Kontrast, Sättigung) und
+    „Trapezkorrektur“ werden beim Speichern derzeit **nicht übernommen**: Sie fehlen in der Parameterliste
+    des Controllers. Setzen lassen sie sich per `rake "streaming:camera_save[<TABLE_ID>]"` (liest die Werte
+    vom Pi) bzw. `rake "streaming:perspective_set[<TABLE_ID>,<koordinaten>]"`.
 
 ### 4. Overlay-Einstellungen
 
 ```
 Overlay aktiviert:  ✓
-Position:           Unten
-Höhe:               200 px
 ```
 
+Die Felder **Position** und **Höhe** sind derzeit ohne Wirkung: Der Text steht immer unten links, die
+Schriftgröße richtet sich nach der Kamerahöhe (16 px bei 360p, 24 px ab 720p, 32 px ab 1080p).
+
 Das Overlay zeigt:
-- Spielernamen
-- Aktueller Spielstand
-- Turnierinfo (falls vorhanden)
-- Live-Indicator
+- Tischnummer und „LIVE“
+- beide Spieler (Vorname) mit Spielstand, laufende Aufnahme in Klammern, der Spieler am Stoß markiert
+- Turniername (falls vorhanden)
+- ohne laufendes Spiel: Name der Location und „Kein Spiel“
+
+!!! warning "Pflichtschritt: `STREAMING_SERVER_URL`"
+    Der Pi holt den Text von der Adresse in `SERVER_URL` seiner Konfigurationsdatei. Diese schreibt der
+    Job als `STREAMING_SERVER_URL` aus der Umgebung des Carambus-Dienstes, sonst `http://localhost:3131`
+    (`app/jobs/stream_control_job.rb`). Der Standard stimmt nur, wenn der Scoreboard-Pi selbst der Server
+    ist und dieser auf Port 3131 lauscht. In jedem anderen Fall holt der Pi den Text von sich selbst, und
+    das Overlay bleibt bei „Loading...“.
+
+    ```bash
+    # Auf dem Location-Server
+    sudo nano /etc/<basename>.env
+    #   STREAMING_SERVER_URL=http://<IP des Location-Servers>:<webserver_port>
+    sudo systemctl restart puma-<basename>
+    ```
+
+    Wirksam wird die Adresse beim nächsten Start des Streams, weil der Start die Konfiguration neu schreibt.
+
+!!! warning "nginx-Bot-Block"
+    Ist für das Szenario der nginx-Bot-Block aktiv (`bot_block_enabled`, Standard `true`), weist nginx den
+    Abruf des Pis mit 403 ab: `curl` meldet sich als `curl/…`, und ausgenommen ist nur `/versions/`
+    (`templates/nginx/carambus_bot_block.conf`). Auch dann bleibt das Overlay bei „Loading...“.
+    Siehe [NGINX Bot-Block](nginx-bot-block.md).
 
 ### 5. Stream-Qualität
 
-**Empfohlene Werte:**
+**Standardwerte:**
 ```
-Video-Bitrate:  2000 kbit/s  (720p60)
+Video-Bitrate:  1000 kbit/s  (640x360 @ 30 fps)
 Audio-Bitrate:  128 kbit/s
 ```
 
 **Anpassungen je nach Upload:**
-- Mehr Bandbreite: 2500 kbit/s
-- Weniger Bandbreite: 1500 kbit/s
+- 1280x720 @ 30 fps: etwa 2000 kbit/s
+- Weniger Bandbreite: Bitrate senken, z.B. 800 kbit/s
 
 ### 6. Netzwerk
 
 ```
-Raspi IP:       192.168.1.100  (wird automatisch vom Tisch übernommen)
-SSH-Port:       22
+Raspi IP:   <IP des Scoreboard-Pis>  (wird automatisch vom Tisch übernommen)
+SSH-User:   www-data                 (Formular-Standard: pi)
+SSH-Port:   8910                     (Formular-Standard: 22)
 ```
+
+Benutzer und Port müssen zum Pi passen, bei per Ansible eingerichteten Pis `www-data` und 8910. Prüfen
+lässt sich der Zugang, sobald die Konfiguration gespeichert ist:
+
+```bash
+cd /var/www/<basename>/current
+RAILS_ENV=production bundle exec rake "streaming:ssh_test[<TABLE_ID>]"
+```
+
+Der Task zeigt den öffentlichen Schlüssel des Servers und sagt, ob er auf dem Pi hinterlegt ist. Scheitert
+der Test, scheitert auch der Start-Knopf (Fehlermeldung „Authentication failed“).
 
 ### 7. Speichern & Deployen
 
-1. **Speichern** klicken
-2. Konfiguration wird auf den Scoreboard-Raspi deployed
+1. **Speichern** klicken: Die Konfiguration steht jetzt nur in der Datenbank
+2. Auf den Pi kommt sie beim ersten **Start**, per **Alle deployen** oder mit
+   `rake "streaming:deploy[<TABLE_ID>]"`. Vor einem manuellen `systemctl start` muss sie deployt sein
 3. Status prüfen: Sollte auf "Inactive" stehen
 
 ---
@@ -217,28 +285,42 @@ SSH-Port:       22
 
 1. `/admin/stream_configurations` öffnen
 2. Gewünschten Stream finden
-3. **Start** klicken
+3. **Start** klicken: Der Job schreibt die Konfiguration neu auf den Pi und startet den Dienst
 4. Status wechselt auf "Starting" → "Active"
 5. Bei Fehler: Error-Message wird angezeigt
 
+**Neustart** (🔄) und **Speichern bei laufendem Stream** stoppen den Stream derzeit nur, sie starten ihn nicht
+wieder (`StreamConfiguration#restart_streaming`). Danach **Start** klicken.
+
 ### Via SSH (manuell)
 
+`<TABLE_ID>` ist die Datenbank-ID des Tischs (`Table.id`), nicht die Nummer aus „Tisch 7“. Die
+Konfiguration muss vorher deployt sein (siehe oben).
+
 ```bash
-ssh pi@192.168.1.100
-sudo systemctl start carambus-stream@1.service
+ssh -p 8910 www-data@<IP des Scoreboard-Pis>
+sudo systemctl start carambus-stream@<TABLE_ID>.service
 
 # Status prüfen
-sudo systemctl status carambus-stream@1.service
+sudo systemctl status carambus-stream@<TABLE_ID>.service
 
-# Logs anzeigen
-sudo journalctl -u carambus-stream@1.service -f
+# Logs anzeigen (FFmpeg und Skript schreiben in Dateien, nicht ins Journal)
+tail -f /var/log/carambus/stream-table-<TABLE_ID>.log
 ```
 
 ### Via Rake Task
 
 ```bash
-cd /path/to/carambus_master
-rake streaming:status  # Alle Streams anzeigen
+cd /var/www/<basename>/current
+RAILS_ENV=production bundle exec rake streaming:status  # Alle Streams anzeigen
+```
+
+Wer per `rake streaming:deploy` deployt, sollte die Umgebung des Dienstes in die Shell laden, sonst errechnet
+der Task die Server-Adresse selbst (auf einem lokalen Server `http://localhost:<port>`) und nutzt
+`RASPI_SSH_PASSWORD` nicht:
+
+```bash
+set -a; eval "$(sudo cat /etc/<basename>.env)"; set +a
 ```
 
 ---
@@ -251,22 +333,23 @@ rake streaming:status  # Alle Streams anzeigen
 - Live-Status-Anzeige
 - Uptime-Counter
 - Error-Messages
-- **Health-Check** klicken für aktuelle Diagnose
+- **Health-Check** (❤️) klicken für aktuelle Diagnose; bei geöffneter Seite läuft er zusätzlich alle 30 Sekunden
 
 **Via Rake Task:**
 ```bash
-rake streaming:status
+RAILS_ENV=production bundle exec rake streaming:status
 ```
 
 **Via SSH:**
 ```bash
-ssh pi@192.168.1.100
+ssh -p 8910 www-data@<IP des Scoreboard-Pis>
 
-# Service-Status
-sudo systemctl status carambus-stream@1.service
+# Service-Status (Start, Stopp, Neustarts)
+sudo systemctl status carambus-stream@<TABLE_ID>.service
 
-# Live-Logs
-sudo journalctl -u carambus-stream@1.service -f
+# Live-Logs von Skript und FFmpeg
+tail -f /var/log/carambus/stream-table-<TABLE_ID>.log
+tail -f /var/log/carambus/stream-table-<TABLE_ID>-error.log
 
 # FFmpeg-Prozess prüfen
 ps aux | grep ffmpeg
@@ -274,6 +357,8 @@ ps aux | grep ffmpeg
 # Kamera prüfen
 v4l2-ctl --device=/dev/video0 --list-formats-ext
 ```
+
+`journalctl -u carambus-stream@<TABLE_ID>` zeigt nur, wann systemd den Dienst gestartet oder gestoppt hat.
 
 ### Häufige Probleme
 
@@ -311,7 +396,7 @@ telnet a.rtmp.youtube.com 1935
 3. 24h Wartezeit nach Aktivierung abgelaufen?
 4. FFmpeg-Logs prüfen:
    ```bash
-   tail -f /var/log/carambus/stream-table-1.log
+   tail -f /var/log/carambus/stream-table-<TABLE_ID>.log
    ```
 
 #### Problem: "Stream läuft, aber ruckelt"
@@ -322,8 +407,8 @@ telnet a.rtmp.youtube.com 1935
 - CPU-Überlastung des Raspis
 
 **Lösungen:**
-1. Bitrate reduzieren (z.B. auf 1500k)
-2. Framerate reduzieren (60 → 30 fps)
+1. Bitrate reduzieren (z.B. auf 800k)
+2. Auflösung oder Framerate reduzieren (zurück auf 640x360 @ 30 fps)
 3. Andere Prozesse auf Raspi beenden
 4. Netzwerk-Qualität prüfen
 
@@ -331,18 +416,19 @@ telnet a.rtmp.youtube.com 1935
 
 **Checkliste:**
 1. Overlay in Konfiguration aktiviert?
-2. Chromium installiert?
+2. Zeigt `SERVER_URL` auf den Location-Server?
    ```bash
-   which chromium-browser
+   grep SERVER_URL /etc/carambus/stream-table-<TABLE_ID>.conf
    ```
-3. Scoreboard-URL erreichbar?
+   Steht dort `http://localhost:3131`, obwohl der Server ein anderer Rechner ist: `STREAMING_SERVER_URL`
+   setzen (siehe [Overlay-Einstellungen](#4-overlay-einstellungen)) und den Stream neu starten.
+3. Liefert der Endpunkt Text, so wie der Pi ihn abruft?
    ```bash
-   curl http://localhost/locations/xxx/scoreboard_overlay?table_id=1
+   curl -i "<SERVER_URL>/locations/<LOCATION_MD5>/scoreboard_text?table_id=<TABLE_ID>"
    ```
-4. Xvfb läuft?
-   ```bash
-   ps aux | grep Xvfb
-   ```
+   `403 Forbidden` bedeutet: Der nginx-Bot-Block weist `curl` ab.
+4. Die Textdatei selbst liegt im privaten `/tmp` des Dienstes (`PrivateTmp=true`) und ist aus einer
+   SSH-Shell unter `/tmp` nicht zu sehen.
 
 ---
 
@@ -355,13 +441,13 @@ Der Systemd-Service startet automatisch neu bei:
 
 **Automatischer Start nach Reboot aktivieren:**
 ```bash
-ssh pi@192.168.1.100
-sudo systemctl enable carambus-stream@1.service
+ssh -p 8910 www-data@<IP des Scoreboard-Pis>
+sudo systemctl enable carambus-stream@<TABLE_ID>.service
 ```
 
 **Automatischer Neustart deaktivieren:**
 ```bash
-sudo systemctl disable carambus-stream@1.service
+sudo systemctl disable carambus-stream@<TABLE_ID>.service
 ```
 
 **Restart-Limit:**
@@ -374,10 +460,10 @@ sudo systemctl disable carambus-stream@1.service
 
 ### CPU-Last reduzieren
 
-**Hardware-Encoding nutzen:**
-- Raspi 4 hat Hardware-H.264-Encoder
-- Wird automatisch verwendet (`h264_v4l2m2m`)
-- Deutlich effizienter als Software-Encoding
+**Software-Encoding:**
+- Kodiert wird mit `libx264` (Preset `veryfast`), nicht mit dem Hardware-Encoder des Pi 4
+- Grund: Mit `h264_v4l2m2m` zeigte YouTube nur das Logo, nie das Bild (Kommentar in `bin/carambus-stream.sh`)
+- Die CPU-Last steuert man deshalb über Auflösung, Framerate und Bitrate
 
 **CPU-Limit setzen:**
 ```bash
@@ -392,18 +478,15 @@ CPUQuota=80%
 - Winkel: Leicht schräg von oben
 - Beleuchtung: Gleichmäßig, keine direkten Reflektionen
 
-**FFmpeg-Parameter optimieren:**
-```bash
-# In /etc/carambus/stream-table-1.conf
-VIDEO_BITRATE=2500  # Höhere Qualität
-CAMERA_FPS=60       # Flüssigere Bewegungen
-```
+**Qualität anpassen:**
+- Bitrate, Auflösung und Framerate im Admin-Interface ändern
+- `/etc/carambus/stream-table-<TABLE_ID>.conf` nicht von Hand bearbeiten: Jeder Start schreibt die Datei neu
 
 ### Bandbreite sparen
 
-**Niedrigere Auflösung:**
-- Nicht empfohlen für Hauptstream
-- OK für Test-Streams oder bei sehr schwachem Upload
+**Niedrigere Bitrate:**
+- Die Standardauflösung 640x360 ist bereits niedrig
+- Bei sehr schwachem Upload die Video-Bitrate senken
 
 **Adaptive Bitrate:**
 - YouTube passt automatisch an
@@ -413,28 +496,19 @@ CAMERA_FPS=60       # Flüssigere Bewegungen
 
 ## 🔐 Sicherheit
 
-### SSH-Passwörter
+### SSH-Zugang
 
-**Empfehlung:** SSH-Keys statt Passwörter verwenden
-
-```bash
-# Auf Location-Server
-ssh-keygen -t ed25519 -C "carambus-streaming"
-
-# Public Key auf Raspi kopieren
-ssh-copy-id pi@192.168.1.100
-
-# Passwort-Login deaktivieren (optional)
-sudo nano /etc/ssh/sshd_config
-# PasswordAuthentication no
-sudo systemctl restart sshd
-```
+- Schlüssel statt Passwort: siehe [Raspberry Pi vorbereiten](#1-raspberry-pi-vorbereiten)
+- Soll der Dienst doch per Passwort verbinden, gehört `RASPI_SSH_PASSWORD` in `/etc/<basename>.env`
+  (Modus 600, Eigentümer root), nicht in eine Shell-Datei
+- Per Ansible eingerichtete Pis nehmen SSH nur auf Port 8910 an
 
 ### Stream-Keys schützen
 
 - **Niemals** in Git committen
-- Environment-Variablen nutzen (bereits implementiert)
-- Verschlüsselt in Rails Credentials (bereits implementiert)
+- In der Datenbank verschlüsselt (Active Record Encryption, `encrypts :youtube_stream_key`)
+- Auf dem Scoreboard-Pi steht der Key im Klartext in `/etc/carambus/stream-table-<TABLE_ID>.conf` (Teil von
+  `RTMP_URL`; die Datei hat Modus 644 und ist für jeden Benutzer des Pis lesbar). Den Pi entsprechend absichern
 - Bei Leak: Sofort in YouTube Studio invalidieren
 
 ---
@@ -443,12 +517,12 @@ sudo systemctl restart sshd
 
 ### Mehrere Tische parallel
 
-**Netzwerk-Planung:**
+**Netzwerk-Planung (Standardwerte 1000 + 128 kbit/s):**
 ```
-1 Stream:  ~2.5 Mbit/s
-2 Streams: ~5 Mbit/s
-4 Streams: ~10 Mbit/s
-8 Streams: ~20 Mbit/s
+1 Stream:  ~1,5 Mbit/s
+2 Streams: ~3 Mbit/s
+4 Streams: ~6 Mbit/s
+8 Streams: ~12 Mbit/s
 ```
 
 **Pro Tisch:**
@@ -471,10 +545,12 @@ sudo systemctl restart sshd
 
 ```bash
 # Auf Scoreboard-Raspi
-ssh pi@192.168.1.100
+ssh -p 8910 www-data@<IP des Scoreboard-Pis>
 
-# Service-Logs
-sudo journalctl -u carambus-stream@1.service --no-pager > stream.log
+# Stream-Logs
+cat /var/log/carambus/stream-table-<TABLE_ID>.log > stream.log
+cat /var/log/carambus/stream-table-<TABLE_ID>-error.log >> stream.log
+sudo systemctl status carambus-stream@<TABLE_ID>.service --no-pager >> stream.log
 
 # System-Info
 uname -a >> stream.log
@@ -499,10 +575,27 @@ ping -c 10 a.rtmp.youtube.com >> stream.log
 
 ## 📚 Weiterführende Links
 
-- [FFmpeg H.264 Streaming Guide](https://trac.ffmpeg.org/wiki/EncodingForStreamingSites)
+### Interne Links
+
+- [Quickstart](streaming-quickstart.md)
+- [Entwickler-Architektur](../developers/streaming-architecture.md)
+- [Server-Architektur](server-architecture.md)
+- [Scoreboard-Kiosk](scoreboard-autostart.md)
+
+### Externe Ressourcen
+
+**FFmpeg:**
+- [FFmpeg H.264 Encoding](https://trac.ffmpeg.org/wiki/Encode/H.264)
+- [FFmpeg Streaming Guide](https://trac.ffmpeg.org/wiki/StreamingGuide)
+- [V4L2 Input](https://trac.ffmpeg.org/wiki/Capture/Webcam)
+
+**Raspberry Pi:**
+- [Raspberry Pi 4 Specs](https://www.raspberrypi.com/products/raspberry-pi-4-model-b/specifications/)
+
+**YouTube:**
 - [YouTube Live Streaming API](https://developers.google.com/youtube/v3/live/getting-started)
-- [Raspberry Pi Camera Documentation](https://www.raspberrypi.com/documentation/accessories/camera.html)
-- [V4L2 User Guide](https://www.kernel.org/doc/html/latest/userspace-api/media/v4l/v4l2.html)
+- [RTMP Ingestion](https://support.google.com/youtube/answer/2907883)
+- [Encoder Settings](https://support.google.com/youtube/answer/2853702)
 
 ---
 
@@ -511,29 +604,32 @@ ping -c 10 a.rtmp.youtube.com >> stream.log
 ### Wichtigste Befehle
 
 ```bash
+# Auf dem Location-Server: cd /var/www/<basename>/current, RAILS_ENV=production bundle exec …
 # Setup
-rake streaming:setup[192.168.1.100]
-rake streaming:test[192.168.1.100]
+rake "streaming:setup[<IP>]"
+rake "streaming:test[<IP>]"
+rake "streaming:ssh_test[<TABLE_ID>]"
 
 # Deployment
-rake streaming:deploy[TABLE_ID]
+rake "streaming:deploy[<TABLE_ID>]"
 rake streaming:deploy_all
 
 # Monitoring
 rake streaming:status
 
 # Manuell (auf Raspi)
-sudo systemctl start carambus-stream@1.service
-sudo systemctl stop carambus-stream@1.service
-sudo systemctl status carambus-stream@1.service
-sudo journalctl -u carambus-stream@1.service -f
+sudo systemctl start carambus-stream@<TABLE_ID>.service
+sudo systemctl stop carambus-stream@<TABLE_ID>.service
+sudo systemctl status carambus-stream@<TABLE_ID>.service
+tail -f /var/log/carambus/stream-table-<TABLE_ID>.log
 ```
 
 ### Admin-URLs
 
 ```
 Stream-Verwaltung:  /admin/stream_configurations
-Overlay-Vorschau:   /locations/:md5/scoreboard_overlay?table_id=1
+Overlay-Text (Pi):  /locations/:md5/scoreboard_text?table_id=<TABLE_ID>
+Overlay (Browser):  /locations/:md5/scoreboard_overlay?table_id=<TABLE_ID>   (für OBS)
 ```
 
 ### Dateien auf Raspi
@@ -541,17 +637,14 @@ Overlay-Vorschau:   /locations/:md5/scoreboard_overlay?table_id=1
 ```
 Script:         /usr/local/bin/carambus-stream.sh
 Service:        /etc/systemd/system/carambus-stream@.service
-Config:         /etc/carambus/stream-table-1.conf
-Logs:           /var/log/carambus/stream-table-1.log
-Overlay-Image:  /tmp/carambus-overlay-table-1.png
+Config:         /etc/carambus/stream-table-<TABLE_ID>.conf
+Logs:           /var/log/carambus/stream-table-<TABLE_ID>.log
+                /var/log/carambus/stream-table-<TABLE_ID>-error.log
+Overlay-Text:   /tmp/carambus-overlay-text-table-<TABLE_ID>.txt  (im privaten /tmp des Dienstes)
 ```
 
 ---
 
-**Version**: 1.0  
-**Datum**: Dezember 2024  
+**Version**: 1.1  
+**Datum**: September 2026 (Abgleich mit dem Code, Phase 16)  
 **Autor**: Carambus Development Team
-
-
-
-
