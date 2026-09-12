@@ -8,28 +8,35 @@ Automatische Reservierung von Tischen für Einzelmeisterschaften nach dem Meldes
 
 ✅ Automatische Berechnung der benötigten Tischanzahl  
 ✅ Auswahl passender Tische nach Disziplin  
-✅ Nur Tische mit Heizung (tpl_ip_address)  
+✅ Nur Tische mit Heizung (`tpl_ip_address`, bei globalen Tischen in `table_locals`)  
 ✅ Google Calendar Integration  
 ✅ Täglicher Cron-Job  
 ✅ Detailliertes Logging  
 
 ## Quick Start
 
+Der Task läuft auf dem **Location-Server** (er braucht dessen Datenbank und die Google-Credentials), im
+Deploy-Verzeichnis `/var/www/<basename>/current` (BC Wedel: `/var/www/carambus_bcw/current`).
+
 ### 1. Manuell ausführen
 
 ```bash
-cd /path/to/carambus_master
+cd /var/www/<basename>/current
 RAILS_ENV=production bundle exec rake carambus:auto_reserve_tables
 ```
 
 ### 2. Automatisch per Cron
 
+Der Task steht nicht im Zeitplan der Anwendung (`config/schedule.rb`); die Crontab-Zeile trägt man auf dem
+Location-Server von Hand ein, als der Benutzer, unter dem Carambus läuft (`www-data`). Cron kennt kein rbenv im
+`PATH`, deshalb der absolute `bundle`-Pfad wie in `config/schedule.rb`.
+
 ```bash
-# Crontab bearbeiten
+# Crontab bearbeiten (als www-data)
 crontab -e
 
 # Täglich um 10:00 Uhr
-0 10 * * * cd /path/to/carambus_master && RAILS_ENV=production bundle exec rake carambus:auto_reserve_tables >> /path/to/log/auto_reserve.log 2>&1
+0 10 * * * cd /var/www/<basename>/current && RAILS_ENV=production /var/www/.rbenv/shims/bundle exec rake carambus:auto_reserve_tables >> /var/www/<basename>/current/log/auto_reserve.log 2>&1
 ```
 
 ## Kriterien für Auto-Reservierung
@@ -69,24 +76,26 @@ T1-T3 NDM Cadre 35/2 Klasse 5-6
 # Rails Console öffnen
 rails console
 
-# Test-Skript laden
-load 'docs/managers/auto_reserve_test_example.rb'
-
-# Oder manuell ein Turnier testen:
+# Ein Turnier mit denselben Methoden prüfen, die der Task nutzt:
 tournament = Tournament.find(12345)
 puts "Benötigte Tische: #{tournament.required_tables_count}"
+puts "Tische mit Heizung: #{tournament.available_tables_with_heaters.map(&:name).join(', ')}"
 
 # Reservierung erstellen (NUR in Development!)
 response = tournament.create_table_reservation
 puts response.summary
 ```
 
+> **Hinweis zum Testskript** `docs/managers/auto_reserve_test_example.rb`: Es weicht vom Task ab. Es filtert auf
+> `single_or_league: 'single'` und prüft die Heizung nur über `tables.tpl_ip_address`, nicht über
+> `table_locals` bei globalen Tischen. Maßgeblich sind die beiden Methoden oben.
+
 ## Monitoring
 
 ### Log-Datei prüfen
 
 ```bash
-tail -f /path/to/log/auto_reserve.log
+tail -f /var/www/<basename>/current/log/auto_reserve.log
 ```
 
 ### Erwartete Ausgabe
@@ -118,8 +127,8 @@ Summary:
 |---------|--------|
 | Keine Turniere gefunden | Prüfen: Meldeschluss in letzten 7 Tagen? |
 | "No participants" | Normal - wird übersprungen |
-| "Could not determine table count" | TournamentPlan zuordnen |
-| "Failed to create event" | Google Credentials prüfen |
+| "Could not determine table count" | Der passende Turnierplan hat Tischanzahl 0 — Tischanzahl im TournamentPlan pflegen |
+| "FAILED: Could not create calendar event" | Keine beheizten Tische passenden Typs an der Location, fehlende `google_service`-Credentials oder ein Google-API-Fehler (Details im Rails-Log) |
 
 ## Manuelle Anpassung
 
@@ -128,7 +137,8 @@ Falls automatische Reservierung nicht passt:
 1. Google Kalender öffnen
 2. Eintrag suchen
 3. Tische/Zeiten anpassen
-4. Format beibehalten: `T1, T2, T3 Name`
+4. Format beibehalten: `T1, T2, T3 Name` bzw. `T1-T3 Name`. Einträge ohne erkennbare Tischangabe (und ohne
+   `Wort:`-Präfix für Info-Einträge) löscht der nächste Reservierungs-Check
 
 ## Dokumentation
 
@@ -138,8 +148,9 @@ Falls automatische Reservierung nicht passt:
 ## Code-Locations
 
 ```
-app/models/tournament.rb          # Methoden: required_tables_count, create_table_reservation
-lib/tasks/carambus.rake           # Task: auto_reserve_tables
+app/models/tournament.rb                              # required_tables_count, available_tables_with_heaters, create_table_reservation
+app/services/tournament/table_reservation_service.rb  # Tischliste, Kalendereintrag, Zeiten
+lib/tasks/carambus.rake                               # Task: auto_reserve_tables
 ```
 
 ## Support
