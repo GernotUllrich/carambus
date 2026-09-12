@@ -1,16 +1,15 @@
 # Tournament Manager Documentation
 
-Welcome to the Carambus documentation for tournament managers! Here you'll find all information for organizing and conducting billiards tournaments and league match days.
+Welcome to the Carambus documentation for tournament managers! Here you'll find the information for running billiards tournaments and league match days with Carambus.
 
 ## 🎯 Your Role as Tournament Manager
 
 As a tournament manager, you are responsible for:
-- ✅ **Tournament creation**: Create and configure tournaments
-- ✅ **Player management**: Register and manage participants
-- ✅ **Schedule creation**: Automatic or manual pairings
-- ✅ **Tournament execution**: Start and monitor matches
-- ✅ **Result control**: Check and correct results if necessary
-- ✅ **Tournament evaluation**: Publish rankings and statistics
+- ✅ **Tournament preparation**: Load the tournament from ClubCloud, apply the seeding list, review and close the participant list
+- ✅ **Tournament mode**: Choose the matching tournament plan; the pairings follow from it
+- ✅ **Tournament execution**: Assign tables, start the tournament, watch the Tournament Monitor
+- ✅ **Result control**: Players enter and correct results at the scoreboard; you step in when problems arise
+- ✅ **Completion**: Final ranking in the Tournament Monitor, upload results to ClubCloud
 
 ## 🚀 Quick Start: Sync and Run a Tournament in 10 Steps
 
@@ -32,246 +31,161 @@ As a tournament manager, you are responsible for:
 ### 1. Tournament Management
 
 **Organize individual tournaments**:
-- Tournament formats (Round Robin, Knockout, Swiss System)
-- Schedule creation (automatic & manual)
-- Group phases with knockout round
-- Best-of and Race-to modes
-- Seeding lists
+- Tournament plans from the carom tournament regulations (T plans) and the dynamic round-robin plan `Default{n}`
+- Group phases, knockout rounds and placement matches, as the chosen plan provides
+- Seeding list from the invitation or from the ranking
+- Shoot-out for drawn knockout matches
 
 ➡️ **[Tournament Management Manual](tournament-management.md)**  
-➡️ **[Single Tournament Management](single-tournament.md)**
+➡️ **[Single Tournament Management](single-tournament.md)**  
+➡️ **[Quick Reference](tournament-quick-reference.md)**
 
 ### 2. League Match Days
 
 **Conduct team competitions**:
-- Create and manage league seasons
-- Plan match days (home/away matches)
-- Team lineups
-- Automatic table creation
-- Season evaluations
+- Leagues, teams and match days come from ClubCloud (TBV from LigaManager, BBV from NuLiga)
+- Run match days in the Party Monitor
+- Standings on the league page
 
 ➡️ **[League Management Manual](league-management.md)**
 
 ### 3. Player Management
 
 **Manage participants**:
-- Create and edit players
-- Create player groups
-- Check licenses (ClubCloud integration)
-- Blocks and releases
-- View player statistics
+- Players are scraped from ClubCloud
+- Review and complete the participant list, including late registrations on tournament day
+- Merge player duplicates (on the Authority)
 
-➡️ **[Tournament Management - Player Management](tournament-management.md#player-management)**
+➡️ **[Review and add participants](tournament-management.md#step-4-participants)**  
+➡️ **[Late registration on tournament day](tournament-management.md#appendix-nachmeldung)**  
+➡️ **[Duplicates](clubcloud-integration.md)**
 
-### 4. Result Recording & Control
+### 4. Result Entry & Control
 
 **Manage results**:
-- Manual result entry
-- Correct results
-- Reschedule matches
-- Award walkovers
-- Handle protests
+- Players enter results at the scoreboard
+- Corrections before confirmation in the protocol editor at the scoreboard (e.g. a forgotten follow-up shot)
+- If a scoreboard fails: enter results from paper protocols in the Tournament Monitor
+- After the start: "Restart tournament" instead of reset
 
-➡️ **[Tournament Management - Result Control](tournament-management.md#result-control)**
+➡️ **[Monitor and intervene if needed](tournament-management.md#step-12-monitor)**  
+➡️ **[Tournament already started — and something goes wrong](tournament-management.md#ts-already-started)**
 
 ### 5. Admin Roles & Permissions
 
-**Team management**:
-- Assign roles (Admin, Referee, etc.)
-- Manage permissions
-- Tournament-specific rights
-- Club administration
+**Roles and rights**:
+- Roles in Carambus: player, club admin, system admin
+- Sportwart and Landessportwart persona as well as tournament direction for write actions in ClubCloud; the persona is set by a system admin
 
-➡️ **[Admin Roles Manual](admin-roles.md)**
+➡️ **[Admin Roles Manual](admin-roles.md)**  
+➡️ **[ClubCloud role model](clubcloud-scenarios/cc-roles.md)**
 
 ### 6. ClubCloud Integration
 
 **Connect DBU ClubCloud**:
-- Import tournaments
-- Synchronize player data
-- Upload results
-- Manage license mapping
+- Take over tournaments, players, clubs and leagues from ClubCloud
+- Close the participant list in ClubCloud (with your own CC access)
+- Upload results (automatically per game or via CSV)
 
-➡️ **[ClubCloud Integration Guide](clubcloud-integration.md)**
+➡️ **[ClubCloud Integration Guide](clubcloud-integration.md)**  
+➡️ **[Your own ClubCloud access](clubcloud-eigener-zugang.md)**
 
 ### 7. Search & Filter
 
 **Find data efficiently**:
-- Advanced filter functions
-- Saved searches
-- Bulk operations
-- Export functions
+- Filter popup in the lists, with input fields matching the field type
+- AI-powered search
 
-➡️ **[Filter Popup Guide](search-filters.md)**
+➡️ **[Filter Popup Guide](filter_popup_usage.md)**  
+➡️ **[AI Search](../players/ai-search.md)**
 
 ### 8. Table Reservation
 
 **Manage club times**:
-- Set up online booking system
-- Manage bookings
-- Configure heating control
-- Automatic preheating
+- Reservations in the club's Google Calendar
+- Automatic table reservation for tournaments after the registration deadline
+- Pre-heating the tables before the reservation starts
 
-➡️ **[Table Reservation Manual](table-reservation.md)**
+➡️ **[Automatic table reservation](automatische_tischreservierung.md)**  
+➡️ **[Table Reservation & Heating Control](table_reservation_heating_control.md)**
 
-## 🎮 Tournament Formats in Detail
+## 🎮 Tournament Modes
 
-### Round Robin
+### Tournament Plans
 
-**Ideal for**: Small groups (up to 12 players) when everyone should play everyone
+The **tournament plan** determines how a tournament runs. In step 6 Carambus offers the plans that match the number of participants: the T plans of the carom tournament regulations with a fixed match structure and number of tables, and the dynamically generated round-robin plan `Default{n}`. The plan named in the invitation is usually binding.
 
-**Advantages**:
-- ✅ Every player has equal number of matches
-- ✅ Fairest determination of winner
-- ✅ No elimination after one match
+➡️ **[Select tournament mode](tournament-management.md#step-6-mode-selection)**
 
-**Settings**:
-- Number of rounds (single, double)
-- Home and away rounds
-- Table rotation
+### Groups, Knockout and Placement Matches
 
-➡️ **[Round Robin Details](tournament-management.md#round-robin)**
+Depending on the plan, a group phase (round robin) is followed by a knockout round or by placement matches. The group ranking follows the tournament regulations (§4.4.2: points, general average, head-to-head, best single average, highest run). A drawn knockout match is decided by a shoot-out.
 
-### Knockout System (Elimination)
-
-**Ideal for**: Large fields, time-limited tournaments
-
-**Variants**:
-- **Single Elimination**: Elimination after first loss
-- **Double Elimination**: Elimination after second loss
-
-**Advantages**:
-- ✅ Quick to conduct
-- ✅ Clear knockout structure
-- ✅ Exciting for spectators
-
-**Settings**:
-- Seeding
-- Best-of modes
-- Placement matches
-
-➡️ **[Knockout System Details](tournament-management.md#knockout-system)**
-
-### Swiss System
-
-**Ideal for**: Large fields with limited number of rounds
-
-**How it works**:
-- Players with similar scores play against each other
-- No elimination
-- Optimal pairings after each round
-
-**Advantages**:
-- ✅ Fair with many participants
-- ✅ Everyone plays equal number of matches
-- ✅ Automatic draw
-
-➡️ **[Swiss System Details](tournament-management.md#swiss-system)**
-
-### Group Phases + Knockout
-
-**Ideal for**: Medium to large tournaments
-
-**Process**:
-1. Group phase (Round Robin in groups)
-2. Qualification of top-N per group
-3. Knockout round with qualified players
-
-**Advantages**:
-- ✅ Combines fairness (group phase) with excitement (knockout)
-- ✅ Multiple chances in group phase
-- ✅ Final decision in knockout
-
-➡️ **[Group Phase Details](tournament-management.md#group-phases)**
+➡️ **[Finalize the tournament](tournament-management.md#step-13-finalize)**
 
 ## 🛠️ Important Functions
 
-### Automatic Schedule Creation
+### Automatic Match Assignment
 
 **Features**:
-- Optimal pairings according to tournament mode
-- Automatic table changes
-- Schedule consideration
-- Player availability
-- Bye rounds with odd number of participants
+- The pairings of each round follow from the tournament plan
+- Rounds off (bye) also follow from the plan
+- Optional: "Assign games as soon as tables become free"
 
-**Manual adjustment**:
-- Move matches via drag & drop
-- Reassign tables
-- Schedule breaks
-- Change individual pairings
+**Table assignment**:
+- Before the start you map the plan's tables to the tables in your venue
+- After the start this mapping is fixed; a scoreboard can still be switched to another table
 
-➡️ **[Schedule Creation](tournament-management.md#create-schedule)**
+➡️ **[Table assignment](tournament-management.md#step-8-tables)**
 
-### Live Monitoring
+### Tournament Monitor
 
 **Real-time tournament monitoring**:
-- Dashboard with all running matches
-- Progress display per match
-- Detect delays
-- Prepare next round
+- Games of the current round with balls, innings, highest run and general average
+- Open table scoreboards in separate browser tabs
+- Round change is automatic as soon as the last game of the round is confirmed
 
 **Display options**:
-- Tournament Monitor (for spectators)
+- Tournament Monitor (individual tournaments)
 - Party Monitor (league match days)
 - Scoreboard (per table)
-- Manager Dashboard
 
-➡️ **[Live Monitoring](tournament-management.md#live-monitoring)**
+➡️ **[Monitor and intervene if needed](tournament-management.md#step-12-monitor)**
 
 ### Result Correction
 
-**When necessary?**:
-- Input errors
-- Player confusion
-- Rule interpretation corrected
-- Protest upheld
-
 **How to correct?**:
-1. Find match in overview
-2. Click "Edit"
-3. Change result
-4. Document reason for change (optional)
-5. Save → automatic recalculation
+- Before confirmation in the protocol editor at the scoreboard
 
-**History tracking**: All changes are logged
+Carambus keeps no change history for game results.
 
-➡️ **[Result Correction](tournament-management.md#correct-results)**
+➡️ **[Follow-up shot forgotten at the scoreboard](tournament-management.md#ts-nachstoss-forgotten)**
 
-### Statistics & Reports
+### Evaluations
 
-**Available evaluations**:
-- Rankings (points, percentage, average)
-- Player statistics (averages, runs)
-- Tournament progress
-- Table utilization
-- Match duration analyses
+**Available**:
+- Final ranking in the Tournament Monitor
+- Game protocol of a match as PDF
+- Result CSV for the ClubCloud upload
+- Standings on the league page
 
-**Export formats**:
-- PDF (for posting/website)
-- CSV (for Excel)
-- JSON (for further processing)
-
-➡️ **[Statistics & Reports](tournament-management.md#statistics-reports)**
+➡️ **[Finalize the tournament](tournament-management.md#step-13-finalize)**
 
 ## 🎓 Best Practices
 
 ### Preparation
 
 **One week before**:
-- ✅ Create tournament
-- ✅ Publish announcement
-- ✅ Set registration deadline
+- ✅ Check the tournament in ClubCloud and load it into Carambus
 - ✅ Check tables (heating!)
 
 **One day before**:
 - ✅ Check participant list
-- ✅ Create schedule (draft)
+- ✅ Have the tournament plan from the invitation at hand
 - ✅ Test displays
-- ✅ Database backup
 
 **On tournament day**:
-- ✅ 1 hour before: Boot system
+- ✅ 1 hour before: Start up system
 - ✅ Tournament Monitor on projector
 - ✅ Activate scoreboards at tables
 - ✅ Conduct test match
@@ -279,115 +193,91 @@ As a tournament manager, you are responsible for:
 ### During the Tournament
 
 **Continuous tasks**:
-- 🔍 Monitor match progress
+- 🔍 Monitor match progress in the Tournament Monitor
 - 🔍 Fix technical problems
 - 🔍 Answer player questions
 - 🔍 Coordinate breaks
-- 🔍 Prepare next round
 
-**When problems occur**:
+**When problems arise**:
 - Stay calm
-- Consult rulebook
-- If uncertain: Allow protest and clarify later
+- Consult rules
 - Document changes
 
 ### After the Tournament
 
 **Completion tasks**:
-- ✅ Publish rankings
 - ✅ Upload results to ClubCloud
-- ✅ Upload photos
-- ✅ Gather feedback
+- ✅ Maintain the final ranking in ClubCloud ([instructions](tournament-management.md#appendix-rangliste-manual))
+- ✅ Collect feedback
 - ✅ Document insights
-
-**Long-term**:
-- 📊 Analyze statistics
-- 📊 Evaluate tournament format
-- 📊 Plan improvements
 
 ## 🆘 Common Problems & Solutions
 
 ### Before the Tournament
 
-**Problem: Player cannot find registration**  
-**Solution**: Check if player exists in system. If not: Create new. If yes: Add to tournament.
-
-**Problem: Schedule cannot be created**  
-**Solution**: Check if enough tables and players are available. With odd number of players, bye rounds are automatically planned.
-
-**Problem: Heating not running**  
-**Solution**: Check heating control in table reservation settings. Activate manually if necessary.
+- **Players missing from the ClubCloud registration list** → [Solution](tournament-management.md#ts-player-not-in-cc)
+- **Invitation PDF cannot be uploaded** → [Solution](tournament-management.md#ts-invitation-upload)
+- **Wrong tournament mode selected** → [Solution](tournament-management.md#ts-wrong-mode)
 
 ### During the Tournament
 
-**Problem: Scoreboard shows wrong match**  
-**Solution**: Update table assignment in schedule. Scoreboard updates automatically.
-
-**Problem: Player cannot enter result**  
-**Solution**: Check if match was started. In manager dashboard: Set match to "Running".
-
-**Problem: Result was entered incorrectly**  
-**Solution**: Manager Dashboard → Find match → Edit → Correct. Ranking is automatically recalculated.
-
-**Problem: Player doesn't show up**  
-**Solution**: Walkover possible. In match detail view: Select "Walkover for [opponent]".
+- **Tournament started, and something goes wrong** → [Solution](tournament-management.md#ts-already-started)
+- **Follow-up shot forgotten at the scoreboard** → [Solution](tournament-management.md#ts-nachstoss-forgotten)
+- **Player withdraws during the tournament** → [Solution](tournament-management.md#ts-player-withdraws)
+- **Player does not show up** → [Solution](tournament-management.md#appendix-missing-player)
+- **Shoot-out needed** → [Solution](tournament-management.md#ts-shootout-needed)
+- **Scoreboard fails** → switch a free scoreboard at the neighbouring table to the failed table ([Table assignment](tournament-management.md#step-8-tables))
 
 ### After the Tournament
 
-**Problem: Ranking is incorrect**  
-**Solution**: Check tournament settings (points for win/draw/loss). Changes lead to automatic recalculation.
-
-**Problem: ClubCloud upload fails**  
-**Solution**: Check ClubCloud credentials. Ensure tournament exists in ClubCloud and mapping is correct.
+- **Final ranking missing in ClubCloud** → [Solution](tournament-management.md#ts-endrangliste-missing)
+- **CSV upload to ClubCloud does not work** → [Solution](tournament-management.md#ts-csv-upload)
+- **Automatic upload failed** → [ClubCloud upload feedback](clubcloud_upload_feedback.md)
 
 ## 📱 Device Recommendations
 
-### For Tournament Manager
+### For the Tournament Manager
 
 **Desktop/Laptop**:
 - Large overview of all matches
-- Fast editing
-- Multiple tabs in parallel
+- Multiple tabs in parallel (Tournament Monitor and table scoreboards)
 
 **Tablet**:
-- Mobile in clubhouse
-- Touch-optimized operation
+- Mobile in the club house
 - Ideal for smaller tournaments
 
 ### For Displays
 
 **Tournament Monitor**:
-- TV/Projector with HDMI
-- Raspberry Pi or tablet as client
-- Kiosk mode (fullscreen)
+- TV/projector with HDMI
+- Browser in full screen, e.g. on a Raspberry Pi
 
 **Scoreboards**:
-- Tablets at tables (7-10")
-- Touch-enabled for player input
-- WiFi connection to server
+- In club operation: Raspberry Pi with touch display in kiosk mode
+- Otherwise any browser (table monitor, smartphone, web client)
+- Network connection to the Carambus server
+
+➡️ **[Raspberry Pi Quickstart](../administrators/raspberry-pi-quickstart.md)**
 
 ## 🔐 Permissions & Delegation
 
 ### Role System
 
-**Super Admin**: Full control  
-**Club Admin**: Club management  
-**Tournament Manager**: Tournament administration (You!)  
-**Referee**: Result recording only  
-**Member**: Player (no management)
+**System admin**: full administration, assigns roles and personas  
+**Club admin**: club data and tournaments  
+**Player**: no management
+
+In addition there are the **personas** Sportwart and Landessportwart and the **tournament direction** of a tournament. They determine who may perform write actions in ClubCloud.
 
 ➡️ **[Detailed role description](admin-roles.md)**
 
-### Delegate Tasks
+### Delegating Tasks
 
-**You can grant rights to**:
-- **Co-Manager**: Full access to tournament
-- **Referee**: Result recording and correction
-- **Scoreboard Operator**: Display management only
+**You can appoint** (as Sportwart within your own scope or as admin):
+- **Tournament directors** for a specific tournament. Without their own ClubCloud access they can inherit the access of the Sportwart who appointed them ([Your own ClubCloud access](clubcloud-eigener-zugang.md))
 
-**Best Practice**: 
+**Best practice**:
 - At least 2 people with manager rights
-- Referees for large tournaments
 - Clear communication about responsibilities
 
 ## 📞 Support & Resources
@@ -411,32 +301,21 @@ As a tournament manager, you are responsible for:
 - GitHub Issues: [https://github.com/GernotUllrich/carambus/issues](https://github.com/GernotUllrich/carambus/issues)
 - Email: gernot.ullrich@gmx.de
 
-### Community
-
-**Exchange experiences**:
-- Contact other Carambus users
-- Share best practices
-- Submit feature requests
-
 ## 🔗 All Manager Documents
 
 1. **[Tournament Management](tournament-management.md)** - Complete manual for individual tournaments
-2. **[League Management](league-management.md)** - League match days and team competitions
-3. **[Single Tournament Management](single-tournament.md)** - Specific features for individual tournaments
-4. **[Table Reservation](table-reservation.md)** - Booking system and heating control
-5. **[Admin Roles](admin-roles.md)** - Manage users and permissions
-6. **[ClubCloud Integration](clubcloud-integration.md)** - Connect DBU ClubCloud
-7. **[Search & Filter](search-filters.md)** - Find data efficiently
+2. **[Quick Reference](tournament-quick-reference.md)** - Tournament flow at a glance
+3. **[Single Tournament Management](single-tournament.md)** - The tournament wizard in detail
+4. **[League Management](league-management.md)** - League match days and team competitions
+5. **[Automatic table reservation](automatische_tischreservierung.md)** - Reservation and pre-heating for tournaments
+6. **[Admin Roles](admin-roles.md)** - Manage users and permissions
+7. **[ClubCloud Integration](clubcloud-integration.md)** - Connect DBU ClubCloud
+8. **[ClubCloud MCP Cloud Quickstart](clubcloud-mcp-cloud-quickstart.md)** - Tournament work via AI assistant
+9. **[External Tournament App (Bridge)](external-tournament-bridge.md)** - Several tournaments at one location
+10. **[Filter Popup](filter_popup_usage.md)** - Find data efficiently
 
 ---
 
 **Good luck with your tournaments! 🏆**
 
 *Tip: Add this page to your bookmarks. It serves as a central hub for all tournament management tasks.*
-
-
-
-
-
-
-

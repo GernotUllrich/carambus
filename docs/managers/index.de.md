@@ -1,16 +1,15 @@
 # Turniermanager-Dokumentation
 
-Willkommen zur Carambus-Dokumentation für Turniermanager! Hier finden Sie alle Informationen zur Organisation und Durchführung von Billardturnieren und Ligaspieltagen.
+Willkommen zur Carambus-Dokumentation für Turniermanager! Hier finden Sie die Informationen zur Durchführung von Billardturnieren und Ligaspieltagen mit Carambus.
 
 ## 🎯 Ihre Rolle als Turniermanager
 
 Als Turniermanager sind Sie verantwortlich für:
-- ✅ **Turniererstellung**: Turniere anlegen und konfigurieren
-- ✅ **Spielerverwaltung**: Teilnehmer anmelden und verwalten
-- ✅ **Spielplanerstellung**: Automatische oder manuelle Paarungen
-- ✅ **Turnierdurchführung**: Spiele starten und überwachen
-- ✅ **Ergebniskontrolle**: Ergebnisse prüfen und ggf. korrigieren
-- ✅ **Turnierauswertung**: Ranglisten und Statistiken veröffentlichen
+- ✅ **Turniervorbereitung**: Turnier aus der ClubCloud laden, Setzliste übernehmen, Teilnehmerliste prüfen und abschließen
+- ✅ **Turniermodus**: den passenden Turnierplan wählen; die Paarungen ergeben sich daraus
+- ✅ **Turnierdurchführung**: Tische zuordnen, Turnier starten, den Turnier-Monitor beobachten
+- ✅ **Ergebniskontrolle**: Die Spieler erfassen und korrigieren am Scoreboard; Sie greifen bei Problemen ein
+- ✅ **Abschluss**: Endrangliste im Turnier-Monitor, Ergebnisse in die ClubCloud übertragen
 
 ## 🚀 Schnellstart: Turnier synchronisieren und durchführen in 10 Schritten
 
@@ -32,313 +31,208 @@ Als Turniermanager sind Sie verantwortlich für:
 ### 1. Turnierverwaltung
 
 **Einzel-Turniere organisieren**:
-- Turnierformate (Jeder-gegen-Jeden, KO, Schweizer System)
-- Spielplanerstellung (automatisch & manuell)
-- Gruppenphasen mit KO-Runde
-- Best-of und Race-to Modi
-- Setzlisten und Seeding
+- Turnierpläne aus der Karambol-Turnierordnung (T-Pläne) und der dynamische Jeder-gegen-Jeden-Plan `Default{n}`
+- Gruppenphasen, KO-Runden und Platzierungsspiele, so wie der gewählte Plan sie vorsieht
+- Setzliste aus der Einladung oder aus der Rangliste
+- Stechen bei unentschiedenen KO-Partien
 
 ➡️ **[Turnierverwaltungs-Handbuch](tournament-management.md)**  
-➡️ **[Einzelturnier-Verwaltung](single-tournament.md)**
+➡️ **[Einzelturnier-Verwaltung](single-tournament.md)**  
+➡️ **[Kurzreferenz](tournament-quick-reference.md)**
 
 ### 2. Ligaspieltage
 
 **Mannschaftswettbewerbe durchführen**:
-- Ligasaisons anlegen und verwalten
-- Spieltage planen (Heim-/Auswärtsspiele)
-- Mannschaftsaufstellungen
-- Automatische Tabellenerstellung
-- Saisonauswertungen
+- Ligen, Mannschaften und Spieltage kommen aus der ClubCloud (TBV aus dem LigaManager, BBV aus NuLiga)
+- Spieltage am Party-Monitor durchführen
+- Tabellen auf der Liga-Seite
 
 ➡️ **[Liga-Management-Handbuch](league-management.md)**
 
 ### 3. Spielerverwaltung
 
 **Teilnehmer verwalten**:
-- Spieler anlegen und bearbeiten
-- Spielergruppen erstellen
-- Lizenzen prüfen (ClubCloud-Integration)
-- Sperren und Freigaben
-- Spielerstatistiken einsehen
+- Spieler kommen per Scraping aus der ClubCloud
+- Teilnehmerliste prüfen und ergänzen, auch um Nachmeldungen am Turniertag
+- Spieler-Dubletten zusammenführen (auf der Authority)
 
-➡️ **[Turnierverwaltung - Spielerverwaltung](tournament-management.md#spielerverwaltung)**
+➡️ **[Teilnehmerliste prüfen und ergänzen](tournament-management.md#step-4-participants)**  
+➡️ **[Spieler-Nachmeldung am Turniertag](tournament-management.md#appendix-nachmeldung)**  
+➡️ **[Duplikate](clubcloud-integration.md)**
 
 ### 4. Ergebniserfassung & -kontrolle
 
 **Ergebnisse verwalten**:
-- Manuelle Ergebniseingabe
-- Ergebnisse korrigieren
-- Spiele neu ansetzen
-- Kampflose Siege vergeben
-- Protests bearbeiten
+- Die Spieler erfassen die Ergebnisse am Scoreboard
+- Korrekturen vor der Bestätigung im Protokolleditor am Scoreboard (z. B. ein vergessener Nachstoß)
+- Bei Scoreboard-Ausfall: Ergebnisse von Papierprotokollen im Turnier-Monitor nachtragen
+- Nach dem Start: „Turnier neu starten“ statt Zurücksetzen
 
-➡️ **[Turnierverwaltung - Ergebniskontrolle](tournament-management.md#ergebniskontrolle)**
+➡️ **[Beobachten und bei Bedarf eingreifen](tournament-management.md#step-12-monitor)**  
+➡️ **[Turnier bereits gestartet — und etwas läuft schief](tournament-management.md#ts-already-started)**
 
 ### 5. Admin-Rollen & Berechtigungen
 
-**Team-Management**:
-- Rollen vergeben (Admin, Schiedsrichter, etc.)
-- Berechtigungen verwalten
-- Turnierspezifische Rechte
-- Vereinsadministration
+**Rollen und Rechte**:
+- Rollen in Carambus: Spieler, Vereins-Admin, System-Admin
+- Sportwart- und Landessportwart-Persona sowie Turnierleitung für Schreibaktionen in der ClubCloud; die Persona setzt ein System-Admin
 
-➡️ **[Admin-Rollen-Handbuch](admin-roles.md)**
+➡️ **[Admin-Rollen-Handbuch](admin-roles.md)**  
+➡️ **[ClubCloud-Rollenmodell](clubcloud-scenarios/cc-roles.md)**
 
 ### 6. ClubCloud-Integration
 
 **DBU ClubCloud anbinden**:
-- Turniere importieren
-- Spielerdaten synchronisieren
-- Ergebnisse hochladen
-- Lizenz-Mapping verwalten
+- Turniere, Spieler, Vereine und Ligen aus der ClubCloud übernehmen
+- Teilnehmerliste in der ClubCloud abschließen (mit eigenem CC-Zugang)
+- Ergebnisse hochladen (automatisch je Spiel oder per CSV)
 
-➡️ **[ClubCloud-Integrations-Leitfaden](clubcloud-integration.md)**
+➡️ **[ClubCloud-Integrations-Leitfaden](clubcloud-integration.md)**  
+➡️ **[Eigener ClubCloud-Zugang](clubcloud-eigener-zugang.md)**
 
 ### 7. Suche & Filter
 
 **Daten effizient finden**:
-- Erweiterte Filterfunktionen
-- Gespeicherte Suchen
-- Bulk-Operationen
-- Export-Funktionen
+- Filter-Popup in den Listen, mit Eingabefeldern passend zum Feldtyp
+- KI-gestützte Suche
 
-➡️ **[Filter-Popup-Anleitung](search-filters.md)**
+➡️ **[Filter-Popup-Anleitung](filter_popup_usage.md)**  
+➡️ **[KI-Suche](../players/ai-search.md)**
 
 ### 8. Tischreservierung
 
 **Vereinszeiten verwalten**:
-- Online-Buchungssystem einrichten
-- Buchungen verwalten
-- Heizungssteuerung konfigurieren
-- Automatisches Vorheizen
+- Reservierungen im Google-Kalender des Vereins
+- Automatische Tischreservierung für Turniere nach dem Meldeschluss
+- Vorheizen der Tische vor Reservierungsbeginn
 
-➡️ **[Tischreservierungs-Handbuch](table-reservation.md)**
+➡️ **[Automatische Tischreservierung](automatische_tischreservierung.md)**  
+➡️ **[Tischreservierung & Heizungssteuerung](table_reservation_heating_control.md)**
 
-## 🎮 Turnierformate im Detail
+## 🎮 Turniermodi
 
-### Jeder-gegen-Jeden (Round Robin)
+### Turnierpläne
 
-**Ideal für**: Kleine Gruppen (bis 12 Spieler), wenn jeder gegen jeden spielen soll
+Den Ablauf eines Turniers bestimmt der **Turnierplan**. Carambus bietet in Schritt 6 die Pläne an, die zur Teilnehmerzahl passen: die T-Pläne der Karambol-Turnierordnung mit fester Spielstruktur und Tischanzahl und den dynamisch erzeugten Jeder-gegen-Jeden-Plan `Default{n}`. Der in der Einladung angegebene Plan ist in der Regel verbindlich.
 
-**Vorteile**:
-- ✅ Jeder Spieler hat gleich viele Spiele
-- ✅ Fairste Ermittlung des Gewinners
-- ✅ Keine Ausscheidung nach einem Spiel
+➡️ **[Turniermodus auswählen](tournament-management.md#step-6-mode-selection)**
 
-**Einstellungen**:
-- Anzahl der Runden (einfach, doppelt)
-- Hin- und Rückrunde
-- Tischrotation
+### Gruppen, KO und Platzierungsspiele
 
-➡️ **[Round Robin Details](tournament-management.md#round-robin)**
+Je nach Plan folgt auf eine Gruppenphase (jeder gegen jeden) eine KO-Runde oder es folgen Platzierungsspiele. Die Rangfolge in der Gruppe folgt der Turnierordnung (§4.4.2: Punkte, Generaldurchschnitt, direkter Vergleich, bester Einzeldurchschnitt, Höchstserie). Eine unentschiedene KO-Partie entscheidet ein Stechen.
 
-### KO-System (Elimination)
-
-**Ideal für**: Große Felder, zeitlich begrenzte Turniere
-
-**Varianten**:
-- **Single Elimination**: Ausscheiden nach erster Niederlage
-- **Double Elimination**: Ausscheiden nach zweiter Niederlage
-
-**Vorteile**:
-- ✅ Schnell durchführbar
-- ✅ Klare K.O.-Struktur
-- ✅ Spannend für Zuschauer
-
-**Einstellungen**:
-- Seeding (Setzliste)
-- Best-of Modi
-- Platzierungsspiele
-
-➡️ **[KO-System Details](tournament-management.md#ko-system)**
-
-### Schweizer System
-
-**Ideal für**: Große Felder mit begrenzter Rundenanzahl
-
-**Funktionsweise**:
-- Spieler mit ähnlicher Punktzahl spielen gegeneinander
-- Keine Ausscheidung
-- Optimale Paarungen nach jeder Runde
-
-**Vorteile**:
-- ✅ Fair bei vielen Teilnehmern
-- ✅ Alle spielen gleich viele Spiele
-- ✅ Automatische Auslosung
-
-➡️ **[Schweizer System Details](tournament-management.md#schweizer-system)**
-
-### Gruppenphasen + KO
-
-**Ideal für**: Mittelgroße bis große Turniere
-
-**Ablauf**:
-1. Gruppenphase (Round Robin in Gruppen)
-2. Qualifikation der Top-N pro Gruppe
-3. KO-Runde mit Qualifizierten
-
-**Vorteile**:
-- ✅ Kombiniert Fairness (Gruppenphase) mit Spannung (KO)
-- ✅ Mehrere Chancen in der Gruppenphase
-- ✅ Finale Entscheidung im KO
-
-➡️ **[Gruppenphasen Details](tournament-management.md#gruppenphasen)**
+➡️ **[Turnier abschließen](tournament-management.md#step-13-finalize)**
 
 ## 🛠️ Wichtige Funktionen
 
-### Automatische Spielplanerstellung
+### Automatische Spielzuordnung
 
 **Features**:
-- Optimale Paarungen nach Turniermodus
-- Automatische Tischwechsel
-- Zeitplan-Berücksichtigung
-- Spieler-Verfügbarkeit
-- Bye-Runden bei ungerader Teilnehmerzahl
+- Die Paarungen jeder Runde ergeben sich aus dem Turnierplan
+- Spielfreie Runden (Freilos) ergeben sich ebenfalls aus dem Plan
+- Optional: „Spiele zuordnen, sobald Tische frei werden“
 
-**Manuelle Anpassung**:
-- Spiele verschieben per Drag & Drop
-- Tische neu zuweisen
-- Pausen einplanen
-- Einzelne Paarungen ändern
+**Tischzuordnung**:
+- Vor dem Start ordnen Sie die Tische des Plans den Tischen Ihres Spiellokals zu
+- Nach dem Start ist diese Zuordnung fest; ein Scoreboard lässt sich aber auf einen anderen Tisch umstellen
 
-➡️ **[Spielplan-Erstellung](tournament-management.md#spielplan-erstellen)**
+➡️ **[Tischzuordnung](tournament-management.md#step-8-tables)**
 
-### Live-Monitoring
+### Turnier-Monitor
 
 **Turnier-Überwachung in Echtzeit**:
-- Dashboard mit allen laufenden Spielen
-- Fortschrittsanzeige pro Partie
-- Verzögerungen erkennen
-- Nächste Runde vorbereiten
+- Spiele der laufenden Runde mit Bällen, Aufnahmen, Höchstserie und Generaldurchschnitt
+- Tisch-Scoreboards in eigenen Browser-Tabs öffnen
+- Rundenwechsel automatisch, sobald das letzte Spiel der Runde bestätigt ist
 
 **Anzeige-Optionen**:
-- Tournament Monitor (für Zuschauer)
-- Party Monitor (Ligaspieltage)
+- Turnier-Monitor (Einzelturniere)
+- Party-Monitor (Ligaspieltage)
 - Scoreboard (pro Tisch)
-- Manager-Dashboard
 
-➡️ **[Live-Monitoring](tournament-management.md#live-monitoring)**
+➡️ **[Beobachten und bei Bedarf eingreifen](tournament-management.md#step-12-monitor)**
 
 ### Ergebnis-Korrektur
 
-**Wann nötig?**:
-- Eingabefehler
-- Spieler-Verwechslung
-- Regelauslegung korrigiert
-- Protest stattgegeben
-
 **Wie korrigieren?**:
-1. Spiel in Übersicht finden
-2. "Bearbeiten" klicken
-3. Ergebnis ändern
-4. Änderungsgrund dokumentieren (optional)
-5. Speichern → automatische Neuberechnung
+- Vor der Bestätigung im Protokolleditor am Scoreboard
 
-**Historien-Tracking**: Alle Änderungen werden protokolliert
+Eine Änderungshistorie für Spielergebnisse führt Carambus nicht.
 
-➡️ **[Ergebnis-Korrektur](tournament-management.md#ergebnisse-korrigieren)**
+➡️ **[Nachstoß am Scoreboard vergessen](tournament-management.md#ts-nachstoss-forgotten)**
 
-### Statistiken & Reports
+### Auswertungen
 
-**Verfügbare Auswertungen**:
-- Ranglisten (Punkte, Quote, GD)
-- Spieler-Statistiken (Durchschnitte, Serien)
-- Turnierverlauf
-- Tischauslastung
-- Spieldauer-Analysen
+**Verfügbar**:
+- Endrangliste im Turnier-Monitor
+- Spielprotokoll einer Partie als PDF
+- Ergebnis-CSV für den ClubCloud-Upload
+- Tabellen auf der Liga-Seite
 
-**Export-Formate**:
-- PDF (für Aushang/Website)
-- CSV (für Excel)
-- JSON (für weitere Verarbeitung)
-
-➡️ **[Statistiken & Reports](tournament-management.md#statistiken-reports)**
+➡️ **[Turnier abschließen](tournament-management.md#step-13-finalize)**
 
 ## 🎓 Best Practices
 
 ### Vorbereitung
 
 **Eine Woche vorher**:
-- ✅ Turnier anlegen
-- ✅ Ausschreibung veröffentlichen
-- ✅ Anmeldefrist setzen
+- ✅ Turnier in der ClubCloud prüfen und in Carambus laden
 - ✅ Tische prüfen (Heizung!)
 
 **Einen Tag vorher**:
 - ✅ Teilnehmerliste prüfen
-- ✅ Spielplan erstellen (Entwurf)
+- ✅ Turnierplan laut Einladung bereitlegen
 - ✅ Displays testen
-- ✅ Backup der Datenbank
 
 **Am Turniertag**:
 - ✅ 1 Stunde vorher: System hochfahren
-- ✅ Tournament Monitor auf Beamer
+- ✅ Turnier-Monitor auf Beamer
 - ✅ Scoreboards an Tischen aktivieren
 - ✅ Testspiel durchführen
 
 ### Während des Turniers
 
 **Kontinuierliche Aufgaben**:
-- 🔍 Spielfortschritt überwachen
+- 🔍 Spielfortschritt am Turnier-Monitor überwachen
 - 🔍 Technische Probleme beheben
 - 🔍 Spieler-Fragen beantworten
 - 🔍 Pausen koordinieren
-- 🔍 Nächste Runde vorbereiten
 
 **Bei Problemen**:
 - Ruhe bewahren
 - Regelwerk konsultieren
-- Bei Unsicherheit: Protest zulassen und später klären
 - Änderungen dokumentieren
 
 ### Nach dem Turnier
 
 **Abschluss-Aufgaben**:
-- ✅ Rangliste veröffentlichen
 - ✅ Ergebnisse zu ClubCloud hochladen
-- ✅ Fotos hochladen
+- ✅ Endrangliste in der ClubCloud pflegen ([Anleitung](tournament-management.md#appendix-rangliste-manual))
 - ✅ Feedback einholen
 - ✅ Erkenntnisse dokumentieren
-
-**Langfristig**:
-- 📊 Statistiken analysieren
-- 📊 Turnierformat evaluieren
-- 📊 Verbesserungen planen
 
 ## 🆘 Häufige Probleme & Lösungen
 
 ### Vor dem Turnier
 
-**Problem: Spieler findet sich nicht in der Anmeldung**  
-**Lösung**: Prüfen Sie, ob der Spieler im System existiert. Falls nicht: Neu anlegen. Falls ja: Zum Turnier hinzufügen.
-
-**Problem: Spielplan lässt sich nicht erstellen**  
-**Lösung**: Prüfen Sie, ob genügend Tische und Spieler vorhanden sind. Bei ungerader Spielerzahl werden automatisch Bye-Runden eingeplant.
-
-**Problem: Heizung läuft nicht**  
-**Lösung**: Prüfen Sie die Heizungssteuerung in den Tischreservierungs-Einstellungen. Ggf. manuell aktivieren.
+- **Spieler fehlen in der ClubCloud-Meldeliste** → [Lösung](tournament-management.md#ts-player-not-in-cc)
+- **Einladungs-PDF lässt sich nicht hochladen** → [Lösung](tournament-management.md#ts-invitation-upload)
+- **Falscher Turniermodus gewählt** → [Lösung](tournament-management.md#ts-wrong-mode)
 
 ### Während des Turniers
 
-**Problem: Scoreboard zeigt falsches Spiel an**  
-**Lösung**: Aktualisieren Sie die Tischzuweisung im Spielplan. Scoreboard aktualisiert sich automatisch.
-
-**Problem: Spieler kann Ergebnis nicht eintragen**  
-**Lösung**: Prüfen Sie, ob das Spiel gestartet wurde. Im Manager-Dashboard: Spiel auf "Laufend" setzen.
-
-**Problem: Ergebnis wurde falsch eingetragen**  
-**Lösung**: Manager-Dashboard → Spiel suchen → Bearbeiten → Korrigieren. Rangliste wird automatisch neu berechnet.
-
-**Problem: Spieler erscheint nicht**  
-**Lösung**: Kampfloser Sieg möglich. Im Spiel-Detailview: "Kampfloser Sieg für [Gegner]" auswählen.
+- **Turnier gestartet, und etwas läuft schief** → [Lösung](tournament-management.md#ts-already-started)
+- **Nachstoß am Scoreboard vergessen** → [Lösung](tournament-management.md#ts-nachstoss-forgotten)
+- **Spieler zieht während des Turniers zurück** → [Lösung](tournament-management.md#ts-player-withdraws)
+- **Spieler erscheint nicht zum Turnier** → [Lösung](tournament-management.md#appendix-missing-player)
+- **Stechen nötig** → [Lösung](tournament-management.md#ts-shootout-needed)
+- **Scoreboard fällt aus** → ein freies Scoreboard am Nachbartisch auf den ausgefallenen Tisch umstellen ([Tischzuordnung](tournament-management.md#step-8-tables))
 
 ### Nach dem Turnier
 
-**Problem: Rangliste stimmt nicht**  
-**Lösung**: Prüfen Sie die Turnier-Einstellungen (Punkte für Sieg/Remis/Niederlage). Änderungen führen zu automatischer Neuberechnung.
-
-**Problem: ClubCloud-Upload schlägt fehl**  
-**Lösung**: Prüfen Sie die ClubCloud-Credentials. Stellen Sie sicher, dass das Turnier in ClubCloud existiert und das Mapping korrekt ist.
+- **Endrangliste fehlt in der ClubCloud** → [Lösung](tournament-management.md#ts-endrangliste-missing)
+- **CSV-Upload in die ClubCloud funktioniert nicht** → [Lösung](tournament-management.md#ts-csv-upload)
+- **Automatischer Upload fehlgeschlagen** → [ClubCloud Upload-Feedback](clubcloud_upload_feedback.md)
 
 ## 📱 Geräte-Empfehlungen
 
@@ -346,48 +240,44 @@ Als Turniermanager sind Sie verantwortlich für:
 
 **Desktop/Laptop**:
 - Große Übersicht über alle Spiele
-- Schnelle Bearbeitung
-- Mehrere Tabs parallel
+- Mehrere Tabs parallel (Turnier-Monitor und Tisch-Scoreboards)
 
 **Tablet**:
 - Mobil im Vereinsheim
-- Touch-optimierte Bedienung
 - Ideal für kleinere Turniere
 
 ### Für Anzeigen
 
-**Tournament Monitor**:
+**Turnier-Monitor**:
 - TV/Beamer mit HDMI
-- Raspberry Pi oder Tablet als Client
-- Kiosk-Modus (Vollbild)
+- Browser im Vollbild, z. B. auf einem Raspberry Pi
 
 **Scoreboards**:
-- Tablets an Tischen (7-10")
-- Touch-fähig für Spielereingabe
-- WLAN-Verbindung zum Server
+- Im Vereinsbetrieb: Raspberry Pi mit Touch-Display im Kiosk-Modus
+- Sonst jeder Browser (Tisch-Monitor, Smartphone, Web-Client)
+- Netzwerkverbindung zum Carambus-Server
+
+➡️ **[Raspberry Pi Quickstart](../administrators/raspberry-pi-quickstart.md)**
 
 ## 🔐 Berechtigungen & Delegation
 
 ### Rollen-System
 
-**Super-Admin**: Volle Kontrolle  
-**Club-Admin**: Vereinsverwaltung  
-**Tournament-Manager**: Turnierverwaltung (Sie!)  
-**Referee**: Nur Ergebniserfassung  
-**Member**: Spieler (kein Management)
+**System-Admin**: volle Verwaltung, vergibt Rollen und Personas  
+**Vereins-Admin**: Vereinsdaten und Turniere  
+**Spieler**: kein Management
+
+Dazu kommen die **Personas** Sportwart und Landessportwart sowie die **Turnierleitung** eines Turniers. Sie bestimmen, wer Schreibaktionen in der ClubCloud ausführen darf.
 
 ➡️ **[Detaillierte Rollen-Beschreibung](admin-roles.md)**
 
 ### Aufgaben delegieren
 
-**Sie können Rechte vergeben an**:
-- **Co-Manager**: Vollzugriff auf Turnier
-- **Schiedsrichter**: Ergebniserfassung und Korrektur
-- **Scoreboard-Betreuer**: Nur Display-Management
+**Sie können einsetzen** (als Sportwart im eigenen Wirkbereich oder als Admin):
+- **Turnierleiter** für ein bestimmtes Turnier. Ohne eigenen ClubCloud-Zugang kann er den Zugang des Sportwarts erben, der ihn eingesetzt hat ([Eigener ClubCloud-Zugang](clubcloud-eigener-zugang.md))
 
 **Best Practice**: 
 - Mindestens 2 Personen mit Manager-Rechten
-- Schiedsrichter für große Turniere
 - Klare Kommunikation über Zuständigkeiten
 
 ## 📞 Support & Ressourcen
@@ -411,32 +301,21 @@ Als Turniermanager sind Sie verantwortlich für:
 - GitHub Issues: [https://github.com/GernotUllrich/carambus/issues](https://github.com/GernotUllrich/carambus/issues)
 - E-Mail: gernot.ullrich@gmx.de
 
-### Community
-
-**Erfahrungsaustausch**:
-- Andere Carambus-Nutzer kontaktieren
-- Best Practices teilen
-- Feature-Requests einreichen
-
 ## 🔗 Alle Manager-Dokumente
 
 1. **[Turnierverwaltung](tournament-management.md)** - Komplettes Handbuch für Einzelturniere
-2. **[Liga-Management](league-management.md)** - Ligaspieltage und Mannschaftswettbewerbe
-3. **[Einzelturnier-Verwaltung](single-tournament.md)** - Spezifische Features für Einzelturniere
-4. **[Tischreservierung](table-reservation.md)** - Buchungssystem und Heizungssteuerung
-5. **[Admin-Rollen](admin-roles.md)** - Benutzer und Berechtigungen verwalten
-6. **[ClubCloud-Integration](clubcloud-integration.md)** - DBU ClubCloud anbinden
-7. **[Suche & Filter](search-filters.md)** - Effizient Daten finden
+2. **[Kurzreferenz](tournament-quick-reference.md)** - Turnierablauf auf einen Blick
+3. **[Einzelturnier-Verwaltung](single-tournament.md)** - Der Turnier-Wizard im Detail
+4. **[Liga-Management](league-management.md)** - Ligaspieltage und Mannschaftswettbewerbe
+5. **[Automatische Tischreservierung](automatische_tischreservierung.md)** - Reservierung und Vorheizen für Turniere
+6. **[Admin-Rollen](admin-roles.md)** - Benutzer und Berechtigungen verwalten
+7. **[ClubCloud-Integration](clubcloud-integration.md)** - DBU ClubCloud anbinden
+8. **[ClubCloud-MCP Cloud-Quickstart](clubcloud-mcp-cloud-quickstart.md)** - Turnierarbeit per KI-Assistent
+9. **[Externe Turnier-App (Bridge)](external-tournament-bridge.md)** - Mehrere Turniere an einer Location
+10. **[Filter-Popup](filter_popup_usage.md)** - Effizient Daten finden
 
 ---
 
 **Viel Erfolg bei Ihren Turnieren! 🏆**
 
 *Tipp: Fügen Sie diese Seite zu Ihren Lesezeichen hinzu. Sie dient als zentrale Anlaufstelle für alle Turniermanagement-Aufgaben.*
-
-
-
-
-
-
-
