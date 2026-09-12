@@ -201,17 +201,20 @@
 
       <!-- Regular Admin Actions (only for tournaments without ClubCloud results) -->
       <% if !@tournament.has_clubcloud_results? %>
-        <!-- Direct link to participants/seedings management (always visible) -->
-        <%= link_to t('tournaments.show.edit_participants_button'),
-            define_participants_tournament_path(@tournament),
-            class: 'btn btn-flat btn-secondary',
-            style: 'float: left; margin-right: 10px;',
-            title: t('tournaments.show.edit_participants_title') %>
-        
+        <!-- Direct link to participants/seedings management -->
+        <%# Plan 17-01: sichtbar nur mit dem Recht, das define_participants verlangt (authorize_manage_teilnehmerliste) %>
+        <% if policy(@tournament).manage_teilnehmerliste? %>
+          <%= link_to t('tournaments.show.edit_participants_button'),
+              define_participants_tournament_path(@tournament),
+              class: 'btn btn-flat btn-secondary',
+              style: 'float: left; margin-right: 10px;',
+              title: t('tournaments.show.edit_participants_title') %>
+        <% end %>
+
         <%# UI-06 (plan 36B-05): trigger buttons must live inside the shared %>
         <%# confirmation-modal Stimulus scope so click actions can dispatch. %>
         <%= render "shared/confirmation_modal" do %>
-          <%- if !@tournament.tournament_started %>
+          <%- if !@tournament.tournament_started && current_user&.admin? %><%# Plan 17-01: Sichtbarkeit = Reset-Recht (TournamentsController#reset) %>
             <%= form_tag reset_tournament_path(@tournament),
                          method: :post,
                          id: "reset-tournament-form-#{@tournament.id}",
@@ -236,7 +239,7 @@
               <%= I18n.t("tournaments.show.reset_tournament_monitor") %>
             </button>
           <%- end %>
-          <%- if (User::PRIVILEGED + [User.scoreboard.andand.email.andand.downcase]).include? current_user&.email&.downcase %>
+          <%- if current_user&.admin? %><%# Plan 17-01: wer zuruecksetzen darf, sieht den Knopf (keine feste E-Mail-Liste mehr) %>
             <%# Sanfter Ruecksetzer: Spielverlauf abraeumen, Meldeliste und Modus behalten. %>
             <%# Auch bei laufendem Turnier verfuegbar — der haeufige "nochmal von vorn"-Fall. %>
             <%= form_tag reset_tournament_path(@tournament, soft_reset: true),

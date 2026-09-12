@@ -230,7 +230,7 @@
   </div>
 </div>
 
-<%- if User::PRIVILEGED.include?(current_user&.email&.downcase) %>
+<%- if current_user&.admin? %><%# Plan 17-01: Sichtbarkeit = Reset-Recht, keine feste E-Mail-Liste mehr %>
   <%# UI-06 (plan 36B-05): trigger button must live inside the shared %>
   <%# confirmation-modal Stimulus scope so click actions can dispatch. %>
   <%= render "shared/confirmation_modal" do %>

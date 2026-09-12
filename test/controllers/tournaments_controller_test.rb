@@ -65,6 +65,9 @@ class TournamentsControllerTest < ActionDispatch::IntegrationTest
   # pins that gating state and verifies show renders the modal trigger block.
   test "GET show renders reset modal for local not-started non-CC tournament (regression: result_a PG::UndefinedColumn)" do
     Carambus.config.carambus_api_url = "http://local.test"
+    # Plan 17-01: der Reset-Knopf ist seitdem nur fuer Admins sichtbar (Sichtbarkeit = Reset-Recht)
+    sign_out @user
+    sign_in @club_admin
 
     # Repair fixture association rot: tournaments(:local) is inserted with Rails' auto-hashed
     # polymorphic organizer_id / season_id, which do not resolve to the nbv Region (id
@@ -1236,6 +1239,143 @@ class TournamentsControllerTest < ActionDispatch::IntegrationTest
 
     assert_redirected_to tournament_path(t)
     assert flash[:alert].present?, "ein Netzfehler wird als flash gemeldet, nicht als 500"
+  end
+
+  # ---------------------------------------------------------------------------
+  # Plan 17-01: Reset nur fuer angemeldete Admins — Sichtbarkeit und Recht nach derselben Regel.
+  # `admin_can_reset_tournament?` gibt ohne Benutzer `true` (interne Aufrufe beim Initialisieren);
+  # ohne Pruefung im Controller konnte deshalb ein nicht angemeldeter Besucher zuruecksetzen.
+  # ---------------------------------------------------------------------------
+
+  def live_game_on(tournament)
+    tournament.games.create!(id: 61_500_001, gname: "hf1", data: {})
+  end
+
+  test "17-01 AC-5: nicht angemeldet raeumt der Soft-Reset keine Spiele ab" do
+    sign_out @user
+    Carambus.config.carambus_api_url = "http://local.test"
+    game = live_game_on(@tournament)
+
+    post reset_tournament_url(@tournament, soft_reset: true)
+
+    assert_redirected_to tournament_path(@tournament)
+    assert Game.exists?(game.id), "Ein anonymer Besucher darf kein Turnier zuruecksetzen"
+    assert_equal I18n.t("tournaments.show.soft_reset_tournament_modal.denied"), flash[:alert]
+  end
+
+  test "17-01 AC-5: nicht angemeldet laesst der Zwangs-Reset den Turnierzustand stehen" do
+    sign_out @user
+    Carambus.config.carambus_api_url = "http://local.test"
+    state_before = @tournament.state
+
+    post reset_tournament_url(@tournament, force_reset: true)
+
+    assert_redirected_to tournament_path(@tournament)
+    assert_equal state_before, @tournament.reload.state
+  end
+
+  test "17-01 AC-5: nicht angemeldet laesst auch der Reset ohne Parameter den Zustand stehen" do
+    sign_out @user
+    Carambus.config.carambus_api_url = "http://local.test"
+    state_before = @tournament.state
+
+    post reset_tournament_url(@tournament)
+
+    assert_redirected_to tournament_path(@tournament)
+    assert_equal state_before, @tournament.reload.state
+  end
+
+  test "17-01 AC-5: ein player bekommt beim Zwangs-Reset eine Absage statt einer Exception" do
+    Carambus.config.carambus_api_url = "http://local.test"
+    state_before = @tournament.state
+
+    post reset_tournament_url(@tournament, force_reset: true)
+
+    assert_redirected_to tournament_path(@tournament)
+    assert_equal state_before, @tournament.reload.state
+    assert_equal I18n.t("tournaments.show.soft_reset_tournament_modal.denied"), flash[:alert]
+  end
+
+  test "17-01 AC-5: ein club_admin setzt sanft zurueck wie bisher" do
+    sign_out @user
+    sign_in @club_admin
+    Carambus.config.carambus_api_url = "http://local.test"
+    game = live_game_on(@tournament)
+
+    post reset_tournament_url(@tournament, soft_reset: true)
+
+    assert_redirected_to tournament_path(@tournament)
+    refute Game.exists?(game.id), "Der Soft-Reset raeumt die Live-Spiele ab"
+  end
+
+  test "17-01 AC-4: ein club_admin sieht den Soft-Reset-Knopf, ohne auf einer E-Mail-Liste zu stehen" do
+    sign_out @user
+    sign_in @club_admin
+    Carambus.config.carambus_api_url = "http://local.test"
+    refute_includes User::PRIVILEGED, @club_admin.email, "Vorbedingung: nicht ueber die Liste berechtigt"
+
+    get tournament_url(@tournament)
+
+    assert_response :success
+    assert_match(/soft-reset-tournament-form-#{@tournament.id}/, response.body)
+    assert_match(/force-reset-tournament-form-#{@tournament.id}/, response.body)
+  end
+
+  test "17-01 AC-4: ein player sieht weder Soft- noch Zwangs-Reset" do
+    Carambus.config.carambus_api_url = "http://local.test"
+
+    get tournament_url(@tournament)
+
+    assert_response :success
+    assert_no_match(/soft-reset-tournament-form-#{@tournament.id}/, response.body)
+    assert_no_match(/force-reset-tournament-form-#{@tournament.id}/, response.body)
+  end
+
+  # AC-4b (Spec-Fix aus dem Handtest 2026-09-13): auch „Teilnehmerliste bearbeiten“ und der Reset
+  # fuer noch nicht gestartete Turniere folgen ihrem Recht. Die ids werden mit `id="` verankert —
+  # /reset-tournament-form-<id>/ allein traefe auch soft-/force-reset-tournament-form-<id>.
+  def assert_admin_buttons(visible:)
+    reset_form = /id="reset-tournament-form-#{@tournament.id}"/
+    participants_link = /href="#{Regexp.escape(define_participants_tournament_path(@tournament))}"/
+    if visible
+      assert_match reset_form, response.body
+      assert_match participants_link, response.body
+    else
+      assert_no_match reset_form, response.body
+      assert_no_match participants_link, response.body
+    end
+  end
+
+  test "17-01 AC-4b: nicht angemeldet sieht weder Reset noch Teilnehmerliste bearbeiten" do
+    sign_out @user
+    Carambus.config.carambus_api_url = "http://local.test"
+    assert_not @tournament.tournament_started, "Vorbedingung: nicht gestartet, sonst fehlt der Reset-Knopf ohnehin"
+
+    get tournament_url(@tournament)
+
+    assert_response :success
+    assert_admin_buttons(visible: false)
+  end
+
+  test "17-01 AC-4b: ein player ohne Turnierleiter-/Sportwart-Recht sieht beide nicht" do
+    Carambus.config.carambus_api_url = "http://local.test"
+    refute TournamentPolicy.new(@user, @tournament).manage_teilnehmerliste?, "Vorbedingung: kein Recht"
+
+    get tournament_url(@tournament)
+
+    assert_response :success
+    assert_admin_buttons(visible: false)
+  end
+
+  test "17-01 AC-4b: ein club_admin sieht Reset und Teilnehmerliste bearbeiten" do
+    sign_out @user
+    sign_in @club_admin
+    Carambus.config.carambus_api_url = "http://local.test"
+
+    get tournament_url(@tournament)
+
+    assert_response :success
+    assert_admin_buttons(visible: true)
   end
 
   def released_tournament_with_scope

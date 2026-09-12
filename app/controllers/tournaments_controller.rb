@@ -183,6 +183,15 @@ class TournamentsController < ApplicationController
   end
 
   def reset
+    # Plan 17-01: `admin_can_reset_tournament?` gibt ohne Benutzer `true` (fuer interne Aufrufe) —
+    # ohne diese Pruefung konnte ein nicht angemeldeter Besucher zuruecksetzen. Dieselbe Regel
+    # steuert die Sichtbarkeit der Knoepfe in tournaments/show und finalize_modus.
+    unless current_user&.admin?
+      redirect_to tournament_path(@tournament), alert: t("tournaments.show.soft_reset_tournament_modal.denied",
+        default: "Keine Berechtigung, dieses Turnier zurückzusetzen.")
+      return
+    end
+
     if params[:soft_reset].present?
       # Sanft: Spielverlauf abraeumen, Meldeliste und Turniermodus behalten.
       # Bewusst auch bei laufendem Turnier erlaubt — genau dafuer ist er da.
