@@ -12,6 +12,15 @@ de:
       sets: "Sätze"
       current_inning: "Aktuelle Aufnahme"
       inputs: "Eingaben"
+    round_status:
+      progress:
+        one: "Runde %{round}: %{finished} von %{count} Spiel beendet"
+        other: "Runde %{round}: %{finished} von %{count} Spielen beendet"
+      all_finished:
+        one: "Runde %{round}: das Spiel ist beendet"
+        other: "Runde %{round}: alle %{count} Spiele beendet"
+      open: "offen:"
+      no_table: "ohne Tisch"
     game_results:
       game: "Spiel"
       playera: "Spieler A"

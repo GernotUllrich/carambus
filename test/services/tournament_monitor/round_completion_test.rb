@@ -58,8 +58,16 @@ class TournamentMonitor::RoundCompletionTest < ActiveSupport::TestCase
     )
   end
 
-  def table_monitor!(state:, game: nil)
-    TableMonitor.create!(tournament_monitor: @tm, game: game, state: state, data: {})
+  # `table_name`: TableMonitor#name kommt vom zugeordneten Table (has_one :table), nicht aus
+  # der eigenen Spalte — fuer den Tischnamen im Rundenstatus braucht es deshalb einen Table.
+  def table_monitor!(state:, game: nil, table_name: nil)
+    tabmon = TableMonitor.create!(tournament_monitor: @tm, game: game, state: state, data: {})
+    if table_name
+      @next_table_id = (@next_table_id || BASE_ID) + 1
+      Table.create!(id: @next_table_id, name: table_name, location: locations(:one),
+        table_kind: table_kinds(:one), table_monitor: tabmon)
+    end
+    tabmon
   end
 
   # ── AC-1 ───────────────────────────────────────────────────────────────────
@@ -164,5 +172,64 @@ class TournamentMonitor::RoundCompletionTest < ActiveSupport::TestCase
 
     assert @tm.all_table_monitors_finished?,
       "Nur die Spiele der aktuellen Runde entscheiden ueber deren Abschluss"
+  end
+
+  # ── Plan 17-01: round_status — warum die Runde wartet ──────────────────────
+  # Liest dieselbe Spielmenge wie das Gate oben; "offen" heisst allein ended_at: nil.
+  test "17-01 AC-1: round_status nennt Fortschritt und das offene Spiel mit Tisch" do
+    %w[hf1 hf2 p<3-4>].each { |gname| round_game!(gname, round_no: 3, ended: true) }
+    offen = round_game!("p<5-6>", round_no: 3, ended: false)
+    table_monitor!(state: "playing", game: offen, table_name: "Tisch 2")
+
+    status = I18n.with_locale(:de) { @tm.round_status }
+
+    assert_equal 3, status[:round]
+    assert_equal 4, status[:total]
+    assert_equal 3, status[:finished]
+    assert_equal [{name: "Spiel um Platz 5 und 6", table: "Tisch 2"}], status[:open]
+  end
+
+  test "17-01 AC-2: offenes Spiel ohne Tisch wird trotzdem genannt" do
+    round_game!("hf1", round_no: 3, ended: true)
+    round_game!("hf2", round_no: 3, ended: false) # nicht platziert / verdraengt
+
+    status = @tm.round_status
+
+    assert_equal 1, status[:finished]
+    assert_equal 1, status[:open].size
+    assert_nil status[:open].first[:table], "Ein Spiel ohne Tisch darf nicht verschwinden"
+  end
+
+  test "17-01 AC-3: im Tisch-Fallback (keine Spiele mit round_no) gibt es keinen Rundenstatus" do
+    spielend = round_game!("hf1", round_no: nil, ended: false)
+    table_monitor!(state: "playing", game: spielend, table_name: "Tisch 1")
+
+    assert_nil @tm.round_status, "Ohne round_no-Spiele waere jede Zahl eine Scheinaussage"
+    refute @tm.all_table_monitors_finished?, "Das Gate entscheidet unveraendert ueber den Tisch"
+  end
+
+  test "17-01: sind alle Spiele der Runde beendet, ist nichts offen" do
+    round_game!("hf1", round_no: 3, ended: true)
+    round_game!("hf2", round_no: 3, ended: true)
+
+    status = @tm.round_status
+
+    assert_equal 2, status[:finished]
+    assert_empty status[:open]
+  end
+
+  test "17-01: Partial zeigt Fortschritt, offene Spiele mit Tisch und 'ohne Tisch'" do
+    %w[hf1 hf2].each { |gname| round_game!(gname, round_no: 3, ended: true) }
+    auf_tisch = round_game!("p<5-6>", round_no: 3, ended: false)
+    round_game!("p<7-8>", round_no: 3, ended: false)
+    table_monitor!(state: "playing", game: auf_tisch, table_name: "Tisch 2")
+
+    html = I18n.with_locale(:de) do
+      ApplicationController.render(partial: "tournament_monitors/round_status", locals: {tournament_monitor: @tm})
+    end
+
+    assert_includes html, "Runde 3: 2 von 4 Spielen beendet"
+    assert_includes html, "Spiel um Platz 5 und 6 (Tisch 2)"
+    assert_includes html, "Spiel um Platz 7 und 8 (ohne Tisch)"
   end
 end

@@ -12,6 +12,15 @@ en:
       sets: "Sets"
       current_inning: "Current Inning"
       inputs: "Inputs"
+    round_status:
+      progress:
+        one: "Round %{round}: %{finished} of %{count} game finished"
+        other: "Round %{round}: %{finished} of %{count} games finished"
+      all_finished:
+        one: "Round %{round}: the game is finished"
+        other: "Round %{round}: all %{count} games finished"
+      open: "open:"
+      no_table: "no table"
     game_results:
       game: "Game"
       playera: "Player A"

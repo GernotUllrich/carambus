@@ -23,11 +23,37 @@ module TournamentMonitorState
   # traefe trivial zu und die Runde schaltete BEDINGUNGSLOS weiter. Deshalb greift sie nur,
   # wenn es fuer diese Runde ueberhaupt Spiele gibt; sonst entscheidet weiterhin der Tisch.
   def all_table_monitors_finished?
-    round_games = live_games.where(round_no: current_round)
+    round_games = current_round_games
     return round_games.where(ended_at: nil).none? if round_games.exists?
 
     !(table_monitors.joins(:game).map(&:state) & %w[warmup warmup_a warmup_b
                                                     match_shootout playing final_set_score set_over]).present?
+  end
+
+  # Die Spiele, an denen das Gate oben den Rundenabschluss entscheidet.
+  def current_round_games
+    live_games.where(round_no: current_round)
+  end
+
+  # Plan 17-01 (2026-09-12): Anzeige im Turnier-Monitor, WARUM die Runde nicht weiterschaltet
+  # (Befund T16-Lauf 2026-09-04: ein offenes Spiel an einem anderen Tisch wurde uebersehen).
+  # Liest dieselbe Menge wie das Gate — "offen" heisst allein `ended_at: nil`.
+  # nil im Tisch-Fallback: ohne Spiele mit round_no ist keine Aussage ueber Spiele moeglich,
+  # und "0 von 0" waere eine Scheinaussage.
+  def round_status
+    games = current_round_games.includes(:table_monitor).to_a
+    return nil if games.empty?
+
+    open_games = games.select { |game| game.ended_at.nil? }.sort_by { |game| [game.seqno.to_i, game.gname.to_s] }
+    {
+      round: current_round,
+      total: games.size,
+      finished: games.size - open_games.size,
+      # display_gname kann `<br />` tragen (KO-Runden) und ist nil fuer unbekannte Muster
+      open: open_games.map do |game|
+        {name: game.display_gname_lines.join(" ").presence || game.gname, table: game.table_monitor&.display_name}
+      end
+    }
   end
 
   def finalize_round

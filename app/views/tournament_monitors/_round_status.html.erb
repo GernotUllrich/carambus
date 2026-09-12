@@ -1,0 +1,15 @@
+<%# Plan 17-01: warum die Runde (noch) nicht weiterschaltet. Keine Zeile im Tisch-Fallback (round_status nil). %>
+<% status = tournament_monitor.round_status %>
+<% if status %>
+  <% if status[:open].empty? %>
+    <p class="text-sm text-gray-600 dark:text-gray-300 mb-2">
+      <%= t("tournament_monitors.round_status.all_finished", round: status[:round], count: status[:total]) %>
+    </p>
+  <% else %>
+    <div class="text-sm rounded border border-warning-400 bg-warning-50 dark:bg-warning-900 text-warning-900 dark:text-warning-200 px-3 py-2 mb-2">
+      <strong><%= t("tournament_monitors.round_status.progress", round: status[:round], finished: status[:finished], count: status[:total]) %></strong>
+      &mdash; <%= t("tournament_monitors.round_status.open") %>
+      <%= safe_join(status[:open].map { |game| "#{game[:name]} (#{game[:table] || t("tournament_monitors.round_status.no_table")})" }, ", ") %>
+    </div>
+  <% end %>
+<% end %>
