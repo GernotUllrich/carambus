@@ -28,7 +28,7 @@ Die Liste aller Teilnehmer eines Turniers in ClubCloud. Sie muss vor dem ersten 
 ## Carambus-Per-Region-Begriffe
 
 **Per-Region-Scenario**
-Eine Carambus-Instanz, die exklusiv für eine Region läuft (z.B. `carambus_nbv` für NBV, `carambus_bcw` für BCW). Jede Region hat eigene Domain, eigene PostgreSQL-DB und eigene devise-jwt-Secrets. Capistrano-Stages (`cap nbv deploy`) deployen pro Region.
+Eine Carambus-Instanz, die exklusiv für eine Region läuft (z.B. `carambus_nbv` für NBV). Jede Region hat eigene Domain, eigene PostgreSQL-DB und eigene Credentials (daraus das devise-jwt-Secret). Jedes Szenario wird mit `bin/rails "scenario:deploy[<name>]"` deployt (Stage `production`); Region-Stages wie `cap nbv deploy` gibt es nicht.
 
 **`Carambus.config.context`**
 Pflicht-Key in `config/carambus.yml`, der die Region-Identität der laufenden Instanz festlegt (z.B. `context: nbv`). Wird vom MCP-Server für Region-Filterung in Tool-Calls genutzt; ersetzt das frühere `User.cc_region`-Feld als Source-of-Truth.

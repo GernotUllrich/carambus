@@ -49,54 +49,51 @@ konfiguriert.
 ```
 
 **Per Region eine Carambus-Instanz** (Per-Region-Scenario): jede Region hat ihre
-eigene Domain, eigene PostgreSQL-DB, eigene devise-jwt-Secret-Konfig. Der
-`Carambus.config.context`-Key (in `config/carambus.yml`) bestimmt, in welcher
-Region die Instanz läuft.
+eigene Domain, eigene PostgreSQL-DB und eigene Credentials (daraus das JWT-Secret, siehe 4.1).
+Der `Carambus.config.context`-Key bestimmt, in welcher Region die Instanz läuft. Er entsteht wie
+die ganze `config/carambus.yml` aus der `config.yml` des Szenarios (`scenario.context`).
 
 ---
 
 ## 2. Per-Region-Scenario-Setup
 
-Eine neue Region (z.B. `bvbw.carambus.de`) wird als Capistrano-Scenario
-aufgesetzt:
+Eine neue Region (z.B. `bvbw.carambus.de`) ist ein weiteres **Szenario** und wird mit denselben
+Werkzeugen aufgesetzt wie ein Vereinsserver. Der Weg ist in der
+[Installationsübersicht](../administrators/installation-overview.md) beschrieben (Abschnitte
+„Szenario anlegen“ und „Anwendung deployen“); hier nur, was für einen Region-Server gilt:
 
-1. **Scenario-Verzeichnis** clonen (z.B. `carambus_bvbw` parallel zu `carambus_nbv`):
+1. **Szenario anlegen:** `carambus_data/scenarios/carambus_nbv/config.yml` nach
+   `carambus_data/scenarios/carambus_<region>/config.yml` kopieren und anpassen, u. a.:
+    - `scenario.name` und `basename` (= Szenarioname), `context` (Region, lowercase, z. B. `bvbw`),
+      `region_id`
+    - `api_url: https://api.carambus.de` — ein Region-Server zeigt auf die Authority. Daraus wird
+      `carambus_api_url` in der generierten `config/carambus.yml`. Ohne diesen Wert gilt die Instanz
+      als Authority und hat keine Schreib-Tools (Sektion 5).
+    - `environments.production`: `webserver_host` (die Region-Domain), `ssh_host`, `ssh_port`,
+      `cap_role: local`, `database_name`, `deploy_to`, `channel_prefix`
+
+    `config/carambus.yml` wird daraus generiert und nicht von Hand gepflegt. `scenario:create` ist
+    nicht zu empfehlen (siehe den Hinweis in der Installationsübersicht).
+
+2. **Credentials** unter `carambus_data/scenarios/carambus_<region>/production/credentials/`
+   ablegen (`production.yml.enc`, `production.key`), siehe Sektion 4.1.
+
+3. **DNS** auf den Server zeigen lassen (`bvbw.carambus.de` → A-Record) und ein
+   **SSL-Zertifikat** für die Domain anlegen (Let's Encrypt). Bei `ssl_enabled: true` erwartet die
+   generierte nginx-Konfiguration es unter `/etc/letsencrypt/live/<webserver_host>/`. Die
+   Werkzeugkette ruft certbot nicht auf; beides bleibt Handarbeit.
+
+4. **Werkzeugkette** aus einem carambus-Checkout, in dieser Reihenfolge:
    ```bash
-   cd ~/DEV/carambus
-   git clone <upstream-repo> carambus_bvbw
-   cd carambus_bvbw
+   bin/rails "scenario:prepare_deploy[carambus_<region>]"
+   bin/rails "scenario:prepare_development[carambus_<region>,development]"
+   bin/rails "scenario:reset_server_db[carambus_<region>]"   # DESTRUKTIV
+   bin/rails "scenario:deploy[carambus_<region>]"
    ```
+   `prepare_deploy` richtet nginx, den Puma-Dienst und die Konfiguration auf dem Server ein und
+   lädt die Credentials hoch; die Produktions-Datenbank legt erst `reset_server_db` an.
 
-2. **`config/carambus.yml`** erweitern:
-   ```yaml
-   bvbw:
-     context: bvbw          # Pflicht — Per-Region-Identifier
-     application_name: bvbw
-     api_url: https://bvbw.carambus.de
-     # … weitere Per-Scenario-Werte
-   ```
-
-3. **DNS** auf den Hetzner-Server pointen (`bvbw.carambus.de` → A-Record).
-
-4. **NGINX-vhost** ergänzen (`/etc/nginx/sites-enabled/carambus_bvbw.conf`) mit SSL via
-   Let's Encrypt.
-
-5. **PostgreSQL-DB** anlegen (`carambus_bvbw_production`).
-
-6. **Capistrano-Stage** `config/deploy/bvbw.rb` als Kopie eines vorhandenen Stages
-   konfigurieren.
-
-7. **Initial-Deploy:**
-   ```bash
-   cap bvbw deploy:setup_secrets   # einmalig
-   cap bvbw deploy
-   ```
-
-8. **JWT-Secret-Konsistenz prüfen:** `config/credentials/production.yml.enc` muss
-   `devise_jwt_secret_key` enthalten (siehe Sektion 4) — pro Region eigene Secrets,
-   damit Tokens nicht über Regionen hinweg gelten.
-
-9. **Smoke-Test:** Browser-Login auf `https://bvbw.carambus.de/login` → `/mcp/setup`
+5. **Smoke-Test:** Browser-Login auf `https://bvbw.carambus.de/login` → `/mcp/setup`
    öffnen → Setup-Befehl kopieren → in Terminal pasten → `claude mcp get
    carambus-remote` zeigt `connected`.
 
@@ -130,7 +127,9 @@ copy-paste-fertigen `claude mcp add-json`-Befehl mit eingebettetem Bearer-Token.
 
 ```ruby
 config.jwt do |jwt|
-  jwt.secret = Rails.application.credentials.devise_jwt_secret_key
+  jwt.secret = Rails.application.credentials.devise_jwt_secret_key.presence ||
+    ENV["DEVISE_JWT_SECRET_KEY"].presence ||
+    Rails.application.secret_key_base
   jwt.dispatch_requests = [
     ['POST', %r{^/login$}]
   ]
@@ -140,6 +139,16 @@ config.jwt do |jwt|
   jwt.expiration_time = (Carambus.config.jwt_expiration_days || 90).days.to_i
 end
 ```
+
+Das JWT-Secret kommt also aus den Credentials (`devise_jwt_secret_key`), sonst aus der
+Umgebungsvariable `DEVISE_JWT_SECRET_KEY`, sonst aus `secret_key_base`.
+
+**Herkunft der Credentials:** Sie liegen nicht im Repo. `production.yml.enc` und `production.key`
+kommen aus `carambus_data/scenarios/<szenario>/production/credentials/`; `prepare_deploy` lädt sie
+nach `shared/config/credentials/` auf dem Server (ohne sie bricht es ab). Jede Region hat damit eigene
+Credentials; ob darin jeweils ein eigener `devise_jwt_secret_key` steht, lässt sich nur durch
+Entschlüsseln prüfen. **Offen:** Woher ein fremder Betreiber `production.key` bekommt, ist nicht
+geklärt — kein Task erzeugt den Key.
 
 `app/models/user.rb` (Auszug):
 
@@ -276,21 +285,26 @@ danach beim Aufruf, welche Schreib-Aktionen durchgehen (siehe 5.1). Details für
 
 ## 7. Cap-Deploy-Workflow (Per-Region-Deploys)
 
-Jede Region hat einen eigenen Capistrano-Stage:
+Region-Stages gibt es nicht: `config/deploy/` kennt nur `production` (und `staging`). Jedes
+Szenario wird mit seiner Stage `production` deployt:
 
 ```bash
-# Aus carambus_master (oder dem region-spezifischen Workspace):
-cap nbv deploy           # NBV-Region
-cap bvbw deploy          # BVBW-Region
-cap production deploy    # carambus.de (zentrale Master-API)
+# Aus einem aktuellen carambus-Checkout:
+bin/rails "scenario:deploy[carambus_nbv]"    # NBV-Region (nbv.carambus.de)
+bin/rails "scenario:deploy[carambus_<region>]"
 ```
+
+`scenario:deploy` wechselt in den Rails-Root des Szenarios (`~/DEV/carambus/<szenario>`, legt
+`prepare_development` an) und ruft dort `cap production deploy`. Die zentrale API `api.carambus.de`
+ist das Szenario `carambus_api` (`cap_role: api`); `prepare_deploy` lehnt es ab, deployt wird dort
+direkt mit `cap production deploy` im Checkout `carambus_api`. `carambus.de` ist ein eigenes Szenario
+(`carambus`), nicht die zentrale API.
 
 **Cross-Repo-Deploy-Pattern** (für Doku-Updates):
 
-1. Doku in `carambus_bcw` editieren + committen.
+1. Doku in einem Checkout editieren + committen.
 2. Push origin/master.
-3. `carambus_master`: `git pull` (fast-forward).
-4. `carambus_nbv` (oder Ziel-Region): lokale Drift verwerfen, pull, deploy:
+3. `carambus_nbv` (oder Ziel-Region): lokale Drift verwerfen, pull, deploy:
    ```bash
    cd ~/DEV/carambus/carambus_nbv
    git checkout -- public/docs/managers/    # falls lokal abgewichen
@@ -383,7 +397,7 @@ angemeldeten User (`authenticate_user!`) und prüft die Einwilligung nicht.
 | Symptom | Ursache | Lösung |
 |---------|---------|--------|
 | Sportwart sieht im Login-Token-Banner Restlaufzeit „expired" | Token >90 Tage alt | Sportwart re-loginnen + neuen Setup-Befehl pasten |
-| `claude mcp get carambus-remote` → 401 trotz frischem Token | JWT-Secret-Inkonsistenz Server / Lokal | `RAILS_MASTER_KEY` + `devise_jwt_secret_key` in production-Credentials prüfen; Per-Region eigene Secrets verwenden |
+| `claude mcp get carambus-remote` → 401 trotz frischem Token | JWT-Secret-Inkonsistenz Server / Lokal | Credentials auf dem Server prüfen (`shared/config/credentials/production.key` passt zu `production.yml.enc`, hochgeladen von `prepare_deploy`) und die Fallback-Kette des JWT-Secrets (Sektion 4.1) |
 | Tool-Liste leer (0 Tools) trotz erfolgreichem Connect | Login-Token fehlt, ist abgelaufen oder widerrufen (Auth-Problem; jeder angemeldete User bekommt mindestens die lesenden Tools) | Re-Login und neuen Setup-Befehl pasten (Sektion 3) |
 | Nur rund 30 Tools, Schreib-Tools fehlen | Keine Sportwart-Persona und keine Turnierleitung, oder die Instanz ist die Authority | Persona setzen bzw. Turnierleitung zuweisen (Sektion 5.2); für Schreibaktionen mit dem Region- oder Local-Server verbinden |
 | Schreib-Aktion abgelehnt trotz gelisteter Schreib-Tools | Wirkbereich deckt Spielort/Disziplin des Turniers nicht ab, oder User ist nicht Turnierleiter dieses Turniers | Wirkbereich oder Persona anpassen (`persona_grants: ["landessportwart"]` für alle Spielorte) bzw. Turnierleitung zuweisen (Sektion 5.2) |
@@ -394,8 +408,9 @@ angemeldeten User (`authenticate_user!`) und prüft die Einwilligung nicht.
 Server-Log für Forensik:
 
 ```bash
-tail -f /var/www/carambus/current/log/production.log
-tail -f /var/www/carambus/current/log/mcp-audit-trail.log
+# /var/www/<basename>/current/log/…, z. B. für die NBV-Region:
+tail -f /var/www/carambus_nbv/current/log/production.log
+tail -f /var/www/carambus_nbv/current/log/mcp-audit-trail.log
 ```
 
 ---
