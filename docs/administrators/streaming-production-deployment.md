@@ -10,7 +10,7 @@ This guide covers deploying the text-based streaming overlay system to productio
 2. [Admin Dashboard Configuration](#admin-dashboard-configuration)
 3. [Raspberry Pi Setup](#raspberry-pi-setup)
 4. [Deployment Steps](#deployment-steps)
-5. [Monitoring & Troubleshooting](#monitoring--troubleshooting)
+5. [Monitoring & Troubleshooting](#monitoring-troubleshooting)
 
 ---
 
