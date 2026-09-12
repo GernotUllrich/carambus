@@ -24,13 +24,13 @@ Die **[ClubCloud](https://club-cloud.de/)** ist eine webbasierte Verwaltungssoft
 
 Stattdessen betreibt jeder Billard-Verband seine **eigene ClubCloud-Instanz**:
 
-### Verbände MIT ClubCloud (14 von 17):
+### Verbände MIT ClubCloud (13 von 17):
 
 | Verband | Name | ClubCloud-URL |
 |---------|------|---------------|
 | **DBU** | Deutsche Billard-Union | [billard-union.net](https://billard-union.net/) |
 | **BBBV** | Brandenburgischer Billardverband | [billard-brandenburg.net](https://billard-brandenburg.net/) |
-| **BLMR** | Billard LV Mittleres Rheinland | [blmr.club-cloud.de](https://blmr.club-cloud.de/) |
+| **BLMR** | Billard LV Mittleres Rheinland | [billard-blmr.de](https://billard-blmr.de/) |
 | **BLVN** | Billard LV Niedersachsen | [billard-niedersachsen.de](https://billard-niedersachsen.de/) |
 | **BVB** | Billard-Verband Berlin | [billardverband-berlin.net](https://billardverband-berlin.net/) |
 | **BVBW** | Billard-Verband Baden-Württemberg | [billard-bvbw.de](https://billard-bvbw.de/) |
@@ -41,13 +41,13 @@ Stattdessen betreibt jeder Billard-Verband seine **eigene ClubCloud-Instanz**:
 | **BVW** | Billard-Verband Westfalen | [westfalenbillard.net](https://westfalenbillard.net/) |
 | **NBV** | Norddeutscher Billard Verband | [ndbv.de](https://ndbv.de/) |
 | **SBV** | Sächsischer Billardverband | [billard-sachsen.de](https://billard-sachsen.de/) |
-| **TBV** | Thüringer Billard Verband | [billard-thueringen.de](https://billard-thueringen.de/) |
 
-### Verbände OHNE ClubCloud (3 von 17):
+### Verbände OHNE ClubCloud (4 von 17):
 
 | Verband | Name | Alternative Lösung |
 |---------|------|-------------------|
-| **BBV** | Bayerischer Billardverband | [billardbayern.de](https://billardbayern.de/) (eigenes System) |
+| **TBV** | Thüringer Billard Verband | LigaManager ([ligen.billard.center](https://ligen.billard.center/)); Carambus importiert die Ligadaten täglich um 3:30 Uhr (`liga_manager:daily_import`) |
+| **BBV** | Bayerischer Billardverband | [billardbayern.de](https://billardbayern.de/); Carambus importiert die Ligadaten aus NuLiga ([bbv-billard.liga.nu](https://bbv-billard.liga.nu/)) täglich um 3:45 Uhr (`nu_liga:daily_import`) |
 | **HBU** | Hessische Billard Union | (Status unklar) |
 | **BLVSA** | Billard LV Sachsen-Anhalt | [blv-sa.de](https://www.blv-sa.de/) (eigenes System) |
 
@@ -74,12 +74,12 @@ Stattdessen betreibt jeder Billard-Verband seine **eigene ClubCloud-Instanz**:
 Carambus ist eine **eigenständige, unabhängige Anwendung**, die Daten von den ClubCloud-Instanzen **liest** (scraped/extrahiert).
 
 ```
-ClubCloud-Instanzen (14 regionale Server)
+ClubCloud-Instanzen (13 Server, einschließlich DBU)
   ndbv.de (NBV)
   billardverband-rlp.de (BVRP)
   westfalenbillard.net (BVW)
   billard-bvbw.de (BVBW)
-  ... (10 weitere)
+  ... (9 weitere)
         ↓ Scraping (automatisch + manuell)
 Carambus API Server (zentrale Datensammlung)
         ↓ Synchronisation (regional gefiltert)
@@ -112,6 +112,9 @@ Diese sind die Grundlage für das automatisierte Turnier- und Table-Management (
 - 🕐 **Täglich um 4:00 Uhr morgens** (Nacht-Job)
 - Aktualisiert alle Regionen
 - Läuft auf dem API Server
+- Voraussetzung: Der Crontab des API-Servers ist aktiv. Laut `config/schedule.rb` kann er bewusst abgeschaltet
+  sein, solange die ClubCloud ruht (`whenever:clear_crontab`). Prüfen auf dem API-Server mit `crontab -l` als
+  Deploy-Benutzer.
 
 **Manuell:**
 - 🎯 **Vor Turnieren** - Aktualisierung der Setzlisten
@@ -194,9 +197,10 @@ Club.find_by(dbu_nr: 67890)
 ### Authentifizierung
 
 **Für Scraping (Lesen):**
-- ✅ **Keine Authentifizierung nötig!**
-- Carambus scrap nur **öffentlich zugängliche** Webseiten
-- Gleiche Daten die jeder Besucher sieht
+- ✅ Der tägliche Haupt-Scrape braucht **keine Authentifizierung**
+- Er liest **öffentlich zugängliche** Webseiten, also die Daten, die jeder Besucher sieht
+- Ausnahme: Die Authority liest zusätzlich Turnier-Parameter (Shot-Clock, Ausspielziel, Turnierplan) aus dem
+  Admin-Bereich der ClubCloud und meldet sich dafür an (`clubcloud:scrape_admin_params`, täglich 4:30 Uhr)
 
 **Für CSV-Upload (Schreiben):**
 - 🔐 **Authentifizierung erforderlich**
@@ -230,11 +234,14 @@ club.synonyms = "BC Hamburg, Billard Club Hamburg, BCH"
 ```
 
 **2. Manuelle Merge-Funktionen**
-- Index-Listen haben **Merge-Buttons**
-- Admin kann Duplikate zusammenführen
-- Player.merge(player1, player2)
-- Club.merge(club1, club2)
-- Tournament.merge(tournament1, tournament2)
+- Die Index-Listen von Spielern, Vereinen (nur für Admins) und Locations (nicht auf Local-Servern) haben ein
+  **Merge-Formular**: ID des Datensatzes, der bleibt, dazu die IDs der Dubletten (kommagetrennt), dann
+  „merge and delete slave“
+- Spieler-Dubletten listet zusätzlich die Admin-Oberfläche unter „Player Duplicates“ (`/admin/player_duplicates`)
+- Im Code: `Player.merge_players(master, [dubletten])` und `Club.merge(club_a, club_b)`
+- Gescrapte Datensätze sind global; auf einem Local-Server blockiert der LocalProtector Änderungen an ihnen
+  (siehe Problem 3). Zusammengeführt wird deshalb auf der Authority.
+- Turnier-Dubletten: siehe [Tournament Duplicate Handling](../developers/tournament-duplicate-handling.md)
 
 **3. DBU-ID als Master**
 ```ruby
@@ -261,9 +268,11 @@ end
 **Beispiel:** NBV trägt falsches Turnierdatum ein
 
 **Carambus-Lösung:**
-- Local Overrides möglich (LocalProtector)
-- Admin kann Daten lokal korrigieren
-- Scraping überschreibt **NICHT** geschützte Local Data
+- Gescrapte Datensätze (ID < 50.000.000) sind auf Local-Servern **schreibgeschützt**: Der LocalProtector
+  verwirft jedes Speichern eines solchen Datensatzes. Eine lokale Korrektur ist also nicht möglich.
+- Korrigiert wird in der Quelle (ClubCloud) bzw. auf der Authority; die Korrektur kommt per Sync auf die
+  Local-Server.
+- Lokal anlegen lassen sich nur eigene Datensätze (ID >= 50.000.000). Diese berührt das Scraping nicht.
 
 ---
 
@@ -279,15 +288,19 @@ end
 1. Turnier in Carambus vorbereiten und starten
 2. Checkbox "Ergebnisse automatisch in ClubCloud hochladen" aktivieren (Standard)
 3. Während des Turniers: Jedes abgeschlossene Spiel wird automatisch übertragen
-4. Hintergrund-Prozess überträgt Spielergebnisse sofort nach Finalisierung
-5. Automatische Fehlerbehandlung und Wiederholungsversuche
-6. Status-Überwachung im Tournament Monitor
+4. Die Übertragung läuft direkt beim Abschluss des Spiels
+5. Schlägt sie fehl, gibt es keinen automatischen Wiederholungsversuch: Der Fehler steht in
+   tournament.data["cc_upload_errors"] und im Log
+6. Erneut hochgeladen wird, wenn das Ergebnis im Turnier-Monitor noch einmal gespeichert wird; sonst per CSV
 ```
+
+Eine Anzeige der Upload-Fehler in der Oberfläche gibt es nicht; wo sie stehen und wie man sie findet, beschreibt
+[ClubCloud Upload-Feedback](clubcloud_upload_feedback.md).
 
 **Vorteile:**
 - ✅ **Echtzeit-Updates:** Ergebnisse sofort sichtbar
 - ✅ **Automatisch:** Keine manuelle Arbeit nötig
-- ✅ **Robust:** Automatische Fehlerbehandlung
+- ✅ **Nachvollziehbar:** Fehler werden je Spiel protokolliert
 - ✅ **Transparent:** Live-Verfolgung möglich
 
 **Technische Details:**
@@ -341,7 +354,7 @@ end
 | **Internet** | Erforderlich | Optional |
 | **Manuell** | Nein | Ja |
 | **Echtzeit** | Ja | Nein |
-| **Fehlerbehandlung** | Automatisch | Manuell |
+| **Fehlerbehandlung** | Protokoll in tournament.data und Log, Nachholen manuell | Manuell |
 | **Kontrolle** | Automatisch | Manuell möglich |
 | **Empfohlen für** | Standard-Turniere | Offline-Turniere |
 
@@ -419,10 +432,10 @@ Problem:
 
 Lösung in Carambus:
 1. Duplikat-Erkennung (gleiche DBU-ID)
-2. Admin nutzt Merge-Funktion in Carambus
-3. Player.merge(player_nbv, player_bvrp)
-4. Synonyme werden gespeichert
-5. Zukünftige Scrapes erkennen beide Namen als gleichen Spieler
+2. Admin nutzt die Merge-Funktion auf der Authority
+3. Player.merge_players(player_nbv, [player_bvrp])
+4. Die Dublette wird gelöscht; Spiele, Ranglisten und Setzlisten zeigen auf den verbleibenden Spieler
+5. Künftige Scrapes ordnen über DBU-Nr bzw. cc_id zu (Synonyme gibt es nur für Vereine, Disziplinen und Locations)
 ```
 
 ---
@@ -443,7 +456,7 @@ A: Ja! Mit **Local Data** (ID >= 50.000.000) können Sie komplett unabhängig ar
 A: Das Scraping bricht oder liefert fehlerhafte Daten. Carambus-Entwickler müssen dann die Parsing-Logik anpassen. Regelmäßige Updates wichtig!
 
 **Q: Kann Carambus mit mehreren Regionen gleichzeitig arbeiten?**  
-A: Ja! Der API Server scrap alle 14+ ClubCloud-Instanzen. Ein Local Server kann auf Daten mehrerer Regionen zugreifen (konfigurierbar).
+A: Ja! Der API Server scrapt alle 13 ClubCloud-Instanzen und importiert zusätzlich TBV (LigaManager) und BBV (NuLiga). Ein Local Server kann auf Daten mehrerer Regionen zugreifen (konfigurierbar).
 
 **Q: Wie oft sollte ich manuell scrapen?**  
 A: 
@@ -452,7 +465,8 @@ A:
 - Bei **Änderungen:** Wenn ClubCloud-Daten korrigiert wurden
 
 **Q: Werden gelöschte Daten in ClubCloud auch in Carambus gelöscht?**  
-A: Nein. Carambus markiert sie nur als "nicht mehr in ClubCloud". Historische Daten bleiben erhalten (wichtig für Statistiken).
+A: Einen Marker „nicht mehr in ClubCloud“ führt Carambus nicht. Wie ein in der ClubCloud gelöschter Eintrag
+behandelt wird, hängt vom jeweiligen Scraper ab; eine allgemeine Zusage gibt es nicht.
 
 ---
 
@@ -460,10 +474,10 @@ A: Nein. Carambus markiert sie nur als "nicht mehr in ClubCloud". Historische Da
 
 **Carambus-ClubCloud Integration:**
 
-✅ **Scraping** von 14 regionalen ClubCloud-Instanzen  
+✅ **Scraping** von 13 ClubCloud-Instanzen, dazu Import aus LigaManager (TBV) und NuLiga (BBV)  
 ✅ **Automatisch** täglich um 4:00 Uhr  
 ✅ **Manuell** vor Turnieren/Spieltagen  
-✅ **Keine Authentifizierung** für Lesen (öffentliche Daten)  
+✅ **Keine Authentifizierung** für den Haupt-Scrape (öffentliche Seiten); Turnier-Admin-Parameter mit Login  
 ✅ **Automatischer Upload** einzelner Spiele in Echtzeit (Standard seit 2024)  
 ✅ **CSV-Upload** als Backup für Ergebnisse zurück zur ClubCloud  
 ✅ **DBU-IDs** als globale Master-Identifikatoren  
@@ -486,6 +500,6 @@ Carambus ist **unabhängig** von ClubCloud und funktioniert auch komplett **ohne
 ---
 
 **Version:** 1.0  
-**Letzte Aktualisierung:** Oktober 2024  
+**Letzte Aktualisierung:** September 2026  
 **Status:** Vollständig
 

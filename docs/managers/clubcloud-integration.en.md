@@ -24,13 +24,13 @@
 
 Instead, each billard association operates its **own ClubCloud instance**:
 
-### Associations WITH ClubCloud (14 of 17):
+### Associations WITH ClubCloud (13 of 17):
 
 | Association | Name | ClubCloud URL |
 |------------|------|---------------|
 | **DBU** | Deutsche Billard-Union | [billard-union.net](https://billard-union.net/) |
 | **BBBV** | Brandenburgischer Billardverband | [billard-brandenburg.net](https://billard-brandenburg.net/) |
-| **BLMR** | Billard LV Mittleres Rheinland | [blmr.club-cloud.de](https://blmr.club-cloud.de/) |
+| **BLMR** | Billard LV Mittleres Rheinland | [billard-blmr.de](https://billard-blmr.de/) |
 | **BLVN** | Billard LV Niedersachsen | [billard-niedersachsen.de](https://billard-niedersachsen.de/) |
 | **BVB** | Billard-Verband Berlin | [billardverband-berlin.net](https://billardverband-berlin.net/) |
 | **BVBW** | Billard-Verband Baden-Württemberg | [billard-bvbw.de](https://billard-bvbw.de/) |
@@ -41,13 +41,13 @@ Instead, each billard association operates its **own ClubCloud instance**:
 | **BVW** | Billard-Verband Westfalen | [westfalenbillard.net](https://westfalenbillard.net/) |
 | **NBV** | Norddeutscher Billard Verband | [ndbv.de](https://ndbv.de/) |
 | **SBV** | Sächsischer Billardverband | [billard-sachsen.de](https://billard-sachsen.de/) |
-| **TBV** | Thüringer Billard Verband | [billard-thueringen.de](https://billard-thueringen.de/) |
 
-### Associations WITHOUT ClubCloud (3 of 17):
+### Associations WITHOUT ClubCloud (4 of 17):
 
 | Association | Name | Alternative Solution |
 |------------|------|---------------------|
-| **BBV** | Bayerischer Billardverband | [billardbayern.de](https://billardbayern.de/) (own system) |
+| **TBV** | Thüringer Billard Verband | LigaManager ([ligen.billard.center](https://ligen.billard.center/)); Carambus imports the league data daily at 3:30 AM (`liga_manager:daily_import`) |
+| **BBV** | Bayerischer Billardverband | [billardbayern.de](https://billardbayern.de/); Carambus imports the league data from NuLiga ([bbv-billard.liga.nu](https://bbv-billard.liga.nu/)) daily at 3:45 AM (`nu_liga:daily_import`) |
 | **HBU** | Hessische Billard Union | (status unclear) |
 | **BLVSA** | Billard LV Sachsen-Anhalt | [blv-sa.de](https://www.blv-sa.de/) (own system) |
 
@@ -74,12 +74,12 @@ Instead, each billard association operates its **own ClubCloud instance**:
 Carambus is an **independent, standalone application** that **reads** (scrapes/extracts) data from ClubCloud instances.
 
 ```
-ClubCloud Instances (14 regional servers)
+ClubCloud Instances (13 servers, including DBU)
   ndbv.de (NBV)
   billardverband-rlp.de (BVRP)
   westfalenbillard.net (BVW)
   billard-bvbw.de (BVBW)
-  ... (10 more)
+  ... (9 more)
         ↓ Scraping (automatic + manual)
 Carambus API Server (central data collection)
         ↓ Synchronization (regionally filtered)
@@ -112,6 +112,9 @@ These are the basis for automated tournament and table management (TournamentMon
 - 🕐 **Daily at 4:00 AM** (night job)
 - Updates all regions
 - Runs on API Server
+- Prerequisite: the API server's crontab is active. According to `config/schedule.rb` it may be switched off
+  deliberately while the ClubCloud is dormant (`whenever:clear_crontab`). Check on the API server with
+  `crontab -l` as the deploy user.
 
 **Manually:**
 - 🎯 **Before tournaments** - Update seeding lists
@@ -194,9 +197,10 @@ Club.find_by(dbu_nr: 67890)
 ### Authentication
 
 **For Scraping (Reading):**
-- ✅ **No authentication needed!**
-- Carambus only scrapes **publicly accessible** web pages
-- Same data any visitor sees
+- ✅ The daily main scrape needs **no authentication**
+- It reads **publicly accessible** web pages, i.e. the data any visitor sees
+- Exception: the Authority additionally reads tournament parameters (shot clock, target score, tournament plan)
+  from the ClubCloud admin area and logs in for that (`clubcloud:scrape_admin_params`, daily at 4:30 AM)
 
 **For CSV Upload (Writing):**
 - 🔐 **Authentication required**
@@ -230,11 +234,14 @@ club.synonyms = "BC Hamburg, Billard Club Hamburg, BCH"
 ```
 
 **2. Manual Merge Functions**
-- Index lists have **Merge buttons**
-- Admin can merge duplicates
-- Player.merge(player1, player2)
-- Club.merge(club1, club2)
-- Tournament.merge(tournament1, tournament2)
+- The index lists of players, clubs (admins only) and locations (not on local servers) have a **merge form**:
+  ID of the record that stays, plus the IDs of the duplicates (comma-separated), then
+  "merge and delete slave"
+- Player duplicates are also listed in the admin interface under "Player Duplicates" (`/admin/player_duplicates`)
+- In code: `Player.merge_players(master, [duplicates])` and `Club.merge(club_a, club_b)`
+- Scraped records are global; on a local server the LocalProtector blocks changes to them (see Problem 3).
+  Merging therefore happens on the Authority.
+- Tournament duplicates: see [Tournament Duplicate Handling](../developers/tournament-duplicate-handling.md)
 
 **3. DBU-ID as Master**
 ```ruby
@@ -261,9 +268,10 @@ end
 **Example:** NBV enters wrong tournament date
 
 **Carambus Solution:**
-- Local overrides possible (LocalProtector)
-- Admin can correct data locally
-- Scraping does **NOT** overwrite protected Local Data
+- Scraped records (ID < 50,000,000) are **read-only** on local servers: the LocalProtector discards every save
+  of such a record. A local correction is therefore not possible.
+- Corrections are made at the source (ClubCloud) or on the Authority; they reach the local servers via sync.
+- Only your own records (ID >= 50,000,000) can be created locally. Scraping does not touch them.
 
 ---
 
@@ -279,15 +287,19 @@ end
 1. Prepare and start tournament in Carambus
 2. Enable checkbox "Automatically upload results to ClubCloud" (default)
 3. During tournament: Each completed game is automatically transferred
-4. Background process transfers game results immediately after finalization
-5. Automatic error handling and retry attempts
-6. Status monitoring in Tournament Monitor
+4. The transfer runs directly when the game is finalized
+5. If it fails, there is no automatic retry: the error is stored in
+   tournament.data["cc_upload_errors"] and in the log
+6. The upload is repeated when the result is saved again in the Tournament Monitor; otherwise via CSV
 ```
+
+The user interface does not display upload errors; where they are stored and how to find them is described in
+[ClubCloud Upload Feedback](clubcloud_upload_feedback.md).
 
 **Advantages:**
 - ✅ **Real-time updates:** Results immediately visible
 - ✅ **Automatic:** No manual work needed
-- ✅ **Robust:** Automatic error handling
+- ✅ **Traceable:** Errors are logged per game
 - ✅ **Transparent:** Live tracking possible
 
 **Technical Details:**
@@ -341,7 +353,7 @@ end
 | **Internet** | Required | Optional |
 | **Manual** | No | Yes |
 | **Real-time** | Yes | No |
-| **Error handling** | Automatic | Manual |
+| **Error handling** | Logged in tournament.data and log, catch-up manual | Manual |
 | **Control** | Automatic | Manual possible |
 | **Recommended for** | Standard tournaments | Offline tournaments |
 
@@ -419,10 +431,10 @@ Problem:
 
 Solution in Carambus:
 1. Duplicate detection (same DBU-ID)
-2. Admin uses merge function in Carambus
-3. Player.merge(player_nbv, player_bvrp)
-4. Synonyms are stored
-5. Future scrapes recognize both names as same player
+2. Admin uses the merge function on the Authority
+3. Player.merge_players(player_nbv, [player_bvrp])
+4. The duplicate is deleted; games, rankings and seedings point to the remaining player
+5. Future scrapes match via DBU number or cc_id (synonyms exist only for clubs, disciplines and locations)
 ```
 
 ---
@@ -443,7 +455,7 @@ A: Yes! With **Local Data** (ID >= 50,000,000) you can work completely independe
 A: Scraping breaks or delivers faulty data. Carambus developers must then adapt the parsing logic. Regular updates important!
 
 **Q: Can Carambus work with multiple regions simultaneously?**  
-A: Yes! The API Server scrapes all 14+ ClubCloud instances. A Local Server can access data from multiple regions (configurable).
+A: Yes! The API Server scrapes all 13 ClubCloud instances and additionally imports TBV (LigaManager) and BBV (NuLiga). A Local Server can access data from multiple regions (configurable).
 
 **Q: How often should I manually scrape?**  
 A: 
@@ -452,7 +464,8 @@ A:
 - After **changes:** When ClubCloud data was corrected
 
 **Q: Are deleted data in ClubCloud also deleted in Carambus?**  
-A: No. Carambus only marks them as "no longer in ClubCloud". Historical data is preserved (important for statistics).
+A: Carambus has no "no longer in ClubCloud" marker. How an entry deleted in the ClubCloud is handled depends on
+the respective scraper; there is no general guarantee.
 
 ---
 
@@ -460,10 +473,10 @@ A: No. Carambus only marks them as "no longer in ClubCloud". Historical data is 
 
 **Carambus-ClubCloud Integration:**
 
-✅ **Scraping** from 14 regional ClubCloud instances  
+✅ **Scraping** from 13 ClubCloud instances, plus import from LigaManager (TBV) and NuLiga (BBV)  
 ✅ **Automatic** daily at 4:00 AM  
 ✅ **Manual** before tournaments/match days  
-✅ **No authentication** for reading (public data)  
+✅ **No authentication** for the main scrape (public pages); tournament admin parameters with login  
 ✅ **Automatic upload** of individual games in real-time (default since 2024)  
 ✅ **CSV upload** as backup for results back to ClubCloud  
 ✅ **DBU-IDs** as global master identifiers  
@@ -486,6 +499,6 @@ Carambus is **independent** of ClubCloud and works completely **without** it. Sc
 ---
 
 **Version:** 1.0  
-**Last Update:** October 2024  
+**Last Update:** September 2026  
 **Status:** Complete
 
