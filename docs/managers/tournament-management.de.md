@@ -81,29 +81,39 @@ Die meisten Änderungen — Sortierung, in-place-Edits einzelner Felder — werd
 <a id="step-5-finish-seeding"></a>
 ### Schritt 5: Teilnehmerliste abschließen
 
-**Wichtig zum Verständnis:** Die im Wizard angezeigten „Schritt 4" und „Schritt 5" sind **keine eigenen Wizard-Zustände**, sondern **Aktions-Links** auf der Teilnehmerliste-Seite:
+Im Wizard folgen zwei Schritte aufeinander (`_wizard_steps_v2`). Ihre Nummer hängt vom Veranstalter ab: bei
+Verbandsturnieren 4 und 5, bei Vereinsturnieren 3 und 4.
 
-- **„Schritt 4: Teilnehmerliste bearbeiten"** — Link zur weiteren Bearbeitung der Teilnehmerliste
-- **„Schritt 5: Teilnehmerliste abschließen"** — Link, der den State-Übergang auslöst und in die Turniermodus-Auswahl führt
+- **„Teilnehmerliste finalisieren"** mit dem Knopf **„Teilnehmerliste abschließen"**. Vor dem Abschluss fragt
+  Carambus nach („Nach diesem Schritt können keine Spieler mehr hinzugefügt oder entfernt werden!").
+- **„Turniermodus festlegen"** mit dem Knopf **„Modus auswählen"**.
 
-Zwischen den beiden gibt es im Wizard keinen separaten Zustand. Der Wizard-Fortschrittsbalken springt nach dem Abschließen direkt zur Modus-Auswahl, weil „Schritt 4" eben nur ein Aktions-Link war.
+Wenn die Teilnehmerliste vollständig ist, klick auf **„Teilnehmerliste abschließen"** und bestätige die
+Rückfrage. Damit wird die [Setzliste](#glossary-wizard) festgeschrieben und das Turnier geht in den nächsten
+Wizard-Schritt über („Turniermodus festlegen").
 
-Wenn die Teilnehmerliste vollständig ist, klick auf den Link **„Teilnehmerliste abschließen"**. Damit wird die [Setzliste](#glossary-wizard) festgeschrieben und das Turnier geht in den nächsten Wizard-Zustand über („Schritt 5: Turniermodus festlegen").
+**Abgleich mit der ClubCloud:** Ist das Turnier mit einer ClubCloud-Meldeliste verknüpft, gibt Carambus die
+Meldeliste beim Abschließen im Hintergrund in der ClubCloud frei. Das geschieht nur, wenn für dich ein
+ClubCloud-Zugang auflösbar ist: dein eigener aus dem Profil, oder als Turnierleiter der des Sportwarts, der dich
+eingesetzt hat (siehe [Eigener ClubCloud-Zugang](clubcloud-eigener-zugang.md)). Ohne Zugang oder bei einem
+CC-Fehler bleibt die ClubCloud unverändert. Carambus meldet das nicht in der Oberfläche, es steht nur im
+Server-Log. Prüf deshalb in der ClubCloud, ob die Meldeliste freigegeben ist, und hol den Schritt dort sonst von
+Hand nach.
 
 !!! warning "Teilnehmerliste abschließen — was ist möglich, was nicht"
     Der Klick auf **Teilnehmerliste abschließen** ist normalerweise verbindlich:
     Du wechselst in die Turniermodus-Auswahl und kannst die Teilnehmerliste
     nicht über den normalen Wizard-Pfad mehr ändern. **Im Notfall** kannst du
-    aber das gesamte Turnier-Setup über den Link **„Zurücksetzen des
-    Turnier-Monitors"** am unteren Ende der Turnierseite zurücksetzen — das
-    ist möglich, aber bei bereits laufendem Turnier mit Datenverlust
-    verbunden (siehe [Schritt 12](#step-12-monitor) für die Details).
+    das Turnier-Setup über **„Zurücksetzen des Turnier-Monitors"** am unteren
+    Ende der Turnierseite zurücksetzen, solange das Turnier noch nicht
+    gestartet ist. Nach dem Start ist dieser Reset gesperrt (siehe
+    [Schritt 12](#step-12-monitor)).
 <!-- ref: F-09 -->
 
 <a id="step-6-mode-selection"></a>
 ### Schritt 6: Turniermodus auswählen {#mode-selection}
 
-Wizard-Schritt 5 öffnet eine separate Seite „Abschließende Auswahl des Austragungsmodus". Du siehst **eine oder mehrere Karten** mit den verfügbaren [Turnierplänen](#glossary-wizard) — die Auswahl hängt von der Teilnehmerzahl ab und enthält alle Pläne, die zur aktuellen Teilnehmerzahl passen, darunter ein dynamisch generierter Plan **`Default{n}`**, wobei `{n}` die aktuelle Teilnehmerzahl ist.
+Der Wizard-Schritt „Turniermodus festlegen" öffnet eine separate Seite „Abschließende Auswahl des Austragungsmodus". Du siehst **eine oder mehrere Karten** mit den verfügbaren [Turnierplänen](#glossary-wizard) — die Auswahl hängt von der Teilnehmerzahl ab und enthält alle Pläne, die zur aktuellen Teilnehmerzahl passen, darunter ein dynamisch generierter Plan **`Default{n}`**, wobei `{n}` die aktuelle Teilnehmerzahl ist.
 
 `Default{n}` ist ein **dynamisch generierter Jeder-gegen-Jeden-Plan**, dessen benötigte Tischanzahl aus der Teilnehmerzahl berechnet wird. Die T-Pläne (T04, T05, …) haben dagegen feste Spielstruktur und Tischanzahl aus der Karambol-Turnierordnung.
 
@@ -125,11 +135,9 @@ Klick auf **„Weiter mit T04"** (oder dem vorgeschlagenen Plan). Die Auswahl wi
 
 Oben siehst du eine Zusammenfassung des gewählten Modus, darunter den Abschnitt **„Zuordnung der Tische"** und ein Formular **„Turnier Parameter"** mit den Spielregeln.
 
-!!! tip "Englische Feldbezeichnungen im Start-Formular"
-    Einige Parameter im Start-Formular heißen derzeit auf Englisch oder sind
-    unklar beschriftet (zum Beispiel *Tournament manager checks results before
-    acceptance* oder *Assign games as tables become available*). Das
-    [Glossar](#glossary) unten erklärt die wichtigsten Begriffe. Im Zweifel
+!!! tip "Tooltips im Start-Formular"
+    Jedes Feld im Start-Formular hat eine deutsche Beschriftung und einen
+    Tooltip mit üblichen Werten (Mauszeiger auf die Beschriftung). Im Zweifel
     übernimm die Standardwerte und kontrolliere die Einstellungen
     **vor dem Start des Turniers**.
 <!-- ref: F-14 -->
@@ -138,13 +146,13 @@ Oben siehst du eine Zusammenfassung des gewählten Modus, darunter den Abschnitt
 
 - **Tischzuordnung** (siehe Abschnitt unten in diesem Schritt) — welche **physikalischen Tische** in deinem Spiellokal die **logischen Tische** des Turnierplans abbilden
 - **Ballziel** (`balls_goal`): Das Ziel in Bällen, das ein Spieler für den Partie-Gewinn erreichen muss. Für Freie Partie Klasse 1–3 steht der Wert in der Einladung (typischerweise **150 Bälle**, ggf. um 20 % reduziert). Maßgeblich ist die Karambol-Sportordnung.
-- **Aufnahmebegrenzung** (`innings_goal`): Maximale Aufnahmenzahl pro Partie. Für Freie Partie Klasse 1–3 typischerweise **50 Aufnahmen** (ggf. um 20 % reduziert). **Leerfeld oder 0 = unbegrenzt** (im UI nicht eindeutig dokumentiert — bitte hier nachlesen).
-- **Spielabschluss** durch Manager oder durch Spieler — wer bestätigt das Ergebnis am Scoreboard nach Partie-Ende
+- **Aufnahmebegrenzung** („Aufnahmen-Limit", `innings_goal`): Maximale Aufnahmenzahl pro Partie. Für Freie Partie Klasse 1–3 typischerweise **50 Aufnahmen** (ggf. um 20 % reduziert). **0 = kein Limit** (so auch im Tooltip).
+- **„Spiele zuordnen, sobald Tische frei werden"** (`continuous_placements`) — neue Spiele werden automatisch freien Tischen zugeordnet
 - **`auto_upload_to_cc`** (Checkbox „Ergebnisse automatisch in ClubCloud hochladen") — wenn aktiviert, wird jedes Einzelergebnis sofort nach Spielende an die ClubCloud übertragen. Voraussetzungen und Alternativen siehe Anhang [ClubCloud-Upload — zwei Wege](#appendix-cc-upload).
 - **Timeout-Kontrolle** — Schiedsrichter-Timer pro Aufnahme (disziplinabhängig)
-- **Nachstoß** — Regelvariante in bestimmten Karambol-Disziplinen (wenn der Anstoßende das Ballziel erreicht, hat der Gegner einen Nachstoß)
+- **„Nachstoß erlaubt"** (`allow_follow_up`) — Regelvariante in bestimmten Karambol-Disziplinen (wenn der Anstoßende das Ballziel erreicht, hat der Gegner einen Nachstoß)
 
-Manche Parameter erscheinen nur bei bestimmten Disziplinen — z. B. ist der Nachstoß-Schalter nur sichtbar, wenn die gewählte Disziplin diese Regel verwendet.
+Der Schalter „Nachstoß erlaubt" erscheint immer, unabhängig von der Disziplin. Setz ihn nur bei Disziplinen mit Nachstoß-Regel.
 
 > **Hinweis zu „Bälle vor":** In der UI-Beschriftung taucht zusätzlich der Ausdruck „Bälle vor" auf — das ist eine **individuelle Vorgabe bei Vorgabe-/Handikap-Turnieren** (jeder Spieler bekommt einen anderen Wert), nicht zu verwechseln mit dem allgemeinen Ballziel.
 
@@ -183,7 +191,7 @@ Nachdem der Turnier-Monitor geöffnet ist, siehst du die Übersichtsseite „Tur
 
 Eine Partie durchläuft am Scoreboard drei Phasen — **Warmup → Ausstoß → Spielphase**:
 
-1. **Warmup:** Die Spieler **einspielen** sich (Fachterminus für „Tisch und Bälle ausprobieren bevor es zählt"). Die Einspielzeit wird **am Scoreboard** gestartet und beträgt typischerweise 5 Minuten (Parameter **Warmup**). Punkte zählen noch nicht.
+1. **Warmup:** Die Spieler **einspielen** sich (Fachterminus für „Tisch und Bälle ausprobieren bevor es zählt"). Die Einspielzeit wird **am Scoreboard** gestartet. Ihre Länge legen zwei Parameter im Start-Formular fest: **„Warmup neuer Tisch (Min.)"** und **„Warmup gleicher Tisch (Min.)"** (kürzer, wenn ein Spieler am selben Tisch bleibt). Punkte zählen noch nicht.
 2. **Ausstoßphase:** Vor der eigentlichen Spielphase wird am Scoreboard entschieden, **wer den Anstoß hat**. Das Ergebnis des Ausstoßes wird am Scoreboard eingegeben, und die Darstellung der Spieler (weiß/gelb) wird je nach Ausgang entsprechend vertauscht.
 3. **Spielphase:** Erst danach läuft die eigentliche Partie — Punkte werden gezählt.
 
@@ -203,7 +211,7 @@ Als Turnierleiter musst du hier nichts aktiv tun — beobachte, ob alle Scoreboa
 
 Schritte 10, 11 und 12 sind in Wahrheit drei **Phasen** (Warmup/Ausstoß → Spielbetrieb → Abschluss), nicht drei „Aktionen des Turnierleiters". Während dieser Phasen läuft alles an den Scoreboards. Deine einzige Aufgabe ist Beobachtung und das Eingreifen bei Problemen — dafür siehe [Schritt 12](#step-12-monitor).
 
-> **Sonderfall Manuelle Rundenwechsel-Kontrolle:** Wenn du im Start-Formular den Parameter „Tournament manager checks results before acceptance" aktiviert hast, wird der Rundenwechsel blockiert, bis du bei jedem Spielende auf „OK?" klickst. Diese Option ist inzwischen umstritten und wird voraussichtlich entfernt; im Standardfall lass sie deaktiviert.
+> **Rundenwechsel:** Der Rundenwechsel erfolgt immer automatisch, sobald das letzte Spiel einer Runde am Scoreboard bestätigt ist. Eine manuelle Rundenwechsel-Kontrolle gibt es nicht mehr.
 
 <a id="step-12-monitor"></a>
 ### Schritt 12: Beobachten und bei Bedarf eingreifen
@@ -220,48 +228,49 @@ Während des Spielbetriebs übernehmen die Spieler die Punkteingabe direkt am Sc
 
 - **Nachstoß vergessen am Scoreboard** — in Karambol-Disziplinen mit Nachstoß-Regel ist es eine wiederkehrende Quelle für falsche Endergebnisse. Wenn du das beobachtest, sprich die Spieler direkt an, bevor sie das Spielprotokoll bestätigen — siehe [Nachstoß am Scoreboard vergessen](#ts-nachstoss-forgotten).
 
-!!! danger "Reset zerstört bei laufendem Turnier alle Daten"
-    Der Link **„Zurücksetzen des Turnier-Monitors"** am unteren Ende der
-    Turnierseite ist **jederzeit** verfügbar — auch während das Turnier
-    läuft. Bei laufendem Turnier zerstört der Reset jedoch **alle bisher
-    erfassten Spielergebnisse**. Eine Sicherheitsabfrage ist aktuell
-    nicht eingebaut (geplant für eine Folge-Phase). Verwende den
-    Reset während des Spielbetriebs nur, wenn du das Turnier wirklich
-    abbrechen willst.
-<!-- ref: F-36-32 -->
+!!! danger "Zurücksetzen: vor dem Start frei, danach nur als Neustart"
+    **Vor dem Start** steht am unteren Ende der Turnierseite **„Zurücksetzen
+    des Turnier-Monitors"**. Er löscht alle lokalen Setzlisten, Spiele und
+    Ergebnisse und führt das Turnier an den Anfang zurück.
 
-> **Sonderfall manuelle Kontrolle:** Wenn du im Start-Formular „Tournament manager checks results before acceptance" aktiviert hast, erscheint nach jedem Spiel ein Bestätigungs-Button für dich. Dieser Button ist Teil der Sonderbetriebsart aus [Schritt 11](#step-11-release-match) und wird voraussichtlich entfallen.
+    **Nach dem Start** (sobald das Turnier Spiele hat) ist dieser Reset
+    ausgeblendet, und der Server lehnt ihn ab. Stattdessen gibt es
+    **„Turnier neu starten"**: Er löscht die Spiele und den Turnierstand,
+    Meldeliste und Turniermodus bleiben erhalten, und das Turnier kann direkt
+    neu gestartet werden. Das Ergebnisarchiv bleibt unberührt.
+
+    Beide Knöpfe öffnen vorher einen Bestätigungsdialog mit dem aktuellen
+    Status und der Zahl der gespielten Spiele. Ausführen dürfen sie nur
+    Vereins- und System-Admins. **„Turnier neu starten"** erscheint derzeit
+    nur für eine fest im Code hinterlegte Liste von Konten und für den
+    Scoreboard-Benutzer. Fehlt er bei dir, wende dich an den Betreiber
+    deines Carambus-Servers.
+<!-- ref: F-36-32 -->
 
 <a id="step-13-finalize"></a>
 ### Schritt 13: Turnier abschließen
 
 Nach Abschluss aller Runden setzt der Turnier-Monitor das Turnier in den Abschlussstatus.
 
-!!! warning "Endrangliste wird derzeit NICHT automatisch berechnet"
-    Carambus liefert die einzelnen Spielergebnisse korrekt zurück, die
-    **Berechnung der Turnier-Endrangliste** (Platzierungen, Stechen,
-    Gleichstands-Kriterien) erfolgt aktuell **manuell in der ClubCloud**.
-    Den manuellen Pflege-Workflow findest du im Anhang
+!!! warning "Endrangliste: berechnet, aber nicht in die ClubCloud übertragen"
+    Carambus **berechnet** die Turnier-Endrangliste (Platzierungen und
+    Gleichstands-Kriterien) und zeigt sie im **Turnier-Monitor** an. Was
+    fehlt, ist die **Übertragung in die ClubCloud**: Die Endrangliste musst
+    du dort von Hand pflegen. Den Ablauf findest du im Anhang
     [Endrangliste in der ClubCloud pflegen](#appendix-rangliste-manual).
-    Eine automatische Berechnung in Carambus ist als Folge-Feature für
-    v7.1+ vorgesehen.
 <!-- ref: F-36-34 -->
 
-!!! danger "Shootout / Stechen — kritischer Fehler bei KO-Turnieren"
-    Stichspiele bei KO-Turnieren werden in der aktuellen Carambus-Version
-    **nicht unterstützt** — und das ist nicht nur ein fehlendes Feature,
-    sondern ein **kritischer Fehler**: Bei KO darf es kein Unentschieden
-    geben. Wenn nach der regulären Partie zwei Spieler denselben Stand
-    haben, **geht Carambus aktuell automatisch mit dem Anstoßenden weiter**
-    — also dem Spieler, der diese Partie eröffnet hat. Das ist nicht die
-    korrekte Stechen-Regel und kann das Turnierergebnis verfälschen.
+!!! info "Stechen bei KO-Partien"
+    Endet eine Partie der KO-Phase (Viertelfinale, Halbfinale, Finale usw.)
+    unentschieden, verlangt der **Protokolleditor** am Scoreboard die Auswahl
+    des Siegers („Stechen — Sieger festlegen"). Ohne Auswahl wird das
+    Ergebnis nicht angenommen. Das gilt auch für reine KO-Pläne ohne
+    Gruppenphase. Ausgenommen sind Platzierungsspiele (z. B. um Platz 7–8).
 
-    **Workaround bis zum Fix:** Wenn ein Stechen nötig wird, führst du es
-    **außerhalb von Carambus** durch (am Tisch auf Papier protokollieren)
-    und trägst das Ergebnis manuell in der ClubCloud ein. Korrigiere den
-    von Carambus automatisch durchgereichten „Sieg des Anstoßenden"
-    entsprechend nach. Echter Shootout-Support ist als kritisches Feature
-    für ein späteres Milestone (v7.1 oder v7.2) eingeplant.
+    Das Stechen selbst wird am Tisch gespielt: Carambus nennt die
+    Verlängerungsaufnahme nach §4.4.3 (mit Anfangsball und Nachstoß) und die
+    Ballzahl je Spieler, erfasst aber keine Stechen-Bälle. Eingetragen wird
+    nur der Sieger.
 <!-- ref: F-36-35 -->
 
 <a id="step-14-upload"></a>
@@ -334,7 +343,7 @@ Wenn der automatische Upload nicht aktiviert war oder die Voraussetzungen fehlen
 
 - **ClubCloud** — Die regionale Anmeldeplattform des DBU (Deutscher Billard-Union). ClubCloud ist die Quelle der Wahrheit für Spieler-Registrierungen und Meldelisten. Carambus synchronisiert die Meldeliste aus ClubCloud in [Schritt 2](#step-2-load-clubcloud). Weitere Informationen findest du in der [ClubCloud-Integration](clubcloud-integration.md).
 
-- **AASM-Status** — Der interne Zustand des Turniers im System, verwaltet durch die AASM-Zustandsmaschine (Acts As State Machine). Mögliche Zustände umfassen `new_tournament`, `tournament_seeding_finished`, `tournament_started_waiting_for_monitors`, `tournament_started` und weitere. Wichtig: die im Wizard angezeigten „Schritte" entsprechen **nicht eins-zu-eins** den AASM-States — Schritte 4 und 5 sind beispielsweise Aktions-Links auf einer State-Seite, kein eigener Zustand (siehe [Schritt 5](#step-5-finish-seeding)). Die sichtbarere Darstellung des Status-Badges im Wizard ist ein offenes Verbesserungsfeld.
+- **AASM-Status** — Der interne Zustand des Turniers im System, verwaltet durch die AASM-Zustandsmaschine (Acts As State Machine). Mögliche Zustände umfassen `new_tournament`, `tournament_seeding_finished`, `tournament_started_waiting_for_monitors`, `tournament_started` und weitere. Wichtig: die im Wizard angezeigten „Schritte" entsprechen **nicht eins-zu-eins** den AASM-States, und ihre Nummer hängt vom Veranstalter ab (siehe [Schritt 5](#step-5-finish-seeding)). Die sichtbarere Darstellung des Status-Badges im Wizard ist ein offenes Verbesserungsfeld.
 
 - **DBU-Nummer** — Die nationale Spieler-ID des Deutschen Billard-Union. Jeder lizenzierte Spieler hat eine eindeutige DBU-Nummer. In [Schritt 4](#step-4-participants) kannst du Spieler, die nicht in der ClubCloud-Meldeliste erscheinen, über ihre DBU-Nummer nachtragen (komma-getrennt im Eingabefeld).
 
@@ -394,12 +403,12 @@ Wenn der automatische Upload nicht aktiviert war oder die Voraussetzungen fehlen
 
 **Lösung:** Solange das Turnier **noch nicht gestartet** ist (Schritt 9 noch nicht ausgeführt), benutz den Link **„Zurücksetzen des Turnier-Monitors"** am unteren Ende der Turnierseite, um das Setup zurückzusetzen, und geh dann erneut bis zur Modus-Auswahl. Ein separater Button zum nachträglichen Wechseln des Turniermodus existiert in der aktuellen Carambus-UI nicht.
 
-!!! warning "Reset bei laufendem Turnier ist gefährlich"
-    Wenn das Turnier bereits gestartet wurde (`tournament_started`), zerstört
-    der Reset alle bereits erfassten Spielergebnisse. Verwende den
-    Reset-Link in diesem Zustand nur, wenn du das Turnier wirklich
-    abbrechen willst. Siehe [Turnier wurde bereits gestartet](#ts-already-started)
-    für Alternativen.
+!!! warning "Nach dem Start ist der Reset gesperrt"
+    Sobald das Turnier Spiele hat, ist „Zurücksetzen des Turnier-Monitors"
+    ausgeblendet. Dann bleibt nur **„Turnier neu starten"**: Spiele und
+    Turnierstand werden gelöscht, Meldeliste und gewählter Modus bleiben.
+    Siehe [Schritt 12](#step-12-monitor) und
+    [Turnier wurde bereits gestartet](#ts-already-started).
 
 <a id="ts-already-started"></a>
 ### Turnier wurde bereits gestartet — und etwas läuft schief
@@ -413,10 +422,10 @@ Wenn der automatische Upload nicht aktiviert war oder die Voraussetzungen fehlen
 **Lösung im Notfall:**
 
 1. **UNDO einzelner Spiele** ist möglich — direkt am betroffenen Scoreboard.
-2. **Reset des gesamten Turniers** ist möglich, zerstört aber alle bereits erfassten Spielergebnisse (siehe [Schritt 12 Reset-Warnung](#step-12-monitor)).
+2. **„Turnier neu starten"** löscht alle Spiele und den Turnierstand, Meldeliste und Turniermodus bleiben erhalten. Danach startest du das Turnier erneut (siehe [Schritt 12](#step-12-monitor)). Der normale Reset ist nach dem Start gesperrt.
 3. **Wenn beides nicht in Frage kommt:** Wechsle auf die **herkömmliche Methode**: Spiele auf Papier protokollieren, Ergebnisse direkt in der ClubCloud erfassen. Die Scoreboards kannst du für die einzelnen Spiele im **[Trainingsmodus](#glossary-system)** weiterbenutzen (kein Turnier-Kontext, aber funktionierende Punkterfassung).
 
-Eine Sicherheitsabfrage vor dem Reset bei laufendem Turnier sowie ein Parameter-Verifikationsdialog vor dem Start sind als Folge-Features für eine spätere Phase eingeplant — sie reduzieren das Risiko, dass dieser Notfall überhaupt eintritt.
+Vorbeugend fragt Carambus an zwei Stellen nach: Jeder Reset öffnet einen Bestätigungsdialog mit Status und Zahl der gespielten Spiele. Und der Start fragt nach, wenn Werte im Start-Formular vom üblichen Bereich der Disziplin abweichen („Ungewöhnliche Turnierparameter").
 
 <a id="ts-endrangliste-missing"></a>
 ### Endrangliste fehlt nach Turnierende (in der ClubCloud)
@@ -440,7 +449,7 @@ Eine Sicherheitsabfrage vor dem Reset bei laufendem Turnier sowie ein Parameter-
 
 **Problem:** Du hast am Ende des Turniers eine CSV-Datei mit den Ergebnissen, aber die ClubCloud nimmt sie nicht an oder wirft Validierungsfehler.
 
-**Ursache:** Der CSV-Upload setzt voraus, dass die **Teilnehmerliste in der ClubCloud finalisiert** ist — wenn dort ein Spieler fehlt, der im CSV vorkommt, scheitert der Import. Die Teilnehmerliste-Finalisierung über die CC-API ist in Carambus aktuell nicht implementiert; sie muss manuell durch einen Club-Sportwart in der ClubCloud-Admin-Oberfläche erfolgen.
+**Ursache:** Der CSV-Upload setzt voraus, dass die **Teilnehmerliste in der ClubCloud finalisiert** ist — wenn dort ein Spieler fehlt, der im CSV vorkommt, scheitert der Import. Carambus gibt die Meldeliste beim „Teilnehmerliste abschließen" nur frei, wenn ein ClubCloud-Zugang auflösbar ist (siehe [Schritt 5](#step-5-finish-seeding)); sonst muss ein Club-Sportwart das in der ClubCloud-Admin-Oberfläche nachholen.
 
 **Lösung:** Den vollen Ablauf inkl. der nötigen Berechtigungen findest du im Anhang [CSV-Upload in der ClubCloud](#appendix-cc-csv-upload). Im Zweifel bitte den Club-Sportwart deines Vereins, die Teilnehmerliste in der ClubCloud zuerst zu finalisieren.
 
@@ -452,23 +461,6 @@ Eine Sicherheitsabfrage vor dem Reset bei laufendem Turnier sowie ein Parameter-
 **Ursache:** Carambus unterstützt einen sauberen **Match-Abbruch / Spieler-Rückzug während des laufenden Turniers** in der aktuellen Version **nicht**. Die Funktion **muss noch implementiert werden** — sie ist als mittelgroßes Folge-Feature für v7.1+ eingeplant.
 
 **Lösung (Workaround):** Beende das laufende Spiel des Spielers am Scoreboard mit dem zuletzt erfassten Stand. Für die folgenden Runden behandle den ausgefallenen Spieler de-facto wie ein [Freilos](#glossary-system) — die Gegner bekommen die Partie ggf. außerhalb von Carambus zugeschrieben. Dokumentier den Vorgang manuell im Turnierprotokoll und in der ClubCloud.
-
-<a id="ts-english-labels"></a>
-### Englische Feldbezeichnungen im Start-Formular
-
-**Problem:** Im Start-Formular (Schritt 7) erscheinen einige Parameter mit englischen oder unklaren Labels (z. B. *Tournament manager checks results before acceptance*, *Assign games as tables become available*).
-
-**Ursache:** Fehlende oder defekte Einträge in den i18n-Dateien (`config/locales/de.yml`). Die Korrektur ist als UI-Feature für eine Folge-Phase eingeplant.
-
-**Lösung (bis die i18n-Korrektur ausgerollt ist):** Nutz die folgende Übersetzungstabelle:
-
-| Englisches Label | Deutsche Bedeutung |
-|------------------|--------------------|
-| Tournament manager checks results before acceptance | Manager bestätigt Ergebnisse vor Annahme (manuelle Rundenwechsel-Kontrolle) |
-| Assign games as tables become available | Spiele zuweisen, sobald Tische frei werden |
-| auto_upload_to_cc | Ergebnisse automatisch in ClubCloud hochladen |
-
-Im Zweifel behalt die Standardwerte bei und verifizier die Werte vor dem Klick auf „Starte den Turnier Monitor".
 
 <a id="ts-nachstoss-forgotten"></a>
 ### Nachstoß am Scoreboard vergessen
@@ -482,11 +474,11 @@ Im Zweifel behalt die Standardwerte bei und verifizier die Werte vor dem Klick a
 <a id="ts-shootout-needed"></a>
 ### Stechen / Shootout nötig (KO-Turnier)
 
-**Problem:** Bei einem KO-Turnier endet eine Partie unentschieden und es wäre ein Stechen erforderlich.
+**Problem:** Bei einem KO-Turnier endet eine Partie unentschieden und das Ergebnis lässt sich im Protokolleditor nicht bestätigen.
 
-**Ursache (kritischer Fehler):** Stechen / Shootout wird in der aktuellen Carambus-Version **überhaupt nicht unterstützt** — und das ist nicht nur ein fehlendes Feature, sondern ein **kritischer Fehler bei KO-Turnieren**: Carambus geht bei Gleichstand automatisch mit dem **Anstoßenden** weiter, statt ein Stechen anzusetzen. Das verfälscht das Turnierergebnis. Echter Shootout-Support ist als kritisches Feature für ein späteres Milestone (v7.1 oder v7.2) eingeplant.
+**Ursache:** Das ist gewollt. Für Partien der KO-Phase verlangt Carambus bei Gleichstand die Auswahl des Stechen-Siegers („Stechen — Sieger festlegen"), sonst wird das Ergebnis nicht angenommen. Als Gleichstand gilt gleiche Ballzahl, bei Vorgabe-Turnieren auch, wenn beide ihr eigenes Ziel erreicht haben.
 
-**Lösung (Workaround):** Führ das Stechen **außerhalb von Carambus** durch — am Tisch auf Papier protokollieren — und trag das Endergebnis manuell in die ClubCloud ein. Korrigier den von Carambus automatisch durchgereichten „Sieg des Anstoßenden" entsprechend nach. Der Carambus-Spielstand muss in solchen Fällen außerhalb des Systems abgewickelt werden.
+**Lösung:** Spielt das Stechen am Tisch (Verlängerungsaufnahme nach §4.4.3; der Protokolleditor nennt die Ballzahl je Spieler). Danach wählt ihr im Protokolleditor den Sieger aus und bestätigt. Die Stechen-Bälle selbst erfasst Carambus nicht.
 
 ---
 
@@ -517,8 +509,8 @@ Hinweis: Diese Setzliste ist eine **Carambus-interne** und nicht offiziell. Bei 
 
 **Vorgehen:**
 
-1. **Vor dem Turnierstart** (vor [Schritt 5 „Teilnehmerliste abschließen"](#step-5-finish-seeding)): Auf der Teilnehmerliste-Bearbeitungsseite ([Schritt 4](#step-4-participants)) findest du in der Spalte **„Teilnehmer"** für jede Zeile eine **Checkbox**. Entferne den Haken bei dem fehlenden Spieler — die Zeile wird damit aus der Teilnehmerliste herausgenommen. Prüf anschließend, ob die verbleibende Spielerzahl noch zum gewählten Turnierplan passt. Falls ein anderer Plan nötig wird, weist Carambus auf der Wizard-Seite einen neuen Vorschlag aus.
-2. **Falls die Teilnehmerliste schon abgeschlossen ist**, aber das Turnier noch nicht gestartet wurde: Du kannst das Setup über **„Zurücksetzen des Turnier-Monitors"** zurücksetzen und die Teilnehmerliste neu zusammenstellen. **Achtung:** Vor Schritt 9 ist Reset risikolos, danach nicht — siehe [Schritt 12 Reset-Warnung](#step-12-monitor).
+1. **Vor dem Turnierstart** (vor [Schritt 5 „Teilnehmerliste abschließen"](#step-5-finish-seeding)): Auf der Teilnehmerliste-Bearbeitungsseite ([Schritt 4](#step-4-participants)) findest du in der Spalte **„Teilnahme"** für jede Zeile eine **Checkbox**. Entferne den Haken bei dem fehlenden Spieler — die Zeile wird damit aus der Teilnehmerliste herausgenommen. Prüf anschließend, ob die verbleibende Spielerzahl noch zum gewählten Turnierplan passt. Falls ein anderer Plan nötig wird, weist Carambus auf der Wizard-Seite einen neuen Vorschlag aus.
+2. **Falls die Teilnehmerliste schon abgeschlossen ist**, aber das Turnier noch nicht gestartet wurde: Du kannst das Setup über **„Zurücksetzen des Turnier-Monitors"** zurücksetzen und die Teilnehmerliste neu zusammenstellen. **Achtung:** Nach dem Start in Schritt 9 ist dieser Reset gesperrt — siehe [Schritt 12](#step-12-monitor).
 3. **Wenn das Turnier bereits gestartet ist und der Spieler in einer noch nicht gespielten Runde steht**, gibt es in der aktuellen Carambus-Version **keinen sauberen Pfad — diese Funktion muss noch implementiert werden**. Behandel den ausgefallenen Spieler bis dahin de facto wie ein [Freilos](#glossary-system) (im Sinne von „spielfrei in dieser Runde") — siehe [Spieler zieht während des Turniers zurück](#ts-player-withdraws).
 
 **Vorbeugung:** Bestätig die Anwesenheit aller Spieler kurz vor [Schritt 5](#step-5-finish-seeding), nicht erst nach Turnierstart.
@@ -531,9 +523,9 @@ Hinweis: Diese Setzliste ist eine **Carambus-interne** und nicht offiziell. Bei 
 **Vorgehen:**
 
 1. **Klär zuerst die Berechtigung:** Hat der Spieler eine gültige DBU-Lizenz? Erlaubt die Turnierordnung On-site-Nachmeldungen? Hat der Sportwart zugestimmt? Im Zweifel: Anruf beim Landessportwart.
-2. **Vor Turnierstart** ist Nachmeldung in Carambus einfach: In [Schritt 4](#step-4-participants) trägst du die DBU-Nummer des nachzumeldenden Spielers in das Feld **„Spieler mit DBU-Nummer hinzufügen"** ein und klickst auf **„Spieler hinzufügen"**. Anschließend „Nach Ranking sortieren" oder per Drag-and-Drop nachsortieren.
+2. **Vor Turnierstart** ist Nachmeldung in Carambus einfach: In [Schritt 4](#step-4-participants) trägst du die DBU-Nummer des nachzumeldenden Spielers in das Feld **„Spieler mit DBU-Nummer hinzufügen"** ein und klickst auf **„Spieler hinzufügen"**. Anschließend „Nach Ranking sortieren" oder die Position direkt eingeben bzw. mit den Pfeilen verschieben.
 3. **Eintragung in der ClubCloud:** Damit die Nachmeldung in die offizielle Statistik einfließt und der Endergebnis-Upload funktioniert, muss der Spieler **auch in der ClubCloud-Melde- und Teilnehmerliste** ergänzt werden. Das kann nur ein **Club-Sportwart mit den entsprechenden Rechten** (siehe [Anhang ClubCloud-Upload](#appendix-cc-upload)). Wenn der Sportwart nicht vor Ort ist, musst du ihn anrufen oder die Nachmeldung später nachpflegen lassen.
-4. **Nach Turnierstart** ist Nachmeldung in Carambus aktuell **nicht sauber unterstützt** — der einzige Workaround ist das Zurücksetzen des Turnier-Monitors mit allen Konsequenzen.
+4. **Nach Turnierstart** ist eine Nachmeldung in Carambus **nicht vorgesehen**: Der normale Reset ist dann gesperrt, und „Turnier neu starten" behält die abgeschlossene Meldeliste.
 
 <a id="appendix-cc-upload"></a>
 ### ClubCloud-Upload — zwei Wege
@@ -542,7 +534,7 @@ Hinweis: Diese Setzliste ist eine **Carambus-interne** und nicht offiziell. Bei 
 
 Carambus kennt zwei Wege, um Turnier-Ergebnisse in die ClubCloud zurückzuspielen — beide haben dieselbe Voraussetzung, aber unterschiedliche Workflows.
 
-**Gemeinsame Voraussetzung:** Die **Teilnehmerliste muss in der ClubCloud finalisiert sein**. Das bedeutet: Jeder Spieler, der im Turnier antritt (auch [Nachmeldungen](#appendix-nachmeldung)), muss in der CC-Teilnehmerliste eingetragen sein, bevor irgendein Ergebnis hochgeladen werden kann. Die Finalisierung der Teilnehmerliste über die CC-API ist in Carambus **aktuell nicht implementiert** — sie muss manuell durch einen **Club-Sportwart** in der ClubCloud-Admin-Oberfläche erfolgen. Diese Berechtigung haben in der Regel nicht alle Vereinsmitglieder, sondern nur ausgewählte Funktionäre.
+**Gemeinsame Voraussetzung:** Die **Teilnehmerliste muss in der ClubCloud finalisiert sein**. Das bedeutet: Jeder Spieler, der im Turnier antritt (auch [Nachmeldungen](#appendix-nachmeldung)), muss in der CC-Teilnehmerliste eingetragen sein, bevor irgendein Ergebnis hochgeladen werden kann. Carambus gibt die Meldeliste beim „Teilnehmerliste abschließen" selbst frei, wenn ein ClubCloud-Zugang auflösbar ist (dein eigener oder der des Sportwarts, der dich eingesetzt hat, siehe [Schritt 5](#step-5-finish-seeding)). Andernfalls muss ein **Club-Sportwart** das in der ClubCloud-Admin-Oberfläche erledigen. Diese Berechtigung haben in der Regel nicht alle Vereinsmitglieder, sondern nur ausgewählte Funktionäre.
 
 **Pfad 1: Einzelübertragung pro Spiel** (`auto_upload_to_cc` aktiviert)
 
@@ -556,13 +548,13 @@ Carambus kennt zwei Wege, um Turnier-Ergebnisse in die ClubCloud zurückzuspiele
 
 - Alle Ergebnisse werden während des Turniers nur lokal in Carambus erfasst.
 - Am Ende des Turniers stellt Carambus eine **CSV-Datei** mit allen Spielergebnissen bereit.
-- Die CSV wird per E-Mail an den Turnierleiter geschickt (oder steht zum Download bereit).
+- Die CSV soll per E-Mail an den Turnierleiter gehen. **Derzeit kommt diese Mail nicht an:** Carambus schreibt die Datei als `tmp/result-<cc_id>.csv`, hängt aber `tmp/result-<id>.csv` an; der Fehler landet nur im Log. Bis zur Korrektur liegt die CSV auf dem Server im `tmp`-Verzeichnis der Anwendung (`tmp/result-<cc_id>.csv`). Einen Download-Knopf gibt es nicht.
 - Der Turnierleiter leitet sie an den Club-Sportwart weiter, der sie in die (jetzt finalisierte) ClubCloud-Teilnehmerliste importiert — das Detail-Vorgehen siehe [CSV-Upload in der ClubCloud](#appendix-cc-csv-upload).
 - **Vorteil gegenüber Pfad 1:** Der Sportwart kann die CC-Teilnehmerliste auch **nach** dem Turnier finalisieren — Pfad 2 ist robust gegen die Berechtigungs-Lücke.
 
 **Best Practice — Pfad 1 reibungslos einrichten:** Der einfachste Weg, Pfad 1 (automatische Einzelübertragung) sicher zum Laufen zu bringen, ist die Vorbereitung **vor dem Turnierstart**. Sobald du als Turnierleiter die Einladung erhältst, sprich den Landessportwart oder einen anderen Berechtigten an, damit er die ClubCloud-Teilnehmerliste mit dem finalisierten Turnierplan abgleicht. Das kann z. B. bequem stattfinden, **während die Spiele der ersten Runde laufen** — dann läuft die automatische Übertragung der Einzelergebnisse während des Turniers reibungslos, und externe Beobachter können den Turnierverlauf in der ClubCloud live verfolgen.
 
-**Berechtigungsproblem (offen):** Fehlende Spieler in der ClubCloud-Teilnehmerliste hinzufügen können nur **Club-Sportwarte**. Wenn keiner vor Ort ist, blockiert das Pfad 1 vollständig und Pfad 2 zumindest bis nach dem Turnier. **Diskussion im Vorstand geplant:** Carambus soll das Recht erhalten, bei Mismatch zwischen Carambus-Teilnehmerliste und ClubCloud die CC-Liste programmatisch abzugleichen — dann läuft Pfad 1 ohne menschliches Eingreifen. Eine alternative mögliche Lösung — die Hinterlegung von Club-Sportwart-Credentials in Carambus für genau diesen Delegations-Fall — ist als Folge-Feature für v7.1+ vorgesehen.
+**Berechtigungen:** Schreibaktionen in der ClubCloud (Freigabe der Meldeliste, Akkreditierung) führt Carambus mit einem persönlichen ClubCloud-Zugang aus. Jeder Sportwart kann seinen eigenen Zugang im Profil hinterlegen; ein Turnierleiter ohne eigenen Zugang erbt für „sein" Turnier den Zugang des Sportwarts, der ihn eingesetzt hat — wenn dieser selbst einen hinterlegt hat. Details: [Eigener ClubCloud-Zugang](clubcloud-eigener-zugang.md). Ohne auflösbaren Zugang bleibt es beim Weg über einen Club-Sportwart in der ClubCloud.
 
 <a id="appendix-cc-csv-upload"></a>
 ### CSV-Upload in der ClubCloud (Pfad 2 im Detail)
@@ -596,7 +588,7 @@ Carambus kennt zwei Wege, um Turnier-Ergebnisse in die ClubCloud zurückzuspiele
 2. **Trag die finalen Platzierungen in die ClubCloud ein.** Die ClubCloud bietet aktuell nur ein manuelles **Edit-Formular** für die Rangliste — keinen Upload-Endpunkt. Die genaue Stelle in der CC-Admin-Oberfläche variiert nach CC-Version.
 3. **Konsistenzprüfung:** Vergleich die Carambus-Einzelergebnisse mit den in der CC eingetragenen Werten — falls Pfad 1 (Einzelübertragung pro Spiel via `auto_upload_to_cc`) genutzt wurde, sollten Bälle/Aufnahmen pro Partie identisch sein. Die finale Platzierungstabelle muss in jedem Fall manuell übertragen werden.
 
-**Sonderfall KO-Turniere mit Stechen:** Carambus berechnet bei Gleichstand in KO-Partien aktuell automatisch einen Sieg für den Anstoßenden, ohne ein Stechen anzusetzen — siehe [Stechen / Shootout nötig](#ts-shootout-needed). Die Endrangliste in der ClubCloud muss in solchen Fällen entsprechend dem **außerhalb von Carambus durchgeführten Stechen** manuell korrigiert werden.
+**Sonderfall KO-Turniere mit Stechen:** Bei Gleichstand in einer KO-Partie wählt ihr im Protokolleditor den Stechen-Sieger (siehe [Stechen / Shootout nötig](#ts-shootout-needed)). Carambus vermerkt ihn im Spielergebnis und im Spielbericht („(Stechen …)"). Prüf beim Übertragen in die ClubCloud, dass der Stechen-Sieger dort als Sieger der Partie steht.
 
 **Hinweise (offene TODOs):**
 
