@@ -124,7 +124,7 @@ Stream-Schlüssel: [von YouTube Live Dashboard]
    - Position: Vollbild
    
 2. **Browser Source** → Carambus Overlay
-   - URL: `http://localhost:3000/locations/[MD5]/scoreboard_overlay?table_id=1`
+   - URL: `http://<Location-Server>:<webserver_port>/locations/<MD5>/scoreboard_overlay?table_id=<TABLE_ID>`
    - Breite: 1920
    - Höhe: 200
    - Position: Unten (0, 880)
@@ -161,9 +161,13 @@ Stream-Schlüssel: [von YouTube Live Dashboard]
    - Browser: Overlay Table 4
    - Position: (960, 540) → (960x540)
 
-**Overlay-URL für Multi-Table:**
+**Overlay für Multi-Table:** Heute je Tisch eine eigene Browser-Source mit
+`.../scoreboard_overlay?table_id=<TABLE_ID>` (vier Quellen, wie oben je Ansicht).
+
+Ein gemeinsames Multi-Overlay ist nur ein **Vorschlag, existiert nicht** (weder View noch Partial
+`scoreboard_mini` noch Route):
 ```erb
-<!-- In app/views/locations/scoreboard_overlay_multi.html.erb -->
+<!-- VORSCHLAG - app/views/locations/scoreboard_overlay_multi.html.erb existiert NICHT -->
 <div class="grid grid-cols-2 gap-2 text-xs">
   <% [1, 2, 3, 4].each do |table_id| %>
     <div class="p-2 bg-gray-900/90 rounded">
@@ -210,11 +214,17 @@ Source verwendet werden kann:
 
 **Overlay-URL (funktioniert heute):**
 ```
-http://localhost:3000/locations/[MD5]/scoreboard_overlay?table_id=1
+http://<Location-Server>:<webserver_port>/locations/<MD5>/scoreboard_overlay?table_id=<TABLE_ID>
 ```
-- Kompletter Scoreboard im Layout `streaming_overlay`
-- Spieler, Score, Durchschnitt, Höchste Serie
-- Pflichtparameter: `table_id` (Tisch-ID, NICHT die Tischnummer)
+- Kompaktes Overlay im Layout `streaming_overlay`: Tischnummer, LIVE-Marke, beide Spieler mit Score
+  (laufende Aufnahme eingerechnet), Turniername; ohne Spiel Location-Name und „Kein Spiel“
+- `table_id` (Tisch-ID, NICHT die Tischnummer) immer angeben: Ohne ihn zeigt das Overlay kommentarlos den
+  ersten Tisch der Location
+- Im Betrieb läuft Carambus als Dienst auf dem Location-Server; `http://localhost:3000` gilt nur für einen
+  lokal gestarteten Entwicklungsserver
+- Der Hintergrund ist schwarz und deckend (Inline-Style `background-color: #000000` im Layout
+  `streaming_overlay`, Overlay-Kasten `bg-black/80`). Ob ein Custom-CSS in der OBS-Browser-Source
+  (z.B. `body { background: transparent !important; }`) das übersteuert, ist nicht geprüft
 
 > **Hinweis:** Die `scoreboard_overlay`-Action kennt aktuell **keinen**
 > `layout`-Parameter. Es gibt genau ein Overlay-Layout (Full). Die unten
@@ -318,12 +328,12 @@ Wenn MacBook nicht verfügbar → iPhone kann direkt zu YouTube streamen:
 ### Vorbereitung (30 Min vor Start)
 
 ```bash
-# 1. Rails-Server starten (falls noch nicht läuft)
-cd /Users/gullrich/DEV/carambus/carambus_master
-rails s -p 3000
+# 1. Carambus-Server erreichbar? (läuft als Dienst auf dem Location-Server)
+curl -I -A "Mozilla/5.0" http://<Location-Server>:<webserver_port>/
+#    Nur für einen lokalen Entwicklungsserver:  cd <dein Carambus-Checkout> && bin/rails s -p 3000
 
 # 2. Overlay-URLs testen
-open http://localhost:3000/locations/[MD5]/scoreboard_overlay?table_id=1
+open "http://<Location-Server>:<webserver_port>/locations/<MD5>/scoreboard_overlay?table_id=<TABLE_ID>"
 
 # 3. OBS starten
 # 4. Kameras verbinden (iPhone, USB)
@@ -340,8 +350,11 @@ open http://localhost:3000/locations/[MD5]/scoreboard_overlay?table_id=1
   - F4: Szene "Kommentar"
 
 **Overlay-Updates:**
-- Laufen automatisch via ActionCable
-- Keine manuelle Aktion erforderlich
+- Das Overlay lädt sich alle 3 Sekunden selbst neu (Polling im Stimulus-Controller `streaming-overlay`,
+  kein ActionCable)
+- Ausnahme: Ein Overlay, das geladen wurde, als am Tisch noch kein Spiel lief, lädt sich nicht selbst neu
+  (der Zweig „Kein Spiel“ hat keinen Reload). Nach Spielbeginn die Browser-Source neu laden, oder in der
+  Quelle „Refresh browser when scene becomes active“ aktivieren und die Szene wechseln
 
 **Stream-Monitoring:**
 - YouTube Studio → Livestream-Dashboard
@@ -420,9 +433,12 @@ Szene: "Tisch 1 mit PiP"
 
 ### 2. Lower Thirds
 
-**Spieler-Info einblenden:**
+> **Idee, nicht implementiert:** Es gibt weder `app/views/streaming/` noch eine Route `/streaming/*`; die URL
+> unten liefert heute 404. Heute geht das nur mit einer OBS-Textquelle.
+
+**Spieler-Info einblenden (Vorschlag):**
 ```html
-<!-- app/views/streaming/lower_third.html.erb -->
+<!-- VORSCHLAG - app/views/streaming/lower_third.html.erb existiert NICHT -->
 <div class="fixed bottom-20 left-10 bg-gradient-to-r from-blue-900/90 to-transparent pr-20 pl-6 py-4 rounded-r-full">
   <div class="text-2xl font-bold"><%= @player.name %></div>
   <div class="text-sm opacity-80">
@@ -433,16 +449,18 @@ Szene: "Tisch 1 mit PiP"
 
 **OBS Browser Source:**
 ```
-URL: http://localhost:3000/streaming/lower_third?player_id=123
+URL: http://<Location-Server>:<webserver_port>/streaming/lower_third?player_id=123   (Beispiel, liefert heute 404)
 Breite: 1920, Höhe: 1080
 Transparenter Hintergrund: ✅
 ```
 
 ### 3. Turnier-Tabelle (Zwischenstand)
 
-**Zwischen Spielen einblenden:**
+> **Idee, nicht implementiert:** wie die Lower Thirds (keine View, keine Route).
+
+**Zwischen Spielen einblenden (Vorschlag):**
 ```html
-<!-- app/views/streaming/standings.html.erb -->
+<!-- VORSCHLAG - app/views/streaming/standings.html.erb existiert NICHT -->
 <div class="p-10 bg-gray-900/95 rounded-lg">
   <h1 class="text-4xl mb-6">Zwischenstand</h1>
   <table class="w-full text-2xl">
@@ -468,13 +486,16 @@ Transparenter Hintergrund: ✅
 
 ### Stream-Auto-Start
 
+**Beispielskript, nicht im Repo** (`bin/obs-auto-start.sh` gibt es nicht). Der Server-Teil ist nur für
+einen lokalen Entwicklungsserver nötig; im Betrieb läuft Carambus als Dienst auf dem Location-Server.
+
 ```bash
 #!/bin/bash
-# bin/obs-auto-start.sh
+# Beispiel: obs-auto-start.sh
 
-# Rails-Server starten
-cd /Users/gullrich/DEV/carambus/carambus_master
-rails s -p 3000 -d
+# Nur mit lokalem Entwicklungsserver: Rails-Server starten
+cd <dein Carambus-Checkout>
+bin/rails s -p 3000 -d
 
 # Warten bis Server ready
 sleep 10
@@ -490,9 +511,10 @@ open -a "OBS" --args --profile "Carambus Tournament" --collection "4 Tables" --s
 brew install --cask obs-websocket
 ```
 
-**Ruby-Client:**
+**Ruby-Client (Beispiel, nicht im Repo):** `lib/obs_control.rb` gibt es nicht, und das Gem `obswebsocket`
+ist nicht im Gemfile; es müsste erst ergänzt werden.
 ```ruby
-# lib/obs_control.rb
+# Beispiel: obs_control.rb
 require 'obswebsocket'
 
 client = OBSWebSocket::Client.new(host: 'localhost', port: 4455)
@@ -514,7 +536,7 @@ client.set_source_visibility(source_name: 'Overlay Table 1', visible: true)
 # Rechtsklick auf Browser Source → "Refresh Cache"
 
 # Oder URL testen im normalen Browser
-open http://localhost:3000/locations/[MD5]/scoreboard_overlay?table_id=1
+open "http://<Location-Server>:<webserver_port>/locations/<MD5>/scoreboard_overlay?table_id=<TABLE_ID>"
 ```
 
 ### iPhone wird nicht erkannt
@@ -552,11 +574,9 @@ speedtest-cli --simple
 **Fix:**
 1. Scoreboard aktualisieren
 2. Browser Source in OBS refreshen
-3. ActionCable-Verbindung prüfen:
-   ```bash
-   rails c
-   ActionCable.server.broadcast('table_monitor_channel', { test: true })
-   ```
+3. Läuft der Reload? Overlay-URL im normalen Browser öffnen und in der Entwicklerkonsole prüfen, dass alle
+   3 Sekunden `[StreamingOverlay] Reloading for fresh data...` erscheint. Fehlt die Zeile, lief beim Laden
+   kein Spiel (siehe „Overlay-Updates“): Quelle neu laden
 
 ## Nächste Schritte
 

@@ -16,7 +16,7 @@ Verwenden Sie bereits vorhandenes MacBook und iPhone(s) für professionelles Tur
 
 **Software:**
 - ✅ OBS Studio (kostenlos)
-- ✅ Carambus Rails-Server (läuft bereits)
+- ✅ Carambus-Server der Location (läuft als Dienst, z.B. `http://<Location-Server>:3131`)
 
 **Kosten: 0€** 🎉
 
@@ -167,16 +167,23 @@ Diese IP brauchen Sie in der Carambus Admin UI für die Stream-Konfiguration!
 2. Name: "Scoreboard Overlay Tisch 1"
 3. URL: Ihre Overlay-URL eintragen
    ```
-   http://localhost:3000/locations/[LOCATION_MD5]/scoreboard_overlay?table_id=[TABLE_ID]
+   http://<Location-Server>:<webserver_port>/locations/<LOCATION_MD5>/scoreboard_overlay?table_id=<TABLE_ID>
    ```
+   Im Betrieb läuft Carambus als Dienst auf dem Location-Server (bei BC Wedel Port 3131).
+   `http://localhost:3000/...` gilt nur für einen lokal gestarteten Entwicklungsserver.
    
-   **Ihre Werte finden:**
-   - LOCATION_MD5: In Rails Console: `Location.first.md5`
-   - TABLE_ID: In Rails Console: `Table.find_by(number: 1).id`
+   **Ihre Werte finden** (Rails-Konsole auf dem Location-Server):
+   ```ruby
+   loc = Location.find_by(name: "<Ihr Spiellokal>")
+   loc.md5                                  # LOCATION_MD5
+   loc.tables.find_by(name: "Tisch 1").id   # TABLE_ID
+   ```
+   `Location.first` liefert auf einem Server mit globalen Daten irgendeine Location, und `Table` hat keine
+   Spalte `number`. Alternativ steht die Tisch-ID in der Stream-Konfiguration im Admin-Interface.
    
    **Beispiel:**
    ```
-   http://localhost:3000/locations/0819bf0d7893e629200c20497ef9cfff/scoreboard_overlay?table_id=2
+   http://192.168.2.210:3131/locations/0819bf0d7893e629200c20497ef9cfff/scoreboard_overlay?table_id=2
    ```
 
 4. Breite: **1920**
@@ -258,7 +265,7 @@ Diese IP brauchen Sie in der Carambus Admin UI für die Stream-Konfiguration!
 
 Neue Browser-Source mit Parameter:
 ```
-http://localhost:3000/locations/[MD5]/scoreboard_overlay?table_id=[ID]&layout=minimal
+http://<Location-Server>:<webserver_port>/locations/<MD5>/scoreboard_overlay?table_id=<ID>&layout=minimal
 ```
 
 (Hinweis: `layout=minimal` Parameter muss noch im Controller implementiert werden)
@@ -277,7 +284,7 @@ http://localhost:3000/locations/[MD5]/scoreboard_overlay?table_id=[ID]&layout=mi
 
 **Oder:** Browser Source mit dynamischem HTML:
 ```html
-http://localhost:3000/players/[PLAYER_ID]/lower_third
+http://<Location-Server>:<webserver_port>/players/<PLAYER_ID>/lower_third
 ```
 
 (Hinweis: Noch zu implementieren)
@@ -320,12 +327,12 @@ CPU-Voreinstellung: veryfast
 
 **Fix:**
 ```bash
-# 1. Rails-Server läuft?
-cd /Users/gullrich/DEV/carambus/carambus_master
-rails s -p 3000
+# 1. Carambus-Server erreichbar?
+curl -I -A "Mozilla/5.0" http://<Location-Server>:<webserver_port>/
+#    Wenn nicht: auf dem Server  sudo systemctl restart puma-<basename>
 
 # 2. URL im Browser testen
-open http://localhost:3000/locations/[MD5]/scoreboard_overlay?table_id=[ID]
+open "http://<Location-Server>:<webserver_port>/locations/<MD5>/scoreboard_overlay?table_id=<ID>"
 
 # 3. In OBS: Rechtsklick auf Browser Source → "Refresh Cache"
 ```
@@ -530,7 +537,7 @@ Ansteck-Mikro an iPhone → Audio im Stream
 → `docs/administrators/streaming-comparison.de.md`
 
 **Overlay anpassen?**
-→ `STREAMING_OVERLAY_README.md`
+→ `app/views/locations/scoreboard_overlay.html.erb` (View) bzw. `docs/developers/streaming-architecture.de.md`
 
 ---
 
