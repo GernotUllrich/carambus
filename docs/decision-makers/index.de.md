@@ -49,8 +49,7 @@ Für die technische Umsetzung: [Administrator-Übersicht](../administrators/inde
    Betreiber von Carambus.
 3. Den Vereinsserver nach dem [Raspberry-Pi-Quickstart](../administrators/raspberry-pi-quickstart.md) einrichten.
 
-<a id="kontakt"></a>
-## Kontakt
+## Kontakt {#kontakt}
 
 - **E-Mail:** gernot.ullrich@gmx.de
 - **GitHub:** [GernotUllrich/carambus](https://github.com/GernotUllrich/carambus)

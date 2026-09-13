@@ -49,8 +49,7 @@ For the technical setup: [Administrator overview](../administrators/index.md) an
    the Carambus operator.
 3. Set up the club server following the [Raspberry Pi Quickstart](../administrators/raspberry-pi-quickstart.md).
 
-<a id="kontakt"></a>
-## Contact
+## Contact {#kontakt}
 
 - **Email:** gernot.ullrich@gmx.de
 - **GitHub:** [GernotUllrich/carambus](https://github.com/GernotUllrich/carambus)
