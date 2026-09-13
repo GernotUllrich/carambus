@@ -90,11 +90,14 @@ namespace :scenario do
     if scenario_name.nil?
       puts "Usage: rake scenario:generate_credentials[scenario_name,environment]"
       puts "Default: DRY-RUN (zeigt nur die Key-Struktur). Schreiben mit WRITE=true."
+      puts "Neues Szenario ohne Credentials: NEW_KEY=true (eigener Key + eigene Geheimnisse)."
+      puts "Bestehendes Szenario rotieren:    ROTATE=true (neuer Key, secret_key_base, JWT; AR-Schlüssel als Liste)."
       exit 1
     end
 
     dry_run = ENV['WRITE'] != 'true'
-    generate_scenario_credentials(scenario_name, environment, dry_run: dry_run)
+    generate_scenario_credentials(scenario_name, environment, dry_run: dry_run,
+      new_key: ENV['NEW_KEY'] == 'true', rotate: ENV['ROTATE'] == 'true')
   end
 
   desc "Soft-Credentials (clubcloud/ai/translation/google_service) additiv auf den Server mergen — bewahrt secret_key_base/AR/devise_jwt. DRY-RUN default; WRITE=true (+RESTART=true). Auch für Authority (kein DB-Schritt → kein Guard). Usage: rake scenario:push_credentials[<name>]"
@@ -755,6 +758,9 @@ namespace :scenario do
   # <env>.yml.enc — MERGE statt Regenerate (secret_key_base etc. bleiben erhalten).
   # Doku: carambus_master/docs/developers/scenario-credentials.de.md
   # ---------------------------------------------------------------------------
+  # Feature-Gruppen fuer build_feature_keys_from_pool (push_credentials). Die Merge-Regeln von
+  # generate_credentials stehen seit Plan 18-01 in lib/scenario_credentials.rb — dort dieselbe
+  # Tabelle; beide gleich halten.
   # 'openai' entfernt (2026-08-15): ruby-openai ist seit Phase 36 aus dem Gemfile
   # (einzige AI-Integration ist `anthropic`), und carambus_data/secrets.yml fuehrt
   # keinen openai-Eintrag — die Gruppe lief wegen `next unless shared[grp]` also
@@ -765,14 +771,14 @@ namespace :scenario do
     'translation' => %w[deepl google],
     'scraping' => %w[youtube kozoom]
   }.freeze
-  PRESERVE_KEYS = %w[secret_key_base active_record_encryption devise_jwt_secret_key
-    location_id location_calendar_id].freeze
-  LEGACY_FLAT_KEYS = %w[anthropic_key deepl_key youtube_api_key].freeze
 
-  def generate_scenario_credentials(scenario_name, environment = 'production', dry_run: true)
-    require 'securerandom'
+  def generate_scenario_credentials(scenario_name, environment = 'production', dry_run: true, new_key: false, rotate: false)
     require 'active_support/encrypted_configuration'
-    require 'active_support/core_ext/hash/deep_merge'
+    load File.expand_path('../scenario_credentials.rb', __dir__) unless defined?(ScenarioCredentials)
+
+    if new_key && rotate
+      puts "❌ NEW_KEY und ROTATE schließen sich aus (Neuanlage ODER Rotation)"; return false
+    end
 
     config_file = File.join(scenarios_path, scenario_name, 'config.yml')
     unless File.exist?(config_file)
@@ -780,9 +786,6 @@ namespace :scenario do
     end
     config = YAML.load_file(config_file)
     decl = config.dig('scenario', 'credentials') || {}
-    features = Array(decl['features']).map(&:to_s)
-    features = %w[ai translation] if features.empty? # Default: Backup überall
-    cc_ctx = decl['clubcloud_context']
 
     pool_file = File.join(carambus_data_path, 'secrets.yml')
     unless File.exist?(pool_file)
@@ -791,14 +794,18 @@ namespace :scenario do
       return false
     end
     pool = YAML.load_file(pool_file) || {}
-    shared = pool['shared'] || {}
-    per = (pool['per_scenario'] || {})[scenario_name] || {}
 
     creds_dir = File.join(scenarios_path, scenario_name, 'production', 'credentials')
     enc_path = File.join(creds_dir, "#{environment}.yml.enc")
     key_path = File.join(creds_dir, "#{environment}.key")
+    if new_key || rotate
+      return generate_fresh_scenario_credentials(scenario_name, environment, creds_dir, pool, decl,
+        dry_run: dry_run, rotate: rotate)
+    end
     unless File.exist?(key_path)
-      puts "❌ Key fehlt: #{key_path} (Credentials müssen mindestens initial existieren)"; return false
+      puts "❌ Key fehlt: #{key_path} (Credentials müssen mindestens initial existieren)"
+      puts "   Neues Szenario: WRITE=true NEW_KEY=true bin/rails \"scenario:generate_credentials[#{scenario_name}]\""
+      return false
     end
 
     enc = ActiveSupport::EncryptedConfiguration.new(
@@ -810,61 +817,15 @@ namespace :scenario do
       existing = YAML.safe_load(enc.read.to_s, permitted_classes: [Symbol], aliases: true) || {}
     end
 
-    merged = deep_stringify(existing)
-    # (3) historische flache Leaves entfernen — nested ersetzt sie
-    removed = LEGACY_FLAT_KEYS.select { |k| merged.key?(k) }
-    LEGACY_FLAT_KEYS.each { |k| merged.delete(k) }
-    # (2) secret_key_base bewahren; nur bei Neuanlage erzeugen
-    generated_skb = false
-    if merged['secret_key_base'].to_s.strip.empty?
-      merged['secret_key_base'] = SecureRandom.hex(64)
-      generated_skb = true
-    end
-    # Feature-Keys aus shared mergen (nested)
-    added = []
-    features.each do |f|
-      Array(FEATURE_KEY_GROUPS[f]).each do |grp|
-        next unless shared[grp]
-        merged[grp] = (merged[grp] || {}).deep_merge(deep_stringify(shared[grp]))
-        added << grp
-      end
-    end
-    # clubcloud (kontext-gewählt; per_scenario-Override, sonst shared).
-    # WICHTIG: Setting.get_cc_credentials liest mit context.downcase.to_sym →
-    # der Credential-Key MUSS kleingeschrieben sein (z.B. clubcloud.nbv).
-    if features.include?('clubcloud') && cc_ctx
-      ck = cc_ctx.to_s.downcase
-      cc = per.dig('clubcloud', cc_ctx) || per.dig('clubcloud', ck) ||
-        shared.dig('clubcloud', cc_ctx) || shared.dig('clubcloud', ck)
-      if cc
-        merged['clubcloud'] = (merged['clubcloud'] || {}).merge(ck => deep_stringify(cc))
-        added << "clubcloud.#{ck}"
-      end
-    end
-    # Plan 29-05: region_server (Service-Account je Region, gelesen von
-    # Carambus.region_server_credentials — Key kleingeschrieben wie clubcloud).
-    # Anders als clubcloud eine LISTE: die Authority holt Meldelisten von MEHREREN Region Servern.
-    region_server_contexts(decl).each do |ctx|
-      rk = ctx.to_s.downcase
-      rs = per.dig('region_server', ctx) || per.dig('region_server', rk) ||
-        shared.dig('region_server', ctx) || shared.dig('region_server', rk)
-      next unless rs
-
-      merged['region_server'] = (merged['region_server'] || {}).merge(rk => deep_stringify(rs))
-      added << "region_server.#{rk}"
-    end
-    # google_service immer (per_scenario-Override, sonst shared)
-    gsvc = per['google_service'] || shared['google_service']
-    if gsvc
-      merged['google_service'] = deep_stringify(gsvc)
-      added << 'google_service'
-    end
+    merged, report = ScenarioCredentials.new(existing: existing, pool: pool, decl: decl,
+      scenario_name: scenario_name).merged
+    cc_ctx = report.clubcloud_context
 
     puts "── generate_credentials #{scenario_name} [#{environment}] #{dry_run ? '(DRY-RUN)' : '(WRITE)'} ──"
-    puts "   features: #{features.join(', ')}#{cc_ctx ? "  clubcloud_context=#{cc_ctx}" : ''}"
-    puts "   entfernte flache Leaves: #{removed.empty? ? '—' : removed.join(', ')}"
-    puts "   secret_key_base: #{generated_skb ? 'NEU generiert' : 'bewahrt'}"
-    puts "   gemergte Gruppen: #{added.uniq.join(', ')}"
+    puts "   features: #{report.features.join(', ')}#{cc_ctx ? "  clubcloud_context=#{cc_ctx}" : ''}"
+    puts "   entfernte flache Leaves: #{report.removed.empty? ? '—' : report.removed.join(', ')}"
+    puts "   secret_key_base: #{report.generated_skb ? 'NEU generiert' : 'bewahrt'}"
+    puts "   gemergte Gruppen: #{report.added.uniq.join(', ')}"
     puts "   resultierende Key-Struktur:"
     credential_key_paths(merged).each { |p| puts "     #{p}" }
 
@@ -873,9 +834,66 @@ namespace :scenario do
     else
       enc.write(merged.to_yaml)
       puts "   ✅ geschrieben: #{enc_path}"
-      puts "   ⚠️  secret_key_base neu — in #{File.join(carambus_data_path, 'secrets.yml')} per_scenario sichern!" if generated_skb
+      puts "   ⚠️  secret_key_base neu — in #{File.join(carambus_data_path, 'secrets.yml')} per_scenario sichern!" if report.generated_skb
     end
     true
+  end
+
+  # Plan 18-01: Neuanlage (NEW_KEY=true) bzw. Rotation (ROTATE=true) — eigener Key und eigene
+  # Geheimnisse je Server. Gibt nie Werte aus, nur Schluesselpfade.
+  def generate_fresh_scenario_credentials(scenario_name, environment, creds_dir, pool, decl, dry_run:, rotate:)
+    store = ScenarioCredentials::Store.new(creds_dir, environment)
+    mode = rotate ? 'ROTATE' : 'NEW_KEY'
+
+    if rotate && !(store.key? && store.enc?)
+      puts "❌ ROTATE braucht vorhandene Credentials: #{store.key_path} und #{store.enc_path}"
+      puts "   Neues Szenario stattdessen mit NEW_KEY=true anlegen."
+      return false
+    end
+    if !rotate && (store.key? || store.enc?)
+      puts "❌ NEW_KEY nur für ein Szenario ohne Credentials — hier existiert schon #{store.key? ? store.key_path : store.enc_path}"
+      puts "   Bestehende Credentials rotieren: ROTATE=true"
+      return false
+    end
+
+    credentials = ScenarioCredentials.new(existing: rotate ? store.read : {}, pool: pool, decl: decl,
+      scenario_name: scenario_name)
+    hash, report = rotate ? credentials.rotated : credentials.created
+    puts "── generate_credentials #{scenario_name} [#{environment}] #{mode} #{dry_run ? '(DRY-RUN)' : '(WRITE)'} ──"
+    if rotate
+      puts "   wird ersetzt: production.key, secret_key_base, devise_jwt_secret_key"
+      puts "   active_record_encryption.primary_key: #{Array(hash.dig('active_record_encryption', 'primary_key')).size} Schlüssel (alte entschlüsseln, der letzte verschlüsselt)"
+      puts "   übrige Einträge unverändert"
+    else
+      puts "   neu: production.key, secret_key_base, devise_jwt_secret_key, active_record_encryption"
+      puts "   features: #{report.features.join(', ')}  gemergte Gruppen: #{report.added.uniq.join(', ').presence || '—'}"
+    end
+    puts "   resultierende Key-Struktur:"
+    credential_key_paths(hash).each { |p| puts "     #{p}" }
+
+    if dry_run
+      puts "   (DRY-RUN — nichts geschrieben. Schreiben mit WRITE=true #{mode}=true)"
+      return true
+    end
+
+    if rotate
+      backups = store.rotate(hash, timestamp: Time.now.strftime('%Y%m%d%H%M%S'))
+      puts "   ✅ rotiert: #{store.key_path}, #{store.enc_path}"
+      puts "   Backup: #{backups.join(', ')}"
+    else
+      store.create(hash)
+      puts "   ✅ angelegt: #{store.key_path} (Modus 600), #{store.enc_path}"
+      puts "   ⚠️  production.key sichern — ohne ihn sind die .enc und alle verschlüsselten Felder verloren."
+    end
+    puts "   Nächster Schritt: bin/rails \"scenario:prepare_deploy[#{scenario_name}]\" lädt Key und .enc hoch."
+    if rotate
+      puts "   prepare_deploy startet Puma NICHT neu — danach auf dem Server: sudo systemctl restart puma-<basename>"
+      puts "   Danach sind alle Sitzungen und JWTs ungültig — Benutzer, Scoreboards und Turnier-App melden sich neu an."
+    end
+    true
+  rescue ScenarioCredentials::Store::Error => e
+    puts "❌ #{e.message}"
+    false
   end
 
   # Soft-Feature-Keys (clubcloud/anthropic/deepl/google/youtube/kozoom/google_service) aus
