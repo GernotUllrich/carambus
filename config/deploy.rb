@@ -15,16 +15,14 @@ append :linked_files, "config/database.yml", "config/cable.yml", "config/carambu
 # Default value for linked_dirs is []
 append :linked_dirs, "log", "tmp/pids", "tmp/cache", "tmp/sockets", "public/system", "storage", "config/credentials", "bundle"
 
-# public/app: optionale Auslieferung der carambus_app (Turniermanagement ohne Carambus-
-# Scoreboards, z.B. BG Hamburg) unter /app/. Universeller linked_dir (Plan 21-10: deploy.rb
-# ist getrackt/universell). Befüllt wird shared/public/app nur bei serve_tournament_app:true
-# durch scenario:prepare_deploy; sonst bleibt es leer (→ /app/ 404, harmlos).
-append :linked_dirs, "public/app"
+# public/app (Turnier-App) ist KEIN linked_dir mehr: seit Plan 17-04 liegt die App im Repo
+# (Quelle tournament_app/, Build public/app/) und geht mit jedem Release mit. Ob /app/
+# ausgeliefert wird, entscheidet nginx nach serve_tournament_app (templates/nginx/nginx_conf.erb).
 
 # public/uebersichten: die statischen Bestandsuebersichten (rake coverage:pages). Sie werden auf
 # dem Server ERZEUGT, nicht mitdeployt — deshalb ein linked_dir und nicht ein Verzeichnis im Repo:
-# so ueberlebt der Stand jeden Deploy, und niemand muss generierte Dateien committen. Universell
-# wie public/app: bleibt das Verzeichnis leer, liefert nginx 404 — harmlos.
+# so ueberlebt der Stand jeden Deploy, und niemand muss generierte Dateien committen. Universell:
+# bleibt das Verzeichnis leer, liefert nginx 404 — harmlos.
 append :linked_dirs, "public/uebersichten"
 
 # public/wissenswertes: Inhalte FUER DIE MITGLIEDER (Praesentationen, Anleitungen), erreichbar

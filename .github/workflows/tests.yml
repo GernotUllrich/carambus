@@ -121,7 +121,13 @@ jobs:
     # Laeuft gegen eine Baseline, ist auf master gruen — deshalb blockierend.
     - name: UI-Guardrail (keine neuen hartkodierten Farb-Hex)
       run: ruby bin/ui-hex-guard
-    
+
+    # Hartes Gate (Plan 17-04): Die Turnier-App liegt zweimal im Repo — Quelle unter
+    # tournament_app/, ausgeliefert unter public/app/. Weichen beide ab, ist ein Build
+    # vergessen worden. Node ist auf ubuntu-latest vorinstalliert.
+    - name: Turnier-App (Quelle und public/app/ gleich)
+      run: node tournament_app/tools/build-public.mjs --check
+
     # Nach dem Gate und nicht blockierend: scheitert die Installation (z.B. die native
     # Erweiterung von prism), darf das die UI-Guardrail oben nicht mitreissen.
     - name: Install lint tools (Versionen aus Gemfile.lock, nicht blockierend)

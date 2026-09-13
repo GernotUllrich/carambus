@@ -1,0 +1,145 @@
+{
+  "schema": "carambus.round_start/v1",
+  "region": { "shortname": "NBV" },
+  "tournament": { "cc_id": 12345, "name": "3-Band Mannschaftsmeisterschaft NBV 2026" },
+  "round_no": 1,
+  "round_name": "Runde 1 (1↔4, 2↔3)",
+  "games": [
+    {
+      "external_id": "ms3b-2026-r1-tisch5-pos1",
+      "table_no": 5,
+      "discipline": { "name": "3-Band" },
+      "format": { "target_points": 30, "max_innings": 25 },
+      "context": {
+        "round_no": 1,
+        "round_name": "Runde 1, Teilrunde 1",
+        "gname": "BC Wedel 1 vs BG Hamburg 2 — Pos. 1",
+        "group_no": 1,
+        "seqno": 1
+      },
+      "participants": [
+        { "role": "playera", "team_name": "BC Wedel 1",  "team_position": 1, "player": { "cc_id": 9001, "firstname": "Hans",   "lastname": "Müller" } },
+        { "role": "playerb", "team_name": "BG Hamburg 2","team_position": 1, "player": { "cc_id": 9031, "firstname": "Werner", "lastname": "Bauer"  } }
+      ]
+    },
+    {
+      "external_id": "ms3b-2026-r1-tisch6-pos4",
+      "table_no": 6,
+      "discipline": { "name": "3-Band" },
+      "format": { "target_points": 30, "max_innings": 25 },
+      "context": {
+        "round_no": 1,
+        "round_name": "Runde 1, Teilrunde 1",
+        "gname": "BC Wedel 1 vs BG Hamburg 2 — Pos. 4",
+        "group_no": 1,
+        "seqno": 2
+      },
+      "participants": [
+        { "role": "playera", "team_name": "BC Wedel 1",  "team_position": 4, "player": { "cc_id": 9004, "firstname": "Michael","lastname": "Fischer" } },
+        { "role": "playerb", "team_name": "BG Hamburg 2","team_position": 4, "player": { "cc_id": 9034, "firstname": "Günter", "lastname": "Wolf"    } }
+      ]
+    },
+    {
+      "external_id": "ms3b-2026-r1-tisch7-pos1",
+      "table_no": 7,
+      "discipline": { "name": "3-Band" },
+      "format": { "target_points": 30, "max_innings": 25 },
+      "context": {
+        "round_no": 1,
+        "round_name": "Runde 1, Teilrunde 1",
+        "gname": "BC Wedel 2 vs BG Hamburg 1 — Pos. 1",
+        "group_no": 1,
+        "seqno": 3
+      },
+      "participants": [
+        { "role": "playera", "team_name": "BC Wedel 2",  "team_position": 1, "player": { "cc_id": 9011, "firstname": "Thomas",  "lastname": "Weber"   } },
+        { "role": "playerb", "team_name": "BG Hamburg 1","team_position": 1, "player": { "cc_id": 9021, "firstname": "Wolfgang","lastname": "Schulz"  } }
+      ]
+    },
+    {
+      "external_id": "ms3b-2026-r1-tisch8-pos4",
+      "table_no": 8,
+      "discipline": { "name": "3-Band" },
+      "format": { "target_points": 30, "max_innings": 25 },
+      "context": {
+        "round_no": 1,
+        "round_name": "Runde 1, Teilrunde 1",
+        "gname": "BC Wedel 2 vs BG Hamburg 1 — Pos. 4",
+        "group_no": 1,
+        "seqno": 4
+      },
+      "participants": [
+        { "role": "playera", "team_name": "BC Wedel 2",  "team_position": 4, "player": { "cc_id": 9014, "firstname": "Jürgen", "lastname": "Becker" } },
+        { "role": "playerb", "team_name": "BG Hamburg 1","team_position": 4, "player": { "cc_id": 9024, "firstname": "Karl",   "lastname": "Koch"   } }
+      ]
+    },
+    {
+      "external_id": "ms3b-2026-r1-tisch5-pos2",
+      "table_no": 5,
+      "discipline": { "name": "3-Band" },
+      "format": { "target_points": 30, "max_innings": 25 },
+      "context": {
+        "round_no": 1,
+        "round_name": "Runde 1, Teilrunde 2",
+        "gname": "BC Wedel 1 vs BG Hamburg 2 — Pos. 2",
+        "group_no": 1,
+        "seqno": 5
+      },
+      "participants": [
+        { "role": "playera", "team_name": "BC Wedel 1",  "team_position": 2, "player": { "cc_id": 9002, "firstname": "Klaus",  "lastname": "Schmidt" } },
+        { "role": "playerb", "team_name": "BG Hamburg 2","team_position": 2, "player": { "cc_id": 9032, "firstname": "Dieter", "lastname": "Richter" } }
+      ]
+    },
+    {
+      "external_id": "ms3b-2026-r1-tisch6-pos3",
+      "table_no": 6,
+      "discipline": { "name": "3-Band" },
+      "format": { "target_points": 30, "max_innings": 25 },
+      "context": {
+        "round_no": 1,
+        "round_name": "Runde 1, Teilrunde 2",
+        "gname": "BC Wedel 1 vs BG Hamburg 2 — Pos. 3",
+        "group_no": 1,
+        "seqno": 6
+      },
+      "participants": [
+        { "role": "playera", "team_name": "BC Wedel 1",  "team_position": 3, "player": { "cc_id": 9003, "firstname": "Peter", "lastname": "Schneider" } },
+        { "role": "playerb", "team_name": "BG Hamburg 2","team_position": 3, "player": { "cc_id": 9033, "firstname": "Bernd", "lastname": "Klein"     } }
+      ]
+    },
+    {
+      "external_id": "ms3b-2026-r1-tisch7-pos2",
+      "table_no": 7,
+      "discipline": { "name": "3-Band" },
+      "format": { "target_points": 30, "max_innings": 25 },
+      "context": {
+        "round_no": 1,
+        "round_name": "Runde 1, Teilrunde 2",
+        "gname": "BC Wedel 2 vs BG Hamburg 1 — Pos. 2",
+        "group_no": 1,
+        "seqno": 7
+      },
+      "participants": [
+        { "role": "playera", "team_name": "BC Wedel 2",  "team_position": 2, "player": { "cc_id": 9012, "firstname": "Andreas", "lastname": "Meyer"    } },
+        { "role": "playerb", "team_name": "BG Hamburg 1","team_position": 2, "player": { "cc_id": 9022, "firstname": "Manfred", "lastname": "Hoffmann" } }
+      ]
+    },
+    {
+      "external_id": "ms3b-2026-r1-tisch8-pos3",
+      "table_no": 8,
+      "discipline": { "name": "3-Band" },
+      "format": { "target_points": 30, "max_innings": 25 },
+      "context": {
+        "round_no": 1,
+        "round_name": "Runde 1, Teilrunde 2",
+        "gname": "BC Wedel 2 vs BG Hamburg 1 — Pos. 3",
+        "group_no": 1,
+        "seqno": 8
+      },
+      "participants": [
+        { "role": "playera", "team_name": "BC Wedel 2",  "team_position": 3, "player": { "cc_id": 9013, "firstname": "Stefan", "lastname": "Wagner"  } },
+        { "role": "playerb", "team_name": "BG Hamburg 1","team_position": 3, "player": { "cc_id": 9023, "firstname": "Heinz",  "lastname": "Schäfer" } }
+      ]
+    }
+  ]
+}

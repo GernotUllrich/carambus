@@ -1,0 +1,2294 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TournamentPlan — Carambus Turnier-App</title>
+<style>
+/* >>> CARAMBUS-SYNC core-css >>> */
+/* ==========================================================================
+   css/app.css — gemeinsames Dunkel-Theme + Basis-Komponenten (alle Schemata)
+   Extrahiert aus der 3-Band-App, damit Launcher und Schema-Seiten gleich aussehen.
+   ========================================================================== */
+:root {
+  --bg: #0f1419;
+  --panel: #1c232b;
+  --panel2: #252d36;
+  --border: #38424d;
+  --text: #e8eef4;
+  --muted: #97a3b0;
+  --accent: #4ea1ff;
+  --accent2: #2b7fd8;
+  --good: #4caf50;
+  --warn: #ff9800;
+  --bad: #ef5350;
+  --gold: #ffc94a;
+}
+* { box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  margin: 0;
+  padding: 0;
+  line-height: 1.4;
+}
+a { color: var(--accent); }
+header {
+  background: linear-gradient(135deg, #1a2733 0%, #0f1419 100%);
+  border-bottom: 2px solid var(--accent2);
+  padding: 16px 24px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+header h1 { margin: 0; font-size: 22px; color: var(--accent); }
+.meta { color: var(--muted); font-size: 13px; display: flex; gap: 18px; flex-wrap: wrap; }
+.meta strong { color: var(--text); }
+nav.tabs {
+  display: flex; gap: 2px; background: var(--panel);
+  padding: 0 24px; border-bottom: 1px solid var(--border); overflow-x: auto;
+}
+nav.tabs button {
+  background: transparent; border: none; color: var(--muted);
+  padding: 12px 18px; cursor: pointer; font-size: 14px;
+  border-bottom: 3px solid transparent; white-space: nowrap;
+}
+nav.tabs button.active { color: var(--accent); border-bottom-color: var(--accent); background: var(--panel2); }
+nav.tabs button:hover:not(.active) { color: var(--text); background: var(--panel2); }
+main { padding: 24px; max-width: 1400px; margin: 0 auto; }
+.card { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 18px; margin-bottom: 18px; }
+.card h2 { margin: 0 0 14px 0; font-size: 17px; color: var(--accent); border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+.card h3 { margin: 18px 0 10px 0; font-size: 14px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+button.btn {
+  background: var(--accent2); color: white; border: none; border-radius: 5px;
+  padding: 8px 16px; cursor: pointer; font-size: 14px; font-weight: 500;
+}
+button.btn:hover { background: var(--accent); }
+button.btn.secondary { background: var(--panel2); color: var(--text); border: 1px solid var(--border); }
+button.btn.secondary:hover { background: var(--border); }
+button.btn.danger { background: #b53737; }
+button.btn.danger:hover { background: var(--bad); }
+button.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+input[type="text"], input[type="number"], input[type="password"], select {
+  background: var(--bg); border: 1px solid var(--border); color: var(--text);
+  padding: 6px 10px; border-radius: 4px; font-size: 14px; width: 100%;
+}
+input[type="number"] { width: 90px; }
+input:focus, select:focus { outline: none; border-color: var(--accent); }
+input.validate-required:placeholder-shown { border-color: var(--bad); background: rgba(239, 83, 80, 0.08); }
+input.validate-required:placeholder-shown::placeholder { color: var(--bad); opacity: 0.7; }
+table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); font-size: 14px; }
+th { background: var(--panel2); color: var(--muted); text-transform: uppercase; font-size: 11px; letter-spacing: 0.05em; }
+tr:hover td { background: rgba(78, 161, 255, 0.05); }
+.badge { display: inline-block; background: var(--panel2); color: var(--muted); padding: 2px 8px; border-radius: 10px; font-size: 11px; border: 1px solid var(--border); }
+.badge.done { background: rgba(76, 175, 80, 0.15); color: var(--good); border-color: var(--good); }
+.badge.open { background: rgba(255, 152, 0, 0.15); color: var(--warn); border-color: var(--warn); }
+.badge.running { background: rgba(78, 161, 255, 0.15); color: var(--accent); border-color: var(--accent); }
+.toolbar { display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; align-items: center; }
+.grid-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.alert { background: rgba(255, 152, 0, 0.1); border-left: 3px solid var(--warn); padding: 10px 14px; margin-bottom: 14px; border-radius: 4px; color: var(--text); font-size: 13px; }
+.info { background: rgba(78, 161, 255, 0.08); border-left: 3px solid var(--accent); padding: 10px 14px; margin-bottom: 14px; border-radius: 4px; font-size: 13px; }
+.muted { color: var(--muted); }
+.gold { color: var(--gold); }
+details summary { cursor: pointer; padding: 6px; color: var(--muted); font-size: 13px; }
+details summary:hover { color: var(--accent); }
+@media (max-width: 700px) {
+  .grid-2col { grid-template-columns: 1fr; }
+  main { padding: 12px; }
+  header { padding: 12px; }
+}
+
+/* === Carambus-Verbindung (Badge + Modal) === */
+.conn-badge {
+  display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px;
+  border-radius: 12px; font-size: 12px; font-weight: 500; border: 1px solid var(--border);
+  background: var(--panel2); color: var(--muted); cursor: pointer;
+}
+.conn-badge:hover { border-color: var(--accent); color: var(--text); }
+.conn-badge .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
+.conn-badge.connected { color: var(--good); border-color: rgba(76,175,80,0.4); }
+.conn-badge.connected .dot { background: var(--good); }
+.conn-badge.error { color: var(--bad); border-color: rgba(239,83,80,0.4); }
+.conn-badge.error .dot { background: var(--bad); }
+.modal-backdrop {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.65); display: none;
+  align-items: center; justify-content: center; z-index: 1000; padding: 20px;
+}
+.modal-backdrop.open { display: flex; }
+.modal {
+  background: var(--panel); border: 1px solid var(--border); border-radius: 10px;
+  padding: 24px; max-width: 560px; width: 100%; max-height: 90vh; overflow: auto;
+}
+.modal h2 { margin: 0 0 16px 0; color: var(--accent); font-size: 18px; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+.modal .form-row { margin-bottom: 14px; }
+.modal label { display: block; color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+.modal input { width: 100%; }
+.modal .actions { display: flex; gap: 10px; margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--border); flex-wrap: wrap; }
+.modal .status-line { margin-top: 8px; padding: 8px 12px; border-radius: 4px; font-size: 13px; background: var(--panel2); color: var(--muted); display: none; }
+.modal .status-line.show { display: block; }
+.modal .status-line.ok { color: var(--good); background: rgba(76,175,80,0.08); }
+.modal .status-line.err { color: var(--bad); background: rgba(239,83,80,0.08); }
+/* <<< CARAMBUS-SYNC core-css <<< */
+
+/* Plan-Schema-spezifisch */
+.back-link { font-size: 13px; color: var(--muted); text-decoration: none; }
+.back-link:hover { color: var(--accent); }
+.pool-list { display: flex; flex-direction: column; gap: 4px; max-height: 300px; overflow: auto; padding-right: 6px; }
+.pool-row { display: grid; grid-template-columns: 24px 1fr auto; gap: 8px; align-items: center; background: var(--panel2); border: 1px solid var(--border); border-radius: 5px; padding: 6px 10px; font-size: 14px; }
+.pool-row .club { color: var(--muted); font-size: 12px; }
+.tables-bar { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+.table-chip { padding: 8px 14px; border-radius: 8px; border: 1px solid var(--border); background: var(--panel2); font-size: 13px; min-width: 120px; }
+.table-chip .tname { font-weight: 600; } .table-chip .who { color: var(--muted); font-size: 12px; }
+.table-chip.free { border-color: rgba(76,175,80,.45); } .table-chip.busy { border-color: rgba(255,152,0,.5); }
+.m-card { background: var(--panel); border: 1px solid var(--border); border-radius: 7px; padding: 9px 11px; margin-bottom: 8px; font-size: 13px; }
+.m-card.ready { border-color: var(--accent); } .m-card.running { border-color: var(--warn); } .m-card.done { opacity: .72; }
+.m-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.m-id { color: var(--muted); font-size: 11px; }
+.m-slot { display: flex; justify-content: space-between; gap: 8px; padding: 2px 0; }
+.m-slot .pn.win { color: var(--good); font-weight: 600; } .m-slot .pn.lose { color: var(--muted); } .m-slot .pn.pending { color: var(--muted); font-style: italic; }
+.m-slot .sc { font-family: monospace; }
+.m-actions { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; align-items: center; }
+.m-actions .btn { padding: 5px 10px; font-size: 12px; } .m-actions select { width: auto; padding: 4px 6px; font-size: 12px; }
+.res-inputs { display: grid; grid-template-columns: 1fr 58px 58px 58px; gap: 5px; margin-top: 6px; font-size: 12px; align-items: center; }
+.res-inputs input { width: 100%; min-width: 0; box-sizing: border-box; padding: 4px 6px; font-size: 13px; text-align: right; } .res-inputs .lbl { color: var(--muted); font-size: 10px; text-transform: uppercase; }
+.groups-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 14px; }
+.standings-table td.rk { color: var(--gold); font-weight: bold; text-align: center; }
+.standings-table tr.q td { background: rgba(76,175,80,.06); }
+.place { font-weight: bold; color: var(--gold); }
+.matches-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 12px; }
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>🗂 TournamentPlan</h1>
+    <div class="meta">
+      <a class="back-link" href="../../index.html">← Turnier-Übersicht</a>
+      <span id="metaInfo"></span>
+    </div>
+  </div>
+  <span class="conn-badge" id="connBadge"></span>
+</header>
+
+<nav class="tabs">
+  <button data-tab="setup" class="active">Setup</button>
+  <button data-tab="games">Spiele &amp; Gruppen</button>
+  <button data-tab="standings">Endstand</button>
+</nav>
+
+<main>
+  <div id="tab-setup" class="tab-content"></div>
+  <div id="tab-games" class="tab-content" style="display:none;"></div>
+  <div id="tab-standings" class="tab-content" style="display:none;"></div>
+</main>
+
+<!-- Gemeinsamer Carambus-Kern (inline) -->
+<script>
+/* >>> CARAMBUS-SYNC core-js >>> */
+// ============================================================================
+// shared/carambus-core.js — gemeinsamer Carambus-Kern (KANONISCHE QUELLE)
+// ----------------------------------------------------------------------------
+// Klassisches Script (KEIN ES-Modul), definiert das globale Objekt
+// `window.Carambus`. Wird per tools/sync-core.mjs zwischen den CARAMBUS-SYNC-
+// Markern (Region core-js) in jede self-contained Schema-/Launcher-HTML INLINE
+// kopiert (damit jede Datei per Doppelklick aus dem Dateisystem läuft — ES-Module
+// gehen über file:// nicht). HINWEIS: in dieser Datei dürfen die literalen
+// Marker-Tokens NICHT vorkommen (sonst bricht der Extraktor zu früh ab).
+//
+// → Diese Datei ist die EINZIGE Bearbeitungsstelle des Kerns. Nach Änderungen:
+//      node tools/sync-core.mjs    (inlinen)
+//      node tools/check-core-sync.mjs   (verifizieren)
+// Diese Datei wird zur LAUFZEIT NICHT geladen — die Deliverables sind die
+// self-contained HTML-Dateien.
+// ============================================================================
+window.Carambus = (function () {
+  "use strict";
+
+  // ========================= Verbindung / Auth =============================
+  const CONN_KEY = "carambus.connection";
+  const CONN_DEFAULTS = {
+    base_url: "http://192.168.178.84:3131",
+    email: "carambus-app-gu-bridge@carambus.de",
+    region: "NBV",
+    tournament_cc_id: "",
+    tournament_id: "",     // Carambus-DB-PK (global eindeutig, robust gegen region-scoped cc_id-Ambiguität)
+    party_cc_id: "",       // Liga-Spieltag (Party) — vom Chat-Deeplink cc_open_party_in_app (§6 spieltag-Handoff)
+    bearer: null,
+    bearer_expires_at: null
+  };
+
+  function getConnection() {
+    try {
+      const raw = localStorage.getItem(CONN_KEY);
+      if (!raw) return { ...CONN_DEFAULTS };
+      return { ...CONN_DEFAULTS, ...JSON.parse(raw) };
+    } catch (e) {
+      return { ...CONN_DEFAULTS };
+    }
+  }
+  function saveConnection(conn) { localStorage.setItem(CONN_KEY, JSON.stringify(conn)); }
+  function isBearerValid(conn) {
+    return !!(conn.bearer && conn.bearer_expires_at && Date.now() < conn.bearer_expires_at);
+  }
+  function regionShortname() { return (getConnection().region || "NBV").toUpperCase(); }
+
+  // Deep-Link-Vorausfüllung (Carambus-Chat-Brücke, Handoffs cc_open_in_tournament_app +
+  // cc_open_party_in_app):
+  // Liest cb_base_url/cb_region/cb_tournament_cc_id/cb_tournament_id/cb_party_cc_id aus der URL
+  // und schreibt sie in die gespeicherte Verbindung. base_url: explizit aus cb_base_url, sonst
+  // Same-Origin = window.location.origin (App wird unter /app/ vom selben Local-Server
+  // ausgeliefert). cb_tournament_id (= Carambus-DB-Tournament#id, global eindeutig) wird
+  // zusätzlich zu cb_tournament_cc_id (region-scoped, deshalb mehrdeutig) gelesen; der
+  // seeding-Endpoint bevorzugt tournament_id wenn beide vorhanden — siehe HANDOFF Paul/
+  // v52337e16. cb_party_cc_id (Liga-Spieltag) wird parallel dazu geführt — der Launcher zeigt
+  // dann eine Party-Variante des Deep-Link-Banners.
+  // Das Passwort wird NIE über den Link übertragen — nach dem Vorausfüllen loggt sich
+  // der TL wie gewohnt ein. Räumt die cb_*-Parameter danach aus der URL (replaceState).
+  // Gibt true zurück, wenn etwas vorausgefüllt wurde.
+  function applyDeepLinkConnection() {
+    try {
+      if (typeof window === "undefined" || !window.location) return false;
+      const q = new URLSearchParams(window.location.search || "");
+      const region = q.get("cb_region");
+      const ccId = q.get("cb_tournament_cc_id");
+      const tId = q.get("cb_tournament_id");
+      const partyCcId = q.get("cb_party_cc_id");
+      const baseUrl = q.get("cb_base_url");
+      // cb_email: Service-Account des Ziel-Servers. Ohne diesen Parameter steht in einem
+      // frischen Browser der CONN_DEFAULTS-Wert im Login-Feld (z. B. …-gu-bridge@…), und
+      // der Login gegen einen anderen Local-Server scheitert mit 401 „E-Mail oder Passwort
+      // ungültig" — ohne dass der Grund im Feld sichtbar auffällt. Das Passwort wird
+      // weiterhin NIE über den Link übertragen.
+      const email = q.get("cb_email");
+      if (!region && !ccId && !tId && !partyCcId && !baseUrl && !email) return false;
+
+      const conn = getConnection();
+      if (region) conn.region = String(region).toUpperCase();
+      if (ccId) conn.tournament_cc_id = String(ccId);
+      if (tId) conn.tournament_id = String(tId);
+      if (partyCcId) conn.party_cc_id = String(partyCcId);
+      if (email && email.trim()) conn.email = email.trim();
+      const origin = (window.location.origin && window.location.origin !== "null") ? window.location.origin : null;
+      const resolvedBase = (baseUrl && baseUrl.trim()) || origin;
+      if (resolvedBase) conn.base_url = resolvedBase;
+      saveConnection(conn);
+
+      ["cb_region", "cb_tournament_cc_id", "cb_tournament_id", "cb_party_cc_id", "cb_base_url", "cb_email"].forEach((k) => q.delete(k));
+      const rest = q.toString();
+      const clean = window.location.pathname + (rest ? "?" + rest : "") + (window.location.hash || "");
+      if (window.history && window.history.replaceState) window.history.replaceState(null, "", clean);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function parseTournamentCcIdInput(input) {
+    if (input == null) return null;
+    const s = String(input).trim();
+    if (!s) return null;
+    if (/^\d+$/.test(s)) return s;
+    try {
+      const u = new URL(s);
+      const p = u.searchParams.get("p");
+      if (p) { const m = p.match(/\d{4}\/\d{4}-(\d+)/); if (m) return m[1]; }
+    } catch (_) {}
+    const m2 = s.match(/[-/](\d{3,})[-/]/);
+    if (m2) return m2[1];
+    return null;
+  }
+
+  class CarambusError extends Error {
+    constructor(status, body, message) {
+      super(message || `HTTP ${status}`);
+      this.name = "CarambusError";
+      this.status = status;
+      this.body = body;
+    }
+  }
+
+  async function fetchWithTimeout(url, opts, timeoutMs) {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+    try { return await fetch(url, { ...opts, signal: ctrl.signal }); }
+    finally { clearTimeout(timer); }
+  }
+
+  async function carambusLogin(baseUrl, email, password) {
+    const url = baseUrl.replace(/\/+$/, "") + "/login";
+    const resp = await fetchWithTimeout(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Accept": "application/json" },
+      body: JSON.stringify({ user: { email, password } })
+    }, 10000);
+    if (!resp.ok) {
+      let body = null; try { body = await resp.json(); } catch (_) {}
+      throw new CarambusError(resp.status, body, `Login fehlgeschlagen (HTTP ${resp.status})`);
+    }
+    const auth = resp.headers.get("Authorization") || resp.headers.get("authorization");
+    if (!auth || !auth.startsWith("Bearer ")) {
+      throw new CarambusError(resp.status, null, "Login OK, aber kein Bearer-Token in der Antwort gefunden");
+    }
+    const bearer = auth.substring("Bearer ".length).trim();
+    const expiresAt = Date.now() + 90 * 24 * 60 * 60 * 1000;
+    return { bearer, expires_at: expiresAt };
+  }
+
+  // ========================= REST-Client ===================================
+  async function carambusFetch(path, opts = {}) {
+    const conn = getConnection();
+    if (!conn.base_url) throw new CarambusError(0, null, "Keine Carambus-Verbindung konfiguriert (im Header auf das Statusfeld klicken)");
+    if (!isBearerValid(conn)) throw new CarambusError(401, null, "Kein gültiger Bearer-Token (bitte Login in den Verbindungseinstellungen)");
+    const url = conn.base_url.replace(/\/+$/, "") + path;
+    const headers = { "Authorization": `Bearer ${conn.bearer}`, "Accept": "application/json", ...(opts.headers || {}) };
+    const fetchOpts = { method: opts.method || "GET", headers };
+    if (opts.body != null) {
+      headers["Content-Type"] = "application/json";
+      fetchOpts.body = typeof opts.body === "string" ? opts.body : JSON.stringify(opts.body);
+    }
+    const cbEntry = { ts: new Date().toISOString(), method: fetchOpts.method, path, request: opts.body ?? null, status: null, response: null, error: null };
+    (window.__cbLog = window.__cbLog || []).push(cbEntry);
+    let resp;
+    try {
+      resp = await fetchWithTimeout(url, fetchOpts, 10000);
+    } catch (e) {
+      cbEntry.error = e.name === "AbortError" ? "Timeout" : ("Netzwerk: " + e.message);
+      if (e.name === "AbortError") throw new CarambusError(0, null, "Timeout — Carambus antwortet nicht (LAN-Verbindung prüfen)");
+      throw new CarambusError(0, null, "Netzwerkfehler — Carambus nicht erreichbar (LAN-Verbindung prüfen): " + e.message);
+    }
+    let body = null;
+    const ct = resp.headers.get("Content-Type") || "";
+    if (ct.includes("application/json")) { try { body = await resp.json(); } catch (_) {} }
+    else { try { body = await resp.text(); } catch (_) {} }
+    cbEntry.status = resp.status; cbEntry.response = body;
+    if (!resp.ok) throw new CarambusError(resp.status, body, `HTTP ${resp.status}`);
+    return { status: resp.status, body };
+  }
+
+  async function ping() {
+    try {
+      await carambusFetch(`/api/external_tournament/clubs?region=${encodeURIComponent(regionShortname())}`);
+      return { ok: true };
+    } catch (err) {
+      if (err instanceof CarambusError && err.status === 404) return { ok: true, note: "404 (API erreichbar, Auth OK)" };
+      throw err;
+    }
+  }
+
+  async function fetchClubs(region = regionShortname()) {
+    const { body } = await carambusFetch(`/api/external_tournament/clubs?region=${encodeURIComponent(region)}`);
+    return body.clubs || [];
+  }
+  // Phase 21-07: optional ageClass/gender (Server-Filter). Spieler-Payload enthält jetzt
+  // age_class (String) + gender ("M"/"F"/"U"). 2. Arg darf weiter ein region-String sein
+  // (Legacy-Kompatibilität) — bevorzugt aber das Optionen-Objekt.
+  async function fetchClubPlayers(clubCcId, opts = {}) {
+    if (typeof opts === "string") opts = { region: opts };
+    const region = opts.region || regionShortname();
+    const params = new URLSearchParams();
+    params.set("region", region);
+    params.set("club_cc_id", clubCcId);
+    if (opts.ageClass) params.set("age_class", opts.ageClass);
+    if (opts.gender) params.set("gender", opts.gender);
+    const { body } = await carambusFetch(`/api/external_tournament/club_players?${params.toString()}`);
+    return body.players || [];
+  }
+  // Phase 15 + Paul-Patch v52337e16: Seedings + Turnier-Metadaten eines TournamentCc
+  // (Single + Mannschaft). Quelle für die "Aus Meldeliste vorbefüllen"-UX: liefert
+  // tournament.{name,discipline,format,location} + teams[].players[] in Setzlisten-
+  // Reihenfolge. tournament_id (Carambus-DB-PK, global eindeutig) wird bevorzugt; Fallback
+  // tournament_cc_id (region-scoped via context). Mindestens eines muss gesetzt sein.
+  async function fetchSeeding({ region = regionShortname(), tournamentCcId, tournamentId } = {}) {
+    const hasTId = tournamentId != null && String(tournamentId).trim() !== "";
+    const hasCc = tournamentCcId != null && String(tournamentCcId).trim() !== "";
+    if (!hasTId && !hasCc) {
+      throw new CarambusError(0, null, "tournamentId oder tournamentCcId erforderlich für fetchSeeding");
+    }
+    const params = new URLSearchParams();
+    params.set("region", region);
+    if (hasTId) params.set("tournament_id", tournamentId);
+    if (hasCc) params.set("tournament_cc_id", tournamentCcId);
+    const { body } = await carambusFetch(`/api/external_tournament/seeding?${params.toString()}`);
+    return body;
+  }
+  // Phase 21-05: ClubCloud-Meldelisten einer Region+Saison (Deadline/Status/Disziplin/Kategorie
+  // + ggf. verknüpftes tournament_cc). Default-Saison = Carambus current_season.
+  async function fetchRegistrationLists({ region = regionShortname(), season, discipline, category, status } = {}) {
+    const params = new URLSearchParams();
+    params.set("region", region);
+    if (season) params.set("season", season);
+    if (discipline) params.set("discipline", discipline);
+    if (category) params.set("category", category);
+    if (status) params.set("status", status);
+    const { body } = await carambusFetch(`/api/external_tournament/registration_lists?${params.toString()}`);
+    return body;
+  }
+  // Phase 19 (Handoff an Paul): Sortierung nach Disziplin-Ranking.
+  async function fetchPlayerRankings({ discipline, playerCcIds = [], region = regionShortname() }) {
+    const params = new URLSearchParams();
+    params.set("region", region);
+    params.set("discipline", discipline);
+    if (playerCcIds.length) params.set("player_cc_ids", playerCcIds.join(","));
+    const { body } = await carambusFetch(`/api/external_tournament/player_rankings?${params.toString()}`);
+    return body;
+  }
+  async function fetchTables(locationRef, region = regionShortname()) {
+    const params = new URLSearchParams();
+    params.set("region", region);
+    if (locationRef.id != null) params.set("location_id", locationRef.id);
+    else if (locationRef.cc_id != null) params.set("location_cc_id", locationRef.cc_id);
+    const { body } = await carambusFetch("/api/external_tournament/tables?" + params.toString());
+    return body;
+  }
+
+  // Phase 20: GET disciplines — offizielle Disziplinen + TournamentPlans (executor_params)
+  // + DisciplineTournamentPlan-Matrix (points/innings je Plan×Klasse×Spielerzahl).
+  // Liefert { schema, region, tournament_plans:{name→{…,executor_params}}, disciplines:[…] }.
+  async function fetchDisciplines(region = regionShortname()) {
+    const { body } = await carambusFetch(`/api/external_tournament/disciplines?region=${encodeURIComponent(region)}`);
+    return body;
+  }
+
+  async function createTournament({ externalId, title, location, discipline, region = regionShortname() }) {
+    const body = {
+      region: { shortname: region }, external_id: externalId, title,
+      location: location.id != null ? { id: location.id } : { cc_id: location.cc_id }
+    };
+    if (discipline) body.discipline = { name: discipline };
+    const { body: resp } = await carambusFetch("/api/external_tournament/tournament", { method: "POST", body });
+    return resp.tournament || {};
+  }
+  // Tisch-Referenz für die API: bevorzugt die Carambus-Table-id (eindeutig, robust gegen
+  // doppelte Tischnamen einer Location), sonst Fallback auf den Namen (location-scoped).
+  function tableRef(tableId, tableName) { return tableId != null ? { id: tableId } : { name: tableName }; }
+  // Turnier-Referenz: bevorzugt tournamentId (globaler DB-PK, unabhängig von external_id).
+  // Für Attach-Modus (Web-erzeugtes Turnier ohne external_id) unverzichtbar. Fallback auf
+  // {external_id:…} für app-erzeugte Turniere. Alle POST-Endpoints akzeptieren beide Formen
+  // (external_tournaments_controller#lock_table/start_game/acknowledge_result/end_tournament).
+  function tournamentRef({ tournamentId, externalId }) {
+    if (tournamentId != null && String(tournamentId).trim() !== "") return { tournament_id: tournamentId };
+    return { tournament: { external_id: externalId } };
+  }
+  async function lockTable({ externalId, tournamentId = null, tableName, tableId = null, lock = true, region = regionShortname() }) {
+    const { body } = await carambusFetch("/api/external_tournament/lock_table", {
+      method: "POST",
+      body: { region: { shortname: region }, ...tournamentRef({ tournamentId, externalId }), table: tableRef(tableId, tableName), lock }
+    });
+    return body;
+  }
+  async function startGame({ externalId, tournamentId = null, gameExternalId, tableName, tableId = null, participants, format = {}, region = regionShortname() }) {
+    const payload = {
+      region: { shortname: region }, ...tournamentRef({ tournamentId, externalId }), table: tableRef(tableId, tableName),
+      external_id: gameExternalId,
+      free_game_form: format.free_game_form || "karambol",
+      innings_goal: format.innings_goal ?? 25,
+      sets_to_play: format.sets_to_play ?? 1,
+      sets_to_win: format.sets_to_win ?? 1,
+      allow_follow_up: format.allow_follow_up ?? false,
+      participants
+    };
+    if (format.initial_red_balls != null) payload.initial_red_balls = format.initial_red_balls; // Snooker
+    const { body } = await carambusFetch("/api/external_tournament/start_game", { method: "POST", body: payload });
+    return body;
+  }
+  async function acknowledgeResult({ externalId, tournamentId = null, gameExternalId, region = regionShortname() }) {
+    const { status, body } = await carambusFetch("/api/external_tournament/acknowledge_result", {
+      method: "POST",
+      body: { region: { shortname: region }, ...tournamentRef({ tournamentId, externalId }), game: { external_id: gameExternalId } }
+    });
+    return { status, body };
+  }
+  async function endTournament({ externalId, tournamentId = null, cleanup = false, region = regionShortname() }) {
+    const { body } = await carambusFetch("/api/external_tournament/end_tournament", {
+      method: "POST",
+      body: { region: { shortname: region }, ...tournamentRef({ tournamentId, externalId }), cleanup }
+    });
+    return body;
+  }
+  // ===== Ergebnisarchiv (Vertrag carambus.tournament_result/v1) ===========
+  // Die App bleibt System of Record; der lokale Server bekommt zusaetzlich eine lesbare
+  // Kopie des Endstands — dieselbe Form, in der Carambus gescrapte CC-Ergebnisse haelt.
+  // Vertrag + Klaerungen: HANDOFF-to-/from-carambus-tournament-result-archive.md.
+  //
+  // Idempotent: mehrfacher Aufruf mit demselben Payload schreibt dieselben Zeilen
+  // (Upsert ueber den Unique-Index tournament_id/gname/seqno). Bewusst nach JEDER Runde
+  // aufrufen, nicht erst am Schluss — ein Geraeteverlust mittendrin kostet dann nichts.
+  //
+  // Response: { archived, durable, seedings_written, games_written, players_unmatched[] }
+  //   archived = geschrieben, durable = ueberlebt den naechtlichen GC (erst ab Plan 41-02).
+  async function pushTournamentResult({ externalId, tournamentId = null, scheme, title = "Endstand",
+                                        standings = [], games = [], region = regionShortname() }) {
+    const { body } = await carambusFetch("/api/external_tournament/tournament_result", {
+      method: "POST",
+      body: {
+        // ACHTUNG, weicht von allen anderen Endpoints ab: tournament_result liest die
+        // Region als STRING (`params[:region].to_s.upcase`, permit als Skalar), nicht als
+        // {shortname:…}. Mit der Hausform quittiert der Server 404 "Couldn't find Region".
+        // Gemeldet — solange die Server-Seite so ist, senden wir hier den String.
+        region,
+        ...tournamentRef({ tournamentId, externalId }),
+        scheme, title, standings, games
+      }
+    });
+    return body;
+  }
+
+  // Round-Result Aggregator (Plan 15-04): liest alle Ergebnisse einer Runde eines
+  // Turniers. Erforderlich für Attach-Modus (State-Restore auf Zweit-Laptop / Tag N).
+  // Achtung: Endpoint arbeitet mit tournament_cc_id (region-scoped), NICHT mit tournament_id
+  // — kommt aus seeding.tournament.cc_id. Read-only.
+  async function fetchRoundResult({ region = regionShortname(), tournamentCcId, roundNo } = {}) {
+    if (tournamentCcId == null) throw new CarambusError(0, null, "tournamentCcId erforderlich für fetchRoundResult");
+    if (roundNo == null) throw new CarambusError(0, null, "roundNo erforderlich für fetchRoundResult");
+    const params = new URLSearchParams();
+    params.set("region", region);
+    params.set("tournament_cc_id", tournamentCcId);
+    params.set("round_no", String(roundNo));
+    const { body } = await carambusFetch(`/api/external_tournament/round_result?${params.toString()}`);
+    return body;
+  }
+  // Convenience: iteriert round_result für Runden 1..maxRounds und aggregiert alle
+  // Ergebnisse (leere Runden = einfach übersprungen). Für Attach-Modus im plan-Schema:
+  // ein Aufruf → alle bereits gespielten Games mit external_id/table_name/participants.
+  async function fetchAllRoundResults({ region = regionShortname(), tournamentCcId, maxRounds } = {}) {
+    if (tournamentCcId == null) throw new CarambusError(0, null, "tournamentCcId erforderlich für fetchAllRoundResults");
+    if (!maxRounds || maxRounds < 1) throw new CarambusError(0, null, "maxRounds erforderlich (>=1) für fetchAllRoundResults");
+    const results = [];
+    for (let r = 1; r <= maxRounds; r++) {
+      try {
+        const body = await fetchRoundResult({ region, tournamentCcId, roundNo: r });
+        for (const res of (body.results || [])) results.push({ ...res, round_no: r });
+      } catch (e) {
+        if (e instanceof CarambusError && e.status === 404) continue; // Runde nicht gefunden = leer
+        throw e;
+      }
+    }
+    return results;
+  }
+
+  // Phase 48-§7 / HANDOFF-to-carambus-party-api §1: GET party — Liga-Spieltag laden.
+  // Vorrang partyId (Carambus-DB-PK, global eindeutig); Fallback partyCcId (region-scoped).
+  // Antwort: {schema:"carambus.party/v1", party:{id,cc_id,external_id,name,…,location?},
+  // team_a/team_b:{id,cc_id,name,club_*,roster:[{dbu_nr,firstname,lastname,…}]},
+  // party_monitor: identisch Pauls party_monitor.data (§4.1)}. Endpoint noch ausstehend.
+  async function fetchParty({ region = regionShortname(), partyId, partyCcId } = {}) {
+    const hasId = partyId != null && String(partyId).trim() !== "";
+    const hasCc = partyCcId != null && String(partyCcId).trim() !== "";
+    if (!hasId && !hasCc) throw new CarambusError(0, null, "partyId oder partyCcId erforderlich für fetchParty");
+    const params = new URLSearchParams();
+    params.set("region", region);
+    if (hasId) params.set("party_id", partyId);
+    if (hasCc) params.set("party_cc_id", partyCcId);
+    const { body } = await carambusFetch(`/api/external_tournament/party?${params.toString()}`);
+    return body;
+  }
+  // §2: POST party_game_result — Direkteingabe-Push pro Spielzeile (Modus ii).
+  // baResults entspricht §4.3-Container (Spieler1/2 = dbu_nr team_a/b, Sets1/2 oder
+  // Ergebnis1/2 je sets-Disziplin, Aufnahmen1/2 + Höchstserie1/2 optional).
+  // gname = "<seqno>-<type>" — Schlüssel ins party_monitor.rows. Idempotent: Mehrfach-Push
+  // überschreibt (TL-Korrektur). Antwort enthält intermediate_result für Drift-Vergleich.
+  async function partyGameResult({ region = regionShortname(), partyExternalId, gname, baResults } = {}) {
+    const { body } = await carambusFetch("/api/external_tournament/party_game_result", {
+      method: "POST",
+      body: {
+        schema: "carambus.party_game_result/v1",
+        region: { shortname: region },
+        party: { external_id: partyExternalId },
+        gname, ba_results: baResults
+      }
+    });
+    return body;
+  }
+  // §3: POST party_close — Spielbericht abschließen (AASM close_party).
+  // 409 + {missing_gnames:[...]} bei verletztem Guard (App soll fehlende Spiele anzeigen).
+  async function partyClose({ region = regionShortname(), partyExternalId } = {}) {
+    const { body } = await carambusFetch("/api/external_tournament/party_close", {
+      method: "POST",
+      body: {
+        schema: "carambus.party_close/v1",
+        region: { shortname: region },
+        party: { external_id: partyExternalId }
+      }
+    });
+    return body;
+  }
+
+  function cleanPlayerRef(p) {
+    const ref = { firstname: (p.firstname ?? p.f ?? "").trim(), lastname: (p.lastname ?? p.l ?? "").trim() };
+    if (p.cc_id != null) ref.cc_id = p.cc_id;
+    if (p.dbu_nr != null) ref.dbu_nr = p.dbu_nr;
+    if (p.club_cc_id != null) ref.club_cc_id = p.club_cc_id;
+    return ref;
+  }
+
+  // ========================= Util ==========================================
+  function calcAvg(balls, innings) { return (!innings || innings <= 0) ? 0 : balls / innings; }
+  function fmtAvg(x) { return (!isFinite(x) || x === 0) ? "-" : x.toFixed(3); }
+  function escapeHtml(s) {
+    return String(s == null ? "" : s)
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+  }
+  function shuffle(arr) {
+    const a = arr.slice();
+    for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+    return a;
+  }
+  function tableNo(t) { const m = String(t == null ? "" : t).match(/\d+/); return m ? parseInt(m[0], 10) : null; }
+  function csvCell(v) { const s = (v == null ? "" : String(v)); return /[";\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; }
+  function buildCsv(rows) { return rows.map(r => r.map(csvCell).join(";")).join("\n"); }
+  function downloadText(filename, text, mime = "text/csv") {
+    const blob = new Blob([text], { type: mime });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob); a.download = filename; a.click();
+    URL.revokeObjectURL(a.href);
+  }
+  function downloadJson(filename, obj) { downloadText(filename, JSON.stringify(obj, null, 2), "application/json"); }
+  // Gemeinsame Export-Formate (schemaübergreifend identisch). Jedes Schema baut nur die
+  // normalisierten Zeilen aus seinen eigenen Daten und ruft diese Builder auf.
+  // ClubCloud-Rangliste (kein Header): RANG;PUNKTE;GRUPPENRANG;PASS-NR;PGA;VEREINSNR;TEILNEHMER
+  function buildRankingCsv(entries) {
+    return buildCsv((entries || []).map(e => [
+      e.rang ?? "", e.punkte ?? "", e.gruppenrang ?? "", e.passNr ?? "", e.pga ?? "", e.vereinsNr ?? "", e.teilnehmer ?? ""
+    ]));
+  }
+  // Spiele-CSV im Carambus-Import-Format (kein Header), in Reihenfolge nummeriert (lfd.nr):
+  // Spielname;lfd.nr;;dbu_nr a;dbu_nr b;Bälle a;Bälle b;Aufn. a;Aufn. b;HS a;HS b;dd.mm.yyyy;hh:mm
+  // games: [{ name, dbuA, dbuB, ballsA, ballsB, inningsA, inningsB, hsA, hsB, at(ms) }] (bereits sortiert)
+  function buildGamesCsv(games) {
+    const pad = n => String(n).padStart(2, "0");
+    const dt = ms => { if (!ms) return ["", ""]; const d = new Date(ms); return [`${pad(d.getDate())}.${pad(d.getMonth() + 1)}.${d.getFullYear()}`, `${pad(d.getHours())}:${pad(d.getMinutes())}`]; };
+    return buildCsv((games || []).map((g, i) => {
+      const [d, t] = dt(g.at);
+      return [g.name ?? "", i + 1, "", g.dbuA ?? "", g.dbuB ?? "", g.ballsA ?? "", g.ballsB ?? "", g.inningsA ?? "", g.inningsB ?? "", g.hsA ?? "", g.hsB ?? "", d, t];
+    }));
+  }
+
+  // Scoreboard-/Spielform-Typ aus der Disziplin ableiten. Carambus waehlt das Scoreboard
+  // AUSSCHLIESSLICH anhand von free_game_form: "pool" → Pool-Board, "snooker" → Snooker-Board,
+  // alles andere (inkl. "karambol") → Karambol-Board. Verlaessliches Signal ist table_kind aus
+  // dem disciplines-Endpoint ("Pool"/"Snooker"/…); fehlt es, heuristisch ueber den Namen.
+  function freeGameForm(opts = {}) {
+    const tk = String(opts.tableKind || "").trim().toLowerCase();
+    if (tk === "pool") return "pool";
+    if (tk === "snooker") return "snooker";
+    if (tk) return "karambol"; // bekannter Karambol-/Kegel-Tischtyp (Small/Match Billard, …)
+    const d = String(opts.discipline || "").toLowerCase();
+    if (/snooker/.test(d)) return "snooker";
+    if (/pool|\b\d+\s*-?\s*ball\b|14[.\/]1/.test(d)) return "pool";
+    return "karambol";
+  }
+
+  // Phase 21-07: kurze Anzeige-Suffixe für Spieler-Felder (age_class/gender). Leerstring,
+  // wenn beide null (Spieler ohne qualifizierte seedings) — damit nichts hängen bleibt.
+  function playerAgeGender(p) { return [p && p.age_class, p && p.gender].filter(Boolean).join(" · "); }
+
+  // ===== Ergebnisarchiv: Zeilen-Normalisierung ============================
+  // Die Anzeige in Carambus (app/views/tournaments/show.html.erb) stellt vier
+  // Bedingungen. Sie werden hier EINMAL durchgesetzt, damit sie kein Schema
+  // einzeln treffen muss — und weil drei davon still fehlschlagen:
+  //   1. Spaltenkoepfe kommen aus .keys des ERSTEN Records. Alle Zeilen brauchen
+  //      dieselben Keys in derselben Reihenfolge, sonst fehlen Spalten.
+  //   2. Eine Spielzeile ohne "Ergebnis" (oder "Punkte") wird stumm uebersprungen.
+  //   3. Sortiert wird ueber data["Partie"].to_i — "Partie" ist immer eine Zahl.
+  //   4. "Rank" steuert die Sortierung des Endstands, als Integer.
+  // "Heim"/"Gast" meiden wir bei Einzelturnieren bewusst: sind die Spalten vorhanden
+  // und leer, bricht die Zeilenausgabe ab dieser Stelle ab (das skip-Flag in der View
+  // wird innerhalb der Zeile nicht zurueckgesetzt). Mannschaftsschemata fuellen beide.
+  function unifyColumns(rows) {
+    const keys = [];
+    rows.forEach(r => Object.keys(r.columns || {}).forEach(k => { if (!keys.includes(k)) keys.push(k); }));
+    return rows.map(r => {
+      const c = {};
+      keys.forEach(k => { const v = (r.columns || {})[k]; c[k] = v == null ? "" : String(v); });
+      return { ...r, columns: c };
+    });
+  }
+  // entries: [{ player:{cc_id,dbu_nr,firstname,lastname}|null, rank, columns:{...} }]
+  function buildResultStandings(entries) {
+    const rows = unifyColumns((entries || []).map((e, i) => ({
+      player: e.player || null,
+      rank: Number.isFinite(+e.rank) ? +e.rank : i + 1,
+      columns: e.columns || {}
+    })));
+    // Rank NACH der Vereinheitlichung setzen: unifyColumns stringifiziert, der
+    // Vertrag verlangt hier aber eine Zahl.
+    return rows.map(r => ({ ...r, columns: { ...r.columns, Rank: r.rank } }));
+  }
+  // rows: [{ gname, seqno, group_no, round_no, table_no, started_at, ended_at, columns:{...} }]
+  function buildResultGames(rows) {
+    return unifyColumns((rows || []).map((r, i) => {
+      const columns = { ...(r.columns || {}) };
+      if (columns.Partie == null || columns.Partie === "") columns.Partie = i + 1;
+      // Ohne Ergebnis verschluckt die View die Zeile kommentarlos — lieber ein
+      // sichtbarer Strich als eine Partie, die im Archiv fehlt.
+      if (!columns.Ergebnis && !columns.Punkte) columns.Ergebnis = "—";
+      return {
+        gname: r.gname != null ? String(r.gname) : `g${i + 1}`,
+        seqno: r.seqno != null ? r.seqno : i + 1,
+        group_no: r.group_no ?? null, round_no: r.round_no ?? null, table_no: r.table_no ?? null,
+        started_at: r.started_at || null, ended_at: r.ended_at || null,
+        columns
+      };
+    }));
+  }
+
+  const util = { calcAvg, fmtAvg, escapeHtml, shuffle, tableNo, csvCell, buildCsv, downloadText, downloadJson, buildRankingCsv, buildGamesCsv, buildResultStandings, buildResultGames, freeGameForm, playerAgeGender };
+
+  // ========================= Schema-State (localStorage, Einzelinstanz) =====
+  // Legacy: ein State je Schema (z. B. 3-Band). Für instanzfähige Schemata siehe
+  // die Instanz-Funktionen weiter unten.
+  const STATE_PREFIX = "carambus.scheme.";
+  function schemeKey(id) { return STATE_PREFIX + id; }
+  function loadSchemeState(id, makeDefault) {
+    try { const raw = localStorage.getItem(schemeKey(id)); if (raw) return JSON.parse(raw); }
+    catch (e) { console.warn("State-Load fehlgeschlagen:", e); }
+    return makeDefault ? makeDefault() : null;
+  }
+  function saveSchemeState(id, state) { localStorage.setItem(schemeKey(id), JSON.stringify(state)); }
+  function clearSchemeState(id) { localStorage.removeItem(schemeKey(id)); }
+
+  // ===== Turnier-Instanzen (mehrere parallele Turniere je Schema) ===========
+  // Jede Instanz = ein eigenständiges Turnier (eigener State unter
+  // carambus.instance.<id>). Ein Index (carambus.instances) hält die Metadaten
+  // (Schema, Titel, Kategorie, Zeitstempel) für den Turnier-Manager im Launcher.
+  const INSTANCE_PREFIX = "carambus.instance.";
+  const INSTANCE_INDEX = "carambus.instances";
+
+  function listInstances() {
+    try { return JSON.parse(localStorage.getItem(INSTANCE_INDEX) || "[]"); }
+    catch (e) { return []; }
+  }
+  function writeInstanceIndex(arr) { localStorage.setItem(INSTANCE_INDEX, JSON.stringify(arr)); }
+
+  // Optional `discipline`, `source` (z. B. "registration_list:<cc_id>"),
+  // `preselectedPlayers` (Array bereinigter Spieler-Refs für die Setzliste) und
+  // `partyCcId` (Liga-Spieltag — schaltet das spieltag-Schema in den Live-Modus, Phase 6)
+  // können beim Anlegen mitgegeben werden; das Schema liest sie beim ersten defaultState
+  // aus instance.*.
+  function createInstance({ schemeId, title, category, discipline, source, preselectedPlayers, partyCcId, attachTournamentId } = {}) {
+    const id = `${schemeId}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
+    const rec = {
+      id, schemeId,
+      title: (title && title.trim()) || "Unbenanntes Turnier",
+      category: (category || "").trim(),
+      createdAt: Date.now(), updatedAt: Date.now()
+    };
+    if (discipline) rec.discipline = String(discipline);
+    if (source) rec.source = String(source);
+    if (partyCcId) rec.party_cc_id = String(partyCcId);
+    // Attach-Modus (plan-Schema): PK eines im Carambus-Web angelegten Turniers, an das die
+    // App sich anhängt (statt selbst Turnier anzulegen). Multi-Laptop-/Multi-Tag-fähig.
+    if (attachTournamentId != null && String(attachTournamentId).trim() !== "") {
+      rec.attach_tournament_id = String(attachTournamentId);
+    }
+    if (Array.isArray(preselectedPlayers) && preselectedPlayers.length) rec.preselected_players = preselectedPlayers;
+    const arr = listInstances(); arr.push(rec); writeInstanceIndex(arr);
+    return rec;
+  }
+  function getInstance(id) { return listInstances().find(r => r.id === id) || null; }
+  function updateInstance(id, patch) {
+    const arr = listInstances(); const r = arr.find(x => x.id === id);
+    if (!r) return null;
+    Object.assign(r, patch, { updatedAt: Date.now() });
+    writeInstanceIndex(arr);
+    return r;
+  }
+  function deleteInstance(id) {
+    writeInstanceIndex(listInstances().filter(r => r.id !== id));
+    localStorage.removeItem(INSTANCE_PREFIX + id);
+  }
+  function loadInstanceState(id, makeDefault) {
+    try { const raw = localStorage.getItem(INSTANCE_PREFIX + id); if (raw) return JSON.parse(raw); }
+    catch (e) { console.warn("Instanz-State-Load fehlgeschlagen:", e); }
+    return makeDefault ? makeDefault() : null;
+  }
+  function saveInstanceState(id, state) { localStorage.setItem(INSTANCE_PREFIX + id, JSON.stringify(state)); }
+
+  const storage = {
+    loadSchemeState, saveSchemeState, clearSchemeState, schemeKey,
+    listInstances, createInstance, getInstance, updateInstance, deleteInstance,
+    loadInstanceState, saveInstanceState
+  };
+
+  // ========================= Verbindungs-Widget ============================
+  const MODAL_ID = "carambusConnModal";
+  const modalState = { onChange: null };
+
+  function mountConnectionWidget({ badgeEl, onChange } = {}) {
+    if (!badgeEl) throw new Error("mountConnectionWidget: badgeEl fehlt");
+    ensureModal();
+    badgeEl.classList.add("conn-badge");
+    badgeEl.innerHTML = `<span class="dot"></span><span class="conn-badge-label">Carambus</span>`;
+    badgeEl.title = "Carambus-Verbindung konfigurieren";
+    badgeEl.addEventListener("click", openModal);
+
+    function refresh() {
+      const conn = getConnection();
+      const label = badgeEl.querySelector(".conn-badge-label");
+      badgeEl.classList.remove("connected", "error");
+      if (isBearerValid(conn)) { badgeEl.classList.add("connected"); label.textContent = `Carambus: verbunden (${conn.region})`; }
+      else if (conn.base_url) { label.textContent = "Carambus: nicht angemeldet"; }
+      else { label.textContent = "Carambus: nicht verbunden"; }
+    }
+    modalState.onChange = () => { refresh(); if (onChange) onChange(getConnection()); };
+    refresh();
+    return { refresh, open: openModal };
+  }
+
+  function ensureModal() {
+    if (document.getElementById(MODAL_ID)) return;
+    const wrap = document.createElement("div");
+    wrap.className = "modal-backdrop"; wrap.id = MODAL_ID;
+    wrap.innerHTML = `
+      <div class="modal">
+        <h2>🔌 Carambus-Verbindung</h2>
+        <div class="info">Einmal pro Gerät einrichten. Wird von allen Schemata geteilt. Der Token gilt 90 Tage.</div>
+        <div class="form-row"><label>Base-URL (LAN)</label><input type="text" id="cwBaseUrl" placeholder="http://192.168.178.84:3131"></div>
+        <div class="form-row"><label>Service-Account E-Mail</label><input type="text" id="cwEmail" placeholder="carambus-app-&lt;region&gt;-bridge@carambus.de"></div>
+        <div class="form-row"><label>Region (Shortname)</label><input type="text" id="cwRegion" placeholder="NBV"></div>
+        <div class="form-row"><label>Turnier (cc_id) — Quelle der Teilnehmer, optional / via Chat-Deep-Link vorausgefüllt</label><input type="text" id="cwTournamentCcId" placeholder="z. B. 939"></div>
+        <div class="form-row"><label>Liga-Spieltag (Party cc_id) — optional / via Chat-Deep-Link vorausgefüllt</label><input type="text" id="cwPartyCcId" placeholder="z. B. 12345"></div>
+        <div class="form-row" id="cwPasswordRow"><label>Passwort (nur für Login nötig)</label><input type="password" id="cwPassword" placeholder="········" autocomplete="current-password"></div>
+        <div class="status-line" id="cwStatus"></div>
+        <div class="actions">
+          <button class="btn" id="cwLogin">🔑 Login &amp; Speichern</button>
+          <button class="btn secondary" id="cwTest">🩺 Verbindung testen</button>
+          <button class="btn secondary" id="cwClear" title="Token vergessen (erzwingt neuen Login)">Token vergessen</button>
+          <button class="btn secondary" id="cwClose" style="margin-left:auto;">Schließen</button>
+        </div>
+      </div>`;
+    document.body.appendChild(wrap);
+    wrap.addEventListener("click", (e) => { if (e.target === wrap) closeModal(); });
+    document.getElementById("cwClose").addEventListener("click", closeModal);
+    document.getElementById("cwLogin").addEventListener("click", doLogin);
+    document.getElementById("cwTest").addEventListener("click", doTest);
+    document.getElementById("cwClear").addEventListener("click", doClear);
+  }
+  function openModal() {
+    const conn = getConnection();
+    document.getElementById("cwBaseUrl").value = conn.base_url || "";
+    document.getElementById("cwEmail").value = conn.email || "";
+    document.getElementById("cwRegion").value = conn.region || "";
+    document.getElementById("cwTournamentCcId").value = conn.tournament_cc_id || "";
+    document.getElementById("cwPartyCcId").value = conn.party_cc_id || "";
+    document.getElementById("cwPassword").value = "";
+    setStatus("", "");
+    document.getElementById(MODAL_ID).classList.add("open");
+  }
+  function closeModal() { document.getElementById(MODAL_ID).classList.remove("open"); }
+  function readForm() {
+    return {
+      base_url: document.getElementById("cwBaseUrl").value.trim(),
+      email: document.getElementById("cwEmail").value.trim(),
+      region: document.getElementById("cwRegion").value.trim().toUpperCase(),
+      tournament_cc_id: document.getElementById("cwTournamentCcId").value.trim(),
+      party_cc_id: document.getElementById("cwPartyCcId").value.trim(),
+      password: document.getElementById("cwPassword").value
+    };
+  }
+  function setStatus(msg, kind) {
+    const el = document.getElementById("cwStatus");
+    el.textContent = msg;
+    el.className = "status-line" + (msg ? " show" : "") + (kind ? " " + kind : "");
+  }
+  async function doLogin() {
+    const f = readForm();
+    if (!f.base_url || !f.email) { setStatus("Base-URL und E-Mail sind nötig.", "err"); return; }
+    const conn = getConnection();
+    // Wenn der TL cc_id manuell ändert, ist die per Deep-Link gesetzte tournament_id (DB-PK)
+    // u. U. nicht mehr passend → leeren, damit fetchSeeding wieder über cc_id+region auflöst.
+    if (String(f.tournament_cc_id || "") !== String(conn.tournament_cc_id || "")) conn.tournament_id = "";
+    conn.base_url = f.base_url; conn.email = f.email; conn.region = f.region; conn.tournament_cc_id = f.tournament_cc_id;
+    conn.party_cc_id = f.party_cc_id || "";
+    if (!f.password && isBearerValid(conn)) {
+      saveConnection(conn); setStatus("Gespeichert (bestehender Token bleibt gültig).", "ok");
+      modalState.onChange && modalState.onChange(); return;
+    }
+    if (!f.password) { setStatus("Passwort eingeben (für den ersten Login / nach 'Token vergessen').", "err"); return; }
+    setStatus("Melde an …", "");
+    try {
+      const { bearer, expires_at } = await carambusLogin(f.base_url, f.email, f.password);
+      conn.bearer = bearer; conn.bearer_expires_at = expires_at;
+      saveConnection(conn); setStatus("✓ Angemeldet und gespeichert.", "ok");
+      modalState.onChange && modalState.onChange();
+    } catch (err) { setStatus("Login fehlgeschlagen: " + describeErr(err), "err"); }
+  }
+  async function doTest() {
+    const f = readForm();
+    const conn = getConnection();
+    conn.base_url = f.base_url || conn.base_url; conn.region = f.region || conn.region; conn.email = f.email || conn.email;
+    if (f.tournament_cc_id !== undefined) {
+      if (String(f.tournament_cc_id || "") !== String(conn.tournament_cc_id || "")) conn.tournament_id = "";
+      conn.tournament_cc_id = f.tournament_cc_id;
+    }
+    if (f.party_cc_id !== undefined) conn.party_cc_id = f.party_cc_id || "";
+    saveConnection(conn);
+    if (!isBearerValid(conn)) { setStatus("Kein gültiger Token — bitte zuerst Login.", "err"); return; }
+    setStatus("Teste …", "");
+    try { const r = await ping(); setStatus("✓ Verbindung OK" + (r.note ? " — " + r.note : ""), "ok"); modalState.onChange && modalState.onChange(); }
+    catch (err) { setStatus("Fehler: " + describeErr(err), "err"); }
+  }
+  function doClear() {
+    const conn = getConnection();
+    conn.bearer = null; conn.bearer_expires_at = null;
+    saveConnection(conn); setStatus("Token vergessen. Nächster Login nötig.", "ok");
+    modalState.onChange && modalState.onChange();
+  }
+  function describeErr(err) {
+    if (err instanceof CarambusError) {
+      const detail = err.body != null ? " " + (typeof err.body === "string" ? err.body : JSON.stringify(err.body)) : "";
+      return `HTTP ${err.status}${detail}`;
+    }
+    return err?.message || String(err);
+  }
+
+  // ========================= Öffentliche Schnittstelle =====================
+  return {
+    CONN_KEY, CONN_DEFAULTS,
+    getConnection, saveConnection, isBearerValid, regionShortname, parseTournamentCcIdInput, applyDeepLinkConnection,
+    CarambusError, fetchWithTimeout, carambusLogin,
+    carambusFetch, ping,
+    api: {
+      fetchClubs, fetchClubPlayers, fetchPlayerRankings, fetchTables, fetchDisciplines, fetchRegistrationLists, fetchSeeding,
+      createTournament, lockTable, startGame, acknowledgeResult, endTournament, cleanPlayerRef,
+      pushTournamentResult,
+      fetchRoundResult, fetchAllRoundResults,
+      fetchParty, partyGameResult, partyClose
+    },
+    util, storage, mountConnectionWidget
+  };
+})();
+/* <<< CARAMBUS-SYNC core-js <<< */
+</script>
+
+<!-- Plan-Engine (inline; tools-Test extrahiert diesen Block) -->
+<script>
+/* >>> PLAN-ENGINE >>> */
+"use strict";
+function roundNo(key){ const m=/^r(\d+)$/.exec(key); return m?parseInt(m[1],10):null; }
+function isGroupKey(k){ return /^g\d+$/.test(k); }
+const META_KEYS = new Set(["RK","GK","rules"]);
+function parsePairing(str){ const m=String(str).split(/\s*-\s*/).map(s=>parseInt(s.trim(),10)); return [m[0],m[1]]; }
+
+function parsePlan(executorParams, opts={}){
+  const nrepeats = opts.nrepeats || 1;
+  const p = typeof executorParams === "string" ? JSON.parse(executorParams) : executorParams;
+  const groups=[], games=[];
+  for (const [key,val] of Object.entries(p)){
+    if (META_KEYS.has(key)) continue;
+    if (isGroupKey(key)){
+      const n=parseInt(key.slice(1),10);
+      groups.push({key,n,pl:val.pl??null,rs:val.rs??null});
+      games.push(...parseGroupGames(n,val.sq,nrepeats,{pl:val.pl,rs:val.rs}));
+    } else {
+      const g=parsePlacementGame(key,val); if(g) games.push(g);
+    }
+  }
+  return { groups: groups.sort((a,b)=>a.n-b.n), games, rk: Array.isArray(p.RK)?p.RK.slice():[], gk: p.GK??null };
+}
+function parseGroupGames(n,sq,nrepeats,opts={}){
+  const out=[]; const seen=new Set();
+  const isPg = opts.pl && /pg$/i.test(String(opts.rs||""));
+  // ref-basiertes Spiel (a/b = Slot-Referenzen wie "key.rk1"=Sieger / ".rk2"=Verlierer)
+  const push=(key,round,table,aRef,bRef,decide,needs)=>{ const g={key,kind:"group",group:n,round,table,a:aRef,b:bRef}; if(decide) g.decide=true; if(needs&&needs.length) g.needs=needs; out.push(g); };
+  const emit=(round,table,a,b,decide)=>{ seen.add(Math.min(a,b)+"-"+Math.max(a,b)); for(let rep=1;rep<=nrepeats;rep++){ const sfx=nrepeats>1?`/${rep}`:""; push(`group${n}:${a}-${b}${sfx}`,round,table,`g${n}.p${a}`,`g${n}.p${b}`,decide); } };
+  const r1=[];
+  if (Array.isArray(sq)){ sq.forEach(pr=>{ const [a,b]=parsePairing(pr); emit(null,null,a,b); }); }
+  else if (sq && typeof sq==="object"){ for(const [rKey,tables] of Object.entries(sq)){ const round=roundNo(rKey); for(const [table,pr] of Object.entries(tables)){ const [a,b]=parsePairing(pr); const dec=(opts.pl===4 && isPg && round===1); emit(round,table,a,b,dec); if(round===1) r1.push({key:`group${n}:${a}-${b}`,table}); } } }
+  // Regelsystem „eae_pg", 4er-Gruppe: executor_params liefern nur R1; R2/R3 nach
+  // offizieller Choreografie ergebnisabhängig erzeugen (sonst groupComplete schon
+  // nach R1 → Sprung ins Finale). R2: Verlierer wechseln Tisch (Sieger bleibt).
+  // R3: Restliche Partien = Sieger-Partie + Verlierer-Partie.
+  if (opts.pl===4 && isPg && r1.length===2){
+    const [A,B]=r1;
+    const r2a=`group${n}:r2:${A.table}`, r2b=`group${n}:r2:${B.table}`;
+    push(r2a,2,A.table,`${A.key}.rk1`,`${B.key}.rk2`); // Sieger bleibt an t1, Verlierer von t2 kommt
+    push(r2b,2,B.table,`${B.key}.rk1`,`${A.key}.rk2`); // Sieger bleibt an t2, Verlierer von t1 kommt
+    // R3 „Restliche Partien" erst NACH R2 (needs); auf den Tischen der Gruppe (≙ Auslosung)
+    push(`group${n}:r3:s`,3,null,`${A.key}.rk1`,`${B.key}.rk1`,false,[r2a,r2b]); // Sieger-Partie (Tisch ausgelost)
+    push(`group${n}:r3:v`,3,null,`${A.key}.rk2`,`${B.key}.rk2`,false,[r2a,r2b]); // Verlierer-Partie (Tisch ausgelost)
+    out.filter(g => g.round===3).forEach(g => g.lot = n); // R3: Tische der Gruppe werden ausgelost
+    out.forEach(g => g.choreo = true); // R1/R2: fester logischer Tisch (Sieger bleibt); R3: Los
+    return out;
+  }
+  // sonstige _pg-Gruppen (≠ 4 Spieler): volles Round-Robin generisch auffüllen
+  if (isPg){
+    const remaining=[];
+    for(let a=1;a<=opts.pl;a++) for(let b=a+1;b<=opts.pl;b++){ if(!seen.has(a+"-"+b)) remaining.push([a,b]); }
+    let round = out.reduce((mx,g)=>Math.max(mx,g.round||0),0);
+    while(remaining.length){ round++; const used=new Set();
+      for(let i=0;i<remaining.length;){ const [a,b]=remaining[i]; if(!used.has(a)&&!used.has(b)){ used.add(a);used.add(b); emit(round,null,a,b); remaining.splice(i,1); } else i++; } }
+  }
+  return out;
+}
+function parsePlacementGame(key,val){
+  const rounds=Object.entries(val).filter(([k])=>roundNo(k)!=null);
+  if(!rounds.length) return null;
+  const [rKey,tableMap]=rounds[0]; const round=roundNo(rKey);
+  const [table,refs]=Object.entries(tableMap)[0]||[]; const arr=Array.isArray(refs)?refs:[];
+  return {key,kind:"placement",round,table,a:arr[0]??null,b:arr[1]??null};
+}
+function groupGamesOf(plan){ return plan.games.filter(g=>g.kind==="group"); }
+function placementGamesOf(plan){ return plan.games.filter(g=>g.kind==="placement"); }
+
+const GROUP_SIZES={6:[3,3],7:[3,4],8:[4,4],9:[3,3,3],10:[5,5],11:[3,4,4],12:[4,4,4],13:[4,3,3,3],14:[4,4,3,3],15:[4,4,4,3],16:[4,4,4,4]};
+const GROUP_RULES={6:[[1,4,6],[2,3,5]],7:[[1,4,5,0],[2,3,6,7]],8:[[1,4,5,8],[2,3,6,7]],9:[[1,4,9],[2,5,8],[3,6,7]],10:[[1,4,5,7,10],[2,3,6,8,9]],11:[[1,4,7,0],[2,5,8,11],[3,6,9,10]],12:[[1,6,7,12],[2,5,8,11],[3,4,9,10]],13:[[1,8,9,13],[2,6,12],[3,7,10],[4,5,11]],14:[[1,8,9,13],[2,6,12,14],[3,7,10],[4,5,11]],15:[[1,8,9,15],[2,6,10,14],[3,7,11,13],[4,5,12]],16:[[1,8,9,16],[2,6,10,15],[3,7,11,14],[4,5,12,13]]};
+function sameSizes(a,b){ return Array.isArray(a)&&Array.isArray(b)&&a.length===b.length&&a.every((x,i)=>x===b[i]); }
+function distributeToGroups(players,ngroups,groupSizes=null){
+  const n=players.length, groups={}; for(let g=1;g<=ngroups;g++) groups[g]=[];
+  const std=GROUP_SIZES[n], sizes=groupSizes||std;
+  if (sizes && std && sameSizes(sizes,std) && GROUP_RULES[n]){
+    GROUP_RULES[n].forEach((positions,ix)=>{ positions.forEach(pos=>{ if(pos!==0) groups[ix+1].push(players[pos-1]); }); });
+    return groups;
+  }
+  if (sizes && Array.isArray(sizes)){
+    const fill={}; for(let g=1;g<=ngroups;g++) fill[g]=0;
+    const minSize=Math.min(...sizes), phase1=minSize*ngroups;
+    players.slice(0,phase1).forEach((p,i)=>{ const g=(i%ngroups)+1; groups[g].push(p); fill[g]++; });
+    let withSpace=[]; for(let g=ngroups;g>=1;g--) if(fill[g]<sizes[g-1]) withSpace.push(g);
+    players.slice(phase1).forEach(p=>{ if(!withSpace.length) return; const g=withSpace.shift(); groups[g].push(p); fill[g]++; if(fill[g]<sizes[g-1]) withSpace.push(g); });
+    return groups;
+  }
+  if (ngroups===2){ let gi=1,right=true; players.forEach(p=>{ groups[gi].push(p); if(right){gi++; if(gi>ngroups){right=false;gi=ngroups;}} else {gi--; if(gi<=0){right=true;gi=1;}} }); }
+  else { players.forEach((p,i)=>groups[(i%ngroups)+1].push(p)); }
+  return groups;
+}
+function decideGame(res,ballsGoalA,ballsGoalB){
+  const ga=ballsGoalA||res.a?.balls_goal||1, gb=ballsGoalB||res.b?.balls_goal||1;
+  const ra=(res.a?.balls??0)/ga*100, rb=(res.b?.balls??0)/gb*100;
+  let winner=null,pointsA=1,pointsB=1;
+  if(ra>rb){winner="a";pointsA=2;pointsB=0;} else if(rb>ra){winner="b";pointsA=0;pointsB=2;}
+  return {winner,pointsA,pointsB};
+}
+function groupStandings(groupPlayers,playedGames,order=["points","gd"]){
+  const acc=new Map();
+  const ensure=p=>{ const id=pidOf(p); if(!acc.has(id)) acc.set(id,{player:p,points:0,result:0,innings:0,hs:0,bed:0,gd:0}); return acc.get(id); };
+  groupPlayers.forEach(ensure);
+  for(const g of playedGames){
+    const d=decideGame(g.res,g.ballsGoalA,g.ballsGoalB);
+    const A=ensure(g.a),B=ensure(g.b);
+    A.points+=d.pointsA; B.points+=d.pointsB;
+    A.result+=g.res.a?.balls??0; A.innings+=g.res.a?.innings??0;
+    B.result+=g.res.b?.balls??0; B.innings+=g.res.b?.innings??0;
+    const hsA=g.res.a?.hs??0,hsB=g.res.b?.hs??0; if(hsA>A.hs)A.hs=hsA; if(hsB>B.hs)B.hs=hsB;
+  }
+  for(const s of acc.values()) s.gd = s.innings>0?+(s.result/s.innings).toFixed(2):0;
+  return [...acc.values()].sort((x,y)=>{ let vx=0,vy=0; for(const k of order){vx=vx*1000+(x[k]||0);vy=vy*1000+(y[k]||0);} return vy-vx; });
+}
+// stabile Spieler-Identität (für Maps + Persistenz-Replay)
+function pidOf(p){ return p && (p.pid ?? (p.cc_id!=null?("cc"+p.cc_id):("s"+p.seed))); }
+
+function createRun(plan,players,opts={}){
+  const ngroups=plan.groups.length, sizes=plan.groups.map(g=>g.pl);
+  const groups=ngroups?distributeToGroups(players,ngroups,sizes):{};
+  return { plan, players, ballsGoal:opts.ballsGoal??null, order:opts.order??["points","gd"], groups, results:{} };
+}
+function groupComplete(run,n){ return run.plan.games.filter(g=>g.kind==="group"&&g.group===n).every(g=>run.results[g.key]); }
+function runGroupStandings(run,n){
+  const games=run.plan.games.filter(g=>g.kind==="group"&&g.group===n);
+  const played=games.filter(g=>run.results[g.key]).map(g=>{ const r=run.results[g.key]; return {a:r.a,b:r.b,res:r.res,ballsGoalA:run.ballsGoal,ballsGoalB:run.ballsGoal}; });
+  return groupStandings(run.groups[n]||[],played,run.order);
+}
+function resolveSlot(run,ref){
+  if(ref==null) return null; let m;
+  if((m=/^sl\.rk(\d+)$/.exec(ref))) return run.players[+m[1]-1]??null;
+  if((m=/^g(\d+)\.p(\d+)$/.exec(ref))){ const grp=run.groups[+m[1]]; return grp?(grp[+m[2]-1]??null):null; }
+  if((m=/^g(\d+)\.rk(\d+)$/.exec(ref))){ const n=+m[1]; if(!groupComplete(run,n)) return null; return runGroupStandings(run,n)[+m[2]-1]?.player??null; }
+  if(ref.startsWith("(")) return resolveComposite(run,ref);
+  if((m=/^(.+)\.rk(\d+)$/.exec(ref))){ const r=run.results[m[1]]; if(!r||r.winner==null) return null; const rk=+m[2]; if(rk===1) return r.winner==="a"?r.a:r.b; if(rk===2) return r.winner==="a"?r.b:r.a; return null; }
+  return null;
+}
+function resolveComposite(run,ref){
+  const m=/^\((.+)\)\.rk(?:-rand-\d+-(\d+)|(\d+))$/.exec(ref); if(!m) return null;
+  const rank=+(m[2]??m[3]); const members=m[1].split(/\s*\+\s*/); const subset=[];
+  for(const member of members){ const st=memberStat(run,member.trim()); if(!st) return null; subset.push(st); }
+  const order=run.order;
+  subset.sort((x,y)=>{ let vx=0,vy=0; for(const k of order){vx=vx*1000+(x[k]||0);vy=vy*1000+(y[k]||0);} return vy-vx; });
+  return subset[rank-1]?.player??null;
+}
+function memberStat(run,member){
+  let m;
+  if((m=/^g(\d+)\.rk(\d+)$/.exec(member))){ const n=+m[1]; if(!groupComplete(run,n)) return null; return runGroupStandings(run,n)[+m[2]-1]??null; }
+  const p=resolveSlot(run,member); return p?{player:p,points:0,gd:0}:null;
+}
+function runReadyGames(run){
+  return run.plan.games.filter(g=>!run.results[g.key] && (!g.needs||g.needs.every(k=>run.results[k]))).map(g=>{ const a=resolveSlot(run,g.a),b=resolveSlot(run,g.b); return (a&&b)?{...g,playerA:a,playerB:b}:null; }).filter(Boolean);
+}
+function recordResult(run,key,res,winnerOverride=null){
+  const g=run.plan.games.find(x=>x.key===key); if(!g) throw new Error("Unbekanntes Spiel: "+key);
+  const a=resolveSlot(run,g.a),b=resolveSlot(run,g.b); if(!a||!b) throw new Error("Spiel nicht spielbereit: "+key);
+  const d=decideGame(res,run.ballsGoal,run.ballsGoal); const winner=winnerOverride||d.winner;
+  run.results[key]={a,b,res,winner,pointsA:d.pointsA,pointsB:d.pointsB}; return run.results[key];
+}
+function finalRanking(run){ return run.plan.rk.map((ref,i)=>({place:i+1,ref,player:resolveSlot(run,ref)})); }
+function runFinished(run){ return run.plan.games.every(g=>run.results[g.key]); }
+/* <<< PLAN-ENGINE <<< */
+</script>
+
+<!-- Plan-Controller -->
+<script>
+"use strict";
+const { getConnection, isBearerValid, regionShortname, CarambusError, mountConnectionWidget } = Carambus;
+const { fetchDisciplines, fetchClubs, fetchClubPlayers, fetchPlayerRankings, fetchTables,
+        createTournament, lockTable, startGame, acknowledgeResult, endTournament, cleanPlayerRef } = Carambus.api;
+const { loadInstanceState, saveInstanceState, getInstance, updateInstance } = Carambus.storage;
+const { escapeHtml, shuffle, tableNo, buildCsv, downloadText } = Carambus.util;
+
+const INSTANCE_ID = new URLSearchParams(location.search).get("t");
+const instance = INSTANCE_ID ? getInstance(INSTANCE_ID) : null;
+if (!INSTANCE_ID || !instance) { location.replace("../../index.html"); throw new Error("Keine Turnier-Instanz"); }
+
+// Eingebaute Demo-Pläne (offline, ohne Carambus) — echte executor_params (T04/T06).
+const DEMO_DOC = {
+  schema: "carambus.disciplines/v1", region: { shortname: "DEMO" },
+  tournament_plans: {
+    "T04": { players: 5, tables: 2, ngroups: 1, executor_params: '{"g1":{"pl":5,"rs":"eae","sq":{"r1":{"t1":"2-4","t2":"1-5"},"r2":{"t1":"1-4","t2":"2-3"},"r3":{"t1":"2-5","t2":"3-4"},"r4":{"t1":"1-3","t2":"4-5"},"r5":{"t1":"3-5","t2":"1-2"}}},"RK":["g1.rk1","g1.rk2","g1.rk3","g1.rk4","g1.rk5"],"GK":10}' },
+    "T06": { players: 6, tables: 3, ngroups: 2, executor_params: '{"GK":11,"g1":{"pl":3,"rs":"eae","sq":{"r1":{"t1":"2-3"},"r2":{"t1":"1-3"},"r3":{"t1":"1-2"}}},"g2":{"pl":3,"rs":"eae","sq":{"r1":{"t2":"2-3"},"r2":{"t2":"1-3"},"r3":{"t2":"1-2"}}},"hf1":{"r4":{"t-rand-1-2":["g1.rk1","g2.rk2"]}},"hf2":{"r4":{"t-rand-1-2":["g2.rk1","g1.rk2"]}},"p<5-6>":{"r4":{"t3":["g1.rk3","g2.rk3"]}},"fin":{"r5":{"t-admin-1-3":["hf1.rk1","hf2.rk1"]}},"p<3-4>":{"r5":{"t-admin-1-3":["hf1.rk2","hf2.rk2"]}},"RK":["fin.rk1","fin.rk2","p<3-4>.rk1","p<3-4>.rk2","p<5-6>.rk1","p<5-6>.rk2"]}' }
+  },
+  disciplines: [
+    { name: "Dreiband klein (Demo)", synonyms: [], table_kind: "Small Billard", super_discipline: "Dreiband", player_classes: ["1"],
+      parameters: [ { tournament_plan: "T04", players: 5, player_class: "1", points: 40, innings: 20 },
+                    { tournament_plan: "T06", players: 6, player_class: "1", points: 30, innings: 20 } ] }
+  ]
+};
+
+function defaultState() {
+  return {
+    phase: "setup", demo: false,
+    // Vom Launcher (Meldelisten-Auswahl) ggf. vorbelegte Disziplin verwenden.
+    disciplinesDoc: null, discipline: (instance && instance.discipline) || null, planName: null, playerClass: null,
+    executorParams: null, planMeta: null, format: { balls_goal: 30, innings_goal: 20 },
+    // Vorbelegung aus dem Carambus-Chat-Workflow (cc_open_in_tournament_app):
+    // instance.preselected_players → direkt als Setzliste (seeding-Endpoint liefert sie in
+    // Setzplatz-Reihenfolge, daher map mit seed-Index reicht).
+    participants: ((instance && Array.isArray(instance.preselected_players)) ? instance.preselected_players.map((p, i) => ({ ...p, seed: i + 1 })) : []),
+    clubs: [], rosterByClub: {}, filterAgeClass: null, filterGender: null,
+    selectedClubCc: null, selectedPlayerCc: null, selectedPlayerName: null,
+    tables: [], availableTables: [], location: null, locationInput: "",
+    // Attach-Modus: PK eines im Carambus-Web angelegten Turniers (mit tournament_plan).
+    // Wenn gesetzt, zeigt renderSetup die Attach-Card statt Formular-Setup; attachToTournament
+    // holt seeding+round_results und baut state daraus auf.
+    attachTournamentId: ((instance && instance.attach_tournament_id) || null),
+    carambusTournament: null, gameUI: {}, records: [], tableLot: {}
+  };
+}
+
+let state = loadInstanceState(INSTANCE_ID, defaultState);
+let run = rebuildRun();
+
+function save() { saveInstanceState(INSTANCE_ID, state); syncMeta(); }
+function syncMeta() {
+  updateInstance(INSTANCE_ID, {
+    discipline: state.discipline, players: state.participants.length,
+    phase: state.phase, plan: state.planName
+  });
+}
+
+// Run aus persistierten records rekonstruieren (deterministisch).
+function rebuildRun() {
+  if (!state || !state.executorParams || !state.participants?.length) return null;
+  const plan = parsePlan(state.executorParams);
+  const r = createRun(plan, state.participants.map((p, i) => ({ ...p, seed: i + 1, pid: pidOf({ ...p, seed: i + 1 }) })),
+                      { ballsGoal: state.format.balls_goal });
+  for (const rec of (state.records || [])) {
+    try { recordResult(r, rec.key, rec.res, rec.winner); } catch (e) { console.warn("replay", rec.key, e.message); }
+  }
+  return r;
+}
+
+function isLive() { const c = getConnection(); return !!(c.base_url && isBearerValid(c)); }
+function planSlug() { return (state.planName || "plan").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, ""); }
+// tournamentExternalId(): Basis für game-external-ids. Zwei Modi:
+// (a) App-generiertes Turnier (createTournament): "app-<INSTANCE_ID>" — historisch, pro Laptop
+//     unterschiedlich; funktioniert nur solange derselbe Laptop bedient.
+// (b) Attach-Modus (Turnier im Web angelegt, App attached via cb_tournament_id):
+//     "attach-<tournament_id>" — deterministisch aus PK, alle Laptops kommen zum selben
+//     Präfix → gameExternalId stabil über Laptops/Sessions hinweg (Voraussetzung für
+//     Idempotenz von start_game / acknowledge_result über mehrere Bedien-Geräte).
+function tournamentExternalId() {
+  if (state.carambusTournament?.attach && state.carambusTournament?.id != null) return `attach-${state.carambusTournament.id}`;
+  return `app-${INSTANCE_ID}`;
+}
+function gameExternalId(key) { return `${tournamentExternalId()}-${key.replace(/[^a-z0-9]+/gi, "_")}`; }
+// tournamentApiRef(): Für Live-API-Aufrufe. Im Attach-Modus wird tournament_id gesendet
+// (Turnier hat kein external_id auf dem Server, Web-erzeugt). Sonst external_id.
+function tournamentApiRef() {
+  const ct = state.carambusTournament || {};
+  if (ct.attach && ct.id != null) return { tournamentId: ct.id };
+  return { externalId: ct.external_id || tournamentExternalId() };
+}
+function fullName(p) { return p ? `${p.firstname || ""} ${p.lastname || ""}`.trim() || ("#" + (p.seed ?? "?")) : "?"; }
+// ISO-2-Country → Unicode-Flag-Emoji (Regional Indicator Symbols). macOS/iOS/Android
+// rendern echte Flaggen, Windows fällt oft auf "NL"-Text zurück (nicht schlimm — bleibt lesbar).
+function flagEmoji(cc) {
+  if (!cc || !/^[A-Za-z]{2}$/.test(cc)) return "";
+  const A = 0x1F1E6;
+  return String.fromCodePoint(...cc.toUpperCase().split("").map(c => A + (c.charCodeAt(0) - 65)));
+}
+// Escaped Namens-HTML mit Nationalflagge vor dem Namen (falls p.nationality gesetzt).
+function nameHtml(p, { short = false } = {}) {
+  if (!p) return "—";
+  const flag = flagEmoji(p.nationality);
+  const nm = short ? shortName(p) : fullName(p);
+  return `${flag ? escapeHtml(flag) + " " : ""}${escapeHtml(nm)}`;
+}
+// Stammvereine (NBV Karambol/Kegel) — stehen im Verein-Dropdown oben unter „★ Häufig".
+// Match über shortname (eindeutig); ein Name-Match würde z. B. „Hamburg" auf BC Queue
+// Hamburg / Snookerclub Hamburg ziehen.
+const FAVORITE_CLUB_SHORTNAMES = ["BC Bergedorf", "BC Wedel", "BG Hamburg", "TSV Neudorf"];
+const normClub = s => String(s || "").trim().toLowerCase().replace(/\s+/g, " ");
+const FAVORITE_SET = new Set(FAVORITE_CLUB_SHORTNAMES.map(normClub));
+function isFavoriteClub(c) { return FAVORITE_SET.has(normClub(c.shortname)) || FAVORITE_SET.has(normClub(c.name)); }
+// Spielerklassen sind je Disziplin entweder arabisch (1–7) ODER römisch (I, II, III …) —
+// verschiedene Systeme, die NICHT vermischt/gleichgesetzt werden. classOrder dient nur der
+// Sortierung (römisch nach Wertigkeit); Anzeige & Vergleich nutzen weiter den Originalstring.
+function romanToInt(s){ const R={I:1,V:5,X:10,L:50,C:100,D:500,M:1000}; let v=0,prev=0; for(let i=s.length-1;i>=0;i--){ const x=R[s[i].toUpperCase()]; if(!x) return NaN; if(x<prev) v-=x; else { v+=x; prev=x; } } return v||NaN; }
+function classOrder(c){ const s=String(c==null?"":c).trim(); if(!s) return Infinity; const n=Number(s); return Number.isFinite(n)?n:romanToInt(s); }
+function shortName(p) { if (!p) return "—"; const f = (p.firstname || "").slice(0, 1); return `${f ? f + ". " : ""}${p.lastname || ""}`.trim() || fullName(p); }
+function errMsg(err) { if (err instanceof CarambusError) { const d = err.body != null ? " " + (typeof err.body === "string" ? err.body : JSON.stringify(err.body)) : ""; return `HTTP ${err.status}${d}`; } return err?.message || String(err); }
+
+const connWidget = mountConnectionWidget({ badgeEl: document.getElementById("connBadge"), onChange: renderAll });
+document.querySelectorAll("nav.tabs button").forEach(btn => btn.addEventListener("click", () => {
+  document.querySelectorAll("nav.tabs button").forEach(b => b.classList.remove("active")); btn.classList.add("active");
+  document.querySelectorAll(".tab-content").forEach(c => c.style.display = "none");
+  document.getElementById("tab-" + btn.dataset.tab).style.display = "";
+}));
+function switchTab(t) { const b = document.querySelector(`nav.tabs button[data-tab="${t}"]`); if (b) b.click(); }
+
+function renderAll() { connWidget.refresh(); renderMeta(); renderSetup(); renderGames(); renderStandings(); }
+function renderMeta() {
+  const parts = [`<strong>${escapeHtml(instance.title)}</strong>`];
+  if (instance.category) parts.push(`<span class="gold">${escapeHtml(instance.category)}</span>`);
+  if (state.planName) parts.push(escapeHtml(state.planName));
+  if (state.discipline) parts.push(escapeHtml(state.discipline));
+  if (state.participants.length) parts.push(`${state.participants.length} Spieler`);
+  if (run) { const done = Object.keys(run.results).length; parts.push(`${done}/${run.plan.games.length} Spiele`); }
+  if (!isLive()) parts.push(`<span class="muted">lokal/offline</span>`);
+  document.getElementById("metaInfo").innerHTML = parts.join(" · ");
+  document.title = `${instance.title} — TournamentPlan`;
+}
+
+// ===== SETUP =====
+function renderSetup() {
+  const el = document.getElementById("tab-setup");
+  if (state.phase !== "setup") {
+    const attach = state.carambusTournament?.attach;
+    const attachInfo = attach ? `<div class="info">🔗 <strong>Attached</strong> an Carambus-Turnier #${state.carambusTournament.id}${state.carambusTournament.title ? " — " + escapeHtml(state.carambusTournament.title) : ""}. Der Server kennt Plan, Setzliste und Tische — die <strong>erfassten Ergebnisse liegen nur hier im Browser</strong>. Vor Übergabe oder Geräte&shy;wechsel sichern (Tab „Endstand").</div>
+      <div class="toolbar" style="margin-top:8px;">
+        <button class="btn secondary" id="btnRebind">🔗 Tische neu binden</button>
+        <button class="btn secondary" id="btnAttachRefresh">🔄 Server-Stand neu laden</button>
+        <button class="btn danger" id="btnReset">🔗✕ Verbindung lösen (App-lokal, Server bleibt)</button>
+      </div>
+      <div class="scheme-hint">„Tische neu binden" braucht man nach dem Einspielen einer Sicherung — die Bindung lebt auf dem Server und fehlt dann. Symptom: „Table not bound to this tournament" beim Starten.</div>` : `<div class="info">Plan <strong>${escapeHtml(state.planName || "")}</strong> erzeugt. Spiele im Tab „Spiele &amp; Gruppen".</div><button class="btn danger" id="btnReset">⟲ Verwerfen &amp; neu aufsetzen</button>`;
+    el.innerHTML = `<div class="card"><h2>Turnier läuft</h2>${attachInfo}</div>`;
+    el.querySelector("#btnReset").addEventListener("click", resetTournament);
+    el.querySelector("#btnRebind")?.addEventListener("click", rebindTables);
+    el.querySelector("#btnAttachRefresh")?.addEventListener("click", () => {
+      // attachToTournament setzt state.records = [] — der Server haelt KEINE abgeschlossenen
+      // Ergebnisse vor (siehe HANDOFF-from-carambus-round-result-restore.md), sie waeren also weg.
+      const n = (state.records || []).length;
+      const warn = n ? `Achtung: Die ${n} hier erfassten Ergebnisse gehen dabei verloren — der Server haelt sie NICHT vor.\n\nVorher sichern (Tab „Endstand")!\n\nTrotzdem neu laden?` : "Server-Stand neu laden?";
+      if (confirm(warn)) attachToTournament(state.carambusTournament.id);
+    });
+    return;
+  }
+  // Attach-Modus (aus Deeplink cb_tournament_id): nur die Attach-Card zeigen; das Turnier
+  // steht bereits im Carambus-Web, kein Formular-Setup nötig.
+  if (state.attachTournamentId) {
+    const tid = state.attachTournamentId;
+    const live = isLive();
+    el.innerHTML = `
+      <div class="card">
+        <h2>🔗 Turnier laden (Attach-Modus)</h2>
+        <p>Dieses Turnier existiert bereits im Carambus-Web unter <code>#${escapeHtml(String(tid))}</code>. Die App lädt Plan, Setzliste, Tische und bereits gespielte Ergebnisse — nichts wird neu angelegt.</p>
+        ${live ? `` : `<div class="alert">⚠ Live-Verbindung nötig. Oben rechts einloggen (base_url + Region + Token).</div>`}
+        <div class="toolbar">
+          <button class="btn" id="btnAttach" ${live ? "" : "disabled"}>▶ Turnier #${escapeHtml(String(tid))} laden</button>
+          <button class="btn secondary" id="btnAttachClear">Andere Turnier-ID …</button>
+        </div>
+      </div>`;
+    el.querySelector("#btnAttach").addEventListener("click", () => attachToTournament(tid));
+    el.querySelector("#btnAttachClear").addEventListener("click", () => {
+      const input = prompt("Carambus-Turnier-ID (globaler PK, aus URL /tournaments/<id>):", "");
+      if (input == null) return;
+      const n = parseInt(String(input).trim(), 10);
+      if (!Number.isFinite(n) || n <= 0) { alert("Ungültige ID."); return; }
+      state.attachTournamentId = n; save(); renderSetup();
+    });
+    return;
+  }
+  const doc = state.disciplinesDoc;
+  const live = isLive();
+  const disc = doc ? doc.disciplines.find(d => d.name === state.discipline) : null;
+  const planParams = disc ? disc.parameters.filter(pp => !state.playerClass || String(pp.player_class) === String(state.playerClass)) : [];
+  const need = state.planMeta?.players ?? null;
+  const nSel = state.participants.length;
+
+  el.innerHTML = `
+    <div class="card">
+      <h2>1 · Turnierplan</h2>
+      <div class="toolbar">
+        ${live ? `<button class="btn" id="btnLoadDisc">📥 Pläne aus Carambus laden</button>` : ``}
+        <button class="btn secondary" id="btnDemo">🎲 Demo-Pläne (T04/T06, offline)</button>
+      </div>
+      ${doc ? renderPlanPickers(doc) : `<p class="muted">Pläne laden (live) oder Demo-Pläne nutzen.</p>`}
+      ${state.executorParams ? `<div class="info">Plan <strong>${escapeHtml(state.planName)}</strong>: ${state.planMeta.players} Spieler · ${state.planMeta.ngroups || 1} Gruppe(n) · Distanz ${state.format.balls_goal} in ${state.format.innings_goal} Aufnahmen${state.playerClass ? " · Klasse " + escapeHtml(String(state.playerClass)) : ""}.</div>` : ``}
+      ${state.executorParams && state.planDefaultsMissing ? `<div class="alert" style="margin-top:8px;">
+        ⚠ Für <strong>${escapeHtml(state.discipline || "?")}${state.playerClass != null ? " · Klasse " + escapeHtml(String(state.playerClass)) : ""}</strong> hat Carambus für <strong>${escapeHtml(state.planName)}</strong> keine Default-Werte (Lücke in <code>discipline_tournament_plans</code>). Distanz/Aufnahmen bitte manuell setzen:
+        <div style="display:flex;gap:14px;align-items:flex-end;margin-top:8px;flex-wrap:wrap;">
+          <div><label class="muted">Distanz (Bälle)</label><input type="number" id="inFormatBalls" value="${state.format.balls_goal ?? ""}" style="max-width:120px;"></div>
+          <div><label class="muted">Aufnahmen</label><input type="number" id="inFormatInnings" value="${state.format.innings_goal ?? ""}" style="max-width:120px;"></div>
+        </div>
+      </div>` : ``}
+    </div>
+
+    <div class="card">
+      <h2>2 · Teilnehmer ${need ? `<span class="badge ${nSel === need ? 'done' : 'open'}">${nSel} / ${need}</span>` : ``}</h2>
+      <div class="toolbar">
+        ${live ? `<button class="btn secondary" id="btnLoadClubs">📥 Clubs laden</button>` : ``}
+        ${need ? `<button class="btn secondary" id="btnDemoP">🎲 Demo-Teilnehmer (${need})</button>` : ``}
+        ${nSel ? `<button class="btn secondary" id="btnClearP">Leeren</button>` : ``}
+        ${live && nSel >= 2 ? `<button class="btn secondary" id="btnRank">📊 Nach Ranking sortieren</button>` : ``}
+      </div>
+      <div id="playerPickerBox">${renderPlayerPicker()}</div>
+      <div id="seedBox">${renderSeedList()}</div>
+    </div>
+
+    <div class="card">
+      <h2>3 · Tische</h2>
+      <div class="toolbar">
+        <input type="text" id="inLoc" placeholder="Location-id/cc_id" value="${escapeHtml(state.locationInput || "")}" style="max-width:200px;">
+        ${live ? `<button class="btn" id="btnLoadTables">📥 Tische laden</button>` : ``}
+        <button class="btn secondary" id="btnAddTable">+ Tisch manuell</button>
+      </div>
+      <div id="tablesBox">${renderTableSelect()}</div>
+    </div>
+
+    <div class="card">
+      <h2>4 · Start</h2><div id="startHints"></div>
+      <button class="btn" id="btnStart">🏁 Turnier erzeugen</button>
+    </div>`;
+
+  el.querySelector("#btnLoadDisc")?.addEventListener("click", loadDisciplines);
+  el.querySelector("#btnDemo")?.addEventListener("click", () => { state.disciplinesDoc = DEMO_DOC; state.demo = true; state.discipline = DEMO_DOC.disciplines[0].name; save(); renderSetup(); });
+  el.querySelector("#inDiscSel")?.addEventListener("change", e => { state.discipline = e.target.value; state.planName = null; state.executorParams = null; state.playerClass = null; save(); renderSetup(); });
+  el.querySelector("#inPlanSel")?.addEventListener("change", e => { selectPlan(e.target.value); });
+  el.querySelector("#inClassSel")?.addEventListener("change", e => { state.playerClass = e.target.value || null; if (state.planName) selectPlan(state.planName); else { save(); renderSetup(); } });
+  // Manuelle Distanz/Aufnahmen, wenn Carambus-Defaults fehlen (planDefaultsMissing-Alert).
+  el.querySelector("#inFormatBalls")?.addEventListener("change", e => { state.format.balls_goal = parseInt(e.target.value, 10) || 0; save(); renderSetup(); });
+  el.querySelector("#inFormatInnings")?.addEventListener("change", e => { state.format.innings_goal = parseInt(e.target.value, 10) || 0; save(); renderSetup(); });
+  el.querySelector("#btnLoadClubs")?.addEventListener("click", loadClubs);
+  el.querySelector("#btnDemoP")?.addEventListener("click", () => addDemoParticipants(need));
+  el.querySelector("#btnClearP")?.addEventListener("click", () => { state.participants = []; save(); renderSetup(); });
+  el.querySelector("#btnRank")?.addEventListener("click", rankParticipants);
+  el.querySelector("#inLoc")?.addEventListener("change", e => { state.locationInput = e.target.value.trim(); save(); });
+  el.querySelector("#btnLoadTables")?.addEventListener("click", loadTables);
+  el.querySelector("#btnAddTable")?.addEventListener("click", addManualTable);
+  el.querySelector("#btnStart").addEventListener("click", startTournament);
+  bindPlayerPicker(el); bindTableCheckboxes(el);
+  renderStartHints();
+}
+
+function renderPlanPickers(doc) {
+  const discOpts = doc.disciplines.map(d => `<option value="${escapeHtml(d.name)}"${d.name === state.discipline ? " selected" : ""}>${escapeHtml(d.name)}</option>`).join("");
+  const disc = doc.disciplines.find(d => d.name === state.discipline);
+  // Klassen aus den Plänen ableiten: jede DisciplineTournamentPlan-Zeile (parameters)
+  // trägt eine player_class. Fallback auf disc.player_classes, falls parameters leer.
+  const params = disc ? (disc.parameters || []) : [];
+  let classes = [...new Set(params.map(pp => pp.player_class).filter(c => c != null && String(c) !== ""))];
+  if (!classes.length && disc) classes = (disc.player_classes || []).filter(c => c != null && String(c) !== "");
+  classes.sort((a, b) => { const oa = classOrder(a), ob = classOrder(b); return (Number.isFinite(oa) && Number.isFinite(ob)) ? oa - ob : String(a).localeCompare(String(b), "de"); });
+  const classOpts = `<option value="">— alle —</option>` + classes.map(c => `<option value="${escapeHtml(String(c))}"${String(c) === String(state.playerClass) ? " selected" : ""}>Klasse ${escapeHtml(String(c))}</option>`).join("");
+  // Pläne der gewählten Disziplin (aus parameters), optional klassengefiltert — das sind die
+  // "Empfohlenen" (Carambus weiß für sie points/innings-Defaults).
+  let planRows = disc ? disc.parameters.filter(pp => !state.playerClass || String(pp.player_class) === String(state.playerClass)) : [];
+  const recommendedNames = [...new Set(planRows.map(pp => pp.tournament_plan))];
+  const recommendedSet = new Set(recommendedNames);
+  // Defensive Liste: ALLE bekannten T-Pläne aus doc.tournament_plans — Workaround für
+  // unvollständige discipline_tournament_plans-Daten (z. B. fehlende T13/8er-Zeile für
+  // Cadre 35/2 K2). Der TL kann dann manuell einen Plan außerhalb der Empfehlung wählen.
+  const allPlanNames = Object.keys(doc.tournament_plans || {});
+  const otherNames = allPlanNames.filter(pn => !recommendedSet.has(pn))
+    .sort((a, b) => ((doc.tournament_plans[a].players ?? 999) - (doc.tournament_plans[b].players ?? 999)) || a.localeCompare(b));
+  const recSorted = recommendedNames.slice().sort((a, b) => ((doc.tournament_plans[a]?.players ?? 999) - (doc.tournament_plans[b]?.players ?? 999)) || a.localeCompare(b));
+  const planOpt = pn => { const tp = doc.tournament_plans[pn] || {}; return `<option value="${escapeHtml(pn)}"${pn === state.planName ? " selected" : ""}>${escapeHtml(pn)} (${tp.players ?? "?"} Sp.)</option>`; };
+  const planOpts = `<option value="">— wählen —</option>` +
+    (recSorted.length
+      ? `<optgroup label="Empfohlen (für ${escapeHtml(state.discipline || "?")}${state.playerClass != null ? " · Klasse " + escapeHtml(String(state.playerClass)) : ""})">${recSorted.map(planOpt).join("")}</optgroup>`
+      : "") +
+    (otherNames.length ? `<optgroup label="Andere Pläne (Carambus kennt keine Defaults — Distanz/Aufnahmen manuell)">${otherNames.map(planOpt).join("")}</optgroup>` : "");
+  return `<div class="grid-2col" style="grid-template-columns:1fr 1fr 1fr;">
+    <div><label class="muted">Disziplin</label><select id="inDiscSel">${discOpts}</select></div>
+    <div><label class="muted">Klasse</label><select id="inClassSel">${classOpts}</select></div>
+    <div><label class="muted">Plan</label><select id="inPlanSel">${planOpts}</select></div>
+  </div>`;
+}
+function selectPlan(planName) {
+  const doc = state.disciplinesDoc; const disc = doc.disciplines.find(d => d.name === state.discipline);
+  const tp = doc.tournament_plans[planName];
+  if (!tp) return;
+  // passende parameters-Zeile (Plan × Klasse) für points/innings
+  let row = disc.parameters.find(pp => pp.tournament_plan === planName && (!state.playerClass || String(pp.player_class) === String(state.playerClass)))
+         || disc.parameters.find(pp => pp.tournament_plan === planName);
+  state.planName = planName;
+  state.executorParams = tp.executor_params;
+  state.planMeta = { players: tp.players, ngroups: tp.ngroups, tables: tp.tables };
+  // Flag für Hinweis-Banner in der "1 · Turnierplan"-Karte: wenn Carambus für diese
+  // (Disziplin × Klasse × Plan)-Kombination keine Default-Zeile hat (häufig bei der
+  // 8er-Plan-Lücke T13 für Cadre/Einband/Dreiband klein K2), Distanz/Aufnahmen behalten.
+  state.planDefaultsMissing = !row;
+  if (row) { state.format = { balls_goal: row.points ?? 30, innings_goal: row.innings ?? 20 }; if (state.playerClass == null && row.player_class != null) state.playerClass = String(row.player_class); }
+  save(); renderSetup();
+}
+
+// Zweistufige Teilnehmer-Auswahl: Verein-Dropdown (Stammvereine oben) → Spieler-Dropdown
+// des gewählten Vereins → „+ Hinzufügen". Roster wird beim Vereinswählen lazy geladen.
+function renderPlayerPicker() {
+  if (!state.clubs.length) return isLive() ? `<p class="muted">„📥 Clubs laden", dann Verein und Spieler wählen.</p>` : "";
+  const byShort = (a, b) => String(a.shortname || a.name).localeCompare(String(b.shortname || b.name), "de");
+  const favs = state.clubs.filter(isFavoriteClub).sort(byShort);
+  const rest = state.clubs.filter(c => !isFavoriteClub(c)).sort(byShort);
+  const optClub = c => `<option value="${c.cc_id}"${String(c.cc_id) === String(state.selectedClubCc) ? " selected" : ""}>${escapeHtml(c.shortname || c.name)}</option>`;
+  const clubOpts = `<option value="">— Verein wählen —</option>`
+    + (favs.length ? `<optgroup label="★ Häufig">${favs.map(optClub).join("")}</optgroup>` : ``)
+    + `<optgroup label="Alle Vereine">${rest.map(optClub).join("")}</optgroup>`;
+
+  // Phase 21-07: optionale Filter-Selektoren (Altersklasse/Geschlecht) — client-seitig,
+  // Werte aus allen bereits geladenen Rostern.
+  const ages = distinctRosterValues("age_class");
+  const genders = distinctRosterValues("gender");
+  const ageOpts = `<option value="">— alle —</option>` + ages.map(a => `<option value="${escapeHtml(a)}"${a === state.filterAgeClass ? " selected" : ""}>${escapeHtml(a)}</option>`).join("");
+  const genderLabel = g => ({ M: "M (Männlich)", F: "F (Weiblich)", U: "U (Unbekannt)" })[g] || g;
+  const genOpts = `<option value="">— alle —</option>` + genders.map(g => `<option value="${escapeHtml(g)}"${g === state.filterGender ? " selected" : ""}>${escapeHtml(genderLabel(g))}</option>`).join("");
+  const showFilters = ages.length || genders.length;
+
+  const cc = state.selectedClubCc;
+  const roster = cc != null ? state.rosterByClub[cc] : null;
+  let playerOpts, playerDisabled = "";
+  if (cc == null) { playerOpts = `<option value="">— erst Verein wählen —</option>`; playerDisabled = "disabled"; }
+  else if (!roster) { playerOpts = `<option value="">lädt …</option>`; playerDisabled = "disabled"; }
+  else {
+    const ageF = state.filterAgeClass || null, genF = state.filterGender || null;
+    const avail = roster
+      .filter(p => !state.participants.some(x => sameP(x, p)))
+      .filter(p => !ageF || p.age_class === ageF)
+      .filter(p => !genF || p.gender === genF);
+    if (!avail.length) { playerOpts = `<option value="">${(ageF || genF) ? "— keine passenden Spieler —" : "— alle hinzugefügt —"}</option>`; playerDisabled = "disabled"; }
+    else playerOpts = `<option value="">— Spieler wählen —</option>` + avail.map(p => {
+      const val = p.cc_id != null ? String(p.cc_id) : "nm:" + fullName(p);
+      const suf = [p.dbu_nr, Carambus.util.playerAgeGender(p)].filter(Boolean).join(" · ");
+      return `<option value="${escapeHtml(val)}" data-name="${escapeHtml(fullName(p))}">${escapeHtml(fullName(p))}${suf ? " · " + escapeHtml(suf) : ""}</option>`;
+    }).join("");
+  }
+  // Kein „Hinzufügen"-Button: die Spielerauswahl wird sofort übernommen (schnelles Erfassen
+  // vieler Spieler mit einem Klick). Versehen leicht per ✕ in der Setzliste korrigierbar.
+  return `${showFilters ? `<div class="grid-2col" style="grid-template-columns:1fr 1fr;align-items:end;gap:8px;margin-bottom:6px;">
+      <div><label class="muted">Altersklasse-Filter</label><select id="inFilterAge">${ageOpts}</select></div>
+      <div><label class="muted">Geschlecht-Filter</label><select id="inFilterGender">${genOpts}</select></div>
+    </div>` : ``}
+    <div class="grid-2col" style="grid-template-columns:1fr 1fr;align-items:end;gap:8px;">
+      <div><label class="muted">Verein</label><select id="inClubSel">${clubOpts}</select></div>
+      <div><label class="muted">Spieler → sofort übernommen</label><select id="inPlayerSel" ${playerDisabled}>${playerOpts}</select></div>
+    </div>`;
+}
+function distinctRosterValues(field) {
+  const set = new Set();
+  for (const cc in state.rosterByClub) (state.rosterByClub[cc] || []).forEach(p => { if (p && p[field]) set.add(p[field]); });
+  return [...set].sort((a, b) => String(a).localeCompare(String(b), "de"));
+}
+function bindPlayerPicker(el) {
+  el.querySelector("#inClubSel")?.addEventListener("change", async e => {
+    const cc = e.target.value || null;
+    state.selectedClubCc = cc; state.selectedPlayerCc = null; state.selectedPlayerName = null; save();
+    if (cc != null && !state.rosterByClub[cc]) {
+      renderSetup(); // zeigt „lädt …"
+      try { state.rosterByClub[cc] = await fetchClubPlayers(cc); save(); } catch (err) { alert("Spieler laden: " + errMsg(err)); }
+    }
+    renderSetup();
+  });
+  // Spielerauswahl wird sofort übernommen (kein Extra-Button) — Korrektur per ✕ in der Setzliste.
+  el.querySelector("#inPlayerSel")?.addEventListener("change", () => addSelectedPlayer(el));
+  el.querySelector("#inFilterAge")?.addEventListener("change", e => { state.filterAgeClass = e.target.value || null; save(); renderSetup(); });
+  el.querySelector("#inFilterGender")?.addEventListener("change", e => { state.filterGender = e.target.value || null; save(); renderSetup(); });
+  el.querySelectorAll(".seed-rm").forEach(b => b.addEventListener("click", e => {
+    const cc = e.currentTarget.dataset.cc || null, name = e.currentTarget.dataset.name;
+    state.participants = state.participants.filter(x => !(cc ? String(x.cc_id) === cc : fullName(x) === name));
+    reseed(); save(); renderSetup();
+  }));
+  el.querySelectorAll(".seed-up").forEach(b => b.addEventListener("click", e => moveSeed(+e.currentTarget.dataset.i, -1)));
+  el.querySelectorAll(".seed-down").forEach(b => b.addEventListener("click", e => moveSeed(+e.currentTarget.dataset.i, +1)));
+}
+function addSelectedPlayer(el) {
+  const cc = state.selectedClubCc; if (cc == null) return;
+  const sel = el.querySelector("#inPlayerSel"); const val = sel ? sel.value : "";
+  if (!val) return;
+  const roster = state.rosterByClub[cc] || [];
+  const p = val.startsWith("nm:") ? roster.find(r => fullName(r) === val.slice(3)) : roster.find(r => String(r.cc_id) === String(val));
+  if (!p) return;
+  const club = state.clubs.find(c => String(c.cc_id) === String(cc));
+  const src = { ...p, club_cc_id: cc, club_shortname: club ? (club.shortname || club.name) : "" };
+  if (!state.participants.some(x => sameP(x, src))) state.participants.push(src);
+  state.selectedPlayerCc = null; state.selectedPlayerName = null;
+  reseed(); save(); renderSetup();
+}
+function renderSeedList() {
+  if (!state.participants.length) return `<p class="muted">Noch keine Teilnehmer.</p>`;
+  return `<div class="pool-list" style="margin-top:8px;">` + state.participants.map((p, i) =>
+    `<div class="pool-row"><span class="rk" style="color:var(--gold);font-weight:bold;">${i + 1}</span><span>${nameHtml(p)} <span class="club">${escapeHtml(p.club_shortname || "")}${p.rank != null ? " · Rang " + p.rank : ""}${(p.age_class || p.gender) ? " · " + escapeHtml(Carambus.util.playerAgeGender(p)) : ""}</span></span><span style="display:flex;gap:4px;">` +
+    `<button class="btn secondary seed-up" data-i="${i}" title="Setzplatz nach oben" style="padding:2px 9px;" ${i === 0 ? "disabled" : ""}>▲</button>` +
+    `<button class="btn secondary seed-down" data-i="${i}" title="Setzplatz nach unten" style="padding:2px 9px;" ${i === state.participants.length - 1 ? "disabled" : ""}>▼</button>` +
+    `<button class="btn secondary seed-rm" data-cc="${p.cc_id ?? ""}" data-name="${escapeHtml(fullName(p))}" title="Entfernen" style="padding:2px 9px;">✕</button></span></div>`
+  ).join("") + `</div>`;
+}
+// Setzplatz N ↔ N±1 tauschen, reseed + speichern + neu rendern (analog doppelko).
+function moveSeed(i, dir) {
+  const j = i + dir;
+  if (j < 0 || j >= state.participants.length) return;
+  const a = state.participants;
+  [a[i], a[j]] = [a[j], a[i]];
+  reseed(); save(); renderSetup();
+}
+function renderTableSelect() {
+  const avail = state.availableTables.length ? state.availableTables : state.tables.map(n => ({ name: n }));
+  if (!avail.length) return `<p class="muted">Tische laden oder manuell hinzufügen.</p>`;
+  return `<div class="pool-list">` + avail.map(t => `<label class="pool-row"><input type="checkbox" class="tbl-cb" data-name="${escapeHtml(t.name)}" ${state.tables.includes(t.name) ? "checked" : ""}><span>${escapeHtml(t.name)} <span class="club">${escapeHtml(t.table_kind || "")}</span></span><span></span></label>`).join("") + `</div>`;
+}
+function bindTableCheckboxes(el) {
+  el.querySelectorAll(".tbl-cb").forEach(cb => cb.addEventListener("change", e => {
+    const name = e.target.dataset.name;
+    if (e.target.checked) { if (!state.tables.includes(name)) state.tables.push(name); } else state.tables = state.tables.filter(n => n !== name);
+    save(); renderStartHints();
+  }));
+}
+function renderStartHints() {
+  const hints = []; const need = state.planMeta?.players ?? null;
+  if (!state.executorParams) hints.push("Turnierplan wählen.");
+  if (need && state.participants.length !== need) hints.push(`Genau ${need} Teilnehmer nötig (aktuell ${state.participants.length}).`);
+  if (!state.tables.length) hints.push("Mindestens einen Tisch wählen.");
+  if (isLive() && (!state.location || (state.location.id == null && state.location.cc_id == null))) hints.push("Live: Location/Tische aus Carambus laden.");
+  const box = document.getElementById("startHints"), btn = document.getElementById("btnStart");
+  if (!box || !btn) return;
+  if (hints.length) { box.innerHTML = `<div class="alert">${hints.map(escapeHtml).join("<br>")}</div>`; btn.disabled = true; }
+  else { box.innerHTML = `<div class="info">${isLive() ? "Live-Modus: Turnier wird in Carambus angelegt + Tische gebunden." : "Lokal-Modus: Ergebnisse manuell."}</div>`; btn.disabled = false; }
+}
+
+// ===== Setup-Aktionen =====
+async function loadDisciplines() { try { state.disciplinesDoc = await fetchDisciplines(); state.demo = false; if (!state.discipline && state.disciplinesDoc.disciplines[0]) state.discipline = state.disciplinesDoc.disciplines[0].name; save(); renderSetup(); } catch (e) { alert("Disziplinen laden fehlgeschlagen: " + errMsg(e)); } }
+async function loadClubs() { try { const clubs = await fetchClubs(); const prev = new Set(state.clubs.filter(c => c.selected).map(c => c.cc_id)); state.clubs = clubs.map(c => ({ ...c, selected: prev.has(c.cc_id) })); save(); renderSetup(); } catch (e) { alert("Clubs laden: " + errMsg(e)); } }
+async function rankParticipants() {
+  try {
+    const ccIds = state.participants.map(p => p.cc_id).filter(x => x != null);
+    const data = await fetchPlayerRankings({ discipline: state.discipline, playerCcIds: ccIds });
+    const byCc = {}; (data.players || []).forEach(r => byCc[String(r.cc_id)] = r);
+    const ranked = [], unranked = [];
+    for (const p of state.participants) { const r = byCc[String(p.cc_id)]; (r ? ranked : unranked).push({ ...p, rank: r?.rank ?? null, gd: r?.gd ?? null }); }
+    ranked.sort((a, b) => (a.rank ?? 1e9) - (b.rank ?? 1e9));
+    state.participants = [...ranked, ...unranked]; reseed(); save(); renderSetup();
+  } catch (e) { alert("Ranking: " + errMsg(e)); }
+}
+async function loadTables() { const raw = state.locationInput.trim(); if (!raw) { alert("Location-id/cc_id eingeben."); return; } try { let doc; try { doc = await fetchTables({ id: raw }); } catch (_) { doc = await fetchTables({ cc_id: raw }); } state.availableTables = doc.tables || []; state.location = doc.location || { id: /^\d+$/.test(raw) ? +raw : null, cc_id: null }; save(); renderSetup(); } catch (e) { alert("Tische laden: " + errMsg(e)); } }
+function addManualTable() { const name = prompt("Tisch-Name (z. B. Tisch 1):"); if (!name) return; const n = name.trim(); if (!state.availableTables.some(t => t.name === n)) state.availableTables.push({ name: n }); if (!state.tables.includes(n)) state.tables.push(n); save(); renderSetup(); }
+function addDemoParticipants(n) {
+  const F = ["Hans","Klaus","Peter","Michael","Thomas","Andreas","Stefan","Jürgen","Wolfgang","Manfred","Heinz","Karl","Werner","Dieter","Bernd","Günter"];
+  const L = ["Müller","Schmidt","Schneider","Fischer","Weber","Meyer","Wagner","Becker","Schulz","Hoffmann","Schäfer","Koch","Bauer","Richter","Klein","Wolf"];
+  const fs = shuffle(F).slice(0, n), ls = shuffle(L).slice(0, n);
+  state.participants = fs.map((f, i) => ({ firstname: f, lastname: ls[i], cc_id: null, dbu_nr: null, club_shortname: "Demo", seed: i + 1, rank: i + 1 }));
+  save(); renderSetup();
+}
+
+async function startTournament() {
+  const need = state.planMeta?.players;
+  if (!state.executorParams || state.participants.length !== need) { alert(`Genau ${need} Teilnehmer + Plan nötig.`); return; }
+  if (!state.tables.length) { alert("Mindestens einen Tisch."); return; }
+  if (isLive()) {
+    try {
+      const loc = state.location; if (!loc || (loc.id == null && loc.cc_id == null)) { alert("Live: Location laden."); return; }
+      const t = await createTournament({ externalId: tournamentExternalId(), title: `${state.planName} ${state.discipline}`, location: loc, discipline: state.discipline });
+      state.carambusTournament = { id: t.id ?? null, external_id: t.external_id || tournamentExternalId() };
+      const fails = [];
+      for (const name of state.tables) { try { await lockTable({ ...tournamentApiRef(), tableName: name, tableId: tableIdOf(name) }); } catch (e) { fails.push(`${name}: ${errMsg(e)}`); } }
+      if (fails.length && !confirm("Tische teils nicht gebunden:\n" + fails.join("\n") + "\n\nFortfahren?")) return;
+    } catch (e) { alert("Turnier anlegen: " + errMsg(e)); return; }
+  }
+  state.records = []; state.gameUI = {}; state.tableLot = {}; state.phase = "running";
+  save(); run = rebuildRun(); renderAll(); switchTab("games");
+}
+// Attach-Modus (Multi-Laptop, Multi-Tag): Turnier wurde im Carambus-Web angelegt
+// (mit tournament_plan). Die App attached sich per Deeplink `?cb_tournament_id=<PK>` an
+// dieses existierende Turnier — statt eines eigenen. Kernidee:
+//   • Alle Live-API-Aufrufe verwenden tournament_id (globaler PK), NICHT external_id
+//     (das Turnier hat keinen — Web-erzeugt).
+//   • gameExternalId(key) = `attach-<PK>-<escapedKey>` — deterministisch aus PK, sodass
+//     alle bedienden Laptops zu denselben start_game-IDs kommen (Idempotenz garantiert).
+//   • State-Restore: seeding liefert Plan+Teams+Format+Location; round_result(1..N)
+//     liefert bereits gespielte Games → rekonstruiert state.records.
+// Voraussetzung Server: Paul-Patch scenario/api/seeding-tournament-plan (deployt bcw
+// 2026-08-18) — seeding.tournament.tournament_plan.{name,executor_params}.
+async function attachToTournament(tournamentId) {
+  if (!isLive()) { alert("Attach braucht Live-Verbindung (Verbindungs-Modal oben rechts)."); return; }
+  const region = Carambus.regionShortname();
+  let seeding;
+  try { seeding = await Carambus.api.fetchSeeding({ tournamentId, region }); }
+  catch (e) { alert("Turnier laden: " + errMsg(e)); return; }
+  const tp = seeding?.tournament?.tournament_plan;
+  if (!tp || !tp.executor_params) {
+    alert("Turnier hat keinen tournament_plan im Server-Payload — Attach nicht möglich.\n(Prüfe im Carambus-Web ob dem Turnier ein Plan zugeordnet ist.)");
+    return;
+  }
+  let parsedPlan;
+  try { parsedPlan = parsePlan(tp.executor_params); }
+  catch (e) { alert("Plan nicht parsebar: " + e.message); return; }
+  const planMeta = derivePlanMeta(parsedPlan);
+  // Teilnehmer aus seeding.teams (Setzplatz-Reihenfolge). Für Single-Turniere = 1 Player/Team.
+  const participants = [];
+  for (const team of (seeding.teams || [])) {
+    for (const p of (team.players || [])) participants.push({ ...p, seed: participants.length + 1 });
+  }
+  if (planMeta.players && participants.length !== planMeta.players) {
+    if (!confirm(`Plan erwartet ${planMeta.players} Spieler, seeding liefert ${participants.length}. Trotzdem attachen?`)) return;
+  }
+  const fmt = seeding.tournament.format || {};
+  const format = { balls_goal: fmt.target_points ?? 30, innings_goal: fmt.max_innings ?? 20 };
+  const location = seeding.tournament.location || {};
+  let availableTables = [], tables = [];
+  try {
+    if (location.id != null || location.cc_id != null) {
+      const tblDoc = await Carambus.api.fetchTables({ id: location.id, cc_id: location.cc_id }, region);
+      availableTables = tblDoc.tables || [];
+      tables = availableTables.slice(0, planMeta.tables).map(t => t.name);
+    }
+  } catch (e) { console.warn("Tische laden:", e); }
+  // Runden aus Plan (max round-no über group-games); Fallback 5 (T08).
+  const maxRounds = parsedPlan.games.reduce((m, g) => Math.max(m, g.round || 0), 0) || 5;
+  const tournamentCcId = seeding.tournament.cc_id;
+  const records = [], gameUI = {};
+  // tournament_cc_id kann null sein (Turnier lokal per Console angelegt, kein TournamentCc
+  // verknüpft). Dann kann round_result nicht abgefragt werden — für den Erst-Attach ohnehin
+  // irrelevant (leere Ergebnisliste). Später (falls TournamentCc nachgezogen wird) klappt es.
+  try {
+    if (tournamentCcId == null) throw new Error("skip: kein tournament_cc_id");
+    const results = await Carambus.api.fetchAllRoundResults({ tournamentCcId, maxRounds, region });
+    const prefix = `attach-${tournamentId}-`;
+    const keyByExtId = {};
+    for (const g of parsedPlan.games) keyByExtId[prefix + g.key.replace(/[^a-z0-9]+/gi, "_")] = g.key;
+    for (const res of results) {
+      const key = keyByExtId[res.external_id];
+      if (!key) continue; // fremdes external_id, ignorieren
+      const gps = res.participants || [];
+      const gpA = gps.find(x => x.role === "playera"), gpB = gps.find(x => x.role === "playerb");
+      const resObj = {
+        a: { balls: gpA?.points ?? null, innings: gpA?.innings ?? null, hs: gpA?.high_series ?? null },
+        b: { balls: gpB?.points ?? null, innings: gpB?.innings ?? null, hs: gpB?.high_series ?? null }
+      };
+      if (res.ended_at) {
+        let winner = null;
+        if (resObj.a.balls != null && resObj.b.balls != null) {
+          if (resObj.a.balls > resObj.b.balls) winner = "a";
+          else if (resObj.b.balls > resObj.a.balls) winner = "b";
+        }
+        records.push({ key, res: resObj, winner, at: Date.parse(res.ended_at) || Date.now(), table: res.table_name || null });
+      } else if (res.started_at) {
+        gameUI[key] = { table: res.table_name || null, external_id: res.external_id };
+      }
+    }
+  } catch (e) { console.warn("Round-Ergebnisse laden:", e); }
+  // State übernehmen
+  state.discipline = seeding.tournament.discipline?.name || state.discipline;
+  state.planName = tp.name || state.planName;
+  state.executorParams = tp.executor_params;
+  state.planMeta = { players: planMeta.players, ngroups: planMeta.ngroups, tables: planMeta.tables };
+  state.format = format;
+  state.participants = participants;
+  if (location.id != null || location.cc_id != null) state.location = location;
+  state.availableTables = availableTables;
+  state.tables = tables;
+  state.records = records;
+  state.gameUI = gameUI;
+  state.tableLot = {};
+  state.carambusTournament = {
+    id: tournamentId, external_id: null, attach: true,
+    cc_id: tournamentCcId, title: seeding.tournament.name || null
+  };
+  // Tische an den TournamentMonitor binden — start_game verlangt das (StartGameProcessor
+  // wirft sonst TableNotBoundError). Im Setup-Flow macht das startTournament; im
+  // Attach-Flow muss es hier passieren. Fehlschläge sind nicht fatal (Tisch evtl. von
+  // einem anderen Turnier belegt) — der TL sieht die Liste und entscheidet.
+  const lockFails = [];
+  for (const name of state.tables) {
+    try { await lockTable({ ...tournamentApiRef(), tableName: name, tableId: tableIdOf(name) }); }
+    catch (e) { lockFails.push(`${name}: ${errMsg(e)}`); }
+  }
+  if (lockFails.length) alert("Tische teils nicht gebunden:\n" + lockFails.join("\n") + "\n\nDiese Tische können erst nach Freigabe bespielt werden.");
+  state.phase = "running";
+  save(); run = rebuildRun(); renderAll(); switchTab("games");
+}
+// Bindet die konfigurierten Tische (erneut) an den TournamentMonitor. Noetig nach dem
+// Einspielen einer Sicherung: Die Sicherung stellt den App-Zustand her, die Bindung lebt
+// aber auf dem Server und fehlt dann — start_game quittiert das mit 422
+// "Table not bound to this tournament". Fasst state.records NICHT an, im Gegensatz zum
+// Attach-Flow.
+async function rebindTables() {
+  if (!isLive()) { alert("Keine Carambus-Verbindung — oben rechts anmelden."); return; }
+  if (!state.carambusTournament?.id) { alert("Nicht an ein Carambus-Turnier attached."); return; }
+  const names = state.tables || [];
+  if (!names.length) { alert("Keine Tische konfiguriert."); return; }
+  const fails = [];
+  for (const name of names) {
+    try { await lockTable({ ...tournamentApiRef(), tableName: name, tableId: tableIdOf(name) }); }
+    catch (e) { fails.push(`${name}: ${errMsg(e)}`); }
+  }
+  if (fails.length) {
+    alert(`${names.length - fails.length} von ${names.length} Tischen gebunden.\n\nNicht gebunden:\n${fails.join("\n")}\n\nMeist haengt so ein Tisch noch an einem anderen Turnier oder es laeuft ein Spiel darauf.`);
+  } else {
+    alert(`${names.length} Tische gebunden — die Spiele lassen sich jetzt starten.`);
+  }
+}
+
+// Aus geparsed executor_params: players (Summe g.pl), ngroups, tables (max t<N>).
+function derivePlanMeta(parsedPlan) {
+  let players = 0;
+  for (const g of parsedPlan.groups) players += (g.pl || 0);
+  if (!players && Array.isArray(parsedPlan.rk)) players = parsedPlan.rk.length;
+  let maxTable = 0;
+  for (const g of parsedPlan.games) {
+    if (typeof g.table !== "string") continue;
+    const m = /^t(\d+)$/.exec(g.table);
+    if (m) maxTable = Math.max(maxTable, parseInt(m[1], 10));
+  }
+  return { players, ngroups: parsedPlan.groups.length || 1, tables: maxTable || 1 };
+}
+
+async function resetTournament() {
+  const live = isLive();
+  const attach = !!(state.carambusTournament && state.carambusTournament.attach);
+  // Attach-Modus: das Turnier existiert im Carambus-Web (nicht app-generiert). Cleanup würde
+  // das Web-Turnier zerstören → NICHT machen. Nur App-lokal zurück zum Setup; ein zweiter
+  // Attach an dasselbe cb_tournament_id lädt den Server-Stand erneut.
+  const msg = attach
+    ? "App-Verbindung zum Turnier lösen? Ergebnisse bleiben im Carambus erhalten (nur lokale Anzeige wird geleert)."
+    : ("Turnier verwerfen? Ergebnisse gehen verloren (Setup bleibt)." + (live ? "\nLive: Turnier + Spiele werden in Carambus abgeräumt (Tische frei)." : ""));
+  if (!confirm(msg)) return;
+  if (live && !attach) {
+    // Abbruch räumt das Carambus-Turnier ab (Tische frei + Turnier/Spiele löschen).
+    try {
+      const body = await endTournament({ ...tournamentApiRef(), cleanup: true });
+      if (!body.tournament_deleted) console.warn("Abbruch: Carambus hat das Turnier nicht gelöscht", body);
+    } catch (e) {
+      if (!confirm("Carambus-Abräumen fehlgeschlagen: " + errMsg(e) + "\n\nTrotzdem lokal verwerfen?")) return;
+    }
+  }
+  state.records = []; state.gameUI = {}; state.tableLot = {}; state.phase = "setup"; state.carambusTournament = null; save(); run = rebuildRun(); renderAll(); switchTab("setup");
+}
+
+// ===== SPIELE & GRUPPEN =====
+// Carambus-Table-id zum Tischnamen (aus den geladenen Tischen) → bevorzugt an lock_table/
+// start_game (robust gegen doppelte Tischnamen einer Location); sonst Fallback auf den Namen.
+function tableIdOf(name) { const t = (state.availableTables || []).find(x => x.name === name); return t && t.id != null ? t.id : null; }
+function freeTableList() { const busy = new Set(Object.values(state.gameUI).filter(u => u.table).map(u => u.table)); return state.tables.filter(n => !busy.has(n)).sort((a, b) => (tableNo(a) ?? 0) - (tableNo(b) ?? 0)); }
+function tablesSorted() { return state.tables.slice().sort((a, b) => (tableNo(a) ?? 0) - (tableNo(b) ?? 0)); }
+function logicalToPhysical(label) { const m = /^t(\d+)$/.exec(String(label || "")); return m ? (tablesSorted()[(+m[1]) - 1] || null) : null; }
+// eae_pg-Choreografie: logischer Tisch tN → fester physischer Tisch. So „bleibt" der
+// Sieger an seinem Tisch (R2 trägt denselben logischen Tisch wie R1).
+function groupTables(n) { return run.plan.games.filter(x => x.kind === "group" && x.group === n && x.round === 1).map(x => logicalToPhysical(x.table)).filter(Boolean); }
+// R3-Tische werden ausgelost: einmal die Gruppentische mischen, Ergebnis je R3-Spiel in
+// state.tableLot persistieren (stabil über Rebuild/Render; neu nur bei Reset/Neustart).
+function r3LotTable(g) {
+  if (!state.tableLot) state.tableLot = {};
+  if (state.tableLot[g.key]) return state.tableLot[g.key];
+  const tables = shuffle(groupTables(g.lot).slice());
+  run.plan.games.filter(x => x.lot === g.lot && x.round === 3).forEach((x, i) => { if (tables[i]) state.tableLot[x.key] = tables[i]; });
+  save();
+  return state.tableLot[g.key] || null;
+}
+function preferredTable(g, freeSet) {
+  if (!g || !g.choreo) return null;
+  const t = (g.lot != null) ? r3LotTable(g) : logicalToPhysical(g.table); // R3: Los · R1/R2: fester Tisch
+  return (t && (!freeSet || freeSet.has(t))) ? t : null;
+}
+function gameStatus(key) { if (run.results[key]) return "done"; if (state.gameUI[key]?.table) return "running"; return null; }
+
+function renderGames() {
+  const el = document.getElementById("tab-games");
+  if (!run) { el.innerHTML = `<div class="card"><p class="muted">Noch kein Turnier — erst im Setup erzeugen.</p></div>`; return; }
+  const ready = runReadyGames(run).filter(g => !state.gameUI[g.key]?.table);
+  const running = runReadyGames(run).filter(g => state.gameUI[g.key]?.table).concat(
+    run.plan.games.filter(g => state.gameUI[g.key]?.table && !run.results[g.key]).map(g => ({ ...g, playerA: resolveSlot(run, g.a), playerB: resolveSlot(run, g.b) }))
+  );
+  const runningUniq = [...new Map(running.map(g => [g.key, g])).values()];
+  const free = freeTableList();
+  const done = Object.keys(run.results).length;
+  const doneGames = run.plan.games.filter(g => run.results[g.key]).map(g => ({ ...g, playerA: resolveSlot(run, g.a), playerB: resolveSlot(run, g.b) }));
+
+  el.innerHTML = `
+    <div class="card">
+      <h2>Tische</h2>
+      <div class="tables-bar">${state.tables.map(name => { const u = Object.entries(state.gameUI).find(([k, v]) => v.table === name && !run.results[k]); const g = u ? run.plan.games.find(x => x.key === u[0]) : null; const who = g ? `${shortName(resolveSlot(run, g.a))} vs ${shortName(resolveSlot(run, g.b))}` : "frei"; return `<div class="table-chip ${g ? "busy" : "free"}"><div class="tname">${escapeHtml(name)}</div><div class="who">${escapeHtml(who)}</div></div>`; }).join("")}</div>
+      <div class="toolbar">
+        <button class="btn" id="btnFill" ${ready.length && free.length ? "" : "disabled"}>▶ Freie Tische belegen</button>
+        ${isLive() && runningUniq.length ? `<button class="btn secondary" id="btnPollAll">📥 Ergebnisse holen</button>` : ``}
+        <span class="muted">${done}/${run.plan.games.length} Spiele · ${ready.length} bereit · ${runningUniq.length} laufend</span>
+      </div>
+      ${run.plan.rk.every(ref => resolveSlot(run, ref)) && runFinished(run) ? `<div class="info">🏆 Turnier abgeschlossen — siehe Endstand.</div>` : ``}
+    </div>
+    <div class="card"><h2>Spielbereit (${ready.length})</h2>${ready.length ? `<div class="matches-grid">${ready.map(g => matchCard(g, "ready", free)).join("")}</div>` : `<p class="muted">Kein Spiel spielbereit (warten auf vorherige Ergebnisse).</p>`}</div>
+    <div class="card"><h2>Laufend (${runningUniq.length})</h2>${runningUniq.length ? `<div class="matches-grid">${runningUniq.map(g => matchCard(g, "running", free)).join("")}</div>` : `<p class="muted">Kein laufendes Spiel.</p>`}</div>
+    ${doneGames.length ? `<div class="card"><h2>Erledigt (${doneGames.length})</h2><div class="matches-grid">${doneGames.map(g => matchCard(g, "done", free)).join("")}</div></div>` : ``}
+    <div class="card"><h2>Gruppen</h2><div class="groups-grid">${run.plan.groups.map(gr => groupCard(gr.n)).join("") || `<p class="muted">Keine Gruppenphase.</p>`}</div></div>
+    <div class="card"><h2>Platzierungs-/Finalrunde</h2>${renderPlacementList()}</div>`;
+  bindGameActions(el);
+}
+
+// Ausstoss-Tausch: Wer den Ausstoss gewinnt, bestimmt den Anstoss — und Carambus
+// stellt den Anstoss-Spieler zwingend als "playera" nach links (switch_players
+// vertauscht dabei die game_participation.role IN DER DB). Das Ergebnis kommt
+// danach positionsbasiert zurueck (Ergebnis1 = playera), ohne Spieler-Identitaet.
+// Deshalb pflegen wir die Scoreboard-Reihenfolge hier von Hand nach.
+// Siehe HANDOFF-to-carambus-scoreboard-texte-und-monitor-state.md, Befund 4.
+function isSwapped(key) { return !!state.gameUI[key]?.swapped; }
+function applySwap(key, res) { return (res && isSwapped(key)) ? { a: res.b, b: res.a } : res; }
+function toggleSwap(key) {
+  const ui = state.gameUI[key];
+  if (ui) ui.swapped = !ui.swapped;
+  // Bereits uebernommenes Ergebnis mitdrehen (Korrektur, wenn der Tausch beim
+  // Import vergessen wurde). WICHTIG: state.records ist die persistierte Quelle,
+  // run wird daraus per rebuildRun() abgeleitet — eine Aenderung an run.results
+  // allein waere nach dem naechsten Reload wieder weg.
+  const rec = (state.records || []).find(r => r.key === key);
+  if (rec && rec.res) {
+    rec.res = { a: rec.res.b, b: rec.res.a };
+    const d = decideGame(rec.res, state.format.balls_goal, state.format.balls_goal);
+    rec.winner = d.winner || (rec.winner === "a" ? "b" : (rec.winner === "b" ? "a" : null));
+    run = rebuildRun();
+  }
+  save(); renderAll();
+}
+
+function matchCard(g, mode, free) {
+  const a = g.playerA ?? resolveSlot(run, g.a), b = g.playerB ?? resolveSlot(run, g.b);
+  const res = run.results[g.key]?.res; const winner = run.results[g.key]?.winner;
+  const slot = (p, side) => { let cls = "pn"; if (winner) cls += (winner === side ? " win" : " lose"); const sc = res ? `${res[side]?.balls ?? "-"}${res[side]?.innings ? " / " + res[side].innings : ""}` : ""; return `<div class="m-slot"><span class="${cls}">${nameHtml(p)}</span><span class="sc">${escapeHtml(sc)}</span></div>`; };
+  const swapped = mode === "running" && isSwapped(g.key);
+  const slots = swapped ? `${slot(b, "b")}${slot(a, "a")}` : `${slot(a, "a")}${slot(b, "b")}`;
+  let actions = "";
+  if (mode === "ready") { const pref = preferredTable(g, new Set(free)); actions = free.length ? `<select class="m-table" data-id="${g.key}">${free.map(t => `<option value="${escapeHtml(t)}"${t === pref ? " selected" : ""}>${escapeHtml(t)}</option>`).join("")}</select><button class="btn m-start" data-id="${g.key}">▶ Starten</button>` : `<span class="muted">kein freier Tisch</span>`; }
+  else if (mode === "done") actions = `<button class="btn secondary m-swap" data-id="${g.key}" title="Ergebnis seitenverkehrt uebernommen? Hier drehen">⇄ Ergebnis drehen</button>`;
+  else if (mode === "running") actions = `<button class="btn ${swapped ? "" : "secondary"} m-swap" data-id="${g.key}" title="Reihenfolge an das Scoreboard angleichen — oben steht, wer angestossen hat">⇄ ${swapped ? "getauscht" : "Spieler tauschen"}</button>${isLive() ? `<button class="btn m-poll" data-id="${g.key}">📥 Ergebnis holen</button>` : ``}<button class="btn secondary m-manual" data-id="${g.key}">✎ Ergebnis erfassen</button>`;
+  const hint = swapped ? `<div class="muted" style="font-size:.85em;padding:2px 0 0 2px;">Reihenfolge wie auf dem Scoreboard</div>` : ``;
+  return `<div class="m-card ${mode}"><div class="m-top"><span>${escapeHtml(gameLabel(g))}</span><span class="m-id">${escapeHtml(g.key)}${state.gameUI[g.key]?.table ? " · " + escapeHtml(state.gameUI[g.key].table) : ""}</span></div>${slots}${hint}<div class="m-actions">${actions}</div><div id="manual-${cssId(g.key)}"></div></div>`;
+}
+function gameLabel(g) { if (g.kind === "group") return `Gruppe ${g.group}${g.round ? " · R" + g.round : ""}`; const names = { fin: "Finale", hf1: "Halbfinale 1", hf2: "Halbfinale 2", hf: "Halbfinale", qf: "Viertelfinale" }; return names[g.key] || (g.key.startsWith("p<") ? "Platz " + g.key.slice(2, -1) : g.key); }
+function cssId(key) { return key.replace(/[^a-z0-9]+/gi, "_"); }
+
+function groupCard(n) {
+  const st = runGroupStandings(run, n);
+  const complete = groupComplete(run, n);
+  const rows = st.map((s, i) => `<tr class="${complete && i < 2 ? "q" : ""}"><td class="rk">${i + 1}</td><td style="text-align:left">${nameHtml(s.player)}</td><td>${s.points}</td><td style="font-family:monospace">${s.gd.toFixed(2)}</td></tr>`).join("");
+  return `<div><h3 style="color:var(--accent);">Gruppe ${n} ${complete ? '<span class="badge done">fertig</span>' : '<span class="badge open">läuft</span>'}</h3>
+    <table class="standings-table"><thead><tr><th>#</th><th style="text-align:left">Spieler</th><th>Pkt</th><th>GD</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+function renderPlacementList() {
+  const pg = run.plan.games.filter(g => g.kind === "placement");
+  if (!pg.length) return `<p class="muted">Keine Platzierungsspiele.</p>`;
+  return `<div class="matches-grid">` + pg.map(g => {
+    const a = resolveSlot(run, g.a), b = resolveSlot(run, g.b), st = gameStatus(g.key);
+    const res = run.results[g.key]?.res, winner = run.results[g.key]?.winner;
+    const slot = (p, ref, side) => { let cls = "pn"; if (!p) cls += " pending"; if (winner) cls += (winner === side ? " win" : " lose"); const sc = res ? `${res[side]?.balls ?? "-"}` : ""; return `<div class="m-slot"><span class="${cls}">${p ? nameHtml(p) : escapeHtml(ref)}</span><span class="sc">${escapeHtml(sc)}</span></div>`; };
+    return `<div class="m-card ${st || ""}"><div class="m-top"><span>${escapeHtml(gameLabel(g))}</span><span class="badge ${st === "done" ? "done" : st === "running" ? "running" : ""}">${st === "done" ? "fertig" : st === "running" ? "läuft" : (a && b ? "bereit" : "wartet")}</span></div>${slot(a, g.a, "a")}${slot(b, g.b, "b")}</div>`;
+  }).join("") + `</div>`;
+}
+
+function bindGameActions(el) {
+  el.querySelector("#btnFill")?.addEventListener("click", fillFreeTables);
+  el.querySelector("#btnPollAll")?.addEventListener("click", pollAll);
+  el.querySelectorAll(".m-start").forEach(b => b.addEventListener("click", () => { const id = b.dataset.id; const sel = el.querySelector(`.m-table[data-id="${cssEsc(id)}"]`); startGameOnTable(id, sel?.value); }));
+  el.querySelectorAll(".m-poll").forEach(b => b.addEventListener("click", () => pollGame(b.dataset.id)));
+  el.querySelectorAll(".m-manual").forEach(b => b.addEventListener("click", () => openManual(b.dataset.id)));
+  el.querySelectorAll(".m-swap").forEach(b => b.addEventListener("click", () => toggleSwap(b.dataset.id)));
+}
+function cssEsc(s) { return s.replace(/["\\]/g, "\\$&"); }
+
+async function startGameOnTable(key, table) {
+  if (!table) { alert("Kein Tisch frei."); return; }
+  const g = run.plan.games.find(x => x.key === key); const a = resolveSlot(run, g.a), b = resolveSlot(run, g.b);
+  if (!a || !b) { alert("Spiel nicht spielbereit."); return; }
+  const ext = gameExternalId(key);
+  if (isLive()) {
+    try {
+      // Scoreboard-Typ aus table_kind der gewählten Disziplin ableiten (Pool/Snooker/Karambol).
+      const disc = state.disciplinesDoc?.disciplines?.find(d => d.name === state.discipline);
+      const ff = Carambus.util.freeGameForm({ tableKind: disc?.table_kind, discipline: state.discipline });
+      await startGame({
+        ...tournamentApiRef(), gameExternalId: ext, tableName: table, tableId: tableIdOf(table),
+        participants: [{ role: "playera", player: cleanPlayerRef(a), discipline: state.discipline, balls_goal: state.format.balls_goal },
+                       { role: "playerb", player: cleanPlayerRef(b), discipline: state.discipline, balls_goal: state.format.balls_goal }],
+        format: { innings_goal: state.format.innings_goal, free_game_form: ff, sets_to_play: 1, sets_to_win: 1, allow_follow_up: g.kind === "group" }
+      });
+    } catch (e) { alert("Spiel starten: " + errMsg(e)); return; }
+  }
+  state.gameUI[key] = { table, external_id: ext, swapped: false }; save(); renderGames();
+}
+async function fillFreeTables() {
+  // 1. Choreografie-Tische bevorzugt (eae_pg: Sieger bleibt am Tisch / Gruppentische)
+  for (const g of runReadyGames(run).filter(x => !state.gameUI[x.key]?.table)) {
+    const pref = preferredTable(g, new Set(freeTableList()));
+    if (pref) await startGameOnTable(g.key, pref);
+  }
+  // 2. Restliche bereit-Spiele auf beliebige freie Tische
+  let free = freeTableList();
+  for (const g of runReadyGames(run).filter(x => !state.gameUI[x.key]?.table)) { if (!free.length) break; await startGameOnTable(g.key, free.shift()); free = freeTableList(); }
+}
+async function pollGame(key) {
+  try { const { status, body } = await acknowledgeResult({ ...tournamentApiRef(), gameExternalId: state.gameUI[key].external_id }); if (status === 409) { alert("Ergebnis noch nicht erfasst."); return; } completeGame(key, mapAckResult(body, key).res); }
+  catch (e) { if (e instanceof CarambusError && e.status === 409) { alert("Ergebnis noch nicht erfasst."); return; } alert("Ergebnis holen: " + errMsg(e)); }
+}
+async function pollAll() { for (const key of Object.keys(state.gameUI)) { if (run.results[key]) continue; try { const { status, body } = await acknowledgeResult({ ...tournamentApiRef(), gameExternalId: state.gameUI[key].external_id }); if (status === 409) continue; completeGame(key, mapAckResult(body, key).res); } catch (_) {} } renderGames(); }
+function mapAck(result) { if (!result) return null; const num = v => v == null ? null : (typeof v === "number" ? v : parseInt(v, 10)); return { a: { balls: num(result.Ergebnis1), innings: num(result.Aufnahmen1), hs: num(result["Höchstserie1"] ?? result.Hoechstserie1) }, b: { balls: num(result.Ergebnis2), innings: num(result.Aufnahmen2), hs: num(result["Höchstserie2"] ?? result.Hoechstserie2) } }; }
+
+// ===== Ergebnis-Zuordnung ueber Spieler-Identitaet ========================
+// Carambus liefert seit dem Fix zu Befund 4 zusaetzlich `participants` mit voller
+// Spieler-Projektion. Damit ordnen wir das Ergebnis der Person zu statt der Position
+// (Ergebnis1/2 = Rolle am Tisch, die switch_players beim Ausstoss vertauscht).
+// Faellt der Block, greift der alte positionsbasierte Weg samt Tausch-Schalter.
+// Siehe HANDOFF-from-carambus-scoreboard-texte-und-monitor-state.md, Befund 4.
+const normName = s => String(s ?? "").trim().toLowerCase();
+function samePlayer(planP, apiP) {
+  if (!planP || !apiP) return false;
+  if (planP.cc_id != null && apiP.cc_id != null) return String(planP.cc_id) === String(apiP.cc_id);
+  if (planP.dbu_nr != null && apiP.dbu_nr != null) return String(planP.dbu_nr) === String(apiP.dbu_nr);
+  // Ohne ID bleibt der Name — bei internationalen Feldern der Regelfall
+  // (in Turnier 50000057 hatte 1 von 6 Spielerinnen ueberhaupt eine ba_id).
+  return normName(planP.lastname) === normName(apiP.lastname) &&
+         normName(planP.firstname) === normName(apiP.firstname);
+}
+function sideFromParticipant(p) {
+  const num = v => v == null ? null : (typeof v === "number" ? v : parseInt(v, 10));
+  return { balls: num(p.points), innings: num(p.innings), hs: num(p.high_series) };
+}
+// Liefert {res, byIdentity}. byIdentity=true -> der Tausch-Schalter wird NICHT angewandt,
+// die Zuordnung ist dann bereits personenscharf.
+function mapAckResult(body, key) {
+  const fallback = () => ({ res: applySwap(key, mapAck(body && body.result)), byIdentity: false });
+  const parts = (body && (body.participants || (body.result && body.result.participants))) || null;
+  if (!Array.isArray(parts) || parts.length < 2) return fallback();
+  const g = run.plan.games.find(x => x.key === key);
+  if (!g) return fallback();
+  const a = resolveSlot(run, g.a), b = resolveSlot(run, g.b);
+  const pa = parts.find(p => samePlayer(a, p.player)), pb = parts.find(p => samePlayer(b, p.player));
+  if (!pa || !pb || pa === pb) {
+    console.warn("[mapAckResult] participants vorhanden, aber nicht eindeutig zuordenbar — Fallback auf Position", { key });
+    return fallback();
+  }
+  return { res: { a: sideFromParticipant(pa), b: sideFromParticipant(pb) }, byIdentity: true };
+}
+
+function completeGame(key, res) {
+  const g = run.plan.games.find(x => x.key === key);
+  let winner = decideGame(res, state.format.balls_goal, state.format.balls_goal).winner;
+  if (!winner) {
+    // Gruppenspiel: Remis ok (1:1). Finalrunde sowie eae_pg-R1 (g.decide): Sieger
+    // nötig → bei Remis Losen (Tischfolge). Die Punkte bleiben 1:1, der Los-Sieger
+    // zählt nur für die Tisch-Choreografie (rk1/rk2 der Folgerunden).
+    if (g.kind !== "group" || g.decide) {
+      const a = resolveSlot(run, g.a), b = resolveSlot(run, g.b);
+      const pick = prompt(`Unentschieden — ${g.decide ? "Losen (Tischwahl)" : "Tie-Break (Finalrunde)"}: Sieger "a"=${shortName(a)} / "b"=${shortName(b)} — leer = Zufalls-Los`);
+      winner = (pick === "a" || pick === "b") ? pick : (Math.random() < 0.5 ? "a" : "b");
+    }
+  }
+  state.records.push({ key, res, winner, at: Date.now(), table: state.gameUI[key]?.table ?? null });
+  delete state.gameUI[key];
+  run = rebuildRun();
+  if (runFinished(run)) state.phase = "finished";
+  save(); renderAll();
+  // Nach JEDEM Ergebnis ins Archiv schieben, nicht erst am Schluss: Der Push ist
+  // idempotent, und ein Geraeteverlust mittendrin (iOS raeumt localStorage ohne
+  // Vorwarnung) kostet dann nichts. Laeuft absichtlich ohne await — der naechste
+  // Anstoss soll nicht auf den Server warten.
+  if (isLive()) pushArchive({ silent: true });
+}
+function openManual(key) {
+  const box = document.getElementById("manual-" + cssId(key)); if (!box) return;
+  if (box.dataset.open === "1") { box.innerHTML = ""; box.dataset.open = "0"; return; }
+  box.dataset.open = "1"; const g = run.plan.games.find(x => x.key === key); const a = resolveSlot(run, g.a), b = resolveSlot(run, g.b);
+  const cid = cssId(key);
+  box.innerHTML = `<div class="res-inputs"><span class="lbl">Spieler</span><span class="lbl">Bälle</span><span class="lbl">Aufn.</span><span class="lbl">HS</span></div>
+    <div class="res-inputs"><span>${nameHtml(a, { short: true })}</span><input type="number" id="ra-b-${cid}"><input type="number" id="ra-i-${cid}"><input type="number" id="ra-h-${cid}"></div>
+    <div class="res-inputs"><span>${nameHtml(b, { short: true })}</span><input type="number" id="rb-b-${cid}"><input type="number" id="rb-i-${cid}"><input type="number" id="rb-h-${cid}"></div>
+    <div class="m-actions"><button class="btn" id="save-${cid}">✓ Speichern</button></div>`;
+  const doSave = () => {
+    const v = id => { const x = document.getElementById(id)?.value; return x === "" || x == null ? null : parseInt(x, 10); };
+    const res = { a: { balls: v(`ra-b-${cid}`), innings: v(`ra-i-${cid}`), hs: v(`ra-h-${cid}`) }, b: { balls: v(`rb-b-${cid}`), innings: v(`rb-i-${cid}`), hs: v(`rb-h-${cid}`) } };
+    if (res.a.balls == null || res.b.balls == null) { alert("Beide Ball-Ergebnisse eingeben."); return; }
+    completeGame(key, res);
+  };
+  document.getElementById("save-" + cid).addEventListener("click", doSave);
+  // Tastatur-Workflow: Enter in einem Feld speichert; erstes Feld autofokussieren.
+  box.querySelectorAll("input").forEach(inp => inp.addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); doSave(); } }));
+  document.getElementById(`ra-b-${cid}`)?.focus();
+}
+
+// ===== ENDSTAND =====
+function renderStandings() {
+  const el = document.getElementById("tab-standings");
+  if (!run) { el.innerHTML = `<div class="card"><p class="muted">Noch kein Turnier.</p></div>`; return; }
+  const rk = finalRanking(run);
+  el.innerHTML = `
+    <div class="card"><h2>Endplatzierung</h2>
+      ${runFinished(run) ? "" : `<div class="alert">Turnier läuft noch — Platzierungen vervollständigen sich mit den Ergebnissen.</div>`}
+      <table class="standings-table"><thead><tr><th>Platz</th><th style="text-align:left">Spieler</th><th>Verein</th></tr></thead>
+      <tbody>${rk.map(r => `<tr class="${r.place === 1 ? "q" : ""}"><td class="place">${r.place}</td><td style="text-align:left">${r.player ? nameHtml(r.player) : `<span class="muted">${escapeHtml(r.ref)}</span>`}</td><td>${r.player ? escapeHtml(r.player.club_shortname || "") : ""}</td></tr>`).join("")}</tbody></table>
+    </div>
+    <div class="card"><h2>Gruppen-Tabellen</h2><div class="groups-grid">${run.plan.groups.map(gr => groupCard(gr.n)).join("") || `<p class="muted">—</p>`}</div></div>
+    ${renderAllGamesList()}
+    <div class="card"><h2>Sicherung</h2><div class="toolbar"><button class="btn" id="btnBackup">💾 Sicherung speichern</button><button class="btn secondary" id="btnBackupCopy">📋 Sicherung kopieren</button></div><div class="scheme-hint">Nach jeder Runde sichern. Zurueckspielen auf der Turnier-Uebersicht (← oben links). Wichtig auf iPads: Safari kann den Speicher jederzeit leeren.</div></div>
+    <div class="card"><h2>Export</h2><div class="toolbar"><button class="btn" id="btnCsv">📄 Spiele-CSV</button><button class="btn" id="btnRanking">📄 Rangliste (ClubCloud)</button>${isLive() ? `<button class="btn secondary" id="btnArchive">📦 Ergebnisse in Carambus ablegen</button><button class="btn danger" id="btnEnd">🧹 Turnier in Carambus abräumen (Tische frei + löschen)</button>` : ``}</div>${archiveStatusHtml()}<div class="scheme-hint">Endstand und Partien stehen jetzt auch in Carambus auf der Turnierseite — abgelegt wird nach jedem Ergebnis automatisch, der Knopf ist für den Nachschub von Hand. <strong>„Abräumen" löscht auch dieses Archiv</strong> (Turnier + Spiele + Endstand); danach ist die App wieder die einzige Quelle — vorher CSV sichern.</div></div>`;
+  el.querySelector("#btnBackup")?.addEventListener("click", backupDownload);
+  el.querySelector("#btnBackupCopy")?.addEventListener("click", backupCopy);
+  el.querySelector("#btnCsv")?.addEventListener("click", exportCsv);
+  el.querySelector("#btnRanking")?.addEventListener("click", exportRanking);
+  el.querySelector("#btnArchive")?.addEventListener("click", () => pushArchive());
+  el.querySelector("#btnEnd")?.addEventListener("click", endCarambus);
+  el.querySelector("#btnPrintGames")?.addEventListener("click", () => window.print());
+}
+// Liste aller Spiele (wie im Dreiband-Matchschema) — nummeriert in Spielreihenfolge,
+// mit Tisch, Spieler A/B, Bällen/Aufnahmen/HS/GD und Ergebnis (Sieger hervorgehoben).
+function renderAllGamesList() {
+  if (!run) return "";
+  const tblByKey = {}; (state.records || []).forEach(r => { if (r.table != null) tblByKey[r.key] = r.table; });
+  const gd = (b, i) => (b != null && i > 0 ? (b / i).toFixed(2) : "—");
+  const num = v => (v == null ? "—" : v);
+  const games = run.plan.games.slice().sort((a, b) => { const oa = csvOrder(a), ob = csvOrder(b); for (let i = 0; i < 3; i++) if (oa[i] !== ob[i]) return oa[i] - ob[i]; return String(a.key).localeCompare(String(b.key)); });
+  const nameCell = (p, side, win) => `<td style="text-align:left;${win === side ? "color:var(--good);font-weight:600;" : ""}">${p ? nameHtml(p) : `<span class="muted">—</span>`}</td>`;
+  const rows = games.map((g, i) => {
+    const r = run.results[g.key];
+    const a = r ? r.a : resolveSlot(run, g.a), b = r ? r.b : resolveSlot(run, g.b);
+    const ra = r?.res?.a || {}, rb = r?.res?.b || {}, win = r?.winner;
+    return `<tr>
+      <td style="text-align:center;color:var(--muted);">${i + 1}</td>
+      <td style="text-align:left;white-space:nowrap;">${escapeHtml(csvGameName(g))}${g.round ? ` <span class="muted">R${g.round}</span>` : ""}</td>
+      <td style="text-align:center;">${tblByKey[g.key] != null ? escapeHtml(String(tblByKey[g.key])) : "—"}</td>
+      ${nameCell(a, "a", win)}
+      <td style="text-align:right;">${num(ra.balls)}</td><td style="text-align:right;">${num(ra.innings)}</td><td style="text-align:right;">${num(ra.hs)}</td><td style="text-align:right;font-family:monospace;color:var(--muted);">${gd(ra.balls, ra.innings)}</td>
+      <td style="text-align:center;font-family:monospace;">${r ? `${num(ra.balls)}:${num(rb.balls)}` : "—"}</td>
+      <td style="text-align:right;">${num(rb.balls)}</td><td style="text-align:right;">${num(rb.innings)}</td><td style="text-align:right;">${num(rb.hs)}</td><td style="text-align:right;font-family:monospace;color:var(--muted);">${gd(rb.balls, rb.innings)}</td>
+      ${nameCell(b, "b", win)}
+    </tr>`;
+  }).join("");
+  return `<div class="card"><h2>Alle Spiele</h2>
+    <div class="toolbar"><button class="btn secondary" id="btnPrintGames">🖨 Drucken</button></div>
+    <div style="overflow-x:auto;"><table class="standings-table" style="font-size:12px;white-space:nowrap;">
+      <thead><tr><th>#</th><th style="text-align:left;">Spiel</th><th>Tisch</th><th style="text-align:left;">Spieler A</th><th>Bälle</th><th>Aufn.</th><th>HS</th><th>GD</th><th>Erg.</th><th>Bälle</th><th>Aufn.</th><th>HS</th><th>GD</th><th style="text-align:left;">Spieler B</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table></div></div>`;
+}
+// Spielname für CSV (Carambus-Import-Format)
+function csvGameName(g) {
+  if (g.kind === "group") return `Gruppe ${g.group}`;
+  const k = g.key;
+  if (k === "fin") return "Finale";
+  const hm = /^hf(\d*)$/.exec(k); if (hm) return "Halbfinale" + (hm[1] ? " " + hm[1] : "");
+  const m = /^p<(\d+)-(\d+)>/.exec(k); if (m) return `Platz ${m[1]}/${m[2]}`;
+  return gameLabel(g);
+}
+// lfd.nr-Reihenfolge: Runden-gestaffelt (Gruppenrunden 1..n je Gruppe), dann Platzierung
+function csvOrder(g) {
+  if (g.kind === "group") return [g.round || 0, 0, g.group || 0];
+  const k = g.key; let p = 50;
+  if (/^hf/.test(k)) p = 10; else if (k === "fin") p = 20; else { const m = /^p<(\d+)-/.exec(k); if (m) p = 30 + (+m[1]); }
+  return [g.round || 99, 1, p];
+}
+// Spiele-CSV (gemeinsamer Baustein Carambus.util.buildGamesCsv) — Spiele in Spielreihenfolge.
+// ===== Sicherung ==========================================================
+// iOS-Safari raeumt localStorage bei Speicherdruck ohne Vorwarnung weg. Aus
+// Carambus laesst sich der Stand NICHT zurueckholen (round_result verlangt
+// tournament_cc_id, App-Turniere haben cc_id=nil) — deshalb hier eine echte
+// Sicherung. Zurueckspielen auf der Turnier-Uebersicht (dort landet man nach
+// einem Verlust, weil die Instanz dann nicht mehr existiert).
+function backupPayload() { return { v: 1, at: new Date().toISOString(), instance: getInstance(INSTANCE_ID), state }; }
+function backupFilename() {
+  const t = (instance.title || "turnier").replace(/[^a-z0-9]+/gi, "-").toLowerCase();
+  const d = new Date(); const p2 = n => String(n).padStart(2, "0");
+  return `sicherung-${t}-${d.getFullYear()}${p2(d.getMonth() + 1)}${p2(d.getDate())}-${p2(d.getHours())}${p2(d.getMinutes())}.json`;
+}
+function backupDownload() { Carambus.util.downloadJson(backupFilename(), backupPayload()); }
+async function backupCopy() {
+  const txt = JSON.stringify(backupPayload());
+  try {
+    await navigator.clipboard.writeText(txt);
+    alert("Sicherung in der Zwischenablage.\n\nJetzt in eine Notiz (oder Mail an dich selbst) einfuegen und speichern.");
+  } catch (e) {
+    const ta = document.createElement("textarea");
+    ta.value = txt; ta.style.cssText = "position:fixed;inset:5%;width:90%;height:60%;z-index:9999;font-size:11px;";
+    document.body.appendChild(ta); ta.select();
+    alert("Bitte den markierten Text kopieren und in einer Notiz sichern. Danach irgendwo hinklicken.");
+    ta.addEventListener("blur", () => ta.remove(), { once: true });
+  }
+}
+
+function exportCsv() {
+  const tsByKey = {}; (state.records || []).forEach(r => { if (r.at != null) tsByKey[r.key] = r.at; });
+  const played = run.plan.games.filter(g => run.results[g.key]);
+  played.sort((a, b) => { const oa = csvOrder(a), ob = csvOrder(b); for (let i = 0; i < 3; i++) if (oa[i] !== ob[i]) return oa[i] - ob[i]; return String(a.key).localeCompare(String(b.key)); });
+  const games = played.map(g => { const r = run.results[g.key], ra = r.res.a || {}, rb = r.res.b || {}; return {
+    name: csvGameName(g), dbuA: r.a?.dbu_nr ?? "", dbuB: r.b?.dbu_nr ?? "",
+    ballsA: ra.balls ?? "", ballsB: rb.balls ?? "", inningsA: ra.innings ?? "", inningsB: rb.innings ?? "",
+    hsA: ra.hs ?? "", hsB: rb.hs ?? "", at: tsByKey[g.key] }; });
+  downloadText(`spiele-${planSlug()}-${new Date().toISOString().slice(0, 10)}.csv`, Carambus.util.buildGamesCsv(games));
+}
+// ClubCloud-Rangliste (gemeinsamer Baustein Carambus.util.buildRankingCsv). PASS-NR/VEREINSNR = cc_id.
+function exportRanking() {
+  const groupRankByPid = {};
+  run.plan.groups.forEach(gr => { runGroupStandings(run, gr.n).forEach((s, i) => { groupRankByPid[pidOf(s.player)] = i + 1; }); });
+  const rows = finalRanking(run).filter(r => r.player).map(r => { const p = r.player;
+    const teil = `${p.lastname || ""}, ${p.firstname || ""}`.replace(/^,\s*|,\s*$/g, "").trim() || fullName(p);
+    return { rang: r.place, punkte: "", gruppenrang: groupRankByPid[pidOf(p)] ?? "", passNr: p.cc_id ?? "", pga: "", vereinsNr: p.club_cc_id ?? "", teilnehmer: teil }; });
+  downloadText(`rangliste-${planSlug()}-${new Date().toISOString().slice(0, 10)}.csv`, Carambus.util.buildRankingCsv(rows));
+}
+// ===== Ergebnisarchiv =====================================================
+// Die App bleibt System of Record; der lokale Server bekommt zusaetzlich eine lesbare
+// Kopie — Endstand und Partien in der Form, in der Carambus gescrapte CC-Ergebnisse
+// haelt. Vertrag: HANDOFF-to-/from-carambus-tournament-result-archive.md.
+// Die vier Anzeige-Zwaenge (gleiche Keys, Rank als Integer, "Ergebnis" nie leer,
+// "Partie" numerisch) setzt der Kern durch — hier werden nur die Zeilen gebaut.
+
+// Kennzahlen je Spieler ueber ALLE gespielten Partien: die Platzierung kommt aus
+// finalRanking (Plan-Logik), die Zahlen daneben aus dem gesamten Turnier — sonst
+// fehlten bei Plaenen mit Finalrunde genau die entscheidenden Spiele.
+function archiveTotals() {
+  const acc = new Map();
+  const ensure = p => { const id = pidOf(p); if (!acc.has(id)) acc.set(id, { games: 0, wins: 0, draws: 0, points: 0, balls: 0, innings: 0, hs: 0 }); return acc.get(id); };
+  run.plan.games.forEach(g => {
+    const r = run.results[g.key]; if (!r) return;
+    const A = ensure(r.a), B = ensure(r.b), ra = r.res?.a || {}, rb = r.res?.b || {};
+    A.games++; B.games++;
+    // Matchpunkte mitfuehren: Danach wird sortiert (run.order = ["points","gd"]), also
+    // muss die Spalte in die Tabelle — sonst steht im Archiv ein Platz 3 mit schlechterer
+    // GD ueber Platz 4 und sieht wie ein Fehler aus. Genau so passiert beim CEB-Turnier,
+    // wo ein Unentschieden den Unterschied machte.
+    A.points += r.pointsA || 0; B.points += r.pointsB || 0;
+    if (r.winner === "a") A.wins++; else if (r.winner === "b") B.wins++; else { A.draws++; B.draws++; }
+    A.balls += ra.balls || 0; A.innings += ra.innings || 0; if ((ra.hs || 0) > A.hs) A.hs = ra.hs;
+    B.balls += rb.balls || 0; B.innings += rb.innings || 0; if ((rb.hs || 0) > B.hs) B.hs = rb.hs;
+  });
+  return acc;
+}
+function archiveName(p) { return `${p.lastname || ""}, ${p.firstname || ""}`.replace(/^,\s*|,\s*$/g, "").trim() || fullName(p); }
+function archiveGd(balls, innings) { return innings > 0 ? (balls / innings).toFixed(3).replace(".", ",") : ""; }
+function archiveStandings() {
+  const tot = archiveTotals();
+  // Zeilen ohne aufgeloesten Slot (Platz noch offen) gehoeren nicht ins Archiv;
+  // Zeilen ohne Carambus-Player dagegen schon — sie tragen ihren Namen selbst.
+  return Carambus.util.buildResultStandings(finalRanking(run).filter(r => r.player).map(r => {
+    const p = r.player, s = tot.get(pidOf(p)) || { games: 0, wins: 0, draws: 0, points: 0, balls: 0, innings: 0, hs: 0 };
+    return {
+      player: Carambus.api.cleanPlayerRef(p),
+      rank: r.place,
+      columns: {
+        "Rang": r.place,
+        "Name": archiveName(p),
+        "Land": p.nationality || "",
+        "Verein": p.club_shortname || "",
+        "Sp": s.games, "S": s.wins, "U": s.draws, "MP": s.points,
+        "Baelle": s.balls, "Aufn.": s.innings,
+        "GD": archiveGd(s.balls, s.innings),
+        "HS": s.hs || ""
+      }
+    };
+  }));
+}
+function archiveGames() {
+  const tsByKey = {}, tblByKey = {};
+  (state.records || []).forEach(r => { if (r.at != null) tsByKey[r.key] = r.at; if (r.table != null) tblByKey[r.key] = r.table; });
+  const played = run.plan.games.filter(g => run.results[g.key]);
+  played.sort((a, b) => { const oa = csvOrder(a), ob = csvOrder(b); for (let i = 0; i < 3; i++) if (oa[i] !== ob[i]) return oa[i] - ob[i]; return String(a.key).localeCompare(String(b.key)); });
+  return Carambus.util.buildResultGames(played.map((g, i) => {
+    const r = run.results[g.key], ra = r.res?.a || {}, rb = r.res?.b || {};
+    const gd2 = (bl, inn) => (inn > 0 ? (bl / inn).toFixed(2).replace(".", ",") : "");
+    return {
+      gname: g.key, seqno: i + 1,
+      group_no: g.kind === "group" ? (g.group ?? null) : null,
+      round_no: g.round ?? null,
+      table_no: Carambus.util.tableNo(tblByKey[g.key]),
+      ended_at: tsByKey[g.key] ? new Date(tsByKey[g.key]).toISOString() : null,
+      columns: {
+        // Bewusst "Spieler A"/"Spieler B" statt "Heim"/"Gast": leere Heim/Gast-Spalten
+        // brechen in der Carambus-Anzeige den Rest der Zeile ab.
+        "Partie": i + 1,
+        "Spiel": csvGameName(g),
+        "Runde": g.round ?? "",
+        "Tisch": tblByKey[g.key] ?? "",
+        "Spieler A": r.a ? archiveName(r.a) : "",
+        "Baelle A": ra.balls ?? "", "Aufn. A": ra.innings ?? "", "HS A": ra.hs ?? "", "GD A": gd2(ra.balls, ra.innings),
+        "Ergebnis": `${ra.balls ?? "-"}:${rb.balls ?? "-"}`,
+        "Spieler B": r.b ? archiveName(r.b) : "",
+        "Baelle B": rb.balls ?? "", "Aufn. B": rb.innings ?? "", "HS B": rb.hs ?? "", "GD B": gd2(rb.balls, rb.innings)
+      }
+    };
+  }));
+}
+// durable=false heisst: geschrieben, aber der naechtliche GC raeumt es noch ab
+// (Carambus-Plan 41-02 fehlt). Der Text haengt am Serververhalten, nicht an einer
+// Versionsannahme — er stimmt also von selbst, sobald Carambus ausliefert.
+function archiveMessage(b) {
+  const head = `${b.seedings_written ?? 0} Zeilen Endstand, ${b.games_written ?? 0} Partien.`;
+  const un = (b.players_unmatched || []).length;
+  const unTxt = un ? `\n\n${un} Spieler(in) ohne Carambus-Zuordnung — die Zeilen stehen trotzdem im Endstand.` : "";
+  return b.durable
+    ? `✅ Archiviert.\n\n${head}${unTxt}`
+    : `💾 Gespeichert — noch nicht dauerhaft.\n\n${head}${unTxt}\n\nDer Server raeumt App-Turniere nachts noch ab. Bis Carambus das abstellt, schuetzt nur ein end_date in der Zukunft.`;
+}
+function archiveStatusHtml() {
+  const a = state.archive; if (!a) return "";
+  const when = new Date(a.at).toLocaleString("de-DE", { dateStyle: "short", timeStyle: "short" });
+  if (a.error) return `<div class="scheme-hint" style="color:var(--bad);">Letzter Archiv-Versuch ${when} fehlgeschlagen: ${escapeHtml(a.error)}</div>`;
+  return `<div class="scheme-hint">${a.durable ? "✅ Archiviert" : "💾 Gespeichert, noch nicht dauerhaft"} — ${when}, ${a.seedings ?? 0} Zeilen / ${a.games ?? 0} Partien${a.unmatched ? `, ${a.unmatched} ohne Zuordnung` : ""}.</div>`;
+}
+// silent=true ist der Automatik-Pfad nach jedem Ergebnis: er darf den Turnierbetrieb
+// unter keinen Umstaenden aufhalten — Fehler landen im Status, nicht in einem Dialog.
+async function pushArchive({ silent = false } = {}) {
+  if (!isLive()) { if (!silent) alert("Nicht mit Carambus verbunden — Archivieren geht nur im Live-Modus."); return; }
+  if (!run) return;
+  try {
+    const body = await Carambus.api.pushTournamentResult({
+      ...tournamentApiRef(), scheme: "plan", title: "Endstand",
+      standings: archiveStandings(), games: archiveGames()
+    });
+    state.archive = { at: Date.now(), durable: !!body.durable, seedings: body.seedings_written, games: body.games_written, unmatched: (body.players_unmatched || []).length };
+    save();
+    if (!silent) { alert(archiveMessage(body)); renderAll(); }
+  } catch (e) {
+    state.archive = { at: Date.now(), error: errMsg(e) }; save();
+    if (!silent) alert("Archivieren fehlgeschlagen: " + errMsg(e));
+    else console.warn("Auto-Archiv:", errMsg(e));
+  }
+}
+
+async function endCarambus() {
+  // Seit dem Ergebnisarchiv loescht cleanup mehr als frueher: auch den abgelegten Endstand.
+  // Der naechtliche GC verschont archivierte Turniere (Carambus 41-02) — dieser Knopf nicht.
+  const arch = (state.archive && !state.archive.error)
+    ? `\n\nACHTUNG: Der bereits abgelegte Endstand (${state.archive.seedings ?? "?"} Zeilen, ${state.archive.games ?? "?"} Partien) wird damit ebenfalls gelöscht.`
+    : "";
+  if (!confirm(`Turnier in Carambus ABRÄUMEN?\n\nGibt alle Tische frei UND löscht Turnier + Spiele in Carambus.${arch}\n\nDie App bleibt Datenquelle; CSV vorher exportieren.`)) return;
+  // tournamentApiRef() liefert im Attach-Modus die tournament_id, sonst die external_id
+  // (inkl. deterministischem Fallback, falls die App den Turnierbezug verloren hat).
+  // NICHT nur die external_id nehmen: Ein attachtes Turnier gehoert Carambus und hat
+  // keine — der Server quittiert das mit 422 "Tournament not found".
+  try {
+    const body = await endTournament({ ...tournamentApiRef(), cleanup: true });
+    alert(`Abgeräumt: ${body.released_tables ?? 0} Tische frei` + (body.tournament_deleted ? `, Turnier gelöscht` : `, Turnier nicht gefunden/bereits weg`) + (body.games_deleted != null ? `, ${body.games_deleted} Spiele gelöscht` : ""));
+  } catch (e) { alert("Abräumen fehlgeschlagen: " + errMsg(e)); }
+}
+
+// ===== Helfer =====
+function sameP(a, b) { if (a.cc_id != null && b.cc_id != null) return String(a.cc_id) === String(b.cc_id); return fullName(a) === fullName(b); }
+function reseed() { state.participants = state.participants.map((p, i) => ({ ...p, seed: i + 1 })); }
+
+renderAll();
+</script>
+</body>
+</html>

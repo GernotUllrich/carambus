@@ -1,0 +1,1488 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Carambus Turnier-App — Turniere</title>
+<script>
+  // Trailing-slash-Falle: Wird die App unter z. B. /app (ohne "/" am Ende) aufgerufen,
+  // löst der Browser relative Links wie "schemes/plan/index.html?t=…" gegen den Server-
+  // Root statt gegen /app/ auf → 404. Fix: auf denselben Pfad mit "/" umleiten,
+  // Query + Hash bleiben erhalten.
+  // NUR für Verzeichnis-Pfade: das letzte Segment darf keinen Punkt enthalten, sonst
+  // würde aus "/app/index.html" ein "/app/index.html/" (→ 404). Root "/" endet ohnehin
+  // auf "/" und ist damit ausgeschlossen.
+  (function () {
+    try {
+      var p = location.pathname;
+      if (!p || p.slice(-1) === "/") return;
+      var last = p.split("/").pop();
+      if (last.indexOf(".") !== -1) return;   // Datei, kein Verzeichnis
+      location.replace(p + "/" + location.search + location.hash);
+    } catch (e) { /* file:// oder anderer Rand — ignorieren */ }
+  })();
+</script>
+<style>
+/* >>> CARAMBUS-SYNC core-css >>> */
+/* ==========================================================================
+   css/app.css — gemeinsames Dunkel-Theme + Basis-Komponenten (alle Schemata)
+   Extrahiert aus der 3-Band-App, damit Launcher und Schema-Seiten gleich aussehen.
+   ========================================================================== */
+:root {
+  --bg: #0f1419;
+  --panel: #1c232b;
+  --panel2: #252d36;
+  --border: #38424d;
+  --text: #e8eef4;
+  --muted: #97a3b0;
+  --accent: #4ea1ff;
+  --accent2: #2b7fd8;
+  --good: #4caf50;
+  --warn: #ff9800;
+  --bad: #ef5350;
+  --gold: #ffc94a;
+}
+* { box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  margin: 0;
+  padding: 0;
+  line-height: 1.4;
+}
+a { color: var(--accent); }
+header {
+  background: linear-gradient(135deg, #1a2733 0%, #0f1419 100%);
+  border-bottom: 2px solid var(--accent2);
+  padding: 16px 24px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+header h1 { margin: 0; font-size: 22px; color: var(--accent); }
+.meta { color: var(--muted); font-size: 13px; display: flex; gap: 18px; flex-wrap: wrap; }
+.meta strong { color: var(--text); }
+nav.tabs {
+  display: flex; gap: 2px; background: var(--panel);
+  padding: 0 24px; border-bottom: 1px solid var(--border); overflow-x: auto;
+}
+nav.tabs button {
+  background: transparent; border: none; color: var(--muted);
+  padding: 12px 18px; cursor: pointer; font-size: 14px;
+  border-bottom: 3px solid transparent; white-space: nowrap;
+}
+nav.tabs button.active { color: var(--accent); border-bottom-color: var(--accent); background: var(--panel2); }
+nav.tabs button:hover:not(.active) { color: var(--text); background: var(--panel2); }
+main { padding: 24px; max-width: 1400px; margin: 0 auto; }
+.card { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 18px; margin-bottom: 18px; }
+.card h2 { margin: 0 0 14px 0; font-size: 17px; color: var(--accent); border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+.card h3 { margin: 18px 0 10px 0; font-size: 14px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+button.btn {
+  background: var(--accent2); color: white; border: none; border-radius: 5px;
+  padding: 8px 16px; cursor: pointer; font-size: 14px; font-weight: 500;
+}
+button.btn:hover { background: var(--accent); }
+button.btn.secondary { background: var(--panel2); color: var(--text); border: 1px solid var(--border); }
+button.btn.secondary:hover { background: var(--border); }
+button.btn.danger { background: #b53737; }
+button.btn.danger:hover { background: var(--bad); }
+button.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+input[type="text"], input[type="number"], input[type="password"], select {
+  background: var(--bg); border: 1px solid var(--border); color: var(--text);
+  padding: 6px 10px; border-radius: 4px; font-size: 14px; width: 100%;
+}
+input[type="number"] { width: 90px; }
+input:focus, select:focus { outline: none; border-color: var(--accent); }
+input.validate-required:placeholder-shown { border-color: var(--bad); background: rgba(239, 83, 80, 0.08); }
+input.validate-required:placeholder-shown::placeholder { color: var(--bad); opacity: 0.7; }
+table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); font-size: 14px; }
+th { background: var(--panel2); color: var(--muted); text-transform: uppercase; font-size: 11px; letter-spacing: 0.05em; }
+tr:hover td { background: rgba(78, 161, 255, 0.05); }
+.badge { display: inline-block; background: var(--panel2); color: var(--muted); padding: 2px 8px; border-radius: 10px; font-size: 11px; border: 1px solid var(--border); }
+.badge.done { background: rgba(76, 175, 80, 0.15); color: var(--good); border-color: var(--good); }
+.badge.open { background: rgba(255, 152, 0, 0.15); color: var(--warn); border-color: var(--warn); }
+.badge.running { background: rgba(78, 161, 255, 0.15); color: var(--accent); border-color: var(--accent); }
+.toolbar { display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; align-items: center; }
+.grid-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.alert { background: rgba(255, 152, 0, 0.1); border-left: 3px solid var(--warn); padding: 10px 14px; margin-bottom: 14px; border-radius: 4px; color: var(--text); font-size: 13px; }
+.info { background: rgba(78, 161, 255, 0.08); border-left: 3px solid var(--accent); padding: 10px 14px; margin-bottom: 14px; border-radius: 4px; font-size: 13px; }
+.muted { color: var(--muted); }
+.gold { color: var(--gold); }
+details summary { cursor: pointer; padding: 6px; color: var(--muted); font-size: 13px; }
+details summary:hover { color: var(--accent); }
+@media (max-width: 700px) {
+  .grid-2col { grid-template-columns: 1fr; }
+  main { padding: 12px; }
+  header { padding: 12px; }
+}
+
+/* === Carambus-Verbindung (Badge + Modal) === */
+.conn-badge {
+  display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px;
+  border-radius: 12px; font-size: 12px; font-weight: 500; border: 1px solid var(--border);
+  background: var(--panel2); color: var(--muted); cursor: pointer;
+}
+.conn-badge:hover { border-color: var(--accent); color: var(--text); }
+.conn-badge .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
+.conn-badge.connected { color: var(--good); border-color: rgba(76,175,80,0.4); }
+.conn-badge.connected .dot { background: var(--good); }
+.conn-badge.error { color: var(--bad); border-color: rgba(239,83,80,0.4); }
+.conn-badge.error .dot { background: var(--bad); }
+.modal-backdrop {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.65); display: none;
+  align-items: center; justify-content: center; z-index: 1000; padding: 20px;
+}
+.modal-backdrop.open { display: flex; }
+.modal {
+  background: var(--panel); border: 1px solid var(--border); border-radius: 10px;
+  padding: 24px; max-width: 560px; width: 100%; max-height: 90vh; overflow: auto;
+}
+.modal h2 { margin: 0 0 16px 0; color: var(--accent); font-size: 18px; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+.modal .form-row { margin-bottom: 14px; }
+.modal label { display: block; color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+.modal input { width: 100%; }
+.modal .actions { display: flex; gap: 10px; margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--border); flex-wrap: wrap; }
+.modal .status-line { margin-top: 8px; padding: 8px 12px; border-radius: 4px; font-size: 13px; background: var(--panel2); color: var(--muted); display: none; }
+.modal .status-line.show { display: block; }
+.modal .status-line.ok { color: var(--good); background: rgba(76,175,80,0.08); }
+.modal .status-line.err { color: var(--bad); background: rgba(239,83,80,0.08); }
+/* <<< CARAMBUS-SYNC core-css <<< */
+
+/* Manager-spezifisch */
+.new-form { display: grid; grid-template-columns: 1.2fr 2fr 1.4fr auto; gap: 12px; align-items: end; }
+.new-form label { display: block; color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 4px; }
+.new-form .btn { white-space: nowrap; }
+@media (max-width: 760px) { .new-form { grid-template-columns: 1fr; } }
+.scheme-hint { color: var(--muted); font-size: 12px; margin-top: 6px; }
+
+.inst-row { display: grid; grid-template-columns: 1fr auto auto; gap: 12px; align-items: center;
+            background: var(--panel2); border: 1px solid var(--border); border-radius: 7px; padding: 12px 14px; margin-bottom: 8px; }
+.inst-row .title { font-weight: 600; font-size: 15px; }
+.inst-row .sub { color: var(--muted); font-size: 12px; margin-top: 2px; display: flex; gap: 10px; flex-wrap: wrap; }
+.inst-row .cat { color: var(--gold); }
+.inst-row .acts { display: flex; gap: 8px; }
+.inst-row .acts .btn { padding: 6px 12px; font-size: 13px; }
+
+/* Meldelisten-Tabelle (Phase 21-05) */
+.reg-toolbar { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 10px; }
+.reg-toolbar label { display: block; color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 3px; }
+.reg-toolbar input { padding: 6px 10px; background: var(--bg); border: 1px solid var(--border); color: var(--text); border-radius: 4px; font-size: 13px; }
+.reg-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.reg-table th, .reg-table td { padding: 6px 10px; border-bottom: 1px solid var(--border); text-align: left; }
+.reg-table th { background: var(--panel2); color: var(--muted); text-transform: uppercase; font-size: 10px; letter-spacing: 0.05em; }
+.reg-table .open-reg { padding: 4px 10px; font-size: 12px; margin-left: 4px; }
+.reg-table .open-reg:first-of-type { margin-left: 0; }
+.reg-status { padding: 2px 8px; border-radius: 10px; font-size: 11px; border: 1px solid var(--border); background: var(--panel2); color: var(--muted); }
+.reg-status.frei { color: var(--good); border-color: rgba(76,175,80,0.4); }
+.reg-status.gem { color: var(--accent); border-color: rgba(78,161,255,0.4); }
+.reg-deadline-soon { color: var(--warn); }
+.legacy-list { margin-top: 14px; display: flex; flex-direction: column; gap: 8px; }
+.legacy-row { display: flex; justify-content: space-between; align-items: center; gap: 12px;
+              background: var(--panel2); border: 1px dashed var(--border); border-radius: 7px; padding: 10px 14px; font-size: 14px; }
+.pill { font-size: 11px; padding: 2px 8px; border-radius: 10px; border: 1px solid var(--border); color: var(--muted); }
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>🎱 Carambus Turnier-App</h1>
+    <div class="meta"><span>Turnier-Übersicht</span></div>
+  </div>
+  <span class="conn-badge" id="connBadge"></span>
+</header>
+
+<main>
+  <!-- Deep-Link-Banner (cc_open_in_tournament_app, Phase 43): wird sichtbar, wenn aus dem
+       Carambus-Chat eine Verbindung+Turnier vorausgefüllt wurde und noch kein gültiger
+       Bearer da ist. Räumt das "alles wirkt wie default"-UX-Problem auf. -->
+  <div class="card" id="deepLinkBanner" style="display:none; border-color: var(--accent);">
+    <h2>🔗 Aus dem Carambus-Chat vorbereitet</h2>
+    <div class="info" id="deepLinkInfo" style="margin-bottom:10px;"></div>
+    <div class="toolbar" id="deepLinkActions"></div>
+    <div class="muted" id="deepLinkStatus" style="font-size:12px;margin-top:8px;"></div>
+  </div>
+
+  <div class="info">
+    Lege mehrere Turniere an, die <strong>parallel</strong> laufen (z. B. Jugend &amp; Senioren,
+    verschiedene Disziplinen). Jedes Turnier hat eigene Teilnehmer, Disziplin und Tische.
+    Die <strong>Carambus-Verbindung</strong> (oben rechts) gilt geräteweit für alle.
+  </div>
+
+  <div class="card">
+    <h2>➕ Neues Turnier</h2>
+    <div class="new-form">
+      <div>
+        <label>Schema</label>
+        <select id="newScheme"></select>
+      </div>
+      <div>
+        <label>Titel</label>
+        <input type="text" id="newTitle" placeholder="z. B. Jugend Pool 9-Ball">
+      </div>
+      <div>
+        <label>Kategorie (optional)</label>
+        <input type="text" id="newCategory" placeholder="z. B. Jugend / Senioren / Damen">
+      </div>
+      <button class="btn" id="btnCreate">Turnier anlegen</button>
+    </div>
+    <div class="scheme-hint" id="schemeHint"></div>
+    <div class="legacy-list" id="legacyList"></div>
+  </div>
+
+  <div class="card">
+    <h2>📥 Offene Meldelisten (ClubCloud) <span class="pill" id="regCount" style="margin-left:6px;">—</span></h2>
+    <div class="reg-toolbar">
+      <div><label>Region</label><input type="text" id="regRegion" value="NBV" style="width:80px;"></div>
+      <div><label>Saison (leer = aktuell)</label><input type="text" id="regSeason" placeholder="z. B. 2025/2026" style="width:140px;"></div>
+      <button class="btn" id="btnRegLoad">📥 Meldelisten laden</button>
+      <span class="muted" id="regHint" style="font-size:12px;"></span>
+    </div>
+    <div id="regList"></div>
+  </div>
+
+  <div class="card">
+    <h2>Turniere (<span id="instCount">0</span>)</h2>
+    <div id="instList"></div>
+  </div>
+
+  <div class="card">
+    <h2>Sicherung wiederherstellen</h2>
+    <p class="muted">Eine mit „💾 Sicherung speichern" erzeugte Datei einlesen — oder den kopierten Sicherungstext einfügen. Nötig, wenn der Browser (vor allem Safari auf iPad) die Turnierdaten geleert hat.</p>
+    <div class="toolbar"><input type="file" id="restoreFile" accept="application/json,.json"></div>
+    <textarea id="restoreText" placeholder="… oder Sicherungstext hier einfügen" style="width:100%;min-height:70px;font-family:monospace;font-size:11px;"></textarea>
+    <div class="toolbar"><button class="btn" id="btnRestoreText">📂 Aus Text wiederherstellen</button></div>
+  </div>
+</main>
+
+<script>
+/* >>> CARAMBUS-SYNC core-js >>> */
+// ============================================================================
+// shared/carambus-core.js — gemeinsamer Carambus-Kern (KANONISCHE QUELLE)
+// ----------------------------------------------------------------------------
+// Klassisches Script (KEIN ES-Modul), definiert das globale Objekt
+// `window.Carambus`. Wird per tools/sync-core.mjs zwischen den CARAMBUS-SYNC-
+// Markern (Region core-js) in jede self-contained Schema-/Launcher-HTML INLINE
+// kopiert (damit jede Datei per Doppelklick aus dem Dateisystem läuft — ES-Module
+// gehen über file:// nicht). HINWEIS: in dieser Datei dürfen die literalen
+// Marker-Tokens NICHT vorkommen (sonst bricht der Extraktor zu früh ab).
+//
+// → Diese Datei ist die EINZIGE Bearbeitungsstelle des Kerns. Nach Änderungen:
+//      node tools/sync-core.mjs    (inlinen)
+//      node tools/check-core-sync.mjs   (verifizieren)
+// Diese Datei wird zur LAUFZEIT NICHT geladen — die Deliverables sind die
+// self-contained HTML-Dateien.
+// ============================================================================
+window.Carambus = (function () {
+  "use strict";
+
+  // ========================= Verbindung / Auth =============================
+  const CONN_KEY = "carambus.connection";
+  const CONN_DEFAULTS = {
+    base_url: "http://192.168.178.84:3131",
+    email: "carambus-app-gu-bridge@carambus.de",
+    region: "NBV",
+    tournament_cc_id: "",
+    tournament_id: "",     // Carambus-DB-PK (global eindeutig, robust gegen region-scoped cc_id-Ambiguität)
+    party_cc_id: "",       // Liga-Spieltag (Party) — vom Chat-Deeplink cc_open_party_in_app (§6 spieltag-Handoff)
+    bearer: null,
+    bearer_expires_at: null
+  };
+
+  function getConnection() {
+    try {
+      const raw = localStorage.getItem(CONN_KEY);
+      if (!raw) return { ...CONN_DEFAULTS };
+      return { ...CONN_DEFAULTS, ...JSON.parse(raw) };
+    } catch (e) {
+      return { ...CONN_DEFAULTS };
+    }
+  }
+  function saveConnection(conn) { localStorage.setItem(CONN_KEY, JSON.stringify(conn)); }
+  function isBearerValid(conn) {
+    return !!(conn.bearer && conn.bearer_expires_at && Date.now() < conn.bearer_expires_at);
+  }
+  function regionShortname() { return (getConnection().region || "NBV").toUpperCase(); }
+
+  // Deep-Link-Vorausfüllung (Carambus-Chat-Brücke, Handoffs cc_open_in_tournament_app +
+  // cc_open_party_in_app):
+  // Liest cb_base_url/cb_region/cb_tournament_cc_id/cb_tournament_id/cb_party_cc_id aus der URL
+  // und schreibt sie in die gespeicherte Verbindung. base_url: explizit aus cb_base_url, sonst
+  // Same-Origin = window.location.origin (App wird unter /app/ vom selben Local-Server
+  // ausgeliefert). cb_tournament_id (= Carambus-DB-Tournament#id, global eindeutig) wird
+  // zusätzlich zu cb_tournament_cc_id (region-scoped, deshalb mehrdeutig) gelesen; der
+  // seeding-Endpoint bevorzugt tournament_id wenn beide vorhanden — siehe HANDOFF Paul/
+  // v52337e16. cb_party_cc_id (Liga-Spieltag) wird parallel dazu geführt — der Launcher zeigt
+  // dann eine Party-Variante des Deep-Link-Banners.
+  // Das Passwort wird NIE über den Link übertragen — nach dem Vorausfüllen loggt sich
+  // der TL wie gewohnt ein. Räumt die cb_*-Parameter danach aus der URL (replaceState).
+  // Gibt true zurück, wenn etwas vorausgefüllt wurde.
+  function applyDeepLinkConnection() {
+    try {
+      if (typeof window === "undefined" || !window.location) return false;
+      const q = new URLSearchParams(window.location.search || "");
+      const region = q.get("cb_region");
+      const ccId = q.get("cb_tournament_cc_id");
+      const tId = q.get("cb_tournament_id");
+      const partyCcId = q.get("cb_party_cc_id");
+      const baseUrl = q.get("cb_base_url");
+      // cb_email: Service-Account des Ziel-Servers. Ohne diesen Parameter steht in einem
+      // frischen Browser der CONN_DEFAULTS-Wert im Login-Feld (z. B. …-gu-bridge@…), und
+      // der Login gegen einen anderen Local-Server scheitert mit 401 „E-Mail oder Passwort
+      // ungültig" — ohne dass der Grund im Feld sichtbar auffällt. Das Passwort wird
+      // weiterhin NIE über den Link übertragen.
+      const email = q.get("cb_email");
+      if (!region && !ccId && !tId && !partyCcId && !baseUrl && !email) return false;
+
+      const conn = getConnection();
+      if (region) conn.region = String(region).toUpperCase();
+      if (ccId) conn.tournament_cc_id = String(ccId);
+      if (tId) conn.tournament_id = String(tId);
+      if (partyCcId) conn.party_cc_id = String(partyCcId);
+      if (email && email.trim()) conn.email = email.trim();
+      const origin = (window.location.origin && window.location.origin !== "null") ? window.location.origin : null;
+      const resolvedBase = (baseUrl && baseUrl.trim()) || origin;
+      if (resolvedBase) conn.base_url = resolvedBase;
+      saveConnection(conn);
+
+      ["cb_region", "cb_tournament_cc_id", "cb_tournament_id", "cb_party_cc_id", "cb_base_url", "cb_email"].forEach((k) => q.delete(k));
+      const rest = q.toString();
+      const clean = window.location.pathname + (rest ? "?" + rest : "") + (window.location.hash || "");
+      if (window.history && window.history.replaceState) window.history.replaceState(null, "", clean);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function parseTournamentCcIdInput(input) {
+    if (input == null) return null;
+    const s = String(input).trim();
+    if (!s) return null;
+    if (/^\d+$/.test(s)) return s;
+    try {
+      const u = new URL(s);
+      const p = u.searchParams.get("p");
+      if (p) { const m = p.match(/\d{4}\/\d{4}-(\d+)/); if (m) return m[1]; }
+    } catch (_) {}
+    const m2 = s.match(/[-/](\d{3,})[-/]/);
+    if (m2) return m2[1];
+    return null;
+  }
+
+  class CarambusError extends Error {
+    constructor(status, body, message) {
+      super(message || `HTTP ${status}`);
+      this.name = "CarambusError";
+      this.status = status;
+      this.body = body;
+    }
+  }
+
+  async function fetchWithTimeout(url, opts, timeoutMs) {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+    try { return await fetch(url, { ...opts, signal: ctrl.signal }); }
+    finally { clearTimeout(timer); }
+  }
+
+  async function carambusLogin(baseUrl, email, password) {
+    const url = baseUrl.replace(/\/+$/, "") + "/login";
+    const resp = await fetchWithTimeout(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Accept": "application/json" },
+      body: JSON.stringify({ user: { email, password } })
+    }, 10000);
+    if (!resp.ok) {
+      let body = null; try { body = await resp.json(); } catch (_) {}
+      throw new CarambusError(resp.status, body, `Login fehlgeschlagen (HTTP ${resp.status})`);
+    }
+    const auth = resp.headers.get("Authorization") || resp.headers.get("authorization");
+    if (!auth || !auth.startsWith("Bearer ")) {
+      throw new CarambusError(resp.status, null, "Login OK, aber kein Bearer-Token in der Antwort gefunden");
+    }
+    const bearer = auth.substring("Bearer ".length).trim();
+    const expiresAt = Date.now() + 90 * 24 * 60 * 60 * 1000;
+    return { bearer, expires_at: expiresAt };
+  }
+
+  // ========================= REST-Client ===================================
+  async function carambusFetch(path, opts = {}) {
+    const conn = getConnection();
+    if (!conn.base_url) throw new CarambusError(0, null, "Keine Carambus-Verbindung konfiguriert (im Header auf das Statusfeld klicken)");
+    if (!isBearerValid(conn)) throw new CarambusError(401, null, "Kein gültiger Bearer-Token (bitte Login in den Verbindungseinstellungen)");
+    const url = conn.base_url.replace(/\/+$/, "") + path;
+    const headers = { "Authorization": `Bearer ${conn.bearer}`, "Accept": "application/json", ...(opts.headers || {}) };
+    const fetchOpts = { method: opts.method || "GET", headers };
+    if (opts.body != null) {
+      headers["Content-Type"] = "application/json";
+      fetchOpts.body = typeof opts.body === "string" ? opts.body : JSON.stringify(opts.body);
+    }
+    const cbEntry = { ts: new Date().toISOString(), method: fetchOpts.method, path, request: opts.body ?? null, status: null, response: null, error: null };
+    (window.__cbLog = window.__cbLog || []).push(cbEntry);
+    let resp;
+    try {
+      resp = await fetchWithTimeout(url, fetchOpts, 10000);
+    } catch (e) {
+      cbEntry.error = e.name === "AbortError" ? "Timeout" : ("Netzwerk: " + e.message);
+      if (e.name === "AbortError") throw new CarambusError(0, null, "Timeout — Carambus antwortet nicht (LAN-Verbindung prüfen)");
+      throw new CarambusError(0, null, "Netzwerkfehler — Carambus nicht erreichbar (LAN-Verbindung prüfen): " + e.message);
+    }
+    let body = null;
+    const ct = resp.headers.get("Content-Type") || "";
+    if (ct.includes("application/json")) { try { body = await resp.json(); } catch (_) {} }
+    else { try { body = await resp.text(); } catch (_) {} }
+    cbEntry.status = resp.status; cbEntry.response = body;
+    if (!resp.ok) throw new CarambusError(resp.status, body, `HTTP ${resp.status}`);
+    return { status: resp.status, body };
+  }
+
+  async function ping() {
+    try {
+      await carambusFetch(`/api/external_tournament/clubs?region=${encodeURIComponent(regionShortname())}`);
+      return { ok: true };
+    } catch (err) {
+      if (err instanceof CarambusError && err.status === 404) return { ok: true, note: "404 (API erreichbar, Auth OK)" };
+      throw err;
+    }
+  }
+
+  async function fetchClubs(region = regionShortname()) {
+    const { body } = await carambusFetch(`/api/external_tournament/clubs?region=${encodeURIComponent(region)}`);
+    return body.clubs || [];
+  }
+  // Phase 21-07: optional ageClass/gender (Server-Filter). Spieler-Payload enthält jetzt
+  // age_class (String) + gender ("M"/"F"/"U"). 2. Arg darf weiter ein region-String sein
+  // (Legacy-Kompatibilität) — bevorzugt aber das Optionen-Objekt.
+  async function fetchClubPlayers(clubCcId, opts = {}) {
+    if (typeof opts === "string") opts = { region: opts };
+    const region = opts.region || regionShortname();
+    const params = new URLSearchParams();
+    params.set("region", region);
+    params.set("club_cc_id", clubCcId);
+    if (opts.ageClass) params.set("age_class", opts.ageClass);
+    if (opts.gender) params.set("gender", opts.gender);
+    const { body } = await carambusFetch(`/api/external_tournament/club_players?${params.toString()}`);
+    return body.players || [];
+  }
+  // Phase 15 + Paul-Patch v52337e16: Seedings + Turnier-Metadaten eines TournamentCc
+  // (Single + Mannschaft). Quelle für die "Aus Meldeliste vorbefüllen"-UX: liefert
+  // tournament.{name,discipline,format,location} + teams[].players[] in Setzlisten-
+  // Reihenfolge. tournament_id (Carambus-DB-PK, global eindeutig) wird bevorzugt; Fallback
+  // tournament_cc_id (region-scoped via context). Mindestens eines muss gesetzt sein.
+  async function fetchSeeding({ region = regionShortname(), tournamentCcId, tournamentId } = {}) {
+    const hasTId = tournamentId != null && String(tournamentId).trim() !== "";
+    const hasCc = tournamentCcId != null && String(tournamentCcId).trim() !== "";
+    if (!hasTId && !hasCc) {
+      throw new CarambusError(0, null, "tournamentId oder tournamentCcId erforderlich für fetchSeeding");
+    }
+    const params = new URLSearchParams();
+    params.set("region", region);
+    if (hasTId) params.set("tournament_id", tournamentId);
+    if (hasCc) params.set("tournament_cc_id", tournamentCcId);
+    const { body } = await carambusFetch(`/api/external_tournament/seeding?${params.toString()}`);
+    return body;
+  }
+  // Phase 21-05: ClubCloud-Meldelisten einer Region+Saison (Deadline/Status/Disziplin/Kategorie
+  // + ggf. verknüpftes tournament_cc). Default-Saison = Carambus current_season.
+  async function fetchRegistrationLists({ region = regionShortname(), season, discipline, category, status } = {}) {
+    const params = new URLSearchParams();
+    params.set("region", region);
+    if (season) params.set("season", season);
+    if (discipline) params.set("discipline", discipline);
+    if (category) params.set("category", category);
+    if (status) params.set("status", status);
+    const { body } = await carambusFetch(`/api/external_tournament/registration_lists?${params.toString()}`);
+    return body;
+  }
+  // Phase 19 (Handoff an Paul): Sortierung nach Disziplin-Ranking.
+  async function fetchPlayerRankings({ discipline, playerCcIds = [], region = regionShortname() }) {
+    const params = new URLSearchParams();
+    params.set("region", region);
+    params.set("discipline", discipline);
+    if (playerCcIds.length) params.set("player_cc_ids", playerCcIds.join(","));
+    const { body } = await carambusFetch(`/api/external_tournament/player_rankings?${params.toString()}`);
+    return body;
+  }
+  async function fetchTables(locationRef, region = regionShortname()) {
+    const params = new URLSearchParams();
+    params.set("region", region);
+    if (locationRef.id != null) params.set("location_id", locationRef.id);
+    else if (locationRef.cc_id != null) params.set("location_cc_id", locationRef.cc_id);
+    const { body } = await carambusFetch("/api/external_tournament/tables?" + params.toString());
+    return body;
+  }
+
+  // Phase 20: GET disciplines — offizielle Disziplinen + TournamentPlans (executor_params)
+  // + DisciplineTournamentPlan-Matrix (points/innings je Plan×Klasse×Spielerzahl).
+  // Liefert { schema, region, tournament_plans:{name→{…,executor_params}}, disciplines:[…] }.
+  async function fetchDisciplines(region = regionShortname()) {
+    const { body } = await carambusFetch(`/api/external_tournament/disciplines?region=${encodeURIComponent(region)}`);
+    return body;
+  }
+
+  async function createTournament({ externalId, title, location, discipline, region = regionShortname() }) {
+    const body = {
+      region: { shortname: region }, external_id: externalId, title,
+      location: location.id != null ? { id: location.id } : { cc_id: location.cc_id }
+    };
+    if (discipline) body.discipline = { name: discipline };
+    const { body: resp } = await carambusFetch("/api/external_tournament/tournament", { method: "POST", body });
+    return resp.tournament || {};
+  }
+  // Tisch-Referenz für die API: bevorzugt die Carambus-Table-id (eindeutig, robust gegen
+  // doppelte Tischnamen einer Location), sonst Fallback auf den Namen (location-scoped).
+  function tableRef(tableId, tableName) { return tableId != null ? { id: tableId } : { name: tableName }; }
+  // Turnier-Referenz: bevorzugt tournamentId (globaler DB-PK, unabhängig von external_id).
+  // Für Attach-Modus (Web-erzeugtes Turnier ohne external_id) unverzichtbar. Fallback auf
+  // {external_id:…} für app-erzeugte Turniere. Alle POST-Endpoints akzeptieren beide Formen
+  // (external_tournaments_controller#lock_table/start_game/acknowledge_result/end_tournament).
+  function tournamentRef({ tournamentId, externalId }) {
+    if (tournamentId != null && String(tournamentId).trim() !== "") return { tournament_id: tournamentId };
+    return { tournament: { external_id: externalId } };
+  }
+  async function lockTable({ externalId, tournamentId = null, tableName, tableId = null, lock = true, region = regionShortname() }) {
+    const { body } = await carambusFetch("/api/external_tournament/lock_table", {
+      method: "POST",
+      body: { region: { shortname: region }, ...tournamentRef({ tournamentId, externalId }), table: tableRef(tableId, tableName), lock }
+    });
+    return body;
+  }
+  async function startGame({ externalId, tournamentId = null, gameExternalId, tableName, tableId = null, participants, format = {}, region = regionShortname() }) {
+    const payload = {
+      region: { shortname: region }, ...tournamentRef({ tournamentId, externalId }), table: tableRef(tableId, tableName),
+      external_id: gameExternalId,
+      free_game_form: format.free_game_form || "karambol",
+      innings_goal: format.innings_goal ?? 25,
+      sets_to_play: format.sets_to_play ?? 1,
+      sets_to_win: format.sets_to_win ?? 1,
+      allow_follow_up: format.allow_follow_up ?? false,
+      participants
+    };
+    if (format.initial_red_balls != null) payload.initial_red_balls = format.initial_red_balls; // Snooker
+    const { body } = await carambusFetch("/api/external_tournament/start_game", { method: "POST", body: payload });
+    return body;
+  }
+  async function acknowledgeResult({ externalId, tournamentId = null, gameExternalId, region = regionShortname() }) {
+    const { status, body } = await carambusFetch("/api/external_tournament/acknowledge_result", {
+      method: "POST",
+      body: { region: { shortname: region }, ...tournamentRef({ tournamentId, externalId }), game: { external_id: gameExternalId } }
+    });
+    return { status, body };
+  }
+  async function endTournament({ externalId, tournamentId = null, cleanup = false, region = regionShortname() }) {
+    const { body } = await carambusFetch("/api/external_tournament/end_tournament", {
+      method: "POST",
+      body: { region: { shortname: region }, ...tournamentRef({ tournamentId, externalId }), cleanup }
+    });
+    return body;
+  }
+  // ===== Ergebnisarchiv (Vertrag carambus.tournament_result/v1) ===========
+  // Die App bleibt System of Record; der lokale Server bekommt zusaetzlich eine lesbare
+  // Kopie des Endstands — dieselbe Form, in der Carambus gescrapte CC-Ergebnisse haelt.
+  // Vertrag + Klaerungen: HANDOFF-to-/from-carambus-tournament-result-archive.md.
+  //
+  // Idempotent: mehrfacher Aufruf mit demselben Payload schreibt dieselben Zeilen
+  // (Upsert ueber den Unique-Index tournament_id/gname/seqno). Bewusst nach JEDER Runde
+  // aufrufen, nicht erst am Schluss — ein Geraeteverlust mittendrin kostet dann nichts.
+  //
+  // Response: { archived, durable, seedings_written, games_written, players_unmatched[] }
+  //   archived = geschrieben, durable = ueberlebt den naechtlichen GC (erst ab Plan 41-02).
+  async function pushTournamentResult({ externalId, tournamentId = null, scheme, title = "Endstand",
+                                        standings = [], games = [], region = regionShortname() }) {
+    const { body } = await carambusFetch("/api/external_tournament/tournament_result", {
+      method: "POST",
+      body: {
+        // ACHTUNG, weicht von allen anderen Endpoints ab: tournament_result liest die
+        // Region als STRING (`params[:region].to_s.upcase`, permit als Skalar), nicht als
+        // {shortname:…}. Mit der Hausform quittiert der Server 404 "Couldn't find Region".
+        // Gemeldet — solange die Server-Seite so ist, senden wir hier den String.
+        region,
+        ...tournamentRef({ tournamentId, externalId }),
+        scheme, title, standings, games
+      }
+    });
+    return body;
+  }
+
+  // Round-Result Aggregator (Plan 15-04): liest alle Ergebnisse einer Runde eines
+  // Turniers. Erforderlich für Attach-Modus (State-Restore auf Zweit-Laptop / Tag N).
+  // Achtung: Endpoint arbeitet mit tournament_cc_id (region-scoped), NICHT mit tournament_id
+  // — kommt aus seeding.tournament.cc_id. Read-only.
+  async function fetchRoundResult({ region = regionShortname(), tournamentCcId, roundNo } = {}) {
+    if (tournamentCcId == null) throw new CarambusError(0, null, "tournamentCcId erforderlich für fetchRoundResult");
+    if (roundNo == null) throw new CarambusError(0, null, "roundNo erforderlich für fetchRoundResult");
+    const params = new URLSearchParams();
+    params.set("region", region);
+    params.set("tournament_cc_id", tournamentCcId);
+    params.set("round_no", String(roundNo));
+    const { body } = await carambusFetch(`/api/external_tournament/round_result?${params.toString()}`);
+    return body;
+  }
+  // Convenience: iteriert round_result für Runden 1..maxRounds und aggregiert alle
+  // Ergebnisse (leere Runden = einfach übersprungen). Für Attach-Modus im plan-Schema:
+  // ein Aufruf → alle bereits gespielten Games mit external_id/table_name/participants.
+  async function fetchAllRoundResults({ region = regionShortname(), tournamentCcId, maxRounds } = {}) {
+    if (tournamentCcId == null) throw new CarambusError(0, null, "tournamentCcId erforderlich für fetchAllRoundResults");
+    if (!maxRounds || maxRounds < 1) throw new CarambusError(0, null, "maxRounds erforderlich (>=1) für fetchAllRoundResults");
+    const results = [];
+    for (let r = 1; r <= maxRounds; r++) {
+      try {
+        const body = await fetchRoundResult({ region, tournamentCcId, roundNo: r });
+        for (const res of (body.results || [])) results.push({ ...res, round_no: r });
+      } catch (e) {
+        if (e instanceof CarambusError && e.status === 404) continue; // Runde nicht gefunden = leer
+        throw e;
+      }
+    }
+    return results;
+  }
+
+  // Phase 48-§7 / HANDOFF-to-carambus-party-api §1: GET party — Liga-Spieltag laden.
+  // Vorrang partyId (Carambus-DB-PK, global eindeutig); Fallback partyCcId (region-scoped).
+  // Antwort: {schema:"carambus.party/v1", party:{id,cc_id,external_id,name,…,location?},
+  // team_a/team_b:{id,cc_id,name,club_*,roster:[{dbu_nr,firstname,lastname,…}]},
+  // party_monitor: identisch Pauls party_monitor.data (§4.1)}. Endpoint noch ausstehend.
+  async function fetchParty({ region = regionShortname(), partyId, partyCcId } = {}) {
+    const hasId = partyId != null && String(partyId).trim() !== "";
+    const hasCc = partyCcId != null && String(partyCcId).trim() !== "";
+    if (!hasId && !hasCc) throw new CarambusError(0, null, "partyId oder partyCcId erforderlich für fetchParty");
+    const params = new URLSearchParams();
+    params.set("region", region);
+    if (hasId) params.set("party_id", partyId);
+    if (hasCc) params.set("party_cc_id", partyCcId);
+    const { body } = await carambusFetch(`/api/external_tournament/party?${params.toString()}`);
+    return body;
+  }
+  // §2: POST party_game_result — Direkteingabe-Push pro Spielzeile (Modus ii).
+  // baResults entspricht §4.3-Container (Spieler1/2 = dbu_nr team_a/b, Sets1/2 oder
+  // Ergebnis1/2 je sets-Disziplin, Aufnahmen1/2 + Höchstserie1/2 optional).
+  // gname = "<seqno>-<type>" — Schlüssel ins party_monitor.rows. Idempotent: Mehrfach-Push
+  // überschreibt (TL-Korrektur). Antwort enthält intermediate_result für Drift-Vergleich.
+  async function partyGameResult({ region = regionShortname(), partyExternalId, gname, baResults } = {}) {
+    const { body } = await carambusFetch("/api/external_tournament/party_game_result", {
+      method: "POST",
+      body: {
+        schema: "carambus.party_game_result/v1",
+        region: { shortname: region },
+        party: { external_id: partyExternalId },
+        gname, ba_results: baResults
+      }
+    });
+    return body;
+  }
+  // §3: POST party_close — Spielbericht abschließen (AASM close_party).
+  // 409 + {missing_gnames:[...]} bei verletztem Guard (App soll fehlende Spiele anzeigen).
+  async function partyClose({ region = regionShortname(), partyExternalId } = {}) {
+    const { body } = await carambusFetch("/api/external_tournament/party_close", {
+      method: "POST",
+      body: {
+        schema: "carambus.party_close/v1",
+        region: { shortname: region },
+        party: { external_id: partyExternalId }
+      }
+    });
+    return body;
+  }
+
+  function cleanPlayerRef(p) {
+    const ref = { firstname: (p.firstname ?? p.f ?? "").trim(), lastname: (p.lastname ?? p.l ?? "").trim() };
+    if (p.cc_id != null) ref.cc_id = p.cc_id;
+    if (p.dbu_nr != null) ref.dbu_nr = p.dbu_nr;
+    if (p.club_cc_id != null) ref.club_cc_id = p.club_cc_id;
+    return ref;
+  }
+
+  // ========================= Util ==========================================
+  function calcAvg(balls, innings) { return (!innings || innings <= 0) ? 0 : balls / innings; }
+  function fmtAvg(x) { return (!isFinite(x) || x === 0) ? "-" : x.toFixed(3); }
+  function escapeHtml(s) {
+    return String(s == null ? "" : s)
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+  }
+  function shuffle(arr) {
+    const a = arr.slice();
+    for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+    return a;
+  }
+  function tableNo(t) { const m = String(t == null ? "" : t).match(/\d+/); return m ? parseInt(m[0], 10) : null; }
+  function csvCell(v) { const s = (v == null ? "" : String(v)); return /[";\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; }
+  function buildCsv(rows) { return rows.map(r => r.map(csvCell).join(";")).join("\n"); }
+  function downloadText(filename, text, mime = "text/csv") {
+    const blob = new Blob([text], { type: mime });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob); a.download = filename; a.click();
+    URL.revokeObjectURL(a.href);
+  }
+  function downloadJson(filename, obj) { downloadText(filename, JSON.stringify(obj, null, 2), "application/json"); }
+  // Gemeinsame Export-Formate (schemaübergreifend identisch). Jedes Schema baut nur die
+  // normalisierten Zeilen aus seinen eigenen Daten und ruft diese Builder auf.
+  // ClubCloud-Rangliste (kein Header): RANG;PUNKTE;GRUPPENRANG;PASS-NR;PGA;VEREINSNR;TEILNEHMER
+  function buildRankingCsv(entries) {
+    return buildCsv((entries || []).map(e => [
+      e.rang ?? "", e.punkte ?? "", e.gruppenrang ?? "", e.passNr ?? "", e.pga ?? "", e.vereinsNr ?? "", e.teilnehmer ?? ""
+    ]));
+  }
+  // Spiele-CSV im Carambus-Import-Format (kein Header), in Reihenfolge nummeriert (lfd.nr):
+  // Spielname;lfd.nr;;dbu_nr a;dbu_nr b;Bälle a;Bälle b;Aufn. a;Aufn. b;HS a;HS b;dd.mm.yyyy;hh:mm
+  // games: [{ name, dbuA, dbuB, ballsA, ballsB, inningsA, inningsB, hsA, hsB, at(ms) }] (bereits sortiert)
+  function buildGamesCsv(games) {
+    const pad = n => String(n).padStart(2, "0");
+    const dt = ms => { if (!ms) return ["", ""]; const d = new Date(ms); return [`${pad(d.getDate())}.${pad(d.getMonth() + 1)}.${d.getFullYear()}`, `${pad(d.getHours())}:${pad(d.getMinutes())}`]; };
+    return buildCsv((games || []).map((g, i) => {
+      const [d, t] = dt(g.at);
+      return [g.name ?? "", i + 1, "", g.dbuA ?? "", g.dbuB ?? "", g.ballsA ?? "", g.ballsB ?? "", g.inningsA ?? "", g.inningsB ?? "", g.hsA ?? "", g.hsB ?? "", d, t];
+    }));
+  }
+
+  // Scoreboard-/Spielform-Typ aus der Disziplin ableiten. Carambus waehlt das Scoreboard
+  // AUSSCHLIESSLICH anhand von free_game_form: "pool" → Pool-Board, "snooker" → Snooker-Board,
+  // alles andere (inkl. "karambol") → Karambol-Board. Verlaessliches Signal ist table_kind aus
+  // dem disciplines-Endpoint ("Pool"/"Snooker"/…); fehlt es, heuristisch ueber den Namen.
+  function freeGameForm(opts = {}) {
+    const tk = String(opts.tableKind || "").trim().toLowerCase();
+    if (tk === "pool") return "pool";
+    if (tk === "snooker") return "snooker";
+    if (tk) return "karambol"; // bekannter Karambol-/Kegel-Tischtyp (Small/Match Billard, …)
+    const d = String(opts.discipline || "").toLowerCase();
+    if (/snooker/.test(d)) return "snooker";
+    if (/pool|\b\d+\s*-?\s*ball\b|14[.\/]1/.test(d)) return "pool";
+    return "karambol";
+  }
+
+  // Phase 21-07: kurze Anzeige-Suffixe für Spieler-Felder (age_class/gender). Leerstring,
+  // wenn beide null (Spieler ohne qualifizierte seedings) — damit nichts hängen bleibt.
+  function playerAgeGender(p) { return [p && p.age_class, p && p.gender].filter(Boolean).join(" · "); }
+
+  // ===== Ergebnisarchiv: Zeilen-Normalisierung ============================
+  // Die Anzeige in Carambus (app/views/tournaments/show.html.erb) stellt vier
+  // Bedingungen. Sie werden hier EINMAL durchgesetzt, damit sie kein Schema
+  // einzeln treffen muss — und weil drei davon still fehlschlagen:
+  //   1. Spaltenkoepfe kommen aus .keys des ERSTEN Records. Alle Zeilen brauchen
+  //      dieselben Keys in derselben Reihenfolge, sonst fehlen Spalten.
+  //   2. Eine Spielzeile ohne "Ergebnis" (oder "Punkte") wird stumm uebersprungen.
+  //   3. Sortiert wird ueber data["Partie"].to_i — "Partie" ist immer eine Zahl.
+  //   4. "Rank" steuert die Sortierung des Endstands, als Integer.
+  // "Heim"/"Gast" meiden wir bei Einzelturnieren bewusst: sind die Spalten vorhanden
+  // und leer, bricht die Zeilenausgabe ab dieser Stelle ab (das skip-Flag in der View
+  // wird innerhalb der Zeile nicht zurueckgesetzt). Mannschaftsschemata fuellen beide.
+  function unifyColumns(rows) {
+    const keys = [];
+    rows.forEach(r => Object.keys(r.columns || {}).forEach(k => { if (!keys.includes(k)) keys.push(k); }));
+    return rows.map(r => {
+      const c = {};
+      keys.forEach(k => { const v = (r.columns || {})[k]; c[k] = v == null ? "" : String(v); });
+      return { ...r, columns: c };
+    });
+  }
+  // entries: [{ player:{cc_id,dbu_nr,firstname,lastname}|null, rank, columns:{...} }]
+  function buildResultStandings(entries) {
+    const rows = unifyColumns((entries || []).map((e, i) => ({
+      player: e.player || null,
+      rank: Number.isFinite(+e.rank) ? +e.rank : i + 1,
+      columns: e.columns || {}
+    })));
+    // Rank NACH der Vereinheitlichung setzen: unifyColumns stringifiziert, der
+    // Vertrag verlangt hier aber eine Zahl.
+    return rows.map(r => ({ ...r, columns: { ...r.columns, Rank: r.rank } }));
+  }
+  // rows: [{ gname, seqno, group_no, round_no, table_no, started_at, ended_at, columns:{...} }]
+  function buildResultGames(rows) {
+    return unifyColumns((rows || []).map((r, i) => {
+      const columns = { ...(r.columns || {}) };
+      if (columns.Partie == null || columns.Partie === "") columns.Partie = i + 1;
+      // Ohne Ergebnis verschluckt die View die Zeile kommentarlos — lieber ein
+      // sichtbarer Strich als eine Partie, die im Archiv fehlt.
+      if (!columns.Ergebnis && !columns.Punkte) columns.Ergebnis = "—";
+      return {
+        gname: r.gname != null ? String(r.gname) : `g${i + 1}`,
+        seqno: r.seqno != null ? r.seqno : i + 1,
+        group_no: r.group_no ?? null, round_no: r.round_no ?? null, table_no: r.table_no ?? null,
+        started_at: r.started_at || null, ended_at: r.ended_at || null,
+        columns
+      };
+    }));
+  }
+
+  const util = { calcAvg, fmtAvg, escapeHtml, shuffle, tableNo, csvCell, buildCsv, downloadText, downloadJson, buildRankingCsv, buildGamesCsv, buildResultStandings, buildResultGames, freeGameForm, playerAgeGender };
+
+  // ========================= Schema-State (localStorage, Einzelinstanz) =====
+  // Legacy: ein State je Schema (z. B. 3-Band). Für instanzfähige Schemata siehe
+  // die Instanz-Funktionen weiter unten.
+  const STATE_PREFIX = "carambus.scheme.";
+  function schemeKey(id) { return STATE_PREFIX + id; }
+  function loadSchemeState(id, makeDefault) {
+    try { const raw = localStorage.getItem(schemeKey(id)); if (raw) return JSON.parse(raw); }
+    catch (e) { console.warn("State-Load fehlgeschlagen:", e); }
+    return makeDefault ? makeDefault() : null;
+  }
+  function saveSchemeState(id, state) { localStorage.setItem(schemeKey(id), JSON.stringify(state)); }
+  function clearSchemeState(id) { localStorage.removeItem(schemeKey(id)); }
+
+  // ===== Turnier-Instanzen (mehrere parallele Turniere je Schema) ===========
+  // Jede Instanz = ein eigenständiges Turnier (eigener State unter
+  // carambus.instance.<id>). Ein Index (carambus.instances) hält die Metadaten
+  // (Schema, Titel, Kategorie, Zeitstempel) für den Turnier-Manager im Launcher.
+  const INSTANCE_PREFIX = "carambus.instance.";
+  const INSTANCE_INDEX = "carambus.instances";
+
+  function listInstances() {
+    try { return JSON.parse(localStorage.getItem(INSTANCE_INDEX) || "[]"); }
+    catch (e) { return []; }
+  }
+  function writeInstanceIndex(arr) { localStorage.setItem(INSTANCE_INDEX, JSON.stringify(arr)); }
+
+  // Optional `discipline`, `source` (z. B. "registration_list:<cc_id>"),
+  // `preselectedPlayers` (Array bereinigter Spieler-Refs für die Setzliste) und
+  // `partyCcId` (Liga-Spieltag — schaltet das spieltag-Schema in den Live-Modus, Phase 6)
+  // können beim Anlegen mitgegeben werden; das Schema liest sie beim ersten defaultState
+  // aus instance.*.
+  function createInstance({ schemeId, title, category, discipline, source, preselectedPlayers, partyCcId, attachTournamentId } = {}) {
+    const id = `${schemeId}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
+    const rec = {
+      id, schemeId,
+      title: (title && title.trim()) || "Unbenanntes Turnier",
+      category: (category || "").trim(),
+      createdAt: Date.now(), updatedAt: Date.now()
+    };
+    if (discipline) rec.discipline = String(discipline);
+    if (source) rec.source = String(source);
+    if (partyCcId) rec.party_cc_id = String(partyCcId);
+    // Attach-Modus (plan-Schema): PK eines im Carambus-Web angelegten Turniers, an das die
+    // App sich anhängt (statt selbst Turnier anzulegen). Multi-Laptop-/Multi-Tag-fähig.
+    if (attachTournamentId != null && String(attachTournamentId).trim() !== "") {
+      rec.attach_tournament_id = String(attachTournamentId);
+    }
+    if (Array.isArray(preselectedPlayers) && preselectedPlayers.length) rec.preselected_players = preselectedPlayers;
+    const arr = listInstances(); arr.push(rec); writeInstanceIndex(arr);
+    return rec;
+  }
+  function getInstance(id) { return listInstances().find(r => r.id === id) || null; }
+  function updateInstance(id, patch) {
+    const arr = listInstances(); const r = arr.find(x => x.id === id);
+    if (!r) return null;
+    Object.assign(r, patch, { updatedAt: Date.now() });
+    writeInstanceIndex(arr);
+    return r;
+  }
+  function deleteInstance(id) {
+    writeInstanceIndex(listInstances().filter(r => r.id !== id));
+    localStorage.removeItem(INSTANCE_PREFIX + id);
+  }
+  function loadInstanceState(id, makeDefault) {
+    try { const raw = localStorage.getItem(INSTANCE_PREFIX + id); if (raw) return JSON.parse(raw); }
+    catch (e) { console.warn("Instanz-State-Load fehlgeschlagen:", e); }
+    return makeDefault ? makeDefault() : null;
+  }
+  function saveInstanceState(id, state) { localStorage.setItem(INSTANCE_PREFIX + id, JSON.stringify(state)); }
+
+  const storage = {
+    loadSchemeState, saveSchemeState, clearSchemeState, schemeKey,
+    listInstances, createInstance, getInstance, updateInstance, deleteInstance,
+    loadInstanceState, saveInstanceState
+  };
+
+  // ========================= Verbindungs-Widget ============================
+  const MODAL_ID = "carambusConnModal";
+  const modalState = { onChange: null };
+
+  function mountConnectionWidget({ badgeEl, onChange } = {}) {
+    if (!badgeEl) throw new Error("mountConnectionWidget: badgeEl fehlt");
+    ensureModal();
+    badgeEl.classList.add("conn-badge");
+    badgeEl.innerHTML = `<span class="dot"></span><span class="conn-badge-label">Carambus</span>`;
+    badgeEl.title = "Carambus-Verbindung konfigurieren";
+    badgeEl.addEventListener("click", openModal);
+
+    function refresh() {
+      const conn = getConnection();
+      const label = badgeEl.querySelector(".conn-badge-label");
+      badgeEl.classList.remove("connected", "error");
+      if (isBearerValid(conn)) { badgeEl.classList.add("connected"); label.textContent = `Carambus: verbunden (${conn.region})`; }
+      else if (conn.base_url) { label.textContent = "Carambus: nicht angemeldet"; }
+      else { label.textContent = "Carambus: nicht verbunden"; }
+    }
+    modalState.onChange = () => { refresh(); if (onChange) onChange(getConnection()); };
+    refresh();
+    return { refresh, open: openModal };
+  }
+
+  function ensureModal() {
+    if (document.getElementById(MODAL_ID)) return;
+    const wrap = document.createElement("div");
+    wrap.className = "modal-backdrop"; wrap.id = MODAL_ID;
+    wrap.innerHTML = `
+      <div class="modal">
+        <h2>🔌 Carambus-Verbindung</h2>
+        <div class="info">Einmal pro Gerät einrichten. Wird von allen Schemata geteilt. Der Token gilt 90 Tage.</div>
+        <div class="form-row"><label>Base-URL (LAN)</label><input type="text" id="cwBaseUrl" placeholder="http://192.168.178.84:3131"></div>
+        <div class="form-row"><label>Service-Account E-Mail</label><input type="text" id="cwEmail" placeholder="carambus-app-&lt;region&gt;-bridge@carambus.de"></div>
+        <div class="form-row"><label>Region (Shortname)</label><input type="text" id="cwRegion" placeholder="NBV"></div>
+        <div class="form-row"><label>Turnier (cc_id) — Quelle der Teilnehmer, optional / via Chat-Deep-Link vorausgefüllt</label><input type="text" id="cwTournamentCcId" placeholder="z. B. 939"></div>
+        <div class="form-row"><label>Liga-Spieltag (Party cc_id) — optional / via Chat-Deep-Link vorausgefüllt</label><input type="text" id="cwPartyCcId" placeholder="z. B. 12345"></div>
+        <div class="form-row" id="cwPasswordRow"><label>Passwort (nur für Login nötig)</label><input type="password" id="cwPassword" placeholder="········" autocomplete="current-password"></div>
+        <div class="status-line" id="cwStatus"></div>
+        <div class="actions">
+          <button class="btn" id="cwLogin">🔑 Login &amp; Speichern</button>
+          <button class="btn secondary" id="cwTest">🩺 Verbindung testen</button>
+          <button class="btn secondary" id="cwClear" title="Token vergessen (erzwingt neuen Login)">Token vergessen</button>
+          <button class="btn secondary" id="cwClose" style="margin-left:auto;">Schließen</button>
+        </div>
+      </div>`;
+    document.body.appendChild(wrap);
+    wrap.addEventListener("click", (e) => { if (e.target === wrap) closeModal(); });
+    document.getElementById("cwClose").addEventListener("click", closeModal);
+    document.getElementById("cwLogin").addEventListener("click", doLogin);
+    document.getElementById("cwTest").addEventListener("click", doTest);
+    document.getElementById("cwClear").addEventListener("click", doClear);
+  }
+  function openModal() {
+    const conn = getConnection();
+    document.getElementById("cwBaseUrl").value = conn.base_url || "";
+    document.getElementById("cwEmail").value = conn.email || "";
+    document.getElementById("cwRegion").value = conn.region || "";
+    document.getElementById("cwTournamentCcId").value = conn.tournament_cc_id || "";
+    document.getElementById("cwPartyCcId").value = conn.party_cc_id || "";
+    document.getElementById("cwPassword").value = "";
+    setStatus("", "");
+    document.getElementById(MODAL_ID).classList.add("open");
+  }
+  function closeModal() { document.getElementById(MODAL_ID).classList.remove("open"); }
+  function readForm() {
+    return {
+      base_url: document.getElementById("cwBaseUrl").value.trim(),
+      email: document.getElementById("cwEmail").value.trim(),
+      region: document.getElementById("cwRegion").value.trim().toUpperCase(),
+      tournament_cc_id: document.getElementById("cwTournamentCcId").value.trim(),
+      party_cc_id: document.getElementById("cwPartyCcId").value.trim(),
+      password: document.getElementById("cwPassword").value
+    };
+  }
+  function setStatus(msg, kind) {
+    const el = document.getElementById("cwStatus");
+    el.textContent = msg;
+    el.className = "status-line" + (msg ? " show" : "") + (kind ? " " + kind : "");
+  }
+  async function doLogin() {
+    const f = readForm();
+    if (!f.base_url || !f.email) { setStatus("Base-URL und E-Mail sind nötig.", "err"); return; }
+    const conn = getConnection();
+    // Wenn der TL cc_id manuell ändert, ist die per Deep-Link gesetzte tournament_id (DB-PK)
+    // u. U. nicht mehr passend → leeren, damit fetchSeeding wieder über cc_id+region auflöst.
+    if (String(f.tournament_cc_id || "") !== String(conn.tournament_cc_id || "")) conn.tournament_id = "";
+    conn.base_url = f.base_url; conn.email = f.email; conn.region = f.region; conn.tournament_cc_id = f.tournament_cc_id;
+    conn.party_cc_id = f.party_cc_id || "";
+    if (!f.password && isBearerValid(conn)) {
+      saveConnection(conn); setStatus("Gespeichert (bestehender Token bleibt gültig).", "ok");
+      modalState.onChange && modalState.onChange(); return;
+    }
+    if (!f.password) { setStatus("Passwort eingeben (für den ersten Login / nach 'Token vergessen').", "err"); return; }
+    setStatus("Melde an …", "");
+    try {
+      const { bearer, expires_at } = await carambusLogin(f.base_url, f.email, f.password);
+      conn.bearer = bearer; conn.bearer_expires_at = expires_at;
+      saveConnection(conn); setStatus("✓ Angemeldet und gespeichert.", "ok");
+      modalState.onChange && modalState.onChange();
+    } catch (err) { setStatus("Login fehlgeschlagen: " + describeErr(err), "err"); }
+  }
+  async function doTest() {
+    const f = readForm();
+    const conn = getConnection();
+    conn.base_url = f.base_url || conn.base_url; conn.region = f.region || conn.region; conn.email = f.email || conn.email;
+    if (f.tournament_cc_id !== undefined) {
+      if (String(f.tournament_cc_id || "") !== String(conn.tournament_cc_id || "")) conn.tournament_id = "";
+      conn.tournament_cc_id = f.tournament_cc_id;
+    }
+    if (f.party_cc_id !== undefined) conn.party_cc_id = f.party_cc_id || "";
+    saveConnection(conn);
+    if (!isBearerValid(conn)) { setStatus("Kein gültiger Token — bitte zuerst Login.", "err"); return; }
+    setStatus("Teste …", "");
+    try { const r = await ping(); setStatus("✓ Verbindung OK" + (r.note ? " — " + r.note : ""), "ok"); modalState.onChange && modalState.onChange(); }
+    catch (err) { setStatus("Fehler: " + describeErr(err), "err"); }
+  }
+  function doClear() {
+    const conn = getConnection();
+    conn.bearer = null; conn.bearer_expires_at = null;
+    saveConnection(conn); setStatus("Token vergessen. Nächster Login nötig.", "ok");
+    modalState.onChange && modalState.onChange();
+  }
+  function describeErr(err) {
+    if (err instanceof CarambusError) {
+      const detail = err.body != null ? " " + (typeof err.body === "string" ? err.body : JSON.stringify(err.body)) : "";
+      return `HTTP ${err.status}${detail}`;
+    }
+    return err?.message || String(err);
+  }
+
+  // ========================= Öffentliche Schnittstelle =====================
+  return {
+    CONN_KEY, CONN_DEFAULTS,
+    getConnection, saveConnection, isBearerValid, regionShortname, parseTournamentCcIdInput, applyDeepLinkConnection,
+    CarambusError, fetchWithTimeout, carambusLogin,
+    carambusFetch, ping,
+    api: {
+      fetchClubs, fetchClubPlayers, fetchPlayerRankings, fetchTables, fetchDisciplines, fetchRegistrationLists, fetchSeeding,
+      createTournament, lockTable, startGame, acknowledgeResult, endTournament, cleanPlayerRef,
+      pushTournamentResult,
+      fetchRoundResult, fetchAllRoundResults,
+      fetchParty, partyGameResult, partyClose
+    },
+    util, storage, mountConnectionWidget
+  };
+})();
+/* <<< CARAMBUS-SYNC core-js <<< */
+</script>
+
+<script>
+"use strict";
+// Schema-Registry — ein Eintrag je Schema. instanceAware:true → mehrere parallele
+// Turniere möglich (Instanz-Ebene). false → Einzelinstanz (Legacy, direkt öffnen).
+const SCHEMES = [
+  {
+    id: "doppelko",
+    title: "KO-System (Einzel)",
+    subtitle: "Einfach-/Doppel-KO · alle ClubCloud-Pläne · eine Disziplin",
+    icon: "🏆",
+    entry: "schemes/doppelko/index.html",
+    instanceAware: true,
+    status: "beta"
+  },
+  {
+    id: "3band-team",
+    title: "3-Band Mannschaftsmeisterschaft",
+    subtitle: "4 Mannschaften × 4 Spieler",
+    icon: "🎱",
+    entry: "schemes/3band-team/index.html",
+    instanceAware: true,
+    status: "stable"
+  },
+  {
+    id: "plan",
+    title: "TournamentPlan (T01–T24)",
+    subtitle: "Carambus-Pläne · Gruppen + Finalrunde · datengetrieben",
+    icon: "🗂",
+    entry: "schemes/plan/index.html",
+    instanceAware: true,
+    status: "beta"
+  },
+  {
+    id: "spieltag",
+    title: "Liga-Spieltag (Party)",
+    subtitle: "Mannschaftsspieltag · datengetrieben aus league.game_plan · Direkteingabe oder Scoreboard",
+    icon: "⚔",
+    entry: "schemes/spieltag/index.html",
+    instanceAware: true,
+    status: "alpha"
+  }
+];
+const getScheme = (id) => SCHEMES.find(s => s.id === id) || null;
+const esc = Carambus.util.escapeHtml;
+const { listInstances, createInstance, deleteInstance } = Carambus.storage;
+
+// Carambus-Chat-Brücke (cc_open_in_tournament_app): füllt die Verbindung aus den
+// cb_*-URL-Parametern vor, bevor das Verbindungs-Widget gemountet wird.
+// prefilled === true → "Aus dem Chat vorbereitet"-Banner aktiv halten + Modal beim ersten
+// Öffnen automatisch hochziehen, damit der TL den Status NICHT übersieht.
+const prefilledFromDeepLink = !!Carambus.applyDeepLinkConnection();
+Carambus.mountConnectionWidget({
+  badgeEl: document.getElementById("connBadge"),
+  onChange: refreshDeepLinkBanner   // nach Login/Token-Wechsel Banner neu bewerten
+});
+
+// --- Chat-Deep-Link-Banner ---
+// Modi:
+//   PARTY (cb_party_cc_id, Liga-Spieltag, Phase 6 / HANDOFF-to-carambus-party-api.md):
+//     Banner zeigt Party-Kontext + Button "⚔ → Liga-Spieltag öffnen" → legt eine
+//     spieltag-Instanz an und navigiert. Keine seeding-Vorschau (es gibt keine
+//     seeding-Naht für Parties; die Vorschau käme aus dem geplanten party-Endpoint —
+//     Phase 5).
+//   TOURNAMENT (tournament_cc_id/tournament_id):
+//     (a) ohne Bearer → "🔑 Verbindung öffnen & einloggen".
+//     (b) mit Bearer → Vorschau (Titel/Disziplin/Spielerzahl/Top-Namen) aus seeding-
+//         Endpoint, dann Buttons "→ Plan" / "→ KO". Wichtig wegen cc_id-Ambiguität
+//         (HANDOFF-to-carambus-tournament-id-ambiguity).
+//   SONST → Banner unsichtbar.
+// Party hat Vorrang vor Tournament, falls beide gesetzt sind (selten, aber möglich).
+let lastSeedingPreview = null;       // gepuffertes Seeding-Dokument, vermeidet 2. Fetch bei Klick
+
+async function refreshDeepLinkBanner() {
+  const conn = Carambus.getConnection();
+  const banner = document.getElementById("deepLinkBanner");
+  const info = document.getElementById("deepLinkInfo");
+  const actions = document.getElementById("deepLinkActions");
+  const status = document.getElementById("deepLinkStatus");
+  if (!banner || !info || !actions || !status) return;
+  const hasParty = !!conn.party_cc_id;
+  const hasTournament = !!(conn.tournament_cc_id || conn.tournament_id);
+  if (!hasParty && !hasTournament) { banner.style.display = "none"; lastSeedingPreview = null; return; }
+  banner.style.display = "";
+  status.textContent = "";
+
+  // PARTY-Pfad
+  if (hasParty) {
+    lastSeedingPreview = null;
+    const meta = `<code>${esc(conn.base_url)}</code>&nbsp;·&nbsp;Region&nbsp;<strong>${esc(conn.region || "")}</strong>&nbsp;·&nbsp;Party&nbsp;cc_id&nbsp;<strong>${esc(String(conn.party_cc_id))}</strong>`;
+    if (!Carambus.isBearerValid(conn)) {
+      info.innerHTML = `Spieltag aus dem Chat: ${meta}.<br>Erst einloggen, dann öffne ich den Spieltag im ⚔ Liga-Schema.`;
+      actions.innerHTML = `<button class="btn" id="deepLinkOpenP">🔑 Verbindung öffnen &amp; einloggen</button>`;
+      document.getElementById("deepLinkOpenP").addEventListener("click",
+        () => document.getElementById("connBadge").click());
+      return;
+    }
+    info.innerHTML = `<strong>⚔ Liga-Spieltag</strong> · ${meta}` +
+      `<br><span class="muted" style="font-size:12px;">Die Party wird beim Öffnen über den geplanten <code>party</code>-Endpoint geladen (Handoff-to-carambus-party-api §1). Offline-Demo bleibt als Fallback im Setup-Tab verfügbar.</span>`;
+    actions.innerHTML = `<button class="btn" id="deepLinkStartParty">⚔ → Liga-Spieltag öffnen</button>`;
+    document.getElementById("deepLinkStartParty").addEventListener("click", startFromParty);
+    return;
+  }
+
+  // Banner-Meta: Carambus-DB-id (tournament_id, falls vorhanden — global eindeutig, Paul-Patch
+  // v52337e16) deutlich anzeigen, weil das jetzt der robuste Identifier ist; cc_id beleibt
+  // informativ daneben.
+  const idChips = [
+    conn.tournament_id ? `id <strong>${esc(String(conn.tournament_id))}</strong>` : null,
+    conn.tournament_cc_id ? `cc_id <strong>${esc(String(conn.tournament_cc_id))}</strong>` : null
+  ].filter(Boolean).join(" · ");
+  const meta = `<code>${esc(conn.base_url)}</code>&nbsp;·&nbsp;Region&nbsp;<strong>${esc(conn.region || "")}</strong>&nbsp;·&nbsp;${idChips}`;
+  if (!Carambus.isBearerValid(conn)) {
+    info.innerHTML = `Verbindung gesetzt: ${meta}.<br>Jetzt einloggen, dann lade ich die Vorschau der Teilnehmer.`;
+    actions.innerHTML = `<button class="btn" id="deepLinkOpen">🔑 Verbindung öffnen &amp; einloggen</button>`;
+    document.getElementById("deepLinkOpen").addEventListener("click",
+      () => document.getElementById("connBadge").click());
+    lastSeedingPreview = null;
+    return;
+  }
+  // Bearer gültig: Vorschau aus seeding-Endpoint laden, BEVOR der TL Plan/KO drückt.
+  info.innerHTML = `Lade Turnier-Vorschau … (${meta})`;
+  actions.innerHTML = `<button class="btn secondary" disabled>… lädt</button>`;
+  try {
+    // Server bevorzugt tournament_id (Paul-Patch v52337e16); cc_id bleibt Fallback.
+    const body = await Carambus.api.fetchSeeding({ region: conn.region, tournamentCcId: conn.tournament_cc_id, tournamentId: conn.tournament_id });
+    lastSeedingPreview = body;
+    const t = body.tournament || {};
+    const totalPlayers = (body.teams || []).reduce((s, te) => s + (te.players || []).length, 0);
+    const sampleNames = (body.teams || []).slice(0, 3)
+      .flatMap(te => (te.players || [])).slice(0, 3)
+      .map(p => `${p.firstname || ""} ${p.lastname || ""}`.trim()).filter(Boolean).join(", ");
+    info.innerHTML =
+      `<strong>${esc(t.name || "?")}</strong>` +
+      ` · ${esc(t.discipline?.name || "?")}` +
+      ` · <strong>${totalPlayers}</strong> Spieler` +
+      (sampleNames ? `<br><span class="muted">${esc(sampleNames)}${totalPlayers > 3 ? ", …" : ""}</span>` : "") +
+      `<br><span class="muted" style="font-size:12px;">Region <strong>${esc(conn.region || "")}</strong> · ${idChips}${t.cc_id != null && conn.tournament_cc_id && String(t.cc_id) !== String(conn.tournament_cc_id) ? ` · ⚠ Server liefert cc_id ${esc(String(t.cc_id))}` : ""}.` +
+      ` Wenn das nicht das gewünschte Turnier ist → Chat-Link prüfen, oder Werte im Verbindungs-Modal korrigieren.</span>`;
+    // Attach-Modus (nur wenn tournament_id vorhanden — braucht den globalen PK):
+    // legt eine plan-Instanz mit attach_tournament_id an, das plan-Schema lädt Plan+
+    // Setzliste+Ergebnisse aus dem Server (Multi-Laptop-fähig). "Anlegen" (startFromSeeding)
+    // bleibt für den klassischen Weg: preselected_players werden vorbefüllt, App erzeugt
+    // ein eigenes Turnier via createTournament.
+    const attachBtn = conn.tournament_id
+      ? `<button class="btn" id="deepLinkAttachPlan" title="An bestehendes Carambus-Turnier attachen (Multi-Laptop/Multi-Tag-fähig, Plan+Setzliste+Ergebnisse vom Server)">🔗 → Plan-Turnier attachen</button>`
+      : "";
+    actions.innerHTML =
+      `<button class="btn" data-scheme="plan" id="deepLinkStartPlan" title="Als TournamentPlan-Turnier anlegen (Karambol/Kegel)">🗂 → Plan-Turnier anlegen</button>` +
+      `<button class="btn" data-scheme="doppelko" id="deepLinkStartKo" title="Als KO-System anlegen (EKO/DKO/Hybrid, Pool/Snooker)">🏆 → KO-Turnier anlegen</button>` +
+      attachBtn;
+    ["deepLinkStartPlan", "deepLinkStartKo"].forEach(id =>
+      document.getElementById(id).addEventListener("click", e => startFromSeeding(e.currentTarget.dataset.scheme)));
+    document.getElementById("deepLinkAttachPlan")?.addEventListener("click", startAttachToPlan);
+  } catch (err) {
+    lastSeedingPreview = null;
+    const msg = (err && err.body && err.body.error) || err?.message || String(err);
+    info.innerHTML = `<span style="color:var(--bad);">Turnier-Vorschau fehlgeschlagen: ${esc(msg)}</span>`
+      + `<br><span class="muted" style="font-size:12px;">Vermutlich kein Tournament mit Region <strong>${esc(conn.region || "")}</strong> · ${idChips} auf <code>${esc(conn.base_url)}</code>. Werte im Verbindungs-Modal korrigieren oder den Chat-Link erneut generieren.</span>`;
+    actions.innerHTML = `<button class="btn secondary" id="deepLinkOpen2">🔌 Verbindungs-Modal öffnen</button>`;
+    document.getElementById("deepLinkOpen2").addEventListener("click",
+      () => document.getElementById("connBadge").click());
+  }
+}
+
+// Nutzt lastSeedingPreview (vom Banner-Refresh gepuffert), um doppelte fetchSeeding-Aufrufe zu
+// vermeiden. Spieler aus teams[].players[] flachklopfen (single + Mannschaft); cc_id/club_cc_id
+// werden bewahrt. defaultState der Schemes liest preselected_players → state.participants.
+async function startFromSeeding(schemeId) {
+  const status = document.getElementById("deepLinkStatus");
+  const ENTRY = { doppelko: "schemes/doppelko/index.html", plan: "schemes/plan/index.html" };
+  if (!ENTRY[schemeId]) return;
+  const conn = Carambus.getConnection();
+  let body = lastSeedingPreview;
+  if (!body) {
+    status.textContent = "Lade Seeding …";
+    try { body = await Carambus.api.fetchSeeding({ region: conn.region, tournamentCcId: conn.tournament_cc_id, tournamentId: conn.tournament_id }); }
+    catch (err) {
+      status.innerHTML = `<span style="color:var(--bad);">Fehler: ${esc(err?.body?.error || err?.message || String(err))}</span>`;
+      return;
+    }
+  }
+  const t = body.tournament || {};
+  const players = [];
+  (body.teams || []).forEach(team => {
+    const clubCc = team.club?.cc_id || null;
+    const clubShort = team.club?.shortname || team.club?.name || "";
+    (team.players || []).forEach(p => {
+      players.push({
+        cc_id: p.cc_id ?? null, dbu_nr: p.dbu_nr ?? null,
+        firstname: p.firstname || p.f || "", lastname: p.lastname || p.l || "",
+        club_cc_id: p.club_cc_id ?? clubCc, club_shortname: p.club_shortname || clubShort,
+        age_class: p.age_class ?? null, gender: p.gender ?? null,
+        rank: null, gd: null
+      });
+    });
+  });
+  // source-Tag bevorzugt tournament_id (global eindeutig); cc_id-Variante bleibt für Legacy.
+  const sourceTag = conn.tournament_id ? `tournament:${conn.tournament_id}`
+                  : `tournament_cc:${conn.region || "?"}:${conn.tournament_cc_id}`;
+  const inst = createInstance({
+    schemeId,
+    title: t.name || `Turnier ${conn.tournament_id || conn.tournament_cc_id}`,
+    category: "",
+    discipline: t.discipline?.name || undefined,
+    source: sourceTag,
+    preselectedPlayers: players
+  });
+  location.href = `${ENTRY[schemeId]}?t=${encodeURIComponent(inst.id)}`;
+}
+
+// Attach-Modus fürs plan-Schema (Multi-Laptop/Multi-Tag): tournament_id mitgeben, das
+// Schema lädt beim ersten Öffnen Plan+Setzliste+bereits gespielte Ergebnisse aus dem
+// Server (seeding + round_result 1..N). Titel kommt aus der Seeding-Preview, falls
+// vorhanden — sonst Fallback auf id. Keine preselected_players (die kommen im
+// attachToTournament aus seeding, damit sie identisch mit dem Server-Stand sind).
+function startAttachToPlan() {
+  const conn = Carambus.getConnection();
+  if (!conn.tournament_id) return;
+  const t = lastSeedingPreview?.tournament || {};
+  const inst = createInstance({
+    schemeId: "plan",
+    title: t.name || `Turnier #${conn.tournament_id}`,
+    category: "",
+    discipline: t.discipline?.name || undefined,
+    source: `tournament_attach:${conn.region || "?"}:${conn.tournament_id}`,
+    attachTournamentId: conn.tournament_id
+  });
+  location.href = `schemes/plan/index.html?t=${encodeURIComponent(inst.id)}`;
+}
+
+// Liga-Spieltag (Phase 6): Instanz fürs spieltag-Schema anlegen, party_cc_id mitgeben (das
+// Schema liest sie in defaultState), dann öffnen. Kein preselected_players nötig — die Party
+// liefert den Kader über den party-Endpoint (Phase 5).
+function startFromParty() {
+  const conn = Carambus.getConnection();
+  if (!conn.party_cc_id) return;
+  const inst = createInstance({
+    schemeId: "spieltag",
+    title: `Spieltag ${conn.region || ""} cc_id ${conn.party_cc_id}`.trim(),
+    category: "Liga",
+    source: `party_cc:${conn.region || "?"}:${conn.party_cc_id}`,
+    partyCcId: conn.party_cc_id
+  });
+  location.href = `schemes/spieltag/index.html?t=${encodeURIComponent(inst.id)}`;
+}
+refreshDeepLinkBanner();
+// Beim ersten Aufruf via Deep-Link das Modal direkt öffnen (Fokus auf Passwort, alle anderen
+// Felder sind ohnehin schon befüllt). Nur wenn noch kein gültiger Bearer existiert.
+if (prefilledFromDeepLink && !Carambus.isBearerValid(Carambus.getConnection())) {
+  setTimeout(() => {
+    document.getElementById("connBadge").click();
+    document.getElementById("cwPassword")?.focus();
+  }, 100);
+}
+
+// --- Neues-Turnier-Formular (nur instanceAware Schemata) ---
+const aware = SCHEMES.filter(s => s.instanceAware);
+const sel = document.getElementById("newScheme");
+sel.innerHTML = aware.map(s => `<option value="${s.id}">${esc(s.icon + " " + s.title)}</option>`).join("");
+function refreshSchemeHint() {
+  const s = getScheme(sel.value);
+  document.getElementById("schemeHint").textContent = s ? s.subtitle : "";
+}
+sel.addEventListener("change", refreshSchemeHint);
+refreshSchemeHint();
+
+document.getElementById("btnCreate").addEventListener("click", () => {
+  const schemeId = sel.value;
+  const s = getScheme(schemeId);
+  if (!s) return;
+  const title = document.getElementById("newTitle").value.trim() || `${s.title}`;
+  const category = document.getElementById("newCategory").value.trim();
+  const inst = createInstance({ schemeId, title, category });
+  location.href = `${s.entry}?t=${encodeURIComponent(inst.id)}`;
+});
+
+// --- Legacy-Schemata (Einzelinstanz) ---
+const legacy = SCHEMES.filter(s => !s.instanceAware);
+document.getElementById("legacyList").innerHTML = legacy.map(s => `
+  <div class="legacy-row">
+    <span>${esc(s.icon + " " + s.title)} <span class="pill">Einzelinstanz</span></span>
+    <a class="btn secondary" href="${s.entry}">Öffnen</a>
+  </div>`).join("");
+
+// --- Liste bestehender Turniere ---
+function fmtDate(ts) { try { return new Date(ts).toLocaleString("de-DE", { dateStyle: "short", timeStyle: "short" }); } catch (e) { return ""; } }
+function phaseLabel(p) { return ({ setup: "Setup", running: "läuft", finished: "abgeschlossen" })[p] || p || ""; }
+
+function renderInstances() {
+  const list = listInstances().slice().sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+  document.getElementById("instCount").textContent = list.length;
+  const box = document.getElementById("instList");
+  if (!list.length) { box.innerHTML = `<p class="muted">Noch keine Turniere — oben eines anlegen.</p>`; return; }
+  box.innerHTML = list.map(inst => {
+    const s = getScheme(inst.schemeId);
+    const entry = s ? s.entry : "#";
+    const sub = [];
+    sub.push(esc((s ? s.icon + " " + s.title : inst.schemeId)));
+    if (inst.discipline) sub.push(esc(inst.discipline));
+    if (inst.players != null) sub.push(esc(inst.players + " Spieler"));
+    if (inst.phase) sub.push(esc(phaseLabel(inst.phase)));
+    sub.push(esc("zuletzt " + fmtDate(inst.updatedAt)));
+    return `
+      <div class="inst-row" data-id="${esc(inst.id)}">
+        <div>
+          <div class="title">${esc(inst.title)} ${inst.category ? `<span class="cat">· ${esc(inst.category)}</span>` : ""}</div>
+          <div class="sub">${sub.map(x => `<span>${x}</span>`).join("")}</div>
+        </div>
+        <a class="btn open-inst" href="${entry}?t=${encodeURIComponent(inst.id)}">Öffnen</a>
+        <button class="btn danger del-inst" data-id="${esc(inst.id)}">Löschen</button>
+      </div>`;
+  }).join("");
+  box.querySelectorAll(".del-inst").forEach(b => b.addEventListener("click", () => {
+    const id = b.dataset.id;
+    const inst = listInstances().find(x => x.id === id);
+    if (confirm(`Turnier „${inst?.title || id}" wirklich löschen? Alle erfassten Daten gehen verloren.`)) {
+      deleteInstance(id); renderInstances();
+    }
+  }));
+}
+renderInstances();
+
+// ===== Sicherung wiederherstellen =========================================
+// Gegenstueck zu "Sicherung speichern" im Schema. Schreibt Instanz-Record und
+// State zurueck in den localStorage. Noetig, weil iOS-Safari den Speicher ohne
+// Vorwarnung leeren kann und der Stand nicht aus Carambus rekonstruierbar ist
+// (round_result verlangt tournament_cc_id, App-Turniere haben cc_id=nil).
+function applyBackup(payload) {
+  if (!payload || payload.v !== 1 || !payload.instance || !payload.state) throw new Error("Das ist keine gueltige Sicherung.");
+  const rec = payload.instance;
+  if (!rec.id || !rec.schemeId) throw new Error("Sicherung unvollstaendig (Instanz-Daten fehlen).");
+  const idx = JSON.parse(localStorage.getItem("carambus.instances") || "[]");
+  const pos = idx.findIndex(r => r.id === rec.id);
+  if (pos >= 0 && !confirm("\"" + rec.title + "\" existiert bereits und wird ueberschrieben. Fortfahren?")) return false;
+  if (pos >= 0) idx[pos] = rec; else idx.push(rec);
+  localStorage.setItem("carambus.instances", JSON.stringify(idx));
+  localStorage.setItem("carambus.instance." + rec.id, JSON.stringify(payload.state));
+  return true;
+}
+function restoreFromText(txt) {
+  try {
+    if (!applyBackup(JSON.parse(txt))) return;
+    renderInstances();
+    alert("Sicherung eingespielt. Das Turnier steht wieder in der Liste.");
+  } catch (e) { alert("Wiederherstellung fehlgeschlagen: " + e.message); }
+}
+document.getElementById("btnRestoreText")?.addEventListener("click", () => {
+  const t = document.getElementById("restoreText")?.value.trim();
+  if (!t) { alert("Bitte den Sicherungstext einfuegen."); return; }
+  restoreFromText(t);
+});
+document.getElementById("restoreFile")?.addEventListener("change", ev => {
+  const f = ev.target.files?.[0]; if (!f) return;
+  const r = new FileReader();
+  r.onload = () => restoreFromText(String(r.result));
+  r.onerror = () => alert("Datei konnte nicht gelesen werden.");
+  r.readAsText(f);
+});
+
+// --- Offene Meldelisten (Phase 21-05) ----------------------------------------
+// Region-Default aus der aktuellen Verbindung. Status-Pille kolorieren wir grob
+// (Freigegeben → grün, Gemeldet/Offen → blau, sonst neutral). Deadline „bald"
+// (≤ 14 Tage) hebt sich ab. Klick → KO-Instanz mit vorbelegtem Titel + Kategorie
+// + Disziplin anlegen und direkt öffnen.
+(function () {
+  const regRegion = document.getElementById("regRegion");
+  const regSeason = document.getElementById("regSeason");
+  const regHint = document.getElementById("regHint");
+  const regList = document.getElementById("regList");
+  const regCount = document.getElementById("regCount");
+  const btn = document.getElementById("btnRegLoad");
+
+  regRegion.value = (Carambus.getConnection().region || "NBV").toUpperCase();
+  refreshHint();
+  function refreshHint() {
+    regHint.textContent = Carambus.isBearerValid(Carambus.getConnection())
+      ? "Region/Saison wählen und laden."
+      : "Carambus-Verbindung nötig (oben rechts auf das Status-Feld klicken).";
+  }
+
+  function statusClass(s) {
+    const x = (s || "").toLowerCase();
+    if (x.includes("freigeg")) return "frei";
+    if (x.includes("gemeldet") || x.includes("offen")) return "gem";
+    return "";
+  }
+  function fmtDateOrISO(v) {
+    if (!v) return "—";
+    const d = new Date(v); if (isNaN(d.getTime())) return String(v);
+    return d.toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric" });
+  }
+  function isSoon(v) {
+    if (!v) return false;
+    const d = new Date(v); if (isNaN(d.getTime())) return false;
+    const ms = d.getTime() - Date.now();
+    return ms > 0 && ms < 14 * 24 * 60 * 60 * 1000;
+  }
+
+  btn.addEventListener("click", async () => {
+    refreshHint();
+    if (!Carambus.isBearerValid(Carambus.getConnection())) return;
+    const region = (regRegion.value || "NBV").trim().toUpperCase();
+    const season = regSeason.value.trim() || undefined;
+    regHint.textContent = "lädt …";
+    try {
+      const body = await Carambus.api.fetchRegistrationLists({ region, season });
+      const items = body.registration_lists || [];
+      regCount.textContent = items.length;
+      regHint.textContent = `Saison ${body.season?.name || season || "aktuell"} · ${items.length} Listen` + (items.length === 0 ? " — bei leerer aktueller Saison eine historische probieren (z. B. 2022/2023)." : "");
+      if (!items.length) { regList.innerHTML = ""; return; }
+      regList.innerHTML = `<div style="overflow-x:auto;"><table class="reg-table">
+        <thead><tr><th>Meldeliste</th><th>Disziplin</th><th>Kategorie</th><th>Deadline</th><th>Status</th><th>Carambus-Turnier</th><th></th></tr></thead>
+        <tbody>${items.map((r, i) => `
+          <tr>
+            <td>${esc(r.name || "—")}</td>
+            <td>${esc(r.discipline?.name || "—")}</td>
+            <td>${esc(r.category_cc?.name || "—")}</td>
+            <td class="${isSoon(r.deadline) ? "reg-deadline-soon" : ""}">${esc(fmtDateOrISO(r.deadline))}</td>
+            <td><span class="reg-status ${statusClass(r.status)}">${esc(r.status || "—")}</span></td>
+            <td>${r.tournament_cc ? esc(r.tournament_cc.name) : `<span class="muted">—</span>`}</td>
+            <td style="white-space:nowrap;">
+              <button class="btn open-reg" data-i="${i}" data-scheme="plan" title="Als TournamentPlan-Turnier anlegen (Karambol/Kegel, Vorgabe-/Pokal-Turniere)">→ Plan</button>
+              <button class="btn open-reg" data-i="${i}" data-scheme="doppelko" title="Als KO-System anlegen (EKO/DKO/Hybrid, Pool/Snooker)">→ KO</button>
+            </td>
+          </tr>`).join("")}</tbody></table></div>`;
+      // Zwei Buttons pro Zeile: TournamentPlan (für Vorgabe-/Pokal-Karambol, Kegel) oder
+      // KO-System (für Pool/Snooker oder andere KO-Brackets).
+      const ENTRY = { doppelko: "schemes/doppelko/index.html", plan: "schemes/plan/index.html" };
+      regList.querySelectorAll(".open-reg").forEach(b => b.addEventListener("click", e => {
+        const i = +e.currentTarget.dataset.i; const r = items[i];
+        const schemeId = e.currentTarget.dataset.scheme;
+        const inst = createInstance({
+          schemeId,
+          title: r.name || "Meldeliste " + (r.cc_id || ""),
+          category: r.category_cc?.name || "",
+          discipline: r.discipline?.name || undefined,
+          source: r.cc_id ? ("registration_list:" + r.cc_id) : undefined
+        });
+        location.href = `${ENTRY[schemeId]}?t=${encodeURIComponent(inst.id)}`;
+      }));
+    } catch (e) {
+      regHint.textContent = "Fehler beim Laden: " + (e?.message || String(e));
+      regList.innerHTML = "";
+    }
+  });
+})();
+</script>
+</body>
+</html>

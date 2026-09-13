@@ -1,0 +1,96 @@
+{
+  "schema": "carambus.round_result/v1",
+  "region": { "shortname": "NBV" },
+  "tournament": { "cc_id": 12345 },
+  "round_no": 1,
+  "results": [
+    {
+      "external_id": "ms3b-2026-r1-tisch5-pos1",
+      "table_no": 5,
+      "started_at": "2026-05-17T11:05:00+02:00",
+      "ended_at":   "2026-05-17T11:42:00+02:00",
+      "innings_played": 22,
+      "participants": [
+        { "role": "playera", "player": { "cc_id": 9001 }, "points": 30, "innings": 22, "high_series": 5 },
+        { "role": "playerb", "player": { "cc_id": 9031 }, "points": 24, "innings": 22, "high_series": 4 }
+      ]
+    },
+    {
+      "external_id": "ms3b-2026-r1-tisch6-pos4",
+      "table_no": 6,
+      "started_at": "2026-05-17T11:05:00+02:00",
+      "ended_at":   "2026-05-17T11:35:00+02:00",
+      "innings_played": 18,
+      "participants": [
+        { "role": "playera", "player": { "cc_id": 9004 }, "points": 21, "innings": 18, "high_series": 3 },
+        { "role": "playerb", "player": { "cc_id": 9034 }, "points": 30, "innings": 18, "high_series": 6 }
+      ]
+    },
+    {
+      "external_id": "ms3b-2026-r1-tisch7-pos1",
+      "table_no": 7,
+      "started_at": "2026-05-17T11:05:00+02:00",
+      "ended_at":   "2026-05-17T11:50:00+02:00",
+      "innings_played": 25,
+      "participants": [
+        { "role": "playera", "player": { "cc_id": 9011 }, "points": 27, "innings": 25, "high_series": 4 },
+        { "role": "playerb", "player": { "cc_id": 9021 }, "points": 27, "innings": 25, "high_series": 5 }
+      ]
+    },
+    {
+      "external_id": "ms3b-2026-r1-tisch8-pos4",
+      "table_no": 8,
+      "started_at": "2026-05-17T11:05:00+02:00",
+      "ended_at":   "2026-05-17T11:48:00+02:00",
+      "innings_played": 24,
+      "participants": [
+        { "role": "playera", "player": { "cc_id": 9014 }, "points": 30, "innings": 24, "high_series": 4 },
+        { "role": "playerb", "player": { "cc_id": 9024 }, "points": 19, "innings": 24, "high_series": 3 }
+      ]
+    },
+    {
+      "external_id": "ms3b-2026-r1-tisch5-pos2",
+      "table_no": 5,
+      "started_at": "2026-05-17T11:50:00+02:00",
+      "ended_at":   "2026-05-17T12:25:00+02:00",
+      "innings_played": 20,
+      "participants": [
+        { "role": "playera", "player": { "cc_id": 9002 }, "points": 30, "innings": 20, "high_series": 7 },
+        { "role": "playerb", "player": { "cc_id": 9032 }, "points": 16, "innings": 20, "high_series": 3 }
+      ]
+    },
+    {
+      "external_id": "ms3b-2026-r1-tisch6-pos3",
+      "table_no": 6,
+      "started_at": "2026-05-17T11:45:00+02:00",
+      "ended_at":   "2026-05-17T12:30:00+02:00",
+      "innings_played": 25,
+      "participants": [
+        { "role": "playera", "player": { "cc_id": 9003 }, "points": 23, "innings": 25, "high_series": 4 },
+        { "role": "playerb", "player": { "cc_id": 9033 }, "points": 30, "innings": 25, "high_series": 5 }
+      ]
+    },
+    {
+      "external_id": "ms3b-2026-r1-tisch7-pos2",
+      "table_no": 7,
+      "started_at": "2026-05-17T12:00:00+02:00",
+      "ended_at":   "2026-05-17T12:42:00+02:00",
+      "innings_played": 23,
+      "participants": [
+        { "role": "playera", "player": { "cc_id": 9012 }, "points": 30, "innings": 23, "high_series": 6 },
+        { "role": "playerb", "player": { "cc_id": 9022 }, "points": 25, "innings": 23, "high_series": 4 }
+      ]
+    },
+    {
+      "external_id": "ms3b-2026-r1-tisch8-pos3",
+      "table_no": 8,
+      "started_at": "2026-05-17T11:55:00+02:00",
+      "ended_at":   "2026-05-17T12:38:00+02:00",
+      "innings_played": 21,
+      "participants": [
+        { "role": "playera", "player": { "cc_id": 9013 }, "points": 28, "innings": 21, "high_series": 5 },
+        { "role": "playerb", "player": { "cc_id": 9023 }, "points": 30, "innings": 21, "high_series": 4 }
+      ]
+    }
+  ]
+}

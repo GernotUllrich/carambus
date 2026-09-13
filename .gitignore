@@ -59,7 +59,6 @@ config/credentials/*.yml.enc
 config/database.yml
 config/carambus.yml
 
-/public/app
 /public/packs
 /public/packs-test
 /node_modules

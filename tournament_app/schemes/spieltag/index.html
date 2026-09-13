@@ -1,0 +1,2033 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Liga-Spieltag — Carambus Turnier-App</title>
+<style>
+/* >>> CARAMBUS-SYNC core-css >>> */
+/* ==========================================================================
+   css/app.css — gemeinsames Dunkel-Theme + Basis-Komponenten (alle Schemata)
+   Extrahiert aus der 3-Band-App, damit Launcher und Schema-Seiten gleich aussehen.
+   ========================================================================== */
+:root {
+  --bg: #0f1419;
+  --panel: #1c232b;
+  --panel2: #252d36;
+  --border: #38424d;
+  --text: #e8eef4;
+  --muted: #97a3b0;
+  --accent: #4ea1ff;
+  --accent2: #2b7fd8;
+  --good: #4caf50;
+  --warn: #ff9800;
+  --bad: #ef5350;
+  --gold: #ffc94a;
+}
+* { box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  margin: 0;
+  padding: 0;
+  line-height: 1.4;
+}
+a { color: var(--accent); }
+header {
+  background: linear-gradient(135deg, #1a2733 0%, #0f1419 100%);
+  border-bottom: 2px solid var(--accent2);
+  padding: 16px 24px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+header h1 { margin: 0; font-size: 22px; color: var(--accent); }
+.meta { color: var(--muted); font-size: 13px; display: flex; gap: 18px; flex-wrap: wrap; }
+.meta strong { color: var(--text); }
+nav.tabs {
+  display: flex; gap: 2px; background: var(--panel);
+  padding: 0 24px; border-bottom: 1px solid var(--border); overflow-x: auto;
+}
+nav.tabs button {
+  background: transparent; border: none; color: var(--muted);
+  padding: 12px 18px; cursor: pointer; font-size: 14px;
+  border-bottom: 3px solid transparent; white-space: nowrap;
+}
+nav.tabs button.active { color: var(--accent); border-bottom-color: var(--accent); background: var(--panel2); }
+nav.tabs button:hover:not(.active) { color: var(--text); background: var(--panel2); }
+main { padding: 24px; max-width: 1400px; margin: 0 auto; }
+.card { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 18px; margin-bottom: 18px; }
+.card h2 { margin: 0 0 14px 0; font-size: 17px; color: var(--accent); border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+.card h3 { margin: 18px 0 10px 0; font-size: 14px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+button.btn {
+  background: var(--accent2); color: white; border: none; border-radius: 5px;
+  padding: 8px 16px; cursor: pointer; font-size: 14px; font-weight: 500;
+}
+button.btn:hover { background: var(--accent); }
+button.btn.secondary { background: var(--panel2); color: var(--text); border: 1px solid var(--border); }
+button.btn.secondary:hover { background: var(--border); }
+button.btn.danger { background: #b53737; }
+button.btn.danger:hover { background: var(--bad); }
+button.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+input[type="text"], input[type="number"], input[type="password"], select {
+  background: var(--bg); border: 1px solid var(--border); color: var(--text);
+  padding: 6px 10px; border-radius: 4px; font-size: 14px; width: 100%;
+}
+input[type="number"] { width: 90px; }
+input:focus, select:focus { outline: none; border-color: var(--accent); }
+input.validate-required:placeholder-shown { border-color: var(--bad); background: rgba(239, 83, 80, 0.08); }
+input.validate-required:placeholder-shown::placeholder { color: var(--bad); opacity: 0.7; }
+table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); font-size: 14px; }
+th { background: var(--panel2); color: var(--muted); text-transform: uppercase; font-size: 11px; letter-spacing: 0.05em; }
+tr:hover td { background: rgba(78, 161, 255, 0.05); }
+.badge { display: inline-block; background: var(--panel2); color: var(--muted); padding: 2px 8px; border-radius: 10px; font-size: 11px; border: 1px solid var(--border); }
+.badge.done { background: rgba(76, 175, 80, 0.15); color: var(--good); border-color: var(--good); }
+.badge.open { background: rgba(255, 152, 0, 0.15); color: var(--warn); border-color: var(--warn); }
+.badge.running { background: rgba(78, 161, 255, 0.15); color: var(--accent); border-color: var(--accent); }
+.toolbar { display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; align-items: center; }
+.grid-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.alert { background: rgba(255, 152, 0, 0.1); border-left: 3px solid var(--warn); padding: 10px 14px; margin-bottom: 14px; border-radius: 4px; color: var(--text); font-size: 13px; }
+.info { background: rgba(78, 161, 255, 0.08); border-left: 3px solid var(--accent); padding: 10px 14px; margin-bottom: 14px; border-radius: 4px; font-size: 13px; }
+.muted { color: var(--muted); }
+.gold { color: var(--gold); }
+details summary { cursor: pointer; padding: 6px; color: var(--muted); font-size: 13px; }
+details summary:hover { color: var(--accent); }
+@media (max-width: 700px) {
+  .grid-2col { grid-template-columns: 1fr; }
+  main { padding: 12px; }
+  header { padding: 12px; }
+}
+
+/* === Carambus-Verbindung (Badge + Modal) === */
+.conn-badge {
+  display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px;
+  border-radius: 12px; font-size: 12px; font-weight: 500; border: 1px solid var(--border);
+  background: var(--panel2); color: var(--muted); cursor: pointer;
+}
+.conn-badge:hover { border-color: var(--accent); color: var(--text); }
+.conn-badge .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
+.conn-badge.connected { color: var(--good); border-color: rgba(76,175,80,0.4); }
+.conn-badge.connected .dot { background: var(--good); }
+.conn-badge.error { color: var(--bad); border-color: rgba(239,83,80,0.4); }
+.conn-badge.error .dot { background: var(--bad); }
+.modal-backdrop {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.65); display: none;
+  align-items: center; justify-content: center; z-index: 1000; padding: 20px;
+}
+.modal-backdrop.open { display: flex; }
+.modal {
+  background: var(--panel); border: 1px solid var(--border); border-radius: 10px;
+  padding: 24px; max-width: 560px; width: 100%; max-height: 90vh; overflow: auto;
+}
+.modal h2 { margin: 0 0 16px 0; color: var(--accent); font-size: 18px; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+.modal .form-row { margin-bottom: 14px; }
+.modal label { display: block; color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+.modal input { width: 100%; }
+.modal .actions { display: flex; gap: 10px; margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--border); flex-wrap: wrap; }
+.modal .status-line { margin-top: 8px; padding: 8px 12px; border-radius: 4px; font-size: 13px; background: var(--panel2); color: var(--muted); display: none; }
+.modal .status-line.show { display: block; }
+.modal .status-line.ok { color: var(--good); background: rgba(76,175,80,0.08); }
+.modal .status-line.err { color: var(--bad); background: rgba(239,83,80,0.08); }
+/* <<< CARAMBUS-SYNC core-css <<< */
+
+/* Spieltag-spezifisch */
+.back-link { font-size: 13px; color: var(--muted); text-decoration: none; }
+.back-link:hover { color: var(--accent); }
+.demo-card { background: var(--panel2); border: 1px dashed var(--border); border-radius: 6px; padding: 12px 14px; font-size: 13px; color: var(--muted); }
+.demo-card strong { color: var(--text); }
+.roster-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+@media (max-width: 760px) { .roster-grid { grid-template-columns: 1fr; } }
+.roster-team { background: var(--panel2); border: 1px solid var(--border); border-radius: 6px; padding: 12px 14px; }
+.roster-team h3 { margin: 0 0 8px 0; font-size: 14px; color: var(--accent); border-bottom: 1px solid var(--border); padding-bottom: 6px; }
+.roster-team .team-meta { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+.roster-player { display: flex; gap: 10px; align-items: center; padding: 4px 6px; border-radius: 4px; }
+.roster-player:hover { background: var(--bg); }
+.roster-player input[type="checkbox"] { width: auto; margin: 0; }
+.roster-player .name { flex: 1; font-size: 13px; }
+.roster-player .id { color: var(--muted); font-size: 11px; font-family: monospace; }
+.roster-player .badge { font-size: 10px; padding: 1px 6px; }
+.lineup-hint { font-size: 12px; color: var(--muted); margin-top: 6px; }
+.lineup-hint.bad { color: var(--bad); }
+.lineup-hint.ok { color: var(--good); }
+.row-list { display: flex; flex-direction: column; gap: 4px; }
+.row-game { display: grid; grid-template-columns: 38px 1fr auto; gap: 8px; align-items: center; background: var(--panel2); padding: 6px 10px; border: 1px solid var(--border); border-radius: 5px; font-size: 13px; }
+.row-game .seqno { color: var(--gold); font-weight: 600; font-family: monospace; }
+.row-game .meta { color: var(--muted); font-size: 11px; font-family: monospace; }
+.row-divider { padding: 8px 10px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--accent); border-bottom: 1px solid var(--border); margin-top: 6px; }
+
+/* Spieltag-Tab: Begegnungsliste */
+.match-row {
+  display: grid; grid-template-columns: 40px 1fr; gap: 10px; align-items: stretch;
+  background: var(--panel2); padding: 10px 12px; border: 1px solid var(--border); border-radius: 6px;
+  margin-bottom: 8px;
+}
+.match-row.status-done { border-left: 3px solid var(--good); }
+.match-row.status-ready { border-left: 3px solid var(--accent); }
+.match-row.status-open { border-left: 3px solid var(--warn); }
+.match-row .mr-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 6px; flex-wrap: wrap; }
+.match-row .mr-head .title { font-weight: 600; color: var(--text); }
+.match-row .mr-head .params { color: var(--muted); font-size: 12px; font-family: monospace; }
+.match-row .mr-body { display: grid; grid-template-columns: 1fr auto 1fr; gap: 10px; align-items: center; }
+@media (max-width: 760px) { .match-row .mr-body { grid-template-columns: 1fr; } }
+.match-row .mr-side { display: flex; flex-direction: column; gap: 4px; }
+.match-row .mr-side.a { text-align: left; }
+.match-row .mr-side.b { text-align: right; }
+.match-row .mr-side .lbl { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; }
+.match-row .mr-side select.player-pick { width: 100%; font-size: 13px; }
+.match-row .mr-vs { color: var(--muted); font-size: 12px; text-align: center; }
+.match-row .mr-vs .res-inputs { display: flex; gap: 4px; justify-content: center; align-items: center; margin-top: 4px; }
+.match-row .mr-vs .res-inputs input { width: 50px; text-align: center; }
+.match-row .mr-vs .res-inputs .sep { color: var(--muted); font-weight: 600; }
+.match-row .mr-extra { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--border); }
+.match-row .mr-extra .ex-block { display: flex; flex-direction: column; gap: 3px; }
+.match-row .mr-extra .ex-block .lbl { color: var(--muted); font-size: 10px; text-transform: uppercase; }
+.match-row .mr-extra input { font-size: 12px; padding: 4px 6px; }
+.match-row .mr-foot { display: flex; justify-content: space-between; gap: 8px; margin-top: 8px; align-items: center; flex-wrap: wrap; }
+.match-row .mr-foot select.table-pick { font-size: 12px; padding: 4px 8px; width: auto; max-width: 180px; }
+.match-row .mr-foot .status-pill { font-size: 11px; padding: 3px 10px; border-radius: 10px; border: 1px solid var(--border); }
+.match-row .mr-foot .status-pill.open { color: var(--warn); border-color: var(--warn); }
+.match-row .mr-foot .status-pill.ready { color: var(--accent); border-color: var(--accent); }
+.match-row .mr-foot .status-pill.done { color: var(--good); border-color: var(--good); }
+.match-row .mr-foot .sync-pill { font-size: 11px; padding: 3px 10px; border-radius: 10px; border: 1px solid var(--border); margin-left: 4px; }
+.match-row .mr-foot .sync-pill.pending { color: var(--accent); border-color: var(--accent); }
+.match-row .mr-foot .sync-pill.synced { color: var(--good); border-color: var(--good); }
+.match-row .mr-foot .sync-pill.error { color: var(--bad); border-color: var(--bad); }
+.match-row .mr-seq { color: var(--gold); font-weight: 600; font-family: monospace; font-size: 18px; text-align: center; padding-top: 4px; }
+.dup-warn { background: rgba(239, 83, 80, 0.1); border-left: 3px solid var(--bad); padding: 8px 12px; border-radius: 4px; font-size: 12px; color: var(--text); margin-bottom: 8px; }
+
+/* Standings */
+.standings-result { background: var(--panel2); border: 1px solid var(--border); border-radius: 6px; padding: 14px 18px; margin-bottom: 14px; text-align: center; }
+.standings-result .gp { font-size: 32px; font-weight: 700; color: var(--gold); font-family: monospace; }
+.standings-result .mp { font-size: 18px; color: var(--accent); margin-top: 4px; }
+.standings-result .winner { font-size: 14px; color: var(--good); margin-top: 6px; }
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>⚔ Liga-Spieltag</h1>
+    <div class="meta">
+      <a class="back-link" href="../../index.html">← Turnier-Übersicht</a>
+      <span id="metaInfo"></span>
+    </div>
+  </div>
+  <span class="conn-badge" id="connBadge"></span>
+</header>
+
+<nav class="tabs">
+  <button data-tab="setup" class="active">Setup</button>
+  <button data-tab="play">Spieltag</button>
+  <button data-tab="standings">Tabelle</button>
+</nav>
+
+<main>
+  <div id="tab-setup" class="tab-content"></div>
+  <div id="tab-play" class="tab-content" style="display:none;"></div>
+  <div id="tab-standings" class="tab-content" style="display:none;"></div>
+</main>
+
+<!-- Gemeinsamer Carambus-Kern (inline, damit file:// funktioniert) -->
+<script>
+/* >>> CARAMBUS-SYNC core-js >>> */
+// ============================================================================
+// shared/carambus-core.js — gemeinsamer Carambus-Kern (KANONISCHE QUELLE)
+// ----------------------------------------------------------------------------
+// Klassisches Script (KEIN ES-Modul), definiert das globale Objekt
+// `window.Carambus`. Wird per tools/sync-core.mjs zwischen den CARAMBUS-SYNC-
+// Markern (Region core-js) in jede self-contained Schema-/Launcher-HTML INLINE
+// kopiert (damit jede Datei per Doppelklick aus dem Dateisystem läuft — ES-Module
+// gehen über file:// nicht). HINWEIS: in dieser Datei dürfen die literalen
+// Marker-Tokens NICHT vorkommen (sonst bricht der Extraktor zu früh ab).
+//
+// → Diese Datei ist die EINZIGE Bearbeitungsstelle des Kerns. Nach Änderungen:
+//      node tools/sync-core.mjs    (inlinen)
+//      node tools/check-core-sync.mjs   (verifizieren)
+// Diese Datei wird zur LAUFZEIT NICHT geladen — die Deliverables sind die
+// self-contained HTML-Dateien.
+// ============================================================================
+window.Carambus = (function () {
+  "use strict";
+
+  // ========================= Verbindung / Auth =============================
+  const CONN_KEY = "carambus.connection";
+  const CONN_DEFAULTS = {
+    base_url: "http://192.168.178.84:3131",
+    email: "carambus-app-gu-bridge@carambus.de",
+    region: "NBV",
+    tournament_cc_id: "",
+    tournament_id: "",     // Carambus-DB-PK (global eindeutig, robust gegen region-scoped cc_id-Ambiguität)
+    party_cc_id: "",       // Liga-Spieltag (Party) — vom Chat-Deeplink cc_open_party_in_app (§6 spieltag-Handoff)
+    bearer: null,
+    bearer_expires_at: null
+  };
+
+  function getConnection() {
+    try {
+      const raw = localStorage.getItem(CONN_KEY);
+      if (!raw) return { ...CONN_DEFAULTS };
+      return { ...CONN_DEFAULTS, ...JSON.parse(raw) };
+    } catch (e) {
+      return { ...CONN_DEFAULTS };
+    }
+  }
+  function saveConnection(conn) { localStorage.setItem(CONN_KEY, JSON.stringify(conn)); }
+  function isBearerValid(conn) {
+    return !!(conn.bearer && conn.bearer_expires_at && Date.now() < conn.bearer_expires_at);
+  }
+  function regionShortname() { return (getConnection().region || "NBV").toUpperCase(); }
+
+  // Deep-Link-Vorausfüllung (Carambus-Chat-Brücke, Handoffs cc_open_in_tournament_app +
+  // cc_open_party_in_app):
+  // Liest cb_base_url/cb_region/cb_tournament_cc_id/cb_tournament_id/cb_party_cc_id aus der URL
+  // und schreibt sie in die gespeicherte Verbindung. base_url: explizit aus cb_base_url, sonst
+  // Same-Origin = window.location.origin (App wird unter /app/ vom selben Local-Server
+  // ausgeliefert). cb_tournament_id (= Carambus-DB-Tournament#id, global eindeutig) wird
+  // zusätzlich zu cb_tournament_cc_id (region-scoped, deshalb mehrdeutig) gelesen; der
+  // seeding-Endpoint bevorzugt tournament_id wenn beide vorhanden — siehe HANDOFF Paul/
+  // v52337e16. cb_party_cc_id (Liga-Spieltag) wird parallel dazu geführt — der Launcher zeigt
+  // dann eine Party-Variante des Deep-Link-Banners.
+  // Das Passwort wird NIE über den Link übertragen — nach dem Vorausfüllen loggt sich
+  // der TL wie gewohnt ein. Räumt die cb_*-Parameter danach aus der URL (replaceState).
+  // Gibt true zurück, wenn etwas vorausgefüllt wurde.
+  function applyDeepLinkConnection() {
+    try {
+      if (typeof window === "undefined" || !window.location) return false;
+      const q = new URLSearchParams(window.location.search || "");
+      const region = q.get("cb_region");
+      const ccId = q.get("cb_tournament_cc_id");
+      const tId = q.get("cb_tournament_id");
+      const partyCcId = q.get("cb_party_cc_id");
+      const baseUrl = q.get("cb_base_url");
+      // cb_email: Service-Account des Ziel-Servers. Ohne diesen Parameter steht in einem
+      // frischen Browser der CONN_DEFAULTS-Wert im Login-Feld (z. B. …-gu-bridge@…), und
+      // der Login gegen einen anderen Local-Server scheitert mit 401 „E-Mail oder Passwort
+      // ungültig" — ohne dass der Grund im Feld sichtbar auffällt. Das Passwort wird
+      // weiterhin NIE über den Link übertragen.
+      const email = q.get("cb_email");
+      if (!region && !ccId && !tId && !partyCcId && !baseUrl && !email) return false;
+
+      const conn = getConnection();
+      if (region) conn.region = String(region).toUpperCase();
+      if (ccId) conn.tournament_cc_id = String(ccId);
+      if (tId) conn.tournament_id = String(tId);
+      if (partyCcId) conn.party_cc_id = String(partyCcId);
+      if (email && email.trim()) conn.email = email.trim();
+      const origin = (window.location.origin && window.location.origin !== "null") ? window.location.origin : null;
+      const resolvedBase = (baseUrl && baseUrl.trim()) || origin;
+      if (resolvedBase) conn.base_url = resolvedBase;
+      saveConnection(conn);
+
+      ["cb_region", "cb_tournament_cc_id", "cb_tournament_id", "cb_party_cc_id", "cb_base_url", "cb_email"].forEach((k) => q.delete(k));
+      const rest = q.toString();
+      const clean = window.location.pathname + (rest ? "?" + rest : "") + (window.location.hash || "");
+      if (window.history && window.history.replaceState) window.history.replaceState(null, "", clean);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function parseTournamentCcIdInput(input) {
+    if (input == null) return null;
+    const s = String(input).trim();
+    if (!s) return null;
+    if (/^\d+$/.test(s)) return s;
+    try {
+      const u = new URL(s);
+      const p = u.searchParams.get("p");
+      if (p) { const m = p.match(/\d{4}\/\d{4}-(\d+)/); if (m) return m[1]; }
+    } catch (_) {}
+    const m2 = s.match(/[-/](\d{3,})[-/]/);
+    if (m2) return m2[1];
+    return null;
+  }
+
+  class CarambusError extends Error {
+    constructor(status, body, message) {
+      super(message || `HTTP ${status}`);
+      this.name = "CarambusError";
+      this.status = status;
+      this.body = body;
+    }
+  }
+
+  async function fetchWithTimeout(url, opts, timeoutMs) {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+    try { return await fetch(url, { ...opts, signal: ctrl.signal }); }
+    finally { clearTimeout(timer); }
+  }
+
+  async function carambusLogin(baseUrl, email, password) {
+    const url = baseUrl.replace(/\/+$/, "") + "/login";
+    const resp = await fetchWithTimeout(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Accept": "application/json" },
+      body: JSON.stringify({ user: { email, password } })
+    }, 10000);
+    if (!resp.ok) {
+      let body = null; try { body = await resp.json(); } catch (_) {}
+      throw new CarambusError(resp.status, body, `Login fehlgeschlagen (HTTP ${resp.status})`);
+    }
+    const auth = resp.headers.get("Authorization") || resp.headers.get("authorization");
+    if (!auth || !auth.startsWith("Bearer ")) {
+      throw new CarambusError(resp.status, null, "Login OK, aber kein Bearer-Token in der Antwort gefunden");
+    }
+    const bearer = auth.substring("Bearer ".length).trim();
+    const expiresAt = Date.now() + 90 * 24 * 60 * 60 * 1000;
+    return { bearer, expires_at: expiresAt };
+  }
+
+  // ========================= REST-Client ===================================
+  async function carambusFetch(path, opts = {}) {
+    const conn = getConnection();
+    if (!conn.base_url) throw new CarambusError(0, null, "Keine Carambus-Verbindung konfiguriert (im Header auf das Statusfeld klicken)");
+    if (!isBearerValid(conn)) throw new CarambusError(401, null, "Kein gültiger Bearer-Token (bitte Login in den Verbindungseinstellungen)");
+    const url = conn.base_url.replace(/\/+$/, "") + path;
+    const headers = { "Authorization": `Bearer ${conn.bearer}`, "Accept": "application/json", ...(opts.headers || {}) };
+    const fetchOpts = { method: opts.method || "GET", headers };
+    if (opts.body != null) {
+      headers["Content-Type"] = "application/json";
+      fetchOpts.body = typeof opts.body === "string" ? opts.body : JSON.stringify(opts.body);
+    }
+    const cbEntry = { ts: new Date().toISOString(), method: fetchOpts.method, path, request: opts.body ?? null, status: null, response: null, error: null };
+    (window.__cbLog = window.__cbLog || []).push(cbEntry);
+    let resp;
+    try {
+      resp = await fetchWithTimeout(url, fetchOpts, 10000);
+    } catch (e) {
+      cbEntry.error = e.name === "AbortError" ? "Timeout" : ("Netzwerk: " + e.message);
+      if (e.name === "AbortError") throw new CarambusError(0, null, "Timeout — Carambus antwortet nicht (LAN-Verbindung prüfen)");
+      throw new CarambusError(0, null, "Netzwerkfehler — Carambus nicht erreichbar (LAN-Verbindung prüfen): " + e.message);
+    }
+    let body = null;
+    const ct = resp.headers.get("Content-Type") || "";
+    if (ct.includes("application/json")) { try { body = await resp.json(); } catch (_) {} }
+    else { try { body = await resp.text(); } catch (_) {} }
+    cbEntry.status = resp.status; cbEntry.response = body;
+    if (!resp.ok) throw new CarambusError(resp.status, body, `HTTP ${resp.status}`);
+    return { status: resp.status, body };
+  }
+
+  async function ping() {
+    try {
+      await carambusFetch(`/api/external_tournament/clubs?region=${encodeURIComponent(regionShortname())}`);
+      return { ok: true };
+    } catch (err) {
+      if (err instanceof CarambusError && err.status === 404) return { ok: true, note: "404 (API erreichbar, Auth OK)" };
+      throw err;
+    }
+  }
+
+  async function fetchClubs(region = regionShortname()) {
+    const { body } = await carambusFetch(`/api/external_tournament/clubs?region=${encodeURIComponent(region)}`);
+    return body.clubs || [];
+  }
+  // Phase 21-07: optional ageClass/gender (Server-Filter). Spieler-Payload enthält jetzt
+  // age_class (String) + gender ("M"/"F"/"U"). 2. Arg darf weiter ein region-String sein
+  // (Legacy-Kompatibilität) — bevorzugt aber das Optionen-Objekt.
+  async function fetchClubPlayers(clubCcId, opts = {}) {
+    if (typeof opts === "string") opts = { region: opts };
+    const region = opts.region || regionShortname();
+    const params = new URLSearchParams();
+    params.set("region", region);
+    params.set("club_cc_id", clubCcId);
+    if (opts.ageClass) params.set("age_class", opts.ageClass);
+    if (opts.gender) params.set("gender", opts.gender);
+    const { body } = await carambusFetch(`/api/external_tournament/club_players?${params.toString()}`);
+    return body.players || [];
+  }
+  // Phase 15 + Paul-Patch v52337e16: Seedings + Turnier-Metadaten eines TournamentCc
+  // (Single + Mannschaft). Quelle für die "Aus Meldeliste vorbefüllen"-UX: liefert
+  // tournament.{name,discipline,format,location} + teams[].players[] in Setzlisten-
+  // Reihenfolge. tournament_id (Carambus-DB-PK, global eindeutig) wird bevorzugt; Fallback
+  // tournament_cc_id (region-scoped via context). Mindestens eines muss gesetzt sein.
+  async function fetchSeeding({ region = regionShortname(), tournamentCcId, tournamentId } = {}) {
+    const hasTId = tournamentId != null && String(tournamentId).trim() !== "";
+    const hasCc = tournamentCcId != null && String(tournamentCcId).trim() !== "";
+    if (!hasTId && !hasCc) {
+      throw new CarambusError(0, null, "tournamentId oder tournamentCcId erforderlich für fetchSeeding");
+    }
+    const params = new URLSearchParams();
+    params.set("region", region);
+    if (hasTId) params.set("tournament_id", tournamentId);
+    if (hasCc) params.set("tournament_cc_id", tournamentCcId);
+    const { body } = await carambusFetch(`/api/external_tournament/seeding?${params.toString()}`);
+    return body;
+  }
+  // Phase 21-05: ClubCloud-Meldelisten einer Region+Saison (Deadline/Status/Disziplin/Kategorie
+  // + ggf. verknüpftes tournament_cc). Default-Saison = Carambus current_season.
+  async function fetchRegistrationLists({ region = regionShortname(), season, discipline, category, status } = {}) {
+    const params = new URLSearchParams();
+    params.set("region", region);
+    if (season) params.set("season", season);
+    if (discipline) params.set("discipline", discipline);
+    if (category) params.set("category", category);
+    if (status) params.set("status", status);
+    const { body } = await carambusFetch(`/api/external_tournament/registration_lists?${params.toString()}`);
+    return body;
+  }
+  // Phase 19 (Handoff an Paul): Sortierung nach Disziplin-Ranking.
+  async function fetchPlayerRankings({ discipline, playerCcIds = [], region = regionShortname() }) {
+    const params = new URLSearchParams();
+    params.set("region", region);
+    params.set("discipline", discipline);
+    if (playerCcIds.length) params.set("player_cc_ids", playerCcIds.join(","));
+    const { body } = await carambusFetch(`/api/external_tournament/player_rankings?${params.toString()}`);
+    return body;
+  }
+  async function fetchTables(locationRef, region = regionShortname()) {
+    const params = new URLSearchParams();
+    params.set("region", region);
+    if (locationRef.id != null) params.set("location_id", locationRef.id);
+    else if (locationRef.cc_id != null) params.set("location_cc_id", locationRef.cc_id);
+    const { body } = await carambusFetch("/api/external_tournament/tables?" + params.toString());
+    return body;
+  }
+
+  // Phase 20: GET disciplines — offizielle Disziplinen + TournamentPlans (executor_params)
+  // + DisciplineTournamentPlan-Matrix (points/innings je Plan×Klasse×Spielerzahl).
+  // Liefert { schema, region, tournament_plans:{name→{…,executor_params}}, disciplines:[…] }.
+  async function fetchDisciplines(region = regionShortname()) {
+    const { body } = await carambusFetch(`/api/external_tournament/disciplines?region=${encodeURIComponent(region)}`);
+    return body;
+  }
+
+  async function createTournament({ externalId, title, location, discipline, region = regionShortname() }) {
+    const body = {
+      region: { shortname: region }, external_id: externalId, title,
+      location: location.id != null ? { id: location.id } : { cc_id: location.cc_id }
+    };
+    if (discipline) body.discipline = { name: discipline };
+    const { body: resp } = await carambusFetch("/api/external_tournament/tournament", { method: "POST", body });
+    return resp.tournament || {};
+  }
+  // Tisch-Referenz für die API: bevorzugt die Carambus-Table-id (eindeutig, robust gegen
+  // doppelte Tischnamen einer Location), sonst Fallback auf den Namen (location-scoped).
+  function tableRef(tableId, tableName) { return tableId != null ? { id: tableId } : { name: tableName }; }
+  // Turnier-Referenz: bevorzugt tournamentId (globaler DB-PK, unabhängig von external_id).
+  // Für Attach-Modus (Web-erzeugtes Turnier ohne external_id) unverzichtbar. Fallback auf
+  // {external_id:…} für app-erzeugte Turniere. Alle POST-Endpoints akzeptieren beide Formen
+  // (external_tournaments_controller#lock_table/start_game/acknowledge_result/end_tournament).
+  function tournamentRef({ tournamentId, externalId }) {
+    if (tournamentId != null && String(tournamentId).trim() !== "") return { tournament_id: tournamentId };
+    return { tournament: { external_id: externalId } };
+  }
+  async function lockTable({ externalId, tournamentId = null, tableName, tableId = null, lock = true, region = regionShortname() }) {
+    const { body } = await carambusFetch("/api/external_tournament/lock_table", {
+      method: "POST",
+      body: { region: { shortname: region }, ...tournamentRef({ tournamentId, externalId }), table: tableRef(tableId, tableName), lock }
+    });
+    return body;
+  }
+  async function startGame({ externalId, tournamentId = null, gameExternalId, tableName, tableId = null, participants, format = {}, region = regionShortname() }) {
+    const payload = {
+      region: { shortname: region }, ...tournamentRef({ tournamentId, externalId }), table: tableRef(tableId, tableName),
+      external_id: gameExternalId,
+      free_game_form: format.free_game_form || "karambol",
+      innings_goal: format.innings_goal ?? 25,
+      sets_to_play: format.sets_to_play ?? 1,
+      sets_to_win: format.sets_to_win ?? 1,
+      allow_follow_up: format.allow_follow_up ?? false,
+      participants
+    };
+    if (format.initial_red_balls != null) payload.initial_red_balls = format.initial_red_balls; // Snooker
+    const { body } = await carambusFetch("/api/external_tournament/start_game", { method: "POST", body: payload });
+    return body;
+  }
+  async function acknowledgeResult({ externalId, tournamentId = null, gameExternalId, region = regionShortname() }) {
+    const { status, body } = await carambusFetch("/api/external_tournament/acknowledge_result", {
+      method: "POST",
+      body: { region: { shortname: region }, ...tournamentRef({ tournamentId, externalId }), game: { external_id: gameExternalId } }
+    });
+    return { status, body };
+  }
+  async function endTournament({ externalId, tournamentId = null, cleanup = false, region = regionShortname() }) {
+    const { body } = await carambusFetch("/api/external_tournament/end_tournament", {
+      method: "POST",
+      body: { region: { shortname: region }, ...tournamentRef({ tournamentId, externalId }), cleanup }
+    });
+    return body;
+  }
+  // ===== Ergebnisarchiv (Vertrag carambus.tournament_result/v1) ===========
+  // Die App bleibt System of Record; der lokale Server bekommt zusaetzlich eine lesbare
+  // Kopie des Endstands — dieselbe Form, in der Carambus gescrapte CC-Ergebnisse haelt.
+  // Vertrag + Klaerungen: HANDOFF-to-/from-carambus-tournament-result-archive.md.
+  //
+  // Idempotent: mehrfacher Aufruf mit demselben Payload schreibt dieselben Zeilen
+  // (Upsert ueber den Unique-Index tournament_id/gname/seqno). Bewusst nach JEDER Runde
+  // aufrufen, nicht erst am Schluss — ein Geraeteverlust mittendrin kostet dann nichts.
+  //
+  // Response: { archived, durable, seedings_written, games_written, players_unmatched[] }
+  //   archived = geschrieben, durable = ueberlebt den naechtlichen GC (erst ab Plan 41-02).
+  async function pushTournamentResult({ externalId, tournamentId = null, scheme, title = "Endstand",
+                                        standings = [], games = [], region = regionShortname() }) {
+    const { body } = await carambusFetch("/api/external_tournament/tournament_result", {
+      method: "POST",
+      body: {
+        // ACHTUNG, weicht von allen anderen Endpoints ab: tournament_result liest die
+        // Region als STRING (`params[:region].to_s.upcase`, permit als Skalar), nicht als
+        // {shortname:…}. Mit der Hausform quittiert der Server 404 "Couldn't find Region".
+        // Gemeldet — solange die Server-Seite so ist, senden wir hier den String.
+        region,
+        ...tournamentRef({ tournamentId, externalId }),
+        scheme, title, standings, games
+      }
+    });
+    return body;
+  }
+
+  // Round-Result Aggregator (Plan 15-04): liest alle Ergebnisse einer Runde eines
+  // Turniers. Erforderlich für Attach-Modus (State-Restore auf Zweit-Laptop / Tag N).
+  // Achtung: Endpoint arbeitet mit tournament_cc_id (region-scoped), NICHT mit tournament_id
+  // — kommt aus seeding.tournament.cc_id. Read-only.
+  async function fetchRoundResult({ region = regionShortname(), tournamentCcId, roundNo } = {}) {
+    if (tournamentCcId == null) throw new CarambusError(0, null, "tournamentCcId erforderlich für fetchRoundResult");
+    if (roundNo == null) throw new CarambusError(0, null, "roundNo erforderlich für fetchRoundResult");
+    const params = new URLSearchParams();
+    params.set("region", region);
+    params.set("tournament_cc_id", tournamentCcId);
+    params.set("round_no", String(roundNo));
+    const { body } = await carambusFetch(`/api/external_tournament/round_result?${params.toString()}`);
+    return body;
+  }
+  // Convenience: iteriert round_result für Runden 1..maxRounds und aggregiert alle
+  // Ergebnisse (leere Runden = einfach übersprungen). Für Attach-Modus im plan-Schema:
+  // ein Aufruf → alle bereits gespielten Games mit external_id/table_name/participants.
+  async function fetchAllRoundResults({ region = regionShortname(), tournamentCcId, maxRounds } = {}) {
+    if (tournamentCcId == null) throw new CarambusError(0, null, "tournamentCcId erforderlich für fetchAllRoundResults");
+    if (!maxRounds || maxRounds < 1) throw new CarambusError(0, null, "maxRounds erforderlich (>=1) für fetchAllRoundResults");
+    const results = [];
+    for (let r = 1; r <= maxRounds; r++) {
+      try {
+        const body = await fetchRoundResult({ region, tournamentCcId, roundNo: r });
+        for (const res of (body.results || [])) results.push({ ...res, round_no: r });
+      } catch (e) {
+        if (e instanceof CarambusError && e.status === 404) continue; // Runde nicht gefunden = leer
+        throw e;
+      }
+    }
+    return results;
+  }
+
+  // Phase 48-§7 / HANDOFF-to-carambus-party-api §1: GET party — Liga-Spieltag laden.
+  // Vorrang partyId (Carambus-DB-PK, global eindeutig); Fallback partyCcId (region-scoped).
+  // Antwort: {schema:"carambus.party/v1", party:{id,cc_id,external_id,name,…,location?},
+  // team_a/team_b:{id,cc_id,name,club_*,roster:[{dbu_nr,firstname,lastname,…}]},
+  // party_monitor: identisch Pauls party_monitor.data (§4.1)}. Endpoint noch ausstehend.
+  async function fetchParty({ region = regionShortname(), partyId, partyCcId } = {}) {
+    const hasId = partyId != null && String(partyId).trim() !== "";
+    const hasCc = partyCcId != null && String(partyCcId).trim() !== "";
+    if (!hasId && !hasCc) throw new CarambusError(0, null, "partyId oder partyCcId erforderlich für fetchParty");
+    const params = new URLSearchParams();
+    params.set("region", region);
+    if (hasId) params.set("party_id", partyId);
+    if (hasCc) params.set("party_cc_id", partyCcId);
+    const { body } = await carambusFetch(`/api/external_tournament/party?${params.toString()}`);
+    return body;
+  }
+  // §2: POST party_game_result — Direkteingabe-Push pro Spielzeile (Modus ii).
+  // baResults entspricht §4.3-Container (Spieler1/2 = dbu_nr team_a/b, Sets1/2 oder
+  // Ergebnis1/2 je sets-Disziplin, Aufnahmen1/2 + Höchstserie1/2 optional).
+  // gname = "<seqno>-<type>" — Schlüssel ins party_monitor.rows. Idempotent: Mehrfach-Push
+  // überschreibt (TL-Korrektur). Antwort enthält intermediate_result für Drift-Vergleich.
+  async function partyGameResult({ region = regionShortname(), partyExternalId, gname, baResults } = {}) {
+    const { body } = await carambusFetch("/api/external_tournament/party_game_result", {
+      method: "POST",
+      body: {
+        schema: "carambus.party_game_result/v1",
+        region: { shortname: region },
+        party: { external_id: partyExternalId },
+        gname, ba_results: baResults
+      }
+    });
+    return body;
+  }
+  // §3: POST party_close — Spielbericht abschließen (AASM close_party).
+  // 409 + {missing_gnames:[...]} bei verletztem Guard (App soll fehlende Spiele anzeigen).
+  async function partyClose({ region = regionShortname(), partyExternalId } = {}) {
+    const { body } = await carambusFetch("/api/external_tournament/party_close", {
+      method: "POST",
+      body: {
+        schema: "carambus.party_close/v1",
+        region: { shortname: region },
+        party: { external_id: partyExternalId }
+      }
+    });
+    return body;
+  }
+
+  function cleanPlayerRef(p) {
+    const ref = { firstname: (p.firstname ?? p.f ?? "").trim(), lastname: (p.lastname ?? p.l ?? "").trim() };
+    if (p.cc_id != null) ref.cc_id = p.cc_id;
+    if (p.dbu_nr != null) ref.dbu_nr = p.dbu_nr;
+    if (p.club_cc_id != null) ref.club_cc_id = p.club_cc_id;
+    return ref;
+  }
+
+  // ========================= Util ==========================================
+  function calcAvg(balls, innings) { return (!innings || innings <= 0) ? 0 : balls / innings; }
+  function fmtAvg(x) { return (!isFinite(x) || x === 0) ? "-" : x.toFixed(3); }
+  function escapeHtml(s) {
+    return String(s == null ? "" : s)
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+  }
+  function shuffle(arr) {
+    const a = arr.slice();
+    for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+    return a;
+  }
+  function tableNo(t) { const m = String(t == null ? "" : t).match(/\d+/); return m ? parseInt(m[0], 10) : null; }
+  function csvCell(v) { const s = (v == null ? "" : String(v)); return /[";\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; }
+  function buildCsv(rows) { return rows.map(r => r.map(csvCell).join(";")).join("\n"); }
+  function downloadText(filename, text, mime = "text/csv") {
+    const blob = new Blob([text], { type: mime });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob); a.download = filename; a.click();
+    URL.revokeObjectURL(a.href);
+  }
+  function downloadJson(filename, obj) { downloadText(filename, JSON.stringify(obj, null, 2), "application/json"); }
+  // Gemeinsame Export-Formate (schemaübergreifend identisch). Jedes Schema baut nur die
+  // normalisierten Zeilen aus seinen eigenen Daten und ruft diese Builder auf.
+  // ClubCloud-Rangliste (kein Header): RANG;PUNKTE;GRUPPENRANG;PASS-NR;PGA;VEREINSNR;TEILNEHMER
+  function buildRankingCsv(entries) {
+    return buildCsv((entries || []).map(e => [
+      e.rang ?? "", e.punkte ?? "", e.gruppenrang ?? "", e.passNr ?? "", e.pga ?? "", e.vereinsNr ?? "", e.teilnehmer ?? ""
+    ]));
+  }
+  // Spiele-CSV im Carambus-Import-Format (kein Header), in Reihenfolge nummeriert (lfd.nr):
+  // Spielname;lfd.nr;;dbu_nr a;dbu_nr b;Bälle a;Bälle b;Aufn. a;Aufn. b;HS a;HS b;dd.mm.yyyy;hh:mm
+  // games: [{ name, dbuA, dbuB, ballsA, ballsB, inningsA, inningsB, hsA, hsB, at(ms) }] (bereits sortiert)
+  function buildGamesCsv(games) {
+    const pad = n => String(n).padStart(2, "0");
+    const dt = ms => { if (!ms) return ["", ""]; const d = new Date(ms); return [`${pad(d.getDate())}.${pad(d.getMonth() + 1)}.${d.getFullYear()}`, `${pad(d.getHours())}:${pad(d.getMinutes())}`]; };
+    return buildCsv((games || []).map((g, i) => {
+      const [d, t] = dt(g.at);
+      return [g.name ?? "", i + 1, "", g.dbuA ?? "", g.dbuB ?? "", g.ballsA ?? "", g.ballsB ?? "", g.inningsA ?? "", g.inningsB ?? "", g.hsA ?? "", g.hsB ?? "", d, t];
+    }));
+  }
+
+  // Scoreboard-/Spielform-Typ aus der Disziplin ableiten. Carambus waehlt das Scoreboard
+  // AUSSCHLIESSLICH anhand von free_game_form: "pool" → Pool-Board, "snooker" → Snooker-Board,
+  // alles andere (inkl. "karambol") → Karambol-Board. Verlaessliches Signal ist table_kind aus
+  // dem disciplines-Endpoint ("Pool"/"Snooker"/…); fehlt es, heuristisch ueber den Namen.
+  function freeGameForm(opts = {}) {
+    const tk = String(opts.tableKind || "").trim().toLowerCase();
+    if (tk === "pool") return "pool";
+    if (tk === "snooker") return "snooker";
+    if (tk) return "karambol"; // bekannter Karambol-/Kegel-Tischtyp (Small/Match Billard, …)
+    const d = String(opts.discipline || "").toLowerCase();
+    if (/snooker/.test(d)) return "snooker";
+    if (/pool|\b\d+\s*-?\s*ball\b|14[.\/]1/.test(d)) return "pool";
+    return "karambol";
+  }
+
+  // Phase 21-07: kurze Anzeige-Suffixe für Spieler-Felder (age_class/gender). Leerstring,
+  // wenn beide null (Spieler ohne qualifizierte seedings) — damit nichts hängen bleibt.
+  function playerAgeGender(p) { return [p && p.age_class, p && p.gender].filter(Boolean).join(" · "); }
+
+  // ===== Ergebnisarchiv: Zeilen-Normalisierung ============================
+  // Die Anzeige in Carambus (app/views/tournaments/show.html.erb) stellt vier
+  // Bedingungen. Sie werden hier EINMAL durchgesetzt, damit sie kein Schema
+  // einzeln treffen muss — und weil drei davon still fehlschlagen:
+  //   1. Spaltenkoepfe kommen aus .keys des ERSTEN Records. Alle Zeilen brauchen
+  //      dieselben Keys in derselben Reihenfolge, sonst fehlen Spalten.
+  //   2. Eine Spielzeile ohne "Ergebnis" (oder "Punkte") wird stumm uebersprungen.
+  //   3. Sortiert wird ueber data["Partie"].to_i — "Partie" ist immer eine Zahl.
+  //   4. "Rank" steuert die Sortierung des Endstands, als Integer.
+  // "Heim"/"Gast" meiden wir bei Einzelturnieren bewusst: sind die Spalten vorhanden
+  // und leer, bricht die Zeilenausgabe ab dieser Stelle ab (das skip-Flag in der View
+  // wird innerhalb der Zeile nicht zurueckgesetzt). Mannschaftsschemata fuellen beide.
+  function unifyColumns(rows) {
+    const keys = [];
+    rows.forEach(r => Object.keys(r.columns || {}).forEach(k => { if (!keys.includes(k)) keys.push(k); }));
+    return rows.map(r => {
+      const c = {};
+      keys.forEach(k => { const v = (r.columns || {})[k]; c[k] = v == null ? "" : String(v); });
+      return { ...r, columns: c };
+    });
+  }
+  // entries: [{ player:{cc_id,dbu_nr,firstname,lastname}|null, rank, columns:{...} }]
+  function buildResultStandings(entries) {
+    const rows = unifyColumns((entries || []).map((e, i) => ({
+      player: e.player || null,
+      rank: Number.isFinite(+e.rank) ? +e.rank : i + 1,
+      columns: e.columns || {}
+    })));
+    // Rank NACH der Vereinheitlichung setzen: unifyColumns stringifiziert, der
+    // Vertrag verlangt hier aber eine Zahl.
+    return rows.map(r => ({ ...r, columns: { ...r.columns, Rank: r.rank } }));
+  }
+  // rows: [{ gname, seqno, group_no, round_no, table_no, started_at, ended_at, columns:{...} }]
+  function buildResultGames(rows) {
+    return unifyColumns((rows || []).map((r, i) => {
+      const columns = { ...(r.columns || {}) };
+      if (columns.Partie == null || columns.Partie === "") columns.Partie = i + 1;
+      // Ohne Ergebnis verschluckt die View die Zeile kommentarlos — lieber ein
+      // sichtbarer Strich als eine Partie, die im Archiv fehlt.
+      if (!columns.Ergebnis && !columns.Punkte) columns.Ergebnis = "—";
+      return {
+        gname: r.gname != null ? String(r.gname) : `g${i + 1}`,
+        seqno: r.seqno != null ? r.seqno : i + 1,
+        group_no: r.group_no ?? null, round_no: r.round_no ?? null, table_no: r.table_no ?? null,
+        started_at: r.started_at || null, ended_at: r.ended_at || null,
+        columns
+      };
+    }));
+  }
+
+  const util = { calcAvg, fmtAvg, escapeHtml, shuffle, tableNo, csvCell, buildCsv, downloadText, downloadJson, buildRankingCsv, buildGamesCsv, buildResultStandings, buildResultGames, freeGameForm, playerAgeGender };
+
+  // ========================= Schema-State (localStorage, Einzelinstanz) =====
+  // Legacy: ein State je Schema (z. B. 3-Band). Für instanzfähige Schemata siehe
+  // die Instanz-Funktionen weiter unten.
+  const STATE_PREFIX = "carambus.scheme.";
+  function schemeKey(id) { return STATE_PREFIX + id; }
+  function loadSchemeState(id, makeDefault) {
+    try { const raw = localStorage.getItem(schemeKey(id)); if (raw) return JSON.parse(raw); }
+    catch (e) { console.warn("State-Load fehlgeschlagen:", e); }
+    return makeDefault ? makeDefault() : null;
+  }
+  function saveSchemeState(id, state) { localStorage.setItem(schemeKey(id), JSON.stringify(state)); }
+  function clearSchemeState(id) { localStorage.removeItem(schemeKey(id)); }
+
+  // ===== Turnier-Instanzen (mehrere parallele Turniere je Schema) ===========
+  // Jede Instanz = ein eigenständiges Turnier (eigener State unter
+  // carambus.instance.<id>). Ein Index (carambus.instances) hält die Metadaten
+  // (Schema, Titel, Kategorie, Zeitstempel) für den Turnier-Manager im Launcher.
+  const INSTANCE_PREFIX = "carambus.instance.";
+  const INSTANCE_INDEX = "carambus.instances";
+
+  function listInstances() {
+    try { return JSON.parse(localStorage.getItem(INSTANCE_INDEX) || "[]"); }
+    catch (e) { return []; }
+  }
+  function writeInstanceIndex(arr) { localStorage.setItem(INSTANCE_INDEX, JSON.stringify(arr)); }
+
+  // Optional `discipline`, `source` (z. B. "registration_list:<cc_id>"),
+  // `preselectedPlayers` (Array bereinigter Spieler-Refs für die Setzliste) und
+  // `partyCcId` (Liga-Spieltag — schaltet das spieltag-Schema in den Live-Modus, Phase 6)
+  // können beim Anlegen mitgegeben werden; das Schema liest sie beim ersten defaultState
+  // aus instance.*.
+  function createInstance({ schemeId, title, category, discipline, source, preselectedPlayers, partyCcId, attachTournamentId } = {}) {
+    const id = `${schemeId}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
+    const rec = {
+      id, schemeId,
+      title: (title && title.trim()) || "Unbenanntes Turnier",
+      category: (category || "").trim(),
+      createdAt: Date.now(), updatedAt: Date.now()
+    };
+    if (discipline) rec.discipline = String(discipline);
+    if (source) rec.source = String(source);
+    if (partyCcId) rec.party_cc_id = String(partyCcId);
+    // Attach-Modus (plan-Schema): PK eines im Carambus-Web angelegten Turniers, an das die
+    // App sich anhängt (statt selbst Turnier anzulegen). Multi-Laptop-/Multi-Tag-fähig.
+    if (attachTournamentId != null && String(attachTournamentId).trim() !== "") {
+      rec.attach_tournament_id = String(attachTournamentId);
+    }
+    if (Array.isArray(preselectedPlayers) && preselectedPlayers.length) rec.preselected_players = preselectedPlayers;
+    const arr = listInstances(); arr.push(rec); writeInstanceIndex(arr);
+    return rec;
+  }
+  function getInstance(id) { return listInstances().find(r => r.id === id) || null; }
+  function updateInstance(id, patch) {
+    const arr = listInstances(); const r = arr.find(x => x.id === id);
+    if (!r) return null;
+    Object.assign(r, patch, { updatedAt: Date.now() });
+    writeInstanceIndex(arr);
+    return r;
+  }
+  function deleteInstance(id) {
+    writeInstanceIndex(listInstances().filter(r => r.id !== id));
+    localStorage.removeItem(INSTANCE_PREFIX + id);
+  }
+  function loadInstanceState(id, makeDefault) {
+    try { const raw = localStorage.getItem(INSTANCE_PREFIX + id); if (raw) return JSON.parse(raw); }
+    catch (e) { console.warn("Instanz-State-Load fehlgeschlagen:", e); }
+    return makeDefault ? makeDefault() : null;
+  }
+  function saveInstanceState(id, state) { localStorage.setItem(INSTANCE_PREFIX + id, JSON.stringify(state)); }
+
+  const storage = {
+    loadSchemeState, saveSchemeState, clearSchemeState, schemeKey,
+    listInstances, createInstance, getInstance, updateInstance, deleteInstance,
+    loadInstanceState, saveInstanceState
+  };
+
+  // ========================= Verbindungs-Widget ============================
+  const MODAL_ID = "carambusConnModal";
+  const modalState = { onChange: null };
+
+  function mountConnectionWidget({ badgeEl, onChange } = {}) {
+    if (!badgeEl) throw new Error("mountConnectionWidget: badgeEl fehlt");
+    ensureModal();
+    badgeEl.classList.add("conn-badge");
+    badgeEl.innerHTML = `<span class="dot"></span><span class="conn-badge-label">Carambus</span>`;
+    badgeEl.title = "Carambus-Verbindung konfigurieren";
+    badgeEl.addEventListener("click", openModal);
+
+    function refresh() {
+      const conn = getConnection();
+      const label = badgeEl.querySelector(".conn-badge-label");
+      badgeEl.classList.remove("connected", "error");
+      if (isBearerValid(conn)) { badgeEl.classList.add("connected"); label.textContent = `Carambus: verbunden (${conn.region})`; }
+      else if (conn.base_url) { label.textContent = "Carambus: nicht angemeldet"; }
+      else { label.textContent = "Carambus: nicht verbunden"; }
+    }
+    modalState.onChange = () => { refresh(); if (onChange) onChange(getConnection()); };
+    refresh();
+    return { refresh, open: openModal };
+  }
+
+  function ensureModal() {
+    if (document.getElementById(MODAL_ID)) return;
+    const wrap = document.createElement("div");
+    wrap.className = "modal-backdrop"; wrap.id = MODAL_ID;
+    wrap.innerHTML = `
+      <div class="modal">
+        <h2>🔌 Carambus-Verbindung</h2>
+        <div class="info">Einmal pro Gerät einrichten. Wird von allen Schemata geteilt. Der Token gilt 90 Tage.</div>
+        <div class="form-row"><label>Base-URL (LAN)</label><input type="text" id="cwBaseUrl" placeholder="http://192.168.178.84:3131"></div>
+        <div class="form-row"><label>Service-Account E-Mail</label><input type="text" id="cwEmail" placeholder="carambus-app-&lt;region&gt;-bridge@carambus.de"></div>
+        <div class="form-row"><label>Region (Shortname)</label><input type="text" id="cwRegion" placeholder="NBV"></div>
+        <div class="form-row"><label>Turnier (cc_id) — Quelle der Teilnehmer, optional / via Chat-Deep-Link vorausgefüllt</label><input type="text" id="cwTournamentCcId" placeholder="z. B. 939"></div>
+        <div class="form-row"><label>Liga-Spieltag (Party cc_id) — optional / via Chat-Deep-Link vorausgefüllt</label><input type="text" id="cwPartyCcId" placeholder="z. B. 12345"></div>
+        <div class="form-row" id="cwPasswordRow"><label>Passwort (nur für Login nötig)</label><input type="password" id="cwPassword" placeholder="········" autocomplete="current-password"></div>
+        <div class="status-line" id="cwStatus"></div>
+        <div class="actions">
+          <button class="btn" id="cwLogin">🔑 Login &amp; Speichern</button>
+          <button class="btn secondary" id="cwTest">🩺 Verbindung testen</button>
+          <button class="btn secondary" id="cwClear" title="Token vergessen (erzwingt neuen Login)">Token vergessen</button>
+          <button class="btn secondary" id="cwClose" style="margin-left:auto;">Schließen</button>
+        </div>
+      </div>`;
+    document.body.appendChild(wrap);
+    wrap.addEventListener("click", (e) => { if (e.target === wrap) closeModal(); });
+    document.getElementById("cwClose").addEventListener("click", closeModal);
+    document.getElementById("cwLogin").addEventListener("click", doLogin);
+    document.getElementById("cwTest").addEventListener("click", doTest);
+    document.getElementById("cwClear").addEventListener("click", doClear);
+  }
+  function openModal() {
+    const conn = getConnection();
+    document.getElementById("cwBaseUrl").value = conn.base_url || "";
+    document.getElementById("cwEmail").value = conn.email || "";
+    document.getElementById("cwRegion").value = conn.region || "";
+    document.getElementById("cwTournamentCcId").value = conn.tournament_cc_id || "";
+    document.getElementById("cwPartyCcId").value = conn.party_cc_id || "";
+    document.getElementById("cwPassword").value = "";
+    setStatus("", "");
+    document.getElementById(MODAL_ID).classList.add("open");
+  }
+  function closeModal() { document.getElementById(MODAL_ID).classList.remove("open"); }
+  function readForm() {
+    return {
+      base_url: document.getElementById("cwBaseUrl").value.trim(),
+      email: document.getElementById("cwEmail").value.trim(),
+      region: document.getElementById("cwRegion").value.trim().toUpperCase(),
+      tournament_cc_id: document.getElementById("cwTournamentCcId").value.trim(),
+      party_cc_id: document.getElementById("cwPartyCcId").value.trim(),
+      password: document.getElementById("cwPassword").value
+    };
+  }
+  function setStatus(msg, kind) {
+    const el = document.getElementById("cwStatus");
+    el.textContent = msg;
+    el.className = "status-line" + (msg ? " show" : "") + (kind ? " " + kind : "");
+  }
+  async function doLogin() {
+    const f = readForm();
+    if (!f.base_url || !f.email) { setStatus("Base-URL und E-Mail sind nötig.", "err"); return; }
+    const conn = getConnection();
+    // Wenn der TL cc_id manuell ändert, ist die per Deep-Link gesetzte tournament_id (DB-PK)
+    // u. U. nicht mehr passend → leeren, damit fetchSeeding wieder über cc_id+region auflöst.
+    if (String(f.tournament_cc_id || "") !== String(conn.tournament_cc_id || "")) conn.tournament_id = "";
+    conn.base_url = f.base_url; conn.email = f.email; conn.region = f.region; conn.tournament_cc_id = f.tournament_cc_id;
+    conn.party_cc_id = f.party_cc_id || "";
+    if (!f.password && isBearerValid(conn)) {
+      saveConnection(conn); setStatus("Gespeichert (bestehender Token bleibt gültig).", "ok");
+      modalState.onChange && modalState.onChange(); return;
+    }
+    if (!f.password) { setStatus("Passwort eingeben (für den ersten Login / nach 'Token vergessen').", "err"); return; }
+    setStatus("Melde an …", "");
+    try {
+      const { bearer, expires_at } = await carambusLogin(f.base_url, f.email, f.password);
+      conn.bearer = bearer; conn.bearer_expires_at = expires_at;
+      saveConnection(conn); setStatus("✓ Angemeldet und gespeichert.", "ok");
+      modalState.onChange && modalState.onChange();
+    } catch (err) { setStatus("Login fehlgeschlagen: " + describeErr(err), "err"); }
+  }
+  async function doTest() {
+    const f = readForm();
+    const conn = getConnection();
+    conn.base_url = f.base_url || conn.base_url; conn.region = f.region || conn.region; conn.email = f.email || conn.email;
+    if (f.tournament_cc_id !== undefined) {
+      if (String(f.tournament_cc_id || "") !== String(conn.tournament_cc_id || "")) conn.tournament_id = "";
+      conn.tournament_cc_id = f.tournament_cc_id;
+    }
+    if (f.party_cc_id !== undefined) conn.party_cc_id = f.party_cc_id || "";
+    saveConnection(conn);
+    if (!isBearerValid(conn)) { setStatus("Kein gültiger Token — bitte zuerst Login.", "err"); return; }
+    setStatus("Teste …", "");
+    try { const r = await ping(); setStatus("✓ Verbindung OK" + (r.note ? " — " + r.note : ""), "ok"); modalState.onChange && modalState.onChange(); }
+    catch (err) { setStatus("Fehler: " + describeErr(err), "err"); }
+  }
+  function doClear() {
+    const conn = getConnection();
+    conn.bearer = null; conn.bearer_expires_at = null;
+    saveConnection(conn); setStatus("Token vergessen. Nächster Login nötig.", "ok");
+    modalState.onChange && modalState.onChange();
+  }
+  function describeErr(err) {
+    if (err instanceof CarambusError) {
+      const detail = err.body != null ? " " + (typeof err.body === "string" ? err.body : JSON.stringify(err.body)) : "";
+      return `HTTP ${err.status}${detail}`;
+    }
+    return err?.message || String(err);
+  }
+
+  // ========================= Öffentliche Schnittstelle =====================
+  return {
+    CONN_KEY, CONN_DEFAULTS,
+    getConnection, saveConnection, isBearerValid, regionShortname, parseTournamentCcIdInput, applyDeepLinkConnection,
+    CarambusError, fetchWithTimeout, carambusLogin,
+    carambusFetch, ping,
+    api: {
+      fetchClubs, fetchClubPlayers, fetchPlayerRankings, fetchTables, fetchDisciplines, fetchRegistrationLists, fetchSeeding,
+      createTournament, lockTable, startGame, acknowledgeResult, endTournament, cleanPlayerRef,
+      pushTournamentResult,
+      fetchRoundResult, fetchAllRoundResults,
+      fetchParty, partyGameResult, partyClose
+    },
+    util, storage, mountConnectionWidget
+  };
+})();
+/* <<< CARAMBUS-SYNC core-js <<< */
+</script>
+
+<!-- Liga-Spieltag-Controller (Phase 48 b2 / Handoff-from-carambus-spieltag-schema.md) -->
+<script>
+"use strict";
+const { getConnection, isBearerValid, regionShortname, CarambusError, mountConnectionWidget } = Carambus;
+const { loadInstanceState, saveInstanceState, getInstance, updateInstance } = Carambus.storage;
+const { escapeHtml } = Carambus.util;
+
+const SCHEME_ID = "spieltag";
+
+// Turnier-Instanz aus der URL (?t=<id>).
+const INSTANCE_ID = new URLSearchParams(location.search).get("t");
+const instance = INSTANCE_ID ? getInstance(INSTANCE_ID) : null;
+if (!INSTANCE_ID || !instance) {
+  location.replace("../../index.html");
+  throw new Error("Keine Turnier-Instanz (?t=) — zurück zur Übersicht.");
+}
+
+// ===== Demo-Spieltag (offline-Fallback bis Carambus-Endpoints (§7) live sind) =====
+// Realistischer NBV-9-Ball-1.-Liga-Spieltag: 2 Teams à 5 Roster, 1 Runde, 4 Einzel + 1 Doppel.
+// rows ohne player_a/_b (werden im seeding-Workflow, Phase 2, gesetzt).
+const DEMO_PARTY = () => ({
+  party: { cc_id: 99001, name: "Demo-Spieltag · BC Wedel I vs BG Hamburg I", season: "2025/2026", date: "2026-09-13", league: "NBV 9-Ball 1. Liga" },
+  team_a: {
+    name: "BC Wedel I", cc_id: 11,
+    roster: [
+      { firstname: "Lars",  lastname: "Müller",   dbu_nr: "10101" },
+      { firstname: "Olaf",  lastname: "Schmidt",  dbu_nr: "10102" },
+      { firstname: "Karl",  lastname: "Becker",   dbu_nr: "10103" },
+      { firstname: "Heinz", lastname: "Werner",   dbu_nr: "10104" },
+      { firstname: "Anna",  lastname: "Adler",    dbu_nr: "10105" }
+    ]
+  },
+  team_b: {
+    name: "BG Hamburg I", cc_id: 22,
+    roster: [
+      { firstname: "Philipp", lastname: "Jüde",      dbu_nr: "20201" },
+      { firstname: "Michael", lastname: "Ernst",     dbu_nr: "20202" },
+      { firstname: "Bruno",   lastname: "Lüdemann",  dbu_nr: "20203" },
+      { firstname: "Jeffrey", lastname: "Weiss",     dbu_nr: "20204" },
+      { firstname: "Eva",     lastname: "Westphal",  dbu_nr: "20205" }
+    ]
+  },
+  party_monitor: {
+    match_points: { win: 2, draw: 1, lost: 0 },
+    minimum_players: 4, maximum_players: 8,
+    current_round: 1,
+    assigned_players_a_ids: [], assigned_players_b_ids: [],
+    tables: [["Tisch 1", "Tisch 2", "Tisch 3", "Tisch 4", "Tisch 5"]], table_ids: [],
+    rows: [
+      { type: "Neue Runde", r_no: 1 },
+      { type: "9-Ball",        r_no: 1, seqno: 1, sets: 5, first_break: "a", game_points: { win: 1, draw: 0, lost: 0 } },
+      { type: "9-Ball",        r_no: 1, seqno: 2, sets: 5, first_break: "b", game_points: { win: 1, draw: 0, lost: 0 } },
+      { type: "9-Ball",        r_no: 1, seqno: 3, sets: 5, first_break: "a", game_points: { win: 1, draw: 0, lost: 0 } },
+      { type: "9-Ball",        r_no: 1, seqno: 4, sets: 5, first_break: "b", game_points: { win: 1, draw: 0, lost: 0 } },
+      { type: "9-Ball Doppel", r_no: 1, seqno: 5, sets: 5, first_break: "a", game_points: { win: 1, draw: 0, lost: 0 } }
+    ],
+    result: null
+  }
+});
+
+// ===== State (in localStorage via Carambus.storage) =====
+function defaultState() {
+  return {
+    phase: "setup",                 // "setup" | "playing" | "finished"
+    party: null,                    // { cc_id, name, season, date, league }
+    team_a: null,                   // { name, cc_id, roster:[{dbu_nr, firstname, lastname, …}] }
+    team_b: null,                   // dito
+    party_monitor: null,            // identisch zu Pauls party_monitor.data (§4.1)
+    // games[gname] = { ba_results: {Spieler1, Spieler2, Ergebnis1/2, Sets1/2?, Aufnahmen1/2?, Höchstserie1/2?}, ended_at: ms|null }
+    // Konvention §4.3 + User-Korrektur 2026-06-28: Spieler1/2 = DBU-Nr (kein Swap, kein ba_id).
+    games: {},
+    // row.player_a / row.player_b (Einzel: dbu_nr; Doppel: [dbu_nr,dbu_nr]; 4er: [dbu_nr×4])
+    // + row.table (Name) werden direkt in state.party_monitor.rows[] gepflegt.
+    mode: "direct",                 // "direct" (Modus ii) | "live" (Modus i — noch nicht impl.)
+    party_cc_id: instance.party_cc_id || null,  // vom Chat-Deeplink (Phase 6)
+    carambusParty: null,            // {external_id, id, loaded_at} nach fetchParty (Phase 5)
+    party_close: null,              // {status:"pending"|"synced"|"error", result?, error?, missing_gnames?}
+    tableMeta: {},                  // {tableName → carambus Table#id} aus fetchTables (id-first-Bindung)
+    ui: { filterA: "", filterB: "" } // Lineup-Suchfilter pro Team (P2 — bis Carambus Liga-Kader liefert)
+  };
+}
+
+let state = loadInstanceState(INSTANCE_ID, defaultState);
+
+function save() {
+  saveInstanceState(INSTANCE_ID, state);
+  const result = state.phase === "finished" ? computeIntermediate() : null;
+  updateInstance(INSTANCE_ID, {
+    discipline: state.party?.league || "Liga-Spieltag",
+    players: (state.party_monitor?.assigned_players_a_ids?.length || 0) + (state.party_monitor?.assigned_players_b_ids?.length || 0),
+    phase: state.phase,
+    champion: result?.winnerName || null
+  });
+}
+
+function isLive() { const c = getConnection(); return !!(c.base_url && isBearerValid(c)); }
+// Pauls 48-08: READ-ONLY wenn die Party global ist + dieser Server ein Local-Server ist
+// (writable=false vom Server), oder wenn die Party in CC bereits abgeschlossen wurde
+// (party_monitor_state="closed"). In beiden Fällen werden Pushes geblockt und die UI gelockt.
+function isWritable() {
+  if (!isLive() || !state.carambusParty) return true;        // Offline / Demo: lokal frei editierbar
+  if (state.carambusParty.writable === false) return false;
+  if (state.party_monitor_state === "closed") return false;
+  return true;
+}
+function readOnlyReason() {
+  if (!state.carambusParty) return null;
+  if (state.carambusParty.writable === false) {
+    return `globale Party (id ${state.carambusParty.id ?? "?"}) auf einem Local-Server — Schreibvorgänge werden vom LocalProtector abgewiesen. Test nur möglich, indem du dich gegen api.carambus.de verbindest.`;
+  }
+  if (state.party_monitor_state === "closed") {
+    return `Spielbericht in Carambus bereits abgeschlossen (party_monitor.state = "closed"). Eingaben sind gesperrt.`;
+  }
+  return null;
+}
+
+const connWidget = mountConnectionWidget({ badgeEl: document.getElementById("connBadge"), onChange: renderAll });
+
+document.querySelectorAll("nav.tabs button").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll("nav.tabs button").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    const tab = btn.dataset.tab;
+    document.querySelectorAll(".tab-content").forEach(c => c.style.display = "none");
+    document.getElementById("tab-" + tab).style.display = "";
+  });
+});
+
+function renderAll() {
+  connWidget.refresh();
+  renderMeta();
+  renderSetup();
+  renderPlay();
+  renderStandings();
+}
+
+function renderMeta() {
+  const parts = [];
+  parts.push(`<strong>${escapeHtml(instance.title)}</strong>`);
+  if (state.party) {
+    parts.push(escapeHtml(state.party.name));
+    if (state.party.league) parts.push(`<span class="gold">${escapeHtml(state.party.league)}</span>`);
+    const a = state.party_monitor?.assigned_players_a_ids?.length || 0;
+    const b = state.party_monitor?.assigned_players_b_ids?.length || 0;
+    if (a || b) parts.push(`Aufstellung A:${a} / B:${b}`);
+  }
+  if (!isLive()) parts.push(`<span class="muted">lokal/offline</span>`);
+  document.getElementById("metaInfo").innerHTML = parts.join(" · ");
+  document.title = `${instance.title} — Liga-Spieltag`;
+}
+
+// ===== SETUP-Tab =====
+function renderSetup() {
+  const el = document.getElementById("tab-setup");
+  if (state.phase !== "setup") {
+    el.innerHTML = `
+      <div class="card">
+        <h2>Spieltag läuft</h2>
+        <div class="info">Aufstellung steht. Weiter im Tab <strong>„Spieltag"</strong>.</div>
+        <button class="btn danger" id="btnResetParty">⟲ Aufstellung verwerfen &amp; neu starten</button>
+      </div>`;
+    el.querySelector("#btnResetParty").addEventListener("click", () => {
+      if (!confirm("Aufstellung verwerfen und neu beginnen? (Spielergebnisse bleiben.)")) return;
+      state.phase = "setup";
+      state.party_monitor.assigned_players_a_ids = [];
+      state.party_monitor.assigned_players_b_ids = [];
+      save(); renderAll(); switchTab("setup");
+    });
+    return;
+  }
+
+  const live = isLive();
+  const hasParty = !!state.party;
+  el.innerHTML = `
+    <div class="card">
+      <h2>1 · Spieltag laden</h2>
+      <div class="toolbar">
+        <button class="btn" id="btnLoadLive" ${!live || !state.party_cc_id ? "disabled" : ""}>📥 Aus Carambus laden ${state.party_cc_id ? `(cc_id ${escapeHtml(String(state.party_cc_id))})` : ""}</button>
+        <button class="btn secondary" id="btnLoadDemo">🎲 Demo-Spieltag (offline)</button>
+        ${hasParty ? `<button class="btn secondary" id="btnClearParty">Spieltag verwerfen</button>` : ``}
+      </div>
+      ${!live ? `<div class="alert" style="margin-top:8px;">Nicht mit Carambus verbunden. Demo-Modus oder Verbindung (oben rechts) konfigurieren.</div>` : ``}
+      ${live && !state.party_cc_id ? `<div class="alert" style="margin-top:8px;">Keine Party-cc_id im Verbindungs-Modal. Wird vom Chat-Tool <code>cc_open_party_in_app</code> per Deep-Link gesetzt (Phase 48-§6, ausstehend).</div>` : ``}
+      ${live && state.party_cc_id ? `<div class="info" style="margin-top:8px;">Live-Load über <code>/api/external_tournament/party?party_cc_id=${escapeHtml(String(state.party_cc_id))}</code> (HANDOFF-to-carambus-party-api §1). 404 = Endpoint noch nicht deployt — Demo-Spieltag bleibt als Fallback.</div>` : ``}
+      ${state.carambusParty?.external_id && isWritable() ? `<div class="info" style="margin-top:8px;">🔗 Live-Modus an Party <code>${escapeHtml(state.carambusParty.external_id)}</code> gebunden${state.party_monitor_state ? ` (state: <code>${escapeHtml(state.party_monitor_state)}</code>)` : ""} — Direkteingabe wird automatisch zurückgeschrieben.</div>` : ``}
+      ${state.carambusParty?.external_id && !isWritable() ? `<div class="alert" style="margin-top:8px;border-left-color:var(--bad);background:rgba(239,83,80,0.10);">📛 <strong>READ-ONLY</strong> — ${escapeHtml(readOnlyReason() || "")}<br><span class="muted" style="font-size:12px;">Du kannst dir die Party ansehen, aber Eingaben sind gesperrt. Spielzeilen werden mit deaktivierten Feldern angezeigt.</span></div>` : ``}
+      <div id="partyMeta" style="margin-top:10px;">${renderPartyMeta()}</div>
+    </div>
+
+    ${hasParty ? `
+    <div class="card">
+      <h2>2 · Kader</h2>
+      <div class="roster-grid">
+        ${renderRosterTeam("a", state.team_a)}
+        ${renderRosterTeam("b", state.team_b)}
+      </div>
+      <div class="muted" style="font-size:12px;margin-top:10px;">Kaderschranken: min ${state.party_monitor.minimum_players} / max ${state.party_monitor.maximum_players} Spieler je Team — wer mitspielt, wählst du unten in der Aufstellung.</div>
+    </div>
+
+    <div class="card">
+      <h2>3 · Aufstellung</h2>
+      <div class="roster-grid">
+        ${renderLineupTeam("a", state.team_a, state.party_monitor.assigned_players_a_ids)}
+        ${renderLineupTeam("b", state.team_b, state.party_monitor.assigned_players_b_ids)}
+      </div>
+      ${renderLineupHints()}
+    </div>
+
+    <div class="card">
+      <h2>4 · Modus</h2>
+      <div class="toolbar">
+        <label style="display:flex;gap:6px;align-items:center;font-size:14px;">
+          <input type="radio" name="spMode" value="direct" ${state.mode === "direct" ? "checked" : ""} style="width:auto;">
+          <span>📝 <strong>Direkteingabe</strong> (Ergebnisse je Spiel in der App eintragen — kein Scoreboard nötig)</span>
+        </label>
+        <label style="display:flex;gap:6px;align-items:center;font-size:14px;">
+          <input type="radio" name="spMode" value="live" ${state.mode === "live" ? "checked" : ""} style="width:auto;" disabled>
+          <span class="muted">🖥 <strong>Live über Scoreboards</strong> (TableMonitor) — Phase 5, noch nicht implementiert</span>
+        </label>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>5 · Start</h2>
+      <div id="startHints"></div>
+      <button class="btn" id="btnStartParty">🏁 Spieltag starten</button>
+    </div>` : ``}`;
+
+  el.querySelector("#btnLoadDemo").addEventListener("click", loadDemoParty);
+  el.querySelector("#btnLoadLive")?.addEventListener("click", loadLiveParty);
+  el.querySelector("#btnClearParty")?.addEventListener("click", () => {
+    if (!confirm("Spieltag verwerfen? Setup wird komplett zurückgesetzt.")) return;
+    state = defaultState(); state.party_cc_id = instance.party_cc_id || null;
+    save(); renderAll();
+  });
+  el.querySelectorAll('input[name="spMode"]').forEach(r => r.addEventListener("change", e => { state.mode = e.target.value; save(); }));
+  bindLineupCheckboxes(el);
+  el.querySelector("#btnStartParty")?.addEventListener("click", startParty);
+  renderStartHints();
+}
+
+function renderPartyMeta() {
+  if (!state.party) return `<p class="muted">Noch kein Spieltag geladen.</p>`;
+  const p = state.party;
+  const games = (state.party_monitor?.rows || []).filter(isGameRow).length;
+  const rounds = new Set((state.party_monitor?.rows || []).map(r => r.r_no)).size;
+  return `<div class="demo-card">
+    <strong>${escapeHtml(p.name)}</strong> · ${escapeHtml(p.league || "")} · Saison ${escapeHtml(p.season || "—")}${p.date ? " · " + escapeHtml(new Date(p.date).toLocaleDateString("de-DE")) : ""}
+    <br>${escapeHtml(state.team_a?.name || "?")} <span class="muted">vs</span> ${escapeHtml(state.team_b?.name || "?")} · ${rounds} Runde(n) · ${games} Spiele
+  </div>`;
+}
+
+// Kanonische Spieler-ID = DBU-Nr (deutschlandweit eindeutig). ba_id ist ein Relikt aus der
+// alten BillardArea-Zeit und wird beim aktuellen Scraping nicht mehr gepflegt — User-Direktive
+// 2026-06-28. Spieler ohne dbu_nr können nicht zugeordnet werden (Marker "⚠ ohne DBU").
+function playerId(p) { return p && p.dbu_nr != null ? String(p.dbu_nr) : null; }
+
+function renderRosterTeam(side, team) {
+  if (!team) return "";
+  const noId = (team.roster || []).filter(p => playerId(p) == null);
+  return `<div class="roster-team">
+    <h3>${escapeHtml(team.name)} ${team.cc_id != null ? `<span class="muted" style="font-size:11px;font-weight:normal;">cc_id ${team.cc_id}</span>` : ""}</h3>
+    <div class="team-meta">${(team.roster || []).length} Spieler im Kader${noId.length ? `, davon <span style="color:var(--warn);">${noId.length} ohne DBU</span>` : ""}</div>
+    ${(team.roster || []).map(p => `
+      <div class="roster-player">
+        <span class="name">${escapeHtml(playerName(p))}${playerId(p) == null ? ' <span style="color:var(--warn);font-size:11px;" title="Spieler ohne DBU-Nr — kann nicht zugeordnet werden. Carambus-Stammdaten ergänzen.">⚠ ohne DBU</span>' : ""}</span>
+        <span class="id">${p.dbu_nr ? "DBU " + escapeHtml(String(p.dbu_nr)) : '<span class="muted">ohne DBU</span>'}</span>
+      </div>`).join("")}
+  </div>`;
+}
+
+function renderLineupTeam(side, team, assignedIds) {
+  if (!team) return "";
+  const setIds = new Set((assignedIds || []).map(String));
+  const filter = (state.ui?.[`filter${side.toUpperCase()}`] || "").trim().toLowerCase();
+  const roster = team.roster || [];
+  // Sofortmaßnahme bis Carambus den eigentlichen Liga-Kader liefert (heute kommt der ganze
+  // Vereinsspieler-Pool, 30–70 Einträge): Filter-Input + Aufgestellte werden IMMER angezeigt,
+  // damit Abwählen funktioniert, auch wenn der Filter sie ausblenden würde.
+  const matches = p => {
+    if (!filter) return true;
+    const hay = `${p.firstname || ""} ${p.lastname || ""} ${p.dbu_nr || ""}`.toLowerCase();
+    return hay.includes(filter);
+  };
+  const visible = roster.filter(p => matches(p) || setIds.has(playerId(p) || ""));
+  const showCount = `${visible.length}/${roster.length}`;
+  return `<div class="roster-team">
+    <h3>${escapeHtml(team.name)} — Aufstellung <span class="muted" style="font-size:11px;font-weight:normal;">${showCount}</span></h3>
+    <input type="text" class="lineup-filter" data-side="${side}" placeholder="🔍 Filter (Name oder DBU)" value="${escapeHtml(filter)}" style="margin-bottom:8px;">
+    ${visible.map(p => {
+      const pid = playerId(p);
+      if (pid == null) return `<label class="roster-player" style="opacity:0.45;cursor:not-allowed;" title="Ohne DBU-Nr nicht aufstellbar — Carambus-Stammdaten ergänzen.">
+          <input type="checkbox" disabled>
+          <span class="name">${escapeHtml(playerName(p))}</span>
+          <span class="id" style="color:var(--warn);">⚠ ohne DBU</span>
+        </label>`;
+      return `<label class="roster-player">
+          <input type="checkbox" class="lineup-cb" data-side="${side}" data-pid="${escapeHtml(pid)}" ${setIds.has(pid) ? "checked" : ""}>
+          <span class="name">${escapeHtml(playerName(p))}</span>
+          <span class="id">${p.dbu_nr ? "DBU " + escapeHtml(String(p.dbu_nr)) : ""}</span>
+        </label>`;
+    }).join("")}
+    ${visible.length === 0 ? `<div class="muted" style="font-size:12px;padding:6px;">Kein Treffer für „${escapeHtml(filter)}".</div>` : ""}
+  </div>`;
+}
+
+function bindLineupCheckboxes(el) {
+  el.querySelectorAll(".lineup-cb").forEach(cb => cb.addEventListener("change", e => {
+    const side = e.target.dataset.side;
+    const pid = e.target.dataset.pid;     // dbu_nr als String
+    const key = side === "a" ? "assigned_players_a_ids" : "assigned_players_b_ids";
+    const ids = new Set((state.party_monitor[key] || []).map(String));
+    if (e.target.checked) ids.add(pid); else ids.delete(pid);
+    state.party_monitor[key] = [...ids];
+    save(); renderSetup();
+  }));
+  // P2: Live-Filter pro Team. "input"-Event re-rendert sofort (jeder Tastenanschlag).
+  el.querySelectorAll(".lineup-filter").forEach(inp => inp.addEventListener("input", e => {
+    state.ui = state.ui || { filterA: "", filterB: "" };
+    const k = e.target.dataset.side === "a" ? "filterA" : "filterB";
+    state.ui[k] = e.target.value;
+    save();
+    // Setup-Tab re-rendern, danach Fokus auf das gleiche Filter-Feld zurücklegen.
+    renderSetup();
+    const restored = document.querySelector(`.lineup-filter[data-side="${e.target.dataset.side}"]`);
+    if (restored) { restored.focus(); restored.setSelectionRange(restored.value.length, restored.value.length); }
+  }));
+}
+
+function renderLineupHints() {
+  const pm = state.party_monitor;
+  const a = pm.assigned_players_a_ids.length, b = pm.assigned_players_b_ids.length;
+  const min = pm.minimum_players, max = pm.maximum_players;
+  const okA = a >= min && a <= max, okB = b >= min && b <= max;
+  return `
+    <div class="lineup-hint ${okA ? "ok" : "bad"}">${state.team_a?.name}: ${a} Spieler ${okA ? "✓" : `(min ${min}, max ${max})`}</div>
+    <div class="lineup-hint ${okB ? "ok" : "bad"}">${state.team_b?.name}: ${b} Spieler ${okB ? "✓" : `(min ${min}, max ${max})`}</div>`;
+}
+
+function renderStartHints() {
+  const box = document.getElementById("startHints");
+  const btn = document.getElementById("btnStartParty");
+  if (!box || !btn) return;
+  const pm = state.party_monitor;
+  const a = pm.assigned_players_a_ids.length, b = pm.assigned_players_b_ids.length;
+  const min = pm.minimum_players, max = pm.maximum_players;
+  const hints = [];
+  if (a < min || a > max) hints.push(`${state.team_a?.name}: Aufstellung außerhalb [${min}, ${max}].`);
+  if (b < min || b > max) hints.push(`${state.team_b?.name}: Aufstellung außerhalb [${min}, ${max}].`);
+  if (state.mode === "live") hints.push("Live-Modus ist Phase 5 — bitte Direkteingabe wählen.");
+  if (hints.length) {
+    box.innerHTML = `<div class="alert">${hints.map(escapeHtml).join("<br>")}</div>`;
+    btn.disabled = true;
+  } else {
+    box.innerHTML = `<div class="info">Aufstellung gültig — Modus <strong>${state.mode === "direct" ? "Direkteingabe" : "Live"}</strong>. Mit Klick auf <em>Spieltag starten</em> geht's in Tab „Spieltag" (Phase 2 — Spieler je Spielzeile zuordnen, Phase 3 — Ergebniseingabe).</div>`;
+    btn.disabled = false;
+  }
+}
+
+function loadDemoParty() {
+  const d = DEMO_PARTY();
+  state.party = d.party; state.team_a = d.team_a; state.team_b = d.team_b;
+  state.party_monitor = d.party_monitor;
+  state.games = {};
+  state.carambusParty = null;            // Demo ist nie an einer Live-Party gebunden
+  state.party_close = null;
+  save(); renderAll();
+}
+
+// Phase 5 / HANDOFF-to-carambus-party-api §1: GET party. Bei Erfolg den State 1:1 aus
+// der Carambus-Antwort befüllen und external_id für spätere Pushes (§2/§3) merken.
+async function loadLiveParty() {
+  const ccId = state.party_cc_id || getConnection().party_cc_id;
+  if (!ccId) { alert("Keine Party-cc_id konfiguriert (Verbindungs-Modal oben rechts oder Chat-Deeplink)."); return; }
+  const btn = document.getElementById("btnLoadLive");
+  const prev = btn?.textContent;
+  if (btn) { btn.disabled = true; btn.textContent = "… lädt"; }
+  try {
+    const body = await Carambus.api.fetchParty({ partyCcId: ccId });
+    if (!body?.party || !body?.team_a || !body?.team_b || !body?.party_monitor) {
+      throw new Error("Antwort unvollständig — Endpoint liefert nicht alle Pflichtfelder (party/team_a/team_b/party_monitor).");
+    }
+    state.party = body.party;
+    // Roster muss Array sein (Render-Helfer iterieren ohne ?-Chains in Hot-Paths).
+    state.team_a = { ...body.team_a, roster: Array.isArray(body.team_a.roster) ? body.team_a.roster : [] };
+    state.team_b = { ...body.team_b, roster: Array.isArray(body.team_b.roster) ? body.team_b.roster : [] };
+    // PartyMonitor-Defensiv-Normalisierung: eine frisch in Carambus angelegte Party hat
+    // typischerweise NOCH KEINE assigned_*_ids / tables / table_ids — diese Felder fehlen
+    // dann ganz im JSON. renderLineupHints/renderStartHints greifen aber direkt auf .length
+    // zu (Hot Path, keine ?-Chains), daher hier Defaults setzen statt im Renderer.
+    const pm = body.party_monitor;
+    state.party_monitor = {
+      match_points: pm.match_points || { win: 2, draw: 1, lost: 0 },
+      minimum_players: pm.minimum_players ?? 4,
+      maximum_players: pm.maximum_players ?? 8,
+      current_round: pm.current_round || 1,
+      assigned_players_a_ids: Array.isArray(pm.assigned_players_a_ids) ? pm.assigned_players_a_ids : [],
+      assigned_players_b_ids: Array.isArray(pm.assigned_players_b_ids) ? pm.assigned_players_b_ids : [],
+      tables: Array.isArray(pm.tables) ? pm.tables : [],
+      table_ids: Array.isArray(pm.table_ids) ? pm.table_ids : [],
+      rows: normalizePartyMonitorRows(Array.isArray(pm.rows) ? pm.rows : [], pm.current_round || 1),
+      result: pm.result || null
+    };
+    state.games = {};
+    state.carambusParty = {
+      external_id: body.party.external_id || `party-${body.party.id}`,
+      id: body.party.id || null,
+      loaded_at: Date.now(),
+      // Pauls 48-08/H: writable=false ⇒ globale Party auf Local-Server, Pushes werden vom
+      // LocalProtector abgewiesen. Default true für ältere Server-Versionen (Abwärtskompat).
+      writable: body.party.writable !== false
+    };
+    state.party_monitor_state = body.party_monitor?.state || null;   // AASM-State (z. B. "seeding_mode", "playing_round", "closed")
+    state.party_close = null;
+    // Tische: wenn party_monitor.tables leer ist (frische Party, noch keine Runden-Zuordnung),
+    // hole die Location-Tische und stelle sie für alle Runden zur Verfügung. Das Mapping
+    // Runde→Tische-Untermenge entsteht erst, wenn der TL im Spieltag-Tab pro Spielzeile
+    // einen Tisch wählt. tableMeta merkt sich die Carambus-Table#id pro Name (für id-first-
+    // Bindung wie bei plan/doppelko/3band).
+    state.tableMeta = state.tableMeta || {};
+    const needsTables = !state.party_monitor.tables.length
+      || !state.party_monitor.tables.some(arr => Array.isArray(arr) && arr.length);
+    if (needsTables && body.party.location) {
+      try {
+        const locRef = body.party.location.id != null ? { id: body.party.location.id } : { cc_id: body.party.location.cc_id };
+        const tBody = await Carambus.api.fetchTables(locRef);
+        const names = (tBody.tables || []).map(t => t.name).filter(Boolean);
+        (tBody.tables || []).forEach(t => { if (t.name && t.id != null) state.tableMeta[t.name] = t.id; });
+        const nRounds = Math.max(1, rounds().length || 1);
+        state.party_monitor.tables = Array.from({ length: nRounds }, () => names.slice());
+      } catch (e) {
+        console.warn("Tische konnten nicht geladen werden:", e?.message || e);
+      }
+    }
+    save(); renderAll();
+  } catch (err) {
+    const status = err instanceof Carambus.CarambusError ? err.status : 0;
+    const serverBody = err?.body;
+    const serverError = (serverBody && typeof serverBody === "object") ? (serverBody.error || JSON.stringify(serverBody)) : (typeof serverBody === "string" ? serverBody : null);
+    // 404 hat in Pauls Action drei Bedeutungen: a) Route fehlt (Endpoint nicht deployt),
+    // b) Region nicht gefunden, c) Party nicht gefunden. Server-Body unterscheidet sie.
+    let msg;
+    if (status === 404 && serverError) msg = `404 vom Server: ${serverError} (Region/party_cc_id prüfen — kann die DB diesen Spieltag finden?)`;
+    else if (status === 404) msg = "404 ohne Body — Endpoint /api/external_tournament/party evtl. noch nicht deployt (HANDOFF-to-carambus-party-api §1).";
+    else if (status === 401) msg = "401 nicht autorisiert — Bearer-Token abgelaufen, bitte neu einloggen.";
+    else if (status === 422) msg = `422 vom Server: ${serverError || "Request-Schema fehlerhaft"}.`;
+    else msg = `${err?.message || String(err)}${serverError ? " — Server: " + serverError : ""}`;
+    alert("Live-Load fehlgeschlagen: " + msg);
+  } finally {
+    if (btn && prev) { btn.disabled = false; btn.textContent = prev; }
+  }
+}
+
+// Modus ii Push pro Spielzeile (Direkteingabe). Asynchron, blockt die UI nicht; Ergebnis
+// wird im state.games[gname].sync gespeichert (status: pending/synced/error + last_error).
+async function pushGameResult(row) {
+  if (!isLive() || !state.carambusParty?.external_id) return;
+  const g = state.games[gnameOf(row)];
+  if (!g || !g.ended_at) return;
+  // 48-08/H: präventiver Lock — Server würde 422 antworten, wir sparen den Roundtrip.
+  if (!isWritable()) {
+    g.sync = { status: "error", at: Date.now(), error: "READ-ONLY: " + (readOnlyReason() || "Schreiben blockiert") };
+    save(); renderPlay();
+    return;
+  }
+  g.sync = { status: "pending", at: Date.now() };
+  save(); renderPlay();
+  try {
+    const body = await Carambus.api.partyGameResult({
+      partyExternalId: state.carambusParty.external_id,
+      gname: gnameOf(row),
+      baResults: g.ba_results
+    });
+    // False-positive-Schutz: Pauls Endpoint gibt auch dann ok:true zurück, wenn ein silent
+    // ActiveRecord::Rollback im record_game_result! griff (typischer Fall: LocalProtector
+    // blockt Schreibvorgänge auf globale Records, id<50M, auf Local-Servern wie pbv/bcw).
+    // Der ehrliche Indikator ist game.ended_at — wenn null, ist nichts persistiert worden.
+    const persisted = body?.game?.ended_at != null;
+    if (persisted) {
+      g.sync = { status: "synced", at: Date.now(), server_intermediate: body?.intermediate_result || null };
+    } else {
+      g.sync = {
+        status: "error", at: Date.now(),
+        error: "Server hat ok:true gemeldet, aber game.ended_at ist null — vermutlich LocalProtector (globale Party, kein Schreibrecht auf diesem Local-Server). Ergebnis ist NICHT persistiert."
+      };
+    }
+  } catch (err) {
+    g.sync = { status: "error", at: Date.now(), error: err?.message || String(err) };
+  }
+  save(); renderPlay();
+}
+
+// Modus ii Spielbericht abschließen (§3): POST party_close. 409 mit missing_gnames
+// wird sauber angezeigt, damit der TL die fehlenden Zeilen nachpflegen kann.
+async function pushPartyClose() {
+  if (!isLive() || !state.carambusParty?.external_id) return;
+  if (!isWritable()) {
+    state.party_close = { status: "error", at: Date.now(), error: "READ-ONLY: " + (readOnlyReason() || "Schreiben blockiert") };
+    save(); renderPlay();
+    return;
+  }
+  state.party_close = { status: "pending", at: Date.now() };
+  save(); renderPlay();
+  try {
+    const body = await Carambus.api.partyClose({ partyExternalId: state.carambusParty.external_id });
+    // Analog pushGameResult: silent rollback (LocalProtector) liefert ok:true ohne dass
+    // party.state tatsächlich auf "closed" wechselt. party.state ist der ehrliche Indikator.
+    const persisted = body?.party?.state === "closed";
+    if (persisted) {
+      state.party_close = { status: "synced", at: Date.now(), result: body?.result || null, party_state: body.party.state };
+    } else {
+      state.party_close = {
+        status: "error", at: Date.now(),
+        error: "Server hat ok:true gemeldet, aber party.state ist nicht 'closed' — vermutlich LocalProtector (globale Party, kein Schreibrecht auf diesem Local-Server). Spielbericht NICHT in CC gelandet."
+      };
+    }
+  } catch (err) {
+    const missing = err?.body?.missing_gnames || null;
+    state.party_close = {
+      status: "error",
+      at: Date.now(),
+      error: err?.message || String(err),
+      missing_gnames: missing
+    };
+  }
+  save(); renderPlay();
+}
+
+function startParty() {
+  state.phase = "playing"; save(); renderAll(); switchTab("play");
+}
+
+// Spielbericht-Banner: zeigt local "abgeschlossen" + ggf. Live-Push-Status (pending/synced/error).
+// Bei 409 missing_gnames bekommt der TL eine konkrete Liste der fehlenden Spielzeilen.
+function renderFinishedBanner() {
+  const c = state.party_close;
+  const reopen = `<a href="#" id="btnReopen">Wieder öffnen</a>`;
+  if (!c) return `<div class="info">Spielbericht <strong>abgeschlossen</strong>. Tabelle ist final, weitere Eingaben bleiben blockiert. ${reopen}.</div>`;
+  if (c.status === "pending") return `<div class="info">Spielbericht <strong>abgeschlossen</strong>. ⟳ Sende <code>party_close</code> an Carambus … ${reopen}.</div>`;
+  if (c.status === "synced") {
+    const r = c.result || {};
+    return `<div class="info">✓ Spielbericht an Carambus übertragen (Party-State <code>${escapeHtml(c.party_state || "closed")}</code>${r.game_points ? `, Server-Ergebnis ${escapeHtml(r.game_points)} / ${escapeHtml(r.match_points || "")}` : ""}). ${reopen}.</div>`;
+  }
+  // error
+  const missing = c.missing_gnames || [];
+  const missingHtml = missing.length
+    ? `<br><span class="muted">Fehlende Spielzeilen: ${missing.map(g => `<code>${escapeHtml(g)}</code>`).join(", ")} — bitte ergänzen und erneut abschließen.</span>`
+    : "";
+  return `<div class="alert">⚠ <code>party_close</code> fehlgeschlagen: ${escapeHtml(c.error || "")}.${missingHtml}<br><button class="btn secondary" id="btnRetryClose" style="margin-top:8px;">↻ Erneut versuchen</button> &nbsp; ${reopen}.</div>`;
+}
+
+// ===== Game-Row-Helfer =====
+// Spec §4.1: 4er-Team = 4 Spieler, Doppel = 2, sonst Einzel = 1. Konvention "in row.type".
+function expectedPlayers(row) {
+  if (/4er\s*Team/i.test(row.type)) return 4;
+  if (/Doppel/i.test(row.type)) return 2;
+  return 1;
+}
+function isSetsDiscipline(row) { return (row.sets || 0) > 1; }
+function is141(row) { return /14\/1e/.test(row.type); }
+// row.type → Disziplin-Familie für korrekte Vokabel ("Spiele" bei Pool/Kegel,
+// "Frames" bei Snooker, "Sätze" bei Karambol-Satz-Disziplinen).
+function disciplineFamily(rowType) {
+  const t = String(rowType || "").toLowerCase();
+  if (/snooker/.test(t)) return "snooker";
+  if (/pool|ball|14[\/.]1/.test(t)) return "pool";
+  if (/kegel/.test(t)) return "kegel";
+  return "karambol";
+}
+function gameUnitPlural(rowType) {
+  const f = disciplineFamily(rowType);
+  return f === "snooker" ? "Frames" : f === "karambol" ? "Sätze" : "Spiele";
+}
+function pointsUnitPlural(rowType) {
+  const f = disciplineFamily(rowType);
+  return f === "snooker" ? "Punkte" : f === "pool" ? "Bälle" : f === "kegel" ? "Kegel" : "Punkte";
+}
+// Pauls 48-08/F+G: rows[].sets_source / score_source — "sportordnung" (verlässlich) /
+// "scraped_heuristic" (gescrapt, ggf. ungenau) / "default" (Fallback). Bei nicht-Sportordnung
+// dezentes ⓘ-Icon hinter dem Wert anzeigen, Tooltip erklärt die Provenienz.
+function sourceMarker(src) {
+  if (!src || src === "sportordnung") return "";
+  const tip = src === "scraped_heuristic"
+    ? "Wert aus Carambus heuristisch ermittelt (Maximum-Ergebnis aus historischen Spielen) — bitte gegen die Sportordnung prüfen."
+    : src === "default"
+    ? "Wert ist ein Default-Fallback — sollte aus dem GamePlan (Sportordnung) gepflegt werden."
+    : "Wert-Herkunft: " + String(src);
+  return ` <span style="color:var(--muted);cursor:help;" title="${escapeHtml(tip)}">ⓘ</span>`;
+}
+// gname = "<seqno>-<type>" — eindeutiger Spiel-Schlüssel, so findet Carambus das Game (§4.1).
+function gnameOf(row) { return `${row.seqno}-${row.type}`; }
+function rowGame(row) { return state.games[gnameOf(row)] || null; }
+function rowIsDone(row) { const g = rowGame(row); return !!(g && g.ended_at); }
+function rowHasLineup(row) {
+  const exp = expectedPlayers(row);
+  const collect = v => exp === 1 ? (v != null ? [v] : []) : (Array.isArray(v) ? v.filter(x => x != null) : []);
+  return collect(row.player_a).length === exp && collect(row.player_b).length === exp;
+}
+function rowStatus(row) {
+  if (rowIsDone(row)) return "done";
+  if (rowHasLineup(row) && row.table) return "ready";
+  return "open";
+}
+// Player-Lookup ist ab jetzt über dbu_nr (kanonisch); ba_id-Fallback nur für Legacy-Daten.
+function rosterById(side, id) {
+  const team = side === "a" ? state.team_a : state.team_b;
+  const s = String(id);
+  return (team?.roster || []).find(p => playerId(p) === s) || null;
+}
+function assignedRoster(side) {
+  // Spieler ohne dbu_nr werden gar nicht in den Pool genommen — renderLineupTeam blendet
+  // die Checkbox aus, hier doppelt absichern (Setup-State könnte aus anderer Quelle stammen).
+  const ids = new Set((side === "a" ? state.party_monitor.assigned_players_a_ids : state.party_monitor.assigned_players_b_ids).map(String));
+  return (side === "a" ? state.team_a : state.team_b).roster.filter(p => playerId(p) != null && ids.has(playerId(p)));
+}
+// Carambus' party_monitor.rows liefert je Spielzeile manchmal KEIN r_no (nur die
+// "Neue Runde"-Trenner haben es — die Spiele dazwischen erben implizit die Runde).
+// Und player_a/_b kann der Platzhalter "TBD" sein statt eine echte Spieler-ID.
+// Beim Load → in-place normalisieren, damit rowsOfRound/rowHasLineup/Picker damit klarkommen.
+function sanitizePlayer(v) {
+  if (v == null) return null;
+  if (Array.isArray(v)) {
+    const cleaned = v.map(sanitizePlayer).filter(x => x != null);
+    return cleaned.length ? cleaned : null;
+  }
+  const s = String(v).trim();
+  if (s === "" || /^tbd$/i.test(s)) return null;
+  return s;
+}
+function normalizePartyMonitorRows(rows, currentRound) {
+  let cur = currentRound || 1;
+  return (rows || []).map(r => {
+    if (!r) return r;
+    if (r.type === "Neue Runde") { if (r.r_no != null) cur = r.r_no; return r; }
+    const out = { ...r };
+    if (out.r_no == null) out.r_no = cur;
+    if (Object.hasOwn(out, "player_a")) out.player_a = sanitizePlayer(out.player_a);
+    if (Object.hasOwn(out, "player_b")) out.player_b = sanitizePlayer(out.player_b);
+    return out;
+  });
+}
+
+// Spielzeile = row mit nicht-leerem seqno (String oder Number) UND nicht-Trenner-Typ.
+// Carambus liefert in game_plan.data.rows neben den Spielen auch Trenner ("Neue Runde") und
+// Aggregate ("Gesamtsumme", "Zwischensumme"), die KEIN Spiel sind und kein seqno haben →
+// nicht als Spielzeile rendern, nicht in die Aggregation §4.4 ziehen.
+// Robust gegen seqno als Number ODER String (Live-pbv liefert manchmal String).
+function isGameRow(r) {
+  if (!r || r.seqno == null || r.seqno === "") return false;
+  if (!Number.isFinite(Number(r.seqno))) return false;
+  if (r.type === "Neue Runde") return false;
+  if (/^(Gesamt|Zwischen)summe$/i.test(String(r.type || ""))) return false;
+  return true;
+}
+// row.score kann String ("Hauptrunde 80"), Number, Object ({balls:80,…}) oder null sein.
+// Liefert eine kompakte Anzeige für die "Distanz X"-Zeile.
+function scoreLabel(s) {
+  if (s == null || s === "") return null;
+  if (typeof s === "number") return String(s);
+  if (typeof s === "string") { const m = s.match(/\d+/g); return m ? m[m.length - 1] : s; }
+  if (typeof s === "object") {
+    const candidate = s.balls ?? s.points ?? s.target ?? s.max ?? s.distance;
+    if (candidate != null) return String(candidate);
+    return JSON.stringify(s);     // Letzte Notbremse — sichtbar, nicht "[object Object]"
+  }
+  return String(s);
+}
+function rounds() {
+  return [...new Set((state.party_monitor.rows || []).filter(r => r && r.r_no != null).map(r => r.r_no))].sort((a, b) => a - b);
+}
+function rowsOfRound(rNo) { return (state.party_monitor.rows || []).filter(r => isGameRow(r) && r.r_no === rNo); }
+function tablesOfRound(rNo) { return (state.party_monitor.tables || [])[rNo - 1] || []; }
+
+// ===== SPIELTAG-Tab — Phase 2 (Zuordnung) + Phase 3 (Direkteingabe) =====
+function renderPlay() {
+  const el = document.getElementById("tab-play");
+  if (!state.party) { el.innerHTML = `<div class="card"><p class="muted">Noch kein Spieltag — erst im Setup laden.</p></div>`; return; }
+  if (state.phase === "setup") { el.innerHTML = `<div class="card"><div class="info">Erst im Setup die Aufstellung bestätigen.</div></div>`; return; }
+
+  const rs = rounds();
+  const all = rs.flatMap(rowsOfRound);
+  const allDone = all.length && all.every(rowIsDone);
+  const inter = computeIntermediate();
+  // Einmaliger Erklär-Banner für den Direkteingabe-Modus. Klick auf "Verstanden" merkt sich
+  // die Bestätigung in state.ui.directHintAck — Banner kommt dann nicht mehr.
+  const showDirectHint = state.mode === "direct" && state.phase === "playing" && !state.ui?.directHintAck;
+  el.innerHTML = `
+    <div class="card">
+      <h2>Spieltag — ${escapeHtml(state.team_a.name)} vs ${escapeHtml(state.team_b.name)}</h2>
+      ${showDirectHint ? `<div class="info" style="display:flex;gap:10px;align-items:flex-start;justify-content:space-between;">
+        <div>💡 <strong>Direkteingabe</strong> — Ergebnisse einfach in die Felder tippen, sie werden pro Spiel automatisch gespeichert${isLive() ? " und live an Carambus übertragen" : ""}. Reihenfolge ist frei, kein "Runde starten" nötig. Tisch-Auswahl ist nur Dokumentation. Wenn <strong>alle Spiele erfasst</strong> sind, erscheint der "🏁 Spielbericht abschließen"-Button.</div>
+        <button class="btn secondary" id="btnAckDirectHint" style="white-space:nowrap;">Verstanden</button>
+      </div>` : ``}
+      <div class="standings-result" style="margin-bottom:14px;">
+        <div class="gp">${inter.playedCount ? `${inter.gameA}:${inter.gameB}` : "–:–"}</div>
+        <div class="mp">${inter.playedCount ? `Mannschaftspunkte ${inter.mpA}:${inter.mpB}` : "noch keine Spiele erfasst"}</div>
+        <div class="muted" style="font-size:12px;margin-top:4px;">${inter.playedCount}/${all.length} Spiele erfasst</div>
+      </div>
+      ${!isWritable() ? `<div class="alert" style="border-left-color:var(--bad);background:rgba(239,83,80,0.10);margin-bottom:10px;">📛 <strong>READ-ONLY</strong> — ${escapeHtml(readOnlyReason() || "")}</div>` : ``}
+      ${allDone && state.phase !== "finished" && isWritable() ? `<div class="toolbar" style="margin-bottom:10px;"><button class="btn" id="btnFinishParty">🏁 Spielbericht abschließen</button></div>` : ``}
+      ${state.phase === "finished" ? renderFinishedBanner() : ``}
+      ${rs.map(r => renderRound(r)).join("")}
+    </div>`;
+  rs.forEach(bindRound);
+  el.querySelector("#btnFinishParty")?.addEventListener("click", () => {
+    if (!confirm("Spielbericht abschließen? Ergebnisse werden danach gesperrt (du kannst wieder öffnen).")) return;
+    state.phase = "finished"; save(); renderAll();
+    // Live-Push asynchron — Status erscheint im Spielbericht-Banner.
+    if (isLive() && state.carambusParty?.external_id) pushPartyClose();
+  });
+  el.querySelector("#btnReopen")?.addEventListener("click", (e) => {
+    e.preventDefault(); state.phase = "playing"; state.party_close = null; save(); renderAll();
+  });
+  el.querySelector("#btnRetryClose")?.addEventListener("click", () => pushPartyClose());
+  el.querySelector("#btnAckDirectHint")?.addEventListener("click", () => {
+    state.ui = state.ui || {};
+    state.ui.directHintAck = true;
+    save(); renderPlay();
+  });
+}
+
+function renderRound(rNo) {
+  const games = rowsOfRound(rNo);
+  const tables = tablesOfRound(rNo);
+  const dupHints = collectDuplicates(rNo);
+  return `
+    <h3 style="margin-top:18px;color:var(--accent);font-size:14px;text-transform:uppercase;letter-spacing:0.05em;border-bottom:1px solid var(--border);padding-bottom:6px;">
+      Runde ${rNo} <span class="muted" style="font-weight:normal;font-size:12px;">— ${games.filter(rowIsDone).length}/${games.length} erfasst</span>
+    </h3>
+    ${dupHints.length ? `<div class="dup-warn">⚠ ${dupHints.map(escapeHtml).join(" · ")}</div>` : ``}
+    ${games.map(row => renderMatchRow(row, tables)).join("")}`;
+}
+
+function renderMatchRow(row, tables) {
+  const status = rowStatus(row);
+  const exp = expectedPlayers(row);
+  const sets = isSetsDiscipline(row);
+  const f141 = is141(row);
+  const g = rowGame(row);
+  const ba = g?.ba_results || {};
+  const locked = state.phase === "finished" || !isWritable();
+  const params = [
+    sets ? `${row.sets} Gewinn${gameUnitPlural(row.type).toLowerCase()}${sourceMarker(row.sets_source)}` : null,
+    scoreLabel(row.score)
+      ? `Distanz ${escapeHtml(scoreLabel(row.score))}${sourceMarker(row.score_source)}`
+      : (!sets ? `<span style="color:var(--warn);" title="Ausspielziel fehlt — sollte aus Carambus' GamePlan (Sportordnung) kommen.">⚠ Distanz fehlt</span>${sourceMarker(row.score_source)}` : null),
+    row.innings ? `${row.innings} Aufn.` : null,
+    row.first_break ? `Anstoß ${row.first_break.toUpperCase()}` : null
+  ].filter(Boolean).join(" · ");
+
+  return `
+    <div class="match-row status-${status}" data-gname="${escapeHtml(gnameOf(row))}">
+      <div class="mr-seq">#${row.seqno}</div>
+      <div>
+        <div class="mr-head">
+          <span class="title">${escapeHtml(row.type)}</span>
+          <span class="params">${params}</span>
+        </div>
+        <div class="mr-body">
+          <div class="mr-side a">
+            <span class="lbl">${escapeHtml(state.team_a.name)}</span>
+            ${renderPlayerPicker(row, "a", exp, locked)}
+          </div>
+          <div class="mr-vs">
+            <div>vs</div>
+            <div class="res-inputs">
+              ${sets
+                ? `<input type="number" min="0" data-field="Sets1" value="${ba.Sets1 ?? ""}" placeholder="-" ${locked ? "disabled" : ""}>
+                   <span class="sep">:</span>
+                   <input type="number" min="0" data-field="Sets2" value="${ba.Sets2 ?? ""}" placeholder="-" ${locked ? "disabled" : ""}>`
+                : `<input type="number" min="0" data-field="Ergebnis1" value="${ba.Ergebnis1 ?? ""}" placeholder="-" ${locked ? "disabled" : ""}>
+                   <span class="sep">:</span>
+                   <input type="number" min="0" data-field="Ergebnis2" value="${ba.Ergebnis2 ?? ""}" placeholder="-" ${locked ? "disabled" : ""}>`}
+            </div>
+            ${sets ? `<div class="muted" style="font-size:10px;margin-top:2px;">${gameUnitPlural(row.type)}</div>` : (scoreLabel(row.score) ? `<div class="muted" style="font-size:10px;margin-top:2px;">${pointsUnitPlural(row.type)}</div>` : ``)}
+          </div>
+          <div class="mr-side b">
+            <span class="lbl">${escapeHtml(state.team_b.name)}</span>
+            ${renderPlayerPicker(row, "b", exp, locked)}
+          </div>
+        </div>
+        ${f141 ? `
+        <div class="mr-extra">
+          <div class="ex-block">
+            <span class="lbl">Aufnahmen / Höchstserie ${escapeHtml(state.team_a.name)}</span>
+            <div style="display:flex;gap:4px;">
+              <input type="number" min="0" data-field="Aufnahmen1" value="${ba.Aufnahmen1 ?? ""}" placeholder="Aufn." ${locked ? "disabled" : ""}>
+              <input type="number" min="0" data-field="Höchstserie1" value="${ba.Höchstserie1 ?? ""}" placeholder="HS" ${locked ? "disabled" : ""}>
+            </div>
+          </div>
+          <div class="ex-block">
+            <span class="lbl">Aufnahmen / Höchstserie ${escapeHtml(state.team_b.name)}</span>
+            <div style="display:flex;gap:4px;">
+              <input type="number" min="0" data-field="Aufnahmen2" value="${ba.Aufnahmen2 ?? ""}" placeholder="Aufn." ${locked ? "disabled" : ""}>
+              <input type="number" min="0" data-field="Höchstserie2" value="${ba.Höchstserie2 ?? ""}" placeholder="HS" ${locked ? "disabled" : ""}>
+            </div>
+          </div>
+        </div>` : ``}
+        <div class="mr-foot">
+          <label style="font-size:12px;color:var(--muted);display:flex;gap:6px;align-items:center;">
+            Tisch:
+            <select class="table-pick" data-field="table" ${locked ? "disabled" : ""}>
+              <option value="">– wählen –</option>
+              ${tables.map(t => `<option value="${escapeHtml(t)}" ${row.table === t ? "selected" : ""}>${escapeHtml(t)}</option>`).join("")}
+            </select>
+          </label>
+          <span class="status-pill ${status}">${status === "done" ? "✓ erfasst" : status === "ready" ? "● bereit" : "○ offen"}</span>
+          ${renderSyncPill(g)}
+        </div>
+      </div>
+    </div>`;
+}
+
+function renderPlayerPicker(row, side, exp, locked) {
+  const roster = assignedRoster(side);
+  const cur = exp === 1 ? (row[`player_${side}`] != null ? [row[`player_${side}`]] : []) : (Array.isArray(row[`player_${side}`]) ? row[`player_${side}`] : []);
+  let h = "";
+  for (let i = 0; i < exp; i++) {
+    const sel = cur[i] != null ? String(cur[i]) : "";
+    h += `<select class="player-pick" data-side="${side}" data-slot="${i}" ${locked ? "disabled" : ""}>
+      <option value="">– Spieler ${exp > 1 ? i + 1 : ""} wählen –</option>
+      ${roster.map(p => { const pid = playerId(p); return `<option value="${escapeHtml(pid)}" ${sel === pid ? "selected" : ""}>${escapeHtml(playerName(p))}${p.dbu_nr ? " (DBU " + escapeHtml(String(p.dbu_nr)) + ")" : ""}</option>`; }).join("")}
+    </select>`;
+  }
+  return h;
+}
+
+function bindRound(rNo) {
+  const games = rowsOfRound(rNo);
+  games.forEach(row => {
+    const card = document.querySelector(`.match-row[data-gname="${cssEsc(gnameOf(row))}"]`);
+    if (!card) return;
+    card.querySelectorAll("select.player-pick").forEach(sel => sel.addEventListener("change", e => {
+      const side = e.target.dataset.side;
+      const slot = parseInt(e.target.dataset.slot, 10);
+      const v = e.target.value === "" ? null : e.target.value;   // dbu_nr als String
+      const exp = expectedPlayers(row);
+      if (exp === 1) {
+        row[`player_${side}`] = v;
+      } else {
+        const arr = Array.isArray(row[`player_${side}`]) ? row[`player_${side}`].slice() : [];
+        arr[slot] = v;
+        row[`player_${side}`] = arr;
+      }
+      save(); renderPlay();
+    }));
+    card.querySelector("select.table-pick")?.addEventListener("change", e => {
+      row.table = e.target.value || null;
+      save(); renderPlay();
+    });
+    card.querySelectorAll(".mr-vs input, .mr-extra input").forEach(inp => {
+      inp.addEventListener("change", () => commitResult(row, card));
+      inp.addEventListener("keydown", e => { if (e.key === "Enter") { commitResult(row, card); e.preventDefault(); } });
+    });
+  });
+}
+
+function commitResult(row, card) {
+  if (state.phase === "finished") return;
+  const ba = { ...(rowGame(row)?.ba_results || {}) };
+  card.querySelectorAll(".mr-vs input, .mr-extra input").forEach(inp => {
+    const f = inp.dataset.field;
+    const v = inp.value.trim();
+    if (v === "") delete ba[f]; else ba[f] = parseInt(v, 10);
+  });
+  // §4.3 (User-Korrektur 2026-06-28): Spieler1/2 = DBU-Nr team_a/team_b (ba_id ist Relikt).
+  // Bei Doppel/4er: erste DBU des Slots als Repräsentant. App schickt dbu_nr als String —
+  // Carambus' record_game_result! darf Spieler1/2 als String behandeln.
+  const repA = Array.isArray(row.player_a) ? row.player_a[0] : row.player_a;
+  const repB = Array.isArray(row.player_b) ? row.player_b[0] : row.player_b;
+  if (repA != null) ba.Spieler1 = String(repA);
+  if (repB != null) ba.Spieler2 = String(repB);
+  // Zeile gilt als gespielt (ended_at), wenn die jeweils maßgeblichen Felder beide gesetzt sind.
+  const sets = isSetsDiscipline(row);
+  const hasResult = sets
+    ? (ba.Sets1 != null && ba.Sets2 != null)
+    : (ba.Ergebnis1 != null && ba.Ergebnis2 != null);
+  const prev = rowGame(row);
+  state.games[gnameOf(row)] = {
+    ba_results: ba,
+    ended_at: hasResult ? (prev?.ended_at || Date.now()) : null,
+    sync: prev?.sync || null    // bestehender Sync-Stand bleibt; pushGameResult überschreibt ihn
+  };
+  save(); renderAll();
+  // Live-Push asynchron (kein await — UI bleibt responsiv, Status erscheint als Sync-Pille).
+  if (hasResult && isLive() && state.carambusParty?.external_id) {
+    pushGameResult(row);
+  }
+}
+
+// Sync-Pille je Spielzeile (Direkteingabe-Push §2). Sichtbar nur, wenn ein Sync-Versuch
+// gelaufen ist; "synced" hat title=Server-intermediate_result fürs Debugging.
+function renderSyncPill(g) {
+  const s = g?.sync;
+  if (!s) return "";
+  if (s.status === "pending") return `<span class="sync-pill pending" title="Sende …">⟳ sync</span>`;
+  if (s.status === "synced") {
+    const tip = s.server_intermediate ? `Server: ${s.server_intermediate.game_points || ""} / ${s.server_intermediate.match_points || ""}` : "an Carambus übertragen";
+    return `<span class="sync-pill synced" title="${escapeHtml(tip)}">✓ sync</span>`;
+  }
+  return `<span class="sync-pill error" title="${escapeHtml(s.error || "Fehler")}">⚠ sync</span>`;
+}
+
+function cssEsc(s) { return String(s).replace(/(["\\#.()\[\]:])/g, "\\$1"); }
+
+function collectDuplicates(rNo) {
+  const games = rowsOfRound(rNo);
+  const out = [];
+  ["a", "b"].forEach(side => {
+    const seen = new Map(); // baId → seqno[]
+    games.forEach(row => {
+      const ids = expectedPlayers(row) === 1 ? (row[`player_${side}`] != null ? [row[`player_${side}`]] : []) : (Array.isArray(row[`player_${side}`]) ? row[`player_${side}`].filter(x => x != null) : []);
+      ids.forEach(id => {
+        const arr = seen.get(id) || []; arr.push(row.seqno); seen.set(id, arr);
+      });
+    });
+    seen.forEach((seqs, id) => {
+      if (seqs.length > 1) {
+        const p = rosterById(side, id);
+        out.push(`${side === "a" ? state.team_a.name : state.team_b.name}: ${playerName(p)} in Spielen ${seqs.join(", ")}`);
+      }
+    });
+  });
+  const tSeen = new Map();
+  games.forEach(row => { if (row.table) { const a = tSeen.get(row.table) || []; a.push(row.seqno); tSeen.set(row.table, a); } });
+  tSeen.forEach((seqs, t) => { if (seqs.length > 1) out.push(`Tisch „${t}" doppelt belegt (Spiele ${seqs.join(", ")})`); });
+  return out;
+}
+
+// ===== Aggregation §4.4 — game_points / match_points =====
+function computeIntermediate() {
+  const pm = state.party_monitor;
+  if (!pm) return { gameA: 0, gameB: 0, mpA: 0, mpB: 0, playedCount: 0, winnerName: null };
+  let gA = 0, gB = 0, played = 0;
+  (pm.rows || []).filter(isGameRow).forEach(row => {
+    const g = rowGame(row);
+    if (!g || !g.ended_at) return;
+    const ba = g.ba_results || {};
+    const a = isSetsDiscipline(row) ? (ba.Sets1 ?? 0) : (ba.Ergebnis1 ?? 0);
+    const b = isSetsDiscipline(row) ? (ba.Sets2 ?? 0) : (ba.Ergebnis2 ?? 0);
+    const gp = row.game_points || { win: 1, draw: 0, lost: 0 };
+    if (a > b) { gA += gp.win; gB += gp.lost; }
+    else if (b > a) { gA += gp.lost; gB += gp.win; }
+    else { gA += gp.draw; gB += gp.draw; }
+    played++;
+  });
+  const mp = pm.match_points || { win: 2, draw: 1, lost: 0 };
+  let mpA, mpB, winnerName = null;
+  if (gA > gB) { mpA = mp.win; mpB = mp.lost; winnerName = state.team_a?.name || null; }
+  else if (gB > gA) { mpA = mp.lost; mpB = mp.win; winnerName = state.team_b?.name || null; }
+  else { mpA = mp.draw; mpB = mp.draw; }
+  return { gameA: gA, gameB: gB, mpA, mpB, playedCount: played, winnerName };
+}
+
+// ===== TABELLE-Tab =====
+function renderStandings() {
+  const el = document.getElementById("tab-standings");
+  if (!state.party) { el.innerHTML = `<div class="card"><p class="muted">Noch kein Spieltag.</p></div>`; return; }
+  const pm = state.party_monitor;
+  const all = (pm.rows || []).filter(isGameRow);
+  const inter = computeIntermediate();
+  const final = state.phase === "finished";
+
+  el.innerHTML = `
+    <div class="card">
+      <h2>Mannschaftsergebnis</h2>
+      <div class="standings-result">
+        <div style="font-size:13px;color:var(--muted);margin-bottom:6px;">${escapeHtml(state.team_a.name)} <span class="muted">vs</span> ${escapeHtml(state.team_b.name)}</div>
+        <div class="gp">${inter.playedCount ? `${inter.gameA}:${inter.gameB}` : "–:–"}</div>
+        <div class="mp">${inter.playedCount ? `Mannschaftspunkte ${inter.mpA}:${inter.mpB}` : "noch keine Spiele erfasst"}</div>
+        ${final && inter.winnerName ? `<div class="winner">🏆 Sieger: ${escapeHtml(inter.winnerName)}</div>` : ``}
+        ${final && !inter.winnerName && inter.playedCount ? `<div class="winner">🤝 Unentschieden</div>` : ``}
+        <div class="muted" style="font-size:11px;margin-top:8px;">${inter.playedCount}/${all.length} Spiele${final ? " · Spielbericht abgeschlossen" : " (live)"}</div>
+      </div>
+      <h3 style="margin-top:18px;">Einzelergebnisse</h3>
+      <table>
+        <thead><tr><th>#</th><th>Disziplin</th><th>${escapeHtml(state.team_a.name)}</th><th>Ergebnis</th><th>${escapeHtml(state.team_b.name)}</th><th>Tisch</th><th>Pkt A:B</th></tr></thead>
+        <tbody>${all.map(row => renderResultRow(row)).join("")}</tbody>
+      </table>
+    </div>`;
+}
+
+function renderResultRow(row) {
+  const g = rowGame(row);
+  const ba = g?.ba_results || {};
+  const sets = isSetsDiscipline(row);
+  const exp = expectedPlayers(row);
+  const namesOf = side => {
+    const v = row[`player_${side}`];
+    const ids = exp === 1 ? (v != null ? [v] : []) : (Array.isArray(v) ? v.filter(x => x != null) : []);
+    return ids.map(id => playerName(rosterById(side, id))).join(", ") || `<span class="muted">–</span>`;
+  };
+  let resultCell = `<span class="muted">–</span>`;
+  let pts = `<span class="muted">–</span>`;
+  if (g?.ended_at) {
+    const a = sets ? (ba.Sets1 ?? 0) : (ba.Ergebnis1 ?? 0);
+    const b = sets ? (ba.Sets2 ?? 0) : (ba.Ergebnis2 ?? 0);
+    resultCell = `<strong>${a}:${b}</strong>${sets ? ` <span class='muted' style='font-size:11px;'>(${gameUnitPlural(row.type)})</span>` : ""}`;
+    const gp = row.game_points || { win: 1, draw: 0, lost: 0 };
+    const [pa, pb] = a > b ? [gp.win, gp.lost] : b > a ? [gp.lost, gp.win] : [gp.draw, gp.draw];
+    pts = `${pa}:${pb}`;
+  }
+  return `<tr>
+    <td><span class="gold" style="font-family:monospace;">#${row.seqno}</span></td>
+    <td>${escapeHtml(row.type)}</td>
+    <td>${namesOf("a")}</td>
+    <td style="text-align:center;">${resultCell}</td>
+    <td>${namesOf("b")}</td>
+    <td>${row.table ? escapeHtml(row.table) : `<span class="muted">–</span>`}</td>
+    <td style="text-align:center;font-family:monospace;">${pts}</td>
+  </tr>`;
+}
+
+// ===== Helfer =====
+function playerName(p) { return p ? `${p.firstname || ""} ${p.lastname || ""}`.trim() || (p.dbu_nr ? `DBU ${p.dbu_nr}` : "?") : "?"; }
+function switchTab(tab) { const btn = document.querySelector(`nav.tabs button[data-tab="${tab}"]`); if (btn) btn.click(); }
+
+renderAll();
+</script>
+</body>
+</html>
