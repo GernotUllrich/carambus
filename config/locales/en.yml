@@ -1567,6 +1567,8 @@ en:
       name: Name
       new_position: Edit Position
       no_invitation_uploaded: ⚠️ No invitation uploaded
+      open_in_tournament_app: Open in tournament app
+      open_in_tournament_app_hint: Alternative to the tournament monitor. The app opens with this tournament and asks for the service account's password.
       order_by_ranking_or_handicap: Order By Ranking or Handicap
       parsed_invitation_heading: 📄 Parsed invitation
       party_monitor: Matchday Monitor

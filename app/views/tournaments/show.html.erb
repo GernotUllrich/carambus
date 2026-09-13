@@ -22,6 +22,19 @@
     <% end %>
   <% end %>
 
+  <%# Plan 17-06: Alternative zum Turnier-Monitor — die Turnier-App vorverbunden öffnen.
+      Sichtbarkeit = Recht der Aktion (prepare_tournament?), nicht nur Spielleiter wie beim Wizard. %>
+  <% if (app_link = tournament_app_link(@tournament)) %>
+    <div class="my-4">
+      <%= link_to t("tournaments.show.open_in_tournament_app"), app_link,
+                  target: "_blank", rel: "noopener",
+                  class: "btn btn-primary" %>
+      <p class="mt-1 text-sm text-gray-600 dark:text-gray-300">
+        <%= t("tournaments.show.open_in_tournament_app_hint") %>
+      </p>
+    </div>
+  <% end %>
+
   <!-- Tournament Status Overview - Für alle sichtbar wenn Turnier läuft/abgeschlossen -->
   <!-- Enthält jetzt auch die Setzliste mit Rankings -->
   <%= render 'tournament_status', tournament: @tournament %>

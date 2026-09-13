@@ -16,16 +16,73 @@ class TournamentPreparation::AppLinkBuilderTest < ActiveSupport::TestCase
     assert_equal :tournament_invalid, res[:reason]
   end
 
-  test "tournament ohne tournament_cc → :tournament_invalid" do
-    t = Tournament.create!(
+  teardown do
+    User.where("email LIKE ?", "%test17x06%").delete_all
+  end
+
+  def tournament_without_cc(region_id:)
+    Tournament.create!(
       title: "Ohne TCC", season_id: 50_000_001,
       organizer_id: 50_000_001, organizer_type: "Region",
       discipline_id: 50_000_001, state: "tournament_mode_defined",
-      date: 1.week.from_now
+      date: 1.week.from_now, region_id: region_id
     )
-    res = TournamentPreparation::AppLinkBuilder.call(tournament: t)
-    refute res[:ok]
-    assert_equal :tournament_invalid, res[:reason]
+  end
+
+  def create_service_account(shortname)
+    User.create!(email: "carambus-app-#{shortname}-bridge@carambus.de", password: "password123",
+      confirmed_at: Time.current)
+  end
+
+  # Plan 17-06: vorher :tournament_invalid — ohne ClubCloud-Bezug gab es gar keinen Link.
+  test "tournament ohne tournament_cc und ohne Region → :region_missing" do
+    Carambus.stub(:config, OpenStruct.new) do
+      res = TournamentPreparation::AppLinkBuilder.call(tournament: tournament_without_cc(region_id: nil))
+      refute res[:ok]
+      assert_equal :region_missing, res[:reason]
+    end
+  end
+
+  test "Plan 17-06: tournament ohne tournament_cc mit Region → Link aus der Turnier-Region, ohne cb_tournament_cc_id" do
+    t = tournament_without_cc(region_id: regions(:nbv).id)
+    Carambus.stub(:config, OpenStruct.new) do
+      res = TournamentPreparation::AppLinkBuilder.call(tournament: t)
+      assert res[:ok], res.inspect
+      link = res[:app_link]
+      assert link.start_with?("/app/?"), link
+      assert_match(/cb_region=NBV/, link)
+      assert_match(/cb_tournament_id=#{t.id}(&|\z)/, link)
+      refute_match(/cb_tournament_cc_id/, link)
+    end
+  end
+
+  test "Plan 17-06: genau ein Dienstkonto → cb_email im Link" do
+    create_service_account("test17x06a")
+    Carambus.stub(:config, OpenStruct.new) do
+      res = TournamentPreparation::AppLinkBuilder.call(tournament: @tournament, server_context: @ctx)
+      assert res[:ok], res.inspect
+      assert_match(/cb_email=carambus-app-test17x06a-bridge%40carambus.de/, res[:app_link])
+    end
+  end
+
+  test "Plan 17-06: zwei Dienstkonten → kein cb_email im Link" do
+    create_service_account("test17x06a")
+    create_service_account("test17x06b")
+    Carambus.stub(:config, OpenStruct.new) do
+      res = TournamentPreparation::AppLinkBuilder.call(tournament: @tournament, server_context: @ctx)
+      assert res[:ok], res.inspect
+      refute_match(/cb_email/, res[:app_link])
+    end
+  end
+
+  test "Plan 17-06: kein Dienstkonto → kein cb_email im Link" do
+    assert_equal 0, User.where("email LIKE ?", "carambus-app-%-bridge@carambus.de").count,
+      "precondition: Test-DB ohne Dienstkonto"
+    Carambus.stub(:config, OpenStruct.new) do
+      res = TournamentPreparation::AppLinkBuilder.call(tournament: @tournament, server_context: @ctx)
+      assert res[:ok], res.inspect
+      refute_match(/cb_email/, res[:app_link])
+    end
   end
 
   test "config gesetzt → Deep-Link mit allen cb_-Params, encodiert" do

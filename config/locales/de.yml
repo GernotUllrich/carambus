@@ -1593,6 +1593,8 @@ de:
       name: Name
       new_position: Edit Position
       no_invitation_uploaded: ⚠️ Keine Einladung hochgeladen
+      open_in_tournament_app: In der Turnier-App öffnen
+      open_in_tournament_app_hint: Alternative zum Turnier-Monitor. Die App öffnet sich mit diesem Turnier und fragt nach dem Passwort des Dienstkontos.
       order_by_ranking_or_handicap: Ordne nach Rangliste bzw. Handicap
       parsed_invitation_heading: 📄 Geparste Einladung
       party_monitor: Spieltag Monitor

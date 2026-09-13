@@ -1782,4 +1782,147 @@ class TournamentsControllerTest < ActionDispatch::IntegrationTest
     post placement_tournament_url(@tournament), params: {game_id: game.id, table_id: table.id}
     assert_not_equal new_user_session_url, response.location
   end
+
+  # ---------------------------------------------------------------------------
+  # Plan 17-06: Knopf „In der Turnier-App öffnen“. Sichtbar = Recht der Aktion (prepare_tournament?),
+  # nur wo der Server /app/ ausliefert (serve_tournament_app), das Turnier eine Region hat und der
+  # Turnier-Monitor es nicht führt. Die Test-DB hat kein App-Dienstkonto → Link ohne cb_email.
+  # ---------------------------------------------------------------------------
+
+  # value :absent entfernt den Schlüssel — so sieht eine carambus.yml aus, die prepare_deploy noch
+  # nicht neu erzeugt hat.
+  def with_serve_tournament_app(value)
+    config = Carambus.config
+    had_key = config.to_h.key?(:serve_tournament_app)
+    original = config[:serve_tournament_app]
+    (value == :absent) ? (had_key && config.delete_field(:serve_tournament_app)) : config[:serve_tournament_app] = value
+    yield
+  ensure
+    if had_key
+      config[:serve_tournament_app] = original
+    elsif config.to_h.key?(:serve_tournament_app)
+      config.delete_field(:serve_tournament_app)
+    end
+  end
+
+  def app_tournament_setup
+    Carambus.config.carambus_api_url = "http://local.test"
+    @tournament.update_columns(region_id: regions(:nbv).id)
+  end
+
+  def get_show_with_app_switch(value = true)
+    with_serve_tournament_app(value) { get tournament_url(@tournament) }
+    assert_response :success
+  end
+
+  def assert_app_button(visible:)
+    link = /href="\/app\/\?cb_region=NBV&amp;cb_tournament_id=#{@tournament.id}"/
+    label = I18n.t("tournaments.show.open_in_tournament_app")
+    if visible
+      assert_match link, response.body
+      assert_includes response.body, label
+      assert_match(/target="_blank"/, response.body[response.body.index(label) - 400, 400])
+    else
+      assert_no_match(/href="\/app\//, response.body)
+      assert_not_includes response.body, label
+    end
+  end
+
+  test "17-06 AC-5: ein club_admin sieht den Knopf, der Link öffnet die App mit Region und Turnier" do
+    as(@club_admin)
+    app_tournament_setup
+    get_show_with_app_switch
+    assert_app_button(visible: true)
+  end
+
+  test "17-06 AC-5: der Turnierleiter (ohne Admin-Rolle) sieht den Knopf" do
+    app_tournament_setup
+    @tournament.update_column(:turnier_leiter_user_id, @user.id)
+    refute @user.admin?, "Vorbedingung: kein Admin"
+    get_show_with_app_switch
+    assert_app_button(visible: true)
+  end
+
+  test "17-06 AC-5: ein Sportwart im Wirkbereich sieht den Knopf" do
+    app_tournament_setup
+    put_tournament_in_sportwart_scope
+    # Mit Spielort rendert der Seitenkopf Location#display_address — das Fixture hat keine Adresse
+    # (address.split auf nil → 500).
+    locations(:one).update_columns(address: "Teststraße 1")
+    as(sportwart_user)
+    get_show_with_app_switch
+    assert_app_button(visible: true)
+  end
+
+  test "17-06 AC-5: nicht angemeldet kein Knopf" do
+    as(nil)
+    app_tournament_setup
+    get_show_with_app_switch
+    assert_app_button(visible: false)
+  end
+
+  test "17-06 AC-5: ein player ohne Recht sieht keinen Knopf" do
+    app_tournament_setup
+    refute TournamentPolicy.new(@user, @tournament).prepare_tournament?, "Vorbedingung: kein Recht"
+    get_show_with_app_switch
+    assert_app_button(visible: false)
+  end
+
+  test "17-06 AC-5: Schalter aus → kein Knopf" do
+    as(@club_admin)
+    app_tournament_setup
+    get_show_with_app_switch(false)
+    assert_app_button(visible: false)
+  end
+
+  test "17-06 AC-5: Schalter fehlt in der carambus.yml → kein Knopf" do
+    as(@club_admin)
+    app_tournament_setup
+    get_show_with_app_switch(:absent)
+    assert_app_button(visible: false)
+  end
+
+  test "17-06 AC-6: Turnier ohne Region → kein Knopf" do
+    as(@club_admin)
+    app_tournament_setup
+    @tournament.update_columns(region_id: nil)
+    get_show_with_app_switch
+    assert_app_button(visible: false)
+  end
+
+  test "17-06 AC-6: der Turnier-Monitor führt das Turnier → kein Knopf" do
+    as(@club_admin)
+    app_tournament_setup
+    TournamentMonitor.create!(tournament: @tournament)
+    refute @tournament.reload.manual_assignment, "Vorbedingung: kein App-Turnier"
+    get_show_with_app_switch
+    assert_app_button(visible: false)
+  end
+
+  test "17-06 AC-6: App-Turnier (manual_assignment) mit Turnier-Monitor → Knopf" do
+    as(@club_admin)
+    app_tournament_setup
+    @tournament.update_columns(manual_assignment: true)
+    TournamentMonitor.create!(tournament: @tournament)
+    get_show_with_app_switch
+    assert_app_button(visible: true)
+  end
+
+  test "17-06 AC-6: Turnier mit ClubCloud-Ergebnissen → kein Knopf" do
+    as(@club_admin)
+    app_tournament_setup
+    Seeding.create!(id: 30_017_061, tournament: @tournament, player: players(:jaspers), position: 1,
+      data: {"result" => {"Endrangliste" => {"Rank" => 1, "Name" => "Jaspers"}}})
+    assert @tournament.reload.has_clubcloud_results?, "Vorbedingung: ClubCloud-Ergebnis vorhanden"
+    get_show_with_app_switch
+    assert_app_button(visible: false)
+  end
+
+  test "17-06 AC-6: auf der Authority (kein local_server?) kein Knopf" do
+    as(@club_admin)
+    app_tournament_setup
+    Carambus.config.carambus_api_url = ""
+    get_show_with_app_switch
+    assert_app_button(visible: false)
+  end
 end
