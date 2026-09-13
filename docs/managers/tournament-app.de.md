@@ -43,8 +43,10 @@ Ob ein Turnier überhaupt in die App gehört, sagt die Entscheidungshilfe
 ## Voraussetzungen (Vereins-Admin) {#voraussetzungen}
 
 1. **Auslieferung einschalten:** `serve_tournament_app: true` in `carambus_data/scenarios/<szenario>/config.yml`.
-   Die App-Dateien gehen mit jedem Carambus-Deploy mit; der Schalter wirkt über die nginx-Konfiguration, die
-   `rake "scenario:prepare_deploy[<szenario>]"` erzeugt. Ohne Schalter antwortet der Server auf `/app/` mit 404.
+   Die App-Dateien gehen mit jedem Carambus-Deploy mit; der Schalter wirkt über die nginx-Konfiguration und die
+   `carambus.yml`, die beide `rake "scenario:prepare_deploy[<szenario>]"` erzeugt. Ohne Schalter antwortet der Server
+   auf `/app/` mit 404, und die Turnierseite zeigt den [Knopf](#link) nicht. Solange die `carambus.yml` eines Servers
+   noch nicht neu erzeugt ist, fehlt der Knopf ebenfalls.
 2. **Dienstkonto anlegen:** Die App meldet sich mit einem Dienstkonto an — einem Benutzer in der Datenbank des
    Servers, von dem sie kommt. Anlegen im Deploy-Verzeichnis dieses Servers:
 
@@ -113,9 +115,19 @@ Player.create!(firstname: "<Vorname>", lastname: "<Nachname>",
 
 Wer schon in der Datenbank steht, wird wiederverwendet, nicht neu angelegt.
 
-## Der Link {#link}
+## Der Knopf und der Link {#link}
 
-Ein Link bringt den Turnierleiter in die App und trägt Region, Dienstkonto und Turnier ein:
+Auf der Turnierseite in Carambus öffnet **„In der Turnier-App öffnen“** die App in einem neuen Tab, mit Region und
+Turnier eingetragen. Gibt es auf dem Server genau ein Dienstkonto der App, steht es schon im Anmeldefeld; nur das
+Passwort fehlt. Den Knopf sehen Admins, der Turnierleiter des Turniers und Sportwarte, in deren Wirkbereich es liegt —
+wenn der Server die App ausliefert ([Voraussetzungen](#voraussetzungen)). Er fehlt,
+
+- wenn das Turnier keine Region hat — die App fände es nicht;
+- solange der Turnier-Monitor das Turnier führt (dann ist die Wahl gefallen; ein App-Turnier trägt `manual_assignment`);
+- bei Turnieren mit Ergebnissen aus der ClubCloud.
+
+Ohne Knopf, bei mehreren Dienstkonten auf dem Server oder für ein anderes Gerät bringt derselbe Link den Turnierleiter
+in die App:
 
 ```text
 https://<carambus-server>/app/?cb_region=<REGION>&cb_email=<Dienstkonto>&cb_tournament_id=<Turnier-ID>
@@ -133,7 +145,7 @@ es nur, wenn die App von einem anderen Server kommt als Carambus.
 
 ## Plan-Turnier führen {#fuehren}
 
-1. Link öffnen, Passwort des Dienstkontos eingeben.
+1. Auf der Turnierseite **„In der Turnier-App öffnen“** (oder den [Link](#link)), Passwort des Dienstkontos eingeben.
 2. Auf der Übersicht **„🔗 → Plan-Turnier attachen“** wählen — nicht „➕ Neues Turnier“: Das legte ein zweites
    Turnier an und belegte die Tische doppelt.
 3. **„▶ Turnier laden“**: Die App holt Plan, Setzliste und Distanz aus Carambus und bindet die Tische an das Turnier.
@@ -176,11 +188,11 @@ daraus ein **eigenes** KO-Turnier an. Das ClubCloud-Turnier in Carambus bleibt d
 Ergebnisarchiv hängen an dem Turnier, das die App anlegt. Diesen Weg gibt es im Code, im Turnierbetrieb ist er noch
 nicht erprobt.
 
-1. **Turniernummer nachsehen:** Sie steht in der Adresse der Turnierseite in Carambus, `…/tournaments/<Turnier-ID>`.
-2. **Link öffnen** — derselbe Aufbau wie beim [Plan-Turnier](#link):
-   `https://<carambus-server>/app/?cb_region=<REGION>&cb_email=<Dienstkonto>&cb_tournament_id=<Turnier-ID>`.
-   Wer den Carambus-Assistenten nutzt, bekommt den Link dort („öffne das Turnier … in der Turnier-App“); der Assistent
-   holt dabei die aktuelle Meldeliste aus der ClubCloud.
+1. **Meldeliste prüfen:** Die App übernimmt die Meldeliste, die in Carambus liegt; der Knopf holt sie nicht neu. Wer
+   den Carambus-Assistenten fragt („öffne das Turnier … in der Turnier-App“), bekommt den Link mit frisch aus der
+   ClubCloud geholter Meldeliste.
+2. **App öffnen:** auf der Turnierseite **„In der Turnier-App öffnen“** oder über den [Link](#link) mit der
+   Turniernummer aus der Adresse der Turnierseite, `…/tournaments/<Turnier-ID>`.
 3. **Anmelden.** Die Übersicht zeigt den Kasten „🔗 Aus dem Carambus-Chat vorbereitet“ mit Turniername, Disziplin und
    Spielerzahl.
 4. **„🏆 → KO-Turnier anlegen“** — die Meldeliste wird zur Setzliste. Nicht „Plan-Turnier attachen“: Das gilt nur für
@@ -216,7 +228,8 @@ des Turniers).
 ## Wenn etwas schiefgeht {#stoerungen}
 
 **Die App zeigt kein Turnier mehr** — der Browser hat seinen Speicher geräumt. Sicherung über „Sicherung
-wiederherstellen“ einspielen, Link öffnen und anmelden (die Anmeldung gehört nicht zur Sicherung),
+wiederherstellen“ einspielen, die App über den Knopf oder den Link öffnen und anmelden (die Anmeldung gehört nicht zur
+Sicherung),
 das wiederhergestellte Turnier öffnen, nicht neu attachen. Ohne Sicherung stehen die bis dahin abgelegten Ergebnisse
 im Ergebnisarchiv auf der Turnierseite; zurück in die App kommen sie nicht.
 
