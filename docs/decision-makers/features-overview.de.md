@@ -23,12 +23,32 @@ dieser Seite ist im Code nachgewiesen (Stand September 2026).
 
 Handbuch: [Turnierverwaltung](../managers/tournament-management.md)
 
+## Turnier-App {#turnier-app}
+
+Eine Browser-App für die Turnierleitung, die der Vereinsserver unter `/app/` mit ausliefert. Sie führt ein Turnier
+selbst, legt die Spiele auf die Scoreboards der Tische und bekommt die Ergebnisse von dort zurück; Ergebnisse
+lassen sich auch direkt in der App eintragen.
+
+- **Turnierformen:** KO-System (Einfach- und Doppel-KO nach den ClubCloud-Plänen, auch in Pool und Snooker),
+  3-Band-Mannschaftsmeisterschaft (4 Mannschaften × 4 Spieler), Turnierpläne T01–T24 mit Gruppen und
+  Finalrunde, Liga-Spieltag
+- **Turnierstand:** Hängt ein Turnierplan an einem im Carambus angelegten Turnier, liegt der Stand auf dem Server;
+  dann können mehrere Geräte und Turnierleiter daran arbeiten. Sonst liegt der Stand im Browser des Geräts.
+- **Ergebnisarchiv:** Endstand und Partien gehen automatisch auf den Vereinsserver und stehen dort auf der
+  Turnierseite (KO, Mannschaftsmeisterschaft, Turnierpläne).
+- **Im Einsatz:** internationales Damenturnier im BC Wedel, August 2026 (Dreiband, Turnierplan). Pool- und
+  Snooker-Turniere sind mit der App noch nicht gespielt worden.
+- **Voraussetzungen:** Die Auslieferung wird in der Server-Konfiguration eingeschaltet; die App meldet sich mit
+  einem Dienstkonto der Region an, das ein Admin anlegt. Ein App-Turnier im Carambus anzulegen verlangt heute
+  Einstellungen, die man kennen muss (manuelle Spielzuordnung, Enddatum in der Zukunft).
+
 ## Scoreboards
 
 - **Karambol:** Stand, Aufnahmen, GD, Höchstserie, Restbälle, Bedenkzeit-Uhr
 - **Pool:** 8-, 9- und 10-Ball sowie 14.1 endlos (mit Foulzähler), Gewinnsätze, Winner- oder Wechsel-Break
 - **Snooker:** Frames (Best-of), Break, Restpunkte, Farben im Spiel, 6, 10 oder 15 Rote, Foul-Eingabe
-- Pool und Snooker gibt es für freie Partien und Ligaspieltage; Turniermodi dafür gibt es nicht.
+- Pool und Snooker laufen in freien Partien, an Ligaspieltagen und in KO-Turnieren der
+  [Turnier-App](#turnier-app); der Turnier-Monitor führt nur Karambol-Turniere.
 - **Am Tisch:** Raspberry Pi mit Monitor oder Touch-Display im Kiosk-Modus, oder jeder Browser; eine
   Bildschirmtastatur erlaubt die Anmeldung ohne angeschlossene Tastatur
 - **Korrekturen:** Rücknahme am Scoreboard und Protokolleditor vor der Bestätigung; Spielprotokoll als PDF
@@ -86,8 +106,8 @@ Handbuch: [ClubCloud-Integration](../managers/clubcloud-integration.md)
 
 ## Schnittstellen
 
-- **Bridge für externe Turnier-Apps:** JSON-Schnittstelle mit Token-Anmeldung
-  ([External Tournament Bridge](../managers/external-tournament-bridge.md))
+- **Bridge:** die JSON-Schnittstelle, über die die [Turnier-App](#turnier-app) — und andere Turnier-Apps — mit
+  Carambus sprechen, mit Token-Anmeldung ([External Tournament Bridge](../managers/external-tournament-bridge.md))
 
 ## Benutzer und Rechte
 
@@ -105,11 +125,11 @@ Handbuch: [ClubCloud-Integration](../managers/clubcloud-integration.md)
 
 Folgendes gibt es in Carambus nicht, auch wenn frühere Fassungen dieser Seite es nannten:
 
-- Pool- und Snooker-**Turniere** und das Schweizer System
+- Pool- und Snooker-Turniere mit Gruppen und Turnierplänen (KO geht über die Turnier-App) und das Schweizer System
 - Ein Online-Buchungssystem mit eigener Kalender-Ansicht, Buchungsbestätigung und Stornierung — Reservierungen
   laufen über den Google-Kalender des Vereins
-- Eine App mit Offline-Modus, Installation auf dem Home-Screen und Push-Benachrichtigungen; Benachrichtigungen über
-  anstehende Spiele
+- Einen Offline-Modus der Carambus-Oberfläche, Installation auf dem Home-Screen und Push-Benachrichtigungen;
+  Benachrichtigungen über anstehende Spiele
 - Zwei-Faktor-Anmeldung und Anmeldung über Google oder Facebook
 - Datenexport und Anonymisierung für Spieler; das Löschen von Spielerdaten, die aus der ClubCloud kommen
 - Eine Änderungshistorie für Spielergebnisse mit Rückgängig-Funktion

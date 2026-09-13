@@ -23,13 +23,34 @@ this page has been verified in the code (as of September 2026).
 
 Manual: [Tournament management](../managers/tournament-management.md)
 
+## Tournament app {#turnier-app}
+
+A browser app for the tournament director that the club server delivers under `/app/`. It runs a tournament
+itself, puts the games on the scoreboards at the tables and receives the results from there; results can also be
+entered directly in the app.
+
+- **Tournament formats:** knockout system (single and double knockout according to the ClubCloud plans, also in
+  pool and snooker), three-cushion team championship (4 teams × 4 players), tournament plans T01–T24 with groups
+  and a final round, league match day
+- **Tournament state:** if a tournament plan is attached to a tournament created in Carambus, the state lives on
+  the server; several devices and tournament directors can then work on it. Otherwise the state lives in the
+  browser of the device.
+- **Result archive:** final standings and games go to the club server automatically and appear there on the
+  tournament page (knockout, team championship, tournament plans).
+- **In use:** international ladies' tournament at BC Wedel, August 2026 (three-cushion, tournament plan). No pool or
+  snooker tournament has been played with the app yet.
+- **Requirements:** delivery is switched on in the server configuration; the app logs in with a service account of
+  the region that an admin creates. Creating an app tournament in Carambus currently requires settings you need to
+  know about (manual game assignment, end date in the future).
+
 ## Scoreboards
 
 - **Carom:** score, innings, general average, high run, remaining points, shot clock
 - **Pool:** 8-, 9- and 10-ball as well as 14.1 continuous (with foul counter), sets to win, winner or alternating
   break
 - **Snooker:** frames (best of), break, points remaining, colours in play, 6, 10 or 15 reds, foul entry
-- Pool and snooker are available for free games and league match days; there are no tournament modes for them.
+- Pool and snooker run in free games, on league match days and in knockout tournaments of the
+  [tournament app](#turnier-app); the tournament monitor only runs carom tournaments.
 - **At the table:** Raspberry Pi with monitor or touch display in kiosk mode, or any browser; an on-screen
   keyboard allows logging in without a keyboard attached
 - **Corrections:** undo at the scoreboard and protocol editor before confirmation; game protocol as PDF
@@ -87,7 +108,8 @@ Manual: [ClubCloud integration](../managers/clubcloud-integration.md)
 
 ## Interfaces
 
-- **Bridge for external tournament apps:** JSON interface with token authentication
+- **Bridge:** the JSON interface through which the [tournament app](#turnier-app) — and other tournament apps —
+  talk to Carambus, with token authentication
   ([External Tournament Bridge](../managers/external-tournament-bridge.md))
 
 ## Users and permissions
@@ -106,10 +128,12 @@ Manual: [ClubCloud integration](../managers/clubcloud-integration.md)
 
 The following does not exist in Carambus, even though earlier versions of this page mentioned it:
 
-- Pool and snooker **tournaments** and the Swiss system
+- Pool and snooker tournaments with groups and tournament plans (knockout works via the tournament app) and the
+  Swiss system
 - An online booking system with its own calendar view, booking confirmation and cancellation — reservations go
   through the club's Google Calendar
-- An app with offline mode, home screen installation and push notifications; notifications about upcoming games
+- An offline mode of the Carambus user interface, home screen installation and push notifications; notifications
+  about upcoming games
 - Two-factor authentication and login via Google or Facebook
 - Data export and anonymization for players; deleting player data that comes from the ClubCloud
 - A change history for game results with an undo function

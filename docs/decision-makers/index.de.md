@@ -16,6 +16,8 @@ begleitet Ligaspieltage und tauscht Daten mit der DBU-ClubCloud aus. Carambus is
 
 - Ihr Verein **Karambol-Turniere** ausrichtet (Freie Partie, Cadre, Einband, Dreiband, Kegelbillard) — nach den
   T-Plänen der Turnierordnung, als Jeder-gegen-Jeden, KO oder Doppel-KO
+- Sie **Mannschaftsturniere** (3-Band-Mannschaftsmeisterschaft) oder **KO-Turniere** vor Ort führen wollen — mit
+  der mitgelieferten [Turnier-App](features-overview.md#turnier-app)
 - Sie **Scoreboards an den Tischen** wollen, die die Spieler selbst bedienen
 - Ihre Spieler und Vereine in der **DBU-ClubCloud** gepflegt werden und die Ergebnisse dorthin zurückgehen sollen
 - jemand im Verein einen Raspberry Pi per SSH einrichten kann — oder Sie die Einrichtung gemeinsam mit dem
@@ -23,12 +25,14 @@ begleitet Ligaspieltage und tauscht Daten mit der DBU-ClubCloud aus. Carambus is
 
 **Carambus passt (noch) nicht, wenn …**
 
-- Sie **Pool- oder Snooker-Turniere** durchführen wollen: Dafür gibt es Scoreboards für freie Partien und
-  Ligaspieltage, aber keine Turniermodi
+- Sie **Pool- oder Snooker-Turniere** mit Gruppen und Turnierplänen durchführen wollen: Der Turnier-Monitor kennt
+  nur Karambol. Die Turnier-App kann KO-Turniere auch in Pool und Snooker führen, ein solches Turnier ist aber
+  noch nicht gespielt worden
 - Sie ein System suchen, das ohne den Betreiber von Carambus in Betrieb geht: Die Erstbefüllung der Datenbank und
   die Zugangsschlüssel des Servers kommen heute von ihm (siehe
   [Voraussetzungen für den eigenen Betrieb](deployment-options.md#voraussetzungen))
-- Sie ein Online-Buchungssystem, eine App mit Offline-Modus oder Statistik-Auswertungen und Exporte erwarten —
+- Sie ein Online-Buchungssystem, Push-Benachrichtigungen aufs Handy oder Statistik-Auswertungen und Exporte
+  erwarten —
   siehe [Was Carambus nicht kann](features-overview.md#nicht-enthalten)
 
 ## Die Seiten dieses Bereichs

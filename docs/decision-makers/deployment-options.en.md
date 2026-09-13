@@ -52,13 +52,18 @@ Additional tables each get a display device.
 
 Guide: [Raspberry Pi Quickstart](../administrators/raspberry-pi-quickstart.md)
 
+**Tournament app:** the club server delivers the [tournament app](features-overview.md#turnier-app) under `/app/`
+if this is switched on in the scenario configuration (`serve_tournament_app`). For this the app's repository sits
+next to `carambus_data` on the admin computer; when the deploy is prepared, its delivered part (`public/`) is
+copied to the server. The app logs in with a service account of the region that the admin creates on the server.
+
 <a id="voraussetzungen"></a>
 ## Requirements for running your own server
 
 | What | Why |
 |---|---|
 | **The Carambus operator** | The initial database load fetches the master data via SSH from the Authority's database; only the operator has this access. The server's access keys (`production.key`) also come from the operator today. How a club can do both itself in the future is still open. |
-| **An admin computer (Mac or Linux)** | Ansible and the Rake tasks run from here. You need the Raspberry Pi Imager, a Carambus checkout, the scenario configuration (`carambus_data`), the Ansible repository, a local PostgreSQL and an SSH key. |
+| **An admin computer (Mac or Linux)** | Ansible and the Rake tasks run from here. You need the Raspberry Pi Imager, a Carambus checkout, the scenario configuration (`carambus_data`), the Ansible repository, a local PostgreSQL and an SSH key, plus the tournament app's repository if you use it. |
 | **Linux and SSH skills** | for the setup and for errors that come up along the way |
 | **The DBU ClubCloud** | Players and clubs are maintained there; the tournament director does the result upload with their ClubCloud access. |
 | **A mail account** | In production Carambus only starts with SMTP credentials — or with mail sending deliberately switched off. |

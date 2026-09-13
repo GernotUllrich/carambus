@@ -17,18 +17,21 @@ license).
 
 - your club hosts **carom tournaments** (straight rail, balkline, one-cushion, three-cushion, Kegelbillard) —
   according to the T-plans of the tournament rules, as round robin, knockout or double knockout
+- you want to run **team tournaments** (three-cushion team championship) or **knockout tournaments** on site —
+  with the bundled [tournament app](features-overview.md#turnier-app)
 - you want **scoreboards at the tables** that the players operate themselves
 - your players and clubs are maintained in the **DBU ClubCloud** and results should go back there
 - someone in the club can set up a Raspberry Pi via SSH — or you do the setup together with the Carambus operator
 
 **Carambus does not fit (yet) if …**
 
-- you want to run **pool or snooker tournaments**: there are scoreboards for free games and league match days,
-  but no tournament modes
+- you want to run **pool or snooker tournaments** with groups and tournament plans: the tournament monitor only
+  handles carom. The tournament app can run knockout tournaments in pool and snooker as well, but no such
+  tournament has been played yet
 - you are looking for a system that goes live without the Carambus operator: the initial database load and the
   server's access keys come from the operator today (see
   [Requirements for running your own server](deployment-options.md#voraussetzungen))
-- you expect an online booking system, an app with offline mode, or statistics and exports — see
+- you expect an online booking system, push notifications to phones, or statistics and exports — see
   [What Carambus cannot do](features-overview.md#nicht-enthalten)
 
 ## Pages in this section

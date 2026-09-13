@@ -9,6 +9,10 @@ aufgestellt ist. Ausführlich: [Feature-Übersicht](features-overview.md) und
 - **Turniere (Karambol):** Turnierpläne der Karambol-Turnierordnung (T-Pläne), Jeder-gegen-Jeden für jede
   Teilnehmerzahl, KO und Doppel-KO; Gruppenrangfolge nach der Turnierordnung, Stechen im KO; der Turnier-Monitor
   zeigt Gruppen, laufende Spiele, KO-Baum und Rangliste
+- **Turnier-App** für die Turnierleitung, vom Vereinsserver mit ausgeliefert: KO- und Doppel-KO-Turniere (auch in
+  Pool und Snooker), 3-Band-Mannschaftsmeisterschaft, Turnierpläne und Liga-Spieltage; sie legt die Spiele auf
+  die Scoreboards und archiviert den Endstand auf dem Vereinsserver
+  ([Turnier-App](features-overview.md#turnier-app))
 - **Scoreboards** für Karambol, Pool und Snooker — auf einem Raspberry Pi im Kiosk-Modus am Tisch oder in jedem
   Browser; alle Anzeigen aktualisieren sich in Echtzeit
 - **Liga:** Ligaspieltage mit dem Party-Monitor (Aufstellung, Tischzuordnung, Ergebnisbestätigung) und

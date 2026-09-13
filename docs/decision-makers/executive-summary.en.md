@@ -8,6 +8,10 @@ detail: [Features Overview](features-overview.md) and [Deployment Options](deplo
 - **Tournaments (carom):** tournament plans of the German carom tournament rules (T-plans), round robin for any
   number of participants, knockout and double knockout; group ranking according to the tournament rules,
   tiebreak in knockout games; the tournament monitor shows groups, running games, knockout bracket and ranking
+- **Tournament app** for the tournament director, delivered by the club server: knockout and double-knockout
+  tournaments (pool and snooker too), three-cushion team championship, tournament plans and league match days; it
+  puts the games on the scoreboards and archives the final standings on the club server
+  ([Tournament app](features-overview.md#turnier-app))
 - **Scoreboards** for carom, pool and snooker — on a Raspberry Pi in kiosk mode at the table or in any browser;
   all displays update in real time
 - **League:** league match days with the Party Monitor (line-up, table assignment, result confirmation) and league
