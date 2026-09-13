@@ -1,184 +1,96 @@
-# Executive Summary: Carambus Billiards Tournament Management System
+# Executive Summary
 
-## Overview
+Carambus on one page: what it can do, how it is built, what a club needs and how the project is set up. In
+detail: [Features Overview](features-overview.md) and [Deployment Options](deployment-options.md).
 
-**Carambus** is a professional, web-based tournament management system for billiards clubs and federations. It was specifically developed for the requirements of organized billiards sports and provides a complete end-to-end solution from match scheduling to live scoreboard displays.
+## What Carambus can do
 
-## Key Features
+- **Tournaments (carom):** tournament plans of the German carom tournament rules (T-plans), round robin for any
+  number of participants, knockout and double knockout; group ranking according to the tournament rules,
+  tiebreak in knockout games; the tournament monitor shows groups, running games, knockout bracket and ranking
+- **Scoreboards** for carom, pool and snooker — on a Raspberry Pi in kiosk mode at the table or in any browser;
+  all displays update in real time
+- **League:** league match days with the Party Monitor (line-up, table assignment, result confirmation) and league
+  tables
+- **ClubCloud:** players, clubs, tournaments and leagues come from the DBU ClubCloud; tournament results go back by
+  upload
+- **At the club:** table reservation via the club's Google Calendar with preheating of the tables, training games
+  at the scoreboard, YouTube live streaming with a scoreboard overlay
+- **For associations:** individual championships with entry list and results even without the ClubCloud, via the
+  region server ([CC-less tournament management](../administrators/cc-less-tournament-management.md), German)
 
-### 🎯 Complete Tournament Management
-- **Tournament Planning**: Automatic match plan creation with flexible modes (Round Robin, Knockout, Swiss System)
-- **Live Result Recording**: Real-time updates across all devices
-- **Multiple Disciplines**: Support for Carom (Straight Rail, Cadre, Three-Cushion), Pool, and Snooker
-- **League Management**: Season-spanning management of championship series
+**With conditions:**
 
-### 📊 Intelligent Features
-- **AI-Powered Search**: Natural language queries for players, tournaments, and results
-- **ClubCloud Integration**: Automatic data synchronization with the official DBU platform
-- **Statistics & Analytics**: Comprehensive evaluations for players and organizers
-- **History Tracking**: Complete traceability of all changes
+- **AI search:** turns a question into a list filter. It needs your own Anthropic API key (running costs); the
+  search queries are sent to Anthropic.
+- **ClubCloud assistant (MCP)** for sports officials: runs in Claude Code on the official's computer and needs an
+  account on the region's Carambus server
+  ([Quickstart](../managers/clubcloud-mcp-cloud-quickstart.md), German).
 
-### 🖥️ Professional Display Solutions
-- **Live Scoreboards**: Automatically updated displays for Carom, Pool, and Snooker
-- **Tournament Monitors**: Overview displays with current match standings and tables
-- **Party Monitors**: Group match day overviews for league operation
-- **Touch Control**: Optimized for tablet and touch display operation
+## How Carambus is built
 
-### 🔧 Flexible Operating Models
-- **Cloud Deployment**: Central management for federations and large clubs
-- **On-Premise Installation**: Full data control for privacy-sensitive environments
-- **All-in-One Raspberry Pi**: Cost-effective plug-&-play solution for individual clubs
+Carambus is a network of several servers:
 
-## Business Value
+- The **Authority** `api.carambus.de`, run by the Carambus operator, reads the data from the ClubCloud and holds
+  the shared master data: players, clubs, tournaments, tournament plans.
+- A **club server** at the venue — usually a Raspberry Pi — fetches this master data from the Authority every hour
+  and cannot change it. Whatever is created at the club (local tournaments, games, training results, table
+  reservations) stays on the club server.
+- For regional associations there is a **region server** (e.g. `nbv.carambus.de`).
 
-### For Clubs
-- ✅ **Time Savings**: Automation of routine tasks (match scheduling, result publication)
-- ✅ **Professional Image**: Modern, attractive presentation at tournaments
-- ✅ **Member Retention**: Transparent, always available information
-- ✅ **Cost Efficiency**: Open source solution without licensing fees
+Play at the venue continues without internet. Without a connection, new data from the Authority is missing, and
+the result upload to the ClubCloud only works again once the connection is back. More:
+[Server architecture](../administrators/server-architecture.md).
 
-### For Federations
-- ✅ **Central Data Management**: Unified platform for all affiliated clubs
-- ✅ **Standardization**: Uniform processes and presentation
-- ✅ **Data Integration**: Seamless connection to existing systems (e.g., ClubCloud)
-- ✅ **Scalability**: From single club to national federation
+## What a club needs
 
-### For Tournament Participants
-- ✅ **Transparency**: Always current match schedules and results
-- ✅ **Mobile Access**: Access on smartphone, tablet, or desktop
-- ✅ **Notifications**: Automatic information about upcoming matches
-- ✅ **Statistics**: Personal match history and performance development
+- **Hardware:** Raspberry Pi 4 or 5 (4 GB RAM recommended), microSD card, monitor or touch display; one display
+  device for each additional table
+- **A person with Linux and SSH skills** and a Mac or Linux computer from which they set up the Pi (Ansible, Rake
+  tasks). Measured: about 1.5 hours, after which the Pi boots into the scoreboard by itself
+- **The Carambus operator:** the initial database load and the server's access keys come from the operator
+  today. How a
+  club can do both itself in the future is still open.
+- **The ClubCloud:** players and clubs must be maintained there; the tournament director does the result upload
+  with their ClubCloud access
+- **A mail account** for sending mail — or a deliberate decision to run without mail
 
-## Technology Foundation
+In detail: [Requirements for running your own server](deployment-options.md#voraussetzungen).
 
-### Modern & Future-Proof
-- **Backend**: Ruby on Rails 7.2 (LTS support until 2027)
-- **Frontend**: Hotwire/Turbo (Modern without JavaScript framework overhead)
-- **Database**: PostgreSQL (Enterprise-grade stability)
-- **Real-time**: WebSockets via Action Cable
-- **UI**: Tailwind CSS (Responsive, modern look)
+## Technology
 
-### Technology Choice Benefits
-- ✅ **Maintainability**: Clear architecture, established best practices
-- ✅ **Performance**: Optimized for real-time updates without delay
-- ✅ **Security**: Regular updates, active community
-- ✅ **Extensibility**: Modular structure for future features
+- Ruby on Rails 7.2 (7.2.2.2) on Ruby 3.2.1, PostgreSQL, Redis; user interface with Hotwire (Turbo, Stimulus) and
+  StimulusReflex/CableReady, real time via WebSockets
+- **Maintenance status:** Ruby 3.2 has received no security updates from its maintainers since the end of March
+  2026, Rails 7.2 since August 2026. The upgrade to newer versions is still pending.
 
-## Deployment Options
+## Privacy and security
 
-### Option 1: Cloud Hosting (Recommended for Federations)
-**Description**: Central installation on a web server, access via internet
+- Contact details of club members (email, consent) stay on the club server; mails to members are only sent with
+  consent.
+- Player and club data from the ClubCloud is distributed by the Authority to the servers of the region.
+- External services only if they are set up: Anthropic (AI search), Google Calendar (table reservation), YouTube
+  (streaming).
+- Passwords are stored with bcrypt, access credentials (ClubCloud passwords, stream keys) encrypted.
+- Publicly reachable servers run over HTTPS; a club server at the venue runs without HTTPS on port 3131.
+- The setup via Ansible configures a firewall (web and SSH port only) and automatic security updates of the
+  operating system.
 
-**Benefits**:
-- Central maintenance and updates
-- Accessible from anywhere
-- No local hardware required
-- Automatic backups
+## License and costs
 
-**Typical Use**: State/National federations, clubs with multiple venues
+- **MIT license:** no license fees, source code freely available, commercial use allowed
+- Costs arise for the hardware and for optional external services (such as the Anthropic key for AI search)
 
-**Estimated Costs**: 10-50 EUR/month (VPS hosting)
+## In use
 
-### Option 2: On-Premise Server
-**Description**: Installation on club-owned server or NAS
+- **Billardclub Wedel 61 e.V.:** club server on a Raspberry Pi with touch display — scoreboards, club tournaments,
+  table reservation with heating control
+- Further club servers on Raspberry Pis and the NBV region server (`nbv.carambus.de`)
 
-**Benefits**:
-- Full data control
-- No ongoing hosting costs
-- Works even during internet outages
-- Adaptable to local infrastructure
+## Project and contact
 
-**Typical Use**: Clubs with own IT infrastructure, privacy-sensitive environments
+Carambus is a single-developer project and is actively maintained ([About the project](../about.md)). Help is
+available on request.
 
-**Estimated Costs**: One-time hardware purchase (from 300 EUR for single-board computer)
-
-### Option 3: All-in-One Raspberry Pi (Recommended for Individual Clubs)
-**Description**: Complete system on Raspberry Pi 4/5, including display output
-
-**Benefits**:
-- Extremely cost-effective (hardware approx. 100-150 EUR)
-- Simple installation (30-minute setup)
-- Low power consumption (< 15W)
-- Kiosk mode: Direct connection to TV/monitor
-
-**Typical Use**: Small clubs, single locations, budget-conscious installations
-
-**Estimated Costs**:
-- Raspberry Pi 4 (8GB): ~90 EUR
-- Accessories (power supply, case, SD card): ~40 EUR
-- Optional: Touchscreen: ~100-200 EUR
-
-## Implementation
-
-### Timeline
-- **Cloud Installation**: 2-4 hours
-- **On-Premise**: 1-2 days (incl. infrastructure setup)
-- **Raspberry Pi**: 30-60 minutes
-
-### Required Resources
-- **IT Skills**: Basic Linux knowledge sufficient
-- **Personnel**: 1 person for installation and maintenance
-- **Training**: Tournament managers: 2-3 hours, Players: Self-service
-
-### Support
-- **Documentation**: Comprehensive online documentation (German/English)
-- **Community**: Active development, GitHub issues
-- **Commercial Support**: Available upon request
-
-## Legal Aspects
-
-### Licensing
-- **Open Source**: MIT License
-- **Free**: No licensing fees
-- **Customizable**: Source code freely available
-- **Commercially Usable**: Also for commercial organizers
-
-### Data Protection (GDPR)
-- ✅ Fully GDPR-compliant implementation possible
-- ✅ Data minimization: Only necessary data is stored
-- ✅ Local data retention possible (on-premise)
-- ✅ Deletion functions for player data available
-- ✅ Encrypted transmission (HTTPS/TLS)
-
-## Success Stories
-
-### Billardclub Wedel 61 e.V.
-- **In Use Since**: 2022
-- **Usage**: League operation, club tournaments, table reservation
-- **Result**: Complete digitalization of tournament management, positive feedback from members
-
-### Additional Deployments
-- Raspberry Pi installation for smaller clubs
-- ClubCloud integration for federation leagues
-- Multi-location deployment for larger organizations
-
-## Next Steps
-
-### Evaluation
-1. **View Demo**: Test live system at [Insert Demo URL]
-2. **Read Documentation**: Detailed feature overview and installation guides
-3. **Proof of Concept**: Test installation on Raspberry Pi (time required: 1 hour)
-
-### Contact
-For further information, consultation, or demo appointments:
-
-- **Project Website**: [https://github.com/GernotUllrich/carambus](https://github.com/GernotUllrich/carambus)
-- **Email**: gernot.ullrich@gmx.de
-- **Reference Club**: [Billardclub Wedel 61 e.V.](http://www.billardclub-wedel.de/)
-
----
-
-## Summary in Three Sentences
-
-**Carambus is a professional, free open-source solution for the complete digitalization of billiards tournaments and league operations.** The system provides all necessary functions from match scheduling to live scoreboards and result publication, and can be flexibly operated as a cloud service, on-premise server, or cost-effective Raspberry Pi solution. The modern technology foundation guarantees future-proofing, while comprehensive documentation and simple installation enable rapid deployment.
-
----
-
-*Last updated: December 2025*
-
-
-
-
-
-
-
+- **Email:** gernot.ullrich@gmx.de
+- **GitHub:** [GernotUllrich/carambus](https://github.com/GernotUllrich/carambus)

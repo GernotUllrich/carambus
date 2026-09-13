@@ -1,157 +1,57 @@
 # Für Entscheider
 
-Evaluieren Sie Carambus für Ihren Billardverein oder -verband.
+Diese Seiten helfen Vorständen und Sportwarten eines Billardvereins oder Landesverbands bei der Frage, ob
+Carambus zu ihnen passt. Sie nennen, was Carambus heute kann, wie es betrieben wird und was ein Verein dafür
+braucht — auch dort, wo heute noch der Betreiber von Carambus mithelfen muss.
 
-## 📋 Dokumentation für Entscheidungsträger
+## Was Carambus ist
 
-Diese Sektion richtet sich an Vereinsvorstände, Verbandsmanager und IT-Entscheider, die Carambus für ihre Organisation evaluieren möchten.
+Carambus ist eine Web-Anwendung für den Spielbetrieb im Karambol-Billard, entstanden im Billardclub Wedel 61 e.V.
+Sie führt Turniere nach den Turnierplänen der Karambol-Turnierordnung, zeigt Scoreboards an den Tischen,
+begleitet Ligaspieltage und tauscht Daten mit der DBU-ClubCloud aus. Carambus ist Open Source (MIT-Lizenz).
 
-### Kernfragen, die wir beantworten:
+## Passt Carambus zu uns?
 
-- **Was kann Carambus?** → [Feature-Übersicht](features-overview.md)
-- **Was kostet es?** → [Deployment-Optionen](deployment-options.md)
-- **Passt es zu uns?** → [Executive Summary](executive-summary.md)
+**Carambus passt, wenn …**
 
-## 📚 Verfügbare Dokumente
+- Ihr Verein **Karambol-Turniere** ausrichtet (Freie Partie, Cadre, Einband, Dreiband, Kegelbillard) — nach den
+  T-Plänen der Turnierordnung, als Jeder-gegen-Jeden, KO oder Doppel-KO
+- Sie **Scoreboards an den Tischen** wollen, die die Spieler selbst bedienen
+- Ihre Spieler und Vereine in der **DBU-ClubCloud** gepflegt werden und die Ergebnisse dorthin zurückgehen sollen
+- jemand im Verein einen Raspberry Pi per SSH einrichten kann — oder Sie die Einrichtung gemeinsam mit dem
+  Betreiber von Carambus machen
 
-### 1. [Executive Summary](executive-summary.md)
-**Lesezeit: 5-10 Minuten**
+**Carambus passt (noch) nicht, wenn …**
 
-Kompakter Überblick über:
-- Hauptmerkmale
-- Geschäftlicher Nutzen
-- Technologiebasis
-- Deployment-Optionen
-- Kosten-Nutzen-Analyse
-- Erfolgsbeispiele
+- Sie **Pool- oder Snooker-Turniere** durchführen wollen: Dafür gibt es Scoreboards für freie Partien und
+  Ligaspieltage, aber keine Turniermodi
+- Sie ein System suchen, das ohne den Betreiber von Carambus in Betrieb geht: Die Erstbefüllung der Datenbank und
+  die Zugangsschlüssel des Servers kommen heute von ihm (siehe
+  [Voraussetzungen für den eigenen Betrieb](deployment-options.md#voraussetzungen))
+- Sie ein Online-Buchungssystem, eine App mit Offline-Modus oder Statistik-Auswertungen und Exporte erwarten —
+  siehe [Was Carambus nicht kann](features-overview.md#nicht-enthalten)
 
-**Ideal für**: Erste Einschätzung, Vorstands-Präsentation
+## Die Seiten dieses Bereichs
 
-### 2. [Feature-Übersicht](features-overview.md)
-**Lesezeit: 20-30 Minuten**
+| Seite | beantwortet |
+|---|---|
+| [Executive Summary](executive-summary.md) | Carambus auf einer Seite: Funktionen, Aufbau, Voraussetzungen, Projektlage |
+| [Feature-Übersicht](features-overview.md) | Was Carambus kann — und was nicht |
+| [Deployment-Optionen](deployment-options.md) | Wie ein Verein oder Verband Carambus betreibt und was er dafür braucht |
 
-Detaillierte Beschreibung aller Funktionen:
-- Turnierverwaltung (alle Modi)
-- Liga- und Meisterschaftsverwaltung
-- Live-Scoreboards
-- ClubCloud-Integration
-- Tischreservierung & Heizungssteuerung
-- Statistiken & Auswertungen
-- Sicherheit & Datenschutz
+Für die technische Umsetzung: [Administrator-Übersicht](../administrators/index.md) und
+[Raspberry-Pi-Quickstart](../administrators/raspberry-pi-quickstart.md).
 
-**Ideal für**: Detaillierte Evaluation, Feature-Vergleiche
+## Nächste Schritte
 
-### 3. [Deployment-Optionen](deployment-options.md)
-**Lesezeit: 15-20 Minuten**
+1. Die [Executive Summary](executive-summary.md) lesen.
+2. **Kontakt aufnehmen, bevor Sie Hardware kaufen:** Erstbefüllung und Zugangsschlüssel laufen heute über den
+   Betreiber von Carambus.
+3. Den Vereinsserver nach dem [Raspberry-Pi-Quickstart](../administrators/raspberry-pi-quickstart.md) einrichten.
 
-Vollständiger Vergleich aller Betriebsmodelle:
-- **Cloud-Hosting**: Für Verbände und Multi-Standort
-- **On-Premise Server**: Für datenschutzsensible Umgebungen
-- **Raspberry Pi All-in-One**: Für kostenbewusste Einzelvereine
+<a id="kontakt"></a>
+## Kontakt
 
-Inklusive:
-- Hardware-Anforderungen
-- Kosten-Kalkulation (3 Jahre)
-- Setup-Zeit und Aufwand
-- Vor- und Nachteile
-- Migrations-Pfade
-
-**Ideal für**: Technische Planung, Budget-Kalkulation
-
-## 🎯 Entscheidungshilfe: Welche Dokumente soll ich lesen?
-
-### Szenario A: Schnell-Check (10 Minuten)
-Sie wollen schnell einschätzen, ob Carambus grundsätzlich passt.
-
-**Lesen Sie**: [Executive Summary](executive-summary.md)
-
-### Szenario B: Detaillierte Evaluation (1 Stunde)
-Sie planen eine fundierte Entscheidung und möchten alle Aspekte verstehen.
-
-**Lesen Sie alle drei Dokumente in dieser Reihenfolge**:
-1. Executive Summary (Überblick)
-2. Features Overview (Was kann es?)
-3. Deployment Options (Wie setzen wir es um?)
-
-### Szenario C: Kosten-Nutzen-Analyse (30 Minuten)
-Ihre Hauptfrage ist: "Was kostet es und was bringt es?"
-
-**Lesen Sie**:
-1. Executive Summary (Geschäftlicher Nutzen)
-2. Deployment Options (Kosten-Kalkulation)
-
-### Szenario D: Technische Machbarkeit (30 Minuten)
-Sie wollen wissen: "Können wir das technisch umsetzen?"
-
-**Lesen Sie**:
-1. Deployment Options (Alle Optionen)
-2. [Administrator-Übersicht](../administrators/index.md) (Installation)
-
-## 💡 Typische Entscheidungs-Szenarien
-
-### Kleiner Verein (< 50 Mitglieder, begrenztes Budget)
-**Empfehlung**: Raspberry Pi All-in-One
-
-**Warum?**
-- Geringste Kosten (~150 EUR einmalig)
-- Einfachste Installation (< 1 Stunde)
-- Wartungsarm
-- Ausreichend für Vereinsbetrieb
-
-➡️ Details: [Deployment-Optionen - Raspberry Pi](deployment-options.md#raspberry-pi-all-in-one)
-
-### Mittelgroßer Verein (50-200 Mitglieder)
-**Empfehlung**: Cloud-Hosting (Budget) oder On-Premise (Standard)
-
-**Warum?**
-- Bessere Performance
-- Von überall erreichbar (Cloud)
-- Skalierbar bei Wachstum
-
-➡️ Details: [Deployment-Optionen - Vergleich](deployment-options.md#vergleichs-matrix-erweitert)
-
-### Verband (Mehrere Vereine, 200+ Mitglieder)
-**Empfehlung**: Cloud-Hosting (Standard oder Premium)
-
-**Warum?**
-- Zentrale Verwaltung
-- Multi-Standort-Unterstützung
-- Professionelle Infrastruktur
-- Beste Skalierbarkeit
-
-➡️ Details: [Deployment-Optionen - Cloud](deployment-options.md#cloud-hosting-vps)
-
-## 📞 Nächste Schritte
-
-Nach der Lektüre dieser Dokumente:
-
-### 1. Demo anfordern
-Testen Sie ein Live-System (falls verfügbar) oder kontaktieren Sie uns für eine Demo.
-
-### 2. Proof of Concept
-Für einen schnellen Test:
-- **Raspberry Pi Setup** (1 Stunde)
-- Testturnier durchführen
-- Team testen lassen
-
-### 3. Detailplanung
-- Hardware beschaffen
-- Deployment-Variante festlegen
-- Schulungen planen
-- Rollout-Zeitplan erstellen
-
-### 4. Kontakt
-**E-Mail**: gernot.ullrich@gmx.de  
-**Projekt**: [Billardclub Wedel 61 e.V.](http://www.billardclub-wedel.de/)  
-**GitHub**: [GernotUllrich/carambus](https://github.com/GernotUllrich/carambus)
-
----
-
-**Tipp**: Laden Sie die Dokumentation herunter (als PDF über den Browser) für Offline-Lektüre oder Weitergabe an Vorstandsmitglieder.
-
-
-
-
-
-
-
+- **E-Mail:** gernot.ullrich@gmx.de
+- **GitHub:** [GernotUllrich/carambus](https://github.com/GernotUllrich/carambus)
+- **Referenzverein:** [Billardclub Wedel 61 e.V.](http://www.billardclub-wedel.de/)

@@ -29,6 +29,17 @@ mehr gepflegt.
     Aktuelle Anleitung: `docs/administrators/streaming-setup.de.md`.
   - **Nicht mehr ausführen.** Wiederherstellen bei Bedarf per `git log --follow` auf die neue Datei.
 
+### Entscheider-Seiten, Fassung Dezember 2025 (8 Dokumente)
+- `decision-makers/{index,executive-summary,features-overview,deployment-options}.{de,en}.md` - die frühere
+  Fassung von `docs/decision-makers/`
+  - **Herkunft:** `docs/decision-makers/` (gleiche Dateinamen; dort steht seit 2026-09-13 die Neufassung)
+  - **Grund:** Die Prüfung gegen den Code in Phase 17 (Plan 17-02, `docs/DRIFT-REPORT.md`) fand 156 Befunde,
+    39 davon schwer: nicht vorhandene Funktionen (Pool-/Snooker-Turniere, Offline-App, Zwei-Faktor-Anmeldung,
+    Online-Buchung, Webhooks …), ein Raspberry-Pi-Image, das es nicht gibt, drei Betriebsmodelle, von denen nur
+    eines belegt ist, und keine Angabe zur Abhängigkeit von der Authority. Statt 156 Stellen zu korrigieren,
+    wurden die Seiten auf das Belegte neu gefasst.
+  - **Nicht mehr zitieren.** Die Kosten-, Zeit- und Leistungsangaben der alten Fassung sind unbelegt.
+
 ## Status
 
 Alle Dokumente in diesem Verzeichnis dokumentieren **abgeschlossene** Arbeiten. Für aktuelle
