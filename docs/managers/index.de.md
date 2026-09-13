@@ -39,6 +39,12 @@ Als Turniermanager sind Sie verantwortlich für:
 ➡️ **[Turnierverwaltungs-Handbuch](tournament-management.md)**  
 ➡️ **[Kurzreferenz](tournament-quick-reference.md)**
 
+Pool- und Snooker-Turniere, die 3-Band-Mannschaftsmeisterschaft und gleichzeitige Turniere am selben Spielort führt
+die mitgelieferte Turnier-App:
+
+➡️ **[Turnier-Monitor oder Turnier-App?](tournament-management.md#monitor-or-app)**  
+➡️ **[Turnier-App](tournament-app.md)**
+
 ### 2. Ligaspieltage
 
 **Mannschaftswettbewerbe durchführen**:
@@ -309,8 +315,9 @@ Dazu kommen die **Personas** Sportwart und Landessportwart sowie die **Turnierle
 5. **[Admin-Rollen](admin-roles.md)** - Benutzer und Berechtigungen verwalten
 6. **[ClubCloud-Integration](clubcloud-integration.md)** - DBU ClubCloud anbinden
 7. **[ClubCloud-MCP Cloud-Quickstart](clubcloud-mcp-cloud-quickstart.md)** - Turnierarbeit per KI-Assistent
-8. **[Externe Turnier-App (Bridge)](external-tournament-bridge.md)** - Mehrere Turniere an einer Location
-9. **[Filter-Popup](filter_popup_usage.md)** - Effizient Daten finden
+8. **[Turnier-App](tournament-app.md)** - Turniere mit der mitgelieferten App führen
+9. **[External-Tournament-Bridge](external-tournament-bridge.md)** - Schnittstelle für Turnier-Apps
+10. **[Filter-Popup](filter_popup_usage.md)** - Effizient Daten finden
 
 ---
 

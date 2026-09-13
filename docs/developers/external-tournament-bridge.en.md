@@ -1,12 +1,12 @@
 # External Tournament Bridge
 
-> **Status:** v0.5 (In Progress) — Pilot: 3BandMannschaftsTurnier app for BC Wedel
-> 3-cushion team championship
+> **Status:** interface of the bundled tournament app (source `tournament_app/` in the Carambus repository);
+> the plan mode has been tried in a real tournament (August 2026). Guide: [tournament app](../managers/tournament-app.md)
 
 ## What is the Bridge?
 
-Carambus opens itself up to external tournament apps. An external app (e.g.,
-the 3BandMannschaftsTurnier app for 3-cushion team tournaments) runs the tournament and
+Carambus opens itself up to tournament apps. An app — the bundled tournament app or
+another one — runs the tournament and
 exchanges the following data with Carambus over REST:
 
 | Direction | Endpoint | Purpose | Status |

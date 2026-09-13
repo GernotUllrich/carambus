@@ -39,7 +39,6 @@ Afterwards the Pi boots straight into the scoreboard. From power-on this takes a
   deploys from here) — keep it **up to date**: `git -C ~/DEV/carambus/<scenario> pull --ff-only`
 - `~/DEV/carambus/carambus_data` (scenario `config.yml`, `secrets.yml`)
 - `~/DEV/ansible` (inventory and playbooks for steps 1–2)
-- `~/DEV/carambus/carambus_app`, if the scenario sets `serve_tournament_app: true`
 - Local PostgreSQL with `carambus_api_development`
 - SSH key (`~/.ssh/id_rsa.pub`)
 
@@ -108,6 +107,10 @@ environments:
 
 The application blocks access by IP address (Rails `config.hosts` only allows the names from the
 configuration) — so always use `http://<name>.local:3131` in the browser.
+
+**Tournament app:** if the server is to serve the [tournament app](../managers/tournament-app.md) under `/app/`,
+add `serve_tournament_app: true` under `scenario:`. The app files ship with the deploy; no separate repository is
+needed. The app's service account: [tournament app, prerequisites](../managers/tournament-app.md#voraussetzungen).
 
 **Mail sender:** in production Puma only starts with SMTP credentials (otherwise
 `config/initializers/smtp_guard.rb` aborts the start — nginx then reports *502 Bad Gateway*). The

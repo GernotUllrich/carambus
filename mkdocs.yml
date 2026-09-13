@@ -70,6 +70,7 @@ plugins:
             Manager Guide: Manager-Leitfaden
             Tournament Management: Turnierverwaltung
             Tournament Quick Reference: Turnier-Schnellreferenz
+            Tournament App: Turnier-App
             League Management: Liga-Management
             Table Reservation: Tischreservierung
             Admin Roles: Admin-Rollen
@@ -159,6 +160,7 @@ nav:
       - managers/index.md
       - Tournament Management: managers/tournament-management.md
       - Tournament Quick Reference: managers/tournament-quick-reference.md
+      - Tournament App: managers/tournament-app.md
       - League Management: managers/league-management.md
       - Table Reservation: managers/table_reservation_heating_control.md
       - Admin Roles: managers/admin-roles.md

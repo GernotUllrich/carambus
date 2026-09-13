@@ -1,13 +1,14 @@
 # External Tournament Bridge — Anwender-Anleitung
 
-> **Persona:** Turnierleiter oder Vereinsadmin mit eigener Turnier-App,
-> der Setzlisten und Ergebnisse zwischen App und Carambus synchronisieren möchte.
+> **Persona:** Vereinsadmin, der die Turnier-App anbindet, oder Entwickler einer weiteren Turnier-App,
+> die Setzlisten und Ergebnisse mit Carambus austauschen soll.
 
 ## Was ist das?
 
-Wenn dein Verein eine eigene Turnier-App nutzt (z.B. das 3BandMannschaftsTurnier
-für 3-Band-Mannschaftsmeisterschaften), kann diese App jetzt direkt mit Carambus
-sprechen — statt Ergebnisse doppelt einzutippen.
+Die Bridge ist die Schnittstelle, über die eine Turnier-App mit Carambus spricht — statt Ergebnisse doppelt
+einzutippen. Carambus bringt dafür seine eigene [Turnier-App](tournament-app.md) mit (KO-System,
+3-Band-Mannschaftsmeisterschaft, TournamentPlan, Liga-Spieltag); die Anleitung für Turnierleiter steht dort. Andere
+Apps können dieselbe Schnittstelle nutzen.
 
 Drei Datenflüsse:
 
@@ -27,13 +28,14 @@ Details in der [Entwickler-Doku](../developers/external-tournament-bridge.md).
 Einfache Regel-Turniere laufen weiter über den **Turnier-Monitor** der Carambus-WebApp. Die externe App ist für
 den Fall gedacht, dass **mehrere Turniere an einer Location zusammenkommen**.
 
-- Du hast eine eigene Turnier-Software, die Carambus nicht abdeckt (z.B. ein
-  spezifisches 3-Band-Mannschaftsformat mit eigener Tabellenlogik).
+- Das Turnierformat deckt der Turnier-Monitor nicht ab (z. B. 3-Band-Mannschaftsmeisterschaft, KO in Pool und Snooker) —
+  dann führt es die mitgelieferte Turnier-App oder eine andere App über diese Schnittstelle.
 - Vor-Ort-Setup auf iPad oder Laptop im Clubheim, das offline funktionieren muss.
 - Du willst die Doppel-Erfassung zwischen App und Carambus-Scoreboards eliminieren.
 
 Wenn dein Vereinsturnier komplett über Carambus läuft (Anmeldung →
-Auslosung → Scoreboards → Endrangliste), brauchst du diese Bridge **nicht**.
+Auslosung → Scoreboards → Endrangliste), brauchst du diese Bridge **nicht**. Entscheidungshilfe:
+[Turnier-Monitor oder Turnier-App?](tournament-management.md#monitor-or-app)
 
 ## Setup-Workflow
 
@@ -86,21 +88,16 @@ Login: `POST <Base-URL>/login` mit den Headern `Content-Type: application/json` 
 
 ### Auslieferung über Carambus (`/app/`)
 
-Carambus kann die Turnier-App selbst unter `/app/` ausliefern. Dann laufen App und Carambus
+Carambus liefert seine Turnier-App selbst unter `/app/` aus. Dann laufen App und Carambus
 auf demselben Server (Same-Origin): Die App leitet ihre API-Adresse aus der Browser-Adresse ab,
 eine Base-URL ist nicht nötig, und der Chat bietet einen Deep-Link `/app/?…` mit Region und Turnier
 an (das Passwort steht nie im Link).
 
-Voraussetzungen, am Werkzeug belegt:
-
-- `serve_tournament_app: true` in `carambus_data/scenarios/<szenario>/config.yml`
-- das Repo `carambus_app` auf dem Admin-Rechner **neben** `carambus_data`, mit
-  `carambus_app/public/index.html`
-- `rake "scenario:prepare_deploy[<szenario>]"` kopiert `carambus_app/public/` nach
-  `<deploy_to>/shared/public/app` (Schritt 4.6). Fehlt `index.html`, warnt der Task und das Deployment
-  läuft weiter; `/app/` liefert dann 404.
-
-Woher ein fremder Verein das Repo `carambus_app` bekommt, regelt die Doku nicht; das ist offen.
+Die App liegt im Carambus-Repository (Quelle `tournament_app/`, ausgeliefert aus `public/app/`) und geht mit
+jedem Deploy mit. Ausgeliefert wird sie nur, wenn `serve_tournament_app: true` in
+`carambus_data/scenarios/<szenario>/config.yml` steht; der Schalter wirkt über die nginx-Konfiguration, die
+`rake "scenario:prepare_deploy[<szenario>]"` erzeugt. Ohne ihn antwortet der Server auf `/app/` mit 404.
+Mehr in der [Turnier-App-Anleitung](tournament-app.md#voraussetzungen).
 
 ### Schritt 3: Smoke-Test vor dem Turnier
 
@@ -202,20 +199,20 @@ Lösung: Sportwart legt den unbekannten Spieler manuell in der CC-UI an
 Carambus-Server ankommen, bevor ein erneuter Round-Start greift. Für den Abgleich
 gibt es außerdem den Endpoint `POST /api/external_tournament/player_reconcile`.
 
-## Pilot-Story
+## Praxistest
 
-Vorgesehen als erste Anwendung: BC Wedel 3-Band-Mannschaftsmeisterschaft
-2026-05-17, mit der 3BandMannschaftsTurnier-App auf iPad im Clubheim-WLAN gegen
-das lokale `carambus_bcw`-Scenario.
+Im Turnierbetrieb erprobt ist die Form **TournamentPlan im Attach-Modus**: das CEB-Ladies-Turnier beim BC Wedel,
+21.–23.08.2026 (Plan T08, drei Tische), mit der Turnier-App gegen den lokalen Carambus-Server; der Endstand liegt im
+Ergebnisarchiv. Die Formen 3-Band-Mannschaftsmeisterschaft, Doppel-KO und Liga-Spieltag sind im Turnierbetrieb noch
+nicht erprobt.
 
-Status: **Ein Praxistest im Turnierbetrieb steht noch aus** (Betreiber, 2026-09-12).
-Technisch lief im Juni 2026 ein Live-Test der Anbindung mit der App (Befunde u. a.
-zur Same-Origin-Auslieferung unter `/app/`, Commit `52337e16`); seit August gibt es
-Werkzeuge für lokale App-Turniere (`external_tournament:end`,
+Technisch lief im Juni 2026 ein Live-Test der Anbindung (Befunde u. a. zur Same-Origin-Auslieferung unter `/app/`,
+Commit `52337e16`); seit August gibt es Werkzeuge für lokale App-Turniere (`external_tournament:end`,
 `reset_app_tournament`, `release_stale_local_tables`).
 
 ## Verwandte Doku
 
+- [Turnier-App — Anleitung für Turnierleiter und Admins](tournament-app.md)
 - [Developer-Doku — Technische Details und Mapping-Tabellen](../developers/external-tournament-bridge.md)
 - [API-Referenz — Vollständige Endpoint-Spezifikation](../reference/api.md)
 - [ClubCloud MCP Setup-Service (Sportwart-Setup-Pendant)](clubcloud-mcp-setup-service.md)

@@ -32,16 +32,16 @@ entered directly in the app.
 - **Tournament formats:** knockout system (single and double knockout according to the ClubCloud plans, also in
   pool and snooker), three-cushion team championship (4 teams × 4 players), tournament plans T01–T24 with groups
   and a final round, league match day
-- **Tournament state:** if a tournament plan is attached to a tournament created in Carambus, the state lives on
-  the server; several devices and tournament directors can then work on it. Otherwise the state lives in the
-  browser of the device.
+- **Tournament state:** the tournament state with the recorded results lives in the browser of the device; a backup
+  after every round is mandatory. If a tournament plan is attached to a tournament created in Carambus, the plan,
+  seeding list and table bindings live on the server, so several devices and tournament directors can work on it.
 - **Result archive:** final standings and games go to the club server automatically and appear there on the
   tournament page (knockout, team championship, tournament plans).
 - **In use:** international ladies' tournament at BC Wedel, August 2026 (three-cushion, tournament plan). No pool or
   snooker tournament has been played with the app yet.
-- **Requirements:** delivery is switched on in the server configuration; the app logs in with a service account of
-  the region that an admin creates. Creating an app tournament in Carambus currently requires settings you need to
-  know about (manual game assignment, end date in the future).
+- **Requirements:** delivery is switched on in the server configuration; the app logs in with a service account
+  that an admin creates on the server. Creating an app tournament in Carambus is currently only possible through the
+  server's Rails console (admin). Guide: [tournament app](../managers/tournament-app.md).
 
 ## Scoreboards
 

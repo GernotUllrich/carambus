@@ -2,6 +2,23 @@
 
 This page walks you through running a carom tournament synced from ClubCloud, step by step, from the moment you receive the invitation to the final upload of results.
 
+## Tournament monitor or tournament app? {#monitor-or-app}
+
+Before every tournament you decide what to run it with. The default is the **tournament monitor** described on
+this page. Use the [tournament app](tournament-app.md) if one of these applies:
+
+| If … | then | because |
+|------|------|---------|
+| the discipline is **pool or snooker** | tournament app (KO system) — [how to](tournament-app.md#ko-aus-clubcloud) | The tournament monitor only runs carom tournaments. The ClubCloud knockout plans for pool (single and double elimination) exist only in the app. |
+| it is a **3-cushion team championship** | tournament app | The tournament monitor does not run team formats. |
+| **another tournament runs at the same time** at the same venue | tournament app — for all simultaneous tournaments | The tournament monitor does not protect the tables: if the start form selects a table on which another tournament is playing, the new tournament takes it over; the running match stays on it. The app rejects an occupied table („Table already in use“). |
+
+Otherwise stay with the tournament monitor: carom singles tournaments following a tournament plan, including
+knockout and double knockout.
+
+With the app: an admin creates the tournament in the Rails console, and the tournament director backs up the state
+after every round — details in the [tournament app guide](tournament-app.md#anlegen).
+
 ## Scenario {#scenario}
 
 For example: as the tournament director for your club you have received an NBV invitation for the **NDM Freie Partie Class 1–3** by email as a PDF — a regional carom tournament running one Saturday in your club's playing location with 5 registered players across two tables. The PDF normally serves as your starting reference for managing the tournament. This page walks you through the run from the moment the invitation arrives to the moment the results reach ClubCloud.

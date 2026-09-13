@@ -32,15 +32,16 @@ lassen sich auch direkt in der App eintragen.
 - **Turnierformen:** KO-System (Einfach- und Doppel-KO nach den ClubCloud-Plänen, auch in Pool und Snooker),
   3-Band-Mannschaftsmeisterschaft (4 Mannschaften × 4 Spieler), Turnierpläne T01–T24 mit Gruppen und
   Finalrunde, Liga-Spieltag
-- **Turnierstand:** Hängt ein Turnierplan an einem im Carambus angelegten Turnier, liegt der Stand auf dem Server;
-  dann können mehrere Geräte und Turnierleiter daran arbeiten. Sonst liegt der Stand im Browser des Geräts.
+- **Turnierstand:** Der Turnierstand mit den erfassten Ergebnissen liegt im Browser des Geräts; eine Sicherung nach
+  jeder Runde ist Pflicht. Hängt ein Turnierplan an einem im Carambus angelegten Turnier, liegen Plan, Setzliste und
+  Tischbindungen auf dem Server, sodass mehrere Geräte und Turnierleiter daran arbeiten können.
 - **Ergebnisarchiv:** Endstand und Partien gehen automatisch auf den Vereinsserver und stehen dort auf der
   Turnierseite (KO, Mannschaftsmeisterschaft, Turnierpläne).
 - **Im Einsatz:** internationales Damenturnier im BC Wedel, August 2026 (Dreiband, Turnierplan). Pool- und
   Snooker-Turniere sind mit der App noch nicht gespielt worden.
 - **Voraussetzungen:** Die Auslieferung wird in der Server-Konfiguration eingeschaltet; die App meldet sich mit
-  einem Dienstkonto der Region an, das ein Admin anlegt. Ein App-Turnier im Carambus anzulegen verlangt heute
-  Einstellungen, die man kennen muss (manuelle Spielzuordnung, Enddatum in der Zukunft).
+  einem Dienstkonto an, das ein Admin am Server anlegt. Ein App-Turnier im Carambus anzulegen geht heute nur über die
+  Rails-Konsole des Servers (Admin). Anleitung: [Turnier-App](../managers/tournament-app.md).
 
 ## Scoreboards
 

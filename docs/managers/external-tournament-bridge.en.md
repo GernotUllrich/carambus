@@ -1,13 +1,14 @@
 # External Tournament Bridge — User Guide
 
-> **Persona:** Tournament director or club admin running their own tournament
-> app, who wants to sync seeding and results between the app and Carambus.
+> **Persona:** Club admin connecting the tournament app, or developer of another tournament app
+> that is to exchange seeding lists and results with Carambus.
 
 ## What is this?
 
-If your club uses its own tournament app (e.g., 3BandMannschaftsTurnier for
-3-cushion team championships), that app can now talk to Carambus directly —
-no more typing results twice.
+The bridge is the interface through which a tournament app talks to Carambus — no more typing results
+twice. Carambus ships its own [tournament app](tournament-app.md) for this (KO system, 3-cushion team
+championship, TournamentPlan, league match day); the guide for tournament directors is there. Other apps can
+use the same interface.
 
 Three data flows:
 
@@ -27,14 +28,15 @@ reconciliation); details in the [developer docs](../developers/external-tourname
 Simple regular tournaments keep running through the **Tournament Monitor** of the Carambus web app. The
 external app is intended for the case where **several tournaments come together at one location**.
 
-- You have your own tournament software that Carambus does not cover (e.g.,
-  a specific 3-cushion team format with custom standings logic).
+- The tournament monitor does not cover the format (e.g., 3-cushion team championship, knockout in pool and snooker) —
+  then the bundled tournament app, or another app, runs it through this interface.
 - On-site setup on iPad or laptop in the clubhouse that must work offline.
 - You want to eliminate duplicate data entry between your app and the
   Carambus scoreboards.
 
 If your club tournament runs entirely in Carambus (registration → draw →
-scoreboards → final standings), you do **not** need this bridge.
+scoreboards → final standings), you do **not** need this bridge. Decision guide:
+[Tournament monitor or tournament app?](tournament-management.md#monitor-or-app)
 
 ## Setup workflow
 
@@ -88,21 +90,16 @@ Login: `POST <base URL>/login` with the headers `Content-Type: application/json`
 
 ### Served by Carambus (`/app/`)
 
-Carambus can serve the tournament app itself under `/app/`. App and Carambus then run on the
+Carambus serves its tournament app itself under `/app/`. App and Carambus then run on the
 same server (same origin): the app derives its API address from the browser address, no base URL
 is needed, and the chat offers a deep link `/app/?…` with region and tournament (the password is
 never part of the link).
 
-Prerequisites, as the tooling requires them:
-
-- `serve_tournament_app: true` in `carambus_data/scenarios/<scenario>/config.yml`
-- the `carambus_app` repository on the admin machine **next to** `carambus_data`, with
-  `carambus_app/public/index.html`
-- `rake "scenario:prepare_deploy[<scenario>]"` copies `carambus_app/public/` to
-  `<deploy_to>/shared/public/app` (step 4.6). If `index.html` is missing, the task warns and the
-  deployment continues; `/app/` then returns 404.
-
-How another club gets the `carambus_app` repository is not covered by the docs; that is open.
+The app lives in the Carambus repository (source `tournament_app/`, served from `public/app/`) and ships with
+every deploy. It is only served when `serve_tournament_app: true` is set in
+`carambus_data/scenarios/<scenario>/config.yml`; the switch takes effect through the nginx configuration generated
+by `rake "scenario:prepare_deploy[<scenario>]"`. Without it the server answers `/app/` with 404.
+More in the [tournament app guide](tournament-app.md#voraussetzungen).
 
 ### Step 3: Smoke test before the tournament
 
@@ -203,20 +200,20 @@ Fix: the Sportwart creates the unknown player manually in the CC UI
 Carambus server via sync before a new round start succeeds. There is also the
 endpoint `POST /api/external_tournament/player_reconcile` for reconciliation.
 
-## Pilot story
+## Practical test
 
-Intended as the first application: BC Wedel 3-cushion team championship
-2026-05-17, with the 3BandMannschaftsTurnier app on iPad in the clubhouse Wi-Fi
-against the local `carambus_bcw` scenario.
+Tried in a real tournament is the **TournamentPlan format in attach mode**: the CEB Ladies tournament at
+BC Wedel, 21–23 Aug 2026 (plan T08, three tables), with the tournament app against the local Carambus server; the
+final standings are in the result archive. The 3-cushion team championship, double elimination and league match day
+formats have not been tried in a real tournament yet.
 
-Status: **A practical test in tournament operation is still pending** (operator,
-2026-09-12). Technically, a live test of the connection with the app took place in
-June 2026 (findings among others on same-origin delivery under `/app/`, commit
+Technically, a live test of the connection took place in June 2026 (findings among others on same-origin delivery under `/app/`, commit
 `52337e16`); since August there are tools for local app tournaments
 (`external_tournament:end`, `reset_app_tournament`, `release_stale_local_tables`).
 
 ## Related docs
 
+- [Tournament app — guide for tournament directors and admins](tournament-app.md)
 - [Developer docs — Technical details and mapping tables](../developers/external-tournament-bridge.md)
 - [API reference — Full endpoint specification](../reference/api.md)
 - [ClubCloud MCP setup service (the Sportwart-side counterpart)](clubcloud-mcp-setup-service.md)

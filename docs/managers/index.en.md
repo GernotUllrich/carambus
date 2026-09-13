@@ -39,6 +39,12 @@ As a tournament manager, you are responsible for:
 ➡️ **[Tournament Management Manual](tournament-management.md)**  
 ➡️ **[Quick Reference](tournament-quick-reference.md)**
 
+Pool and snooker tournaments, the 3-cushion team championship and simultaneous tournaments at the same venue are run
+by the bundled tournament app:
+
+➡️ **[Tournament monitor or tournament app?](tournament-management.md#monitor-or-app)**  
+➡️ **[Tournament App](tournament-app.md)**
+
 ### 2. League Match Days
 
 **Conduct team competitions**:
@@ -309,8 +315,9 @@ In addition there are the **personas** Sportwart and Landessportwart and the **t
 5. **[Admin Roles](admin-roles.md)** - Manage users and permissions
 6. **[ClubCloud Integration](clubcloud-integration.md)** - Connect DBU ClubCloud
 7. **[ClubCloud MCP Cloud Quickstart](clubcloud-mcp-cloud-quickstart.md)** - Tournament work via AI assistant
-8. **[External Tournament App (Bridge)](external-tournament-bridge.md)** - Several tournaments at one location
-9. **[Filter Popup](filter_popup_usage.md)** - Find data efficiently
+8. **[Tournament App](tournament-app.md)** - Run tournaments with the bundled app
+9. **[External Tournament Bridge](external-tournament-bridge.md)** - Interface for tournament apps
+10. **[Filter Popup](filter_popup_usage.md)** - Find data efficiently
 
 ---
 

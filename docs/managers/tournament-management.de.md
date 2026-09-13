@@ -2,6 +2,22 @@
 
 Diese Seite führt dich als Turnierleiter Schritt für Schritt durch ein aus der ClubCloud geladenes Karambol-Turnier — vom Eingang der Einladung bis zum Ergebnis-Upload.
 
+## Turnier-Monitor oder Turnier-App? {#monitor-or-app}
+
+Vor jedem Turnier entscheidest du, womit du es führst. Standard ist der **Turnier-Monitor**, den diese Seite
+beschreibt. Die [Turnier-App](tournament-app.md) nimmst du, wenn einer dieser Punkte zutrifft:
+
+| Wenn … | dann | weil |
+|--------|------|------|
+| die Disziplin **Pool oder Snooker** ist | Turnier-App (KO-System) — [so geht’s](tournament-app.md#ko-aus-clubcloud) | Der Turnier-Monitor führt nur Karambol-Turniere. Die KO-Pläne der ClubCloud für Pool (Einfach- und Doppel-KO) gibt es nur in der App. |
+| es eine **3-Band-Mannschaftsmeisterschaft** ist | Turnier-App | Mannschaftsformate führt der Turnier-Monitor nicht. |
+| am selben Spielort **gleichzeitig ein weiteres Turnier** läuft | Turnier-App — für alle gleichzeitigen Turniere | Der Turnier-Monitor schützt die Tische nicht: Wählt man im Start-Formular einen Tisch, an dem gerade ein anderes Turnier spielt, übernimmt ihn das neue Turnier; die laufende Partie bleibt darauf liegen. Die App weist einen belegten Tisch ab („Table already in use“). |
+
+Sonst bleibt es beim Turnier-Monitor: Karambol-Einzelturniere nach Turnierplan, auch KO und Doppel-KO.
+
+Mit der App gilt: Ein Admin legt das Turnier in der Rails-Konsole an, und der Turnierleiter sichert den Stand nach
+jeder Runde — Einzelheiten in der [Turnier-App-Anleitung](tournament-app.md#anlegen).
+
 <a id="scenario"></a>
 ## Szenario
 

@@ -1,12 +1,12 @@
 # External-Tournament-Bridge
 
-> **Status:** v0.5 (In Progress) — Pilot: 3BandMannschaftsTurnier-App für BC Wedel
-> 3-Band-Mannschaftsmeisterschaft
+> **Status:** Schnittstelle der mitgelieferten Turnier-App (Quelle `tournament_app/` im Carambus-Repository);
+> im Turnierbetrieb erprobt ist der Plan-Modus (August 2026). Anleitung: [Turnier-App](../managers/tournament-app.md)
 
 ## Was ist die Bridge?
 
-Carambus öffnet sich für externe Turnier-Apps. Eine externe App (z.B. die
-3BandMannschaftsTurnier-App für 3-Band-Mannschaftsturniere) führt das Turnier durch und
+Carambus öffnet sich für Turnier-Apps. Eine App — die mitgelieferte Turnier-App oder eine
+andere — führt das Turnier durch und
 tauscht mit Carambus über REST folgende Daten aus:
 
 | Richtung | Endpoint | Zweck | Status |
