@@ -46,6 +46,16 @@ class TournamentReflex < ApplicationReflex
     time_out_warm_up_follow_up_min: "I"
   }
 
+  PARTICIPANT_LIST_REFLEXES = %i[change_seeding change_no_show change_position move_up move_down
+    change_point_goal sort_by_ranking sort_by_handicap].freeze
+
+  # Plan 17-05: dieselben Rechte wie im TournamentsController — die Teilnehmerliste nach
+  # manage_teilnehmerliste?, die Felder des Start-Formulars nach prepare_tournament?.
+  # Bis hierher pruefte der Reflex nichts; jeder Besucher der Seite konnte die Liste umbauen.
+  # Die Party-Reflexe (change_party_seeding, change_party_game_seeding) sind bewusst ausgenommen.
+  before_reflex :authorize_participant_list, only: PARTICIPANT_LIST_REFLEXES
+  before_reflex :authorize_tournament_setup, only: ATTRIBUTE_METHODS.keys
+
   ATTRIBUTE_METHODS.keys.each do |attribute|
     define_method(attribute.to_s) do
       morph :nothing
@@ -251,5 +261,25 @@ class TournamentReflex < ApplicationReflex
     
     # Rendere die ganze Seite neu, damit neue Sortierung sichtbar wird
     morph :page
+  end
+
+  private
+
+  def authorize_participant_list
+    abort_unless_allowed(:manage_teilnehmerliste?)
+  end
+
+  def authorize_tournament_setup
+    abort_unless_allowed(:prepare_tournament?)
+  end
+
+  # move_up/move_down tragen das Turnier als data-tournament-id, alle anderen als data-id.
+  def abort_unless_allowed(rule)
+    tournament = Tournament.find_by(id: element.dataset["id"] || element.dataset["tournament-id"])
+    return if tournament && TournamentPolicy.new(current_user, tournament).public_send(rule)
+
+    Rails.logger.warn "[TournamentReflex] #{method_name} abgewiesen (#{rule}): " \
+      "Benutzer #{current_user&.id.inspect}, Turnier #{tournament&.id.inspect}"
+    throw :abort
   end
 end

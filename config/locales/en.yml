@@ -1239,6 +1239,8 @@ en:
     errors:
       assign_leiter_denied: "Authority-Denied: no permission to assign Tournament Director for this tournament."
       manage_teilnehmerliste_denied: "Not authorized to manage this tournament's participant list."
+      admin_required: "Only signed-in club or system admins may create, edit or delete tournaments."
+      prepare_tournament_denied: "Not authorized to set up or start this tournament — that is up to the tournament director, the responsible sports official and admins."
     groups:
       groups: Groups
     index:

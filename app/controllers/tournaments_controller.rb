@@ -25,6 +25,19 @@ class TournamentsController < ApplicationController
   before_action :authorize_manage_teilnehmerliste,
                 only: %i[finish_seeding use_clubcloud_as_participants define_participants
                          add_player_by_dbu update_seeding_position apply_seeding_order]
+  # Plan 17-05: bis hierher band der Controller ausser `reset` und der Teilnehmerliste keine schreibende
+  # Aktion an einen Benutzer. Ebenfalls NACH ensure_local_server (Muster 32-07).
+  # Stammdaten und Debug: nur angemeldete Vereins- oder System-Admins.
+  before_action :require_tournament_admin,
+    only: %i[new create edit update destroy copy_season copy_season_execute test_tournament_status_update]
+  # Setup: prepare_tournament? (TL / Sportwart im Wirkbereich / Admin, Regel wie die Teilnehmerliste) —
+  # der Carambus-Assistent schickt Turnierleiter und Sportwarte per Link auf finalize_modus.
+  before_action :authorize_prepare_tournament,
+    only: %i[order_by_ranking_or_handicap reload_from_cc reload_entry_list finalize_modus select_modus
+      tournament_monitor start edit_games new_team add_team compare_seedings upload_invitation
+      parse_invitation recalculate_groups release_draft]
+  # Das Scoreboard ist als scoreboard@carambus.de (Rolle player) angemeldet — eine Rolle braucht es nicht.
+  before_action :authenticate_user!, only: %i[placement]
 
   # UI-07 D-18 / Phase 39 D-12: Felder, die vor dem Turnierstart gegen
   # Discipline#parameter_ranges geprüft werden. Reihenfolge matcht die
@@ -1411,6 +1424,23 @@ class TournamentsController < ApplicationController
     authorize @tournament, :manage_teilnehmerliste?
   rescue Pundit::NotAuthorizedError
     flash[:alert] = I18n.t("tournaments.errors.manage_teilnehmerliste_denied")
+    redirect_to(@tournament)
+  end
+
+  # Plan 17-05: Gate fuer Stammdaten. Bewusst nicht `admin_only_check` — dessen Ausnahme
+  # `guest_player_creation?` liesse das Scoreboard-Konto mit club_id + season_id durch.
+  def require_tournament_admin
+    return if current_user&.admin?
+
+    flash[:alert] = I18n.t("tournaments.errors.admin_required")
+    redirect_to(@tournament || tournaments_path)
+  end
+
+  # Plan 17-05: Gate fuer das Einrichten eines Turniers, Aufbau wie authorize_manage_teilnehmerliste.
+  def authorize_prepare_tournament
+    authorize @tournament, :prepare_tournament?
+  rescue Pundit::NotAuthorizedError
+    flash[:alert] = I18n.t("tournaments.errors.prepare_tournament_denied")
     redirect_to(@tournament)
   end
 

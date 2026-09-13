@@ -23,12 +23,15 @@
       <p class="text-sm text-warning-900 dark:text-warning-100 mb-3">
         <%= t("tournaments.entry_list.draft_notice") %>
       </p>
-      <%# Freigabe = der bestehende, unveränderte Propagationsweg (release_draft → EntryListSyncJob). %>
+      <%# Freigabe = der bestehende, unveränderte Propagationsweg (release_draft → EntryListSyncJob).
+          Plan 17-05: sichtbar nur mit dem Recht der Aktion (prepare_tournament?). %>
+      <% if policy(@tournament).prepare_tournament? %>
       <%= button_to t("tournaments.entry_list.release"),
             release_draft_tournament_path(@tournament), method: :post,
             class: "btn btn-primary",
             form: { data: { turbo_confirm: t("tournaments.release_draft.confirm",
                             default: "Turnier freigeben?") } } %>
+      <% end %>
     </div>
   <% end %>
 

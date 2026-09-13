@@ -296,8 +296,9 @@
 
   <%# CC-loser On-demand-Reload (Plan 29-06 AC-5): der managende Local Server holt die frische
       Meldeliste von der Authority. Nur bei CC-losem Turnier (kein tournament_cc), das über den
-      Region-Server-Ingest entstanden ist (source_url gesetzt). Analog dem CC-Reload, ohne ClubCloud. %>
-  <% if local_server? && !@tournament.cc_sourced? && @tournament.source_url.present? %>
+      Region-Server-Ingest entstanden ist (source_url gesetzt). Analog dem CC-Reload, ohne ClubCloud.
+      Plan 17-05: sichtbar nur mit dem Recht der Aktion (prepare_tournament?). %>
+  <% if local_server? && !@tournament.cc_sourced? && @tournament.source_url.present? && policy(@tournament).prepare_tournament? %>
     <%= button_to t("tournaments.reload_entry_list.button", default: "Meldeliste neu laden"),
                   reload_entry_list_tournament_path(@tournament),
                   method: :post,

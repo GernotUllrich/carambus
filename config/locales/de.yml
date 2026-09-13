@@ -1265,6 +1265,8 @@ de:
     errors:
       assign_leiter_denied: "Authority-Denied: kein Recht TL zu benennen für dieses Turnier."
       manage_teilnehmerliste_denied: "Nicht berechtigt, die Teilnehmerliste dieses Turniers zu bearbeiten."
+      admin_required: "Turniere anlegen, ändern und löschen dürfen nur angemeldete Vereins- oder System-Admins."
+      prepare_tournament_denied: "Nicht berechtigt, dieses Turnier einzurichten oder zu starten — das dürfen die Turnierleitung, der zuständige Sportwart und Admins."
     groups:
       groups: Gruppen
     index:
