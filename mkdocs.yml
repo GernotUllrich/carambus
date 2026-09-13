@@ -71,7 +71,6 @@ plugins:
             Tournament Management: Turnierverwaltung
             Tournament Quick Reference: Turnier-Schnellreferenz
             League Management: Liga-Management
-            Single Tournament: Einzelturnier
             Table Reservation: Tischreservierung
             Admin Roles: Admin-Rollen
             ClubCloud Integration: ClubCloud-Integration
@@ -161,8 +160,7 @@ nav:
       - Tournament Management: managers/tournament-management.md
       - Tournament Quick Reference: managers/tournament-quick-reference.md
       - League Management: managers/league-management.md
-      - Single Tournament: managers/single-tournament.md
-      - Table Reservation: managers/table-reservation.md
+      - Table Reservation: managers/table_reservation_heating_control.md
       - Admin Roles: managers/admin-roles.md
       - ClubCloud Integration: managers/clubcloud-integration.md
       - ClubCloud MCP:

@@ -141,7 +141,7 @@ Option 1.
 - Relais-Module
 - Zeitschaltuhren
 
-➡️ **[Tischreservierung & Heizungssteuerung](../managers/table-reservation.md)**
+➡️ **[Tischreservierung & Heizungssteuerung](../managers/table_reservation_heating_control.md)**
 
 ### 8. YouTube Live Streaming
 
@@ -445,7 +445,7 @@ sudo systemctl status certbot.timer
 5. **[Server-Architektur](server-architecture.md)** - System-Komponenten
 6. **[Email-Konfiguration](email-configuration.md)** - SMTP einrichten
 7. **[Datenbank-Setup](database-setup.md)** - PostgreSQL konfigurieren
-8. **[Tischreservierung & Heizung](../managers/table-reservation.md)** - Hardware-Integration
+8. **[Tischreservierung & Heizung](../managers/table_reservation_heating_control.md)** - Hardware-Integration
 
 ---
 

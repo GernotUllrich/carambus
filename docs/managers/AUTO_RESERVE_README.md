@@ -143,7 +143,7 @@ Falls automatische Reservierung nicht passt:
 ## Dokumentation
 
 📄 Vollständige Dokumentation: `docs/managers/automatische_tischreservierung.de.md`  
-📄 Bestehende Heizungssteuerung: `docs/managers/tischreservierung_heizungssteuerung.de.md`
+📄 Bestehende Heizungssteuerung: `docs/managers/table_reservation_heating_control.de.md`
 
 ## Code-Locations
 
@@ -152,12 +152,6 @@ app/models/tournament.rb                              # required_tables_count, a
 app/services/tournament/table_reservation_service.rb  # Tischliste, Kalendereintrag, Zeiten
 lib/tasks/carambus.rake                               # Task: auto_reserve_tables
 ```
-
-## Support
-
-Bei Fragen oder Problemen:
-- gernot.ullrich@gmx.de
-- wcauel@gmail.com
 
 ---
 

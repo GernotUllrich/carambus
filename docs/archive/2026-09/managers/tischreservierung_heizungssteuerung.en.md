@@ -14,7 +14,7 @@ Tischreservierungen können von autorisierten Mitgliedern im zentralen Google Ka
 
 Zugangslinks können durch eine informelle E-Mail an folgende Adressen angefordert werden:
 - `gernot.ullrich@gmx.de`
-- `wcauel@gmail.com`
+- *(Adresse eines Dritten entfernt, 2026-09-13)*
 
 #### Reservierungstitel-Format
 
@@ -65,7 +65,7 @@ Das **Scoreboard** erkennt Spielaktivitäten und kommuniziert diese an das Heizu
 
 Bei Problemen mit dem Kalenderzugang kontaktieren Sie:
 - `gernot.ullrich@gmx.de`
-- `wcauel@gmail.com`
+- *(Adresse eines Dritten entfernt, 2026-09-13)*
 
 ### Heizungsprobleme
 

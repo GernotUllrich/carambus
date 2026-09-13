@@ -2,8 +2,7 @@
 
 This page walks you through running a carom tournament synced from ClubCloud, step by step, from the moment you receive the invitation to the final upload of results.
 
-<a id="scenario"></a>
-## Scenario
+## Scenario {#scenario}
 
 For example: as the tournament director for your club you have received an NBV invitation for the **NDM Freie Partie Class 1–3** by email as a PDF — a regional carom tournament running one Saturday in your club's playing location with 5 registered players across two tables. The PDF normally serves as your starting reference for managing the tournament. This page walks you through the run from the moment the invitation arrives to the moment the results reach ClubCloud.
 
@@ -13,8 +12,7 @@ For deviating special cases, dedicated flows live in the appendix:
 - **[Player missing](#appendix-missing-player)** — handling registered players who do not show up
 - **[Late registration on tournament day](#appendix-nachmeldung)** — on-site player registration
 
-<a id="walkthrough"></a>
-## Walkthrough
+## Walkthrough {#walkthrough}
 
 The following guide follows the actual flow of the Carambus wizard — as it works in practice. Where the interface uses unfamiliar labels or shows unexpected behaviour, you will find a coloured callout box explaining what to expect.
 
@@ -52,6 +50,12 @@ On the tournament detail page you see the wizard progress bar "Tournament Setup"
 
 **Note — sync before the registration deadline:** If the ClubCloud sync ran before the official close of registration, the registration list in Carambus may contain fewer players than the later invitation. In normal operation the invitation and the ClubCloud registration list match after the deadline, because both are snapshots at the same moment. If you suspect players are missing, check it before tournament start in [Step 4](#step-4-participants) and re-trigger the sync after the close of registration. See also [Players missing from the ClubCloud registration list](#ts-player-not-in-cc) in the troubleshooting section.
 
+!!! danger "\"Sync now\" discards the local participant list"
+    The **"Sync now"** button in wizard step 1 reloads the registration list from the central server and, without
+    asking, deletes everything you changed locally in the participant list: ticks, late registrations, positions and
+    handicaps. The button stays visible until the tournament starts. Only use it before you edit the participant
+    list in [Step 4](#step-4-participants).
+
 ![Wizard overview after ClubCloud sync](images/tournament-wizard-overview.png){ loading=lazy }
 *Figure: Tournament setup wizard after a successful ClubCloud sync — the typical default appearance when the sync completed in full (example from the Phase 33 audit, NDM Freie Partie Class 1–3). The 1-player edge case described in the warning callout is **not** illustrated here — it only occurs with an incomplete sync.*
 
@@ -79,7 +83,13 @@ This multi-path UX has grown historically — all three paths land on the same e
 
 In Wizard Step 3 "Edit participant list" you see the currently registered participants. If players are missing, enter their [DBU numbers](#glossary-system) comma-separated in the **"Add player by DBU number"** field (example: `121308, 121291, 121341, 121332`) and then click the **"Add player"** link to apply the entry.
 
-**Only when manually correcting the participant list:** If no official seeding list from the invitation is available, or if you have added players manually, click **"Sort by ranking"** at the top to automatically order the participant list by the current [ranking](#glossary-system). **Important:** if a seeding list from the invitation exists, its order has priority — the regional sports officer's seeding list must not be overwritten without good reason.
+**Only when manually correcting the participant list:** If no official seeding list from the invitation is available, or if you have added players manually, click **"📊 Sort by ranking"** below the list to automatically order the participant list by the [ranking](#glossary-system) (handicap tournaments also offer **"🎯 Sort by handicap target"**). **Important:** if a seeding list from the invitation exists, its order has priority — the regional sports officer's seeding list must not be overwritten without good reason.
+
+!!! warning "\"Sort by ranking\" currently always uses the straight rail ranking"
+    The button currently sorts by the ranking of **"Freie Partie klein" (straight rail) from the previous season**,
+    regardless of the tournament's discipline. The **Ranking** column of the table, by contrast, shows the ranking of
+    the tournament discipline (the newest valid one of three seasons, with a link to the regional ranking). For other
+    disciplines: check the order against the column and set the positions by hand (position field or ↑↓).
 
 When the number of participants matches a predefined [tournament plan](#glossary-wizard), a gold-highlighted panel **"Possible tournament plans for N participants — automatically suggested: T04"** appears below the participant list. With 5 participants, T04 is suggested (the plan codes such as T04 come from the official Carom Tournament Regulations). The final mode selection happens in Step 6.
 
@@ -126,6 +136,20 @@ The wizard step "Finalize tournament mode" opens a separate page "Final selectio
 With 5 participants, the suggestion is for example **T04** (the standard for 5 players in the regulations). The plan **specified in the invitation** is normally the binding one set by the regional sports officer — accept that suggestion.
 
 Click **"Continue with T04"** (or the suggested plan). The selection is applied **immediately and without a confirmation dialog**. If you accidentally chose the wrong plan, see [Wrong mode selected](#ts-wrong-mode).
+
+**Group assignment:** For plans with groups the page shows where the groups come from:
+
+- **"✅ Group assignment taken from invitation"**: the invitation's groups match the calculation.
+- **"⚠️ WARNING: Deviation from NBV standard detected!"**: invitation and calculation differ; with the buttons
+  **"✅ Use invitation (recommended)"** and **"🔄 Use algorithm (risk)"**.
+- **"🤖 Group assignment automatically calculated (NBV-compliant)"**: there is no group assignment from an invitation.
+
+!!! danger "At the start the calculated groups apply"
+    At the start Carambus currently **always** distributes the players to the groups by the positions in the
+    participant list. The groups from the invitation are only displayed, even after "Use invitation". If the
+    invitation differs, change the positions in [Step 4](#step-4-participants) until the group preview matches the
+    invitation, and check the groups before clicking "Start tournament monitor". The distribution tables have not
+    been checked against the tournament rules for every plan.
 
 ![Mode selection with T04 suggestion](images/tournament-wizard-mode-selection.png){ loading=lazy }
 *Figure: Mode selection showing the three tournament plans with automatic T04 suggestion for 5 participants (example from the Phase 33 audit).*
@@ -220,7 +244,9 @@ Steps 10, 11 and 12 are in truth three **phases** (warmup/lag-shot → match pla
 <a id="step-12-monitor"></a>
 ### Step 12: Observe and intervene as needed
 
-During match play the players enter points directly at the scoreboard. The Tournament Monitor updates in real time — you do not need to reload the page.
+During match play the players enter points directly at the scoreboard. The Tournament Monitor shows the state at the time the page is loaded: results and table update by themselves at every round change, the running games and the round status only when you reload the page.
+
+**The tournament page during the tournament:** After the start the tournament page shows the **"📊 Tournament status"** instead of the wizard, for all visitors: games progress, the current games with their score (running ones are marked "▶️ Running"), groups, placements and the seeding list. This view updates by itself. Club and system admins find the **"🎮 Open Tournament Monitor"** button there; if it is missing after an update, reload the page.
 
 **What you see in the overview:** the columns **Balls** / **Innings** / **HS** ([high run](#glossary-karambol)) / **GD** ([general average](#glossary-karambol)) in the matches table.
 
@@ -244,10 +270,8 @@ During match play the players enter points directly at the scoreboard. The Tourn
     right away. The result archive is not touched.
 
     Both buttons open a confirmation dialog with the current state and the
-    number of games played. Only club and system admins may execute them.
-    **"Restart tournament"** currently only appears for a fixed list of
-    accounts in the code and for the scoreboard user. If you do not see it,
-    contact the operator of your Carambus server.
+    number of games played. Only signed-in club and system admins can see and
+    execute them.
 <!-- ref: F-36-32 -->
 
 <a id="step-13-finalize"></a>
@@ -288,8 +312,7 @@ If automatic upload was not enabled or the prerequisites are missing, the upload
 
 ---
 
-<a id="glossary"></a>
-## Glossary
+## Glossary {#glossary}
 
 <a id="glossary-karambol"></a>
 ### Karambol terms
@@ -312,7 +335,7 @@ If automatic upload was not enabled or the prerequisites are missing, the upload
 
 - **"Bälle vor" (handicap value)** — An **individual handicap value per player** used in handicap tournaments. Not to be confused with the general target-balls parameter — in handicap tournaments each player gets a different value.
 
-- **High run / HS (Höchstserie)** — The longest consecutive scoring run in a single match or across the whole tournament. Displayed in real time in the [Tournament Monitor, Step 12](#step-12-monitor).
+- **High run / HS (Höchstserie)** — The longest consecutive scoring run in a single match or across the whole tournament. Displayed in the [Tournament Monitor, Step 12](#step-12-monitor).
 
 - **General average / GD (Generaldurchschnitt)** — Points scored divided by the number of innings played. A key measure of playing strength across a tournament. Displayed in the [Tournament Monitor, Step 12](#step-12-monitor).
 
@@ -368,8 +391,7 @@ If automatic upload was not enabled or the prerequisites are missing, the upload
     - **Bye in the strict sense** — When in a **scheduled match pairing** no opponent exists (for example because the opposing player did not show up or withdrew), the remaining player gets a **bye** — they win the match without playing.
     Note: a mid-tournament match abort (for example when a player drops out during the tournament) is **not properly supported** in the current Carambus version — see follow-up phase v7.1+.
 
-<a id="troubleshooting"></a>
-## Troubleshooting
+## Troubleshooting {#troubleshooting}
 
 <a id="ts-invitation-upload"></a>
 ### Invitation upload failed
@@ -545,6 +567,8 @@ Carambus knows two ways to push tournament results back to ClubCloud — both ha
 - **Prerequisite:** as above — the CC participant list must already be finalised **before** the first match ends.
 - **Advantage:** results are visible in ClubCloud in near real time (for example for live federation reports).
 - **Activate:** in the start form ([Step 7](#step-7-start-form)) tick the checkbox **"Upload results to ClubCloud automatically"** (`auto_upload_to_cc`).
+- **ClubCloud login at the start:** if the checkbox is ticked, Carambus checks the ClubCloud access at the start. If the login fails, the tournament does not start ("ClubCloud-Login fehlgeschlagen").
+- **Errors stay invisible:** if an upload fails, Carambus does not show it and does not retry; the error is only in the server log and the tournament data. During the tournament, check in ClubCloud that the results arrive, and enter missing ones by hand or use path 2.
 
 **Path 2: CSV batch upload at the end** (`auto_upload_to_cc` disabled or path 1 not possible)
 

@@ -141,7 +141,7 @@ option 1.
 - Relay modules
 - Timer switches
 
-➡️ **[Table Reservation & Heating Control](../managers/table-reservation.md)**
+➡️ **[Table Reservation & Heating Control](../managers/table_reservation_heating_control.md)**
 
 ### 8. YouTube Live Streaming
 
@@ -443,7 +443,7 @@ sudo systemctl status certbot.timer
 5. **[Server Architecture](server-architecture.md)** - System components
 6. **[Email Configuration](email-configuration.md)** - Set up SMTP
 7. **[Database Setup](database-setup.md)** - Configure PostgreSQL
-8. **[Table Reservation & Heating](../managers/table-reservation.md)** - Hardware integration
+8. **[Table Reservation & Heating](../managers/table_reservation_heating_control.md)** - Hardware integration
 
 ---
 

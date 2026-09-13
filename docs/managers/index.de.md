@@ -37,7 +37,6 @@ Als Turniermanager sind Sie verantwortlich für:
 - Stechen bei unentschiedenen KO-Partien
 
 ➡️ **[Turnierverwaltungs-Handbuch](tournament-management.md)**  
-➡️ **[Einzelturnier-Verwaltung](single-tournament.md)**  
 ➡️ **[Kurzreferenz](tournament-quick-reference.md)**
 
 ### 2. Ligaspieltage
@@ -295,24 +294,23 @@ Dazu kommen die **Personas** Sportwart und Landessportwart sowie die **Turnierle
 **Während des Turniers**:
 - Dokumentation durchsuchen
 - Andere Manager im Verein fragen
-- Notfallkontakt: gernot.ullrich@gmx.de
 
-**Nicht-dringend**:
+**Fehler melden, Fragen stellen**:
 - GitHub Issues: [https://github.com/GernotUllrich/carambus/issues](https://github.com/GernotUllrich/carambus/issues)
-- E-Mail: gernot.ullrich@gmx.de
+- Carambus ist ein Einzelentwickler-Projekt. Hilfe gibt es auf Anfrage; eine Erreichbarkeit während eines Turniers
+  ist nicht zugesagt. Kontakt: [Entscheider-Übersicht](../decision-makers/index.md#kontakt)
 
 ## 🔗 Alle Manager-Dokumente
 
 1. **[Turnierverwaltung](tournament-management.md)** - Komplettes Handbuch für Einzelturniere
 2. **[Kurzreferenz](tournament-quick-reference.md)** - Turnierablauf auf einen Blick
-3. **[Einzelturnier-Verwaltung](single-tournament.md)** - Der Turnier-Wizard im Detail
-4. **[Liga-Management](league-management.md)** - Ligaspieltage und Mannschaftswettbewerbe
-5. **[Automatische Tischreservierung](automatische_tischreservierung.md)** - Reservierung und Vorheizen für Turniere
-6. **[Admin-Rollen](admin-roles.md)** - Benutzer und Berechtigungen verwalten
-7. **[ClubCloud-Integration](clubcloud-integration.md)** - DBU ClubCloud anbinden
-8. **[ClubCloud-MCP Cloud-Quickstart](clubcloud-mcp-cloud-quickstart.md)** - Turnierarbeit per KI-Assistent
-9. **[Externe Turnier-App (Bridge)](external-tournament-bridge.md)** - Mehrere Turniere an einer Location
-10. **[Filter-Popup](filter_popup_usage.md)** - Effizient Daten finden
+3. **[Liga-Management](league-management.md)** - Ligaspieltage und Mannschaftswettbewerbe
+4. **[Automatische Tischreservierung](automatische_tischreservierung.md)** - Reservierung und Vorheizen für Turniere
+5. **[Admin-Rollen](admin-roles.md)** - Benutzer und Berechtigungen verwalten
+6. **[ClubCloud-Integration](clubcloud-integration.md)** - DBU ClubCloud anbinden
+7. **[ClubCloud-MCP Cloud-Quickstart](clubcloud-mcp-cloud-quickstart.md)** - Turnierarbeit per KI-Assistent
+8. **[Externe Turnier-App (Bridge)](external-tournament-bridge.md)** - Mehrere Turniere an einer Location
+9. **[Filter-Popup](filter_popup_usage.md)** - Effizient Daten finden
 
 ---
 

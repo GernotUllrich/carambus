@@ -49,8 +49,7 @@ docs/
 │   ├── index.md                   # Overview
 │   ├── tournament-management.md   # Tournament Management
 │   ├── league-management.md       # League Management
-│   ├── single-tournament.md       # Single Tournament
-│   ├── table-reservation.md       # Table Reservation
+│   ├── table_reservation_heating_control.md # Table Reservation
 │   ├── admin_roles.md            # Admin Roles
 │   ├── clubcloud_integration.md   # ClubCloud
 │   └── search-filters.md         # Search & Filters

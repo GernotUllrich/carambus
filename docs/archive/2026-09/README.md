@@ -40,6 +40,23 @@ mehr gepflegt.
     wurden die Seiten auf das Belegte neu gefasst.
   - **Nicht mehr zitieren.** Die Kosten-, Zeit- und Leistungsangaben der alten Fassung sind unbelegt.
 
+### Manager-Seiten mit Funktionsversprechen (6 Dokumente)
+- `managers/single-tournament.{de,en}.md` - „Einzelturnierverwaltung – Wizard-System“ (Stand Dezember 2025)
+  - **Herkunft:** `docs/managers/single-tournament.*`
+  - **Grund:** Die Prüfung in Phase 17 (Plan 17-03, `docs/DRIFT-REPORT.md`) fand 30 Befunde, 8 davon schwer: Knöpfe,
+    die es nicht gibt („Spieler ändern“, eine Checkbox zur Ergebnisfreigabe), eine Fehleranzeige und Wiederholung beim
+    ClubCloud-Upload ohne Code, und kein Wort dazu, dass „Jetzt synchronisieren“ die lokale Teilnehmerliste verwirft.
+    Wo sie dasselbe behandelte, stimmte `managers/tournament-management` mit dem Code; deren belegte Ergänzungen
+    (Turnier-Status, Gruppen-Anzeige der Modus-Auswahl, Warnungen) stehen seit 2026-09-13 dort.
+- `managers/table-reservation.{de,en}.md` - Stub „Tischreservierung & Heizungssteuerung“
+  - **Grund:** versprach ein Online-Buchungssystem mit Buchungsverwaltung, das es nicht gibt; verwies nur auf
+    `managers/table_reservation_heating_control`, die jetzt direkt in der Navigation steht.
+- `managers/tischreservierung_heizungssteuerung.{de,en}.md` - Fassung Mai 2024 der Heizungsseite
+  - **Grund:** Dublette von `managers/table_reservation_heating_control` in älterem Stand; die `.en.md` war
+    unübersetztes Deutsch. Die private Adresse eines Dritten wurde beim Archivieren entfernt.
+  - **Nicht mehr zitieren.** Aktuell: `docs/managers/tournament-management.*` und
+    `docs/managers/table_reservation_heating_control.*`.
+
 ## Status
 
 Alle Dokumente in diesem Verzeichnis dokumentieren **abgeschlossene** Arbeiten. Für aktuelle

@@ -484,7 +484,7 @@ ClubCloudUploadJob.perform_later(table_monitor.id)
 ## Siehe auch
 
 - [Manager-Dokumentation: ClubCloud Integration](../managers/clubcloud-integration.md)
-- [Manager-Dokumentation: Einzelturnier-Verwaltung](../managers/single-tournament.md)
+- [Manager-Dokumentation: Turnierverwaltung](../managers/tournament-management.md)
 - [API-Referenz](../reference/api.md)
 
 

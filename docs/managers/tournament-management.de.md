@@ -45,6 +45,12 @@ Auf der Turnier-Detailseite siehst du oben den Wizard-Fortschrittsbalken „Turn
 
 **Achtung — Sync vor Meldeschluss:** Wenn der ClubCloud-Sync vor dem offiziellen Meldeschluss durchgelaufen ist, kann die Meldeliste in Carambus weniger Spieler enthalten als die spätere Einladung. Im Normalfall stimmen Einladung und ClubCloud-Meldeliste nach dem Meldeschluss überein, weil beide denselben Snapshot abbilden. Falls du den Verdacht hast, dass Spieler fehlen, prüfe das vor Turnierbeginn in [Schritt 4](#step-4-participants) und löse einen erneuten Sync nach dem Meldeschluss aus. Weitere Details findest du unter [Spieler fehlen in der ClubCloud-Meldeliste](#ts-player-not-in-cc).
 
+!!! danger "„Jetzt synchronisieren“ verwirft die lokale Teilnehmerliste"
+    Der Knopf **„Jetzt synchronisieren“** in Wizard-Schritt 1 lädt die Meldeliste neu vom zentralen Server und
+    löscht dabei ohne Rückfrage alles, was du lokal an der Teilnehmerliste geändert hast: Haken, Nachmelder,
+    Positionen und Vorgaben. Der Knopf bleibt bis zum Turnierstart sichtbar. Nutze ihn nur, bevor du die
+    Teilnehmerliste in [Schritt 4](#step-4-participants) bearbeitest.
+
 ![Wizard-Übersicht nach ClubCloud-Sync](images/tournament-wizard-overview.png){ loading=lazy }
 *Abbildung: Turnier-Setup-Wizard nach erfolgreichem ClubCloud-Sync — die typische Standard-Darstellung, wenn der Sync vollständig durchgelaufen ist (Beispiel aus dem Phase-33-Audit, NDM Freie Partie Klasse 1–3). Den im Achtung-Block beschriebenen 1-Spieler-Fall illustriert dieses Bild **nicht** — er tritt nur bei unvollständigem Sync auf.*
 
@@ -72,7 +78,13 @@ Die Mehrfach-UX ist historisch gewachsen — alle drei Wege landen auf derselben
 
 In Wizard-Schritt 3 „Teilnehmerliste bearbeiten" siehst du die aktuell vorhandenen Teilnehmer. Fehlen Spieler, trag deren [DBU-Nummern](#glossary-system) komma-getrennt im Feld **„Spieler mit DBU-Nummer hinzufügen"** ein (Beispiel: `121308, 121291, 121341, 121332`) und klick anschließend auf den Link **„Spieler hinzufügen"**, um die Eingabe anzuwenden.
 
-**Nur bei manueller Korrektur der Teilnehmerliste:** Wenn keine offizielle Setzliste aus der Einladung vorliegt oder du Spieler nachträglich ergänzt hast, klick oben auf **„Nach Ranking sortieren"**, um die Teilnehmerliste automatisch nach der aktuellen [Rangliste](#glossary-system) zu ordnen. **Wichtig:** Wenn eine Setzliste aus der Einladung vorhanden ist, hat deren Reihenfolge Priorität — die Setzliste des Landessportwarts darf nicht unbegründet überschrieben werden.
+**Nur bei manueller Korrektur der Teilnehmerliste:** Wenn keine offizielle Setzliste aus der Einladung vorliegt oder du Spieler nachträglich ergänzt hast, klick unter der Liste auf **„📊 Nach Ranking sortieren"**, um die Teilnehmerliste automatisch nach der [Rangliste](#glossary-system) zu ordnen (bei Vorgabeturnieren gibt es zusätzlich **„🎯 Nach Vorgabeziel sortieren"**). **Wichtig:** Wenn eine Setzliste aus der Einladung vorhanden ist, hat deren Reihenfolge Priorität — die Setzliste des Landessportwarts darf nicht unbegründet überschrieben werden.
+
+!!! warning "„Nach Ranking sortieren“ nimmt derzeit immer die Freie-Partie-Rangliste"
+    Der Knopf sortiert derzeit nach der Rangliste **„Freie Partie klein“ der Vorsaison**, unabhängig von der
+    Disziplin des Turniers. Die Spalte **Ranking** in der Tabelle zeigt dagegen das Ranking der Turnierdisziplin
+    (die neueste gültige von drei Saisons, mit Link zur Regionsrangliste). Bei anderen Disziplinen: Reihenfolge nach
+    der Spalte prüfen und die Positionen von Hand setzen (Positionsfeld oder ↑↓).
 
 Wenn die Teilnehmerzahl einem vordefinierten [Turnierplan](#glossary-wizard) entspricht, erscheint unter der Teilnehmerliste ein gelb hervorgehobenes Panel **„Mögliche Turnierpläne für N Teilnehmer — automatisch vorgeschlagen: T04"**. Bei 5 Teilnehmern wird dir T04 vorgeschlagen (die Planbezeichnungen wie T04 stammen aus der offiziellen Karambol-Turnierordnung). Die endgültige Modusauswahl erfolgt erst in Schritt 6.
 
@@ -120,6 +132,20 @@ Der Wizard-Schritt „Turniermodus festlegen" öffnet eine separate Seite „Abs
 Bei 5 Teilnehmern lautet der Vorschlag z. B. **T04** (Standard für 5 Spieler aus der Sportordnung). Der **in der Einladung angegebene Turnierplan** ist im Normalfall der vom Landessportwart verbindlich vorgegebene — übernimm diesen Vorschlag.
 
 Klick auf **„Weiter mit T04"** (oder dem vorgeschlagenen Plan). Die Auswahl wird **sofort und ohne Bestätigungsdialog** angewendet. Wenn du versehentlich den falschen Plan gewählt hast, lies [Falscher Turniermodus gewählt](#ts-wrong-mode).
+
+**Gruppenbildung:** Bei Plänen mit Gruppen zeigt die Seite, woher die Gruppen kommen:
+
+- **„✅ Gruppenbildung aus Einladung übernommen"**: Die Gruppen der Einladung stimmen mit der Berechnung überein.
+- **„⚠️ WARNUNG: Abweichung vom NBV-Standard erkannt!"**: Einladung und Berechnung weichen ab; dazu die Knöpfe
+  **„✅ Einladung verwenden (empfohlen)"** und **„🔄 Algorithmus verwenden (Risiko)"**.
+- **„🤖 Gruppenbildung automatisch berechnet (NBV-konform)"**: Es liegt keine Gruppenbildung aus einer Einladung vor.
+
+!!! danger "Beim Start gelten die berechneten Gruppen"
+    Beim Start verteilt Carambus die Spieler derzeit **immer** nach den Positionen der Teilnehmerliste auf die Gruppen.
+    Die Gruppen aus der Einladung werden nur angezeigt, auch nach „Einladung verwenden". Weicht die Einladung ab,
+    ändere in [Schritt 4](#step-4-participants) die Positionen, bis die Gruppen-Vorschau der Einladung entspricht, und
+    prüf die Gruppen vor dem Klick auf „Starte den Turnier Monitor". Die Verteilungstabellen sind nicht für alle Pläne
+    gegen die Turnierordnung geprüft.
 
 ![Modus-Auswahl mit T04-Vorschlag](images/tournament-wizard-mode-selection.png){ loading=lazy }
 *Abbildung: Modus-Auswahl mit den drei Turnierplänen und automatischem Vorschlag T04 bei 5 Teilnehmern (Beispiel aus dem Phase-33-Audit).*
@@ -216,7 +242,9 @@ Schritte 10, 11 und 12 sind in Wahrheit drei **Phasen** (Warmup/Ausstoß → Spi
 <a id="step-12-monitor"></a>
 ### Schritt 12: Beobachten und bei Bedarf eingreifen
 
-Während des Spielbetriebs übernehmen die Spieler die Punkteingabe direkt am Scoreboard. Der Turnier-Monitor aktualisiert sich in Echtzeit — du musst die Seite nicht neu laden.
+Während des Spielbetriebs übernehmen die Spieler die Punkteingabe direkt am Scoreboard. Der Turnier-Monitor zeigt den Stand beim Laden der Seite: Ergebnisse und Tabelle aktualisieren sich bei jedem Rundenwechsel von selbst, die laufenden Spiele und der Rundenstatus erst, wenn du die Seite neu lädst.
+
+**Die Turnierseite während des Turniers:** Nach dem Start zeigt die Turnierseite statt des Wizards den **„📊 Turnier-Status"** für alle Besucher: Spiele-Fortschritt, die aktuellen Spiele mit Spielstand (laufende sind mit „▶️ Läuft" markiert), Gruppen, Platzierungen und die Setzliste. Diese Ansicht aktualisiert sich von selbst. Vereins- und System-Admins finden dort den Knopf **„🎮 Tournament Monitor öffnen"**; fehlt er nach einer Aktualisierung, lade die Seite neu.
 
 **Was du in der Übersicht siehst:** die Spaltenwerte **Bälle** / **Aufnahme** / **HS** ([Höchstserie](#glossary-karambol)) / **GD** ([Generaldurchschnitt](#glossary-karambol)) in der Spiele-Tabelle.
 
@@ -240,11 +268,8 @@ Während des Spielbetriebs übernehmen die Spieler die Punkteingabe direkt am Sc
     neu gestartet werden. Das Ergebnisarchiv bleibt unberührt.
 
     Beide Knöpfe öffnen vorher einen Bestätigungsdialog mit dem aktuellen
-    Status und der Zahl der gespielten Spiele. Ausführen dürfen sie nur
-    Vereins- und System-Admins. **„Turnier neu starten"** erscheint derzeit
-    nur für eine fest im Code hinterlegte Liste von Konten und für den
-    Scoreboard-Benutzer. Fehlt er bei dir, wende dich an den Betreiber
-    deines Carambus-Servers.
+    Status und der Zahl der gespielten Spiele. Sehen und ausführen können sie
+    nur angemeldete Vereins- und System-Admins.
 <!-- ref: F-36-32 -->
 
 <a id="step-13-finalize"></a>
@@ -308,7 +333,7 @@ Wenn der automatische Upload nicht aktiviert war oder die Voraussetzungen fehlen
 
 - **Bälle vor (Vorgabe-Wert)** — Eine **individuelle Vorgabe pro Spieler** in Vorgabe-/Handikap-Turnieren. Nicht zu verwechseln mit dem allgemeinen Ballziel — bei Vorgabeturnieren bekommt jeder Spieler einen anderen Wert.
 
-- **Höchstserie (HS)** — Die längste Serie an aufeinanderfolgenden Karambolagen in einer Partie oder im gesamten Turnier. Wird im [Turnier-Monitor](#step-12-monitor) in Echtzeit angezeigt.
+- **Höchstserie (HS)** — Die längste Serie an aufeinanderfolgenden Karambolagen in einer Partie oder im gesamten Turnier. Wird im [Turnier-Monitor](#step-12-monitor) angezeigt.
 
 - **Generaldurchschnitt (GD)** — Erzielte Bälle geteilt durch die Anzahl der Aufnahmen. Maßstab für die Spielstärke über ein Turnier. Wird im [Turnier-Monitor](#step-12-monitor) angezeigt.
 
@@ -543,6 +568,8 @@ Carambus kennt zwei Wege, um Turnier-Ergebnisse in die ClubCloud zurückzuspiele
 - **Voraussetzung:** Wie oben — die Teilnehmerliste in der CC muss bereits finalisiert sein, **bevor** das erste Spiel endet.
 - **Vorteil:** Ergebnisse sind in nahezu Echtzeit in der ClubCloud sichtbar (z. B. für Live-Berichte des Verbands).
 - **Aktivieren:** Im Start-Formular ([Schritt 7](#step-7-start-form)) die Checkbox **„Ergebnisse automatisch in ClubCloud hochladen"** (`auto_upload_to_cc`) setzen.
+- **ClubCloud-Login beim Start:** Ist die Checkbox gesetzt, prüft Carambus beim Start den ClubCloud-Zugang. Scheitert der Login, startet das Turnier nicht („ClubCloud-Login fehlgeschlagen").
+- **Fehler bleiben unsichtbar:** Scheitert ein Upload, zeigt Carambus das nicht an und versucht es nicht erneut; der Fehler steht nur im Server-Log und in den Turnierdaten. Prüf während des Turniers in der ClubCloud, ob die Ergebnisse ankommen, und trag fehlende von Hand ein oder nimm Pfad 2.
 
 **Pfad 2: CSV-Batch-Upload am Ende** (`auto_upload_to_cc` deaktiviert oder Pfad 1 nicht möglich)
 
