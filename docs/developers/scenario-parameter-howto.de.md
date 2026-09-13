@@ -224,6 +224,21 @@ mit den Servern überein. Daraus folgt:
 war für die aktuelle uniforme Flotte überspitzt und ist hiermit korrigiert; das §4.5-Gate
 bleibt als günstige 100%-Absicherung Pflicht.)*
 
+> **Seit 2026-09-13 (Plan 18-01) ist der uniforme Schlüssel-Satz kein Ziel mehr.** Wer die Credentials
+> eines Servers hat, öffnet damit alle anderen — für Vereine, die ihren Server selbst betreiben, ist das
+> nicht tragbar. Jeder Server bekommt eigene Geheimnisse:
+>
+> - neues Szenario: `WRITE=true NEW_KEY=true rake "scenario:generate_credentials[<name>]"` — eigener Key,
+>   eigenes `secret_key_base`, eigener `devise_jwt_secret_key`, eigene AR-Schlüssel; Feature-Keys nur aus
+>   dem Pool der aufrufenden `secrets.yml`
+> - bestehendes Szenario: `WRITE=true ROTATE=true rake "scenario:generate_credentials[<name>]"` — neuer Key,
+>   neues `secret_key_base`/JWT, AR-`primary_key` wird zur Liste `[alt, neu]` (Salt bleibt), Backups
+>   `*.bak-<ts>`; danach `prepare_deploy` und `sudo systemctl restart puma-<basename>`
+>   ([Ablauf](../administrators/index.md#credentials-rotieren))
+>
+> Weil die Rotation auf der `carambus_data`-Kopie aufbaut, gilt das §4.5-Gate **vor jedem ROTATE**:
+> weicht der Server ab (z. B. nach `push_credentials`), erst die Server-Dateien übernehmen.
+
 ### 4.5 Deploy-Gate (vor jedem Credential-Deploy PFLICHT)
 Prüfen, dass `secret_key_base` UND `active_record_encryption.primary_key` mit dem
 Server übereinstimmen — geheimnisfrei per serverseitigem Hash-Vergleich

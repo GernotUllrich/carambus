@@ -126,6 +126,24 @@ shared:
 `prepare_deploy` legt daraus auf dem Pi `/etc/<basename>.env` an. Ein Server ohne Mailversand setzt
 stattdessen `smtp_enabled: false` (siehe oben).
 
+**Credentials:** Jeder Server bekommt einen eigenen Schlüssel und eigene Geheimnisse. Für ein neues Szenario
+einmalig:
+
+```bash
+NEW_KEY=true bin/rails "scenario:generate_credentials[carambus_pbv]"              # Probelauf
+WRITE=true NEW_KEY=true bin/rails "scenario:generate_credentials[carambus_pbv]"   # anlegen
+```
+
+Das legt unter `carambus_data/scenarios/<szenario>/production/credentials/` den `production.key` (Modus 600)
+und die `production.yml.enc` an. Diese enthält ein eigenes `secret_key_base`, einen eigenen JWT-Schlüssel und
+eigene Schlüssel für die Datenbank-Verschlüsselung. Feature-Keys (KI, Übersetzung, Google-Dienstkonto,
+ClubCloud) kommen nur hinein, soweit sie in der `secrets.yml` des `carambus_data` stehen, aus dem der Befehl
+läuft. `prepare_deploy` lädt beide Dateien hoch und bricht ohne sie ab.
+
+!!! warning "`production.key` sichern"
+    `carambus_data` versioniert den Schlüssel nicht. Geht er verloren, sind die `production.yml.enc` und alle
+    verschlüsselten Felder in der Datenbank nicht mehr lesbar.
+
 ### 3.2 Deployment ausführen
 
 Alle Befehle aus einem carambus-Checkout, in **dieser Reihenfolge**:

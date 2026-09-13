@@ -126,6 +126,23 @@ shared:
 `prepare_deploy` creates `/etc/<basename>.env` on the Pi from it. A server without mail sets
 `smtp_enabled: false` instead (see above).
 
+**Credentials:** every server gets its own key and its own secrets. For a new scenario, once:
+
+```bash
+NEW_KEY=true bin/rails "scenario:generate_credentials[carambus_pbv]"              # dry run
+WRITE=true NEW_KEY=true bin/rails "scenario:generate_credentials[carambus_pbv]"   # create
+```
+
+This creates `production.key` (mode 600) and `production.yml.enc` under
+`carambus_data/scenarios/<scenario>/production/credentials/`. The file holds its own `secret_key_base`, its own
+JWT secret and its own keys for database encryption. Feature keys (AI, translation, Google service account,
+ClubCloud) are only included if they are in the `secrets.yml` of the `carambus_data` the command runs from.
+`prepare_deploy` uploads both files and aborts without them.
+
+!!! warning "Back up `production.key`"
+    `carambus_data` does not version the key. If it is lost, `production.yml.enc` and every encrypted field in
+    the database can no longer be read.
+
 ### 3.2 Run the deployment
 
 All commands from a carambus checkout, in **this order**:

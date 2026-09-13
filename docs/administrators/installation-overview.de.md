@@ -62,18 +62,18 @@ Carambus-Instanzen. Jede Instanz ist ein **Szenario** mit eigener `config.yml` u
   - `shared.smtp` (`username`, `password`). Ohne SMTP-Daten bricht `prepare_deploy` ab. Ein Server
     ohne Mailversand setzt stattdessen `smtp_enabled: false` in der `config.yml`.
 - **Credentials**: `production.key` und `production.yml.enc` unter
-  `carambus_data/scenarios/<szenario>/production/credentials/`. `prepare_deploy` lädt sie hoch und bricht
-  ohne sie ab.
+  `carambus_data/scenarios/<szenario>/production/credentials/`. Ein neues Szenario legt sie selbst an:
+  `WRITE=true NEW_KEY=true bin/rails "scenario:generate_credentials[<szenario>]"` (eigener Schlüssel, eigene
+  Geheimnisse; ohne `WRITE=true` nur Probelauf). `prepare_deploy` lädt sie hoch und bricht ohne sie ab.
+  Einzelheiten: [Raspberry Pi Quickstart](raspberry-pi-quickstart.md), Abschnitt 3.1.
 
-!!! warning "Offene Fragen für einen neuen Verein"
-    - **Erstbefüllung der Datenbank:** `prepare_development` holt die globalen Daten per SSH als
-      `www-data` aus der Produktions-Datenbank der Authority (`api.carambus.de`). Diesen Zugang haben
-      derzeit nur die Betreiber von Carambus.
-    - **`production.key`:** Kein Task erzeugt ihn, und `carambus_data` versioniert ihn nicht. Woher ein
-      fremder Verein seinen Schlüssel bekommt, ist noch nicht geregelt.
+!!! warning "Offene Frage für einen neuen Verein"
+    **Erstbefüllung der Datenbank:** `prepare_development` holt die globalen Daten per SSH als
+    `www-data` aus der Produktions-Datenbank der Authority (`api.carambus.de`). Diesen Zugang haben
+    derzeit nur die Betreiber von Carambus.
 
-    Ein Verein kann das System (Schritt 0) selbst aufsetzen; für die Anwendung braucht er heute (noch)
-    den Betreiber.
+    Ein Verein kann das System (Schritt 0) selbst aufsetzen und seine Credentials selbst anlegen; für die
+    Erstbefüllung der Datenbank braucht er heute (noch) den Betreiber.
 
 ## 🚀 Schnellstart
 

@@ -60,18 +60,18 @@ instance. Each instance is a **scenario** with its own `config.yml` under `caram
   - `shared.smtp` (`username`, `password`). Without SMTP credentials `prepare_deploy` aborts. A server
     without mail sets `smtp_enabled: false` in `config.yml` instead.
 - **Credentials**: `production.key` and `production.yml.enc` under
-  `carambus_data/scenarios/<scenario>/production/credentials/`. `prepare_deploy` uploads them and aborts
-  without them.
+  `carambus_data/scenarios/<scenario>/production/credentials/`. A new scenario creates them itself:
+  `WRITE=true NEW_KEY=true bin/rails "scenario:generate_credentials[<scenario>]"` (own key, own secrets;
+  a dry run without `WRITE=true`). `prepare_deploy` uploads them and aborts without them. Details:
+  [Raspberry Pi Quickstart](raspberry-pi-quickstart.md), section 3.1.
 
-!!! warning "Open questions for a new club"
-    - **Initial database load:** `prepare_development` fetches the global data via SSH as `www-data` from
-      the Authority's production database (`api.carambus.de`). Currently only the Carambus operators
-      have this access.
-    - **`production.key`:** No task creates it, and `carambus_data` does not version it. How a new club
-      obtains its key is not settled yet.
+!!! warning "Open question for a new club"
+    **Initial database load:** `prepare_development` fetches the global data via SSH as `www-data` from
+    the Authority's production database (`api.carambus.de`). Currently only the Carambus operators
+    have this access.
 
-    A club can set up the system (step 0) on its own; for the application it currently (still) needs the
-    operator.
+    A club can set up the system (step 0) and create its credentials on its own; for the initial database
+    load it currently (still) needs the operator.
 
 ## 🚀 Quick Start
 

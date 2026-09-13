@@ -72,9 +72,10 @@ hoch und überschreibt dabei Änderungen am Server.
 
 `generate_credentials` setzt voraus, dass `production.key` bereits existiert.
 
-!!! warning "Herkunft von `production.key` für ein neues Szenario"
-    Kein Task erzeugt den Schlüssel, und `carambus_data` versioniert `scenarios/*/production/` nicht.
-    Woher ein neuer Verein seinen `production.key` bekommt, ist noch nicht geregelt; siehe
+!!! note "`production.key` für ein neues Szenario"
+    Ein neues Szenario legt Schlüssel und Credentials selbst an:
+    `WRITE=true NEW_KEY=true bin/rails "scenario:generate_credentials[<szenario>]"`. `carambus_data`
+    versioniert `scenarios/*/production/` nicht, der Schlüssel muss also gesichert werden; siehe
     [Installations-Übersicht](../administrators/installation-overview.md), Abschnitt „Voraussetzungen“.
 
 ## Datei-Struktur

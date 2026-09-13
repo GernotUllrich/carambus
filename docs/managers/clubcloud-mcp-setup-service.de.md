@@ -145,10 +145,10 @@ Umgebungsvariable `DEVISE_JWT_SECRET_KEY`, sonst aus `secret_key_base`.
 
 **Herkunft der Credentials:** Sie liegen nicht im Repo. `production.yml.enc` und `production.key`
 kommen aus `carambus_data/scenarios/<szenario>/production/credentials/`; `prepare_deploy` lädt sie
-nach `shared/config/credentials/` auf dem Server (ohne sie bricht es ab). Jede Region hat damit eigene
-Credentials; ob darin jeweils ein eigener `devise_jwt_secret_key` steht, lässt sich nur durch
-Entschlüsseln prüfen. **Offen:** Woher ein fremder Betreiber `production.key` bekommt, ist nicht
-geklärt — kein Task erzeugt den Key.
+nach `shared/config/credentials/` auf dem Server (ohne sie bricht es ab). Ein neues Szenario legt sie
+mit `WRITE=true NEW_KEY=true bin/rails "scenario:generate_credentials[<szenario>]"` an; dabei (und bei
+einer Rotation mit `ROTATE=true`) entsteht ein eigener `devise_jwt_secret_key`
+([Credentials rotieren](../administrators/index.md#credentials-rotieren)).
 
 `app/models/user.rb` (Auszug):
 

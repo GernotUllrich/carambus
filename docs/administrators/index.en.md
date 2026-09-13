@@ -255,14 +255,14 @@ the files and uploads them.
 | `/etc/nginx/sites-available/<basename>` | `templates/nginx/nginx_conf.erb` | `bin/rails "scenario:sync_nginx_conf[<scenario>]"` |
 | `/etc/systemd/system/puma-<basename>.service` | `templates/puma/puma.service.erb` | `prepare_deploy` (do not edit by hand, it is rewritten) |
 | `/etc/<basename>.env` | `secrets.yml` `smtp` (or `smtp_enabled: false`) | by hand, never overwritten |
-| `shared/config/credentials/production.key` / `production.yml.enc` | `carambus_data/scenarios/<scenario>/production/credentials/` | `WRITE=true bin/rails "scenario:generate_credentials[<scenario>]"` (dry run without `WRITE=true`), then `prepare_deploy` |
+| `shared/config/credentials/production.key` / `production.yml.enc` | `carambus_data/scenarios/<scenario>/production/credentials/` | `WRITE=true bin/rails "scenario:generate_credentials[<scenario>]"` (dry run without `WRITE=true`; a new scenario adds `NEW_KEY=true`, rotation `ROTATE=true`), then `prepare_deploy` |
 
 All paths without a leading `/` are under `/var/www/<basename>/`.
 
 !!! note "Credentials"
     Do not edit them on the server with `rails credentials:edit`: `prepare_deploy` uploads the files from
-    `carambus_data` and overwrites changes made on the server. How a new club obtains its `production.key`
-    is not settled yet (see [Installation Overview](installation-overview.md#prerequisites)).
+    `carambus_data` and overwrites changes made on the server. A new scenario creates its credentials itself
+    with `NEW_KEY=true` (see [Installation Overview](installation-overview.md#prerequisites)).
 
 Services on the server:
 ```bash
@@ -270,6 +270,28 @@ sudo systemctl status puma-<basename>
 sudo systemctl restart puma-<basename>
 systemctl is-active puma-<basename> redis-server nginx
 ```
+
+### Rotating credentials {#rotating-credentials}
+
+Rotation replaces a server's `production.key`, `secret_key_base` and JWT secret. For the database encryption key
+a new key is added: the old ones keep decrypting, the new one encrypts. All other entries (feature keys,
+ClubCloud, `location_id`) stay unchanged.
+
+```bash
+ROTATE=true bin/rails "scenario:generate_credentials[<scenario>]"                # dry run
+WRITE=true ROTATE=true bin/rails "scenario:generate_credentials[<scenario>]"     # rotate
+bin/rails "scenario:prepare_deploy[<scenario>]"                                  # upload
+ssh -p <ssh_port> www-data@<host> 'sudo systemctl restart puma-<basename>'       # apply
+```
+
+- First the command backs up `production.key` and `production.yml.enc` as `*.bak-<timestamp>` in the same
+  directory. To roll back, copy both backups back, upload them and restart Puma. Values encrypted after the
+  rotation can no longer be read afterwards.
+- `prepare_deploy` does not restart Puma, hence the last step.
+- Afterwards all sessions and login tokens are invalid. Users, **the scoreboards at the tables** and the
+  tournament app (service account) have to log in again. Do not rotate during a league evening or a tournament.
+- Encrypted values that arrive from the Authority via sync cannot be read on a server with its own key. Enter
+  the ClubCloud credentials a club server needs on that server.
 
 ## 🔧 Maintenance Checklist
 
