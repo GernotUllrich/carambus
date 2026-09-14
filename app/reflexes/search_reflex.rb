@@ -15,8 +15,17 @@ class SearchReflex < ApplicationReflex
 
   def perform
     Rails.application.routes.default_url_options[:host] = request.base_url
-    model_name = params[:controller].camelize.singularize
-    @model = model_name.constantize
+    model_name = params[:controller].to_s.camelize.singularize
+    # Plan 19-02: params[:controller] kommt bei StimulusReflex vom Client. Vorher loeste constantize
+    # jede beliebige Konstante auf. Jetzt waehlt der Parameter nur noch unter den Modelldateien aus
+    # app/models aus; aufgeloest wird der Listeneintrag, und nur ein durchsuchbares Modell geht weiter.
+    known_name = model_file_names.find { |name| name == model_name }
+    model = known_name&.safe_constantize
+    unless model.is_a?(Class) && model < ApplicationRecord && model.respond_to?(:search_hash)
+      Rails.logger.warn "[SearchReflex] kein durchsuchbares Modell fuer controller=#{params[:controller].to_s.first(80).inspect}"
+      return
+    end
+    @model = model
 
     # Store search parameters
     session["#{model_name.underscore}_search"] ||= {}
@@ -102,5 +111,11 @@ class SearchReflex < ApplicationReflex
       search_string: @sSearch,
       table_locals: {pagy: @pagy, model_class: @model, records: records}
     })
+  end
+
+  private
+
+  def model_file_names
+    Dir.glob(Rails.root.join("app", "models", "*.rb")).map { |file| File.basename(file, ".rb").camelize }
   end
 end

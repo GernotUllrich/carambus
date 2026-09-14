@@ -212,11 +212,13 @@ class StaticController < ApplicationController
       return
     end
 
-    # Versuche verschiedene Pfadstrukturen
+    # Versuche verschiedene Pfadstrukturen — als relative Kandidaten, die gegen den Index der
+    # vorhandenen Doku-Dateien nachgeschlagen werden (Plan 19-02). Der ausgelieferte Pfad stammt
+    # damit immer aus dem Verzeichnis selbst, nie aus den Parametern.
     possible_paths = [
-      Rails.root.join('docs', "#{path}.#{locale}.md"),              # Neue Struktur: about.de.md
-      Rails.root.join('docs', locale, "#{path}.md"),                # Alte Struktur: de/about.md
-      Rails.root.join('docs', path, "#{locale}.md"),                # Sehr alte Struktur: about/de.md
+      "#{path}.#{locale}.md",              # Neue Struktur: about.de.md
+      "#{locale}/#{path}.md",              # Alte Struktur: de/about.md
+      "#{path}/#{locale}.md",              # Sehr alte Struktur: about/de.md
     ]
 
     # Sprachneutrale Datei ohne Locale-Suffix: 215 der 437 Doku-Dateien heissen
@@ -228,18 +230,19 @@ class StaticController < ApplicationController
     # Reihenfolge: nach der exakt passenden Sprache, aber VOR dem Rueckfall auf
     # die Fremdsprache — eine sprachneutrale Seite ist der bessere Treffer als
     # eine in der falschen Sprache.
-    possible_paths << Rails.root.join("docs", "#{path}.md")
+    possible_paths << "#{path}.md"
 
     # Auch mit anderem Locale versuchen falls nicht gefunden
     other_locale = locale == 'de' ? 'en' : 'de'
     possible_paths += [
-      Rails.root.join('docs', "#{path}.#{other_locale}.md"),
-      Rails.root.join('docs', other_locale, "#{path}.md"),
-      Rails.root.join('docs', path, "#{other_locale}.md"),
+      "#{path}.#{other_locale}.md",
+      "#{other_locale}/#{path}.md",
+      "#{path}/#{other_locale}.md",
     ]
 
     # Erste existierende Datei verwenden
-    docs_path = possible_paths.find { |p| File.exist?(p) }
+    index = docs_file_index
+    docs_path = possible_paths.lazy.map { |candidate| index[Pathname.new(candidate).cleanpath.to_s] }.find(&:itself)
 
     # Wenn keine Datei gefunden, 404
     unless docs_path
@@ -271,6 +274,15 @@ class StaticController < ApplicationController
   end
 
   private
+
+  # Plan 19-02: alle Doku-Dateien unter docs/, Schluessel = relativer Pfad ("managers/index.de.md").
+  # docs_page schlaegt seine Kandidaten hier nach, statt Parameter an Rails.root.join zu geben —
+  # was nicht im Index steht, gibt es nicht. Je Anfrage neu (~1,5 ms bei 451 Dateien), damit neue
+  # Doku-Dateien ohne Neustart sichtbar sind.
+  def docs_file_index
+    docs_root = Rails.root.join("docs")
+    Dir.glob("**/*.md", base: docs_root).to_h { |relative| [relative, docs_root.join(relative)] }
+  end
 
   # Front Matter aus Markdown extrahieren
   def extract_front_matter(content)

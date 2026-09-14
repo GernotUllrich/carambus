@@ -491,11 +491,10 @@ class Version < PaperTrail::Version
           case h["event"]
           when "create"
             args = YAML.load(h["object_changes"]).to_a.map { |v| [v[0], v[1][1]] }.to_h
-            if h["item_type"] == "PartyCc" # TODO: what's going on here?
-              args["data"] = eval(args["data"]) if args["data"].present? && args["data"].is_a?(String)
-            elsif args["data"].present?
-              args["data"] = Version.safe_parse_for_text_column(args["data"])
-            end
+            # Plan 19-02: Hier stand ein PartyCc-Sonderzweig mit `eval(args["data"])` — Sync-Inhalt wurde
+            # als Ruby-Code ausgefuehrt. PartyCc#data ist eine Textspalte mit Ruby-Inspect ('{:result=>"0:0"}');
+            # der allgemeine Zweig uebernimmt den String unveraendert (kein gueltiges JSON → Rohwert).
+            args["data"] = Version.safe_parse_for_text_column(args["data"]) if args["data"].present?
             args["remarks"] = Version.safe_parse_for_text_column(args["remarks"]) if args["remarks"].present?
             Rails.logger.info "#{h["item_type"]}[#{h["item_id"]}]#{JSON.pretty_generate(args)}"
             begin
@@ -563,11 +562,9 @@ class Version < PaperTrail::Version
             else
               YAML.load(h["object"])
             end
-            if h["item_type"] == "PartyCc" # TODO: what's going on here?
-              args["data"] = eval(args["data"]) if args["data"].present? && args["data"].is_a?(String)
-            elsif args["data"].present?
-              args["data"] = Version.safe_parse_for_text_column(args["data"])
-            end
+            # Plan 19-02: frueher PartyCc-Sonderzweig mit `eval` (siehe create-Zweig). Dort scheiterte
+            # jedes Update zusaetzlich mit "TypeError: can't cast Hash" (update_columns auf die Textspalte).
+            args["data"] = Version.safe_parse_for_text_column(args["data"]) if args["data"].present?
             begin
               classz = h["item_type"].constantize
               # Sync-Apply-Fix (2026-06-17): serialize-Spalten (remarks/t_ids/data) typ-bewusst
