@@ -22,9 +22,10 @@ Choose your deployment variant:
 
 ➡️ **[Raspberry Pi Quickstart Guide](raspberry-pi-quickstart.md)**
 
-!!! warning "Initial database load"
-    The initial load currently requires SSH access to the Authority (`api.carambus.de`). This needs the
-    Carambus operator, see [Installation Overview](installation-overview.md#prerequisites).
+!!! note "Initial database load"
+    The initial load comes from the [region dump](region-dumps.md) of the club's own region. For this a club needs
+    credentials from the Carambus operator once, but no SSH access to the Authority, see
+    [Installation Overview](installation-overview.md#prerequisites).
 
 ### Option 2: Cloud Hosting (Federations)
 **Status**: not a proven path. The Ansible roles and the Quickstart have been walked for the Raspberry Pi;
@@ -206,7 +207,8 @@ option 1.
 2. **Set up the system**: The Ansible roles have been walked for the Raspberry Pi; whether `master.yml` sets up
    a fresh cloud server equivalently has not been checked
 3. **Create the scenario** in `carambus_data` (see [Installation Overview](installation-overview.md))
-4. **Deploy the application**: `prepare_deploy` → `prepare_development` → `reset_server_db` → `deploy`
+4. **Deploy the application**: `prepare_deploy` → `prepare_development` → `reset_server_db` → `deploy`, then
+   `users:create_admin` on the server
 5. **Set up SSL**: issue the certificate before `prepare_deploy` (`ssl_enabled: true`)
 6. **Configure backup**: see maintenance checklist
 7. **Set up monitoring**: optional (e.g. UptimeRobot)

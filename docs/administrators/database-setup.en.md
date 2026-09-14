@@ -16,16 +16,16 @@ The regular path, from any up-to-date carambus checkout:
 bin/rails "scenario:prepare_development[<scenario>,development]"
 ```
 
-The task derives `<scenario>_development` from `carambus_api_development` (template via `createdb --template`)
-and then resets the sequences for local data.
+If `carambus_data/secrets.yml` holds access to the [region dump](region-dumps.md)
+(`per_scenario.<scenario>.region_dump`), the task downloads the region's dump via HTTPS, checks it and loads it as
+`<scenario>_development`; it then resets the sequences for local data and creates the scoreboard account. Without
+this access it derives the database from `carambus_api_development` ([operator path](installation-overview.md#operator-path)).
 
 !!! warning "Prerequisites and side effects"
-    - **SSH access to the Authority:** If `carambus_api_development` is missing or older than the
-      Authority's production, the task fetches it via SSH as `www-data` from `api.carambus.de`. Currently
-      only the Carambus operators have this access.
-    - **Replaces `carambus_api_development`:** If the Authority has newer data, the local
-      `carambus_api_development` is backed up, dropped and rebuilt; the backup is deleted afterwards. This
-      affects every checkout using the same database.
+    - **Operator path:** If `carambus_api_development` is missing or older than the Authority's production, the
+      task fetches it via SSH as `www-data` from `api.carambus.de` and replaces the local copy (backed up first,
+      deleted afterwards). Only the Carambus operators have this access; it affects every checkout using the
+      same database.
     - **Replaces `<scenario>_development`:** An existing scenario database is dropped and recreated. If it
       contains local data (IDs from 50,000,000), the task aborts unless `FORCE=true` is set.
 
@@ -81,7 +81,8 @@ The database then contains only the schema, **no master data**. `db:seed` create
 
 - PostgreSQL is installed and running
 - `createdb` and `psql` commands are available
-- For option 1: SSH access to the Authority (see above) or an up-to-date local `carambus_api_development`
+- For option 1: region dump access in `secrets.yml`, otherwise SSH access to the Authority or an up-to-date local
+  `carambus_api_development`
 - For option 2: a dump under `carambus_data/scenarios/<scenario>/database_dumps/`
 
 ### **Check the Dump File**

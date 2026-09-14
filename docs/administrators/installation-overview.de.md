@@ -67,13 +67,19 @@ Carambus-Instanzen. Jede Instanz ist ein **Szenario** mit eigener `config.yml` u
   Geheimnisse; ohne `WRITE=true` nur Probelauf). `prepare_deploy` lädt sie hoch und bricht ohne sie ab.
   Einzelheiten: [Raspberry Pi Quickstart](raspberry-pi-quickstart.md), Abschnitt 3.1.
 
-!!! warning "Offene Frage für einen neuen Verein"
-    **Erstbefüllung der Datenbank:** `prepare_development` holt die globalen Daten per SSH als
-    `www-data` aus der Produktions-Datenbank der Authority (`api.carambus.de`). Diesen Zugang haben
-    derzeit nur die Betreiber von Carambus.
+- **Zugang zum Regionsdump**: Login und Passwort für die eigene Region, einmalig beim Betreiber anfragen.
+  Sie gehören in die `secrets.yml`:
 
-    Ein Verein kann das System (Schritt 0) selbst aufsetzen und seine Credentials selbst anlegen; für die
-    Erstbefüllung der Datenbank braucht er heute (noch) den Betreiber.
+    ```yaml
+    per_scenario:
+      <szenario>:
+        region_dump:
+          login: <login>
+          password: "<passwort>"
+    ```
+
+    Damit befüllt `prepare_development` die Datenbank aus dem [Regionsdump](region-dumps.md) der Authority,
+    ohne SSH-Zugang zu ihr. Das ist der einzige Schritt, bei dem ein Verein den Betreiber braucht.
 
 ## 🚀 Schnellstart
 
@@ -101,7 +107,7 @@ Alle Befehle aus einem carambus-Checkout, in **dieser Reihenfolge**:
 # 1. Configs, Verzeichnisse, Redis, Puma-Dienst, nginx, /etc/<basename>.env auf dem Server
 bin/rails "scenario:prepare_deploy[<szenario>]"
 
-# 2. Development-Datenbank auf dem Admin-Rechner aus der Authority ableiten
+# 2. Development-Datenbank auf dem Admin-Rechner aus dem Regionsdump anlegen
 bin/rails "scenario:prepare_development[<szenario>,development]"
 
 # 3. Produktions-Datenbank auf den Server bringen: DESTRUKTIV
@@ -111,17 +117,33 @@ bin/rails "scenario:reset_server_db[<szenario>]"
 bin/rails "scenario:deploy[<szenario>]"
 ```
 
+Danach auf dem Server den ersten Admin anlegen:
+
+```bash
+cd /var/www/<basename>/current && RAILS_ENV=production bundle exec rake "users:create_admin[<email>]"
+```
+
 Was man dabei wissen muss:
 
-- **Schritt 2** vergleicht die lokale `carambus_api_development` mit der Produktion der Authority und
-  **ersetzt sie**, wenn dort neuere Daten liegen. Das betrifft jeden Checkout, der dieselbe Datenbank
-  nutzt. Die Meldungen `ERROR: role "www_data" does not exist` und `invalid command \restrict` im Log
-  sind erwartet.
+- **Schritt 2** lädt den Regionsdump der eigenen Region, prüft ihn gegen seine Prüfsumme und spielt ihn als
+  `<szenario>_development` ein. Das Scoreboard-Konto legt der Schritt selbst an, weil der Dump keine
+  Benutzer enthält. Ohne `region_dump` in der `secrets.yml` nimmt er den
+  [Betreiber-Weg](#betreiber-weg).
 - **Schritt 3** löscht die Produktions-Datenbank auf dem Server und spielt sie aus
   `<szenario>_development` neu ein. `prepare_deploy` richtet keine Datenbank ein, das tut nur dieser
   Schritt.
+- **`users:create_admin`** legt einen bestätigten `system_admin` an und gibt sein Passwort genau einmal aus.
 - Für die Scoreboards folgen `setup_raspberry_pi_client`, `deploy_raspberry_pi_client` und
   `test_raspberry_pi_client`, siehe [Quickstart](raspberry-pi-quickstart.md), Schritt 3.2.
+
+#### Betreiber-Weg (ohne Regionsdump-Zugang) {#betreiber-weg}
+
+Steht für das Szenario kein `region_dump` in der `secrets.yml`, gleicht Schritt 2 die lokale
+`carambus_api_development` per SSH als `www-data` mit der Produktion der Authority ab und leitet die
+Datenbank daraus ab. Den Zugang haben nur die Betreiber von Carambus. Die lokale `carambus_api_development`
+wird dabei **ersetzt**, wenn auf der Authority neuere Daten liegen. Das betrifft jeden Checkout, der dieselbe
+Datenbank nutzt. Die Meldungen `ERROR: role "www_data" does not exist` und `invalid command \restrict` im Log
+sind auf diesem Weg erwartet.
 
 ### 3. SSL
 Das Scenario Management stellt keine Zertifikate aus. Bei `ssl_enabled: true` muss das Zertifikat vor

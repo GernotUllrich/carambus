@@ -22,9 +22,10 @@ Wählen Sie Ihre Deployment-Variante:
 
 ➡️ **[Raspberry Pi Quickstart-Anleitung](raspberry-pi-quickstart.md)**
 
-!!! warning "Erstbefüllung der Datenbank"
-    Die Erstbefüllung braucht derzeit SSH-Zugang zur Authority (`api.carambus.de`). Dafür ist der
-    Betreiber von Carambus nötig, siehe [Installations-Übersicht](installation-overview.md#voraussetzungen).
+!!! note "Erstbefüllung der Datenbank"
+    Die Erstbefüllung kommt aus dem [Regionsdump](region-dumps.md) der eigenen Region. Dafür braucht ein Verein
+    einmalig Zugangsdaten vom Betreiber von Carambus, aber keinen SSH-Zugang zur Authority, siehe
+    [Installations-Übersicht](installation-overview.md#voraussetzungen).
 
 ### Option 2: Cloud-Hosting (Verbände)
 **Stand**: nicht als Weg belegt. Die Ansible-Rollen und die Quickstart sind für den Raspberry Pi
@@ -206,7 +207,8 @@ Option 1.
 2. **System aufsetzen**: Die Ansible-Rollen sind für den Raspberry Pi gegangen; ob `master.yml` einen frischen
    Cloud-Server gleichwertig einrichtet, ist nicht geprüft
 3. **Szenario anlegen** in `carambus_data` (siehe [Installations-Übersicht](installation-overview.md))
-4. **Anwendung deployen**: `prepare_deploy` → `prepare_development` → `reset_server_db` → `deploy`
+4. **Anwendung deployen**: `prepare_deploy` → `prepare_development` → `reset_server_db` → `deploy`, danach
+   `users:create_admin` auf dem Server
 5. **SSL einrichten**: Zertifikat vor `prepare_deploy` ausstellen (`ssl_enabled: true`)
 6. **Backup konfigurieren**: siehe Wartungs-Checkliste
 7. **Monitoring einrichten**: Optional (z.B. UptimeRobot)

@@ -6,8 +6,9 @@ Danach hält er sich über den Versions-Sync selbst aktuell. Diesen ersten Besta
 SSH-Zugang zur Authority braucht er nicht.
 
 !!! note "Einspielen"
-    Wie ein Verein den Dump auf seinem Server einspielt, beschreibt die
-    [Raspberry Pi Quickstart](raspberry-pi-quickstart.md), sobald dieser Weg fertig ist (Phase 18, Plan 18-03).
+    Den Dump lädt und prüft `scenario:prepare_development`, sobald die Zugangsdaten in der `secrets.yml` des Vereins
+    stehen. Den ganzen Weg bis zum laufenden Server beschreibt die
+    [Raspberry Pi Quickstart](raspberry-pi-quickstart.md), Schritt 3.
 
 ## Was im Dump steht — und was nicht
 
@@ -82,7 +83,9 @@ curl -fu bc-wedel -o carambus_nbv.sql.gz https://api.carambus.de/region_dumps/NB
 shasum -a 256 carambus_nbv.sql.gz     # muss sha256 aus latest.json ergeben
 ```
 
-Ohne Zugangsdaten antwortet der Server mit 401, mit den Zugangsdaten einer anderen Region wird der Abruf abgewiesen.
+Ohne Zugangsdaten antwortet der Server mit 401, mit den Zugangsdaten einer anderen Region wird der Abruf abgewiesen:
+mit 401, wenn für die Region schon Zugänge vergeben sind, sonst mit 403 (nginx findet keine Zugangsdatei). Dieses 403
+hat nichts mit dem Bot-Block zu tun.
 
 ## Einrichtung auf der Authority (einmalig)
 

@@ -28,8 +28,8 @@ begleitet Ligaspieltage und tauscht Daten mit der DBU-ClubCloud aus. Carambus is
 - Sie **Pool- oder Snooker-Turniere** mit Gruppen und Turnierplänen durchführen wollen: Der Turnier-Monitor kennt
   nur Karambol. Die Turnier-App kann KO-Turniere auch in Pool und Snooker führen, ein solches Turnier ist aber
   noch nicht gespielt worden
-- Sie ein System suchen, das ohne den Betreiber von Carambus in Betrieb geht: Die Erstbefüllung der Datenbank und
-  die Zugangsschlüssel des Servers kommen heute von ihm (siehe
+- Sie ein System suchen, das ganz ohne den Betreiber von Carambus auskommt: Die Daten kommen von seiner Authority,
+  und die Zugangsdaten für die Erstbefüllung der Datenbank gibt er einmalig aus (siehe
   [Voraussetzungen für den eigenen Betrieb](deployment-options.md#voraussetzungen))
 - Sie ein Online-Buchungssystem, Push-Benachrichtigungen aufs Handy oder Statistik-Auswertungen und Exporte
   erwarten —
@@ -49,8 +49,8 @@ Für die technische Umsetzung: [Administrator-Übersicht](../administrators/inde
 ## Nächste Schritte
 
 1. Die [Executive Summary](executive-summary.md) lesen.
-2. **Kontakt aufnehmen, bevor Sie Hardware kaufen:** Erstbefüllung und Zugangsschlüssel laufen heute über den
-   Betreiber von Carambus.
+2. **Kontakt aufnehmen, bevor Sie Hardware kaufen:** Die Zugangsdaten für die Erstbefüllung der Datenbank gibt
+   der Betreiber von Carambus aus.
 3. Den Vereinsserver nach dem [Raspberry-Pi-Quickstart](../administrators/raspberry-pi-quickstart.md) einrichten.
 
 ## Kontakt {#kontakt}

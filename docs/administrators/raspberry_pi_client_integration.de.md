@@ -267,13 +267,12 @@ bin/rails "scenario:test_raspberry_pi_client[<szenario>]"
 ```
 
 !!! warning "Was man dabei wissen muss"
-    - **Schritt 2** holt die globalen Daten per SSH als `www-data` aus der **Produktions-Datenbank der
-      Authority** (`api.carambus.de`). Diesen Zugang haben derzeit nur die Betreiber von Carambus; für die
-      Erstbefüllung braucht ein Verein (noch) den Betreiber.
-    - **Schritt 2** ersetzt die lokale `carambus_api_development`, wenn die Authority neuere Daten hat
-      (vorher Sicherung, danach wieder gelöscht) — das betrifft jeden Checkout, der dieselbe Datenbank
-      nutzt. Im Log stehen zahlreiche `ERROR: role "www_data" does not exist` und
-      `invalid command \restrict` — beides ist erwartet, der Task meldet trotzdem ✅.
+    - **Schritt 2** lädt mit einem Zugang in der `secrets.yml` den [Regionsdump](region-dumps.md) der
+      Region per HTTPS; den Zugang gibt der Betreiber von Carambus einmalig aus. Ohne ihn nimmt der Schritt den
+      [Betreiber-Weg](installation-overview.md#betreiber-weg) per SSH zur Authority und ersetzt dabei die
+      lokale `carambus_api_development`.
+    - Nach dem Deploy legt `users:create_admin[<email>]` auf dem Server den ersten Admin an, siehe
+      [Quickstart](raspberry-pi-quickstart.md), Schritt 3.2.
     - **Schritt 3** löscht die Produktions-Datenbank auf dem Server und spielt sie neu ein. Auf einem
       frischen Pi gibt es noch keine; ohne sie scheitert der Deploy.
 

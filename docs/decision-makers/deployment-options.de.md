@@ -62,7 +62,7 @@ anlegt ([Anleitung](../managers/tournament-app.md#voraussetzungen)).
 
 | Was | Warum |
 |---|---|
-| **Der Betreiber von Carambus** | Die Erstbefüllung der Datenbank holt die Stammdaten per SSH aus der Datenbank der Authority; diesen Zugang hat nur der Betreiber. Auch die Zugangsschlüssel des Servers (`production.key`) kommen heute von ihm. Wie ein Verein beides künftig selbst erledigen kann, ist offen. |
+| **Der Betreiber von Carambus, einmalig** | Die Erstbefüllung der Datenbank kommt aus dem Regionsdump, den die Authority jede Nacht für jede Region baut. Den Zugang dazu gibt der Betreiber einmalig je Verein aus; einen SSH-Zugang zur Authority braucht der Verein nicht. Die Zugangsschlüssel des Servers (`production.key`) erzeugt der Verein selbst. |
 | **Ein Admin-Rechner (Mac oder Linux)** | Von hier aus laufen Ansible und die Rake-Tasks. Nötig sind der Raspberry Pi Imager, ein Carambus-Checkout, die Szenario-Konfiguration (`carambus_data`), das Ansible-Repository, ein lokales PostgreSQL und ein SSH-Schlüssel. |
 | **Linux- und SSH-Kenntnisse** | für die Einrichtung und für Fehler, die dabei auftreten |
 | **Die DBU-ClubCloud** | Spieler und Vereine werden dort gepflegt; den Ergebnis-Upload macht die Turnierleitung mit ihrem ClubCloud-Zugang. |

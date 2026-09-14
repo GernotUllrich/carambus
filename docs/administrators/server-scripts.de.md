@@ -438,13 +438,14 @@ bin/rails server -p <port>
 ```
 
 !!! warning "Was `prepare_development` voraussetzt und verändert"
-    - Es holt die globalen Daten per SSH als `www-data` aus der **Produktions-Datenbank der Authority**
-      (`api.carambus.de`). Diesen Zugang haben derzeit nur die Betreiber von Carambus.
-    - Es vergleicht die lokale `carambus_api_development` mit der Authority und **ersetzt sie**, wenn
-      dort neuere Daten liegen (vorher Sicherung, danach wieder gelöscht) — das betrifft jeden Checkout,
-      der dieselbe Datenbank nutzt, auch `carambus_api`. Fehlt sie, wird sie angelegt.
-    - Im Log stehen zahlreiche `ERROR: role "www_data" does not exist` und `invalid command \restrict` —
-      beides ist erwartet, der Task meldet trotzdem ✅.
+    - Mit einem Zugang zum [Regionsdump](region-dumps.md) in der `secrets.yml` lädt es den Dump der Region
+      per HTTPS; SSH zur Authority braucht es dann nicht.
+    - Ohne diesen Zugang ([Betreiber-Weg](installation-overview.md#betreiber-weg)) holt es die globalen Daten
+      per SSH als `www-data` aus der **Produktions-Datenbank der Authority**. Es vergleicht dabei die lokale
+      `carambus_api_development` mit der Authority und **ersetzt sie**, wenn dort neuere Daten liegen (vorher
+      Sicherung, danach wieder gelöscht) — das betrifft jeden Checkout, der dieselbe Datenbank nutzt, auch
+      `carambus_api`. Im Log stehen dann zahlreiche `ERROR: role "www_data" does not exist` und
+      `invalid command \restrict` — beides ist erwartet, der Task meldet trotzdem ✅.
 
 ### Code-Änderung deployen
 

@@ -16,11 +16,10 @@ The setup has two parts:
 Afterwards the Pi boots straight into the scoreboard. From power-on this takes about
 **3 minutes** (desktop after about 1 minute) — the Pi is not broken during that time.
 
-!!! warning "Who can walk this path today"
-    Step 3.2 fills the database from the **production database of the authority**
-    (`api.carambus.de`) and needs SSH access as `www-data` to that server. Currently only the
-    Carambus operators have it. A club can do steps 1–2 on its own; for the initial data load it
-    (still) needs the operator.
+!!! note "What a club needs from the operator"
+    Only once: the **region dump credentials** for its region (login and password, see 3.1). With them,
+    step 3.2 fills the database from the authority's [region dump](region-dumps.md) (`api.carambus.de`),
+    without SSH access to it. Everything else, including the credentials, the club does itself.
 
 ## Prerequisites
 
@@ -39,7 +38,7 @@ Afterwards the Pi boots straight into the scoreboard. From power-on this takes a
   deploys from here) — keep it **up to date**: `git -C ~/DEV/carambus/<scenario> pull --ff-only`
 - `~/DEV/carambus/carambus_data` (scenario `config.yml`, `secrets.yml`)
 - `~/DEV/ansible` (inventory and playbooks for steps 1–2)
-- Local PostgreSQL with `carambus_api_development`
+- Local PostgreSQL
 - SSH key (`~/.ssh/id_rsa.pub`)
 
 ### Tip: speed up SSH to `*.local`
@@ -143,6 +142,20 @@ ClubCloud) are only included if they are in the `secrets.yml` of the `carambus_d
     `carambus_data` does not version the key. If it is lost, `production.yml.enc` and every encrypted field in
     the database can no longer be read.
 
+**Region dump access:** the operator issues login and password for the club's region once
+([region dumps, access](region-dumps.md#access)). They belong in `carambus_data/secrets.yml`:
+
+```yaml
+per_scenario:
+  carambus_pbv:
+    region_dump:
+      login: carambus-pbv
+      password: "..."
+```
+
+Which region is loaded follows from `config.yml` (`region_shortname`, otherwise `context`, otherwise
+`region_id`).
+
 ### 3.2 Run the deployment
 
 All commands from a carambus checkout, in **this order**:
@@ -153,7 +166,7 @@ cd ~/DEV/carambus/carambus_bcw
 # 1. Configs, directories, Redis, Puma service, nginx, /etc/<basename>.env   (~1 min)
 bin/rails "scenario:prepare_deploy[carambus_pbv]"
 
-# 2. Derive the development database on the admin computer from the authority   (~4 min)
+# 2. Development database on the admin computer from the region dump          (~30 s)
 bin/rails "scenario:prepare_development[carambus_pbv,development]"
 
 # 3. Put the production database on the Pi — DESTRUCTIVE                      (~1 min)
@@ -168,13 +181,26 @@ bin/rails "scenario:deploy_raspberry_pi_client[carambus_pbv]"
 bin/rails "scenario:test_raspberry_pi_client[carambus_pbv]"
 ```
 
+Then create the first admin on the Pi:
+
+```bash
+ssh -p 8910 www-data@carambus-pbv.local
+cd /var/www/carambus_pbv/current && RAILS_ENV=production bundle exec rake "users:create_admin[<email>]"
+```
+
+The command creates a confirmed `system_admin` and prints the password exactly once. Change it under "Profile"
+after the first login. This admin creates further users. The tournament app's service account is described under
+[tournament app, prerequisites](../managers/tournament-app.md#voraussetzungen).
+
 What you need to know:
 
-- **Step 2** compares the local `carambus_api_development` with the authority's production and
-  **replaces it** if newer data exists there (backed up first, the backup is deleted afterwards) —
-  this affects every checkout that uses the same database. The log shows many
-  `ERROR: role "www_data" does not exist` and `invalid command \restrict` lines — both are
-  expected, the task still reports ✅.
+- **Step 2** downloads the region's dump via HTTPS, checks it against its checksum and loads it as
+  `<scenario>_development`. The dump contains no users. The step creates the scoreboard account itself; the
+  first admin comes after the deploy (see above). The ~30 s were measured with dependencies already installed;
+  on the first run on an admin computer the step installs them first. Without `region_dump` in `secrets.yml`
+  it takes the [operator path](installation-overview.md#operator-path) via SSH to the authority.
+- If the Pi already has local data (id ≥ 50 million), step 2 backs it up from the Pi first and loads it back
+  afterwards.
 - **Step 3** is marked DESTRUCTIVE: it drops the production database on the Pi and loads it
   again. A fresh Pi has none yet. Without step 2 it aborts with
   `ActiveRecord::NoDatabaseError … carambus_pbv_development` — then run step 2, not `db:create`.

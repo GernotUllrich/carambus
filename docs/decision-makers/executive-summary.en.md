@@ -52,9 +52,8 @@ the result upload to the ClubCloud only works again once the connection is back.
   device for each additional table
 - **A person with Linux and SSH skills** and a Mac or Linux computer from which they set up the Pi (Ansible, Rake
   tasks). Measured: about 1.5 hours, after which the Pi boots into the scoreboard by itself
-- **The Carambus operator:** the initial database load and the server's access keys come from the operator
-  today. How a
-  club can do both itself in the future is still open.
+- **The Carambus operator, once:** the operator issues the credentials for the region dump from which the club
+  loads its server's database. The club creates the server's access keys itself.
 - **The ClubCloud:** players and clubs must be maintained there; the tournament director does the result upload
   with their ClubCloud access
 - **A mail account** for sending mail — or a deliberate decision to run without mail

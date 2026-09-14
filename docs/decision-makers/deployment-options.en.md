@@ -62,7 +62,7 @@ repository and ships with every deploy. It signs in with a service account that 
 
 | What | Why |
 |---|---|
-| **The Carambus operator** | The initial database load fetches the master data via SSH from the Authority's database; only the operator has this access. The server's access keys (`production.key`) also come from the operator today. How a club can do both itself in the future is still open. |
+| **The Carambus operator, once** | The initial database load comes from the region dump that the Authority builds every night for every region. The operator issues access to it once per club; the club needs no SSH access to the Authority. The club creates the server's access keys (`production.key`) itself. |
 | **An admin computer (Mac or Linux)** | Ansible and the Rake tasks run from here. You need the Raspberry Pi Imager, a Carambus checkout, the scenario configuration (`carambus_data`), the Ansible repository, a local PostgreSQL and an SSH key. |
 | **Linux and SSH skills** | for the setup and for errors that come up along the way |
 | **The DBU ClubCloud** | Players and clubs are maintained there; the tournament director does the result upload with their ClubCloud access. |

@@ -53,8 +53,8 @@ der Ergebnis-Upload in die ClubCloud geht erst wieder mit Verbindung. Mehr:
   weiteren Tisch ein Anzeigegerät
 - **Eine Person mit Linux- und SSH-Kenntnissen** und einem Mac- oder Linux-Rechner, von dem aus sie den Pi
   einrichtet (Ansible, Rake-Tasks). Gemessen: rund 1,5 Stunden, danach startet der Pi von selbst ins Scoreboard
-- **Den Betreiber von Carambus:** Die Erstbefüllung der Datenbank und die Zugangsschlüssel des Servers kommen
-  heute von ihm. Wie ein Verein beides künftig selbst erledigen kann, ist offen.
+- **Den Betreiber von Carambus, einmalig:** Er gibt die Zugangsdaten für den Regionsdump aus, aus dem der Verein
+  die Datenbank seines Servers erstbefüllt. Die Zugangsschlüssel des Servers erzeugt der Verein selbst.
 - **Die ClubCloud:** Spieler und Vereine müssen dort gepflegt sein; den Ergebnis-Upload macht die Turnierleitung
   mit ihrem ClubCloud-Zugang
 - **Ein Mail-Konto** für den Versand — oder den bewussten Verzicht auf Mailversand

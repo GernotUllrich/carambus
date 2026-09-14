@@ -16,11 +16,10 @@ Die Einrichtung hat zwei Teile:
 Danach startet der Pi von selbst ins Scoreboard. Beim Einschalten dauert das etwa **3 Minuten**
 (Desktop nach rund 1 Minute) — der Pi ist in dieser Zeit nicht defekt.
 
-!!! warning "Wer diesen Weg heute gehen kann"
-    Schritt 3.2 befüllt die Datenbank aus der **Produktions-Datenbank der Authority**
-    (`api.carambus.de`) und braucht dafür SSH-Zugang als `www-data` zu diesem Server. Den haben
-    derzeit nur die Betreiber von Carambus. Ein Verein kann Schritt 1–2 selbst gehen; für die
-    Erstbefüllung braucht er (noch) den Betreiber.
+!!! note "Was ein Verein vom Betreiber braucht"
+    Nur einmalig die **Zugangsdaten zum Regionsdump** seiner Region (Login und Passwort, siehe 3.1). Damit
+    befüllt Schritt 3.2 die Datenbank aus dem [Regionsdump](region-dumps.md) der Authority (`api.carambus.de`),
+    ohne SSH-Zugang zu ihr. Alles andere, auch die Credentials, erledigt der Verein selbst.
 
 ## Voraussetzungen
 
@@ -39,7 +38,7 @@ Danach startet der Pi von selbst ins Scoreboard. Beim Einschalten dauert das etw
   deployt Capistrano) — **aktuell** halten: `git -C ~/DEV/carambus/<szenario> pull --ff-only`
 - `~/DEV/carambus/carambus_data` (Szenario-`config.yml`, `secrets.yml`)
 - `~/DEV/ansible` (Inventar und Playbooks für Schritt 1–2)
-- Lokales PostgreSQL mit `carambus_api_development`
+- Lokales PostgreSQL
 - SSH-Schlüssel (`~/.ssh/id_rsa.pub`)
 
 ### Tipp: SSH zu `*.local` beschleunigen
@@ -144,6 +143,20 @@ läuft. `prepare_deploy` lädt beide Dateien hoch und bricht ohne sie ab.
     `carambus_data` versioniert den Schlüssel nicht. Geht er verloren, sind die `production.yml.enc` und alle
     verschlüsselten Felder in der Datenbank nicht mehr lesbar.
 
+**Zugang zum Regionsdump:** Login und Passwort für die Region des Vereins gibt der Betreiber einmalig aus
+([Regionsdumps, Zugang](region-dumps.md#zugang)). Sie gehören in die `carambus_data/secrets.yml`:
+
+```yaml
+per_scenario:
+  carambus_pbv:
+    region_dump:
+      login: carambus-pbv
+      password: "..."
+```
+
+Welche Region geladen wird, ergibt sich aus der `config.yml` (`region_shortname`, sonst `context`, sonst
+`region_id`).
+
 ### 3.2 Deployment ausführen
 
 Alle Befehle aus einem carambus-Checkout, in **dieser Reihenfolge**:
@@ -154,7 +167,7 @@ cd ~/DEV/carambus/carambus_bcw
 # 1. Configs, Verzeichnisse, Redis, Puma-Dienst, nginx, /etc/<basename>.env   (~1 min)
 bin/rails "scenario:prepare_deploy[carambus_pbv]"
 
-# 2. Development-Datenbank auf dem Admin-Rechner aus der Authority ableiten   (~4 min)
+# 2. Development-Datenbank auf dem Admin-Rechner aus dem Regionsdump         (~30 s)
 bin/rails "scenario:prepare_development[carambus_pbv,development]"
 
 # 3. Produktions-Datenbank auf den Pi bringen — DESTRUKTIV                    (~1 min)
@@ -169,13 +182,27 @@ bin/rails "scenario:deploy_raspberry_pi_client[carambus_pbv]"
 bin/rails "scenario:test_raspberry_pi_client[carambus_pbv]"
 ```
 
+Danach auf dem Pi den ersten Admin anlegen:
+
+```bash
+ssh -p 8910 www-data@carambus-pbv.local
+cd /var/www/carambus_pbv/current && RAILS_ENV=production bundle exec rake "users:create_admin[<email>]"
+```
+
+Der Befehl legt einen bestätigten `system_admin` an und gibt das Passwort genau einmal aus. Nach der ersten
+Anmeldung unter „Profil“ ändern. Weitere Benutzer legt dieser Admin selbst an. Das Dienstkonto für die
+Turnier-App steht unter [Turnier-App, Voraussetzungen](../managers/tournament-app.md#voraussetzungen).
+
 Was man dabei wissen muss:
 
-- **Schritt 2** vergleicht die lokale `carambus_api_development` mit der Produktion der Authority
-  und **ersetzt sie**, wenn dort neuere Daten liegen (vorher Sicherung, danach wieder gelöscht) —
-  das betrifft jeden Checkout, der dieselbe Datenbank nutzt. Im Log stehen dabei zahlreiche
-  `ERROR: role "www_data" does not exist` und `invalid command \restrict` — beides ist erwartet,
-  der Task meldet trotzdem ✅.
+- **Schritt 2** lädt den Regionsdump der Region per HTTPS, prüft ihn gegen seine Prüfsumme und spielt ihn als
+  `<szenario>_development` ein. Der Dump enthält keine Benutzer. Das Scoreboard-Konto legt der Schritt selbst
+  an, der erste Admin kommt nach dem Deploy (siehe oben). Die ~30 s sind gemessen mit schon installierten
+  Abhängigkeiten; beim ersten Lauf auf einem Admin-Rechner installiert der Schritt sie vorher. Ohne
+  `region_dump` in der `secrets.yml` nimmt er den
+  [Betreiber-Weg](installation-overview.md#betreiber-weg) per SSH zur Authority.
+- Hat der Pi schon lokale Daten (id ≥ 50 Mio.), sichert Schritt 2 sie vorher vom Pi und spielt sie danach
+  wieder ein.
 - **Schritt 3** ist als DESTRUKTIV markiert: er löscht die Produktions-Datenbank auf dem Pi und
   spielt sie neu ein. Auf einem frischen Pi gibt es noch keine. Ohne Schritt 2 bricht er mit
   `ActiveRecord::NoDatabaseError … carambus_pbv_development` ab — dann Schritt 2 nachholen, nicht

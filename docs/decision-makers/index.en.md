@@ -28,8 +28,8 @@ license).
 - you want to run **pool or snooker tournaments** with groups and tournament plans: the tournament monitor only
   handles carom. The tournament app can run knockout tournaments in pool and snooker as well, but no such
   tournament has been played yet
-- you are looking for a system that goes live without the Carambus operator: the initial database load and the
-  server's access keys come from the operator today (see
+- you are looking for a system that works entirely without the Carambus operator: the data comes from the
+  operator's Authority, and the operator issues the credentials for the initial database load once (see
   [Requirements for running your own server](deployment-options.md#voraussetzungen))
 - you expect an online booking system, push notifications to phones, or statistics and exports — see
   [What Carambus cannot do](features-overview.md#nicht-enthalten)
@@ -48,8 +48,8 @@ For the technical setup: [Administrator overview](../administrators/index.md) an
 ## Next steps
 
 1. Read the [Executive Summary](executive-summary.md).
-2. **Get in touch before you buy hardware:** the initial database load and the access keys currently go through
-   the Carambus operator.
+2. **Get in touch before you buy hardware:** the Carambus operator issues the credentials for the initial
+   database load.
 3. Set up the club server following the [Raspberry Pi Quickstart](../administrators/raspberry-pi-quickstart.md).
 
 ## Contact {#kontakt}

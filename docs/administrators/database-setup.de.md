@@ -16,16 +16,17 @@ Der reguläre Weg, aus einem beliebigen aktuellen carambus-Checkout:
 bin/rails "scenario:prepare_development[<szenario>,development]"
 ```
 
-Der Task leitet `<szenario>_development` aus `carambus_api_development` ab (Vorlage per `createdb --template`)
-und setzt danach die Sequences für lokale Daten zurück.
+Steht in der `carambus_data/secrets.yml` ein Zugang zum [Regionsdump](region-dumps.md)
+(`per_scenario.<szenario>.region_dump`), lädt der Task den Dump der Region per HTTPS, prüft ihn und spielt ihn als
+`<szenario>_development` ein; danach setzt er die Sequences für lokale Daten zurück und legt das Scoreboard-Konto
+an. Ohne diesen Zugang leitet er die Datenbank aus `carambus_api_development` ab
+([Betreiber-Weg](installation-overview.md#betreiber-weg)).
 
 !!! warning "Voraussetzungen und Seiteneffekte"
-    - **SSH-Zugang zur Authority:** Ist `carambus_api_development` nicht vorhanden oder älter als die
-      Produktion der Authority, holt der Task sie per SSH als `www-data` von `api.carambus.de`. Diesen
-      Zugang haben derzeit nur die Betreiber von Carambus.
-    - **Ersetzt `carambus_api_development`:** Liegen bei der Authority neuere Daten, wird die lokale
-      `carambus_api_development` gesichert, gelöscht und neu aufgebaut; die Sicherung wird danach wieder
-      gelöscht. Das betrifft jeden Checkout, der dieselbe Datenbank nutzt.
+    - **Betreiber-Weg:** Ist `carambus_api_development` nicht vorhanden oder älter als die Produktion der
+      Authority, holt der Task sie per SSH als `www-data` von `api.carambus.de` und ersetzt die lokale Kopie
+      (vorher gesichert, danach wieder gelöscht). Diesen Zugang haben nur die Betreiber von Carambus; das
+      betrifft jeden Checkout, der dieselbe Datenbank nutzt.
     - **Ersetzt `<szenario>_development`:** Eine vorhandene Szenario-Datenbank wird gelöscht und neu
       angelegt. Enthält sie lokale Daten (IDs ab 50.000.000), bricht der Task ohne `FORCE=true` ab.
 
@@ -82,7 +83,8 @@ Option 1 oder 2.
 
 - PostgreSQL ist installiert und läuft
 - `createdb` und `psql` Kommandos sind verfügbar
-- Für Option 1: SSH-Zugang zur Authority (siehe oben) oder eine aktuelle lokale `carambus_api_development`
+- Für Option 1: ein Zugang zum Regionsdump in der `secrets.yml`, sonst SSH-Zugang zur Authority oder eine aktuelle
+  lokale `carambus_api_development`
 - Für Option 2: ein Dump unter `carambus_data/scenarios/<szenario>/database_dumps/`
 
 ### **Dump-Datei prüfen**

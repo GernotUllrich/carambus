@@ -6,8 +6,9 @@ it keeps itself up to date through the version sync. The Authority (`api.carambu
 need SSH access to the Authority.
 
 !!! note "Loading"
-    How a club loads the dump on its server will be described in the
-    [Raspberry Pi Quickstart](raspberry-pi-quickstart.md) once that path is finished (phase 18, plan 18-03).
+    `scenario:prepare_development` downloads and checks the dump as soon as the credentials are in the club's
+    `secrets.yml`. The whole path up to the running server is described in the
+    [Raspberry Pi Quickstart](raspberry-pi-quickstart.md), step 3.
 
 ## What the dump contains — and what it does not
 
@@ -81,7 +82,9 @@ curl -fu bc-wedel -o carambus_nbv.sql.gz https://api.carambus.de/region_dumps/NB
 shasum -a 256 carambus_nbv.sql.gz     # must match sha256 in latest.json
 ```
 
-Without credentials the server answers 401; with the credentials of another region the download is refused.
+Without credentials the server answers 401; with the credentials of another region the download is refused: with
+401 if access has already been granted for that region, otherwise with 403 (nginx finds no access file). This 403 has
+nothing to do with the bot block.
 
 ## Setup on the Authority (once)
 
