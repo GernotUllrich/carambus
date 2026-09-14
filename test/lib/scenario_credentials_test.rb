@@ -300,6 +300,66 @@ class ScenarioCredentialsTest < ActiveSupport::TestCase
     end
   end
 
+  # --- Teil 5: Fingerabdruck und Upload-Gate (pull/upload_credentials) --------------------------
+
+  test "Fingerabdruck enthaelt nur Hash-Praefixe, keine Werte" do
+    fp = ScenarioCredentials.fingerprint(EXISTING)
+    assert_equal Digest::SHA256.hexdigest("bestand-skb")[0, 12], fp["secret_key_base"]
+    assert_equal [Digest::SHA256.hexdigest("bestand-pk")[0, 12]], fp["primary_key"]
+    assert_nil fp["devise_jwt_secret_key"]
+    refute_includes fp.to_json, "bestand"
+  end
+
+  test "Fingerabdruck ist fuer Symbol- und String-Schluessel gleich" do
+    sym = {secret_key_base: "bestand-skb", active_record_encryption: {primary_key: "bestand-pk"}}
+    assert_equal ScenarioCredentials.fingerprint(EXISTING).slice("secret_key_base", "primary_key"),
+      ScenarioCredentials.fingerprint(sym).slice("secret_key_base", "primary_key")
+  end
+
+  test "Gate: nach einer Rotation darf hochgeladen werden" do
+    rotated, = credentials.rotated
+    assert_empty ScenarioCredentials.upload_problems(ScenarioCredentials.fingerprint(rotated), ScenarioCredentials.fingerprint(EXISTING))
+  end
+
+  test "Gate: neuer Server ohne Credentials" do
+    assert_empty ScenarioCredentials.upload_problems(ScenarioCredentials.fingerprint(EXISTING), nil)
+  end
+
+  test "Gate: veraltete Kopie verlöre den AR-Schluessel des Servers" do
+    server, = credentials.rotated # Server ist weiter als die lokale Kopie
+    problems = ScenarioCredentials.upload_problems(ScenarioCredentials.fingerprint(EXISTING), ScenarioCredentials.fingerprint(server))
+    assert_equal 1, problems.size
+    assert_match(/primary_key des Servers fehlt lokal/, problems.first)
+  end
+
+  test "Gate: anderes Salt" do
+    other = EXISTING.merge("active_record_encryption" => EXISTING["active_record_encryption"].merge("key_derivation_salt" => "x"))
+    problems = ScenarioCredentials.upload_problems(ScenarioCredentials.fingerprint(other), ScenarioCredentials.fingerprint(EXISTING))
+    assert(problems.any? { |p| p.include?("key_derivation_salt") })
+  end
+
+  test "Server-Skript laeuft per ruby - und liefert dieselben Werte wie lokal" do
+    Dir.mktmpdir do |dir|
+      store = ScenarioCredentials::Store.new(dir)
+      store.create(EXISTING)
+      out, err, status = Open3.capture3(RbConfig.ruby, "-rbundler/setup", "-", dir,
+        stdin_data: ScenarioCredentials.remote_fingerprint_script)
+      assert status.success?, err
+      remote = JSON.parse(out.lines.last)
+      assert_equal store.file_md5s, remote.slice("key_md5", "enc_md5")
+      assert_equal ScenarioCredentials.fingerprint(EXISTING), remote["fingerprint"]
+    end
+  end
+
+  test "Server-Skript ohne Credentials liefert leere Pruefsummen" do
+    Dir.mktmpdir do |dir|
+      out, err, status = Open3.capture3(RbConfig.ruby, "-rbundler/setup", "-", dir,
+        stdin_data: ScenarioCredentials.remote_fingerprint_script)
+      assert status.success?, err
+      assert_equal({"key_md5" => nil, "enc_md5" => nil}, JSON.parse(out.lines.last))
+    end
+  end
+
   private
 
   def encryptor

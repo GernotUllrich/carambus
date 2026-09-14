@@ -233,11 +233,17 @@ bleibt als günstige 100%-Absicherung Pflicht.)*
 >   dem Pool der aufrufenden `secrets.yml`
 > - bestehendes Szenario: `WRITE=true ROTATE=true rake "scenario:generate_credentials[<name>]"` — neuer Key,
 >   neues `secret_key_base`/JWT, AR-`primary_key` wird zur Liste `[alt, neu]` (Salt bleibt), Backups
->   `*.bak-<ts>`; danach `prepare_deploy` und `sudo systemctl restart puma-<basename>`
->   ([Ablauf](../administrators/index.md#credentials-rotieren))
+>   `*.bak-<ts>` ([Ablauf](../administrators/index.md#credentials-rotieren))
+> - Transfer ohne `prepare_deploy` (auch Authority): `rake "scenario:pull_credentials[<name>]"` vergleicht
+>   Server und Kopie und holt mit `WRITE=true` den Serverstand; `rake "scenario:upload_credentials[<name>]"`
+>   lädt mit `WRITE=true` hoch (Server-Backup, Modus 600, Prüfsummen danach), `RESTART=true` startet Puma neu.
+>   Die Fingerabdrücke rechnet der Server mit `lib/scenario_credentials.rb` (per stdin an `ruby -`), ausgegeben
+>   werden nur Hash-Präfixe.
 >
 > Weil die Rotation auf der `carambus_data`-Kopie aufbaut, gilt das §4.5-Gate **vor jedem ROTATE**:
-> weicht der Server ab (z. B. nach `push_credentials`), erst die Server-Dateien übernehmen.
+> weicht der Server ab (z. B. nach `push_credentials`), erst die Server-Dateien übernehmen (`pull_credentials`).
+> `upload_credentials` setzt das Gate selbst um: Es bricht ab, wenn ein AR-`primary_key` des Servers lokal
+> fehlt oder das Salt abweicht (`FORCE=true` übergeht es).
 
 ### 4.5 Deploy-Gate (vor jedem Credential-Deploy PFLICHT)
 Prüfen, dass `secret_key_base` UND `active_record_encryption.primary_key` mit dem

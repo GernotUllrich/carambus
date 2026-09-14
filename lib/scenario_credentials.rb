@@ -3,6 +3,8 @@
 require "securerandom"
 require "fileutils"
 require "yaml"
+require "json"
+require "digest"
 require "active_support/core_ext/hash/deep_merge"
 require "active_support/encrypted_configuration"
 
@@ -116,6 +118,52 @@ class ScenarioCredentials
     [hash, report(removed: [], generated_skb: true, added: [])]
   end
 
+  # Fingerabdruck der Geheimnisse: SHA-256-Praefixe, nie Werte. Lokal und auf dem Server mit
+  # demselben Code gerechnet (remote_fingerprint_script), damit beide Seiten vergleichbar sind.
+  def self.fingerprint(hash)
+    h = deep_stringify(hash || {})
+    ar = h["active_record_encryption"] || {}
+    d = ->(v) { v.nil? ? nil : Digest::SHA256.hexdigest(v.to_s)[0, 12] }
+    {
+      "secret_key_base" => d[h["secret_key_base"]],
+      "devise_jwt_secret_key" => d[h["devise_jwt_secret_key"]],
+      "primary_key" => Array(ar["primary_key"]).map { |k| d[k] },
+      "deterministic_key" => d[ar["deterministic_key"]],
+      "key_derivation_salt" => d[ar["key_derivation_salt"]]
+    }
+  end
+
+  # Gate vor dem Hochladen: Was waere nach dem Upload auf dem Server nicht mehr lesbar?
+  # Jeder AR-primary_key des Servers muss lokal in der Liste stehen, das Salt muss gleich sein.
+  # Ohne Credentials auf dem Server (neuer Server) gibt es nichts zu verlieren.
+  def self.upload_problems(local_fp, server_fp)
+    return [] if server_fp.nil?
+
+    problems = []
+    missing = server_fp["primary_key"] - local_fp["primary_key"]
+    unless missing.empty?
+      problems << "AR-primary_key des Servers fehlt lokal (#{missing.join(", ")}) — verschlüsselte Daten wären unlesbar"
+    end
+    if server_fp["key_derivation_salt"] && server_fp["key_derivation_salt"] != local_fp["key_derivation_salt"]
+      problems << "key_derivation_salt weicht ab — verschlüsselte Daten wären unlesbar"
+    end
+    problems
+  end
+
+  # Ruby-Quelltext fuer `ruby -` auf dem Server: diese Datei plus ein Treiber, der fuer ein
+  # Credentials-Verzeichnis (ARGV[0]) Datei-MD5s und Fingerabdruck als JSON ausgibt.
+  # Ueber stdin liest Ruby den Quelltext in der Locale-Kodierung — die Umlaute dieser Datei
+  # braechen das ohne den Kodierungskommentar vorn (auf dem Server wie lokal).
+  def self.remote_fingerprint_script
+    "# encoding: utf-8\n" + File.read(__FILE__, encoding: "UTF-8") + <<~RUBY
+
+      store = ScenarioCredentials::Store.new(ARGV[0])
+      out = store.file_md5s
+      out["fingerprint"] = ScenarioCredentials.fingerprint(store.read) if store.key? && store.enc?
+      puts JSON.generate(out)
+    RUBY
+  end
+
   # Datei-Seite: production.key und production.yml.enc eines Szenarios. Neu entstehende Dateien
   # tragen Modus 600; ersetzt wird ueber Temp-Dateien, damit Key und .enc nie auseinanderlaufen.
   class Store
@@ -135,6 +183,11 @@ class ScenarioCredentials
 
     def enc?
       File.exist?(enc_path)
+    end
+
+    def file_md5s
+      {"key_md5" => (key? ? Digest::MD5.file(key_path).hexdigest : nil),
+       "enc_md5" => (enc? ? Digest::MD5.file(enc_path).hexdigest : nil)}
     end
 
     def read

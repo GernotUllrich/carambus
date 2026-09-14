@@ -278,16 +278,25 @@ a new key is added: the old ones keep decrypting, the new one encrypts. All othe
 ClubCloud, `location_id`) stay unchanged.
 
 ```bash
+bin/rails "scenario:pull_credentials[<scenario>]"                                # server = carambus_data?
 ROTATE=true bin/rails "scenario:generate_credentials[<scenario>]"                # dry run
 WRITE=true ROTATE=true bin/rails "scenario:generate_credentials[<scenario>]"     # rotate
-bin/rails "scenario:prepare_deploy[<scenario>]"                                  # upload
-ssh -p <ssh_port> www-data@<host> 'sudo systemctl restart puma-<basename>'       # apply
+bin/rails "scenario:upload_credentials[<scenario>]"                              # dry run with check
+WRITE=true RESTART=true bin/rails "scenario:upload_credentials[<scenario>]"      # upload, restart Puma
 ```
 
-- First the command backs up `production.key` and `production.yml.enc` as `*.bak-<timestamp>` in the same
-  directory. To roll back, copy both backups back, upload them and restart Puma. Values encrypted after the
-  rotation can no longer be read afterwards.
-- `prepare_deploy` does not restart Puma, hence the last step.
+- **Compare first:** `pull_credentials` shows whether the server and the copy in `carambus_data` match. The
+  server is authoritative (`push_credentials` or manual edits change it there). If it differs,
+  `WRITE=true bin/rails "scenario:pull_credentials[<scenario>]"` fetches its state; the previous copy is kept as
+  `*.local-bak-<timestamp>`. Only rotate on top of the server state.
+- **Upload with a check:** `upload_credentials` aborts if one of the server's database encryption keys is missing
+  from the local copy or the salt differs — encrypted values on the server would then be unreadable. It first
+  creates `*.bak-<timestamp>` on the server (mode 600) and verifies the checksums afterwards. It works on every
+  server, including the Authority, where `prepare_deploy` does not run. `prepare_deploy` uploads the credentials
+  as well, but without the check and without a restart.
+- When rotating, `generate_credentials` backs up the local files as `*.bak-<timestamp>`. To roll back, copy both
+  backups back and upload with `FORCE=true`: the check then reports the new key as missing, and values encrypted
+  after the rotation can no longer be read afterwards.
 - Afterwards all sessions and login tokens are invalid. Users, **the scoreboards at the tables** and the
   tournament app (service account) have to log in again. Do not rotate during a league evening or a tournament.
 - Encrypted values that arrive from the Authority via sync cannot be read on a server with its own key. Enter

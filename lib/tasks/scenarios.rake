@@ -100,6 +100,25 @@ namespace :scenario do
       new_key: ENV['NEW_KEY'] == 'true', rotate: ENV['ROTATE'] == 'true')
   end
 
+  desc "Credentials (production.key + .yml.enc) vom Server nach carambus_data holen — für Server ohne prepare_deploy und vor jeder Rotation. DRY-RUN default (Vergleich); WRITE=true holt (lokale Kopie wird vorher gesichert). Usage: rake scenario:pull_credentials[<name>]"
+  task :pull_credentials, [:scenario_name] => :environment do |_, args|
+    if args[:scenario_name].to_s.empty?
+      puts "Usage: rake scenario:pull_credentials[<name>]   (WRITE=true zum Holen)"
+      exit 1
+    end
+    pull_scenario_credentials(args[:scenario_name], write: ENV['WRITE'] == 'true')
+  end
+
+  desc "Credentials aus carambus_data auf den Server laden — auch für die Authority (kein prepare_deploy). Gate: jeder AR-Schlüssel des Servers muss lokal vorhanden sein. DRY-RUN default; WRITE=true lädt (Server-Backup vorher), RESTART=true startet Puma neu, FORCE=true übergeht das Gate. Usage: rake scenario:upload_credentials[<name>]"
+  task :upload_credentials, [:scenario_name] => :environment do |_, args|
+    if args[:scenario_name].to_s.empty?
+      puts "Usage: rake scenario:upload_credentials[<name>]   (WRITE=true zum Laden, RESTART=true für Puma-Neustart)"
+      exit 1
+    end
+    upload_scenario_credentials(args[:scenario_name], write: ENV['WRITE'] == 'true',
+      restart: ENV['RESTART'] == 'true', force: ENV['FORCE'] == 'true')
+  end
+
   desc "Soft-Credentials (clubcloud/ai/translation/google_service) additiv auf den Server mergen — bewahrt secret_key_base/AR/devise_jwt. DRY-RUN default; WRITE=true (+RESTART=true). Auch für Authority (kein DB-Schritt → kein Guard). Usage: rake scenario:push_credentials[<name>]"
   task :push_credentials, [:scenario_name] => :environment do |_, args|
     scenario_name = args[:scenario_name]
@@ -894,6 +913,171 @@ namespace :scenario do
   rescue ScenarioCredentials::Store::Error => e
     puts "❌ #{e.message}"
     false
+  end
+
+  # Ziel eines Credential-Transfers aus der Szenario-config.yml (environments.production).
+  def credentials_transfer_target(scenario_name)
+    cfg_file = File.join(scenarios_path, scenario_name, 'config.yml')
+    unless File.exist?(cfg_file)
+      puts "❌ config.yml nicht gefunden: #{cfg_file}"; return nil
+    end
+    cfg = YAML.load_file(cfg_file)
+    prod = cfg.dig('environments', 'production') || {}
+    if prod['ssh_host'].to_s.strip.empty?
+      puts "❌ ssh_host fehlt in #{scenario_name} (environments.production)"; return nil
+    end
+    deploy_to = prod['deploy_to'] || "/var/www/#{scenario_name}"
+    {
+      ssh: "ssh -p #{prod['ssh_port'] || 22} www-data@#{prod['ssh_host']}",
+      scp_port: (prod['ssh_port'] || 22).to_s,
+      host: prod['ssh_host'],
+      deploy_to: deploy_to,
+      remote_dir: "#{deploy_to}/shared/config/credentials",
+      local_dir: File.join(scenarios_path, scenario_name, 'production', 'credentials'),
+      service: "puma-#{prod['basename'] || cfg.dig('scenario', 'basename') || scenario_name}"
+    }
+  end
+
+  # Datei-MD5s und Fingerabdruck der Server-Credentials — gerechnet auf dem Server mit
+  # lib/scenario_credentials.rb (per stdin an `ruby -`), ausgegeben werden nur Hash-Praefixe.
+  # nil = Server nicht erreichbar oder Skript fehlgeschlagen.
+  def remote_credentials_state(target)
+    require 'open3'
+    rbenv = "RBENV_ROOT=/var/www/.rbenv PATH=/var/www/.rbenv/shims:$PATH RBENV_VERSION=3.2.1"
+    cmd = "#{target[:ssh]} 'test -f #{target[:remote_dir]}/production.key || { echo \"{}\"; exit 0; }; " \
+          "cd #{target[:deploy_to]}/current && #{rbenv} bundle exec ruby - #{target[:remote_dir]}'"
+    out, err, status = Open3.capture3(cmd, stdin_data: ScenarioCredentials.remote_fingerprint_script)
+    unless status.success?
+      puts "❌ Server-Abfrage fehlgeschlagen (#{target[:host]}): #{err.lines.last.to_s.strip}"
+      return nil
+    end
+    JSON.parse(out.lines.last.to_s)
+  rescue JSON::ParserError
+    puts "❌ Server-Antwort nicht lesbar (#{target[:host]})"
+    nil
+  end
+
+  def print_credentials_comparison(local_md5s, local_fp, remote)
+    short = ->(v) { v.nil? ? '—' : v[0, 8] }
+    puts "   production.key      lokal #{short[local_md5s['key_md5']]}  Server #{short[remote['key_md5']]}"
+    puts "   production.yml.enc  lokal #{short[local_md5s['enc_md5']]}  Server #{short[remote['enc_md5']]}"
+    rfp = remote['fingerprint']
+    return unless local_fp && rfp
+
+    %w[secret_key_base devise_jwt_secret_key deterministic_key key_derivation_salt].each do |k|
+      puts "   #{k.ljust(22)} #{local_fp[k] == rfp[k] ? 'gleich' : 'VERSCHIEDEN'}"
+    end
+    puts "   primary_key            lokal #{local_fp['primary_key'].size} / Server #{rfp['primary_key'].size} Schlüssel, " \
+         "Server-Schlüssel lokal vorhanden: #{(rfp['primary_key'] - local_fp['primary_key']).empty? ? 'ja' : 'NEIN'}"
+  end
+
+  # scenario:pull_credentials — Serverstand nach carambus_data holen.
+  def pull_scenario_credentials(scenario_name, write:)
+    load File.expand_path('../scenario_credentials.rb', __dir__) unless defined?(ScenarioCredentials)
+    target = credentials_transfer_target(scenario_name) or return false
+    remote = remote_credentials_state(target) or return false
+    store = ScenarioCredentials::Store.new(target[:local_dir])
+    puts "── pull_credentials #{scenario_name} #{write ? '(WRITE)' : '(DRY-RUN)'} ← #{target[:host]}:#{target[:remote_dir]} ──"
+    unless remote['key_md5'] && remote['enc_md5']
+      puts "❌ Auf dem Server liegen keine Credentials (#{target[:remote_dir]})"; return false
+    end
+    local_fp = (store.key? && store.enc?) ? ScenarioCredentials.fingerprint(store.read) : nil
+    print_credentials_comparison(store.file_md5s, local_fp, remote)
+    if store.file_md5s == remote.slice('key_md5', 'enc_md5')
+      puts "   ✅ carambus_data ist bereits gleich dem Server — nichts zu tun"; return true
+    end
+    unless write
+      puts "   (DRY-RUN — nichts geholt. Holen mit WRITE=true)"; return true
+    end
+
+    ts = Time.now.strftime('%Y%m%d%H%M%S')
+    FileUtils.mkdir_p(target[:local_dir])
+    [store.key_path, store.enc_path].each do |path|
+      next unless File.exist?(path)
+
+      FileUtils.cp(path, "#{path}.local-bak-#{ts}", preserve: true)
+      File.chmod(0o600, "#{path}.local-bak-#{ts}")
+    end
+    %w[production.key production.yml.enc].each do |f|
+      tmp = File.join(target[:local_dir], "#{f}.pull-#{ts}")
+      unless system('scp', '-q', '-P', target[:scp_port], "www-data@#{target[:host]}:#{target[:remote_dir]}/#{f}", tmp)
+        puts "❌ scp #{f} fehlgeschlagen — lokale Dateien unverändert"
+        FileUtils.rm_f(Dir[File.join(target[:local_dir], "*.pull-#{ts}")])
+        return false
+      end
+      File.chmod(0o600, tmp)
+    end
+    %w[production.yml.enc production.key].each do |f|
+      File.rename(File.join(target[:local_dir], "#{f}.pull-#{ts}"), File.join(target[:local_dir], f))
+    end
+    ok = store.file_md5s == remote.slice('key_md5', 'enc_md5')
+    puts ok ? "   ✅ geholt (Modus 600); vorherige lokale Kopie: *.local-bak-#{ts}" : "   ❌ Nach dem Holen stimmen die Prüfsummen nicht — bitte prüfen"
+    ok
+  end
+
+  # scenario:upload_credentials — carambus_data auf den Server laden (ohne prepare_deploy).
+  def upload_scenario_credentials(scenario_name, write:, restart:, force:)
+    load File.expand_path('../scenario_credentials.rb', __dir__) unless defined?(ScenarioCredentials)
+    target = credentials_transfer_target(scenario_name) or return false
+    store = ScenarioCredentials::Store.new(target[:local_dir])
+    unless store.key? && store.enc?
+      puts "❌ Lokal fehlen Credentials: #{store.key_path} / #{store.enc_path}"; return false
+    end
+    local_fp = ScenarioCredentials.fingerprint(store.read)
+    remote = remote_credentials_state(target) or return false
+    puts "── upload_credentials #{scenario_name} #{write ? '(WRITE)' : '(DRY-RUN)'} → #{target[:host]}:#{target[:remote_dir]} ──"
+    print_credentials_comparison(store.file_md5s, local_fp, remote)
+    if store.file_md5s == remote.slice('key_md5', 'enc_md5')
+      puts "   ✅ Server ist bereits gleich carambus_data — nichts zu laden"; return true
+    end
+
+    problems = ScenarioCredentials.upload_problems(local_fp, remote['fingerprint'])
+    if problems.any?
+      problems.each { |p| puts "   ⛔ #{p}" }
+      unless force
+        puts "   Abbruch. Erst den Serverstand holen (scenario:pull_credentials), dann rotieren/ändern — oder FORCE=true."
+        return false
+      end
+      puts "   ⚠️  FORCE=true — Gate übergangen"
+    end
+    if remote['fingerprint'] && local_fp['secret_key_base'] != remote['fingerprint']['secret_key_base']
+      puts "   ℹ️  secret_key_base ändert sich: nach dem Neustart sind alle Sitzungen und JWTs ungültig"
+    end
+    unless write
+      puts "   (DRY-RUN — nichts geladen. Laden mit WRITE=true, Puma-Neustart mit RESTART=true)"; return true
+    end
+
+    ts = Time.now.strftime('%Y%m%d%H%M%S')
+    rd = target[:remote_dir]
+    backup = "mkdir -p #{rd} && for f in production.key production.yml.enc; do " \
+             "if [ -f #{rd}/$f ]; then cp -p #{rd}/$f #{rd}/$f.bak-#{ts} && chmod 600 #{rd}/$f.bak-#{ts}; fi; done"
+    unless system("#{target[:ssh]} '#{backup}'")
+      puts "❌ Server-Backup fehlgeschlagen — nichts geladen"; return false
+    end
+    staged = [store.key_path, store.enc_path].all? do |path|
+      system('scp', '-q', '-P', target[:scp_port], path, "www-data@#{target[:host]}:#{rd}/#{File.basename(path)}.upload-#{ts}")
+    end
+    unless staged
+      system("#{target[:ssh]} 'rm -f #{rd}/*.upload-#{ts}'")
+      puts "❌ scp fehlgeschlagen — Server unverändert"; return false
+    end
+    swap = "chmod 600 #{rd}/*.upload-#{ts} && mv #{rd}/production.yml.enc.upload-#{ts} #{rd}/production.yml.enc && " \
+           "mv #{rd}/production.key.upload-#{ts} #{rd}/production.key"
+    unless system("#{target[:ssh]} '#{swap}'")
+      puts "❌ Einsetzen fehlgeschlagen — Server-Backup: #{rd}/*.bak-#{ts}"; return false
+    end
+    after = remote_credentials_state(target)
+    unless after && after.slice('key_md5', 'enc_md5') == store.file_md5s
+      puts "❌ Nach dem Laden stimmen die Prüfsummen nicht — Server-Backup: #{rd}/*.bak-#{ts}"; return false
+    end
+    puts "   ✅ geladen (Modus 600); Server-Backup: #{rd}/production.*.bak-#{ts}"
+    if restart
+      puts "   Puma-Neustart: #{target[:service]}"
+      system("#{target[:ssh]} 'sudo systemctl restart #{target[:service]}'") or (puts "❌ Neustart fehlgeschlagen"; return false)
+    else
+      puts "   ⚠️  Puma NICHT neugestartet — erst danach gelten die neuen Credentials (RESTART=true oder sudo systemctl restart #{target[:service]})"
+    end
+    true
   end
 
   # Soft-Feature-Keys (clubcloud/anthropic/deepl/google/youtube/kozoom/google_service) aus

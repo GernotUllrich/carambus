@@ -278,16 +278,25 @@ Schlüssel der Datenbank-Verschlüsselung kommt ein neuer hinzu: Die alten entsc
 verschlüsselt. Alle übrigen Einträge (Feature-Keys, ClubCloud, `location_id`) bleiben unverändert.
 
 ```bash
+bin/rails "scenario:pull_credentials[<szenario>]"                                # Server = carambus_data?
 ROTATE=true bin/rails "scenario:generate_credentials[<szenario>]"                # Probelauf
 WRITE=true ROTATE=true bin/rails "scenario:generate_credentials[<szenario>]"     # rotieren
-bin/rails "scenario:prepare_deploy[<szenario>]"                                  # hochladen
-ssh -p <ssh_port> www-data@<host> 'sudo systemctl restart puma-<basename>'       # anwenden
+bin/rails "scenario:upload_credentials[<szenario>]"                              # Probelauf mit Prüfung
+WRITE=true RESTART=true bin/rails "scenario:upload_credentials[<szenario>]"      # hochladen, Puma neu starten
 ```
 
-- Vorher sichert der Befehl `production.key` und `production.yml.enc` als `*.bak-<Zeitstempel>` im selben
-  Verzeichnis. Zurück geht es, indem man die beiden Backups zurückkopiert, hochlädt und Puma neu startet.
-  Werte, die nach der Rotation verschlüsselt wurden, sind danach nicht mehr lesbar.
-- `prepare_deploy` startet Puma nicht neu, deshalb der letzte Schritt.
+- **Erst vergleichen:** `pull_credentials` zeigt, ob der Server und die Kopie in `carambus_data` übereinstimmen.
+  Der Server ist maßgeblich (`push_credentials` oder Handarbeit ändern dort). Weicht er ab, holt
+  `WRITE=true bin/rails "scenario:pull_credentials[<szenario>]"` seinen Stand; die bisherige Kopie bleibt als
+  `*.local-bak-<Zeitstempel>` liegen. Rotiert wird nur auf dem Serverstand.
+- **Hochladen mit Prüfung:** `upload_credentials` bricht ab, wenn ein Schlüssel der Datenbank-Verschlüsselung des
+  Servers in der lokalen Kopie fehlt oder das Salt abweicht — dann wären verschlüsselte Werte auf dem Server
+  unlesbar. Vorher legt der Task auf dem Server `*.bak-<Zeitstempel>` an (Modus 600), danach prüft er die
+  Prüfsummen. Er funktioniert auf jedem Server, auch auf der Authority, wo `prepare_deploy` nicht läuft.
+  `prepare_deploy` lädt die Credentials zwar auch hoch, aber ohne Prüfung und ohne Neustart.
+- Beim Rotieren sichert `generate_credentials` die lokalen Dateien als `*.bak-<Zeitstempel>`. Zurück geht es,
+  indem man die beiden Backups zurückkopiert und mit `FORCE=true` hochlädt: Die Prüfung meldet dann den neuen
+  Schlüssel als fehlend, und Werte, die nach der Rotation verschlüsselt wurden, sind danach nicht mehr lesbar.
 - Danach sind alle Sitzungen und Anmelde-Tokens ungültig. Benutzer, **die Scoreboards an den Tischen** und
   die Turnier-App (Dienstkonto) melden sich neu an. Nicht während eines Spielabends oder Turniers rotieren.
 - Verschlüsselte Werte, die per Sync von der Authority kommen, sind auf einem Server mit eigenem Schlüssel
