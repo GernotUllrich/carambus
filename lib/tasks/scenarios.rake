@@ -673,6 +673,15 @@ namespace :scenario do
     nil
   end
 
+  # Zugang zum Regionsdump (Plan 18-03) aus carambus_data/secrets.yml: per_scenario.<szenario>.region_dump.
+  # nil = kein Zugang eingetragen → prepare_development bleibt beim SSH-Weg des Betreibers.
+  # Ein unvollstaendiger Eintrag ist ein Fehler (ArgumentError), kein stiller Rueckfall.
+  def scenario_region_dump_access(scenario_name)
+    pool_file = File.join(carambus_data_path, 'secrets.yml')
+    return nil unless File.exist?(pool_file)
+    RegionDump.access_from_secrets(YAML.load_file(pool_file) || {}, scenario_name)
+  end
+
   def generate_configuration_files(scenario_name, environment)
     puts "Generating configuration files for #{scenario_name} (#{environment})..."
 
@@ -2394,17 +2403,35 @@ ENV
       puts "   ✅ Dependencies already installed"
     end
 
-    # Step 6: Check and sync with carambus_api_production if newer
-    puts "\n🔄 Step 6: Checking for newer carambus_api_production data..."
-    unless sync_with_api_production_if_newer(scenario_name, force)
-      puts "❌ Failed to sync with carambus_api_production"
+    # Step 6: Mit Regionsdump-Zugang (Plan 18-03) den Dump der Region per HTTPS holen — ohne SSH zur
+    # Authority. Ohne Zugang wie bisher: carambus_api_development per SSH abgleichen (Betreiber-Weg).
+    begin
+      region_dump_access = scenario_region_dump_access(scenario_name)
+    rescue ArgumentError => e
+      puts "❌ #{e.message} (carambus_data/secrets.yml)"
       return false
+    end
+    region_dump = nil
+    if region_dump_access
+      puts "\n📥 Step 6: Fetching region dump (#{region_dump_access[:url]})..."
+      region_dump = fetch_scenario_region_dump(scenario_name, region_dump_access)
+      return false unless region_dump
+    else
+      puts "\n🔄 Step 6: Checking for newer carambus_api_production data..."
+      unless sync_with_api_production_if_newer(scenario_name, force)
+        puts "❌ Failed to sync with carambus_api_production"
+        return false
+      end
     end
 
     # Step 6.5: One-time migration: Create schema-compliant backup of old production database
     # This is for migrating from old carambus2 schema to new carambus schema
     puts "\n💾 Step 6.5: Creating schema-compliant backup for one-time migration..."
     backup_file = create_schema_compliant_backup(scenario_name)
+    if backup_file == :abort
+      puts "❌ Lokale Daten des Servers konnten nicht gesichert werden — Abbruch, bevor eine Datenbank gelöscht wird."
+      return false
+    end
     if backup_file
       # Store backup path in scenario config for later use
       puts "   💾 Storing backup reference in scenario config..."
@@ -2421,7 +2448,7 @@ ENV
 
     # Step 7: Create actual development database from template
     puts "\n🗄️  Step 7: Creating development database..."
-    unless create_development_database(scenario_name, environment, force)
+    unless create_development_database(scenario_name, environment, force, region_dump: region_dump)
       puts "❌ Failed to create development database"
       return false unless scenario_name == "carambus_api_development"
     end
@@ -2460,6 +2487,17 @@ ENV
       else
         puts "   ⚠️  Warning: Scenario directory not found: #{scenario_dir}"
         puts "      Skipping sequence reset"
+      end
+    end
+
+    # Step 10 (nur Regionsdump): Der Dump enthaelt keine Benutzer, und User synct nicht. Das Scoreboard-Konto
+    # entsteht deshalb lokal — erst NACH Schritt 8, damit ein zurueckgespieltes lokales Konto nicht an der
+    # E-Mail kollidiert (users:ensure_scoreboard laesst ein vorhandenes Konto unveraendert).
+    if region_dump
+      puts "\n👤 Step 10: Ensuring scoreboard account..."
+      unless region_dump_rails(scenario_name, "#{scenario_name}_#{environment}", "rails", "users:ensure_scoreboard")
+        puts "❌ Scoreboard-Konto konnte nicht angelegt werden"
+        return false
       end
     end
 
@@ -2813,7 +2851,123 @@ ENV
     true
   end
 
-  def create_development_database(scenario_name, environment, force = false)
+  # ── Regionsdump beim Verein (Plan 18-03) ─────────────────────────────────────────────────────────────
+  # Holt den Dump der Region des Szenarios per HTTPS (RegionDump::Fetch prueft Manifest, Groesse, sha256).
+  # Liefert {file:, manifest:} oder nil.
+  def fetch_scenario_region_dump(scenario_name, access)
+    scenario_data = YAML.load_file(File.join(scenarios_path, scenario_name, 'config.yml'))['scenario'] || {}
+    region = resolve_region_shortname(scenario_data)
+    if region.blank?
+      puts "   ❌ Region-Shortname nicht bestimmbar (weder region_shortname, context noch region_id)."
+      return nil
+    end
+
+    dir = File.join(scenarios_path, scenario_name, 'database_dumps', 'region')
+    file, manifest = RegionDump::Fetch.new(url: access[:url], region: region, login: access[:login],
+      password: access[:password], dir: dir).run
+    puts "   📊 Region #{manifest['region']}, Stand #{manifest['created_at']}, last_version_id #{manifest['last_version_id']}"
+    {file: file, manifest: manifest}
+  rescue RegionDump::Fetch::Error => e
+    puts "   ❌ #{e.message}"
+    nil
+  end
+
+  # Legt database_name aus dem Regionsdump an: einspielen, im Rails-Root des Szenarios sequence_reset und
+  # scenario_name, dann pruefen. Scheitert ein Schritt, wird die Datenbank wieder entfernt.
+  def load_region_dump_database(scenario_name, database_name, region_dump)
+    manifest = region_dump[:manifest]
+    puts "🔄 Creating #{database_name} from region dump #{manifest['file']}..."
+    unless system("createdb #{database_name}")
+      puts "❌ Failed to create database #{database_name}"
+      return false
+    end
+
+    ok = pipe_region_dump_into(database_name, region_dump[:file]) &&
+      region_dump_rails(scenario_name, database_name, "rails", "runner",
+        "Version.sequence_reset; Setting.key_set_value('scenario_name', #{scenario_name.to_s.inspect})") &&
+      verify_region_dump_database(scenario_name, database_name, manifest)
+    unless ok
+      puts "❌ Regionsdump nicht eingespielt — entferne #{database_name}"
+      system("dropdb #{database_name}")
+      return false
+    end
+
+    puts "✅ Development database created from region dump: #{database_name}"
+    true
+  end
+
+  # gunzip → psql mit ON_ERROR_STOP. Ein psql aelter als der \restrict-Fix kennt die beiden Meta-Befehle
+  # nicht und bricht daran ab; nur fuer ein solches psql werden genau diese Zeilen herausgefiltert.
+  def pipe_region_dump_into(database_name, dump_file)
+    require 'open3'
+    require 'zlib'
+    filter = !RegionDump.restrict_supported?(`psql --version`)
+    puts "   🔄 psql -v ON_ERROR_STOP=1"
+    puts "   ℹ️  \\restrict-Zeilen werden gefiltert (lokales psql älter als der Fix)" if filter
+    output = +""
+    status = nil
+    Open3.popen2e("psql", "-X", "-q", "-v", "ON_ERROR_STOP=1", "-d", database_name) do |stdin, out, wait|
+      reader = Thread.new { out.read }
+      begin
+        Zlib::GzipReader.open(dump_file) do |gz|
+          gz.each_line do |line|
+            next if filter && line.start_with?("\\") && RegionDump.restrict_line?(line.b)
+            stdin.write(line)
+          end
+        end
+      rescue Errno::EPIPE
+        # psql hat abgebrochen (ON_ERROR_STOP) — der Grund steht in seiner Ausgabe
+      ensure
+        stdin.close unless stdin.closed?
+      end
+      output = reader.value
+      status = wait.value
+    end
+    return true if status.success?
+
+    puts "   ❌ psql abgebrochen:"
+    puts output.lines.last(15).map { |l| "      #{l}" }.join
+    false
+  end
+
+  # Rails-Aufruf im Rails-Root des Szenarios gegen database_name (Umgebung nur fuer diesen Subprozess).
+  def region_dump_rails(scenario_name, database_name, *args)
+    rails_root = File.expand_path("../#{scenario_name}", carambus_data_path)
+    env = {'RAILS_ENV' => 'development', 'DATABASE_URL' => "postgresql://localhost/#{database_name}"}
+    system(env, "bundle", "exec", *args, chdir: rails_root)
+  end
+
+  # Stand, Region und Sequenzen nach dem Einspielen. Eine Abweichung des Schemas wird nur gemeldet:
+  # reset_server_db faehrt ohnehin db:migrate auf der Development-Datenbank.
+  def verify_region_dump_database(scenario_name, database_name, manifest)
+    value = ->(sql) { `psql -X -tA -d #{database_name} -c "#{sql}"`.strip }
+    problems = []
+    stored = value.call("SELECT (data::jsonb)->'last_version_id'->>'Integer' FROM settings WHERE id = (SELECT MIN(id) FROM settings)")
+    problems << "last_version_id #{stored.inspect} statt #{manifest['last_version_id']}" unless stored == manifest['last_version_id'].to_s
+    region_id = value.call("SELECT id FROM regions WHERE UPPER(shortname) = '#{manifest['region']}'")
+    if region_id.empty?
+      problems << "Region #{manifest['region']} fehlt im Dump"
+    else
+      failed = RegionDump.region_checks(region_id).reject { |_label, sql| value.call(sql) == "0" }.keys
+      problems << "fremde Regionsdaten: #{failed.join(', ')}" if failed.any?
+    end
+    users_seq = value.call("SELECT last_value FROM users_id_seq").to_i
+    problems << "Sequenzen nicht zurückgesetzt (users_id_seq #{users_seq})" if users_seq < Setting::MIN_ID
+    if problems.any?
+      puts "   ❌ Prüfung gescheitert: #{problems.join('; ')}"
+      return false
+    end
+
+    rails_root = File.expand_path("../#{scenario_name}", carambus_data_path)
+    code_schema = Dir.glob(File.join(rails_root, 'db', 'migrate', '*.rb')).map { |f| File.basename(f)[0, 14] }.max.to_s
+    if code_schema != manifest['schema_version'].to_s
+      puts "   ℹ️  Schema des Dumps #{manifest['schema_version']}, Code des Szenarios #{code_schema} — reset_server_db migriert"
+    end
+    puts "   ✅ Geprüft: last_version_id #{stored}, nur Region #{manifest['region']}, Sequenzen ≥ #{Setting::MIN_ID}"
+    true
+  end
+
+  def create_development_database(scenario_name, environment, force = false, region_dump: nil)
     puts "Creating development database for #{scenario_name} (#{environment})..."
 
     # Special protection for carambus_api scenario
@@ -2857,12 +3011,18 @@ ENV
 
       puts "   📊 Existing database last_version_id: #{existing_last_version_id}"
 
-      # Get last_version_id from source database (carambus_api_development) - use Version.last.id
-      source_version_cmd = "psql carambus_api_development -t -c \"SELECT COALESCE(MAX(id), 0) FROM versions;\""
-      source_version_result = `#{source_version_cmd}`.strip
-      source_last_version_id = source_version_result.to_i
+      if region_dump
+        # Regionsdump: die Quelle ist der Dump, sein Stand steht im Manifest (versions ist dort leer).
+        source_last_version_id = region_dump[:manifest]["last_version_id"]
+        puts "   📊 Source (region dump #{region_dump[:manifest]["file"]}) last_version_id: #{source_last_version_id}"
+      else
+        # Get last_version_id from source database (carambus_api_development) - use Version.last.id
+        source_version_cmd = "psql carambus_api_development -t -c \"SELECT COALESCE(MAX(id), 0) FROM versions;\""
+        source_version_result = `#{source_version_cmd}`.strip
+        source_last_version_id = source_version_result.to_i
 
-      puts "   📊 Source database (carambus_api_development) last_version_id: #{source_last_version_id}"
+        puts "   📊 Source database (carambus_api_development) last_version_id: #{source_last_version_id}"
+      end
 
       # Data loss protection logic:
       # 1. If creating from template (development environment), no protection needed
@@ -2921,6 +3081,11 @@ ENV
         system("dropdb #{database_name}")
       end
     end
+
+    # Regionsdump (Plan 18-03): Die Datenbank entsteht aus dem Dump. Die Template-Nachbearbeitung unten
+    # (last_version_id = Version.last.id, Filter) darf hier nicht laufen — versions ist leer, und der Stand
+    # steht im Manifest.
+    return load_region_dump_database(scenario_name, database_name, region_dump) if region_dump
 
     # Special case for local carambus scenario (no region_id) - should still use template
     if (region_id && environment == 'development') || (scenario_name == 'carambus' && environment == 'development')
@@ -5276,10 +5441,14 @@ ENV
 
     # Get API database name for schema reference
     dev_database = scenario_config.dig('environments', 'development', 'database_name') || "#{scenario_name}_development"
-    api_database = dev_database.gsub(/_bcw/, '_api').gsub(/_development$/, '_development')
-    # Ensure it's carambus_api_development
-    api_database = 'carambus_api_development'
-    puts "   🔍 Using #{api_database} as schema reference"
+    # Schema-Referenz: carambus_api_development (Betreiber-Weg). Beim Verein mit Regionsdump gibt es sie nicht —
+    # dann die eigene Development-Datenbank aus dem vorigen Lauf (Plan 18-03). Ohne Referenz blieben die
+    # Spaltenlisten leer und jede Tabelle wuerde still uebersprungen; reset_server_db loeschte danach die
+    # lokalen Daten. Deshalb :abort, sobald lokale Daten da sind und keine Referenz existiert.
+    api_database = ['carambus_api_development', dev_database].find do |db|
+      system("psql -lqt | cut -d \\| -f 1 | grep -qw #{db}")
+    end
+    puts "   🔍 Using #{api_database || '—'} as schema reference"
 
     table_dependency_order.each do |table|
       # Check if table has local data
@@ -5288,6 +5457,15 @@ ENV
         count = `psql #{temp_database} -t -c "SELECT COUNT(*) FROM #{table};"`.strip.to_i
       else
         count = `psql #{temp_database} -t -c "SELECT COUNT(*) FROM #{table} WHERE id > 50000000;"`.strip.to_i
+      end
+
+      if count > 0 && api_database.nil?
+        puts "   ❌ #{table} hat #{count} lokale Datensätze, aber es gibt keine Schema-Referenz"
+        puts "      (weder carambus_api_development noch #{dev_database}) — ohne sie wäre die Sicherung leer."
+        system("dropdb #{temp_database}")
+        File.delete(temp_dump) if File.exist?(temp_dump)
+        File.delete(backup_file) if File.exist?(backup_file)
+        return :abort
       end
 
       if count > 0

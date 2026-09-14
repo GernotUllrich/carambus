@@ -132,4 +132,55 @@ class RegionDump
     dumps = filenames.select { |f| DUMP_FILE.match?(f) }.sort_by { |f| DUMP_FILE.match(f)[2] }
     dumps[0...[dumps.size - keep, 0].max]
   end
+
+  # ── Einspielen beim Verein (Plan 18-03) ──────────────────────────────────────────────────────────
+  DEFAULT_URL = "https://api.carambus.de"
+
+  # Zugang aus carambus_data/secrets.yml: per_scenario.<szenario>.region_dump {login, password, url}.
+  # nil, wenn der Abschnitt fehlt — dann bleibt prepare_development beim SSH-Weg des Betreibers.
+  def self.access_from_secrets(pool, scenario_name)
+    access = (pool || {}).dig("per_scenario", scenario_name.to_s, "region_dump")
+    return nil unless access.is_a?(Hash)
+
+    login = access["login"].to_s
+    password = access["password"].to_s
+    raise ArgumentError, "region_dump für #{scenario_name}: login und password nötig" if login.empty? || password.empty?
+
+    {login: login, password: password, url: (access["url"].presence || DEFAULT_URL).to_s.chomp("/")}
+  end
+
+  # Prueft das Manifest (latest.json) gegen die Region des Szenarios, bevor etwas geladen wird.
+  def self.validate_manifest!(manifest, region:)
+    region = region.to_s.upcase
+    m = manifest.is_a?(Hash) ? manifest : {}
+    problems = []
+    problems << "Region #{m["region"].inspect} statt #{region}" unless m["region"].to_s == region
+    match = DUMP_FILE.match(m["file"].to_s)
+    problems << "Dateiname #{m["file"].inspect} passt nicht" unless match && match[1] == region.downcase
+    problems << "sha256 fehlt oder ist ungültig" unless m["sha256"].to_s.match?(/\A\h{64}\z/)
+    problems << "Größe fehlt" unless m["size"].is_a?(Integer) && m["size"].positive?
+    problems << "last_version_id fehlt" unless m["last_version_id"].is_a?(Integer) && m["last_version_id"].positive?
+    raise ArgumentError, "Manifest ungültig: #{problems.join(", ")}" if problems.any?
+
+    m
+  end
+
+  # Ab welcher psql-Version \restrict/\unrestrict verstanden wird (CVE-2025-8714). Aeltere psql melden
+  # „invalid command“ und brechen mit ON_ERROR_STOP ab — dort werden genau diese Zeilen herausgefiltert.
+  RESTRICT_MIN = {14 => 19, 15 => 14, 16 => 10, 17 => 6}.freeze
+
+  def self.restrict_supported?(psql_version_output)
+    version = psql_version_output.to_s.match(/(\d+)\.(\d+)/)
+    return false unless version
+
+    major, minor = version[1].to_i, version[2].to_i
+    return true if major > RESTRICT_MIN.keys.max
+    return false unless RESTRICT_MIN.key?(major)
+
+    minor >= RESTRICT_MIN[major]
+  end
+
+  def self.restrict_line?(line)
+    line.match?(/\A\\(un)?restrict \S+\s*\z/)
+  end
 end
