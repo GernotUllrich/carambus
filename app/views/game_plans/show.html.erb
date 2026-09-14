@@ -8,7 +8,9 @@
       <span class="text-gray-400 font-light mx-2">\</span>
       Game Plan #<%= @game_plan.id %>
     </h1>
-    <%= custom_link_to "Edit", edit_game_plan_path(@game_plan), class: "btn btn-white" %>
+    <% if current_user&.admin? %>
+      <%= custom_link_to "Edit", edit_game_plan_path(@game_plan), class: "btn btn-white" %>
+    <% end %>
   </div>
 
   <div class="p-8  rounded shadow">

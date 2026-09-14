@@ -314,6 +314,10 @@ de:
     role: Rolle
     updated_at: updated at
   game_results: Einzelergebnisse
+  game_plans:
+    errors:
+      admin_required: "Spielpläne anlegen, ändern und löschen dürfen nur angemeldete Vereins- oder System-Admins."
+      invalid_data: "ist kein gültiges JSON-Objekt"
   gd: GD
   goal: Ziel
   hello: Hallo Welt
