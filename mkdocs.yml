@@ -86,6 +86,7 @@ plugins:
             CC-less Tournament Management: CC-loses Turniermanagement
             Email Configuration: Email-Konfiguration
             Database Setup: Datenbank-Setup
+            Region Dumps: Regionsdumps
             YouTube Streaming Quickstart: YouTube Streaming Quickstart
             YouTube Streaming Setup: YouTube Streaming Setup
             Developers: Für Entwickler
@@ -195,6 +196,7 @@ nav:
       - CC-less Tournament Management: administrators/cc-less-tournament-management.md
       - Email Configuration: administrators/email-configuration.md
       - Database Setup: administrators/database-setup.md
+      - Region Dumps: administrators/region-dumps.md
       - YouTube Streaming Quickstart: administrators/streaming-quickstart.md
       - YouTube Streaming Setup: administrators/streaming-setup.md
   - Developers:

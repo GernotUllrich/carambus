@@ -54,6 +54,7 @@ Option 1.
 - **[Raspberry Pi Setup](raspberry-pi-quickstart.md)**: All-in-One Kiosk-System
 - **[Raspberry Pi Client](raspberry-pi-client.md)**: Nur als Display/Scoreboard
 - **[Datenbank-Setup](database-setup.md)**: PostgreSQL konfigurieren
+- **[Regionsdumps](region-dumps.md)**: Erstbestand für neue Vereinsserver, nächtlich auf der Authority gebaut; Zugang je Region
 
 ### 2. Konfiguration
 
