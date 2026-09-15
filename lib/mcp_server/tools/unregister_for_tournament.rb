@@ -40,7 +40,8 @@ module McpServer
         Pass `armed: false` (default) for a dry-run that prints exact request details without modifying CC.
         Pass `armed: true` to actually unregister — this is a destructive write to ClubCloud.
         Tool refuses to run armed:true in Rails production env.
-        Requires `meldeliste_cc_id` (NOT tournament_cc_id) — get it from CC-Navigation OR use cc_lookup_meldeliste_for_tournament as preceding tool call.
+        Requires `meldeliste_cc_id` — resolve it fresh via cc_lookup_meldeliste_for_tournament (never reuse an ID from earlier
+        messages). Also pass `tournament_cc_id`: then the tool verifies (armed) that the Meldeliste belongs to that tournament.
         Listen-Eintrags-ID is resolved internally via Pre-Read step (dla=1 mode) with fallback to player_cc_id.
         Pre-Validation: player must be in target Meldeliste; otherwise abort with error.
         NICHT verwechseln mit `cc_remove_from_teilnehmerliste` (Phase 7 — wirkt auf Teilnehmerliste-Akkreditierung, anderer Pfad).
@@ -51,6 +52,7 @@ module McpServer
           branch_cc_id: {type: "integer", description: "CC admin branch ID (e.g. 8 for Kegel). NOTE: admin-cc-id from HAR/Sniff."},
           season: {type: "string", description: "Season name like '2025/2026'."},
           meldeliste_cc_id: {type: "integer", description: "CC meldelisteId of the Meldeliste to remove from. REQUIRED (use cc_lookup_meldeliste_for_tournament if unknown)."},
+          tournament_cc_id: {type: "integer", description: "Empfohlen: CC meisterschaftsId des Turniers. Wenn gesetzt, prüft das Tool gegen die Verknüpfung in der ClubCloud, dass meldeliste_cc_id zu diesem Turnier gehört, und lehnt sonst ab."},
           player_cc_id: {type: "integer", description: "CC player ID of the player to remove (Player.cc_id). Alternative: player_name (Plan 10-06 Vokabular-Schicht)."},
           player_name: {type: "string", description: "Alternative zu player_cc_id (Plan 10-06 Convenience-Wrapper): Spielername-Suche via cc_search_player; bei ≥2 Treffern blockiert mit Disambiguation-Diagnose."},
           club_cc_id: {type: "integer", description: "CC club ID (Club.cc_id) — required for the form payload (clubId + selectedClubId). Alternative: club_name."},
@@ -62,8 +64,8 @@ module McpServer
       )
       annotations(read_only_hint: false, destructive_hint: true)
 
-      def self.call(fed_id: nil, branch_cc_id: nil, season: nil, meldeliste_cc_id: nil, player_cc_id: nil,
-        player_name: nil, club_cc_id: nil, club_name: nil, armed: false, read_back: true, server_context: nil)
+      def self.call(fed_id: nil, branch_cc_id: nil, season: nil, meldeliste_cc_id: nil, tournament_cc_id: nil,
+        player_cc_id: nil, player_name: nil, club_cc_id: nil, club_name: nil, armed: false, read_back: true, server_context: nil)
         # Plan 14-G.13.1 Task 1: Per-Tool-Call-Cache-Scope eröffnen.
         cc_cache_reset!
         fed_id ||= default_fed_id
@@ -90,12 +92,14 @@ module McpServer
 
         # Plan 14-G.4 / F5-B: Authority-Integration. Defensiv: bei nicht-auflösbarem Tournament Skip.
         resolved_tournament = resolve_tournament(
-          meldeliste_cc_id: meldeliste_cc_id, server_context: server_context
+          meldeliste_cc_id: meldeliste_cc_id, tournament_cc_id: tournament_cc_id, server_context: server_context
         )
         if resolved_tournament
-          auth_err = authorize!(action: :manage_teilnehmerliste, tournament: resolved_tournament, server_context: server_context)
+          auth_err = authorize!(action: :manage_meldeliste, tournament: resolved_tournament, server_context: server_context)
           return auth_err if auth_err
         end
+        club_block = meldeliste_club_block(club_cc_id: club_cc_id, tournament: resolved_tournament, server_context: server_context)
+        return club_block if club_block
 
         # Plan 39-03 (D-39-8/-9): effektive CC-Identität; armed:true ohne eigene CC-Identität (:none)
         # blockt hier (Dry-Run bleibt). Pre-Reads + Writes laufen unter cookie_for(account).
@@ -151,6 +155,8 @@ module McpServer
         # Plan 10-05.1 Task 4 (D-10-04-G Pre-Validation-First-Pattern, 3 Constraints):
         validation_result = run_validations([
           _validate_meldeliste_exists_unregister(meldeliste_cc_id),
+          validate_meldeliste_zum_turnier(meldeliste_cc_id, tournament_cc_id, fed_id, branch_cc_id, season,
+            armed: armed, server_context: server_context),
           _validate_player_in_meldeliste(player_cc_id, meldeliste_cc_id, in_meldeliste),
           _validate_meldeliste_non_finalized_unregister(meldeliste_cc_id)
         ])
@@ -292,7 +298,7 @@ module McpServer
         McpServer::AuditTrail.write_entry(
           tool_name: "cc_unregister_for_tournament",
           operator: cc_audit_operator,
-          payload: {meldeliste_cc_id: meldeliste_cc_id, player_cc_id: player_cc_id, armed: true},
+          payload: {meldeliste_cc_id: meldeliste_cc_id, player_cc_id: player_cc_id, tournament_cc_id: tournament_cc_id, armed: true},
           pre_validation_results: validation_result[:results],
           read_back_status: read_back_match.to_s,
           result: "success",

@@ -57,6 +57,36 @@ class McpServer::Tools::UnregisterForTournamentTest < ActiveSupport::TestCase
     end
   end
 
+  # 2026-09-15 (bcw live): Gegenprobe wie beim Anmelden — alte meldeliste_cc_id (fremde TEST-Liste
+  # 1349) aus dem Gesprächsverlauf; mit Turnier 1051 ist laut CC-Turnierseite 1353 verknüpft.
+  test "armed mit fremder Meldeliste + tournament_cc_id: Abbruch vor cc_remove" do
+    with_stateful_mock
+    McpServer::Tools::LookupMeldelisteForTournament.stub(:linked_meldeliste, {meldeliste_cc_id: 1353, name: "1. NordCup FP"}) do
+      response = McpServer::Tools::UnregisterForTournament.call(
+        fed_id: 20, branch_cc_id: 10, season: "2026/2027", meldeliste_cc_id: 1349, tournament_cc_id: 1051,
+        player_cc_id: 10031, club_cc_id: 1010, armed: true, server_context: nil
+      )
+      assert response.error?
+      assert_match(/meldeliste_zum_turnier/, response.content.first[:text])
+      assert_match(/1353/, response.content.first[:text])
+    end
+    actions = @mock.calls.map { |_, action, _, _| action }
+    refute_includes actions, "removePlayerFromMeldeliste"
+    refute_includes actions, "saveMeldeliste"
+  end
+
+  test "armed mit passender Meldeliste + tournament_cc_id: Abmeldung läuft durch" do
+    with_stateful_mock
+    McpServer::Tools::LookupMeldelisteForTournament.stub(:linked_meldeliste, {meldeliste_cc_id: 1353, name: "1. NordCup FP"}) do
+      response = McpServer::Tools::UnregisterForTournament.call(
+        fed_id: 20, branch_cc_id: 10, season: "2026/2027", meldeliste_cc_id: 1353, tournament_cc_id: 1051,
+        player_cc_id: 10031, club_cc_id: 1010, armed: true, server_context: nil
+      )
+      refute response.error?, response.content.first[:text]
+    end
+    assert_includes @mock.calls.map { |_, action, _, _| action }, "removePlayerFromMeldeliste"
+  end
+
   test "armed:false (default) returns Dry-Run text mit allen ID-Werten und Resolver-Output" do
     with_stateful_mock
     response = McpServer::Tools::UnregisterForTournament.call(

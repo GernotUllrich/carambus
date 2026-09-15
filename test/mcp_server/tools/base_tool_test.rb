@@ -736,6 +736,35 @@ class McpServer::Tools::BaseToolTest < ActiveSupport::TestCase
     assert_equal "Grand Prix (0-999)", McpServer::Tools::BaseTool.cc_detail_value(kopf, "Kategorie"), "Label mit Doppelpunkt"
   end
 
+  # 2026-09-15 (Betreiber-Vorgabe): Sportwart meldet nur Spieler seines Clubs (Clubs seiner Spielorte).
+  def meldeliste_sportwart(grants: ["sportwart"])
+    user = User.create!(email: "ml_club_#{SecureRandom.hex(3)}@test.de", password: "password123", persona_grants: grants)
+    # Explizit: die club_locations-Fixtures referenzieren bcw per Label, bcw hat aber eine feste id.
+    ClubLocation.find_or_create_by!(club: clubs(:bcw), location: locations(:one)) # bcw = cc_id 41_001
+    user.sportwart_locations << locations(:one)
+    user
+  end
+
+  test "meldeliste_club_block: eigener Club erlaubt, fremder Club blockiert" do
+    user = meldeliste_sportwart
+    ctx = {user_id: user.id}
+    assert_nil McpServer::Tools::BaseTool.meldeliste_club_block(club_cc_id: 41_001, tournament: nil, server_context: ctx)
+    denied = McpServer::Tools::BaseTool.meldeliste_club_block(club_cc_id: 41_002, tournament: nil, server_context: ctx)
+    assert denied.error?
+    assert_match(/nur Spieler deines Vereins/, denied.content.first[:text])
+  end
+
+  test "meldeliste_club_block: Landessportwart, Turnierleiter und User-loser Pfad sind nicht beschränkt" do
+    lsw = meldeliste_sportwart(grants: ["landessportwart"])
+    assert_nil McpServer::Tools::BaseTool.meldeliste_club_block(club_cc_id: 41_002, tournament: nil, server_context: {user_id: lsw.id})
+
+    tl = meldeliste_sportwart
+    tournament = Tournament.new(turnier_leiter_user_id: tl.id)
+    assert_nil McpServer::Tools::BaseTool.meldeliste_club_block(club_cc_id: 41_002, tournament: tournament, server_context: {user_id: tl.id})
+
+    assert_nil McpServer::Tools::BaseTool.meldeliste_club_block(club_cc_id: 41_002, tournament: nil, server_context: nil)
+  end
+
   test "cc_detail_value: nil bei fehlendem Feld oder ohne Dokument" do
     assert_nil McpServer::Tools::BaseTool.cc_detail_value(Nokogiri::HTML("<html><body>MOCK</body></html>"), "Meldeliste")
     assert_nil McpServer::Tools::BaseTool.cc_detail_value(nil, "Meldeliste")

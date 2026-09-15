@@ -145,9 +145,11 @@ module McpServer
           meldeliste_cc_id: meldeliste_cc_id, tournament_cc_id: tournament_cc_id, server_context: server_context
         )
         if resolved_tournament
-          auth_err = authorize!(action: :manage_teilnehmerliste, tournament: resolved_tournament, server_context: server_context)
+          auth_err = authorize!(action: :manage_meldeliste, tournament: resolved_tournament, server_context: server_context)
           return auth_err if auth_err
         end
+        club_block = meldeliste_club_block(club_cc_id: club_cc_id, tournament: resolved_tournament, server_context: server_context)
+        return club_block if club_block
 
         # Plan 39-03 (D-39-8/-9): effektive CC-Identität; armed:true ohne eigene CC-Identität (:none)
         # blockt hier (Dry-Run bleibt). Writes laufen unter cookie_for(account).
@@ -171,7 +173,7 @@ module McpServer
         end
         validation_result = run_validations([
           _validate_meldeliste_exists(meldeliste_cc_id),
-          _validate_meldeliste_zum_turnier(meldeliste_cc_id, tournament_cc_id, fed_id, branch_cc_id, season,
+          validate_meldeliste_zum_turnier(meldeliste_cc_id, tournament_cc_id, fed_id, branch_cc_id, season,
             armed: armed, server_context: server_context),
           _validate_meldeliste_non_finalized(meldeliste_cc_id),
           _validate_deadline_offen(meldeliste_cc_id, fed_id, branch_cc_id, season, armed: armed, server_context: server_context),
@@ -434,27 +436,6 @@ module McpServer
       rescue => e
         Rails.logger.warn "[cc_register._validate_meldeliste_exists] #{e.class}: #{e.message}"
         {name: "meldeliste_exists", ok: true}
-      end
-
-      # 2026-09-15 (bcw live): Das LLM übernahm eine alte meldeliste_cc_id (fremde TEST-Liste) aus
-      # dem Gesprächsverlauf. Mit tournament_cc_id wird gegen die Verknüpfung der CC-Turnierseite
-      # geprüft. Nur armed (Dry-Run ohne CC-Call); ohne tournament_cc_id oder bei unklarer
-      # Verknüpfung → ok:true (defensiv, wie die übrigen Constraints).
-      def self._validate_meldeliste_zum_turnier(meldeliste_cc_id, tournament_cc_id, fed_id, branch_cc_id, season, armed: true, server_context: nil)
-        return {name: "meldeliste_zum_turnier", ok: true} if !armed || tournament_cc_id.blank?
-
-        linked = McpServer::Tools::LookupMeldelisteForTournament.linked_meldeliste(
-          tournament_cc_id, fed_cc_id: fed_id, branch_cc_id: branch_cc_id, season: season, server_context: server_context
-        )
-        if linked && linked[:meldeliste_cc_id] != meldeliste_cc_id.to_i
-          return {name: "meldeliste_zum_turnier", ok: false,
-                  reason: "Meldeliste #{meldeliste_cc_id} gehört nicht zum Turnier #{tournament_cc_id} — laut ClubCloud ist dessen " \
-                          "Meldeliste #{linked[:meldeliste_cc_id]} (\"#{linked[:name]}\"). Mit dieser Meldeliste erneut aufrufen."}
-        end
-        {name: "meldeliste_zum_turnier", ok: true}
-      rescue => e
-        Rails.logger.warn "[cc_register._validate_meldeliste_zum_turnier] #{e.class}: #{e.message}"
-        {name: "meldeliste_zum_turnier", ok: true}
       end
 
       # Constraint 2/7: Meldeliste nicht finalized (DB-State-Check, falls verfügbar).

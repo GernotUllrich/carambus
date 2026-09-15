@@ -242,7 +242,7 @@ class SpielleiterChatService
       "des Turniers (aus Turnierliste/Kontext) — daraus löst der Server Turnier, Berechtigung, Branch, " \
       "Saison UND Meldeliste selbst auf. Übergib NICHT nur eine Meldelisten-ID; sonst kann der Server " \
       "die Berechtigung (z.B. Turnierleiter-Recht) nicht zuordnen. " \
-      "Für cc_register_for_tournament (Spieler melden) hole die Meldelisten-ID IMMER frisch per " \
+      "Für cc_register_for_tournament und cc_unregister_for_tournament (Spieler an-/abmelden) hole die Meldelisten-ID IMMER frisch per " \
       "cc_lookup_meldeliste_for_tournament für genau dieses Turnier — übernimm KEINE Meldelisten-ID aus " \
       "früheren Nachrichten — und übergib zusätzlich die tournament_cc_id; dann prüft der Server, ob die " \
       "Meldeliste zum Turnier gehört. Schlage NIEMALS vor, den Meldeschluss einer Meldeliste zu verlängern, " \

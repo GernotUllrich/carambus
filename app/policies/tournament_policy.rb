@@ -6,6 +6,7 @@
 # - `assign_leiter?` — Sportwart (im Wirkbereich) kann TL für „sein" Turnier benennen
 # - `update_deadline?` — TL für sein Turnier ODER Sportwart im Wirkbereich
 # - `manage_teilnehmerliste?` — TL für sein Turnier ODER Sportwart im Wirkbereich
+# - `manage_meldeliste?` — TL für sein Turnier ODER Sportwart in seiner Disziplin (spielortunabhängig)
 # - `enter_results?` — nur TL für sein Turnier (Sportwart darf KEINE Ergebnisse eintragen)
 #
 # 14-G.2 nutzt diese Policy in BaseTool-Authorization-Layer.
@@ -24,6 +25,13 @@ class TournamentPolicy < ApplicationPolicy
 
   def manage_teilnehmerliste?
     tl_or_sportwart_or_admin?
+  end
+
+  # Meldeliste (An-/Abmelden): Sportwart in seiner Disziplin, unabhängig vom Spielort
+  # (2026-09-15, Betreiber-Vorgabe). Die Club-Beschränkung prüfen die Melde-Tools.
+  def manage_meldeliste?
+    return false if user.nil?
+    user.admin? || record.leiter?(user) || user.in_sportwart_discipline_scope?(record)
   end
 
   def enter_results?

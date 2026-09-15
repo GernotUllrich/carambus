@@ -289,29 +289,29 @@ class McpServer::Tools::RegisterForTournamentTest < ActiveSupport::TestCase
   # verknüpft mit Turnier 1051 ist laut CC-Turnierseite 1353 „1. NordCup FP".
   NORDCUP_LINKED = {meldeliste_cc_id: 1353, name: "1. NordCup FP"}.freeze
 
-  test "_validate_meldeliste_zum_turnier: Meldeliste gehört nicht zum Turnier → reject mit richtiger Liste" do
+  test "validate_meldeliste_zum_turnier: Meldeliste gehört nicht zum Turnier → reject mit richtiger Liste" do
     McpServer::Tools::LookupMeldelisteForTournament.stub(:linked_meldeliste, NORDCUP_LINKED) do
-      result = McpServer::Tools::RegisterForTournament.send(:_validate_meldeliste_zum_turnier, 1349, 1051, 20, 10, "2026/2027")
+      result = McpServer::Tools::RegisterForTournament.send(:validate_meldeliste_zum_turnier, 1349, 1051, 20, 10, "2026/2027")
       assert_equal false, result[:ok]
       assert_match(/gehört nicht zum Turnier 1051/, result[:reason])
       assert_match(/1353 \("1\. NordCup FP"\)/, result[:reason])
     end
   end
 
-  test "_validate_meldeliste_zum_turnier: passende Meldeliste → ok" do
+  test "validate_meldeliste_zum_turnier: passende Meldeliste → ok" do
     McpServer::Tools::LookupMeldelisteForTournament.stub(:linked_meldeliste, NORDCUP_LINKED) do
-      assert_equal true, McpServer::Tools::RegisterForTournament.send(:_validate_meldeliste_zum_turnier, 1353, 1051, 20, 10, "2026/2027")[:ok]
+      assert_equal true, McpServer::Tools::RegisterForTournament.send(:validate_meldeliste_zum_turnier, 1353, 1051, 20, 10, "2026/2027")[:ok]
     end
   end
 
-  test "_validate_meldeliste_zum_turnier: ohne tournament_cc_id, im Dry-Run oder bei unklarer Verknüpfung → ok" do
+  test "validate_meldeliste_zum_turnier: ohne tournament_cc_id, im Dry-Run oder bei unklarer Verknüpfung → ok" do
     never = ->(*) { flunk("darf die CC nicht befragen") }
     McpServer::Tools::LookupMeldelisteForTournament.stub(:linked_meldeliste, never) do
-      assert McpServer::Tools::RegisterForTournament.send(:_validate_meldeliste_zum_turnier, 1349, nil, 20, 10, "2026/2027")[:ok]
-      assert McpServer::Tools::RegisterForTournament.send(:_validate_meldeliste_zum_turnier, 1349, 1051, 20, 10, "2026/2027", armed: false)[:ok]
+      assert McpServer::Tools::RegisterForTournament.send(:validate_meldeliste_zum_turnier, 1349, nil, 20, 10, "2026/2027")[:ok]
+      assert McpServer::Tools::RegisterForTournament.send(:validate_meldeliste_zum_turnier, 1349, 1051, 20, 10, "2026/2027", armed: false)[:ok]
     end
     McpServer::Tools::LookupMeldelisteForTournament.stub(:linked_meldeliste, nil) do
-      assert McpServer::Tools::RegisterForTournament.send(:_validate_meldeliste_zum_turnier, 1349, 1051, 20, 10, "2026/2027")[:ok]
+      assert McpServer::Tools::RegisterForTournament.send(:validate_meldeliste_zum_turnier, 1349, 1051, 20, 10, "2026/2027")[:ok]
     end
   end
 
@@ -326,6 +326,27 @@ class McpServer::Tools::RegisterForTournamentTest < ActiveSupport::TestCase
     end
     writes = @mock.calls.select { |_, action, _, _| %w[addPlayerToMeldeliste saveMeldeliste].include?(action) }
     assert_empty writes, "Kein Schreib-Call in die fremde Liste"
+  end
+
+  # 2026-09-15 (Betreiber-Vorgabe): Meldeliste = Disziplin + eigener Club, Spielort egal.
+  test "Sportwart meldet für Turnier an fremdem Spielort in seiner Disziplin — aber nur für den eigenen Club" do
+    user = User.create!(email: "ml_register_sw@test.de", password: "password123", persona_grants: ["sportwart"])
+    ClubLocation.find_or_create_by!(club: clubs(:bcw), location: locations(:one)) # Club bcw, cc_id 41_001
+    user.sportwart_locations << locations(:one)
+    user.sportwart_disciplines << disciplines(:carom_3band)
+    foreign_venue = Tournament.new(location_id: 99_999_999, discipline_id: disciplines(:carom_3band).id)
+    args = {fed_id: 20, branch_cc_id: 10, season: "2026/2027", meldeliste_cc_id: 1353, tournament_cc_id: 1051,
+            player_cc_id: 99999, server_context: {user_id: user.id}}
+
+    McpServer::Tools::RegisterForTournament.stub(:resolve_tournament, foreign_venue) do
+      own = McpServer::Tools::RegisterForTournament.call(**args, club_cc_id: 41_001)
+      refute own.error?, own.content.first[:text]
+      assert_match(/\[DRY-RUN\] Would register/, own.content.first[:text])
+
+      other = McpServer::Tools::RegisterForTournament.call(**args, club_cc_id: 41_002)
+      assert other.error?
+      assert_match(/nur Spieler deines Vereins/, other.content.first[:text])
+    end
   end
 
   test "_validate_deadline_offen: Dry-Run macht keinen CC-Call" do

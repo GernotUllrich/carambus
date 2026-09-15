@@ -699,7 +699,7 @@ module McpServer
       #   return err if (err = authorize!(action: :update_deadline, tournament: ml.tournament, server_context: server_context))
       #
       # Boundary: KEINE Tool-Code-Edits in 14-G.2 (14-G.4-Scope) — Helper steht bereit.
-      ALLOWED_AUTHORITY_ACTIONS = %i[assign_leiter update_deadline manage_teilnehmerliste enter_results prepare_tournament].freeze
+      ALLOWED_AUTHORITY_ACTIONS = %i[assign_leiter update_deadline manage_teilnehmerliste manage_meldeliste enter_results prepare_tournament].freeze
 
       def self.authorize!(action:, tournament:, server_context:)
         unless ALLOWED_AUTHORITY_ACTIONS.include?(action.to_sym)
@@ -719,7 +719,11 @@ module McpServer
         else
           reasons = []
           reasons << "TL-Status=#{tournament.leiter?(user) ? "ja" : "nein"}"
-          reasons << "Sportwart-Wirkbereich=#{user.in_sportwart_scope?(tournament) ? "ja" : "nein"}"
+          reasons << if action.to_sym == :manage_meldeliste
+            "Sportwart-Disziplin=#{user.in_sportwart_discipline_scope?(tournament) ? "ja" : "nein"}"
+          else
+            "Sportwart-Wirkbereich=#{user.in_sportwart_scope?(tournament) ? "ja" : "nein"}"
+          end
           error(
             "Authority-Denied: User-Id=#{user.id} hat KEIN '#{action}'-Recht " \
             "für Tournament-Id=#{tournament.id} (#{reasons.join("; ")})"
@@ -728,6 +732,46 @@ module McpServer
       rescue => e
         Rails.logger.warn "[BaseTool.authorize!] #{e.class}: #{e.message}"
         error("Authority-Check fehlgeschlagen (defensive): #{e.class.name}")
+      end
+
+      # Meldeliste (2026-09-15, Betreiber-Vorgabe): Ein Sportwart meldet nur Spieler SEINES Clubs
+      # (= Clubs seiner sportwart_locations, wie resolve_club_cc_id). Ausgenommen: Admin,
+      # Landessportwart, Turnierleiter des Turniers, User-loser Stdio-Pfad. nil = erlaubt.
+      def self.meldeliste_club_block(club_cc_id:, tournament:, server_context:)
+        user = User.find_by(id: server_context&.dig(:user_id))
+        return nil if user.nil? || user.admin? || user.landessportwart?
+        return nil if tournament&.leiter?(user)
+        return nil unless user.sportwart?
+
+        own = user.sportwart_locations.flat_map { |loc| loc.clubs.map(&:cc_id) }.compact.map(&:to_i).uniq
+        return nil if own.include?(club_cc_id.to_i)
+
+        error("Du kannst nur Spieler deines Vereins melden oder abmelden (club_cc_id=#{club_cc_id} gehört nicht zu " \
+              "deinen Vereinen #{own.inspect}). Für andere Vereine ist deren Sportwart oder der Landessportwart zuständig.")
+      rescue => e
+        Rails.logger.warn "[BaseTool.meldeliste_club_block] #{e.class}: #{e.message}"
+        error("Vereins-Prüfung fehlgeschlagen (defensive): #{e.class.name}")
+      end
+
+      # 2026-09-15 (bcw live): Das LLM übernahm eine alte meldeliste_cc_id (fremde TEST-Liste) aus
+      # dem Gesprächsverlauf. Mit tournament_cc_id wird gegen die Verknüpfung der CC-Turnierseite
+      # geprüft (An- und Abmelden). Nur armed (Dry-Run ohne diesen CC-Call); ohne tournament_cc_id
+      # oder bei unklarer Verknüpfung → ok:true (defensiv, wie die übrigen Constraints).
+      def self.validate_meldeliste_zum_turnier(meldeliste_cc_id, tournament_cc_id, fed_id, branch_cc_id, season, armed: true, server_context: nil)
+        return {name: "meldeliste_zum_turnier", ok: true} if !armed || tournament_cc_id.blank?
+
+        linked = McpServer::Tools::LookupMeldelisteForTournament.linked_meldeliste(
+          tournament_cc_id, fed_cc_id: fed_id, branch_cc_id: branch_cc_id, season: season, server_context: server_context
+        )
+        if linked && linked[:meldeliste_cc_id] != meldeliste_cc_id.to_i
+          return {name: "meldeliste_zum_turnier", ok: false,
+                  reason: "Meldeliste #{meldeliste_cc_id} gehört nicht zum Turnier #{tournament_cc_id} — laut ClubCloud ist dessen " \
+                          "Meldeliste #{linked[:meldeliste_cc_id]} (\"#{linked[:name]}\"). Mit dieser Meldeliste erneut aufrufen."}
+        end
+        {name: "meldeliste_zum_turnier", ok: true}
+      rescue => e
+        Rails.logger.warn "[BaseTool.validate_meldeliste_zum_turnier] #{e.class}: #{e.message}"
+        {name: "meldeliste_zum_turnier", ok: true}
       end
 
       # Plan 14-G.4 / F5-A: Tournament-Resolver für Authority-Integration in Write-Tools.
