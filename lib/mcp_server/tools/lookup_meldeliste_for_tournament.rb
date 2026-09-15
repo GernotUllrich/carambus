@@ -515,6 +515,21 @@ module McpServer
         nil
       end
 
+      # Gegenprobe für Schreib-Tools: die laut CC-Turnierseite verknüpfte Meldeliste
+      # ({meldeliste_cc_id:, name:}) oder nil, wenn sie sich nicht eindeutig feststellen lässt.
+      def self.linked_meldeliste(tournament_cc_id, fed_cc_id:, branch_cc_id:, season:, server_context: nil)
+        name = fetch_linked_meldeliste_name(
+          tournament_cc_id, fed_cc_id: fed_cc_id, branch_cc_id: branch_cc_id, season: season, server_context: server_context
+        )
+        return nil if name.blank?
+
+        matches = fetch_from_cc(
+          tournament_cc_id, fed_cc_id: fed_cc_id, branch_cc_id: branch_cc_id, season: season,
+          disciplin_id: "*", match_name: name, server_context: server_context
+        )
+        (matches.size == 1) ? matches.first.slice(:meldeliste_cc_id, :name) : nil
+      end
+
       # Wählt aus den Meldelisten-Kandidaten die zum Turnier passende(n):
       #   - match_name (verknüpfte Liste laut CC-Turnierseite) gesetzt → nur exakter Namenstreffer,
       #     sonst [] — kein Raten, wenn die CC die Liste benennt.

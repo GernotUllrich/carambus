@@ -808,6 +808,21 @@ class McpServer::Tools::LookupMeldelisteForTournamentTest < ActiveSupport::TestC
     tcc&.destroy
   end
 
+  test "linked_meldeliste: liefert die laut Turnierseite verknüpfte Liste für Schreib-Tools" do
+    stub_nordcup_cc(linked_page: File.read(Rails.root.join("test/fixtures/cc/meisterschaft_showmeldeliste_linked.html")))
+    linked = McpServer::Tools::LookupMeldelisteForTournament.linked_meldeliste(
+      1051, fed_cc_id: 20, branch_cc_id: 10, season: "2026/2027", server_context: nil
+    )
+    assert_equal({meldeliste_cc_id: 1353, name: "1. NordCup FP"}, linked)
+  end
+
+  test "linked_meldeliste: nil ohne Namen auf der Turnierseite" do
+    stub_nordcup_cc(linked_page: "<html><body>keine Details</body></html>")
+    assert_nil McpServer::Tools::LookupMeldelisteForTournament.linked_meldeliste(
+      1051, fed_cc_id: 20, branch_cc_id: 10, season: "2026/2027", server_context: nil
+    )
+  end
+
   test "verknüpfter Name, aber nicht in der Liste: kein Raten per Teilstring" do
     candidates = [{meldeliste_cc_id: 1349, name: "1. NordCup Freie Partie TEST", source: "cc-live"}]
     result = McpServer::Tools::LookupMeldelisteForTournament.match_candidates_by_name(
