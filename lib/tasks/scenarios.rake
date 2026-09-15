@@ -119,7 +119,7 @@ namespace :scenario do
       restart: ENV['RESTART'] == 'true', force: ENV['FORCE'] == 'true')
   end
 
-  desc "Soft-Credentials (clubcloud/ai/translation/google_service) additiv auf den Server mergen — bewahrt secret_key_base/AR/devise_jwt. DRY-RUN default; WRITE=true (+RESTART=true). Auch für Authority (kein DB-Schritt → kein Guard). Usage: rake scenario:push_credentials[<name>]"
+  desc "Soft-Credentials (clubcloud/ai/translation/google_service) additiv auf den Server mergen — bewahrt secret_key_base/AR/devise_jwt. DRY-RUN default; WRITE=true (+RESTART=true); ONLY=clubcloud[,…] beschränkt auf Gruppen. Auch für Authority (kein DB-Schritt → kein Guard). Usage: rake scenario:push_credentials[<name>]"
   task :push_credentials, [:scenario_name] => :environment do |_, args|
     scenario_name = args[:scenario_name]
     if scenario_name.to_s.empty?
@@ -1185,6 +1185,13 @@ namespace :scenario do
     end
 
     additions = build_feature_keys_from_pool(scenario_name)
+    # ONLY=clubcloud[,deepl…]: nur diese Gruppen übertragen (2026-09-15: auf train hätte ein voller
+    # Push saubere anthropic/deepl/google-Keys durch die öffentlich bekannten aus secrets.yml ersetzt).
+    if ENV['ONLY'].present?
+      only = ENV['ONLY'].split(',').map(&:strip)
+      additions = additions.slice(*only)
+      puts "   ONLY=#{only.join(',')} — übrige Gruppen bleiben auf dem Server unverändert"
+    end
     if additions.empty?
       puts "Keine Soft-Feature-Keys zu mergen — config.yml features / secrets.yml prüfen."; return false
     end
