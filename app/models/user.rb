@@ -38,8 +38,21 @@ class User < ApplicationRecord
   encrypts :cc_password, deterministic: false
 
   # D-39-1: Hat dieser User eigene CC-Credentials hinterlegt? (vom Resolver in 39-02 genutzt.)
+  # Ein mit fremdem/verlorenem AR-Key verschlüsseltes cc_password zählt als „nicht hinterlegt"
+  # (Live-Befund bcw 2026-09-15: sonst 500 auf der Profilseite, auf der man es neu setzen müsste).
   def cc_credentials_present?
     cc_username.present? && cc_password.present?
+  rescue ActiveRecord::Encryption::Errors::Decryption
+    Rails.logger.warn "[User#cc_credentials_present?] cc_password von User #{id} nicht entschlüsselbar — gilt als nicht hinterlegt"
+    false
+  end
+
+  # Gespeichertes cc_password, das sich mit den aktuellen AR-Keys nicht entschlüsseln lässt?
+  def cc_password_undecryptable?
+    cc_password
+    false
+  rescue ActiveRecord::Encryption::Errors::Decryption
+    true
   end
 
   PRIVILEGED = %w[gernot.ullrich@gmx.de nla@ph.at wcauel@gmail.com joerg.unger@hamburg.de].freeze

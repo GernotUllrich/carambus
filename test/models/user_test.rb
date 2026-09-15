@@ -312,4 +312,28 @@ class UserTest < ActiveSupport::TestCase
     user.cc_password = "y"
     assert user.cc_credentials_present?
   end
+
+  # Live-Befund bcw 2026-09-15: cc_password mit fremdem AR-Key verschlüsselt → Profilseite 500.
+  test "cc_password mit fremdem AR-Key: cc_credentials_present? false statt Decryption-Fehler" do
+    user = users(:valid)
+    user.update!(cc_username: "sw_login", cc_password: nil)
+    foreign = ActiveRecord::Encryption::Encryptor.new.encrypt(
+      "altesgeheim", key_provider: ActiveRecord::Encryption::DerivedSecretKeyProvider.new("fremder-schluessel")
+    )
+    # roh schreiben — update_all/update_column würden den Wert selbst (neu) verschlüsseln
+    User.connection.exec_update(User.sanitize_sql_array(["UPDATE users SET cc_password = ? WHERE id = ?", foreign, user.id]))
+    user.reload
+
+    assert_raises(ActiveRecord::Encryption::Errors::Decryption) { user.cc_password }
+    assert user.cc_password_undecryptable?
+    assert_not user.cc_credentials_present?
+  end
+
+  test "cc_password_undecryptable? false bei lesbarem oder leerem Passwort" do
+    user = users(:valid)
+    user.update!(cc_username: "sw_login", cc_password: "topsecret")
+    assert_not user.reload.cc_password_undecryptable?
+    user.update!(cc_password: nil)
+    assert_not user.reload.cc_password_undecryptable?
+  end
 end

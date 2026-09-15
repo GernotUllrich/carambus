@@ -85,6 +85,13 @@ class RegistrationsController < Devise::RegistrationsController
       params.delete(:cc_password)
     end
 
+    # Unlesbarer Altwert (fremder/verlorener AR-Key): das Dirty-Tracking entschlüsselt beim
+    # Speichern den Altwert zum Vergleich und scheitert → vorher verwerfen, damit Neu-Setzen
+    # bzw. Entfernen möglich ist.
+    if params.key?(:cc_password) && resource.cc_password_undecryptable?
+      resource.update_columns(cc_password: nil)
+    end
+
     # Handle password update
     if params[:password].present?
       super

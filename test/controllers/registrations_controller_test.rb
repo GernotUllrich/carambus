@@ -260,6 +260,45 @@ class RegistrationsControllerTest < ActionDispatch::IntegrationTest
     refute @user.cc_credentials_present?
   end
 
+  # Live-Befund bcw 2026-09-15: cc_password mit fremdem AR-Key → 500 auf der Profilseite, und
+  # Neu-Setzen scheiterte, weil das Dirty-Tracking den Altwert entschlüsseln will.
+  def write_undecryptable_cc_password!(user)
+    user.update!(cc_username: "sw_login", cc_password: nil)
+    foreign = ActiveRecord::Encryption::Encryptor.new.encrypt(
+      "altesgeheim", key_provider: ActiveRecord::Encryption::DerivedSecretKeyProvider.new("fremder-schluessel")
+    )
+    User.connection.exec_update(User.sanitize_sql_array(["UPDATE users SET cc_password = ? WHERE id = ?", foreign, user.id]))
+    assert user.reload.cc_password_undecryptable?
+  end
+
+  test "Profilseite rendert trotz nicht entschlüsselbarem cc_password" do
+    write_undecryptable_cc_password!(@user)
+
+    get edit_user_registration_path
+    assert_response :success
+    assert_match "Noch kein ClubCloud-Zugang hinterlegt", response.body
+  end
+
+  test "nicht entschlüsselbares cc_password lässt sich im Profil neu setzen" do
+    write_undecryptable_cc_password!(@user)
+
+    patch user_registration_path, params: {user: {cc_username: "sw_login", cc_password: "neuesgeheim"}}
+
+    @user.reload
+    assert_equal "neuesgeheim", @user.cc_password
+    assert @user.cc_credentials_present?
+  end
+
+  test "nicht entschlüsselbares cc_password lässt sich im Profil entfernen" do
+    write_undecryptable_cc_password!(@user)
+
+    patch user_registration_path, params: {user: {cc_username: "", cc_password: ""}}
+
+    @user.reload
+    assert_nil @user.cc_username
+    assert_nil @user.read_attribute_before_type_cast(:cc_password)
+  end
+
   test "Account-Edit-Seite zeigt die ClubCloud-Zugang-Sektion (AC-4)" do
     get edit_user_registration_path
     assert_response :success
