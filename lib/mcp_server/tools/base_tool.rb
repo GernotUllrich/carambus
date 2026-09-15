@@ -734,25 +734,6 @@ module McpServer
         error("Authority-Check fehlgeschlagen (defensive): #{e.class.name}")
       end
 
-      # Meldeliste (2026-09-15, Betreiber-Vorgabe): Ein Sportwart meldet nur Spieler SEINES Clubs
-      # (= Clubs seiner sportwart_locations, wie resolve_club_cc_id). Ausgenommen: Admin,
-      # Landessportwart, Turnierleiter des Turniers, User-loser Stdio-Pfad. nil = erlaubt.
-      def self.meldeliste_club_block(club_cc_id:, tournament:, server_context:)
-        user = User.find_by(id: server_context&.dig(:user_id))
-        return nil if user.nil? || user.admin? || user.landessportwart?
-        return nil if tournament&.leiter?(user)
-        return nil unless user.sportwart?
-
-        own = user.sportwart_locations.flat_map { |loc| loc.clubs.map(&:cc_id) }.compact.map(&:to_i).uniq
-        return nil if own.include?(club_cc_id.to_i)
-
-        error("Du kannst nur Spieler deines Vereins melden oder abmelden (club_cc_id=#{club_cc_id} gehört nicht zu " \
-              "deinen Vereinen #{own.inspect}). Für andere Vereine ist deren Sportwart oder der Landessportwart zuständig.")
-      rescue => e
-        Rails.logger.warn "[BaseTool.meldeliste_club_block] #{e.class}: #{e.message}"
-        error("Vereins-Prüfung fehlgeschlagen (defensive): #{e.class.name}")
-      end
-
       # 2026-09-15 (bcw live): Das LLM übernahm eine alte meldeliste_cc_id (fremde TEST-Liste) aus
       # dem Gesprächsverlauf. Mit tournament_cc_id wird gegen die Verknüpfung der CC-Turnierseite
       # geprüft (An- und Abmelden). Nur armed (Dry-Run ohne diesen CC-Call); ohne tournament_cc_id

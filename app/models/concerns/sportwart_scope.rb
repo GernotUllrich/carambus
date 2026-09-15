@@ -23,9 +23,9 @@ module SportwartScope
   end
 
   # Meldeliste (2026-09-15, Betreiber-Vorgabe): Ein Sportwart verwaltet die Meldelisten ALLER
-  # Turniere der Region in seiner Disziplin — der Spielort zählt nur für die Turnierausführung.
-  # (Region: Turniere werden im Regions-Kontext des Servers aufgelöst; die Beschränkung auf
-  # Spieler des eigenen Clubs prüfen die Melde-Tools.)
+  # Turniere der Region in seiner Disziplin — ohne Spielort- und Club-Beschränkung (wie die CC,
+  # die nur auf Region + Branch einschränkt). Der Spielort zählt nur für die Turnierausführung.
+  # Region: Turniere werden im Regions-Kontext des Servers aufgelöst.
   def in_sportwart_discipline_scope?(tournament)
     return false if tournament.nil?
     return false unless sportwart? # D-38: Mitgliedschaft EXPLIZIT über persona_grants

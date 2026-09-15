@@ -328,10 +328,10 @@ class McpServer::Tools::RegisterForTournamentTest < ActiveSupport::TestCase
     assert_empty writes, "Kein Schreib-Call in die fremde Liste"
   end
 
-  # 2026-09-15 (Betreiber-Vorgabe): Meldeliste = Disziplin + eigener Club, Spielort egal.
-  test "Sportwart meldet für Turnier an fremdem Spielort in seiner Disziplin — aber nur für den eigenen Club" do
+  # 2026-09-15 (Betreiber-Vorgabe): Meldeliste = Region + Disziplin — kein Spielort-, kein Club-Check
+  # (wie die CC); nur die Turnierausführung ist spielortgebunden.
+  test "Sportwart meldet für Turnier an fremdem Spielort in seiner Disziplin, Spieler beliebiger Vereine" do
     user = User.create!(email: "ml_register_sw@test.de", password: "password123", persona_grants: ["sportwart"])
-    ClubLocation.find_or_create_by!(club: clubs(:bcw), location: locations(:one)) # Club bcw, cc_id 41_001
     user.sportwart_locations << locations(:one)
     user.sportwart_disciplines << disciplines(:carom_3band)
     foreign_venue = Tournament.new(location_id: 99_999_999, discipline_id: disciplines(:carom_3band).id)
@@ -339,13 +339,27 @@ class McpServer::Tools::RegisterForTournamentTest < ActiveSupport::TestCase
             player_cc_id: 99999, server_context: {user_id: user.id}}
 
     McpServer::Tools::RegisterForTournament.stub(:resolve_tournament, foreign_venue) do
-      own = McpServer::Tools::RegisterForTournament.call(**args, club_cc_id: 41_001)
-      refute own.error?, own.content.first[:text]
-      assert_match(/\[DRY-RUN\] Would register/, own.content.first[:text])
+      [41_001, 41_002].each do |club_cc_id|
+        response = McpServer::Tools::RegisterForTournament.call(**args, club_cc_id: club_cc_id)
+        refute response.error?, response.content.first[:text]
+        assert_match(/\[DRY-RUN\] Would register/, response.content.first[:text])
+      end
+    end
+  end
 
-      other = McpServer::Tools::RegisterForTournament.call(**args, club_cc_id: 41_002)
-      assert other.error?
-      assert_match(/nur Spieler deines Vereins/, other.content.first[:text])
+  test "Sportwart einer anderen Disziplin darf die Meldeliste nicht verwalten" do
+    user = User.create!(email: "ml_register_pool@test.de", password: "password123", persona_grants: ["sportwart"])
+    user.sportwart_locations << locations(:one)
+    user.sportwart_disciplines << disciplines(:pool_8ball)
+    tournament = Tournament.new(location_id: locations(:one).id, discipline_id: disciplines(:carom_3band).id)
+
+    McpServer::Tools::RegisterForTournament.stub(:resolve_tournament, tournament) do
+      response = McpServer::Tools::RegisterForTournament.call(
+        fed_id: 20, branch_cc_id: 10, season: "2026/2027", meldeliste_cc_id: 1353, tournament_cc_id: 1051,
+        player_cc_id: 99999, club_cc_id: 41_001, server_context: {user_id: user.id}
+      )
+      assert response.error?
+      assert_match(/manage_meldeliste/, response.content.first[:text])
     end
   end
 

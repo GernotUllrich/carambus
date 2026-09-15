@@ -27,8 +27,8 @@ class TournamentPolicy < ApplicationPolicy
     tl_or_sportwart_or_admin?
   end
 
-  # Meldeliste (An-/Abmelden): Sportwart in seiner Disziplin, unabhängig vom Spielort
-  # (2026-09-15, Betreiber-Vorgabe). Die Club-Beschränkung prüfen die Melde-Tools.
+  # Meldeliste (An-/Abmelden): Sportwart in seiner Disziplin, ohne Spielort- und Club-Bedingung
+  # (2026-09-15, Betreiber-Vorgabe; die CC schränkt nur auf Region + Branch ein).
   def manage_meldeliste?
     return false if user.nil?
     user.admin? || record.leiter?(user) || user.in_sportwart_discipline_scope?(record)

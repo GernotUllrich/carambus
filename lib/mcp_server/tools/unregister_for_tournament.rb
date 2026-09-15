@@ -98,8 +98,6 @@ module McpServer
           auth_err = authorize!(action: :manage_meldeliste, tournament: resolved_tournament, server_context: server_context)
           return auth_err if auth_err
         end
-        club_block = meldeliste_club_block(club_cc_id: club_cc_id, tournament: resolved_tournament, server_context: server_context)
-        return club_block if club_block
 
         # Plan 39-03 (D-39-8/-9): effektive CC-Identität; armed:true ohne eigene CC-Identität (:none)
         # blockt hier (Dry-Run bleibt). Pre-Reads + Writes laufen unter cookie_for(account).
