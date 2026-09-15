@@ -430,7 +430,11 @@ class Setting < ApplicationRecord
         end
       end
     end
-    
+
+    # Abgelehnter Login (z. B. „Zu viele Fehlversuche") kommt als „checking..."-Zwischenseite
+    # mit PHPSESSID-Cookies — nur für die Fehlermeldung; entschieden wird im Sanity-Check.
+    cc_error = cc_login_error_message(login_doc)
+
     # Versuche Session-ID aus dem Set-Cookie Header zu extrahieren
     # WICHTIG: Wenn mehrere PHPSESSID cookies vorhanden sind, nutze den LETZTEN
     cookies = login_res.get_fields("set-cookie")
@@ -523,7 +527,7 @@ class Setting < ApplicationRecord
     end
 
     # Plan 21-13 T2 (D-21-13-H): Anti-Silent-Failure Sedo-Parking-Detection
-    verify_clubcloud_reachable!(region_cc, session_id)
+    verify_clubcloud_reachable!(region_cc, session_id, cc_error: cc_error)
 
     if persist_global
       Setting.key_set_value("session_id", session_id)
@@ -544,7 +548,12 @@ class Setting < ApplicationRecord
   # echter Admin-Endpoint). Wenn Response 200 + Body NICHT von Sedo/IONOS
   # geparkt → echte ClubCloud reachable. Sonst raise mit Hinweis auf
   # Plan-21-12-Seed-Pattern für base_url-Aktualisierung.
-  def self.verify_clubcloud_reachable!(region_cc, session_id)
+  #
+  # 2026-09-15: Ein abgelehnter Login liefert trotzdem PHPSESSID-Cookies; verband.php zeigt dann
+  # nur den Auto-Logout-Stub („Club Cloud: LOGIN-BEREICH"). Bisher galt das als Erfolg → jeder
+  # Folge-Call lief in den Stub, und jede Recovery machte einen weiteren Login-Versuch (hält eine
+  # CC-Sperre am Leben). Stub + CC-Meldung (cc_error, siehe cc_login_error_message) → raise.
+  def self.verify_clubcloud_reachable!(region_cc, session_id, cc_error: nil)
     sanity_uri = URI(region_cc.base_url.chomp("/") + "/admin/verband.php")
     sanity_http = Net::HTTP.new(sanity_uri.host, sanity_uri.port)
     sanity_http.use_ssl = true
@@ -565,7 +574,22 @@ class Setting < ApplicationRecord
       raise "ClubCloud Login succeeded but /admin/verband.php is a Domain-Parking-Page (Sedo/IONOS detected). Tenant-Subdomain may have changed; check ClubCloud-Public-Login-Link and update RegionCc[#{region_cc.region&.shortname}].base_url + seed db/seeds/region_cc_base_urls.rb (Plan 21-12 pattern). Current base_url: #{region_cc.base_url}"
     end
 
+    if McpServer::CcSession.session_expired?(sanity_res.body.to_s)
+      # Ohne CC-Meldung nicht eindeutig (per-User-Account evtl. ohne Verbandsrechte) → nur Warnung.
+      raise "ClubCloud-Login abgelehnt: #{cc_error}" if cc_error.present?
+      Rails.logger.warn "[Setting.verify_clubcloud_reachable!] admin/verband.php zeigt nach dem Login den LOGIN-BEREICH — Session evtl. nicht angemeldet"
+    end
+
     Rails.logger.info "[Plan 21-13 T2] Sedo-Detection passed for #{region_cc.base_url} — admin/verband.php reachable + real content"
+  end
+
+  # checkUser.php antwortet bei abgelehntem Login mit einer „checking..."-Zwischenseite, die die
+  # CC-Meldung als hidden errMsg/errMsgNew per JS an ../index.php weiterreicht
+  # (live 2026-09-15: „Abbruch: Zu viele Fehlversuche bei der Anmeldung. …"). nil wenn keine Meldung.
+  def self.cc_login_error_message(doc)
+    doc.css('input[name="errMsg"], input[name="errMsgNew"]')
+      .map { |input| Nokogiri::HTML.fragment(input["value"].to_s).text.strip }
+      .find(&:present?)
   end
 
   def self.logoff_from_cc

@@ -250,6 +250,24 @@ class McpServer::CcSessionTest < ActiveSupport::TestCase
     end
   end
 
+  test "with_session_recovery: scheitert schon der erste Login → SessionRecoveryFailed, genau 1 Versuch, Block nie aufgerufen" do
+    ENV["CARAMBUS_MCP_MOCK"] = nil  # non-mock-mode + leerer Cache: erster cookie-Aufruf ruft Setting.login_to_cc
+    login_attempts = 0
+    block_calls = 0
+
+    Setting.stub(:login_to_cc, -> {
+      login_attempts += 1
+      raise "ClubCloud-Login abgelehnt: Abbruch: Zu viele Fehlversuche"
+    }) do
+      error = assert_raises(McpServer::CcSession::SessionRecoveryFailed) do
+        McpServer::CcSession.with_session_recovery { |_client, _sid| block_calls += 1 }
+      end
+      assert_match(/Zu viele Fehlversuche/, error.message, "CC-Meldung muss beim Tool ankommen")
+    end
+    assert_equal 1, login_attempts, "Kein zweiter Login-Versuch (würde eine CC-Sperre verlängern)"
+    assert_equal 0, block_calls
+  end
+
   test "with_session_recovery: gute Response beim ersten Aufruf → kein Retry, kein Re-Login" do
     ENV["CARAMBUS_MCP_MOCK"] = "1"
     call_count = 0

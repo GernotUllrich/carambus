@@ -747,6 +747,34 @@ class McpServer::Tools::LookupMeldelisteForTournamentTest < ActiveSupport::TestC
     end
   end
 
+  # 2026-09-15 (nbv live): gesperrter CC-Account. Früher: path-0 schluckte den Login-Fehler,
+  # path-1/3 loggten erneut ein (+ Re-Login je Pfad) → mehrere Fehlversuche pro Chat-Frage.
+  test "abgelehnter CC-Login: genau 1 Login-Versuch über alle Pfade, CC-Meldung im Tool-Error" do
+    McpServer::CcSession.reset!  # leerer Cache → erster Pfad muss einloggen
+    login_attempts = 0
+    prev_mock = ENV["CARAMBUS_MCP_MOCK"]
+    ENV["CARAMBUS_MCP_MOCK"] = nil
+    begin
+      Setting.stub(:login_to_cc, -> {
+        login_attempts += 1
+        raise "ClubCloud-Login abgelehnt: Abbruch: Zu viele Fehlversuche bei der Anmeldung."
+      }) do
+        response = McpServer::Tools::LookupMeldelisteForTournament.call(
+          tournament_cc_id: 889, club_cc_id: 1010, fed_cc_id: 20, branch_cc_id: 10, season: "2025/2026",
+          force_refresh: true, server_context: nil
+        )
+        assert response.error?
+        text = response.content.first[:text]
+        assert_match(/Zu viele Fehlversuche/, text, "CC-Meldung muss im Chat ankommen")
+        assert_match(/KEINE weiteren CC-Abfragen/, text)
+      end
+      assert_equal 1, login_attempts, "Jeder weitere Versuch verlängert eine CC-Sperre"
+      assert_empty @mock.calls.select { |verb, _, _, _| verb == :post }, "Ohne Session kein CC-POST"
+    ensure
+      ENV["CARAMBUS_MCP_MOCK"] = prev_mock
+    end
+  end
+
   # DEFER-25-4: scope-filter-Pfad muss meisterschaftsId im Payload enthalten
   test "DEFER-25-4: scope-filter-Payload enthält meisterschaftsId" do
     captured_payload = nil

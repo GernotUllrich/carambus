@@ -30,6 +30,53 @@ class SettingTest < ActiveSupport::TestCase
   end
 
   # ===========================================================================
+  # 2026-09-15: abgelehnter CC-Login darf nicht als Erfolg durchgehen
+  #
+  # Live-Befund nbv: checkUser.php lieferte bei gesperrtem Account HTTP 200 + „checking..."-Seite
+  # + 2 PHPSESSID-Cookies; verband.php zeigte danach nur den Auto-Logout-Stub. Der Sanity-Check
+  # prüfte nur Sedo/IONOS → „Successfully logged in", jeder Folge-Call lief in den Stub.
+  # ===========================================================================
+
+  CC_BASE = "https://tenant.club-cloud.de"
+  FakeRegionCc = Struct.new(:base_url, :region)
+
+  def cc_fixture(name)
+    File.read(Rails.root.join("test/fixtures/cc/#{name}"))
+  end
+
+  test "cc_login_error_message liest die CC-Meldung aus der checking-Zwischenseite" do
+    doc = Nokogiri::HTML(cc_fixture("login_rejected_checking.html"))
+    assert_equal "Abbruch: Zu viele Fehlversuche bei der Anmeldung. Versuche es später erneut.",
+      Setting.cc_login_error_message(doc)
+  end
+
+  test "cc_login_error_message liefert nil ohne oder mit leerem errMsg" do
+    assert_nil Setting.cc_login_error_message(Nokogiri::HTML("<html><body>Admin</body></html>"))
+    assert_nil Setting.cc_login_error_message(Nokogiri::HTML("<form><input type='hidden' name='errMsg' value=''></form>"))
+  end
+
+  test "verify_clubcloud_reachable! wirft mit CC-Meldung, wenn verband.php den Auto-Logout-Stub zeigt" do
+    stub_request(:get, "#{CC_BASE}/admin/verband.php").to_return(status: 200, body: cc_fixture("auto_logout_stub.html"))
+
+    error = assert_raises(RuntimeError) do
+      Setting.verify_clubcloud_reachable!(FakeRegionCc.new(CC_BASE), "sid", cc_error: "Abbruch: Zu viele Fehlversuche")
+    end
+    assert_equal "ClubCloud-Login abgelehnt: Abbruch: Zu viele Fehlversuche", error.message
+  end
+
+  test "verify_clubcloud_reachable! ohne CC-Meldung: Stub nur als Warnung (Account evtl. ohne Verbandsrechte)" do
+    stub_request(:get, "#{CC_BASE}/admin/verband.php").to_return(status: 200, body: cc_fixture("auto_logout_stub.html"))
+
+    assert_nothing_raised { Setting.verify_clubcloud_reachable!(FakeRegionCc.new(CC_BASE), "sid") }
+  end
+
+  test "verify_clubcloud_reachable! lässt eine angemeldete Session durch" do
+    stub_request(:get, "#{CC_BASE}/admin/verband.php").to_return(status: 200, body: "<html><body><table>Verband</table></body></html>")
+
+    assert_nothing_raised { Setting.verify_clubcloud_reachable!(FakeRegionCc.new(CC_BASE), "sid") }
+  end
+
+  # ===========================================================================
   # Plan 35-02: map_game_gname_to_cc_group_name
   #
   # CHARACTERIZATION — die Methode war bis hierher voellig ungetestet, hat aber SIEBEN Aufrufer,

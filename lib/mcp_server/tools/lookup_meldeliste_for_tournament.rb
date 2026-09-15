@@ -272,10 +272,11 @@ module McpServer
         # Error-Output statt stillschweigend „0 Treffer".
         Rails.logger.warn "[LookupMeldelistе] session recovery failed: #{e.message}"
         error(
-          "MCP-Server-Session zur CC ist expired, automatischer Re-Login fehlgeschlagen: " \
+          "CC-Session des MCP-Servers nicht verfügbar, Login/Re-Login fehlgeschlagen: " \
           "#{e.message}. " \
-          "Action: CC-Credentials in Rails-Credentials prüfen (config/credentials/#{Rails.env}.yml.enc) " \
-          "oder Setting.login_to_cc manuell triggern. Detail in Rails.logger."
+          "Action: Meldet die CC „Zu viele Fehlversuche“, KEINE weiteren CC-Abfragen — Sperre abwarten " \
+          "und den Login einmal im Browser prüfen. Sonst CC-Credentials in Rails-Credentials prüfen " \
+          "(config/credentials/#{Rails.env}.yml.enc). Detail in Rails.logger."
         )
       rescue => e
         error("Tool exception: #{e.class.name} (details suppressed; check Rails.logger on stderr).")
@@ -458,7 +459,6 @@ module McpServer
       # Defensive: rescue StandardError → [] (analog fetch_from_cc).
       def self.fetch_from_sportwart_list(tournament_cc_id, club_cc_id:, fed_cc_id: nil,
         branch_cc_id: nil, season: nil, disciplin_id: nil, cat_id: nil, server_context: nil)
-        client = cc_session.client_for(server_context)
         payload = {
           clubId: club_cc_id,
           fedId: fed_cc_id,
@@ -468,11 +468,15 @@ module McpServer
           catId: cat_id || "*"
         }.reject { |_, v| v.nil? }
 
-        res, doc = client.post(
-          "sportwart-showMeldelistenList",
-          payload,
-          {armed: true, session_id: cc_session.cookie}
-        )
+        # 2026-09-15: über with_session_recovery, damit ein Login-Fehler als SessionRecoveryFailed
+        # hochgeht statt als [] geschluckt zu werden (sonst loggt path-1 gleich nochmal ein).
+        res, doc = cc_session.with_session_recovery(server_context: server_context) do |client, sid|
+          client.post(
+            "sportwart-showMeldelistenList",
+            payload,
+            {armed: true, session_id: sid}
+          )
+        end
         return [] if res.nil? || res.code != "200" || doc.nil?
 
         # Parser für Sportwart-Response (HTML-Save-Substrate
@@ -531,6 +535,8 @@ module McpServer
           name.include?(tn) || tn.include?(name)
         end
         substring_matches
+      rescue McpServer::CcSession::SessionRecoveryFailed
+        raise  # propagiert nach oben → self.call rescue-Klausel
       rescue => e
         Rails.logger.warn "[LookupMeldelisteForTournament.fetch_from_sportwart_list] #{e.class}: #{e.message}"
         []
