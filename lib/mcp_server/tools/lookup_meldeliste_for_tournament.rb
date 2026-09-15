@@ -93,6 +93,14 @@ module McpServer
 
         Rails.logger.info "[LookupMeldelistе] start tournament_cc_id=#{tournament_cc_id} club_cc_id=#{effective_club_cc_id || "-"} (explicit=#{!club_cc_id.nil?}) fed=#{effective_fed || "-"} branch=#{branch_cc_id || "-"} season=#{effective_season_name || "-"} force_refresh=#{force_refresh}"
 
+        # 2026-09-15: Name der mit dem Turnier verknüpften Meldeliste laut CC-Turnierseite — damit
+        # wählen die Namens-Pfade (0/3/4) exakt statt nach TournamentCc.name zu raten.
+        linked_name = fetch_linked_meldeliste_name(
+          tournament_cc_id, fed_cc_id: effective_fed, branch_cc_id: branch_cc_id,
+          season: effective_season_name, server_context: server_context
+        )
+        Rails.logger.info "[LookupMeldelistе] linked meldeliste (Turnierseite): #{linked_name.inspect}"
+
         # Plan 14-G.12 / NEU primary path-0: Sportwart-Discovery via club-scoped showMeldelistenList.
         # Wenn effective_club_cc_id resolved → /admin/myclub/meldewesen/single/showMeldelistenList.php mit
         # clubId-Scope abfragen. Response enthält <select name="meldelisteId"> mit allen Meldelisten
@@ -104,13 +112,14 @@ module McpServer
             club_cc_id: effective_club_cc_id,
             fed_cc_id: effective_fed, branch_cc_id: branch_cc_id,
             season: effective_season_name, disciplin_id: disciplin_id, cat_id: cat_id,
-            server_context: server_context
+            match_name: linked_name, server_context: server_context
           )
           Rails.logger.info "[LookupMeldelistе] path-0 sportwart-list (clubId=#{effective_club_cc_id}): #{sportwart_candidates.size} candidate(s)"
           if sportwart_candidates.any?
             case sportwart_candidates.size
             when 1
               c = sportwart_candidates.first
+              return unconfirmed_match_response(c) if c[:match] == "substring"
               return text(<<~OUT.strip)
                 meldeliste_cc_id: #{c[:meldeliste_cc_id]}
                 (source: sportwart-showMeldelistenList; club_cc_id=#{effective_club_cc_id})
@@ -165,7 +174,7 @@ module McpServer
             tournament_cc_id,
             fed_cc_id: effective_fed, branch_cc_id: branch_cc_id,
             season: effective_season_name, disciplin_id: disciplin_id, cat_id: cat_id,
-            server_context: server_context
+            match_name: linked_name, server_context: server_context
           )
           Rails.logger.info "[LookupMeldelistе] path-3 cc-live (scope_given=#{scope_filter_given?(effective_fed, branch_cc_id, effective_season_name, disciplin_id, cat_id)}): #{live_candidates.size} candidate(s)"
           # Live-Candidates haben Vorrang nur bei force_refresh oder DB-empty
@@ -182,7 +191,7 @@ module McpServer
           if scope_given
             # Erster Versuch: Scope-Filter-Pfad. Retry: meisterschaftsId-Pfad ohne Scope.
             retry_path_used = "meisterschaftsId-fallback"
-            live_retry = fetch_from_cc(tournament_cc_id, server_context: server_context)
+            live_retry = fetch_from_cc(tournament_cc_id, match_name: linked_name, server_context: server_context)
             candidates = live_retry if !live_retry.empty?
           else
             # Erster Versuch: meisterschaftsId-Pfad. Retry: Scope-Filter mit Default-Region (CC_REGION-ENV).
@@ -193,7 +202,7 @@ module McpServer
                 tournament_cc_id,
                 fed_cc_id: default_fed,
                 disciplin_id: "*", cat_id: "*",
-                server_context: server_context
+                match_name: linked_name, server_context: server_context
               )
               candidates = live_retry if !live_retry.empty?
             end
@@ -253,6 +262,7 @@ module McpServer
           end
         when 1
           c = candidates.first
+          return unconfirmed_match_response(c) if c[:match] == "substring"
           text(<<~OUT.strip)
             meldeliste_cc_id: #{c[:meldeliste_cc_id]}
             (1 candidate found)
@@ -333,7 +343,7 @@ module McpServer
       # bei expired SID wird Setting.login_to_cc getriggert + Single-Retry.
       # SessionRecoveryFailed propagiert nach oben → strukturierter Error.
       def self.fetch_from_cc(tournament_cc_id, fed_cc_id: nil, branch_cc_id: nil,
-        season: nil, disciplin_id: nil, cat_id: nil, server_context: nil)
+        season: nil, disciplin_id: nil, cat_id: nil, match_name: nil, server_context: nil)
         payload = if scope_filter_given?(fed_cc_id, branch_cc_id, season, disciplin_id, cat_id)
           {
             meisterschaftsId: tournament_cc_id,
@@ -376,34 +386,8 @@ module McpServer
         raw_candidates = parse_pipe_anchors(doc) + parse_meldelisteid_anchors(doc)
         return [] if raw_candidates.empty?
 
-        # Plan 24-01 T3: Title-Match gegen TournamentCc.name (Context-Pflicht laut
-        # D-14-02-D — cc_id ist regions-eindeutig). Logik analog
-        # fetch_from_sportwart_list:391-416 (DRY-Refactor ist Out-of-Scope für 24-01).
-        context = effective_cc_region(server_context).to_s.downcase
-        tcc = begin
-          if context.present?
-            TournamentCc.find_by(cc_id: tournament_cc_id, context: context)
-          else
-            TournamentCc.find_by(cc_id: tournament_cc_id)
-          end
-        rescue StandardError
-          nil
-        end
-        return raw_candidates unless tcc
-
-        tournament_name = tcc.name.to_s.strip
-        return raw_candidates if tournament_name.blank?
-
-        # Exact-Match (case-insensitive)
-        exact_matches = raw_candidates.select { |c| c[:name].to_s.casecmp?(tournament_name) }
-        return exact_matches if exact_matches.any?
-
-        # Substring-Match (case-insensitive, beidseitig)
-        raw_candidates.select do |c|
-          name = c[:name].to_s.downcase
-          tn = tournament_name.downcase
-          name.include?(tn) || tn.include?(name)
-        end
+        # Plan 24-01 T3: Title-Match (Context-Pflicht laut D-14-02-D — cc_id ist regions-eindeutig).
+        match_candidates_by_name(raw_candidates, tournament_cc_id, match_name: match_name, server_context: server_context)
       rescue McpServer::CcSession::SessionRecoveryFailed
         raise  # propagiert nach oben → self.call rescue-Klausel
       rescue => e
@@ -458,7 +442,7 @@ module McpServer
       # Returns Array[Hash{meldeliste_cc_id:, name:, count:, source:}] (kann leer sein).
       # Defensive: rescue StandardError → [] (analog fetch_from_cc).
       def self.fetch_from_sportwart_list(tournament_cc_id, club_cc_id:, fed_cc_id: nil,
-        branch_cc_id: nil, season: nil, disciplin_id: nil, cat_id: nil, server_context: nil)
+        branch_cc_id: nil, season: nil, disciplin_id: nil, cat_id: nil, match_name: nil, server_context: nil)
         payload = {
           clubId: club_cc_id,
           fedId: fed_cc_id,
@@ -501,45 +485,73 @@ module McpServer
         end.compact
 
         # Tournament-Name-Match: TournamentCc.name kann von Meldeliste-Title abweichen.
-        # Strategie: Exact-Match auf normalized name → Substring-Match → keine Heuristik
-        # (lieber 0 Treffer zurückgeben als falsche positive Matches).
-        #
-        # Plan 14-G.12-Hotfix (D-14-02-D): TournamentCc.cc_id ist nur regions-eindeutig
-        # (gleiche cc_id kann in mehreren Regionen vorkommen, z.B. blmr + nbv).
-        # Daher Context-Filter Pflicht — Default aus server_context (oder Scenario-Config).
-        # Ohne Context-Filter würde find_by den ersten Treffer zurückgeben (oft falsche Region)
-        # → 0 Match-Treffer → User-facing-Bug „keine Meldeliste" trotz existierender Liste.
-        context = effective_cc_region(server_context).to_s.downcase
-        tcc = begin
-          if context.present?
-            TournamentCc.find_by(cc_id: tournament_cc_id, context: context)
-          else
-            TournamentCc.find_by(cc_id: tournament_cc_id) # Defensive Fallback ohne Context
-          end
-        rescue StandardError
-          nil
-        end
-        return all_candidates unless tcc # Keine Tournament-Info → alle Candidates zurück (Disambiguation)
-
-        tournament_name = tcc.name.to_s.strip
-        return all_candidates if tournament_name.blank?
-
-        # Exact-Match (case-insensitive)
-        exact_matches = all_candidates.select { |c| c[:name].casecmp?(tournament_name) }
-        return exact_matches if exact_matches.any?
-
-        # Substring-Match (case-insensitive; beidseitig — Meldeliste-Title enthält Tournament-Name oder umgekehrt)
-        substring_matches = all_candidates.select do |c|
-          name = c[:name].to_s.downcase
-          tn = tournament_name.downcase
-          name.include?(tn) || tn.include?(name)
-        end
-        substring_matches
+        match_candidates_by_name(all_candidates, tournament_cc_id, match_name: match_name, server_context: server_context)
       rescue McpServer::CcSession::SessionRecoveryFailed
         raise  # propagiert nach oben → self.call rescue-Klausel
       rescue => e
         Rails.logger.warn "[LookupMeldelisteForTournament.fetch_from_sportwart_list] #{e.class}: #{e.message}"
         []
+      end
+
+      # 2026-09-15 (Live-Befund 1. NordCup FP, tournament_cc_id=1051): Die CC-Turnierseite
+      # (meisterschaft/showMeldeliste.php …-<tcc>-2) nennt die mit dem Turnier verknüpfte
+      # Meldeliste beim Namen. Das ist die belastbare Verknüpfung: TournamentCc.name weicht oft ab
+      # (Saison-Klon kürzt „Freie Partie" → „FP"), und der Teilstring-Match griff dort eine fremde
+      # „… TEST"-Liste. Braucht den vollen Scope (fed/branch/season), sonst nil.
+      def self.fetch_linked_meldeliste_name(tournament_cc_id, fed_cc_id:, branch_cc_id:, season:, server_context: nil)
+        return nil if [fed_cc_id, branch_cc_id, season].any?(&:blank?)
+
+        p_param = "#{fed_cc_id}-#{branch_cc_id}-*-#{season}-*--#{tournament_cc_id}-2"
+        res, doc = cc_session.with_session_recovery(server_context: server_context) do |client, sid|
+          client.get("meisterschaft-showMeldeliste", {p: p_param}, {session_id: sid})
+        end
+        return nil if res.nil? || res.code != "200"
+
+        cc_detail_value(doc, "Meldeliste")
+      rescue McpServer::CcSession::SessionRecoveryFailed
+        raise
+      rescue => e
+        Rails.logger.warn "[LookupMeldelisteForTournament.fetch_linked_meldeliste_name] #{e.class}: #{e.message}"
+        nil
+      end
+
+      # Wählt aus den Meldelisten-Kandidaten die zum Turnier passende(n):
+      #   - match_name (verknüpfte Liste laut CC-Turnierseite) gesetzt → nur exakter Namenstreffer,
+      #     sonst [] — kein Raten, wenn die CC die Liste benennt.
+      #   - sonst gegen TournamentCc.name (Context-Pflicht, D-14-02-D): exakt, ersatzweise Teilstring
+      #     (beidseitig). Teilstring-Treffer tragen match: "substring" → call verlangt Bestätigung.
+      #   - ohne TournamentCc/Namen → alle Kandidaten (Disambiguation).
+      def self.match_candidates_by_name(candidates, tournament_cc_id, match_name:, server_context:)
+        target = match_name.to_s.squish.presence
+        unless target
+          context = effective_cc_region(server_context).to_s.downcase
+          tcc = begin
+            context.present? ? TournamentCc.find_by(cc_id: tournament_cc_id, context: context) : TournamentCc.find_by(cc_id: tournament_cc_id)
+          rescue
+            nil
+          end
+          target = tcc&.name.to_s.squish.presence
+          return candidates unless target
+        end
+
+        exact = candidates.select { |c| c[:name].to_s.squish.casecmp?(target) }
+        return exact if exact.any? || match_name.present?
+
+        tn = target.downcase
+        candidates.select { |c|
+          name = c[:name].to_s.squish.downcase
+          name.include?(tn) || tn.include?(name)
+        }.map { |c| c.merge(match: "substring") }
+      end
+
+      # Einziger Kandidat nur per Namens-Ähnlichkeit (keine Verknüpfung aus der CC) — nicht als
+      # aufgelöst ausgeben; Live-Befund: so landete eine Meldung in einer fremden TEST-Liste.
+      def self.unconfirmed_match_response(candidate)
+        text(<<~OUT.strip)
+          meldeliste_cc_id: (unresolved — Bestätigung nötig)
+          warning: Nur Namens-Ähnlichkeit, keine Verknüpfung aus der ClubCloud: Meldeliste "#{candidate[:name]}" (meldeliste_cc_id=#{candidate[:meldeliste_cc_id]}). NICHT ohne Rückfrage verwenden — erst beim User bestätigen lassen, dass das die Meldeliste dieses Turniers ist.
+          candidates: #{[candidate].inspect}
+        OUT
       end
     end
   end

@@ -431,6 +431,15 @@ module McpServer
         TournamentCc.find_by(cc_id: cc_id.to_i, context: context)
       end
 
+      # Wert eines CC-Detailfelds: Zeile „<td>Label[:]</td> … <td class='white'>Wert</td>" —
+      # so zeigen Turnierseite (meisterschaft/showMeldeliste) und Meldelisten-Kopf (showMeldeliste)
+      # z. B. „Meldeliste" und „Meldeschluss". nil, wenn das Feld fehlt.
+      def self.cc_detail_value(doc, label)
+        return nil unless doc.respond_to?(:css)
+        cell = doc.css("td").find { |td| td.text.squish.delete_suffix(":").strip == label }
+        cell&.parent&.at_css("td.white")&.text.to_s.squish.presence
+      end
+
       # Plan 14-02.3 / F-7: Season-Default-Helper. Tournament-Lookup/List-Tools filtern
       # by-default auf die aktuelle Saison; optional via override-Parameter umschaltbar.
       # Saison-Modell: Season.current_season existiert bereits in app/models/season.rb

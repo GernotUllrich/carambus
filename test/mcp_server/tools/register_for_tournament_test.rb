@@ -249,6 +249,40 @@ class McpServer::Tools::RegisterForTournamentTest < ActiveSupport::TestCase
     assert_equal true, result[:ok]
   end
 
+  # 2026-09-15 (bcw live): Meldung in Liste mit Meldeschluss 09.09. lief als „deadline_offen: ok" durch —
+  # die alte Prüfung ging über TournamentCc.meldeliste_cc_id (im Mirror nil). Jetzt: Listenkopf live.
+  def stub_meldeliste_header(deadline)
+    body = File.read(Rails.root.join("test/fixtures/cc/meldeliste_header_deadline.html")).sub("MELDESCHLUSS_DATUM", deadline)
+    @mock.define_singleton_method(:get) do |action, get_options = {}, opts = {}|
+      @calls << [:get, action, get_options, opts]
+      [Struct.new(:code, :message, :body).new("200", "OK", body), Nokogiri::HTML(body)]
+    end
+  end
+
+  test "_validate_deadline_offen: Meldeschluss der Liste in der Vergangenheit → reject" do
+    stub_meldeliste_header("09.09.2026")
+    travel_to Date.new(2026, 9, 15) do
+      result = McpServer::Tools::RegisterForTournament.send(:_validate_deadline_offen, 1349, 20, 10, "2026/2027")
+      assert_equal false, result[:ok]
+      assert_match(/09\.09\.2026/, result[:reason])
+    end
+    assert_equal [:get, "showMeldeliste", {p: "20|10|*|*|2026/2027|1349"}], @mock.calls.first.first(3)
+  end
+
+  test "_validate_deadline_offen: Meldeschluss heute oder später → ok" do
+    stub_meldeliste_header("15.09.2026")
+    travel_to Date.new(2026, 9, 15) do
+      assert_equal true, McpServer::Tools::RegisterForTournament.send(:_validate_deadline_offen, 1349, 20, 10, "2026/2027")[:ok]
+    end
+  end
+
+  test "_validate_deadline_offen: Dry-Run macht keinen CC-Call" do
+    stub_meldeliste_header("09.09.2026")
+    result = McpServer::Tools::RegisterForTournament.send(:_validate_deadline_offen, 1349, 20, 10, "2026/2027", armed: false)
+    assert_equal true, result[:ok]
+    assert_empty @mock.calls
+  end
+
   # --- Plan 14-G.13 (Quick 260516-x7g) Multi-Player-Save-Fix: Tests M1-M8 ---
   #
   # Bug: sequenzielle N×(add+save) verlieren Buffer-Adds — jeder save flusht den Edit-Buffer

@@ -170,7 +170,7 @@ module McpServer
         validation_result = run_validations([
           _validate_meldeliste_exists(meldeliste_cc_id),
           _validate_meldeliste_non_finalized(meldeliste_cc_id),
-          _validate_deadline_offen(meldeliste_cc_id),
+          _validate_deadline_offen(meldeliste_cc_id, fed_id, branch_cc_id, season, armed: armed, server_context: server_context),
           *per_player_results,
           _validate_scope_konsistent(meldeliste_cc_id, fed_id, branch_cc_id, season)
         ])
@@ -439,15 +439,24 @@ module McpServer
         {name: "meldeliste_non_finalized", ok: true}
       end
 
-      # Constraint 3/7: Deadline-offen (accredation_end >= today).
-      def self._validate_deadline_offen(meldeliste_cc_id)
-        # Plan 23-01 T3e: TCc-direct (war RL → tournament_cc → tournament-Chain).
-        tournament_cc = TournamentCc.find_by(meldeliste_cc_id: meldeliste_cc_id)
-        tournament = tournament_cc&.tournament
-        if tournament&.accredation_end
-          if tournament.accredation_end < Date.today
-            return {name: "deadline_offen", ok: false, reason: "accredation_end=#{tournament.accredation_end.iso8601} ist in der Vergangenheit (today=#{Date.today.iso8601})"}
-          end
+      # Constraint 3/7: Meldeschluss der Meldeliste nicht überschritten — live aus dem Listenkopf
+      # (showMeldeliste). 2026-09-15: vorher über TournamentCc.meldeliste_cc_id, das im Mirror
+      # praktisch immer nil ist → die Prüfung lief nie (Meldung in Liste mit Meldeschluss 09.09. „ok").
+      # Nur im armed-Pfad (Dry-Run macht keinen CC-Call). Defensive: Scope unvollständig /
+      # Seite nicht lesbar → ok:true.
+      def self._validate_deadline_offen(meldeliste_cc_id, fed_id, branch_cc_id, season, armed: true, server_context: nil)
+        return {name: "deadline_offen", ok: true} if !armed || [meldeliste_cc_id, fed_id, branch_cc_id, season].any?(&:blank?)
+
+        _res, doc = cc_session.with_session_recovery(server_context: server_context) do |client, sid|
+          client.get("showMeldeliste", {p: "#{fed_id}|#{branch_cc_id}|*|*|#{season}|#{meldeliste_cc_id}"}, {session_id: sid})
+        end
+        deadline = begin
+          Date.strptime(cc_detail_value(doc, "Meldeschluss").to_s, "%d.%m.%Y")
+        rescue Date::Error
+          nil
+        end
+        if deadline && deadline < Date.current
+          return {name: "deadline_offen", ok: false, reason: "Meldeschluss der Meldeliste #{meldeliste_cc_id} war am #{deadline.strftime("%d.%m.%Y")} (für eine Nachmeldung zuerst den Meldeschluss verlängern)"}
         end
         {name: "deadline_offen", ok: true}
       rescue => e

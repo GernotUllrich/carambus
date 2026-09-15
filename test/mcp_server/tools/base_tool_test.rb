@@ -726,4 +726,18 @@ class McpServer::Tools::BaseToolTest < ActiveSupport::TestCase
       assert_match(/nicht zuständig/i, denied.content.first[:text])
     end
   end
+
+  test "cc_detail_value liest Detailfelder der Turnierseite und des Meldelisten-Kopfs" do
+    turnier = Nokogiri::HTML(File.read(Rails.root.join("test/fixtures/cc/meisterschaft_showmeldeliste_linked.html")))
+    assert_equal "1. NordCup FP", McpServer::Tools::BaseTool.cc_detail_value(turnier, "Meldeliste")
+    assert_equal "23.09.2026", McpServer::Tools::BaseTool.cc_detail_value(turnier, "Meldeschluss")
+
+    kopf = Nokogiri::HTML(File.read(Rails.root.join("test/fixtures/cc/meldeliste_header_deadline.html")))
+    assert_equal "Grand Prix (0-999)", McpServer::Tools::BaseTool.cc_detail_value(kopf, "Kategorie"), "Label mit Doppelpunkt"
+  end
+
+  test "cc_detail_value: nil bei fehlendem Feld oder ohne Dokument" do
+    assert_nil McpServer::Tools::BaseTool.cc_detail_value(Nokogiri::HTML("<html><body>MOCK</body></html>"), "Meldeliste")
+    assert_nil McpServer::Tools::BaseTool.cc_detail_value(nil, "Meldeliste")
+  end
 end
