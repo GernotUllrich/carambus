@@ -47,6 +47,9 @@
 #                bestehenden Checkout)
 config/credentials/*.key
 config/credentials/*.yml.enc
+# Rotations-Backups (*.key.bak.<ts>, *.yml.enc.bak.<ts>) — die Muster oben greifen
+# wegen der Endung NICHT, ein `git add -A` wuerde sie sonst einchecken.
+config/credentials/*.bak.*
 
 # Lokale, szenario-generierte Konfiguration — gehoert nicht ins Repo. Commit 8e21a8f6 hat
 # beide bereits aus dem Tracking genommen ("should not be saved to repository"), die
