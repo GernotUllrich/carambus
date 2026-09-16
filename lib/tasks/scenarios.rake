@@ -130,6 +130,16 @@ namespace :scenario do
     push_credentials_to_server(scenario_name, write: ENV['WRITE'] == 'true', restart: ENV['RESTART'] == 'true')
   end
 
+  desc "Tote Credential-Einträge (omniauth, access_token_encryption_key) vom Server entfernen — sie tragen verbrannte Werte, werden aber nirgends gelesen. DRY-RUN default; WRITE=true (+RESTART=true). Usage: rake scenario:strip_dead_credentials[<name>]"
+  task :strip_dead_credentials, [:scenario_name] => :environment do |_, args|
+    if args[:scenario_name].to_s.empty?
+      puts "Usage: rake scenario:strip_dead_credentials[<name>]   (WRITE=true zum Schreiben, RESTART=true für Puma-Neustart)"
+      exit 1
+    end
+    strip_dead_credentials_on_server(args[:scenario_name], write: ENV['WRITE'] == 'true',
+      restart: ENV['RESTART'] == 'true')
+  end
+
   desc "Sperrliste verbrannter Geheimnisse (lib/credential_denylist.yml) aus der öffentlichen Git-Historie neu aufbauen — speichert nur SHA256, nie Werte. DRY-RUN default; WRITE=true schreibt. Usage: rake scenario:build_credential_denylist"
   task :build_credential_denylist, [:dummy] => :environment do |_, _args|
     build_credential_denylist(write: ENV['WRITE'] == 'true')
@@ -1276,6 +1286,86 @@ namespace :scenario do
     puts "   Abbruch. Betroffene Werte in carambus_data/secrets.yml ersetzen (beim Anbieter neu"
     puts "   ausstellen), dann erneut ausführen. Notfall-Übergehung: ALLOW_PUBLIC=true."
     false
+  end
+
+  # Tote Credential-Einträge aus der Rails-Vorlage: Sie tragen Werte aus der öffentlichen
+  # Historie, werden aber nirgends gelesen. Belegt am 2026-09-16: kein omniauth-Gem im Gemfile,
+  # kein `omniauthable` am User-Modell, keine einzige Codestelle zu access_token_encryption_key.
+  # Rotieren waere sinnlos — sie gehoeren weg, sonst blockiert die Sperrliste jeden Deploy.
+  DEAD_CREDENTIAL_KEYS = %w[omniauth access_token_encryption_key].freeze
+
+  # Server-seitiger Runner für scenario:strip_dead_credentials.
+  def dead_credentials_runner_script
+    <<~'RUBY'
+      require "yaml"; require "fileutils"
+      mode = ARGV[0].to_s
+      dead = ARGV[1].to_s.split(",")
+      path = "config/credentials/production.yml.enc"
+      keyp = "config/credentials/production.key"
+      enc = ActiveSupport::EncryptedConfiguration.new(config_path: path, key_path: keyp,
+              env_key: "RAILS_MASTER_KEY", raise_if_missing_key: true)
+      cur = YAML.safe_load(enc.read.to_s, permitted_classes: [Symbol], aliases: true) || {}
+      present = dead.select { |k| cur.key?(k) }
+      puts "  vorhanden: #{present.empty? ? '-' : present.join(', ')}"
+      if present.empty?
+        puts "  nichts zu tun."
+        exit 0
+      end
+      merged = cur.reject { |k, _| dead.include?(k) }
+      keep = lambda { |h| [h["secret_key_base"], h["active_record_encryption"], h["devise_jwt_secret_key"]] }
+      abort("ABBRUCH: fragile Keys wuerden sich aendern - nichts geschrieben.") unless keep.call(merged) == keep.call(cur)
+      puts "  verbleibende Top-Level-Keys: #{merged.keys.size} (vorher #{cur.keys.size})"
+      if mode == "write"
+        bak = "#{path}.bak.#{Time.now.strftime('%Y%m%d%H%M%S')}"
+        FileUtils.cp(path, bak)
+        enc.write(merged.to_yaml)
+        puts "  WRITE ok - entfernt: #{present.join(', ')} - Backup: #{bak}"
+      else
+        puts "  DRY-RUN - nichts geschrieben (WRITE=true zum Schreiben)."
+      end
+    RUBY
+  end
+
+  # scenario:strip_dead_credentials — tote Einträge in-place auf dem Server entfernen.
+  def strip_dead_credentials_on_server(scenario_name, write:, restart:)
+    cfg_file = File.join(scenarios_path, scenario_name, 'config.yml')
+    unless File.exist?(cfg_file)
+      puts "❌ config.yml nicht gefunden: #{cfg_file}"; return false
+    end
+    cfg = YAML.load_file(cfg_file)
+    prod = cfg.dig('environments', 'production') || {}
+    ssh_host = prod['ssh_host']; ssh_port = prod['ssh_port'] || 22
+    deploy_to = prod['deploy_to'] || "/var/www/#{scenario_name}"
+    if ssh_host.to_s.strip.empty?
+      puts "❌ ssh_host fehlt in #{scenario_name} (environments.production)"; return false
+    end
+    puts "── strip_dead_credentials #{scenario_name} #{write ? '(WRITE)' : '(DRY-RUN)'} → #{ssh_host}:#{ssh_port} ──"
+    puts "   Kandidaten: #{DEAD_CREDENTIAL_KEYS.join(', ')}"
+
+    require 'tmpdir'
+    Dir.mktmpdir do |tmp|
+      run_file = File.join(tmp, 'carambus_strip_dead.rb')
+      File.write(run_file, dead_credentials_runner_script)
+      base = "ssh -p #{ssh_port} www-data@#{ssh_host}"
+      unless system("scp -P #{ssh_port} #{run_file} www-data@#{ssh_host}:/tmp/")
+        puts "❌ scp fehlgeschlagen"; return false
+      end
+      rbenv = "RBENV_ROOT=/var/www/.rbenv PATH=/var/www/.rbenv/shims:$PATH RBENV_VERSION=3.2.1 RAILS_ENV=production"
+      ok = system("#{base} 'cd #{deploy_to}/current && #{rbenv} bundle exec rails runner /tmp/carambus_strip_dead.rb " \
+                  "#{write ? 'write' : 'dry'} #{DEAD_CREDENTIAL_KEYS.join(',')}'")
+      system("#{base} 'rm -f /tmp/carambus_strip_dead.rb'")
+      unless ok
+        puts "❌ Runner meldete Fehler / Abbruch — nichts geschrieben."; return false
+      end
+      if write && restart
+        svc = "puma-#{prod['basename'] || cfg.dig('scenario', 'basename') || scenario_name}"
+        puts "   Puma-Restart: #{svc}"
+        system("#{base} 'sudo systemctl restart #{svc}'")
+      elsif write
+        puts "   ⚠️  Puma NICHT neugestartet (RESTART=true zum Anwenden)."
+      end
+    end
+    true
   end
 
   # Wache für Wege, die eine lokale .enc unverändert hochladen (prepare_deploy). Nicht lesbar
