@@ -2050,6 +2050,18 @@ ENV
       duckdns_hosts = "  # Allow requests from DuckDNS domain\n  config.hosts << \"#{duckdns_domain}\"\n  config.hosts << \"#{duckdns_domain}:#{webserver_port}\""
     end
 
+    # LAN-Subnetz (config.yml: lan_subnet, optional, Einzelwert oder Liste). Feste Adressen in
+    # der hosts-Liste altern: Der Pi in carambus_phat wechselte am 2026-09-16 von der WLAN- auf
+    # die LAN-Adresse, der Eintrag zeigte danach ins Leere. Ein Subnetz deckt jede Adresse ab,
+    # die der Router vergibt — für Geräte im Clubnetz, die den mDNS-Namen nicht auflösen.
+    lan_subnets = Array(env_config['lan_subnet']).compact.reject { |s| s.to_s.strip.empty? }
+    lan_subnet_hosts = ""
+    unless lan_subnets.empty?
+      lines = lan_subnets.map { |s| "  config.hosts << IPAddr.new(\"#{s}\")" }
+      lan_subnet_hosts = "  # Allow requests from the local network (DHCP vergibt wechselnde Adressen)\n" \
+                         "  require \"ipaddr\"\n#{lines.join("\n")}"
+    end
+
     content = <<~'RUBY'
 require "active_support/core_ext/integer/time"
 
@@ -2186,6 +2198,7 @@ Rails.application.configure do
   config.hosts << "localhost:#{webserver_port}"
 #{raspberry_pi_hosts}
 #{duckdns_hosts}
+#{lan_subnet_hosts}
 
   # Allow Action Cable access from any origin in production
   config.action_cable.disable_request_forgery_protection = true
@@ -2211,6 +2224,7 @@ RUBY
                     .gsub('#{webserver_host}', webserver_host)
                     .gsub('#{raspberry_pi_hosts}', raspberry_pi_hosts)
                     .gsub('#{duckdns_hosts}', duckdns_hosts)
+                    .gsub('#{lan_subnet_hosts}', lan_subnet_hosts)
                     .gsub('#{port_clause}', port_clause)
                     .gsub('#{basename}', basename)
 
