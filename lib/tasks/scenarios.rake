@@ -137,7 +137,7 @@ namespace :scenario do
       exit 1
     end
     strip_dead_credentials_on_server(args[:scenario_name], write: ENV['WRITE'] == 'true',
-      restart: ENV['RESTART'] == 'true')
+      restart: ENV['RESTART'] == 'true', extra_keys: ENV['KEYS'].to_s.split(',').map(&:strip).reject(&:empty?))
   end
 
   desc "Sperrliste verbrannter Geheimnisse (lib/credential_denylist.yml) aus der öffentlichen Git-Historie neu aufbauen — speichert nur SHA256, nie Werte. DRY-RUN default; WRITE=true schreibt. Usage: rake scenario:build_credential_denylist"
@@ -1327,7 +1327,7 @@ namespace :scenario do
   end
 
   # scenario:strip_dead_credentials — tote Einträge in-place auf dem Server entfernen.
-  def strip_dead_credentials_on_server(scenario_name, write:, restart:)
+  def strip_dead_credentials_on_server(scenario_name, write:, restart:, extra_keys: [])
     cfg_file = File.join(scenarios_path, scenario_name, 'config.yml')
     unless File.exist?(cfg_file)
       puts "❌ config.yml nicht gefunden: #{cfg_file}"; return false
@@ -1339,8 +1339,11 @@ namespace :scenario do
     if ssh_host.to_s.strip.empty?
       puts "❌ ssh_host fehlt in #{scenario_name} (environments.production)"; return false
     end
+    # KEYS=…: Gruppen, die DIESES Szenario nicht deklariert und deshalb nie mitrotiert wurden
+    # (train hat kein `scraping` → youtube/kozoom liegen dort seit dem Leak unverändert).
+    keys = (DEAD_CREDENTIAL_KEYS + extra_keys).uniq
     puts "── strip_dead_credentials #{scenario_name} #{write ? '(WRITE)' : '(DRY-RUN)'} → #{ssh_host}:#{ssh_port} ──"
-    puts "   Kandidaten: #{DEAD_CREDENTIAL_KEYS.join(', ')}"
+    puts "   Kandidaten: #{keys.join(', ')}"
 
     require 'tmpdir'
     Dir.mktmpdir do |tmp|
@@ -1352,7 +1355,7 @@ namespace :scenario do
       end
       rbenv = "RBENV_ROOT=/var/www/.rbenv PATH=/var/www/.rbenv/shims:$PATH RBENV_VERSION=3.2.1 RAILS_ENV=production"
       ok = system("#{base} 'cd #{deploy_to}/current && #{rbenv} bundle exec rails runner /tmp/carambus_strip_dead.rb " \
-                  "#{write ? 'write' : 'dry'} #{DEAD_CREDENTIAL_KEYS.join(',')}'")
+                  "#{write ? 'write' : 'dry'} #{keys.join(',')}'")
       system("#{base} 'rm -f /tmp/carambus_strip_dead.rb'")
       unless ok
         puts "❌ Runner meldete Fehler / Abbruch — nichts geschrieben."; return false
