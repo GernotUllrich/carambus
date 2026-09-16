@@ -46,5 +46,74 @@ module TournamentPreparation
 
       assert_equal 1234, cloner(opts: {tpid: 1234}).send(:resolve_tpid, tc)
     end
+
+    # ── Rückleseprüfung des Turnierplans ──────────────────────────────────────
+    #
+    # Der Guard oben verhindert, dass eine LEERE cc_id gesendet wird. Er kann aber nicht
+    # wissen, ob die gesendete ID in DIESER ClubCloud gilt — fremde Verbände vergeben eigene
+    # Nummern, und die CC speichert eine unbekannte tpid stillschweigend. Deshalb wird der
+    # gesetzte Plan nach dem Anlegen von der Detailseite zurueckgelesen.
+
+    # Liefert genau das, was RegionCc#get_cc liefert: [response, Nokogiri-Doc].
+    RegionCcDouble = Struct.new(:html) do
+      def get_cc(_action, _opts = {}, _o = {})
+        [nil, Nokogiri::HTML(html)]
+      end
+    end
+
+    def detail_page(plan_html)
+      <<~HTML
+        <table><tr class="tableContent"><td><table>
+          <tr><td>Datum</td><td></td><td>19.09.2026</td></tr>
+          <tr><td>Turnierplan</td><td></td><td>#{plan_html}</td></tr>
+        </table></td></tr></table>
+      HTML
+    end
+
+    test "passender Turnierplan wird als verifiziert gemeldet" do
+      region_cc = RegionCcDouble.new(detail_page("<b>CC: UNIVERSAL</b>"))
+
+      result = cloner.send(:verify_tournament_plan, region_cc, "20-1-2-3-4-5-942", "CC: UNIVERSAL")
+
+      assert_equal true, result[:ok]
+      assert_equal "CC: UNIVERSAL", result[:gelesen]
+    end
+
+    test "leeres Turnierplan-Feld ist ein Fehler — genau der Befund der Klon-Welle" do
+      region_cc = RegionCcDouble.new(detail_page(""))
+
+      result = cloner.send(:verify_tournament_plan, region_cc, "20-1-2-3-4-5-942", "CC: UNIVERSAL")
+
+      assert_equal false, result[:ok]
+      assert_nil result[:gelesen]
+      assert_match(/LEER/, result[:hinweis])
+    end
+
+    test "abweichender Turnierplan ist ein Fehler" do
+      region_cc = RegionCcDouble.new(detail_page("<b>DKO-016</b>"))
+
+      result = cloner.send(:verify_tournament_plan, region_cc, "20-1-2-3-4-5-942", "CC: UNIVERSAL")
+
+      assert_equal false, result[:ok]
+      assert_equal "DKO-016", result[:gelesen]
+      assert_match(/anderen Plan/, result[:hinweis])
+    end
+
+    test "ohne p-Parameter ist die Pruefung nicht moeglich, aber kein Fehler" do
+      result = cloner.send(:verify_tournament_plan, RegionCcDouble.new(detail_page("<b>x</b>")), nil, "CC: UNIVERSAL")
+
+      assert_nil result[:ok]
+      assert_match(/Detailseite/, result[:hinweis])
+    end
+
+    test "bei tpid-Override wird gelesen, aber nicht bewertet" do
+      region_cc = RegionCcDouble.new(detail_page("<b>DKO-016</b>"))
+
+      result = cloner.send(:verify_tournament_plan, region_cc, "20-1-2-3-4-5-942", nil)
+
+      assert_nil result[:ok]
+      assert_equal "DKO-016", result[:gelesen]
+      assert_match(/kein Sollwert/, result[:hinweis])
+    end
   end
 end

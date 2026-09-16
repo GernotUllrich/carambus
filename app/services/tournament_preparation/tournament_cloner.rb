@@ -17,7 +17,7 @@ module TournamentPreparation
   #
   # ⚠️ ACHTUNG, armed:true MUTIERT DIE CLUBCLOUD: createMeisterschaftSave wird abgesetzt
   #    (der frühere Hinweis "POST zurückgehalten" war überholt). Duplikat-Schutz ist ein
-  #    Titel-Match in der Ziel-Saison (read_meisterschaft_cc_id) — er greift NICHT, wenn
+  #    Titel-Match in der Ziel-Saison (read_meisterschaft_ref) — er greift NICHT, wenn
   #    das bereits angelegte Turnier inzwischen umbenannt wurde. Ein Re-Run gegen eine
   #    Saison, deren Turniere schon veröffentlicht sind, ist daher nur mit vorherigem
   #    dry_run-Abgleich vertretbar.
@@ -70,6 +70,10 @@ module TournamentPreparation
 
       cc_opts = @opts.merge(armed: @armed)
 
+      # Sollwert der Rückleseprüfung: der Plan des Quell-Turniers. Bei bewusstem tpid-Override
+      # gibt es keinen Sollwert — dann wird gelesen und berichtet, aber nicht bewertet.
+      expected_plan_name = @opts[:tpid].present? ? nil : tournament_cc.tournament_plan_cc&.name
+
       meldeliste_args = build_meldeliste_args(region, branch_cc, target_season, new_start, deadline_date, cat)
       meisterschaft_args = build_meisterschaft_args(region, branch_cc, target_season, new_start, new_end, melde_list_id: nil)
 
@@ -77,7 +81,8 @@ module TournamentPreparation
         return {
           dry_run: true, target_season: target_season.name, new_start: new_start, new_end: new_end,
           selected_cat_id: cat, meldeliste_args: meldeliste_args, meisterschaft_args: meisterschaft_args,
-          meldeliste_cc_id: nil, meldeliste_created: nil, release_requested: @release, meisterschaft_status: "DRY-RUN (keine CC-Mutation)"
+          meldeliste_cc_id: nil, meldeliste_created: nil, release_requested: @release,
+          turnierplan_erwartet: expected_plan_name, meisterschaft_status: "DRY-RUN (keine CC-Mutation)"
         }
       end
 
@@ -116,27 +121,48 @@ module TournamentPreparation
       end
 
       # Idempotenz (Bulk/Re-Run): existiert die Meisterschaft schon? Dann NICHT neu anlegen (kein Duplikat).
-      existing_meister = read_meisterschaft_cc_id(region_cc, region, branch_cc, target_season)
+      existing_meister, existing_pparam = read_meisterschaft_ref(region_cc, region, branch_cc, target_season)
       if existing_meister
+        plan_check = verify_tournament_plan(region_cc, existing_pparam, expected_plan_name)
         return base.merge(meisterschaft_cc_id: existing_meister, verbergen_abgesetzt: false,
-          meisterschaft_status: "SKIP — Meisterschaft existiert bereits (meisterschaftsId=#{existing_meister}), nicht neu angelegt")
+          turnierplan_check: plan_check,
+          meisterschaft_status: "SKIP — Meisterschaft existiert bereits (meisterschaftsId=#{existing_meister}), nicht neu angelegt" \
+                                "#{plan_check[:ok] == false ? " — ⚠️ #{plan_check[:hinweis]}" : ""}")
       end
 
       # Meisterschaft: Check (Prep) → Save → Read meisterschaftsId → Auto-Verbergen (sofort öffentlich!).
       region_cc.post_cc("createMeisterschaftCheck", meisterschaft_opener_args(region, branch_cc, target_season), cc_opts)
       region_cc.post_cc("createMeisterschaftCheck", meisterschaft_args, cc_opts)
       region_cc.post_cc("createMeisterschaftSave", meisterschaft_args, cc_opts)
-      meister_cc_id = read_meisterschaft_cc_id(region_cc, region, branch_cc, target_season)
+      meister_cc_id, pparam = read_meisterschaft_ref(region_cc, region, branch_cc, target_season)
       verbergen = false
       if meister_cc_id
         region_cc.post_cc("cc_turnier_status", cc_turnier_status_args(region, branch_cc, target_season, meister_cc_id, meisterschaft_args[:meisterTypeId]), cc_opts)
         verbergen = true
       end
 
+      # Turnierplan zurücklesen, BEVOR "CREATED" gemeldet wird: eine unbekannte tpid speichert
+      # die CC stillschweigend (10.07.2026: 36 Turniere ohne Plan). Erfolg heißt hier deshalb
+      # "Plan steht", nicht "POST ist durch".
+      plan_check = meister_cc_id ? verify_tournament_plan(region_cc, pparam, expected_plan_name) : nil
+
+      status =
+        if meister_cc_id.nil?
+          "createMeisterschaftSave abgesetzt, meisterschaftsId nicht rücklesbar"
+        elsif plan_check[:ok] == false
+          "FEHLER — Meisterschaft #{meister_cc_id} angelegt, aber Turnierplan stimmt nicht: #{plan_check[:hinweis]} " \
+          "(erwartet #{plan_check[:erwartet].inspect}, gelesen #{plan_check[:gelesen].inspect}, gesendete tpid=#{meisterschaft_args[:tpid]})"
+        elsif plan_check[:ok].nil?
+          "CREATED (meisterschaftsId=#{meister_cc_id}) + Verbergen abgesetzt — Turnierplan NICHT prüfbar (#{plan_check[:hinweis]})"
+        else
+          "CREATED (meisterschaftsId=#{meister_cc_id}) + Verbergen abgesetzt — Turnierplan #{plan_check[:gelesen].inspect} verifiziert"
+        end
+
       base.merge(
         meisterschaft_cc_id: meister_cc_id,
         verbergen_abgesetzt: verbergen,
-        meisterschaft_status: (meister_cc_id ? "CREATED (meisterschaftsId=#{meister_cc_id}) + cc_turnier_status(Verbergen) abgesetzt — Verbergen am Read-Back prüfen" : "createMeisterschaftSave abgesetzt, meisterschaftsId nicht rücklesbar")
+        turnierplan_check: plan_check,
+        meisterschaft_status: status
       )
     end
 
@@ -301,16 +327,57 @@ module TournamentPreparation
 
     # Neue meisterschaftsId per Wildcard-Listing lesen: cc_id = Dash-Segment[6] im
     # showMeisterschaft.php-Link (Vorbild TournamentSyncer). Match per Name.
-    def read_meisterschaft_cc_id(region_cc, region, branch_cc, target_season)
+    # Liefert [cc_id, p-Parameter] — der p-Wert ist der Schlüssel zur Detailseite
+    # (showMeisterschaft), die als einzige Quelle den gesetzten Turnierplan NENNT.
+    def read_meisterschaft_ref(region_cc, region, branch_cc, target_season)
       args = {fedId: region.cc_id, branchId: branch_cc.cc_id, disciplinId: "*", catId: "*",
               meisterTypeId: "*", season: target_season.name, t: 1}
       _, doc = region_cc.post_cc("showMeisterschaftenList", args, @opts.merge(armed: @armed))
-      return nil unless doc
+      return [nil, nil] unless doc
       link = doc.css("a").find { |a| a.text.to_s.strip == @src.title.to_s }
-      return nil unless link
+      return [nil, nil] unless link
       pparam = link["href"].to_s[/[?&]p=([^&]+)/, 1]
-      return nil unless pparam
-      pparam.split("-")[6]&.to_i&.nonzero?
+      return [nil, nil] unless pparam
+      [pparam.split("-")[6]&.to_i&.nonzero?, pparam]
+    end
+
+    # Rückleseprüfung des Turnierplans (2026-09-16).
+    #
+    # Die ClubCloud SPEICHERT eine unbekannte tpid, statt sie abzulehnen — der Klon meldet also
+    # auch dann Erfolg, wenn der Plan gar nicht gesetzt wurde. Genau so entstanden am 10.07.2026
+    # 36 Turniere ohne Turnierplan, die CC-seitig nur durch Neuanlage zu reparieren sind.
+    #
+    # Die Detailseite führt keine ID, wohl aber den NAMEN (`<td>Turnierplan</td>…<b>NAME</b>`,
+    # Parser-Vorbild: RegionCc::TournamentSyncer). Leeres Feld = tpid war in dieser CC ungültig.
+    # Damit ist die Prüfung auch in einem fremden Verband aussagekräftig, dessen ID-Vergabe wir
+    # nicht kennen: Statt den IDs zu vertrauen, lesen wir das Ergebnis zurück.
+    #
+    # Liefert {ok:, erwartet:, gelesen:, hinweis:}; ok=nil heißt „nicht prüfbar" (Seite nicht
+    # lesbar) — das ist bewusst kein Fehler, aber auch keine Bestätigung.
+    def verify_tournament_plan(region_cc, pparam, expected_plan_name)
+      return {ok: nil, erwartet: expected_plan_name, gelesen: nil, hinweis: "kein p-Parameter — Detailseite nicht aufrufbar"} if pparam.blank?
+
+      _, doc = region_cc.get_cc("showMeisterschaft", {p: pparam}, @opts.merge(armed: @armed))
+      return {ok: nil, erwartet: expected_plan_name, gelesen: nil, hinweis: "Detailseite nicht lesbar"} unless doc
+
+      row = doc.css("tr.tableContent > td > table > tr").find do |tr|
+        tr.css("td")[0]&.text.to_s.strip == "Turnierplan"
+      end
+      gelesen = row&.css("td")&.[](2)&.css("b")&.text.to_s.strip
+
+      if expected_plan_name.blank?
+        {ok: nil, erwartet: nil, gelesen: gelesen.presence,
+         hinweis: "tpid wurde per opts übergeben — kein Sollwert, nur gelesen"}
+      elsif gelesen.blank?
+        {ok: false, erwartet: expected_plan_name, gelesen: nil,
+         hinweis: "Turnierplan-Feld LEER — die gesendete tpid ist in dieser ClubCloud unbekannt. " \
+                  "Das Turnier ist CC-seitig nur durch Neuanlage zu reparieren."}
+      elsif gelesen == expected_plan_name
+        {ok: true, erwartet: expected_plan_name, gelesen: gelesen, hinweis: nil}
+      else
+        {ok: false, erwartet: expected_plan_name, gelesen: gelesen,
+         hinweis: "Turnierplan weicht ab — die tpid zeigt in dieser ClubCloud auf einen anderen Plan."}
+      end
     end
 
     # cc_turnier_status = "Verbergen" (HAR entry 56) — Meisterschaft ist nach save sofort öffentlich.
