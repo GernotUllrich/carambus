@@ -1278,6 +1278,20 @@ namespace :scenario do
     false
   end
 
+  # Wache für Wege, die eine lokale .enc unverändert hochladen (prepare_deploy). Nicht lesbar
+  # heißt Abbruch: eine .enc, die sich nicht entschlüsseln lässt, ist ohnehin kein Stand, den
+  # man auf einen Server legen will.
+  def assert_no_public_credentials_in_store!(credentials_dir, scenario_name)
+    load File.expand_path('../scenario_credentials.rb', __dir__) unless defined?(ScenarioCredentials)
+    store = ScenarioCredentials::Store.new(credentials_dir)
+    return true unless store.key? && store.enc?
+
+    assert_no_public_credentials!(store.read, "prepare_deploy #{scenario_name} (lokale Credentials)")
+  rescue StandardError => e
+    puts "   ⛔ Sperrlisten-Prüfung nicht möglich (#{e.class}: #{e.message.to_s[0, 120]}) — Upload abgebrochen."
+    false
+  end
+
   # scenario:build_credential_denylist — entschlüsselt die öffentlichen Credential-Stände
   # mit den ebenfalls öffentlichen Keys und schreibt deren SHA256 in die Sperrliste.
   def build_credential_denylist(write:)
@@ -4321,6 +4335,13 @@ ENV
     # Upload credentials
     credentials_dir = File.join(production_dir, 'credentials')
     if Dir.exist?(credentials_dir)
+      # prepare_deploy lädt die lokalen Dateien DIREKT hoch — ohne diese Wache ginge es an der
+      # Sperrliste vorbei (die nur in upload_credentials/push_credentials/generate_credentials
+      # hängt), und ein reguläres Deployment könnte eine Rotation still zurückdrehen: genau das
+      # ist am 2026-09-14 passiert. carambus_data bleibt stale, weil push_credentials NUR
+      # serverseitig merged.
+      return false unless assert_no_public_credentials_in_store!(credentials_dir, scenario_name)
+
       # Create credentials directory on server
       system("ssh -p #{ssh_port} www-data@#{ssh_host} 'mkdir -p #{shared_config_dir}/credentials'")
 
