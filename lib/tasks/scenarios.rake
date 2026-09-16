@@ -130,6 +130,11 @@ namespace :scenario do
     push_credentials_to_server(scenario_name, write: ENV['WRITE'] == 'true', restart: ENV['RESTART'] == 'true')
   end
 
+  desc "Sperrliste verbrannter Geheimnisse (lib/credential_denylist.yml) aus der öffentlichen Git-Historie neu aufbauen — speichert nur SHA256, nie Werte. DRY-RUN default; WRITE=true schreibt. Usage: rake scenario:build_credential_denylist"
+  task :build_credential_denylist, [:dummy] => :environment do |_, _args|
+    build_credential_denylist(write: ENV['WRITE'] == 'true')
+  end
+
   desc "active_record_encryption-Keys auf dem Server durch frische ersetzen — LEERT vorher die verschlüsselten Spalten (kein previous:, keine Re-Verschlüsselung). secret_key_base/devise_jwt bleiben → keine Session-Invalidierung. DRY-RUN default; WRITE=true (+CLEAR=true wenn Bestand da ist, +RESTART=true). Usage: rake scenario:rotate_ar_encryption[<name>]"
   task :rotate_ar_encryption, [:scenario_name] => :environment do |_, args|
     scenario_name = args[:scenario_name]
@@ -868,6 +873,7 @@ namespace :scenario do
     puts "   gemergte Gruppen: #{report.added.uniq.join(', ')}"
     puts "   resultierende Key-Struktur:"
     credential_key_paths(merged).each { |p| puts "     #{p}" }
+    return false unless assert_no_public_credentials!(merged, "#{scenario_name} [#{environment}]")
 
     if dry_run
       puts "   (DRY-RUN — nichts geschrieben. Schreiben mit WRITE=true)"
@@ -1048,6 +1054,9 @@ namespace :scenario do
     remote = remote_credentials_state(target) or return false
     puts "── upload_credentials #{scenario_name} #{write ? '(WRITE)' : '(DRY-RUN)'} → #{target[:host]}:#{target[:remote_dir]} ──"
     print_credentials_comparison(store.file_md5s, local_fp, remote)
+    # Die lokalen Dateien sind der haeufigste Traeger verbrannter Werte: push_credentials
+    # merged NUR serverseitig, carambus_data bleibt dabei stale (Falle 1 im Audit).
+    return false unless assert_no_public_credentials!(store.read, "lokale Credentials #{scenario_name}")
     if store.file_md5s == remote.slice('key_md5', 'enc_md5')
       puts "   ✅ Server ist bereits gleich carambus_data — nichts zu laden"; return true
     end
@@ -1209,6 +1218,7 @@ namespace :scenario do
     end
     puts "── push_credentials #{scenario_name} #{write ? '(WRITE)' : '(DRY-RUN)'} → #{ssh_host}:#{ssh_port} ──"
     puts "   Gruppen: #{additions.keys.join(', ')}  (fragile Keys werden NICHT angefasst)"
+    return false unless assert_no_public_credentials!(additions, "secrets.yml → #{scenario_name}")
 
     require 'tmpdir'
     Dir.mktmpdir do |tmp|
@@ -1235,6 +1245,117 @@ namespace :scenario do
         puts "   ⚠️  Puma NICHT neugestartet (RESTART=true zum Anwenden, oder manuell: sudo systemctl restart puma-<basename>)."
       end
     end
+    true
+  end
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # Sperrliste verbrannter Geheimnisse (Audit 2026-09-15, Punkt 4).
+  # ──────────────────────────────────────────────────────────────────────────
+
+  # Blattnamen, die Bezeichner tragen statt Geheimnisse. Sie gehören NICHT in die Sperrliste:
+  # Der ClubCloud-Benutzername ist dieselbe E-Mail wie bei Kozoom, `domain` und
+  # `location_calendar_id` stehen unverändert im Einsatz — ohne diese Ausnahme blockiert die
+  # Wache jeden künftigen Push, obwohl kein Geheimnis betroffen ist.
+  NON_SECRET_LEAVES = %w[domain email username address environment app_id project_id seller_id
+    vendor_id api_identifier location_id location_calendar_id].freeze
+
+  # Wache vor jedem Schreiben/Verteilen von Credentials. Meldet NUR den Schlüsselpfad,
+  # nie den Wert. ALLOW_PUBLIC=true übergeht sie — für den Fall, dass ein Wert bewusst
+  # bleiben muss (und dann laut protokolliert ist).
+  def assert_no_public_credentials!(hash, label)
+    load File.expand_path('../scenario_credentials.rb', __dir__) unless defined?(ScenarioCredentials)
+    hits = ScenarioCredentials::Denylist.scan(hash)
+    return true if hits.empty?
+
+    puts "   ⛔ #{label}: #{hits.size} verbrannte(r) Wert(e) aus der öffentlichen Historie:"
+    hits.each { |h| puts "      #{h.path}#{h.hint.to_s.empty? ? '' : "  (#{h.hint})"}" }
+    if ENV['ALLOW_PUBLIC'] == 'true'
+      puts "   ⚠️  ALLOW_PUBLIC=true — Wache übergangen, verbrannte Werte werden verteilt!"
+      return true
+    end
+    puts "   Abbruch. Betroffene Werte in carambus_data/secrets.yml ersetzen (beim Anbieter neu"
+    puts "   ausstellen), dann erneut ausführen. Notfall-Übergehung: ALLOW_PUBLIC=true."
+    false
+  end
+
+  # scenario:build_credential_denylist — entschlüsselt die öffentlichen Credential-Stände
+  # mit den ebenfalls öffentlichen Keys und schreibt deren SHA256 in die Sperrliste.
+  def build_credential_denylist(write:)
+    require 'tmpdir'
+    load File.expand_path('../scenario_credentials.rb', __dir__) unless defined?(ScenarioCredentials)
+    root = Rails.root.to_s
+    envs = %w[production development test]
+    key_blobs = {}   # env => [sha, ...] aller öffentlich gewesenen Keys
+    enc_blobs = {}   # env => [sha, ...] aller öffentlich gewesenen .enc
+
+    envs.each do |env|
+      key_blobs[env] = `cd #{root} && git log --all --format=%H -- config/credentials/#{env}.key`.split("\n")
+      enc_blobs[env] = `cd #{root} && git log --all --format=%H -- config/credentials/#{env}.yml.enc`.split("\n")
+    end
+    total_sources = enc_blobs.values.flatten.size
+    if total_sources.zero?
+      puts "❌ Keine Credential-Stände in der Historie gefunden — falsches Repo?"; return false
+    end
+    puts "── build_credential_denylist #{write ? '(WRITE)' : '(DRY-RUN)'} ──"
+    puts "   Quellen: #{envs.map { |e| "#{e}=#{enc_blobs[e].size}" }.join(' ')} .enc-Stände, " \
+         "#{envs.map { |e| "#{e}=#{key_blobs[e].size}" }.join(' ')} Keys"
+
+    found = {}   # sha256 => hint
+    Dir.mktmpdir do |tmp|
+      envs.each do |env|
+        keys = key_blobs[env].filter_map do |sha|
+          k = `cd #{root} && git show #{sha}:config/credentials/#{env}.key 2>/dev/null`.strip
+          k.empty? ? nil : k
+        end.uniq
+        next if keys.empty?
+
+        enc_blobs[env].each do |sha|
+          blob = `cd #{root} && git show #{sha}:config/credentials/#{env}.yml.enc 2>/dev/null`
+          next if blob.to_s.strip.empty?
+
+          enc_path = File.join(tmp, "#{env}-#{sha}.yml.enc")
+          File.write(enc_path, blob)
+          keys.each do |key|
+            key_path = File.join(tmp, "k-#{Digest::MD5.hexdigest(key)}.key")
+            File.write(key_path, key)
+            begin
+              content = ActiveSupport::EncryptedConfiguration.new(
+                config_path: enc_path, key_path: key_path, env_key: 'X_DENYLIST_NONE',
+                raise_if_missing_key: true
+              ).read.to_s
+              data = YAML.safe_load(content, permitted_classes: [Symbol], aliases: true) || {}
+              ScenarioCredentials::Denylist.each_leaf(data) do |path, value|
+                next if value.to_s.length < 8 # zu kurz, um ein Geheimnis zu sein (Flags, IDs)
+                next if NON_SECRET_LEAVES.include?(path.split('.').last)
+
+                found[ScenarioCredentials::Denylist.digest(value)] ||= "#{env}.#{path} (#{sha[0, 8]})"
+              end
+              break # passender Key gefunden
+            rescue StandardError
+              next # anderer Key-Stand
+            end
+          end
+        end
+      end
+    end
+
+    puts "   gefunden: #{found.size} verbrannte Werte (nur SHA256 gespeichert, nie die Werte selbst)"
+    by_env = found.values.group_by { |h| h.split('.').first }.transform_values(&:size)
+    puts "   nach Umgebung: #{by_env.map { |e, n| "#{e}=#{n}" }.join(' ')}"
+    unless write
+      puts "   DRY-RUN — lib/credential_denylist.yml unverändert (WRITE=true zum Schreiben)."
+      return true
+    end
+
+    path = ScenarioCredentials::Denylist::DEFAULT_PATH
+    header = File.read(path).split(/^generated_at:/).first
+    body = {
+      'generated_at' => Time.now.utc.iso8601,
+      'source' => 'config/credentials/*.yml.enc aus der oeffentlichen Historie, entschluesselt mit den ebenfalls oeffentlichen *.key',
+      'fingerprints' => found.map { |sha, hint| { 'sha256' => sha, 'hint' => hint } }.sort_by { |e| e['hint'] }
+    }
+    File.write(path, header + body.to_yaml.sub(/\A---\n/, ''))
+    puts "   geschrieben: #{path} (#{found.size} Einträge)"
     true
   end
 

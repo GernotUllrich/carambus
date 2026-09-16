@@ -306,4 +306,64 @@ class ScenarioCredentials
     Report.new(features: features, clubcloud_context: clubcloud_context, removed: removed,
       generated_skb: generated_skb, added: added)
   end
+
+  # ───────────────────────────────────────────────────────────────────────────
+  # Sperrliste der Geheimnisse, die je oeffentlich im Repo standen (Audit 2026-09-15).
+  #
+  # Anlass: Die ROTATE-Laeufe vom 2026-09-14 gingen von STALEN lokalen Dateien aus und
+  # haben die oeffentlich bekannten Werte erneut auf die Server verteilt — unbemerkt,
+  # weil jede Ausgabe nur "hat sich geaendert" meldet, nie "das ist ein verbrannter Wert".
+  # Die Liste fuehrt ausschliesslich SHA256-Summen; ein Geheimnis laesst sich daraus nicht
+  # zurueckrechnen, die Datei darf also im Repo liegen. Gefuellt wird sie von
+  # `rake scenario:build_credential_denylist` aus der oeffentlichen Git-Historie.
+  # ───────────────────────────────────────────────────────────────────────────
+  module Denylist
+    DEFAULT_PATH = File.expand_path("credential_denylist.yml", __dir__)
+    Hit = Struct.new(:path, :hint, keyword_init: true)
+
+    class << self
+      # { "<sha256>" => "<Herkunftshinweis>" }
+      def fingerprints(path = DEFAULT_PATH)
+        return {} unless File.exist?(path)
+
+        data = YAML.safe_load(File.read(path), permitted_classes: [Symbol], aliases: true) || {}
+        Array(data["fingerprints"]).each_with_object({}) do |entry, out|
+          sha = entry.is_a?(Hash) ? entry["sha256"] : entry
+          next if sha.to_s.strip.empty?
+
+          out[sha.to_s.strip.downcase] = (entry.is_a?(Hash) ? entry["hint"] : nil).to_s
+        end
+      end
+
+      def digest(value)
+        Digest::SHA256.hexdigest(value.to_s)
+      end
+
+      # Alle Blattwerte gegen die Sperrliste pruefen. Liefert die Treffer mit ihrem
+      # Schluesselpfad — nie den Wert selbst.
+      def scan(hash, path = DEFAULT_PATH)
+        known = fingerprints(path)
+        return [] if known.empty?
+
+        hits = []
+        each_leaf(hash) do |key_path, value|
+          hint = known[digest(value)]
+          hits << Hit.new(path: key_path, hint: hint) if hint
+        end
+        hits
+      end
+
+      # Jedes nicht-leere Blatt als (Pfad, Wert) — auch vom Sperrlisten-Builder benutzt.
+      def each_leaf(node, prefix = nil, &block)
+        case node
+        when Hash
+          node.each { |k, v| each_leaf(v, [prefix, k].compact.join("."), &block) }
+        when Array
+          node.each_with_index { |v, i| each_leaf(v, "#{prefix}[#{i}]", &block) }
+        else
+          yield(prefix.to_s, node) unless node.nil? || node.to_s.empty?
+        end
+      end
+    end
+  end
 end

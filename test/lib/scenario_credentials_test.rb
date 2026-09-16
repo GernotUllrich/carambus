@@ -360,7 +360,52 @@ class ScenarioCredentialsTest < ActiveSupport::TestCase
     end
   end
 
+  # ── Sperrliste verbrannter Geheimnisse (Audit 2026-09-15, Punkt 4) ─────────
+
+  test "Denylist findet einen verbrannten Wert mit Pfad und Herkunft" do
+    with_denylist("verbrannt" => "production.anthropic.api_key (44cd1b75)") do |path|
+      creds = {"anthropic" => {"api_key" => "verbrannt"}, "deepl" => {"key" => "frisch"}}
+      hits = ScenarioCredentials::Denylist.scan(creds, path)
+
+      assert_equal 1, hits.size
+      assert_equal "anthropic.api_key", hits.first.path
+      assert_equal "production.anthropic.api_key (44cd1b75)", hits.first.hint
+    end
+  end
+
+  test "Denylist meldet nichts bei ausschliesslich frischen Werten" do
+    with_denylist("verbrannt" => "production.anthropic.api_key") do |path|
+      creds = {"anthropic" => {"api_key" => "frisch"}, "clubcloud" => {"nbv" => {"password" => "auch-frisch"}}}
+
+      assert_empty ScenarioCredentials::Denylist.scan(creds, path)
+    end
+  end
+
+  test "Denylist prueft auch verschachtelte Gruppen und Arrays" do
+    with_denylist("verbrannt" => "hint") do |path|
+      creds = {"clubcloud" => {"nbv" => {"password" => "verbrannt"}}, "hosts" => ["ok", "verbrannt"]}
+      paths = ScenarioCredentials::Denylist.scan(creds, path).map(&:path)
+
+      assert_equal ["clubcloud.nbv.password", "hosts[1]"], paths.sort
+    end
+  end
+
+  test "fehlende oder leere Sperrliste blockiert nichts" do
+    assert_empty ScenarioCredentials::Denylist.fingerprints(File.join(Dir.tmpdir, "gibt-es-nicht.yml"))
+    assert_empty ScenarioCredentials::Denylist.scan({"a" => "b"}, File.join(Dir.tmpdir, "gibt-es-nicht.yml"))
+  end
+
   private
+
+  # Schreibt eine temporaere Sperrliste aus { Klartext => Hinweis } und gibt ihren Pfad weiter.
+  def with_denylist(values)
+    Dir.mktmpdir do |dir|
+      path = File.join(dir, "credential_denylist.yml")
+      entries = values.map { |value, hint| {"sha256" => ScenarioCredentials::Denylist.digest(value), "hint" => hint} }
+      File.write(path, {"fingerprints" => entries}.to_yaml)
+      yield path
+    end
+  end
 
   def encryptor
     ActiveRecord::Encryption::Encryptor.new
