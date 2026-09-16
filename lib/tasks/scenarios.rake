@@ -130,6 +130,18 @@ namespace :scenario do
     push_credentials_to_server(scenario_name, write: ENV['WRITE'] == 'true', restart: ENV['RESTART'] == 'true')
   end
 
+  desc "active_record_encryption-Keys auf dem Server durch frische ersetzen — LEERT vorher die verschlüsselten Spalten (kein previous:, keine Re-Verschlüsselung). secret_key_base/devise_jwt bleiben → keine Session-Invalidierung. DRY-RUN default; WRITE=true (+CLEAR=true wenn Bestand da ist, +RESTART=true). Usage: rake scenario:rotate_ar_encryption[<name>]"
+  task :rotate_ar_encryption, [:scenario_name] => :environment do |_, args|
+    scenario_name = args[:scenario_name]
+    if scenario_name.to_s.empty?
+      puts "Usage: rake scenario:rotate_ar_encryption[<name>]"
+      puts "  DRY-RUN default; WRITE=true zum Schreiben, CLEAR=true bestätigt das Leeren, RESTART=true für Puma-Restart."
+      exit 1
+    end
+    rotate_ar_encryption_on_server(scenario_name, write: ENV['WRITE'] == 'true',
+      clear: ENV['CLEAR'] == 'true', restart: ENV['RESTART'] == 'true')
+  end
+
   desc "Create Rails root folder for a scenario"
   task :create_rails_root, [:scenario_name] => :environment do |task, args|
     scenario_name = args[:scenario_name]
@@ -1221,6 +1233,112 @@ namespace :scenario do
         system("#{base} 'sudo systemctl restart #{svc}'")
       elsif write
         puts "   ⚠️  Puma NICHT neugestartet (RESTART=true zum Anwenden, oder manuell: sudo systemctl restart puma-<basename>)."
+      end
+    end
+    true
+  end
+
+  # Server-seitiger Runner für scenario:rotate_ar_encryption. Zählt den verschlüsselten Bestand,
+  # leert ihn (mode=='write', nur mit CLEAR) und ersetzt active_record_encryption durch frische
+  # Schlüssel. Bewusst OHNE `previous:`: mit geleerten Spalten gibt es nichts zu entschlüsseln,
+  # also auch keinen halben Zustand und keinen alten (öffentlichen) Schlüssel, der zum Lesen im
+  # File bleiben müsste. secret_key_base/devise_jwt bleiben unangetastet — Abbruch, wenn nicht.
+  def ar_rotation_runner_script
+    <<~'RUBY'
+      require "yaml"; require "fileutils"; require "digest"; require "securerandom"
+      mode  = ARGV[0].to_s
+      clear = ARGV[1].to_s == "clear"
+      path = "config/credentials/production.yml.enc"
+      keyp = "config/credentials/production.key"
+      enc = ActiveSupport::EncryptedConfiguration.new(config_path: path, key_path: keyp,
+              env_key: "RAILS_MASTER_KEY", raise_if_missing_key: true)
+      cur = YAML.safe_load(enc.read.to_s, permitted_classes: [Symbol], aliases: true) || {}
+      fp = lambda { |v| v.to_s.empty? ? "-" : Digest::SHA256.hexdigest(v.to_s)[0, 8] }
+
+      # verschlüsselte Attribute (alle deterministic: false) — Modell => Spalten
+      targets = { "User" => %w[cc_password], "InternationalSource" => %w[api_credentials],
+                  "StreamConfiguration" => %w[youtube_stream_key custom_rtmp_key] }
+      counts = {}
+      targets.each do |model, cols|
+        klass = model.safe_constantize
+        next unless klass && klass.table_exists?
+        cols.each { |c| counts["#{model}.#{c}"] = klass.where.not(c => nil).count }
+      end
+      total = counts.values.sum
+
+      ar = cur["active_record_encryption"] || {}
+      puts "  AR-Keys jetzt:  primary=#{fp.call(ar['primary_key'])} deterministic=#{fp.call(ar['deterministic_key'])} salt=#{fp.call(ar['key_derivation_salt'])}"
+      puts "  Bestand:        #{counts.map { |k, v| "#{k}=#{v}" }.join(' ')}  (gesamt #{total})"
+
+      if mode != "write"
+        puts "  DRY-RUN - nichts geaendert (WRITE=true zum Schreiben#{total.positive? ? ', CLEAR=true zum Leeren' : ''})."
+        exit 0
+      end
+      abort("ABBRUCH: #{total} verschluesselte Werte vorhanden - ohne CLEAR=true wird nicht geleert.") if total.positive? && !clear
+
+      # 1. Bestand leeren: update_all umgeht Callbacks -> keine CableReady-Broadcasts
+      targets.each do |model, cols|
+        klass = model.safe_constantize
+        next unless klass && klass.table_exists?
+        cols.each do |c|
+          n = klass.where.not(c => nil).update_all(c => nil)
+          puts "  geleert: #{model}.#{c} (#{n})" if n.positive?
+        end
+      end
+
+      # 2. frische Schluessel (wie `rails db:encryption:init`)
+      new_ar = { "primary_key" => SecureRandom.alphanumeric(32),
+                 "deterministic_key" => SecureRandom.alphanumeric(32),
+                 "key_derivation_salt" => SecureRandom.alphanumeric(32) }
+      merged = cur.merge("active_record_encryption" => new_ar)
+      keep = lambda { |h| [h["secret_key_base"], h["devise_jwt_secret_key"]] }
+      abort("ABBRUCH: secret_key_base/devise_jwt wuerden sich aendern - nichts geschrieben.") unless keep.call(merged) == keep.call(cur)
+
+      bak = "#{path}.bak.#{Time.now.strftime('%Y%m%d%H%M%S')}"
+      FileUtils.cp(path, bak)
+      enc.write(merged.to_yaml)
+      puts "  AR-Keys neu:    primary=#{fp.call(new_ar['primary_key'])} deterministic=#{fp.call(new_ar['deterministic_key'])} salt=#{fp.call(new_ar['key_derivation_salt'])}"
+      puts "  secret_key_base/devise_jwt: unveraendert (verifiziert)"
+      puts "  WRITE ok - Backup: #{bak}"
+    RUBY
+  end
+
+  # scenario:rotate_ar_encryption — AR-Schlüssel in-place auf dem Server ersetzen.
+  def rotate_ar_encryption_on_server(scenario_name, write:, clear:, restart:)
+    cfg_file = File.join(scenarios_path, scenario_name, 'config.yml')
+    unless File.exist?(cfg_file)
+      puts "❌ config.yml nicht gefunden: #{cfg_file}"; return false
+    end
+    cfg = YAML.load_file(cfg_file)
+    prod = cfg.dig('environments', 'production') || {}
+    ssh_host = prod['ssh_host']; ssh_port = prod['ssh_port'] || 22
+    deploy_to = prod['deploy_to'] || "/var/www/#{scenario_name}"
+    if ssh_host.to_s.strip.empty?
+      puts "❌ ssh_host fehlt in #{scenario_name} (environments.production)"; return false
+    end
+    puts "── rotate_ar_encryption #{scenario_name} #{write ? '(WRITE)' : '(DRY-RUN)'} → #{ssh_host}:#{ssh_port} ──"
+
+    require 'tmpdir'
+    Dir.mktmpdir do |tmp|
+      run_file = File.join(tmp, 'carambus_rotate_ar.rb')
+      File.write(run_file, ar_rotation_runner_script)
+      base = "ssh -p #{ssh_port} www-data@#{ssh_host}"
+      unless system("scp -P #{ssh_port} #{run_file} www-data@#{ssh_host}:/tmp/")
+        puts "❌ scp fehlgeschlagen"; return false
+      end
+      rbenv = "RBENV_ROOT=/var/www/.rbenv PATH=/var/www/.rbenv/shims:$PATH RBENV_VERSION=3.2.1 RAILS_ENV=production"
+      args = "#{write ? 'write' : 'dry'} #{clear ? 'clear' : 'noclear'}"
+      ok = system("#{base} 'cd #{deploy_to}/current && #{rbenv} bundle exec rails runner /tmp/carambus_rotate_ar.rb #{args}'")
+      system("#{base} 'rm -f /tmp/carambus_rotate_ar.rb'")
+      unless ok
+        puts "❌ Runner meldete Fehler / Abbruch — nichts geschrieben."; return false
+      end
+      if write && restart
+        svc = "puma-#{prod['basename'] || cfg.dig('scenario', 'basename') || scenario_name}"
+        puts "   Puma-Restart: #{svc}"
+        system("#{base} 'sudo systemctl restart #{svc}'")
+      elsif write
+        puts "   ⚠️  Puma NICHT neugestartet (RESTART=true zum Anwenden) — bis dahin laufen alte Schlüssel im Speicher."
       end
     end
     true
