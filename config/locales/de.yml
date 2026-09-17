@@ -475,6 +475,9 @@ de:
     tables: Tische
     updated_at: updated at
   may_loose_results: Spielergebnisse können dabei verloren gehen!
+  locations:
+    errors:
+      admin_required: "Spiellokale anlegen, ändern, löschen, zusammenführen und mit Tischen bestücken dürfen nur angemeldete Vereins- oder System-Admins."
   must_be_an_admin: Adminrechte erforderlich.
   not_allowed_on_api_server: Diese Operation ist in API Server nicht möglich.
   not_leave_party_game: Liga- oder Einzelwettkämpfe können nur über das Turniermanagement beendet werden.
