@@ -40,7 +40,8 @@ assignment.
 | Edit the participant list | – | yes | yes | yes | yes |
 | Name the tournament director of a tournament | – | – | yes | yes | yes |
 | Open the tournament monitor, reset a tournament | – | – | – | yes | yes |
-| Edit master data (clubs, players, leagues, teams, tables, disciplines, seasons, tournament plans …) | – | – | – | yes | yes |
+| Edit master data (clubs, players, leagues, teams, **locations**, tables, disciplines, seasons, tournament plans …) | – | – | – | yes | yes |
+| Create, edit, delete, merge locations; add tables to them | – | – | – | yes | yes |
 | Reload a club or league from the ClubCloud | – | yes | yes | yes | yes |
 | ClubCloud write actions in the Carambus assistant | – | yes | yes | – | yes |
 | Admin area: users, roles, personas, settings, members' contact data | – | – | – | – | yes |

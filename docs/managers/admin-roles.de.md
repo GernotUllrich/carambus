@@ -38,7 +38,8 @@ Spalten „Turnierleiter“ und „Sportwart“ meinen ein Konto mit der Rolle S
 | Teilnehmerliste bearbeiten | – | ja | ja | ja | ja |
 | Turnierleiter eines Turniers benennen | – | – | ja | ja | ja |
 | Turnier-Monitor öffnen, Turnier zurücksetzen | – | – | – | ja | ja |
-| Stammdaten bearbeiten (Vereine, Spieler, Ligen, Mannschaften, Tische, Disziplinen, Saisons, Turnierpläne …) | – | – | – | ja | ja |
+| Stammdaten bearbeiten (Vereine, Spieler, Ligen, Mannschaften, **Spielorte**, Tische, Disziplinen, Saisons, Turnierpläne …) | – | – | – | ja | ja |
+| Spielorte anlegen, ändern, löschen, zusammenführen, mit Tischen bestücken | – | – | – | ja | ja |
 | Verein oder Liga aus der ClubCloud neu laden | – | ja | ja | ja | ja |
 | ClubCloud-Schreibaktionen im Carambus-Assistenten | – | ja | ja | – | ja |
 | Admin-Bereich: Benutzer, Rollen, Personas, Einstellungen, Kontaktdaten der Mitglieder | – | – | – | – | ja |

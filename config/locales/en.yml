@@ -472,6 +472,9 @@ en:
     tables: Tables
     updated_at: updated at
   may_loose_results: You may loose game results!
+  locations:
+    errors:
+      admin_required: "Only signed-in club or system admins may create, edit, delete, merge or add tables to locations."
   must_be_an_admin: You must be an admin to do that.
   not_allowed_on_api_server: Operation not allowed on API Server.
   not_leave_party_game: League or tournament games can only be ended via the tournament management.
