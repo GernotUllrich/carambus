@@ -1500,8 +1500,14 @@ RECOMMENDATION: Follow steps 1-7 in order!
         echte Versuch (07.08.2026) endete mit HTTP 500. Diese Seite zeigt nur noch die Belegung.
         Die Namenskonvention stand bisher im Formular-Dialog; sie gilt fuer den Google-Kalender
         weiter und steht deshalb jetzt hier. %>
+    <%# Die Kontaktadresse kommt aus der Konfiguration (`support_email`, im Admin-Bereich
+        pflegbar), nicht mehr fest aus dem Text: dort stand gernot.ullrich@gmx.com, waehrend
+        ueberall sonst .de gilt (Befund 15 im DRIFT-REPORT). Fehlt die Adresse, entfaellt
+        der Satz — statt eines Halbsatzes ohne Empfaenger. %>
+    <% support_email = Carambus.config.support_email.presence %>
     <p class="w-3/4 mt-5">
-      <%= t("location.scoreboard_reservations.info_calendar") %><br/>
+      <%= t("location.scoreboard_reservations.info_calendar") %>
+      <%= t("location.scoreboard_reservations.info_calendar_contact", email: support_email) if support_email %><br/>
       <%= t("location.scoreboard_reservations.info_heating") %>
     </p>
     <p class="w-3/4 mt-3 text-1-5vw leading-6">

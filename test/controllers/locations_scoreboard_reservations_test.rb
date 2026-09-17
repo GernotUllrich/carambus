@@ -54,6 +54,27 @@ class LocationsScoreboardReservationsTest < ActionDispatch::IntegrationTest
       "Der Infotext nennt den Weg ueber den Google Kalender nicht mehr")
   end
 
+  test "die Kontaktadresse kommt aus der Konfiguration, nicht aus dem Text" do
+    Carambus.config = OpenStruct.new(Carambus.config.to_h.merge(support_email: "sportwart@example.org"))
+    get_reservations_page
+
+    assert_match(/sportwart@example\.org/, response.body,
+      "Die Seite zeigt nicht die konfigurierte Kontaktadresse")
+    assert_no_match(/gernot\.ullrich@gmx\.com/, response.body,
+      "Die alte, fest verdrahtete Adresse (.com) steht noch im Text")
+  end
+
+  test "ohne konfigurierte Adresse entfaellt der Kontaktsatz" do
+    Carambus.config = OpenStruct.new(Carambus.config.to_h.merge(support_email: nil))
+    get_reservations_page
+
+    assert_response :success
+    assert_no_match(/E-Mail an\s*\./, response.body,
+      "Ohne Adresse bleibt ein Halbsatz ohne Empfaenger stehen")
+    assert_match(/Google Kalender/, response.body,
+      "Der uebrige Infotext fehlt")
+  end
+
   # Gegenprobe 2026-09-17: Von diesen vier Tests sind am alten Stand zwei rot (Formular/Knopf,
   # Infotext) und zwei gruen. Das ist so gewollt — die beiden gruenen sichern, dass beim Ausbau
   # nichts VERLOREN geht: die Seite muss weiterhin rendern, und die Namenskonvention muss weiter

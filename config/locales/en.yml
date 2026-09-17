@@ -457,7 +457,8 @@ en:
     organizer_type: organizer type
     region_id: Region
     scoreboard_reservations:
-      info_calendar: "This page shows how the tables are booked. Reservations are entered — and corrected — in the \"BC Wedel\" Google Calendar. For access to the Google Calendar, please email gernot.ullrich@gmx.com."
+      info_calendar: "This page shows how the tables are booked. Reservations are entered — and corrected — in the \"BC Wedel\" Google Calendar."
+      info_calendar_contact: "For access to the Google Calendar, please email %{email}."
       info_heating: "Heating is switched according to these reservations (2 or 4 hours for large tables before the appointment starts)."
       naming_convention_details: "The title consists of a comma-separated list of table ranges (e.g. T5 or T6-T8), followed by a space and the event title or player names, e.g. \"Club evening\" or \"NDM Cadre 35/2\" or \"Lothar + Gernot\". An exclamation mark (!) can be added at the end to prevent heating from being switched off when tables are unused during the reservation. Calendar entries that do not follow this naming convention and do not start with a label such as \"info:\" or \"BGH:\" are automatically deleted."
       naming_convention_intro: "Table assignment, tournament, participants, and automatic heating control are determined by a naming convention in the title."
