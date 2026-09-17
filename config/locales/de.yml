@@ -460,13 +460,10 @@ de:
     organizer_type: Region/Club
     region_id: Region
     scoreboard_reservations:
-      event_title_placeholder: "Event Titel, z.B. \"T4 Peter+Mike\""
-      info_calendar: "Reservierungen können direkt hier oder im Google Kalender \"BC Wedel\" gemacht werden. Für den Zugang zum Google Kalender bitte email an gernot.ullrich@gmx.com. Korrekturen an den hier gemachten Einträgen sind derzeit nur im Google Kalender möglich."
+      info_calendar: "Diese Seite zeigt die Belegung der Tische. Reservierungen werden im Google Kalender \"BC Wedel\" eingetragen und dort auch korrigiert. Für den Zugang zum Google Kalender bitte email an gernot.ullrich@gmx.com."
       info_heating: "Die Heizungen werden entsprechend dieser Reservierungen geschaltet (2 bzw. 4 (gr. Tische) Stunden vor Terminbeginn)."
       naming_convention_details: "Der Titel setzt sich zusammen aus einer mit Kommas getrennten Liste von Tischbereichen (z.B. T5 oder T6-T8), gefolgt von einem Lehrzeichen und dem Eventtitel oder den Spielernamen, Also z.B. \"Clubabend\" oder \"NDM Cadre 35/2\" oder \"Lothar + Gernot\". Am Ende kann ein Ausrufungszeichen (!) gesetzt werden um zu verhindern, dass Heizungen bei Nichtbenutzung während der Reservierung abgeschaltet werden. Termineinträge, die sich nicht an diese Namenskonvention halten und auch nicht mit einem Label wie \"info:\" oder \"BGH:\" beginnen, werden automatisch gelöscht."
       naming_convention_intro: "Die Belegung der Tische, das Turnier, die Teilnehmer, sowie eine Angabe zur automatischen Heizungssteuerung, wird durch eine Namenskonvention im Titel festgelegt."
-      new_reservation: Neue Reservierung
-      new_table_reservation: Neue Tischreservierung
     scoreboard_welcome:
       calendar: Termine
       player_area: Mein Bereich

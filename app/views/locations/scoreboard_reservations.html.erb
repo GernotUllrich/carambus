@@ -67,17 +67,6 @@
 <script src="/onscreen-keyboard.js?v=<%= Time.current.to_i %>"></script>
 <script type="text/javascript">
 
-  function new_reservation_mode() {
-    set_new_reservation_modal();
-  }
-
-  function set_new_reservation_modal() {
-    document.getElementById("modal-new-reservation").classList.toggle("hidden");
-    document.getElementById("modal-new-reservation" + "-bg").classList.toggle("hidden");
-    document.getElementById("modal-new-reservation").classList.toggle("flex");
-    document.getElementById("modal-new-reservation" + "-bg").classList.toggle("flex");
-  }
-
   function open_kiosk_keyboard() {
     logMessage("Opening kiosk keyboard...");
     logMessage("Keyboard object available: " + (typeof Keyboard !== 'undefined'));
@@ -1458,41 +1447,6 @@ RECOMMENDATION: Follow steps 1-7 in order!
     });
   });
 </script>
-<div style="z-index:900" class="hidden opacity-70 fixed inset-0 bg-black" id="modal-new-reservation-bg"></div>
-<div style="z-index:910" class="hidden overflow-x-hidden overflow-y-auto fixed inset-0 outline-none focus:outline-none justify-center" id="modal-new-reservation">
-  <div id="new_reservation_modal_setup__2" class="border-2 border-gray-500 rounded-lg shadow-lg relative flex flex-col p-10 w-5/6 dark:text-gray-200 bg-white dark:bg-black  outline-none focus:outline-none">
-    <div class="flex flex-col">
-      <h2 class="flex mb-5"><%= t("location.scoreboard_reservations.new_table_reservation") %> <%= @location.name %></h2>
-      <div class="flex justify-around w-full text-2vw">
-        <%= form_with(model: @location, method: :post, url: { action: "create_event" }) do |form| %>
-          <%= hidden_field_tag :location_id, @location.id %>
-          <%= render "error_messages", resource: form.object %>
-          <div class="form-group flex">
-            <%= form.text_field :summary, autocomplete: "off", class: "form-control text-2vw", style: "width: 400px", placeholder: t("location.scoreboard_reservations.event_title_placeholder") %>
-          </div>
-          <div class="form-group flex items-center">
-            <input type="date" name="location[date]" id="location_date">
-            &nbsp;&nbsp;&nbsp;&nbsp;
-            <input type="time" name="location[start_time]" id="location-start-time" class="bg-gray-50 border leading-none border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block ml-10 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500" min="00:00" value="19:00" required/>
-            &nbsp;-&nbsp;
-            <input type="time" name="location[end_time]" id="location-end-time" class="bg-gray-50 border leading-none border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500" min="00:00" value="23:00" required/>
-          </div>
-          <div class="form-group">
-            <%= custom_link_to t('back'), "javascript:set_new_reservation_modal()", data: { turbolinks: false }, class: "dark:text-white focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 btn btn-primary text-2vw", id: "cancel", tabindex: "1" %>
-
-            <%= form.submit t('save'), class: "btn btn-primary text-2vw" %>
-          </div>
-          <p class="text-1-5vw leading-6">
-            <%= t("location.scoreboard_reservations.naming_convention_intro") %>
-          </p>
-          <p class="text-1-5vw leading-6">
-            <%= t("location.scoreboard_reservations.naming_convention_details") %>
-          </p>
-        <% end %>
-      </div>
-    </div>
-  </div>
-</div>
 <!-- Scoreboard Menu -->
 <div class="inline-flex items-center justify-end mr-4 fixed text-gray-300 hover:text-black" style="right: 10px; top: 10px; gap: 1.2vw;">
   <%= custom_link_to scoreboard_location_path(@location.md5, sb_state: "table_scores", :"data-turbo" => false) do %>
@@ -1510,9 +1464,6 @@ RECOMMENDATION: Follow steps 1-7 in order!
     <div class="w-3/5 h-2/5 overflow-y-auto mt-5">
       <pre><%= table_status.join("\n") %></pre>
     </div>
-    <p>
-      <%= custom_link_to t("location.scoreboard_reservations.new_reservation"), "javascript:new_reservation_mode()", data: { turbolinks: false }, class: "dark:text-white flex w-full h-full border-4 focus:outline-none focus:ring-8 focus:ring-green-500 focus:ring-opacity-90 border-0 rounded-lg btn btn-primary text-2vw", id: "cancel", tabindex: "1" %>
-    </p>
 
     <!-- Debug Mode Toggle (hidden by default) -->
     <%#
@@ -1544,9 +1495,18 @@ RECOMMENDATION: Follow steps 1-7 in order!
         <%= custom_link_to "Show Current Status", "javascript:showCurrentStatus()", data: { turbolinks: false }, class: "dark:text-white flex w-full h-full border-4 focus:outline-none focus:ring-8 focus:ring-orange-500 focus:ring-opacity-90 border-0 rounded-lg btn btn-warning text-1-5vw", id: "show_status", tabindex: "1" %>
       </p>
     </div>
+    <%# 2026-09-17: Das Formular "Neue Reservierung" ist hier entfernt. Am Scoreboard ist kein
+        Benutzer bekannt — ein Kalendereintrag ohne Urheber ist nicht zuzuordnen, und der einzige
+        echte Versuch (07.08.2026) endete mit HTTP 500. Diese Seite zeigt nur noch die Belegung.
+        Die Namenskonvention stand bisher im Formular-Dialog; sie gilt fuer den Google-Kalender
+        weiter und steht deshalb jetzt hier. %>
     <p class="w-3/4 mt-5">
       <%= t("location.scoreboard_reservations.info_calendar") %><br/>
       <%= t("location.scoreboard_reservations.info_heating") %>
+    </p>
+    <p class="w-3/4 mt-3 text-1-5vw leading-6">
+      <%= t("location.scoreboard_reservations.naming_convention_intro") %>
+      <%= t("location.scoreboard_reservations.naming_convention_details") %>
     </p>
   <%- end %>
 </div>
