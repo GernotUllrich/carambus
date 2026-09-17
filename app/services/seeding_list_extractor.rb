@@ -83,33 +83,43 @@ class SeedingListExtractor
       if in_seeding_section
         next if line.strip.empty?
         # Kopfzeile der Tabelle
-        next if line =~ /^\s*Setz\.?\s+GD\s+Name\s+Verein/i
+        next if line =~ /^\s*Setz\.?\s+GD\s+(?:Ballzahl\s+)?Name\s+Verein/i
         # Einleitungssatz ("Setzliste nach GD-Rangliste 2025/2026.")
         next if line =~ /Rangliste/i
 
-        # CC-Format (seit September 2026), eine Zeile je Teilnehmer:
+        # CC-Format (seit September 2026), eine Zeile je Teilnehmer. Es gibt zwei Auspraegungen:
         #
-        #   "       1            1,51              Mustermann, Anton          TSV Beispiel"
-        #    \_Setz.______/     \_GD_/             \_Nachname, Vorname_/      \_Verein_/
+        #   ohne Vorgabe (Meisterschaft, einheitliches Ausspielziel):
+        #   "     1        1,51             Mustermann, Anton        TSV Beispiel"
+        #    \_Setz._/     \_GD_/           \_Nachname, Vorname_/    \_Verein_/
         #
-        # Die GD kann "-" sein (Teilnehmer ohne Ranglistenwert). Sie wird bewusst NICHT
-        # ausgewertet: bis zum Formatwechsel stand an aehnlicher Stelle das BALLZIEL, und
-        # eine GD als Vorgabe einzutragen waere ein stiller Datenfehler (1,51 statt 40).
-        # Vorgaben kommen aus dem Ausspielziel bzw. der Turnierverwaltung.
+        #   mit Vorgabe (Vorgabeturnier, Ballzahl je Spieler):
+        #   "     1        3,39     50      Mustermann, Dr. Anton    BC Beispiel"
+        #    \_Setz._/     \_GD_/   \Ball/  \_Nachname, Vorname_/    \_Verein_/
         #
+        # Die GD (Generaldurchschnitt aus der Rangliste) wird NICHT ausgewertet — sie ist
+        # keine Vorgabe. Bis zum Formatwechsel stand an aehnlicher Stelle das Ballziel; eine
+        # GD als Vorgabe einzutragen waere ein stiller Datenfehler (1,51 statt 50).
+        # Die SPALTE "Ballzahl" dagegen IST die Vorgabe und wird als balls_goal uebernommen.
+        # Sie fehlt bei Turnieren mit einheitlichem Ausspielziel — deshalb optional.
+        #
+        # Die GD kann "-" sein (Teilnehmer ohne Ranglistenwert).
         # Der Verein steht hinter mindestens zwei Leerzeichen — im Namen selbst kommen nur
-        # einfache vor, auch bei Doppelnamen ("Schmid-Werter, Claus-Dieter").
-        cc_row = /^\s*(\d+)\s+(?:[\d.,]+|-)\s+([^,]+?),\s*(\S(?:.*?\S)?)\s{2,}(.+?)\s*$/
+        # einfache vor, auch bei mehrteiligen Nachnamen ("von der Gönna, Patrick") und
+        # Titeln im Vornamen ("Ullrich, Dr. Gernot").
+        cc_row = /^\s*(\d+)\s+(?:[\d.,]+|-)\s+(?:(\d+)\s+)?([^,]+?),\s*(\S(?:.*?\S)?)\s{2,}(.+?)\s*$/
 
         next unless (match = line.match(cc_row))
 
-        players << {
+        spieler = {
           position: match[1].to_i,
-          lastname: match[2].strip,
-          firstname: match[3].strip,
-          full_name: "#{match[2].strip}, #{match[3].strip}",
-          club: match[4].strip
+          lastname: match[3].strip,
+          firstname: match[4].strip,
+          full_name: "#{match[3].strip}, #{match[4].strip}",
+          club: match[5].strip
         }
+        spieler[:balls_goal] = match[2].to_i if match[2]
+        players << spieler
       end
     end
     

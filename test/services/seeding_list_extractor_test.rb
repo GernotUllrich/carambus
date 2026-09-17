@@ -8,6 +8,8 @@ require "test_helper"
 #   | Bereich      | bisher                        | CC-Format                                  |
 #   |--------------|-------------------------------|--------------------------------------------|
 #   | Setzliste    | "1 Nachname Vorname 100"      | "1   1,51   Nachname, Vorname   Verein"    |
+#   |              |                               | Vorgabeturnier zusaetzlich mit Spalte      |
+#   |              |                               | "Ballzahl": "1  3,39  50  Name  Verein"    |
 #   | Modus        | "Turniermodus: T7 - ..."      | "Modus:   T7 - Jeder gegen jeden"          |
 #   | Ausspielziel | "Bälle: 40" (Wort vor Zahl)   | "40 Punkte / 20 Aufnahmen" (Zahl zuerst)   |
 #
@@ -78,6 +80,58 @@ class SeedingListExtractorTest < ActiveSupport::TestCase
   end
 
   # --- Abgrenzung -----------------------------------------------------------
+
+  # --- Vorgabeturnier: Setzliste mit zusaetzlicher Spalte "Ballzahl" -------
+  #
+  # Hier IST die Zahl eine Vorgabe — anders als die GD. Das Fixture stammt aus einer
+  # Vorgabepokal-Einladung und enthaelt bewusst die schwierigen Namensformen:
+  # mehrteiliger Nachname ("von der Aue"), Titel im Vornamen ("Dr. Anton"), Doppelname.
+
+  def vorgabe_result
+    @vorgabe_result ||= SeedingListExtractor.parse_seeding_list(
+      Rails.root.join("test/fixtures/files/nbv_einladung_cc_vorgabe.txt").read
+    )
+  end
+
+  test "Vorgabeturnier: liest alle zehn Teilnehmer" do
+    assert vorgabe_result[:success], "Extraktion fehlgeschlagen: #{vorgabe_result[:error].inspect}"
+    assert_equal 10, Array(vorgabe_result[:players]).size
+  end
+
+  test "Vorgabeturnier: die Spalte Ballzahl wird zur Vorgabe je Spieler" do
+    vorgaben = vorgabe_result[:players].map { |p| [p[:position], p[:balls_goal]] }.to_h
+    assert_equal 50, vorgaben[1]
+    assert_equal 45, vorgaben[2]
+    assert_equal 16, vorgaben[10]
+    assert_equal 10, vorgaben.values.compact.size, "Nicht alle Teilnehmer haben eine Vorgabe"
+  end
+
+  test "Vorgabeturnier: die Ballzahl landet nicht im Nachnamen" do
+    # Vor dem Einbau der optionalen Spalte lieferte der Parser lastname="50             Abt"
+    # und meldete dabei success — ein Fehlschlag, der wie ein Erfolg aussah.
+    vorgabe_result[:players].each do |p|
+      assert_no_match(/\d/, p[:lastname], "Ziffer im Nachnamen: #{p[:lastname].inspect}")
+    end
+  end
+
+  test "Vorgabeturnier: mehrteilige Nachnamen und Titel im Vornamen" do
+    spieler = vorgabe_result[:players].map { |p| [p[:lastname], p[:firstname]] }
+    assert_includes spieler, ["von der Aue", "Paula"], "Mehrteiliger Nachname falsch getrennt"
+    assert_includes spieler, ["Abt", "Dr. Anton"], "Titel im Vornamen falsch getrennt"
+    assert_includes spieler, ["Meyer-Lohse", "Karla"], "Doppelname falsch getrennt"
+  end
+
+  test "Vorgabeturnier: kein einheitliches Ballziel, aber Aufnahmenbegrenzung" do
+    params = vorgabe_result[:extracted_params] || {}
+    # Das Ausspielziel lautet: siehe Spalte pro Spieler "Ballzahl" / 15 Aufnahmen.
+    # Ein globales balls_goal waere hier falsch — die Vorgabe steht je Spieler.
+    assert_nil params[:balls_goal], "Es wurde ein globales Ballziel erfunden: #{params.inspect}"
+    assert_equal 15, params[:innings_goal]
+  end
+
+  test "Vorgabeturnier: Gruppenmodus T18 wird erkannt" do
+    assert_match(/T18/, vorgabe_result[:plan_info].to_s)
+  end
 
   test "die Abschnitte nach der Setzliste erzeugen keine Geisterspieler" do
     # Nach der Setzliste folgt "Wichtiges" mit Zeilen wie "Regeln:", "Doping:", "Haftung:".
