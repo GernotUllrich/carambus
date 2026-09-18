@@ -56,6 +56,13 @@ class TournamentMonitor::ResultProcessor
             table_monitor.reload
             game.reload
 
+            # Einsatz-Partien kommen hier ohne ba_results an (alle vier Aufrufer von
+            # report_result umgehen perform_save_current_set) — ohne sie ueberspringt
+            # write_game_result_data und der CC-Upload scheitert. Hier, im Lock und nach
+            # dem reload, erreicht die Ergaenzung jeden Weg. Aendert nur data["ba_results"],
+            # nichts an der Anzeige am Tisch. Details: ResultRecorder#perform_ensure_ba_results
+            TableMonitor::ResultRecorder.ensure_ba_results(table_monitor: table_monitor)
+
             # Step 1: Write game data (idempotent, has guards)
             write_game_result_data(table_monitor)
 

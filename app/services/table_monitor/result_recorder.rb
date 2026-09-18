@@ -17,6 +17,7 @@
 #   TableMonitor::ResultRecorder.save_current_set(table_monitor: tm)-> Satz abschliessen
 #   TableMonitor::ResultRecorder.get_max_number_of_wins(table_monitor: tm) -> Integer
 #   TableMonitor::ResultRecorder.switch_to_next_set(table_monitor: tm)     -> naechsten Satz init
+#   TableMonitor::ResultRecorder.ensure_ba_results(table_monitor: tm)      -> ba_results fuer den CC-Upload
 class TableMonitor::ResultRecorder < ApplicationService
   def initialize(kwargs = {})
     @tm = kwargs[:table_monitor]
@@ -43,6 +44,10 @@ class TableMonitor::ResultRecorder < ApplicationService
 
   def self.switch_to_next_set(table_monitor:)
     new(table_monitor: table_monitor).perform_switch_to_next_set
+  end
+
+  def self.ensure_ba_results(table_monitor:)
+    new(table_monitor: table_monitor).perform_ensure_ba_results
   end
 
   # ---------------------------------------------------------------------------
@@ -168,6 +173,28 @@ class TableMonitor::ResultRecorder < ApplicationService
       end
     end
     @tm.deep_merge_data!("ba_results" => ba_results)
+  end
+
+  # ba_results fuer den ClubCloud-Upload sicherstellen, bevor das Ergebnis gemeldet wird.
+  #
+  # Seit 2b800a9f (Phase 38.4 R5-2) entsteht ba_results nur in perform_save_current_set.
+  # Einsatz-Partien rufen die nie auf — weder Branch C in perform_evaluate_result noch
+  # TableMonitor#admin_ack_result oder #force_next_state. Ohne ba_results scheiterte der
+  # Upload jeder einsaetzigen Partie ("No game results (ba_results) found"), auf bc-wedel
+  # nachweislich seit mindestens 2026-08-30.
+  #
+  # Bewusst NICHT perform_save_current_set: das wuerde data["sets"] fuellen, das bei
+  # Einsatz-Partien bisher leer blieb. Hier entsteht nur ba_results; panel_state und
+  # current_element bleiben unberuehrt — am Tisch aendert sich nichts, insbesondere
+  # erscheint das Protokoll nicht erneut (Betreiber-Vorgabe 2026-09-18).
+  #
+  # Idempotent: Steht ba_results schon (Mehrsatz-Partien, oder ein zweiter Aufruf), wird
+  # nichts neu berechnet — Sets1/Sets2 werden also nicht doppelt gezaehlt.
+  def perform_ensure_ba_results
+    return if @tm.game.blank? || @tm.data["ba_results"].present?
+
+    update_ba_results_with_set_result!(perform_save_result)
+    @tm.save!
   end
 
   def perform_save_current_set
