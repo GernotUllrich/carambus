@@ -70,7 +70,9 @@ class RegionTaggingsGuardTest < ActiveSupport::TestCase
     raised = nil
     begin
       capture_io { invoke("region_taggings:update_all") }
-    rescue => e
+    rescue SystemExit, StandardError => e
+      # Auf einem Local Server endet der Task hinter dem Guard per `exit` ("only in API Server") —
+      # SystemExit muss abgefangen werden, sonst beendet er den ganzen Testprozess.
       raised = e
     end
 
