@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_08_30_190000) do
+ActiveRecord::Schema[7.2].define(version: 2026_09_02_232138) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -1538,7 +1538,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_08_30_190000) do
     t.index ["source_concept_id", "target_concept_id", "relation"], name: "idx_concept_relation_unique", unique: true
     t.index ["source_concept_id"], name: "index_training_concept_relations_on_source_concept_id"
     t.index ["target_concept_id"], name: "index_training_concept_relations_on_target_concept_id"
-    t.check_constraint "relation::text = ANY (ARRAY['teaches'::character varying::text, 'applies'::character varying::text, 'exemplifies'::character varying::text, 'specializes'::character varying::text, 'parallels'::character varying::text])", name: "training_concept_relations_relation_check"
+    t.check_constraint "relation::text = ANY (ARRAY['teaches'::character varying, 'applies'::character varying, 'exemplifies'::character varying, 'specializes'::character varying, 'parallels'::character varying, 'risk_of'::character varying, 'is_inverse_of'::character varying]::text[])", name: "training_concept_relations_relation_check"
     t.check_constraint "source_concept_id <> target_concept_id", name: "training_concept_relations_no_self_loop"
   end
 

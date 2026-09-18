@@ -1225,6 +1225,7 @@ class TournamentsControllerTest < ActionDispatch::IntegrationTest
 
   test "release_draft auf dem API-Server wird abgewiesen" do
     # carambus_api_url leer => Authority => ensure_local_server greift
+    Carambus.config.carambus_api_url = nil
     t = draft_tournament
     post release_draft_tournament_url(t)
     assert_redirected_to tournaments_path

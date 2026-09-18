@@ -5,6 +5,9 @@ require "test_helper"
 # v0.9 Phase C: self-referentielle Concept↔Concept-Relationen. Ersetzt
 # und erweitert die gelöschte concept_principles-Tabelle: teaches /
 # applies / exemplifies bleiben, specializes + parallels kommen dazu.
+# 2026-09-03: risk_of + is_inverse_of ergänzt (Handoff 2026-05-12
+# §Out-of-Scope) — lösen den parallels-Notbehelf bei den
+# Dominanz-Verlust-Beziehungen ab.
 class TrainingConceptRelationTest < ActiveSupport::TestCase
   def source
     @source ||= TrainingConcept.create!(title: "Versammlungsstoß", axis: "conception")
@@ -24,9 +27,34 @@ class TrainingConceptRelationTest < ActiveSupport::TestCase
     end
   end
 
-  test "relation enum exposes exactly five values" do
-    assert_equal %w[teaches applies exemplifies specializes parallels],
-                 TrainingConceptRelation.relations.keys
+  test "relation enum exposes exactly seven values" do
+    expected = %w[teaches applies exemplifies specializes parallels risk_of is_inverse_of]
+    assert_equal expected, TrainingConceptRelation.relations.keys
+  end
+
+  test "risk_of and is_inverse_of are valid relations" do
+    %w[risk_of is_inverse_of].each do |rel|
+      r = TrainingConceptRelation.new(valid_attrs(relation: rel))
+      assert r.valid?, "#{rel}: #{r.errors.full_messages.inspect}"
+    end
+  end
+
+  test "risk_of and is_inverse_of pass the database check constraint" do
+    %w[risk_of is_inverse_of].each do |rel|
+      r = TrainingConceptRelation.create!(valid_attrs(relation: rel))
+      assert_equal rel, r.reload.relation
+      r.destroy!
+    end
+  end
+
+  test "database check constraint still rejects unknown relations" do
+    assert_raises(ActiveRecord::StatementInvalid) do
+      TrainingConceptRelation.connection.execute(
+        "INSERT INTO training_concept_relations " \
+        "(source_concept_id, target_concept_id, relation, created_at, updated_at) " \
+        "VALUES (#{source.id}, #{target.id}, 'bogus_relation', NOW(), NOW())"
+      )
+    end
   end
 
   test "valid with source + target + relation" do

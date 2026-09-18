@@ -165,8 +165,10 @@ class RegionServer::GameResultWriterTest < ActiveSupport::TestCase
 
   test "auf der Authority wird nichts eingereiht" do
     # carambus_api_url leer => Authority. Sie stoesst sich nicht selbst an.
-    assert_no_enqueued_jobs only: GameResultSyncJob do
-      write
+    ApplicationRecord.stub(:local_server?, false) do
+      assert_no_enqueued_jobs only: GameResultSyncJob do
+        write
+      end
     end
   end
 

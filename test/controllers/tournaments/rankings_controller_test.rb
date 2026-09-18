@@ -16,6 +16,10 @@ class Tournaments::RankingsControllerTest < ActionDispatch::IntegrationTest
 
     @original_api_url = Carambus.config.carambus_api_url
     Carambus.config.carambus_api_url = "http://local.test"
+    # Region Server = Local Server OHNE location_id — sonst waere es ein Location Server (Wizard statt
+    # Panel), je nach lokaler carambus.yml.
+    @original_location_id = Carambus.config.location_id
+    Carambus.config.location_id = nil
 
     # Plan 36-03: zwei Tests hier erfassen Spiele ueber RegionServer::GameResultWriter, der jetzt
     # GameResultSyncJob anstoesst. Unter dem :inline-Adapter aus test_helper.rb:139 liefe der Job
@@ -35,6 +39,7 @@ class Tournaments::RankingsControllerTest < ActionDispatch::IntegrationTest
 
   teardown do
     Carambus.config.carambus_api_url = @original_api_url
+    Carambus.config.location_id = @original_location_id
     ActiveJob::Base.queue_adapter = @original_adapter
   end
 
