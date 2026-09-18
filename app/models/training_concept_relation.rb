@@ -1,4 +1,6 @@
 class TrainingConceptRelation < ApplicationRecord
+  include LocalProtector
+
   # risk_of:       Ausfuehren von source riskiert den Zustand target
   # is_inverse_of: source und target sind positives/negatives Konzept derselben Achse
   RELATIONS = %w[teaches applies exemplifies specializes parallels risk_of is_inverse_of].freeze

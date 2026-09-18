@@ -1,4 +1,6 @@
 class ShotEvent < ApplicationRecord
+  include LocalProtector
+
   EVENT_TYPES    = %w[initial_contact cushion_contact sperre austausch final_carambolage near_miss].freeze
   BALLS_INVOLVED = %w[b1 b2 b3].freeze
   CUSHIONS       = %w[short_left short_right long_near long_far].freeze

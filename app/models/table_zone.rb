@@ -1,4 +1,6 @@
 class TableZone < ApplicationRecord
+  include LocalProtector
+
   ZONE_TYPES = %w[band_strip corner_region line_passage custom].freeze
 
   enum :zone_type, ZONE_TYPES.index_with(&:itself), prefix: :zone
