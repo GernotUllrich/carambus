@@ -145,7 +145,7 @@ class StaticController < ApplicationController
 
     # region_id wie im Cron aus dem Kontext ableiten (nil-sicher: ein Full-Mirror ohne Kontext
     # zieht ungefiltert). EBC/context=TBV → Region 16.
-    region_id = Region.find_by_shortname(Carambus.config.context)&.id
+    region_id = Version.context_region_id
     args = region_id.present? ? {region_id: region_id} : {}
 
     prev = Setting.key_get_value("last_version_id").to_i

@@ -246,6 +246,18 @@ class Version < PaperTrail::Version
   end
   private_class_method :fetch_authority_last_version
 
+  # Region dieses Servers aus `Carambus.config.context` — ohne Beachtung der Gross-/Klein-
+  # schreibung, wie die RegionCc-Pfade (`context.upcase`). Frueher suchten die Sync-Stellen
+  # `find_by_shortname(context)` exakt: `context: nbv` (Prod carambus_nbv) loeste nicht auf,
+  # der Server zog ungefiltert und hielt Ligen fremder Regionen (belegt 2026-09-19).
+  # nil ohne Kontext (Full-Mirror wie carambus.de) oder ohne passende Region (Authority "API").
+  def self.context_region_id
+    shortname = Carambus.config.context.to_s.strip
+    return nil if shortname.blank?
+
+    Region.where("UPPER(shortname) = ?", shortname.upcase).pick(:id)
+  end
+
   # Beantwortet die Frage, die die Versionsanzeige stellen sollte: "fehlt mir etwas, das mich
   # betrifft?"
   #
@@ -264,7 +276,7 @@ class Version < PaperTrail::Version
   #
   # Liest nur — kein Cursor wird geschrieben, kein Sync ausgeloest.
   def self.sync_status(region_id = nil)
-    region_id ||= Region.find_by_shortname(Carambus.config.context)&.id
+    region_id ||= context_region_id
     local = Setting.key_get_value("last_version_id").to_i
     base = {local_version: local, region_id: region_id, authority_version: nil, pending: nil}
 
@@ -439,6 +451,9 @@ class Version < PaperTrail::Version
     league_details = opts[:league_details]
     days_ahead = opts[:days_ahead]
     reload_games = opts[:reload_games]
+    # Sync-Filter: fehlt er, aus dem Kontext ableiten. Die Reload-Buttons (leagues/clubs/regions/
+    # tournaments) und TournamentPreparation::Opener uebergeben keinen und zogen so ungefiltert.
+    filter_region_id = opts[:region_id].presence || context_region_id
     # access_token, token_type = Setting.get_carambus_api_token
     url = URI("#{Carambus.config.carambus_api_url}/versions/get_updates?last_version_id=#{
       Setting.key_get_value("last_version_id").to_i
@@ -465,7 +480,7 @@ class Version < PaperTrail::Version
     }#{
       "&player_details=#{player_details}" if player_details
     }#{
-      "&region_id=#{opts[:region_id]}" if opts[:region_id].present?
+      "&region_id=#{filter_region_id}" if filter_region_id.present?
     }#{
       "&league_details=#{league_details}" if league_details
     }#{

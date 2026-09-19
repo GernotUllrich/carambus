@@ -296,10 +296,8 @@ namespace :carambus do
 
   desc "retrieve updates from API server"
   task retrieve_updates: :environment do
-    args = Carambus.config.context.present? ? {
-      region_id: Region.find_by_shortname(Carambus.config.context)&.id
-    } : {}
-    (1..10).each.map { |i| Version.update_from_carambus_api(args) }
+    # Region-Filter leitet update_from_carambus_api selbst aus dem Kontext ab (Version.context_region_id)
+    (1..10).each.map { |i| Version.update_from_carambus_api }
   end
 
   desc "Init Disciplines"
