@@ -294,6 +294,8 @@ en:
       invalid_theme: invalid theme
       invalid_locale: invalid locale
       invalid_timezone: invalid timezone
+    admin_required: "Only signed-in club or system admins may perform this action."
+    upload_owner_or_admin_required: "Only the owner and club or system admins may edit or delete an upload."
     tournament_game_manipulation_blocked: "Game manipulations are not allowed during a tournament. Please use the tournament management system."
     tournament_reset_requires_admin: "Resetting a tournament is only allowed for club and system administrators."
   game_participation:

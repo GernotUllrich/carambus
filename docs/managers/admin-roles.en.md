@@ -45,12 +45,20 @@ assignment.
 | Open the tournament monitor, reset a tournament | – | – | – | yes | yes |
 | Edit master data (clubs, players, leagues, teams, **locations**, tables, disciplines, seasons, tournament plans …) | – | – | – | yes | yes |
 | Create, edit, delete, merge locations; add tables to them | – | – | – | yes | yes |
+| Create, edit, delete a club's location assignments, discipline phases and time slots | – | – | – | yes | yes |
+| Operate the scoreboard at the table (start a game, score, protocol) — also without signing in | yes | yes | yes | yes | yes |
+| Edit and delete table monitor records; control actions outside the scoreboard (set balls, advance state, evaluate result) | – | – | – | yes | yes |
 | Appoint or remove the matchday lead of a league matchday | – | – | yes | yes | yes |
 | League matchday: start and operate the party monitor (line-up, rounds, results, closing) | – | yes | yes | yes | yes |
 | Reset the party monitor; create, edit, delete party monitor records | – | – | – | yes | yes |
+| Upload files; edit and delete your own uploads | yes | yes | yes | yes | yes |
+| Edit and delete other accounts' uploads | – | – | – | yes | yes |
 | Reload a club or league from the ClubCloud | – | yes | yes | yes | yes |
 | ClubCloud write actions in the Carambus assistant | – | yes | yes | – | yes |
-| Admin area: users, roles, personas, settings, members' contact data | – | – | – | – | yes |
+| Admin area: users, roles, personas, settings, members' contact data, training database, stream configurations | – | – | – | – | yes |
+
+Deliberately reachable without signing in are only: registering a new account, the players' PIN sign-in and the
+link through which a member sets their own PIN (signed, valid once).
 
 Where a right is missing, the button is greyed out or not shown. Sports directors without an admin role do part of
 this through the Carambus assistant (see [ClubCloud MCP Cloud Quickstart](clubcloud-mcp-cloud-quickstart.md)).

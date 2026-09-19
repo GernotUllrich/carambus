@@ -43,12 +43,20 @@ Spalten „Turnierleiter“ und „Sportwart“ meinen ein Konto mit der Rolle S
 | Turnier-Monitor öffnen, Turnier zurücksetzen | – | – | – | ja | ja |
 | Stammdaten bearbeiten (Vereine, Spieler, Ligen, Mannschaften, **Spielorte**, Tische, Disziplinen, Saisons, Turnierpläne …) | – | – | – | ja | ja |
 | Spielorte anlegen, ändern, löschen, zusammenführen, mit Tischen bestücken | – | – | – | ja | ja |
+| Spielort-Zuordnungen eines Vereins, Disziplin-Phasen und Zeitfenster (Slots) anlegen, ändern, löschen | – | – | – | ja | ja |
+| Scoreboard am Tisch bedienen (Spiel starten, Punkte, Protokoll) — auch ohne Anmeldung | ja | ja | ja | ja | ja |
+| Tisch-Monitor-Datensätze ändern und löschen; Steueraktionen außerhalb des Scoreboards (Bälle setzen, Zustand weiterschalten, Ergebnis auswerten) | – | – | – | ja | ja |
 | Begegnungsleiter eines Liga-Spieltags einsetzen oder entfernen | – | – | ja | ja | ja |
 | Liga-Spieltag: PartyMonitor starten und bedienen (Aufstellung, Runden, Ergebnisse, Abschluss) | – | ja | ja | ja | ja |
 | PartyMonitor zurücksetzen; PartyMonitor-Datensätze anlegen, ändern, löschen | – | – | – | ja | ja |
+| Dateien hochladen; eigene Uploads ändern und löschen | ja | ja | ja | ja | ja |
+| Uploads anderer Konten ändern und löschen | – | – | – | ja | ja |
 | Verein oder Liga aus der ClubCloud neu laden | – | ja | ja | ja | ja |
 | ClubCloud-Schreibaktionen im Carambus-Assistenten | – | ja | ja | – | ja |
-| Admin-Bereich: Benutzer, Rollen, Personas, Einstellungen, Kontaktdaten der Mitglieder | – | – | – | – | ja |
+| Admin-Bereich: Benutzer, Rollen, Personas, Einstellungen, Kontaktdaten der Mitglieder, Trainingsdatenbank, Stream-Konfigurationen | – | – | – | – | ja |
+
+Bewusst ohne Anmeldung erreichbar sind nur: die Registrierung eines neuen Kontos, die PIN-Anmeldung der Spieler und
+der Link, über den ein Mitglied seine PIN selbst setzt (signiert, nur einmal gültig).
 
 Wo ein Recht fehlt, ist der Knopf ausgegraut oder nicht zu sehen. Sportwarte ohne Admin-Rolle erledigen einen Teil
 davon über den Carambus-Assistenten (siehe [ClubCloud-MCP Cloud-Quickstart](clubcloud-mcp-cloud-quickstart.md)).

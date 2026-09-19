@@ -52,7 +52,9 @@ class TableMonitorsControllerTest < ActionDispatch::IntegrationTest
       "edit should respond with success or redirect"
   end
 
+  # Plan 20-03: Datensatz-Verwaltung nur fuer Admins
   test "should update table_monitor" do
+    sign_in users(:club_admin)
     patch table_monitor_url(@table_monitor), params: { table_monitor: {
       tournament_monitor_id: @table_monitor.tournament_monitor_id,
       state: @table_monitor.state,
@@ -63,6 +65,7 @@ class TableMonitorsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "should destroy table_monitor" do
+    sign_in users(:club_admin)
     assert_difference("TableMonitor.count", -1) do
       delete table_monitor_url(@table_monitor)
     end

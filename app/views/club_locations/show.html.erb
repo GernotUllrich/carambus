@@ -8,7 +8,9 @@
       <span class="text-gray-400 font-light mx-2">\</span>
       Club Location #<%= @club_location.id %>
     </h1>
-    <%= custom_link_to t("edit"), edit_club_location_path(@club_location), class: "btn btn-white" %>
+    <%- if current_user&.admin? %>
+      <%= custom_link_to t("edit"), edit_club_location_path(@club_location), class: "btn btn-white" %>
+    <%- end %>
   </div>
 
   <div class="p-8  rounded shadow">
