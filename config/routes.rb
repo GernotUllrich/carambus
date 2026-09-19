@@ -269,6 +269,8 @@ Rails.application.routes.draw do
   resources :parties do
     member do
       get :party_monitor
+      post :assign_leiter
+      delete :remove_leiter
     end
   end
   resources :league_teams

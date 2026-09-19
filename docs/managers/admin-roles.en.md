@@ -21,11 +21,14 @@ clubs and results. The rights below concern making changes.
 
 - **Sports director (Sportwart)**: applies to the tournaments within their scope, i.e. the venues and disciplines
   assigned to them. If no discipline is assigned, all disciplines apply; "Karambol" covers its sub-disciplines
-  (e.g. Cadre 35/2, three-cushion). Without an assigned venue the persona applies to no tournament.
+  (e.g. Cadre 35/2, three-cushion). Without an assigned venue the persona applies to no tournament. For **league
+  matchdays** only the league's discipline counts, not the venue.
 - **Regional sports director (Landessportwart)**: like the sports director, but for all venues.
 
 **Tournament director** is whoever is entered as tournament director of a tournament. The right applies to that
-tournament.
+tournament. League matchdays have the counterpart: the **matchday lead**. A sports director or admin appoints them
+on the matchday's page; the right applies to that matchday. In the table they are in the "Tournament director"
+column.
 
 ## Who may do what {#matrix}
 
@@ -42,6 +45,9 @@ assignment.
 | Open the tournament monitor, reset a tournament | – | – | – | yes | yes |
 | Edit master data (clubs, players, leagues, teams, **locations**, tables, disciplines, seasons, tournament plans …) | – | – | – | yes | yes |
 | Create, edit, delete, merge locations; add tables to them | – | – | – | yes | yes |
+| Appoint or remove the matchday lead of a league matchday | – | – | yes | yes | yes |
+| League matchday: start and operate the party monitor (line-up, rounds, results, closing) | – | yes | yes | yes | yes |
+| Reset the party monitor; create, edit, delete party monitor records | – | – | – | yes | yes |
 | Reload a club or league from the ClubCloud | – | yes | yes | yes | yes |
 | ClubCloud write actions in the Carambus assistant | – | yes | yes | – | yes |
 | Admin area: users, roles, personas, settings, members' contact data | – | – | – | – | yes |

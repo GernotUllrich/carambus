@@ -98,7 +98,7 @@ Die Behandlung von Ligabegegnungen läuft grundlegend verschieden verglichen mit
 | Phase | Beschreibung |
 |-------|--------------|
 | **1. Planung** | Spieltage und Mannschaften werden in der ClubCloud geplant |
-| **2. Mannschaftsaufstellung** | Kapitäne legen die Spieler für den Spieltag fest |
+| **2. Mannschaftsaufstellung** | Die Spieler für den Spieltag werden am PartyMonitor festgelegt (Vorgabe der Kapitäne; eintragen darf der Begegnungsleiter, siehe [Rechte](#rechte)) |
 | **3. Tischzuordnung** | Tische werden den einzelnen Spielen zugeordnet |
 | **4. Spielerzuordnung** | Spieler werden den einzelnen Partien zugeordnet |
 | **5. Rundenstart** | Daten werden an die Scoreboards übertragen |
@@ -126,7 +126,20 @@ Diese Daten bilden die Grundlage für das Carambus Matchday Management.
 - Carambus-Server mit konfigurierter Location
 - Pool-Tische mit zugewiesenen TableMonitors
 - Aktive Liga mit Spielplan (GamePlan)
-- Benutzer mit entsprechenden Rechten (Admin für Reset-Funktionen)
+- Benutzer mit entsprechenden Rechten, siehe [Rechte](#rechte)
+
+### Rechte {#rechte}
+
+Einen Liga-Spieltag bedienen (PartyMonitor starten, Aufstellung, Runden, Ergebnisse, Abschluss) dürfen:
+
+- der **Begegnungsleiter** des Spieltags. Er wird auf der Seite des Spieltags im Abschnitt „Begegnungsleiter“
+  eingesetzt oder entfernt, von einem Sportwart der Disziplin oder einem Admin;
+- jeder **Sportwart** oder **Landessportwart**, dessen Disziplinen die Disziplin der Liga umfassen. Der Spielort
+  spielt dabei keine Rolle;
+- Vereins- und System-Admins.
+
+Zurücksetzen und das Anlegen, Ändern oder Löschen von PartyMonitor-Datensätzen bleiben den Admins vorbehalten. Ohne
+Recht sind die Knöpfe ausgegraut; der Knopf zum PartyMonitor erscheint auf der Seite des Spieltags erst mit Recht.
 
 ### Datenvoraussetzungen
 
