@@ -5,6 +5,8 @@ require "test_helper"
 class SlotsControllerTest < ActionDispatch::IntegrationTest
   setup do
     @slot = slots(:one)
+    # Plan 20-03: Schreibaktionen nur fuer Admins
+    sign_in users(:club_admin)
   end
 
   test "should get index" do

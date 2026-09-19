@@ -197,6 +197,18 @@ class ApplicationController < ActionController::Base
     false
   end
 
+  # Strenges Admin-Gate (Plan 20-03). Anders als `admin_only_check` OHNE die Ausnahme
+  # `guest_player_creation?`: die laesst das Scoreboard-Konto mit `club_id` + `season_id` in den
+  # Params durch — und als Scoreboard-Konto wird jeder anonyme Besucher von
+  # `LocationsController#set_location` automatisch angemeldet. Fuer Stammdaten und
+  # TableMonitor-Verwaltung waere das eine Hintertuer.
+  def require_admin
+    return if current_user&.admin?
+
+    redirect_back fallback_location: root_path, alert: I18n.t("errors.admin_required")
+    false
+  end
+
   def system_admin_only
     return if current_user&.system_admin?
 

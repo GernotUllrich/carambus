@@ -5,6 +5,8 @@ require "test_helper"
 class ClubLocationsControllerTest < ActionDispatch::IntegrationTest
   setup do
     @club_location = club_locations(:one)
+    # Plan 20-03: Schreibaktionen nur fuer Admins
+    sign_in users(:club_admin)
   end
 
   test "should get index" do

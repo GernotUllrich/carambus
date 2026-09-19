@@ -15,6 +15,12 @@ class TableMonitorsController < ApplicationController
     "BK-2kombi" => [50, 60, 70]
   }.freeze
 
+  # Plan 20-03 (R3): Datensatz-Verwaltung und die HTTP-Steueraktionen nur fuer Admins — vor
+  # `set_table_monitor`, damit ein anonymer Aufruf nicht erst Tisch-/Turnier-Meldungen sieht.
+  # Die Scoreboard-Bedienung (index, show, start_game, print_protocol, toggle_dark_mode,
+  # demo_scoreboard, TableMonitorReflex) bleibt bewusst offen.
+  before_action :require_admin,
+    only: %i[new create edit update destroy set_balls next_step evaluate_result]
   before_action :set_table_monitor,
     only: %i[show start_game edit update destroy next_step evaluate_result set_balls toggle_dark_mode]
   before_action :block_tournament_manipulation,
