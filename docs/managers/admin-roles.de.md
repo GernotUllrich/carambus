@@ -21,10 +21,13 @@ Spieler, Vereine und Ergebnisse. Die Rechte unten betreffen das Ändern.
 
 - **Sportwart**: gilt für die Turniere seines Wirkbereichs, also die ihm zugeordneten Spielorte und Disziplinen.
   Ist keine Disziplin zugeordnet, gelten alle; „Karambol“ umfasst die Unterdisziplinen (z. B. Cadre 35/2, Dreiband).
-  Ohne zugeordneten Spielort gilt die Persona für kein Turnier.
+  Ohne zugeordneten Spielort gilt die Persona für kein Turnier. Bei **Liga-Spieltagen** zählt nur die Disziplin der
+  Liga, der Spielort nicht.
 - **Landessportwart**: wie Sportwart, aber für alle Spielorte.
 
 **Turnierleiter** ist, wer bei einem Turnier als Turnierleiter eingetragen ist. Das Recht gilt für dieses Turnier.
+Für Liga-Spieltage gibt es das Gegenstück: den **Begegnungsleiter**. Ihn setzt ein Sportwart oder Admin auf der
+Seite des Spieltags ein; das Recht gilt für diesen Spieltag. In der Tabelle steht er in der Spalte „Turnierleiter“.
 
 ## Wer darf was {#matrix}
 
@@ -40,6 +43,9 @@ Spalten „Turnierleiter“ und „Sportwart“ meinen ein Konto mit der Rolle S
 | Turnier-Monitor öffnen, Turnier zurücksetzen | – | – | – | ja | ja |
 | Stammdaten bearbeiten (Vereine, Spieler, Ligen, Mannschaften, **Spielorte**, Tische, Disziplinen, Saisons, Turnierpläne …) | – | – | – | ja | ja |
 | Spielorte anlegen, ändern, löschen, zusammenführen, mit Tischen bestücken | – | – | – | ja | ja |
+| Begegnungsleiter eines Liga-Spieltags einsetzen oder entfernen | – | – | ja | ja | ja |
+| Liga-Spieltag: PartyMonitor starten und bedienen (Aufstellung, Runden, Ergebnisse, Abschluss) | – | ja | ja | ja | ja |
+| PartyMonitor zurücksetzen; PartyMonitor-Datensätze anlegen, ändern, löschen | – | – | – | ja | ja |
 | Verein oder Liga aus der ClubCloud neu laden | – | ja | ja | ja | ja |
 | ClubCloud-Schreibaktionen im Carambus-Assistenten | – | ja | ja | – | ja |
 | Admin-Bereich: Benutzer, Rollen, Personas, Einstellungen, Kontaktdaten der Mitglieder | – | – | – | – | ja |

@@ -35,4 +35,13 @@ module SportwartScope
     # (z.B. Cadre 35/2, Dreiband) via discipline.root_chain ab.
     disc_ids.empty? || (Array(tournament.discipline&.root_chain).map(&:id) & disc_ids).any?
   end
+
+  # Plan 20-02: Liga-Spieltag — nur die Disziplin der Liga zaehlt, das Spiellokal nicht
+  # (Betreiber-Vorgabe 2026-09-19, Muster wie die Meldeliste). Grund: die meisten Spieltage tragen
+  # kein Spiellokal, und ein Sportwart soll jeden Spieltag seiner Disziplin leiten koennen.
+  def in_sportwart_party_scope?(party)
+    return false if party.nil?
+
+    in_sportwart_discipline_scope?(party.league)
+  end
 end

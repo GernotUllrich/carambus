@@ -501,6 +501,20 @@ en:
       party: Party
       parties: Parties
   parties:
+    # Plan 20-02 — permissions on matchdays (PartyPolicy)
+    errors:
+      admin_required: "Only signed-in club or system admins may create, edit or delete party monitor records."
+      operate_denied: "Only the appointed matchday lead, the responsible sports officer and admins may operate this matchday."
+      assign_leiter_denied: "Only the responsible sports officer and admins may appoint a matchday lead."
+    leiter:
+      label: Matchday lead
+      blank_option: "– choose account –"
+      assign: Appoint
+      remove: Remove
+      assigned: "Matchday lead appointed."
+      removed: "Matchday lead removed."
+      none: "No matchday lead appointed."
+      invalid_user: "Account not found or not confirmed."
     index:
       listing_parties: Listing Matchdays
     parties: Matchdays
