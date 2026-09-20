@@ -130,7 +130,7 @@ services:
   postgres:
     environment:
       POSTGRES_USER: www_data
-      POSTGRES_PASSWORD: toS6E7tARQafHCXz
+      POSTGRES_PASSWORD: "<aus carambus_data/secrets.yml: shared.database_password>"
       
   redis:
     # Standard Redis configuration
@@ -139,7 +139,7 @@ services:
     environment:
       RAILS_ENV: production
       POSTGRES_USER: www_data
-      POSTGRES_PASSWORD: toS6E7tARQafHCXz
+      POSTGRES_PASSWORD: "<aus carambus_data/secrets.yml: shared.database_password>"
 ```
 
 ### Asset Pipeline Configuration

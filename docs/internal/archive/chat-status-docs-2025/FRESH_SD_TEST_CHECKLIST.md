@@ -106,7 +106,7 @@ sed -i 's/carambus_production_20250805_224054.sql.gz/carambus_production_fixed.s
 
 # 3. Update database user in docker-compose.yml
 sed -i 's/POSTGRES_USER: carambus/POSTGRES_USER: www_data/g' docker-compose.yml
-sed -i 's/POSTGRES_PASSWORD: \${POSTGRES_PASSWORD:-carambus_password}/POSTGRES_PASSWORD: toS6E7tARQafHCXz/g' docker-compose.yml
+sed -i 's/POSTGRES_PASSWORD: \${POSTGRES_PASSWORD:-carambus_password}/POSTGRES_PASSWORD: <aus carambus_data/secrets.yml: shared.database_password>/g' docker-compose.yml
 
 # 4. Remove obsolete version attribute
 sed -i '/^version:/d' docker-compose.yml

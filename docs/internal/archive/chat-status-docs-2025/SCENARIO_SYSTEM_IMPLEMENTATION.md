@@ -68,7 +68,7 @@ environments:
     database_name: carambus_location_2459_production
     ssl_enabled: false
     database_username: www_data    # Mit Unterstrich (PostgreSQL-kompatibel)
-    database_password: toS6E7tARQafHCXz
+    database_password: "<aus carambus_data/secrets.yml: shared.database_password>"
     puma_socket_path: /tmp/puma.sock
     deploy_to: /var/www/carambus_location_2459  # Unix Socket Pfad
 ```
