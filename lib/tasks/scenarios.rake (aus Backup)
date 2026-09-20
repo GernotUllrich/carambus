@@ -105,7 +105,7 @@ namespace :scenario do
           'mode' => 'production',
           'ssl_enabled' => true,
           'database_username' => 'www-data',
-          'database_password' => 'toS6E7tARQafHCXz',
+          'database_password' => '',
           'database_host' => 'localhost'
         }
       },

@@ -1007,7 +1007,7 @@ namespace :scenario do
           'database_name' => "#{scenario_name}_production",
           'ssl_enabled' => false,
           'database_username' => 'www-data',
-          'database_password' => 'toS6E7tARQafHCXz',
+          'database_password' => '',
           'puma_socket_path' => '/tmp/puma.sock'
         }
       }

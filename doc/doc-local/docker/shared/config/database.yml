@@ -4,4 +4,4 @@ production:
   database: carambus_production_nbv
   port: 5432
   username: www_data
-  password: toS6E7tARQafHCXz
+  password: "<aus carambus_data/secrets.yml: shared.database_password>"
