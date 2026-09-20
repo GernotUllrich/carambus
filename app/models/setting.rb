@@ -1344,32 +1344,12 @@ class Setting < ApplicationRecord
     val
   end
 
-  def self.get_carambus_api_token
-    expire_str = Setting.key_get_value("carambus_api_token_expire_at")
-    if expire_str.blank? || Time.parse(expire_str) < Time.now
-      url = URI("https://dev-r4djmvaa.eu.auth0.com/oauth/token")
-      http = Net::HTTP.new(url.host, url.port)
-      http.use_ssl = true
-      http.verify_mode = Carambus.ssl_verify_mode
-      request = Net::HTTP::Post.new(url)
-      request["content-type"] = "application/json"
-      request.body = "{\"client_id\":\"aqAJY7zNMsw0jiThccQyKOO1WyjKP0AC\",\"client_secret\":\"7PN4bsl0tikD8fylkoOY_j2RudtlayXVCI0SlPzG2Tfr7ewLUETiEYHFwVL9Rk1Q\",\"audience\":\"https://api.carambus.de\",\"grant_type\":\"client_credentials\"}"
-      response = http.request(request)
-      return [] unless response.message == "OK"
-
-      resp = JSON.parse(response.read_body)
-      access_token = resp["access_token"]
-      token_type = resp["token_type"]
-      Rails.logger.info "access_token: #{access_token} token_type: #{token_type}"
-
-      Setting.key_set_value("carambus_api_access_token", access_token)
-      Setting.key_set_value("carambus_api_token_type", token_type)
-      Setting.key_set_value("carambus_api_token_expire_at", Time.now + 36_000.seconds)
-
-    else
-      access_token = Setting.key_get_value("carambus_api_access_token")
-      token_type = Setting.key_get_value("carambus_api_token_type")
-    end
-    [access_token, token_type]
-  end
+  # Plan 21-03 (2026-09-20): `self.get_carambus_api_token` entfernt.
+  # Sie holte ein Auth0-Token fuer api.carambus.de und trug client_id und client_secret
+  # im KLARTEXT — in einem oeffentlichen Repo. Ihr einziger Aufrufer (version.rb:457) war
+  # seit Langem auskommentiert, und die drei Setting-Schluessel (carambus_api_token,
+  # carambus_api_token_type, carambus_api_token_expire_at) wurden nirgends sonst gelesen:
+  # toter Code mit lebendem Geheimnis.
+  # Die Fingerprints beider Werte stehen in lib/credential_denylist.yml — die Baum-Wache
+  # verhindert ihre Rueckkehr. Die Rotation bei Auth0 liegt beim Betreiber.
 end

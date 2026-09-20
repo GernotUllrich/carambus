@@ -70,8 +70,11 @@ production:
   username: www_data
   password: "<aus carambus_data/secrets.yml: shared.database_password>"
 
-vi carambus/shared/config/master.key
-bdb689ada581c5cd22726d5641b82ccf
+# Veraltet (Ruby-2.7.2-Zeit): ein gemeinsamer master.key. Seit Plan 18-01 hat JEDER Server
+# eigene Schluessel unter config/credentials/<env>.key, erzeugt mit
+#   rake scenario:generate_credentials[<szenario>,production]
+# und ausgeliefert ueber den Capistrano-linked_dir config/credentials (config/deploy.rb:16).
+# Der Wert gehoert nicht in diese Datei.
 
 ###DEL### echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
 curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
