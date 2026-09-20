@@ -106,8 +106,13 @@ class BurnedSecretGuardTest < ActiveSupport::TestCase
       "Der www_data-Fingerprint fehlt — ein build_credential_denylist-Lauf hat ihn vermutlich entfernt"
   end
 
-  test "der getrackte Baum ist sauber" do
-    ok, out = run_guard([])
+  # Bewusst mit der ECHTEN Sperrliste, nicht mit der des Tests: diese Datei traegt
+  # TESTWERT im Klartext und ist getrackt — mit der Test-Sperrliste wuerde der Scan
+  # sie selbst finden und immer rot sein. (Genau so passiert am 2026-09-20: der
+  # Einzellauf war gruen, solange die Datei noch untracked war, die Suite nach dem
+  # Commit rot. Der Befund war echt, das Kriterium falsch.)
+  test "der getrackte Baum ist gegen die echte Sperrliste sauber" do
+    ok, out = run_guard([], BurnedSecretGuard.load_denylist)
 
     assert ok, "Verbranntes Geheimnis im getrackten Baum:\n#{out}"
   end
