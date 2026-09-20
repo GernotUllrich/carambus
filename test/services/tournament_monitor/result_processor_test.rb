@@ -658,4 +658,129 @@ class TournamentMonitor::ResultProcessorTest < ActiveSupport::TestCase
       Thread.current[:_advancing_round_for_tm] = nil
     end
   end
+  # ==========================================================================
+  # Ergebnis-Mail: geschriebene Datei == angehaengte Datei
+  #
+  # Befund 2026-09-20 (Turnier-Probelauf und echtes Turnier 18934, cc_id 948): die Mail
+  # schlug beide Male mit `No such file or directory` fehl. Ursache: write_finale_csv_for_upload
+  # schreibt `tmp/result-<tournament.cc_id>.csv`, haengte aber `tmp/result-<tournament.id>.csv`
+  # an — zwei verschiedene Namen, sobald cc_id != id (also im Regelfall). Aelter als die
+  # Extraktion `0d4324e3` (11.04.), stammt aus lib/tournament_monitor_support.rb.
+  #
+  # Der Fehler blieb unsichtbar, weil er in einem `rescue StandardError` je Empfaenger landet
+  # und nur geloggt wird — der Turnierablauf merkt nichts davon.
+  # ==========================================================================
+
+  test "write_finale_csv_for_upload haengt genau die Datei an, die es geschrieben hat" do
+    # `Tournament#cc_id` ist kein Feld, sondern `tournament_cc.andand.cc_id` (tournament.rb:409) —
+    # die ClubCloud-Id ueber die Assoziation. Ohne TournamentCc ist sie nil.
+    TournamentCc.create!(id: 62_000_948, tournament_id: @tournament.id, cc_id: 948)
+    @tournament.reload
+    assert_equal 948, @tournament.cc_id
+    assert_not_equal @tournament.id, @tournament.cc_id,
+      "Vorbedingung: cc_id und id muessen sich unterscheiden, sonst prueft der Test nichts"
+
+    # Kein Vorab-Praeparieren der Spiele: unbeendete KO-Platzhalter ueberspringt die Methode
+    # seit `next if ended.blank?` von selbst. Ein frueherer Versuch, hier pauschal `ended_at` zu
+    # setzen, machte Platzhalter-Spiele zu "beendeten" und liess den Test an `gp.player.cc_id`
+    # scheitern — die Testvorbereitung hatte einen Zustand erzeugt, den es so nicht gibt.
+
+    captured = nil
+    delivery = Object.new
+    def delivery.deliver = true
+
+    TournamentMonitor.current_admin = Struct.new(:email).new("sportwart@example.test")
+
+    begin
+      NotifierMailer.stub :result, ->(_tournament, _recipient, _subject, filename, filepath) {
+        captured = {filename: filename, filepath: filepath}
+        delivery
+      } do
+        @processor.send(:write_finale_csv_for_upload)
+      end
+
+      assert_not_nil captured, "Es wurde keine Mail erzeugt — Empfaenger-Zweig nicht erreicht"
+      assert File.exist?(captured[:filepath]),
+        "Angehaengt wird #{File.basename(captured[:filepath])}, geschrieben wurde " \
+        "result-#{@tournament.cc_id}.csv — die Mail scheitert an einer Datei, die es nicht gibt"
+      assert_equal "#{Rails.root}/tmp/result-#{@tournament.cc_id}.csv", captured[:filepath]
+      assert_equal "result-#{@tournament.cc_id}.csv", captured[:filename],
+        "Der Anhang soll so heissen wie die Datei — sonst passt der Name nicht zum Inhalt"
+    ensure
+      TournamentMonitor.current_admin = nil
+      FileUtils.rm_f("#{Rails.root}/tmp/result-#{@tournament.cc_id}.csv")
+    end
+  end
+  # ==========================================================================
+  # Ein Spiel ohne `ended_at` darf die Ergebnis-CSV nicht mitreissen
+  #
+  # Befund 2026-09-20: Z. 633 ruft `ended.strftime` ungeprueft. Die Zeile davor faengt nur
+  # fehlende Teilnehmer ab (`next unless gp1.present? && gp2.present?`) — ein abgebrochenes oder
+  # kampflos gewertetes Spiel hat aber Teilnehmer UND kein Ende. Anders als der Mailversand
+  # liegt das NICHT in einem `rescue`: die ganze CSV faellt aus, nicht nur eine Zeile.
+  # ==========================================================================
+
+  test "write_finale_csv_for_upload ueberspringt Spiele ohne ended_at, statt abzubrechen" do
+    TournamentCc.create!(id: 62_000_949, tournament_id: @tournament.id, cc_id: 949)
+    @tournament.reload
+
+    beendet = local_game_with_participations!(1)
+    beendet.update!(ended_at: Time.zone.parse("2026-09-20 15:12"))
+    local_game_with_participations!(2) # bleibt ohne ended_at — der kritische Fall
+
+    csv_path = "#{Rails.root}/tmp/result-949.csv"
+    begin
+      assert_nothing_raised do
+        @processor.send(:write_finale_csv_for_upload)
+      end
+
+      assert File.exist?(csv_path), "Die CSV muss trotz des unbeendeten Spiels geschrieben werden"
+      zeilen = File.read(csv_path).lines.map(&:chomp).reject(&:empty?)
+      assert_equal 1, zeilen.size,
+        "Nur das beendete Spiel gehoert in die CSV, das unbeendete wird uebersprungen"
+      assert_includes zeilen.first, "20.09.2026"
+      assert_includes zeilen.first, "15:12"
+    ensure
+      FileUtils.rm_f(csv_path)
+    end
+  end
+  # ==========================================================================
+  # Ein beendetes Spiel ohne gesetzten Spieler darf die CSV nicht mitreissen
+  #
+  # `GameParticipation belongs_to :player, optional: true` (game_participation.rb:30) — eine
+  # Teilnahme ohne Spieler ist legitim (KO-Platzhalter). Z. 637 rief `gp1.player.cc_id` trotzdem
+  # ungeprueft; die Pruefung davor stellt nur sicher, dass die TEILNAHME existiert, nicht dass
+  # sie einen Spieler hat. Der `ended_at`-Schutz deckt den Fall nicht ab, sobald das Spiel
+  # beendet ist. Wie bei den anderen beiden Luecken faellt sonst die GANZE CSV aus, nicht eine
+  # Zeile — und zwar ausserhalb jedes `rescue`.
+  # ==========================================================================
+
+  test "write_finale_csv_for_upload ueberspringt beendete Spiele ohne gesetzten Spieler" do
+    TournamentCc.create!(id: 62_000_950, tournament_id: @tournament.id, cc_id: 950)
+    @tournament.reload
+
+    vollstaendig = local_game_with_participations!(11)
+    vollstaendig.update!(ended_at: Time.zone.parse("2026-09-20 15:12"))
+
+    # Beendet, aber playera ist noch nicht gesetzt — der kritische Fall.
+    unvollstaendig = @tournament.games.create!(id: 64_000_012, gname: "group1:12", group_no: 1, data: {},
+      ended_at: Time.zone.parse("2026-09-20 16:00"))
+    GameParticipation.create!(game: unvollstaendig, player: nil, role: "playera", points: 0, result: 0)
+    GameParticipation.create!(game: unvollstaendig, player: @players[1], role: "playerb", points: 2, result: 30)
+
+    csv_path = "#{Rails.root}/tmp/result-950.csv"
+    begin
+      assert_nothing_raised do
+        @processor.send(:write_finale_csv_for_upload)
+      end
+
+      zeilen = File.read(csv_path).lines.map(&:chomp).reject(&:empty?)
+      assert_equal 1, zeilen.size,
+        "Nur das vollstaendige Spiel gehoert in die CSV — ein Platzhalter hat nichts zu melden"
+      assert_includes zeilen.first, "15:12"
+      refute_includes zeilen.first, "16:00"
+    ensure
+      FileUtils.rm_f(csv_path)
+    end
+  end
 end

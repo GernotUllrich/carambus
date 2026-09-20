@@ -628,12 +628,26 @@ result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
       # PUNKTE SPIELER 2;AUFNAHMEN SPIELER 1;AUFNAHMEN SPIELER 2;HÖCHSTSERIE SPIELER 1;\
       # HÖCHSTSERIE SPIELER 2;DATUM;UHRZEIT
       next unless gp1.present? && gp2.present?
+      # Ein abgebrochenes oder kampflos gewertetes Spiel hat Teilnehmer, aber kein Ende. Ohne
+      # diese Pruefung riss `ended.strftime` unten die GESAMTE Ergebnis-CSV mit — und anders als
+      # der Mailversand weiter unten liegt das in keinem `rescue`. Ueberspringen wie bei
+      # fehlenden Teilnehmern: die CSV meldet Ergebnisse, nicht Unfertiges.
+      next if ended.blank?
+      # `belongs_to :player, optional: true` — eine Teilnahme ohne Spieler ist legitim
+      # (KO-Platzhalter). Die Pruefung oben stellt nur sicher, dass die TEILNAHME existiert.
+      # Ohne diese Zeile riss `gp.player.cc_id` unten die gesamte CSV mit.
+      next if gp1.player.blank? || gp2.player.blank?
 
       game_data << "#{gruppe};#{partie};;#{gp1.player.cc_id};#{gp2.player.cc_id};#{gp1.result};\
 #{gp2.result};#{gp1.innings};#{gp2.innings};#{gp1.hs};#{gp2.hs};#{ended.strftime("%d.%m.%Y")};\
 #{ended.strftime("%H:%M")}"
     end
-    f = File.new("#{Rails.root}/tmp/result-#{@tournament_monitor.tournament.cc_id}.csv", "w")
+    # Ein Pfad fuer Schreiben UND Anhaengen. Vorher standen hier zwei Ausdruecke — geschrieben
+    # unter `cc_id`, angehaengt unter `id` —, die sich unterschieden, sobald beide nicht gleich
+    # sind (also im Regelfall). Die Ergebnis-Mail scheiterte damit immer an einer Datei, die es
+    # nicht gab; sichtbar wurde es nie, weil der Versand in einem `rescue` je Empfaenger landet.
+    csv_path = "#{Rails.root}/tmp/result-#{@tournament_monitor.tournament.cc_id}.csv"
+    f = File.new(csv_path, "w")
     f.write(game_data.join("\n"))
     f.close
     emails = []
@@ -661,8 +675,8 @@ result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
           @tournament_monitor.tournament,
           recipient,
           "Turnierergebnisse - #{@tournament_monitor.tournament.title}",
-          "result-#{@tournament_monitor.tournament.id}.csv",
-          "#{Rails.root}/tmp/result-#{@tournament_monitor.tournament.id}.csv"
+          File.basename(csv_path),
+          csv_path
         ).deliver
       rescue StandardError => e
         Rails.logger.error "[write_finale_csv_for_upload] Error sending result mail to #{recipient}: #{e.message}"
