@@ -1,0 +1,44 @@
+{
+  "ignored_warnings": [
+    {
+      "warning_type": "Unmaintained Dependency",
+      "warning_code": 120,
+      "fingerprint": "d84924377155b41e094acae7404ec2e521629d86f97b0ff628e3d1b263f8101c",
+      "check_name": "EOLRails",
+      "message": "Support for Rails 7.2.2.2 ended on 2026-08-09",
+      "file": "Gemfile.lock",
+      "line": 574,
+      "link": "https://brakemanscanner.org/docs/warning_types/unmaintained_dependency/",
+      "code": null,
+      "render_path": null,
+      "location": null,
+      "user_input": null,
+      "confidence": "High",
+      "cwe_id": [
+        1104
+      ],
+      "note": "Rails 7.2.2.2 ist seit 2026-08-09 ohne Herstellersupport. In Phase 21 nicht behebbar: der Wechsel ist ein eigener Milestone nach v0.5 (PROJECT.md, Planned/Next) - ein fruehrerer Versuch scheiterte im Umfeld von Stimulus/StimulusReflex. Bewusst ignoriert, damit das Gate auf jeden NEUEN High-Befund blockieren kann, statt die ganze Warnklasse pauschal auszublenden. Der Eintrag verschwindet mit dem Upgrade von selbst. (Plan 21-02, 2026-09-20)"
+    },
+    {
+      "warning_type": "Unmaintained Dependency",
+      "warning_code": 121,
+      "fingerprint": "edf687f759ec9765bd5db185dbc615c80af77d6e7e19386fc42934e7a80307af",
+      "check_name": "EOLRuby",
+      "message": "Support for Ruby 3.2.1 ended on 2026-03-31",
+      "file": ".ruby-version",
+      "line": 1,
+      "link": "https://brakemanscanner.org/docs/warning_types/unmaintained_dependency/",
+      "code": null,
+      "render_path": null,
+      "location": null,
+      "user_input": null,
+      "confidence": "High",
+      "cwe_id": [
+        1104
+      ],
+      "note": "Ruby 3.2.1 ist seit 2026-03-31 ohne Herstellersupport. Gleicher Milestone wie der Rails-Befund. Hinweis: der lint-Job faehrt bewusst Ruby 3.2.2, weil Brakeman unter 3.2.1 an einem sporadischen Speicherfehler stirbt (Phase 13) - gemeldet wird aber die .ruby-version des Produktionsstands, und die bleibt 3.2.1. Der Eintrag verschwindet mit dem Upgrade von selbst. (Plan 21-02, 2026-09-20)"
+    }
+  ],
+  "updated": "2026-09-20 20:21:19 +0200",
+  "brakeman_version": "7.1.0"
+}

@@ -4,10 +4,20 @@
 # Nach jeder Änderung an DIESER Datei:  bundle exec overcommit --sign
 # Umgehen im Notfall (nur mit Grund):  OVERCOMMIT_DISABLE=1 git commit ...
 #
-# Diese Datei führt overcommit im Projekt erstmals ein und aktiviert BEWUSST
+# Diese Datei führte overcommit im Projekt erstmals ein und aktivierte BEWUSST
 # nur EINEN Hook: die UI-Hex-Guardrail der Phase-7 Hex→Token-Migration
 # (UX-Redesign, Regeln in docs/ui-conventions.md). standardrb / erb_lint /
 # brakeman laufen bereits in CI.
+#
+# Seit Plan 21-02 (2026-09-20) kommt ein zweiter Hook dazu: die Baum-Wache gegen
+# verbrannte Geheimnisse. Sie steht hier und NICHT nur in CI, weil der Commit die
+# letzte Stelle ist, an der sich ein zurückgekehrtes Geheimnis noch aufhalten
+# lässt, bevor es auf einem öffentlichen Remote liegt.
+#
+# ACHTUNG: Hooks wirken nur, wo `bundle exec overcommit --install` gelaufen ist —
+# das ist PRO CHECKOUT nötig und wurde am 2026-09-20 in carambus_bcw nachgeholt
+# (vorher war .git/hooks/pre-commit nicht gesetzt, auch die UI-Guardrail lief dort
+# nicht). Der verlässliche Ort ist deshalb die CI, nicht dieser Hook.
 #
 # Die overcommit-Default-Hooks sind unten explizit deaktiviert, damit das
 # Einführen dieser Config NICHT ungefragt eine ganze Hook-Suite scharf schaltet
@@ -20,6 +30,14 @@ PreCommit:
     enabled: true
     description: "Keine neuen hartkodierten Farb-Hex / inline color-styles"
     command: ["ruby", "bin/ui-hex-guard"]
+
+  # Prüft die GESTAGTEN Dateien (overcommit hängt sie als Argumente an) gegen die
+  # SHA256-Summen aus lib/credential_denylist.yml. Ohne Argumente würde die Wache
+  # den ganzen Baum scannen (~5 s) — im pre-commit genügt das Delta.
+  BurnedSecrets:
+    enabled: true
+    description: "Keine verbrannten Geheimnisse (lib/credential_denylist.yml)"
+    command: ["ruby", "bin/burned-secret-guard"]
 
   # overcommit-Defaults bewusst aus (siehe Kopf):
   AuthorEmail: { enabled: false }
