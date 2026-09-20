@@ -454,7 +454,11 @@ class Version < PaperTrail::Version
     # Sync-Filter: fehlt er, aus dem Kontext ableiten. Die Reload-Buttons (leagues/clubs/regions/
     # tournaments) und TournamentPreparation::Opener uebergeben keinen und zogen so ungefiltert.
     filter_region_id = opts[:region_id].presence || context_region_id
-    # access_token, token_type = Setting.get_carambus_api_token
+    # Plan 21-03 (2026-09-20): hier stand ein auskommentierter Aufruf von
+    # Setting.get_carambus_api_token. Er war der EINZIGE Verweis auf eine Methode, die
+    # Auth0-Zugangsdaten im Klartext trug — ein Kommentar, der ein Geheimnis am Leben hielt.
+    # Beides entfernt. /versions/get_updates verlangt ohnehin keine Anmeldung; ob das so
+    # bleiben soll, ist ein offener Befund im carambus_api-Handoff.
     url = URI("#{Carambus.config.carambus_api_url}/versions/get_updates?last_version_id=#{
       Setting.key_get_value("last_version_id").to_i
     }#{
