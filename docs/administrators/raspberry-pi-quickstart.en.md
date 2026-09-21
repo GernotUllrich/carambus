@@ -17,9 +17,16 @@ Afterwards the Pi boots straight into the scoreboard. From power-on this takes a
 **3 minutes** (desktop after about 1 minute) — the Pi is not broken during that time.
 
 !!! note "What a club needs from the operator"
-    Only once: the **region dump credentials** for its region (login and password, see 3.1). With them,
-    step 3.2 fills the database from the authority's [region dump](region-dumps.md) (`api.carambus.de`),
-    without SSH access to it. Everything else, including the credentials, the club does itself.
+    Three things, all one-off:
+
+    1. the **region dump credentials** for its region (login and password, see 3.1) — with them, step 3.2
+       fills the database from the authority's [region dump](region-dumps.md) (`api.carambus.de`), without
+       SSH access to it;
+    2. the two **non-public repositories** `carambus_data` and `ansible` (see
+       [The three directories](#the-three-directories));
+    3. an **entry for the club and its location on the Authority**, if it does not exist there yet (3.1).
+
+    Everything else, including the credentials, the club does itself.
 
 ## Prerequisites
 
@@ -257,8 +264,9 @@ after the first login. This admin creates further users. The tournament app's se
 What you need to know:
 
 - **Step 2** downloads the region's dump via HTTPS, checks it against its checksum and loads it as
-  `<scenario>_development`. The dump contains no users. The step creates the scoreboard account itself; the
-  first admin comes after the deploy (see above). The ~30 s were measured with dependencies already installed;
+  `<scenario>_development`. The dump contains no users. The step creates the **scoreboard account** itself —
+  that is the account the display devices at the tables run under, so nobody has to sign in there; its
+  credentials are never needed by hand. The first admin comes after the deploy (see above). The ~30 s were measured with dependencies already installed;
   on the first run on an admin computer the step installs them first. Without `region_dump` in `secrets.yml`
   it takes the [operator path](installation-overview.md#operator-path) via SSH to the authority.
 - If the Pi already has local data (id ≥ 50 million), step 2 backs it up from the Pi first and loads it back
@@ -281,6 +289,18 @@ otherwise `curl` gets a 403):
 ```bash
 curl -s -o /dev/null -w "%{http_code}\n" -A "Mozilla/5.0" http://carambus-pbv.local:3131/
 ```
+
+#### Did your club's data arrive?
+
+The services can be running while the database still holds the wrong region — or none. So check the
+content as well, in the browser:
+
+- `http://<name>.local:3131/clubs` lists the clubs **of your own region**
+- `http://<name>.local:3131/locations` contains your own location
+- The start page shows your club, not the one from the example `config.yml`
+
+If a different club shows up, `location_id`/`club_id`/`region_id` in the `config.yml` are wrong
+(see step 3.1) — the database then has to be loaded again with a corrected configuration.
 
 ### 4.2 Scoreboard on the Pi
 

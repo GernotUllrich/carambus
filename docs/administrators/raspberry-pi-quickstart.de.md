@@ -17,9 +17,16 @@ Danach startet der Pi von selbst ins Scoreboard. Beim Einschalten dauert das etw
 (Desktop nach rund 1 Minute) — der Pi ist in dieser Zeit nicht defekt.
 
 !!! note "Was ein Verein vom Betreiber braucht"
-    Nur einmalig die **Zugangsdaten zum Regionsdump** seiner Region (Login und Passwort, siehe 3.1). Damit
-    befüllt Schritt 3.2 die Datenbank aus dem [Regionsdump](region-dumps.md) der Authority (`api.carambus.de`),
-    ohne SSH-Zugang zu ihr. Alles andere, auch die Credentials, erledigt der Verein selbst.
+    Drei Dinge, alle einmalig:
+
+    1. die **Zugangsdaten zum Regionsdump** seiner Region (Login und Passwort, siehe 3.1) — damit befüllt
+       Schritt 3.2 die Datenbank aus dem [Regionsdump](region-dumps.md) der Authority (`api.carambus.de`),
+       ohne SSH-Zugang zu ihr;
+    2. die beiden **nicht öffentlichen Repositories** `carambus_data` und `ansible` (siehe
+       [Die drei Verzeichnisse](#die-drei-verzeichnisse));
+    3. einen **Eintrag für Verein und Spielort auf der Authority**, falls es ihn dort noch nicht gibt (3.1).
+
+    Alles andere, auch die Credentials, erledigt der Verein selbst.
 
 ## Voraussetzungen
 
@@ -259,8 +266,9 @@ Turnier-App steht unter [Turnier-App, Voraussetzungen](../managers/tournament-ap
 Was man dabei wissen muss:
 
 - **Schritt 2** lädt den Regionsdump der Region per HTTPS, prüft ihn gegen seine Prüfsumme und spielt ihn als
-  `<szenario>_development` ein. Der Dump enthält keine Benutzer. Das Scoreboard-Konto legt der Schritt selbst
-  an, der erste Admin kommt nach dem Deploy (siehe oben). Die ~30 s sind gemessen mit schon installierten
+  `<szenario>_development` ein. Der Dump enthält keine Benutzer. Das **Scoreboard-Konto** legt der Schritt selbst
+  an — das ist das Konto, unter dem die Anzeigegeräte am Tisch arbeiten, ohne dass sich jemand anmelden muss;
+  seine Zugangsdaten braucht niemand von Hand. Der erste Admin kommt nach dem Deploy (siehe oben). Die ~30 s sind gemessen mit schon installierten
   Abhängigkeiten; beim ersten Lauf auf einem Admin-Rechner installiert der Schritt sie vorher. Ohne
   `region_dump` in der `secrets.yml` nimmt er den
   [Betreiber-Weg](installation-overview.md#betreiber-weg) per SSH zur Authority.
@@ -286,6 +294,19 @@ Von der Kommandozeile (der Browser-User-Agent ist nötig, falls der nginx-Bot-Bl
 ```bash
 curl -s -o /dev/null -w "%{http_code}\n" -A "Mozilla/5.0" http://carambus-pbv.local:3131/
 ```
+
+#### Sind die Vereinsdaten angekommen?
+
+Die Dienste können laufen und die Datenbank trotzdem die falsche oder gar keine Region
+enthalten. Deshalb zusätzlich inhaltlich prüfen — im Browser:
+
+- `http://<name>.local:3131/clubs` zeigt die Vereine **der eigenen Region**
+- `http://<name>.local:3131/locations` enthält den eigenen Spielort
+- Auf der Startseite steht der eigene Verein, nicht der aus der Beispiel-`config.yml`
+
+Steht dort ein fremder Verein, stimmen `location_id`/`club_id`/`region_id` in der `config.yml`
+nicht (siehe Schritt 3.1) — die Datenbank muss dann mit korrigierter Konfiguration neu
+eingespielt werden.
 
 ### 4.2 Scoreboard am Pi
 
