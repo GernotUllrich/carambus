@@ -119,6 +119,9 @@ option 1.
 - Enforce strong passwords
 - Log monitoring
 
+➡️ **[Security in Operation](security-operations.md)** — what a club has to do itself, when it
+becomes due, and what the automation covers
+
 ### 6. Monitoring & Troubleshooting
 
 **Performance monitoring**:
