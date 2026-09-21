@@ -77,6 +77,28 @@ CARAMBUS-PI AUFSETZEN"**. Kurzfassung:
 1. `carambus_data/scenarios/<szenario>/config.yml` um den Abschnitt `environments.production.ansible`
    ergänzen, den Pi in `~/DEV/ansible/hosts` eintragen (inklusive Gruppe `[carambus_pi]`),
    `bin/rails "scenario:generate_host_vars[<szenario>]"` ausführen
+
+    ??? example "Wie dieser Abschnitt aussieht"
+        Ports werden aus `webserver_port`/`ssh_port` abgeleitet; hier steht nur, was sich nicht
+        ableiten lässt. Ein Minimalbeispiel:
+
+        ```yaml
+        environments:
+          production:
+            ansible:
+              # Name in ~/DEV/ansible/hosts. Er muss zum host_vars-Eintrag passen, sonst lädt
+              # Ansible die host_vars nie — auch wenn das Gerät selbst anders heißt.
+              inventory_name: <name>
+              # false = Standard-Portsatz des Templates; true nur nach eigener Messung
+              firewall_trimmed: false
+              # zusätzliche TCP-Ports über den Standardsatz hinaus
+              firewall_extra_tcp_ports: []
+              # IPv6-Regeln mit ausrollen (empfohlen)
+              ipv6_firewall: true
+        ```
+
+        `generate_host_vars` erzeugt daraus `~/DEV/ansible/host_vars/<inventory_name>` — **dort
+        nicht von Hand editieren**, die Datei wird überschrieben.
 2. SD-Karte mit dem Raspberry Pi Imager schreiben: Hostname `<name>`, Benutzer mit Passwort,
    **SSH jedes Mal neu anhaken**, öffentlicher Schlüssel `~/.ssh/id_rsa.pub`
 3. Pi starten; meldet er sich noch als `raspberrypi`, einmal neu starten

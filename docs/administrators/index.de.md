@@ -315,9 +315,23 @@ WRITE=true RESTART=true bin/rails "scenario:upload_credentials[<szenario>]"     
 ### Täglich (automatisiert)
 - ✅ Datenbank-Backup **nur** für die Authority und für die in `STANDALONE_BACKUP_SCENARIOS`
   (`config/schedule.rb`) eingetragenen Standorte (derzeit `carambus_bcw`, Ziel `/mnt/backup`)
-- ⚠️ Für einen neuen Vereins-Pi gibt es **kein automatisches Backup**: das Szenario in
-  `STANDALONE_BACKUP_SCENARIOS` aufnehmen und einen USB-Stick unter `/mnt/backup` einhängen, oder
-  `bin/pg_backup.sh` selbst per Cron einrichten
+- ⚠️ Für einen neuen Vereins-Pi gibt es **kein automatisches Backup** — es muss einmalig
+  eingerichtet werden. Der Ablauf in drei Schritten:
+
+    1. **USB-Stick am Pi einhängen**, dauerhaft unter `/mnt/backup` (Eintrag in `/etc/fstab`,
+       Option `nofail`, damit der Pi auch ohne Stick bootet).
+    2. **Das eigene Szenario eintragen** — im Carambus-Checkout auf dem **Admin-Rechner**, in
+       `config/schedule.rb` (die Zeile `STANDALONE_BACKUP_SCENARIOS = %w[carambus_bcw]`) um den
+       eigenen `basename` ergänzen. Die Änderung wirkt erst nach dem nächsten Deploy, weil
+       daraus die Crontab auf dem Pi erzeugt wird.
+    3. Danach läuft `bin/pg_backup.sh` täglich um 1:20 Uhr nach `/mnt/backup`.
+
+    !!! warning "Warum der eingehängte Stick zählt"
+        Fehlt der Stick, existiert `/mnt/backup` wegen `nofail` trotzdem — als leeres
+        Verzeichnis **auf der SD-Karte**. Das Backup sicherte dann genau dorthin, wovor es
+        schützen soll, und meldete Erfolg. Dagegen steht `BACKUP_REQUIRE_MOUNT=1`
+        (`config/schedule.rb:240-250`): ohne echten Mount bricht der Lauf ab, statt still zu
+        lügen.
 
 ### Wöchentlich
 - 🔍 Backup-Integrität prüfen
