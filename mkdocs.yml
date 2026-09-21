@@ -87,6 +87,7 @@ plugins:
             Email Configuration: Email-Konfiguration
             Database Setup: Datenbank-Setup
             Region Dumps: Regionsdumps
+            Security in Operation: Sicherheit im Betrieb
             YouTube Streaming Quickstart: YouTube Streaming Quickstart
             YouTube Streaming Setup: YouTube Streaming Setup
             Developers: Für Entwickler
@@ -197,6 +198,7 @@ nav:
       - Email Configuration: administrators/email-configuration.md
       - Database Setup: administrators/database-setup.md
       - Region Dumps: administrators/region-dumps.md
+      - Security in Operation: administrators/security-operations.md
       - YouTube Streaming Quickstart: administrators/streaming-quickstart.md
       - YouTube Streaming Setup: administrators/streaming-setup.md
   - Developers:

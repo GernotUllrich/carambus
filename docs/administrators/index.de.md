@@ -119,6 +119,9 @@ Option 1.
 - Starke Passwörter erzwingen
 - Log-Monitoring
 
+➡️ **[Sicherheit im Betrieb](security-operations.md)** — was ein Verein selbst tun muss, wann es
+fällig wird und was die Automatik abdeckt
+
 ### 6. Monitoring & Troubleshooting
 
 **Performance-Monitoring**:
