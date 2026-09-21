@@ -77,7 +77,18 @@ instance. Each instance is a **scenario** with its own `config.yml` under `caram
     ```
 
     With it, `prepare_development` loads the database from the Authority's [region dump](region-dumps.md),
-    without SSH access to the Authority. This is the only step for which a club needs the operator.
+    **without** SSH access to the Authority.
+
+- **Two non-public repositories**: `carambus_data` (scenario configuration, `secrets.yml`) and
+  `ansible` (inventory, playbooks, the `RUNBOOK` for step 0) are private. Today a club can only get
+  them from the operator, and the installation does not work without them. Details:
+  [Raspberry Pi Quickstart](raspberry-pi-quickstart.md#the-three-directories).
+
+!!! info "Where a club needs the operator today"
+    In three places: for the **region dump credentials**, for the two **private repositories**
+    above, and when its **club or location does not yet exist on the Authority**. Everything else
+    — setting up the system, deploying, configuring the kiosk, creating the admin — works without
+    them.
 
 ## 🚀 Quick Start
 

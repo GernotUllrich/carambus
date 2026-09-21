@@ -79,7 +79,18 @@ Carambus-Instanzen. Jede Instanz ist ein **Szenario** mit eigener `config.yml` u
     ```
 
     Damit befüllt `prepare_development` die Datenbank aus dem [Regionsdump](region-dumps.md) der Authority,
-    ohne SSH-Zugang zu ihr. Das ist der einzige Schritt, bei dem ein Verein den Betreiber braucht.
+    **ohne** SSH-Zugang zu ihr.
+
+- **Zwei nicht öffentliche Repositories**: `carambus_data` (Szenario-Konfiguration, `secrets.yml`)
+  und `ansible` (Inventar, Playbooks, `RUNBOOK` für Schritt 0) sind privat. Ein Verein bekommt sie
+  heute nur vom Betreiber; die Installation geht ohne sie nicht. Einzelheiten:
+  [Raspberry Pi Quickstart](raspberry-pi-quickstart.md#die-drei-verzeichnisse).
+
+!!! info "Wo ein Verein den Betreiber heute braucht"
+    An drei Stellen: für die **Zugangsdaten zum Regionsdump**, für die beiden **privaten
+    Repositories** oben, und wenn **Verein oder Spielort auf der Authority noch nicht angelegt**
+    sind. Alles Übrige — System aufsetzen, deployen, Kiosk einrichten, Admin anlegen — läuft
+    ohne ihn.
 
 ## 🚀 Schnellstart
 
