@@ -49,6 +49,11 @@ Option 1.
 - Szenario-Konfiguration in `carambus_data`
 - Carambus per Scenario Management deployen
 
+!!! warning "`carambus_data` und `ansible` sind nicht öffentlich"
+    Beide Repositories sind privat; ein Verein bekommt sie heute nur vom Betreiber, und ohne sie
+    beginnt die Installation nicht. Was woher kommt, steht unter
+    [Die drei Verzeichnisse](raspberry-pi-quickstart.md#die-drei-verzeichnisse).
+
 ➡️ **[Vollständige Installationsanleitung](installation-overview.md)**
 
 **Spezielle Installationen**:

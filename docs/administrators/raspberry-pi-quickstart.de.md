@@ -31,15 +31,33 @@ Danach startet der Pi von selbst ins Scoreboard. Beim Einschalten dauert das etw
 - Netzwerk: Kabel empfohlen; WLAN funktioniert
 
 ### Admin-Rechner (Mac oder Linux)
+
+Windows reicht nicht. Auf dem Rechner werden gebraucht:
+
 - [Raspberry Pi Imager](https://www.raspberrypi.com/software/)
-- Ein beliebiger **carambus-Checkout** (z. B. `~/DEV/carambus/carambus_bcw`) — aus ihm laufen alle
-  Rake-Tasks; ein ausgezeichneter „Master"-Checkout ist nicht nötig
-- Der **Szenario-Checkout** `~/DEV/carambus/<szenario>` (Rails-Root des Szenarios, von hier aus
-  deployt Capistrano) — **aktuell** halten: `git -C ~/DEV/carambus/<szenario> pull --ff-only`
-- `~/DEV/carambus/carambus_data` (Szenario-`config.yml`, `secrets.yml`)
-- `~/DEV/ansible` (Inventar und Playbooks für Schritt 1–2)
-- Lokales PostgreSQL
-- SSH-Schlüssel (`~/.ssh/id_rsa.pub`)
+- **Ruby 3.2.1** (z. B. über `rbenv`) und **Bundler** — die Rake-Tasks unten sind `bin/rails`-Aufrufe
+  und laufen im carambus-Checkout; dort einmalig `bundle install`
+- **Ansible** für Schritt 1–2
+- **Lokales PostgreSQL**
+- Ein **SSH-Schlüssel** (`~/.ssh/id_rsa.pub`), und zwar **bei GitHub hinterlegt** — die
+  Szenario-Werkzeuge klonen über SSH (`lib/tasks/scenarios.rake:2541`), auch wenn das
+  carambus-Repository öffentlich ist
+
+### Die drei Verzeichnisse
+
+!!! warning "Zwei davon sind nicht öffentlich"
+    `carambus_data` und `ansible` sind private Repositories. Ein Verein bekommt sie heute
+    **nur vom Betreiber**. Die Installation geht ohne sie nicht — das ist der Stand, nicht eine
+    Formsache.
+
+| Verzeichnis | Inhalt | Woher |
+|---|---|---|
+| `~/DEV/carambus/<szenario>` | Rails-Root des eigenen Szenarios; von hier deployt Capistrano, und aus ihm laufen alle Rake-Tasks | öffentlich: `git clone git@github.com:GernotUllrich/carambus.git ~/DEV/carambus/<szenario>` |
+| `~/DEV/carambus/carambus_data` | Szenario-`config.yml`, `secrets.yml`, Credentials aller Szenarien | **nicht öffentlich** — beim Betreiber anfragen |
+| `~/DEV/ansible` | Inventar, Playbooks und das `RUNBOOK` für Schritt 1–2 | **nicht öffentlich** — beim Betreiber anfragen |
+
+Ein ausgezeichneter „Master"-Checkout ist nicht nötig; der Szenario-Checkout genügt für alles.
+Ihn **aktuell** halten: `git -C ~/DEV/carambus/<szenario> pull --ff-only`
 
 ### Tipp: SSH zu `*.local` beschleunigen
 Der Pi meldet sich per mDNS auch mit seinen öffentlichen IPv6-Adressen; die Firewall lässt SSH
@@ -79,12 +97,25 @@ Die Konfiguration steht in `carambus_data/scenarios/<szenario>/config.yml`. Ein 
 gibt es nicht — ein bestehendes Szenario (z. B. `carambus_pbv`) dient als Muster. Die für den Pi
 entscheidenden Felder:
 
+!!! tip "Die eigenen IDs nachschlagen"
+    `location_id`, `club_id` und `region_id` sind die IDs **auf der Authority**. Sie stehen in der
+    Adresszeile der jeweiligen Übersichtsseite, die ohne Anmeldung lesbar ist:
+
+    - Region: <https://api.carambus.de/regions> → z. B. `…/regions/1` ⇒ `region_id: 1`
+    - Verein: <https://api.carambus.de/clubs> → z. B. `…/clubs/3285` ⇒ `club_id: 3285`
+    - Spielort: <https://api.carambus.de/locations> → z. B. `…/locations/2368` ⇒ `location_id: 2368`
+
+    Findet sich der eigene Verein oder Spielort dort **nicht**, muss er auf der Authority erst
+    angelegt werden — das ist einer der drei Punkte, für die ein Verein den Betreiber braucht.
+    Mit den Beispielwerten unten läuft der Server sonst auf einen fremden Verein.
+
 ```yaml
 scenario:
   name: carambus_pbv
   location_id: 2368          # die Location des Vereins bei der Authority
   region_id: 1
   club_id: 3285
+  region_shortname: NBV      # optional; sonst `context`, sonst `region_id` (s. Schritt 3.1 unten)
 
 environments:
   production:
@@ -192,6 +223,16 @@ cd /var/www/carambus_pbv/current && RAILS_ENV=production bundle exec rake "users
 Der Befehl legt einen bestätigten `system_admin` an und gibt das Passwort genau einmal aus. Nach der ersten
 Anmeldung unter „Profil“ ändern. Weitere Benutzer legt dieser Admin selbst an. Das Dienstkonto für die
 Turnier-App steht unter [Turnier-App, Voraussetzungen](../managers/tournament-app.md#voraussetzungen).
+
+!!! warning "Das Passwort sofort notieren"
+    Der Befehl ist **nicht wiederholbar**: ein zweiter Lauf mit derselben Adresse bricht mit
+    „Benutzer … gibt es schon — nichts geändert“ ab und zeigt **kein** neues Passwort
+    (`lib/local_accounts.rb:34`). Läuft der Server mit `smtp_enabled: false`, gibt es auch kein
+    „Passwort vergessen“ per E-Mail.
+
+    **Wenn das Passwort verloren ist:** denselben Befehl mit einer **anderen** E-Mail-Adresse
+    aufrufen — so entsteht ein zweiter Administrator, der den ersten in der Benutzerverwaltung
+    korrigieren oder löschen kann.
 
 Was man dabei wissen muss:
 

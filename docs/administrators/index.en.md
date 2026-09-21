@@ -49,6 +49,11 @@ option 1.
 - Scenario configuration in `carambus_data`
 - Deploy Carambus via Scenario Management
 
+!!! warning "`carambus_data` and `ansible` are not public"
+    Both repositories are private; today a club can only get them from the operator, and without
+    them the installation does not even start. What comes from where is described under
+    [The three directories](raspberry-pi-quickstart.md#the-three-directories).
+
 ➡️ **[Complete Installation Guide](installation-overview.md)**
 
 **Special installations**:

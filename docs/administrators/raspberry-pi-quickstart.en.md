@@ -31,15 +31,32 @@ Afterwards the Pi boots straight into the scoreboard. From power-on this takes a
 - Network: cable recommended; Wi-Fi works
 
 ### Admin computer (Mac or Linux)
+
+Windows is not enough. You need on that machine:
+
 - [Raspberry Pi Imager](https://www.raspberrypi.com/software/)
-- Any **carambus checkout** (e.g. `~/DEV/carambus/carambus_bcw`) — all rake tasks run from it;
-  no dedicated "master" checkout is needed
-- The **scenario checkout** `~/DEV/carambus/<scenario>` (Rails root of the scenario, Capistrano
-  deploys from here) — keep it **up to date**: `git -C ~/DEV/carambus/<scenario> pull --ff-only`
-- `~/DEV/carambus/carambus_data` (scenario `config.yml`, `secrets.yml`)
-- `~/DEV/ansible` (inventory and playbooks for steps 1–2)
-- Local PostgreSQL
-- SSH key (`~/.ssh/id_rsa.pub`)
+- **Ruby 3.2.1** (e.g. via `rbenv`) and **Bundler** — the rake tasks below are `bin/rails` calls
+  and run inside the carambus checkout; run `bundle install` there once
+- **Ansible** for steps 1–2
+- **Local PostgreSQL**
+- An **SSH key** (`~/.ssh/id_rsa.pub`), **registered with GitHub** — the scenario tooling clones
+  over SSH (`lib/tasks/scenarios.rake:2541`), even though the carambus repository is public
+
+### The three directories
+
+!!! warning "Two of them are not public"
+    `carambus_data` and `ansible` are private repositories. Today a club can only get them
+    **from the operator**. The installation does not work without them — that is the current
+    state, not a formality.
+
+| Directory | Contents | Where from |
+|---|---|---|
+| `~/DEV/carambus/<scenario>` | Rails root of your own scenario; Capistrano deploys from here and all rake tasks run from it | public: `git clone git@github.com:GernotUllrich/carambus.git ~/DEV/carambus/<scenario>` |
+| `~/DEV/carambus/carambus_data` | scenario `config.yml`, `secrets.yml`, credentials of all scenarios | **not public** — ask the operator |
+| `~/DEV/ansible` | inventory, playbooks and the `RUNBOOK` for steps 1–2 | **not public** — ask the operator |
+
+No dedicated "master" checkout is needed; the scenario checkout covers everything.
+Keep it **up to date**: `git -C ~/DEV/carambus/<scenario> pull --ff-only`
 
 ### Tip: speed up SSH to `*.local`
 Via mDNS the Pi also announces its public IPv6 addresses; the firewall does not let SSH through
@@ -79,12 +96,25 @@ The configuration lives in `carambus_data/scenarios/<scenario>/config.yml`. Ther
 directory — an existing scenario (e.g. `carambus_pbv`) serves as the pattern. The fields that
 matter for the Pi:
 
+!!! tip "Looking up your own IDs"
+    `location_id`, `club_id` and `region_id` are the IDs **on the Authority**. They appear in the
+    address bar of the corresponding overview page, which is readable without signing in:
+
+    - Region: <https://api.carambus.de/regions> → e.g. `…/regions/1` ⇒ `region_id: 1`
+    - Club: <https://api.carambus.de/clubs> → e.g. `…/clubs/3285` ⇒ `club_id: 3285`
+    - Location: <https://api.carambus.de/locations> → e.g. `…/locations/2368` ⇒ `location_id: 2368`
+
+    If your club or location is **not** listed there, it must first be created on the Authority —
+    one of the three things a club needs the operator for. Otherwise the example values below
+    leave your server pointing at someone else's club.
+
 ```yaml
 scenario:
   name: carambus_pbv
   location_id: 2368          # the club's location at the authority
   region_id: 1
   club_id: 3285
+  region_shortname: NBV      # optional; otherwise `context`, otherwise `region_id` (see 3.1 below)
 
 environments:
   production:
@@ -191,6 +221,16 @@ cd /var/www/carambus_pbv/current && RAILS_ENV=production bundle exec rake "users
 The command creates a confirmed `system_admin` and prints the password exactly once. Change it under "Profile"
 after the first login. This admin creates further users. The tournament app's service account is described under
 [tournament app, prerequisites](../managers/tournament-app.md#voraussetzungen).
+
+!!! warning "Write the password down immediately"
+    The command is **not repeatable**: a second run with the same address aborts with
+    "Benutzer … gibt es schon — nichts geändert" and prints **no** new password
+    (`lib/local_accounts.rb:34`). If the server runs with `smtp_enabled: false`, there is no
+    "forgot password" by email either.
+
+    **If the password is lost:** run the same command with a **different** email address. That
+    creates a second administrator who can then fix or delete the first one in the user
+    administration.
 
 What you need to know:
 
