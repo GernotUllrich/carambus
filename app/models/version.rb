@@ -2,6 +2,7 @@
 
 require "uri"
 require "net/http"
+require "open3"
 # == Schema Information
 #
 # Table name: versions
@@ -131,6 +132,15 @@ class Version < PaperTrail::Version
     end
   end
 
+  # Plan 21-06: Die Antwort der Authority landete ungeprueft in einer Shell-Kommandozeile
+  # (siehe update_carambus). Ein Git-Commit-Hash hat genau eine Form — alles andere wird
+  # verworfen, bevor irgendetwas startet.
+  REVISION_FORMAT = /\A[0-9a-f]{7,40}\z/
+
+  def self.valid_revision?(str)
+    REVISION_FORMAT.match?(str.to_s)
+  end
+
   def self.update_carambus
     url = URI("#{Carambus.config.carambus_api_url}/versions/current_revision")
     Rails.logger.info ">>>>>>>>>>>>>>>> GET #{url} <<<<<<<<<<<<<<<<"
@@ -142,9 +152,19 @@ class Version < PaperTrail::Version
       return
     end
     revision = vers["current_revision"]
+    # Plan 21-06 (Schicht 1): Form pruefen, bevor der Wert irgendwohin geht — analog zur
+    # Behandlung einer ungueltigen API-Antwort zwei Zeilen darueber.
+    unless valid_revision?(revision)
+      Rails.logger.warn("update_carambus: #{url} lieferte keine gültige Revision " \
+                        "(#{revision.inspect}) — übersprungen")
+      return
+    end
     my_revision = `cat #{Rails.root}/REVISION`.strip
     if my_revision != revision
-      result = `REVISION=#{revision} bash -x #{Rails.root}/bin/deploy.sh 2>&1`
+      # Plan 21-06 (Schicht 2): Argumentliste statt Backtick — keine Shell mehr, und der Wert
+      # steht in der UMGEBUNG, nicht in der Kommandozeile. Muster wie 21-04 (AiDocsService).
+      result, _status = Open3.capture2e({"REVISION" => revision},
+        "bash", "-x", Rails.root.join("bin", "deploy.sh").to_s)
       Rails.logger.info(result)
     else
       Rails.logger.info("carambus version is up-to-date (#{revision})")

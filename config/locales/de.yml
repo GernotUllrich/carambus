@@ -740,6 +740,8 @@ de:
       region_season: "(%{region}, Saison %{season})"
       help: Wie kann ich dir helfen?
   static:
+    update_version:
+      forbidden: "Nur für Administratoren."
     sync_data:
       button: "🔄 Daten jetzt synchronisieren"
       running: "Synchronisiere …"

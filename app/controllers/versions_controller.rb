@@ -3,7 +3,13 @@ class VersionsController < ApplicationController
   # Admin-Session aufgerufen (Client sendet keine Auth) -> vom system_admin-Gate
   # ausnehmen. Waren vor Phase 10/11 (515b8a77) offen; der pauschale Gate hat
   # den Sync ab 2026-07-08 gebrochen (H33 Root Cause).
-  before_action :system_admin_only, except: %i[get_updates last_version current_revision update_carambus]
+  #
+  # Plan 21-06: `update_carambus` stand hier mit drin und gehoert NICHT dazu. Es beantwortet
+  # keine Sync-Anfrage — es startet `bin/deploy.sh` in einer Shell (version.rb), synchron im
+  # Request-Thread. Damit konnte jeder Besucher einen Deploy ausloesen. Der legitime Weg ist
+  # der Rake-Task `carambus:update_carambus` (lib/tasks/carambus.rake); einen HTTP-Aufrufer
+  # gibt es im Repo nicht. Route und Aktion bleiben (umkehrbar), nur der Gate greift jetzt.
+  before_action :system_admin_only, except: %i[get_updates last_version current_revision]
   before_action :set_version, only: %i[show edit update destroy]
 
   # GET /versions
