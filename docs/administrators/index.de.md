@@ -105,6 +105,10 @@ Option 1.
 - Restore-Prozeduren
 - Disaster Recovery
 
+➡️ **[Sichern und wiederherstellen](server-architecture.md#sichern-und-wiederherstellen)** —
+Ablauf und Rake-Tasks. Das **Einrichten** des automatischen Backups steht in der
+[Wartungs-Checkliste](#wartungs-checkliste).
+
 ### 5. Sicherheit
 
 **System-Härtung** (bei Raspberry Pis per Ansible):
@@ -136,6 +140,12 @@ fällig wird und was die Automatik abdeckt
 - Nginx-Logs
 - PostgreSQL-Logs
 - Systemd-Logs
+
+!!! note "Keine eigene Anleitung"
+    Für Monitoring gibt es in dieser Dokumentation keine eigene Seite — die Punkte oben sind
+    eine Orientierung, kein Rezept. Die praktisch nötigen Handgriffe stehen im
+    [Troubleshooting-Guide](#troubleshooting-guide) weiter unten und, für den Pi im Netz, unter
+    [Netzwerkstabilität](raspi-network-stability.md).
 
 **Häufige Probleme**:
 - WebSocket-Verbindungen brechen ab

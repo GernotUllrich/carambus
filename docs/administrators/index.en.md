@@ -105,6 +105,10 @@ option 1.
 - Restore procedures
 - Disaster recovery
 
+➡️ **[Backup and restore](server-architecture.md#backup-and-restore)** — procedure and rake
+tasks. **Setting up** the automatic backup is described in the
+[maintenance checklist](#maintenance-checklist).
+
 ### 5. Security
 
 **System hardening** (on Raspberry Pis via Ansible):
@@ -136,6 +140,12 @@ becomes due, and what the automation covers
 - Nginx logs
 - PostgreSQL logs
 - Systemd logs
+
+!!! note "No dedicated guide"
+    There is no separate monitoring page in this documentation — the points above are an
+    orientation, not a recipe. The steps you actually need are in the
+    [troubleshooting guide](#troubleshooting-guide) further down and, for the Pi on the network,
+    under [network stability](raspi-network-stability.md).
 
 **Common problems**:
 - WebSocket connections drop
@@ -282,7 +292,13 @@ sudo systemctl restart puma-<basename>
 systemctl is-active puma-<basename> redis-server nginx
 ```
 
+<a id="credentials-rotieren"></a>
+
 ### Rotating credentials {#rotating-credentials}
+
+<!-- Zusaetzliches Sprungziel `credentials-rotieren`: zwei deutsche Seiten
+     (developers/scenario-parameter-howto, managers/clubcloud-mcp-setup-service)
+     verlinken den deutschen Anker; das i18n-Plugin prueft ihn auch gegen diese Datei. -->
 
 Rotation replaces a server's `production.key`, `secret_key_base` and JWT secret. For the database encryption key
 a new key is added: the old ones keep decrypting, the new one encrypts. All other entries (feature keys,
