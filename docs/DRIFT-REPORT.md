@@ -934,3 +934,61 @@ Aussage ist ersatzlos entfallen (Regel aus 16-02).
 Ein Agent findet Fachjargon, Sprünge und fehlende Voraussetzungen — **nicht, was ein echter
 Mensch missversteht**. Betreiber-Entscheidung: nur Agent-Lesedurchlauf, kein Handtest mit einer
 Person.
+
+---
+
+# 22-03: Zweiter Durchlauf, Seite „Sicherheit im Betrieb" (2026-09-21)
+
+Die in 22-02 entstandene Seite wurde geprüft wie jede andere Seite des Vereinswegs — von einem
+Agenten ohne Kenntnis ihrer Entstehung. **Persona:** Vorstandsmitglied eines Vereins, dessen
+Server seit Monaten läuft und dessen Aufsetzer nicht mehr im Verein ist. Protokoll:
+`.paul/phases/22-doku-verstaendlich/22-03-WALK.md`.
+
+**Bilanz:** 13 Stolperstellen, **4 Fehlalarme** (Wissen korrekt hinter einen Link ausgelagert),
+**9 gültig** (2 high · 6 medium · 1 low). Keine DE/EN-Abweichung. Gegenprobe im Hauptkontext über
+**alle** Befunde: keiner gekippt. Leitfragen: 3 von 5 beantwortet — die zwei offenen waren genau
+die beiden high-Befunde.
+
+## Der Befund, der die Prüfung gerechtfertigt hat
+
+Die Seite war vier Tage alt, vom Betreiber gegengelesen und aus belegten Quellen gebaut. Sie
+enthielt trotzdem eine Anleitung, die **Sicherheit vortäuscht**:
+
+> „Jemand mit Serverzugang verlässt den Verein → Zugangsschlüssel des Servers rotieren"
+
+`scenario:generate_credentials` mit `ROTATE=true` erneuert Rails-Schlüssel, `secret_key_base` und
+JWT-Geheimnis (`lib/tasks/scenarios.rake:94`) — **den SSH-Zugang rührt es nicht an**; den
+verteilt Ansible (`roles/bootstrap`, `roles/migrate/tasks/01-distribute_keys.yml`). Wer die Zeile
+abarbeitete, hielt den Zugang des Ausgeschiedenen für geschlossen. Behoben: eigener Kasten mit
+dem Handgriff auf `~/.ssh/authorized_keys` und der ausdrücklichen Warnung, dass die Rotation das
+nicht erledigt.
+
+Zweiter high-Befund: Die Seite machte das Backup zur ersten Vereinspflicht, ohne zu sagen, woran
+man sieht, dass es läuft. Behoben mit einem konkreten `ls` auf `/mnt/backup` — `bin/pg_backup.sh`
+legt je Lauf ein Verzeichnis mit Zeitstempel an, sonntags eine `weekly/`-Kopie.
+
+## Der rote Faden der sechs medium
+
+**Die Seite war aus der Sicht des Einrichtenden geschrieben, nicht des Übernehmenden.**
+„Einmalig bei der Einrichtung" liest sich für jemanden, der nicht dabei war, als „ist erledigt".
+Das ist der blinde Fleck des Autors, der den Installationskontext im Kopf hatte.
+
+Behoben mit **einem** Abschnitt statt sechs Einzeländerungen: „Einen bestehenden Server
+übernehmen" mit fünf Prüffragen — sind wir von außen erreichbar · haben wir eigene Schlüssel · an
+welche Adresse melden die Update-Läufe · wer kann überhaupt deployen · wann läuft das Zertifikat
+ab. Jede mit dem Handgriff, der sie beantwortet.
+
+## Nebenher: Befund #23 aus 22-01 abgeschlossen
+
+Alle drei Abschnitte in `administrators/index`, die kein weiterführendes Ziel hatten, sind
+erledigt: „Sicherheit" bekam es in 22-02, „Backup & Restore" jetzt ein vorhandenes Ziel, und für
+„Monitoring" steht belegt fest, dass es **keines gibt** — geprüft über `administrators/` und
+`developers/`; statt eines erfundenen Verweises steht das jetzt da. Dazu ein zusätzliches
+Sprungziel in `index.en.md`, damit zwei deutsche Verweise auch gegen die englische Fassung
+auflösen (2 Meldungen vorher, 0 nachher).
+
+## Grenze
+
+Ein Agent findet Jargon, Sprünge und fehlende Voraussetzungen — nicht, was ein echter Mensch
+missversteht. Diese Persona konnte zudem nur prüfen, was auf **einer** Seite steht; ob ein
+Vorstand die Seite überhaupt findet, ist damit nicht gemessen.
