@@ -7,6 +7,57 @@ require "test_helper"
 # und liefert die entstandenen Versionen in derselben Antwort zurueck — analog update_tournament_from_cc,
 # nur ohne ClubCloud. get_updates ist offen (kein Login), wie der reguläre Sync.
 class VersionsControllerTest < ActionDispatch::IntegrationTest
+  # ---------------------------------------------------------------------------
+  # Plan 21-06: `update_carambus` gehoert NICHT zu den offenen Sync-Endpunkten.
+  #
+  # Befund aus der Brakeman-Sichtung 21-05 (Nebenbefund 1): `versions_controller.rb:6` nahm VIER
+  # Aktionen vom `system_admin_only`-Gate aus, nicht drei. `get_updates`, `last_version` und
+  # `current_revision` beantworten Sync-Anfragen anderer Server ohne Anmeldung — das ist gewollt
+  # (H33). `update_carambus` dagegen beantwortet nichts: es startet `bin/deploy.sh` in einer
+  # Shell (version.rb:147), synchron im Request-Thread. Der legitime Weg ist der Rake-Task
+  # `carambus:update_carambus` (lib/tasks/carambus.rake:263); im ganzen Repo gibt es keinen
+  # HTTP-Aufrufer.
+  #
+  # ⚠️ `Version.update_carambus` wird in JEDEM dieser Tests gestubbt, auch im Lauf gegen den
+  # alten Code — ungestubbt deployt der Test die Entwicklungsmaschine.
+  # ---------------------------------------------------------------------------
+
+  def counting_update_carambus
+    calls = 0
+    Version.stub(:update_carambus, -> { calls += 1 }) { yield }
+    calls
+  end
+
+  test "anonym loest update_carambus KEINEN Deploy aus" do
+    calls = counting_update_carambus { post update_carambus_versions_url }
+
+    assert_equal 0, calls, "Ein anonymer POST hat Version.update_carambus ausgefuehrt"
+    assert response.redirect?, "Erwartet wird die Abweisung des system_admin_only-Gates"
+  end
+
+  test "ein angemeldeter Nicht-Admin loest update_carambus nicht aus" do
+    sign_in users(:player)
+    calls = counting_update_carambus { post update_carambus_versions_url }
+
+    assert_equal 0, calls, "Ein angemeldeter Nicht-Admin hat Version.update_carambus ausgefuehrt"
+  end
+
+  test "ein System-Admin kommt bei update_carambus weiterhin durch" do
+    sign_in users(:system_admin)
+    calls = counting_update_carambus { post update_carambus_versions_url }
+
+    assert_equal 1, calls, "Der berechtigte Weg muss offen bleiben"
+  end
+
+  test "die drei Sync-Endpunkte bleiben ohne Anmeldung erreichbar" do
+    # Gegenprobe zur Boundary: ein Gate hier brach den Sync schon einmal (H33).
+    get last_version_versions_url
+    assert_response :success, "last_version darf nicht gegatet werden"
+
+    get current_revision_versions_url
+    assert_response :success, "current_revision darf nicht gegatet werden"
+  end
+
   # Ein Fake-Importer, der nur `.call` beantwortet und die Konstruktor-Argumente einsammelt.
   def stub_importer(captured)
     ->(**kw) do

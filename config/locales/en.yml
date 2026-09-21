@@ -728,6 +728,8 @@ en:
       region_season: "(%{region}, season %{season})"
       help: How can I help you?
   static:
+    update_version:
+      forbidden: "Administrators only."
     sync_data:
       button: "🔄 Sync data now"
       running: "Syncing …"

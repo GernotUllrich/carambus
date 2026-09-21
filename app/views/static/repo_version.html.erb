@@ -82,13 +82,17 @@
     </div>
   <%- end %>
 
-  <%- if local_server? && revision.present? && revision != repo_version -%>
+  <%# Plan 21-06: `revision` kommt aus der HTTP-Antwort der Authority und geht unten in
+      Kommandoaufrufe. Dieselbe Formpruefung wie in Version.update_carambus — was kein
+      Commit-Hash ist, wird gar nicht erst verglichen. %>
+  <%- if local_server? && Version.valid_revision?(revision) && revision != repo_version -%>
     <%- # Check if API server version is newer using git merge-base -%>
     <%- begin -%>
       <%- request_ip = request.remote_ip rescue 'unknown' -%>
       <%- if Rails.env.development? -%>
         <%- # In development, check if local commit is ancestor of API commit -%>
-        <%- api_is_newer = system("cd #{Rails.root} && git merge-base --is-ancestor #{repo_version} #{revision} 2>/dev/null") -%>
+        <%# Plan 21-06: Argumentliste statt Shell-Zeile; `git -C` ersetzt das `cd &&`. %>
+        <%- api_is_newer = system("git", "-C", Rails.root.to_s, "merge-base", "--is-ancestor", repo_version.to_s, revision.to_s, out: File::NULL, err: File::NULL) -%>
         <%- Rails.logger.info "🔍 [#{request_ip}] Version check (dev): api_is_newer=#{api_is_newer}, local=#{repo_version[0..8]}, api=#{revision[0..8]}" -%>
       <%- else -%>
         <%- repo_path = get_repo_path -%>
@@ -99,7 +103,8 @@
           <%- fetch_success = $?.success? -%>
           <%- Rails.logger.info "🔍 [#{request_ip}] Git fetch: success=#{fetch_success}, output=#{fetch_output[0..200]}" -%>
           <%- # Check if local commit is ancestor of API commit (means API is ahead) -%>
-          <%- api_is_newer = system("git --git-dir=#{repo_path} merge-base --is-ancestor #{repo_version} #{revision} 2>&1") -%>
+          <%# Plan 21-06: Argumentliste statt Shell-Zeile (siehe oben). %>
+          <%- api_is_newer = system("git", "--git-dir=#{repo_path}", "merge-base", "--is-ancestor", repo_version.to_s, revision.to_s, out: File::NULL, err: File::NULL) -%>
           <%- Rails.logger.info "🔍 [#{request_ip}] Git merge-base: api_is_newer=#{api_is_newer}, local=#{repo_version[0..8]}, api=#{revision[0..8]}" -%>
         <%- else -%>
           <%- Rails.logger.warn "🔍 [#{request_ip}] Repo path not found or not a directory: #{repo_path.inspect}" -%>
@@ -147,6 +152,9 @@
         </div>
       <%- end -%>
 
+      <%# Plan 21-06: Sichtbarkeit eines Knopfs = Recht seiner Aktion. Die Aktion dahinter
+          verlangt seit 21-06 `admin?` (static_controller.rb) — der Knopf folgt. %>
+      <%- if current_user&.admin? -%>
       <div class="mb-4">
         <%= button_to "Update to latest version",
                       update_version_path,
@@ -156,6 +164,7 @@
                       },
                       class: "bg-primary-500 hover:bg-primary-700 text-white font-bold py-2 px-4 rounded" %>
       </div>
+      <%- end -%>
     <%- end -%>
   <%- end -%>
   
