@@ -873,3 +873,64 @@ Reine Code-Bugs aus früheren Läufen (Handoff: `carambus_gu/.paul/handoffs/HAND
 ## Einordnung (graphify-Caveat)
 
 Der graphify-Graph ist Landkarte/Discovery, kein Drift-Detektor: `INFERRED`-Kanten sind verrauscht. Der belastbare Abgleich lief gegen den echten Code (`EXTRACTED`-Struktur + Quelle).
+
+---
+
+# 22-01: Lesedurchlauf Vereinsweg (2026-09-21)
+
+Anderer Prüfgegenstand als die Läufe oben: dort **Richtigkeit** (trägt der Code, was die Doku
+behauptet?), hier **Verständlichkeit** (kommt jemand ohne Vorwissen durch?). Ein Satz kann
+vollständig belegt und trotzdem unbegehbar sein.
+
+**Methode:** Fünf Agenten ohne Carambus-Vorwissen lasen den Vereinsweg in Lesereihenfolge
+(Einstieg → Entscheidung → Admin-Einstieg → Installation → Erstbefüllung/erster Admin), Persona
+„Sportwart eines fremden Vereins" mit Linux-/SSH-Grundkenntnissen, nur lesend. Jeder Befund
+musste angeben, *was* der Leser dort tun soll, *was ihm fehlt* und **wo es steht** — steht es
+früher im Pfad, ist es ein Fehlalarm. Protokoll und alle Einzelbefunde:
+`.paul/phases/22-doku-verstaendlich/22-01-WALK.md`.
+
+**Bilanz:** 85 Stolperstellen, **14 Fehlalarme**, **71 gültig** (15 high · 42 medium · 14 low).
+Keine DE/EN-Abweichung. Gegenprobe im Hauptkontext: alle high, alle unsicheren, 28 medium —
+**kein Befund gekippt**, drei Urteile in der Richtung korrigiert.
+
+**Der Weg endete vor dem ersten Befehl.** `raspberry-pi-quickstart:39-40` setzte
+`carambus_data` und `~/DEV/ansible` als vorhanden voraus, ohne Bezugsquelle. Gemessen am
+2026-09-21: beide Repositories antworten unauthentifiziert mit HTTP 404, sind also **privat**.
+Damit war `installation-overview:82` („der einzige Schritt, bei dem ein Verein den Betreiber
+braucht") falsch. Die Doku kann das nicht heilen — sie sagt es jetzt; die Bereitstellung selbst
+ist als offener Punkt beim Betreiber verzeichnet.
+
+## Behoben (alle 15 high und rund 20 medium)
+
+| Bereich | Was geändert wurde | Commit |
+|---|---|---|
+| Glossar | Authority, Regionsdump, Vereinsserver/Region Server, Betreiber ergänzt; „Beispiel: carambus.de" beim API Server war falsch → `api.carambus.de` | `f035635a` |
+| Installationsweg | Neuer Abschnitt „Die drei Verzeichnisse" mit Herkunft je Verzeichnis; Ruby 3.2.1, Bundler, Ansible und der GitHub-SSH-Schlüssel ergänzt; der Widerspruch in `installation-overview:82` ersetzt; Nachschlageweg für `location_id`/`club_id`/`region_id`; `users:create_admin` ist nicht wiederholbar | `2eae5367` |
+| Außerhalb des Lesepfads | `players/ai-search` beschrieb OpenAI, der Code nutzt Anthropic; `scenario-parameter-reference:212` zu `region_shortname` war falsch | `6408ae47` |
+| Restliche high | Beispiel für `environments.production.ansible`; Backup gegen den SD-Kartentod ausführbar gemacht; Region-Server-Beschaffung; Kosten-Größenordnungen | `f17df411` |
+| Erstbefüllung | Überblick-Kasten korrigiert (drei Dinge statt einem); inhaltliche Prüfung „sind die Vereinsdaten angekommen?"; „Scoreboard-Konto" erklärt | `3a17c212` |
+| Entscheider | MCP/Claude Code/Region Server eingeordnet; EOL-Hinweis mit Folgen für einen Vereinsserver | `fd3a675b` |
+
+## Offen (rund 22 medium, 14 low)
+
+Nicht abgearbeitet, vollständig in `22-01-WALK.md` mit Stelle, Typ und Vorschlag. Schwerpunkte:
+die „Nächsten Schritte" auf der Entscheider-Startseite überspringen die Betriebsform-Entscheidung;
+ClubCloud Pflicht oder nicht bleibt auf dem Entscheider-Pfad offen; Turnier-Monitor vs.
+Turnier-App wird dort nie erklärt; `<basename>` trägt halbe Seiten und wird nie eingeführt;
+Wiederaufsetzen nach Abbruch ist ausgerechnet für den als DESTRUKTIV markierten Schritt 3
+ungeklärt; `region-dumps` trennt Betreiber- und Vereinssicht nicht.
+
+## Zwei Korrekturen, die der Lesedurchlauf allein nicht gefunden hätte
+
+Beide fand erst die Gegenprobe am Code: der Agent hatte den Widerspruch je richtig erkannt, aber
+die falsche Seite beschuldigt. **Wer nur den Text liest, korrigiert das Richtige kaputt.**
+
+Dazu eine Eigenkorrektur beim Schreiben: ein Entwurf nannte Claude Code „kostenpflichtig" —
+`managers/clubcloud-mcp-cloud-quickstart.de.md:27` sagt „gratis von Anthropic". Die unbelegte
+Aussage ist ersatzlos entfallen (Regel aus 16-02).
+
+## Grenze
+
+Ein Agent findet Fachjargon, Sprünge und fehlende Voraussetzungen — **nicht, was ein echter
+Mensch missversteht**. Betreiber-Entscheidung: nur Agent-Lesedurchlauf, kein Handtest mit einer
+Person.
