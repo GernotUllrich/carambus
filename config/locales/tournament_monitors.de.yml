@@ -20,6 +20,14 @@ de:
         one: "Runde %{round}: das Spiel ist beendet"
         other: "Runde %{round}: alle %{count} Spiele beendet"
       open: "offen:"
+      # Plan 23-01: der Turnierleiter schaltet die Runde weiter
+      advance_round: "Runde %{round} abschliessen"
+      advance_tournament: "Turnier abschliessen"
+      advance_hint: "Bis dahin lassen sich Ergebnisse dieser Runde noch korrigieren."
+      advance_tournament_hint: "Damit werden die Endergebnisse festgeschrieben und in die ClubCloud uebertragen."
+      advance_tournament_confirm: "Turnier wirklich abschliessen? Die Endergebnisse werden festgeschrieben und in die ClubCloud uebertragen. Danach sind Korrekturen nur noch in der ClubCloud moeglich."
+      advanced: "Die Runde wurde weitergeschaltet."
+      advance_rejected: "Die Runde konnte nicht weitergeschaltet werden - sie ist nicht abschlussbereit."
       no_table: "ohne Tisch"
     game_results:
       game: "Spiel"

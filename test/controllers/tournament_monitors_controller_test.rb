@@ -36,6 +36,27 @@ class TournamentMonitorsControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to root_path
   end
 
+  # Plan 23-01: Der Rundenwechsel gehoert dem Turnierleiter. Bis 23-01 loeste ihn der gruene
+  # Knopf am Scoreboard aus — von jedem, der am Tisch stand (NDM-Vorfall 2026-09-20).
+  test "23-01: advance_round verlangt das Turnierleiter-Recht" do
+    sign_out @club_admin
+    sign_in users(:one)
+
+    post advance_round_tournament_monitor_url(@tournament_monitor)
+
+    assert_redirected_to root_path,
+      "Ohne Turnierleiter-Recht darf die Runde nicht geschaltet werden koennen"
+  end
+
+  # Der Guard sitzt im Modell (round_ready_for_advance?), nicht nur in der View: ein direkter
+  # POST auf eine nicht abschlussbereite Runde muss abgelehnt werden, nicht durchlaufen.
+  test "23-01: advance_round lehnt eine nicht abschlussbereite Runde ab" do
+    post advance_round_tournament_monitor_url(@tournament_monitor)
+
+    assert_redirected_to tournament_monitor_path(@tournament_monitor)
+    assert_equal I18n.t("tournament_monitors.round_status.advance_rejected"), flash[:alert]
+  end
+
   # ---------------------------------------------------------------------------
   # Auth guard: ensure_local_server
   # ---------------------------------------------------------------------------

@@ -20,6 +20,14 @@ en:
         one: "Round %{round}: the game is finished"
         other: "Round %{round}: all %{count} games finished"
       open: "open:"
+      # Plan 23-01: the tournament director advances the round
+      advance_round: "Close round %{round}"
+      advance_tournament: "Finish tournament"
+      advance_hint: "Until then, results of this round can still be corrected."
+      advance_tournament_hint: "This finalises the results and uploads them to the ClubCloud."
+      advance_tournament_confirm: "Really finish the tournament? The final results will be locked in and uploaded to the ClubCloud. After that, corrections are only possible in the ClubCloud."
+      advanced: "The round was advanced."
+      advance_rejected: "The round could not be advanced - it is not ready to be closed."
       no_table: "no table"
     game_results:
       game: "Game"

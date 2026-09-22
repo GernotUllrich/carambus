@@ -335,6 +335,8 @@ Rails.application.routes.draw do
       post :switch_players
       post :update_games
       post :start_round_games
+      # Plan 23-01: der Turnierleiter schaltet die Runde weiter (vorher am gruenen Knopf des Tisches)
+      post :advance_round
     end
   end
   resources :discipline_tournament_plans

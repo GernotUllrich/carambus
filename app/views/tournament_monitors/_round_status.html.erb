@@ -5,6 +5,31 @@
     <p class="text-sm text-gray-600 dark:text-gray-300 mb-2">
       <%= t("tournament_monitors.round_status.all_finished", round: status[:round], count: status[:total]) %>
     </p>
+    <%# Plan 23-01: Der Rundenwechsel gehoert dem Turnierleiter, nicht dem gruenen Knopf am Tisch.
+        Bis hier geklickt wird, bleibt jedes Ergebnis der Runde korrigierbar (NDM-Vorfall 2026-09-20).
+        Sichtbarkeit = Recht der Aktion (Muster 17-01/20-03): dieselbe Rolle, die
+        ensure_tournament_director im Controller verlangt.
+        `operator_gated_round_advance?` ist false bei continuous_placements/manual_assignment —
+        dort schaltet es wie bisher automatisch weiter und der Knopf hat nichts zu tun. %>
+    <% if tournament_monitor.operator_gated_round_advance? && tournament_director?(current_user) %>
+      <%# Getrennte Beschriftung (Betreiber-Entscheidung 23-01): der letzte Klick beendet das
+          TURNIER samt CSV-Upload in die ClubCloud — das darf nicht "Runde abschliessen" heissen.
+          final_round_pending? sagt das nur, wo es belegbar ist (executor_params["GK"] gesetzt);
+          sonst bleibt es bei der neutralen Rundenbeschriftung. %>
+      <% letzte_runde = tournament_monitor.final_round_pending? %>
+      <div class="mb-3">
+        <%= button_to (letzte_runde ? t("tournament_monitors.round_status.advance_tournament")
+                                    : t("tournament_monitors.round_status.advance_round", round: status[:round])),
+              advance_round_tournament_monitor_path(tournament_monitor),
+              method: :post,
+              class: "btn #{letzte_runde ? "btn-warning" : "btn-primary"}",
+              data: { turbo_confirm: letzte_runde ? t("tournament_monitors.round_status.advance_tournament_confirm") : nil } %>
+        <p class="text-sm text-gray-600 dark:text-gray-300 mt-1">
+          <%= letzte_runde ? t("tournament_monitors.round_status.advance_tournament_hint")
+                           : t("tournament_monitors.round_status.advance_hint") %>
+        </p>
+      </div>
+    <% end %>
   <% else %>
     <div class="text-sm rounded border border-warning-400 bg-warning-50 dark:bg-warning-900 text-warning-900 dark:text-warning-200 px-3 py-2 mb-2">
       <strong><%= t("tournament_monitors.round_status.progress", round: status[:round], finished: status[:finished], count: status[:total]) %></strong>
