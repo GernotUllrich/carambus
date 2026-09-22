@@ -178,6 +178,56 @@ class TournamentMonitor < ApplicationRecord
     TournamentMonitor::ResultProcessor.new(self).accumulate_results
   end
 
+  # Plan 23-01 (2026-09-22): Der Turnierleiter schaltet die Runde weiter. Bis Plan 23-01 hing
+  # die Kaskade am gruenen Knopf des Scoreboards ("Naechstes Spiel" -> close_match), wo der
+  # Spieler nicht sehen konnte, dass er die Runde fuer alle schliesst.
+  #
+  # Der Thread-Local-Sentinel ist DERSELBE wie in
+  # TableMonitor#advance_tournament_round_if_present (Plan 05-01, CR-02) und weiterhin noetig:
+  # `finalize_round` feuert intern `close_match!` fuer mehrere Tische desselben Turniers —
+  # ohne die Sperre loeste jeder davon erneut eine volle Kaskade aus (Live-Vorfall
+  # 2026-09-03: current_round sprang in ~2 s von 6 auf 12).
+  #
+  # `sentinel_owner`: nur der Aufruf, der den Sentinel GESETZT hat, loescht ihn im ensure —
+  # sonst gaebe der short-circuit-Zweig die Sperre eines noch laufenden aeusseren Aufrufs frei.
+  def advance_round_by_operator
+    unless round_ready_for_advance?
+      Rails.logger.info "[advance_round_by_operator] tm[#{id}] ABGELEHNT — Runde nicht " \
+                        "abschlussbereit (round=#{current_round}, gefuehrt=#{round_tracked?})"
+      return false
+    end
+
+    if Thread.current[:_advancing_round_for_tm] == id
+      Rails.logger.info "[advance_round_by_operator] tm[#{id}] sentinel SHORT-CIRCUIT"
+      return false
+    end
+
+    sentinel_owner = true
+    Thread.current[:_advancing_round_for_tm] = id
+    TournamentMonitor::ResultProcessor.new(self).advance_round_by_operator
+    true
+  ensure
+    Thread.current[:_advancing_round_for_tm] = nil if sentinel_owner
+  end
+
+  # Plan 23-01: true, solange der Rundenwechsel auf den Turnierleiter wartet — steuert, ob der
+  # Knopf im Rundenstatus ueberhaupt erscheint.
+  def operator_gated_round_advance?
+    TournamentMonitor::ResultProcessor.new(self).operator_gated_round_advance?
+  end
+
+  # Plan 23-01: Darf der Turnierleiter JETZT schalten? Spiegelt die Bedingung, unter der der
+  # Knopf erscheint, und schuetzt zugleich gegen Doppelbetaetigung.
+  def round_ready_for_advance?
+    TournamentMonitor::ResultProcessor.new(self).round_ready_for_advance?
+  end
+
+  # Plan 23-01: true, wenn der naechste Klick das TURNIER beendet (inkl. CSV-Upload in die CC)
+  # statt nur die Runde weiterzuschalten. Nur belegbar bei gesetztem `GK` — siehe dort.
+  def final_round_pending?
+    TournamentMonitor::ResultProcessor.new(self).final_round_pending?
+  end
+
   def update_ranking
     TournamentMonitor::ResultProcessor.new(self).update_ranking
   end

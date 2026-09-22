@@ -355,14 +355,38 @@ class TournamentMonitor::ResultProcessorTest < ActiveSupport::TestCase
       "Phase 38.8 contract: report_result must NOT enqueue TournamentMonitorUpdateResultsJob (cascade deferred)")
   end
 
-  test "advance_round_after_match_close method body contains all 6 cascade calls (extracted verbatim)" do
+  # Plan 23-01 (2026-09-22) — VERTRAG NEU GEFASST, GARANTIE UNVERAENDERT.
+  #
+  # Phase 38.8 forderte die 6 Kaskaden-Aufrufe in `advance_round_after_match_close`. Plan 23-01
+  # trennt diese Methode auf: sie macht weiterhin `accumulate_results` (nach JEDEM Spiel), gibt
+  # die Kaskade selbst aber nur frei, wenn nicht auf den Turnierleiter gewartet wird. Die
+  # Kaskade steht seitdem in `perform_round_advance` — unveraendert, nur eine Ebene tiefer.
+  #
+  # Die Garantie von 38.8 bleibt damit bestehen und wird hier weiter geprueft: die Aufrufe
+  # existieren an GENAU EINER Stelle und nicht in `report_result` (Test darueber).
+  test "perform_round_advance method body contains all 6 cascade calls (extracted verbatim)" do
     src = File.read(Rails.root.join("app/services/tournament_monitor/result_processor.rb"))
-    method_match = src.match(/def advance_round_after_match_close.*?(?=\n  def |\nend\b)/m)
-    assert_not_nil method_match, "advance_round_after_match_close method must exist"
+    method_match = src.match(/def perform_round_advance.*?(?=\n  def |\nend\b)/m)
+    assert_not_nil method_match, "perform_round_advance method must exist (Plan 23-01)"
     body = method_match[0]
     %w[populate_tables incr_current_round! finalize_round start_playing_groups! TournamentMonitorUpdateResultsJob TournamentStatusUpdateJob].each do |needle|
       assert_match(/#{Regexp.escape(needle)}/, body,
-        "advance_round_after_match_close must contain '#{needle}' (extracted from report_result)")
+        "perform_round_advance must contain '#{needle}' (extracted from report_result in 38.8, " \
+        "moved one level down in Plan 23-01)")
+    end
+  end
+
+  # Plan 23-01: Beide Einstiegspunkte muessen auf DIESELBE Kaskade zeigen — sonst driften der
+  # Tisch-Pfad und der Turnierleiter-Pfad auseinander (extend-before-build: SHARE, nicht
+  # REPLICATE). Genau diese Doppelung war 38.8s urspruengliche Sorge.
+  test "23-01: beide Einstiegspunkte delegieren an perform_round_advance" do
+    src = File.read(Rails.root.join("app/services/tournament_monitor/result_processor.rb"))
+
+    %w[advance_round_after_match_close advance_round_by_operator].each do |entry|
+      match = src.match(/def #{entry}.*?(?=\n  #|\n  def |\nend\b)/m)
+      assert_not_nil match, "#{entry} must exist"
+      assert_match(/perform_round_advance/, match[0],
+        "#{entry} muss an perform_round_advance delegieren statt die Kaskade zu wiederholen")
     end
   end
 
