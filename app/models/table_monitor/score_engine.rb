@@ -1221,9 +1221,27 @@ class TableMonitor::ScoreEngine
     # Handles fouls reset, innings append, snooker state, biathlon phase, active player switch.
     # Returns :game_finished when the innings_goal has been reached or the state is not playing.
     # Returns :ok on success so the caller (TableMonitor) can persist and call evaluate_result.
+    # 2026-09-23: Darf in dieser Rolle noch eine Aufnahme beendet/gezaehlt werden?
+    #
+    # Bis hierher stand an beiden Aufrufstellen
+    #     data["innings_goal"].to_i.zero? || innings < data["innings_goal"].to_i
+    # Das kennt zwei Faelle — "kein Limit" (0) und "Limit noch nicht erreicht". Ein NEGATIVES
+    # Ziel faellt durch beide Raster: nicht null, und `0 < -88` ist falsch. Ergebnis war
+    # :game_finished — der Klick auf den Spielerwechsel lief ohne Fehler, ohne Meldung und
+    # ohne Wirkung. Vom Betreiber gemeldet am 2026-09-23 (Turnier 18935 trug -88 aus einer
+    # Fehleingabe; 1 von 2375 Turnieren, keine Validierung auf dem Feld).
+    #
+    # `.positive?` ist das Idiom, das der uebrige Code laengst verwendet
+    # (table_monitor.rb:1351, :1352, :1778) — ein nicht-positives Ziel heisst dort "kein
+    # Limit". Diese beiden Stellen waren die Ausreisser; sie folgen jetzt derselben Regel.
+    def innings_limit_open?(role)
+      goal = data["innings_goal"].to_i
+      !goal.positive? || data[role]["innings"].to_i < goal
+    end
+
     def terminate_inning_data(player, playing:)
       current_role = player.presence || data["current_inning"]["active_player"]
-      unless playing && (data["innings_goal"].to_i.zero? || data[current_role]["innings"].to_i < data["innings_goal"].to_i)
+      unless playing && innings_limit_open?(current_role)
         return :game_finished
       end
 
@@ -1277,9 +1295,7 @@ class TableMonitor::ScoreEngine
       end
 
       recompute_result(current_role)
-      if data["innings_goal"].to_i.zero? || data[current_role]["innings"].to_i < data["innings_goal"].to_i
-        data[current_role]["innings"] += 1
-      end
+      data[current_role]["innings"] += 1 if innings_limit_open?(current_role)
       data[current_role]["hs"] = n_balls if n_balls > data[current_role]["hs"].to_i
       data[current_role]["gd"] =
         format("%.2f", data[current_role]["result"].to_f / data[current_role].andand["innings"].to_i)
