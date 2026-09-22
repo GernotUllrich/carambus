@@ -40,6 +40,28 @@ module TournamentMonitorState
   # Liest dieselbe Menge wie das Gate — "offen" heisst allein `ended_at: nil`.
   # nil im Tisch-Fallback: ohne Spiele mit round_no ist keine Aussage ueber Spiele moeglich,
   # und "0 von 0" waere eine Scheinaussage.
+  # Plan 23-01: Dieselbe Spielmenge wie `round_status`, aber OHNE Anzeige-Aufbereitung.
+  #
+  # `round_status` baut fuer jedes offene Spiel einen Tischnamen ueber
+  # TableMonitor#display_name — das wirft ausserhalb von production (table_monitor.rb:971) und
+  # gehoert nicht in den Pfad, der nach JEDEM Spielende laeuft. Gemessen beim Umsetzen von
+  # 23-01: ein `round_status`-Aufruf im Gate liess `close_match!` mit StandardError abbrechen,
+  # sobald ein TableMonitor keinen Table trug.
+  #
+  # `round_tracked?` beantwortet: gibt es ueberhaupt eine gefuehrte Runde? Ist sie false, faellt
+  # der Rundenabschluss auf die Tisch-Pruefung zurueck (Phase 6) — dort erscheint auch kein
+  # Turnierleiter-Knopf, also wird dort nicht gegatet.
+  def round_tracked?
+    current_round_games.exists?
+  end
+
+  # Plan 23-01: Runde gefuehrt UND kein offenes Spiel darin. Identisch zum ersten Zweig von
+  # `all_table_monitors_finished?` — hier ohne den Tisch-Fallback, weil der Turnierleiter-Knopf
+  # nur bei gefuehrter Runde erscheint.
+  def round_complete?
+    round_tracked? && current_round_games.where(ended_at: nil).none?
+  end
+
   def round_status
     games = current_round_games.includes(:table_monitor).to_a
     return nil if games.empty?

@@ -1,7 +1,26 @@
 class TournamentMonitorsController < ApplicationController
-  before_action :set_tournament_monitor, only: %i[show edit update destroy update_games switch_players start_round_games]
-  before_action :ensure_tournament_director, only: %i[show edit update destroy update_games switch_players start_round_games]
-  before_action :ensure_local_server, only: %i[show edit update destroy update_games switch_players start_round_games]
+  before_action :set_tournament_monitor, only: %i[show edit update destroy update_games switch_players start_round_games advance_round]
+  before_action :ensure_tournament_director, only: %i[show edit update destroy update_games switch_players start_round_games advance_round]
+  before_action :ensure_local_server, only: %i[show edit update destroy update_games switch_players start_round_games advance_round]
+
+  # Plan 23-01 (2026-09-22): Der Rundenwechsel gehoert dem Turnierleiter.
+  #
+  # Bis Plan 23-01 loeste der gruene Knopf "Naechstes Spiel" am Scoreboard die Rundenkaskade
+  # aus, sobald er am LETZTEN Spiel der Runde gedrueckt wurde. Der Spieler am Tisch konnte das
+  # nicht sehen — und mit der Runde schloss sich das Korrekturfenster (NDM Freie Partie
+  # Klasse 7, 2026-09-20: 32:32 statt 32:31, Korrektur nur per DB-Eingriff moeglich).
+  #
+  # `advance_round_by_operator` prueft selbst, ob die Runde abschlussbereit ist, und meldet
+  # false, wenn nicht — das ist zugleich der Schutz gegen Doppelbetaetigung (zwei Requests
+  # hintereinander, die der Thread-Local-Sentinel nicht abdeckt).
+  def advance_round
+    if @tournament_monitor.advance_round_by_operator
+      flash[:notice] = t("tournament_monitors.round_status.advanced")
+    else
+      flash[:alert] = t("tournament_monitors.round_status.advance_rejected")
+    end
+    redirect_to tournament_monitor_path(@tournament_monitor)
+  end
 
   def switch_players
     @game = Game[params[:game_id]]
