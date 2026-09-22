@@ -36,6 +36,65 @@ class TableMonitor::ScoreEngineTest < ActiveSupport::TestCase
     }.deep_merge(overrides)
   end
 
+  # ---------------------------------------------------------------------------
+  # 2026-09-23: Ein negatives innings_goal liess den Spielerwechsel verpuffen.
+  #
+  # Vom Betreiber gemeldet: "Der Wechsel zum Player B geht nicht mehr." Turnier 18935 trug
+  # `innings_goal = -88` (Fehleingabe bei der Turnier-Definition; 1 von 2375 Turnieren).
+  #
+  # `terminate_inning_data` prueft:
+  #     data["innings_goal"].to_i.zero? || innings < data["innings_goal"].to_i
+  # Beide Zweige sind bei -88 false (nicht null; 0 < -88 ist falsch) -> :game_finished. Der
+  # Klick lief ohne Fehler, ohne Meldung, ohne Wirkung — er sah aus wie eine tote Taste.
+  #
+  # Der Rest des Codes macht es laengst richtig: table_monitor.rb:1351/1352/1778 fragen
+  # `.positive?`, was ein negatives Ziel korrekt als "kein Limit" liest. Die beiden
+  # `.zero?`-Stellen in terminate_inning_data waren die Ausreisser.
+  # ---------------------------------------------------------------------------
+
+  test "negatives innings_goal gilt als kein Limit — die Aufnahme laesst sich beenden" do
+    data = playing_data("innings_goal" => "-88")
+
+    result = engine(data).terminate_inning_data(nil, playing: true)
+
+    assert_equal :ok, result,
+      "Ein negatives Aufnahmenziel ist bedeutungslos und darf das Spiel nicht als beendet " \
+      "gelten lassen — sonst verpufft jeder Klick auf den Spielerwechsel"
+  end
+
+  test "negatives innings_goal zaehlt die Aufnahme trotzdem hoch" do
+    data = playing_data("innings_goal" => "-88")
+
+    engine(data).terminate_inning_data(nil, playing: true)
+
+    assert_equal 1, data["playera"]["innings"],
+      "Zweite .zero?-Stelle (score_engine.rb:1280): auch der Aufnahmenzaehler darf an einem " \
+      "negativen Ziel nicht haengenbleiben"
+  end
+
+  test "innings_goal 0 bleibt kein Limit (unveraendert)" do
+    data = playing_data("innings_goal" => "0")
+
+    assert_equal :ok, engine(data).terminate_inning_data(nil, playing: true)
+    assert_equal 1, data["playera"]["innings"]
+  end
+
+  test "positives innings_goal beendet das Spiel bei Erreichen (unveraendert)" do
+    data = playing_data("innings_goal" => "25")
+    data["playera"]["innings"] = 25
+
+    assert_equal :game_finished, engine(data).terminate_inning_data(nil, playing: true),
+      "Das eigentliche Limit muss weiter greifen — die Haertung darf es nicht aushebeln"
+  end
+
+  test "positives innings_goal laesst vor Erreichen weiterspielen (unveraendert)" do
+    data = playing_data("innings_goal" => "25")
+    data["playera"]["innings"] = 24
+
+    assert_equal :ok, engine(data).terminate_inning_data(nil, playing: true)
+    assert_equal 25, data["playera"]["innings"]
+  end
+
   def snooker_data(overrides = {})
     base = playing_data(
       "free_game_form" => "snooker",
