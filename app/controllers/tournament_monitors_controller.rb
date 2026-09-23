@@ -318,12 +318,40 @@ class TournamentMonitorsController < ApplicationController
     # Der Hinweis haengt jetzt an dieser Marke, und die wird nur hier gesetzt: an der einen
     # Stelle, durch die seit 26-01 BEIDE Korrekturwege laufen (mit und ohne Tisch).
     # Gespeichert wird beim Aufrufer — `deep_merge_data!` setzt nur das Attribut (game.rb:272).
-    game.deep_merge_data!(
+    #
+    # ⚠️ Zweite Meldung desselben Tages: Die Marke sass zuerst an "wurde geschrieben". Das
+    # Formular schickt aber JEDE editierbare Zeile mit, und der Controller schreibt sie alle
+    # neu — ein einziger Klick auf "update" markierte damit das ganze Feld. Sie haengt jetzt
+    # an `werte_geaendert?`.
+    marke = werte_geaendert?(game, resulta:, resultb:, inningsa:, inningsb:, hsa:, hsb:) ?
+      {"manual_correction_at" => Time.current.iso8601} : {}
+
+    game.deep_merge_data!({
       "tmp_results" => korrigiert,
-      "ba_results" => ba_results_fuer(game, resulta, resultb, inningsa, inningsb, hsa, hsb),
-      "manual_correction_at" => Time.current.iso8601
-    )
+      "ba_results" => ba_results_fuer(game, resulta, resultb, inningsa, inningsb, hsa, hsb)
+    }.merge(marke))
     korrigiert
+  end
+
+  # Hat der Turnierleiter an DIESEM Spiel wirklich etwas veraendert? Verglichen wird gegen die
+  # Beteiligungen — genau die Werte, die das Formular in den Feldern zeigt und unveraendert
+  # zurueckliefert, wenn niemand sie anfasst.
+  #
+  # ⚠️ Der Vergleich muss VOR dem Schreiben der Beteiligungen laufen. An beiden Aufrufstellen
+  # ist das so: der Tisch-Zweig ruft `update_game_participations` erst danach, der abgeloeste
+  # Zweig `update_game_participations_for_game`.
+  #
+  # Fehlt eine Beteiligung, gilt das als Aenderung — sie wird gleich angelegt.
+  def werte_geaendert?(game, resulta:, resultb:, inningsa:, inningsb:, hsa:, hsb:)
+    gpa = game.game_participations.where("role = 'playera' or role = 'Heim'").first
+    gpb = game.game_participations.where("role = 'playerb' or role = 'Gast'").first
+
+    [[gpa, resulta, inningsa, hsa], [gpb, resultb, inningsb, hsb]].any? do |gp, result, innings, hs|
+      gp.nil? ||
+        gp.result.to_i != result.to_i ||
+        gp.innings.to_i != innings.to_i ||
+        gp.hs.to_i != hs.to_i
+    end
   end
 
   def korrigiere_abgeloestes_spiel!(game, resulta:, resultb:, inningsa:, inningsb:, hsa:, hsb:)
