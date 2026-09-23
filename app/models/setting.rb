@@ -972,11 +972,18 @@ class Setting < ApplicationRecord
 
   # Trägt ein Spiel automatisch in die ClubCloud ein
   # Returns: { success: true/false, error: nil/"error message", skipped: true/false }
-  def self.upload_game_to_cc(table_monitor)
-    return { success: false, error: "No table_monitor", skipped: false } unless table_monitor.present?
-
-    game = table_monitor.game
-    return { success: false, error: "No game", skipped: false } unless game.present?
+  # Plan 24-01 (2026-09-23): nimmt wahlweise einen TableMonitor ODER direkt ein Game.
+  #
+  # Ein abgeloestes Spiel (Tisch schon neu besetzt) hat keinen TableMonitor mehr — eine
+  # Korrektur daran soll die ClubCloud trotzdem erreichen. Die Methode haengt nur an DREI
+  # Stellen am TableMonitor: Praesenzpruefung, Ableitung des Games und `ba_results`. Alles
+  # andere arbeitet ohnehin am Game, deshalb genuegt hier ein zweiter Eingang.
+  # Bestehende Aufrufer uebergeben weiter einen TableMonitor und verhalten sich unveraendert.
+  def self.upload_game_to_cc(table_monitor, game: nil)
+    game ||= table_monitor&.game
+    unless game.present?
+      return { success: false, error: "No game (neither table_monitor nor game given)", skipped: false }
+    end
 
     tournament = game.tournament
     return { success: false, error: "No tournament", skipped: false } unless tournament.present?
@@ -1044,7 +1051,7 @@ class Setting < ApplicationRecord
     end
 
     # Extrahiere Spieldaten
-    ba_results = table_monitor.data["ba_results"] || game.data["ba_results"]
+    ba_results = table_monitor&.data&.dig("ba_results") || game.data["ba_results"]
     unless ba_results.present?
       error_msg = "No game results (ba_results) found"
       Rails.logger.warn "[CC-Upload] #{error_msg} for game[#{game.id}]"
