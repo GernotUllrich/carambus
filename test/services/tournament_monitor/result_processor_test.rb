@@ -130,6 +130,103 @@ class TournamentMonitor::ResultProcessorTest < ActiveSupport::TestCase
   end
 
   # ============================================================================
+  # Plan 24-01 Task 1 — REPRODUKTION, kein Fix.
+  #
+  # Vom Betreiber gemeldet 2026-09-23: 30:29 abgeschickt, Log meldet "validation PASSED,
+  # updating...", in der DB steht 30:30 — und das Spiel traegt tmp_results mit 30:30.
+  # Verdaechtige Stelle: result_processor.rb:603
+  #     data_source = game.data["tmp_results"].present? ? game.data["tmp_results"] : table_monitor_data
+  #
+  # ⚠️ EIN ERSTER VERSUCH SCHEITERTE AM TESTAUFBAU, NICHT AM CODE: `Game#data` ist
+  # ueberschrieben (game.rb:95) und dekodiert bei JEDEM Zugriff neu aus dem Roh-Attribut —
+  # `game.data["tmp_results"] = {...}` ist ein STILLES NO-OP. Deshalb hier ausschliesslich
+  # `deep_merge_data!`, und jeder Test prueft die Vorbedingung explizit, bevor er die
+  # eigentliche Behauptung testet.
+  #
+  # `update_games` ruft ZWEI Schreiber nacheinander:
+  #     @tournament_monitor.update_game_participations(table_monitor)
+  #     table_monitor.evaluate_result   # -> report_result -> finalize_game_result -> derselbe Schreiber
+  # Beide laufen durch Zeile 603. Die Tests trennen sie.
+  # ============================================================================
+
+  def spiel_mit_schnappschuss!(offset, a_result:, b_result:)
+    game = local_game_with_participations!(offset)
+    game.deep_merge_data!("tmp_results" => {
+      "playera" => {"result" => a_result, "innings" => 10, "hs" => 5, "balls_goal" => 30},
+      "playerb" => {"result" => b_result, "innings" => 10, "hs" => 5, "balls_goal" => 30}
+    })
+    game.save!
+    game.reload
+    game
+  end
+
+  def tisch_mit_eingabe!(game, a_result:, b_result:)
+    tabmon = TableMonitor.create!(tournament_monitor: @tm, game: game, state: "playing", data: {})
+    tabmon.data["playera"] = {"result" => a_result, "innings" => 10, "hs" => 5, "balls_goal" => 30}
+    tabmon.data["playerb"] = {"result" => b_result, "innings" => 10, "hs" => 5, "balls_goal" => 30}
+    tabmon.data_will_change!
+    tabmon.save!
+    tabmon
+  end
+
+  test "24-01 T1a: BELEGT — tmp_results gewinnt gegen uebergebene Werte" do
+    game = spiel_mit_schnappschuss!(91, a_result: 30, b_result: 30)
+    assert game.reload.data["tmp_results"].present?,
+      "VORBEDINGUNG: der Schnappschuss muss wirklich persistiert sein (deep_merge_data!)"
+    assert_equal 30, game.data.dig("tmp_results", "playerb", "result"),
+      "VORBEDINGUNG: der Schnappschuss traegt den ALTEN Wert 30"
+
+    tabmon = tisch_mit_eingabe!(game, a_result: 30, b_result: 29)
+
+    @tm.update_game_participations(tabmon)
+
+    ergebnis = game.game_participations.where(role: "playerb").first.reload.result
+    puts "\n[24-01 T1a] nach update_game_participations: playerb = #{ergebnis.inspect} " \
+         "(getippt 29, Schnappschuss 30)"
+
+    assert_equal 30, ergebnis,
+      "BELEGT (Plan 24-01 Task 1): der Schnappschuss GEWINNT gegen die uebergebenen Werte. " \
+      "Das ist die Ursache von \"Ich kann nichts aendern\". Die Vorrangregel bleibt bewusst " \
+      "bestehen — tmp_results ist genau fuer den Fall da, in dem KEINE frischen Daten " \
+      "existieren (game_setup.rb:312 spielt ihn beim Wieder-Platzieren zurueck). " \
+      "Der Fix liegt deshalb im Controller: korrigiere_abgeloestes_spiel! schreibt den " \
+      "Schnappschuss ZUERST auf den korrigierten Stand, danach sind beide Quellen einig."
+  end
+
+  test "24-01 T1b: BELEGT — der Schaden entsteht beim ersten Schreiber, nicht bei evaluate_result" do
+    game = spiel_mit_schnappschuss!(92, a_result: 30, b_result: 30)
+    tabmon = tisch_mit_eingabe!(game, a_result: 30, b_result: 29)
+
+    @tm.update_game_participations(tabmon)
+    nach_erstem = game.game_participations.where(role: "playerb").first.reload.result
+
+    tabmon.evaluate_result
+    nach_zweitem = game.game_participations.where(role: "playerb").first.reload.result
+
+    puts "[24-01 T1b] nach update_game_participations: #{nach_erstem.inspect} | " \
+         "nach evaluate_result: #{nach_zweitem.inspect}"
+
+    assert_equal nach_erstem, nach_zweitem,
+      "Beide Schreiber lesen dieselbe Quelle — der zweite verschlimmert nichts"
+    assert_equal 30, nach_zweitem,
+      "BELEGT: der Schaden entsteht schon beim ERSTEN Schreiber. Mein Verdacht, " \
+      "evaluate_result koenne die Korrektur zurueckdrehen, trug nicht — das schmaelert " \
+      "die Fix-Stelle auf genau eine."
+  end
+
+  test "24-01 T1c: ohne Schnappschuss unveraendert (Regressionsschutz)" do
+    game = local_game_with_participations!(93)
+    assert_not game.reload.data["tmp_results"].present?,
+      "VORBEDINGUNG: kein Schnappschuss"
+
+    tabmon = tisch_mit_eingabe!(game, a_result: 30, b_result: 29)
+    @tm.update_game_participations(tabmon)
+
+    assert_equal 29, game.game_participations.where(role: "playerb").first.reload.result,
+      "Ohne Schnappschuss schreibt der bestehende Weg wie bisher"
+  end
+
+  # ============================================================================
   # Test 4: update_ranking is public and calls player_id_from_ranking via @tournament_monitor
   # ============================================================================
 
