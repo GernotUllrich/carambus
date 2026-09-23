@@ -186,9 +186,41 @@ class TournamentMonitorsControllerTest < ActionDispatch::IntegrationTest
       "\"Ich kann nichts aendern\"")
     assert_match(/value="#{game.id}"/, response.body,
       "Und zwar fuer genau dieses abgeloeste Spiel")
-    assert_match(/#{Regexp.escape(I18n.t("tournament_monitors.round_status.correction_detached"))}/,
+    # Betreiber-Befund 2026-09-23: Bis hierher stand hier ein assert_match — der gelbe Hinweis
+    # "nachtraegliche Korrektur" erschien fuer JEDES abgeloeste Spiel. Nach einem
+    # Rundenabschluss ist das jedes Spiel der Runde (der Tisch gibt sein Spiel ab,
+    # table_populator.rb:950), und an keinem davon war etwas korrigiert worden. Der Hinweis
+    # behauptet ein Ereignis; er darf also nur stehen, wo eines stattgefunden hat.
+    refute_match(/#{Regexp.escape(I18n.t("tournament_monitors.round_status.correction_manual"))}/,
       response.body,
-      "Der Turnierleiter soll sehen, dass er in eine abgeschlossene Runde greift")
+      "Ein bloss abgeloestes Spiel wurde nicht korrigiert — der Hinweis darf hier nicht stehen")
+  end
+
+  test "Der Korrektur-Hinweis erscheint erst nach einer tatsaechlichen Korrektur" do
+    Carambus.config.carambus_api_url = "http://local.test"
+    @tournament_monitor.update!(data: {"current_round" => 1})
+    mit_lokaler_meldung!
+    game = abgeloestes_spiel_mit_schnappschuss!(id: 66_000_030, a: 30, b: 30)
+
+    assert_nil game.data["manual_correction_at"],
+      "VORBEDINGUNG: an diesem Spiel wurde noch nichts von Hand geaendert"
+
+    post update_games_tournament_monitor_url(@tournament_monitor), params: {
+      "game_id" => [game.id.to_s],
+      "resulta" => ["30"], "resultb" => ["29"],
+      "inningsa" => ["10"], "inningsb" => ["10"],
+      "hsa" => ["5"], "hsb" => ["5"]
+    }
+
+    assert game.reload.data["manual_correction_at"].present?,
+      "Die Korrektur muss sich am Spiel vermerken — sonst kann die Tabelle sie nicht zeigen"
+
+    get tournament_monitor_url(@tournament_monitor)
+
+    assert_response :success
+    assert_match(/#{Regexp.escape(I18n.t("tournament_monitors.round_status.correction_manual"))}/,
+      response.body,
+      "Nach einer echten Korrektur soll der Turnierleiter sehen, an welchem Spiel er war")
   end
 
   # ── Plan 26-01: Die Korrektur am Tisch kommt an ────────────────────────────

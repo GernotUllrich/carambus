@@ -25,7 +25,7 @@ en:
       advance_tournament: "Finish tournament"
       advance_hint: "Until then, results of this round can still be corrected."
       correction_affects_later_round: "Note: this correction may change the ranking - round %{round} is already populated. Check whether the following round is still correct."
-      correction_detached: "retroactive correction"
+      correction_manual: "retroactive correction"
       advance_order_hint: "Save edited results with \"update\" first - advancing the round does not pick them up."
       advance_tournament_hint: "This finalises the results and uploads them to the ClubCloud."
       advance_tournament_confirm: "Really finish the tournament? The final results will be locked in and uploaded to the ClubCloud. After that, corrections are only possible in the ClubCloud."
