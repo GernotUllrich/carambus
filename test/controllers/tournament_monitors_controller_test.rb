@@ -236,6 +236,144 @@ class TournamentMonitorsControllerTest < ActionDispatch::IntegrationTest
       "Nach einer echten Korrektur soll der Turnierleiter sehen, an welchem Spiel er war")
   end
 
+  # Ein beendetes Spiel so, wie die Tabelle es zeigt: die Beteiligungen tragen die Werte, die
+  # das Formular in die Felder schreibt und beim Absenden unveraendert zurueckliefert.
+  def beendetes_spiel!(id:, seqno:, a:, b:, innings: 10, hs: 5)
+    game = @tournament.games.create!(id: id, gname: "group1:#{seqno}", round_no: 1,
+      group_no: 1, seqno: seqno, data: {}, ended_at: 1.hour.ago)
+    GameParticipation.create!(game: game, player: players(:nbv_ullrich), role: "playera",
+      result: a, innings: innings, hs: hs)
+    GameParticipation.create!(game: game, player: players(:nbv_andresen), role: "playerb",
+      result: b, innings: innings, hs: hs)
+    game
+  end
+
+  # Betreiber-Befund 2026-09-23 (zweite Meldung): "Jetzt kann ich sogar noch nach
+  # Rundenabschluss aendern mit der Wirkung, dass ALLE gelaufenen Spiele den Aenderungshinweis
+  # bekommen."
+  #
+  # Ursache: Das update_games-Formular schickt JEDE editierbare Zeile mit — der Controller
+  # schreibt sie alle neu, auch die unveraenderten. Die Marke aus dem ersten Anlauf sass an
+  # "wurde geschrieben", nicht an "wurde geaendert". Ein einziger Klick auf "update" markierte
+  # damit das ganze Feld.
+  test "Ein update ohne Wertaenderung markiert kein Spiel" do
+    Carambus.config.carambus_api_url = "http://local.test"
+    @tournament_monitor.update!(data: {"current_round" => 1})
+    eins = beendetes_spiel!(id: 66_000_040, seqno: 1, a: 30, b: 29)
+    zwei = beendetes_spiel!(id: 66_000_041, seqno: 2, a: 30, b: 12)
+
+    # Exakt das, was das Formular zeigt — nichts angefasst, nur abgeschickt.
+    post update_games_tournament_monitor_url(@tournament_monitor), params: {
+      "game_id" => [eins.id.to_s, zwei.id.to_s],
+      "resulta" => ["30", "30"], "resultb" => ["29", "12"],
+      "inningsa" => ["10", "10"], "inningsb" => ["10", "10"],
+      "hsa" => ["5", "5"], "hsb" => ["5", "5"]
+    }
+
+    assert_nil eins.reload.data["manual_correction_at"],
+      "Unveraendert abgeschickt ist keine Korrektur — der Hinweis darf hier nicht entstehen"
+    assert_nil zwei.reload.data["manual_correction_at"],
+      "Und schon gar nicht flaechendeckend fuer jedes Spiel der Runde"
+  end
+
+  test "Ein update markiert nur das Spiel, dessen Werte sich geaendert haben" do
+    Carambus.config.carambus_api_url = "http://local.test"
+    @tournament_monitor.update!(data: {"current_round" => 1})
+    unveraendert = beendetes_spiel!(id: 66_000_050, seqno: 1, a: 30, b: 29)
+    geaendert = beendetes_spiel!(id: 66_000_051, seqno: 2, a: 30, b: 12)
+
+    post update_games_tournament_monitor_url(@tournament_monitor), params: {
+      "game_id" => [unveraendert.id.to_s, geaendert.id.to_s],
+      "resulta" => ["30", "30"], "resultb" => ["29", "14"], # nur das zweite Spiel: 12 -> 14
+      "inningsa" => ["10", "10"], "inningsb" => ["10", "10"],
+      "hsa" => ["5", "5"], "hsb" => ["5", "5"]
+    }
+
+    assert_nil unveraendert.reload.data["manual_correction_at"],
+      "Das unberuehrte Spiel darf nicht mitmarkiert werden, nur weil es im selben POST lag"
+    assert geaendert.reload.data["manual_correction_at"].present?,
+      "Das tatsaechlich geaenderte Spiel muss die Marke bekommen"
+    assert_equal 14, geaendert.game_participations.where(role: "playerb").first.result,
+      "Und die Korrektur selbst muss natuerlich weiterhin ankommen"
+  end
+
+  # ── Betreiber-Entscheidung 2026-09-23: abgeschlossene Runden sind zu ───────
+  #
+  # Gemeldet: "Jetzt kann ich sogar noch nach Rundenabschluss aendern. Ueberall bleibt die Zeile
+  # im Edit modus." Bis dahin blieb jedes beendete Spiel dauerhaft editierbar (aus 24-01:
+  # `!abgeloest || ended_at.present?`). Die Faehigkeit aus 24-01 bleibt fuer die LAUFENDE Runde.
+
+  test "Ein Spiel aus einer abgeschlossenen Runde zeigt keine Eingabefelder mehr" do
+    Carambus.config.carambus_api_url = "http://local.test"
+    mit_lokaler_meldung!
+    alt = beendetes_spiel!(id: 66_000_060, seqno: 1, a: 30, b: 29)
+    @tournament_monitor.update!(data: {"current_round" => 2}) # Runde 1 ist durch
+
+    get tournament_monitor_url(@tournament_monitor)
+
+    assert_response :success
+    refute_match(/value="#{alt.id}"/, response.body,
+      "Ohne game_id-Feld kommt die Zeile im POST nicht an — genau das ist hier gewollt")
+    refute_match(/name="resulta\[\]"/, response.body,
+      "Nach dem Rundenabschluss darf die Zeile nicht im Edit-Modus stehen")
+  end
+
+  test "Ein Spiel der laufenden Runde bleibt editierbar, auch abgeloest" do
+    Carambus.config.carambus_api_url = "http://local.test"
+    mit_lokaler_meldung!
+    aktuell = beendetes_spiel!(id: 66_000_061, seqno: 1, a: 30, b: 29)
+    @tournament_monitor.update!(data: {"current_round" => 1})
+
+    assert_nil aktuell.table_monitor, "VORBEDINGUNG: das Spiel ist abgeloest"
+
+    get tournament_monitor_url(@tournament_monitor)
+
+    assert_response :success
+    assert_match(/value="#{aktuell.id}"/, response.body,
+      "Die Faehigkeit aus 24-01 muss fuer die laufende Runde erhalten bleiben")
+  end
+
+  test "Ein POST auf eine abgeschlossene Runde aendert nichts" do
+    Carambus.config.carambus_api_url = "http://local.test"
+    alt = beendetes_spiel!(id: 66_000_070, seqno: 1, a: 30, b: 29)
+    @tournament_monitor.update!(data: {"current_round" => 2})
+
+    post update_games_tournament_monitor_url(@tournament_monitor), params: {
+      "game_id" => [alt.id.to_s],
+      "resulta" => ["30"], "resultb" => ["14"], # Aenderungsversuch 29 -> 14
+      "inningsa" => ["10"], "inningsb" => ["10"],
+      "hsa" => ["5"], "hsb" => ["5"]
+    }
+
+    assert_equal 29, alt.game_participations.where(role: "playerb").first.reload.result,
+      "Der Riegel muss auch einen POST abhalten, der die View umgeht"
+    assert_nil alt.reload.data["manual_correction_at"],
+      "Und er darf schon gar keine Korrektur-Marke hinterlassen"
+  end
+
+  # Ohne Rundenfuehrung (round_no nil) gibt es keinen Rundenabschluss. `nil.to_i` ist 0 und waere
+  # "kleiner als Runde 1" — ein blinder Vergleich haette solche Turniere komplett gesperrt.
+  test "Ohne Rundenfuehrung sperrt der Riegel nicht" do
+    Carambus.config.carambus_api_url = "http://local.test"
+    ohne_runde = @tournament.games.create!(id: 66_000_080, gname: "group1:1", group_no: 1,
+      seqno: 1, round_no: nil, data: {}, ended_at: 1.hour.ago)
+    GameParticipation.create!(game: ohne_runde, player: players(:nbv_ullrich), role: "playera",
+      result: 30, innings: 10, hs: 5)
+    GameParticipation.create!(game: ohne_runde, player: players(:nbv_andresen), role: "playerb",
+      result: 29, innings: 10, hs: 5)
+    @tournament_monitor.update!(data: {"current_round" => 3})
+
+    post update_games_tournament_monitor_url(@tournament_monitor), params: {
+      "game_id" => [ohne_runde.id.to_s],
+      "resulta" => ["30"], "resultb" => ["14"],
+      "inningsa" => ["10"], "inningsb" => ["10"],
+      "hsa" => ["5"], "hsb" => ["5"]
+    }
+
+    assert_equal 14, ohne_runde.game_participations.where(role: "playerb").first.reload.result,
+      "Ohne round_no gibt es keinen Rundenabschluss — hier darf der Riegel nicht greifen"
+  end
+
   # ── Plan 26-01: Die Korrektur am Tisch kommt an ────────────────────────────
   #
   # Vom Betreiber beim UAT zu Phase 25 gemeldet (2026-09-23, Turnier 18935, group2:2-3):

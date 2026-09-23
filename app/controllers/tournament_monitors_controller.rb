@@ -60,6 +60,16 @@ class TournamentMonitorsController < ApplicationController
       game = @tournament_monitor.tournament.games.where("id >= #{Game::MIN_ID}").includes(:table_monitor).find(game_id)
       next unless game.present?
 
+      # Betreiber-Entscheidung 2026-09-23: Eine abgeschlossene Runde ist zu. Die View zeigt dort
+      # keine Eingabefelder mehr; dieser Guard haelt zusaetzlich einen POST ab, der die View
+      # umgeht — sonst waere der Riegel nur die halbe Wahrheit.
+      if runde_abgeschlossen?(game)
+        Rails.logger.warn "[TournamentMonitorsController#update_games] Game[#{game.id}] SKIPPED: " \
+                          "Runde #{game.round_no} ist abgeschlossen (laufende Runde: " \
+                          "#{@tournament_monitor.current_round})"
+        next
+      end
+
       table_monitor = game.table_monitor
 
       # Plan 24-01 (2026-09-23): Bis hierher stand `next unless table_monitor.present?` — ein
@@ -318,12 +328,56 @@ class TournamentMonitorsController < ApplicationController
     # Der Hinweis haengt jetzt an dieser Marke, und die wird nur hier gesetzt: an der einen
     # Stelle, durch die seit 26-01 BEIDE Korrekturwege laufen (mit und ohne Tisch).
     # Gespeichert wird beim Aufrufer — `deep_merge_data!` setzt nur das Attribut (game.rb:272).
-    game.deep_merge_data!(
+    #
+    # ⚠️ Zweite Meldung desselben Tages: Die Marke sass zuerst an "wurde geschrieben". Das
+    # Formular schickt aber JEDE editierbare Zeile mit, und der Controller schreibt sie alle
+    # neu — ein einziger Klick auf "update" markierte damit das ganze Feld. Sie haengt jetzt
+    # an `werte_geaendert?`.
+    marke = werte_geaendert?(game, resulta:, resultb:, inningsa:, inningsb:, hsa:, hsb:) ?
+      {"manual_correction_at" => Time.current.iso8601} : {}
+
+    game.deep_merge_data!({
       "tmp_results" => korrigiert,
-      "ba_results" => ba_results_fuer(game, resulta, resultb, inningsa, inningsb, hsa, hsb),
-      "manual_correction_at" => Time.current.iso8601
-    )
+      "ba_results" => ba_results_fuer(game, resulta, resultb, inningsa, inningsb, hsa, hsb)
+    }.merge(marke))
     korrigiert
+  end
+
+  # Gehoert dieses Spiel zu einer Runde, die schon weitergeschaltet wurde?
+  #
+  # Betreiber-Entscheidung 2026-09-23: Nach dem Rundenabschluss ist Schluss — bis dahin bleibt
+  # alles korrigierbar, auch ein Spiel, dessen Tisch schon weitergegeben wurde (das ist die
+  # Faehigkeit aus 24-01, und die bleibt fuer die LAUFENDE Runde erhalten).
+  #
+  # ⚠️ `round_no` darf nicht blind mit `to_i` verglichen werden: ein nicht rundengefuehrtes
+  # Turnier hat `round_no == nil`, und `nil.to_i` ist 0 — das waere "kleiner als Runde 1" und
+  # wuerde solche Turniere vollstaendig sperren. Ohne Rundenfuehrung gibt es keinen
+  # Rundenabschluss, also ist hier nichts zu.
+  def runde_abgeschlossen?(game)
+    return false if game.round_no.blank?
+
+    game.round_no.to_i < @tournament_monitor.current_round.to_i
+  end
+
+  # Hat der Turnierleiter an DIESEM Spiel wirklich etwas veraendert? Verglichen wird gegen die
+  # Beteiligungen — genau die Werte, die das Formular in den Feldern zeigt und unveraendert
+  # zurueckliefert, wenn niemand sie anfasst.
+  #
+  # ⚠️ Der Vergleich muss VOR dem Schreiben der Beteiligungen laufen. An beiden Aufrufstellen
+  # ist das so: der Tisch-Zweig ruft `update_game_participations` erst danach, der abgeloeste
+  # Zweig `update_game_participations_for_game`.
+  #
+  # Fehlt eine Beteiligung, gilt das als Aenderung — sie wird gleich angelegt.
+  def werte_geaendert?(game, resulta:, resultb:, inningsa:, inningsb:, hsa:, hsb:)
+    gpa = game.game_participations.where("role = 'playera' or role = 'Heim'").first
+    gpb = game.game_participations.where("role = 'playerb' or role = 'Gast'").first
+
+    [[gpa, resulta, inningsa, hsa], [gpb, resultb, inningsb, hsb]].any? do |gp, result, innings, hs|
+      gp.nil? ||
+        gp.result.to_i != result.to_i ||
+        gp.innings.to_i != innings.to_i ||
+        gp.hs.to_i != hs.to_i
+    end
   end
 
   def korrigiere_abgeloestes_spiel!(game, resulta:, resultb:, inningsa:, inningsb:, hsa:, hsb:)
