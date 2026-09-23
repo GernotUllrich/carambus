@@ -140,7 +140,16 @@ class TournamentMonitorsController < ApplicationController
       table_monitor.data_will_change!
       table_monitor.suppress_broadcast = false
       table_monitor.save
+
+      # Plan 26-01: Den Schnappschuss ZUERST auf den korrigierten Stand bringen — dieselbe
+      # Reihenfolge, die 24-01 fuer den abgeloesten Fall belegt hat. Danach sind Schnappschuss
+      # und Live-Daten einig, und es ist gleichgueltig, welche Quelle
+      # `result_processor.rb:603` waehlt.
+      korrigiere_schnappschuss!(game, table_monitor, resulta:, resultb:, inningsa:, inningsb:,
+        hsa: params["hsa"][ix].to_i, hsb: params["hsb"][ix].to_i)
       game.update(ended_at: Time.now)
+      game.reload
+
       @tournament_monitor.update_game_participations(table_monitor)
       table_monitor.evaluate_result
       
@@ -279,8 +288,24 @@ class TournamentMonitorsController < ApplicationController
   #
   # ⚠️ NUR `deep_merge_data!` — `game.data[...] = ` ist bei Game ein STILLES NO-OP, weil der
   # Getter (game.rb:95) bei jedem Zugriff neu aus dem Roh-Attribut dekodiert.
-  def korrigiere_abgeloestes_spiel!(game, resulta:, resultb:, inningsa:, inningsb:, hsa:, hsb:)
-    ziele = korrektur_ziele(game, nil)
+  # Plan 26-01: Bringt den Schnappschuss des Spiels auf den korrigierten Stand — fuer BEIDE
+  # Faelle, mit und ohne TableMonitor. Bis 26-01 stand dieser Block nur im abgeloesten Zweig;
+  # ein Spiel, das noch auf seinem Tisch stand, behielt den alten Schnappschuss, und
+  # `result_processor.rb:603` zog ihn den korrigierten Werten vor (Betreiber-Befund 2026-09-23:
+  # 29 getippt, 30 gespeichert, Punkte 1:1 statt 0:2).
+  #
+  # ⚠️ Gebaut wird aus den ROHWERTEN, nicht aus `table_monitor.data`. An der Aufrufstelle im
+  # Tisch-Zweig hat `evaluate_result` noch nicht gelaufen — `table_monitor.data["ba_results"]`
+  # traegt dort also noch den ALTEN Satz und wuerde den Fehler mitschreiben, den er beheben soll.
+  #
+  # ⚠️ Aus demselben Grund nicht `ResultProcessor#write_game_result_data`: die schreibt
+  # `"tmp_results" => table_monitor.data` und traegt eine Idempotenz-Sperre, die binnen einer
+  # Minute abbricht — eine Korrektur direkt nach Spielende fiele durch sie hindurch.
+  #
+  # Gibt den korrigierten Satz zurueck; Speichern und `ended_at` bleiben beim Aufrufer, weil
+  # die beiden Zweige das unterschiedlich handhaben (`||=` gegen unbedingtes Setzen).
+  def korrigiere_schnappschuss!(game, table_monitor, resulta:, resultb:, inningsa:, inningsb:, hsa:, hsb:)
+    ziele = korrektur_ziele(game, table_monitor)
     korrigiert = {
       "playera" => spielerdaten(resulta, inningsa, hsa, ziele[:playera_balls_goal]),
       "playerb" => spielerdaten(resultb, inningsb, hsb, ziele[:playerb_balls_goal])
@@ -290,6 +315,12 @@ class TournamentMonitorsController < ApplicationController
       "tmp_results" => korrigiert,
       "ba_results" => ba_results_fuer(game, resulta, resultb, inningsa, inningsb, hsa, hsb)
     )
+    korrigiert
+  end
+
+  def korrigiere_abgeloestes_spiel!(game, resulta:, resultb:, inningsa:, inningsb:, hsa:, hsb:)
+    korrigiert = korrigiere_schnappschuss!(game, nil, resulta:, resultb:, inningsa:, inningsb:,
+      hsa:, hsb:)
     game.ended_at ||= Time.now
     game.save!
     game.reload
