@@ -100,39 +100,20 @@
       </table>
     <% end %>
 
-    <%# Plan 23-01 / Nachbesserung 2026-09-23: "Runde abschliessen" gehoert HIERHIN, nicht in die
-        Statuszeile oben. Der Ablauf liest sich jetzt von oben nach unten: Ergebnisse sehen →
-        korrigieren → update → Runde abschliessen.
+    <%# Plan 23-01 / Nachbesserung 2026-09-23: Der sichere Ort fuer "Runde abschliessen" — direkt
+        unter der Ergebnistabelle, neben "update". Der Ablauf liest sich von oben nach unten:
+        Ergebnisse sehen → korrigieren → update → Runde abschliessen.
 
         ⚠️ BEWUSST AUSSERHALB des form_tag oben: `button_to` erzeugt ein eigenes <form>, und
         verschachtelte Formulare sind ungueltiges HTML. Die beiden Knoepfe stehen deshalb optisch
         nebeneinander, gehoeren aber zu getrennten Formularen — "update" speichert die Felder,
-        "Runde abschliessen" schaltet weiter. Wer die Reihenfolge vertauscht, verliert seine
-        Eingaben; darauf weist der Hinweistext hin. %>
-    <%- if edit_games_modus && tournament_monitor.operator_gated_round_advance? &&
-          tournament_director?(current_user) %>
-      <%- status = tournament_monitor.round_status %>
-      <%- if status.present? && status[:open].empty? %>
-        <%# Getrennte Beschriftung (Betreiber-Entscheidung 23-01): der letzte Klick beendet das
-            TURNIER samt CSV-Upload in die ClubCloud — das darf nicht "Runde abschliessen" heissen.
-            final_round_pending? sagt das nur, wo es belegbar ist (executor_params["GK"] gesetzt). %>
-        <%- letzte_runde = tournament_monitor.final_round_pending? %>
-        <div class="mt-4 border-t border-gray-300 dark:border-gray-600 pt-4">
-          <p class="text-sm text-gray-600 dark:text-gray-300 mb-2">
-            <%= t("tournament_monitors.round_status.advance_order_hint") %>
-          </p>
-          <%= button_to (letzte_runde ? t("tournament_monitors.round_status.advance_tournament")
-                                      : t("tournament_monitors.round_status.advance_round", round: status[:round])),
-                advance_round_tournament_monitor_path(tournament_monitor),
-                method: :post,
-                class: "btn #{letzte_runde ? "btn-warning" : "btn-primary"}",
-                data: { turbo_confirm: letzte_runde ? t("tournament_monitors.round_status.advance_tournament_confirm") : nil } %>
-          <p class="text-sm text-gray-600 dark:text-gray-300 mt-1">
-            <%= letzte_runde ? t("tournament_monitors.round_status.advance_tournament_hint")
-                             : t("tournament_monitors.round_status.advance_hint") %>
-          </p>
-        </div>
-      <%- end %>
+        "Runde abschliessen" schaltet weiter.
+
+        Seit 2026-09-23 steht derselbe Knopf zusaetzlich am Fuss von "Aktuelle Spiele"
+        (Betreiber-Wunsch); die gemeinsame Fassung liegt in _advance_round_button. %>
+    <%- if edit_games_modus %>
+      <%= render partial: "tournament_monitors/advance_round_button",
+            locals: { tournament_monitor: tournament_monitor } %>
     <%- end %>
   </div>
 </div>
