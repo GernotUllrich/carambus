@@ -35,6 +35,41 @@ class GameProtocolReflex < ApplicationReflex
     TableMonitorJob.perform_later(@table_monitor.id, "")
   end
 
+  # Plan 27-01: Zurueck ins laufende Spiel.
+  #
+  # Der Betreiber fand am Display: trifft eine Eingabe genau das Ballziel, endet das Spiel
+  # sofort und der Protokoll-Editor ist eine Sackgasse. Korrigieren geht, weiterspielen nicht —
+  # `confirm_result` ruft `evaluate_result`, und solange das Ergebnis das Spiel nicht beendet,
+  # bleibt der Monitor in set_over, wo die before_save-Invariante protocol_final sofort wieder
+  # herbeizwingt.
+  #
+  # ⚠️ `aasm.fire!(:undo)` und NICHT `@table_monitor.undo`: letzteres ist eine eigene Methode
+  # (`table_monitor.rb:1482`), die das gleichnamige AASM-Ereignis UEBERSCHATTET und die letzte
+  # EINGABE zuruecknimmt. Am Display belegt (2026-09-23): der Zustand blieb set_over, und
+  # playera.result fiel von 21 auf 20. `aasm.fire!` spricht die Zustandsmaschine direkt an und
+  # bleibt auch dann richtig, wenn jemand spaeter die Bang-Variante ebenfalls ueberschattet.
+  # Test T6b haelt die Falle fest.
+  #
+  # ⚠️ Kein Setzen von `panel_state`. Die Invariante (`table_monitor.rb:662-668`) setzt
+  # protocol_final auf pointer_mode, SOBALD set_over verlassen ist. Ein eigenes Setzen bliebe
+  # wirkungslos, solange der Zustand noch set_over ist — genau daran scheiterte der erste
+  # Entwurf dieses Plans.
+  #
+  # Die eingegebenen Punkte bleiben stehen; korrigiert wird danach mit den normalen
+  # Bedienelementen.
+  def back_to_game
+    morph :nothing
+    Rails.logger.info "[GameProtocolReflex#back_to_game] tm[#{@table_monitor.id}] " \
+                      "state=#{@table_monitor.state} -> playing"
+
+    @table_monitor.suppress_broadcast = true
+    @table_monitor.aasm.fire!(:undo)
+    @table_monitor.suppress_broadcast = false
+
+    send_modal_update("")
+    TableMonitorJob.perform_later(@table_monitor.id, "")
+  end
+
   # Switch to edit mode
   def switch_to_edit_mode
     morph :nothing

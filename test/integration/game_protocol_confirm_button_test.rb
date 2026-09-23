@@ -151,15 +151,21 @@ class GameProtocolConfirmButtonTest < ActionDispatch::IntegrationTest
     prepare_final(result_a: 21, result_b: 28, current_element: "protocol_final")
 
     doc = render_modal
-    zurueck = doc.at_css("[data-action='click->table-monitor#undo']")
-    assert zurueck, "Ohne diesen Knopf ist der Protokoll-Editor eine Sackgasse — der " \
-      "vorhandene undo-Weg liegt unter dem Backdrop und ist nicht klickbar"
+    zurueck = doc.at_css("[data-reflex='click->GameProtocolReflex#back_to_game']")
+    assert zurueck, "Ohne diesen Knopf ist der Protokoll-Editor eine Sackgasse"
 
-    assert_equal "table-monitor", zurueck["data-controller"],
-      "Gleiche Verdrahtung wie am Scoreboard (_scoreboard.html.erb:197) — kein eigener Reflex"
     assert_equal @tm.id.to_s, zurueck["data-id"],
-      "TableMonitorReflex#undo liest element.dataset[:id] (:370); ohne data-id findet er " \
-      "den Monitor nicht"
+      "Der Reflex laedt den Monitor ueber data-id"
+
+    # ⚠️ Spec-Korrektur 2026-09-23: NICHT auf table-monitor#undo verdrahten. Das ruft
+    # TableMonitor#undo (table_monitor.rb:1482) — eine eigene Methode, die das gleichnamige
+    # AASM-Ereignis UEBERSCHATTET und die letzte EINGABE zurueticknimmt statt des Zustands.
+    # Am Display belegt: state blieb set_over, playera.result fiel von 21 auf 20.
+    refute doc.at_css("[data-action='click->table-monitor#undo']"),
+      "table-monitor#undo ist das Eingabe-Undo, nicht der Rueckweg ins Spiel. Diese Zeile ist " \
+      "die einzige automatische Wache gegen den Fehler, der am 2026-09-23 eine Runde gekostet " \
+      "hat — ein Test der Methode selbst scheitert an der Fixture (TableMonitor#undo braucht " \
+      "current_inning und PaperTrail-Versionen)."
   end
 
   # ---------------------------------------------------------------
@@ -175,7 +181,7 @@ class GameProtocolConfirmButtonTest < ActionDispatch::IntegrationTest
     prepare_final(result_a: 21, result_b: 30, current_element: "protocol_final")
 
     doc = render_modal
-    assert doc.at_css("[data-action='click->table-monitor#undo']"),
+    assert doc.at_css("[data-reflex='click->GameProtocolReflex#back_to_game']"),
       "Bei 21:30 gegen Ballziel 30 ist das Spiel regulaer zu Ende — der Rueckweg muss " \
       "trotzdem da sein (Betreiber: \"Auch wenn das Spiel mit dem Ergebnis abgeschlossen waere\")"
   end
@@ -204,5 +210,63 @@ class GameProtocolConfirmButtonTest < ActionDispatch::IntegrationTest
       "Kein Sieger bei Gleichstand"
     refute_includes text, I18n.t("table_monitor.protocol.winner_label", name: "Spieler B"),
       "Kein Sieger bei Gleichstand"
+  end
+
+  # ---------------------------------------------------------------
+  # T6 (AC-2b): Der Zustand muss WIRKLICH wechseln.
+  #
+  # Diese Pruefung fehlte in der ersten Fassung von Plan 27-01, und genau deshalb war der
+  # erste Entwurf gruen und funktionierte trotzdem nicht: er pruefte nur Markup. Verdrahtet
+  # war er auf TableMonitor#undo — die ueberschattende Methode, die die letzte Eingabe
+  # zuruecknimmt. Der Zustand blieb set_over, die before_save-Invariante zwang
+  # protocol_final sofort wieder herbei, der Editor sprang zurueck.
+  # ---------------------------------------------------------------
+  test "T6: der Rueckweg bringt den Monitor nach playing und gibt das Panel frei" do
+    prepare_final(result_a: 21, result_b: 30, current_element: "protocol_final")
+    # prepare_final setzt nur panel_state — es war fuer Render-Tests gebaut, wo der
+    # AASM-Zustand keine Rolle spielt. T6 misst den Zustandswechsel, braucht ihn also echt.
+    @tm.update_columns(state: "set_over")
+    @tm.reload
+    assert_equal "set_over", @tm.state, "VORBEDINGUNG"
+    assert_equal "protocol_final", @tm.panel_state, "VORBEDINGUNG"
+
+    # Wie im Reflex: der Save loest sonst einen Broadcast aus, der im Test die
+    # Scoreboard-View rendert und dort scheitert.
+    @tm.suppress_broadcast = true
+    @tm.aasm.fire!(:undo)
+    @tm.suppress_broadcast = false
+
+    assert_equal "playing", @tm.reload.state,
+      "aasm.fire!(:undo) muss den Zustandsuebergang set_over -> playing ausloesen"
+    refute_equal "protocol_final", @tm.panel_state,
+      "Die Invariante (table_monitor.rb:662) gibt protocol_final frei, sobald set_over " \
+      "verlassen ist — der Reflex muss daran nicht drehen"
+
+    assert_equal 21, @tm.data.dig("playera", "result"),
+      "Der Rueckweg nimmt KEINE Eingabe zurueck — die Punkte bleiben stehen"
+    assert_equal 30, @tm.data.dig("playerb", "result"), "dito"
+  end
+
+  # ---------------------------------------------------------------
+  # T7 (AC-2c): Bei Satzspielen wird der Rueckweg nicht angeboten.
+  #
+  # result_recorder.rb:477-480 schreibt dort beim Satzende zusaetzlich
+  # perform_save_current_set nach data["sets"]. Ein Zurueck muesste den gespeicherten Satz
+  # mitnehmen — eigene Frage, bewusst ausserhalb dieser Phase.
+  # ---------------------------------------------------------------
+  test "T7: bei einem Satzspiel erscheint kein Rueckweg" do
+    prepare_final(result_a: 2, result_b: 1, current_element: "protocol_final")
+    # simple_set_game? (table_monitor.rb:1859) verlangt free_game_form "pool" (und eine
+    # Disziplin ungleich "14.1 endlos") oder "snooker".
+    @tm.update!(data: @tm.data.merge(
+      "free_game_form" => "pool",
+      "sets_to_win" => 3,
+      "sets" => [{"Ergebnis1" => 1, "Ergebnis2" => 0}]
+    ))
+    @tm.reload
+    assert @tm.simple_set_game?, "VORBEDINGUNG: der Monitor muss ein Satzspiel sein"
+
+    refute render_modal.at_css("[data-reflex='click->GameProtocolReflex#back_to_game']"),
+      "Bei Satzspielen ist ein Zurueck nicht folgenlos (data[\"sets\" ] wurde schon geschrieben)"
   end
 end
