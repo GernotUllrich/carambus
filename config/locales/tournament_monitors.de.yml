@@ -24,6 +24,8 @@ de:
       advance_round: "Runde %{round} abschliessen"
       advance_tournament: "Turnier abschliessen"
       advance_hint: "Bis dahin lassen sich Ergebnisse dieser Runde noch korrigieren."
+      correction_affects_later_round: "Hinweis: Die Korrektur kann die Rangfolge aendern - Runde %{round} ist bereits besetzt. Pruefe, ob die Folgerunde noch stimmt."
+      correction_detached: "nachtraegliche Korrektur"
       advance_order_hint: "Geaenderte Ergebnisse zuerst mit \"update\" speichern - der Rundenwechsel uebernimmt sie nicht."
       advance_tournament_hint: "Damit werden die Endergebnisse festgeschrieben und in die ClubCloud uebertragen."
       advance_tournament_confirm: "Turnier wirklich abschliessen? Die Endergebnisse werden festgeschrieben und in die ClubCloud uebertragen. Danach sind Korrekturen nur noch in der ClubCloud moeglich."

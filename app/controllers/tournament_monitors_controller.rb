@@ -61,14 +61,16 @@ class TournamentMonitorsController < ApplicationController
       next unless game.present?
 
       table_monitor = game.table_monitor
-      next unless table_monitor.present?
-      
-      # Validierung: Prüfe ob Ergebnisse im erlaubten Bereich liegen
-      # WICHTIG: Bei Vorgabe-Turnieren können beide Spieler unterschiedliche balls_goal haben!
-      # Ein Spieler kann sein Ziel erreichen, während der andere noch nicht fertig ist.
-      playera_balls_goal = table_monitor.data["playera"]["balls_goal"].to_i
-      playerb_balls_goal = table_monitor.data["playerb"]["balls_goal"].to_i
-      innings_goal = table_monitor.data["innings_goal"].to_i
+
+      # Plan 24-01 (2026-09-23): Bis hierher stand `next unless table_monitor.present?` — ein
+      # abgeloestes Spiel (Tisch schon neu besetzt) wurde stillschweigend uebersprungen. Genau
+      # das meldete der Betreiber als "Ich kann nichts aendern": zwei von vier Spielen kamen
+      # gar nicht erst im POST an. Die Ziele kommen jetzt aus dem Tisch, wo es ihn gibt, sonst
+      # aus Spiel und Turnier.
+      ziele = korrektur_ziele(game, table_monitor)
+      playera_balls_goal = ziele[:playera_balls_goal]
+      playerb_balls_goal = ziele[:playerb_balls_goal]
+      innings_goal = ziele[:innings_goal]
       
       resulta = params["resulta"][ix].to_i
       resultb = params["resultb"][ix].to_i
@@ -87,26 +89,35 @@ class TournamentMonitorsController < ApplicationController
       end
       
       # Validierung: Ergebnisse dürfen die jeweiligen balls_goal nicht überschreiten (falls gesetzt)
-      unless (playera_balls_goal == 0 || resulta <= playera_balls_goal)
+      unless (!playera_balls_goal.positive? || resulta <= playera_balls_goal)
         Rails.logger.warn "[TournamentMonitorsController#update_games] Game[#{game.id}] SKIPPED: resulta (#{resulta}) > playera_balls_goal (#{playera_balls_goal})"
         next
       end
-      unless (playerb_balls_goal == 0 || resultb <= playerb_balls_goal)
+      unless (!playerb_balls_goal.positive? || resultb <= playerb_balls_goal)
         Rails.logger.warn "[TournamentMonitorsController#update_games] Game[#{game.id}] SKIPPED: resultb (#{resultb}) > playerb_balls_goal (#{playerb_balls_goal})"
         next
       end
       
       # Validierung: Innings dürfen innings_goal nicht überschreiten (falls gesetzt)
-      unless (innings_goal == 0 || inningsa <= innings_goal)
+      unless (!innings_goal.positive? || inningsa <= innings_goal)
         Rails.logger.warn "[TournamentMonitorsController#update_games] Game[#{game.id}] SKIPPED: inningsa (#{inningsa}) > innings_goal (#{innings_goal})"
         next
       end
-      unless (innings_goal == 0 || inningsb <= innings_goal)
+      unless (!innings_goal.positive? || inningsb <= innings_goal)
         Rails.logger.warn "[TournamentMonitorsController#update_games] Game[#{game.id}] SKIPPED: inningsb (#{inningsb}) > innings_goal (#{innings_goal})"
         next
       end
       
       Rails.logger.info "[TournamentMonitorsController#update_games] Game[#{game.id}] validation PASSED, updating..."
+
+      # Plan 24-01: Ein abgeloestes Spiel hat keinen TableMonitor, auf dessen `data` der
+      # bisherige Weg schreibt. Es bekommt deshalb einen eigenen Zweig — kein Zwilling der
+      # Aktion, nur ein zweiter Fall in derselben Schleife (extend-before-build).
+      if table_monitor.blank?
+        korrigiere_abgeloestes_spiel!(game, resulta:, resultb:, inningsa:, inningsb:,
+          hsa: params["hsa"][ix].to_i, hsb: params["hsb"][ix].to_i)
+        next
+      end
 
       # Ensure table_monitor is in playing state for evaluate_result to work
       table_monitor.suppress_broadcast = true
@@ -153,6 +164,13 @@ class TournamentMonitorsController < ApplicationController
         end
       end
     end
+
+    # Plan 24-01: Die Rangliste rechnet idempotent aus ALLEN GameParticipations neu (in Phase 23
+    # belegt) — nach einer nachtraeglichen Korrektur muss sie angestossen werden, sonst zeigt
+    # der Turnier-Monitor weiter die alten Punkte.
+    @tournament_monitor.accumulate_results
+    warne_bei_folgewirkung
+
     redirect_back_or_to(tournament_monitor_path(@tournament_monitor))
   end
 
@@ -221,6 +239,125 @@ class TournamentMonitorsController < ApplicationController
   end
 
   # Sicherstellen dass nur Spielleiter (club_admin) Zugriff haben
+  # ── Plan 24-01: Korrektur abgeloester Spiele ───────────────────────────────
+
+  # Ziele fuer die Validierung. Am Tisch stehen sie in `table_monitor.data`; ein abgeloestes
+  # Spiel hat den nicht mehr, dort kommen sie aus dem Spiel bzw. dem Turnier.
+  #
+  # `balls_goal` je Spieler, weil Vorgabe-Turniere beiden unterschiedliche Ziele geben. Fuer
+  # ein abgeloestes Spiel steht es in der GameParticipation-Historie nicht verlaesslich, wohl
+  # aber im Schnappschuss — und sonst im Turnier.
+  def korrektur_ziele(game, table_monitor)
+    if table_monitor.present?
+      return {
+        playera_balls_goal: table_monitor.data["playera"]["balls_goal"].to_i,
+        playerb_balls_goal: table_monitor.data["playerb"]["balls_goal"].to_i,
+        innings_goal: table_monitor.data["innings_goal"].to_i
+      }
+    end
+
+    schnappschuss = game.data["tmp_results"]
+    turnier = @tournament_monitor.tournament
+    {
+      playera_balls_goal: (schnappschuss&.dig("playera", "balls_goal") || turnier.balls_goal).to_i,
+      playerb_balls_goal: (schnappschuss&.dig("playerb", "balls_goal") || turnier.balls_goal).to_i,
+      innings_goal: (@tournament_monitor.innings_goal || turnier.innings_goal).to_i
+    }
+  end
+
+  # Schreibt eine Korrektur an einem Spiel OHNE TableMonitor.
+  #
+  # ⚠️ REIHENFOLGE IST WESENTLICH. `update_game_participations_for_game` bevorzugt
+  # `game.data["tmp_results"]` vor den uebergebenen Werten (result_processor.rb:603). Am
+  # 2026-09-23 als Ursache belegt: getippt 29, gespeichert 30, weil der Schnappschuss gewann.
+  # Deshalb wird der Schnappschuss ZUERST auf den korrigierten Stand gebracht — danach sind
+  # beide Quellen einig, und es ist gleichgueltig, welche die Methode waehlt.
+  #
+  # Der Schnappschuss wird MITGESCHRIEBEN, nicht geloescht (Betreiber-Entscheidung 24-01):
+  # `game_setup.rb:312` spielt ihn beim Wieder-Platzieren auf den Tisch zurueck — geloescht
+  # staende dort nichts.
+  #
+  # ⚠️ NUR `deep_merge_data!` — `game.data[...] = ` ist bei Game ein STILLES NO-OP, weil der
+  # Getter (game.rb:95) bei jedem Zugriff neu aus dem Roh-Attribut dekodiert.
+  def korrigiere_abgeloestes_spiel!(game, resulta:, resultb:, inningsa:, inningsb:, hsa:, hsb:)
+    ziele = korrektur_ziele(game, nil)
+    korrigiert = {
+      "playera" => spielerdaten(resulta, inningsa, hsa, ziele[:playera_balls_goal]),
+      "playerb" => spielerdaten(resultb, inningsb, hsb, ziele[:playerb_balls_goal])
+    }
+
+    game.deep_merge_data!(
+      "tmp_results" => korrigiert,
+      "ba_results" => ba_results_fuer(game, resulta, resultb, inningsa, inningsb, hsa, hsb)
+    )
+    game.ended_at ||= Time.now
+    game.save!
+    game.reload
+
+    @tournament_monitor.update_game_participations_for_game(game, korrigiert)
+
+    Rails.logger.info "[update_games] Plan 24-01: abgeloestes Game[#{game.id}] korrigiert " \
+                      "auf #{resulta}:#{resultb} (#{inningsa}/#{inningsb} Aufnahmen)"
+
+    lade_korrektur_in_die_cc(game)
+  end
+
+  # Betreiber-Entscheidung 24-01: die ClubCloud bekommt den korrigierten Stand sofort —
+  # "sofortige CC-Sichtbarkeit ist das Ziel". `upload_game_to_cc` nimmt seit 24-01 auch ein
+  # Game (setting.rb:982), weil ein abgeloestes Spiel keinen TableMonitor mehr hat.
+  # Ein Fehler hier bricht die Korrektur NICHT ab — der lokale Stand fuehrt, und der
+  # CSV-Upload am Turnierende traegt den Gesamtstand ohnehin hinueber.
+  def lade_korrektur_in_die_cc(game)
+    turnier = @tournament_monitor.tournament
+    return unless turnier.tournament_cc.present? && turnier.auto_upload_to_cc?
+
+    ergebnis = Setting.upload_game_to_cc(nil, game: game)
+    if ergebnis[:success]
+      Rails.logger.info "[update_games] Plan 24-01: CC-Upload fuer abgeloestes Game[#{game.id}] " \
+                        "#{ergebnis[:dry_run] ? "(DRY RUN)" : ergebnis[:skipped] ? "uebersprungen" : "ok"}"
+    else
+      Rails.logger.warn "[update_games] Plan 24-01: CC-Upload fuer abgeloestes Game[#{game.id}] " \
+                        "fehlgeschlagen: #{ergebnis[:error]}"
+    end
+  end
+
+  def spielerdaten(result, innings, hs, balls_goal)
+    {
+      "result" => result, "innings" => innings, "hs" => hs,
+      "balls_goal" => balls_goal,
+      "gd" => innings.positive? ? format("%.2f", result.to_f / innings) : "0.00"
+    }
+  end
+
+  # Der Satz, den die ClubCloud liest (setting.rb:1047). Aufbau wie in
+  # ResultRecorder#update_ba_results_with_set_result!, hier fuer ein Ein-Satz-Spiel direkt
+  # aus den korrigierten Werten gebaut — `perform_ensure_ba_results` kehrt bei bereits
+  # vorhandenem `ba_results` frueh zurueck und wuerde eine Korrektur nicht nachziehen.
+  def ba_results_fuer(game, resulta, resultb, inningsa, inningsb, hsa, hsb)
+    {
+      "Gruppe" => game.group_no,
+      "Partie" => game.seqno,
+      "Spieler1" => game.game_participations.where(role: "playera").first&.player&.ba_id,
+      "Spieler2" => game.game_participations.where(role: "playerb").first&.player&.ba_id,
+      "Sets1" => (resulta > resultb) ? 1 : 0,
+      "Sets2" => (resultb > resulta) ? 1 : 0,
+      "Ergebnis1" => resulta, "Ergebnis2" => resultb,
+      "Aufnahmen1" => inningsa, "Aufnahmen2" => inningsb,
+      "Höchstserie1" => hsa, "Höchstserie2" => hsb,
+      "Tischnummer" => game.table_no
+    }
+  end
+
+  # Plan 24-01 (Betreiber-Entscheidung): warnen, nicht blockieren. Aendert eine Korrektur die
+  # Rangfolge, nachdem die Folgerunde daraus besetzt wurde, reicht das korrigierte Spiel nicht
+  # — das muss der Turnierleiter sehen, entscheiden aber soll er selbst.
+  def warne_bei_folgewirkung
+    return unless @tournament_monitor.current_round.to_i > 1
+
+    flash[:alert] = [flash[:alert], t("tournament_monitors.round_status.correction_affects_later_round",
+      round: @tournament_monitor.current_round)].compact.join(" ")
+  end
+
   def ensure_tournament_director
     unless current_user&.club_admin? || current_user&.system_admin?
       flash[:alert] = "Zugriff verweigert: Nur Spielleiter können auf den Tournament Monitor zugreifen."
