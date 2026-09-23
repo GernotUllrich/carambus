@@ -297,6 +297,83 @@ class TournamentMonitorsControllerTest < ActionDispatch::IntegrationTest
       "Und die Korrektur selbst muss natuerlich weiterhin ankommen"
   end
 
+  # ── Betreiber-Entscheidung 2026-09-23: abgeschlossene Runden sind zu ───────
+  #
+  # Gemeldet: "Jetzt kann ich sogar noch nach Rundenabschluss aendern. Ueberall bleibt die Zeile
+  # im Edit modus." Bis dahin blieb jedes beendete Spiel dauerhaft editierbar (aus 24-01:
+  # `!abgeloest || ended_at.present?`). Die Faehigkeit aus 24-01 bleibt fuer die LAUFENDE Runde.
+
+  test "Ein Spiel aus einer abgeschlossenen Runde zeigt keine Eingabefelder mehr" do
+    Carambus.config.carambus_api_url = "http://local.test"
+    mit_lokaler_meldung!
+    alt = beendetes_spiel!(id: 66_000_060, seqno: 1, a: 30, b: 29)
+    @tournament_monitor.update!(data: {"current_round" => 2}) # Runde 1 ist durch
+
+    get tournament_monitor_url(@tournament_monitor)
+
+    assert_response :success
+    refute_match(/value="#{alt.id}"/, response.body,
+      "Ohne game_id-Feld kommt die Zeile im POST nicht an — genau das ist hier gewollt")
+    refute_match(/name="resulta\[\]"/, response.body,
+      "Nach dem Rundenabschluss darf die Zeile nicht im Edit-Modus stehen")
+  end
+
+  test "Ein Spiel der laufenden Runde bleibt editierbar, auch abgeloest" do
+    Carambus.config.carambus_api_url = "http://local.test"
+    mit_lokaler_meldung!
+    aktuell = beendetes_spiel!(id: 66_000_061, seqno: 1, a: 30, b: 29)
+    @tournament_monitor.update!(data: {"current_round" => 1})
+
+    assert_nil aktuell.table_monitor, "VORBEDINGUNG: das Spiel ist abgeloest"
+
+    get tournament_monitor_url(@tournament_monitor)
+
+    assert_response :success
+    assert_match(/value="#{aktuell.id}"/, response.body,
+      "Die Faehigkeit aus 24-01 muss fuer die laufende Runde erhalten bleiben")
+  end
+
+  test "Ein POST auf eine abgeschlossene Runde aendert nichts" do
+    Carambus.config.carambus_api_url = "http://local.test"
+    alt = beendetes_spiel!(id: 66_000_070, seqno: 1, a: 30, b: 29)
+    @tournament_monitor.update!(data: {"current_round" => 2})
+
+    post update_games_tournament_monitor_url(@tournament_monitor), params: {
+      "game_id" => [alt.id.to_s],
+      "resulta" => ["30"], "resultb" => ["14"], # Aenderungsversuch 29 -> 14
+      "inningsa" => ["10"], "inningsb" => ["10"],
+      "hsa" => ["5"], "hsb" => ["5"]
+    }
+
+    assert_equal 29, alt.game_participations.where(role: "playerb").first.reload.result,
+      "Der Riegel muss auch einen POST abhalten, der die View umgeht"
+    assert_nil alt.reload.data["manual_correction_at"],
+      "Und er darf schon gar keine Korrektur-Marke hinterlassen"
+  end
+
+  # Ohne Rundenfuehrung (round_no nil) gibt es keinen Rundenabschluss. `nil.to_i` ist 0 und waere
+  # "kleiner als Runde 1" — ein blinder Vergleich haette solche Turniere komplett gesperrt.
+  test "Ohne Rundenfuehrung sperrt der Riegel nicht" do
+    Carambus.config.carambus_api_url = "http://local.test"
+    ohne_runde = @tournament.games.create!(id: 66_000_080, gname: "group1:1", group_no: 1,
+      seqno: 1, round_no: nil, data: {}, ended_at: 1.hour.ago)
+    GameParticipation.create!(game: ohne_runde, player: players(:nbv_ullrich), role: "playera",
+      result: 30, innings: 10, hs: 5)
+    GameParticipation.create!(game: ohne_runde, player: players(:nbv_andresen), role: "playerb",
+      result: 29, innings: 10, hs: 5)
+    @tournament_monitor.update!(data: {"current_round" => 3})
+
+    post update_games_tournament_monitor_url(@tournament_monitor), params: {
+      "game_id" => [ohne_runde.id.to_s],
+      "resulta" => ["30"], "resultb" => ["14"],
+      "inningsa" => ["10"], "inningsb" => ["10"],
+      "hsa" => ["5"], "hsb" => ["5"]
+    }
+
+    assert_equal 14, ohne_runde.game_participations.where(role: "playerb").first.reload.result,
+      "Ohne round_no gibt es keinen Rundenabschluss — hier darf der Riegel nicht greifen"
+  end
+
   # ── Plan 26-01: Die Korrektur am Tisch kommt an ────────────────────────────
   #
   # Vom Betreiber beim UAT zu Phase 25 gemeldet (2026-09-23, Turnier 18935, group2:2-3):

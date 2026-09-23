@@ -60,6 +60,16 @@ class TournamentMonitorsController < ApplicationController
       game = @tournament_monitor.tournament.games.where("id >= #{Game::MIN_ID}").includes(:table_monitor).find(game_id)
       next unless game.present?
 
+      # Betreiber-Entscheidung 2026-09-23: Eine abgeschlossene Runde ist zu. Die View zeigt dort
+      # keine Eingabefelder mehr; dieser Guard haelt zusaetzlich einen POST ab, der die View
+      # umgeht — sonst waere der Riegel nur die halbe Wahrheit.
+      if runde_abgeschlossen?(game)
+        Rails.logger.warn "[TournamentMonitorsController#update_games] Game[#{game.id}] SKIPPED: " \
+                          "Runde #{game.round_no} ist abgeschlossen (laufende Runde: " \
+                          "#{@tournament_monitor.current_round})"
+        next
+      end
+
       table_monitor = game.table_monitor
 
       # Plan 24-01 (2026-09-23): Bis hierher stand `next unless table_monitor.present?` — ein
@@ -331,6 +341,22 @@ class TournamentMonitorsController < ApplicationController
       "ba_results" => ba_results_fuer(game, resulta, resultb, inningsa, inningsb, hsa, hsb)
     }.merge(marke))
     korrigiert
+  end
+
+  # Gehoert dieses Spiel zu einer Runde, die schon weitergeschaltet wurde?
+  #
+  # Betreiber-Entscheidung 2026-09-23: Nach dem Rundenabschluss ist Schluss — bis dahin bleibt
+  # alles korrigierbar, auch ein Spiel, dessen Tisch schon weitergegeben wurde (das ist die
+  # Faehigkeit aus 24-01, und die bleibt fuer die LAUFENDE Runde erhalten).
+  #
+  # ⚠️ `round_no` darf nicht blind mit `to_i` verglichen werden: ein nicht rundengefuehrtes
+  # Turnier hat `round_no == nil`, und `nil.to_i` ist 0 — das waere "kleiner als Runde 1" und
+  # wuerde solche Turniere vollstaendig sperren. Ohne Rundenfuehrung gibt es keinen
+  # Rundenabschluss, also ist hier nichts zu.
+  def runde_abgeschlossen?(game)
+    return false if game.round_no.blank?
+
+    game.round_no.to_i < @tournament_monitor.current_round.to_i
   end
 
   # Hat der Turnierleiter an DIESEM Spiel wirklich etwas veraendert? Verglichen wird gegen die

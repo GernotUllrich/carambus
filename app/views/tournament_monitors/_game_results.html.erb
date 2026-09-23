@@ -52,7 +52,17 @@
               Spiel ohne Tisch hat nichts zu korrigieren und zeigt weiterhin keine (leeren)
               Felder — das war der irritierende Teil des Betreiber-Screenshots. %>
           <% abgeloest = game.table_monitor.blank? %>
-          <% editable_game = !abgeloest || game.ended_at.present? %>
+          <%# Betreiber-Entscheidung 2026-09-23: Nach dem Rundenabschluss bleibt die Zeile nicht
+              im Edit-Modus. Bis dahin ist alles korrigierbar — auch ein Spiel, dessen Tisch
+              schon weitergegeben wurde (Faehigkeit aus 24-01, gilt fuer die LAUFENDE Runde).
+              Danach zeigt die Zeile nur noch Werte; `update_games` weist sie zusaetzlich ab.
+
+              ⚠️ `round_no` ist bei nicht rundengefuehrten Turnieren nil — `nil.to_i` waere 0 und
+              damit "kleiner als Runde 1", was solche Turniere komplett sperren wuerde. Ohne
+              Rundenfuehrung gibt es keinen Rundenabschluss. %>
+          <% runde_zu = game.round_no.present? &&
+               game.round_no.to_i < tournament_monitor.current_round.to_i %>
+          <% editable_game = !runde_zu && (!abgeloest || game.ended_at.present?) %>
           <% gpa = game.game_participations.where("role = 'playera' or role = 'Heim'").first; playera = gpa.andand.player %>
           <% gpb = game.game_participations.where("role = 'playerb' or role = 'Gast'").first; playerb = gpb.andand.player %>
           <%- if playera.present? && playerb.present? %>
