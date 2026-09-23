@@ -234,6 +234,28 @@
         <%- end %>
         <!-- Final Mode Actions - Confirm Result -->
         <div class="flex gap-3">
+          <%# Plan 27-01: Der Rueckweg ins Spiel. Der Mechanismus war VOLLSTAENDIG vorhanden —
+              AASM-Event `undo` (table_monitor.rb:460), Reflex (table_monitor_reflex.rb:367),
+              Stimulus-Aktion (table_monitor_controller.js:62) und sogar das Bedienelement
+              (_scoreboard.html.erb:197, der Text "Partie beendet-OK?"). Es lag nur unter dem
+              Backdrop dieses Modals (Z. 33, `absolute inset-0 bg-black bg-opacity-70`) und war
+              damit sichtbar, aber nicht klickbar. Hier bekommt es eine erreichbare Flaeche —
+              gleiche Verdrahtung, kein neuer Mechanismus (extend-before-build).
+
+              ⚠️ UNBEDINGT rendern, nicht an eine Bedingung ueber das Ergebnis knuepfen.
+              Betreiber-Festlegung 2026-09-23: "Auch wenn das Spiel mit dem Ergebnis
+              abgeschlossen waere." Der gemeldete Fall war genau einer, in dem das Ergebnis
+              (30 = Ballziel) das Spiel regulaer beendet und trotzdem falsch war.
+              Test T5 haelt das fest.
+
+              Links neben dem Druck-Knopf, NICHT neben "Ergebnis bestaetigen" — "weiter" und
+              "zurueck" duerfen am Touch-Display nicht nebeneinander liegen. %>
+          <button class="btn btn-secondary px-6 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-semibold transition"
+                  data-controller="table-monitor"
+                  data-action="click->table-monitor#undo"
+                  data-id="<%= table_monitor.id %>">
+            ↩ <%= t("table_monitor.protocol.back_to_game") %>
+          </button>
           <button class="btn btn-secondary px-6 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-semibold transition"
                   onclick="window.open('<%= print_protocol_table_monitor_path(table_monitor, format: :pdf) %>', '_blank')">
             📄 <%= t("table_monitor.protocol.print") %>
