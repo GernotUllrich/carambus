@@ -77,16 +77,21 @@ button[disabled] .when-enabled { display: none; }
   }
 
   .btn-danger {
-    @apply bg-red-600 text-white focus-visible:outline-red-500;
-    @apply hover:bg-red-500 hover:text-white;
+    @apply bg-danger-600 text-white focus-visible:outline-danger-500;
+    @apply hover:bg-danger-500 hover:text-white;
     @apply focus:text-white focus-visible:text-white;
   }
 
   .btn-danger.btn-outline {
-    @apply bg-transparent border border-red-500 text-red-500 shadow-none;
-    @apply hover:bg-red-500 hover:text-white;
+    @apply bg-transparent border border-danger-500 text-danger-500 shadow-none;
+    @apply hover:bg-danger-500 hover:text-white;
   }
 
+  /* 2026-09-23: .btn-danger laeuft ueber die danger-Ramp (= colors.red, farbidentisch).
+     .btn-success bleibt bewusst auf green: der success-Token ist colors.emerald, eine
+     Umstellung verschiebt den Farbton app-weit sichtbar (green-600 -> emerald-600) und braucht
+     eine eigene Betreiber-Entscheidung. Bis dahin ist der Erfolgs-Gruenton gemischt —
+     das Protokoll-Modal nutzt bereits success-/emerald-Utilities. */
   .btn-success {
     @apply bg-green-600 text-white focus-visible:outline-green-500;
     @apply hover:bg-green-500 hover:text-white;
