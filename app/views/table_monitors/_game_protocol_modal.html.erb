@@ -39,7 +39,7 @@
     
     <%- if is_final_mode %>
       <!-- Final Result Header - prominent display -->
-      <div class="bg-gradient-to-r from-primary-600 via-gray-800 to-green-600 text-white px-6 py-4 rounded-t-lg">
+      <div class="bg-gradient-to-r from-primary-600 via-gray-800 to-success-600 text-white px-6 py-4 rounded-t-lg">
         <div class="text-center mb-2">
           <h2 class="text-2xl font-bold">🏆 <%= t("table_monitor.protocol.final_title") %></h2>
           <div class="text-sm opacity-80 mt-1">
@@ -136,15 +136,15 @@
             <tr>
               <th class="py-2 px-2 text-center text-xs font-semibold text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-700">#</th>
               <th colspan="2" class="py-2 px-4 text-center text-sm font-semibold text-primary-700 dark:text-primary-300 bg-primary-100 dark:bg-primary-900 dark:bg-opacity-30"><%= history[:player_a][:shortname] || history[:player_a][:name] %></th>
-              <th colspan="2" class="py-2 px-4 text-center text-sm font-semibold text-green-700 dark:text-green-300 bg-green-100 dark:bg-green-900 dark:bg-opacity-30"><%= history[:player_b][:shortname] || history[:player_b][:name] %></th>
+              <th colspan="2" class="py-2 px-4 text-center text-sm font-semibold text-success-700 dark:text-success-300 bg-success-100 dark:bg-success-900 dark:bg-opacity-30"><%= history[:player_b][:shortname] || history[:player_b][:name] %></th>
               <th class="py-2 px-2 text-center text-xs font-semibold text-gray-700 dark:text-gray-300"></th>
             </tr>
             <tr>
               <th class="py-2 px-2 text-center text-xs text-gray-600 dark:text-gray-400 bg-gray-200 dark:bg-gray-700"><%= t("table_monitor.inning_abbr") %>.</th>
               <th class="py-2 px-4 text-center text-xs text-gray-600 dark:text-gray-400 bg-primary-50 dark:bg-primary-900 dark:bg-opacity-20"><%= t("table_monitor.protocol.points") %></th>
               <th class="py-2 px-4 text-center text-xs text-gray-600 dark:text-gray-400 bg-primary-50 dark:bg-primary-900 dark:bg-opacity-20">Total</th>
-              <th class="py-2 px-4 text-center text-xs text-gray-600 dark:text-gray-400 bg-green-50 dark:bg-green-900 dark:bg-opacity-20"><%= t("table_monitor.protocol.points") %></th>
-              <th class="py-2 px-4 text-center text-xs text-gray-600 dark:text-gray-400 bg-green-50 dark:bg-green-900 dark:bg-opacity-20">Total</th>
+              <th class="py-2 px-4 text-center text-xs text-gray-600 dark:text-gray-400 bg-success-50 dark:bg-success-900 dark:bg-opacity-20"><%= t("table_monitor.protocol.points") %></th>
+              <th class="py-2 px-4 text-center text-xs text-gray-600 dark:text-gray-400 bg-success-50 dark:bg-success-900 dark:bg-opacity-20">Total</th>
               <th class="py-2 px-2 text-center text-xs text-gray-600 dark:text-gray-400"></th>
             </tr>
           </thead>
@@ -216,9 +216,9 @@
                 </label>
                 <label class="flex items-start gap-2 cursor-pointer">
                   <input type="radio" name="tiebreak_winner" value="playerb" required
-                         class="w-5 h-5 mt-0.5 text-green-600 focus:ring-green-500">
+                         class="w-5 h-5 mt-0.5 text-success-600 focus:ring-success-500">
                   <span class="flex flex-col">
-                    <span class="text-base font-semibold text-green-900 dark:text-green-200">
+                    <span class="text-base font-semibold text-success-900 dark:text-success-200">
                       <%= t("table_monitor.tiebreak.winner_label", role: history[:player_b][:shortname] || history[:player_b][:name]) %>
                     </span>
                     <%- if (ext_b = table_monitor.tiebreak_extension_goal("playerb")) %>
@@ -249,11 +249,11 @@
                 submit, so an empty pick is blocked client-side. %>
             <button type="submit"
                     form="tiebreak-form-<%= table_monitor.id %>"
-                    class="btn btn-success px-8 py-3 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg font-bold text-lg transition shadow-lg">
+                    class="btn btn-success px-8 py-3 bg-success-600 hover:bg-success-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg font-bold text-lg transition shadow-lg">
               ✓ <%= t("table_monitor.tiebreak.submit_label") %>
             </button>
           <%- else %>
-            <button class="btn btn-success px-8 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-bold text-lg transition shadow-lg"
+            <button class="btn btn-success px-8 py-3 bg-success-600 hover:bg-success-700 text-white rounded-lg font-bold text-lg transition shadow-lg"
                     data-reflex="click->GameProtocolReflex#confirm_result"
                     data-id="<%= table_monitor.id %>">
               ✓ <%= t("table_monitor.protocol.confirm_result") %>
