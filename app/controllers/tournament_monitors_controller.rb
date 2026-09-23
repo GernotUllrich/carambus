@@ -311,9 +311,17 @@ class TournamentMonitorsController < ApplicationController
       "playerb" => spielerdaten(resultb, inningsb, hsb, ziele[:playerb_balls_goal])
     }
 
+    # Betreiber-Befund 2026-09-23: Der gelbe Hinweis "nachtraegliche Korrektur" in der
+    # Ergebnistabelle hing am Tischbezug (`table_monitor.blank?`) und stand damit nach jedem
+    # Rundenabschluss bei JEDEM Spiel — denn dort gibt der Tisch sein Spiel ab
+    # (table_populator.rb:950). Er behauptete ein Ereignis und zeigte einen Zustand.
+    # Der Hinweis haengt jetzt an dieser Marke, und die wird nur hier gesetzt: an der einen
+    # Stelle, durch die seit 26-01 BEIDE Korrekturwege laufen (mit und ohne Tisch).
+    # Gespeichert wird beim Aufrufer — `deep_merge_data!` setzt nur das Attribut (game.rb:272).
     game.deep_merge_data!(
       "tmp_results" => korrigiert,
-      "ba_results" => ba_results_fuer(game, resulta, resultb, inningsa, inningsb, hsa, hsb)
+      "ba_results" => ba_results_fuer(game, resulta, resultb, inningsa, inningsb, hsa, hsb),
+      "manual_correction_at" => Time.current.iso8601
     )
     korrigiert
   end
