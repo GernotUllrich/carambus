@@ -191,6 +191,105 @@ class TournamentMonitorsControllerTest < ActionDispatch::IntegrationTest
       "Der Turnierleiter soll sehen, dass er in eine abgeschlossene Runde greift")
   end
 
+  # ── Plan 26-01: Die Korrektur am Tisch kommt an ────────────────────────────
+  #
+  # Vom Betreiber beim UAT zu Phase 25 gemeldet (2026-09-23, Turnier 18935, group2:2-3):
+  # 29:30 ueber den update-Knopf eingetragen. Scoreboard, obere Tabelle und ClubCloud zeigten
+  # 29:30 — die Partieergebnis-Tabelle und die Rangliste blieben bei 30:30.
+  #
+  # Ursache: `tournament_monitors_controller.rb:116` verzweigt mit `if table_monitor.blank?`.
+  # Der in 24-01 gebaute Pfad, der den Schnappschuss ZUERST korrigiert, greift also nur bei
+  # einem Spiel OHNE TableMonitor. Steht das Spiel noch auf seinem Tisch — seit Plan 23-01 der
+  # Normalfall fuer das LETZTE Spiel einer Runde, weil die Rundenkaskade nicht mehr am Tisch
+  # haengt —, laeuft der alte Zweig, und `result_processor.rb:603` zieht den alten
+  # Schnappschuss vor.
+  #
+  # Die Luecke entsteht erst aus Plan 23-01 + 24-01 zusammen, keiner von beiden allein.
+  #
+  # Gemessener Ausgangszustand (Game 50016208 / TableMonitor 50000008), gesichert in
+  # .paul/befunde/2026-09-23-korrektur-auf-dem-tisch.json:
+  #   TableMonitor.data.playera.result = 29   (korrigiert)
+  #   GameParticipation playera.result = 30   (alt), points 1 statt 0
+  #   game.data.tmp_results.playera.result = 30 (alt)
+
+  # Wie abgeloestes_spiel_mit_schnappschuss!, aber MIT Tisch — das ist der ganze Unterschied.
+  def spiel_am_tisch_mit_schnappschuss!(id:, a:, b:)
+    game = @tournament.games.create!(id: id, gname: "group1:1", round_no: 1, group_no: 1,
+      seqno: 1, data: {}, ended_at: 1.hour.ago)
+    GameParticipation.create!(game: game, player: players(:nbv_ullrich), role: "playera", result: a)
+    GameParticipation.create!(game: game, player: players(:nbv_andresen), role: "playerb", result: b)
+    # ⚠️ Game#data ist ueberschrieben (game.rb:95) — `game.data[...] = ` waere ein stilles No-op.
+    game.deep_merge_data!("tmp_results" => {
+      "playera" => {"result" => a, "innings" => 10, "hs" => 5, "balls_goal" => 30},
+      "playerb" => {"result" => b, "innings" => 10, "hs" => 5, "balls_goal" => 30}
+    })
+    game.save!
+
+    tm = table_monitors(:one)
+    tm.update!(data: {
+      "free_game_form" => "karambol",
+      "playera" => {"discipline" => "Dreiband", "result" => a, "innings" => 10,
+                    "balls_goal" => 30, "hs" => 5, "innings_redo_list" => [0]},
+      "playerb" => {"discipline" => "Dreiband", "result" => b, "innings" => 10,
+                    "balls_goal" => 30, "hs" => 5, "innings_redo_list" => [0]},
+      "innings_goal" => 25,
+      "allow_follow_up" => false
+    })
+    tm.update_columns(game_id: game.id, state: "final_match_score",
+      panel_state: "protocol_final", current_element: "protocol_final")
+    [game.reload, tm.reload]
+  end
+
+  test "26-01: Korrektur an einem Spiel AM TISCH kommt in den Beteiligungen an" do
+    Carambus.config.carambus_api_url = "http://local.test"
+    @tournament_monitor.update!(data: {"current_round" => 1})
+    game, tm = spiel_am_tisch_mit_schnappschuss!(id: 66_000_100, a: 30, b: 30)
+
+    assert tm.present?, "VORBEDINGUNG: das Spiel steht noch auf seinem Tisch"
+    assert_equal tm.id, game.table_monitor&.id, "VORBEDINGUNG: der Tisch haengt am Spiel"
+    assert game.data["tmp_results"].present?, "VORBEDINGUNG: der alte Schnappschuss steht"
+
+    post update_games_tournament_monitor_url(@tournament_monitor), params: {
+      "game_id" => [game.id.to_s],
+      "resulta" => ["29"], "resultb" => ["30"],
+      "inningsa" => ["10"], "inningsb" => ["10"],
+      "hsa" => ["5"], "hsb" => ["5"]
+    }
+
+    gpa = game.game_participations.where(role: "playera").first.reload
+    gpb = game.game_participations.where(role: "playerb").first.reload
+
+    assert_equal 29, gpa.result,
+      "Die Korrektur muss in der GameParticipation ankommen — bis 26-01 gewann hier der alte " \
+      "Schnappschuss (result_processor.rb:603), weil der 24-01-Pfad nur bei table_monitor.blank? greift"
+    assert_equal 30, gpb.result, "Der unveraenderte Wert bleibt stehen"
+
+    # Die Signatur des Fehlers: 30 gegen 30 rechnet die Punkteformel (result_processor.rb:615-624)
+    # als Unentschieden. Bei 29:30 muss playerb 2 Punkte bekommen, playera 0.
+    assert_equal 0, gpa.points, "Bei 29:30 hat playera verloren — 1 Punkt waere das alte 30:30"
+    assert_equal 2, gpb.points, "Bei 29:30 hat playerb gewonnen"
+  end
+
+  test "26-01: der Schnappschuss im Spiel wird mitkorrigiert" do
+    Carambus.config.carambus_api_url = "http://local.test"
+    @tournament_monitor.update!(data: {"current_round" => 1})
+    game, = spiel_am_tisch_mit_schnappschuss!(id: 66_000_101, a: 30, b: 30)
+
+    post update_games_tournament_monitor_url(@tournament_monitor), params: {
+      "game_id" => [game.id.to_s],
+      "resulta" => ["29"], "resultb" => ["30"],
+      "inningsa" => ["10"], "inningsb" => ["10"],
+      "hsa" => ["5"], "hsb" => ["5"]
+    }
+
+    game.reload
+    assert_equal 29, game.data.dig("tmp_results", "playera", "result"),
+      "Der Schnappschuss muss den korrigierten Stand tragen — sonst dreht er die Korrektur " \
+      "beim naechsten Schreiber zurueck (game_setup.rb:312 spielt ihn auf den Tisch zurueck)"
+    assert_equal 29, game.data.dig("ba_results", "Ergebnis1"),
+      "ba_results traegt den korrigierten Stand — sonst gehen ClubCloud und lokale DB auseinander"
+  end
+
   # Nachbesserung 2026-09-23, vom Betreiber gemeldet: "Runde abschliessen" sass in der
   # Statuszeile ganz oben (_round_status), die Ergebnisfelder 50 Zeilen weiter unten in
   # _game_results. `button_to` erzeugt ein EIGENES <form> — wer oben klickte, verwarf still
