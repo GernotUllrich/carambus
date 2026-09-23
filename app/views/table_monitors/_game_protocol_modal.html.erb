@@ -234,6 +234,34 @@
         <%- end %>
         <!-- Final Mode Actions - Confirm Result -->
         <div class="flex gap-3">
+          <%# Plan 27-01: Der Rueckweg ins Spiel.
+
+              ⚠️ NICHT auf `table-monitor#undo` verdrahten. Jener Reflex ruft
+              `TableMonitor#undo` (table_monitor.rb:1482) — eine eigene Methode, die das
+              gleichnamige AASM-Ereignis UEBERSCHATTET und die letzte EINGABE zuruecknimmt.
+              Am Display belegt (2026-09-23): der Zustand blieb set_over, playera.result fiel
+              von 21 auf 20, und die before_save-Invariante zwang den Editor sofort zurueck.
+              `GameProtocolReflex#back_to_game` feuert stattdessen `aasm.fire!(:undo)`.
+
+              Nur fuer inning-basierte Spiele: bei Satzspielen schreibt
+              result_recorder.rb:477-480 beim Satzende zusaetzlich perform_save_current_set
+              nach data["sets"] — ein Zurueck waere dort nicht folgenlos (eigene Frage).
+
+              ⚠️ UNBEDINGT rendern, nicht an eine Bedingung ueber das Ergebnis knuepfen.
+              Betreiber-Festlegung 2026-09-23: "Auch wenn das Spiel mit dem Ergebnis
+              abgeschlossen waere." Der gemeldete Fall war genau einer, in dem das Ergebnis
+              (30 = Ballziel) das Spiel regulaer beendet und trotzdem falsch war.
+              Test T5 haelt das fest.
+
+              Links neben dem Druck-Knopf, NICHT neben "Ergebnis bestaetigen" — "weiter" und
+              "zurueck" duerfen am Touch-Display nicht nebeneinander liegen. %>
+          <%- unless is_simple_set_game %>
+            <button class="btn btn-secondary px-6 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-semibold transition"
+                    data-reflex="click->GameProtocolReflex#back_to_game"
+                    data-id="<%= table_monitor.id %>">
+              ↩ <%= t("table_monitor.protocol.back_to_game") %>
+            </button>
+          <%- end %>
           <button class="btn btn-secondary px-6 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-semibold transition"
                   onclick="window.open('<%= print_protocol_table_monitor_path(table_monitor, format: :pdf) %>', '_blank')">
             📄 <%= t("table_monitor.protocol.print") %>

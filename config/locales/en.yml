@@ -870,6 +870,7 @@ en:
       confirm_result: Confirm result
       winner_label: "Winner: %{name}"
       draw: "Draw"
+      back_to_game: "Back to game"
       print: Print protocol
       print_pdf: Protocol PDF
       close: Close

@@ -35,6 +35,64 @@ class GameProtocolReflex < ApplicationReflex
     TableMonitorJob.perform_later(@table_monitor.id, "")
   end
 
+  # Plan 27-01: Zurueck ins laufende Spiel.
+  #
+  # Der Betreiber fand am Display: trifft eine Eingabe genau das Ballziel, endet das Spiel
+  # sofort und der Protokoll-Editor ist eine Sackgasse. Korrigieren geht, weiterspielen nicht —
+  # `confirm_result` ruft `evaluate_result`, und solange das Ergebnis das Spiel nicht beendet,
+  # bleibt der Monitor in set_over, wo die before_save-Invariante protocol_final sofort wieder
+  # herbeizwingt.
+  #
+  # ⚠️ `aasm.fire!(:undo)` und NICHT `@table_monitor.undo`: letzteres ist eine eigene Methode
+  # (`table_monitor.rb:1482`), die das gleichnamige AASM-Ereignis UEBERSCHATTET und die letzte
+  # EINGABE zuruecknimmt. Am Display belegt (2026-09-23): der Zustand blieb set_over, und
+  # playera.result fiel von 21 auf 20. `aasm.fire!` spricht die Zustandsmaschine direkt an und
+  # bleibt auch dann richtig, wenn jemand spaeter die Bang-Variante ebenfalls ueberschattet.
+  # Test T6b haelt die Falle fest.
+  #
+  # ⚠️ Kein Setzen von `panel_state`. Die Invariante (`table_monitor.rb:662-668`) setzt
+  # protocol_final auf pointer_mode, SOBALD set_over verlassen ist. Ein eigenes Setzen bliebe
+  # wirkungslos, solange der Zustand noch set_over ist — genau daran scheiterte der erste
+  # Entwurf dieses Plans.
+  #
+  # Die eingegebenen Punkte bleiben stehen; korrigiert wird danach mit den normalen
+  # Bedienelementen.
+  def back_to_game
+    morph :nothing
+    Rails.logger.info "[GameProtocolReflex#back_to_game] tm[#{@table_monitor.id}] " \
+                      "state=#{@table_monitor.state} -> playing"
+
+    @table_monitor.suppress_broadcast = true
+    # 1. Zustand: set_over -> playing (siehe Warnung oben zur Ueberschattung)
+    @table_monitor.aasm.fire!(:undo)
+    # 2. Die letzte Eingabe zurueck. Ohne diesen Schritt landet man im NACHSTOSS des Gegners:
+    #    beim Karambol wechselt der aktive Spieler, sobald jemand das Ballziel erreicht
+    #    (`table_monitor.rb:1391`, allow_follow_up) — und genau das hat die Fehleingabe
+    #    ausgeloest, BEVOR der Editor aufging. Der Zustandswechsel allein stellt diesen Moment
+    #    getreu wieder her; nur ist der Moment selbst falsch, und der Spieler, der sich vertippt
+    #    hat, waere nicht mehr am Zug (Betreiber am Display, 2026-09-23).
+    #    Hier ist `@table_monitor.undo` RICHTIG — es ist die Eingabe-Ruecknahme, dieselbe, die
+    #    der Knopf am Scoreboard ausloest.
+    #
+    #    ⚠️ Abgesichert: `TableMonitor#undo` schluckt Fehler NUR in production
+    #    (`table_monitor.rb:1549`: `raise StandardError unless Rails.env == "production"`).
+    #    Auf einem Entwicklungsserver wirft es. Scheitert es, soll der Betreiber trotzdem im
+    #    Spiel stehen statt wieder im Editor festzusitzen — der Zustandswechsel oben ist dann
+    #    schon persistiert, und die Eingabe laesst sich am Scoreboard von Hand zuruecknehmen.
+    begin
+      @table_monitor.undo
+      @table_monitor.save
+    rescue => e
+      Rails.logger.error "[GameProtocolReflex#back_to_game] tm[#{@table_monitor.id}] " \
+                         "Eingabe-Ruecknahme fehlgeschlagen: #{e.message} — der Zustandswechsel " \
+                         "steht, die Eingabe bleibt und kann am Scoreboard zurueckgenommen werden"
+    end
+    @table_monitor.suppress_broadcast = false
+
+    send_modal_update("")
+    TableMonitorJob.perform_later(@table_monitor.id, "")
+  end
+
   # Switch to edit mode
   def switch_to_edit_mode
     morph :nothing

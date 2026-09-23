@@ -889,6 +889,7 @@ de:
       confirm_result: Ergebnis bestätigen
       winner_label: "Sieger: %{name}"
       draw: "Unentschieden"
+      back_to_game: "Zurück ins Spiel"
       print: Protokoll drucken
       print_pdf: Protokoll PDF
       close: Schließen
