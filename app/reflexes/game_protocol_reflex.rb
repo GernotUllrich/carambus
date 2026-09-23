@@ -78,7 +78,7 @@ class GameProtocolReflex < ApplicationReflex
     @table_monitor.suppress_broadcast = true
     @table_monitor.increment_inning_points(inning_index, player)
     @table_monitor.suppress_broadcast = false
-    send_table_update(render_protocol_table_body)
+    send_modal_morph(render_protocol_modal)
   end
 
   # Decrement points for a specific inning and player
@@ -92,7 +92,7 @@ class GameProtocolReflex < ApplicationReflex
     @table_monitor.suppress_broadcast = true
     @table_monitor.decrement_inning_points(inning_index, player)
     @table_monitor.suppress_broadcast = false
-    send_table_update(render_protocol_table_body)
+    send_modal_morph(render_protocol_modal)
   end
 
   # Delete an inning (only if both players have 0 points)
@@ -105,7 +105,7 @@ class GameProtocolReflex < ApplicationReflex
     @table_monitor.suppress_broadcast = true
     result = @table_monitor.delete_inning(inning_index)
     @table_monitor.suppress_broadcast = false
-    send_table_update(render_protocol_table_body) if result[:success]
+    send_modal_morph(render_protocol_modal) if result[:success]
   end
 
   # Insert an empty inning before the specified index
@@ -118,7 +118,7 @@ class GameProtocolReflex < ApplicationReflex
     @table_monitor.suppress_broadcast = true
     @table_monitor.insert_inning(before_index)
     @table_monitor.suppress_broadcast = false
-    send_table_update(render_protocol_table_body)
+    send_modal_morph(render_protocol_modal)
   end
 
   # Confirm the final result and close the protocol modal
@@ -352,7 +352,7 @@ class GameProtocolReflex < ApplicationReflex
     Rails.logger.debug { "💾 Saved and restored panel state to: #{previous_state}" }
 
     # Refresh protocol table body only
-    send_table_update(render_protocol_table_body)
+    send_modal_morph(render_protocol_modal)
     TableMonitorJob.perform_later(@table_monitor.id, "")
   end
 
@@ -381,35 +381,33 @@ class GameProtocolReflex < ApplicationReflex
     )
   end
 
-  def render_protocol_table_body
-    return "" unless @table_monitor.protocol_modal_should_be_open?
+  # Plan 25-02 (2026-09-23): Eine Aenderung im Protokoll muss auch KOPF und KNOPF erreichen,
+  # nicht nur die Tabelle. Bis hierher riefen increment/decrement/delete/insert_inning
+  # `send_table_update`, das ausschliesslich `#protocol-tbody-<id>` ersetzt — Kopf (Z. 42) und
+  # Fuss (Z. 167) liegen ausserhalb und blieben stehen.
+  #
+  # Vorher war das eine stille Veraltung im Kopf. Seit Plan 25-01 traegt der Bestaetigungsknopf
+  # das Ergebnis, und damit wurde daraus eine FALSCHAUSSAGE am Entscheidungsort: der Knopf
+  # behauptete "21:30 / Sieger: Lüdemann", waehrend die Daten 21:28 trugen (Betreiber am
+  # Display, 2026-09-23). Das ist die Umkehrung dessen, was Plan 25-01 erreichen wollte.
+  #
+  # `morph` statt `inner_html`: morphdom patcht in-place, statt Elemente zu ersetzen. Der
+  # Scroll-Container der Protokolltabelle (`.protocol-table-container`, `overflow-y-auto`,
+  # Z. 127) bleibt dasselbe DOM-Element und behaelt seine Scrollposition — bei einem langen
+  # Protokoll klickt man `+`/`-` wiederholt, ein Sprung nach oben bei jedem Klick waere ein
+  # eigener Bedienfehler.
+  def send_modal_morph(html)
+    return if html.blank?
 
-    history = @table_monitor.innings_history
-    # Use edit body for both protocol_edit and protocol_final modes
-    use_edit_body = @table_monitor.panel_state == "protocol_edit" || @table_monitor.panel_state == "protocol_final"
-    partial = use_edit_body ? "table_monitors/game_protocol_table_body_edit" : "table_monitors/game_protocol_table_body"
-
-    ApplicationController.render(
-      partial: partial,
-      locals: {
-        history: history,
-        table_monitor: @table_monitor
-      }
-    )
-  end
-
-  def send_modal_update(html)
-    CableReady::Channels.instance["table-monitor-stream"].inner_html(
+    CableReady::Channels.instance["table-monitor-stream"].morph(
       selector: "#protocol-modal-container-#{@table_monitor.id}",
       html: html
     ).broadcast
   end
 
-  def send_table_update(html)
-    return if html.blank?
-
+  def send_modal_update(html)
     CableReady::Channels.instance["table-monitor-stream"].inner_html(
-      selector: "#protocol-tbody-#{@table_monitor.id}",
+      selector: "#protocol-modal-container-#{@table_monitor.id}",
       html: html
     ).broadcast
   end
