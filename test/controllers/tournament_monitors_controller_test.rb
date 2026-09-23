@@ -3,6 +3,12 @@
 require "test_helper"
 
 class TournamentMonitorsControllerTest < ActionDispatch::IntegrationTest
+  # Der WOERTLICHE render-Aufruf, nicht nur der Partial-Name: die Kommentare in _game_results und
+  # _current_games nennen `_advance_round_button` ebenfalls. Eine Suche nach dem blossen Namen
+  # faende den Kommentar und bliebe gruen, auch wenn der Aufruf geloescht waere — in der
+  # Gegenprobe vom 2026-09-23 genau so passiert.
+  RENDER_AUFRUF = 'render partial: "tournament_monitors/advance_round_button"'
+
   setup do
     @original_api_url = Carambus.config.carambus_api_url
     Carambus.config.carambus_api_url = "http://local.test"
@@ -78,6 +84,13 @@ class TournamentMonitorsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_match(/advance_round/, response.body,
       "Bei kompletter Runde muss der Turnierleiter den Rundenwechsel ausloesen koennen")
+
+    # Betreiber-Wunsch 2026-09-23: derselbe Knopf an ZWEI Orten — am Fuss von "Aktuelle Spiele"
+    # und unter der Ergebnistabelle. Gezaehlt wird die Formular-action, nicht der Sichttext:
+    # die Beschriftung wechselt in der letzten Runde ("Turnier abschliessen").
+    assert_equal 2, response.body.scan(%r{/advance_round"}).size,
+      "Der Knopf muss an beiden Orten ankommen — faellt eine der beiden render-Stellen weg, " \
+      "merkt es sonst erst der Betreiber am Display"
   end
 
   test "23-01: bei offener Runde erscheint der Rundenknopf NICHT" do
@@ -295,15 +308,36 @@ class TournamentMonitorsControllerTest < ActionDispatch::IntegrationTest
   # _game_results. `button_to` erzeugt ein EIGENES <form> — wer oben klickte, verwarf still
   # alles, was er unten getippt hatte, und danach waren die Spiele abgeloest und gar nicht
   # mehr editierbar. Belegt am Fall: 6:6 auf 6:5 geaendert, Knopf geklickt, 6:6 geblieben.
+  # 2026-09-23: Der Knopf steht seither an ZWEI Orten (Betreiber-Wunsch) und ist dafuer nach
+  # _advance_round_button ausgelagert — eine Definition, zwei render-Stellen. _game_results und
+  # _current_games tragen deshalb nur noch den Aufruf, den button_to traegt die Partial.
   test "23-01: der Rundenknopf steht im Ergebnis-Bereich, nicht in der Statuszeile" do
     status_src = File.read(Rails.root.join("app/views/tournament_monitors/_round_status.html.erb"))
+    button_src = File.read(Rails.root.join("app/views/tournament_monitors/_advance_round_button.html.erb"))
     results_src = File.read(Rails.root.join("app/views/tournament_monitors/_game_results.html.erb"))
 
     refute_match(/advance_round_tournament_monitor_path/, status_src,
       "Der Knopf darf nicht in die Statuszeile zurueckwandern — dort ist er von den " \
       "Eingabefeldern getrennt und verwirft sie beim Klick")
-    assert_match(/advance_round_tournament_monitor_path/, results_src,
-      "Der Knopf gehoert unter die Ergebnistabelle, wo korrigiert wird")
+    assert_match(/advance_round_tournament_monitor_path/, button_src,
+      "Die gemeinsame Fassung traegt den button_to")
+    assert_includes results_src, RENDER_AUFRUF,
+      "Der Knopf gehoert unter die Ergebnistabelle, wo korrigiert wird"
+  end
+
+  # Betreiber-Wunsch 2026-09-23: zusaetzlich am FUSS von "Aktuelle Spiele - Runde N" — dort sieht
+  # der Turnierleiter waehrend der Runde hin. Der Abschnitt hat kein eigenes Formular, hier droht
+  # also keine Verschachtelung; der sichere Weg unter der Ergebnistabelle bleibt daneben bestehen.
+  test "Rundenknopf steht zusaetzlich am Fuss von 'Aktuelle Spiele'" do
+    src = File.read(Rails.root.join("app/views/tournament_monitors/_current_games.html.erb"))
+
+    tabellenende = src.rindex("</table>")
+    knopf = src.index(RENDER_AUFRUF)
+
+    assert_not_nil tabellenende, "Vorbedingung: die Spieltabelle existiert"
+    assert_not_nil knopf, "Vorbedingung: der Knopf wird gerendert"
+    assert_operator knopf, :>, tabellenende,
+      "Der Knopf gehoert an den FUSS des Abschnitts, nicht neben die Ueberschrift"
   end
 
   # `button_to` erzeugt ein eigenes <form>. Innerhalb des update_games-form_tag waere das
@@ -313,10 +347,10 @@ class TournamentMonitorsControllerTest < ActionDispatch::IntegrationTest
     src = File.read(Rails.root.join("app/views/tournament_monitors/_game_results.html.erb"))
 
     tabellenende = src.rindex("</table>")
-    knopf = src.index("advance_round_tournament_monitor_path")
+    knopf = src.index(RENDER_AUFRUF)
 
     assert_not_nil tabellenende, "Vorbedingung: die Ergebnistabelle existiert"
-    assert_not_nil knopf, "Vorbedingung: der Knopf existiert"
+    assert_not_nil knopf, "Vorbedingung: der Knopf wird gerendert"
     assert_operator knopf, :>, tabellenende,
       "Der button_to muss NACH dem Tabellenende und damit ausserhalb des form_tag stehen — " \
       "verschachtelte Formulare sind ungueltiges HTML"
