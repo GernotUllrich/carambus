@@ -239,6 +239,13 @@
             📄 <%= t("table_monitor.protocol.print") %>
           </button>
         </div>
+        <%# Phase 25: der Ausgang in Worten AUF dem Knopf. Der Sieger kommt aus den
+            bereits berechneten winner_a/winner_b (Z. 25-26); sind beide false, ist es
+            ein Unentschieden — denselben Fall behandelt der Kopf des Modals schon heute.
+            Beim Stechen ist die Punktzahl per Definition gleich, dort steht also
+            "Unentschieden" — das ist der Grund, warum darueber ein Sieger gewaehlt wird. %>
+        <%- winner_hist = winner_a ? history[:player_a] : (winner_b ? history[:player_b] : nil) %>
+        <%- verdict = winner_hist ? t("table_monitor.protocol.winner_label", name: winner_hist[:shortname] || winner_hist[:name]) : t("table_monitor.protocol.draw") %>
         <div class="flex gap-3">
           <%- if is_tiebreak_choice %>
             <%# Phase 38.7 Plan 13 (Gap-05): plain type=submit button — no
@@ -249,14 +256,22 @@
                 submit, so an empty pick is blocked client-side. %>
             <button type="submit"
                     form="tiebreak-form-<%= table_monitor.id %>"
-                    class="btn btn-success px-8 py-3 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg font-bold text-lg transition shadow-lg">
-              ✓ <%= t("table_monitor.tiebreak.submit_label") %>
+                    class="btn btn-success px-12 py-4 bg-success-600 hover:bg-success-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg font-bold transition shadow-lg">
+              <span class="flex flex-col items-center leading-tight">
+                <span class="text-base font-semibold">✓ <%= t("table_monitor.tiebreak.submit_label") %></span>
+                <span class="text-4xl font-bold"><%= result_a %> : <%= result_b %></span>
+                <span class="text-base font-semibold"><%= verdict %></span>
+              </span>
             </button>
           <%- else %>
-            <button class="btn btn-success px-8 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-bold text-lg transition shadow-lg"
+            <button class="btn btn-success px-12 py-4 bg-success-600 hover:bg-success-700 text-white rounded-lg font-bold transition shadow-lg"
                     data-reflex="click->GameProtocolReflex#confirm_result"
                     data-id="<%= table_monitor.id %>">
-              ✓ <%= t("table_monitor.protocol.confirm_result") %>
+              <span class="flex flex-col items-center leading-tight">
+                <span class="text-base font-semibold">✓ <%= t("table_monitor.protocol.confirm_result") %></span>
+                <span class="text-4xl font-bold"><%= result_a %> : <%= result_b %></span>
+                <span class="text-base font-semibold"><%= verdict %></span>
+              </span>
             </button>
           <%- end %>
         </div>

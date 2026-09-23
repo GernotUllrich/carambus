@@ -868,6 +868,8 @@ en:
       result: Result
       in_sets: in sets
       confirm_result: Confirm result
+      winner_label: "Winner: %{name}"
+      draw: "Draw"
       print: Print protocol
       print_pdf: Protocol PDF
       close: Close

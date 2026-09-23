@@ -887,6 +887,8 @@ de:
       result: Ergebnis
       in_sets: in Sätzen
       confirm_result: Ergebnis bestätigen
+      winner_label: "Sieger: %{name}"
+      draw: "Unentschieden"
       print: Protokoll drucken
       print_pdf: Protokoll PDF
       close: Schließen
