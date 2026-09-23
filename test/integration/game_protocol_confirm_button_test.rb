@@ -242,9 +242,12 @@ class GameProtocolConfirmButtonTest < ActionDispatch::IntegrationTest
       "Die Invariante (table_monitor.rb:662) gibt protocol_final frei, sobald set_over " \
       "verlassen ist — der Reflex muss daran nicht drehen"
 
-    assert_equal 21, @tm.data.dig("playera", "result"),
-      "Der Rueckweg nimmt KEINE Eingabe zurueck — die Punkte bleiben stehen"
-    assert_equal 30, @tm.data.dig("playerb", "result"), "dito"
+    # ⚠️ GRENZE DIESES TESTS: geprueft ist hier nur der ZUSTANDSWECHSEL. Der Reflex nimmt
+    # zusaetzlich die letzte Eingabe zurueck (`@table_monitor.undo`) — das laesst sich mit
+    # dieser schlanken Fixture nicht pruefen: `TableMonitor#undo` (:1482) braucht
+    # `data["current_inning"]` und PaperTrail-Versionen und wirft sonst ausserhalb von
+    # production (:1549). Diese Haelfte ist am Display belegt (Betreiber, 2026-09-23) und im
+    # Reflex gegen Fehlschlag abgesichert.
   end
 
   # ---------------------------------------------------------------

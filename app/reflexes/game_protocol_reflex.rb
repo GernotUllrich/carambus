@@ -63,7 +63,30 @@ class GameProtocolReflex < ApplicationReflex
                       "state=#{@table_monitor.state} -> playing"
 
     @table_monitor.suppress_broadcast = true
+    # 1. Zustand: set_over -> playing (siehe Warnung oben zur Ueberschattung)
     @table_monitor.aasm.fire!(:undo)
+    # 2. Die letzte Eingabe zurueck. Ohne diesen Schritt landet man im NACHSTOSS des Gegners:
+    #    beim Karambol wechselt der aktive Spieler, sobald jemand das Ballziel erreicht
+    #    (`table_monitor.rb:1391`, allow_follow_up) — und genau das hat die Fehleingabe
+    #    ausgeloest, BEVOR der Editor aufging. Der Zustandswechsel allein stellt diesen Moment
+    #    getreu wieder her; nur ist der Moment selbst falsch, und der Spieler, der sich vertippt
+    #    hat, waere nicht mehr am Zug (Betreiber am Display, 2026-09-23).
+    #    Hier ist `@table_monitor.undo` RICHTIG — es ist die Eingabe-Ruecknahme, dieselbe, die
+    #    der Knopf am Scoreboard ausloest.
+    #
+    #    ⚠️ Abgesichert: `TableMonitor#undo` schluckt Fehler NUR in production
+    #    (`table_monitor.rb:1549`: `raise StandardError unless Rails.env == "production"`).
+    #    Auf einem Entwicklungsserver wirft es. Scheitert es, soll der Betreiber trotzdem im
+    #    Spiel stehen statt wieder im Editor festzusitzen — der Zustandswechsel oben ist dann
+    #    schon persistiert, und die Eingabe laesst sich am Scoreboard von Hand zuruecknehmen.
+    begin
+      @table_monitor.undo
+      @table_monitor.save
+    rescue => e
+      Rails.logger.error "[GameProtocolReflex#back_to_game] tm[#{@table_monitor.id}] " \
+                         "Eingabe-Ruecknahme fehlgeschlagen: #{e.message} — der Zustandswechsel " \
+                         "steht, die Eingabe bleibt und kann am Scoreboard zurueckgenommen werden"
+    end
     @table_monitor.suppress_broadcast = false
 
     send_modal_update("")
