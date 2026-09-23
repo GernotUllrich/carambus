@@ -396,11 +396,19 @@ class GameProtocolReflex < ApplicationReflex
   # Z. 127) bleibt dasselbe DOM-Element und behaelt seine Scrollposition — bei einem langen
   # Protokoll klickt man `+`/`-` wiederholt, ein Sprung nach oben bei jedem Klick waere ein
   # eigener Bedienfehler.
+  # ⚠️ `children_only: true` ist NICHT optional. `cable_ready.js:786` ruft
+  # `morphdom(element, childrenOnly ? template.content : template.innerHTML, {childrenOnly: ...})`
+  # — ohne das Flag morpht morphdom das ELEMENT SELBST in die gelieferte Wurzel, der Container
+  # `#protocol-modal-container-<id>` wird also zu `<div id="game-protocol-modal">` und verliert
+  # seine id. Jede spaetere Zustellung an diesen Selektor trifft danach ins Leere. Am Display
+  # belegt (2026-09-23): Editieren sprang in die TableMonitor-Ansicht, und erst ein Reload
+  # brachte den Editor mit den richtigen Werten zurueck.
   def send_modal_morph(html)
     return if html.blank?
 
     CableReady::Channels.instance["table-monitor-stream"].morph(
       selector: "#protocol-modal-container-#{@table_monitor.id}",
+      children_only: true,
       html: html
     ).broadcast
   end
