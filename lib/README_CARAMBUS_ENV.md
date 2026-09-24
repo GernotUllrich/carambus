@@ -9,10 +9,10 @@ Portable Pfadauflösung für Rails-Anwendungen und Rake-Tasks.
 load File.expand_path('../carambus_env.rb', __dir__) unless defined?(CarambusEnv)
 
 # Verfügbare Methoden
-CarambusEnv.base_path        # => "/Volumes/.../carambus"
-CarambusEnv.data_path        # => "/Volumes/.../carambus/carambus_data"
-CarambusEnv.scenarios_path   # => "/Volumes/.../carambus/carambus_data/scenarios"
-CarambusEnv.app_path('master')  # => "/Volumes/.../carambus/carambus_master"
+CarambusEnv.base_path        # => "/Users/gullrich/DEV/carambus"
+CarambusEnv.data_path        # => "/Users/gullrich/DEV/carambus/carambus_data"
+CarambusEnv.scenarios_path   # => "/Users/gullrich/DEV/carambus/carambus_data/scenarios"
+CarambusEnv.app_path('master')  # => "/Users/gullrich/DEV/carambus/carambus_master"
 ```
 
 ## Methoden
@@ -87,7 +87,7 @@ Dir.glob(File.join(CarambusEnv.scenarios_path, '*')).count
 ```ruby
 CarambusEnv.debug = true
 CarambusEnv.base_path
-# STDERR: [CARAMBUS_ENV] Found via Rails.root: /Volumes/.../carambus
+# STDERR: [CARAMBUS_ENV] Found via Rails.root: /Users/gullrich/DEV/carambus
 # => "/Users/gullrich/DEV/carambus"
 ```
 
@@ -97,8 +97,13 @@ Siehe `../.carambus_config.example` für Beispiel-Konfiguration.
 
 ```bash
 # ~/.carambus_config
-CARAMBUS_BASE=/Users/username/Development/carambus
+CARAMBUS_BASE=/Users/gullrich/DEV/carambus
 ```
+
+⚠️ **Auf jedem Rechner derselbe Pfad.** Die Beispiele hier zeigten früher
+`/Volumes/…` und `~/Development/carambus` — beides ergibt ein anderes, leeres
+Claude-Projektverzeichnis und macht Memory und Projektzustand unsichtbar.
+Begründung und Beleg: `../.carambus_config.example`.
 
 ## Testing
 
