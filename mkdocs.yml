@@ -205,6 +205,7 @@ nav:
       - developers/index.md
       - Getting Started: developers/getting-started.md
       - Developer Guide: developers/developer-guide.md
+      - Fallstricke: developers/fallstricke.md
       - Database Design: developers/database-design.md
       - ER Diagram: developers/er-diagram.md
       - Scenario Management: developers/scenario-management.md

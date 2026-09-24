@@ -77,6 +77,19 @@ Custom config in `config/carambus.yml` accessed via `Carambus.config` (OpenStruc
 
 Uses Minitest (not RSpec despite .cursorrules mentioning rspec). Fixtures + FactoryBot. WebMock disables external HTTP. VCR cassettes in `test/snapshots/vcr/` for scraping tests. Tests include `ScrapingHelpers` and `SnapshotHelpers` from `test/support/`.
 
+### Fallstricke
+
+**[`docs/developers/fallstricke.de.md`](docs/developers/fallstricke.de.md)** sammelt Lehren über
+Code und Werkzeugkette, die **still** zuschlagen — kein Fehler, keine Meldung, nur ein falsches
+Ergebnis, das plausibel aussieht. Unter anderem: `Game#data` ist überschrieben und eine
+Zuweisung darauf ein No-op (`deep_merge_data!` verwenden), CableReady `morph` braucht
+`children_only: true`, `nil.to_i` ist 0, die Agent-Shell ist zsh und splittet `$VAR` nicht,
+`grep` ohne Treffer beendet ein Skript mit `set -e` lautlos, `git status --porcelain` zählt ein
+unverfolgtes Verzeichnis als eine Zeile.
+
+Vor jeder Shell-Schleife, jedem `data`-Zugriff und jedem Reflex-Morph einen Blick wert. Neue
+Lehren gehören dort hinzu — mit Beleg (Datei:Zeile oder gemessenes Verhalten).
+
 ### Code Conventions
 
 - `frozen_string_literal: true` in all Ruby files
