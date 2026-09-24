@@ -156,7 +156,17 @@ sind damit strukturell außerhalb des Scans, auch wenn dort Geheimnisse liegen.
 find <pfad> -type f -print0 | xargs -0 ruby bin/burned-secret-guard
 ```
 
-**Und ihre Grenze:** sie prüft gegen eine Liste **bekannter verbrannter** Fingerprints. Ein
+**Und ihre zweite Grenze — die teurere:** sie überspringt Dateien über `MAX_BYTES`, und zwar
+**stumm**. Bis zum 2026-09-24 lag die Grenze bei 2 MB; durchgefallen ist dadurch genau
+`public/docs/search/search_index.json` (3,7 MB) — der Volltextindex der gesamten Dokumentation,
+also ausgerechnet die Datei, über die am 2026-09-20 ein bereits entferntes Passwort zurück in
+den Index gelangte. Die Datei stand im Scan und wurde trotzdem nie geprüft.
+
+Die Lehre ist allgemeiner als der Einzelfall: **ein Filter, der aus Effizienzgründen etwas
+auslässt, muss sagen, was er auslässt.** Sonst liest man „0 Treffer in 556 Dateien" und hält es
+für eine Aussage über 556 Dateien.
+
+**Und ihre dritte Grenze:** sie prüft gegen eine Liste **bekannter verbrannter** Fingerprints. Ein
 Geheimnis, das noch niemand gemeldet hat, findet sie nicht. Neuer Inhalt braucht einen
 Lesedurchgang, keinen Automatismus.
 
