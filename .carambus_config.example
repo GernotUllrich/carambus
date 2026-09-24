@@ -2,11 +2,12 @@
 # Copy this file to ~/.carambus_config and adjust paths for your system
 
 # Set your local Carambus base directory
-# Mac Mini (default)
+#
+# Auf ALLEN eigenen Rechnern derselbe absolute Pfad (Mac Mini und MacBook Pro):
+# Claude Code leitet sein Projektverzeichnis unter ~/.claude/projects/ aus dem
+# absoluten Arbeitspfad ab. Ein anderer Pfad => ein anderes, leeres Verzeichnis
+# => Memory und Projektzustand sind auf diesem Rechner unsichtbar.
 CARAMBUS_BASE=/Users/gullrich/DEV/carambus
-
-# MacBook Pro (uncomment when on MacBook)
-# CARAMBUS_BASE=/Users/gullrich/Development/carambus
 
 # Linux/WSL
 # CARAMBUS_BASE=/home/gullrich/dev/carambus

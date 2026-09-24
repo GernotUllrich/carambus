@@ -66,8 +66,8 @@ cd /any/path/carambus_master/bin
 Erstelle `~/.carambus_config`:
 
 ```bash
-# MacBook Pro
-CARAMBUS_BASE=/Users/gullrich/Development/carambus
+# Auf jedem Rechner derselbe Pfad (siehe unten)
+CARAMBUS_BASE=/Users/gullrich/DEV/carambus
 
 # Optional: Debug Mode
 # CARAMBUS_DEBUG=true
@@ -77,28 +77,25 @@ CARAMBUS_BASE=/Users/gullrich/Development/carambus
 
 ```bash
 # In .zshrc oder .bashrc
-export CARAMBUS_BASE=/Users/gullrich/Development/carambus
+export CARAMBUS_BASE=/Users/gullrich/DEV/carambus
 
 # Oder temporär
 CARAMBUS_BASE=/tmp/test ./bin/some-script.sh
 ```
 
-## Beispiel-Workflow: rsync von Mac Mini zu MacBook Pro
+## Mehrere Rechner: der Pfad ist eine Invariante
 
-```bash
-# 1. Auf MacBook Pro: rsync
-cd ~/Development
-rsync -av --exclude='node_modules' --exclude='tmp' --exclude='log' \
-  macmini:/Users/gullrich/DEV/carambus/ ./carambus/
+Die Skripte selbst funktionieren unter jedem Pfad. Trotzdem liegt der Baum auf
+**jedem** eigenen Rechner (Mac Mini, MacBook Pro) unter `/Users/gullrich/DEV/carambus`.
 
-# 2. Config erstellen
-echo "CARAMBUS_BASE=$HOME/Development/carambus" > ~/.carambus_config
+Grund: Claude Code leitet sein Projektverzeichnis unter `~/.claude/projects/` aus
+dem absoluten Arbeitspfad ab (`/`→`-`, `_`→`-`). Ein anderer Pfad ergibt ein anderes,
+leeres Verzeichnis — Memory und Projektzustand sind auf diesem Rechner dann
+unsichtbar, ohne dass etwas fehlschlägt. Belegt: Als der Baum unter `/Volumes/EXT2TB/…`
+lag, blieben 28 Memory-Dateien rund fünf Monate unerreichbar.
 
-# 3. Skripte verwenden
-cd ~/Development/carambus/carambus_master/bin
-./setup-raspi-table-client.sh carambus_bcw 192.168.178.81 ...
-# ✅ Funktioniert automatisch mit korrekten Pfaden!
-```
+Einen zweiten Rechner deshalb nicht per Kopie unter einem anderen Pfad anlegen,
+sondern den Baum am selben Pfad auschecken.
 
 ## Siehe auch
 
