@@ -37,6 +37,21 @@ append :linked_dirs, "public/uebersichten"
 # gepflegt und ueberleben so jeden Deploy. Bleibt es leer, liefert nginx 404 — harmlos.
 append :linked_dirs, "public/wissenswertes"
 
+# public/docs: die gebaute mkdocs-Dokumentation. Sie wird NICHT mitdeployt und liegt seit
+# 2026-09-24 nicht mehr im Repo — sie war dort 552 getrackte Dateien (59 MB) gebauter Output
+# und erzeugte ~327 dauerhafte Arbeitsbaum-Aenderungen. Der 3,7-MB-Volltextindex
+# search/search_index.json hat am 2026-09-20 ausserdem ein bereits entferntes Passwort wieder
+# in den Index getragen.
+#
+# Befuellt wird das Verzeichnis von `docs:upload` (lib/capistrano/tasks/docs.rake), das nach
+# deploy:symlink:linked_dirs laeuft: lokal bauen, packen, hochladen, entpacken. Auf dem Server
+# gebaut wird NICHT — die Raspberry Pis haben kein mkdocs.
+#
+# Ausgeliefert wird ueber Rails (`docs#show` liest Rails.root/public/docs/<pfad>), nicht ueber
+# nginx. Bleibt das Verzeichnis leer, liefert /docs 404 — harmlos, aber genau das ist der
+# Zustand bis zum ersten `docs:upload`.
+append :linked_dirs, "public/docs"
+
 # tmp/reports: Auswertungen, die auf dem Server ERZEUGT werden (`rake training:report[...,csv]`).
 #
 # Wie uebersichten und wissenswertes ein linked_dir: `tmp/` selbst ist NICHT verlinkt (nur

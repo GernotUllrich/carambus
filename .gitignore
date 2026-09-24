@@ -141,3 +141,11 @@ db/schema_baseline_*.backup
 # jederzeit reproduzierbar und zusammen mehrere hundert MB.
 /releases
 /repo
+
+# Gebaute mkdocs-Dokumentation. Erzeugt mit `rake mkdocs:build`, auf die Server gebracht von
+# `cap <stage> docs:upload` (laeuft automatisch im Deploy). Nicht committen: generierter
+# Output, ~327 Dauer-Aenderungen im Arbeitsbaum, und search/search_index.json ist ein
+# Volltextindex der gesamten Doku — am 2026-09-20 trug er ein entferntes Passwort zurueck
+# in den Index. Begruendung ausfuehrlich in lib/capistrano/tasks/docs.rake.
+/public/docs/
+/site/

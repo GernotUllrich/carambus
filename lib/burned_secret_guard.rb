@@ -48,9 +48,18 @@ module BurnedSecretGuard
   # Mindestlaenge 8: kuerzere Tokens sind zu niedrig-entropisch, ihre Summen
   # wuerden an Allerweltswoertern haengenbleiben (Fehlalarm-Risiko).
   #
-  # Dateien ueber dieser Groesse werden uebersprungen. Am 2026-09-20 betraf das
-  # 3 von 4897 getrackten Dateien (Datenbank-Dumps, Bilder).
-  MAX_BYTES = 2_000_000
+  # Obergrenze je Datei; groessere werden uebersprungen.
+  #
+  # 2026-09-24 von 2 MB auf 16 MB angehoben: bei 2 MB fiel
+  # `public/docs/search/search_index.json` (3,7 MB) durch — ausgerechnet der
+  # Volltextindex der gesamten Dokumentation, also die Datei, die am 2026-09-20 ein
+  # bereits entferntes Passwort wieder in den Index getragen hat. Die Wache hat diesen
+  # Fall nie abgedeckt, obwohl die Datei im `git ls-files`-Scan stand.
+  #
+  # Kosten der Anhebung: im ganzen Repo liegt genau EINE getrackte Datei zwischen 2 und
+  # 16 MB (ein Storage-Backup-Blob), und die wird eine Zeile weiter unten als binaer
+  # verworfen. Ueber 16 MB bleibt es bei einer Datei, die weiterhin uebersprungen wird.
+  MAX_BYTES = 16_000_000
 
   Hit = Struct.new(:path, :line_no, :hint, keyword_init: true)
 
