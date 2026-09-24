@@ -102,6 +102,47 @@ Beide fehlen, auch als `gtimeout`, sofern die GNU-Coreutils nicht installiert si
 **Ausweg für eine Sperre:** `mkdir` ist atomar — von zwei gleichzeitigen Aufrufen kann nur einer
 gewinnen. Dazu eine Altersprüfung, damit eine verwaiste Sperre nicht ewig blockiert.
 
+**Der teure Teil ist nicht das Fehlen, sondern die Tarnung.** Ein fehlender Befehl am Anfang
+einer Pipeline liefert leere Ausgabe — und `$?` gehört der *letzten* Stufe, nicht der
+gescheiterten:
+
+```bash
+timeout 180 bin/rails doctor:scenarios | grep region_server | head
+echo $?    # 0 — von head, nicht von timeout
+```
+
+Das liest sich wie „der Lauf hat nichts gefunden", obwohl er nie stattgefunden hat.
+
+**Ausweg:** die Existenz vorher prüfen (`command -v timeout`) oder den Befehl einmal ungefiltert
+laufen lassen, bevor man einen Filter dahinterhängt.
+
+### POSIX-`awk` kennt `\b` nicht
+
+macOS liefert BWK-awk, nicht GNU-awk. Die Wortgrenze `\b` ist dort undefiniert — das Muster
+matcht schlicht nie, ohne Warnung.
+
+```bash
+awk '/^[Hh]ost .*\bmini\b/' ~/.ssh/config   # leer, obwohl "Host mini" existiert
+```
+
+**Ausweg:** `grep -E` verwenden (kennt `\b`), oder in awk die Grenze ausschreiben:
+`/(^|[[:space:]])mini([[:space:]]|$)/`.
+
+### zsh führt ein Kommando gar nicht aus, wenn **irgendein** Glob darin leer bleibt
+
+Mit der zsh-Voreinstellung `NOMATCH` ist ein Glob ohne Treffer ein Fehler des *gesamten*
+Kommandos — nicht nur des einen Arguments. Ein `2>/dev/null` verbirgt zusätzlich die Meldung.
+
+```bash
+ls -la "$D"/.*.sw? "$D"/*~ 2>/dev/null   # nichts, sobald NUR *~ leer ist
+```
+
+Im Beleg lag unter `.*.sw?` eine Datei — sie blieb unsichtbar, weil das zweite Muster leer war.
+Der Fehlschluss („keine Swap-Datei vorhanden") hielt mehrere Minuten.
+
+**Ausweg:** jedes Muster in einem eigenen Aufruf, oder `setopt NULL_GLOB` für den Block, oder
+gleich `find <dir> -name '.*.sw?'` — `find` kennt das Problem nicht.
+
 ### Overcommit stasht den Arbeitsbaum vor jedem Hook-Lauf
 
 Bricht der Lauf ab, liegt die Arbeit in `stash@{0}` — und `git status` meldet einen **sauberen**
@@ -170,6 +211,35 @@ für eine Aussage über 556 Dateien.
 Geheimnis, das noch niemand gemeldet hat, findet sie nicht. Neuer Inhalt braucht einen
 Lesedurchgang, keinen Automatismus.
 
+### `ScenarioCheck` prüft Vorhandensein, nicht Gültigkeit
+
+`app/services/diagnostics/scenario_check.rb:155` bildet die Lücke der Region-Server-Zugänge mit
+`region_server_secrets.key?(ctx)` — also über die **Existenz des Schlüssels**, nicht über seinen
+Inhalt:
+
+```ruby
+gaps = s[:region_server_contexts].reject do |ctx|
+  region_server_secrets.key?(ctx.to_s) || region_server_secrets.key?(ctx.to_s.downcase)
+end
+```
+
+Sobald der Kontext-Knoten in `secrets.yml` existiert, meldet `doctor:scenarios` grün — auch bei
+einem leeren Wert, einem Platzhalter oder einem längst rotierten Passwort.
+
+**Beleg:** am 2026-09-24 fehlte der gesamte Teilbaum `shared.region_server`, der `doctor` meldete
+korrekt einen Defekt. Nach Eintragen eines Gerüsts mit dem Platzhalter
+`TODO-…-EINTRAGEN` meldete er `✅ carambus_api · region_server_contexts: NBV` — die
+Diagnose wurde also durch ihre eigene **Teil**erfüllung blind.
+
+Die Lehre ist allgemeiner: **solange ein Wert vollständig fehlt, fällt „vorhanden" mit „gültig"
+zusammen.** Erst ein halb ausgefüllter Zustand trennt die beiden — und genau dort hört eine
+Präsenzprüfung auf zu tragen.
+
+**Ausweg beim Befüllen:** einen Platzhalter wählen, der auch für das Auge nach einer Lücke
+aussieht — `password: ~` (YAML-`null`) statt einer Zeichenkette, die sich bis zur
+Authentifizierung wie ein echtes Passwort verhält. Der Nachweis, dass ein Zugang wirklich
+funktioniert, bleibt die Anmeldung.
+
 ---
 
 ## Methode
@@ -183,6 +253,29 @@ geändert" — beide Male sah der grüne Test danach gleich aus.
 
 Ebenso bei Werkzeugen: eine Löschfunktion, die im Testfall nichts löscht, beweist nichts, solange
 nicht ein Fall existiert, in dem sie löschen **muss**.
+
+### Eine leere Ausgabe ist kein Befund, solange der Befehl nicht belegt ist
+
+Der häufigste falsche Befund ist nicht die falsche Zahl, sondern die **leere Ausgabe** — weil sie
+sich nicht von einem echten „nichts gefunden" unterscheiden lässt. An einem einzigen Abend traten
+vier verschiedene Ursachen auf, jede mit demselben Erscheinungsbild:
+
+| Ursache | Beleg auf dieser Seite |
+|---|---|
+| Befehl existiert nicht (`timeout`) | *`timeout(1)` und `flock(1)` gibt es auf macOS nicht* |
+| Muster ist im Dialekt undefiniert (`\b` in awk) | *POSIX-`awk` kennt `\b` nicht* |
+| Kommando lief nie, weil ein Glob leer war | *zsh führt ein Kommando gar nicht aus …* |
+| nach dem falschen Namen gesucht | `pgrep -x vim` — der Prozess hieß `vi` |
+
+Ergänzend dazu der bereits dokumentierte Fall, dass `grep` ohne Treffer ein Skript stumm beendet.
+
+**Ausweg:** eine leere Ausgabe erst glauben, wenn dieselbe Frage über einen **zweiten, anders
+gebauten** Weg gestellt wurde. Im Beleg oben lieferte jedes Mal ein anderes Werkzeug die
+Auflösung: `ssh -G` gegen `awk`, `find` gegen `ls`, `lsof` gegen `pgrep`.
+
+**Und die Faustregel, warum das funktioniert:** eine Suche über etwas **Bekanntes** schlägt eine
+Suche über etwas **Vermutetes**. `pgrep` verlangt einen geratenen Prozessnamen; `lsof` bekommt
+den Pfad, den man bereits in der Hand hält.
 
 ### Zwei abweichende Zählungen desselben Dings sind ein Befund
 
