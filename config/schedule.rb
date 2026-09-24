@@ -193,8 +193,8 @@ end
 # wird gesichert, bevor ihn der naechste Scrape-Lauf veraendert.
 #
 # roles: [:api] — der Job landet nur in der Crontab des carambus_api-Deployments.
-# Das genuegt: die fuenf Instanzen (carambus, carambus_api, carambus_nbv,
-# carambus_tbv, carambus_train) teilen sich einen PostgreSQL-Cluster auf
+# Das genuegt: die vier Instanzen (carambus, carambus_api, carambus_nbv,
+# carambus_train) teilen sich einen PostgreSQL-Cluster auf
 # derselben Maschine, das Skript sichert sie in einem Lauf mit. Ein Job je
 # Deployment wuerde dieselben Daten mehrfach dumpen.
 #
