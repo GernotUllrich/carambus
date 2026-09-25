@@ -60,7 +60,10 @@ namespace :docs do
       end
 
       info "Doku bauen (mkdocs)…"
-      execute :bundle, "exec", "rake", "mkdocs:build"
+      # ⚠️ Als String, nicht `execute :bundle, ...`: capistrano/rbenv haengt an das Symbol
+      # :bundle auch in run_locally den Server-Praefix `$HOME/.rbenv/bin/rbenv exec` —
+      # den gibt es am Mac (Homebrew-rbenv) nicht. Strings mappt SSHKit nicht.
+      execute "bundle exec rake mkdocs:build"
 
       # ⚠️ Geheimnis-Wache ueber den GEBAUTEN Baum — sonst waere diese Umstellung eine
       # Regression: solange public/docs getrackt war, lief die Wache im pre-commit ueber
