@@ -17,9 +17,16 @@ Danach startet der Pi von selbst ins Scoreboard. Beim Einschalten dauert das etw
 (Desktop nach rund 1 Minute) — der Pi ist in dieser Zeit nicht defekt.
 
 !!! note "Was ein Verein vom Betreiber braucht"
-    Nur einmalig die **Zugangsdaten zum Regionsdump** seiner Region (Login und Passwort, siehe 3.1). Damit
-    befüllt Schritt 3.2 die Datenbank aus dem [Regionsdump](region-dumps.md) der Authority (`api.carambus.de`),
-    ohne SSH-Zugang zu ihr. Alles andere, auch die Credentials, erledigt der Verein selbst.
+    Drei Dinge, alle einmalig:
+
+    1. die **Zugangsdaten zum Regionsdump** seiner Region (Login und Passwort, siehe 3.1) — damit befüllt
+       Schritt 3.2 die Datenbank aus dem [Regionsdump](region-dumps.md) der Authority (`api.carambus.de`),
+       ohne SSH-Zugang zu ihr;
+    2. die beiden **nicht öffentlichen Repositories** `carambus_data` und `ansible` (siehe
+       [Die drei Verzeichnisse](#die-drei-verzeichnisse));
+    3. einen **Eintrag für Verein und Spielort auf der Authority**, falls es ihn dort noch nicht gibt (3.1).
+
+    Alles andere, auch die Credentials, erledigt der Verein selbst.
 
 ## Voraussetzungen
 
@@ -31,15 +38,33 @@ Danach startet der Pi von selbst ins Scoreboard. Beim Einschalten dauert das etw
 - Netzwerk: Kabel empfohlen; WLAN funktioniert
 
 ### Admin-Rechner (Mac oder Linux)
+
+Windows reicht nicht. Auf dem Rechner werden gebraucht:
+
 - [Raspberry Pi Imager](https://www.raspberrypi.com/software/)
-- Ein beliebiger **carambus-Checkout** (z. B. `~/DEV/carambus/carambus_bcw`) — aus ihm laufen alle
-  Rake-Tasks; ein ausgezeichneter „Master"-Checkout ist nicht nötig
-- Der **Szenario-Checkout** `~/DEV/carambus/<szenario>` (Rails-Root des Szenarios, von hier aus
-  deployt Capistrano) — **aktuell** halten: `git -C ~/DEV/carambus/<szenario> pull --ff-only`
-- `~/DEV/carambus/carambus_data` (Szenario-`config.yml`, `secrets.yml`)
-- `~/DEV/ansible` (Inventar und Playbooks für Schritt 1–2)
-- Lokales PostgreSQL
-- SSH-Schlüssel (`~/.ssh/id_rsa.pub`)
+- **Ruby 3.2.1** (z. B. über `rbenv`) und **Bundler** — die Rake-Tasks unten sind `bin/rails`-Aufrufe
+  und laufen im carambus-Checkout; dort einmalig `bundle install`
+- **Ansible** für Schritt 1–2
+- **Lokales PostgreSQL**
+- Ein **SSH-Schlüssel** (`~/.ssh/id_rsa.pub`), und zwar **bei GitHub hinterlegt** — die
+  Szenario-Werkzeuge klonen über SSH (`lib/tasks/scenarios.rake:2541`), auch wenn das
+  carambus-Repository öffentlich ist
+
+### Die drei Verzeichnisse
+
+!!! warning "Zwei davon sind nicht öffentlich"
+    `carambus_data` und `ansible` sind private Repositories. Ein Verein bekommt sie heute
+    **nur vom Betreiber**. Die Installation geht ohne sie nicht — das ist der Stand, nicht eine
+    Formsache.
+
+| Verzeichnis | Inhalt | Woher |
+|---|---|---|
+| `~/DEV/carambus/<szenario>` | Rails-Root des eigenen Szenarios; von hier deployt Capistrano, und aus ihm laufen alle Rake-Tasks | öffentlich: `git clone git@github.com:GernotUllrich/carambus.git ~/DEV/carambus/<szenario>` |
+| `~/DEV/carambus/carambus_data` | Szenario-`config.yml`, `secrets.yml`, Credentials aller Szenarien | **nicht öffentlich** — beim Betreiber anfragen |
+| `~/DEV/ansible` | Inventar, Playbooks und das `RUNBOOK` für Schritt 1–2 | **nicht öffentlich** — beim Betreiber anfragen |
+
+Ein ausgezeichneter „Master"-Checkout ist nicht nötig; der Szenario-Checkout genügt für alles.
+Ihn **aktuell** halten: `git -C ~/DEV/carambus/<szenario> pull --ff-only`
 
 ### Tipp: SSH zu `*.local` beschleunigen
 Der Pi meldet sich per mDNS auch mit seinen öffentlichen IPv6-Adressen; die Firewall lässt SSH
@@ -59,6 +84,28 @@ CARAMBUS-PI AUFSETZEN"**. Kurzfassung:
 1. `carambus_data/scenarios/<szenario>/config.yml` um den Abschnitt `environments.production.ansible`
    ergänzen, den Pi in `~/DEV/ansible/hosts` eintragen (inklusive Gruppe `[carambus_pi]`),
    `bin/rails "scenario:generate_host_vars[<szenario>]"` ausführen
+
+    ??? example "Wie dieser Abschnitt aussieht"
+        Ports werden aus `webserver_port`/`ssh_port` abgeleitet; hier steht nur, was sich nicht
+        ableiten lässt. Ein Minimalbeispiel:
+
+        ```yaml
+        environments:
+          production:
+            ansible:
+              # Name in ~/DEV/ansible/hosts. Er muss zum host_vars-Eintrag passen, sonst lädt
+              # Ansible die host_vars nie — auch wenn das Gerät selbst anders heißt.
+              inventory_name: <name>
+              # false = Standard-Portsatz des Templates; true nur nach eigener Messung
+              firewall_trimmed: false
+              # zusätzliche TCP-Ports über den Standardsatz hinaus
+              firewall_extra_tcp_ports: []
+              # IPv6-Regeln mit ausrollen (empfohlen)
+              ipv6_firewall: true
+        ```
+
+        `generate_host_vars` erzeugt daraus `~/DEV/ansible/host_vars/<inventory_name>` — **dort
+        nicht von Hand editieren**, die Datei wird überschrieben.
 2. SD-Karte mit dem Raspberry Pi Imager schreiben: Hostname `<name>`, Benutzer mit Passwort,
    **SSH jedes Mal neu anhaken**, öffentlicher Schlüssel `~/.ssh/id_rsa.pub`
 3. Pi starten; meldet er sich noch als `raspberrypi`, einmal neu starten
@@ -79,12 +126,25 @@ Die Konfiguration steht in `carambus_data/scenarios/<szenario>/config.yml`. Ein 
 gibt es nicht — ein bestehendes Szenario (z. B. `carambus_pbv`) dient als Muster. Die für den Pi
 entscheidenden Felder:
 
+!!! tip "Die eigenen IDs nachschlagen"
+    `location_id`, `club_id` und `region_id` sind die IDs **auf der Authority**. Sie stehen in der
+    Adresszeile der jeweiligen Übersichtsseite, die ohne Anmeldung lesbar ist:
+
+    - Region: <https://api.carambus.de/regions> → z. B. `…/regions/1` ⇒ `region_id: 1`
+    - Verein: <https://api.carambus.de/clubs> → z. B. `…/clubs/3285` ⇒ `club_id: 3285`
+    - Spielort: <https://api.carambus.de/locations> → z. B. `…/locations/2368` ⇒ `location_id: 2368`
+
+    Findet sich der eigene Verein oder Spielort dort **nicht**, muss er auf der Authority erst
+    angelegt werden — das ist einer der drei Punkte, für die ein Verein den Betreiber braucht.
+    Mit den Beispielwerten unten läuft der Server sonst auf einen fremden Verein.
+
 ```yaml
 scenario:
   name: carambus_pbv
   location_id: 2368          # die Location des Vereins bei der Authority
   region_id: 1
   club_id: 3285
+  region_shortname: NBV      # optional; sonst `context`, sonst `region_id` (s. Schritt 3.1 unten)
 
 environments:
   production:
@@ -193,11 +253,22 @@ Der Befehl legt einen bestätigten `system_admin` an und gibt das Passwort genau
 Anmeldung unter „Profil“ ändern. Weitere Benutzer legt dieser Admin selbst an. Das Dienstkonto für die
 Turnier-App steht unter [Turnier-App, Voraussetzungen](../managers/tournament-app.md#voraussetzungen).
 
+!!! warning "Das Passwort sofort notieren"
+    Der Befehl ist **nicht wiederholbar**: ein zweiter Lauf mit derselben Adresse bricht mit
+    „Benutzer … gibt es schon — nichts geändert“ ab und zeigt **kein** neues Passwort
+    (`lib/local_accounts.rb:34`). Läuft der Server mit `smtp_enabled: false`, gibt es auch kein
+    „Passwort vergessen“ per E-Mail.
+
+    **Wenn das Passwort verloren ist:** denselben Befehl mit einer **anderen** E-Mail-Adresse
+    aufrufen — so entsteht ein zweiter Administrator, der den ersten in der Benutzerverwaltung
+    korrigieren oder löschen kann.
+
 Was man dabei wissen muss:
 
 - **Schritt 2** lädt den Regionsdump der Region per HTTPS, prüft ihn gegen seine Prüfsumme und spielt ihn als
-  `<szenario>_development` ein. Der Dump enthält keine Benutzer. Das Scoreboard-Konto legt der Schritt selbst
-  an, der erste Admin kommt nach dem Deploy (siehe oben). Die ~30 s sind gemessen mit schon installierten
+  `<szenario>_development` ein. Der Dump enthält keine Benutzer. Das **Scoreboard-Konto** legt der Schritt selbst
+  an — das ist das Konto, unter dem die Anzeigegeräte am Tisch arbeiten, ohne dass sich jemand anmelden muss;
+  seine Zugangsdaten braucht niemand von Hand. Der erste Admin kommt nach dem Deploy (siehe oben). Die ~30 s sind gemessen mit schon installierten
   Abhängigkeiten; beim ersten Lauf auf einem Admin-Rechner installiert der Schritt sie vorher. Ohne
   `region_dump` in der `secrets.yml` nimmt er den
   [Betreiber-Weg](installation-overview.md#betreiber-weg) per SSH zur Authority.
@@ -223,6 +294,19 @@ Von der Kommandozeile (der Browser-User-Agent ist nötig, falls der nginx-Bot-Bl
 ```bash
 curl -s -o /dev/null -w "%{http_code}\n" -A "Mozilla/5.0" http://carambus-pbv.local:3131/
 ```
+
+#### Sind die Vereinsdaten angekommen?
+
+Die Dienste können laufen und die Datenbank trotzdem die falsche oder gar keine Region
+enthalten. Deshalb zusätzlich inhaltlich prüfen — im Browser:
+
+- `http://<name>.local:3131/clubs` zeigt die Vereine **der eigenen Region**
+- `http://<name>.local:3131/locations` enthält den eigenen Spielort
+- Auf der Startseite steht der eigene Verein, nicht der aus der Beispiel-`config.yml`
+
+Steht dort ein fremder Verein, stimmen `location_id`/`club_id`/`region_id` in der `config.yml`
+nicht (siehe Schritt 3.1) — die Datenbank muss dann mit korrigierter Konfiguration neu
+eingespielt werden.
 
 ### 4.2 Scoreboard am Pi
 

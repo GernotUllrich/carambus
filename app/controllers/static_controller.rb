@@ -54,9 +54,14 @@ class StaticController < ApplicationController
       return
     end
 
-    # Security: Only allow updates from local network
-    if remote_request? && !current_user&.admin?
-      redirect_to repo_version_path, alert: "Update is only available from local network (request from: #{request.remote_ip})"
+    # Plan 21-06: Hier stand `if remote_request? && !current_user&.admin?` — Admin wurde also nur
+    # verlangt, wenn die Anfrage von AUSSEN kam. Im Vereins-WLAN ist `remote_request?` falsch
+    # (local_ip?), dort genuegte die blosse Anwesenheit, um einen Deploy auszuloesen: die
+    # Netzwerk-Herkunft zaehlte als Berechtigung. Jetzt dasselbe Muster wie der Nachbar
+    # `sync_data` auf derselben Seite — Herkunft entscheidet nicht mehr, die Rolle entscheidet.
+    unless current_user&.admin?
+      redirect_to repo_version_path, alert: t("static.update_version.forbidden",
+        default: "Nur für Administratoren.")
       return
     end
 
@@ -145,7 +150,7 @@ class StaticController < ApplicationController
 
     # region_id wie im Cron aus dem Kontext ableiten (nil-sicher: ein Full-Mirror ohne Kontext
     # zieht ungefiltert). EBC/context=TBV → Region 16.
-    region_id = Region.find_by_shortname(Carambus.config.context)&.id
+    region_id = Version.context_region_id
     args = region_id.present? ? {region_id: region_id} : {}
 
     prev = Setting.key_get_value("last_version_id").to_i

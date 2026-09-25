@@ -27,6 +27,8 @@ class User < ApplicationRecord
   # D-34-5: Lokale User<->Turnier-Zuordnungen (UserTournament, ApiProtector).
   has_many :user_tournaments, dependent: :destroy
   has_many :led_tournaments, through: :user_tournaments, source: :tournament
+  # Plan 20-02: Begegnungsleiter-Zuordnungen (UserParty, lokal).
+  has_many :user_parties, dependent: :destroy
 
   # D-35-1: User↔Player-Verknüpfung (users.player_id existierte als toter FK; hier reaktiviert).
   belongs_to :player, optional: true

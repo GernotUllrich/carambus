@@ -39,7 +39,7 @@
     
     <%- if is_final_mode %>
       <!-- Final Result Header - prominent display -->
-      <div class="bg-gradient-to-r from-primary-600 via-gray-800 to-green-600 text-white px-6 py-4 rounded-t-lg">
+      <div class="bg-gradient-to-r from-primary-600 via-gray-800 to-success-600 text-white px-6 py-4 rounded-t-lg">
         <div class="text-center mb-2">
           <h2 class="text-2xl font-bold">🏆 <%= t("table_monitor.protocol.final_title") %></h2>
           <div class="text-sm opacity-80 mt-1">
@@ -136,15 +136,15 @@
             <tr>
               <th class="py-2 px-2 text-center text-xs font-semibold text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-700">#</th>
               <th colspan="2" class="py-2 px-4 text-center text-sm font-semibold text-primary-700 dark:text-primary-300 bg-primary-100 dark:bg-primary-900 dark:bg-opacity-30"><%= history[:player_a][:shortname] || history[:player_a][:name] %></th>
-              <th colspan="2" class="py-2 px-4 text-center text-sm font-semibold text-green-700 dark:text-green-300 bg-green-100 dark:bg-green-900 dark:bg-opacity-30"><%= history[:player_b][:shortname] || history[:player_b][:name] %></th>
+              <th colspan="2" class="py-2 px-4 text-center text-sm font-semibold text-success-700 dark:text-success-300 bg-success-100 dark:bg-success-900 dark:bg-opacity-30"><%= history[:player_b][:shortname] || history[:player_b][:name] %></th>
               <th class="py-2 px-2 text-center text-xs font-semibold text-gray-700 dark:text-gray-300"></th>
             </tr>
             <tr>
               <th class="py-2 px-2 text-center text-xs text-gray-600 dark:text-gray-400 bg-gray-200 dark:bg-gray-700"><%= t("table_monitor.inning_abbr") %>.</th>
               <th class="py-2 px-4 text-center text-xs text-gray-600 dark:text-gray-400 bg-primary-50 dark:bg-primary-900 dark:bg-opacity-20"><%= t("table_monitor.protocol.points") %></th>
               <th class="py-2 px-4 text-center text-xs text-gray-600 dark:text-gray-400 bg-primary-50 dark:bg-primary-900 dark:bg-opacity-20">Total</th>
-              <th class="py-2 px-4 text-center text-xs text-gray-600 dark:text-gray-400 bg-green-50 dark:bg-green-900 dark:bg-opacity-20"><%= t("table_monitor.protocol.points") %></th>
-              <th class="py-2 px-4 text-center text-xs text-gray-600 dark:text-gray-400 bg-green-50 dark:bg-green-900 dark:bg-opacity-20">Total</th>
+              <th class="py-2 px-4 text-center text-xs text-gray-600 dark:text-gray-400 bg-success-50 dark:bg-success-900 dark:bg-opacity-20"><%= t("table_monitor.protocol.points") %></th>
+              <th class="py-2 px-4 text-center text-xs text-gray-600 dark:text-gray-400 bg-success-50 dark:bg-success-900 dark:bg-opacity-20">Total</th>
               <th class="py-2 px-2 text-center text-xs text-gray-600 dark:text-gray-400"></th>
             </tr>
           </thead>
@@ -216,9 +216,9 @@
                 </label>
                 <label class="flex items-start gap-2 cursor-pointer">
                   <input type="radio" name="tiebreak_winner" value="playerb" required
-                         class="w-5 h-5 mt-0.5 text-green-600 focus:ring-green-500">
+                         class="w-5 h-5 mt-0.5 text-success-600 focus:ring-success-500">
                   <span class="flex flex-col">
-                    <span class="text-base font-semibold text-green-900 dark:text-green-200">
+                    <span class="text-base font-semibold text-success-900 dark:text-success-200">
                       <%= t("table_monitor.tiebreak.winner_label", role: history[:player_b][:shortname] || history[:player_b][:name]) %>
                     </span>
                     <%- if (ext_b = table_monitor.tiebreak_extension_goal("playerb")) %>
@@ -234,11 +234,46 @@
         <%- end %>
         <!-- Final Mode Actions - Confirm Result -->
         <div class="flex gap-3">
+          <%# Plan 27-01: Der Rueckweg ins Spiel.
+
+              ⚠️ NICHT auf `table-monitor#undo` verdrahten. Jener Reflex ruft
+              `TableMonitor#undo` (table_monitor.rb:1482) — eine eigene Methode, die das
+              gleichnamige AASM-Ereignis UEBERSCHATTET und die letzte EINGABE zuruecknimmt.
+              Am Display belegt (2026-09-23): der Zustand blieb set_over, playera.result fiel
+              von 21 auf 20, und die before_save-Invariante zwang den Editor sofort zurueck.
+              `GameProtocolReflex#back_to_game` feuert stattdessen `aasm.fire!(:undo)`.
+
+              Nur fuer inning-basierte Spiele: bei Satzspielen schreibt
+              result_recorder.rb:477-480 beim Satzende zusaetzlich perform_save_current_set
+              nach data["sets"] — ein Zurueck waere dort nicht folgenlos (eigene Frage).
+
+              ⚠️ UNBEDINGT rendern, nicht an eine Bedingung ueber das Ergebnis knuepfen.
+              Betreiber-Festlegung 2026-09-23: "Auch wenn das Spiel mit dem Ergebnis
+              abgeschlossen waere." Der gemeldete Fall war genau einer, in dem das Ergebnis
+              (30 = Ballziel) das Spiel regulaer beendet und trotzdem falsch war.
+              Test T5 haelt das fest.
+
+              Links neben dem Druck-Knopf, NICHT neben "Ergebnis bestaetigen" — "weiter" und
+              "zurueck" duerfen am Touch-Display nicht nebeneinander liegen. %>
+          <%- unless is_simple_set_game %>
+            <button class="btn btn-secondary px-6 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-semibold transition"
+                    data-reflex="click->GameProtocolReflex#back_to_game"
+                    data-id="<%= table_monitor.id %>">
+              ↩ <%= t("table_monitor.protocol.back_to_game") %>
+            </button>
+          <%- end %>
           <button class="btn btn-secondary px-6 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-semibold transition"
                   onclick="window.open('<%= print_protocol_table_monitor_path(table_monitor, format: :pdf) %>', '_blank')">
             📄 <%= t("table_monitor.protocol.print") %>
           </button>
         </div>
+        <%# Phase 25: der Ausgang in Worten AUF dem Knopf. Der Sieger kommt aus den
+            bereits berechneten winner_a/winner_b (Z. 25-26); sind beide false, ist es
+            ein Unentschieden — denselben Fall behandelt der Kopf des Modals schon heute.
+            Beim Stechen ist die Punktzahl per Definition gleich, dort steht also
+            "Unentschieden" — das ist der Grund, warum darueber ein Sieger gewaehlt wird. %>
+        <%- winner_hist = winner_a ? history[:player_a] : (winner_b ? history[:player_b] : nil) %>
+        <%- verdict = winner_hist ? t("table_monitor.protocol.winner_label", name: winner_hist[:shortname] || winner_hist[:name]) : t("table_monitor.protocol.draw") %>
         <div class="flex gap-3">
           <%- if is_tiebreak_choice %>
             <%# Phase 38.7 Plan 13 (Gap-05): plain type=submit button — no
@@ -249,14 +284,22 @@
                 submit, so an empty pick is blocked client-side. %>
             <button type="submit"
                     form="tiebreak-form-<%= table_monitor.id %>"
-                    class="btn btn-success px-8 py-3 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg font-bold text-lg transition shadow-lg">
-              ✓ <%= t("table_monitor.tiebreak.submit_label") %>
+                    class="btn btn-success px-12 py-4 bg-success-600 hover:bg-success-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg font-bold transition shadow-lg">
+              <span class="flex flex-col items-center leading-tight">
+                <span class="text-base font-semibold">✓ <%= t("table_monitor.tiebreak.submit_label") %></span>
+                <span class="text-4xl font-bold"><%= result_a %> : <%= result_b %></span>
+                <span class="text-base font-semibold"><%= verdict %></span>
+              </span>
             </button>
           <%- else %>
-            <button class="btn btn-success px-8 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-bold text-lg transition shadow-lg"
+            <button class="btn btn-success px-12 py-4 bg-success-600 hover:bg-success-700 text-white rounded-lg font-bold transition shadow-lg"
                     data-reflex="click->GameProtocolReflex#confirm_result"
                     data-id="<%= table_monitor.id %>">
-              ✓ <%= t("table_monitor.protocol.confirm_result") %>
+              <span class="flex flex-col items-center leading-tight">
+                <span class="text-base font-semibold">✓ <%= t("table_monitor.protocol.confirm_result") %></span>
+                <span class="text-4xl font-bold"><%= result_a %> : <%= result_b %></span>
+                <span class="text-base font-semibold"><%= verdict %></span>
+              </span>
             </button>
           <%- end %>
         </div>
@@ -264,7 +307,7 @@
         <!-- Edit Mode Actions -->
         <div class="flex gap-3"></div>
         <div class="flex gap-3">
-          <button class="btn btn-danger px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold transition"
+          <button class="btn btn-danger px-6 py-2 bg-danger-600 hover:bg-danger-700 text-white rounded-lg font-semibold transition"
                   data-reflex="click->GameProtocolReflex#close_protocol"
                   data-id="<%= table_monitor.id %>">
             <%= t("table_monitor.protocol.close") %>

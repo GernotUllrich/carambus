@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "open3"
+
 # AI-powered documentation search service
 # Searches through MkDocs documentation using ripgrep and provides AI-generated answers
 #
@@ -10,11 +12,18 @@ class AiDocsService < ApplicationService
   MAX_CONTEXT_LENGTH = 8000 # characters to send to Claude
   MAX_DOCS = 5 # Maximum number of doc files to include
 
+  # Plan 21-04: Das Locale kommt aus params[:locale] und steuerte ungeprueft das
+  # Dateimuster der Suche. Es waehlt jetzt nur noch aus Bekanntem aus, statt nach
+  # dem Einsetzen geprueft zu werden - dieselbe Linie wie die Entscheidung vom
+  # 2026-09-14 zum Einschleusen ueber Parameter.
+  LOCALES = %w[de en].freeze
+  DEFAULT_LOCALE = "de"
+
   def initialize(options = {})
     super()
     @query = options[:query]&.strip
     @user = options[:user]
-    @locale = options[:locale] || "de"
+    @locale = LOCALES.include?(options[:locale].to_s) ? options[:locale].to_s : DEFAULT_LOCALE
     @client = Anthropic::Client.new(api_key: Carambus.anthropic_api_key)
   end
 
@@ -66,14 +75,16 @@ class AiDocsService < ApplicationService
     all_matches = {}
 
     keywords.each do |keyword|
-      # Escape for shell
-      safe_keyword = keyword.gsub(/['\\]/, '\\\\\&')
-
+      # Plan 21-04: Hier stand `keyword.gsub(/['\\]/, ...)` - der Versuch, das Suchwort
+      # fuer die Shell zu maskieren. Er trug nicht (innerhalb einfacher Anfuehrungszeichen
+      # ist der Backslash literal, \' beendet die Quotierung) und waere jetzt schaedlich:
+      # der Backslash landete als Teil des Suchworts im Argument. Seit der Umstellung auf
+      # eine Argumentliste ist keine Shell mehr beteiligt.
       # Try ripgrep first, fall back to grep if not available
       if ripgrep_available?
-        search_with_ripgrep(safe_keyword, docs_path, all_matches)
+        search_with_ripgrep(keyword, docs_path, all_matches)
       else
-        search_with_grep(safe_keyword, docs_path, all_matches)
+        search_with_grep(keyword, docs_path, all_matches)
       end
     end
 
@@ -92,7 +103,14 @@ class AiDocsService < ApplicationService
     # Check if ripgrep is installed (cache result)
     return @ripgrep_available unless @ripgrep_available.nil?
 
-    @ripgrep_available = system("which rg > /dev/null 2>&1")
+    # Plan 21-04: enthielt keine Benutzereingabe, wird aber mitgezogen - eine
+    # Argumentliste statt eines Kommando-Strings ist hier dieselbe Zeile Aufwand.
+    @ripgrep_available = begin
+      _out, _err, status = Open3.capture3("which", "rg")
+      status.success?
+    rescue Errno::ENOENT
+      false
+    end
 
     if @ripgrep_available
       Rails.logger.info "✓ Using ripgrep for docs search"
@@ -104,23 +122,39 @@ class AiDocsService < ApplicationService
   end
 
   def search_with_ripgrep(keyword, docs_path, matches_by_file)
-    # Use ripgrep with JSON output for better parsing
-    # Search only for files with the correct locale extension
-    cmd = "rg -i '#{keyword}' #{docs_path} -g '*.#{@locale}.md' -A 3 -B 1 --json 2>/dev/null"
-    output = `#{cmd}`
+    # Plan 21-04: Argumentliste statt Kommandozeile - hier ist keine Shell mehr
+    # beteiligt, das Suchwort kann also nichts starten. -F sucht es als Text und
+    # nicht als regulaeren Ausdruck, wie es die Maskierung vorher (untauglich) meinte.
+    output, = capture_search("rg", "-i", "-F", keyword, docs_path.to_s,
+      "-g", "*.#{@locale}.md", "-A", "3", "-B", "1", "--json")
     return if output.blank?
 
     parse_ripgrep_output(output, matches_by_file)
   end
 
   def search_with_grep(keyword, docs_path, matches_by_file)
-    # Fallback to grep (available everywhere)
-    # Search only for files with the correct locale extension
-    cmd = "grep -rin -A 3 -B 1 --include='*.#{@locale}.md' '#{keyword}' #{docs_path} 2>/dev/null"
-    output = `#{cmd}`
+    # Fallback to grep (available everywhere) - ebenfalls ohne Shell, siehe oben.
+    # -F entspricht dem -i -n -r davor: fester Text statt Regex.
+    output, = capture_search("grep", "-rinF", "-A", "3", "-B", "1",
+      "--include=*.#{@locale}.md", keyword, docs_path.to_s)
     return if output.blank?
 
     parse_grep_output(output, matches_by_file)
+  end
+
+  # Startet den Suchprozess OHNE Shell. Rueckgabe wie gehabt: bei "nichts gefunden"
+  # liefern rg und grep Exit 1 und eine leere Ausgabe - die Aufrufer pruefen weiter
+  # auf `output.blank?`. Der Status wird deshalb bewusst NICHT zur Fehlerbedingung
+  # gemacht, sonst aendert sich das Verhalten gegenueber dem alten `2>/dev/null`.
+  # stderr wird verworfen, genau wie vorher.
+  def capture_search(*args)
+    out, _err, _status = Open3.capture3(*args)
+    [out, nil, nil]
+  rescue Errno::ENOENT => e
+    # Werkzeug nicht vorhanden - vorher lieferte die Shell hier still eine leere
+    # Ausgabe. Verhalten beibehalten, aber sichtbar machen.
+    Rails.logger.warn "AiDocsService: #{args.first} nicht gefunden (#{e.message})"
+    ["", nil, nil]
   end
 
   def extract_keywords(query)

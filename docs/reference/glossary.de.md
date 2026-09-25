@@ -178,20 +178,35 @@ Die **[ClubCloud](https://club-cloud.de/)** ist eine webbasierte Verwaltungssoft
 
 ---
 
-### API Server (Zentraler Server)
-Der **API Server** ist die zentrale Datenquelle für alle Carambus-Installationen.
+### API Server (Zentraler Server) — auch **Authority** genannt
+Der **API Server** ist die zentrale Datenquelle für alle Carambus-Installationen. In der
+Installations- und Betriebsdokumentation heißt er meist **Authority**; beide Begriffe meinen
+dasselbe.
 
 **Hauptaufgaben:**
 - **Scraping:** Lädt Daten von ClubCloud und anderen externen Quellen
 - **Zentrale Datenhaltung:** Speichert **alle** Daten aus **allen** Regionen
 - **Synchronisation:** Verteilt Daten an Local Servers (gefiltert nach Region)
 
-**Beispiel:** carambus.de
+**Beispiel:** `api.carambus.de` — die Authority für ganz Deutschland
+(`config/carambus.yml:3`). **Nicht zu verwechseln mit `carambus.de`:** das ist ein öffentlicher
+*Local Server*, der seine Daten selbst von `api.carambus.de` bezieht
+(siehe [Server-Architektur](../administrators/server-architecture.md)).
 
 **Datenquelle:** Scraping von ClubCloud-Instanzen (siehe [ClubCloud-Integration](../managers/clubcloud-integration.md))
 
-### Local Server (Regionaler/Vereins-Server)
+### Local Server (Regionaler/Vereins-Server) — auch **Vereinsserver** oder **Region Server**
 Ein **Local Server** ist eine Carambus-Installation für einen spezifischen Standort.
+
+**Zwei Ausprägungen, beide mit `cap_role: local` in der Szenario-Konfiguration:**
+
+| Begriff | Wer betreibt ihn | Wo steht er |
+|---|---|---|
+| **Vereinsserver** | ein einzelner Verein | meist ein Raspberry Pi im Vereinslokal |
+| **Region Server** | ein Landesverband für seine Vereine | gehostet (VPS/Cloud) |
+
+Die Installationsdokumentation benutzt durchgehend „Vereinsserver" und „Region Server";
+„Local Server" ist derselbe Gegenstand aus technischer Sicht.
 
 **Hauptaufgaben:**
 - **Lokale Spielverwaltung:** Turniere, Scoreboards, Spieltage
@@ -204,6 +219,36 @@ Ein **Local Server** ist eine Carambus-Installation für einen spezifischen Stan
 - ✅ Kleinere Datenbank (nur eigene Region)
 
 **Beispiel:** Raspberry Pi im BC Hamburg Vereinslokal
+
+### Regionsdump
+Ein **Regionsdump** ist ein von der Authority vorbereiteter Datenbank-Auszug **einer einzelnen
+Region** — die Erstbefüllung eines neuen Vereins- oder Region Servers.
+
+**Was drin ist:** Vereine, Spieler, Ligen, Turniere und Spielorte der Region.
+**Was nicht drin ist:** Benutzerkonten, Zugangsdaten, PaperTrail-Versionen, Sitzungen — der
+Dump ist bereinigt. Das Anmeldekonto für die Scoreboards und der erste Administrator entstehen
+deshalb **lokal** beim Einspielen.
+
+**Woher:** Die Authority baut ihn nächtlich je Region. Ein Verein lädt ihn per HTTPS herunter
+und braucht dafür **Login und Passwort seiner Region, einmalig beim Betreiber anzufragen** —
+keinen SSH-Zugang zur Authority.
+
+**Siehe:** [Regionsdumps](../administrators/region-dumps.md)
+
+---
+
+### Betreiber (von Carambus)
+Der **Betreiber** ist, wer die Authority `api.carambus.de` betreibt — heute ein
+Einzelentwickler-Projekt, kein Unternehmen und kein Verband.
+
+Ein Verein braucht ihn an drei Stellen: für die **Zugangsdaten zum Regionsdump**, für die
+beiden **nicht öffentlichen Repositories** `carambus_data` und `ansible`, die die Installation
+voraussetzt, und als Ansprechpartner, wenn Verein oder Spielort auf der Authority noch nicht
+angelegt sind.
+
+**Siehe:** [Installations-Übersicht](../administrators/installation-overview.md#voraussetzungen)
+
+---
 
 ### Local Data (Lokal erstellte Daten)
 **Local Data** sind Daten, die auf einem Local Server erstellt werden (nicht durch Scraping).

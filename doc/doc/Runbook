@@ -68,10 +68,13 @@ production:
   database: carambus_production
   port: 5432
   username: www_data
-  password: toS6E7tARQafHCXz
+  password: "<aus carambus_data/secrets.yml: shared.database_password>"
 
-vi carambus/shared/config/master.key
-bdb689ada581c5cd22726d5641b82ccf
+# Veraltet (Ruby-2.7.2-Zeit): ein gemeinsamer master.key. Seit Plan 18-01 hat JEDER Server
+# eigene Schluessel unter config/credentials/<env>.key, erzeugt mit
+#   rake scenario:generate_credentials[<szenario>,production]
+# und ausgeliefert ueber den Capistrano-linked_dir config/credentials (config/deploy.rb:16).
+# Der Wert gehoert nicht in diese Datei.
 
 ###DEL### echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
 curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
@@ -96,7 +99,7 @@ node -v
 v14.17.2
 
 sudo -u postgres psql
-create user www_data with password 'toS6E7tARQafHCXz';
+create user www_data with password '<aus carambus_data/secrets.yml: shared.database_password>';
 alter role www_data superuser createrole createdb replication;
 
 in /etc/postgresql/11/main/pg_hba.conf:
@@ -520,19 +523,19 @@ default:gernot.ullrich@gmail.com
     Version.where("id < nnnnnn").delete_all
     2- dump api
     pg_dump -Uwww_data carambus_api_production | gzip > carambus_api_production.sql.gz
-    pw: toS6E7tARQafHCXz
+    pw: <aus carambus_data/secrets.yml: shared.database_password>
     3- Übertrabe zum lokalen Server (vorher dump vom lokalen Server)
     ssh bc-wedel
     cd carambus/current
     pg_dump -Uwww_data carambus_production | gzip > carambus_production_bcw.sql.gz
-    pw: toS6E7tARQafHCXz
+    pw: <aus carambus_data/secrets.yml: shared.database_password>
     scp api:~/carambus_api/current/carambus_api_production.sql.gz .
     gunzip carambus_api_production.sql.gz
     4- Lösche records mit id < 50000000 (api data)
     ssh bc_wedel
     /etc/init.d/unicorn_carambus_production stop
     psql -Uwww_data carambus_production
-    pw: toS6E7tARQafHCXz
+    pw: <aus carambus_data/secrets.yml: shared.database_password>
     execute cat ~/carambus/doc/API_DATA_ONLY 
     5-load new api data
     \i carambus_api_production.sql

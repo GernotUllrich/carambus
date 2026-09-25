@@ -92,6 +92,11 @@ or, for individual championships, without the ClubCloud
 the region connect directly to the Authority, not to the region server. Region servers are currently run by the
 Carambus operator.
 
+**How an association gets a region server:** by asking the operator — there is no self-service
+path. There is **no price list and no committed availability**; both are discussed case by case.
+If you need this to be dependable for an association-level decision, settle it up front:
+[contact](index.md#kontakt).
+
 ## Own server or VPS
 
 The operator's servers (Authority, region servers) run on a rented server. As a path for a club this is not
@@ -105,3 +110,15 @@ been checked. If you are interested: [Contact](index.md#kontakt).
 - Hardware: Raspberry Pi, power supply, microSD card, monitor or touch display; one display device for each
   additional table
 - Running costs only for electricity and optional services (such as the Anthropic key for AI search)
+
+**Orders of magnitude** (not quotes — market prices change, and Carambus itself costs nothing):
+
+| Item | Order of magnitude |
+|---|---|
+| Raspberry Pi with power supply and card, one table | ~€150 one-off |
+| Monitor or touch display | depends on the device, not included |
+| Streaming camera per table (optional) | ~€80 one-off |
+| AI search (optional, Anthropic key) | a few cents to a few euros per month, depending on use |
+| VPS instead of a Raspberry Pi (optional) | from ~€8/month |
+
+Details and the streaming variants: [administrator overview](../administrators/index.md).

@@ -64,6 +64,8 @@ class Party < ApplicationRecord
   has_one :party_cc, dependent: :destroy
   has_many :party_games, -> { order("seqno") }
   has_many :seedings, -> { order(position: :asc) }, as: :tournament, dependent: :destroy
+  # Plan 20-02: Begegnungsleiter (lokal, UserParty) — wie UserTournament beim Turnier.
+  has_many :user_parties, dependent: :destroy
 
   serialize :data, coder: JSON, type: Hash
   serialize :remarks, coder: YAML, type: Hash
@@ -176,6 +178,13 @@ class Party < ApplicationRecord
       end
     end
     report
+  end
+
+  # Plan 20-02: Ist `user` eingesetzter Begegnungsleiter? (Vorbild TournamentLeiter#leiter?)
+  def leiter?(user)
+    return false if user.nil?
+
+    user_parties.exists?(user_id: user.id, role: "party_leiter")
   end
 
   def kickoff_switches_with

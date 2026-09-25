@@ -293,6 +293,8 @@ de:
       invalid_theme: Ungültiges Layout Thema
       invalid_locale: Ungültiges Locale Kürzel
       invalid_timezone: Ungültige Zeitzone
+    admin_required: "Diese Aktion dürfen nur angemeldete Vereins- oder System-Admins ausführen."
+    upload_owner_or_admin_required: "Einen Upload ändern oder löschen dürfen nur der Eigentümer und Vereins- oder System-Admins."
     tournament_game_manipulation_blocked: "Spielmanipulationen sind während eines Turniers nicht erlaubt. Bitte verwende das Turnier-Verwaltungssystem."
     tournament_reset_requires_admin: "Das Zurücksetzen eines Turniers ist nur für Club- und System-Administratoren erlaubt."
   game_participation:
@@ -515,6 +517,20 @@ de:
       party: Ligabegegnung
       parties: Ligabegegnungen
   parties:
+    # Plan 20-02 — Rechte an Begegnungen (PartyPolicy)
+    errors:
+      admin_required: "PartyMonitor-Datensätze anlegen, ändern und löschen dürfen nur angemeldete Vereins- oder System-Admins."
+      operate_denied: "Diese Begegnung bedienen dürfen nur der eingesetzte Begegnungsleiter, der zuständige Sportwart und Admins."
+      assign_leiter_denied: "Einen Begegnungsleiter einsetzen dürfen nur der zuständige Sportwart und Admins."
+    leiter:
+      label: Begegnungsleiter
+      blank_option: "– Konto wählen –"
+      assign: Einsetzen
+      remove: Entfernen
+      assigned: "Begegnungsleiter eingesetzt."
+      removed: "Begegnungsleiter entfernt."
+      none: "Kein Begegnungsleiter eingesetzt."
+      invalid_user: "Konto nicht gefunden oder nicht bestätigt."
     index:
       listing_parties: Liste aktueller Ligabegegnungen
     parties: Spieltage
@@ -724,6 +740,8 @@ de:
       region_season: "(%{region}, Saison %{season})"
       help: Wie kann ich dir helfen?
   static:
+    update_version:
+      forbidden: "Nur für Administratoren."
     sync_data:
       button: "🔄 Daten jetzt synchronisieren"
       running: "Synchronisiere …"
@@ -869,6 +887,9 @@ de:
       result: Ergebnis
       in_sets: in Sätzen
       confirm_result: Ergebnis bestätigen
+      winner_label: "Sieger: %{name}"
+      draw: "Unentschieden"
+      back_to_game: "Zurück ins Spiel"
       print: Protokoll drucken
       print_pdf: Protokoll PDF
       close: Schließen

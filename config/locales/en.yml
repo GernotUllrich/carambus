@@ -294,6 +294,8 @@ en:
       invalid_theme: invalid theme
       invalid_locale: invalid locale
       invalid_timezone: invalid timezone
+    admin_required: "Only signed-in club or system admins may perform this action."
+    upload_owner_or_admin_required: "Only the owner and club or system admins may edit or delete an upload."
     tournament_game_manipulation_blocked: "Game manipulations are not allowed during a tournament. Please use the tournament management system."
     tournament_reset_requires_admin: "Resetting a tournament is only allowed for club and system administrators."
   game_participation:
@@ -501,6 +503,20 @@ en:
       party: Party
       parties: Parties
   parties:
+    # Plan 20-02 — permissions on matchdays (PartyPolicy)
+    errors:
+      admin_required: "Only signed-in club or system admins may create, edit or delete party monitor records."
+      operate_denied: "Only the appointed matchday lead, the responsible sports officer and admins may operate this matchday."
+      assign_leiter_denied: "Only the responsible sports officer and admins may appoint a matchday lead."
+    leiter:
+      label: Matchday lead
+      blank_option: "– choose account –"
+      assign: Appoint
+      remove: Remove
+      assigned: "Matchday lead appointed."
+      removed: "Matchday lead removed."
+      none: "No matchday lead appointed."
+      invalid_user: "Account not found or not confirmed."
     index:
       listing_parties: Listing Matchdays
     parties: Matchdays
@@ -712,6 +728,8 @@ en:
       region_season: "(%{region}, season %{season})"
       help: How can I help you?
   static:
+    update_version:
+      forbidden: "Administrators only."
     sync_data:
       button: "🔄 Sync data now"
       running: "Syncing …"
@@ -850,6 +868,9 @@ en:
       result: Result
       in_sets: in sets
       confirm_result: Confirm result
+      winner_label: "Winner: %{name}"
+      draw: "Draw"
+      back_to_game: "Back to game"
       print: Print protocol
       print_pdf: Protocol PDF
       close: Close

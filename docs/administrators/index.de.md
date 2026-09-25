@@ -49,6 +49,11 @@ Option 1.
 - Szenario-Konfiguration in `carambus_data`
 - Carambus per Scenario Management deployen
 
+!!! warning "`carambus_data` und `ansible` sind nicht öffentlich"
+    Beide Repositories sind privat; ein Verein bekommt sie heute nur vom Betreiber, und ohne sie
+    beginnt die Installation nicht. Was woher kommt, steht unter
+    [Die drei Verzeichnisse](raspberry-pi-quickstart.md#die-drei-verzeichnisse).
+
 ➡️ **[Vollständige Installationsanleitung](installation-overview.md)**
 
 **Spezielle Installationen**:
@@ -100,6 +105,10 @@ Option 1.
 - Restore-Prozeduren
 - Disaster Recovery
 
+➡️ **[Sichern und wiederherstellen](server-architecture.md#sichern-und-wiederherstellen)** —
+Ablauf und Rake-Tasks. Das **Einrichten** des automatischen Backups steht in der
+[Wartungs-Checkliste](#wartungs-checkliste).
+
 ### 5. Sicherheit
 
 **System-Härtung** (bei Raspberry Pis per Ansible):
@@ -113,6 +122,9 @@ Option 1.
 - Regelmäßige Security-Updates
 - Starke Passwörter erzwingen
 - Log-Monitoring
+
+➡️ **[Sicherheit im Betrieb](security-operations.md)** — was ein Verein selbst tun muss, wann es
+fällig wird und was die Automatik abdeckt
 
 ### 6. Monitoring & Troubleshooting
 
@@ -128,6 +140,12 @@ Option 1.
 - Nginx-Logs
 - PostgreSQL-Logs
 - Systemd-Logs
+
+!!! note "Keine eigene Anleitung"
+    Für Monitoring gibt es in dieser Dokumentation keine eigene Seite — die Punkte oben sind
+    eine Orientierung, kein Rezept. Die praktisch nötigen Handgriffe stehen im
+    [Troubleshooting-Guide](#troubleshooting-guide) weiter unten und, für den Pi im Netz, unter
+    [Netzwerkstabilität](raspi-network-stability.md).
 
 **Häufige Probleme**:
 - WebSocket-Verbindungen brechen ab
@@ -310,9 +328,23 @@ WRITE=true RESTART=true bin/rails "scenario:upload_credentials[<szenario>]"     
 ### Täglich (automatisiert)
 - ✅ Datenbank-Backup **nur** für die Authority und für die in `STANDALONE_BACKUP_SCENARIOS`
   (`config/schedule.rb`) eingetragenen Standorte (derzeit `carambus_bcw`, Ziel `/mnt/backup`)
-- ⚠️ Für einen neuen Vereins-Pi gibt es **kein automatisches Backup**: das Szenario in
-  `STANDALONE_BACKUP_SCENARIOS` aufnehmen und einen USB-Stick unter `/mnt/backup` einhängen, oder
-  `bin/pg_backup.sh` selbst per Cron einrichten
+- ⚠️ Für einen neuen Vereins-Pi gibt es **kein automatisches Backup** — es muss einmalig
+  eingerichtet werden. Der Ablauf in drei Schritten:
+
+    1. **USB-Stick am Pi einhängen**, dauerhaft unter `/mnt/backup` (Eintrag in `/etc/fstab`,
+       Option `nofail`, damit der Pi auch ohne Stick bootet).
+    2. **Das eigene Szenario eintragen** — im Carambus-Checkout auf dem **Admin-Rechner**, in
+       `config/schedule.rb` (die Zeile `STANDALONE_BACKUP_SCENARIOS = %w[carambus_bcw]`) um den
+       eigenen `basename` ergänzen. Die Änderung wirkt erst nach dem nächsten Deploy, weil
+       daraus die Crontab auf dem Pi erzeugt wird.
+    3. Danach läuft `bin/pg_backup.sh` täglich um 1:20 Uhr nach `/mnt/backup`.
+
+    !!! warning "Warum der eingehängte Stick zählt"
+        Fehlt der Stick, existiert `/mnt/backup` wegen `nofail` trotzdem — als leeres
+        Verzeichnis **auf der SD-Karte**. Das Backup sicherte dann genau dorthin, wovor es
+        schützen soll, und meldete Erfolg. Dagegen steht `BACKUP_REQUIRE_MOUNT=1`
+        (`config/schedule.rb:240-250`): ohne echten Mount bricht der Lauf ab, statt still zu
+        lügen.
 
 ### Wöchentlich
 - 🔍 Backup-Integrität prüfen

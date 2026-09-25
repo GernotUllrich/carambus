@@ -830,4 +830,63 @@ class VersionTest < ActiveSupport::TestCase
 
     assert_equal 0, applied
   end
+
+  # === Region-Filter aus dem Kontext (2026-09-19) ===
+  # Prod carambus_nbv hat `context: nbv` klein; die exakte Suche fand keine Region, der Sync zog
+  # ungefiltert. Die Reload-Buttons gaben den Filter nie mit.
+
+  test "context_region_id loest den Kontext ohne Beachtung der Gross-/Kleinschreibung auf" do
+    nbv = regions(:nbv)
+    %w[nbv NBV Nbv].each do |ctx|
+      with_authority_url(context: ctx) { assert_equal nbv.id, Version.context_region_id, ctx }
+    end
+  end
+
+  test "context_region_id ist nil ohne Kontext und ohne passende Region" do
+    [nil, "", "API"].each do |ctx|
+      with_authority_url(context: ctx) { assert_nil Version.context_region_id, ctx.inspect }
+    end
+  end
+
+  test "update_from_carambus_api filtert ohne region_id nach der Region des Kontexts" do
+    stub = stub_request(:get, GET_UPDATES_URL_PATTERN)
+      .with(query: hash_including("region_id" => regions(:nbv).id.to_s))
+      .to_return(status: 200, body: "[]", headers: {"Content-Type" => "application/json"})
+
+    with_authority_url(context: "nbv") { Version.update_from_carambus_api(update_league_from_cc: 1) }
+
+    assert_requested stub
+  end
+
+  test "update_from_carambus_api: ein uebergebener region_id geht dem Kontext vor" do
+    stub = stub_request(:get, GET_UPDATES_URL_PATTERN)
+      .with(query: hash_including("region_id" => "4711"))
+      .to_return(status: 200, body: "[]", headers: {"Content-Type" => "application/json"})
+
+    with_authority_url(context: "nbv") { Version.update_from_carambus_api(region_id: 4711) }
+
+    assert_requested stub
+  end
+
+  test "update_from_carambus_api zieht ohne Kontext weiter ungefiltert (Full-Mirror)" do
+    stub_request(:get, GET_UPDATES_URL_PATTERN)
+      .to_return(status: 200, body: "[]", headers: {"Content-Type" => "application/json"})
+
+    with_authority_url(context: nil) { Version.update_from_carambus_api({}) }
+
+    assert_requested(:get, GET_UPDATES_URL_PATTERN) { |req| !req.uri.query.to_s.include?("region_id=") }
+  end
+
+  test "sync_status leitet die Region auch aus einem kleingeschriebenen Kontext ab" do
+    Setting.key_set_value("last_version_id", 5000)
+    stub = stub_request(:get, SYNC_STATUS_URL_PATTERN)
+      .with(query: hash_including("region_id" => regions(:nbv).id.to_s))
+      .to_return(status: 200, body: {"last_version" => 5000, "region_id" => regions(:nbv).id}.to_json,
+        headers: {"Content-Type" => "application/json"})
+
+    status = with_authority_url(context: "nbv") { Version.sync_status }
+
+    assert_requested stub
+    assert_equal :current, status[:state]
+  end
 end

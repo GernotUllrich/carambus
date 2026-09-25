@@ -37,6 +37,21 @@ append :linked_dirs, "public/uebersichten"
 # gepflegt und ueberleben so jeden Deploy. Bleibt es leer, liefert nginx 404 — harmlos.
 append :linked_dirs, "public/wissenswertes"
 
+# public/docs: die gebaute mkdocs-Dokumentation. Sie wird NICHT mitdeployt und liegt seit
+# 2026-09-24 nicht mehr im Repo — sie war dort 552 getrackte Dateien (59 MB) gebauter Output
+# und erzeugte ~327 dauerhafte Arbeitsbaum-Aenderungen. Der 3,7-MB-Volltextindex
+# search/search_index.json hat am 2026-09-20 ausserdem ein bereits entferntes Passwort wieder
+# in den Index getragen.
+#
+# Befuellt wird das Verzeichnis von `docs:upload` (lib/capistrano/tasks/docs.rake), das nach
+# deploy:symlink:linked_dirs laeuft: lokal bauen, packen, hochladen, entpacken. Auf dem Server
+# gebaut wird NICHT — die Raspberry Pis haben kein mkdocs.
+#
+# Ausgeliefert wird ueber Rails (`docs#show` liest Rails.root/public/docs/<pfad>), nicht ueber
+# nginx. Bleibt das Verzeichnis leer, liefert /docs 404 — harmlos, aber genau das ist der
+# Zustand bis zum ersten `docs:upload`.
+append :linked_dirs, "public/docs"
+
 # tmp/reports: Auswertungen, die auf dem Server ERZEUGT werden (`rake training:report[...,csv]`).
 #
 # Wie uebersichten und wissenswertes ein linked_dir: `tmp/` selbst ist NICHT verlinkt (nur
@@ -75,19 +90,26 @@ namespace :deploy do
     # Check if assets have changed - shared helper
     task :check_changes do
       on roles(:app) do
-        # Check if previous release exists
-        previous_release = capture(:ls, "-t", "#{deploy_to}/releases", "2>/dev/null || echo ''").split("\n")[1]
+        # Vergleichsbasis ist das LIVE-Release (Ziel von `current`), nicht das zuletzt
+        # angelegte Verzeichnis in releases/: ein abgebrochener Deploy hinterlaesst dort ein
+        # Release OHNE kompilierte Assets. Am 2026-09-25 (carambus_api) war genau so eins die
+        # Vergleichsbasis -> "keine Aenderung" -> Release ohne public/assets -> jede Seite 500.
+        # Nur ein Live-Release MIT Sprockets-Manifest taugt als Quelle fuer den Skip-Fall.
+        previous_path = capture(:readlink, "-e", current_path, "2>/dev/null || true").strip
+        live_has_assets = !previous_path.empty? &&
+          test("ls #{previous_path}/public/assets/.sprockets-manifest-*.json >/dev/null 2>&1")
 
-        if previous_release.nil? || previous_release.empty? || ENV['FORCE_ASSETS']
+        if !live_has_assets || ENV['FORCE_ASSETS']
           set :assets_changed, true
           if ENV['FORCE_ASSETS']
             info "🔨 FORCE_ASSETS=1 - will compile assets"
-          else
+          elsif previous_path.empty?
             info "📦 First deployment - will compile assets"
+          else
+            info "📦 Live release has no compiled assets - will compile assets"
           end
         else
-          # Compare asset-relevant files between current and previous release
-          previous_path = "#{deploy_to}/releases/#{previous_release}"
+          set :assets_source, previous_path
 
           # Check for differences in asset-related files
           assets_differ = false
@@ -104,8 +126,10 @@ namespace :deploy do
 
           asset_paths.each do |path|
             if test("[ -e #{release_path}/#{path} ]") && test("[ -e #{previous_path}/#{path} ]")
-              # Both exist, check for differences
-              if test("! diff -rq #{release_path}/#{path} #{previous_path}/#{path} >/dev/null 2>&1")
+              # Both exist, check for differences. `-x builds`: app/assets/builds ist
+              # Build-Output (gitignored) und liegt nur im gebauten Live-Release — ohne den
+              # Ausschluss meldete der Vergleich immer eine Aenderung.
+              if test("! diff -rq -x builds #{release_path}/#{path} #{previous_path}/#{path} >/dev/null 2>&1")
                 assets_differ = true
                 break
               end
@@ -184,7 +208,13 @@ namespace :deploy do
               info "Running Rails asset precompilation..."
               execute :bundle, :exec, :rails, "assets:precompile"
             else
-              info "Skipping Rails asset precompilation"
+              # public/assets ist kein linked_dir: ohne Kopie haette das neue Release gar
+              # keine Assets. Quelle ist das Live-Release aus check_changes.
+              source = fetch(:assets_source)
+              info "Skipping Rails asset precompilation - copying assets from #{source}"
+              execute :cp, "-a", "#{source}/public/assets", "#{release_path}/public/"
+              execute :mkdir, "-p", "#{release_path}/app/assets/builds"
+              execute :cp, "-a", "#{source}/app/assets/builds/.", "#{release_path}/app/assets/builds/"
             end
           end
         end

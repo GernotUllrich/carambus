@@ -122,6 +122,21 @@ jobs:
     - name: UI-Guardrail (keine neuen hartkodierten Farb-Hex)
       run: ruby bin/ui-hex-guard
 
+    # Hartes Gate (Plan 21-02): kein verbranntes Geheimnis im getrackten Baum.
+    # Prueft jede getrackte Datei gegen die SHA256-Summen aus lib/credential_denylist.yml.
+    #
+    # Warum ZUSAETZLICH zum pre-commit-Hook (.overcommit.yml): ein Geheimnis kann ohne
+    # Commit in den Baum geraten. In 21-01 baute der docs-rebuild-Listener public/docs
+    # genau waehrend eines Branch-Wechsels neu und schrieb das www_data-Passwort wieder
+    # hinein — der Hook haette das erst beim naechsten Commit gesehen, die CI sieht den
+    # ganzen Baum. Und der Hook greift nur dort, wo overcommit installiert ist; die CI
+    # greift immer.
+    #
+    # Braucht weder Bundle noch Gems, nur Ruby + git — deshalb VOR dem (nicht
+    # blockierenden) Install-Schritt weiter unten.
+    - name: Keine verbrannten Geheimnisse im Baum
+      run: ruby bin/burned-secret-guard
+
     # Hartes Gate (Plan 17-04): Die Turnier-App liegt zweimal im Repo — Quelle unter
     # tournament_app/, ausgeliefert unter public/app/. Weichen beide ab, ist ein Build
     # vergessen worden. Node ist auf ubuntu-latest vorinstalliert.
@@ -134,22 +149,38 @@ jobs:
       run: gem install --no-document brakeman -v 7.1.0 && gem install --no-document standard -v 1.51.1
       continue-on-error: true
     
-    # Ab hier bewusst NICHT blockierend — beides ist Altlast, kein fehlendes Signal:
-    #   standardrb: mehrere hundert Verstoesse im Bestandscode. Erst nach einem
-    #     eigenen Aufraeum-Durchlauf (standardrb --fix) als Gate sinnvoll.
-    #   brakeman:   liefert seit 2026-09-09 wieder ein echtes Urteil (78 Befunde:
-    #     18 High, 27 Medium, 33 Weak). Die Befunde sind noch nicht gesichtet —
-    #     blockierend erst danach, sonst waere die CI nur rot statt aussagekraeftig.
+    # standardrb bleibt bewusst NICHT blockierend: mehrere hundert Verstoesse im
+    # Bestandscode. Erst nach einem eigenen Aufraeum-Durchlauf (standardrb --fix)
+    # als Gate sinnvoll — eine andere Altlast als die Sicherheitsbefunde unten.
     #
     # Lokal crasht brakeman weiterhin, solange 3.2.1 aktiv ist. Ausweg:
-    #   RBENV_VERSION=3.2.2 brakeman --no-pager
+    #   RBENV_VERSION=3.2.2 rbenv exec brakeman _7.1.0_ --no-pager
     # Die frueheren Diagnosen an dieser Stelle waren falsch: es liegt weder an prism
     # (--no-prism crasht ebenso) noch an brakeman (7.1.0 laeuft unter 3.2.2 sauber),
     # sondern am Interpreter 3.2.1. Belege: .paul/phases/13-sicherheitsurteil/
     - name: Run Standard (nicht blockierend)
       run: standardrb --format progress
       continue-on-error: true
-    
-    - name: Run Brakeman (nicht blockierend)
+
+    # Hartes Gate (Plan 21-02): Brakeman blockiert auf jedem High-Befund, der nicht
+    # begruendet in config/brakeman.ignore steht.
+    #
+    # Vorgeschichte: bis 2026-09-20 lief brakeman hier mit continue-on-error, weil die
+    # Befunde ungesichtet waren (damals 78: 18 High). Phase 19 hat alle 16 Code-High
+    # geschlossen; ueber blieben genau zwei — beide `Unmaintained Dependency` (Rails 7.2
+    # EOL, Ruby 3.2.1 EOL), in dieser Phase nicht behebbar und deshalb mit Begruendung
+    # in config/brakeman.ignore. Damit ist die alte Begruendung hinfaellig: ein NEUER
+    # High-Befund soll die CI brechen.
+    #
+    # -w3 meldet nur High. config/brakeman.ignore wird automatisch gelesen.
+    # Bewusst OHNE continue-on-error — auch wenn der Install-Schritt oben scheitert und
+    # `brakeman` gar nicht existiert: kein Signal ist kein Gruen.
+    - name: Brakeman-Gate (blockierend, High-Befunde)
+      run: brakeman --no-pager -w3 --exit-on-warn
+
+    # Danach der Vollbericht, damit Medium und Weak im Log sichtbar bleiben (Stand
+    # 2026-09-20: 58 Befunde ohne die zwei ignorierten — 27 Medium, 31 Weak). Ihre
+    # Sichtung ist Plan 21-03; bis dahin informativ, nicht blockierend.
+    - name: Brakeman-Vollbericht (nicht blockierend, Medium/Weak sichtbar)
       run: brakeman --no-pager
       continue-on-error: true

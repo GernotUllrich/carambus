@@ -290,6 +290,32 @@ class TournamentsControllerTest < ActionDispatch::IntegrationTest
     end
   end
 
+  # 2026-09-23: 500 in der Modus-Auswahl, vom Betreiber gemeldet.
+  #
+  # `TournamentPlan.ko_plan(n)` liefert `nil` fuer n < 2 oder n > 64 (tournament_plan.rb:101).
+  # `@alternatives_other_disciplines |= [@ko_plan]` filtert das NICHT — `Array#|=` mit `[nil]`
+  # fuegt nil als ELEMENT ein. Die View iteriert und ruft `alternative.name` darauf
+  # (finalize_modus.html.erb:212). Ein Turnier ohne Meldungen kippt damit sofort.
+  #
+  # Das Fixture `tournaments(:local)` hat 0 Seedings und reproduziert den Fall exakt. Der
+  # Nachbartest oben liess das durchgehen, weil er [200, 302, 500] akzeptiert ("fixture data
+  # gaps") — der 500er war seit jeher DIESER Fehler, nicht eine Luecke in den Fixtures.
+  test "finalize_modus rendert auch ohne Meldungen — kein nil in der Planliste" do
+    Carambus.config.carambus_api_url = "http://local.test"
+    sign_in @club_admin
+
+    assert_equal 0, @tournament.seedings.count,
+      "Vorbedingung: das Fixture-Turnier hat keine Meldungen"
+    assert_nil TournamentPlan.ko_plan(0),
+      "Vorbedingung: ko_plan liefert fuer 0 Teilnehmer nil — das ist der Ausloeser"
+
+    get finalize_modus_tournament_url(@tournament)
+
+    assert_response :success,
+      "Die Modus-Auswahl muss auch ohne Meldungen rendern; ein nil in " \
+      "@alternatives_other_disciplines laesst die View an alternative.name scheitern"
+  end
+
   test "GET define_participants passes ensure_local_server guard when local server" do
     Carambus.config.carambus_api_url = "http://local.test"
     get define_participants_tournament_url(@tournament)

@@ -404,8 +404,12 @@ class TournamentsController < ApplicationController
                                         .where(players: @participant_count).uniq.to_a
       @default_plan = TournamentPlan.default_plan(@participant_count)
       @ko_plan = TournamentPlan.ko_plan(@participant_count)
-      @alternatives_other_disciplines |= [@default_plan]
-      @alternatives_other_disciplines |= [@ko_plan]
+      # `ko_plan` liefert nil fuer weniger als 2 oder mehr als 64 Teilnehmer
+      # (tournament_plan.rb:101). `Array#|=` mit `[nil]` filtert das NICHT, sondern nimmt nil
+      # als ELEMENT auf — die View ruft dann `alternative.name` darauf und faellt mit 500 um
+      # (finalize_modus.html.erb:212, vom Betreiber gemeldet 2026-09-23). Ein Turnier ohne
+      # Meldungen traf das sofort.
+      @alternatives_other_disciplines |= [@default_plan, @ko_plan].compact
       # REMOVED: @groups wird bereits oben korrekt gesetzt (Zeile 189, 194 oder 200)
     end
   end

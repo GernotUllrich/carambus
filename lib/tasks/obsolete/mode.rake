@@ -1559,7 +1559,7 @@ namespace :mode do
         <<: *default
         database: #{production_db}
         username: www-data
-        password: toS6E7tARQafHCXz
+        password: "<aus carambus_data/secrets.yml: shared.database_password>"
         host: localhost
     YAML
     

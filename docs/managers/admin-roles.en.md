@@ -21,11 +21,14 @@ clubs and results. The rights below concern making changes.
 
 - **Sports director (Sportwart)**: applies to the tournaments within their scope, i.e. the venues and disciplines
   assigned to them. If no discipline is assigned, all disciplines apply; "Karambol" covers its sub-disciplines
-  (e.g. Cadre 35/2, three-cushion). Without an assigned venue the persona applies to no tournament.
+  (e.g. Cadre 35/2, three-cushion). Without an assigned venue the persona applies to no tournament. For **league
+  matchdays** only the league's discipline counts, not the venue.
 - **Regional sports director (Landessportwart)**: like the sports director, but for all venues.
 
 **Tournament director** is whoever is entered as tournament director of a tournament. The right applies to that
-tournament.
+tournament. League matchdays have the counterpart: the **matchday lead**. A sports director or admin appoints them
+on the matchday's page; the right applies to that matchday. In the table they are in the "Tournament director"
+column.
 
 ## Who may do what {#matrix}
 
@@ -42,9 +45,20 @@ assignment.
 | Open the tournament monitor, reset a tournament | – | – | – | yes | yes |
 | Edit master data (clubs, players, leagues, teams, **locations**, tables, disciplines, seasons, tournament plans …) | – | – | – | yes | yes |
 | Create, edit, delete, merge locations; add tables to them | – | – | – | yes | yes |
+| Create, edit, delete a club's location assignments, discipline phases and time slots | – | – | – | yes | yes |
+| Operate the scoreboard at the table (start a game, score, protocol) — also without signing in | yes | yes | yes | yes | yes |
+| Edit and delete table monitor records; control actions outside the scoreboard (set balls, advance state, evaluate result) | – | – | – | yes | yes |
+| Appoint or remove the matchday lead of a league matchday | – | – | yes | yes | yes |
+| League matchday: start and operate the party monitor (line-up, rounds, results, closing) | – | yes | yes | yes | yes |
+| Reset the party monitor; create, edit, delete party monitor records | – | – | – | yes | yes |
+| Upload files; edit and delete your own uploads | yes | yes | yes | yes | yes |
+| Edit and delete other accounts' uploads | – | – | – | yes | yes |
 | Reload a club or league from the ClubCloud | – | yes | yes | yes | yes |
 | ClubCloud write actions in the Carambus assistant | – | yes | yes | – | yes |
-| Admin area: users, roles, personas, settings, members' contact data | – | – | – | – | yes |
+| Admin area: users, roles, personas, settings, members' contact data, training database, stream configurations | – | – | – | – | yes |
+
+Deliberately reachable without signing in are only: registering a new account, the players' PIN sign-in and the
+link through which a member sets their own PIN (signed, valid once).
 
 Where a right is missing, the button is greyed out or not shown. Sports directors without an admin role do part of
 this through the Carambus assistant (see [ClubCloud MCP Cloud Quickstart](clubcloud-mcp-cloud-quickstart.md)).

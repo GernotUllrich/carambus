@@ -2,6 +2,7 @@
 
 require "uri"
 require "net/http"
+require "open3"
 # == Schema Information
 #
 # Table name: versions
@@ -131,6 +132,15 @@ class Version < PaperTrail::Version
     end
   end
 
+  # Plan 21-06: Die Antwort der Authority landete ungeprueft in einer Shell-Kommandozeile
+  # (siehe update_carambus). Ein Git-Commit-Hash hat genau eine Form — alles andere wird
+  # verworfen, bevor irgendetwas startet.
+  REVISION_FORMAT = /\A[0-9a-f]{7,40}\z/
+
+  def self.valid_revision?(str)
+    REVISION_FORMAT.match?(str.to_s)
+  end
+
   def self.update_carambus
     url = URI("#{Carambus.config.carambus_api_url}/versions/current_revision")
     Rails.logger.info ">>>>>>>>>>>>>>>> GET #{url} <<<<<<<<<<<<<<<<"
@@ -142,9 +152,19 @@ class Version < PaperTrail::Version
       return
     end
     revision = vers["current_revision"]
+    # Plan 21-06 (Schicht 1): Form pruefen, bevor der Wert irgendwohin geht — analog zur
+    # Behandlung einer ungueltigen API-Antwort zwei Zeilen darueber.
+    unless valid_revision?(revision)
+      Rails.logger.warn("update_carambus: #{url} lieferte keine gültige Revision " \
+                        "(#{revision.inspect}) — übersprungen")
+      return
+    end
     my_revision = `cat #{Rails.root}/REVISION`.strip
     if my_revision != revision
-      result = `REVISION=#{revision} bash -x #{Rails.root}/bin/deploy.sh 2>&1`
+      # Plan 21-06 (Schicht 2): Argumentliste statt Backtick — keine Shell mehr, und der Wert
+      # steht in der UMGEBUNG, nicht in der Kommandozeile. Muster wie 21-04 (AiDocsService).
+      result, _status = Open3.capture2e({"REVISION" => revision},
+        "bash", "-x", Rails.root.join("bin", "deploy.sh").to_s)
       Rails.logger.info(result)
     else
       Rails.logger.info("carambus version is up-to-date (#{revision})")
@@ -246,6 +266,18 @@ class Version < PaperTrail::Version
   end
   private_class_method :fetch_authority_last_version
 
+  # Region dieses Servers aus `Carambus.config.context` — ohne Beachtung der Gross-/Klein-
+  # schreibung, wie die RegionCc-Pfade (`context.upcase`). Frueher suchten die Sync-Stellen
+  # `find_by_shortname(context)` exakt: `context: nbv` (Prod carambus_nbv) loeste nicht auf,
+  # der Server zog ungefiltert und hielt Ligen fremder Regionen (belegt 2026-09-19).
+  # nil ohne Kontext (Full-Mirror wie carambus.de) oder ohne passende Region (Authority "API").
+  def self.context_region_id
+    shortname = Carambus.config.context.to_s.strip
+    return nil if shortname.blank?
+
+    Region.where("UPPER(shortname) = ?", shortname.upcase).pick(:id)
+  end
+
   # Beantwortet die Frage, die die Versionsanzeige stellen sollte: "fehlt mir etwas, das mich
   # betrifft?"
   #
@@ -264,7 +296,7 @@ class Version < PaperTrail::Version
   #
   # Liest nur — kein Cursor wird geschrieben, kein Sync ausgeloest.
   def self.sync_status(region_id = nil)
-    region_id ||= Region.find_by_shortname(Carambus.config.context)&.id
+    region_id ||= context_region_id
     local = Setting.key_get_value("last_version_id").to_i
     base = {local_version: local, region_id: region_id, authority_version: nil, pending: nil}
 
@@ -439,7 +471,14 @@ class Version < PaperTrail::Version
     league_details = opts[:league_details]
     days_ahead = opts[:days_ahead]
     reload_games = opts[:reload_games]
-    # access_token, token_type = Setting.get_carambus_api_token
+    # Sync-Filter: fehlt er, aus dem Kontext ableiten. Die Reload-Buttons (leagues/clubs/regions/
+    # tournaments) und TournamentPreparation::Opener uebergeben keinen und zogen so ungefiltert.
+    filter_region_id = opts[:region_id].presence || context_region_id
+    # Plan 21-03 (2026-09-20): hier stand ein auskommentierter Aufruf von
+    # Setting.get_carambus_api_token. Er war der EINZIGE Verweis auf eine Methode, die
+    # Auth0-Zugangsdaten im Klartext trug — ein Kommentar, der ein Geheimnis am Leben hielt.
+    # Beides entfernt. /versions/get_updates verlangt ohnehin keine Anmeldung; ob das so
+    # bleiben soll, ist ein offener Befund im carambus_api-Handoff.
     url = URI("#{Carambus.config.carambus_api_url}/versions/get_updates?last_version_id=#{
       Setting.key_get_value("last_version_id").to_i
     }#{
@@ -465,7 +504,7 @@ class Version < PaperTrail::Version
     }#{
       "&player_details=#{player_details}" if player_details
     }#{
-      "&region_id=#{opts[:region_id]}" if opts[:region_id].present?
+      "&region_id=#{filter_region_id}" if filter_region_id.present?
     }#{
       "&league_details=#{league_details}" if league_details
     }#{

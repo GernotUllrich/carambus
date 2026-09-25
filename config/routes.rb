@@ -269,6 +269,8 @@ Rails.application.routes.draw do
   resources :parties do
     member do
       get :party_monitor
+      post :assign_leiter
+      delete :remove_leiter
     end
   end
   resources :league_teams
@@ -333,6 +335,8 @@ Rails.application.routes.draw do
       post :switch_players
       post :update_games
       post :start_round_games
+      # Plan 23-01: der Turnierleiter schaltet die Runde weiter (vorher am gruenen Knopf des Tisches)
+      post :advance_round
     end
   end
   resources :discipline_tournament_plans

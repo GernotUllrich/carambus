@@ -4127,7 +4127,11 @@ ENV
           'database_name' => "#{scenario_name}_production",
           'ssl_enabled' => false,
           'database_username' => 'www_data',
-          'database_password' => 'toS6E7tARQafHCXz',
+          # Absichtlich LEER — siehe den Kommentarblock an resolve_shared_database_password weiter unten:
+          # das Passwort der geteilten Rolle steht in carambus_data/secrets.yml unter
+          # shared.database_password, nicht in der config.yml. Wer es hier wieder einsetzt, legt ein
+          # Geheimnis in eine Datei, die im Klartext neben dem Szenario liegt.
+          'database_password' => '',
           'puma_socket_path' => '/tmp/puma.sock'
         }
       }

@@ -43,8 +43,26 @@
         <tbody>
         <%- games = tournament_monitor.tournament.games.where("games.id >= ?", Seeding::MIN_ID).includes(game_participations: :player).where(game_scope).to_a.sort_by { |game| game.seqno.presence || 999 } %>
         <%- games.each do |game| %>
-          <% # Allow manual editing if game has a table_monitor (game is placed) %>
-          <% editable_game = game.table_monitor.present? %>
+          <%# Plan 24-01 (2026-09-23): Bis hierher galt `editable_game = game.table_monitor.present?`.
+              Ein abgeloestes Spiel (Tisch schon neu besetzt) bekam damit weder Eingabefelder noch
+              das `game_id`-Hidden-Field — es kam im POST gar nicht an. Genau das meldete der
+              Betreiber als "Ich kann nichts aendern": zwei von vier Spielen fehlten.
+
+              Editierbar ist jetzt, was BEENDET ist oder auf einem Tisch liegt. Ein unbespieltes
+              Spiel ohne Tisch hat nichts zu korrigieren und zeigt weiterhin keine (leeren)
+              Felder — das war der irritierende Teil des Betreiber-Screenshots. %>
+          <% abgeloest = game.table_monitor.blank? %>
+          <%# Betreiber-Entscheidung 2026-09-23: Nach dem Rundenabschluss bleibt die Zeile nicht
+              im Edit-Modus. Bis dahin ist alles korrigierbar — auch ein Spiel, dessen Tisch
+              schon weitergegeben wurde (Faehigkeit aus 24-01, gilt fuer die LAUFENDE Runde).
+              Danach zeigt die Zeile nur noch Werte; `update_games` weist sie zusaetzlich ab.
+
+              ⚠️ `round_no` ist bei nicht rundengefuehrten Turnieren nil — `nil.to_i` waere 0 und
+              damit "kleiner als Runde 1", was solche Turniere komplett sperren wuerde. Ohne
+              Rundenfuehrung gibt es keinen Rundenabschluss. %>
+          <% runde_zu = game.round_no.present? &&
+               game.round_no.to_i < tournament_monitor.current_round.to_i %>
+          <% editable_game = !runde_zu && (!abgeloest || game.ended_at.present?) %>
           <% gpa = game.game_participations.where("role = 'playera' or role = 'Heim'").first; playera = gpa.andand.player %>
           <% gpb = game.game_participations.where("role = 'playerb' or role = 'Gast'").first; playerb = gpb.andand.player %>
           <%- if playera.present? && playerb.present? %>
@@ -52,7 +70,20 @@
             <%- seeding_state_b = game.tournament.seedings.where(player_id: playerb.id).first.andand.state %>
             <%- unless seeding_state_a == "no_show" || seeding_state_b == "no_show" %>
               <tr>
-                <td><%= game.display_gname %></td>
+                <td>
+                  <%= game.display_gname %>
+                  <%# Betreiber-Befund 2026-09-23: Der Hinweis hing bis hierher an
+                      `editable_game && abgeloest`, also am Tischbezug. Nach jedem
+                      Rundenabschluss gibt der Tisch sein Spiel ab (table_populator.rb:950) —
+                      der Hinweis stand damit bei JEDEM Spiel und behauptete eine Korrektur,
+                      die nie stattgefunden hatte. Er haengt jetzt an der Marke, die
+                      `korrigiere_schnappschuss!` beim tatsaechlichen Fixen setzt. %>
+                  <%- if game.data["manual_correction_at"].present? %>
+                    <span class="block text-xs text-warning-700 dark:text-warning-300">
+                      <%= t("tournament_monitors.round_status.correction_manual") %>
+                    </span>
+                  <%- end %>
+                </td>
                 <td><%= game.seqno.present? ? game.seqno : select_tag("seqno_#{game.id}", options_for_select([nil] + Array(1..games.count))) %></td>
                 <td><%= playera.andand.fullname %></td>
                 <td><%= playerb.andand.fullname %></td>
@@ -84,5 +115,21 @@
         </tbody>
       </table>
     <% end %>
+
+    <%# Plan 23-01 / Nachbesserung 2026-09-23: Der sichere Ort fuer "Runde abschliessen" — direkt
+        unter der Ergebnistabelle, neben "update". Der Ablauf liest sich von oben nach unten:
+        Ergebnisse sehen → korrigieren → update → Runde abschliessen.
+
+        ⚠️ BEWUSST AUSSERHALB des form_tag oben: `button_to` erzeugt ein eigenes <form>, und
+        verschachtelte Formulare sind ungueltiges HTML. Die beiden Knoepfe stehen deshalb optisch
+        nebeneinander, gehoeren aber zu getrennten Formularen — "update" speichert die Felder,
+        "Runde abschliessen" schaltet weiter.
+
+        Seit 2026-09-23 steht derselbe Knopf zusaetzlich am Fuss von "Aktuelle Spiele"
+        (Betreiber-Wunsch); die gemeinsame Fassung liegt in _advance_round_button. %>
+    <%- if edit_games_modus %>
+      <%= render partial: "tournament_monitors/advance_round_button",
+            locals: { tournament_monitor: tournament_monitor } %>
+    <%- end %>
   </div>
 </div>

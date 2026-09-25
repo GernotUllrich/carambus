@@ -51,9 +51,40 @@
         <dd class="break-words"><%= pretty_json(@party.data) %></dd>
       </div>
     </dl>
-    <div class="flex flex-row px-3 lg:px-0">
-      <%= button_to I18n.t("tournaments.show.party_monitor"), party_monitor_party_path(@party), method: :get, style: "float: left; margin-right: 10px;", class: "btn btn-flat btn-primary" %>
+    <%# Plan 20-02: Start und Begegnungsleiter folgen der PartyPolicy (wie beim Einzelturnier). %>
+    <% party_policy = PartyPolicy.new(current_user_if_available, @party) %>
+    <% if party_policy.operate? %>
+      <div class="flex flex-row px-3 lg:px-0">
+        <%= button_to I18n.t("tournaments.show.party_monitor"), party_monitor_party_path(@party), method: :get, style: "float: left; margin-right: 10px;", class: "btn btn-flat btn-primary" %>
+      </div>
+    <% end %>
+    <%# UserParty ist lokal (ApiProtector) — auf der Authority gibt es keinen Begegnungsleiter. %>
+    <% if ApplicationRecord.local_server? %>
+    <div class="mt-6 px-3 lg:px-0">
+      <h3 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5"><%= t("parties.leiter.label") %></h3>
+      <% leiter = @party.user_parties.where(role: "party_leiter").includes(:user) %>
+      <% if leiter.empty? %>
+        <p><%= t("parties.leiter.none") %></p>
+      <% end %>
+      <% leiter.each do |up| %>
+        <div class="flex flex-row items-center gap-2 mb-1">
+          <span><%= up.user.display_name %></span>
+          <% if party_policy.assign_leiter? %>
+            <%= button_to t("parties.leiter.remove"), remove_leiter_party_path(@party, user_id: up.user_id), method: :delete, class: "btn btn-flat btn-sm" %>
+          <% end %>
+        </div>
+      <% end %>
+      <% if party_policy.assign_leiter? %>
+        <%= form_with url: assign_leiter_party_path(@party), method: :post, class: "flex flex-row items-center gap-2 mt-2" do %>
+          <%= select_tag :user_id,
+                options_for_select(User.where.not(confirmed_at: nil).order(:email).map { |u| [u.display_name, u.id] }),
+                include_blank: t("parties.leiter.blank_option"),
+                class: "border rounded border-gray-500" %>
+          <%= submit_tag t("parties.leiter.assign"), class: "btn btn-primary" %>
+        <% end %>
+      <% end %>
     </div>
+    <% end %>
     <div class="mt-6 mb-4">
       <%= render partial: 'spielbericht', locals: { party: @party } %>
     </div>

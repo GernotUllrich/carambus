@@ -17,9 +17,16 @@ Afterwards the Pi boots straight into the scoreboard. From power-on this takes a
 **3 minutes** (desktop after about 1 minute) — the Pi is not broken during that time.
 
 !!! note "What a club needs from the operator"
-    Only once: the **region dump credentials** for its region (login and password, see 3.1). With them,
-    step 3.2 fills the database from the authority's [region dump](region-dumps.md) (`api.carambus.de`),
-    without SSH access to it. Everything else, including the credentials, the club does itself.
+    Three things, all one-off:
+
+    1. the **region dump credentials** for its region (login and password, see 3.1) — with them, step 3.2
+       fills the database from the authority's [region dump](region-dumps.md) (`api.carambus.de`), without
+       SSH access to it;
+    2. the two **non-public repositories** `carambus_data` and `ansible` (see
+       [The three directories](#the-three-directories));
+    3. an **entry for the club and its location on the Authority**, if it does not exist there yet (3.1).
+
+    Everything else, including the credentials, the club does itself.
 
 ## Prerequisites
 
@@ -31,15 +38,32 @@ Afterwards the Pi boots straight into the scoreboard. From power-on this takes a
 - Network: cable recommended; Wi-Fi works
 
 ### Admin computer (Mac or Linux)
+
+Windows is not enough. You need on that machine:
+
 - [Raspberry Pi Imager](https://www.raspberrypi.com/software/)
-- Any **carambus checkout** (e.g. `~/DEV/carambus/carambus_bcw`) — all rake tasks run from it;
-  no dedicated "master" checkout is needed
-- The **scenario checkout** `~/DEV/carambus/<scenario>` (Rails root of the scenario, Capistrano
-  deploys from here) — keep it **up to date**: `git -C ~/DEV/carambus/<scenario> pull --ff-only`
-- `~/DEV/carambus/carambus_data` (scenario `config.yml`, `secrets.yml`)
-- `~/DEV/ansible` (inventory and playbooks for steps 1–2)
-- Local PostgreSQL
-- SSH key (`~/.ssh/id_rsa.pub`)
+- **Ruby 3.2.1** (e.g. via `rbenv`) and **Bundler** — the rake tasks below are `bin/rails` calls
+  and run inside the carambus checkout; run `bundle install` there once
+- **Ansible** for steps 1–2
+- **Local PostgreSQL**
+- An **SSH key** (`~/.ssh/id_rsa.pub`), **registered with GitHub** — the scenario tooling clones
+  over SSH (`lib/tasks/scenarios.rake:2541`), even though the carambus repository is public
+
+### The three directories
+
+!!! warning "Two of them are not public"
+    `carambus_data` and `ansible` are private repositories. Today a club can only get them
+    **from the operator**. The installation does not work without them — that is the current
+    state, not a formality.
+
+| Directory | Contents | Where from |
+|---|---|---|
+| `~/DEV/carambus/<scenario>` | Rails root of your own scenario; Capistrano deploys from here and all rake tasks run from it | public: `git clone git@github.com:GernotUllrich/carambus.git ~/DEV/carambus/<scenario>` |
+| `~/DEV/carambus/carambus_data` | scenario `config.yml`, `secrets.yml`, credentials of all scenarios | **not public** — ask the operator |
+| `~/DEV/ansible` | inventory, playbooks and the `RUNBOOK` for steps 1–2 | **not public** — ask the operator |
+
+No dedicated "master" checkout is needed; the scenario checkout covers everything.
+Keep it **up to date**: `git -C ~/DEV/carambus/<scenario> pull --ff-only`
 
 ### Tip: speed up SSH to `*.local`
 Via mDNS the Pi also announces its public IPv6 addresses; the firewall does not let SSH through
@@ -59,6 +83,28 @@ CARAMBUS-PI AUFSETZEN"**. In short:
 1. Add the section `environments.production.ansible` to
    `carambus_data/scenarios/<scenario>/config.yml`, add the Pi to `~/DEV/ansible/hosts`
    (including group `[carambus_pi]`), run `bin/rails "scenario:generate_host_vars[<scenario>]"`
+
+    ??? example "What that section looks like"
+        Ports are derived from `webserver_port`/`ssh_port`; this section only holds what cannot
+        be derived. A minimal example:
+
+        ```yaml
+        environments:
+          production:
+            ansible:
+              # Name in ~/DEV/ansible/hosts. It must match the host_vars entry, otherwise
+              # Ansible never loads them — even if the device itself is named differently.
+              inventory_name: <name>
+              # false = the template's standard port set; true only after your own measurement
+              firewall_trimmed: false
+              # extra TCP ports beyond the standard set
+              firewall_extra_tcp_ports: []
+              # roll out IPv6 rules as well (recommended)
+              ipv6_firewall: true
+        ```
+
+        From this, `generate_host_vars` writes `~/DEV/ansible/host_vars/<inventory_name>` —
+        **do not edit that file by hand**, it gets overwritten.
 2. Write the SD card with Raspberry Pi Imager: hostname `<name>`, user with password,
    **tick SSH every time**, public key `~/.ssh/id_rsa.pub`
 3. Boot the Pi; if it still shows up as `raspberrypi`, reboot once
@@ -79,12 +125,25 @@ The configuration lives in `carambus_data/scenarios/<scenario>/config.yml`. Ther
 directory — an existing scenario (e.g. `carambus_pbv`) serves as the pattern. The fields that
 matter for the Pi:
 
+!!! tip "Looking up your own IDs"
+    `location_id`, `club_id` and `region_id` are the IDs **on the Authority**. They appear in the
+    address bar of the corresponding overview page, which is readable without signing in:
+
+    - Region: <https://api.carambus.de/regions> → e.g. `…/regions/1` ⇒ `region_id: 1`
+    - Club: <https://api.carambus.de/clubs> → e.g. `…/clubs/3285` ⇒ `club_id: 3285`
+    - Location: <https://api.carambus.de/locations> → e.g. `…/locations/2368` ⇒ `location_id: 2368`
+
+    If your club or location is **not** listed there, it must first be created on the Authority —
+    one of the three things a club needs the operator for. Otherwise the example values below
+    leave your server pointing at someone else's club.
+
 ```yaml
 scenario:
   name: carambus_pbv
   location_id: 2368          # the club's location at the authority
   region_id: 1
   club_id: 3285
+  region_shortname: NBV      # optional; otherwise `context`, otherwise `region_id` (see 3.1 below)
 
 environments:
   production:
@@ -192,11 +251,22 @@ The command creates a confirmed `system_admin` and prints the password exactly o
 after the first login. This admin creates further users. The tournament app's service account is described under
 [tournament app, prerequisites](../managers/tournament-app.md#voraussetzungen).
 
+!!! warning "Write the password down immediately"
+    The command is **not repeatable**: a second run with the same address aborts with
+    "Benutzer … gibt es schon — nichts geändert" and prints **no** new password
+    (`lib/local_accounts.rb:34`). If the server runs with `smtp_enabled: false`, there is no
+    "forgot password" by email either.
+
+    **If the password is lost:** run the same command with a **different** email address. That
+    creates a second administrator who can then fix or delete the first one in the user
+    administration.
+
 What you need to know:
 
 - **Step 2** downloads the region's dump via HTTPS, checks it against its checksum and loads it as
-  `<scenario>_development`. The dump contains no users. The step creates the scoreboard account itself; the
-  first admin comes after the deploy (see above). The ~30 s were measured with dependencies already installed;
+  `<scenario>_development`. The dump contains no users. The step creates the **scoreboard account** itself —
+  that is the account the display devices at the tables run under, so nobody has to sign in there; its
+  credentials are never needed by hand. The first admin comes after the deploy (see above). The ~30 s were measured with dependencies already installed;
   on the first run on an admin computer the step installs them first. Without `region_dump` in `secrets.yml`
   it takes the [operator path](installation-overview.md#operator-path) via SSH to the authority.
 - If the Pi already has local data (id ≥ 50 million), step 2 backs it up from the Pi first and loads it back
@@ -219,6 +289,18 @@ otherwise `curl` gets a 403):
 ```bash
 curl -s -o /dev/null -w "%{http_code}\n" -A "Mozilla/5.0" http://carambus-pbv.local:3131/
 ```
+
+#### Did your club's data arrive?
+
+The services can be running while the database still holds the wrong region — or none. So check the
+content as well, in the browser:
+
+- `http://<name>.local:3131/clubs` lists the clubs **of your own region**
+- `http://<name>.local:3131/locations` contains your own location
+- The start page shows your club, not the one from the example `config.yml`
+
+If a different club shows up, `location_id`/`club_id`/`region_id` in the `config.yml` are wrong
+(see step 3.1) — the database then has to be loaded again with a corrected configuration.
 
 ### 4.2 Scoreboard on the Pi
 

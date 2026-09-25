@@ -102,7 +102,12 @@ namespace :carambus do
     Array(response&.items).each do |event|
       event_ids << event.id
       title = event.summary
-      if event.summary.match(/\A\w+\s*:/)
+      # Ein Termin ohne Titel ist keine Tischreservierung — übergehen. Vor 2026-09-21 lief hier
+      # `nil.match` und brach den GESAMTEN Lauf ab: ein einziger unbenannter Termin ließ alle
+      # Tische kalt (Vorfall Clubabend 2026-09-21).
+      next if title.blank?
+
+      if title.match(/\A\w+\s*:/)
         next
       else
         tables_to_be_heated = CalendarEvent.tables_from_summary(title, location).select { |t| t.table_kind.name != "Pool" }
@@ -129,9 +134,13 @@ namespace :carambus do
 
           tables_to_be_heated.map { |t| t.check_heater_on(event, event_ids: event_ids) }
           tables_to_be_heated_all |= tables_to_be_heated
-        else
-          CalendarEvent.remove_event(service, calendar_id, event)
         end
+        # Termine ohne erkennbare Tischangabe werden übergangen (Betreiber, 2026-09-21).
+        # Vorher stand hier `CalendarEvent.remove_event(service, calendar_id, event)` — das
+        # LÖSCHT den Termin im Google-Kalender und benachrichtigt die Eingeladenen. Gemessen am
+        # 2026-09-21: 194 solche Versuche auf bc-wedel, alle nur deshalb wirkungslos, weil dem
+        # Service-Account das Schreibrecht fehlt ("Augenarzt", "Doko drüben" — private Termine).
+        # Mit dem Schreibrecht wären sie gelöscht worden. `remove_event` selbst bleibt bestehen.
       end
       #
       # t.check_heater_on(event): start heater when event starts within pre_heating_time_in_hours (2-3h)
@@ -296,10 +305,8 @@ namespace :carambus do
 
   desc "retrieve updates from API server"
   task retrieve_updates: :environment do
-    args = Carambus.config.context.present? ? {
-      region_id: Region.find_by_shortname(Carambus.config.context)&.id
-    } : {}
-    (1..10).each.map { |i| Version.update_from_carambus_api(args) }
+    # Region-Filter leitet update_from_carambus_api selbst aus dem Kontext ab (Version.context_region_id)
+    (1..10).each.map { |i| Version.update_from_carambus_api }
   end
 
   desc "Init Disciplines"

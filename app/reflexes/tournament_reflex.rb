@@ -52,9 +52,11 @@ class TournamentReflex < ApplicationReflex
   # Plan 17-05: dieselben Rechte wie im TournamentsController — die Teilnehmerliste nach
   # manage_teilnehmerliste?, die Felder des Start-Formulars nach prepare_tournament?.
   # Bis hierher pruefte der Reflex nichts; jeder Besucher der Seite konnte die Liste umbauen.
-  # Die Party-Reflexe (change_party_seeding, change_party_game_seeding) sind bewusst ausgenommen.
+  # Plan 20-02: die Party-Reflexe (change_party_seeding, change_party_game_seeding) haengen am
+  # Recht des Start-Formulars. Sie sind toter Code (party_games hat keine Spalte tournament_id,
+  # die ausloesenden Partials werden nirgends gerendert) — gegatet statt entfernt (Betreiber).
   before_reflex :authorize_participant_list, only: PARTICIPANT_LIST_REFLEXES
-  before_reflex :authorize_tournament_setup, only: ATTRIBUTE_METHODS.keys
+  before_reflex :authorize_tournament_setup, only: ATTRIBUTE_METHODS.keys + %i[change_party_seeding change_party_game_seeding]
 
   ATTRIBUTE_METHODS.keys.each do |attribute|
     define_method(attribute.to_s) do

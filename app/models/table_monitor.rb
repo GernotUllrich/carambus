@@ -694,16 +694,32 @@ class TableMonitor < ApplicationRecord
     Rails.logger.debug do
       "-------------m6[#{id}]-------->>> player_a_on_table_before <<<------------------------------------------"
     end
-    # TODO: player_a_on_table_before
-    false
+    player_on_table_before?("playera")
   end
 
   def player_b_on_table_before
     Rails.logger.debug do
       "-------------m6[#{id}]-------->>> player_b_on_table_before <<<------------------------------------------"
     end
-    # TODO: player_b_on_table_before
-    false
+    player_on_table_before?("playerb")
+  end
+
+  # Kennt der Spieler den Tisch schon? — true, wenn er im selben Turnier (bzw. Spieltag)
+  # bereits eine beendete Partie an derselben Tischnummer gespielt hat. Steuert die
+  # Einspielzeit: time_out_warm_up_follow_up_min statt time_out_warm_up_first_min.
+  def player_on_table_before?(role)
+    return false if game.blank? || game.tournament_id.blank? || game.table_no.blank?
+
+    player_id = game.game_participations.find_by(role: role)&.player_id
+    return false if player_id.blank?
+
+    earlier = Game.where(tournament_id: game.tournament_id, tournament_type: game.tournament_type, table_no: game.table_no)
+      .where.not(id: game.id)
+      .where.not(ended_at: nil)
+    earlier = earlier.where(games: {ended_at: ...game.started_at}) if game.started_at.present?
+    earlier.joins(:game_participations)
+      .where(game_participations: {player_id: player_id})
+      .exists?
   end
 
   def do_play

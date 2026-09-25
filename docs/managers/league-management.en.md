@@ -68,7 +68,7 @@ The handling of league matches runs fundamentally different compared to individu
 The following phases are generally completed:
 
 * Planning of match days and teams
-* At the beginning of a match day, determination of players by the captains
+* At the beginning of a match day, determination of players (as specified by the captains; entered at the Matchday Monitor by the matchday lead, see [Permissions](#permissions))
 * Per round, assignment of game tables to individual games
 * Assignment of players to individual games per round
 * Start of rounds and transfer of data to scoreboards
@@ -84,6 +84,19 @@ The structure of match days for a league is determined at the beginning of the s
 This data forms the basis for Carambus Matchday Management. The game director finds this data most easily through the game location, where all matches are listed.
 
 After opening the match day view, there is a link to the Matchday Monitor. In this view, the entire match day process is controlled.
+
+### Permissions {#permissions}
+
+Operating a league match day (starting the Matchday Monitor, line-up, rounds, results, closing) is allowed for:
+
+- the match day's **matchday lead**. A sports director of the discipline or an admin appoints or removes them on
+  the match day page, section "Matchday lead";
+- every **sports director** or **regional sports director** whose disciplines cover the league's discipline. The
+  venue does not matter;
+- club and system admins.
+
+Resetting and creating, editing or deleting Matchday Monitor records remain reserved for admins. Without the right the
+buttons are greyed out; the link to the Matchday Monitor only appears on the match day page with the right.
 
 ### Determination of Players for a Match Day
 

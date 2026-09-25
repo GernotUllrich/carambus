@@ -130,6 +130,103 @@ class TournamentMonitor::ResultProcessorTest < ActiveSupport::TestCase
   end
 
   # ============================================================================
+  # Plan 24-01 Task 1 — REPRODUKTION, kein Fix.
+  #
+  # Vom Betreiber gemeldet 2026-09-23: 30:29 abgeschickt, Log meldet "validation PASSED,
+  # updating...", in der DB steht 30:30 — und das Spiel traegt tmp_results mit 30:30.
+  # Verdaechtige Stelle: result_processor.rb:603
+  #     data_source = game.data["tmp_results"].present? ? game.data["tmp_results"] : table_monitor_data
+  #
+  # ⚠️ EIN ERSTER VERSUCH SCHEITERTE AM TESTAUFBAU, NICHT AM CODE: `Game#data` ist
+  # ueberschrieben (game.rb:95) und dekodiert bei JEDEM Zugriff neu aus dem Roh-Attribut —
+  # `game.data["tmp_results"] = {...}` ist ein STILLES NO-OP. Deshalb hier ausschliesslich
+  # `deep_merge_data!`, und jeder Test prueft die Vorbedingung explizit, bevor er die
+  # eigentliche Behauptung testet.
+  #
+  # `update_games` ruft ZWEI Schreiber nacheinander:
+  #     @tournament_monitor.update_game_participations(table_monitor)
+  #     table_monitor.evaluate_result   # -> report_result -> finalize_game_result -> derselbe Schreiber
+  # Beide laufen durch Zeile 603. Die Tests trennen sie.
+  # ============================================================================
+
+  def spiel_mit_schnappschuss!(offset, a_result:, b_result:)
+    game = local_game_with_participations!(offset)
+    game.deep_merge_data!("tmp_results" => {
+      "playera" => {"result" => a_result, "innings" => 10, "hs" => 5, "balls_goal" => 30},
+      "playerb" => {"result" => b_result, "innings" => 10, "hs" => 5, "balls_goal" => 30}
+    })
+    game.save!
+    game.reload
+    game
+  end
+
+  def tisch_mit_eingabe!(game, a_result:, b_result:)
+    tabmon = TableMonitor.create!(tournament_monitor: @tm, game: game, state: "playing", data: {})
+    tabmon.data["playera"] = {"result" => a_result, "innings" => 10, "hs" => 5, "balls_goal" => 30}
+    tabmon.data["playerb"] = {"result" => b_result, "innings" => 10, "hs" => 5, "balls_goal" => 30}
+    tabmon.data_will_change!
+    tabmon.save!
+    tabmon
+  end
+
+  test "24-01 T1a: BELEGT — tmp_results gewinnt gegen uebergebene Werte" do
+    game = spiel_mit_schnappschuss!(91, a_result: 30, b_result: 30)
+    assert game.reload.data["tmp_results"].present?,
+      "VORBEDINGUNG: der Schnappschuss muss wirklich persistiert sein (deep_merge_data!)"
+    assert_equal 30, game.data.dig("tmp_results", "playerb", "result"),
+      "VORBEDINGUNG: der Schnappschuss traegt den ALTEN Wert 30"
+
+    tabmon = tisch_mit_eingabe!(game, a_result: 30, b_result: 29)
+
+    @tm.update_game_participations(tabmon)
+
+    ergebnis = game.game_participations.where(role: "playerb").first.reload.result
+    puts "\n[24-01 T1a] nach update_game_participations: playerb = #{ergebnis.inspect} " \
+         "(getippt 29, Schnappschuss 30)"
+
+    assert_equal 30, ergebnis,
+      "BELEGT (Plan 24-01 Task 1): der Schnappschuss GEWINNT gegen die uebergebenen Werte. " \
+      "Das ist die Ursache von \"Ich kann nichts aendern\". Die Vorrangregel bleibt bewusst " \
+      "bestehen — tmp_results ist genau fuer den Fall da, in dem KEINE frischen Daten " \
+      "existieren (game_setup.rb:312 spielt ihn beim Wieder-Platzieren zurueck). " \
+      "Der Fix liegt deshalb im Controller: korrigiere_abgeloestes_spiel! schreibt den " \
+      "Schnappschuss ZUERST auf den korrigierten Stand, danach sind beide Quellen einig."
+  end
+
+  test "24-01 T1b: BELEGT — der Schaden entsteht beim ersten Schreiber, nicht bei evaluate_result" do
+    game = spiel_mit_schnappschuss!(92, a_result: 30, b_result: 30)
+    tabmon = tisch_mit_eingabe!(game, a_result: 30, b_result: 29)
+
+    @tm.update_game_participations(tabmon)
+    nach_erstem = game.game_participations.where(role: "playerb").first.reload.result
+
+    tabmon.evaluate_result
+    nach_zweitem = game.game_participations.where(role: "playerb").first.reload.result
+
+    puts "[24-01 T1b] nach update_game_participations: #{nach_erstem.inspect} | " \
+         "nach evaluate_result: #{nach_zweitem.inspect}"
+
+    assert_equal nach_erstem, nach_zweitem,
+      "Beide Schreiber lesen dieselbe Quelle — der zweite verschlimmert nichts"
+    assert_equal 30, nach_zweitem,
+      "BELEGT: der Schaden entsteht schon beim ERSTEN Schreiber. Mein Verdacht, " \
+      "evaluate_result koenne die Korrektur zurueckdrehen, trug nicht — das schmaelert " \
+      "die Fix-Stelle auf genau eine."
+  end
+
+  test "24-01 T1c: ohne Schnappschuss unveraendert (Regressionsschutz)" do
+    game = local_game_with_participations!(93)
+    assert_not game.reload.data["tmp_results"].present?,
+      "VORBEDINGUNG: kein Schnappschuss"
+
+    tabmon = tisch_mit_eingabe!(game, a_result: 30, b_result: 29)
+    @tm.update_game_participations(tabmon)
+
+    assert_equal 29, game.game_participations.where(role: "playerb").first.reload.result,
+      "Ohne Schnappschuss schreibt der bestehende Weg wie bisher"
+  end
+
+  # ============================================================================
   # Test 4: update_ranking is public and calls player_id_from_ranking via @tournament_monitor
   # ============================================================================
 
@@ -355,14 +452,38 @@ class TournamentMonitor::ResultProcessorTest < ActiveSupport::TestCase
       "Phase 38.8 contract: report_result must NOT enqueue TournamentMonitorUpdateResultsJob (cascade deferred)")
   end
 
-  test "advance_round_after_match_close method body contains all 6 cascade calls (extracted verbatim)" do
+  # Plan 23-01 (2026-09-22) — VERTRAG NEU GEFASST, GARANTIE UNVERAENDERT.
+  #
+  # Phase 38.8 forderte die 6 Kaskaden-Aufrufe in `advance_round_after_match_close`. Plan 23-01
+  # trennt diese Methode auf: sie macht weiterhin `accumulate_results` (nach JEDEM Spiel), gibt
+  # die Kaskade selbst aber nur frei, wenn nicht auf den Turnierleiter gewartet wird. Die
+  # Kaskade steht seitdem in `perform_round_advance` — unveraendert, nur eine Ebene tiefer.
+  #
+  # Die Garantie von 38.8 bleibt damit bestehen und wird hier weiter geprueft: die Aufrufe
+  # existieren an GENAU EINER Stelle und nicht in `report_result` (Test darueber).
+  test "perform_round_advance method body contains all 6 cascade calls (extracted verbatim)" do
     src = File.read(Rails.root.join("app/services/tournament_monitor/result_processor.rb"))
-    method_match = src.match(/def advance_round_after_match_close.*?(?=\n  def |\nend\b)/m)
-    assert_not_nil method_match, "advance_round_after_match_close method must exist"
+    method_match = src.match(/def perform_round_advance.*?(?=\n  def |\nend\b)/m)
+    assert_not_nil method_match, "perform_round_advance method must exist (Plan 23-01)"
     body = method_match[0]
     %w[populate_tables incr_current_round! finalize_round start_playing_groups! TournamentMonitorUpdateResultsJob TournamentStatusUpdateJob].each do |needle|
       assert_match(/#{Regexp.escape(needle)}/, body,
-        "advance_round_after_match_close must contain '#{needle}' (extracted from report_result)")
+        "perform_round_advance must contain '#{needle}' (extracted from report_result in 38.8, " \
+        "moved one level down in Plan 23-01)")
+    end
+  end
+
+  # Plan 23-01: Beide Einstiegspunkte muessen auf DIESELBE Kaskade zeigen — sonst driften der
+  # Tisch-Pfad und der Turnierleiter-Pfad auseinander (extend-before-build: SHARE, nicht
+  # REPLICATE). Genau diese Doppelung war 38.8s urspruengliche Sorge.
+  test "23-01: beide Einstiegspunkte delegieren an perform_round_advance" do
+    src = File.read(Rails.root.join("app/services/tournament_monitor/result_processor.rb"))
+
+    %w[advance_round_after_match_close advance_round_by_operator].each do |entry|
+      match = src.match(/def #{entry}.*?(?=\n  #|\n  def |\nend\b)/m)
+      assert_not_nil match, "#{entry} must exist"
+      assert_match(/perform_round_advance/, match[0],
+        "#{entry} muss an perform_round_advance delegieren statt die Kaskade zu wiederholen")
     end
   end
 
@@ -656,6 +777,131 @@ class TournamentMonitor::ResultProcessorTest < ActiveSupport::TestCase
         "Post-condition: sentinel MUST be cleared via ensure even when delegate raises"
     ensure
       Thread.current[:_advancing_round_for_tm] = nil
+    end
+  end
+  # ==========================================================================
+  # Ergebnis-Mail: geschriebene Datei == angehaengte Datei
+  #
+  # Befund 2026-09-20 (Turnier-Probelauf und echtes Turnier 18934, cc_id 948): die Mail
+  # schlug beide Male mit `No such file or directory` fehl. Ursache: write_finale_csv_for_upload
+  # schreibt `tmp/result-<tournament.cc_id>.csv`, haengte aber `tmp/result-<tournament.id>.csv`
+  # an — zwei verschiedene Namen, sobald cc_id != id (also im Regelfall). Aelter als die
+  # Extraktion `0d4324e3` (11.04.), stammt aus lib/tournament_monitor_support.rb.
+  #
+  # Der Fehler blieb unsichtbar, weil er in einem `rescue StandardError` je Empfaenger landet
+  # und nur geloggt wird — der Turnierablauf merkt nichts davon.
+  # ==========================================================================
+
+  test "write_finale_csv_for_upload haengt genau die Datei an, die es geschrieben hat" do
+    # `Tournament#cc_id` ist kein Feld, sondern `tournament_cc.andand.cc_id` (tournament.rb:409) —
+    # die ClubCloud-Id ueber die Assoziation. Ohne TournamentCc ist sie nil.
+    TournamentCc.create!(id: 62_000_948, tournament_id: @tournament.id, cc_id: 948)
+    @tournament.reload
+    assert_equal 948, @tournament.cc_id
+    assert_not_equal @tournament.id, @tournament.cc_id,
+      "Vorbedingung: cc_id und id muessen sich unterscheiden, sonst prueft der Test nichts"
+
+    # Kein Vorab-Praeparieren der Spiele: unbeendete KO-Platzhalter ueberspringt die Methode
+    # seit `next if ended.blank?` von selbst. Ein frueherer Versuch, hier pauschal `ended_at` zu
+    # setzen, machte Platzhalter-Spiele zu "beendeten" und liess den Test an `gp.player.cc_id`
+    # scheitern — die Testvorbereitung hatte einen Zustand erzeugt, den es so nicht gibt.
+
+    captured = nil
+    delivery = Object.new
+    def delivery.deliver = true
+
+    TournamentMonitor.current_admin = Struct.new(:email).new("sportwart@example.test")
+
+    begin
+      NotifierMailer.stub :result, ->(_tournament, _recipient, _subject, filename, filepath) {
+        captured = {filename: filename, filepath: filepath}
+        delivery
+      } do
+        @processor.send(:write_finale_csv_for_upload)
+      end
+
+      assert_not_nil captured, "Es wurde keine Mail erzeugt — Empfaenger-Zweig nicht erreicht"
+      assert File.exist?(captured[:filepath]),
+        "Angehaengt wird #{File.basename(captured[:filepath])}, geschrieben wurde " \
+        "result-#{@tournament.cc_id}.csv — die Mail scheitert an einer Datei, die es nicht gibt"
+      assert_equal "#{Rails.root}/tmp/result-#{@tournament.cc_id}.csv", captured[:filepath]
+      assert_equal "result-#{@tournament.cc_id}.csv", captured[:filename],
+        "Der Anhang soll so heissen wie die Datei — sonst passt der Name nicht zum Inhalt"
+    ensure
+      TournamentMonitor.current_admin = nil
+      FileUtils.rm_f("#{Rails.root}/tmp/result-#{@tournament.cc_id}.csv")
+    end
+  end
+  # ==========================================================================
+  # Ein Spiel ohne `ended_at` darf die Ergebnis-CSV nicht mitreissen
+  #
+  # Befund 2026-09-20: Z. 633 ruft `ended.strftime` ungeprueft. Die Zeile davor faengt nur
+  # fehlende Teilnehmer ab (`next unless gp1.present? && gp2.present?`) — ein abgebrochenes oder
+  # kampflos gewertetes Spiel hat aber Teilnehmer UND kein Ende. Anders als der Mailversand
+  # liegt das NICHT in einem `rescue`: die ganze CSV faellt aus, nicht nur eine Zeile.
+  # ==========================================================================
+
+  test "write_finale_csv_for_upload ueberspringt Spiele ohne ended_at, statt abzubrechen" do
+    TournamentCc.create!(id: 62_000_949, tournament_id: @tournament.id, cc_id: 949)
+    @tournament.reload
+
+    beendet = local_game_with_participations!(1)
+    beendet.update!(ended_at: Time.zone.parse("2026-09-20 15:12"))
+    local_game_with_participations!(2) # bleibt ohne ended_at — der kritische Fall
+
+    csv_path = "#{Rails.root}/tmp/result-949.csv"
+    begin
+      assert_nothing_raised do
+        @processor.send(:write_finale_csv_for_upload)
+      end
+
+      assert File.exist?(csv_path), "Die CSV muss trotz des unbeendeten Spiels geschrieben werden"
+      zeilen = File.read(csv_path).lines.map(&:chomp).reject(&:empty?)
+      assert_equal 1, zeilen.size,
+        "Nur das beendete Spiel gehoert in die CSV, das unbeendete wird uebersprungen"
+      assert_includes zeilen.first, "20.09.2026"
+      assert_includes zeilen.first, "15:12"
+    ensure
+      FileUtils.rm_f(csv_path)
+    end
+  end
+  # ==========================================================================
+  # Ein beendetes Spiel ohne gesetzten Spieler darf die CSV nicht mitreissen
+  #
+  # `GameParticipation belongs_to :player, optional: true` (game_participation.rb:30) — eine
+  # Teilnahme ohne Spieler ist legitim (KO-Platzhalter). Z. 637 rief `gp1.player.cc_id` trotzdem
+  # ungeprueft; die Pruefung davor stellt nur sicher, dass die TEILNAHME existiert, nicht dass
+  # sie einen Spieler hat. Der `ended_at`-Schutz deckt den Fall nicht ab, sobald das Spiel
+  # beendet ist. Wie bei den anderen beiden Luecken faellt sonst die GANZE CSV aus, nicht eine
+  # Zeile — und zwar ausserhalb jedes `rescue`.
+  # ==========================================================================
+
+  test "write_finale_csv_for_upload ueberspringt beendete Spiele ohne gesetzten Spieler" do
+    TournamentCc.create!(id: 62_000_950, tournament_id: @tournament.id, cc_id: 950)
+    @tournament.reload
+
+    vollstaendig = local_game_with_participations!(11)
+    vollstaendig.update!(ended_at: Time.zone.parse("2026-09-20 15:12"))
+
+    # Beendet, aber playera ist noch nicht gesetzt — der kritische Fall.
+    unvollstaendig = @tournament.games.create!(id: 64_000_012, gname: "group1:12", group_no: 1, data: {},
+      ended_at: Time.zone.parse("2026-09-20 16:00"))
+    GameParticipation.create!(game: unvollstaendig, player: nil, role: "playera", points: 0, result: 0)
+    GameParticipation.create!(game: unvollstaendig, player: @players[1], role: "playerb", points: 2, result: 30)
+
+    csv_path = "#{Rails.root}/tmp/result-950.csv"
+    begin
+      assert_nothing_raised do
+        @processor.send(:write_finale_csv_for_upload)
+      end
+
+      zeilen = File.read(csv_path).lines.map(&:chomp).reject(&:empty?)
+      assert_equal 1, zeilen.size,
+        "Nur das vollstaendige Spiel gehoert in die CSV — ein Platzhalter hat nichts zu melden"
+      assert_includes zeilen.first, "15:12"
+      refute_includes zeilen.first, "16:00"
+    ensure
+      FileUtils.rm_f(csv_path)
     end
   end
 end

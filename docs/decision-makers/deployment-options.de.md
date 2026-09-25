@@ -91,6 +91,11 @@ Einzelmeisterschaften, ohne ClubCloud
 ([CC-loses Turniermanagement](../administrators/cc-less-tournament-management.md)). Die Vereinsserver der Region
 hängen direkt an der Authority, nicht am Region Server. Region Server betreibt heute der Betreiber von Carambus.
 
+**Wie ein Verband zu einem Region Server kommt:** durch Anfrage beim Betreiber — einen
+Selbstbedienungsweg gibt es nicht. Es gibt dafür **keine Preisliste und keine zugesagte
+Verfügbarkeit**; beides wird im Einzelfall besprochen. Wer das für eine Verbandsentscheidung
+belastbar braucht, klärt es vorab: [Kontakt](index.md#kontakt).
+
 ## Eigener Server oder VPS
 
 Die Server des Betreibers (Authority, Region Server) laufen auf einem gemieteten Server. Als Weg für einen Verein
@@ -104,3 +109,16 @@ Ansible dort gleichwertig läuft, ist nicht geprüft. Bei Interesse: [Kontakt](i
 - Hardware: Raspberry Pi, Netzteil, microSD-Karte, Monitor oder Touch-Display; für jeden weiteren Tisch ein
   Anzeigegerät
 - Laufende Kosten nur für Strom und optionale Dienste (etwa den Anthropic-Schlüssel der KI-Suche)
+
+**Größenordnungen** (keine Angebote — Marktpreise ändern sich, und für Carambus selbst fällt
+nichts an):
+
+| Posten | Größenordnung |
+|---|---|
+| Raspberry Pi mit Netzteil und Karte, ein Tisch | ~150 € einmalig |
+| Monitor oder Touch-Display | je nach Gerät, nicht eingerechnet |
+| Streaming-Kamera je Tisch (optional) | ~80 € einmalig |
+| KI-Suche (optional, Anthropic-Schlüssel) | wenige Cent bis einige Euro im Monat, je nach Nutzung |
+| VPS statt Raspberry Pi (optional) | ab ~8 €/Monat |
+
+Einzelheiten und die Streaming-Varianten: [Administrator-Übersicht](../administrators/index.md).

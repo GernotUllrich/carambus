@@ -56,6 +56,13 @@ class TournamentMonitor::ResultProcessor
             table_monitor.reload
             game.reload
 
+            # Einsatz-Partien kommen hier ohne ba_results an (alle vier Aufrufer von
+            # report_result umgehen perform_save_current_set) — ohne sie ueberspringt
+            # write_game_result_data und der CC-Upload scheitert. Hier, im Lock und nach
+            # dem reload, erreicht die Ergaenzung jeden Weg. Aendert nur data["ba_results"],
+            # nichts an der Anzeige am Tisch. Details: ResultRecorder#perform_ensure_ba_results
+            TableMonitor::ResultRecorder.ensure_ba_results(table_monitor: table_monitor)
+
             # Step 1: Write game data (idempotent, has guards)
             write_game_result_data(table_monitor)
 
@@ -118,11 +125,99 @@ class TournamentMonitor::ResultProcessor
   # sentinel to short-circuit nested re-entry. See Phase 38.8 REVIEW WR-01
   # and CR-02.
   #
+  # Plan 23-01 (2026-09-22) — DER SCHNITT VERLAEUFT HIER, NICHT AM AASM-CALLBACK.
+  # Diese Methode macht zwei Dinge, die unterschiedlich ausgeloest werden muessen:
+  #   1. `accumulate_results` + Status-Broadcast — nach JEDEM Spiel, sonst friert die
+  #      Rangliste waehrend der laufenden Runde ein (round_advance_gate_test.rb, Test 2)
+  #   2. die Rundenkaskade — beim regulaeren Turnier erst auf Klick des TURNIERLEITERS
+  # Ein pauschales Loesen des `after:`-Callbacks haette auch (1) abgeschaltet.
+  #
   # PUBLIC — invoked from app/models/table_monitor.rb#advance_tournament_round_if_present.
   def advance_round_after_match_close(table_monitor)
     Rails.logger.info "[advance_round_after_match_close] START for TM #{table_monitor.id}"
     accumulate_results
     @tournament_monitor.reload
+
+    # Plan 23-01: Der gruene Knopf am Tisch gibt nur noch den Tisch frei. Die Runde schaltet
+    # der Turnierleiter im TournamentMonitor (TournamentMonitorsController#advance_round).
+    # Anlass: NDM Freie Partie Klasse 7, 2026-09-20 — ein Klick zu viel machte aus 32:31 ein
+    # 32:32; das Korrekturfenster war zu, bevor es jemand bemerkte, weil ein Spieler an einem
+    # anderen Tisch "Naechstes Spiel" gedrueckt hatte.
+    if operator_gated_round_advance?
+      Rails.logger.info "[advance_round_after_match_close] Plan 23-01: Rundenwechsel wartet auf " \
+                        "den Turnierleiter (TM #{@tournament_monitor.id})"
+      if @tournament_monitor.tournament.tournament_started
+        TournamentStatusUpdateJob.perform_later(@tournament_monitor.tournament)
+      end
+      return
+    end
+
+    perform_round_advance
+  end
+
+  # Plan 23-01: Vom Turnierleiter ausgeloest (TournamentMonitorsController#advance_round).
+  # Fuehrt exakt die Kaskade, die vorher am gruenen Knopf des Tisches hing.
+  #
+  # NICHT idempotent (siehe perform_round_advance) — der Aufrufer setzt denselben
+  # Thread-Local-Sentinel wie TableMonitor#advance_tournament_round_if_present.
+  # PUBLIC
+  def advance_round_by_operator
+    Rails.logger.info "[advance_round_by_operator] START for TM #{@tournament_monitor.id}"
+    accumulate_results
+    @tournament_monitor.reload
+    perform_round_advance
+  end
+
+  # Plan 23-01: true, solange der Rundenwechsel auf den Turnierleiter wartet.
+  #
+  # Ausgenommen bleiben die beiden Turnierarten, die ohnehin nicht rundenweise schalten:
+  #   - `manual_assignment` — die App besitzt ihren Plan selbst (Phase 17-04); erreicht diese
+  #     Methode ohnehin nicht, weil TableMonitor#advance_tournament_round_if_present vorher
+  #     zurueckkehrt. Hier defensiv mitgefuehrt, damit die Bedingung fuer sich lesbar bleibt.
+  #   - `continuous_placements` — Spiele ruecken nach, sobald ein Tisch frei wird. Ein
+  #     Turnierleiter-Gate wuerde dort den laufenden Betrieb anhalten.
+  #
+  # ⚠️ UND: nur gaten, wo der Knopf ueberhaupt erscheinen KANN. Ohne `round_no` an den Spielen
+  # der Runde liefert `round_status` nil (Tisch-Fallback aus Phase 6) und es gaebe keinen Knopf —
+  # ein Gate wuerde solche Turniere dauerhaft stranden lassen. Sie schalten deshalb weiter
+  # automatisch, genau wie bisher.
+  # Gemessen am 2026-09-22 (Entwicklungs-DB = Prod-Kopie): 613 lokale Turnierspiele, davon 59
+  # mit `round_no` — pro Turnier aber alles-oder-nichts. Die drei juengsten Turniere (18931,
+  # 197869, 50000057) tragen es zu 100 %, aeltere gar nicht.
+  #
+  # Dieselbe Bedingung steuert Sichtbarkeit (_round_status.html.erb), Gate (hier) und Guard
+  # (round_ready_for_advance?) — eine Aussage, drei Verwendungen.
+  def operator_gated_round_advance?
+    tournament = @tournament_monitor.tournament
+    return false if tournament.manual_assignment || tournament.continuous_placements
+
+    @tournament_monitor.round_tracked?
+  end
+
+  # Plan 23-01: Darf der Turnierleiter JETZT schalten? Spiegelt exakt die Bedingung, unter der
+  # der Knopf erscheint: es gibt eine gefuehrte Runde UND kein offenes Spiel darin.
+  #
+  # Das ist zugleich der Schutz gegen Doppelbetaetigung — und er ist noetig: gemessen am
+  # 2026-09-22 schaltete ein zweiter Aufruf die Runde von 4 auf 5 weiter, weil
+  # `all_table_monitors_finished?` ohne Spiele der neuen Runde in den Tisch-Fallback faellt
+  # und dort "fertig" meldet. Der Sentinel greift dagegen nicht: er sperrt nur verschachtelte
+  # Aufrufe im selben Thread, nicht zwei aufeinanderfolgende Requests.
+  # PUBLIC
+  def round_ready_for_advance?
+    @tournament_monitor.round_complete?
+  end
+
+  # Plan 23-01: unveraendert aus advance_round_after_match_close extrahiert.
+  #
+  # NOT idempotent — intended to be called exactly once per operator click.
+  # Re-invocation will increment current_round again, re-populate tables
+  # (potentially clobbering operator-set assignments), and re-enqueue both
+  # TournamentMonitorUpdateResultsJob and TournamentStatusUpdateJob.
+  # Re-entry is prevented by the thread-local sentinel
+  # `Thread.current[:_advancing_round_for_tm]`; finalize_round's internal
+  # `tabmon.close_match!` loop relies on that sentinel to short-circuit nested
+  # re-entry. See Phase 38.8 REVIEW WR-01 and CR-02.
+  def perform_round_advance
     if @tournament_monitor.all_table_monitors_finished? || @tournament_monitor.tournament.manual_assignment || @tournament_monitor.tournament.continuous_placements
       @tournament_monitor.finalize_round # unless tournament.manual_assignment
       @tournament_monitor.incr_current_round! unless @tournament_monitor.tournament.manual_assignment || @tournament_monitor.tournament.continuous_placements
@@ -157,8 +252,35 @@ class TournamentMonitor::ResultProcessor
       TournamentStatusUpdateJob.perform_later(@tournament_monitor.tournament)
     end
   rescue StandardError => e
-    Rails.logger.info "[advance_round_after_match_close] StandardError #{e}, #{e.backtrace&.join("\n")}"
+    Rails.logger.info "[perform_round_advance] StandardError #{e}, #{e.backtrace&.join("\n")}"
     raise
+  end
+
+  # Plan 23-01: Sagt der View, ob der naechste Klick das TURNIER beendet (und damit
+  # write_finale_csv_for_upload in die ClubCloud laedt) statt nur die Runde weiterzuschalten.
+  #
+  # ⚠️ NUR BELEGBAR, WENN `GK` GESETZT IST. `finals_finished?` rechnet
+  # `executor_params["GK"] || live_games.count` (tournament_monitor_state.rb:147). Ohne `GK`
+  # zaehlt es die AKTUELL VORHANDENEN Spiele — und weil `populate_tables` die Spiele der
+  # naechsten Runde erst danach anlegt, waere `n_games == n_games_done` am Ende JEDER Runde
+  # erfuellt. Der Knopf hiesse dann immer "Turnier abschliessen".
+  # Gemessen am 2026-09-22: 173 von 199 Turnierplaenen tragen `GK`, 26 nicht. Fuer diese 26
+  # bleibt die neutrale Beschriftung — lieber unspezifisch als falsch.
+  #
+  # Mit `GK` traegt `finals_finished?` die Entscheidung korrekt: mitten in der Gruppenphase ist
+  # `GK != n_games_done` (false), in der letzten Runde `GK == n_games_done` (true).
+  # PUBLIC — von _round_status.html.erb genutzt.
+  def final_round_pending?
+    plan = @tournament_monitor.tournament.tournament_plan
+    return false if plan.blank?
+
+    executor_params = JSON.parse(plan.executor_params.presence || "{}")
+    return false if executor_params["GK"].blank?
+
+    @tournament_monitor.group_phase_finished? && @tournament_monitor.finals_finished?
+  rescue JSON::ParserError, TypeError => e
+    Rails.logger.info "[final_round_pending?] executor_params nicht lesbar: #{e}"
+    false
   end
 
   # Aggregiert alle GameParticipation-Ergebnisse in @tournament_monitor.data["rankings"].
@@ -621,12 +743,26 @@ result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
       # PUNKTE SPIELER 2;AUFNAHMEN SPIELER 1;AUFNAHMEN SPIELER 2;HÖCHSTSERIE SPIELER 1;\
       # HÖCHSTSERIE SPIELER 2;DATUM;UHRZEIT
       next unless gp1.present? && gp2.present?
+      # Ein abgebrochenes oder kampflos gewertetes Spiel hat Teilnehmer, aber kein Ende. Ohne
+      # diese Pruefung riss `ended.strftime` unten die GESAMTE Ergebnis-CSV mit — und anders als
+      # der Mailversand weiter unten liegt das in keinem `rescue`. Ueberspringen wie bei
+      # fehlenden Teilnehmern: die CSV meldet Ergebnisse, nicht Unfertiges.
+      next if ended.blank?
+      # `belongs_to :player, optional: true` — eine Teilnahme ohne Spieler ist legitim
+      # (KO-Platzhalter). Die Pruefung oben stellt nur sicher, dass die TEILNAHME existiert.
+      # Ohne diese Zeile riss `gp.player.cc_id` unten die gesamte CSV mit.
+      next if gp1.player.blank? || gp2.player.blank?
 
       game_data << "#{gruppe};#{partie};;#{gp1.player.cc_id};#{gp2.player.cc_id};#{gp1.result};\
 #{gp2.result};#{gp1.innings};#{gp2.innings};#{gp1.hs};#{gp2.hs};#{ended.strftime("%d.%m.%Y")};\
 #{ended.strftime("%H:%M")}"
     end
-    f = File.new("#{Rails.root}/tmp/result-#{@tournament_monitor.tournament.cc_id}.csv", "w")
+    # Ein Pfad fuer Schreiben UND Anhaengen. Vorher standen hier zwei Ausdruecke — geschrieben
+    # unter `cc_id`, angehaengt unter `id` —, die sich unterschieden, sobald beide nicht gleich
+    # sind (also im Regelfall). Die Ergebnis-Mail scheiterte damit immer an einer Datei, die es
+    # nicht gab; sichtbar wurde es nie, weil der Versand in einem `rescue` je Empfaenger landet.
+    csv_path = "#{Rails.root}/tmp/result-#{@tournament_monitor.tournament.cc_id}.csv"
+    f = File.new(csv_path, "w")
     f.write(game_data.join("\n"))
     f.close
     emails = []
@@ -654,8 +790,8 @@ result: #{result}, innings: #{innings}, gd: #{gd}, hs: #{hs}, sets: #{sets}")
           @tournament_monitor.tournament,
           recipient,
           "Turnierergebnisse - #{@tournament_monitor.tournament.title}",
-          "result-#{@tournament_monitor.tournament.id}.csv",
-          "#{Rails.root}/tmp/result-#{@tournament_monitor.tournament.id}.csv"
+          File.basename(csv_path),
+          csv_path
         ).deliver
       rescue StandardError => e
         Rails.logger.error "[write_finale_csv_for_upload] Error sending result mail to #{recipient}: #{e.message}"

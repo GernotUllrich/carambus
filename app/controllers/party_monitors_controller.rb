@@ -1,5 +1,10 @@
 class PartyMonitorsController < ApplicationController
   before_action :set_party_monitor, only: %i[show edit update destroy upload_form assign_player remove_player]
+  # Plan 20-02: bis hierher pruefte keine Aktion ein Recht (die authorize-Zeilen unten sind
+  # auskommentierter Scaffold). Datensatz-Verwaltung mit freiem data-Feld bleibt Admins
+  # vorbehalten; die Aufstellung folgt PartyPolicy#operate? (Leiter, Sportwart, Admin).
+  before_action :require_party_monitor_admin, only: %i[new create edit update destroy]
+  before_action :require_party_operator, only: %i[assign_player remove_player]
 
   # Uncomment to enforce Pundit authorization
   # after_action :verify_authorized
@@ -124,6 +129,21 @@ class PartyMonitorsController < ApplicationController
   end
 
   private
+
+  def require_party_monitor_admin
+    return if current_user&.admin?
+
+    flash[:alert] = I18n.t("parties.errors.admin_required")
+    redirect_to(@party_monitor || party_monitors_path)
+  end
+
+  def require_party_operator
+    return if performed? # set_party_monitor hat bereits umgeleitet
+    return if PartyPolicy.new(current_user, @party_monitor.party).operate?
+
+    flash[:alert] = I18n.t("parties.errors.operate_denied")
+    redirect_to @party_monitor
+  end
 
   # Use callbacks to share common setup or constraints between actions.
   def set_party_monitor

@@ -49,6 +49,11 @@ option 1.
 - Scenario configuration in `carambus_data`
 - Deploy Carambus via Scenario Management
 
+!!! warning "`carambus_data` and `ansible` are not public"
+    Both repositories are private; today a club can only get them from the operator, and without
+    them the installation does not even start. What comes from where is described under
+    [The three directories](raspberry-pi-quickstart.md#the-three-directories).
+
 ➡️ **[Complete Installation Guide](installation-overview.md)**
 
 **Special installations**:
@@ -100,6 +105,10 @@ option 1.
 - Restore procedures
 - Disaster recovery
 
+➡️ **[Backup and restore](server-architecture.md#backup-and-restore)** — procedure and rake
+tasks. **Setting up** the automatic backup is described in the
+[maintenance checklist](#maintenance-checklist).
+
 ### 5. Security
 
 **System hardening** (on Raspberry Pis via Ansible):
@@ -113,6 +122,9 @@ option 1.
 - Regular security updates
 - Enforce strong passwords
 - Log monitoring
+
+➡️ **[Security in Operation](security-operations.md)** — what a club has to do itself, when it
+becomes due, and what the automation covers
 
 ### 6. Monitoring & Troubleshooting
 
@@ -128,6 +140,12 @@ option 1.
 - Nginx logs
 - PostgreSQL logs
 - Systemd logs
+
+!!! note "No dedicated guide"
+    There is no separate monitoring page in this documentation — the points above are an
+    orientation, not a recipe. The steps you actually need are in the
+    [troubleshooting guide](#troubleshooting-guide) further down and, for the Pi on the network,
+    under [network stability](raspi-network-stability.md).
 
 **Common problems**:
 - WebSocket connections drop
@@ -274,7 +292,13 @@ sudo systemctl restart puma-<basename>
 systemctl is-active puma-<basename> redis-server nginx
 ```
 
+<a id="credentials-rotieren"></a>
+
 ### Rotating credentials {#rotating-credentials}
+
+<!-- Zusaetzliches Sprungziel `credentials-rotieren`: zwei deutsche Seiten
+     (developers/scenario-parameter-howto, managers/clubcloud-mcp-setup-service)
+     verlinken den deutschen Anker; das i18n-Plugin prueft ihn auch gegen diese Datei. -->
 
 Rotation replaces a server's `production.key`, `secret_key_base` and JWT secret. For the database encryption key
 a new key is added: the old ones keep decrypting, the new one encrypts. All other entries (feature keys,
@@ -310,8 +334,22 @@ WRITE=true RESTART=true bin/rails "scenario:upload_credentials[<scenario>]"     
 ### Daily (automated)
 - ✅ Database backup **only** for the Authority and for the sites listed in `STANDALONE_BACKUP_SCENARIOS`
   (`config/schedule.rb`) (currently `carambus_bcw`, target `/mnt/backup`)
-- ⚠️ A new club Pi has **no automatic backup**: add the scenario to `STANDALONE_BACKUP_SCENARIOS` and mount a
-  USB stick at `/mnt/backup`, or set up `bin/pg_backup.sh` in cron yourself
+- ⚠️ A new club Pi has **no automatic backup** — it has to be set up once. Three steps:
+
+    1. **Mount a USB stick on the Pi**, permanently at `/mnt/backup` (entry in `/etc/fstab`,
+       option `nofail` so the Pi still boots without the stick).
+    2. **Add your own scenario** — in the carambus checkout on the **admin computer**, extend the
+       line `STANDALONE_BACKUP_SCENARIOS = %w[carambus_bcw]` in `config/schedule.rb` with your
+       own `basename`. The change only takes effect after the next deploy, because the Pi's
+       crontab is generated from it.
+    3. After that `bin/pg_backup.sh` runs daily at 1:20 am into `/mnt/backup`.
+
+    !!! warning "Why the mounted stick matters"
+        If the stick is missing, `/mnt/backup` still exists because of `nofail` — as an empty
+        directory **on the SD card**. The backup would then write to exactly what it is meant to
+        protect against, and report success. `BACKUP_REQUIRE_MOUNT=1`
+        (`config/schedule.rb:240-250`) guards against this: without a real mount the run aborts
+        instead of lying silently.
 
 ### Weekly
 - 🔍 Check backup integrity

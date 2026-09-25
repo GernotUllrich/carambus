@@ -27,9 +27,11 @@ detail: [Features Overview](features-overview.md) and [Deployment Options](deplo
 
 - **AI search:** turns a question into a list filter. It needs your own Anthropic API key (running costs); the
   search queries are sent to Anthropic.
-- **ClubCloud assistant (MCP)** for sports officials: runs in Claude Code on the official's computer and needs an
-  account on the region's Carambus server
-  ([Quickstart](../managers/clubcloud-mcp-cloud-quickstart.md), German).
+- **ClubCloud assistant (MCP)** for sports officials: handles recurring ClubCloud chores in natural language.
+  It does not run inside the Carambus server but in *Claude Code* — an AI application by Anthropic that the
+  official installs on their own computer ([setup](../managers/clubcloud-mcp-cloud-quickstart.md), German) —
+  and needs an account on the region's Carambus server. *MCP* is the protocol the two speak. So it requires a
+  **region server**; for a single club server this is not applicable.
 
 ## How Carambus is built
 
@@ -66,6 +68,11 @@ In detail: [Requirements for running your own server](deployment-options.md#vora
   StimulusReflex/CableReady, real time via WebSockets
 - **Maintenance status:** Ruby 3.2 has received no security updates from its maintainers since the end of March
   2026, Rails 7.2 since August 2026. The upgrade to newer versions is still pending.
+
+    What this means for a club: a club server sits on the club's own network and is only reachable from
+    outside if the club deliberately exposes it (DynDNS, port forwarding). That limits the risk but does not
+    remove it — future flaws in Ruby or Rails will no longer be fixed upstream. Anyone planning to expose the
+    server publicly should factor this in.
 
 ## Privacy and security
 

@@ -5,6 +5,8 @@ require "test_helper"
 class DisciplinePhasesControllerTest < ActionDispatch::IntegrationTest
   setup do
     @discipline_phase = discipline_phases(:one)
+    # Plan 20-03: Schreibaktionen nur fuer Admins
+    sign_in users(:club_admin)
   end
 
   test "should get index" do

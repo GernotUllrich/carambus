@@ -178,20 +178,34 @@ A **GameParticipation** is a player's participation in a single game.
 
 ---
 
-### API Server (Central Server)
-The **API Server** is the central data source for all Carambus installations.
+### API Server (Central Server) — also called the **Authority**
+The **API Server** is the central data source for all Carambus installations. The installation
+and operations documentation usually calls it the **Authority**; both terms mean the same thing.
 
 **Main tasks:**
 - **Scraping:** Loads data from ClubCloud and other external sources
 - **Central data storage:** Stores **all** data from **all** regions
 - **Synchronization:** Distributes data to Local Servers (filtered by region)
 
-**Example:** carambus.de
+**Example:** `api.carambus.de` — the Authority for all of Germany
+(`config/carambus.yml:3`). **Not to be confused with `carambus.de`:** that is a public
+*Local Server* which obtains its own data from `api.carambus.de`
+(see [Server Architecture](../administrators/server-architecture.md)).
 
 **Data source:** Scraping from ClubCloud instances (see [ClubCloud Integration](../managers/clubcloud-integration.md))
 
-### Local Server (Regional/Club Server)
+### Local Server (Regional/Club Server) — also **club server** or **region server**
 A **Local Server** is a Carambus installation for a specific location.
+
+**Two flavours, both with `cap_role: local` in the scenario configuration:**
+
+| Term | Who runs it | Where it lives |
+|---|---|---|
+| **Club server** | a single club | usually a Raspberry Pi in the club house |
+| **Region server** | a state association, for its clubs | hosted (VPS/cloud) |
+
+The installation documentation uses "club server" and "region server" throughout;
+"Local Server" is the same thing seen from the technical side.
 
 **Main tasks:**
 - **Local game management:** Tournaments, scoreboards, match days
@@ -204,6 +218,35 @@ A **Local Server** is a Carambus installation for a specific location.
 - ✅ Smaller database (only own region)
 
 **Example:** Raspberry Pi in BC Hamburg club house
+
+### Region Dump
+A **region dump** is a database extract for **one single region**, prepared by the Authority —
+the initial data load for a new club or region server.
+
+**What it contains:** clubs, players, leagues, tournaments and locations of that region.
+**What it does not contain:** user accounts, credentials, PaperTrail versions, sessions — the
+dump is sanitised. The scoreboard login account and the first administrator are therefore
+created **locally** when it is loaded.
+
+**Where it comes from:** the Authority builds one per region every night. A club downloads it
+over HTTPS and needs **a login and password for its own region, requested once from the
+operator** — no SSH access to the Authority.
+
+**See:** [Region dumps](../administrators/region-dumps.md)
+
+---
+
+### Operator (of Carambus)
+The **operator** is whoever runs the Authority `api.carambus.de` — today a single-developer
+project, not a company and not an association.
+
+A club needs the operator in three places: for the **region dump credentials**, for the two
+**non-public repositories** `carambus_data` and `ansible` that the installation requires, and
+as the contact when its club or location does not yet exist on the Authority.
+
+**See:** [Installation overview](../administrators/installation-overview.md#prerequisites)
+
+---
 
 ### Local Data (Locally Created Data)
 **Local Data** is data created on a Local Server (not from scraping).

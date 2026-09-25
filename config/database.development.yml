@@ -1,4 +1,12 @@
 ---
+# Altlast aus dem Szenario `carambus_local_phat`. Einziger Leser ist bin/setup-local-dev.sh,
+# das config/database.yml damit ueberschreibt — der DRIFT-Report fuehrt diesen Weg als ueberholt.
+# Massgeblich ist der Szenario-Weg: rake "scenario:prepare_development[<szenario>,development]"
+# erzeugt die passende database.yml aus carambus_data/scenarios/<szenario>/config.yml.
+#
+# Das Passwort steht NICHT mehr hier. Es gehoert der geteilten Postgres-Rolle und liegt in
+# carambus_data/secrets.yml unter shared.database_password. Wer diese Datei doch benutzt,
+# setzt CARAMBUS_DB_PASSWORD in der Umgebung.
 default: &default
   adapter: postgresql
   encoding: unicode
@@ -18,5 +26,5 @@ production:
   <<: *default
   database: carambus_local_phat_production
   username: www-data
-  password: toS6E7tARQafHCXz
+  password: <%= ENV["CARAMBUS_DB_PASSWORD"] %>
   host: localhost

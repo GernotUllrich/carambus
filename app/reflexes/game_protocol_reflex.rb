@@ -35,6 +35,64 @@ class GameProtocolReflex < ApplicationReflex
     TableMonitorJob.perform_later(@table_monitor.id, "")
   end
 
+  # Plan 27-01: Zurueck ins laufende Spiel.
+  #
+  # Der Betreiber fand am Display: trifft eine Eingabe genau das Ballziel, endet das Spiel
+  # sofort und der Protokoll-Editor ist eine Sackgasse. Korrigieren geht, weiterspielen nicht —
+  # `confirm_result` ruft `evaluate_result`, und solange das Ergebnis das Spiel nicht beendet,
+  # bleibt der Monitor in set_over, wo die before_save-Invariante protocol_final sofort wieder
+  # herbeizwingt.
+  #
+  # ⚠️ `aasm.fire!(:undo)` und NICHT `@table_monitor.undo`: letzteres ist eine eigene Methode
+  # (`table_monitor.rb:1482`), die das gleichnamige AASM-Ereignis UEBERSCHATTET und die letzte
+  # EINGABE zuruecknimmt. Am Display belegt (2026-09-23): der Zustand blieb set_over, und
+  # playera.result fiel von 21 auf 20. `aasm.fire!` spricht die Zustandsmaschine direkt an und
+  # bleibt auch dann richtig, wenn jemand spaeter die Bang-Variante ebenfalls ueberschattet.
+  # Test T6b haelt die Falle fest.
+  #
+  # ⚠️ Kein Setzen von `panel_state`. Die Invariante (`table_monitor.rb:662-668`) setzt
+  # protocol_final auf pointer_mode, SOBALD set_over verlassen ist. Ein eigenes Setzen bliebe
+  # wirkungslos, solange der Zustand noch set_over ist — genau daran scheiterte der erste
+  # Entwurf dieses Plans.
+  #
+  # Die eingegebenen Punkte bleiben stehen; korrigiert wird danach mit den normalen
+  # Bedienelementen.
+  def back_to_game
+    morph :nothing
+    Rails.logger.info "[GameProtocolReflex#back_to_game] tm[#{@table_monitor.id}] " \
+                      "state=#{@table_monitor.state} -> playing"
+
+    @table_monitor.suppress_broadcast = true
+    # 1. Zustand: set_over -> playing (siehe Warnung oben zur Ueberschattung)
+    @table_monitor.aasm.fire!(:undo)
+    # 2. Die letzte Eingabe zurueck. Ohne diesen Schritt landet man im NACHSTOSS des Gegners:
+    #    beim Karambol wechselt der aktive Spieler, sobald jemand das Ballziel erreicht
+    #    (`table_monitor.rb:1391`, allow_follow_up) — und genau das hat die Fehleingabe
+    #    ausgeloest, BEVOR der Editor aufging. Der Zustandswechsel allein stellt diesen Moment
+    #    getreu wieder her; nur ist der Moment selbst falsch, und der Spieler, der sich vertippt
+    #    hat, waere nicht mehr am Zug (Betreiber am Display, 2026-09-23).
+    #    Hier ist `@table_monitor.undo` RICHTIG — es ist die Eingabe-Ruecknahme, dieselbe, die
+    #    der Knopf am Scoreboard ausloest.
+    #
+    #    ⚠️ Abgesichert: `TableMonitor#undo` schluckt Fehler NUR in production
+    #    (`table_monitor.rb:1549`: `raise StandardError unless Rails.env == "production"`).
+    #    Auf einem Entwicklungsserver wirft es. Scheitert es, soll der Betreiber trotzdem im
+    #    Spiel stehen statt wieder im Editor festzusitzen — der Zustandswechsel oben ist dann
+    #    schon persistiert, und die Eingabe laesst sich am Scoreboard von Hand zuruecknehmen.
+    begin
+      @table_monitor.undo
+      @table_monitor.save
+    rescue => e
+      Rails.logger.error "[GameProtocolReflex#back_to_game] tm[#{@table_monitor.id}] " \
+                         "Eingabe-Ruecknahme fehlgeschlagen: #{e.message} — der Zustandswechsel " \
+                         "steht, die Eingabe bleibt und kann am Scoreboard zurueckgenommen werden"
+    end
+    @table_monitor.suppress_broadcast = false
+
+    send_modal_update("")
+    TableMonitorJob.perform_later(@table_monitor.id, "")
+  end
+
   # Switch to edit mode
   def switch_to_edit_mode
     morph :nothing
@@ -78,7 +136,7 @@ class GameProtocolReflex < ApplicationReflex
     @table_monitor.suppress_broadcast = true
     @table_monitor.increment_inning_points(inning_index, player)
     @table_monitor.suppress_broadcast = false
-    send_table_update(render_protocol_table_body)
+    send_modal_morph(render_protocol_modal)
   end
 
   # Decrement points for a specific inning and player
@@ -92,7 +150,7 @@ class GameProtocolReflex < ApplicationReflex
     @table_monitor.suppress_broadcast = true
     @table_monitor.decrement_inning_points(inning_index, player)
     @table_monitor.suppress_broadcast = false
-    send_table_update(render_protocol_table_body)
+    send_modal_morph(render_protocol_modal)
   end
 
   # Delete an inning (only if both players have 0 points)
@@ -105,7 +163,7 @@ class GameProtocolReflex < ApplicationReflex
     @table_monitor.suppress_broadcast = true
     result = @table_monitor.delete_inning(inning_index)
     @table_monitor.suppress_broadcast = false
-    send_table_update(render_protocol_table_body) if result[:success]
+    send_modal_morph(render_protocol_modal) if result[:success]
   end
 
   # Insert an empty inning before the specified index
@@ -118,7 +176,7 @@ class GameProtocolReflex < ApplicationReflex
     @table_monitor.suppress_broadcast = true
     @table_monitor.insert_inning(before_index)
     @table_monitor.suppress_broadcast = false
-    send_table_update(render_protocol_table_body)
+    send_modal_morph(render_protocol_modal)
   end
 
   # Confirm the final result and close the protocol modal
@@ -352,7 +410,7 @@ class GameProtocolReflex < ApplicationReflex
     Rails.logger.debug { "💾 Saved and restored panel state to: #{previous_state}" }
 
     # Refresh protocol table body only
-    send_table_update(render_protocol_table_body)
+    send_modal_morph(render_protocol_modal)
     TableMonitorJob.perform_later(@table_monitor.id, "")
   end
 
@@ -381,35 +439,41 @@ class GameProtocolReflex < ApplicationReflex
     )
   end
 
-  def render_protocol_table_body
-    return "" unless @table_monitor.protocol_modal_should_be_open?
+  # Plan 25-02 (2026-09-23): Eine Aenderung im Protokoll muss auch KOPF und KNOPF erreichen,
+  # nicht nur die Tabelle. Bis hierher riefen increment/decrement/delete/insert_inning
+  # `send_table_update`, das ausschliesslich `#protocol-tbody-<id>` ersetzt — Kopf (Z. 42) und
+  # Fuss (Z. 167) liegen ausserhalb und blieben stehen.
+  #
+  # Vorher war das eine stille Veraltung im Kopf. Seit Plan 25-01 traegt der Bestaetigungsknopf
+  # das Ergebnis, und damit wurde daraus eine FALSCHAUSSAGE am Entscheidungsort: der Knopf
+  # behauptete "21:30 / Sieger: Lüdemann", waehrend die Daten 21:28 trugen (Betreiber am
+  # Display, 2026-09-23). Das ist die Umkehrung dessen, was Plan 25-01 erreichen wollte.
+  #
+  # `morph` statt `inner_html`: morphdom patcht in-place, statt Elemente zu ersetzen. Der
+  # Scroll-Container der Protokolltabelle (`.protocol-table-container`, `overflow-y-auto`,
+  # Z. 127) bleibt dasselbe DOM-Element und behaelt seine Scrollposition — bei einem langen
+  # Protokoll klickt man `+`/`-` wiederholt, ein Sprung nach oben bei jedem Klick waere ein
+  # eigener Bedienfehler.
+  # ⚠️ `children_only: true` ist NICHT optional. `cable_ready.js:786` ruft
+  # `morphdom(element, childrenOnly ? template.content : template.innerHTML, {childrenOnly: ...})`
+  # — ohne das Flag morpht morphdom das ELEMENT SELBST in die gelieferte Wurzel, der Container
+  # `#protocol-modal-container-<id>` wird also zu `<div id="game-protocol-modal">` und verliert
+  # seine id. Jede spaetere Zustellung an diesen Selektor trifft danach ins Leere. Am Display
+  # belegt (2026-09-23): Editieren sprang in die TableMonitor-Ansicht, und erst ein Reload
+  # brachte den Editor mit den richtigen Werten zurueck.
+  def send_modal_morph(html)
+    return if html.blank?
 
-    history = @table_monitor.innings_history
-    # Use edit body for both protocol_edit and protocol_final modes
-    use_edit_body = @table_monitor.panel_state == "protocol_edit" || @table_monitor.panel_state == "protocol_final"
-    partial = use_edit_body ? "table_monitors/game_protocol_table_body_edit" : "table_monitors/game_protocol_table_body"
-
-    ApplicationController.render(
-      partial: partial,
-      locals: {
-        history: history,
-        table_monitor: @table_monitor
-      }
-    )
+    CableReady::Channels.instance["table-monitor-stream"].morph(
+      selector: "#protocol-modal-container-#{@table_monitor.id}",
+      children_only: true,
+      html: html
+    ).broadcast
   end
 
   def send_modal_update(html)
     CableReady::Channels.instance["table-monitor-stream"].inner_html(
       selector: "#protocol-modal-container-#{@table_monitor.id}",
-      html: html
-    ).broadcast
-  end
-
-  def send_table_update(html)
-    return if html.blank?
-
-    CableReady::Channels.instance["table-monitor-stream"].inner_html(
-      selector: "#protocol-tbody-#{@table_monitor.id}",
       html: html
     ).broadcast
   end

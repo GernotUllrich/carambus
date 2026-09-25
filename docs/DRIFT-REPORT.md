@@ -873,3 +873,122 @@ Reine Code-Bugs aus früheren Läufen (Handoff: `carambus_gu/.paul/handoffs/HAND
 ## Einordnung (graphify-Caveat)
 
 Der graphify-Graph ist Landkarte/Discovery, kein Drift-Detektor: `INFERRED`-Kanten sind verrauscht. Der belastbare Abgleich lief gegen den echten Code (`EXTRACTED`-Struktur + Quelle).
+
+---
+
+# 22-01: Lesedurchlauf Vereinsweg (2026-09-21)
+
+Anderer Prüfgegenstand als die Läufe oben: dort **Richtigkeit** (trägt der Code, was die Doku
+behauptet?), hier **Verständlichkeit** (kommt jemand ohne Vorwissen durch?). Ein Satz kann
+vollständig belegt und trotzdem unbegehbar sein.
+
+**Methode:** Fünf Agenten ohne Carambus-Vorwissen lasen den Vereinsweg in Lesereihenfolge
+(Einstieg → Entscheidung → Admin-Einstieg → Installation → Erstbefüllung/erster Admin), Persona
+„Sportwart eines fremden Vereins" mit Linux-/SSH-Grundkenntnissen, nur lesend. Jeder Befund
+musste angeben, *was* der Leser dort tun soll, *was ihm fehlt* und **wo es steht** — steht es
+früher im Pfad, ist es ein Fehlalarm. Protokoll und alle Einzelbefunde:
+`.paul/phases/22-doku-verstaendlich/22-01-WALK.md`.
+
+**Bilanz:** 85 Stolperstellen, **14 Fehlalarme**, **71 gültig** (15 high · 42 medium · 14 low).
+Keine DE/EN-Abweichung. Gegenprobe im Hauptkontext: alle high, alle unsicheren, 28 medium —
+**kein Befund gekippt**, drei Urteile in der Richtung korrigiert.
+
+**Der Weg endete vor dem ersten Befehl.** `raspberry-pi-quickstart:39-40` setzte
+`carambus_data` und `~/DEV/ansible` als vorhanden voraus, ohne Bezugsquelle. Gemessen am
+2026-09-21: beide Repositories antworten unauthentifiziert mit HTTP 404, sind also **privat**.
+Damit war `installation-overview:82` („der einzige Schritt, bei dem ein Verein den Betreiber
+braucht") falsch. Die Doku kann das nicht heilen — sie sagt es jetzt; die Bereitstellung selbst
+ist als offener Punkt beim Betreiber verzeichnet.
+
+## Behoben (alle 15 high und rund 20 medium)
+
+| Bereich | Was geändert wurde | Commit |
+|---|---|---|
+| Glossar | Authority, Regionsdump, Vereinsserver/Region Server, Betreiber ergänzt; „Beispiel: carambus.de" beim API Server war falsch → `api.carambus.de` | `f035635a` |
+| Installationsweg | Neuer Abschnitt „Die drei Verzeichnisse" mit Herkunft je Verzeichnis; Ruby 3.2.1, Bundler, Ansible und der GitHub-SSH-Schlüssel ergänzt; der Widerspruch in `installation-overview:82` ersetzt; Nachschlageweg für `location_id`/`club_id`/`region_id`; `users:create_admin` ist nicht wiederholbar | `2eae5367` |
+| Außerhalb des Lesepfads | `players/ai-search` beschrieb OpenAI, der Code nutzt Anthropic; `scenario-parameter-reference:212` zu `region_shortname` war falsch | `6408ae47` |
+| Restliche high | Beispiel für `environments.production.ansible`; Backup gegen den SD-Kartentod ausführbar gemacht; Region-Server-Beschaffung; Kosten-Größenordnungen | `f17df411` |
+| Erstbefüllung | Überblick-Kasten korrigiert (drei Dinge statt einem); inhaltliche Prüfung „sind die Vereinsdaten angekommen?"; „Scoreboard-Konto" erklärt | `3a17c212` |
+| Entscheider | MCP/Claude Code/Region Server eingeordnet; EOL-Hinweis mit Folgen für einen Vereinsserver | `fd3a675b` |
+
+## Offen (rund 22 medium, 14 low)
+
+Nicht abgearbeitet, vollständig in `22-01-WALK.md` mit Stelle, Typ und Vorschlag. Schwerpunkte:
+die „Nächsten Schritte" auf der Entscheider-Startseite überspringen die Betriebsform-Entscheidung;
+ClubCloud Pflicht oder nicht bleibt auf dem Entscheider-Pfad offen; Turnier-Monitor vs.
+Turnier-App wird dort nie erklärt; `<basename>` trägt halbe Seiten und wird nie eingeführt;
+Wiederaufsetzen nach Abbruch ist ausgerechnet für den als DESTRUKTIV markierten Schritt 3
+ungeklärt; `region-dumps` trennt Betreiber- und Vereinssicht nicht.
+
+## Zwei Korrekturen, die der Lesedurchlauf allein nicht gefunden hätte
+
+Beide fand erst die Gegenprobe am Code: der Agent hatte den Widerspruch je richtig erkannt, aber
+die falsche Seite beschuldigt. **Wer nur den Text liest, korrigiert das Richtige kaputt.**
+
+Dazu eine Eigenkorrektur beim Schreiben: ein Entwurf nannte Claude Code „kostenpflichtig" —
+`managers/clubcloud-mcp-cloud-quickstart.de.md:27` sagt „gratis von Anthropic". Die unbelegte
+Aussage ist ersatzlos entfallen (Regel aus 16-02).
+
+## Grenze
+
+Ein Agent findet Fachjargon, Sprünge und fehlende Voraussetzungen — **nicht, was ein echter
+Mensch missversteht**. Betreiber-Entscheidung: nur Agent-Lesedurchlauf, kein Handtest mit einer
+Person.
+
+---
+
+# 22-03: Zweiter Durchlauf, Seite „Sicherheit im Betrieb" (2026-09-21)
+
+Die in 22-02 entstandene Seite wurde geprüft wie jede andere Seite des Vereinswegs — von einem
+Agenten ohne Kenntnis ihrer Entstehung. **Persona:** Vorstandsmitglied eines Vereins, dessen
+Server seit Monaten läuft und dessen Aufsetzer nicht mehr im Verein ist. Protokoll:
+`.paul/phases/22-doku-verstaendlich/22-03-WALK.md`.
+
+**Bilanz:** 13 Stolperstellen, **4 Fehlalarme** (Wissen korrekt hinter einen Link ausgelagert),
+**9 gültig** (2 high · 6 medium · 1 low). Keine DE/EN-Abweichung. Gegenprobe im Hauptkontext über
+**alle** Befunde: keiner gekippt. Leitfragen: 3 von 5 beantwortet — die zwei offenen waren genau
+die beiden high-Befunde.
+
+## Der Befund, der die Prüfung gerechtfertigt hat
+
+Die Seite war vier Tage alt, vom Betreiber gegengelesen und aus belegten Quellen gebaut. Sie
+enthielt trotzdem eine Anleitung, die **Sicherheit vortäuscht**:
+
+> „Jemand mit Serverzugang verlässt den Verein → Zugangsschlüssel des Servers rotieren"
+
+`scenario:generate_credentials` mit `ROTATE=true` erneuert Rails-Schlüssel, `secret_key_base` und
+JWT-Geheimnis (`lib/tasks/scenarios.rake:94`) — **den SSH-Zugang rührt es nicht an**; den
+verteilt Ansible (`roles/bootstrap`, `roles/migrate/tasks/01-distribute_keys.yml`). Wer die Zeile
+abarbeitete, hielt den Zugang des Ausgeschiedenen für geschlossen. Behoben: eigener Kasten mit
+dem Handgriff auf `~/.ssh/authorized_keys` und der ausdrücklichen Warnung, dass die Rotation das
+nicht erledigt.
+
+Zweiter high-Befund: Die Seite machte das Backup zur ersten Vereinspflicht, ohne zu sagen, woran
+man sieht, dass es läuft. Behoben mit einem konkreten `ls` auf `/mnt/backup` — `bin/pg_backup.sh`
+legt je Lauf ein Verzeichnis mit Zeitstempel an, sonntags eine `weekly/`-Kopie.
+
+## Der rote Faden der sechs medium
+
+**Die Seite war aus der Sicht des Einrichtenden geschrieben, nicht des Übernehmenden.**
+„Einmalig bei der Einrichtung" liest sich für jemanden, der nicht dabei war, als „ist erledigt".
+Das ist der blinde Fleck des Autors, der den Installationskontext im Kopf hatte.
+
+Behoben mit **einem** Abschnitt statt sechs Einzeländerungen: „Einen bestehenden Server
+übernehmen" mit fünf Prüffragen — sind wir von außen erreichbar · haben wir eigene Schlüssel · an
+welche Adresse melden die Update-Läufe · wer kann überhaupt deployen · wann läuft das Zertifikat
+ab. Jede mit dem Handgriff, der sie beantwortet.
+
+## Nebenher: Befund #23 aus 22-01 abgeschlossen
+
+Alle drei Abschnitte in `administrators/index`, die kein weiterführendes Ziel hatten, sind
+erledigt: „Sicherheit" bekam es in 22-02, „Backup & Restore" jetzt ein vorhandenes Ziel, und für
+„Monitoring" steht belegt fest, dass es **keines gibt** — geprüft über `administrators/` und
+`developers/`; statt eines erfundenen Verweises steht das jetzt da. Dazu ein zusätzliches
+Sprungziel in `index.en.md`, damit zwei deutsche Verweise auch gegen die englische Fassung
+auflösen (2 Meldungen vorher, 0 nachher).
+
+## Grenze
+
+Ein Agent findet Jargon, Sprünge und fehlende Voraussetzungen — nicht, was ein echter Mensch
+missversteht. Diese Persona konnte zudem nur prüfen, was auf **einer** Seite steht; ob ein
+Vorstand die Seite überhaupt findet, ist damit nicht gemessen.
