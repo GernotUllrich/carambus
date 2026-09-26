@@ -96,8 +96,10 @@ sudo cp templates/nginx/carambus_region_dumps.conf /etc/nginx/snippets/
 sudo cp templates/nginx/carambus_bot_block.conf /etc/nginx/conf.d/
 ```
 
-Im `server`-Block für Port 443 von `/etc/nginx/sites-available/carambus_api` die Zeile
-`include snippets/carambus_region_dumps.conf;` ergänzen, dann:
+Im `server`-Block für Port 443 von `/etc/nginx/sites-available/carambus_api` muss die Zeile
+`include snippets/carambus_region_dumps.conf;` stehen. Das Template `templates/nginx/nginx_conf.erb` erzeugt
+sie für Szenarien mit `cap_role: api` selbst; eine von Hand gepflegte Config muss sie weiterhin enthalten —
+fehlt sie, liefert `/region_dumps/` nur noch 404. Danach:
 
 ```bash
 sudo nginx -t && sudo systemctl reload nginx

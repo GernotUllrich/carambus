@@ -27,7 +27,7 @@ server {
 
     error_log /var/log/<%= @scenario['basename'] %>/error.log debug;
     access_log /var/log/<%= @scenario['basename'] %>/access.log combined;
-
+<%= "    # Regionsdumps nur auf der Authority (docs/administrators/region-dumps.de.md)\n    include snippets/carambus_region_dumps.conf;\n" if @config['cap_role'] == 'api' %>
 <% if @config.fetch('bot_block_enabled', true) %>
     # Bot-Abweisung — die maps ($carambus_block_bot / $carambus_deny) leben EINMALIG pro
     # Server in /etc/nginx/conf.d/carambus_bot_block.conf (siehe
