@@ -240,6 +240,35 @@ aussieht — `password: ~` (YAML-`null`) statt einer Zeichenkette, die sich bis 
 Authentifizierung wie ein echtes Passwort verhält. Der Nachweis, dass ein Zugang wirklich
 funktioniert, bleibt die Anmeldung.
 
+### Ein Deploy bringt das Release, aber nicht die nginx-Konfiguration
+
+`cap production deploy` schreibt `/etc/nginx/sites-available/<szenario>` **nicht** neu. Die
+Capistrano-Task, die das täte (`deploy:nginx_config`), wird nur von
+`deploy:deploy_templates` aufgerufen (`lib/capistrano/tasks/templates.rake:117`), und die hängt
+an keinem Hook in `config/deploy.rb`. Eine Änderung an `templates/nginx/nginx_conf.erb` wirkt
+erst nach `rake scenario:sync_nginx_conf[<szenario>]` (`lib/tasks/scenarios.rake:503`) oder
+einem gleichwertigen Kopieren von Hand.
+
+Teuer wird das, wenn eine Änderung **in zwei Hälften** zerfällt, die über verschiedene Wege
+ausgerollt werden. Plan 17-04 hat die Turnier-App ins Repo geholt: `public/app/` geht mit
+jedem Release auf **jeden** Server (`config/deploy.rb:18`). Gesperrt wird sie per nginx, und
+zwar überall dort, wo `serve_tournament_app` nicht gesetzt ist
+(`templates/nginx/nginx_conf.erb:100`/`:208`, `location ^~ /app/ { return 404; }`). Die erste
+Hälfte kam mit dem Deploy, die zweite nicht. Keine Meldung, kein Fehler — `/app/` antwortete
+einfach mit 200.
+
+**Beleg:** am 2026-09-25 fehlte der `/app/`-Block in zwei von vier Produktions-Szenarien. Der
+Diff zwischen gerendertem Template und Live-Datei bestand genau aus diesem Block (plus zwei
+Kommentarzeilen). Nach dem Nachziehen am 2026-09-26: `/app/` 404, alle übrigen Endpunkte
+unverändert.
+
+**Ausweg:** nach jeder Änderung am nginx-Template für **jedes** Produktions-Szenario das
+Template rendern (wie `generate_nginx_conf`, `lib/tasks/scenarios.rake:1638`) und mit der
+Live-Datei unter `/etc` vergleichen. Erst wenn der Diff genau die beabsichtigte Änderung zeigt,
+kopieren, dann `nginx -t` und reload. Der Vergleich deckt auch Handänderungen am Server auf,
+die das Template noch nicht kennt. Wer sie mit einem blinden `sync_nginx_conf` überschreibt,
+verliert sie still.
+
 ---
 
 ## Methode
