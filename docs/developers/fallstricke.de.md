@@ -143,6 +143,66 @@ Der Fehlschluss („keine Swap-Datei vorhanden") hielt mehrere Minuten.
 **Ausweg:** jedes Muster in einem eigenen Aufruf, oder `setopt NULL_GLOB` für den Block, oder
 gleich `find <dir> -name '.*.sw?'` — `find` kennt das Problem nicht.
 
+### `xargs` ebnet den Exit-Code des Kindes ein
+
+`xargs` gibt **nicht** den Status des aufgerufenen Programms weiter. Auf macOS (BSD-`xargs`)
+wird **jeder** Exit ungleich 0 zu **1** — gemessen:
+
+```
+Kind   0  ->  xargs 0
+Kind   1  ->  xargs 1
+Kind   3  ->  xargs 1
+Kind 125  ->  xargs 1
+Kind 255  ->  xargs 1
+```
+
+GNU-`xargs` bildet stattdessen auf 123/124/125 ab. Die Zahl ist also nicht einmal zwischen den
+Plattformen gleich — verlassen kann man sich nur darauf, dass der Originalwert **weg** ist.
+
+⚠️ Auf macOS ist das der ungünstigste Fall: ein Absturz mit 3 kommt als **1** an, und 1 ist
+genau der Code, mit dem viele Werkzeuge einen **Fund** melden. Aus „das Werkzeug ist kaputt"
+wird so „das Werkzeug hat etwas gefunden".
+
+**Beleg:** der `pre-commit` von `carambus_state` sollte „Geheimnis gefunden" (1) von „Wache
+abgestürzt" (3) trennen. Mit `xargs` dazwischen kam beides als 1 an — die Unterscheidung war
+wirkungslos, bevor sie geschrieben war.
+
+**Ausweg:** das Programm direkt mit einem Array aufrufen. Für Pfade mit Leerzeichen genügt
+`git diff --cached -z` plus eine Leseschleife; das funktioniert auch unter bash 3.2, das macOS
+noch mitliefert:
+
+```bash
+DATEIEN=()
+while IFS= read -r -d '' f; do DATEIEN+=("$f"); done < <(git ... -z ...)
+programm "${DATEIEN[@]}"
+```
+
+### `tar -T` steigt in Verzeichnisse aus der Liste ab
+
+Eine Dateiliste an `tar` ist keine Auswahl, sondern eine Liste von **Startpunkten**. Steht ein
+Verzeichnis darin, packt `tar` dessen gesamten Inhalt ein — jeder Ausschluss, den man vorher
+mit `find` gebaut hat, ist damit wirkungslos.
+
+```bash
+# FALSCH: find gibt auch '.' aus, tar packt darüber doch alles ein
+( cd "$q" && find . -path './archive' -prune -o -print0 | tar -cf - --null -T - )
+```
+
+**Beleg:** gemessen 1083 statt 57 Dateien — der Ausschluss sah im Code korrekt aus und war
+vollständig wirkungslos.
+
+**Ausweg:** `-mindepth 1` hält `.` aus der Liste, `-n` (`--norecurse`) verbietet `tar` das
+Absteigen:
+
+```bash
+( cd "$q" && find . -mindepth 1 -path './archive' -prune -o -print0 \
+  | tar -cf - --null -n -T - )
+```
+
+Das ist zugleich der **verankerte** Ersatz für `tar --exclude`, dessen Muster auf BSD-tar auch
+gegen nachlaufende Pfadkomponenten greift (siehe oben): `-path './archive'` trifft nur das
+oberste, weil `find` relativ zum Quellverzeichnis läuft.
+
 ### Overcommit stasht den Arbeitsbaum vor jedem Hook-Lauf
 
 Bricht der Lauf ab, liegt die Arbeit in `stash@{0}` — und `git status` meldet einen **sauberen**
