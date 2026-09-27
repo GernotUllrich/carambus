@@ -2,6 +2,12 @@
 
 require "yaml"
 require "digest"
+# ⚠️ Ohne dieses require scheitert `scan` mit NoMethodError auf `to_set`, sobald die
+# Wache unter System-Ruby 2.6 laeuft — also ueberall, wo die rbenv-Shims fehlen
+# (launchd, nicht-interaktives ssh). Ruby 3.x laedt `set` von selbst nach, weshalb
+# es interaktiv nie auffiel: der naechtliche carambus_state-Push brach drei Naechte
+# lang daran ab (2026-09-27 gefunden).
+require "set"
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Baum-Wache — verbrannte Geheimnisse duerfen nicht ins Repo zurueckkehren.
