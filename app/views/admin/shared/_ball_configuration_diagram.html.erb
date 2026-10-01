@@ -8,6 +8,9 @@
     ball_configuration  — BallConfiguration-Instance (required)
     title               — Optionaler Überschrift-String
     subtitle            — Optionaler Untertitel (z.B. "Start" / "Ende")
+    shot                — Optionaler Shot: zeichnet je Ball die Lauflinie
+                          (Shot#trajectory_for), Kollisionspunkte als Kreise und
+                          Bandenkontakte als Striche (v0.10)
 
   Konvention:
     x ∈ [0, 1] = normalisierte Länge (lange Tisch-Achse)
@@ -32,6 +35,7 @@
 
 <% title = local_assigns[:title] %>
 <% subtitle = local_assigns[:subtitle] %>
+<% shot = local_assigns[:shot] %>
 
 <% table_dimensions = {
      "klein"     => { length_cm: 210, width_cm: 105 },
@@ -113,6 +117,45 @@
       <% dy = padding + i * table_h / 4.0 %>
       <circle cx="<%= padding / 2 %>" cy="<%= dy %>" r="2" class="fill-billiard-diamond" />
       <circle cx="<%= svg_width - padding / 2 %>" cy="<%= dy %>" r="2" class="fill-billiard-diamond" />
+    <% end %>
+
+    <%# Lauflinien (v0.10) — unter den Bällen. Marker-IDs je Shot, weil mehrere
+        Diagramme auf einer Seite stehen. %>
+    <% if shot %>
+      <% line_colors = {
+           b1: { stroke: "stroke-billiard-ball-white",  fill: "fill-billiard-ball-white" },
+           b2: { stroke: "stroke-billiard-ball-yellow", fill: "fill-billiard-ball-yellow" },
+           b3: { stroke: "stroke-billiard-ball-red",    fill: "fill-billiard-ball-red" }
+         } %>
+      <defs>
+        <% line_colors.each do |role, color| %>
+          <marker id="traj-arrow-<%= shot.id %>-<%= role %>" viewBox="0 0 10 10" refX="9" refY="5"
+                  markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" class="<%= color[:fill] %>" />
+          </marker>
+        <% end %>
+      </defs>
+      <% line_colors.each do |role, color| %>
+        <% points = shot.trajectory_for(role) %>
+        <% next if points.size < 2 %>
+        <polyline points="<%= points.map { |nx, ny| "#{to_svg_x.call(nx).round(1)},#{to_svg_y.call(ny).round(1)}" }.join(" ") %>"
+                  class="fill-none <%= color[:stroke] %>" stroke-width="1.5" stroke-linejoin="round"
+                  marker-end="url(#traj-arrow-<%= shot.id %>-<%= role %>)" />
+      <% end %>
+      <% shot.ball_collisions.each do |collision| %>
+        <% nx, ny = Shot.point(collision.contact_coords_normalized) %>
+        <% next unless nx %>
+        <circle cx="<%= to_svg_x.call(nx) %>" cy="<%= to_svg_y.call(ny) %>" r="4"
+                class="fill-none stroke-billiard-diamond" stroke-width="1.5" />
+      <% end %>
+      <% shot.shot_events.select(&:event_cushion_contact?).each do |event| %>
+        <% nx, ny = Shot.point(event.contact_coords_normalized) %>
+        <% next unless nx %>
+        <% cx, cy = to_svg_x.call(nx), to_svg_y.call(ny) %>
+        <% dx, dy = event.cushion_involved.to_s.start_with?("long") ? [5, 0] : [0, 5] %>
+        <line x1="<%= cx - dx %>" y1="<%= cy - dy %>" x2="<%= cx + dx %>" y2="<%= cy + dy %>"
+              class="<%= line_colors[event.ball_involved.to_sym][:stroke] %>" stroke-width="2" />
+      <% end %>
     <% end %>
 
     <%# Bälle %>

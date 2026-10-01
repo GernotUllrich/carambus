@@ -68,6 +68,7 @@
       <% end_configs.each do |shot, bc| %>
         <%= render "admin/shared/ball_configuration_diagram",
                     ball_configuration: bc,
+                    shot: shot,
                     title: "Shot ##{shot.sequence_number}: #{shot.title_de.presence || shot.title_en.presence || 'Unbenannt'}",
                     subtitle: "Ende (Shot #{shot.sequence_number})" %>
       <% end %>
