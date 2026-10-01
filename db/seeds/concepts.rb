@@ -317,6 +317,40 @@ CONCEPTS_SEED = [
                       "Analysis (Gretillat).",
     gretillat_ref: nil,
     importance_order: 15
+  },
+
+  # --- Technik (Weingartner-Pflichtstoßprogramm, 2026-10-02) ----------
+  # Begriffe nach BM-Glossar: "Ziehball" kanonisch, "Rückläufer"
+  # Weingartners Wort und Synonym.
+
+  {
+    key: "draw_shot",
+    title: "Ziehball (Rückläufer)",
+    kind: "technique",
+    axis: "technique",
+    short_description: "Spielball wird nach dem Treffen von Ball 2 " \
+                       "zurückgezogen (tiefer Anstoß).",
+    full_description: "Der Spielball wird unterhalb der Mitte angestoßen " \
+                      "und kehrt nach dem Kontakt mit Ball 2 durch den " \
+                      "Rückwärtsdrall um. Weingartner ordnet ganze " \
+                      "Gruppen des Pflichtstoßprogramms danach " \
+                      "(Rückläufer, Einband-, Mehrband- und Brems-" \
+                      "Rückläufer).",
+    weingartner_ref: "Pflichtstoßprogramm, Gruppen I, II, V, VII, IX, XI, XVI",
+    importance_order: 16
+  },
+  {
+    key: "one_cushion_shot",
+    title: "Einbänder",
+    kind: "technique",
+    axis: "technique",
+    short_description: "Spielball erreicht Ball 3 über genau eine Bande.",
+    full_description: "Stoß, bei dem der Spielball nach Ball 2 genau " \
+                      "eine Bande berührt, bevor er Ball 3 trifft. Nicht " \
+                      "zu verwechseln mit der Disziplin Einband (dort " \
+                      "mindestens eine Bande vor der Karambolage).",
+    weingartner_ref: "Pflichtstoßprogramm, Gruppen II, V, X, XI, XIII, XVIII",
+    importance_order: 17
   }
 ].freeze
 
