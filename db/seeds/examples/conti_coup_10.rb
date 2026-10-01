@@ -174,20 +174,24 @@ CONCEPT_LINKS = [
            "aber Amorti-Technik ist das Thema, nicht margin selbst." }
 ]
 
-example.training_concept_examples.destroy_all  # idempotenter Reset
-
-CONCEPT_LINKS.each do |link|
-  c = TrainingConcept.find_by!(key: link[:key])
-  TrainingConceptExample.create!(
-    training_concept: c,
-    training_example: example,
-    weight:           link[:weight],
-    sequence_number:  link[:sequence_number],
-    role:             "illustrates",
-    notes:            link[:notes]
+# Upsert über (Konzept, Beispiel) — Unique-Index idx_concept_example_unique.
+# Bestehende Gewichte behalten ihre IDs; entfernt wird nur, was nicht mehr
+# in CONCEPT_LINKS steht. Achtung beim Umnummerieren: der partielle Index
+# idx_concept_example_sequence_unique (Konzept + sequence_number) lässt
+# ein Tauschen zweier Nummern nicht in einem Lauf zu — erst auf nil setzen.
+links = CONCEPT_LINKS.map do |link|
+  concept = TrainingConcept.find_by!(key: link[:key])
+  tce = example.training_concept_examples.find_or_initialize_by(training_concept: concept)
+  tce.update!(
+    weight:          link[:weight],
+    sequence_number: link[:sequence_number],
+    role:            "illustrates",
+    notes:           link[:notes]
   )
   puts "    · #{link[:key].ljust(32)} weight=#{link[:weight]}"
+  tce
 end
+example.training_concept_examples.where.not(id: links.map(&:id)).destroy_all
 
 # -----------------------------------------------------------------
 # 7. SourceAttribution am Example
