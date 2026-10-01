@@ -10,7 +10,7 @@
 #       · dominance           (2) — peripher (Versammlung → Dominance)
 #   - StartPosition → BallConfiguration (exact, Kleintisch, pre_gather)
 #   - Shot mit Translatable, end_ball_configuration qualitativ
-#   - ShotEvents (initial_contact → cushion_contact → final_carambolage)
+#   - v0.10: BallCollisions (B1→B2, B1→B3) + ShotEvent (B2 an der Bande)
 #   - SourceAttribution am Example (Gabriëls 1944, Kap.1 S.1)
 #
 # Voraussetzungen: concepts.rb und concept_relations.rb sind gelaufen
@@ -250,32 +250,30 @@ shot.save!
 puts "  ✓ Shot            ##{shot.id}"
 
 # -----------------------------------------------------------------
-# 10. ShotEvents
+# 10. BallCollisions + ShotEvents (v0.10)
 # -----------------------------------------------------------------
+#
+# Die Nummern tragen die gemeinsame Zeitachse (Handoff-Reply Paul
+# 2026-10-01 §3): 1 B1 trifft B2 · 2 B2 an der kurzen Bande ·
+# 3 B1 trifft B3. Upsert über die fachlichen Schlüssel, damit die Zeilen
+# aus der v0.10-Datenmigration ihre IDs behalten.
 
-shot.shot_events.destroy_all  # idempotenter Reset
-shot.shot_events.create!([
+collision_seeds = [
   {
     sequence_number: 1,
-    event_type:      "initial_contact",
-    ball_involved:   "b1",
+    collision_type:  "primary_impact",
+    ball_attacker:   "b1",
+    ball_target:     "b2",
     notes:           "B1 trifft B2. Linker Effet am Spielball wird bei " \
                      "diesem Kontakt gegenläufig auf B2 übertragen " \
                      "(Zahnrad-Analogie) — B2 beginnt rechtsdrehend."
   },
   {
-    sequence_number: 2,
-    event_type:      "cushion_contact",
-    ball_involved:   "b2",
-    notes:           "B2 trifft die kurze Bande im niedrigen " \
-                     "x-Bereich des Tisches. Durch den Rechts-Drehsinn " \
-                     "(aus dem übertragenen Effet) wird B2 nach dem " \
-                     "Bandenabprall zur B3-Position hin abgelenkt."
-  },
-  {
     sequence_number: 3,
-    event_type:      "final_carambolage",
-    ball_involved:   "b1",
+    collision_type:  "carambolage",
+    ball_attacker:   "b1",
+    ball_target:     "b3",
+    scored:          true,
     notes:           "B1 trifft B3 — Karambolage erzielt. B1 erreicht " \
                      "B3 auf der aus der gewählten Linie resultierenden " \
                      "Bahn; Gabriëls kommentiert diesen Pfad nicht " \
@@ -283,8 +281,39 @@ shot.shot_events.create!([
                      "B2's effet-gesteuertem Weg liegt. Endstellung: " \
                      "alle drei Bälle auf ~DIN-A4-Fläche versammelt."
   }
-])
-puts "  ✓ ShotEvents: #{shot.shot_events.count} (initial → cushion → final)"
+].freeze
+
+event_seeds = [
+  {
+    ball_involved:    "b2",
+    sequence_number:  2,
+    event_type:       "cushion_contact",
+    cushion_involved: "short_left",
+    notes:            "B2 trifft die kurze Bande im niedrigen " \
+                      "x-Bereich des Tisches. Durch den Rechts-Drehsinn " \
+                      "(aus dem übertragenen Effet) wird B2 nach dem " \
+                      "Bandenabprall zur B3-Position hin abgelenkt."
+  }
+].freeze
+
+collisions = collision_seeds.map do |attrs|
+  c = shot.ball_collisions.find_or_initialize_by(sequence_number: attrs[:sequence_number])
+  c.update!(attrs)
+  c
+end
+shot.ball_collisions.where.not(id: collisions.map(&:id)).destroy_all
+
+events = event_seeds.map do |attrs|
+  e = shot.shot_events.find_or_initialize_by(
+    ball_involved: attrs[:ball_involved], sequence_number: attrs[:sequence_number]
+  )
+  e.update!(attrs)
+  e
+end
+shot.shot_events.where.not(id: events.map(&:id)).destroy_all
+
+puts "  ✓ BallCollisions: #{shot.ball_collisions.count}, " \
+     "ShotEvents: #{shot.shot_events.count}"
 
 # -----------------------------------------------------------------
 # Zusammenfassung
@@ -295,6 +324,7 @@ puts "=" * 60
 puts "Gabriëls Stoß 1 v0.9 end-to-end gelandet:"
 puts "  Example ##{example.id} → #{example.training_concepts.count} Concepts " \
      "(weights: #{example.training_concept_examples.pluck(:weight).sort.reverse})"
-puts "  Shot    ##{shot.id} mit #{shot.shot_events.count} Events"
+puts "  Shot    ##{shot.id} mit #{shot.ball_collisions.count} Kollisionen, " \
+     "#{shot.shot_events.count} Events"
 puts "  Start/End BallConfigs: ##{start_config.id}/##{end_config.id}"
 puts "=" * 60

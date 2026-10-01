@@ -1,12 +1,15 @@
 # v0.9 Phase E+: Zweites End-to-End-Beispiel — Conti Coup 10.
+# v0.10 (2026-10-01): Koordinaten, Lauflinien und Ball-Kollisionen aus
+# Gernots Caromball-Nachstellung (TRAINING_SOURCES:
+# extractions/conti_coup_10_caromball.json, Herleitung in
+# mapping/2026-10-01_conti_coup_10_v010_seed_teile.rb).
 #
-# Stress-Test der v0.9-Ontologie an einer zweiten Quelle mit bewusst
-# anderem Profil als Gabriëls #1:
-#   - Qualitative Start- UND Endposition (kein Diagramm-Parser)
-#   - Matchtisch statt Kleintisch
+# Profil gegenüber Gabriëls #1:
+#   - Quelle vom Matchtisch, proportional über die Diamanten auf das
+#     kleine Turnierbillard 210 × 105 übertragen (ONTOLOGY "Tisch-Geometrie")
 #   - Amorti als Lehrziel, nicht Übertragungseffet
-#   - B 2 sehr voll (8/10) ohne Seiteneffet
-#   - B 3 minimal verschoben (4-5 cm) = "perfekter Amorti"
+#   - B 2 sehr voll (8/10) ohne Seiteneffet, Rappel über drei Banden
+#   - B 3 minimal verschoben (Heft: 4-5 cm) = "perfekter Amorti"
 #
 # M2M-Anbindung an vier Concepts mit Gewichtung:
 #       · amorti                          (5) — paradigmatisch, der Lehrkern
@@ -18,7 +21,9 @@
 # Concepts aus 2026-04-23) ist gelaufen.
 #
 # Idempotent: find_or_initialize_by auf semantischen Keys; Ball-
-# Configurations erkennt der SEED_MARKER im notes-Feld.
+# Configurations erkennt der SEED_MARKER im notes-Feld. Kollisionen und
+# Ereignisse werden über (Stoß, [Ball,] Nummer) upgesertet, damit
+# bestehende Zeilen ihre IDs behalten.
 #
 # Run: bin/rails runner db/seeds/examples/conti_coup_10.rb
 
@@ -54,80 +59,64 @@ puts "  ✓ TrainingSource  ##{source.id}"
 # -----------------------------------------------------------------
 
 discipline = Discipline.find_by!(name: "Freie Partie klein")
-# Hinweis: Conti spielt auf französischem Matchtisch, aber in unserer
-# aktuellen Discipline-Liste ist "Freie Partie klein" die generische
-# Freie-Partie-Referenz. Falls später eine eigene "Freie Partie match"
-# -Discipline kommt, wird dieser Seed entsprechend aktualisiert.
+# Zieltisch 210 × 105: Contis Matchtisch-Stellung ist proportional
+# übertragen (ONTOLOGY "Tisch-Geometrie").
 puts "  ✓ Discipline      ##{discipline.id} (#{discipline.name})"
 
 # -----------------------------------------------------------------
-# 3. BallConfiguration (Start) — qualitativ, geschätzt
+# 3. BallConfiguration (Start)
 # -----------------------------------------------------------------
 #
-# COORD-ESTIMATE: Die folgenden Koordinaten sind aus der Textbe-
-# schreibung abgeleitet und MÜSSEN vor produktiver Nutzung gegen das
-# Heft-Diagramm zu Coup 10 abgeglichen werden.
-#
-# Begründung der Schätzung:
-#   - "B 1 knapp über Zentrum" → x≈0.50, y leicht gegen Ziel-Bande.
-#     In der Linienserien-Konvention ist die Ziel-Bande eine lange
-#     Bande; wir nehmen die "obere" lange Bande (y gegen 1.0) als
-#     Zielseite an.
-#   - "B 2 sehr voll (~8/10)" → B 2 muss nahe B 1 stehen und so
-#     positioniert, dass ein Volltreffer in Richtung der langen Bande
-#     möglich ist. Wir setzen B 2 leicht unterhalb von B 1 (Richtung
-#     B 3).
-#   - B 3: In Linienserie nahe Ziel-Bande, deutlich entfernt von B 1/B 2
-#     (sonst wäre der 1-Banden-Weg über die Bande nicht erforderlich).
+# Caromball-Nachstellung von Heft S. 9 (Basisfassung: Effet 0 %,
+# Anspielhöhe 5 %, Neigung 3°, 80 % voll). Normalisiert, proportional
+# auf 210 × 105. Abweichung zu Gernots gespeichertem Caromball-Favoriten
+# "Conti 10a" ≤ 1,3 cm.
 
-start_config = BallConfiguration.find_or_initialize_by(
-  notes: "#{SEED_MARKER} Conti Coup 10 — Startstellung " \
-         "(Linienserie-Nähe, Matchtisch, qualitativ geschätzt)"
-)
+# Lookup über Marker + Rolle, damit sich die notes ändern dürfen, ohne
+# eine zweite Konfiguration anzulegen.
+def coup10_config(role)
+  BallConfiguration.where("notes LIKE ?", "#{SEED_MARKER} Conti Coup 10 — #{role}%").first ||
+    BallConfiguration.new
+end
+
+start_config = coup10_config("Startstellung")
 start_config.assign_attributes(
-  # COORD-ESTIMATE — siehe Block oben
-  b1_x: 0.50, b1_y: 0.55,
-  b2_x: 0.47, b2_y: 0.50,
-  b3_x: 0.62, b3_y: 0.88,
-  table_variant:  "match",
-  # STRESSPUNKT §3.2 der Mapping-Analyse: gather_state hat kein
-  # sauberes Semantik-Match für Linienserien. Pragmatisch auf
-  # "gathering" mit Notiz; v0.10-Diskussionspunkt.
+  notes: "#{SEED_MARKER} Conti Coup 10 — Startstellung " \
+         "(Caromball-Nachstellung Heft S. 9, proportional auf 210 × 105)",
+  b1_x: 0.8433, b1_y: 0.8796,
+  b2_x: 0.7817, b2_y: 0.9465,
+  b3_x: 0.8430, b3_y: 0.8056,
+  table_variant:  "klein",
+  # gather_state hat kein sauberes Semantik-Match für Linienserien;
+  # pragmatisch "gathering" (Mapping-Analyse §3.2).
   gather_state:   "gathering",
   flow_direction: nil,
   biais_degrees:  nil,
   biais_class:    "faible",
   orientation:    "gather",
-  position_type:  "qualitative"
+  position_type:  "approximate"
 )
 start_config.save!
-puts "  ✓ BallConfig      ##{start_config.id} (start, qualitative, match)"
+puts "  ✓ BallConfig      ##{start_config.id} (start, approximate, klein)"
 
 # -----------------------------------------------------------------
-# 4. BallConfiguration (Ende) — B 3 minimal verschoben
+# 4. BallConfiguration (Ende)
 # -----------------------------------------------------------------
-#
-# Quell-Angabe: "B 3 verschiebt sich nur 4–5 cm".
-# Matchtisch ist 2.84 m lang → 5 cm ≈ 0.018 normalisiert in x.
-# B 1 und B 2 machen eine moderate Bewegung (B 1 zur Bande und
-# zurück, B 2 durch Volltreffer verschoben).
 
-end_config = BallConfiguration.find_or_initialize_by(
-  notes: "#{SEED_MARKER} Conti Coup 10 — Endstellung " \
-         "(B 3 +5 cm, Linienformation erhalten, qualitativ)"
-)
+end_config = coup10_config("Endstellung")
 end_config.assign_attributes(
-  # COORD-ESTIMATE
-  b1_x: 0.55, b1_y: 0.70,
-  b2_x: 0.52, b2_y: 0.75,
-  b3_x: 0.64, b3_y: 0.88,
-  table_variant:  "match",
+  notes: "#{SEED_MARKER} Conti Coup 10 — Endstellung " \
+         "(B 1 an B 3, B 2 nach drei Banden zurück; Caromball)",
+  b1_x: 0.8194, b1_y: 0.8465,   # B 1 bleibt an B 3 liegen
+  b2_x: 0.8408, b2_y: 0.7303,   # B 2 nach drei Banden zurück bei der Gruppe
+  b3_x: 0.8739, b3_y: 0.8275,   # B 3 wenige cm verschoben
+  table_variant:  "klein",
   gather_state:   "gathering",
   orientation:    "gather",
-  position_type:  "qualitative"
+  position_type:  "approximate"
 )
 end_config.save!
-puts "  ✓ BallConfig      ##{end_config.id} (end, qualitative, B3 minimal)"
+puts "  ✓ BallConfig      ##{end_config.id} (end, approximate, klein)"
 
 # -----------------------------------------------------------------
 # 5. TrainingExample (flach, ohne direkte Concept-FK)
@@ -209,12 +198,15 @@ attribution = SourceAttribution.find_or_initialize_by(
   sourceable_type: "TrainingExample",
   sourceable_id:   example.id
 )
-attribution.reference = "Coup 10 (Teil 1, Seite ca. 5-6 des Heftes)"
+attribution.reference = "Coup 10, Conti_1_62.pdf S. 9"
 attribution.notes = "Textquelle der Annotator-Stimme: '1-Banden mit " \
                     "perfektem Amorti. B 1 knapp über Zentrum ohne " \
                     "Seiteneffet. B 2 sehr voll (~8/10). B 3 verschiebt " \
                     "sich nur 4–5 cm.' Keine Verbatim-Extraktion Conti-" \
-                    "Prosa (Lizenz-Policy)."
+                    "Prosa (Lizenz-Policy). Koordinaten aus Caromball-" \
+                    "Nachstellung (Gernot, 2026-10-01); Variante mit " \
+                    "Linkseffet in TRAINING_SOURCES extractions/" \
+                    "conti_coup_10_caromball_variante_effet_links.json."
 attribution.save!
 puts "  ✓ SourceAttribution ##{attribution.id} → TrainingExample"
 
@@ -227,18 +219,14 @@ sp.assign_attributes(
   ball_configuration: start_config,
   source_language: "de",
   description_text: <<~DESC
-    Französischer Matchtisch (2.84 × 1.42 m), Linienserien-
-    Formation nahe der langen Bande. Spielball B 1 liegt knapp
-    über Zentrum (etwas zur Ziel-Bande hin); Ball 2 sehr nah an
-    B 1 positioniert, sodass ein 8/10-Volltreffer möglich ist.
-    Ball 3 nahe der langen Ziel-Bande, deutlich entfernt von
-    B 1/B 2 — 1-Banden-Weg erforderlich.
+    Kleines Turnierbillard (2,10 × 1,05 m), Stellung proportional über
+    die Diamanten von Contis Matchtisch übertragen. Alle drei Bälle
+    liegen nahe der unteren langen Bande, knapp ein Viertel vor der
+    rechten kurzen Bande: B 2 (rot) dicht an der langen Bande, B 1
+    (weiß) schräg darüber, B 3 (gelb) direkt oberhalb von B 1.
 
-    Die Stellung ist klassische Linienserien-Anordnung: drei Bälle
-    à cheval in lockerer Linie entlang der langen Bande. Exakte
-    Koordinaten sind aus Quelle nicht überliefert (handge-
-    zeichnetes Heft-Diagramm); die Seed-Werte sind Schätzungen
-    aus der Textbeschreibung.
+    Koordinaten aus Gernots Caromball-Nachstellung des Heft-Diagramms
+    (S. 9); position_type=approximate.
   DESC
 )
 sp.save!
@@ -259,82 +247,122 @@ shot.assign_attributes(
          "Energie-Kalibrierung für minimale B 3-Verschiebung bei " \
          "voller B 2-Konfrontation.",
   shot_description: <<~DESCR,
-    Spielball B 1 wird ohne Seiteneffet, knapp über der Mitte der
-    Queue-Höhe, mit einer Energie gespielt, die gerade für den
-    1-Banden-Weg reicht und B 3 nur minimal bewegt. B 2 wird zu
-    8/10 voll getroffen; durch die hohe Quantität und das fehlende
-    Seiteneffet wird B 2 klar durchgestoßen und kommt in einer
-    neuen, linienserien-kompatiblen Position zum Stehen. B 1 läuft
-    zur langen Bande, prallt ab und erreicht B 3. Da die Energie
-    bis zum B 3-Kontakt weitgehend verbraucht ist, verschiebt sich
-    B 3 nur 4–5 cm — das ist der "perfekte Amorti" des Titels.
+    Einbänder mit perfektem Amorti und Rappel der 2 über drei Banden.
+    B 1 wird knapp über der Mitte ohne Seiteneffet gespielt und trifft
+    B 2 sehr voll (ca. 8/10). B 2 läuft über die nahe lange Bande, die
+    kurze Bande und die gegenüberliegende lange Bande zurück und kommt
+    wieder bei der Gruppe an. B 1 geht nach dem Treffer über die nahe
+    lange Bande und bleibt mit der letzten Energie an B 3 liegen; B 3
+    wird nur wenige Zentimeter verschoben.
 
-    Die drei Bälle bleiben nach dem Karambol in Linienserien-
-    Reichweite: die Folgestellung ist wieder eine Linien-
-    Konfiguration, die Serie kann fortgesetzt werden.
-
-    Konzeptuell demonstriert der Stoß (a) Amorti als gezielte
-    Energiekalibrierung, (b) die B 2-Wahl-Regel der Seite-1-Nota
-    (der Ball näher an der Ziel-Bande ist B 2), und (c) das
-    Linien-Formations-Prinzip der Einführungs-Coups.
+    Lehrkern: Der Stoß sieht heikel aus, ist aber mit absolutem
+    Volltreffer einfach — die volle Treffdicke schickt B 2 auf den
+    Drei-Banden-Weg und nimmt B 1 zugleich die Energie (Amorti).
   DESCR
-  end_position_description: "Alle drei Bälle in Linienserien-" \
-                            "Reichweite entlang der Ziel-Bande. " \
-                            "B 3 nur 4-5 cm gegenüber Start " \
-                            "verschoben (quellenexplizit). B 1 " \
-                            "und B 2 haben die Bandenregion " \
-                            "neu besetzt. Exakte Endkoordinaten " \
-                            "nicht quellenexplizit — position_type=" \
-                            "qualitative.",
+  end_position_description: "Alle drei Bälle wieder beieinander nahe " \
+                            "der Ausgangsstellung: B 1 an B 3, B 2 nach " \
+                            "drei Banden knapp oberhalb. B 3 nur " \
+                            "wenige cm verschoben (Heft: 4-5 cm).",
   shot_parameters: {
     effect: "none",
     quantity_of_ball: 0.8,
     height_of_attack: "slightly_above_center",
     energy: nil,
     amorti_target_cm: 5
+  },
+  trajectory_polylines: {
+    "b1" => [[0.8433, 0.8796], [0.8254, 0.9056], [0.8134, 0.9707], [0.8194, 0.8465]],
+    "b2" => [[0.7817, 0.9465], [0.7824, 0.9707], [0.0147, 0.1606], [0.1070, 0.0293], [0.8408, 0.7303]],
+    "b3" => [[0.8430, 0.8056], [0.8739, 0.8275]]
   }
 )
 shot.save!
 puts "  ✓ Shot            ##{shot.id}"
 
 # -----------------------------------------------------------------
-# 10. ShotEvents
+# 10. BallCollisions + ShotEvents (v0.10)
 # -----------------------------------------------------------------
+#
+# Die Nummern tragen die gemeinsame Zeitachse (Handoff-Reply Paul
+# 2026-10-01 §3): Kollision und Ereignis sortieren sich über die Nummer
+# ineinander, bei gleicher Nummer kommt die Kollision zuerst.
+#   1 B1 trifft B2 · 2 B1 und B2 an der nahen langen Bande ·
+#   3 B1 trifft B3 · 4/5 B2 an kurzer und ferner langer Bande
+# (Reihenfolge B1 vor B2s zweiter Bande belegt durch das Caromball-Video.)
 
-shot.shot_events.destroy_all  # idempotenter Reset
-shot.shot_events.create!([
+collision_seeds = [
   {
-    sequence_number: 1,
-    event_type:      "initial_contact",
-    ball_involved:   "b1",
-    notes:           "B 1 trifft B 2 sehr voll (~8/10). Ohne " \
-                     "Seiteneffet keine Effet-Übertragung; B 2 " \
-                     "wird geradlinig durchgestoßen und kommt in " \
-                     "einer linienserien-kompatiblen Position zum " \
-                     "Stehen."
+    sequence_number:   1,
+    collision_type:    "primary_impact",
+    ball_attacker:     "b1",
+    ball_target:       "b2",
+    contact_coords_normalized: { "x" => 0.8254, "y" => 0.9056 },
+    quantity_of_ball:  0.8,
+    speed:             2,
+    effect_vertical:   0,
+    effect_horizontal: 0,
+    properties: {
+      "caromball_raw" => {
+        "effet_percent" => 0.0, "anspielhoehe_percent" => 5.0,
+        "neigung_degrees" => 3.0, "geschwindigkeit_m" => 1.11,
+        "hit_percent" => 80.0, "table_size" => "Size200"
+      }
+    },
+    notes: "Sehr voller Treffer (8/10) ohne Seiteneffet. Schickt B 2 " \
+           "auf den Drei-Banden-Rappel und nimmt B 1 die Energie."
   },
   {
-    sequence_number: 2,
-    event_type:      "cushion_contact",
-    ball_involved:   "b1",
-    notes:           "B 1 trifft die lange Ziel-Bande. Ohne " \
-                     "Seiteneffet natürlicher Abprallwinkel. Die " \
-                     "Energie ist kalibriert, dass B 1 nach dem " \
-                     "Bandenkontakt gerade noch B 3 erreicht."
-  },
-  {
-    sequence_number: 3,
-    event_type:      "final_carambolage",
-    ball_involved:   "b1",
-    notes:           "B 1 trifft B 3 mit Rest-Energie. Durch die " \
-                     "weitgehend abgegebene Energie (Bandenkontakt " \
-                     "+ Weg) verschiebt sich B 3 nur 4–5 cm — " \
-                     "'perfekter Amorti'. Linienserie bleibt " \
-                     "spielbar."
+    sequence_number:   3,
+    collision_type:    "carambolage",
+    ball_attacker:     "b1",
+    ball_target:       "b3",
+    contact_coords_normalized: { "x" => 0.8194, "y" => 0.8465 },
+    scored:            true,
+    notes: "B 1 erreicht B 3 mit der Restenergie und bleibt daran " \
+           "liegen — der 'amorti parfait' des Titels."
   }
-])
-puts "  ✓ ShotEvents: #{shot.shot_events.count} " \
-     "(initial → cushion → final)"
+].freeze
+
+event_seeds = [
+  { ball_involved: "b1", sequence_number: 2, event_type: "cushion_contact",
+    cushion_involved: "long_near",
+    contact_coords_normalized: { "x" => 0.8134, "y" => 0.9707 },
+    notes: "Der eine Bandenkontakt des Einbänders." },
+  { ball_involved: "b2", sequence_number: 2, event_type: "cushion_contact",
+    cushion_involved: "long_near",
+    contact_coords_normalized: { "x" => 0.7824, "y" => 0.9707 },
+    notes: "1. Rappel-Bande, unmittelbar nach dem Treffer." },
+  { ball_involved: "b2", sequence_number: 4, event_type: "cushion_contact",
+    cushion_involved: "short_left",
+    contact_coords_normalized: { "x" => 0.0147, "y" => 0.1606 },
+    notes: "2. Rappel-Bande." },
+  { ball_involved: "b2", sequence_number: 5, event_type: "cushion_contact",
+    cushion_involved: "long_far",
+    contact_coords_normalized: { "x" => 0.1070, "y" => 0.0293 },
+    notes: "3. Rappel-Bande; danach Rücklauf zur Gruppe." }
+].freeze
+
+# Upsert über die fachlichen Schlüssel: bestehende Zeilen (seit der
+# v0.10-Datenmigration) behalten ihre IDs; was nicht mehr im Seed steht,
+# wird entfernt.
+collisions = collision_seeds.map do |attrs|
+  c = shot.ball_collisions.find_or_initialize_by(sequence_number: attrs[:sequence_number])
+  c.update!(attrs)
+  c
+end
+shot.ball_collisions.where.not(id: collisions.map(&:id)).destroy_all
+
+events = event_seeds.map do |attrs|
+  e = shot.shot_events.find_or_initialize_by(
+    ball_involved: attrs[:ball_involved], sequence_number: attrs[:sequence_number]
+  )
+  e.update!(attrs)
+  e
+end
+shot.shot_events.where.not(id: events.map(&:id)).destroy_all
+
+puts "  ✓ BallCollisions: #{shot.ball_collisions.count}, " \
+     "ShotEvents: #{shot.shot_events.count}"
 
 # -----------------------------------------------------------------
 # Zusammenfassung
@@ -342,12 +370,13 @@ puts "  ✓ ShotEvents: #{shot.shot_events.count} " \
 
 example.reload
 puts "=" * 60
-puts "Conti Coup 10 v0.9 end-to-end gelandet:"
+puts "Conti Coup 10 v0.10 end-to-end gelandet:"
 puts "  Example ##{example.id} → " \
      "#{example.training_concepts.count} Concepts " \
      "(weights: #{example.training_concept_examples.pluck(:weight).sort.reverse})"
 puts "  Shot    ##{shot.id} mit " \
+     "#{shot.ball_collisions.count} Kollisionen, " \
      "#{shot.shot_events.count} Events"
 puts "  Start/End BallConfigs: ##{start_config.id}/##{end_config.id}"
-puts "  position_type=qualitative auf beiden Configs (Stress-Test v0.9)"
+puts "  position_type=approximate, table_variant=klein (Caromball)"
 puts "=" * 60
