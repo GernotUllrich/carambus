@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_10_01_100300) do
+ActiveRecord::Schema[7.2].define(version: 2026_10_02_100100) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -1248,7 +1248,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_10_01_100300) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["key"], name: "index_table_zones_on_key", unique: true
-    t.check_constraint "zone_type::text = ANY (ARRAY['band_strip'::character varying::text, 'corner_region'::character varying::text, 'line_passage'::character varying::text, 'custom'::character varying::text])", name: "table_zones_zone_type_check"
+    t.check_constraint "zone_type::text = ANY (ARRAY['band_strip'::character varying, 'corner_region'::character varying, 'line_passage'::character varying, 'custom'::character varying, 'diamond_field'::character varying]::text[])", name: "table_zones_zone_type_check"
   end
 
   create_table "tables", force: :cascade do |t|
@@ -1619,9 +1619,15 @@ ActiveRecord::Schema[7.2].define(version: 2026_10_01_100300) do
     t.datetime "translations_synced_at"
     t.text "source_notes"
     t.integer "parent_id"
+    t.integer "points"
+    t.boolean "contre_allowed"
+    t.integer "sequence_number"
+    t.index ["parent_id", "sequence_number"], name: "idx_training_examples_parent_sequence_unique", unique: true, where: "(sequence_number IS NOT NULL)"
     t.index ["parent_id"], name: "index_training_examples_on_parent_id"
     t.index ["source_language"], name: "index_training_examples_on_source_language"
     t.index ["translations"], name: "index_training_examples_on_translations", using: :gin
+    t.check_constraint "points IS NULL OR points > 0", name: "training_examples_points_check"
+    t.check_constraint "sequence_number IS NULL OR sequence_number > 0", name: "training_examples_sequence_number_check"
   end
 
   create_table "training_sources", force: :cascade do |t|

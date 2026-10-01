@@ -19,10 +19,10 @@ module TrainingPackageTestHelper
     dam = TrainingConcept.create!(id: gid, title: "Sperre", axis: "conception", key: "pkg_the_dam")
     child = TrainingExample.create!(id: gid, title: "Kind-Beispiel")
     parent = TrainingExample.create!(id: gid, title: "Eltern-Beispiel")
-    child.update!(parent: parent)
+    child.update!(parent: parent, sequence_number: 1, points: 7, contre_allowed: true)
     bc = BallConfiguration.create!(id: gid, b1_x: 0.2, b1_y: 0.5, b2_x: 0.5, b2_y: 0.5, b3_x: 0.8, b3_y: 0.3,
       table_variant: "match", gather_state: "pre_gather", position_type: "exact")
-    zone = TableZone.create!(id: gid, key: "pkg_zone", label: "Paket-Zone", zone_type: "custom")
+    zone = TableZone.create!(id: gid, key: "pkg_zone", label: "Paket-Zone", zone_type: "diamond_field")
     TrainingConceptRelation.create!(id: gid, source_concept: dam, target_concept: dominance, relation: "risk_of")
     TrainingConceptDiscipline.create!(id: gid, training_concept: dominance, discipline: Discipline.first!)
     TrainingConceptExample.create!(id: gid, training_concept: dominance, training_example: parent, weight: 5)

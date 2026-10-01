@@ -1,7 +1,9 @@
 class TableZone < ApplicationRecord
   include LocalProtector
 
-  ZONE_TYPES = %w[band_strip corner_region line_passage custom].freeze
+  # diamond_field: eines der 32 Felder zwischen den Diamant-Verbindungslinien
+  # (Weingartners Versammlungszonen).
+  ZONE_TYPES = %w[band_strip corner_region line_passage custom diamond_field].freeze
 
   enum :zone_type, ZONE_TYPES.index_with(&:itself), prefix: :zone
 

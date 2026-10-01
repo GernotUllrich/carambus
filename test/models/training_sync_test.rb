@@ -75,6 +75,21 @@ class TrainingSyncTest < ActiveSupport::TestCase
     end
   end
 
+  # Trainingsprogramme (2026-10-02): die neuen Spalten reisen ueber denselben
+  # create-Zweig wie alle anderen Attribute.
+  test "TrainingExample with program fields is recreated by the sync create path" do
+    program = TrainingExample.create!(title: "Programm")
+    original = TrainingExample.create!(title: "Figur", parent: program, sequence_number: 2, points: 9,
+      contre_allowed: false)
+    args = sync_args(original.attributes.transform_values { |v| [nil, v] }.to_yaml)
+    TrainingExample.where(id: original.id).delete_all
+
+    recreated = TrainingExample.create(args.merge(unprotected: true))
+    assert recreated.persisted?, recreated.errors.full_messages.inspect
+    assert_equal original.attributes.slice("parent_id", "sequence_number", "points", "contre_allowed"),
+      recreated.reload.attributes.slice("parent_id", "sequence_number", "points", "contre_allowed")
+  end
+
   private
 
   # Wie Version.update_from_carambus_api (create-Zweig): je Attribut der neue Wert.

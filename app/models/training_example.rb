@@ -21,6 +21,13 @@ class TrainingExample < ApplicationRecord
   has_many :source_attributions, as: :sourceable, dependent: :destroy
   has_many :training_sources, through: :source_attributions
 
+  # Trainingsprogramme (Weingartner): Wertpunkte und Contre-Kennzeichen einer
+  # Figur, Reihenfolge unter demselben Elternknoten (Gruppe im Programm, Figur
+  # in der Gruppe).
+  validates :points, numericality: { only_integer: true, greater_than: 0 }, allow_nil: true
+  validates :sequence_number, numericality: { only_integer: true, greater_than: 0 },
+                              uniqueness: { scope: :parent_id }, allow_nil: true
+
   accepts_nested_attributes_for :start_position, allow_destroy: true
   accepts_nested_attributes_for :shots, allow_destroy: true, reject_if: :all_blank
   accepts_nested_attributes_for :source_attributions, allow_destroy: true, reject_if: :all_blank
