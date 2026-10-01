@@ -62,11 +62,8 @@ RELATIONS_SEED = [
 
   # Conti-Tetra: parallels zwischen den vier Werkzeugen ----------------
   #
-  # Anmerkung zur Relation-Wahl: 'parallels' wird hier als "verwandt im
-  # pädagogischen Korpus" genutzt — die einzige Relation im Enum, die für
-  # "gehört zur selben Werkzeug-Familie" passt. Semantisch sauberer wären
-  # 'risk_of' und 'is_inverse_of', die es noch nicht gibt (Schema-Arbeit,
-  # siehe Out-of-Scope im Handoff 2026-05-12).
+  # 'parallels' = "verwandt im pädagogischen Korpus", hier: gehört zur
+  # selben Werkzeug-Familie.
   {
     source: "the_dam", target: "austauschen", relation: "parallels",
     notes: "Sperre und Austauschen sind verwandte Werkzeuge der " \
@@ -92,23 +89,19 @@ RELATIONS_SEED = [
 
   # Dominanz-Verlust als Risiko der Stellungs-Werkzeuge -----------------
   {
-    source: "the_dam", target: "dominanz_verlust", relation: "parallels",
+    source: "the_dam", target: "dominanz_verlust", relation: "risk_of",
     notes: "Misslungene Sperre mündet typisch im Dominanz-Verlust " \
-           "(Mapping-Doc §2.2 Rang 5): B1 läuft in den Rücken. " \
-           "Bessere Relation wäre 'risk_of', aber das ist noch nicht " \
-           "im Enum (siehe Out-of-Scope)."
+           "(Mapping-Doc §2.2 Rang 5): B1 läuft in den Rücken."
   },
   {
-    source: "austauschen", target: "dominanz_verlust", relation: "parallels",
+    source: "austauschen", target: "dominanz_verlust", relation: "risk_of",
     notes: "Misslungener Austausch (B2 trifft B1 nicht oder zu " \
-           "schwach) → Dominanz-Verlust. 'parallels' ist Notbehelf " \
-           "bis 'risk_of'-Relation existiert."
+           "schwach) → Dominanz-Verlust."
   },
   {
-    source: "dominance", target: "dominanz_verlust", relation: "parallels",
+    source: "dominance", target: "dominanz_verlust", relation: "is_inverse_of",
     notes: "Dominanz und Dominanz-Verlust sind das positive und " \
-           "negative Konzept derselben Achse. 'is_inverse_of' wäre " \
-           "die saubere Relation, fehlt aktuell im Enum."
+           "negative Konzept derselben Achse."
   },
 
   # Austauschen wird in Linienserien angewandt -------------------------
@@ -119,6 +112,26 @@ RELATIONS_SEED = [
            "Linie, B2/B3 in Brille."
   }
 ].freeze
+
+# Bis 2026-09 waren diese drei Paare behelfsweise als 'parallels' kodiert
+# (risk_of / is_inverse_of fehlten im Enum). Der Upsert unten schlüsselt
+# auf (source, target, relation) und würde neben den alten Zeilen neue
+# anlegen. Deshalb vorher die alten Zeilen umkodieren: so behalten sie
+# ihre IDs (< 50M = globales Trainingswissen, siehe ID-Regime) und der
+# Sync bekommt eine Änderung statt Löschen + Neuanlage.
+RELATION_RECODES = {
+  %w[the_dam dominanz_verlust]     => "risk_of",
+  %w[austauschen dominanz_verlust] => "risk_of",
+  %w[dominance dominanz_verlust]   => "is_inverse_of"
+}.freeze
+
+RELATION_RECODES.each do |(source, target), relation|
+  TrainingConceptRelation.find_by(
+    source_concept: concept(source),
+    target_concept: concept(target),
+    relation:       "parallels"
+  )&.update!(relation: relation)
+end
 
 RELATIONS_SEED.each do |attrs|
   r = TrainingConceptRelation.find_or_initialize_by(
