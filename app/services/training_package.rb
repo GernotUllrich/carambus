@@ -32,6 +32,7 @@ module TrainingPackage
     "training_concept_examples" => "TrainingConceptExample",
     "starting_positions" => "StartPosition",
     "shots" => "Shot",
+    "ball_collisions" => "BallCollision",
     "shot_events" => "ShotEvent",
     "ball_configuration_zones" => "BallConfigurationZone",
     "source_attributions" => "SourceAttribution"
@@ -50,6 +51,7 @@ module TrainingPackage
                              "ball_configuration_id" => "ball_configurations"},
     "shots" => {"training_example_id" => "training_examples",
                 "end_ball_configuration_id" => "ball_configurations"},
+    "ball_collisions" => {"shot_id" => "shots"},
     "shot_events" => {"shot_id" => "shots"},
     "ball_configuration_zones" => {"ball_configuration_id" => "ball_configurations",
                                    "table_zone_id" => "table_zones"},

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 # Kleiner, vollstaendiger Trainingsgraph fuer die TrainingPackage-Tests: jede der
-# 13 Tabellen mit mindestens einer Zeile, dazu eine Eltern-Kind-Beziehung bei den
+# 14 Tabellen mit mindestens einer Zeile, dazu eine Eltern-Kind-Beziehung bei den
 # Beispielen, deren Kind die KLEINERE ID hat (prueft die Import-Reihenfolge).
 #
 # Alle IDs explizit global (< MIN_ID): die Testumgebung laeuft als Local Server, ihre
@@ -28,7 +28,11 @@ module TrainingPackageTestHelper
     TrainingConceptExample.create!(id: gid, training_concept: dominance, training_example: parent, weight: 5)
     StartPosition.create!(id: gid, training_example: parent, ball_configuration: bc, description_text: "Aufstellung")
     shot = Shot.create!(id: gid, training_example: parent, shot_type: "ideal", sequence_number: 1, title: "Stoss",
-      source_language: "de", end_ball_configuration: bc)
+      source_language: "de", end_ball_configuration: bc, trajectory_polylines: {"b1" => [[0.2, 0.5], [0.8, 0.3]]})
+    BallCollision.create!(id: gid, shot: shot, sequence_number: 1, collision_type: "primary_impact",
+      ball_attacker: "b1", ball_target: "b2", contact_coords_normalized: {"x" => 0.48, "y" => 0.5},
+      quantity_of_ball: 0.8, force: 2, speed: 3, effect_vertical: -1, effect_horizontal: 2,
+      properties: {"caromball_raw" => {"hit_percent" => 80}})
     ShotEvent.create!(id: gid, shot: shot, sequence_number: 1, event_type: "sperre", ball_involved: "b2")
     BallConfigurationZone.create!(id: gid, ball_configuration: bc, table_zone: zone, which_ball: "b2", role: "target")
     SourceAttribution.create!(id: gid, training_source: source, sourceable: parent)

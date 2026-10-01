@@ -94,8 +94,6 @@ en:
         event_type:
           austausch: Position exchange (B1↔B2)
           cushion_contact: Cushion contact
-          final_carambolage: Carom (B3 hit)
-          initial_contact: Initial contact B1↔B2
           near_miss: Near miss
           sperre: Barrage state (B2/B3 close)
       tournament:

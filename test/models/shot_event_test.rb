@@ -23,7 +23,8 @@ class ShotEventTest < ActiveSupport::TestCase
     {
       shot: shot,
       sequence_number: 1,
-      event_type: "initial_contact"
+      event_type: "cushion_contact",
+      ball_involved: "b1"
     }.merge(overrides)
   end
 
@@ -33,10 +34,19 @@ class ShotEventTest < ActiveSupport::TestCase
       .each { |col| assert_includes ShotEvent.column_names, col }
   end
 
-  test "event_type enum exposes exactly six values" do
-    assert_equal %w[initial_contact cushion_contact sperre austausch
-                    final_carambolage near_miss],
+  # v0.10: initial_contact/final_carambolage sind nach BallCollision gewandert.
+  test "event_type enum exposes exactly the four single-ball values" do
+    assert_equal %w[cushion_contact sperre austausch near_miss],
                  ShotEvent.event_types.keys
+  end
+
+  test "DB rejects the former collision event types" do
+    assert_raises(ActiveRecord::StatementInvalid) do
+      ShotEvent.connection.execute(<<~SQL)
+        INSERT INTO shot_events (shot_id, sequence_number, event_type, ball_involved, created_at, updated_at)
+        VALUES (#{shot.id}, 1, 'initial_contact', 'b1', NOW(), NOW())
+      SQL
+    end
   end
 
   test "ball_involved enum exposes b1, b2, b3" do
@@ -48,13 +58,13 @@ class ShotEventTest < ActiveSupport::TestCase
                  ShotEvent.cushion_involveds.keys
   end
 
-  test "valid with shot + sequence_number + event_type" do
+  test "valid with shot + sequence_number + event_type + ball_involved" do
     e = ShotEvent.new(valid_attrs)
     assert e.valid?, e.errors.full_messages.inspect
   end
 
   test "requires shot" do
-    e = ShotEvent.new(sequence_number: 1, event_type: "initial_contact")
+    e = ShotEvent.new(sequence_number: 1, event_type: "cushion_contact", ball_involved: "b1")
     assert_not e.valid?
     assert e.errors.of_kind?(:shot, :blank)
   end
@@ -71,11 +81,25 @@ class ShotEventTest < ActiveSupport::TestCase
     assert e.errors.of_kind?(:sequence_number, :greater_than)
   end
 
-  test "sequence_number uniqueness per shot" do
+  test "sequence_number uniqueness per shot and ball" do
     ShotEvent.create!(valid_attrs)
     dup = ShotEvent.new(valid_attrs)
     assert_not dup.valid?
     assert dup.errors.of_kind?(:sequence_number, :taken)
+  end
+
+  # v0.10: die Reihenfolge zaehlt pro Ball (Design-Doc §5.1/§8).
+  test "different balls of the same shot can share sequence_number" do
+    ShotEvent.create!(valid_attrs)
+    other_ball = ShotEvent.new(valid_attrs(ball_involved: "b2"))
+    assert other_ball.valid?, other_ball.errors.full_messages.inspect
+    assert_nothing_raised { other_ball.save! }
+  end
+
+  test "DB enforces uniqueness per shot and ball" do
+    ShotEvent.create!(valid_attrs)
+    dup = ShotEvent.new(valid_attrs)
+    assert_raises(ActiveRecord::RecordNotUnique) { dup.save!(validate: false) }
   end
 
   test "different shots can share sequence_number" do
@@ -106,9 +130,19 @@ class ShotEventTest < ActiveSupport::TestCase
     end
   end
 
-  test "ball_involved and cushion_involved are optional" do
+  test "ball_involved is required" do
+    e = ShotEvent.new(valid_attrs(ball_involved: nil))
+    assert_not e.valid?
+    assert e.errors.of_kind?(:ball_involved, :blank)
+  end
+
+  test "DB rejects a missing ball_involved" do
+    e = ShotEvent.new(valid_attrs(ball_involved: nil))
+    assert_raises(ActiveRecord::NotNullViolation) { e.save!(validate: false) }
+  end
+
+  test "cushion_involved is optional" do
     e = ShotEvent.new(valid_attrs)
-    assert_nil e.ball_involved
     assert_nil e.cushion_involved
     assert e.valid?
   end
@@ -136,8 +170,8 @@ class ShotEventTest < ActiveSupport::TestCase
   end
 
   test "Shot#shot_events are returned ordered by sequence_number" do
-    ShotEvent.create!(valid_attrs(sequence_number: 3, event_type: "final_carambolage"))
-    ShotEvent.create!(valid_attrs(sequence_number: 1, event_type: "initial_contact"))
+    ShotEvent.create!(valid_attrs(sequence_number: 3, event_type: "near_miss"))
+    ShotEvent.create!(valid_attrs(sequence_number: 1, event_type: "sperre"))
     ShotEvent.create!(valid_attrs(sequence_number: 2, event_type: "cushion_contact"))
 
     assert_equal [1, 2, 3], shot.shot_events.map(&:sequence_number)

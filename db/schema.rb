@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_09_18_170000) do
+ActiveRecord::Schema[7.2].define(version: 2026_10_01_100300) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -100,6 +100,36 @@ ActiveRecord::Schema[7.2].define(version: 2026_09_18_170000) do
     t.datetime "updated_at", null: false
     t.string "feature", default: "chat", null: false
     t.index ["scenario_context", "created_at"], name: "index_ai_usage_events_on_scenario_context_and_created_at"
+  end
+
+  create_table "ball_collisions", force: :cascade do |t|
+    t.bigint "shot_id", null: false
+    t.integer "sequence_number", null: false
+    t.string "collision_type", null: false
+    t.string "ball_attacker", null: false
+    t.string "ball_target", null: false
+    t.jsonb "contact_coords_normalized"
+    t.float "quantity_of_ball"
+    t.integer "force"
+    t.integer "speed"
+    t.integer "effect_vertical"
+    t.integer "effect_horizontal"
+    t.boolean "scored"
+    t.jsonb "properties", default: {}, null: false
+    t.text "notes"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["collision_type"], name: "index_ball_collisions_on_collision_type"
+    t.index ["shot_id", "sequence_number"], name: "idx_ball_collisions_on_shot_and_sequence", unique: true
+    t.index ["shot_id"], name: "index_ball_collisions_on_shot_id"
+    t.check_constraint "(ball_attacker::text = ANY (ARRAY['b1'::character varying, 'b2'::character varying, 'b3'::character varying]::text[])) AND (ball_target::text = ANY (ARRAY['b1'::character varying, 'b2'::character varying, 'b3'::character varying]::text[]))", name: "ball_collisions_balls_check"
+    t.check_constraint "(effect_vertical IS NULL OR effect_vertical >= '-3'::integer AND effect_vertical <= 3) AND (effect_horizontal IS NULL OR effect_horizontal >= '-3'::integer AND effect_horizontal <= 3)", name: "ball_collisions_effect_check"
+    t.check_constraint "(force IS NULL OR force >= 1 AND force <= 4) AND (speed IS NULL OR speed >= 1 AND speed <= 4)", name: "ball_collisions_force_speed_check"
+    t.check_constraint "ball_attacker::text <> ball_target::text", name: "ball_collisions_attacker_not_target_check"
+    t.check_constraint "collision_type::text = ANY (ARRAY['primary_impact'::character varying, 'secondary_impact'::character varying, 'carambolage'::character varying]::text[])", name: "ball_collisions_collision_type_check"
+    t.check_constraint "quantity_of_ball IS NULL OR quantity_of_ball >= 0::double precision AND quantity_of_ball <= 1::double precision", name: "ball_collisions_quantity_of_ball_check"
+    t.check_constraint "scored IS NULL OR collision_type::text = 'carambolage'::text", name: "ball_collisions_scored_only_carambolage_check"
+    t.check_constraint "sequence_number > 0", name: "ball_collisions_sequence_number_check"
   end
 
   create_table "ball_configuration_zones", force: :cascade do |t|
@@ -982,17 +1012,17 @@ ActiveRecord::Schema[7.2].define(version: 2026_09_18_170000) do
     t.bigint "shot_id", null: false
     t.integer "sequence_number", null: false
     t.string "event_type", null: false
-    t.string "ball_involved"
+    t.string "ball_involved", null: false
     t.string "cushion_involved"
     t.jsonb "contact_coords_normalized"
     t.text "notes"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["shot_id", "sequence_number"], name: "idx_shot_events_on_shot_and_sequence", unique: true
+    t.index ["shot_id", "ball_involved", "sequence_number"], name: "idx_shot_events_on_shot_and_sequence", unique: true
     t.index ["shot_id"], name: "index_shot_events_on_shot_id"
     t.check_constraint "ball_involved IS NULL OR (ball_involved::text = ANY (ARRAY['b1'::character varying::text, 'b2'::character varying::text, 'b3'::character varying::text]))", name: "shot_events_ball_involved_check"
     t.check_constraint "cushion_involved IS NULL OR (cushion_involved::text = ANY (ARRAY['short_left'::character varying::text, 'short_right'::character varying::text, 'long_near'::character varying::text, 'long_far'::character varying::text]))", name: "shot_events_cushion_involved_check"
-    t.check_constraint "event_type::text = ANY (ARRAY['initial_contact'::character varying::text, 'cushion_contact'::character varying::text, 'sperre'::character varying::text, 'austausch'::character varying::text, 'final_carambolage'::character varying::text, 'near_miss'::character varying::text])", name: "shot_events_event_type_check"
+    t.check_constraint "event_type::text = ANY (ARRAY['cushion_contact'::character varying, 'sperre'::character varying, 'austausch'::character varying, 'near_miss'::character varying]::text[])", name: "shot_events_event_type_check"
   end
 
   create_table "shots", force: :cascade do |t|
@@ -1026,6 +1056,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_09_18_170000) do
     t.text "end_position_description"
     t.text "shot_description"
     t.bigint "end_ball_configuration_id"
+    t.jsonb "trajectory_polylines", default: {}, null: false
     t.index ["end_ball_configuration_id"], name: "index_shots_on_end_ball_configuration_id"
     t.index ["shot_type"], name: "index_shots_on_shot_type"
     t.index ["source_language"], name: "index_shots_on_source_language"
@@ -1746,6 +1777,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_09_18_170000) do
   end
 
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "ball_collisions", "shots"
   add_foreign_key "ball_configuration_zones", "ball_configurations"
   add_foreign_key "ball_configuration_zones", "table_zones"
   add_foreign_key "club_locations", "regions"

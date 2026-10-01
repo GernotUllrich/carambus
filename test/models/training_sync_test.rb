@@ -17,14 +17,15 @@ class TrainingSyncTest < ActiveSupport::TestCase
   TRAINING_MODELS = [
     TrainingConcept, TrainingConceptRelation, TrainingConceptExample, TrainingConceptDiscipline,
     TrainingExample, TrainingSource, SourceAttribution,
-    Shot, ShotEvent, StartPosition,
+    Shot, ShotEvent, StartPosition, BallCollision,
     BallConfiguration, BallConfigurationZone, TableZone
   ].freeze
 
-  # Die sechs, die bis 2026-09-18 nicht synchronisiert wurden.
+  # Die sechs, die bis 2026-09-18 nicht synchronisiert wurden, plus die seither neuen.
   NEWLY_SYNCED = [
     TrainingConceptRelation, TrainingConceptExample, ShotEvent,
-    BallConfiguration, BallConfigurationZone, TableZone
+    BallConfiguration, BallConfigurationZone, TableZone,
+    BallCollision # v0.10, von Anfang an synchronisierbar
   ].freeze
 
   test "every training model includes LocalProtector" do
@@ -90,6 +91,9 @@ class TrainingSyncTest < ActiveSupport::TestCase
       TrainingConceptExample.create!(training_concept: concept("sync_a"), training_example: example, weight: 4)
     when "ShotEvent"
       shot.shot_events.create!(sequence_number: 1, event_type: "sperre", ball_involved: "b2")
+    when "BallCollision"
+      shot.ball_collisions.create!(sequence_number: 1, collision_type: "carambolage", ball_attacker: "b1",
+        ball_target: "b3", contact_coords_normalized: {"x" => 0.5, "y" => 0.5}, force: 2, scored: true)
     when "BallConfiguration"
       ball_configuration
     when "BallConfigurationZone"

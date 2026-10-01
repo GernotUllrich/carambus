@@ -1,7 +1,9 @@
 class ShotEvent < ApplicationRecord
   include LocalProtector
 
-  EVENT_TYPES    = %w[initial_contact cushion_contact sperre austausch final_carambolage near_miss].freeze
+  # v0.10: nur Einzelball-Ereignisse. Ball-Ball-Kontakte (frueher initial_contact /
+  # final_carambolage) liegen in BallCollision.
+  EVENT_TYPES    = %w[cushion_contact sperre austausch near_miss].freeze
   BALLS_INVOLVED = %w[b1 b2 b3].freeze
   CUSHIONS       = %w[short_left short_right long_near long_far].freeze
 
@@ -13,8 +15,10 @@ class ShotEvent < ApplicationRecord
 
   validates :sequence_number, presence: true,
                               numericality: { only_integer: true, greater_than: 0 }
-  validates :sequence_number, uniqueness: { scope: :shot_id }
+  # Reihenfolge zaehlt pro Ball (Design-Doc §5.1/§8).
+  validates :sequence_number, uniqueness: { scope: [:shot_id, :ball_involved] }
   validates :event_type, presence: true
+  validates :ball_involved, presence: true
 
   scope :ordered, -> { order(:sequence_number) }
 end

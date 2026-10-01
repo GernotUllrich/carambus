@@ -141,7 +141,9 @@ class TrainingPackage::ImporterTest < ActiveSupport::TestCase
     orphan_child = TrainingExample.create!(id: gid, title: "Waise Kind", parent: orphan_parent)
     orphan_shot = Shot.create!(id: gid, training_example: orphan_child, shot_type: "ideal", sequence_number: 1,
       title: "Waise Stoss", source_language: "de")
-    ShotEvent.create!(id: gid, shot: orphan_shot, sequence_number: 1, event_type: "sperre")
+    ShotEvent.create!(id: gid, shot: orphan_shot, sequence_number: 1, event_type: "sperre", ball_involved: "b2")
+    orphan_collision = BallCollision.create!(id: gid, shot: orphan_shot, sequence_number: 1,
+      collision_type: "primary_impact", ball_attacker: "b1", ball_target: "b2")
     @package["manifest"]["prune"] = true
 
     report = import(@package, apply: true)
@@ -150,6 +152,7 @@ class TrainingPackage::ImporterTest < ActiveSupport::TestCase
     refute TrainingExample.exists?(orphan_parent.id)
     refute TrainingExample.exists?(orphan_child.id)
     refute Shot.exists?(orphan_shot.id)
+    refute BallCollision.exists?(orphan_collision.id), "Kollision vor ihrem Stoss geloescht"
     assert_equal 2, report.tables["training_examples"][:deleted]
     assert TrainingExample.exists?(@graph[:parent].id), "Paketdaten bleiben"
   end
