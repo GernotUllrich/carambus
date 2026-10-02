@@ -10,6 +10,9 @@
 #   1 Topic-Concept "gather_shot" (Versammlungsstoß), das als primäres
 #     Konzept für die Gabriëls-Beispiele dient.
 #
+# Dazu die Technik-Concepts des Weingartner-Pflichtstoßprogramms
+# (draw_shot … rebound_shot), Begriffe nach BM-Glossar.
+#
 # Idempotent: find_or_initialize_by(key:). Alle Concepts haben keys,
 # weil Phase B den partial unique index auf key genau dafür bereitstellt.
 #
@@ -351,6 +354,93 @@ CONCEPTS_SEED = [
                       "mindestens eine Bande vor der Karambolage).",
     weingartner_ref: "Pflichtstoßprogramm, Gruppen II, V, X, XI, XIII, XVIII",
     importance_order: 17
+  },
+  {
+    key: "follow_shot",
+    title: "Nachläufer",
+    kind: "technique",
+    axis: "technique",
+    short_description: "Spielball läuft nach dem Treffen von Ball 2 " \
+                       "weiter (hoher Anstoß).",
+    full_description: "Der Spielball wird oberhalb der Mitte angestoßen " \
+                      "und folgt Ball 2 nach dem Kontakt durch den " \
+                      "Vorwärtsdrall. Gegenstück zum Ziehball; bei " \
+                      "Weingartner auch als Brems-Nachläufer mit " \
+                      "kurzem Weg des Spielballs.",
+    weingartner_ref: "Pflichtstoßprogramm, Gruppen IV, XVII",
+    importance_order: 18
+  },
+  {
+    key: "pre_cushion_shot",
+    title: "Vorbänder",
+    kind: "technique",
+    axis: "technique",
+    short_description: "Spielball berührt eine oder mehrere Banden, " \
+                       "bevor er Ball 2 trifft.",
+    full_description: "Stoß über eine oder mehrere Banden vor dem " \
+                      "Treffen von Ball 2. Gewählt, wenn der direkte Weg " \
+                      "zu Ball 2 die gewünschte Laufrichtung nicht zulässt " \
+                      "oder versperrt ist.",
+    weingartner_ref: "Pflichtstoßprogramm, Gruppe VI (Vorbande auch in Fig. 60)",
+    importance_order: 19
+  },
+  {
+    key: "three_cushion_shot",
+    title: "Dreibänder",
+    kind: "technique",
+    axis: "technique",
+    short_description: "Spielball erreicht Ball 3 über drei (oder mehr) " \
+                       "Banden.",
+    full_description: "Stoß, bei dem der Spielball nach Ball 2 " \
+                      "mindestens drei Banden berührt, bevor er Ball 3 " \
+                      "trifft; Laufweg mit dem Diamondsystem planbar. " \
+                      "Nicht zu verwechseln mit der Disziplin Dreiband.",
+    weingartner_ref: "Pflichtstoßprogramm, Gruppen III, VIII",
+    importance_order: 20
+  },
+  {
+    key: "multi_cushion_shot",
+    title: "Mehrbänder",
+    kind: "technique",
+    axis: "technique",
+    short_description: "Spielball erreicht Ball 3 über zwei oder mehr " \
+                       "Banden.",
+    full_description: "Oberbegriff für Stöße, bei denen der Spielball " \
+                      "nach Ball 2 mehrere Banden berührt, bevor er " \
+                      "Ball 3 trifft. Weingartner führt Mehrbänder und " \
+                      "Mehrband-Rückläufer als eigene Gruppen; der " \
+                      "Dreibänder ist ein Sonderfall.",
+    weingartner_ref: "Pflichtstoßprogramm, Gruppen VII, XII, XIV",
+    importance_order: 21
+  },
+  {
+    key: "encounter_shot",
+    title: "Begegnungsstoß",
+    kind: "technique",
+    axis: "technique",
+    short_description: "Ball 3 verlässt vor der Karambolage seinen Platz " \
+                       "und trifft unterwegs auf den Spielball.",
+    full_description: "Ball 2 überträgt den Stoß auf Ball 3, der an eine " \
+                      "Bande und zurück läuft; der Spielball trifft den " \
+                      "zurückkommenden Ball 3. Ball 2 muss dabei aus dem " \
+                      "Weg (Effet, Lösen von der Bande), sonst droht der " \
+                      "Klapper. Frz. rencontre.",
+    weingartner_ref: "Pflichtstoßprogramm, Gruppe XV",
+    importance_order: 22
+  },
+  {
+    key: "rebound_shot",
+    title: "Prellstoß",
+    kind: "technique",
+    axis: "technique",
+    short_description: "Ball 2 liegt an der Bande; der Spielball prallt " \
+                       "von Ball 2 und Bande ab.",
+    full_description: "Ball 2 liegt an oder nahe der Bande. Der Spielball " \
+                      "trifft ihn so, dass er von Ball 2 und Bande " \
+                      "zurückprallt und Ball 3 erreicht; Weingartner " \
+                      "setzt dafür teils Hilfsbälle zum Aufstellen ein.",
+    weingartner_ref: "Pflichtstoßprogramm, Gruppe XIX",
+    importance_order: 23
   }
 ].freeze
 

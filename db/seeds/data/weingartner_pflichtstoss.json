@@ -7,6 +7,510 @@
  },
  "groups": [
   {
+   "number": 1,
+   "name": "Rückläufer",
+   "concepts": [
+    {
+     "key": "draw_shot",
+     "weight": 5
+    },
+    {
+     "key": "gather_shot",
+     "weight": 3
+    }
+   ],
+   "figures": [
+    {
+     "figur": 1,
+     "position_in_group": 1,
+     "points": 5,
+     "contre_allowed": false,
+     "note": null,
+     "path_source": {
+      "white": "Bild",
+      "yellow": "Bild"
+     },
+     "legend": {
+      "b1": "1 BB von B II diagonal",
+      "b2": "SP 2 - 2",
+      "b3": "Ecke frei"
+     },
+     "start": {
+      "b2": [
+       0.25,
+       0.5
+      ],
+      "b3": [
+       0.9561,
+       0.9121
+      ],
+      "b1": [
+       0.2914,
+       0.5829
+      ]
+     },
+     "end": {
+      "b1": [
+       0.9278,
+       0.8968
+      ],
+      "b2": [
+       0.9425,
+       0.88
+      ],
+      "b3": [
+       0.9561,
+       0.9121
+      ]
+     },
+     "trajectories": {
+      "b1": [
+       [
+        0.2914,
+        0.5829
+       ],
+       [
+        0.2707,
+        0.5414
+       ],
+       [
+        0.9278,
+        0.8968
+       ]
+      ],
+      "b2": [
+       [
+        0.25,
+        0.5
+       ],
+       [
+        0.0146,
+        0.065
+       ],
+       [
+        0.0325,
+        0.0293
+       ],
+       [
+        0.9425,
+        0.88
+       ]
+      ]
+     },
+     "collisions": [
+      {
+       "sequence_number": 1,
+       "ball_attacker": "b1",
+       "ball_target": "b2",
+       "contact": [
+        0.2707,
+        0.5414
+       ],
+       "collision_type": "primary_impact"
+      },
+      {
+       "sequence_number": 2,
+       "ball_attacker": "b1",
+       "ball_target": "b3",
+       "contact": [
+        0.9278,
+        0.8968
+       ],
+       "collision_type": "carambolage",
+       "scored": true
+      }
+     ],
+     "cushion_events": [
+      {
+       "ball": "b2",
+       "sequence_number": 2,
+       "cushion": "short_left",
+       "contact": [
+        0.0146,
+        0.065
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 3,
+       "cushion": "long_far",
+       "contact": [
+        0.0325,
+        0.0293
+       ]
+      }
+     ],
+     "vz_zone": "diamond_field_x7_y3"
+    },
+    {
+     "figur": 2,
+     "position_in_group": 2,
+     "points": 7,
+     "contre_allowed": false,
+     "note": "B I nach Wahl näher an LB",
+     "path_source": {
+      "white": "Korrektur",
+      "yellow": "Korrektur"
+     },
+     "legend": {
+      "b1": "3 BB von 1",
+      "b2": "Press bei 2",
+      "b3": "Press bei 0,5"
+     },
+     "start": {
+      "b1": [
+       0.875,
+       0.205
+      ],
+      "b2": [
+       0.75,
+       0.0293
+      ],
+      "b3": [
+       0.9375,
+       0.0293
+      ]
+     },
+     "end": {
+      "b1": [
+       0.9084,
+       0.0353
+      ],
+      "b2": [
+       0.9412,
+       0.0925
+      ],
+      "b3": [
+       0.9375,
+       0.0293
+      ]
+     },
+     "trajectories": {
+      "b1": [
+       [
+        0.875,
+        0.205
+       ],
+       [
+        0.774,
+        0.063
+       ],
+       [
+        0.9084,
+        0.0353
+       ]
+      ],
+      "b2": [
+       [
+        0.75,
+        0.0293
+       ],
+       [
+        0.0146,
+        0.745
+       ],
+       [
+        0.1838,
+        0.9707
+       ],
+       [
+        0.9412,
+        0.0925
+       ]
+      ]
+     },
+     "collisions": [
+      {
+       "sequence_number": 1,
+       "ball_attacker": "b1",
+       "ball_target": "b2",
+       "contact": [
+        0.774,
+        0.063
+       ],
+       "collision_type": "primary_impact"
+      },
+      {
+       "sequence_number": 2,
+       "ball_attacker": "b1",
+       "ball_target": "b3",
+       "contact": [
+        0.9084,
+        0.0353
+       ],
+       "collision_type": "carambolage",
+       "scored": true
+      }
+     ],
+     "cushion_events": [
+      {
+       "ball": "b2",
+       "sequence_number": 2,
+       "cushion": "short_left",
+       "contact": [
+        0.0146,
+        0.745
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 3,
+       "cushion": "long_near",
+       "contact": [
+        0.1838,
+        0.9707
+       ]
+      }
+     ],
+     "vz_zone": "diamond_field_x7_y0"
+    },
+    {
+     "figur": 3,
+     "position_in_group": 3,
+     "points": 7,
+     "contre_allowed": false,
+     "note": null,
+     "path_source": {
+      "white": "Korrektur",
+      "yellow": "Korrektur"
+     },
+     "legend": {
+      "b1": "1 BB von B II an CL",
+      "b2": "VL 4 an CL",
+      "b3": "CSP rechts oben"
+     },
+     "start": {
+      "b2": [
+       0.5,
+       0.6667
+      ],
+      "b3": [
+       0.8187,
+       0.6373
+      ],
+      "b1": [
+       0.5586,
+       0.6667
+      ]
+     },
+     "end": {
+      "b1": [
+       0.7895,
+       0.6403
+      ],
+      "b2": [
+       0.7812,
+       0.6425
+      ],
+      "b3": [
+       0.8187,
+       0.6373
+      ]
+     },
+     "trajectories": {
+      "b1": [
+       [
+        0.5586,
+        0.6667
+       ],
+       [
+        0.5293,
+        0.6667
+       ],
+       [
+        0.7895,
+        0.6403
+       ]
+      ],
+      "b2": [
+       [
+        0.5,
+        0.6667
+       ],
+       [
+        0.0146,
+        0.6425
+       ],
+       [
+        0.7812,
+        0.6425
+       ]
+      ]
+     },
+     "collisions": [
+      {
+       "sequence_number": 1,
+       "ball_attacker": "b1",
+       "ball_target": "b2",
+       "contact": [
+        0.5293,
+        0.6667
+       ],
+       "collision_type": "primary_impact"
+      },
+      {
+       "sequence_number": 2,
+       "ball_attacker": "b1",
+       "ball_target": "b3",
+       "contact": [
+        0.7895,
+        0.6403
+       ],
+       "collision_type": "carambolage",
+       "scored": true
+      }
+     ],
+     "cushion_events": [
+      {
+       "ball": "b2",
+       "sequence_number": 2,
+       "cushion": "short_left",
+       "contact": [
+        0.0146,
+        0.6425
+       ]
+      }
+     ],
+     "vz_zone": "diamond_field_x6_y2"
+    },
+    {
+     "figur": 4,
+     "position_in_group": 4,
+     "points": 11,
+     "contre_allowed": false,
+     "note": "B I mit Hilfsbällen aufgesetzt",
+     "path_source": {
+      "white": "Bild",
+      "yellow": "Bild"
+     },
+     "legend": {
+      "b1": "siehe Zeichnung",
+      "b2": "1 BB von 2",
+      "b3": "1 BB von 1,5"
+     },
+     "start": {
+      "b1": [
+       0.0538,
+       0.7975
+      ],
+      "b2": [
+       0.044,
+       0.5
+      ],
+      "b3": [
+       0.9561,
+       0.375
+      ]
+     },
+     "end": {
+      "b1": [
+       0.927,
+       0.3809
+      ],
+      "b2": [
+       0.9462,
+       0.4175
+      ],
+      "b3": [
+       0.9561,
+       0.375
+      ]
+     },
+     "trajectories": {
+      "b1": [
+       [
+        0.0538,
+        0.7975
+       ],
+       [
+        0.0459,
+        0.5584
+       ],
+       [
+        0.927,
+        0.3809
+       ]
+      ],
+      "b2": [
+       [
+        0.044,
+        0.5
+       ],
+       [
+        0.0146,
+        0.39
+       ],
+       [
+        0.1038,
+        0.0293
+       ],
+       [
+        0.625,
+        0.9707
+       ],
+       [
+        0.9462,
+        0.4175
+       ]
+      ]
+     },
+     "collisions": [
+      {
+       "sequence_number": 1,
+       "ball_attacker": "b1",
+       "ball_target": "b2",
+       "contact": [
+        0.0459,
+        0.5584
+       ],
+       "collision_type": "primary_impact"
+      },
+      {
+       "sequence_number": 2,
+       "ball_attacker": "b1",
+       "ball_target": "b3",
+       "contact": [
+        0.927,
+        0.3809
+       ],
+       "collision_type": "carambolage",
+       "scored": true
+      }
+     ],
+     "cushion_events": [
+      {
+       "ball": "b2",
+       "sequence_number": 2,
+       "cushion": "short_left",
+       "contact": [
+        0.0146,
+        0.39
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 3,
+       "cushion": "long_far",
+       "contact": [
+        0.1038,
+        0.0293
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 4,
+       "cushion": "long_near",
+       "contact": [
+        0.625,
+        0.9707
+       ]
+      }
+     ],
+     "vz_zone": "diamond_field_x7_y1"
+    }
+   ]
+  },
+  {
    "number": 2,
    "name": "Einband Rückläufer",
    "concepts": [
@@ -29,6 +533,11 @@
      "position_in_group": 1,
      "points": 5,
      "contre_allowed": false,
+     "note": null,
+     "path_source": {
+      "white": "Bild",
+      "yellow": "Bild"
+     },
      "legend": {
       "b1": "SP 1 - CL",
       "b2": "1 BB von B I auf CL",
@@ -39,13 +548,13 @@
        0.875,
        0.6667
       ],
-      "b2": [
-       0.8164,
-       0.6667
-      ],
       "b3": [
        0.9854,
        0.375
+      ],
+      "b2": [
+       0.8164,
+       0.6667
       ]
      },
      "end": {
@@ -159,6 +668,11 @@
      "position_in_group": 2,
      "points": 6,
      "contre_allowed": false,
+     "note": null,
+     "path_source": {
+      "white": "Bild",
+      "yellow": "Bild"
+     },
      "legend": {
       "b1": "SP 2 - 1",
       "b2": "SP 1 - 1",
@@ -289,6 +803,11 @@
      "position_in_group": 3,
      "points": 7,
      "contre_allowed": false,
+     "note": null,
+     "path_source": {
+      "white": "Bild",
+      "yellow": "Bild"
+     },
      "legend": {
       "b1": "SP 1 - CL",
       "b2": "SP 2 - 2",
@@ -419,6 +938,11 @@
      "position_in_group": 4,
      "points": 7,
      "contre_allowed": false,
+     "note": null,
+     "path_source": {
+      "white": "Bild",
+      "yellow": "Bild"
+     },
      "legend": {
       "b1": "SP 2 - 2",
       "b2": "SP 1 - CL",
@@ -556,6 +1080,9783 @@
       }
      ],
      "vz_zone": "diamond_field_x0_y3"
+    }
+   ]
+  },
+  {
+   "number": 3,
+   "name": "Dreibänder",
+   "concepts": [
+    {
+     "key": "three_cushion_shot",
+     "weight": 5
+    },
+    {
+     "key": "gather_shot",
+     "weight": 3
+    }
+   ],
+   "figures": [
+    {
+     "figur": 9,
+     "position_in_group": 1,
+     "points": 4,
+     "contre_allowed": false,
+     "note": null,
+     "path_source": {
+      "white": "Bild",
+      "yellow": "Bild"
+     },
+     "legend": {
+      "b1": "3 BB von 3",
+      "b2": "2 BB von 2,5",
+      "b3": "Ecke frei"
+     },
+     "start": {
+      "b1": [
+       0.375,
+       0.795
+      ],
+      "b2": [
+       0.3125,
+       0.8535
+      ],
+      "b3": [
+       0.044,
+       0.0878
+      ]
+     },
+     "end": {
+      "b1": [
+       0.0687,
+       0.119
+      ],
+      "b2": [
+       0.0625,
+       0.17
+      ],
+      "b3": [
+       0.044,
+       0.0878
+      ]
+     },
+     "trajectories": {
+      "b1": [
+       [
+        0.375,
+        0.795
+       ],
+       [
+        0.339,
+        0.8287
+       ],
+       [
+        0.0146,
+        0.655
+       ],
+       [
+        0.4812,
+        0.0293
+       ],
+       [
+        0.9854,
+        0.4875
+       ],
+       [
+        0.7463,
+        0.9707
+       ],
+       [
+        0.0687,
+        0.119
+       ]
+      ],
+      "b2": [
+       [
+        0.3125,
+        0.8535
+       ],
+       [
+        0.2912,
+        0.9707
+       ],
+       [
+        0.0625,
+        0.17
+       ]
+      ]
+     },
+     "collisions": [
+      {
+       "sequence_number": 1,
+       "ball_attacker": "b1",
+       "ball_target": "b2",
+       "contact": [
+        0.339,
+        0.8287
+       ],
+       "collision_type": "primary_impact"
+      },
+      {
+       "sequence_number": 6,
+       "ball_attacker": "b1",
+       "ball_target": "b3",
+       "contact": [
+        0.0687,
+        0.119
+       ],
+       "collision_type": "carambolage",
+       "scored": true
+      }
+     ],
+     "cushion_events": [
+      {
+       "ball": "b1",
+       "sequence_number": 2,
+       "cushion": "short_left",
+       "contact": [
+        0.0146,
+        0.655
+       ]
+      },
+      {
+       "ball": "b1",
+       "sequence_number": 3,
+       "cushion": "long_far",
+       "contact": [
+        0.4812,
+        0.0293
+       ]
+      },
+      {
+       "ball": "b1",
+       "sequence_number": 4,
+       "cushion": "short_right",
+       "contact": [
+        0.9854,
+        0.4875
+       ]
+      },
+      {
+       "ball": "b1",
+       "sequence_number": 5,
+       "cushion": "long_near",
+       "contact": [
+        0.7463,
+        0.9707
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 2,
+       "cushion": "long_near",
+       "contact": [
+        0.2912,
+        0.9707
+       ]
+      }
+     ],
+     "vz_zone": "diamond_field_x0_y0"
+    },
+    {
+     "figur": 10,
+     "position_in_group": 2,
+     "points": 4,
+     "contre_allowed": false,
+     "note": null,
+     "path_source": {
+      "white": "Korrektur",
+      "yellow": "Bild"
+     },
+     "legend": {
+      "b1": "1 BB von 4",
+      "b2": "2 BB von 3",
+      "b3": "Ecke frei"
+     },
+     "start": {
+      "b1": [
+       0.5,
+       0.9121
+      ],
+      "b2": [
+       0.375,
+       0.8535
+      ],
+      "b3": [
+       0.9561,
+       0.9121
+      ]
+     },
+     "end": {
+      "b1": [
+       0.9341,
+       0.8735
+      ],
+      "b2": [
+       0.9062,
+       0.8975
+      ],
+      "b3": [
+       0.9561,
+       0.9121
+      ]
+     },
+     "trajectories": {
+      "b1": [
+       [
+        0.5,
+        0.9121
+       ],
+       [
+        0.4035,
+        0.8669
+       ],
+       [
+        0.3137,
+        0.9707
+       ],
+       [
+        0.0146,
+        0.65
+       ],
+       [
+        0.4525,
+        0.0293
+       ],
+       [
+        0.9341,
+        0.8735
+       ]
+      ],
+      "b2": [
+       [
+        0.375,
+        0.8535
+       ],
+       [
+        0.0146,
+        0.29
+       ],
+       [
+        0.1475,
+        0.0293
+       ],
+       [
+        0.9062,
+        0.8975
+       ]
+      ]
+     },
+     "collisions": [
+      {
+       "sequence_number": 1,
+       "ball_attacker": "b1",
+       "ball_target": "b2",
+       "contact": [
+        0.4035,
+        0.8669
+       ],
+       "collision_type": "primary_impact"
+      },
+      {
+       "sequence_number": 5,
+       "ball_attacker": "b1",
+       "ball_target": "b3",
+       "contact": [
+        0.9341,
+        0.8735
+       ],
+       "collision_type": "carambolage",
+       "scored": true
+      }
+     ],
+     "cushion_events": [
+      {
+       "ball": "b1",
+       "sequence_number": 2,
+       "cushion": "long_near",
+       "contact": [
+        0.3137,
+        0.9707
+       ]
+      },
+      {
+       "ball": "b1",
+       "sequence_number": 3,
+       "cushion": "short_left",
+       "contact": [
+        0.0146,
+        0.65
+       ]
+      },
+      {
+       "ball": "b1",
+       "sequence_number": 4,
+       "cushion": "long_far",
+       "contact": [
+        0.4525,
+        0.0293
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 2,
+       "cushion": "short_left",
+       "contact": [
+        0.0146,
+        0.29
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 3,
+       "cushion": "long_far",
+       "contact": [
+        0.1475,
+        0.0293
+       ]
+      }
+     ],
+     "vz_zone": "diamond_field_x7_y3"
+    },
+    {
+     "figur": 11,
+     "position_in_group": 3,
+     "points": 7,
+     "contre_allowed": false,
+     "note": null,
+     "path_source": {
+      "white": "Bild",
+      "yellow": "Korrektur"
+     },
+     "legend": {
+      "b1": "CSP",
+      "b2": "SP 1 - 2",
+      "b3": "Ecke frei"
+     },
+     "start": {
+      "b1": [
+       0.1667,
+       0.6667
+      ],
+      "b2": [
+       0.125,
+       0.5
+      ],
+      "b3": [
+       0.044,
+       0.0878
+      ]
+     },
+     "end": {
+      "b1": [
+       0.0689,
+       0.1184
+      ],
+      "b2": [
+       0.0525,
+       0.1775
+      ],
+      "b3": [
+       0.044,
+       0.0878
+      ]
+     },
+     "trajectories": {
+      "b1": [
+       [
+        0.1667,
+        0.6667
+       ],
+       [
+        0.1381,
+        0.5524
+       ],
+       [
+        0.3488,
+        0.0293
+       ],
+       [
+        0.9854,
+        0.65
+       ],
+       [
+        0.7638,
+        0.9707
+       ],
+       [
+        0.0689,
+        0.1184
+       ]
+      ],
+      "b2": [
+       [
+        0.125,
+        0.5
+       ],
+       [
+        0.0146,
+        0.29
+       ],
+       [
+        0.2412,
+        0.0293
+       ],
+       [
+        0.9854,
+        0.4925
+       ],
+       [
+        0.6725,
+        0.9707
+       ],
+       [
+        0.0525,
+        0.1775
+       ]
+      ]
+     },
+     "collisions": [
+      {
+       "sequence_number": 1,
+       "ball_attacker": "b1",
+       "ball_target": "b2",
+       "contact": [
+        0.1381,
+        0.5524
+       ],
+       "collision_type": "primary_impact"
+      },
+      {
+       "sequence_number": 5,
+       "ball_attacker": "b1",
+       "ball_target": "b3",
+       "contact": [
+        0.0689,
+        0.1184
+       ],
+       "collision_type": "carambolage",
+       "scored": true
+      }
+     ],
+     "cushion_events": [
+      {
+       "ball": "b1",
+       "sequence_number": 2,
+       "cushion": "long_far",
+       "contact": [
+        0.3488,
+        0.0293
+       ]
+      },
+      {
+       "ball": "b1",
+       "sequence_number": 3,
+       "cushion": "short_right",
+       "contact": [
+        0.9854,
+        0.65
+       ]
+      },
+      {
+       "ball": "b1",
+       "sequence_number": 4,
+       "cushion": "long_near",
+       "contact": [
+        0.7638,
+        0.9707
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 2,
+       "cushion": "short_left",
+       "contact": [
+        0.0146,
+        0.29
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 3,
+       "cushion": "long_far",
+       "contact": [
+        0.2412,
+        0.0293
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 4,
+       "cushion": "short_right",
+       "contact": [
+        0.9854,
+        0.4925
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 5,
+       "cushion": "long_near",
+       "contact": [
+        0.6725,
+        0.9707
+       ]
+      }
+     ],
+     "vz_zone": "diamond_field_x0_y0"
+    },
+    {
+     "figur": 12,
+     "position_in_group": 4,
+     "points": 9,
+     "contre_allowed": false,
+     "note": null,
+     "path_source": {
+      "white": "Bild",
+      "yellow": "Bild"
+     },
+     "legend": {
+      "b1": "auf VL 4, an CL",
+      "b2": "SP 3 - 2",
+      "b3": "Ecke frei"
+     },
+     "start": {
+      "b1": [
+       0.5,
+       0.6667
+      ],
+      "b2": [
+       0.375,
+       0.5
+      ],
+      "b3": [
+       0.044,
+       0.0878
+      ]
+     },
+     "end": {
+      "b1": [
+       0.0708,
+       0.111
+      ],
+      "b2": [
+       0.03,
+       0.175
+      ],
+      "b3": [
+       0.044,
+       0.0878
+      ]
+     },
+     "trajectories": {
+      "b1": [
+       [
+        0.5,
+        0.6667
+       ],
+       [
+        0.3994,
+        0.5325
+       ],
+       [
+        0.0146,
+        0.645
+       ],
+       [
+        0.885,
+        0.9707
+       ],
+       [
+        0.9854,
+        0.9
+       ],
+       [
+        0.0708,
+        0.111
+       ]
+      ],
+      "b2": [
+       [
+        0.375,
+        0.5
+       ],
+       [
+        0.2688,
+        0.0293
+       ],
+       [
+        0.1375,
+        0.9707
+       ],
+       [
+        0.03,
+        0.175
+       ]
+      ]
+     },
+     "collisions": [
+      {
+       "sequence_number": 1,
+       "ball_attacker": "b1",
+       "ball_target": "b2",
+       "contact": [
+        0.3994,
+        0.5325
+       ],
+       "collision_type": "primary_impact"
+      },
+      {
+       "sequence_number": 5,
+       "ball_attacker": "b1",
+       "ball_target": "b3",
+       "contact": [
+        0.0708,
+        0.111
+       ],
+       "collision_type": "carambolage",
+       "scored": true
+      }
+     ],
+     "cushion_events": [
+      {
+       "ball": "b1",
+       "sequence_number": 2,
+       "cushion": "short_left",
+       "contact": [
+        0.0146,
+        0.645
+       ]
+      },
+      {
+       "ball": "b1",
+       "sequence_number": 3,
+       "cushion": "long_near",
+       "contact": [
+        0.885,
+        0.9707
+       ]
+      },
+      {
+       "ball": "b1",
+       "sequence_number": 4,
+       "cushion": "short_right",
+       "contact": [
+        0.9854,
+        0.9
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 2,
+       "cushion": "long_far",
+       "contact": [
+        0.2688,
+        0.0293
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 3,
+       "cushion": "long_near",
+       "contact": [
+        0.1375,
+        0.9707
+       ]
+      }
+     ],
+     "vz_zone": "diamond_field_x0_y0"
+    }
+   ]
+  },
+  {
+   "number": 4,
+   "name": "Nachläufer",
+   "concepts": [
+    {
+     "key": "follow_shot",
+     "weight": 5
+    },
+    {
+     "key": "gather_shot",
+     "weight": 3
+    }
+   ],
+   "figures": [
+    {
+     "figur": 13,
+     "position_in_group": 1,
+     "points": 5,
+     "contre_allowed": false,
+     "note": null,
+     "path_source": {
+      "white": "Bild",
+      "yellow": "Korrektur"
+     },
+     "legend": {
+      "b1": "SP 1 - 1",
+      "b2": "Press bei 2",
+      "b3": "Press bei 0,5"
+     },
+     "start": {
+      "b1": [
+       0.125,
+       0.75
+      ],
+      "b2": [
+       0.0147,
+       0.5
+      ],
+      "b3": [
+       0.0147,
+       0.125
+      ]
+     },
+     "end": {
+      "b1": [
+       0.0174,
+       0.1833
+      ],
+      "b2": [
+       0.1188,
+       0.2375
+      ],
+      "b3": [
+       0.0147,
+       0.125
+      ]
+     },
+     "trajectories": {
+      "b1": [
+       [
+        0.125,
+        0.75
+       ],
+       [
+        0.034,
+        0.5439
+       ],
+       [
+        0.0174,
+        0.1833
+       ]
+      ],
+      "b2": [
+       [
+        0.0147,
+        0.5
+       ],
+       [
+        0.3113,
+        0.0293
+       ],
+       [
+        0.9854,
+        0.5875
+       ],
+       [
+        0.78,
+        0.9707
+       ],
+       [
+        0.1188,
+        0.2375
+       ]
+      ]
+     },
+     "collisions": [
+      {
+       "sequence_number": 1,
+       "ball_attacker": "b1",
+       "ball_target": "b2",
+       "contact": [
+        0.034,
+        0.5439
+       ],
+       "collision_type": "primary_impact"
+      },
+      {
+       "sequence_number": 2,
+       "ball_attacker": "b1",
+       "ball_target": "b3",
+       "contact": [
+        0.0174,
+        0.1833
+       ],
+       "collision_type": "carambolage",
+       "scored": true
+      }
+     ],
+     "cushion_events": [
+      {
+       "ball": "b2",
+       "sequence_number": 2,
+       "cushion": "long_far",
+       "contact": [
+        0.3113,
+        0.0293
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 3,
+       "cushion": "short_right",
+       "contact": [
+        0.9854,
+        0.5875
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 4,
+       "cushion": "long_near",
+       "contact": [
+        0.78,
+        0.9707
+       ]
+      }
+     ],
+     "vz_zone": "diamond_field_x0_y0"
+    },
+    {
+     "figur": 14,
+     "position_in_group": 2,
+     "points": 6,
+     "contre_allowed": false,
+     "note": null,
+     "path_source": {
+      "white": "Korrektur",
+      "yellow": "Korrektur"
+     },
+     "legend": {
+      "b1": "SP 1,5 - 1,5",
+      "b2": "1 BB von 2,5",
+      "b3": "1,5 BB von 1,5"
+     },
+     "start": {
+      "b1": [
+       0.8125,
+       0.625
+      ],
+      "b2": [
+       0.3125,
+       0.9121
+      ],
+      "b3": [
+       0.1875,
+       0.8829
+      ]
+     },
+     "end": {
+      "b1": [
+       0.2113,
+       0.917
+      ],
+      "b2": [
+       0.15,
+       0.91
+      ],
+      "b3": [
+       0.1875,
+       0.8829
+      ]
+     },
+     "trajectories": {
+      "b1": [
+       [
+        0.8125,
+        0.625
+       ],
+       [
+        0.3406,
+        0.8959
+       ],
+       [
+        0.2488,
+        0.9707
+       ],
+       [
+        0.2113,
+        0.917
+       ]
+      ],
+      "b2": [
+       [
+        0.3125,
+        0.9121
+       ],
+       [
+        0.0146,
+        0.975
+       ],
+       [
+        0.15,
+        0.91
+       ]
+      ]
+     },
+     "collisions": [
+      {
+       "sequence_number": 1,
+       "ball_attacker": "b1",
+       "ball_target": "b2",
+       "contact": [
+        0.3406,
+        0.8959
+       ],
+       "collision_type": "primary_impact"
+      },
+      {
+       "sequence_number": 3,
+       "ball_attacker": "b1",
+       "ball_target": "b3",
+       "contact": [
+        0.2113,
+        0.917
+       ],
+       "collision_type": "carambolage",
+       "scored": true
+      }
+     ],
+     "cushion_events": [
+      {
+       "ball": "b1",
+       "sequence_number": 2,
+       "cushion": "long_near",
+       "contact": [
+        0.2488,
+        0.9707
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 2,
+       "cushion": "short_left",
+       "contact": [
+        0.0146,
+        0.975
+       ]
+      }
+     ],
+     "vz_zone": "diamond_field_x1_y3"
+    },
+    {
+     "figur": 15,
+     "position_in_group": 3,
+     "points": 7,
+     "contre_allowed": false,
+     "note": null,
+     "path_source": {
+      "white": "Bild",
+      "yellow": "Bild"
+     },
+     "legend": {
+      "b1": "Press bei 0,5",
+      "b2": "an VL2 und an CL",
+      "b3": "SP 1,5 - 1,5"
+     },
+     "start": {
+      "b1": [
+       0.9854,
+       0.125
+      ],
+      "b2": [
+       0.2353,
+       0.304
+      ],
+      "b3": [
+       0.1875,
+       0.375
+      ]
+     },
+     "end": {
+      "b1": [
+       0.2136,
+       0.3486
+      ],
+      "b2": [
+       0.1586,
+       0.3662
+      ],
+      "b3": [
+       0.1875,
+       0.375
+      ]
+     },
+     "trajectories": {
+      "b1": [
+       [
+        0.9854,
+        0.125
+       ],
+       [
+        0.2644,
+        0.2971
+       ],
+       [
+        0.2136,
+        0.3486
+       ]
+      ],
+      "b2": [
+       [
+        0.2353,
+        0.304
+       ],
+       [
+        0.0146,
+        0.3225
+       ],
+       [
+        0.1586,
+        0.3662
+       ]
+      ]
+     },
+     "collisions": [
+      {
+       "sequence_number": 1,
+       "ball_attacker": "b1",
+       "ball_target": "b2",
+       "contact": [
+        0.2644,
+        0.2971
+       ],
+       "collision_type": "primary_impact"
+      },
+      {
+       "sequence_number": 2,
+       "ball_attacker": "b1",
+       "ball_target": "b3",
+       "contact": [
+        0.2136,
+        0.3486
+       ],
+       "collision_type": "carambolage",
+       "scored": true
+      }
+     ],
+     "cushion_events": [
+      {
+       "ball": "b2",
+       "sequence_number": 2,
+       "cushion": "short_left",
+       "contact": [
+        0.0146,
+        0.3225
+       ]
+      }
+     ],
+     "vz_zone": "diamond_field_x1_y1"
+    },
+    {
+     "figur": 16,
+     "position_in_group": 4,
+     "points": 8,
+     "contre_allowed": false,
+     "note": "B I nach Wahl näher an LB. B II: Laufweg in der Zeichnung mit Pfeil abgebrochen (läuft weiter).",
+     "path_source": {
+      "white": "Korrektur",
+      "yellow": "Bild"
+     },
+     "legend": {
+      "b1": "2 BB von 3",
+      "b2": "SP 4 - 1",
+      "b3": "Ecke frei"
+     },
+     "start": {
+      "b1": [
+       0.375,
+       0.1465
+      ],
+      "b2": [
+       0.5,
+       0.25
+      ],
+      "b3": [
+       0.9561,
+       0.9121
+      ]
+     },
+     "end": {
+      "b1": [
+       0.9322,
+       0.8782
+      ],
+      "b2": [
+       0.3137,
+       0.0675
+      ],
+      "b3": [
+       0.9561,
+       0.9121
+      ]
+     },
+     "trajectories": {
+      "b1": [
+       [
+        0.375,
+        0.1465
+       ],
+       [
+        0.4729,
+        0.2276
+       ],
+       [
+        0.9322,
+        0.8782
+       ]
+      ],
+      "b2": [
+       [
+        0.5,
+        0.25
+       ],
+       [
+        0.9854,
+        0.77
+       ],
+       [
+        0.8062,
+        0.9707
+       ],
+       [
+        0.0146,
+        0.3675
+       ],
+       [
+        0.275,
+        0.0293
+       ],
+       [
+        0.3137,
+        0.0675
+       ]
+      ]
+     },
+     "collisions": [
+      {
+       "sequence_number": 1,
+       "ball_attacker": "b1",
+       "ball_target": "b2",
+       "contact": [
+        0.4729,
+        0.2276
+       ],
+       "collision_type": "primary_impact"
+      },
+      {
+       "sequence_number": 2,
+       "ball_attacker": "b1",
+       "ball_target": "b3",
+       "contact": [
+        0.9322,
+        0.8782
+       ],
+       "collision_type": "carambolage",
+       "scored": true
+      }
+     ],
+     "cushion_events": [
+      {
+       "ball": "b2",
+       "sequence_number": 2,
+       "cushion": "short_right",
+       "contact": [
+        0.9854,
+        0.77
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 3,
+       "cushion": "long_near",
+       "contact": [
+        0.8062,
+        0.9707
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 4,
+       "cushion": "short_left",
+       "contact": [
+        0.0146,
+        0.3675
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 5,
+       "cushion": "long_far",
+       "contact": [
+        0.275,
+        0.0293
+       ]
+      }
+     ],
+     "vz_zone": "diamond_field_x7_y3"
+    }
+   ]
+  },
+  {
+   "number": 5,
+   "name": "Einband Rückläufer",
+   "concepts": [
+    {
+     "key": "draw_shot",
+     "weight": 5
+    },
+    {
+     "key": "one_cushion_shot",
+     "weight": 4
+    },
+    {
+     "key": "gather_shot",
+     "weight": 3
+    }
+   ],
+   "figures": [
+    {
+     "figur": 17,
+     "position_in_group": 1,
+     "points": 6,
+     "contre_allowed": false,
+     "note": null,
+     "path_source": {
+      "white": "Bild",
+      "yellow": "Bild"
+     },
+     "legend": {
+      "b1": "SP 2 - 1",
+      "b2": "SP 3 - CL",
+      "b3": "Ecke frei"
+     },
+     "start": {
+      "b1": [
+       0.75,
+       0.75
+      ],
+      "b2": [
+       0.625,
+       0.6667
+      ],
+      "b3": [
+       0.9561,
+       0.0878
+      ]
+     },
+     "end": {
+      "b1": [
+       0.9393,
+       0.1358
+      ],
+      "b2": [
+       0.905,
+       0.14
+      ],
+      "b3": [
+       0.9561,
+       0.0878
+      ]
+     },
+     "trajectories": {
+      "b1": [
+       [
+        0.75,
+        0.75
+       ],
+       [
+        0.6528,
+        0.6852
+       ],
+       [
+        0.6462,
+        0.9707
+       ],
+       [
+        0.9393,
+        0.1358
+       ]
+      ],
+      "b2": [
+       [
+        0.625,
+        0.6667
+       ],
+       [
+        0.25,
+        0.0293
+       ],
+       [
+        0.0146,
+        0.535
+       ],
+       [
+        0.1862,
+        0.9707
+       ],
+       [
+        0.905,
+        0.14
+       ]
+      ]
+     },
+     "collisions": [
+      {
+       "sequence_number": 1,
+       "ball_attacker": "b1",
+       "ball_target": "b2",
+       "contact": [
+        0.6528,
+        0.6852
+       ],
+       "collision_type": "primary_impact"
+      },
+      {
+       "sequence_number": 3,
+       "ball_attacker": "b1",
+       "ball_target": "b3",
+       "contact": [
+        0.9393,
+        0.1358
+       ],
+       "collision_type": "carambolage",
+       "scored": true
+      }
+     ],
+     "cushion_events": [
+      {
+       "ball": "b1",
+       "sequence_number": 2,
+       "cushion": "long_near",
+       "contact": [
+        0.6462,
+        0.9707
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 2,
+       "cushion": "long_far",
+       "contact": [
+        0.25,
+        0.0293
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 3,
+       "cushion": "short_left",
+       "contact": [
+        0.0146,
+        0.535
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 4,
+       "cushion": "long_near",
+       "contact": [
+        0.1862,
+        0.9707
+       ]
+      }
+     ],
+     "vz_zone": "diamond_field_x7_y0"
+    },
+    {
+     "figur": 18,
+     "position_in_group": 2,
+     "points": 7,
+     "contre_allowed": false,
+     "note": null,
+     "path_source": {
+      "white": "Korrektur",
+      "yellow": "Bild"
+     },
+     "legend": {
+      "b1": "1 BB von 2",
+      "b2": "1 BB von 2,5",
+      "b3": "1 BB von 2,5"
+     },
+     "start": {
+      "b1": [
+       0.75,
+       0.9121
+      ],
+      "b2": [
+       0.6875,
+       0.9121
+      ],
+      "b3": [
+       0.6875,
+       0.0878
+      ]
+     },
+     "end": {
+      "b1": [
+       0.6877,
+       0.1464
+      ],
+      "b2": [
+       0.655,
+       0.0625
+      ],
+      "b3": [
+       0.6875,
+       0.0878
+      ]
+     },
+     "trajectories": {
+      "b1": [
+       [
+        0.75,
+        0.9121
+       ],
+       [
+        0.7168,
+        0.9121
+       ],
+       [
+        0.69,
+        0.9707
+       ],
+       [
+        0.6877,
+        0.1464
+       ]
+      ],
+      "b2": [
+       [
+        0.6875,
+        0.9121
+       ],
+       [
+        0.0146,
+        0.5425
+       ],
+       [
+        0.655,
+        0.0625
+       ]
+      ]
+     },
+     "collisions": [
+      {
+       "sequence_number": 1,
+       "ball_attacker": "b1",
+       "ball_target": "b2",
+       "contact": [
+        0.7168,
+        0.9121
+       ],
+       "collision_type": "primary_impact"
+      },
+      {
+       "sequence_number": 3,
+       "ball_attacker": "b1",
+       "ball_target": "b3",
+       "contact": [
+        0.6877,
+        0.1464
+       ],
+       "collision_type": "carambolage",
+       "scored": true
+      }
+     ],
+     "cushion_events": [
+      {
+       "ball": "b1",
+       "sequence_number": 2,
+       "cushion": "long_near",
+       "contact": [
+        0.69,
+        0.9707
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 2,
+       "cushion": "short_left",
+       "contact": [
+        0.0146,
+        0.5425
+       ]
+      }
+     ],
+     "vz_zone": "diamond_field_x5_y0"
+    },
+    {
+     "figur": 19,
+     "position_in_group": 3,
+     "points": 7,
+     "contre_allowed": true,
+     "note": null,
+     "path_source": {
+      "white": "Bild",
+      "yellow": "Bild"
+     },
+     "legend": {
+      "b1": "2 BB von 2,5",
+      "b2": "1 BB von 3",
+      "b3": "Ecke frei"
+     },
+     "start": {
+      "b1": [
+       0.6875,
+       0.8535
+      ],
+      "b2": [
+       0.625,
+       0.9121
+      ],
+      "b3": [
+       0.044,
+       0.9121
+      ]
+     },
+     "end": {
+      "b1": [
+       0.0571,
+       0.8598
+      ],
+      "b2": [
+       0.0875,
+       0.8275
+      ],
+      "b3": [
+       0.044,
+       0.9121
+      ]
+     },
+     "trajectories": {
+      "b1": [
+       [
+        0.6875,
+        0.8535
+       ],
+       [
+        0.6515,
+        0.8873
+       ],
+       [
+        0.2662,
+        0.0293
+       ],
+       [
+        0.0571,
+        0.8598
+       ]
+      ],
+      "b2": [
+       [
+        0.625,
+        0.9121
+       ],
+       [
+        0.6,
+        0.9707
+       ],
+       [
+        0.3012,
+        0.0293
+       ],
+       [
+        0.0875,
+        0.8275
+       ]
+      ]
+     },
+     "collisions": [
+      {
+       "sequence_number": 1,
+       "ball_attacker": "b1",
+       "ball_target": "b2",
+       "contact": [
+        0.6515,
+        0.8873
+       ],
+       "collision_type": "primary_impact"
+      },
+      {
+       "sequence_number": 3,
+       "ball_attacker": "b1",
+       "ball_target": "b3",
+       "contact": [
+        0.0571,
+        0.8598
+       ],
+       "collision_type": "carambolage",
+       "scored": true
+      }
+     ],
+     "cushion_events": [
+      {
+       "ball": "b1",
+       "sequence_number": 2,
+       "cushion": "long_far",
+       "contact": [
+        0.2662,
+        0.0293
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 2,
+       "cushion": "long_near",
+       "contact": [
+        0.6,
+        0.9707
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 3,
+       "cushion": "long_far",
+       "contact": [
+        0.3012,
+        0.0293
+       ]
+      }
+     ],
+     "vz_zone": "diamond_field_x0_y3"
+    },
+    {
+     "figur": 20,
+     "position_in_group": 4,
+     "points": 9,
+     "contre_allowed": true,
+     "note": "B II soll vorlaufen",
+     "path_source": {
+      "white": "Bild",
+      "yellow": "Bild"
+     },
+     "legend": {
+      "b1": "1 BB von 2",
+      "b2": "Press bei 1,5",
+      "b3": "Ecke frei"
+     },
+     "start": {
+      "b1": [
+       0.044,
+       0.5
+      ],
+      "b2": [
+       0.0147,
+       0.625
+      ],
+      "b3": [
+       0.9561,
+       0.0878
+      ]
+     },
+     "end": {
+      "b1": [
+       0.9303,
+       0.1157
+      ],
+      "b2": [
+       0.9375,
+       0.1725
+      ],
+      "b3": [
+       0.9561,
+       0.0878
+      ]
+     },
+     "trajectories": {
+      "b1": [
+       [
+        0.044,
+        0.5
+       ],
+       [
+        0.0271,
+        0.5719
+       ],
+       [
+        0.1412,
+        0.9707
+       ],
+       [
+        0.9303,
+        0.1157
+       ]
+      ],
+      "b2": [
+       [
+        0.0147,
+        0.625
+       ],
+       [
+        0.2037,
+        0.9707
+       ],
+       [
+        0.9375,
+        0.1725
+       ]
+      ]
+     },
+     "collisions": [
+      {
+       "sequence_number": 1,
+       "ball_attacker": "b1",
+       "ball_target": "b2",
+       "contact": [
+        0.0271,
+        0.5719
+       ],
+       "collision_type": "primary_impact"
+      },
+      {
+       "sequence_number": 3,
+       "ball_attacker": "b1",
+       "ball_target": "b3",
+       "contact": [
+        0.9303,
+        0.1157
+       ],
+       "collision_type": "carambolage",
+       "scored": true
+      }
+     ],
+     "cushion_events": [
+      {
+       "ball": "b1",
+       "sequence_number": 2,
+       "cushion": "long_near",
+       "contact": [
+        0.1412,
+        0.9707
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 2,
+       "cushion": "long_near",
+       "contact": [
+        0.2037,
+        0.9707
+       ]
+      }
+     ],
+     "vz_zone": "diamond_field_x7_y0"
+    }
+   ]
+  },
+  {
+   "number": 6,
+   "name": "Vorbänder",
+   "concepts": [
+    {
+     "key": "pre_cushion_shot",
+     "weight": 5
+    },
+    {
+     "key": "gather_shot",
+     "weight": 3
+    }
+   ],
+   "figures": [
+    {
+     "figur": 21,
+     "position_in_group": 1,
+     "points": 6,
+     "contre_allowed": true,
+     "note": "B I läuft an der Bande entlang zu B II (gebogene Linie in der Zeichnung).",
+     "path_source": {
+      "white": "Korrektur",
+      "yellow": "Bild"
+     },
+     "legend": {
+      "b1": "Press bei 0,5",
+      "b2": "Press bei 1,5",
+      "b3": "1,5 BB von KB auf 0,5"
+     },
+     "start": {
+      "b1": [
+       0.9854,
+       0.125
+      ],
+      "b2": [
+       0.9854,
+       0.625
+      ],
+      "b3": [
+       0.9414,
+       0.875
+      ]
+     },
+     "end": {
+      "b1": [
+       0.9494,
+       0.8187
+      ],
+      "b2": [
+       0.9738,
+       0.9
+      ],
+      "b3": [
+       0.9414,
+       0.875
+      ]
+     },
+     "trajectories": {
+      "b1": [
+       [
+        0.9854,
+        0.125
+       ],
+       [
+        0.9854,
+        0.54
+       ],
+       [
+        0.9854,
+        0.5664
+       ],
+       [
+        0.9494,
+        0.8187
+       ]
+      ],
+      "b2": [
+       [
+        0.9854,
+        0.625
+       ],
+       [
+        0.9738,
+        0.9
+       ]
+      ]
+     },
+     "collisions": [
+      {
+       "sequence_number": 2,
+       "ball_attacker": "b1",
+       "ball_target": "b2",
+       "contact": [
+        0.9854,
+        0.5664
+       ],
+       "collision_type": "primary_impact"
+      },
+      {
+       "sequence_number": 3,
+       "ball_attacker": "b1",
+       "ball_target": "b3",
+       "contact": [
+        0.9494,
+        0.8187
+       ],
+       "collision_type": "carambolage",
+       "scored": true
+      }
+     ],
+     "cushion_events": [
+      {
+       "ball": "b1",
+       "sequence_number": 1,
+       "cushion": "short_right",
+       "contact": [
+        0.9854,
+        0.54
+       ]
+      }
+     ],
+     "vz_zone": "diamond_field_x7_y3"
+    },
+    {
+     "figur": 22,
+     "position_in_group": 2,
+     "points": 6,
+     "contre_allowed": true,
+     "note": null,
+     "path_source": {
+      "white": "Bild",
+      "yellow": "Bild"
+     },
+     "legend": {
+      "b1": "1 BB von 2",
+      "b2": "Press bei 3",
+      "b3": "Ecke frei"
+     },
+     "start": {
+      "b1": [
+       0.75,
+       0.9121
+      ],
+      "b2": [
+       0.375,
+       0.9707
+      ],
+      "b3": [
+       0.9561,
+       0.9121
+      ]
+     },
+     "end": {
+      "b1": [
+       0.9309,
+       0.8824
+      ],
+      "b2": [
+       0.9425,
+       0.8275
+      ],
+      "b3": [
+       0.9561,
+       0.9121
+      ]
+     },
+     "trajectories": {
+      "b1": [
+       [
+        0.75,
+        0.9121
+       ],
+       [
+        0.4562,
+        0.9707
+       ],
+       [
+        0.4043,
+        0.9707
+       ],
+       [
+        0.0146,
+        0.465
+       ],
+       [
+        0.2062,
+        0.0293
+       ],
+       [
+        0.9309,
+        0.8824
+       ]
+      ],
+      "b2": [
+       [
+        0.375,
+        0.9707
+       ],
+       [
+        0.0146,
+        0.3475
+       ],
+       [
+        0.2888,
+        0.0293
+       ],
+       [
+        0.9425,
+        0.8275
+       ]
+      ]
+     },
+     "collisions": [
+      {
+       "sequence_number": 2,
+       "ball_attacker": "b1",
+       "ball_target": "b2",
+       "contact": [
+        0.4043,
+        0.9707
+       ],
+       "collision_type": "primary_impact"
+      },
+      {
+       "sequence_number": 5,
+       "ball_attacker": "b1",
+       "ball_target": "b3",
+       "contact": [
+        0.9309,
+        0.8824
+       ],
+       "collision_type": "carambolage",
+       "scored": true
+      }
+     ],
+     "cushion_events": [
+      {
+       "ball": "b1",
+       "sequence_number": 1,
+       "cushion": "long_near",
+       "contact": [
+        0.4562,
+        0.9707
+       ]
+      },
+      {
+       "ball": "b1",
+       "sequence_number": 3,
+       "cushion": "short_left",
+       "contact": [
+        0.0146,
+        0.465
+       ]
+      },
+      {
+       "ball": "b1",
+       "sequence_number": 4,
+       "cushion": "long_far",
+       "contact": [
+        0.2062,
+        0.0293
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 3,
+       "cushion": "short_left",
+       "contact": [
+        0.0146,
+        0.3475
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 4,
+       "cushion": "long_far",
+       "contact": [
+        0.2888,
+        0.0293
+       ]
+      }
+     ],
+     "vz_zone": "diamond_field_x7_y3"
+    },
+    {
+     "figur": 23,
+     "position_in_group": 3,
+     "points": 7,
+     "contre_allowed": false,
+     "note": null,
+     "path_source": {
+      "white": "Korrektur",
+      "yellow": "Korrektur"
+     },
+     "legend": {
+      "b1": "CSP",
+      "b2": "2 BB von 4",
+      "b3": "Ecke frei"
+     },
+     "start": {
+      "b1": [
+       0.8333,
+       0.3333
+      ],
+      "b2": [
+       0.5,
+       0.8535
+      ],
+      "b3": [
+       0.044,
+       0.9121
+      ]
+     },
+     "end": {
+      "b1": [
+       0.0714,
+       0.9326
+      ],
+      "b2": [
+       0.045,
+       0.885
+      ],
+      "b3": [
+       0.044,
+       0.9121
+      ]
+     },
+     "trajectories": {
+      "b1": [
+       [
+        0.8333,
+        0.3333
+       ],
+       [
+        0.5462,
+        0.9707
+       ],
+       [
+        0.5181,
+        0.8995
+       ],
+       [
+        0.1225,
+        0.9707
+       ],
+       [
+        0.0714,
+        0.9326
+       ]
+      ],
+      "b2": [
+       [
+        0.5,
+        0.8535
+       ],
+       [
+        0.3088,
+        0.0293
+       ],
+       [
+        0.045,
+        0.885
+       ]
+      ]
+     },
+     "collisions": [
+      {
+       "sequence_number": 2,
+       "ball_attacker": "b1",
+       "ball_target": "b2",
+       "contact": [
+        0.5181,
+        0.8995
+       ],
+       "collision_type": "primary_impact"
+      },
+      {
+       "sequence_number": 4,
+       "ball_attacker": "b1",
+       "ball_target": "b3",
+       "contact": [
+        0.0714,
+        0.9326
+       ],
+       "collision_type": "carambolage",
+       "scored": true
+      }
+     ],
+     "cushion_events": [
+      {
+       "ball": "b1",
+       "sequence_number": 1,
+       "cushion": "long_near",
+       "contact": [
+        0.5462,
+        0.9707
+       ]
+      },
+      {
+       "ball": "b1",
+       "sequence_number": 3,
+       "cushion": "long_near",
+       "contact": [
+        0.1225,
+        0.9707
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 3,
+       "cushion": "long_far",
+       "contact": [
+        0.3088,
+        0.0293
+       ]
+      }
+     ],
+     "vz_zone": "diamond_field_x0_y3"
+    },
+    {
+     "figur": 24,
+     "position_in_group": 4,
+     "points": 7,
+     "contre_allowed": true,
+     "note": null,
+     "path_source": {
+      "white": "Korrektur",
+      "yellow": "Korrektur"
+     },
+     "legend": {
+      "b1": "1 BB von 2",
+      "b2": "1 BB von 4",
+      "b3": "Ecke frei"
+     },
+     "start": {
+      "b1": [
+       0.75,
+       0.9121
+      ],
+      "b2": [
+       0.5,
+       0.9121
+      ],
+      "b3": [
+       0.9561,
+       0.9121
+      ]
+     },
+     "end": {
+      "b1": [
+       0.9315,
+       0.8804
+      ],
+      "b2": [
+       0.9075,
+       0.895
+      ],
+      "b3": [
+       0.9561,
+       0.9121
+      ]
+     },
+     "trajectories": {
+      "b1": [
+       [
+        0.75,
+        0.9121
+       ],
+       [
+        0.5512,
+        0.9707
+       ],
+       [
+        0.5254,
+        0.9412
+       ],
+       [
+        0.415,
+        0.9707
+       ],
+       [
+        0.0146,
+        0.45
+       ],
+       [
+        0.2688,
+        0.0293
+       ],
+       [
+        0.9315,
+        0.8804
+       ]
+      ],
+      "b2": [
+       [
+        0.5,
+        0.9121
+       ],
+       [
+        0.0146,
+        0.2025
+       ],
+       [
+        0.1,
+        0.0293
+       ],
+       [
+        0.9075,
+        0.895
+       ]
+      ]
+     },
+     "collisions": [
+      {
+       "sequence_number": 2,
+       "ball_attacker": "b1",
+       "ball_target": "b2",
+       "contact": [
+        0.5254,
+        0.9412
+       ],
+       "collision_type": "primary_impact"
+      },
+      {
+       "sequence_number": 6,
+       "ball_attacker": "b1",
+       "ball_target": "b3",
+       "contact": [
+        0.9315,
+        0.8804
+       ],
+       "collision_type": "carambolage",
+       "scored": true
+      }
+     ],
+     "cushion_events": [
+      {
+       "ball": "b1",
+       "sequence_number": 1,
+       "cushion": "long_near",
+       "contact": [
+        0.5512,
+        0.9707
+       ]
+      },
+      {
+       "ball": "b1",
+       "sequence_number": 3,
+       "cushion": "long_near",
+       "contact": [
+        0.415,
+        0.9707
+       ]
+      },
+      {
+       "ball": "b1",
+       "sequence_number": 4,
+       "cushion": "short_left",
+       "contact": [
+        0.0146,
+        0.45
+       ]
+      },
+      {
+       "ball": "b1",
+       "sequence_number": 5,
+       "cushion": "long_far",
+       "contact": [
+        0.2688,
+        0.0293
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 3,
+       "cushion": "short_left",
+       "contact": [
+        0.0146,
+        0.2025
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 4,
+       "cushion": "long_far",
+       "contact": [
+        0.1,
+        0.0293
+       ]
+      }
+     ],
+     "vz_zone": "diamond_field_x7_y3"
+    }
+   ]
+  },
+  {
+   "number": 7,
+   "name": "Mehrband Rückläufer",
+   "concepts": [
+    {
+     "key": "draw_shot",
+     "weight": 5
+    },
+    {
+     "key": "multi_cushion_shot",
+     "weight": 4
+    },
+    {
+     "key": "gather_shot",
+     "weight": 3
+    }
+   ],
+   "figures": [
+    {
+     "figur": 25,
+     "position_in_group": 1,
+     "points": 7,
+     "contre_allowed": false,
+     "note": null,
+     "path_source": {
+      "white": "Korrektur",
+      "yellow": "Bild"
+     },
+     "legend": {
+      "b1": "2 BB von LB und KB",
+      "b2": "Press auf CL",
+      "b3": "Ecke frei"
+     },
+     "start": {
+      "b1": [
+       0.0732,
+       0.8535
+      ],
+      "b2": [
+       0.0147,
+       0.6667
+      ],
+      "b3": [
+       0.9561,
+       0.0878
+      ]
+     },
+     "end": {
+      "b1": [
+       0.9301,
+       0.1149
+      ],
+      "b2": [
+       0.9325,
+       0.175
+      ],
+      "b3": [
+       0.9561,
+       0.0878
+      ]
+     },
+     "trajectories": {
+      "b1": [
+       [
+        0.0732,
+        0.8535
+       ],
+       [
+        0.0302,
+        0.7163
+       ],
+       [
+        0.0146,
+        0.82
+       ],
+       [
+        0.11,
+        0.9707
+       ],
+       [
+        0.9301,
+        0.1149
+       ]
+      ],
+      "b2": [
+       [
+        0.0147,
+        0.6667
+       ],
+       [
+        0.1762,
+        0.0293
+       ],
+       [
+        0.5225,
+        0.9707
+       ],
+       [
+        0.9325,
+        0.175
+       ]
+      ]
+     },
+     "collisions": [
+      {
+       "sequence_number": 1,
+       "ball_attacker": "b1",
+       "ball_target": "b2",
+       "contact": [
+        0.0302,
+        0.7163
+       ],
+       "collision_type": "primary_impact"
+      },
+      {
+       "sequence_number": 4,
+       "ball_attacker": "b1",
+       "ball_target": "b3",
+       "contact": [
+        0.9301,
+        0.1149
+       ],
+       "collision_type": "carambolage",
+       "scored": true
+      }
+     ],
+     "cushion_events": [
+      {
+       "ball": "b1",
+       "sequence_number": 2,
+       "cushion": "short_left",
+       "contact": [
+        0.0146,
+        0.82
+       ]
+      },
+      {
+       "ball": "b1",
+       "sequence_number": 3,
+       "cushion": "long_near",
+       "contact": [
+        0.11,
+        0.9707
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 2,
+       "cushion": "long_far",
+       "contact": [
+        0.1762,
+        0.0293
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 3,
+       "cushion": "long_near",
+       "contact": [
+        0.5225,
+        0.9707
+       ]
+      }
+     ],
+     "vz_zone": "diamond_field_x7_y0"
+    },
+    {
+     "figur": 26,
+     "position_in_group": 2,
+     "points": 8,
+     "contre_allowed": false,
+     "note": null,
+     "path_source": {
+      "white": "Bild",
+      "yellow": "Bild"
+     },
+     "legend": {
+      "b1": "CSP",
+      "b2": "SP 3 - 1",
+      "b3": "Ecke frei"
+     },
+     "start": {
+      "b1": [
+       0.8333,
+       0.3333
+      ],
+      "b2": [
+       0.625,
+       0.75
+      ],
+      "b3": [
+       0.9561,
+       0.9121
+      ]
+     },
+     "end": {
+      "b1": [
+       0.9491,
+       0.8552
+      ],
+      "b2": [
+       0.9112,
+       0.9425
+      ],
+      "b3": [
+       0.9561,
+       0.9121
+      ]
+     },
+     "trajectories": {
+      "b1": [
+       [
+        0.8333,
+        0.3333
+       ],
+       [
+        0.6457,
+        0.7086
+       ],
+       [
+        0.6712,
+        0.9707
+       ],
+       [
+        0.8475,
+        0.0293
+       ],
+       [
+        0.9491,
+        0.8552
+       ]
+      ],
+      "b2": [
+       [
+        0.625,
+        0.75
+       ],
+       [
+        0.0146,
+        0.8225
+       ],
+       [
+        0.9112,
+        0.9425
+       ]
+      ]
+     },
+     "collisions": [
+      {
+       "sequence_number": 1,
+       "ball_attacker": "b1",
+       "ball_target": "b2",
+       "contact": [
+        0.6457,
+        0.7086
+       ],
+       "collision_type": "primary_impact"
+      },
+      {
+       "sequence_number": 4,
+       "ball_attacker": "b1",
+       "ball_target": "b3",
+       "contact": [
+        0.9491,
+        0.8552
+       ],
+       "collision_type": "carambolage",
+       "scored": true
+      }
+     ],
+     "cushion_events": [
+      {
+       "ball": "b1",
+       "sequence_number": 2,
+       "cushion": "long_near",
+       "contact": [
+        0.6712,
+        0.9707
+       ]
+      },
+      {
+       "ball": "b1",
+       "sequence_number": 3,
+       "cushion": "long_far",
+       "contact": [
+        0.8475,
+        0.0293
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 2,
+       "cushion": "short_left",
+       "contact": [
+        0.0146,
+        0.8225
+       ]
+      }
+     ],
+     "vz_zone": "diamond_field_x7_y3"
+    },
+    {
+     "figur": 27,
+     "position_in_group": 3,
+     "points": 9,
+     "contre_allowed": false,
+     "note": null,
+     "path_source": {
+      "white": "Korrektur",
+      "yellow": "Korrektur"
+     },
+     "legend": {
+      "b1": "SP 4 - CL",
+      "b2": "1 BB von 2,5",
+      "b3": "Ecke frei"
+     },
+     "start": {
+      "b1": [
+       0.5,
+       0.3333
+      ],
+      "b2": [
+       0.3125,
+       0.9121
+      ],
+      "b3": [
+       0.9561,
+       0.9121
+      ]
+     },
+     "end": {
+      "b1": [
+       0.9419,
+       0.8609
+      ],
+      "b2": [
+       0.9138,
+       0.855
+      ],
+      "b3": [
+       0.9561,
+       0.9121
+      ]
+     },
+     "trajectories": {
+      "b1": [
+       [
+        0.5,
+        0.3333
+       ],
+       [
+        0.3284,
+        0.8629
+       ],
+       [
+        0.3438,
+        0.9707
+       ],
+       [
+        0.7113,
+        0.0293
+       ],
+       [
+        0.9419,
+        0.8609
+       ]
+      ],
+      "b2": [
+       [
+        0.3125,
+        0.9121
+       ],
+       [
+        0.25,
+        0.9707
+       ],
+       [
+        0.0146,
+        0.5875
+       ],
+       [
+        0.2888,
+        0.0293
+       ],
+       [
+        0.9138,
+        0.855
+       ]
+      ]
+     },
+     "collisions": [
+      {
+       "sequence_number": 1,
+       "ball_attacker": "b1",
+       "ball_target": "b2",
+       "contact": [
+        0.3284,
+        0.8629
+       ],
+       "collision_type": "primary_impact"
+      },
+      {
+       "sequence_number": 4,
+       "ball_attacker": "b1",
+       "ball_target": "b3",
+       "contact": [
+        0.9419,
+        0.8609
+       ],
+       "collision_type": "carambolage",
+       "scored": true
+      }
+     ],
+     "cushion_events": [
+      {
+       "ball": "b1",
+       "sequence_number": 2,
+       "cushion": "long_near",
+       "contact": [
+        0.3438,
+        0.9707
+       ]
+      },
+      {
+       "ball": "b1",
+       "sequence_number": 3,
+       "cushion": "long_far",
+       "contact": [
+        0.7113,
+        0.0293
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 2,
+       "cushion": "long_near",
+       "contact": [
+        0.25,
+        0.9707
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 3,
+       "cushion": "short_left",
+       "contact": [
+        0.0146,
+        0.5875
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 4,
+       "cushion": "long_far",
+       "contact": [
+        0.2888,
+        0.0293
+       ]
+      }
+     ],
+     "vz_zone": "diamond_field_x7_y3"
+    },
+    {
+     "figur": 28,
+     "position_in_group": 4,
+     "points": 10,
+     "contre_allowed": true,
+     "note": "B II mit Hilfsbällen aufgesetzt (zwei Hilfsbälle an der kurzen Bande, B II darauf); B I läuft gebogen von der kurzen zur langen Bande.",
+     "path_source": {
+      "white": "Korrektur",
+      "yellow": "Bild"
+     },
+     "legend": {
+      "b1": "Press an CL und KB",
+      "b2": "siehe Zeichnung",
+      "b3": "Ecke frei"
+     },
+     "start": {
+      "b1": [
+       0.9854,
+       0.304
+      ],
+      "b2": [
+       0.96,
+       0.195
+      ],
+      "b3": [
+       0.044,
+       0.9121
+      ]
+     },
+     "end": {
+      "b1": [
+       0.0702,
+       0.886
+      ],
+      "b2": [
+       0.0388,
+       0.8775
+      ],
+      "b3": [
+       0.044,
+       0.9121
+      ]
+     },
+     "trajectories": {
+      "b1": [
+       [
+        0.9854,
+        0.304
+       ],
+       [
+        0.9724,
+        0.2481
+       ],
+       [
+        0.9854,
+        0.1025
+       ],
+       [
+        0.9312,
+        0.0293
+       ],
+       [
+        0.0702,
+        0.886
+       ]
+      ],
+      "b2": [
+       [
+        0.96,
+        0.195
+       ],
+       [
+        0.8188,
+        0.0293
+       ],
+       [
+        0.0388,
+        0.8775
+       ]
+      ]
+     },
+     "collisions": [
+      {
+       "sequence_number": 1,
+       "ball_attacker": "b1",
+       "ball_target": "b2",
+       "contact": [
+        0.9724,
+        0.2481
+       ],
+       "collision_type": "primary_impact"
+      },
+      {
+       "sequence_number": 4,
+       "ball_attacker": "b1",
+       "ball_target": "b3",
+       "contact": [
+        0.0702,
+        0.886
+       ],
+       "collision_type": "carambolage",
+       "scored": true
+      }
+     ],
+     "cushion_events": [
+      {
+       "ball": "b1",
+       "sequence_number": 2,
+       "cushion": "short_right",
+       "contact": [
+        0.9854,
+        0.1025
+       ]
+      },
+      {
+       "ball": "b1",
+       "sequence_number": 3,
+       "cushion": "long_far",
+       "contact": [
+        0.9312,
+        0.0293
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 2,
+       "cushion": "long_far",
+       "contact": [
+        0.8188,
+        0.0293
+       ]
+      }
+     ],
+     "vz_zone": "diamond_field_x0_y3"
+    }
+   ]
+  },
+  {
+   "number": 8,
+   "name": "Dreibänder",
+   "concepts": [
+    {
+     "key": "three_cushion_shot",
+     "weight": 5
+    },
+    {
+     "key": "gather_shot",
+     "weight": 3
+    }
+   ],
+   "figures": [
+    {
+     "figur": 29,
+     "position_in_group": 1,
+     "points": 5,
+     "contre_allowed": false,
+     "note": null,
+     "path_source": {
+      "white": "Bild",
+      "yellow": "Bild"
+     },
+     "legend": {
+      "b1": "SP 3 - CL",
+      "b2": "SP 3 - CL",
+      "b3": "Ecke frei"
+     },
+     "start": {
+      "b1": [
+       0.375,
+       0.3333
+      ],
+      "b2": [
+       0.375,
+       0.6667
+      ],
+      "b3": [
+       0.9561,
+       0.9121
+      ]
+     },
+     "end": {
+      "b1": [
+       0.9328,
+       0.8765
+      ],
+      "b2": [
+       0.9588,
+       0.8325
+      ],
+      "b3": [
+       0.9561,
+       0.9121
+      ]
+     },
+     "trajectories": {
+      "b1": [
+       [
+        0.375,
+        0.3333
+       ],
+       [
+        0.375,
+        0.6081
+       ],
+       [
+        0.1675,
+        0.9707
+       ],
+       [
+        0.0146,
+        0.7375
+       ],
+       [
+        0.38,
+        0.0293
+       ],
+       [
+        0.9328,
+        0.8765
+       ]
+      ],
+      "b2": [
+       [
+        0.375,
+        0.6667
+       ],
+       [
+        0.4612,
+        0.9707
+       ],
+       [
+        0.7512,
+        0.0293
+       ],
+       [
+        0.9588,
+        0.8325
+       ]
+      ]
+     },
+     "collisions": [
+      {
+       "sequence_number": 1,
+       "ball_attacker": "b1",
+       "ball_target": "b2",
+       "contact": [
+        0.375,
+        0.6081
+       ],
+       "collision_type": "primary_impact"
+      },
+      {
+       "sequence_number": 5,
+       "ball_attacker": "b1",
+       "ball_target": "b3",
+       "contact": [
+        0.9328,
+        0.8765
+       ],
+       "collision_type": "carambolage",
+       "scored": true
+      }
+     ],
+     "cushion_events": [
+      {
+       "ball": "b1",
+       "sequence_number": 2,
+       "cushion": "long_near",
+       "contact": [
+        0.1675,
+        0.9707
+       ]
+      },
+      {
+       "ball": "b1",
+       "sequence_number": 3,
+       "cushion": "short_left",
+       "contact": [
+        0.0146,
+        0.7375
+       ]
+      },
+      {
+       "ball": "b1",
+       "sequence_number": 4,
+       "cushion": "long_far",
+       "contact": [
+        0.38,
+        0.0293
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 2,
+       "cushion": "long_near",
+       "contact": [
+        0.4612,
+        0.9707
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 3,
+       "cushion": "long_far",
+       "contact": [
+        0.7512,
+        0.0293
+       ]
+      }
+     ],
+     "vz_zone": "diamond_field_x7_y3"
+    },
+    {
+     "figur": 30,
+     "position_in_group": 2,
+     "points": 6,
+     "contre_allowed": false,
+     "note": null,
+     "path_source": {
+      "white": "Korrektur",
+      "yellow": "Korrektur"
+     },
+     "legend": {
+      "b1": "2 BB von 3",
+      "b2": "SP 4 - 1",
+      "b3": "1 BB von 0,5"
+     },
+     "start": {
+      "b1": [
+       0.625,
+       0.1465
+      ],
+      "b2": [
+       0.5,
+       0.25
+      ],
+      "b3": [
+       0.0625,
+       0.9121
+      ]
+     },
+     "end": {
+      "b1": [
+       0.087,
+       0.8801
+      ],
+      "b2": [
+       0.02,
+       0.8575
+      ],
+      "b3": [
+       0.0625,
+       0.9121
+      ]
+     },
+     "trajectories": {
+      "b1": [
+       [
+        0.625,
+        0.1465
+       ],
+       [
+        0.5271,
+        0.2276
+       ],
+       [
+        0.1838,
+        0.0293
+       ],
+       [
+        0.0146,
+        0.2
+       ],
+       [
+        0.5012,
+        0.9707
+       ],
+       [
+        0.9854,
+        0.4525
+       ],
+       [
+        0.74,
+        0.0293
+       ],
+       [
+        0.087,
+        0.8801
+       ]
+      ],
+      "b2": [
+       [
+        0.5,
+        0.25
+       ],
+       [
+        0.2825,
+        0.9707
+       ],
+       [
+        0.125,
+        0.0293
+       ],
+       [
+        0.02,
+        0.8575
+       ]
+      ]
+     },
+     "collisions": [
+      {
+       "sequence_number": 1,
+       "ball_attacker": "b1",
+       "ball_target": "b2",
+       "contact": [
+        0.5271,
+        0.2276
+       ],
+       "collision_type": "primary_impact"
+      },
+      {
+       "sequence_number": 7,
+       "ball_attacker": "b1",
+       "ball_target": "b3",
+       "contact": [
+        0.087,
+        0.8801
+       ],
+       "collision_type": "carambolage",
+       "scored": true
+      }
+     ],
+     "cushion_events": [
+      {
+       "ball": "b1",
+       "sequence_number": 2,
+       "cushion": "long_far",
+       "contact": [
+        0.1838,
+        0.0293
+       ]
+      },
+      {
+       "ball": "b1",
+       "sequence_number": 3,
+       "cushion": "short_left",
+       "contact": [
+        0.0146,
+        0.2
+       ]
+      },
+      {
+       "ball": "b1",
+       "sequence_number": 4,
+       "cushion": "long_near",
+       "contact": [
+        0.5012,
+        0.9707
+       ]
+      },
+      {
+       "ball": "b1",
+       "sequence_number": 5,
+       "cushion": "short_right",
+       "contact": [
+        0.9854,
+        0.4525
+       ]
+      },
+      {
+       "ball": "b1",
+       "sequence_number": 6,
+       "cushion": "long_far",
+       "contact": [
+        0.74,
+        0.0293
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 2,
+       "cushion": "long_near",
+       "contact": [
+        0.2825,
+        0.9707
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 3,
+       "cushion": "long_far",
+       "contact": [
+        0.125,
+        0.0293
+       ]
+      }
+     ],
+     "vz_zone": "diamond_field_x0_y3"
+    },
+    {
+     "figur": 31,
+     "position_in_group": 3,
+     "points": 7,
+     "contre_allowed": false,
+     "note": null,
+     "path_source": {
+      "white": "Korrektur",
+      "yellow": "Korrektur"
+     },
+     "legend": {
+      "b1": "an VL 2 und an CL",
+      "b2": "SP 2 - 2",
+      "b3": "Ecke frei"
+     },
+     "start": {
+      "b1": [
+       0.7646,
+       0.3627
+      ],
+      "b2": [
+       0.75,
+       0.5
+      ],
+      "b3": [
+       0.044,
+       0.9121
+      ]
+     },
+     "end": {
+      "b1": [
+       0.0634,
+       0.8683
+      ],
+      "b2": [
+       0.035,
+       0.8375
+      ],
+      "b3": [
+       0.044,
+       0.9121
+      ]
+     },
+     "trajectories": {
+      "b1": [
+       [
+        0.7646,
+        0.3627
+       ],
+       [
+        0.7561,
+        0.4427
+       ],
+       [
+        0.9854,
+        0.9675
+       ],
+       [
+        0.9775,
+        0.9707
+       ],
+       [
+        0.4362,
+        0.0293
+       ],
+       [
+        0.0634,
+        0.8683
+       ]
+      ],
+      "b2": [
+       [
+        0.75,
+        0.5
+       ],
+       [
+        0.6362,
+        0.9707
+       ],
+       [
+        0.2662,
+        0.0293
+       ],
+       [
+        0.035,
+        0.8375
+       ]
+      ]
+     },
+     "collisions": [
+      {
+       "sequence_number": 1,
+       "ball_attacker": "b1",
+       "ball_target": "b2",
+       "contact": [
+        0.7561,
+        0.4427
+       ],
+       "collision_type": "primary_impact"
+      },
+      {
+       "sequence_number": 5,
+       "ball_attacker": "b1",
+       "ball_target": "b3",
+       "contact": [
+        0.0634,
+        0.8683
+       ],
+       "collision_type": "carambolage",
+       "scored": true
+      }
+     ],
+     "cushion_events": [
+      {
+       "ball": "b1",
+       "sequence_number": 2,
+       "cushion": "short_right",
+       "contact": [
+        0.9854,
+        0.9675
+       ]
+      },
+      {
+       "ball": "b1",
+       "sequence_number": 3,
+       "cushion": "long_near",
+       "contact": [
+        0.9775,
+        0.9707
+       ]
+      },
+      {
+       "ball": "b1",
+       "sequence_number": 4,
+       "cushion": "long_far",
+       "contact": [
+        0.4362,
+        0.0293
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 2,
+       "cushion": "long_near",
+       "contact": [
+        0.6362,
+        0.9707
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 3,
+       "cushion": "long_far",
+       "contact": [
+        0.2662,
+        0.0293
+       ]
+      }
+     ],
+     "vz_zone": "diamond_field_x0_y3"
+    },
+    {
+     "figur": 32,
+     "position_in_group": 4,
+     "points": 8,
+     "contre_allowed": false,
+     "note": null,
+     "path_source": {
+      "white": "Korrektur",
+      "yellow": "Korrektur"
+     },
+     "legend": {
+      "b1": "SP 4 - 1",
+      "b2": "1 BB von 1",
+      "b3": "1 BB von 1,5"
+     },
+     "start": {
+      "b1": [
+       0.5,
+       0.75
+      ],
+      "b2": [
+       0.125,
+       0.0878
+      ],
+      "b3": [
+       0.8125,
+       0.0878
+      ]
+     },
+     "end": {
+      "b1": [
+       0.7889,
+       0.1225
+      ],
+      "b2": [
+       0.7775,
+       0.03
+      ],
+      "b3": [
+       0.8125,
+       0.0878
+      ]
+     },
+     "trajectories": {
+      "b1": [
+       [
+        0.5,
+        0.75
+       ],
+       [
+        0.147,
+        0.1266
+       ],
+       [
+        0.1088,
+        0.0293
+       ],
+       [
+        0.0146,
+        0.345
+       ],
+       [
+        0.2112,
+        0.9707
+       ],
+       [
+        0.7889,
+        0.1225
+       ]
+      ],
+      "b2": [
+       [
+        0.125,
+        0.0878
+       ],
+       [
+        0.0146,
+        0.0525
+       ],
+       [
+        0.7775,
+        0.03
+       ]
+      ]
+     },
+     "collisions": [
+      {
+       "sequence_number": 1,
+       "ball_attacker": "b1",
+       "ball_target": "b2",
+       "contact": [
+        0.147,
+        0.1266
+       ],
+       "collision_type": "primary_impact"
+      },
+      {
+       "sequence_number": 5,
+       "ball_attacker": "b1",
+       "ball_target": "b3",
+       "contact": [
+        0.7889,
+        0.1225
+       ],
+       "collision_type": "carambolage",
+       "scored": true
+      }
+     ],
+     "cushion_events": [
+      {
+       "ball": "b1",
+       "sequence_number": 2,
+       "cushion": "long_far",
+       "contact": [
+        0.1088,
+        0.0293
+       ]
+      },
+      {
+       "ball": "b1",
+       "sequence_number": 3,
+       "cushion": "short_left",
+       "contact": [
+        0.0146,
+        0.345
+       ]
+      },
+      {
+       "ball": "b1",
+       "sequence_number": 4,
+       "cushion": "long_near",
+       "contact": [
+        0.2112,
+        0.9707
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 2,
+       "cushion": "short_left",
+       "contact": [
+        0.0146,
+        0.0525
+       ]
+      }
+     ],
+     "vz_zone": "diamond_field_x6_y0"
+    }
+   ]
+  },
+  {
+   "number": 9,
+   "name": "Rückläufer",
+   "concepts": [
+    {
+     "key": "draw_shot",
+     "weight": 5
+    },
+    {
+     "key": "gather_shot",
+     "weight": 3
+    }
+   ],
+   "figures": [
+    {
+     "figur": 33,
+     "position_in_group": 1,
+     "points": 6,
+     "contre_allowed": false,
+     "note": null,
+     "path_source": {
+      "white": "Korrektur",
+      "yellow": "Korrektur"
+     },
+     "legend": {
+      "b1": "SP 2 - CL",
+      "b2": "CSP",
+      "b3": "CSP"
+     },
+     "start": {
+      "b1": [
+       0.75,
+       0.6667
+      ],
+      "b2": [
+       0.8333,
+       0.3333
+      ],
+      "b3": [
+       0.8333,
+       0.6667
+      ]
+     },
+     "end": {
+      "b1": [
+       0.8306,
+       0.6083
+      ],
+      "b2": [
+       0.855,
+       0.695
+      ],
+      "b3": [
+       0.8333,
+       0.6667
+      ]
+     },
+     "trajectories": {
+      "b1": [
+       [
+        0.75,
+        0.6667
+       ],
+       [
+        0.8202,
+        0.3857
+       ],
+       [
+        0.8306,
+        0.6083
+       ]
+      ],
+      "b2": [
+       [
+        0.8333,
+        0.3333
+       ],
+       [
+        0.9225,
+        0.0293
+       ],
+       [
+        0.9854,
+        0.6325
+       ],
+       [
+        0.9525,
+        0.9707
+       ],
+       [
+        0.855,
+        0.695
+       ]
+      ]
+     },
+     "collisions": [
+      {
+       "sequence_number": 1,
+       "ball_attacker": "b1",
+       "ball_target": "b2",
+       "contact": [
+        0.8202,
+        0.3857
+       ],
+       "collision_type": "primary_impact"
+      },
+      {
+       "sequence_number": 2,
+       "ball_attacker": "b1",
+       "ball_target": "b3",
+       "contact": [
+        0.8306,
+        0.6083
+       ],
+       "collision_type": "carambolage",
+       "scored": true
+      }
+     ],
+     "cushion_events": [
+      {
+       "ball": "b2",
+       "sequence_number": 2,
+       "cushion": "long_far",
+       "contact": [
+        0.9225,
+        0.0293
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 3,
+       "cushion": "short_right",
+       "contact": [
+        0.9854,
+        0.6325
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 4,
+       "cushion": "long_near",
+       "contact": [
+        0.9525,
+        0.9707
+       ]
+      }
+     ],
+     "vz_zone": "diamond_field_x6_y2"
+    },
+    {
+     "figur": 34,
+     "position_in_group": 2,
+     "points": 6,
+     "contre_allowed": false,
+     "note": null,
+     "path_source": {
+      "white": "Korrektur",
+      "yellow": "Korrektur"
+     },
+     "legend": {
+      "b1": "1,5 cm von B II auf CL",
+      "b2": "CSP",
+      "b3": "Press bei 1,5"
+     },
+     "start": {
+      "b2": [
+       0.8333,
+       0.6667
+      ],
+      "b3": [
+       0.9854,
+       0.625
+      ],
+      "b1": [
+       0.8698,
+       0.6667
+      ]
+     },
+     "end": {
+      "b1": [
+       0.9565,
+       0.6348
+      ],
+      "b2": [
+       0.9375,
+       0.6075
+      ],
+      "b3": [
+       0.9854,
+       0.625
+      ]
+     },
+     "trajectories": {
+      "b1": [
+       [
+        0.8698,
+        0.6667
+       ],
+       [
+        0.8626,
+        0.6667
+       ],
+       [
+        0.9565,
+        0.6348
+       ]
+      ],
+      "b2": [
+       [
+        0.8333,
+        0.6667
+       ],
+       [
+        0.0146,
+        0.6625
+       ],
+       [
+        0.9375,
+        0.6075
+       ]
+      ]
+     },
+     "collisions": [
+      {
+       "sequence_number": 1,
+       "ball_attacker": "b1",
+       "ball_target": "b2",
+       "contact": [
+        0.8626,
+        0.6667
+       ],
+       "collision_type": "primary_impact"
+      },
+      {
+       "sequence_number": 2,
+       "ball_attacker": "b1",
+       "ball_target": "b3",
+       "contact": [
+        0.9565,
+        0.6348
+       ],
+       "collision_type": "carambolage",
+       "scored": true
+      }
+     ],
+     "cushion_events": [
+      {
+       "ball": "b2",
+       "sequence_number": 2,
+       "cushion": "short_left",
+       "contact": [
+        0.0146,
+        0.6625
+       ]
+      }
+     ],
+     "vz_zone": "diamond_field_x7_y2"
+    },
+    {
+     "figur": 35,
+     "position_in_group": 3,
+     "points": 7,
+     "contre_allowed": false,
+     "note": "Legende B II im Original „1 BB 3“ (gemeint: 1 BB von 3, so in der Zeichnung).",
+     "path_source": {
+      "white": "Bild",
+      "yellow": "Korrektur"
+     },
+     "legend": {
+      "b1": "1 BB von 2",
+      "b2": "1 BB von 3",
+      "b3": "1 BB von 2,5"
+     },
+     "start": {
+      "b1": [
+       0.75,
+       0.9121
+      ],
+      "b2": [
+       0.625,
+       0.9121
+      ],
+      "b3": [
+       0.6875,
+       0.0878
+      ]
+     },
+     "end": {
+      "b1": [
+       0.6852,
+       0.1462
+      ],
+      "b2": [
+       0.6412,
+       0.13
+      ],
+      "b3": [
+       0.6875,
+       0.0878
+      ]
+     },
+     "trajectories": {
+      "b1": [
+       [
+        0.75,
+        0.9121
+       ],
+       [
+        0.6543,
+        0.9121
+       ],
+       [
+        0.6852,
+        0.1462
+       ]
+      ],
+      "b2": [
+       [
+        0.625,
+        0.9121
+       ],
+       [
+        0.5,
+        0.9707
+       ],
+       [
+        0.0146,
+        0.5975
+       ],
+       [
+        0.6412,
+        0.13
+       ]
+      ]
+     },
+     "collisions": [
+      {
+       "sequence_number": 1,
+       "ball_attacker": "b1",
+       "ball_target": "b2",
+       "contact": [
+        0.6543,
+        0.9121
+       ],
+       "collision_type": "primary_impact"
+      },
+      {
+       "sequence_number": 2,
+       "ball_attacker": "b1",
+       "ball_target": "b3",
+       "contact": [
+        0.6852,
+        0.1462
+       ],
+       "collision_type": "carambolage",
+       "scored": true
+      }
+     ],
+     "cushion_events": [
+      {
+       "ball": "b2",
+       "sequence_number": 2,
+       "cushion": "long_near",
+       "contact": [
+        0.5,
+        0.9707
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 3,
+       "cushion": "short_left",
+       "contact": [
+        0.0146,
+        0.5975
+       ]
+      }
+     ],
+     "vz_zone": "diamond_field_x5_y0"
+    },
+    {
+     "figur": 36,
+     "position_in_group": 4,
+     "points": 7,
+     "contre_allowed": false,
+     "note": null,
+     "path_source": {
+      "white": "Bild",
+      "yellow": "Bild"
+     },
+     "legend": {
+      "b1": "1 BB von 2",
+      "b2": "Press bei 1",
+      "b3": "Ecke frei"
+     },
+     "start": {
+      "b1": [
+       0.25,
+       0.9121
+      ],
+      "b2": [
+       0.125,
+       0.9707
+      ],
+      "b3": [
+       0.044,
+       0.0878
+      ]
+     },
+     "end": {
+      "b1": [
+       0.0511,
+       0.1446
+      ],
+      "b2": [
+       0.0975,
+       0.11
+      ],
+      "b3": [
+       0.044,
+       0.0878
+      ]
+     },
+     "trajectories": {
+      "b1": [
+       [
+        0.25,
+        0.9121
+       ],
+       [
+        0.1535,
+        0.9573
+       ],
+       [
+        0.0511,
+        0.1446
+       ]
+      ],
+      "b2": [
+       [
+        0.125,
+        0.9707
+       ],
+       [
+        0.0146,
+        0.84
+       ],
+       [
+        0.7113,
+        0.0293
+       ],
+       [
+        0.9854,
+        0.355
+       ],
+       [
+        0.5975,
+        0.9707
+       ],
+       [
+        0.0975,
+        0.11
+       ]
+      ]
+     },
+     "collisions": [
+      {
+       "sequence_number": 1,
+       "ball_attacker": "b1",
+       "ball_target": "b2",
+       "contact": [
+        0.1535,
+        0.9573
+       ],
+       "collision_type": "primary_impact"
+      },
+      {
+       "sequence_number": 2,
+       "ball_attacker": "b1",
+       "ball_target": "b3",
+       "contact": [
+        0.0511,
+        0.1446
+       ],
+       "collision_type": "carambolage",
+       "scored": true
+      }
+     ],
+     "cushion_events": [
+      {
+       "ball": "b2",
+       "sequence_number": 2,
+       "cushion": "short_left",
+       "contact": [
+        0.0146,
+        0.84
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 3,
+       "cushion": "long_far",
+       "contact": [
+        0.7113,
+        0.0293
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 4,
+       "cushion": "short_right",
+       "contact": [
+        0.9854,
+        0.355
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 5,
+       "cushion": "long_near",
+       "contact": [
+        0.5975,
+        0.9707
+       ]
+      }
+     ],
+     "vz_zone": "diamond_field_x0_y0"
+    }
+   ]
+  },
+  {
+   "number": 10,
+   "name": "Einbänder",
+   "concepts": [
+    {
+     "key": "one_cushion_shot",
+     "weight": 5
+    },
+    {
+     "key": "gather_shot",
+     "weight": 3
+    }
+   ],
+   "figures": [
+    {
+     "figur": 37,
+     "position_in_group": 1,
+     "points": 4,
+     "contre_allowed": false,
+     "note": null,
+     "path_source": {
+      "white": "Bild",
+      "yellow": "Korrektur"
+     },
+     "legend": {
+      "b1": "an 0,5 und auf 1,5",
+      "b2": "1 BB von LB auf 0,5",
+      "b3": "Press bei 1,5"
+     },
+     "start": {
+      "b1": [
+       0.9229,
+       0.625
+      ],
+      "b2": [
+       0.9375,
+       0.9121
+      ],
+      "b3": [
+       0.8125,
+       0.9707
+      ]
+     },
+     "end": {
+      "b1": [
+       0.8416,
+       0.9655
+      ],
+      "b2": [
+       0.8162,
+       0.895
+      ],
+      "b3": [
+       0.8125,
+       0.9707
+      ]
+     },
+     "trajectories": {
+      "b1": [
+       [
+        0.9229,
+        0.625
+       ],
+       [
+        0.9345,
+        0.8538
+       ],
+       [
+        0.9854,
+        0.94
+       ],
+       [
+        0.8416,
+        0.9655
+       ]
+      ],
+      "b2": [
+       [
+        0.9375,
+        0.9121
+       ],
+       [
+        0.9362,
+        0.9707
+       ],
+       [
+        0.8738,
+        0.0293
+       ],
+       [
+        0.8162,
+        0.895
+       ]
+      ]
+     },
+     "collisions": [
+      {
+       "sequence_number": 1,
+       "ball_attacker": "b1",
+       "ball_target": "b2",
+       "contact": [
+        0.9345,
+        0.8538
+       ],
+       "collision_type": "primary_impact"
+      },
+      {
+       "sequence_number": 3,
+       "ball_attacker": "b1",
+       "ball_target": "b3",
+       "contact": [
+        0.8416,
+        0.9655
+       ],
+       "collision_type": "carambolage",
+       "scored": true
+      }
+     ],
+     "cushion_events": [
+      {
+       "ball": "b1",
+       "sequence_number": 2,
+       "cushion": "short_right",
+       "contact": [
+        0.9854,
+        0.94
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 2,
+       "cushion": "long_near",
+       "contact": [
+        0.9362,
+        0.9707
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 3,
+       "cushion": "long_far",
+       "contact": [
+        0.8738,
+        0.0293
+       ]
+      }
+     ],
+     "vz_zone": "diamond_field_x6_y3"
+    },
+    {
+     "figur": 38,
+     "position_in_group": 2,
+     "points": 6,
+     "contre_allowed": false,
+     "note": null,
+     "path_source": {
+      "white": "Korrektur",
+      "yellow": "Bild"
+     },
+     "legend": {
+      "b1": "1 BB von B II auf CL",
+      "b2": "CSP",
+      "b3": "1 BB von 2,5"
+     },
+     "start": {
+      "b2": [
+       0.8333,
+       0.3333
+      ],
+      "b3": [
+       0.3125,
+       0.9121
+      ],
+      "b1": [
+       0.8919,
+       0.3333
+      ]
+     },
+     "end": {
+      "b1": [
+       0.3321,
+       0.8686
+      ],
+      "b2": [
+       0.2788,
+       0.8925
+      ],
+      "b3": [
+       0.3125,
+       0.9121
+      ]
+     },
+     "trajectories": {
+      "b1": [
+       [
+        0.8919,
+        0.3333
+       ],
+       [
+        0.8626,
+        0.3333
+       ],
+       [
+        0.71,
+        0.0293
+       ],
+       [
+        0.3321,
+        0.8686
+       ]
+      ],
+      "b2": [
+       [
+        0.8333,
+        0.3333
+       ],
+       [
+        0.0146,
+        0.74
+       ],
+       [
+        0.2788,
+        0.8925
+       ]
+      ]
+     },
+     "collisions": [
+      {
+       "sequence_number": 1,
+       "ball_attacker": "b1",
+       "ball_target": "b2",
+       "contact": [
+        0.8626,
+        0.3333
+       ],
+       "collision_type": "primary_impact"
+      },
+      {
+       "sequence_number": 3,
+       "ball_attacker": "b1",
+       "ball_target": "b3",
+       "contact": [
+        0.3321,
+        0.8686
+       ],
+       "collision_type": "carambolage",
+       "scored": true
+      }
+     ],
+     "cushion_events": [
+      {
+       "ball": "b1",
+       "sequence_number": 2,
+       "cushion": "long_far",
+       "contact": [
+        0.71,
+        0.0293
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 2,
+       "cushion": "short_left",
+       "contact": [
+        0.0146,
+        0.74
+       ]
+      }
+     ],
+     "vz_zone": "diamond_field_x2_y3"
+    },
+    {
+     "figur": 39,
+     "position_in_group": 3,
+     "points": 6,
+     "contre_allowed": false,
+     "note": null,
+     "path_source": {
+      "white": "Bild",
+      "yellow": "Korrektur"
+     },
+     "legend": {
+      "b1": "SP 2,5 - CL",
+      "b2": "1 BB von 1",
+      "b3": "Ecke frei"
+     },
+     "start": {
+      "b1": [
+       0.6875,
+       0.6667
+      ],
+      "b2": [
+       0.044,
+       0.25
+      ],
+      "b3": [
+       0.9561,
+       0.9121
+      ]
+     },
+     "end": {
+      "b1": [
+       0.9283,
+       0.8936
+      ],
+      "b2": [
+       0.9475,
+       0.8375
+      ],
+      "b3": [
+       0.9561,
+       0.9121
+      ]
+     },
+     "trajectories": {
+      "b1": [
+       [
+        0.6875,
+        0.6667
+       ],
+       [
+        0.0718,
+        0.268
+       ],
+       [
+        0.0146,
+        0.285
+       ],
+       [
+        0.9283,
+        0.8936
+       ]
+      ],
+      "b2": [
+       [
+        0.044,
+        0.25
+       ],
+       [
+        0.0146,
+        0.1875
+       ],
+       [
+        0.13,
+        0.0293
+       ],
+       [
+        0.9475,
+        0.8375
+       ]
+      ]
+     },
+     "collisions": [
+      {
+       "sequence_number": 1,
+       "ball_attacker": "b1",
+       "ball_target": "b2",
+       "contact": [
+        0.0718,
+        0.268
+       ],
+       "collision_type": "primary_impact"
+      },
+      {
+       "sequence_number": 3,
+       "ball_attacker": "b1",
+       "ball_target": "b3",
+       "contact": [
+        0.9283,
+        0.8936
+       ],
+       "collision_type": "carambolage",
+       "scored": true
+      }
+     ],
+     "cushion_events": [
+      {
+       "ball": "b1",
+       "sequence_number": 2,
+       "cushion": "short_left",
+       "contact": [
+        0.0146,
+        0.285
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 2,
+       "cushion": "short_left",
+       "contact": [
+        0.0146,
+        0.1875
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 3,
+       "cushion": "long_far",
+       "contact": [
+        0.13,
+        0.0293
+       ]
+      }
+     ],
+     "vz_zone": "diamond_field_x7_y3"
+    },
+    {
+     "figur": 40,
+     "position_in_group": 4,
+     "points": 10,
+     "contre_allowed": false,
+     "note": "Klammerangabe B II im Original „0,5 BB nach links“ (gegenüber SP 2 - CL).",
+     "path_source": {
+      "white": "Korrektur",
+      "yellow": "Korrektur"
+     },
+     "legend": {
+      "b1": "3 BB von 2,5",
+      "b2": "SP 2 - CL, 0,5 BB nach links",
+      "b3": "Ecke frei"
+     },
+     "start": {
+      "b1": [
+       0.3125,
+       0.205
+      ],
+      "b2": [
+       0.25,
+       0.3627
+      ],
+      "b3": [
+       0.9561,
+       0.0878
+      ]
+     },
+     "end": {
+      "b1": [
+       0.9268,
+       0.0873
+      ],
+      "b2": [
+       0.925,
+       0.1825
+      ],
+      "b3": [
+       0.9561,
+       0.0878
+      ]
+     },
+     "trajectories": {
+      "b1": [
+       [
+        0.3125,
+        0.205
+       ],
+       [
+        0.2682,
+        0.3168
+       ],
+       [
+        0.0146,
+        0.0725
+       ],
+       [
+        0.9268,
+        0.0873
+       ]
+      ],
+      "b2": [
+       [
+        0.25,
+        0.3627
+       ],
+       [
+        0.0712,
+        0.9707
+       ],
+       [
+        0.0146,
+        0.665
+       ],
+       [
+        0.1788,
+        0.0293
+       ],
+       [
+        0.5325,
+        0.9707
+       ],
+       [
+        0.925,
+        0.1825
+       ]
+      ]
+     },
+     "collisions": [
+      {
+       "sequence_number": 1,
+       "ball_attacker": "b1",
+       "ball_target": "b2",
+       "contact": [
+        0.2682,
+        0.3168
+       ],
+       "collision_type": "primary_impact"
+      },
+      {
+       "sequence_number": 3,
+       "ball_attacker": "b1",
+       "ball_target": "b3",
+       "contact": [
+        0.9268,
+        0.0873
+       ],
+       "collision_type": "carambolage",
+       "scored": true
+      }
+     ],
+     "cushion_events": [
+      {
+       "ball": "b1",
+       "sequence_number": 2,
+       "cushion": "short_left",
+       "contact": [
+        0.0146,
+        0.0725
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 2,
+       "cushion": "long_near",
+       "contact": [
+        0.0712,
+        0.9707
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 3,
+       "cushion": "short_left",
+       "contact": [
+        0.0146,
+        0.665
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 4,
+       "cushion": "long_far",
+       "contact": [
+        0.1788,
+        0.0293
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 5,
+       "cushion": "long_near",
+       "contact": [
+        0.5325,
+        0.9707
+       ]
+      }
+     ],
+     "vz_zone": "diamond_field_x7_y0"
+    }
+   ]
+  },
+  {
+   "number": 11,
+   "name": "Einband-Rückläufer",
+   "concepts": [
+    {
+     "key": "draw_shot",
+     "weight": 5
+    },
+    {
+     "key": "one_cushion_shot",
+     "weight": 4
+    },
+    {
+     "key": "gather_shot",
+     "weight": 3
+    }
+   ],
+   "figures": [
+    {
+     "figur": 41,
+     "position_in_group": 1,
+     "points": 5,
+     "contre_allowed": false,
+     "note": null,
+     "path_source": {
+      "white": "Bild",
+      "yellow": "Bild"
+     },
+     "legend": {
+      "b1": "1 BB von KB auf CL",
+      "b2": "SP 1 - 2",
+      "b3": "Ecke frei"
+     },
+     "start": {
+      "b1": [
+       0.9561,
+       0.3333
+      ],
+      "b2": [
+       0.875,
+       0.5
+      ],
+      "b3": [
+       0.9561,
+       0.0878
+      ]
+     },
+     "end": {
+      "b1": [
+       0.9582,
+       0.1462
+      ],
+      "b2": [
+       0.9125,
+       0.105
+      ],
+      "b3": [
+       0.9561,
+       0.0878
+      ]
+     },
+     "trajectories": {
+      "b1": [
+       [
+        0.9561,
+        0.3333
+       ],
+       [
+        0.8954,
+        0.458
+       ],
+       [
+        0.9875,
+        0.9707
+       ],
+       [
+        0.9582,
+        0.1462
+       ]
+      ],
+      "b2": [
+       [
+        0.875,
+        0.5
+       ],
+       [
+        0.0975,
+        0.9707
+       ],
+       [
+        0.0146,
+        0.9225
+       ],
+       [
+        0.9125,
+        0.105
+       ]
+      ]
+     },
+     "collisions": [
+      {
+       "sequence_number": 1,
+       "ball_attacker": "b1",
+       "ball_target": "b2",
+       "contact": [
+        0.8954,
+        0.458
+       ],
+       "collision_type": "primary_impact"
+      },
+      {
+       "sequence_number": 3,
+       "ball_attacker": "b1",
+       "ball_target": "b3",
+       "contact": [
+        0.9582,
+        0.1462
+       ],
+       "collision_type": "carambolage",
+       "scored": true
+      }
+     ],
+     "cushion_events": [
+      {
+       "ball": "b1",
+       "sequence_number": 2,
+       "cushion": "long_near",
+       "contact": [
+        0.9875,
+        0.9707
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 2,
+       "cushion": "long_near",
+       "contact": [
+        0.0975,
+        0.9707
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 3,
+       "cushion": "short_left",
+       "contact": [
+        0.0146,
+        0.9225
+       ]
+      }
+     ],
+     "vz_zone": "diamond_field_x7_y0"
+    },
+    {
+     "figur": 42,
+     "position_in_group": 2,
+     "points": 6,
+     "contre_allowed": false,
+     "note": null,
+     "path_source": {
+      "white": "Korrektur",
+      "yellow": "Korrektur"
+     },
+     "legend": {
+      "b1": "SP 2,5 - CL",
+      "b2": "1 BB von 2",
+      "b3": "Ecke frei"
+     },
+     "start": {
+      "b1": [
+       0.3125,
+       0.3333
+      ],
+      "b2": [
+       0.25,
+       0.0878
+      ],
+      "b3": [
+       0.9561,
+       0.9121
+      ]
+     },
+     "end": {
+      "b1": [
+       0.9317,
+       0.8797
+      ],
+      "b2": [
+       0.9588,
+       0.8325
+      ],
+      "b3": [
+       0.9561,
+       0.9121
+      ]
+     },
+     "trajectories": {
+      "b1": [
+       [
+        0.3125,
+        0.3333
+       ],
+       [
+        0.2633,
+        0.14
+       ],
+       [
+        0.29,
+        0.0293
+       ],
+       [
+        0.9317,
+        0.8797
+       ]
+      ],
+      "b2": [
+       [
+        0.25,
+        0.0878
+       ],
+       [
+        0.2312,
+        0.0293
+       ],
+       [
+        0.0146,
+        0.8975
+       ],
+       [
+        0.0675,
+        0.9707
+       ],
+       [
+        0.5225,
+        0.0293
+       ],
+       [
+        0.9588,
+        0.8325
+       ]
+      ]
+     },
+     "collisions": [
+      {
+       "sequence_number": 1,
+       "ball_attacker": "b1",
+       "ball_target": "b2",
+       "contact": [
+        0.2633,
+        0.14
+       ],
+       "collision_type": "primary_impact"
+      },
+      {
+       "sequence_number": 3,
+       "ball_attacker": "b1",
+       "ball_target": "b3",
+       "contact": [
+        0.9317,
+        0.8797
+       ],
+       "collision_type": "carambolage",
+       "scored": true
+      }
+     ],
+     "cushion_events": [
+      {
+       "ball": "b1",
+       "sequence_number": 2,
+       "cushion": "long_far",
+       "contact": [
+        0.29,
+        0.0293
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 2,
+       "cushion": "long_far",
+       "contact": [
+        0.2312,
+        0.0293
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 3,
+       "cushion": "short_left",
+       "contact": [
+        0.0146,
+        0.8975
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 4,
+       "cushion": "long_near",
+       "contact": [
+        0.0675,
+        0.9707
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 5,
+       "cushion": "long_far",
+       "contact": [
+        0.5225,
+        0.0293
+       ]
+      }
+     ],
+     "vz_zone": "diamond_field_x7_y3"
+    },
+    {
+     "figur": 43,
+     "position_in_group": 3,
+     "points": 7,
+     "contre_allowed": false,
+     "note": null,
+     "path_source": {
+      "white": "Bild",
+      "yellow": "Korrektur"
+     },
+     "legend": {
+      "b1": "SP 2 - 1",
+      "b2": "SP 1 - CL",
+      "b3": "Ecke frei"
+     },
+     "start": {
+      "b1": [
+       0.25,
+       0.75
+      ],
+      "b2": [
+       0.125,
+       0.6667
+      ],
+      "b3": [
+       0.044,
+       0.0878
+      ]
+     },
+     "end": {
+      "b1": [
+       0.047,
+       0.1461
+      ],
+      "b2": [
+       0.0838,
+       0.1625
+      ],
+      "b3": [
+       0.044,
+       0.0878
+      ]
+     },
+     "trajectories": {
+      "b1": [
+       [
+        0.25,
+        0.75
+       ],
+       [
+        0.1528,
+        0.6852
+       ],
+       [
+        0.09,
+        0.9707
+       ],
+       [
+        0.047,
+        0.1461
+       ]
+      ],
+      "b2": [
+       [
+        0.125,
+        0.6667
+       ],
+       [
+        0.0146,
+        0.4675
+       ],
+       [
+        0.3113,
+        0.0293
+       ],
+       [
+        0.9854,
+        0.4775
+       ],
+       [
+        0.7275,
+        0.9707
+       ],
+       [
+        0.0838,
+        0.1625
+       ]
+      ]
+     },
+     "collisions": [
+      {
+       "sequence_number": 1,
+       "ball_attacker": "b1",
+       "ball_target": "b2",
+       "contact": [
+        0.1528,
+        0.6852
+       ],
+       "collision_type": "primary_impact"
+      },
+      {
+       "sequence_number": 3,
+       "ball_attacker": "b1",
+       "ball_target": "b3",
+       "contact": [
+        0.047,
+        0.1461
+       ],
+       "collision_type": "carambolage",
+       "scored": true
+      }
+     ],
+     "cushion_events": [
+      {
+       "ball": "b1",
+       "sequence_number": 2,
+       "cushion": "long_near",
+       "contact": [
+        0.09,
+        0.9707
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 2,
+       "cushion": "short_left",
+       "contact": [
+        0.0146,
+        0.4675
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 3,
+       "cushion": "long_far",
+       "contact": [
+        0.3113,
+        0.0293
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 4,
+       "cushion": "short_right",
+       "contact": [
+        0.9854,
+        0.4775
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 5,
+       "cushion": "long_near",
+       "contact": [
+        0.7275,
+        0.9707
+       ]
+      }
+     ],
+     "vz_zone": "diamond_field_x0_y0"
+    },
+    {
+     "figur": 44,
+     "position_in_group": 4,
+     "points": 9,
+     "contre_allowed": false,
+     "note": null,
+     "path_source": {
+      "white": "Korrektur",
+      "yellow": "Bild"
+     },
+     "legend": {
+      "b1": "2 BB von 1",
+      "b2": "SP 2 - 1",
+      "b3": "Ecke frei"
+     },
+     "start": {
+      "b1": [
+       0.875,
+       0.1465
+      ],
+      "b2": [
+       0.75,
+       0.25
+      ],
+      "b3": [
+       0.044,
+       0.9121
+      ]
+     },
+     "end": {
+      "b1": [
+       0.0675,
+       0.8774
+      ],
+      "b2": [
+       0.0362,
+       0.86
+      ],
+      "b3": [
+       0.044,
+       0.9121
+      ]
+     },
+     "trajectories": {
+      "b1": [
+       [
+        0.875,
+        0.1465
+       ],
+       [
+        0.7771,
+        0.2276
+       ],
+       [
+        0.6438,
+        0.0293
+       ],
+       [
+        0.0675,
+        0.8774
+       ]
+      ],
+      "b2": [
+       [
+        0.75,
+        0.25
+       ],
+       [
+        0.525,
+        0.9707
+       ],
+       [
+        0.2537,
+        0.0293
+       ],
+       [
+        0.0362,
+        0.86
+       ]
+      ]
+     },
+     "collisions": [
+      {
+       "sequence_number": 1,
+       "ball_attacker": "b1",
+       "ball_target": "b2",
+       "contact": [
+        0.7771,
+        0.2276
+       ],
+       "collision_type": "primary_impact"
+      },
+      {
+       "sequence_number": 3,
+       "ball_attacker": "b1",
+       "ball_target": "b3",
+       "contact": [
+        0.0675,
+        0.8774
+       ],
+       "collision_type": "carambolage",
+       "scored": true
+      }
+     ],
+     "cushion_events": [
+      {
+       "ball": "b1",
+       "sequence_number": 2,
+       "cushion": "long_far",
+       "contact": [
+        0.6438,
+        0.0293
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 2,
+       "cushion": "long_near",
+       "contact": [
+        0.525,
+        0.9707
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 3,
+       "cushion": "long_far",
+       "contact": [
+        0.2537,
+        0.0293
+       ]
+      }
+     ],
+     "vz_zone": "diamond_field_x0_y3"
+    }
+   ]
+  },
+  {
+   "number": 12,
+   "name": "Mehrbänder",
+   "concepts": [
+    {
+     "key": "multi_cushion_shot",
+     "weight": 5
+    },
+    {
+     "key": "gather_shot",
+     "weight": 3
+    }
+   ],
+   "figures": [
+    {
+     "figur": 45,
+     "position_in_group": 1,
+     "points": 5,
+     "contre_allowed": false,
+     "note": null,
+     "path_source": {
+      "white": "Bild",
+      "yellow": "Bild"
+     },
+     "legend": {
+      "b1": "Press bei 2,5",
+      "b2": "Press bei 4",
+      "b3": "Ecke frei"
+     },
+     "start": {
+      "b1": [
+       0.6875,
+       0.0293
+      ],
+      "b2": [
+       0.5,
+       0.0293
+      ],
+      "b3": [
+       0.9561,
+       0.0878
+      ]
+     },
+     "end": {
+      "b1": [
+       0.9306,
+       0.1168
+      ],
+      "b2": [
+       0.9388,
+       0.185
+      ],
+      "b3": [
+       0.9561,
+       0.0878
+      ]
+     },
+     "trajectories": {
+      "b1": [
+       [
+        0.6875,
+        0.0293
+       ],
+       [
+        0.5293,
+        0.0293
+       ],
+       [
+        0.0146,
+        0.755
+       ],
+       [
+        0.1812,
+        0.9707
+       ],
+       [
+        0.9306,
+        0.1168
+       ]
+      ],
+      "b2": [
+       [
+        0.5,
+        0.0293
+       ],
+       [
+        0.0146,
+        0.6025
+       ],
+       [
+        0.2075,
+        0.9707
+       ],
+       [
+        0.9388,
+        0.185
+       ]
+      ]
+     },
+     "collisions": [
+      {
+       "sequence_number": 1,
+       "ball_attacker": "b1",
+       "ball_target": "b2",
+       "contact": [
+        0.5293,
+        0.0293
+       ],
+       "collision_type": "primary_impact"
+      },
+      {
+       "sequence_number": 4,
+       "ball_attacker": "b1",
+       "ball_target": "b3",
+       "contact": [
+        0.9306,
+        0.1168
+       ],
+       "collision_type": "carambolage",
+       "scored": true
+      }
+     ],
+     "cushion_events": [
+      {
+       "ball": "b1",
+       "sequence_number": 2,
+       "cushion": "short_left",
+       "contact": [
+        0.0146,
+        0.755
+       ]
+      },
+      {
+       "ball": "b1",
+       "sequence_number": 3,
+       "cushion": "long_near",
+       "contact": [
+        0.1812,
+        0.9707
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 2,
+       "cushion": "short_left",
+       "contact": [
+        0.0146,
+        0.6025
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 3,
+       "cushion": "long_near",
+       "contact": [
+        0.2075,
+        0.9707
+       ]
+      }
+     ],
+     "vz_zone": "diamond_field_x7_y0"
+    },
+    {
+     "figur": 46,
+     "position_in_group": 2,
+     "points": 6,
+     "contre_allowed": false,
+     "note": "Legende B I im Original „SP 1, 5 - 1,5“.",
+     "path_source": {
+      "white": "Korrektur",
+      "yellow": "Korrektur"
+     },
+     "legend": {
+      "b1": "SP 1,5 - 1,5",
+      "b2": "0,5 BB von 1",
+      "b3": "Press bei B I, auf 1,5"
+     },
+     "start": {
+      "b1": [
+       0.8125,
+       0.375
+      ],
+      "b2": [
+       0.875,
+       0.9414
+      ],
+      "b3": [
+       0.7832,
+       0.375
+      ]
+     },
+     "end": {
+      "b1": [
+       0.8023,
+       0.4194
+      ],
+      "b2": [
+       0.8013,
+       0.3025
+      ],
+      "b3": [
+       0.7832,
+       0.375
+      ]
+     },
+     "trajectories": {
+      "b1": [
+       [
+        0.8125,
+        0.375
+       ],
+       [
+        0.8687,
+        0.8842
+       ],
+       [
+        0.9562,
+        0.9707
+       ],
+       [
+        0.9854,
+        0.845
+       ],
+       [
+        0.8023,
+        0.4194
+       ]
+      ],
+      "b2": [
+       [
+        0.875,
+        0.9414
+       ],
+       [
+        0.8688,
+        0.9707
+       ],
+       [
+        0.8275,
+        0.0293
+       ],
+       [
+        0.8013,
+        0.3025
+       ]
+      ]
+     },
+     "collisions": [
+      {
+       "sequence_number": 1,
+       "ball_attacker": "b1",
+       "ball_target": "b2",
+       "contact": [
+        0.8687,
+        0.8842
+       ],
+       "collision_type": "primary_impact"
+      },
+      {
+       "sequence_number": 4,
+       "ball_attacker": "b1",
+       "ball_target": "b3",
+       "contact": [
+        0.8023,
+        0.4194
+       ],
+       "collision_type": "carambolage",
+       "scored": true
+      }
+     ],
+     "cushion_events": [
+      {
+       "ball": "b1",
+       "sequence_number": 2,
+       "cushion": "long_near",
+       "contact": [
+        0.9562,
+        0.9707
+       ]
+      },
+      {
+       "ball": "b1",
+       "sequence_number": 3,
+       "cushion": "short_right",
+       "contact": [
+        0.9854,
+        0.845
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 2,
+       "cushion": "long_near",
+       "contact": [
+        0.8688,
+        0.9707
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 3,
+       "cushion": "long_far",
+       "contact": [
+        0.8275,
+        0.0293
+       ]
+      }
+     ],
+     "vz_zone": "diamond_field_x6_y1"
+    },
+    {
+     "figur": 47,
+     "position_in_group": 3,
+     "points": 6,
+     "contre_allowed": false,
+     "note": null,
+     "path_source": {
+      "white": "Korrektur",
+      "yellow": "Korrektur"
+     },
+     "legend": {
+      "b1": "1 BB von 2,5",
+      "b2": "SP 2 - 1",
+      "b3": "Ecke frei"
+     },
+     "start": {
+      "b1": [
+       0.3125,
+       0.9121
+      ],
+      "b2": [
+       0.25,
+       0.75
+      ],
+      "b3": [
+       0.9561,
+       0.0878
+      ]
+     },
+     "end": {
+      "b1": [
+       0.9386,
+       0.1347
+      ],
+      "b2": [
+       0.9175,
+       0.0675
+      ],
+      "b3": [
+       0.9561,
+       0.0878
+      ]
+     },
+     "trajectories": {
+      "b1": [
+       [
+        0.3125,
+        0.9121
+       ],
+       [
+        0.2679,
+        0.7964
+       ],
+       [
+        0.3612,
+        0.0293
+       ],
+       [
+        0.6262,
+        0.9707
+       ],
+       [
+        0.9386,
+        0.1347
+       ]
+      ],
+      "b2": [
+       [
+        0.25,
+        0.75
+       ],
+       [
+        0.0146,
+        0.62
+       ],
+       [
+        0.9175,
+        0.0675
+       ]
+      ]
+     },
+     "collisions": [
+      {
+       "sequence_number": 1,
+       "ball_attacker": "b1",
+       "ball_target": "b2",
+       "contact": [
+        0.2679,
+        0.7964
+       ],
+       "collision_type": "primary_impact"
+      },
+      {
+       "sequence_number": 4,
+       "ball_attacker": "b1",
+       "ball_target": "b3",
+       "contact": [
+        0.9386,
+        0.1347
+       ],
+       "collision_type": "carambolage",
+       "scored": true
+      }
+     ],
+     "cushion_events": [
+      {
+       "ball": "b1",
+       "sequence_number": 2,
+       "cushion": "long_far",
+       "contact": [
+        0.3612,
+        0.0293
+       ]
+      },
+      {
+       "ball": "b1",
+       "sequence_number": 3,
+       "cushion": "long_near",
+       "contact": [
+        0.6262,
+        0.9707
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 2,
+       "cushion": "short_left",
+       "contact": [
+        0.0146,
+        0.62
+       ]
+      }
+     ],
+     "vz_zone": "diamond_field_x7_y0"
+    },
+    {
+     "figur": 48,
+     "position_in_group": 4,
+     "points": 10,
+     "contre_allowed": false,
+     "note": null,
+     "path_source": {
+      "white": "Korrektur",
+      "yellow": "Bild"
+     },
+     "legend": {
+      "b1": "SP 2 - 1",
+      "b2": "SP 4 - CL",
+      "b3": "Ecke frei"
+     },
+     "start": {
+      "b1": [
+       0.75,
+       0.25
+      ],
+      "b2": [
+       0.5,
+       0.3333
+      ],
+      "b3": [
+       0.9561,
+       0.9121
+      ]
+     },
+     "end": {
+      "b1": [
+       0.9288,
+       0.8907
+      ],
+      "b2": [
+       0.92,
+       0.82
+      ],
+      "b3": [
+       0.9561,
+       0.9121
+      ]
+     },
+     "trajectories": {
+      "b1": [
+       [
+        0.75,
+        0.25
+       ],
+       [
+        0.5289,
+        0.3237
+       ],
+       [
+        0.1725,
+        0.0293
+       ],
+       [
+        0.0146,
+        0.1725
+       ],
+       [
+        0.9288,
+        0.8907
+       ]
+      ],
+      "b2": [
+       [
+        0.5,
+        0.3333
+       ],
+       [
+        0.0562,
+        0.9707
+       ],
+       [
+        0.0146,
+        0.8575
+       ],
+       [
+        0.3188,
+        0.0293
+       ],
+       [
+        0.92,
+        0.82
+       ]
+      ]
+     },
+     "collisions": [
+      {
+       "sequence_number": 1,
+       "ball_attacker": "b1",
+       "ball_target": "b2",
+       "contact": [
+        0.5289,
+        0.3237
+       ],
+       "collision_type": "primary_impact"
+      },
+      {
+       "sequence_number": 4,
+       "ball_attacker": "b1",
+       "ball_target": "b3",
+       "contact": [
+        0.9288,
+        0.8907
+       ],
+       "collision_type": "carambolage",
+       "scored": true
+      }
+     ],
+     "cushion_events": [
+      {
+       "ball": "b1",
+       "sequence_number": 2,
+       "cushion": "long_far",
+       "contact": [
+        0.1725,
+        0.0293
+       ]
+      },
+      {
+       "ball": "b1",
+       "sequence_number": 3,
+       "cushion": "short_left",
+       "contact": [
+        0.0146,
+        0.1725
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 2,
+       "cushion": "long_near",
+       "contact": [
+        0.0562,
+        0.9707
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 3,
+       "cushion": "short_left",
+       "contact": [
+        0.0146,
+        0.8575
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 4,
+       "cushion": "long_far",
+       "contact": [
+        0.3188,
+        0.0293
+       ]
+      }
+     ],
+     "vz_zone": "diamond_field_x7_y3"
+    }
+   ]
+  },
+  {
+   "number": 13,
+   "name": "Einbänder",
+   "concepts": [
+    {
+     "key": "one_cushion_shot",
+     "weight": 5
+    },
+    {
+     "key": "gather_shot",
+     "weight": 3
+    }
+   ],
+   "figures": [
+    {
+     "figur": 49,
+     "position_in_group": 1,
+     "points": 4,
+     "contre_allowed": false,
+     "note": null,
+     "path_source": {
+      "white": "Korrektur",
+      "yellow": "Bild"
+     },
+     "legend": {
+      "b1": "1 BB von B II und LB",
+      "b2": "1 BB von LB auf VL 0,75",
+      "b3": "Ecke frei"
+     },
+     "start": {
+      "b2": [
+       0.9062,
+       0.9121
+      ],
+      "b3": [
+       0.9561,
+       0.0878
+      ],
+      "b1": [
+       0.9648,
+       0.9121
+      ]
+     },
+     "end": {
+      "b1": [
+       0.9553,
+       0.1464
+      ],
+      "b2": [
+       0.94,
+       0.075
+      ],
+      "b3": [
+       0.9561,
+       0.0878
+      ]
+     },
+     "trajectories": {
+      "b1": [
+       [
+        0.9648,
+        0.9121
+       ],
+       [
+        0.9355,
+        0.9121
+       ],
+       [
+        0.9438,
+        0.9707
+       ],
+       [
+        0.9553,
+        0.1464
+       ]
+      ],
+      "b2": [
+       [
+        0.9062,
+        0.9121
+       ],
+       [
+        0.0146,
+        0.48
+       ],
+       [
+        0.94,
+        0.075
+       ]
+      ]
+     },
+     "collisions": [
+      {
+       "sequence_number": 1,
+       "ball_attacker": "b1",
+       "ball_target": "b2",
+       "contact": [
+        0.9355,
+        0.9121
+       ],
+       "collision_type": "primary_impact"
+      },
+      {
+       "sequence_number": 3,
+       "ball_attacker": "b1",
+       "ball_target": "b3",
+       "contact": [
+        0.9553,
+        0.1464
+       ],
+       "collision_type": "carambolage",
+       "scored": true
+      }
+     ],
+     "cushion_events": [
+      {
+       "ball": "b1",
+       "sequence_number": 2,
+       "cushion": "long_near",
+       "contact": [
+        0.9438,
+        0.9707
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 2,
+       "cushion": "short_left",
+       "contact": [
+        0.0146,
+        0.48
+       ]
+      }
+     ],
+     "vz_zone": "diamond_field_x7_y0"
+    },
+    {
+     "figur": 50,
+     "position_in_group": 2,
+     "points": 5,
+     "contre_allowed": false,
+     "note": null,
+     "path_source": {
+      "white": "Bild",
+      "yellow": "Bild"
+     },
+     "legend": {
+      "b1": "2 BB von KB auf VL 2",
+      "b2": "1 BB von KB auf VL 1",
+      "b3": "Ecke frei"
+     },
+     "start": {
+      "b1": [
+       0.9268,
+       0.5
+      ],
+      "b2": [
+       0.9561,
+       0.75
+      ],
+      "b3": [
+       0.044,
+       0.0878
+      ]
+     },
+     "end": {
+      "b1": [
+       0.0695,
+       0.1166
+      ],
+      "b2": [
+       0.0888,
+       0.04
+      ],
+      "b3": [
+       0.044,
+       0.0878
+      ]
+     },
+     "trajectories": {
+      "b1": [
+       [
+        0.9268,
+        0.5
+       ],
+       [
+        0.9494,
+        0.693
+       ],
+       [
+        0.8262,
+        0.9707
+       ],
+       [
+        0.0695,
+        0.1166
+       ]
+      ],
+      "b2": [
+       [
+        0.9561,
+        0.75
+       ],
+       [
+        0.9854,
+        0.825
+       ],
+       [
+        0.9,
+        0.9707
+       ],
+       [
+        0.0888,
+        0.04
+       ]
+      ]
+     },
+     "collisions": [
+      {
+       "sequence_number": 1,
+       "ball_attacker": "b1",
+       "ball_target": "b2",
+       "contact": [
+        0.9494,
+        0.693
+       ],
+       "collision_type": "primary_impact"
+      },
+      {
+       "sequence_number": 3,
+       "ball_attacker": "b1",
+       "ball_target": "b3",
+       "contact": [
+        0.0695,
+        0.1166
+       ],
+       "collision_type": "carambolage",
+       "scored": true
+      }
+     ],
+     "cushion_events": [
+      {
+       "ball": "b1",
+       "sequence_number": 2,
+       "cushion": "long_near",
+       "contact": [
+        0.8262,
+        0.9707
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 2,
+       "cushion": "short_right",
+       "contact": [
+        0.9854,
+        0.825
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 3,
+       "cushion": "long_near",
+       "contact": [
+        0.9,
+        0.9707
+       ]
+      }
+     ],
+     "vz_zone": "diamond_field_x0_y0"
+    },
+    {
+     "figur": 51,
+     "position_in_group": 3,
+     "points": 5,
+     "contre_allowed": false,
+     "note": null,
+     "path_source": {
+      "white": "Korrektur",
+      "yellow": "Korrektur"
+     },
+     "legend": {
+      "b1": "Press bei 2",
+      "b2": "SP 1 - CL",
+      "b3": "Ecke frei"
+     },
+     "start": {
+      "b1": [
+       0.9854,
+       0.5
+      ],
+      "b2": [
+       0.875,
+       0.6667
+      ],
+      "b3": [
+       0.9561,
+       0.0878
+      ]
+     },
+     "end": {
+      "b1": [
+       0.9518,
+       0.1458
+      ],
+      "b2": [
+       0.9125,
+       0.0825
+      ],
+      "b3": [
+       0.9561,
+       0.0878
+      ]
+     },
+     "trajectories": {
+      "b1": [
+       [
+        0.9854,
+        0.5
+       ],
+       [
+        0.8984,
+        0.6314
+       ],
+       [
+        0.8912,
+        0.9707
+       ],
+       [
+        0.9518,
+        0.1458
+       ]
+      ],
+      "b2": [
+       [
+        0.875,
+        0.6667
+       ],
+       [
+        0.2738,
+        0.9707
+       ],
+       [
+        0.0146,
+        0.78
+       ],
+       [
+        0.9125,
+        0.0825
+       ]
+      ]
+     },
+     "collisions": [
+      {
+       "sequence_number": 1,
+       "ball_attacker": "b1",
+       "ball_target": "b2",
+       "contact": [
+        0.8984,
+        0.6314
+       ],
+       "collision_type": "primary_impact"
+      },
+      {
+       "sequence_number": 3,
+       "ball_attacker": "b1",
+       "ball_target": "b3",
+       "contact": [
+        0.9518,
+        0.1458
+       ],
+       "collision_type": "carambolage",
+       "scored": true
+      }
+     ],
+     "cushion_events": [
+      {
+       "ball": "b1",
+       "sequence_number": 2,
+       "cushion": "long_near",
+       "contact": [
+        0.8912,
+        0.9707
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 2,
+       "cushion": "long_near",
+       "contact": [
+        0.2738,
+        0.9707
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 3,
+       "cushion": "short_left",
+       "contact": [
+        0.0146,
+        0.78
+       ]
+      }
+     ],
+     "vz_zone": "diamond_field_x7_y0"
+    },
+    {
+     "figur": 52,
+     "position_in_group": 4,
+     "points": 9,
+     "contre_allowed": false,
+     "note": null,
+     "path_source": {
+      "white": "Korrektur",
+      "yellow": "Bild"
+     },
+     "legend": {
+      "b1": "Press bei 3,5",
+      "b2": "Press bei 1,5",
+      "b3": "Press bei 2,5"
+     },
+     "start": {
+      "b1": [
+       0.5625,
+       0.0293
+      ],
+      "b2": [
+       0.8125,
+       0.9707
+      ],
+      "b3": [
+       0.6875,
+       0.0293
+      ]
+     },
+     "end": {
+      "b1": [
+       0.694,
+       0.0864
+      ],
+      "b2": [
+       0.7288,
+       0.0575
+      ],
+      "b3": [
+       0.6875,
+       0.0293
+      ]
+     },
+     "trajectories": {
+      "b1": [
+       [
+        0.5625,
+        0.0293
+       ],
+       [
+        0.7987,
+        0.9189
+       ],
+       [
+        0.795,
+        0.9707
+       ],
+       [
+        0.694,
+        0.0864
+       ]
+      ],
+      "b2": [
+       [
+        0.8125,
+        0.9707
+       ],
+       [
+        0.9854,
+        0.6825
+       ],
+       [
+        0.7288,
+        0.0575
+       ]
+      ]
+     },
+     "collisions": [
+      {
+       "sequence_number": 1,
+       "ball_attacker": "b1",
+       "ball_target": "b2",
+       "contact": [
+        0.7987,
+        0.9189
+       ],
+       "collision_type": "primary_impact"
+      },
+      {
+       "sequence_number": 3,
+       "ball_attacker": "b1",
+       "ball_target": "b3",
+       "contact": [
+        0.694,
+        0.0864
+       ],
+       "collision_type": "carambolage",
+       "scored": true
+      }
+     ],
+     "cushion_events": [
+      {
+       "ball": "b1",
+       "sequence_number": 2,
+       "cushion": "long_near",
+       "contact": [
+        0.795,
+        0.9707
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 2,
+       "cushion": "short_right",
+       "contact": [
+        0.9854,
+        0.6825
+       ]
+      }
+     ],
+     "vz_zone": "diamond_field_x5_y0"
+    }
+   ]
+  },
+  {
+   "number": 14,
+   "name": "Mehrbänder",
+   "concepts": [
+    {
+     "key": "multi_cushion_shot",
+     "weight": 5
+    },
+    {
+     "key": "gather_shot",
+     "weight": 3
+    }
+   ],
+   "figures": [
+    {
+     "figur": 53,
+     "position_in_group": 1,
+     "points": 4,
+     "contre_allowed": false,
+     "note": null,
+     "path_source": {
+      "white": "Bild",
+      "yellow": "Korrektur"
+     },
+     "legend": {
+      "b1": "1 BB von B II",
+      "b2": "SP 2 - 2",
+      "b3": "Ecke frei"
+     },
+     "start": {
+      "b2": [
+       0.75,
+       0.5
+      ],
+      "b3": [
+       0.9561,
+       0.9121
+      ],
+      "b1": [
+       0.75,
+       0.3829
+      ]
+     },
+     "end": {
+      "b1": [
+       0.9315,
+       0.8803
+      ],
+      "b2": [
+       0.9425,
+       0.8475
+      ],
+      "b3": [
+       0.9561,
+       0.9121
+      ]
+     },
+     "trajectories": {
+      "b1": [
+       [
+        0.75,
+        0.3829
+       ],
+       [
+        0.75,
+        0.4414
+       ],
+       [
+        0.4038,
+        0.9707
+       ],
+       [
+        0.0146,
+        0.585
+       ],
+       [
+        0.2725,
+        0.0293
+       ],
+       [
+        0.9315,
+        0.8803
+       ]
+      ],
+      "b2": [
+       [
+        0.75,
+        0.5
+       ],
+       [
+        0.9425,
+        0.8475
+       ]
+      ]
+     },
+     "collisions": [
+      {
+       "sequence_number": 1,
+       "ball_attacker": "b1",
+       "ball_target": "b2",
+       "contact": [
+        0.75,
+        0.4414
+       ],
+       "collision_type": "primary_impact"
+      },
+      {
+       "sequence_number": 5,
+       "ball_attacker": "b1",
+       "ball_target": "b3",
+       "contact": [
+        0.9315,
+        0.8803
+       ],
+       "collision_type": "carambolage",
+       "scored": true
+      }
+     ],
+     "cushion_events": [
+      {
+       "ball": "b1",
+       "sequence_number": 2,
+       "cushion": "long_near",
+       "contact": [
+        0.4038,
+        0.9707
+       ]
+      },
+      {
+       "ball": "b1",
+       "sequence_number": 3,
+       "cushion": "short_left",
+       "contact": [
+        0.0146,
+        0.585
+       ]
+      },
+      {
+       "ball": "b1",
+       "sequence_number": 4,
+       "cushion": "long_far",
+       "contact": [
+        0.2725,
+        0.0293
+       ]
+      }
+     ],
+     "vz_zone": "diamond_field_x7_y3"
+    },
+    {
+     "figur": 54,
+     "position_in_group": 2,
+     "points": 5,
+     "contre_allowed": false,
+     "note": null,
+     "path_source": {
+      "white": "Bild",
+      "yellow": "Bild"
+     },
+     "legend": {
+      "b1": "1 BB von LB auf VL 4",
+      "b2": "1 BB von B I auf VL 4",
+      "b3": "Ecke frei"
+     },
+     "start": {
+      "b1": [
+       0.5,
+       0.9121
+      ],
+      "b3": [
+       0.9561,
+       0.9121
+      ],
+      "b2": [
+       0.5,
+       0.795
+      ]
+     },
+     "end": {
+      "b1": [
+       0.9298,
+       0.8863
+      ],
+      "b2": [
+       0.9475,
+       0.805
+      ],
+      "b3": [
+       0.9561,
+       0.9121
+      ]
+     },
+     "trajectories": {
+      "b1": [
+       [
+        0.5,
+        0.9121
+       ],
+       [
+        0.5,
+        0.8535
+       ],
+       [
+        0.0146,
+        0.09
+       ],
+       [
+        0.0575,
+        0.0293
+       ],
+       [
+        0.9298,
+        0.8863
+       ]
+      ],
+      "b2": [
+       [
+        0.5,
+        0.795
+       ],
+       [
+        0.6688,
+        0.0293
+       ],
+       [
+        0.9475,
+        0.805
+       ]
+      ]
+     },
+     "collisions": [
+      {
+       "sequence_number": 1,
+       "ball_attacker": "b1",
+       "ball_target": "b2",
+       "contact": [
+        0.5,
+        0.8535
+       ],
+       "collision_type": "primary_impact"
+      },
+      {
+       "sequence_number": 4,
+       "ball_attacker": "b1",
+       "ball_target": "b3",
+       "contact": [
+        0.9298,
+        0.8863
+       ],
+       "collision_type": "carambolage",
+       "scored": true
+      }
+     ],
+     "cushion_events": [
+      {
+       "ball": "b1",
+       "sequence_number": 2,
+       "cushion": "short_left",
+       "contact": [
+        0.0146,
+        0.09
+       ]
+      },
+      {
+       "ball": "b1",
+       "sequence_number": 3,
+       "cushion": "long_far",
+       "contact": [
+        0.0575,
+        0.0293
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 2,
+       "cushion": "long_far",
+       "contact": [
+        0.6688,
+        0.0293
+       ]
+      }
+     ],
+     "vz_zone": "diamond_field_x7_y3"
+    },
+    {
+     "figur": 55,
+     "position_in_group": 3,
+     "points": 6,
+     "contre_allowed": false,
+     "note": null,
+     "path_source": {
+      "white": "Bild",
+      "yellow": "Bild"
+     },
+     "legend": {
+      "b1": "SP 2 - 0,5",
+      "b2": "SP 4 - 1",
+      "b3": "Ecke frei"
+     },
+     "start": {
+      "b1": [
+       0.75,
+       0.875
+      ],
+      "b2": [
+       0.5,
+       0.75
+      ],
+      "b3": [
+       0.9561,
+       0.0878
+      ]
+     },
+     "end": {
+      "b1": [
+       0.9317,
+       0.1201
+      ],
+      "b2": [
+       0.9,
+       0.0675
+      ],
+      "b3": [
+       0.9561,
+       0.0878
+      ]
+     },
+     "trajectories": {
+      "b1": [
+       [
+        0.75,
+        0.875
+       ],
+       [
+        0.5284,
+        0.7642
+       ],
+       [
+        0.2088,
+        0.0293
+       ],
+       [
+        0.0146,
+        0.2825
+       ],
+       [
+        0.2875,
+        0.9707
+       ],
+       [
+        0.9317,
+        0.1201
+       ]
+      ],
+      "b2": [
+       [
+        0.5,
+        0.75
+       ],
+       [
+        0.035,
+        0.9707
+       ],
+       [
+        0.0146,
+        0.9675
+       ],
+       [
+        0.9,
+        0.0675
+       ]
+      ]
+     },
+     "collisions": [
+      {
+       "sequence_number": 1,
+       "ball_attacker": "b1",
+       "ball_target": "b2",
+       "contact": [
+        0.5284,
+        0.7642
+       ],
+       "collision_type": "primary_impact"
+      },
+      {
+       "sequence_number": 5,
+       "ball_attacker": "b1",
+       "ball_target": "b3",
+       "contact": [
+        0.9317,
+        0.1201
+       ],
+       "collision_type": "carambolage",
+       "scored": true
+      }
+     ],
+     "cushion_events": [
+      {
+       "ball": "b1",
+       "sequence_number": 2,
+       "cushion": "long_far",
+       "contact": [
+        0.2088,
+        0.0293
+       ]
+      },
+      {
+       "ball": "b1",
+       "sequence_number": 3,
+       "cushion": "short_left",
+       "contact": [
+        0.0146,
+        0.2825
+       ]
+      },
+      {
+       "ball": "b1",
+       "sequence_number": 4,
+       "cushion": "long_near",
+       "contact": [
+        0.2875,
+        0.9707
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 2,
+       "cushion": "long_near",
+       "contact": [
+        0.035,
+        0.9707
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 3,
+       "cushion": "short_left",
+       "contact": [
+        0.0146,
+        0.9675
+       ]
+      }
+     ],
+     "vz_zone": "diamond_field_x7_y0"
+    },
+    {
+     "figur": 56,
+     "position_in_group": 4,
+     "points": 10,
+     "contre_allowed": false,
+     "note": "B I läuft nach B II gebogen zur Ecke (gebogene Linie in der Zeichnung).",
+     "path_source": {
+      "white": "Korrektur",
+      "yellow": "Korrektur"
+     },
+     "legend": {
+      "b1": "SP 1 - 1",
+      "b2": "Press bei 2",
+      "b3": "Ecke frei"
+     },
+     "start": {
+      "b1": [
+       0.875,
+       0.25
+      ],
+      "b2": [
+       0.9854,
+       0.5
+      ],
+      "b3": [
+       0.044,
+       0.9121
+      ]
+     },
+     "end": {
+      "b1": [
+       0.0701,
+       0.8857
+      ],
+      "b2": [
+       0.0675,
+       0.84
+      ],
+      "b3": [
+       0.044,
+       0.9121
+      ]
+     },
+     "trajectories": {
+      "b1": [
+       [
+        0.875,
+        0.25
+       ],
+       [
+        0.966,
+        0.4561
+       ],
+       [
+        0.8288,
+        0.4625
+       ],
+       [
+        0.6275,
+        0.49
+       ],
+       [
+        0.4562,
+        0.565
+       ],
+       [
+        0.2838,
+        0.685
+       ],
+       [
+        0.15,
+        0.805
+       ],
+       [
+        0.0701,
+        0.8857
+       ]
+      ],
+      "b2": [
+       [
+        0.9854,
+        0.5
+       ],
+       [
+        0.8362,
+        0.9707
+       ],
+       [
+        0.485,
+        0.0293
+       ],
+       [
+        0.0675,
+        0.84
+       ]
+      ]
+     },
+     "collisions": [
+      {
+       "sequence_number": 1,
+       "ball_attacker": "b1",
+       "ball_target": "b2",
+       "contact": [
+        0.966,
+        0.4561
+       ],
+       "collision_type": "primary_impact"
+      },
+      {
+       "sequence_number": 7,
+       "ball_attacker": "b1",
+       "ball_target": "b3",
+       "contact": [
+        0.0701,
+        0.8857
+       ],
+       "collision_type": "carambolage",
+       "scored": true
+      }
+     ],
+     "cushion_events": [
+      {
+       "ball": "b2",
+       "sequence_number": 2,
+       "cushion": "long_near",
+       "contact": [
+        0.8362,
+        0.9707
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 3,
+       "cushion": "long_far",
+       "contact": [
+        0.485,
+        0.0293
+       ]
+      }
+     ],
+     "vz_zone": "diamond_field_x0_y3"
+    }
+   ]
+  },
+  {
+   "number": 15,
+   "name": "Begegnungsstöße",
+   "concepts": [
+    {
+     "key": "encounter_shot",
+     "weight": 5
+    },
+    {
+     "key": "gather_shot",
+     "weight": 3
+    }
+   ],
+   "figures": [
+    {
+     "figur": 57,
+     "position_in_group": 1,
+     "points": 4,
+     "contre_allowed": false,
+     "note": "Ablauf (Gernot): B I trifft B II fast voll mit Rechtseffet; das zweimal übertragene Effet gibt B III leichtes Rechtseffet, B I und B III treffen sich rechts der Linie, etwa in Höhe der Mitte zwischen B II und B III; B II wird leicht nach links verschoben und vermeidet den Klapper. Rückweg von B III und Endlagen nicht gezeichnet, nach dieser Beschreibung angenommen.",
+     "path_source": {
+      "white": "Korrektur",
+      "yellow": "Korrektur"
+     },
+     "legend": {
+      "b1": "SP 2,5 - 0,5",
+      "b2": "an CL auf VL 2,5",
+      "b3": "Press an B II auf VL 2,5"
+     },
+     "start": {
+      "b1": [
+       0.6875,
+       0.125
+      ],
+      "b2": [
+       0.6875,
+       0.3627
+      ],
+      "b3": [
+       0.6875,
+       0.4212
+      ]
+     },
+     "end": {
+      "b1": [
+       0.6819,
+       0.3506
+      ],
+      "b2": [
+       0.715,
+       0.3575
+      ],
+      "b3": [
+       0.675,
+       0.4075
+      ]
+     },
+     "trajectories": {
+      "b1": [
+       [
+        0.6875,
+        0.125
+       ],
+       [
+        0.6875,
+        0.3041
+       ],
+       [
+        0.6819,
+        0.3506
+       ]
+      ],
+      "b2": [
+       [
+        0.6875,
+        0.3627
+       ],
+       [
+        0.6875,
+        0.3627
+       ],
+       [
+        0.715,
+        0.3575
+       ]
+      ],
+      "b3": [
+       [
+        0.6875,
+        0.4212
+       ],
+       [
+        0.6938,
+        0.9707
+       ],
+       [
+        0.675,
+        0.4075
+       ]
+      ]
+     },
+     "collisions": [
+      {
+       "sequence_number": 1,
+       "ball_attacker": "b1",
+       "ball_target": "b2",
+       "contact": [
+        0.6875,
+        0.3041
+       ],
+       "collision_type": "primary_impact"
+      },
+      {
+       "sequence_number": 2,
+       "ball_attacker": "b2",
+       "ball_target": "b3",
+       "contact": [
+        0.6875,
+        0.3627
+       ],
+       "collision_type": "secondary_impact"
+      },
+      {
+       "sequence_number": 4,
+       "ball_attacker": "b1",
+       "ball_target": "b3",
+       "contact": [
+        0.6819,
+        0.3506
+       ],
+       "collision_type": "carambolage",
+       "scored": true
+      }
+     ],
+     "cushion_events": [
+      {
+       "ball": "b3",
+       "sequence_number": 3,
+       "cushion": "long_near",
+       "contact": [
+        0.6938,
+        0.9707
+       ]
+      }
+     ],
+     "vz_zone": "diamond_field_x5_y1"
+    },
+    {
+     "figur": 58,
+     "position_in_group": 2,
+     "points": 5,
+     "contre_allowed": false,
+     "note": "Ablauf (Gernot): mit Effet löst sich B II von der Bande; B I läuft auf den von der kurzen Bande zurückkommenden B III, Treffpunkt etwa auf der Hälfte zwischen B II und B III. Rückweg von B III und Endlagen nicht gezeichnet, nach dieser Beschreibung angenommen.",
+     "path_source": {
+      "white": "Korrektur",
+      "yellow": "Korrektur"
+     },
+     "legend": {
+      "b1": "SP 3 - 1",
+      "b2": "Press an B III und LB",
+      "b3": "Press bei 1,5"
+     },
+     "start": {
+      "b1": [
+       0.375,
+       0.25
+      ],
+      "b3": [
+       0.8125,
+       0.0293
+      ],
+      "b2": [
+       0.7832,
+       0.0293
+      ]
+     },
+     "end": {
+      "b1": [
+       0.7797,
+       0.0379
+      ],
+      "b2": [
+       0.775,
+       0.1
+      ],
+      "b3": [
+       0.8088,
+       0.03
+      ]
+     },
+     "trajectories": {
+      "b1": [
+       [
+        0.375,
+        0.25
+       ],
+       [
+        0.7549,
+        0.0446
+       ],
+       [
+        0.7797,
+        0.0379
+       ]
+      ],
+      "b2": [
+       [
+        0.7832,
+        0.0293
+       ],
+       [
+        0.7832,
+        0.0293
+       ],
+       [
+        0.775,
+        0.1
+       ]
+      ],
+      "b3": [
+       [
+        0.8125,
+        0.0293
+       ],
+       [
+        0.9854,
+        0.03
+       ],
+       [
+        0.8088,
+        0.03
+       ]
+      ]
+     },
+     "collisions": [
+      {
+       "sequence_number": 1,
+       "ball_attacker": "b1",
+       "ball_target": "b2",
+       "contact": [
+        0.7549,
+        0.0446
+       ],
+       "collision_type": "primary_impact"
+      },
+      {
+       "sequence_number": 2,
+       "ball_attacker": "b2",
+       "ball_target": "b3",
+       "contact": [
+        0.7832,
+        0.0293
+       ],
+       "collision_type": "secondary_impact"
+      },
+      {
+       "sequence_number": 4,
+       "ball_attacker": "b1",
+       "ball_target": "b3",
+       "contact": [
+        0.7797,
+        0.0379
+       ],
+       "collision_type": "carambolage",
+       "scored": true
+      }
+     ],
+     "cushion_events": [
+      {
+       "ball": "b3",
+       "sequence_number": 3,
+       "cushion": "short_right",
+       "contact": [
+        0.9854,
+        0.03
+       ]
+      }
+     ],
+     "vz_zone": "diamond_field_x6_y0"
+    },
+    {
+     "figur": 59,
+     "position_in_group": 3,
+     "points": 6,
+     "contre_allowed": false,
+     "note": "Ablauf (Gernot): B II trifft B III (über die lange Bande) von hinten, der nachlaufende B I trifft den kommenden B III; Treffpunkt am Ende der Linie von B I.",
+     "path_source": {
+      "white": "Korrektur",
+      "yellow": "Korrektur"
+     },
+     "legend": {
+      "b1": "Press an 0,5 oben",
+      "b2": "SP 0,5 - CL",
+      "b3": "Press auf CL"
+     },
+     "start": {
+      "b1": [
+       0.9229,
+       0.0293
+      ],
+      "b2": [
+       0.9375,
+       0.3333
+      ],
+      "b3": [
+       0.9854,
+       0.6667
+      ]
+     },
+     "end": {
+      "b1": [
+       0.9801,
+       0.6208
+      ],
+      "b2": [
+       0.9775,
+       0.73
+      ],
+      "b3": [
+       0.9875,
+       0.6775
+      ]
+     },
+     "trajectories": {
+      "b1": [
+       [
+        0.9229,
+        0.0293
+       ],
+       [
+        0.9347,
+        0.275
+       ],
+       [
+        0.9801,
+        0.6208
+       ]
+      ],
+      "b2": [
+       [
+        0.9375,
+        0.3333
+       ],
+       [
+        0.9675,
+        0.9707
+       ],
+       [
+        0.982,
+        0.7248
+       ],
+       [
+        0.9775,
+        0.73
+       ]
+      ],
+      "b3": [
+       [
+        0.9854,
+        0.6667
+       ],
+       [
+        0.9875,
+        0.6775
+       ]
+      ]
+     },
+     "collisions": [
+      {
+       "sequence_number": 1,
+       "ball_attacker": "b1",
+       "ball_target": "b2",
+       "contact": [
+        0.9347,
+        0.275
+       ],
+       "collision_type": "primary_impact"
+      },
+      {
+       "sequence_number": 3,
+       "ball_attacker": "b2",
+       "ball_target": "b3",
+       "contact": [
+        0.982,
+        0.7248
+       ],
+       "collision_type": "secondary_impact"
+      },
+      {
+       "sequence_number": 4,
+       "ball_attacker": "b1",
+       "ball_target": "b3",
+       "contact": [
+        0.9801,
+        0.6208
+       ],
+       "collision_type": "carambolage",
+       "scored": true
+      }
+     ],
+     "cushion_events": [
+      {
+       "ball": "b2",
+       "sequence_number": 2,
+       "cushion": "long_near",
+       "contact": [
+        0.9675,
+        0.9707
+       ]
+      }
+     ],
+     "vz_zone": "diamond_field_x7_y2"
+    },
+    {
+     "figur": 60,
+     "position_in_group": 4,
+     "points": 11,
+     "contre_allowed": false,
+     "note": "Ablauf (Gernot): wie Fig. 58, nur mit Vorbande — B I über die lange Bande auf B II, B II löst sich von der Bande, B I trifft den von der langen Bande zurückkommenden B III etwa auf der Hälfte zwischen B II und B III. Rückweg von B III und Endlagen nicht gezeichnet, nach dieser Beschreibung angenommen.",
+     "path_source": {
+      "white": "Korrektur",
+      "yellow": "Korrektur"
+     },
+     "legend": {
+      "b1": "SP 1 - 2",
+      "b2": "Press an KB und an 1,5",
+      "b3": "Press an KB und an 1,5"
+     },
+     "start": {
+      "b1": [
+       0.875,
+       0.5
+      ],
+      "b2": [
+       0.9854,
+       0.6543
+      ],
+      "b3": [
+       0.9854,
+       0.5957
+      ]
+     },
+     "end": {
+      "b1": [
+       0.9832,
+       0.661
+      ],
+      "b2": [
+       0.9562,
+       0.675
+      ],
+      "b3": [
+       0.985,
+       0.6025
+      ]
+     },
+     "trajectories": {
+      "b1": [
+       [
+        0.875,
+        0.5
+       ],
+       [
+        0.965,
+        0.9707
+       ],
+       [
+        0.9816,
+        0.7124
+       ],
+       [
+        0.9832,
+        0.661
+       ]
+      ],
+      "b2": [
+       [
+        0.9854,
+        0.6543
+       ],
+       [
+        0.9854,
+        0.6543
+       ],
+       [
+        0.9562,
+        0.675
+       ]
+      ],
+      "b3": [
+       [
+        0.9854,
+        0.5957
+       ],
+       [
+        0.9862,
+        0.0293
+       ],
+       [
+        0.985,
+        0.6025
+       ]
+      ]
+     },
+     "collisions": [
+      {
+       "sequence_number": 2,
+       "ball_attacker": "b1",
+       "ball_target": "b2",
+       "contact": [
+        0.9816,
+        0.7124
+       ],
+       "collision_type": "primary_impact"
+      },
+      {
+       "sequence_number": 3,
+       "ball_attacker": "b2",
+       "ball_target": "b3",
+       "contact": [
+        0.9854,
+        0.6543
+       ],
+       "collision_type": "secondary_impact"
+      },
+      {
+       "sequence_number": 5,
+       "ball_attacker": "b1",
+       "ball_target": "b3",
+       "contact": [
+        0.9832,
+        0.661
+       ],
+       "collision_type": "carambolage",
+       "scored": true
+      }
+     ],
+     "cushion_events": [
+      {
+       "ball": "b1",
+       "sequence_number": 1,
+       "cushion": "long_near",
+       "contact": [
+        0.965,
+        0.9707
+       ]
+      },
+      {
+       "ball": "b3",
+       "sequence_number": 4,
+       "cushion": "long_far",
+       "contact": [
+        0.9862,
+        0.0293
+       ]
+      }
+     ],
+     "vz_zone": "diamond_field_x7_y2"
+    }
+   ]
+  },
+  {
+   "number": 16,
+   "name": "Brems-Rückläufer",
+   "concepts": [
+    {
+     "key": "draw_shot",
+     "weight": 5
+    },
+    {
+     "key": "amorti",
+     "weight": 4
+    },
+    {
+     "key": "gather_shot",
+     "weight": 3
+    }
+   ],
+   "figures": [
+    {
+     "figur": 61,
+     "position_in_group": 1,
+     "points": 4,
+     "contre_allowed": false,
+     "note": null,
+     "path_source": {
+      "white": "Bild",
+      "yellow": "Korrektur"
+     },
+     "legend": {
+      "b1": "1 BB von KB auf CL",
+      "b2": "1 BB von KB auf VL 2",
+      "b3": "CSP"
+     },
+     "start": {
+      "b1": [
+       0.9561,
+       0.3333
+      ],
+      "b2": [
+       0.9561,
+       0.5
+      ],
+      "b3": [
+       0.8333,
+       0.3333
+      ]
+     },
+     "end": {
+      "b1": [
+       0.8601,
+       0.3569
+      ],
+      "b2": [
+       0.8512,
+       0.2775
+      ],
+      "b3": [
+       0.8333,
+       0.3333
+      ]
+     },
+     "trajectories": {
+      "b1": [
+       [
+        0.9561,
+        0.3333
+       ],
+       [
+        0.9561,
+        0.4414
+       ],
+       [
+        0.8601,
+        0.3569
+       ]
+      ],
+      "b2": [
+       [
+        0.9561,
+        0.5
+       ],
+       [
+        0.9854,
+        0.955
+       ],
+       [
+        0.9875,
+        0.9707
+       ],
+       [
+        0.9,
+        0.0293
+       ],
+       [
+        0.8512,
+        0.2775
+       ]
+      ]
+     },
+     "collisions": [
+      {
+       "sequence_number": 1,
+       "ball_attacker": "b1",
+       "ball_target": "b2",
+       "contact": [
+        0.9561,
+        0.4414
+       ],
+       "collision_type": "primary_impact"
+      },
+      {
+       "sequence_number": 2,
+       "ball_attacker": "b1",
+       "ball_target": "b3",
+       "contact": [
+        0.8601,
+        0.3569
+       ],
+       "collision_type": "carambolage",
+       "scored": true
+      }
+     ],
+     "cushion_events": [
+      {
+       "ball": "b2",
+       "sequence_number": 2,
+       "cushion": "short_right",
+       "contact": [
+        0.9854,
+        0.955
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 3,
+       "cushion": "long_near",
+       "contact": [
+        0.9875,
+        0.9707
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 4,
+       "cushion": "long_far",
+       "contact": [
+        0.9,
+        0.0293
+       ]
+      }
+     ],
+     "vz_zone": "diamond_field_x6_y1"
+    },
+    {
+     "figur": 62,
+     "position_in_group": 2,
+     "points": 5,
+     "contre_allowed": false,
+     "note": "Nach der Ausführung Außenstellung. B III wird in der Zeichnung leicht verschoben (nicht modelliert).",
+     "path_source": {
+      "white": "Bild",
+      "yellow": "Korrektur"
+     },
+     "legend": {
+      "b1": "SP 1 - 2",
+      "b2": "SP 1 - CL",
+      "b3": "CSP"
+     },
+     "start": {
+      "b1": [
+       0.875,
+       0.5
+      ],
+      "b2": [
+       0.875,
+       0.6667
+      ],
+      "b3": [
+       0.8333,
+       0.6667
+      ]
+     },
+     "end": {
+      "b1": [
+       0.8573,
+       0.633
+      ],
+      "b2": [
+       0.84,
+       0.6075
+      ],
+      "b3": [
+       0.8333,
+       0.6667
+      ]
+     },
+     "trajectories": {
+      "b1": [
+       [
+        0.875,
+        0.5
+       ],
+       [
+        0.875,
+        0.6081
+       ],
+       [
+        0.8573,
+        0.633
+       ]
+      ],
+      "b2": [
+       [
+        0.875,
+        0.6667
+       ],
+       [
+        0.8712,
+        0.9707
+       ],
+       [
+        0.8575,
+        0.0293
+       ],
+       [
+        0.84,
+        0.6075
+       ]
+      ]
+     },
+     "collisions": [
+      {
+       "sequence_number": 1,
+       "ball_attacker": "b1",
+       "ball_target": "b2",
+       "contact": [
+        0.875,
+        0.6081
+       ],
+       "collision_type": "primary_impact"
+      },
+      {
+       "sequence_number": 2,
+       "ball_attacker": "b1",
+       "ball_target": "b3",
+       "contact": [
+        0.8573,
+        0.633
+       ],
+       "collision_type": "carambolage",
+       "scored": true
+      }
+     ],
+     "cushion_events": [
+      {
+       "ball": "b2",
+       "sequence_number": 2,
+       "cushion": "long_near",
+       "contact": [
+        0.8712,
+        0.9707
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 3,
+       "cushion": "long_far",
+       "contact": [
+        0.8575,
+        0.0293
+       ]
+      }
+     ],
+     "vz_zone": "diamond_field_x6_y2"
+    },
+    {
+     "figur": 63,
+     "position_in_group": 3,
+     "points": 6,
+     "contre_allowed": false,
+     "note": "B I nach Wahl auf VL 2 ändern.",
+     "path_source": {
+      "white": "Korrektur",
+      "yellow": "Korrektur"
+     },
+     "legend": {
+      "b1": "3 BB von KB auf VL 2",
+      "b2": "diagonal Press an B III",
+      "b3": "CSP"
+     },
+     "start": {
+      "b1": [
+       0.8975,
+       0.5
+      ],
+      "b3": [
+       0.8333,
+       0.6667
+      ],
+      "b2": [
+       0.8126,
+       0.6252
+      ]
+     },
+     "end": {
+      "b1": [
+       0.8355,
+       0.6083
+      ],
+      "b2": [
+       0.785,
+       0.5425
+      ],
+      "b3": [
+       0.8333,
+       0.6667
+      ]
+     },
+     "trajectories": {
+      "b1": [
+       [
+        0.8975,
+        0.5
+       ],
+       [
+        0.8362,
+        0.5905
+       ],
+       [
+        0.8355,
+        0.6083
+       ]
+      ],
+      "b2": [
+       [
+        0.8126,
+        0.6252
+       ],
+       [
+        0.4475,
+        0.9707
+       ],
+       [
+        0.0146,
+        0.545
+       ],
+       [
+        0.2638,
+        0.0293
+       ],
+       [
+        0.785,
+        0.5425
+       ]
+      ]
+     },
+     "collisions": [
+      {
+       "sequence_number": 1,
+       "ball_attacker": "b1",
+       "ball_target": "b2",
+       "contact": [
+        0.8362,
+        0.5905
+       ],
+       "collision_type": "primary_impact"
+      },
+      {
+       "sequence_number": 2,
+       "ball_attacker": "b1",
+       "ball_target": "b3",
+       "contact": [
+        0.8355,
+        0.6083
+       ],
+       "collision_type": "carambolage",
+       "scored": true
+      }
+     ],
+     "cushion_events": [
+      {
+       "ball": "b2",
+       "sequence_number": 2,
+       "cushion": "long_near",
+       "contact": [
+        0.4475,
+        0.9707
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 3,
+       "cushion": "short_left",
+       "contact": [
+        0.0146,
+        0.545
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 4,
+       "cushion": "long_far",
+       "contact": [
+        0.2638,
+        0.0293
+       ]
+      }
+     ],
+     "vz_zone": "diamond_field_x6_y2"
+    },
+    {
+     "figur": 64,
+     "position_in_group": 4,
+     "points": 6,
+     "contre_allowed": false,
+     "note": "B I nach Wahl auf VL 2 ändern.",
+     "path_source": {
+      "white": "Bild",
+      "yellow": "Korrektur"
+     },
+     "legend": {
+      "b1": "Press an SP 1 - 2",
+      "b2": "SP 2 - CL",
+      "b3": "CSP"
+     },
+     "start": {
+      "b1": [
+       0.8604,
+       0.5
+      ],
+      "b2": [
+       0.75,
+       0.6667
+      ],
+      "b3": [
+       0.8333,
+       0.6667
+      ]
+     },
+     "end": {
+      "b1": [
+       0.8052,
+       0.6501
+      ],
+      "b2": [
+       0.7738,
+       0.5475
+      ],
+      "b3": [
+       0.8333,
+       0.6667
+      ]
+     },
+     "trajectories": {
+      "b1": [
+       [
+        0.8604,
+        0.5
+       ],
+       [
+        0.7734,
+        0.6314
+       ],
+       [
+        0.8052,
+        0.6501
+       ]
+      ],
+      "b2": [
+       [
+        0.75,
+        0.6667
+       ],
+       [
+        0.4788,
+        0.9707
+       ],
+       [
+        0.0146,
+        0.55
+       ],
+       [
+        0.2712,
+        0.0293
+       ],
+       [
+        0.7738,
+        0.5475
+       ]
+      ]
+     },
+     "collisions": [
+      {
+       "sequence_number": 1,
+       "ball_attacker": "b1",
+       "ball_target": "b2",
+       "contact": [
+        0.7734,
+        0.6314
+       ],
+       "collision_type": "primary_impact"
+      },
+      {
+       "sequence_number": 2,
+       "ball_attacker": "b1",
+       "ball_target": "b3",
+       "contact": [
+        0.8052,
+        0.6501
+       ],
+       "collision_type": "carambolage",
+       "scored": true
+      }
+     ],
+     "cushion_events": [
+      {
+       "ball": "b2",
+       "sequence_number": 2,
+       "cushion": "long_near",
+       "contact": [
+        0.4788,
+        0.9707
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 3,
+       "cushion": "short_left",
+       "contact": [
+        0.0146,
+        0.55
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 4,
+       "cushion": "long_far",
+       "contact": [
+        0.2712,
+        0.0293
+       ]
+      }
+     ],
+     "vz_zone": "diamond_field_x6_y2"
+    }
+   ]
+  },
+  {
+   "number": 17,
+   "name": "Brems-Nachläufer",
+   "concepts": [
+    {
+     "key": "follow_shot",
+     "weight": 5
+    },
+    {
+     "key": "amorti",
+     "weight": 4
+    },
+    {
+     "key": "gather_shot",
+     "weight": 3
+    }
+   ],
+   "figures": [
+    {
+     "figur": 65,
+     "position_in_group": 1,
+     "points": 4,
+     "contre_allowed": false,
+     "note": null,
+     "path_source": {
+      "white": "Korrektur",
+      "yellow": "Korrektur"
+     },
+     "legend": {
+      "b1": "2 BB von LB an VL2 oben",
+      "b2": "an CL und an VL 2",
+      "b3": "CSP links oben"
+     },
+     "start": {
+      "b1": [
+       0.7354,
+       0.1465
+      ],
+      "b2": [
+       0.7646,
+       0.304
+      ],
+      "b3": [
+       0.8187,
+       0.3627
+      ]
+     },
+     "end": {
+      "b1": [
+       0.7968,
+       0.3239
+      ],
+      "b2": [
+       0.8488,
+       0.29
+      ],
+      "b3": [
+       0.8187,
+       0.3627
+      ]
+     },
+     "trajectories": {
+      "b1": [
+       [
+        0.7354,
+        0.1465
+       ],
+       [
+        0.7544,
+        0.2491
+       ],
+       [
+        0.7968,
+        0.3239
+       ]
+      ],
+      "b2": [
+       [
+        0.7646,
+        0.304
+       ],
+       [
+        0.8762,
+        0.9707
+       ],
+       [
+        0.9854,
+        0.3725
+       ],
+       [
+        0.9375,
+        0.0293
+       ],
+       [
+        0.8488,
+        0.29
+       ]
+      ]
+     },
+     "collisions": [
+      {
+       "sequence_number": 1,
+       "ball_attacker": "b1",
+       "ball_target": "b2",
+       "contact": [
+        0.7544,
+        0.2491
+       ],
+       "collision_type": "primary_impact"
+      },
+      {
+       "sequence_number": 2,
+       "ball_attacker": "b1",
+       "ball_target": "b3",
+       "contact": [
+        0.7968,
+        0.3239
+       ],
+       "collision_type": "carambolage",
+       "scored": true
+      }
+     ],
+     "cushion_events": [
+      {
+       "ball": "b2",
+       "sequence_number": 2,
+       "cushion": "long_near",
+       "contact": [
+        0.8762,
+        0.9707
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 3,
+       "cushion": "short_right",
+       "contact": [
+        0.9854,
+        0.3725
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 4,
+       "cushion": "long_far",
+       "contact": [
+        0.9375,
+        0.0293
+       ]
+      }
+     ],
+     "vz_zone": "diamond_field_x6_y1"
+    },
+    {
+     "figur": 66,
+     "position_in_group": 2,
+     "points": 6,
+     "contre_allowed": false,
+     "note": "B I nach Wahl parallel zur KB.",
+     "path_source": {
+      "white": "Bild",
+      "yellow": "Bild"
+     },
+     "legend": {
+      "b1": "2 BB von LB auf CL",
+      "b2": "3 BB von LB bei 2",
+      "b3": "Press an LB bei 3,5"
+     },
+     "start": {
+      "b1": [
+       0.8333,
+       0.1465
+      ],
+      "b2": [
+       0.75,
+       0.205
+      ],
+      "b3": [
+       0.5625,
+       0.0293
+      ]
+     },
+     "end": {
+      "b1": [
+       0.59,
+       0.0493
+      ],
+      "b2": [
+       0.5925,
+       0.1325
+      ],
+      "b3": [
+       0.5625,
+       0.0293
+      ]
+     },
+     "trajectories": {
+      "b1": [
+       [
+        0.8333,
+        0.1465
+       ],
+       [
+        0.7776,
+        0.1856
+       ],
+       [
+        0.59,
+        0.0493
+       ]
+      ],
+      "b2": [
+       [
+        0.75,
+        0.205
+       ],
+       [
+        0.0146,
+        0.78
+       ],
+       [
+        0.3162,
+        0.9707
+       ],
+       [
+        0.9854,
+        0.435
+       ],
+       [
+        0.5925,
+        0.1325
+       ]
+      ]
+     },
+     "collisions": [
+      {
+       "sequence_number": 1,
+       "ball_attacker": "b1",
+       "ball_target": "b2",
+       "contact": [
+        0.7776,
+        0.1856
+       ],
+       "collision_type": "primary_impact"
+      },
+      {
+       "sequence_number": 2,
+       "ball_attacker": "b1",
+       "ball_target": "b3",
+       "contact": [
+        0.59,
+        0.0493
+       ],
+       "collision_type": "carambolage",
+       "scored": true
+      }
+     ],
+     "cushion_events": [
+      {
+       "ball": "b2",
+       "sequence_number": 2,
+       "cushion": "short_left",
+       "contact": [
+        0.0146,
+        0.78
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 3,
+       "cushion": "long_near",
+       "contact": [
+        0.3162,
+        0.9707
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 4,
+       "cushion": "short_right",
+       "contact": [
+        0.9854,
+        0.435
+       ]
+      }
+     ],
+     "vz_zone": "diamond_field_x4_y0"
+    },
+    {
+     "figur": 67,
+     "position_in_group": 3,
+     "points": 6,
+     "contre_allowed": false,
+     "note": "B I nach Wahl auf CL ändern.",
+     "path_source": {
+      "white": "Korrektur",
+      "yellow": "Korrektur"
+     },
+     "legend": {
+      "b1": "3 BB von KB auf CL",
+      "b2": "SP CL - VL 1 links unten",
+      "b3": "Press bei 1,5"
+     },
+     "start": {
+      "b1": [
+       0.8975,
+       0.6667
+      ],
+      "b2": [
+       0.848,
+       0.7792
+      ],
+      "b3": [
+       0.8125,
+       0.9707
+      ]
+     },
+     "end": {
+      "b1": [
+       0.8248,
+       0.9176
+      ],
+      "b2": [
+       0.7837,
+       0.785
+      ],
+      "b3": [
+       0.8125,
+       0.9707
+      ]
+     },
+     "trajectories": {
+      "b1": [
+       [
+        0.8975,
+        0.6667
+       ],
+       [
+        0.8673,
+        0.7353
+       ],
+       [
+        0.8248,
+        0.9176
+       ]
+      ],
+      "b2": [
+       [
+        0.848,
+        0.7792
+       ],
+       [
+        0.6675,
+        0.9707
+       ],
+       [
+        0.0146,
+        0.25
+       ],
+       [
+        0.17,
+        0.0293
+       ],
+       [
+        0.7837,
+        0.785
+       ]
+      ]
+     },
+     "collisions": [
+      {
+       "sequence_number": 1,
+       "ball_attacker": "b1",
+       "ball_target": "b2",
+       "contact": [
+        0.8673,
+        0.7353
+       ],
+       "collision_type": "primary_impact"
+      },
+      {
+       "sequence_number": 2,
+       "ball_attacker": "b1",
+       "ball_target": "b3",
+       "contact": [
+        0.8248,
+        0.9176
+       ],
+       "collision_type": "carambolage",
+       "scored": true
+      }
+     ],
+     "cushion_events": [
+      {
+       "ball": "b2",
+       "sequence_number": 2,
+       "cushion": "long_near",
+       "contact": [
+        0.6675,
+        0.9707
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 3,
+       "cushion": "short_left",
+       "contact": [
+        0.0146,
+        0.25
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 4,
+       "cushion": "long_far",
+       "contact": [
+        0.17,
+        0.0293
+       ]
+      }
+     ],
+     "vz_zone": "diamond_field_x6_y3"
+    },
+    {
+     "figur": 68,
+     "position_in_group": 4,
+     "points": 10,
+     "contre_allowed": false,
+     "note": "B II nach Wahl auf CL ändern.",
+     "path_source": {
+      "white": "Korrektur",
+      "yellow": "Korrektur"
+     },
+     "legend": {
+      "b1": "SP 2,5 - CL",
+      "b2": "SP 3,5 - CL",
+      "b3": "Ecke frei"
+     },
+     "start": {
+      "b1": [
+       0.6875,
+       0.6667
+      ],
+      "b2": [
+       0.5625,
+       0.3333
+      ],
+      "b3": [
+       0.044,
+       0.9121
+      ]
+     },
+     "end": {
+      "b1": [
+       0.0636,
+       0.8687
+      ],
+      "b2": [
+       0.0388,
+       0.845
+      ],
+      "b3": [
+       0.044,
+       0.9121
+      ]
+     },
+     "trajectories": {
+      "b1": [
+       [
+        0.6875,
+        0.6667
+       ],
+       [
+        0.5801,
+        0.3802
+       ],
+       [
+        0.445,
+        0.0293
+       ],
+       [
+        0.0636,
+        0.8687
+       ]
+      ],
+      "b2": [
+       [
+        0.5625,
+        0.3333
+       ],
+       [
+        0.445,
+        0.0293
+       ],
+       [
+        0.2238,
+        0.9707
+       ],
+       [
+        0.1112,
+        0.0293
+       ],
+       [
+        0.0388,
+        0.845
+       ]
+      ]
+     },
+     "collisions": [
+      {
+       "sequence_number": 1,
+       "ball_attacker": "b1",
+       "ball_target": "b2",
+       "contact": [
+        0.5801,
+        0.3802
+       ],
+       "collision_type": "primary_impact"
+      },
+      {
+       "sequence_number": 3,
+       "ball_attacker": "b1",
+       "ball_target": "b3",
+       "contact": [
+        0.0636,
+        0.8687
+       ],
+       "collision_type": "carambolage",
+       "scored": true
+      }
+     ],
+     "cushion_events": [
+      {
+       "ball": "b1",
+       "sequence_number": 2,
+       "cushion": "long_far",
+       "contact": [
+        0.445,
+        0.0293
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 2,
+       "cushion": "long_far",
+       "contact": [
+        0.445,
+        0.0293
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 3,
+       "cushion": "long_near",
+       "contact": [
+        0.2238,
+        0.9707
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 4,
+       "cushion": "long_far",
+       "contact": [
+        0.1112,
+        0.0293
+       ]
+      }
+     ],
+     "vz_zone": "diamond_field_x0_y3"
+    }
+   ]
+  },
+  {
+   "number": 18,
+   "name": "Einbänder",
+   "concepts": [
+    {
+     "key": "one_cushion_shot",
+     "weight": 5
+    },
+    {
+     "key": "gather_shot",
+     "weight": 3
+    }
+   ],
+   "figures": [
+    {
+     "figur": 69,
+     "position_in_group": 1,
+     "points": 4,
+     "contre_allowed": false,
+     "note": "Klammerangabe B II im Original „1 BB nach links“.",
+     "path_source": {
+      "white": "Bild",
+      "yellow": "Bild"
+     },
+     "legend": {
+      "b1": "1 BB von 1,5",
+      "b2": "Press bei 2, 1 BB nach links",
+      "b3": "SP 1,5 - 1,5"
+     },
+     "start": {
+      "b1": [
+       0.9561,
+       0.375
+      ],
+      "b2": [
+       0.9854,
+       0.5586
+      ],
+      "b3": [
+       0.8125,
+       0.375
+      ]
+     },
+     "end": {
+      "b1": [
+       0.8398,
+       0.3963
+      ],
+      "b2": [
+       0.82,
+       0.3125
+      ],
+      "b3": [
+       0.8125,
+       0.375
+      ]
+     },
+     "trajectories": {
+      "b1": [
+       [
+        0.9561,
+        0.375
+       ],
+       [
+        0.9765,
+        0.5028
+       ],
+       [
+        0.8398,
+        0.3963
+       ]
+      ],
+      "b2": [
+       [
+        0.9854,
+        0.5586
+       ],
+       [
+        0.9575,
+        0.9707
+       ],
+       [
+        0.8738,
+        0.0293
+       ],
+       [
+        0.82,
+        0.3125
+       ]
+      ]
+     },
+     "collisions": [
+      {
+       "sequence_number": 1,
+       "ball_attacker": "b1",
+       "ball_target": "b2",
+       "contact": [
+        0.9765,
+        0.5028
+       ],
+       "collision_type": "primary_impact"
+      },
+      {
+       "sequence_number": 2,
+       "ball_attacker": "b1",
+       "ball_target": "b3",
+       "contact": [
+        0.8398,
+        0.3963
+       ],
+       "collision_type": "carambolage",
+       "scored": true
+      }
+     ],
+     "cushion_events": [
+      {
+       "ball": "b2",
+       "sequence_number": 2,
+       "cushion": "long_near",
+       "contact": [
+        0.9575,
+        0.9707
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 3,
+       "cushion": "long_far",
+       "contact": [
+        0.8738,
+        0.0293
+       ]
+      }
+     ],
+     "vz_zone": "diamond_field_x6_y1"
+    },
+    {
+     "figur": 70,
+     "position_in_group": 2,
+     "points": 4,
+     "contre_allowed": false,
+     "note": "Klammerangabe B I im Original „Press an VL1, oben auf CL“.",
+     "path_source": {
+      "white": "Korrektur",
+      "yellow": "Korrektur"
+     },
+     "legend": {
+      "b1": "an 1 oben und auf CL",
+      "b2": "3 BB von 2",
+      "b3": "SP 1,5 - 1,5"
+     },
+     "start": {
+      "b1": [
+       0.8604,
+       0.3333
+      ],
+      "b2": [
+       0.8975,
+       0.5
+      ],
+      "b3": [
+       0.8125,
+       0.375
+      ]
+     },
+     "end": {
+      "b1": [
+       0.8411,
+       0.3875
+      ],
+      "b2": [
+       0.8538,
+       0.295
+      ],
+      "b3": [
+       0.8125,
+       0.375
+      ]
+     },
+     "trajectories": {
+      "b1": [
+       [
+        0.8604,
+        0.3333
+       ],
+       [
+        0.8856,
+        0.4465
+       ],
+       [
+        0.9854,
+        0.45
+       ],
+       [
+        0.8411,
+        0.3875
+       ]
+      ],
+      "b2": [
+       [
+        0.8975,
+        0.5
+       ],
+       [
+        0.9675,
+        0.9707
+       ],
+       [
+        0.9854,
+        0.5675
+       ],
+       [
+        0.9562,
+        0.0293
+       ],
+       [
+        0.8538,
+        0.295
+       ]
+      ]
+     },
+     "collisions": [
+      {
+       "sequence_number": 1,
+       "ball_attacker": "b1",
+       "ball_target": "b2",
+       "contact": [
+        0.8856,
+        0.4465
+       ],
+       "collision_type": "primary_impact"
+      },
+      {
+       "sequence_number": 3,
+       "ball_attacker": "b1",
+       "ball_target": "b3",
+       "contact": [
+        0.8411,
+        0.3875
+       ],
+       "collision_type": "carambolage",
+       "scored": true
+      }
+     ],
+     "cushion_events": [
+      {
+       "ball": "b1",
+       "sequence_number": 2,
+       "cushion": "short_right",
+       "contact": [
+        0.9854,
+        0.45
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 2,
+       "cushion": "long_near",
+       "contact": [
+        0.9675,
+        0.9707
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 3,
+       "cushion": "short_right",
+       "contact": [
+        0.9854,
+        0.5675
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 4,
+       "cushion": "long_far",
+       "contact": [
+        0.9562,
+        0.0293
+       ]
+      }
+     ],
+     "vz_zone": "diamond_field_x6_y1"
+    },
+    {
+     "figur": 71,
+     "position_in_group": 3,
+     "points": 5,
+     "contre_allowed": false,
+     "note": "B I läuft nach der Bande gebogen zu B III (gebogene Linie in der Zeichnung).",
+     "path_source": {
+      "white": "Korrektur",
+      "yellow": "Bild"
+     },
+     "legend": {
+      "b1": "1,5 cm von 3,5",
+      "b2": "1 BB von 3",
+      "b3": "Ecke frei"
+     },
+     "start": {
+      "b1": [
+       0.5625,
+       0.0436
+      ],
+      "b2": [
+       0.625,
+       0.0878
+      ],
+      "b3": [
+       0.9561,
+       0.9121
+      ]
+     },
+     "end": {
+      "b1": [
+       0.9512,
+       0.8543
+      ],
+      "b2": [
+       0.9275,
+       0.8375
+      ],
+      "b3": [
+       0.9561,
+       0.9121
+      ]
+     },
+     "trajectories": {
+      "b1": [
+       [
+        0.5625,
+        0.0436
+       ],
+       [
+        0.5974,
+        0.0683
+       ],
+       [
+        0.6462,
+        0.0293
+       ],
+       [
+        0.7138,
+        0.1325
+       ],
+       [
+        0.8013,
+        0.31
+       ],
+       [
+        0.8862,
+        0.5
+       ],
+       [
+        0.9375,
+        0.6925
+       ],
+       [
+        0.9512,
+        0.8543
+       ]
+      ],
+      "b2": [
+       [
+        0.625,
+        0.0878
+       ],
+       [
+        0.9275,
+        0.8375
+       ]
+      ]
+     },
+     "collisions": [
+      {
+       "sequence_number": 1,
+       "ball_attacker": "b1",
+       "ball_target": "b2",
+       "contact": [
+        0.5974,
+        0.0683
+       ],
+       "collision_type": "primary_impact"
+      },
+      {
+       "sequence_number": 7,
+       "ball_attacker": "b1",
+       "ball_target": "b3",
+       "contact": [
+        0.9512,
+        0.8543
+       ],
+       "collision_type": "carambolage",
+       "scored": true
+      }
+     ],
+     "cushion_events": [
+      {
+       "ball": "b1",
+       "sequence_number": 2,
+       "cushion": "long_far",
+       "contact": [
+        0.6462,
+        0.0293
+       ]
+      }
+     ],
+     "vz_zone": "diamond_field_x7_y3"
+    },
+    {
+     "figur": 72,
+     "position_in_group": 4,
+     "points": 9,
+     "contre_allowed": false,
+     "note": "B I läuft nach der Bande gebogen zu B III (gebogene Linie in der Zeichnung).",
+     "path_source": {
+      "white": "Korrektur",
+      "yellow": "Bild"
+     },
+     "legend": {
+      "b1": "auf 2 und an CL oben",
+      "b2": "CSP",
+      "b3": "Ecke frei"
+     },
+     "start": {
+      "b1": [
+       0.152,
+       0.5
+      ],
+      "b2": [
+       0.1667,
+       0.3333
+      ],
+      "b3": [
+       0.9561,
+       0.0878
+      ]
+     },
+     "end": {
+      "b1": [
+       0.9269,
+       0.0825
+      ],
+      "b2": [
+       0.93,
+       0.1525
+      ],
+      "b3": [
+       0.9561,
+       0.0878
+      ]
+     },
+     "trajectories": {
+      "b1": [
+       [
+        0.152,
+        0.5
+       ],
+       [
+        0.1616,
+        0.391
+       ],
+       [
+        0.0146,
+        0.2
+       ],
+       [
+        0.1775,
+        0.105
+       ],
+       [
+        0.375,
+        0.0675
+       ],
+       [
+        0.5962,
+        0.06
+       ],
+       [
+        0.8162,
+        0.0625
+       ],
+       [
+        0.9269,
+        0.0825
+       ]
+      ],
+      "b2": [
+       [
+        0.1667,
+        0.3333
+       ],
+       [
+        0.2488,
+        0.0293
+       ],
+       [
+        0.6262,
+        0.9707
+       ],
+       [
+        0.93,
+        0.1525
+       ]
+      ]
+     },
+     "collisions": [
+      {
+       "sequence_number": 1,
+       "ball_attacker": "b1",
+       "ball_target": "b2",
+       "contact": [
+        0.1616,
+        0.391
+       ],
+       "collision_type": "primary_impact"
+      },
+      {
+       "sequence_number": 7,
+       "ball_attacker": "b1",
+       "ball_target": "b3",
+       "contact": [
+        0.9269,
+        0.0825
+       ],
+       "collision_type": "carambolage",
+       "scored": true
+      }
+     ],
+     "cushion_events": [
+      {
+       "ball": "b1",
+       "sequence_number": 2,
+       "cushion": "short_left",
+       "contact": [
+        0.0146,
+        0.2
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 2,
+       "cushion": "long_far",
+       "contact": [
+        0.2488,
+        0.0293
+       ]
+      },
+      {
+       "ball": "b2",
+       "sequence_number": 3,
+       "cushion": "long_near",
+       "contact": [
+        0.6262,
+        0.9707
+       ]
+      }
+     ],
+     "vz_zone": "diamond_field_x7_y0"
+    }
+   ]
+  },
+  {
+   "number": 19,
+   "name": "Prellstöße",
+   "concepts": [
+    {
+     "key": "rebound_shot",
+     "weight": 5
+    },
+    {
+     "key": "gather_shot",
+     "weight": 3
+    }
+   ],
+   "figures": [
+    {
+     "figur": 73,
+     "position_in_group": 1,
+     "points": 4,
+     "contre_allowed": false,
+     "note": null,
+     "path_source": {
+      "white": "Bild",
+      "yellow": "Bild"
+     },
+     "legend": {
+      "b1": "Press bei 1",
+      "b2": "Press bei 2,5",
+      "b3": "Ecke frei"
+     },
+     "start": {
+      "b1": [
+       0.9854,
+       0.75
+      ],
+      "b2": [
+       0.6875,
+       0.9707
+      ],
+      "b3": [
+       0.044,
+       0.0878
+      ]
+     },
+     "end": {
+      "b1": [
+       0.0686,
+       0.1195
+      ],
+      "b2": [
+       0.0575,
+       0.155
+      ],
+      "b3": [
+       0.044,
+       0.0878
+      ]
+     },
+     "trajectories": {
+      "b1": [
+       [
+        0.9854,
+        0.75
+       ],
+       [
+        0.715,
+        0.9503
+       ],
+       [
+        0.0686,
+        0.1195
+       ]
+      ],
+      "b2": [
+       [
+        0.6875,
+        0.9707
+       ],
+       [
+        0.0575,
+        0.155
+       ]
+      ]
+     },
+     "collisions": [
+      {
+       "sequence_number": 1,
+       "ball_attacker": "b1",
+       "ball_target": "b2",
+       "contact": [
+        0.715,
+        0.9503
+       ],
+       "collision_type": "primary_impact"
+      },
+      {
+       "sequence_number": 2,
+       "ball_attacker": "b1",
+       "ball_target": "b3",
+       "contact": [
+        0.0686,
+        0.1195
+       ],
+       "collision_type": "carambolage",
+       "scored": true
+      }
+     ],
+     "cushion_events": [],
+     "vz_zone": "diamond_field_x0_y0"
+    },
+    {
+     "figur": 74,
+     "position_in_group": 2,
+     "points": 7,
+     "contre_allowed": false,
+     "note": "B I mit Hilfsbällen aufgesetzt (drei Hilfsbälle in der Zeichnung); Lage entlang der KB nur aus der Zeichnung.",
+     "path_source": {
+      "white": "Bild",
+      "yellow": "Bild"
+     },
+     "legend": {
+      "b1": "2 BB von KB",
+      "b2": "Press bei 1",
+      "b3": "Ecke frei"
+     },
+     "start": {
+      "b1": [
+       0.0732,
+       0.86
+      ],
+      "b2": [
+       0.0147,
+       0.75
+      ],
+      "b3": [
+       0.9561,
+       0.9121
+      ]
+     },
+     "end": {
+      "b1": [
+       0.9269,
+       0.9082
+      ],
+      "b2": [
+       0.9325,
+       0.825
+      ],
+      "b3": [
+       0.9561,
+       0.9121
+      ]
+     },
+     "trajectories": {
+      "b1": [
+       [
+        0.0732,
+        0.86
+       ],
+       [
+        0.036,
+        0.7901
+       ],
+       [
+        0.9269,
+        0.9082
+       ]
+      ],
+      "b2": [
+       [
+        0.0147,
+        0.75
+       ],
+       [
+        0.2788,
+        0.0293
+       ],
+       [
+        0.9325,
+        0.825
+       ]
+      ]
+     },
+     "collisions": [
+      {
+       "sequence_number": 1,
+       "ball_attacker": "b1",
+       "ball_target": "b2",
+       "contact": [
+        0.036,
+        0.7901
+       ],
+       "collision_type": "primary_impact"
+      },
+      {
+       "sequence_number": 2,
+       "ball_attacker": "b1",
+       "ball_target": "b3",
+       "contact": [
+        0.9269,
+        0.9082
+       ],
+       "collision_type": "carambolage",
+       "scored": true
+      }
+     ],
+     "cushion_events": [
+      {
+       "ball": "b2",
+       "sequence_number": 2,
+       "cushion": "long_far",
+       "contact": [
+        0.2788,
+        0.0293
+       ]
+      }
+     ],
+     "vz_zone": "diamond_field_x7_y3"
+    },
+    {
+     "figur": 75,
+     "position_in_group": 3,
+     "points": 9,
+     "contre_allowed": false,
+     "note": "B I mit Hilfsbällen aufgesetzt (drei Hilfsbälle in der Zeichnung); Lage entlang der LB nur aus der Zeichnung. B I läuft nach B II gebogen (gebogene Linie in der Zeichnung).",
+     "path_source": {
+      "white": "Korrektur",
+      "yellow": "Bild"
+     },
+     "legend": {
+      "b1": "2 BB von LB",
+      "b2": "Press an 2 oben",
+      "b3": "2 BB von 1,5"
+     },
+     "start": {
+      "b1": [
+       0.7912,
+       0.8535
+      ],
+      "b2": [
+       0.7354,
+       0.9707
+      ],
+      "b3": [
+       0.0732,
+       0.375
+      ]
+     },
+     "end": {
+      "b1": [
+       0.0968,
+       0.3401
+      ],
+      "b2": [
+       0.0988,
+       0.4125
+      ],
+      "b3": [
+       0.0732,
+       0.375
+      ]
+     },
+     "trajectories": {
+      "b1": [
+       [
+        0.7912,
+        0.8535
+       ],
+       [
+        0.7556,
+        0.9283
+       ],
+       [
+        0.6788,
+        0.6975
+       ],
+       [
+        0.5925,
+        0.495
+       ],
+       [
+        0.505,
+        0.32
+       ],
+       [
+        0.3962,
+        0.1475
+       ],
+       [
+        0.3062,
+        0.0293
+       ],
+       [
+        0.0968,
+        0.3401
+       ]
+      ],
+      "b2": [
+       [
+        0.7354,
+        0.9707
+       ],
+       [
+        0.0988,
+        0.4125
+       ]
+      ]
+     },
+     "collisions": [
+      {
+       "sequence_number": 1,
+       "ball_attacker": "b1",
+       "ball_target": "b2",
+       "contact": [
+        0.7556,
+        0.9283
+       ],
+       "collision_type": "primary_impact"
+      },
+      {
+       "sequence_number": 7,
+       "ball_attacker": "b1",
+       "ball_target": "b3",
+       "contact": [
+        0.0968,
+        0.3401
+       ],
+       "collision_type": "carambolage",
+       "scored": true
+      }
+     ],
+     "cushion_events": [
+      {
+       "ball": "b1",
+       "sequence_number": 6,
+       "cushion": "long_far",
+       "contact": [
+        0.3062,
+        0.0293
+       ]
+      }
+     ],
+     "vz_zone": "diamond_field_x0_y1"
+    },
+    {
+     "figur": 76,
+     "position_in_group": 4,
+     "points": 11,
+     "contre_allowed": true,
+     "note": "B I läuft gebogen an der KB entlang zu B III (gebogene Linie in der Zeichnung).",
+     "path_source": {
+      "white": "Korrektur",
+      "yellow": "Korrektur"
+     },
+     "legend": {
+      "b1": "SP 3 - 2",
+      "b2": "0,5 BB von LB, Press an KB",
+      "b3": "Ecke frei"
+     },
+     "start": {
+      "b1": [
+       0.625,
+       0.5
+      ],
+      "b2": [
+       0.9854,
+       0.9414
+      ],
+      "b3": [
+       0.9561,
+       0.0878
+      ]
+     },
+     "end": {
+      "b1": [
+       0.9574,
+       0.1463
+      ],
+      "b2": [
+       0.985,
+       0.1475
+      ],
+      "b3": [
+       0.9561,
+       0.0878
+      ]
+     },
+     "trajectories": {
+      "b1": [
+       [
+        0.625,
+        0.5
+       ],
+       [
+        0.9604,
+        0.9108
+       ],
+       [
+        0.9725,
+        0.9707
+       ],
+       [
+        0.9612,
+        0.77
+       ],
+       [
+        0.9562,
+        0.51
+       ],
+       [
+        0.96,
+        0.2625
+       ],
+       [
+        0.9574,
+        0.1463
+       ]
+      ],
+      "b2": [
+       [
+        0.9854,
+        0.9414
+       ],
+       [
+        0.985,
+        0.1475
+       ]
+      ]
+     },
+     "collisions": [
+      {
+       "sequence_number": 1,
+       "ball_attacker": "b1",
+       "ball_target": "b2",
+       "contact": [
+        0.9604,
+        0.9108
+       ],
+       "collision_type": "primary_impact"
+      },
+      {
+       "sequence_number": 6,
+       "ball_attacker": "b1",
+       "ball_target": "b3",
+       "contact": [
+        0.9574,
+        0.1463
+       ],
+       "collision_type": "carambolage",
+       "scored": true
+      }
+     ],
+     "cushion_events": [
+      {
+       "ball": "b1",
+       "sequence_number": 2,
+       "cushion": "long_near",
+       "contact": [
+        0.9725,
+        0.9707
+       ]
+      }
+     ],
+     "vz_zone": "diamond_field_x7_y0"
     }
    ]
   }
