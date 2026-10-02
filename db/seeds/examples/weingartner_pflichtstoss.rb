@@ -115,7 +115,11 @@ data["groups"].each do |group|
       rec = shot.ball_collisions.find_or_initialize_by(sequence_number: c["sequence_number"])
       rec.update!(collision_type: c["collision_type"], ball_attacker: c["ball_attacker"],
                   ball_target: c["ball_target"], scored: c["scored"],
-                  contact_coords_normalized: { "x" => c["contact"][0], "y" => c["contact"][1] })
+                  contact_coords_normalized: { "x" => c["contact"][0], "y" => c["contact"][1] },
+                  # Stoßparameter nur, wo Gernot die Figur in Caromball optimiert hat
+                  quantity_of_ball: c["quantity_of_ball"], speed: c["speed"],
+                  effect_vertical: c["effect_vertical"], effect_horizontal: c["effect_horizontal"],
+                  properties: c["properties"] || {})
       rec
     end
     shot.ball_collisions.where.not(id: collisions.map(&:id)).destroy_all

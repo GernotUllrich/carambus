@@ -106,7 +106,22 @@
         0.2715,
         0.5398
        ],
-       "collision_type": "primary_impact"
+       "collision_type": "primary_impact",
+       "quantity_of_ball": 0.86,
+       "speed": 2,
+       "effect_horizontal": 0,
+       "effect_vertical": -1,
+       "properties": {
+        "caromball_raw": {
+         "favorite_id": "834cf97c-94b1-44ff-aaa7-4d1b7fc3bd1f",
+         "table_size": "Size260",
+         "effet_percent": 0.0,
+         "anspielhoehe_percent": -33.0,
+         "neigung_degrees": 4.0,
+         "geschwindigkeit_m": 1.49,
+         "betaQ": 2.288404665116496
+        }
+       }
       },
       {
        "sequence_number": 2,
@@ -228,7 +243,22 @@
         0.7763,
         0.055
        ],
-       "collision_type": "primary_impact"
+       "collision_type": "primary_impact",
+       "quantity_of_ball": 0.9,
+       "speed": 2,
+       "effect_horizontal": 1,
+       "effect_vertical": -1,
+       "properties": {
+        "caromball_raw": {
+         "favorite_id": "ab43c8a4-91c1-4612-8ccb-826d61667cc1",
+         "table_size": "Size260",
+         "effet_percent": 32.0,
+         "anspielhoehe_percent": -38.0,
+         "neigung_degrees": 6.0,
+         "geschwindigkeit_m": 1.29,
+         "betaQ": 2.5615048584753968
+        }
+       }
       },
       {
        "sequence_number": 2,
@@ -346,7 +376,22 @@
         0.5293,
         0.6681
        ],
-       "collision_type": "primary_impact"
+       "collision_type": "primary_impact",
+       "quantity_of_ball": 1.0,
+       "speed": 1,
+       "effect_horizontal": 0,
+       "effect_vertical": -1,
+       "properties": {
+        "caromball_raw": {
+         "favorite_id": "510305af-81a5-44ea-a8a5-def148f99f48",
+         "table_size": "Size260",
+         "effet_percent": 0.0,
+         "anspielhoehe_percent": -43.0,
+         "neigung_degrees": 13.0,
+         "geschwindigkeit_m": 0.84,
+         "betaQ": 3.138136397162804
+        }
+       }
       },
       {
        "sequence_number": 2,
@@ -463,7 +508,22 @@
         0.0577,
         0.5517
        ],
-       "collision_type": "primary_impact"
+       "collision_type": "primary_impact",
+       "quantity_of_ball": 0.52,
+       "speed": 2,
+       "effect_horizontal": 0,
+       "effect_vertical": -1,
+       "properties": {
+        "caromball_raw": {
+         "favorite_id": "2cfdc948-99db-4d66-82ed-2b53f66feb66",
+         "table_size": "Size260",
+         "effet_percent": 0.0,
+         "anspielhoehe_percent": -33.5,
+         "neigung_degrees": 7.0,
+         "geschwindigkeit_m": 1.53,
+         "betaQ": 1.5842898425273058
+        }
+       }
       },
       {
        "sequence_number": 2,
