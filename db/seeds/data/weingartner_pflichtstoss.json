@@ -593,14 +593,14 @@
      "position_in_group": 1,
      "points": 5,
      "contre_allowed": false,
-     "note": null,
+     "note": "Klammerangabe im Original „B II 1 BB von B I auf CL“ — nicht verwendet (Gernot 2026-10-02): B I auf dem ersten Diamanten, B II auf der Cadrelinie, auch auf dem kleinen Tisch.",
      "path_source": {
       "white": "Bild",
       "yellow": "Bild"
      },
      "legend": {
       "b1": "SP 1 - CL",
-      "b2": "1 BB von B I auf CL",
+      "b2": "CSP",
       "b3": "Press bei 1,5"
      },
      "start": {
@@ -608,13 +608,13 @@
        0.875,
        0.6667
       ],
+      "b2": [
+       0.8333,
+       0.6667
+      ],
       "b3": [
        0.9854,
        0.375
-      ],
-      "b2": [
-       0.8164,
-       0.6667
       ]
      },
      "end": {
@@ -638,8 +638,8 @@
         0.6667
        ],
        [
-        0.8447,
-        0.6822
+        0.8616,
+        0.6819
        ],
        [
         0.8575,
@@ -652,7 +652,7 @@
       ],
       "b2": [
        [
-        0.8164,
+        0.8333,
         0.6667
        ],
        [
@@ -675,8 +675,8 @@
        "ball_attacker": "b1",
        "ball_target": "b2",
        "contact": [
-        0.8447,
-        0.6822
+        0.8616,
+        0.6819
        ],
        "collision_type": "primary_impact"
       },
