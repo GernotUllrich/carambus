@@ -593,14 +593,14 @@
      "position_in_group": 1,
      "points": 5,
      "contre_allowed": false,
-     "note": "Klammerangabe im Original „B II 1 BB von B I auf CL“ — nicht verwendet (Gernot 2026-10-02): B I auf dem ersten Diamanten, B II auf der Cadrelinie, auch auf dem kleinen Tisch.",
+     "note": "Klammerangabe bestätigt (Gernot 2026-10-02): mit B II auf der Cadrelinie ist der Stoß auf dem kleinen Tisch nicht spielbar; in Caromball (Size260) geht er mit B II etwa eine Ballbreite neben B I.",
      "path_source": {
       "white": "Bild",
       "yellow": "Bild"
      },
      "legend": {
       "b1": "SP 1 - CL",
-      "b2": "CSP",
+      "b2": "1 BB von B I auf CL",
       "b3": "Press bei 1,5"
      },
      "start": {
@@ -608,13 +608,13 @@
        0.875,
        0.6667
       ],
-      "b2": [
-       0.8333,
-       0.6667
-      ],
       "b3": [
        0.9854,
        0.375
+      ],
+      "b2": [
+       0.8164,
+       0.6667
       ]
      },
      "end": {
@@ -638,8 +638,8 @@
         0.6667
        ],
        [
-        0.8616,
-        0.6819
+        0.8447,
+        0.6822
        ],
        [
         0.8575,
@@ -652,7 +652,7 @@
       ],
       "b2": [
        [
-        0.8333,
+        0.8164,
         0.6667
        ],
        [
@@ -675,10 +675,25 @@
        "ball_attacker": "b1",
        "ball_target": "b2",
        "contact": [
-        0.8616,
-        0.6819
+        0.8447,
+        0.6822
        ],
-       "collision_type": "primary_impact"
+       "collision_type": "primary_impact",
+       "quantity_of_ball": 0.38,
+       "speed": 2,
+       "effect_horizontal": -1,
+       "effect_vertical": -1,
+       "properties": {
+        "caromball_raw": {
+         "favorite_id": "9440c619-2550-4e7d-98d7-fa64a04c0312",
+         "table_size": "Size260",
+         "effet_percent": -27.9,
+         "anspielhoehe_percent": -27.5,
+         "neigung_degrees": 14.0,
+         "geschwindigkeit_m": 1.22,
+         "betaQ": 3.5052200328441163
+        }
+       }
       },
       {
        "sequence_number": 3,
