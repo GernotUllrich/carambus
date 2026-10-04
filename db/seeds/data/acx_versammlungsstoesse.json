@@ -33,14 +33,24 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.7283,
-     0.0723
+     0.7257,
+     0.0634
     ],
-    "quantity_of_ball": 0.55,
-    "speed": 3,
+    "quantity_of_ball": 0.737,
+    "speed": 2,
     "effect_horizontal": -2,
     "effect_vertical": 0,
     "properties": {
+     "richtung": "caromball_opt",
+     "caromball_raw": {
+      "favorite_id": "372f8710-e236-438d-a680-5a39833417ff",
+      "table_size": "Size260",
+      "effet_percent": -55.0,
+      "anspielhoehe_percent": -14.0,
+      "neigung_degrees": 7.0,
+      "geschwindigkeit_m": 2.16,
+      "betaQ": 0.1827749289076504
+     },
      "acx_panel": {
       "power_0_10": 8.6,
       "spin_right_R": -0.55,
@@ -49,9 +59,9 @@
       "cue_angle_deg": 7
      },
      "caromball_start": {
-      "favorite_id": "1ccb4b00-de44-4704-beab-b7760e6ad56f",
+      "favorite_id": "34eb5833-df9b-48cb-a8fd-951f5ddd2721",
       "table_size": "Size260",
-      "geschwindigkeit_m": 3.44
+      "geschwindigkeit_m": 2.16
      }
     }
    }
@@ -82,14 +92,24 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.9423,
-     0.2914
+     0.9426,
+     0.2907
     ],
-    "quantity_of_ball": 0.85,
-    "speed": 3,
+    "quantity_of_ball": 0.869,
+    "speed": 2,
     "effect_horizontal": -1,
     "effect_vertical": 0,
     "properties": {
+     "richtung": "caromball_opt",
+     "caromball_raw": {
+      "favorite_id": "a61e04fa-0bed-41d1-9be1-a15be69d00aa",
+      "table_size": "Size260",
+      "effet_percent": -49.0,
+      "anspielhoehe_percent": 1.0,
+      "neigung_degrees": 5.0,
+      "geschwindigkeit_m": 1.72,
+      "betaQ": 5.425064952230102
+     },
      "acx_panel": {
       "power_0_10": 7.8,
       "spin_right_R": -0.49,
@@ -98,9 +118,9 @@
       "cue_angle_deg": 2
      },
      "caromball_start": {
-      "favorite_id": "84d43c08-23e1-4693-9593-bd57922226c8",
+      "favorite_id": "7eeec959-a853-414f-ac60-8ee5db36b050",
       "table_size": "Size260",
-      "geschwindigkeit_m": 3.12
+      "geschwindigkeit_m": 1.72
      }
     }
    }
@@ -131,14 +151,24 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.8573,
-     0.4774
+     0.8578,
+     0.4744
     ],
-    "quantity_of_ball": 0.42,
-    "speed": 3,
-    "effect_horizontal": -1,
-    "effect_vertical": -1,
+    "quantity_of_ball": 0.475,
+    "speed": 2,
+    "effect_horizontal": -2,
+    "effect_vertical": 0,
     "properties": {
+     "richtung": "caromball_opt",
+     "caromball_raw": {
+      "favorite_id": "0cb127a4-d617-406e-bfdd-48484e68eef7",
+      "table_size": "Size260",
+      "effet_percent": -50.0,
+      "anspielhoehe_percent": -7.0,
+      "neigung_degrees": 21.0,
+      "geschwindigkeit_m": 1.97,
+      "betaQ": 5.384447754388807
+     },
      "acx_panel": {
       "power_0_10": 7.0,
       "spin_right_R": -0.45,
@@ -147,9 +177,9 @@
       "cue_angle_deg": 1
      },
      "caromball_start": {
-      "favorite_id": "dd676025-bf34-464a-8385-e79482cb4cfb",
+      "favorite_id": "afec384a-0264-484c-861f-69b9041be544",
       "table_size": "Size260",
-      "geschwindigkeit_m": 2.8
+      "geschwindigkeit_m": 1.97
      }
     }
    }
@@ -180,14 +210,24 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.9371,
-     0.1082
+     0.937,
+     0.109
     ],
-    "quantity_of_ball": 0.67,
-    "speed": 3,
+    "quantity_of_ball": 0.685,
+    "speed": 2,
     "effect_horizontal": 0,
     "effect_vertical": -1,
     "properties": {
+     "richtung": "caromball_opt",
+     "caromball_raw": {
+      "favorite_id": "2403ed0b-785a-4b53-8ced-80d3ab706c5e",
+      "table_size": "Size260",
+      "effet_percent": -2.0,
+      "anspielhoehe_percent": -22.0,
+      "neigung_degrees": 1.0,
+      "geschwindigkeit_m": 2,
+      "betaQ": 6.263700207212439
+     },
      "acx_panel": {
       "power_0_10": 7.5,
       "spin_right_R": -0.06,
@@ -196,9 +236,9 @@
       "cue_angle_deg": 0
      },
      "caromball_start": {
-      "favorite_id": "5f4660d7-de77-4cbd-9576-4a161a4ec21c",
+      "favorite_id": "567732ae-8d5b-4bb5-bcc6-4cf3178a0de3",
       "table_size": "Size260",
-      "geschwindigkeit_m": 3.0
+      "geschwindigkeit_m": 2
      }
     }
    }
@@ -229,14 +269,24 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.9371,
-     0.2097
+     0.9359,
+     0.201
     ],
-    "quantity_of_ball": 0.6,
-    "speed": 3,
-    "effect_horizontal": 0,
+    "quantity_of_ball": 0.772,
+    "speed": 2,
+    "effect_horizontal": 1,
     "effect_vertical": -1,
     "properties": {
+     "richtung": "caromball_opt",
+     "caromball_raw": {
+      "favorite_id": "0cd1fb43-c5de-4d64-8ffc-df4d44d8fcc0",
+      "table_size": "Size260",
+      "effet_percent": 22.0,
+      "anspielhoehe_percent": -20.0,
+      "neigung_degrees": 3.0,
+      "geschwindigkeit_m": 1.66,
+      "betaQ": 6.250582050670492
+     },
      "acx_panel": {
       "power_0_10": 7.3,
       "spin_right_R": 0.02,
@@ -245,9 +295,9 @@
       "cue_angle_deg": 3
      },
      "caromball_start": {
-      "favorite_id": "192eb25d-d545-4aa1-b196-3de2b6e4914d",
+      "favorite_id": "392d4451-dcd8-452f-a1c9-678f3d8f2195",
       "table_size": "Size260",
-      "geschwindigkeit_m": 2.92
+      "geschwindigkeit_m": 1.66
      }
     }
    }
@@ -278,14 +328,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.8535,
-     0.2938
+     0.8524,
+     0.2912
     ],
-    "quantity_of_ball": 0.75,
+    "quantity_of_ball": 0.67,
     "speed": 3,
     "effect_horizontal": 1,
     "effect_vertical": -2,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 7.0,
       "spin_right_R": 0.16,
@@ -294,7 +345,7 @@
       "cue_angle_deg": 4
      },
      "caromball_start": {
-      "favorite_id": "1675773f-7b22-498d-a456-a32543c1b9da",
+      "favorite_id": "0fb7dd74-f188-433b-9d7d-dd60672e55eb",
       "table_size": "Size260",
       "geschwindigkeit_m": 2.8
      }
@@ -327,14 +378,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.8469,
-     0.2814
+     0.8387,
+     0.2737
     ],
-    "quantity_of_ball": 0.63,
+    "quantity_of_ball": 0.283,
     "speed": 3,
     "effect_horizontal": 1,
     "effect_vertical": -2,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 7.6,
       "spin_right_R": 0.2,
@@ -343,7 +395,7 @@
       "cue_angle_deg": 5
      },
      "caromball_start": {
-      "favorite_id": "e485bb5c-004d-49ac-a117-fb1a965d1f8e",
+      "favorite_id": "0ad210db-0f1c-442b-b1b9-4359571e13c1",
       "table_size": "Size260",
       "geschwindigkeit_m": 3.04
      }
@@ -376,14 +428,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.8531,
-     0.3121
+     0.854,
+     0.3404
     ],
-    "quantity_of_ball": 0.47,
+    "quantity_of_ball": 0.085,
     "speed": 2,
     "effect_horizontal": -1,
     "effect_vertical": -1,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 5.4,
       "spin_right_R": -0.29,
@@ -392,7 +445,7 @@
       "cue_angle_deg": 7
      },
      "caromball_start": {
-      "favorite_id": "0b7b327b-eb2f-4d06-b147-a6d31884f235",
+      "favorite_id": "1aefc232-bd73-4878-b3d6-1a00093083ce",
       "table_size": "Size260",
       "geschwindigkeit_m": 2.16
      }
@@ -425,14 +478,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.8533,
-     0.2951
+     0.8323,
+     0.2716
     ],
-    "quantity_of_ball": 0.68,
+    "quantity_of_ball": 0.013,
     "speed": 3,
     "effect_horizontal": 1,
     "effect_vertical": -2,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 6.7,
       "spin_right_R": 0.41,
@@ -441,7 +495,7 @@
       "cue_angle_deg": 2
      },
      "caromball_start": {
-      "favorite_id": "448a941b-2c6b-4272-b014-77d75ef66a2a",
+      "favorite_id": "de0b8e54-32a0-4132-b92f-d73b84be0544",
       "table_size": "Size260",
       "geschwindigkeit_m": 2.68
      }
@@ -474,14 +528,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.819,
-     0.6409
+     0.8163,
+     0.6213
     ],
-    "quantity_of_ball": 0.15,
+    "quantity_of_ball": 0.003,
     "speed": 2,
     "effect_horizontal": 1,
     "effect_vertical": 0,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 3.4,
       "spin_right_R": 0.44,
@@ -490,7 +545,7 @@
       "cue_angle_deg": 46
      },
      "caromball_start": {
-      "favorite_id": "23b11f12-651f-4c1e-a22e-7386d023f7d1",
+      "favorite_id": "984e50c7-9afc-4569-b3c3-7e5a3b09c408",
       "table_size": "Size260",
       "geschwindigkeit_m": 1.36
      }
@@ -531,6 +586,7 @@
     "effect_horizontal": 0,
     "effect_vertical": -1,
     "properties": {
+     "richtung": "panel_treffdicke",
      "acx_panel": {
       "power_0_10": 7.6,
       "spin_right_R": -0.01,
@@ -539,7 +595,7 @@
       "cue_angle_deg": 9
      },
      "caromball_start": {
-      "favorite_id": "060b82fb-c086-4ec7-a2c9-e947122b3e57",
+      "favorite_id": "b447e71b-9a36-4d21-a1c1-d5f3ece2796e",
       "table_size": "Size260",
       "geschwindigkeit_m": 3.04
      }
@@ -580,6 +636,7 @@
     "effect_horizontal": -1,
     "effect_vertical": -2,
     "properties": {
+     "richtung": "panel_treffdicke",
      "acx_panel": {
       "power_0_10": 4.9,
       "spin_right_R": -0.18,
@@ -588,7 +645,7 @@
       "cue_angle_deg": 4
      },
      "caromball_start": {
-      "favorite_id": "77c2ed9a-e04a-49b7-8d3b-2c0f47f3f3eb",
+      "favorite_id": "9e04f541-0992-412c-bdcf-4b40e868eb9d",
       "table_size": "Size260",
       "geschwindigkeit_m": 1.96
      }
@@ -621,14 +678,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.8407,
-     0.3668
+     0.8404,
+     0.3683
     ],
-    "quantity_of_ball": 0.78,
+    "quantity_of_ball": 0.745,
     "speed": 2,
     "effect_horizontal": 0,
     "effect_vertical": -2,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 5.4,
       "spin_right_R": -0.01,
@@ -637,7 +695,7 @@
       "cue_angle_deg": 6
      },
      "caromball_start": {
-      "favorite_id": "e7b767db-1246-43d5-9bc0-b8d85a219c13",
+      "favorite_id": "0077e1bd-b07d-4552-b42f-e20e5f091e58",
       "table_size": "Size260",
       "geschwindigkeit_m": 2.16
      }
@@ -670,14 +728,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.8355,
-     0.3465
+     0.8345,
+     0.3307
     ],
-    "quantity_of_ball": 0.53,
+    "quantity_of_ball": 0.267,
     "speed": 2,
     "effect_horizontal": 1,
     "effect_vertical": -1,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 4.8,
       "spin_right_R": 0.48,
@@ -686,7 +745,7 @@
       "cue_angle_deg": 0
      },
      "caromball_start": {
-      "favorite_id": "3b3958e4-8734-4dc3-99fc-20fac6d61013",
+      "favorite_id": "71d35246-7d97-4406-9b00-1ef16e5b232b",
       "table_size": "Size260",
       "geschwindigkeit_m": 1.92
      }
@@ -719,14 +778,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.2089,
-     0.1215
+     0.2137,
+     0.1287
     ],
-    "quantity_of_ball": 0.15,
+    "quantity_of_ball": 0.054,
     "speed": 3,
     "effect_horizontal": -2,
     "effect_vertical": -1,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 8.5,
       "spin_right_R": -0.5,
@@ -735,7 +795,7 @@
       "cue_angle_deg": 5
      },
      "caromball_start": {
-      "favorite_id": "d164d85f-4b3d-483d-90aa-e5fbabae485a",
+      "favorite_id": "9a320f15-20c6-4a33-b325-d823a182176f",
       "table_size": "Size260",
       "geschwindigkeit_m": 3.4
      }
@@ -768,14 +828,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.6997,
-     0.9267
+     0.7028,
+     0.9418
     ],
-    "quantity_of_ball": 0.8,
+    "quantity_of_ball": 0.481,
     "speed": 2,
     "effect_horizontal": -1,
     "effect_vertical": -2,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 5.2,
       "spin_right_R": -0.21,
@@ -784,7 +845,7 @@
       "cue_angle_deg": 6
      },
      "caromball_start": {
-      "favorite_id": "efb62c4f-1ed5-4041-81dd-de86c20f7a42",
+      "favorite_id": "6f7edfbd-929f-4a1b-9752-d4da75a0d2b1",
       "table_size": "Size260",
       "geschwindigkeit_m": 2.08
      }
@@ -817,14 +878,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.4008,
-     0.0764
+     0.4028,
+     0.0658
     ],
-    "quantity_of_ball": 0.65,
+    "quantity_of_ball": 0.459,
     "speed": 2,
     "effect_horizontal": 1,
     "effect_vertical": -1,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 5.9,
       "spin_right_R": 0.45,
@@ -833,7 +895,7 @@
       "cue_angle_deg": 5
      },
      "caromball_start": {
-      "favorite_id": "afccb992-758d-4f0e-8087-3b21b1eeba80",
+      "favorite_id": "e487c24a-66ec-4288-88c2-335d11d54c6e",
       "table_size": "Size260",
       "geschwindigkeit_m": 2.36
      }
@@ -874,6 +936,7 @@
     "effect_horizontal": 1,
     "effect_vertical": -1,
     "properties": {
+     "richtung": "panel_treffdicke",
      "acx_panel": {
       "power_0_10": 7.1,
       "spin_right_R": 0.48,
@@ -882,7 +945,7 @@
       "cue_angle_deg": 0
      },
      "caromball_start": {
-      "favorite_id": "fd1fc85c-654e-440d-9281-0548a0e7b83a",
+      "favorite_id": "1ed8abbf-339b-4680-9a37-00238e7964cc",
       "table_size": "Size260",
       "geschwindigkeit_m": 2.84
      }
@@ -915,14 +978,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.9211,
-     0.1628
+     0.9214,
+     0.1634
     ],
-    "quantity_of_ball": 0.82,
+    "quantity_of_ball": 0.801,
     "speed": 3,
     "effect_horizontal": 1,
     "effect_vertical": 0,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 7.3,
       "spin_right_R": 0.31,
@@ -931,7 +995,7 @@
       "cue_angle_deg": 0
      },
      "caromball_start": {
-      "favorite_id": "7d422f03-d171-4809-ba2f-5634e83b6685",
+      "favorite_id": "dff39249-b8a9-4542-a49d-11f58ef8f81d",
       "table_size": "Size260",
       "geschwindigkeit_m": 2.92
      }
@@ -964,14 +1028,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.6528,
-     0.9274
+     0.6541,
+     0.9323
     ],
-    "quantity_of_ball": 0.82,
+    "quantity_of_ball": 0.716,
     "speed": 2,
     "effect_horizontal": -1,
     "effect_vertical": -1,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 5.3,
       "spin_right_R": -0.49,
@@ -980,7 +1045,7 @@
       "cue_angle_deg": 5
      },
      "caromball_start": {
-      "favorite_id": "2cd1dbc0-7cf1-4fde-82f3-4b92066f56b5",
+      "favorite_id": "906c3141-6d8a-4b78-ba43-9eab92085c9f",
       "table_size": "Size260",
       "geschwindigkeit_m": 2.12
      }
@@ -1013,14 +1078,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.3905,
-     0.0685
+     0.3893,
+     0.0723
     ],
-    "quantity_of_ball": 0.44,
+    "quantity_of_ball": 0.513,
     "speed": 3,
     "effect_horizontal": 0,
     "effect_vertical": -1,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 6.7,
       "spin_right_R": -0.04,
@@ -1029,7 +1095,7 @@
       "cue_angle_deg": 5
      },
      "caromball_start": {
-      "favorite_id": "d58e605a-8d5f-43d1-ba03-1b04096c1b53",
+      "favorite_id": "ff708d01-a958-4973-9fb4-aa884b1643f8",
       "table_size": "Size260",
       "geschwindigkeit_m": 2.68
      }
@@ -1062,14 +1128,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.3,
-     0.3068
+     0.2985,
+     0.3008
     ],
-    "quantity_of_ball": 0.85,
+    "quantity_of_ball": 0.989,
     "speed": 3,
     "effect_horizontal": 1,
     "effect_vertical": -2,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 6.3,
       "spin_right_R": 0.16,
@@ -1078,7 +1145,7 @@
       "cue_angle_deg": 6
      },
      "caromball_start": {
-      "favorite_id": "9c009963-9088-4d88-ae67-2a02a920b986",
+      "favorite_id": "28b17d5c-311b-41c1-a10b-53bf7ce8f4ab",
       "table_size": "Size260",
       "geschwindigkeit_m": 2.52
      }
@@ -1111,14 +1178,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.9452,
-     0.4894
+     0.9514,
+     0.5074
     ],
-    "quantity_of_ball": 0.23,
+    "quantity_of_ball": 0.035,
     "speed": 2,
     "effect_horizontal": 0,
     "effect_vertical": -2,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 5.2,
       "spin_right_R": 0.09,
@@ -1127,7 +1195,7 @@
       "cue_angle_deg": 5
      },
      "caromball_start": {
-      "favorite_id": "f34e345f-1f2f-43d2-a2f5-29024521f52a",
+      "favorite_id": "a1f363ca-c5c4-4651-b115-774ea49a2b4f",
       "table_size": "Size260",
       "geschwindigkeit_m": 2.08
      }
@@ -1160,14 +1228,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.7339,
-     0.3429
+     0.7346,
+     0.3435
     ],
-    "quantity_of_ball": 0.49,
+    "quantity_of_ball": 0.46,
     "speed": 2,
     "effect_horizontal": 0,
     "effect_vertical": -2,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 4.0,
       "spin_right_R": 0.09,
@@ -1176,7 +1245,7 @@
       "cue_angle_deg": 5
      },
      "caromball_start": {
-      "favorite_id": "ef4b94f8-4d05-4cc3-a626-7d51f5e3fb0a",
+      "favorite_id": "56d1b9f0-1e9e-40c8-b17c-4fc1e6340ee7",
       "table_size": "Size260",
       "geschwindigkeit_m": 1.6
      }
@@ -1209,14 +1278,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.0452,
-     0.5694
+     0.0531,
+     0.5877
     ],
-    "quantity_of_ball": 0.4,
+    "quantity_of_ball": 0.092,
     "speed": 2,
     "effect_horizontal": -2,
     "effect_vertical": -1,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 4.4,
       "spin_right_R": -0.5,
@@ -1225,7 +1295,7 @@
       "cue_angle_deg": 0
      },
      "caromball_start": {
-      "favorite_id": "c1dde116-81b6-459b-98bc-9c46a569cf3c",
+      "favorite_id": "87bb1f81-6f79-4e5a-9d79-d1f41ae1504f",
       "table_size": "Size260",
       "geschwindigkeit_m": 1.76
      }
@@ -1258,14 +1328,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.6355,
-     0.3156
+     0.6267,
+     0.2996
     ],
-    "quantity_of_ball": 0.49,
+    "quantity_of_ball": 0.16,
     "speed": 3,
     "effect_horizontal": 1,
     "effect_vertical": 1,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 8.7,
       "spin_right_R": 0.31,
@@ -1274,7 +1345,7 @@
       "cue_angle_deg": 0
      },
      "caromball_start": {
-      "favorite_id": "916c456b-81a2-43a1-87d4-3ec3f5112d03",
+      "favorite_id": "71cfa12d-b473-429c-b70a-c1c6b5a7f08f",
       "table_size": "Size260",
       "geschwindigkeit_m": 3.48
      }
@@ -1307,14 +1378,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.3416,
-     0.896
+     0.3426,
+     0.8986
     ],
-    "quantity_of_ball": 0.38,
+    "quantity_of_ball": 0.429,
     "speed": 2,
     "effect_horizontal": 0,
     "effect_vertical": 1,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 5.3,
       "spin_right_R": 0.06,
@@ -1323,7 +1395,7 @@
       "cue_angle_deg": 0
      },
      "caromball_start": {
-      "favorite_id": "8e1b38c0-912a-4a78-8ae1-39bfb3a32aa9",
+      "favorite_id": "492b6a15-0598-40c2-b636-b63dce909f48",
       "table_size": "Size260",
       "geschwindigkeit_m": 2.12
      }
@@ -1356,14 +1428,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.8635,
-     0.9146
+     0.8634,
+     0.9123
     ],
-    "quantity_of_ball": 1.0,
+    "quantity_of_ball": 0.927,
     "speed": 2,
     "effect_horizontal": 1,
     "effect_vertical": -2,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 5.7,
       "spin_right_R": 0.38,
@@ -1372,7 +1445,7 @@
       "cue_angle_deg": 0
      },
      "caromball_start": {
-      "favorite_id": "7b3e2600-cf29-410f-903c-505360154ad2",
+      "favorite_id": "74818f75-7ef7-4274-a515-5c24ea9d7b95",
       "table_size": "Size260",
       "geschwindigkeit_m": 2.28
      }
@@ -1405,14 +1478,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.4844,
-     0.6938
+     0.4845,
+     0.6935
     ],
-    "quantity_of_ball": 0.43,
+    "quantity_of_ball": 0.437,
     "speed": 3,
     "effect_horizontal": 1,
     "effect_vertical": -1,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 7.4,
       "spin_right_R": 0.48,
@@ -1421,7 +1495,7 @@
       "cue_angle_deg": 3
      },
      "caromball_start": {
-      "favorite_id": "d71727e3-334a-4156-84e4-c07470d0702d",
+      "favorite_id": "774c2c8e-55b0-4ba9-95b2-712e0ab16c2c",
       "table_size": "Size260",
       "geschwindigkeit_m": 2.96
      }
@@ -1454,14 +1528,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.3238,
-     0.6117
+     0.3223,
+     0.6077
     ],
-    "quantity_of_ball": 0.57,
+    "quantity_of_ball": 0.488,
     "speed": 2,
     "effect_horizontal": 1,
     "effect_vertical": 1,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 5.6,
       "spin_right_R": 0.27,
@@ -1470,7 +1545,7 @@
       "cue_angle_deg": 3
      },
      "caromball_start": {
-      "favorite_id": "3acb7a5b-8be9-4e77-854d-2f830191b2b2",
+      "favorite_id": "b433af41-bc69-4340-847f-14eaf385dc9e",
       "table_size": "Size260",
       "geschwindigkeit_m": 2.24
      }
@@ -1503,14 +1578,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.0684,
-     0.533
+     0.0706,
+     0.5275
     ],
-    "quantity_of_ball": 0.74,
+    "quantity_of_ball": 0.869,
     "speed": 2,
     "effect_horizontal": 0,
     "effect_vertical": 1,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 5.8,
       "spin_right_R": 0.13,
@@ -1519,7 +1595,7 @@
       "cue_angle_deg": 0
      },
      "caromball_start": {
-      "favorite_id": "21dd512e-877f-492c-889e-dcb60ddf931a",
+      "favorite_id": "518dacb2-fa4f-4772-b373-b11e66e9eb0d",
       "table_size": "Size260",
       "geschwindigkeit_m": 2.32
      }
@@ -1552,14 +1628,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.2496,
-     0.4893
+     0.2508,
+     0.4799
     ],
-    "quantity_of_ball": 0.35,
+    "quantity_of_ball": 0.218,
     "speed": 2,
     "effect_horizontal": 1,
     "effect_vertical": 0,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 3.3,
       "spin_right_R": 0.44,
@@ -1568,7 +1645,7 @@
       "cue_angle_deg": 0
      },
      "caromball_start": {
-      "favorite_id": "a73633e7-bf1c-4365-b15a-7bb2d666474c",
+      "favorite_id": "1024d57e-b698-4b87-91b6-a3b4eb6a5bca",
       "table_size": "Size260",
       "geschwindigkeit_m": 1.32
      }
@@ -1601,14 +1678,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.2312,
-     0.5403
+     0.2391,
+     0.5505
     ],
-    "quantity_of_ball": 0.59,
+    "quantity_of_ball": 0.273,
     "speed": 2,
     "effect_horizontal": 0,
     "effect_vertical": 0,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 4.1,
       "spin_right_R": 0.07,
@@ -1617,7 +1695,7 @@
       "cue_angle_deg": 0
      },
      "caromball_start": {
-      "favorite_id": "63d409b8-23ba-4f1e-9901-ded738e8aec5",
+      "favorite_id": "6e0e9f6a-467e-4817-9494-a8f5567cf800",
       "table_size": "Size260",
       "geschwindigkeit_m": 1.64
      }
@@ -1650,14 +1728,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.9057,
-     0.8912
+     0.9043,
+     0.8924
     ],
-    "quantity_of_ball": 0.76,
+    "quantity_of_ball": 0.699,
     "speed": 2,
     "effect_horizontal": 0,
     "effect_vertical": -1,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 5.0,
       "spin_right_R": -0.07,
@@ -1666,7 +1745,7 @@
       "cue_angle_deg": 0
      },
      "caromball_start": {
-      "favorite_id": "562dc86b-e605-460a-88cd-c6fa55441864",
+      "favorite_id": "74e9e407-0e21-4c1a-bca9-56edb706171e",
       "table_size": "Size260",
       "geschwindigkeit_m": 2.0
      }
@@ -1699,14 +1778,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.959,
-     0.8998
+     0.9586,
+     0.8995
     ],
-    "quantity_of_ball": 0.7,
+    "quantity_of_ball": 0.718,
     "speed": 2,
     "effect_horizontal": 0,
     "effect_vertical": -1,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 5.1,
       "spin_right_R": 0.09,
@@ -1715,7 +1795,7 @@
       "cue_angle_deg": 2
      },
      "caromball_start": {
-      "favorite_id": "2a35d91d-c2bc-4292-a26d-b31070a6627d",
+      "favorite_id": "2f6a98e2-e5fe-4477-8662-26583c3f2178",
       "table_size": "Size260",
       "geschwindigkeit_m": 2.04
      }
@@ -1749,13 +1829,14 @@
     "ball_target": "b2",
     "contact": [
      0.7836,
-     0.056
+     0.0558
     ],
-    "quantity_of_ball": 0.74,
+    "quantity_of_ball": 0.736,
     "speed": 2,
     "effect_horizontal": 1,
     "effect_vertical": -1,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 4.5,
       "spin_right_R": 0.44,
@@ -1764,7 +1845,7 @@
       "cue_angle_deg": 3
      },
      "caromball_start": {
-      "favorite_id": "959433c3-239f-4b82-8331-6346192b0370",
+      "favorite_id": "f0b77320-8147-45a8-8529-f161844c16ed",
       "table_size": "Size260",
       "geschwindigkeit_m": 1.8
      }
@@ -1797,14 +1878,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.8645,
-     0.0476
+     0.8647,
+     0.0456
     ],
-    "quantity_of_ball": 0.6,
+    "quantity_of_ball": 0.555,
     "speed": 3,
     "effect_horizontal": 0,
     "effect_vertical": -2,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 6.7,
       "spin_right_R": -0.02,
@@ -1813,7 +1895,7 @@
       "cue_angle_deg": 0
      },
      "caromball_start": {
-      "favorite_id": "82ca2232-2414-4448-8857-a917a7439638",
+      "favorite_id": "d0f78324-e832-4473-a59d-723a45a9e78f",
       "table_size": "Size260",
       "geschwindigkeit_m": 2.68
      }
@@ -1846,14 +1928,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.7708,
-     0.3697
+     0.7702,
+     0.3716
     ],
-    "quantity_of_ball": 0.9,
+    "quantity_of_ball": 0.851,
     "speed": 3,
     "effect_horizontal": -1,
     "effect_vertical": 0,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 7.3,
       "spin_right_R": -0.49,
@@ -1862,7 +1945,7 @@
       "cue_angle_deg": 0
      },
      "caromball_start": {
-      "favorite_id": "d9dd004e-4492-4d82-8f20-34d613710fd6",
+      "favorite_id": "82b81925-4dd0-4f18-aa0b-e7584086ebd4",
       "table_size": "Size260",
       "geschwindigkeit_m": 2.92
      }
@@ -1895,14 +1978,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.7269,
-     0.4635
+     0.7284,
+     0.4589
     ],
-    "quantity_of_ball": 0.79,
+    "quantity_of_ball": 0.928,
     "speed": 2,
     "effect_horizontal": 0,
     "effect_vertical": -2,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 4.4,
       "spin_right_R": -0.04,
@@ -1911,7 +1995,7 @@
       "cue_angle_deg": 6
      },
      "caromball_start": {
-      "favorite_id": "eae12dbc-77f4-4af5-997e-1ffb8f9282f0",
+      "favorite_id": "f19800c3-7606-414d-aee7-5bbc0f7ea3d7",
       "table_size": "Size260",
       "geschwindigkeit_m": 1.76
      }
@@ -1944,14 +2028,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.4547,
-     0.6067
+     0.4678,
+     0.6071
     ],
-    "quantity_of_ball": 0.42,
+    "quantity_of_ball": 0.089,
     "speed": 2,
     "effect_horizontal": 0,
     "effect_vertical": -2,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 4.3,
       "spin_right_R": -0.01,
@@ -1960,7 +2045,7 @@
       "cue_angle_deg": 7
      },
      "caromball_start": {
-      "favorite_id": "b5cf1ce2-0428-4491-a37e-754d021e11e3",
+      "favorite_id": "dc3edf73-6078-488f-9ea3-bb01b9efafc5",
       "table_size": "Size260",
       "geschwindigkeit_m": 1.72
      }
@@ -1993,14 +2078,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.4666,
-     0.6084
+     0.4749,
+     0.6058
     ],
-    "quantity_of_ball": 0.42,
+    "quantity_of_ball": 0.173,
     "speed": 2,
     "effect_horizontal": 0,
     "effect_vertical": -2,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 3.7,
       "spin_right_R": 0.05,
@@ -2009,7 +2095,7 @@
       "cue_angle_deg": 6
      },
      "caromball_start": {
-      "favorite_id": "d2eafd70-12d8-43db-840a-6a4498caa0fb",
+      "favorite_id": "806122a4-f64d-4e95-bd04-c8bba9b89a7a",
       "table_size": "Size260",
       "geschwindigkeit_m": 1.48
      }
@@ -2042,14 +2128,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.7363,
-     0.3644
+     0.7365,
+     0.3753
     ],
-    "quantity_of_ball": 0.52,
+    "quantity_of_ball": 0.336,
     "speed": 2,
     "effect_horizontal": -1,
     "effect_vertical": -1,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 5.0,
       "spin_right_R": -0.31,
@@ -2058,7 +2145,7 @@
       "cue_angle_deg": 3
      },
      "caromball_start": {
-      "favorite_id": "6bd17848-694d-4739-8dc3-e5179ad1b9b2",
+      "favorite_id": "9cf9814a-aca5-47a0-b27a-e1af621ae027",
       "table_size": "Size260",
       "geschwindigkeit_m": 2.0
      }
@@ -2091,14 +2178,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.7789,
-     0.4719
+     0.7798,
+     0.477
     ],
-    "quantity_of_ball": 0.94,
+    "quantity_of_ball": 0.781,
     "speed": 2,
     "effect_horizontal": 1,
     "effect_vertical": -2,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 5.1,
       "spin_right_R": 0.27,
@@ -2107,7 +2195,7 @@
       "cue_angle_deg": 0
      },
      "caromball_start": {
-      "favorite_id": "3bf88bc1-ece2-4683-bcc8-8e35c48e7bdd",
+      "favorite_id": "01784d6b-8d05-4c8f-8471-b3d1f575c560",
       "table_size": "Size260",
       "geschwindigkeit_m": 2.04
      }
@@ -2148,6 +2236,7 @@
     "effect_horizontal": 0,
     "effect_vertical": 1,
     "properties": {
+     "richtung": "panel_treffdicke",
      "acx_panel": {
       "power_0_10": 2.0,
       "spin_right_R": 0.02,
@@ -2156,7 +2245,7 @@
       "cue_angle_deg": 0
      },
      "caromball_start": {
-      "favorite_id": "7c574043-d003-4350-bb05-15e03beb5b9c",
+      "favorite_id": "0977b13e-e2e2-49a2-9b18-8f12c8af17db",
       "table_size": "Size260",
       "geschwindigkeit_m": 0.8
      }
@@ -2189,14 +2278,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.7785,
-     0.4795
+     0.781,
+     0.4999
     ],
-    "quantity_of_ball": 0.58,
+    "quantity_of_ball": 0.226,
     "speed": 2,
     "effect_horizontal": -1,
     "effect_vertical": -1,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 4.9,
       "spin_right_R": -0.37,
@@ -2205,7 +2295,7 @@
       "cue_angle_deg": 5
      },
      "caromball_start": {
-      "favorite_id": "902c37f7-9926-4b1b-946f-9b2427805d17",
+      "favorite_id": "b36fe9d8-f136-48cf-8ad8-1c350d971134",
       "table_size": "Size260",
       "geschwindigkeit_m": 1.96
      }
@@ -2238,14 +2328,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.527,
-     0.0553
+     0.5264,
+     0.0593
     ],
-    "quantity_of_ball": 0.75,
+    "quantity_of_ball": 0.653,
     "speed": 2,
     "effect_horizontal": -1,
     "effect_vertical": -2,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 4.4,
       "spin_right_R": -0.16,
@@ -2254,7 +2345,7 @@
       "cue_angle_deg": 0
      },
      "caromball_start": {
-      "favorite_id": "2695f8ee-1e4f-44cd-bdb3-80b79246384e",
+      "favorite_id": "da85e96d-f1ed-4b04-b5f3-72cd0eae8159",
       "table_size": "Size260",
       "geschwindigkeit_m": 1.76
      }
@@ -2295,6 +2386,7 @@
     "effect_horizontal": 0,
     "effect_vertical": -1,
     "properties": {
+     "richtung": "panel_treffdicke",
      "acx_panel": {
       "power_0_10": 4.6,
       "spin_right_R": -0.12,
@@ -2303,7 +2395,7 @@
       "cue_angle_deg": 0
      },
      "caromball_start": {
-      "favorite_id": "2eed5bd3-abab-4d8b-a553-5ff0d47d1e4e",
+      "favorite_id": "034fd1db-1a25-4c15-8e3f-b0d0bae15624",
       "table_size": "Size260",
       "geschwindigkeit_m": 1.84
      }
@@ -2336,14 +2428,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.8261,
-     0.2355
+     0.8263,
+     0.2278
     ],
-    "quantity_of_ball": 0.84,
+    "quantity_of_ball": 0.647,
     "speed": 2,
     "effect_horizontal": 0,
     "effect_vertical": -2,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 5.1,
       "spin_right_R": -0.12,
@@ -2352,7 +2445,7 @@
       "cue_angle_deg": 5
      },
      "caromball_start": {
-      "favorite_id": "4c40e161-f044-467a-b3a4-8e4b2577d518",
+      "favorite_id": "76926393-8e77-4f02-9c0d-9d8af15d4544",
       "table_size": "Size260",
       "geschwindigkeit_m": 2.04
      }
@@ -2385,14 +2478,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.6772,
-     0.9077
+     0.6738,
+     0.9175
     ],
-    "quantity_of_ball": 0.78,
+    "quantity_of_ball": 0.565,
     "speed": 2,
     "effect_horizontal": 0,
     "effect_vertical": 1,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 5.6,
       "spin_right_R": 0.02,
@@ -2401,7 +2495,7 @@
       "cue_angle_deg": 3
      },
      "caromball_start": {
-      "favorite_id": "e4bdb02c-3957-4b07-92bb-3068f729f44d",
+      "favorite_id": "a1730aa1-38f6-4757-8f58-bf0accdef897",
       "table_size": "Size260",
       "geschwindigkeit_m": 2.24
      }
@@ -2434,14 +2528,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.719,
-     0.0699
+     0.7208,
+     0.0525
     ],
-    "quantity_of_ball": 0.67,
+    "quantity_of_ball": 0.353,
     "speed": 2,
     "effect_horizontal": 1,
     "effect_vertical": -1,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 5.0,
       "spin_right_R": 0.43,
@@ -2450,7 +2545,7 @@
       "cue_angle_deg": 5
      },
      "caromball_start": {
-      "favorite_id": "6185b836-9b0e-4187-99bc-8b4b0afea92b",
+      "favorite_id": "0b9f2e14-04b0-4dd9-bfc8-dc7be497a7c7",
       "table_size": "Size260",
       "geschwindigkeit_m": 2.0
      }
@@ -2483,14 +2578,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.8978,
+     0.8925,
      0.4412
     ],
-    "quantity_of_ball": 0.26,
+    "quantity_of_ball": 0.134,
     "speed": 2,
     "effect_horizontal": -1,
     "effect_vertical": 1,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 4.0,
       "spin_right_R": -0.16,
@@ -2499,7 +2595,7 @@
       "cue_angle_deg": 0
      },
      "caromball_start": {
-      "favorite_id": "0c43bca6-351d-4542-8de9-48da0a2df170",
+      "favorite_id": "fcbb2c94-d7e5-4784-be4c-66f42522d2c2",
       "table_size": "Size260",
       "geschwindigkeit_m": 1.6
      }
@@ -2532,14 +2628,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.8798,
-     0.3958
+     0.8762,
+     0.3964
     ],
-    "quantity_of_ball": 0.26,
+    "quantity_of_ball": 0.169,
     "speed": 2,
     "effect_horizontal": -2,
     "effect_vertical": -1,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 4.9,
       "spin_right_R": -0.54,
@@ -2548,7 +2645,7 @@
       "cue_angle_deg": 0
      },
      "caromball_start": {
-      "favorite_id": "d01dfebd-8ca4-4183-867a-290ff1352ae3",
+      "favorite_id": "6df4af98-bbcc-4809-a9e4-2b39cb71089d",
       "table_size": "Size260",
       "geschwindigkeit_m": 1.96
      }
@@ -2581,14 +2678,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.5302,
-     0.489
+     0.5303,
+     0.4925
     ],
-    "quantity_of_ball": 0.78,
+    "quantity_of_ball": 0.706,
     "speed": 2,
     "effect_horizontal": 0,
     "effect_vertical": -2,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 4.8,
       "spin_right_R": -0.02,
@@ -2597,7 +2695,7 @@
       "cue_angle_deg": 3
      },
      "caromball_start": {
-      "favorite_id": "719fa848-fb7e-4dd8-adfe-18bb2fc8a1f5",
+      "favorite_id": "552ae8b9-8d04-4ad9-a46e-702637fe82ec",
       "table_size": "Size260",
       "geschwindigkeit_m": 1.92
      }
@@ -2630,14 +2728,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.8571,
-     0.3532
+     0.8589,
+     0.3363
     ],
-    "quantity_of_ball": 0.6,
+    "quantity_of_ball": 0.295,
     "speed": 2,
     "effect_horizontal": 0,
     "effect_vertical": 0,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 5.9,
       "spin_right_R": 0.09,
@@ -2646,7 +2745,7 @@
       "cue_angle_deg": 3
      },
      "caromball_start": {
-      "favorite_id": "64c52624-bb7f-49a4-9bfa-ce48ddf43c57",
+      "favorite_id": "3c0e5f8c-0170-47fa-ae11-96001b93b6dd",
       "table_size": "Size260",
       "geschwindigkeit_m": 2.36
      }
@@ -2679,14 +2778,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.8043,
-     0.3034
+     0.8037,
+     0.3054
     ],
-    "quantity_of_ball": 0.72,
+    "quantity_of_ball": 0.669,
     "speed": 2,
     "effect_horizontal": 0,
     "effect_vertical": -2,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 5.3,
       "spin_right_R": -0.01,
@@ -2695,7 +2795,7 @@
       "cue_angle_deg": 6
      },
      "caromball_start": {
-      "favorite_id": "5b82eced-bab2-4c46-88f5-02bdfb7938ae",
+      "favorite_id": "1f02b7d5-58d3-4759-a277-af493a9fec81",
       "table_size": "Size260",
       "geschwindigkeit_m": 2.12
      }
@@ -2728,14 +2828,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.3596,
-     0.8527
+     0.3705,
+     0.8426
     ],
-    "quantity_of_ball": 0.7,
+    "quantity_of_ball": 0.322,
     "speed": 2,
     "effect_horizontal": 1,
     "effect_vertical": 0,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 4.8,
       "spin_right_R": 0.44,
@@ -2744,7 +2845,7 @@
       "cue_angle_deg": 0
      },
      "caromball_start": {
-      "favorite_id": "26754cf4-a82e-45e7-995a-59a15c718b8c",
+      "favorite_id": "86b231a2-a377-43c0-9105-326128cf6a43",
       "table_size": "Size260",
       "geschwindigkeit_m": 1.92
      }
@@ -2777,14 +2878,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.2005,
-     0.8584
+     0.1996,
+     0.8603
     ],
-    "quantity_of_ball": 0.49,
+    "quantity_of_ball": 0.448,
     "speed": 3,
     "effect_horizontal": 1,
     "effect_vertical": 0,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 6.9,
       "spin_right_R": 0.4,
@@ -2793,7 +2895,7 @@
       "cue_angle_deg": 1
      },
      "caromball_start": {
-      "favorite_id": "63d65584-807a-4034-a7cc-131c2a77bce8",
+      "favorite_id": "32cc593b-3136-482e-a920-401f68310713",
       "table_size": "Size260",
       "geschwindigkeit_m": 2.76
      }
@@ -2826,14 +2928,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.264,
-     0.8825
+     0.2699,
+     0.8937
     ],
-    "quantity_of_ball": 0.62,
+    "quantity_of_ball": 0.347,
     "speed": 2,
     "effect_horizontal": -1,
     "effect_vertical": -2,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 5.3,
       "spin_right_R": -0.31,
@@ -2842,7 +2945,7 @@
       "cue_angle_deg": 5
      },
      "caromball_start": {
-      "favorite_id": "a2c615ed-4844-44cf-8014-2e370b9698b0",
+      "favorite_id": "a0d6296f-9594-46f1-a480-a831d9029ae7",
       "table_size": "Size260",
       "geschwindigkeit_m": 2.12
      }
@@ -2875,14 +2978,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.9365,
-     0.3825
+     0.9362,
+     0.385
     ],
-    "quantity_of_ball": 0.32,
+    "quantity_of_ball": 0.366,
     "speed": 2,
     "effect_horizontal": 1,
     "effect_vertical": 0,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 5.6,
       "spin_right_R": 0.47,
@@ -2891,7 +2995,7 @@
       "cue_angle_deg": 7
      },
      "caromball_start": {
-      "favorite_id": "dc241b0b-0021-482f-8593-6eac95ba5285",
+      "favorite_id": "55303da9-af3c-4e74-a2c4-ced921328b1f",
       "table_size": "Size260",
       "geschwindigkeit_m": 2.24
      }
@@ -2924,14 +3028,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.7929,
-     0.1632
+     0.7906,
+     0.1537
     ],
-    "quantity_of_ball": 0.84,
+    "quantity_of_ball": 0.583,
     "speed": 2,
     "effect_horizontal": 1,
     "effect_vertical": -1,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 5.7,
       "spin_right_R": 0.4,
@@ -2940,7 +3045,7 @@
       "cue_angle_deg": 11
      },
      "caromball_start": {
-      "favorite_id": "e05eef6f-f42c-45a3-b558-835d34a24570",
+      "favorite_id": "172eec22-27ec-4132-b660-7502dbbebf77",
       "table_size": "Size260",
       "geschwindigkeit_m": 2.28
      }
@@ -2981,6 +3086,7 @@
     "effect_horizontal": 1,
     "effect_vertical": -2,
     "properties": {
+     "richtung": "panel_treffdicke",
      "acx_panel": {
       "power_0_10": 5.2,
       "spin_right_R": 0.37,
@@ -2989,7 +3095,7 @@
       "cue_angle_deg": 5
      },
      "caromball_start": {
-      "favorite_id": "a38f776c-2c73-4f6c-8220-383a7c5e32e0",
+      "favorite_id": "453c0304-98b7-4990-a852-d8299f276304",
       "table_size": "Size260",
       "geschwindigkeit_m": 2.08
      }
@@ -3022,14 +3128,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.67,
-     0.1483
+     0.6683,
+     0.1396
     ],
-    "quantity_of_ball": 0.85,
+    "quantity_of_ball": 0.616,
     "speed": 2,
     "effect_horizontal": 1,
     "effect_vertical": -1,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 4.9,
       "spin_right_R": 0.45,
@@ -3038,7 +3145,7 @@
       "cue_angle_deg": 5
      },
      "caromball_start": {
-      "favorite_id": "9bc286da-79c9-4af3-b21a-bc3d5dcfc2ef",
+      "favorite_id": "bca27687-6abd-4888-b6ea-581aac559124",
       "table_size": "Size260",
       "geschwindigkeit_m": 1.96
      }
@@ -3079,6 +3186,7 @@
     "effect_horizontal": 0,
     "effect_vertical": -2,
     "properties": {
+     "richtung": "panel_treffdicke",
      "acx_panel": {
       "power_0_10": 5.1,
       "spin_right_R": -0.01,
@@ -3087,7 +3195,7 @@
       "cue_angle_deg": 7
      },
      "caromball_start": {
-      "favorite_id": "b169dd6c-a973-49c2-be5f-f40560f9a510",
+      "favorite_id": "38d4d537-d6e5-4cd6-8424-bc786caba64c",
       "table_size": "Size260",
       "geschwindigkeit_m": 2.04
      }
@@ -3128,6 +3236,7 @@
     "effect_horizontal": -1,
     "effect_vertical": -2,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 4.4,
       "spin_right_R": -0.31,
@@ -3136,7 +3245,7 @@
       "cue_angle_deg": 0
      },
      "caromball_start": {
-      "favorite_id": "d639fdec-615d-46f6-bc19-b5000371ffdd",
+      "favorite_id": "192c2ad8-ac84-47f4-9499-a7f2eb0cbc02",
       "table_size": "Size260",
       "geschwindigkeit_m": 1.76
      }
@@ -3169,14 +3278,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.4814,
-     0.1387
+     0.4817,
+     0.1389
     ],
-    "quantity_of_ball": 0.47,
+    "quantity_of_ball": 0.479,
     "speed": 2,
     "effect_horizontal": -1,
     "effect_vertical": 0,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 5.6,
       "spin_right_R": -0.47,
@@ -3185,7 +3295,7 @@
       "cue_angle_deg": 0
      },
      "caromball_start": {
-      "favorite_id": "265cacbb-c4b0-43d0-90b2-7c23dcf07b64",
+      "favorite_id": "81c7b0cd-87b9-4c07-a26e-8ff03664271a",
       "table_size": "Size260",
       "geschwindigkeit_m": 2.24
      }
@@ -3218,14 +3328,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.8307,
-     0.2103
+     0.8161,
+     0.2177
     ],
-    "quantity_of_ball": 0.33,
+    "quantity_of_ball": 0.023,
     "speed": 2,
     "effect_horizontal": -1,
     "effect_vertical": 0,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 6.1,
       "spin_right_R": -0.33,
@@ -3234,7 +3345,7 @@
       "cue_angle_deg": 0
      },
      "caromball_start": {
-      "favorite_id": "9e00549e-f7d6-4d1f-b4b0-c056098d4797",
+      "favorite_id": "05c58add-3b84-4ec7-a699-fdeb3d6a1546",
       "table_size": "Size260",
       "geschwindigkeit_m": 2.44
      }
@@ -3267,14 +3378,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.8101,
-     0.3039
+     0.8112,
+     0.3099
     ],
-    "quantity_of_ball": 0.43,
+    "quantity_of_ball": 0.319,
     "speed": 2,
     "effect_horizontal": -2,
     "effect_vertical": -1,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 6.2,
       "spin_right_R": -0.51,
@@ -3283,7 +3395,7 @@
       "cue_angle_deg": 0
      },
      "caromball_start": {
-      "favorite_id": "ccf8d074-e856-4394-8afb-f71fba3c4061",
+      "favorite_id": "bee58c94-00c3-43a7-b853-2cc62aa1c9b2",
       "table_size": "Size260",
       "geschwindigkeit_m": 2.48
      }
@@ -3316,14 +3428,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.7738,
-     0.4956
+     0.7785,
+     0.5273
     ],
-    "quantity_of_ball": 0.4,
+    "quantity_of_ball": 0.038,
     "speed": 2,
     "effect_horizontal": 1,
     "effect_vertical": -1,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 6.2,
       "spin_right_R": 0.19,
@@ -3332,7 +3445,7 @@
       "cue_angle_deg": 0
      },
      "caromball_start": {
-      "favorite_id": "f8294780-8bb0-4ee2-98fd-ffaebb489ec0",
+      "favorite_id": "3d9367bb-35cd-4be8-a077-63ac0af4e82d",
       "table_size": "Size260",
       "geschwindigkeit_m": 2.48
      }
@@ -3365,14 +3478,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.6047,
-     0.3084
+     0.6055,
+     0.3068
     ],
-    "quantity_of_ball": 0.93,
+    "quantity_of_ball": 0.881,
     "speed": 2,
     "effect_horizontal": 0,
     "effect_vertical": 1,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 2.9,
       "spin_right_R": -0.02,
@@ -3381,7 +3495,7 @@
       "cue_angle_deg": 0
      },
      "caromball_start": {
-      "favorite_id": "09167f5a-1cb3-47f1-a395-130fe2ec4464",
+      "favorite_id": "7b8fd0f1-a405-4eb5-a5d5-9475afc974f1",
       "table_size": "Size260",
       "geschwindigkeit_m": 1.16
      }
@@ -3422,6 +3536,7 @@
     "effect_horizontal": 1,
     "effect_vertical": 1,
     "properties": {
+     "richtung": "panel_treffdicke",
      "acx_panel": {
       "power_0_10": 5.4,
       "spin_right_R": 0.3,
@@ -3430,7 +3545,7 @@
       "cue_angle_deg": 0
      },
      "caromball_start": {
-      "favorite_id": "6839fe31-1d16-405f-8ce7-bd8d6d7f3160",
+      "favorite_id": "773bbbf4-81fa-4b79-88ef-b121ca86f1bf",
       "table_size": "Size260",
       "geschwindigkeit_m": 2.16
      }
@@ -3463,14 +3578,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.038,
-     0.8175
+     0.0314,
+     0.8244
     ],
-    "quantity_of_ball": 0.7,
+    "quantity_of_ball": 0.405,
     "speed": 3,
     "effect_horizontal": 0,
     "effect_vertical": -1,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 7.3,
       "spin_right_R": -0.0,
@@ -3479,7 +3595,7 @@
       "cue_angle_deg": 9
      },
      "caromball_start": {
-      "favorite_id": "cb0a626b-a39f-4927-8028-ba4a08dc99b0",
+      "favorite_id": "47b4f364-e400-49b4-8b27-7740c7bdfe7b",
       "table_size": "Size260",
       "geschwindigkeit_m": 2.92
      }
@@ -3512,14 +3628,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.9559,
-     0.2568
+     0.9525,
+     0.2634
     ],
-    "quantity_of_ball": 0.45,
+    "quantity_of_ball": 0.286,
     "speed": 3,
     "effect_horizontal": 1,
     "effect_vertical": -1,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 8.2,
       "spin_right_R": 0.47,
@@ -3528,7 +3645,7 @@
       "cue_angle_deg": 4
      },
      "caromball_start": {
-      "favorite_id": "b91035ab-2432-44cb-b743-aac7b3e37791",
+      "favorite_id": "931dc0c9-4c4e-4f8d-8e8f-8e46da169c02",
       "table_size": "Size260",
       "geschwindigkeit_m": 3.28
      }
@@ -3561,14 +3678,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.9551,
-     0.4885
+     0.9532,
+     0.4923
     ],
-    "quantity_of_ball": 0.38,
+    "quantity_of_ball": 0.296,
     "speed": 3,
     "effect_horizontal": 1,
     "effect_vertical": -2,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 8.2,
       "spin_right_R": 0.33,
@@ -3577,7 +3695,7 @@
       "cue_angle_deg": 5
      },
      "caromball_start": {
-      "favorite_id": "672e38cf-6fe5-47de-bf1e-c44c1ffa12b2",
+      "favorite_id": "5bec3463-24da-4d0b-ac8d-914f93e69530",
       "table_size": "Size260",
       "geschwindigkeit_m": 3.28
      }
@@ -3610,14 +3728,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.7487,
-     0.1402
+     0.7442,
+     0.1268
     ],
-    "quantity_of_ball": 0.84,
+    "quantity_of_ball": 0.471,
     "speed": 2,
     "effect_horizontal": -1,
     "effect_vertical": 0,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 3.9,
       "spin_right_R": -0.46,
@@ -3626,7 +3745,7 @@
       "cue_angle_deg": 4
      },
      "caromball_start": {
-      "favorite_id": "8d80341f-bcfd-4ecc-a18c-04255a7f83b9",
+      "favorite_id": "3fdbcb6f-a769-44d2-a4be-df684ffcd368",
       "table_size": "Size260",
       "geschwindigkeit_m": 1.56
      }
@@ -3667,6 +3786,7 @@
     "effect_horizontal": -2,
     "effect_vertical": 0,
     "properties": {
+     "richtung": "panel_treffdicke",
      "acx_panel": {
       "power_0_10": 3.5,
       "spin_right_R": -0.5,
@@ -3675,7 +3795,7 @@
       "cue_angle_deg": 0
      },
      "caromball_start": {
-      "favorite_id": "2167c8db-ff1e-4b75-8ac8-701a6fcf0dd2",
+      "favorite_id": "6e2d2724-c7ce-4a74-8b81-23365c8c84e9",
       "table_size": "Size260",
       "geschwindigkeit_m": 1.4
      }
@@ -3708,14 +3828,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.6057,
-     0.9304
+     0.6008,
+     0.9589
     ],
-    "quantity_of_ball": 0.61,
+    "quantity_of_ball": 0.177,
     "speed": 2,
     "effect_horizontal": -1,
     "effect_vertical": 1,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 3.5,
       "spin_right_R": -0.22,
@@ -3724,7 +3845,7 @@
       "cue_angle_deg": 1
      },
      "caromball_start": {
-      "favorite_id": "50fa9789-5193-4f7b-8d52-481aeb37b4be",
+      "favorite_id": "ff28d0eb-9d48-477d-a785-d8016a7ed749",
       "table_size": "Size260",
       "geschwindigkeit_m": 1.4
      }
@@ -3757,14 +3878,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.473,
-     0.5041
+     0.4744,
+     0.5198
     ],
-    "quantity_of_ball": 0.35,
+    "quantity_of_ball": 0.15,
     "speed": 1,
     "effect_horizontal": -1,
     "effect_vertical": 1,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 2.2,
       "spin_right_R": -0.43,
@@ -3773,7 +3895,7 @@
       "cue_angle_deg": 0
      },
      "caromball_start": {
-      "favorite_id": "5d7e9294-41cf-47a7-821e-b211704d8d00",
+      "favorite_id": "db270394-1b44-4352-a9e9-26fda653c760",
       "table_size": "Size260",
       "geschwindigkeit_m": 0.88
      }
@@ -3806,14 +3928,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.4781,
-     0.4691
+     0.4823,
+     0.4592
     ],
-    "quantity_of_ball": 0.87,
+    "quantity_of_ball": 0.612,
     "speed": 2,
     "effect_horizontal": 1,
     "effect_vertical": 0,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 3.4,
       "spin_right_R": 0.46,
@@ -3822,7 +3945,7 @@
       "cue_angle_deg": 0
      },
      "caromball_start": {
-      "favorite_id": "c5f13be2-55e9-4d45-bbdf-2f3277ad54e0",
+      "favorite_id": "f925741a-5f11-43cc-9d9a-86e8f2d902ba",
       "table_size": "Size260",
       "geschwindigkeit_m": 1.36
      }
@@ -3863,6 +3986,7 @@
     "effect_horizontal": -1,
     "effect_vertical": -1,
     "properties": {
+     "richtung": "panel_treffdicke",
      "acx_panel": {
       "power_0_10": 4.0,
       "spin_right_R": -0.42,
@@ -3871,7 +3995,7 @@
       "cue_angle_deg": 10
      },
      "caromball_start": {
-      "favorite_id": "7ad007d6-3a09-4b3f-88e5-597ba0aa61c6",
+      "favorite_id": "e4403d39-8f1f-487e-a19f-f2f9a6e6d3ec",
       "table_size": "Size260",
       "geschwindigkeit_m": 1.6
      }
@@ -3912,6 +4036,7 @@
     "effect_horizontal": -1,
     "effect_vertical": -1,
     "properties": {
+     "richtung": "panel_treffdicke",
      "acx_panel": {
       "power_0_10": 4.4,
       "spin_right_R": -0.42,
@@ -3920,7 +4045,7 @@
       "cue_angle_deg": 70
      },
      "caromball_start": {
-      "favorite_id": "f5abaaa3-486a-4feb-a339-d618815c10e7",
+      "favorite_id": "0396a784-383f-42ec-bcd6-70b5e99b1cc1",
       "table_size": "Size260",
       "geschwindigkeit_m": 1.76
      }
@@ -3953,14 +4078,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.8979,
-     0.5283
+     0.9014,
+     0.5289
     ],
-    "quantity_of_ball": 0.87,
+    "quantity_of_ball": 0.711,
     "speed": 2,
     "effect_horizontal": 1,
     "effect_vertical": 1,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 3.7,
       "spin_right_R": 0.43,
@@ -3969,7 +4095,7 @@
       "cue_angle_deg": 2
      },
      "caromball_start": {
-      "favorite_id": "89c00858-395b-4f2e-846f-cc084433dbed",
+      "favorite_id": "63aa2f67-8aeb-4332-8516-a721ab358018",
       "table_size": "Size260",
       "geschwindigkeit_m": 1.48
      }
@@ -4002,14 +4128,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.8278,
-     0.0972
+     0.8253,
+     0.0982
     ],
-    "quantity_of_ball": 0.77,
+    "quantity_of_ball": 0.567,
     "speed": 2,
     "effect_horizontal": -1,
     "effect_vertical": -1,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 3.7,
       "spin_right_R": -0.46,
@@ -4018,7 +4145,7 @@
       "cue_angle_deg": 82
      },
      "caromball_start": {
-      "favorite_id": "8077b75c-fd84-4c5f-8fa1-c27b4359ef09",
+      "favorite_id": "90a3852b-8179-451e-90ac-79bdb26896dd",
       "table_size": "Size260",
       "geschwindigkeit_m": 1.48
      }
@@ -4059,6 +4186,7 @@
     "effect_horizontal": 1,
     "effect_vertical": 0,
     "properties": {
+     "richtung": "panel_treffdicke",
      "acx_panel": {
       "power_0_10": 4.1,
       "spin_right_R": 0.43,
@@ -4067,7 +4195,7 @@
       "cue_angle_deg": 69
      },
      "caromball_start": {
-      "favorite_id": "26c1f750-38ae-4dac-99bc-58e21fe12cd8",
+      "favorite_id": "a7c09b88-6542-449d-b692-1191d12c473b",
       "table_size": "Size260",
       "geschwindigkeit_m": 1.64
      }
@@ -4100,14 +4228,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.9631,
-     0.7003
+     0.9675,
+     0.6953
     ],
-    "quantity_of_ball": 0.62,
+    "quantity_of_ball": 0.402,
     "speed": 1,
     "effect_horizontal": 1,
     "effect_vertical": 1,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 2.0,
       "spin_right_R": 0.16,
@@ -4116,7 +4245,7 @@
       "cue_angle_deg": 2
      },
      "caromball_start": {
-      "favorite_id": "4f9fd75f-eec9-410b-888e-e82004c43f2b",
+      "favorite_id": "d85d0c42-b0f3-4574-8cd7-71eea5186bea",
       "table_size": "Size260",
       "geschwindigkeit_m": 0.8
      }
@@ -4149,14 +4278,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.97,
-     0.5865
+     0.9526,
+     0.5533
     ],
-    "quantity_of_ball": 0.52,
+    "quantity_of_ball": 0.0,
     "speed": 2,
     "effect_horizontal": 0,
     "effect_vertical": -1,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 3.8,
       "spin_right_R": -0.05,
@@ -4165,7 +4295,7 @@
       "cue_angle_deg": 6
      },
      "caromball_start": {
-      "favorite_id": "27c5b38c-b067-45d6-a635-9b509ba4ea73",
+      "favorite_id": "8fa43886-2b12-423f-9a6a-36b3b81c498f",
       "table_size": "Size260",
       "geschwindigkeit_m": 1.52
      }
@@ -4198,14 +4328,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.9793,
-     0.4647
+     0.9772,
+     0.4649
     ],
-    "quantity_of_ball": 0.89,
+    "quantity_of_ball": 0.99,
     "speed": 1,
     "effect_horizontal": 1,
     "effect_vertical": 1,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 2.1,
       "spin_right_R": 0.4,
@@ -4214,7 +4345,7 @@
       "cue_angle_deg": 0
      },
      "caromball_start": {
-      "favorite_id": "a00b0a04-79cd-4ed4-9dab-5006dd67854a",
+      "favorite_id": "d0efc831-dbda-4384-b420-28701feda49f",
       "table_size": "Size260",
       "geschwindigkeit_m": 0.84
      }
@@ -4255,6 +4386,7 @@
     "effect_horizontal": 1,
     "effect_vertical": 0,
     "properties": {
+     "richtung": "panel_treffdicke",
      "acx_panel": {
       "power_0_10": 2.1,
       "spin_right_R": 0.46,
@@ -4263,7 +4395,7 @@
       "cue_angle_deg": 6
      },
      "caromball_start": {
-      "favorite_id": "4b581457-62c6-4471-be41-0b7ae1dc3e4a",
+      "favorite_id": "ce5dba8f-e67c-44ed-91fe-86b14877d8a8",
       "table_size": "Size260",
       "geschwindigkeit_m": 0.84
      }
@@ -4296,14 +4428,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.7816,
-     0.3742
+     0.7817,
+     0.3756
     ],
-    "quantity_of_ball": 0.87,
+    "quantity_of_ball": 0.832,
     "speed": 2,
     "effect_horizontal": 1,
     "effect_vertical": 0,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 6.1,
       "spin_right_R": 0.46,
@@ -4312,7 +4445,7 @@
       "cue_angle_deg": 6
      },
      "caromball_start": {
-      "favorite_id": "33732133-602e-41d5-861e-1f0233009c71",
+      "favorite_id": "639aebaf-d72e-4a74-aa0b-c6aa178e9d80",
       "table_size": "Size260",
       "geschwindigkeit_m": 2.44
      }
@@ -4345,14 +4478,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.8838,
-     0.9046
+     0.8852,
+     0.9006
     ],
-    "quantity_of_ball": 0.59,
+    "quantity_of_ball": 0.677,
     "speed": 2,
     "effect_horizontal": 1,
     "effect_vertical": 1,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 3.6,
       "spin_right_R": 0.19,
@@ -4361,7 +4495,7 @@
       "cue_angle_deg": 2
      },
      "caromball_start": {
-      "favorite_id": "c45b4586-b2b8-4423-9347-322b0f6e38df",
+      "favorite_id": "5c197ec5-c0d5-49ac-a4cf-11a21a913769",
       "table_size": "Size260",
       "geschwindigkeit_m": 1.44
      }
@@ -4394,14 +4528,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.8879,
-     0.8947
+     0.8915,
+     0.8888
     ],
-    "quantity_of_ball": 0.87,
+    "quantity_of_ball": 0.943,
     "speed": 2,
     "effect_horizontal": 1,
     "effect_vertical": 1,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 4.6,
       "spin_right_R": 0.36,
@@ -4410,7 +4545,7 @@
       "cue_angle_deg": 0
      },
      "caromball_start": {
-      "favorite_id": "9b778069-5dd8-4cc7-be40-156e2a312ac6",
+      "favorite_id": "d9d8187a-9816-4e56-8270-d3a938c909ef",
       "table_size": "Size260",
       "geschwindigkeit_m": 1.84
      }
@@ -4443,14 +4578,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.652,
-     0.0708
+     0.6518,
+     0.0723
     ],
-    "quantity_of_ball": 0.72,
+    "quantity_of_ball": 0.77,
     "speed": 2,
     "effect_horizontal": 1,
     "effect_vertical": 0,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 3.9,
       "spin_right_R": 0.29,
@@ -4459,7 +4595,7 @@
       "cue_angle_deg": 3
      },
      "caromball_start": {
-      "favorite_id": "d1e5b0d1-a5c5-47bc-9b15-9eebeea1f244",
+      "favorite_id": "2c633f6c-9831-4e32-9115-1f40b63b29aa",
       "table_size": "Size260",
       "geschwindigkeit_m": 1.56
      }
@@ -4492,14 +4628,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.6333,
-     0.6113
+     0.6316,
+     0.6167
     ],
-    "quantity_of_ball": 0.89,
+    "quantity_of_ball": 0.736,
     "speed": 2,
     "effect_horizontal": -1,
     "effect_vertical": -2,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 4.6,
       "spin_right_R": -0.25,
@@ -4508,7 +4645,7 @@
       "cue_angle_deg": 7
      },
      "caromball_start": {
-      "favorite_id": "66e505a6-b366-4001-b62f-1a3d3e7f313e",
+      "favorite_id": "8c776e9d-ea4c-4fc8-941e-78e20b173114",
       "table_size": "Size260",
       "geschwindigkeit_m": 1.84
      }
@@ -4541,14 +4678,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.6932,
-     0.5947
+     0.6898,
+     0.6118
     ],
-    "quantity_of_ball": 0.93,
+    "quantity_of_ball": 0.488,
     "speed": 2,
     "effect_horizontal": -1,
     "effect_vertical": -2,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 5.1,
       "spin_right_R": -0.32,
@@ -4557,7 +4695,7 @@
       "cue_angle_deg": 3
      },
      "caromball_start": {
-      "favorite_id": "d1e10006-21eb-4251-a398-86f5772b81ba",
+      "favorite_id": "b12ff270-31ac-4cfc-a7eb-dbce392dc86f",
       "table_size": "Size260",
       "geschwindigkeit_m": 2.04
      }
@@ -4590,14 +4728,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.1275,
-     0.0678
+     0.1332,
+     0.0502
     ],
-    "quantity_of_ball": 0.48,
+    "quantity_of_ball": 0.15,
     "speed": 2,
     "effect_horizontal": 1,
     "effect_vertical": 0,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 3.5,
       "spin_right_R": 0.46,
@@ -4606,7 +4745,7 @@
       "cue_angle_deg": 1
      },
      "caromball_start": {
-      "favorite_id": "34e38def-83f1-4c7e-b008-483eda8b0618",
+      "favorite_id": "39e637c1-5e59-439c-81ec-ca176e168736",
       "table_size": "Size260",
       "geschwindigkeit_m": 1.4
      }
@@ -4647,6 +4786,7 @@
     "effect_horizontal": 1,
     "effect_vertical": 0,
     "properties": {
+     "richtung": "panel_treffdicke",
      "acx_panel": {
       "power_0_10": 5.0,
       "spin_right_R": 0.46,
@@ -4655,7 +4795,7 @@
       "cue_angle_deg": 2
      },
      "caromball_start": {
-      "favorite_id": "e4631dad-0575-46eb-bd21-fc488ddfb302",
+      "favorite_id": "5912f6e4-74d3-4449-b4a1-b2271ba10d70",
       "table_size": "Size260",
       "geschwindigkeit_m": 2.0
      }
@@ -4688,14 +4828,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.6162,
-     0.8705
+     0.6337,
+     0.8657
     ],
-    "quantity_of_ball": 0.59,
+    "quantity_of_ball": 0.11,
     "speed": 2,
     "effect_horizontal": 1,
     "effect_vertical": -1,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 3.7,
       "spin_right_R": 0.43,
@@ -4704,7 +4845,7 @@
       "cue_angle_deg": 0
      },
      "caromball_start": {
-      "favorite_id": "dfd8d6b2-2f35-4659-9e94-738c482e873e",
+      "favorite_id": "996ac52e-76df-4979-81aa-3fc9e5ce5f21",
       "table_size": "Size260",
       "geschwindigkeit_m": 1.48
      }
@@ -4737,14 +4878,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.421,
-     0.1482
+     0.4193,
+     0.1265
     ],
-    "quantity_of_ball": 0.89,
+    "quantity_of_ball": 0.472,
     "speed": 2,
     "effect_horizontal": 1,
     "effect_vertical": 0,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 3.1,
       "spin_right_R": 0.43,
@@ -4753,7 +4895,7 @@
       "cue_angle_deg": 1
      },
      "caromball_start": {
-      "favorite_id": "15ca7130-c362-4849-a58a-7b621f718e57",
+      "favorite_id": "ab4426a5-44cd-44eb-83b9-ce2586a743b4",
       "table_size": "Size260",
       "geschwindigkeit_m": 1.24
      }
@@ -4786,14 +4928,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.9321,
-     0.4626
+     0.9415,
+     0.4443
     ],
-    "quantity_of_ball": 0.62,
+    "quantity_of_ball": 0.211,
     "speed": 2,
     "effect_horizontal": -1,
     "effect_vertical": 0,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 3.9,
       "spin_right_R": -0.46,
@@ -4802,7 +4945,7 @@
       "cue_angle_deg": 4
      },
      "caromball_start": {
-      "favorite_id": "f9ef14bf-d4dd-4466-bf5f-8876abfcc93b",
+      "favorite_id": "ca2024ea-492c-4674-a22d-33748253f1d3",
       "table_size": "Size260",
       "geschwindigkeit_m": 1.56
      }
@@ -4835,14 +4978,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.7262,
-     0.5585
+     0.7313,
+     0.5514
     ],
-    "quantity_of_ball": 0.87,
+    "quantity_of_ball": 0.499,
     "speed": 2,
     "effect_horizontal": -1,
     "effect_vertical": -2,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 4.1,
       "spin_right_R": -0.22,
@@ -4851,7 +4995,7 @@
       "cue_angle_deg": 0
      },
      "caromball_start": {
-      "favorite_id": "661e7ad5-6ea1-4b5e-9ac3-0513a0a9649c",
+      "favorite_id": "dd086abc-2139-4c4e-9235-d3838dec002c",
       "table_size": "Size260",
       "geschwindigkeit_m": 1.64
      }
@@ -4884,14 +5028,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.7214,
-     0.7527
+     0.7257,
+     0.7505
     ],
-    "quantity_of_ball": 0.3,
+    "quantity_of_ball": 0.192,
     "speed": 3,
     "effect_horizontal": -1,
     "effect_vertical": -1,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 8.2,
       "spin_right_R": -0.46,
@@ -4900,7 +5045,7 @@
       "cue_angle_deg": 5
      },
      "caromball_start": {
-      "favorite_id": "8e205998-4212-4134-b20f-4133cc21bc1d",
+      "favorite_id": "a460de9e-794f-45b1-b123-eae707692ae5",
       "table_size": "Size260",
       "geschwindigkeit_m": 3.28
      }
@@ -4933,14 +5078,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.2199,
-     0.2899
+     0.2246,
+     0.2724
     ],
-    "quantity_of_ball": 0.89,
+    "quantity_of_ball": 0.458,
     "speed": 3,
     "effect_horizontal": -1,
     "effect_vertical": 1,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 7.4,
       "spin_right_R": -0.42,
@@ -4949,7 +5095,7 @@
       "cue_angle_deg": 0
      },
      "caromball_start": {
-      "favorite_id": "2e716d68-32ff-41d3-abf5-139a8b0679d3",
+      "favorite_id": "cf1e8bc2-5335-4092-bad0-58066aaa459f",
       "table_size": "Size260",
       "geschwindigkeit_m": 2.96
      }
@@ -4982,14 +5128,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.9446,
-     0.0997
+     0.9576,
+     0.1234
     ],
-    "quantity_of_ball": 0.59,
+    "quantity_of_ball": 0.09,
     "speed": 2,
     "effect_horizontal": -1,
     "effect_vertical": 1,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 2.8,
       "spin_right_R": -0.19,
@@ -4998,7 +5145,7 @@
       "cue_angle_deg": 0
      },
      "caromball_start": {
-      "favorite_id": "7de15ff5-8d48-4427-882f-11ed5b7e3b3e",
+      "favorite_id": "5b6dadfb-12b6-4585-8ce5-8183bc7ec66d",
       "table_size": "Size260",
       "geschwindigkeit_m": 1.12
      }
@@ -5031,14 +5178,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.961,
-     0.1435
+     0.9746,
+     0.139
     ],
-    "quantity_of_ball": 0.34,
+    "quantity_of_ball": 0.029,
     "speed": 2,
     "effect_horizontal": -1,
     "effect_vertical": -1,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 4.3,
       "spin_right_R": -0.49,
@@ -5047,7 +5195,7 @@
       "cue_angle_deg": 14
      },
      "caromball_start": {
-      "favorite_id": "cb3ed3bd-635a-4cf7-82fa-18a780498503",
+      "favorite_id": "26acbf48-94fd-4fc3-9f3e-20f3d84b30df",
       "table_size": "Size260",
       "geschwindigkeit_m": 1.72
      }
@@ -5080,14 +5228,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.6988,
-     0.1134
+     0.7028,
+     0.0955
     ],
-    "quantity_of_ball": 0.77,
+    "quantity_of_ball": 0.4,
     "speed": 2,
     "effect_horizontal": 1,
     "effect_vertical": -1,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 5.2,
       "spin_right_R": 0.46,
@@ -5096,7 +5245,7 @@
       "cue_angle_deg": 8
      },
      "caromball_start": {
-      "favorite_id": "da530163-da06-49c8-899f-d7399c4e87d3",
+      "favorite_id": "367e36dc-1004-44b8-83a1-b39a1b306f3c",
       "table_size": "Size260",
       "geschwindigkeit_m": 2.08
      }
@@ -5129,14 +5278,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.472,
-     0.4774
+     0.4772,
+     0.4567
     ],
-    "quantity_of_ball": 1.0,
+    "quantity_of_ball": 0.486,
     "speed": 2,
     "effect_horizontal": -1,
     "effect_vertical": -2,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 6.2,
       "spin_right_R": -0.18,
@@ -5145,7 +5295,7 @@
       "cue_angle_deg": 8
      },
      "caromball_start": {
-      "favorite_id": "ac2170b6-9d41-4c21-9ece-f313d650fe49",
+      "favorite_id": "9d93a1bc-ee12-4738-ab20-fbf3a6f1af80",
       "table_size": "Size260",
       "geschwindigkeit_m": 2.48
      }
@@ -5178,14 +5328,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.2565,
-     0.0595
+     0.2564,
+     0.0494
     ],
-    "quantity_of_ball": 1.0,
+    "quantity_of_ball": 0.801,
     "speed": 2,
     "effect_horizontal": 1,
     "effect_vertical": 1,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 4.8,
       "spin_right_R": 0.36,
@@ -5194,7 +5345,7 @@
       "cue_angle_deg": 0
      },
      "caromball_start": {
-      "favorite_id": "4dac687a-6cf0-4718-9c3e-e4ea2c5976ef",
+      "favorite_id": "900a0d73-ee4b-4d57-a626-72ce7a8b5254",
       "table_size": "Size260",
       "geschwindigkeit_m": 1.92
      }
@@ -5227,14 +5378,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.6134,
-     0.4466
+     0.6186,
+     0.4422
     ],
-    "quantity_of_ball": 0.76,
+    "quantity_of_ball": 0.524,
     "speed": 2,
     "effect_horizontal": -1,
     "effect_vertical": 0,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 3.2,
       "spin_right_R": -0.49,
@@ -5243,7 +5395,7 @@
       "cue_angle_deg": 0
      },
      "caromball_start": {
-      "favorite_id": "d976f62a-d6f5-42ff-be38-c29666c4e730",
+      "favorite_id": "d49cba42-1f6b-4c7c-9517-8aa470fc5c15",
       "table_size": "Size260",
       "geschwindigkeit_m": 1.28
      }
@@ -5276,14 +5428,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.9652,
-     0.5616
+     0.9769,
+     0.5596
     ],
-    "quantity_of_ball": 0.51,
+    "quantity_of_ball": 0.099,
     "speed": 1,
     "effect_horizontal": 0,
     "effect_vertical": 0,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 1.7,
       "spin_right_R": 0.12,
@@ -5292,7 +5445,7 @@
       "cue_angle_deg": 0
      },
      "caromball_start": {
-      "favorite_id": "09fc93c1-3cc3-43ab-b318-29cbb1bc8169",
+      "favorite_id": "3ddef07e-c8d1-450b-bbd6-1913603368d2",
       "table_size": "Size260",
       "geschwindigkeit_m": 0.68
      }
@@ -5325,14 +5478,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.9627,
-     0.4394
+     0.9557,
+     0.4354
     ],
-    "quantity_of_ball": 0.66,
+    "quantity_of_ball": 0.861,
     "speed": 2,
     "effect_horizontal": 0,
     "effect_vertical": 0,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 2.6,
       "spin_right_R": -0.12,
@@ -5341,7 +5495,7 @@
       "cue_angle_deg": 0
      },
      "caromball_start": {
-      "favorite_id": "842e515b-0828-4a70-a17c-b8458174936b",
+      "favorite_id": "5acd060f-c1ab-4f0c-8d7e-83251e5ee043",
       "table_size": "Size260",
       "geschwindigkeit_m": 1.04
      }
@@ -5374,14 +5528,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.8224,
-     0.3617
+     0.8223,
+     0.3621
     ],
-    "quantity_of_ball": 0.93,
+    "quantity_of_ball": 0.921,
     "speed": 2,
     "effect_horizontal": 0,
     "effect_vertical": -2,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 6.0,
       "spin_right_R": -0.01,
@@ -5390,7 +5545,7 @@
       "cue_angle_deg": 3
      },
      "caromball_start": {
-      "favorite_id": "b5304af8-35c6-41f3-8588-456ed439b4b7",
+      "favorite_id": "2c54fec4-7177-45da-9dd9-55ba912cc616",
       "table_size": "Size260",
       "geschwindigkeit_m": 2.4
      }
@@ -5431,6 +5586,7 @@
     "effect_horizontal": 0,
     "effect_vertical": -2,
     "properties": {
+     "richtung": "panel_treffdicke",
      "acx_panel": {
       "power_0_10": 10.0,
       "spin_right_R": -0.05,
@@ -5439,7 +5595,7 @@
       "cue_angle_deg": 3
      },
      "caromball_start": {
-      "favorite_id": "afbbd50b-3238-480a-9593-07162800d914",
+      "favorite_id": "0907b19c-8374-4450-a86a-fb30ff246c0b",
       "table_size": "Size260",
       "geschwindigkeit_m": 4.0
      }
@@ -5480,6 +5636,7 @@
     "effect_horizontal": 1,
     "effect_vertical": -2,
     "properties": {
+     "richtung": "panel_treffdicke",
      "acx_panel": {
       "power_0_10": 8.5,
       "spin_right_R": 0.19,
@@ -5488,7 +5645,7 @@
       "cue_angle_deg": 6
      },
      "caromball_start": {
-      "favorite_id": "43b4311e-cebe-4b78-8ecf-3f985ad377cb",
+      "favorite_id": "eaab6d44-3bca-4b92-bc99-507cfcfccf33",
       "table_size": "Size260",
       "geschwindigkeit_m": 3.4
      }
@@ -5521,14 +5678,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.5979,
-     0.097
+     0.5985,
+     0.0931
     ],
-    "quantity_of_ball": 0.79,
+    "quantity_of_ball": 0.706,
     "speed": 2,
     "effect_horizontal": 1,
     "effect_vertical": 0,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 6.0,
       "spin_right_R": 0.46,
@@ -5537,7 +5695,7 @@
       "cue_angle_deg": 0
      },
      "caromball_start": {
-      "favorite_id": "240906a4-972f-4ff0-ad8e-9875fd0a9fa8",
+      "favorite_id": "8309afbd-493e-47c3-8b89-90afeb5338dd",
       "table_size": "Size260",
       "geschwindigkeit_m": 2.4
      }
@@ -5570,14 +5728,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.9299,
-     0.4613
+     0.9295,
+     0.4548
     ],
-    "quantity_of_ball": 0.43,
+    "quantity_of_ball": 0.328,
     "speed": 2,
     "effect_horizontal": 1,
     "effect_vertical": 0,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 5.1,
       "spin_right_R": 0.4,
@@ -5586,7 +5745,7 @@
       "cue_angle_deg": 7
      },
      "caromball_start": {
-      "favorite_id": "2ef5c0c7-f384-4ec6-8aef-86ab7f1f1a83",
+      "favorite_id": "ca9d330b-3097-4477-a8f9-47f780d6ecf9",
       "table_size": "Size260",
       "geschwindigkeit_m": 2.04
      }
@@ -5619,14 +5778,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.5241,
-     0.5381
+     0.524,
+     0.5384
     ],
-    "quantity_of_ball": 0.87,
+    "quantity_of_ball": 0.879,
     "speed": 2,
     "effect_horizontal": 1,
     "effect_vertical": -1,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 5.1,
       "spin_right_R": 0.26,
@@ -5635,7 +5795,7 @@
       "cue_angle_deg": 5
      },
      "caromball_start": {
-      "favorite_id": "76e21b71-cde2-4b86-841b-099c5fa677f1",
+      "favorite_id": "d315798f-72fd-4f86-b4a5-0a55ec082a0c",
       "table_size": "Size260",
       "geschwindigkeit_m": 2.04
      }
@@ -5668,14 +5828,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.1926,
-     0.8671
+     0.2017,
+     0.8833
     ],
-    "quantity_of_ball": 1.0,
+    "quantity_of_ball": 0.539,
     "speed": 3,
     "effect_horizontal": -1,
     "effect_vertical": -1,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 6.5,
       "spin_right_R": -0.39,
@@ -5684,7 +5845,7 @@
       "cue_angle_deg": 8
      },
      "caromball_start": {
-      "favorite_id": "d414351a-e601-48bd-b6d2-d1cfe5a11229",
+      "favorite_id": "439797b4-e9df-4b36-9de9-f1a9adbed620",
       "table_size": "Size260",
       "geschwindigkeit_m": 2.6
      }
@@ -5717,14 +5878,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.9198,
-     0.7003
+     0.8967,
+     0.6913
     ],
-    "quantity_of_ball": 1.0,
+    "quantity_of_ball": 0.113,
     "speed": 2,
     "effect_horizontal": 1,
     "effect_vertical": 0,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 4.8,
       "spin_right_R": 0.44,
@@ -5733,7 +5895,7 @@
       "cue_angle_deg": 1
      },
      "caromball_start": {
-      "favorite_id": "54b780e9-4bbc-40d4-a76e-06fd14d9de73",
+      "favorite_id": "9986cddf-96ae-4a98-a307-4053ff24c57d",
       "table_size": "Size260",
       "geschwindigkeit_m": 1.92
      }
@@ -5766,14 +5928,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.915,
-     0.914
+     0.9168,
+     0.9256
     ],
-    "quantity_of_ball": 1.0,
+    "quantity_of_ball": 0.68,
     "speed": 2,
     "effect_horizontal": -1,
     "effect_vertical": 0,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 5.6,
       "spin_right_R": -0.22,
@@ -5782,7 +5945,7 @@
       "cue_angle_deg": 6
      },
      "caromball_start": {
-      "favorite_id": "3b1d375b-7ce9-4ca8-8f3d-8e1008223be3",
+      "favorite_id": "de09bdfc-840a-49ab-8054-428616caca25",
       "table_size": "Size260",
       "geschwindigkeit_m": 2.24
      }
@@ -5823,6 +5986,7 @@
     "effect_horizontal": -1,
     "effect_vertical": 1,
     "properties": {
+     "richtung": "panel_treffdicke",
      "acx_panel": {
       "power_0_10": 7.6,
       "spin_right_R": -0.39,
@@ -5831,7 +5995,7 @@
       "cue_angle_deg": 0
      },
      "caromball_start": {
-      "favorite_id": "0c163f59-5d2e-46e8-bb37-df9fc800b07b",
+      "favorite_id": "b9cd9fd9-2d03-4eff-a0af-7cd1c6416811",
       "table_size": "Size260",
       "geschwindigkeit_m": 3.04
      }
@@ -5864,14 +6028,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.763,
-     0.1291
+     0.7708,
+     0.0574
     ],
-    "quantity_of_ball": 1.0,
+    "quantity_of_ball": 0.006,
     "speed": 3,
     "effect_horizontal": -1,
     "effect_vertical": -1,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 7.3,
       "spin_right_R": -0.42,
@@ -5880,7 +6045,7 @@
       "cue_angle_deg": 4
      },
      "caromball_start": {
-      "favorite_id": "bce65c12-0028-4fe4-a5b9-ab6fee5cd783",
+      "favorite_id": "e0371eee-c556-4ff0-a08c-db6c63979eec",
       "table_size": "Size260",
       "geschwindigkeit_m": 2.92
      }
@@ -5913,14 +6078,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.947,
-     0.1229
+     0.9511,
+     0.1287
     ],
-    "quantity_of_ball": 0.45,
+    "quantity_of_ball": 0.648,
     "speed": 1,
     "effect_horizontal": 1,
     "effect_vertical": 0,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 2.3,
       "spin_right_R": 0.19,
@@ -5929,7 +6095,7 @@
       "cue_angle_deg": 2
      },
      "caromball_start": {
-      "favorite_id": "9fc90ffd-6f45-461d-a0f2-33c4187d0796",
+      "favorite_id": "b1d1030f-9a1f-406e-b3f7-76d80ed97014",
       "table_size": "Size260",
       "geschwindigkeit_m": 0.92
      }
@@ -5962,14 +6128,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.7284,
-     0.4615
+     0.7415,
+     0.442
     ],
-    "quantity_of_ball": 1.0,
+    "quantity_of_ball": 0.297,
     "speed": 2,
     "effect_horizontal": -1,
     "effect_vertical": 0,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 5.5,
       "spin_right_R": -0.22,
@@ -5978,7 +6145,7 @@
       "cue_angle_deg": 4
      },
      "caromball_start": {
-      "favorite_id": "21cde7b7-200a-494a-b99b-ecb5d80d204b",
+      "favorite_id": "1062fe41-0b6b-4c88-894f-32136350f8ac",
       "table_size": "Size260",
       "geschwindigkeit_m": 2.2
      }
@@ -6011,14 +6178,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.7251,
-     0.4726
+     0.7243,
+     0.4765
     ],
-    "quantity_of_ball": 0.94,
+    "quantity_of_ball": 0.967,
     "speed": 2,
     "effect_horizontal": -1,
     "effect_vertical": -2,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 5.9,
       "spin_right_R": -0.32,
@@ -6027,7 +6195,7 @@
       "cue_angle_deg": 6
      },
      "caromball_start": {
-      "favorite_id": "01392936-b86b-4e42-ac20-a26cb4990075",
+      "favorite_id": "f5995e9f-23fa-4d9b-b2b7-84c47cef107f",
       "table_size": "Size260",
       "geschwindigkeit_m": 2.36
      }
@@ -6060,14 +6228,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.5257,
-     0.5354
+     0.5233,
+     0.5397
     ],
-    "quantity_of_ball": 0.76,
+    "quantity_of_ball": 0.629,
     "speed": 2,
     "effect_horizontal": 1,
     "effect_vertical": 0,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 4.3,
       "spin_right_R": 0.26,
@@ -6076,7 +6245,7 @@
       "cue_angle_deg": 4
      },
      "caromball_start": {
-      "favorite_id": "829235bb-e1d4-4e58-854f-b9b55dea9697",
+      "favorite_id": "9a491d02-81bb-4de9-9669-b3fc69a87a86",
       "table_size": "Size260",
       "geschwindigkeit_m": 1.72
      }
@@ -6109,14 +6278,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.3158,
-     0.0384
+     0.3159,
+     0.0328
     ],
-    "quantity_of_ball": 1.0,
+    "quantity_of_ball": 0.862,
     "speed": 2,
     "effect_horizontal": -2,
     "effect_vertical": 0,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 3.8,
       "spin_right_R": -0.5,
@@ -6125,7 +6295,7 @@
       "cue_angle_deg": 0
      },
      "caromball_start": {
-      "favorite_id": "519603a8-b84c-4c3f-9891-d5735c85cdb6",
+      "favorite_id": "aba46bac-fb87-4dff-a09a-f43ee088f783",
       "table_size": "Size260",
       "geschwindigkeit_m": 1.52
      }
@@ -6158,14 +6328,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.8856,
-     0.4647
+     0.8878,
+     0.4661
     ],
-    "quantity_of_ball": 1.0,
+    "quantity_of_ball": 0.849,
     "speed": 3,
     "effect_horizontal": -1,
     "effect_vertical": -2,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 9.9,
       "spin_right_R": -0.31,
@@ -6174,7 +6345,7 @@
       "cue_angle_deg": 4
      },
      "caromball_start": {
-      "favorite_id": "4a3ae1ba-9d35-46b5-a474-37d20e784c5e",
+      "favorite_id": "f8981bed-6592-4c9e-8c4b-c08db2fceb8f",
       "table_size": "Size260",
       "geschwindigkeit_m": 3.96
      }
@@ -6207,14 +6378,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.7977,
-     0.8051
+     0.7891,
+     0.7955
     ],
-    "quantity_of_ball": 1.0,
+    "quantity_of_ball": 0.403,
     "speed": 2,
     "effect_horizontal": 0,
     "effect_vertical": -2,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 4.1,
       "spin_right_R": -0.15,
@@ -6223,7 +6395,7 @@
       "cue_angle_deg": 4
      },
      "caromball_start": {
-      "favorite_id": "8a75a2e3-3de8-4474-aa97-754ababd4333",
+      "favorite_id": "69308a79-419b-42e2-9f12-14b00c5e391a",
       "table_size": "Size260",
       "geschwindigkeit_m": 1.64
      }
@@ -6264,6 +6436,7 @@
     "effect_horizontal": -1,
     "effect_vertical": 0,
     "properties": {
+     "richtung": "panel_treffdicke",
      "acx_panel": {
       "power_0_10": 4.6,
       "spin_right_R": -0.49,
@@ -6272,7 +6445,7 @@
       "cue_angle_deg": 4
      },
      "caromball_start": {
-      "favorite_id": "79f07afa-30c6-413d-8c34-963632603e23",
+      "favorite_id": "9052c19f-c01f-474f-8a66-fa9e804fc7ab",
       "table_size": "Size260",
       "geschwindigkeit_m": 1.84
      }
@@ -6305,14 +6478,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.0946,
-     0.0806
+     0.097,
+     0.0939
     ],
-    "quantity_of_ball": 0.28,
+    "quantity_of_ball": 0.014,
     "speed": 2,
     "effect_horizontal": -1,
     "effect_vertical": 0,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 6.0,
       "spin_right_R": -0.39,
@@ -6321,7 +6495,7 @@
       "cue_angle_deg": 51
      },
      "caromball_start": {
-      "favorite_id": "6b0e8a4b-b705-4e5e-bb8d-974cea9b7fc4",
+      "favorite_id": "a871a65a-d68b-4a48-8699-06da11866d1f",
       "table_size": "Size260",
       "geschwindigkeit_m": 2.4
      }
@@ -6354,14 +6528,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.1987,
-     0.3344
+     0.1984,
+     0.3383
     ],
-    "quantity_of_ball": 1.0,
+    "quantity_of_ball": 0.927,
     "speed": 3,
     "effect_horizontal": -1,
     "effect_vertical": -2,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 9.0,
       "spin_right_R": -0.43,
@@ -6370,7 +6545,7 @@
       "cue_angle_deg": 2
      },
      "caromball_start": {
-      "favorite_id": "5354bdb6-0e8c-4787-8c68-70c418197816",
+      "favorite_id": "4d3375cb-7135-4647-b809-65758044b88c",
       "table_size": "Size260",
       "geschwindigkeit_m": 3.6
      }
@@ -6403,14 +6578,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.7184,
-     0.9276
+     0.7218,
+     0.9465
     ],
-    "quantity_of_ball": 0.62,
+    "quantity_of_ball": 0.294,
     "speed": 2,
     "effect_horizontal": 1,
     "effect_vertical": 0,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 4.7,
       "spin_right_R": 0.47,
@@ -6419,7 +6595,7 @@
       "cue_angle_deg": 2
      },
      "caromball_start": {
-      "favorite_id": "520dc05d-c86c-4ab4-bd45-6e0f1dd4a2ca",
+      "favorite_id": "0722bb8e-e267-439e-8c25-4661147f497e",
       "table_size": "Size260",
       "geschwindigkeit_m": 1.88
      }
@@ -6452,14 +6628,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.1839,
-     0.3884
+     0.1921,
+     0.3756
     ],
-    "quantity_of_ball": 0.72,
+    "quantity_of_ball": 0.338,
     "speed": 3,
     "effect_horizontal": 1,
     "effect_vertical": 0,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 6.3,
       "spin_right_R": 0.26,
@@ -6468,7 +6645,7 @@
       "cue_angle_deg": 4
      },
      "caromball_start": {
-      "favorite_id": "3bf4e495-4bd8-45f9-886b-0983922d6cf8",
+      "favorite_id": "ab92f81b-902f-46d3-92f6-2e4b349e710b",
       "table_size": "Size260",
       "geschwindigkeit_m": 2.52
      }
@@ -6501,14 +6678,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.2271,
-     0.4582
+     0.2236,
+     0.4698
     ],
-    "quantity_of_ball": 0.78,
+    "quantity_of_ball": 0.501,
     "speed": 4,
     "effect_horizontal": -1,
     "effect_vertical": -2,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 10.0,
       "spin_right_R": -0.22,
@@ -6517,7 +6695,7 @@
       "cue_angle_deg": 4
      },
      "caromball_start": {
-      "favorite_id": "d90db99f-ded7-4e98-a811-825ce0ca93f2",
+      "favorite_id": "c21acfa4-f161-43a9-a915-380736ec6ecc",
       "table_size": "Size260",
       "geschwindigkeit_m": 4.0
      }
@@ -6550,14 +6728,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.8012,
-     0.9006
+     0.787,
+     0.9015
     ],
-    "quantity_of_ball": 0.32,
+    "quantity_of_ball": 0.042,
     "speed": 2,
     "effect_horizontal": 1,
     "effect_vertical": 1,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 3.6,
       "spin_right_R": 0.36,
@@ -6566,7 +6745,7 @@
       "cue_angle_deg": 5
      },
      "caromball_start": {
-      "favorite_id": "1b0ff0a5-8da4-4bd3-b266-a9a18fb730a6",
+      "favorite_id": "3ce38c12-40ac-4d21-8ac0-df0f32d79616",
       "table_size": "Size260",
       "geschwindigkeit_m": 1.44
      }
@@ -6599,14 +6778,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.3709,
-     0.5345
+     0.3529,
+     0.5593
     ],
-    "quantity_of_ball": 0.44,
+    "quantity_of_ball": 0.016,
     "speed": 3,
     "effect_horizontal": -1,
     "effect_vertical": 0,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 6.7,
       "spin_right_R": -0.46,
@@ -6615,7 +6795,7 @@
       "cue_angle_deg": 0
      },
      "caromball_start": {
-      "favorite_id": "91e1a5e4-138a-4bec-92b9-463f76b3228e",
+      "favorite_id": "fd934133-9d5c-4e92-b739-8a469d437779",
       "table_size": "Size260",
       "geschwindigkeit_m": 2.68
      }
@@ -6648,14 +6828,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.5211,
-     0.9144
+     0.5293,
+     0.9307
     ],
-    "quantity_of_ball": 0.13,
+    "quantity_of_ball": 0.407,
     "speed": 3,
     "effect_horizontal": -1,
     "effect_vertical": 0,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 8.1,
       "spin_right_R": -0.29,
@@ -6664,7 +6845,7 @@
       "cue_angle_deg": 0
      },
      "caromball_start": {
-      "favorite_id": "82e7bc43-7d0a-4db7-9b02-24f947eb8362",
+      "favorite_id": "976e1073-5afc-4206-86a5-9fa100b903cc",
       "table_size": "Size260",
       "geschwindigkeit_m": 3.24
      }
@@ -6697,14 +6878,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.5616,
-     0.9346
+     0.5601,
+     0.9294
     ],
-    "quantity_of_ball": 0.45,
+    "quantity_of_ball": 0.356,
     "speed": 2,
     "effect_horizontal": -2,
     "effect_vertical": -1,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 5.3,
       "spin_right_R": -0.5,
@@ -6713,7 +6895,7 @@
       "cue_angle_deg": 5
      },
      "caromball_start": {
-      "favorite_id": "a283290d-9206-492f-b43a-f20b481eafcd",
+      "favorite_id": "1b3dc959-ccb1-4bc0-bccb-ec022ebe8d64",
       "table_size": "Size260",
       "geschwindigkeit_m": 2.12
      }
@@ -6746,14 +6928,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.1957,
-     0.3499
+     0.1907,
+     0.3639
     ],
-    "quantity_of_ball": 0.55,
+    "quantity_of_ball": 0.294,
     "speed": 3,
     "effect_horizontal": 1,
     "effect_vertical": -1,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 9.1,
       "spin_right_R": 0.47,
@@ -6762,7 +6945,7 @@
       "cue_angle_deg": 3
      },
      "caromball_start": {
-      "favorite_id": "f4bf8066-59cc-42d6-96cb-b9754272d983",
+      "favorite_id": "5d100c20-f675-49a0-8862-fcbcd90f35a1",
       "table_size": "Size260",
       "geschwindigkeit_m": 3.64
      }
@@ -6795,14 +6978,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.0523,
-     0.3008
+     0.0508,
+     0.2908
     ],
-    "quantity_of_ball": 0.83,
+    "quantity_of_ball": 0.647,
     "speed": 3,
     "effect_horizontal": 1,
     "effect_vertical": 0,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 9.6,
       "spin_right_R": 0.46,
@@ -6811,7 +6995,7 @@
       "cue_angle_deg": 5
      },
      "caromball_start": {
-      "favorite_id": "2fbab09e-d090-4bc7-a15e-272414ce4042",
+      "favorite_id": "a98bb393-d278-4e28-8a93-210f489928dd",
       "table_size": "Size260",
       "geschwindigkeit_m": 3.84
      }
@@ -6844,14 +7028,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.846,
-     0.2971
+     0.8405,
+     0.3086
     ],
-    "quantity_of_ball": 0.38,
+    "quantity_of_ball": 0.149,
     "speed": 3,
     "effect_horizontal": -1,
     "effect_vertical": -1,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 8.3,
       "spin_right_R": -0.49,
@@ -6860,7 +7045,7 @@
       "cue_angle_deg": 3
      },
      "caromball_start": {
-      "favorite_id": "290b6e60-6697-47fe-9ddd-503c9c61f51a",
+      "favorite_id": "bbc38caf-40c1-42ad-a376-de8987a967c6",
       "table_size": "Size260",
       "geschwindigkeit_m": 3.32
      }
@@ -6901,6 +7086,7 @@
     "effect_horizontal": -1,
     "effect_vertical": -1,
     "properties": {
+     "richtung": "panel_treffdicke",
      "acx_panel": {
       "power_0_10": 8.5,
       "spin_right_R": -0.42,
@@ -6909,7 +7095,7 @@
       "cue_angle_deg": 3
      },
      "caromball_start": {
-      "favorite_id": "ccd88408-d7c7-4de8-a5d7-dd0bf1096c0c",
+      "favorite_id": "461a4fbf-f38e-4f30-b13b-f62d9ad5c69d",
       "table_size": "Size260",
       "geschwindigkeit_m": 3.4
      }
@@ -6943,13 +7129,14 @@
     "ball_target": "b2",
     "contact": [
      0.7225,
-     0.6161
+     0.6184
     ],
-    "quantity_of_ball": 0.57,
+    "quantity_of_ball": 0.53,
     "speed": 2,
     "effect_horizontal": -2,
     "effect_vertical": 0,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 2.7,
       "spin_right_R": -0.5,
@@ -6958,7 +7145,7 @@
       "cue_angle_deg": 0
      },
      "caromball_start": {
-      "favorite_id": "fd896754-36b3-4328-87fa-4641dd9c31a4",
+      "favorite_id": "e0615d23-cfd3-4497-a3cd-f71a8617b93b",
       "table_size": "Size260",
       "geschwindigkeit_m": 1.08
      }
@@ -6991,14 +7178,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.7211,
-     0.6141
+     0.7261,
+     0.5969
     ],
-    "quantity_of_ball": 1.0,
+    "quantity_of_ball": 0.613,
     "speed": 3,
     "effect_horizontal": 1,
     "effect_vertical": 0,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 9.0,
       "spin_right_R": 0.46,
@@ -7007,7 +7195,7 @@
       "cue_angle_deg": 0
      },
      "caromball_start": {
-      "favorite_id": "409e1073-195d-4e85-8afd-fef9ec3e4be7",
+      "favorite_id": "be41b18e-a42a-451f-9c9f-5fe1a62f804c",
       "table_size": "Size260",
       "geschwindigkeit_m": 3.6
      }
@@ -7040,14 +7228,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.4297,
-     0.317
+     0.4304,
+     0.3135
     ],
-    "quantity_of_ball": 0.79,
+    "quantity_of_ball": 0.708,
     "speed": 2,
     "effect_horizontal": -1,
     "effect_vertical": -2,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 6.0,
       "spin_right_R": -0.39,
@@ -7056,7 +7245,7 @@
       "cue_angle_deg": 5
      },
      "caromball_start": {
-      "favorite_id": "26699963-01bb-4d36-bb81-a65a96836e5c",
+      "favorite_id": "1f695f36-37bb-4ca5-ae84-9de367c8d021",
       "table_size": "Size260",
       "geschwindigkeit_m": 2.4
      }
@@ -7089,14 +7278,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.2232,
-     0.9262
+     0.2255,
+     0.9165
     ],
-    "quantity_of_ball": 0.62,
+    "quantity_of_ball": 0.422,
     "speed": 2,
     "effect_horizontal": -1,
     "effect_vertical": 0,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 6.2,
       "spin_right_R": -0.39,
@@ -7105,7 +7295,7 @@
       "cue_angle_deg": 0
      },
      "caromball_start": {
-      "favorite_id": "c7d1a8e1-3252-47d3-bb36-e0903fbaf172",
+      "favorite_id": "c08ff3b7-e9b7-46a4-a9fe-4db038e78882",
       "table_size": "Size260",
       "geschwindigkeit_m": 2.48
      }
@@ -7138,14 +7328,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.2333,
-     0.8989
+     0.2302,
+     0.9043
     ],
-    "quantity_of_ball": 0.3,
+    "quantity_of_ball": 0.43,
     "speed": 2,
     "effect_horizontal": 1,
     "effect_vertical": -1,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 3.4,
       "spin_right_R": 0.43,
@@ -7154,7 +7345,7 @@
       "cue_angle_deg": 3
      },
      "caromball_start": {
-      "favorite_id": "915b1289-47f3-4c95-9577-660074125a74",
+      "favorite_id": "10d6d136-7171-4682-bd77-6a2b5e875210",
       "table_size": "Size260",
       "geschwindigkeit_m": 1.36
      }
@@ -7187,14 +7378,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.2391,
-     0.9055
+     0.2452,
+     0.8979
     ],
-    "quantity_of_ball": 0.34,
+    "quantity_of_ball": 0.156,
     "speed": 2,
     "effect_horizontal": 0,
     "effect_vertical": 0,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 3.8,
       "spin_right_R": -0.15,
@@ -7203,7 +7395,7 @@
       "cue_angle_deg": 0
      },
      "caromball_start": {
-      "favorite_id": "471801f5-ee6b-427a-9e2e-dcfd7623a8e4",
+      "favorite_id": "bfb62fb9-62ed-40b6-91ba-c6f6f2d29636",
       "table_size": "Size260",
       "geschwindigkeit_m": 1.52
      }
@@ -7236,14 +7428,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.6419,
-     0.3042
+     0.6509,
+     0.3292
     ],
-    "quantity_of_ball": 0.34,
+    "quantity_of_ball": 0.027,
     "speed": 2,
     "effect_horizontal": -1,
     "effect_vertical": -1,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 6.1,
       "spin_right_R": -0.46,
@@ -7252,7 +7445,7 @@
       "cue_angle_deg": 5
      },
      "caromball_start": {
-      "favorite_id": "9fc19b32-aa00-4d41-a16d-e9ae517345a2",
+      "favorite_id": "7f53a188-91d6-47e0-a790-ae5e9af53824",
       "table_size": "Size260",
       "geschwindigkeit_m": 2.44
      }
@@ -7285,14 +7478,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.7241,
-     0.4713
+     0.7306,
+     0.4552
     ],
-    "quantity_of_ball": 0.66,
+    "quantity_of_ball": 0.34,
     "speed": 3,
     "effect_horizontal": 0,
     "effect_vertical": -1,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 8.9,
       "spin_right_R": 0.02,
@@ -7301,7 +7495,7 @@
       "cue_angle_deg": 3
      },
      "caromball_start": {
-      "favorite_id": "3e76aab4-3a7c-45f7-b6a8-e3a281086ec1",
+      "favorite_id": "efb698f6-bb4d-4b8a-b80a-a0fe2e24a571",
       "table_size": "Size260",
       "geschwindigkeit_m": 3.56
      }
@@ -7342,6 +7536,7 @@
     "effect_horizontal": 0,
     "effect_vertical": -1,
     "properties": {
+     "richtung": "panel_treffdicke",
      "acx_panel": {
       "power_0_10": 5.9,
       "spin_right_R": 0.07,
@@ -7350,7 +7545,7 @@
       "cue_angle_deg": 16
      },
      "caromball_start": {
-      "favorite_id": "4175edd3-7c05-4e33-be3e-14eaaac3ffaf",
+      "favorite_id": "5580feea-16be-4664-aac7-6d3bf02b802e",
       "table_size": "Size260",
       "geschwindigkeit_m": 2.36
      }
@@ -7391,6 +7586,7 @@
     "effect_horizontal": 0,
     "effect_vertical": -1,
     "properties": {
+     "richtung": "panel_treffdicke",
      "acx_panel": {
       "power_0_10": 6.8,
       "spin_right_R": 0.02,
@@ -7399,7 +7595,7 @@
       "cue_angle_deg": 12
      },
      "caromball_start": {
-      "favorite_id": "2da06629-6e19-4a06-bffd-37b2550a212b",
+      "favorite_id": "00ac7822-2cdc-4fc6-b8fb-b2b6d5a490a8",
       "table_size": "Size260",
       "geschwindigkeit_m": 2.72
      }
@@ -7440,6 +7636,7 @@
     "effect_horizontal": 1,
     "effect_vertical": 1,
     "properties": {
+     "richtung": "panel_treffdicke",
      "acx_panel": {
       "power_0_10": 7.4,
       "spin_right_R": 0.41,
@@ -7448,7 +7645,7 @@
       "cue_angle_deg": 0
      },
      "caromball_start": {
-      "favorite_id": "ca545803-3d0f-4eb4-9a62-a7f33832bac6",
+      "favorite_id": "c899ed1c-c5bb-467c-9b12-8a9ef2871d4a",
       "table_size": "Size260",
       "geschwindigkeit_m": 2.96
      }
@@ -7481,14 +7678,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.2108,
-     0.5407
+     0.2163,
+     0.534
     ],
-    "quantity_of_ball": 0.63,
+    "quantity_of_ball": 0.879,
     "speed": 3,
     "effect_horizontal": 1,
     "effect_vertical": 0,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 7.4,
       "spin_right_R": 0.44,
@@ -7497,7 +7695,7 @@
       "cue_angle_deg": 4
      },
      "caromball_start": {
-      "favorite_id": "c057aebb-6f89-4fa9-b9f2-0ce1773a19f5",
+      "favorite_id": "d368a263-8e45-41d6-8379-c3430125a1c7",
       "table_size": "Size260",
       "geschwindigkeit_m": 2.96
      }
@@ -7530,14 +7728,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.4928,
-     0.4409
+     0.5056,
+     0.4356
     ],
-    "quantity_of_ball": 0.48,
+    "quantity_of_ball": 0.14,
     "speed": 3,
     "effect_horizontal": 1,
     "effect_vertical": 0,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 8.0,
       "spin_right_R": 0.41,
@@ -7546,7 +7745,7 @@
       "cue_angle_deg": 0
      },
      "caromball_start": {
-      "favorite_id": "ac34a779-6413-4eaf-b0cc-0043cd8f3c91",
+      "favorite_id": "d1e500ef-b4ac-4d37-95b3-01ec2e2e425d",
       "table_size": "Size260",
       "geschwindigkeit_m": 3.2
      }
@@ -7579,14 +7778,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.7095,
-     0.4468
+     0.7118,
+     0.4486
     ],
-    "quantity_of_ball": 0.26,
+    "quantity_of_ball": 0.203,
     "speed": 3,
     "effect_horizontal": 1,
     "effect_vertical": 0,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 8.5,
       "spin_right_R": 0.31,
@@ -7595,7 +7795,7 @@
       "cue_angle_deg": 0
      },
      "caromball_start": {
-      "favorite_id": "ac27b82c-f2e0-45c5-8f79-d5f9f6386ff6",
+      "favorite_id": "a522af15-4532-4ebe-b043-96d95394a4bc",
       "table_size": "Size260",
       "geschwindigkeit_m": 3.4
      }
@@ -7628,14 +7828,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.2606,
-     0.8919
+     0.2666,
+     0.8915
     ],
-    "quantity_of_ball": 0.44,
+    "quantity_of_ball": 0.638,
     "speed": 2,
     "effect_horizontal": 1,
     "effect_vertical": 0,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 5.9,
       "spin_right_R": 0.44,
@@ -7644,7 +7845,7 @@
       "cue_angle_deg": 3
      },
      "caromball_start": {
-      "favorite_id": "416b7c2f-c796-4c0e-8015-2d78c8cc4723",
+      "favorite_id": "bade0360-027a-4f12-95cb-034e64a19909",
       "table_size": "Size260",
       "geschwindigkeit_m": 2.36
      }
@@ -7677,14 +7878,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.7188,
-     0.5009
+     0.719,
+     0.5031
     ],
-    "quantity_of_ball": 1.0,
+    "quantity_of_ball": 0.96,
     "speed": 3,
     "effect_horizontal": 0,
     "effect_vertical": -2,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 9.7,
       "spin_right_R": -0.15,
@@ -7693,7 +7895,7 @@
       "cue_angle_deg": 3
      },
      "caromball_start": {
-      "favorite_id": "98ea6d00-437f-4953-ab03-f8a74c04588b",
+      "favorite_id": "f34c5ae6-6044-4a1a-a35b-38e4bcf46681",
       "table_size": "Size260",
       "geschwindigkeit_m": 3.88
      }
@@ -7734,6 +7936,7 @@
     "effect_horizontal": 0,
     "effect_vertical": -2,
     "properties": {
+     "richtung": "panel_treffdicke",
      "acx_panel": {
       "power_0_10": 8.4,
       "spin_right_R": -0.0,
@@ -7742,7 +7945,7 @@
       "cue_angle_deg": 3
      },
      "caromball_start": {
-      "favorite_id": "a1cbb648-6c92-42a5-ac68-31d9500d873d",
+      "favorite_id": "68a5739f-351d-4f21-a2e1-fee165087204",
       "table_size": "Size260",
       "geschwindigkeit_m": 3.36
      }
@@ -7775,14 +7978,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.8585,
-     0.3198
+     0.8569,
+     0.308
     ],
-    "quantity_of_ball": 0.77,
+    "quantity_of_ball": 0.496,
     "speed": 2,
     "effect_horizontal": 1,
     "effect_vertical": -2,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 6.2,
       "spin_right_R": 0.21,
@@ -7791,7 +7995,7 @@
       "cue_angle_deg": 0
      },
      "caromball_start": {
-      "favorite_id": "96a3fe34-f146-4b3f-858f-8289e6671140",
+      "favorite_id": "394fade5-78df-4ddf-a60f-2a9037eb366f",
       "table_size": "Size260",
       "geschwindigkeit_m": 2.48
      }
@@ -7824,14 +8028,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.0594,
-     0.2648
+     0.0624,
+     0.255
     ],
-    "quantity_of_ball": 1.0,
+    "quantity_of_ball": 0.676,
     "speed": 2,
     "effect_horizontal": 0,
     "effect_vertical": -2,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 5.9,
       "spin_right_R": 0.15,
@@ -7840,7 +8045,7 @@
       "cue_angle_deg": 4
      },
      "caromball_start": {
-      "favorite_id": "17478a2b-0cef-4cd8-b176-5dd3c6ab6536",
+      "favorite_id": "6e5575dc-ed15-4dbe-a97f-2adfb3bf1c82",
       "table_size": "Size260",
       "geschwindigkeit_m": 2.36
      }
@@ -7873,14 +8078,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.0574,
-     0.3344
+     0.061,
+     0.3263
     ],
-    "quantity_of_ball": 0.56,
+    "quantity_of_ball": 0.796,
     "speed": 2,
     "effect_horizontal": 1,
     "effect_vertical": 1,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 5.8,
       "spin_right_R": 0.38,
@@ -7889,7 +8095,7 @@
       "cue_angle_deg": 5
      },
      "caromball_start": {
-      "favorite_id": "7c875439-72ff-41d0-a71d-5ce780cf3d99",
+      "favorite_id": "97aead9a-ccf1-4c85-9dec-a20628c03d3c",
       "table_size": "Size260",
       "geschwindigkeit_m": 2.32
      }
@@ -7930,6 +8136,7 @@
     "effect_horizontal": -1,
     "effect_vertical": 1,
     "properties": {
+     "richtung": "panel_treffdicke",
      "acx_panel": {
       "power_0_10": 8.5,
       "spin_right_R": -0.3,
@@ -7938,7 +8145,7 @@
       "cue_angle_deg": 0
      },
      "caromball_start": {
-      "favorite_id": "e791b245-3c2b-4708-a6a6-35dca04aa4b4",
+      "favorite_id": "a1c142dd-29de-412e-93e0-8be758127c41",
       "table_size": "Size260",
       "geschwindigkeit_m": 3.4
      }
@@ -7971,14 +8178,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.3432,
-     0.1061
+     0.3487,
+     0.0474
     ],
-    "quantity_of_ball": 1.0,
+    "quantity_of_ball": 0.088,
     "speed": 3,
     "effect_horizontal": 1,
     "effect_vertical": -1,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 8.4,
       "spin_right_R": 0.47,
@@ -7987,7 +8195,7 @@
       "cue_angle_deg": 2
      },
      "caromball_start": {
-      "favorite_id": "b3153285-51ad-4c0c-8731-7481f4e6ff19",
+      "favorite_id": "033cded6-4d7d-4b4f-a4e0-a8f77e9342e3",
       "table_size": "Size260",
       "geschwindigkeit_m": 3.36
      }
@@ -8028,6 +8236,7 @@
     "effect_horizontal": 0,
     "effect_vertical": -1,
     "properties": {
+     "richtung": "panel_treffdicke",
      "acx_panel": {
       "power_0_10": 8.3,
       "spin_right_R": -0.12,
@@ -8036,7 +8245,7 @@
       "cue_angle_deg": 0
      },
      "caromball_start": {
-      "favorite_id": "ec8fd2ba-b441-4ca1-bc1c-62aecb1f1e50",
+      "favorite_id": "07595ec6-54ea-467c-8c0a-7209359a7d65",
       "table_size": "Size260",
       "geschwindigkeit_m": 3.32
      }
@@ -8069,14 +8278,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.0286,
-     0.4381
+     0.0393,
+     0.4496
     ],
-    "quantity_of_ball": 0.79,
+    "quantity_of_ball": 0.31,
     "speed": 3,
     "effect_horizontal": 1,
     "effect_vertical": -2,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 7.6,
       "spin_right_R": 0.22,
@@ -8085,7 +8295,7 @@
       "cue_angle_deg": 5
      },
      "caromball_start": {
-      "favorite_id": "2dd8cfd5-0339-4c77-8486-3539f5cb5e97",
+      "favorite_id": "aee34826-6393-4d46-b490-26f9e1889955",
       "table_size": "Size260",
       "geschwindigkeit_m": 3.04
      }
@@ -8118,14 +8328,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.2668,
-     0.4293
+     0.2735,
+     0.4173
     ],
-    "quantity_of_ball": 0.7,
+    "quantity_of_ball": 0.374,
     "speed": 2,
     "effect_horizontal": 1,
     "effect_vertical": -1,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 5.9,
       "spin_right_R": 0.47,
@@ -8134,7 +8345,7 @@
       "cue_angle_deg": 0
      },
      "caromball_start": {
-      "favorite_id": "8137a62a-afc3-4ea7-98f1-d25bb0e810c2",
+      "favorite_id": "6f794152-be24-4495-88f0-c9dc2431d9ef",
       "table_size": "Size260",
       "geschwindigkeit_m": 2.36
      }
@@ -8167,14 +8378,15 @@
     "ball_attacker": "b1",
     "ball_target": "b2",
     "contact": [
-     0.2757,
-     0.4109
+     0.2775,
+     0.4044
     ],
-    "quantity_of_ball": 0.26,
+    "quantity_of_ball": 0.171,
     "speed": 3,
     "effect_horizontal": 1,
     "effect_vertical": -1,
     "properties": {
+     "richtung": "abgang_simulatorbild",
      "acx_panel": {
       "power_0_10": 6.7,
       "spin_right_R": 0.26,
@@ -8183,7 +8395,7 @@
       "cue_angle_deg": 1
      },
      "caromball_start": {
-      "favorite_id": "7119da8f-7d89-4493-9f64-d06b04cec279",
+      "favorite_id": "2c24e5b1-3ef8-46ad-8367-e238a871a72a",
       "table_size": "Size260",
       "geschwindigkeit_m": 2.68
      }
@@ -8224,6 +8436,7 @@
     "effect_horizontal": -1,
     "effect_vertical": -1,
     "properties": {
+     "richtung": "tisch_korrektur",
      "tisch_korrektur": {
       "quelle": "Gernot 2026-10-04 am Heimtisch (Royal Pro, unbeheizt): mit Acx' Maßen läuft Gelb lang an die rechte kurze Bande, Tempo kaum zu halten; mit B I auf 70 / 26 cm (Ballmitte ab linker / oberer Bandenkante) versammelt es sich. carom_sim (Wertesatz Heimtisch GU) bestätigt: beste Versammlung 9 cm statt 27 cm, 499 statt 57 Stoßvarianten unter 40 cm.",
       "balls_cm": {
@@ -8243,7 +8456,7 @@
       "physik": "heimtisch_gu"
      },
      "caromball_start": {
-      "favorite_id": null,
+      "favorite_id": "2354245d-b232-4f83-90d7-c53bf2726f8f",
       "table_size": "Size260",
       "geschwindigkeit_m": 3.04
      }
