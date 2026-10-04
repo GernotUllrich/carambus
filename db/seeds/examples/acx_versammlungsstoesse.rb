@@ -1,7 +1,9 @@
 # Dirk Acx, "Over 160 collecting shots" als Trainingsprogramm.
 #
 # Baum: Programm → Figuren (sequence_number 1–167 in Buchreihenfolge,
-# Nummern 1–164 plus 27b, 42b, 87b). Jede Figur: Startstellung (exakt nach
+# Nummern 1–164 plus 27b, 42b, 87b; danach Tisch-Korrekturen ab 168, z. B.
+# „Nr. 22 (Tisch-Korrektur)“: Stellung für echte Tische angepasst, Stoß aus
+# carom_sim, Herkunft in properties.tisch_korrektur). Jede Figur: Startstellung (exakt nach
 # Acx' Positionsbild, 2,10 × 1,05), ein Stoß mit dem ersten Treffer
 # B I → B II (Treffpunkt = Geisterball, Treffdicke aus dem Simulator-Panel),
 # Stoßparameter als grobe Klassen plus Rohwerte, Link auf den Caromball-
@@ -55,11 +57,14 @@ data["figures"].each do |fig|
   n = fig["figur"]
   marker = "[SEED:acx_#{n.rjust(4, "0")}]"
   ex = TrainingExample.find_or_initialize_by(parent: program, sequence_number: fig["sequence_number"])
+  label = fig["label"] || "Nr. #{n}"
+  correction = fig.dig("collision", "properties", "tisch_korrektur")
   ex.update!(
-    title: "Acx Nr. #{n} — Versammlungsstoß",
+    title: "Acx #{label} — Versammlungsstoß",
     source_language: "de",
-    source_notes: "Over 160 collecting shots, Nr. #{n} (PDF-Seite #{fig["page"]}). " \
-                  "B II #{fig["b2_sicher"] ? "" : "(unsicher) "}= #{fig["b2_colour"] == "yellow" ? "Gelb" : "Rot"}."
+    source_notes: "Over 160 collecting shots, #{label} (PDF-Seite #{fig["page"]}). " \
+                  "B II #{fig["b2_sicher"] ? "" : "(unsicher) "}= #{fig["b2_colour"] == "yellow" ? "Gelb" : "Rot"}." +
+                  (correction ? " Tisch-Korrektur: #{correction["quelle"]}" : "")
   )
 
   sp = fig["start"]
@@ -71,14 +76,16 @@ data["figures"].each do |fig|
 
   sp_rec = StartPosition.find_or_initialize_by(training_example: ex)
   sp_rec.update!(ball_configuration: start_config, source_language: "de",
-                 description_text: "Aufstellung nach Acx' Positionsbild (Tisch 2,10 × 1,05).")
+                 description_text: correction ? "Aufstellung nach Acx' Positionsbild, für echte Tische korrigiert (Tisch 2,10 × 1,05)."
+                                              : "Aufstellung nach Acx' Positionsbild (Tisch 2,10 × 1,05).")
 
   SourceAttribution.find_or_initialize_by(training_source: source, sourceable: ex)
-                   .update!(reference: "Nr. #{n}")
+                   .update!(reference: label)
 
   shot = ex.shots.find_or_initialize_by(sequence_number: 1)
-  shot.update!(shot_type: "ideal", source_language: "de", title: "Nr. #{n} nach Acx",
-               notes: "Stoßparameter aus dem Simulator-Panel, grob umgerechnet (Startwerte).")
+  shot.update!(shot_type: "ideal", source_language: "de", title: "#{label} nach Acx",
+               notes: correction ? "Stoßparameter aus carom_sim (Wertesatz Heimtisch GU), Startwerte."
+                                 : "Stoßparameter aus dem Simulator-Panel, grob umgerechnet (Startwerte).")
 
   c = fig["collision"]
   rec = shot.ball_collisions.find_or_initialize_by(sequence_number: c["sequence_number"])
@@ -94,7 +101,7 @@ data["figures"].each do |fig|
   tce.update!(weight: 5, role: "illustrates")
   ex.training_concept_examples.where.not(id: tce.id).destroy_all
 
-  puts "    · Nr. #{n.ljust(4)} ##{ex.id}  Treffdicke #{c["quantity_of_ball"]}  " \
+  puts "    · #{label.ljust(24)} ##{ex.id}  Treffdicke #{c["quantity_of_ball"]}  " \
        "Tempo #{c["speed"]}  Effet #{c["effect_horizontal"]}/#{c["effect_vertical"]}"
 end
 

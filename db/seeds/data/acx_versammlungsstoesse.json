@@ -8189,6 +8189,67 @@
      }
     }
    }
+  },
+  {
+   "figur": "22k",
+   "sequence_number": 168,
+   "page": 12,
+   "b2_colour": "yellow",
+   "b2_sicher": true,
+   "start": {
+    "b1": [
+     0.3333,
+     0.2476
+    ],
+    "b2": [
+     0.2731,
+     0.3299
+    ],
+    "b3": [
+     0.9496,
+     0.0795
+    ]
+   },
+   "collision": {
+    "sequence_number": 1,
+    "collision_type": "primary_impact",
+    "ball_attacker": "b1",
+    "ball_target": "b2",
+    "contact": [
+     0.2981,
+     0.2994
+    ],
+    "quantity_of_ball": 0.911,
+    "speed": 3,
+    "effect_horizontal": -1,
+    "effect_vertical": -1,
+    "properties": {
+     "tisch_korrektur": {
+      "quelle": "Gernot 2026-10-04 am Heimtisch (Royal Pro, unbeheizt): mit Acx' Maßen läuft Gelb lang an die rechte kurze Bande, Tempo kaum zu halten; mit B I auf 70 / 26 cm (Ballmitte ab linker / oberer Bandenkante) versammelt es sich. carom_sim (Wertesatz Heimtisch GU) bestätigt: beste Versammlung 9 cm statt 27 cm, 499 statt 57 Stoßvarianten unter 40 cm.",
+      "balls_cm": {
+       "white": [
+        70.0,
+        26.0
+       ]
+      }
+     },
+     "carom_sim": {
+      "alpha_deg": -143.62,
+      "hit_fraction": 0.911,
+      "V0_queue": 2.1,
+      "side": -0.4,
+      "height": -0.4,
+      "elevation_deg": 6,
+      "physik": "heimtisch_gu"
+     },
+     "caromball_start": {
+      "favorite_id": null,
+      "table_size": "Size260",
+      "geschwindigkeit_m": 3.04
+     }
+    }
+   },
+   "label": "Nr. 22 (Tisch-Korrektur)"
   }
  ]
 }
