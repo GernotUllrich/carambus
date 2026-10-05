@@ -1,0 +1,557 @@
+<title>Vom Lehrbuch zum Simulator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Asap:wght@400;500;600&display=swap">
+
+<style>
+  /* ---------------------------------------------------------------
+     Vom Lehrbuch zum Simulator — Stil wie „Carambus im August“.
+
+     Bewusst EINTHEMIG: eine Beamer-Präsentation wechselt kein Theme.
+     Deshalb kein prefers-color-scheme, aber jede Farbe explizit gesetzt,
+     damit die Seite auf jedem Untergrund hält.
+
+     Palette aus der Sache: Billardtuch als Grund, die drei Karambol-
+     kugeln (Elfenbein, Gelb, Rot) als Akzente.
+     --------------------------------------------------------------- */
+  :root {
+    --tuch:        #0E2A24;
+    --tuch-hoch:   #143A32;
+    --tuch-tief:   #091C18;
+    --elfenbein:   #F4F1E6;
+    --gelb:        #E8B93A;
+    --rot:         #C4402F;
+    --gedaempft:   #8FA9A1;
+    --linie:       #22493F;
+
+    --serif: "Fraunces", Georgia, "Times New Roman", serif;
+    --sans:  "Asap", "Segoe UI", system-ui, -apple-system, sans-serif;
+
+    --rand: clamp(1rem, 4vw, 5rem);
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    * { animation: none !important; transition: none !important; }
+  }
+
+  body {
+    margin: 0;
+    background: var(--tuch);
+    color: var(--elfenbein);
+    font-family: var(--sans);
+    font-size: clamp(1.05rem, 1.7vw, 1.5rem);
+    line-height: 1.55;
+    scroll-snap-type: y proximity;
+  }
+
+  /* ---------- Sprungleiste ---------- */
+  nav {
+    position: sticky;
+    top: env(safe-area-inset-top, 0px);
+    z-index: 20;
+    display: flex;
+    flex-wrap: wrap;
+    gap: .4rem;
+    padding: .7rem var(--rand);
+    background: color-mix(in srgb, var(--tuch-tief) 92%, transparent);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--linie);
+  }
+  nav a {
+    font-family: var(--sans);
+    font-size: clamp(.8rem, 1.1vw, 1rem);
+    font-weight: 500;
+    letter-spacing: .03em;
+    color: var(--gedaempft);
+    text-decoration: none;
+    padding: .4rem .8rem;
+    border-radius: 999px;
+    border: 1px solid transparent;
+    white-space: nowrap;
+  }
+  nav a:hover, nav a:focus-visible {
+    color: var(--elfenbein);
+    border-color: var(--linie);
+    background: var(--tuch-hoch);
+  }
+  nav a:focus-visible { outline: 2px solid var(--gelb); outline-offset: 2px; }
+  nav a.ruf { color: var(--gelb); }
+
+  /* ---------- Abschnitte ---------- */
+  section {
+    scroll-snap-align: start;
+    min-height: 100svh;
+    padding: clamp(2rem, 5vh, 4rem) var(--rand) clamp(3rem, 7vh, 5rem);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: clamp(1.2rem, 2.5vh, 2rem);
+    border-bottom: 1px solid var(--linie);
+  }
+  section:last-of-type { border-bottom: 0; }
+
+  .innen { width: min(100%, 62rem); margin-inline: auto; }
+
+  /* ---------- Typografie ---------- */
+  h1, h2 {
+    font-family: var(--serif);
+    font-weight: 600;
+    line-height: 1.05;
+    text-wrap: balance;
+    margin: 0;
+  }
+  h1 { font-size: clamp(2.6rem, 8vw, 6rem); }
+  h2 { font-size: clamp(1.9rem, 4.6vw, 3.6rem); }
+
+  .marke {
+    font-family: var(--sans);
+    font-size: clamp(.75rem, 1.1vw, .95rem);
+    font-weight: 600;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: var(--gelb);
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+    margin: 0 0 .6rem;
+  }
+  .marke::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--linie);
+  }
+
+  .lead {
+    font-size: clamp(1.15rem, 2.1vw, 1.8rem);
+    color: var(--gedaempft);
+    max-width: 46ch;
+    margin: 0;
+  }
+
+  /* ---------- Listen ---------- */
+  ul.punkte { list-style: none; margin: 0; padding: 0; display: grid; gap: clamp(.7rem, 1.6vh, 1.15rem); }
+  ul.punkte li {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: .9rem;
+    align-items: baseline;
+    max-width: 54ch;
+  }
+  ul.punkte li::before {
+    content: "◆";
+    color: var(--gelb);
+    font-size: .7em;
+    line-height: 1.9;
+  }
+  ul.punkte strong { font-weight: 600; color: var(--elfenbein); }
+  ul.punkte span { color: var(--gedaempft); }
+
+  /* ---------- Karten ---------- */
+  .karten { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); }
+  .karte {
+    background: var(--tuch-hoch);
+    border: 1px solid var(--linie);
+    border-radius: 4px;
+    padding: clamp(1rem, 2.2vw, 1.6rem);
+  }
+  .karte h3 {
+    font-family: var(--sans);
+    font-size: clamp(.95rem, 1.3vw, 1.1rem);
+    font-weight: 600;
+    letter-spacing: .02em;
+    margin: 0 0 .45rem;
+    color: var(--gelb);
+  }
+  .karte p { margin: 0; color: var(--gedaempft); font-size: clamp(.95rem, 1.3vw, 1.15rem); }
+
+  /* ---------- Kugeln (Titelbild) ---------- */
+  .kugeln { display: flex; gap: clamp(.6rem, 1.6vw, 1.4rem); margin-bottom: clamp(1rem, 3vh, 2rem); }
+  .kugel { width: clamp(2.2rem, 5vw, 4rem); aspect-ratio: 1; border-radius: 50%; position: relative; }
+  .kugel::after {
+    content: "";
+    position: absolute;
+    inset: 14% 44% 58% 18%;
+    border-radius: 50%;
+    background: rgba(255,255,255,.5);
+    filter: blur(2px);
+  }
+  .k-weiss { background: radial-gradient(circle at 32% 28%, #FFFDF6, #D8D2BE); }
+  .k-gelb  { background: radial-gradient(circle at 32% 28%, #F5CE5C, #B98D18); }
+  .k-rot   { background: radial-gradient(circle at 32% 28%, #DC5B47, #8E2A1D); }
+
+  /* ---------- Hervorhebung / Aufruf ---------- */
+  .ruf-block {
+    border-left: 4px solid var(--rot);
+    padding: clamp(.9rem, 2vw, 1.4rem) clamp(1rem, 2.4vw, 1.8rem);
+    background: color-mix(in srgb, var(--rot) 12%, var(--tuch-hoch));
+    border-radius: 0 4px 4px 0;
+    max-width: 54ch;
+  }
+  .ruf-block p { margin: 0; }
+  .ruf-block p + p { margin-top: .7rem; }
+
+  .klein { font-size: clamp(.85rem, 1.2vw, 1.05rem); color: var(--gedaempft); }
+
+  .zahl {
+    font-family: var(--serif);
+    font-size: clamp(2.6rem, 6vw, 4.6rem);
+    font-weight: 700;
+    color: var(--gelb);
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .duo { display: grid; gap: clamp(1.4rem, 3vw, 2.6rem); grid-template-columns: 1fr; }
+  @media (min-width: 60rem) { .duo { grid-template-columns: 1.1fr .9fr; align-items: start; } }
+
+  footer {
+    padding: clamp(2rem, 5vh, 3.5rem) var(--rand);
+    background: var(--tuch-tief);
+    color: var(--gedaempft);
+    font-size: clamp(.85rem, 1.2vw, 1rem);
+    text-align: center;
+  }
+
+  /* ---------- Druck / PDF ----------
+     Ein Abschnitt = eine Seite, HOCHFORMAT.
+
+     ⚠️ Querformat war der erste Versuch — naheliegend, weil die Abschnitte für die
+     Projektion gebaut sind. Im PDF klebte der Text dann aber an der linken Seitenhälfte:
+     die Zeilenlängen sind auf Lesbarkeit begrenzt (54ch), und die bleiben auf 297 mm
+     Breite eben schmal. Hochformat füllt die Spalte und liest sich als Dokument. */
+  @page { size: A4 portrait; margin: 0; }
+
+  @media print {
+    /* Ohne das druckt der Browser die Farben nicht — und ein Tuch-Grün, das zu Weiß
+       wird, nimmt der Seite ihren ganzen Charakter. */
+    html, body {
+      background: var(--tuch) !important;
+      print-color-adjust: exact;
+      -webkit-print-color-adjust: exact;
+    }
+
+    /* Die klebende Sprungleiste hat auf Papier keine Aufgabe. */
+    nav { display: none !important; }
+
+    body { scroll-snap-type: none; font-size: 12pt; }
+
+    /* ⚠️ Die Zeilenbegrenzungen der Bildschirmfassung (54ch / 46ch) sind dort richtig —
+       auf A4 lassen sie aber ein Drittel der Seite leer und lassen das Dokument
+       unfertig wirken. Im Druck bestimmt der Seitenrand das Maß. */
+    ul.punkte li, .lead, .ruf-block { max-width: none; }
+    .innen { width: 100%; }
+
+    section {
+      /* svh ergibt im Druck keinen Sinn — die Seitenhöhe bestimmt das Papier. */
+      min-height: auto;
+      height: auto;
+      break-after: page;
+      break-inside: avoid;
+      padding: 14mm 16mm;
+      border-bottom: 0;
+      justify-content: flex-start;
+    }
+    section:last-of-type { break-after: auto; }
+
+    /* Auf einer festen Seite trägt die fließende Skalierung nicht mehr — feste Größen,
+       die auf A4 hoch sicher passen. */
+    h1 { font-size: 30pt; }
+    h2 { font-size: 20pt; }
+    .lead { font-size: 12.5pt; }
+    .zahl { font-size: 26pt; }
+    .kugel { width: 14mm; }
+    .karte { break-inside: avoid; }
+
+    /* Die Zweispalter der Bildschirmfassung würden auf 180 mm Breite zu schmal —
+       im Druck untereinander. */
+    .duo { grid-template-columns: 1fr !important; }
+    .karten { grid-template-columns: 1fr 1fr !important; }
+
+    footer { break-before: avoid; padding: 8mm; }
+
+    a { text-decoration: none; color: inherit; }
+  }
+
+  /* ---------- Ergänzungen für diese Präsentation ---------- */
+  .zahlen { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr)); }
+  .zahlen > div { border-top: 1px solid var(--linie); padding-top: .7rem; min-width: 0; }
+  .zahlen .zahl { font-size: clamp(2rem, 4.4vw, 3.4rem); }
+  .zahlen p { margin: .35rem 0 0; color: var(--gedaempft); font-size: clamp(.85rem, 1.2vw, 1.05rem); }
+  .kette { display: grid; gap: .6rem; grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)); counter-reset: k; }
+  .kette > div { background: var(--tuch-hoch); border: 1px solid var(--linie); border-radius: 4px; padding: .9rem 1rem; min-width: 0; }
+  .kette > div::before { counter-increment: k; content: counter(k); font-family: var(--serif); font-weight: 700; color: var(--gelb); font-size: 1.6rem; line-height: 1; display: block; margin-bottom: .35rem; }
+  .kette h3 { margin: 0 0 .3rem; font-size: clamp(.95rem, 1.3vw, 1.1rem); font-weight: 600; }
+  .kette p { margin: 0; color: var(--gedaempft); font-size: clamp(.85rem, 1.15vw, 1rem); }
+  .tabelle { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font-size: clamp(.85rem, 1.2vw, 1.05rem); font-variant-numeric: tabular-nums; }
+  th, td { text-align: left; padding: .45rem .7rem .45rem 0; border-bottom: 1px solid var(--linie); vertical-align: baseline; }
+  th { color: var(--gelb); font-weight: 600; font-size: .85em; letter-spacing: .04em; }
+  td.z { text-align: right; padding-right: 1.2rem; }
+  td span { color: var(--gedaempft); }
+  figure { margin: 0; min-width: 0; }
+  figcaption { color: var(--gedaempft); font-size: clamp(.8rem, 1.1vw, .95rem); margin-top: .45rem; }
+  .tische { display: grid; gap: 1.2rem; grid-template-columns: 1fr; }
+  @media (min-width: 52rem) { .tische { grid-template-columns: 1fr 1fr; } }
+  .tische svg { width: 100%; height: auto; display: block; }
+  .leisten { display: grid; gap: .55rem; }
+  .leiste { display: grid; grid-template-columns: 6.5rem 1fr 6.5rem; gap: .7rem; align-items: center; font-size: clamp(.8rem, 1.1vw, .98rem); }
+  .leiste svg { width: 100%; height: 14px; display: block; }
+  .leiste .u { text-align: right; font-weight: 600; }
+  .ok { color: #8FD18A; } .eng { color: var(--gelb); } .krit { color: #F08A78; }
+  .legende { display: flex; flex-wrap: wrap; gap: .4rem 1.1rem; color: var(--gedaempft); font-size: clamp(.78rem, 1.05vw, .92rem); }
+  .legende i { display: inline-block; width: .8em; height: .8em; border-radius: 2px; margin-right: .35em; vertical-align: -.05em; }
+  @media (max-width: 30rem) { .leiste { grid-template-columns: 5rem 1fr; } .leiste .u { grid-column: 1 / -1; text-align: left; } }
+  @media print { .tische { grid-template-columns: 1fr 1fr !important; } .zahlen { grid-template-columns: repeat(4, 1fr) !important; } }
+</style>
+
+<nav aria-label="Seiten">
+  <a href="#start">Start</a>
+  <a href="#quellen">Quellen</a>
+  <a href="#weingartner">Weingartner</a>
+  <a href="#acx">Acx</a>
+  <a href="#gretillat">Gretillat</a>
+  <a href="#caromball">Caromball</a>
+  <a href="#physik">Physik</a>
+  <a href="#carom-sim">carom_sim</a>
+  <a href="#demo" class="ruf">Demo</a>
+  <a href="#weiter">Weiter</a>
+</nav>
+
+<section id="start">
+  <div class="innen">
+    <div class="kugeln" aria-hidden="true">
+      <div class="kugel k-weiss"></div>
+      <div class="kugel k-gelb"></div>
+      <div class="kugel k-rot"></div>
+    </div>
+    <h1>Vom Lehrbuch<br>zum Simulator</h1>
+    <p class="lead" style="margin-top:1.2rem">
+      Ein halbes Jahr Werkstatt für das Training in der freien Partie: Quellen lesen,
+      Übungen erfassen, Physik messen — und ein eigener Simulator, der Stöße prüft
+      und verbessert. Jede Übung durchläuft dieselbe Kette:
+    </p>
+<div class="kette" style="margin-top:2rem">
+      <div><h3>Lesen</h3><p>Lehrbücher und Studien ins Billard-Wiki: Begriffe, Personen, Quellen — deutsch, verlinkt.</p></div>
+      <div><h3>Ordnen</h3><p>Eine Ontologie (jetzt v0.10) legt fest, was ein Stoß, eine Stellung, ein Begriff ist. Gretillats Einteilung ist das Rückgrat.</p></div>
+      <div><h3>Erfassen</h3><p>Stellungen und Stoßparameter aus Zeichnungen, Legenden und Simulatorbildern — halbautomatisch, Figur für Figur geprüft.</p></div>
+      <div><h3>Nachspielen</h3><p>In Caromball und im eigenen Simulator; geeicht mit Messungen am echten Tisch.</p></div>
+      <div><h3>Einspielen</h3><p>Als Programm mit Figuren in die Trainingsdaten von Carambus — wiederholbar, ohne Dubletten.</p></div>
+  </div>
+</section>
+
+<section id="quellen">
+  <div class="innen">
+    <p class="marke">Eins — Quellenstudium</p>
+    <div class="duo">
+      <div>
+        <h2>Ein Billard-Wiki, das mitdenkt</h2>
+        <ul class="punkte" style="margin-top:1.6rem">
+          <li><span><strong>Aufgebaut nach Karpathys „LLM-Wiki“:</strong> Originale bleiben unverändert, daraus entstehen Seiten zu Quellen, Begriffen und Personen.</span></li>
+          <li><span><strong>Die Klassiker:</strong> Conti, Weingartner, Rohner, Gretillat (2021 und 2024), Tüzül und Byrne zu Systemen.</span></li>
+          <li><span><strong>Die Physik:</strong> Moore 1942, van Balen 2009, Mathavan zu Bande und Tuch, Alciatore zu Squirt und Throw.</span></li>
+          <li><span><strong>Ein deutsches Glossar</strong> mit französischen und englischen Entsprechungen — es liefert die Begriffe für die Texte in Carambus.</span></li>
+        </ul>
+      </div>
+      <div class="karte">
+        <h3>Umfang heute</h3>
+        <div class="tabelle"><table>
+          <tr><td>Quellenseiten</td><td class="z">33</td></tr>
+          <tr><td>Begriffe und Konzepte</td><td class="z">34</td></tr>
+          <tr><td>Personen und Vereine</td><td class="z">27</td></tr>
+        </table></div>
+        <p style="margin-top:.9rem">Was dort steht, ist belegt: jede Seite nennt Quelle und Seitenzahl. Lizenzierte Werke bleiben auf dem eigenen Server — nichts davon liegt öffentlich.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="weingartner">
+  <div class="innen">
+    <p class="marke">Zwei — Weingartners Pflichtstoßprogramm</p>
+    <h2>76 Figuren, aus der Zeichnung gelesen</h2>
+    <div class="duo" style="margin-top:1.6rem">
+      <ul class="punkte">
+        <li><span><strong>Alle 19 Gruppen erfasst.</strong> Ein Programm liest Bälle und Lauflinien aus der PDF-Zeichnung, ein zweites übersetzt die Legende („2 BB von LB“) in Zentimeter.</span></li>
+        <li><span><strong>Zeichnung und Legende stimmen</strong> fast immer auf 5 cm überein. Wo nicht, gilt die Legende.</span></li>
+        <li><span><strong>Kleine Wörter, große Wirkung:</strong> „an der Linie“ heißt anliegend, „auf der Linie“ heißt Mitte darauf. Das hat zwei Figuren korrigiert.</span></li>
+        <li><span><strong>Der Treffpunkt auf B II</strong> ergibt sich aus dem ersten Wegstück von B II: der Geisterball liegt zwei Radien dahinter.</span></li>
+      </ul>
+      <div class="karte">
+        <h3>Eingespielt</h3>
+        <p>Das ganze Programm steht in den Trainingsdaten von Carambus: 19 Gruppen, 76 Figuren mit Startstellung, Laufwegen und Zielzone, dazu die Begriffe Nachstoß, Vorbande, Dreibänder, Mehrbänder, Begegnungsstoß und Prellstoß.</p>
+        <p style="margin-top:.8rem">Die Begegnungsstöße (Gruppe XV) laufen auf einer gemeinsamen Zeitachse — B II trifft den noch rollenden B III.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="acx">
+  <div class="innen">
+    <p class="marke">Drei — Dirk Acx: Over 160 collecting shots</p>
+    <h2>167 Versammlungsstöße mit Parametern</h2>
+    <div class="duo" style="margin-top:1.6rem">
+      <ul class="punkte">
+        <li><span><strong>Jede Figur doppelt:</strong> ein Stellungsbild und ein Bild aus dem Simulator mit Stoß-Panel — Kraft, Effet, Treffpunkt, Queuewinkel.</span></li>
+        <li><span><strong>Die Ziffern</strong> im Panel liest ein Programm über Vorlagen; den Queuewinkel habe ich von Hand abgelesen.</span></li>
+        <li><span><strong>Die Stoßrichtung</strong> kommt aus dem Abgang von B II im Simulatorbild — bei 140 von 167 Figuren eindeutig.</span></li>
+        <li><span><strong>Am echten Tisch geprüft:</strong> Acx’ Simulator lässt die Bälle zu steil von der Bande kommen. Nr. 22 geht am Tisch nur mit B I auf 70/26 cm — als Tisch-Korrektur hinterlegt.</span></li>
+      </ul>
+      <div class="karte">
+        <h3>Verwendung</h3>
+        <p>Als Programm in Carambus (Stellung exakt, Stoß als Startwert), als Favoriten in Caromball und als Auswahl im eigenen Simulator.</p>
+        <p style="margin-top:.8rem" class="klein">Zahlen und Stellungen ja, Originaltext nein — Quelle Dirk Acx wird immer genannt.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="gretillat">
+  <div class="innen">
+    <p class="marke">Vier — Xavier Gretillat</p>
+    <h2>1291 Übungen mit Lösung</h2>
+    <p class="lead" style="margin-top:1rem">Aus Caromball ausgelesen: jede Übung mit Ballstellung und Gretillats Stoß — Tempo, Richtung, Queueneigung, Effet, Höhe. Auf dem Matchtisch 2,84 m.</p>
+    <div class="duo" style="margin-top:1.6rem">
+      <div class="tabelle"><table>
+        <tr><th>Bereich</th><th>Übungen</th><th>Nachgespielt</th></tr>
+        <tr><td>Libre <span>— Amerika, großer Eckball, kleine Linie</span></td><td class="z">268</td><td class="z">91 %</td></tr>
+        <tr><td>Cadre <span>— Linie, Anker, Kreuz</span></td><td class="z">147</td><td class="z">85 %</td></tr>
+        <tr><td>Jeux de série <span>— Passage, Lunette, Rappels</span></td><td class="z">289</td><td class="z">83 %</td></tr>
+        <tr><td>Bande <span>— Systeme, Série infinie</span></td><td class="z">587</td><td class="z">73 %</td></tr>
+      </table></div>
+      <div class="karte">
+        <h3>Ein Prüfstand für die Physik</h3>
+        <p>Alle 1291 Lösungen spielt der eigene Simulator nach. Der Anteil gelungener Carambolagen sagt, wie gut seine Physik zu Caromball passt: heute <strong style="color:var(--elfenbein)">80,5 %</strong>.</p>
+        <p style="margin-top:.8rem" class="klein">© Gretillat / Caromball — nur für den privaten Gebrauch, nicht in öffentlichen Daten.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="caromball">
+  <div class="innen">
+    <p class="marke">Fünf — Simulation mit Caromball</p>
+    <h2>Favoriten anlegen, Lösungen zurückholen</h2>
+    <div class="karten" style="margin-top:1.8rem">
+      <div class="karte">
+        <h3>Automatisch angelegt</h3>
+        <p>Weingartner (76 Figuren, zwei Tischgrößen) und Acx (167) stehen als Favoriten-Ordner in Caromball — Stellung und Startstoß per Schnittstelle eingetragen.</p>
+      </div>
+      <div class="karte">
+        <h3>Am Bildschirm verbessert</h3>
+        <p>Ich stelle einen Stoß in Caromball ein, bis er klappt, und speichere ihn als „… opt“. Ein Programm liest die Werte zurück und übernimmt sie in die Übung.</p>
+      </div>
+      <div class="karte">
+        <h3>Was dabei auffiel</h3>
+        <p>Caromball kennt keinen Squirt, und Effet kostet dort kein Tempo. Deshalb lassen sich seine Werte nicht eins zu eins auf den echten Tisch übertragen.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="physik">
+  <div class="innen">
+    <p class="marke">Sechs — Physik am eigenen Tisch</p>
+    <h2>Messen statt glauben</h2>
+    <div class="duo" style="margin-top:1.6rem">
+      <div class="tabelle"><table>
+        <tr><th>Messung am Heimtisch</th><th>Tisch</th><th>Simulator</th></tr>
+        <tr><td>Rollreibung <span>— Ball rollt aus</span></td><td class="z">0,0056</td><td class="z">übernommen</td></tr>
+        <tr><td>Diamantlauf <span>— Rückkehr in Diamanten</span></td><td class="z">6,23</td><td class="z">6,29–6,36</td></tr>
+        <tr><td>Flacher Einlauf <span>— flacher als Spiegelgesetz</span></td><td class="z">+13°</td><td class="z">+12,5°</td></tr>
+        <tr><td>Bandenverlust <span>— Rest vor der Bande</span></td><td class="z">0–10 cm</td><td class="z">1–9 cm</td></tr>
+      </table>
+      <p class="klein" style="margin-top:.8rem">Royal Pro, unbeheizt, 22 °C, Super Aramith Tournament. Die Bälle laufen fast doppelt so weit, wie der Simulator vorher annahm.</p></div>
+      <div class="karte">
+        <h3>Gretillat-Prüfstand</h3>
+        <div class="tabelle"><table>
+          <tr><td>pooltool-Standardwerte</td><td class="z">24 %</td></tr>
+          <tr><td>Heimtisch-Messung</td><td class="z">40 %</td></tr>
+          <tr><td>dazu Tempo wie Caromball (× 1,5)</td><td class="z">77 %</td></tr>
+          <tr><td>dazu Squirt ausgeglichen</td><td class="z">80,5 %</td></tr>
+        </table></div>
+        <p style="margin-top:.8rem">Der Squirt erklärte auch einen Teil der schwierigen Rappels: von 32 auf 51 %. Als Nächstes: Messungen am beheizten Clubtisch.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="carom-sim">
+  <div class="innen">
+    <p class="marke">Sieben — carom_sim</p>
+    <h2>Ein eigener Simulator für die Draufsicht</h2>
+    <p class="lead" style="margin-top:1rem">Physik von pooltool (frei, Apache-Lizenz), Oberfläche im Browser. Ein Stoß ist in etwa 5 ms gerechnet — jede Reglerbewegung zeigt sofort den neuen Laufweg.</p>
+    <div class="karten" style="margin-top:1.6rem">
+      <div class="karte"><h3>Tisch und Bälle</h3><p>Draufsicht ohne Perspektive, Bälle ziehen oder in Zentimetern eingeben, Diamanten 8,5 cm hinter der Bande, Tischmaße frei.</p></div>
+      <div class="karte"><h3>Der Stoß</h3><p>Treffdicke auf B II oder freie Richtung, Effet und Höhe in Prozent der Kickgrenze, Queueneigung, Tempo, wirksame Queuemasse — mit Geisterball.</p></div>
+      <div class="karte"><h3>Physik</h3><p>Wertesätze „Heimtisch“, „Karambol v1“ und pooltool-Standard; Squirt wird im Treffdicke-Modus ausgeglichen, wie ein Spieler es tut.</p></div>
+      <div class="karte"><h3>Übungen</h3><p>Acx, Weingartner (mit Weingartners Laufwegen zum Vergleich) und Gretillat in der Auswahl, vor und zurück blättern, eigene Favoriten in Ordnern.</p></div>
+      <div class="karte"><h3>Optimieren</h3><p>Sucht um den eingestellten Stoß einen besseren — für eine gute Folgestellung in der freien Partie oder die engste Versammlung.</p></div>
+      <div class="karte"><h3>Schwierigkeit</h3><p>Wie genau muss welcher Parameter sitzen? Je Parameter ein Fenster, dazu eine Erfolgsquote nach Spielstärke.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="demo">
+  <div class="innen">
+    <p class="marke" style="color:var(--rot)">Acht — Demo: Acx Nr. 6</p>
+    <h2>Vom Fehlschlag zur Lehrbuchstellung</h2>
+    <div class="tische" style="margin-top:1.4rem">
+      <figure>
+        <svg viewBox="-7 -7 224.0 119.0" role="img"><title>Acx Nr. 6 mit Acx’ Startwerten</title><rect x="-7" y="-7" width="224.0" height="119.0" rx="3" fill="#3B2A1C"/><rect x="0" y="0" width="210.0" height="105.0" fill="#1D5A4C"/><circle cx="26.2" cy="-3.5" r="0.9" fill="#E9E2CC"/><circle cx="26.2" cy="108.5" r="0.9" fill="#E9E2CC"/><circle cx="52.5" cy="-3.5" r="0.9" fill="#E9E2CC"/><circle cx="52.5" cy="108.5" r="0.9" fill="#E9E2CC"/><circle cx="78.8" cy="-3.5" r="0.9" fill="#E9E2CC"/><circle cx="78.8" cy="108.5" r="0.9" fill="#E9E2CC"/><circle cx="105.0" cy="-3.5" r="0.9" fill="#E9E2CC"/><circle cx="105.0" cy="108.5" r="0.9" fill="#E9E2CC"/><circle cx="131.2" cy="-3.5" r="0.9" fill="#E9E2CC"/><circle cx="131.2" cy="108.5" r="0.9" fill="#E9E2CC"/><circle cx="157.5" cy="-3.5" r="0.9" fill="#E9E2CC"/><circle cx="157.5" cy="108.5" r="0.9" fill="#E9E2CC"/><circle cx="183.8" cy="-3.5" r="0.9" fill="#E9E2CC"/><circle cx="183.8" cy="108.5" r="0.9" fill="#E9E2CC"/><circle cx="-3.5" cy="26.2" r="0.9" fill="#E9E2CC"/><circle cx="213.5" cy="26.2" r="0.9" fill="#E9E2CC"/><circle cx="-3.5" cy="52.5" r="0.9" fill="#E9E2CC"/><circle cx="213.5" cy="52.5" r="0.9" fill="#E9E2CC"/><circle cx="-3.5" cy="78.8" r="0.9" fill="#E9E2CC"/><circle cx="213.5" cy="78.8" r="0.9" fill="#E9E2CC"/><polyline points="204.2,51.3 204.2,51.3" fill="none" stroke="#C4402F" stroke-width="0.7" stroke-linejoin="round" opacity="0.9"/><polyline points="174.4,34.6 98.7,101.2 97.6,101.6 96.6,100.7 95.6,99.8 94.6,98.9 93.6,98.0 92.6,97.1 91.6,96.3 90.6,95.5 89.6,94.7 88.6,93.9 87.6,93.2 86.6,92.5 85.6,91.8 84.6,91.1 83.6,90.4 82.6,89.8 81.6,89.1 80.6,88.5 79.5,88.0 78.5,87.4 77.5,86.8 3.4,47.9 3.6,47.5 4.5,47.1 5.3,46.7 6.1,46.4 6.8,46.0 7.6,45.6 8.3,45.2 9.0,44.8 9.7,44.5 10.4,44.1 11.1,43.7 11.7,43.3 12.3,42.9 12.9,42.5 13.4,42.1 14.0,41.7 65.7,3.1 66.1,3.4 66.5,3.6 66.9,3.9 67.3,4.1 67.7,4.3 68.1,4.5 68.5,4.7 206.8,62.9 206.9,63.0 206.7,63.1 200.1,67.1" fill="none" stroke="#E8B93A" stroke-width="0.7" stroke-linejoin="round" opacity="0.9"/><polyline points="191.3,25.6 181.7,29.5 179.4,30.4 178.5,30.1 177.9,29.5 177.3,28.9 176.8,28.4 176.3,27.8 175.8,27.2 175.3,26.6 174.8,26.0 174.4,25.4 174.0,24.8 173.6,24.2 173.2,23.6 172.8,23.0 172.5,22.3 172.1,21.7 171.8,21.1 171.6,20.5 171.3,19.8 171.1,19.2 170.8,18.6 170.6,17.9 170.5,17.3 170.3,16.6 170.2,16.0 170.0,15.3 169.9,14.6 169.9,14.0 169.8,13.3 169.8,12.6 169.8,12.0 169.8,11.3 169.8,10.6 169.8,9.9 169.9,9.2 170.0,8.5 170.1,7.8 170.2,7.1 170.4,6.4 170.5,5.7 170.7,5.0 170.9,4.3 171.1,3.6 171.4,3.3 171.7,3.9 172.1,4.5 172.4,5.1 172.7,5.6 173.1,6.2 173.5,6.7 173.8,7.2 174.2,7.7 174.6,8.1 175.0,8.6 175.4,9.0 175.8,9.4 176.3,9.8 176.7,10.2 206.8,35.3 206.7,35.6 206.4,35.8 206.1,36.1 205.8,36.4 205.5,36.6 205.2,36.9 205.0,37.2 155.6,101.9 155.5,101.9 148.2,95.9" fill="none" stroke="#F4F1E6" stroke-width="0.7" stroke-linejoin="round" opacity="0.9"/><circle cx="191.3" cy="25.6" r="3.075" fill="#F4F1E6" stroke="#091C18" stroke-width="0.4"/><circle cx="174.4" cy="34.6" r="3.075" fill="#E8B93A" stroke="#091C18" stroke-width="0.4"/><circle cx="204.2" cy="51.3" r="3.075" fill="#C4402F" stroke="#091C18" stroke-width="0.4"/><circle cx="148.2" cy="95.9" r="3.075" fill="none" stroke="#F4F1E6" stroke-width="0.7" stroke-dasharray="1.4 1"/><circle cx="200.1" cy="67.1" r="3.075" fill="none" stroke="#E8B93A" stroke-width="0.7" stroke-dasharray="1.4 1"/><circle cx="204.2" cy="51.3" r="3.075" fill="none" stroke="#C4402F" stroke-width="0.7" stroke-dasharray="1.4 1"/></svg>
+        <figcaption><strong style="color:var(--elfenbein)">Acx’ Werte</strong> (Effet auf die Kickgrenze gekürzt): Weiß verfehlt Rot. Gestrichelt die Endlagen.</figcaption>
+      </figure>
+      <figure>
+        <svg viewBox="-7 -7 224.0 119.0" role="img"><title>Acx Nr. 6 nach dem Optimieren</title><rect x="-7" y="-7" width="224.0" height="119.0" rx="3" fill="#3B2A1C"/><rect x="0" y="0" width="210.0" height="105.0" fill="#1D5A4C"/><circle cx="26.2" cy="-3.5" r="0.9" fill="#E9E2CC"/><circle cx="26.2" cy="108.5" r="0.9" fill="#E9E2CC"/><circle cx="52.5" cy="-3.5" r="0.9" fill="#E9E2CC"/><circle cx="52.5" cy="108.5" r="0.9" fill="#E9E2CC"/><circle cx="78.8" cy="-3.5" r="0.9" fill="#E9E2CC"/><circle cx="78.8" cy="108.5" r="0.9" fill="#E9E2CC"/><circle cx="105.0" cy="-3.5" r="0.9" fill="#E9E2CC"/><circle cx="105.0" cy="108.5" r="0.9" fill="#E9E2CC"/><circle cx="131.2" cy="-3.5" r="0.9" fill="#E9E2CC"/><circle cx="131.2" cy="108.5" r="0.9" fill="#E9E2CC"/><circle cx="157.5" cy="-3.5" r="0.9" fill="#E9E2CC"/><circle cx="157.5" cy="108.5" r="0.9" fill="#E9E2CC"/><circle cx="183.8" cy="-3.5" r="0.9" fill="#E9E2CC"/><circle cx="183.8" cy="108.5" r="0.9" fill="#E9E2CC"/><circle cx="-3.5" cy="26.2" r="0.9" fill="#E9E2CC"/><circle cx="213.5" cy="26.2" r="0.9" fill="#E9E2CC"/><circle cx="-3.5" cy="52.5" r="0.9" fill="#E9E2CC"/><circle cx="213.5" cy="52.5" r="0.9" fill="#E9E2CC"/><circle cx="-3.5" cy="78.8" r="0.9" fill="#E9E2CC"/><circle cx="213.5" cy="78.8" r="0.9" fill="#E9E2CC"/><polyline points="204.2,51.3 196.0,80.6" fill="none" stroke="#C4402F" stroke-width="0.7" stroke-linejoin="round" opacity="0.9"/><polyline points="174.4,34.6 95.3,101.1 94.1,101.7 93.1,100.8 92.1,99.9 91.0,99.0 90.0,98.1 89.0,97.3 87.9,96.5 86.9,95.7 85.9,94.9 84.8,94.2 83.8,93.4 82.7,92.7 81.7,92.0 80.7,91.3 79.6,90.7 78.6,90.1 77.5,89.4 76.5,88.9 75.4,88.3 74.4,87.7 73.3,87.2 3.7,52.7 3.4,52.2 4.3,51.8 5.1,51.5 6.0,51.1 6.8,50.7 7.6,50.4 8.4,50.0 9.1,49.6 9.8,49.2 10.6,48.8 11.2,48.5 11.9,48.1 12.6,47.7 13.2,47.3 13.8,46.9 14.4,46.5 14.9,46.2 75.7,3.3 76.1,3.2 76.5,3.5 77.0,3.7 77.4,4.0 77.8,4.2 78.2,4.4 78.6,4.6 195.2,50.2 195.3,50.5 202.8,61.7" fill="none" stroke="#E8B93A" stroke-width="0.7" stroke-linejoin="round" opacity="0.9"/><polyline points="191.3,25.6 181.8,29.6 179.4,30.5 178.6,30.2 178.1,29.7 177.6,29.2 177.1,28.6 176.7,28.1 176.2,27.6 175.8,27.0 175.4,26.5 175.0,25.9 174.7,25.4 174.3,24.8 174.0,24.3 173.7,23.7 173.4,23.1 173.2,22.6 172.9,22.0 172.7,21.4 172.5,20.8 172.4,20.3 172.2,19.7 172.1,19.1 172.0,18.5 171.9,17.9 171.8,17.3 171.7,16.7 171.7,16.1 171.7,15.5 171.7,14.9 171.7,14.3 171.8,13.7 171.8,13.0 171.9,12.4 172.0,11.8 172.2,11.2 172.3,10.5 172.5,9.9 172.7,9.3 172.9,8.6 173.1,8.0 173.4,7.3 175.0,3.4 175.3,3.3 175.6,3.9 175.8,4.4 176.1,4.9 176.4,5.4 176.7,5.8 177.0,6.3 177.3,6.7 177.6,7.1 177.9,7.5 206.8,43.8 206.8,44.1 206.7,44.3 206.5,44.6 206.3,44.8 206.2,45.1 206.1,45.4 206.0,45.5 205.9,45.5 201.4,49.8 206.9,49.7 202.4,49.5" fill="none" stroke="#F4F1E6" stroke-width="0.7" stroke-linejoin="round" opacity="0.9"/><circle cx="191.3" cy="25.6" r="3.075" fill="#F4F1E6" stroke="#091C18" stroke-width="0.4"/><circle cx="174.4" cy="34.6" r="3.075" fill="#E8B93A" stroke="#091C18" stroke-width="0.4"/><circle cx="204.2" cy="51.3" r="3.075" fill="#C4402F" stroke="#091C18" stroke-width="0.4"/><circle cx="202.4" cy="49.5" r="3.075" fill="none" stroke="#F4F1E6" stroke-width="0.7" stroke-dasharray="1.4 1"/><circle cx="202.8" cy="61.7" r="3.075" fill="none" stroke="#E8B93A" stroke-width="0.7" stroke-dasharray="1.4 1"/><circle cx="196.0" cy="80.6" r="3.075" fill="none" stroke="#C4402F" stroke-width="0.7" stroke-dasharray="1.4 1"/></svg>
+        <figcaption><strong style="color:var(--elfenbein)">Nach 4 s Optimieren:</strong> Carambolage, Folgestellung als Dreieck — Gelb 1,0 Ballbreiten von Weiß, Winkel 22° zu Rot. Note 0.</figcaption>
+      </figure>
+    </div>
+    <div class="duo" style="margin-top:1.6rem">
+      <div>
+        <p class="marke" style="font-size:.72rem;margin-bottom:.9rem">Wie genau muss es sein? (guter Clubspieler)</p>
+        <div class="leisten">
+          <div class="leiste"><span><strong>Richtung</strong><br><span class="klein">-1,1° … +0,6°</span></span><svg viewBox="0 0 200 14" preserveAspectRatio="none" aria-hidden="true"><rect x="80.4" y="0" width="39.2" height="14" fill="#F4F1E6" opacity="0.18"/><rect x="-0.45" y="3" width="4.95" height="8" fill="#9B3A2E"/><rect x="4.45" y="3" width="4.95" height="8" fill="#9B3A2E"/><rect x="9.35" y="3" width="4.95" height="8" fill="#9B3A2E"/><rect x="14.25" y="3" width="4.95" height="8" fill="#9B3A2E"/><rect x="19.15" y="3" width="4.95" height="8" fill="#9B3A2E"/><rect x="24.05" y="3" width="4.95" height="8" fill="#9B3A2E"/><rect x="28.95" y="3" width="4.95" height="8" fill="#9B3A2E"/><rect x="33.85" y="3" width="4.95" height="8" fill="#9B3A2E"/><rect x="38.75" y="3" width="4.95" height="8" fill="#9B3A2E"/><rect x="43.65" y="3" width="4.95" height="8" fill="#A9C77A"/><rect x="48.55" y="3" width="4.95" height="8" fill="#A9C77A"/><rect x="53.45" y="3" width="4.95" height="8" fill="#4CAF50"/><rect x="58.35" y="3" width="4.95" height="8" fill="#A9C77A"/><rect x="63.25" y="3" width="4.95" height="8" fill="#4CAF50"/><rect x="68.15" y="3" width="4.95" height="8" fill="#A9C77A"/><rect x="73.05" y="3" width="4.95" height="8" fill="#4CAF50"/><rect x="77.95" y="3" width="4.95" height="8" fill="#4CAF50"/><rect x="82.85" y="3" width="4.95" height="8" fill="#A9C77A"/><rect x="87.75" y="3" width="4.95" height="8" fill="#4CAF50"/><rect x="92.65" y="3" width="4.95" height="8" fill="#4CAF50"/><rect x="97.55" y="3" width="4.95" height="8" fill="#4CAF50"/><rect x="102.45" y="3" width="4.95" height="8" fill="#A9C77A"/><rect x="107.35" y="3" width="4.95" height="8" fill="#A9C77A"/><rect x="112.25" y="3" width="4.95" height="8" fill="#A9C77A"/><rect x="117.15" y="3" width="4.95" height="8" fill="#A9C77A"/><rect x="122.05" y="3" width="4.95" height="8" fill="#4CAF50"/><rect x="126.95" y="3" width="4.95" height="8" fill="#A9C77A"/><rect x="131.85" y="3" width="4.95" height="8" fill="#9B3A2E"/><rect x="136.75" y="3" width="4.95" height="8" fill="#9B3A2E"/><rect x="141.65" y="3" width="4.95" height="8" fill="#9B3A2E"/><rect x="146.55" y="3" width="4.95" height="8" fill="#9B3A2E"/><rect x="151.45" y="3" width="4.95" height="8" fill="#9B3A2E"/><rect x="156.35" y="3" width="4.95" height="8" fill="#9B3A2E"/><rect x="161.25" y="3" width="4.95" height="8" fill="#9B3A2E"/><rect x="166.15" y="3" width="4.95" height="8" fill="#9B3A2E"/><rect x="171.05" y="3" width="4.95" height="8" fill="#9B3A2E"/><rect x="175.95" y="3" width="4.95" height="8" fill="#9B3A2E"/><rect x="180.85" y="3" width="4.95" height="8" fill="#9B3A2E"/><rect x="185.75" y="3" width="4.95" height="8" fill="#9B3A2E"/><rect x="190.65" y="3" width="4.95" height="8" fill="#9B3A2E"/><rect x="195.55" y="3" width="4.95" height="8" fill="#9B3A2E"/><line x1="100.0" x2="100.0" y1="0" y2="14" stroke="#F4F1E6" stroke-width="1.4"/></svg><span class="u eng">eng</span></div><div class="leiste"><span><strong>Tempo</strong><br><span class="klein">-30 % … +30 %</span></span><svg viewBox="0 0 200 14" preserveAspectRatio="none" aria-hidden="true"><rect x="80.4" y="0" width="39.2" height="14" fill="#F4F1E6" opacity="0.18"/><rect x="-1.27" y="3" width="6.58" height="8" fill="#A9C77A"/><rect x="5.27" y="3" width="6.58" height="8" fill="#A9C77A"/><rect x="11.80" y="3" width="6.58" height="8" fill="#A9C77A"/><rect x="18.33" y="3" width="6.58" height="8" fill="#A9C77A"/><rect x="24.87" y="3" width="6.58" height="8" fill="#A9C77A"/><rect x="31.40" y="3" width="6.58" height="8" fill="#A9C77A"/><rect x="37.93" y="3" width="6.58" height="8" fill="#A9C77A"/><rect x="44.47" y="3" width="6.58" height="8" fill="#A9C77A"/><rect x="51.00" y="3" width="6.58" height="8" fill="#A9C77A"/><rect x="57.53" y="3" width="6.58" height="8" fill="#A9C77A"/><rect x="64.07" y="3" width="6.58" height="8" fill="#4CAF50"/><rect x="70.60" y="3" width="6.58" height="8" fill="#4CAF50"/><rect x="77.13" y="3" width="6.58" height="8" fill="#4CAF50"/><rect x="83.67" y="3" width="6.58" height="8" fill="#4CAF50"/><rect x="90.20" y="3" width="6.58" height="8" fill="#4CAF50"/><rect x="96.73" y="3" width="6.58" height="8" fill="#4CAF50"/><rect x="103.27" y="3" width="6.58" height="8" fill="#A9C77A"/><rect x="109.80" y="3" width="6.58" height="8" fill="#A9C77A"/><rect x="116.33" y="3" width="6.58" height="8" fill="#4CAF50"/><rect x="122.87" y="3" width="6.58" height="8" fill="#A9C77A"/><rect x="129.40" y="3" width="6.58" height="8" fill="#4CAF50"/><rect x="135.93" y="3" width="6.58" height="8" fill="#4CAF50"/><rect x="142.47" y="3" width="6.58" height="8" fill="#A9C77A"/><rect x="149.00" y="3" width="6.58" height="8" fill="#4CAF50"/><rect x="155.53" y="3" width="6.58" height="8" fill="#A9C77A"/><rect x="162.07" y="3" width="6.58" height="8" fill="#A9C77A"/><rect x="168.60" y="3" width="6.58" height="8" fill="#A9C77A"/><rect x="175.13" y="3" width="6.58" height="8" fill="#A9C77A"/><rect x="181.67" y="3" width="6.58" height="8" fill="#A9C77A"/><rect x="188.20" y="3" width="6.58" height="8" fill="#A9C77A"/><rect x="194.73" y="3" width="6.58" height="8" fill="#A9C77A"/><line x1="100.0" x2="100.0" y1="0" y2="14" stroke="#F4F1E6" stroke-width="1.4"/></svg><span class="u ok">unkritisch</span></div><div class="leiste"><span><strong>Effet</strong><br><span class="klein">-50 % … +10 %</span></span><svg viewBox="0 0 200 14" preserveAspectRatio="none" aria-hidden="true"><rect x="80.4" y="0" width="39.2" height="14" fill="#F4F1E6" opacity="0.18"/><rect x="-2.90" y="3" width="9.85" height="8" fill="#A9C77A"/><rect x="6.90" y="3" width="9.85" height="8" fill="#A9C77A"/><rect x="16.70" y="3" width="9.85" height="8" fill="#A9C77A"/><rect x="26.50" y="3" width="9.85" height="8" fill="#A9C77A"/><rect x="36.30" y="3" width="9.85" height="8" fill="#4CAF50"/><rect x="46.10" y="3" width="9.85" height="8" fill="#A9C77A"/><rect x="55.90" y="3" width="9.85" height="8" fill="#A9C77A"/><rect x="65.70" y="3" width="9.85" height="8" fill="#A9C77A"/><rect x="75.50" y="3" width="9.85" height="8" fill="#4CAF50"/><rect x="85.30" y="3" width="9.85" height="8" fill="#A9C77A"/><rect x="95.10" y="3" width="9.85" height="8" fill="#4CAF50"/><rect x="104.90" y="3" width="9.85" height="8" fill="#4CAF50"/><rect x="114.70" y="3" width="9.85" height="8" fill="#A9C77A"/><rect x="124.50" y="3" width="9.85" height="8" fill="#9B3A2E"/><rect x="134.30" y="3" width="9.85" height="8" fill="#9B3A2E"/><rect x="144.10" y="3" width="9.85" height="8" fill="#9B3A2E"/><rect x="153.90" y="3" width="9.85" height="8" fill="#9B3A2E"/><rect x="163.70" y="3" width="9.85" height="8" fill="#9B3A2E"/><rect x="173.50" y="3" width="9.85" height="8" fill="#5F6B67"/><rect x="183.30" y="3" width="9.85" height="8" fill="#5F6B67"/><rect x="193.10" y="3" width="9.85" height="8" fill="#5F6B67"/><line x1="100.0" x2="100.0" y1="0" y2="14" stroke="#F4F1E6" stroke-width="1.4"/></svg><span class="u eng">eng</span></div><div class="leiste"><span><strong>Höhe</strong><br><span class="klein">-10 % … +15 %</span></span><svg viewBox="0 0 200 14" preserveAspectRatio="none" aria-hidden="true"><rect x="80.4" y="0" width="39.2" height="14" fill="#F4F1E6" opacity="0.18"/><rect x="-2.90" y="3" width="9.85" height="8" fill="#5F6B67"/><rect x="6.90" y="3" width="9.85" height="8" fill="#5F6B67"/><rect x="16.70" y="3" width="9.85" height="8" fill="#5F6B67"/><rect x="26.50" y="3" width="9.85" height="8" fill="#5F6B67"/><rect x="36.30" y="3" width="9.85" height="8" fill="#5F6B67"/><rect x="46.10" y="3" width="9.85" height="8" fill="#5F6B67"/><rect x="55.90" y="3" width="9.85" height="8" fill="#5F6B67"/><rect x="65.70" y="3" width="9.85" height="8" fill="#9B3A2E"/><rect x="75.50" y="3" width="9.85" height="8" fill="#A9C77A"/><rect x="85.30" y="3" width="9.85" height="8" fill="#4CAF50"/><rect x="95.10" y="3" width="9.85" height="8" fill="#4CAF50"/><rect x="104.90" y="3" width="9.85" height="8" fill="#A9C77A"/><rect x="114.70" y="3" width="9.85" height="8" fill="#4CAF50"/><rect x="124.50" y="3" width="9.85" height="8" fill="#A9C77A"/><rect x="134.30" y="3" width="9.85" height="8" fill="#9B3A2E"/><rect x="144.10" y="3" width="9.85" height="8" fill="#9B3A2E"/><rect x="153.90" y="3" width="9.85" height="8" fill="#9B3A2E"/><rect x="163.70" y="3" width="9.85" height="8" fill="#9B3A2E"/><rect x="173.50" y="3" width="9.85" height="8" fill="#9B3A2E"/><rect x="183.30" y="3" width="9.85" height="8" fill="#9B3A2E"/><rect x="193.10" y="3" width="9.85" height="8" fill="#9B3A2E"/><line x1="100.0" x2="100.0" y1="0" y2="14" stroke="#F4F1E6" stroke-width="1.4"/></svg><span class="u eng">eng</span></div><div class="leiste"><span><strong>Neigung</strong><br><span class="klein">-10° … +10°</span></span><svg viewBox="0 0 200 14" preserveAspectRatio="none" aria-hidden="true"><rect x="80.4" y="0" width="39.2" height="14" fill="#F4F1E6" opacity="0.18"/><rect x="-2.90" y="3" width="9.85" height="8" fill="#A9C77A"/><rect x="6.90" y="3" width="9.85" height="8" fill="#A9C77A"/><rect x="16.70" y="3" width="9.85" height="8" fill="#A9C77A"/><rect x="26.50" y="3" width="9.85" height="8" fill="#A9C77A"/><rect x="36.30" y="3" width="9.85" height="8" fill="#A9C77A"/><rect x="46.10" y="3" width="9.85" height="8" fill="#A9C77A"/><rect x="55.90" y="3" width="9.85" height="8" fill="#A9C77A"/><rect x="65.70" y="3" width="9.85" height="8" fill="#4CAF50"/><rect x="75.50" y="3" width="9.85" height="8" fill="#4CAF50"/><rect x="85.30" y="3" width="9.85" height="8" fill="#A9C77A"/><rect x="95.10" y="3" width="9.85" height="8" fill="#4CAF50"/><rect x="104.90" y="3" width="9.85" height="8" fill="#4CAF50"/><rect x="114.70" y="3" width="9.85" height="8" fill="#A9C77A"/><rect x="124.50" y="3" width="9.85" height="8" fill="#4CAF50"/><rect x="134.30" y="3" width="9.85" height="8" fill="#4CAF50"/><rect x="144.10" y="3" width="9.85" height="8" fill="#A9C77A"/><rect x="153.90" y="3" width="9.85" height="8" fill="#A9C77A"/><rect x="163.70" y="3" width="9.85" height="8" fill="#A9C77A"/><rect x="173.50" y="3" width="9.85" height="8" fill="#A9C77A"/><rect x="183.30" y="3" width="9.85" height="8" fill="#A9C77A"/><rect x="193.10" y="3" width="9.85" height="8" fill="#A9C77A"/><line x1="100.0" x2="100.0" y1="0" y2="14" stroke="#F4F1E6" stroke-width="1.4"/></svg><span class="u ok">unkritisch</span></div>
+        </div>
+        <div class="legende" style="margin-top:.7rem">
+          <span><i style="background:#4CAF50"></i>gute Folgestellung</span>
+          <span><i style="background:#A9C77A"></i>Carambolage</span>
+          <span><i style="background:#9B3A2E"></i>keine</span>
+          <span><i style="background:#5F6B67"></i>Kickser</span>
+          <span><i style="background:#F4F1E6;opacity:.35"></i>normale Streuung</span>
+        </div>
+      </div>
+      <div class="karte">
+        <h3>300 Stöße mit allen Fehlern zugleich</h3>
+        <div class="zahlen" style="grid-template-columns:repeat(3,1fr)">
+          <div><div class="zahl">68 %</div><p>Carambolage</p></div>
+          <div><div class="zahl">18 %</div><p>gute Folgestellung</p></div>
+          <div><div class="zahl">5 %</div><p>Kickser</p></div>
+        </div>
+        <p style="margin-top:.9rem">Kritisch ist hier die Höhe: ein kräftiger Zieher knapp unter der Kickgrenze. Tempo und Queueneigung verzeihen viel.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="weiter">
+  <div class="innen">
+    <p class="marke">Neun — Wie es weitergeht</p>
+    <h2>Am Clubtisch messen, dann trainieren</h2>
+    <ul class="punkte" style="margin-top:1.6rem">
+      <li><span><strong>Messungen am beheizten Clubtisch:</strong> Rollweg, Diamantlauf, Effet an der Bande, Bandenverlust — daraus ein Wertesatz „Clubtisch“.</span></li>
+      <li><span><strong>Ein Tempo-Test mit Acx Nr. 1:</strong> Braucht Gelb für fünf Banden wirklich so viel Kraft, wie der Simulator sagt?</span></li>
+      <li><span><strong>Die Note für die Folgestellung schärfen</strong> — an Stellungen, die erfahrene Spieler sofort einordnen.</span></li>
+      <li><span><strong>Weitere Disziplinen:</strong> Für Dreiband ist eine enge Versammlung eher schädlich, Einband hat eigene Regeln.</span></li>
+      <li><span><strong>Zurück in Carambus:</strong> optimierte Stöße und ihre Schwierigkeit als Teil der Trainingsbeispiele.</span></li>
+    </ul>
+  </div>
+</section>
+
+<footer>
+  Carambus · BC Wedel · Gernot Ullrich · Stand 5. Oktober 2026
+</footer>
