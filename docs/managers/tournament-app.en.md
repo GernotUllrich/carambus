@@ -228,7 +228,11 @@ has its own mode. The plan is built only at the start from the number of starter
 before the registration deadline just shift the group split. The game runs as the app's **own
 tournament**, not attached to the DBU tournament in Carambus.
 
-1. **Open the app**, connect live, in the launcher **"Plan-Turnier anlegen (Karambol/Kegel)"**.
+1. **Open the app** and establish the **Carambus connection** at the top right (green). In the box
+   **"Neues Turnier"** choose the scheme **"🗂 TournamentPlan (T01–T24)"**, enter a title (e.g.
+   "23. DBU Grand Prix Biathlon"), press **"Turnier anlegen"** and open the tournament under
+   "Turniere". The box "Offene Meldelisten (ClubCloud)" does not help here — it only shows
+   ClubCloud registration lists of your own region.
 2. Setup, card **"1 · Turnierplan"**: **"🎯 DBU Grand Prix Biathlon"**.
 3. Card **"2 · Teilnehmer"**: enter the **Carambus-Turnier-Nr.** of the DBU tournament (the number
    in the address of the tournament page, `…/tournaments/<no.>`) and **"📥 Meldeliste

@@ -220,8 +220,11 @@ Plan-Schema einen eigenen Modus. Der Plan entsteht erst beim Start aus der Start
 zum Meldeschluss nachmeldet, verschiebt nur die Gruppeneinteilung. Gespielt wird als **eigenes
 App-Turnier**, nicht angehängt an das DBU-Turnier in Carambus.
 
-1. **App öffnen**, Live-Verbindung herstellen, im Launcher **„Plan-Turnier anlegen
-   (Karambol/Kegel)“**.
+1. **App öffnen** und oben rechts die **Carambus-Verbindung** herstellen (grün). Im Kasten
+   **„Neues Turnier“** als Schema **„🗂 TournamentPlan (T01–T24)“** wählen, einen Titel eintragen
+   (z. B. „23. DBU Grand Prix Biathlon“), **„Turnier anlegen“** und das Turnier unter „Turniere“
+   öffnen. Der Kasten „Offene Meldelisten (ClubCloud)“ hilft hier nicht — er zeigt nur
+   ClubCloud-Meldelisten der eigenen Region.
 2. Setup, Karte **„1 · Turnierplan“**: **„🎯 DBU Grand Prix Biathlon“**.
 3. Karte **„2 · Teilnehmer“**: die **Carambus-Turnier-Nr.** des DBU-Turniers eintragen (die Zahl
    aus der Adresse der Turnierseite, `…/tournaments/<Nr.>`) und **„📥 Meldeliste übernehmen“**.
