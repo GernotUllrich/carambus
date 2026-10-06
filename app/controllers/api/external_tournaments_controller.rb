@@ -40,7 +40,10 @@ module Api
       if params[:tournament_id].present?
         tournament = Tournament.find_by(id: params[:tournament_id])
         return render json: {error: "Tournament not found"}, status: :not_found if tournament.nil?
-        if tournament.region_id != region.id
+        # Globale Turniere (DBU, global_context) gehoeren jeder Region — der Sync verteilt sie
+        # an alle. Ein App-Turnier eines Landesverbands uebernimmt so z.B. die Meldeliste eines
+        # DBU Grand Prix (2026-10-06).
+        if tournament.region_id != region.id && !tournament.global_context
           return render json: {error: "Region mismatch"}, status: :unprocessable_entity
         end
         tournament_cc = tournament.tournament_cc
