@@ -1687,6 +1687,8 @@ de:
       labels:
         balls_goal: "Bälle-Ziel"
         innings_goal: "Aufnahmen-Limit"
+        biathlon_balls_goal_3b: "Biathlon: Dreiband-Distanz"
+        biathlon_innings_goal_3b: "Biathlon: Aufnahmen Dreiband"
         timeout: "Timeout (Sek.)"
         timeouts: "Timeouts"
         admin_controlled: "Rundenwechsel manuell bestätigen"
@@ -1705,6 +1707,8 @@ de:
       tooltips:
         balls_goal: "Zielanzahl der Bälle pro Partie (übliche Werte: 50–200 für Freie Partie, 20–100 für Cadre)."
         innings_goal: "Maximale Aufnahmen pro Partie. 0 = kein Limit. Übliche Werte: 20–80."
+        biathlon_balls_goal_3b: "Teildistanz der Dreiband-Phase (10 oder 15). Danach x6 und 5-Kegel bis zum Bälle-Ziel (Gesamtziel, z.B. 120 oder 180)."
+        biathlon_innings_goal_3b: "Aufnahmebegrenzung der Dreiband-Phase (z.B. 15, 20, 30). Die Partie selbst hat keine Aufnahmebegrenzung."
         timeout: "Shot-Clock pro Stoß in Sekunden. 0 = ausgeschaltet. Üblich: 30–90 Sekunden."
         timeouts: "Anzahl der verfügbaren Auszeiten pro Spieler und Partie."
         admin_controlled: "Veraltet — wird in Phase 36b entfernt. Der Rundenwechsel läuft künftig immer automatisch."

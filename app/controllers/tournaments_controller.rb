@@ -586,6 +586,14 @@ class TournamentsController < ApplicationController
         # Beim erneuten Start werden existierende Spiele einfach wieder auf "warmup" gesetzt,
         # OHNE dass do_placement/initialize_game aufgerufen wird!
         tm = @tournament.tournament_monitor
+        # Biathlon: Variante am lokalen TournamentMonitor ablegen (nicht in tournament.data —
+        # globale Turniere ueberschreibt ein Sync). Spaetere Runden liest initialize_game von dort.
+        biathlon = @tournament.discipline&.name == "Biathlon"
+        if biathlon
+          tm.data["biathlon"] = TableMonitor::GameSetup.biathlon_params(params[:biathlon])
+          tm.data_will_change!
+          tm.save!
+        end
         Rails.logger.info "===== UPDATING TableMonitors ====="
         Rails.logger.info "TournamentMonitor[#{tm.id}]: innings_goal=#{tm.innings_goal}, balls_goal=#{tm.balls_goal}, handicap_tournier=#{@tournament.handicap_tournier?}"
         tm.table_monitors.each do |table_mon|
@@ -596,6 +604,8 @@ class TournamentsController < ApplicationController
           update_data = {
             "innings_goal" => tm.innings_goal
           }
+          # Die erste Runde wurde schon platziert, bevor die Variante am TournamentMonitor stand.
+          update_data["biathlon"] = tm.data["biathlon"] if biathlon
           
           unless @tournament.handicap_tournier?
             # Nur bei NICHT-Handicap-Turnieren die balls_goal überschreiben

@@ -1342,6 +1342,8 @@ class TableMonitor < ApplicationRecord
   def follow_up?
     override = bk_follow_up_override
     return false if override == false
+    # Biathlon: kein Nachstoss (DBU-Regeln §3.2), unabhaengig von allow_follow_up des Turniers.
+    return false if discipline == "Biathlon"
 
     left_player_id = data["fixed_display_left"].blank? ? data["current_kickoff_player"] : data["current_left_player"]
     right_player_id = left_player_id == "playera" ? "playerb" : "playera"
@@ -1609,6 +1611,8 @@ class TableMonitor < ApplicationRecord
       # which is the case for all BK-* except BK-2kombi). Nil round-trips
       # harmlessly for non-BK games (karambol/snooker/pool).
       "bk2_options" => data["bk2_options"],
+      # Biathlon: Rueckspiel in derselben Variante (sonst Defaults 15/30). Nil fuer alle anderen.
+      "biathlon" => data["biathlon"],
       "first_break_choice" => data["first_break_choice"],
       "warntime" => data["warntime"].to_i,
       "gametime" => data["gametime"].to_i,
@@ -1660,7 +1664,7 @@ class TableMonitor < ApplicationRecord
     no_followup_phase = case data["free_game_form"]
                         when "bk_2plus", "bk50", "bk100" then true
                         when "bk2_kombi" then bk2_kombi_current_phase == "direkter_zweikampf"
-                        else false
+                        else discipline == "Biathlon" # §3.2: kein Nachstoss
                         end
     if no_followup_phase && data["playera"]["balls_goal"].to_i.positive? &&
         (data["playera"]["result"].to_i >= data["playera"]["balls_goal"].to_i ||
@@ -1768,7 +1772,7 @@ class TableMonitor < ApplicationRecord
     no_innings_limit_phase = case data["free_game_form"]
                              when "bk_2plus" then true
                              when "bk2_kombi" then bk2_kombi_current_phase == "direkter_zweikampf"
-                             else false
+                             else discipline == "Biathlon" # Grenze nur fuer Dreiband, data["biathlon"]
                              end
     if data["playera"]["balls_goal"].to_i.positive? && (data["playera"]["result"].to_i >= data["playera"]["balls_goal"].to_i ||
       data["playerb"]["result"].to_i >= data["playerb"]["balls_goal"].to_i) &&

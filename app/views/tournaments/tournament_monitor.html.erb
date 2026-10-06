@@ -102,6 +102,17 @@
             <div class="flex flex-row space-x-4 items-center">
               <span class="w-1/2 text-right text-sm" data-controller="tooltip" data-tooltip-content-value="<%= t('tournaments.monitor_form.tooltips.innings_goal') %>"><%= label_tag t('tournaments.monitor_form.labels.innings_goal') %></span><span id="tournament_innings_goal"><%= number_field_tag :innings_goal, @tournament.innings_goal || @tournament.data['extracted_innings_goal'], class: "form-control", data: { reflex: "change->TournamentReflex#innings_goal", id: @tournament.id } %></span>
             </div>
+            <%- if @tournament.discipline&.name == "Biathlon" %>
+              <%# Biathlon: Variante des Turniers. Gespeichert am (lokalen) TournamentMonitor beim Start;
+                  Bälle-Ziel = Gesamtziel. Kein Reflex — die Werte gehen mit dem Start-Formular. %>
+              <%- biathlon = TableMonitor::GameSetup.biathlon_params(@tournament.tournament_monitor.try(:data).try(:[], "biathlon")) %>
+              <div class="flex flex-row space-x-4 items-center">
+                <span class="w-1/2 text-right text-sm" data-controller="tooltip" data-tooltip-content-value="<%= t('tournaments.monitor_form.tooltips.biathlon_balls_goal_3b') %>"><%= label_tag t('tournaments.monitor_form.labels.biathlon_balls_goal_3b') %></span><span id="tournament_biathlon_balls_goal_3b"><%= number_field_tag "biathlon[balls_goal_3b]", biathlon["balls_goal_3b"], class: "form-control" %></span>
+              </div>
+              <div class="flex flex-row space-x-4 items-center">
+                <span class="w-1/2 text-right text-sm" data-controller="tooltip" data-tooltip-content-value="<%= t('tournaments.monitor_form.tooltips.biathlon_innings_goal_3b') %>"><%= label_tag t('tournaments.monitor_form.labels.biathlon_innings_goal_3b') %></span><span id="tournament_biathlon_innings_goal_3b"><%= number_field_tag "biathlon[innings_goal_3b]", biathlon["innings_goal_3b"], class: "form-control" %></span>
+              </div>
+            <%- end %>
             <div class="flex flex-row space-x-4 items-center">
               <span class="w-1/2 text-right text-sm" data-controller="tooltip" data-tooltip-content-value="<%= t('tournaments.monitor_form.tooltips.timeout') %>"><%= label_tag t('tournaments.monitor_form.labels.timeout') %></span><span id="tournament_timeout"><%= number_field_tag :timeout, @tournament.timeout || 0, class: "form-control", data: { reflex: "change->TournamentReflex#timeout", id: @tournament.id } %></span>
             </div>

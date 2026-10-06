@@ -1155,6 +1155,11 @@ class TableMonitor::ScoreEngine
     # (table_monitor.rb:1351, :1352, :1778) — ein nicht-positives Ziel heisst dort "kein
     # Limit". Diese beiden Stellen waren die Ausreisser; sie folgen jetzt derselben Regel.
     def innings_limit_open?(role)
+      # Biathlon hat keine Aufnahmebegrenzung fuer die Partie — die Dreiband-Grenze steht in
+      # data["biathlon"]. Im Turnier schreibt TournamentsController#start die innings_goal des
+      # Turniers trotzdem auf jeden Tisch.
+      return true if discipline == "Biathlon"
+
       goal = data["innings_goal"].to_i
       !goal.positive? || data[role]["innings"].to_i < goal
     end

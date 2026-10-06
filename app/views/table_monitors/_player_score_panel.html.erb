@@ -28,6 +28,8 @@ else
 end
 shown_innings_goal = if biathlon_3b
   (table_monitor.data.dig("biathlon", "innings_goal_3b").presence || TableMonitor::ScoreEngine::BIATHLON_DEFAULTS["innings_goal_3b"]).to_i
+elsif table_monitor.discipline == "Biathlon"
+  0 # Kegel-Phase: keine Aufnahmebegrenzung, auch wenn das Turnier eine innings_goal mitbringt
 else
   options[:innings_goal].to_i
 end

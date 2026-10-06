@@ -300,6 +300,46 @@ class TableMonitor::GameSetupTest < ActiveSupport::TestCase
     assert_equal 30, @tm.data.dig("biathlon", "innings_goal_3b")
   end
 
+  # Turnierpartien laufen ueber assign_game -> initialize_game, NICHT ueber call/perform_start_game.
+  def biathlon_tournament_monitor(biathlon_data = nil)
+    discipline = Discipline.find_by(name: "Biathlon") || Discipline.create!(name: "Biathlon")
+    tournament = tournaments(:local)
+    tournament.update_columns(discipline_id: discipline.id)
+    # Erst nach dem Anlegen: der AASM-Startzustand leert data (do_reset_tournament_monitor) —
+    # genau so schreibt TournamentsController#start die Variante.
+    TournamentMonitor.create!(tournament: tournament).tap do |tmon|
+      tmon.update!(data: tmon.data.merge("biathlon" => biathlon_data)) if biathlon_data
+    end
+  end
+
+  test "Turnierpartie: initialize_game uebernimmt die Biathlon-Variante des Turniers" do
+    tmon = biathlon_tournament_monitor("balls_goal_3b" => 10, "innings_goal_3b" => 20)
+    @tm.update!(tournament_monitor: tmon)
+
+    TableMonitor::GameSetup.initialize_game(table_monitor: @tm)
+
+    assert_equal "3b", @tm.data["biathlon_phase"]
+    assert_equal({"balls_goal_3b" => 10, "innings_goal_3b" => 20, "factor" => 6}, @tm.data["biathlon"])
+  end
+
+  test "Turnierpartie ohne Turniervariante: Defaults statt Rest der Vorpartie am Tisch" do
+    tmon = biathlon_tournament_monitor
+    @tm.update!(tournament_monitor: tmon, data: {"biathlon" => {"balls_goal_3b" => 10, "innings_goal_3b" => 15, "factor" => 6}})
+
+    TableMonitor::GameSetup.initialize_game(table_monitor: @tm)
+
+    assert_equal({"balls_goal_3b" => 15, "innings_goal_3b" => 30, "factor" => 6}, @tm.data["biathlon"])
+  end
+
+  test "Nicht-Biathlon-Partie verliert den Biathlon-Rest der Vorpartie" do
+    @tm.update!(data: {"biathlon" => {"balls_goal_3b" => 10}, "biathlon_phase" => "5k"})
+
+    TableMonitor::GameSetup.initialize_game(table_monitor: @tm)
+
+    assert_nil @tm.data["biathlon"]
+    assert_nil @tm.data["biathlon_phase"]
+  end
+
   test "andere Disziplinen bekommen keine Biathlon-Phase" do
     call_setup(options: @options.merge("innings_goal" => 20, "allow_follow_up" => true))
 

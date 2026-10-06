@@ -1661,6 +1661,8 @@ en:
       labels:
         balls_goal: "Balls goal"
         innings_goal: "Innings limit"
+        biathlon_balls_goal_3b: "Biathlon: three-cushion distance"
+        biathlon_innings_goal_3b: "Biathlon: three-cushion innings"
         timeout: "Timeout (sec.)"
         timeouts: "Timeouts per game"
         admin_controlled: "Manual round-change confirmation"
@@ -1679,6 +1681,8 @@ en:
       tooltips:
         balls_goal: "Target ball count per game (typical: 50–200 for straight carom, 20–100 for cadre)."
         innings_goal: "Maximum innings per game. 0 = no limit. Typical: 20–80."
+        biathlon_balls_goal_3b: "Partial distance of the three-cushion phase (10 or 15). Then x6 and 5-pins up to the balls goal (total, e.g. 120 or 180)."
+        biathlon_innings_goal_3b: "Innings limit of the three-cushion phase (e.g. 15, 20, 30). The game itself has no innings limit."
         timeout: "Shot clock per shot in seconds. 0 = disabled. Typical: 30–90."
         timeouts: "Number of timeouts available per player per game."
         admin_controlled: "Deprecated — removed in Phase 36b. Round advance is now always automatic."

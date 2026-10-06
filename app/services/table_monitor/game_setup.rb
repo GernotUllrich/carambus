@@ -230,10 +230,25 @@ class TableMonitor::GameSetup < ApplicationService
     # from a previous game survives initialize_game and init_state_if_missing! early-returns,
     # so the new game runs with the previous game's phase config (e.g. SP rules in DZ-mode).
     # Originally landed at carambus_bcw e4d85bb2; lost during 5735710's BK2 cleanup; restored here.
-    tm.data.except!("ba_results", "sets", "bk2_state")
+    tm.data.except!("ba_results", "sets", "bk2_state", "biathlon")
+    # Biathlon im Turnier: die Variante kommt vom TournamentMonitor (gesetzt beim Turnierstart).
+    # Turnierpartien laufen ueber assign_game, also nicht durch #biathlon_settings. Freie
+    # Partien setzen sie danach in perform_start_game.
+    if tm.data["biathlon_phase"] == "3b"
+      tm.data["biathlon"] = biathlon_params(tm.tournament_monitor.try(:data).try(:[], "biathlon"))
+    end
   rescue => e
     Rails.logger.error "ERROR: m6[#{tm.id}]#{e}, #{e.backtrace&.join("\n")}"
     raise e
+  end
+
+  # Biathlon-Variante aus einer Quelle (Formular, API, TournamentMonitor) normalisieren:
+  # nur positive Werte zaehlen, der Rest kommt aus den Defaults (15/30, Faktor 6).
+  def self.biathlon_params(given)
+    given = given.respond_to?(:to_unsafe_h) ? given.to_unsafe_h : given.to_h
+    values = given.stringify_keys.slice("balls_goal_3b", "innings_goal_3b")
+      .transform_values(&:to_i).select { |_, v| v.positive? }
+    TableMonitor::ScoreEngine::BIATHLON_DEFAULTS.merge(values)
   end
 
   # Phase 38.4-04 I1: Name → free_game_form fallback map for all 5 BK-* disciplines.
@@ -461,11 +476,9 @@ class TableMonitor::GameSetup < ApplicationService
   def biathlon_settings
     return {} unless biathlon?
 
-    given = (@options["biathlon"] || {}).to_h.slice("balls_goal_3b", "innings_goal_3b")
-      .transform_values(&:to_i).select { |_, v| v.positive? }
     {
       "biathlon_phase" => "3b",
-      "biathlon" => TableMonitor::ScoreEngine::BIATHLON_DEFAULTS.merge(given),
+      "biathlon" => self.class.biathlon_params(@options["biathlon"]),
       "innings_goal" => 0,
       "allow_follow_up" => false
     }
