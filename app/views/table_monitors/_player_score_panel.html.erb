@@ -18,6 +18,19 @@ player = is_left ? options[:player_a] : options[:player_b]
 player_id = player_key
 player_active = is_left ? options[:player_a_active] : options[:player_b_active]
 other_player_id = player_key == "playera" ? "playerb" : "playera"
+# Biathlon, Dreiband-Phase: Ziel und Aufnahmebegrenzung sind die der Teildistanz, nicht
+# das Gesamtziel (DBU-Regeln Biathlon §3.2). Ausserhalb von Biathlon unveraendert.
+biathlon_3b = table_monitor.discipline == "Biathlon" && table_monitor.data["biathlon_phase"] == "3b"
+shown_goal = if biathlon_3b
+  (table_monitor.data.dig("biathlon", "balls_goal_3b").presence || TableMonitor::ScoreEngine::BIATHLON_DEFAULTS["balls_goal_3b"]).to_i
+else
+  player[:balls_goal].to_i
+end
+shown_innings_goal = if biathlon_3b
+  (table_monitor.data.dig("biathlon", "innings_goal_3b").presence || TableMonitor::ScoreEngine::BIATHLON_DEFAULTS["innings_goal_3b"]).to_i
+else
+  options[:innings_goal].to_i
+end
 
 # Visual position
 position = is_left ? "left" : "right"
@@ -137,14 +150,14 @@ end
               </span>
             </div>
             <div class="text-<%= vw2 %>">
-              <%- to_play = player[:balls_goal].to_i - (player[:result].to_i + Array(table_monitor.data[player_id].andand["innings_redo_list"])[-1].to_i) %>
+              <%- to_play = shown_goal - (player[:result].to_i + Array(table_monitor.data[player_id].andand["innings_redo_list"])[-1].to_i) %>
               <%- if table_monitor.follow_up? && player_active && options[:allow_follow_up] %>
                 <div><%= t("table_monitor.follow_up") %></div>
               <%- end %>
-              <%- if player[:balls_goal].to_i > 0 && player_active && to_play <= 3 %>
+              <%- if shown_goal > 0 && player_active && to_play <= 3 %>
                 pour <%= to_play %>
               <%- end %>
-              <%- if options[:innings_goal].to_i > 0 && player_active && (options[:innings_goal].to_i - player[:innings].to_i) == 1 %>
+              <%- if shown_innings_goal > 0 && player_active && (shown_innings_goal - player[:innings].to_i) == 1 %>
                 <%= t('last_inning').html_safe %>
               <%- end %>
             </div>
@@ -154,7 +167,7 @@ end
               <%- if is_bk2 %>
                 <%= t('goal') %>: <%= bk2_set_target > 0 ? bk2_set_target : "?" %>
               <%- else %>
-                <%= t('goal') %>: <%= s = player[:balls_goal].to_i; s > 0 ? s : "no limit" %>
+                <%= t('goal') %>: <%= s = shown_goal; s > 0 ? s : "no limit" %>
               <%- end %>
             </div>
             <% unless table_monitor.discipline == "Biathlon" || is_bk2 %>
@@ -173,7 +186,7 @@ end
               <%- if is_bk2 %>
                 <%= t('goal') %>: <%= bk2_set_target > 0 ? bk2_set_target : "?" %>
               <%- else %>
-                <%= t('goal') %>: <%= s = player[:balls_goal].to_i; s > 0 ? s : "no limit" %>
+                <%= t('goal') %>: <%= s = shown_goal; s > 0 ? s : "no limit" %>
               <%- end %>
             </div>
             <% unless table_monitor.discipline == "Biathlon" || is_bk2 %>
@@ -197,11 +210,11 @@ end
               </span>
             </div>
             <div class="text-<%= vw2 %>">
-              <%- to_play = player[:balls_goal].to_i > 0 ? player[:balls_goal].to_i - (player[:result].to_i + Array(table_monitor.data[player_id].andand["innings_redo_list"])[-1].to_i) : 9999 %>
+              <%- to_play = shown_goal > 0 ? shown_goal - (player[:result].to_i + Array(table_monitor.data[player_id].andand["innings_redo_list"])[-1].to_i) : 9999 %>
               <%- if table_monitor.follow_up? && player_active && options[:allow_follow_up] %>
                 <div><%= t("table_monitor.follow_up") %></div>
               <%- end %>
-              <%- if player[:balls_goal].to_i > 0 && player_active && to_play <= 3 %>
+              <%- if shown_goal > 0 && player_active && to_play <= 3 %>
                 pour <%= to_play %>
               <%- end %>
             </div>

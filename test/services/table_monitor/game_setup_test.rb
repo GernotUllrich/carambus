@@ -262,6 +262,54 @@ class TableMonitor::GameSetupTest < ActiveSupport::TestCase
   end
 
   # ---------------------------------------------------------------------------
+  # Biathlon (2026-10-06): jede Biathlon-Partie startet in der Dreiband-Phase mit ihren
+  # Parametern — bisher nur Turnierpartien, und die Werte waren fest verdrahtet.
+  # ---------------------------------------------------------------------------
+
+  def biathlon_options(extra = {})
+    @options.merge(
+      "discipline_a" => "Biathlon", "discipline_b" => "Biathlon",
+      "balls_goal_a" => 120, "balls_goal_b" => 120,
+      "innings_goal" => 20, "allow_follow_up" => true
+    ).merge(extra)
+  end
+
+  test "freie Biathlon-Partie startet in der Dreiband-Phase mit den uebergebenen Parametern" do
+    call_setup(options: biathlon_options("biathlon" => {"balls_goal_3b" => "10", "innings_goal_3b" => "20"}))
+
+    @tm.reload
+    assert_equal "3b", @tm.data["biathlon_phase"]
+    assert_equal({"balls_goal_3b" => 10, "innings_goal_3b" => 20, "factor" => 6}, @tm.data["biathlon"])
+    assert_equal 120, @tm.data.dig("playera", "balls_goal").to_i
+  end
+
+  test "Biathlon: kein Nachstoss und keine Aufnahmebegrenzung fuer die ganze Partie" do
+    call_setup(options: biathlon_options)
+
+    @tm.reload
+    assert_equal false, @tm.data["allow_follow_up"]
+    assert_equal 0, @tm.data["innings_goal"].to_i,
+      "die Aufnahmebegrenzung gilt nur fuer Dreiband — als innings_goal beendete sie die Partie"
+  end
+
+  test "Biathlon ohne Parameter nimmt die Variante 15/30" do
+    call_setup(options: biathlon_options)
+
+    @tm.reload
+    assert_equal 15, @tm.data.dig("biathlon", "balls_goal_3b")
+    assert_equal 30, @tm.data.dig("biathlon", "innings_goal_3b")
+  end
+
+  test "andere Disziplinen bekommen keine Biathlon-Phase" do
+    call_setup(options: @options.merge("innings_goal" => 20, "allow_follow_up" => true))
+
+    @tm.reload
+    assert_nil @tm.data["biathlon_phase"]
+    assert_equal 20, @tm.data["innings_goal"].to_i
+    assert_equal true, ActiveModel::Type::Boolean.new.cast(@tm.data["allow_follow_up"])
+  end
+
+  # ---------------------------------------------------------------------------
   # Test 6: suppress_broadcast wird vor Saves gesetzt
   # ---------------------------------------------------------------------------
 

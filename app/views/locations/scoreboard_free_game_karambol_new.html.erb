@@ -265,6 +265,9 @@
       bk2_choice: null,
       bk2_dz_max_shots: 2,
       bk2_sp_max_innings: 5,
+      biathlon_3b: 15, biathlon_3b_2: 15, biathlon_3b_a: 15, biathlon_3b_b: 15, biathlon_3b_a_2: 15, biathlon_3b_b_2: 15,
+      increment_biathlon_3b: 5,
+      get is_biathlon() { return this.discipline == 13; },
       get bk2_selected() { return this.bk2_choice !== null && this.bk2_choice !== '' && this.bk2_choice !== undefined; },
       get bk2_target() { return [50, 60, 70][this.bk2_choice] || 50; },
       bk_selected_form: null,
@@ -291,7 +294,8 @@
       get kegel_choice() { return this.bk_selected_form || (this.is_kegel ? 'eurok' : null); }
       }"
       x-effect="if (is_bk_family && !is_bk_fixed_goal) { bk2_sp_max_innings = parseInt(innings) || 5 };
-                if (discipline != 5 && bk_selected_form) { bk_selected_form = null }">
+                if (discipline != 5 && bk_selected_form) { bk_selected_form = null }"
+      x-init="$watch('discipline', value => { if (value == 13) { balls_goal = balls_goal_2 = balls_goal_a = balls_goal_b = balls_goal_a_2 = balls_goal_b_2 = 180; innings = innings_2 = 30 } })">
     <%= form_tag start_game_table_monitor_path(table_monitor), data: {turbo: false}, method: :post, class: "flex flex-col text-gray-300 max-h-screen overflow-y-auto" do %>
       <%# Phase 38.4-06 D-16/D-07: free_game_form driven by bk_selected_form (5 BK-* disciplines).
           Fallback value='karambol' is a safety net if Alpine fails to hydrate.
@@ -547,7 +551,7 @@
               the BK-aware selection. %>
           <%= render partial: "radio_select", locals: {
             table: table,
-            show: "parameters == 0 && !is_bk_family",
+            show: "parameters == 0 && !is_bk_family && !is_biathlon",
             header: "Punktziel",
             varname: "balls_goal",
             values: ["0"] + Discipline::KARAMBOL_POINTS_MAP,
@@ -555,6 +559,33 @@
             displays: ["keins"] + Discipline::KARAMBOL_POINTS_MAP,
             cols: 8,
             increment: 5
+          }
+          %>
+          <%# Biathlon (DBU-Regeln §3.3): Gesamtziel, Dreiband-Teildistanz und Dreiband-
+              Aufnahmebegrenzung. Die Aufnahmebegrenzung teilt sich den Slot `innings` mit der
+              generischen Zeile; der Controller legt sie fuer Biathlon nach biathlon[innings_goal_3b]. %>
+          <%= render partial: "radio_select", locals: {
+            table: table,
+            show: "parameters == 0 && is_biathlon",
+            header: "Gesamtziel",
+            varname: "balls_goal",
+            values: %w[120 180],
+            maxval: 999,
+            displays: %w[120 180],
+            cols: 4,
+            increment: 10
+          }
+          %>
+          <%= render partial: "radio_select", locals: {
+            table: table,
+            show: "is_biathlon",
+            header: "Dreiband-Distanz",
+            varname: "biathlon_3b",
+            values: %w[10 15],
+            maxval: 99,
+            displays: %w[10 15],
+            cols: 4,
+            increment: 1
           }
           %>
           <%= render partial: "radio_select", locals: {
@@ -607,13 +638,24 @@
           %>
           <%= render partial: "radio_select", locals: {
             table: table,
-            show: "!is_bk_family",
+            show: "!is_bk_family && !is_biathlon",
             header: "Aufnahme-begrenzung",
             varname: "innings",
             values: %w{0 20 25 30},
             maxval: 99,
             displays: %w{keine 20 25 30},
             cols: 5,
+            increment: 5 }
+          %>
+          <%= render partial: "radio_select", locals: {
+            table: table,
+            show: "is_biathlon",
+            header: "Aufnahmen Dreiband",
+            varname: "innings",
+            values: %w{15 20 30},
+            maxval: 99,
+            displays: %w{15 20 30},
+            cols: 4,
             increment: 5 }
           %>
           <%# Phase 38.4-15 P2: visible vertical spacer above MEHRSATZ row. The parent grid's

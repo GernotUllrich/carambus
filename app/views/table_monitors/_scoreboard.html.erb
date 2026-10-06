@@ -86,6 +86,11 @@
   <%- display_innings_goal = options[:innings_goal].to_i.positive? ?
       options[:innings_goal].to_i :
       (bk_sp_inning_phase ? options.dig(:bk2_options, "serienspiel_max_innings_per_set").to_i : 0) %>
+  <%# Biathlon, Dreiband-Phase: "von N" ist die Dreiband-Aufnahmebegrenzung (die Partie selbst hat keine). %>
+  <%- if table_monitor.discipline == "Biathlon" && table_monitor.data["biathlon_phase"] == "3b" %>
+    <%- display_innings_goal = (table_monitor.data.dig("biathlon", "innings_goal_3b").presence ||
+        TableMonitor::ScoreEngine::BIATHLON_DEFAULTS["innings_goal_3b"]).to_i %>
+  <%- end %>
   <div class="flex <%= fullscreen ? "h-5/6" : "h-full w-full" %> bg-gray">
     <div id="player_score_wrapper_<%= left_player_id %>_<%= table_monitor.id %>" class="w-2/5 <%= left_color_class %> dark:bg-black">
       <%= render partial: 'table_monitors/player_score_panel', locals: { table_monitor: table_monitor, player_key: left_player_id, fullscreen: fullscreen, options: options } %>

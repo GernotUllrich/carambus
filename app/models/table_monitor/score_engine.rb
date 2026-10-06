@@ -28,10 +28,6 @@ class TableMonitor::ScoreEngine
     # caller (TableMonitor) can call terminate_current_inning.
     # Returns nil otherwise.
     def add_n_balls(n_balls, player = nil, skip_snooker_state_update: false)
-      if discipline == "Biathlon"
-        balls_goal_3b = 15
-        data["biathlon_phase"] ||= "3b"
-      end
       n_balls_left = data["balls_on_table"].to_i - n_balls
       if [1, 0].include?(n_balls_left)
         current_role = data["current_inning"]["active_player"]
@@ -63,116 +59,75 @@ class TableMonitor::ScoreEngine
         current_role = data["current_inning"]["active_player"]
       end
       init_lists(current_role)
+      # Biathlon, Dreiband-Phase: gezaehlt wird roh gegen die Teildistanz (eigener Zweig).
+      return add_biathlon_3b(current_role, n_balls) if biathlon_3b?
+
       to_play = if data[current_role].andand["balls_goal"].to_i <= 0
                   99_999
                 else
                   data[current_role].andand["balls_goal"].to_i - (data[current_role].andand["result"].to_i +
                     data[current_role]["innings_redo_list"][-1].to_i)
                 end
-      if data["biathlon_phase"] == "3b"
-        to_play_3b = balls_goal_3b - (data[current_role].andand["result"].to_i +
-          data[current_role]["innings_redo_list"][-1].to_i)
-      end
-      if data["biathlon_phase"] != "3b" || n_balls <= to_play_3b
-        current_inning_value = data[current_role]["innings_redo_list"][-1].to_i
+      current_inning_value = data[current_role]["innings_redo_list"][-1].to_i
+      overflow = overflow_capped?
 
-        should_process_input = if data["allow_overflow"].present?
-                                 to_play.positive?
-                               elsif n_balls.positive?
-                                 n_balls <= to_play && to_play.positive?
-                               elsif n_balls.negative?
-                                 allow_negative_scores? || (current_inning_value + n_balls) >= 0
-                               else
-                                 false
-                               end
+      should_process_input = if overflow
+                               to_play.positive?
+                             elsif n_balls.positive?
+                               n_balls <= to_play && to_play.positive?
+                             elsif n_balls.negative?
+                               allow_negative_scores? || (current_inning_value + n_balls) >= 0
+                             else
+                               false
+                             end
 
-        if should_process_input
-          if data["biathlon_phase"] == "3b"
-            add = if data["allow_overflow"].present?
-                    n_balls
-                  else
-                    [n_balls, to_play_3b].min
-                  end
-            data[current_role]["innings_redo_list"][-1] =
-              [(data[current_role]["innings_redo_list"][-1].to_i + add.to_i), 0].max
-            recompute_result(current_role)
-            Rails.logger.debug { "add_n_balls: Processing Biathlon 3b input (n_balls=#{n_balls}, add=#{add})" }
-            if (data[current_role]["innings_list"]&.sum.to_i +
-              data[current_role]["innings_redo_list"][-1].to_i) == balls_goal_3b
-              other_player = current_role == "playera" ? "playerb" : "playera"
-              data["biathlon_phase"] = "5k"
-              Array(data[current_role]["innings_list"]).each_with_index do |val, ix|
-                data[current_role]["innings_list"][ix] = val.to_i * 6
+      if should_process_input
+        Rails.logger.debug do
+          "add_n_balls: Processing input (n_balls=#{n_balls}, to_play=#{to_play}, allow_overflow=#{data["allow_overflow"].inspect})"
+        end
+        # Phase 38.5: signed-add per input. The BK-2plus / BK-2kombi DZ-Phase
+        # rule (net-negative inning transferred to opponent) is enforced at
+        # inning close in terminate_inning_data — NOT per input. Per-input
+        # the shooter sees their running inning total (incl. negatives) in
+        # the corner display.
+        add = if overflow
+                n_balls.positive? ? [n_balls, to_play].min : n_balls
+              else
+                n_balls
               end
-              data[current_role]["result"] = data[current_role]["result"].to_i * 6
-              data[current_role]["innings_redo_list"][-1] = data[current_role]["innings_redo_list"][-1].to_i * 6
-              Array(data[other_player]["innings_list"]).each_with_index do |val, ix|
-                data[other_player]["innings_list"][ix] = val.to_i * 6
-              end
-              data[other_player]["result"] = data[other_player]["result"] * 6
-              if data[other_player]["innings_redo_list"].present?
-                data[other_player]["innings_redo_list"][-1] =
-                  data[other_player]["innings_redo_list"][-1].to_i * 6
-              end
-              data[current_role]["result_3b"] =
-                (data[current_role]["innings_list"]&.sum.to_i + data[current_role]["innings_redo_list"][-1].to_i) / 6
-              data[other_player]["result_3b"] =
-                (data[other_player]["innings_list"]&.sum.to_i + data[other_player]["innings_redo_list"][-1].to_i) / 6
-              data[current_role]["innings_3b"] = data[current_role]["innings"].to_i
-              data[other_player]["innings_3b"] = data[other_player]["innings"].to_i
-            end
-          else
-            Rails.logger.debug do
-              "add_n_balls: Processing input (n_balls=#{n_balls}, to_play=#{to_play}, allow_overflow=#{data["allow_overflow"].inspect})"
-            end
-            # Phase 38.5: signed-add per input. The BK-2plus / BK-2kombi DZ-Phase
-            # rule (net-negative inning transferred to opponent) is enforced at
-            # inning close in terminate_inning_data — NOT per input. Per-input
-            # the shooter sees their running inning total (incl. negatives) in
-            # the corner display.
-            add = if data["allow_overflow"].present?
-                    n_balls.positive? ? [n_balls, to_play].min : n_balls
-                  else
-                    n_balls
-                  end
-            data[current_role]["fouls_1"] = 0
-            new_value = data[current_role]["innings_redo_list"][-1].to_i + add.to_i
-            data[current_role]["innings_redo_list"][-1] =
-              allow_negative_scores? ? new_value : [new_value, 0].max
-            recompute_result(current_role)
+        data[current_role]["fouls_1"] = 0
+        new_value = data[current_role]["innings_redo_list"][-1].to_i + add.to_i
+        data[current_role]["innings_redo_list"][-1] =
+          allow_negative_scores? ? new_value : [new_value, 0].max
+        recompute_result(current_role)
 
-            if data["free_game_form"] == "snooker" && !skip_snooker_state_update
-              update_snooker_state(n_balls)
-              data[current_role]["break_balls_redo_list"] ||= []
-              data[current_role]["break_balls_redo_list"] = [[]] if data[current_role]["break_balls_redo_list"].empty?
-              data[current_role]["break_balls_redo_list"][-1] ||= []
-              data[current_role]["break_balls_redo_list"][-1] =
-                Array(data[current_role]["break_balls_redo_list"][-1]) + [n_balls]
+        if data["free_game_form"] == "snooker" && !skip_snooker_state_update
+          update_snooker_state(n_balls)
+          data[current_role]["break_balls_redo_list"] ||= []
+          data[current_role]["break_balls_redo_list"] = [[]] if data[current_role]["break_balls_redo_list"].empty?
+          data[current_role]["break_balls_redo_list"][-1] ||= []
+          data[current_role]["break_balls_redo_list"][-1] =
+            Array(data[current_role]["break_balls_redo_list"][-1]) + [n_balls]
 
-              data.delete("last_foul")
+          data.delete("last_foul")
 
-              snooker_state = data["snooker_state"] || {}
-              reds_remaining = snooker_state["reds_remaining"].to_i
-              colors_sequence = snooker_state["colors_sequence"] || []
+          snooker_state = data["snooker_state"] || {}
+          reds_remaining = snooker_state["reds_remaining"].to_i
+          colors_sequence = snooker_state["colors_sequence"] || []
 
-              if reds_remaining <= 0 && colors_sequence.empty?
-                Rails.logger.info "[add_n_balls] Snooker: All balls potted, setting frame_complete flag"
-                data["snooker_frame_complete"] = true
-                return :snooker_frame_complete
-              end
-            end
-          end
-
-          if add == to_play
-            Rails.logger.debug { "add_n_balls: add == to_play (terminating inning)" }
-            return :goal_reached
-          else
-            Rails.logger.debug { "add_n_balls: add != to_play (#{add} != #{to_play})" }
+          if reds_remaining <= 0 && colors_sequence.empty?
+            Rails.logger.info "[add_n_balls] Snooker: All balls potted, setting frame_complete flag"
+            data["snooker_frame_complete"] = true
+            return :snooker_frame_complete
           end
         end
-      else
-        @msg = "Game Finished - no more inputs allowed"
-        return nil
+
+        if add == to_play
+          Rails.logger.debug { "add_n_balls: add == to_play (terminating inning)" }
+          return :goal_reached
+        else
+          Rails.logger.debug { "add_n_balls: add != to_play (#{add} != #{to_play})" }
+        end
       end
 
       nil
@@ -186,75 +141,37 @@ class TableMonitor::ScoreEngine
     # Returns nil otherwise.
     def set_n_balls(n_balls, change_to_pointer_mode = false)
       Rails.logger.debug { "set_n_balls: #{n_balls}, change_to_pointer_mode=#{change_to_pointer_mode}" }
-      if discipline == "Biathlon"
-        balls_goal_3b = 15
-        data["biathlon_phase"] ||= "3b"
-      end
       @msg = nil
 
       current_role = data["current_inning"]["active_player"]
       init_lists(current_role)
+      # Biathlon, Dreiband-Phase: gezaehlt wird roh gegen die Teildistanz (eigener Zweig).
+      return set_biathlon_3b(current_role, n_balls) if biathlon_3b?
+
+      overflow = overflow_capped?
       to_play = data[current_role].andand["balls_goal"].to_i <= 0 ? 99_999 : data[current_role].andand["balls_goal"].to_i - data[current_role].andand["result"].to_i
-      if n_balls <= to_play || data["allow_overflow"].present?
+      if n_balls <= to_play || overflow
         Rails.logger.debug { "set_n_balls: n_balls <= to_play || data[\"allow_overflow\"].present?" }
         set = [n_balls, to_play].min
         data[current_role]["innings_redo_list"][-1] = set
-        to_play_3b = balls_goal_3b - data[current_role].andand["result"].to_i if data["biathlon_phase"] == "3b"
-        if data["biathlon_phase"] != "3b" || n_balls <= to_play_3b
-          if set == to_play
-            Rails.logger.debug { "set_n_balls: set == to_play" }
+        if set == to_play
+          Rails.logger.debug { "set_n_balls: set == to_play" }
+          return :goal_reached
+        else
+          Rails.logger.debug { "set_n_balls: set != to_play" }
+        end
+
+        if n_balls <= to_play || overflow
+          Rails.logger.debug { "set_n_balls: n_balls <= to_play || allow_overflow" }
+          add = [n_balls, to_play].min
+          data[current_role]["fouls_1"] = 0
+          data[current_role]["innings_redo_list"][-1] = [add, 0].max
+          recompute_result(current_role)
+          if add == to_play
+            Rails.logger.debug { "set_n_balls: add == to_play" }
             return :goal_reached
           else
-            Rails.logger.debug { "set_n_balls: set != to_play" }
-          end
-
-          to_play_3b = balls_goal_3b - data[current_role].andand["result"].to_i if data["biathlon_phase"] == "3b"
-          if data["biathlon_phase"] != "3b" || n_balls <= to_play_3b
-            if n_balls <= to_play || data["allow_overflow"].present?
-              if data["biathlon_phase"] == "3b"
-                add_3b = [n_balls, to_play_3b].min
-                add = add_3b
-                data[current_role]["fouls_1"] = 0
-                data[current_role]["innings_redo_list"][-1] = add_3b
-                recompute_result(current_role)
-                Rails.logger.debug { "set_n_balls (biathlon 3b): n_balls <= to_play || allow_overflow" }
-                if (data[current_role]["innings_list"]&.sum.to_i + data[current_role]["innings_redo_list"][-1].to_i) == balls_goal_3b
-                  other_player = current_role == "playera" ? "playerb" : "playera"
-                  data["biathlon_phase"] = "5k"
-                  Array(data[current_role]["innings_list"]).each_with_index do |val, ix|
-                    data[current_role]["innings_list"][ix] = val.to_i * 6
-                  end
-                  data[current_role]["result"] = data[current_role]["result"].to_i * 6
-                  data[current_role]["innings_redo_list"][-1] = data[current_role]["innings_redo_list"][-1].to_i * 6
-                  Array(data[other_player]["innings_list"]).each_with_index do |val, ix|
-                    data[other_player]["innings_list"][ix] = val.to_i * 6
-                  end
-                  data[other_player]["result"] = data[other_player]["result"].to_i * 6
-                  data[other_player]["innings_redo_list"][-1] = data[other_player]["innings_redo_list"][-1].to_i * 6
-                  data[current_role]["result_3b"] =
-                    (data[current_role]["innings_list"]&.sum.to_i + data[current_role]["innings_redo_list"][-1].to_i) / 6
-                  data[other_player]["result_3b"] =
-                    (data[other_player]["innings_list"]&.sum.to_i + data[other_player]["innings_redo_list"][-1].to_i) / 6
-                  data[current_role]["innings_3b"] = data[current_role]["innings"].to_i
-                  data[other_player]["innings_3b"] = data[other_player]["innings"].to_i
-                end
-              else
-                Rails.logger.debug { "set_n_balls: n_balls <= to_play || allow_overflow" }
-                add = [n_balls, to_play].min
-                data[current_role]["fouls_1"] = 0
-                data[current_role]["innings_redo_list"][-1] = [add, 0].max
-                recompute_result(current_role)
-              end
-              if add == to_play
-                Rails.logger.debug { "set_n_balls: add == to_play" }
-                return :goal_reached
-              else
-                Rails.logger.debug { "set_n_balls: add != to_play" }
-              end
-            end
-          else
-            @msg = "Game Finished - no more inputs allowed"
-            return nil
+            Rails.logger.debug { "set_n_balls: add != to_play" }
           end
         end
       end
@@ -380,6 +297,9 @@ class TableMonitor::ScoreEngine
         undo_snooker_ball(the_other_player)
         data["current_inning"]["active_player"] = the_other_player
       elsif data[the_other_player]["innings"].to_i.positive?
+        # Biathlon: wird die Aufnahme zurueckgenommen, die den Wechsel ausgeloest hat, zurueck
+        # in die Dreiband-Phase (Faktor heraus), bevor sie wie ueblich zurueckgelegt wird.
+        revert_biathlon_to_3b! if biathlon_switch_inning_undone?
         if data[the_other_player]["innings_list"].present?
           arr = Array(data[the_other_player]["innings_list"])
           data[the_other_player]["innings_redo_list"] << arr.pop.to_i if arr.present?
@@ -1304,31 +1224,7 @@ class TableMonitor::ScoreEngine
         data["snooker_state"]["last_potted_ball"] = nil
       end
 
-      if discipline == "Biathlon" && current_role == "playerb"
-        innings_goal_3b = 30
-        if data["biathlon_phase"] == "3b" && discipline == "Biathlon" && data[current_role]["innings"] == innings_goal_3b
-          data["biathlon_phase"] = "5k"
-          other_player = current_role == "playera" ? "playerb" : "playera"
-          Array(data[current_role]["innings_list"]).each_with_index do |val, ix|
-            data[current_role]["innings_list"][ix] = val * 6
-          end
-          data[current_role]["result"] = data[current_role]["result"] * 6
-          data[current_role]["innings_redo_list"][-1] = data[current_role]["innings_redo_list"][-1] * 6
-          Array(data[other_player]["innings_list"]).each_with_index do |val, ix|
-            data[other_player]["innings_list"][ix] = val * 6
-          end
-          data[other_player]["result"] = data[other_player]["result"] * 6
-          if data[other_player]["innings_redo_list"].present?
-            data[other_player]["innings_redo_list"][-1] = data[other_player]["innings_redo_list"][-1] * 6
-          end
-          data[current_role]["result_3b"] =
-            (data[current_role]["innings_list"]&.sum.to_i + data[current_role]["innings_redo_list"][-1].to_i) / 6
-          data[other_player]["result_3b"] =
-            (data[other_player]["innings_list"]&.sum.to_i + data[other_player]["innings_redo_list"][-1].to_i) / 6
-          data[current_role]["innings_3b"] = data[current_role]["innings"].to_i
-          data[other_player]["innings_3b"] = data[other_player]["innings"].to_i
-        end
-      end
+      switch_biathlon_to_5k! if biathlon_3b? && biathlon_3b_over?
 
       other_player = current_role == "playera" ? "playerb" : "playera"
       data["current_inning"]["active_player"] = other_player
@@ -1364,7 +1260,95 @@ class TableMonitor::ScoreEngine
       !!data["negative_credits_opponent"]
     end
 
+    # Biathlon-Parameter (DBU-Regeln Biathlon §3.3). Gesetzt beim Spielstart in
+    # data["biathlon"]; die Defaults sind die Variante 15/30/180 mit Faktor 6 — sie tragen
+    # nur Altpartien, die vor der Parametrierung begonnen wurden.
+    BIATHLON_DEFAULTS = {"balls_goal_3b" => 15, "innings_goal_3b" => 30, "factor" => 6}.freeze
+
     private
 
     attr_reader :data, :discipline
+
+    def biathlon_param(key)
+      value = data.dig("biathlon", key).to_i
+      value.positive? ? value : BIATHLON_DEFAULTS[key]
+    end
+
+    def biathlon_3b?
+      return false unless discipline == "Biathlon"
+
+      (data["biathlon_phase"] ||= "3b") == "3b"
+    end
+
+    # Ueberschuessige Punkte werden am Ziel gekappt statt abgewiesen: mit allow_overflow, und
+    # immer im Biathlon (§3.3: "Mit dem letzten Stoss erzielte, ueberschuessige Punkte am
+    # Partieende werden dem Spieler nicht angerechnet").
+    def overflow_capped?
+      data["allow_overflow"].present? || discipline == "Biathlon"
+    end
+
+    def add_biathlon_3b(role, n_balls)
+      current = data[role]["innings_redo_list"][-1].to_i
+      remaining = biathlon_param("balls_goal_3b") - data[role]["result"].to_i - current
+      add = n_balls.positive? ? [n_balls, remaining].min : n_balls
+      data[role]["fouls_1"] = 0
+      data[role]["innings_redo_list"][-1] = [current + add, 0].max
+      recompute_result(role)
+      biathlon_3b_goal_reached?(role) ? :goal_reached : nil
+    end
+
+    def set_biathlon_3b(role, n_balls)
+      remaining = biathlon_param("balls_goal_3b") - data[role]["result"].to_i
+      data[role]["fouls_1"] = 0
+      data[role]["innings_redo_list"][-1] = n_balls.clamp(0, [remaining, 0].max)
+      recompute_result(role)
+      biathlon_3b_goal_reached?(role) ? :goal_reached : nil
+    end
+
+    def biathlon_3b_goal_reached?(role)
+      data[role]["result"].to_i + data[role]["innings_redo_list"][-1].to_i >= biathlon_param("balls_goal_3b")
+    end
+
+    # Am Ende einer Aufnahme: Teildistanz erreicht (ein Spieler genuegt, kein Nachstoss)
+    # oder beide Spieler haben die Aufnahmebegrenzung gespielt — unabhaengig davon, wer
+    # angestossen hat.
+    def biathlon_3b_over?
+      limit = biathlon_param("innings_goal_3b")
+      %w[playera playerb].any? { |role| data[role]["result"].to_i >= biathlon_param("balls_goal_3b") } ||
+        %w[playera playerb].all? { |role| data[role]["innings"].to_i >= limit }
+    end
+
+    # Wechsel auf 5-Kegel fuer die ganze Partie: alle Dreibandpunkte beider Spieler werden mit
+    # dem Verrechnungsfaktor multipliziert; der Dreiband-Stand bleibt fuer Anzeige und Protokoll
+    # in result_3b/innings_3b erhalten.
+    def switch_biathlon_to_5k!
+      factor = biathlon_param("factor")
+      %w[playera playerb].each do |role|
+        data[role]["result_3b"] = data[role]["result"].to_i
+        data[role]["innings_3b"] = data[role]["innings"].to_i
+        data[role]["innings_list"] = Array(data[role]["innings_list"]).map { |v| v.to_i * factor }
+        data[role]["innings_redo_list"] = Array(data[role]["innings_redo_list"]).map { |v| v.to_i * factor }
+        recompute_result(role)
+      end
+      data["biathlon_phase"] = "5k"
+    end
+
+    # Nach dem Wechsel noch keine Kegel-Aufnahme abgeschlossen: beide Spieler stehen bei den
+    # Aufnahmen, die beim Wechsel festgehalten wurden.
+    def biathlon_switch_inning_undone?
+      discipline == "Biathlon" && data["biathlon_phase"] == "5k" &&
+        %w[playera playerb].all? { |role| data[role]["innings_3b"].present? && data[role]["innings"].to_i == data[role]["innings_3b"].to_i }
+    end
+
+    def revert_biathlon_to_3b!
+      factor = biathlon_param("factor")
+      %w[playera playerb].each do |role|
+        data[role]["innings_list"] = Array(data[role]["innings_list"]).map { |v| v.to_i / factor }
+        data[role]["innings_redo_list"] = Array(data[role]["innings_redo_list"]).map { |v| v.to_i / factor }
+        data[role].delete("result_3b")
+        data[role].delete("innings_3b")
+        recompute_result(role)
+      end
+      data["biathlon_phase"] = "3b"
+    end
 end

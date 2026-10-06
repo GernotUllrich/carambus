@@ -95,7 +95,7 @@ class TableMonitorsController < ApplicationController
     # forwarded to GameSetup.call(options: p) is convertible without raising
     # ActionController::UnfilteredParameters on unpermitted nested keys
     # (see I9 / I9b regression tests in table_monitors_controller_test.rb).
-    p = params.permit(params.keys).to_h
+    p = params.permit(params.keys, biathlon: %i[balls_goal_3b innings_goal_3b]).to_h
     p = p.slice(:player_a_id, :player_b_id, :timeouts, :timeout,
       :sets_to_play, :sets_choice, :sets_2_choice, :sets_to_win, :balls_goal, :balls_goal_choice, :balls_goal_2_choice, :balls_goal_a, :balls_goal_a_choice, :balls_goal_a_2_choice,
       :balls_goal_b, :balls_goal_b_choice, :balls_goal_b_2_choice, :innings_goal, :discipline_a, :discipline_a_choice,
@@ -111,7 +111,10 @@ class TableMonitorsController < ApplicationController
       # 38.2-01 D-14/D-20: first-set-mode selector. Flat top-level
       # key (Alpine.js hidden input compatibility). Whitelisted to
       # %w[direkter_zweikampf serienspiel] in the BK2 branches below.
-      :bk2_first_set_mode)
+      :bk2_first_set_mode,
+      # Biathlon: Schnellstart schickt biathlon[balls_goal_3b|innings_goal_3b], die
+      # Detailseite die Dreiband-Distanz als biathlon_3b(_2)_choice.
+      :biathlon, :biathlon_3b_choice, :biathlon_3b_2_choice)
 
     # Process standard form parameters (unless quick_game_form)
     if p[:quick_game_form].present?
@@ -235,6 +238,14 @@ class TableMonitorsController < ApplicationController
         p[:first_break_choice] = p[:first_break_choice].to_i # 0: AusStoßen, 1: Heim/Spieler A, 2: Gast/Spieler B
       elsif p[:free_game_form] == "karambol"
         p[:discipline_a] = p[:discipline_b] = Discipline::KARAMBOL_DISCIPLINE_MAP[p.delete(:discipline_choice).to_i]
+        # Biathlon: die Aufnahmebegrenzung der Seite gilt der Dreiband-Phase; GameSetup setzt
+        # innings_goal fuer die Partie danach auf 0.
+        if p[:discipline_a] == "Biathlon"
+          p[:biathlon] = {
+            "balls_goal_3b" => (p[:biathlon_3b_2_choice].presence || p[:biathlon_3b_choice]).to_i,
+            "innings_goal_3b" => p[:innings_goal].to_i
+          }
+        end
       elsif p[:free_game_form] == "snooker"
         # Snooker parameters
         # 38.1 IN-02: downgraded from .info to .debug.

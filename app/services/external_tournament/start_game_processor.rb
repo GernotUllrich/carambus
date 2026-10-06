@@ -167,7 +167,9 @@ module ExternalTournament
           "allow_follow_up" => rule_flag(:allow_follow_up, @tournament.allow_follow_up),
           "allow_overflow" => rule_flag(:allow_overflow, false),
           "color_remains_with_set" => rule_flag(:color_remains_with_set, @tournament.color_remains_with_set),
-          "initial_red_balls" => @payload[:initial_red_balls].presence || 15
+          "initial_red_balls" => @payload[:initial_red_balls].presence || 15,
+          # Biathlon: wird von GameSetup#biathlon_settings ausgewertet (nur bei Disziplin Biathlon).
+          "biathlon" => @payload[:biathlon]
         }.stringify_keys
       end
     end

@@ -71,6 +71,10 @@
               # on the player-form hidden-field IDs (line 94: id: "quick_player_a_#{button_id}").
               label_suffix = button['label'] ? "_#{button['label'].gsub(/[^a-zA-Z0-9]/, '_').downcase}" : ""
               button_id = "#{button['discipline'].gsub(/[^a-zA-Z0-9]/, '_').downcase}_#{button['balls_goal']}#{label_suffix}"
+            elsif button['discipline'] == 'Biathlon'
+              # Mehrere Biathlon-Presets teilen balls/innings (180/0) — ohne die Dreiband-Werte
+              # kollidierten die IDs der Spieler-Felder.
+              button_id = "biathlon_#{button['balls_3b']}_#{button['innings_3b']}_#{button['balls']}"
             else
               button_id = "#{button['balls']}_#{button['innings']}"
             end
@@ -86,6 +90,8 @@
               label = "Best of #{button['frames_to_win'] * 2 - 1}"
             elsif is_bk_family && button['balls_goal']
               label = "#{category_group['category']} #{button['balls_goal']}"
+            elsif button['discipline'] == 'Biathlon'
+              label = "#{button['balls_3b']}/#{button['innings_3b']}/#{button['balls']}"
             else
               balls_str = button['balls'] == 0 ? '-' : button['balls'].to_s
               innings_str = button['innings'] == 0 ? '-' : button['innings'].to_s
@@ -171,6 +177,11 @@
               <%= hidden_field_tag :kickoff_switches_with, 'set' %>
               <%= hidden_field_tag :allow_follow_up, button['allow_follow_up'].nil? ? true : button['allow_follow_up'] %>
               <%= hidden_field_tag :first_break_choice, 0 %>
+              <% if button['discipline'] == 'Biathlon' %>
+                <%# Biathlon: Teildistanz und Aufnahmebegrenzung der Dreiband-Phase; balls = Gesamtziel. %>
+                <%= hidden_field_tag 'biathlon[balls_goal_3b]', button['balls_3b'] %>
+                <%= hidden_field_tag 'biathlon[innings_goal_3b]', button['innings_3b'] %>
+              <% end %>
             <% end %>
 
             <%# Plan 02-02: Der Knopf startet nicht mehr direkt, sondern oeffnet die

@@ -935,6 +935,8 @@ module Api
         region: [:shortname],
         tournament: [:external_id],
         table: [:id, :name],
+        # Biathlon: Dreiband-Teildistanz und -Aufnahmebegrenzung; Gesamtziel = balls_goal.
+        biathlon: [:balls_goal_3b, :innings_goal_3b],
         participants: [
           :role, :discipline, :balls_goal,
           {player: [:cc_id, :firstname, :lastname, :dbu_nr, :club_cc_id]}
