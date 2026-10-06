@@ -223,7 +223,8 @@ class RegionCc::TournamentSyncer < ApplicationService
               end
             elsif /Datum/.match?(tr.css("td")[0].text.strip)
               args[:tournament_start] = tr.css("td")[2].text.strip
-              if m = args[:tournament_start].match(/(\d+\.\d+\.\d+).*\u00A0\(Spielbeginn am \d+\.\d+\.\d+ um (\d+:\d+) Uhr\)/)
+              # "Turnierbeginn" seit spaetestens 09/2026 auf der oeffentlichen Seite (public_cc_scraper.rb)
+              if m = args[:tournament_start].match(/(\d+\.\d+\.\d+).*\u00A0\((?:Spiel|Turnier)beginn am \d+\.\d+\.\d+ um (\d+:\d+) Uhr\)/)
                 args.merge!(tournament_start: DateTime.parse("#{m[1]} #{m[2]}"))
               end
             elsif /Location/.match?(tr.css("td")[0].text.strip)

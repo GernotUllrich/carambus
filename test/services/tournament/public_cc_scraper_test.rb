@@ -65,6 +65,30 @@ class Tournament::PublicCcScraperTest < ActiveSupport::TestCase
   end
 
   # ---------------------------------------------------------------------------
+  # Datum-Zelle der Detailseite (2026-10-06): die ClubCloud schreibt dort inzwischen
+  # "Turnierbeginn am …" statt "Spielbeginn am …". Der Parser warf daraufhin NoMethodError,
+  # der Scrape brach VOR der Meldeliste ab — Tournament[18927] blieb bei 5 von 19 Meldungen.
+  # ---------------------------------------------------------------------------
+
+  test "parse_start_time liest Turnierbeginn (heutiges Format)" do
+    html = "<strong>17.10.2026 - 18.10.2026</strong><br><i>(Turnierbeginn am 17.10.2026 um 08:30 Uhr)</i>"
+
+    assert_equal Time.zone.parse("17.10.2026 08:30"), Tournament::PublicCcScraper.parse_start_time(html)
+  end
+
+  test "parse_start_time liest weiterhin Spielbeginn (bisheriges Format)" do
+    html = "<strong>29.11.2025</strong><br><i>(Spielbeginn am 29.11.2025 um 11:00 Uhr)</i>"
+
+    assert_equal Time.zone.parse("29.11.2025 11:00"), Tournament::PublicCcScraper.parse_start_time(html)
+  end
+
+  test "parse_start_time faellt ohne Uhrzeit auf den ersten Tag zurueck statt zu werfen" do
+    assert_equal Time.zone.parse("17.10.2026"),
+      Tournament::PublicCcScraper.parse_start_time("<strong>17.10.2026 - 18.10.2026</strong>")
+    assert_nil Tournament::PublicCcScraper.parse_start_time("<strong>tba</strong>")
+  end
+
+  # ---------------------------------------------------------------------------
   # Integration: service executes successfully with WebMock stubs
   # ---------------------------------------------------------------------------
 

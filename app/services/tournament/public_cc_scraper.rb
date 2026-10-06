@@ -16,6 +16,22 @@ class Tournament::PublicCcScraper < ApplicationService
     @opts = kwargs[:opts] || {}
   end
 
+  # Beginn aus der Datum-Zelle der Detailseite, z.B.
+  #   "<strong>17.10.2026 - 18.10.2026</strong><br><i>(Turnierbeginn am 17.10.2026 um 08:30 Uhr)</i>"
+  # Die ClubCloud schreibt seit spaetestens 09/2026 "Turnierbeginn" statt "Spielbeginn"; der
+  # fruehere Regex warf dann NoMethodError und der Scrape brach VOR der Meldeliste ab. Ohne
+  # Uhrzeit gilt der erste Tag; ganz ohne Datum nil — das Datum darf den Scrape nie beenden.
+  # Time.zone.parse (Berlin) statt DateTime.parse: CC gibt deutsche Lokalzeit an.
+  def self.parse_start_time(html)
+    text = html.to_s
+    if (m = text.match(/(?:Spiel|Turnier)beginn am (.+?) Uhr/))
+      return Time.zone.parse(m[1].gsub("um ", ""))
+    end
+
+    first_day = text[/\d{1,2}\.\d{1,2}\.\d{4}/]
+    first_day && Time.zone.parse(first_day)
+  end
+
   def call
     nbsp = ["c2a0"].pack("H*").force_encoding("UTF-8")
     return if @tournament.organizer_type != "Region"
@@ -94,11 +110,11 @@ class Tournament::PublicCcScraper < ApplicationService
         @tournament.shortname = tc.shortname = detail_tr.css("td")[1].text.gsub(nbsp, " ").strip
       when "Datum"
         ht = detail_tr.css("td")[1].inner_html
-        # Time.zone.parse (Berlin) statt DateTime.parse: CC gibt deutsche Lokalzeit an —
-        # DateTime.parse nimmt UTC an → Spielbeginn würde um den TZ-Offset (Sommer +2h) verschoben.
-        date_time = Time.zone.parse(ht.match(/.*Spielbeginn am (.*) Uhr.*/)[1].andand.gsub("um ", ""))
-        tc.tournament_start = date_time
-        @tournament.date = date_time
+        date_time = self.class.parse_start_time(ht)
+        if date_time
+          tc.tournament_start = date_time
+          @tournament.date = date_time
+        end
       when "Location"
         ht = detail_tr.css("td")[1].inner_html
         location = nil
