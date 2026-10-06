@@ -80,6 +80,22 @@ class Seeding < ApplicationRecord
   validate :exactly_one_association
 
   after_create :loggit
+  after_save :globalize_player_of_dbu_tournament, unless: -> { ApplicationRecord.local_server? }
+
+  # DBU-Turnier (2026-10-06): das Seeding wird global gestempelt (LocalProtector.dbu_organic?),
+  # sein Spieler aber nicht — ein Spieler eines anderen Landesverbands kam dann nie an den
+  # Regional-Servern an (gemessen: 23. DBU GP Biathlon, Sven Hoelzel, Seeding ohne Spieler auf
+  # bc-wedel). Deshalb macht die Authority den Spieler hier global, mit eigener Version.
+  # Ein Fehler dabei darf das Seeding (und damit den Scrape) nie aufhalten.
+  def globalize_player_of_dbu_tournament
+    return if player.nil? || player.global_context
+    return unless LocalProtector.dbu_organic?(self)
+
+    player.update_column(:global_context, true)
+    player.paper_trail.save_with_version
+  rescue StandardError => e
+    Rails.logger.warn "Seeding[#{id}]: Spieler #{player_id} nicht global markiert (#{e.class}: #{e.message})"
+  end
 
   # s. Kommentar an `belongs_to :player`
   def local_seeding?

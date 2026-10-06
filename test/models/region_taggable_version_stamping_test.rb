@@ -429,6 +429,28 @@ class RegionTaggableVersionStampingTest < ActiveSupport::TestCase
     assert_not create_player.versions.last.global_context
   end
 
+  test "Spieler eines DBU-Turniers wird mit dem Seeding global (eigene Version)" do
+    tournament = create_region_tournament(organizer: @dbu)
+    player = create_player
+    assert_not player.global_context, "Testvoraussetzung"
+
+    Seeding.create!(tournament: tournament, player: player, position: 1)
+
+    player.reload
+    assert player.global_context
+    assert_equal true, player.versions.last.global_context
+    assert_includes Version.for_region(@region.id).pluck(:id), player.versions.last.id
+  end
+
+  test "Spieler eines Landesverbands-Turniers bleibt regional" do
+    tournament = create_region_tournament(organizer: @region)
+    player = create_player
+
+    Seeding.create!(tournament: tournament, player: player, position: 1)
+
+    assert_not player.reload.global_context
+  end
+
   # --- AC-5b: die Ableitung verschlechtert nichts -------------------------
 
   test "AC-5b gesetzte Spalte gewinnt, wenn die Ableitung nil liefert" do
