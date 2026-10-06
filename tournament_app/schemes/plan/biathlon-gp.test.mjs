@@ -10,8 +10,8 @@ const html = readFileSync(join(here, "index.html"), "utf8");
 const S = "/* >>> PLAN-ENGINE >>> */", E = "/* <<< PLAN-ENGINE <<< */";
 const si = html.indexOf(S), ei = html.indexOf(E, si + S.length);
 if (si < 0 || ei < 0) { console.error("PLAN-ENGINE-Block in index.html nicht gefunden"); process.exit(1); }
-const { parsePlan, biathlonGpPlan, biathlonVariant, createRun, runReadyGames, recordResult, finalRanking, runFinished } =
-  new Function(html.slice(si + S.length, ei) + "\n;return { parsePlan, biathlonGpPlan, biathlonVariant, createRun, runReadyGames, recordResult, finalRanking, runFinished };")();
+const { parsePlan, biathlonGpPlan, biathlonVariant, createRun, runReadyGames, recordResult, finalRanking, runFinished, seedingPlayers } =
+  new Function(html.slice(si + S.length, ei) + "\n;return { parsePlan, biathlonGpPlan, biathlonVariant, createRun, runReadyGames, recordResult, finalRanking, runFinished, seedingPlayers };")();
 
 let failures = 0;
 const assert = (c, m) => { if (!c) { console.error("  ✗ " + m); failures++; } };
@@ -151,6 +151,25 @@ console.log("\nBlock C — 12 und 15 Starter (2 Gruppen, 1.–4. ins Viertelfina
   const r15 = simulate(15);
   eq([r15.groups[1].length, r15.groups[2].length], [8, 7], "15: 8er + 7er");
   eq(new Set(finalSeeds(r15)).size, 15, "15: Endstand vollständig");
+}
+
+console.log("\nMeldeliste aus Carambus (carambus.seeding/v1, 23 Meldungen):");
+{
+  // Wie der Server sie liefert: ein Team je Spieler, seeding_position = Setzplatz;
+  // absichtlich nicht sortiert, damit die Reihenfolge aus seeding_position kommen muss.
+  const order = [5, 1, 23, 12, 2, 17, 9, 3, 20, 14, 4, 8, 16, 6, 21, 10, 7, 19, 11, 13, 18, 15, 22];
+  const doc = { schema: "carambus.seeding/v1", tournament: { name: "23. DBU Grand Prix Biathlon" },
+    teams: order.map(k => ({ seeding_position: k, players: [{ firstname: "Spieler", lastname: "S" + k, dbu_nr: String(1000 + k) }] })) };
+  const players = seedingPlayers(doc);
+  eq(players.length, 23, "23 Teilnehmer");
+  eq(players.map(p => p.lastname).slice(0, 3), ["S1", "S2", "S3"], "Reihenfolge nach seeding_position");
+  eq(players.map(p => p.seed), Array.from({ length: 23 }, (_, i) => i + 1), "seed 1..23");
+  const run = createRun(parsePlan(biathlonGpPlan(players.length)), players.map(p => ({ ...p, pid: "d" + p.dbu_nr })));
+  eq([1, 2, 3, 4].map(g => run.groups[g].length), [6, 6, 6, 5], "Block B: 3×6 + 1×5");
+  eq(run.groups[1].map(p => p.lastname), ["S1", "S8", "S9", "S16", "S17", "S21"], "Gruppe A in Schlangenlinie");
+  eq(run.groups[4].map(p => p.lastname), ["S4", "S5", "S12", "S13", "S20"], "Gruppe D = 5er-Gruppe");
+  eq(seedingPlayers({ teams: [{ players: [{ lastname: "X" }] }, { players: [{ lastname: "Y" }] }] }).map(p => p.lastname), ["X", "Y"], "ohne seeding_position: Lieferreihenfolge");
+  eq(seedingPlayers({}).length, 0, "leere Meldeliste");
 }
 
 console.log("\nAlle Teilnehmerzahlen laufen durch:");

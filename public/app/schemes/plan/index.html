@@ -1216,6 +1216,14 @@ function biathlonVariant(plan,g){
   const [b3,i3,goal]=String(s).split("/").map(Number);
   return { label:String(s), balls_goal_3b:b3, innings_goal_3b:i3, balls_goal:goal };
 }
+// Meldeliste aus carambus.seeding/v1: teams[].players[] in Setzlisten-Reihenfolge
+// (seeding_position bzw. position, sonst wie geliefert) → Teilnehmer mit seed 1..n.
+function seedingPlayers(doc){
+  const pos=t=>t.seeding_position??t.position??Infinity;
+  const teams=((doc&&doc.teams)||[]).map((t,i)=>({t,i})).sort((x,y)=>(pos(x.t)-pos(y.t))||(x.i-y.i));
+  const out=[]; for(const {t} of teams) for(const p of (t.players||[])) out.push({...p,seed:out.length+1});
+  return out;
+}
 // Schlangenlinie nach Setzliste über volle Reihen; eine angebrochene letzte Reihe füllt die
 // Gruppen von vorn (A, B, …), damit die großen Gruppen vorn liegen.
 function snakeDistribute(players,sizes){
@@ -1452,6 +1460,7 @@ function renderSetup() {
         ${live ? `<button class="btn secondary" id="btnLoadClubs">📥 Clubs laden</button>` : ``}
         ${need ? `<button class="btn secondary" id="btnDemoP">🎲 Demo-Teilnehmer (${need})</button>` : ``}
         ${state.gp ? `<button class="btn secondary" id="btnDemoGp">🎲 Demo-Teilnehmer …</button>` : ``}
+        ${state.gp && live ? `<input type="text" id="inGpTid" placeholder="Carambus-Turnier-Nr." value="${escapeHtml(String(state.gpSeedingTid ?? ""))}" style="max-width:170px;"><button class="btn" id="btnGpSeeding">📥 Meldeliste übernehmen</button>` : ``}
         ${nSel ? `<button class="btn secondary" id="btnClearP">Leeren</button>` : ``}
         ${live && nSel >= 2 ? `<button class="btn secondary" id="btnRank">📊 Nach Ranking sortieren</button>` : ``}
       </div>
@@ -1485,6 +1494,7 @@ function renderSetup() {
   el.querySelector("#inFormatInnings")?.addEventListener("change", e => { state.format.innings_goal = parseInt(e.target.value, 10) || 0; save(); renderSetup(); });
   el.querySelector("#btnLoadClubs")?.addEventListener("click", loadClubs);
   el.querySelector("#btnDemoP")?.addEventListener("click", () => addDemoParticipants(need));
+  el.querySelector("#btnGpSeeding")?.addEventListener("click", () => importGpSeeding(el.querySelector("#inGpTid").value));
   el.querySelector("#btnDemoGp")?.addEventListener("click", () => { const n = parseInt(prompt("Wie viele Demo-Starter (10–32)?", "28"), 10); if (n >= 10 && n <= 32) addDemoParticipants(n); });
   el.querySelector("#btnClearP")?.addEventListener("click", () => { state.participants = []; save(); renderSetup(); });
   el.querySelector("#btnRank")?.addEventListener("click", rankParticipants);
@@ -1501,6 +1511,21 @@ function renderSetup() {
 function selectGp() {
   state.gp = true; state.discipline = "Biathlon"; state.planName = "Biathlon-GP";
   state.executorParams = null; state.planMeta = null; state.playerClass = null; state.planDefaultsMissing = false;
+  save(); renderSetup();
+}
+// Meldeliste eines Carambus-Turniers (z. B. DBU-Turnier, global) als Setzliste übernehmen.
+// Ersetzt die bisherige Liste — erneut nach dem Meldeschluss aufrufen. Kein Attach: gespielt
+// wird danach als eigenes App-Turnier.
+async function importGpSeeding(raw) {
+  const tid = parseInt(String(raw || "").trim(), 10);
+  if (!Number.isFinite(tid) || tid <= 0) { alert("Carambus-Turnier-Nr. eingeben (aus der URL /tournaments/<Nr.>)."); return; }
+  let doc;
+  try { doc = await Carambus.api.fetchSeeding({ tournamentId: tid, region: regionShortname() }); }
+  catch (e) { alert("Meldeliste laden: " + errMsg(e)); return; }
+  const players = seedingPlayers(doc);
+  if (!players.length) { alert(`Turnier ${tid} hat noch keine Meldungen.`); return; }
+  if (state.participants.length && !confirm(`Die ${state.participants.length} erfassten Teilnehmer durch die Meldeliste (${players.length}) ersetzen?`)) return;
+  state.participants = players; state.gpSeedingTid = tid;
   save(); renderSetup();
 }
 function renderGpInfo() {

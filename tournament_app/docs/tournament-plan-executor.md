@@ -85,8 +85,12 @@ Erzeugt den Plan erst beim Start aus der Starterzahl (Teilungsliste 4 Billards, 
 - VF, HF, Finale 15/30/180; kein Spiel um Platz 3 (HF-Verlierer beide Dritte).
 - Gruppenwertung Punkte, dann GD. Wer nicht ins KO kommt, wird je Gruppenplatz-Stufe
   gruppenübergreifend nach Punkten/GD eingereiht.
+- **Meldeliste übernehmen** (live): Feld „Carambus-Turnier-Nr.“ + Knopf im Setup →
+  `fetchSeeding({tournamentId, region})`, `teams[].players[]` nach `seeding_position` als
+  Setzliste (`seedingPlayers`). Ersetzt die bisherige Liste; gespielt wird danach als eigenes
+  App-Turnier, **kein** Attach. Globale DBU-Turniere liefert Carambus seit `f92244cb` an jede Region.
 - Test: `node schemes/plan/biathlon-gp.test.mjs` (alle 23 Starterzahlen gegen die Liste,
-  Durchläufe für alle drei Blöcke, Variante je Phase).
+  Durchläufe für alle drei Blöcke, Variante je Phase, Meldeliste mit 23 Meldungen).
 
 ## Ranking (KRITISCH — bitte gegenchecken)
 
