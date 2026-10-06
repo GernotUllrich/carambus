@@ -99,6 +99,12 @@ Erzeugt den Plan erst beim Start aus der Starterzahl (Teilungsliste 4 Billards, 
   „Detlef“), nur bei genau einer passenden, nicht schon exakt vergebenen Zeile; solche Treffer
   meldet die App gesondert zur Prüfung. Die App meldet auch, wer ohne Rang ans Ende kam. Carambus' `player_rankings` hilft hier nicht — das sind die
   Landesverbands-Ranglisten aus der ClubCloud.
+- **Setzliste beim Turnierstart** (`state.seedSnapshot`): Beim „Turnier erzeugen“ wird die
+  angewandte Setzliste eingefroren — Setzplatz, Name, Verein, Rang (bzw. „ohne Rang“, mit
+  Kennzeichnung der Schreibvariante) und die Gruppe aus der Schlangenlinie. Nie neu berechnet;
+  liegt im Turnierzustand und übersteht damit Sicherung/Wiederherstellung. Anzeige im Reiter
+  „Setup“, solange das Turnier läuft. Der Verein kommt bei der Meldeliste vom Team
+  (`teams[].club`).
 - Test: `node schemes/plan/biathlon-gp.test.mjs` (alle 23 Starterzahlen gegen die Liste,
   Durchläufe für alle drei Blöcke, Variante je Phase, Meldeliste mit 23 Meldungen,
   Setzliste aus Rangliste × Meldeliste).

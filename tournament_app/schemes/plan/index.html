@@ -1221,7 +1221,8 @@ function biathlonVariant(plan,g){
 function seedingPlayers(doc){
   const pos=t=>t.seeding_position??t.position??Infinity;
   const teams=((doc&&doc.teams)||[]).map((t,i)=>({t,i})).sort((x,y)=>(pos(x.t)-pos(y.t))||(x.i-y.i));
-  const out=[]; for(const {t} of teams) for(const p of (t.players||[])) out.push({...p,seed:out.length+1});
+  // Verein steht laut Vertrag am Team (teams[].club), nicht am Spieler
+  const out=[]; for(const {t} of teams) for(const p of (t.players||[])) out.push({...p,club_shortname:p.club_shortname??(t.club?(t.club.shortname||t.club.name||""):""),club_cc_id:p.club_cc_id??t.club?.cc_id??null,seed:out.length+1});
   return out;
 }
 // Setzliste = Rangliste × Meldeliste: Gemeldete mit Rang nach Platzziffer (gleiche Ziffer →
@@ -1249,7 +1250,7 @@ function rankSeedList(players,rankingText){
   const exact=players.map(p=>{ const key=" "+normPersonName(`${p.firstname||""} ${p.lastname||""}`)+" "; return key.trim()?rows.find(r=>r.rest.startsWith(key))||null:null; });
   const taken=new Set(exact.filter(Boolean));
   players.forEach((p,i)=>{
-    let hit=exact[i];
+    let hit=exact[i], variant=null;
     if(!hit){
       // Stufe 2 (Schreibvariante, z. B. Detlev/Detlef): Nachname exakt als ganze Wörter direkt nach
       // den Vornamen, jedes Vornamen-Wort mit Editierdistanz ≤ 1 — nur bei genau EINER passenden,
@@ -1257,12 +1258,12 @@ function rankSeedList(players,rankingText){
       const fn=normPersonName(p.firstname).split(" ").filter(Boolean), ln=normPersonName(p.lastname).split(" ").filter(Boolean);
       const cands=(fn.length&&ln.length)?rows.filter(r=>{ if(taken.has(r)) return false; const w=r.rest.trim().split(" ");
         return ln.every((t,k)=>w[fn.length+k]===t) && fn.every((t,k)=>w[k]!=null&&editDistance(w[k],t)<=1); }):[];
-      if(cands.length===1){ hit=cands[0]; fuzzy.push({player:p,rankName:rawLead(hit.raw,fn.length+ln.length),rank:hit.rank}); }
+      if(cands.length===1){ hit=cands[0]; variant=rawLead(hit.raw,fn.length+ln.length); fuzzy.push({player:p,rankName:variant,rank:hit.rank}); }
     }
-    (hit?ranked:unranked).push({p,i,hit});
+    (hit?ranked:unranked).push({p,i,hit,variant});
   });
   ranked.sort((x,y)=>(x.hit.rank-y.hit.rank)||(x.hit.line-y.hit.line));
-  const list=[...ranked.map(x=>({...x.p,rank:x.hit.rank})),...unranked.map(x=>({...x.p,rank:null}))].map((p,i)=>({...p,seed:i+1}));
+  const list=[...ranked.map(x=>({...x.p,rank:x.hit.rank,rankVariant:x.variant})),...unranked.map(x=>({...x.p,rank:null,rankVariant:null}))].map((p,i)=>({...p,seed:i+1}));
   return { players:list, ranked:ranked.length, unranked:unranked.map(x=>x.p), fuzzy };
 }
 // Schlangenlinie nach Setzliste über volle Reihen; eine angebrochene letzte Reihe füllt die
@@ -1432,7 +1433,7 @@ function renderSetup() {
         <button class="btn danger" id="btnReset">🔗✕ Verbindung lösen (App-lokal, Server bleibt)</button>
       </div>
       <div class="scheme-hint">„Tische neu binden" braucht man nach dem Einspielen einer Sicherung — die Bindung lebt auf dem Server und fehlt dann. Symptom: „Table not bound to this tournament" beim Starten.</div>` : `<div class="info">Plan <strong>${escapeHtml(state.planName || "")}</strong> erzeugt. Spiele im Tab „Spiele &amp; Gruppen".</div><button class="btn danger" id="btnReset">⟲ Verwerfen &amp; neu aufsetzen</button>`;
-    el.innerHTML = `<div class="card"><h2>Turnier läuft</h2>${attachInfo}</div>`;
+    el.innerHTML = `<div class="card"><h2>Turnier läuft</h2>${attachInfo}</div>${renderSeedSnapshot()}`;
     el.querySelector("#btnReset").addEventListener("click", resetTournament);
     el.querySelector("#btnRebind")?.addEventListener("click", rebindTables);
     el.querySelector("#btnAttachRefresh")?.addEventListener("click", () => {
@@ -1848,7 +1849,29 @@ async function startTournament() {
     } catch (e) { alert("Turnier anlegen: " + errMsg(e)); return; }
   }
   state.records = []; state.gameUI = {}; state.tableLot = {}; state.phase = "running";
-  save(); run = rebuildRun(); renderAll(); switchTab("games");
+  save(); run = rebuildRun();
+  state.seedSnapshot = seedSnapshot(); save();
+  renderAll(); switchTab("games");
+}
+// Setzliste, wie sie bei der Gruppeneinteilung angewendet wurde — eingefroren zum Start (liegt im
+// Turnierzustand, übersteht also die Sicherung) und danach nie neu berechnet.
+function seedSnapshot() {
+  const groupOf = {}; for (const [n, ps] of Object.entries(run.groups || {})) ps.forEach(p => groupOf[pidOf(p)] = +n);
+  return {
+    at: Date.now(), ranking: !!(state.gp && state.gpRankingText),
+    rows: run.players.map(p => ({ seed: p.seed, name: fullName(p), club: p.club_shortname || "", rank: p.rank ?? null, rankVariant: p.rankVariant ?? null, group: groupOf[pidOf(p)] ?? null }))
+  };
+}
+function renderSeedSnapshot() {
+  const snap = state.seedSnapshot; if (!snap) return "";
+  const when = new Date(snap.at).toLocaleString("de-DE", { dateStyle: "short", timeStyle: "short" });
+  const rankCell = r => r.rank != null
+    ? `${r.rank}${r.rankVariant ? ` <span class="badge open" title="Abweichende Schreibweise in der Rangliste">⚠ ${escapeHtml(r.rankVariant)}</span>` : ""}`
+    : (snap.ranking ? `<span class="muted">ohne Rang</span>` : `<span class="muted">—</span>`);
+  return `<div class="card"><h2>Setzliste beim Turnierstart</h2>
+    <p class="muted">Stand ${escapeHtml(when)} — so wurde die Gruppeneinteilung gebildet.${snap.ranking ? " Rang = Deutsche Rangliste; ohne Rang in Meldereihenfolge am Ende." : ""}</p>
+    <div style="overflow-x:auto;"><table class="standings-table"><thead><tr><th>Setzplatz</th><th style="text-align:left">Spieler</th><th style="text-align:left">Verein</th><th>Rang</th><th>Gruppe</th></tr></thead>
+    <tbody>${snap.rows.map(r => `<tr><td class="rk">${r.seed}</td><td style="text-align:left">${escapeHtml(r.name)}</td><td style="text-align:left">${escapeHtml(r.club)}</td><td>${rankCell(r)}</td><td>${r.group != null ? r.group : "—"}</td></tr>`).join("")}</tbody></table></div></div>`;
 }
 // Attach-Modus (Multi-Laptop, Multi-Tag): Turnier wurde im Carambus-Web angelegt
 // (mit tournament_plan). Die App attached sich per Deeplink `?cb_tournament_id=<PK>` an

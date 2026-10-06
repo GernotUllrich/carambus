@@ -170,6 +170,9 @@ console.log("\nMeldeliste aus Carambus (carambus.seeding/v1, 23 Meldungen):");
   eq(run.groups[4].map(p => p.lastname), ["S4", "S5", "S12", "S13", "S20"], "Gruppe D = 5er-Gruppe");
   eq(seedingPlayers({ teams: [{ players: [{ lastname: "X" }] }, { players: [{ lastname: "Y" }] }] }).map(p => p.lastname), ["X", "Y"], "ohne seeding_position: Lieferreihenfolge");
   eq(seedingPlayers({}).length, 0, "leere Meldeliste");
+  const withClub = seedingPlayers({ teams: [{ seeding_position: 1, club: { cc_id: 42, shortname: "BC Wedel" }, players: [{ lastname: "A" }] },
+    { seeding_position: 2, club: { cc_id: 7, shortname: "BC Nord" }, players: [{ lastname: "B", club_shortname: "Eigener", club_cc_id: 9 }] }] });
+  eq(withClub.map(p => [p.club_shortname, p.club_cc_id]), [["BC Wedel", 42], ["Eigener", 9]], "Verein vom Team, Spielerangabe hat Vorrang");
 }
 
 console.log("\nSetzliste = Rangliste × Meldeliste:");
@@ -228,6 +231,7 @@ console.log("\nSchreibvarianten (zweite Stufe):");
     "Detlev ↔ Detlef verknüpft; exakte Treffer unverändert");
   eq(r.fuzzy.map(f => `${f.player.firstname} ${f.player.lastname} ↔ ${f.rankName} (${f.rank})`), ["Detlev Bretsch ↔ Detlef Bretsch (19)"], "Abweichung wird gemeldet, nur diese");
   eq(r.unranked.map(p => p.lastname), ["Doppel", "Gabel"], "zwei Kandidaten (Karl ↔ Karla/Karli) → ohne Rang; Gabel ≠ Gabelmann");
+  eq(r.players.map(p => p.rankVariant), [null, null, "Detlef Bretsch", null, null], "Schreibvariante steht am Spieler (für die Setzliste beim Start)");
   eq(rankSeedList([P("Detlev", "Bretschmann")], RL).fuzzy.length, 0, "Nachname muss exakt passen");
   eq(rankSeedList([P("Dietmar", "Bretsch")], RL).players[0].rank, null, "Vorname mit mehr als 1 Abweichung → kein Treffer");
   // Zeile schon exakt vergeben → nicht ein zweites Mal unscharf
