@@ -43,6 +43,34 @@ module LocalProtector
 
   def self.reset_known_region_ids!
     @known_region_ids = nil
+    @dbu_region_id = nil
+  end
+
+  # Modelle, die als Teil einer DBU-Veranstaltung bundesweit gelten — dieselbe Liste, die
+  # der kuratierte Task update_all_region_id als "organic with respect to the DBU region"
+  # global taggt (region_taggings.rake). Spieler, Clubs und Locations stehen bewusst NICHT
+  # hier: die macht jener Task bottom-up global, eine Ableitung aus dem Record gibt es nicht.
+  DBU_ORGANIC_MODELS = %w[
+    Tournament Game GameParticipation Seeding League Party PartyGame LeagueTeam GamePlan
+  ].freeze
+
+  # Gehoert der Record organisch zu einer DBU-Veranstaltung?
+  #
+  # Der Spaltenwert global_context reicht dafuer nicht: ihn setzt nur update_all_region_id,
+  # und seit 2025 lief der fuer neue DBU-Turniere nicht mehr (2026-10-06: 182 Turniere mit
+  # false, an keinem Regional-Server angekommen). Die Region-Ableitung ist dagegen zur
+  # Schreibzeit verlaesslich — sie stempelt dieselben Versionen ohnehin mit region_id = DBU.
+  def self.dbu_organic?(record)
+    return false unless DBU_ORGANIC_MODELS.include?(record.class.base_class.name)
+
+    dbu_id = dbu_region_id
+    dbu_id.present? && derived_region_id(record) == dbu_id
+  end
+
+  def self.dbu_region_id
+    return Region.where(shortname: "DBU").pick(:id) if Rails.env.test?
+
+    @dbu_region_id ||= Region.where(shortname: "DBU").pick(:id)
   end
 
   # Die abgeleitete Region eines Records — oder nil, wenn die Ableitung nicht traegt.
@@ -139,8 +167,11 @@ module LocalProtector
         # Phase-2-Research (2026-07-12) international-blind — es liefert fuer alle 18
         # globalen Regionen false; faktische Quelle ist der Task update_all_region_id.
         # Commit f9bdc53d guardet Derivation-Retag genau gegen diese stille Regression.
+        # Ausnahme: DBU-Veranstaltungen (dbu_organic?) sind global, egal was die Spalte sagt.
         global_context: lambda { |record|
           if LocalProtector::GLOBALLY_SCOPED_MODELS.include?(record.class.base_class.name)
+            true
+          elsif LocalProtector.dbu_organic?(record)
             true
           elsif record.has_attribute?(:global_context)
             record.global_context

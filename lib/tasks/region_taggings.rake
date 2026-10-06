@@ -432,4 +432,77 @@ namespace :region_taggings do
 
     puts "Fertig."
   end
+
+  desc "DBU-Turniere/-Ligen mit global_context=false samt Kindern global taggen und redelivern (PaperTrail-getrackt). Read-only Preview per Default; ARMED=1 zum Mutieren."
+  task redeliver_dbu_context: :environment do
+    # Seit 2025 setzte niemand mehr global_context fuer neue DBU-Veranstaltungen (nur
+    # update_all_region_id tat das). Ihre Versionen trugen region_id = DBU und
+    # global_context = false und kamen an keinem Regional-Server an (2026-10-06: 182
+    # Turniere, 9 Ligen). Kuenftige Versionen stempelt LocalProtector.dbu_organic? korrekt;
+    # dieser Task holt den Bestand nach. Ein reines update_all reicht NICHT — ohne neue
+    # Version erreicht der Fix keinen Local Server.
+    raise "Abbruch: Task nur auf der Authority ausführen (Carambus.config.carambus_api_url muss leer sein)" if ApplicationRecord.local_server?
+    unless PaperTrail.enabled? && PaperTrail.request.enabled?
+      raise "Abbruch: PaperTrail ist deaktiviert — ohne neue Versionen erreicht der Fix keinen Local-Server"
+    end
+    dbu = Region.find_by!(shortname: "DBU")
+
+    armed = ENV["ARMED"] == "1"
+    puts "== region_taggings:redeliver_dbu_context — #{armed ? "ARMED (mutating)" : "DRY-RUN (read-only preview)"} =="
+
+    # Kinder ueber ALLE DBU-Veranstaltungen, nicht nur die noch falschen: bricht ein Lauf
+    # nach den Turnieren ab, findet der naechste die Kinder trotzdem (Idempotenz ueber
+    # global_context IS NOT TRUE je Modell).
+    not_global = "global_context IS NOT TRUE"
+    tids = Tournament.where(organizer_type: "Region", organizer_id: dbu.id).select(:id)
+    lids = League.where(organizer_type: "Region", organizer_id: dbu.id).select(:id)
+    party_ids = Party.where(league_id: lids).select(:id)
+    gids = Game.where(tournament_type: "Tournament", tournament_id: tids)
+      .or(Game.where(tournament_type: "Party", tournament_id: party_ids)).select(:id)
+    team_ids = LeagueTeam.where(league_id: lids).select(:id)
+    seedings = Seeding.where(tournament_type: "Tournament", tournament_id: tids)
+      .or(Seeding.where(league_team_id: team_ids))
+    player_ids = (seedings.pluck(:player_id) +
+                  GameParticipation.where(game_id: gids).pluck(:player_id)).compact.uniq
+
+    # Reihenfolge = Apply-Reihenfolge auf dem Local Server (niedrigere Version-id zuerst):
+    # Spieler und Spielplaene vor den Veranstaltungen, die Veranstaltungen vor ihren Kindern.
+    # Spieler stehen nicht in DBU_ORGANIC_MODELS — sie brauchen die SPALTE, sonst bleibt ihre
+    # Version region-scoped und das Seeding zeigt auf einen Spieler, den es dort nicht gibt.
+    scopes = [
+      [Player, Player.where(id: player_ids)],
+      [GamePlan, GamePlan.where(id: League.where(id: lids).select(:game_plan_id))],
+      [Tournament, Tournament.where(id: tids)],
+      [League, League.where(id: lids)],
+      [LeagueTeam, LeagueTeam.where(id: team_ids)],
+      [Party, Party.where(id: party_ids)],
+      [Seeding, seedings],
+      [Game, Game.where(id: gids)],
+      [GameParticipation, GameParticipation.where(game_id: gids)],
+      [PartyGame, PartyGame.where(party_id: party_ids)]
+    ].map { |model, scope| [model, scope.where(not_global)] }
+
+    scopes.each { |model, scope| puts "  #{model.name.ljust(18)} #{scope.count}" }
+
+    unless armed
+      puts "DRY-RUN: keine Änderungen geschrieben. ARMED=1 setzt global_context=true und schreibt je Record eine Version."
+      next
+    end
+
+    scopes.each do |model, scope|
+      n = 0
+      model.skip_cable_ready_updates do
+        scope.find_each(batch_size: 500) do |rec|
+          rec.update_column(:global_context, true)
+          # save_with_version statt touch: das :unless-Gate in LocalProtector schluckt
+          # reine updated_at-Aenderungen — ein touch erzeugte hier keine Version.
+          rec.paper_trail.save_with_version
+          n += 1
+        end
+      end
+      puts "  #{model.name}: #{n} global getaggt und redelivert"
+    end
+
+    puts "Fertig."
+  end
 end

@@ -393,6 +393,42 @@ class RegionTaggableVersionStampingTest < ActiveSupport::TestCase
       "Guard f9bdc53d) und darf nicht zur Schreibzeit-Quelle werden"
   end
 
+  # --- DBU-Veranstaltungen sind bundesweit (2026-10-06) -------------------
+  #
+  # Seit 2025 wird die Spalte global_context fuer neue DBU-Turniere nicht mehr gesetzt
+  # (nur der kuratierte Task update_all_region_id tat das). Ihre Versionen trugen
+  # region_id = DBU und global_context = false — `for_region` liess sie an keinem
+  # Regional-Server durch (gemessen: 182 DBU-Turniere fehlten auf bc-wedel).
+
+  test "DBU-Turnier wird global gestempelt, auch wenn die Spalte false ist" do
+    tournament = create_region_tournament(organizer: @dbu)
+    assert_not tournament.global_context, "Testvoraussetzung: die Spalte ist false"
+
+    version = tournament.versions.last
+    assert_equal true, version.global_context
+    assert_includes Version.for_region(@region.id).pluck(:id), version.id,
+      "das DBU-Turnier muss den Filter eines Regional-Servers passieren"
+  end
+
+  test "Turnier eines Landesverbands bleibt regional" do
+    tournament = create_region_tournament(organizer: @region)
+
+    assert_not tournament.versions.last.global_context
+  end
+
+  test "Seeding und Game eines DBU-Turniers werden global gestempelt" do
+    tournament = create_region_tournament(organizer: @dbu)
+    seeding = Seeding.create!(tournament: tournament, player: create_player, position: 1)
+    game = Game.create!(tournament: tournament, seqno: 1, gname: "ZZ DBU G1")
+
+    assert_equal true, seeding.versions.last.global_context
+    assert_equal true, game.versions.last.global_context
+  end
+
+  test "Spieler wird nicht ueber die DBU-Regel global" do
+    assert_not create_player.versions.last.global_context
+  end
+
   # --- AC-5b: die Ableitung verschlechtert nichts -------------------------
 
   test "AC-5b gesetzte Spalte gewinnt, wenn die Ableitung nil liefert" do
