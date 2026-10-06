@@ -508,6 +508,7 @@ window.Carambus = (function () {
       participants
     };
     if (format.initial_red_balls != null) payload.initial_red_balls = format.initial_red_balls; // Snooker
+    if (format.biathlon) payload.biathlon = format.biathlon; // { balls_goal_3b, innings_goal_3b } — Gesamtziel steht in participants[].balls_goal
     const { body } = await carambusFetch("/api/external_tournament/start_game", { method: "POST", body: payload });
     return body;
   }

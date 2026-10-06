@@ -492,6 +492,7 @@ window.Carambus = (function () {
       participants
     };
     if (format.initial_red_balls != null) payload.initial_red_balls = format.initial_red_balls; // Snooker
+    if (format.biathlon) payload.biathlon = format.biathlon; // { balls_goal_3b, innings_goal_3b } — Gesamtziel steht in participants[].balls_goal
     const { body } = await carambusFetch("/api/external_tournament/start_game", { method: "POST", body: payload });
     return body;
   }
@@ -972,7 +973,7 @@ window.Carambus = (function () {
 "use strict";
 function roundNo(key){ const m=/^r(\d+)$/.exec(key); return m?parseInt(m[1],10):null; }
 function isGroupKey(k){ return /^g\d+$/.test(k); }
-const META_KEYS = new Set(["RK","GK","rules"]);
+const META_KEYS = new Set(["RK","GK","rules","RKP","biathlon","dist"]);
 function parsePairing(str){ const m=String(str).split(/\s*-\s*/).map(s=>parseInt(s.trim(),10)); return [m[0],m[1]]; }
 
 function parsePlan(executorParams, opts={}){
@@ -989,7 +990,8 @@ function parsePlan(executorParams, opts={}){
       const g=parsePlacementGame(key,val); if(g) games.push(g);
     }
   }
-  return { groups: groups.sort((a,b)=>a.n-b.n), games, rk: Array.isArray(p.RK)?p.RK.slice():[], gk: p.GK??null };
+  return { groups: groups.sort((a,b)=>a.n-b.n), games, rk: Array.isArray(p.RK)?p.RK.slice():[], gk: p.GK??null,
+           rkp: Array.isArray(p.RKP)?p.RKP.slice():null, biathlon: p.biathlon||null, dist: p.dist||null };
 }
 function parseGroupGames(n,sq,nrepeats,opts={}){
   const out=[]; const seen=new Set();
@@ -1031,7 +1033,10 @@ function parsePlacementGame(key,val){
   if(!rounds.length) return null;
   const [rKey,tableMap]=rounds[0]; const round=roundNo(rKey);
   const [table,refs]=Object.entries(tableMap)[0]||[]; const arr=Array.isArray(refs)?refs:[];
-  return {key,kind:"placement",round,table,a:arr[0]??null,b:arr[1]??null};
+  const g={key,kind:"placement",round,table,a:arr[0]??null,b:arr[1]??null};
+  // optionale Sperre: Spiel erst, wenn diese Spiele fertig sind ("groups" = alle Gruppenspiele)
+  if(Array.isArray(val.needs)&&val.needs.length) g.needs=val.needs.slice();
+  return g;
 }
 function groupGamesOf(plan){ return plan.games.filter(g=>g.kind==="group"); }
 function placementGamesOf(plan){ return plan.games.filter(g=>g.kind==="placement"); }
@@ -1085,7 +1090,7 @@ function pidOf(p){ return p && (p.pid ?? (p.cc_id!=null?("cc"+p.cc_id):("s"+p.se
 
 function createRun(plan,players,opts={}){
   const ngroups=plan.groups.length, sizes=plan.groups.map(g=>g.pl);
-  const groups=ngroups?distributeToGroups(players,ngroups,sizes):{};
+  const groups=ngroups?(plan.dist==="snake"?snakeDistribute(players,sizes):distributeToGroups(players,ngroups,sizes)):{};
   return { plan, players, ballsGoal:opts.ballsGoal??null, order:opts.order??["points","gd"], groups, results:{} };
 }
 function groupComplete(run,n){ return run.plan.games.filter(g=>g.kind==="group"&&g.group===n).every(g=>run.results[g.key]); }
@@ -1114,10 +1119,18 @@ function resolveComposite(run,ref){
 function memberStat(run,member){
   let m;
   if((m=/^g(\d+)\.rk(\d+)$/.exec(member))){ const n=+m[1]; if(!groupComplete(run,n)) return null; return runGroupStandings(run,n)[+m[2]-1]??null; }
-  const p=resolveSlot(run,member); return p?{player:p,points:0,gd:0}:null;
+  const p=resolveSlot(run,member); if(!p) return null;
+  // Spieler aus einem Spiel-Ref (z. B. Quali-Verlierer): mit seiner Gruppenbilanz vergleichen
+  const id=pidOf(p);
+  for(const [n,members] of Object.entries(run.groups)){ if(members.some(x=>pidOf(x)===id)){ const st=runGroupStandings(run,+n).find(s=>pidOf(s.player)===id); if(st) return st; } }
+  return {player:p,points:0,gd:0};
+}
+function needsMet(run,g){
+  if(!g.needs) return true;
+  return g.needs.every(k=> k==="groups" ? run.plan.games.every(x=>x.kind!=="group"||run.results[x.key]) : !!run.results[k]);
 }
 function runReadyGames(run){
-  return run.plan.games.filter(g=>!run.results[g.key] && (!g.needs||g.needs.every(k=>run.results[k]))).map(g=>{ const a=resolveSlot(run,g.a),b=resolveSlot(run,g.b); return (a&&b)?{...g,playerA:a,playerB:b}:null; }).filter(Boolean);
+  return run.plan.games.filter(g=>!run.results[g.key] && needsMet(run,g)).map(g=>{ const a=resolveSlot(run,g.a),b=resolveSlot(run,g.b); return (a&&b)?{...g,playerA:a,playerB:b}:null; }).filter(Boolean);
 }
 function recordResult(run,key,res,winnerOverride=null){
   const g=run.plan.games.find(x=>x.key===key); if(!g) throw new Error("Unbekanntes Spiel: "+key);
@@ -1125,8 +1138,93 @@ function recordResult(run,key,res,winnerOverride=null){
   const d=decideGame(res,run.ballsGoal,run.ballsGoal); const winner=winnerOverride||d.winner;
   run.results[key]={a,b,res,winner,pointsA:d.pointsA,pointsB:d.pointsB}; return run.results[key];
 }
-function finalRanking(run){ return run.plan.rk.map((ref,i)=>({place:i+1,ref,player:resolveSlot(run,ref)})); }
+function finalRanking(run){ const rkp=run.plan.rkp; return run.plan.rk.map((ref,i)=>({place:(rkp&&rkp[i])||i+1,ref,player:resolveSlot(run,ref)})); }
 function runFinished(run){ return run.plan.games.every(g=>run.results[g.key]); }
+// ===== DBU Grand Prix Biathlon (Teilungsliste 4 Billards, 10–32 Starter) =====
+// Erzeugt executor_params im Plan-Format, sobald die Starterzahl feststeht.
+// Quelle: DBU-Ausschreibung 23. GP Biathlon, spezieller Teil, Seite 3. Entscheidungen
+// des Betreibers (06.10.2026), wo die Liste schweigt: Quali nur in 3er-Gruppen (2. vs. 3.
+// derselben Gruppe), Schlange nach Setzliste mit den großen Gruppen vorn, KO über Kreuz,
+// kein Spiel um Platz 3, 31 Starter = 7×4 + 1×3 (45 Spiele, die Liste nennt 48).
+// Variante "TB/AU/GZ" = Teildistanz Dreiband / Aufnahmen Dreiband / Gesamtziel.
+const GP_KO_TABLE="t-rand-1-4";
+function roundRobinRounds(n){
+  const ids=Array.from({length:n},(_,i)=>i+1); if(n%2) ids.push(0);
+  const m=ids.length, rounds=[];
+  for(let r=0;r<m-1;r++){
+    const prs=[];
+    for(let i=0;i<m/2;i++){ const a=ids[i], b=ids[m-1-i]; if(a&&b) prs.push([Math.min(a,b),Math.max(a,b)]); }
+    rounds.push(prs);
+    ids.splice(1,0,ids.pop()); // Kreis-Methode: Position 1 fest, Rest rotiert
+  }
+  return rounds;
+}
+function biathlonGpPlan(n){
+  if(!Number.isInteger(n)||n<10||n>32) throw new Error(`Biathlon-GP: Teilungsliste gilt für 10–32 Starter, nicht ${n}`);
+  let ng, groupVar;
+  if(n>=24){ ng=8; groupVar = n>=30?"10/15/120":n>=26?"10/20/120":"15/20/180"; }
+  else if(n>=16){ ng=4; groupVar = n>=21?"10/15/120":n>=18?"10/20/120":"15/20/180"; }
+  else { ng=2; groupVar = n>=14?"10/15/120":n>=12?"10/20/120":"15/30/180"; }
+  const base=Math.floor(n/ng), extra=n%ng;
+  const sizes=Array.from({length:ng},(_,i)=>base+(i<extra?1:0)); // große Gruppen vorn
+  const p={dist:"snake"}; let r=0, gk=0;
+  sizes.forEach((pl,i)=>{
+    const sq={}; roundRobinRounds(pl).forEach((prs,ri)=>{ const t={}; prs.forEach(([a,b],j)=>{ t["s"+(j+1)]=`${a}-${b}`; }); sq["r"+(ri+1)]=t; });
+    p["g"+(i+1)]={pl,rs:"eae",sq}; r=Math.max(r,Object.keys(sq).length); gk+=pl*(pl-1)/2;
+  });
+  const game=(key,round,a,b,needs)=>{ p[key]={["r"+round]:{[GP_KO_TABLE]:[a,b]}}; if(needs) p[key].needs=needs; gk++; };
+  let firstKo;
+  if(ng===8){
+    // Block A: 4er-Gruppe → 1. + 2. direkt; 3er-Gruppe → 1. direkt, 2. vs. 3. in der Quali
+    r++; const second={}, qKeys=[];
+    sizes.forEach((pl,i)=>{ const g=i+1; if(pl===3){ const k="quali"+g; game(k,r,`g${g}.rk2`,`g${g}.rk3`); qKeys.push(k); second[g]=k+".rk1"; } else second[g]=`g${g}.rk2`; });
+    r++; [[1,2],[3,4],[5,6],[7,8],[2,1],[4,3],[6,5],[8,7]].forEach(([x,y],i)=>game("8f"+(i+1),r,`g${x}.rk1`,second[y],["groups",...qKeys]));
+    r++; for(let i=1;i<=4;i++) game("qf"+i,r,`8f${2*i-1}.rk1`,`8f${2*i}.rk1`);
+  } else {
+    // Block B: Erste + Zweite über Kreuz · Block C: 1.–4. aus zwei Gruppen
+    firstKo = ng===4
+      ? [["g1.rk1","g2.rk2"],["g3.rk1","g4.rk2"],["g2.rk1","g1.rk2"],["g4.rk1","g3.rk2"]]
+      : [["g1.rk1","g2.rk4"],["g2.rk2","g1.rk3"],["g2.rk1","g1.rk4"],["g1.rk2","g2.rk3"]];
+    r++; firstKo.forEach(([a,b],i)=>game("qf"+(i+1),r,a,b,["groups"]));
+  }
+  r++; game("hf1",r,"qf1.rk1","qf2.rk1"); game("hf2",r,"qf3.rk1","qf4.rk1");
+  r++; game("fin",r,"hf1.rk1","hf2.rk1");
+  // Endstand: KO-Verlierer teilen sich den Platz; wer nicht ins KO kam, wird je
+  // Gruppenplatz-Stufe gruppenübergreifend nach Punkten/GD eingereiht.
+  const RK=["fin.rk1","fin.rk2","hf1.rk2","hf2.rk2"], RKP=[1,2,3,3];
+  for(let i=1;i<=4;i++){ RK.push(`qf${i}.rk2`); RKP.push(5); }
+  if(ng===8) for(let i=1;i<=8;i++){ RK.push(`8f${i}.rk2`); RKP.push(9); }
+  const tiers=[];
+  if(ng===8){
+    tiers.push(sizes.map((pl,i)=>pl===3?`quali${i+1}.rk2`:`g${i+1}.rk3`));
+    tiers.push(sizes.map((pl,i)=>pl>=4?`g${i+1}.rk4`:null).filter(Boolean));
+  } else {
+    const q=ng===4?2:4;
+    for(let rk=q+1;rk<=sizes[0];rk++) tiers.push(sizes.map((pl,i)=>pl>=rk?`g${i+1}.rk${rk}`:null).filter(Boolean));
+  }
+  let place=RK.length+1;
+  for(const t of tiers){ if(!t.length) continue; const set=`(${t.join(" + ")})`; t.forEach((_,j)=>{ RK.push(`${set}.rk${j+1}`); RKP.push(place++); }); }
+  p.RK=RK; p.RKP=RKP; p.GK=gk;
+  p.biathlon={ g:groupVar, quali:"10/15/120", "8f":"10/20/120", qf:"15/30/180", hf:"15/30/180", fin:"15/30/180" };
+  return p;
+}
+// Biathlon-Variante eines Spiels nach Phase (Gruppe / Quali / Achtel- / Viertel-, Halbfinale, Finale)
+function biathlonVariant(plan,g){
+  const v=plan&&plan.biathlon; if(!v||!g) return null;
+  const fam=g.kind==="group"?"g":(/^(quali|8f|qf|hf|fin)/.exec(g.key)||[])[1];
+  const s=fam&&v[fam]; if(!s) return null;
+  const [b3,i3,goal]=String(s).split("/").map(Number);
+  return { label:String(s), balls_goal_3b:b3, innings_goal_3b:i3, balls_goal:goal };
+}
+// Schlangenlinie nach Setzliste über volle Reihen; eine angebrochene letzte Reihe füllt die
+// Gruppen von vorn (A, B, …), damit die großen Gruppen vorn liegen.
+function snakeDistribute(players,sizes){
+  const ng=sizes.length, groups={}; for(let g=1;g<=ng;g++) groups[g]=[];
+  const full=Math.min(...sizes)*ng; let i=0;
+  for(;i<full&&i<players.length;i++){ const row=Math.floor(i/ng), pos=i%ng; groups[(row%2?ng-pos:pos+1)].push(players[i]); }
+  for(let g=1;g<=ng&&i<players.length;g++){ if(groups[g].length<sizes[g-1]) groups[g].push(players[i++]); }
+  return groups;
+}
 /* <<< PLAN-ENGINE <<< */
 </script>
 
@@ -1335,9 +1433,10 @@ function renderSetup() {
       <div class="toolbar">
         ${live ? `<button class="btn" id="btnLoadDisc">📥 Pläne aus Carambus laden</button>` : ``}
         <button class="btn secondary" id="btnDemo">🎲 Demo-Pläne (T04/T06, offline)</button>
+        <button class="btn ${state.gp ? "" : "secondary"}" id="btnGp">🎯 DBU Grand Prix Biathlon</button>
       </div>
-      ${doc ? renderPlanPickers(doc) : `<p class="muted">Pläne laden (live) oder Demo-Pläne nutzen.</p>`}
-      ${state.executorParams ? `<div class="info">Plan <strong>${escapeHtml(state.planName)}</strong>: ${state.planMeta.players} Spieler · ${state.planMeta.ngroups || 1} Gruppe(n) · Distanz ${state.format.balls_goal} in ${state.format.innings_goal} Aufnahmen${state.playerClass ? " · Klasse " + escapeHtml(String(state.playerClass)) : ""}.</div>` : ``}
+      ${state.gp ? renderGpInfo() : doc ? renderPlanPickers(doc) : `<p class="muted">Pläne laden (live) oder Demo-Pläne nutzen.</p>`}
+      ${state.executorParams && !state.gp ? `<div class="info">Plan <strong>${escapeHtml(state.planName)}</strong>: ${state.planMeta.players} Spieler · ${state.planMeta.ngroups || 1} Gruppe(n) · Distanz ${state.format.balls_goal} in ${state.format.innings_goal} Aufnahmen${state.playerClass ? " · Klasse " + escapeHtml(String(state.playerClass)) : ""}.</div>` : ``}
       ${state.executorParams && state.planDefaultsMissing ? `<div class="alert" style="margin-top:8px;">
         ⚠ Für <strong>${escapeHtml(state.discipline || "?")}${state.playerClass != null ? " · Klasse " + escapeHtml(String(state.playerClass)) : ""}</strong> hat Carambus für <strong>${escapeHtml(state.planName)}</strong> keine Default-Werte (Lücke in <code>discipline_tournament_plans</code>). Distanz/Aufnahmen bitte manuell setzen:
         <div style="display:flex;gap:14px;align-items:flex-end;margin-top:8px;flex-wrap:wrap;">
@@ -1352,6 +1451,7 @@ function renderSetup() {
       <div class="toolbar">
         ${live ? `<button class="btn secondary" id="btnLoadClubs">📥 Clubs laden</button>` : ``}
         ${need ? `<button class="btn secondary" id="btnDemoP">🎲 Demo-Teilnehmer (${need})</button>` : ``}
+        ${state.gp ? `<button class="btn secondary" id="btnDemoGp">🎲 Demo-Teilnehmer …</button>` : ``}
         ${nSel ? `<button class="btn secondary" id="btnClearP">Leeren</button>` : ``}
         ${live && nSel >= 2 ? `<button class="btn secondary" id="btnRank">📊 Nach Ranking sortieren</button>` : ``}
       </div>
@@ -1375,15 +1475,17 @@ function renderSetup() {
     </div>`;
 
   el.querySelector("#btnLoadDisc")?.addEventListener("click", loadDisciplines);
-  el.querySelector("#btnDemo")?.addEventListener("click", () => { state.disciplinesDoc = DEMO_DOC; state.demo = true; state.discipline = DEMO_DOC.disciplines[0].name; save(); renderSetup(); });
+  el.querySelector("#btnDemo")?.addEventListener("click", () => { state.gp = false; state.disciplinesDoc = DEMO_DOC; state.demo = true; state.discipline = DEMO_DOC.disciplines[0].name; save(); renderSetup(); });
+  el.querySelector("#btnGp")?.addEventListener("click", selectGp);
   el.querySelector("#inDiscSel")?.addEventListener("change", e => { state.discipline = e.target.value; state.planName = null; state.executorParams = null; state.playerClass = null; save(); renderSetup(); });
-  el.querySelector("#inPlanSel")?.addEventListener("change", e => { selectPlan(e.target.value); });
+  el.querySelector("#inPlanSel")?.addEventListener("change", e => { state.gp = false; selectPlan(e.target.value); });
   el.querySelector("#inClassSel")?.addEventListener("change", e => { state.playerClass = e.target.value || null; if (state.planName) selectPlan(state.planName); else { save(); renderSetup(); } });
   // Manuelle Distanz/Aufnahmen, wenn Carambus-Defaults fehlen (planDefaultsMissing-Alert).
   el.querySelector("#inFormatBalls")?.addEventListener("change", e => { state.format.balls_goal = parseInt(e.target.value, 10) || 0; save(); renderSetup(); });
   el.querySelector("#inFormatInnings")?.addEventListener("change", e => { state.format.innings_goal = parseInt(e.target.value, 10) || 0; save(); renderSetup(); });
   el.querySelector("#btnLoadClubs")?.addEventListener("click", loadClubs);
   el.querySelector("#btnDemoP")?.addEventListener("click", () => addDemoParticipants(need));
+  el.querySelector("#btnDemoGp")?.addEventListener("click", () => { const n = parseInt(prompt("Wie viele Demo-Starter (10–32)?", "28"), 10); if (n >= 10 && n <= 32) addDemoParticipants(n); });
   el.querySelector("#btnClearP")?.addEventListener("click", () => { state.participants = []; save(); renderSetup(); });
   el.querySelector("#btnRank")?.addEventListener("click", rankParticipants);
   el.querySelector("#inLoc")?.addEventListener("change", e => { state.locationInput = e.target.value.trim(); save(); });
@@ -1394,6 +1496,29 @@ function renderSetup() {
   renderStartHints();
 }
 
+// DBU Grand Prix Biathlon: Der Plan entsteht erst beim Start aus der Starterzahl
+// (Teilungsliste 4 Billards, 10–32 Starter) — Meldeschluss liegt kurz vor dem Turnier.
+function selectGp() {
+  state.gp = true; state.discipline = "Biathlon"; state.planName = "Biathlon-GP";
+  state.executorParams = null; state.planMeta = null; state.playerClass = null; state.planDefaultsMissing = false;
+  save(); renderSetup();
+}
+function renderGpInfo() {
+  const n = state.participants.length;
+  let preview = `<p class="muted">Teilnehmer erfassen — der Modus ergibt sich aus der Starterzahl (10–32).</p>`;
+  if (n >= 10 && n <= 32) {
+    const plan = parsePlan(biathlonGpPlan(n));
+    const sizes = plan.groups.map(g => g.pl);
+    const count = {}; sizes.forEach(x => count[x] = (count[x] || 0) + 1);
+    const groupsTxt = Object.keys(count).sort((a, b) => b - a).map(k => `${count[k]}×${k}er`).join(" + ");
+    const nQuali = plan.games.filter(g => g.key.startsWith("quali")).length;
+    const v = plan.biathlon;
+    const ko = sizes.length === 8 ? `Achtelfinale ${v["8f"]}, Viertelfinale bis Finale ${v.qf}` : `Viertelfinale bis Finale ${v.qf}`;
+    const who = sizes.length === 8 ? "Gruppenerste und -zweite; in 3er-Gruppen spielt der Zweite gegen den Dritten um den Platz" : sizes.length === 4 ? "Gruppenerste und -zweite" : "Gruppenerste bis -vierte";
+    preview = `<div class="info"><strong>${n} Starter:</strong> ${sizes.length} Gruppen (${groupsTxt}) · ${plan.games.filter(g => g.kind === "group").length} Gruppenspiele ${v.g}${nQuali ? ` · ${nQuali} Quali-Spiel${nQuali > 1 ? "e" : ""} ${v.quali}` : ""}<br>Weiter: ${who} · ${ko} · kein Spiel um Platz 3.</div>`;
+  } else if (n) preview = `<div class="alert">Die Teilungsliste gilt für 10–32 Starter (aktuell ${n}).</div>`;
+  return `<p>Modus nach <strong>DBU-Teilungsliste 4 Billards</strong> (Ausschreibung 23. GP Biathlon). Gruppen in Schlangenlinie nach der Setzliste; Ziele je Phase als Teildistanz Dreiband / Aufnahmen / Gesamtziel.</p>${preview}`;
+}
 function renderPlanPickers(doc) {
   const discOpts = doc.disciplines.map(d => `<option value="${escapeHtml(d.name)}"${d.name === state.discipline ? " selected" : ""}>${escapeHtml(d.name)}</option>`).join("");
   const disc = doc.disciplines.find(d => d.name === state.discipline);
@@ -1567,8 +1692,11 @@ function bindTableCheckboxes(el) {
 }
 function renderStartHints() {
   const hints = []; const need = state.planMeta?.players ?? null;
-  if (!state.executorParams) hints.push("Turnierplan wählen.");
-  if (need && state.participants.length !== need) hints.push(`Genau ${need} Teilnehmer nötig (aktuell ${state.participants.length}).`);
+  if (state.gp) { const n = state.participants.length; if (n < 10 || n > 32) hints.push(`Grand Prix: 10–32 Teilnehmer nötig (aktuell ${n}).`); }
+  else {
+    if (!state.executorParams) hints.push("Turnierplan wählen.");
+    if (need && state.participants.length !== need) hints.push(`Genau ${need} Teilnehmer nötig (aktuell ${state.participants.length}).`);
+  }
   if (!state.tables.length) hints.push("Mindestens einen Tisch wählen.");
   if (isLive() && (!state.location || (state.location.id == null && state.location.cc_id == null))) hints.push("Live: Location/Tische aus Carambus laden.");
   const box = document.getElementById("startHints"), btn = document.getElementById("btnStart");
@@ -1596,12 +1724,21 @@ function addManualTable() { const name = prompt("Tisch-Name (z. B. Tisch 1):"); 
 function addDemoParticipants(n) {
   const F = ["Hans","Klaus","Peter","Michael","Thomas","Andreas","Stefan","Jürgen","Wolfgang","Manfred","Heinz","Karl","Werner","Dieter","Bernd","Günter"];
   const L = ["Müller","Schmidt","Schneider","Fischer","Weber","Meyer","Wagner","Becker","Schulz","Hoffmann","Schäfer","Koch","Bauer","Richter","Klein","Wolf"];
-  const fs = shuffle(F).slice(0, n), ls = shuffle(L).slice(0, n);
+  // mehr als 16 (Grand Prix bis 32): Nachnamen in einer zweiten Runde mit Ziffer
+  const sf = shuffle(F), sl = shuffle(L);
+  const fs = Array.from({ length: n }, (_, i) => sf[i % sf.length]), ls = Array.from({ length: n }, (_, i) => sl[i % sl.length] + (i >= sl.length ? " " + (Math.floor(i / sl.length) + 1) : ""));
   state.participants = fs.map((f, i) => ({ firstname: f, lastname: ls[i], cc_id: null, dbu_nr: null, club_shortname: "Demo", seed: i + 1, rank: i + 1 }));
   save(); renderSetup();
 }
 
 async function startTournament() {
+  if (state.gp) {
+    const n = state.participants.length;
+    if (n < 10 || n > 32) { alert("Grand Prix: 10–32 Teilnehmer nötig."); return; }
+    const params = biathlonGpPlan(n);
+    state.executorParams = JSON.stringify(params); state.planName = `Biathlon-GP ${n}`;
+    state.planMeta = { players: n, ngroups: Object.keys(params).filter(isGroupKey).length, tables: 4 };
+  }
   const need = state.planMeta?.players;
   if (!state.executorParams || state.participants.length !== need) { alert(`Genau ${need} Teilnehmer + Plan nötig.`); return; }
   if (!state.tables.length) { alert("Mindestens einen Tisch."); return; }
@@ -1815,7 +1952,7 @@ function gameStatus(key) { if (run.results[key]) return "done"; if (state.gameUI
 function renderGames() {
   const el = document.getElementById("tab-games");
   if (!run) { el.innerHTML = `<div class="card"><p class="muted">Noch kein Turnier — erst im Setup erzeugen.</p></div>`; return; }
-  const ready = runReadyGames(run).filter(g => !state.gameUI[g.key]?.table);
+  const ready = startableGames();
   const running = runReadyGames(run).filter(g => state.gameUI[g.key]?.table).concat(
     run.plan.games.filter(g => state.gameUI[g.key]?.table && !run.results[g.key]).map(g => ({ ...g, playerA: resolveSlot(run, g.a), playerB: resolveSlot(run, g.b) }))
   );
@@ -1875,13 +2012,19 @@ function matchCard(g, mode, free) {
   const swapped = mode === "running" && isSwapped(g.key);
   const slots = swapped ? `${slot(b, "b")}${slot(a, "a")}` : `${slot(a, "a")}${slot(b, "b")}`;
   let actions = "";
-  if (mode === "ready") { const pref = preferredTable(g, new Set(free)); actions = free.length ? `<select class="m-table" data-id="${g.key}">${free.map(t => `<option value="${escapeHtml(t)}"${t === pref ? " selected" : ""}>${escapeHtml(t)}</option>`).join("")}</select><button class="btn m-start" data-id="${g.key}">▶ Starten</button>` : `<span class="muted">kein freier Tisch</span>`; }
+  if (mode === "ready" && playerBusy(g)) actions = `<span class="muted">wartet — Spieler am Tisch</span>`;
+  else if (mode === "ready") { const pref = preferredTable(g, new Set(free)); actions = free.length ? `<select class="m-table" data-id="${g.key}">${free.map(t => `<option value="${escapeHtml(t)}"${t === pref ? " selected" : ""}>${escapeHtml(t)}</option>`).join("")}</select><button class="btn m-start" data-id="${g.key}">▶ Starten</button>` : `<span class="muted">kein freier Tisch</span>`; }
   else if (mode === "done") actions = `<button class="btn secondary m-swap" data-id="${g.key}" title="Ergebnis seitenverkehrt uebernommen? Hier drehen">⇄ Ergebnis drehen</button>`;
   else if (mode === "running") actions = `<button class="btn ${swapped ? "" : "secondary"} m-swap" data-id="${g.key}" title="Reihenfolge an das Scoreboard angleichen — oben steht, wer angestossen hat">⇄ ${swapped ? "getauscht" : "Spieler tauschen"}</button>${isLive() ? `<button class="btn m-poll" data-id="${g.key}">📥 Ergebnis holen</button>` : ``}<button class="btn secondary m-manual" data-id="${g.key}">✎ Ergebnis erfassen</button>`;
   const hint = swapped ? `<div class="muted" style="font-size:.85em;padding:2px 0 0 2px;">Reihenfolge wie auf dem Scoreboard</div>` : ``;
   return `<div class="m-card ${mode}"><div class="m-top"><span>${escapeHtml(gameLabel(g))}</span><span class="m-id">${escapeHtml(g.key)}${state.gameUI[g.key]?.table ? " · " + escapeHtml(state.gameUI[g.key].table) : ""}</span></div>${slots}${hint}<div class="m-actions">${actions}</div><div id="manual-${cssId(g.key)}"></div></div>`;
 }
-function gameLabel(g) { if (g.kind === "group") return `Gruppe ${g.group}${g.round ? " · R" + g.round : ""}`; const names = { fin: "Finale", hf1: "Halbfinale 1", hf2: "Halbfinale 2", hf: "Halbfinale", qf: "Viertelfinale" }; return names[g.key] || (g.key.startsWith("p<") ? "Platz " + g.key.slice(2, -1) : g.key); }
+function gameLabel(g) { const bi = run ? biathlonVariant(run.plan, g) : null; const v = bi ? " · " + bi.label : ""; return gameLabelBase(g) + v; }
+function gameLabelBase(g) { if (g.kind === "group") return `Gruppe ${g.group}${g.round ? " · R" + g.round : ""}`; const names = { fin: "Finale", hf1: "Halbfinale 1", hf2: "Halbfinale 2", hf: "Halbfinale", qf: "Viertelfinale" }; let m;
+  if ((m = /^quali(\d+)$/.exec(g.key))) return `Quali Gruppe ${m[1]} (2. vs. 3.)`;
+  if ((m = /^8f(\d+)$/.exec(g.key))) return `Achtelfinale ${m[1]}`;
+  if ((m = /^qf(\d+)$/.exec(g.key))) return `Viertelfinale ${m[1]}`;
+  return names[g.key] || (g.key.startsWith("p<") ? "Platz " + g.key.slice(2, -1) : g.key); }
 function cssId(key) { return key.replace(/[^a-z0-9]+/gi, "_"); }
 
 function groupCard(n) {
@@ -1916,7 +2059,13 @@ async function startGameOnTable(key, table) {
   if (!table) { alert("Kein Tisch frei."); return; }
   const g = run.plan.games.find(x => x.key === key); const a = resolveSlot(run, g.a), b = resolveSlot(run, g.b);
   if (!a || !b) { alert("Spiel nicht spielbereit."); return; }
+  if (playerBusy(g)) { alert(`${shortName(a)} oder ${shortName(b)} spielt gerade an einem anderen Tisch.`); return; }
   const ext = gameExternalId(key);
+  const bi = biathlonVariant(run.plan, g); // Grand Prix: Variante je Phase
+  const goal = bi ? bi.balls_goal : state.format.balls_goal;
+  const fmt = bi
+    ? { innings_goal: 0, biathlon: { balls_goal_3b: bi.balls_goal_3b, innings_goal_3b: bi.innings_goal_3b } }
+    : { innings_goal: state.format.innings_goal, allow_follow_up: g.kind === "group" };
   if (isLive()) {
     try {
       // Scoreboard-Typ aus table_kind der gewählten Disziplin ableiten (Pool/Snooker/Karambol).
@@ -1924,23 +2073,32 @@ async function startGameOnTable(key, table) {
       const ff = Carambus.util.freeGameForm({ tableKind: disc?.table_kind, discipline: state.discipline });
       await startGame({
         ...tournamentApiRef(), gameExternalId: ext, tableName: table, tableId: tableIdOf(table),
-        participants: [{ role: "playera", player: cleanPlayerRef(a), discipline: state.discipline, balls_goal: state.format.balls_goal },
-                       { role: "playerb", player: cleanPlayerRef(b), discipline: state.discipline, balls_goal: state.format.balls_goal }],
-        format: { innings_goal: state.format.innings_goal, free_game_form: ff, sets_to_play: 1, sets_to_win: 1, allow_follow_up: g.kind === "group" }
+        participants: [{ role: "playera", player: cleanPlayerRef(a), discipline: state.discipline, balls_goal: goal },
+                       { role: "playerb", player: cleanPlayerRef(b), discipline: state.discipline, balls_goal: goal }],
+        format: { ...fmt, free_game_form: ff, sets_to_play: 1, sets_to_win: 1 }
       });
     } catch (e) { alert("Spiel starten: " + errMsg(e)); return; }
   }
   state.gameUI[key] = { table, external_id: ext, swapped: false }; save(); renderGames();
 }
+// Spieler, die gerade an einem Tisch stehen, bekommen kein zweites Spiel.
+function busyPids() { const s = new Set(); for (const [k, u] of Object.entries(state.gameUI)) { if (!u.table || run.results[k]) continue; const g = run.plan.games.find(x => x.key === k); if (!g) continue; [resolveSlot(run, g.a), resolveSlot(run, g.b)].forEach(p => p && s.add(pidOf(p))); } return s; }
+function playerBusy(g, busy = busyPids()) { return [resolveSlot(run, g.a), resolveSlot(run, g.b)].some(p => p && busy.has(pidOf(p))); }
+// Bereite Spiele rundenweise über alle Gruppen (R1 aller Gruppen vor R2 …), ohne belegte Spieler.
+function startableGames() {
+  return runReadyGames(run).filter(x => !state.gameUI[x.key]?.table)
+    .sort((x, y) => ((x.round ?? 0) - (y.round ?? 0)) || ((x.group ?? 0) - (y.group ?? 0)));
+}
 async function fillFreeTables() {
   // 1. Choreografie-Tische bevorzugt (eae_pg: Sieger bleibt am Tisch / Gruppentische)
-  for (const g of runReadyGames(run).filter(x => !state.gameUI[x.key]?.table)) {
+  for (const g of startableGames()) {
+    if (playerBusy(g)) continue;
     const pref = preferredTable(g, new Set(freeTableList()));
     if (pref) await startGameOnTable(g.key, pref);
   }
   // 2. Restliche bereit-Spiele auf beliebige freie Tische
   let free = freeTableList();
-  for (const g of runReadyGames(run).filter(x => !state.gameUI[x.key]?.table)) { if (!free.length) break; await startGameOnTable(g.key, free.shift()); free = freeTableList(); }
+  for (const g of startableGames()) { if (!free.length) break; if (playerBusy(g)) continue; await startGameOnTable(g.key, free.shift()); free = freeTableList(); }
 }
 async function pollGame(key) {
   try { const { status, body } = await acknowledgeResult({ ...tournamentApiRef(), gameExternalId: state.gameUI[key].external_id }); if (status === 409) { alert("Ergebnis noch nicht erfasst."); return; } completeGame(key, mapAckResult(body, key).res); }
@@ -2092,7 +2250,7 @@ function csvGameName(g) {
   if (k === "fin") return "Finale";
   const hm = /^hf(\d*)$/.exec(k); if (hm) return "Halbfinale" + (hm[1] ? " " + hm[1] : "");
   const m = /^p<(\d+)-(\d+)>/.exec(k); if (m) return `Platz ${m[1]}/${m[2]}`;
-  return gameLabel(g);
+  return gameLabelBase(g);
 }
 // lfd.nr-Reihenfolge: Runden-gestaffelt (Gruppenrunden 1..n je Gruppe), dann Platzierung
 function csvOrder(g) {

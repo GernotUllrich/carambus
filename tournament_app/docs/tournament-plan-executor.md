@@ -60,6 +60,34 @@ optional **`rules`** (benannte Regel-Ausdrücke).
 - `RK` = geordnete Ref-Liste → finale Platzierung (Platz 1 = `RK[0]`).
 - `GK` = Gesamt-Spielzahl (Sanity-Check gegen erzeugte Spiele).
 
+### App-Erweiterungen (nur App, Carambus-Pläne nutzen sie nicht)
+Eingeführt für den DBU Grand Prix Biathlon (Oktober 2026), alle optional:
+- **`RKP`** = Platzziffern parallel zu `RK` (z. B. `[1,2,3,3,5,5,5,5]` — geteilte Plätze).
+  Fehlt sie, gilt Platz = Index + 1.
+- **`needs`** in einem Platzierungsspiel: `{"r8":{…}, "needs":["groups","quali5"]}` — das
+  Spiel wird erst bereit, wenn diese Spiele fertig sind; `"groups"` = alle Gruppenspiele.
+- **`dist: "snake"`** = Gruppeneinteilung in Schlangenlinie nach Setzliste; eine angebrochene
+  letzte Reihe füllt die Gruppen von vorn (große Gruppen vorn).
+- **`biathlon`** = Variante je Phase, `"TB/AU/GZ"` (Teildistanz Dreiband / Aufnahmen Dreiband /
+  Gesamtziel), Schlüssel `g` (Gruppen), `quali`, `8f`, `qf`, `hf`, `fin`. Die App schickt sie
+  pro Spiel an `start_game` (siehe `json-schema.md` §7).
+- Zusammengesetzte Refs dürfen auch Spiel-Refs enthalten (`(g1.rk3 + quali5.rk2).rk1`); der
+  Spieler wird dann mit seiner Gruppenbilanz verglichen.
+
+### DBU Grand Prix Biathlon (`biathlonGpPlan(n)`)
+Erzeugt den Plan erst beim Start aus der Starterzahl (Teilungsliste 4 Billards, 10–32):
+- **24–32:** 8 Gruppen (4er vorn, 3er hinten). 4er-Gruppe: 1. + 2. ins Achtelfinale;
+  3er-Gruppe: 1. direkt, 2. vs. 3. in der Quali (10/15/120). AF über Kreuz
+  (A1–B2, C1–D2, E1–F2, G1–H2 | B1–A2, D1–C2, F1–E2, H1–G2) erst nach allen Gruppen- und
+  Quali-Spielen, 10/20/120. 31 Starter = 7×4 + 1×3 (45 Spiele; die Liste nennt 48).
+- **16–23:** 4 Gruppen, Erste + Zweite: VF A1–B2, C1–D2 | B1–A2, D1–C2.
+- **10–15:** 2 Gruppen, 1.–4.: VF A1–B4, B2–A3 | B1–A4, A2–B3.
+- VF, HF, Finale 15/30/180; kein Spiel um Platz 3 (HF-Verlierer beide Dritte).
+- Gruppenwertung Punkte, dann GD. Wer nicht ins KO kommt, wird je Gruppenplatz-Stufe
+  gruppenübergreifend nach Punkten/GD eingereiht.
+- Test: `node schemes/plan/biathlon-gp.test.mjs` (alle 23 Starterzahlen gegen die Liste,
+  Durchläufe für alle drei Blöcke, Variante je Phase).
+
 ## Ranking (KRITISCH — bitte gegenchecken)
 
 **Gruppen-Standings** (`g<N>.rk<n>`): pro Spieler über seine Gruppenspiele akkumuliert

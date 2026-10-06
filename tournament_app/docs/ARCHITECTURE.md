@@ -123,7 +123,7 @@ Mehr braucht es nicht.
 |---|---|---|---|
 | 3-Band Mannschaft | `3band-team` | stabil | self-contained; **instanzfähig**; nutzt den `shared/`-Kern (Verbindungs-/Auth-/Fetch-Primitive dedupliziert via `core-js`-Marker). Eigenes CSS + Verbindungs-Modal (mit `tournament_cc_id`) bleiben; höhere Carambus-Funktionen noch bespoke |
 | Doppel-KO (Einzel) | `doppelko` | beta | nutzt den `shared/`-Kern via Inline-Marker; Live- + Offline-Modus |
-| TournamentPlan (T01–T24) | `plan` | beta | **datengetrieben**: interpretiert Carambus-`executor_params` (Gruppen + Finalrunde) app-seitig; Engine inline (`PLAN-ENGINE`-Block, Node-getestet via `plan-engine.test.mjs`). Nutzt `disciplines`-Endpoint (Pläne+Params) + Demo-Pläne offline. Spec: `docs/tournament-plan-executor.md` |
+| TournamentPlan (T01–T24) | `plan` | beta | **datengetrieben**: interpretiert Carambus-`executor_params` (Gruppen + Finalrunde) app-seitig; Engine inline (`PLAN-ENGINE`-Block, Node-getestet via `plan-engine.test.mjs`). Nutzt `disciplines`-Endpoint (Pläne+Params) + Demo-Pläne offline. Dazu der **DBU Grand Prix Biathlon** (Plan aus der Starterzahl 10–32, Variante je Phase, Test `biathlon-gp.test.mjs`). Spec: `docs/tournament-plan-executor.md` |
 
 ## Doppel-KO im Detail
 

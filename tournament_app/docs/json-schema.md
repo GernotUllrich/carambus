@@ -761,6 +761,14 @@ Player-Matching wie Phase 15 (region+cc_id → dbu_nr → name+club). Spiel star
 **Warmup** → spielbereit (löst den 15-06-Befund „nicht spielbereit"). Game-Swap:
 erneutes `start_game` am selben Tisch sichert das laufende Spiel + hängt ein neues an.
 
+**Biathlon** (Carambus live auf bc-wedel seit `a2c07b2a`, siehe
+`HANDOFF-from-carambus-biathlon-gp-modus.md`): Die Variante wird **pro Spiel** gesetzt —
+`"biathlon": {"balls_goal_3b":10, "innings_goal_3b":15}` (Teildistanz und Aufnahmen Dreiband),
+das Gesamtziel steht in `participants[].balls_goal` (120/180), `discipline: "Biathlon"`.
+`innings_goal` und `allow_follow_up` ignoriert Carambus bei Biathlon; die App schickt
+`innings_goal: 0` und kein `allow_follow_up`. Fehlt `biathlon`, gelten 15/30. Im Kern:
+`Carambus.api.startGame({ …, format: { biathlon: {…} } })`.
+
 ## 8. `POST acknowledge_result` → `carambus.ack/v1` ⭐ (R4)
 
 ```jsonc
