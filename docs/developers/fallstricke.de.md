@@ -240,6 +240,21 @@ Ein blinder `to_i`-Vergleich behandelt „kein Wert" wie „Wert 0". Bei Rundenv
 **Ausweg:** zuerst `present?` bzw. `blank?` prüfen, dann vergleichen.
 **Beleg:** `app/controllers/tournament_monitors_controller.rb:356`.
 
+### Eine neue PaperTrail-Version kann ein altes `created_at` tragen
+
+PaperTrail kopiert bei jedem Update das `updated_at` des Records in das `created_at` der
+Version. Ändert sich `updated_at` dabei nicht — etwa bei `update_column` gefolgt von
+`paper_trail.save_with_version`, wie es die Redelivery-Tasks in `lib/tasks/region_taggings.rake`
+tun —, bekommt die brandneue Version das Datum der letzten echten Änderung. Wer nach Datum
+zählt, findet sie nicht.
+
+**Beleg:** paper_trail 15.2.0, `lib/paper_trail/record_trail.rb:229–231`. Gemessen am
+2026-10-06: `redeliver_dbu_context` schrieb 12 253 Versionen; nach `created_at` „seit Laufbeginn"
+gezählt waren es 214, die Version von Turnier 18927 trug den 27.08.
+
+**Ausweg:** neue Versionen über die `id` abgrenzen (der Sync tut das ohnehin, `last_version_id`),
+nie über `created_at`.
+
 ### `scenarios.rake` löscht das Rails-Root ohne Rückfrage
 
 `lib/tasks/scenarios.rake:2538` führt `FileUtils.rm_rf(rails_root)` aus, wenn das Verzeichnis
