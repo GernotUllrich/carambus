@@ -10,8 +10,8 @@ const html = readFileSync(join(here, "index.html"), "utf8");
 const S = "/* >>> PLAN-ENGINE >>> */", E = "/* <<< PLAN-ENGINE <<< */";
 const si = html.indexOf(S), ei = html.indexOf(E, si + S.length);
 if (si < 0 || ei < 0) { console.error("PLAN-ENGINE-Block in index.html nicht gefunden"); process.exit(1); }
-const { parsePlan, biathlonGpPlan, biathlonVariant, createRun, runReadyGames, recordResult, finalRanking, runFinished, seedingPlayers } =
-  new Function(html.slice(si + S.length, ei) + "\n;return { parsePlan, biathlonGpPlan, biathlonVariant, createRun, runReadyGames, recordResult, finalRanking, runFinished, seedingPlayers };")();
+const { parsePlan, biathlonGpPlan, biathlonVariant, createRun, runReadyGames, recordResult, finalRanking, runFinished, seedingPlayers, rankSeedList, parseRanking } =
+  new Function(html.slice(si + S.length, ei) + "\n;return { parsePlan, biathlonGpPlan, biathlonVariant, createRun, runReadyGames, recordResult, finalRanking, runFinished, seedingPlayers, rankSeedList, parseRanking };")();
 
 let failures = 0;
 const assert = (c, m) => { if (!c) { console.error("  ✗ " + m); failures++; } };
@@ -170,6 +170,46 @@ console.log("\nMeldeliste aus Carambus (carambus.seeding/v1, 23 Meldungen):");
   eq(run.groups[4].map(p => p.lastname), ["S4", "S5", "S12", "S13", "S20"], "Gruppe D = 5er-Gruppe");
   eq(seedingPlayers({ teams: [{ players: [{ lastname: "X" }] }, { players: [{ lastname: "Y" }] }] }).map(p => p.lastname), ["X", "Y"], "ohne seeding_position: Lieferreihenfolge");
   eq(seedingPlayers({}).length, 0, "leere Meldeliste");
+}
+
+console.log("\nSetzliste = Rangliste × Meldeliste:");
+{
+  // Aufbau wie der Text aus dem DBU-PDF (Deutsche Rangliste Biathlon): Kopfzeilen, Turnierzeilen
+  // mit führender Zahl, Platz 22 vor 21, zweimal Platz 40. Namen erfunden.
+  const RANKING = [
+    "Deutsche Rangliste Biathlon",
+    "Stand: 30.06.2026, Liste Qualifikation ZDM 2026",
+    "20. DBU Grand Prix (11.- 12.10.2025, GT Buer)",
+    "100% 100%",
+    "Nr. Name Verein LV Punkte A B1 B2 B3 C D E",
+    "1 Anton Erster BC Nord NBV 1110 110 140",
+    "3 Clara Dritte SCB Mitte BLVN 975 115 70",
+    "9 Hans-Jörg Schröder BC Wedel NBV 646 70 90",
+    "12 Max Gabelmann MSV Ost BBBV 403 170",
+    "22 Zora Zweiundzwanzig BSC West BLMR 287 65",
+    "21 Erik Einundzwanzig SV Süd SBV 297 40",
+    "40 Tom Vierzig BF Fehrbach BVRLP 114 65 49",
+    "40 Jan Auchvierzig CV Kassel HBU 114 65 49",
+    "44 Peter Müller BC Grün-Weiß Wanne BVW 100 45",
+    "Seite 1 von 2"
+  ].join("\n");
+  eq(parseRanking(RANKING).length, 10, "Ranglisten-Zeilen erkannt (9 Spieler + Turnierzeile mit führender Zahl)");
+  const P = (firstname, lastname) => ({ firstname, lastname });
+  const meldeliste = [P("Ute", "Ohnerang"), P("Clara", "Dritte"), P("Jan", "Auchvierzig"), P("Anton", "Erster"),
+    P("Max", "Gabel"), P("Tom", "Vierzig"), P("Zora", "Zweiundzwanzig"), P("Erik", "Einundzwanzig"),
+    P("Hans Jörg", "Schröder"), P("Peter", "Mueller")];
+  const r = rankSeedList(meldeliste, RANKING);
+  eq(r.players.map(p => p.lastname), ["Erster", "Dritte", "Schröder", "Einundzwanzig", "Zweiundzwanzig", "Vierzig", "Auchvierzig", "Mueller", "Ohnerang", "Gabel"],
+    "nach Platz; gleiche Ziffer in Ranglisten-Reihenfolge; ohne Rang in Meldereihenfolge");
+  eq(r.players.map(p => p.rank), [1, 3, 9, 21, 22, 40, 40, 44, null, null], "Rang je Spieler");
+  eq(r.players.map(p => p.seed), [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], "seed neu vergeben");
+  eq(r.ranked, 8, "8 über die Rangliste gesetzt");
+  eq(r.unranked.map(p => p.lastname), ["Ohnerang", "Gabel"], "Max Gabel ist nicht Max Gabelmann");
+  eq(rankSeedList(meldeliste, "").players.map(p => p.lastname), meldeliste.map(p => p.lastname), "ohne Rangliste: Meldereihenfolge");
+  // Kette wie im Setup: Meldeliste vom Server → Rangliste → Gruppen
+  const doc = { teams: meldeliste.map((p, i) => ({ seeding_position: i + 1, players: [p] })) };
+  const run = createRun(parsePlan(biathlonGpPlan(10)), rankSeedList(seedingPlayers(doc), RANKING).players.map(p => ({ ...p, pid: p.lastname })));
+  eq(run.groups[1].map(p => p.lastname), ["Erster", "Einundzwanzig", "Zweiundzwanzig", "Mueller", "Ohnerang"], "10 Starter: Gruppe A aus der gerankten Setzliste");
 }
 
 console.log("\nAlle Teilnehmerzahlen laufen durch:");

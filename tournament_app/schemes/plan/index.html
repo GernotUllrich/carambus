@@ -1224,6 +1224,30 @@ function seedingPlayers(doc){
   const out=[]; for(const {t} of teams) for(const p of (t.players||[])) out.push({...p,seed:out.length+1});
   return out;
 }
+// Setzliste = Rangliste × Meldeliste: Gemeldete mit Rang nach Platzziffer (gleiche Ziffer →
+// Reihenfolge der Rangliste), ohne Rang danach in Meldereihenfolge. Die Rangliste ist Text aus
+// dem DBU-PDF ("<Platz> <Vorname> <Nachname> <Verein> …" je Zeile); sie hat keine DBU-Nummern,
+// verknüpft wird über den Namen.
+function normPersonName(s){
+  return String(s??"").toLowerCase().replace(/ä/g,"ae").replace(/ö/g,"oe").replace(/ü/g,"ue").replace(/ß/g,"ss")
+    .normalize("NFKD").replace(/[\u0300-\u036f]/g,"").replace(/[-.,]/g," ").replace(/\s+/g," ").trim();
+}
+function parseRanking(text){
+  const out=[];
+  String(text||"").split(/\r?\n/).forEach(line=>{ const m=/^\s*(\d+)\.?\s+(\S.*)$/.exec(line); if(m) out.push({rank:+m[1],rest:" "+normPersonName(m[2])+" ",line:out.length}); });
+  return out;
+}
+function rankSeedList(players,rankingText){
+  const rows=parseRanking(rankingText), ranked=[], unranked=[];
+  players.forEach((p,i)=>{
+    const key=" "+normPersonName(`${p.firstname||""} ${p.lastname||""}`)+" ";
+    const hit=key.trim()?rows.find(r=>r.rest.startsWith(key)):null;
+    (hit?ranked:unranked).push({p,i,hit});
+  });
+  ranked.sort((x,y)=>(x.hit.rank-y.hit.rank)||(x.hit.line-y.hit.line));
+  const list=[...ranked.map(x=>({...x.p,rank:x.hit.rank})),...unranked.map(x=>({...x.p,rank:null}))].map((p,i)=>({...p,seed:i+1}));
+  return { players:list, ranked:ranked.length, unranked:unranked.map(x=>x.p) };
+}
 // Schlangenlinie nach Setzliste über volle Reihen; eine angebrochene letzte Reihe füllt die
 // Gruppen von vorn (A, B, …), damit die großen Gruppen vorn liegen.
 function snakeDistribute(players,sizes){
@@ -1464,6 +1488,7 @@ function renderSetup() {
         ${nSel ? `<button class="btn secondary" id="btnClearP">Leeren</button>` : ``}
         ${live && nSel >= 2 ? `<button class="btn secondary" id="btnRank">📊 Nach Ranking sortieren</button>` : ``}
       </div>
+      ${state.gp ? renderGpRanking() : ``}
       <div id="playerPickerBox">${renderPlayerPicker()}</div>
       <div id="seedBox">${renderSeedList()}</div>
     </div>
@@ -1495,6 +1520,7 @@ function renderSetup() {
   el.querySelector("#btnLoadClubs")?.addEventListener("click", loadClubs);
   el.querySelector("#btnDemoP")?.addEventListener("click", () => addDemoParticipants(need));
   el.querySelector("#btnGpSeeding")?.addEventListener("click", () => importGpSeeding(el.querySelector("#inGpTid").value));
+  el.querySelector("#btnGpRank")?.addEventListener("click", () => { state.gpRankingText = el.querySelector("#inGpRanking").value; applyGpRanking(); });
   el.querySelector("#btnDemoGp")?.addEventListener("click", () => { const n = parseInt(prompt("Wie viele Demo-Starter (10–32)?", "28"), 10); if (n >= 10 && n <= 32) addDemoParticipants(n); });
   el.querySelector("#btnClearP")?.addEventListener("click", () => { state.participants = []; save(); renderSetup(); });
   el.querySelector("#btnRank")?.addEventListener("click", rankParticipants);
@@ -1525,8 +1551,32 @@ async function importGpSeeding(raw) {
   const players = seedingPlayers(doc);
   if (!players.length) { alert(`Turnier ${tid} hat noch keine Meldungen.`); return; }
   if (state.participants.length && !confirm(`Die ${state.participants.length} erfassten Teilnehmer durch die Meldeliste (${players.length}) ersetzen?`)) return;
-  state.participants = players; state.gpSeedingTid = tid;
+  state.participants = players; state.gpSeedingTid = tid; state.gpMeldeliste = players; state.gpRankReport = null;
+  if (state.gpRankingText) applyGpRanking(); else { save(); renderSetup(); }
+}
+// Setzliste = Rangliste × Meldeliste (rankSeedList). Ausgangspunkt ist immer die Meldeliste in
+// Eingangsreihenfolge, damit erneutes Anwenden keine Handkorrektur „verdoppelt".
+function applyGpRanking() {
+  // Meldereihenfolge, abgeglichen mit den aktuellen Teilnehmern: von Hand Entfernte fallen
+  // raus, von Hand Hinzugefügte kommen in ihrer jetzigen Reihenfolge ans Ende.
+  const keyOf = p => p.cc_id != null ? "cc" + p.cc_id : p.dbu_nr != null ? "dbu" + p.dbu_nr : "nm" + normPersonName(fullName(p));
+  const now = new Set(state.participants.map(keyOf)), known = new Set((state.gpMeldeliste || []).map(keyOf));
+  const base = [...(state.gpMeldeliste || []).filter(p => now.has(keyOf(p))), ...state.participants.filter(p => !known.has(keyOf(p)))];
+  if (!base.length) { alert("Erst die Meldeliste übernehmen oder Teilnehmer erfassen."); return; }
+  if (!parseRanking(state.gpRankingText).length) { alert("Keine Ranglisten-Zeilen erkannt (erwartet: „Platz Vorname Nachname …“ je Zeile)."); return; }
+  state.gpMeldeliste = base.map(p => ({ ...p }));
+  const r = rankSeedList(base, state.gpRankingText);
+  state.participants = r.players;
+  state.gpRankReport = { ranked: r.ranked, total: r.players.length, unranked: r.unranked.map(fullName) };
   save(); renderSetup();
+}
+function renderGpRanking() {
+  const rep = state.gpRankReport;
+  const report = rep ? `<div class="info" style="margin-top:6px;">${rep.ranked} von ${rep.total} über die Rangliste gesetzt.${rep.unranked.length ? ` Ohne Rang, in Meldereihenfolge am Ende: ${rep.unranked.map(escapeHtml).join(", ")}. Steht jemand doch in der Rangliste (Schreibweise?), per ▲▼ verschieben.` : ""}</div>` : ``;
+  return `<details style="margin:8px 0;"${state.gpRankingText ? "" : " open"}><summary>Setzliste aus der Deutschen Rangliste Biathlon${state.gpRankingText ? " (eingefügt)" : ""}</summary>
+    <p class="muted" style="margin:6px 0;">Text der Rangliste aus dem DBU-PDF hier einfügen (eine Zeile je Platz: „1 Vorname Nachname Verein …“). Gemeldete mit Rang kommen nach Platz nach vorn, alle ohne Rang dahinter in der Reihenfolge der Meldeliste.</p>
+    <textarea id="inGpRanking" rows="5" style="width:100%;font-family:monospace;font-size:12px;">${escapeHtml(state.gpRankingText || "")}</textarea>
+    <div class="toolbar"><button class="btn" id="btnGpRank">↕ Setzliste aus Rangliste bilden</button></div></details>${report}`;
 }
 function renderGpInfo() {
   const n = state.participants.length;
