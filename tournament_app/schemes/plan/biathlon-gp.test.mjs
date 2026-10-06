@@ -212,6 +212,30 @@ console.log("\nSetzliste = Rangliste × Meldeliste:");
   eq(run.groups[1].map(p => p.lastname), ["Erster", "Einundzwanzig", "Zweiundzwanzig", "Mueller", "Ohnerang"], "10 Starter: Gruppe A aus der gerankten Setzliste");
 }
 
+console.log("\nSchreibvarianten (zweite Stufe):");
+{
+  const RL = [
+    "19 Detlef Bretsch Triangel Soltau NBV 367 80 50",
+    "30 Karla Doppel BC Eins NBV 200",
+    "31 Karli Doppel BC Zwei NBV 199",
+    "12 Max Gabelmann MSV Ost BBBV 403 170",
+    "5 Lena Exakt BC Nord NBV 900",
+    "7 Hans-Jörg Schröder BC Wedel NBV 646"
+  ].join("\n");
+  const P = (firstname, lastname) => ({ firstname, lastname });
+  const r = rankSeedList([P("Detlev", "Bretsch"), P("Karl", "Doppel"), P("Max", "Gabel"), P("Lena", "Exakt"), P("Hans Joerg", "Schroeder")], RL);
+  eq(r.players.map(p => `${p.lastname}:${p.rank}`), ["Exakt:5", "Schroeder:7", "Bretsch:19", "Doppel:null", "Gabel:null"],
+    "Detlev ↔ Detlef verknüpft; exakte Treffer unverändert");
+  eq(r.fuzzy.map(f => `${f.player.firstname} ${f.player.lastname} ↔ ${f.rankName} (${f.rank})`), ["Detlev Bretsch ↔ Detlef Bretsch (19)"], "Abweichung wird gemeldet, nur diese");
+  eq(r.unranked.map(p => p.lastname), ["Doppel", "Gabel"], "zwei Kandidaten (Karl ↔ Karla/Karli) → ohne Rang; Gabel ≠ Gabelmann");
+  eq(rankSeedList([P("Detlev", "Bretschmann")], RL).fuzzy.length, 0, "Nachname muss exakt passen");
+  eq(rankSeedList([P("Dietmar", "Bretsch")], RL).players[0].rank, null, "Vorname mit mehr als 1 Abweichung → kein Treffer");
+  // Zeile schon exakt vergeben → nicht ein zweites Mal unscharf
+  const t = rankSeedList([P("Detlef", "Bretsch"), P("Detlev", "Bretsch")], RL);
+  eq(t.players.map(p => `${p.firstname}:${p.rank}`), ["Detlef:19", "Detlev:null"], "exakt vergebene Zeile wird nicht doppelt genutzt");
+  eq(t.fuzzy.length, 0, "dann auch keine Meldung");
+}
+
 console.log("\nAlle Teilnehmerzahlen laufen durch:");
 for (let n = 10; n <= 32; n++) {
   const run = simulate(n);

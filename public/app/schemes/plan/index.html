@@ -1234,19 +1234,36 @@ function normPersonName(s){
 }
 function parseRanking(text){
   const out=[];
-  String(text||"").split(/\r?\n/).forEach(line=>{ const m=/^\s*(\d+)\.?\s+(\S.*)$/.exec(line); if(m) out.push({rank:+m[1],rest:" "+normPersonName(m[2])+" ",line:out.length}); });
+  String(text||"").split(/\r?\n/).forEach(line=>{ const m=/^\s*(\d+)\.?\s+(\S.*)$/.exec(line); if(m) out.push({rank:+m[1],rest:" "+normPersonName(m[2])+" ",raw:m[2].trim(),line:out.length}); });
   return out;
 }
+function editDistance(a,b){
+  const d=Array.from({length:b.length+1},(_,j)=>j);
+  for(let i=1;i<=a.length;i++){ let prev=d[0]; d[0]=i; for(let j=1;j<=b.length;j++){ const t=d[j]; d[j]=Math.min(d[j]+1,d[j-1]+1,prev+(a[i-1]===b[j-1]?0:1)); prev=t; } }
+  return d[b.length];
+}
+// Die ersten n normalisierten Wörter einer Ranglistenzeile in Originalschreibweise (für den Bericht).
+function rawLead(raw,n){ const out=[]; let c=0; for(const w of raw.split(/\s+/)){ if(c>=n) break; out.push(w); c+=normPersonName(w).split(" ").filter(Boolean).length; } return out.join(" "); }
 function rankSeedList(players,rankingText){
-  const rows=parseRanking(rankingText), ranked=[], unranked=[];
+  const rows=parseRanking(rankingText), ranked=[], unranked=[], fuzzy=[];
+  const exact=players.map(p=>{ const key=" "+normPersonName(`${p.firstname||""} ${p.lastname||""}`)+" "; return key.trim()?rows.find(r=>r.rest.startsWith(key))||null:null; });
+  const taken=new Set(exact.filter(Boolean));
   players.forEach((p,i)=>{
-    const key=" "+normPersonName(`${p.firstname||""} ${p.lastname||""}`)+" ";
-    const hit=key.trim()?rows.find(r=>r.rest.startsWith(key)):null;
+    let hit=exact[i];
+    if(!hit){
+      // Stufe 2 (Schreibvariante, z. B. Detlev/Detlef): Nachname exakt als ganze Wörter direkt nach
+      // den Vornamen, jedes Vornamen-Wort mit Editierdistanz ≤ 1 — nur bei genau EINER passenden,
+      // noch nicht exakt vergebenen Zeile.
+      const fn=normPersonName(p.firstname).split(" ").filter(Boolean), ln=normPersonName(p.lastname).split(" ").filter(Boolean);
+      const cands=(fn.length&&ln.length)?rows.filter(r=>{ if(taken.has(r)) return false; const w=r.rest.trim().split(" ");
+        return ln.every((t,k)=>w[fn.length+k]===t) && fn.every((t,k)=>w[k]!=null&&editDistance(w[k],t)<=1); }):[];
+      if(cands.length===1){ hit=cands[0]; fuzzy.push({player:p,rankName:rawLead(hit.raw,fn.length+ln.length),rank:hit.rank}); }
+    }
     (hit?ranked:unranked).push({p,i,hit});
   });
   ranked.sort((x,y)=>(x.hit.rank-y.hit.rank)||(x.hit.line-y.hit.line));
   const list=[...ranked.map(x=>({...x.p,rank:x.hit.rank})),...unranked.map(x=>({...x.p,rank:null}))].map((p,i)=>({...p,seed:i+1}));
-  return { players:list, ranked:ranked.length, unranked:unranked.map(x=>x.p) };
+  return { players:list, ranked:ranked.length, unranked:unranked.map(x=>x.p), fuzzy };
 }
 // Schlangenlinie nach Setzliste über volle Reihen; eine angebrochene letzte Reihe füllt die
 // Gruppen von vorn (A, B, …), damit die großen Gruppen vorn liegen.
@@ -1567,12 +1584,15 @@ function applyGpRanking() {
   state.gpMeldeliste = base.map(p => ({ ...p }));
   const r = rankSeedList(base, state.gpRankingText);
   state.participants = r.players;
-  state.gpRankReport = { ranked: r.ranked, total: r.players.length, unranked: r.unranked.map(fullName) };
+  state.gpRankReport = { ranked: r.ranked, total: r.players.length, unranked: r.unranked.map(fullName),
+                         fuzzy: r.fuzzy.map(f => ({ melde: fullName(f.player), rankName: f.rankName, rank: f.rank })) };
   save(); renderSetup();
 }
 function renderGpRanking() {
   const rep = state.gpRankReport;
-  const report = rep ? `<div class="info" style="margin-top:6px;">${rep.ranked} von ${rep.total} über die Rangliste gesetzt.${rep.unranked.length ? ` Ohne Rang, in Meldereihenfolge am Ende: ${rep.unranked.map(escapeHtml).join(", ")}. Steht jemand doch in der Rangliste (Schreibweise?), per ▲▼ verschieben.` : ""}</div>` : ``;
+  const fz = rep?.fuzzy || [];
+  const report = rep ? `<div class="info" style="margin-top:6px;">${rep.ranked} von ${rep.total} über die Rangliste gesetzt.${rep.unranked.length ? ` Ohne Rang, in Meldereihenfolge am Ende: ${rep.unranked.map(escapeHtml).join(", ")}. Steht jemand doch in der Rangliste (Schreibweise?), per ▲▼ verschieben.` : ""}</div>` +
+    (fz.length ? `<div class="alert" style="margin-top:6px;">Abweichende Schreibweise übernommen — bitte prüfen:<br>${fz.map(f => `${escapeHtml(f.melde)} ↔ ${escapeHtml(f.rankName)} (Platz ${f.rank})`).join("<br>")}</div>` : ``) : ``;
   return `<details style="margin:8px 0;"${state.gpRankingText ? "" : " open"}><summary>Setzliste aus der Deutschen Rangliste Biathlon${state.gpRankingText ? " (eingefügt)" : ""}</summary>
     <p class="muted" style="margin:6px 0;">Text der Rangliste aus dem DBU-PDF hier einfügen (eine Zeile je Platz: „1 Vorname Nachname Verein …“). Gemeldete mit Rang kommen nach Platz nach vorn, alle ohne Rang dahinter in der Reihenfolge der Meldeliste.</p>
     <textarea id="inGpRanking" rows="5" style="width:100%;font-family:monospace;font-size:12px;">${escapeHtml(state.gpRankingText || "")}</textarea>

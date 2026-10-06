@@ -94,8 +94,10 @@ Erzeugt den Plan erst beim Start aus der Starterzahl (Teilungsliste 4 Billards, 
   (`rankSeedList`): Gemeldete mit Rang nach Platzziffer (gleiche Ziffer → Reihenfolge der
   Rangliste), ohne Rang danach in Meldereihenfolge. Die Rangliste gibt es nur als DBU-PDF ohne
   DBU-Nummern; der Turnierleiter fügt ihren Text ins Setup ein, verknüpft wird über den Namen
-  (Umlaute/Bindestriche normalisiert, „Max Gabel“ ≠ „Max Gabelmann“). Die App meldet, wer ohne
-  Rang ans Ende kam. Carambus' `player_rankings` hilft hier nicht — das sind die
+  (Umlaute/Bindestriche normalisiert, „Max Gabel“ ≠ „Max Gabelmann“). Zweite Stufe nur ohne
+  exakten Treffer: Nachname exakt, jedes Vornamen-Wort mit Editierdistanz ≤ 1 („Detlev“ ↔
+  „Detlef“), nur bei genau einer passenden, nicht schon exakt vergebenen Zeile; solche Treffer
+  meldet die App gesondert zur Prüfung. Die App meldet auch, wer ohne Rang ans Ende kam. Carambus' `player_rankings` hilft hier nicht — das sind die
   Landesverbands-Ranglisten aus der ClubCloud.
 - Test: `node schemes/plan/biathlon-gp.test.mjs` (alle 23 Starterzahlen gegen die Liste,
   Durchläufe für alle drei Blöcke, Variante je Phase, Meldeliste mit 23 Meldungen,

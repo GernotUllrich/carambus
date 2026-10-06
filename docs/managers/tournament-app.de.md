@@ -232,8 +232,11 @@ App-Turnier**, nicht angehängt an das DBU-Turnier in Carambus.
 4. **Setzliste bilden:** Die Meldeliste ist keine Setzliste. Unter **„Setzliste aus der Deutschen
    Rangliste Biathlon“** den Text der DBU-Rangliste (PDF) einfügen und **„↕ Setzliste aus
    Rangliste bilden“**. Gemeldete mit Rang stehen dann nach Platz vorn, alle ohne Rang dahinter in
-   Meldereihenfolge. Die App meldet, wer ohne Rang ans Ende kam — wegen abweichender Schreibweise
-   ggf. von Hand mit **▲▼** korrigieren.
+   Meldereihenfolge. Weicht ein Vorname um einen Buchstaben ab (z. B. Detlev/Detlef) und passt
+   genau eine Ranglistenzeile, verknüpft die App trotzdem und meldet das eigens („Abweichende
+   Schreibweise übernommen — bitte prüfen“). Wer danach noch ohne Rang ans Ende kam, steht im
+   Bericht; Rest von Hand mit **▲▼** korrigieren. Achtung: ein erneutes „Setzliste aus Rangliste
+   bilden“ ersetzt Handkorrekturen durch die Rangfolge.
 5. Die Vorschau zeigt Gruppen, Spielzahl und Ziele je Phase, z. B. „4 Gruppen (3×6er + 1×5er) ·
    55 Gruppenspiele 10/15/120“.
 6. **„3 · Tische“** laden und wählen, dann **„🏁 Turnier erzeugen“**.

@@ -240,8 +240,11 @@ tournament**, not attached to the DBU tournament in Carambus.
 4. **Build the seeding list:** the registration list is not a seeding list. Under **"Setzliste aus
    der Deutschen Rangliste Biathlon"** paste the text of the DBU ranking (PDF) and press **"↕
    Setzliste aus Rangliste bilden"**. Registered players with a rank come first by place, everyone
-   without a rank after them in registration order. The app reports who ended up at the end without
-   a rank — correct spelling mismatches by hand with **▲▼**.
+   without a rank after them in registration order. If a first name differs by one letter (e.g.
+   Detlev/Detlef) and exactly one ranking line fits, the app still links them and reports it
+   separately ("Abweichende Schreibweise übernommen — bitte prüfen"). Whoever still ended up at the
+   end without a rank is listed in the report; correct the rest by hand with **▲▼**. Note: pressing
+   "Setzliste aus Rangliste bilden" again replaces manual corrections with the ranking order.
 5. The preview shows groups, number of games and goals per phase, e.g. "4 Gruppen (3×6er + 1×5er) ·
    55 Gruppenspiele 10/15/120".
 6. Load and pick tables under **"3 · Tische"**, then **"🏁 Turnier erzeugen"**.
