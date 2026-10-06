@@ -102,6 +102,62 @@ Neither service calls CableReady or ActionCable directly. Broadcasts happen via 
 
 While the AASM state is `set_over` ("game finished"), the before_save invariant `enforce_protocol_final_panel_at_set_over` forces `panel_state = "protocol_final"`. As a result, at game end the scoreboard **always goes straight** to the protocol editor (final mode, "Fertig"/Done = `confirm_result` → `evaluate_result` advances the state) — instead of the rare detour through the "…OK?"/legacy `innings_list` panel. Rationale: several paths overwrite `panel_state` after entering `set_over` (karambol input mode `"inputs"`, `key_a`/`key_b` `"pointer_mode"`, app/bridge games); the invariant is the single path-independent chokepoint. `current_element` is left untouched (tiebreak sets `"tiebreak_winner_choice"`). The `"…OK?"` status itself is the tournament-director confirmation when `!player_controlled?` (see `locked_scoreboard`).
 
+## Biathlon {#biathlon}
+
+Biathlon (DBU rules Biathlon §3) is not a separate game type but carom with two phases —
+implemented as a small extension of the existing paths (skill *extend-before-build*), not as a
+separate state machine. Operation: [Biathlon on the Scoreboard](../../players/biathlon.md).
+
+**Data in `tm.data`:**
+
+| Key | Content |
+|---|---|
+| `biathlon_phase` | `"3b"` (three-cushion) or `"5k"` (5-pins) |
+| `biathlon` | `{"balls_goal_3b", "innings_goal_3b", "factor"}` — partial distance, three-cushion innings limit, conversion factor (6). Missing values fall back to `TableMonitor::ScoreEngine::BIATHLON_DEFAULTS` (15/30/6) |
+| `playerX.balls_goal` | **total goal** of the game |
+| `playerX.result_3b`, `innings_3b` | three-cushion score at the switch (display, protocol `3BErgebnis`/`3BAufnahmen`) |
+
+Biathlon is detected by `TableMonitor#discipline == "Biathlon"` (= `playera.discipline`).
+
+**ScoreEngine** (`app/models/table_monitor/score_engine.rb`):
+
+- Three-cushion phase: own branch in `add_n_balls`/`set_n_balls` (`add_biathlon_3b`,
+  `set_biathlon_3b`) — counted raw against the partial distance, capped; on reaching it
+  `:goal_reached`, so `TableMonitor` ends the inning.
+- Switch in **one** place, at the end of every inning (`terminate_inning_data` →
+  `switch_biathlon_to_5k!`), when one player has the partial distance or **both** have the innings
+  limit — independent of who broke. All `innings_list`/`innings_redo_list` of both players
+  ×factor, `recompute_result`.
+- Pins phase: regular carom path; `overflow_capped?` caps excess at the total goal.
+- Undo: `undo_hash` → `revert_biathlon_to_3b!` when the switching inning is taken back (both
+  players at `innings_3b`).
+- `innings_limit_open?` is always open for Biathlon; `TableMonitor#follow_up?` and `end_of_set?`
+  treat Biathlon without follow-up shot and without a game innings limit.
+
+**Why guards instead of a clean data flow:** tournament games go through `assign_game` →
+`initialize_game`, not `GameSetup#perform_start_game`, and `TournamentsController#start` writes the
+tournament's `innings_goal` to every table **after** placement. Instead of patching every path,
+Biathlon is insensitive to `innings_goal`/`allow_follow_up`.
+
+**Where the variant comes from:**
+
+| Path | Source | Set in |
+|---|---|---|
+| Quick start | preset `{balls, balls_3b, innings_3b, discipline: "Biathlon"}` (`carambus.yml`, match table) → `biathlon[balls_goal_3b, innings_goal_3b]` | `GameSetup#biathlon_settings` |
+| Detail page | `discipline_choice` 13, `biathlon_3b(_2)_choice`, `innings_choice` (= three-cushion innings) | `TableMonitorsController#start_game` → `biathlon_settings` |
+| Tournament | start page → `tournament_monitor.data["biathlon"]` (local record; a sync would overwrite `tournament.data`) | `TournamentsController#start` (tables of round 1), `GameSetup.initialize_game` (every later game) |
+| Tournament app | `POST start_game` with `biathlon: {…}` per game | `ExternalTournament::StartGameProcessor` → `biathlon_settings` |
+| Rematch | `data["biathlon"]` | `TableMonitor#revert_players` |
+
+Normalised in one place: `TableMonitor::GameSetup.biathlon_params` (positive values only, the rest
+from the defaults). `initialize_game` clears a previous game's `biathlon` at the table.
+
+**Tests:** `test/models/table_monitor/score_engine_biathlon_test.rb`,
+`test/models/table_monitor/biathlon_lifecycle_test.rb`, Biathlon cases in
+`test/services/table_monitor/game_setup_test.rb`, `test/controllers/table_monitors_controller_test.rb`,
+`test/controllers/api/external_tournaments_lifecycle_test.rb`,
+`test/integration/biathlon_tournament_start_test.rb`.
+
 ## Cross-References
 
 - Parent guide: [Developer Guide — Extracted Services](../developer-guide.en.md#extracted-services)

@@ -147,6 +147,10 @@ Im **Pointer-Modus** (Hauptmodus während des Spiels):
 
 ## Spielablauf
 
+!!! tip "Biathlon"
+    Biathlon (Dreiband, dann ×6, dann 5-Kegel) zählt in zwei Phasen — siehe
+    [Biathlon am Scoreboard](biathlon.md).
+
 ### 1. Spielstart vorbereiten
 
 Nach Auswahl eines Tisches oder Turniers erscheint der **Setup-Bildschirm**.

@@ -213,6 +213,51 @@ oder die Spieler im Setup über „📥 Clubs laden“ → Verein → Spieler w�
       sie die Endrangliste im ClubCloud-Format („📄 Rangliste (ClubCloud)“) und die Partien („📄 Spiele-CSV“); den
       Eintrag in der ClubCloud macht der Turnierleiter selbst.
 
+## DBU Grand Prix Biathlon {#gp-biathlon}
+
+Für den DBU Grand Prix Biathlon (Ausschreibung „Teilungsliste 4 Billards“, 10–32 Starter) hat das
+Plan-Schema einen eigenen Modus. Der Plan entsteht erst beim Start aus der Starterzahl — wer bis
+zum Meldeschluss nachmeldet, verschiebt nur die Gruppeneinteilung. Gespielt wird als **eigenes
+App-Turnier**, nicht angehängt an das DBU-Turnier in Carambus.
+
+1. **App öffnen**, Live-Verbindung herstellen, im Launcher **„Plan-Turnier anlegen
+   (Karambol/Kegel)“**.
+2. Setup, Karte **„1 · Turnierplan“**: **„🎯 DBU Grand Prix Biathlon“**.
+3. Karte **„2 · Teilnehmer“**: die **Carambus-Turnier-Nr.** des DBU-Turniers eintragen (die Zahl
+   aus der Adresse der Turnierseite, `…/tournaments/<Nr.>`) und **„📥 Meldeliste übernehmen“**.
+   Ein zweites Übernehmen nach dem Meldeschluss **ersetzt** die Liste.
+4. **Setzliste bilden:** Die Meldeliste ist keine Setzliste. Unter **„Setzliste aus der Deutschen
+   Rangliste Biathlon“** den Text der DBU-Rangliste (PDF) einfügen und **„↕ Setzliste aus
+   Rangliste bilden“**. Gemeldete mit Rang stehen dann nach Platz vorn, alle ohne Rang dahinter in
+   Meldereihenfolge. Die App meldet, wer ohne Rang ans Ende kam — wegen abweichender Schreibweise
+   ggf. von Hand mit **▲▼** korrigieren.
+5. Die Vorschau zeigt Gruppen, Spielzahl und Ziele je Phase, z. B. „4 Gruppen (3×6er + 1×5er) ·
+   55 Gruppenspiele 10/15/120“.
+6. **„3 · Tische“** laden und wählen, dann **„🏁 Turnier erzeugen“**.
+
+**Modus nach Starterzahl:**
+
+| Starter | Gruppen | Weiter | Ziel Gruppe |
+|---|---|---|---|
+| 24–32 | 8 (4er vorn, 3er hinten) | 4er: 1. + 2.; 3er: 1. direkt, 2. vs. 3. (Quali, 10/15/120) → Achtelfinale 10/20/120 | 32–30: 10/15/120 · 29–26: 10/20/120 · 25–24: 15/20/180 |
+| 16–23 | 4 | 1. + 2. → Viertelfinale | 23–21: 10/15/120 · 20–18: 10/20/120 · 17–16: 15/20/180 |
+| 10–15 | 2 | 1.–4. → Viertelfinale | 15–14: 10/15/120 · 13–12: 10/20/120 · 11–10: 15/30/180 |
+
+Viertelfinale, Halbfinale und Finale: **15/30/180**. Gruppen in Schlangenlinie nach der Setzliste,
+KO über Kreuz (A1–B2 …), Gruppenwertung nach Punkten, dann GD. Kein Spiel um Platz 3. Das
+Achtel- bzw. Viertelfinale wird erst bereit, wenn alle Gruppen- und Quali-Spiele fertig sind; am
+zweiten Turniertag wird dasselbe Turnier fortgesetzt.
+
+Die App schickt die Variante der jeweiligen Phase mit jedem Spiel ans Scoreboard; dort gilt die
+[Biathlon-Zählweise](../players/biathlon.md).
+
+!!! warning "Stand 06.10.2026"
+    - Die **Quali-Regel bei 24–32 Startern** ist eine vorläufige Festlegung des Betreibers; die
+      Ausschreibung (§ 2 Abs. 2 der allgemeinen GP-Ausschreibung) war nicht auffindbar.
+    - Die Setzliste wird über den **Namen** mit der Rangliste verknüpft (die Rangliste hat keine
+      DBU-Nummern). Korrekturen der Reihenfolge im Carambus-Web wirken deshalb nur für Spieler ohne
+      Rang — **Handkorrekturen in der App** machen.
+
 ## Nach dem Turnier — der nächtliche Lauf {#aufraeumen}
 
 Jede Nacht um 0:01 Uhr räumt Carambus auf einem Vereinsserver hinter App-Turnieren auf:

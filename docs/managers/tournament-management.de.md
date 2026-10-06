@@ -196,6 +196,14 @@ Oben siehst du eine Zusammenfassung des gewählten Modus, darunter den Abschnitt
 
 Der Schalter „Nachstoß erlaubt" erscheint immer, unabhängig von der Disziplin. Setz ihn nur bei Disziplinen mit Nachstoß-Regel.
 
+!!! note "Biathlon-Turnier"
+    Bei der Disziplin **Biathlon** stehen zusätzlich **Biathlon: Dreiband-Distanz** und
+    **Biathlon: Aufnahmen Dreiband** im Formular (Vorbelegung 15/30). Das **Bälle-Ziel** ist das
+    Gesamtziel (z. B. 120 oder 180), das **Aufnahmen-Limit** bleibt auf **0**. Aufnahmen-Limit und
+    „Nachstoß erlaubt" wirken bei Biathlon nicht — die Aufnahmebegrenzung gilt nur für die
+    Dreiband-Phase, einen Nachstoß gibt es nicht. Die Variante wird beim Start gespeichert und gilt
+    für alle Partien des Turniers. Zählweise am Tisch: [Biathlon am Scoreboard](../players/biathlon.md).
+
 > **Hinweis zu „Bälle vor":** In der UI-Beschriftung taucht zusätzlich der Ausdruck „Bälle vor" auf — das ist eine **individuelle Vorgabe bei Vorgabe-/Handikap-Turnieren** (jeder Spieler bekommt einen anderen Wert), nicht zu verwechseln mit dem allgemeinen Ballziel.
 
 <a id="step-8-tables"></a>

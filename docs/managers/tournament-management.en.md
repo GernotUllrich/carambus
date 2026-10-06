@@ -199,6 +199,14 @@ At the top you see a summary of the selected mode, then the **"Table assignment"
 
 The "Allow a follow-up shot" switch always appears, regardless of the discipline. Only set it for disciplines with the Nachstoß rule.
 
+!!! note "Biathlon tournament"
+    For the discipline **Biathlon** the form additionally shows **Biathlon: three-cushion distance**
+    and **Biathlon: three-cushion innings** (default 15/30). The **balls goal** is the total goal
+    (e.g. 120 or 180); leave the **innings limit** at **0**. Innings limit and "Allow a follow-up
+    shot" have no effect for Biathlon — the innings limit only applies to the three-cushion phase,
+    and there is no follow-up shot. The variant is stored at the start and applies to every game of
+    the tournament. Scoring at the table: [Biathlon on the Scoreboard](../players/biathlon.md).
+
 > **Note on "Bälle vor":** The UI label "Bälle vor" sometimes appears next to target balls — that is an **individual handicap value used in handicap tournaments** (each player gets a different value), not to be confused with the general target-balls parameter.
 
 <a id="step-8-tables"></a>

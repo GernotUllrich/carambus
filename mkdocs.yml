@@ -156,6 +156,7 @@ nav:
   - Players:
       - players/index.md
       - Scoreboard Guide: players/scoreboard-guide.md
+      - Biathlon: players/biathlon.md
       - Tournament Participation: players/tournament-participation.md
       - AI-Powered Search: players/ai-search.md
   - Managers:

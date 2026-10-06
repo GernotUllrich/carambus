@@ -185,6 +185,12 @@ verschiedene Subklassen). Die Endpoint-Logik detektiert Mannschaftsturnier
 (mit `league_team_id`) vs. Single-Tournament und gruppiert Players
 entsprechend.
 
+**Globale Turniere (2026-10-06):** Im `tournament_id`-Pfad muss die Region des Turniers zur
+angefragten passen (sonst `422 Region mismatch`) — **außer** das Turnier ist global
+(`global_context`, z. B. DBU-Turniere). So übernimmt ein App-Turnier einer Landesverbands-Region
+die Meldeliste eines DBU Grand Prix. Gibt es lokale Seedings (`id >= MIN_ID`), liefert der Endpoint
+diese statt der globalen.
+
 ## Endpoint 2: Round-Start (Plan 15-03)
 
 ```
@@ -555,6 +561,18 @@ weggelassenes Flag erbt den Tournament-Wert (statt auf „aus" gezwungen zu werd
 gesendeter Wert (auch `false`) wird geehrt (D-18-02-A). Für den 3-Band-Mannschaftskampf ist
 Nachstoß damit standardmäßig aktiv. (Der Fix ist bridge-scoped in `StartGameProcessor`; das
 geteilte `GameSetup` bleibt unverändert.)
+
+**Biathlon (2026-10-06):** Die Variante wird pro Spiel gesetzt. `participants[].discipline =
+"Biathlon"`, `participants[].balls_goal` = Gesamtziel, dazu
+
+```jsonc
+"biathlon": { "balls_goal_3b": 10, "innings_goal_3b": 15 }   // Teildistanz / Aufnahmen Dreiband
+```
+
+Fehlt `biathlon`, gelten 15/30. `innings_goal` und `allow_follow_up` wirken bei Biathlon nicht (keine
+Partie-Aufnahmebegrenzung, kein Nachstoß). Im Ergebnis (`acknowledge_result`) ist `Ergebnis` der
+Gesamtstand (Dreiband ×6 + Kegel) und `Aufnahmen` zählt beide Teile; ein Unentschieden kann am
+Scoreboard nicht entstehen. Details: [TableMonitor — Biathlon](services/table-monitor.md#biathlon).
 
 ## Endpoint 7: Player-Rankings (Plan 19-01 / v0.6)
 

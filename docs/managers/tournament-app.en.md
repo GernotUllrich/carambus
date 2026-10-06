@@ -221,6 +221,50 @@ the assistant, or choose the players in the setup with „📥 Clubs laden“ (l
       final ranking in ClubCloud format („📄 Rangliste (ClubCloud)“) and the matches („📄 Spiele-CSV“); the tournament
       director makes the entry in the ClubCloud.
 
+## DBU Grand Prix Biathlon {#gp-biathlon}
+
+For the DBU Grand Prix Biathlon (tender "Teilungsliste 4 Billards", 10–32 starters) the plan scheme
+has its own mode. The plan is built only at the start from the number of starters — late entries
+before the registration deadline just shift the group split. The game runs as the app's **own
+tournament**, not attached to the DBU tournament in Carambus.
+
+1. **Open the app**, connect live, in the launcher **"Plan-Turnier anlegen (Karambol/Kegel)"**.
+2. Setup, card **"1 · Turnierplan"**: **"🎯 DBU Grand Prix Biathlon"**.
+3. Card **"2 · Teilnehmer"**: enter the **Carambus-Turnier-Nr.** of the DBU tournament (the number
+   in the address of the tournament page, `…/tournaments/<no.>`) and **"📥 Meldeliste
+   übernehmen"**. Taking it over again after the deadline **replaces** the list.
+4. **Build the seeding list:** the registration list is not a seeding list. Under **"Setzliste aus
+   der Deutschen Rangliste Biathlon"** paste the text of the DBU ranking (PDF) and press **"↕
+   Setzliste aus Rangliste bilden"**. Registered players with a rank come first by place, everyone
+   without a rank after them in registration order. The app reports who ended up at the end without
+   a rank — correct spelling mismatches by hand with **▲▼**.
+5. The preview shows groups, number of games and goals per phase, e.g. "4 Gruppen (3×6er + 1×5er) ·
+   55 Gruppenspiele 10/15/120".
+6. Load and pick tables under **"3 · Tische"**, then **"🏁 Turnier erzeugen"**.
+
+**Mode by number of starters:**
+
+| Starters | Groups | Advance | Group goal |
+|---|---|---|---|
+| 24–32 | 8 (groups of 4 first, groups of 3 last) | groups of 4: 1st + 2nd; groups of 3: 1st directly, 2nd vs. 3rd (qualifier, 10/15/120) → round of 16, 10/20/120 | 32–30: 10/15/120 · 29–26: 10/20/120 · 25–24: 15/20/180 |
+| 16–23 | 4 | 1st + 2nd → quarter-final | 23–21: 10/15/120 · 20–18: 10/20/120 · 17–16: 15/20/180 |
+| 10–15 | 2 | 1st–4th → quarter-final | 15–14: 10/15/120 · 13–12: 10/20/120 · 11–10: 15/30/180 |
+
+Quarter-final, semi-final and final: **15/30/180**. Groups in snake order from the seeding list, KO
+crosswise (A1–B2 …), group ranking by points, then average. No third-place match. The round of 16
+or quarter-final becomes ready only once all group and qualifier games are finished; on the second
+day the same tournament is continued.
+
+The app sends the variant of the current phase with every game to the scoreboard; the
+[Biathlon scoring](../players/biathlon.md) applies there.
+
+!!! warning "As of 2026-10-06"
+    - The **qualifier rule for 24–32 starters** is a provisional decision of the operator; the tender
+      (§ 2 (2) of the general GP tender) could not be found.
+    - The seeding list is matched to the ranking by **name** (the ranking has no DBU numbers).
+      Reordering in the Carambus web therefore only affects players without a rank — make
+      **manual corrections in the app**.
+
 ## After the tournament — the nightly run {#aufraeumen}
 
 Every night at 0:01 Carambus cleans up after app tournaments on a club server:
