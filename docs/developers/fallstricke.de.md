@@ -395,3 +395,27 @@ eine Veränderung? Zählt sie dasselbe mit?
 **Beleg:** 580 Dateien schienen nur auf einem Rechner zu existieren. Nach drei Korrekturen an der
 Messung blieben 15 — die übrigen lagen längst am Ziel, nur in einem Verzeichnis, das die
 Erhebung bewusst ausgeschlossen hatte.
+
+### Wer einen Bestands-Task durch Schreibzeit-Logik ersetzt, muss jeden Schreibpfad finden
+
+Ein Task, der den **Bestand** nachträglich korrigiert, deckt alle Wege ab, auf denen Daten
+entstehen — er fragt nicht, woher sie kommen. Wird er durch Logik ersetzt, die **beim Schreiben**
+greift, muss jeder Schreibpfad sie einzeln bekommen. Fehlt einer, scheitert nichts: der Task
+läuft einfach nicht mehr, und die Lücke wächst mit jedem neuen Datensatz.
+
+**Beleg:** `global_context` für DBU-Veranstaltungen setzte bis Juli 2025 nur
+`region_taggings:update_all_region_id`, von Hand gestartet, nie per Zeitplan. Beim Umbau
+(05.–19.07.2025) bekam der Liga-Scraper die Regel (`900934ab`, heute
+`app/services/league/club_cloud_scraper.rb:47`) — aber nur für die Kinder, nicht für die
+Ligazeile selbst. Der Turnier-Scraper (`238fc326`) bekam sie gar nicht. Das letzte DBU-Turnier mit
+`true` entstand am 06.07.2025, das erste mit `false` am 18.07.2025. Bis zum Fund am 2026-10-06
+erreichten 182 Turniere und 9 Ligen keinen Regional-Server.
+
+Verdeckt hat das ein **zweiter Fehler**: nbv zog bis zum 2026-09-19 ungefiltert (`context: nbv`
+traf keine Region) und hatte die Turniere deshalb trotzdem. Ein System, das „funktioniert", taugt
+nicht als Gegenprobe, solange nicht klar ist, **warum** es funktioniert.
+
+**Ausweg:** die Regel an die Stelle legen, durch die **alle** Pfade laufen, statt an jeden Pfad
+einzeln — hier der Versions-Stempel in `LocalProtector` (`dbu_organic?`). Und vor dem Abschalten
+des alten Tasks messen, ob neue Datensätze das Merkmal noch tragen: ein Vergleich „angelegt vor
+gegen nach dem Umbau" hätte die scharfe Grenze am ersten Tag gezeigt.
