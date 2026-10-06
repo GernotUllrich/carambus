@@ -16,10 +16,13 @@ class RegionTaggingsDbuTaskTest < ActiveSupport::TestCase
 
     @dbu_tournament = create_tournament(regions(:dbu))
     @player = Player.create!(lastname: "ZZDBU", firstname: "Spieler #{SecureRandom.hex(3)}")
+    @club = Club.create!(name: "ZZDBU Verein #{SecureRandom.hex(3)}", shortname: "ZZDBU#{SecureRandom.hex(2)}", region: regions(:nbv))
+    @participation = SeasonParticipation.create!(season: seasons(:current), player: @player, club: @club)
     @seeding = Seeding.create!(tournament: @dbu_tournament, player: @player, position: 1)
     @nbv_tournament = create_tournament(regions(:nbv))
-    # Bestand wie auf der Authority: Spalte und Versionen false (vor LocalProtector.dbu_organic?)
-    [@dbu_tournament, @seeding, @player].each do |rec|
+    # Bestand wie auf der Authority vor dem 2026-10-06: Spalte und Versionen false (der
+    # Seeding-Callback hat sie beim Anlegen gerade global gemacht — zuruecksetzen)
+    [@dbu_tournament, @seeding, @player, @participation, @club].each do |rec|
       rec.update_column(:global_context, false)
       rec.versions.update_all(global_context: false)
     end
@@ -44,6 +47,15 @@ class RegionTaggingsDbuTaskTest < ActiveSupport::TestCase
     end
     assert_operator @player.versions.last.id, :<, @seeding.versions.last.id,
       "Apply-Reihenfolge: Spieler vor Seeding"
+  end
+
+  test "armed run globalizes the player's season participation and its club" do
+    capture_io { run_task(armed: true) }
+
+    assert @participation.reload.global_context, "ohne Zugehoerigkeit fehlt der Verein (Player#club)"
+    assert @club.reload.global_context
+    assert_operator @club.versions.last.id, :<, @participation.versions.last.id,
+      "Apply-Reihenfolge: Verein vor Zugehoerigkeit"
   end
 
   test "armed run leaves tournaments of other regions alone" do

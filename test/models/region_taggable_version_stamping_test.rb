@@ -442,6 +442,22 @@ class RegionTaggableVersionStampingTest < ActiveSupport::TestCase
     assert_includes Version.for_region(@region.id).pluck(:id), player.versions.last.id
   end
 
+  test "mit dem Spieler werden seine Saisonzugehoerigkeit und deren Verein global" do
+    tournament = create_region_tournament(organizer: @dbu)
+    player = create_player
+    club = Club.create!(name: "ZZ Fremdverein #{SecureRandom.hex(3)}", shortname: "ZZF#{SecureRandom.hex(2)}", region: @region)
+    participation = SeasonParticipation.create!(season: @season, player: player, club: club)
+    assert_not participation.global_context, "Testvoraussetzung"
+
+    Seeding.create!(tournament: tournament, player: player, position: 1)
+
+    assert participation.reload.global_context
+    assert club.reload.global_context
+    assert_equal true, participation.versions.last.global_context
+    assert_operator club.versions.last.id, :<, participation.versions.last.id,
+      "Apply-Reihenfolge: Verein vor Zugehoerigkeit"
+  end
+
   test "Spieler eines Landesverbands-Turniers bleibt regional" do
     tournament = create_region_tournament(organizer: @region)
     player = create_player

@@ -469,8 +469,15 @@ namespace :region_taggings do
     # Spieler und Spielplaene vor den Veranstaltungen, die Veranstaltungen vor ihren Kindern.
     # Spieler stehen nicht in DBU_ORGANIC_MODELS — sie brauchen die SPALTE, sonst bleibt ihre
     # Version region-scoped und das Seeding zeigt auf einen Spieler, den es dort nicht gibt.
+    # Dazu ihre Saisonzugehoerigkeit (in den Saisons der DBU-Veranstaltungen) samt Verein —
+    # `Player#club` liest die juengste SeasonParticipation, ohne sie fehlt der Verein (2026-10-06).
+    season_ids = Tournament.where(id: tids).select(:season_id).distinct.pluck(:season_id) |
+      League.where(id: lids).select(:season_id).distinct.pluck(:season_id)
+    participations = SeasonParticipation.where(player_id: player_ids, season_id: season_ids)
     scopes = [
       [Player, Player.where(id: player_ids)],
+      [Club, Club.where(id: participations.select(:club_id))],
+      [SeasonParticipation, participations],
       [GamePlan, GamePlan.where(id: League.where(id: lids).select(:game_plan_id))],
       [Tournament, Tournament.where(id: tids)],
       [League, League.where(id: lids)],
