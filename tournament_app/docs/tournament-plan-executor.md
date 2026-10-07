@@ -75,16 +75,28 @@ Eingeführt für den DBU Grand Prix Biathlon (Oktober 2026), alle optional:
   Spieler wird dann mit seiner Gruppenbilanz verglichen.
 
 ### DBU Grand Prix Biathlon (`biathlonGpPlan(n)`)
-Erzeugt den Plan erst beim Start aus der Starterzahl (Teilungsliste 4 Billards, 10–32):
-- **24–32:** 8 Gruppen (4er vorn, 3er hinten). 4er-Gruppe: 1. + 2. ins Achtelfinale;
-  3er-Gruppe: 1. direkt, 2. vs. 3. in der Quali (10/15/120). AF über Kreuz
-  (A1–B2, C1–D2, E1–F2, G1–H2 | B1–A2, D1–C2, F1–E2, H1–G2) erst nach allen Gruppen- und
-  Quali-Spielen, 10/20/120. 31 Starter = 7×4 + 1×3 (45 Spiele; die Liste nennt 48).
-- **16–23:** 4 Gruppen, Erste + Zweite: VF A1–B2, C1–D2 | B1–A2, D1–C2.
-- **10–15:** 2 Gruppen, 1.–4.: VF A1–B4, B2–A3 | B1–A4, A2–B3.
-- VF, HF, Finale 15/30/180; kein Spiel um Platz 3 (HF-Verlierer beide Dritte).
-- Gruppenwertung Punkte, dann GD. Wer nicht ins KO kommt, wird je Gruppenplatz-Stufe
-  gruppenübergreifend nach Punkten/GD eingereiht.
+Erzeugt den Plan erst beim Start aus der Starterzahl (Teilungsliste 4 Billards, 10–32). Regeln
+aus der **DBU-Ausschreibung Grands Prix Kegel** (allgemeiner Teil, V2 vom 10.09.2024), Plan-Schlüssel
+`rank: "dbu-gp"`; die Carambus-Pläne behalten ihre Wertung.
+- **Gruppen im Treppensystem** (§ 2.3 Abs. 1): A→D, D→A, … nach der Setzliste; auch die
+  angebrochene letzte Reihe läuft in ihrer Richtung weiter (`gpGroupSizes`). Bei 28 Startern
+  sind damit A–D die 3er- und E–H die 4er-Gruppen. Mehr als zwei Spieler eines Vereins in einer
+  Gruppe meldet das Setup (§ 2.3 Abs. 2); getauscht wird von Hand.
+- **Wertung in der Gruppe** (§ 2.2 Abs. 2–3): Partiepunkte 2/1/0, dann GD = **eigene ÷
+  gegnerische Punkte**, dann Dreiband-Punkte (`b3`, aus `3BErgebnis1/2` bzw. Handeingabe).
+  Über Gruppen verschiedener Größe Partiepunkte **je Partie** (§ 2.2 Abs. 4).
+- **24–32:** 8 Gruppen. 4er-Gruppe: 1. + 2. weiter; 3er-Gruppe: 1. weiter, 2. vs. 3. in der
+  Quali (10/15/120). 31 Starter = 7×4 + 1×3 (45 Spiele; die Liste nennt 48).
+  **16–23:** 4 Gruppen, Erste + Zweite. **10–15:** 2 Gruppen, 1.–4.
+- **KO-Setzung** (§ 2.3 Abs. 4–5, `koseed` → `ks.rk<n>`): alle Qualifizierten nach Gruppenplatz,
+  Partiepunkten je Partie, GD, bestem Einzel-GD (bestes Punktverhältnis einer Partie),
+  Höchstserie; statt Auslosung der Setzplatz. VF 1–8, 5–4, 3–6, 7–2; HF VF1/VF2, VF3/VF4.
+  Achtelfinale analog 1–16, 8–9, 5–12, 4–13, 3–14, 6–11, 7–10, 2–15 (Entscheidung Betreiber).
+  KO erst nach allen Gruppen- und Quali-Spielen. AF 10/20/120, VF bis Finale 15/30/180.
+- **Endstand:** kein Spiel um Platz 3 (§ 2.1 Abs. 2), HF-Verlierer gemeinsam Dritte. VF-Verlierer
+  5–8 nach dem GD ihres Spiels (§ 2.3 Abs. 6), AF-Verlierer 9–16 analog (Ref `(…).gk<n>`). Wer
+  nicht ins KO kam, je Gruppenplatz-Stufe gruppenübergreifend nach Partiepunkten je Partie, GD,
+  Dreiband-Punkten; bei völligem Gleichstand der Setzplatz.
 - **Meldeliste übernehmen** (live): Feld „Carambus-Turnier-Nr.“ + Knopf im Setup →
   `fetchSeeding({tournamentId, region})`, `teams[].players[]` nach `seeding_position` in
   Eingangsreihenfolge (`seedingPlayers`). Ersetzt die bisherige Liste; gespielt wird danach als

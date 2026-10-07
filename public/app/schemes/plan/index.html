@@ -154,6 +154,7 @@ details summary:hover { color: var(--accent); }
 .m-actions { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; align-items: center; }
 .m-actions .btn { padding: 5px 10px; font-size: 12px; } .m-actions select { width: auto; padding: 4px 6px; font-size: 12px; }
 .res-inputs { display: grid; grid-template-columns: 1fr 58px 58px 58px; gap: 5px; margin-top: 6px; font-size: 12px; align-items: center; }
+.res-inputs.b3 { grid-template-columns: 1fr 58px 58px 58px 58px; }
 .res-inputs input { width: 100%; min-width: 0; box-sizing: border-box; padding: 4px 6px; font-size: 13px; text-align: right; } .res-inputs .lbl { color: var(--muted); font-size: 10px; text-transform: uppercase; }
 .groups-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 14px; }
 .standings-table td.rk { color: var(--gold); font-weight: bold; text-align: center; }
@@ -973,7 +974,7 @@ window.Carambus = (function () {
 "use strict";
 function roundNo(key){ const m=/^r(\d+)$/.exec(key); return m?parseInt(m[1],10):null; }
 function isGroupKey(k){ return /^g\d+$/.test(k); }
-const META_KEYS = new Set(["RK","GK","rules","RKP","biathlon","dist"]);
+const META_KEYS = new Set(["RK","GK","rules","RKP","biathlon","dist","rank","koseed"]);
 function parsePairing(str){ const m=String(str).split(/\s*-\s*/).map(s=>parseInt(s.trim(),10)); return [m[0],m[1]]; }
 
 function parsePlan(executorParams, opts={}){
@@ -991,7 +992,8 @@ function parsePlan(executorParams, opts={}){
     }
   }
   return { groups: groups.sort((a,b)=>a.n-b.n), games, rk: Array.isArray(p.RK)?p.RK.slice():[], gk: p.GK??null,
-           rkp: Array.isArray(p.RKP)?p.RKP.slice():null, biathlon: p.biathlon||null, dist: p.dist||null };
+           rkp: Array.isArray(p.RKP)?p.RKP.slice():null, biathlon: p.biathlon||null, dist: p.dist||null,
+           rank: p.rank||null, koseed: Array.isArray(p.koseed)?p.koseed.slice():null };
 }
 function parseGroupGames(n,sq,nrepeats,opts={}){
   const out=[]; const seen=new Set();
@@ -1072,26 +1074,37 @@ function decideGame(res,ballsGoalA,ballsGoalB){
 }
 function groupStandings(groupPlayers,playedGames,order=["points","gd"]){
   const acc=new Map();
-  const ensure=p=>{ const id=pidOf(p); if(!acc.has(id)) acc.set(id,{player:p,points:0,result:0,innings:0,hs:0,bed:0,gd:0}); return acc.get(id); };
+  const ensure=p=>{ const id=pidOf(p); if(!acc.has(id)) acc.set(id,{player:p,points:0,result:0,innings:0,hs:0,bed:0,gd:0,games:0,opp:0,gdq:0,bestq:0,b3:0,ppg:0}); return acc.get(id); };
   groupPlayers.forEach(ensure);
   for(const g of playedGames){
     const d=decideGame(g.res,g.ballsGoalA,g.ballsGoalB);
     const A=ensure(g.a),B=ensure(g.b);
-    A.points+=d.pointsA; B.points+=d.pointsB;
-    A.result+=g.res.a?.balls??0; A.innings+=g.res.a?.innings??0;
-    B.result+=g.res.b?.balls??0; B.innings+=g.res.b?.innings??0;
+    A.points+=d.pointsA; B.points+=d.pointsB; A.games++; B.games++;
+    const ra=g.res.a?.balls??0, rb=g.res.b?.balls??0;
+    A.result+=ra; A.innings+=g.res.a?.innings??0; A.opp+=rb;
+    B.result+=rb; B.innings+=g.res.b?.innings??0; B.opp+=ra;
+    A.b3+=g.res.a?.b3??0; B.b3+=g.res.b?.b3??0;
+    A.bestq=Math.max(A.bestq,pointsQuotient(ra,rb)); B.bestq=Math.max(B.bestq,pointsQuotient(rb,ra));
     const hsA=g.res.a?.hs??0,hsB=g.res.b?.hs??0; if(hsA>A.hs)A.hs=hsA; if(hsB>B.hs)B.hs=hsB;
   }
-  for(const s of acc.values()) s.gd = s.innings>0?+(s.result/s.innings).toFixed(2):0;
-  return [...acc.values()].sort((x,y)=>{ let vx=0,vy=0; for(const k of order){vx=vx*1000+(x[k]||0);vy=vy*1000+(y[k]||0);} return vy-vx; });
+  for(const s of acc.values()){ s.gd = s.innings>0?+(s.result/s.innings).toFixed(2):0; s.gdq=pointsQuotient(s.result,s.opp); s.ppg=s.games?s.points/s.games:0; }
+  return [...acc.values()].sort(lexDesc(order));
 }
+// GD nach DBU-Ausschreibung GP Kegel § 2.2 Abs. 2c: eigene ÷ gegnerische Punkte
+function pointsQuotient(own,opp){ return opp>0?own/opp:(own>0?Infinity:0); }
+// lexikografisch absteigend über die genannten Kennzahlen
+function lexDesc(order){ return (x,y)=>{ for(const k of order){ const a=x[k]??0,b=y[k]??0; if(a!==b) return a>b?-1:1; } return 0; }; }
 // stabile Spieler-Identität (für Maps + Persistenz-Replay)
 function pidOf(p){ return p && (p.pid ?? (p.cc_id!=null?("cc"+p.cc_id):("s"+p.seed))); }
 
 function createRun(plan,players,opts={}){
   const ngroups=plan.groups.length, sizes=plan.groups.map(g=>g.pl);
   const groups=ngroups?(plan.dist==="snake"?snakeDistribute(players,sizes):distributeToGroups(players,ngroups,sizes)):{};
-  return { plan, players, ballsGoal:opts.ballsGoal??null, order:opts.order??["points","gd"], groups, results:{} };
+  // DBU GP Kegel § 2.2 Abs. 3/4: in der Gruppe Partiepunkte, GD (Punktverhältnis), Dreiband-Punkte;
+  // über Gruppen verschiedener Größe Partiepunkte je Partie
+  const gp=plan.rank==="dbu-gp";
+  return { plan, players, ballsGoal:opts.ballsGoal??null, order:opts.order??(gp?["points","gdq","b3"]:["points","gd"]),
+           crossOrder:gp?["ppg","gdq","b3"]:null, groups, results:{} };
 }
 function groupComplete(run,n){ return run.plan.games.filter(g=>g.kind==="group"&&g.group===n).every(g=>run.results[g.key]); }
 function runGroupStandings(run,n){
@@ -1105,16 +1118,34 @@ function resolveSlot(run,ref){
   if((m=/^g(\d+)\.p(\d+)$/.exec(ref))){ const grp=run.groups[+m[1]]; return grp?(grp[+m[2]-1]??null):null; }
   if((m=/^g(\d+)\.rk(\d+)$/.exec(ref))){ const n=+m[1]; if(!groupComplete(run,n)) return null; return runGroupStandings(run,n)[+m[2]-1]?.player??null; }
   if(ref.startsWith("(")) return resolveComposite(run,ref);
+  if((m=/^ks\.rk(\d+)$/.exec(ref))){ const list=koSeedList(run); return list?(list[+m[1]-1]?.player??null):null; }
   if((m=/^(.+)\.rk(\d+)$/.exec(ref))){ const r=run.results[m[1]]; if(!r||r.winner==null) return null; const rk=+m[2]; if(rk===1) return r.winner==="a"?r.a:r.b; if(rk===2) return r.winner==="a"?r.b:r.a; return null; }
   return null;
 }
 function resolveComposite(run,ref){
+  const g=/^\((.+)\)\.gk(\d+)$/.exec(ref); if(g) return resolveLosers(run,g[1].split(/\s*\+\s*/),+g[2]);
   const m=/^\((.+)\)\.rk(?:-rand-\d+-(\d+)|(\d+))$/.exec(ref); if(!m) return null;
   const rank=+(m[2]??m[3]); const members=m[1].split(/\s*\+\s*/); const subset=[];
   for(const member of members){ const st=memberStat(run,member.trim()); if(!st) return null; subset.push(st); }
-  const order=run.order;
-  subset.sort((x,y)=>{ let vx=0,vy=0; for(const k of order){vx=vx*1000+(x[k]||0);vy=vy*1000+(y[k]||0);} return vy-vx; });
+  subset.sort((x,y)=>lexDesc(run.crossOrder||run.order)(x,y)||((x.player?.seed??0)-(y.player?.seed??0)));
   return subset[rank-1]?.player??null;
+}
+// KO-Verlierer einer Runde nach dem GD ihres Spiels (eigene ÷ gegnerische Punkte), dann Höchstserie,
+// dann Setzplatz — DBU GP Kegel § 2.3 Abs. 6 (Plätze 5–8; 9–16 analog)
+function resolveLosers(run,members,rank){
+  const list=[];
+  for(const mem of members){ const mm=/^(.+)\.rk2$/.exec(mem.trim()); const r=mm&&run.results[mm[1]]; if(!r||r.winner==null) return null;
+    const side=r.winner==="a"?"b":"a", other=side==="a"?"b":"a";
+    list.push({player:side==="a"?r.a:r.b, q:pointsQuotient(r.res[side]?.balls??0,r.res[other]?.balls??0), hs:r.res[side]?.hs??0}); }
+  list.sort((x,y)=>lexDesc(["q","hs"])(x,y)||((x.player.seed??0)-(y.player.seed??0)));
+  return list[rank-1]?.player??null;
+}
+// Setzung der KO-Runde (DBU GP Kegel § 2.3 Abs. 4): Gruppenplatz, Partiepunkte je Partie, GD,
+// bester Einzel-GD (bestes Punktverhältnis einer Partie), Höchstserie; statt Auslosung der Setzplatz
+function koSeedList(run){
+  const ks=run.plan.koseed; if(!ks) return null; const list=[];
+  for(const {ref,place} of ks){ const st=memberStat(run,ref); if(!st) return null; list.push({...st,place}); }
+  return list.sort((x,y)=>((x.place-y.place)||lexDesc(["ppg","gdq","bestq","hs"])(x,y)||((x.player.seed??0)-(y.player.seed??0))));
 }
 function memberStat(run,member){
   let m;
@@ -1165,42 +1196,49 @@ function biathlonGpPlan(n){
   if(n>=24){ ng=8; groupVar = n>=30?"10/15/120":n>=26?"10/20/120":"15/20/180"; }
   else if(n>=16){ ng=4; groupVar = n>=21?"10/15/120":n>=18?"10/20/120":"15/20/180"; }
   else { ng=2; groupVar = n>=14?"10/15/120":n>=12?"10/20/120":"15/30/180"; }
-  const base=Math.floor(n/ng), extra=n%ng;
-  const sizes=Array.from({length:ng},(_,i)=>base+(i<extra?1:0)); // große Gruppen vorn
-  const p={dist:"snake"}; let r=0, gk=0;
+  const sizes=gpGroupSizes(n,ng); // folgt dem Treppensystem
+  const p={dist:"snake",rank:"dbu-gp"}; let r=0, gk=0;
   sizes.forEach((pl,i)=>{
     const sq={}; roundRobinRounds(pl).forEach((prs,ri)=>{ const t={}; prs.forEach(([a,b],j)=>{ t["s"+(j+1)]=`${a}-${b}`; }); sq["r"+(ri+1)]=t; });
     p["g"+(i+1)]={pl,rs:"eae",sq}; r=Math.max(r,Object.keys(sq).length); gk+=pl*(pl-1)/2;
   });
   const game=(key,round,a,b,needs)=>{ p[key]={["r"+round]:{[GP_KO_TABLE]:[a,b]}}; if(needs) p[key].needs=needs; gk++; };
-  let firstKo;
+  // KO: alle Qualifizierten werden gesetzt (koseed → ks.rk1…), Bester gegen Schlechtesten in
+  // fester Baumfolge: VF1 1–8, VF2 5–4, VF3 3–6, VF4 7–2 (DBU GP Kegel § 2.3 Abs. 4–5); das
+  // Achtelfinale analog 1–16, 8–9, 5–12, 4–13, 3–14, 6–11, 7–10, 2–15 (Entscheidung Betreiber).
+  const koseed=[];
   if(ng===8){
     // Block A: 4er-Gruppe → 1. + 2. direkt; 3er-Gruppe → 1. direkt, 2. vs. 3. in der Quali
-    r++; const second={}, qKeys=[];
-    sizes.forEach((pl,i)=>{ const g=i+1; if(pl===3){ const k="quali"+g; game(k,r,`g${g}.rk2`,`g${g}.rk3`); qKeys.push(k); second[g]=k+".rk1"; } else second[g]=`g${g}.rk2`; });
-    r++; [[1,2],[3,4],[5,6],[7,8],[2,1],[4,3],[6,5],[8,7]].forEach(([x,y],i)=>game("8f"+(i+1),r,`g${x}.rk1`,second[y],["groups",...qKeys]));
+    r++; const qKeys=[];
+    sizes.forEach((pl,i)=>{ const g=i+1; koseed.push({ref:`g${g}.rk1`,place:1});
+      if(pl===3){ const k="quali"+g; game(k,r,`g${g}.rk2`,`g${g}.rk3`); qKeys.push(k); koseed.push({ref:k+".rk1",place:2}); }
+      else koseed.push({ref:`g${g}.rk2`,place:2}); });
+    r++; [[1,16],[8,9],[5,12],[4,13],[3,14],[6,11],[7,10],[2,15]].forEach(([x,y],i)=>game("8f"+(i+1),r,`ks.rk${x}`,`ks.rk${y}`,["groups",...qKeys]));
     r++; for(let i=1;i<=4;i++) game("qf"+i,r,`8f${2*i-1}.rk1`,`8f${2*i}.rk1`);
   } else {
-    // Block B: Erste + Zweite über Kreuz · Block C: 1.–4. aus zwei Gruppen
-    firstKo = ng===4
-      ? [["g1.rk1","g2.rk2"],["g3.rk1","g4.rk2"],["g2.rk1","g1.rk2"],["g4.rk1","g3.rk2"]]
-      : [["g1.rk1","g2.rk4"],["g2.rk2","g1.rk3"],["g2.rk1","g1.rk4"],["g1.rk2","g2.rk3"]];
-    r++; firstKo.forEach(([a,b],i)=>game("qf"+(i+1),r,a,b,["groups"]));
+    // Block B: Erste + Zweite · Block C: 1.–4. beider Gruppen
+    const q=ng===4?2:4;
+    for(let pl=1;pl<=q;pl++) for(let g=1;g<=ng;g++) koseed.push({ref:`g${g}.rk${pl}`,place:pl});
+    r++; [[1,8],[5,4],[3,6],[7,2]].forEach(([x,y],i)=>game("qf"+(i+1),r,`ks.rk${x}`,`ks.rk${y}`,["groups"]));
   }
+  p.koseed=koseed;
   r++; game("hf1",r,"qf1.rk1","qf2.rk1"); game("hf2",r,"qf3.rk1","qf4.rk1");
   r++; game("fin",r,"hf1.rk1","hf2.rk1");
   // Endstand: KO-Verlierer teilen sich den Platz; wer nicht ins KO kam, wird je
   // Gruppenplatz-Stufe gruppenübergreifend nach Punkten/GD eingereiht.
+  // Endstand: HF-Verlierer gemeinsam Dritte; VF-Verlierer 5–8 und AF-Verlierer 9–16 nach dem GD
+  // ihres Spiels (§ 2.3 Abs. 6); wer nicht ins KO kam, je Gruppenplatz-Stufe gruppenübergreifend.
   const RK=["fin.rk1","fin.rk2","hf1.rk2","hf2.rk2"], RKP=[1,2,3,3];
-  for(let i=1;i<=4;i++){ RK.push(`qf${i}.rk2`); RKP.push(5); }
-  if(ng===8) for(let i=1;i<=8;i++){ RK.push(`8f${i}.rk2`); RKP.push(9); }
+  const losers=(prefix,cnt,first)=>{ const set=`(${Array.from({length:cnt},(_,i)=>`${prefix}${i+1}.rk2`).join(" + ")})`; for(let i=1;i<=cnt;i++){ RK.push(`${set}.gk${i}`); RKP.push(first+i-1); } };
+  losers("qf",4,5);
+  if(ng===8) losers("8f",8,9);
   const tiers=[];
   if(ng===8){
     tiers.push(sizes.map((pl,i)=>pl===3?`quali${i+1}.rk2`:`g${i+1}.rk3`));
     tiers.push(sizes.map((pl,i)=>pl>=4?`g${i+1}.rk4`:null).filter(Boolean));
   } else {
     const q=ng===4?2:4;
-    for(let rk=q+1;rk<=sizes[0];rk++) tiers.push(sizes.map((pl,i)=>pl>=rk?`g${i+1}.rk${rk}`:null).filter(Boolean));
+    for(let rk=q+1;rk<=Math.max(...sizes);rk++) tiers.push(sizes.map((pl,i)=>pl>=rk?`g${i+1}.rk${rk}`:null).filter(Boolean));
   }
   let place=RK.length+1;
   for(const t of tiers){ if(!t.length) continue; const set=`(${t.join(" + ")})`; t.forEach((_,j)=>{ RK.push(`${set}.rk${j+1}`); RKP.push(place++); }); }
@@ -1266,14 +1304,16 @@ function rankSeedList(players,rankingText){
   const list=[...ranked.map(x=>({...x.p,rank:x.hit.rank,rankVariant:x.variant})),...unranked.map(x=>({...x.p,rank:null,rankVariant:null}))].map((p,i)=>({...p,seed:i+1}));
   return { players:list, ranked:ranked.length, unranked:unranked.map(x=>x.p), fuzzy };
 }
-// Schlangenlinie nach Setzliste über volle Reihen; eine angebrochene letzte Reihe füllt die
-// Gruppen von vorn (A, B, …), damit die großen Gruppen vorn liegen.
+// Treppensystem nach Setzliste (DBU GP Kegel § 2.3 Abs. 1): A→D, D→A, … — auch die angebrochene
+// letzte Reihe läuft in ihrer Richtung weiter. Die Gruppengrößen des Plans folgen daraus (gpGroupSizes).
 function snakeDistribute(players,sizes){
   const ng=sizes.length, groups={}; for(let g=1;g<=ng;g++) groups[g]=[];
-  const full=Math.min(...sizes)*ng; let i=0;
-  for(;i<full&&i<players.length;i++){ const row=Math.floor(i/ng), pos=i%ng; groups[(row%2?ng-pos:pos+1)].push(players[i]); }
-  for(let g=1;g<=ng&&i<players.length;g++){ if(groups[g].length<sizes[g-1]) groups[g].push(players[i++]); }
+  players.forEach((p,i)=>{ const row=Math.floor(i/ng), pos=i%ng; groups[(row%2?ng-pos:pos+1)].push(p); });
   return groups;
+}
+function gpGroupSizes(n,ng){
+  const rows=Math.floor(n/ng), extra=n%ng;
+  return Array.from({length:ng},(_,i)=>rows+(extra&&(rows%2===0?i<extra:i>=ng-extra)?1:0));
 }
 /* <<< PLAN-ENGINE <<< */
 </script>
@@ -1611,9 +1651,14 @@ function renderGpInfo() {
     const v = plan.biathlon;
     const ko = sizes.length === 8 ? `Achtelfinale ${v["8f"]}, Viertelfinale bis Finale ${v.qf}` : `Viertelfinale bis Finale ${v.qf}`;
     const who = sizes.length === 8 ? "Gruppenerste und -zweite; in 3er-Gruppen spielt der Zweite gegen den Dritten um den Platz" : sizes.length === 4 ? "Gruppenerste und -zweite" : "Gruppenerste bis -vierte";
-    preview = `<div class="info"><strong>${n} Starter:</strong> ${sizes.length} Gruppen (${groupsTxt}) · ${plan.games.filter(g => g.kind === "group").length} Gruppenspiele ${v.g}${nQuali ? ` · ${nQuali} Quali-Spiel${nQuali > 1 ? "e" : ""} ${v.quali}` : ""}<br>Weiter: ${who} · ${ko} · kein Spiel um Platz 3.</div>`;
+    // § 2.3 Abs. 2: nicht mehr als zwei Spieler eines Vereins in einer Gruppe — Tausch per ▲▼
+    const trial = createRun(plan, state.participants.map((p, i) => ({ ...p, seed: i + 1, pid: "w" + i })));
+    const clash = [];
+    for (const [gn, ps] of Object.entries(trial.groups)) { const cnt = {}; ps.forEach(p => { const c = p.club_shortname; if (c) cnt[c] = (cnt[c] || 0) + 1; }); for (const [c, k] of Object.entries(cnt)) if (k > 2) clash.push(`Gruppe ${gn}: ${k}× ${c}`); }
+    const clashTxt = clash.length ? `<div class="alert" style="margin-top:6px;">Mehr als zwei Spieler eines Vereins in einer Gruppe (Ausschreibung § 2.3 Abs. 2): ${clash.map(escapeHtml).join(" · ")}. Ranglistenpositionen können per ▲▼ getauscht werden.</div>` : "";
+    preview = clashTxt + `<div class="info"><strong>${n} Starter:</strong> ${sizes.length} Gruppen (${groupsTxt}) · ${plan.games.filter(g => g.kind === "group").length} Gruppenspiele ${v.g}${nQuali ? ` · ${nQuali} Quali-Spiel${nQuali > 1 ? "e" : ""} ${v.quali}` : ""}<br>Weiter: ${who} · ${ko} · KO gesetzt Bester gegen Schlechtesten (Gruppenplatz, Punkte je Partie, GD) · kein Spiel um Platz 3.</div>`;
   } else if (n) preview = `<div class="alert">Die Teilungsliste gilt für 10–32 Starter (aktuell ${n}).</div>`;
-  return `<p>Modus nach <strong>DBU-Teilungsliste 4 Billards</strong> (Ausschreibung 23. GP Biathlon). Gruppen in Schlangenlinie nach der Setzliste; Ziele je Phase als Teildistanz Dreiband / Aufnahmen / Gesamtziel.</p>${preview}`;
+  return `<p>Modus nach <strong>DBU-Teilungsliste 4 Billards</strong> (Ausschreibung 23. GP Biathlon). Gruppen im Treppensystem nach der Setzliste, Wertung nach der Ausschreibung Grands Prix Kegel (GD = eigene ÷ gegnerische Punkte). Ziele je Phase als Teildistanz Dreiband / Aufnahmen / Gesamtziel.</p>${preview}`;
 }
 function renderPlanPickers(doc) {
   const discOpts = doc.disciplines.map(d => `<option value="${escapeHtml(d.name)}"${d.name === state.discipline ? " selected" : ""}>${escapeHtml(d.name)}</option>`).join("");
@@ -2148,9 +2193,11 @@ function cssId(key) { return key.replace(/[^a-z0-9]+/gi, "_"); }
 function groupCard(n) {
   const st = runGroupStandings(run, n);
   const complete = groupComplete(run, n);
-  const rows = st.map((s, i) => `<tr class="${complete && i < 2 ? "q" : ""}"><td class="rk">${i + 1}</td><td style="text-align:left">${nameHtml(s.player)}</td><td>${s.points}</td><td style="font-family:monospace">${s.gd.toFixed(2)}</td></tr>`).join("");
+  const gp = run.plan.rank === "dbu-gp"; // GD = eigene ÷ gegnerische Punkte (DBU GP Kegel § 2.2)
+  const gdTxt = s => gp ? (Number.isFinite(s.gdq) ? s.gdq.toFixed(2) : "∞") : s.gd.toFixed(2);
+  const rows = st.map((s, i) => `<tr class="${complete && i < 2 ? "q" : ""}"><td class="rk">${i + 1}</td><td style="text-align:left">${nameHtml(s.player)}</td><td>${s.points}</td><td style="font-family:monospace">${gdTxt(s)}</td>${gp ? `<td>${s.b3 || ""}</td>` : ""}</tr>`).join("");
   return `<div><h3 style="color:var(--accent);">Gruppe ${n} ${complete ? '<span class="badge done">fertig</span>' : '<span class="badge open">läuft</span>'}</h3>
-    <table class="standings-table"><thead><tr><th>#</th><th style="text-align:left">Spieler</th><th>Pkt</th><th>GD</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+    <table class="standings-table"><thead><tr><th>#</th><th style="text-align:left">Spieler</th><th>Pkt</th><th>GD</th>${gp ? `<th title="Dreiband-Punkte">3B</th>` : ""}</tr></thead><tbody>${rows}</tbody></table></div>`;
 }
 function renderPlacementList() {
   const pg = run.plan.games.filter(g => g.kind === "placement");
@@ -2223,7 +2270,7 @@ async function pollGame(key) {
   catch (e) { if (e instanceof CarambusError && e.status === 409) { alert("Ergebnis noch nicht erfasst."); return; } alert("Ergebnis holen: " + errMsg(e)); }
 }
 async function pollAll() { for (const key of Object.keys(state.gameUI)) { if (run.results[key]) continue; try { const { status, body } = await acknowledgeResult({ ...tournamentApiRef(), gameExternalId: state.gameUI[key].external_id }); if (status === 409) continue; completeGame(key, mapAckResult(body, key).res); } catch (_) {} } renderGames(); }
-function mapAck(result) { if (!result) return null; const num = v => v == null ? null : (typeof v === "number" ? v : parseInt(v, 10)); return { a: { balls: num(result.Ergebnis1), innings: num(result.Aufnahmen1), hs: num(result["Höchstserie1"] ?? result.Hoechstserie1) }, b: { balls: num(result.Ergebnis2), innings: num(result.Aufnahmen2), hs: num(result["Höchstserie2"] ?? result.Hoechstserie2) } }; }
+function mapAck(result) { if (!result) return null; const num = v => v == null ? null : (typeof v === "number" ? v : parseInt(v, 10)); return { a: { balls: num(result.Ergebnis1), innings: num(result.Aufnahmen1), hs: num(result["Höchstserie1"] ?? result.Hoechstserie1), b3: num(result["3BErgebnis1"]) }, b: { balls: num(result.Ergebnis2), innings: num(result.Aufnahmen2), hs: num(result["Höchstserie2"] ?? result.Hoechstserie2), b3: num(result["3BErgebnis2"]) } }; }
 
 // ===== Ergebnis-Zuordnung ueber Spieler-Identitaet ========================
 // Carambus liefert seit dem Fix zu Befund 4 zusaetzlich `participants` mit voller
@@ -2243,7 +2290,7 @@ function samePlayer(planP, apiP) {
 }
 function sideFromParticipant(p) {
   const num = v => v == null ? null : (typeof v === "number" ? v : parseInt(v, 10));
-  return { balls: num(p.points), innings: num(p.innings), hs: num(p.high_series) };
+  return { balls: num(p.points), innings: num(p.innings), hs: num(p.high_series), b3: num(p.points_3b) };
 }
 // Liefert {res, byIdentity}. byIdentity=true -> der Tausch-Schalter wird NICHT angewandt,
 // die Zuordnung ist dann bereits personenscharf.
@@ -2291,13 +2338,17 @@ function openManual(key) {
   if (box.dataset.open === "1") { box.innerHTML = ""; box.dataset.open = "0"; return; }
   box.dataset.open = "1"; const g = run.plan.games.find(x => x.key === key); const a = resolveSlot(run, g.a), b = resolveSlot(run, g.b);
   const cid = cssId(key);
-  box.innerHTML = `<div class="res-inputs"><span class="lbl">Spieler</span><span class="lbl">Bälle</span><span class="lbl">Aufn.</span><span class="lbl">HS</span></div>
-    <div class="res-inputs"><span>${nameHtml(a, { short: true })}</span><input type="number" id="ra-b-${cid}"><input type="number" id="ra-i-${cid}"><input type="number" id="ra-h-${cid}"></div>
-    <div class="res-inputs"><span>${nameHtml(b, { short: true })}</span><input type="number" id="rb-b-${cid}"><input type="number" id="rb-i-${cid}"><input type="number" id="rb-h-${cid}"></div>
+  // Biathlon: Dreiband-Punkte mit erfassen (letztes Kriterium der Gruppenwertung, DBU GP Kegel § 2.2 Abs. 3d)
+  const bi = !!biathlonVariant(run.plan, g), cls = bi ? "res-inputs b3" : "res-inputs";
+  const b3In = side => bi ? `<input type="number" id="r${side}-3-${cid}" title="Dreiband-Punkte">` : "";
+  box.innerHTML = `<div class="${cls}"><span class="lbl">Spieler</span><span class="lbl">${bi ? "Punkte" : "Bälle"}</span><span class="lbl">Aufn.</span><span class="lbl">HS</span>${bi ? `<span class="lbl">3B-Pkt</span>` : ""}</div>
+    <div class="${cls}"><span>${nameHtml(a, { short: true })}</span><input type="number" id="ra-b-${cid}"><input type="number" id="ra-i-${cid}"><input type="number" id="ra-h-${cid}">${b3In("a")}</div>
+    <div class="${cls}"><span>${nameHtml(b, { short: true })}</span><input type="number" id="rb-b-${cid}"><input type="number" id="rb-i-${cid}"><input type="number" id="rb-h-${cid}">${b3In("b")}</div>
     <div class="m-actions"><button class="btn" id="save-${cid}">✓ Speichern</button></div>`;
   const doSave = () => {
     const v = id => { const x = document.getElementById(id)?.value; return x === "" || x == null ? null : parseInt(x, 10); };
     const res = { a: { balls: v(`ra-b-${cid}`), innings: v(`ra-i-${cid}`), hs: v(`ra-h-${cid}`) }, b: { balls: v(`rb-b-${cid}`), innings: v(`rb-i-${cid}`), hs: v(`rb-h-${cid}`) } };
+    if (bi) { res.a.b3 = v(`ra-3-${cid}`); res.b.b3 = v(`rb-3-${cid}`); }
     if (res.a.balls == null || res.b.balls == null) { alert("Beide Ball-Ergebnisse eingeben."); return; }
     completeGame(key, res);
   };
