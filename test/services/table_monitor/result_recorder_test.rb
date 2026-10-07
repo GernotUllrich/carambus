@@ -163,6 +163,27 @@ class TableMonitor::ResultRecorderTest < ActiveSupport::TestCase
     assert_equal 60, saved_set["Ergebnis2"]
   end
 
+  # Biathlon (2026-10-07): die Dreiband-Punkte (vor ×6) sind letztes Kriterium der
+  # GP-Gruppenwertung (DBU-Ausschreibung GP Kegel § 2.2 Abs. 3d) — sie gehoeren in ba_results,
+  # das acknowledge_result an die Turnier-App ausliefert.
+  test "save_current_set uebernimmt bei Biathlon die Dreiband-Punkte in ba_results" do
+    @tm.data["playera"].merge!("discipline" => "Biathlon", "result" => 120, "result_3b" => 9, "innings_3b" => 20)
+    @tm.data["playerb"].merge!("discipline" => "Biathlon", "result" => 90, "result_3b" => 4, "innings_3b" => 20)
+    @tm.save!
+
+    TableMonitor::ResultRecorder.save_current_set(table_monitor: @tm)
+
+    ba = @tm.reload.data["ba_results"]
+    assert_equal 9, ba["3BErgebnis1"]
+    assert_equal 4, ba["3BErgebnis2"]
+  end
+
+  test "save_current_set laesst ba_results anderer Disziplinen ohne Dreiband-Felder" do
+    TableMonitor::ResultRecorder.save_current_set(table_monitor: @tm)
+
+    assert_not @tm.reload.data["ba_results"].key?("3BErgebnis1")
+  end
+
   # ---------------------------------------------------------------------------
   # Test 4: get_max_number_of_wins gibt die maximale Satzanzahl zurueck
   # ---------------------------------------------------------------------------

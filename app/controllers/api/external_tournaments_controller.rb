@@ -1142,7 +1142,9 @@ module Api
           points: ba["Ergebnis#{n}"],
           innings: ba["Aufnahmen#{n}"],
           high_series: ba["Höchstserie#{n}"],
-          sets: ba["Sets#{n}"]
+          sets: ba["Sets#{n}"],
+          # Biathlon: Dreiband-Punkte vor ×6 (GP-Wertung § 2.2 Abs. 3d); sonst nil
+          points_3b: ba["3BErgebnis#{n}"]
         }
       end
     end

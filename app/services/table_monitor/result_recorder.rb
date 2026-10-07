@@ -151,6 +151,12 @@ class TableMonitor::ResultRecorder < ApplicationService
     ba_results["Aufnahmen2"] = ba_results["Aufnahmen2"].to_i + game_set_result["Aufnahmen2"].to_i
     ba_results["Höchstserie1"] = [ba_results["Höchstserie1"].to_i, game_set_result["Höchstserie1"].to_i].max
     ba_results["Höchstserie2"] = [ba_results["Höchstserie2"].to_i, game_set_result["Höchstserie2"].to_i].max
+    # Biathlon: Dreiband-Punkte (vor ×6) — letztes Kriterium der GP-Gruppenwertung (DBU-Ausschreibung
+    # GP Kegel § 2.2 Abs. 3d). Nur bei Biathlon, damit ba_results anderer Disziplinen unveraendert bleibt.
+    if @tm.discipline == "Biathlon"
+      ba_results["3BErgebnis1"] = ba_results["3BErgebnis1"].to_i + game_set_result["3BErgebnis1"].to_i
+      ba_results["3BErgebnis2"] = ba_results["3BErgebnis2"].to_i + game_set_result["3BErgebnis2"].to_i
+    end
     # Phase 38.7 Plan 05 — D-08: derive TiebreakWinner from game.data['tiebreak_winner'].
     # Mechanical mapping playera→1 / playerb→2; any other value (nil, blank, forged
     # string, non-String) leaves the key absent — Plan 07's PDF view skips the

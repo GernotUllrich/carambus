@@ -572,7 +572,8 @@ geteilte `GameSetup` bleibt unverändert.)
 Fehlt `biathlon`, gelten 15/30. `innings_goal` und `allow_follow_up` wirken bei Biathlon nicht (keine
 Partie-Aufnahmebegrenzung, kein Nachstoß). Im Ergebnis (`acknowledge_result`) ist `Ergebnis` der
 Gesamtstand (Dreiband ×6 + Kegel) und `Aufnahmen` zählt beide Teile; ein Unentschieden kann am
-Scoreboard nicht entstehen. Details: [TableMonitor — Biathlon](services/table-monitor.md#biathlon).
+Scoreboard nicht entstehen. Die Dreiband-Punkte **vor** ×6 stehen als `3BErgebnis1/2` im `result`
+und als `participants[].points_3b` (letztes Kriterium der GP-Gruppenwertung, sonst `null`). Details: [TableMonitor — Biathlon](services/table-monitor.md#biathlon).
 
 ## Endpoint 7: Player-Rankings (Plan 19-01 / v0.6)
 

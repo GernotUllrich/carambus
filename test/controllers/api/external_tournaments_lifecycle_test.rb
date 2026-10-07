@@ -176,6 +176,43 @@ module Api
       TableMonitor.where(id: monitor.id).delete_all if defined?(monitor) && monitor
     end
 
+    # Biathlon (2026-10-07, HANDOFF-to-carambus-biathlon-gp-modus-6): die Dreiband-Punkte (vor ×6)
+    # sind letztes Kriterium der GP-Gruppenwertung — im result UND je Teilnehmer als points_3b.
+    test "acknowledge_result liefert bei Biathlon die Dreiband-Punkte" do
+      jwt = login_jwt
+      monitor, game = setup_held_game(jwt, external_id: "ack-bia")
+      ba = ACK_BA.merge("3BErgebnis1" => 9, "3BErgebnis2" => 4)
+      game.update!(data: game.data.merge("ba_results" => ba))
+
+      post_json("/api/external_tournament/acknowledge_result",
+        {region: {shortname: "NBV"}, tournament: {external_id: "ep-1"}, game: {external_id: "ack-bia"}}, jwt)
+      assert_response :ok
+      body = JSON.parse(response.body)
+
+      assert_equal 9, body.dig("result", "3BErgebnis1")
+      a = body["participants"].find { |p| p["role"] == "playera" }
+      b = body["participants"].find { |p| p["role"] == "playerb" }
+      assert_equal 9, a["points_3b"]
+      assert_equal 4, b["points_3b"]
+    ensure
+      tables(:one).update_columns(table_monitor_id: nil)
+      TableMonitor.where(id: monitor.id).delete_all if defined?(monitor) && monitor
+    end
+
+    test "acknowledge_result: ohne Dreiband-Punkte bleibt points_3b leer" do
+      jwt = login_jwt
+      monitor, _game = setup_held_game(jwt, external_id: "ack-no3b")
+
+      post_json("/api/external_tournament/acknowledge_result",
+        {region: {shortname: "NBV"}, tournament: {external_id: "ep-1"}, game: {external_id: "ack-no3b"}}, jwt)
+      assert_response :ok
+
+      assert JSON.parse(response.body)["participants"].all? { |p| p["points_3b"].nil? }
+    ensure
+      tables(:one).update_columns(table_monitor_id: nil)
+      TableMonitor.where(id: monitor.id).delete_all if defined?(monitor) && monitor
+    end
+
     test "acknowledge_result: participants folgen dem Rollentausch aus switch_players" do
       jwt = login_jwt
       monitor, game = setup_held_game(jwt, external_id: "ack-part2")

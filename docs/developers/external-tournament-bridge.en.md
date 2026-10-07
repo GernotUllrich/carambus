@@ -570,7 +570,8 @@ on by default. (The fix is bridge-scoped in `StartGameProcessor`; the shared `Ga
 Without `biathlon`, 15/30 applies. `innings_goal` and `allow_follow_up` have no effect for Biathlon
 (no game innings limit, no follow-up shot). In the result (`acknowledge_result`), `Ergebnis` is the
 total score (three-cushion ×6 + pins) and `Aufnahmen` counts both parts; a draw cannot occur on the
-scoreboard. Details: [TableMonitor — Biathlon](services/table-monitor.md#biathlon).
+scoreboard. The three-cushion points **before** ×6 come as `3BErgebnis1/2` in `result` and as
+`participants[].points_3b` (last criterion of the GP group ranking, otherwise `null`). Details: [TableMonitor — Biathlon](services/table-monitor.md#biathlon).
 
 ## Endpoint 7: Player rankings (Plan 19-01 / v0.6)
 
