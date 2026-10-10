@@ -102,6 +102,32 @@ module Carambus
     {username: user, password: password}
   end
 
+  # Wohin das Lock gehoert: NEBEN die ECHTE Datei, nicht neben den Symlink.
+  #
+  # ⚠️ Auf einem Capistrano-Server ist `config/carambus.yml` ein `linked_file`, also ein
+  # Symlink nach `shared/config/`. Bis 2026-10-10 schrieb `save_config` das Lock nach
+  # `Rails.root/config` — also ins RELEASE. Der Uploader in `scenarios.rake`
+  # (`config_file_locked?`, dort `test -f <ziel>.lock`) sucht es aber in `shared/config/`,
+  # und das Release ist beim naechsten Deploy weg. Der Schutz galt damit genau bis zum
+  # naechsten Deploy und verschwand dann lautlos — beide Seiten fuer sich korrekt, nur
+  # trafen sie sich nie. Mit `realpath` landet das Lock dort, wo die Datei wirklich liegt:
+  # auf dem Server in `shared/`, in einem gewoehnlichen Checkout neben der Datei selbst.
+  #
+  # ⚠️ NICHT ueber `linked_files` loesen. Capistranos `deploy:check:linked_files` beendet
+  # den Deploy mit `exit 1`, sobald eine gelistete Datei fehlt (capistrano
+  # lib/capistrano/tasks/deploy.rake:92). Ein Lock ist optional und darf dort nie hinein,
+  # sonst kann auf jedem Server OHNE Lock nicht mehr deployt werden.
+  #
+  # ⚠️ Auf Existenz pruefen, nicht auf den Link: `File.exist?` und `test -f` folgen dem
+  # Symlink und melden `false`, wenn das Ziel fehlt (gemessen) — `File.symlink?` waere
+  # hier die falsche Frage.
+  # Der Parameter existiert nur fuer den Test: so laesst sich der Symlink-Fall an einem
+  # Wegwerf-Pfad pruefen, ohne die echte config/carambus.yml anzufassen.
+  def self.config_lock_path(cfg = Rails.root.join("config", "carambus.yml"))
+    basis = File.exist?(cfg) ? File.realpath(cfg) : cfg.to_s
+    Pathname.new("#{basis}.lock")
+  end
+
   def self.save_config(create_lock: false)
     yaml = YAML.load_file(Rails.root.join('config', 'carambus.yml'))
 
@@ -128,7 +154,7 @@ module Carambus
 
     # Create lock file if requested (prevents scenario deployment from overwriting)
     if create_lock
-      lock_file = Rails.root.join('config', 'carambus.yml.lock')
+      lock_file = config_lock_path
       File.write(lock_file, {
         created_at: Time.now.iso8601,
         created_by: 'admin_settings',
