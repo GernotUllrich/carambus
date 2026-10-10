@@ -32,6 +32,51 @@ class TournamentMonitorsControllerTest < ActionDispatch::IntegrationTest
   end
 
   # ---------------------------------------------------------------------------
+  # Abgelaufene Sitzung (2026-10-10)
+  # ---------------------------------------------------------------------------
+  #
+  # Am 2026-10-10 auf bc-wedel: zwischen dem letzten Speichern und dem Absenden lagen 3h55,
+  # die Sitzung (Redis) war abgelaufen. Der POST mit vier fertigen Ergebnissen endete mit
+  # 422 InvalidAuthenticityToken — 0 queries, keine Meldung, vier getippte Zeilen weg. Die
+  # Seite sah lebendig aus, weil das Scoreboard per ActionCable weiterlief; /cable haelt die
+  # Sitzung aber nicht wach.
+
+  test "2026-10-10: abgelaufene Sitzung meldet sich und nennt die Eingaben" do
+    # ⚠️ Im Testmodus ist der Forgery-Schutz AUS (test.rb:30). Ohne dieses Umschalten
+    # pruefte der Test die Weiche, die in Produktion zuschlaegt, ueberhaupt nicht.
+    vorher = ActionController::Base.allow_forgery_protection
+    ActionController::Base.allow_forgery_protection = true
+    begin
+      post update_games_tournament_monitor_url(@tournament_monitor), params: {
+        "game_id" => ["50016519"],
+        "resulta" => ["37"], "resultb" => ["16"],
+        "inningsa" => ["11"], "inningsb" => ["11"],
+        "hsa" => ["12"], "hsb" => ["6"]
+      }
+
+      assert_redirected_to tournament_monitor_path(@tournament_monitor),
+        "Statt 422 soll der Turnierleiter zurueck auf den Monitor gehen"
+      assert_match(/NICHTS gespeichert/, flash[:alert].to_s,
+        "Die Meldung muss sagen, dass nichts geschrieben wurde")
+      assert_match(/37:16/, flash[:alert].to_s,
+        "Die getippten Zahlen muessen in der Meldung stehen — sonst sind sie verloren")
+      assert_match(/11\/11/, flash[:alert].to_s, "Auch die Aufnahmen gehoeren hinein")
+    ensure
+      ActionController::Base.allow_forgery_protection = vorher
+    end
+  end
+
+  # Die andere Seite der Bedingung: bei gueltiger Sitzung darf die Meldung NICHT erscheinen.
+  # Ein Test nur fuer den Fehlerfall ist von einem Handler nicht zu unterscheiden, der immer
+  # feuert.
+  test "2026-10-10: bei gueltiger Sitzung bleibt die Abgelaufen-Meldung aus" do
+    post update_games_tournament_monitor_url(@tournament_monitor), params: {game_id: []}
+
+    refute_match(/NICHTS gespeichert/, flash[:alert].to_s,
+      "Ohne CSRF-Fehler darf der Handler nicht anspringen")
+  end
+
+  # ---------------------------------------------------------------------------
   # Auth guard: ensure_tournament_director
   # ---------------------------------------------------------------------------
 

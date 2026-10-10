@@ -32,6 +32,10 @@ en:
       advanced: "The round was advanced."
       advance_rejected: "The round could not be advanced - it is not ready to be closed."
       no_table: "no table"
+    session_expired:
+      alert: "Your session had expired - NOTHING was saved. Please sign in again and re-enter the results."
+      values: "Your entries were: %{list}"
+      row: "Game %{game}: %{a}:%{b} in %{ia}/%{ib} innings (HS %{hsa}/%{hsb})"
     game_results:
       game: "Game"
       playera: "Player A"

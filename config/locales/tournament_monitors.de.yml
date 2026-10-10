@@ -32,6 +32,10 @@ de:
       advanced: "Die Runde wurde weitergeschaltet."
       advance_rejected: "Die Runde konnte nicht weitergeschaltet werden - sie ist nicht abschlussbereit."
       no_table: "ohne Tisch"
+    session_expired:
+      alert: "Die Sitzung war abgelaufen - es wurde NICHTS gespeichert. Bitte neu anmelden und die Ergebnisse erneut eintragen."
+      values: "Deine Eingaben waren: %{list}"
+      row: "Spiel %{game}: %{a}:%{b} in %{ia}/%{ib} Aufnahmen (HS %{hsa}/%{hsb})"
     game_results:
       game: "Spiel"
       playera: "Spieler A"

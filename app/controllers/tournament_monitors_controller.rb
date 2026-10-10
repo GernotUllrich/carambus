@@ -3,6 +3,20 @@ class TournamentMonitorsController < ApplicationController
   before_action :ensure_tournament_director, only: %i[show edit update destroy update_games switch_players start_round_games advance_round]
   before_action :ensure_local_server, only: %i[show edit update destroy update_games switch_players start_round_games advance_round]
 
+  # 2026-10-10: Eine abgelaufene Sitzung darf keine Eingaben verschlucken.
+  #
+  # Die Sitzung lebt begrenzt (production.rb, Redis). Zwischen Turnieraufbau und erster
+  # Ergebniseingabe lagen am 2026-10-10 auf bc-wedel 3h55 — der POST mit vier fertigen
+  # Ergebnissen wurde mit 422 verworfen, BEVOR diese Klasse lief: 0 queries, keine Meldung,
+  # vier getippte Zeilen weg. ⚠️ Die Seite sah dabei lebendig aus, weil das Scoreboard per
+  # ActionCable weiterlief — /cable haelt die Sitzung aber NICHT wach.
+  #
+  # ⚠️ NUR BERICHTEN, NICHTS TUN. Eine Anfrage, die die CSRF-Pruefung nicht besteht, ist
+  # nicht vertrauenswuerdig; es wird kein Spiel geschrieben. Zurueckgegeben werden
+  # ausschliesslich mit to_i gecastete Zahlen, damit aus den Parametern kein Markup in den
+  # Flash gelangen kann.
+  rescue_from ActionController::InvalidAuthenticityToken, with: :sitzung_abgelaufen
+
   # Plan 23-01 (2026-09-22): Der Rundenwechsel gehoert dem Turnierleiter.
   #
   # Bis Plan 23-01 loeste der gruene Knopf "Naechstes Spiel" am Scoreboard die Rundenkaskade
@@ -241,6 +255,47 @@ class TournamentMonitorsController < ApplicationController
   end
 
   private
+
+  # Siehe den rescue_from oben. Der Flash traegt die Zahlen mit, damit der Turnierleiter sie
+  # abtippen kann statt sie zu rekonstruieren; das Log traegt sie ebenfalls, damit sie auch
+  # dann noch da sind, wenn der Browser zugeklappt wird.
+  #
+  # ⚠️ Kein @tournament_monitor hier: `verify_authenticity_token` laeuft VOR den
+  # before_actions, die ihn setzen. Die Id kommt deshalb aus params.
+  #
+  # ⚠️ Fuehrt der Weg ueber eine Neuanmeldung, kann die Meldung auf der Anmeldeseite
+  # erscheinen statt auf dem Monitor — immer noch besser als ein nackter 422.
+  def sitzung_abgelaufen
+    zeilen = eingetragene_ergebnisse
+    Rails.logger.warn "[TournamentMonitorsController] Sitzung abgelaufen " \
+                      "(InvalidAuthenticityToken) bei #{action_name} auf id=#{params[:id]} — " \
+                      "NICHTS gespeichert. Eingaben: #{zeilen.inspect}"
+
+    meldung = t("tournament_monitors.session_expired.alert")
+    if zeilen.any?
+      liste = zeilen.map { |z| t("tournament_monitors.session_expired.row", **z) }.join(" · ")
+      meldung = "#{meldung} #{t("tournament_monitors.session_expired.values", list: liste)}"
+    end
+    flash[:alert] = meldung
+
+    redirect_to tournament_monitor_path(params[:id])
+  end
+
+  # Nur Zahlen. Jedes Feld durch to_i, damit nichts Beliebiges aus den Parametern in Flash
+  # oder Log wandert.
+  def eingetragene_ergebnisse
+    Array(params["game_id"]).each_with_index.map do |game_id, ix|
+      {
+        game: game_id.to_i,
+        a: Array(params["resulta"])[ix].to_i,
+        b: Array(params["resultb"])[ix].to_i,
+        ia: Array(params["inningsa"])[ix].to_i,
+        ib: Array(params["inningsb"])[ix].to_i,
+        hsa: Array(params["hsa"])[ix].to_i,
+        hsb: Array(params["hsb"])[ix].to_i
+      }
+    end
+  end
 
   # Use callbacks to share common setup or constraints between actions.
   def set_tournament_monitor

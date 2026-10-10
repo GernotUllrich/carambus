@@ -1837,7 +1837,13 @@ Rails.application.configure do
     serializer: :json,
     on_redis_down: ->(*args) { Rails.logger.error("Redis down! \#{args.inspect}") },
     redis: {
-      expire_after: 120.minutes,
+      # 12 statt 120 Minuten: zwischen Turnieraufbau und erster Ergebniseingabe liegen
+      # leicht Stunden. Am 2026-10-10 auf bc-wedel 3h55 — die Sitzung war tot, und der
+      # POST mit vier fertigen Ergebnissen fiel mit 422 (InvalidAuthenticityToken) weg,
+      # bevor der Controller lief (0 queries, nichts gespeichert, keine Meldung).
+      # ⚠️ /cable haelt die Sitzung NICHT wach — die Redis-TTL wird nur beim SCHREIBEN
+      # gesetzt; bei allen 15 Keys war TTL + idletime genau 7200s.
+      expire_after: 12.hours,
       key_prefix: "session:#{basename}:",
       url: ENV.fetch("REDIS_URL") { "redis://localhost:6379/#{redis_db}" }
     }
@@ -2073,7 +2079,13 @@ Rails.application.configure do
     serializer: :json,
     on_redis_down: ->(*args) { Rails.logger.error("Redis down! \#{args.inspect}") },
     redis: {
-      expire_after: 120.minutes,
+      # 12 statt 120 Minuten: zwischen Turnieraufbau und erster Ergebniseingabe liegen
+      # leicht Stunden. Am 2026-10-10 auf bc-wedel 3h55 — die Sitzung war tot, und der
+      # POST mit vier fertigen Ergebnissen fiel mit 422 (InvalidAuthenticityToken) weg,
+      # bevor der Controller lief (0 queries, nichts gespeichert, keine Meldung).
+      # ⚠️ /cable haelt die Sitzung NICHT wach — die Redis-TTL wird nur beim SCHREIBEN
+      # gesetzt; bei allen 15 Keys war TTL + idletime genau 7200s.
+      expire_after: 12.hours,
       key_prefix: "session:#{basename}:",
       url: ENV.fetch("REDIS_URL") { "redis://localhost:6379/#{redis_db}" }
     }
