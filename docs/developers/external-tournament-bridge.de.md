@@ -1,12 +1,12 @@
 # External-Tournament-Bridge
 
-> **Status:** v0.5 (In Progress) — Pilot: 3BandMannschaftsTurnier-App für BC Wedel
-> 3-Band-Mannschaftsmeisterschaft
+> **Status:** Schnittstelle der mitgelieferten Turnier-App (Quelle `tournament_app/` im Carambus-Repository);
+> im Turnierbetrieb erprobt ist der Plan-Modus (August 2026). Anleitung: [Turnier-App](../managers/tournament-app.md)
 
 ## Was ist die Bridge?
 
-Carambus öffnet sich für externe Turnier-Apps. Eine externe App (z.B. die
-3BandMannschaftsTurnier-App für 3-Band-Mannschaftsturniere) führt das Turnier durch und
+Carambus öffnet sich für Turnier-Apps. Eine App — die mitgelieferte Turnier-App oder eine
+andere — führt das Turnier durch und
 tauscht mit Carambus über REST folgende Daten aus:
 
 | Richtung | Endpoint | Zweck | Status |
@@ -184,6 +184,12 @@ die Location für den Round-Start vorbelegen kann. `null`, wenn
 verschiedene Subklassen). Die Endpoint-Logik detektiert Mannschaftsturnier
 (mit `league_team_id`) vs. Single-Tournament und gruppiert Players
 entsprechend.
+
+**Globale Turniere (2026-10-06):** Im `tournament_id`-Pfad muss die Region des Turniers zur
+angefragten passen (sonst `422 Region mismatch`) — **außer** das Turnier ist global
+(`global_context`, z. B. DBU-Turniere). So übernimmt ein App-Turnier einer Landesverbands-Region
+die Meldeliste eines DBU Grand Prix. Gibt es lokale Seedings (`id >= MIN_ID`), liefert der Endpoint
+diese statt der globalen.
 
 ## Endpoint 2: Round-Start (Plan 15-03)
 
@@ -555,6 +561,19 @@ weggelassenes Flag erbt den Tournament-Wert (statt auf „aus" gezwungen zu werd
 gesendeter Wert (auch `false`) wird geehrt (D-18-02-A). Für den 3-Band-Mannschaftskampf ist
 Nachstoß damit standardmäßig aktiv. (Der Fix ist bridge-scoped in `StartGameProcessor`; das
 geteilte `GameSetup` bleibt unverändert.)
+
+**Biathlon (2026-10-06):** Die Variante wird pro Spiel gesetzt. `participants[].discipline =
+"Biathlon"`, `participants[].balls_goal` = Gesamtziel, dazu
+
+```jsonc
+"biathlon": { "balls_goal_3b": 10, "innings_goal_3b": 15 }   // Teildistanz / Aufnahmen Dreiband
+```
+
+Fehlt `biathlon`, gelten 15/30. `innings_goal` und `allow_follow_up` wirken bei Biathlon nicht (keine
+Partie-Aufnahmebegrenzung, kein Nachstoß). Im Ergebnis (`acknowledge_result`) ist `Ergebnis` der
+Gesamtstand (Dreiband ×6 + Kegel) und `Aufnahmen` zählt beide Teile; ein Unentschieden kann am
+Scoreboard nicht entstehen. Die Dreiband-Punkte **vor** ×6 stehen als `3BErgebnis1/2` im `result`
+und als `participants[].points_3b` (letztes Kriterium der GP-Gruppenwertung, sonst `null`). Details: [TableMonitor — Biathlon](services/table-monitor.md#biathlon).
 
 ## Endpoint 7: Player-Rankings (Plan 19-01 / v0.6)
 

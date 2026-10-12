@@ -103,6 +103,7 @@ class RegionServer::GameResultImporterTest < ActiveSupport::TestCase
 
   # AC-2, zweiter Teil — der Grund fuer Upsert statt Delete-and-Rebuild
   test "unveraenderter Quellstand erzeugt keine neue Version" do
+    skip_unless_api_server # PaperTrail (game.versions) gibt es nur auf dem API-Server
     import
     game = @tournament.games.sole
     versions_before = game.versions.count

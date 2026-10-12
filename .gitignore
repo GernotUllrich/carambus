@@ -47,6 +47,9 @@
 #                bestehenden Checkout)
 config/credentials/*.key
 config/credentials/*.yml.enc
+# Rotations-Backups (*.key.bak.<ts>, *.yml.enc.bak.<ts>) — die Muster oben greifen
+# wegen der Endung NICHT, ein `git add -A` wuerde sie sonst einchecken.
+config/credentials/*.bak.*
 
 # Lokale, szenario-generierte Konfiguration — gehoert nicht ins Repo. Commit 8e21a8f6 hat
 # beide bereits aus dem Tracking genommen ("should not be saved to repository"), die
@@ -59,7 +62,6 @@ config/credentials/*.yml.enc
 config/database.yml
 config/carambus.yml
 
-/public/app
 /public/packs
 /public/packs-test
 /node_modules
@@ -133,3 +135,17 @@ db/schema_baseline_*.backup
 
 # Bestandsuebersichten: auf dem Server erzeugt (rake coverage:pages), Capistrano-linked_dir
 /public/uebersichten
+
+# Artefakte eines lokalen bin/deploy.sh-Laufs (deploy_to zeigt dann auf den Checkout):
+# repo/ ist ein bare Mirror-Clone von GitHub, releases/ ein git-archive-Auszug — beides
+# jederzeit reproduzierbar und zusammen mehrere hundert MB.
+/releases
+/repo
+
+# Gebaute mkdocs-Dokumentation. Erzeugt mit `rake mkdocs:build`, auf die Server gebracht von
+# `cap <stage> docs:upload` (laeuft automatisch im Deploy). Nicht committen: generierter
+# Output, ~327 Dauer-Aenderungen im Arbeitsbaum, und search/search_index.json ist ein
+# Volltextindex der gesamten Doku — am 2026-09-20 trug er ein entferntes Passwort zurueck
+# in den Index. Begruendung ausfuehrlich in lib/capistrano/tasks/docs.rake.
+/public/docs/
+/site/

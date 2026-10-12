@@ -1,4 +1,9 @@
 class GamePlansController < ApplicationController
+  # Plan 19-01: Schreiben nur fuer Admins. Vorher liefen alle Schreibaktionen anonym durch —
+  # zusammen mit dem frueheren eval auf `data` eine Codeausfuehrung fuer jeden Besucher.
+  # Eigenes Gate statt admin_only_check: dessen Ausnahme guest_player_creation? liesse das
+  # Scoreboard-Konto durch (Muster require_tournament_admin, 17-05). Laeuft vor set_game_plan.
+  before_action :require_game_plan_admin, only: %i[new create edit update destroy]
   before_action :set_game_plan, only: %i[show edit update destroy]
 
   # Uncomment to enforce Pundit authorization
@@ -29,13 +34,13 @@ class GamePlansController < ApplicationController
 
   # POST /game_plans or /game_plans.json
   def create
-    @game_plan = GamePlan.new(game_plan_params)
+    @game_plan = GamePlan.new(game_plan_params.except(:data))
 
     # Uncomment to authorize with Pundit
     # authorize @game_plan
 
     respond_to do |format|
-      if @game_plan.save
+      if assign_parsed_data(@game_plan) && @game_plan.save
         format.html { redirect_to @game_plan, notice: "Game plan was successfully created." }
         format.json { render :show, status: :created, location: @game_plan }
       else
@@ -48,8 +53,8 @@ class GamePlansController < ApplicationController
   # PATCH/PUT /game_plans/1 or /game_plans/1.json
   def update
     respond_to do |format|
-      eval(game_plan_params["data"])
-      if @game_plan.update(data: eval(game_plan_params["data"]), name: game_plan_params["name"])
+      @game_plan.name = game_plan_params[:name]
+      if assign_parsed_data(@game_plan) && @game_plan.save
         format.html { redirect_to @game_plan, notice: "Game plan was successfully updated." }
         format.json { render :show, status: :ok, location: @game_plan }
       else
@@ -69,6 +74,28 @@ class GamePlansController < ApplicationController
   end
 
   private
+
+  def require_game_plan_admin
+    return if current_user&.admin?
+
+    flash[:alert] = I18n.t("game_plans.errors.admin_required")
+    redirect_to game_plans_path
+  end
+
+  # Plan 19-01: `data` kommt aus dem Formular als JSON-Text (das Formular zeigt den JSON-Rohtext
+  # der Spalte) und wird geparst, nie als Ruby-Code ausgewertet. Leeres Feld = leerer Plan.
+  # Liefert false und setzt einen Fehler, wenn der Text kein JSON-Objekt ist.
+  def assign_parsed_data(game_plan)
+    raw = game_plan_params[:data].to_s
+    parsed = raw.strip.empty? ? {} : JSON.parse(raw)
+    raise JSON::ParserError, "kein JSON-Objekt" unless parsed.is_a?(Hash)
+
+    game_plan.data = parsed
+    true
+  rescue JSON::ParserError
+    game_plan.errors.add(:data, I18n.t("game_plans.errors.invalid_data"))
+    false
+  end
 
   # Use callbacks to share common setup or constraints between actions.
   def set_game_plan

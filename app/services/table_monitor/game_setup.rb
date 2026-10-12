@@ -230,10 +230,25 @@ class TableMonitor::GameSetup < ApplicationService
     # from a previous game survives initialize_game and init_state_if_missing! early-returns,
     # so the new game runs with the previous game's phase config (e.g. SP rules in DZ-mode).
     # Originally landed at carambus_bcw e4d85bb2; lost during 5735710's BK2 cleanup; restored here.
-    tm.data.except!("ba_results", "sets", "bk2_state")
+    tm.data.except!("ba_results", "sets", "bk2_state", "biathlon")
+    # Biathlon im Turnier: die Variante kommt vom TournamentMonitor (gesetzt beim Turnierstart).
+    # Turnierpartien laufen ueber assign_game, also nicht durch #biathlon_settings. Freie
+    # Partien setzen sie danach in perform_start_game.
+    if tm.data["biathlon_phase"] == "3b"
+      tm.data["biathlon"] = biathlon_params(tm.tournament_monitor.try(:data).try(:[], "biathlon"))
+    end
   rescue => e
     Rails.logger.error "ERROR: m6[#{tm.id}]#{e}, #{e.backtrace&.join("\n")}"
     raise e
+  end
+
+  # Biathlon-Variante aus einer Quelle (Formular, API, TournamentMonitor) normalisieren:
+  # nur positive Werte zaehlen, der Rest kommt aus den Defaults (15/30, Faktor 6).
+  def self.biathlon_params(given)
+    given = given.respond_to?(:to_unsafe_h) ? given.to_unsafe_h : given.to_h
+    values = given.stringify_keys.slice("balls_goal_3b", "innings_goal_3b")
+      .transform_values(&:to_i).select { |_, v| v.positive? }
+    TableMonitor::ScoreEngine::BIATHLON_DEFAULTS.merge(values)
   end
 
   # Phase 38.4-04 I1: Name → free_game_form fallback map for all 5 BK-* disciplines.
@@ -349,7 +364,7 @@ class TableMonitor::GameSetup < ApplicationService
 
     @tm.game.save
 
-    result = build_result_hash
+    result = build_result_hash.merge(biathlon_settings)
     result["sets_to_win"] = 8 if /shootout/i.match?(@options["discipline_a"])
 
     @tm.initialize_game
@@ -452,6 +467,26 @@ class TableMonitor::GameSetup < ApplicationService
   rescue => e
     # Eine fehlgeschlagene Aufraeumung darf den Spielstart nie verhindern.
     Rails.logger.error "ERROR: discard_if_substanceless[#{game&.id}]#{e}"
+  end
+
+  # Biathlon (DBU-Regeln Biathlon §3): jede Partie beginnt in der Dreiband-Phase. Teildistanz
+  # und Aufnahmebegrenzung gelten nur fuer Dreiband und stehen in data["biathlon"]; das
+  # Gesamtziel ist balls_goal. Deshalb fuer die ganze Partie: kein innings_goal (es beendete
+  # die Partie nach N Aufnahmen) und kein Nachstoss (§3.2).
+  def biathlon_settings
+    return {} unless biathlon?
+
+    {
+      "biathlon_phase" => "3b",
+      "biathlon" => self.class.biathlon_params(@options["biathlon"]),
+      "innings_goal" => 0,
+      "allow_follow_up" => false
+    }
+  end
+
+  def biathlon?
+    @options["discipline_a"] == "Biathlon" ||
+      @tm.tournament_monitor&.tournament.try(:discipline)&.name == "Biathlon"
   end
 
   # Baut den Result-Hash aus den Optionen auf (extrahiert aus start_game Zeilen 2052-2112).

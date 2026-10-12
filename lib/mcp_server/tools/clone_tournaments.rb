@@ -153,6 +153,11 @@ module McpServer
           }
           row[:warnung] = "nur Karambol ist live verifiziert — Pool/Snooker/Kegel ungetestet (D-50-03-B)" unless karambol?(t)
           row[:nicht_klonbar] = "kein CC-Turnier hinterlegt — wird beim Klonen übersprungen" if t.tournament_cc.nil?
+          # Turnierplan-Guard (TournamentCloner#resolve_tpid) schlägt erst beim echten Lauf zu —
+          # hier vorwegnehmen, damit der Dry-Run keine Klone verspricht, die danach abbrechen.
+          if t.tournament_cc && t.tournament_cc.tournament_plan_cc&.cc_id.blank?
+            row[:nicht_klonbar] = "Turnierplan nicht auflösbar (keine CC-ID) — Klon bricht ab"
+          end
           row
         end
         text(JSON.generate(

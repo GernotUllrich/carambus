@@ -691,7 +691,7 @@ environments:
     database_name: carambus_location_5101_production
     ssl_enabled: false
     database_username: www_data
-    database_password: toS6E7tARQafHCXz
+    database_password: ""   # leer — der Wert kommt aus carambus_data/secrets.yml (shared.database_password)
     puma_socket_path: /var/www/carambus_location_5101/shared/sockets/puma-production.sock
     deploy_to: /var/www/carambus_location_5101
 ```

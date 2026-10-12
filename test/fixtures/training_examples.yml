@@ -1,0 +1,12 @@
+# 2026-09-04: Angelegt, damit AdminViewsSmokeTest die Show-Seite tatsaechlich rendert
+# statt sich mangels Datensatz zu ueberspringen ("No TrainingExample record in test DB").
+# Bewusst schlank: die Smoke-Tests pruefen nur, dass die View ohne 500 durchlaeuft.
+
+dreiband_basis:
+  id: 50_006_001
+  title: "Dreiband-Grundstellung"
+  title_de: "Dreiband-Grundstellung"
+  title_en: "Three-cushion basic position"
+  source_language: de
+  ideal_stroke_parameters_text: "Halbe Kugel, mittlere Geschwindigkeit"
+  ideal_stroke_parameters_text_de: "Halbe Kugel, mittlere Geschwindigkeit"

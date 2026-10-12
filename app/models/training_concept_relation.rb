@@ -1,5 +1,9 @@
 class TrainingConceptRelation < ApplicationRecord
-  RELATIONS = %w[teaches applies exemplifies specializes parallels].freeze
+  include LocalProtector
+
+  # risk_of:       Ausfuehren von source riskiert den Zustand target
+  # is_inverse_of: source und target sind positives/negatives Konzept derselben Achse
+  RELATIONS = %w[teaches applies exemplifies specializes parallels risk_of is_inverse_of].freeze
 
   enum :relation, RELATIONS.index_with(&:itself), prefix: :relation
 

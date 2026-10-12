@@ -22,6 +22,7 @@ Material, das *nicht* zur Dokumentationsseite gehoert.
 | Datei | Rolle |
 |---|---|
 | `neu-im-august.html` | Quelle der Präsentation. **Fragment**, kein vollständiges Dokument — siehe unten. |
+| `werkstatt-oktober-2026.html` | Präsentation „Vom Lehrbuch zum Simulator“ (5. Oktober 2026), ebenfalls Fragment; Quelle in TRAINING_SOURCES `praesentationen/` |
 | `index.html` | Übersichtsseite, die unter `/wissenswertes/` erscheint |
 | `neu-im-august.pdf-quelle.html` | eigene Fassung fürs Drucken (A4 hoch, Zeilenlängen freigegeben) |
 | `Carambus-Neu-im-August.pdf` | daraus erzeugt, per „Drucken → Als PDF sichern" im Browser |

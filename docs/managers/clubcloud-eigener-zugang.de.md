@@ -40,9 +40,13 @@ Dein Passwort wird **verschlüsselt** gespeichert und niemandem angezeigt.
 
 - **Lesen und Vorschau (Probelauf) funktionieren weiter** — du kannst dir
   Turniere, Meldelisten usw. ansehen.
-- Sobald du eine **echte Schreibaktion** auslöst (z.B. „X akkreditieren"),
+- **Im Chat (MCP):** Sobald du eine **echte Schreibaktion** auslöst (z.B. „X akkreditieren"),
   bekommst du den Hinweis, deinen **ClubCloud-Zugang im Profil zu hinterlegen**.
   Die Aktion wird erst ausgeführt, wenn dein Zugang hinterlegt ist.
+- **In der Carambus-Oberfläche** (Akkreditierung per Häkchen, „Teilnehmerliste
+  abschließen") wird die Änderung in Carambus sofort gespeichert. Die Übertragung
+  in die ClubCloud entfällt ohne hinterlegten Zugang **ohne Meldung**. Hinterleg
+  deinen Zugang deshalb vor dem Turnier.
 
 ## Turnierleiter ohne eigenen ClubCloud-Account
 
@@ -51,6 +55,11 @@ Wenn dich ein Sportwart als Turnierleiter für ein bestimmtes Turnier einsetzt,
 **erbst du für dieses Turnier** automatisch dessen ClubCloud-Zugang. Du musst
 dann nichts hinterlegen — dein Schreibrecht bleibt trotzdem auf dein Turnier
 beschränkt.
+
+**Voraussetzung:** Der Sportwart, der dich eingesetzt hat, hat selbst seinen
+ClubCloud-Zugang im Profil hinterlegt. Die Vererbung greift nur bei einer
+Einsetzung über Carambus (Turnierleiter-Zuordnung mit einsetzendem Sportwart);
+eine ältere Zuordnung ohne einsetzenden Sportwart erbt nichts.
 
 ## Häufige Fragen
 

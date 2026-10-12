@@ -70,8 +70,8 @@ plugins:
             Manager Guide: Manager-Leitfaden
             Tournament Management: Turnierverwaltung
             Tournament Quick Reference: Turnier-Schnellreferenz
+            Tournament App: Turnier-App
             League Management: Liga-Management
-            Single Tournament: Einzelturnier
             Table Reservation: Tischreservierung
             Admin Roles: Admin-Rollen
             ClubCloud Integration: ClubCloud-Integration
@@ -86,6 +86,8 @@ plugins:
             CC-less Tournament Management: CC-loses Turniermanagement
             Email Configuration: Email-Konfiguration
             Database Setup: Datenbank-Setup
+            Region Dumps: Regionsdumps
+            Security in Operation: Sicherheit im Betrieb
             YouTube Streaming Quickstart: YouTube Streaming Quickstart
             YouTube Streaming Setup: YouTube Streaming Setup
             Developers: Für Entwickler
@@ -154,15 +156,16 @@ nav:
   - Players:
       - players/index.md
       - Scoreboard Guide: players/scoreboard-guide.md
+      - Biathlon: players/biathlon.md
       - Tournament Participation: players/tournament-participation.md
       - AI-Powered Search: players/ai-search.md
   - Managers:
       - managers/index.md
       - Tournament Management: managers/tournament-management.md
       - Tournament Quick Reference: managers/tournament-quick-reference.md
+      - Tournament App: managers/tournament-app.md
       - League Management: managers/league-management.md
-      - Single Tournament: managers/single-tournament.md
-      - Table Reservation: managers/table-reservation.md
+      - Table Reservation: managers/table_reservation_heating_control.md
       - Admin Roles: managers/admin-roles.md
       - ClubCloud Integration: managers/clubcloud-integration.md
       - ClubCloud MCP:
@@ -195,12 +198,15 @@ nav:
       - CC-less Tournament Management: administrators/cc-less-tournament-management.md
       - Email Configuration: administrators/email-configuration.md
       - Database Setup: administrators/database-setup.md
+      - Region Dumps: administrators/region-dumps.md
+      - Security in Operation: administrators/security-operations.md
       - YouTube Streaming Quickstart: administrators/streaming-quickstart.md
       - YouTube Streaming Setup: administrators/streaming-setup.md
   - Developers:
       - developers/index.md
       - Getting Started: developers/getting-started.md
       - Developer Guide: developers/developer-guide.md
+      - Fallstricke: developers/fallstricke.md
       - Database Design: developers/database-design.md
       - ER Diagram: developers/er-diagram.md
       - Scenario Management: developers/scenario-management.md

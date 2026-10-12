@@ -370,7 +370,6 @@ Rails.logger.error "Tournament ##{id}: Failed to create calendar reservation: #{
 
 **Bei Fragen oder Problemen:**
 - gernot.ullrich@gmx.de
-- wcauel@gmail.com
 
 **Code-Review:**
 - Tournament Model: `app/models/tournament.rb` (Zeilen 1565-1783)

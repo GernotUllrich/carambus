@@ -37,8 +37,13 @@ class ShotDashboard < Administrate::BaseDashboard
     shot_description_nl: Field::Text,
     
     # Structured data
-    end_position_type: Field::String,
-    end_position_data: Field::Text.with_options(searchable: false),
+    # 2026-09-04: end_position_type und end_position_data entfernt — die Spalten gibt es
+    # seit dem Umbau auf die v0.9-Ontologie nicht mehr (Commit 228c806f); an ihre Stelle
+    # trat die Assoziation end_ball_configuration mit normierten x/y-Koordinaten. Das
+    # Dashboard fuehrte sie weiter, wodurch /admin/shots/:id mit
+    # `undefined method 'end_position_type'` in einen 500 lief. Genau dafuer gibt es
+    # AdminViewsSmokeTest ("stale dashboard fields") — der Test uebersprang sich nur
+    # mangels Shot-Fixture und konnte es nie melden.
     shot_parameters: Field::Text.with_options(searchable: false),
     
     translations_synced_at: Field::DateTime,
@@ -69,8 +74,6 @@ class ShotDashboard < Administrate::BaseDashboard
     end_position_description_en
     shot_description_de
     shot_description_en
-    end_position_type
-    end_position_data
     shot_parameters
     translations_synced_at
     created_at

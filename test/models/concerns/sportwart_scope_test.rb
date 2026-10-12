@@ -86,4 +86,24 @@ class SportwartScopeTest < ActiveSupport::TestCase
     t = Tournament.new(location_id: @location_one.id, discipline_id: @disc_pool.id)
     assert_not @user.in_sportwart_scope?(t)
   end
+
+  # 2026-09-15 (Betreiber-Vorgabe): Meldelisten verwaltet ein Sportwart für alle Turniere seiner
+  # Disziplin — der Spielort zählt nur für die Turnierausführung (in_sportwart_scope?).
+  test "Meldeliste: plain sportwart, eigene Disziplin, fremder Spielort → Disziplin-Scope ja, Ausführungs-Scope nein" do
+    @user.persona_grants = ["sportwart"]
+    @user.sportwart_locations << @location_one
+    @user.sportwart_disciplines << @disc_3band
+    t = Tournament.new(location_id: 99_999_999, discipline_id: @disc_3band.id)
+    assert @user.in_sportwart_discipline_scope?(t)
+    assert_not @user.in_sportwart_scope?(t)
+  end
+
+  test "Meldeliste: falsche Disziplin oder keine Sportwart-Persona → Disziplin-Scope nein" do
+    @user.sportwart_disciplines << @disc_3band
+    t = Tournament.new(location_id: 99_999_999, discipline_id: @disc_3band.id)
+    assert_not @user.in_sportwart_discipline_scope?(t), "ohne persona_grants kein Sportwart"
+    @user.persona_grants = ["sportwart"]
+    assert_not @user.in_sportwart_discipline_scope?(Tournament.new(discipline_id: @disc_pool.id))
+    assert_not @user.in_sportwart_discipline_scope?(nil)
+  end
 end

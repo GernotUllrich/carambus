@@ -694,16 +694,32 @@ class TableMonitor < ApplicationRecord
     Rails.logger.debug do
       "-------------m6[#{id}]-------->>> player_a_on_table_before <<<------------------------------------------"
     end
-    # TODO: player_a_on_table_before
-    false
+    player_on_table_before?("playera")
   end
 
   def player_b_on_table_before
     Rails.logger.debug do
       "-------------m6[#{id}]-------->>> player_b_on_table_before <<<------------------------------------------"
     end
-    # TODO: player_b_on_table_before
-    false
+    player_on_table_before?("playerb")
+  end
+
+  # Kennt der Spieler den Tisch schon? — true, wenn er im selben Turnier (bzw. Spieltag)
+  # bereits eine beendete Partie an derselben Tischnummer gespielt hat. Steuert die
+  # Einspielzeit: time_out_warm_up_follow_up_min statt time_out_warm_up_first_min.
+  def player_on_table_before?(role)
+    return false if game.blank? || game.tournament_id.blank? || game.table_no.blank?
+
+    player_id = game.game_participations.find_by(role: role)&.player_id
+    return false if player_id.blank?
+
+    earlier = Game.where(tournament_id: game.tournament_id, tournament_type: game.tournament_type, table_no: game.table_no)
+      .where.not(id: game.id)
+      .where.not(ended_at: nil)
+    earlier = earlier.where(games: {ended_at: ...game.started_at}) if game.started_at.present?
+    earlier.joins(:game_participations)
+      .where(game_participations: {player_id: player_id})
+      .exists?
   end
 
   def do_play
@@ -1326,6 +1342,8 @@ class TableMonitor < ApplicationRecord
   def follow_up?
     override = bk_follow_up_override
     return false if override == false
+    # Biathlon: kein Nachstoss (DBU-Regeln §3.2), unabhaengig von allow_follow_up des Turniers.
+    return false if discipline == "Biathlon"
 
     left_player_id = data["fixed_display_left"].blank? ? data["current_kickoff_player"] : data["current_left_player"]
     right_player_id = left_player_id == "playera" ? "playerb" : "playera"
@@ -1593,6 +1611,8 @@ class TableMonitor < ApplicationRecord
       # which is the case for all BK-* except BK-2kombi). Nil round-trips
       # harmlessly for non-BK games (karambol/snooker/pool).
       "bk2_options" => data["bk2_options"],
+      # Biathlon: Rueckspiel in derselben Variante (sonst Defaults 15/30). Nil fuer alle anderen.
+      "biathlon" => data["biathlon"],
       "first_break_choice" => data["first_break_choice"],
       "warntime" => data["warntime"].to_i,
       "gametime" => data["gametime"].to_i,
@@ -1644,7 +1664,7 @@ class TableMonitor < ApplicationRecord
     no_followup_phase = case data["free_game_form"]
                         when "bk_2plus", "bk50", "bk100" then true
                         when "bk2_kombi" then bk2_kombi_current_phase == "direkter_zweikampf"
-                        else false
+                        else discipline == "Biathlon" # §3.2: kein Nachstoss
                         end
     if no_followup_phase && data["playera"]["balls_goal"].to_i.positive? &&
         (data["playera"]["result"].to_i >= data["playera"]["balls_goal"].to_i ||
@@ -1752,7 +1772,7 @@ class TableMonitor < ApplicationRecord
     no_innings_limit_phase = case data["free_game_form"]
                              when "bk_2plus" then true
                              when "bk2_kombi" then bk2_kombi_current_phase == "direkter_zweikampf"
-                             else false
+                             else discipline == "Biathlon" # Grenze nur fuer Dreiband, data["biathlon"]
                              end
     if data["playera"]["balls_goal"].to_i.positive? && (data["playera"]["result"].to_i >= data["playera"]["balls_goal"].to_i ||
       data["playerb"]["result"].to_i >= data["playerb"]["balls_goal"].to_i) &&
@@ -1861,6 +1881,39 @@ class TableMonitor < ApplicationRecord
     !tiebreak_pending_block?
   end
 
+  # Plan 08-01 — Verlaengerungs-Ballzahl fuer das Stechen, nach NBV Sport- &
+  # Turnierordnung, Besonderer Teil Karambolage (Juni 2026), §4.4.3:
+  #
+  #   "...eine Verlaengerungsaufnahme auf max. 10% (auf eine ganze Zahl aufzurunden)
+  #    der vorher zu erreichenden Ballzahl mit Anfangsball und Nachstoss."
+  #
+  # WICHTIG — was diese Methode NICHT tut: Carambus spielt die Verlaengerung nicht.
+  # Bei erkanntem Gleichstand fragt das Modal nur nach dem SIEGER
+  # (game.data['tiebreak_winner']); die Verlaengerung selbst laeuft am Tisch ab. Diese
+  # Methode liefert ausschliesslich die Zahl, die der Operator ansagt — sie darf nicht
+  # fuer den Einstieg in eine Verlaengerungs-Mechanik gehalten werden.
+  # Nebeneffekt dieser Arbeitsteilung: die Forderung aus §4.4.3, dass die in der
+  # Verlaengerung erzielten Ballzahlen und Aufnahmen NICHT schnittrelevant sind, bleibt
+  # erfuellt, weil das System sie gar nicht erst erfasst.
+  #
+  # "der vorher zu erreichenden Ballzahl" ist bei einem Vorgabe-Turnier je Spieler eine
+  # andere — jeder spielt auf 10% SEINES eigenen Ziels (Betreiber-Entscheidung
+  # 2026-09-04). Deshalb nimmt die Methode die Rolle entgegen und rechnet nicht auf einer
+  # gemeinsamen Ballzahl.
+  #
+  # AUFRUNDEN, nicht runden: bei Ziel 42 fordert die Ordnung 5 (4,2 aufgerundet), nicht 4.
+  #
+  # role: "playera" oder "playerb"
+  # Rueckgabe: die Ballzahl, oder nil wenn es kein Ballziel gibt (Aufnahmenbegrenzung —
+  # das Modal zeigt dort "∞"). Dann existiert keine 10%-Basis und es darf keine Zahl
+  # angesagt werden, auch keine 0.
+  def tiebreak_extension_goal(role)
+    goal = data&.dig(role, "balls_goal").to_i
+    return nil if goal <= 0
+
+    (goal / 10.0).ceil
+  end
+
   # Phase 38.7 Plan 05 — D-08 helper. Returns true iff a tiebreak winner pick is
   # still pending (= block the AASM :acknowledge_result transition).
   # Conditions (all must hold):
@@ -1882,8 +1935,22 @@ class TableMonitor < ApplicationRecord
       last_set = Array(data["sets"]).last
       a = last_set["Ergebnis1"].to_i
       b = last_set["Ergebnis2"].to_i
+      a == b
+    else
+      # Zwei unabhaengige Unentschieden-Faelle, beide gueltig (Plan 04-01 ERGAENZT die
+      # bestehende Pruefung, ersetzt sie NICHT):
+      #  1. a == b: Aufnahmenbegrenzung erreicht, rohe Ergebnisse gleich (der urspruengliche
+      #     Quick-260505-auq-Fall, z.B. 10:10 bei balls_goal=40 fuer beide — KEINER hat sein
+      #     Ziel erreicht, das Ergebnis ist trotzdem unentschieden).
+      #  2. beide haben IHR EIGENES Ziel erreicht (result >= balls_goal je Spieler) — bei
+      #     Vorgabe-Turnieren (unterschiedliche Ziele) faellt das nicht automatisch mit a==b
+      #     zusammen (z.B. 50/50 vs. 42/42), ist aber ebenso ein echtes Unentschieden.
+      # Konvention fuer Fall 2 konsistent mit end_of_set? (result >= balls_goal).
+      goal_a = data&.dig("playera", "balls_goal").to_i
+      goal_b = data&.dig("playerb", "balls_goal").to_i
+      own_goals_reached = goal_a.positive? && goal_b.positive? && a >= goal_a && b >= goal_b
+      a == b || own_goals_reached
     end
-    a == b
   end
 
   # Quick-260505-auq — TournamentMonitor#playing_finals? tiebreak override.
@@ -1912,12 +1979,17 @@ class TableMonitor < ApplicationRecord
   # local servers have id >= MIN_ID (50_000_000), and the existing
   # bk2_kombi_tiebreak_auto_detect! follows the same write pattern in
   # production today.
+  #
+  # 2026-09-03: Eingeschränkt auf Spiele der KO-Kette (hf*/vf*/qf*/fin/...) — reine
+  # Platzierungsspiele (gname "p<N-M>") haben keinen Bracket-Nachfolger und sind seit
+  # Plan 02-01 ausgenommen. Siehe placement_game? unten.
   def playing_finals_force_tiebreak_required!
     return unless game.present?
     return if game.data&.[]("tiebreak_required") == true # idempotent
     return unless tournament_monitor.present?
     return unless tournament_monitor.is_a?(TournamentMonitor)
     return unless tournament_monitor.playing_finals?
+    return if placement_game?
 
     Rails.logger.info "[TableMonitor##{id}] playing_finals? override: forcing " \
       "tiebreak_required=true on game=#{game.id} (TournamentMonitor=#{tournament_monitor.id})"
@@ -1925,6 +1997,16 @@ class TableMonitor < ApplicationRecord
     game.save!
   end
   private :playing_finals_force_tiebreak_required!
+
+  # Platzierungsspiele (z.B. "p<7-8>", "p<9-10>") haben keinen Bracket-Nachfolger — im
+  # Gegensatz zu Halbfinale/Viertelfinale/Finale ("hf1", "vf1", "fin", ...) entscheidet
+  # ihr Ergebnis nur eine einzelne Platzierung, kein Fortkommen. gname == der
+  # executor_params-Bucket-Key, der das Spiel erzeugt hat (table_populator.rb:382) —
+  # "p<" ist als Präfix eindeutig, siehe TournamentPlan.RK / die p<N-M>-Bucket-Namen.
+  def placement_game?
+    game&.gname.to_s.start_with?("p<")
+  end
+  private :placement_game?
 
   def admin_ack_result
     return unless may_acknowledge_result?
@@ -1980,18 +2062,31 @@ class TableMonitor < ApplicationRecord
     # Without this no-op the release would crash/mis-advance. manual_assignment is the
     # project-wide "manually/externally driven" signal (cf. reset_table_monitor below).
     return if tournament_monitor.tournament&.manual_assignment?
-    if Thread.current[:_advancing_round_for_tm] == self.id
-      Rails.logger.info "[advance_tournament_round_if_present] m6[#{id}] sentinel SHORT-CIRCUIT (CR-02 per-TM re-entry guard)"
+    # Plan 05-01 (2026-09-03): Sperre von pro-Tisch (self.id) auf pro-Turnier
+    # (tournament_monitor.id) erweitert. Live-Vorfall selbigen Tags: finalize_round
+    # ruft close_match! synchron für mehrere TableMonitor-Zeilen desselben Turniers;
+    # mit self.id als Schlüssel greift die Sperre pro Tisch NICHT gegeneinander, jeder
+    # Tisch löst unabhängig eine volle verschachtelte Kaskade aus (current_round sprang
+    # live von 6 auf 12 in ~2s). tournament_monitor.id als Schlüssel lässt nur die ERSTE
+    # Kaskade pro Turnier durch, alle weiteren (anderer Tisch, gleiches Turnier) laufen
+    # NICHT erneut los.
+    if Thread.current[:_advancing_round_for_tm] == tournament_monitor.id
+      Rails.logger.info "[advance_tournament_round_if_present] m6[#{id}] sentinel SHORT-CIRCUIT (CR-02 per-tournament re-entry guard)"
       return
     end
-    Thread.current[:_advancing_round_for_tm] = self.id
+    # sentinel_owner: nur der Aufruf, der den Sentinel GESETZT hat, darf ihn im ensure
+    # wieder loeschen. Ohne dieses Flag wuerde der short-circuit-Zweig oben den Sentinel
+    # des noch laufenden aeusseren Aufrufs freigeben — der naechste Tisch derselben
+    # finalize_round-Schleife liefe dann doch wieder voll durch (Kaskade bliebe bestehen).
+    sentinel_owner = true
+    Thread.current[:_advancing_round_for_tm] = tournament_monitor.id
     Rails.logger.info "[advance_tournament_round_if_present] m6[#{id}] delegating to ResultProcessor#advance_round_after_match_close"
     TournamentMonitor::ResultProcessor.new(tournament_monitor).advance_round_after_match_close(self)
   rescue StandardError => e
     Rails.logger.error "[advance_tournament_round_if_present] m6[#{id}] ERROR: #{e}, #{e.backtrace&.first(3)&.join(" <- ")}"
     raise
   ensure
-    Thread.current[:_advancing_round_for_tm] = nil if Thread.current[:_advancing_round_for_tm] == self.id
+    Thread.current[:_advancing_round_for_tm] = nil if sentinel_owner
   end
 
   def force_next_state

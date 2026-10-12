@@ -67,7 +67,26 @@ rails db:seed
 rails server
 ```
 
-## 🔑 **Credentials einrichten**
+## ⚙️ **Konfigurationsdateien (empfohlen: ein Befehl)**
+
+Vier Konfigurationsdateien sind gitignored und werden von keinem Setup erzeugt.
+Fehlen sie, ist die Testsuite rot — mit Fehlerbildern, die nach Logikfehlern aussehen
+und es nicht sind (z.B. `undefined method 'fetch' for nil` aus Action Cable, oder
+`Missing Active Record encryption credential`). Das Skript legt sie an:
+
+```bash
+bin/setup-checkout.sh          # fehlende Dateien anlegen (idempotent)
+bin/setup-checkout.sh --check  # nur pruefen, nichts schreiben
+```
+
+Es erzeugt `config/carambus.yml` (aus dem Repo-Template, mit dem test-Block, den die
+Suite braucht), `config/cable.yml`, `config/database.yml` und kopiert die Credentials
+aus einem Schwester-Checkout (`../carambus_*`). Danach muss `bin/rails test` grün sein.
+
+Die Credentials kann das Skript nur kopieren, nicht erzeugen — dafür brauchst du einen
+eingerichteten Checkout auf demselben Rechner. Sonst der Weg von Hand:
+
+## 🔑 **Credentials einrichten (von Hand)**
 
 **Wichtig:** Du brauchst die `development.key` und `credentials.yml.enc` von einem funktionierenden System.
 

@@ -23,7 +23,10 @@
       <%# Anzeigesprache der Kiosk-/Scoreboard-Seiten. Als Auswahl statt Textfeld: ein Tippfehler
           waere hier still wirkungslos (`locale_from_config` prueft gegen available_locales und
           faellt sonst auf die Standardsprache zurueck). Die Website ist davon unberuehrt —
-          dort waehlt jeder Besucher selbst. %>
+          dort waehlt jeder Besucher selbst.
+          Ohne gespeicherten Wert die STANDARDSPRACHE vorwaehlen, nicht die erste Option: available_locales
+          ist [:en, :de], und ein Speichern der Seite schrieb sonst stillschweigend "en" mit
+          (bc-wedel, 2026-10-06, beim Eintragen der Schnellstart-Presets). %>
       <div class="field-unit">
         <div class="field-unit__label">
           <%= label_tag "config[scoreboard_locale]", t("admin.settings.scoreboard_locale") %>
@@ -31,7 +34,7 @@
         <div class="field-unit__field">
           <%= select_tag "config[scoreboard_locale]",
                          options_for_select(I18n.available_locales.map { |l| [t("locales.#{l}", default: l.to_s.upcase), l.to_s] },
-                                            @config.scoreboard_locale.to_s),
+                                            (@config.scoreboard_locale.presence || I18n.default_locale).to_s),
                          class: "field-unit__input" %>
         </div>
       </div>

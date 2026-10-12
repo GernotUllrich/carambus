@@ -18,6 +18,8 @@ set -euo pipefail
 
 HIER="$(cd "$(dirname "$0")" && pwd)"
 SCOREBOARD="/locations/1?sb_state=welcome"
+# Praesentationen (Fragmente aus dem Artifact-Werkzeug), ohne .html
+SEITEN="neu-im-august werkstatt-oktober-2026"
 
 [ $# -gt 0 ] || { echo "Aufruf: $0 <instanz> [<instanz> ...]   (bcw | gu | phat)" >&2; exit 2; }
 
@@ -34,22 +36,24 @@ SCOREBOARD="/locations/1?sb_state=welcome"
 #
 # ⚠️ Der Rueckweg zum Scoreboard wird NUR HIER eingefuegt, nicht ins Fragment: in der
 # Artifact-Fassung auf claude.ai zeigte "/locations/1" ins Leere.
-BAU="$(mktemp -t wissenswertes)"
-trap 'rm -f "$BAU"' EXIT
+BAU="$(mktemp -d -t wissenswertes)"
+trap 'rm -rf "$BAU"' EXIT
 
 RUECKWEG="  <a href=\"${SCOREBOARD}\" style=\"color:#E8B93A;border-color:#22493F\">&#8592; Scoreboard</a>"
-{
-  echo '<!doctype html>'
-  echo '<html lang="de">'
-  echo '<meta charset="utf-8">'
-  echo '<meta name="viewport" content="width=device-width, initial-scale=1">'
-  # Rueckweg als erster Eintrag in die klebende Sprungleiste
-  awk -v rw="$RUECKWEG" '{ print; if ($0 == "<nav>") print rw }' "$HIER/neu-im-august.html"
-  echo '</html>'
-} > "$BAU"
+for SEITE in $SEITEN; do
+  {
+    echo '<!doctype html>'
+    echo '<html lang="de">'
+    echo '<meta charset="utf-8">'
+    echo '<meta name="viewport" content="width=device-width, initial-scale=1">'
+    # Rueckweg als erster Eintrag in die klebende Sprungleiste (<nav> auch mit Attributen)
+    awk -v rw="$RUECKWEG" '{ print; if ($0 ~ /^<nav[ >]/) print rw }' "$HIER/$SEITE.html"
+    echo '</html>'
+  } > "$BAU/$SEITE.html"
 
-grep -q "sb_state=welcome" "$BAU" \
-  || { echo "FEHLER: Rueckweg nicht eingefuegt — <nav> im Fragment nicht gefunden?" >&2; exit 1; }
+  grep -q "sb_state=welcome" "$BAU/$SEITE.html" \
+    || { echo "FEHLER: Rueckweg nicht eingefuegt in $SEITE — <nav> im Fragment nicht gefunden?" >&2; exit 1; }
+done
 
 # --- Schritt 2: auf die Instanzen verteilen -------------------------------------------
 for INSTANZ in "$@"; do
@@ -67,6 +71,8 @@ for INSTANZ in "$@"; do
   esac
 
   VERZ="/var/www/$BASENAME/shared/public/wissenswertes"
+  # ⚠️ Leere Arrays nur als ${A[@]+"${A[@]}"} einsetzen: bash 3.2 (macOS) wertet "${A[@]}"
+  # bei leerem Array unter set -u als ungebunden und bricht ab — betraf jede Instanz ohne PORT.
   SSH_OPT=(); SCP_OPT=()
   [ -n "$PORT" ] && { SSH_OPT=(-p "$PORT"); SCP_OPT=(-P "$PORT"); }
 
@@ -77,7 +83,7 @@ for INSTANZ in "$@"; do
   # Fassung meldete bei einem nicht erreichbaren Host "Verzeichnis fehlt, erst deployen" —
   # eine Diagnose, die in die voellig falsche Richtung schickt. Der ferne Befehl endet
   # deshalb immer mit 0; ein Fehlschlag von ssh selbst bedeutet dann Verbindungsproblem.
-  if ! ANTWORT="$(ssh "${SSH_OPT[@]}" -o ConnectTimeout=15 "$ZIEL" \
+  if ! ANTWORT="$(ssh ${SSH_OPT[@]+"${SSH_OPT[@]}"} -o ConnectTimeout=15 "$ZIEL" \
                     "test -d '$VERZ' && echo DA || echo FEHLT" 2>&1)"; then
     echo "FEHLER [$INSTANZ]: Host '$ZIEL' nicht erreichbar — $ANTWORT" >&2
     exit 1
@@ -87,15 +93,19 @@ for INSTANZ in "$@"; do
     exit 1
   }
 
-  scp -q "${SCP_OPT[@]}" "$BAU"              "$ZIEL:$VERZ/neu-im-august.html"
-  scp -q "${SCP_OPT[@]}" "$HIER/index.html"  "$ZIEL:$VERZ/index.html"
+  DATEIEN=""
+  for SEITE in $SEITEN; do
+    scp -q ${SCP_OPT[@]+"${SCP_OPT[@]}"} "$BAU/$SEITE.html" "$ZIEL:$VERZ/$SEITE.html"
+    DATEIEN="$DATEIEN '$VERZ/$SEITE.html'"
+  done
+  scp -q ${SCP_OPT[@]+"${SCP_OPT[@]}"} "$HIER/index.html"  "$ZIEL:$VERZ/index.html"
 
   # ⚠️ Rechte MUESSEN hier gesetzt werden, nicht vor dem Hochladen: scp vergibt den Modus nur
   # beim ANLEGEN einer Datei. Existiert das Ziel bereits, schreibt es nur den Inhalt und laesst
   # die alten Rechte stehen. Die gebaute Datei kommt aus mktemp und damit mit 0600 — auf einer
   # Instanz, deren nginx nicht als Eigentuemer laeuft, waere das ein 403 ohne erkennbare Ursache.
-  ssh "${SSH_OPT[@]}" "$ZIEL" "chmod 644 '$VERZ/neu-im-august.html' '$VERZ/index.html'"
-  echo "[$INSTANZ] abgelegt: /wissenswertes/ und /wissenswertes/neu-im-august.html"
+  ssh ${SSH_OPT[@]+"${SSH_OPT[@]}"} "$ZIEL" "chmod 644 $DATEIEN '$VERZ/index.html'"
+  echo "[$INSTANZ] abgelegt: /wissenswertes/ und $(for S in $SEITEN; do printf '/wissenswertes/%s.html ' "$S"; done)"
 
   # --- Schritt 3: nachsehen, ob nginx die Seite auch wirklich ausliefert ---
   #
@@ -109,14 +119,16 @@ for INSTANZ in "$@"; do
   # Standardkennung mit "403 Forbidden" ab. Ohne -A sieht eine funktionierende Seite
   # aus wie eine kaputte.
   UA="Mozilla/5.0 (X11; Linux) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120"
-  CODE="$(ssh "${SSH_OPT[@]}" "$ZIEL" \
-            "curl -s -A '$UA' -o /dev/null -w '%{http_code}' --max-time 25 \
-             http://localhost:3131/wissenswertes/" 2>/dev/null)"
-  if [ "$CODE" = "200" ]; then
-    echo "[$INSTANZ] geprueft: nginx liefert /wissenswertes/ mit HTTP 200"
-  else
-    echo "[$INSTANZ] WARNUNG: nginx liefert HTTP ${CODE:-(keine Antwort)} — Seite fehlt." >&2
-  fi
+  for PFAD in "" $(for S in $SEITEN; do echo "$S.html"; done); do
+    CODE="$(ssh ${SSH_OPT[@]+"${SSH_OPT[@]}"} "$ZIEL" \
+              "curl -s -A '$UA' -o /dev/null -w '%{http_code}' --max-time 25 \
+               http://localhost:3131/wissenswertes/$PFAD" 2>/dev/null)"
+    if [ "$CODE" = "200" ]; then
+      echo "[$INSTANZ] geprueft: nginx liefert /wissenswertes/$PFAD mit HTTP 200"
+    else
+      echo "[$INSTANZ] WARNUNG: nginx liefert /wissenswertes/$PFAD mit HTTP ${CODE:-(keine Antwort)} — Seite fehlt." >&2
+    fi
+  done
 
   # Nur wo eine oeffentliche Adresse hinterlegt ist: den ganzen Weg von aussen nachgehen.
   if [ -n "$OEFFENTLICH" ]; then

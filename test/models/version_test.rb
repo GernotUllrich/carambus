@@ -352,14 +352,19 @@ class VersionTest < ActiveSupport::TestCase
     Carambus.config = previous
   end
 
-  def apply_version(item_type:, item_id:, object:, object_changes: nil, version_id: 999_001)
+  # raw_object_changes: das Feld EXAKT so durchreichen, wie die Authority es liefert. Noetig fuer
+  # den Fall des leeren Deltas ("{}"), den `object_changes.present?` unten sonst zu nil glaettet —
+  # und genau diese Glaettung wuerde den zu pruefenden Fehler verstecken.
+  def apply_version(item_type:, item_id:, object:, object_changes: nil, version_id: 999_001,
+    raw_object_changes: nil)
     payload = [{
       "id" => version_id,
       "item_type" => item_type,
       "item_id" => item_id,
       "event" => "update",
       "object" => YAML.dump(object),
-      "object_changes" => object_changes.present? ? YAML.dump(object_changes) : nil,
+      "object_changes" => raw_object_changes ||
+        (object_changes.present? ? YAML.dump(object_changes) : nil),
       "created_at" => Time.current.to_s
     }]
     with_api_url do
@@ -572,6 +577,73 @@ class VersionTest < ActiveSupport::TestCase
   end
 
   # ===================================================================================
+  # Erzwungene Version ohne Delta (2026-09-05, TournamentPlan[41] v13725800)
+  # ===================================================================================
+  #
+  # ANLASS: Eine Korrektur auf der Authority war per `update_columns` geschrieben worden — das
+  # umgeht die Callbacks und erzeugt KEINE Version, die Korrektur kam also nirgends an. Der
+  # Nachzieh-Versuch `record.paper_trail.save_with_version` erzeugte zwar eine Version, aber
+  # ohne Attributaenderung und damit mit leerem Delta. Der Apply lief daran auf einen
+  # PG::SyntaxError ("UPDATE ... WHERE" ohne SET), und weil der Fehler die Transaktion
+  # vergiftet, in der auch der Cursor fortgeschrieben wird, blieb dieser stehen: derselbe
+  # Fehler bei jedem weiteren Sync.
+  #
+  # Die Authority liefert das leere Delta als String "{}" aus — deshalb `raw_object_changes`
+  # statt `object_changes: {}`. Wuerde der Test es als nil durchreichen, griffe im Code der
+  # `else`-Zweig, und der Fehler waere gar nicht erst reproduziert.
+
+  # Ein GLOBALER Turnierplan (id < MIN_ID) mit einem veralteten Stand — der reale Fall.
+  def stale_global_plan(id: 3_700_020)
+    TournamentPlan.where(id: id).delete_all
+    plan = TournamentPlan.new(id: id, name: "Sync-Plan #{id}", players: 6, tables: 2,
+      executor_params: '{"GK":11,"kaputt":true}')
+    plan.unprotected = true
+    plan.save!
+    plan
+  end
+
+  test "eine Version ohne Delta kommt an, statt am leeren UPDATE zu scheitern" do
+    plan = stale_global_plan
+    korrigiert = '{"GK":11,"kaputt":false}'
+
+    log = capture_sync_log do
+      apply_version(item_type: "TournamentPlan", item_id: plan.id,
+        object: plan.attributes.merge("executor_params" => korrigiert),
+        raw_object_changes: "{}", version_id: 999_020)
+    end
+
+    assert_equal korrigiert, plan.reload.executor_params,
+      "bei leerem Delta muss der volle Snapshot greifen — er ist der Stand der Authority"
+    refute_match(/APPLY FAILED/, log, "kein Apply-Fehler: das leere UPDATE darf nicht entstehen")
+  end
+
+  test "eine Version ohne Delta laesst den Cursor weiterlaufen" do
+    plan = stale_global_plan(id: 3_700_021)
+
+    capture_sync_log do
+      apply_version(item_type: "TournamentPlan", item_id: plan.id,
+        object: plan.attributes.merge("executor_params" => '{"GK":11,"kaputt":false}'),
+        raw_object_changes: "{}", version_id: 999_021)
+    end
+
+    assert_equal 999_021, Setting.key_get_value("last_version_id").to_i,
+      "der Cursor muss stehen — sonst laeuft der naechste Sync in denselben Fehler"
+  end
+
+  test "traegt auch der Snapshot nichts bei, wird gar nicht geschrieben" do
+    plan = stale_global_plan(id: 3_700_022)
+    vorher = plan.executor_params
+
+    log = capture_sync_log do
+      apply_version(item_type: "TournamentPlan", item_id: plan.id,
+        object: {}, raw_object_changes: "{}", version_id: 999_022)
+    end
+
+    assert_equal vorher, plan.reload.executor_params, "nichts zu schreiben, nichts geaendert"
+    refute_match(/APPLY FAILED/, log, "und vor allem: kein SQL-Fehler")
+  end
+
+  # ===================================================================================
   # Plan 02.1-03, Task 3: `players.pin4` ausser Betrieb
   # ===================================================================================
 
@@ -611,5 +683,210 @@ class VersionTest < ActiveSupport::TestCase
 
     assert_equal({"firstname" => "Max", "lastname" => "Muster"}, args)
     assert_match(/unbekannte Spalten verworfen.*pin4/, log)
+  end
+
+  # === sync_status (Plan 03-01) ===
+  #
+  # `carambus_api_url` ist in der Testumgebung nicht gesetzt; die Konvention aus
+  # test/SCENARIO_TESTING.md verlangt, den Originalwert zu merken und zu restaurieren —
+  # sonst vergiften diese Tests seed-abhaengig nachfolgende.
+  #
+  # Beantwortet "fehlt mir etwas, das mich betrifft?". Der lokale Cursor laeuft nur ueber
+  # Versionen der eigenen Region — ihn gegen den ungefilterten globalen Hoechststand zu
+  # halten ergab frueher einen Rueckstand, der nie auf null ging.
+
+  SYNC_STATUS_API_URL = "https://api.example.test/"
+  # Der Bestandscode bildet "#{api_url}/versions/..." — bei einer URL mit Slash am Ende
+  # entsteht ein doppelter Slash, den das Muster mit abdecken muss.
+  SYNC_STATUS_URL_PATTERN = %r{#{Regexp.escape(SYNC_STATUS_API_URL)}/*versions/last_version}
+  GET_UPDATES_URL_PATTERN = %r{#{Regexp.escape(SYNC_STATUS_API_URL)}/*versions/get_updates}
+
+  # Setzt beide Werte, von denen sync_status abhaengt, und restauriert sie (Konvention aus
+  # test/SCENARIO_TESTING.md). `context` wird explizit gesetzt, statt sich darauf zu
+  # verlassen, dass es in der Testumgebung zufaellig nil ist — davon haengt ab, ob
+  # sync_status eine Region ableitet.
+  def with_authority_url(context: nil)
+    original_url = Carambus.config.carambus_api_url
+    original_context = Carambus.config.context
+    Carambus.config.carambus_api_url = SYNC_STATUS_API_URL
+    Carambus.config.context = context
+    yield
+  ensure
+    Carambus.config.carambus_api_url = original_url
+    Carambus.config.context = original_context
+  end
+
+  def stub_last_version(body)
+    stub_request(:get, SYNC_STATUS_URL_PATTERN)
+      .to_return(status: 200, body: body.to_json, headers: {"Content-Type" => "application/json"})
+  end
+
+  test "sync_status meldet :current wenn der Cursor den gefilterten Hoechststand erreicht hat" do
+    Setting.key_set_value("last_version_id", 5000)
+    stub_last_version({"last_version" => 5000, "region_id" => 1})
+
+    status = with_authority_url { Version.sync_status(1) }
+
+    assert_equal :current, status[:state]
+    assert_equal 0, status[:pending]
+  end
+
+  test "sync_status beziffert einen echten Rueckstand gegen den GEFILTERTEN Hoechststand" do
+    Setting.key_set_value("last_version_id", 5000)
+    stub_last_version({"last_version" => 5007, "region_id" => 1})
+
+    status = with_authority_url { Version.sync_status(1) }
+
+    assert_equal :behind, status[:state]
+    assert_equal 7, status[:pending]
+  end
+
+  # Der Kern der Aenderung: eine Authority ohne Quittung hat den Filter NICHT angewandt.
+  # Die Zahlen liegen hier bewusst weit auseinander — genau dann behauptete die alte Anzeige
+  # einen Rueckstand, der aus Records fremder Regionen bestand.
+  test "sync_status meldet :unfiltered und behauptet keinen Rueckstand ohne Quittung" do
+    Setting.key_set_value("last_version_id", 5000)
+    stub_last_version({"last_version" => 13_731_076})
+
+    status = with_authority_url { Version.sync_status(1) }
+
+    assert_equal :unfiltered, status[:state]
+    assert_nil status[:pending], "ohne Quittung darf keine Rueckstandszahl entstehen"
+  end
+
+  # Zweiter Weg in :unfiltered — und der gefaehrlichere, weil die Antwort hier die Quittung
+  # TRAEGT (mit null): kann der Server seine eigene Region nicht bestimmen, hat er ohne
+  # Filter gefragt. Ohne diese Pruefung kaeme der alte Fehler zurueck.
+  test "sync_status meldet :unfiltered wenn der Server keine eigene Region kennt" do
+    Setting.key_set_value("last_version_id", 5000)
+    stub_last_version({"last_version" => 13_731_076, "region_id" => nil})
+
+    status = with_authority_url { Version.sync_status(nil) }
+
+    assert_equal :unfiltered, status[:state]
+    assert_nil status[:pending], "ohne eigene Region darf keine Rueckstandszahl entstehen"
+  end
+
+  test "sync_status meldet :unreachable wenn die Antwort nicht auswertbar ist" do
+    Setting.key_set_value("last_version_id", 5000)
+    stub_request(:get, SYNC_STATUS_URL_PATTERN)
+      .to_return(status: 500, body: "kaputt")
+
+    status = with_authority_url { Version.sync_status(1) }
+
+    assert_equal :unreachable, status[:state]
+    assert_nil status[:authority_version]
+  end
+
+  # Plan 02-01 hat null als moeglichen Antwortwert eingefuehrt (keine Version passt auf die
+  # Region). Dann gibt es nichts zu holen — kein Rueckstand, kein Fehler.
+  test "sync_status behandelt eine leere Authority-Antwort als :current" do
+    Setting.key_set_value("last_version_id", 0)
+    stub_last_version({"last_version" => nil, "region_id" => 1})
+
+    status = with_authority_url { Version.sync_status(1) }
+
+    assert_equal :current, status[:state]
+    assert_equal 0, status[:pending]
+  end
+
+  # === Rueckgabewert von update_from_carambus_api (Plan 03-02) ===
+  #
+  # Die Sync-Rueckmeldung nannte bisher die Differenz zweier Cursor-IDs. Die zaehlt auch
+  # Versionen fremder Regionen mit, die dieser Server nie erhaelt, und laeuft ueber
+  # fehlgeschlagene Anwendungen hinweg. Gebraucht wird die Zahl der UEBERNOMMENEN Records.
+
+  test "update_from_carambus_api liefert die Anzahl uebernommener Versionen" do
+    disc = Discipline.where(id: 50_000_098).first_or_initialize
+    disc.name = "TestBK-count"
+    disc.unprotected = true
+    disc.save!(validate: false)
+
+    disc_attrs = {"id" => 50_000_098, "name" => "TestBK-count",
+                  "created_at" => disc.created_at, "updated_at" => Time.current}
+    payload = [999_997, 999_998].map do |vid|
+      {"id" => vid, "item_type" => "Discipline", "item_id" => 50_000_098, "event" => "update",
+       "object" => YAML.dump(disc_attrs), "object_changes" => nil,
+       "created_at" => Time.current.to_s}
+    end
+
+    applied = with_authority_url do
+      stub_request(:get, GET_UPDATES_URL_PATTERN)
+        .to_return(status: 200, body: payload.to_json, headers: {"Content-Type" => "application/json"})
+      Version.update_from_carambus_api({})
+    end
+
+    assert_equal 2, applied
+  ensure
+    Discipline.where(id: 50_000_098).destroy_all
+  end
+
+  test "update_from_carambus_api liefert 0 wenn nichts zu holen ist" do
+    applied = with_authority_url do
+      stub_request(:get, GET_UPDATES_URL_PATTERN)
+        .to_return(status: 200, body: "[]", headers: {"Content-Type" => "application/json"})
+      Version.update_from_carambus_api({})
+    end
+
+    assert_equal 0, applied
+  end
+
+  # === Region-Filter aus dem Kontext (2026-09-19) ===
+  # Prod carambus_nbv hat `context: nbv` klein; die exakte Suche fand keine Region, der Sync zog
+  # ungefiltert. Die Reload-Buttons gaben den Filter nie mit.
+
+  test "context_region_id loest den Kontext ohne Beachtung der Gross-/Kleinschreibung auf" do
+    nbv = regions(:nbv)
+    %w[nbv NBV Nbv].each do |ctx|
+      with_authority_url(context: ctx) { assert_equal nbv.id, Version.context_region_id, ctx }
+    end
+  end
+
+  test "context_region_id ist nil ohne Kontext und ohne passende Region" do
+    [nil, "", "API"].each do |ctx|
+      with_authority_url(context: ctx) { assert_nil Version.context_region_id, ctx.inspect }
+    end
+  end
+
+  test "update_from_carambus_api filtert ohne region_id nach der Region des Kontexts" do
+    stub = stub_request(:get, GET_UPDATES_URL_PATTERN)
+      .with(query: hash_including("region_id" => regions(:nbv).id.to_s))
+      .to_return(status: 200, body: "[]", headers: {"Content-Type" => "application/json"})
+
+    with_authority_url(context: "nbv") { Version.update_from_carambus_api(update_league_from_cc: 1) }
+
+    assert_requested stub
+  end
+
+  test "update_from_carambus_api: ein uebergebener region_id geht dem Kontext vor" do
+    stub = stub_request(:get, GET_UPDATES_URL_PATTERN)
+      .with(query: hash_including("region_id" => "4711"))
+      .to_return(status: 200, body: "[]", headers: {"Content-Type" => "application/json"})
+
+    with_authority_url(context: "nbv") { Version.update_from_carambus_api(region_id: 4711) }
+
+    assert_requested stub
+  end
+
+  test "update_from_carambus_api zieht ohne Kontext weiter ungefiltert (Full-Mirror)" do
+    stub_request(:get, GET_UPDATES_URL_PATTERN)
+      .to_return(status: 200, body: "[]", headers: {"Content-Type" => "application/json"})
+
+    with_authority_url(context: nil) { Version.update_from_carambus_api({}) }
+
+    assert_requested(:get, GET_UPDATES_URL_PATTERN) { |req| !req.uri.query.to_s.include?("region_id=") }
+  end
+
+  test "sync_status leitet die Region auch aus einem kleingeschriebenen Kontext ab" do
+    Setting.key_set_value("last_version_id", 5000)
+    stub = stub_request(:get, SYNC_STATUS_URL_PATTERN)
+      .with(query: hash_including("region_id" => regions(:nbv).id.to_s))
+      .to_return(status: 200, body: {"last_version" => 5000, "region_id" => regions(:nbv).id}.to_json,
+        headers: {"Content-Type" => "application/json"})
+
+    status = with_authority_url(context: "nbv") { Version.sync_status }
+
+    assert_requested stub
+    assert_equal :current, status[:state]
   end
 end

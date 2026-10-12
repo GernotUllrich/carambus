@@ -1,4 +1,6 @@
 class DisciplinePhasesController < ApplicationController
+  # Plan 20-03: Stammdaten schreiben nur Admins (R1)
+  before_action :require_admin, except: %i[index show]
   before_action :set_discipline_phase, only: %i[show edit update destroy]
 
   # Uncomment to enforce Pundit authorization

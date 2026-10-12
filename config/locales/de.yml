@@ -293,6 +293,8 @@ de:
       invalid_theme: Ungültiges Layout Thema
       invalid_locale: Ungültiges Locale Kürzel
       invalid_timezone: Ungültige Zeitzone
+    admin_required: "Diese Aktion dürfen nur angemeldete Vereins- oder System-Admins ausführen."
+    upload_owner_or_admin_required: "Einen Upload ändern oder löschen dürfen nur der Eigentümer und Vereins- oder System-Admins."
     tournament_game_manipulation_blocked: "Spielmanipulationen sind während eines Turniers nicht erlaubt. Bitte verwende das Turnier-Verwaltungssystem."
     tournament_reset_requires_admin: "Das Zurücksetzen eines Turniers ist nur für Club- und System-Administratoren erlaubt."
   game_participation:
@@ -314,6 +316,10 @@ de:
     role: Rolle
     updated_at: updated at
   game_results: Einzelergebnisse
+  game_plans:
+    errors:
+      admin_required: "Spielpläne anlegen, ändern und löschen dürfen nur angemeldete Vereins- oder System-Admins."
+      invalid_data: "ist kein gültiges JSON-Objekt"
   gd: GD
   goal: Ziel
   hello: Hallo Welt
@@ -456,13 +462,11 @@ de:
     organizer_type: Region/Club
     region_id: Region
     scoreboard_reservations:
-      event_title_placeholder: "Event Titel, z.B. \"T4 Peter+Mike\""
-      info_calendar: "Reservierungen können direkt hier oder im Google Kalender \"BC Wedel\" gemacht werden. Für den Zugang zum Google Kalender bitte email an gernot.ullrich@gmx.com. Korrekturen an den hier gemachten Einträgen sind derzeit nur im Google Kalender möglich."
+      info_calendar: "Diese Seite zeigt die Belegung der Tische. Reservierungen werden im Google Kalender \"BC Wedel\" eingetragen und dort auch korrigiert."
+      info_calendar_contact: "Für den Zugang zum Google Kalender bitte eine E-Mail an %{email}."
       info_heating: "Die Heizungen werden entsprechend dieser Reservierungen geschaltet (2 bzw. 4 (gr. Tische) Stunden vor Terminbeginn)."
-      naming_convention_details: "Der Titel setzt sich zusammen aus einer mit Kommas getrennten Liste von Tischbereichen (z.B. T5 oder T6-T8), gefolgt von einem Lehrzeichen und dem Eventtitel oder den Spielernamen, Also z.B. \"Clubabend\" oder \"NDM Cadre 35/2\" oder \"Lothar + Gernot\". Am Ende kann ein Ausrufungszeichen (!) gesetzt werden um zu verhindern, dass Heizungen bei Nichtbenutzung während der Reservierung abgeschaltet werden. Termineinträge, die sich nicht an diese Namenskonvention halten und auch nicht mit einem Label wie \"info:\" oder \"BGH:\" beginnen, werden automatisch gelöscht."
+      naming_convention_details: "Der Titel setzt sich zusammen aus einer mit Kommas getrennten Liste von Tischbereichen (z.B. T5 oder T6-T8), gefolgt von einem Leerzeichen und dem Eventtitel oder den Spielernamen, also z.B. \"Clubabend\" oder \"NDM Cadre 35/2\" oder \"Lothar + Gernot\". Am Ende kann ein Ausrufungszeichen (!) gesetzt werden, um zu verhindern, dass Heizungen bei Nichtbenutzung während der Reservierung abgeschaltet werden. Termineinträge, die sich nicht an diese Namenskonvention halten und auch nicht mit einem Label wie \"info:\" oder \"BGH:\" beginnen, werden automatisch gelöscht."
       naming_convention_intro: "Die Belegung der Tische, das Turnier, die Teilnehmer, sowie eine Angabe zur automatischen Heizungssteuerung, wird durch eine Namenskonvention im Titel festgelegt."
-      new_reservation: Neue Reservierung
-      new_table_reservation: Neue Tischreservierung
     scoreboard_welcome:
       calendar: Termine
       player_area: Mein Bereich
@@ -471,6 +475,9 @@ de:
     tables: Tische
     updated_at: updated at
   may_loose_results: Spielergebnisse können dabei verloren gehen!
+  locations:
+    errors:
+      admin_required: "Spiellokale anlegen, ändern, löschen, zusammenführen und mit Tischen bestücken dürfen nur angemeldete Vereins- oder System-Admins."
   must_be_an_admin: Adminrechte erforderlich.
   not_allowed_on_api_server: Diese Operation ist in API Server nicht möglich.
   not_leave_party_game: Liga- oder Einzelwettkämpfe können nur über das Turniermanagement beendet werden.
@@ -510,6 +517,20 @@ de:
       party: Ligabegegnung
       parties: Ligabegegnungen
   parties:
+    # Plan 20-02 — Rechte an Begegnungen (PartyPolicy)
+    errors:
+      admin_required: "PartyMonitor-Datensätze anlegen, ändern und löschen dürfen nur angemeldete Vereins- oder System-Admins."
+      operate_denied: "Diese Begegnung bedienen dürfen nur der eingesetzte Begegnungsleiter, der zuständige Sportwart und Admins."
+      assign_leiter_denied: "Einen Begegnungsleiter einsetzen dürfen nur der zuständige Sportwart und Admins."
+    leiter:
+      label: Begegnungsleiter
+      blank_option: "– Konto wählen –"
+      assign: Einsetzen
+      remove: Entfernen
+      assigned: "Begegnungsleiter eingesetzt."
+      removed: "Begegnungsleiter entfernt."
+      none: "Kein Begegnungsleiter eingesetzt."
+      invalid_user: "Konto nicht gefunden oder nicht bestätigt."
     index:
       listing_parties: Liste aktueller Ligabegegnungen
     parties: Spieltage
@@ -719,6 +740,8 @@ de:
       region_season: "(%{region}, Saison %{season})"
       help: Wie kann ich dir helfen?
   static:
+    update_version:
+      forbidden: "Nur für Administratoren."
     sync_data:
       button: "🔄 Daten jetzt synchronisieren"
       running: "Synchronisiere …"
@@ -864,6 +887,9 @@ de:
       result: Ergebnis
       in_sets: in Sätzen
       confirm_result: Ergebnis bestätigen
+      winner_label: "Sieger: %{name}"
+      draw: "Unentschieden"
+      back_to_game: "Zurück ins Spiel"
       print: Protokoll drucken
       print_pdf: Protokoll PDF
       close: Schließen
@@ -966,6 +992,9 @@ de:
       submit_blocked_hint: "Bitte einen Sieger auswählen, bevor das Ergebnis bestätigt wird."
       winner_label: "Sieger: %{role}"
       submit_label: "Mit Sieger bestätigen"
+      # Plan 08-01: Verlängerungsaufnahme nach NBV STO Besonderer Teil Karambolage §4.4.3
+      extension_hint: "Verlängerungsaufnahme mit Anfangsball und Nachstoß (§4.4.3)."
+      extension_goal: "Verlängerung auf %{balls}"
     table_id: Tisch
     timer_finish_at: Timerende
     timer_halt_at: Timer angehalten
@@ -1262,15 +1291,20 @@ de:
     errors:
       assign_leiter_denied: "Authority-Denied: kein Recht TL zu benennen für dieses Turnier."
       manage_teilnehmerliste_denied: "Nicht berechtigt, die Teilnehmerliste dieses Turniers zu bearbeiten."
+      admin_required: "Turniere anlegen, ändern und löschen dürfen nur angemeldete Vereins- oder System-Admins."
+      prepare_tournament_denied: "Nicht berechtigt, dieses Turnier einzurichten oder zu starten — das dürfen die Turnierleitung, der zuständige Sportwart und Admins."
     groups:
       groups: Gruppen
     index:
-      all_heading: Alle Turniere
       api_server_readonly_body_html: "Dies ist der zentrale API Server. Turniermanagement (Erstellen, Bearbeiten, Durchführen) ist nur auf <strong>lokalen Servern</strong> möglich. Hier kannst du nur Turniere ansehen und als Datenquelle für lokale Server verwenden."
       api_server_readonly_heading: API Server - Nur-Lese-Modus
+      earlier_heading: Früher
+      later_heading: Später
       listing_tournaments: Liste der Turniere
       new_tournament: Neues Turnier
       new_tournament_button: Neues Turnier
+      period_past: Vergangen
+      period_upcoming: Kommend
       upcoming_heading: Demnächst
     monitor:
       all_rankings_label: "💡 Alle Rankings:"
@@ -1585,6 +1619,8 @@ de:
       name: Name
       new_position: Edit Position
       no_invitation_uploaded: ⚠️ Keine Einladung hochgeladen
+      open_in_tournament_app: In der Turnier-App öffnen
+      open_in_tournament_app_hint: Alternative zum Turnier-Monitor. Die App öffnet sich mit diesem Turnier und fragt nach dem Passwort des Dienstkontos.
       order_by_ranking_or_handicap: Ordne nach Rangliste bzw. Handicap
       parsed_invitation_heading: 📄 Geparste Einladung
       party_monitor: Spieltag Monitor
@@ -1601,6 +1637,7 @@ de:
       reload_from_club_cloud_with_details: Datenabgleich mit der Club Cloud mit allen Details
       reorder: Reihenfolge
       reset_tournament_monitor: Zurücksetzen des Turnier-Monitors
+      soft_reset_tournament_monitor: Turnier neu starten
       review_invitation_button: 📄 Einladung prüfen
       seeding_heading: 📋 Setzliste
       show_extracted_groups: Extrahierte Gruppenbildung anzeigen
@@ -1636,6 +1673,12 @@ de:
         body: "DATENVERLUST: Alle lokalen Setzlisten, laufenden Spiele, Ergebnisse und der Turnierstand gehen unwiderruflich verloren."
         confirm: Ja, zwangsweise zurücksetzen
         title: Turnier-Monitor zwangsweise zurücksetzen
+      soft_reset_tournament_modal:
+        body: "Spiele und Turnierstand werden gelöscht. Meldeliste und Turniermodus bleiben erhalten — das Turnier kann direkt neu gestartet werden."
+        confirm: Ja, neu starten
+        denied: Keine Berechtigung, dieses Turnier zurückzusetzen.
+        success: Turnier zurückgesetzt — Meldeliste und Turniermodus sind erhalten geblieben.
+        title: Turnier neu starten (Meldeliste behalten)
     docs:
       walkthrough_link: "📖 Detailanleitung im Handbuch →"
       form_help_link: "📖 Detailanleitung im Handbuch →"
@@ -1644,6 +1687,8 @@ de:
       labels:
         balls_goal: "Bälle-Ziel"
         innings_goal: "Aufnahmen-Limit"
+        biathlon_balls_goal_3b: "Biathlon: Dreiband-Distanz"
+        biathlon_innings_goal_3b: "Biathlon: Aufnahmen Dreiband"
         timeout: "Timeout (Sek.)"
         timeouts: "Timeouts"
         admin_controlled: "Rundenwechsel manuell bestätigen"
@@ -1662,6 +1707,8 @@ de:
       tooltips:
         balls_goal: "Zielanzahl der Bälle pro Partie (übliche Werte: 50–200 für Freie Partie, 20–100 für Cadre)."
         innings_goal: "Maximale Aufnahmen pro Partie. 0 = kein Limit. Übliche Werte: 20–80."
+        biathlon_balls_goal_3b: "Teildistanz der Dreiband-Phase (10 oder 15). Danach x6 und 5-Kegel bis zum Bälle-Ziel (Gesamtziel, z.B. 120 oder 180)."
+        biathlon_innings_goal_3b: "Aufnahmebegrenzung der Dreiband-Phase (z.B. 15, 20, 30). Die Partie selbst hat keine Aufnahmebegrenzung."
         timeout: "Shot-Clock pro Stoß in Sekunden. 0 = ausgeschaltet. Üblich: 30–90 Sekunden."
         timeouts: "Anzahl der verfügbaren Auszeiten pro Spieler und Partie."
         admin_controlled: "Veraltet — wird in Phase 36b entfernt. Der Rundenwechsel läuft künftig immer automatisch."

@@ -1,4 +1,6 @@
 <!--suppress ALL -->
+<%# Plan 20-02: Bedien-Elemente folgen PartyPolicy#operate? (Leiter, Sportwart, Admin). %>
+<% can_operate = PartyPolicy.new(current_user_if_available, party_monitor.party).operate? %>
 <div id="<%= dom_id party_monitor %>">
   <div class="container mx-auto my-8 px-4">
     <div class="max-w-5xl mx-auto">
@@ -27,7 +29,7 @@
               </tbody>
             </table>
             <p>
-              <%= content_tag(:button, disabled: ("disabled" if @party_monitor.state != "seeding_mode"), class: "btn btn-primary mb-4", name: "prepare_next_round", title: "finish seedings", data: { turbo: false, reflex: "click->PartyMonitorReflex#prepare_next_round", reflex_serialize_form: "true", id: @party_monitor.id, 'reflex-dataset': "ancestors" }) do %>
+              <%= content_tag(:button, disabled: ("disabled" if !can_operate || @party_monitor.state != "seeding_mode"), class: "btn btn-primary mb-4", name: "prepare_next_round", title: "finish seedings", data: { turbo: false, reflex: "click->PartyMonitorReflex#prepare_next_round", reflex_serialize_form: "true", id: @party_monitor.id, 'reflex-dataset': "ancestors" }) do %>
                 Mannschaftsaufstellung abschließen
               <%- end %>
             </p>
@@ -54,12 +56,12 @@
                 <td nowrap="" class="p-3">&nbsp;</td>
                 <td class="p-3">
                   <p>
-                    <%= content_tag(:button, name: "assign_a", title: "Melden", data: { turbo: false, reflex: "click->PartyMonitorReflex#assign_player_a", reflex_serialize_form: "true", id: @party_monitor.id, 'reflex-dataset': "ancestors" }) do %>
+                    <%= content_tag(:button, disabled: !can_operate, name: "assign_a", title: "Melden", data: { turbo: false, reflex: "click->PartyMonitorReflex#assign_player_a", reflex_serialize_form: "true", id: @party_monitor.id, 'reflex-dataset': "ancestors" }) do %>
                       <%= render_svg "icons/arrow-thin-left", styles: "fill-current icon-sm text-gray-600 dark:text-gray-300 inline-block" %>
                     <%- end %>
                   </p>
                   <p>
-                    <%= content_tag(:button, name: "remove_a", title: "Abmelden", data: { turbo: false, reflex: "click->PartyMonitorReflex#remove_player_a", reflex_serialize_form: "true", id: @party_monitor.id, 'reflex-dataset': "ancestors" }) do %>
+                    <%= content_tag(:button, disabled: !can_operate, name: "remove_a", title: "Abmelden", data: { turbo: false, reflex: "click->PartyMonitorReflex#remove_player_a", reflex_serialize_form: "true", id: @party_monitor.id, 'reflex-dataset': "ancestors" }) do %>
                       <%= render_svg "icons/arrow-thin-right", styles: "fill-current icon-sm text-gray-600 dark:text-gray-300 inline-block" %>
                     <%- end %>
                   </p>
@@ -106,12 +108,12 @@
                 <td nowrap="" class="p-3">&nbsp;</td>
                 <td class="p-3">
                   <p>
-                    <%= content_tag(:button, name: "assign_b", title: "Melden", data: { turbo: false, reflex: "click->PartyMonitorReflex#assign_player_b", reflex_serialize_form: "true", id: @party_monitor.id, 'reflex-dataset': "ancestors" }) do %>
+                    <%= content_tag(:button, disabled: !can_operate, name: "assign_b", title: "Melden", data: { turbo: false, reflex: "click->PartyMonitorReflex#assign_player_b", reflex_serialize_form: "true", id: @party_monitor.id, 'reflex-dataset': "ancestors" }) do %>
                       <%= render_svg "icons/arrow-thin-left", styles: "fill-current icon-sm text-gray-600 dark:text-gray-300 inline-block" %>
                     <%- end %>
                   </p>
                   <p>
-                    <%= content_tag(:button, name: "remove_b", title: "Abmelden", data: { turbo: false, reflex: "click->PartyMonitorReflex#remove_player_b", reflex_serialize_form: "true", id: @party_monitor.id, 'reflex-dataset': "ancestors" }) do %>
+                    <%= content_tag(:button, disabled: !can_operate, name: "remove_b", title: "Abmelden", data: { turbo: false, reflex: "click->PartyMonitorReflex#remove_player_b", reflex_serialize_form: "true", id: @party_monitor.id, 'reflex-dataset': "ancestors" }) do %>
                       <%= render_svg "icons/arrow-thin-right", styles: "fill-current icon-sm text-gray-600 dark:text-gray-300 inline-block" %>
                     <%- end %>
                   </p>
@@ -136,7 +138,7 @@
               </tr>
               </tbody>
             </table>
-            <%= content_tag(:button, disabled: ("disabled" if @party_monitor.state != "seeding_mode"), class: "btn btn-primary mb-4", name: "prepare_next_round", title: "finish seedings", data: { turbo: false, reflex: "click->PartyMonitorReflex#prepare_next_round", reflex_serialize_form: "true", id: @party_monitor.id, 'reflex-dataset': "ancestors" }) do %>
+            <%= content_tag(:button, disabled: ("disabled" if !can_operate || @party_monitor.state != "seeding_mode"), class: "btn btn-primary mb-4", name: "prepare_next_round", title: "finish seedings", data: { turbo: false, reflex: "click->PartyMonitorReflex#prepare_next_round", reflex_serialize_form: "true", id: @party_monitor.id, 'reflex-dataset': "ancestors" }) do %>
               Mannschaftsaufstellung abschließen
             <%- end %>
             <table>
@@ -163,7 +165,7 @@
                           <li class="flex items-center gap-2 my-1">
                             <span class="font-medium"><%= k %>:</span>
                             <%- if can_edit_parameters %>
-                              <%= select_tag "#{@party.cc_id}-#{row_nr}-#{r_no}-1-#{v[0]}", options_for_select(v[1], val), class: "form-select form-select-sm inline-block w-auto bg-gray-700 text-white border-gray-600", data: { turbo: false, reflex: "change->PartyMonitorReflex#edit_parameter", reflex_serialize_form: "true", id: @party_monitor.id, 'reflex-dataset': "ancestors" } %>
+                              <%= select_tag "#{@party.cc_id}-#{row_nr}-#{r_no}-1-#{v[0]}", options_for_select(v[1], val), disabled: !can_operate, class: "form-select form-select-sm inline-block w-auto bg-gray-700 text-white border-gray-600", data: { turbo: false, reflex: "change->PartyMonitorReflex#edit_parameter", reflex_serialize_form: "true", id: @party_monitor.id, 'reflex-dataset': "ancestors" } %>
                             <%- else %>
                               <%= hidden_field_tag "#{@party.cc_id}-#{row_nr}-#{r_no}-1-#{v[0]}", val %>
                               <span class="text-gray-400"><%= val %></span>
@@ -195,23 +197,23 @@
                   <div style="display:table-row">
                     <div style="display:table-row-group">
                       <div style="display:table-cell" colspan=7>
-                        <%= content_tag(:button, disabled: ("disabled" unless (r_no == @party_monitor.current_round && @party_monitor.state == "table_definition_mode")), class: "btn btn-primary mb-4", name: "enter_next_round_seeding", title: "enter_next_round_seeding", data: { turbo: false, reflex: "click->PartyMonitorReflex#enter_next_round_seeding", reflex_serialize_form: "true", rno: r_no, id: @party_monitor.id, 'reflex-dataset': "ancestors" }) do %>
+                        <%= content_tag(:button, disabled: ("disabled" unless can_operate && (r_no == @party_monitor.current_round && @party_monitor.state == "table_definition_mode")), class: "btn btn-primary mb-4", name: "enter_next_round_seeding", title: "enter_next_round_seeding", data: { turbo: false, reflex: "click->PartyMonitorReflex#enter_next_round_seeding", reflex_serialize_form: "true", rno: r_no, id: @party_monitor.id, 'reflex-dataset': "ancestors" }) do %>
                           Tischzuordnung Runde <%= r_no %> abschließen
                         <%- end %>
                         &nbsp;=>&nbsp;
-                        <%= content_tag(:button, disabled: ("disabled" unless r_no == @party_monitor.current_round && %w[next_round_seeding_mode round_result_checking_mode].include?(@party_monitor.state)), class: "btn btn-primary mb-4", name: "finish_round_seeding_mode", title: "finish_round_seeding_mode", data: { turbo: false, reflex: "click->PartyMonitorReflex#finish_round_seeding_mode", reflex_serialize_form: "true", rno: r_no, id: @party_monitor.id, 'reflex-dataset': "ancestors" }) do %>
+                        <%= content_tag(:button, disabled: ("disabled" unless can_operate && r_no == @party_monitor.current_round && %w[next_round_seeding_mode round_result_checking_mode].include?(@party_monitor.state)), class: "btn btn-primary mb-4", name: "finish_round_seeding_mode", title: "finish_round_seeding_mode", data: { turbo: false, reflex: "click->PartyMonitorReflex#finish_round_seeding_mode", reflex_serialize_form: "true", rno: r_no, id: @party_monitor.id, 'reflex-dataset': "ancestors" }) do %>
                           Spielerzuordnungen Runde <%= r_no %> abschließen
                         <%- end %>
                         &nbsp;=>&nbsp;
-                        <%= content_tag(:button, disabled: ("disabled" unless r_no == @party_monitor.current_round && %w[ready_for_next_round].include?(@party_monitor.state)), class: "btn btn-primary", name: "start_round_#{r_no}", title: "Runde #{r_no} starten", data: { turbo: false, reflex: "click->PartyMonitorReflex#start_round", reflex_serialize_form: "true", rno: r_no, id: @party_monitor.id, 'reflex-dataset': "ancestors" }) do %>
+                        <%= content_tag(:button, disabled: ("disabled" unless can_operate && r_no == @party_monitor.current_round && %w[ready_for_next_round].include?(@party_monitor.state)), class: "btn btn-primary", name: "start_round_#{r_no}", title: "Runde #{r_no} starten", data: { turbo: false, reflex: "click->PartyMonitorReflex#start_round", reflex_serialize_form: "true", rno: r_no, id: @party_monitor.id, 'reflex-dataset': "ancestors" }) do %>
                           Runde <%= r_no %> starten
                         <%- end %>
                         &nbsp;=>&nbsp;
-                        <%= content_tag(:button, disabled: ("disabled" unless r_no == @party_monitor.current_round && @party_monitor.state == "playing_round"), class: "btn btn-primary", name: "enter_game_results_#{r_no}", title: "Ergebnisse Runde #{r_no} speichern", data: { turbo: false, reflex: "click->PartyMonitorReflex#enter_game_results", reflex_serialize_form: "true", rno: r_no, id: @party_monitor.id, 'reflex-dataset': "ancestors" }) do %>
+                        <%= content_tag(:button, disabled: ("disabled" unless can_operate && r_no == @party_monitor.current_round && @party_monitor.state == "playing_round"), class: "btn btn-primary", name: "enter_game_results_#{r_no}", title: "Ergebnisse Runde #{r_no} speichern", data: { turbo: false, reflex: "click->PartyMonitorReflex#enter_game_results", reflex_serialize_form: "true", rno: r_no, id: @party_monitor.id, 'reflex-dataset': "ancestors" }) do %>
                           Ergebnisse Runde <%= r_no %> speichern
                         <%- end %>
                         &nbsp;=>&nbsp;
-                        <%= content_tag(:button, disabled: ("disabled" unless r_no == @party_monitor.current_round && %w[playing_round].include?(@party_monitor.state)), class: "btn btn-primary", name: "finish_round_#{r_no}", title: "Runde #{r_no} abschliessen", data: { turbo: false, reflex: "click->PartyMonitorReflex#finish_round", reflex_serialize_form: "true", rno: r_no, id: @party_monitor.id, 'reflex-dataset': "ancestors" }) do %>
+                        <%= content_tag(:button, disabled: ("disabled" unless can_operate && r_no == @party_monitor.current_round && %w[playing_round].include?(@party_monitor.state)), class: "btn btn-primary", name: "finish_round_#{r_no}", title: "Runde #{r_no} abschliessen", data: { turbo: false, reflex: "click->PartyMonitorReflex#finish_round", reflex_serialize_form: "true", rno: r_no, id: @party_monitor.id, 'reflex-dataset': "ancestors" }) do %>
                           Runde <%= r_no %> abschliessen
                         <%- end %>
                       </div>
@@ -258,7 +260,7 @@
               <% end %>
             </div>
 
-            <%= content_tag(:button, disabled: !@party_monitor.party_result_checking_mode?, class: "btn btn-primary", name: "close_party", title: I18n.t("close_party"), data: { turbo: false, reflex: "click->PartyMonitorReflex#close_party", reflex_serialize_form: "true", id: @party_monitor.id, 'reflex-dataset': "ancestors" }) do %>
+            <%= content_tag(:button, disabled: !can_operate || !@party_monitor.party_result_checking_mode?, class: "btn btn-primary", name: "close_party", title: I18n.t("close_party"), data: { turbo: false, reflex: "click->PartyMonitorReflex#close_party", reflex_serialize_form: "true", id: @party_monitor.id, 'reflex-dataset': "ancestors" }) do %>
               <%= I18n.t("close_party") %>
             <%- end %>
 

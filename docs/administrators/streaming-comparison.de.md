@@ -17,8 +17,9 @@ Das Carambus-System bietet verschiedene Streaming-Ansätze, die je nach Turnierg
 ```
 Raspberry Pi (pro Tisch)
 ├─ Display :0 → Scoreboard (Chromium Kiosk)
-├─ Display :1 → Overlay-Rendering (Xvfb + Chromium headless)
-└─ FFmpeg → Camera + Overlay → YouTube RTMP
+└─ FFmpeg: Kamera + drawtext-Textoverlay → YouTube RTMP
+   (Text von /locations/<md5>/scoreboard_text, per curl im Sekundentakt;
+    Kodierung libx264 in Software)
 ```
 
 **Vorteile:**
@@ -31,7 +32,8 @@ Raspberry Pi (pro Tisch)
 **Nachteile:**
 - ⚠️ Fixe Kamera-Position pro Tisch
 - ⚠️ Keine Szenen-Wechsel
-- ⚠️ 720p60 Maximum (Hardware-Limit Raspi 4)
+- ⚠️ Auflösung begrenzt: Standard 640x360 @ 30 fps, Software-Encoding (libx264) auf dem Pi 4
+- ⚠️ Overlay nur als Text (kein gestaltetes HTML-Overlay)
 - ⚠️ Setup-Aufwand pro Raspi (~2h initial)
 
 **Kosten:**
@@ -138,7 +140,7 @@ Zusätzliche Tisch-Streams (Raspberry Pi):
 | **Setup-Zeit** | 2h pro Raspi (einmalig) | 30 Min | 2h + 30 Min |
 | **Laufende Kosten** | 0€ | 0€ | 0€ |
 | **Hardware-Kosten** | 80€ pro Tisch | 0€ | 80€ × N |
-| **Maximale Auflösung** | 720p60 | 1080p60 | Beide |
+| **Maximale Auflösung** | 640x360@30 Standard, 720p30 mit Reserve | 1080p60 | Beide |
 | **Kamera-Qualität** | Logitech C922 (gut) | iPhone (exzellent) | Beste |
 | **Szenen-Wechsel** | ❌ Nein | ✅ Ja | ✅ Ja |
 | **Multi-Table-View** | ❌ Nein | ✅ 2x2 Grid | ✅ Ja |
@@ -146,9 +148,9 @@ Zusätzliche Tisch-Streams (Raspberry Pi):
 | **Personal-Bedarf** | Niemand | 1 Person | 1 Person |
 | **Gleichzeitige Tische** | Unbegrenzt | 2-4 | Unbegrenzt |
 | **Unabhängige Streams** | ✅ Pro Tisch | ❌ 1 Stream | ✅ Pro Tisch |
-| **Bandwidth (Upload)** | 2.5 Mbit/s × N | 4-6 Mbit/s | Summe beider |
-| **Overlay-System** | Chromium PNG | Browser Source | Beide |
-| **ActionCable Updates** | ✅ Ja | ✅ Ja | ✅ Ja |
+| **Bandwidth (Upload)** | ~1,5 Mbit/s × N (Standardwerte) | 4-6 Mbit/s | Summe beider |
+| **Overlay-System** | FFmpeg-Textoverlay | Browser Source | Beide |
+| **Live-Aktualisierung** | 1-s-Polling (Text) | 3-s-Reload (Browser) | Beide |
 | **Wartungsaufwand** | Niedrig | Sehr niedrig | Mittel |
 
 ---
@@ -319,12 +321,13 @@ Zusätzliche Tisch-Streams (Raspberry Pi):
 
 **URL-Format:**
 ```
-http://localhost:3000/locations/[LOCATION_MD5]/scoreboard_overlay?table_id=[TABLE_ID]
+http://<Location-Server>:<webserver_port>/locations/<LOCATION_MD5>/scoreboard_overlay?table_id=<TABLE_ID>
 ```
+`http://localhost:3000` gilt nur für einen lokal gestarteten Entwicklungsserver.
 
 **Beispiel:**
 ```
-http://localhost:3000/locations/0819bf0d7893e629200c20497ef9cfff/scoreboard_overlay?table_id=2
+http://192.168.2.210:3131/locations/0819bf0d7893e629200c20497ef9cfff/scoreboard_overlay?table_id=2
 ```
 
 **OBS Browser Source Settings:**
@@ -341,9 +344,12 @@ Height: 1080 (für Fullscreen-Overlay)
 
 ### Multi-Table Overlay
 
-**Für 2x2 Grid:**
+**Heute:** vier Browser-Sources mit je `.../scoreboard_overlay?table_id=<TABLE_ID>` im 2x2-Raster anordnen.
+
+**Nicht implementiert:** Ein gemeinsames Multi-Overlay bräuchte View, Partial, Controller-Action und Route.
+Eine View allein reicht nicht, die URL unten liefert heute 404. Vorschlag:
 ```html
-<!-- Neue View erstellen: app/views/locations/scoreboard_overlay_multi.html.erb -->
+<!-- VORSCHLAG - app/views/locations/scoreboard_overlay_multi.html.erb existiert NICHT -->
 <div class="grid grid-cols-2 gap-4 p-4 bg-black/80 h-screen">
   <% @location.tables.limit(4).each do |table| %>
     <div class="border-2 border-white/20 rounded-lg overflow-hidden">
@@ -353,9 +359,9 @@ Height: 1080 (für Fullscreen-Overlay)
 </div>
 ```
 
-**OBS Browser Source:**
+**OBS Browser Source (nach einer Umsetzung):**
 ```
-http://localhost:3000/locations/[MD5]/scoreboard_overlay_multi
+http://<Location-Server>:<webserver_port>/locations/<MD5>/scoreboard_overlay_multi
 Width: 1920
 Height: 1080
 ```
@@ -423,11 +429,11 @@ brew install --cask obs
 ### Schritt 2: Overlay-URLs wiederverwenden
 
 ```bash
-# Gleiche Overlay-URLs wie Raspis:
-http://localhost:3000/locations/[MD5]/scoreboard_overlay?table_id=X
+# Browser-Overlay je Tisch (die Raspis nutzen stattdessen den Text-Endpunkt scoreboard_text):
+http://<Location-Server>:<webserver_port>/locations/<MD5>/scoreboard_overlay?table_id=<TABLE_ID>
 
 # In OBS als Browser Source
-# ActionCable funktioniert identisch
+# Aktualisierung: Seite lädt sich alle 3 Sekunden neu (Raspi: Text im Sekundentakt)
 ```
 
 ### Schritt 3: Parallel-Betrieb (optional)
@@ -504,7 +510,7 @@ http://localhost:3000/locations/[MD5]/scoreboard_overlay?table_id=X
 → "Restart Interaction"
 
 # Oder: Overlay-URL im normalen Browser testen
-open http://localhost:3000/locations/[MD5]/scoreboard_overlay?table_id=1
+open "http://<Location-Server>:<webserver_port>/locations/<MD5>/scoreboard_overlay?table_id=<TABLE_ID>"
 ```
 
 ### Stream bricht ab

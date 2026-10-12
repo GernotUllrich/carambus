@@ -14,7 +14,9 @@
       </div>
     </div>
 
-    <%= custom_link_to t("shared.scaffold.new.title", default: "Club Location", model: "Club Location"), new_club_location_path, class: "btn btn-white" %>
+    <%- if current_user&.admin? %>
+      <%= custom_link_to t("shared.scaffold.new.title", default: "Club Location", model: "Club Location"), new_club_location_path, class: "btn btn-white" %>
+    <%- end %>
   </div>
 
   <%= tag.div id: ("club_locations" if first_page?), class: "bg-surface-card dark:bg-gray-800 rounded-card border border-gray-200 dark:border-gray-700 divide-y divide-gray-100 dark:divide-gray-800" do %>
@@ -26,7 +28,9 @@
       </svg>
       <div class="flex-1 text-center">
         <p class="mb-4 h3">Create your first Club Location</p>
-        <%= custom_link_to t("shared.scaffold.new.title", default: "New Club Location", model: "Club Location"), new_club_location_path, disabled: !current_user&.admin?, class: "btn btn-primary" %>
+        <%- if current_user&.admin? %>
+          <%= custom_link_to t("shared.scaffold.new.title", default: "New Club Location", model: "Club Location"), new_club_location_path, class: "btn btn-primary" %>
+        <%- end %>
       </div>
     </div>
   <% end %>

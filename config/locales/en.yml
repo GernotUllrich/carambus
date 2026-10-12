@@ -294,6 +294,8 @@ en:
       invalid_theme: invalid theme
       invalid_locale: invalid locale
       invalid_timezone: invalid timezone
+    admin_required: "Only signed-in club or system admins may perform this action."
+    upload_owner_or_admin_required: "Only the owner and club or system admins may edit or delete an upload."
     tournament_game_manipulation_blocked: "Game manipulations are not allowed during a tournament. Please use the tournament management system."
     tournament_reset_requires_admin: "Resetting a tournament is only allowed for club and system administrators."
   game_participation:
@@ -315,6 +317,10 @@ en:
     role: role
     updated_at: updated at
   game_results: Single game results
+  game_plans:
+    errors:
+      admin_required: "Only signed-in club or system admins may create, edit or delete game plans."
+      invalid_data: "is not a valid JSON object"
   gd: AVG
   goal: Goal
   hello: Hello world
@@ -453,13 +459,11 @@ en:
     organizer_type: organizer type
     region_id: Region
     scoreboard_reservations:
-      event_title_placeholder: "Event title, e.g. \"T4 Peter+Mike\""
-      info_calendar: "Reservations can be made directly here or in the \"BC Wedel\" Google Calendar. For access to the Google Calendar, please email gernot.ullrich@gmx.com. Corrections to entries made here are currently only possible in the Google Calendar."
+      info_calendar: "This page shows how the tables are booked. Reservations are entered — and corrected — in the \"BC Wedel\" Google Calendar."
+      info_calendar_contact: "For access to the Google Calendar, please email %{email}."
       info_heating: "Heating is switched according to these reservations (2 or 4 hours for large tables before the appointment starts)."
       naming_convention_details: "The title consists of a comma-separated list of table ranges (e.g. T5 or T6-T8), followed by a space and the event title or player names, e.g. \"Club evening\" or \"NDM Cadre 35/2\" or \"Lothar + Gernot\". An exclamation mark (!) can be added at the end to prevent heating from being switched off when tables are unused during the reservation. Calendar entries that do not follow this naming convention and do not start with a label such as \"info:\" or \"BGH:\" are automatically deleted."
       naming_convention_intro: "Table assignment, tournament, participants, and automatic heating control are determined by a naming convention in the title."
-      new_reservation: New reservation
-      new_table_reservation: New table reservation
     scoreboard_welcome:
       calendar: Fixtures
       player_area: My area
@@ -468,6 +472,9 @@ en:
     tables: Tables
     updated_at: updated at
   may_loose_results: You may loose game results!
+  locations:
+    errors:
+      admin_required: "Only signed-in club or system admins may create, edit, delete, merge or add tables to locations."
   must_be_an_admin: You must be an admin to do that.
   not_allowed_on_api_server: Operation not allowed on API Server.
   not_leave_party_game: League or tournament games can only be ended via the tournament management.
@@ -496,6 +503,20 @@ en:
       party: Party
       parties: Parties
   parties:
+    # Plan 20-02 — permissions on matchdays (PartyPolicy)
+    errors:
+      admin_required: "Only signed-in club or system admins may create, edit or delete party monitor records."
+      operate_denied: "Only the appointed matchday lead, the responsible sports officer and admins may operate this matchday."
+      assign_leiter_denied: "Only the responsible sports officer and admins may appoint a matchday lead."
+    leiter:
+      label: Matchday lead
+      blank_option: "– choose account –"
+      assign: Appoint
+      remove: Remove
+      assigned: "Matchday lead appointed."
+      removed: "Matchday lead removed."
+      none: "No matchday lead appointed."
+      invalid_user: "Account not found or not confirmed."
     index:
       listing_parties: Listing Matchdays
     parties: Matchdays
@@ -707,6 +728,8 @@ en:
       region_season: "(%{region}, season %{season})"
       help: How can I help you?
   static:
+    update_version:
+      forbidden: "Administrators only."
     sync_data:
       button: "🔄 Sync data now"
       running: "Syncing …"
@@ -845,6 +868,9 @@ en:
       result: Result
       in_sets: in sets
       confirm_result: Confirm result
+      winner_label: "Winner: %{name}"
+      draw: "Draw"
+      back_to_game: "Back to game"
       print: Print protocol
       print_pdf: Protocol PDF
       close: Close
@@ -940,6 +966,9 @@ en:
       submit_blocked_hint: "Please select a winner before confirming the result."
       winner_label: "Winner: %{role}"
       submit_label: "Confirm with winner"
+      # Plan 08-01: extension inning per NBV STO Karambolage §4.4.3
+      extension_hint: "Extension inning with opening ball and equalising shot (§4.4.3)."
+      extension_goal: "Extension to %{balls}"
     table_id: table id
     timer_finish_at: timer finish at
     timer_halt_at: timer halt at
@@ -1236,15 +1265,20 @@ en:
     errors:
       assign_leiter_denied: "Authority-Denied: no permission to assign Tournament Director for this tournament."
       manage_teilnehmerliste_denied: "Not authorized to manage this tournament's participant list."
+      admin_required: "Only signed-in club or system admins may create, edit or delete tournaments."
+      prepare_tournament_denied: "Not authorized to set up or start this tournament — that is up to the tournament director, the responsible sports official and admins."
     groups:
       groups: Groups
     index:
-      all_heading: All tournaments
       api_server_readonly_body_html: "This is the central API server. Tournament management (create, edit, run) is only possible on <strong>local servers</strong>. Here you can only view tournaments and use them as a data source for local servers."
       api_server_readonly_heading: API Server — Read-Only Mode
+      earlier_heading: Earlier
+      later_heading: Later
       listing_tournaments: Listing Tournaments
       new_tournament: New Tournament
       new_tournament_button: New Tournament
+      period_past: Past
+      period_upcoming: Future
       upcoming_heading: Upcoming
     monitor:
       all_rankings_label: "💡 All rankings:"
@@ -1559,6 +1593,8 @@ en:
       name: Name
       new_position: Edit Position
       no_invitation_uploaded: ⚠️ No invitation uploaded
+      open_in_tournament_app: Open in tournament app
+      open_in_tournament_app_hint: Alternative to the tournament monitor. The app opens with this tournament and asks for the service account's password.
       order_by_ranking_or_handicap: Order By Ranking or Handicap
       parsed_invitation_heading: 📄 Parsed invitation
       party_monitor: Matchday Monitor
@@ -1576,6 +1612,7 @@ en:
       reload_from_club_cloud_with_details: Reload From ClubCloud with all details
       reorder: Reorder
       reset_tournament_monitor: Reset Tournament Monitor
+      soft_reset_tournament_monitor: Restart tournament
       review_invitation_button: 📄 Review invitation
       seeding_heading: 📋 Seeding list
       show_extracted_groups: Show extracted group assignment
@@ -1610,6 +1647,12 @@ en:
         body: "DATA LOSS: all local seeding lists, running games, results and the tournament state will be irrecoverably lost."
         confirm: Yes, force reset
         title: Force reset tournament monitor
+      soft_reset_tournament_modal:
+        body: "Games and tournament state will be deleted. The entry list and the tournament mode are kept — the tournament can be restarted right away."
+        confirm: Yes, restart
+        denied: Not authorized to reset this tournament.
+        success: Tournament reset — entry list and tournament mode were kept.
+        title: Restart tournament (keep entry list)
     docs:
       walkthrough_link: "📖 Full walkthrough in handbook →"
       form_help_link: "📖 Full walkthrough in handbook →"
@@ -1618,6 +1661,8 @@ en:
       labels:
         balls_goal: "Balls goal"
         innings_goal: "Innings limit"
+        biathlon_balls_goal_3b: "Biathlon: three-cushion distance"
+        biathlon_innings_goal_3b: "Biathlon: three-cushion innings"
         timeout: "Timeout (sec.)"
         timeouts: "Timeouts per game"
         admin_controlled: "Manual round-change confirmation"
@@ -1636,6 +1681,8 @@ en:
       tooltips:
         balls_goal: "Target ball count per game (typical: 50–200 for straight carom, 20–100 for cadre)."
         innings_goal: "Maximum innings per game. 0 = no limit. Typical: 20–80."
+        biathlon_balls_goal_3b: "Partial distance of the three-cushion phase (10 or 15). Then x6 and 5-pins up to the balls goal (total, e.g. 120 or 180)."
+        biathlon_innings_goal_3b: "Innings limit of the three-cushion phase (e.g. 15, 20, 30). The game itself has no innings limit."
         timeout: "Shot clock per shot in seconds. 0 = disabled. Typical: 30–90."
         timeouts: "Number of timeouts available per player per game."
         admin_controlled: "Deprecated — removed in Phase 36b. Round advance is now always automatic."

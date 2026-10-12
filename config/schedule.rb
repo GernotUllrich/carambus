@@ -40,6 +40,16 @@ job_type :runner,
 job_type :bash, "cd :path && /bin/bash :task :output"
 
 # ============================================================================
+# REGIONSDUMPS (Plan 18-02)
+# ============================================================================
+# Jede Nacht je Region ein gefilterter, bereinigter Dump fuer die Erstbefuellung
+# eines Vereinsservers (docs/administrators/region-dumps). Vor den Scraping-Jobs
+# ab 2:00; lokal gemessen ~5 min fuer alle 17 Regionen.
+every 1.day, at: "1:00 am", roles: [:api] do
+  rake "region_dump:build[all]"
+end
+
+# ============================================================================
 # INTERNATIONAL CONTENT SCRAPING
 # ============================================================================
 
@@ -110,7 +120,8 @@ end
 # Phase 18-03 (v0.5 BBV/NuLiga-Cutover): Laufender BBV-Import aus NuLiga (bbv-billard.liga.nu).
 # ARMED, region 3, Pool+Snooker+Karambol, Zielsaison = neueste NuLiga-verfügbare (Probe, NICHT blind current_season).
 # Idempotent/version-sauber (nur neue Parties tief). Slot 03:45 (kollisionsarm zu 03:30 LM / 04:00 CC).
-# HINWEIS: Aktivierung bewusst gegated — solange CC ruht bleibt der ganze api-Crontab via whenever:clear_crontab aus.
+# HINWEIS (Stand 2026-09-14, gemessen): der api-Crontab ist AKTIV — die fruehere Sperre per
+# whenever:clear_crontab ("solange CC ruht") gilt nicht mehr.
 every 1.day, at: "3:45 am", roles: [:api] do
   rake "nu_liga:daily_import"
 end
@@ -182,8 +193,8 @@ end
 # wird gesichert, bevor ihn der naechste Scrape-Lauf veraendert.
 #
 # roles: [:api] — der Job landet nur in der Crontab des carambus_api-Deployments.
-# Das genuegt: die fuenf Instanzen (carambus, carambus_api, carambus_nbv,
-# carambus_tbv, carambus_train) teilen sich einen PostgreSQL-Cluster auf
+# Das genuegt: die vier Instanzen (carambus, carambus_api, carambus_nbv,
+# carambus_train) teilen sich einen PostgreSQL-Cluster auf
 # derselben Maschine, das Skript sichert sie in einem Lauf mit. Ein Job je
 # Deployment wuerde dieselben Daten mehrfach dumpen.
 #

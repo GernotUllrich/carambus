@@ -90,6 +90,13 @@ default:
       - category: "Vierball"
         buttons:
           - { balls: 120, innings: 0, discipline: "4 Ball", label: "120/-", allow_follow_up: false }
+      - category: "Biathlon"
+        buttons:
+          # DBU-Regeln Biathlon §3.3: Dreiband-Teildistanz/Aufnahmebegrenzung, x6, dann 5-Kegel bis balls.
+          - { balls: 180, innings: 0, balls_3b: 15, innings_3b: 30, discipline: "Biathlon", allow_follow_up: false }
+          - { balls: 180, innings: 0, balls_3b: 15, innings_3b: 20, discipline: "Biathlon", allow_follow_up: false }
+          - { balls: 120, innings: 0, balls_3b: 10, innings_3b: 20, discipline: "Biathlon", allow_follow_up: false }
+          - { balls: 120, innings: 0, balls_3b: 10, innings_3b: 15, discipline: "Biathlon", allow_follow_up: false }
     pool:
       - category: "8-Ball"
         buttons:

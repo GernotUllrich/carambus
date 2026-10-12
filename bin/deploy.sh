@@ -305,15 +305,38 @@ log_step "Creating symlinks for shared files..."
 /usr/bin/env mkdir -p "${NEW_RELEASE_PATH}/config/environments"
 /usr/bin/env mkdir -p "${NEW_RELEASE_PATH}/config/credentials"
 
-# Linked files (from deploy.rb)
-linked_files=(
-    "config/database.yml"
-    "config/carambus.yml"
-    "config/nginx.conf"
-    "config/puma.rb"
-    "config/environments/production.rb"
-    "config/env.production"
-)
+# Linked files and directories come from config/deploy.rb - the single source of truth.
+# They used to be hand-copied into this script and drifted apart: config/cable.yml was
+# missing here, so a release shipped without it. Since every linked file is gitignored,
+# that meant no cable.yml at all and a dead ActionCable. Parse, do not copy.
+DEPLOY_RB="${NEW_RELEASE_PATH}/config/deploy.rb"
+
+if [ ! -f "$DEPLOY_RB" ]; then
+    log_error "config/deploy.rb missing in the new release: $DEPLOY_RB"
+    exit 1
+fi
+
+# Reads e.g.  append :linked_files, "config/database.yml", "config/cable.yml"
+# Commented-out lines are skipped because the line must start with append/set.
+parse_capistrano_list() {
+    grep -E "^[[:space:]]*(append|set)[[:space:]]+:$1\b" "$DEPLOY_RB" \
+        | grep -oE "\"[^\"]+\"|'[^']+'" \
+        | tr -d "\"'"
+}
+
+# The emptiness check has to happen here, not inside a helper: an exit inside a
+# process substitution only kills the subshell and the deploy would carry on.
+linked_files=()
+while IFS= read -r entry; do
+    [ -n "$entry" ] && linked_files+=("$entry")
+done < <(parse_capistrano_list linked_files)
+
+if [ ${#linked_files[@]} -eq 0 ]; then
+    log_error "No :linked_files found in $DEPLOY_RB - refusing to build a release without them."
+    exit 1
+fi
+
+log_info "  ${#linked_files[@]} linked files from config/deploy.rb"
 
 for file in "${linked_files[@]}"; do
     target="${NEW_RELEASE_PATH}/${file}"
@@ -329,7 +352,9 @@ for file in "${linked_files[@]}"; do
         /usr/bin/env ln -s "$source" "$target"
         log_info "  Linked: $file"
     else
-        log_warning "  Skipped (not in shared): $file"
+        log_error "  Missing in shared: $file"
+        log_error "  Aborting - the release would boot misconfigured (cap stops here too)."
+        exit 1
     fi
 done
 
@@ -341,16 +366,21 @@ log_success "Shared files linked"
 
 log_step "Creating symlinks for shared directories..."
 
-# Linked directories (from deploy.rb) - NOTE: bundle is NOT symlinked yet
-linked_dirs=(
-    "log"
-    "tmp/pids"
-    "tmp/cache"
-    "tmp/sockets"
-    "public/system"
-    "storage"
-    "config/credentials"
-)
+# From deploy.rb as well - except "bundle": this script points bundler at
+# ${SHARED_PATH}/bundle directly (step 6) instead of symlinking the directory.
+linked_dirs=()
+while IFS= read -r entry; do
+    [ -z "$entry" ] && continue
+    [ "$entry" = "bundle" ] && continue
+    linked_dirs+=("$entry")
+done < <(parse_capistrano_list linked_dirs)
+
+if [ ${#linked_dirs[@]} -eq 0 ]; then
+    log_error "No :linked_dirs found in $DEPLOY_RB - refusing to build a release without them."
+    exit 1
+fi
+
+log_info "  ${#linked_dirs[@]} linked directories from config/deploy.rb"
 
 for dir in "${linked_dirs[@]}"; do
     target="${NEW_RELEASE_PATH}/${dir}"
@@ -359,6 +389,9 @@ for dir in "${linked_dirs[@]}"; do
     # Create parent directory if needed
     parent_dir=$(dirname "$target")
     /usr/bin/env mkdir -p "$parent_dir"
+
+    # Create the shared directory if it does not exist yet (cap does this in deploy:check)
+    /usr/bin/env mkdir -p "$source"
 
     # Remove if exists
     if [ -d "$target" ] || [ -L "$target" ]; then

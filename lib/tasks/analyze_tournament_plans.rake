@@ -115,6 +115,38 @@ namespace :tournament_plans do
     puts ""
   end
   
+  desc "Prueft alle Turnierplaene gegen ihre eigene Definition (JSON, rules-Form, Spielernummern, Rundenvollstaendigkeit, RK, Tischbelegung)"
+  task validate: :environment do
+    plans = TournamentPlan.order(:id)
+    defect_plans = 0
+    total_findings = 0
+
+    plans.find_each do |plan|
+      findings = TournamentPlanValidator.new(plan).findings
+      next if findings.empty?
+
+      defect_plans += 1
+      total_findings += findings.size
+      puts ""
+      puts "#{plan.id}  #{plan.name} (#{plan.players} Spieler, #{plan.ngroups} Gruppen)"
+      findings.each { |f| puts "    #{f}" }
+    end
+
+    puts ""
+    puts "-" * 78
+    puts "#{plans.count} Plaene geprueft, #{defect_plans} mit Befunden, #{total_findings} Befund(e) gesamt."
+    puts ""
+
+    if total_findings.positive?
+      puts "Turnierplaene sind globale Records — Korrekturen gehoeren auf die Authority."
+      puts ""
+      # Exit-Code fuer CI, analog der UI-Wache in lib/tasks/ui.rake
+      abort("Turnierplan-Validierung: #{total_findings} Befund(e) in #{defect_plans} Plan/Plaenen.")
+    end
+
+    puts "Keine Befunde."
+  end
+
   desc "Validate executor_params consistency across all tournament plans"
   task validate_executor_params: :environment do
     puts "=" * 80
@@ -190,66 +222,28 @@ namespace :tournament_plans do
   
   private
   
+  # Delegiert an TournamentPlanValidator (app/services/tournament_plan_validator.rb).
+  # Die Pruef-Logik lag frueher hier; sie ist im Validator testbar und wird von der
+  # umfassenderen Task `tournament_plans:validate` mitgenutzt. Diese Methode behaelt ihre
+  # Signatur und Ausgabeform, weil `fix_executor_params` sie weiterhin ruft.
+  # Rueckgabe wie bisher: Array von Fehler-Strings (nur Tisch-Konflikte und JSON-Fehler).
   def validate_executor_params_for_plan(plan, silent: false)
-    errors = []
-    
-    unless plan.executor_params.present?
-      return errors # Keine executor_params = kein Problem
+    findings = TournamentPlanValidator.new(plan).findings
+      .select { |f| %i[table_conflicts json].include?(f.check) }
+    # Beim JSON-Fehler traegt die Validator-Message den Anlass bereits ("kein gueltiges
+    # JSON: ..."); ein zusaetzliches Praefix wuerde ihn doppeln.
+    errors = findings.map { |f| (f.check == :json) ? f.message : "#{f.location}: #{f.message}" }
+
+    if errors.any? && !silent
+      puts ""
+      puts "  ❌ #{plan.name} (#{plan.players} Spieler, #{plan.ngroups} Gruppen)"
+      puts "     " + "─" * 76
+      errors.each { |error| puts "     • #{error}" }
     end
-    
-    begin
-      executor_params = JSON.parse(plan.executor_params)
-    rescue JSON::ParserError => e
-      puts "  ❌ #{plan.name}: JSON Parse Error: #{e.message}" unless silent
-      return ["JSON Parse Error: #{e.message}"]
-    end
-    
-    # Sammle alle Tisch-Zuweisungen pro Runde
-    table_usage = {} # { "r1" => { "t1" => ["g1", "g2"], ... }, ... }
-    
-    executor_params.each_key do |k|
-      next unless (m = k.match(/g(\d+)/))
-      group_no = m[1].to_i
-      sequence = executor_params[k]["sq"]
-      next unless sequence.present? && sequence.is_a?(Hash)
-      
-      sequence.each do |round_key, round_data|
-        next unless round_key.is_a?(String) && round_key.match?(/^r\d+/)
-        next unless round_data.is_a?(Hash)
-        
-        table_usage[round_key] ||= {}
-        round_data.each do |tno_str, game_pair|
-          next unless tno_str.is_a?(String) && tno_str.match?(/^t\d+/)
-          table_usage[round_key][tno_str] ||= []
-          table_usage[round_key][tno_str] << "g#{group_no}"
-        end
-      end
-    end
-    
-    # Prüfe auf mehrfache Verwendung
-    table_usage.each do |round_key, tables|
-      tables.each do |tno_str, groups|
-        if groups.length > 1
-          error_msg = "#{round_key}: #{tno_str} wird mehrfach verwendet (Gruppen: #{groups.join(', ')})"
-          errors << error_msg
-        end
-      end
-    end
-    
-    unless silent
-      if errors.any?
-        puts ""
-        puts "  ❌ #{plan.name} (#{plan.players} Spieler, #{plan.ngroups} Gruppen)"
-        puts "     " + "─" * 76
-        errors.each do |error|
-          puts "     • #{error}"
-        end
-      end
-    end
-    
+
     errors
   end
-  
+
   def fix_executor_params_for_plan(plan)
     puts ""
     puts "  🔧 Korrigiere #{plan.name} (#{plan.players} Spieler, #{plan.ngroups} Gruppen)"

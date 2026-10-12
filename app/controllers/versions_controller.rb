@@ -3,7 +3,13 @@ class VersionsController < ApplicationController
   # Admin-Session aufgerufen (Client sendet keine Auth) -> vom system_admin-Gate
   # ausnehmen. Waren vor Phase 10/11 (515b8a77) offen; der pauschale Gate hat
   # den Sync ab 2026-07-08 gebrochen (H33 Root Cause).
-  before_action :system_admin_only, except: %i[get_updates last_version current_revision update_carambus]
+  #
+  # Plan 21-06: `update_carambus` stand hier mit drin und gehoert NICHT dazu. Es beantwortet
+  # keine Sync-Anfrage — es startet `bin/deploy.sh` in einer Shell (version.rb), synchron im
+  # Request-Thread. Damit konnte jeder Besucher einen Deploy ausloesen. Der legitime Weg ist
+  # der Rake-Task `carambus:update_carambus` (lib/tasks/carambus.rake); einen HTTP-Aufrufer
+  # gibt es im Repo nicht. Route und Aktion bleiben (umkehrbar), nur der Gate greift jetzt.
+  before_action :system_admin_only, except: %i[get_updates last_version current_revision]
   before_action :set_version, only: %i[show edit update destroy]
 
   # GET /versions
@@ -52,8 +58,36 @@ class VersionsController < ApplicationController
     redirect_to versions_url, notice: "Version was successfully destroyed."
   end
 
+  # Hoechster Versionsstand. Mit `region_id` wird derselbe Ausschnitt zugrunde gelegt, den
+  # get_updates ausliefert (`Version.for_region`) — der Client-Cursor kann nie darueber
+  # hinauslaufen, also ist das die Zahl, gegen die ein Local Server seinen Stand sinnvoll
+  # vergleicht. OHNE den Parameter bleibt es der globale Hoechststand, damit noch nicht
+  # aktualisierte Local Server unveraendert weiterlaufen.
+  #
+  # `order(id: :desc).pick(:id)` statt `maximum(:id)`: beide fuehren bei Postgres auf einen
+  # Index Scan Backward ueber versions_pkey (per EXPLAIN ANALYZE auf 369k Zeilen geprueft,
+  # 2026-09-06 — MAX(id) wird ueber einen InitPlan zu genau demselben Scan umgeschrieben,
+  # Kosten 0.65 vs 0.64). Die explizite Form haengt nicht daran, dass der Planner diese
+  # Umschreibung vornimmt, und macht im Code sichtbar, was passiert.
+  #
+  # Beiden gemeinsam bleibt der Worst Case: der Scan laeuft vom Tabellenende rueckwaerts und
+  # filtert (region_id IS NULL OR region_id = ? OR global_context). Hat eine FREMDE Region
+  # zuletzt viele Versionen am Stueck geschrieben, muss er durch diese hindurch. Im Normalfall
+  # ist der erste Treffer nah am Ende, weil die meisten Zeilen ohnehin passen.
   def last_version
-    render json: { last_version: Version.last.id }.to_json
+    id = if params[:region_id].present?
+      Version.for_region(params[:region_id]).order(id: :desc).pick(:id)
+    else
+      # `&.` statt `.id`: bei leerer Tabelle warf das bisher NoMethodError (HTTP 500) statt
+      # `null` zu liefern — auf der Authority nie eingetreten, von einem Test aus Plan 03-01
+      # aufgedeckt. `null` ist ohnehin ein moeglicher Antwortwert (siehe gefilterter Zweig).
+      Version.last&.id
+    end
+    # `region_id` wird zurueckquittiert, damit der Client eine Authority, die den Filter
+    # ANWENDET, von einer alten unterscheiden kann, die den Parameter ignoriert — die Zahl
+    # allein sieht in beiden Faellen gleich aus. Ohne Parameter steht hier null.
+    # Additiv: bestehende Clients lesen nur `last_version` (version.rb:236).
+    render json: { last_version: id, region_id: params[:region_id].presence&.to_i }.to_json
   end
 
   def current_revision

@@ -49,6 +49,25 @@ or (tournament_plans.rulesystem ilike :search)",
     }
   end
 
+  # Loest ein Modus-Label aus einer Turniereinladung zum TournamentPlan auf.
+  #
+  # Die ClubCloud schreibt einstellige Modi OHNE fuehrende Null ("T7 - Jeder gegen jeden"),
+  # die Plaene heissen aber T01..T09 — ein exakter Namensvergleich fand bei T1-T9 deshalb
+  # nichts, und der Vorschlag im Turnier-Assistenten blieb still leer (gefunden 2026-09-17,
+  # nachdem der Einladungs-Parser auf das CC-Format umgestellt war). Zweistellige Modi wie
+  # T18 waren nie betroffen, weshalb es lange nicht auffiel.
+  #
+  # T0 / T00 bedeutet: Turnier findet nicht statt — dafuer gibt es keinen Plan.
+  def self.from_modus_label(label)
+    return nil if label.blank?
+    return nil unless (match = label.to_s.match(/\AT(\d+)/i))
+
+    number = match[1].to_i
+    return nil if number.zero?
+
+    where(name: format("T%02d", number)).first
+  end
+
   def self.default_plan(nplayers)
     plan = TournamentPlan.find_by_name("Default#{nplayers}")
     plan ||= TournamentPlan.new(

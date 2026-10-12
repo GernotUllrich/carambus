@@ -97,6 +97,23 @@ module.exports = {
           'pool-bg': '#fdeede', 'pool-fg': '#8a5a12',
           'karambol-bg': '#efeafd', 'karambol-fg': '#4b3a8c',
         },
+
+        // Physische Objektfarben am Karambol-Tisch (Diagramme/Illustrationen).
+        // KEINE Theme-Farben: ein gelber Ball bleibt gelb, auch im Dark Mode —
+        // die Farben tragen fachliche Bedeutung (Spielball weiss, B2 gelb, B3 rot
+        // nach Regelwerk). Hier zentral, damit sie nicht als lose Hex in den
+        // Views liegen (analog zu `discipline` oben).
+        billiard: {
+          cloth: '#0a7c3e',        // Tuch (gruen)
+          cushion: '#8b5a2b',      // Bandenrahmen (Holz/braun)
+          diamond: '#f8f9f9',      // Diamantenmarkierungen auf den Banden
+          'ball-white': '#ffffff', // Spielball
+          'ball-white-edge': '#2c3e50',
+          'ball-yellow': '#f1c40f', // B2
+          'ball-yellow-edge': '#b7950b',
+          'ball-red': '#e74c3c',    // B3
+          'ball-red-edge': '#922b21',
+        },
       },
       borderRadius: {
         control: '8px', // Buttons, Inputs, Controls

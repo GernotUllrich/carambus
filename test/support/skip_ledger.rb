@@ -31,9 +31,24 @@ module SkipLedger
   # herunterzaehlen — der Guard soll die Zahl nach unten druecken, nicht
   # konservieren.
   #
-  # `STRICT_FIXTURES=1 bin/rails test` listet die 12 auf einen Schlag als
-  # Failures — praktisch beim Abarbeiten.
-  MAX_DATA_SKIPS = 12
+  # `STRICT_FIXTURES=1 bin/rails test` listet sie auf einen Schlag als Failures —
+  # praktisch beim Abarbeiten.
+  #
+  # 2026-09-04: 16 → 0. Der Guard stand auf 12, real waren es 16 — er schlug also laengst
+  # an, ohne dass es jemand aufloeste. Alle datenbedingten Skips sind jetzt beseitigt:
+  #
+  #   * vier Tests holten ihre Spiele per `where("id >= MIN_ID")` und sprangen ab, weil
+  #     das KO-Setup keine lokalen Spiele erzeugt — sie legen sie jetzt selbst an
+  #   * die Admin-Smoke-Shows brauchten Shot-/TrainingConcept-/TrainingExample-Datensaetze
+  #     (neue Fixtures; der Shot-Test deckte prompt einen 500er im Dashboard auf)
+  #   * die MCP-Tools brauchten RegionCc, Vereine in zwei Regionen, ein NBV-Turnier und
+  #     eine GameParticipation mit Disziplin — teils Fixtures, teils im Test angelegt
+  #
+  # 0 ist ab jetzt die Messlatte: JEDER neue datenbedingte Skip schlaegt sofort an. Das
+  # ist der eigentliche Zweck des Ledgers — er soll die Zahl nach unten druecken, nicht
+  # einen Bestand konservieren. Wer hier hochzaehlen will, macht mit hoher
+  # Wahrscheinlichkeit gerade einen Test stumm.
+  MAX_DATA_SKIPS = 0
 
   # Skips, die NICHT an fehlenden Testdaten liegen und deshalb nicht zaehlen.
   # Bewusst als Positivliste: alles Unbekannte gilt als datenbedingt, damit ein

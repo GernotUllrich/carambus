@@ -249,6 +249,127 @@ class McpServer::Tools::RegisterForTournamentTest < ActiveSupport::TestCase
     assert_equal true, result[:ok]
   end
 
+  # 2026-09-15 (bcw live): Meldung in Liste mit Meldeschluss 09.09. lief als „deadline_offen: ok" durch —
+  # die alte Prüfung ging über TournamentCc.meldeliste_cc_id (im Mirror nil). Jetzt: Listenkopf live.
+  def stub_meldeliste_header(deadline)
+    body = File.read(Rails.root.join("test/fixtures/cc/meldeliste_header_deadline.html")).sub("MELDESCHLUSS_DATUM", deadline)
+    @mock.define_singleton_method(:get) do |action, get_options = {}, opts = {}|
+      @calls << [:get, action, get_options, opts]
+      [Struct.new(:code, :message, :body).new("200", "OK", body), Nokogiri::HTML(body)]
+    end
+  end
+
+  test "_validate_deadline_offen: Meldeschluss der Liste in der Vergangenheit → reject" do
+    stub_meldeliste_header("09.09.2026")
+    travel_to Date.new(2026, 9, 15) do
+      result = McpServer::Tools::RegisterForTournament.send(:_validate_deadline_offen, 1349, 20, 10, "2026/2027")
+      assert_equal false, result[:ok]
+      assert_match(/09\.09\.2026/, result[:reason])
+    end
+    assert_equal [:get, "showMeldeliste", {p: "20|10|*|*|2026/2027|1349"}], @mock.calls.first.first(3)
+  end
+
+  test "_validate_deadline_offen: Meldeschluss heute oder später → ok" do
+    stub_meldeliste_header("15.09.2026")
+    travel_to Date.new(2026, 9, 15) do
+      assert_equal true, McpServer::Tools::RegisterForTournament.send(:_validate_deadline_offen, 1349, 20, 10, "2026/2027")[:ok]
+    end
+  end
+
+  test "_validate_deadline_offen: Ablehnung empfiehlt Lookup statt blinder Meldeschluss-Verlängerung" do
+    stub_meldeliste_header("09.09.2026")
+    travel_to Date.new(2026, 9, 15) do
+      reason = McpServer::Tools::RegisterForTournament.send(:_validate_deadline_offen, 1349, 20, 10, "2026/2027")[:reason]
+      assert_match(/Prüfe zuerst per cc_lookup_meldeliste_for_tournament/, reason)
+      refute_match(/zuerst den Meldeschluss verlängern/, reason)
+    end
+  end
+
+  # 2026-09-15 (bcw live): alte meldeliste_cc_id 1349 (fremde TEST-Liste) aus dem Gesprächsverlauf,
+  # verknüpft mit Turnier 1051 ist laut CC-Turnierseite 1353 „1. NordCup FP".
+  NORDCUP_LINKED = {meldeliste_cc_id: 1353, name: "1. NordCup FP"}.freeze
+
+  test "validate_meldeliste_zum_turnier: Meldeliste gehört nicht zum Turnier → reject mit richtiger Liste" do
+    McpServer::Tools::LookupMeldelisteForTournament.stub(:linked_meldeliste, NORDCUP_LINKED) do
+      result = McpServer::Tools::RegisterForTournament.send(:validate_meldeliste_zum_turnier, 1349, 1051, 20, 10, "2026/2027")
+      assert_equal false, result[:ok]
+      assert_match(/gehört nicht zum Turnier 1051/, result[:reason])
+      assert_match(/1353 \("1\. NordCup FP"\)/, result[:reason])
+    end
+  end
+
+  test "validate_meldeliste_zum_turnier: passende Meldeliste → ok" do
+    McpServer::Tools::LookupMeldelisteForTournament.stub(:linked_meldeliste, NORDCUP_LINKED) do
+      assert_equal true, McpServer::Tools::RegisterForTournament.send(:validate_meldeliste_zum_turnier, 1353, 1051, 20, 10, "2026/2027")[:ok]
+    end
+  end
+
+  test "validate_meldeliste_zum_turnier: ohne tournament_cc_id, im Dry-Run oder bei unklarer Verknüpfung → ok" do
+    never = ->(*) { flunk("darf die CC nicht befragen") }
+    McpServer::Tools::LookupMeldelisteForTournament.stub(:linked_meldeliste, never) do
+      assert McpServer::Tools::RegisterForTournament.send(:validate_meldeliste_zum_turnier, 1349, nil, 20, 10, "2026/2027")[:ok]
+      assert McpServer::Tools::RegisterForTournament.send(:validate_meldeliste_zum_turnier, 1349, 1051, 20, 10, "2026/2027", armed: false)[:ok]
+    end
+    McpServer::Tools::LookupMeldelisteForTournament.stub(:linked_meldeliste, nil) do
+      assert McpServer::Tools::RegisterForTournament.send(:validate_meldeliste_zum_turnier, 1349, 1051, 20, 10, "2026/2027")[:ok]
+    end
+  end
+
+  test "armed mit fremder Meldeliste + tournament_cc_id: Abbruch vor jedem Schreib-Call" do
+    McpServer::Tools::LookupMeldelisteForTournament.stub(:linked_meldeliste, NORDCUP_LINKED) do
+      response = McpServer::Tools::RegisterForTournament.call(
+        fed_id: 20, branch_cc_id: 10, season: "2026/2027", meldeliste_cc_id: 1349, tournament_cc_id: 1051,
+        player_cc_id: 10031, club_cc_id: 1010, armed: true, server_context: nil
+      )
+      assert response.error?
+      assert_match(/meldeliste_zum_turnier/, response.content.first[:text])
+    end
+    writes = @mock.calls.select { |_, action, _, _| %w[addPlayerToMeldeliste saveMeldeliste].include?(action) }
+    assert_empty writes, "Kein Schreib-Call in die fremde Liste"
+  end
+
+  # 2026-09-15 (Betreiber-Vorgabe): Meldeliste = Region + Disziplin — kein Spielort-, kein Club-Check
+  # (wie die CC); nur die Turnierausführung ist spielortgebunden.
+  test "Sportwart meldet für Turnier an fremdem Spielort in seiner Disziplin, Spieler beliebiger Vereine" do
+    user = User.create!(email: "ml_register_sw@test.de", password: "password123", persona_grants: ["sportwart"])
+    user.sportwart_locations << locations(:one)
+    user.sportwart_disciplines << disciplines(:carom_3band)
+    foreign_venue = Tournament.new(location_id: 99_999_999, discipline_id: disciplines(:carom_3band).id)
+    args = {fed_id: 20, branch_cc_id: 10, season: "2026/2027", meldeliste_cc_id: 1353, tournament_cc_id: 1051,
+            player_cc_id: 99999, server_context: {user_id: user.id}}
+
+    McpServer::Tools::RegisterForTournament.stub(:resolve_tournament, foreign_venue) do
+      [41_001, 41_002].each do |club_cc_id|
+        response = McpServer::Tools::RegisterForTournament.call(**args, club_cc_id: club_cc_id)
+        refute response.error?, response.content.first[:text]
+        assert_match(/\[DRY-RUN\] Would register/, response.content.first[:text])
+      end
+    end
+  end
+
+  test "Sportwart einer anderen Disziplin darf die Meldeliste nicht verwalten" do
+    user = User.create!(email: "ml_register_pool@test.de", password: "password123", persona_grants: ["sportwart"])
+    user.sportwart_locations << locations(:one)
+    user.sportwart_disciplines << disciplines(:pool_8ball)
+    tournament = Tournament.new(location_id: locations(:one).id, discipline_id: disciplines(:carom_3band).id)
+
+    McpServer::Tools::RegisterForTournament.stub(:resolve_tournament, tournament) do
+      response = McpServer::Tools::RegisterForTournament.call(
+        fed_id: 20, branch_cc_id: 10, season: "2026/2027", meldeliste_cc_id: 1353, tournament_cc_id: 1051,
+        player_cc_id: 99999, club_cc_id: 41_001, server_context: {user_id: user.id}
+      )
+      assert response.error?
+      assert_match(/manage_meldeliste/, response.content.first[:text])
+    end
+  end
+
+  test "_validate_deadline_offen: Dry-Run macht keinen CC-Call" do
+    stub_meldeliste_header("09.09.2026")
+    result = McpServer::Tools::RegisterForTournament.send(:_validate_deadline_offen, 1349, 20, 10, "2026/2027", armed: false)
+    assert_equal true, result[:ok]
+    assert_empty @mock.calls
+  end
+
   # --- Plan 14-G.13 (Quick 260516-x7g) Multi-Player-Save-Fix: Tests M1-M8 ---
   #
   # Bug: sequenzielle N×(add+save) verlieren Buffer-Adds — jeder save flusht den Edit-Buffer

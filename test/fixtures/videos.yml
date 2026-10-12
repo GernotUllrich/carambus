@@ -12,8 +12,8 @@
 jaspers_cho_wc_2024:
   id: 50_000_001
   external_id: "yt_jaspers_cho_wc2024"
-  title: "UMB World Cup 2024 Final - JASPERS vs CHO"
-  published_at: <%= DateTime.new(2024, 9, 5, 12, 0, 0) %>
+  title: "UMB World Cup <%= 12.months.ago.year %> Final - JASPERS vs CHO"
+  published_at: <%= (12.months.ago.to_date + 4).to_datetime %>
   international_source: youtube_source
   created_at: <%= 1.year.ago %>
   updated_at: <%= 1.day.ago %>
@@ -32,8 +32,8 @@ no_date_overlap_video:
 already_assigned_video:
   id: 50_000_003
   external_id: "yt_already_assigned"
-  title: "World Cup 2024 JASPERS highlight"
-  published_at: <%= DateTime.new(2024, 9, 3, 10, 0, 0) %>
+  title: "World Cup <%= 12.months.ago.year %> JASPERS highlight"
+  published_at: <%= (12.months.ago.to_date + 2).to_datetime %>
   videoable_id: 50_002_001
   videoable_type: "Tournament"
   international_source: youtube_source

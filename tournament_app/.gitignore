@@ -1,0 +1,3 @@
+# PoolSchemata: nur die .html-Plantabellen sind Quelle (Parser-Input);
+# die "*_files/"-Verzeichnisse sind gespeicherte Browser-Assets.
+PoolSchemata/*_files/

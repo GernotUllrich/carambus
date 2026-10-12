@@ -1,6 +1,8 @@
 class UploadsController < ApplicationController
   before_action :logged_in_check, except: %i[show index]
   before_action :set_upload, only: %i[show edit update destroy]
+  # Plan 20-03 (R2): fremde Uploads aendern/loeschen nur Admins
+  before_action :require_upload_owner_or_admin, only: %i[edit update destroy]
 
   # Uncomment to enforce Pundit authorization
   # after_action :verify_authorized
@@ -84,6 +86,12 @@ class UploadsController < ApplicationController
   private
 
   # Use callbacks to share common setup or constraints between actions.
+  def require_upload_owner_or_admin
+    return if current_user&.admin? || (current_user && @upload.user_id == current_user.id)
+
+    redirect_back fallback_location: uploads_path, alert: I18n.t("errors.upload_owner_or_admin_required")
+  end
+
   def set_upload
     @upload = Upload.find(params[:id])
 

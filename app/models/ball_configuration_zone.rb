@@ -1,4 +1,6 @@
 class BallConfigurationZone < ApplicationRecord
+  include LocalProtector
+
   WHICH_BALLS = %w[b1 b2 b3 any].freeze
   ROLES       = %w[target source via].freeze
 

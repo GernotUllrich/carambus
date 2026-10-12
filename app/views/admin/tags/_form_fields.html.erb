@@ -1,6 +1,6 @@
 <%= render "admin/application/multilingual_form_header", form: form %>
 
-<div class="field-unit field-unit--category" style="background: #e3f2fd; padding: 15px; border-radius: 6px; margin-bottom: 20px;">
+<div class="field-unit field-unit--category bg-info-50 dark:bg-info-950 p-4 rounded-card mb-5">
   <%= form.label :category, "🗂️ Kategorie", class: "field-unit__label" %>
   <div class="field-unit__field">
     <%= form.select :category, 
@@ -12,12 +12,12 @@
 </div>
 
 <div class="multilingual-input-section">
-  <h3 style="margin-bottom: 15px; color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 5px;">
+  <h3 class="mb-4 pb-1.5 border-b-2 border-info-500 text-gray-800 dark:text-gray-100">
     📝 Tag-Texte in allen Sprachen
   </h3>
   
   <% unless form.object.translations_in_sync? %>
-    <div class="alert alert-warning" style="background: #fff3cd; border: 1px solid #ffc107; padding: 12px; border-radius: 6px; margin-bottom: 20px;">
+    <div class="alert alert-warning bg-warning-50 dark:bg-warning-950 border border-warning-500 p-3 rounded-card mb-5">
       ⚠️ <strong>Übersetzungen nicht synchronisiert</strong>
     </div>
   <% end %>
@@ -31,12 +31,12 @@
              ] %>
   
   <% if form.object.persisted? && form.object.translations_synced_at.present? %>
-    <div class="sync-info" style="background: #d4edda; border: 1px solid #28a745; padding: 10px; border-radius: 6px; margin-top: 15px;">
+    <div class="sync-info bg-success-50 dark:bg-success-950 border border-success-500 p-2.5 rounded-card mt-4">
       ✅ Zuletzt synchronisiert: <%= form.object.translations_synced_at.strftime('%d.%m.%Y %H:%M') %>
     </div>
   <% end %>
   
-  <div class="field-unit" style="background: #fff9e6; border: 2px solid #ffc107; padding: 15px; border-radius: 6px; margin-top: 20px;">
+  <div class="field-unit bg-warning-50 dark:bg-warning-950 border-2 border-warning-500 p-4 rounded-card mt-5">
     <label class="field-unit__label">
       <%= check_box_tag 'tag[translate_after_save]', '1', false, style: "margin-right: 8px;", id: 'translate_checkbox' %>
       🌐 <strong>Nach dem Speichern automatisch übersetzen</strong>
@@ -92,21 +92,3 @@
     }
   </script>
 </div>
-
-<style>
-  .field-unit__input,
-  .field-unit__textarea,
-  .field-unit__select {
-    width: 100%;
-    padding: 8px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-  }
-  
-  .field-hint {
-    color: #666;
-    font-size: 0.9em;
-    font-style: italic;
-    margin-top: 5px;
-  }
-</style>

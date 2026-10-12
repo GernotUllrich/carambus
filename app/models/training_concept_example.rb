@@ -1,4 +1,6 @@
 class TrainingConceptExample < ApplicationRecord
+  include LocalProtector
+
   ROLES = %w[illustrates counter_example].freeze
 
   enum :role, ROLES.index_with(&:itself), prefix: :role

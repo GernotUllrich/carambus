@@ -104,15 +104,18 @@ class TournamentMonitorT04Test < ActiveSupport::TestCase
   # ============================================================================
 
   test "distribute_to_group with 6 players uses GROUP_RULES" do
-    # GROUP_RULES[6] = [[1, 4, 6], [2, 3, 5]]
+    # GROUP_RULES[6] = [[1, 3, 6], [2, 4, 5]] — korrigiert in Phase 1 (2026-09-03)
+    # gegen die NBV Sport- & Turnierordnung, Gruppenbildung T6. Dieser Test hielt
+    # bis dahin die alten (falschen) Werte [[1,4,6],[2,3,5]] fest und wurde beim
+    # Fix uebersehen; er ist seither rot gelaufen.
     # distribute_with_sizes uses GROUP_SIZES[6]=[3,3] and GROUP_RULES[6]
     players = (1..6).to_a
     result  = TournamentMonitor.distribute_to_group(players, 2)
 
-    assert_equal [1, 4, 6], result["group1"],
-      "group1 should contain players at positions 1, 4, 6 per GROUP_RULES[6]"
-    assert_equal [2, 3, 5], result["group2"],
-      "group2 should contain players at positions 2, 3, 5 per GROUP_RULES[6]"
+    assert_equal [1, 3, 6], result["group1"],
+      "group1 should contain players at positions 1, 3, 6 per GROUP_RULES[6] (T6)"
+    assert_equal [2, 4, 5], result["group2"],
+      "group2 should contain players at positions 2, 4, 5 per GROUP_RULES[6] (T6)"
   end
 
   test "distribute_to_group with 8 players and 2 groups uses GROUP_RULES" do
@@ -140,15 +143,17 @@ class TournamentMonitorT04Test < ActiveSupport::TestCase
   end
 
   test "distribute_to_group with 16 players and 4 groups uses GROUP_RULES" do
-    # GROUP_RULES[16] = [[1, 8, 9, 16], [2, 6, 10, 15], [3, 7, 11, 14], [4, 5, 12, 13]]
+    # GROUP_RULES[16] = [[1, 8, 9, 16], [2, 7, 10, 15], [3, 6, 11, 14], [4, 5, 12, 13]]
+    # Gruppe 2 und 3 wurden in Phase 1 (2026-09-03) gegen die Ordnung (T28)
+    # getauscht; dieser Test hielt die alte Belegung fest und wurde uebersehen.
     players = (1..16).to_a
     result  = TournamentMonitor.distribute_to_group(players, 4)
 
     assert_equal [1, 8, 9, 16],  result["group1"],
       "group1 should match GROUP_RULES[16][0]"
-    assert_equal [2, 6, 10, 15], result["group2"],
+    assert_equal [2, 7, 10, 15], result["group2"],
       "group2 should match GROUP_RULES[16][1]"
-    assert_equal [3, 7, 11, 14], result["group3"],
+    assert_equal [3, 6, 11, 14], result["group3"],
       "group3 should match GROUP_RULES[16][2]"
     assert_equal [4, 5, 12, 13], result["group4"],
       "group4 should match GROUP_RULES[16][3]"

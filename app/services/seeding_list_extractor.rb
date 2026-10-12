@@ -81,122 +81,45 @@ class SeedingListExtractor
       
       # Parse Spieler-Zeilen
       if in_seeding_section
-        # Skip Header-Zeilen
-        next if line =~ /Name\s+Pkt/i
-        next if line =~ /^[\s]*Name[\s]*Name/i  # Header mit zwei "Name" Spalten
         next if line.strip.empty?
-        
-        # Pattern für Spieler mit Vorgabe (Zahl nach dem Namen)
-        # Format: "1   Ullrich Gernot             54     5   Scharf Claus-Dieter         21"
-        # oder:   "4   Jahn Wilfried              25" (einspaltig)
-        # Struktur: Nummer + Name + viele Leerzeichen + Zahl + (viele Leerzeichen + zweiter Spieler)
-        
-        # WICHTIG: Prüfe zuerst zweispaltige Formate, BEVOR einspaltige geprüft werden!
-        # Sonst wird nur der erste Spieler erkannt und die rechte Spalte ignoriert.
-        
-        # Zweispaltig MIT Vorgaben: Nummer + Name + Zahl + große Leerzeichen + Nummer + Name + Zahl
-        two_column_with_points = /^\s*(\d+)\s+([A-ZÄÖÜ][\wäöüß\-]+)\s+([A-ZÄÖÜ][\wäöüß\-\.]+)\s+(\d+)(?:\s*Pkt)?\s{3,}(\d+)\s+([A-ZÄÖÜ][\wäöüß\-]+)\s+([A-ZÄÖÜ][\wäöüß\-\.]+)\s+(\d+)(?:\s*Pkt)?/i
-        
-        # Zweispaltig OHNE Vorgaben: Nummer + Name + große Leerzeichen + Nummer + Name
-        # Format: "1 Smrcka Martin          4   Stahl Mario"
-        two_column_without_points = /^\s*(\d+)\s+([A-ZÄÖÜ][\wäöüß\-]+)\s+([A-ZÄÖÜ][\wäöüß\-\.]+)\s{3,}(\d+)\s+([A-ZÄÖÜ][\wäöüß\-]+)\s+([A-ZÄÖÜ][\wäöüß\-\.]+)/i
-        
-        # NEUE Variante: Zweispaltig mit weniger Whitespace (z.B. "2 Schröder Hans-Jörg 6 Kämmer Lothar")
-        # Die Zahl nach dem ersten Namen könnte Position (klein) oder Vorgabe (groß) sein
-        # Wir prüfen: Wenn Zahl <= 20 UND ein weiterer Name folgt → Position, sonst Vorgabe
-        two_column_compact = /^\s*(\d+)\s+([A-ZÄÖÜ][\wäöüß\-]+)\s+([A-ZÄÖÜ][\wäöüß\-\.]+)\s+(\d+)\s+([A-ZÄÖÜ][\wäöüß\-]+)\s+([A-ZÄÖÜ][\wäöüß\-\.]+)/i
-        
-        # Einspaltig mit Vorgabe: Nummer + Nachname + Vorname + flexible Whitespace + Zahl
-        single_with_points = /^\s*(\d+)\s+([A-ZÄÖÜ][\wäöüß\-]+)\s+([A-ZÄÖÜ][\wäöüß\-\.]+)\s+(\d+)(?:\s*Pkt)?/i
-        
-        # Einspaltig ohne Vorgabe (Fallback)
-        single_without_points = /^\s*(\d+)\s+([A-ZÄÖÜ][\wäöüß\-]+)\s+([A-ZÄÖÜ][\wäöüß\-\.]+)/i
-        
-        if (match = line.match(two_column_with_points))
-          # Zweispaltig MIT Vorgaben
-          # Linke Spalte
-          players << {
-            position: match[1].to_i,
-            lastname: match[2].strip,
-            firstname: match[3].strip,
-            full_name: "#{match[2].strip}, #{match[3].strip}",
-            balls_goal: match[4].to_i
-          }
-          
-          # Rechte Spalte
-          players << {
-            position: match[5].to_i,
-            lastname: match[6].strip,
-            firstname: match[7].strip,
-            full_name: "#{match[6].strip}, #{match[7].strip}",
-            balls_goal: match[8].to_i
-          }
-        elsif (match = line.match(two_column_without_points))
-          # Zweispaltig OHNE Vorgaben
-          # Linke Spalte
-          players << {
-            position: match[1].to_i,
-            lastname: match[2].strip,
-            firstname: match[3].strip,
-            full_name: "#{match[2].strip}, #{match[3].strip}"
-          }
-          
-          # Rechte Spalte
-          players << {
-            position: match[4].to_i,
-            lastname: match[5].strip,
-            firstname: match[6].strip,
-            full_name: "#{match[5].strip}, #{match[6].strip}"
-          }
-        elsif (match = line.match(two_column_compact))
-          # Kompaktes zweispaltiges Format: "2 Schröder Hans-Jörg 6 Kämmer Lothar"
-          # Die Zahl nach dem ersten Namen könnte Position (klein, ≤20) oder Vorgabe (groß) sein
-          # Heuristik: Wenn ≤ 20 → wahrscheinlich Position, sonst Vorgabe
-          number_after_first = match[4].to_i
-          
-          if number_after_first <= 20
-            # Wahrscheinlich Position → Zweispaltig OHNE Vorgaben
-            players << {
-              position: match[1].to_i,
-              lastname: match[2].strip,
-              firstname: match[3].strip,
-              full_name: "#{match[2].strip}, #{match[3].strip}"
-            }
-            
-            players << {
-              position: number_after_first,
-              lastname: match[5].strip,
-              firstname: match[6].strip,
-              full_name: "#{match[5].strip}, #{match[6].strip}"
-            }
-          else
-            # Wahrscheinlich Vorgabe → Einspaltig MIT Vorgabe
-            players << {
-              position: match[1].to_i,
-              lastname: match[2].strip,
-              firstname: match[3].strip,
-              full_name: "#{match[2].strip}, #{match[3].strip}",
-              balls_goal: number_after_first
-            }
-          end
-        elsif (match = line.match(single_with_points))
-          # Einspaltig MIT Vorgabe (kann in zweispaltiger Tabelle vorkommen, z.B. letzte Zeile)
-          players << {
-            position: match[1].to_i,
-            lastname: match[2].strip,
-            firstname: match[3].strip,
-            full_name: "#{match[2].strip}, #{match[3].strip}",
-            balls_goal: match[4].to_i
-          }
-        elsif (match = line.match(single_without_points))
-          # Einspaltig OHNE Vorgabe (Fallback)
-          players << {
-            position: match[1].to_i,
-            lastname: match[2].strip,
-            firstname: match[3].strip,
-            full_name: "#{match[2].strip}, #{match[3].strip}"
-          }
-        end
+        # Kopfzeile der Tabelle
+        next if line =~ /^\s*Setz\.?\s+GD\s+(?:Ballzahl\s+)?Name\s+Verein/i
+        # Einleitungssatz ("Setzliste nach GD-Rangliste 2025/2026.")
+        next if line =~ /Rangliste/i
+
+        # CC-Format (seit September 2026), eine Zeile je Teilnehmer. Es gibt zwei Auspraegungen:
+        #
+        #   ohne Vorgabe (Meisterschaft, einheitliches Ausspielziel):
+        #   "     1        1,51             Mustermann, Anton        TSV Beispiel"
+        #    \_Setz._/     \_GD_/           \_Nachname, Vorname_/    \_Verein_/
+        #
+        #   mit Vorgabe (Vorgabeturnier, Ballzahl je Spieler):
+        #   "     1        3,39     50      Mustermann, Dr. Anton    BC Beispiel"
+        #    \_Setz._/     \_GD_/   \Ball/  \_Nachname, Vorname_/    \_Verein_/
+        #
+        # Die GD (Generaldurchschnitt aus der Rangliste) wird NICHT ausgewertet — sie ist
+        # keine Vorgabe. Bis zum Formatwechsel stand an aehnlicher Stelle das Ballziel; eine
+        # GD als Vorgabe einzutragen waere ein stiller Datenfehler (1,51 statt 50).
+        # Die SPALTE "Ballzahl" dagegen IST die Vorgabe und wird als balls_goal uebernommen.
+        # Sie fehlt bei Turnieren mit einheitlichem Ausspielziel — deshalb optional.
+        #
+        # Die GD kann "-" sein (Teilnehmer ohne Ranglistenwert).
+        # Der Verein steht hinter mindestens zwei Leerzeichen — im Namen selbst kommen nur
+        # einfache vor, auch bei mehrteiligen Nachnamen ("von der Gönna, Patrick") und
+        # Titeln im Vornamen ("Ullrich, Dr. Gernot").
+        cc_row = /^\s*(\d+)\s+(?:[\d.,]+|-)\s+(?:(\d+)\s+)?([^,]+?),\s*(\S(?:.*?\S)?)\s{2,}(.+?)\s*$/
+
+        next unless (match = line.match(cc_row))
+
+        spieler = {
+          position: match[1].to_i,
+          lastname: match[3].strip,
+          firstname: match[4].strip,
+          full_name: "#{match[3].strip}, #{match[4].strip}",
+          club: match[5].strip
+        }
+        spieler[:balls_goal] = match[2].to_i if match[2]
+        players << spieler
       end
     end
     
@@ -223,8 +146,9 @@ class SeedingListExtractor
     lines = text.split("\n")
     
     lines.each do |line|
-      # Bälle Ziel: "100 Bälle" oder "100 Pkt" oder "Ballziel: 100"
-      if (match = line.match(/(?:Ballziel|Bälle|Pkt)[:\s]+(\d+)/i))
+      # CC-Format (seit September 2026): "Ausspielziel:  40 Punkte / 20 Aufnahmen" —
+      # die Zahl steht VOR der Einheit. Bis dahin stand sie dahinter ("Ballziel: 100").
+      if (match = line.match(/(\d+)\s*(?:Punkte|Bälle|Pkt)\b/i))
         params[:balls_goal] = match[1].to_i
       end
       
@@ -247,8 +171,11 @@ class SeedingListExtractor
     lines = text.split("\n")
     
     lines.each do |line|
-      # Format 1: "Turniermodus: T21 - 3 Gruppen à 3, 4 und 4 Spieler"
-      if (match = line.match(/Turniermodus:\s*(.+)/i))
+      # CC-Format (seit September 2026): "Modus:  T7 - Jeder gegen jeden".
+      # `Turniermodus:` bleibt mit abgedeckt, weil dieselbe Zeile im Fliesstext der
+      # Beschreibung vorkommt ("Turniermodus T7 gemaess STO-BTK ...") — der Doppelpunkt
+      # unterscheidet die Label-Zeile davon.
+      if (match = line.match(/(?:Turnier)?Modus:\s*(.+)/i))
         plan_info = match[1].strip.gsub(/\s+/, ' ')
         Rails.logger.info "===== extract_plan_info ===== Found (Format 1): #{plan_info}"
         return plan_info if plan_info.present?

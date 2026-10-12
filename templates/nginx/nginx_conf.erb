@@ -27,7 +27,7 @@ server {
 
     error_log /var/log/<%= @scenario['basename'] %>/error.log debug;
     access_log /var/log/<%= @scenario['basename'] %>/access.log combined;
-
+<%= "    # Regionsdumps nur auf der Authority (docs/administrators/region-dumps.de.md)\n    include snippets/carambus_region_dumps.conf;\n" if @config['cap_role'] == 'api' %>
 <% if @config.fetch('bot_block_enabled', true) %>
     # Bot-Abweisung — die maps ($carambus_block_bot / $carambus_deny) leben EINMALIG pro
     # Server in /etc/nginx/conf.d/carambus_bot_block.conf (siehe
@@ -82,7 +82,8 @@ server {
         break;
     }
 
-    # Statische Turnier-App (/app/ -> shared/public/app/, per rsync aktualisiert): stabile
+<% if @scenario['serve_tournament_app'] %>
+    # Statische Turnier-App (/app/ -> public/app/ aus dem Release, Plan 17-04): stabile
     # Dateinamen ohne Fingerprint, deshalb nicht cachen. nginx liefert sie ohnehin direkt
     # (location / + try_files), setzte aber KEIN Cache-Control -> Browser cachen heuristisch
     # (Anteil des Last-Modified-Alters) und zeigen nach einem App-Update weiter die alte
@@ -93,6 +94,13 @@ server {
         add_header Cache-Control "no-cache" always;
         try_files $uri $uri/index.html $uri.html @<%= @scenario['basename'] %>_upstream;
     }
+<% else %>
+    # Turnier-App liegt in jedem Release (public/app/), wird aber nur mit
+    # serve_tournament_app: true ausgeliefert (Plan 17-04).
+    location ^~ /app/ {
+        return 404;
+    }
+<% end %>
 
     location / {
         root /var/www/<%= @scenario['basename'] %>/current/public;
@@ -182,7 +190,8 @@ server {
         break;
     }
 
-    # Statische Turnier-App (/app/ -> shared/public/app/, per rsync aktualisiert): stabile
+<% if @scenario['serve_tournament_app'] %>
+    # Statische Turnier-App (/app/ -> public/app/ aus dem Release, Plan 17-04): stabile
     # Dateinamen ohne Fingerprint, deshalb nicht cachen. nginx liefert sie ohnehin direkt
     # (location / + try_files), setzte aber KEIN Cache-Control -> Browser cachen heuristisch
     # (Anteil des Last-Modified-Alters) und zeigen nach einem App-Update weiter die alte
@@ -193,6 +202,13 @@ server {
         add_header Cache-Control "no-cache" always;
         try_files $uri $uri/index.html $uri.html @<%= @scenario['basename'] %>_upstream;
     }
+<% else %>
+    # Turnier-App liegt in jedem Release (public/app/), wird aber nur mit
+    # serve_tournament_app: true ausgeliefert (Plan 17-04).
+    location ^~ /app/ {
+        return 404;
+    }
+<% end %>
 
     location / {
         root /var/www/<%= @scenario['basename'] %>/current/public;

@@ -37,9 +37,14 @@ class LocationsTerminateExternalHoldTest < ActionDispatch::IntegrationTest
 
   # App-game (no tournament_id) at :final_match_score, optionally already acknowledged.
   # external_id: nil → non-external game (regression arm).
+  # Explizite ID >= MIN_ID: der Scope `Game.training` (game.rb:59) filtert auf
+  # `id >= MIN_ID`, die Test-Sequenz vergibt aber vierstellige IDs. Ohne feste ID faellt
+  # das Spiel aus dem Scope, `finalize_if_decided` liefert false und der Terminate-Pfad
+  # landet im destroy-Zweig — der Keep-Test konnte so nie gruen werden.
   def build_app_game(external_id:, acknowledged: false)
     data = external_id.nil? ? {} : {"external_id" => external_id}
-    game = Game.create!(tournament_id: nil, data: data, group_no: 1, seqno: 1, table_no: 1,
+    @next_build_id = (@next_build_id || 63_000_000) + 1
+    game = Game.create!(id: @next_build_id, tournament_id: nil, data: data, group_no: 1, seqno: 1, table_no: 1,
       result_acknowledged_at: acknowledged ? Time.current : nil)
     GameParticipation.create!(game: game, player: @player_a, role: "playera")
     GameParticipation.create!(game: game, player: @player_b, role: "playerb")

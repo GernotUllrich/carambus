@@ -163,6 +163,27 @@ class TableMonitor::ResultRecorderTest < ActiveSupport::TestCase
     assert_equal 60, saved_set["Ergebnis2"]
   end
 
+  # Biathlon (2026-10-07): die Dreiband-Punkte (vor ×6) sind letztes Kriterium der
+  # GP-Gruppenwertung (DBU-Ausschreibung GP Kegel § 2.2 Abs. 3d) — sie gehoeren in ba_results,
+  # das acknowledge_result an die Turnier-App ausliefert.
+  test "save_current_set uebernimmt bei Biathlon die Dreiband-Punkte in ba_results" do
+    @tm.data["playera"].merge!("discipline" => "Biathlon", "result" => 120, "result_3b" => 9, "innings_3b" => 20)
+    @tm.data["playerb"].merge!("discipline" => "Biathlon", "result" => 90, "result_3b" => 4, "innings_3b" => 20)
+    @tm.save!
+
+    TableMonitor::ResultRecorder.save_current_set(table_monitor: @tm)
+
+    ba = @tm.reload.data["ba_results"]
+    assert_equal 9, ba["3BErgebnis1"]
+    assert_equal 4, ba["3BErgebnis2"]
+  end
+
+  test "save_current_set laesst ba_results anderer Disziplinen ohne Dreiband-Felder" do
+    TableMonitor::ResultRecorder.save_current_set(table_monitor: @tm)
+
+    assert_not @tm.reload.data["ba_results"].key?("3BErgebnis1")
+  end
+
   # ---------------------------------------------------------------------------
   # Test 4: get_max_number_of_wins gibt die maximale Satzanzahl zurueck
   # ---------------------------------------------------------------------------
@@ -887,5 +908,40 @@ class TableMonitor::ResultRecorderTest < ActiveSupport::TestCase
       "R1: playing_finals? override must cause tiebreak_pick_pending? to return true on 10:10"
     assert_equal true, @game.reload.data["tiebreak_required"],
       "R1: helper must persist game.data['tiebreak_required']=true so both read sites observe the override"
+  end
+
+  # ---------------------------------------------------------------------------
+  # Plan 04-01: Vorgabe-bewusste Tie-Erkennung — Pendant zu R1 mit unterschiedlichen
+  # Zielen je Spieler (Vorgabe-Turnier). "1. Vorgabepokal" live: 50/50 vs. 42/42.
+  # ---------------------------------------------------------------------------
+
+  test "AC-1 (Recorder): Vorgabe-Gleichstand (50/50 vs. 42/42) forces modal to tiebreak_winner_choice" do
+    @tm.deep_merge_data!(
+      "free_game_form" => "karambol",
+      "playera" => {"result" => 50, "innings" => 20, "balls_goal" => 50},
+      "playerb" => {"result" => 42, "innings" => 20, "balls_goal" => 42},
+      "innings_goal" => 30,
+      "allow_follow_up" => false
+    )
+    @tm.save!
+    @game.update!(data: {})
+
+    tour_monitor = TournamentMonitor.create!(
+      tournament: tournaments(:local),
+      state: "new_tournament_monitor",
+      balls_goal: 40,
+      innings_goal: 30,
+      timeout: 0,
+      timeouts: 2
+    )
+    tour_monitor.update_columns(state: "playing_finals")
+    @tm.update!(tournament_monitor: tour_monitor)
+    @tm.reload
+
+    recorder = TableMonitor::ResultRecorder.new(table_monitor: @tm)
+    result = recorder.send(:tiebreak_pick_pending?)
+
+    assert_equal true, result,
+      "beide Spieler bei 100% ihres eigenen Vorgabe-Ziels (50/50, 42/42) muss als Gleichstand erkannt werden"
   end
 end

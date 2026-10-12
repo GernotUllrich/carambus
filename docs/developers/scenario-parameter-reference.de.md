@@ -209,7 +209,7 @@ Diese unterscheiden sich zwischen Szenarien (oder sind sensibel), werden aber
 | `OPENAI_API_KEY`, `DEEPL_API_KEY`, Anthropic-Key | Rails-Credentials (`.yml.enc`) | wie Credentials oben | App-interne API-Keys. |
 | Google-Service-Account (Calendar/YouTube/Translate) | Rails-Credentials (JSON) | wie Credentials oben | |
 | `SMTP_USERNAME`, `SMTP_PASSWORD` | **`/etc/<basename>.env`** (manuell auf Server) | systemd `EnvironmentFile=-/etc/<basename>.env` (`puma.service`) | `production.rb` liest `ENV["SMTP_USERNAME"]`/`ENV["SMTP_PASSWORD"]`. Leading `-` = optional. **Nicht generiert, nicht in `config.yml`.** |
-| `region_shortname` | nur als ENV-Default in `scenarios.rake` (`'NBV'`, Z. 2347) | — | beim DB-Bootstrap, nicht aus `config.yml`. |
+| `region_shortname` | **`config.yml`** (`scenario.region_shortname`), optional | `resolve_region_shortname` (`scenarios.rake:650-651`) | Bestimmt, welcher Regionsdump geladen wird: `region_shortname`, sonst `context`, sonst abgeleitet aus `region_id`. Ist keines bestimmbar, bricht der Schritt ab (`scenarios.rake:3226-3228`). Das frühere hartkodierte `'NBV'` gibt es nicht mehr. |
 | Let's-Encrypt-Zertifikate | `/etc/letsencrypt/live/<host>/` (certbot) | auf Server | `nginx.conf` referenziert die Pfade, erzeugt sie aber nicht. |
 | `carambus_bot_block.conf` (nginx-`map`) | einmalig pro Server in `/etc/nginx/conf.d/` | `rake scenarios:install_bot_block` (Z. 327); Vorlage `carambus_master/templates/nginx/carambus_bot_block.conf` | `nginx.conf` referenziert nur die `$carambus_block_bot`-Variable. |
 

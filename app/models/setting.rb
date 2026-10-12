@@ -430,7 +430,11 @@ class Setting < ApplicationRecord
         end
       end
     end
-    
+
+    # Abgelehnter Login (z. B. „Zu viele Fehlversuche") kommt als „checking..."-Zwischenseite
+    # mit PHPSESSID-Cookies — nur für die Fehlermeldung; entschieden wird im Sanity-Check.
+    cc_error = cc_login_error_message(login_doc)
+
     # Versuche Session-ID aus dem Set-Cookie Header zu extrahieren
     # WICHTIG: Wenn mehrere PHPSESSID cookies vorhanden sind, nutze den LETZTEN
     cookies = login_res.get_fields("set-cookie")
@@ -523,7 +527,7 @@ class Setting < ApplicationRecord
     end
 
     # Plan 21-13 T2 (D-21-13-H): Anti-Silent-Failure Sedo-Parking-Detection
-    verify_clubcloud_reachable!(region_cc, session_id)
+    verify_clubcloud_reachable!(region_cc, session_id, cc_error: cc_error)
 
     if persist_global
       Setting.key_set_value("session_id", session_id)
@@ -544,7 +548,12 @@ class Setting < ApplicationRecord
   # echter Admin-Endpoint). Wenn Response 200 + Body NICHT von Sedo/IONOS
   # geparkt → echte ClubCloud reachable. Sonst raise mit Hinweis auf
   # Plan-21-12-Seed-Pattern für base_url-Aktualisierung.
-  def self.verify_clubcloud_reachable!(region_cc, session_id)
+  #
+  # 2026-09-15: Ein abgelehnter Login liefert trotzdem PHPSESSID-Cookies; verband.php zeigt dann
+  # nur den Auto-Logout-Stub („Club Cloud: LOGIN-BEREICH"). Bisher galt das als Erfolg → jeder
+  # Folge-Call lief in den Stub, und jede Recovery machte einen weiteren Login-Versuch (hält eine
+  # CC-Sperre am Leben). Stub + CC-Meldung (cc_error, siehe cc_login_error_message) → raise.
+  def self.verify_clubcloud_reachable!(region_cc, session_id, cc_error: nil)
     sanity_uri = URI(region_cc.base_url.chomp("/") + "/admin/verband.php")
     sanity_http = Net::HTTP.new(sanity_uri.host, sanity_uri.port)
     sanity_http.use_ssl = true
@@ -565,7 +574,22 @@ class Setting < ApplicationRecord
       raise "ClubCloud Login succeeded but /admin/verband.php is a Domain-Parking-Page (Sedo/IONOS detected). Tenant-Subdomain may have changed; check ClubCloud-Public-Login-Link and update RegionCc[#{region_cc.region&.shortname}].base_url + seed db/seeds/region_cc_base_urls.rb (Plan 21-12 pattern). Current base_url: #{region_cc.base_url}"
     end
 
+    if McpServer::CcSession.session_expired?(sanity_res.body.to_s)
+      # Ohne CC-Meldung nicht eindeutig (per-User-Account evtl. ohne Verbandsrechte) → nur Warnung.
+      raise "ClubCloud-Login abgelehnt: #{cc_error}" if cc_error.present?
+      Rails.logger.warn "[Setting.verify_clubcloud_reachable!] admin/verband.php zeigt nach dem Login den LOGIN-BEREICH — Session evtl. nicht angemeldet"
+    end
+
     Rails.logger.info "[Plan 21-13 T2] Sedo-Detection passed for #{region_cc.base_url} — admin/verband.php reachable + real content"
+  end
+
+  # checkUser.php antwortet bei abgelehntem Login mit einer „checking..."-Zwischenseite, die die
+  # CC-Meldung als hidden errMsg/errMsgNew per JS an ../index.php weiterreicht
+  # (live 2026-09-15: „Abbruch: Zu viele Fehlversuche bei der Anmeldung. …"). nil wenn keine Meldung.
+  def self.cc_login_error_message(doc)
+    doc.css('input[name="errMsg"], input[name="errMsgNew"]')
+      .map { |input| Nokogiri::HTML.fragment(input["value"].to_s).text.strip }
+      .find(&:present?)
   end
 
   def self.logoff_from_cc
@@ -948,11 +972,18 @@ class Setting < ApplicationRecord
 
   # Trägt ein Spiel automatisch in die ClubCloud ein
   # Returns: { success: true/false, error: nil/"error message", skipped: true/false }
-  def self.upload_game_to_cc(table_monitor)
-    return { success: false, error: "No table_monitor", skipped: false } unless table_monitor.present?
-
-    game = table_monitor.game
-    return { success: false, error: "No game", skipped: false } unless game.present?
+  # Plan 24-01 (2026-09-23): nimmt wahlweise einen TableMonitor ODER direkt ein Game.
+  #
+  # Ein abgeloestes Spiel (Tisch schon neu besetzt) hat keinen TableMonitor mehr — eine
+  # Korrektur daran soll die ClubCloud trotzdem erreichen. Die Methode haengt nur an DREI
+  # Stellen am TableMonitor: Praesenzpruefung, Ableitung des Games und `ba_results`. Alles
+  # andere arbeitet ohnehin am Game, deshalb genuegt hier ein zweiter Eingang.
+  # Bestehende Aufrufer uebergeben weiter einen TableMonitor und verhalten sich unveraendert.
+  def self.upload_game_to_cc(table_monitor, game: nil)
+    game ||= table_monitor&.game
+    unless game.present?
+      return { success: false, error: "No game (neither table_monitor nor game given)", skipped: false }
+    end
 
     tournament = game.tournament
     return { success: false, error: "No tournament", skipped: false } unless tournament.present?
@@ -1020,7 +1051,7 @@ class Setting < ApplicationRecord
     end
 
     # Extrahiere Spieldaten
-    ba_results = table_monitor.data["ba_results"] || game.data["ba_results"]
+    ba_results = table_monitor&.data&.dig("ba_results") || game.data["ba_results"]
     unless ba_results.present?
       error_msg = "No game results (ba_results) found"
       Rails.logger.warn "[CC-Upload] #{error_msg} for game[#{game.id}]"
@@ -1320,32 +1351,12 @@ class Setting < ApplicationRecord
     val
   end
 
-  def self.get_carambus_api_token
-    expire_str = Setting.key_get_value("carambus_api_token_expire_at")
-    if expire_str.blank? || Time.parse(expire_str) < Time.now
-      url = URI("https://dev-r4djmvaa.eu.auth0.com/oauth/token")
-      http = Net::HTTP.new(url.host, url.port)
-      http.use_ssl = true
-      http.verify_mode = Carambus.ssl_verify_mode
-      request = Net::HTTP::Post.new(url)
-      request["content-type"] = "application/json"
-      request.body = "{\"client_id\":\"aqAJY7zNMsw0jiThccQyKOO1WyjKP0AC\",\"client_secret\":\"7PN4bsl0tikD8fylkoOY_j2RudtlayXVCI0SlPzG2Tfr7ewLUETiEYHFwVL9Rk1Q\",\"audience\":\"https://api.carambus.de\",\"grant_type\":\"client_credentials\"}"
-      response = http.request(request)
-      return [] unless response.message == "OK"
-
-      resp = JSON.parse(response.read_body)
-      access_token = resp["access_token"]
-      token_type = resp["token_type"]
-      Rails.logger.info "access_token: #{access_token} token_type: #{token_type}"
-
-      Setting.key_set_value("carambus_api_access_token", access_token)
-      Setting.key_set_value("carambus_api_token_type", token_type)
-      Setting.key_set_value("carambus_api_token_expire_at", Time.now + 36_000.seconds)
-
-    else
-      access_token = Setting.key_get_value("carambus_api_access_token")
-      token_type = Setting.key_get_value("carambus_api_token_type")
-    end
-    [access_token, token_type]
-  end
+  # Plan 21-03 (2026-09-20): `self.get_carambus_api_token` entfernt.
+  # Sie holte ein Auth0-Token fuer api.carambus.de und trug client_id und client_secret
+  # im KLARTEXT — in einem oeffentlichen Repo. Ihr einziger Aufrufer (version.rb:457) war
+  # seit Langem auskommentiert, und die drei Setting-Schluessel (carambus_api_token,
+  # carambus_api_token_type, carambus_api_token_expire_at) wurden nirgends sonst gelesen:
+  # toter Code mit lebendem Geheimnis.
+  # Die Fingerprints beider Werte stehen in lib/credential_denylist.yml — die Baum-Wache
+  # verhindert ihre Rueckkehr. Die Rotation bei Auth0 liegt beim Betreiber.
 end

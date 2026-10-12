@@ -45,8 +45,9 @@ module McpServer
         (player ID, meldeliste ID, federation, branch, season) without modifying CC.
         Pass `armed: true` to actually register — this is a destructive write to ClubCloud.
         Tool refuses to run armed:true in Rails production env.
-        Requires `meldeliste_cc_id` (NOT tournament_cc_id) — get it from CC-Navigation
-        (Meldelisten-Übersicht). Auto-lookup from tournament_cc_id is a v0.2 feature.
+        Requires `meldeliste_cc_id` — resolve it fresh via cc_lookup_meldeliste_for_tournament (never reuse an ID
+        from earlier messages). Also pass `tournament_cc_id`: then the tool verifies (armed) that the Meldeliste
+        belongs to that tournament and refuses otherwise.
         Includes a read-only consistency check: warns if the player has no PlayerRanking
         for the target season/region (TM should confirm before armed:true).
       DESC
@@ -55,7 +56,8 @@ module McpServer
           fed_id: {type: "integer", description: "ClubCloud federation ID (e.g. 20 for NBV). Optional — resolved via region lookup; ENV CC_FED_ID overrides."},
           branch_cc_id: {type: "integer", description: "CC admin branch ID (e.g. 8 for Kegel, 10 for Karambol). NOTE: admin-cc-id from HAR/Sniff, NOT public scraping branch_id."},
           season: {type: "string", description: "Season name like '2025/2026' (CC sends this string format, not season_id)"},
-          meldeliste_cc_id: {type: "integer", description: "CC meldelisteId of the target Meldeliste — get from CC Meldelisten-Übersicht (admin/myclub/meldewesen/single)"},
+          meldeliste_cc_id: {type: "integer", description: "CC meldelisteId of the target Meldeliste — resolve via cc_lookup_meldeliste_for_tournament"},
+          tournament_cc_id: {type: "integer", description: "Empfohlen: CC meisterschaftsId des Turniers. Wenn gesetzt, prüft das Tool gegen die Verknüpfung in der ClubCloud, dass meldeliste_cc_id zu diesem Turnier gehört, und lehnt sonst ab."},
           player_cc_id: {type: "integer", description: "CC player ID of the player to register (Player.cc_id). Alternative: player_name (Plan 10-06 Vokabular-Schicht)."},
           player_name: {type: "string", description: "Alternative zu player_cc_id (Plan 10-06 Convenience-Wrapper): Spielername-Suche via cc_search_player; bei ≥2 Treffern blockiert mit Disambiguation-Diagnose."},
           player_cc_ids: {type: "array", items: {type: "integer"}, minItems: 1,
@@ -71,8 +73,8 @@ module McpServer
       )
       annotations(read_only_hint: false, destructive_hint: true)
 
-      def self.call(fed_id: nil, branch_cc_id: nil, season: nil, meldeliste_cc_id: nil, player_cc_id: nil,
-        player_name: nil, player_cc_ids: nil, player_names: nil,
+      def self.call(fed_id: nil, branch_cc_id: nil, season: nil, meldeliste_cc_id: nil, tournament_cc_id: nil,
+        player_cc_id: nil, player_name: nil, player_cc_ids: nil, player_names: nil,
         club_cc_id: nil, club_name: nil, discipline_id: nil, armed: false, server_context: nil)
         # Plan 14-G.13.1 Task 1: Per-Tool-Call-Cache-Scope eröffnen.
         cc_cache_reset!
@@ -140,10 +142,10 @@ module McpServer
         # wird authorize!-Check übersprungen — Tool-spezifische Validations werfen den
         # eigentlichen "meldeliste not found"-Fehler später.
         resolved_tournament = resolve_tournament(
-          meldeliste_cc_id: meldeliste_cc_id, server_context: server_context
+          meldeliste_cc_id: meldeliste_cc_id, tournament_cc_id: tournament_cc_id, server_context: server_context
         )
         if resolved_tournament
-          auth_err = authorize!(action: :manage_teilnehmerliste, tournament: resolved_tournament, server_context: server_context)
+          auth_err = authorize!(action: :manage_meldeliste, tournament: resolved_tournament, server_context: server_context)
           return auth_err if auth_err
         end
 
@@ -169,8 +171,10 @@ module McpServer
         end
         validation_result = run_validations([
           _validate_meldeliste_exists(meldeliste_cc_id),
+          validate_meldeliste_zum_turnier(meldeliste_cc_id, tournament_cc_id, fed_id, branch_cc_id, season,
+            armed: armed, server_context: server_context),
           _validate_meldeliste_non_finalized(meldeliste_cc_id),
-          _validate_deadline_offen(meldeliste_cc_id),
+          _validate_deadline_offen(meldeliste_cc_id, fed_id, branch_cc_id, season, armed: armed, server_context: server_context),
           *per_player_results,
           _validate_scope_konsistent(meldeliste_cc_id, fed_id, branch_cc_id, season)
         ])
@@ -392,7 +396,7 @@ module McpServer
           payload: {
             meldeliste_cc_id: meldeliste_cc_id, player_cc_ids: player_cc_ids,
             club_cc_id: club_cc_id, fed_id: fed_id, branch_cc_id: branch_cc_id,
-            season: season, discipline_id: discipline_id, armed: true
+            season: season, discipline_id: discipline_id, tournament_cc_id: tournament_cc_id, armed: true
           },
           pre_validation_results: validation_result[:results],
           read_back_status: read_back_status,
@@ -439,15 +443,29 @@ module McpServer
         {name: "meldeliste_non_finalized", ok: true}
       end
 
-      # Constraint 3/7: Deadline-offen (accredation_end >= today).
-      def self._validate_deadline_offen(meldeliste_cc_id)
-        # Plan 23-01 T3e: TCc-direct (war RL → tournament_cc → tournament-Chain).
-        tournament_cc = TournamentCc.find_by(meldeliste_cc_id: meldeliste_cc_id)
-        tournament = tournament_cc&.tournament
-        if tournament&.accredation_end
-          if tournament.accredation_end < Date.today
-            return {name: "deadline_offen", ok: false, reason: "accredation_end=#{tournament.accredation_end.iso8601} ist in der Vergangenheit (today=#{Date.today.iso8601})"}
-          end
+      # Constraint 3/7: Meldeschluss der Meldeliste nicht überschritten — live aus dem Listenkopf
+      # (showMeldeliste). 2026-09-15: vorher über TournamentCc.meldeliste_cc_id, das im Mirror
+      # praktisch immer nil ist → die Prüfung lief nie (Meldung in Liste mit Meldeschluss 09.09. „ok").
+      # Nur im armed-Pfad (Dry-Run macht keinen CC-Call). Defensive: Scope unvollständig /
+      # Seite nicht lesbar → ok:true.
+      def self._validate_deadline_offen(meldeliste_cc_id, fed_id, branch_cc_id, season, armed: true, server_context: nil)
+        return {name: "deadline_offen", ok: true} if !armed || [meldeliste_cc_id, fed_id, branch_cc_id, season].any?(&:blank?)
+
+        _res, doc = cc_session.with_session_recovery(server_context: server_context) do |client, sid|
+          client.get("showMeldeliste", {p: "#{fed_id}|#{branch_cc_id}|*|*|#{season}|#{meldeliste_cc_id}"}, {session_id: sid})
+        end
+        deadline = begin
+          Date.strptime(cc_detail_value(doc, "Meldeschluss").to_s, "%d.%m.%Y")
+        rescue Date::Error
+          nil
+        end
+        if deadline && deadline < Date.current
+          # 2026-09-15: Der frühere Zusatz „zuerst den Meldeschluss verlängern" brachte das LLM dazu,
+          # die Verlängerung einer FREMDEN Liste anzubieten (alte ID aus dem Gesprächsverlauf).
+          return {name: "deadline_offen", ok: false, reason: "Meldeschluss der Meldeliste #{meldeliste_cc_id} war am #{deadline.strftime("%d.%m.%Y")}. " \
+            "Prüfe zuerst per cc_lookup_meldeliste_for_tournament, ob das überhaupt die Meldeliste des gewünschten Turniers ist " \
+            "(eine Meldelisten-ID aus früheren Nachrichten kann zu einer anderen Liste gehören). Einen Meldeschluss nur verlängern, " \
+            "wenn die Liste nachweislich zum Turnier gehört und der Sportwart es ausdrücklich will."}
         end
         {name: "deadline_offen", ok: true}
       rescue => e

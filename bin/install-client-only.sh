@@ -124,13 +124,17 @@ fi
 # Get MD5 hash from Rails application
 # Determine which Rails application directory to use
 RAILS_APP_DIR=""
+# Fallback ist der Checkout, aus dem dieses Skript laeuft — nicht ein Nachbarverzeichnis.
+# Auf $OWN_CHECKOUT/Gemfile pruefen, nicht auf das Verzeichnis: das existiert per Definition,
+# der Fehlerpfad waere sonst toter Code.
+OWN_CHECKOUT="$(cd "$SCRIPT_DIR/.." && pwd)"
 if [ -d "$CARAMBUS_BASE/${SCENARIO_NAME}" ]; then
     RAILS_APP_DIR="$CARAMBUS_BASE/${SCENARIO_NAME}"
-elif [ -d "$CARAMBUS_MASTER" ]; then
-    RAILS_APP_DIR="$CARAMBUS_MASTER"
+elif [ -f "$OWN_CHECKOUT/Gemfile" ]; then
+    RAILS_APP_DIR="$OWN_CHECKOUT"
 else
     error "Could not find Rails application directory"
-    error "Checked: $CARAMBUS_BASE/${SCENARIO_NAME} and $CARAMBUS_MASTER"
+    error "Checked: $CARAMBUS_BASE/${SCENARIO_NAME} and $OWN_CHECKOUT"
     exit 1
 fi
 

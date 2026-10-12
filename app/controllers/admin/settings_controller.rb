@@ -38,7 +38,10 @@ module Admin
       end
 
       # Check if config is locked
-      @config_locked = File.exist?(Rails.root.join('config', 'carambus.yml.lock'))
+      # ⚠️ Derselbe Helfer wie auf der Schreibseite (Carambus.save_config). Pruefte diese
+      # Stelle weiter Rails.root/config, zeigte das Dashboard auf einem Server „nicht
+      # gesperrt", obwohl das Lock in shared/config/ liegt und greift.
+      @config_locked = File.exist?(Carambus.config_lock_path)
 
       render 'admin/settings/index'
     end

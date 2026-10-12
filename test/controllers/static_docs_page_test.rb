@@ -72,4 +72,53 @@ class StaticDocsPageTest < ActionDispatch::IntegrationTest
 
     assert_response :not_found
   end
+
+  # --- Plan 19-02: weitere Traversal-Varianten. Ziel ist jeweils eine Probe-Datei AUSSERHALB von
+  # docs/ (tmp/zz_traversal_probe.md) mit einem Marker. Geprueft wird nicht nur der Status, sondern
+  # dass der Marker nie in der Antwort steht — ein 200 aus einem Rueckfall innerhalb von docs/ waere
+  # sonst von einer gelungenen Traversal nicht zu unterscheiden.
+
+  PROBE_MARKER = "zz-traversal-probe-19-02"
+
+  def with_probe_outside_docs
+    probe = Rails.root.join("tmp", "zz_traversal_probe.md")
+    FileUtils.mkdir_p(probe.dirname)
+    File.write(probe, "# Probe\n\n#{PROBE_MARKER}\n")
+    yield
+  ensure
+    FileUtils.rm_f(probe)
+  end
+
+  def assert_probe_not_served
+    assert_response :not_found
+    assert_not_includes response.body, PROBE_MARKER
+  end
+
+  test "Traversal mit kodierten Punkten wird abgewiesen" do
+    with_probe_outside_docs do
+      get "/docs_page/de/%2e%2e/tmp/zz_traversal_probe"
+      assert_probe_not_served
+    end
+  end
+
+  test "absoluter Pfad wird abgewiesen" do
+    with_probe_outside_docs do
+      get "/docs_page/de/#{CGI.escape(Rails.root.join("tmp", "zz_traversal_probe").to_s)}"
+      assert_probe_not_served
+    end
+  end
+
+  test "Locale aus dem Query-String fuehrt nicht aus docs/ heraus" do
+    with_probe_outside_docs do
+      get "/docs_page/zz_traversal_probe", params: {locale: "../tmp"}
+      assert_probe_not_served
+    end
+  end
+
+  test "absolute Locale aus dem Query-String fuehrt nicht aus docs/ heraus" do
+    with_probe_outside_docs do
+      get "/docs_page/zz_traversal_probe", params: {locale: Rails.root.join("tmp").to_s}
+      assert_probe_not_served
+    end
+  end
 end

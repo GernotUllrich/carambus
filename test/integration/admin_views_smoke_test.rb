@@ -13,6 +13,14 @@ require "test_helper"
 class AdminViewsSmokeTest < ActionDispatch::IntegrationTest
   DASHBOARDS = %i[training_examples training_concepts shots training_sources].freeze
 
+  # 2026-09-04: Ohne Login antwortet /admin/* mit 302 auf die Root — die Render-Gates
+  # liefen deshalb nie gegen die eigentlichen Views, sondern gegen einen Redirect. Der
+  # Test war seit seiner Einfuehrung rot (Commit 96d5f1b5). system_admin wie in den
+  # uebrigen Admin-Tests (test/controllers/admin/users_controller_test.rb).
+  setup do
+    sign_in users(:system_admin)
+  end
+
   DASHBOARDS.each do |resource|
     test "admin #{resource} Index renders with HTTP 200" do
       get "/admin/#{resource}"

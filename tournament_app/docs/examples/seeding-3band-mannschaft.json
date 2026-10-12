@@ -1,0 +1,69 @@
+{
+  "schema": "carambus.seeding/v1",
+  "region": {
+    "shortname": "NBV",
+    "url": "https://nbv.carambus.de"
+  },
+  "tournament": {
+    "cc_id": 12345,
+    "name": "3-Band Mannschaftsmeisterschaft NBV 2026",
+    "discipline": {
+      "name": "3-Band",
+      "synonyms": ["3C", "Dreiband"]
+    },
+    "format": {
+      "target_points": 30,
+      "max_innings": 25,
+      "sets": null,
+      "frames": null
+    },
+    "starts_at": "2026-05-17T11:00:00+02:00",
+    "location": "BC Wedel"
+  },
+  "teams": [
+    {
+      "seeding_position": 1,
+      "name": "BC Wedel 1",
+      "club": { "cc_id": 42, "shortname": "BC Wedel" },
+      "players": [
+        { "position_in_team": 1, "firstname": "Hans",     "lastname": "Müller",    "cc_id": 9001, "dbu_nr": "12001", "nationality": "DE" },
+        { "position_in_team": 2, "firstname": "Klaus",    "lastname": "Schmidt",   "cc_id": 9002, "dbu_nr": "12002", "nationality": "DE" },
+        { "position_in_team": 3, "firstname": "Peter",    "lastname": "Schneider", "cc_id": 9003, "dbu_nr": "12003", "nationality": "DE" },
+        { "position_in_team": 4, "firstname": "Michael",  "lastname": "Fischer",   "cc_id": 9004, "dbu_nr": "12004", "nationality": "DE" }
+      ]
+    },
+    {
+      "seeding_position": 2,
+      "name": "BC Wedel 2",
+      "club": { "cc_id": 42, "shortname": "BC Wedel" },
+      "players": [
+        { "position_in_team": 1, "firstname": "Thomas",   "lastname": "Weber",     "cc_id": 9011, "dbu_nr": "12011", "nationality": "DE" },
+        { "position_in_team": 2, "firstname": "Andreas",  "lastname": "Meyer",     "cc_id": 9012, "dbu_nr": "12012", "nationality": "DE" },
+        { "position_in_team": 3, "firstname": "Stefan",   "lastname": "Wagner",    "cc_id": 9013, "dbu_nr": "12013", "nationality": "DE" },
+        { "position_in_team": 4, "firstname": "Jürgen",   "lastname": "Becker",    "cc_id": 9014, "dbu_nr": "12014", "nationality": "DE" }
+      ]
+    },
+    {
+      "seeding_position": 3,
+      "name": "BG Hamburg 1",
+      "club": { "cc_id": 17, "shortname": "BG Hamburg" },
+      "players": [
+        { "position_in_team": 1, "firstname": "Wolfgang", "lastname": "Schulz",    "cc_id": 9021, "dbu_nr": "12021", "nationality": "DE" },
+        { "position_in_team": 2, "firstname": "Manfred",  "lastname": "Hoffmann",  "cc_id": 9022, "dbu_nr": "12022", "nationality": "DE" },
+        { "position_in_team": 3, "firstname": "Heinz",    "lastname": "Schäfer",   "cc_id": 9023, "dbu_nr": "12023", "nationality": "DE" },
+        { "position_in_team": 4, "firstname": "Karl",     "lastname": "Koch",      "cc_id": 9024, "dbu_nr": "12024", "nationality": "DE" }
+      ]
+    },
+    {
+      "seeding_position": 4,
+      "name": "BG Hamburg 2",
+      "club": { "cc_id": 17, "shortname": "BG Hamburg" },
+      "players": [
+        { "position_in_team": 1, "firstname": "Werner",   "lastname": "Bauer",     "cc_id": 9031, "dbu_nr": "12031", "nationality": "DE" },
+        { "position_in_team": 2, "firstname": "Dieter",   "lastname": "Richter",   "cc_id": 9032, "dbu_nr": "12032", "nationality": "DE" },
+        { "position_in_team": 3, "firstname": "Bernd",    "lastname": "Klein",     "cc_id": 9033, "dbu_nr": "12033", "nationality": "DE" },
+        { "position_in_team": 4, "firstname": "Günter",   "lastname": "Wolf",      "cc_id": 9034, "dbu_nr": "12034", "nationality": "DE" }
+      ]
+    }
+  ]
+}

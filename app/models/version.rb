@@ -2,6 +2,7 @@
 
 require "uri"
 require "net/http"
+require "open3"
 # == Schema Information
 #
 # Table name: versions
@@ -131,6 +132,15 @@ class Version < PaperTrail::Version
     end
   end
 
+  # Plan 21-06: Die Antwort der Authority landete ungeprueft in einer Shell-Kommandozeile
+  # (siehe update_carambus). Ein Git-Commit-Hash hat genau eine Form — alles andere wird
+  # verworfen, bevor irgendetwas startet.
+  REVISION_FORMAT = /\A[0-9a-f]{7,40}\z/
+
+  def self.valid_revision?(str)
+    REVISION_FORMAT.match?(str.to_s)
+  end
+
   def self.update_carambus
     url = URI("#{Carambus.config.carambus_api_url}/versions/current_revision")
     Rails.logger.info ">>>>>>>>>>>>>>>> GET #{url} <<<<<<<<<<<<<<<<"
@@ -142,9 +152,19 @@ class Version < PaperTrail::Version
       return
     end
     revision = vers["current_revision"]
+    # Plan 21-06 (Schicht 1): Form pruefen, bevor der Wert irgendwohin geht — analog zur
+    # Behandlung einer ungueltigen API-Antwort zwei Zeilen darueber.
+    unless valid_revision?(revision)
+      Rails.logger.warn("update_carambus: #{url} lieferte keine gültige Revision " \
+                        "(#{revision.inspect}) — übersprungen")
+      return
+    end
     my_revision = `cat #{Rails.root}/REVISION`.strip
     if my_revision != revision
-      result = `REVISION=#{revision} bash -x #{Rails.root}/bin/deploy.sh 2>&1`
+      # Plan 21-06 (Schicht 2): Argumentliste statt Backtick — keine Shell mehr, und der Wert
+      # steht in der UMGEBUNG, nicht in der Kommandozeile. Muster wie 21-04 (AiDocsService).
+      result, _status = Open3.capture2e({"REVISION" => revision},
+        "bash", "-x", Rails.root.join("bin", "deploy.sh").to_s)
       Rails.logger.info(result)
     else
       Rails.logger.info("carambus version is up-to-date (#{revision})")
@@ -229,14 +249,82 @@ class Version < PaperTrail::Version
   def self.last_version
     return Version.last&.id if Carambus.config.carambus_api_url.blank?
 
-    url = "#{Carambus.config.carambus_api_url}/versions/last_version"
-    uri = URI(url)
-    json_io = http_get_with_ssl_bypass(uri, nil_on_error: true)
-    parsed = parse_api_json(json_io)
+    parsed = fetch_authority_last_version
     parsed.is_a?(Hash) ? parsed["last_version"] : Version.last&.id
   rescue OpenURI::HTTPError => e
-    Rails.logger.info "===== #{e} cannot read from #{url}"
+    Rails.logger.info "===== #{e} cannot read from #{Carambus.config.carambus_api_url}/versions/last_version"
     e.to_s
+  end
+
+  # Roher Zugriff auf /versions/last_version: liefert den GEPARSTEN Hash, nicht nur die Zahl.
+  # `last_version` (Zahl) und `sync_status` (Zustand) teilen sich diesen einen HTTP-Pfad —
+  # ein zweiter waere eine Quelle fuer auseinanderlaufendes Verhalten.
+  def self.fetch_authority_last_version(region_id = nil)
+    url = "#{Carambus.config.carambus_api_url}/versions/last_version"
+    url += "?region_id=#{region_id}" if region_id.present?
+    parse_api_json(http_get_with_ssl_bypass(URI(url), nil_on_error: true))
+  end
+  private_class_method :fetch_authority_last_version
+
+  # Region dieses Servers aus `Carambus.config.context` — ohne Beachtung der Gross-/Klein-
+  # schreibung, wie die RegionCc-Pfade (`context.upcase`). Frueher suchten die Sync-Stellen
+  # `find_by_shortname(context)` exakt: `context: nbv` (Prod carambus_nbv) loeste nicht auf,
+  # der Server zog ungefiltert und hielt Ligen fremder Regionen (belegt 2026-09-19).
+  # nil ohne Kontext (Full-Mirror wie carambus.de) oder ohne passende Region (Authority "API").
+  def self.context_region_id
+    shortname = Carambus.config.context.to_s.strip
+    return nil if shortname.blank?
+
+    Region.where("UPPER(shortname) = ?", shortname.upcase).pick(:id)
+  end
+
+  # Beantwortet die Frage, die die Versionsanzeige stellen sollte: "fehlt mir etwas, das mich
+  # betrifft?"
+  #
+  # Der lokale Cursor laeuft nur ueber Versionen, die `get_updates` fuer DIESE Region
+  # ausliefert (`Version.for_region`). Ihn mit dem ungefilterten globalen Hoechststand zu
+  # vergleichen — wie es die Anzeige frueher tat — ergibt einen Rueckstand, der ueberwiegend
+  # aus Records fremder Regionen besteht und nie auf null geht.
+  #
+  # Zustaende:
+  #   :current      nichts offen (auch wenn die Authority global weiter ist)
+  #   :behind       `pending` Versionen betreffen diesen Server und fehlen ihm
+  #   :unfiltered   die Authority kennt den region_id-Parameter noch nicht (keine Quittung in
+  #                 der Antwort) — die Zahl sagt nichts ueber fehlende Records, es wird
+  #                 deshalb KEIN Rueckstand berechnet
+  #   :unreachable  keine auswertbare Antwort
+  #
+  # Liest nur — kein Cursor wird geschrieben, kein Sync ausgeloest.
+  def self.sync_status(region_id = nil)
+    region_id ||= context_region_id
+    local = Setting.key_get_value("last_version_id").to_i
+    base = {local_version: local, region_id: region_id, authority_version: nil, pending: nil}
+
+    # Ohne Authority-URL gibt es nichts zu vergleichen (Nicht-Local-Server) — dieselbe
+    # Vorbedingung, die `last_version` oben prueft.
+    return base.merge(state: :unreachable) if Carambus.config.carambus_api_url.blank?
+
+    parsed = fetch_authority_last_version(region_id)
+    return base.merge(state: :unreachable) unless parsed.is_a?(Hash)
+
+    # Ohne eigene Region wurde gar nicht gefiltert — die Antwort traegt dann zwar die
+    # Quittung (mit null), ist aber der globale Hoechststand. Ohne diese Pruefung wuerde
+    # genau der alte Fehler zurueckkehren: ein Rueckstand aus Records fremder Regionen.
+    return base.merge(state: :unfiltered, authority_version: parsed["last_version"]) if region_id.blank?
+
+    # Die Quittung entscheidet, ob die Zahl gefiltert ist. Ohne sie sehen alte und neue
+    # Authority identisch aus (beide antworten nur mit `last_version`).
+    return base.merge(state: :unfiltered, authority_version: parsed["last_version"]) unless parsed.key?("region_id")
+
+    authority = parsed["last_version"]
+    # nil = keine Version passt auf diese Region -> es gibt nichts zu holen.
+    return base.merge(state: :current, authority_version: authority, pending: 0) if authority.blank? || authority.to_i <= local
+
+    base.merge(state: :behind, authority_version: authority, pending: authority.to_i - local)
+  rescue OpenURI::HTTPError => e
+    Rails.logger.info "===== #{e} cannot read last_version from #{Carambus.config.carambus_api_url}"
+    {state: :unreachable, local_version: Setting.key_get_value("last_version_id").to_i,
+     region_id: region_id, authority_version: nil, pending: nil}
   end
 
   # Parse a text-column serialized payload. If it looks like JSON (starts with `{` or `[`)
@@ -361,6 +449,12 @@ class Version < PaperTrail::Version
     args
   end
 
+  # Rueckgabewert: Anzahl der UEBERNOMMENEN Versionen (Plan 03-02).
+  #
+  # Nicht die Cursor-Differenz — die zaehlt auch Versionen fremder Regionen mit, die dieser
+  # Server nie erhaelt, und laeuft ausserdem ueber fehlgeschlagene Anwendungen hinweg.
+  # Im Fehlerfall (rescue OpenURI::HTTPError) bleibt es beim bisherigen `e.to_s`; Aufrufer,
+  # die die Zahl brauchen, muessen deshalb auf Integer pruefen.
   def self.update_from_carambus_api(opts = {})
     tournament_id = opts[:update_tournament_from_cc]
     region_id = opts[:reload_tournaments]
@@ -377,7 +471,14 @@ class Version < PaperTrail::Version
     league_details = opts[:league_details]
     days_ahead = opts[:days_ahead]
     reload_games = opts[:reload_games]
-    # access_token, token_type = Setting.get_carambus_api_token
+    # Sync-Filter: fehlt er, aus dem Kontext ableiten. Die Reload-Buttons (leagues/clubs/regions/
+    # tournaments) und TournamentPreparation::Opener uebergeben keinen und zogen so ungefiltert.
+    filter_region_id = opts[:region_id].presence || context_region_id
+    # Plan 21-03 (2026-09-20): hier stand ein auskommentierter Aufruf von
+    # Setting.get_carambus_api_token. Er war der EINZIGE Verweis auf eine Methode, die
+    # Auth0-Zugangsdaten im Klartext trug — ein Kommentar, der ein Geheimnis am Leben hielt.
+    # Beides entfernt. /versions/get_updates verlangt ohnehin keine Anmeldung; ob das so
+    # bleiben soll, ist ein offener Befund im carambus_api-Handoff.
     url = URI("#{Carambus.config.carambus_api_url}/versions/get_updates?last_version_id=#{
       Setting.key_get_value("last_version_id").to_i
     }#{
@@ -403,7 +504,7 @@ class Version < PaperTrail::Version
     }#{
       "&player_details=#{player_details}" if player_details
     }#{
-      "&region_id=#{opts[:region_id]}" if opts[:region_id].present?
+      "&region_id=#{filter_region_id}" if filter_region_id.present?
     }#{
       "&league_details=#{league_details}" if league_details
     }#{
@@ -419,6 +520,7 @@ class Version < PaperTrail::Version
     vers = parse_api_json(json_io)
     raise ApiUnavailableError, "Keine gültige Antwort von #{url}" if vers.nil?
 
+    applied = 0
     while vers.present?
       h = vers.shift
       break if h.blank?
@@ -428,11 +530,10 @@ class Version < PaperTrail::Version
           case h["event"]
           when "create"
             args = YAML.load(h["object_changes"]).to_a.map { |v| [v[0], v[1][1]] }.to_h
-            if h["item_type"] == "PartyCc" # TODO: what's going on here?
-              args["data"] = eval(args["data"]) if args["data"].present? && args["data"].is_a?(String)
-            elsif args["data"].present?
-              args["data"] = Version.safe_parse_for_text_column(args["data"])
-            end
+            # Plan 19-02: Hier stand ein PartyCc-Sonderzweig mit `eval(args["data"])` — Sync-Inhalt wurde
+            # als Ruby-Code ausgefuehrt. PartyCc#data ist eine Textspalte mit Ruby-Inspect ('{:result=>"0:0"}');
+            # der allgemeine Zweig uebernimmt den String unveraendert (kein gueltiges JSON → Rohwert).
+            args["data"] = Version.safe_parse_for_text_column(args["data"]) if args["data"].present?
             args["remarks"] = Version.safe_parse_for_text_column(args["remarks"]) if args["remarks"].present?
             Rails.logger.info "#{h["item_type"]}[#{h["item_id"]}]#{JSON.pretty_generate(args)}"
             begin
@@ -500,11 +601,9 @@ class Version < PaperTrail::Version
             else
               YAML.load(h["object"])
             end
-            if h["item_type"] == "PartyCc" # TODO: what's going on here?
-              args["data"] = eval(args["data"]) if args["data"].present? && args["data"].is_a?(String)
-            elsif args["data"].present?
-              args["data"] = Version.safe_parse_for_text_column(args["data"])
-            end
+            # Plan 19-02: frueher PartyCc-Sonderzweig mit `eval` (siehe create-Zweig). Dort scheiterte
+            # jedes Update zusaetzlich mit "TypeError: can't cast Hash" (update_columns auf die Textspalte).
+            args["data"] = Version.safe_parse_for_text_column(args["data"]) if args["data"].present?
             begin
               classz = h["item_type"].constantize
               # Sync-Apply-Fix (2026-06-17): serialize-Spalten (remarks/t_ids/data) typ-bewusst
@@ -513,6 +612,23 @@ class Version < PaperTrail::Version
               # Plan 02.1-03 (update-Zweig): Schluessel, die die lokale Tabelle nicht kennt,
               # verwerfen statt daran zu scheitern.
               reject_unknown_columns!(classz, args, h["item_id"])
+              # Eine ERZWUNGENE Version (`record.paper_trail.save_with_version`, etwa um eine per
+              # `update_columns` geschriebene Korrektur nachtraeglich syncfaehig zu machen) traegt
+              # ein LEERES Delta. Die Authority liefert es als String "{}" aus — `present?` ist
+              # darauf wahr, das geparste Delta aber leer, weshalb der `else`-Zweig oben nie
+              # greift. Ohne diese Zeile entstuende `update_columns({})` und daraus ein
+              # "UPDATE ... WHERE ..." OHNE SET-Klausel: PG::SyntaxError.
+              #
+              # Der Folgeschaden waere der groessere: der Fehler vergiftet die Transaktion, in der
+              # weiter unten auch `Setting.key_set_value("last_version_id", ...)` steht — der
+              # Cursor bleibt dann stehen und der naechste Sync laeuft in exakt denselben Fehler.
+              # Belegt am 2026-09-05 an TournamentPlan[41] v13725800 (bc-wedel).
+              #
+              # `snapshot_with_changes` ist hier genau richtig: voller `object`-Snapshot als Basis,
+              # das Delta gewinnt darueber. Bei leerem Delta ist der Snapshot der Stand der
+              # Authority — und weil die Version ohne Attributaenderung entstand, ist "vorher"
+              # derselbe Zustand wie "nachher".
+              args = snapshot_with_changes(h, classz) if args.blank?
               obj = classz.where(id: h["item_id"]).first
               if obj.present?
                 args.each do |k, v|
@@ -552,7 +668,9 @@ class Version < PaperTrail::Version
                     {type: h["item_type"], id: h["item_id"], version: h["id"],
                      errors: obj.errors.full_messages}
                 end
-                obj.update_columns(args)
+                # Sicherheitsnetz: traegt auch der Snapshot nichts bei (leeres `object`), gibt es
+                # nichts zu schreiben. Ein leerer Hash wuerde hier SQL ohne SET-Klausel erzeugen.
+                obj.update_columns(args) if args.present?
               else
                 obj = classz.new
                 obj.id = h["item_id"]
@@ -591,6 +709,11 @@ class Version < PaperTrail::Version
           end
           Setting.key_set_value("last_version_id", last_version_id)
         end
+        # Erst NACH der Transaktion zaehlen: was im rescue landet, wurde nicht uebernommen
+        # (und ist ueber :carambus_sync_apply_failures ohnehin erfasst). Der Cursor laeuft in
+        # dem Fall trotzdem weiter — genau deshalb ist die Cursor-Differenz keine taugliche
+        # Angabe darueber, wie viel geholt wurde.
+        applied += 1
       rescue => e
         Rails.logger.info "===== FATAL #{e} #{e.backtrace} cannot continue"
       end
@@ -611,6 +734,7 @@ class Version < PaperTrail::Version
         "Datenqualität prüfen: #{invalid.first(20).inspect}"
       Thread.current[:carambus_sync_invalid_applied] = nil
     end
+    applied
   rescue OpenURI::HTTPError => e
     Rails.logger.info "===== #{e} cannot read from #{url}"
     e.to_s

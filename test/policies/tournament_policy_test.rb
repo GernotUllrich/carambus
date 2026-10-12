@@ -30,6 +30,20 @@ class TournamentPolicyTest < ActiveSupport::TestCase
     assert_not p.enter_results?
   end
 
+  # 2026-09-15 (Betreiber-Vorgabe): Meldeliste spielortunabhängig, Teilnehmerliste spielortgebunden.
+  test "manage_meldeliste?: Sportwart der Disziplin auch bei Turnier an fremdem Spielort — Teilnehmerliste nicht" do
+    foreign = Tournament.new(location_id: 99_999_999, discipline_id: @discipline.id)
+    p = TournamentPolicy.new(@sportwart_user, foreign)
+    assert p.manage_meldeliste?
+    assert_not p.manage_teilnehmerliste?
+  end
+
+  test "manage_meldeliste?: TL ja, random user und anonym nein" do
+    assert TournamentPolicy.new(@tl_user, @tournament).manage_meldeliste?
+    assert_not TournamentPolicy.new(@random_user, @tournament).manage_meldeliste?
+    assert_not TournamentPolicy.new(nil, @tournament).manage_meldeliste?
+  end
+
   test "random user (kein TL, kein Sportwart-Wirkbereich) → alle 4 Methoden false" do
     p = TournamentPolicy.new(@random_user, @tournament)
     assert_not p.assign_leiter?

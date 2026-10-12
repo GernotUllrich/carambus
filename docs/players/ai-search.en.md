@@ -1,6 +1,6 @@
 # AI-Powered Search
 
-The AI-powered search enables the use of natural English or German language to find data in Carambus. The feature uses OpenAI's GPT-4o-mini model to translate search queries into structured filter syntax.
+The AI-powered search enables the use of natural English or German language to find data in Carambus. The feature uses Anthropic's Claude Haiku 4.5 model to translate search queries into structured filter syntax (`app/services/ai_search_service.rb:111,129`).
 
 ## 📋 Table of Contents
 
@@ -14,26 +14,29 @@ The AI-powered search enables the use of natural English or German language to f
 
 ## 🚀 Setup
 
-### Add OpenAI API Key
+### Add Anthropic API Key
 
-1. **Get OpenAI API Key**
-   - Create an account at https://platform.openai.com
+1. **Get an Anthropic API Key**
+   - Create an account at https://console.anthropic.com
    - Generate an API key under "API Keys"
-   - Copy the key (starts with `sk-...`)
+   - Copy the key (starts with `sk-ant-...`)
 
-2. **Add Key to Rails Credentials**
+2. **Add Key to Rails Credentials** — in your own scenario checkout:
 
    ```bash
-   cd /Users/gullrich/DEV/carambus/carambus_master
+   cd ~/DEV/carambus/<scenario>
    EDITOR="code --wait" rails credentials:edit --environment development
    ```
 
 3. **Add the following lines:**
 
    ```yaml
-   openai:
-     api_key: sk-your-actual-api-key-here
+   anthropic:
+     api_key: sk-ant-your-actual-api-key-here
    ```
+
+   The flat name `anthropic_key` is still read as well
+   (`config/application.rb:30-33`); use the form above for new entries.
 
 4. **Save and close**
    - Save the file (Cmd+S in VS Code)
@@ -221,7 +224,7 @@ Meyer Region:WL Season:2024/2025        → Free text AND filters
 
 ## 🔧 Troubleshooting
 
-### "OpenAI not configured"
+### "Anthropic not configured"
 
 **Problem:** API Key missing in credentials  
 **Solution:** Follow setup steps above, add API key
@@ -251,7 +254,7 @@ Meyer Region:WL Season:2024/2025        → Free text AND filters
 
 ## 💰 Costs
 
-Using OpenAI GPT-4o-mini is **very affordable**:
+Using Claude Haiku 4.5 is **very affordable**. The figures below are an order of magnitude, not measured values — current prices are published by Anthropic:
 
 | Action | Input Tokens | Output Tokens | Cost |
 |--------|-------------|---------------|------|
@@ -263,7 +266,7 @@ Using OpenAI GPT-4o-mini is **very affordable**:
 
 ### Cost Monitoring
 
-OpenAI Dashboard shows real-time usage: https://platform.openai.com/usage
+The Anthropic Console shows usage: https://console.anthropic.com/settings/usage
 
 ## 📊 Technical Details
 
@@ -280,7 +283,7 @@ AiSearchController
         ↓
 AiSearchService
         ↓
-OpenAI GPT-4o-mini (JSON Response)
+Claude Haiku 4.5 (JSON Response)
         ↓
 Filter Syntax
         ↓
@@ -347,8 +350,8 @@ The AI service uses an optimized system prompt:
 
 ## 📚 Further Links
 
-- [OpenAI Platform](https://platform.openai.com)
-- [GPT-4o-mini Pricing](https://openai.com/pricing)
+- [Anthropic Console](https://console.anthropic.com)
+- [Anthropic pricing](https://www.anthropic.com/pricing)
 - Carambus Filter Documentation
 
 ## 🤝 Support

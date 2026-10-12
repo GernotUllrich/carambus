@@ -1,282 +1,236 @@
 ---
 name: scenario-management
-description: Manages multi-tenant deployment workflow for Carambus project with multiple git checkouts. Use when working with carambus_master, carambus_bcw, carambus_phat, or carambus_api directories, when modifying code, committing changes, or when user mentions scenarios, deployments, or feature branches.
+description: Regelt die Arbeit in den mehreren Carambus-Checkouts (carambus_bcw, carambus_api, carambus_phat, carambus_nbv, carambus_gu) — ein Repository, mehrere gleichberechtigte Arbeitsverzeichnisse. Use when modifying code, committing, creating feature branches, coordinating between scenarios, or when the user mentions scenarios or deployments.
 ---
 
-# Scenario Management System
+# Scenario Management
 
-⚠️ **CRITICAL**: This project has ONE git repository with MULTIPLE checkouts (one per scenario). To prevent unmergeable divergence between checkouts, EVERY chat must explicitly declare its work mode BEFORE any edit. No edits without a declared mode.
-
-## Repository Structure
+**Ein Git-Repository, mehrere Checkouts — einer je Szenario.** Sie sind **gleichberechtigt**:
+Es gibt keinen ausgezeichneten Ort, an dem Code entstehen müsste. Was zählt, ist
+`origin/master`.
 
 ```
 /Users/gullrich/DEV/carambus/
-├── carambus_master/   # MASTER MODE ONLY (master branch)
-├── carambus_bcw/      # BCW scenario (master pull OR scenario/bcw/<topic> feature branch)
-├── carambus_phat/     # PHAT scenario (master pull OR scenario/phat/<topic> feature branch)
-├── carambus_api/      # API scenario (master pull OR scenario/api/<topic> feature branch)
-├── carambus_gu/       # GU scenario (master pull OR scenario/gu/<topic> feature branch)
-└── carambus_data/     # Scenario configs (no code edits expected)
+├── carambus_api/      # Authority
+├── carambus_bcw/      # BC Wedel — lokaler Server
+├── carambus_phat/     # PHAT — lokaler Server
+├── carambus_nbv/      # NBV — ClubCloud-Pflege
+├── carambus_gu/       # Trainingssystem
+└── carambus_data/     # Szenario-Konfigurationen (keine Code-Edits erwartet)
 ```
 
 ---
 
-## Mandatory Mode Declaration (CRITICAL)
+## Die eine Regel
 
-⚠️ **No edits, commits, or branch operations until the user has explicitly declared the work mode for this chat.** If a request would require an edit and no mode has been declared, the AI MUST stop and ask the user to declare one.
+> **Nicht an mehreren Stellen gleichzeitig dieselbe Sache ändern.**
 
-The two valid declarations:
+Alle Szenarien basieren auf derselben Carambus-Basis. Von wo aus committet und gepusht wird,
+ist gleichgültig — der eigentliche Fehler ist **Mehrfach-Bearbeitung**, nicht der Checkout
+selbst. Zwei Checkouts, die parallel dieselbe Datei anfassen, erzeugen Konflikte, die niemand
+mehr sauber auflösen kann.
 
-1. **`start master mode`** — work on `carambus_master/` on the `master` branch.
-2. **`start feature branch mode <topic> in <scenario>`** — work in the named scenario checkout on a `scenario/<scenario>/<topic>` branch (creating it if it doesn't exist).
+*(Betreiber-Formulierung vom 2026-06-07, seit v0.3.5 die Kernregel dieses Skills.)*
 
-Examples:
-- "start master mode"
-- "start feature branch mode rfid-table-monitor in carambus_bcw"
-- "start feature branch mode disk-cleanup in carambus_api"
+Daraus folgt alles Weitere:
 
-The declaration sticks for the entire chat unless the user explicitly switches mode (a fresh declaration ends the previous one).
-
-### Mode-switch hygiene
-
-When switching modes inside a chat:
-1. Commit or stash any pending work in the previously active checkout.
-2. Confirm the new mode's target checkout is in the expected state (clean tree, correct branch).
-3. New edits land only in the new mode's scope.
+- **Vor dem ersten Edit ansagen, wo gearbeitet wird.** Ein Satz genügt: „Ich arbeite in
+  `carambus_bcw` auf `scenario/bcw/<topic>`." Das ist ein Abgleich, kein
+  Genehmigungsverfahren — „ja, hier weiterarbeiten" ist die übliche Antwort.
+- **Läuft anderswo schon etwas am selben Thema, erst dort abschließen.** Ein halbfertiger
+  Stand in einem anderen Checkout ist der einzige Grund, den Ort zu wechseln.
 
 ---
 
-## Master Mode
+## Wo eine Änderung ihre Heimat hat
 
-**Declaration:** `start master mode`
+Eine **Voreinstellung, keine Sperre**. Sie sagt, wo eine Änderung sinnvoll getestet werden
+kann und wer sie kennt — nicht, dass ein anderer Checkout sie nicht machen dürfte.
 
-### Workflow
+| Checkout | Heimat für |
+|---|---|
+| `carambus_api` | Globale Records (`id < MIN_ID`), Authority-Logik, Scraping der Verbandsquellen |
+| `carambus_bcw`, `carambus_phat` | Lokaler Spielbetrieb am jeweiligen Standort (`id >= MIN_ID`), Scoreboards, TableMonitor |
+| `carambus_nbv` | ClubCloud-Pflege des NBV |
+| `carambus_gu` | Trainingssystem |
+| **kein bestimmter** | **Szenarioübergreifendes**: `rake scenario:*`, `bin/`-Skripte, `.agents/skills/`, CI-Workflows, `docs/` |
 
-1. ✅ All edits land in `carambus_master/` only.
-2. ✅ Branch: `master`. Pull first (`git pull --rebase origin master`).
-3. ✅ Commit and push from `carambus_master/`.
-4. ⏸️ Other scenario checkouts are **not** auto-pulled. The user pulls them when ready to deploy.
+Belegt aus den `.paul/PROJECT.md` der jeweiligen Checkouts. Der entscheidende Punkt: **Wer
+etwas ändert, sollte es testen können.** Authority-Code testet man in `carambus_api`,
+Spielbetrieb an einem lokalen Server-Szenario — dort steht die passende Datenbank.
 
-### Forbidden in Master Mode
+**Szenarioübergreifendes hat keine Heimat** — Werkzeuge, Skills, CI und Doku betreffen alle
+Checkouts gleichermaßen. Sie werden dort geändert, wo gerade gearbeitet wird. Dafür wiegt die
+Regel oben umso schwerer: Weil eine solche Änderung **jeden** Checkout erreicht, ist eine
+parallele Bearbeitung an zwei Stellen hier besonders teuer. Ansagen, dann anfangen.
 
-- ❌ Modify files in `carambus_bcw/`, `carambus_phat/`, `carambus_api/`.
-- ❌ Commit from any checkout other than `carambus_master/`.
-- ❌ Push directly to a remote feature branch.
+---
 
-### Example
+## Feature-Branches
+
+Bewährt und in Gebrauch — aktuell 15 Branches aus vier Szenarien.
+
+**Namenskonvention (verbindlich):**
+
+```
+scenario/<szenario>/<topic>
+```
+
+Beispiele: `scenario/bcw/rfid-table-monitor`, `scenario/api/disk-cleanup`,
+`scenario/phat/streaming-overlay`. Das Präfix macht auf einen Blick sichtbar, welcher
+Checkout den Branch angelegt hat, und verhindert versehentliches Auschecken im falschen Baum.
+
+**Wann ein Feature-Branch, wann direkt auf `master`:**
+
+| Situation | Weg |
+|---|---|
+| Riskanter Umbau, längere Arbeit, mehrere Schritte | Feature-Branch |
+| Etwas, das erst am echten Szenario getestet werden muss | Feature-Branch |
+| Kleiner, klar abgegrenzter Fix | Direkt auf `master` ist in Ordnung |
+
+**Anlegen:**
 
 ```bash
-cd /Users/gullrich/DEV/carambus/carambus_master
+cd /Users/gullrich/DEV/carambus/<szenario>
+git fetch origin
+git checkout -b scenario/<szenario>/<topic> origin/master
+# … Edits, Tests, Commits …
+git push -u origin scenario/<szenario>/<topic>
+```
+
+**Drift vermeiden:** Mindestens wöchentlich oder vor jedem größeren Commit `origin/master`
+in den Branch mergen. Konflikte werden **im Feature-Branch** gelöst, nie auf `master`.
+
+```bash
+git fetch origin master
+echo "$(git rev-list --count HEAD..origin/master) Commits hinter master"
+git merge --no-ff origin/master -m "Merge master into scenario/<szenario>/<topic>"
+```
+
+---
+
+## Merge zurück nach master
+
+**Der Merge findet in dem Checkout statt, in dem du gerade arbeitest.** Es gibt keinen
+Checkout, in den man dafür wechseln müsste.
+
+```bash
+cd /Users/gullrich/DEV/carambus/<szenario>
+git checkout scenario/<szenario>/<topic>
+git fetch origin master
+git merge --no-ff origin/master        # letzter Abgleich, Konflikte hier lösen
+# Tests laufen lassen
+git checkout master
 git pull --rebase origin master
-# edits + tests
-git add <files>
-git commit -m "..."
+git merge --no-ff scenario/<szenario>/<topic> -m "Merge scenario/<szenario>/<topic> into master"
 git push origin master
 ```
 
-Other scenarios stay on whatever branch they were on (master or a feature branch). Their working trees do not need to be checked.
+`--no-ff` bleibt Pflicht: Der Merge-Commit macht den Branch in `git log --graph` sichtbar.
+
+**`git pull --rebase origin master` vor jedem Push** — das ist der ganze Konfliktschutz, den
+es braucht. Bei einem Entwickler an einer Maschine ist das Kollisionsrisiko ohnehin klein;
+was tatsächlich passiert ist, war nie ein Konflikt, sondern ein Checkout, der zurückblieb.
+
+**Die anderen Checkouts ziehen nach, wenn sie wollen** (`git pull`). Es gibt keine
+automatische Weitergabe und keine Pflicht, sie synchron zu halten — ein Checkout, der einen
+Stand hinterherhinkt, ist normal.
 
 ---
 
-## Feature Branch Mode
+## Abstimmung zwischen Szenarien: Handoffs
 
-**Declaration:** `start feature branch mode <topic> in <scenario>`
-
-Use this when work cannot ship via master directly — e.g., a scenario-specific experiment, a long-running refactor that must coexist with continuing master development, or risky changes that need staging.
-
-### Branch naming convention (mandatory)
+Ein Befund aus einem Szenario, der ein anderes betrifft, wandert als **Handoff** dorthin —
+nicht über einen gemeinsamen Ort, sondern als Dokument.
 
 ```
-scenario/<scenario>/<topic>
+<ziel-checkout>/.paul/HANDOFF-<kontext>.md
 ```
 
-Examples: `scenario/bcw/rfid-table-monitor`, `scenario/phat/streaming-overlay`, `scenario/api/disk-cleanup-refactor`.
+Der Handoff enthält alles, was der Empfänger braucht, ohne den Vorkontext des Absenders:
+Befund mit Messwerten, wie man ihn nachvollzieht, Handlungsoptionen, Randbedingungen. Er wird
+beim nächsten `/paul:resume` gelesen und nach der Bearbeitung nach
+`.paul/handoffs/archive/` verschoben.
 
-The `scenario/<scenario>/` prefix makes it visible at a glance which checkout owns the branch and prevents accidental checkout in the wrong tree.
+**Beleg, dass das trägt:** Am 2026-09-08 ging ein Firewall-Befund von `carambus_phat` nach
+`carambus_bcw` — dort read-only nachgemessen, umgesetzt, archiviert. Kein gemeinsamer
+Checkout war beteiligt.
 
-### Workflow
+Handoffs regeln, **wer was weiß**. Sie regeln nicht, wer wann schreibt — dafür gilt die eine
+Regel oben.
 
-1. ✅ `cd /Users/gullrich/DEV/carambus/<scenario>` (e.g., `carambus_bcw`).
-2. ✅ Verify clean tree (`git status`).
-3. ✅ Create or check out the feature branch:
-   ```bash
-   git fetch origin
-   git checkout -b scenario/<scenario>/<topic> origin/master   # first time
-   # OR
-   git checkout scenario/<scenario>/<topic>                    # already exists
-   ```
-4. ✅ Edits, commits, push to remote feature branch:
-   ```bash
-   git push -u origin scenario/<scenario>/<topic>
-   ```
-5. ✅ Periodic master merge (drift prevention — see below).
-6. ✅ Final merge back to master (see Final Merge Procedure).
+---
 
-### Forbidden in Feature Branch Mode
+## Vor dem ersten Edit
 
-- ❌ Edit files in `carambus_master/` or any other scenario checkout.
-- ❌ Push to `master` from the scenario checkout.
-- ❌ Use a branch name without the `scenario/<scenario>/` prefix.
-- ❌ Reuse a feature branch across two different scenarios (each scenario owns its own branches).
-
-### Example
+Ein kurzer Blick auf den Zielbaum. Andere Checkouts müssen nicht geprüft werden.
 
 ```bash
-# User: "start feature branch mode rfid-experiment in carambus_bcw"
-cd /Users/gullrich/DEV/carambus/carambus_bcw
-git fetch origin
-git checkout -b scenario/bcw/rfid-experiment origin/master
-# edits + tests
-git add <files>
-git commit -m "..."
-git push -u origin scenario/bcw/rfid-experiment
-```
-
----
-
-## Drift Prevention
-
-Long-running feature branches drift from master and become painful to merge. To bound the drift:
-
-- **Recommended cadence:** merge `origin/master` into the feature branch at least once per week, or before any major commit.
-- **AI behavior:** when entering Feature Branch Mode for an existing branch, check divergence and prompt the user if it's stale.
-
-```bash
-# Inside the scenario checkout, on the feature branch:
-git fetch origin master
-behind=$(git rev-list --count HEAD..origin/master)
-echo "Feature branch is $behind commits behind master."
-# If > ~50 commits or > 7 days since last merge, prompt to merge master in:
-git merge --no-ff origin/master -m "Merge master into scenario/<scenario>/<topic>"
-git push
-```
-
-Resolve any conflicts here, in the feature branch — never on master.
-
----
-
-## Final Merge Procedure (Feature Branch → Master)
-
-When the feature branch is done and the user requests final merge:
-
-1. **In the scenario checkout** — ensure the feature branch is current with master (drift merge above), all conflicts resolved, all tests green, branch pushed:
-   ```bash
-   cd /Users/gullrich/DEV/carambus/<scenario>
-   git checkout scenario/<scenario>/<topic>
-   git pull
-   git fetch origin master
-   git merge --no-ff origin/master -m "Final master sync before merge-back"   # if anything to merge
-   # run tests, fix conflicts
-   git push
-   ```
-
-2. **In carambus_master** — AI performs the merge atomically:
-   ```bash
-   cd /Users/gullrich/DEV/carambus/carambus_master
-   git checkout master
-   git pull --rebase origin master
-   git fetch origin
-   git merge --no-ff origin/scenario/<scenario>/<topic> -m "Merge scenario/<scenario>/<topic> into master"
-   git push origin master
-   ```
-
-3. **Optional cleanup** (only after user confirms merge is good):
-   ```bash
-   git push origin --delete scenario/<scenario>/<topic>
-   ```
-   The local branch in the scenario checkout can stay until the user is ready to repurpose that checkout.
-
-The `--no-ff` flag preserves the merge commit so the feature branch's history is identifiable in `git log --graph`.
-
----
-
-## Pre-Edit Precondition Check
-
-Before the first edit in a declared mode, run a scoped sanity check on **only** the target checkout (other checkouts are decoupled and don't need verification anymore — that's the whole point of the new model).
-
-```bash
-# In master mode:
-cd /Users/gullrich/DEV/carambus/carambus_master
-git fetch -q origin master
-echo "Branch:  $(git rev-parse --abbrev-ref HEAD)"   # must be 'master'
-counts=$(git rev-list --left-right --count origin/master...HEAD)
-echo "vs origin/master: behind=$(echo $counts | awk '{print $1}') ahead=$(echo $counts | awk '{print $2}')"
-git status --short
-
-# In feature branch mode:
-cd /Users/gullrich/DEV/carambus/<scenario>
+cd /Users/gullrich/DEV/carambus/<szenario>
 git fetch -q origin
-echo "Branch:  $(git rev-parse --abbrev-ref HEAD)"   # must be 'scenario/<scenario>/<topic>'
+echo "Branch: $(git rev-parse --abbrev-ref HEAD)"
+git rev-list --left-right --count origin/master...HEAD   # behind / ahead
 git status --short
 ```
 
-Stop and ask the user if:
-- The current branch doesn't match the declared mode.
-- The working tree has uncommitted changes the user didn't expect.
-- The local branch has unpushed commits and the user is about to overwrite or rebase.
+**Anhalten und nachfragen, wenn:**
+
+- der Branch nicht der ist, auf dem gearbeitet werden soll
+- der Arbeitsbaum unerwartete Änderungen enthält (generierte Artefakte wie `public/docs/`
+  sind normal — sie gehören nie in einen Commit; **niemals `git add -A`**, sondern die
+  geänderten Dateien einzeln stagen)
+- lokale Commits ungepusht sind und ein Rebase oder Reset bevorsteht
 
 ---
 
-## Mode Quick Reference
-
-| Aspect | Master Mode | Feature Branch Mode |
-|---|---|---|
-| Declaration | `start master mode` | `start feature branch mode <topic> in <scenario>` |
-| Edit location | `carambus_master/` only | `<scenario>/` only |
-| Branch | `master` | `scenario/<scenario>/<topic>` |
-| Push target | `origin master` | `origin scenario/<scenario>/<topic>` |
-| Other checkouts | Untouched (user pulls when ready) | Untouched (incl. `carambus_master`) |
-| Drift mgmt | n/a | Periodic `merge origin/master` |
-| Closure | Push to master = done | Final merge in `carambus_master` |
-
----
-
-## Scenario Configuration
-
-Each scenario has config in `carambus_data/{scenario}/config.yml`:
-
-```yaml
-scenario:
-  name: carambus_bcw
-  location_id: 1
-  context: LOCAL
-  region_id: 1
-
-environments:
-  production:
-    webserver_host: 192.168.178.107
-    webserver_port: 81
-    database_name: carambus_bcw_production
-```
-
----
-
-## Common Mistakes
-
-1. ❌ Starting any edit without an explicit mode declaration.
-2. ❌ Modifying files in a scenario checkout while in master mode (or vice versa).
-3. ❌ Using a feature branch name without the `scenario/<scenario>/` prefix.
-4. ❌ Letting a feature branch drift weeks from master before merging.
-5. ❌ Merging a feature branch from the scenario checkout instead of `carambus_master/` (master-side merge keeps the canonical commit graph in one place).
-6. ❌ Direct production server interventions (read-only access only).
-
----
-
-## Deployment Workflow
+## Deployment
 
 ```
-master commit → user pulls in scenario checkout → user runs Capistrano deploy
+Commit auf master → der Betreiber pullt im Ziel-Checkout → der Betreiber deployt
 ```
 
-User handles:
-- `git pull` in deployment checkouts when ready (no automatic propagation).
-- `rake "scenario:deploy[carambus_bcw]"` for Capistrano deploys.
-- Production server access (read-only).
+- Der Betreiber pullt selbst, wenn er bereit ist — es gibt keine automatische Weitergabe.
+- Deploys führt der Betreiber aus (`rake "scenario:deploy[<szenario>]"`).
+- **Auf Produktionsservern nur read-only arbeiten.** Änderungen dort brauchen eine
+  ausdrückliche Freigabe und werden vom Betreiber ausgeführt.
 
-The AI never deploys, never touches production servers, and never auto-pulls scenario checkouts after a master push.
+Szenario-Konfigurationen liegen in `carambus_data/scenarios/<szenario>/config.yml`
+(Hosts, Ports, Datenbank, Deploy-Ziel).
 
 ---
 
-## Additional Resources
+## Häufige Fehler
 
-For detailed deployment documentation: `/Users/gullrich/DEV/carambus/carambus_master/docs/developers/scenario-management.de.md`
+1. Dieselbe Sache gleichzeitig in zwei Checkouts ändern — der Fehler, um den es hier geht.
+2. Einen Branch ohne `scenario/<szenario>/`-Präfix anlegen.
+3. Einen Feature-Branch wochenlang treiben lassen, ohne `master` einzumergen.
+4. Konflikte auf `master` lösen statt im Feature-Branch.
+5. `git add -A` in einem Baum mit generierten Artefakten.
+6. Auf einem Produktionsserver schreibend eingreifen.
+
+---
+
+## Historie: warum es keinen Master-Checkout mehr gibt
+
+Bis September 2026 verlangte dieser Skill, dass Code entweder in einem Checkout
+`carambus_master` oder in einem Feature-Branch entsteht, mit dem Merge-back zwingend in
+`carambus_master`.
+
+Das hat sich nicht bewährt: Wer dort editiert, muss dort auch testen können — und sinnvoll
+testen lässt sich nur an einem lokalen Server-Szenario oder in `carambus_api`. Am 2026-09-08
+wurde gemessen, was daraus geworden war: Der Master-Checkout hing zwei Commits hinter den
+vier Deployment-Checkouts, war kein PAUL-Projekt und trug nichts Einzigartiges — sauberer
+Arbeitsbaum, nichts Ungepushtes, alle 28 lokalen Branches auch auf `origin`. Die Praxis
+hatte die Regel längst überstimmt.
+
+Milestone v0.3.5 hat daraus die Konsequenz gezogen: Die Werkzeuge (`rake scenario:*`, die
+`bin/`-Skripte) wurden vom Nachbarverzeichnis gelöst, dieser Skill neu gefasst und
+`carambus_master` stillgelegt. Das **Feature-Branch-Modell blieb** — es wird gelebt und
+funktioniert; verloren ging nur ein Ort, kein Verfahren.
+
+---
+
+## Weiterführend
+
+`docs/developers/scenario-management.de.md` — Szenario-Konfiguration, Datenbanken,
+Deployment im Detail. (Beschreibt die Konfiguration, nicht die Checkout-Disziplin.)

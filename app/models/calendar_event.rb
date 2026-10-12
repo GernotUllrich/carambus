@@ -50,17 +50,30 @@ class CalendarEvent < ApplicationRecord
     nil
   end
 
+  # Tischnummern aus einem Kalender-Titel lesen — tolerant gegenüber den Schreibweisen,
+  # die im Vereinsalltag vorkommen (Betreiber-Entscheidung 2026-09-21):
+  #   "T5 Hajo"  "Nils T5 (!)"  "Nils T5(!)"  "Nils t5"  "T1,T3"  "T1-T3"  "T1-3"  "T1-T3."
+  # Nicht gedeutet werden Formen wie "Tisch 5" — sie könnten in jedem Fließtext stehen.
+  #
+  # Zwei Dinge sind hier bewusst fehlertolerant, weil ein einzelner Termin sonst den
+  # gesamten Heizungslauf abbricht (Vorfall 2026-09-21, alle Tische kalt):
+  #   - ein Titel, der nil ist, ergibt eine leere Liste
+  #   - eine Tischnummer, die es am Spielort nicht gibt, wird übersprungen statt als nil
+  #     zurückgegeben (der Aufrufer ruft `table_kind` darauf)
   def self.tables_from_summary(string, location)
+    tables = location.tables.order(:name).to_a
     table_nos = []
-    string.tr(",", " ").gsub("  ", " ").gsub(/\s*-\s*/, "-").split(" ").each do |str|
-      m = str.match(/\AT(\d+)$/)
-      m2 = str.match(/\AT(\d+)*-T(\d+)$/)
+    string.to_s.tr(",", " ").gsub("  ", " ").gsub(/\s*-\s*/, "-").split(" ").each do |str|
+      # Satzzeichen rund um das Wort ignorieren: "T5(!)" → "T5", "T1-T3." → "T1-T3"
+      token = str.sub(/\A[^[:alnum:]]+/, "").sub(/[^[:alnum:]]+\z/, "")
+      m = token.match(/\AT(\d+)\z/i)
+      m2 = token.match(/\AT(\d+)-T?(\d+)\z/i) # "T1-T3" und die Kurzform "T1-3"
       if m # single table match
         table_nos << m[1].to_i
       elsif m2 # range of tables match
-        table_nos += (m2[1]..m2[2]).map(&:to_i)
+        table_nos += (m2[1].to_i..m2[2].to_i).to_a
       end
     end
-    table_nos.map { |it| location.tables.order(:name).to_a[it - 1] }
+    table_nos.filter_map { |no| tables[no - 1] if no.positive? && no <= tables.size }
   end
 end

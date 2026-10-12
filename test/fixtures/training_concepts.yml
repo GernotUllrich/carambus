@@ -1,0 +1,11 @@
+# 2026-09-04: Siehe Kommentar in training_examples.yml — dieselbe Luecke
+# ("No TrainingConcept record in test DB").
+
+banden_vorbahn:
+  id: 50_006_101
+  title: "Vorbahn ueber drei Banden"
+  title_de: "Vorbahn ueber drei Banden"
+  title_en: "Three-cushion long angle"
+  short_description: "Grundmuster der Vorbahn"
+  short_description_de: "Grundmuster der Vorbahn"
+  source_language: de

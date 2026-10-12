@@ -41,7 +41,7 @@
     </div>
 
     <!-- Player Comparison -->
-    <div class="grid gap-6 mb-6" style="grid-template-columns: repeat(<%= players.count %>, 1fr);">
+    <div class="grid gap-6 mb-6 grid-cols-1 md:[grid-template-columns:repeat(var(--dup-cols),minmax(0,1fr))]" style="--dup-cols: <%= players.count %>;">
       <% players.each_with_index do |player, idx| %>
         <div class="border rounded-lg p-4 <%= idx == 0 ? 'border-primary-500 border-2' : 'border-gray-300 dark:border-gray-600' %>" 
              id="player-<%= player.id %>">
@@ -285,13 +285,3 @@
     </div>
   </section>
 <% end %>
-
-<style>
-  /* Make sure grid works nicely on smaller screens */
-  @media (max-width: 768px) {
-    .grid[style*="grid-template-columns"] {
-      grid-template-columns: 1fr !important;
-    }
-  }
-</style>
-

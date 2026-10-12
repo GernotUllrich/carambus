@@ -1,184 +1,109 @@
-# Executive Summary: Carambus Billard-Turnierverwaltungssystem
+# Executive Summary
 
-## Überblick
+Carambus auf einer Seite: was es kann, wie es aufgebaut ist, was ein Verein braucht und wie das Projekt
+aufgestellt ist. Ausführlich: [Feature-Übersicht](features-overview.md) und
+[Deployment-Optionen](deployment-options.md).
 
-**Carambus** ist ein professionelles, webbasiertes Turnierverwaltungssystem für Billardvereine und -verbände. Es wurde speziell für die Anforderungen des organisierten Billardsports entwickelt und bietet eine vollständige End-to-End-Lösung vom Spielplan bis zur Live-Scoreboard-Anzeige.
+## Was Carambus kann
 
-## Hauptmerkmale
+- **Turniere (Karambol):** Turnierpläne der Karambol-Turnierordnung (T-Pläne), Jeder-gegen-Jeden für jede
+  Teilnehmerzahl, KO und Doppel-KO; Gruppenrangfolge nach der Turnierordnung, Stechen im KO; der Turnier-Monitor
+  zeigt Gruppen, laufende Spiele, KO-Baum und Rangliste
+- **Turnier-App** für die Turnierleitung, vom Vereinsserver mit ausgeliefert: KO- und Doppel-KO-Turniere (auch in
+  Pool und Snooker), 3-Band-Mannschaftsmeisterschaft, Turnierpläne und Liga-Spieltage; sie legt die Spiele auf
+  die Scoreboards und archiviert den Endstand auf dem Vereinsserver
+  ([Turnier-App](features-overview.md#turnier-app))
+- **Scoreboards** für Karambol, Pool und Snooker — auf einem Raspberry Pi im Kiosk-Modus am Tisch oder in jedem
+  Browser; alle Anzeigen aktualisieren sich in Echtzeit
+- **Liga:** Ligaspieltage mit dem Party-Monitor (Aufstellung, Tischzuordnung, Ergebnisbestätigung) und
+  Ligatabellen
+- **ClubCloud:** Spieler, Vereine, Turniere und Ligen kommen aus der DBU-ClubCloud; Turnierergebnisse gehen per
+  Upload zurück
+- **Im Vereinsheim:** Tischreservierung über den Google-Kalender des Vereins mit Vorheizen der Tische,
+  Trainingsspiele am Scoreboard, YouTube-Live-Streaming mit Scoreboard-Overlay
+- **Für Verbände:** Einzelmeisterschaften mit Meldeliste und Ergebnissen auch ohne ClubCloud, über den Region
+  Server ([CC-loses Turniermanagement](../administrators/cc-less-tournament-management.md))
 
-### 🎯 Vollständige Turnierverwaltung
-- **Turnierplanung**: Automatische Spielplanerstellung mit flexiblen Modi (Jeder gegen Jeden, KO-System, Schweizer System)
-- **Live-Ergebniserfassung**: Echtzeit-Updates über alle Geräte hinweg
-- **Mehrere Disziplinen**: Unterstützung für Carambolage (Freie Partie, Cadre, Dreiband), Pool und Snooker
-- **Ligaverwaltung**: Saisonübergreifende Verwaltung von Meisterschaftsserien
+**Mit Bedingungen:**
 
-### 📊 Intelligente Features
-- **KI-gestützte Suche**: Natürlichsprachliche Abfragen zu Spielern, Turnieren und Ergebnissen
-- **ClubCloud-Integration**: Automatischer Datenabgleich mit der offiziellen DBU-Plattform
-- **Statistiken & Analysen**: Umfangreiche Auswertungen für Spieler und Veranstalter
-- **Historien-Tracking**: Vollständige Nachvollziehbarkeit aller Änderungen
+- **KI-Suche:** übersetzt eine Frage in einen Listenfilter. Sie braucht einen eigenen Anthropic-API-Schlüssel
+  (laufende Kosten); die Suchanfragen gehen an Anthropic.
+- **ClubCloud-Assistent (MCP)** für Sportwarte: erledigt wiederkehrende ClubCloud-Aufgaben in natürlicher
+  Sprache. Er läuft nicht im Carambus-Server, sondern in *Claude Code* — einer KI-Anwendung von Anthropic,
+  die der Sportwart auf seinem eigenen Rechner installiert
+  ([Einrichtung](../managers/clubcloud-mcp-cloud-quickstart.md)) — und braucht ein Konto auf dem
+  Carambus-Server der Region. *MCP* ist das Protokoll, über das die beiden miteinander reden.
+  Voraussetzung ist also ein **Region Server**; für einen einzelnen Vereinsserver ist das nichts.
+  ([Quickstart](../managers/clubcloud-mcp-cloud-quickstart.md)).
 
-### 🖥️ Professionelle Anzeigelösungen
-- **Live-Scoreboards**: Automatisch aktualisierte Anzeigen für Carambolage, Pool und Snooker
-- **Turnier-Monitore**: Übersichtsanzeigen mit aktuellen Spielständen und Tabellen
-- **Party-Monitors**: Gruppenspieltag-Übersichten für Ligabetrieb
-- **Touch-Bedienung**: Optimiert für Tablet- und Touch-Display-Steuerung
+## So ist Carambus aufgebaut
 
-### 🔧 Flexible Betriebsmodelle
-- **Cloud-Deployment**: Zentrale Verwaltung für Verbände und große Vereine
-- **On-Premise-Installation**: Volle Datenkontrolle für datenschutzsensible Umgebungen
-- **All-in-One Raspberry Pi**: Kostengünstige Plug-&-Play-Lösung für Einzelvereine
+Carambus ist ein Verbund aus mehreren Servern:
 
-## Geschäftlicher Nutzen
+- Die **Authority** `api.carambus.de`, vom Betreiber von Carambus betrieben, liest die Daten aus der ClubCloud und
+  hält die gemeinsamen Stammdaten: Spieler, Vereine, Turniere, Turnierpläne.
+- Ein **Vereinsserver** im Spiellokal — in der Regel ein Raspberry Pi — holt diese Stammdaten stündlich von der
+  Authority und kann sie nicht ändern. Was im Verein entsteht (lokale Turniere, Spiele, Trainingsergebnisse,
+  Tischreservierungen), bleibt auf dem Vereinsserver.
+- Für Landesverbände gibt es einen **Region Server** (z. B. `nbv.carambus.de`).
 
-### Für Vereine
-- ✅ **Zeitersparnis**: Automatisierung von Routineaufgaben (Spielplanerstellung, Ergebnisveröffentlichung)
-- ✅ **Professionelles Image**: Moderne, ansprechende Präsentation bei Turnieren
-- ✅ **Mitgliederbindung**: Transparente, jederzeit verfügbare Informationen
-- ✅ **Kosteneffizienz**: Open-Source-Lösung ohne Lizenzgebühren
+Der Spielbetrieb vor Ort läuft auch ohne Internet weiter. Ohne Verbindung fehlen neue Daten von der Authority, und
+der Ergebnis-Upload in die ClubCloud geht erst wieder mit Verbindung. Mehr:
+[Server-Architektur](../administrators/server-architecture.md).
 
-### Für Verbände
-- ✅ **Zentrale Datenverwaltung**: Einheitliche Plattform für alle angeschlossenen Vereine
-- ✅ **Standardisierung**: Einheitliche Prozesse und Darstellung
-- ✅ **Datenintegration**: Nahtlose Anbindung an bestehende Systeme (z.B. ClubCloud)
-- ✅ **Skalierbarkeit**: Von Einzelverein bis Bundesverband
+## Was ein Verein braucht
 
-### Für Turnierteilnehmer
-- ✅ **Transparenz**: Jederzeit aktuelle Spielpläne und Ergebnisse
-- ✅ **Mobilzugriff**: Abruf auf Smartphone, Tablet oder Desktop
-- ✅ **Benachrichtigungen**: Automatische Information über anstehende Spiele
-- ✅ **Statistiken**: Persönliche Spielhistorie und Leistungsentwicklung
+- **Hardware:** Raspberry Pi 4 oder 5 (4 GB RAM empfohlen), microSD-Karte, Monitor oder Touch-Display; für jeden
+  weiteren Tisch ein Anzeigegerät
+- **Eine Person mit Linux- und SSH-Kenntnissen** und einem Mac- oder Linux-Rechner, von dem aus sie den Pi
+  einrichtet (Ansible, Rake-Tasks). Gemessen: rund 1,5 Stunden, danach startet der Pi von selbst ins Scoreboard
+- **Den Betreiber von Carambus, einmalig:** Er gibt die Zugangsdaten für den Regionsdump aus, aus dem der Verein
+  die Datenbank seines Servers erstbefüllt. Die Zugangsschlüssel des Servers erzeugt der Verein selbst.
+- **Die ClubCloud:** Spieler und Vereine müssen dort gepflegt sein; den Ergebnis-Upload macht die Turnierleitung
+  mit ihrem ClubCloud-Zugang
+- **Ein Mail-Konto** für den Versand — oder den bewussten Verzicht auf Mailversand
 
-## Technologiebasis
+Ausführlich: [Voraussetzungen für den eigenen Betrieb](deployment-options.md#voraussetzungen).
 
-### Modern & Zukunftssicher
-- **Backend**: Ruby on Rails 7.2 (LTS-Support bis 2027)
-- **Frontend**: Hotwire/Turbo (Modern ohne JavaScript-Framework-Overhead)
-- **Datenbank**: PostgreSQL (Enterprise-Grade-Stabilität)
-- **Echtzeit**: WebSockets via Action Cable
-- **UI**: Tailwind CSS (Responsive, moderne Optik)
+## Technik
 
-### Vorteile der Technologiewahl
-- ✅ **Wartbarkeit**: Klare Architektur, etablierte Best Practices
-- ✅ **Performance**: Optimiert für Echtzeit-Updates ohne Verzögerung
-- ✅ **Sicherheit**: Regelmäßige Updates, aktive Community
-- ✅ **Erweiterbarkeit**: Modularer Aufbau für künftige Features
+- Ruby on Rails 7.2 (7.2.2.2) auf Ruby 3.2.1, PostgreSQL, Redis; Oberfläche mit Hotwire (Turbo, Stimulus) und
+  StimulusReflex/CableReady, Echtzeit über WebSockets
+- **Stand der Wartung:** Ruby 3.2 bekommt seit Ende März 2026, Rails 7.2 seit August 2026 keine
+  Sicherheitsupdates des Herstellers mehr. Der Umstieg auf neuere Versionen steht noch aus.
 
-## Deployment-Optionen
+    Was das für einen Verein bedeutet: Ein Vereinsserver steht im eigenen Netz und ist von außen nur
+    erreichbar, wenn der Verein ihn selbst dafür freigibt (DynDNS, Portfreigabe). Das begrenzt das Risiko,
+    hebt es aber nicht auf — künftige Lücken in Ruby oder Rails werden vom Hersteller nicht mehr
+    geschlossen. Wer den Server öffentlich erreichbar machen will, sollte das mitentscheiden.
 
-### Option 1: Cloud-Hosting (Empfohlen für Verbände)
-**Beschreibung**: Zentrale Installation auf einem Webserver, Zugriff über Internet
+## Datenschutz und Sicherheit
 
-**Vorteile**:
-- Zentrale Wartung und Updates
-- Von überall zugänglich
-- Keine lokale Hardware erforderlich
-- Automatische Backups
+- Kontaktdaten von Vereinsmitgliedern (E-Mail, Einwilligung) bleiben auf dem Vereinsserver; Mails an Mitglieder
+  gehen nur mit Einwilligung raus.
+- Spieler- und Vereinsdaten aus der ClubCloud verteilt die Authority an die Server der Region.
+- Externe Dienste nur, wenn sie eingerichtet werden: Anthropic (KI-Suche), Google-Kalender (Tischreservierung),
+  YouTube (Streaming).
+- Passwörter werden mit bcrypt gespeichert, Zugangsdaten (ClubCloud-Passwörter, Stream-Schlüssel) verschlüsselt.
+- Öffentlich erreichbare Server laufen über HTTPS; ein Vereinsserver im Lokal läuft ohne HTTPS auf Port 3131.
+- Die Einrichtung per Ansible setzt eine Firewall (nur Web- und SSH-Port) und automatische Sicherheitsupdates
+  des Betriebssystems.
 
-**Typischer Einsatz**: Landes-/Bundesverbände, Vereine mit mehreren Spielstätten
+## Lizenz und Kosten
 
-**Geschätzte Kosten**: 10-50 EUR/Monat (VPS-Hosting)
+- **MIT-Lizenz:** keine Lizenzgebühren, Quellcode frei verfügbar, auch kommerziell nutzbar
+- Kosten entstehen für die Hardware und für optionale externe Dienste (etwa den Anthropic-Schlüssel der KI-Suche)
 
-### Option 2: On-Premise Server
-**Beschreibung**: Installation auf vereinseigenem Server oder NAS
+## Im Einsatz
 
-**Vorteile**:
-- Volle Datenkontrolle
-- Keine laufenden Hosting-Kosten
-- Funktioniert auch bei Internet-Ausfall
-- Anpassbar an lokale Infrastruktur
+- **Billardclub Wedel 61 e.V.:** Vereinsserver auf einem Raspberry Pi mit Touch-Display — Scoreboards,
+  Vereinsturniere, Tischreservierung mit Heizungssteuerung
+- Weitere Vereinsserver auf Raspberry Pis und der Region Server des NBV (`nbv.carambus.de`)
 
-**Typischer Einsatz**: Vereine mit eigener IT-Infrastruktur, datenschutzsensible Umgebungen
+## Projekt und Kontakt
 
-**Geschätzte Kosten**: Einmalige Hardware-Anschaffung (ab 300 EUR für Einplatinencomputer)
+Carambus ist ein Einzelentwickler-Projekt und wird aktiv gepflegt ([Über das Projekt](../about.md)). Hilfe gibt
+es auf Anfrage.
 
-### Option 3: All-in-One Raspberry Pi (Empfohlen für Einzelvereine)
-**Beschreibung**: Komplettes System auf Raspberry Pi 4/5, inklusive Display-Ausgang
-
-**Vorteile**:
-- Extrem kostengünstig (Hardware ca. 100-150 EUR)
-- Einfache Installation (30 Minuten Setup)
-- Geringer Stromverbrauch (< 15W)
-- Kiosk-Modus: Direkter Anschluss an TV/Monitor
-
-**Typischer Einsatz**: Kleine Vereine, Einzelstandorte, Budget-bewusste Installationen
-
-**Geschätzte Kosten**: 
-- Raspberry Pi 4 (8GB): ~90 EUR
-- Zubehör (Netzteil, Gehäuse, SD-Karte): ~40 EUR
-- Optional: Touchscreen: ~100-200 EUR
-
-## Implementierung
-
-### Zeitrahmen
-- **Cloud-Installation**: 2-4 Stunden
-- **On-Premise**: 1-2 Tage (inkl. Infrastruktur-Setup)
-- **Raspberry Pi**: 30-60 Minuten
-
-### Erforderliche Ressourcen
-- **IT-Kenntnisse**: Basis-Linux-Kenntnisse ausreichend
-- **Personal**: 1 Person für Installation und Wartung
-- **Schulung**: Turniermanager: 2-3 Stunden, Spieler: Self-Service
-
-### Support
-- **Dokumentation**: Umfassende Online-Dokumentation (Deutsch/Englisch)
-- **Community**: Aktive Entwicklung, GitHub-Issues
-- **Kommerzieller Support**: Auf Anfrage verfügbar
-
-## Rechtliche Aspekte
-
-### Lizenzierung
-- **Open Source**: MIT-Lizenz
-- **Kostenlos**: Keine Lizenzgebühren
-- **Anpassbar**: Source-Code frei verfügbar
-- **Kommerziell nutzbar**: Auch für gewerbliche Veranstalter
-
-### Datenschutz (DSGVO)
-- ✅ Vollständig DSGVO-konform implementierbar
-- ✅ Datensparsamkeit: Nur notwendige Daten werden gespeichert
-- ✅ Lokale Datenhaltung möglich (On-Premise)
-- ✅ Löschfunktionen für Spielerdaten vorhanden
-- ✅ Verschlüsselte Übertragung (HTTPS/TLS)
-
-## Erfolgsbeispiele
-
-### Billardclub Wedel 61 e.V.
-- **Einsatz seit**: 2022
-- **Nutzung**: Ligabetrieb, Vereinsturniere, Tischreservierung
-- **Ergebnis**: Vollständige Digitalisierung der Turnierverwaltung, positive Rückmeldung von Mitgliedern
-
-### Weitere Einsätze
-- Raspberry Pi-Installation für kleinere Vereine
-- ClubCloud-Integration für Verbandsligen
-- Multi-Standort-Deployment für größere Organisationen
-
-## Nächste Schritte
-
-### Evaluation
-1. **Demo ansehen**: Live-System testen unter [Demo-URL einfügen]
-2. **Dokumentation lesen**: Detaillierte Feature-Übersicht und Installationsanleitungen
-3. **Proof of Concept**: Testinstallation auf Raspberry Pi (Zeitaufwand: 1 Stunde)
-
-### Kontakt
-Für weitere Informationen, Beratung oder Demo-Termine:
-
-- **Projekt-Website**: [https://github.com/GernotUllrich/carambus](https://github.com/GernotUllrich/carambus)
-- **Email**: gernot.ullrich@gmx.de
-- **Referenzclub**: [Billardclub Wedel 61 e.V.](http://www.billardclub-wedel.de/)
-
----
-
-## Zusammenfassung in drei Sätzen
-
-**Carambus ist eine professionelle, kostenlose Open-Source-Lösung für die vollständige Digitalisierung von Billardturnieren und Ligabetrieb.** Das System bietet von der Spielplanerstellung über Live-Scoreboards bis zur Ergebnisveröffentlichung alle benötigten Funktionen und kann flexibel als Cloud-Service, On-Premise-Server oder kostengünstige Raspberry Pi-Lösung betrieben werden. Die moderne Technologiebasis garantiert Zukunftssicherheit, während die umfangreiche Dokumentation und einfache Installation eine schnelle Inbetriebnahme ermöglichen.
-
----
-
-*Letzte Aktualisierung: Dezember 2025*
-
-
-
-
-
-
-
+- **E-Mail:** gernot.ullrich@gmx.de
+- **GitHub:** [GernotUllrich/carambus](https://github.com/GernotUllrich/carambus)

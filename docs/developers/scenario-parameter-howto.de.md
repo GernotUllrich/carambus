@@ -224,6 +224,27 @@ mit den Servern überein. Daraus folgt:
 war für die aktuelle uniforme Flotte überspitzt und ist hiermit korrigiert; das §4.5-Gate
 bleibt als günstige 100%-Absicherung Pflicht.)*
 
+> **Seit 2026-09-13 (Plan 18-01) ist der uniforme Schlüssel-Satz kein Ziel mehr.** Wer die Credentials
+> eines Servers hat, öffnet damit alle anderen — für Vereine, die ihren Server selbst betreiben, ist das
+> nicht tragbar. Jeder Server bekommt eigene Geheimnisse:
+>
+> - neues Szenario: `WRITE=true NEW_KEY=true rake "scenario:generate_credentials[<name>]"` — eigener Key,
+>   eigenes `secret_key_base`, eigener `devise_jwt_secret_key`, eigene AR-Schlüssel; Feature-Keys nur aus
+>   dem Pool der aufrufenden `secrets.yml`
+> - bestehendes Szenario: `WRITE=true ROTATE=true rake "scenario:generate_credentials[<name>]"` — neuer Key,
+>   neues `secret_key_base`/JWT, AR-`primary_key` wird zur Liste `[alt, neu]` (Salt bleibt), Backups
+>   `*.bak-<ts>` ([Ablauf](../administrators/index.md#credentials-rotieren))
+> - Transfer ohne `prepare_deploy` (auch Authority): `rake "scenario:pull_credentials[<name>]"` vergleicht
+>   Server und Kopie und holt mit `WRITE=true` den Serverstand; `rake "scenario:upload_credentials[<name>]"`
+>   lädt mit `WRITE=true` hoch (Server-Backup, Modus 600, Prüfsummen danach), `RESTART=true` startet Puma neu.
+>   Die Fingerabdrücke rechnet der Server mit `lib/scenario_credentials.rb` (per stdin an `ruby -`), ausgegeben
+>   werden nur Hash-Präfixe.
+>
+> Weil die Rotation auf der `carambus_data`-Kopie aufbaut, gilt das §4.5-Gate **vor jedem ROTATE**:
+> weicht der Server ab (z. B. nach `push_credentials`), erst die Server-Dateien übernehmen (`pull_credentials`).
+> `upload_credentials` setzt das Gate selbst um: Es bricht ab, wenn ein AR-`primary_key` des Servers lokal
+> fehlt oder das Salt abweicht (`FORCE=true` übergeht es).
+
 ### 4.5 Deploy-Gate (vor jedem Credential-Deploy PFLICHT)
 Prüfen, dass `secret_key_base` UND `active_record_encryption.primary_key` mit dem
 Server übereinstimmen — geheimnisfrei per serverseitigem Hash-Vergleich

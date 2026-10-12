@@ -22,9 +22,15 @@ example_club:
   created_at: <%= 1.year.ago %>
   updated_at: <%= 1.month.ago %>
 
+# 2026-09-04: region_id ergaenzt. Ohne sie gab es nur Vereine EINER Region, wodurch sich
+# zwei MCP-Tests stumm uebersprangen ("Need a club from a non-NBV region",
+# "Need >=2 regions with clubs") — sie pruefen die Cross-Region-Validierung, also genau
+# den Fall, dass ein Verein NICHT zur Region des Nutzers gehoert.
 club_bochum:
   id: 50_000_003
   name: "VfL Bochum Billard"
   shortname: "BOC"
+  region_id: 50_000_002    # regions(:bbv) — bewusst NICHT NBV
+  cc_id: 42_003            # LookupClub sucht region-fremde Vereine ueber cc_id
   created_at: <%= 2.years.ago %>
   updated_at: <%= 1.day.ago %>

@@ -1,14 +1,14 @@
 # frozen_string_literal: true
 
-# Phase 43 (Path-B-Spike) — Chat-Brücke zu carambus_app.
+# Phase 43 (Path-B-Spike) — Chat-Brücke zu carambus_app; Plan 17-06 — Knopf auf der Turnierseite.
 #
-# Baut einen vorverbindenden App-Deep-Link für die externe Turnier-App
-# (`carambus_app`). Die App ist autark (generiert ihr eigenes Turnier, nimmt von
-# Carambus nur die Teilnehmerliste über den external_tournament/seeding-Endpoint).
+# Baut einen vorverbindenden App-Deep-Link für die Turnier-App (`tournament_app/`, ausgeliefert
+# unter /app/). Verbraucher: der Knopf „In der Turnier-App öffnen“ auf der Turnierseite
+# (TournamentsHelper#tournament_app_link) und das MCP-Tool cc_open_in_tournament_app.
 # Der Link füllt die App-Verbindung vor — der Turnierleiter muss dann nur noch das
 # Service-Account-Passwort eingeben (D-43-7: Passwort NIE im Link).
 #
-# Form: "<app_base>?cb_region=<REGION>&cb_tournament_cc_id=<ccid>[&cb_base_url=<api>]"
+# Form: "<app_base>?cb_region=<REGION>&cb_tournament_id=<id>[&cb_tournament_cc_id=<ccid>][&cb_email=<konto>][&cb_base_url=<api>]"
 #
 # DEV-43-C (Live-Test 2026-06-16): Same-Origin-Default. Wird die App unter /app/
 # vom selben Local-Server ausgeliefert wie Chat/API (User-Setup), genügt ein
@@ -20,6 +20,8 @@
 #   - external_app_api_base_url — absolute LAN-URL dieses Servers (→ cb_base_url)
 class TournamentPreparation::AppLinkBuilder
   APP_BASE_DEFAULT = "/app/" # relativ, Same-Origin (DEV-43-C)
+  # Dienstkonten der App (rake service_accounts:create_carambus_app[<KÜRZEL>])
+  SERVICE_ACCOUNT_PATTERN = "carambus-app-%-bridge@carambus.de"
 
   def self.call(tournament:, server_context: nil)
     new(tournament: tournament, server_context: server_context).call
@@ -31,15 +33,23 @@ class TournamentPreparation::AppLinkBuilder
   end
 
   def call
-    return {ok: false, reason: :tournament_invalid} if @tournament.nil? || @tournament.tournament_cc.nil?
+    return {ok: false, reason: :tournament_invalid} if @tournament.nil?
 
-    region = (@tournament.tournament_cc.context.presence || @server_context&.dig(:cc_region)).to_s.upcase
-    cc_id = @tournament.tournament_cc.cc_id
+    # Plan 17-06: auch Turniere ohne ClubCloud-Bezug — dann kommt die Region aus dem Turnier.
+    # Der Seeding-Endpoint prüft tournament.region_id gegen cb_region; ohne Region findet die
+    # App das Turnier nicht (422 „Region mismatch“), deshalb gibt es dann keinen Link.
+    tournament_cc = @tournament.tournament_cc
+    region = (tournament_cc&.context.presence || @tournament.region&.shortname.presence ||
+      @server_context&.dig(:cc_region)).to_s.upcase
+    return {ok: false, reason: :region_missing} if region.blank?
 
     # cb_tournament_id = globaler DB-PK (eindeutig); die App löst damit deterministisch
     # auf und umgeht die region-scoped cc_id-Ambiguität (HANDOFF tournament-id-ambiguity).
-    # cb_tournament_cc_id bleibt als Fallback/Anzeige erhalten.
-    query = {cb_region: region, cb_tournament_id: @tournament.id, cb_tournament_cc_id: cc_id}
+    # cb_tournament_cc_id bleibt als Fallback/Anzeige erhalten, wo es eine ClubCloud-ID gibt.
+    query = {cb_region: region, cb_tournament_id: @tournament.id}
+    query[:cb_tournament_cc_id] = tournament_cc.cc_id if tournament_cc
+    email = service_account_email
+    query[:cb_email] = email if email
     # cb_base_url nur im cross-origin-Fall (explizit konfiguriert). Fehlt es, leitet
     # die App ihre API-Basis aus window.location.origin ab (Same-Origin).
     api = explicit_api_base
@@ -68,5 +78,14 @@ class TournamentPreparation::AppLinkBuilder
   # gesetzter external_app_api_base_url (cross-origin Deploy) erzeugt cb_base_url.
   def explicit_api_base
     Carambus.config.try(:external_app_api_base_url).presence
+  end
+
+  # Plan 17-06: Gibt es auf diesem Server genau ein Dienstkonto der App, kommt es in den Link.
+  # Ohne cb_email füllt die App das Anmeldefeld mit ihrem Default, und die Anmeldung scheitert
+  # mit 401, ohne dass der Grund auffällt (tournament_app/index.html, applyDeepLinkConnection).
+  # Bei keinem oder mehreren Konten bleibt das Feld der App überlassen.
+  def service_account_email
+    emails = User.where("email LIKE ?", SERVICE_ACCOUNT_PATTERN).limit(2).pluck(:email)
+    (emails.size == 1) ? emails.first : nil
   end
 end

@@ -22,14 +22,12 @@ as defined by the routes in the `admin/` namespace
   <%= link_to(
     "Player Duplicates",
     admin_player_duplicates_path,
-    class: "navigation__link navigation__link--#{controller_name == 'player_duplicates' ? 'active' : 'inactive'}",
-    style: "background-color: #f97316; color: white;"
+    class: "navigation__link navigation__link--#{controller_name == 'player_duplicates' ? 'active' : 'inactive'} bg-warning-600 text-white"
   ) %>
   
   <%= link_to(
     "Incomplete Records",
     admin_incomplete_records_path,
-    class: "navigation__link navigation__link--#{controller_name == 'incomplete_records' ? 'active' : 'inactive'}",
-    style: "background-color: #eab308; color: white;"
+    class: "navigation__link navigation__link--#{controller_name == 'incomplete_records' ? 'active' : 'inactive'} bg-warning-500 text-white"
   ) %>
 </nav>

@@ -97,27 +97,90 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
     
+    # Bewusst NICHT .ruby-version (3.2.1), sondern 3.2.2 — nur fuer diesen Job.
+    # Ruby 3.2.1 hat einen sporadischen Speicherfehler, der bei genug Parsing-Last
+    # zuschlaegt: brakeman stirbt dort mit SIGABRT, in nur ~2 von 6 Laeufen kommt ein
+    # Ergebnis (gemessen 2026-09-09). Unter 3.2.2 laufen alle Versuche durch.
+    # Der lint-Job bootet die Anwendung nicht — keine DB, kein Rails, kein
+    # stimulus_reflex —, deshalb ist die abweichende Version hier gefahrlos.
+    # Der test-Job bleibt bewusst auf .ruby-version, also auf dem Produktionsstand.
+    #
+    # OHNE Bundler: das Gemfile verlangt per `ruby file: ".ruby-version"` genau 3.2.1,
+    # unter 3.2.2 bricht `bundle install` ab ("Your Ruby version is 3.2.2, but your
+    # Gemfile specified 3.2.1") — so scheiterte dieser Job seit 63d50594 (2026-09-09)
+    # schon beim Setup, und die UI-Guardrail lief nicht mehr. Die Lint-Werkzeuge
+    # brauchen das Bundle nicht; sie kommen als einzelne Gems in den Versionen aus
+    # Gemfile.lock (bei einem Update dort hier nachziehen).
     - name: Set up Ruby
       uses: ruby/setup-ruby@v1
       with:
-        ruby-version: .ruby-version
-        bundler-cache: true
-    
+        ruby-version: 3.2.2
+        bundler-cache: false
+
     # Hartes Gate: blockt neue hartkodierte Farb-Hex (docs/ui-conventions.md).
     # Laeuft gegen eine Baseline, ist auf master gruen — deshalb blockierend.
     - name: UI-Guardrail (keine neuen hartkodierten Farb-Hex)
       run: ruby bin/ui-hex-guard
-    
-    # Ab hier bewusst NICHT blockierend — beides ist heute kein verwertbares
-    # Signal, soll aber sichtbar bleiben:
-    #   standardrb: mehrere hundert Verstoesse im Bestandscode. Erst nach einem
-    #     eigenen Aufraeum-Durchlauf (standardrb --fix) als Gate sinnvoll.
-    #   brakeman:   stuerzt derzeit im Prism-Parser mit SIGABRT ab (Segfault in
-    #     prism-1.6.0), liefert also gar keinen Befund. Kein Sicherheitsurteil.
-    - name: Run Standard (nicht blockierend)
-      run: bundle exec standardrb --format progress
+
+    # Hartes Gate (Plan 21-02): kein verbranntes Geheimnis im getrackten Baum.
+    # Prueft jede getrackte Datei gegen die SHA256-Summen aus lib/credential_denylist.yml.
+    #
+    # Warum ZUSAETZLICH zum pre-commit-Hook (.overcommit.yml): ein Geheimnis kann ohne
+    # Commit in den Baum geraten. In 21-01 baute der docs-rebuild-Listener public/docs
+    # genau waehrend eines Branch-Wechsels neu und schrieb das www_data-Passwort wieder
+    # hinein — der Hook haette das erst beim naechsten Commit gesehen, die CI sieht den
+    # ganzen Baum. Und der Hook greift nur dort, wo overcommit installiert ist; die CI
+    # greift immer.
+    #
+    # Braucht weder Bundle noch Gems, nur Ruby + git — deshalb VOR dem (nicht
+    # blockierenden) Install-Schritt weiter unten.
+    - name: Keine verbrannten Geheimnisse im Baum
+      run: ruby bin/burned-secret-guard
+
+    # Hartes Gate (Plan 17-04): Die Turnier-App liegt zweimal im Repo — Quelle unter
+    # tournament_app/, ausgeliefert unter public/app/. Weichen beide ab, ist ein Build
+    # vergessen worden. Node ist auf ubuntu-latest vorinstalliert.
+    - name: Turnier-App (Quelle und public/app/ gleich)
+      run: node tournament_app/tools/build-public.mjs --check
+
+    # Nach dem Gate und nicht blockierend: scheitert die Installation (z.B. die native
+    # Erweiterung von prism), darf das die UI-Guardrail oben nicht mitreissen.
+    - name: Install lint tools (Versionen aus Gemfile.lock, nicht blockierend)
+      run: gem install --no-document brakeman -v 7.1.0 && gem install --no-document standard -v 1.51.1
       continue-on-error: true
     
-    - name: Run Brakeman (nicht blockierend)
-      run: bundle exec brakeman --no-pager
+    # standardrb bleibt bewusst NICHT blockierend: mehrere hundert Verstoesse im
+    # Bestandscode. Erst nach einem eigenen Aufraeum-Durchlauf (standardrb --fix)
+    # als Gate sinnvoll — eine andere Altlast als die Sicherheitsbefunde unten.
+    #
+    # Lokal crasht brakeman weiterhin, solange 3.2.1 aktiv ist. Ausweg:
+    #   RBENV_VERSION=3.2.2 rbenv exec brakeman _7.1.0_ --no-pager
+    # Die frueheren Diagnosen an dieser Stelle waren falsch: es liegt weder an prism
+    # (--no-prism crasht ebenso) noch an brakeman (7.1.0 laeuft unter 3.2.2 sauber),
+    # sondern am Interpreter 3.2.1. Belege: .paul/phases/13-sicherheitsurteil/
+    - name: Run Standard (nicht blockierend)
+      run: standardrb --format progress
+      continue-on-error: true
+
+    # Hartes Gate (Plan 21-02): Brakeman blockiert auf jedem High-Befund, der nicht
+    # begruendet in config/brakeman.ignore steht.
+    #
+    # Vorgeschichte: bis 2026-09-20 lief brakeman hier mit continue-on-error, weil die
+    # Befunde ungesichtet waren (damals 78: 18 High). Phase 19 hat alle 16 Code-High
+    # geschlossen; ueber blieben genau zwei — beide `Unmaintained Dependency` (Rails 7.2
+    # EOL, Ruby 3.2.1 EOL), in dieser Phase nicht behebbar und deshalb mit Begruendung
+    # in config/brakeman.ignore. Damit ist die alte Begruendung hinfaellig: ein NEUER
+    # High-Befund soll die CI brechen.
+    #
+    # -w3 meldet nur High. config/brakeman.ignore wird automatisch gelesen.
+    # Bewusst OHNE continue-on-error — auch wenn der Install-Schritt oben scheitert und
+    # `brakeman` gar nicht existiert: kein Signal ist kein Gruen.
+    - name: Brakeman-Gate (blockierend, High-Befunde)
+      run: brakeman --no-pager -w3 --exit-on-warn
+
+    # Danach der Vollbericht, damit Medium und Weak im Log sichtbar bleiben (Stand
+    # 2026-09-20: 58 Befunde ohne die zwei ignorierten — 27 Medium, 31 Weak). Ihre
+    # Sichtung ist Plan 21-03; bis dahin informativ, nicht blockierend.
+    - name: Brakeman-Vollbericht (nicht blockierend, Medium/Weak sichtbar)
+      run: brakeman --no-pager
       continue-on-error: true

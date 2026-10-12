@@ -894,7 +894,18 @@ class TournamentMonitor::TablePopulator
             end
 
             unless t_no.present?
-              Tournament.logger.error "[do_placement] ERROR: Kein freier Tisch gefunden in Runde #{r_no} für Spiel #{new_game.gname} (verfügbar: #{available_tables} Tische)"
+              # Plan 06-01 (2026-09-03): Der Abbruch bleibt richtig — ohne freien Tisch
+              # laesst sich nichts platzieren. Aber er stand bisher NUR in log/debug.log:
+              # das Spiel der Runde blieb unbeendet und ohne Tisch liegen, und niemand
+              # bemerkte es im Betrieb. Deshalb zusaetzlich am TournamentMonitor
+              # hinterlegen — data["error"] wird in tournament_monitors/show angezeigt
+              # (gleicher Weg wie die TournamentPlan-Mismatches weiter oben).
+              error_msg = "Kein freier Tisch für Spiel #{new_game.gname} in Runde #{r_no} " \
+                          "(#{available_tables} Tische verfügbar). Das Spiel wurde NICHT platziert — " \
+                          "die Runde kann so nicht vollständig gespielt werden."
+              Tournament.logger.error "[do_placement] ERROR: #{error_msg}"
+              @tournament_monitor.deep_merge_data!("error" => error_msg)
+              @tournament_monitor.save!
               return
             end
           end

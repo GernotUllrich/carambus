@@ -7,6 +7,22 @@ require "test_helper"
 class TournamentMonitor::ResultProcessorTest < ActiveSupport::TestCase
   include KoTournamentTestHelper
 
+  # Eigener ID-Bereich fuer selbst angelegte Kaskaden-Spiele (>= Game::MIN_ID, siehe
+  # Kommentar im CR-02-Regressionstest).
+  CASCADE_BASE_ID = 62_000_000
+
+  # 2026-09-04: Zwei Tests holten ihr Spiel per
+  # `@tournament.games.where("id >= MIN_ID").first` und uebersprangen sich stumm, weil das
+  # KO-Setup in dieser Umgebung keine lokalen Spiele erzeugt. Sie legen es jetzt selbst an
+  # — ueber die Assoziation (wegen tournament_type) und mit expliziter ID >= MIN_ID, weil
+  # die Sequenz seit 2026-09-04 unterhalb MIN_ID verankert ist (test_helper.rb).
+  def local_game_with_participations!(offset)
+    game = @tournament.games.create!(id: 64_000_000 + offset, gname: "group1:#{offset}", group_no: 1, data: {})
+    GameParticipation.create!(game: game, player: @players[0], role: "playera", points: 2, result: 25)
+    GameParticipation.create!(game: game, player: @players[1], role: "playerb", points: 0, result: 20)
+    game.reload
+  end
+
   self.use_transactional_tests = true
 
   setup do
@@ -87,11 +103,7 @@ class TournamentMonitor::ResultProcessorTest < ActiveSupport::TestCase
   end
 
   test "accumulate_results writes rankings to tournament_monitor data" do
-    # Create a game with game participations for the tournament
-    game = @tournament.games.where("games.id >= #{Game::MIN_ID}").first
-
-    # Skip test if no local games exist (clean fixture state)
-    skip "No local games available for accumulate_results test" unless game.present?
+    local_game_with_participations!(1)
 
     @processor.accumulate_results
 
@@ -115,6 +127,103 @@ class TournamentMonitor::ResultProcessorTest < ActiveSupport::TestCase
     assert_equal({}, @tm.data["rankings"]["total"])
     assert @tm.data["rankings"]["groups"].key?("total")
     assert @tm.data["rankings"]["endgames"].key?("total")
+  end
+
+  # ============================================================================
+  # Plan 24-01 Task 1 — REPRODUKTION, kein Fix.
+  #
+  # Vom Betreiber gemeldet 2026-09-23: 30:29 abgeschickt, Log meldet "validation PASSED,
+  # updating...", in der DB steht 30:30 — und das Spiel traegt tmp_results mit 30:30.
+  # Verdaechtige Stelle: result_processor.rb:603
+  #     data_source = game.data["tmp_results"].present? ? game.data["tmp_results"] : table_monitor_data
+  #
+  # ⚠️ EIN ERSTER VERSUCH SCHEITERTE AM TESTAUFBAU, NICHT AM CODE: `Game#data` ist
+  # ueberschrieben (game.rb:95) und dekodiert bei JEDEM Zugriff neu aus dem Roh-Attribut —
+  # `game.data["tmp_results"] = {...}` ist ein STILLES NO-OP. Deshalb hier ausschliesslich
+  # `deep_merge_data!`, und jeder Test prueft die Vorbedingung explizit, bevor er die
+  # eigentliche Behauptung testet.
+  #
+  # `update_games` ruft ZWEI Schreiber nacheinander:
+  #     @tournament_monitor.update_game_participations(table_monitor)
+  #     table_monitor.evaluate_result   # -> report_result -> finalize_game_result -> derselbe Schreiber
+  # Beide laufen durch Zeile 603. Die Tests trennen sie.
+  # ============================================================================
+
+  def spiel_mit_schnappschuss!(offset, a_result:, b_result:)
+    game = local_game_with_participations!(offset)
+    game.deep_merge_data!("tmp_results" => {
+      "playera" => {"result" => a_result, "innings" => 10, "hs" => 5, "balls_goal" => 30},
+      "playerb" => {"result" => b_result, "innings" => 10, "hs" => 5, "balls_goal" => 30}
+    })
+    game.save!
+    game.reload
+    game
+  end
+
+  def tisch_mit_eingabe!(game, a_result:, b_result:)
+    tabmon = TableMonitor.create!(tournament_monitor: @tm, game: game, state: "playing", data: {})
+    tabmon.data["playera"] = {"result" => a_result, "innings" => 10, "hs" => 5, "balls_goal" => 30}
+    tabmon.data["playerb"] = {"result" => b_result, "innings" => 10, "hs" => 5, "balls_goal" => 30}
+    tabmon.data_will_change!
+    tabmon.save!
+    tabmon
+  end
+
+  test "24-01 T1a: BELEGT — tmp_results gewinnt gegen uebergebene Werte" do
+    game = spiel_mit_schnappschuss!(91, a_result: 30, b_result: 30)
+    assert game.reload.data["tmp_results"].present?,
+      "VORBEDINGUNG: der Schnappschuss muss wirklich persistiert sein (deep_merge_data!)"
+    assert_equal 30, game.data.dig("tmp_results", "playerb", "result"),
+      "VORBEDINGUNG: der Schnappschuss traegt den ALTEN Wert 30"
+
+    tabmon = tisch_mit_eingabe!(game, a_result: 30, b_result: 29)
+
+    @tm.update_game_participations(tabmon)
+
+    ergebnis = game.game_participations.where(role: "playerb").first.reload.result
+    puts "\n[24-01 T1a] nach update_game_participations: playerb = #{ergebnis.inspect} " \
+         "(getippt 29, Schnappschuss 30)"
+
+    assert_equal 30, ergebnis,
+      "BELEGT (Plan 24-01 Task 1): der Schnappschuss GEWINNT gegen die uebergebenen Werte. " \
+      "Das ist die Ursache von \"Ich kann nichts aendern\". Die Vorrangregel bleibt bewusst " \
+      "bestehen — tmp_results ist genau fuer den Fall da, in dem KEINE frischen Daten " \
+      "existieren (game_setup.rb:312 spielt ihn beim Wieder-Platzieren zurueck). " \
+      "Der Fix liegt deshalb im Controller: korrigiere_abgeloestes_spiel! schreibt den " \
+      "Schnappschuss ZUERST auf den korrigierten Stand, danach sind beide Quellen einig."
+  end
+
+  test "24-01 T1b: BELEGT — der Schaden entsteht beim ersten Schreiber, nicht bei evaluate_result" do
+    game = spiel_mit_schnappschuss!(92, a_result: 30, b_result: 30)
+    tabmon = tisch_mit_eingabe!(game, a_result: 30, b_result: 29)
+
+    @tm.update_game_participations(tabmon)
+    nach_erstem = game.game_participations.where(role: "playerb").first.reload.result
+
+    tabmon.evaluate_result
+    nach_zweitem = game.game_participations.where(role: "playerb").first.reload.result
+
+    puts "[24-01 T1b] nach update_game_participations: #{nach_erstem.inspect} | " \
+         "nach evaluate_result: #{nach_zweitem.inspect}"
+
+    assert_equal nach_erstem, nach_zweitem,
+      "Beide Schreiber lesen dieselbe Quelle — der zweite verschlimmert nichts"
+    assert_equal 30, nach_zweitem,
+      "BELEGT: der Schaden entsteht schon beim ERSTEN Schreiber. Mein Verdacht, " \
+      "evaluate_result koenne die Korrektur zurueckdrehen, trug nicht — das schmaelert " \
+      "die Fix-Stelle auf genau eine."
+  end
+
+  test "24-01 T1c: ohne Schnappschuss unveraendert (Regressionsschutz)" do
+    game = local_game_with_participations!(93)
+    assert_not game.reload.data["tmp_results"].present?,
+      "VORBEDINGUNG: kein Schnappschuss"
+
+    tabmon = tisch_mit_eingabe!(game, a_result: 30, b_result: 29)
+    @tm.update_game_participations(tabmon)
+
+    assert_equal 29, game.game_participations.where(role: "playerb").first.reload.result,
+      "Ohne Schnappschuss schreibt der bestehende Weg wie bisher"
   end
 
   # ============================================================================
@@ -189,12 +298,7 @@ class TournamentMonitor::ResultProcessorTest < ActiveSupport::TestCase
   end
 
   test "update_game_participations delegates to update_game_participations_for_game" do
-    game = @tournament.games.where("games.id >= #{Game::MIN_ID}").first
-    skip "No local games available for update_game_participations test" unless game.present?
-
-    gp_a = game.game_participations.where(role: "playera").first
-    gp_b = game.game_participations.where(role: "playerb").first
-    skip "No game participations available" unless gp_a.present? && gp_b.present?
+    game = local_game_with_participations!(2)
 
     # Build a mock table_monitor data structure
     table_monitor_data = {
@@ -348,14 +452,38 @@ class TournamentMonitor::ResultProcessorTest < ActiveSupport::TestCase
       "Phase 38.8 contract: report_result must NOT enqueue TournamentMonitorUpdateResultsJob (cascade deferred)")
   end
 
-  test "advance_round_after_match_close method body contains all 6 cascade calls (extracted verbatim)" do
+  # Plan 23-01 (2026-09-22) — VERTRAG NEU GEFASST, GARANTIE UNVERAENDERT.
+  #
+  # Phase 38.8 forderte die 6 Kaskaden-Aufrufe in `advance_round_after_match_close`. Plan 23-01
+  # trennt diese Methode auf: sie macht weiterhin `accumulate_results` (nach JEDEM Spiel), gibt
+  # die Kaskade selbst aber nur frei, wenn nicht auf den Turnierleiter gewartet wird. Die
+  # Kaskade steht seitdem in `perform_round_advance` — unveraendert, nur eine Ebene tiefer.
+  #
+  # Die Garantie von 38.8 bleibt damit bestehen und wird hier weiter geprueft: die Aufrufe
+  # existieren an GENAU EINER Stelle und nicht in `report_result` (Test darueber).
+  test "perform_round_advance method body contains all 6 cascade calls (extracted verbatim)" do
     src = File.read(Rails.root.join("app/services/tournament_monitor/result_processor.rb"))
-    method_match = src.match(/def advance_round_after_match_close.*?(?=\n  def |\nend\b)/m)
-    assert_not_nil method_match, "advance_round_after_match_close method must exist"
+    method_match = src.match(/def perform_round_advance.*?(?=\n  def |\nend\b)/m)
+    assert_not_nil method_match, "perform_round_advance method must exist (Plan 23-01)"
     body = method_match[0]
     %w[populate_tables incr_current_round! finalize_round start_playing_groups! TournamentMonitorUpdateResultsJob TournamentStatusUpdateJob].each do |needle|
       assert_match(/#{Regexp.escape(needle)}/, body,
-        "advance_round_after_match_close must contain '#{needle}' (extracted from report_result)")
+        "perform_round_advance must contain '#{needle}' (extracted from report_result in 38.8, " \
+        "moved one level down in Plan 23-01)")
+    end
+  end
+
+  # Plan 23-01: Beide Einstiegspunkte muessen auf DIESELBE Kaskade zeigen — sonst driften der
+  # Tisch-Pfad und der Turnierleiter-Pfad auseinander (extend-before-build: SHARE, nicht
+  # REPLICATE). Genau diese Doppelung war 38.8s urspruengliche Sorge.
+  test "23-01: beide Einstiegspunkte delegieren an perform_round_advance" do
+    src = File.read(Rails.root.join("app/services/tournament_monitor/result_processor.rb"))
+
+    %w[advance_round_after_match_close advance_round_by_operator].each do |entry|
+      match = src.match(/def #{entry}.*?(?=\n  #|\n  def |\nend\b)/m)
+      assert_not_nil match, "#{entry} must exist"
+      assert_match(/perform_round_advance/, match[0],
+        "#{entry} muss an perform_round_advance delegieren statt die Kaskade zu wiederholen")
     end
   end
 
@@ -378,6 +506,11 @@ class TournamentMonitor::ResultProcessorTest < ActiveSupport::TestCase
   # narrow per-TM scoping (sentinel == self.id, NOT == true) so legitimate
   # cross-TM cascades during finalize_round still run for OTHER TMs while
   # short-circuiting only re-entry for the SAME TM.
+  #
+  # Plan 05-01 (2026-09-03): Sentinel-Scope von pro-Tisch auf pro-Turnier erweitert
+  # (Key = tournament_monitor.id). Die per-TM-Fassung verhinderte zwar die Rekursion
+  # fuer denselben Tisch, aber nicht die MULTIPLIKATION ueber mehrere Tische derselben
+  # finalize_round-Schleife — Live-Vorfall Tournament[18931] siehe Kommentar unten.
   # ============================================================================
 
   test "CR-02 tournament-finals close_match cascade does NOT recurse infinitely (regression)" do
@@ -385,8 +518,21 @@ class TournamentMonitor::ResultProcessorTest < ActiveSupport::TestCase
     # confirm the TournamentMonitorState#finalize_round loop does NOT re-enter the SAME TM
     # via advance_tournament_round_if_present. Without the sentinel guard, this raises
     # SystemStackError after ~323 nested savepoints (live incident reproduction).
-    games = @tournament.games.where("games.id >= #{Game::MIN_ID}").limit(2).to_a
-    skip "Need at least 1 local game with id >= MIN_ID for cascade test" if games.empty?
+    # 2026-09-03: Dieser Test hat sich seit seiner Einfuehrung IMMER uebersprungen. Er
+    # holte die Spiele ueber `@tournament.games.where("id >= MIN_ID")`, aber weder
+    # `create_ko_tournament_with_seedings` noch `initialize_tournament_monitor` erzeugen
+    # in dieser Testumgebung lokale Spiele — die Menge war leer, der skip griff, und der
+    # Schutz des Vorfalls vom 2026-05-05 (SystemStackError nach ~323 verschachtelten
+    # Savepoints) war nominell statt real. Aufgefallen bei der Recherche zu Plan 05-01.
+    #
+    # Die Spiele werden deshalb selbst angelegt: ueber die Assoziation, damit
+    # `tournament_type` gesetzt ist (Game#belongs_to :tournament ist NICHT polymorph
+    # deklariert, Tournament#has_many :games aber schon — Lehre aus Plan 03-02), und mit
+    # expliziter ID >= MIN_ID, weil die Test-Sequenz vierstellige IDs vergibt und
+    # `live_games` auf `id >= Game::MIN_ID` filtert (Lehre aus Plan 06-01).
+    games = 2.times.map do |i|
+      @tournament.games.create!(id: CASCADE_BASE_ID + i, gname: "hf#{i + 1}", group_no: 1, data: {})
+    end
 
     # Stub TournamentMonitor cascade methods so finalize_round is reachable but does NOT
     # enqueue real jobs / advance the round. Per Phase 38.8 Plan 06 D-decision, instance
@@ -445,35 +591,117 @@ class TournamentMonitor::ResultProcessorTest < ActiveSupport::TestCase
     end
   end
 
-  test "CR-02 advance_tournament_round_if_present short-circuits when sentinel matches self.id (per-TM scope)" do
-    # Pure unit test, no DB cascade. Builds an in-memory TM with id=99, primes the
-    # thread-local sentinel to 99, and verifies the delegate to ResultProcessor.new
-    # is NOT invoked (sentinel matches self.id → early-return).
+  # ============================================================================
+  # Plan 05-01 — Mehr-Tische-Kaskade. Live-Vorfall 2026-09-03, Tournament[18931]/
+  # TournamentMonitor[50000061] ("1. Vorgabepokal"): current_round sprang in ~2s
+  # von 6 auf 12 (PaperTrail-verifiziert), weil finalize_round mehrere Tische in
+  # EINER Schleife schliesst und JEDER einzelne (per-TM-Sentinel, siehe Tests oben)
+  # seine EIGENE volle advance_round_after_match_close-Kaskade ausloest, sobald
+  # all_table_monitors_finished? zwischendurch (faelschlich) true zurueckgibt.
+  #
+  # Vor dem Fix rief dieser Aufbau incr_current_round! 4x auf (3 Tische), obwohl es
+  # sich um EIN einziges Rundenwechsel-Ereignis handelt. Mit dem turnierweiten
+  # Sentinel (+ sentinel_owner-Flag, damit der short-circuit-Zweig die Sperre des
+  # laufenden aeusseren Aufrufs nicht vorzeitig freigibt) bleibt es bei genau 1.
+  # ============================================================================
+
+  test "Plan 05-01: multi-table finalize_round cascade calls incr_current_round! exactly once (per-tournament sentinel)" do
+    # Nicht auf @tournament.games (KO-Helper) verlassen — die bestehende "CR-02
+    # tournament-finals..."-Regression (Zeile 383) skippt in dieser Umgebung IMMER,
+    # weil initialize_tournament_monitor hier keine lokalen Spiele erzeugt (verifiziert
+    # waehrend Plan-05-01-Recherche). Games ueber die Tournament-Assoziation direkt
+    # anlegen (@tournament.games.create!, wie table_populator.rb es in Produktion tut) —
+    # das setzt tournament_type korrekt (polymorphe Assoziation), garantiert id>=MIN_ID
+    # und macht diesen Test unabhaengig vom luecken behafteten KO-Setup.
+    games = 3.times.map { |i| @tournament.games.create!(gname: "hf#{i + 1}", group_no: 1) }
+
+    call_log = []
+    @tm.define_singleton_method(:populate_tables) { nil }
+    @tm.define_singleton_method(:incr_current_round!) { call_log << :incr }
+    @tm.define_singleton_method(:start_playing_groups!) { nil }
+    @tm.define_singleton_method(:group_phase_finished?) { false }
+    @tm.define_singleton_method(:all_table_monitors_finished?) { true }
+
+    tabmons = games.map do |game|
+      tm = TableMonitor.create!(
+        tournament_monitor: @tm,
+        game: game,
+        state: "final_match_score",
+        data: {
+          "playera" => {"result" => 10, "innings" => [10], "hs" => 10, "balls_goal" => 10},
+          "playerb" => {"result" => 10, "innings" => [10], "hs" => 10, "balls_goal" => 10},
+          "ba_results" => {},
+          "sets_to_win" => 1,
+          "sets" => [],
+          "current_inning" => {"active_player" => "playera", "balls" => 0}
+        }
+      )
+      game.update_columns(data: {"playera" => {"result" => 10}, "playerb" => {"result" => 10}}) if game.data.blank?
+      tm
+    end
+
+    outer_tm = tabmons.first
+
+    begin
+      TournamentMonitorUpdateResultsJob.stub :perform_later, ->(_) {} do
+        TournamentStatusUpdateJob.stub :perform_later, ->(_) {} do
+          result = nil
+          assert_nothing_raised do
+            Timeout.timeout(10) do
+              result = outer_tm.close_match!
+            end
+          end
+          assert result, "close_match! must return truthy on success"
+        end
+      end
+
+      # Nach dem Fix (Plan 05-01 Task 2, Sentinel-Key = tournament_monitor.id statt
+      # self.id): nur die ERSTE Kaskade (outer_tm) darf incr_current_round! aufrufen,
+      # alle weiteren Tische derselben finalize_round-Schleife/desselben Turniers
+      # short-circuiten ueber den Sentinel.
+      assert_equal 1, call_log.size,
+        "Nach dem Fix (Plan 05-01 Task 2): mehrere Tische DESSELBEN Turniers in einer " \
+        "finalize_round-Schleife duerfen incr_current_round! nur EINMAL ausloesen " \
+        "(Live-Vorfall: 6x in ~2s vor dem Fix)."
+    ensure
+      tabmons.each { |tm| tm.destroy if TableMonitor.exists?(tm.id) }
+    end
+  end
+
+  test "CR-02 advance_tournament_round_if_present short-circuits when sentinel matches tournament_monitor.id (per-tournament scope)" do
+    # Plan 05-01: Sentinel-Key ist jetzt tournament_monitor.id, NICHT mehr self.id.
+    # Pure unit test, no DB cascade. TM(id=99) gehoert zu TournamentMonitor(id=77);
+    # Sentinel steht bereits auf 77 → early-return, ResultProcessor.new darf nicht laufen.
     tm = TableMonitor.new(state: "ready_for_new_match")
     tm.define_singleton_method(:id) { 99 }
     fake_tm = TournamentMonitor.new
+    fake_tm.define_singleton_method(:id) { 77 }
     tm.define_singleton_method(:tournament_monitor) { fake_tm }
 
-    Thread.current[:_advancing_round_for_tm] = 99
+    Thread.current[:_advancing_round_for_tm] = 77
     begin
       result = nil
-      TournamentMonitor::ResultProcessor.stub :new, ->(_) { raise "ResultProcessor.new must NOT be invoked when sentinel matches self.id" } do
+      TournamentMonitor::ResultProcessor.stub :new, ->(_) { raise "ResultProcessor.new must NOT be invoked when sentinel matches tournament_monitor.id" } do
         assert_nothing_raised do
           result = tm.advance_tournament_round_if_present
         end
       end
-      assert_nil result, "advance_tournament_round_if_present must return nil when sentinel matches self.id"
+      assert_nil result, "advance_tournament_round_if_present must return nil when sentinel matches tournament_monitor.id"
     ensure
       Thread.current[:_advancing_round_for_tm] = nil
     end
   end
 
-  test "CR-02 advance_tournament_round_if_present DOES run when sentinel is set for a DIFFERENT TM (cross-TM cascade preserved)" do
-    # Pure unit test. TM has id=99; sentinel is primed to 42 (different id);
-    # delegate MUST be invoked because the per-TM scoping permits cross-TM cascades.
+  test "CR-02 advance_tournament_round_if_present short-circuits for a DIFFERENT table when the SAME tournament is already advancing (Plan 05-01 multiplication fix)" do
+    # Vor Plan 05-01 lief die Kaskade fuer JEDEN Tisch unabhaengig (self.id-Sentinel) —
+    # genau das hat den Live-Vorfall (current_round 6→12 in ~2s) ausgeloest, weil
+    # finalize_round mehrere Tische DESSELBEN Turniers synchron schliesst. Jetzt muss
+    # ein zweiter Tisch (id=55, != 99) desselben Turniers (tournament_monitor.id=77)
+    # short-circuiten, wenn der Sentinel bereits auf 77 steht.
     tm = TableMonitor.new(state: "ready_for_new_match")
-    tm.define_singleton_method(:id) { 99 }
+    tm.define_singleton_method(:id) { 55 }
     fake_tm = TournamentMonitor.new
+    fake_tm.define_singleton_method(:id) { 77 }
     tm.define_singleton_method(:tournament_monitor) { fake_tm }
 
     spy_invoked = false
@@ -483,7 +711,38 @@ class TournamentMonitor::ResultProcessorTest < ActiveSupport::TestCase
       nil
     end
 
-    Thread.current[:_advancing_round_for_tm] = 42
+    Thread.current[:_advancing_round_for_tm] = 77
+    begin
+      TournamentMonitor::ResultProcessor.stub :new, ->(_) { fake_processor } do
+        assert_nothing_raised do
+          tm.advance_tournament_round_if_present
+        end
+      end
+      refute spy_invoked,
+        "advance_tournament_round_if_present must NOT invoke ResultProcessor#advance_round_after_match_close for a different table of the SAME tournament while its cascade is already in flight"
+    ensure
+      Thread.current[:_advancing_round_for_tm] = nil
+    end
+  end
+
+  test "CR-02 advance_tournament_round_if_present DOES run for a DIFFERENT tournament (cross-tournament cascade preserved)" do
+    # Legitime parallele Turniere duerfen sich weiterhin nicht gegenseitig blockieren:
+    # TM(id=99) gehoert zu TournamentMonitor(id=77); Sentinel steht auf 88 (ANDERES
+    # Turnier) → Kaskade MUSS laufen.
+    tm = TableMonitor.new(state: "ready_for_new_match")
+    tm.define_singleton_method(:id) { 99 }
+    fake_tm = TournamentMonitor.new
+    fake_tm.define_singleton_method(:id) { 77 }
+    tm.define_singleton_method(:tournament_monitor) { fake_tm }
+
+    spy_invoked = false
+    fake_processor = Object.new
+    fake_processor.define_singleton_method(:advance_round_after_match_close) do |_tabmon|
+      spy_invoked = true
+      nil
+    end
+
+    Thread.current[:_advancing_round_for_tm] = 88
     begin
       TournamentMonitor::ResultProcessor.stub :new, ->(_) { fake_processor } do
         assert_nothing_raised do
@@ -491,7 +750,7 @@ class TournamentMonitor::ResultProcessorTest < ActiveSupport::TestCase
         end
       end
       assert spy_invoked,
-        "advance_tournament_round_if_present MUST invoke ResultProcessor#advance_round_after_match_close when sentinel is set for a DIFFERENT TM (cross-TM cascade preserved)"
+        "advance_tournament_round_if_present MUST invoke ResultProcessor#advance_round_after_match_close when the sentinel belongs to a DIFFERENT tournament_monitor.id (cross-tournament cascade preserved)"
     ensure
       Thread.current[:_advancing_round_for_tm] = nil
     end
@@ -500,10 +759,11 @@ class TournamentMonitor::ResultProcessorTest < ActiveSupport::TestCase
   test "CR-02 advance_tournament_round_if_present clears sentinel via ensure even on exception" do
     # Mirror of the original 37796f7d test — sentinel must be cleared in `ensure`
     # even when the delegate raises. Otherwise a single failed cascade would leave
-    # the thread permanently unable to advance the same TM ever again.
+    # the thread permanently unable to advance the same tournament ever again.
     tm = TableMonitor.new(state: "ready_for_new_match")
     tm.define_singleton_method(:id) { 99 }
     fake_tm = TournamentMonitor.new
+    fake_tm.define_singleton_method(:id) { 77 }
     tm.define_singleton_method(:tournament_monitor) { fake_tm }
 
     assert_nil Thread.current[:_advancing_round_for_tm], "Pre-condition: sentinel must be nil"
@@ -517,6 +777,131 @@ class TournamentMonitor::ResultProcessorTest < ActiveSupport::TestCase
         "Post-condition: sentinel MUST be cleared via ensure even when delegate raises"
     ensure
       Thread.current[:_advancing_round_for_tm] = nil
+    end
+  end
+  # ==========================================================================
+  # Ergebnis-Mail: geschriebene Datei == angehaengte Datei
+  #
+  # Befund 2026-09-20 (Turnier-Probelauf und echtes Turnier 18934, cc_id 948): die Mail
+  # schlug beide Male mit `No such file or directory` fehl. Ursache: write_finale_csv_for_upload
+  # schreibt `tmp/result-<tournament.cc_id>.csv`, haengte aber `tmp/result-<tournament.id>.csv`
+  # an — zwei verschiedene Namen, sobald cc_id != id (also im Regelfall). Aelter als die
+  # Extraktion `0d4324e3` (11.04.), stammt aus lib/tournament_monitor_support.rb.
+  #
+  # Der Fehler blieb unsichtbar, weil er in einem `rescue StandardError` je Empfaenger landet
+  # und nur geloggt wird — der Turnierablauf merkt nichts davon.
+  # ==========================================================================
+
+  test "write_finale_csv_for_upload haengt genau die Datei an, die es geschrieben hat" do
+    # `Tournament#cc_id` ist kein Feld, sondern `tournament_cc.andand.cc_id` (tournament.rb:409) —
+    # die ClubCloud-Id ueber die Assoziation. Ohne TournamentCc ist sie nil.
+    TournamentCc.create!(id: 62_000_948, tournament_id: @tournament.id, cc_id: 948)
+    @tournament.reload
+    assert_equal 948, @tournament.cc_id
+    assert_not_equal @tournament.id, @tournament.cc_id,
+      "Vorbedingung: cc_id und id muessen sich unterscheiden, sonst prueft der Test nichts"
+
+    # Kein Vorab-Praeparieren der Spiele: unbeendete KO-Platzhalter ueberspringt die Methode
+    # seit `next if ended.blank?` von selbst. Ein frueherer Versuch, hier pauschal `ended_at` zu
+    # setzen, machte Platzhalter-Spiele zu "beendeten" und liess den Test an `gp.player.cc_id`
+    # scheitern — die Testvorbereitung hatte einen Zustand erzeugt, den es so nicht gibt.
+
+    captured = nil
+    delivery = Object.new
+    def delivery.deliver = true
+
+    TournamentMonitor.current_admin = Struct.new(:email).new("sportwart@example.test")
+
+    begin
+      NotifierMailer.stub :result, ->(_tournament, _recipient, _subject, filename, filepath) {
+        captured = {filename: filename, filepath: filepath}
+        delivery
+      } do
+        @processor.send(:write_finale_csv_for_upload)
+      end
+
+      assert_not_nil captured, "Es wurde keine Mail erzeugt — Empfaenger-Zweig nicht erreicht"
+      assert File.exist?(captured[:filepath]),
+        "Angehaengt wird #{File.basename(captured[:filepath])}, geschrieben wurde " \
+        "result-#{@tournament.cc_id}.csv — die Mail scheitert an einer Datei, die es nicht gibt"
+      assert_equal "#{Rails.root}/tmp/result-#{@tournament.cc_id}.csv", captured[:filepath]
+      assert_equal "result-#{@tournament.cc_id}.csv", captured[:filename],
+        "Der Anhang soll so heissen wie die Datei — sonst passt der Name nicht zum Inhalt"
+    ensure
+      TournamentMonitor.current_admin = nil
+      FileUtils.rm_f("#{Rails.root}/tmp/result-#{@tournament.cc_id}.csv")
+    end
+  end
+  # ==========================================================================
+  # Ein Spiel ohne `ended_at` darf die Ergebnis-CSV nicht mitreissen
+  #
+  # Befund 2026-09-20: Z. 633 ruft `ended.strftime` ungeprueft. Die Zeile davor faengt nur
+  # fehlende Teilnehmer ab (`next unless gp1.present? && gp2.present?`) — ein abgebrochenes oder
+  # kampflos gewertetes Spiel hat aber Teilnehmer UND kein Ende. Anders als der Mailversand
+  # liegt das NICHT in einem `rescue`: die ganze CSV faellt aus, nicht nur eine Zeile.
+  # ==========================================================================
+
+  test "write_finale_csv_for_upload ueberspringt Spiele ohne ended_at, statt abzubrechen" do
+    TournamentCc.create!(id: 62_000_949, tournament_id: @tournament.id, cc_id: 949)
+    @tournament.reload
+
+    beendet = local_game_with_participations!(1)
+    beendet.update!(ended_at: Time.zone.parse("2026-09-20 15:12"))
+    local_game_with_participations!(2) # bleibt ohne ended_at — der kritische Fall
+
+    csv_path = "#{Rails.root}/tmp/result-949.csv"
+    begin
+      assert_nothing_raised do
+        @processor.send(:write_finale_csv_for_upload)
+      end
+
+      assert File.exist?(csv_path), "Die CSV muss trotz des unbeendeten Spiels geschrieben werden"
+      zeilen = File.read(csv_path).lines.map(&:chomp).reject(&:empty?)
+      assert_equal 1, zeilen.size,
+        "Nur das beendete Spiel gehoert in die CSV, das unbeendete wird uebersprungen"
+      assert_includes zeilen.first, "20.09.2026"
+      assert_includes zeilen.first, "15:12"
+    ensure
+      FileUtils.rm_f(csv_path)
+    end
+  end
+  # ==========================================================================
+  # Ein beendetes Spiel ohne gesetzten Spieler darf die CSV nicht mitreissen
+  #
+  # `GameParticipation belongs_to :player, optional: true` (game_participation.rb:30) — eine
+  # Teilnahme ohne Spieler ist legitim (KO-Platzhalter). Z. 637 rief `gp1.player.cc_id` trotzdem
+  # ungeprueft; die Pruefung davor stellt nur sicher, dass die TEILNAHME existiert, nicht dass
+  # sie einen Spieler hat. Der `ended_at`-Schutz deckt den Fall nicht ab, sobald das Spiel
+  # beendet ist. Wie bei den anderen beiden Luecken faellt sonst die GANZE CSV aus, nicht eine
+  # Zeile — und zwar ausserhalb jedes `rescue`.
+  # ==========================================================================
+
+  test "write_finale_csv_for_upload ueberspringt beendete Spiele ohne gesetzten Spieler" do
+    TournamentCc.create!(id: 62_000_950, tournament_id: @tournament.id, cc_id: 950)
+    @tournament.reload
+
+    vollstaendig = local_game_with_participations!(11)
+    vollstaendig.update!(ended_at: Time.zone.parse("2026-09-20 15:12"))
+
+    # Beendet, aber playera ist noch nicht gesetzt — der kritische Fall.
+    unvollstaendig = @tournament.games.create!(id: 64_000_012, gname: "group1:12", group_no: 1, data: {},
+      ended_at: Time.zone.parse("2026-09-20 16:00"))
+    GameParticipation.create!(game: unvollstaendig, player: nil, role: "playera", points: 0, result: 0)
+    GameParticipation.create!(game: unvollstaendig, player: @players[1], role: "playerb", points: 2, result: 30)
+
+    csv_path = "#{Rails.root}/tmp/result-950.csv"
+    begin
+      assert_nothing_raised do
+        @processor.send(:write_finale_csv_for_upload)
+      end
+
+      zeilen = File.read(csv_path).lines.map(&:chomp).reject(&:empty?)
+      assert_equal 1, zeilen.size,
+        "Nur das vollstaendige Spiel gehoert in die CSV — ein Platzhalter hat nichts zu melden"
+      assert_includes zeilen.first, "15:12"
+      refute_includes zeilen.first, "16:00"
+    ensure
+      FileUtils.rm_f(csv_path)
     end
   end
 end

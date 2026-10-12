@@ -52,7 +52,9 @@ class TableMonitorsControllerTest < ActionDispatch::IntegrationTest
       "edit should respond with success or redirect"
   end
 
+  # Plan 20-03: Datensatz-Verwaltung nur fuer Admins
   test "should update table_monitor" do
+    sign_in users(:club_admin)
     patch table_monitor_url(@table_monitor), params: { table_monitor: {
       tournament_monitor_id: @table_monitor.tournament_monitor_id,
       state: @table_monitor.state,
@@ -63,6 +65,7 @@ class TableMonitorsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "should destroy table_monitor" do
+    sign_in users(:club_admin)
     assert_difference("TableMonitor.count", -1) do
       delete table_monitor_url(@table_monitor)
     end
@@ -102,6 +105,69 @@ class TableMonitorsControllerTest < ActionDispatch::IntegrationTest
     @table_monitor.reload
     assert_equal "karambol",             @table_monitor.data["free_game_form"]
     assert_equal "Freie Partie klein",   @table_monitor.data.dig("playera", "discipline")
+  end
+
+  # Biathlon (2026-10-06): Schnellstart und Detailseite fuehren die Dreiband-Parameter
+  # bis in data["biathlon"]; das Gesamtziel ist balls_goal.
+  test "start_game Biathlon-Schnellstart 10/15/120 uebergibt Teildistanz und Aufnahmebegrenzung" do
+    post start_game_table_monitor_url(@table_monitor), params: {
+      quick_game_form: "karambol",
+      discipline_a: "Biathlon", discipline_b: "Biathlon",
+      balls_goal_a: 120, balls_goal_b: 120, innings_goal: 0, sets_to_win: 0,
+      kickoff_switches_with: "set", allow_follow_up: "false", first_break_choice: 0,
+      biathlon: {balls_goal_3b: 10, innings_goal_3b: 15},
+      player_a_id: players(:jaspers).id, player_b_id: players(:cho).id
+    }
+    assert_includes [200, 302], response.status
+    @table_monitor.reload
+    assert_equal "3b", @table_monitor.data["biathlon_phase"]
+    assert_equal 10, @table_monitor.data.dig("biathlon", "balls_goal_3b")
+    assert_equal 15, @table_monitor.data.dig("biathlon", "innings_goal_3b")
+    assert_equal 120, @table_monitor.data.dig("playera", "balls_goal").to_i
+  end
+
+  test "start_game Biathlon von der Detailseite: Aufnahmebegrenzung gilt der Dreiband-Phase" do
+    post start_game_table_monitor_url(@table_monitor), params: {
+      free_game_form: "karambol",
+      discipline_choice: 13, # KARAMBOL_DISCIPLINE_MAP[13] == "Biathlon"
+      # Die Seite schickt das Punktziel auch je Spieler (Zaehlerfelder *_2_choice), weil
+      # 180 kein Knopfwert der Spielerzeilen ist — der Controller liest es von dort.
+      balls_goal_choice: 180, balls_goal_a_2_choice: 180, balls_goal_b_2_choice: 180,
+      innings_choice: 20, biathlon_3b_choice: 15,
+      sets_choice: 0, games_choice: 0,
+      player_a_id: players(:jaspers).id, player_b_id: players(:cho).id,
+      allow_follow_up: "1", first_break_choice: 0
+    }
+    assert_includes [200, 302], response.status
+    @table_monitor.reload
+    assert_equal "Biathlon", @table_monitor.data.dig("playera", "discipline")
+    assert_equal({"balls_goal_3b" => 15, "innings_goal_3b" => 20, "factor" => 6}, @table_monitor.data["biathlon"])
+    assert_equal 180, @table_monitor.data.dig("playera", "balls_goal").to_i
+    assert_equal 0, @table_monitor.data["innings_goal"].to_i
+    assert_equal false, @table_monitor.data["allow_follow_up"]
+  end
+
+  test "start_game Detailseite: Dreiband-Distanz aus dem Zaehlerfeld gewinnt gegen die Knoepfe" do
+    post start_game_table_monitor_url(@table_monitor), params: {
+      free_game_form: "karambol", discipline_choice: 13,
+      balls_goal_choice: 120, innings_choice: 20, biathlon_3b_choice: 15, biathlon_3b_2_choice: 12,
+      sets_choice: 0, games_choice: 0,
+      player_a_id: players(:jaspers).id, player_b_id: players(:cho).id, first_break_choice: 0
+    }
+    @table_monitor.reload
+    assert_equal 12, @table_monitor.data.dig("biathlon", "balls_goal_3b")
+  end
+
+  test "start_game Detailseite: Dreiband bekommt keine Biathlon-Parameter" do
+    post start_game_table_monitor_url(@table_monitor), params: {
+      free_game_form: "karambol", discipline_choice: 6, # Dreiband gross
+      balls_goal_choice: 40, innings_choice: 20, biathlon_3b_choice: 15,
+      sets_choice: 0, games_choice: 0,
+      player_a_id: players(:jaspers).id, player_b_id: players(:cho).id, first_break_choice: 0
+    }
+    @table_monitor.reload
+    assert_nil @table_monitor.data["biathlon_phase"]
+    assert_equal 20, @table_monitor.data["innings_goal"].to_i
   end
 
   # b. BK2 detail-form path (detail-form submits free_game_form=bk2_kombi +

@@ -747,6 +747,118 @@ class McpServer::Tools::LookupMeldelisteForTournamentTest < ActiveSupport::TestC
     end
   end
 
+  # 2026-09-15 (bcw live, 1. NordCup, tournament_cc_id=1051): TournamentCc.name „1. NordCup Freie Partie"
+  # passte per Teilstring nur auf die fremde Liste „1. NordCup Freie Partie TEST" (1349); die echte,
+  # per Saison-Klon angelegte Liste heißt „1. NordCup FP" (1353). Die Turnierseite nennt sie beim Namen.
+  NORDCUP_LIST_HTML = <<~HTML
+    <html><body><table>
+      <tr><td><a class='cc_bluelink' href='showMeldeliste.php?p=20|10|*|*|2026/2027|1353&'>1. NordCup FP</a></td></tr>
+      <tr><td><a class='cc_bluelink' href='showMeldeliste.php?p=20|10|*|*|2026/2027|1349&'>1. NordCup Freie Partie TEST</a></td></tr>
+      <tr><td><a class='cc_bluelink' href='showMeldeliste.php?p=20|10|*|*|2026/2027|1378&'>2. NordCup Cadre 35/2</a></td></tr>
+    </table></body></html>
+  HTML
+
+  def stub_nordcup_cc(linked_page:)
+    @mock.define_singleton_method(:get) do |action, get_options = {}, opts = {}|
+      @calls << [:get, action, get_options, opts]
+      body = (action == "meisterschaft-showMeldeliste") ? linked_page : "<html><body>MOCK GET #{action}</body></html>"
+      [Struct.new(:code, :message, :body).new("200", "OK", body), Nokogiri::HTML(body)]
+    end
+    @mock.define_singleton_method(:post) do |action, post_options = {}, opts = {}|
+      @calls << [:post, action, post_options, opts]
+      [Struct.new(:code, :message, :body).new("200", "OK", NORDCUP_LIST_HTML), Nokogiri::HTML(NORDCUP_LIST_HTML)]
+    end
+  end
+
+  def lookup_nordcup
+    McpServer::Tools::LookupMeldelisteForTournament.stub :effective_cc_region, "nbv" do
+      McpServer::Tools::LookupMeldelisteForTournament.call(
+        tournament_cc_id: 1051, fed_cc_id: 20, branch_cc_id: 10, season: "2026/2027",
+        force_refresh: true, server_context: nil
+      )
+    end
+  end
+
+  test "verknüpfte Meldeliste laut Turnierseite schlägt Teilstring-Treffer (1. NordCup FP statt TEST-Liste)" do
+    tcc = TournamentCc.create!(cc_id: 1051, context: "nbv", name: "1. NordCup Freie Partie")
+    stub_nordcup_cc(linked_page: File.read(Rails.root.join("test/fixtures/cc/meisterschaft_showmeldeliste_linked.html")))
+
+    response = lookup_nordcup
+    refute response.error?
+    text = response.content.first[:text]
+    assert_match(/meldeliste_cc_id: 1353/, text)
+    refute_match(/1349/, text, "Die fremde TEST-Liste darf nicht gewählt werden")
+
+    linked_get = @mock.calls.find { |verb, action, _, _| verb == :get && action == "meisterschaft-showMeldeliste" }
+    assert_equal({p: "20-10-*-2026/2027-*--1051-2"}, linked_get[2])
+  ensure
+    tcc&.destroy
+  end
+
+  test "ohne verknüpften Namen: einziger Teilstring-Treffer wird NICHT als aufgelöst ausgegeben" do
+    tcc = TournamentCc.create!(cc_id: 1051, context: "nbv", name: "1. NordCup Freie Partie")
+    stub_nordcup_cc(linked_page: "<html><body>keine Details</body></html>")
+
+    response = lookup_nordcup
+    text = response.content.first[:text]
+    assert_match(/Bestätigung nötig/, text)
+    assert_match(/NICHT ohne Rückfrage verwenden/, text)
+    refute_match(/^meldeliste_cc_id: 1349$/, text)
+  ensure
+    tcc&.destroy
+  end
+
+  test "linked_meldeliste: liefert die laut Turnierseite verknüpfte Liste für Schreib-Tools" do
+    stub_nordcup_cc(linked_page: File.read(Rails.root.join("test/fixtures/cc/meisterschaft_showmeldeliste_linked.html")))
+    linked = McpServer::Tools::LookupMeldelisteForTournament.linked_meldeliste(
+      1051, fed_cc_id: 20, branch_cc_id: 10, season: "2026/2027", server_context: nil
+    )
+    assert_equal({meldeliste_cc_id: 1353, name: "1. NordCup FP"}, linked)
+  end
+
+  test "linked_meldeliste: nil ohne Namen auf der Turnierseite" do
+    stub_nordcup_cc(linked_page: "<html><body>keine Details</body></html>")
+    assert_nil McpServer::Tools::LookupMeldelisteForTournament.linked_meldeliste(
+      1051, fed_cc_id: 20, branch_cc_id: 10, season: "2026/2027", server_context: nil
+    )
+  end
+
+  test "verknüpfter Name, aber nicht in der Liste: kein Raten per Teilstring" do
+    candidates = [{meldeliste_cc_id: 1349, name: "1. NordCup Freie Partie TEST", source: "cc-live"}]
+    result = McpServer::Tools::LookupMeldelisteForTournament.match_candidates_by_name(
+      candidates, 1051, match_name: "1. NordCup FP", server_context: nil
+    )
+    assert_empty result
+  end
+
+  # 2026-09-15 (nbv live): gesperrter CC-Account. Früher: path-0 schluckte den Login-Fehler,
+  # path-1/3 loggten erneut ein (+ Re-Login je Pfad) → mehrere Fehlversuche pro Chat-Frage.
+  test "abgelehnter CC-Login: genau 1 Login-Versuch über alle Pfade, CC-Meldung im Tool-Error" do
+    McpServer::CcSession.reset!  # leerer Cache → erster Pfad muss einloggen
+    login_attempts = 0
+    prev_mock = ENV["CARAMBUS_MCP_MOCK"]
+    ENV["CARAMBUS_MCP_MOCK"] = nil
+    begin
+      Setting.stub(:login_to_cc, -> {
+        login_attempts += 1
+        raise "ClubCloud-Login abgelehnt: Abbruch: Zu viele Fehlversuche bei der Anmeldung."
+      }) do
+        response = McpServer::Tools::LookupMeldelisteForTournament.call(
+          tournament_cc_id: 889, club_cc_id: 1010, fed_cc_id: 20, branch_cc_id: 10, season: "2025/2026",
+          force_refresh: true, server_context: nil
+        )
+        assert response.error?
+        text = response.content.first[:text]
+        assert_match(/Zu viele Fehlversuche/, text, "CC-Meldung muss im Chat ankommen")
+        assert_match(/KEINE weiteren CC-Abfragen/, text)
+      end
+      assert_equal 1, login_attempts, "Jeder weitere Versuch verlängert eine CC-Sperre"
+      assert_empty @mock.calls.select { |verb, _, _, _| verb == :post }, "Ohne Session kein CC-POST"
+    ensure
+      ENV["CARAMBUS_MCP_MOCK"] = prev_mock
+    end
+  end
+
   # DEFER-25-4: scope-filter-Pfad muss meisterschaftsId im Payload enthalten
   test "DEFER-25-4: scope-filter-Payload enthält meisterschaftsId" do
     captured_payload = nil

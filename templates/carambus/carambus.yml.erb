@@ -17,6 +17,9 @@ default:
   force_update: 'true'
   no_local_protection: 'false'
   club_id: <%= @scenario['club_id'] %>
+  # Plan 17-06: derselbe Schalter wie in nginx_conf.erb — liefert der Server /app/ aus, zeigt die
+  # Turnierseite den Knopf „In der Turnier-App öffnen“.
+  serve_tournament_app: <%= @scenario['serve_tournament_app'] ? true : false %>
   # Quick Game Presets - TableKind specific (90% use cases)
   quick_game_presets:
     small_billard:

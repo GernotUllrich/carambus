@@ -209,8 +209,10 @@ class RegionServer::PlayerRegistrationTest < ActiveSupport::TestCase
     # carambus_api_url leer => Authority. Sie stoesst sich nicht selbst an.
     @tournament.update_columns(region_id: regions(:nbv).id)
 
-    assert_no_enqueued_jobs only: EntryListSyncJob do
-      register("111111")
+    ApplicationRecord.stub(:local_server?, false) do
+      assert_no_enqueued_jobs only: EntryListSyncJob do
+        register("111111")
+      end
     end
   end
 

@@ -1,12 +1,12 @@
 # External Tournament Bridge
 
-> **Status:** v0.5 (In Progress) — Pilot: 3BandMannschaftsTurnier app for BC Wedel
-> 3-cushion team championship
+> **Status:** interface of the bundled tournament app (source `tournament_app/` in the Carambus repository);
+> the plan mode has been tried in a real tournament (August 2026). Guide: [tournament app](../managers/tournament-app.md)
 
 ## What is the Bridge?
 
-Carambus opens itself up to external tournament apps. An external app (e.g.,
-the 3BandMannschaftsTurnier app for 3-cushion team tournaments) runs the tournament and
+Carambus opens itself up to tournament apps. An app — the bundled tournament app or
+another one — runs the tournament and
 exchanges the following data with Carambus over REST:
 
 | Direction | Endpoint | Purpose | Status |
@@ -184,6 +184,12 @@ nil (the app then sets the location manually).
 **Polymorphic-aware lookup:** Seeding is polymorphic (`Tournament` has
 multiple subclasses). The endpoint logic detects a team tournament (with
 `league_team_id`) vs. a single tournament and groups players accordingly.
+
+**Global tournaments (2026-10-06):** in the `tournament_id` path the tournament's region must match
+the requested one (otherwise `422 Region mismatch`) — **unless** the tournament is global
+(`global_context`, e.g. DBU tournaments). This lets an app tournament of a state-association region
+take over the registration list of a DBU Grand Prix. If local seedings exist (`id >= MIN_ID`), the
+endpoint returns those instead of the global ones.
 
 ## Endpoint 2: Round Start (Plan 15-03)
 
@@ -553,6 +559,19 @@ Extended `players[]` example (with `discipline`):
 omitted flag inherits the tournament value (instead of being forced "off"); an explicitly sent
 value (including `false`) is honored (D-18-02-A). For the 3-cushion team match, follow-up is thus
 on by default. (The fix is bridge-scoped in `StartGameProcessor`; the shared `GameSetup` is unchanged.)
+
+**Biathlon (2026-10-06):** the variant is set per game. `participants[].discipline = "Biathlon"`,
+`participants[].balls_goal` = total goal, plus
+
+```jsonc
+"biathlon": { "balls_goal_3b": 10, "innings_goal_3b": 15 }   // partial distance / three-cushion innings
+```
+
+Without `biathlon`, 15/30 applies. `innings_goal` and `allow_follow_up` have no effect for Biathlon
+(no game innings limit, no follow-up shot). In the result (`acknowledge_result`), `Ergebnis` is the
+total score (three-cushion ×6 + pins) and `Aufnahmen` counts both parts; a draw cannot occur on the
+scoreboard. The three-cushion points **before** ×6 come as `3BErgebnis1/2` in `result` and as
+`participants[].points_3b` (last criterion of the GP group ranking, otherwise `null`). Details: [TableMonitor — Biathlon](services/table-monitor.md#biathlon).
 
 ## Endpoint 7: Player rankings (Plan 19-01 / v0.6)
 

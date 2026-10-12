@@ -54,9 +54,14 @@ class StaticController < ApplicationController
       return
     end
 
-    # Security: Only allow updates from local network
-    if remote_request? && !current_user&.admin?
-      redirect_to repo_version_path, alert: "Update is only available from local network (request from: #{request.remote_ip})"
+    # Plan 21-06: Hier stand `if remote_request? && !current_user&.admin?` — Admin wurde also nur
+    # verlangt, wenn die Anfrage von AUSSEN kam. Im Vereins-WLAN ist `remote_request?` falsch
+    # (local_ip?), dort genuegte die blosse Anwesenheit, um einen Deploy auszuloesen: die
+    # Netzwerk-Herkunft zaehlte als Berechtigung. Jetzt dasselbe Muster wie der Nachbar
+    # `sync_data` auf derselben Seite — Herkunft entscheidet nicht mehr, die Rolle entscheidet.
+    unless current_user&.admin?
+      redirect_to repo_version_path, alert: t("static.update_version.forbidden",
+        default: "Nur für Administratoren.")
       return
     end
 
@@ -145,14 +150,19 @@ class StaticController < ApplicationController
 
     # region_id wie im Cron aus dem Kontext ableiten (nil-sicher: ein Full-Mirror ohne Kontext
     # zieht ungefiltert). EBC/context=TBV → Region 16.
-    region_id = Region.find_by_shortname(Carambus.config.context)&.id
+    region_id = Version.context_region_id
     args = region_id.present? ? {region_id: region_id} : {}
 
-    before = Setting.key_get_value("last_version_id").to_i
-    prev = before
+    prev = Setting.key_get_value("last_version_id").to_i
     # Ein Aufruf holt einen Batch; bis zu 10× wie der Cron, aber Abbruch sobald nichts mehr nachkommt.
+    # `applied` summiert die tatsaechlich uebernommenen Records — frueher stand hier die
+    # Differenz der Cursor-Staende (`after - before`). Die zaehlt auch Versionen fremder
+    # Regionen mit, die dieser Server nie erhaelt: ein Sprung ueber 30.000 fremde Versionen
+    # mit 5 eigenen darin meldete "30.000 neue Versionen geholt".
+    applied = 0
     10.times do
-      Version.update_from_carambus_api(args)
+      result = Version.update_from_carambus_api(args)
+      applied += result if result.is_a?(Integer)
       now = Setting.key_get_value("last_version_id").to_i
       break if now <= prev
 
@@ -160,9 +170,14 @@ class StaticController < ApplicationController
     end
     after = Setting.key_get_value("last_version_id").to_i
 
-    redirect_to repo_version_path, notice: t("static.sync_data.done",
-      count: after - before, version: after,
-      default: "Datensync abgeschlossen: #{after - before} neue Versionen geholt (Stand #{after}).")
+    notice = if applied.positive?
+      t("static.sync_data.applied", count: applied, version: after,
+        default: "Datensync abgeschlossen: #{applied} Records übernommen (Stand #{after}).")
+    else
+      t("static.sync_data.nothing_new", version: after,
+        default: "Datensync abgeschlossen: keine neuen Daten (Stand #{after}).")
+    end
+    redirect_to repo_version_path, notice: notice
   rescue => e
     Rails.logger.error "[sync_data] fehlgeschlagen: #{e.message}"
     redirect_to repo_version_path, alert: t("static.sync_data.failed",
@@ -202,11 +217,13 @@ class StaticController < ApplicationController
       return
     end
 
-    # Versuche verschiedene Pfadstrukturen
+    # Versuche verschiedene Pfadstrukturen — als relative Kandidaten, die gegen den Index der
+    # vorhandenen Doku-Dateien nachgeschlagen werden (Plan 19-02). Der ausgelieferte Pfad stammt
+    # damit immer aus dem Verzeichnis selbst, nie aus den Parametern.
     possible_paths = [
-      Rails.root.join('docs', "#{path}.#{locale}.md"),              # Neue Struktur: about.de.md
-      Rails.root.join('docs', locale, "#{path}.md"),                # Alte Struktur: de/about.md
-      Rails.root.join('docs', path, "#{locale}.md"),                # Sehr alte Struktur: about/de.md
+      "#{path}.#{locale}.md",              # Neue Struktur: about.de.md
+      "#{locale}/#{path}.md",              # Alte Struktur: de/about.md
+      "#{path}/#{locale}.md",              # Sehr alte Struktur: about/de.md
     ]
 
     # Sprachneutrale Datei ohne Locale-Suffix: 215 der 437 Doku-Dateien heissen
@@ -218,18 +235,19 @@ class StaticController < ApplicationController
     # Reihenfolge: nach der exakt passenden Sprache, aber VOR dem Rueckfall auf
     # die Fremdsprache — eine sprachneutrale Seite ist der bessere Treffer als
     # eine in der falschen Sprache.
-    possible_paths << Rails.root.join("docs", "#{path}.md")
+    possible_paths << "#{path}.md"
 
     # Auch mit anderem Locale versuchen falls nicht gefunden
     other_locale = locale == 'de' ? 'en' : 'de'
     possible_paths += [
-      Rails.root.join('docs', "#{path}.#{other_locale}.md"),
-      Rails.root.join('docs', other_locale, "#{path}.md"),
-      Rails.root.join('docs', path, "#{other_locale}.md"),
+      "#{path}.#{other_locale}.md",
+      "#{other_locale}/#{path}.md",
+      "#{path}/#{other_locale}.md",
     ]
 
     # Erste existierende Datei verwenden
-    docs_path = possible_paths.find { |p| File.exist?(p) }
+    index = docs_file_index
+    docs_path = possible_paths.lazy.map { |candidate| index[Pathname.new(candidate).cleanpath.to_s] }.find(&:itself)
 
     # Wenn keine Datei gefunden, 404
     unless docs_path
@@ -261,6 +279,15 @@ class StaticController < ApplicationController
   end
 
   private
+
+  # Plan 19-02: alle Doku-Dateien unter docs/, Schluessel = relativer Pfad ("managers/index.de.md").
+  # docs_page schlaegt seine Kandidaten hier nach, statt Parameter an Rails.root.join zu geben —
+  # was nicht im Index steht, gibt es nicht. Je Anfrage neu (~1,5 ms bei 451 Dateien), damit neue
+  # Doku-Dateien ohne Neustart sichtbar sind.
+  def docs_file_index
+    docs_root = Rails.root.join("docs")
+    Dir.glob("**/*.md", base: docs_root).to_h { |relative| [relative, docs_root.join(relative)] }
+  end
 
   # Front Matter aus Markdown extrahieren
   def extract_front_matter(content)

@@ -100,6 +100,7 @@ class RegionServer::EntryListImporterTest < ActiveSupport::TestCase
   end
 
   test "ein bereits korrekt getaggtes Seeding erzeugt keine neue Version" do
+    skip_unless_api_server # PaperTrail (seeding.versions) gibt es nur auf dem API-Server
     importer(armed: true).call
     seeding = Tournament.find_by(source_url: "#{@base_url}/tournaments/#{@source_id}").seedings.first
 

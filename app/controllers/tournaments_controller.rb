@@ -25,6 +25,19 @@ class TournamentsController < ApplicationController
   before_action :authorize_manage_teilnehmerliste,
                 only: %i[finish_seeding use_clubcloud_as_participants define_participants
                          add_player_by_dbu update_seeding_position apply_seeding_order]
+  # Plan 17-05: bis hierher band der Controller ausser `reset` und der Teilnehmerliste keine schreibende
+  # Aktion an einen Benutzer. Ebenfalls NACH ensure_local_server (Muster 32-07).
+  # Stammdaten und Debug: nur angemeldete Vereins- oder System-Admins.
+  before_action :require_tournament_admin,
+    only: %i[new create edit update destroy copy_season copy_season_execute test_tournament_status_update]
+  # Setup: prepare_tournament? (TL / Sportwart im Wirkbereich / Admin, Regel wie die Teilnehmerliste) —
+  # der Carambus-Assistent schickt Turnierleiter und Sportwarte per Link auf finalize_modus.
+  before_action :authorize_prepare_tournament,
+    only: %i[order_by_ranking_or_handicap reload_from_cc reload_entry_list finalize_modus select_modus
+      tournament_monitor start edit_games new_team add_team compare_seedings upload_invitation
+      parse_invitation recalculate_groups release_draft]
+  # Das Scoreboard ist als scoreboard@carambus.de (Rolle player) angemeldet — eine Rolle braucht es nicht.
+  before_action :authenticate_user!, only: %i[placement]
 
   # UI-07 D-18 / Phase 39 D-12: Felder, die vor dem Turnierstart gegen
   # Discipline#parameter_ranges geprüft werden. Reihenfolge matcht die
@@ -60,23 +73,30 @@ class TournamentsController < ApplicationController
     results = results.without_roundtrip_twins
 
     # H19: „Demnächst"-Block — anstehende Turniere (nächste 14 Tage) im Standard-Blick
-    # oben abgesetzt, aus der datum-absteigenden Hauptliste ausgeklammert.
+    # oben abgesetzt. Darunter wählt der Umschalter Kommend/Vergangen die Hauptliste: alles
+    # danach aufsteigend oder alles davor absteigend. Die drei Datumsbereiche überschneiden
+    # sich nicht, deshalb erscheint kein Turnier doppelt, auch nicht über Pagy-Seiten hinweg.
     @show_upcoming = false
     default_view = params[:sSearch].blank? && params[:sort].blank? && params[:direction].blank?
     if default_view
-      window = Date.current.beginning_of_day..(Date.current + 14.days).end_of_day
-      upcoming_scope = results.where(date: window)
-      upcoming_ids = upcoming_scope.pluck(:id)
-      if upcoming_ids.any?
-        # Ausklammerung über ALLE Seiten konsistent (sonst Duplikate/Offset-Bruch bei Pagy):
-        results = results.where.not(id: upcoming_ids)
-        # Anzeige des Blocks nur auf Seite 1:
-        if params[:page].to_i <= 1
-          @upcoming_tournaments = upcoming_scope.reorder(date: :asc)
-            .includes(:discipline, :season, :location, :tournament_cc).preload(:organizer)
-          @upcoming_tournaments.load
-          @show_upcoming = true
-        end
+      @period = (params[:period] == "past") ? "past" : "upcoming"
+      today = Date.current.beginning_of_day
+      window = today..(Date.current + 14.days).end_of_day
+
+      # Anzeige des Blocks nur auf Seite 1:
+      if params[:page].to_i <= 1
+        @upcoming_tournaments = results.where(date: window).reorder(date: :asc)
+          .includes(:discipline, :season, :location, :tournament_cc).preload(:organizer)
+        @upcoming_tournaments.load
+        @show_upcoming = @upcoming_tournaments.any?
+      end
+
+      # Turniere ohne Datum lassen sich keiner Seite zuordnen — sie stehen unter „Vergangen" am Ende.
+      results = if @period == "past"
+        results.where("tournaments.date < :today OR tournaments.date IS NULL", today: today)
+          .reorder(Arel.sql("tournaments.date DESC NULLS LAST"))
+      else
+        results.where("tournaments.date > ?", window.end).reorder(date: :asc)
       end
     end
 
@@ -176,7 +196,27 @@ class TournamentsController < ApplicationController
   end
 
   def reset
-    if params[:force_reset].present?
+    # Plan 17-01: `admin_can_reset_tournament?` gibt ohne Benutzer `true` (fuer interne Aufrufe) —
+    # ohne diese Pruefung konnte ein nicht angemeldeter Besucher zuruecksetzen. Dieselbe Regel
+    # steuert die Sichtbarkeit der Knoepfe in tournaments/show und finalize_modus.
+    unless current_user&.admin?
+      redirect_to tournament_path(@tournament), alert: t("tournaments.show.soft_reset_tournament_modal.denied",
+        default: "Keine Berechtigung, dieses Turnier zurückzusetzen.")
+      return
+    end
+
+    if params[:soft_reset].present?
+      # Sanft: Spielverlauf abraeumen, Meldeliste und Turniermodus behalten.
+      # Bewusst auch bei laufendem Turnier erlaubt — genau dafuer ist er da.
+      if @tournament.admin_can_reset_tournament?
+        @tournament.soft_reset_tournament_monitor
+        flash[:notice] = t("tournaments.show.soft_reset_tournament_modal.success",
+          default: "Turnier zurückgesetzt — Meldeliste und Turniermodus sind erhalten geblieben.")
+      else
+        flash[:alert] = t("tournaments.show.soft_reset_tournament_modal.denied",
+          default: "Keine Berechtigung, dieses Turnier zurückzusetzen.")
+      end
+    elsif params[:force_reset].present?
       @tournament.forced_reset_tournament_monitor!
     elsif !@tournament.tournament_started
       @tournament.reset_tmt_monitor!
@@ -298,17 +338,14 @@ class TournamentsController < ApplicationController
                                       .count
 
       # Versuche TournamentPlan anhand extrahierter Info zu finden (z.B. "T21", aber NICHT T0/T00)
-      @proposed_discipline_tournament_plan = nil
-      # Extrahiere Plan-Name (z.B. "T21" aus "T21 - 3 Gruppen à 3, 4 und 4 Spieler")
-      if @tournament.data["extracted_plan_info"].present? && (match = @tournament.data["extracted_plan_info"].match(/^(T\d+)/i))
-        plan_name = match[1].upcase
-        # Ignoriere T0, T00, T000 etc. (Turnier findet nicht statt)
-        unless plan_name.match?(/^T0+$/)
-          @proposed_discipline_tournament_plan = ::TournamentPlan.where(name: plan_name).first
-          Rails.logger.info "===== finalize_modus ===== Extracted plan name: #{plan_name}, found: #{@proposed_discipline_tournament_plan.present?}"
-        else
-          Rails.logger.info "===== finalize_modus ===== Extracted plan name #{plan_name} (T0 variant) ignored"
-        end
+      # Plan-Name aus der Einladung (z.B. "T21" aus "T21 - 3 Gruppen à 3, 4 und 4 Spieler").
+      # Die Normalisierung auf T01..T29 steckt in TournamentPlan.from_modus_label — die
+      # ClubCloud schreibt einstellige Modi ohne fuehrende Null.
+      @proposed_discipline_tournament_plan =
+        ::TournamentPlan.from_modus_label(@tournament.data["extracted_plan_info"])
+      if @tournament.data["extracted_plan_info"].present?
+        Rails.logger.info "===== finalize_modus ===== Modus-Label #{@tournament.data["extracted_plan_info"].inspect}, " \
+          "Plan gefunden: #{@proposed_discipline_tournament_plan&.name.inspect}"
       end
 
       # Fallback: Suche nach Spielerzahl + Disziplin (aber NICHT T0/T00/T000)
@@ -367,8 +404,12 @@ class TournamentsController < ApplicationController
                                         .where(players: @participant_count).uniq.to_a
       @default_plan = TournamentPlan.default_plan(@participant_count)
       @ko_plan = TournamentPlan.ko_plan(@participant_count)
-      @alternatives_other_disciplines |= [@default_plan]
-      @alternatives_other_disciplines |= [@ko_plan]
+      # `ko_plan` liefert nil fuer weniger als 2 oder mehr als 64 Teilnehmer
+      # (tournament_plan.rb:101). `Array#|=` mit `[nil]` filtert das NICHT, sondern nimmt nil
+      # als ELEMENT auf — die View ruft dann `alternative.name` darauf und faellt mit 500 um
+      # (finalize_modus.html.erb:212, vom Betreiber gemeldet 2026-09-23). Ein Turnier ohne
+      # Meldungen traf das sofort.
+      @alternatives_other_disciplines |= [@default_plan, @ko_plan].compact
       # REMOVED: @groups wird bereits oben korrekt gesetzt (Zeile 189, 194 oder 200)
     end
   end
@@ -545,6 +586,14 @@ class TournamentsController < ApplicationController
         # Beim erneuten Start werden existierende Spiele einfach wieder auf "warmup" gesetzt,
         # OHNE dass do_placement/initialize_game aufgerufen wird!
         tm = @tournament.tournament_monitor
+        # Biathlon: Variante am lokalen TournamentMonitor ablegen (nicht in tournament.data —
+        # globale Turniere ueberschreibt ein Sync). Spaetere Runden liest initialize_game von dort.
+        biathlon = @tournament.discipline&.name == "Biathlon"
+        if biathlon
+          tm.data["biathlon"] = TableMonitor::GameSetup.biathlon_params(params[:biathlon])
+          tm.data_will_change!
+          tm.save!
+        end
         Rails.logger.info "===== UPDATING TableMonitors ====="
         Rails.logger.info "TournamentMonitor[#{tm.id}]: innings_goal=#{tm.innings_goal}, balls_goal=#{tm.balls_goal}, handicap_tournier=#{@tournament.handicap_tournier?}"
         tm.table_monitors.each do |table_mon|
@@ -555,6 +604,8 @@ class TournamentsController < ApplicationController
           update_data = {
             "innings_goal" => tm.innings_goal
           }
+          # Die erste Runde wurde schon platziert, bevor die Variante am TournamentMonitor stand.
+          update_data["biathlon"] = tm.data["biathlon"] if biathlon
           
           unless @tournament.handicap_tournier?
             # Nur bei NICHT-Handicap-Turnieren die balls_goal überschreiben
@@ -726,13 +777,9 @@ class TournamentsController < ApplicationController
                                     .count
 
     # Versuche TournamentPlan anhand extrahierter Info zu finden (z.B. "T21", aber NICHT T0/T00)
-    @proposed_discipline_tournament_plan = nil
-    # Extrahiere Plan-Name (z.B. "T21" aus "T21 - 3 Gruppen à 3, 4 und 4 Spieler")
-    if @tournament.data["extracted_plan_info"].present? && (match = @tournament.data["extracted_plan_info"].match(/^(T\d+)/i))
-      plan_name = match[1].upcase
-      # Ignoriere T0, T00, T000 etc. (Turnier findet nicht statt)
-      @proposed_discipline_tournament_plan = ::TournamentPlan.where(name: plan_name).first unless plan_name.match?(/^T0+$/)
-    end
+    # Plan-Name aus der Einladung, normalisiert (siehe TournamentPlan.from_modus_label)
+    @proposed_discipline_tournament_plan =
+      ::TournamentPlan.from_modus_label(@tournament.data["extracted_plan_info"])
 
     # Fallback: Suche nach Spielerzahl + Disziplin (aber NICHT T0/T00/T000)
     unless @proposed_discipline_tournament_plan.present?
@@ -1384,6 +1431,23 @@ class TournamentsController < ApplicationController
     authorize @tournament, :manage_teilnehmerliste?
   rescue Pundit::NotAuthorizedError
     flash[:alert] = I18n.t("tournaments.errors.manage_teilnehmerliste_denied")
+    redirect_to(@tournament)
+  end
+
+  # Plan 17-05: Gate fuer Stammdaten. Bewusst nicht `admin_only_check` — dessen Ausnahme
+  # `guest_player_creation?` liesse das Scoreboard-Konto mit club_id + season_id durch.
+  def require_tournament_admin
+    return if current_user&.admin?
+
+    flash[:alert] = I18n.t("tournaments.errors.admin_required")
+    redirect_to(@tournament || tournaments_path)
+  end
+
+  # Plan 17-05: Gate fuer das Einrichten eines Turniers, Aufbau wie authorize_manage_teilnehmerliste.
+  def authorize_prepare_tournament
+    authorize @tournament, :prepare_tournament?
+  rescue Pundit::NotAuthorizedError
+    flash[:alert] = I18n.t("tournaments.errors.prepare_tournament_denied")
     redirect_to(@tournament)
   end
 

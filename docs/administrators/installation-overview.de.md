@@ -2,46 +2,43 @@
 
 ## 📋 Verfügbare Installations-Guides
 
-### 🎯 Scenario Management (Empfohlen)
-**[Scenario Management](../developers/scenario-management.md)** - Modernes Deployment-System für verschiedene Carambus-Umgebungen.
+### 🎯 Raspberry Pi Quickstart (Empfohlen)
+**[Raspberry Pi Quickstart](raspberry-pi-quickstart.md)**: der am 2026-09-11 auf frischer Hardware gegangene Weg,
+von der leeren SD-Karte bis zum Scoreboard im Vollbild. Diese Seite fasst ihn zusammen; die Einzelheiten stehen
+dort.
 
-**Unterstützte Szenarien:**
-- **carambus** - Hauptproduktionsumgebung
-- **carambus_location_5101** - Lokale Server-Instanz für Standort 5101
-- **carambus_location_2459** - Lokale Server-Instanz für Standort 2459
-- **carambus_location_2460** - Lokale Server-Instanz für Standort 2460
+### 🧰 Scenario Management
+**[Scenario Management](../developers/scenario-management.md)**: das Deployment-System hinter allen
+Carambus-Instanzen. Jede Instanz ist ein **Szenario** mit eigener `config.yml` unter
+`carambus_data/scenarios/<szenario>/`.
 
-**Vorteile des Scenario Management:**
-- ✅ Automatisierte Deployments
-- ✅ Konsistente Konfiguration
-- ✅ Integrierte SSL-Verwaltung
-- ✅ Automatische Sequence-Verwaltung
-- ✅ Skalierbare Architektur
+**Beispiele aus dem Bestand:**
+- **carambus_api**: die Authority (`api.carambus.de`)
+- **carambus**: der öffentliche Server `carambus.de`
+- **carambus_bcw**, **carambus_pbv**, **carambus_phat**: Vereinsserver (Raspberry Pi im Vereinslokal)
 
-### 🔧 Manuelle Installation
-Für spezielle Anforderungen oder Legacy-Systeme:
-
-- **Raspberry Pi Setup** - Detaillierte Anleitung für Pi-spezifische Installation
-- **Ubuntu Server Setup** - Server-spezifische Konfiguration
-- **API Server Setup** - Produktions-Server Installation
+**Was das Scenario Management übernimmt:**
+- ✅ Configs aus einer einzigen `config.yml` (plus `secrets.yml`)
+- ✅ Puma-Dienst, nginx, Redis und `/etc/<basename>.env` auf dem Server
+- ✅ Deployment per Capistrano
+- ✅ Sequence-Verwaltung für lokale Daten
 
 ## 🏗️ Architektur-Übersicht
 
 ### Production-Szenarien
-1. **API-Server** (`carambus`)
-   - Zentrale API für alle Local-Server
-   - Domain: api.carambus.de
-   - Kann auch als Hosting-Server fungieren
+1. **Authority** (`carambus_api`)
+   - Zentrale Datenquelle für alle Local-Server (globale Records, Versions-Sync)
+   - Domain: api.carambus.de, Pfad `/var/www/carambus_api`, `cap_role: api`
+   - Wird vom Betreiber deployt
 
-2. **Local-Server** (`carambus_location_*`)
-   - Lokale Server für Turniere/Clubs
-   - Verweist auf API-Server
-   - Für Scoreboards und lokale Verwaltung
+2. **Local-Server** (z. B. `carambus_pbv`)
+   - Server für Turniere, Spielbetrieb und Scoreboards eines Vereins
+   - Holt globale Daten von der Authority, lokale Daten bleiben auf dem Server
+   - `cap_role: local`, Pfad `/var/www/<basename>`
 
 ### Development-Modus
-- Alle Szenarien können parallel getestet werden
-- Automatische Konfiguration über Scenario Management
-- Inter-System-Kommunikation testbar
+- Jedes Szenario hat einen eigenen Rails-Root `~/DEV/carambus/<szenario>`
+- Die Rake-Tasks laufen aus einem beliebigen aktuellen carambus-Checkout
 
 ## 🔑 Wichtige Konfigurationen
 
@@ -52,58 +49,135 @@ Für spezielle Anforderungen oder Legacy-Systeme:
 - **Sudo**: Über `wheel`-Gruppe
 
 ### Installationspfade
-- **API-Server**: `/var/www/carambus`
-- **Local-Server**: `/var/www/carambus_location_*`
+- **Anwendung**: `/var/www/<basename>` (Capistrano: `releases/`, `shared/`, `current`)
+- **Secrets des Dienstes**: `/etc/<basename>.env` (Modus 600, root)
+
+## ✅ Voraussetzungen
+
+- **System**: Der Server ist per Ansible aufgesetzt (siehe Schritt 0).
+- **Szenario-Konfiguration**: `carambus_data/scenarios/<szenario>/config.yml`, mit `cap_role: local`
+  für einen Vereinsserver.
+- **`carambus_data/secrets.yml`** (nicht versioniert):
+  - `shared.database_password` für die Datenbankrolle
+  - `shared.smtp` (`username`, `password`). Ohne SMTP-Daten bricht `prepare_deploy` ab. Ein Server
+    ohne Mailversand setzt stattdessen `smtp_enabled: false` in der `config.yml`.
+- **Credentials**: `production.key` und `production.yml.enc` unter
+  `carambus_data/scenarios/<szenario>/production/credentials/`. Ein neues Szenario legt sie selbst an:
+  `WRITE=true NEW_KEY=true bin/rails "scenario:generate_credentials[<szenario>]"` (eigener Schlüssel, eigene
+  Geheimnisse; ohne `WRITE=true` nur Probelauf). `prepare_deploy` lädt sie hoch und bricht ohne sie ab.
+  Einzelheiten: [Raspberry Pi Quickstart](raspberry-pi-quickstart.md), Abschnitt 3.1.
+
+- **Zugang zum Regionsdump**: Login und Passwort für die eigene Region, einmalig beim Betreiber anfragen.
+  Sie gehören in die `secrets.yml`:
+
+    ```yaml
+    per_scenario:
+      <szenario>:
+        region_dump:
+          login: <login>
+          password: "<passwort>"
+    ```
+
+    Damit befüllt `prepare_development` die Datenbank aus dem [Regionsdump](region-dumps.md) der Authority,
+    **ohne** SSH-Zugang zu ihr.
+
+- **Zwei nicht öffentliche Repositories**: `carambus_data` (Szenario-Konfiguration, `secrets.yml`)
+  und `ansible` (Inventar, Playbooks, `RUNBOOK` für Schritt 0) sind privat. Ein Verein bekommt sie
+  heute nur vom Betreiber; die Installation geht ohne sie nicht. Einzelheiten:
+  [Raspberry Pi Quickstart](raspberry-pi-quickstart.md#die-drei-verzeichnisse).
+
+!!! info "Wo ein Verein den Betreiber heute braucht"
+    An drei Stellen: für die **Zugangsdaten zum Regionsdump**, für die beiden **privaten
+    Repositories** oben, und wenn **Verein oder Spielort auf der Authority noch nicht angelegt**
+    sind. Alles Übrige — System aufsetzen, deployen, Kiosk einrichten, Admin anlegen — läuft
+    ohne ihn.
 
 ## 🚀 Schnellstart
 
-### 1. Scenario erstellen
-```bash
-# Neues Scenario erstellen (location_id ist erforderlich, context optional, Default NBV)
-rake "scenario:create[carambus_location_5101,5101,NBV]"
+### 0. System aufsetzen
+Raspberry Pi per Ansible: **`~/DEV/ansible/RUNBOOK`, Abschnitt „NEUEN CARAMBUS-PI AUFSETZEN"**, ein
+Aufruf von `master.yml`. Die `host_vars` entstehen per `bin/rails "scenario:generate_host_vars[<szenario>]"`
+aus der `config.yml`. Einzelheiten: [Raspberry Pi Quickstart](raspberry-pi-quickstart.md), Schritt 1–2.
 
-# Rails-Root erstellen
-rake "scenario:create_rails_root[carambus_location_5101]"
+### 1. Szenario anlegen
+Ein Vorlage-Verzeichnis gibt es nicht. Die `config.yml` eines bestehenden Szenarios (z. B.
+`carambus_data/scenarios/carambus_pbv/config.yml`) nach `carambus_data/scenarios/<szenario>/` kopieren
+und anpassen: `name`, `basename` (= Szenarioname), `location_id`, `club_id`, `region_id`, Hosts und
+`cap_role: local`. Die Felder stehen in der [Quickstart](raspberry-pi-quickstart.md), Abschnitt 3.1.
+
+!!! note "Nicht empfohlen: `scenario:create` und `scenario:create_rails_root`"
+    `scenario:create` erzeugt derzeit eine `config.yml`, deren `basename` nicht zum Rails-Root passt und
+    der `cap_role` fehlt. Ohne `cap_role` gilt das Szenario als Authority, und die Authority-Crons
+    liefen auf dem Vereinsserver. `create_rails_root` löscht ein vorhandenes `~/DEV/carambus/<szenario>`
+    ohne Rückfrage. Den Rails-Root legt `prepare_development` bei Bedarf selbst an.
+
+### 2. Anwendung deployen
+Alle Befehle aus einem carambus-Checkout, in **dieser Reihenfolge**:
+
+```bash
+# 1. Configs, Verzeichnisse, Redis, Puma-Dienst, nginx, /etc/<basename>.env auf dem Server
+bin/rails "scenario:prepare_deploy[<szenario>]"
+
+# 2. Development-Datenbank auf dem Admin-Rechner aus dem Regionsdump anlegen
+bin/rails "scenario:prepare_development[<szenario>,development]"
+
+# 3. Produktions-Datenbank auf den Server bringen: DESTRUKTIV
+bin/rails "scenario:reset_server_db[<szenario>]"
+
+# 4. Anwendung per Capistrano
+bin/rails "scenario:deploy[<szenario>]"
 ```
 
-### 2. Development-Setup
+Danach auf dem Server den ersten Admin anlegen:
+
 ```bash
-# Development-Umgebung einrichten
-rake "scenario:prepare_development[carambus_location_5101,development]"
+cd /var/www/<basename>/current && RAILS_ENV=production bundle exec rake "users:create_admin[<email>]"
 ```
 
-### 3. Production-Deployment
-```bash
-# Deployment vorbereiten (Configs generieren, DB/Server vorbereiten)
-rake "scenario:prepare_deploy[carambus_location_5101]"
+Was man dabei wissen muss:
 
-# Vollständiges Production-Deployment
-rake "scenario:deploy[carambus_location_5101]"
-```
+- **Schritt 2** lädt den Regionsdump der eigenen Region, prüft ihn gegen seine Prüfsumme und spielt ihn als
+  `<szenario>_development` ein. Das Scoreboard-Konto legt der Schritt selbst an, weil der Dump keine
+  Benutzer enthält. Ohne `region_dump` in der `secrets.yml` nimmt er den
+  [Betreiber-Weg](#betreiber-weg).
+- **Schritt 3** löscht die Produktions-Datenbank auf dem Server und spielt sie aus
+  `<szenario>_development` neu ein. `prepare_deploy` richtet keine Datenbank ein, das tut nur dieser
+  Schritt.
+- **`users:create_admin`** legt einen bestätigten `system_admin` an und gibt sein Passwort genau einmal aus.
+- Für die Scoreboards folgen `setup_raspberry_pi_client`, `deploy_raspberry_pi_client` und
+  `test_raspberry_pi_client`, siehe [Quickstart](raspberry-pi-quickstart.md), Schritt 3.2.
 
-### 4. Automatische Konfiguration
-Das Scenario Management konfiguriert automatisch:
-- Datenbank (PostgreSQL)
-- Cache (Redis)
-- Web-Server (Rails + Puma)
-- Nginx-Konfiguration
-- SSL-Zertifikate (bei HTTPS)
-- Sequence-Management
+#### Betreiber-Weg (ohne Regionsdump-Zugang) {#betreiber-weg}
+
+Steht für das Szenario kein `region_dump` in der `secrets.yml`, gleicht Schritt 2 die lokale
+`carambus_api_development` per SSH als `www-data` mit der Produktion der Authority ab und leitet die
+Datenbank daraus ab. Den Zugang haben nur die Betreiber von Carambus. Die lokale `carambus_api_development`
+wird dabei **ersetzt**, wenn auf der Authority neuere Daten liegen. Das betrifft jeden Checkout, der dieselbe
+Datenbank nutzt. Die Meldungen `ERROR: role "www_data" does not exist` und `invalid command \restrict` im Log
+sind auf diesem Weg erwartet.
+
+### 3. SSL
+Das Scenario Management stellt keine Zertifikate aus. Bei `ssl_enabled: true` muss das Zertifikat vor
+`prepare_deploy` auf dem Server liegen (z. B. per `bin/issue-letsencrypt-cert.sh`), sonst schlägt
+`nginx -t` fehl. Vereinsserver im Lokal laufen ohne SSL auf Port 3131.
 
 ## 📖 Weitere Dokumentation
 
-- **[Scenario Management](../developers/scenario-management.md)** - Vollständiger Deployment-Guide
-- **[Entwicklerleitfaden](../developers/developer-guide.md)** - Entwicklerdokumentation
-- **[API-Dokumentation](../reference/api.md)** - API-Referenz
+- **[Raspberry Pi Quickstart](raspberry-pi-quickstart.md)**: der gegangene Weg Schritt für Schritt
+- **[Scenario Management](../developers/scenario-management.md)**: Vollständiger Deployment-Guide
+- **[Entwicklerleitfaden](../developers/developer-guide.md)**: Entwicklerdokumentation
+- **[API-Dokumentation](../reference/api.md)**: API-Referenz
 
 ## 🆘 Support
 
-Bei Problemen:
-1. Prüfen Sie die **[Scenario Management](../developers/scenario-management.md)**-Seite
-2. Logs anschauen: `tail -f log/production.log`
-3. Service-Status: `systemctl status carambus`
-4. System neu starten: `sudo reboot`
+Bei Problemen (auf dem Server):
+1. Anwendungs-Log: `tail -f /var/www/<basename>/shared/log/production.log`
+2. Dienste: `systemctl is-active puma-<basename> redis-server nginx` (auf dem Pi zusätzlich `scoreboard-kiosk`)
+3. Puma-Log: `sudo journalctl -u puma-<basename> -n 40 --no-pager`
+4. Häufigste Ursache für *502 Bad Gateway*: `/etc/<basename>.env` fehlt, siehe
+   [Quickstart, Fehlerbehebung](raspberry-pi-quickstart.md#fehlerbehebung)
 
 ---
 
-**🎯 Ziel**: Einfache, automatisierte Installation von Carambus auf verschiedenen Plattformen mit konsistenter Konfiguration über das Scenario Management System. 
+**🎯 Ziel**: Eine nachvollziehbare Installation von Carambus über das Scenario Management, belegt am
+gegangenen Weg der Quickstart.

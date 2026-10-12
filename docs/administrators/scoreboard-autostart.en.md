@@ -1,475 +1,91 @@
-# Scoreboard Autostart Setup Guide
+# Scoreboard Autostart
 
-## Quick Start Guide (Begin Here)
+On the Raspberry Pi the scoreboard starts through the systemd service **`scoreboard-kiosk`**. It is set up with
+rake tasks from the admin machine — not by hand. The complete path is described in the
+[Raspberry Pi quickstart](raspberry-pi-quickstart.md); the reference of the kiosk tasks is
+[Raspberry Pi Client Integration](raspberry_pi_client_integration.md).
 
-### Step 1: Install required tools
+Earlier versions of this page described an autostart via LXDE, a hand-maintained URL file and self-made
+`scoreboard.service` units. Under Raspberry Pi OS 13 ("trixie", desktop labwc) that path no longer works; the
+instructions have been removed (history in git).
+
+## Setting up the kiosk
+
+From a carambus checkout, once server and application are running (quickstart, step 3.2):
+
 ```bash
-sudo apt update
-sudo apt install wmctrl
+bin/rails "scenario:setup_raspberry_pi_client[<scenario>]"
+bin/rails "scenario:deploy_raspberry_pi_client[<scenario>]"
+bin/rails "scenario:test_raspberry_pi_client[<scenario>]"
 ```
 
-### Step 2: Configure the scoreboard URL
-Edit the config file to set your scoreboard URL:
+- `setup_raspberry_pi_client` installs Chromium and creates the `scoreboard-kiosk` service; it runs as the
+  `kiosk_user` from `config.yml` — the autologin user of the desktop session.
+- `deploy_raspberry_pi_client` generates the start script `/usr/local/bin/autostart-scoreboard.sh` and restarts
+  the service. You can view the script beforehand with
+  `bin/rails "scenario:preview_autostart_script[<scenario>]"`.
+
+Do not edit the script by hand: the next `deploy_raspberry_pi_client` overwrites it.
+
+## Where the scoreboard URL comes from
+
+The URL is built from the scenario `config.yml`:
+
+| Part | Source |
+|---|---|
+| Host | `localhost` with `raspberry_pi_client.local_server_enabled: true`, otherwise `webserver_host` |
+| Port | `webserver_port` (e.g. 3131) |
+| Location | `md5` of the location `scenario.location_id` from the database |
+| State | `raspberry_pi_client.sb_state` (default `welcome`) |
+
+Example: `http://localhost:3131/locations/<md5>/scoreboard?sb_state=welcome&locale=de`
+
+`deploy_raspberry_pi_client` stores it on the server as `/var/www/<basename>/shared/config/scoreboard_url` and
+overwrites the file every time. To use a different URL, set it in `config.yml` and run
+`deploy_raspberry_pi_client` again.
+
+## After power-on
+
+It takes about **3 minutes** until the scoreboard is up: the desktop appears after about 1 minute, then the
+script waits until the local server answers (at most 300 s), then Chromium starts. The Pi is not broken during
+this time.
+
+## Operating the kiosk
+
 ```bash
-nano config/scoreboard_url
+# Restart
+ssh -p 8910 www-data@<name>.local 'sudo systemctl restart scoreboard-kiosk'
+# or from the admin machine
+bin/rails "scenario:restart_raspberry_pi_client[<scenario>]"
+
+# Stop (to the desktop) and start again
+ssh -p 8910 www-data@<name>.local 'sudo systemctl stop scoreboard-kiosk'
+ssh -p 8910 www-data@<name>.local 'sudo systemctl start scoreboard-kiosk'
 ```
 
-The default URL is:
-```
-http://localhost:3000/locations/1/scoreboard_reservations
-```
+- **Raspberry Pi OS 13 ("trixie", labwc):** Chromium runs in kiosk mode; the button on the welcome page does
+  **not** lead to the desktop — stop the service instead. If Chromium exits (crash, Alt+F4), the kiosk restarts
+  by itself after a few seconds.
+- **Raspberry Pi OS 12 ("bookworm", wayfire):** Full screen via `--start-fullscreen`; the button on the welcome
+  page toggles full screen.
 
-Change it to your actual scoreboard URL if needed.
+## Logs and troubleshooting
 
-### Step 3: Make scripts executable
 ```bash
-chmod +x bin/start-scoreboard.sh
-chmod +x bin/exit-scoreboard.sh
-chmod +x bin/restart-scoreboard.sh
+ssh -p 8910 www-data@<name>.local 'sudo journalctl -u scoreboard-kiosk -n 30'
+ssh -p 8910 www-data@<name>.local 'sudo tail -50 /tmp/chromium-kiosk.log'
+bin/rails "scenario:test_raspberry_pi_client[<scenario>]"
 ```
 
-### Step 4: Test the startup script manually
-```bash
-./bin/start-scoreboard.sh
-```
+The Chromium log belongs to the kiosk user and can only be read with `sudo` as `www-data`.
 
-### Step 5: If it works, add to autostart
-```bash
-nano ~/.config/lxsession/LXDE-pi/autostart
-```
+- **Scoreboard not full screen:** run `deploy_raspberry_pi_client` again; the desktop session is set in
+  `/etc/lightdm/lightdm.conf` (`user-session=`).
+- **Other cases:** [Raspberry Pi Client Integration, common issues](raspberry_pi_client_integration.md#common-issues)
 
-Add this line at the end (adjust path to your Rails app location):
-```
-@/path/to/your/rails/app/bin/autostart-scoreboard.sh
-```
+## Do not create a second autostart
 
-For example, if your Rails app is in `/var/www/carambus/current`:
-```
-@/var/www/carambus/current/bin/autostart-scoreboard.sh
-```
-
-**Note:** Use the `autostart-scoreboard.sh` wrapper script instead of `start-scoreboard.sh` directly for better autostart compatibility.
-
-### Step 6: Reboot to test
-```bash
-sudo reboot
-```
-
-## Complete Setup (Advanced)
-
-### Configure Keyboard Shortcuts (Optional)
-```bash
-nano ~/.config/labwc/rc.xml
-```
-
-Add inside `<keyboard>` section (adjust paths to your Rails app location):
-```xml
-<keybind key="F12">
-  <action name="Execute">
-    <command>/path/to/your/rails/app/bin/exit-scoreboard.sh</command>
-  </action>
-</keybind>
-
-<keybind key="F11">
-  <action name="Execute">
-    <command>/path/to/your/rails/app/bin/restart-scoreboard.sh</command>
-  </action>
-</keybind>
-```
-
-For example, if your Rails app is in `/home/pi/carambus_gernot`:
-```xml
-<keybind key="F12">
-  <action name="Execute">
-    <command>/home/pi/carambus_gernot/bin/exit-scoreboard.sh</command>
-  </action>
-</keybind>
-
-<keybind key="F11">
-  <action name="Execute">
-    <command>/home/pi/carambus_gernot/bin/restart-scoreboard.sh</command>
-  </action>
-</keybind>
-```
-
-## Alternative: Systemd User Service (Recommended)
-
-If window manager autostart doesn't work, use systemd user service instead:
-
-### Step 1: Create systemd user service for www-data user
-```bash
-# Switch to www-data user
-sudo -u www-data bash
-
-# Create systemd user directory in www-data's home
-mkdir -p /var/www/.config/systemd/user
-nano /var/www/.config/systemd/user/scoreboard.service
-```
-
-Add this content:
-```ini
-[Unit]
-Description=Scoreboard Autostart
-After=graphical-session.target
-
-[Service]
-Type=oneshot
-Environment=DISPLAY=:0
-ExecStart=/var/www/carambus/current/bin/autostart-scoreboard.sh
-RemainAfterExit=yes
-
-[Install]
-WantedBy=graphical-session.target
-```
-
-### Step 2: Enable and start the service as www-data
-```bash
-# Still as www-data user
-systemctl --user enable scoreboard.service
-systemctl --user start scoreboard.service
-```
-
-### Step 3: Check service status
-```bash
-systemctl --user status scoreboard.service
-```
-
-### Step 4: Test autostart
-```bash
-sudo reboot
-```
-
-### Step 5: Check if it worked
-```bash
-# As www-data user
-cat /tmp/scoreboard-autostart.log
-systemctl --user status scoreboard.service
-```
-
-### Remote management as www-data user
-```bash
-# SSH as www-data user
-ssh www-data@raspberrypi
-
-# Then use systemctl commands
-systemctl --user restart scoreboard.service
-systemctl --user status scoreboard.service
-systemctl --user stop scoreboard.service
-systemctl --user start scoreboard.service
-
-# View logs
-cat /tmp/scoreboard-autostart.log
-journalctl --user -u scoreboard.service
-```
-
-### Troubleshooting systemd service
-```bash
-# Check service logs (as www-data user)
-journalctl --user -u scoreboard.service
-
-# Restart service
-systemctl --user restart scoreboard.service
-
-# Disable service
-systemctl --user disable scoreboard.service
-```
-
-## Alternative: System-wide Service (Recommended for www-data)
-
-Since www-data user doesn't have display access, use a system-wide service instead:
-
-### Step 1: Create system-wide service
-```bash
-sudo nano /etc/systemd/system/scoreboard.service
-```
-
-Add this content:
-```ini
-[Unit]
-Description=Scoreboard Autostart
-After=graphical-session.target
-
-[Service]
-Type=oneshot
-User=pj
-Environment=DISPLAY=:0
-Environment=XAUTHORITY=/home/pj/.Xauthority
-Environment=HOME=/home/pj
-ExecStartPre=/bin/bash -c "sleep 15"
-ExecStart=/var/www/carambus/current/bin/autostart-scoreboard.sh
-RemainAfterExit=yes
-
-[Install]
-WantedBy=graphical-session.target
-```
-
-### Step 2: Enable and start the service
-```bash
-sudo systemctl enable scoreboard.service
-sudo systemctl start scoreboard.service
-```
-
-### Step 3: Check service status
-```bash
-sudo systemctl status scoreboard.service
-```
-
-### Step 4: Remote management as www-data
-```bash
-# SSH as www-data user
-ssh www-data@raspberrypi
-
-# Then use systemctl commands (with sudo)
-sudo systemctl restart scoreboard.service
-sudo systemctl status scoreboard.service
-sudo systemctl stop scoreboard.service
-sudo systemctl start scoreboard.service
-
-# View logs
-cat /tmp/scoreboard-autostart.log
-sudo journalctl -u scoreboard.service
-```
-
-### Step 5: Test autostart
-```bash
-sudo reboot
-```
-
-This approach runs the service as the `pi` user (who has display access) but can be controlled by the `www-data` user via sudo.
-
-### Troubleshooting system-wide service
-```bash
-# Check service status (as pi user or with sudo)
-sudo systemctl status scoreboard.service
-
-# Check detailed logs (as pi user or with sudo)
-sudo journalctl -u scoreboard.service -f
-
-# Check if the script works manually (as pi user)
-sudo -u pi /var/www/carambus/current/bin/autostart-scoreboard.sh
-
-# Check if www-data can run sudo commands
-sudo -l
-
-# Add www-data to sudoers if needed
-sudo visudo
-# Add this line: www-data ALL=(ALL) NOPASSWD: /usr/bin/systemctl
-```
-
-## Remote Management
-
-The systemd user service enables powerful remote management capabilities:
-
-### Remote commands
-```bash
-# Restart scoreboard remotely
-ssh pi@raspberrypi 'systemctl --user restart scoreboard.service'
-
-# Check status remotely
-ssh pi@raspberrypi 'systemctl --user status scoreboard.service'
-
-# View logs remotely
-ssh pi@raspberrypi 'cat /tmp/scoreboard-autostart.log'
-
-# Stop scoreboard for maintenance
-ssh pi@raspberrypi 'systemctl --user stop scoreboard.service'
-
-# Start scoreboard
-ssh pi@raspberrypi 'systemctl --user start scoreboard.service'
-```
-
-## Exit Methods
-
-The scoreboard runs in fullscreen mode, and there are several ways to exit:
-
-### Primary Exit Methods
-1. **Physical Keyboard:** ALT+F4 or ESC (most reliable)
-2. **Remote SSH:** `systemctl --user restart scoreboard.service`
-
-### Fallback Exit Method
-3. **"Try Resize Window" Button:** 
-   - Click the refresh/resize button in the top menu
-   - This refreshes the Chromium window state
-   - Restores the circled X button in the top-right corner
-   - Click the X to exit to desktop
-
-### Why This Works
-- The "Try Resize Window" function refreshes the Chromium window state
-- This restores window controls that get hidden during scoreboard interactions
-- Provides a reliable mouse/touch-based exit method
-- Works when other exit methods fail
-
-### Button Location
-- **Table Monitors:** Top-right refresh button
-- **Scoreboard Pages:** Top-right refresh button
-- **All scoreboard interfaces:** Consistent exit method
-
-This gives users a reliable way to exit the scoreboard even without a keyboard!
-
-## Troubleshooting
-
-### Check if wmctrl is installed
-```bash
-which wmctrl
-```
-
-### Check if scripts are executable
-```bash
-ls -la bin/start-scoreboard.sh
-ls -la bin/exit-scoreboard.sh
-ls -la bin/restart-scoreboard.sh
-```
-
-### Check the scoreboard URL configuration
-```bash
-cat config/scoreboard_url
-```
-
-### Check autostart file
-```bash
-cat ~/.config/lxsession/LXDE-pi/autostart
-```
-
-### Check system logs
-```bash
-journalctl -u lxsession
-```
-
-### Test panel hiding manually
-```bash
-wmctrl -l
-wmctrl -r "panel" -b add,hidden
-wmctrl -r "panel" -b remove,hidden
-```
-
-### Check if browser starts correctly
-```bash
-ps aux | grep chromium
-```
-
-### Test scripts manually
-```bash
-# Test startup
-./bin/start-scoreboard.sh
-
-# Test exit (in another terminal)
-./bin/exit-scoreboard.sh
-
-# Test restart
-./bin/restart-scoreboard.sh
-```
-
-### Check log files
-```bash
-# Debug test log (from test-startup.sh)
-cat /tmp/scoreboard-debug.log
-
-# Autostart wrapper log (from autostart-scoreboard.sh)
-cat /tmp/scoreboard-autostart.log
-
-# Chromium output (if you ran with nohup)
-cat nohup.out
-
-# LXDE autostart logs
-tail -f ~/.cache/lxsession/LXDE-pi/run.log
-
-# System logs
-journalctl -u lxsession
-```
-
-### Troubleshooting for /var/www/carambus/current setup
-
-If your Rails app is in `/var/www/carambus/current` and runs as `www-data`:
-
-#### 1. Check script permissions
-```bash
-sudo ls -la /var/www/carambus/current/bin/start-scoreboard.sh
-```
-
-#### 2. Make scripts executable for all users
-```bash
-sudo chmod +x /var/www/carambus/current/bin/start-scoreboard.sh
-sudo chmod +x /var/www/carambus/current/bin/exit-scoreboard.sh
-sudo chmod +x /var/www/carambus/current/bin/restart-scoreboard.sh
-```
-
-#### 3. Check if the autostart user can read the config file
-```bash
-sudo ls -la /var/www/carambus/current/config/scoreboard_url
-sudo chmod 644 /var/www/carambus/current/config/scoreboard_url
-```
-
-#### 4. Test the script manually as the autostart user
-```bash
-/var/www/carambus/current/bin/start-scoreboard.sh
-```
-
-#### 5. Check LXDE autostart logs
-```bash
-tail -f ~/.cache/lxsession/LXDE-pi/run.log
-```
-
-#### 6. Alternative: Use absolute paths in autostart
-Edit the autostart file:
-```bash
-nano ~/.config/lxsession/LXDE-pi/autostart
-```
-
-Make sure it contains:
-```
-@/var/www/carambus/current/bin/start-scoreboard.sh
-```
-
-#### 7. Check if wmctrl is available for the autostart user
-```bash
-which wmctrl
-sudo apt install wmctrl  # if not found
-```
-
-#### 8. Test with debug output
-Create a test script to see what's happening:
-```bash
-sudo nano /var/www/carambus/current/bin/test-startup.sh
-```
-
-Content:
-```bash
-#!/bin/bash
-echo "Starting test at $(date)" >> /tmp/scoreboard-debug.log
-echo "Current user: $(whoami)" >> /tmp/scoreboard-debug.log
-echo "Current directory: $(pwd)" >> /tmp/scoreboard-debug.log
-echo "wmctrl available: $(which wmctrl)" >> /tmp/scoreboard-debug.log
-echo "Config file content: $(cat /var/www/carambus/current/config/scoreboard_url)" >> /tmp/scoreboard-debug.log
-/var/www/carambus/current/bin/start-scoreboard.sh
-echo "Test completed at $(date)" >> /tmp/scoreboard-debug.log
-```
-
-Make executable:
-```bash
-sudo chmod +x /var/www/carambus/current/bin/test-startup.sh
-```
-
-Test it:
-```bash
-/var/www/carambus/current/bin/test-startup.sh
-```
-
-Check the debug log:
-```bash
-cat /tmp/scoreboard-debug.log
-```
-
-## Workflow
-
-1. **Boot** → Panel hidden, scoreboard starts in fullscreen
-2. **F12** → Exit to desktop (panel visible)
-3. **F11** → Restart scoreboard (panel hidden again)
-
-## Notes
-
-- The scripts are now in your Rails app's `bin/` directory and tracked by git
-- The scoreboard URL is configurable via `config/scoreboard_url`
-- If the panel doesn't hide, try different panel names: `panel`, `lxpanel`, `lxpanel-pi`
-- The `2>/dev/null || true` prevents errors if the window doesn't exist
-- Make sure your Rails server is running before testing
-- Update the paths in autostart and keyboard shortcuts to match your actual Rails app location 
+`scoreboard-kiosk` is the only autostart. An additional hand-made `scoreboard.service`, an LXDE autostart entry
+or the older scripts from `bin/` (`start-scoreboard.sh`, `autostart-scoreboard.sh`, `restart-scoreboard.sh`)
+can start a second browser next to the kiosk. If such leftovers from an earlier guide are still on the Pi, remove
+them. What the older scripts do: [Raspberry Pi Management Scripts, legacy](raspberry_pi_scripts.md#legacy).

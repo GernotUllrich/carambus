@@ -197,6 +197,18 @@ class ApplicationController < ActionController::Base
     false
   end
 
+  # Strenges Admin-Gate (Plan 20-03). Anders als `admin_only_check` OHNE die Ausnahme
+  # `guest_player_creation?`: die laesst das Scoreboard-Konto mit `club_id` + `season_id` in den
+  # Params durch — und als Scoreboard-Konto wird jeder anonyme Besucher von
+  # `LocationsController#set_location` automatisch angemeldet. Fuer Stammdaten und
+  # TableMonitor-Verwaltung waere das eine Hintertuer.
+  def require_admin
+    return if current_user&.admin?
+
+    redirect_back fallback_location: root_path, alert: I18n.t("errors.admin_required")
+    false
+  end
+
   def system_admin_only
     return if current_user&.system_admin?
 
@@ -214,8 +226,14 @@ class ApplicationController < ActionController::Base
     false
   end
 
+  # Einzige Ausnahme von `admin_only_check`: „Gastspieler anlegen" im Scoreboard-Modal
+  # (locations/_new_player_modal.html.erb → POST /players mit from=new_guest).
+  # Seit dem initial commit pruefte die Methode weder Controller noch Aktion — das Scoreboard-Konto
+  # passierte mit club_id + season_id das Admin-Gate von 20 Controllern, und als Scoreboard-Konto
+  # wird jeder anonyme Besucher ueber /locations/:id angemeldet (Plan 20-04, am alten Code belegt).
   def guest_player_creation?
-    Current.user.andand.email == "scoreboard@carambus.de" && params[:club_id].present? && params[:season_id].present?
+    controller_name == "players" && action_name == "create" && params[:from] == "new_guest" &&
+      Current.user.andand.email == "scoreboard@carambus.de" && params[:club_id].present? && params[:season_id].present?
   end
 
   # Prüft ob eine IP-Adresse lokal ist (localhost oder private IP-Bereiche)

@@ -91,6 +91,20 @@ class SpielleiterChatServiceTest < ActiveSupport::TestCase
     refute_includes SpielleiterChatService.new(user: rw).send(:system_prompt), "nur Lese-Zugriff"
   end
 
+  # 2026-09-15 (bcw live): Ohne Datum hielt der Chat einen Meldeschluss 23.09.2026 am 15.09. für „überschritten".
+  test "system_prompt: enthält das heutige Datum" do
+    travel_to Time.zone.local(2026, 9, 15, 12, 0) do
+      prompt = SpielleiterChatService.new(user: User.new).send(:system_prompt)
+      assert_includes prompt, "Heute ist Dienstag, 15.09.2026"
+    end
+  end
+
+  test "system_prompt: Meldelisten-ID für Anmeldungen frisch per Lookup + tournament_cc_id" do
+    prompt = SpielleiterChatService.new(user: User.new).send(:system_prompt)
+    assert_includes prompt, "übernimm KEINE Meldelisten-ID aus früheren Nachrichten"
+    assert_includes prompt, "übergib zusätzlich die tournament_cc_id"
+  end
+
   test "write_tool? erkennt Schreib- vs Lese-Tools (steuert Hybrid-Modell-Eskalation)" do
     u = User.new(email: "chat_hybrid@test.de")
     def u.cc_write_access?

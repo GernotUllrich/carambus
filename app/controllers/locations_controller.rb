@@ -9,6 +9,25 @@ class LocationsController < ApplicationController
                 only: %i[scoreboard scoreboard_overlay scoreboard_text show edit update destroy
                          new_league_tournament add_tables_to
                          toggle_dark_mode create_event]
+  # Plan 20-01: Bis hierher band der Controller KEINE schreibende Aktion an einen Benutzer — sein
+  # einziges `authorize!` steht in `scoreboard_free_game_karambol_new`. Am alten Code belegt:
+  # anonyme Besucher und Konten mit der Rolle "player" konnten Spiellokale anlegen, umbenennen,
+  # loeschen, destruktiv zusammenfuehren und mit Tischen bestuecken.
+  #
+  # Regel: Spiellokale sind Stammdaten — docs/managers/admin-roles stellt Stammdaten auf
+  # Vereins- und System-Admin. Also dieselbe Pruefung wie `require_tournament_admin` (17-05).
+  #
+  # NACH `set_location`, nicht davor: `set_location` meldet einen Besucher ohne Anmeldung
+  # automatisch als `User.scoreboard` an (siehe dort). Vor dem Callback pruefte das Gate gegen
+  # `nil` statt gegen das Konto, das die Aktion tatsaechlich ausfuehren wuerde.
+  #
+  # `create_event` (Tischreservierung am Scoreboard) steht bewusst in derselben Liste —
+  # Checkpoint-Entscheidung vom 2026-09-17: Die Aktion schreibt in einen externen
+  # Google-Kalender und wurde in allen erhaltenen Logs ab Februar 2026 genau einmal aufgerufen
+  # (07.08.2026, HTTP 500). Die Reservierungs-ANSICHT laeuft ueber `show` und ist nicht betroffen.
+  before_action :require_location_admin,
+    only: %i[new create edit update destroy merge add_tables_to
+      new_league_tournament create_event]
 
   # GET /locations
   def index
@@ -625,6 +644,17 @@ class LocationsController < ApplicationController
   end
 
   private
+
+  # Plan 20-01: Gate fuer die Stammdaten-Aktionen an Spiellokalen. Aufbau wie
+  # `require_tournament_admin` im TournamentsController (17-05) — bewusst NICHT
+  # `admin_only_check`, dessen Ausnahme `guest_player_creation?` das Scoreboard-Konto
+  # durchliesse.
+  def require_location_admin
+    return if current_user&.admin?
+
+    flash[:alert] = I18n.t("locations.errors.admin_required")
+    redirect_to(@location || locations_path)
+  end
 
   # Use callbacks to share common setup or constraints between actions.
   def set_location

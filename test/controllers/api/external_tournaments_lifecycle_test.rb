@@ -116,6 +116,38 @@ module Api
       TableMonitor.where(id: monitor.id).delete_all if defined?(monitor) && monitor
     end
 
+    # Biathlon (2026-10-06): die App stellt die Variante pro Spiel ein — Dreiband-Teildistanz
+    # und -Aufnahmebegrenzung in `biathlon`, das Gesamtziel als balls_goal der Teilnehmer.
+    test "start_game Biathlon uebernimmt die Dreiband-Parameter der App" do
+      jwt = login_jwt
+      post_json("/api/external_tournament/tournament",
+        {region: {shortname: "NBV"}, external_id: "ep-1", title: "EP", location: {id: @location.id}}, jwt)
+      monitor = TableMonitor.create!(state: "ready", data: {})
+      tables(:one).update_columns(table_monitor_id: monitor.id)
+      post_json("/api/external_tournament/lock_table",
+        {region: {shortname: "NBV"}, tournament: {external_id: "ep-1"}, table: {id: tables(:one).id}}, jwt)
+
+      post_json("/api/external_tournament/start_game", {
+        region: {shortname: "NBV"}, tournament: {external_id: "ep-1"}, table: {id: tables(:one).id},
+        external_id: "g-bia", free_game_form: "karambol", innings_goal: 0, sets_to_play: 1, sets_to_win: 1,
+        biathlon: {balls_goal_3b: 10, innings_goal_3b: 20},
+        participants: [
+          {role: "playera", player: {firstname: "Dick", lastname: "JASPERS"}, discipline: "Biathlon", balls_goal: 120},
+          {role: "playerb", player: {firstname: "Myung Woo", lastname: "CHO"}, discipline: "Biathlon", balls_goal: 120}
+        ]
+      }, jwt)
+      assert_response :created
+
+      monitor.reload
+      assert_equal "3b", monitor.data["biathlon_phase"]
+      assert_equal({"balls_goal_3b" => 10, "innings_goal_3b" => 20, "factor" => 6}, monitor.data["biathlon"])
+      assert_equal 120, monitor.data.dig("playera", "balls_goal").to_i
+      assert_equal false, monitor.data["allow_follow_up"]
+    ensure
+      tables(:one).update_columns(table_monitor_id: nil)
+      TableMonitor.where(id: monitor.id).delete_all if defined?(monitor) && monitor
+    end
+
     # === Plan 17-04: acknowledge_result (Result-Hold + Pull) ===
 
     # Befund 4 (carambus_app, 2026-08-23): Das Ausstossen am Tisch (switch_players) tauscht
@@ -139,6 +171,43 @@ module Api
       assert_equal 60, b["points"]
       assert_equal 5, a["innings"]
       assert_equal 50, a["high_series"]
+    ensure
+      tables(:one).update_columns(table_monitor_id: nil)
+      TableMonitor.where(id: monitor.id).delete_all if defined?(monitor) && monitor
+    end
+
+    # Biathlon (2026-10-07, HANDOFF-to-carambus-biathlon-gp-modus-6): die Dreiband-Punkte (vor ×6)
+    # sind letztes Kriterium der GP-Gruppenwertung — im result UND je Teilnehmer als points_3b.
+    test "acknowledge_result liefert bei Biathlon die Dreiband-Punkte" do
+      jwt = login_jwt
+      monitor, game = setup_held_game(jwt, external_id: "ack-bia")
+      ba = ACK_BA.merge("3BErgebnis1" => 9, "3BErgebnis2" => 4)
+      game.update!(data: game.data.merge("ba_results" => ba))
+
+      post_json("/api/external_tournament/acknowledge_result",
+        {region: {shortname: "NBV"}, tournament: {external_id: "ep-1"}, game: {external_id: "ack-bia"}}, jwt)
+      assert_response :ok
+      body = JSON.parse(response.body)
+
+      assert_equal 9, body.dig("result", "3BErgebnis1")
+      a = body["participants"].find { |p| p["role"] == "playera" }
+      b = body["participants"].find { |p| p["role"] == "playerb" }
+      assert_equal 9, a["points_3b"]
+      assert_equal 4, b["points_3b"]
+    ensure
+      tables(:one).update_columns(table_monitor_id: nil)
+      TableMonitor.where(id: monitor.id).delete_all if defined?(monitor) && monitor
+    end
+
+    test "acknowledge_result: ohne Dreiband-Punkte bleibt points_3b leer" do
+      jwt = login_jwt
+      monitor, _game = setup_held_game(jwt, external_id: "ack-no3b")
+
+      post_json("/api/external_tournament/acknowledge_result",
+        {region: {shortname: "NBV"}, tournament: {external_id: "ep-1"}, game: {external_id: "ack-no3b"}}, jwt)
+      assert_response :ok
+
+      assert JSON.parse(response.body)["participants"].all? { |p| p["points_3b"].nil? }
     ensure
       tables(:one).update_columns(table_monitor_id: nil)
       TableMonitor.where(id: monitor.id).delete_all if defined?(monitor) && monitor

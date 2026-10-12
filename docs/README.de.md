@@ -49,8 +49,7 @@ docs/
 │   ├── index.md                   # Übersicht
 │   ├── tournament-management.md   # Turnierverwaltung
 │   ├── league-management.md       # Liga-Management
-│   ├── single-tournament.md       # Einzelturnier
-│   ├── table-reservation.md       # Tischreservierung
+│   ├── table_reservation_heating_control.md # Tischreservierung
 │   ├── admin_roles.md            # Admin-Rollen
 │   ├── clubcloud_integration.md   # ClubCloud
 │   └── search-filters.md         # Suche & Filter
@@ -93,8 +92,8 @@ docs/
 
 ### Für Entscheider
 - **[Executive Summary](decision-makers/executive-summary.md)**: Kompakter Überblick
-- **[Feature-Übersicht](decision-makers/features-overview.md)**: Alle Funktionen
-- **[Deployment-Optionen](decision-makers/deployment-options.md)**: Betriebsmodelle im Vergleich
+- **[Feature-Übersicht](decision-makers/features-overview.md)**: Was Carambus kann — und was nicht
+- **[Deployment-Optionen](decision-makers/deployment-options.md)**: Betrieb und Voraussetzungen
 
 ### Für Benutzer
 - **[Scoreboard-Anleitung](players/scoreboard-guide.md)**: Bedienung am Tisch
@@ -103,7 +102,7 @@ docs/
 
 ### Für Administratoren
 - **[Installation](administrators/installation-overview.md)**: Alle Installationsoptionen
-- **[Raspberry Pi Setup](administrators/raspberry-pi-quickstart.md)**: RasPi in 30 Minuten
+- **[Raspberry Pi Setup](administrators/raspberry-pi-quickstart.md)**: Vereinsserver auf dem Raspberry Pi (gemessen rund 1,5 Stunden)
 - **[Server-Architektur](administrators/server-architecture.md)**: System-Übersicht
 
 ### Für Entwickler

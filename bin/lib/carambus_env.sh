@@ -56,7 +56,6 @@ export CARAMBUS_BASE=$(detect_carambus_base)
 
 # Derived paths
 export CARAMBUS_DATA="$CARAMBUS_BASE/carambus_data"
-export CARAMBUS_MASTER="$CARAMBUS_BASE/carambus_master"
 export CARAMBUS_API="$CARAMBUS_BASE/carambus_api"
 export CARAMBUS_BCW="$CARAMBUS_BASE/carambus_bcw"
 export CARAMBUS_LOCATION_5101="$CARAMBUS_BASE/carambus_location_5101"

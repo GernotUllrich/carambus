@@ -40,7 +40,10 @@ module Api
       if params[:tournament_id].present?
         tournament = Tournament.find_by(id: params[:tournament_id])
         return render json: {error: "Tournament not found"}, status: :not_found if tournament.nil?
-        if tournament.region_id != region.id
+        # Globale Turniere (DBU, global_context) gehoeren jeder Region — der Sync verteilt sie
+        # an alle. Ein App-Turnier eines Landesverbands uebernimmt so z.B. die Meldeliste eines
+        # DBU Grand Prix (2026-10-06).
+        if tournament.region_id != region.id && !tournament.global_context
           return render json: {error: "Region mismatch"}, status: :unprocessable_entity
         end
         tournament_cc = tournament.tournament_cc
@@ -935,6 +938,8 @@ module Api
         region: [:shortname],
         tournament: [:external_id],
         table: [:id, :name],
+        # Biathlon: Dreiband-Teildistanz und -Aufnahmebegrenzung; Gesamtziel = balls_goal.
+        biathlon: [:balls_goal_3b, :innings_goal_3b],
         participants: [
           :role, :discipline, :balls_goal,
           {player: [:cc_id, :firstname, :lastname, :dbu_nr, :club_cc_id]}
@@ -1137,7 +1142,9 @@ module Api
           points: ba["Ergebnis#{n}"],
           innings: ba["Aufnahmen#{n}"],
           high_series: ba["Höchstserie#{n}"],
-          sets: ba["Sets#{n}"]
+          sets: ba["Sets#{n}"],
+          # Biathlon: Dreiband-Punkte vor ×6 (GP-Wertung § 2.2 Abs. 3d); sonst nil
+          points_3b: ba["3BErgebnis#{n}"]
         }
       end
     end

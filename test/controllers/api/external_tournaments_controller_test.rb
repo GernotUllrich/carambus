@@ -220,6 +220,20 @@ module Api
       assert_response :unprocessable_entity
     end
 
+    # 2026-10-06 (Grand Prix Biathlon): die Meldeliste eines DBU-Turniers (global_context,
+    # Region DBU) muss ein App-Turnier einer Landesverbands-Region uebernehmen koennen — dieselben
+    # Turniere repliziert der Sync laengst an jede Region.
+    test "seeding via tournament_id of a global (DBU) tournament works from any region" do
+      @tournament.update_columns(region_id: regions(:dbu).id, global_context: true)
+      Seeding.create!(tournament: @tournament, player: @player, position: 1)
+      headers = {"Content-Type" => "application/json", "Accept" => "application/json",
+                 "Authorization" => "Bearer #{login_jwt}"}
+      get "/api/external_tournament/seeding",
+        params: {tournament_id: @tournament.id, region: "NBV"}, headers: headers
+      assert_response :success
+      assert_equal 1, JSON.parse(response.body)["teams"].sum { |t| t["players"].size }
+    end
+
     # === Plan 15-03: Round-Start-Endpoint Tests ===
 
     # AC-1: ohne JWT → 401

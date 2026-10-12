@@ -1,34 +1,33 @@
-# Suche & Filter-Funktionen
+# Suche & Filter
 
-Dieses Dokument beschreibt die erweiterten Such- und Filterfunktionen für Turniermanager.
+Jede Liste in Carambus (Turniere, Spieler, Vereine, Ergebnisse …) hat ein eigenes Suchfeld und ein Filter-Popup, auch
+ohne Anmeldung.
 
-## Filter-Popup
+## Suche in einer Liste {#list-search}
 
-Das Filter-Popup ermöglicht es Ihnen, große Datenmengen effizient zu durchsuchen und zu filtern.
+- **Freie Begriffe** durchsuchen die wichtigsten Textspalten der aktuellen Liste, z. B. Turniertitel oder
+  Spielername. Mehrere Begriffe müssen alle zutreffen.
+- **`feld:wert`** filtert gezielt nach einem Feld, auch mit Vergleichen wie `>=` oder `<`.
+- Carambus merkt sich den Suchbegriff je Liste für die laufende Sitzung.
 
-➡️ Details siehe: [Filter-Popup Nutzung](filter_popup_usage.md)
+Eine Suche über alle Listen gleichzeitig gibt es nicht.
 
-## Erweiterte Suchfunktionen
+➡️ Welche Felder es gibt und wie das Filter-Popup sie zusammenstellt: [Filter-Popup](filter_popup_usage.md)
 
-### Volltext-Suche
+## Ausschnitt: Region, Saison, Sparte {#scope}
 
-Suchen Sie über alle Turniere, Spieler und Ergebnisse.
+Oberhalb der Listen stellen Sie mit dem Band **Ausschnitt** die Felder **Region**, **Saison** und **Branch** (Sparte,
+z. B. Karambol) ein, bei Spielern auch **Club**. Die Listen zeigen dann nur diesen Ausschnitt. Angemeldete Benutzer
+behalten ihren Ausschnitt auch über die Sitzung hinaus.
 
-### Gespeicherte Suchen
+## KI-Assistent {#ai}
 
-Speichern Sie häufig genutzte Suchfilter für schnellen Zugriff.
+Der Knopf **KI-Assistent** in der Seitenleiste nimmt eine Frage in normaler Sprache entgegen, wählt die passende Liste
+und setzt den Filter. Er braucht eine Anmeldung und einen auf dem Server eingerichteten KI-Zugang.
+➡️ [KI-gestützte Suche](../players/ai-search.md)
 
-### Export-Funktionen
+## Was es nicht gibt {#not-available}
 
-Exportieren Sie gefilterte Ergebnisse als CSV oder PDF.
-
----
-
-_Weitere Details folgen in einer zukünftigen Version dieser Dokumentation._
-
-
-
-
-
-
-
+- **Keine gespeicherten Suchen.** Benannte Suchfilter lassen sich nicht ablegen.
+- **Kein Export gefilterter Listen** als CSV oder PDF. Exportiert werden nur das Spielprotokoll eines Tisches (PDF
+  zum Drucken) und die Turnierergebnisse als CSV für die ClubCloud.

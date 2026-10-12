@@ -69,6 +69,19 @@ namespace :scenario do
     generate_configuration_files(scenario_name, environment)
   end
 
+  desc "Generate ~/DEV/ansible/host_vars/<inventory_name> from carambus_data/scenarios/<scenario>/config.yml (ANSIBLE_DIR overrides)"
+  task :generate_host_vars, [:scenario_name] => :environment do |task, args|
+    scenario_name = args[:scenario_name]
+
+    if scenario_name.nil?
+      puts "Usage: rake scenario:generate_host_vars[scenario_name]"
+      puts "Example: rake scenario:generate_host_vars[carambus_bcw]"
+      exit 1
+    end
+
+    exit 1 unless generate_host_vars(scenario_name)
+  end
+
   desc "Generate/merge encrypted credentials from carambus_data/secrets.yml per config.yml features"
   task :generate_credentials, [:scenario_name, :environment] => :environment do |task, args|
     scenario_name = args[:scenario_name]
@@ -77,14 +90,36 @@ namespace :scenario do
     if scenario_name.nil?
       puts "Usage: rake scenario:generate_credentials[scenario_name,environment]"
       puts "Default: DRY-RUN (zeigt nur die Key-Struktur). Schreiben mit WRITE=true."
+      puts "Neues Szenario ohne Credentials: NEW_KEY=true (eigener Key + eigene Geheimnisse)."
+      puts "Bestehendes Szenario rotieren:    ROTATE=true (neuer Key, secret_key_base, JWT; AR-Schlüssel als Liste)."
       exit 1
     end
 
     dry_run = ENV['WRITE'] != 'true'
-    generate_scenario_credentials(scenario_name, environment, dry_run: dry_run)
+    generate_scenario_credentials(scenario_name, environment, dry_run: dry_run,
+      new_key: ENV['NEW_KEY'] == 'true', rotate: ENV['ROTATE'] == 'true')
   end
 
-  desc "Soft-Credentials (clubcloud/ai/translation/google_service) additiv auf den Server mergen — bewahrt secret_key_base/AR/devise_jwt. DRY-RUN default; WRITE=true (+RESTART=true). Auch für Authority (kein DB-Schritt → kein Guard). Usage: rake scenario:push_credentials[<name>]"
+  desc "Credentials (production.key + .yml.enc) vom Server nach carambus_data holen — für Server ohne prepare_deploy und vor jeder Rotation. DRY-RUN default (Vergleich); WRITE=true holt (lokale Kopie wird vorher gesichert). Usage: rake scenario:pull_credentials[<name>]"
+  task :pull_credentials, [:scenario_name] => :environment do |_, args|
+    if args[:scenario_name].to_s.empty?
+      puts "Usage: rake scenario:pull_credentials[<name>]   (WRITE=true zum Holen)"
+      exit 1
+    end
+    pull_scenario_credentials(args[:scenario_name], write: ENV['WRITE'] == 'true')
+  end
+
+  desc "Credentials aus carambus_data auf den Server laden — auch für die Authority (kein prepare_deploy). Gate: jeder AR-Schlüssel des Servers muss lokal vorhanden sein. DRY-RUN default; WRITE=true lädt (Server-Backup vorher), RESTART=true startet Puma neu, FORCE=true übergeht das Gate. Usage: rake scenario:upload_credentials[<name>]"
+  task :upload_credentials, [:scenario_name] => :environment do |_, args|
+    if args[:scenario_name].to_s.empty?
+      puts "Usage: rake scenario:upload_credentials[<name>]   (WRITE=true zum Laden, RESTART=true für Puma-Neustart)"
+      exit 1
+    end
+    upload_scenario_credentials(args[:scenario_name], write: ENV['WRITE'] == 'true',
+      restart: ENV['RESTART'] == 'true', force: ENV['FORCE'] == 'true')
+  end
+
+  desc "Soft-Credentials (clubcloud/ai/translation/google_service) additiv auf den Server mergen — bewahrt secret_key_base/AR/devise_jwt. DRY-RUN default; WRITE=true (+RESTART=true); ONLY=clubcloud[,…] beschränkt auf Gruppen. Auch für Authority (kein DB-Schritt → kein Guard). Usage: rake scenario:push_credentials[<name>]"
   task :push_credentials, [:scenario_name] => :environment do |_, args|
     scenario_name = args[:scenario_name]
     if scenario_name.to_s.empty?
@@ -93,6 +128,33 @@ namespace :scenario do
       exit 1
     end
     push_credentials_to_server(scenario_name, write: ENV['WRITE'] == 'true', restart: ENV['RESTART'] == 'true')
+  end
+
+  desc "Tote Credential-Einträge (omniauth, access_token_encryption_key) vom Server entfernen — sie tragen verbrannte Werte, werden aber nirgends gelesen. DRY-RUN default; WRITE=true (+RESTART=true). Usage: rake scenario:strip_dead_credentials[<name>]"
+  task :strip_dead_credentials, [:scenario_name] => :environment do |_, args|
+    if args[:scenario_name].to_s.empty?
+      puts "Usage: rake scenario:strip_dead_credentials[<name>]   (WRITE=true zum Schreiben, RESTART=true für Puma-Neustart)"
+      exit 1
+    end
+    strip_dead_credentials_on_server(args[:scenario_name], write: ENV['WRITE'] == 'true',
+      restart: ENV['RESTART'] == 'true', extra_keys: ENV['KEYS'].to_s.split(',').map(&:strip).reject(&:empty?))
+  end
+
+  desc "Sperrliste verbrannter Geheimnisse (lib/credential_denylist.yml) aus der öffentlichen Git-Historie neu aufbauen — speichert nur SHA256, nie Werte. DRY-RUN default; WRITE=true schreibt. Usage: rake scenario:build_credential_denylist"
+  task :build_credential_denylist, [:dummy] => :environment do |_, _args|
+    build_credential_denylist(write: ENV['WRITE'] == 'true')
+  end
+
+  desc "active_record_encryption-Keys auf dem Server durch frische ersetzen — LEERT vorher die verschlüsselten Spalten (kein previous:, keine Re-Verschlüsselung). secret_key_base/devise_jwt bleiben → keine Session-Invalidierung. DRY-RUN default; WRITE=true (+CLEAR=true wenn Bestand da ist, +RESTART=true). Usage: rake scenario:rotate_ar_encryption[<name>]"
+  task :rotate_ar_encryption, [:scenario_name] => :environment do |_, args|
+    scenario_name = args[:scenario_name]
+    if scenario_name.to_s.empty?
+      puts "Usage: rake scenario:rotate_ar_encryption[<name>]"
+      puts "  DRY-RUN default; WRITE=true zum Schreiben, CLEAR=true bestätigt das Leeren, RESTART=true für Puma-Restart."
+      exit 1
+    end
+    rotate_ar_encryption_on_server(scenario_name, write: ENV['WRITE'] == 'true',
+      clear: ENV['CLEAR'] == 'true', restart: ENV['RESTART'] == 'true')
   end
 
   desc "Create Rails root folder for a scenario"
@@ -369,7 +431,7 @@ namespace :scenario do
   # 2026-04-27: Bot-Block-Snippet einmalig pro Server in /etc/nginx/conf.d/ installieren.
   # Definiert die globale `map $http_user_agent $carambus_block_bot { ... }`, die von
   # allen Scenario-Server-Blöcken über `if ($carambus_block_bot)` referenziert wird.
-  # Quelle: carambus_master/templates/nginx/carambus_bot_block.conf
+  # Quelle: templates/nginx/carambus_bot_block.conf (im eigenen Checkout)
   # Per-Scenario-Opt-Out: bot_block_enabled: false in config.yml setzen (z. B. carambus.de).
   desc "Install /etc/nginx/conf.d/carambus_bot_block.conf snippet on a scenario's production server"
   task :install_bot_block, [:scenario_name, :environment] => :environment do |t, args|
@@ -518,11 +580,61 @@ namespace :scenario do
     end
   end
 
+  # Templates liegen im EIGENEN Checkout (git-tracked unter templates/), nicht bei einem
+  # Nachbarverzeichnis. Dateirelativ aufgeloest (lib/tasks/ -> Rails-Root -> templates/),
+  # damit die Methode auch ausserhalb eines vollen Rails-Kontexts korrekt aufloest.
+  # v0.3.5 / Phase 11: zeigte frueher auf carambus_master/templates — die Aufloesung brach,
+  # sobald dieser Checkout nicht mehr als Nachbar existierte.
   def templates_path
-    @templates_path ||= begin
-      load File.expand_path('../carambus_env.rb', __dir__) unless defined?(CarambusEnv)
-      File.join(CarambusEnv.base_path, 'carambus_master', 'templates')
+    @templates_path ||= File.expand_path('../../templates', __dir__)
+  end
+
+  # Ansible-Checkout, in dessen host_vars/ generiert wird (Plan 15-01). ANSIBLE_DIR ueberschreibt.
+  def ansible_path
+    ENV['ANSIBLE_DIR'].presence || File.expand_path('~/DEV/ansible')
+  end
+
+  # host_vars/<inventory_name> aus config.yml (environments.production.ansible); die Logik steht in
+  # lib/scenario_host_vars.rb. Ein Konfigurationsfehler (z.B. Inventarname nicht im Inventar) bricht
+  # mit exit 1 ab — NICHT das Muster "Meldung auf stdout, exit 0" der uebrigen Generate.
+  # optional: true (Aufruf aus generate_configs) -> ein fehlender Ansible-Checkout ist nur ein Hinweis.
+  def generate_host_vars(scenario_name, optional: false)
+    load File.expand_path('../scenario_host_vars.rb', __dir__) unless defined?(ScenarioHostVars)
+
+    config_file = File.join(scenarios_path, scenario_name, 'config.yml')
+    unless File.exist?(config_file)
+      puts "Error: Scenario configuration not found: #{config_file}"
+      return false
     end
+
+    inventory_file = File.join(ansible_path, 'hosts')
+    unless File.exist?(inventory_file)
+      puts "#{optional ? 'Hinweis' : 'Error'}: kein Ansible-Inventar unter #{inventory_file} " \
+           "(ANSIBLE_DIR setzen) — host_vars nicht erzeugt"
+      return optional
+    end
+
+    production = YAML.load_file(config_file).dig('environments', 'production')
+    inventory = File.read(inventory_file)
+    begin
+      name = ScenarioHostVars.new(scenario_name: scenario_name, production_config: production,
+                                  existing: nil, inventory: inventory).inventory_name
+      target = File.join(ansible_path, 'host_vars', name)
+      existing = File.exist?(target) ? File.read(target) : nil
+      content = ScenarioHostVars.new(scenario_name: scenario_name, production_config: production,
+                                     existing: existing, inventory: inventory).render
+    rescue ScenarioHostVars::Error => e
+      puts "❌ #{e.message}"
+      exit 1
+    end
+
+    if content == existing
+      puts "   Unchanged: #{target}"
+    else
+      File.write(target, content)
+      puts "   Generated: #{target}"
+    end
+    true
   end
 
   # Region-Shortname fuer den Datenfilter (cleanup:remove_non_region_records).
@@ -572,6 +684,29 @@ namespace :scenario do
       pool.dig('shared', 'database_password')
   rescue
     nil
+  end
+
+  # SMTP-Zugangsdaten fuer /etc/<basename>.env aus carambus_data/secrets.yml —
+  # per_scenario-Override, sonst shared (wie scenario_db_password). nil, wenn
+  # username oder password fehlt.
+  def scenario_smtp_credentials(scenario_name)
+    pool_file = File.join(carambus_data_path, 'secrets.yml')
+    return nil unless File.exist?(pool_file)
+    pool = YAML.load_file(pool_file) || {}
+    smtp = pool.dig('per_scenario', scenario_name, 'smtp') || pool.dig('shared', 'smtp') || {}
+    return nil if smtp['username'].to_s.empty? || smtp['password'].to_s.empty?
+    smtp
+  rescue
+    nil
+  end
+
+  # Zugang zum Regionsdump (Plan 18-03) aus carambus_data/secrets.yml: per_scenario.<szenario>.region_dump.
+  # nil = kein Zugang eingetragen → prepare_development bleibt beim SSH-Weg des Betreibers.
+  # Ein unvollstaendiger Eintrag ist ein Fehler (ArgumentError), kein stiller Rueckfall.
+  def scenario_region_dump_access(scenario_name)
+    pool_file = File.join(carambus_data_path, 'secrets.yml')
+    return nil unless File.exist?(pool_file)
+    RegionDump.access_from_secrets(YAML.load_file(pool_file) || {}, scenario_name)
   end
 
   def generate_configuration_files(scenario_name, environment)
@@ -662,6 +797,11 @@ namespace :scenario do
       generate_env_production(scenario_config, env_config, env_dir)
     end
 
+    # Ansible-host_vars (Plan 15-01) — nur fuer Szenarien mit Abschnitt `ansible:`.
+    if environment == 'production' && env_config['ansible']
+      generate_host_vars(scenario_name, optional: true)
+    end
+
     puts "✅ Configuration files generated for #{scenario_name} (#{environment})"
     puts "   Location: #{env_dir}"
     true
@@ -673,6 +813,9 @@ namespace :scenario do
   # <env>.yml.enc — MERGE statt Regenerate (secret_key_base etc. bleiben erhalten).
   # Doku: carambus_master/docs/developers/scenario-credentials.de.md
   # ---------------------------------------------------------------------------
+  # Feature-Gruppen fuer build_feature_keys_from_pool (push_credentials). Die Merge-Regeln von
+  # generate_credentials stehen seit Plan 18-01 in lib/scenario_credentials.rb — dort dieselbe
+  # Tabelle; beide gleich halten.
   # 'openai' entfernt (2026-08-15): ruby-openai ist seit Phase 36 aus dem Gemfile
   # (einzige AI-Integration ist `anthropic`), und carambus_data/secrets.yml fuehrt
   # keinen openai-Eintrag — die Gruppe lief wegen `next unless shared[grp]` also
@@ -683,14 +826,14 @@ namespace :scenario do
     'translation' => %w[deepl google],
     'scraping' => %w[youtube kozoom]
   }.freeze
-  PRESERVE_KEYS = %w[secret_key_base active_record_encryption devise_jwt_secret_key
-    location_id location_calendar_id].freeze
-  LEGACY_FLAT_KEYS = %w[anthropic_key deepl_key youtube_api_key].freeze
 
-  def generate_scenario_credentials(scenario_name, environment = 'production', dry_run: true)
-    require 'securerandom'
+  def generate_scenario_credentials(scenario_name, environment = 'production', dry_run: true, new_key: false, rotate: false)
     require 'active_support/encrypted_configuration'
-    require 'active_support/core_ext/hash/deep_merge'
+    load File.expand_path('../scenario_credentials.rb', __dir__) unless defined?(ScenarioCredentials)
+
+    if new_key && rotate
+      puts "❌ NEW_KEY und ROTATE schließen sich aus (Neuanlage ODER Rotation)"; return false
+    end
 
     config_file = File.join(scenarios_path, scenario_name, 'config.yml')
     unless File.exist?(config_file)
@@ -698,9 +841,6 @@ namespace :scenario do
     end
     config = YAML.load_file(config_file)
     decl = config.dig('scenario', 'credentials') || {}
-    features = Array(decl['features']).map(&:to_s)
-    features = %w[ai translation] if features.empty? # Default: Backup überall
-    cc_ctx = decl['clubcloud_context']
 
     pool_file = File.join(carambus_data_path, 'secrets.yml')
     unless File.exist?(pool_file)
@@ -709,14 +849,18 @@ namespace :scenario do
       return false
     end
     pool = YAML.load_file(pool_file) || {}
-    shared = pool['shared'] || {}
-    per = (pool['per_scenario'] || {})[scenario_name] || {}
 
     creds_dir = File.join(scenarios_path, scenario_name, 'production', 'credentials')
     enc_path = File.join(creds_dir, "#{environment}.yml.enc")
     key_path = File.join(creds_dir, "#{environment}.key")
+    if new_key || rotate
+      return generate_fresh_scenario_credentials(scenario_name, environment, creds_dir, pool, decl,
+        dry_run: dry_run, rotate: rotate)
+    end
     unless File.exist?(key_path)
-      puts "❌ Key fehlt: #{key_path} (Credentials müssen mindestens initial existieren)"; return false
+      puts "❌ Key fehlt: #{key_path} (Credentials müssen mindestens initial existieren)"
+      puts "   Neues Szenario: WRITE=true NEW_KEY=true bin/rails \"scenario:generate_credentials[#{scenario_name}]\""
+      return false
     end
 
     enc = ActiveSupport::EncryptedConfiguration.new(
@@ -728,70 +872,250 @@ namespace :scenario do
       existing = YAML.safe_load(enc.read.to_s, permitted_classes: [Symbol], aliases: true) || {}
     end
 
-    merged = deep_stringify(existing)
-    # (3) historische flache Leaves entfernen — nested ersetzt sie
-    removed = LEGACY_FLAT_KEYS.select { |k| merged.key?(k) }
-    LEGACY_FLAT_KEYS.each { |k| merged.delete(k) }
-    # (2) secret_key_base bewahren; nur bei Neuanlage erzeugen
-    generated_skb = false
-    if merged['secret_key_base'].to_s.strip.empty?
-      merged['secret_key_base'] = SecureRandom.hex(64)
-      generated_skb = true
-    end
-    # Feature-Keys aus shared mergen (nested)
-    added = []
-    features.each do |f|
-      Array(FEATURE_KEY_GROUPS[f]).each do |grp|
-        next unless shared[grp]
-        merged[grp] = (merged[grp] || {}).deep_merge(deep_stringify(shared[grp]))
-        added << grp
-      end
-    end
-    # clubcloud (kontext-gewählt; per_scenario-Override, sonst shared).
-    # WICHTIG: Setting.get_cc_credentials liest mit context.downcase.to_sym →
-    # der Credential-Key MUSS kleingeschrieben sein (z.B. clubcloud.nbv).
-    if features.include?('clubcloud') && cc_ctx
-      ck = cc_ctx.to_s.downcase
-      cc = per.dig('clubcloud', cc_ctx) || per.dig('clubcloud', ck) ||
-        shared.dig('clubcloud', cc_ctx) || shared.dig('clubcloud', ck)
-      if cc
-        merged['clubcloud'] = (merged['clubcloud'] || {}).merge(ck => deep_stringify(cc))
-        added << "clubcloud.#{ck}"
-      end
-    end
-    # Plan 29-05: region_server (Service-Account je Region, gelesen von
-    # Carambus.region_server_credentials — Key kleingeschrieben wie clubcloud).
-    # Anders als clubcloud eine LISTE: die Authority holt Meldelisten von MEHREREN Region Servern.
-    region_server_contexts(decl).each do |ctx|
-      rk = ctx.to_s.downcase
-      rs = per.dig('region_server', ctx) || per.dig('region_server', rk) ||
-        shared.dig('region_server', ctx) || shared.dig('region_server', rk)
-      next unless rs
-
-      merged['region_server'] = (merged['region_server'] || {}).merge(rk => deep_stringify(rs))
-      added << "region_server.#{rk}"
-    end
-    # google_service immer (per_scenario-Override, sonst shared)
-    gsvc = per['google_service'] || shared['google_service']
-    if gsvc
-      merged['google_service'] = deep_stringify(gsvc)
-      added << 'google_service'
-    end
+    merged, report = ScenarioCredentials.new(existing: existing, pool: pool, decl: decl,
+      scenario_name: scenario_name).merged
+    cc_ctx = report.clubcloud_context
 
     puts "── generate_credentials #{scenario_name} [#{environment}] #{dry_run ? '(DRY-RUN)' : '(WRITE)'} ──"
-    puts "   features: #{features.join(', ')}#{cc_ctx ? "  clubcloud_context=#{cc_ctx}" : ''}"
-    puts "   entfernte flache Leaves: #{removed.empty? ? '—' : removed.join(', ')}"
-    puts "   secret_key_base: #{generated_skb ? 'NEU generiert' : 'bewahrt'}"
-    puts "   gemergte Gruppen: #{added.uniq.join(', ')}"
+    puts "   features: #{report.features.join(', ')}#{cc_ctx ? "  clubcloud_context=#{cc_ctx}" : ''}"
+    puts "   entfernte flache Leaves: #{report.removed.empty? ? '—' : report.removed.join(', ')}"
+    puts "   secret_key_base: #{report.generated_skb ? 'NEU generiert' : 'bewahrt'}"
+    puts "   gemergte Gruppen: #{report.added.uniq.join(', ')}"
     puts "   resultierende Key-Struktur:"
     credential_key_paths(merged).each { |p| puts "     #{p}" }
+    return false unless assert_no_public_credentials!(merged, "#{scenario_name} [#{environment}]")
 
     if dry_run
       puts "   (DRY-RUN — nichts geschrieben. Schreiben mit WRITE=true)"
     else
       enc.write(merged.to_yaml)
       puts "   ✅ geschrieben: #{enc_path}"
-      puts "   ⚠️  secret_key_base neu — in #{File.join(carambus_data_path, 'secrets.yml')} per_scenario sichern!" if generated_skb
+      puts "   ⚠️  secret_key_base neu — in #{File.join(carambus_data_path, 'secrets.yml')} per_scenario sichern!" if report.generated_skb
+    end
+    true
+  end
+
+  # Plan 18-01: Neuanlage (NEW_KEY=true) bzw. Rotation (ROTATE=true) — eigener Key und eigene
+  # Geheimnisse je Server. Gibt nie Werte aus, nur Schluesselpfade.
+  def generate_fresh_scenario_credentials(scenario_name, environment, creds_dir, pool, decl, dry_run:, rotate:)
+    store = ScenarioCredentials::Store.new(creds_dir, environment)
+    mode = rotate ? 'ROTATE' : 'NEW_KEY'
+
+    if rotate && !(store.key? && store.enc?)
+      puts "❌ ROTATE braucht vorhandene Credentials: #{store.key_path} und #{store.enc_path}"
+      puts "   Neues Szenario stattdessen mit NEW_KEY=true anlegen."
+      return false
+    end
+    if !rotate && (store.key? || store.enc?)
+      puts "❌ NEW_KEY nur für ein Szenario ohne Credentials — hier existiert schon #{store.key? ? store.key_path : store.enc_path}"
+      puts "   Bestehende Credentials rotieren: ROTATE=true"
+      return false
+    end
+
+    credentials = ScenarioCredentials.new(existing: rotate ? store.read : {}, pool: pool, decl: decl,
+      scenario_name: scenario_name)
+    hash, report = rotate ? credentials.rotated : credentials.created
+    puts "── generate_credentials #{scenario_name} [#{environment}] #{mode} #{dry_run ? '(DRY-RUN)' : '(WRITE)'} ──"
+    if rotate
+      puts "   wird ersetzt: production.key, secret_key_base, devise_jwt_secret_key"
+      puts "   active_record_encryption.primary_key: #{Array(hash.dig('active_record_encryption', 'primary_key')).size} Schlüssel (alte entschlüsseln, der letzte verschlüsselt)"
+      puts "   übrige Einträge unverändert"
+    else
+      puts "   neu: production.key, secret_key_base, devise_jwt_secret_key, active_record_encryption"
+      puts "   features: #{report.features.join(', ')}  gemergte Gruppen: #{report.added.uniq.join(', ').presence || '—'}"
+    end
+    puts "   resultierende Key-Struktur:"
+    credential_key_paths(hash).each { |p| puts "     #{p}" }
+
+    if dry_run
+      puts "   (DRY-RUN — nichts geschrieben. Schreiben mit WRITE=true #{mode}=true)"
+      return true
+    end
+
+    if rotate
+      backups = store.rotate(hash, timestamp: Time.now.strftime('%Y%m%d%H%M%S'))
+      puts "   ✅ rotiert: #{store.key_path}, #{store.enc_path}"
+      puts "   Backup: #{backups.join(', ')}"
+    else
+      store.create(hash)
+      puts "   ✅ angelegt: #{store.key_path} (Modus 600), #{store.enc_path}"
+      puts "   ⚠️  production.key sichern — ohne ihn sind die .enc und alle verschlüsselten Felder verloren."
+    end
+    puts "   Nächster Schritt: bin/rails \"scenario:prepare_deploy[#{scenario_name}]\" lädt Key und .enc hoch."
+    if rotate
+      puts "   prepare_deploy startet Puma NICHT neu — danach auf dem Server: sudo systemctl restart puma-<basename>"
+      puts "   Danach sind alle Sitzungen und JWTs ungültig — Benutzer, Scoreboards und Turnier-App melden sich neu an."
+    end
+    true
+  rescue ScenarioCredentials::Store::Error => e
+    puts "❌ #{e.message}"
+    false
+  end
+
+  # Ziel eines Credential-Transfers aus der Szenario-config.yml (environments.production).
+  def credentials_transfer_target(scenario_name)
+    cfg_file = File.join(scenarios_path, scenario_name, 'config.yml')
+    unless File.exist?(cfg_file)
+      puts "❌ config.yml nicht gefunden: #{cfg_file}"; return nil
+    end
+    cfg = YAML.load_file(cfg_file)
+    prod = cfg.dig('environments', 'production') || {}
+    if prod['ssh_host'].to_s.strip.empty?
+      puts "❌ ssh_host fehlt in #{scenario_name} (environments.production)"; return nil
+    end
+    deploy_to = prod['deploy_to'] || "/var/www/#{scenario_name}"
+    {
+      ssh: "ssh -p #{prod['ssh_port'] || 22} www-data@#{prod['ssh_host']}",
+      scp_port: (prod['ssh_port'] || 22).to_s,
+      host: prod['ssh_host'],
+      deploy_to: deploy_to,
+      remote_dir: "#{deploy_to}/shared/config/credentials",
+      local_dir: File.join(scenarios_path, scenario_name, 'production', 'credentials'),
+      service: "puma-#{prod['basename'] || cfg.dig('scenario', 'basename') || scenario_name}"
+    }
+  end
+
+  # Datei-MD5s und Fingerabdruck der Server-Credentials — gerechnet auf dem Server mit
+  # lib/scenario_credentials.rb (per stdin an `ruby -`), ausgegeben werden nur Hash-Praefixe.
+  # nil = Server nicht erreichbar oder Skript fehlgeschlagen.
+  def remote_credentials_state(target)
+    require 'open3'
+    rbenv = "RBENV_ROOT=/var/www/.rbenv PATH=/var/www/.rbenv/shims:$PATH RBENV_VERSION=3.2.1"
+    cmd = "#{target[:ssh]} 'test -f #{target[:remote_dir]}/production.key || { echo \"{}\"; exit 0; }; " \
+          "cd #{target[:deploy_to]}/current && #{rbenv} bundle exec ruby - #{target[:remote_dir]}'"
+    out, err, status = Open3.capture3(cmd, stdin_data: ScenarioCredentials.remote_fingerprint_script)
+    unless status.success?
+      puts "❌ Server-Abfrage fehlgeschlagen (#{target[:host]}): #{err.lines.last.to_s.strip}"
+      return nil
+    end
+    JSON.parse(out.lines.last.to_s)
+  rescue JSON::ParserError
+    puts "❌ Server-Antwort nicht lesbar (#{target[:host]})"
+    nil
+  end
+
+  def print_credentials_comparison(local_md5s, local_fp, remote)
+    short = ->(v) { v.nil? ? '—' : v[0, 8] }
+    puts "   production.key      lokal #{short[local_md5s['key_md5']]}  Server #{short[remote['key_md5']]}"
+    puts "   production.yml.enc  lokal #{short[local_md5s['enc_md5']]}  Server #{short[remote['enc_md5']]}"
+    rfp = remote['fingerprint']
+    return unless local_fp && rfp
+
+    %w[secret_key_base devise_jwt_secret_key deterministic_key key_derivation_salt].each do |k|
+      puts "   #{k.ljust(22)} #{local_fp[k] == rfp[k] ? 'gleich' : 'VERSCHIEDEN'}"
+    end
+    puts "   primary_key            lokal #{local_fp['primary_key'].size} / Server #{rfp['primary_key'].size} Schlüssel, " \
+         "Server-Schlüssel lokal vorhanden: #{(rfp['primary_key'] - local_fp['primary_key']).empty? ? 'ja' : 'NEIN'}"
+  end
+
+  # scenario:pull_credentials — Serverstand nach carambus_data holen.
+  def pull_scenario_credentials(scenario_name, write:)
+    load File.expand_path('../scenario_credentials.rb', __dir__) unless defined?(ScenarioCredentials)
+    target = credentials_transfer_target(scenario_name) or return false
+    remote = remote_credentials_state(target) or return false
+    store = ScenarioCredentials::Store.new(target[:local_dir])
+    puts "── pull_credentials #{scenario_name} #{write ? '(WRITE)' : '(DRY-RUN)'} ← #{target[:host]}:#{target[:remote_dir]} ──"
+    unless remote['key_md5'] && remote['enc_md5']
+      puts "❌ Auf dem Server liegen keine Credentials (#{target[:remote_dir]})"; return false
+    end
+    local_fp = (store.key? && store.enc?) ? ScenarioCredentials.fingerprint(store.read) : nil
+    print_credentials_comparison(store.file_md5s, local_fp, remote)
+    if store.file_md5s == remote.slice('key_md5', 'enc_md5')
+      puts "   ✅ carambus_data ist bereits gleich dem Server — nichts zu tun"; return true
+    end
+    unless write
+      puts "   (DRY-RUN — nichts geholt. Holen mit WRITE=true)"; return true
+    end
+
+    ts = Time.now.strftime('%Y%m%d%H%M%S')
+    FileUtils.mkdir_p(target[:local_dir])
+    [store.key_path, store.enc_path].each do |path|
+      next unless File.exist?(path)
+
+      FileUtils.cp(path, "#{path}.local-bak-#{ts}", preserve: true)
+      File.chmod(0o600, "#{path}.local-bak-#{ts}")
+    end
+    %w[production.key production.yml.enc].each do |f|
+      tmp = File.join(target[:local_dir], "#{f}.pull-#{ts}")
+      unless system('scp', '-q', '-P', target[:scp_port], "www-data@#{target[:host]}:#{target[:remote_dir]}/#{f}", tmp)
+        puts "❌ scp #{f} fehlgeschlagen — lokale Dateien unverändert"
+        FileUtils.rm_f(Dir[File.join(target[:local_dir], "*.pull-#{ts}")])
+        return false
+      end
+      File.chmod(0o600, tmp)
+    end
+    %w[production.yml.enc production.key].each do |f|
+      File.rename(File.join(target[:local_dir], "#{f}.pull-#{ts}"), File.join(target[:local_dir], f))
+    end
+    ok = store.file_md5s == remote.slice('key_md5', 'enc_md5')
+    puts ok ? "   ✅ geholt (Modus 600); vorherige lokale Kopie: *.local-bak-#{ts}" : "   ❌ Nach dem Holen stimmen die Prüfsummen nicht — bitte prüfen"
+    ok
+  end
+
+  # scenario:upload_credentials — carambus_data auf den Server laden (ohne prepare_deploy).
+  def upload_scenario_credentials(scenario_name, write:, restart:, force:)
+    load File.expand_path('../scenario_credentials.rb', __dir__) unless defined?(ScenarioCredentials)
+    target = credentials_transfer_target(scenario_name) or return false
+    store = ScenarioCredentials::Store.new(target[:local_dir])
+    unless store.key? && store.enc?
+      puts "❌ Lokal fehlen Credentials: #{store.key_path} / #{store.enc_path}"; return false
+    end
+    local_fp = ScenarioCredentials.fingerprint(store.read)
+    remote = remote_credentials_state(target) or return false
+    puts "── upload_credentials #{scenario_name} #{write ? '(WRITE)' : '(DRY-RUN)'} → #{target[:host]}:#{target[:remote_dir]} ──"
+    print_credentials_comparison(store.file_md5s, local_fp, remote)
+    # Die lokalen Dateien sind der haeufigste Traeger verbrannter Werte: push_credentials
+    # merged NUR serverseitig, carambus_data bleibt dabei stale (Falle 1 im Audit).
+    return false unless assert_no_public_credentials!(store.read, "lokale Credentials #{scenario_name}")
+    if store.file_md5s == remote.slice('key_md5', 'enc_md5')
+      puts "   ✅ Server ist bereits gleich carambus_data — nichts zu laden"; return true
+    end
+
+    problems = ScenarioCredentials.upload_problems(local_fp, remote['fingerprint'])
+    if problems.any?
+      problems.each { |p| puts "   ⛔ #{p}" }
+      unless force
+        puts "   Abbruch. Erst den Serverstand holen (scenario:pull_credentials), dann rotieren/ändern — oder FORCE=true."
+        return false
+      end
+      puts "   ⚠️  FORCE=true — Gate übergangen"
+    end
+    if remote['fingerprint'] && local_fp['secret_key_base'] != remote['fingerprint']['secret_key_base']
+      puts "   ℹ️  secret_key_base ändert sich: nach dem Neustart sind alle Sitzungen und JWTs ungültig"
+    end
+    unless write
+      puts "   (DRY-RUN — nichts geladen. Laden mit WRITE=true, Puma-Neustart mit RESTART=true)"; return true
+    end
+
+    ts = Time.now.strftime('%Y%m%d%H%M%S')
+    rd = target[:remote_dir]
+    backup = "mkdir -p #{rd} && for f in production.key production.yml.enc; do " \
+             "if [ -f #{rd}/$f ]; then cp -p #{rd}/$f #{rd}/$f.bak-#{ts} && chmod 600 #{rd}/$f.bak-#{ts}; fi; done"
+    unless system("#{target[:ssh]} '#{backup}'")
+      puts "❌ Server-Backup fehlgeschlagen — nichts geladen"; return false
+    end
+    staged = [store.key_path, store.enc_path].all? do |path|
+      system('scp', '-q', '-P', target[:scp_port], path, "www-data@#{target[:host]}:#{rd}/#{File.basename(path)}.upload-#{ts}")
+    end
+    unless staged
+      system("#{target[:ssh]} 'rm -f #{rd}/*.upload-#{ts}'")
+      puts "❌ scp fehlgeschlagen — Server unverändert"; return false
+    end
+    swap = "chmod 600 #{rd}/*.upload-#{ts} && mv #{rd}/production.yml.enc.upload-#{ts} #{rd}/production.yml.enc && " \
+           "mv #{rd}/production.key.upload-#{ts} #{rd}/production.key"
+    unless system("#{target[:ssh]} '#{swap}'")
+      puts "❌ Einsetzen fehlgeschlagen — Server-Backup: #{rd}/*.bak-#{ts}"; return false
+    end
+    after = remote_credentials_state(target)
+    unless after && after.slice('key_md5', 'enc_md5') == store.file_md5s
+      puts "❌ Nach dem Laden stimmen die Prüfsummen nicht — Server-Backup: #{rd}/*.bak-#{ts}"; return false
+    end
+    puts "   ✅ geladen (Modus 600); Server-Backup: #{rd}/production.*.bak-#{ts}"
+    if restart
+      puts "   Puma-Neustart: #{target[:service]}"
+      system("#{target[:ssh]} 'sudo systemctl restart #{target[:service]}'") or (puts "❌ Neustart fehlgeschlagen"; return false)
+    else
+      puts "   ⚠️  Puma NICHT neugestartet — erst danach gelten die neuen Credentials (RESTART=true oder sudo systemctl restart #{target[:service]})"
     end
     true
   end
@@ -892,11 +1216,19 @@ namespace :scenario do
     end
 
     additions = build_feature_keys_from_pool(scenario_name)
+    # ONLY=clubcloud[,deepl…]: nur diese Gruppen übertragen (2026-09-15: auf train hätte ein voller
+    # Push saubere anthropic/deepl/google-Keys durch die öffentlich bekannten aus secrets.yml ersetzt).
+    if ENV['ONLY'].present?
+      only = ENV['ONLY'].split(',').map(&:strip)
+      additions = additions.slice(*only)
+      puts "   ONLY=#{only.join(',')} — übrige Gruppen bleiben auf dem Server unverändert"
+    end
     if additions.empty?
       puts "Keine Soft-Feature-Keys zu mergen — config.yml features / secrets.yml prüfen."; return false
     end
     puts "── push_credentials #{scenario_name} #{write ? '(WRITE)' : '(DRY-RUN)'} → #{ssh_host}:#{ssh_port} ──"
     puts "   Gruppen: #{additions.keys.join(', ')}  (fragile Keys werden NICHT angefasst)"
+    return false unless assert_no_public_credentials!(additions, "secrets.yml → #{scenario_name}")
 
     require 'tmpdir'
     Dir.mktmpdir do |tmp|
@@ -921,6 +1253,320 @@ namespace :scenario do
         system("#{base} 'sudo systemctl restart #{svc}'")
       elsif write
         puts "   ⚠️  Puma NICHT neugestartet (RESTART=true zum Anwenden, oder manuell: sudo systemctl restart puma-<basename>)."
+      end
+    end
+    true
+  end
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # Sperrliste verbrannter Geheimnisse (Audit 2026-09-15, Punkt 4).
+  # ──────────────────────────────────────────────────────────────────────────
+
+  # Blattnamen, die Bezeichner tragen statt Geheimnisse. Sie gehören NICHT in die Sperrliste:
+  # Der ClubCloud-Benutzername ist dieselbe E-Mail wie bei Kozoom, `domain` und
+  # `location_calendar_id` stehen unverändert im Einsatz — ohne diese Ausnahme blockiert die
+  # Wache jeden künftigen Push, obwohl kein Geheimnis betroffen ist.
+  NON_SECRET_LEAVES = %w[domain email username address environment app_id project_id seller_id
+    vendor_id api_identifier location_id location_calendar_id].freeze
+
+  # Wache vor jedem Schreiben/Verteilen von Credentials. Meldet NUR den Schlüsselpfad,
+  # nie den Wert. ALLOW_PUBLIC=true übergeht sie — für den Fall, dass ein Wert bewusst
+  # bleiben muss (und dann laut protokolliert ist).
+  def assert_no_public_credentials!(hash, label)
+    load File.expand_path('../scenario_credentials.rb', __dir__) unless defined?(ScenarioCredentials)
+    hits = ScenarioCredentials::Denylist.scan(hash)
+    return true if hits.empty?
+
+    puts "   ⛔ #{label}: #{hits.size} verbrannte(r) Wert(e) aus der öffentlichen Historie:"
+    hits.each { |h| puts "      #{h.path}#{h.hint.to_s.empty? ? '' : "  (#{h.hint})"}" }
+    if ENV['ALLOW_PUBLIC'] == 'true'
+      puts "   ⚠️  ALLOW_PUBLIC=true — Wache übergangen, verbrannte Werte werden verteilt!"
+      return true
+    end
+    puts "   Abbruch. Betroffene Werte in carambus_data/secrets.yml ersetzen (beim Anbieter neu"
+    puts "   ausstellen), dann erneut ausführen. Notfall-Übergehung: ALLOW_PUBLIC=true."
+    false
+  end
+
+  # Tote Credential-Einträge aus der Rails-Vorlage: Sie tragen Werte aus der öffentlichen
+  # Historie, werden aber nirgends gelesen. Belegt am 2026-09-16: kein omniauth-Gem im Gemfile,
+  # kein `omniauthable` am User-Modell, keine einzige Codestelle zu access_token_encryption_key.
+  # Rotieren waere sinnlos — sie gehoeren weg, sonst blockiert die Sperrliste jeden Deploy.
+  DEAD_CREDENTIAL_KEYS = %w[omniauth access_token_encryption_key].freeze
+
+  # Server-seitiger Runner für scenario:strip_dead_credentials.
+  def dead_credentials_runner_script
+    <<~'RUBY'
+      require "yaml"; require "fileutils"
+      mode = ARGV[0].to_s
+      dead = ARGV[1].to_s.split(",")
+      path = "config/credentials/production.yml.enc"
+      keyp = "config/credentials/production.key"
+      enc = ActiveSupport::EncryptedConfiguration.new(config_path: path, key_path: keyp,
+              env_key: "RAILS_MASTER_KEY", raise_if_missing_key: true)
+      cur = YAML.safe_load(enc.read.to_s, permitted_classes: [Symbol], aliases: true) || {}
+      present = dead.select { |k| cur.key?(k) }
+      puts "  vorhanden: #{present.empty? ? '-' : present.join(', ')}"
+      if present.empty?
+        puts "  nichts zu tun."
+        exit 0
+      end
+      merged = cur.reject { |k, _| dead.include?(k) }
+      keep = lambda { |h| [h["secret_key_base"], h["active_record_encryption"], h["devise_jwt_secret_key"]] }
+      abort("ABBRUCH: fragile Keys wuerden sich aendern - nichts geschrieben.") unless keep.call(merged) == keep.call(cur)
+      puts "  verbleibende Top-Level-Keys: #{merged.keys.size} (vorher #{cur.keys.size})"
+      if mode == "write"
+        bak = "#{path}.bak.#{Time.now.strftime('%Y%m%d%H%M%S')}"
+        FileUtils.cp(path, bak)
+        enc.write(merged.to_yaml)
+        puts "  WRITE ok - entfernt: #{present.join(', ')} - Backup: #{bak}"
+      else
+        puts "  DRY-RUN - nichts geschrieben (WRITE=true zum Schreiben)."
+      end
+    RUBY
+  end
+
+  # scenario:strip_dead_credentials — tote Einträge in-place auf dem Server entfernen.
+  def strip_dead_credentials_on_server(scenario_name, write:, restart:, extra_keys: [])
+    cfg_file = File.join(scenarios_path, scenario_name, 'config.yml')
+    unless File.exist?(cfg_file)
+      puts "❌ config.yml nicht gefunden: #{cfg_file}"; return false
+    end
+    cfg = YAML.load_file(cfg_file)
+    prod = cfg.dig('environments', 'production') || {}
+    ssh_host = prod['ssh_host']; ssh_port = prod['ssh_port'] || 22
+    deploy_to = prod['deploy_to'] || "/var/www/#{scenario_name}"
+    if ssh_host.to_s.strip.empty?
+      puts "❌ ssh_host fehlt in #{scenario_name} (environments.production)"; return false
+    end
+    # KEYS=…: Gruppen, die DIESES Szenario nicht deklariert und deshalb nie mitrotiert wurden
+    # (train hat kein `scraping` → youtube/kozoom liegen dort seit dem Leak unverändert).
+    keys = (DEAD_CREDENTIAL_KEYS + extra_keys).uniq
+    puts "── strip_dead_credentials #{scenario_name} #{write ? '(WRITE)' : '(DRY-RUN)'} → #{ssh_host}:#{ssh_port} ──"
+    puts "   Kandidaten: #{keys.join(', ')}"
+
+    require 'tmpdir'
+    Dir.mktmpdir do |tmp|
+      run_file = File.join(tmp, 'carambus_strip_dead.rb')
+      File.write(run_file, dead_credentials_runner_script)
+      base = "ssh -p #{ssh_port} www-data@#{ssh_host}"
+      unless system("scp -P #{ssh_port} #{run_file} www-data@#{ssh_host}:/tmp/")
+        puts "❌ scp fehlgeschlagen"; return false
+      end
+      rbenv = "RBENV_ROOT=/var/www/.rbenv PATH=/var/www/.rbenv/shims:$PATH RBENV_VERSION=3.2.1 RAILS_ENV=production"
+      ok = system("#{base} 'cd #{deploy_to}/current && #{rbenv} bundle exec rails runner /tmp/carambus_strip_dead.rb " \
+                  "#{write ? 'write' : 'dry'} #{keys.join(',')}'")
+      system("#{base} 'rm -f /tmp/carambus_strip_dead.rb'")
+      unless ok
+        puts "❌ Runner meldete Fehler / Abbruch — nichts geschrieben."; return false
+      end
+      if write && restart
+        svc = "puma-#{prod['basename'] || cfg.dig('scenario', 'basename') || scenario_name}"
+        puts "   Puma-Restart: #{svc}"
+        system("#{base} 'sudo systemctl restart #{svc}'")
+      elsif write
+        puts "   ⚠️  Puma NICHT neugestartet (RESTART=true zum Anwenden)."
+      end
+    end
+    true
+  end
+
+  # Wache für Wege, die eine lokale .enc unverändert hochladen (prepare_deploy). Nicht lesbar
+  # heißt Abbruch: eine .enc, die sich nicht entschlüsseln lässt, ist ohnehin kein Stand, den
+  # man auf einen Server legen will.
+  def assert_no_public_credentials_in_store!(credentials_dir, scenario_name)
+    load File.expand_path('../scenario_credentials.rb', __dir__) unless defined?(ScenarioCredentials)
+    store = ScenarioCredentials::Store.new(credentials_dir)
+    return true unless store.key? && store.enc?
+
+    assert_no_public_credentials!(store.read, "prepare_deploy #{scenario_name} (lokale Credentials)")
+  rescue StandardError => e
+    puts "   ⛔ Sperrlisten-Prüfung nicht möglich (#{e.class}: #{e.message.to_s[0, 120]}) — Upload abgebrochen."
+    false
+  end
+
+  # scenario:build_credential_denylist — entschlüsselt die öffentlichen Credential-Stände
+  # mit den ebenfalls öffentlichen Keys und schreibt deren SHA256 in die Sperrliste.
+  def build_credential_denylist(write:)
+    require 'tmpdir'
+    load File.expand_path('../scenario_credentials.rb', __dir__) unless defined?(ScenarioCredentials)
+    root = Rails.root.to_s
+    envs = %w[production development test]
+    key_blobs = {}   # env => [sha, ...] aller öffentlich gewesenen Keys
+    enc_blobs = {}   # env => [sha, ...] aller öffentlich gewesenen .enc
+
+    envs.each do |env|
+      key_blobs[env] = `cd #{root} && git log --all --format=%H -- config/credentials/#{env}.key`.split("\n")
+      enc_blobs[env] = `cd #{root} && git log --all --format=%H -- config/credentials/#{env}.yml.enc`.split("\n")
+    end
+    total_sources = enc_blobs.values.flatten.size
+    if total_sources.zero?
+      puts "❌ Keine Credential-Stände in der Historie gefunden — falsches Repo?"; return false
+    end
+    puts "── build_credential_denylist #{write ? '(WRITE)' : '(DRY-RUN)'} ──"
+    puts "   Quellen: #{envs.map { |e| "#{e}=#{enc_blobs[e].size}" }.join(' ')} .enc-Stände, " \
+         "#{envs.map { |e| "#{e}=#{key_blobs[e].size}" }.join(' ')} Keys"
+
+    found = {}   # sha256 => hint
+    Dir.mktmpdir do |tmp|
+      envs.each do |env|
+        keys = key_blobs[env].filter_map do |sha|
+          k = `cd #{root} && git show #{sha}:config/credentials/#{env}.key 2>/dev/null`.strip
+          k.empty? ? nil : k
+        end.uniq
+        next if keys.empty?
+
+        enc_blobs[env].each do |sha|
+          blob = `cd #{root} && git show #{sha}:config/credentials/#{env}.yml.enc 2>/dev/null`
+          next if blob.to_s.strip.empty?
+
+          enc_path = File.join(tmp, "#{env}-#{sha}.yml.enc")
+          File.write(enc_path, blob)
+          keys.each do |key|
+            key_path = File.join(tmp, "k-#{Digest::MD5.hexdigest(key)}.key")
+            File.write(key_path, key)
+            begin
+              content = ActiveSupport::EncryptedConfiguration.new(
+                config_path: enc_path, key_path: key_path, env_key: 'X_DENYLIST_NONE',
+                raise_if_missing_key: true
+              ).read.to_s
+              data = YAML.safe_load(content, permitted_classes: [Symbol], aliases: true) || {}
+              ScenarioCredentials::Denylist.each_leaf(data) do |path, value|
+                next if value.to_s.length < 8 # zu kurz, um ein Geheimnis zu sein (Flags, IDs)
+                next if NON_SECRET_LEAVES.include?(path.split('.').last)
+
+                found[ScenarioCredentials::Denylist.digest(value)] ||= "#{env}.#{path} (#{sha[0, 8]})"
+              end
+              break # passender Key gefunden
+            rescue StandardError
+              next # anderer Key-Stand
+            end
+          end
+        end
+      end
+    end
+
+    puts "   gefunden: #{found.size} verbrannte Werte (nur SHA256 gespeichert, nie die Werte selbst)"
+    by_env = found.values.group_by { |h| h.split('.').first }.transform_values(&:size)
+    puts "   nach Umgebung: #{by_env.map { |e, n| "#{e}=#{n}" }.join(' ')}"
+    unless write
+      puts "   DRY-RUN — lib/credential_denylist.yml unverändert (WRITE=true zum Schreiben)."
+      return true
+    end
+
+    path = ScenarioCredentials::Denylist::DEFAULT_PATH
+    header = File.read(path).split(/^generated_at:/).first
+    body = {
+      'generated_at' => Time.now.utc.iso8601,
+      'source' => 'config/credentials/*.yml.enc aus der oeffentlichen Historie, entschluesselt mit den ebenfalls oeffentlichen *.key',
+      'fingerprints' => found.map { |sha, hint| { 'sha256' => sha, 'hint' => hint } }.sort_by { |e| e['hint'] }
+    }
+    File.write(path, header + body.to_yaml.sub(/\A---\n/, ''))
+    puts "   geschrieben: #{path} (#{found.size} Einträge)"
+    true
+  end
+
+  # Server-seitiger Runner für scenario:rotate_ar_encryption. Zählt den verschlüsselten Bestand,
+  # leert ihn (mode=='write', nur mit CLEAR) und ersetzt active_record_encryption durch frische
+  # Schlüssel. Bewusst OHNE `previous:`: mit geleerten Spalten gibt es nichts zu entschlüsseln,
+  # also auch keinen halben Zustand und keinen alten (öffentlichen) Schlüssel, der zum Lesen im
+  # File bleiben müsste. secret_key_base/devise_jwt bleiben unangetastet — Abbruch, wenn nicht.
+  def ar_rotation_runner_script
+    <<~'RUBY'
+      require "yaml"; require "fileutils"; require "digest"; require "securerandom"
+      mode  = ARGV[0].to_s
+      clear = ARGV[1].to_s == "clear"
+      path = "config/credentials/production.yml.enc"
+      keyp = "config/credentials/production.key"
+      enc = ActiveSupport::EncryptedConfiguration.new(config_path: path, key_path: keyp,
+              env_key: "RAILS_MASTER_KEY", raise_if_missing_key: true)
+      cur = YAML.safe_load(enc.read.to_s, permitted_classes: [Symbol], aliases: true) || {}
+      fp = lambda { |v| v.to_s.empty? ? "-" : Digest::SHA256.hexdigest(v.to_s)[0, 8] }
+
+      # verschlüsselte Attribute (alle deterministic: false) — Modell => Spalten
+      targets = { "User" => %w[cc_password], "InternationalSource" => %w[api_credentials],
+                  "StreamConfiguration" => %w[youtube_stream_key custom_rtmp_key] }
+      counts = {}
+      targets.each do |model, cols|
+        klass = model.safe_constantize
+        next unless klass && klass.table_exists?
+        cols.each { |c| counts["#{model}.#{c}"] = klass.where.not(c => nil).count }
+      end
+      total = counts.values.sum
+
+      ar = cur["active_record_encryption"] || {}
+      puts "  AR-Keys jetzt:  primary=#{fp.call(ar['primary_key'])} deterministic=#{fp.call(ar['deterministic_key'])} salt=#{fp.call(ar['key_derivation_salt'])}"
+      puts "  Bestand:        #{counts.map { |k, v| "#{k}=#{v}" }.join(' ')}  (gesamt #{total})"
+
+      if mode != "write"
+        puts "  DRY-RUN - nichts geaendert (WRITE=true zum Schreiben#{total.positive? ? ', CLEAR=true zum Leeren' : ''})."
+        exit 0
+      end
+      abort("ABBRUCH: #{total} verschluesselte Werte vorhanden - ohne CLEAR=true wird nicht geleert.") if total.positive? && !clear
+
+      # 1. Bestand leeren: update_all umgeht Callbacks -> keine CableReady-Broadcasts
+      targets.each do |model, cols|
+        klass = model.safe_constantize
+        next unless klass && klass.table_exists?
+        cols.each do |c|
+          n = klass.where.not(c => nil).update_all(c => nil)
+          puts "  geleert: #{model}.#{c} (#{n})" if n.positive?
+        end
+      end
+
+      # 2. frische Schluessel (wie `rails db:encryption:init`)
+      new_ar = { "primary_key" => SecureRandom.alphanumeric(32),
+                 "deterministic_key" => SecureRandom.alphanumeric(32),
+                 "key_derivation_salt" => SecureRandom.alphanumeric(32) }
+      merged = cur.merge("active_record_encryption" => new_ar)
+      keep = lambda { |h| [h["secret_key_base"], h["devise_jwt_secret_key"]] }
+      abort("ABBRUCH: secret_key_base/devise_jwt wuerden sich aendern - nichts geschrieben.") unless keep.call(merged) == keep.call(cur)
+
+      bak = "#{path}.bak.#{Time.now.strftime('%Y%m%d%H%M%S')}"
+      FileUtils.cp(path, bak)
+      enc.write(merged.to_yaml)
+      puts "  AR-Keys neu:    primary=#{fp.call(new_ar['primary_key'])} deterministic=#{fp.call(new_ar['deterministic_key'])} salt=#{fp.call(new_ar['key_derivation_salt'])}"
+      puts "  secret_key_base/devise_jwt: unveraendert (verifiziert)"
+      puts "  WRITE ok - Backup: #{bak}"
+    RUBY
+  end
+
+  # scenario:rotate_ar_encryption — AR-Schlüssel in-place auf dem Server ersetzen.
+  def rotate_ar_encryption_on_server(scenario_name, write:, clear:, restart:)
+    cfg_file = File.join(scenarios_path, scenario_name, 'config.yml')
+    unless File.exist?(cfg_file)
+      puts "❌ config.yml nicht gefunden: #{cfg_file}"; return false
+    end
+    cfg = YAML.load_file(cfg_file)
+    prod = cfg.dig('environments', 'production') || {}
+    ssh_host = prod['ssh_host']; ssh_port = prod['ssh_port'] || 22
+    deploy_to = prod['deploy_to'] || "/var/www/#{scenario_name}"
+    if ssh_host.to_s.strip.empty?
+      puts "❌ ssh_host fehlt in #{scenario_name} (environments.production)"; return false
+    end
+    puts "── rotate_ar_encryption #{scenario_name} #{write ? '(WRITE)' : '(DRY-RUN)'} → #{ssh_host}:#{ssh_port} ──"
+
+    require 'tmpdir'
+    Dir.mktmpdir do |tmp|
+      run_file = File.join(tmp, 'carambus_rotate_ar.rb')
+      File.write(run_file, ar_rotation_runner_script)
+      base = "ssh -p #{ssh_port} www-data@#{ssh_host}"
+      unless system("scp -P #{ssh_port} #{run_file} www-data@#{ssh_host}:/tmp/")
+        puts "❌ scp fehlgeschlagen"; return false
+      end
+      rbenv = "RBENV_ROOT=/var/www/.rbenv PATH=/var/www/.rbenv/shims:$PATH RBENV_VERSION=3.2.1 RAILS_ENV=production"
+      args = "#{write ? 'write' : 'dry'} #{clear ? 'clear' : 'noclear'}"
+      ok = system("#{base} 'cd #{deploy_to}/current && #{rbenv} bundle exec rails runner /tmp/carambus_rotate_ar.rb #{args}'")
+      system("#{base} 'rm -f /tmp/carambus_rotate_ar.rb'")
+      unless ok
+        puts "❌ Runner meldete Fehler / Abbruch — nichts geschrieben."; return false
+      end
+      if write && restart
+        svc = "puma-#{prod['basename'] || cfg.dig('scenario', 'basename') || scenario_name}"
+        puts "   Puma-Restart: #{svc}"
+        system("#{base} 'sudo systemctl restart #{svc}'")
+      elsif write
+        puts "   ⚠️  Puma NICHT neugestartet (RESTART=true zum Anwenden) — bis dahin laufen alte Schlüssel im Speicher."
       end
     end
     true
@@ -1191,7 +1837,13 @@ Rails.application.configure do
     serializer: :json,
     on_redis_down: ->(*args) { Rails.logger.error("Redis down! \#{args.inspect}") },
     redis: {
-      expire_after: 120.minutes,
+      # 12 statt 120 Minuten: zwischen Turnieraufbau und erster Ergebniseingabe liegen
+      # leicht Stunden. Am 2026-10-10 auf bc-wedel 3h55 — die Sitzung war tot, und der
+      # POST mit vier fertigen Ergebnissen fiel mit 422 (InvalidAuthenticityToken) weg,
+      # bevor der Controller lief (0 queries, nichts gespeichert, keine Meldung).
+      # ⚠️ /cable haelt die Sitzung NICHT wach — die Redis-TTL wird nur beim SCHREIBEN
+      # gesetzt; bei allen 15 Keys war TTL + idletime genau 7200s.
+      expire_after: 12.hours,
       key_prefix: "session:#{basename}:",
       url: ENV.fetch("REDIS_URL") { "redis://localhost:6379/#{redis_db}" }
     }
@@ -1404,6 +2056,18 @@ ENV
       duckdns_hosts = "  # Allow requests from DuckDNS domain\n  config.hosts << \"#{duckdns_domain}\"\n  config.hosts << \"#{duckdns_domain}:#{webserver_port}\""
     end
 
+    # LAN-Subnetz (config.yml: lan_subnet, optional, Einzelwert oder Liste). Feste Adressen in
+    # der hosts-Liste altern: Der Pi in carambus_phat wechselte am 2026-09-16 von der WLAN- auf
+    # die LAN-Adresse, der Eintrag zeigte danach ins Leere. Ein Subnetz deckt jede Adresse ab,
+    # die der Router vergibt — für Geräte im Clubnetz, die den mDNS-Namen nicht auflösen.
+    lan_subnets = Array(env_config['lan_subnet']).compact.reject { |s| s.to_s.strip.empty? }
+    lan_subnet_hosts = ""
+    unless lan_subnets.empty?
+      lines = lan_subnets.map { |s| "  config.hosts << IPAddr.new(\"#{s}\")" }
+      lan_subnet_hosts = "  # Allow requests from the local network (DHCP vergibt wechselnde Adressen)\n" \
+                         "  require \"ipaddr\"\n#{lines.join("\n")}"
+    end
+
     content = <<~'RUBY'
 require "active_support/core_ext/integer/time"
 
@@ -1415,7 +2079,13 @@ Rails.application.configure do
     serializer: :json,
     on_redis_down: ->(*args) { Rails.logger.error("Redis down! \#{args.inspect}") },
     redis: {
-      expire_after: 120.minutes,
+      # 12 statt 120 Minuten: zwischen Turnieraufbau und erster Ergebniseingabe liegen
+      # leicht Stunden. Am 2026-10-10 auf bc-wedel 3h55 — die Sitzung war tot, und der
+      # POST mit vier fertigen Ergebnissen fiel mit 422 (InvalidAuthenticityToken) weg,
+      # bevor der Controller lief (0 queries, nichts gespeichert, keine Meldung).
+      # ⚠️ /cable haelt die Sitzung NICHT wach — die Redis-TTL wird nur beim SCHREIBEN
+      # gesetzt; bei allen 15 Keys war TTL + idletime genau 7200s.
+      expire_after: 12.hours,
       key_prefix: "session:#{basename}:",
       url: ENV.fetch("REDIS_URL") { "redis://localhost:6379/#{redis_db}" }
     }
@@ -1540,6 +2210,7 @@ Rails.application.configure do
   config.hosts << "localhost:#{webserver_port}"
 #{raspberry_pi_hosts}
 #{duckdns_hosts}
+#{lan_subnet_hosts}
 
   # Allow Action Cable access from any origin in production
   config.action_cable.disable_request_forgery_protection = true
@@ -1565,6 +2236,7 @@ RUBY
                     .gsub('#{webserver_host}', webserver_host)
                     .gsub('#{raspberry_pi_hosts}', raspberry_pi_hosts)
                     .gsub('#{duckdns_hosts}', duckdns_hosts)
+                    .gsub('#{lan_subnet_hosts}', lan_subnet_hosts)
                     .gsub('#{port_clause}', port_clause)
                     .gsub('#{basename}', basename)
 
@@ -2110,17 +2782,35 @@ ENV
       puts "   ✅ Dependencies already installed"
     end
 
-    # Step 6: Check and sync with carambus_api_production if newer
-    puts "\n🔄 Step 6: Checking for newer carambus_api_production data..."
-    unless sync_with_api_production_if_newer(scenario_name, force)
-      puts "❌ Failed to sync with carambus_api_production"
+    # Step 6: Mit Regionsdump-Zugang (Plan 18-03) den Dump der Region per HTTPS holen — ohne SSH zur
+    # Authority. Ohne Zugang wie bisher: carambus_api_development per SSH abgleichen (Betreiber-Weg).
+    begin
+      region_dump_access = scenario_region_dump_access(scenario_name)
+    rescue ArgumentError => e
+      puts "❌ #{e.message} (carambus_data/secrets.yml)"
       return false
+    end
+    region_dump = nil
+    if region_dump_access
+      puts "\n📥 Step 6: Fetching region dump (#{region_dump_access[:url]})..."
+      region_dump = fetch_scenario_region_dump(scenario_name, region_dump_access)
+      return false unless region_dump
+    else
+      puts "\n🔄 Step 6: Checking for newer carambus_api_production data..."
+      unless sync_with_api_production_if_newer(scenario_name, force)
+        puts "❌ Failed to sync with carambus_api_production"
+        return false
+      end
     end
 
     # Step 6.5: One-time migration: Create schema-compliant backup of old production database
     # This is for migrating from old carambus2 schema to new carambus schema
     puts "\n💾 Step 6.5: Creating schema-compliant backup for one-time migration..."
     backup_file = create_schema_compliant_backup(scenario_name)
+    if backup_file == :abort
+      puts "❌ Lokale Daten des Servers konnten nicht gesichert werden — Abbruch, bevor eine Datenbank gelöscht wird."
+      return false
+    end
     if backup_file
       # Store backup path in scenario config for later use
       puts "   💾 Storing backup reference in scenario config..."
@@ -2137,7 +2827,7 @@ ENV
 
     # Step 7: Create actual development database from template
     puts "\n🗄️  Step 7: Creating development database..."
-    unless create_development_database(scenario_name, environment, force)
+    unless create_development_database(scenario_name, environment, force, region_dump: region_dump)
       puts "❌ Failed to create development database"
       return false unless scenario_name == "carambus_api_development"
     end
@@ -2176,6 +2866,17 @@ ENV
       else
         puts "   ⚠️  Warning: Scenario directory not found: #{scenario_dir}"
         puts "      Skipping sequence reset"
+      end
+    end
+
+    # Step 10 (nur Regionsdump): Der Dump enthaelt keine Benutzer, und User synct nicht. Das Scoreboard-Konto
+    # entsteht deshalb lokal — erst NACH Schritt 8, damit ein zurueckgespieltes lokales Konto nicht an der
+    # E-Mail kollidiert (users:ensure_scoreboard laesst ein vorhandenes Konto unveraendert).
+    if region_dump
+      puts "\n👤 Step 10: Ensuring scoreboard account..."
+      unless region_dump_rails(scenario_name, "#{scenario_name}_#{environment}", "rails", "users:ensure_scoreboard")
+        puts "❌ Scoreboard-Konto konnte nicht angelegt werden"
+        return false
       end
     end
 
@@ -2529,7 +3230,123 @@ ENV
     true
   end
 
-  def create_development_database(scenario_name, environment, force = false)
+  # ── Regionsdump beim Verein (Plan 18-03) ─────────────────────────────────────────────────────────────
+  # Holt den Dump der Region des Szenarios per HTTPS (RegionDump::Fetch prueft Manifest, Groesse, sha256).
+  # Liefert {file:, manifest:} oder nil.
+  def fetch_scenario_region_dump(scenario_name, access)
+    scenario_data = YAML.load_file(File.join(scenarios_path, scenario_name, 'config.yml'))['scenario'] || {}
+    region = resolve_region_shortname(scenario_data)
+    if region.blank?
+      puts "   ❌ Region-Shortname nicht bestimmbar (weder region_shortname, context noch region_id)."
+      return nil
+    end
+
+    dir = File.join(scenarios_path, scenario_name, 'database_dumps', 'region')
+    file, manifest = RegionDump::Fetch.new(url: access[:url], region: region, login: access[:login],
+      password: access[:password], dir: dir).run
+    puts "   📊 Region #{manifest['region']}, Stand #{manifest['created_at']}, last_version_id #{manifest['last_version_id']}"
+    {file: file, manifest: manifest}
+  rescue RegionDump::Fetch::Error => e
+    puts "   ❌ #{e.message}"
+    nil
+  end
+
+  # Legt database_name aus dem Regionsdump an: einspielen, im Rails-Root des Szenarios sequence_reset und
+  # scenario_name, dann pruefen. Scheitert ein Schritt, wird die Datenbank wieder entfernt.
+  def load_region_dump_database(scenario_name, database_name, region_dump)
+    manifest = region_dump[:manifest]
+    puts "🔄 Creating #{database_name} from region dump #{manifest['file']}..."
+    unless system("createdb #{database_name}")
+      puts "❌ Failed to create database #{database_name}"
+      return false
+    end
+
+    ok = pipe_region_dump_into(database_name, region_dump[:file]) &&
+      region_dump_rails(scenario_name, database_name, "rails", "runner",
+        "Version.sequence_reset; Setting.key_set_value('scenario_name', #{scenario_name.to_s.inspect})") &&
+      verify_region_dump_database(scenario_name, database_name, manifest)
+    unless ok
+      puts "❌ Regionsdump nicht eingespielt — entferne #{database_name}"
+      system("dropdb #{database_name}")
+      return false
+    end
+
+    puts "✅ Development database created from region dump: #{database_name}"
+    true
+  end
+
+  # gunzip → psql mit ON_ERROR_STOP. Ein psql aelter als der \restrict-Fix kennt die beiden Meta-Befehle
+  # nicht und bricht daran ab; nur fuer ein solches psql werden genau diese Zeilen herausgefiltert.
+  def pipe_region_dump_into(database_name, dump_file)
+    require 'open3'
+    require 'zlib'
+    filter = !RegionDump.restrict_supported?(`psql --version`)
+    puts "   🔄 psql -v ON_ERROR_STOP=1"
+    puts "   ℹ️  \\restrict-Zeilen werden gefiltert (lokales psql älter als der Fix)" if filter
+    output = +""
+    status = nil
+    Open3.popen2e("psql", "-X", "-q", "-v", "ON_ERROR_STOP=1", "-d", database_name) do |stdin, out, wait|
+      reader = Thread.new { out.read }
+      begin
+        Zlib::GzipReader.open(dump_file) do |gz|
+          gz.each_line do |line|
+            next if filter && line.start_with?("\\") && RegionDump.restrict_line?(line.b)
+            stdin.write(line)
+          end
+        end
+      rescue Errno::EPIPE
+        # psql hat abgebrochen (ON_ERROR_STOP) — der Grund steht in seiner Ausgabe
+      ensure
+        stdin.close unless stdin.closed?
+      end
+      output = reader.value
+      status = wait.value
+    end
+    return true if status.success?
+
+    puts "   ❌ psql abgebrochen:"
+    puts output.lines.last(15).map { |l| "      #{l}" }.join
+    false
+  end
+
+  # Rails-Aufruf im Rails-Root des Szenarios gegen database_name (Umgebung nur fuer diesen Subprozess).
+  def region_dump_rails(scenario_name, database_name, *args)
+    rails_root = File.expand_path("../#{scenario_name}", carambus_data_path)
+    env = {'RAILS_ENV' => 'development', 'DATABASE_URL' => "postgresql://localhost/#{database_name}"}
+    system(env, "bundle", "exec", *args, chdir: rails_root)
+  end
+
+  # Stand, Region und Sequenzen nach dem Einspielen. Eine Abweichung des Schemas wird nur gemeldet:
+  # reset_server_db faehrt ohnehin db:migrate auf der Development-Datenbank.
+  def verify_region_dump_database(scenario_name, database_name, manifest)
+    value = ->(sql) { `psql -X -tA -d #{database_name} -c "#{sql}"`.strip }
+    problems = []
+    stored = value.call("SELECT (data::jsonb)->'last_version_id'->>'Integer' FROM settings WHERE id = (SELECT MIN(id) FROM settings)")
+    problems << "last_version_id #{stored.inspect} statt #{manifest['last_version_id']}" unless stored == manifest['last_version_id'].to_s
+    region_id = value.call("SELECT id FROM regions WHERE UPPER(shortname) = '#{manifest['region']}'")
+    if region_id.empty?
+      problems << "Region #{manifest['region']} fehlt im Dump"
+    else
+      failed = RegionDump.region_checks(region_id).reject { |_label, sql| value.call(sql) == "0" }.keys
+      problems << "fremde Regionsdaten: #{failed.join(', ')}" if failed.any?
+    end
+    users_seq = value.call("SELECT last_value FROM users_id_seq").to_i
+    problems << "Sequenzen nicht zurückgesetzt (users_id_seq #{users_seq})" if users_seq < Setting::MIN_ID
+    if problems.any?
+      puts "   ❌ Prüfung gescheitert: #{problems.join('; ')}"
+      return false
+    end
+
+    rails_root = File.expand_path("../#{scenario_name}", carambus_data_path)
+    code_schema = Dir.glob(File.join(rails_root, 'db', 'migrate', '*.rb')).map { |f| File.basename(f)[0, 14] }.max.to_s
+    if code_schema != manifest['schema_version'].to_s
+      puts "   ℹ️  Schema des Dumps #{manifest['schema_version']}, Code des Szenarios #{code_schema} — reset_server_db migriert"
+    end
+    puts "   ✅ Geprüft: last_version_id #{stored}, nur Region #{manifest['region']}, Sequenzen ≥ #{Setting::MIN_ID}"
+    true
+  end
+
+  def create_development_database(scenario_name, environment, force = false, region_dump: nil)
     puts "Creating development database for #{scenario_name} (#{environment})..."
 
     # Special protection for carambus_api scenario
@@ -2573,12 +3390,18 @@ ENV
 
       puts "   📊 Existing database last_version_id: #{existing_last_version_id}"
 
-      # Get last_version_id from source database (carambus_api_development) - use Version.last.id
-      source_version_cmd = "psql carambus_api_development -t -c \"SELECT COALESCE(MAX(id), 0) FROM versions;\""
-      source_version_result = `#{source_version_cmd}`.strip
-      source_last_version_id = source_version_result.to_i
+      if region_dump
+        # Regionsdump: die Quelle ist der Dump, sein Stand steht im Manifest (versions ist dort leer).
+        source_last_version_id = region_dump[:manifest]["last_version_id"]
+        puts "   📊 Source (region dump #{region_dump[:manifest]["file"]}) last_version_id: #{source_last_version_id}"
+      else
+        # Get last_version_id from source database (carambus_api_development) - use Version.last.id
+        source_version_cmd = "psql carambus_api_development -t -c \"SELECT COALESCE(MAX(id), 0) FROM versions;\""
+        source_version_result = `#{source_version_cmd}`.strip
+        source_last_version_id = source_version_result.to_i
 
-      puts "   📊 Source database (carambus_api_development) last_version_id: #{source_last_version_id}"
+        puts "   📊 Source database (carambus_api_development) last_version_id: #{source_last_version_id}"
+      end
 
       # Data loss protection logic:
       # 1. If creating from template (development environment), no protection needed
@@ -2637,6 +3460,11 @@ ENV
         system("dropdb #{database_name}")
       end
     end
+
+    # Regionsdump (Plan 18-03): Die Datenbank entsteht aus dem Dump. Die Template-Nachbearbeitung unten
+    # (last_version_id = Version.last.id, Filter) darf hier nicht laufen — versions ist leer, und der Stand
+    # steht im Manifest.
+    return load_region_dump_database(scenario_name, database_name, region_dump) if region_dump
 
     # Special case for local carambus scenario (no region_id) - should still use template
     if (region_id && environment == 'development') || (scenario_name == 'carambus' && environment == 'development')
@@ -3311,7 +4139,11 @@ ENV
           'database_name' => "#{scenario_name}_production",
           'ssl_enabled' => false,
           'database_username' => 'www_data',
-          'database_password' => 'toS6E7tARQafHCXz',
+          # Absichtlich LEER — siehe den Kommentarblock an resolve_shared_database_password weiter unten:
+          # das Passwort der geteilten Rolle steht in carambus_data/secrets.yml unter
+          # shared.database_password, nicht in der config.yml. Wer es hier wieder einsetzt, legt ein
+          # Geheimnis in eine Datei, die im Klartext neben dem Szenario liegt.
+          'database_password' => '',
           'puma_socket_path' => '/tmp/puma.sock'
         }
       }
@@ -3626,6 +4458,13 @@ ENV
     # Upload credentials
     credentials_dir = File.join(production_dir, 'credentials')
     if Dir.exist?(credentials_dir)
+      # prepare_deploy lädt die lokalen Dateien DIREKT hoch — ohne diese Wache ginge es an der
+      # Sperrliste vorbei (die nur in upload_credentials/push_credentials/generate_credentials
+      # hängt), und ein reguläres Deployment könnte eine Rotation still zurückdrehen: genau das
+      # ist am 2026-09-14 passiert. carambus_data bleibt stale, weil push_credentials NUR
+      # serverseitig merged.
+      return false unless assert_no_public_credentials_in_store!(credentials_dir, scenario_name)
+
       # Create credentials directory on server
       system("ssh -p #{ssh_port} www-data@#{ssh_host} 'mkdir -p #{shared_config_dir}/credentials'")
 
@@ -3759,17 +4598,6 @@ ENV
       return false
     end
 
-    # Step 4.6: carambus_app ausliefern (nur wenn serve_tournament_app:true) — Turniermanagement
-    # ohne Carambus-Scoreboards (z.B. BG Hamburg). Kopiert die statische SPA in den
-    # (universellen) public/app-linked_dir auf dem Server → Auslieferung unter /app/.
-    # Fehlschlag blockiert das Deployment NICHT (die App ist ein optionales Add-on).
-    if scenario['serve_tournament_app']
-      puts "\n🎱 Step 4.6: serve_tournament_app aktiv — carambus_app auf den Server kopieren..."
-      unless copy_tournament_app_to_server(scenario_name, production_config)
-        puts "   ⚠️  carambus_app-Kopie fehlgeschlagen — Deployment läuft weiter, /app/ liefert ggf. 404."
-      end
-    end
-
     puts "\n✅ Scenario #{scenario_name} für Deployment vorbereitet (Config + Server-Setup)!"
     puts "   Rails root: #{rails_root}"
     puts "   Production config: #{File.join(scenarios_path, scenario_name, 'production')}"
@@ -3779,44 +4607,6 @@ ENV
     puts "  2. rake scenario:deploy[#{scenario_name}]           # Capistrano-Deploy"
     puts "  Oder direkt: cd #{rails_root} && cap production deploy"
 
-    true
-  end
-
-  # Den SAUBEREN Servable-Subdir der carambus_app (carambus_app/public/ — nur index.html +
-  # Assets) nach <deploy_to>/shared/public/app auf dem Server kopieren. NICHT der Repo-Root:
-  # der enthält .git, IDE-/Doku-Dateien und PRIVATE Backups (z.B. chat-backup.jsonl), die
-  # niemals auf den öffentlichen Server gehören. Der App-Dev pflegt carambus_app/public/
-  # (separates Repo 3band-turnier). Befüllt den universellen public/app-linked_dir
-  # (config/deploy.rb) → Auslieferung unter /app/. Nur bei serve_tournament_app:true.
-  # Defensiv: false (keine Exception) bei fehlender Quelle oder ssh_host.
-  def copy_tournament_app_to_server(scenario_name, production_config)
-    app_source = File.expand_path("../carambus_app/public", carambus_data_path)
-    unless File.exist?(File.join(app_source, "index.html"))
-      puts "   ⚠️  carambus_app/public/index.html fehlt (#{app_source}) — die App stellt noch keinen"
-      puts "       bereinigten Servable-Ordner bereit. Kopie übersprungen (App-Dev muss public/ anlegen)."
-      return false
-    end
-
-    ssh_host = production_config['ssh_host']
-    ssh_port = production_config['ssh_port'] || 22
-    if ssh_host.nil? || ssh_host.to_s.strip.empty?
-      puts "   ❌ ssh_host nicht gesetzt — Kopie übersprungen"
-      return false
-    end
-
-    deploy_to = production_config['deploy_to'] || "/var/www/#{scenario_name}"
-    remote_dir = "#{deploy_to}/shared/public/app"
-
-    puts "   📤 rsync #{app_source}/ → www-data@#{ssh_host}:#{remote_dir}/"
-    unless system("ssh -p #{ssh_port} www-data@#{ssh_host} 'mkdir -p #{remote_dir}'")
-      puts "   ❌ mkdir #{remote_dir} auf Server fehlgeschlagen"
-      return false
-    end
-    unless system("rsync -az --delete --exclude='.git' --exclude='.DS_Store' -e 'ssh -p #{ssh_port}' #{app_source}/ www-data@#{ssh_host}:#{remote_dir}/")
-      puts "   ❌ rsync fehlgeschlagen"
-      return false
-    end
-    puts "   ✅ carambus_app nach #{remote_dir} kopiert (/app/ wird ausgeliefert)"
     true
   end
 
@@ -4136,6 +4926,41 @@ ENV
       puts "   ✅ Redis already running"
     end
 
+    # Step 1.6: SMTP-EnvironmentFile /etc/<basename>.env — die Puma-Unit liest es
+    # (EnvironmentFile=-/etc/<basename>.env). Fehlt es, bricht
+    # config/initializers/smtp_guard.rb jeden Puma-Start ab: Endlos-Neustart, nginx 502
+    # (carambus-pbv, 2026-09-11, Plan 15-03). Bisher von Hand angelegt. Eine vorhandene
+    # Datei wird NIE ueberschrieben.
+    env_file = "/etc/#{basename}.env"
+    puts "   ✉️  Ensuring #{env_file} (SMTP for Puma)..."
+    if system("ssh -p #{ssh_port} www-data@#{ssh_host} 'sudo test -f #{env_file}'")
+      puts "   ✅ #{env_file} already exists (left unchanged)"
+    else
+      smtp = scenario_smtp_credentials(scenario_name)
+      if smtp
+        quote = ->(v) { '"' + v.to_s.gsub('\\', '\\\\\\\\').gsub('"', '\\"') + '"' }
+        env_content = "SMTP_USERNAME=#{quote.call(smtp['username'])}\nSMTP_PASSWORD=#{quote.call(smtp['password'])}\n"
+        source = "secrets.yml (smtp)"
+      elsif production_config['smtp_enabled'] == false
+        env_content = "# smtp_enabled: false in config.yml — Server ohne Mailversand\nSKIP_SMTP_GUARD=1\n"
+        source = "smtp_enabled: false"
+      else
+        puts "   ❌ #{env_file} fehlt, und es gibt keine SMTP-Zugangsdaten — Puma würde nicht starten."
+        puts "      Entweder in #{File.join(carambus_data_path, 'secrets.yml')}:"
+        puts "        shared:   { smtp: { username: ..., password: ... } }   (oder per_scenario: { #{scenario_name}: { smtp: ... } })"
+        puts "      oder bewusst ohne Mailversand in config.yml (environments.production): smtp_enabled: false"
+        return false
+      end
+      # Inhalt per stdin — das Passwort erscheint weder in der Kommandozeile noch im Log.
+      write_cmd = "sudo sh -c 'umask 077 && cat > #{env_file}'"
+      IO.popen(["ssh", "-p", ssh_port.to_s, "www-data@#{ssh_host}", write_cmd], "w") { |io| io.write(env_content) }
+      unless $?.success?
+        puts "   ❌ Failed to write #{env_file}"
+        return false
+      end
+      puts "   ✅ #{env_file} created from #{source} (mode 600, root)"
+    end
+
     # Step 2: Upload configuration files to shared directory
     puts "   📤 Configuration files will be uploaded during deployment..."
     puts "   ✅ Skipping config file upload (done during deploy step)"
@@ -4444,9 +5269,10 @@ ENV
       return false
     end
 
-    # Enable and start systemd service
+    # Enable and (re)start systemd service — restart, damit ein laufender Kiosk das
+    # neue Skript sofort uebernimmt (start waere bei laufendem Dienst wirkungslos).
     puts "\n⚙️  Enabling systemd service..."
-    enable_service_cmd = "sudo systemctl enable scoreboard-kiosk && sudo systemctl start scoreboard-kiosk"
+    enable_service_cmd = "sudo systemctl enable scoreboard-kiosk && sudo systemctl restart scoreboard-kiosk"
     if execute_ssh_command(pi_ip, ssh_user, ssh_password, enable_service_cmd, ssh_port)
       puts "   ✅ Systemd service enabled and started"
     else
@@ -4617,7 +5443,7 @@ ENV
       Environment=DISPLAY=:0
       ExecStart=/usr/local/bin/autostart-scoreboard.sh
       Restart=always
-      RestartSec=10
+      RestartSec=3
 
       [Install]
       WantedBy=graphical.target
@@ -5005,10 +5831,14 @@ ENV
 
     # Get API database name for schema reference
     dev_database = scenario_config.dig('environments', 'development', 'database_name') || "#{scenario_name}_development"
-    api_database = dev_database.gsub(/_bcw/, '_api').gsub(/_development$/, '_development')
-    # Ensure it's carambus_api_development
-    api_database = 'carambus_api_development'
-    puts "   🔍 Using #{api_database} as schema reference"
+    # Schema-Referenz: carambus_api_development (Betreiber-Weg). Beim Verein mit Regionsdump gibt es sie nicht —
+    # dann die eigene Development-Datenbank aus dem vorigen Lauf (Plan 18-03). Ohne Referenz blieben die
+    # Spaltenlisten leer und jede Tabelle wuerde still uebersprungen; reset_server_db loeschte danach die
+    # lokalen Daten. Deshalb :abort, sobald lokale Daten da sind und keine Referenz existiert.
+    api_database = ['carambus_api_development', dev_database].find do |db|
+      system("psql -lqt | cut -d \\| -f 1 | grep -qw #{db}")
+    end
+    puts "   🔍 Using #{api_database || '—'} as schema reference"
 
     table_dependency_order.each do |table|
       # Check if table has local data
@@ -5017,6 +5847,15 @@ ENV
         count = `psql #{temp_database} -t -c "SELECT COUNT(*) FROM #{table};"`.strip.to_i
       else
         count = `psql #{temp_database} -t -c "SELECT COUNT(*) FROM #{table} WHERE id > 50000000;"`.strip.to_i
+      end
+
+      if count > 0 && api_database.nil?
+        puts "   ❌ #{table} hat #{count} lokale Datensätze, aber es gibt keine Schema-Referenz"
+        puts "      (weder carambus_api_development noch #{dev_database}) — ohne sie wäre die Sicherung leer."
+        system("dropdb #{temp_database}")
+        File.delete(temp_dump) if File.exist?(temp_dump)
+        File.delete(backup_file) if File.exist?(backup_file)
+        return :abort
       end
 
       if count > 0
@@ -5484,53 +6323,46 @@ EOF
       # Allow access to X11 display
       xhost +local: 2>/dev/null || true
 
-      # Wait for display to be ready
-      sleep 5
+      # labwc (Standard ab Raspberry Pi OS 13 "trixie") setzt --start-fullscreen bei
+      # Xwayland-Fenstern nicht um, und wmctrl findet das --app-Fenster nicht (Titel =
+      # Seitentitel). Dort startet Chromium nativ unter Wayland im Kiosk-Modus — die einzige
+      # Variante, die unter Dienst-Bedingungen UND beim Kaltstart zuverlaessig Vollbild gab
+      # (carambus-pbv 2026-09-11, carambus_bcw Plan 15-03; wayfire/X11 bleiben unveraendert).
+      # Verworfen: --start-fullscreen (wirkt bei frischem Profil nicht), labwc-Fensterregel
+      # ToggleFullscreen (beim Kaltstart unzuverlaessig). Preis von --kiosk: Der Welcome-
+      # Button fuehrt nicht mehr auf den Desktop — dafuer `systemctl stop scoreboard-kiosk`.
+      # - --password-store=basic verhindert die Schluesselbund-Abfrage (D-Bus-Adresse).
+      # - Ohne D-Bus-Adresse blieb die Seite beim Kaltstart minutenlang weiss.
+      LABWC_SESSION=""
+      if grep -qsE '^(user-session|autologin-session)=.*labwc' /etc/lightdm/lightdm.conf; then
+        LABWC_SESSION="true"
+        export XDG_RUNTIME_DIR="/run/user/$(id -u)"
+        export WAYLAND_DISPLAY="${WAYLAND_DISPLAY:-wayland-0}"
+        export DBUS_SESSION_BUS_ADDRESS="unix:path=$XDG_RUNTIME_DIR/bus"
+        for i in $(seq 1 60); do
+          [ -S "$XDG_RUNTIME_DIR/$WAYLAND_DISPLAY" ] && break
+          echo "Waiting for labwc ($XDG_RUNTIME_DIR/$WAYLAND_DISPLAY)..."
+          sleep 1
+        done
+        SCREEN_SIZE=""
+        for connector in /sys/class/drm/card*-*; do
+          if [ "$(cat "$connector/status" 2>/dev/null)" = "connected" ]; then
+            SCREEN_SIZE=$(head -1 "$connector/modes" 2>/dev/null)
+            [ -n "$SCREEN_SIZE" ] && break
+          fi
+        done
+        SCREEN_SIZE="${SCREEN_SIZE:-1920x1080}"
+        echo "labwc session, screen size: $SCREEN_SIZE"
+      else
+        # Wait for display to be ready
+        sleep 5
+      fi
 
       # Hide panel
       wmctrl -r "panel" -b add,hidden 2>/dev/null || true
       wmctrl -r "lxpanel" -b add,hidden 2>/dev/null || true
 
-      # Wait for Puma to be ready before starting scoreboard (only if local server is enabled)
       LOCAL_SERVER_ENABLED=#{local_server_enabled ? 'true' : 'false'}
-      
-      if [ "$LOCAL_SERVER_ENABLED" = "true" ]; then
-          echo "Waiting for local Puma server to be ready..."
-
-          # Try to detect the Puma service name dynamically
-          PUMA_SERVICE=""
-          for service in puma-#{basename}.service puma.service; do
-              if systemctl is-active --quiet $service 2>/dev/null; then
-                  PUMA_SERVICE=$service
-                  break
-              fi
-          done
-
-          if [ -n "$PUMA_SERVICE" ]; then
-              PUMA_MASTER_PID=$(systemctl show -p MainPID $PUMA_SERVICE --value 2>/dev/null)
-              
-              if [ -n "$PUMA_MASTER_PID" ] && [ "$PUMA_MASTER_PID" != "0" ]; then
-                  # Check the number of worker processes (wait for at least 2)
-                  while [ $(pgrep -P $PUMA_MASTER_PID 2>/dev/null | wc -l) -lt 2 ]; do
-                      echo "Waiting for Puma server workers to start..."
-                      sleep 5
-                  done
-                  echo "Puma server is ready!"
-              else
-                  echo "Puma service found but no master PID, waiting 30 seconds..."
-                  sleep 30
-              fi
-          else
-              echo "No Puma service found, waiting 30 seconds..."
-              sleep 30
-          fi
-
-          # Additional wait to ensure Rails is fully loaded
-          sleep 10
-      else
-          echo "Remote server mode - skipping local Puma wait"
-          sleep 2
-      fi
 
       # Get scoreboard URL - different logic for local vs remote server
       SCOREBOARD_URL=""
@@ -5552,6 +6384,33 @@ EOF
       fi
 
       echo "Using scoreboard URL: $SCOREBOARD_URL"
+
+      # Lokaler Server: warten, bis die Scoreboard-Seite antwortet (2xx/3xx) — Takt 1 s,
+      # hoechstens 300 s, danach startet der Browser trotzdem (lieber zu frueh als eine
+      # schwarze Wand). Beim kalten Boot braucht Puma allein zum Vorladen ~94 s (Pi 5,
+      # 2 GB, gemessen 2026-09-11). Vorher: Worker zaehlen im 5-s-Takt (mindestens ZWEI —
+      # bei WEB_CONCURRENCY=1 startete der Browser nie, vgl. bin/autostart-scoreboard.sh
+      # 03f61113), dann pauschal 10 s, ohne Puma-Dienst 30 s (carambus_bcw Plan 15-03).
+      # Browser-User-Agent, weil der nginx-Bot-Block curl sonst mit 403 abweist.
+      if [ "$LOCAL_SERVER_ENABLED" = "true" ]; then
+          echo "Waiting for local server to answer..."
+          WAIT_START=$SECONDS
+          while true; do
+              HTTP_CODE=$(curl -s -o /dev/null -w '%{http_code}' -A 'Mozilla/5.0' --max-time 5 "$SCOREBOARD_URL" 2>/dev/null)
+              WAITED=$((SECONDS - WAIT_START))
+              case "$HTTP_CODE" in
+                  2*|3*) echo "Local server ready after ${WAITED}s (HTTP $HTTP_CODE)"; break ;;
+              esac
+              if [ $WAITED -ge 300 ]; then
+                  echo "WARNUNG: nach ${WAITED}s keine Antwort (HTTP $HTTP_CODE) — starte den Browser trotzdem."
+                  break
+              fi
+              sleep 1
+          done
+      else
+          echo "Remote server mode - skipping local server wait"
+          sleep 2
+      fi
 
       # Ensure chromium data directory has correct permissions for current user
       # Use a user-specific directory to avoid permission conflicts
@@ -5577,7 +6436,31 @@ EOF
       echo "Starting browser: $BROWSER_CMD with URL: $SCOREBOARD_URL"
       echo "Using profile directory: $CHROMIUM_USER_DIR"
 
-      if [ -z "$KIOSK" ]; then
+      # labwc-Zweig: siehe LABWC_SESSION oben
+      if [ -n "$LABWC_SESSION" ]; then
+      # Genau die Kombination, die beim Kaltstart (13:07) Vollbild gab — inkl. der 5-s-Pause
+      # (mit ihr unter Dienst-Bedingungen belegt) und --no-proxy-server (aenderte die
+      # Kaltstart-Wartezeit von ~97 s bis zur ersten Anfrage NICHT; Ursache offen).
+      # Nicht ohne neuen Kaltstart-Test veraendern.
+      sleep 5
+      $BROWSER_CMD \
+        --ozone-platform=wayland \
+        --window-position=0,0 \
+        --window-size="${SCREEN_SIZE%x*},${SCREEN_SIZE#*x}" \
+        --kiosk \
+        --no-proxy-server \
+        --password-store=basic \
+        --disable-restore-session-state \
+        --user-data-dir="$CHROMIUM_USER_DIR" \
+        --disable-features=TranslateUI \
+        --disable-translate \
+        --disable-dev-shm-usage \
+        --no-first-run \
+        --noerrdialogs \
+        --disable-session-crashed-bubble \
+        --app="$SCOREBOARD_URL" \
+        >>/tmp/chromium-kiosk.log 2>&1 &
+      elif [ -z "$KIOSK" ]; then
       $BROWSER_CMD \
         --start-fullscreen \
         --disable-restore-session-state \
@@ -5614,6 +6497,14 @@ EOF
       
       BROWSER_PID=$!
       echo "Browser started with PID: $BROWSER_PID"
+
+      # labwc: auf Chromium warten — endet Chromium (Absturz, Alt+F4), endet das Skript und
+      # systemd (Restart=always, RestartSec in create_systemd_service) holt den Kiosk im
+      # Vollbild zurueck. Das wmctrl-sleep unten entfaellt dort (wmctrl greift nicht).
+      if [ -n "$LABWC_SESSION" ]; then
+        wait $BROWSER_PID
+        exit 0
+      fi
 
       # Wait and ensure fullscreen
       sleep 5

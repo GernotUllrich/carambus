@@ -1,3 +1,22 @@
+<%# Umschalter Kommend/Vergangen (nur Standard-Blick; im Controller via @period gesetzt, der
+    SearchReflex setzt ihn nicht — dort ist die Liste nach Suche/Spalte sortiert). Muster wie
+    international/tournaments/index. %>
+<% if @period %>
+  <div class="inline-flex rounded-lg shadow-sm mb-4" role="group">
+    <% [["upcoming", t('tournaments.index.period_upcoming')], ["past", t('tournaments.index.period_past')]].each_with_index do |(value, label), idx| %>
+      <% active = (@period == value) %>
+      <%# Textfarbe auf inneres span: umgeht die globale a:not(.btn)-Regel (base.css), sonst grün auf grün.
+          turbo_frame _top: ganze Seite laden, sonst bleibt ?period nicht in der URL (Reload/Link). %>
+      <%= link_to tournaments_path(period: (value == "past" ? value : nil), drafts: params[:drafts].presence),
+          class: "px-4 py-2 text-sm font-medium border border-gray-300 #{idx.zero? ? 'rounded-l-lg' : 'border-l-0 rounded-r-lg'} transition-colors #{active ? 'bg-primary-600' : 'bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700'}",
+          aria: { current: (active ? "page" : nil) },
+          data: { turbo_frame: "_top" } do %>
+        <span class="<%= active ? 'text-white' : 'text-gray-700 dark:text-gray-200' %>"><%= label %></span>
+      <% end %>
+    <% end %>
+  </div>
+<% end %>
+
 <%# H19: „Demnächst"-Block (nur Standard-Blick/Seite 1, im Controller via @show_upcoming gesetzt). %>
 <% if @show_upcoming && @upcoming_tournaments.present? %>
   <h2 class="h5 mb-2 text-gray-700 dark:text-gray-300"><%= t('tournaments.index.upcoming_heading') %></h2>
@@ -6,7 +25,7 @@
       <%= render partial: 'tournaments/tournament_row', locals: { tournament: tournament } %>
     <% end %>
   </div>
-  <h2 class="h5 mb-2 text-gray-700 dark:text-gray-300"><%= t('tournaments.index.all_heading') %></h2>
+  <h2 class="h5 mb-2 text-gray-700 dark:text-gray-300"><%= t(@period == "past" ? 'tournaments.index.earlier_heading' : 'tournaments.index.later_heading') %></h2>
 <% end %>
 
 <div class="bg-surface-card dark:bg-gray-800 rounded-card border border-gray-200 dark:border-gray-700 overflow-hidden">

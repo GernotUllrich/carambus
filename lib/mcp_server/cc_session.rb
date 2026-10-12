@@ -197,9 +197,16 @@ module McpServer
       # via curl + frische SID verifiziert.
       # Plan 39-02: account: nil → Default-Account (verhaltensidentisch zu vorher);
       # account: CcAccount → per-Account-Session (Tool-Verdrahtung = 39-03).
+      #   - 2026-09-15: Scheitert schon der erste (lazy) Login, sofort SessionRecoveryFailed mit der
+      #     CC-Meldung — KEIN zweiter Versuch (z. B. „Zu viele Fehlversuche" würde sonst verlängert).
       def with_session_recovery(account: nil, server_context: nil)
         client = client_for(server_context)
-        res, doc = yield(client, session_cookie(account))
+        begin
+          sid = session_cookie(account)
+        rescue => e
+          raise SessionRecoveryFailed, "CC-Login fehlgeschlagen: #{e.message}"
+        end
+        res, doc = yield(client, sid)
         return [res, doc] unless session_expired?(res)
 
         Rails.logger.warn "[CcSession.with_session_recovery] expired session detected, triggering re-login"

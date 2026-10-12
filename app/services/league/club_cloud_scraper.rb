@@ -119,23 +119,18 @@ class League::ClubCloudScraper < ApplicationService
 
   def parse_teams(league_doc, url)
     # scrape league teams
-    team_table = league_doc.css("aside > section > table > tr > td > table")[0]
-    if team_table.blank?
-      Rails.logger.info "==== scrape ==== Error - No Teams for league #{@league.name}"
-      return
-    end
-
+    team_entries = cc_team_entries(league_doc)
     @clubs_cache = []
     @league_teams_cache = []
     @league_team_players = nil
+    parse_linked_teams(team_entries, url)
+    add_schedule_teams(league_doc)
+    Rails.logger.info "==== scrape ==== Error - No Teams for league #{@league.name}" if @league_teams_cache.blank?
+  end
 
+  def parse_linked_teams(team_entries, url)
     ## scrape Team Table
-    team_table.css("tr").each do |tr|
-      next unless tr.css("td").count.positive?
-
-      _rank = tr.css("td")[0].text.to_i
-      team_a = tr.css("td")[1].css("a").andand[0] || tr.css("td")[2].css("a").andand[0]
-      team_link = team_a["href"].gsub("mannschaftsplan", "mannschaft")
+    team_entries.each do |team_name, team_link|
       team_url = url + team_link
       Rails.logger.info "reading #{team_url}"
       uri = URI(team_url)
@@ -143,7 +138,7 @@ class League::ClubCloudScraper < ApplicationService
       team_doc = Nokogiri::HTML(team_html)
       team_club_table = team_doc.css("aside > section > table")[2]
       if team_club_table.blank?
-        team_club_name = team_a.text.gsub(/\(.*\)$/, "").strip.gsub(/\s+\d+$/, "").gsub(/\s+[IVX]+$/, "").gsub("1.", "1. ").gsub("1.  ",
+        team_club_name = team_name.gsub(/\(.*\)$/, "").strip.gsub(/\s+\d+$/, "").gsub(/\s+[IVX]+$/, "").gsub("1.", "1. ").gsub("1.  ",
           "1. ")
         club = Club.where("synonyms ilike ?", "%#{team_club_name}%").to_a.find do |c|
           c.synonyms.split("\n").include?(team_club_name)
@@ -192,12 +187,14 @@ class League::ClubCloudScraper < ApplicationService
         club.save
       end
       @clubs_cache << club if club.present?
-      team_name = team_a.text.strip
       params = team_link.split("p=")[1].split(/[-|]/)
       team_cc_id = params[5].to_i
       league_team = @league.league_teams.where(cc_id: team_cc_id).first
+      # vorab aus dem Spielplan angelegtes Team (add_schedule_teams, ohne cc_id) übernehmen statt doppeln
+      league_team ||= @league.league_teams.where(cc_id: nil, name: team_name).first
       league_team ||= @league.league_teams.new(cc_id: team_cc_id)
       attrs = {
+        cc_id: team_cc_id,
         name: team_name,
         club_id: club.id,
         league_id: @league.id
@@ -313,6 +310,75 @@ class League::ClubCloudScraper < ApplicationService
     end
   end
 
+  # Mannschaften der Staffel als [[name, sb_mannschaft-Link], ...]. Zwei Quellen:
+  # 1. Tabellen-Übersicht (Platz/Mannschaft) — sobald Spiele gewertet sind.
+  # 2. Vor Saisonbeginn zeigt die ClubCloud statt der Tabelle eine „Mannschaft"-Liste (in <center>,
+  #    daher vom Tabellen-Selektor nicht erfasst) mit verein-mannschaften-Links. Die Team-ID daraus
+  #    führt zur gleichen Teamseite (sb_mannschaft.php?p=<Staffel>-<Team>) wie der Tabellen-Link.
+  def cc_team_entries(league_doc)
+    team_table = league_doc.css("aside > section > table > tr > td > table")[0]
+    if team_table.present?
+      return team_table.css("tr").filter_map do |tr|
+        next unless tr.css("td").count.positive?
+
+        team_a = tr.css("td")[1].css("a").andand[0] || tr.css("td")[2].css("a").andand[0]
+        [team_a.text.strip, team_a["href"].gsub("mannschaftsplan", "mannschaft")]
+      end
+    end
+
+    list_table = league_doc.css("aside > section table").find do |t|
+      t.css("th").map { |th| th.text.strip } == ["Mannschaft"]
+    end
+    return [] if list_table.blank?
+
+    staffel_p = cc_staffel_param(league_doc)
+    list_table.css("a[href^='verein-mannschaften']").map do |a|
+      team_cc_id = a["href"].split("p=")[1].split(/[-|]/)[5]
+      [a.text.strip, "sb_mannschaft.php?p=#{staffel_p}-#{team_cc_id}"]
+    end
+  end
+
+  # Teams, die im Spielplan stehen, aber (noch) nicht verlinkt sind: Sobald erste Spiele gewertet sind,
+  # ersetzt die ClubCloud die „Mannschaft"-Liste durch die Tabelle — die enthält aber nur Teams, die schon
+  # gespielt haben. Die übrigen stehen nur im Spielplan, als Name + Vereinswappen (images/wappen/<Verein-cc_id>).
+  # Daraus ein LeagueTeam ohne cc_id anlegen, damit alle Begegnungen sofort entstehen; cc_id, Kader und
+  # Seedings trägt parse_linked_teams nach, sobald das Team in der Tabelle verlinkt ist (Match per Name).
+  def add_schedule_teams(league_doc)
+    league_doc.css("aside > section table img[src*='images/wappen/']").each do |img|
+      team_name = img["title"].to_s.sub(/\AWappen\s+/, "").strip
+      next if team_name.blank? || @league_teams_cache.any? { |lt| lt.name == team_name }
+
+      club_cc_id = img["src"][%r{wappen/(\d+)}, 1].to_i
+      club = Club.where(cc_id: club_cc_id, region_id: @region_id).first
+      if club.blank?
+        Rails.logger.info "==== scrape ==== Team #{team_name}: Verein cc_id #{club_cc_id} unbekannt — übersprungen"
+        next
+      end
+
+      league_team = @league.league_teams.where(name: team_name).first
+      league_team ||= @league.league_teams.new(name: team_name, club_id: club.id)
+      if league_team.new_record?
+        league_team.source_url = @league_url
+        league_team.region_id = @region_id
+        league_team.global_context = @global_context
+        league_team.save
+      end
+      @league_teams_cache << league_team
+      @league_team_players ||= {}
+      @league_team_players[team_name] ||= {}
+    end
+  end
+
+  # p-Parameter der Staffel (<Verband>--<Saison>-<Liga>-<Staffel>). Die Seite kennt die Staffel auch
+  # dann, wenn die League kein cc_id2 hat (z.B. ndbv Landesliga Pool: "-359" → Staffel 11).
+  def cc_staffel_param(league_doc)
+    href = league_doc.at_css("a[href^='sb_spielplan_drucken.php']")&.[]("href")
+    return href.split("p=")[1] if href.present?
+
+    league_p = @league_url.split("p=")[1]
+    @league.cc_id2.present? ? league_p : "#{league_p}-0"
+  end
+
   # Robustes Datums-Parsing für CC-Spielplan-Zellen. `DateTime.parse` ist zu lax und erzeugt bei malformten
   # Zellen stille Garbage-Datteln: "21.02.206"→0206-02-21, "21.02.20"→2021, "9.1.1"→2009, "21.2."→HEUTE,
   # "01.01.1970"→1970. Wir extrahieren nur ein echtes DD.MM.YYYY (+optional HH:MM) mit 4-stelligem, plausiblem
@@ -406,7 +472,10 @@ class League::ClubCloudScraper < ApplicationService
               remarks = remark_a[0]["title"].gsub("Memo: ", "")
             end
           end
-          next if tr.css("td").count < 8 # Zeile ohne vollständige HEIM/Erg./GAST-Spalten (spielfrei/Trenner)
+          # Zeile ohne vollständige HEIM/Erg./GAST-Spalten (spielfrei/Trenner) überspringen. GAST steht in
+          # td[shift + 6]; GASTGEBER/Punkte sind optional — ohne GASTGEBER-Spalte (z.B. ndbv Pool) hat eine
+          # vollständige Zeile nur 7 + shift td (vorher starr < 8 → jede Pool-Begegnung verworfen).
+          next if tr.css("td").count < shift + 7
           day_seqno = tr.css("td")[shift + 0].text.to_i
           date = parse_cc_datetime(tr.css("td")[shift + 1].inner_html)
           league_team_a_name = tr.css("td")[shift + 2].text.strip

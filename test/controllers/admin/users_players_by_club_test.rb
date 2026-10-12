@@ -51,9 +51,33 @@ class Admin::UsersPlayersByClubTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_includes @response.body, "Sportwart-Disziplinen"
     assert_includes @response.body, "Sportwart-Spielorte"
-    # Die Cascade-Stimulus-Controller heissen inzwischen location-picker (Spielorte)
-    # und region-player-picker (Region → Verein → Spieler), nicht mehr dependent-select.
-    assert_includes @response.body, "data-controller=\"region-player-picker\""
     assert_includes @response.body, "data-controller=\"location-picker\""
+    # Der Player-Picker hat ZWEI Zweige (_form_fields.html.erb ~156/183): `dependent-select`
+    # auf einem Server MIT Region-Kontext (Verein → Spieler) und `region-player-picker`
+    # ohne Kontext (Region → Verein → Spieler). Die Testumgebung setzt keinen Kontext,
+    # also gilt hier der dreistufige Picker; der Gegenfall folgt unten.
+    assert_includes @response.body, "data-controller=\"region-player-picker\""
+  end
+
+  # 2026-09-04: Der Region-Kontext-Zweig war ungetestet — beide Pfade sind produktiv
+  # (Authority ohne Kontext, Region-/Location-Server mit).
+  test "Admin-User-Edit-Formular nutzt MIT Region-Kontext den Verein-Spieler-Picker" do
+    sign_in @admin
+    target = User.create!(email: "pbc_target_ctx@test.de", password: "password123", role: :player)
+
+    # Das Config-Objekt AUSTAUSCHEN, nicht mutieren: Carambus.config ist in @config
+    # memoisiert (config/application.rb:11) und prozessweit geteilt — eine Mutation
+    # schlaegt in andere Tests durch (beobachtet 2026-09-04).
+    original_config = Carambus.config
+    begin
+      Carambus.config = OpenStruct.new(original_config.to_h.merge(context: regions(:nbv).shortname))
+      get edit_admin_user_path(target)
+      assert_response :success
+      assert_includes @response.body, "data-controller=\"dependent-select\"",
+        "Mit Region-Kontext genuegt die Stufe Verein → Spieler"
+      assert_not_includes @response.body, "data-controller=\"region-player-picker\""
+    ensure
+      Carambus.config = original_config
+    end
   end
 end

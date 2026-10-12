@@ -87,6 +87,39 @@ module ActiveSupport
     # Setup all fixtures in test/fixtures/*.yml for all tests in alphabetical order.
     fixtures :all
 
+    # 2026-09-04: Die Postgres-Sequenz games_id_seq waechst ueber Testlaeufe hinweg
+    # unbegrenzt — ein ROLLBACK (use_transactional_tests) macht `nextval` NICHT
+    # rueckgaengig. Irgendwann ueberschritt sie Game::MIN_ID (50 Mio); seither bekamen
+    # auch auf der Authority erzeugte Spiele LOKALE IDs. Das riss RegionServer::
+    # GameResultImporter, Api::GameResultsController und TournamentMonitorT06 — mit
+    # Fehlerbildern, die nach Logikfehlern aussahen ("auf der Authority entstehen globale
+    # IDs. Expected 50005800 to be < 50000000"). Es gibt keine games-Fixtures, die mit
+    # diesem Startwert kollidieren koennten.
+    def self.reset_games_id_sequence!
+      ActiveRecord::Base.connection.execute(
+        "SELECT setval('games_id_seq', 1000000, true)"
+      )
+    rescue ActiveRecord::StatementInvalid => e
+      warn "games_id_seq konnte nicht zurueckgesetzt werden: #{e.message}"
+    end
+    reset_games_id_sequence!
+
+    # 2026-09-04: Carambus.config ist prozessweit in @config memoisiert
+    # (config/application.rb:11) und wird von ueber einem Dutzend Tests per
+    # `Carambus.config = OpenStruct.new(...)` ausgetauscht. Wer nicht zuruecksetzt,
+    # vererbt seine Teil-Config an alle folgenden Tests derselben Prozess-Reihenfolge.
+    # Das blieb unentdeckt, solange config/carambus.yml in diesem Checkout nur
+    # `context` enthielt — mit vollstaendiger Config kippten dadurch VersionTest,
+    # RegionServer::*Importer und Tournaments::RankingsController, je nach Seed.
+    # Der Reset stellt fuer jeden Test denselben Ausgangszustand her.
+    # `= nil` statt die alte Referenz zurueckzugeben: mehrere Tests MUTIEREN das geteilte
+    # OpenStruct (`Carambus.config.carambus_api_url = ...`), statt es auszutauschen — eine
+    # zurueckgegebene Referenz truege die Mutation weiter. Mit nil laedt der naechste
+    # Zugriff frisch aus config/carambus.yml (application.rb:12).
+    teardown do
+      Carambus.config = nil
+    end
+
     # Add more helper methods to be used by all tests here...
     def json_response
       JSON.decode(response.body)

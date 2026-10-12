@@ -16,6 +16,13 @@ class Api::GameResultsControllerTest < ActionDispatch::IntegrationTest
     @user = users(:one)
     @plan = tournament_plans(:t06_6)
 
+    # Plan 36-03: auf einem Local Server stoesst RegionServer::GameResultWriter GameResultSyncJob an.
+    # Unter dem :inline-Adapter aus test_helper.rb liefe der Job synchron samt HTTP-Call an die
+    # Authority (von WebMock blockiert) und der Endpunkt antwortete 500. Der Anstoss ist hier nicht
+    # Gegenstand — er ist in game_result_writer_test.rb abgedeckt.
+    @original_adapter = ActiveJob::Base.queue_adapter
+    ActiveJob::Base.queue_adapter = :test
+
     @tournament = Tournament.create!(
       id: 50_000_910,
       title: "Landesmeisterschaft Dreiband", shortname: "LM3B910",
@@ -26,6 +33,10 @@ class Api::GameResultsControllerTest < ActionDispatch::IntegrationTest
 
     Player.create!(lastname: "ANNA", firstname: "Anna", fl_name: "A. Anna", dbu_nr: 111_111)
     Player.create!(lastname: "BODO", firstname: "Bodo", fl_name: "B. Bodo", dbu_nr: 222_222)
+  end
+
+  teardown do
+    ActiveJob::Base.queue_adapter = @original_adapter
   end
 
   def game_row(group: "Gruppe A", seqno: 7)
@@ -162,6 +173,10 @@ class Api::GameResultsControllerTest < ActionDispatch::IntegrationTest
       source_url: "https://nbv.carambus.de/tournaments/#{@tournament.id}",
       date: Time.zone.local(2026, 10, 10, 10, 0)
     )
+    # Der Monitor VOR dem Spiel: sein Reset (table_populator.rb, do_reset_tournament_monitor) loescht
+    # alle lokalen Spiele (id >= MIN_ID) des Turniers. Entstuende er erst im Test, haenge es an der
+    # Stellung der games-Sequenz — also an der Testreihenfolge —, ob das Spiel ueberlebt.
+    TournamentMonitor.create!(tournament: tournament)
 
     # SO legt die Tischbelegung ein Spiel an: nur gname/seqno und die beiden Rollen — die
     # Ergebnisspalten sind noch leer (table_populator.rb:736-748). Genau darauf kam es an.
@@ -205,7 +220,7 @@ class Api::GameResultsControllerTest < ActionDispatch::IntegrationTest
     monitor = FakeTableMonitor.new(1, game, "final_match_score", table_monitor_data)
     with_region_credentials do
       TournamentMonitor::ResultProcessor
-        .new(TournamentMonitor.new(tournament: tournament))
+        .new(tournament.reload.tournament_monitor)
         .send(:finalize_game_result, monitor)
     end
 

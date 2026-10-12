@@ -1,4 +1,6 @@
 class BallConfiguration < ApplicationRecord
+  include LocalProtector
+
   TABLE_VARIANTS   = %w[match halbmatch klein].freeze
   GATHER_STATES    = %w[pre_gather gathering post_gather].freeze
   FLOW_DIRECTIONS  = %w[centrifugal centripetal].freeze

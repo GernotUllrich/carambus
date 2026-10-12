@@ -1,12 +1,17 @@
 module RegionTaggable
   extend ActiveSupport::Concern
 
-  included do
-    # Note: Version region_id and global_context are automatically set by PaperTrail initializer
-    # No need for after_save callbacks here
-    after_save :update_version_region_data
-    after_destroy :update_version_region_data
-  end
+  # Das Version-Tagging passiert seit Phase 47-01 beim SCHREIBEN der Version, ueber
+  # die :meta-Option von has_paper_trail (app/models/local_protector.rb). Der frueher
+  # hier registrierte after_save/after_destroy-Callback `update_version_region_data`
+  # ist entfallen: er rief `find_associated_region_id` nie auf, sondern las die
+  # gleichnamige SPALTE des Records — die bei den betroffenen Records leer ist — und
+  # ueberschrieb damit auch jeden korrekten Stempel wieder. Bei `destroy` konnte er
+  # ohnehin nichts ausrichten, weil `version.item` dort schon `nil` ist.
+  #
+  # `find_associated_region_id` und `global_context?` bleiben die fachliche Ableitung;
+  # aufgerufen wird von beiden nur `find_associated_region_id` (global_context? ist
+  # international-blind, siehe Phase-2-Research 2026-07-12).
 
   def find_associated_region_id
     case self
@@ -21,14 +26,18 @@ module RegionTaggable
     when Party
       league&.organizer_type == "Region" ? league.organizer_id : nil
     when GameParticipation
-      if game&.tournament
-        game.tournament.organizer_type == "Region" ? game.tournament.organizer_id : game.tournament.region_id
-      end
+      # Delegiert an Game statt die Kette zu wiederholen — verhaltensgleich zur frueheren
+      # Fassung und automatisch mitkorrigiert, wenn der Game-Zweig sich aendert (Liga-Pfad).
+      game&.find_associated_region_id
     when PartyGame
       party&.league&.organizer_type == "Region" ? party.league.organizer_id : nil
     when Seeding
       if tournament_id.present?
-        if tournament_type == "Region"
+        # "Tournament", nicht "Region": `Tournament has_many :seedings, as: :tournament` setzt
+        # tournament_type auf den Klassennamen. Der frueher hier gepruefte Wert "Region" kann
+        # nie zutreffen — der Zweig lief ins Leere und liess in der Prod-Messung vom 2026-09-07
+        # 3 619 Seeding-Versionen ungetaggt.
+        if tournament_type == "Tournament"
           tournament&.organizer_type == "Region" ? tournament.organizer_id : tournament&.region_id
         elsif tournament_type == "Party"
           tournament&.league&.organizer_type == "Region" ? tournament.league.organizer_id : nil
@@ -41,7 +50,17 @@ module RegionTaggable
     when LeagueTeam
       league&.organizer_type == "Region" ? league.organizer_id : nil
     when Game
-      tournament&.organizer_type == "Region" ? tournament.organizer_id : tournament&.region_id
+      # `tournament` ist hier faktisch polymorph: `Party has_many :games, as: :tournament`
+      # setzt tournament_type = "Party", waehrend `belongs_to :tournament` in game.rb NICHT
+      # polymorph deklariert ist. Wer blind `tournament.organizer_type` aufruft, trifft bei
+      # Liga-Spielen eine Party — die kennt kein organizer_type (NoMethodError, in Phase 47-01
+      # ueber 13 PartyTest-Faelle sichtbar geworden). Deshalb ueber tournament_type gehen.
+      if tournament_type == "Party"
+        league = Party.find_by(id: tournament_id)&.league
+        (league&.organizer_type == "Region") ? league.organizer_id : nil
+      else
+        (tournament&.organizer_type == "Region") ? tournament.organizer_id : tournament&.region_id
+      end
     when Player
       # For players, we need to determine the primary region
       # This could be the region of their primary club or most recent participation
@@ -49,6 +68,19 @@ module RegionTaggable
       primary_club&.region_id
     when SeasonParticipation
       club&.region_id
+    when ClubLocation
+      # Ueber den Club, nicht ueber die Location: `Location` liefert nur bei
+      # `organizer_type == "Region"` eine Region (Prod-Messung 2026-09-09: 5 von 55
+      # Location-Versionen blieben deshalb nil). Der Club-Weg deckt alle 88 gemessenen
+      # ClubLocation-Faelle ab.
+      club&.region_id
+    when PlayerRanking
+      # Direktes belongs_to :region — die Spalte traegt den Wert bereits.
+      region_id
+    when TournamentCc
+      # branch_cc ist optional; ohne Kette bleibt es bei nil (der FK-Guard in
+      # LocalProtector verwirft ohnehin, was nicht auf eine echte Region zeigt).
+      branch_cc&.region_cc&.region_id
     end
   end
 
@@ -120,25 +152,4 @@ module RegionTaggable
     end
   end
 
-  def update_version_region_data
-    return unless PaperTrail.request.enabled?
-
-    # Update the most recent version for this record
-    record_versions = self.versions rescue []
-    if record_versions.any?
-      latest_version = record_versions.last
-      if latest_version && previous_changes.present?
-         latest_item = latest_version.item
-        region_id = latest_item.region_id if latest_item.respond_to?(:region_id)
-        global_context = latest_item.global_context if latest_item.respond_to?(:global_context)
-
-        latest_version.update_columns(
-          region_id: region_id,
-          global_context: global_context
-        ) if latest_item.respond_to?(:region_id) || latest_item.respond_to?(:global_context)
-      end
-    end
-  rescue StandardError => e
-    Rails.logger.warn("Error updating version region data: #{e.message}")
-  end
 end

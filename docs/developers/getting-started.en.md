@@ -67,7 +67,26 @@ rails db:seed
 rails server
 ```
 
-## 🔑 **Setup Credentials**
+## ⚙️ **Configuration files (recommended: one command)**
+
+Four configuration files are gitignored and no setup creates them. Without them the test
+suite fails — with error messages that look like logic bugs but are not (e.g.
+`undefined method 'fetch' for nil` from Action Cable, or
+`Missing Active Record encryption credential`). This script creates them:
+
+```bash
+bin/setup-checkout.sh          # create missing files (idempotent)
+bin/setup-checkout.sh --check  # check only, write nothing
+```
+
+It generates `config/carambus.yml` (from the repo template, including the test block the
+suite depends on), `config/cable.yml`, `config/database.yml`, and copies the credentials
+from a sibling checkout (`../carambus_*`). Afterwards `bin/rails test` must be green.
+
+The script can only copy credentials, not create them — that needs an already configured
+checkout on the same machine. Otherwise, the manual route:
+
+## 🔑 **Setup Credentials (manual)**
 
 **Important:** You need the `development.key` and `credentials.yml.enc` from a working system.
 

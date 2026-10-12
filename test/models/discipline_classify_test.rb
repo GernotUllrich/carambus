@@ -79,6 +79,7 @@ class DisciplineClassifyTest < ActiveSupport::TestCase
   end
 
   test "AC-2: extend_title_synonyms ist idempotent + dry-run mutiert nicht" do
+    skip_unless_api_server # der Task bricht auf Local Servern bewusst ab (nur Authority)
     Rails.application.load_tasks if Rake::Task.tasks.empty?
     task = Rake::Task["disciplines:extend_title_synonyms"]
 

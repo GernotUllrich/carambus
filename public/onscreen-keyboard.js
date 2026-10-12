@@ -19,6 +19,10 @@ const Keyboard = {
     altPressed: false
   },
 
+  // Wurde an diesem Geraet eine ECHTE Taste gedrueckt? Dann gibt es eine physische
+  // Tastatur und die Bildschirmtastatur haelt sich heraus. Siehe _watchPhysicalKeyboard.
+  physicalKeyboardSeen: false,
+
   init() {
     // Create main elements
     Keyboard.elements.main = document.createElement("div");
@@ -38,6 +42,10 @@ const Keyboard = {
     document.querySelector('body').appendChild(Keyboard.elements.main);
 
     document.addEventListener('click', function (event) {
+      // Wer eine echte Tastatur hat, will die Bildschirmtastatur nicht — sie deckt
+      // das halbe Formular ab. Ein Klick ins Feld oeffnet sie dann gar nicht erst.
+      if (Keyboard.physicalKeyboardSeen) return;
+
       if (event.target.matches('input[type="email"]')) {
         Keyboard._setupKeyboard("alfa");
         Keyboard.selectedElement = event.target;
@@ -83,11 +91,81 @@ const Keyboard = {
       }
 
     }, true);
+
+    Keyboard._watchPhysicalKeyboard();
+  },
+
+  // Erkennt eine physische Tastatur — nicht durch Raten, sondern durch Zusehen.
+  //
+  // Es gibt keine Web-API, die verlaesslich sagt, ob eine Tastatur angeschlossen ist:
+  // `navigator.keyboard` liefert nur ein Layout (und existiert auch ohne Geraet),
+  // `pointer: coarse` und `maxTouchPoints` sagen etwas ueber Touch, nichts ueber
+  // Tasten. Auch die Absender-IP taugt nicht: Die Scoreboards liegen im selben
+  // 192.168.2.x wie jedes Handy im Vereins-WLAN, und der Kiosk-Browser meldet sich
+  // ohnehin als 127.0.0.1, weil er auf dem Server selbst laeuft.
+  //
+  // Wer tippt, hat eine Tastatur — das ist keine Heuristik, sondern Beobachtung.
+  // `isTrusted` trennt dabei sauber: vom Browser erzeugte Events sind true, per
+  // `new KeyboardEvent()` erzeugte (wie in _fireAltSpaceEvent) immer false. Die
+  // Bildschirmtastatur kann sich also nicht selbst wegblenden.
+  _watchPhysicalKeyboard() {
+    // sessionStorage, nicht localStorage: Die Erkennung soll einen Reload ueberleben,
+    // aber nicht das Geraet fuer immer festlegen. Ein Kiosk, an den heute jemand eine
+    // Tastatur haengt, ist morgen wieder ein Kiosk.
+    try {
+      if (sessionStorage.getItem("carambus_physical_keyboard") === "1") {
+        Keyboard.physicalKeyboardSeen = true;
+      }
+    } catch (e) {
+      // Privater Modus oder blockierte Speicherung: dann eben je Seitenaufruf neu.
+    }
+
+    document.addEventListener("keydown", function (event) {
+      if (!event.isTrusted) return;
+      if (Keyboard.physicalKeyboardSeen) return;
+
+      Keyboard.physicalKeyboardSeen = true;
+      try {
+        sessionStorage.setItem("carambus_physical_keyboard", "1");
+      } catch (e) {
+        // s.o. — die Erkennung gilt dann nur fuer diese Seite.
+      }
+
+      // Steht sie gerade offen, verschwindet sie sofort. Bewusst nicht ueber close():
+      // das setzt zusaetzlich die Event-Handler zurueck und haengt an zwei freien
+      // Variablen (oninput/onclose), die nur zufaellig auf window aufloesen. Hier
+      // reicht Ausblenden — der Wert im Feld bleibt, wo er ist.
+      if (Keyboard.elements.main) {
+        Keyboard.elements.main.classList.add("keyboard--hidden");
+      }
+    }, true);
   },
 
   _setupKeyboard(type) {
+    Keyboard.keyboard_type = type;
+
+    // Beim Ebenenwechsel zeigt capsKeyElement sonst auf ein Element, das gleich aus
+    // dem DOM fliegt — und in einer Ebene ohne Caps-Taste (numeric, symbols) bliebe
+    // die alte Referenz stehen. Zuruecksetzen; `case "caps"` setzt sie neu, wo es
+    // eine gibt. Der capsLock-Zustand geht mit, sonst widersprechen sich Anzeige
+    // und Verhalten nach dem Wechsel.
+    Keyboard.capsKeyElement = "";
+    Keyboard.properties.capsLock = false;
+
     Keyboard.elements.keysContainer.innerHTML = "";
     Keyboard.elements.keysContainer.appendChild(Keyboard._createKeys(type));
+
+    // Tastenliste neu einlesen. Bis 2026-09-10 geschah das NUR in init(); nach jedem
+    // Ebenenwechsel arbeitete _toggleCapsLock damit auf Elementen, die nicht mehr im
+    // DOM hingen — die Umschaltung blieb wirkungslos. Faellt erst bei mehreren Ebenen
+    // auf, deshalb lag es lange unbemerkt.
+    Keyboard.elements.keys = Keyboard.elements.keysContainer.querySelectorAll(".keyboard__key");
+  },
+
+  // Wechselt zwischen Buchstaben- und Symbolebene. Der eingegebene Wert lebt in
+  // properties.value und bleibt dabei unberuehrt — nur die Tasten werden neu gebaut.
+  _switchLayer(type) {
+    Keyboard._setupKeyboard(type);
   },
   _createKeys(keyboard_type) {
     const fragment = document.createDocumentFragment();
@@ -113,11 +191,33 @@ const Keyboard = {
       //     ];
 
       // With spacebar
+      //
+      // `@` steht bewusst in DIESER Ebene, nicht nur unter "?123": Die Anmeldung
+      // laeuft ueber die E-Mail-Adresse, `@` ist dort kein Sonderzeichen, sondern
+      // Pflicht. Es hat den Platz von `!` uebernommen (das jetzt unter "?123"
+      // liegt) — dadurch bleibt die Zeilenlaenge gleich. `!` war zugleich der
+      // Zeilenumbruch-Marker; siehe breakAfter weiter unten.
       keyLayout = [
         "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "ß", "?", "backspace",
         "q", "w", "e", "r", "t", "y", "u", "i", "o", "p", "ü", "+",
         "a", "s", "d", "f", "g", "h", "j", "k", "l", "ö", "ä", "enter",
-        "caps", "z", "x", "c", "v", "b", "n", "m", ",", ".", "-", "!", "done",
+        "caps", "z", "x", "c", "v", "b", "n", "m", ",", ".", "-", "@", "done",
+        "symbols", "space", "_"
+      ];
+    }
+
+    // Symbolebene (2026-09-10). Erreichbar ueber "?123", zurueck ueber "ABC".
+    //
+    // Zeilenumbrueche hier ausschliesslich ueber explizite "br"-Eintraege, nicht
+    // ueber die zeichenbasierte Liste der Buchstabenebene: `+` und `!` stehen dort
+    // als Umbruch-Marker und kommen hier als normale Zeichen vor — sie wuerden das
+    // Raster sonst mitten in der Zeile zerreissen.
+    if (keyboard_type == "symbols") {
+      keyLayout = [
+        "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "backspace", "br",
+        "@", "#", "$", "€", "%", "&", "*", "(", ")", "+", "br",
+        "-", "_", "=", "/", "\\", ":", ";", "\"", "'", "~", "br",
+        "abc", "!", "?", "<", ">", "[", "]", "{", "}", "|", "§", "done", "br",
         "space"
       ];
     }
@@ -128,9 +228,15 @@ const Keyboard = {
       return `<i class="material-icons">${icon_name}</i>`;
     };
 
+    // Die Buchstabenebene bricht an festen Zeichen um; die Symbolebene nutzt
+    // ausschliesslich explizite "br"-Marker (Begruendung oben am Layout).
+    const breakAfter = keyboard_type == "symbols"
+      ? ["br"]
+      : ["backspace", "+", "enter", "@", "br"];
+
     keyLayout.forEach(key => {
       const keyElement = document.createElement("button");
-      const insertLineBreak = ["backspace", "+", "enter", "!", "br"].indexOf(key) !== -1;
+      const insertLineBreak = breakAfter.indexOf(key) !== -1;
 
       // Add attributes/classes
       keyElement.setAttribute("type", "button");
@@ -239,6 +345,26 @@ const Keyboard = {
 
           break;
 
+        case "symbols":
+          keyElement.classList.add("keyboard__key--wide");
+          keyElement.textContent = "?123";
+
+          keyElement.addEventListener("click", () => {
+            Keyboard._switchLayer("symbols");
+          });
+
+          break;
+
+        case "abc":
+          keyElement.classList.add("keyboard__key--wide");
+          keyElement.textContent = "ABC";
+
+          keyElement.addEventListener("click", () => {
+            Keyboard._switchLayer("alfa");
+          });
+
+          break;
+
         case "br":
           keyElement.classList.add("hide-me");
           break;
@@ -248,7 +374,13 @@ const Keyboard = {
           keyElement.addEventListener("click", () => {
             this.properties.value += this.properties.capsLock ? key.toUpperCase() : key.toLowerCase();
             this.properties.capsLock = this.properties.value == ""
-            Keyboard.capsKeyElement.classList.remove("keyboard__key--active");
+            // Ebenen ohne Caps-Taste (numeric, symbols) haben kein capsKeyElement —
+            // der Initialwert ist "", und "".classList wirft. Bis 2026-09-10 lag der
+            // Fehler latent: er trifft jede Ziffer, die als ERSTES nach dem Laden in
+            // einem input[type=number] getippt wird.
+            if (Keyboard.capsKeyElement) {
+              Keyboard.capsKeyElement.classList.remove("keyboard__key--active");
+            }
             this._triggerEvent("oninput");
 
             // Propagate Keyboard event

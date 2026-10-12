@@ -47,4 +47,52 @@ class TableMonitorProtocolModalTest < ActiveSupport::TestCase
     assert_equal "protocol_final", @tm.panel_state
     assert_equal "confirm_result", @tm.current_element
   end
+
+  # ==========================================================================
+  # Plan 08-01 (§4.4.3): tiebreak_extension_goal — die Ballzahl, die der Operator
+  # im Stechen ansagt. 10 % des Ziels, AUFGERUNDET.
+  # ==========================================================================
+
+  test "tiebreak_extension_goal: 10 Prozent des Ziels, glatt aufgehende Faelle" do
+    {250 => 25, 200 => 20, 50 => 5}.each do |goal, expected|
+      @tm.update!(data: {"playera" => {"balls_goal" => goal}})
+      assert_equal expected, @tm.tiebreak_extension_goal("playera"),
+        "Ziel #{goal} muss #{expected} ergeben (§4.4.3: 10 %)"
+    end
+  end
+
+  test "tiebreak_extension_goal: krumme Faelle werden AUFGERUNDET, nicht gerundet" do
+    # Der Kern der Regel. Mit `round` statt `ceil` lieferten diese Faelle 4, 2 und 0 —
+    # §4.4.3 sagt ausdruecklich "auf eine ganze Zahl aufzurunden".
+    {42 => 5, 21 => 3, 1 => 1}.each do |goal, expected|
+      @tm.update!(data: {"playera" => {"balls_goal" => goal}})
+      assert_equal expected, @tm.tiebreak_extension_goal("playera"),
+        "Ziel #{goal} muss auf #{expected} AUFGERUNDET werden, nicht abgerundet"
+    end
+  end
+
+  test "tiebreak_extension_goal: ohne Ballziel gibt es keine Zahl" do
+    # Aufnahmenbegrenzung statt Ballziel — das Modal zeigt dort "∞". Eine 0 waere
+    # schlimmer als nichts, weil sie wie eine gueltige Ansage aussieht.
+    @tm.update!(data: {"playera" => {"balls_goal" => 0}})
+    assert_nil @tm.tiebreak_extension_goal("playera"), "balls_goal 0 darf keine Zahl liefern"
+
+    @tm.update!(data: {"playera" => {}})
+    assert_nil @tm.tiebreak_extension_goal("playera"), "fehlendes balls_goal darf keine Zahl liefern"
+
+    @tm.update!(data: {})
+    assert_nil @tm.tiebreak_extension_goal("playera"), "fehlende Rolle darf keine Zahl liefern"
+  end
+
+  test "tiebreak_extension_goal: bei Vorgabe rechnet jeder Spieler auf seinem EIGENEN Ziel" do
+    # Betreiber-Entscheidung 2026-09-04 zum Wortlaut "der vorher zu erreichenden Ballzahl":
+    # die Vorgabe bleibt im Stechen erhalten.
+    @tm.update!(data: {
+      "playera" => {"balls_goal" => 250},
+      "playerb" => {"balls_goal" => 42}
+    })
+    assert_equal 25, @tm.tiebreak_extension_goal("playera")
+    assert_equal 5, @tm.tiebreak_extension_goal("playerb"),
+      "playerb muss aus SEINEM Ziel 42 rechnen, nicht aus playeras 250"
+  end
 end

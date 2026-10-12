@@ -228,6 +228,21 @@ module TournamentsHelper
     user&.club_admin? || user&.system_admin?
   end
 
+  # Plan 17-06: Link für den Knopf „In der Turnier-App öffnen“ — nil, wenn der Knopf fehlen soll.
+  # Sichtbarkeit = Recht der Aktion (prepare_tournament?, wie das MCP-Tool cc_open_in_tournament_app),
+  # nur wo der Server /app/ ausliefert (serve_tournament_app aus der carambus.yml; fehlt der
+  # Schlüssel, bleibt der Knopf weg). Kein Knopf, solange der Turnier-Monitor das Turnier führt —
+  # die App konkurrierte um dieselben Tische; ein App-Turnier trägt manual_assignment.
+  def tournament_app_link(tournament)
+    return nil unless local_server? && !tournament.has_clubcloud_results?
+    return nil unless Carambus.config.try(:serve_tournament_app) == true
+    return nil unless policy(tournament).prepare_tournament?
+    return nil if tournament.tournament_monitor.present? && !tournament.manual_assignment
+
+    result = TournamentPreparation::AppLinkBuilder.call(tournament: tournament)
+    result[:ok] ? result[:app_link] : nil
+  end
+
   # Plan 26-01: Vereinsauswahl für die Meldeliste eines Region-Turniers.
   #
   # Liefert [[label, id], ...] für ein select — Vereine der ausrichtenden Region, "die wichtigsten

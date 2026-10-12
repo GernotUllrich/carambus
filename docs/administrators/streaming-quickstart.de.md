@@ -11,7 +11,7 @@
 
 **Test:**
 ```bash
-ping 192.168.1.100  # Ersetze durch deine Raspi-IP
+ping <IP des Scoreboard-Pis>
 ```
 
 ---
@@ -29,42 +29,58 @@ ping 192.168.1.100  # Ersetze durch deine Raspi-IP
 
 ### 3. Raspi einrichten (5 Min)
 
-Auf dem **Location-Server** (Raspi 5):
+Auf dem **Location-Server**, im Deploy-Verzeichnis des Szenarios (die Tasks brauchen dessen Datenbank):
 
 ```bash
-cd /path/to/carambus_master
+cd /var/www/<basename>/current
 
-# SSH-Passwort setzen
-export RASPI_SSH_PASSWORD=raspberry  # Dein echtes Passwort!
+# SSH-Zugang zum Scoreboard-Pi (per Ansible eingerichtete Pis: www-data, Port 8910)
+export RASPI_SSH_USER=www-data
+export RASPI_SSH_PORT=8910
 
 # Setup ausführen
-rake streaming:setup[192.168.1.100]  # Deine Raspi-IP
+RAILS_ENV=production bundle exec rake "streaming:setup[<IP des Scoreboard-Pis>]"
 
 # Prüfen ob alles OK
-rake streaming:test[192.168.1.100]
+RAILS_ENV=production bundle exec rake "streaming:test[<IP des Scoreboard-Pis>]"
 ```
 
 **Erwartung:** Alle Tests ✅
+
+**Vor dem ersten Start, einmalig** (Details: [Setup, Abschnitt Raspberry Pi vorbereiten](streaming-setup.md#1-raspberry-pi-vorbereiten)):
+
+- [ ] `www-data` auf dem Location-Server hat einen SSH-Schlüssel, und dessen öffentlicher Teil steht auf dem
+      Scoreboard-Pi in `~/.ssh/authorized_keys`. Der Start-Knopf verbindet sich als Carambus-Dienst; ein
+      `export` in der Shell erreicht ihn nicht
+- [ ] In `/etc/<basename>.env` steht `STREAMING_SERVER_URL=http://<IP des Location-Servers>:<webserver_port>`,
+      danach `sudo systemctl restart puma-<basename>`. Ohne diesen Eintrag holt der Pi den Overlay-Text von
+      `http://localhost:3131`. Das ist nur richtig, wenn der Scoreboard-Pi selbst der Server auf Port 3131 ist
 
 ---
 
 ### 4. Stream konfigurieren (3 Min)
 
 1. **Carambus Admin-Interface** öffnen
-2. Navigation → **YouTube Live Streaming**
+2. Admin-Navigation → **Stream-Konfigurationen** (Seite „YouTube Live Streaming“)
 3. **Neue Stream-Konfiguration**
 
 **Minimal-Eingaben:**
 ```
-Location:           [Deine Location wählen]
-Tisch:              [Tisch 1]
+Tisch:              [Tisch wählen, nach Location gruppiert]
 YouTube Stream-Key: [Von YouTube kopieren]
-Raspi IP:           192.168.1.100
+Raspi IP:           <IP des Scoreboard-Pis>  (wird vom Tisch übernommen)
+SSH-User:           www-data                 (Standard im Formular: pi)
+SSH-Port:           8910                     (Standard im Formular: 22)
 ```
 
-**Rest:** Standard-Werte OK für C922
+**Rest:** Standard-Werte (640x360, 30 fps, 1000 kbit/s) sind der empfohlene Start für einen Pi 4
 
-4. **Speichern** klicken
+4. **Speichern** klicken. Die Konfiguration steht jetzt in der Datenbank; auf den Pi kommt sie beim Start
+5. SSH-Zugang prüfen:
+   ```bash
+   RAILS_ENV=production bundle exec rake "streaming:ssh_test[<TABLE_ID>]"
+   ```
+   `<TABLE_ID>` ist die Datenbank-ID des Tischs (`Table.id`), nicht die Nummer aus „Tisch 1“
 
 ---
 
@@ -95,21 +111,32 @@ Raspi IP:           192.168.1.100
 ### "Stream startet nicht"
 
 ```bash
-# Logs prüfen
-ssh pi@192.168.1.100
-sudo journalctl -u carambus-stream@1.service -f
+# Logs prüfen (Skript und FFmpeg schreiben in Dateien, nicht ins Journal)
+ssh -p 8910 www-data@<IP des Scoreboard-Pis>
+tail -f /var/log/carambus/stream-table-<TABLE_ID>.log
+tail -f /var/log/carambus/stream-table-<TABLE_ID>-error.log
 ```
+
+Meldet das Admin-Interface „Authentication failed“: SSH-Schlüssel von `www-data` fehlt auf dem Pi (Schritt 3).
+Gibt es auf dem Pi keinen Benutzer `pi`, startet der Dienst nicht: Die Unit setzt fest `User=pi`
+(siehe [Setup](streaming-setup.md#1-raspberry-pi-vorbereiten)).
 
 ### "Kamera nicht gefunden"
 
 ```bash
 # Kamera-Geräte anzeigen
-ssh pi@192.168.1.100
+ssh -p 8910 www-data@<IP des Scoreboard-Pis>
 ls -l /dev/video*
 ```
 
 Falls `/dev/video1` statt `video0`:
 → In Admin-Interface Konfiguration → Kamera-Gerät ändern
+
+### "Overlay zeigt nur „Loading...“"
+
+- `STREAMING_SERVER_URL` gesetzt (Schritt 3)?
+- Ist der nginx-Bot-Block aktiv, weist er den `curl`-Abruf des Pis ab. Siehe
+  [Setup, Overlay-Einstellungen](streaming-setup.md#4-overlay-einstellungen)
 
 ### "YouTube zeigt nichts"
 
@@ -122,11 +149,11 @@ Falls `/dev/video1` statt `video0`:
 ## 📖 Weiterführend
 
 Vollständige Dokumentation:
-- [docs/administrators/streaming-setup.de.md](streaming-setup.md)
+- [Streaming Setup & Betrieb](streaming-setup.md)
 
-Befehls-Referenz:
+Befehls-Referenz (auf dem Location-Server):
 ```bash
-rake streaming:help
+RAILS_ENV=production bundle exec rake streaming:help
 ```
 
 ---

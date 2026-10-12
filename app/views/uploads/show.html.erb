@@ -8,7 +8,9 @@
       <span class="text-gray-400 font-light mx-2">\</span>
       Upload #<%= @upload.id %>
     </h1>
-    <%= custom_link_to t("edit"), edit_upload_path(@upload), class: "btn btn-white" %>
+    <%- if current_user&.admin? || (current_user && @upload.user_id == current_user.id) %>
+      <%= custom_link_to t("edit"), edit_upload_path(@upload), class: "btn btn-white" %>
+    <%- end %>
   </div>
 
   <div class="p-8  rounded shadow">

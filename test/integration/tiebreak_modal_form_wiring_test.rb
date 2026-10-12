@@ -228,4 +228,63 @@ class TiebreakModalFormWiringTest < ActionDispatch::IntegrationTest
       "never from a query-string-only GET. This is the audit-trail closure of the " \
       "smoking-gun GET in development.log line ~5159819 (2026-04-30T23:25:23)."
   end
+
+  # ---------------------------------------------------------------
+  # Plan 08-01 (§4.4.3): das Modal sagt die Verlaengerungs-Ballzahl an.
+  # Render-Ebene, wie G1-G3 — geprueft wird das erzeugte HTML.
+  # ---------------------------------------------------------------
+
+  # Setzt zwei Ziele und rendert das Stechen-Modal.
+  def render_modal_with_goals(goal_a, goal_b)
+    @tm.update!(data: @tm.data.deep_merge(
+      "playera" => {"balls_goal" => goal_a},
+      "playerb" => {"balls_goal" => goal_b}
+    ))
+    @tm.update_columns(panel_state: "protocol_final", current_element: "tiebreak_winner_choice")
+    @tm.reload
+    Nokogiri::HTML.fragment(ApplicationController.render(
+      partial: "table_monitors/game_protocol_modal",
+      locals: {table_monitor: @tm, full_screen: true, modal_hidden: false}
+    ))
+  end
+
+  # Die Zusatz-Spans im Label eines Spielers (Name + ggf. Verlaengerungs-Ballzahl).
+  def label_spans_for(doc, role)
+    input = doc.at_css("input[name='tiebreak_winner'][value='#{role}']")
+    assert input, "Radio fuer #{role} muss rendern"
+    input.parent.css("span span")
+  end
+
+  test "Plan 08-01: bei Vorgabe steht bei jedem Spieler die Ballzahl aus SEINEM Ziel" do
+    doc = render_modal_with_goals(250, 42)
+    text = doc.text
+
+    assert_includes text, "Verlängerung auf 25",
+      "playera (Ziel 250) muss 25 angesagt bekommen (§4.4.3: 10 %)"
+    assert_includes text, "Verlängerung auf 5",
+      "playerb (Ziel 42) muss 5 angesagt bekommen (4,2 aufgerundet) — aus dem EIGENEN Ziel"
+  end
+
+  test "Plan 08-01: ohne Ballziel fehlt der Ballzahl-Block ganz" do
+    # Strukturpruefung, nicht nur Textabwesenheit: eine versehentlich ausgegebene "0"
+    # wuerde einen reinen refute_includes-Test passieren lassen.
+    doc = render_modal_with_goals(80, 0)
+
+    assert_equal 2, label_spans_for(doc, "playera").size,
+      "playera (Ziel 80) braucht Name UND Ballzahl"
+    assert_equal 1, label_spans_for(doc, "playerb").size,
+      "playerb ohne Ballziel darf NUR den Namen tragen — kein Ballzahl-Block, auch keine 0"
+
+    refute_includes doc.text, "Verlängerung auf 0",
+      "Ohne Ballziel darf keine 0 angesagt werden"
+  end
+
+  test "Plan 08-01: der §4.4.3-Hinweis auf Anfangsball und Nachstoss steht im Modal" do
+    doc = render_modal_with_goals(80, 80)
+
+    assert_includes doc.text, "Anfangsball",
+      "Der Operator muss die Bedingungen der Verlaengerungsaufnahme lesen koennen"
+    assert_includes doc.text, "§4.4.3",
+      "Die Fundstelle gehoert in die Ansage"
+  end
 end

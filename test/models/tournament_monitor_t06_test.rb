@@ -351,12 +351,16 @@ class TournamentMonitorT06Test < ActiveSupport::TestCase
   # Group Phase Detection (CHAR-03)
   # ============================================================================
 
-  test "group_phase_finished? returns true in test env due to MIN_ID game filtering" do
-    # group_phase_finished? counts games.id >= MIN_ID where gname ilike 'group%'
-    # In test env, auto-assigned game IDs are < MIN_ID, so 0 == 0 => returns true.
-    # This is pinned behavior — documents the MIN_ID filtering limitation in tests.
+  # 2026-09-04: Der Test hielt frueher fest, dass in der Testumgebung GAR KEINE Spiele mit
+  # id >= MIN_ID entstehen ("0 == 0 => true"). Diese Annahme haengt an der Postgres-Sequenz
+  # games_id_seq, die von den Fixtures auf ~50 Mio hochgezogen wird — sobald das passiert,
+  # bekommen auch die vom Helper erzeugten Spiele lokale IDs und der Test kippt. Er prueft
+  # jetzt die Aussage, um die es geht, und stellt ihre Voraussetzung selbst her.
+  test "group_phase_finished? ist true, wenn kein Gruppenspiel mehr offen ist" do
+    @tm.live_games.where("gname ilike 'group%'").update_all(ended_at: Time.current)
+
     assert @tm.group_phase_finished?,
-      "group_phase_finished? returns true in test env (0 MIN_ID group games == 0 done)"
+      "Ohne offenes Gruppenspiel ist die Gruppenphase beendet"
   end
 
   test "group_phase_finished? returns false when high-ID group games exist without ended_at" do
@@ -375,12 +379,15 @@ class TournamentMonitorT06Test < ActiveSupport::TestCase
 
   test "group_phase_finished? returns true when all high-ID group games have ended_at" do
     high_id = TEST_ID_BASE + 30_801 + @tournament.id
-    high_id_game = @tournament.games.create!(
+    @tournament.games.create!(
       id: high_id,
       gname: "group1:high-test2",
       group_no: 1,
       ended_at: Time.current
     )
+    # Die vom Helper erzeugten Gruppenspiele mitzaehlen: sie tragen inzwischen ebenfalls
+    # IDs >= MIN_ID (siehe Kommentar oben) und wuerden die Pruefung sonst offen halten.
+    @tm.live_games.where("gname ilike 'group%'").update_all(ended_at: Time.current)
 
     assert @tm.group_phase_finished?,
       "group_phase_finished? should return true when all high-ID group games are done"

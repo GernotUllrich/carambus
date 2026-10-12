@@ -1,9 +1,81 @@
 # frozen_string_literal: true
 
 module TournamentMonitorState
+  # Entscheidet, ob die Runde weiterschalten darf (Gate in
+  # TournamentMonitor::ResultProcessor#advance_round_after_match_close).
+  #
+  # Plan 06-01 (2026-09-03): Die Frage gilt den SPIELEN der Runde, nicht dem Zustand der
+  # Tische. Die frueher alleinige Tisch-Pruefung (unten, jetzt Fallback) hat drei
+  # Blindstellen, auf denen Tische "fertig" aussehen, obwohl Spiele offen sind:
+  #
+  #   1. `finalize_round` setzt nach `close_match!` `game_id: nil`, laesst den State aber
+  #      stehen; das `joins(:game)` (INNER JOIN) blendet solche Tische aus. Genau das stand
+  #      nach dem Vorfall vom 2026-09-03 in der DB: drei Tische in state="playing" ohne Spiel.
+  #   2. `do_placement` bricht bei Tischmangel ab — das Spiel der Runde ist unbeendet, liegt
+  #      aber auf keinem Tisch.
+  #   3. Im continuous_placements-Pfad wird ein laufendes Spiel vom Tisch verdraengt und in
+  #      `tmp_results` geparkt; auch dieses Spiel ist offen, der Tisch sieht frei aus.
+  #
+  # ⚠️ Der Fallback ist keine Bequemlichkeit, sondern Pflicht: `round_no` ist nur bei
+  # Spielen gesetzt, die ueber `do_placement` laufen (Datenstand 2026-09-03: 55 von 2497
+  # lokalen Live-Games; innerhalb von TournamentMonitor-Turnieren dagegen lueckenlos).
+  # Ohne Spiele der aktuellen Runde waere die Spiel-Pruefung eine leere Menge — `none?`
+  # traefe trivial zu und die Runde schaltete BEDINGUNGSLOS weiter. Deshalb greift sie nur,
+  # wenn es fuer diese Runde ueberhaupt Spiele gibt; sonst entscheidet weiterhin der Tisch.
   def all_table_monitors_finished?
+    round_games = current_round_games
+    return round_games.where(ended_at: nil).none? if round_games.exists?
+
     !(table_monitors.joins(:game).map(&:state) & %w[warmup warmup_a warmup_b
                                                     match_shootout playing final_set_score set_over]).present?
+  end
+
+  # Die Spiele, an denen das Gate oben den Rundenabschluss entscheidet.
+  def current_round_games
+    live_games.where(round_no: current_round)
+  end
+
+  # Plan 17-01 (2026-09-12): Anzeige im Turnier-Monitor, WARUM die Runde nicht weiterschaltet
+  # (Befund T16-Lauf 2026-09-04: ein offenes Spiel an einem anderen Tisch wurde uebersehen).
+  # Liest dieselbe Menge wie das Gate — "offen" heisst allein `ended_at: nil`.
+  # nil im Tisch-Fallback: ohne Spiele mit round_no ist keine Aussage ueber Spiele moeglich,
+  # und "0 von 0" waere eine Scheinaussage.
+  # Plan 23-01: Dieselbe Spielmenge wie `round_status`, aber OHNE Anzeige-Aufbereitung.
+  #
+  # `round_status` baut fuer jedes offene Spiel einen Tischnamen ueber
+  # TableMonitor#display_name — das wirft ausserhalb von production (table_monitor.rb:971) und
+  # gehoert nicht in den Pfad, der nach JEDEM Spielende laeuft. Gemessen beim Umsetzen von
+  # 23-01: ein `round_status`-Aufruf im Gate liess `close_match!` mit StandardError abbrechen,
+  # sobald ein TableMonitor keinen Table trug.
+  #
+  # `round_tracked?` beantwortet: gibt es ueberhaupt eine gefuehrte Runde? Ist sie false, faellt
+  # der Rundenabschluss auf die Tisch-Pruefung zurueck (Phase 6) — dort erscheint auch kein
+  # Turnierleiter-Knopf, also wird dort nicht gegatet.
+  def round_tracked?
+    current_round_games.exists?
+  end
+
+  # Plan 23-01: Runde gefuehrt UND kein offenes Spiel darin. Identisch zum ersten Zweig von
+  # `all_table_monitors_finished?` — hier ohne den Tisch-Fallback, weil der Turnierleiter-Knopf
+  # nur bei gefuehrter Runde erscheint.
+  def round_complete?
+    round_tracked? && current_round_games.where(ended_at: nil).none?
+  end
+
+  def round_status
+    games = current_round_games.includes(:table_monitor).to_a
+    return nil if games.empty?
+
+    open_games = games.select { |game| game.ended_at.nil? }.sort_by { |game| [game.seqno.to_i, game.gname.to_s] }
+    {
+      round: current_round,
+      total: games.size,
+      finished: games.size - open_games.size,
+      # display_gname kann `<br />` tragen (KO-Runden) und ist nil fuer unbekannte Muster
+      open: open_games.map do |game|
+        {name: game.display_gname_lines.join(" ").presence || game.gname, table: game.table_monitor&.display_name}
+      end
+    }
   end
 
   def finalize_round
@@ -43,7 +115,18 @@ module TournamentMonitorState
     # }
     table_monitors.joins(:game).each do |tabmon|
       game = tabmon.game
-      next unless game.present? && game.data.present?
+      # Plan 06-01 (2026-09-03, Checkpoint-Befund): `game.data.present?` ist der falsche
+      # Test. `data` wird nur als NEBENEFFEKT gefuellt — `tmp_results`, wenn ein Folgespiel
+      # das Spiel vom Tisch verdraengt (do_placement), oder `tiebreak_required` bei einem
+      # Tiebreak. Das jeweils LETZTE Spiel auf einem Tisch wird nie verdraengt und hat ohne
+      # Tiebreak leeres `data`; es wurde hier uebersprungen, `game_id` blieb am Tisch
+      # stehen. Folge im Betrieb: die Ergebnistabelle zeigt fuer diese Spiele weiterhin
+      # Eingabefelder (`editable_game = game.table_monitor.present?`), obwohl das Turnier
+      # abgeschlossen ist — beobachtet am "1. Vorgabepokal" bei den Spielen um Platz 3/4,
+      # 5/6 und 7/8. Entscheidend ist, ob das Spiel BEENDET ist; `data` bleibt als
+      # zusaetzliches Kriterium erhalten, damit bespielte Spiele ohne `ended_at` weiterhin
+      # abgeraeumt werden.
+      next unless game.present? && (game.data.present? || game.ended_at.present?)
 
       # NOTE: update_game_participations wurde bereits in finalize_game_result aufgerufen!
       # Hier nochmal aufzurufen würde Race-Conditions verursachen, weil populate_tables

@@ -146,6 +146,10 @@ In **Pointer Mode** (main mode during the game):
 
 ## Game Flow
 
+!!! tip "Biathlon"
+    Biathlon (three-cushion, then ×6, then 5-pins) is scored in two phases — see
+    [Biathlon on the Scoreboard](biathlon.md).
+
 ### 1. Prepare Game Start
 
 After selecting a table or tournament, the **Setup Screen** appears.

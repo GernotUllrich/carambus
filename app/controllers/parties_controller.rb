@@ -1,8 +1,12 @@
 class PartiesController < ApplicationController
   include FiltersHelper
   # TODO: callback needed?:  protect_from_forgery except: :search
-  before_action :admin_only_check, except: %i[show index]
-  before_action :set_party, only: %i[show edit update destroy party_monitor]
+  # Plan 20-02: Start des PartyMonitors und Begegnungsleiter folgen der PartyPolicy
+  # (wie beim Einzelturnier), die Stammdaten der Begegnung bleiben admin_only_check.
+  before_action :admin_only_check, except: %i[show index party_monitor assign_leiter remove_leiter]
+  before_action :set_party, only: %i[show edit update destroy party_monitor assign_leiter remove_leiter]
+  before_action :require_party_operator, only: %i[party_monitor]
+  before_action :require_leiter_assigner, only: %i[assign_leiter remove_leiter]
 
   # GET /parties
   def index
@@ -78,7 +82,38 @@ class PartiesController < ApplicationController
     redirect_to @party_monitor, notice: msg
   end
 
+  # POST /parties/1/assign_leiter — Plan 20-02, Vorbild TL-Auswahl im Turnier-Formular
+  def assign_leiter
+    user = User.where.not(confirmed_at: nil).find_by(id: params[:user_id])
+    if user
+      UserParty.find_or_create_by!(user: user, party: @party, role: "party_leiter") do |up|
+        up.granted_by = current_user
+      end
+      redirect_to @party, notice: I18n.t("parties.leiter.assigned")
+    else
+      redirect_to @party, alert: I18n.t("parties.leiter.invalid_user")
+    end
+  end
+
+  # DELETE /parties/1/remove_leiter
+  def remove_leiter
+    @party.user_parties.where(user_id: params[:user_id], role: "party_leiter").destroy_all
+    redirect_to @party, notice: I18n.t("parties.leiter.removed")
+  end
+
   private
+
+  def require_party_operator
+    return if PartyPolicy.new(current_user, @party).operate?
+
+    redirect_to @party, alert: I18n.t("parties.errors.operate_denied")
+  end
+
+  def require_leiter_assigner
+    return if PartyPolicy.new(current_user, @party).assign_leiter?
+
+    redirect_to @party, alert: I18n.t("parties.errors.assign_leiter_denied")
+  end
 
   # Use callbacks to share common setup or constraints between actions.
   def set_party

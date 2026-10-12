@@ -1,321 +1,394 @@
 # Schnellstart: Raspberry Pi Scoreboard Installation
 
-Komplette Installationsanleitung von leerer SD-Karte bis zu funktionierendem Scoreboard in unter 30 Minuten.
+Von der leeren SD-Karte bis zum Scoreboard im Vollbild — so, wie der Weg am 2026-09-10/11 auf
+einem frischen Raspberry Pi tatsächlich gegangen wurde (Pi 5, 2 GB RAM, Raspberry Pi OS 13
+„trixie"). Jeder Schritt unten ist dabei gelaufen; wo er nicht glatt lief, steht es dabei.
 
 ## Überblick
 
-Diese Anleitung führt Sie durch die komplette Einrichtung eines Carambus Scoreboards auf einem Raspberry Pi, inklusive:
+Die Einrichtung hat zwei Teile:
 
-- ✅ Raspberry Pi OS Installation
-- ✅ Ansible Konfiguration
-- ✅ Server Deployment
-- ✅ Client/Kiosk Einrichtung
-- ✅ Automatischer Browser-Start
+1. **System** (Schritt 1–2): Raspberry Pi OS, Härtung, Ruby, PostgreSQL, nginx — mit **einem**
+   Aufruf von Ansible. Gemessen: gut 60 Minuten, überwiegend Paket-Updates.
+2. **Anwendung** (Schritt 3–4): Carambus, Datenbank, Redis, Puma und der Scoreboard-Kiosk — mit
+   einigen Rake-Tasks vom Admin-Rechner aus. Gemessen: rund 15 Minuten reine Laufzeit.
+
+Danach startet der Pi von selbst ins Scoreboard. Beim Einschalten dauert das etwa **3 Minuten**
+(Desktop nach rund 1 Minute) — der Pi ist in dieser Zeit nicht defekt.
+
+!!! note "Was ein Verein vom Betreiber braucht"
+    Drei Dinge, alle einmalig:
+
+    1. die **Zugangsdaten zum Regionsdump** seiner Region (Login und Passwort, siehe 3.1) — damit befüllt
+       Schritt 3.2 die Datenbank aus dem [Regionsdump](region-dumps.md) der Authority (`api.carambus.de`),
+       ohne SSH-Zugang zu ihr;
+    2. die beiden **nicht öffentlichen Repositories** `carambus_data` und `ansible` (siehe
+       [Die drei Verzeichnisse](#die-drei-verzeichnisse));
+    3. einen **Eintrag für Verein und Spielort auf der Authority**, falls es ihn dort noch nicht gibt (3.1).
+
+    Alles andere, auch die Credentials, erledigt der Verein selbst.
 
 ## Voraussetzungen
 
 ### Hardware
-- Raspberry Pi 4 oder 5 (empfohlen: 4GB+ RAM)
-- MicroSD-Karte (mindestens 16GB, empfohlen 32GB+)
-- Netzteil (offizielles Raspberry Pi Netzteil empfohlen)
-- Monitor mit HDMI-Anschluss
-- Tastatur und Maus (für initiale Einrichtung)
-- Netzwerkverbindung (Ethernet empfohlen, WiFi unterstützt)
+- Raspberry Pi 4 oder 5. **2 GB RAM funktionieren**, sind aber knapp (Kaltstart ~3 min bis zum
+  Scoreboard); 4 GB oder mehr sind empfehlenswert
+- MicroSD-Karte (mindestens 16 GB, empfohlen 32 GB+)
+- Offizielles Netzteil, Monitor (HDMI), für die Einrichtung Tastatur und Maus
+- Netzwerk: Kabel empfohlen; WLAN funktioniert
 
-### Software
-- Computer mit SD-Kartenleser
+### Admin-Rechner (Mac oder Linux)
+
+Windows reicht nicht. Auf dem Rechner werden gebraucht:
+
 - [Raspberry Pi Imager](https://www.raspberrypi.com/software/)
+- **Ruby 3.2.1** (z. B. über `rbenv`) und **Bundler** — die Rake-Tasks unten sind `bin/rails`-Aufrufe
+  und laufen im carambus-Checkout; dort einmalig `bundle install`
+- **Ansible** für Schritt 1–2
+- **Lokales PostgreSQL**
+- Ein **SSH-Schlüssel** (`~/.ssh/id_rsa.pub`), und zwar **bei GitHub hinterlegt** — die
+  Szenario-Werkzeuge klonen über SSH (`lib/tasks/scenarios.rake:2541`), auch wenn das
+  carambus-Repository öffentlich ist
 
-### Erforderliche Kenntnisse
-- Grundlegende Kommandozeilen-Erfahrung
-- Verständnis von SSH-Verbindungen
-- Grundlegende Netzwerk-Konfiguration
+### Die drei Verzeichnisse
 
-## Schritt 1: SD-Karte vorbereiten (5 Minuten)
+!!! warning "Zwei davon sind nicht öffentlich"
+    `carambus_data` und `ansible` sind private Repositories. Ein Verein bekommt sie heute
+    **nur vom Betreiber**. Die Installation geht ohne sie nicht — das ist der Stand, nicht eine
+    Formsache.
 
-### 1.1 Raspberry Pi Imager herunterladen und installieren
+| Verzeichnis | Inhalt | Woher |
+|---|---|---|
+| `~/DEV/carambus/<szenario>` | Rails-Root des eigenen Szenarios; von hier deployt Capistrano, und aus ihm laufen alle Rake-Tasks | öffentlich: `git clone git@github.com:GernotUllrich/carambus.git ~/DEV/carambus/<szenario>` |
+| `~/DEV/carambus/carambus_data` | Szenario-`config.yml`, `secrets.yml`, Credentials aller Szenarien | **nicht öffentlich** — beim Betreiber anfragen |
+| `~/DEV/ansible` | Inventar, Playbooks und das `RUNBOOK` für Schritt 1–2 | **nicht öffentlich** — beim Betreiber anfragen |
 
-Download unter: https://www.raspberrypi.com/software/
+Ein ausgezeichneter „Master"-Checkout ist nicht nötig; der Szenario-Checkout genügt für alles.
+Ihn **aktuell** halten: `git -C ~/DEV/carambus/<szenario> pull --ff-only`
 
-### 1.2 Raspberry Pi OS flashen
+### Tipp: SSH zu `*.local` beschleunigen
+Der Pi meldet sich per mDNS auch mit seinen öffentlichen IPv6-Adressen; die Firewall lässt SSH
+dort nicht durch, jede Verbindung wartet dann ~20 s, bevor sie auf IPv4 ausweicht. Abhilfe in
+`~/.ssh/config` auf dem Admin-Rechner:
 
-1. SD-Karte in Computer einlegen
-2. Raspberry Pi Imager starten
-3. **Gerät auswählen:** Ihr Raspberry Pi Modell wählen
-4. **Betriebssystem auswählen:** 
-   - Raspberry Pi OS (64-bit) - Empfohlen
-   - Oder: Raspberry Pi OS Lite (64-bit) für Headless-Setup
-5. **Speicher auswählen:** Ihre SD-Karte wählen
-6. **Einstellungen konfigurieren** (Zahnrad-Symbol ⚙️ klicken):
-   ```
-   Hostname: raspberrypi (oder Ihr bevorzugter Name)
-   Benutzername: pi
-   Passwort: [Ihr-sicheres-Passwort]
-   WLAN: [konfigurieren falls benötigt]
-   Sprache: [Ihre Zeitzone und Tastatur-Layout]
-   
-   ✅ SSH aktivieren
-   ☐ Passwort-Authentifizierung verwenden (empfohlen für initiales Setup)
-   ```
-7. **Schreiben** klicken und auf Fertigstellung warten
-
-### 1.3 Erster Start
-
-1. SD-Karte in Raspberry Pi einlegen
-2. Monitor, Tastatur und Netzwerkkabel anschließen
-3. Einschalten
-4. Auf Boot warten (erster Start kann 2-3 Minuten dauern)
-5. IP-Adresse notieren (auf Bildschirm angezeigt oder Router prüfen)
-
-**SSH-Zugriff überprüfen:**
-```bash
-ssh pi@raspberrypi.local
-# oder
-ssh pi@<IP-ADRESSE>
+```
+Host *.local
+    AddressFamily inet
 ```
 
-## Schritt 2: Ansible Konfiguration (10 Minuten)
+## Schritt 1–2: Den Pi aufsetzen (System)
 
-### 2.1 Initiales Server-Setup
+Dieser Teil steht vollständig im Ansible-Repo: **`~/DEV/ansible/RUNBOOK`, Abschnitt „NEUEN
+CARAMBUS-PI AUFSETZEN"**. Kurzfassung:
 
-Die Basis-Provisionierung des Raspberry Pi (Pakete, Ruby/rbenv, PostgreSQL, Nginx, www-data-Benutzer) erfolgt über das Setup-Skript bzw. die Ansible-Rollen im `carambus_master`-Checkout:
+1. `carambus_data/scenarios/<szenario>/config.yml` um den Abschnitt `environments.production.ansible`
+   ergänzen, den Pi in `~/DEV/ansible/hosts` eintragen (inklusive Gruppe `[carambus_pi]`),
+   `bin/rails "scenario:generate_host_vars[<szenario>]"` ausführen
 
-```bash
-cd carambus_master
+    ??? example "Wie dieser Abschnitt aussieht"
+        Ports werden aus `webserver_port`/`ssh_port` abgeleitet; hier steht nur, was sich nicht
+        ableiten lässt. Ein Minimalbeispiel:
 
-# Variante A: Setup-Skript direkt auf dem Raspberry Pi ausführen
-#   (vorher per scp/git auf den Pi übertragen)
-sh bin/setup-raspberry-pi.sh
+        ```yaml
+        environments:
+          production:
+            ansible:
+              # Name in ~/DEV/ansible/hosts. Er muss zum host_vars-Eintrag passen, sonst lädt
+              # Ansible die host_vars nie — auch wenn das Gerät selbst anders heißt.
+              inventory_name: <name>
+              # false = Standard-Portsatz des Templates; true nur nach eigener Messung
+              firewall_trimmed: false
+              # zusätzliche TCP-Ports über den Standardsatz hinaus
+              firewall_extra_tcp_ports: []
+              # IPv6-Regeln mit ausrollen (empfohlen)
+              ipv6_firewall: true
+        ```
 
-# Variante B: Ansible-Rollen aus dem ansible/-Verzeichnis
-#   Hosts in ansible/hosts eintragen, dann:
-cd ansible
-ansible-playbook -i hosts master.yml
-```
+        `generate_host_vars` erzeugt daraus `~/DEV/ansible/host_vars/<inventory_name>` — **dort
+        nicht von Hand editieren**, die Datei wird überschrieben.
+2. SD-Karte mit dem Raspberry Pi Imager schreiben: Hostname `<name>`, Benutzer mit Passwort,
+   **SSH jedes Mal neu anhaken**, öffentlicher Schlüssel `~/.ssh/id_rsa.pub`
+3. Pi starten; meldet er sich noch als `raspberrypi`, einmal neu starten
+4. Vorab: `ssh -4 <benutzer>@<name>.local true` muss ohne Passwort durchgehen
+   (sonst `ssh-copy-id <benutzer>@<name>.local`)
+5. Ein Aufruf:
+   `cd ~/DEV/ansible && ansible-playbook -i hosts master.yml --limit <name> -K`
 
-> Hinweis: Die genaue Provisionierungs-Prozedur (SSH-Härtung, rbenv, PostgreSQL,
-> Nginx) ist in `ansible/RUNBOOK` dokumentiert. Es gibt **kein**
-> `ansible/playbooks/raspberry_pi_server.yml` und **kein**
-> `ansible/inventory/production.yml`; das Inventar liegt in `ansible/hosts`,
-> die Playbooks in `ansible/master.yml` / `ansible/migrate.yml`.
+Ergebnis: SSH nur noch auf Port 8910 als `www-data`, Firewall nur 3131 + 8910, Ruby 3.2.1 (rbenv),
+Node 20, PostgreSQL, nginx. Die Gruppe `[carambus_pi]` verhindert, dass ClamAV und SpamAssassin
+installiert werden — auf einem Pi mit 2 GB belegten sie sonst den halben Speicher.
 
-Dies wird:
-- ✅ System-Pakete aktualisieren
-- ✅ Ruby, Rails, PostgreSQL, Nginx installieren
-- ✅ PostgreSQL konfigurieren
-- ✅ www-data Benutzer anlegen
-- ✅ Verzeichnisstrukturen einrichten
-- ✅ Firewall konfigurieren
+## Schritt 3: Anwendung deployen
 
-**Dauer:** ~10 Minuten (abhängig von Netzwerkgeschwindigkeit)
+### 3.1 Szenario konfigurieren
 
-## Schritt 3: Szenario deployen (10 Minuten)
+Die Konfiguration steht in `carambus_data/scenarios/<szenario>/config.yml`. Ein Vorlage-Verzeichnis
+gibt es nicht — ein bestehendes Szenario (z. B. `carambus_pbv`) dient als Muster. Die für den Pi
+entscheidenden Felder:
 
-### 3.1 Szenario-Konfiguration erstellen
+!!! tip "Die eigenen IDs nachschlagen"
+    `location_id`, `club_id` und `region_id` sind die IDs **auf der Authority**. Sie stehen in der
+    Adresszeile der jeweiligen Übersichtsseite, die ohne Anmeldung lesbar ist:
 
-Falls noch nicht vorhanden, Szenario-Konfiguration erstellen:
+    - Region: <https://api.carambus.de/regions> → z. B. `…/regions/1` ⇒ `region_id: 1`
+    - Verein: <https://api.carambus.de/clubs> → z. B. `…/clubs/3285` ⇒ `club_id: 3285`
+    - Spielort: <https://api.carambus.de/locations> → z. B. `…/locations/2368` ⇒ `location_id: 2368`
 
-```bash
-cd carambus_data/scenarios
-cp -r carambus_location_template carambus_bcw  # Beispiel-Name
-cd carambus_bcw
-```
+    Findet sich der eigene Verein oder Spielort dort **nicht**, muss er auf der Authority erst
+    angelegt werden — das ist einer der drei Punkte, für die ein Verein den Betreiber braucht.
+    Mit den Beispielwerten unten läuft der Server sonst auf einen fremden Verein.
 
-`config.yml` bearbeiten:
 ```yaml
 scenario:
-  name: carambus_bcw
-  description: "Billardclub Wedel"
-  location_id: 1
-  context: NBV
+  name: carambus_pbv
+  location_id: 2368          # die Location des Vereins bei der Authority
   region_id: 1
-  club_id: 357
+  club_id: 3285
+  region_shortname: NBV      # optional; sonst `context`, sonst `region_id` (s. Schritt 3.1 unten)
 
 environments:
   production:
-    webserver_host: 192.168.178.107  # Ihre Raspberry Pi IP
-    ssh_host: 192.168.178.107
+    webserver_host: carambus-pbv.local   # Gerätename, keine IP-Adresse
+    ssh_host: carambus-pbv.local
     webserver_port: 3131
     ssh_port: 8910
-    database_name: carambus_bcw_production
-    database_username: www_data
-    database_password: [sicheres-passwort]
-    
+    # smtp_enabled: false               # nur, wenn der Server keine Mails versenden soll
     raspberry_pi_client:
       enabled: true
-      ip_address: "192.168.178.107"  # Gleich wie Server (All-in-One)
-      ssh_user: "www-data"
+      ip_address: carambus-pbv.local     # auch hier der Gerätename
+      ssh_user: www-data
       ssh_port: 8910
-      kiosk_user: "pi"
+      kiosk_user: gullrich               # der im Imager angelegte Benutzer (Autologin)
       local_server_enabled: true
+      local_server_port: 3131
       autostart_enabled: true
 ```
 
-### 3.2 Vollständiges Deployment ausführen
+Aufruf per IP-Adresse blockt die Anwendung (Rails `config.hosts` erlaubt nur die Namen aus der
+Konfiguration) — im Browser also immer `http://<name>.local:3131`.
 
-Den Deployment-Workflow Schritt für Schritt ausführen. Es gibt **keine** einzelne `deploy_complete`-Aufgabe; das Deployment setzt sich aus den folgenden Rake-Tasks zusammen:
+**Turnier-App:** Soll der Server die [Turnier-App](../managers/tournament-app.md) unter `/app/` ausliefern, gehört
+`serve_tournament_app: true` unter `scenario:`. Die App-Dateien kommen mit dem Deploy; ein eigenes Repository ist
+nicht nötig. Das Dienstkonto für die App: [Turnier-App, Voraussetzungen](../managers/tournament-app.md#voraussetzungen).
+
+**Mail-Absender:** Puma startet in Produktion nur mit SMTP-Zugangsdaten (sonst bricht
+`config/initializers/smtp_guard.rb` den Start ab — nginx meldet dann *502 Bad Gateway*). Die Daten
+gehören in `carambus_data/secrets.yml` (nicht versioniert):
+
+```yaml
+shared:
+  smtp:
+    username: "...@gmail.com"
+    password: "..."          # Gmail: App-Passwort, nicht das Kontopasswort
+```
+
+`prepare_deploy` legt daraus auf dem Pi `/etc/<basename>.env` an. Ein Server ohne Mailversand setzt
+stattdessen `smtp_enabled: false` (siehe oben).
+
+**Credentials:** Jeder Server bekommt einen eigenen Schlüssel und eigene Geheimnisse. Für ein neues Szenario
+einmalig:
 
 ```bash
-cd carambus_master
-
-# 1. Deployment-Dateien vorbereiten (Configs, Credentials, Nginx/Puma)
-rake "scenario:prepare_deploy[carambus_bcw]"
-
-# 2. Server-Deployment (Capistrano + Datenbank-Restore + Service-Management)
-rake "scenario:deploy[carambus_bcw]"
-
-# 3. Raspberry Pi Client einrichten (Pakete, Kiosk-Benutzer, Systemd-Service)
-rake "scenario:setup_raspberry_pi_client[carambus_bcw]"
-
-# 4. Client-Konfiguration deployen (Scoreboard-URL, Autostart, Kiosk-Service)
-rake "scenario:deploy_raspberry_pi_client[carambus_bcw]"
-
-# 5. Client testen
-rake "scenario:test_raspberry_pi_client[carambus_bcw]"
+NEW_KEY=true bin/rails "scenario:generate_credentials[carambus_pbv]"              # Probelauf
+WRITE=true NEW_KEY=true bin/rails "scenario:generate_credentials[carambus_pbv]"   # anlegen
 ```
 
-Diese Aufgaben erledigen zusammen:
+Das legt unter `carambus_data/scenarios/<szenario>/production/credentials/` den `production.key` (Modus 600)
+und die `production.yml.enc` an. Diese enthält ein eigenes `secret_key_base`, einen eigenen JWT-Schlüssel und
+eigene Schlüssel für die Datenbank-Verschlüsselung. Feature-Keys (KI, Übersetzung, Google-Dienstkonto,
+ClubCloud) kommen nur hinein, soweit sie in der `secrets.yml` des `carambus_data` stehen, aus dem der Befehl
+läuft. `prepare_deploy` lädt beide Dateien hoch und bricht ohne sie ab.
 
-1. **Konfigurationsdateien generieren** (Datenbank, Nginx, Puma, Credentials)
-2. **Auf Server deployen** (Anwendungscode via Capistrano, Datenbank-Restore)
-3. **Raspberry Pi Client einrichten** (Chromium, wmctrl, xdotool; Kiosk-Benutzer; Systemd-Service)
-4. **Client-Konfiguration deployen** (Scoreboard-URL, Autostart-Skript, Kiosk-Service aktivieren/starten)
-5. **Alles testen** (SSH-Verbindung, Systemd-Service, Browser-Ausführung)
+!!! warning "`production.key` sichern"
+    `carambus_data` versioniert den Schlüssel nicht. Geht er verloren, sind die `production.yml.enc` und alle
+    verschlüsselten Felder in der Datenbank nicht mehr lesbar.
 
-**Dauer:** ~10 Minuten
+**Zugang zum Regionsdump:** Login und Passwort für die Region des Vereins gibt der Betreiber einmalig aus
+([Regionsdumps, Zugang](region-dumps.md#zugang)). Sie gehören in die `carambus_data/secrets.yml`:
 
-Nach erfolgreichem Deployment:
-
-```
-Zugriffsinformationen:
-  - Web-Interface: http://192.168.178.107:3131
-  - SSH-Zugriff: ssh -p 8910 www-data@192.168.178.107
-
-Management-Befehle:
-  - Browser neustarten: rake scenario:restart_raspberry_pi_client[carambus_bcw]
-  - Client testen: rake scenario:test_raspberry_pi_client[carambus_bcw]
-  - Service prüfen: ssh -p 8910 www-data@192.168.178.107 'sudo systemctl status scoreboard-kiosk'
+```yaml
+per_scenario:
+  carambus_pbv:
+    region_dump:
+      login: carambus-pbv
+      password: "..."
 ```
 
-## Schritt 4: Installation überprüfen (2 Minuten)
+Welche Region geladen wird, ergibt sich aus der `config.yml` (`region_shortname`, sonst `context`, sonst
+`region_id`).
 
-### 4.1 Web-Interface prüfen
+### 3.2 Deployment ausführen
 
-Browser auf anderem Computer öffnen:
-```
-http://192.168.178.107:3131
-```
-
-### 4.2 Scoreboard-Anzeige überprüfen
-
-Der Raspberry Pi Monitor sollte zeigen:
-- ✅ Vollbild Chromium Browser
-- ✅ Carambus Scoreboard Willkommensbildschirm
-- ✅ Kein Desktop sichtbar (Kiosk-Modus)
-
-### 4.3 Test von Kommandozeile
+Alle Befehle aus einem carambus-Checkout, in **dieser Reihenfolge**:
 
 ```bash
-# Service-Status prüfen
-ssh -p 8910 www-data@192.168.178.107 'sudo systemctl status scoreboard-kiosk'
+cd ~/DEV/carambus/carambus_bcw
 
-# Browser-Prozess prüfen
-ssh -p 8910 www-data@192.168.178.107 'pgrep -fa chromium'
+# 1. Configs, Verzeichnisse, Redis, Puma-Dienst, nginx, /etc/<basename>.env   (~1 min)
+bin/rails "scenario:prepare_deploy[carambus_pbv]"
 
-# Logs anzeigen
-ssh -p 8910 www-data@192.168.178.107 'tail -50 /tmp/chromium-kiosk.log'
+# 2. Development-Datenbank auf dem Admin-Rechner aus dem Regionsdump         (~30 s)
+bin/rails "scenario:prepare_development[carambus_pbv,development]"
+
+# 3. Produktions-Datenbank auf den Pi bringen — DESTRUKTIV                    (~1 min)
+bin/rails "scenario:reset_server_db[carambus_pbv]"
+
+# 4. Anwendung per Capistrano                                               (~9 min)
+bin/rails "scenario:deploy[carambus_pbv]"
+
+# 5. Kiosk einrichten, ausliefern, prüfen                                   (je <1 min)
+bin/rails "scenario:setup_raspberry_pi_client[carambus_pbv]"
+bin/rails "scenario:deploy_raspberry_pi_client[carambus_pbv]"
+bin/rails "scenario:test_raspberry_pi_client[carambus_pbv]"
 ```
+
+Danach auf dem Pi den ersten Admin anlegen:
+
+```bash
+ssh -p 8910 www-data@carambus-pbv.local
+cd /var/www/carambus_pbv/current && RAILS_ENV=production bundle exec rake "users:create_admin[<email>]"
+```
+
+Der Befehl legt einen bestätigten `system_admin` an und gibt das Passwort genau einmal aus. Nach der ersten
+Anmeldung unter „Profil“ ändern. Weitere Benutzer legt dieser Admin selbst an. Das Dienstkonto für die
+Turnier-App steht unter [Turnier-App, Voraussetzungen](../managers/tournament-app.md#voraussetzungen).
+
+!!! warning "Das Passwort sofort notieren"
+    Der Befehl ist **nicht wiederholbar**: ein zweiter Lauf mit derselben Adresse bricht mit
+    „Benutzer … gibt es schon — nichts geändert“ ab und zeigt **kein** neues Passwort
+    (`lib/local_accounts.rb:34`). Läuft der Server mit `smtp_enabled: false`, gibt es auch kein
+    „Passwort vergessen“ per E-Mail.
+
+    **Wenn das Passwort verloren ist:** denselben Befehl mit einer **anderen** E-Mail-Adresse
+    aufrufen — so entsteht ein zweiter Administrator, der den ersten in der Benutzerverwaltung
+    korrigieren oder löschen kann.
+
+Was man dabei wissen muss:
+
+- **Schritt 2** lädt den Regionsdump der Region per HTTPS, prüft ihn gegen seine Prüfsumme und spielt ihn als
+  `<szenario>_development` ein. Der Dump enthält keine Benutzer. Das **Scoreboard-Konto** legt der Schritt selbst
+  an — das ist das Konto, unter dem die Anzeigegeräte am Tisch arbeiten, ohne dass sich jemand anmelden muss;
+  seine Zugangsdaten braucht niemand von Hand. Der erste Admin kommt nach dem Deploy (siehe oben). Die ~30 s sind gemessen mit schon installierten
+  Abhängigkeiten; beim ersten Lauf auf einem Admin-Rechner installiert der Schritt sie vorher. Ohne
+  `region_dump` in der `secrets.yml` nimmt er den
+  [Betreiber-Weg](installation-overview.md#betreiber-weg) per SSH zur Authority.
+- Hat der Pi schon lokale Daten (id ≥ 50 Mio.), sichert Schritt 2 sie vorher vom Pi und spielt sie danach
+  wieder ein.
+- **Schritt 3** ist als DESTRUKTIV markiert: er löscht die Produktions-Datenbank auf dem Pi und
+  spielt sie neu ein. Auf einem frischen Pi gibt es noch keine. Ohne Schritt 2 bricht er mit
+  `ActiveRecord::NoDatabaseError … carambus_pbv_development` ab — dann Schritt 2 nachholen, nicht
+  `db:create`.
+- **Schritt 1** darf wiederholt werden; eine vorhandene `/etc/<basename>.env` wird nie
+  überschrieben.
+- `deploy_raspberry_pi_client` startet den Kiosk neu — Änderungen am Kiosk greifen sofort.
+
+## Schritt 4: Installation prüfen
+
+### 4.1 Web-Interface
+
+Im Browser auf dem Admin-Rechner: `http://<name>.local:3131`
+
+Von der Kommandozeile (der Browser-User-Agent ist nötig, falls der nginx-Bot-Block aktiv ist —
+`curl` wird sonst mit 403 abgewiesen):
+
+```bash
+curl -s -o /dev/null -w "%{http_code}\n" -A "Mozilla/5.0" http://carambus-pbv.local:3131/
+```
+
+#### Sind die Vereinsdaten angekommen?
+
+Die Dienste können laufen und die Datenbank trotzdem die falsche oder gar keine Region
+enthalten. Deshalb zusätzlich inhaltlich prüfen — im Browser:
+
+- `http://<name>.local:3131/clubs` zeigt die Vereine **der eigenen Region**
+- `http://<name>.local:3131/locations` enthält den eigenen Spielort
+- Auf der Startseite steht der eigene Verein, nicht der aus der Beispiel-`config.yml`
+
+Steht dort ein fremder Verein, stimmen `location_id`/`club_id`/`region_id` in der `config.yml`
+nicht (siehe Schritt 3.1) — die Datenbank muss dann mit korrigierter Konfiguration neu
+eingespielt werden.
+
+### 4.2 Scoreboard am Pi
+
+Der Monitor zeigt das Scoreboard **im Vollbild**, ohne Desktop. Nach dem Einschalten dauert das
+rund 3 Minuten (Puma lädt die Anwendung vor, danach startet Chromium).
+
+### 4.3 Dienste
+
+```bash
+ssh -p 8910 www-data@carambus-pbv.local \
+  'systemctl is-active puma-carambus_pbv redis-server nginx scoreboard-kiosk'
+ssh -p 8910 www-data@carambus-pbv.local 'sudo journalctl -u scoreboard-kiosk -n 30'
+ssh -p 8910 www-data@carambus-pbv.local 'sudo tail -50 /tmp/chromium-kiosk.log'
+```
+
+Das Kiosk-Log gehört dem Kiosk-Benutzer — als `www-data` nur mit `sudo` lesbar.
+
+## Den Kiosk bedienen
+
+- **Raspberry Pi OS 13 („trixie", Desktop labwc):** Chromium läuft im Kiosk-Modus. Der Button auf
+  der Welcome-Seite führt dort **nicht** auf den Desktop. Zum Arbeiten am Desktop den Kiosk
+  anhalten und danach wieder starten:
+  ```bash
+  ssh -p 8910 www-data@carambus-pbv.local 'sudo systemctl stop scoreboard-kiosk'
+  ssh -p 8910 www-data@carambus-pbv.local 'sudo systemctl start scoreboard-kiosk'
+  ```
+  Wird Chromium beendet (Absturz, Alt+F4), startet der Kiosk nach wenigen Sekunden von selbst neu.
+- **Raspberry Pi OS 12 („bookworm", Desktop wayfire):** Vollbild mit `--start-fullscreen`; der
+  Button auf der Welcome-Seite schaltet das Vollbild um.
 
 ## Fehlerbehebung
 
-### Häufige Probleme
-
-#### Browser startet nicht
-
-**Logs prüfen:**
+#### 502 Bad Gateway nach dem Deploy
+Puma startet nicht. Häufigste Ursache: `/etc/<basename>.env` fehlt.
 ```bash
-ssh -p 8910 www-data@192.168.178.107 'sudo journalctl -u scoreboard-kiosk.service -n 50'
-ssh -p 8910 www-data@192.168.178.107 'cat /tmp/chromium-kiosk.log'
+ssh -p 8910 www-data@carambus-pbv.local 'sudo journalctl -u puma-carambus_pbv -n 40 --no-pager'
 ```
+Steht dort `FATAL: SMTP-ENV nicht gesetzt`: SMTP-Daten in `secrets.yml` eintragen (siehe 3.1) und
+`prepare_deploy` erneut ausführen — Puma startet danach von selbst.
 
-**Service neu starten:**
+#### Scoreboard nicht im Vollbild
+`deploy_raspberry_pi_client` erneut ausführen (startet den Kiosk mit dem aktuellen Skript neu).
+Die Desktop-Sitzung steht in `/etc/lightdm/lightdm.conf` (`user-session=`).
+
+#### Pi reagiert sehr langsam
+Speicher prüfen: `ssh -p 8910 www-data@<name>.local 'free -m'`. Laufen ClamAV/SpamAssassin
+(`systemctl is-active clamav-daemon spamd`), obwohl der Pi nicht in `[carambus_pi]` stand:
 ```bash
-rake "scenario:restart_raspberry_pi_client[carambus_bcw]"
-```
-
-#### Web-Interface nicht erreichbar
-
-**Puma Service prüfen:**
-```bash
-ssh -p 8910 www-data@192.168.178.107 'sudo systemctl status puma-carambus_bcw'
-```
-
-**Nginx prüfen:**
-```bash
-ssh -p 8910 www-data@192.168.178.107 'sudo systemctl status nginx'
-```
-
-**Datenbankverbindung prüfen:**
-```bash
-ssh -p 8910 www-data@192.168.178.107 'cd /var/www/carambus_bcw/current && RAILS_ENV=production bundle exec rails runner "puts Region.count"'
-```
-
-#### Berechtigungsfehler
-
-Falls Berechtigungsfehler für Chromium-Profilverzeichnis auftreten:
-```bash
-ssh -p 8910 www-data@192.168.178.107 'sudo rm -rf /tmp/chromium-scoreboard*'
-rake "scenario:restart_raspberry_pi_client[carambus_bcw]"
+ssh -p 8910 www-data@<name>.local \
+  'sudo systemctl disable --now clamav-daemon clamav-daemon.socket clamav-freshclam spamd'
 ```
 
 ## Management-Befehle
 
-### Täglicher Betrieb
-
 **Scoreboard-Browser neu starten:**
 ```bash
-rake "scenario:restart_raspberry_pi_client[carambus_bcw]"
+bin/rails "scenario:restart_raspberry_pi_client[carambus_pbv]"
 ```
 
 **Rails-Anwendung neu starten:**
 ```bash
-ssh -p 8910 www-data@192.168.178.107 'sudo systemctl restart puma-carambus_bcw'
+ssh -p 8910 www-data@carambus-pbv.local 'sudo systemctl restart puma-carambus_pbv'
 ```
 
 **Anwendungs-Logs anzeigen:**
 ```bash
-ssh -p 8910 www-data@192.168.178.107 'tail -f /var/www/carambus_bcw/shared/log/production.log'
+ssh -p 8910 www-data@carambus-pbv.local 'tail -f /var/www/carambus_pbv/shared/log/production.log'
+```
+
+**Anwendungscode aktualisieren:**
+```bash
+bin/rails "scenario:deploy[carambus_pbv]"
 ```
 
 **Raspberry Pi neu starten:**
 ```bash
-ssh -p 8910 www-data@192.168.178.107 'sudo reboot'
-```
-
-### Updates und Wartung
-
-**Anwendungscode aktualisieren:**
-```bash
-cd carambus_master
-rake "scenario:deploy[carambus_bcw]"
-```
-
-**System-Pakete aktualisieren:**
-```bash
-ssh -p 8910 www-data@192.168.178.107 'sudo apt update && sudo apt upgrade -y'
-```
-
-**Datenbank sichern:**
-```bash
-rake "scenario:create_database_dump[carambus_bcw,production]"
-```
-
-**Datenbank wiederherstellen:**
-```bash
-rake "scenario:restore_database_dump[carambus_bcw,production]"
+ssh -p 8910 www-data@carambus-pbv.local 'sudo reboot'
 ```
 
 ## Erweiterte Konfiguration
+
+*Die folgenden Abschnitte wurden beim Durchlauf am 2026-09-11 nicht gegangen.*
 
 ### Benutzerdefinierte Port-Konfiguration
 
@@ -356,22 +429,21 @@ raspberry_pi_client:
 ├─────────────────────────────────────────────────┤
 │                                                 │
 │  ┌─────────────────────────────────────────┐   │
-│  │   Kiosk-Modus (Benutzer: pi)            │   │
-│  │   - Chromium Browser (Vollbild)         │   │
+│  │   Kiosk (Autologin-Benutzer aus Imager) │   │
+│  │   - Chromium, Vollbild                  │   │
 │  │   - Systemd Service: scoreboard-kiosk   │   │
 │  └─────────────────────────────────────────┘   │
-│                      ↓ HTTP                     │
+│                      ↓ HTTP (localhost:3131)    │
 │  ┌─────────────────────────────────────────┐   │
 │  │   Web-Server                            │   │
-│  │   - Nginx (Port 3131)                   │   │
-│  │   - Puma App-Server                     │   │
-│  │   - Rails-Anwendung                     │   │
+│  │   - nginx (Port 3131)                   │   │
+│  │   - Puma: puma-<basename>               │   │
+│  │   - Redis (ActionCable)                 │   │
 │  └─────────────────────────────────────────┘   │
 │                      ↓                          │
 │  ┌─────────────────────────────────────────┐   │
-│  │   Datenbank                             │   │
-│  │   - PostgreSQL                          │   │
-│  │   - Datenbank: carambus_bcw_production  │   │
+│  │   PostgreSQL                            │   │
+│  │   - <basename>_production               │   │
 │  └─────────────────────────────────────────┘   │
 │                                                 │
 └─────────────────────────────────────────────────┘
@@ -379,44 +451,20 @@ raspberry_pi_client:
 
 ## Erfolgs-Checkliste
 
-Nach Abschluss aller Schritte überprüfen:
-
-- [ ] Raspberry Pi startet erfolgreich
-- [ ] SSH-Zugriff funktioniert
-- [ ] Web-Interface aus Netzwerk erreichbar
-- [ ] PostgreSQL-Datenbank läuft
-- [ ] Rails-Anwendung antwortet
-- [ ] Nginx-Proxy funktioniert
-- [ ] Scoreboard wird auf Monitor angezeigt
-- [ ] Browser startet automatisch nach Neustart
+- [ ] `ssh -p 8910 www-data@<name>.local` funktioniert
+- [ ] `http://<name>.local:3131` antwortet im Browser
+- [ ] `puma-<basename>`, `redis-server`, `nginx`, `scoreboard-kiosk` sind aktiv
+- [ ] Scoreboard im Vollbild am Monitor
+- [ ] Nach einem Neustart kommt das Scoreboard von selbst (nach ~3 min)
 - [ ] Touch-Eingabe funktioniert (bei Touch-Display)
-- [ ] Keine Fehlermeldungen in Logs
 
 ## Support
 
-Falls Sie auf Probleme stoßen:
-
-1. Überprüfen Sie System-Logs
-2. Verifizieren Sie Netzwerk-Konfiguration
-3. Prüfen Sie GitHub Issues: https://github.com/GernotUllrich/carambus/issues
-
-## Credits
-
-Dieser Installationsprozess wurde durch umfangreiche Tests und Automatisierung optimiert. Der komplette Workflow - von leerer SD-Karte bis zu funktionierendem Scoreboard - dauert typischerweise 25-30 Minuten.
-
-**Schlüssel-Technologien:**
-- Raspberry Pi OS (Debian)
-- Ruby on Rails 7.2
-- PostgreSQL 15
-- Nginx
-- Puma
-- Chromium (Kiosk-Modus)
-- Ansible
-- Capistrano
+GitHub Issues: https://github.com/GernotUllrich/carambus/issues
 
 ---
 
-**Letzte Aktualisierung:** Oktober 2025  
-**Getestet auf:** Raspberry Pi 4 Model B (4GB), Raspberry Pi 5 (8GB)  
-**OS-Version:** Raspberry Pi OS (Bookworm/Trixie, 64-bit)
-
+**Letzte Aktualisierung:** 2026-09-11 (Durchlauf auf frischer Hardware, carambus_bcw Plan 15-03)
+**Getestet auf:** Raspberry Pi 5 (2 GB), Raspberry Pi OS 13 „trixie" (64-bit, Desktop labwc)
+**Frühere Fassung (Oktober 2025):** nannte Pi 4/5 und bookworm/trixie, wurde aber nie gegen einen
+frischen Pi gegangen

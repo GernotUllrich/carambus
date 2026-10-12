@@ -5,9 +5,9 @@
 # Bewusst ohne Rails: laeuft rein ueber pg_dump, damit ein Backup auch dann
 # entsteht, wenn die Anwendung nicht bootet.
 #
-# Auswahl: alle Datenbanken mit Endung "_production". Das trifft die fuenf
-# Instanz-DBs (carambus, carambus_api, carambus_nbv, carambus_tbv,
-# carambus_train) plus provision_production — ein 2023 ausgemustertes
+# Auswahl: alle Datenbanken mit Endung "_production". Das trifft die vier
+# Instanz-DBs (carambus, carambus_api, carambus_nbv, carambus_train) plus
+# provision_production — ein 2023 ausgemustertes
 # Deployment ohne nginx-Site und ohne Dienst, mit 8,7 MB nicht der Rede wert.
 #
 # Ausgenommen sind damit die Altkopien "carambus_api_production_backup" und

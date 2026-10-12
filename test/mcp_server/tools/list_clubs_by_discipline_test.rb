@@ -3,6 +3,18 @@
 require "test_helper"
 
 class McpServer::Tools::ListClubsByDisciplineTest < ActiveSupport::TestCase
+
+  # 2026-09-04: RegionCc wird im Test angelegt statt per Fixture. Ein Fixture ist hier
+  # nicht moeglich: auf `context` liegt ein UNIQUE-Index, und ueber 60 bestehende Tests
+  # (RegionCcCharTest, die RegionCc::*Syncer, Calendar::Query, ExternalTournament::*)
+  # erzeugen ihren eigenen NBV-Datensatz mit context "nbv" — ein Fixture kollidierte mit
+  # jedem davon. Das Repo legt RegionCc deshalb ueberall im Test an; dem folgen wir.
+  def nbv_region_cc!(region)
+    region.region_cc || RegionCc.create!(
+      region: region, name: "NBV Test", shortname: "nbv", context: "nbv",
+      cc_id: 3, base_url: "https://test.club-cloud.de", username: "test", userpw: "test"
+    )
+  end
   setup do
     ENV["CARAMBUS_MCP_MOCK"] = "1"
     ENV["CC_FED_ID"] = nil
@@ -101,8 +113,7 @@ class McpServer::Tools::ListClubsByDisciplineTest < ActiveSupport::TestCase
     discipline = Discipline.find_by(name: "Freie Partie klein")
     skip "Fixtures missing" unless nbv && discipline
 
-    region_cc = nbv.region_cc
-    skip "RegionCc missing for NBV" unless region_cc
+    region_cc = nbv_region_cc!(nbv)
 
     region_cc.stub(:sync_clubs, ->(_) { raise StandardError, "stubbed sync failure" }) do
       response = McpServer::Tools::ListClubsByDiscipline.call(

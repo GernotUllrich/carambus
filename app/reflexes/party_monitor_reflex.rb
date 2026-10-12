@@ -23,6 +23,12 @@ class PartyMonitorReflex < ApplicationReflex
   # Learn more at: https://docs.stimulusreflex.com
 
   before_reflex :load_objects
+  # Plan 20-02: bis hierher pruefte kein Reflex ausser reset_party_monitor ein Recht, und die
+  # Cable-Verbindung laesst anonyme Clients bewusst zu (connection.rb) — jeder Besucher der Seite
+  # konnte eine laufende Begegnung umbauen. Bedienen duerfen jetzt der eingesetzte
+  # Begegnungsleiter, der zustaendige Sportwart und Admins (PartyPolicy#operate?, Betreiber-
+  # Vorgabe 2026-09-18: wie beim Einzelturnier). reset_party_monitor behaelt seine Admin-Pruefung.
+  before_reflex :authorize_operation, except: %i[reset_party_monitor]
 
   def assign_player(ab)
     assigned_players_ids = Player.joins(:seedings).where(seedings: { tournament: @party, role: "team_#{ab}" }).ids
@@ -354,5 +360,13 @@ class PartyMonitorReflex < ApplicationReflex
   def load_objects
     @party_monitor = PartyMonitor.find(element.dataset["id"])
     @party = @party_monitor.party
+  end
+
+  def authorize_operation
+    return if @party && PartyPolicy.new(current_user, @party).operate?
+
+    Rails.logger.warn "[PartyMonitorReflex] #{method_name} abgewiesen: " \
+      "Benutzer #{current_user&.id.inspect}, PartyMonitor #{@party_monitor&.id.inspect}"
+    throw :abort
   end
 end

@@ -12,6 +12,30 @@ de:
       sets: "Sätze"
       current_inning: "Aktuelle Aufnahme"
       inputs: "Eingaben"
+    round_status:
+      progress:
+        one: "Runde %{round}: %{finished} von %{count} Spiel beendet"
+        other: "Runde %{round}: %{finished} von %{count} Spielen beendet"
+      all_finished:
+        one: "Runde %{round}: das Spiel ist beendet"
+        other: "Runde %{round}: alle %{count} Spiele beendet"
+      open: "offen:"
+      # Plan 23-01: der Turnierleiter schaltet die Runde weiter
+      advance_round: "Runde %{round} abschliessen"
+      advance_tournament: "Turnier abschliessen"
+      advance_hint: "Bis dahin lassen sich Ergebnisse dieser Runde noch korrigieren."
+      correction_affects_later_round: "Hinweis: Die Korrektur kann die Rangfolge aendern - Runde %{round} ist bereits besetzt. Pruefe, ob die Folgerunde noch stimmt."
+      correction_manual: "nachtraegliche Korrektur"
+      advance_order_hint: "Geaenderte Ergebnisse zuerst mit \"update\" speichern - der Rundenwechsel uebernimmt sie nicht."
+      advance_tournament_hint: "Damit werden die Endergebnisse festgeschrieben und in die ClubCloud uebertragen."
+      advance_tournament_confirm: "Turnier wirklich abschliessen? Die Endergebnisse werden festgeschrieben und in die ClubCloud uebertragen. Danach sind Korrekturen nur noch in der ClubCloud moeglich."
+      advanced: "Die Runde wurde weitergeschaltet."
+      advance_rejected: "Die Runde konnte nicht weitergeschaltet werden - sie ist nicht abschlussbereit."
+      no_table: "ohne Tisch"
+    session_expired:
+      alert: "Die Sitzung war abgelaufen - es wurde NICHTS gespeichert. Bitte neu anmelden und die Ergebnisse erneut eintragen."
+      values: "Deine Eingaben waren: %{list}"
+      row: "Spiel %{game}: %{a}:%{b} in %{ia}/%{ib} Aufnahmen (HS %{hsa}/%{hsb})"
     game_results:
       game: "Spiel"
       playera: "Spieler A"
