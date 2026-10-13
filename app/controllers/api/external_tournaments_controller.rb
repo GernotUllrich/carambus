@@ -934,7 +934,7 @@ module Api
       params.permit(
         :schema, :tournament_id, :external_id, :free_game_form,
         :innings_goal, :sets_to_play, :sets_to_win, :timeouts, :timeout,
-        :kickoff_switches_with, :allow_follow_up, :allow_overflow, :initial_red_balls,
+        :kickoff_switches_with, :allow_follow_up, :allow_overflow, :initial_red_balls, :round_no,
         region: [:shortname],
         tournament: [:external_id],
         table: [:id, :name],

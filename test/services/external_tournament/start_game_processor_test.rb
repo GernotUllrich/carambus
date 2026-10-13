@@ -57,6 +57,26 @@ module ExternalTournament
       assert_equal @tournament.external_id, tm.game.data["tournament_external_id"]
     end
 
+    # GP Biathlon 2026-10-13: im Warmup stand "Runde 1" in Runde 3 — die App fuehrt die Runden,
+    # der TournamentMonitor eines App-Turniers zaehlt nicht mit.
+    test "round_no der App wird am Spiel vermerkt und als Runde angezeigt" do
+      @tournament.tournament_monitor.current_round!(1)
+      result = StartGameProcessor.new(region: @nbv,
+        payload: start_payload(external_id: "game-sg-r3").merge(round_no: "3")).call
+
+      assert_equal 3, result.table_monitor.game.data["round_no"]
+      assert_equal 3, result.table_monitor.display_round
+      assert_equal 3, result.table_monitor.get_options!(:de)[:current_round]
+    end
+
+    test "ohne round_no bleibt die Runde des TournamentMonitors (Gegenprobe)" do
+      @tournament.tournament_monitor.current_round!(2)
+      result = StartGameProcessor.new(region: @nbv, payload: start_payload(external_id: "game-sg-r0")).call
+
+      refute result.table_monitor.game.data.key?("round_no")
+      assert_equal 2, result.table_monitor.display_round
+    end
+
     test "ungebundener Tisch wird abgelehnt" do
       other_mon = TableMonitor.create!(state: "ready", data: {})
       other_table = tables(:two)

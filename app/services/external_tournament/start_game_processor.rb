@@ -97,10 +97,13 @@ module ExternalTournament
           # Plan 17-06 (D-17-06-A): zusaetzlich durabler Turnier-Marker fuer die CSV-Enumerierung.
           # Nur JSON-data (KEIN game.tournament_id-FK — zieht sonst Polymorphie/Unique-Index/
           # acts_as_list herein). Ueberlebt die TableMonitor-Entbindung beim Lifecycle-Exit (17-05).
-          tm.game.update!(data: safe_data(tm.game).merge(
+          # round_no: die App fuehrt die Runden; Anzeige ueber TableMonitor#display_round.
+          game_data = safe_data(tm.game).merge(
             "external_id" => external_id,
             "tournament_external_id" => tournament.external_id
-          ))
+          )
+          game_data["round_no"] = @payload[:round_no].to_i if @payload[:round_no].present?
+          tm.game.update!(data: game_data)
         end
       end
 

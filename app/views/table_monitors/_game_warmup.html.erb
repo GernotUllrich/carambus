@@ -20,7 +20,7 @@
           <div class="flex-auto mt-5 text-2vw text-center"><%= lines[0] %></div>
           <%= render 'table_monitors/menu', table_monitor: table_monitor %>
           <div class="flex-auto mt-5 text-2vw text-center"><%= lines[1] %></div>
-          <div class="flex-auto mt-5 text-2vw text-center"><%= t("table_monitor.round") %> <%= table_monitor.tournament_monitor.andand.current_round %></div>
+          <div class="flex-auto mt-5 text-2vw text-center"><%= t("table_monitor.round") %> <%= table_monitor.display_round %></div>
         </div>
         <%- gps = table_monitor.game.andand.game_participations.andand.order(:role).to_a %>
         <div class="mt-4 flex h-1/2 flex-row text-black dark:text-gray-200 space-x-4">
@@ -101,7 +101,7 @@
           <%- lines = table_monitor.game.andand.display_gname_lines || [] %>
           <div class="flex-1 text-2vw text-center"><%= lines[0] %></div>
           <div class="flex-1 text-2vw text-center"><%= lines[1] %></div>
-          <div class="flex-1 text-2vw text-center"><%= t("table_monitor.round") %> <%= table_monitor.tournament_monitor.andand.current_round %></div>
+          <div class="flex-1 text-2vw text-center"><%= t("table_monitor.round") %> <%= table_monitor.display_round %></div>
         </div>
         <hr>
         <%- gps = table_monitor.game.andand.game_participations.andand.order(:role).to_a %>

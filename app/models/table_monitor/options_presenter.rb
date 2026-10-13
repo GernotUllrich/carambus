@@ -48,7 +48,7 @@ class TableMonitor::OptionsPresenter
         name: @tm.name,
         game_name: show_game&.display_gname,
         tournament_title: show_tournament_monitor&.tournament&.title,
-        current_round: show_tournament_monitor&.current_round,
+        current_round: @tm.display_round(show_game, show_tournament_monitor),
         timeout: if show_tournament_monitor.is_a?(PartyMonitor)
                    nil
                  else

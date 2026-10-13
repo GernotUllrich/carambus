@@ -1339,6 +1339,14 @@ class TableMonitor < ApplicationRecord
     true
   end
 
+  # Anzuzeigende Runde: App-Turniere fuehren die Runden selbst und schicken sie mit start_game
+  # (game.data["round_no"]); der TournamentMonitor bleibt dort auf current_round 1. Sonst wie bisher.
+  # Bewusst nicht games.round_no — das steuert im Turnierablauf Gruppen-/Rundenlogik.
+  def display_round(for_game = game, for_tournament_monitor = tournament_monitor)
+    game_data = for_game&.data
+    (game_data["round_no"] if game_data.is_a?(Hash)).presence || for_tournament_monitor&.current_round
+  end
+
   def follow_up?
     override = bk_follow_up_override
     return false if override == false
