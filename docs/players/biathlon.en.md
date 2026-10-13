@@ -74,7 +74,9 @@ the group stage, round of 16 and final. See [Tournament App](../managers/tournam
   limit of the three-cushion phase ("of 15").
 - Input as in three-cushion: **+1** per point. The large number shows the **raw three-cushion
   points** — not ×6.
-- An input beyond the partial distance is capped at the partial distance.
+- An input beyond the partial distance is **ignored** — the score stays unchanged (e.g. goal 10,
+  score 2, +10 by mistake). A three-cushion shot scores at most one point; a larger input is an
+  operating error.
 - When a player reaches the partial distance, **their inning ends automatically** and the game
   switches to 5-pins. The opponent gets no three-cushion follow-up shot.
 - When **both** players have reached the innings limit, the game switches as well — regardless of
@@ -114,7 +116,8 @@ No. The three-cushion phase shows the raw points so that the +1 input stays trac
 applied at the switch.
 
 **A player scored more in the last three-cushion inning than was missing to the partial
-distance.** The input is capped at the partial distance — as the rule requires.
+distance.** Enter only the missing points — excess points do not count under the rule anyway.
+A larger input is ignored so that a typo cannot trigger the switch to 5-pins by accident.
 
 **The tournament has an innings limit of 30 — does the game end after 30 innings?**
 No. For Biathlon the innings limit only applies to the three-cushion phase (field "Biathlon:

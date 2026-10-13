@@ -58,12 +58,23 @@ class TableMonitor::ScoreEngineBiathlonTest < ActiveSupport::TestCase
     assert_equal :goal_reached, engine(data).add_n_balls(3)
   end
 
-  test "Dreiband: Eingabe ueber die Teildistanz hinaus wird gekappt" do
+  test "Dreiband: Eingabe ueber die Teildistanz hinaus wird ignoriert" do
     data = biathlon_data("playera" => {"innings_list" => [12], "result" => 12})
 
-    engine(data).add_n_balls(5)
+    assert_nil engine(data).add_n_balls(5)
 
-    assert_equal 3, data["playera"]["innings_redo_list"][-1]
+    assert_equal 0, data["playera"]["innings_redo_list"][-1]
+    assert_equal 12, data["playera"]["result"]
+  end
+
+  test "Dreiband: ignorierte Eingabe laesst eine laufende Aufnahme stehen (Ziel 10, Stand 2, +10)" do
+    data = biathlon_data("biathlon" => {"balls_goal_3b" => 10})
+    e = engine(data)
+    e.add_n_balls(2)
+    e.add_n_balls(10)
+
+    assert_equal 2, data["playera"]["innings_redo_list"][-1]
+    assert_equal "3b", data["biathlon_phase"]
   end
 
   test "Dreiband: Korrektur nach unten geht nicht unter null" do
@@ -76,10 +87,17 @@ class TableMonitor::ScoreEngineBiathlonTest < ActiveSupport::TestCase
     assert_equal 0, data["playera"]["innings_redo_list"][-1]
   end
 
-  test "Dreiband: set_n_balls kappt an der Teildistanz und meldet goal_reached" do
+  test "Dreiband: set_n_balls ueber die Teildistanz hinaus wird ignoriert" do
     data = biathlon_data("playera" => {"innings_list" => [10], "result" => 10})
 
-    assert_equal :goal_reached, engine(data).set_n_balls(9)
+    assert_nil engine(data).set_n_balls(9)
+    assert_equal 0, data["playera"]["innings_redo_list"][-1]
+  end
+
+  test "Dreiband: set_n_balls genau auf die Teildistanz meldet goal_reached" do
+    data = biathlon_data("playera" => {"innings_list" => [10], "result" => 10})
+
+    assert_equal :goal_reached, engine(data).set_n_balls(5)
     assert_equal 5, data["playera"]["innings_redo_list"][-1]
   end
 

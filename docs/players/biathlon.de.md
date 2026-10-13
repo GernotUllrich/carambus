@@ -74,7 +74,9 @@ Gruppenphase, Achtelfinale und Finale. Siehe [Turnier-App](../managers/tournamen
   Aufnahmebegrenzung der Dreiband-Phase („of 15“).
 - Eingegeben wird wie bei Dreiband: **+1** je Punkt. Die große Zahl zeigt die **rohen
   Dreibandpunkte** — nicht ×6.
-- Eine Eingabe über die Teildistanz hinaus wird auf die Teildistanz gekappt.
+- Eine Eingabe über die Teildistanz hinaus wird **ignoriert** — der Stand bleibt unverändert
+  (z. B. Ziel 10, Stand 2, versehentlich +10). Ein Dreibandstoß bringt höchstens einen Punkt,
+  eine größere Eingabe ist ein Bedienfehler.
 - Erreicht ein Spieler die Teildistanz, **endet seine Aufnahme automatisch**, und die Partie
   wechselt auf 5-Kegel. Der Gegner bekommt in Dreiband keinen Nachstoß.
 - Sind **beide** Spieler bei der Aufnahmebegrenzung angekommen, wechselt die Partie ebenfalls —
@@ -116,7 +118,9 @@ Nein. In der Dreiband-Phase stehen die rohen Punkte, damit die +1-Eingabe nachvo
 ×6 wird beim Wechsel gerechnet.
 
 **Ein Spieler hat in der letzten Dreiband-Aufnahme mehr Punkte gemacht, als zur Teildistanz
-fehlten.** Die Eingabe wird auf die Teildistanz gekappt — so wie die Regel es vorsieht.
+fehlten.** Nur die fehlenden Punkte eingeben — überschüssige Punkte zählen nach der Regel ohnehin
+nicht. Eine größere Eingabe wird ignoriert, damit ein Tippfehler nicht versehentlich den
+Wechsel auf 5-Kegel auslöst.
 
 **Im Turnier steht ein Aufnahmen-Limit von 30 — endet die Partie nach 30 Aufnahmen?**
 Nein. Bei Biathlon gilt die Aufnahmebegrenzung nur für die Dreiband-Phase (Feld „Biathlon:

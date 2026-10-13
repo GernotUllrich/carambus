@@ -1292,20 +1292,27 @@ class TableMonitor::ScoreEngine
       data["allow_overflow"].present? || discipline == "Biathlon"
     end
 
+    # Ein Dreiband-Stoss bringt hoechstens einen Punkt: eine Eingabe ueber die Teildistanz
+    # hinaus ist ein Bedienfehler (z.B. +10 statt +1) und wird ignoriert, nicht gekappt —
+    # gekappt haette sie die Teildistanz erreicht und den Wechsel auf 5-Kegel ausgeloest
+    # (Betreiber 2026-10-13). Die Kegel-Phase kappt weiter nach §3.3.
     def add_biathlon_3b(role, n_balls)
       current = data[role]["innings_redo_list"][-1].to_i
       remaining = biathlon_param("balls_goal_3b") - data[role]["result"].to_i - current
-      add = n_balls.positive? ? [n_balls, remaining].min : n_balls
+      return nil if n_balls > remaining
+
       data[role]["fouls_1"] = 0
-      data[role]["innings_redo_list"][-1] = [current + add, 0].max
+      data[role]["innings_redo_list"][-1] = [current + n_balls, 0].max
       recompute_result(role)
       biathlon_3b_goal_reached?(role) ? :goal_reached : nil
     end
 
     def set_biathlon_3b(role, n_balls)
       remaining = biathlon_param("balls_goal_3b") - data[role]["result"].to_i
+      return nil if n_balls > remaining
+
       data[role]["fouls_1"] = 0
-      data[role]["innings_redo_list"][-1] = n_balls.clamp(0, [remaining, 0].max)
+      data[role]["innings_redo_list"][-1] = [n_balls, 0].max
       recompute_result(role)
       biathlon_3b_goal_reached?(role) ? :goal_reached : nil
     end
