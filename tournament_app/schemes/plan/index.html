@@ -1383,12 +1383,12 @@ function syncMeta() {
 }
 
 // Run aus persistierten records rekonstruieren (deterministisch).
-function rebuildRun() {
+function rebuildRun(records = state?.records) {
   if (!state || !state.executorParams || !state.participants?.length) return null;
   const plan = parsePlan(state.executorParams);
   const r = createRun(plan, state.participants.map((p, i) => ({ ...p, seed: i + 1, pid: pidOf({ ...p, seed: i + 1 }) })),
                       { ballsGoal: state.format.balls_goal });
-  for (const rec of (state.records || [])) {
+  for (const rec of (records || [])) {
     try { recordResult(r, rec.key, rec.res, rec.winner); } catch (e) { console.warn("replay", rec.key, e.message); }
   }
   return r;
@@ -2165,10 +2165,10 @@ function toggleSwap(key) {
   // allein waere nach dem naechsten Reload wieder weg.
   const rec = (state.records || []).find(r => r.key === key);
   if (rec && rec.res) {
-    rec.res = { a: rec.res.b, b: rec.res.a };
-    const d = decideGame(rec.res, state.format.balls_goal, state.format.balls_goal);
-    rec.winner = d.winner || (rec.winner === "a" ? "b" : (rec.winner === "b" ? "a" : null));
-    run = rebuildRun();
+    const res = { a: rec.res.b, b: rec.res.a };
+    const d = decideGame(res, state.format.balls_goal, state.format.balls_goal);
+    applyCorrection(key, res, d.winner || (rec.winner === "a" ? "b" : (rec.winner === "b" ? "a" : null)));
+    return;
   }
   save(); renderAll();
 }
@@ -2182,7 +2182,7 @@ function matchCard(g, mode, free) {
   let actions = "";
   if (mode === "ready" && playerBusy(g)) actions = `<span class="muted">wartet — Spieler am Tisch</span>`;
   else if (mode === "ready") { const pref = preferredTable(g, new Set(free)); actions = free.length ? `<select class="m-table" data-id="${g.key}">${free.map(t => `<option value="${escapeHtml(t)}"${t === pref ? " selected" : ""}>${escapeHtml(t)}</option>`).join("")}</select><button class="btn m-start" data-id="${g.key}">▶ Starten</button>` : `<span class="muted">kein freier Tisch</span>`; }
-  else if (mode === "done") actions = `<button class="btn secondary m-swap" data-id="${g.key}" title="Ergebnis seitenverkehrt uebernommen? Hier drehen">⇄ Ergebnis drehen</button>`;
+  else if (mode === "done") { const corr = (state.records || []).find(r => r.key === g.key)?.corrected?.length; actions = `<button class="btn secondary m-manual" data-id="${g.key}" title="Spielzettel weicht ab? Ergebnis korrigieren">✎ Korrigieren</button><button class="btn secondary m-swap" data-id="${g.key}" title="Ergebnis seitenverkehrt uebernommen? Hier drehen">⇄ Ergebnis drehen</button>${corr ? `<span class="badge open" title="Ergebnis wurde nachträglich korrigiert">korrigiert</span>` : ""}`; }
   else if (mode === "running") actions = `<button class="btn ${swapped ? "" : "secondary"} m-swap" data-id="${g.key}" title="Reihenfolge an das Scoreboard angleichen — oben steht, wer angestossen hat">⇄ ${swapped ? "getauscht" : "Spieler tauschen"}</button>${isLive() ? `<button class="btn m-poll" data-id="${g.key}">📥 Ergebnis holen</button>` : ``}<button class="btn secondary m-manual" data-id="${g.key}">✎ Ergebnis erfassen</button>`;
   const hint = swapped ? `<div class="muted" style="font-size:.85em;padding:2px 0 0 2px;">Reihenfolge wie auf dem Scoreboard</div>` : ``;
   return `<div class="m-card ${mode}"><div class="m-top"><span>${escapeHtml(gameLabel(g))}</span><span class="m-id">${escapeHtml(g.key)}${state.gameUI[g.key]?.table ? " · " + escapeHtml(state.gameUI[g.key].table) : ""}</span></div>${slots}${hint}<div class="m-actions">${actions}</div><div id="manual-${cssId(g.key)}"></div></div>`;
@@ -2345,8 +2345,7 @@ function mapAckResult(body, key) {
   return { res: { a: sideFromParticipant(pa), b: sideFromParticipant(pb) }, byIdentity: true };
 }
 
-function completeGame(key, res) {
-  const g = run.plan.games.find(x => x.key === key);
+function pickWinner(g, res) {
   let winner = decideGame(res, state.format.balls_goal, state.format.balls_goal).winner;
   if (!winner) {
     // Gruppenspiel: Remis ok (1:1). Finalrunde sowie eae_pg-R1 (g.decide): Sieger
@@ -2358,6 +2357,11 @@ function completeGame(key, res) {
       winner = (pick === "a" || pick === "b") ? pick : (Math.random() < 0.5 ? "a" : "b");
     }
   }
+  return winner;
+}
+function completeGame(key, res) {
+  const g = run.plan.games.find(x => x.key === key);
+  const winner = pickWinner(g, res);
   state.records.push({ key, res, winner, at: Date.now(), table: state.gameUI[key]?.table ?? null });
   delete state.gameUI[key];
   run = rebuildRun();
@@ -2368,6 +2372,35 @@ function completeGame(key, res) {
   // Vorwarnung) kostet dann nichts. Laeuft absichtlich ohne await — der naechste
   // Anstoss soll nicht auf den Server warten.
   if (isLive()) pushArchive({ silent: true });
+}
+// ===== Ergebnis-Korrektur ===================================================
+// Ein schon übernommenes Ergebnis darf korrigiert werden (Spielzettel weicht vom Scoreboard ab),
+// solange dadurch keine Paarung eines schon gestarteten oder gespielten Spiels anders aussähe.
+// Geprüft wird durch Nachrechnen des ganzen Turniers mit dem korrigierten Ergebnis.
+function correctionConflicts(key, newRecords) {
+  const probe = rebuildRun(newRecords), out = [];
+  const same = (x, y) => (x ? pidOf(x) : null) === (y ? pidOf(y) : null);
+  for (const g of run.plan.games) {
+    if (g.key === key || !(run.results[g.key] || state.gameUI[g.key]?.table)) continue;
+    if (!same(resolveSlot(run, g.a), resolveSlot(probe, g.a)) || !same(resolveSlot(run, g.b), resolveSlot(probe, g.b))) out.push(g);
+  }
+  return out;
+}
+function applyCorrection(key, res, winner) {
+  const old = (state.records || []).find(r => r.key === key); if (!old) return false;
+  const rec = { ...old, res, winner, corrected: [...(old.corrected || []), { at: Date.now(), res: old.res, winner: old.winner }] };
+  const newRecords = state.records.map(r => r.key === key ? rec : r);
+  const conflicts = correctionConflicts(key, newRecords);
+  if (conflicts.length) {
+    alert(`Korrektur nicht möglich: Sie würde die Paarung von Spielen ändern, die schon laufen oder gespielt sind:\n\n${conflicts.map(g => "• " + gameLabelBase(g)).join("\n")}\n\nKorrekturen gehen nur, solange kein Folgespiel auf diesem Ergebnis aufbaut.`);
+    return false;
+  }
+  state.records = newRecords;
+  run = rebuildRun();
+  state.phase = runFinished(run) ? "finished" : "running";
+  save(); renderAll();
+  if (isLive()) pushArchive({ silent: true }); // Archiv idempotent mit dem korrigierten Stand überschreiben
+  return true;
 }
 function openManual(key) {
   const box = document.getElementById("manual-" + cssId(key)); if (!box) return;
@@ -2380,13 +2413,18 @@ function openManual(key) {
   box.innerHTML = `<div class="${cls}"><span class="lbl">Spieler</span><span class="lbl">${bi ? "Punkte" : "Bälle"}</span><span class="lbl">Aufn.</span><span class="lbl">HS</span>${bi ? `<span class="lbl">3B-Pkt</span>` : ""}</div>
     <div class="${cls}"><span>${nameHtml(a, { short: true })}</span><input type="number" id="ra-b-${cid}"><input type="number" id="ra-i-${cid}"><input type="number" id="ra-h-${cid}">${b3In("a")}</div>
     <div class="${cls}"><span>${nameHtml(b, { short: true })}</span><input type="number" id="rb-b-${cid}"><input type="number" id="rb-i-${cid}"><input type="number" id="rb-h-${cid}">${b3In("b")}</div>
-    <div class="m-actions"><button class="btn" id="save-${cid}">✓ Speichern</button></div>`;
+    <div class="m-actions"><button class="btn" id="save-${cid}">${run.results[key] ? "✓ Korrektur speichern" : "✓ Speichern"}</button></div>`;
+  const prev = run.results[key]?.res;
+  if (prev) { // Korrektur: bisheriges Ergebnis vorbelegen
+    const put = (id, v) => { const el = document.getElementById(id); if (el && v != null) el.value = v; };
+    for (const side of ["a", "b"]) { const r = prev[side] || {}; put(`r${side}-b-${cid}`, r.balls); put(`r${side}-i-${cid}`, r.innings); put(`r${side}-h-${cid}`, r.hs); put(`r${side}-3-${cid}`, r.b3); }
+  }
   const doSave = () => {
     const v = id => { const x = document.getElementById(id)?.value; return x === "" || x == null ? null : parseInt(x, 10); };
     const res = { a: { balls: v(`ra-b-${cid}`), innings: v(`ra-i-${cid}`), hs: v(`ra-h-${cid}`) }, b: { balls: v(`rb-b-${cid}`), innings: v(`rb-i-${cid}`), hs: v(`rb-h-${cid}`) } };
     if (bi) { res.a.b3 = v(`ra-3-${cid}`); res.b.b3 = v(`rb-3-${cid}`); }
     if (res.a.balls == null || res.b.balls == null) { alert("Beide Ball-Ergebnisse eingeben."); return; }
-    completeGame(key, res);
+    if (prev) applyCorrection(key, res, pickWinner(g, res)); else completeGame(key, res);
   };
   document.getElementById("save-" + cid).addEventListener("click", doSave);
   // Tastatur-Workflow: Enter in einem Feld speichert; erstes Feld autofokussieren.
