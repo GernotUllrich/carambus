@@ -494,6 +494,7 @@ window.Carambus = (function () {
     };
     if (format.initial_red_balls != null) payload.initial_red_balls = format.initial_red_balls; // Snooker
     if (format.biathlon) payload.biathlon = format.biathlon; // { balls_goal_3b, innings_goal_3b } — Gesamtziel steht in participants[].balls_goal
+    if (format.warmup_minutes > 0) payload.warmup_minutes = format.warmup_minutes; // Einspielzeit je Spieler (sonst Turnier-Wert neuer/bekannter Tisch)
     if (roundNo != null) payload.round_no = roundNo; // Anzeige „Runde n“ in Warmup/Scoreboard (sonst TournamentMonitor, bei App-Turnieren immer 1)
     const { body } = await carambusFetch("/api/external_tournament/start_game", { method: "POST", body: payload });
     return body;
@@ -977,7 +978,7 @@ window.Carambus = (function () {
 "use strict";
 function roundNo(key){ const m=/^r(\d+)$/.exec(key); return m?parseInt(m[1],10):null; }
 function isGroupKey(k){ return /^g\d+$/.test(k); }
-const META_KEYS = new Set(["RK","GK","rules","RKP","biathlon","dist","rank","koseed"]);
+const META_KEYS = new Set(["RK","GK","rules","RKP","biathlon","dist","rank","koseed","warmup"]);
 function parsePairing(str){ const m=String(str).split(/\s*-\s*/).map(s=>parseInt(s.trim(),10)); return [m[0],m[1]]; }
 
 function parsePlan(executorParams, opts={}){
@@ -996,7 +997,7 @@ function parsePlan(executorParams, opts={}){
   }
   return { groups: groups.sort((a,b)=>a.n-b.n), games, rk: Array.isArray(p.RK)?p.RK.slice():[], gk: p.GK??null,
            rkp: Array.isArray(p.RKP)?p.RKP.slice():null, biathlon: p.biathlon||null, dist: p.dist||null,
-           rank: p.rank||null, koseed: Array.isArray(p.koseed)?p.koseed.slice():null };
+           rank: p.rank||null, koseed: Array.isArray(p.koseed)?p.koseed.slice():null, warmup: p.warmup||null };
 }
 function parseGroupGames(n,sq,nrepeats,opts={}){
   const out=[]; const seen=new Set();
@@ -1200,7 +1201,8 @@ function biathlonGpPlan(n){
   else if(n>=16){ ng=4; groupVar = n>=21?"10/15/120":n>=18?"10/20/120":"15/20/180"; }
   else { ng=2; groupVar = n>=14?"10/15/120":n>=12?"10/20/120":"15/30/180"; }
   const sizes=gpGroupSizes(n,ng); // folgt dem Treppensystem
-  const p={dist:"snake",rank:"dbu-gp"}; let r=0, gk=0;
+  // warmup: Einspielzeit 3 Minuten je Sportler vor jeder Begegnung (Ausschreibung GP Kegel § 5.1 Abs. 4)
+  const p={dist:"snake",rank:"dbu-gp",warmup:3}; let r=0, gk=0;
   sizes.forEach((pl,i)=>{
     const sq={}; roundRobinRounds(pl).forEach((prs,ri)=>{ const t={}; prs.forEach(([a,b],j)=>{ t["s"+(j+1)]=`${a}-${b}`; }); sq["r"+(ri+1)]=t; });
     p["g"+(i+1)]={pl,rs:"eae",sq}; r=Math.max(r,Object.keys(sq).length); gk+=pl*(pl-1)/2;
@@ -2234,6 +2236,7 @@ async function startGameOnTable(key, table) {
   const fmt = bi
     ? { innings_goal: 0, biathlon: { balls_goal_3b: bi.balls_goal_3b, innings_goal_3b: bi.innings_goal_3b } }
     : { innings_goal: state.format.innings_goal, allow_follow_up: g.kind === "group" };
+  if (run.plan.warmup) fmt.warmup_minutes = run.plan.warmup;
   if (isLive()) {
     try {
       // Scoreboard-Typ aus table_kind der gewählten Disziplin ableiten (Pool/Snooker/Karambol).

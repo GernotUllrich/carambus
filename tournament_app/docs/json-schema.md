@@ -769,6 +769,11 @@ das Gesamtziel steht in `participants[].balls_goal` (120/180), `discipline: "Bia
 `innings_goal: 0` und kein `allow_follow_up`. Fehlt `biathlon`, gelten 15/30. Im Kern:
 `Carambus.api.startGame({ …, format: { biathlon: {…} } })`.
 
+**Optionale Felder** (rückwärtskompatibel, Carambus legt sie in `game.data` ab):
+`round_no` (Anzeige „Runde n“ in Warmup/Scoreboard; ab `abcaafee`) und `warmup_minutes`
+(Einspielzeit je Spieler, gilt für beide unabhängig vom Tisch; fehlt/0 → Turnier-Wert; ab
+`3e858dbd`). Im Kern: `startGame({ …, roundNo, format: { warmup_minutes } })`.
+
 ## 8. `POST acknowledge_result` → `carambus.ack/v1` ⭐ (R4)
 
 ```jsonc

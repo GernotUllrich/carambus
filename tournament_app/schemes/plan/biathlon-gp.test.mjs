@@ -47,6 +47,7 @@ for (let n = 10; n <= 32; n++) {
   eq(plan.rk.length, n, `${n}: Endstand hat ${n} Plätze`);
   eq(plan.biathlon.g, gVar, `${n}: Variante Gruppe`);
   eq(plan.rank, "dbu-gp", `${n}: DBU-Wertung`);
+  eq(plan.warmup, 3, `${n}: Einspielzeit 3 Minuten (§ 5.1 Abs. 4)`);
   assert(!plan.games.some(g => g.key.startsWith("p<")), `${n}: kein Spiel um Platz 3`);
 }
 {

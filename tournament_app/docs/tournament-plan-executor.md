@@ -93,6 +93,9 @@ aus der **DBU-Ausschreibung Grands Prix Kegel** (allgemeiner Teil, V2 vom 10.09.
   Höchstserie; statt Auslosung der Setzplatz. VF 1–8, 5–4, 3–6, 7–2; HF VF1/VF2, VF3/VF4.
   Achtelfinale analog 1–16, 8–9, 5–12, 4–13, 3–14, 6–11, 7–10, 2–15 (Entscheidung Betreiber).
   KO erst nach allen Gruppen- und Quali-Spielen. AF 10/20/120, VF bis Finale 15/30/180.
+- **Einspielzeit** (§ 5.1 Abs. 4): 3 Minuten je Sportler vor jeder Begegnung — Plan-Schlüssel
+  `warmup: 3`, die App schickt `warmup_minutes: 3` an `start_game` (Carambus ab `3e858dbd`; ohne
+  das Feld gilt der Turnier-Wert neuer/bekannter Tisch).
 - **Endstand:** kein Spiel um Platz 3 (§ 2.1 Abs. 2), HF-Verlierer gemeinsam Dritte. VF-Verlierer
   5–8 nach dem GD ihres Spiels (§ 2.3 Abs. 6), AF-Verlierer 9–16 analog (Ref `(…).gk<n>`). Wer
   nicht ins KO kam, je Gruppenplatz-Stufe gruppenübergreifend nach Partiepunkten je Partie, GD,
