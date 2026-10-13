@@ -1148,7 +1148,7 @@ function resolveLosers(run,members,rank){
 // bester Einzel-GD (bestes Punktverhältnis einer Partie), Höchstserie; statt Auslosung der Setzplatz
 function koSeedList(run){
   const ks=run.plan.koseed; if(!ks) return null; const list=[];
-  for(const {ref,place} of ks){ const st=memberStat(run,ref); if(!st) return null; list.push({...st,place}); }
+  for(const {ref,place} of ks){ const st=memberStat(run,ref); if(!st) return null; list.push({...st,place,ref}); }
   return list.sort((x,y)=>((x.place-y.place)||lexDesc(["ppg","gdq","bestq","hs"])(x,y)||((x.player.seed??0)-(y.player.seed??0))));
 }
 function memberStat(run,member){
@@ -2144,7 +2144,7 @@ function renderGames() {
     <div class="card"><h2>Laufend (${runningUniq.length})</h2>${runningUniq.length ? `<div class="matches-grid">${runningUniq.map(g => matchCard(g, "running", free)).join("")}</div>` : `<p class="muted">Kein laufendes Spiel.</p>`}</div>
     ${doneGames.length ? `<div class="card"><h2>Erledigt (${doneGames.length})</h2><div class="matches-grid">${doneGames.map(g => matchCard(g, "done", free)).join("")}</div></div>` : ``}
     <div class="card"><h2>Gruppen</h2><div class="groups-grid">${run.plan.groups.map(gr => groupCard(gr.n)).join("") || `<p class="muted">Keine Gruppenphase.</p>`}</div></div>
-    <div class="card"><h2>Platzierungs-/Finalrunde</h2>${renderPlacementList()}</div>`;
+    <div class="card"><h2>Platzierungs-/Finalrunde</h2>${koSeedHtml()}${renderPlacementList()}</div>`;
   bindGameActions(el);
 }
 
@@ -2204,13 +2204,42 @@ function groupCard(n) {
   return `<div><h3 style="color:var(--accent);">Gruppe ${n} ${complete ? '<span class="badge done">fertig</span>' : '<span class="badge open">läuft</span>'}</h3>
     <table class="standings-table"><thead><tr><th>#</th><th style="text-align:left">Spieler</th><th>Pkt</th><th>GD</th>${gp ? `<th title="Dreiband-Punkte">3B</th>` : ""}</tr></thead><tbody>${rows}</tbody></table></div>`;
 }
+// Lesbare Bezeichnung eines noch nicht aufgelösten Plan-Verweises (statt „ks.rk1“, „g2.rk3“ …)
+function refLabel(ref) {
+  let m; const r = String(ref ?? "");
+  if ((m = /^ks\.rk(\d+)$/.exec(r))) return `Gesetzter ${m[1]}`;
+  if ((m = /^g(\d+)\.rk(\d+)$/.exec(r))) return `Gruppe ${m[1]}, Platz ${m[2]}`;
+  if ((m = /^g(\d+)\.p(\d+)$/.exec(r))) return `Gruppe ${m[1]}, Position ${m[2]}`;
+  if ((m = /^sl\.rk(\d+)$/.exec(r))) return `Setzplatz ${m[1]}`;
+  if ((m = /^\((.+)\)\.gk(\d+)$/.exec(r))) {
+    const round = /^qf/.test(m[1]) ? "Viertelfinal" : /^8f/.test(m[1]) ? "Achtelfinal" : "KO";
+    return `${m[2]}. der ${round}-Verlierer (nach GD)`;
+  }
+  if ((m = /^\((.+)\)\.rk(?:-rand-\d+-)?(\d+)$/.exec(r))) {
+    const kinds = [...new Set(m[1].split(/\s*\+\s*/).map(x => { let k; if ((k = /^g\d+\.rk(\d+)$/.exec(x))) return `Gruppen-${k[1]}.`; if (/^quali\d+\.rk2$/.test(x)) return "Quali-Verlierer"; return refLabel(x); }))];
+    return `${m[2]}. aus ${kinds.join(" / ")}`;
+  }
+  if ((m = /^(.+)\.rk([12])$/.exec(r))) { const g = run?.plan.games.find(x => x.key === m[1]); return `${m[2] === "1" ? "Sieger" : "Verlierer"} ${g ? gameLabelBase(g) : m[1]}`; }
+  return r;
+}
+// KO-Setzung (DBU GP Kegel § 2.3 Abs. 4): die Reihenfolge, aus der die KO-Paarungen entstehen
+function koSeedHtml() {
+  if (!run?.plan.koseed) return "";
+  const hint = `<p class="muted" style="margin:0 0 8px;">Gesetzt nach Abschluss aller Gruppen- und Quali-Spiele: Gruppenplatz, Partiepunkte je Partie, GD, bester Einzel-GD, Höchstserie, zuletzt Setzplatz (Ausschreibung § 2.3 Abs. 4). Gepaart wird Bester gegen Schlechtesten.</p>`;
+  const list = koSeedList(run);
+  if (!list) return hint + `<p class="muted">Die Setzung steht fest, sobald alle Gruppen- und Quali-Spiele beendet sind.</p>`;
+  const groupOf = {}; for (const [n, ps] of Object.entries(run.groups)) ps.forEach(p => groupOf[pidOf(p)] = n);
+  const origin = e => { const q = /^quali(\d+)\.rk1$/.exec(e.ref); return q ? `Gruppe ${q[1]}, Sieger Quali` : `Gruppe ${groupOf[pidOf(e.player)] ?? "?"}, Platz ${e.place}`; };
+  const f = v => Number.isFinite(v) ? v.toFixed(2) : "∞";
+  return hint + `<div style="overflow-x:auto;"><table class="standings-table" style="margin-bottom:10px;"><thead><tr><th>Gesetzt</th><th style="text-align:left">Spieler</th><th style="text-align:left">Herkunft</th><th>Pkt/Partie</th><th>GD</th><th>bester GD</th><th>HS</th></tr></thead><tbody>${list.map((e, i) => `<tr><td class="rk">${i + 1}</td><td style="text-align:left">${nameHtml(e.player)}</td><td style="text-align:left">${escapeHtml(origin(e))}</td><td>${f(e.ppg)}</td><td>${f(e.gdq)}</td><td>${f(e.bestq)}</td><td>${e.hs || ""}</td></tr>`).join("")}</tbody></table></div>`;
+}
 function renderPlacementList() {
   const pg = run.plan.games.filter(g => g.kind === "placement");
   if (!pg.length) return `<p class="muted">Keine Platzierungsspiele.</p>`;
   return `<div class="matches-grid">` + pg.map(g => {
     const a = resolveSlot(run, g.a), b = resolveSlot(run, g.b), st = gameStatus(g.key);
     const res = run.results[g.key]?.res, winner = run.results[g.key]?.winner;
-    const slot = (p, ref, side) => { let cls = "pn"; if (!p) cls += " pending"; if (winner) cls += (winner === side ? " win" : " lose"); const sc = res ? `${res[side]?.balls ?? "-"}` : ""; return `<div class="m-slot"><span class="${cls}">${p ? nameHtml(p) : escapeHtml(ref)}</span><span class="sc">${escapeHtml(sc)}</span></div>`; };
+    const slot = (p, ref, side) => { let cls = "pn"; if (!p) cls += " pending"; if (winner) cls += (winner === side ? " win" : " lose"); const sc = res ? `${res[side]?.balls ?? "-"}` : ""; return `<div class="m-slot"><span class="${cls}">${p ? nameHtml(p) : escapeHtml(refLabel(ref))}</span><span class="sc">${escapeHtml(sc)}</span></div>`; };
     return `<div class="m-card ${st || ""}"><div class="m-top"><span>${escapeHtml(gameLabel(g))}</span><span class="badge ${st === "done" ? "done" : st === "running" ? "running" : ""}">${st === "done" ? "fertig" : st === "running" ? "läuft" : (a && b ? "bereit" : "wartet")}</span></div>${slot(a, g.a, "a")}${slot(b, g.b, "b")}</div>`;
   }).join("") + `</div>`;
 }
@@ -2374,9 +2403,10 @@ function renderStandings() {
     <div class="card"><h2>Endplatzierung</h2>
       ${runFinished(run) ? "" : `<div class="alert">Turnier läuft noch — Platzierungen vervollständigen sich mit den Ergebnissen.</div>`}
       <table class="standings-table"><thead><tr><th>Platz</th><th style="text-align:left">Spieler</th><th>Verein</th></tr></thead>
-      <tbody>${rk.map(r => `<tr class="${r.place === 1 ? "q" : ""}"><td class="place">${r.place}</td><td style="text-align:left">${r.player ? nameHtml(r.player) : `<span class="muted">${escapeHtml(r.ref)}</span>`}</td><td>${r.player ? escapeHtml(r.player.club_shortname || "") : ""}</td></tr>`).join("")}</tbody></table>
+      <tbody>${rk.map(r => `<tr class="${r.place === 1 ? "q" : ""}"><td class="place">${r.place}</td><td style="text-align:left">${r.player ? nameHtml(r.player) : `<span class="muted">${escapeHtml(refLabel(r.ref))}</span>`}</td><td>${r.player ? escapeHtml(r.player.club_shortname || "") : ""}</td></tr>`).join("")}</tbody></table>
     </div>
     <div class="card"><h2>Gruppen-Tabellen</h2><div class="groups-grid">${run.plan.groups.map(gr => groupCard(gr.n)).join("") || `<p class="muted">—</p>`}</div></div>
+    ${run.plan.koseed ? `<div class="card"><h2>KO-Setzung</h2>${koSeedHtml()}</div>` : ""}
     ${renderAllGamesList()}
     <div class="card"><h2>Sicherung</h2><div class="toolbar"><button class="btn" id="btnBackup">💾 Sicherung speichern</button><button class="btn secondary" id="btnBackupCopy">📋 Sicherung kopieren</button></div><div class="scheme-hint">Nach jeder Runde sichern. Zurueckspielen auf der Turnier-Uebersicht (← oben links). Wichtig auf iPads: Safari kann den Speicher jederzeit leeren.</div></div>
     <div class="card"><h2>Export</h2><div class="toolbar"><button class="btn" id="btnCsv">📄 Spiele-CSV</button><button class="btn" id="btnRanking">📄 Rangliste (ClubCloud)</button>${isLive() ? `<button class="btn secondary" id="btnArchive">📦 Ergebnisse in Carambus ablegen</button><button class="btn danger" id="btnEnd">🧹 Turnier in Carambus abräumen (Tische frei + löschen)</button>` : ``}</div>${archiveStatusHtml()}<div class="scheme-hint">Endstand und Partien stehen jetzt auch in Carambus auf der Turnierseite — abgelegt wird nach jedem Ergebnis automatisch, der Knopf ist für den Nachschub von Hand. <strong>„Abräumen" löscht auch dieses Archiv</strong> (Turnier + Spiele + Endstand); danach ist die App wieder die einzige Quelle — vorher CSV sichern.</div></div>`;
