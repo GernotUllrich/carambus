@@ -393,6 +393,9 @@ class TableMonitorReflex < ApplicationReflex
 
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
     @table_monitor.suppress_broadcast = true
+    return if @table_monitor.locked_scoreboard
+    return unless @table_monitor.playing?
+
     @table_monitor.panel_state = "inputs"
     @table_monitor.current_element = "minus_#{n}"
     @table_monitor.reset_timer!
@@ -497,6 +500,13 @@ class TableMonitorReflex < ApplicationReflex
 
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
     @table_monitor.suppress_broadcast = true
+    # Wie key_a/key_b: ausserhalb des Spiels keine Eingabe, und ein Nachlaeufer eines Klick-Bursts
+    # nach dem automatischen Wechsel zaehlt nicht beim Gegner (TM 50000006, 2026-10-13: +10 nach
+    # dem Ziel landete beim anderen Spieler).
+    return if @table_monitor.locked_scoreboard
+    return unless @table_monitor.playing?
+    return @table_monitor.save! if @table_monitor.discard_stray_after_auto_switch? # gleitende Frist sichern
+
     @table_monitor.panel_state = "inputs"
     @table_monitor.current_element = "add_#{n}"
     @table_monitor.reset_timer!

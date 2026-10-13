@@ -205,7 +205,56 @@ class TableMonitorNachstossRaceTest < ActiveSupport::TestCase
       "bestaetigt wird nur ueber den Button im Protokoll-Modal, nicht durch einen Feld-Klick"
   end
 
+  # ---------------------------------------------------------------------------
+  # +n-Tasten (add_n): Live-Befund 2026-10-13 (TM 50000006, Spruzina/Kroke):
+  # schnelles Klicken auf +10 ueber das Ziel hinaus schlug nach dem Ende noch
+  # 10 Punkte beim Gegner auf. add_n pruefte weder den Spielzustand noch den
+  # Nachlaeufer-Guard, den key_a/key_b haben.
+  # ---------------------------------------------------------------------------
+
+  test "add_n: ein Nachlaeufer nach dem automatischen Wechsel zaehlt nicht beim Nachstoss-Spieler" do
+    press_add_n(10)
+    press_add_n(5) # Ballziel -> automatischer Wechsel auf B (Nachstoss)
+    assert_equal "playerb", @tm.data.dig("current_inning", "active_player"), "Testvoraussetzung"
+
+    press_add_n(10) # Nachlaeufer desselben Klick-Bursts
+
+    assert_equal 0, @tm.data.dig("playerb", "innings_redo_list").last.to_i,
+      "der Nachlaeufer darf dem Nachstoss-Spieler keine Punkte gutschreiben"
+    assert_equal "playing", @tm.state
+  end
+
+  test "add_n: nach Satzende wird keine Eingabe mehr gebucht" do
+    @tm.update!(data: @tm.data.merge("allow_follow_up" => false))
+    press_add_n(10)
+    press_add_n(5)
+    assert_equal "set_over", @tm.state, "Testvoraussetzung"
+    before = @tm.data.slice("playera", "playerb").deep_dup
+
+    travel TableMonitor::AUTO_SWITCH_GRACE + 1.second do
+      press_add_n(10)
+    end
+
+    assert_equal before, @tm.data.slice("playera", "playerb"),
+      "nach dem Satzende darf +n keinen Spielstand mehr veraendern"
+  end
+
+  test "add_n: waehrend des Spiels zaehlt die Eingabe normal (Gegenprobe)" do
+    press_add_n(10)
+
+    assert_equal 10, @tm.data.dig("playera", "innings_redo_list").last.to_i
+  end
+
   private
+
+  def press_add_n(n)
+    tm_id = @tm.id
+    @reflex.define_singleton_method(:element) { OpenStruct.new(dataset: {id: tm_id, n: n}) }
+    TableMonitor.stub(:find, ->(_id) { TableMonitor.where(id: tm_id).first }) do
+      @reflex.add_n
+    end
+    @tm.reload
+  end
 
   def press_finish_follow_up
     tm_id = @tm.id
