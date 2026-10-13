@@ -23,8 +23,7 @@ index.html                       ← Launcher = Turnier-Manager (self-contained)
 schemes/
   3band-team/index.html          ← bestehende 3-Band-App (self-contained, unverändert)
   doppelko/
-    index.html                   ← Doppel-KO (self-contained: CSS+Kern+Engine+Controller inline)
-    bracket.test.mjs             ← Node-Test (extrahiert die Engine aus index.html)
+    index.html                   ← allgemeines KO (EKO/DKO/Hybrid, self-contained; Engine = shared/ko-engine.js inline)
 shared/
   carambus-core.js               ← KANONISCHER Kern (window.Carambus) — NICHT zur Laufzeit geladen
   carambus-core.css             ← KANONISCHES Theme — NICHT zur Laufzeit geladen
@@ -112,8 +111,12 @@ Mehr braucht es nicht.
 
 ## Tests / Verifikation
 
-- `node schemes/doppelko/bracket.test.mjs` — extrahiert die Doppel-KO-Engine aus der
-  HTML und prüft sie (8/16/32, Bracket-Reset, Freilose).
+- `node tools/test-ko-engine.mjs` — prüft die KO-Engine (`shared/ko-engine.js`, inline im
+  doppelko-Schema) gegen alle Registry-Pläne, voll besetzt und mit Freilosen, dazu den
+  DKO-Bracket-Reset; Exit 1 bei Fehlern. (Der frühere `schemes/doppelko/bracket.test.mjs`
+  prüfte die alte, seit `029a4d6` ersetzte Engine und ist entfernt.)
+- `node schemes/plan/plan-engine.test.mjs`, `node schemes/plan/biathlon-gp.test.mjs` — Plan-Engine
+  und DBU Grand Prix Biathlon.
 - `node tools/check-core-sync.mjs` — Kern-Sync.
 - Browser-Smoke: per `./serve.sh` (oder Doppelklick) Launcher → Schema → Offline-Durchlauf.
 

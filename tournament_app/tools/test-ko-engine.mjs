@@ -67,7 +67,9 @@ const resetRun = simulate(dko4, 4, m => {
   return (m.a.seed ?? 9) <= (m.b.seed ?? 9) ? "a" : "b";
 });
 const resetMatch = dko4.matches.find(m => KO.resetSourceOf({ aRef: m.a, bRef: m.b }) != null);
-console.log("Reset-Partie P" + resetMatch.nr + " Status:", resetRun.matches.get(resetMatch.nr).status, "(erwartet: done)");
+const resetStatus = resetRun.matches.get(resetMatch.nr).status;
+console.log("Reset-Partie P" + resetMatch.nr + " Status:", resetStatus, "(erwartet: done)");
+if (resetStatus !== "done") { console.log("✗ Reset-Partie wurde nicht gespielt"); totalErr++; }
 console.log("Platzierung:", KO.placements(resetRun).map(p => `R${p.place}:S${p.player.seed}`).join(" "));
 
 console.log("\n=== DKO-004 ohne Reset (WB-Sieger gewinnt 1. Finale) ===");
@@ -76,7 +78,10 @@ const noReset = simulate(dko4, 4, m => {
   if (isGF) return "a"; // WB-Sieger gewinnt → kein Reset
   return (m.a.seed ?? 9) <= (m.b.seed ?? 9) ? "a" : "b";
 });
-console.log("Reset-Partie P" + resetMatch.nr + " Status:", noReset.matches.get(resetMatch.nr).status, "(erwartet: skipped)");
+const noResetStatus = noReset.matches.get(resetMatch.nr).status;
+console.log("Reset-Partie P" + resetMatch.nr + " Status:", noResetStatus, "(erwartet: skipped)");
+if (noResetStatus !== "skipped") { console.log("✗ Reset-Partie hätte übersprungen werden müssen"); totalErr++; }
 console.log("Platzierung:", KO.placements(noReset).map(p => `R${p.place}:S${p.player.seed}`).join(" "));
 
 console.log(`\nGesamt-Validierungsfehler: ${totalErr}`);
+process.exit(totalErr ? 1 : 0);
