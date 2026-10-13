@@ -32,7 +32,7 @@ module ExternalTournament
     # @return [Player, nil] der gemachte Player oder nil
     def match(attrs)
       attrs = attrs.symbolize_keys
-      match_by_region_cc_id(attrs[:cc_id]) ||
+      match_by_region_cc_id(attrs[:cc_id], attrs[:dbu_nr]) ||
         match_by_dbu_nr(attrs[:dbu_nr]) ||
         match_by_name_and_club(attrs)
     end
@@ -40,9 +40,15 @@ module ExternalTournament
     private
 
     # Path 1: region+cc_id (cc_id region-scoped da NICHT global unique)
-    def match_by_region_cc_id(cc_id)
+    # Ein Spieler aus einem fremden LV (DBU-Turnier) bringt die cc_id SEINER Region mit; in der
+    # Region des Servers trägt sie womöglich ein anderer Mensch (GP Biathlon 2026-10-13: Andres/BVW
+    # und Pusch/NBV teilen 10050). Widerspricht die dbu_nr des Treffers der mitgeschickten, gilt
+    # der Treffer nicht — dann entscheidet Path 2.
+    def match_by_region_cc_id(cc_id, dbu_nr)
       return nil if cc_id.blank?
-      Player.where(region_id: @region.id, cc_id: cc_id.to_i).first
+      player = Player.where(region_id: @region.id, cc_id: cc_id.to_i).first
+      return nil if player&.dbu_nr.present? && dbu_nr.present? && player.dbu_nr.to_i != dbu_nr.to_i
+      player
     end
 
     # Path 2: dbu_nr (cross-region; DBU-Mitgliedschaft ist national eindeutig)

@@ -49,6 +49,31 @@ module ExternalTournament
       assert_equal player.id, result&.id, "Path 2 (dbu_nr cross-region) should match"
     end
 
+    # Path 1 darf nicht greifen, wenn die dbu_nr des cc_id-Treffers widerspricht
+    # (Fremd-LV-Spieler mit derselben cc_id wie ein Spieler der Server-Region)
+    test "cc_id hit with contradicting dbu_nr falls through to dbu_nr" do
+      Player.create!(
+        firstname: "Test15-02-Local", lastname: "SameCcId",
+        region_id: @nbv.id, cc_id: 10_050, dbu_nr: 156_194
+      )
+      foreign = Player.create!(
+        firstname: "Test15-02-Foreign", lastname: "SameCcId",
+        region_id: @bbv.id, cc_id: 10_050, dbu_nr: 112_395
+      )
+      result = @matcher.match(cc_id: 10_050, dbu_nr: 112_395, firstname: nil, lastname: nil)
+      assert_equal foreign.id, result&.id
+    end
+
+    # Gegenprobe: passende dbu_nr -> cc_id-Treffer bleibt
+    test "cc_id hit with matching dbu_nr is kept" do
+      local = Player.create!(
+        firstname: "Test15-02-Local", lastname: "SameDbu",
+        region_id: @nbv.id, cc_id: 10_051, dbu_nr: 156_195
+      )
+      result = @matcher.match(cc_id: 10_051, dbu_nr: "156195", firstname: nil, lastname: nil)
+      assert_equal local.id, result&.id
+    end
+
     # Path 3: firstname+lastname
     test "matches player by firstname+lastname when cc_id and dbu_nr paths fail" do
       player = Player.create!(
