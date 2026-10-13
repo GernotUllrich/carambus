@@ -1031,7 +1031,9 @@ window.Carambus = (function () {
   }
   function tableNo(t) { const m = String(t == null ? "" : t).match(/\d+/); return m ? parseInt(m[0], 10) : null; }
   function csvCell(v) { const s = (v == null ? "" : String(v)); return /[";\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; }
-  function buildCsv(rows) { return rows.map(r => r.map(csvCell).join(";")).join("\n"); }
+  // Jede Zeile endet mit Zeilenumbruch, auch die letzte — manche Import-Routinen verwerfen eine
+  // unterminierte letzte Zeile (bei der Spiele-CSV wäre das das Finale).
+  function buildCsv(rows) { return rows.map(r => r.map(csvCell).join(";") + "\n").join(""); }
   function downloadText(filename, text, mime = "text/csv") {
     const blob = new Blob([text], { type: mime });
     const a = document.createElement("a");
