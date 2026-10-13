@@ -524,7 +524,7 @@ window.Carambus = (function () {
     });
     return body;
   }
-  async function startGame({ externalId, tournamentId = null, gameExternalId, tableName, tableId = null, participants, format = {}, region = regionShortname() }) {
+  async function startGame({ externalId, tournamentId = null, gameExternalId, tableName, tableId = null, participants, format = {}, roundNo = null, region = regionShortname() }) {
     const payload = {
       region: { shortname: region }, ...tournamentRef({ tournamentId, externalId }), table: tableRef(tableId, tableName),
       external_id: gameExternalId,
@@ -537,6 +537,7 @@ window.Carambus = (function () {
     };
     if (format.initial_red_balls != null) payload.initial_red_balls = format.initial_red_balls; // Snooker
     if (format.biathlon) payload.biathlon = format.biathlon; // { balls_goal_3b, innings_goal_3b } — Gesamtziel steht in participants[].balls_goal
+    if (roundNo != null) payload.round_no = roundNo; // Anzeige „Runde n“ in Warmup/Scoreboard (sonst TournamentMonitor, bei App-Turnieren immer 1)
     const { body } = await carambusFetch("/api/external_tournament/start_game", { method: "POST", body: payload });
     return body;
   }
