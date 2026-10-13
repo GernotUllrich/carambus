@@ -30,6 +30,7 @@ document.addEventListener('score:update', (event) => {
   const scoreDisplays = document.querySelectorAll(`.score-display[data-player="${playerKey}"]`)
   scoreDisplays.forEach(el => {
     el.dataset.score = score
+    el.dataset.digits = String(score).length
   })
   
   // Update inning score

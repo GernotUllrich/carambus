@@ -179,3 +179,10 @@ html.dark .highlight {
   max-width: 100%;
   overflow-x: auto;
 }
+
+/* Scoreboard: Die Score-Zahl steht in 24vw (Vollbild) bzw. 12vw. Ab drei Stellen ist sie
+   breiter als das Spielerfeld — die Seite lief über, und Scrollbars kippten hin und her.
+   em bezieht sich auf die Schriftgröße von .score-display, gilt also für beide Größen. */
+.score-display[data-digits="3"] .main-score {
+  font-size: 0.8em;
+}

@@ -151,7 +151,7 @@ end
                 <%- end %>
               </span>
             </div>
-            <div class="text-<%= vw2 %>">
+            <div class="text-<%= vw2 %> tracking-normal">
               <%- to_play = shown_goal - (player[:result].to_i + Array(table_monitor.data[player_id].andand["innings_redo_list"])[-1].to_i) %>
               <%- if table_monitor.follow_up? && player_active && options[:allow_follow_up] %>
                 <div><%= t("table_monitor.follow_up") %></div>
@@ -211,7 +211,7 @@ end
                 <%- end %>
               </span>
             </div>
-            <div class="text-<%= vw2 %>">
+            <div class="text-<%= vw2 %> tracking-normal">
               <%- to_play = shown_goal > 0 ? shown_goal - (player[:result].to_i + Array(table_monitor.data[player_id].andand["innings_redo_list"])[-1].to_i) : 9999 %>
               <%- if table_monitor.follow_up? && player_active && options[:allow_follow_up] %>
                 <div><%= t("table_monitor.follow_up") %></div>
@@ -224,7 +224,7 @@ end
         <%- end %>
       </div>
       <%- score_data_value = is_bk2 ? bk2_display_score : (player[:result].to_i + table_monitor.data[player_id].andand["innings_redo_list"].andand[-1].to_i) %>
-      <%= content_tag "div", class: "flex h-4/6 text-center text-#{vw24} justify-center items-center font-bold score-display", title: player_key, style: "letter-spacing: -5px;", tabindex: 1, data: { player: player_id, score: score_data_value } do %>
+      <%= content_tag "div", class: "flex h-4/6 text-center text-#{vw24} justify-center items-center font-bold score-display overflow-hidden", title: player_key, style: "letter-spacing: -5px;", tabindex: 1, data: { player: player_id, score: score_data_value, digits: score_data_value.to_s.length } do %>
         <%- if is_bk2 %>
           <span class="main-score" data-player="<%= player_id %>"><%= bk2_display_score %></span>
         <%- elsif options['free_game_form'] == 'pool' && player["discipline"] != "14.1 endlos" %>
