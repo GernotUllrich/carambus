@@ -17,6 +17,8 @@
     <%- display_firstname_only = true %>
     <%- display_firstname = false %>
     <%- display_shortname = true %>
+    <%# Turnier: „Nachname, Vorname“ – nur der Vorname ist bei Spielern aus mehreren Vereinen nicht eindeutig %>
+    <%- tournament_names = table_monitor.tournament_monitor.present? %>
     <tr>
       <td colspan=4 class="font-bold">
         <%= custom_link_to "T#{table_monitor.table.name.match(/.*(\d+)$/).andand[1]}", table_monitor_path(table_monitor), data: { turbo: false }, tabindex: 1 %>
@@ -57,7 +59,9 @@
         <div class="flex flex-row items-center justify-start">
           <div class="w-1/4"><%= image_tag(left_player[:logo], class: "object-contain h-10 w-20") if left_player[:logo].present? %></div>
           <div class="p-3 <%= options[:current_left_color] == "white" ? "bg-black dark:text-gray-200 font-bold text-white" : "bg-black font-bold text-yellow-400" %>">
-            <%- if display_firstname_only %>
+            <%- if tournament_names %>
+              <%= [left_player[:lastname], left_player[:firstname]].compact_blank.join(", ") %>
+            <%- elsif display_firstname_only %>
               <%= (left_player[:firstname].presence || left_player[:lastname]).gsub("Dr. ", "") %>
             <%- else %>
               <%= display_shortname ? "#{left_player[:shortname]}" : "#{right_player[:lastname]}#{", #{right_player[:firstname_short]}" if display_firstname}" %>
@@ -87,7 +91,9 @@
         <div class="flex flex-row items-center justify-start">
           <div class="w-1/4"><%= image_tag(right_player[:logo], class: "object-contain h-10 w-20") if right_player[:logo].present? %></div>
           <div class="p-3 <%= options[:current_left_color] == "yellow" ? "bg-black dark:text-gray-200 font-bold text-white" : "bg-black font-bold text-yellow-400" %>">
-            <%- if display_firstname_only %>
+            <%- if tournament_names %>
+              <%= [right_player[:lastname], right_player[:firstname]].compact_blank.join(", ") %>
+            <%- elsif display_firstname_only %>
               <%= (right_player[:firstname].presence || right_player[:lastname]).gsub("Dr. ", "") %>
             <%- else %>
               <%= display_shortname ? "#{right_player[:shortname]}" : "#{right_player[:lastname]}#{", #{right_player[:firstname_short]}" if display_firstname}" %>
