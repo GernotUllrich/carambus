@@ -707,6 +707,19 @@ class TableMonitor < ApplicationRecord
   # Kennt der Spieler den Tisch schon? — true, wenn er im selben Turnier (bzw. Spieltag)
   # bereits eine beendete Partie an derselben Tischnummer gespielt hat. Steuert die
   # Einspielzeit: time_out_warm_up_follow_up_min statt time_out_warm_up_first_min.
+  # Einspielzeit in Minuten fuer Spieler "a"/"b". Schickt die App sie mit start_game
+  # (game.data["warmup_minutes"], GP Kegel § 5.1: 3 Minuten je Sportler vor jeder Begegnung),
+  # gilt sie fuer beide Spieler; sonst Turnier-Wert neuer/bekannter Tisch, ohne Turnier 5.
+  def warmup_minutes(player)
+    game_data = game&.data
+    explicit = game_data["warmup_minutes"] if game_data.is_a?(Hash)
+    return explicit.to_i if explicit.present?
+    return 5 if tournament_monitor.blank?
+
+    key = send(:"player_#{player}_on_table_before") ? :time_out_warm_up_follow_up_min : :time_out_warm_up_first_min
+    tournament_monitor.tournament.send(key) || 5
+  end
+
   def player_on_table_before?(role)
     return false if game.blank? || game.tournament_id.blank? || game.table_no.blank?
 

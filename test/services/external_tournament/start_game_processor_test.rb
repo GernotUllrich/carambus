@@ -77,6 +77,33 @@ module ExternalTournament
       assert_equal 2, result.table_monitor.display_round
     end
 
+    # GP Kegel § 5.1 Abs. 4: 3 Minuten je Sportler vor jeder Begegnung (Betreiber 2026-10-13:
+    # das Scoreboard zeigte und lief immer 5 Minuten).
+    test "warmup_minutes der App gilt fuer beide Spieler, Timer und Anzeige" do
+      result = StartGameProcessor.new(region: @nbv,
+        payload: start_payload(external_id: "game-sg-w3").merge(warmup_minutes: 3)).call
+      tm = result.table_monitor
+
+      assert_equal 3, tm.game.data["warmup_minutes"]
+      assert_equal [3, 3], [tm.warmup_minutes("a"), tm.warmup_minutes("b")]
+
+      reflex = TableMonitorReflex.allocate
+      reflex.define_singleton_method(:element) { OpenStruct.new(dataset: {id: tm.id}) }
+      freeze_time do
+        reflex.send(:warmup_state_change, "a")
+        tm.reload
+        assert_equal 3.minutes.from_now, tm.timer_finish_at, "Timer laeuft 3 Minuten, nicht 5"
+      end
+    end
+
+    test "ohne warmup_minutes bleibt der Turnier-Wert (Gegenprobe)" do
+      result = StartGameProcessor.new(region: @nbv, payload: start_payload(external_id: "game-sg-w0")).call
+      tm = result.table_monitor
+
+      refute tm.game.data.key?("warmup_minutes")
+      assert_equal @tournament.time_out_warm_up_first_min, tm.warmup_minutes("a")
+    end
+
     test "ungebundener Tisch wird abgelehnt" do
       other_mon = TableMonitor.create!(state: "ready", data: {})
       other_table = tables(:two)

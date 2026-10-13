@@ -1090,7 +1090,7 @@ class TableMonitorReflex < ApplicationReflex
       @table_monitor.send(:"warmup_#{player}!")
       units = "minutes" # active_timer =~ /min$/ ? "minutes" : "seconds"
       start_at = Time.now
-      delta = @table_monitor.tournament_monitor.present? ? (@table_monitor.tournament_monitor.tournament.send(active_timer.to_sym) || 5).send(units.to_sym) : 5.minutes
+      delta = @table_monitor.warmup_minutes(player).send(units.to_sym)
       finish_at = Time.now + delta
       if @table_monitor.timer_halt_at.present?
         extend = Time.now - @table_monitor.timer_halt_at

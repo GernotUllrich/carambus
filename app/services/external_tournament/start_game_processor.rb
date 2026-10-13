@@ -103,6 +103,8 @@ module ExternalTournament
             "tournament_external_id" => tournament.external_id
           )
           game_data["round_no"] = @payload[:round_no].to_i if @payload[:round_no].present?
+          # GP Kegel § 5.1: Einspielzeit je Sportler; Anzeige/Timer ueber TableMonitor#warmup_minutes.
+          game_data["warmup_minutes"] = @payload[:warmup_minutes].to_i if @payload[:warmup_minutes].to_i.positive?
           tm.game.update!(data: game_data)
         end
       end

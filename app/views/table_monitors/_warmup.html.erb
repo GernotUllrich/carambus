@@ -55,7 +55,7 @@
           <%- end %>
         <%- end %>
         <div class="flex flex-1 items-center rounded-full justify-center text-2vw text-center"><%= t("table_monitor.warmup.time") %>
-          5
+          <%= %w[a b].map { |p| table_monitor.warmup_minutes(p) }.uniq.join(" / ") %>
           <%= t("table_monitor.warmup.minutes") %>
         </div>
         <%- if table_monitor.warmup_b? && table_monitor.timer_finish_at.present? %>
@@ -135,7 +135,7 @@
           <%- end %>
         <%- end %>
         <div class="flex flex-1 items-center rounded-full justify-center text-2vw text-center"><%= t("table_monitor.warmup.time") %>
-          5
+          <%= %w[a b].map { |p| table_monitor.warmup_minutes(p) }.uniq.join(" / ") %>
           <%= t("table_monitor.warmup.minutes") %>
         </div>
         <%- if table_monitor.warmup_b? && table_monitor.timer_finish_at.present? %>
