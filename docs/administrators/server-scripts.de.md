@@ -213,23 +213,6 @@ Den Rails-Cache leert `bin/rails tmp:cache:clear`.
 
 ---
 
-### `cleanup_versions.sh`
-**Zweck**: Überträgt `region_id` und `global_context` von den Datensätzen in ihre Einträge der
-Versions-Tabelle (Wrapper um die Tasks `version_cleanup:*`)
-
-**Verwendung** (im Rails-Root):
-```bash
-./bin/cleanup_versions.sh fast     # SQL-basiert (schnell)
-./bin/cleanup_versions.sh safe     # über ActiveRecord (langsamer)
-./bin/cleanup_versions.sh stats    # Statistik
-./bin/cleanup_versions.sh verify   # Prüfung
-```
-
-Ohne Option zeigt es die Hilfe. Es löscht keine Versionen; eine Option `--dry-run` gibt es nicht
-(`Unknown option`, Exit 1).
-
----
-
 ## Debug & Testing
 
 Es gibt kein einzelnes `debug-production.sh` Script. Für einen beliebigen Server reichen die

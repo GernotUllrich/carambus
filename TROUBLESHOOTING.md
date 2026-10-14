@@ -214,15 +214,6 @@ Multi-Tenant-Deployment (mehrere Checkouts). Meiste Tasks nehmen `[scenario_name
 | `data:deploy` / `data:generate_templates` / `data:set_directory[env]` | Aus/in externes Data-Directory | |
 | `data:convert_yaml_to_json` | Restliche YAML-kodierte Game-Daten → JSON | einmalige Konvertierung |
 
-### PaperTrail-Version-Sync (`version_cleanup:*`)
-
-| Task | Was | Wann/Hinweis |
-|---|---|---|
-| `version_cleanup:copy_region_data_sql` | region_id/global_context von Items → Versions kopieren (SQL) | **schnellster** Weg |
-| `version_cleanup:copy_region_data` | dito (Ruby-basiert) | langsamer |
-| `version_cleanup:stats` | Statistik über Version-Region-Daten | |
-| `version_cleanup:verify` | Prüfen, ob alle Versions korrekte Region-Daten haben | |
-
 ### Weitere Sync/Update (`carambus:*`)
 
 | Task | Was | Wann/Hinweis |
@@ -463,7 +454,6 @@ Shell-Scripts unter `bin/`. Vor Ausführung Header/Quelle prüfen (viele sind se
 | `bin/check_database_sync.sh` | Datenbank-Synchronisation prüfen (generalisiert) |
 | `bin/check-database-states.sh` | Aktuelle DB-States für Deploy-Szenario-Analyse |
 | `bin/get_versions.sh` | Versionen (IP-Adresse) |
-| `bin/cleanup_versions.sh` | Version-Cleanup für Carambus |
 
 ### Deploy
 

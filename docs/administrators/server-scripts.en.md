@@ -213,23 +213,6 @@ production Puma there; systemd starts it again, but the scoreboards lose their c
 
 ---
 
-### `cleanup_versions.sh`
-**Purpose**: Copies `region_id` and `global_context` from the records into their entries in the
-versions table (wrapper around the `version_cleanup:*` tasks)
-
-**Usage** (in the Rails root):
-```bash
-./bin/cleanup_versions.sh fast     # SQL-based (fast)
-./bin/cleanup_versions.sh safe     # via ActiveRecord (slower)
-./bin/cleanup_versions.sh stats    # statistics
-./bin/cleanup_versions.sh verify   # verification
-```
-
-Without an option it shows the help. It deletes no versions; there is no `--dry-run` option
-(`Unknown option`, exit 1).
-
----
-
 ## Debug & Testing
 
 There is no single `debug-production.sh` script. For any server the standard tools are enough —
