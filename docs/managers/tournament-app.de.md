@@ -245,21 +245,54 @@ App-Turnier**, nicht angehängt an das DBU-Turnier in Carambus.
 
 | Starter | Gruppen | Weiter | Ziel Gruppe |
 |---|---|---|---|
-| 24–32 | 8 (4er vorn, 3er hinten) | 4er: 1. + 2.; 3er: 1. direkt, 2. vs. 3. (Quali, 10/15/120) → Achtelfinale 10/20/120 | 32–30: 10/15/120 · 29–26: 10/20/120 · 25–24: 15/20/180 |
+| 24–32 | 8 (Treppensystem; die 3er-Gruppen ergeben sich aus der letzten Reihe) | 4er: 1. + 2.; 3er: 1. direkt, 2. vs. 3. (Quali, 10/15/120) → Achtelfinale 10/20/120 | 32–30: 10/15/120 · 29–26: 10/20/120 · 25–24: 15/20/180 |
 | 16–23 | 4 | 1. + 2. → Viertelfinale | 23–21: 10/15/120 · 20–18: 10/20/120 · 17–16: 15/20/180 |
 | 10–15 | 2 | 1.–4. → Viertelfinale | 15–14: 10/15/120 · 13–12: 10/20/120 · 11–10: 15/30/180 |
 
-Viertelfinale, Halbfinale und Finale: **15/30/180**. Gruppen in Schlangenlinie nach der Setzliste,
-KO über Kreuz (A1–B2 …), Gruppenwertung nach Punkten, dann GD. Kein Spiel um Platz 3. Das
-Achtel- bzw. Viertelfinale wird erst bereit, wenn alle Gruppen- und Quali-Spiele fertig sind; am
-zweiten Turniertag wird dasselbe Turnier fortgesetzt.
+Viertelfinale, Halbfinale und Finale: **15/30/180**. Es gilt die DBU-Ausschreibung Grands Prix
+Kegel (V2, 10.09.2024):
+
+- **Gruppen** im Treppensystem nach der Setzliste (§ 2.3 Abs. 1). Stehen mehr als zwei Spieler
+  eines Vereins in einer Gruppe, warnt die App; getauscht wird von Hand mit ▲▼ (§ 2.3 Abs. 2).
+- **Gruppenwertung:** Partiepunkte (2/1/0), dann GD, dann Dreiband-Punkte (§ 2.2 Abs. 3). Der GD
+  ist hier **eigene ÷ gegnerische Punkte**, nicht Punkte ÷ Aufnahmen.
+- **KO gesetzt**, Bester gegen Schlechtesten: Viertelfinale 1–8, 5–4, 3–6, 7–2 (§ 2.3 Abs. 4–5),
+  Achtelfinale analog 1–16, 8–9, 5–12, 4–13, 3–14, 6–11, 7–10, 2–15. Die Setzung steht als Tabelle
+  im Reiter „Spiele & Gruppen“ und im Endstand.
+- **Kein Spiel um Platz 3**, Platz 3 geteilt. Plätze 5–8 (und 9–16) nach dem GD des verlorenen
+  KO-Spiels (§ 2.3 Abs. 6).
+- **Einspielzeit** 3 Minuten je Spieler vor jeder Partie (§ 5.1 Abs. 4); die App schickt sie ans
+  Scoreboard.
+
+Das Achtel- bzw. Viertelfinale wird erst bereit, wenn alle Gruppen- und Quali-Spiele fertig sind;
+am zweiten Turniertag wird dasselbe Turnier fortgesetzt.
+
+**Während des Turniers:**
+
+1. Reiter „Spiele & Gruppen“: **„▶ Freie Tische belegen“** legt die nächsten Partien auf die
+   Scoreboards.
+2. Nach jedem Spiel **„📥 Ergebnis holen“**. Punkte, Aufnahmen, Höchstserie und Dreiband-Punkte
+   kommen vom Scoreboard. Von Hand („✎ Ergebnis erfassen“) die Dreiband-Punkte in „3B-Pkt“ eintragen.
+3. **Weicht der Spielzettel ab:** an der erledigten Partie **„✎ Korrigieren“**. Das geht, solange
+   kein gestartetes oder gespieltes Folgespiel auf dem Ergebnis aufbaut — sonst lehnt die App ab
+   und nennt das Spiel. Gruppenspiele sind also bis zum KO-Beginn korrigierbar, ein KO-Spiel bis
+   das Spiel seines Siegers startet. Das alte Ergebnis bleibt gespeichert, die Partie ist als
+   „korrigiert“ markiert; das Scoreboard behält das ursprünglich bestätigte Ergebnis.
+4. **Nach jeder Runde sichern** (Reiter „Endstand“, „💾 Sicherung speichern“) — siehe
+   [Plan-Turnier führen](#fuehren).
+5. **Nach einem Carambus-Deploy die App auf allen Geräten neu laden.** Eine offene Seite schickt
+   sonst den alten Stand.
+
+**DBU-Online-Portal:** Carambus meldet die Ergebnisse nicht an das Portal (§ 2.4). Der
+Turnierleiter trägt sie selbst ein; dabei hilft die „📄 Spiele-CSV“ im Reiter „Endstand“.
 
 Die App schickt die Variante der jeweiligen Phase mit jedem Spiel ans Scoreboard; dort gilt die
 [Biathlon-Zählweise](../players/biathlon.md).
 
-!!! warning "Stand 06.10.2026"
-    - Die **Quali-Regel bei 24–32 Startern** ist eine vorläufige Festlegung des Betreibers; die
-      Ausschreibung (§ 2 Abs. 2 der allgemeinen GP-Ausschreibung) war nicht auffindbar.
+!!! note "Stand 15.10.2026"
+    - Die **Quali-Regel bei 24–32 Startern** (3er-Gruppen: 2. gegen 3. derselben Gruppe) ist
+      weiter eine vorläufige Festlegung; die Ausschreibung regelt sie nicht. Beim GP am
+      17.–18.10. spielt sie keine Rolle (weniger als 20 Starter).
     - Die Setzliste wird über den **Namen** mit der Rangliste verknüpft (die Rangliste hat keine
       DBU-Nummern). Korrekturen der Reihenfolge im Carambus-Web wirken deshalb nur für Spieler ohne
       Rang — **Handkorrekturen in der App** machen.

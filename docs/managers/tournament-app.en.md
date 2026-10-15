@@ -253,21 +253,54 @@ tournament**, not attached to the DBU tournament in Carambus.
 
 | Starters | Groups | Advance | Group goal |
 |---|---|---|---|
-| 24–32 | 8 (groups of 4 first, groups of 3 last) | groups of 4: 1st + 2nd; groups of 3: 1st directly, 2nd vs. 3rd (qualifier, 10/15/120) → round of 16, 10/20/120 | 32–30: 10/15/120 · 29–26: 10/20/120 · 25–24: 15/20/180 |
+| 24–32 | 8 (staircase system; the groups of 3 result from the last row) | groups of 4: 1st + 2nd; groups of 3: 1st directly, 2nd vs. 3rd (qualifier, 10/15/120) → round of 16, 10/20/120 | 32–30: 10/15/120 · 29–26: 10/20/120 · 25–24: 15/20/180 |
 | 16–23 | 4 | 1st + 2nd → quarter-final | 23–21: 10/15/120 · 20–18: 10/20/120 · 17–16: 15/20/180 |
 | 10–15 | 2 | 1st–4th → quarter-final | 15–14: 10/15/120 · 13–12: 10/20/120 · 11–10: 15/30/180 |
 
-Quarter-final, semi-final and final: **15/30/180**. Groups in snake order from the seeding list, KO
-crosswise (A1–B2 …), group ranking by points, then average. No third-place match. The round of 16
-or quarter-final becomes ready only once all group and qualifier games are finished; on the second
-day the same tournament is continued.
+Quarter-final, semi-final and final: **15/30/180**. The DBU tender Grands Prix Kegel (V2,
+2024-09-10) applies:
+
+- **Groups** in a staircase system from the seeding list (§ 2.3 (1)). If more than two players of
+  one club end up in a group, the app warns; swap by hand with ▲▼ (§ 2.3 (2)).
+- **Group ranking:** match points (2/1/0), then average, then three-cushion points (§ 2.2 (3)). The
+  average here is **own ÷ opponent's points**, not points ÷ innings.
+- **KO seeded**, best against worst: quarter-final 1–8, 5–4, 3–6, 7–2 (§ 2.3 (4)–(5)), round of 16
+  accordingly 1–16, 8–9, 5–12, 4–13, 3–14, 6–11, 7–10, 2–15. The seeding is shown as a table in the
+  "Spiele & Gruppen" tab and in the final standings.
+- **No third-place match**, third place shared. Places 5–8 (and 9–16) by the average of the lost
+  KO game (§ 2.3 (6)).
+- **Warm-up time** 3 minutes per player before every game (§ 5.1 (4)); the app sends it to the
+  scoreboard.
+
+The round of 16 or quarter-final becomes ready only once all group and qualifier games are
+finished; on the second day the same tournament is continued.
+
+**During the tournament:**
+
+1. "Spiele & Gruppen" tab: **"▶ Freie Tische belegen"** puts the next games on the scoreboards.
+2. After every game **"📥 Ergebnis holen"**. Points, innings, high run and three-cushion points
+   come from the scoreboard. By hand ("✎ Ergebnis erfassen"), enter the three-cushion points in
+   "3B-Pkt".
+3. **If the score sheet differs:** use **"✎ Korrigieren"** on the finished game. This works as long
+   as no started or played follow-up game builds on the result — otherwise the app refuses and
+   names the game. Group games can therefore be corrected until the KO stage starts, a KO game
+   until the game of its winner starts. The old result is kept, the game is marked as "korrigiert";
+   the scoreboard keeps the originally confirmed result.
+4. **Back up after every round** ("Endstand" tab, "💾 Sicherung speichern") — see
+   [Running a plan tournament](#fuehren).
+5. **After a Carambus deploy, reload the app on all devices.** An open page otherwise keeps sending
+   the old version.
+
+**DBU online portal:** Carambus does not report the results to the portal (§ 2.4). The tournament
+director enters them; the "📄 Spiele-CSV" in the "Endstand" tab helps with that.
 
 The app sends the variant of the current phase with every game to the scoreboard; the
 [Biathlon scoring](../players/biathlon.md) applies there.
 
-!!! warning "As of 2026-10-06"
-    - The **qualifier rule for 24–32 starters** is a provisional decision of the operator; the tender
-      (§ 2 (2) of the general GP tender) could not be found.
+!!! note "As of 2026-10-15"
+    - The **qualifier rule for 24–32 starters** (groups of 3: 2nd vs. 3rd of the same group) is still
+      a provisional decision; the tender does not regulate it. It plays no role at the GP on
+      17–18 October (fewer than 20 starters).
     - The seeding list is matched to the ranking by **name** (the ranking has no DBU numbers).
       Reordering in the Carambus web therefore only affects players without a rank — make
       **manual corrections in the app**.
