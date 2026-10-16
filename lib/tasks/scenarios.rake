@@ -5075,6 +5075,30 @@ ENV
       return false
     end
 
+    install_logrotate_config(ssh_host, ssh_port)
+  end
+
+  # 2026-10-16: Logrotation fuer /var/log/<basename>/ und shared/log aller Deployments
+  # eines Hosts (eine Datei pro Server, Globs). Fehlte bis dahin ueberall — auf
+  # api.carambus.de wuchs ein vhost-error.log auf 59 GB. Quelle: templates/logrotate/carambus
+  def install_logrotate_config(ssh_host, ssh_port)
+    source = File.join(templates_path, 'logrotate', 'carambus')
+    remote_tmp = "/tmp/logrotate-carambus"
+    target = "/etc/logrotate.d/carambus"
+
+    unless system("scp -P #{ssh_port} #{source} www-data@#{ssh_host}:#{remote_tmp}")
+      puts "   ❌ Failed to upload logrotate config"
+      return false
+    end
+
+    # Pruefung erst NACH chown: logrotate ignoriert Konfigurationen, die nicht root gehoeren
+    install_cmd = "sudo mv #{remote_tmp} #{target} && sudo chown root:root #{target} && sudo chmod 644 #{target} && sudo logrotate -d #{target} >/dev/null 2>&1"
+    unless system("ssh -p #{ssh_port} www-data@#{ssh_host} '#{install_cmd}'")
+      puts "   ❌ Failed to install #{target} — check: sudo logrotate -d #{target}"
+      return false
+    end
+
+    puts "   ✅ #{target} installed"
     true
   end
 
