@@ -1,0 +1,35 @@
+# Logrotation fuer alle Carambus-Deployments eines Hosts
+# Ziel: /etc/logrotate.d/carambus (root:root 0644)
+#
+# Ohne diese Datei rotierte auf api.carambus.de nur /var/log/nginx/*.log — die
+# vhost-Logs (/var/log/<basename>/) und die Rails-/nginx-Logs in shared/log
+# wuchsen ungebremst (2026-10-16: error.log 59 GB, production.log 3,1 GB).
+#
+# copytruncate: Puma und nginx behalten ihre offenen Dateideskriptoren, kein
+# Signal/Neustart noetig. Die wenigen Zeilen zwischen Kopie und Truncate gehen
+# im Zweifel verloren — fuer diese Logs vertretbar.
+#
+# su: shared/log ist gruppenbeschreibbar (www-data, 0775); ohne su verweigert
+# logrotate die Rotation wegen "insecure permissions".
+
+/var/log/carambus*/*.log {
+  su www-data root
+  daily
+  rotate 14
+  missingok
+  notifempty
+  compress
+  delaycompress
+  copytruncate
+}
+
+/var/www/*/shared/log/*.log {
+  su www-data www-data
+  daily
+  rotate 14
+  missingok
+  notifempty
+  compress
+  delaycompress
+  copytruncate
+}

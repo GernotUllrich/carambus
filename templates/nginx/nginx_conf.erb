@@ -25,7 +25,7 @@ server {
     include /etc/letsencrypt/options-ssl-nginx.conf;
     ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
 
-    error_log /var/log/<%= @scenario['basename'] %>/error.log debug;
+    error_log /var/log/<%= @scenario['basename'] %>/error.log;
     access_log /var/log/<%= @scenario['basename'] %>/access.log combined;
 <%= "    # Regionsdumps nur auf der Authority (docs/administrators/region-dumps.de.md)\n    include snippets/carambus_region_dumps.conf;\n" if @config['cap_role'] == 'api' %>
 <% if @config.fetch('bot_block_enabled', true) %>
@@ -133,7 +133,7 @@ server {
 
     root /var/www/<%= @scenario['basename'] %>/current/public;
 
-    error_log /var/log/<%= @scenario['basename'] %>/error.log debug;
+    error_log /var/log/<%= @scenario['basename'] %>/error.log;
     access_log /var/log/<%= @scenario['basename'] %>/access.log combined;
 
 <% if @config.fetch('bot_block_enabled', true) %>
