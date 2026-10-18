@@ -11,26 +11,32 @@ Zusammengehörige Dokumente tragen **dasselbe Thema im Namen** und verweisen auf
 Dateinamen sind deshalb Teil des Inhalts — beim Verschieben oder Umbenennen bitte die Verweise
 in den Dokumenten mitziehen.
 
-## Warum sie seit 2026-10-18 hier liegen
+## Warum einige davon hier liegen und andere nicht
 
-Die Turnier-App war bis zum 2026-09-13 ein eigenes Repo (`3band-turnier`) und ist mit
+Die Turnier-App war bis zum 2026-09-13 ein eigenes Repo (`3band-turnier`, privat) und ist mit
 `53bcfbf0` als `tournament_app/` ins Carambus-Repo gewandert. Entwickelt wird weiter im
-Standalone-Checkout `carambus_app`, und die Arbeit kommt einzeln herüber — die Commits tragen
-dann `(aus carambus_app <sha>)` im Betreff.
+Checkout `carambus_app`, und die Arbeit kommt einzeln herüber — die Commits tragen dann
+`(aus carambus_app <sha>)` im Betreff.
 
-**Die Handoffs sind bei diesem Umzug liegengeblieben.** Das alte Remote wurde am 2026-09-17
-archiviert und ist seither schreibgeschützt; alles, was danach im Standalone-Checkout entstand,
-lag nur auf einer Platte — auch die Anfragen vom 17. und 18.10., die zwei Tage Analyse
-enthalten.
+**Hier liegen die Handoffs zu Fixes, die in DIESEM Repo stehen.** Wer in fünf Jahren wissen
+will, warum in `_teaser.html.erb` ein `1.4em` statt einer Pixelzahl steht, sucht neben dem
+Code — nicht in einem zweiten Repo. Die beiden Antwortdokumente erklären `32617de2` und
+`fc69e12b`; die zugehörigen Anfragen stehen daneben, weil eine Antwort ohne ihre Frage nicht
+lesbar ist.
 
-Deshalb ist dieser Ordner der neue Ort: **hier sind die Dokumente versioniert, pushbar und in
-jedem Carambus-Checkout zu finden.**
+**Die vollständige Historie liegt im App-Repo.** Dort stehen alle 44 Dokumente, auch die 40
+älteren aus der Zeit der zwei Repos (Mai bis August 2026). Sie bleiben dort, und zwar aus einem
+inhaltlichen Grund: viele nennen Hosts, interne IP-Adressen, Service-Account-Adressen und
+Abläufe mit Bearer-Tokens. **Das Carambus-Repo ist öffentlich**, das App-Repo privat — und
+Betriebliches gehört in kein öffentliches Repo (siehe `docs/developers/fallstricke.de.md`).
 
-## Was hier (noch) nicht liegt
+Die vier Dokumente hier sind daraufhin geprüft: keine Hosts, keine IP-Adressen, keine
+Zugangsdaten. Sie handeln von ERB-Zeilen, Pixelmaßen und den Wappen-URLs der Verbandsseiten.
 
-Die **40 älteren Handoffs** aus der Zeit der zwei Repos (Mai bis August 2026) stehen weiter in
-`carambus_app/` im Standalone-Checkout. Sie sind erledigt und beantwortet; sie nachzuholen ist
-eine eigene, unabhängige Aufgabe.
+## Wenn ein neues Handoff dazukommt
 
-⚠️ Wer dort nachsieht: dieser Checkout lässt sich nicht pushen. Neue Dokumente gehören in
-diesen Ordner, nicht dorthin.
+1. Es entsteht im Checkout `carambus_app` und wird dort committet — das bleibt der Kanal.
+2. Betrifft es Code, der in `tournament_app/` liegt, gehört eine Kopie hierher.
+3. **Vorher prüfen, was drinsteht.** Ein Blick auf Hosts, IP-Adressen, Zugangsdaten und
+   Token-Abläufe. Die Geheimnis-Wache (`bin/burned-secret-guard`) prüft nur 32 *bekannte*
+   verbrannte Fingerprints — ein unbekanntes Zugangsdatum als Prosa findet sie nicht.
