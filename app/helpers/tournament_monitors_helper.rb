@@ -25,6 +25,17 @@ module TournamentMonitorsHelper
   # Integrationstest auf diese Seite erreicht den Zweig mit dem vorhandenen Fixture-Bestand
   # nicht (ein einziges `games`-Fixture) und waere gruen, ohne etwas zu zeigen — genau so ist
   # es dem `_advance_round_button` bis 2026-09-23 ergangen.
+  # Bis 2026-10-18 stand in der View eine zweite, AUSKOMMENTIERTE Fassung dieser Tabelle —
+  # sie vergibt bei vielen Tischen mehr Spalten statt sie auf vier zu deckeln. Sie ist beim
+  # Umbau hierher gewandert, damit sie nicht verlorengeht; wer sie ausprobieren will, tauscht
+  # nur die Werte, nicht die Aufrufstelle:
+  #
+  #   { 1 => 1, 2 => 2, 3 => 2, 4 => 2, 5 => 2, 6 => 2, 8 => 2, 9 => 2, 10 => 5,
+  #     11 => 6, 12 => 6, 13 => 7, 14 => 7, 15 => 5, 16 => 6, 17 => 6, 18 => 6 }
+  #
+  # ⚠️ Vor einem Versuch pruefen, ob die noetigen grid-cols-N im Build sind: 5, 6 und 7 kommen
+  # dort heute nur deshalb vor, weil locations/_table_scores.html.erb:11-17 sieben leere Divs
+  # allein zu diesem Zweck haelt.
   TEASER_GRID_COLS = {
     1 => 1, 2 => 2, 3 => 3, 4 => 4, 5 => 4, 6 => 3, 8 => 4, 9 => 3, 10 => 4,
     11 => 4, 12 => 4, 13 => 4, 14 => 4, 15 => 3, 16 => 4, 17 => 4, 18 => 4
