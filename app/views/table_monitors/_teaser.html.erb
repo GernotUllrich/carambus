@@ -57,7 +57,32 @@
     <tr>
       <td>
         <div class="flex flex-row items-center justify-start">
-          <div class="w-1/4"><%= image_tag(left_player[:logo], class: "object-contain h-10 w-20") if left_player[:logo].present? %></div>
+          <%# Wappengroesse relativ zur geerbten Schrift. Der Grid-Container der einbindenden
+              # Views setzt text-2vw bzw. text-3vw (gleiche Formel in
+              # locations/scoreboard_tournament_scores und locations/_table_scores), die Logos
+              # standen bis 2026-10-18 fest auf h-10 w-20 = 40 x 80 px. Auf dem Saalmonitor des
+              # 23. DBU Grand Prix stand damit ein 40-px-Wappen neben 115 px hoher Schrift —
+              # ein Drittel der Buchstabenhoehe. Auf dem 1440er Laptop fiel es nie auf, weil
+              # dort 40 px und 2vw zufaellig zusammenfallen.
+              #
+              # 1.4em ist nicht geraten: 40 px Logo zu 28,8 px Schrift (1440 px, 4 Spalten) ist
+              # das Verhaeltnis, das nie beanstandet wurde. Bei dieser Konstellation ergibt
+              # 1.4em 40,3 px — der Augenschein auf dem Laptop bleibt also gleich.
+              #
+              # Quadratisch, weil die Verbandswappen quadratisch oder hochkant sind (gemessen:
+              # 100x100, 137x200, 152x200). Bei der liegenden 2:1-Box band immer die Hoehe, die
+              # deklarierten 80 px Breite erreichte kein Wappen je.
+              #
+              # ⚠️ Inline-style statt h-[1.4em]: die Arbitrary-Value-Klassen sind heute NICHT im
+              # Build. Fehlen sie, hat das <img> gar keine Groessenbegrenzung und rendert in
+              # Naturgroesse (100-200 px) — ein Hotfix ohne yarn build:css brachte also nicht
+              # "wie vorher", sondern Wappen, die die Kachel sprengen. object-contain bleibt
+              # Klasse, die ist seit Jahren im Build.
+              #
+              # min-* greift erst unter ~860 px Bildschirmbreite (Telefon), damit das Wappen
+              # dort nicht zum Punkt schrumpft. %>
+          <div class="w-1/4"><%= image_tag(left_player[:logo], class: "object-contain",
+                                                    style: "height: 1.4em; width: 1.4em; min-height: 1.5rem; min-width: 1.5rem") if left_player[:logo].present? %></div>
           <div class="p-3 <%= options[:current_left_color] == "white" ? "bg-black dark:text-gray-200 font-bold text-white" : "bg-black font-bold text-yellow-400" %>">
             <%- if tournament_names %>
               <%= [left_player[:lastname], left_player[:firstname]].compact_blank.join(", ") %>
@@ -89,7 +114,9 @@
     <tr>
       <td class="">
         <div class="flex flex-row items-center justify-start">
-          <div class="w-1/4"><%= image_tag(right_player[:logo], class: "object-contain h-10 w-20") if right_player[:logo].present? %></div>
+          <%# Wappengroesse wie beim linken Spieler — Begruendung dort. %>
+          <div class="w-1/4"><%= image_tag(right_player[:logo], class: "object-contain",
+                                                    style: "height: 1.4em; width: 1.4em; min-height: 1.5rem; min-width: 1.5rem") if right_player[:logo].present? %></div>
           <div class="p-3 <%= options[:current_left_color] == "yellow" ? "bg-black dark:text-gray-200 font-bold text-white" : "bg-black font-bold text-yellow-400" %>">
             <%- if tournament_names %>
               <%= [right_player[:lastname], right_player[:firstname]].compact_blank.join(", ") %>
