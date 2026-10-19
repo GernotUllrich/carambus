@@ -521,6 +521,16 @@ window.Carambus = (function () {
     });
     return { status, body };
   }
+  // Phase 28-01: Ein versehentlich angesetztes Spiel zuruecknehmen. Gibt den Tisch frei und
+  // haelt ihn am Turnier gebunden — `still_bound` im Body ist der Wert, an dem die App
+  // erkennt, ob ein spaeterer start_game durchgeht. 409 = auf dem Tisch wurde schon gespielt.
+  async function cancelGame({ externalId, tournamentId = null, gameExternalId, force = false, region = regionShortname() }) {
+    const { status, body } = await carambusFetch("/api/external_tournament/cancel_game", {
+      method: "POST",
+      body: { region: { shortname: region }, ...tournamentRef({ tournamentId, externalId }), game: { external_id: gameExternalId }, force }
+    });
+    return { status, body };
+  }
   async function endTournament({ externalId, tournamentId = null, cleanup = false, region = regionShortname() }) {
     const { body } = await carambusFetch("/api/external_tournament/end_tournament", {
       method: "POST",
@@ -976,7 +986,7 @@ window.Carambus = (function () {
     carambusFetch, ping,
     api: {
       fetchClubs, fetchClubPlayers, fetchPlayerRankings, fetchTables, fetchDisciplines, fetchRegistrationLists, fetchSeeding,
-      createTournament, lockTable, startGame, acknowledgeResult, endTournament, cleanPlayerRef,
+      createTournament, lockTable, startGame, acknowledgeResult, cancelGame, endTournament, cleanPlayerRef,
       pushTournamentResult,
       fetchRoundResult, fetchAllRoundResults,
       fetchParty, partyGameResult, partyClose

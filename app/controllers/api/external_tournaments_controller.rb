@@ -526,6 +526,49 @@ module Api
       render json: {error: e.message, state: e.state}, status: :conflict
     end
 
+    # POST /api/external_tournament/cancel_game
+    #
+    # Phase 28-01: Ein versehentlich angesetztes Spiel zuruecknehmen. Gibt den Tisch frei
+    # UND haelt ihn am Turnier gebunden (reset_table_monitor allein wuerde ihn loesen — der
+    # naechste start_game liefe dann in TableNotBoundError).
+    #
+    # Body: { region:{shortname}, tournament_id | tournament:{external_id},
+    #         game:{external_id}, force(default false) }
+    # Response (200): carambus.game_cancel/v1 — mit `still_bound`, dem einzigen Wert, an dem
+    #   die App erkennt, ob der Tisch wieder am Turnier haengt.
+    #
+    # Errors: 401 (Auth) / 404 (Region) / 422 (Tournament/Game/TableMonitor nicht gefunden)
+    #         409 (scoring_recorded — auf dem Tisch wurde schon gespielt)
+    def cancel_game
+      payload = cancel_game_params.to_h.deep_symbolize_keys
+      region = Region.find_by!(shortname: payload.dig(:region, :shortname).to_s.upcase)
+
+      result = ExternalTournament::CancelGameProcessor.new(region: region, payload: payload).call
+      t = result.tournament
+      tbl = result.table
+
+      render json: {
+        schema: "carambus.game_cancel/v1",
+        region: {shortname: region.shortname},
+        tournament: {id: t.id, external_id: t.external_id},
+        game: {external_id: result.game_external_id, deleted: true},
+        table: tbl ? {id: tbl.id, name: tbl.name} : nil,
+        table_monitor_id: result.table_monitor&.id,
+        state: result.state,
+        still_bound: result.still_bound
+      }, status: :ok
+    rescue ActiveRecord::RecordNotFound => e
+      render json: {error: e.message}, status: :not_found
+    rescue ExternalTournament::CancelGameProcessor::TournamentNotFoundError
+      render json: {error: "Tournament not found"}, status: :unprocessable_entity
+    rescue ExternalTournament::CancelGameProcessor::GameNotFoundError => e
+      render json: {error: "Game not found: #{e.identifier}"}, status: :unprocessable_entity
+    rescue ExternalTournament::CancelGameProcessor::TableMonitorNotFoundError => e
+      render json: {error: "TableMonitor not found for #{e.identifier}"}, status: :unprocessable_entity
+    rescue ExternalTournament::CancelGameProcessor::ScoringRecordedError => e
+      render json: {error: "scoring_recorded", state: e.state, detail: e.detail}, status: :conflict
+    end
+
     # POST /api/external_tournament/end_tournament
     #
     # Plan 17-05 (Vision L): App meldet Turnierende → alle an das Turnier gebundenen
@@ -951,6 +994,16 @@ module Api
     def acknowledge_result_params
       params.permit(
         :schema, :tournament_id,
+        region: [:shortname],
+        tournament: [:external_id],
+        game: [:external_id]
+      )
+    end
+
+    # Phase 28-01: Strong-Parameters fuer POST cancel_game (force = Vorbedingung uebergehen).
+    def cancel_game_params
+      params.permit(
+        :schema, :tournament_id, :force,
         region: [:shortname],
         tournament: [:external_id],
         game: [:external_id]
