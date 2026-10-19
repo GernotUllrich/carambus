@@ -341,3 +341,10 @@ sind — am Scoreboard erfasst, von der App nie abgeholt. Die wären verloren. D
 laden“.
 
 **Das Turnier ist in Carambus verschwunden** — das Enddatum prüfen; es ist die einzige Bremse des nächtlichen Laufs.
+
+**Etwas muss geändert werden, wofür es keinen Knopf gibt** — Endrundenpaarungen umstellen, ein
+angesetztes Spiel auf einen anderen Tisch legen, einen Tisch aus dem Turnier nehmen. Das geht
+heute nur über die Browser-Konsole und ist nichts für nebenbei: Die Eingriffe, ihre
+Vorbedingungen und die Stellen, an denen sie **stillschweigend** wirkungslos bleiben, stehen in
+[Eingriffe im laufenden Turnier](../developers/eingriffe-im-laufenden-turnier.md). Vorher immer
+eine Sicherung ziehen.

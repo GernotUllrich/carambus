@@ -225,6 +225,7 @@ nav:
           - Per-User-ClubCloud-Identität: developers/per-user-cc-identitaet.md
           - Workflow-Scenarios: developers/clubcloud-mcp-workflow-scenarios.md
       - External Tournament Bridge: developers/external-tournament-bridge.md
+      - Eingriffe im laufenden Turnier: developers/eingriffe-im-laufenden-turnier.md
       - Services:
           - Table Monitor: developers/services/table-monitor.md
           - Region CC: developers/services/region-cc.md
