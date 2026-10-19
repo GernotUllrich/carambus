@@ -140,6 +140,10 @@ Rails.application.routes.draw do
     post "external_tournament/acknowledge_result",
          to: "external_tournaments#acknowledge_result",
          as: :external_tournament_acknowledge_result
+    # Phase 28-01: Versehentlich angesetztes Spiel zuruecknehmen — Tisch frei, Bindung bleibt.
+    post "external_tournament/cancel_game",
+         to: "external_tournaments#cancel_game",
+         as: :external_tournament_cancel_game
     # Plan 17-05 (Vision L): App meldet Turnierende → alle Tische frei + TournamentMonitor closed.
     post "external_tournament/end_tournament",
          to: "external_tournaments#end_tournament",

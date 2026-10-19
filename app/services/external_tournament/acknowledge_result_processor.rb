@@ -19,6 +19,10 @@ module ExternalTournament
   # in :final_match_score. Multi-Set-App-Spiele (Hold bei :final_set_score) sind in
   # diesem Slice noch nicht abgedeckt (→ Defer 17-04).
   class AcknowledgeResultProcessor
+    # find_game teilen wir mit CancelGameProcessor (Phase 28-01) — die Zuordnung ueber die
+    # external_id ist eine Invariante, die nur an einer Stelle stehen darf.
+    include AppGameLookup
+
     Result = Struct.new(:tournament, :game, :table_monitor, :state, :acknowledged_at,
       :result, :already_acknowledged, keyword_init: true)
 
@@ -110,25 +114,6 @@ module ExternalTournament
         end
       raise TournamentNotFoundError, "tournament not found" if tournament.blank?
       tournament
-    end
-
-    # App-Games sind NUR ueber den gebundenen TableMonitor mit dem Turnier verknuepft
-    # (GameSetup#create_new_game setzt KEIN tournament_id/tournament_type — nur tm.game_id).
-    # Wir suchen daher ueber die an den TournamentMonitor gebundenen TableMonitors:
-    # aktuelles Spiel (tm.game) + ggf. das vorige (tm.prev_game_id, nach Rematch/Swap).
-    def find_game(tournament, external_id)
-      owner = tournament.tournament_monitor
-      return nil if owner.blank?
-      bound = TableMonitor.where(tournament_monitor_id: owner.id, tournament_monitor_type: "TournamentMonitor")
-      bound.each do |tm|
-        g = tm.game
-        return g if g.present? && safe_data(g)["external_id"].to_s == external_id
-        if tm.prev_game_id.present?
-          pg = Game.find_by(id: tm.prev_game_id)
-          return pg if pg.present? && safe_data(pg)["external_id"].to_s == external_id
-        end
-      end
-      nil
     end
 
     # carambus.ack/v1-result: bevorzugt das persistente Game-Ergebnis
