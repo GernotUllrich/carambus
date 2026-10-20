@@ -21,8 +21,13 @@ set -euo pipefail
 PROJECT_DIR="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
 cd "$PROJECT_DIR"
 
-# --- Memory-Pfad aus dem absoluten Projektpfad ableiten (Slash -> Dash) ---
-PROJECT_HASH="$(printf '%s' "$PROJECT_DIR" | sed 's|/|-|g')"
+# --- Memory-Pfad aus dem absoluten Projektpfad ableiten ---
+# Claude normalisiert BEIDE Zeichen zu Bindestrichen: Pfadtrenner UND Unterstriche.
+# /Users/.../carambus_bcw  ->  -Users-...-carambus-bcw
+# Bis 2026-10-20 ersetzte diese Zeile nur die Slashes und verfehlte damit jeden
+# Checkout mit Unterstrich im Namen (also alle ausser `carambus`). Das Bundle entstand
+# trotzdem -- nur mit "uebersprungen (fehlt)" statt der Memory.
+PROJECT_HASH="$(printf '%s' "$PROJECT_DIR" | sed 's|/|-|g; s|_|-|g')"
 MEM_DIR="$HOME/.claude/projects/${PROJECT_HASH}/memory"
 
 # --- Git-Kontext (dokumentiert, zu welchem Code-Stand die .paul/-Historie passt) ---
