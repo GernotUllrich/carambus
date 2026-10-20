@@ -267,6 +267,12 @@ Quarter-final, semi-final and final: **15/30/180**. The DBU tender Grands Prix K
 - **KO seeded**, best against worst: quarter-final 1–8, 5–4, 3–6, 7–2 (§ 2.3 (4)–(5)), round of 16
   accordingly 1–16, 8–9, 5–12, 4–13, 3–14, 6–11, 7–10, 2–15. The seeding is shown as a table in the
   "Spiele & Gruppen" tab and in the final standings.
+- **Changing the pairings of the first KO round:** in the "Spiele & Gruppen" tab, card
+  "Platzierungs-/Finalrunde", choose under **"Paarungen"** between **"Gesetzt nach Rangliste"**
+  (seeded by ranking) and **"Gruppen über Kreuz"** (groups crosswise; 4 groups: A1–B2, C1–D2 |
+  B1–A2, D1–C2; 2 groups: A1–B4, B2–A3 | B1–A4, A2–B3; 8 groups accordingly, with the qualifier
+  winner in place of the runner-up). Single players can be swapped per game; the card then shows
+  "Von Hand geändert". This works **until the first KO game has started**.
 - **No third-place match**, third place shared. Places 5–8 (and 9–16) by the average of the lost
   KO game (§ 2.3 (6)).
 - **Warm-up time** 3 minutes per player before every game (§ 5.1 (4)); the app sends it to the
@@ -274,6 +280,14 @@ Quarter-final, semi-final and final: **15/30/180**. The DBU tender Grands Prix K
 
 The round of 16 or quarter-final becomes ready only once all group and qualifier games are
 finished; on the second day the same tournament is continued.
+
+**Game order from the DBU schedule:** the tender does not prescribe an order for the group games —
+the organiser's schedule is binding. In the setup of the running tournament, card **"Spielfolge
+(DBU-Zeitplan)"**, paste the game list as text, one game per line ("game time player – player",
+e.g. "5 09:00 Muster – Beispiel"), and press **"↕ Spielfolge übernehmen"**. The app matches each
+line to a group game via the players and reports what it cannot match and which group games are
+missing from the list. It then plays the group stage in this order: the next games are at the top,
+one round is one time slot of the schedule. **"✕ Spielfolge entfernen"** restores the app's own order.
 
 **During the tournament:**
 

@@ -259,6 +259,12 @@ Kegel (V2, 10.09.2024):
 - **KO gesetzt**, Bester gegen Schlechtesten: Viertelfinale 1–8, 5–4, 3–6, 7–2 (§ 2.3 Abs. 4–5),
   Achtelfinale analog 1–16, 8–9, 5–12, 4–13, 3–14, 6–11, 7–10, 2–15. Die Setzung steht als Tabelle
   im Reiter „Spiele & Gruppen“ und im Endstand.
+- **Paarungen der ersten KO-Runde ändern:** Im Reiter „Spiele & Gruppen“, Karte
+  „Platzierungs-/Finalrunde“, unter **„Paarungen“** zwischen **„Gesetzt nach Rangliste“** und
+  **„Gruppen über Kreuz“** wählen (4 Gruppen: A1–B2, C1–D2 | B1–A2, D1–C2; 2 Gruppen:
+  A1–B4, B2–A3 | B1–A4, A2–B3; 8 Gruppen analog, mit dem Quali-Sieger an der Stelle des
+  Zweiten). Einzelne Spieler lassen sich je Partie tauschen; die Karte zeigt dann „Von Hand
+  geändert“. Das geht, **bis das erste KO-Spiel gestartet ist**.
 - **Kein Spiel um Platz 3**, Platz 3 geteilt. Plätze 5–8 (und 9–16) nach dem GD des verlorenen
   KO-Spiels (§ 2.3 Abs. 6).
 - **Einspielzeit** 3 Minuten je Spieler vor jeder Partie (§ 5.1 Abs. 4); die App schickt sie ans
@@ -266,6 +272,15 @@ Kegel (V2, 10.09.2024):
 
 Das Achtel- bzw. Viertelfinale wird erst bereit, wenn alle Gruppen- und Quali-Spiele fertig sind;
 am zweiten Turniertag wird dasselbe Turnier fortgesetzt.
+
+**Spielfolge nach dem DBU-Zeitplan:** Eine Reihenfolge der Gruppenspiele legt die Ausschreibung
+nicht fest — verbindlich ist der Zeitplan des Ausrichters. Im Setup des laufenden Turniers, Karte
+**„Spielfolge (DBU-Zeitplan)“**, die Spielliste als Text einfügen, eine Partie je Zeile
+(„Partie Uhrzeit Spieler – Spieler“, z. B. „5 09:00 Muster – Beispiel“), und **„↕ Spielfolge
+übernehmen“**. Die App ordnet jede Zeile über die Spieler einem Gruppenspiel zu und meldet, was
+sie nicht zuordnen kann und welche Gruppenspiele in der Liste fehlen. Danach spielt sie die
+Gruppenphase in dieser Reihenfolge: die nächsten Partien stehen oben, eine Runde ist ein
+Zeitfenster des Zeitplans. **„✕ Spielfolge entfernen“** stellt die eigene Reihenfolge der App wieder her.
 
 **Während des Turniers:**
 
