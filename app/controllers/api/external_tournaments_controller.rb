@@ -365,11 +365,13 @@ module Api
     # Idempotent via external_id (region-scoped). Erzeugt einen schlanken TournamentMonitor.
     #
     # Body: { region:{shortname}, location:{id|cc_id}(optional), title, discipline:{name}(optional),
-    #         external_id }
+    #         external_id, end_date(optional) }
+    #   end_date: letzter Turniertag "YYYY-MM-DD" (= Tagesende) oder ISO-Zeitpunkt; bis dahin gibt
+    #   der Mitternachtslauf die Tische nicht frei. Auch beim idempotenten 2. Aufruf nachreichbar.
     # Response (201 / 200 idempotent): carambus.tournament/v1
-    #   { schema, region:{shortname}, tournament:{ id, external_id, tournament_monitor_id, title, location_id } }
+    #   { schema, region:{shortname}, tournament:{ id, external_id, tournament_monitor_id, title, location_id, end_date } }
     #
-    # Errors: 401 (Auth) / 404 (Region) / 422 (external_id fehlt, RecordInvalid)
+    # Errors: 401 (Auth) / 404 (Region) / 422 (external_id fehlt, end_date ungueltig, RecordInvalid)
     def tournament
       payload = tournament_params.to_h.deep_symbolize_keys
       region = Region.find_by!(shortname: payload.dig(:region, :shortname).to_s.upcase)
@@ -385,7 +387,8 @@ module Api
           external_id: t.external_id,
           tournament_monitor_id: t.tournament_monitor&.id,
           title: t.title,
-          location_id: t.location_id
+          location_id: t.location_id,
+          end_date: t.end_date&.iso8601
         }
       }, status: result.created? ? :created : :ok
     rescue ActiveRecord::RecordNotFound => e
@@ -955,7 +958,7 @@ module Api
     # Plan 17-02: Strong-Parameters fuer POST tournament (Lokal-Turnier-Anlage).
     def tournament_params
       params.permit(
-        :schema, :title, :external_id,
+        :schema, :title, :external_id, :end_date,
         region: [:shortname],
         location: [:id, :cc_id],
         discipline: [:name]

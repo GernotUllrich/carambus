@@ -26,8 +26,11 @@ module ExternalTournament
       external_id = @payload[:external_id].to_s
       raise ArgumentError, "external_id is required" if external_id.blank?
 
+      end_date = parse_end_date
       existing = Tournament.where(region_id: @region.id, external_id: external_id).first
       if existing
+        # end_date darf nachgereicht werden (Turnier vor dem Mehrtages-Feld angelegt).
+        existing.update!(end_date: end_date) if end_date && existing.end_date != end_date
         ensure_tournament_monitor(existing)
         return Result.new(tournament: existing, created?: false)
       end
@@ -45,7 +48,8 @@ module ExternalTournament
         # in den TournamentMonitor/Timer; expliziter Wert wirkt unabhaengig vom Spalten-Default).
         timeout: 0,
         timeouts: 0,
-        date: Time.current
+        date: Time.current,
+        end_date: end_date
       )
       ensure_tournament_monitor(tournament)
       Result.new(tournament: tournament, created?: true)
@@ -62,6 +66,20 @@ module ExternalTournament
     # Seasons existieren). season_from_date macht einen frischen Lookup — robuster.
     def resolve_season
       Season.current_season.presence || Season.season_from_date(Date.current)
+    end
+
+    # Mehrtaegige Turniere (GP Biathlon 17./18.10.2026): mit end_date in der Zukunft gibt der
+    # Mitternachtslauf (00:01) die Tische nicht frei und raeumt nichts ab (TableReleaser#still_running?).
+    # Ein reines Datum meint das ENDE dieses Tages — als Tagesbeginn galte das Turnier in der
+    # Nacht vor dem letzten Tag schon als beendet.
+    def parse_end_date
+      raw = @payload[:end_date].to_s.strip
+      return nil if raw.empty?
+      return Time.zone.parse(raw).end_of_day if raw.match?(/\A\d{4}-\d{2}-\d{2}\z/)
+
+      Time.zone.parse(raw) || raise(ArgumentError, "end_date invalid: #{raw}")
+    rescue Date::Error
+      raise ArgumentError, "end_date invalid: #{raw}"
     end
 
     # Location optional; id (global) vor cc_id (region-scoped, D-15-07-A).
