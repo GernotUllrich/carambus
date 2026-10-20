@@ -92,25 +92,61 @@ fi
 # --- INSTALL.sh (läuft beim Ziel-Entwickler, berechnet den Memory-Hash dort neu) ---
 cat > "$STAGE/INSTALL.sh" <<'INSTALL_EOF'
 #!/usr/bin/env bash
-# Im ZIEL-Checkout (Repo-Root des neuen Scenarios) ausführen:  bash INSTALL.sh
+# Im ZIEL-Checkout (Repo-Root des neuen Scenarios) ausführen:  bash INSTALL.sh [--force]
+#
+# Gedacht für einen FRISCHEN Checkout. Zum Abgleich zwischen eigenen Rechnern ist das
+# Bundle der falsche Weg (dafür carambus_state push/pull): am 2026-10-20 überschrieb ein
+# Bundle vom MacBook (Stand 24.09.) auf dem Mini eine neuere .paul/STATE.md.
 set -euo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
 TARGET="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+FORCE=0
+[ "${1:-}" = "--force" ] && FORCE=1
 
 echo "▶ PAUL-Handoff installieren nach: $TARGET"
 
-# 1) PAUL-Gedächtnis + Maschinerie + Docs ins Ziel-Repo (mergen, ohne lokale Config zu überschreiben)
+# 0) Vorhandenes PAUL-Gedächtnis nie stillschweigend überschreiben.
+if [ -e "$TARGET/.paul/STATE.md" ]; then
+  if [ "$FORCE" -ne 1 ]; then
+    echo "✗ Abbruch: $TARGET/.paul/STATE.md existiert bereits — nichts wurde verändert." >&2
+    echo "  Das Bundle ist für einen frischen Checkout gedacht. Eigene Rechner abgleichen:" >&2
+    echo "  carambus_state (push/pull). Bewusst ersetzen: bash INSTALL.sh --force" >&2
+    echo "  (das vorhandene .paul/ wird dann vorher gesichert)." >&2
+    exit 1
+  fi
+  BACKUP="$TARGET/.paul.vor-install-$(date +%Y%m%d-%H%M%S)"
+  mv "$TARGET/.paul" "$BACKUP"
+  echo "  ✓ vorhandenes .paul/ gesichert -> $BACKUP"
+fi
+
+# 1) PAUL-Gedächtnis + Maschinerie + Docs ins Ziel-Repo (überschreibt gleichnamige Dateien)
 cp -R "$HERE/repo/." "$TARGET/"
 echo "  ✓ .paul/ + .claude/paul-framework/ + .claude/commands/paul/ + Root-Docs"
 
-# 2) Claude Auto-Memory in den PFAD-KORREKTEN Ordner (Hash aus DIESEM Checkout-Pfad)
+# 2) Claude Auto-Memory in den PFAD-KORREKTEN Ordner (Hash aus DIESEM Checkout-Pfad).
+#    Vorhandene Dateien bleiben unangetastet (cp -n); abweichende werden gemeldet.
 if [ -d "$HERE/claude-memory" ]; then
   # Wie oben: Claude normalisiert Pfadtrenner UND Unterstriche zu Bindestrichen.
   NEW_HASH="$(printf '%s' "$TARGET" | sed 's|/|-|g; s|_|-|g')"
   NEW_MEM="$HOME/.claude/projects/${NEW_HASH}/memory"
   mkdir -p "$NEW_MEM"
-  cp -R "$HERE/claude-memory/." "$NEW_MEM/"
-  echo "  ✓ Claude-Memory -> $NEW_MEM"
+  # Datei fuer Datei statt `cp -n`: macOS-cp meldet beim Ueberspringen Exit 1, und
+  # set -e beendete das Skript dann stumm mitten in der Installation.
+  SKIPPED=()
+  for f in "$HERE/claude-memory"/*; do
+    [ -e "$f" ] || continue
+    name="$(basename "$f")"
+    if [ -e "$NEW_MEM/$name" ]; then
+      cmp -s "$f" "$NEW_MEM/$name" || SKIPPED+=("$name")
+    else
+      cp -R "$f" "$NEW_MEM/$name"
+    fi
+  done
+  echo "  ✓ Claude-Memory -> $NEW_MEM (vorhandene Dateien nicht überschrieben)"
+  if [ "${#SKIPPED[@]}" -gt 0 ]; then
+    echo "  ⚠ ${#SKIPPED[@]} Memory-Datei(en) weichen ab und wurden NICHT übernommen:"
+    for name in "${SKIPPED[@]}"; do echo "     - $name   (Bundle-Fassung: $HERE/claude-memory/$name)"; done
+  fi
 fi
 
 echo ""
@@ -161,6 +197,12 @@ bash INSTALL.sh        # von IRGENDWO ausführbar; nimmt das Ziel-Repo via git r
 
 \`INSTALL.sh\` legt \`.paul/\` + PAUL-Maschinerie + Docs ins Ziel-Repo und kopiert
 das Memory in den **korrekten** \$HOME-Ordner (Hash aus dem NEUEN Checkout-Pfad).
+
+**Nur für einen frischen Checkout.** Liegt im Ziel schon \`.paul/STATE.md\`, bricht
+\`INSTALL.sh\` ab, ohne etwas zu verändern. Eigene Rechner gleicht \`carambus_state\`
+(push/pull) ab, nicht dieses Bundle. \`bash INSTALL.sh --force\` ersetzt bewusst —
+das vorhandene \`.paul/\` wird vorher nach \`.paul.vor-install-<Zeitstempel>/\` gesichert.
+Vorhandene Memory-Dateien werden nie überschrieben; abweichende nennt \`INSTALL.sh\`.
 
 ## ⚠️ Wichtige Gotchas
 
