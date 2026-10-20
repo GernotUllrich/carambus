@@ -1121,7 +1121,7 @@ function createRun(plan,players,opts={}){
   // über Gruppen verschiedener Größe Partiepunkte je Partie
   const gp=plan.rank==="dbu-gp";
   return { plan, players, ballsGoal:opts.ballsGoal??null, order:opts.order??(gp?["points","gdq","b3"]:["points","gd"]),
-           crossOrder:gp?["ppg","gdq","b3"]:null, groups, results:{} };
+           crossOrder:gp?["ppg","gdq","b3"]:null, koOrder:opts.koOrder??null, groups, results:{} };
 }
 function groupComplete(run,n){ return run.plan.games.filter(g=>g.kind==="group"&&g.group===n).every(g=>run.results[g.key]); }
 function runGroupStandings(run,n){
@@ -1135,7 +1135,10 @@ function resolveSlot(run,ref){
   if((m=/^g(\d+)\.p(\d+)$/.exec(ref))){ const grp=run.groups[+m[1]]; return grp?(grp[+m[2]-1]??null):null; }
   if((m=/^g(\d+)\.rk(\d+)$/.exec(ref))){ const n=+m[1]; if(!groupComplete(run,n)) return null; return runGroupStandings(run,n)[+m[2]-1]?.player??null; }
   if(ref.startsWith("(")) return resolveComposite(run,ref);
-  if((m=/^ks\.rk(\d+)$/.exec(ref))){ const list=koSeedList(run); return list?(list[+m[1]-1]?.player??null):null; }
+  if((m=/^ks\.rk(\d+)$/.exec(ref))){ const list=koSeedList(run); if(!list) return null;
+    // Eigene Reihenfolge der Turnierleitung (Schema „über Kreuz“ oder Tausch von Hand) statt der Setzung
+    if(run.koOrder) return memberStat(run,run.koOrder[+m[1]-1])?.player??null;
+    return list[+m[1]-1]?.player??null; }
   if((m=/^(.+)\.rk(\d+)$/.exec(ref))){ const r=run.results[m[1]]; if(!r||r.winner==null) return null; const rk=+m[2]; if(rk===1) return r.winner==="a"?r.a:r.b; if(rk===2) return r.winner==="a"?r.b:r.a; return null; }
   return null;
 }
@@ -1163,6 +1166,28 @@ function koSeedList(run){
   const ks=run.plan.koseed; if(!ks) return null; const list=[];
   for(const {ref,place} of ks){ const st=memberStat(run,ref); if(!st) return null; list.push({...st,place,ref}); }
   return list.sort((x,y)=>((x.place-y.place)||lexDesc(["ppg","gdq","bestq","hs"])(x,y)||((x.player.seed??0)-(y.player.seed??0))));
+}
+// KO-Paarungen beim Übergang in die Endrunde ändern (GP-Nachbereitung A). Die Spiele der ersten
+// KO-Runde verweisen auf ks.rk<n>; eine eigene Reihenfolge run.koOrder (Mitglieds-Refs wie g1.rk1
+// je Setzposition) ändert die Paarungen, ohne den Plan anzufassen — Ergebnisse bleiben zugeordnet.
+function koFirstGames(run){ return run.plan.games.filter(g=>/^ks\.rk\d+$/.test(g.a)&&/^ks\.rk\d+$/.test(g.b)); }
+function koEffectiveOrder(run){ const list=koSeedList(run); if(!list) return null; return run.koOrder?[...run.koOrder]:list.map(e=>e.ref); }
+// Reihenfolge, die je erster KO-Partie das Paar [refA, refB] ergibt
+function koOrderFromPairs(run,pairs){
+  const games=koFirstGames(run), n=(run.plan.koseed||[]).length; if(pairs.length!==games.length) return null;
+  const order=new Array(n).fill(null);
+  games.forEach((g,i)=>{ order[+g.a.slice(5)-1]=pairs[i][0]; order[+g.b.slice(5)-1]=pairs[i][1]; });
+  return order.every(Boolean)?order:null;
+}
+// Gruppen über Kreuz: 4 und 8 Gruppen — obere Hälfte A1–B2, C1–D2 …, untere B1–A2, D1–C2 …;
+// 2 Gruppen (1.–4. weiter): A1–B4, B2–A3 | B1–A4, A2–B3. Ein Quali-Sieger tritt an die Stelle des Zweiten.
+function koCrossOrder(run){
+  const ks=run.plan.koseed||[], ng=run.plan.groups.length, at={};
+  for(const {ref,place} of ks){ const m=/^g(\d+)\.rk\d+$/.exec(ref)||/^quali(\d+)\.rk1$/.exec(ref); if(m) (at[+m[1]]??={})[place]=ref; }
+  const R=(g,pl)=>at[g]?.[pl]; let pairs;
+  if(ng===2) pairs=[[R(1,1),R(2,4)],[R(2,2),R(1,3)],[R(2,1),R(1,4)],[R(1,2),R(2,3)]];
+  else { const top=[],bottom=[]; for(let k=1;k<ng;k+=2){ top.push([R(k,1),R(k+1,2)]); bottom.push([R(k+1,1),R(k,2)]); } pairs=[...top,...bottom]; }
+  return pairs.every(p=>p[0]&&p[1])?koOrderFromPairs(run,pairs):null;
 }
 function memberStat(run,member){
   let m;
@@ -1405,7 +1430,7 @@ function rebuildRun(records = state?.records) {
   if (!state || !state.executorParams || !state.participants?.length) return null;
   const plan = parsePlan(state.executorParams);
   const r = createRun(plan, state.participants.map((p, i) => ({ ...p, seed: i + 1, pid: pidOf({ ...p, seed: i + 1 }) })),
-                      { ballsGoal: state.format.balls_goal });
+                      { ballsGoal: state.format.balls_goal, koOrder: state.koOrder ?? null });
   for (const rec of (records || [])) {
     try { recordResult(r, rec.key, rec.res, rec.winner); } catch (e) { console.warn("replay", rec.key, e.message); }
   }
@@ -1948,7 +1973,7 @@ async function startTournament() {
       if (fails.length && !confirm("Tische teils nicht gebunden:\n" + fails.join("\n") + "\n\nFortfahren?")) return;
     } catch (e) { alert("Turnier anlegen: " + errMsg(e)); return; }
   }
-  state.records = []; state.gameUI = {}; state.tableLot = {}; state.phase = "running";
+  state.records = []; state.gameUI = {}; state.tableLot = {}; state.koOrder = null; state.phase = "running";
   save(); run = rebuildRun();
   state.seedSnapshot = seedSnapshot(); save();
   renderAll(); switchTab("games");
@@ -2137,7 +2162,7 @@ async function resetTournament() {
       if (!confirm("Carambus-Abräumen fehlgeschlagen: " + errMsg(e) + "\n\nTrotzdem lokal verwerfen?")) return;
     }
   }
-  state.records = []; state.gameUI = {}; state.tableLot = {}; state.phase = "setup"; state.carambusTournament = null; save(); run = rebuildRun(); renderAll(); switchTab("setup");
+  state.records = []; state.gameUI = {}; state.tableLot = {}; state.koOrder = null; state.phase = "setup"; state.carambusTournament = null; save(); run = rebuildRun(); renderAll(); switchTab("setup");
 }
 
 // ===== SPIELE & GRUPPEN =====
@@ -2194,7 +2219,7 @@ function renderGames() {
     <div class="card"><h2>Laufend (${runningUniq.length})</h2>${runningUniq.length ? `<div class="matches-grid">${runningUniq.map(g => matchCard(g, "running", free)).join("")}</div>` : `<p class="muted">Kein laufendes Spiel.</p>`}</div>
     ${doneGames.length ? `<div class="card"><h2>Erledigt (${doneGames.length})</h2><div class="matches-grid">${doneGames.map(g => matchCard(g, "done", free)).join("")}</div></div>` : ``}
     <div class="card"><h2>Gruppen</h2><div class="groups-grid">${run.plan.groups.map(gr => groupCard(gr.n)).join("") || `<p class="muted">Keine Gruppenphase.</p>`}</div></div>
-    <div class="card"><h2>Platzierungs-/Finalrunde</h2>${koSeedHtml()}${renderPlacementList()}</div>`;
+    <div class="card"><h2>Platzierungs-/Finalrunde</h2>${koSeedHtml()}${koPairEditorHtml()}${renderPlacementList()}</div>`;
   bindGameActions(el);
 }
 
@@ -2316,10 +2341,45 @@ function koSeedHtml() {
   const hint = `<p class="muted" style="margin:0 0 8px;">Gesetzt nach Abschluss aller Gruppen- und Quali-Spiele: Gruppenplatz, Partiepunkte je Partie, GD, bester Einzel-GD, Höchstserie, zuletzt Setzplatz (Ausschreibung § 2.3 Abs. 4). Gepaart wird Bester gegen Schlechtesten.</p>`;
   const list = koSeedList(run);
   if (!list) return hint + `<p class="muted">Die Setzung steht fest, sobald alle Gruppen- und Quali-Spiele beendet sind.</p>`;
+  const own = state.koOrder ? `<div class="alert" style="margin:0 0 8px;">Die Paarungen der ersten KO-Runde weichen von dieser Setzung ab: ${escapeHtml(KO_SCHEME_LABEL[koScheme()])}.</div>` : "";
   const groupOf = {}; for (const [n, ps] of Object.entries(run.groups)) ps.forEach(p => groupOf[pidOf(p)] = n);
   const origin = e => { const q = /^quali(\d+)\.rk1$/.exec(e.ref); return q ? `Gruppe ${q[1]}, Sieger Quali` : `Gruppe ${groupOf[pidOf(e.player)] ?? "?"}, Platz ${e.place}`; };
   const f = v => Number.isFinite(v) ? v.toFixed(2) : "∞";
-  return hint + `<div style="overflow-x:auto;"><table class="standings-table" style="margin-bottom:10px;"><thead><tr><th>Gesetzt</th><th style="text-align:left">Spieler</th><th style="text-align:left">Herkunft</th><th>Pkt/Partie</th><th>GD</th><th>bester GD</th><th>HS</th></tr></thead><tbody>${list.map((e, i) => `<tr><td class="rk">${i + 1}</td><td style="text-align:left">${nameHtml(e.player)}</td><td style="text-align:left">${escapeHtml(origin(e))}</td><td>${f(e.ppg)}</td><td>${f(e.gdq)}</td><td>${f(e.bestq)}</td><td>${e.hs || ""}</td></tr>`).join("")}</tbody></table></div>`;
+  return hint + own + `<div style="overflow-x:auto;"><table class="standings-table" style="margin-bottom:10px;"><thead><tr><th>Gesetzt</th><th style="text-align:left">Spieler</th><th style="text-align:left">Herkunft</th><th>Pkt/Partie</th><th>GD</th><th>bester GD</th><th>HS</th></tr></thead><tbody>${list.map((e, i) => `<tr><td class="rk">${i + 1}</td><td style="text-align:left">${nameHtml(e.player)}</td><td style="text-align:left">${escapeHtml(origin(e))}</td><td>${f(e.ppg)}</td><td>${f(e.gdq)}</td><td>${f(e.bestq)}</td><td>${e.hs || ""}</td></tr>`).join("")}</tbody></table></div>`;
+}
+// Paarungen der ersten KO-Runde ändern (GP-Nachbereitung A): Schema wählen oder Spieler tauschen,
+// bis das erste KO-Spiel gestartet ist. state.koOrder = Mitglieds-Ref je Setzposition (null = Setzung).
+function koLocked() { return koFirstGames(run).some(g => run.results[g.key] || state.gameUI[g.key]?.table); }
+function koScheme() {
+  if (!state.koOrder) return "seeded";
+  return JSON.stringify(state.koOrder) === JSON.stringify(koCrossOrder(run)) ? "cross" : "manual";
+}
+const KO_SCHEME_LABEL = { seeded: "Gesetzt nach Rangliste (Ausschreibung § 2.3 Abs. 4)", cross: "Gruppen über Kreuz", manual: "Von Hand geändert" };
+function koPairEditorHtml() {
+  if (!run?.plan.koseed || !koSeedList(run)) return "";
+  const scheme = koScheme(), order = koEffectiveOrder(run), games = koFirstGames(run);
+  if (koLocked()) return `<p class="muted" style="margin:0 0 10px;">Paarungen: <strong>${escapeHtml(KO_SCHEME_LABEL[scheme])}</strong> — fest, das erste KO-Spiel ist gestartet.</p>`;
+  const opt = (sel) => order.map(ref => { const p = memberStat(run, ref)?.player; return `<option value="${escapeHtml(ref)}" ${ref === sel ? "selected" : ""}>${escapeHtml(`${fullName(p)} (${refLabel(ref)})`)}</option>`; }).join("");
+  const slot = r => { const pos = +r.slice(5) - 1; return `<select class="ko-slot" data-pos="${pos}">${opt(order[pos])}</select>`; };
+  return `<div style="margin:0 0 12px;"><div class="toolbar"><label class="muted" for="koScheme">Paarungen</label>
+      <select id="koScheme">${["seeded", "cross"].map(k => `<option value="${k}" ${scheme === k ? "selected" : ""}>${escapeHtml(KO_SCHEME_LABEL[k])}</option>`).join("")}${scheme === "manual" ? `<option value="manual" selected disabled>${KO_SCHEME_LABEL.manual}</option>` : ""}</select></div>
+    <div style="overflow-x:auto;"><table class="standings-table"><tbody>${games.map(g => `<tr><td style="text-align:left">${escapeHtml(gameLabelBase(g))}</td><td>${slot(g.a)}</td><td>–</td><td>${slot(g.b)}</td></tr>`).join("")}</tbody></table></div>
+    <div class="scheme-hint">Änderbar, bis das erste KO-Spiel gestartet ist. Wer in einer Paarung gewählt wird, tauscht den Platz mit dem bisherigen Spieler.</div></div>`;
+}
+function setKoOrder(order) { state.koOrder = order; save(); run = rebuildRun(); renderAll(); }
+function bindKoPairEditor(el) {
+  el.querySelector("#koScheme")?.addEventListener("change", e => {
+    if (e.target.value === "seeded") return setKoOrder(null);
+    const cross = koCrossOrder(run); if (!cross) { alert("„Über Kreuz“ geht für diesen Plan nicht."); renderAll(); return; }
+    setKoOrder(cross);
+  });
+  el.querySelectorAll(".ko-slot").forEach(sel => sel.addEventListener("change", () => {
+    if (koLocked()) { renderAll(); return; }
+    const order = koEffectiveOrder(run), pos = +sel.dataset.pos, other = order.indexOf(sel.value);
+    if (other < 0 || other === pos) return;
+    [order[pos], order[other]] = [order[other], order[pos]];
+    setKoOrder(JSON.stringify(order) === JSON.stringify(koSeedList(run).map(x => x.ref)) ? null : order);
+  }));
 }
 function renderPlacementList() {
   const pg = run.plan.games.filter(g => g.kind === "placement");
@@ -2340,6 +2400,7 @@ function bindGameActions(el) {
   el.querySelectorAll(".m-manual").forEach(b => b.addEventListener("click", () => openManual(b.dataset.id)));
   el.querySelectorAll(".m-swap").forEach(b => b.addEventListener("click", () => toggleSwap(b.dataset.id)));
   el.querySelectorAll(".m-uncall").forEach(b => b.addEventListener("click", () => uncallGame(b.dataset.id)));
+  bindKoPairEditor(el);
 }
 function cssEsc(s) { return s.replace(/["\\]/g, "\\$&"); }
 

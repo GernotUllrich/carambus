@@ -10,8 +10,8 @@ const html = readFileSync(join(here, "index.html"), "utf8");
 const S = "/* >>> PLAN-ENGINE >>> */", E = "/* <<< PLAN-ENGINE <<< */";
 const si = html.indexOf(S), ei = html.indexOf(E, si + S.length);
 if (si < 0 || ei < 0) { console.error("PLAN-ENGINE-Block in index.html nicht gefunden"); process.exit(1); }
-const { parsePlan, biathlonGpPlan, biathlonVariant, createRun, runReadyGames, recordResult, finalRanking, runFinished, seedingPlayers, rankSeedList, parseRanking, groupStandings } =
-  new Function(html.slice(si + S.length, ei) + "\n;return { parsePlan, biathlonGpPlan, biathlonVariant, createRun, runReadyGames, recordResult, finalRanking, runFinished, seedingPlayers, rankSeedList, parseRanking, groupStandings };")();
+const { parsePlan, biathlonGpPlan, biathlonVariant, createRun, runReadyGames, recordResult, finalRanking, runFinished, seedingPlayers, rankSeedList, parseRanking, groupStandings, resolveSlot, koFirstGames, koCrossOrder, koEffectiveOrder, koSeedList } =
+  new Function(html.slice(si + S.length, ei) + "\n;return { parsePlan, biathlonGpPlan, biathlonVariant, createRun, runReadyGames, recordResult, finalRanking, runFinished, seedingPlayers, rankSeedList, parseRanking, groupStandings, resolveSlot, koFirstGames, koCrossOrder, koEffectiveOrder, koSeedList };")();
 
 let failures = 0;
 const assert = (c, m) => { if (!c) { console.error("  ✗ " + m); failures++; } };
@@ -275,6 +275,39 @@ console.log("\nSchreibvarianten (zweite Stufe):");
   const t = rankSeedList([P("Detlef", "Bretsch"), P("Detlev", "Bretsch")], RL);
   eq(t.players.map(p => `${p.firstname}:${p.rank}`), ["Detlef:19", "Detlev:null"], "exakt vergebene Zeile wird nicht doppelt genutzt");
   eq(t.fuzzy.length, 0, "dann auch keine Meldung");
+}
+
+console.log("\nKO-Paarungen beim Übergang ändern (Nachbereitung A):");
+{
+  // Gruppen (und Quali) durchspielen, bis die erste KO-Runde bereitsteht
+  const toKo = n => {
+    const run = createRun(parsePlan(biathlonGpPlan(n)), Array.from({ length: n }, (_, i) => ({ seed: i + 1, pid: "s" + (i + 1) })));
+    const first = new Set(koFirstGames(run).map(g => g.key));
+    for (let guard = 0; guard < 200; guard++) {
+      const ready = runReadyGames(run).filter(g => !first.has(g.key)); if (!ready.length) break;
+      for (const g of ready) { const aWins = g.playerA.seed < g.playerB.seed; recordResult(run, g.key, { a: { balls: aWins ? 120 : 60, innings: 10 }, b: { balls: aWins ? 60 : 120, innings: 10 } }); }
+    }
+    return run;
+  };
+  const pairsOf = run => koFirstGames(run).map(g => [resolveSlot(run, g.a)?.seed, resolveSlot(run, g.b)?.seed]);
+  const at = (run, ref) => resolveSlot(run, ref).seed;
+  for (const [n, cross] of [
+    [19, [["g1.rk1", "g2.rk2"], ["g3.rk1", "g4.rk2"], ["g2.rk1", "g1.rk2"], ["g4.rk1", "g3.rk2"]]],
+    [12, [["g1.rk1", "g2.rk4"], ["g2.rk2", "g1.rk3"], ["g2.rk1", "g1.rk4"], ["g1.rk2", "g2.rk3"]]],
+    [32, [["g1.rk1", "g2.rk2"], ["g3.rk1", "g4.rk2"], ["g5.rk1", "g6.rk2"], ["g7.rk1", "g8.rk2"], ["g2.rk1", "g1.rk2"], ["g4.rk1", "g3.rk2"], ["g6.rk1", "g5.rk2"], ["g8.rk1", "g7.rk2"]]]]) {
+    const run = toKo(n);
+    const seeded = pairsOf(run), list = koSeedList(run).map(e => e.player.seed);
+    eq(koFirstGames(run).map(g => [g.a, g.b].map(r => list[+r.slice(5) - 1])), seeded, `${n}: ohne eigene Reihenfolge gilt die Setzung`);
+    run.koOrder = koCrossOrder(run);
+    eq(pairsOf(run), cross.map(([x, y]) => [at(run, x), at(run, y)]), `${n}: Gruppen über Kreuz`);
+    // Tausch von Hand: zwei Positionen der Reihenfolge vertauschen
+    const o = koEffectiveOrder(run); [o[0], o[1]] = [o[1], o[0]]; run.koOrder = o;
+    const sw = pairsOf(run); assert(sw.flat().length === new Set(sw.flat()).size, `${n}: nach dem Tausch jeder Spieler genau einmal`);
+    run.koOrder = null; eq(pairsOf(run), seeded, `${n}: zurück zur Setzung`);
+  }
+  // Mit Quali (28 Starter, 3er-Gruppen vorn): der Quali-Sieger steht an der Stelle des Zweiten
+  const q = toKo(28); q.koOrder = koCrossOrder(q);
+  eq(pairsOf(q)[0], [at(q, "g1.rk1"), at(q, "quali2.rk1")], "28: A1 gegen den Quali-Sieger der Gruppe B (an der Stelle B2)");
 }
 
 console.log("\nAlle Teilnehmerzahlen laufen durch:");
