@@ -105,7 +105,8 @@ echo "  ✓ .paul/ + .claude/paul-framework/ + .claude/commands/paul/ + Root-Doc
 
 # 2) Claude Auto-Memory in den PFAD-KORREKTEN Ordner (Hash aus DIESEM Checkout-Pfad)
 if [ -d "$HERE/claude-memory" ]; then
-  NEW_HASH="$(printf '%s' "$TARGET" | sed 's|/|-|g')"
+  # Wie oben: Claude normalisiert Pfadtrenner UND Unterstriche zu Bindestrichen.
+  NEW_HASH="$(printf '%s' "$TARGET" | sed 's|/|-|g; s|_|-|g')"
   NEW_MEM="$HOME/.claude/projects/${NEW_HASH}/memory"
   mkdir -p "$NEW_MEM"
   cp -R "$HERE/claude-memory/." "$NEW_MEM/"
