@@ -1189,6 +1189,43 @@ function koCrossOrder(run){
   else { const top=[],bottom=[]; for(let k=1;k<ng;k+=2){ top.push([R(k,1),R(k+1,2)]); bottom.push([R(k+1,1),R(k,2)]); } pairs=[...top,...bottom]; }
   return pairs.every(p=>p[0]&&p[1])?koOrderFromPairs(run,pairs):null;
 }
+// Spielfolge der Gruppenphase nach einer vorgegebenen Liste (DBU-Zeitplan, GP-Nachbereitung B).
+// Es gibt keinen Algorithmus dafür; die Liste ist bindend. Je Zeile "<Partie> [<hh:mm>] <Spieler> – <Spieler>",
+// Spieler per Nachname oder Vor- und Nachname. Ergebnis: Partie-Nr., Zeit und Runde je Gruppenspiel
+// (Runde = Zeitfenster; ohne Zeiten Blöcke zu je <tables> Partien in Listenreihenfolge).
+function matchGameOrder(run,text,opts={}){
+  const tables=opts.tables||4, groupGames=run.plan.games.filter(g=>g.kind==="group");
+  const players=Object.values(run.groups).flat(), nm=normPersonName;
+  const byPid=new Map(groupGames.map(g=>{ const a=resolveSlot(run,g.a),b=resolveSlot(run,g.b); return [[pidOf(a),pidOf(b)].sort().join("|"),g]; }));
+  const findPlayer=side=>{ const t=nm(side); const hit=players.filter(p=>[p.lastname,`${p.firstname} ${p.lastname}`,`${p.lastname} ${p.firstname}`].some(x=>nm(x)===t));
+    return hit.length===1?{p:hit[0]}:{err:hit.length?`„${side.trim()}“ ist mehrdeutig (${hit.length} Spieler)`:`„${side.trim()}“ nicht gefunden`}; };
+  const rows=[], unmatched=[], used=new Set();
+  String(text||"").split(/\r?\n/).forEach(line=>{
+    if(!line.trim()) return;
+    const m=/^\s*(\d+)\.?\s+(?:(\d{1,2}[:.]\d{2})\s+)?(.+?)\s*(?:\s[-–—]\s|[–—])\s*(.+?)\s*$/.exec(line);
+    if(!m){ unmatched.push({line:line.trim(),reason:"Zeile nicht erkannt (erwartet: Partie [Zeit] Spieler – Spieler)"}); return; }
+    const A=findPlayer(m[3]),B=findPlayer(m[4]);
+    if(A.err||B.err){ unmatched.push({line:line.trim(),reason:[A.err,B.err].filter(Boolean).join("; ")}); return; }
+    const g=byPid.get([pidOf(A.p),pidOf(B.p)].sort().join("|"));
+    if(!g){ unmatched.push({line:line.trim(),reason:"keine Gruppenpartie dieser beiden Spieler"}); return; }
+    if(used.has(g.key)){ unmatched.push({line:line.trim(),reason:"Partie steht doppelt in der Liste"}); return; }
+    used.add(g.key); rows.push({key:g.key,no:+m[1],time:m[2]?m[2].replace(".",":"):null});
+  });
+  const timed=rows.length&&rows.every(r=>r.time), slots=[];
+  rows.forEach((r,i)=>{ r.pos=i; if(timed){ if(!slots.includes(r.time)) slots.push(r.time); r.round=slots.indexOf(r.time)+1; } else r.round=Math.floor(i/tables)+1; });
+  return { order:rows, unmatched, missing:groupGames.filter(g=>!used.has(g.key)).map(g=>g.key) };
+}
+// Liste auf den geparsten Plan anwenden: Gruppenspiele bekommen Runde/Partie-Nr./Position; nicht
+// gelistete folgen danach; KO-Runden zählen hinter der letzten Gruppenrunde weiter.
+function applyGameOrder(plan,order){
+  if(!order?.length) return plan;
+  const at=new Map(order.map(o=>[o.key,o])), groupGames=plan.games.filter(g=>g.kind==="group");
+  const oldMax=groupGames.reduce((m,g)=>Math.max(m,g.round||0),0), listMax=order.reduce((m,o)=>Math.max(m,o.round),0);
+  for(const g of groupGames){ const o=at.get(g.key); if(o){ g.round=o.round; g.listNo=o.no; g.listTime=o.time; g.listPos=o.pos; } else g.round=listMax+(g.round||0); }
+  const newMax=groupGames.reduce((m,g)=>Math.max(m,g.round||0),0), shift=newMax-oldMax;
+  if(shift>0) for(const g of plan.games) if(g.kind!=="group"&&Number.isInteger(g.round)) g.round+=shift;
+  return plan;
+}
 function memberStat(run,member){
   let m;
   if((m=/^g(\d+)\.rk(\d+)$/.exec(member))){ const n=+m[1]; if(!groupComplete(run,n)) return null; return runGroupStandings(run,n)[+m[2]-1]??null; }
@@ -1429,6 +1466,7 @@ function syncMeta() {
 function rebuildRun(records = state?.records) {
   if (!state || !state.executorParams || !state.participants?.length) return null;
   const plan = parsePlan(state.executorParams);
+  if (state.gameOrder?.length) applyGameOrder(plan, state.gameOrder); // Spielfolge nach Liste (DBU-Zeitplan)
   const r = createRun(plan, state.participants.map((p, i) => ({ ...p, seed: i + 1, pid: pidOf({ ...p, seed: i + 1 }) })),
                       { ballsGoal: state.format.balls_goal, koOrder: state.koOrder ?? null });
   for (const rec of (records || [])) {
@@ -1524,7 +1562,9 @@ function renderSetup() {
     const endDateCard = !attach && state.carambusTournament ? `<div class="card"><h2>Enddatum in Carambus</h2>${endDateFieldHtml()}
       <div class="toolbar"><button class="btn secondary" id="btnSendEndDate" ${isLive() ? "" : "disabled"}>📅 An Carambus senden</button></div>
       <div class="scheme-hint">Carambus kennt: ${state.carambusTournament.end_date ? escapeHtml(new Date(state.carambusTournament.end_date).toLocaleString("de-DE", { dateStyle: "short", timeStyle: "short" })) : "kein Enddatum"}.</div></div>` : "";
-    el.innerHTML = `<div class="card"><h2>Turnier läuft</h2>${attachInfo}</div>${endDateCard}${renderSeedSnapshot()}`;
+    el.innerHTML = `<div class="card"><h2>Turnier läuft</h2>${attachInfo}</div>${endDateCard}${gameOrderCardHtml()}${renderSeedSnapshot()}`;
+    el.querySelector("#btnGameOrder")?.addEventListener("click", () => { state.gameOrderText = el.querySelector("#inGameOrder").value; applyGameOrderText(); });
+    el.querySelector("#btnGameOrderClear")?.addEventListener("click", () => { if (!confirm("Spielfolge entfernen? Die Runden folgen dann wieder dem Plan.")) return; state.gameOrder = null; state.gameOrderReport = null; save(); run = rebuildRun(); renderAll(); });
     el.querySelector("#inEndDate")?.addEventListener("change", e => { state.endDate = e.target.value || null; save(); });
     el.querySelector("#btnSendEndDate")?.addEventListener("click", sendEndDate);
     el.querySelector("#btnReset").addEventListener("click", resetTournament);
@@ -1939,6 +1979,25 @@ function endDateFieldHtml() {
 function createTournamentArgs(loc) {
   return { externalId: tournamentExternalId(), title: `${state.planName} ${state.discipline}`, location: loc, discipline: state.discipline, endDate: endDateValue() };
 }
+// Spielfolge der Gruppenphase nach einer vorgegebenen Liste (DBU-Zeitplan): Text einfügen wie bei der
+// Rangliste. Ohne Liste bleibt die Planreihenfolge. Zuordnung über die Spieler; Rest wird gemeldet.
+function gameOrderCardHtml() {
+  if (!run || !run.plan.games.some(g => g.kind === "group")) return "";
+  const rep = state.gameOrderReport;
+  const repHtml = !rep ? "" : `<div class="${rep.unmatched.length || rep.missing.length ? "alert" : "info"}" style="margin-top:8px;">${rep.count} Partien übernommen, ${rep.rounds} Runden.${rep.unmatched.length ? `<br><strong>Nicht zugeordnet (${rep.unmatched.length}):</strong><br>${rep.unmatched.map(u => `${escapeHtml(u.line)} — ${escapeHtml(u.reason)}`).join("<br>")}` : ""}${rep.missing.length ? `<br><strong>Nicht in der Liste (${rep.missing.length}), folgen danach:</strong> ${rep.missing.map(escapeHtml).join(" · ")}` : ""}</div>`;
+  return `<div class="card"><h2>Spielfolge (DBU-Zeitplan)</h2>
+    <p class="muted" style="margin:0 0 6px;">Je Zeile: Partie-Nr., Uhrzeit (optional), Begegnung — z. B. „5 09:00 Muster – Beispiel“. Nachname genügt, bei gleichem Nachnamen Vor- und Nachname. Die Uhrzeit wird zur Runde; ohne Uhrzeiten Blöcke so groß wie die Tischzahl. Die nächsten fälligen Spiele stehen oben.</p>
+    <textarea id="inGameOrder" rows="8" style="width:100%;">${escapeHtml(state.gameOrderText || "")}</textarea>
+    <div class="toolbar"><button class="btn" id="btnGameOrder">↕ Spielfolge übernehmen</button>${state.gameOrder ? `<button class="btn secondary" id="btnGameOrderClear">✕ Spielfolge entfernen</button>` : ""}</div>${repHtml}</div>`;
+}
+function applyGameOrderText() {
+  const r = matchGameOrder(run, state.gameOrderText, { tables: state.tables.length || 4 });
+  if (!r.order.length) { alert("Keine Partie zugeordnet." + (r.unmatched[0] ? `\n\nErste Zeile: ${r.unmatched[0].line} — ${r.unmatched[0].reason}` : "")); return; }
+  const label = k => gameLabelBase(run.plan.games.find(g => g.key === k)) + ": " + (() => { const g = run.plan.games.find(x => x.key === k); return `${fullName(resolveSlot(run, g.a))} – ${fullName(resolveSlot(run, g.b))}`; })();
+  state.gameOrder = r.order;
+  state.gameOrderReport = { count: r.order.length, rounds: Math.max(...r.order.map(o => o.round)), unmatched: r.unmatched, missing: r.missing.map(label) };
+  save(); run = rebuildRun(); renderAll();
+}
 // Für ein schon angelegtes Turnier: derselbe (idempotente) Aufruf mit end_date.
 async function sendEndDate() {
   const loc = state.location; if (!loc || (loc.id == null && loc.cc_id == null)) { alert("Keine Location im Turnierzustand."); return; }
@@ -1973,7 +2032,7 @@ async function startTournament() {
       if (fails.length && !confirm("Tische teils nicht gebunden:\n" + fails.join("\n") + "\n\nFortfahren?")) return;
     } catch (e) { alert("Turnier anlegen: " + errMsg(e)); return; }
   }
-  state.records = []; state.gameUI = {}; state.tableLot = {}; state.koOrder = null; state.phase = "running";
+  state.records = []; state.gameUI = {}; state.tableLot = {}; state.koOrder = null; state.gameOrder = null; state.gameOrderReport = null; state.phase = "running";
   save(); run = rebuildRun();
   state.seedSnapshot = seedSnapshot(); save();
   renderAll(); switchTab("games");
@@ -2162,7 +2221,7 @@ async function resetTournament() {
       if (!confirm("Carambus-Abräumen fehlgeschlagen: " + errMsg(e) + "\n\nTrotzdem lokal verwerfen?")) return;
     }
   }
-  state.records = []; state.gameUI = {}; state.tableLot = {}; state.koOrder = null; state.phase = "setup"; state.carambusTournament = null; save(); run = rebuildRun(); renderAll(); switchTab("setup");
+  state.records = []; state.gameUI = {}; state.tableLot = {}; state.koOrder = null; state.gameOrder = null; state.gameOrderReport = null; state.phase = "setup"; state.carambusTournament = null; save(); run = rebuildRun(); renderAll(); switchTab("setup");
 }
 
 // ===== SPIELE & GRUPPEN =====
@@ -2301,7 +2360,7 @@ function matchCard(g, mode, free) {
   return `<div class="m-card ${mode}"><div class="m-top"><span>${escapeHtml(gameLabel(g))}</span><span class="m-id">${escapeHtml(g.key)}${state.gameUI[g.key]?.table ? " · " + escapeHtml(state.gameUI[g.key].table) : ""}</span></div>${slots}${hint}<div class="m-actions">${actions}</div><div id="manual-${cssId(g.key)}"></div></div>`;
 }
 function gameLabel(g) { const bi = run ? biathlonVariant(run.plan, g) : null; const v = bi ? " · " + bi.label : ""; return gameLabelBase(g) + v; }
-function gameLabelBase(g) { if (g.kind === "group") return `Gruppe ${g.group}${g.round ? " · R" + g.round : ""}`; const names = { fin: "Finale", hf1: "Halbfinale 1", hf2: "Halbfinale 2", hf: "Halbfinale", qf: "Viertelfinale" }; let m;
+function gameLabelBase(g) { if (g.kind === "group") return `Gruppe ${g.group}${g.round ? " · R" + g.round : ""}${g.listNo != null ? ` · Partie ${g.listNo}${g.listTime ? ", " + g.listTime : ""}` : ""}`; const names = { fin: "Finale", hf1: "Halbfinale 1", hf2: "Halbfinale 2", hf: "Halbfinale", qf: "Viertelfinale" }; let m;
   if ((m = /^quali(\d+)$/.exec(g.key))) return `Quali Gruppe ${m[1]} (2. vs. 3.)`;
   if ((m = /^8f(\d+)$/.exec(g.key))) return `Achtelfinale ${m[1]}`;
   if ((m = /^qf(\d+)$/.exec(g.key))) return `Viertelfinale ${m[1]}`;
@@ -2437,7 +2496,7 @@ function playerBusy(g, busy = busyPids()) { return [resolveSlot(run, g.a), resol
 // Bereite Spiele rundenweise über alle Gruppen (R1 aller Gruppen vor R2 …), ohne belegte Spieler.
 function startableGames() {
   return runReadyGames(run).filter(x => !state.gameUI[x.key]?.table)
-    .sort((x, y) => ((x.round ?? 0) - (y.round ?? 0)) || ((x.group ?? 0) - (y.group ?? 0)));
+    .sort((x, y) => ((x.round ?? 0) - (y.round ?? 0)) || ((x.listPos ?? Infinity) - (y.listPos ?? Infinity)) || ((x.group ?? 0) - (y.group ?? 0)));
 }
 async function fillFreeTables() {
   // 1. Choreografie-Tische bevorzugt (eae_pg: Sieger bleibt am Tisch / Gruppentische)
@@ -2657,7 +2716,7 @@ function csvGameName(g) {
 }
 // lfd.nr-Reihenfolge: Runden-gestaffelt (Gruppenrunden 1..n je Gruppe), dann Platzierung
 function csvOrder(g) {
-  if (g.kind === "group") return [g.round || 0, 0, g.group || 0];
+  if (g.kind === "group") return [g.round || 0, 0, g.listPos ?? g.group ?? 0];
   const k = g.key; let p = 50;
   if (/^hf/.test(k)) p = 10; else if (k === "fin") p = 20; else { const m = /^p<(\d+)-/.exec(k); if (m) p = 30 + (+m[1]); }
   return [g.round || 99, 1, p];
