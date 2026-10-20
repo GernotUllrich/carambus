@@ -1277,8 +1277,11 @@ function biathlonVariant(plan,g){
 function seedingPlayers(doc){
   const pos=t=>t.seeding_position??t.position??Infinity;
   const teams=((doc&&doc.teams)||[]).map((t,i)=>({t,i})).sort((x,y)=>(pos(x.t)-pos(y.t))||(x.i-y.i));
-  // Verein steht laut Vertrag am Team (teams[].club), nicht am Spieler
-  const out=[]; for(const {t} of teams) for(const p of (t.players||[])) out.push({...p,club_shortname:p.club_shortname??(t.club?(t.club.shortname||t.club.name||""):""),club_cc_id:p.club_cc_id??t.club?.cc_id??null,seed:out.length+1});
+  // Verein: am Spieler (players[].club = Verein der Meldeliste, Carambus Plan 29-01), sonst am Team.
+  // club_id = Carambus-PK, bundesweit eindeutig — geht bei start_game als participants[].club_id mit
+  // (Logo am Scoreboard). Die club_cc_id ist nur je Region eindeutig, kein Schlüssel.
+  const out=[]; for(const {t} of teams) for(const p of (t.players||[])) { const c=p.club||t.club||null;
+    out.push({...p,club_shortname:p.club_shortname??(c?(c.shortname||c.name||""):""),club_cc_id:p.club_cc_id??c?.cc_id??null,club_id:c?.id??null,seed:out.length+1}); }
   return out;
 }
 // Setzliste = Rangliste × Meldeliste: Gemeldete mit Rang nach Platzziffer (gleiche Ziffer →
@@ -1999,7 +2002,7 @@ async function attachToTournament(tournamentId) {
   // Teilnehmer aus seeding.teams (Setzplatz-Reihenfolge). Für Single-Turniere = 1 Player/Team.
   const participants = [];
   for (const team of (seeding.teams || [])) {
-    for (const p of (team.players || [])) participants.push({ ...p, seed: participants.length + 1 });
+    for (const p of (team.players || [])) participants.push({ ...p, club_id: (p.club || team.club)?.id ?? null, seed: participants.length + 1 });
   }
   if (planMeta.players && participants.length !== planMeta.players) {
     if (!confirm(`Plan erwartet ${planMeta.players} Spieler, seeding liefert ${participants.length}. Trotzdem attachen?`)) return;
@@ -2360,8 +2363,7 @@ async function startGameOnTable(key, table) {
       await startGame({
         ...tournamentApiRef(), gameExternalId: ext, tableName: table, tableId: tableIdOf(table),
         roundNo: Number.isInteger(g.round) ? g.round : null, // Planrunde; KO-Runden zählen im GP weiter (Quali, AF, VF …)
-        participants: [{ role: "playera", player: cleanPlayerRef(a), discipline: state.discipline, balls_goal: goal },
-                       { role: "playerb", player: cleanPlayerRef(b), discipline: state.discipline, balls_goal: goal }],
+        participants: [startParticipant("playera", a, goal), startParticipant("playerb", b, goal)],
         format: { ...fmt, free_game_form: ff, sets_to_play: 1, sets_to_win: 1 }
       });
     } catch (e) { alert("Spiel starten: " + errMsg(e)); return; }
@@ -2404,6 +2406,13 @@ const normName = s => String(s ?? "").trim().toLowerCase();
 // Identität = DBU-Nummer (Betreiber 20.10.2026): Die cc_id ist nur je Landesverband eindeutig,
 // und Spieler sind teils Mitglied in mehreren Vereinen/Verbänden. Die cc_id zählt nur, wenn eine
 // dbu_nr fehlt.
+// club_id (Carambus-PK aus der Meldeliste) auf Teilnehmer-Ebene, nicht unter player — das
+// Scoreboard zeigt dann das Logo dieses Vereins. Ohne club_id: Player#club wie bisher.
+function startParticipant(role, p, goal) {
+  const part = { role, player: cleanPlayerRef(p), discipline: state.discipline, balls_goal: goal };
+  if (p.club_id != null) part.club_id = p.club_id;
+  return part;
+}
 function samePlayer(planP, apiP) {
   if (!planP || !apiP) return false;
   if (planP.dbu_nr != null && apiP.dbu_nr != null) return String(planP.dbu_nr) === String(apiP.dbu_nr);

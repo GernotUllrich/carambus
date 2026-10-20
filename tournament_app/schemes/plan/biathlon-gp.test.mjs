@@ -203,6 +203,13 @@ console.log("\nMeldeliste aus Carambus (carambus.seeding/v1, 23 Meldungen):");
   const withClub = seedingPlayers({ teams: [{ seeding_position: 1, club: { cc_id: 42, shortname: "BC Wedel" }, players: [{ lastname: "A" }] },
     { seeding_position: 2, club: { cc_id: 7, shortname: "BC Nord" }, players: [{ lastname: "B", club_shortname: "Eigener", club_cc_id: 9 }] }] });
   eq(withClub.map(p => [p.club_shortname, p.club_cc_id]), [["BC Wedel", 42], ["Eigener", 9]], "Verein vom Team, Spielerangabe hat Vorrang");
+  // Carambus Plan 29-01: players[].club = Verein der Meldeliste, club.id = Carambus-PK
+  const meldeClub = seedingPlayers({ teams: [
+    { seeding_position: 1, club: { id: 500, cc_id: 42, shortname: "BC Wedel" }, players: [{ lastname: "A", club: { id: 731, cc_id: 10050, shortname: "BC Süd" } }] },
+    { seeding_position: 2, club: { id: 500, cc_id: 42, shortname: "BC Wedel" }, players: [{ lastname: "B" }] },
+    { seeding_position: 3, players: [{ lastname: "C" }] }] });
+  eq(meldeClub.map(p => [p.club_shortname, p.club_cc_id, p.club_id]), [["BC Süd", 10050, 731], ["BC Wedel", 42, 500], ["", null, null]],
+    "Verein der Meldeliste am Spieler vor dem Team, club_id = Carambus-PK");
 }
 
 console.log("\nSetzliste = Rangliste × Meldeliste:");
