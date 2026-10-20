@@ -74,6 +74,35 @@ module ExternalTournament
       assert_equal local.id, result&.id
     end
 
+    # Betreiber 2026-10-20: die DBU-Nummer entscheidet, auch wenn eine cc_id in der Region trifft
+    # (Spieler sind teils in mehreren Vereinen/Landesverbaenden; cc_id nur je Region eindeutig).
+    test "dbu_nr schlaegt einen cc_id-Treffer ohne dbu_nr in der eigenen Region" do
+      Player.create!(firstname: "Test15-02-Local", lastname: "NoDbu", region_id: @nbv.id, cc_id: 10_060)
+      foreign = Player.create!(firstname: "Test15-02-Foreign", lastname: "WithDbu",
+        region_id: @bbv.id, cc_id: 10_060, dbu_nr: 112_396)
+
+      result = @matcher.match(cc_id: 10_060, dbu_nr: "112396", firstname: nil, lastname: nil)
+
+      assert_equal foreign.id, result&.id
+    end
+
+    test "doppelte dbu_nr: region+cc_id entscheidet, sonst der Name, Teams nie" do
+      older = Player.create!(firstname: "Test15-02-Old", lastname: "Dup", dbu_nr: 999_001)
+      local = Player.create!(firstname: "Test15-02-Local", lastname: "Dup", dbu_nr: 999_001,
+        region_id: @nbv.id, cc_id: 10_070)
+      Team.create!(firstname: "Test15-02-Team", lastname: "Dup", dbu_nr: 999_001)
+
+      assert_equal local.id, @matcher.match(cc_id: 10_070, dbu_nr: 999_001)&.id, "region+cc_id"
+      assert_equal older.id, @matcher.match(dbu_nr: 999_001, firstname: "Test15-02-Old", lastname: "Dup")&.id, "Name"
+      assert_equal older.id, @matcher.match(dbu_nr: 999_001)&.id, "sonst der aelteste Datensatz"
+    end
+
+    test "Team-Datensatz mit dbu_nr wird nie als Spieler getroffen" do
+      Team.create!(firstname: "Test15-02-OnlyTeam", lastname: "T", dbu_nr: 999_002)
+
+      assert_nil @matcher.match(dbu_nr: 999_002)
+    end
+
     # Path 3: firstname+lastname
     test "matches player by firstname+lastname when cc_id and dbu_nr paths fail" do
       player = Player.create!(

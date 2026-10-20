@@ -8,9 +8,11 @@ module ExternalTournament
   # gemappt werden müssen. 15-02 (Seeding-Read) nutzt bereits Carambus-Players
   # direkt aus Seedings — kein Mapping nötig.
   #
-  # Fallback-Kette (D-14-02-B revised — cc_id Primary region-scoped, dbu_nr Cross-Region):
-  #   1. region+cc_id (Player.cc_id ist NICHT global unique — Memory project_cc_id_not_unique)
-  #   2. dbu_nr (cross-region; DBU-Mitgliedschaft global eindeutig)
+  # Fallback-Kette (Betreiber 2026-10-20: die DBU-Nummer entscheidet — Spieler sind teils in
+  # mehreren Vereinen/Landesverbaenden Mitglied, die cc_id ist nur je Region eindeutig):
+  #   1. dbu_nr (cross-region; DBU-Mitgliedschaft bundesweit eindeutig)
+  #   2. region+cc_id (nur wenn die dbu_nr nichts liefert; Treffer mit widersprechender
+  #      dbu_nr zaehlt nicht)
   #   3. firstname+lastname [+club_cc_id falls vorhanden]
   #
   # @example
@@ -32,18 +34,19 @@ module ExternalTournament
     # @return [Player, nil] der gemachte Player oder nil
     def match(attrs)
       attrs = attrs.symbolize_keys
-      match_by_region_cc_id(attrs[:cc_id], attrs[:dbu_nr]) ||
-        match_by_dbu_nr(attrs[:dbu_nr]) ||
+      match_by_dbu_nr(attrs) ||
+        match_by_region_cc_id(attrs[:cc_id], attrs[:dbu_nr]) ||
         match_by_name_and_club(attrs)
     end
 
     private
 
-    # Path 1: region+cc_id (cc_id region-scoped da NICHT global unique)
+    # Path 2: region+cc_id (cc_id region-scoped da NICHT global unique) — nur, wenn die dbu_nr
+    # nichts liefert (keine mitgeschickt oder lokal unbekannt).
     # Ein Spieler aus einem fremden LV (DBU-Turnier) bringt die cc_id SEINER Region mit; in der
     # Region des Servers trägt sie womöglich ein anderer Mensch (GP Biathlon 2026-10-13: Andres/BVW
     # und Pusch/NBV teilen 10050). Widerspricht die dbu_nr des Treffers der mitgeschickten, gilt
-    # der Treffer nicht — dann entscheidet Path 2.
+    # der Treffer nicht — dann entscheidet der Name (Path 3).
     def match_by_region_cc_id(cc_id, dbu_nr)
       return nil if cc_id.blank?
       player = Player.where(region_id: @region.id, cc_id: cc_id.to_i).first
@@ -51,10 +54,24 @@ module ExternalTournament
       player
     end
 
-    # Path 2: dbu_nr (cross-region; DBU-Mitgliedschaft ist national eindeutig)
-    def match_by_dbu_nr(dbu_nr)
-      return nil if dbu_nr.blank?
-      Player.find_by(dbu_nr: dbu_nr.to_i)
+    # Path 1: dbu_nr (cross-region). Im Bestand gibt es doppelte Datensaetze je dbu_nr
+    # (bcw 2026-10-20: 120 Nummern, meist dieselbe Person — Schreibvariante, Namensaenderung;
+    # dazu Team-Datensaetze). Teams zaehlen nicht; bei mehreren Treffern entscheidet
+    # region+cc_id, dann der Name, sonst der aelteste Datensatz.
+    def match_by_dbu_nr(attrs)
+      return nil if attrs[:dbu_nr].blank?
+
+      candidates = Player.where(dbu_nr: attrs[:dbu_nr].to_i)
+        .where("players.type IS NULL OR players.type <> 'Team'").order(:id).to_a
+      return candidates.first if candidates.size <= 1
+
+      by_cc = candidates.select { |p| attrs[:cc_id].present? && p.region_id == @region.id && p.cc_id == attrs[:cc_id].to_i }
+      return by_cc.first if by_cc.size == 1
+
+      by_name = candidates.select do |p|
+        p.lastname.to_s.casecmp?(attrs[:lastname].to_s) && p.firstname.to_s.casecmp?(attrs[:firstname].to_s)
+      end
+      by_name.first || candidates.first
     end
 
     # Path 3: firstname+lastname [+ club_cc_id falls vorhanden]
