@@ -524,12 +524,15 @@ window.Carambus = (function () {
     return body;
   }
 
-  async function createTournament({ externalId, title, location, discipline, region = regionShortname() }) {
+  // endDate "YYYY-MM-DD" = letzter Turniertag (Carambus: gilt bis Tagesende). Bis dahin gibt
+  // der Mitternachtslauf die Tische nicht frei. Auch beim idempotenten zweiten Aufruf nachreichbar.
+  async function createTournament({ externalId, title, location, discipline, endDate = null, region = regionShortname() }) {
     const body = {
       region: { shortname: region }, external_id: externalId, title,
       location: location.id != null ? { id: location.id } : { cc_id: location.cc_id }
     };
     if (discipline) body.discipline = { name: discipline };
+    if (endDate) body.end_date = endDate;
     const { body: resp } = await carambusFetch("/api/external_tournament/tournament", { method: "POST", body });
     return resp.tournament || {};
   }

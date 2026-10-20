@@ -454,12 +454,15 @@ window.Carambus = (function () {
     return body;
   }
 
-  async function createTournament({ externalId, title, location, discipline, region = regionShortname() }) {
+  // endDate "YYYY-MM-DD" = letzter Turniertag (Carambus: gilt bis Tagesende). Bis dahin gibt
+  // der Mitternachtslauf die Tische nicht frei. Auch beim idempotenten zweiten Aufruf nachreichbar.
+  async function createTournament({ externalId, title, location, discipline, endDate = null, region = regionShortname() }) {
     const body = {
       region: { shortname: region }, external_id: externalId, title,
       location: location.id != null ? { id: location.id } : { cc_id: location.cc_id }
     };
     if (discipline) body.discipline = { name: discipline };
+    if (endDate) body.end_date = endDate;
     const { body: resp } = await carambusFetch("/api/external_tournament/tournament", { method: "POST", body });
     return resp.tournament || {};
   }
@@ -1377,7 +1380,9 @@ function defaultState() {
     // Wenn gesetzt, zeigt renderSetup die Attach-Card statt Formular-Setup; attachToTournament
     // holt seeding+round_results und baut state daraus auf.
     attachTournamentId: ((instance && instance.attach_tournament_id) || null),
-    carambusTournament: null, gameUI: {}, records: [], tableLot: {}
+    carambusTournament: null, gameUI: {}, records: [], tableLot: {},
+    // Letzter Turniertag "YYYY-MM-DD" → end_date beim Anlegen; null = Vorschlag aus defaultEndDate()
+    endDate: null
   };
 }
 
@@ -1488,7 +1493,12 @@ function renderSetup() {
         <button class="btn danger" id="btnReset">🔗✕ Verbindung lösen (App-lokal, Server bleibt)</button>
       </div>
       <div class="scheme-hint">„Tische neu binden" braucht man nach dem Einspielen einer Sicherung — die Bindung lebt auf dem Server und fehlt dann. Symptom: „Table not bound to this tournament" beim Starten.</div>` : `<div class="info">Plan <strong>${escapeHtml(state.planName || "")}</strong> erzeugt. Spiele im Tab „Spiele &amp; Gruppen".</div><button class="btn danger" id="btnReset">⟲ Verwerfen &amp; neu aufsetzen</button>`;
-    el.innerHTML = `<div class="card"><h2>Turnier läuft</h2>${attachInfo}</div>${renderSeedSnapshot()}`;
+    const endDateCard = !attach && state.carambusTournament ? `<div class="card"><h2>Enddatum in Carambus</h2>${endDateFieldHtml()}
+      <div class="toolbar"><button class="btn secondary" id="btnSendEndDate" ${isLive() ? "" : "disabled"}>📅 An Carambus senden</button></div>
+      <div class="scheme-hint">Carambus kennt: ${state.carambusTournament.end_date ? escapeHtml(new Date(state.carambusTournament.end_date).toLocaleString("de-DE", { dateStyle: "short", timeStyle: "short" })) : "kein Enddatum"}.</div></div>` : "";
+    el.innerHTML = `<div class="card"><h2>Turnier läuft</h2>${attachInfo}</div>${endDateCard}${renderSeedSnapshot()}`;
+    el.querySelector("#inEndDate")?.addEventListener("change", e => { state.endDate = e.target.value || null; save(); });
+    el.querySelector("#btnSendEndDate")?.addEventListener("click", sendEndDate);
     el.querySelector("#btnReset").addEventListener("click", resetTournament);
     el.querySelector("#btnRebind")?.addEventListener("click", rebindTables);
     el.querySelector("#btnAttachRefresh")?.addEventListener("click", () => {
@@ -1578,6 +1588,7 @@ function renderSetup() {
 
     <div class="card">
       <h2>4 · Start</h2><div id="startHints"></div>
+      ${endDateFieldHtml()}
       <button class="btn" id="btnStart">🏁 Turnier erzeugen</button>
     </div>`;
 
@@ -1600,6 +1611,7 @@ function renderSetup() {
   el.querySelector("#inLoc")?.addEventListener("change", e => { state.locationInput = e.target.value.trim(); save(); });
   el.querySelector("#btnLoadTables")?.addEventListener("click", loadTables);
   el.querySelector("#btnAddTable")?.addEventListener("click", addManualTable);
+  el.querySelector("#inEndDate")?.addEventListener("change", e => { state.endDate = e.target.value || null; save(); });
   el.querySelector("#btnStart").addEventListener("click", startTournament);
   bindPlayerPicker(el); bindTableCheckboxes(el);
   renderStartHints();
@@ -1887,6 +1899,30 @@ function addDemoParticipants(n) {
   save(); renderSetup();
 }
 
+// Mehrtägige Turniere: Ohne end_date in der Zukunft gibt der Mitternachtslauf von Carambus die
+// Tische frei und schließt den Monitor (GP 17./18.10.2026). Vorschlag: GP = zwei Tage, sonst heute.
+function localDate(d) { return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; }
+function defaultEndDate() { const d = new Date(); if (state.gp) d.setDate(d.getDate() + 1); return localDate(d); }
+function endDateValue() { return state.endDate || defaultEndDate(); }
+function endDateFieldHtml() {
+  return `<div style="margin:6px 0;"><label class="muted">Letzter Turniertag</label><input type="date" id="inEndDate" value="${endDateValue()}" style="max-width:170px;"></div>
+    <div class="scheme-hint">Bis zum Ende dieses Tages gibt Carambus die Tische nachts nicht frei.</div>`;
+}
+function createTournamentArgs(loc) {
+  return { externalId: tournamentExternalId(), title: `${state.planName} ${state.discipline}`, location: loc, discipline: state.discipline, endDate: endDateValue() };
+}
+// Für ein schon angelegtes Turnier: derselbe (idempotente) Aufruf mit end_date.
+async function sendEndDate() {
+  const loc = state.location; if (!loc || (loc.id == null && loc.cc_id == null)) { alert("Keine Location im Turnierzustand."); return; }
+  try {
+    state.endDate = endDateValue();
+    const t = await createTournament(createTournamentArgs(loc));
+    state.carambusTournament = { ...state.carambusTournament, end_date: t.end_date ?? null };
+    save(); renderSetup();
+    if (!t.end_date) alert("Carambus hat kein Enddatum zurückgemeldet — der Server kennt end_date vermutlich noch nicht.");
+  } catch (e) { alert("Enddatum senden: " + errMsg(e)); }
+}
+
 async function startTournament() {
   if (state.gp) {
     const n = state.participants.length;
@@ -1901,8 +1937,9 @@ async function startTournament() {
   if (isLive()) {
     try {
       const loc = state.location; if (!loc || (loc.id == null && loc.cc_id == null)) { alert("Live: Location laden."); return; }
-      const t = await createTournament({ externalId: tournamentExternalId(), title: `${state.planName} ${state.discipline}`, location: loc, discipline: state.discipline });
-      state.carambusTournament = { id: t.id ?? null, external_id: t.external_id || tournamentExternalId() };
+      state.endDate = endDateValue();
+      const t = await createTournament(createTournamentArgs(loc));
+      state.carambusTournament = { id: t.id ?? null, external_id: t.external_id || tournamentExternalId(), end_date: t.end_date ?? null };
       const fails = [];
       for (const name of state.tables) { try { await lockTable({ ...tournamentApiRef(), tableName: name, tableId: tableIdOf(name) }); } catch (e) { fails.push(`${name}: ${errMsg(e)}`); } }
       if (fails.length && !confirm("Tische teils nicht gebunden:\n" + fails.join("\n") + "\n\nFortfahren?")) return;
@@ -2364,10 +2401,13 @@ function mapAck(result) { if (!result) return null; const num = v => v == null ?
 // Faellt der Block, greift der alte positionsbasierte Weg samt Tausch-Schalter.
 // Siehe HANDOFF-from-carambus-scoreboard-texte-und-monitor-state.md, Befund 4.
 const normName = s => String(s ?? "").trim().toLowerCase();
+// Identität = DBU-Nummer (Betreiber 20.10.2026): Die cc_id ist nur je Landesverband eindeutig,
+// und Spieler sind teils Mitglied in mehreren Vereinen/Verbänden. Die cc_id zählt nur, wenn eine
+// dbu_nr fehlt.
 function samePlayer(planP, apiP) {
   if (!planP || !apiP) return false;
-  if (planP.cc_id != null && apiP.cc_id != null) return String(planP.cc_id) === String(apiP.cc_id);
   if (planP.dbu_nr != null && apiP.dbu_nr != null) return String(planP.dbu_nr) === String(apiP.dbu_nr);
+  if (planP.cc_id != null && apiP.cc_id != null) return String(planP.cc_id) === String(apiP.cc_id);
   // Ohne ID bleibt der Name — bei internationalen Feldern der Regelfall
   // (in Turnier 50000057 hatte 1 von 6 Spielerinnen ueberhaupt eine ba_id).
   return normName(planP.lastname) === normName(apiP.lastname) &&
@@ -2690,7 +2730,7 @@ function archiveMessage(b) {
   const unTxt = un ? `\n\n${un} Spieler(in) ohne Carambus-Zuordnung — die Zeilen stehen trotzdem im Endstand.` : "";
   return b.durable
     ? `✅ Archiviert.\n\n${head}${unTxt}`
-    : `💾 Gespeichert — noch nicht dauerhaft.\n\n${head}${unTxt}\n\nDer Server raeumt App-Turniere nachts noch ab. Bis Carambus das abstellt, schuetzt nur ein end_date in der Zukunft.`;
+    : `💾 Gespeichert — noch nicht dauerhaft.\n\n${head}${unTxt}\n\nDer Server raeumt App-Turniere nachts ab, sobald der letzte Turniertag (Setup) vorbei ist.`;
 }
 function archiveStatusHtml() {
   const a = state.archive; if (!a) return "";
