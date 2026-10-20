@@ -91,7 +91,7 @@ class TableMonitor::OptionsPresenter
         player_b_active: @tm.playing? &&
           (show_data["current_inning"].andand["active_player"] == @gps[1]&.role),
         player_a: {
-          logo: (@gps[0]&.player&.club&.logo unless @gps[0]&.player&.guest?) || @gps[0]&.player&.logo,
+          logo: logo_for(@gps[0]),
           lastname: @gps[0]&.player&.lastname || "Spieler A",
           shortname: @gps[0]&.player&.shortname || "Spieler A",
           firstname_short: if @gps[0]&.player&.firstname.present?
@@ -131,7 +131,7 @@ class TableMonitor::OptionsPresenter
           tc: show_data[@gps[0]&.role].andand["tc"].to_i
         },
         player_b: {
-          logo: (@gps[1]&.player&.club&.logo unless @gps[1]&.player&.guest?) || @gps[1]&.player&.logo,
+          logo: logo_for(@gps[1]),
           lastname: @gps[1]&.player&.lastname || "Spieler B",
           shortname: @gps[1]&.player&.shortname || "Spieler B",
           firstname_short: if @gps[1]&.player&.firstname.present?
@@ -191,6 +191,18 @@ class TableMonitor::OptionsPresenter
     # kürzen, dass sie sich eindeutig unterscheiden:
     # Beispiel: "Andreas Meissner" vs. "Andreas Mertens" =>
     # "Andreas Mei." und "Andreas Mer."
+    # Plan 29-01 Task 4: Logo des Meldelisten-Vereins am Spiel (gp.data["club_id"], von
+    # start_game gesetzt), sonst wie bisher Player#club; Gaeste ohne Vereinslogo.
+    def logo_for(gp)
+      player = gp&.player
+      return nil if player.nil?
+      return player.logo if player.guest?
+
+      data = gp.data
+      club = Club.find_by(id: data["club_id"]) if data.is_a?(Hash) && data["club_id"].present?
+      (club || player.club)&.logo || player.logo
+    end
+
     def disambiguate_player_names!(options, gps, show_tournament_monitor)
       return unless show_tournament_monitor.blank? &&
                     gps&.size.to_i >= 2 &&

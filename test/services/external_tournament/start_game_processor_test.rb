@@ -104,6 +104,39 @@ module ExternalTournament
       assert_equal @tournament.time_out_warm_up_first_min, tm.warmup_minutes("a")
     end
 
+    # Plan 29-01 Task 4 (GP Biathlon: Maechel ohne Logo): Verein der Meldeliste je Spieler.
+    test "participants[].club_id landet an der GameParticipation, das Scoreboard zeigt dessen Logo" do
+      meld = clubs(:club_bochum)
+      meld.update_columns(logo: "https://example.test/bochum.png")
+      payload = start_payload(external_id: "game-sg-club")
+      payload[:participants][0] = payload[:participants][0].merge(club_id: meld.id)
+      tm = StartGameProcessor.new(region: @nbv, payload: payload).call.table_monitor
+
+      gp_a = tm.game.game_participations.find_by(role: "playera")
+      gp_b = tm.game.game_participations.find_by(role: "playerb")
+      assert_equal meld.id, gp_a.data["club_id"]
+      refute gp_b.data.to_h.key?("club_id"), "ohne club_id kein Vermerk"
+
+      options = tm.get_options!(:de) # player_a = Rolle playera (gps nach role sortiert)
+      assert_equal "https://example.test/bochum.png", options[:player_a][:logo]
+      assert_not_equal "https://example.test/bochum.png", options[:player_b][:logo], "Gegenseite unberuehrt"
+    end
+
+    test "nach switch_players bleibt das Logo beim richtigen Spieler" do
+      meld = clubs(:club_bochum)
+      meld.update_columns(logo: "https://example.test/bochum.png")
+      payload = start_payload(external_id: "game-sg-club-sw")
+      payload[:participants][0] = payload[:participants][0].merge(club_id: meld.id)
+      tm = StartGameProcessor.new(region: @nbv, payload: payload).call.table_monitor
+      jaspers = tm.game.game_participations.find_by(role: "playera").player
+
+      tm.switch_players
+      gp = tm.game.game_participations.reload.find_by(player_id: jaspers.id)
+
+      assert_equal "playerb", gp.role, "Testvoraussetzung: Rollen getauscht"
+      assert_equal meld.id, gp.data["club_id"], "der Verein wandert mit dem Spieler"
+    end
+
     test "ungebundener Tisch wird abgelehnt" do
       other_mon = TableMonitor.create!(state: "ready", data: {})
       other_table = tables(:two)

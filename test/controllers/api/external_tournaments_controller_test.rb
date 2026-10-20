@@ -141,6 +141,32 @@ module Api
       assert_equal @player.firstname, player_data["firstname"]
     end
 
+    # Plan 29-01 Task 3: Verein der Meldeliste (seeding.data["club_id"]) vor Player#club,
+    # mit Carambus-PK (id) — die App schickt ihn als participants[].club_id an start_game.
+    test "seeding liefert den Meldelisten-Verein je Spieler und am Team, mit id" do
+      meld_club = clubs(:club_bochum)
+      Seeding.create!(tournament: @tournament, player: @player, position: 1, data: {"club_id" => meld_club.id})
+
+      get_seeding(tournament_cc_id: 999_201, region: "NBV", jwt: login_jwt)
+      assert_response :success
+      team = JSON.parse(response.body)["teams"].first
+
+      assert_equal meld_club.id, team.dig("players", 0, "club", "id")
+      assert_equal meld_club.shortname, team.dig("players", 0, "club", "shortname")
+      assert_equal meld_club.id, team.dig("club", "id")
+    end
+
+    test "seeding ohne Meldelisten-Verein faellt auf Player#club zurueck (Gegenprobe)" do
+      SeasonParticipation.create!(player: @player, season: @season, club: clubs(:bcw))
+      Seeding.create!(tournament: @tournament, player: @player, position: 1)
+
+      get_seeding(tournament_cc_id: 999_201, region: "NBV", jwt: login_jwt)
+      team = JSON.parse(response.body)["teams"].first
+
+      assert_equal @player.reload.club&.id, team.dig("players", 0, "club", "id")
+      assert_equal @player.club&.id, team.dig("club", "id")
+    end
+
     # 2026-06-20: Auf dem Local-Server koexistieren global gesyncte (id < MIN_ID) und lokal
     # gepflegte (id >= MIN_ID) Seedings -> Teilnehmer erschienen doppelt. Lokal zaehlen nur die lokalen.
     test "seeding on local server: globale Dubletten gefiltert, nur lokale Seedings" do

@@ -987,7 +987,7 @@ module Api
         # Biathlon: Dreiband-Teildistanz und -Aufnahmebegrenzung; Gesamtziel = balls_goal.
         biathlon: [:balls_goal_3b, :innings_goal_3b],
         participants: [
-          :role, :discipline, :balls_goal,
+          :role, :discipline, :balls_goal, :club_id,
           {player: [:cc_id, :firstname, :lastname, :dbu_nr, :club_cc_id]}
         ]
       )
@@ -1350,7 +1350,9 @@ module Api
       {
         seeding_position: team[:seeding_position],
         name: league_team&.name || first_player.fl_name,
-        club: serialize_club(league_team_club(team) || first_player.clubs.first),
+        # Plan 29-01 Task 3: Verein der Meldeliste (seeding.data["club_id"], Scraper) vor
+        # Player#club; vorher `clubs.first` = ein beliebiger Verein des Spielers.
+        club: serialize_club(league_team_club(team) || seeding_club(team[:seedings].first) || first_player.club),
         players: team[:seedings].map.with_index(1) { |s, idx| serialize_player(s, idx) }
       }
     end
@@ -1363,7 +1365,17 @@ module Api
 
     def serialize_club(club)
       return nil unless club
-      {cc_id: club.cc_id, shortname: club.shortname}
+      # id = Carambus-PK, bundesweit eindeutig — die App schickt ihn als participants[].club_id
+      # an start_game zurueck (cc_id ist nur je Region eindeutig).
+      {id: club.id, cc_id: club.cc_id, shortname: club.shortname}
+    end
+
+    # Verein, fuer den der Spieler in der (DBU-)Meldeliste steht — vom Scraper am Seeding
+    # vermerkt (Plan 29-01 Task 2). Fehlt er, nil.
+    def seeding_club(seeding)
+      data = seeding&.data
+      club_id = data["club_id"] if data.is_a?(Hash)
+      club_id.present? ? Club.find_by(id: club_id) : nil
     end
 
     def serialize_player(seeding, position_in_team)
@@ -1375,7 +1387,8 @@ module Api
         lastname: player.lastname,
         cc_id: player.cc_id,
         dbu_nr: player.dbu_nr&.to_s,
-        nationality: player.try(:nationality) || "DE"
+        nationality: player.try(:nationality) || "DE",
+        club: serialize_club(seeding_club(seeding) || player.club)
       }
     end
   end

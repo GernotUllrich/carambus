@@ -92,6 +92,7 @@ module ExternalTournament
           tm.start_new_match! if tm.may_start_new_match?
         end
         tm.finish_warmup! if shootout?(build_options) && tm.may_finish_warmup?
+        stamp_participant_clubs(tm.game) if tm.game.present?
 
         if external_id.present? && tm.game.present?
           # Plan 17-06 (D-17-06-A): zusaetzlich durabler Turnier-Marker fuer die CSV-Enumerierung.
@@ -184,6 +185,19 @@ module ExternalTournament
     # in GameSetup ueberschreibt.
     def rule_flag(key, default)
       (@payload.key?(key) && !@payload[key].nil?) ? @payload[key] : default
+    end
+
+    # Plan 29-01 Task 4: Verein je Spieler aus der Meldeliste (participants[].club_id, Carambus-PK)
+    # an der GameParticipation vermerken — das Scoreboard zeigt dessen Logo statt Player#club.
+    # switch_players tauscht die Rollen der GameParticipations, der Verein wandert mit.
+    def stamp_participant_clubs(game)
+      %w[playera playerb].each do |role|
+        club_id = participant(role)[:club_id]
+        next if club_id.blank? || !Club.exists?(id: club_id.to_i)
+
+        gp = game.game_participations.find_by(role: role)
+        gp&.update!(data: (gp.data.is_a?(Hash) ? gp.data : {}).merge("club_id" => club_id.to_i))
+      end
     end
 
     def participant(role)
