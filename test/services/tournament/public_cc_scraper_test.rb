@@ -110,6 +110,34 @@ class Tournament::PublicCcScraperTest < ActiveSupport::TestCase
     assert @tournament.reload.source_url.present?
   end
 
+  # Plan 29-01 Task 2: der Verein der Meldeliste wird am Seeding vermerkt.
+  test "remember_registration_club vermerkt den Meldelisten-Verein, behaelt andere data-Werte" do
+    seeding = Seeding.create!(tournament: @tournament, player: players(:jaspers), position: 1,
+      data: {"result" => {"x" => 1}})
+    scraper = Tournament::PublicCcScraper.new(tournament: @tournament)
+
+    scraper.send(:remember_registration_club, seeding, clubs(:club_bochum))
+
+    seeding.reload
+    assert_equal clubs(:club_bochum).id, seeding.data["club_id"]
+    assert_equal({"x" => 1}, seeding.data["result"], "andere data-Werte bleiben")
+  end
+
+  test "remember_registration_club: ohne Verein und bei gleichem Verein keine Aenderung" do
+    seeding = Seeding.create!(tournament: @tournament, player: players(:jaspers), position: 1,
+      data: {"club_id" => clubs(:bcw).id})
+    scraper = Tournament::PublicCcScraper.new(tournament: @tournament)
+    before = seeding.reload.updated_at
+
+    travel 1.minute do
+      scraper.send(:remember_registration_club, seeding, nil)
+      scraper.send(:remember_registration_club, seeding, clubs(:bcw))
+    end
+
+    assert_equal before.to_i, seeding.reload.updated_at.to_i, "kein Schreiben ohne Aenderung (keine leere Version)"
+    assert_equal clubs(:bcw).id, seeding.data["club_id"]
+  end
+
   private
 
   def next_id

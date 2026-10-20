@@ -122,6 +122,20 @@ module ExternalTournament
       assert_not_equal "https://example.test/bochum.png", options[:player_b][:logo], "Gegenseite unberuehrt"
     end
 
+    test "Meldelisten-Verein ohne Logo: Rueckfall auf das Logo von Player#club" do
+      meld = clubs(:club_bochum)
+      meld.update_columns(logo: nil)
+      home = clubs(:bcw)
+      home.update_columns(logo: "https://example.test/bcw.png")
+      payload = start_payload(external_id: "game-sg-club-nologo")
+      payload[:participants][0] = payload[:participants][0].merge(club_id: meld.id)
+      tm = StartGameProcessor.new(region: @nbv, payload: payload).call.table_monitor
+      player = tm.game.game_participations.find_by(role: "playera").player
+      SeasonParticipation.create!(player: player, season: seasons(:current), club: home)
+
+      assert_equal "https://example.test/bcw.png", TableMonitor.find(tm.id).get_options!(:de)[:player_a][:logo]
+    end
+
     test "nach switch_players bleibt das Logo beim richtigen Spieler" do
       meld = clubs(:club_bochum)
       meld.update_columns(logo: "https://example.test/bochum.png")

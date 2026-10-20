@@ -305,6 +305,7 @@ class Tournament::PublicCcScraper < ApplicationService
         end
         Rails.logger.info("Seeding[#{seeding.id}] created for #{fl_name} (state=#{target_state}).")
       end
+      remember_registration_club(seeding, club)
       # CC = Wahrheit: State bei jedem Scrape angleichen (auch bestehende Seedings)
       if seeding.state != target_state
         seeding.update(state: target_state)
@@ -531,6 +532,20 @@ class Tournament::PublicCcScraper < ApplicationService
   end
 
   private
+
+  # Plan 29-01 Task 2 (Betreiber 2026-10-20: der Verein der DBU-Meldeliste bestimmt das Logo):
+  # Den zur Meldelisten-Zeile aufgeloesten Verein am Seeding vermerken. player_list traegt ihn
+  # schon (Meldeliste vor Teilnehmerliste); bisher ging er verloren und die Seeding-API nahm
+  # einen beliebigen Verein des Spielers. update statt update_columns: auf der Authority muss
+  # eine Version entstehen, sonst erreicht der Wert keinen Regionalserver.
+  def remember_registration_club(seeding, club)
+    return if club.blank?
+
+    data = seeding.data.is_a?(Hash) ? seeding.data : {}
+    return if data["club_id"] == club.id
+
+    seeding.update(data: data.merge("club_id" => club.id))
+  end
 
   def parse_table_tr(region, frame1_lines, frame_points, frame_result, frames, gd, group, hb,
                      header, hs, mp, innings, nbsp, no,

@@ -200,7 +200,8 @@ class TableMonitor::OptionsPresenter
 
       data = gp.data
       club = Club.find_by(id: data["club_id"]) if data.is_a?(Hash) && data["club_id"].present?
-      (club || player.club)&.logo || player.logo
+      # Ein vom Scraper neu angelegter Meldelisten-Verein hat kein Logo — dann das von Player#club.
+      club&.logo.presence || player.club&.logo.presence || player.logo
     end
 
     def disambiguate_player_names!(options, gps, show_tournament_monitor)
