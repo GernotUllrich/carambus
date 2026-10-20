@@ -86,6 +86,12 @@ class Club < ApplicationRecord
     "Status" => "clubs.status",
     "Founded" => "clubs.founded",
   }.freeze
+  # Der DBU-Platzhalterverein „vereinslos“ (global, DBU-Region, kein cc_id). Er ist kein
+  # echter Verein: Player#club zieht ihm jeden echten Verein derselben Saison vor.
+  def vereinslos?
+    shortname.to_s.strip.casecmp?("vereinslos")
+  end
+
   # Searchable concern provides search_hash, we only need to define the specifics
   
   def self.text_search_sql

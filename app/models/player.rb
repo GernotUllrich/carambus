@@ -227,8 +227,18 @@ class Player < ApplicationRecord
     end
   end
 
+  # Verein der juengsten Saison. Mehrere Zugehoerigkeiten in derselben Saison sind haeufig
+  # (bcw 2026-10-20: 217 Spieler) — dann gewinnt ein echter Verein vor „vereinslos“, unter
+  # mehreren echten die zuletzt angelegte Zugehoerigkeit. Vorher entschied die zufaellige
+  # Reihenfolge; bei 50 Spielern kam „vereinslos“ heraus, beim GP Biathlon 17./18.10.2026
+  # dadurch ohne Logo (Kai-Uwe Maechel: vereinslos + BSC Essen).
   def club
-    season_participations.order(:season_id).last.andand.club
+    latest = season_participations.maximum(:season_id)
+    return nil if latest.nil?
+
+    sps = season_participations.where(season_id: latest).includes(:club).order(:id).to_a
+    real = sps.select { |sp| sp.club.present? && !sp.club.vereinslos? }
+    (real.last || sps.last)&.club
   end
 
   def simple_firstname
