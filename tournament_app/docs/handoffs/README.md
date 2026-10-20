@@ -14,9 +14,10 @@ in den Dokumenten mitziehen.
 ## Warum einige davon hier liegen und andere nicht
 
 Die Turnier-App war bis zum 2026-09-13 ein eigenes Repo (`3band-turnier`, privat) und ist mit
-`53bcfbf0` als `tournament_app/` ins Carambus-Repo gewandert. Entwickelt wird weiter im
-Checkout `carambus_app`, und die Arbeit kommt einzeln herüber — die Commits tragen dann
-`(aus carambus_app <sha>)` im Betreff.
+`53bcfbf0` als `tournament_app/` ins Carambus-Repo gewandert. Bis Oktober 2026 wurde weiter im
+Checkout `carambus_app` entwickelt und die Arbeit einzeln herübergeholt — diese Commits tragen
+`(aus carambus_app <sha>)` im Betreff. **Seit 2026-10-20 ist `carambus_app` stillgelegt:**
+der Code liegt nur noch hier in `tournament_app/`.
 
 **Hier liegen die Handoffs zu Fixes, die in DIESEM Repo stehen.** Wer in fünf Jahren wissen
 will, warum in `_teaser.html.erb` ein `1.4em` statt einer Pixelzahl steht, sucht neben dem
@@ -35,8 +36,7 @@ Zugangsdaten. Sie handeln von ERB-Zeilen, Pixelmaßen und den Wappen-URLs der Ve
 
 ## Wenn ein neues Handoff dazukommt
 
-1. Es entsteht im Checkout `carambus_app` und wird dort committet — das bleibt der Kanal.
-2. Betrifft es Code, der in `tournament_app/` liegt, gehört eine Kopie hierher.
-3. **Vorher prüfen, was drinsteht.** Ein Blick auf Hosts, IP-Adressen, Zugangsdaten und
+1. Es entsteht **hier** in `tournament_app/docs/handoffs/` (nicht mehr in `carambus_app`).
+2. **Vorher prüfen, was drinsteht.** Ein Blick auf Hosts, IP-Adressen, Zugangsdaten und
    Token-Abläufe. Die Geheimnis-Wache (`bin/burned-secret-guard`) prüft nur 32 *bekannte*
    verbrannte Fingerprints — ein unbekanntes Zugangsdatum als Prosa findet sie nicht.
