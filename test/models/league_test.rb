@@ -148,6 +148,82 @@ class LeagueTest < ActiveSupport::TestCase
            "reconstruct_game_plan_from_existing_data returns GamePlan or nil"
   end
 
+  # --- Uniqueness auf `name` (der Override haengt `staffel_text` an, s. League#name) ---
+
+  def unique_league_attrs(base, overrides = {})
+    {
+      id: base,
+      name: "Uniq Test #{base}",
+      shortname: "UQ#{@@counter}",
+      organizer: regions(:nbv),
+      organizer_type: "Region",
+      season: seasons(:current),
+      discipline: disciplines(:carom_3band)
+    }.merge(overrides)
+  end
+
+  test "Dublette mit gesetztem staffel_text wird erkannt (Override machte die Regel inert)" do
+    base = next_base
+    attrs = unique_league_attrs(base, staffel_text: "Staffel A")
+    League.create!(attrs)
+
+    dupe = League.new(attrs.merge(id: base + 1, shortname: "UQ#{@@counter}b"))
+
+    refute dupe.valid?, "gleicher Spaltenwert in name + gleicher Scope muss kollidieren"
+    assert_includes dupe.errors[:name], "must be unique within the same region, season, and staffel"
+  end
+
+  test "unterschiedlicher staffel_text bzw. discipline_id kollidiert nicht" do
+    base = next_base
+    attrs = unique_league_attrs(base, staffel_text: "Staffel A")
+    League.create!(attrs)
+
+    other_staffel = League.new(attrs.merge(id: base + 1, shortname: "UQ#{@@counter}b",
+      staffel_text: "Staffel B"))
+    other_discipline = League.new(attrs.merge(id: base + 2, shortname: "UQ#{@@counter}c",
+      discipline: disciplines(:one)))
+
+    assert other_staffel.valid?, other_staffel.errors.full_messages.join(", ")
+    assert other_discipline.valid?, other_discipline.errors.full_messages.join(", ")
+  end
+
+  test "Altbestands-Dublette bleibt speicherbar, solange name und Scope unangetastet bleiben" do
+    base = next_base
+    attrs = unique_league_attrs(base, staffel_text: "Neue Staffel")
+    League.create!(attrs)
+    # Zweiter Record am Validator vorbei — so sieht der BA-Altbestand aus (48 Records, 2022 importiert)
+    legacy_dupe = League.new(attrs.merge(id: base + 1, shortname: "UQ#{@@counter}b"))
+    legacy_dupe.save(validate: false)
+
+    legacy_dupe.reload.source_kind = "ba"
+
+    assert legacy_dupe.valid?, "Massenlaeufe duerfen an Altbestands-Dubletten nicht kippen: " \
+                              "#{legacy_dupe.errors.full_messages.join(", ")}"
+    assert legacy_dupe.save
+  end
+
+  test "Umbenennung auf einen belegten Namen wird abgelehnt (on: :create waere hier zu schwach)" do
+    base = next_base
+    League.create!(unique_league_attrs(base, name: "Belegt #{base}", staffel_text: "Staffel A"))
+    mover = League.create!(unique_league_attrs(base + 1, name: "Frei #{base}",
+      shortname: "UQ#{@@counter}b", staffel_text: "Staffel A"))
+
+    mover.name = "Belegt #{base}"
+
+    refute mover.valid?, "ein Update, das name anfasst, muss geprueft werden"
+    assert_includes mover.errors[:name], "must be unique within the same region, season, and staffel"
+  end
+
+  test "Regel bleibt auf Region-Ligen ohne cc_id beschraenkt" do
+    base = next_base
+    attrs = unique_league_attrs(base, staffel_text: "Staffel A")
+    League.create!(attrs)
+
+    with_cc_id = League.new(attrs.merge(id: base + 1, shortname: "UQ#{@@counter}b", cc_id: base + 900))
+
+    assert with_cc_id.valid?, with_cc_id.errors.full_messages.join(", ")
+  end
+
   # --- Change-Gate-Content (21-02): cc_standings_content ---
 
   def cc_doc(rows_html)
