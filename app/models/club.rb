@@ -45,7 +45,6 @@ class Club < ApplicationRecord
   has_many :locations, through: :club_locations
   has_many :organized_tournaments, as: :organizer, class_name: "Tournament", dependent: :destroy
   has_many :league_teams
-  has_many :admins, -> { where(role: :club_admin) }, class_name: 'User'
 
   attr_accessor :season_id
 
