@@ -5,13 +5,15 @@
 # Live-Suche), damit die Default-Regeln nur an EINER Stelle existieren — der Reflex laeuft
 # NICHT durch die Controller-before_actions, wuerde Current.scope sonst nicht kennen.
 #
-# region/season: immer ein konkreter Wert (kein "Alle"). Prioritaet:
+# region: konkreter Wert oder "all" = "Alle Regionen" (Betreiber 2026-10-21: regionsuebergreifend
+#   suchen); dann kein Regionsfilter (region_id nil). season: immer konkret. Prioritaet:
 #   Session -> User-Preference (preferences["scope"]) -> Server-Kontext (nur Region) -> Fallback
 #   (Region=NBV pragmatisch, Saison=aktuelle bzw. im Umbruch die Vorsaison).
 # branch: KEIN Fallback -> nil bedeutet "Alle Branchen" (kein Filter); eine gesetzte
 #   Branch-Preference wird aber als Default respektiert.
 class ScopeResolver
   SCOPE_FACETS = %w[region season branch club].freeze
+  ALL_REGIONS = "all"
 
   def initialize(session_scope: nil, user: nil)
     @session_scope = (session_scope || {}).slice(*SCOPE_FACETS)
@@ -28,9 +30,22 @@ class ScopeResolver
     }.compact
   end
 
-  # Immer konkret: Session -> Preference -> Server-Kontext -> NBV.
+  # Session -> Preference -> Server-Kontext -> NBV; nil bei "Alle Regionen" (kein Filter).
   def region_id
-    (@session_scope["region"].presence || preferred("region") || server_context_region_id || default_region_id)&.to_i
+    return nil if all_regions?
+
+    (region_choice || home_region_id)&.to_i
+  end
+
+  # "Alle Regionen" gewaehlt (Session, sonst Preference).
+  def all_regions?
+    region_choice.to_s == ALL_REGIONS
+  end
+
+  # Region des Servers (Kontext), sonst NBV — Rueckfall fuer Seiten, die eine konkrete Region
+  # brauchen (Kalender), wenn "Alle Regionen" gewaehlt ist.
+  def home_region_id
+    server_context_region_id || default_region_id
   end
 
   # Immer konkret: Session -> Preference -> Default (aktuelle/Umbruch-Vorsaison).
@@ -55,6 +70,10 @@ class ScopeResolver
   end
 
   private
+
+  def region_choice
+    @session_scope["region"].presence || preferred("region")
+  end
 
   # Per-User-Default aus preferences["scope"][facet] (z.B. {"region" => 7}). nil, wenn kein User
   # oder kein Wert. Defensiv gegen fehlende/andersartige preferences.

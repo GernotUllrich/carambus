@@ -1,5 +1,5 @@
 <%# Globaler Ausschnitt (Scope-Band): Region · Saison · Branch als primaere Interaktion. %>
-<%# Region/Saison: kein "Alle" (Default Region=NBV, Saison=aktuell). Branch: "Alle Branchen" (Ausnahme). %>
+<%# Saison: kein "Alle". Region: konkret oder "Alle Regionen" (Wert "all"). Branch: "Alle Branchen". %>
 <%# Aenderung submittet per GET; Scopable#capture_scope speichert in Session, SearchService filtert %>
 <%# via Current.scope (region_id/season_id/branch_id) als FK-Filter. %>
 <div id="scope-band" tabindex="-1" class="border-b border-gray-300 dark:border-gray-700 bg-gray-300 dark:bg-gray-800 scroll-mt-4 transition-shadow duration-300">
@@ -22,7 +22,9 @@
 
       <span class="<%= caption %>"><%= t("scope_band.region", default: "Region") %></span>
       <%= select_tag "scope[region]",
-            options_for_select(scope_region_options.map { |shortname, id| [shortname, id] }, current_region_id),
+            options_for_select([[t("scope_band.all_regions", default: "Alle Regionen"), ScopeResolver::ALL_REGIONS]] +
+                               scope_region_options.map { |shortname, id| [shortname, id] },
+                               scope_all_regions? ? ScopeResolver::ALL_REGIONS : current_region_id),
             class: pill + (region_focus_active? ? " opacity-60" : ""), onchange: "this.form.requestSubmit()" %>
       <% if region_focus_active? %>
         <%# Temporärer Region-Fokus (Drilldown): überschreibt den Ausschnitt nur für diese Ansicht. %>

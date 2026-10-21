@@ -34,6 +34,32 @@ class ScopeResolverTest < ActiveSupport::TestCase
     end
   end
 
+  # Betreiber 2026-10-21: "Alle Regionen" in der Suchkopfleiste -> regionsuebergreifend suchen.
+  test "Alle Regionen: kein region_id, kein Regionsfilter" do
+    resolver = ScopeResolver.new(session_scope: {"region" => ScopeResolver::ALL_REGIONS})
+
+    assert resolver.all_regions?
+    assert_nil resolver.region_id
+    refute resolver.fk_scope.key?("region_id"), "fk_scope ohne Regionsfilter"
+    assert resolver.fk_scope.key?("season_id"), "Saison filtert weiter"
+  end
+
+  test "Alle Regionen aus der Preference, Session mit konkreter Region schlaegt sie" do
+    user = Struct.new(:preferences).new({"scope" => {"region" => ScopeResolver::ALL_REGIONS}})
+    assert_nil ScopeResolver.new(user: user).region_id
+
+    concrete = ScopeResolver.new(session_scope: {"region" => regions(:bbv).id.to_s}, user: user)
+    refute concrete.all_regions?
+    assert_equal regions(:bbv).id, concrete.region_id
+  end
+
+  test "home_region_id bleibt bei Alle Regionen konkret (Rueckfall fuer den Kalender)" do
+    with_context("bbv") do
+      resolver = ScopeResolver.new(session_scope: {"region" => ScopeResolver::ALL_REGIONS})
+      assert_equal regions(:bbv).id, resolver.home_region_id
+    end
+  end
+
   private
 
   # Die ganze Config ersetzen (Muster aus prepare_tournament_test.rb): `Carambus.config` traegt in

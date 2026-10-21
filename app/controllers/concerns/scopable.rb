@@ -5,7 +5,8 @@
 # nur dort, wo das Modell die Spalte fuehrt. Kein Eingriff in die User-Suche (params[:sSearch]),
 # daher kein Leck ins Suchfeld.
 #
-# KEIN "Alle": jede Facette ist immer ein konkreter Wert. Defaults (bis User-Preferences in 02-02):
+# Saison ist immer konkret; Region auch, ausser "Alle Regionen" (Wert "all", Betreiber 2026-10-21:
+# regionsuebergreifend suchen). Defaults (bis User-Preferences in 02-02):
 #   Region = NBV (Region[1], pragmatisch — aktuell einzige real genutzte Region; DBU ist einfach
 #   eine waehlbare Region), Saison = aktuelle Saison. Regionale Server setzen die Region aus dem
 #   Server-Kontext; globaler Server nutzt bis 02-02 diese Defaults.
@@ -31,6 +32,7 @@ module Scopable
 
   included do
     helper_method :current_scope, :current_region_id, :current_season_id, :current_branch_id,
+                  :scope_all_regions?,
                   :current_club_id,
                   :scope_region_options, :scope_season_options, :scope_branch_options,
                   :scope_club_options, :scope_extra_facet,
@@ -209,6 +211,10 @@ module Scopable
     scope_resolver.region_id
   end
 
+  def scope_all_regions?
+    scope_resolver.all_regions?
+  end
+
   def current_season_id
     scope_resolver.season_id
   end
@@ -242,6 +248,8 @@ module Scopable
   # Uebersetzen die Resolver-IDs in Anzeigetext. Defensiv gegen nil (fehlende Records).
 
   def current_region_shortname
+    return t("scope_band.all_regions", default: "Alle Regionen") if scope_all_regions?
+
     Region.find_by(id: current_region_id)&.shortname
   end
 

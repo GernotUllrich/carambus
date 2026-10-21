@@ -121,7 +121,8 @@ class CalendarsController < ApplicationController
   # Unbekannte Namen fallen still weg; bleibt nichts uebrig, greift wieder das Band (wie
   # `parse_month`): ein kaputter Link soll eine Seite zeigen, keinen Fehler.
   def ausschnitt_lesen
-    @region = Region.find(current_region_id)
+    # Der Kalender braucht eine konkrete Region; bei "Alle Regionen" die des Servers.
+    @region = Region.find(current_region_id || scope_resolver.home_region_id)
     @url_branches = url_branches
     @branches =
       if @url_branches.any?
