@@ -1973,6 +1973,7 @@ de:
     status: Status
     founded: Gegründet
     dbu_entry: DBU Beitritt
+    dbu_nr: DBU-Vereinsnummer
     new_club_guest: "Neuer Vereinsgast"
     new_club_tournament: "Neues Clubturnier"
     club_tournaments: "Clubturniere"

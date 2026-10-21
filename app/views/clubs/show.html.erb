@@ -27,6 +27,10 @@
       <% if @club.shortname.present? %>
         <div class="min-w-0"><h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5"><%= t('club.shortname') %></h5><%= @club.shortname %></div>
       <% end %>
+      <%# Offizielle Kennung — ueber sie findet der ClubCloud-Vereinsscrape den Verein (Club.find_by_dbu_nr) %>
+      <% if @club.dbu_nr.present? %>
+        <div class="min-w-0"><h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5"><%= t('club.dbu_nr') %></h5><%= @club.dbu_nr %></div>
+      <% end %>
       <% if @club.synonyms.present? %>
         <div class="min-w-0"><h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5"><%= t('club.synonyms') %></h5><%= my_sanitize @club.synonyms&.gsub("\n", ",<hr class=\"my-2 mx-auto w-48 h-1 bg-gray-200 rounded border-0 md:my-5 dark:bg-gray-700\">") %></div>
       <% end %>

@@ -1861,6 +1861,7 @@ en:
     status: Status
     founded: founded
     dbu_entry: "DBU Entry"
+    dbu_nr: "DBU club no."
     new_club_guest: "New Club Guest"
     new_club_tournament: "New Club Tournament"
     club_tournaments: "Club Tournaments"
