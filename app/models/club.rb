@@ -591,7 +591,8 @@ class Club < ApplicationRecord
         Rails.logger.info("REPORT merging clubs (#{name}[#{id}] with #{Array(with_club_ids).map do |idx|
           "#{Club[idx].name} [#{idx}]"
         end})")
-        update(synonyms: (Club.where(id: with_club_ids).map(&:name) +
+        slaves = Club.where(id: with_club_ids).where.not(id: id).to_a
+        update(synonyms: (slaves.map(&:name) +
           Array(synonyms.andand.split("\n"))).uniq.join("\n"))
         SeasonParticipation.where(club_id: with_club_ids).each do |sp|
           unless SeasonParticipation.where(player_id: sp.player_id, season_id: sp.season_id, club_id: id).first.present?
@@ -600,13 +601,20 @@ class Club < ApplicationRecord
         end
         SeasonParticipation.where(club_id: with_club_ids).destroy_all
         ClubLocation.where(club_id: with_club_ids).all.each do |l|
-          l.update(club_id: id)
+          # Spielort, den der Master schon hat: doppelte Zuordnung loeschen statt umhaengen
+          if ClubLocation.where(club_id: id, location_id: l.location_id).exists?
+            l.destroy
+          else
+            l.update(club_id: id)
+          end
         end
         LeagueTeam.where(club_id: with_club_ids).all.each { |lt| lt.update(club_id: id) }
         Tournament.where(organizer_type: "Club", organizer_id: with_club_ids).all.each do |t|
           t.update(organizer_id: id)
         end
+        repoint_remaining_references(with_club_ids)
         Club.where(id: with_club_ids).destroy_all
+        adopt_official_data(slaves)
       else
         merge_with = Array(with_club_ids).map do |idx|
           "#{Club[idx].name} [#{idx}]"
@@ -616,6 +624,55 @@ class Club < ApplicationRecord
       end
     end
     reload
+  end
+
+  private
+
+  # Betreiber 2026-10-20 (Dublette BC GT Buer): nach dem Zusammenfuehren darf kein Verweis ins
+  # Leere zeigen. merge_clubs zog bisher nur SeasonParticipations, ClubLocations, LeagueTeams und
+  # Club-Turniere um; die folgenden blieben am geloeschten Duplikat haengen. Alles per update,
+  # damit auf der Authority Versionen entstehen (Sync an die Regionalserver).
+  def repoint_remaining_references(with_club_ids)
+    ids = Array(with_club_ids).map(&:to_i)
+    Player.where(club_id: ids).find_each { |pl| pl.update(club_id: id) }
+    # locations.club_id ist im Modell ignoriert (ignored_columns) — tote Spalte, nur per SQL
+    # erreichbar; eine Version wuerde sie ohnehin nicht transportieren.
+    Location.where(club_id: ids).update_all(club_id: id)
+    Location.where(organizer_type: "Club", organizer_id: ids).find_each { |loc| loc.update(organizer_id: id) }
+    League.where(organizer_type: "Club", organizer_id: ids).find_each { |lg| lg.update(organizer_id: id) }
+    Setting.where(club_id: ids).find_each { |st| st.update(club_id: id) }
+    TournamentSeriesCc.where(club_id: ids.map(&:to_s)).find_each { |ts| ts.update(club_id: id.to_s) }
+    # Verein der Meldeliste (Plan 29-01): JSON in data, kein Fremdschluessel
+    [Seeding, GameParticipation].each do |klass|
+      klass.where("data LIKE ?", "%club_id%").find_each do |rec|
+        data = rec.data
+        next unless data.is_a?(Hash) && ids.include?(data["club_id"].to_i)
+
+        rec.update(data: data.merge("club_id" => id))
+      end
+    end
+  end
+
+  # Offizielle Daten haben Vorrang (Betreiber 2026-10-20): offiziell ist der Datensatz mit
+  # DBU-Vereinsnummer — ihn findet der ClubCloud-Vereinsscrape (Club.find_by_dbu_nr). Fehlt sie
+  # dem Master, uebernimmt er sie samt Vereinsname; der bisherige Name bleibt Synonym. Leere
+  # cc_id/Logo werden aufgefuellt. Die ba_id bleibt unberuehrt: sie stammt aus der Zeit vor der
+  # DBU-Nummer (Platzhalter 998_000_000 + id fuer unbekannte Vereine) und ist seither irrelevant.
+  # Nach dem Loeschen der Duplikate, damit die dbu_nr nicht doppelt vergeben ist.
+  def adopt_official_data(slaves)
+    attrs = {}
+    official = slaves.find { |c| c.dbu_nr.present? }
+    if dbu_nr.blank? && official
+      attrs[:dbu_nr] = official.dbu_nr
+      attrs[:name] = official.name if official.name.present?
+    end
+    attrs[:cc_id] = slaves.map(&:cc_id).compact.first if cc_id.blank?
+    attrs[:logo] = slaves.map(&:logo).find(&:present?) if logo.blank?
+    attrs.compact!
+    return if attrs.empty?
+
+    names = ([name, attrs[:name]] + Array(synonyms.to_s.split("\n"))).compact.uniq
+    update!(attrs.merge(synonyms: names.join("\n")))
   end
 
   private
