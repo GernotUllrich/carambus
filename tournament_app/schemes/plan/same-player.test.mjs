@@ -8,7 +8,7 @@ const here = dirname(fileURLToPath(import.meta.url));
 const html = readFileSync(join(here, "index.html"), "utf8");
 const si = html.indexOf("const normName = "), ei = html.indexOf("\nfunction sideFromParticipant", si);
 if (si < 0 || ei < 0) { console.error("normName/samePlayer in index.html nicht gefunden"); process.exit(1); }
-const samePlayer = new Function(html.slice(si, ei) + "\n;return samePlayer;")();
+const { samePlayer, swapFromRoles } = new Function(html.slice(si, ei) + "\n;return { samePlayer, swapFromRoles };")();
 
 let failures = 0;
 const check = (got, want, m) => { if (got !== want) { console.error(`  ✗ ${m} (ist ${got}, soll ${want})`); failures++; } else console.log(`  ✓ ${m}`); };
@@ -21,6 +21,15 @@ check(samePlayer(P({ cc_id: 10050 }), P({ dbu_nr: 4711, cc_id: 10051 })), false,
 check(samePlayer(P({}), P({ firstname: " max ", lastname: "MUSTER" })), true, "ohne IDs → Name (normalisiert)");
 check(samePlayer(P({}), P({ lastname: "Anders" })), false, "ohne IDs, anderer Name");
 check(samePlayer(null, P({})), false, "fehlender Spieler");
+
+// Phase 30: Seitenbelegung aus running_games — steht Plan-Spieler B auf playera?
+const A = P({ dbu_nr: 1, lastname: "Anfang" }), B = P({ dbu_nr: 2, lastname: "Beta" });
+const roles = (pa, pb) => [{ role: "playera", player: pa }, { role: "playerb", player: pb }];
+check(swapFromRoles(A, B, roles(B, A)), true, "Ausstoss gewechselt: B steht auf playera → getauscht");
+check(swapFromRoles(A, B, roles(A, B)), false, "wie gestartet → nicht getauscht");
+check(swapFromRoles(A, B, roles(P({ dbu_nr: 3 }), A)), null, "playera ist keiner von beiden → unklar, swapped bleibt");
+check(swapFromRoles(A, P({ dbu_nr: 1, lastname: "Zwilling" }), roles(A, B)), null, "playera passt auf beide → unklar");
+check(swapFromRoles(A, B, []), null, "keine participants → unklar");
 
 if (failures) { console.error(`\n${failures} Fehler`); process.exit(1); }
 console.log("\nalle grün");

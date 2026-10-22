@@ -897,6 +897,17 @@ window.Carambus = (function () {
     });
     return { status, body };
   }
+  // Phase 30-01: Seitenbelegung der laufenden App-Spiele (rein lesend). Das Ausstossen am Tisch
+  // tauscht die Rollen; die App gleicht damit ihre Laufend-Anzeige ab. Fehler (auch 404 von einem
+  // Server ohne den Endpunkt) kommen als CarambusError — der Aufrufer bleibt dann beim Handknopf.
+  async function runningGames({ externalId, tournamentId = null, region = regionShortname() }) {
+    const params = new URLSearchParams();
+    params.set("region", region);
+    if (tournamentId != null && String(tournamentId).trim() !== "") params.set("tournament_id", tournamentId);
+    else params.set("tournament_external_id", externalId);
+    const { status, body } = await carambusFetch("/api/external_tournament/running_games?" + params.toString());
+    return { status, body };
+  }
   // Phase 28-01: Ein versehentlich angesetztes Spiel zuruecknehmen. Gibt den Tisch frei und
   // haelt ihn am Turnier gebunden — `still_bound` im Body ist der Wert, an dem die App
   // erkennt, ob ein spaeterer start_game durchgeht. 409 = auf dem Tisch wurde schon gespielt.
@@ -1362,7 +1373,7 @@ window.Carambus = (function () {
     carambusFetch, ping,
     api: {
       fetchClubs, fetchClubPlayers, fetchPlayerRankings, fetchTables, fetchDisciplines, fetchRegistrationLists, fetchSeeding,
-      createTournament, lockTable, startGame, acknowledgeResult, cancelGame, endTournament, cleanPlayerRef,
+      createTournament, lockTable, startGame, acknowledgeResult, runningGames, cancelGame, endTournament, cleanPlayerRef,
       pushTournamentResult,
       fetchRoundResult, fetchAllRoundResults,
       fetchParty, partyGameResult, partyClose

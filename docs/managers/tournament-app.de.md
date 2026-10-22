@@ -161,6 +161,15 @@ es nur, wenn die App von einem anderen Server kommt als Carambus.
     Speicherdruck ohne Vorwarnung —, ist er weg, und die App holt ihn nicht aus Carambus zurück. Die Sicherung ist
     die einzige Rückversicherung; sie dauert zehn Sekunden.
 
+### Ausstoßen: Die Laufend-Karte folgt dem Scoreboard {#ausstossen}
+
+Gewinnt am Tisch der rechte Spieler den Ausstoß, wechseln die Spieler am Scoreboard die Seite — wer anstößt,
+steht links. Die App übernimmt das selbst: Im Reiter „Spiele & Gruppen“ zeigt die Laufend-Karte die Partie
+innerhalb von etwa 20 Sekunden in der Reihenfolge des Scoreboards, mit dem Hinweis „Reihenfolge wie auf dem
+Scoreboard“. Ein Tausch von Hand ist nicht mehr nötig. Der Knopf **„⇄ Spieler tauschen“** bleibt für den Fall, dass
+die App offline läuft oder der Server die Spieler nicht eindeutig zuordnen kann. Die Ergebnisse ordnet die App ohnehin
+über die Spieler zu, nicht über die Seite.
+
 ### Tische lösen und wieder einbinden {#tische-loesen}
 
 Werden gegen Turnierende nicht mehr alle Tische gebraucht, gibt sie der Turnierleiter einzeln für den

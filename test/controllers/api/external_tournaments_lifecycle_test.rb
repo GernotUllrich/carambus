@@ -240,6 +240,50 @@ module Api
       TableMonitor.where(id: monitor.id).delete_all if defined?(monitor) && monitor
     end
 
+    # === Phase 30-01: running_games (Seitenbelegung nach dem Ausstossen) ===
+
+    test "running_games liefert die Rollenbelegung der laufenden App-Spiele (carambus.running_games/v1)" do
+      jwt = login_jwt
+      monitor, game = setup_held_game(jwt, external_id: "run-c1", state: "playing")
+
+      get "/api/external_tournament/running_games",
+        params: {region: "NBV", tournament_external_id: "ep-1"}, headers: auth_headers(jwt)
+      assert_response :ok
+      body = JSON.parse(response.body)
+      assert_equal "carambus.running_games/v1", body["schema"]
+      entry = body["games"].find { |g| g.dig("game", "external_id") == "run-c1" }
+      assert_equal game.id, entry.dig("game", "id")
+      assert_equal tables(:one).id, entry.dig("table", "id")
+      assert_equal "playing", entry["state"]
+      assert_equal [%w[playera AckCtrlA], %w[playerb AckCtrlB]],
+        entry["participants"].map { |p| [p["role"], p.dig("player", "firstname")] }
+
+      # Ausstossen am Tisch: Rollen persistent getauscht -> die Antwort folgt
+      gps = game.game_participations.order(:id).to_a
+      roles = gps.map(&:role).reverse
+      gps.each_with_index { |gp, ix| gp.update_columns(role: roles[ix]) }
+      get "/api/external_tournament/running_games",
+        params: {region: "NBV", tournament_external_id: "ep-1"}, headers: auth_headers(jwt)
+      entry = JSON.parse(response.body)["games"].find { |g| g.dig("game", "external_id") == "run-c1" }
+      assert_equal "AckCtrlB", entry["participants"].find { |p| p["role"] == "playera" }.dig("player", "firstname")
+      assert_nil game.reload.result_acknowledged_at, "rein lesend"
+    ensure
+      tables(:one).update_columns(table_monitor_id: nil)
+      TableMonitor.where(id: monitor.id).delete_all if defined?(monitor) && monitor
+    end
+
+    test "running_games: unbekanntes Turnier gibt 422" do
+      get "/api/external_tournament/running_games",
+        params: {region: "NBV", tournament_external_id: "gibt-es-nicht"}, headers: auth_headers(login_jwt)
+      assert_response :unprocessable_entity
+    end
+
+    test "running_games ohne Auth gibt 401" do
+      get "/api/external_tournament/running_games",
+        params: {region: "NBV", tournament_external_id: "ep-1"}, headers: auth_headers(nil)
+      assert_response :unauthorized
+    end
+
     # AC-3: ohne Auth -> 401
     test "acknowledge_result ohne Auth gibt 401" do
       post_json("/api/external_tournament/acknowledge_result",

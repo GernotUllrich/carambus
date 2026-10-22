@@ -510,6 +510,17 @@ window.Carambus = (function () {
     });
     return { status, body };
   }
+  // Phase 30-01: Seitenbelegung der laufenden App-Spiele (rein lesend). Das Ausstossen am Tisch
+  // tauscht die Rollen; die App gleicht damit ihre Laufend-Anzeige ab. Fehler (auch 404 von einem
+  // Server ohne den Endpunkt) kommen als CarambusError — der Aufrufer bleibt dann beim Handknopf.
+  async function runningGames({ externalId, tournamentId = null, region = regionShortname() }) {
+    const params = new URLSearchParams();
+    params.set("region", region);
+    if (tournamentId != null && String(tournamentId).trim() !== "") params.set("tournament_id", tournamentId);
+    else params.set("tournament_external_id", externalId);
+    const { status, body } = await carambusFetch("/api/external_tournament/running_games?" + params.toString());
+    return { status, body };
+  }
   // Phase 28-01: Ein versehentlich angesetztes Spiel zuruecknehmen. Gibt den Tisch frei und
   // haelt ihn am Turnier gebunden — `still_bound` im Body ist der Wert, an dem die App
   // erkennt, ob ein spaeterer start_game durchgeht. 409 = auf dem Tisch wurde schon gespielt.
@@ -975,7 +986,7 @@ window.Carambus = (function () {
     carambusFetch, ping,
     api: {
       fetchClubs, fetchClubPlayers, fetchPlayerRankings, fetchTables, fetchDisciplines, fetchRegistrationLists, fetchSeeding,
-      createTournament, lockTable, startGame, acknowledgeResult, cancelGame, endTournament, cleanPlayerRef,
+      createTournament, lockTable, startGame, acknowledgeResult, runningGames, cancelGame, endTournament, cleanPlayerRef,
       pushTournamentResult,
       fetchRoundResult, fetchAllRoundResults,
       fetchParty, partyGameResult, partyClose
@@ -1478,7 +1489,7 @@ function gpGroupSizes(n,ng){
 "use strict";
 const { getConnection, isBearerValid, regionShortname, CarambusError, mountConnectionWidget } = Carambus;
 const { fetchDisciplines, fetchClubs, fetchClubPlayers, fetchPlayerRankings, fetchTables,
-        createTournament, lockTable, startGame, acknowledgeResult, cancelGame, endTournament, cleanPlayerRef } = Carambus.api;
+        createTournament, lockTable, startGame, acknowledgeResult, runningGames, cancelGame, endTournament, cleanPlayerRef } = Carambus.api;
 const { loadInstanceState, saveInstanceState, getInstance, updateInstance } = Carambus.storage;
 const { escapeHtml, shuffle, tableNo, buildCsv, downloadText } = Carambus.util;
 
@@ -1610,6 +1621,7 @@ document.querySelectorAll("nav.tabs button").forEach(btn => btn.addEventListener
   document.querySelectorAll("nav.tabs button").forEach(b => b.classList.remove("active")); btn.classList.add("active");
   document.querySelectorAll(".tab-content").forEach(c => c.style.display = "none");
   document.getElementById("tab-" + btn.dataset.tab).style.display = "";
+  if (btn.dataset.tab === "games") syncRunningSides(); // Seitenbelegung nach dem Ausstossen (Phase 30)
 }));
 function switchTab(t) { const b = document.querySelector(`nav.tabs button[data-tab="${t}"]`); if (b) b.click(); }
 
@@ -2409,9 +2421,11 @@ function renderGames() {
 
 // Ausstoss-Tausch: Wer den Ausstoss gewinnt, bestimmt den Anstoss — und Carambus
 // stellt den Anstoss-Spieler zwingend als "playera" nach links (switch_players
-// vertauscht dabei die game_participation.role IN DER DB). Das Ergebnis kommt
-// danach positionsbasiert zurueck (Ergebnis1 = playera), ohne Spieler-Identitaet.
-// Deshalb pflegen wir die Scoreboard-Reihenfolge hier von Hand nach.
+// vertauscht dabei die game_participation.role IN DER DB). Seit Phase 30 holt
+// syncRunningSides() die Belegung vom Server (running_games) und setzt swapped selbst;
+// der Knopf "⇄ Spieler tauschen" bleibt Rueckfall (offline, Server ohne Endpunkt,
+// Identitaet nicht eindeutig). swapped wirkt auf die Anzeige und auf mapAckResult nur
+// im Positions-Rueckfall — mit participants[] ordnet die App ueber die Identitaet zu.
 // Siehe HANDOFF-to-carambus-scoreboard-texte-und-monitor-state.md, Befund 4.
 function isSwapped(key) { return !!state.gameUI[key]?.swapped; }
 function applySwap(key, res) { return (res && isSwapped(key)) ? { a: res.b, b: res.a } : res; }
@@ -2661,7 +2675,7 @@ async function startGameOnTable(key, table) {
       });
     } catch (e) { alert("Spiel starten: " + errMsg(e)); return; }
   }
-  state.gameUI[key] = { table, external_id: ext, swapped: false }; save(); renderGames();
+  state.gameUI[key] = { table, external_id: ext, swapped: false }; save(); renderGames(); syncRunningSides();
 }
 // Spieler, die gerade an einem Tisch stehen, bekommen kein zweites Spiel.
 function busyPids() { const s = new Set(); for (const [k, u] of Object.entries(state.gameUI)) { if (!u.table || run.results[k]) continue; const g = run.plan.games.find(x => x.key === k); if (!g) continue; [resolveSlot(run, g.a), resolveSlot(run, g.b)].forEach(p => p && s.add(pidOf(p))); } return s; }
@@ -2686,6 +2700,27 @@ async function pollGame(key) {
   try { const { status, body } = await acknowledgeResult({ ...tournamentApiRef(), gameExternalId: state.gameUI[key].external_id }); if (status === 409) { alert("Ergebnis noch nicht erfasst."); return; } completeGame(key, mapAckResult(body, key).res); }
   catch (e) { if (e instanceof CarambusError && e.status === 409) { alert("Ergebnis noch nicht erfasst."); return; } alert("Ergebnis holen: " + errMsg(e)); }
 }
+// Phase 30: Seitenbelegung der laufenden Partien vom Server holen (rein lesend) und swapped
+// danach setzen — der Turnierleiter muss nicht mehr gegen das Scoreboard abgleichen. Still bei
+// jedem Fehler (offline, 404 eines aelteren Servers): dann gilt der Handknopf wie bisher.
+async function syncRunningSides() {
+  if (syncRunningSides.busy || !isLive() || !run || !state.carambusTournament) return;
+  const open = Object.keys(state.gameUI).filter(k => !run.results[k] && state.gameUI[k]?.external_id);
+  if (!open.length) return;
+  syncRunningSides.busy = true;
+  try {
+    const { body } = await runningGames(tournamentApiRef());
+    let changed = false;
+    for (const key of open) {
+      const entry = (body?.games || []).find(e => e.game?.external_id === state.gameUI[key].external_id);
+      const g = run.plan.games.find(x => x.key === key); if (!entry || !g) continue;
+      const sw = swapFromRoles(resolveSlot(run, g.a), resolveSlot(run, g.b), entry.participants);
+      if (sw !== null && sw !== !!state.gameUI[key].swapped) { state.gameUI[key].swapped = sw; changed = true; }
+    }
+    if (changed) { save(); renderGames(); }
+  } catch (_) { /* still — Rueckfall ist der Handknopf */ } finally { syncRunningSides.busy = false; }
+}
+setInterval(syncRunningSides, 20000);
 async function pollAll() { for (const key of Object.keys(state.gameUI)) { if (run.results[key]) continue; try { const { status, body } = await acknowledgeResult({ ...tournamentApiRef(), gameExternalId: state.gameUI[key].external_id }); if (status === 409) continue; completeGame(key, mapAckResult(body, key).res); } catch (_) {} } renderGames(); }
 function mapAck(result) { if (!result) return null; const num = v => v == null ? null : (typeof v === "number" ? v : parseInt(v, 10)); return { a: { balls: num(result.Ergebnis1), innings: num(result.Aufnahmen1), hs: num(result["Höchstserie1"] ?? result.Hoechstserie1), b3: num(result["3BErgebnis1"]) }, b: { balls: num(result.Ergebnis2), innings: num(result.Aufnahmen2), hs: num(result["Höchstserie2"] ?? result.Hoechstserie2), b3: num(result["3BErgebnis2"]) } }; }
 
@@ -2714,6 +2749,14 @@ function samePlayer(planP, apiP) {
   // (in Turnier 50000057 hatte 1 von 6 Spielerinnen ueberhaupt eine ba_id).
   return normName(planP.lastname) === normName(apiP.lastname) &&
          normName(planP.firstname) === normName(apiP.firstname);
+}
+// Steht Plan-Spieler B am Tisch auf playera? true/false; null, wenn die Identitaet nicht
+// eindeutig ist (keiner oder beide treffen) — dann bleibt swapped, wie es ist (Phase 30).
+function swapFromRoles(planA, planB, participants) {
+  const pa = (participants || []).find(p => p.role === "playera")?.player;
+  if (!pa) return null;
+  const isA = samePlayer(planA, pa), isB = samePlayer(planB, pa);
+  return isA === isB ? null : isB;
 }
 function sideFromParticipant(p) {
   const num = v => v == null ? null : (typeof v === "number" ? v : parseInt(v, 10));

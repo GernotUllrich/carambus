@@ -274,6 +274,18 @@ Die herrenlosen Spielhüllen dürfen liegen bleiben — `find_game` sucht nur ü
 TableMonitors und findet sie nie. Sauberer ist es trotzdem, sie zu löschen, damit die
 `external_id` nicht doppelt in der Datenbank steht.
 
+## Seitenbelegung nach dem Ausstoßen
+
+Der Knopf „Spieler wechseln und starten“ im Ausstoß-Dialog (`TableMonitorReflex#switch_players_and_start_game`)
+tauscht über `TableMonitor#switch_players` die `game_participation.role` persistent — der Anstoß-Spieler steht danach
+als `playera` links (nicht bei `fixed_display_left`). Beim GP 17./18.10. betraf das mindestens 14 von 43 Partien;
+die App zeigte sie in Plan-Reihenfolge, der Turnierleiter tauschte von Hand (Befund Phase 30-01).
+
+Seit Phase 30 fragt die App `GET /api/external_tournament/running_games` (rein lesend, `carambus.running_games/v1`)
+beim Öffnen von „Spiele & Gruppen“, nach jedem Start und alle 20 s ab, solange live eine Partie offen ist, und setzt
+`gameUI[key].swapped` über `swapFromRoles` (Identität wie `samePlayer`; nicht eindeutig → unverändert). Ergebnisse
+ordnet `mapAckResult` weiter über `participants[]` zu; `swapped` greift dort nur im Positions-Rückfall.
+
 ## Was still fehlschlägt
 
 Eine Liste der Stellen, an denen ein Eingriff wirkungslos bleibt, **ohne** eine

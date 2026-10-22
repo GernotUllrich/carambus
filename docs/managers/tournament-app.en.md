@@ -168,6 +168,15 @@ is only needed when the app is served from a different server than Carambus.
     memory pressure without warning — it is gone, and the app does not fetch it back from Carambus. The backup is the
     only safeguard; it takes ten seconds.
 
+### Lag: the running card follows the scoreboard {#ausstossen}
+
+If the player on the right wins the lag, the players change sides on the scoreboard — whoever breaks stands on the
+left. The app takes this over by itself: in the „Spiele & Gruppen“ tab the running card shows the game in the
+scoreboard's order within about 20 seconds, with the note „Reihenfolge wie auf dem Scoreboard“ (order as on the
+scoreboard). Swapping by hand is no longer needed. The **„⇄ Spieler tauschen“** button (swap players) remains for
+when the app runs offline or the server cannot match the players unambiguously. Results are matched by player
+anyway, not by side.
+
 ### Releasing and re-binding tables {#tische-loesen}
 
 When not all tables are needed towards the end of a tournament, the tournament director releases them one by one
