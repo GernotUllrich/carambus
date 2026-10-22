@@ -1,5 +1,6 @@
 import consumer from "./consumer"
 import CableReady from 'cable_ready'
+import { teaserChangesTournamentScores, tournamentScoresPage, scheduleTournamentScoresReload } from "./tournament_scores_refresh"
 
 // Performance logging - can be enabled via localStorage
 const PERF_LOGGING = localStorage.getItem('debug_cable_performance') === 'true'
@@ -543,6 +544,15 @@ const tableMonitorSubscription = consumer.subscriptions.create("TableMonitorChan
       
       // Context-aware filtering: only process operations relevant to this page
       const pageContext = getPageContext()
+
+      // Turnieruebersicht: aendert sich die Menge der angezeigten Tische dieses Turniers (Tisch
+      // erstmals belegt, frei geworden, geloest), traegt der Filter unten das nicht — neu laden.
+      if (pageContext.type === 'tournament_scores') {
+        const page = tournamentScoresPage()
+        if (data.operations.some(op => teaserChangesTournamentScores(op, page))) {
+          scheduleTournamentScoresReload()
+        }
+      }
       
       // Debug logging to diagnose filtering issues
       if (PERF_LOGGING || !NO_LOGGING) {
