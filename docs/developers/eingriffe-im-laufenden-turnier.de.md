@@ -59,6 +59,20 @@ des Turniers (`?t=…`) und in jeder Sicherung unter `instance.id`.
 
 ## Paarungen einer Runde ändern
 
+**Seit 28-03 ohne Konsole für die KO-Runden:** die erste KO-Runde über `state.koOrder`, jede
+spätere Runde (Viertelfinale aus Achtelfinal-Siegern, Halbfinale) über `state.pairingOverrides` —
+beides in der Karte „Platzierungs-/Finalrunde“. `pairingOverrides` ist ein Overlay **neben** dem
+Plan: `{ "hf1": { "b": "qf3.rk1" }, "hf2": { "a": "qf2.rk1" } }`, angewandt in `rebuildRun()` per
+`applyPairingOverrides`. Getauscht werden nur Plan-Verweise derselben Art (`<spiel>.rk1` mit
+`<spiel>.rk1`, `.rk2` mit `.rk2`) innerhalb einer Runde, und eine Runde wird nur angeboten, wenn
+diese Plätze in mindestens zwei Partien liegen (`koSwapClasses`) — das Finale allein und Finale +
+Spiel um Platz 3 haben keine Alternative. `executorParams` bleibt unberührt; passt ein Override nach
+„Server-Stand neu laden“ nicht mehr zum Plan, wird er verworfen und gemeldet. Gesperrt ist die
+Runde, sobald eine ihrer Partien angesetzt ist oder ein Ergebnis hat.
+
+Der Konsolenweg unten bleibt der Rückfall für alles andere — Gruppenphase und die erste KO-Runde aus
+Gruppenplätzen in Plänen ohne GP-Setzung (z. B. T06).
+
 Der Hebel ist `state.executorParams`. Geändert werden nur die Referenzen **innerhalb**
 der betroffenen Spiele; die Schlüssel bleiben, sonst verlieren die bereits erfassten
 Ergebnisse ihren Bezug.
@@ -272,7 +286,7 @@ Fehlermeldung zu erzeugen. Alle sind in dieser Form beobachtet worden.
 | Save eines Stammdatensatzes auf einem Location-/Region-Server | `id < 50_000_000` | `ActiveRecord::Rollback` in einem `after_save`, Änderung verschwindet |
 | Tisch entbunden, Ergebnis noch nicht geholt | nur noch mit `force: true` (seit 28-02 sonst 409) | `acknowledgeResult` findet das Spiel nicht mehr |
 | Dieselbe `external_id` auf zwei Tischen | — | zufällig das falsche Ergebnis |
-| Paarung geändert, Spiel hatte schon ein Ergebnis | — | Ergebnis wird den neuen Spielern zugeschrieben |
+| Paarung geändert, Spiel hatte schon ein Ergebnis | nur auf dem Konsolenweg (die Oberfläche sperrt die Runde) | Ergebnis wird den neuen Spielern zugeschrieben |
 
 Der dritte Fall trifft auch Korrekturen an Stammdaten, die man unterwegs machen will —
 etwa einem Spieler seinen Verein zuzuordnen, damit das Wappen erscheint. `player_locals`

@@ -276,6 +276,13 @@ Kegel (V2, 10.09.2024):
   A1–B4, B2–A3 | B1–A4, A2–B3; 8 Gruppen analog, mit dem Quali-Sieger an der Stelle des
   Zweiten). Einzelne Spieler lassen sich je Partie tauschen; die Karte zeigt dann „Von Hand
   geändert“. Das geht, **bis das erste KO-Spiel gestartet ist**.
+- **Paarungen späterer KO-Runden ändern** (Viertelfinale nach dem Achtelfinale, Halbfinale): In
+  derselben Karte steht je Runde **„Paarungen Halbfinale“** usw. mit einer Auswahl je Platz. Wer
+  gewählt wird, tauscht den Platz mit dem bisherigen Spieler — Sieger nur mit Siegern. Das geht
+  auch, bevor die Sieger feststehen, und **bis eine Partie dieser Runde angesetzt ist**; nach
+  „Ansetzen zurücknehmen“ wieder. Geänderte Partien tragen „Paarung geändert“ (Tooltip: woher der
+  Spieler laut Plan gekommen wäre); **„Paarung laut Plan“** nimmt die Änderung zurück. Für das Finale
+  gibt es keine Auswahl — dort gibt es keine Alternative.
 - **Kein Spiel um Platz 3**, Platz 3 geteilt. Plätze 5–8 (und 9–16) nach dem GD des verlorenen
   KO-Spiels (§ 2.3 Abs. 6).
 - **Einspielzeit** 3 Minuten je Spieler vor jeder Partie (§ 5.1 Abs. 4); die App schickt sie ans
