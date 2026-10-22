@@ -144,6 +144,7 @@ details summary:hover { color: var(--accent); }
 .table-chip { padding: 8px 14px; border-radius: 8px; border: 1px solid var(--border); background: var(--panel2); font-size: 13px; min-width: 120px; }
 .table-chip .tname { font-weight: 600; } .table-chip .who { color: var(--muted); font-size: 12px; }
 .table-chip.free { border-color: rgba(76,175,80,.45); } .table-chip.busy { border-color: rgba(255,152,0,.5); }
+.table-chip.released { opacity: .55; border-style: dashed; } .table-chip .chip-act { margin-left: 6px; padding: 1px 7px; font-size: 12px; }
 .m-card { background: var(--panel); border: 1px solid var(--border); border-radius: 7px; padding: 9px 11px; margin-bottom: 8px; font-size: 13px; }
 .m-card.ready { border-color: var(--accent); } .m-card.running { border-color: var(--warn); } .m-card.done { opacity: .72; }
 .m-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
@@ -1922,7 +1923,7 @@ function renderTableSelect() {
 function bindTableCheckboxes(el) {
   el.querySelectorAll(".tbl-cb").forEach(cb => cb.addEventListener("change", e => {
     const name = e.target.dataset.name;
-    if (e.target.checked) { if (!state.tables.includes(name)) state.tables.push(name); } else state.tables = state.tables.filter(n => n !== name);
+    if (e.target.checked) { if (!state.tables.includes(name)) state.tables.push(name); state.releasedTables = (state.releasedTables ?? []).filter(n => n !== name); } else state.tables = state.tables.filter(n => n !== name);
     save(); renderStartHints();
   }));
 }
@@ -2032,7 +2033,7 @@ async function startTournament() {
       if (fails.length && !confirm("Tische teils nicht gebunden:\n" + fails.join("\n") + "\n\nFortfahren?")) return;
     } catch (e) { alert("Turnier anlegen: " + errMsg(e)); return; }
   }
-  state.records = []; state.gameUI = {}; state.tableLot = {}; state.koOrder = null; state.gameOrder = null; state.gameOrderReport = null; state.phase = "running";
+  state.records = []; state.gameUI = {}; state.tableLot = {}; state.koOrder = null; state.gameOrder = null; state.gameOrderReport = null; state.releasedTables = []; state.phase = "running";
   save(); run = rebuildRun();
   state.seedSnapshot = seedSnapshot(); save();
   renderAll(); switchTab("games");
@@ -2146,6 +2147,7 @@ async function attachToTournament(tournamentId) {
   if (location.id != null || location.cc_id != null) state.location = location;
   state.availableTables = availableTables;
   state.tables = tables;
+  state.releasedTables = [];
   state.records = records;
   state.gameUI = gameUI;
   state.tableLot = {};
@@ -2188,6 +2190,49 @@ async function rebindTables() {
   }
 }
 
+// Phase 28-02: Tisch aus dem Turnier lösen / einzeln wieder einbinden (Eingriff 3).
+// state.tables ändert sich erst NACH der Serverbestätigung — umgekehrt entstünde bei Netzabbruch
+// der Zustand vom GP 17./18.10.: App glaubt den Tisch frei, der Server hält ihn gebunden.
+// Gelöste Tische stehen in state.releasedTables, damit die Leiste sie zum Einbinden anbietet.
+function tableBusy(name) { return Object.entries(state.gameUI).some(([k, u]) => u.table === name && !run?.results[k]); }
+async function releaseTable(name) {
+  if (tableBusy(name)) { alert(`Auf ${name} ist eine Partie angesetzt. Erst das Ansetzen zurücknehmen.`); return; }
+  if (!confirm(`${name} aus dem Turnier lösen?\n\nDer Tisch wird für den Vereinsbetrieb frei und verschwindet aus der Turnierübersicht. Mit „⟲ einbinden" kommt er zurück.`)) return;
+  if (isLive() && state.carambusTournament) {
+    try {
+      const r = await lockTable({ ...tournamentApiRef(), tableName: name, tableId: tableIdOf(name), lock: false });
+      if (r?.in_tournament) { alert(`${name} ist weiter gebunden — er hängt an einem anderen Turnier. Hier wurde nichts geändert.`); return; }
+    } catch (e) {
+      if (e.status === 409 && e.body?.error === "table_in_use") { alert(`${name} lässt sich nicht lösen.\n\n${e.body.detail || ""}`); return; }
+      alert(`${name} lösen: ` + errMsg(e)); return;
+    }
+  }
+  state.tables = state.tables.filter(n => n !== name);
+  state.releasedTables = [...new Set([...(state.releasedTables ?? []), name])];
+  save(); renderAll();
+}
+async function bindTable(name) {
+  if (isLive() && state.carambusTournament) {
+    try { await lockTable({ ...tournamentApiRef(), tableName: name, tableId: tableIdOf(name) }); }
+    catch (e) { alert(`${name} einbinden: ` + errMsg(e) + "\n\nMeist hängt der Tisch gerade an einem anderen Turnier."); return; }
+  }
+  if (!state.tables.includes(name)) state.tables = [...state.tables, name].sort((a, b) => (tableNo(a) ?? 0) - (tableNo(b) ?? 0));
+  state.releasedTables = (state.releasedTables ?? []).filter(n => n !== name);
+  save(); renderAll();
+}
+function tableChipsHtml() {
+  const bound = state.tables.map(name => {
+    const u = Object.entries(state.gameUI).find(([k, v]) => v.table === name && !run.results[k]);
+    const g = u ? run.plan.games.find(x => x.key === u[0]) : null;
+    const who = g ? `${shortName(resolveSlot(run, g.a))} vs ${shortName(resolveSlot(run, g.b))}` : "frei";
+    const act = g ? "" : `<button class="btn secondary chip-act tbl-release" data-name="${escapeHtml(name)}" title="Tisch aus dem Turnier lösen — gibt ihn für den Vereinsbetrieb frei">✕</button>`;
+    return `<div class="table-chip ${g ? "busy" : "free"}"><div class="tname">${escapeHtml(name)}${act}</div><div class="who">${escapeHtml(who)}</div></div>`;
+  });
+  const released = (state.releasedTables ?? []).map(name =>
+    `<div class="table-chip released"><div class="tname">${escapeHtml(name)}<button class="btn secondary chip-act tbl-bind" data-name="${escapeHtml(name)}" title="Tisch wieder an das Turnier binden">⟲ einbinden</button></div><div class="who">gelöst</div></div>`);
+  return bound.concat(released).join("");
+}
+
 // Aus geparsed executor_params: players (Summe g.pl), ngroups, tables (max t<N>).
 function derivePlanMeta(parsedPlan) {
   let players = 0;
@@ -2221,7 +2266,7 @@ async function resetTournament() {
       if (!confirm("Carambus-Abräumen fehlgeschlagen: " + errMsg(e) + "\n\nTrotzdem lokal verwerfen?")) return;
     }
   }
-  state.records = []; state.gameUI = {}; state.tableLot = {}; state.koOrder = null; state.gameOrder = null; state.gameOrderReport = null; state.phase = "setup"; state.carambusTournament = null; save(); run = rebuildRun(); renderAll(); switchTab("setup");
+  state.records = []; state.gameUI = {}; state.tableLot = {}; state.koOrder = null; state.gameOrder = null; state.gameOrderReport = null; state.releasedTables = []; state.phase = "setup"; state.carambusTournament = null; save(); run = rebuildRun(); renderAll(); switchTab("setup");
 }
 
 // ===== SPIELE & GRUPPEN =====
@@ -2229,7 +2274,9 @@ async function resetTournament() {
 // start_game (robust gegen doppelte Tischnamen einer Location); sonst Fallback auf den Namen.
 function tableIdOf(name) { const t = (state.availableTables || []).find(x => x.name === name); return t && t.id != null ? t.id : null; }
 function freeTableList() { const busy = new Set(Object.values(state.gameUI).filter(u => u.table).map(u => u.table)); return state.tables.filter(n => !busy.has(n)).sort((a, b) => (tableNo(a) ?? 0) - (tableNo(b) ?? 0)); }
-function tablesSorted() { return state.tables.slice().sort((a, b) => (tableNo(a) ?? 0) - (tableNo(b) ?? 0)); }
+// Gelöste Tische (Phase 28-02) bleiben in der Sortierung: tN zählt über die Position, und ohne sie
+// rückte beim Lösen von Tisch 2 der logische t3 auf Tisch 4. preferredTable verwirft sie, weil nicht frei.
+function tablesSorted() { return state.tables.concat(state.releasedTables ?? []).sort((a, b) => (tableNo(a) ?? 0) - (tableNo(b) ?? 0)); }
 function logicalToPhysical(label) { const m = /^t(\d+)$/.exec(String(label || "")); return m ? (tablesSorted()[(+m[1]) - 1] || null) : null; }
 // eae_pg-Choreografie: logischer Tisch tN → fester physischer Tisch. So „bleibt" der
 // Sieger an seinem Tisch (R2 trägt denselben logischen Tisch wie R1).
@@ -2266,7 +2313,7 @@ function renderGames() {
   el.innerHTML = `
     <div class="card">
       <h2>Tische</h2>
-      <div class="tables-bar">${state.tables.map(name => { const u = Object.entries(state.gameUI).find(([k, v]) => v.table === name && !run.results[k]); const g = u ? run.plan.games.find(x => x.key === u[0]) : null; const who = g ? `${shortName(resolveSlot(run, g.a))} vs ${shortName(resolveSlot(run, g.b))}` : "frei"; return `<div class="table-chip ${g ? "busy" : "free"}"><div class="tname">${escapeHtml(name)}</div><div class="who">${escapeHtml(who)}</div></div>`; }).join("")}</div>
+      <div class="tables-bar">${tableChipsHtml()}</div>
       <div class="toolbar">
         <button class="btn" id="btnFill" ${ready.length && free.length ? "" : "disabled"}>▶ Freie Tische belegen</button>
         ${isLive() && runningUniq.length ? `<button class="btn secondary" id="btnPollAll">📥 Ergebnisse holen</button>` : ``}
@@ -2459,6 +2506,8 @@ function bindGameActions(el) {
   el.querySelectorAll(".m-manual").forEach(b => b.addEventListener("click", () => openManual(b.dataset.id)));
   el.querySelectorAll(".m-swap").forEach(b => b.addEventListener("click", () => toggleSwap(b.dataset.id)));
   el.querySelectorAll(".m-uncall").forEach(b => b.addEventListener("click", () => uncallGame(b.dataset.id)));
+  el.querySelectorAll(".tbl-release").forEach(b => b.addEventListener("click", () => releaseTable(b.dataset.name)));
+  el.querySelectorAll(".tbl-bind").forEach(b => b.addEventListener("click", () => bindTable(b.dataset.name)));
   bindKoPairEditor(el);
 }
 function cssEsc(s) { return s.replace(/["\\]/g, "\\$&"); }

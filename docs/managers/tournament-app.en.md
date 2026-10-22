@@ -168,6 +168,16 @@ is only needed when the app is served from a different server than Carambus.
     memory pressure without warning — it is gone, and the app does not fetch it back from Carambus. The backup is the
     only safeguard; it takes ten seconds.
 
+### Releasing and re-binding tables {#tische-loesen}
+
+When not all tables are needed towards the end of a tournament, the tournament director releases them one by one
+for club play: in the table bar („Spiele & Gruppen“) every **free** table carries an **✕**. After confirming, the
+table is no longer bound to the tournament, disappears from the tournament overview and stays greyed out as
+„gelöst“ (released) in the bar. **„⟲ einbinden“** brings it back so it can be played on again.
+
+An occupied table has no ✕ — finish the game and fetch the result, or withdraw the call („Ansetzen zurücknehmen“)
+first. Carambus itself refuses to release a table while a result on it has not been fetched yet, and says why.
+
 In the correct state the „Setup“ tab shows **„🔗 Attached an Carambus-Turnier #&lt;tournament id&gt;“**, and the top
 right reads „Carambus: verbunden“ (connected).
 
