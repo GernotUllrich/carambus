@@ -178,6 +178,17 @@ Table.where(location_id: <loc>).find_by(name: "Tisch 4").table_monitor.reset_tab
 
 ### Einen Tisch nur vom Turnier lösen
 
+**Seit Plan 28-02 gibt es dafür einen Knopf:** In der Tisch-Leiste („Spiele & Gruppen")
+trägt jeder freie Tisch ein **✕**; ein gelöster Tisch bleibt gedimmt als „gelöst" in der
+Leiste und kommt mit **⟲ einbinden** einzeln zurück (`releaseTable` / `bindTable`,
+Zustand `state.releasedTables`). Die App stellt `state.tables` erst nach der
+Serverbestätigung um. Der Konsolenweg unten bleibt als Rückfallebene.
+
+Der Server schützt das Lösen selbst: `lock_table` mit `lock: false` auf einen Tisch, dessen
+App-Ergebnis noch nicht abgeholt ist (`external_result_pending?`), antwortet **409**
+`table_in_use` mit `game` und `detail` und ändert nichts. `force: true` umgeht das — nur für
+ein tatsächlich aufgegebenes Spiel.
+
 Wenn es allein um die Turnierzugehörigkeit geht (Anzeige, Freigabe für den
 Vereinsbetrieb), genügt der Teil-Release — aus der App heraus, ohne Serverzugriff:
 
@@ -200,6 +211,7 @@ nicht an.
 
 > **Reihenfolge:** Erst das Ergebnis in die App holen, dann entbinden. Ein entbundener
 > Tisch ist für `find_game` unsichtbar; das Ergebnis wäre nicht mehr abrufbar.
+> Seit 28-02 verweigert der Server das Entbinden in diesem Fall (409), außer mit `force: true`.
 
 ## Die Turnierübersicht `?sb_state=tournament_scores`
 
@@ -258,7 +270,7 @@ Fehlermeldung zu erzeugen. Alle sind in dieser Form beobachtet worden.
 | „Partie abbrechen" / `close_match` | `external_result_pending?` | nichts passiert, nur ein Log-Eintrag |
 | `reset_table_monitor` ohne `force` | dieselbe | Rückgabe ohne Aktion |
 | Save eines Stammdatensatzes auf einem Location-/Region-Server | `id < 50_000_000` | `ActiveRecord::Rollback` in einem `after_save`, Änderung verschwindet |
-| Tisch entbunden, Ergebnis noch nicht geholt | — | `acknowledgeResult` findet das Spiel nicht mehr |
+| Tisch entbunden, Ergebnis noch nicht geholt | nur noch mit `force: true` (seit 28-02 sonst 409) | `acknowledgeResult` findet das Spiel nicht mehr |
 | Dieselbe `external_id` auf zwei Tischen | — | zufällig das falsche Ergebnis |
 | Paarung geändert, Spiel hatte schon ein Ergebnis | — | Ergebnis wird den neuen Spielern zugeschrieben |
 

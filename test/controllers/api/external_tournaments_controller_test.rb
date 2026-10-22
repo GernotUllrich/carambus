@@ -979,6 +979,38 @@ module Api
       refute separator.key?("score_source"), "Trennerzeile ohne score_source-Marker"
     end
 
+    # Phase 28-02: lock_table lock=false auf einen Tisch mit nicht abgeholtem App-Ergebnis → 409.
+    test "lock_table lock=false mit ausstehendem App-Ergebnis returns 409 table_in_use" do
+      app_tournament = ExternalTournament::LocalTournamentCreator.new(region: @nbv, payload: {
+        external_id: "app-lock-409", title: "Lock 409", location: {id: locations(:one).id}
+      }).call.tournament
+      monitor = TableMonitor.create!(state: "playing", data: {},
+        tournament_monitor_id: app_tournament.tournament_monitor.id, tournament_monitor_type: "TournamentMonitor")
+      table = tables(:one)
+      table.update_columns(table_monitor_id: monitor.id)
+      game = Game.create!(tournament_id: app_tournament.id, group_no: 1, seqno: 1, table_no: 1,
+        data: {"external_id" => "g-lock-409"})
+      monitor.update_columns(game_id: game.id)
+
+      post "/api/external_tournament/lock_table",
+        params: {region: {shortname: "NBV"}, tournament_id: app_tournament.id, table: {id: table.id}, lock: false}.to_json,
+        headers: json_auth_headers
+
+      assert_response :conflict
+      body = JSON.parse(response.body)
+      assert_equal "table_in_use", body["error"]
+      assert_equal game.id, body.dig("game", "id")
+      assert_equal "g-lock-409", body.dig("game", "external_id")
+      assert body["detail"].present?
+      assert_equal app_tournament.tournament_monitor.id, monitor.reload.tournament_monitor_id, "nichts geaendert"
+    ensure
+      table&.update_columns(table_monitor_id: nil)
+      game&.delete
+      monitor&.destroy
+      app_tournament&.tournament_monitor&.destroy
+      app_tournament&.destroy
+    end
+
     private
 
     # JSON-POST-Header mit frischem Bearer (login_jwt ruft reset! → einmal pro Test holen).

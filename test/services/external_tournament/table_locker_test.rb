@@ -59,5 +59,79 @@ module ExternalTournament
       assert_nil @monitor.reload.tournament_monitor_id
       assert_not_includes Array(@tournament.reload.data["table_ids"]), @table.id.to_s
     end
+
+    # Phase 28-02: Ein entbundener Tisch ist fuer find_game unsichtbar (AppGameLookup iteriert
+    # nur ueber gebundene TableMonitors) — ein dort noch nicht abgeholtes App-Ergebnis waere
+    # verloren. Der Guard haengt an external_result_pending?; getestet werden beide Seiten.
+
+    def lock!(**extra)
+      TableLocker.new(region: @nbv, payload: {tournament_id: @tournament.id, table: {id: @table.id}}.merge(extra)).call
+    end
+
+    def put_app_game_on_table!(external_id:, acknowledged: false)
+      game = Game.create!(tournament_id: @tournament.id, group_no: 1, seqno: 1, table_no: 1,
+        data: {"external_id" => external_id})
+      game.update_columns(result_acknowledged_at: Time.current) if acknowledged
+      @monitor.update_columns(game_id: game.id)
+      game
+    end
+
+    test "unlock auf Tisch mit ausstehendem App-Ergebnis: TableInUseError, nichts geaendert" do
+      lock!
+      game = put_app_game_on_table!(external_id: "g-lock-pending")
+
+      err = assert_raises(TableLocker::TableInUseError) { lock!(lock: false) }
+      assert_equal game.id, err.game.id
+      assert_match(/#{@table.name}/, err.detail, "detail nennt den Tisch")
+
+      assert_equal @tournament.tournament_monitor.id, @monitor.reload.tournament_monitor_id, "Bindung bleibt"
+      assert_includes Array(@tournament.reload.data["table_ids"]), @table.id.to_s, "table_ids bleibt"
+      found = Class.new { include AppGameLookup }.new.find_game(@tournament.reload, "g-lock-pending")
+      assert_equal game.id, found&.id, "Ergebnis bleibt ueber find_game abholbar"
+    ensure
+      game&.destroy
+    end
+
+    test "unlock auf Tisch mit quittiertem App-Ergebnis loest (Gegenseite des Guards)" do
+      lock!
+      game = put_app_game_on_table!(external_id: "g-lock-ack", acknowledged: true)
+
+      lock!(lock: false)
+      assert_nil @monitor.reload.tournament_monitor_id
+    ensure
+      game&.destroy
+    end
+
+    test "unlock mit force loest trotz ausstehendem Ergebnis" do
+      lock!
+      game = put_app_game_on_table!(external_id: "g-lock-force")
+
+      lock!(lock: false, force: true)
+      assert_nil @monitor.reload.tournament_monitor_id
+      assert_not_includes Array(@tournament.reload.data["table_ids"]), @table.id.to_s
+    ensure
+      game&.destroy
+    end
+
+    test "unlock auf fremd gebundenen Tisch: Fremdbindung bleibt, table_ids dieses Turniers bereinigt" do
+      other = LocalTournamentCreator.new(region: @nbv, payload: {
+        external_id: "app-lock-other", location: {id: @location.id}
+      }).call.tournament
+      data = @tournament.data.is_a?(Hash) ? @tournament.data.dup : {}
+      @tournament.update!(data: data.merge("table_ids" => [@table.id.to_s]))
+      @monitor.update!(tournament_monitor_id: other.tournament_monitor.id, tournament_monitor_type: "TournamentMonitor")
+
+      result = lock!(lock: false)
+      assert_equal other.tournament_monitor.id, result.table_monitor.reload.tournament_monitor_id, "in_tournament bleibt true"
+      assert_not_includes Array(@tournament.reload.data["table_ids"]), @table.id.to_s
+    end
+
+    test "Rundweg: loesen und wieder binden" do
+      lock!
+      lock!(lock: false)
+      lock!
+      assert_equal @tournament.tournament_monitor.id, @monitor.reload.tournament_monitor_id
+      assert_includes Array(@tournament.reload.data["table_ids"]), @table.id.to_s
+    end
   end
 end

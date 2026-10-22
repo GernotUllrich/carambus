@@ -161,6 +161,17 @@ es nur, wenn die App von einem anderen Server kommt als Carambus.
     Speicherdruck ohne Vorwarnung —, ist er weg, und die App holt ihn nicht aus Carambus zurück. Die Sicherung ist
     die einzige Rückversicherung; sie dauert zehn Sekunden.
 
+### Tische lösen und wieder einbinden {#tische-loesen}
+
+Werden gegen Turnierende nicht mehr alle Tische gebraucht, gibt sie der Turnierleiter einzeln für den
+Vereinsbetrieb frei: In der Tisch-Leiste („Spiele & Gruppen") trägt jeder **freie** Tisch ein **✕**. Nach der
+Bestätigung ist der Tisch nicht mehr am Turnier, verschwindet aus der Turnierübersicht und steht gedimmt als
+„gelöst" in der Leiste. Mit **„⟲ einbinden"** kommt er zurück und kann wieder bespielt werden.
+
+Ein belegter Tisch hat kein ✕ — erst das Spiel zu Ende führen und das Ergebnis holen oder das Ansetzen
+zurücknehmen. Carambus selbst verweigert das Lösen, solange auf dem Tisch ein Ergebnis noch nicht abgeholt ist,
+und sagt, warum.
+
 Im richtigen Zustand zeigt der Reiter „Setup“ **„🔗 Attached an Carambus-Turnier #&lt;Turnier-ID&gt;“**, und oben
 rechts steht „Carambus: verbunden“.
 
