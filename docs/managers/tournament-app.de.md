@@ -275,9 +275,11 @@ am zweiten Turniertag wird dasselbe Turnier fortgesetzt.
 
 **Spielfolge nach dem DBU-Zeitplan:** Eine Reihenfolge der Gruppenspiele legt die Ausschreibung
 nicht fest — verbindlich ist der Zeitplan des Ausrichters. Im Setup des laufenden Turniers, Karte
-**„Spielfolge (DBU-Zeitplan)“**, die Spielliste als Text einfügen, eine Partie je Zeile
-(„Partie Uhrzeit Spieler – Spieler“, z. B. „5 09:00 Muster – Beispiel“), und **„↕ Spielfolge
-übernehmen“**. Die App ordnet jede Zeile über die Spieler einem Gruppenspiel zu und meldet, was
+**„Spielfolge (DBU-Zeitplan)“**, die Spielliste einfügen und **„↕ Spielfolge übernehmen“** drücken.
+Am einfachsten direkt aus der Excel-Datei des Ausrichters: im Blatt **„Zeitplan“** alles markieren,
+kopieren, einfügen. Maßgeblich ist die **Plan-Uhrzeit** („09:00 Uhr“ unter der Partie), nicht Start
+und Ende; Kopf-, Abschnitts- und KO-Zeilen übergeht die App. Ohne Excel-Datei geht auch Text, eine
+Partie je Zeile („Partie Uhrzeit Spieler – Spieler“, z. B. „5 09:00 Muster – Beispiel“). Die App ordnet jede Zeile über die Spieler einem Gruppenspiel zu und meldet, was
 sie nicht zuordnen kann und welche Gruppenspiele in der Liste fehlen. Danach spielt sie die
 Gruppenphase in dieser Reihenfolge: die nächsten Partien stehen oben, eine Runde ist ein
 Zeitfenster des Zeitplans. **„✕ Spielfolge entfernen“** stellt die eigene Reihenfolge der App wieder her.

@@ -1193,7 +1193,31 @@ function koCrossOrder(run){
 // Es gibt keinen Algorithmus dafür; die Liste ist bindend. Je Zeile "<Partie> [<hh:mm>] <Spieler> – <Spieler>",
 // Spieler per Nachname oder Vor- und Nachname. Ergebnis: Partie-Nr., Zeit und Runde je Gruppenspiel
 // (Runde = Zeitfenster; ohne Zeiten Blöcke zu je <tables> Partien in Listenreihenfolge).
+// Aus Excel kopiert (Blatt „Zeitplan“ der DBU-Datei) kommt die Liste mit Tabs und je Partie in zwei
+// Zeilen: „Partie, Datum, Ist-Start, Ist-Ende, Spieler, -, Spieler, Tisch“ und darunter die Plan-Uhrzeit
+// („09:00 Uhr“). Die Runde ist die PLAN-Uhrzeit — Start/Ende sind nach dem Turnier ausgefüllt und
+// dürfen nicht zählen. Übersetzt ins Kurzformat. Enthält der Text keinen Tab, ist es schon das
+// Kurzformat und bleibt unverändert; sonst fallen Kopf-, Abschnitts- und KO-Platzhalterzeilen
+// („Ranking 1 - Ranking 8“, „(Gewinner aus Partie 1001)“) still weg.
+function gameOrderFromSheet(text){
+  if(!String(text||"").includes("\t")) return text;
+  const out=[]; let last=null;
+  const flush=()=>{ if(last) out.push(`${last.no}${last.time?" "+last.time:""} ${last.a} – ${last.b}`); last=null; };
+  String(text||"").split(/\r?\n/).forEach(line=>{
+    const c=line.split("\t").map(x=>x.trim()), dash=c.findIndex((x,i)=>i>0&&/^[-–—]$/.test(x));
+    if(/^\d+$/.test(c[0])&&dash>1&&c[dash-1]&&c[dash+1]){
+      flush();
+      if(!/^\(|^(ranking|rang|platz|sieger|gewinner|verlierer)\b/i.test(c[dash-1])) last={no:c[0],a:c[dash-1],b:c[dash+1],time:null};
+      return;
+    }
+    const t=!c[0]&&c.map(x=>/^(\d{1,2}):(\d{2})(?:\s*uhr)?$/i.exec(x)).find(Boolean);
+    if(t&&last&&!last.time){ last.time=`${t[1].padStart(2,"0")}:${t[2]}`; flush(); }
+  });
+  flush();
+  return out.join("\n");
+}
 function matchGameOrder(run,text,opts={}){
+  text=gameOrderFromSheet(text);
   const tables=opts.tables||4, groupGames=run.plan.games.filter(g=>g.kind==="group");
   const players=Object.values(run.groups).flat(), nm=normPersonName;
   const byPid=new Map(groupGames.map(g=>{ const a=resolveSlot(run,g.a),b=resolveSlot(run,g.b); return [[pidOf(a),pidOf(b)].sort().join("|"),g]; }));
@@ -1986,7 +2010,7 @@ function gameOrderCardHtml() {
   const rep = state.gameOrderReport;
   const repHtml = !rep ? "" : `<div class="${rep.unmatched.length || rep.missing.length ? "alert" : "info"}" style="margin-top:8px;">${rep.count} Partien übernommen, ${rep.rounds} Runden.${rep.unmatched.length ? `<br><strong>Nicht zugeordnet (${rep.unmatched.length}):</strong><br>${rep.unmatched.map(u => `${escapeHtml(u.line)} — ${escapeHtml(u.reason)}`).join("<br>")}` : ""}${rep.missing.length ? `<br><strong>Nicht in der Liste (${rep.missing.length}), folgen danach:</strong> ${rep.missing.map(escapeHtml).join(" · ")}` : ""}</div>`;
   return `<div class="card"><h2>Spielfolge (DBU-Zeitplan)</h2>
-    <p class="muted" style="margin:0 0 6px;">Je Zeile: Partie-Nr., Uhrzeit (optional), Begegnung — z. B. „5 09:00 Muster – Beispiel“. Nachname genügt, bei gleichem Nachnamen Vor- und Nachname. Die Uhrzeit wird zur Runde; ohne Uhrzeiten Blöcke so groß wie die Tischzahl. Die nächsten fälligen Spiele stehen oben.</p>
+    <p class="muted" style="margin:0 0 6px;">Am einfachsten aus der Excel-Datei des Ausrichters: Blatt „Zeitplan“ ganz markieren, kopieren, hier einfügen. Oder je Zeile: Partie-Nr., Uhrzeit (optional), Begegnung — z. B. „5 09:00 Muster – Beispiel“. Nachname genügt, bei gleichem Nachnamen Vor- und Nachname. Die Uhrzeit wird zur Runde; ohne Uhrzeiten Blöcke so groß wie die Tischzahl. Die nächsten fälligen Spiele stehen oben.</p>
     <textarea id="inGameOrder" rows="8" style="width:100%;">${escapeHtml(state.gameOrderText || "")}</textarea>
     <div class="toolbar"><button class="btn" id="btnGameOrder">↕ Spielfolge übernehmen</button>${state.gameOrder ? `<button class="btn secondary" id="btnGameOrderClear">✕ Spielfolge entfernen</button>` : ""}</div>${repHtml}</div>`;
 }

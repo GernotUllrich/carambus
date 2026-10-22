@@ -110,5 +110,32 @@ console.log("\nZuordnung und Meldungen:");
   eq(applyGameOrder(parsePlan(biathlonGpPlan(19)), []).games.find(x => x.key === "qf1").round, 6, "ohne Liste bleibt alles wie bisher");
 }
 
+console.log("\nAus Excel kopiert (Blatt „Zeitplan“ des DBU-Originals):");
+{
+  // So kommt das Blatt in der Zwischenablage an: Tabs zwischen den Zellen, je Partie zwei Zeilen —
+  // Zeile 1: Partie, Datum, Ist-Start, Ist-Ende, Spieler, „-“, Spieler, Tisch; Zeile 2: Plan-Uhrzeit.
+  // Kopfzeile, Abschnittszeilen und die KO-Platzhalter („Ranking 1“) stehen mit drin.
+  const entries = LIST.trim().split("\n").map(l => /^(\d+) (\d\d:\d\d) (.+) – (.+)$/.exec(l));
+  const tsv = (played) => ["Partie\tPlan\tStart\tEnde\tBegegnung\t\t\tTisch\tErgebnis", "Vorrunde"].concat(
+    entries.flatMap((m, i) => [
+      [m[1], "17.10.26", played ? "9:10" : "", played ? "10:04" : "", m[3], "-", m[4], String(i % 4 + 1), ""].join("\t"),
+      ["", `${m[2]} Uhr`, "", "", "", "", "", "", ""].join("\t")]),
+    ["", "Viertelfinale", "1001\t18.10.26\t\t\tRanking 1\t-\tRanking 8\t\t", "\t09:00 Uhr\t\t\t\t\t\t\t",
+     "Halbfinale", "1005\t18.10.26\t\t\t(Gewinner aus Partie 1001)\t-\t(Gewinner aus Partie 1002)\t\t", "\t11:00 Uhr"]).join("\r\n");
+  const run = makeRun();
+  const ref = matchGameOrder(run, LIST);
+  for (const played of [false, true]) {
+    const r = matchGameOrder(run, tsv(played));
+    const tag = played ? "mit Ist-Zeiten" : "leeres Blatt";
+    eq([r.order.length, r.unmatched.length, r.missing.length], [36, 0, 0], `${tag}: alle 36 Partien, keine Meldung (Kopf, Abschnitte, KO-Platzhalter still übergangen)`);
+    eq(r.order.map(o => [o.key, o.no, o.time, o.round]), ref.order.map(o => [o.key, o.no, o.time, o.round]), `${tag}: identisch mit dem Kurzformat — Runde aus der Plan-Uhrzeit, nicht aus der Ist-Zeit`);
+  }
+  // Excel schreibt die Uhrzeit auch einstellig: 9:00 und 09:00 sind dasselbe Zeitfenster
+  const mixed = matchGameOrder(run, "1\t17.10.26\t\t\tSpieler A1\t-\tSpieler A2\t1\n\t9:00 Uhr\n5\t17.10.26\t\t\tSpieler A3\t-\tSpieler A4\t2\n\t09:00 Uhr");
+  eq(mixed.order.map(o => o.round), [1, 1], "9:00 und 09:00 = dieselbe Runde");
+  // Ohne Folgezeile (nur die Partie-Zeilen markiert): Blöcke nach Tischzahl wie im Kurzformat
+  eq(matchGameOrder(run, "1\t17.10.26\t\t\tA1\t-\tA2\t1\n2\t17.10.26\t\t\tA3\t-\tA4\t2", { tables: 1 }).order.map(o => o.round), [1, 2], "ohne Plan-Uhrzeit: Blöcke nach Tischzahl");
+}
+
 console.log(failures ? `\n❌ ${failures} Fehler` : "\n✅ ALLE TESTS GRÜN");
 process.exit(failures ? 1 : 0);
