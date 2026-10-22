@@ -283,6 +283,14 @@ Quarter-final, semi-final and final: **15/30/180**. The DBU tender Grands Prix K
   B1–A2, D1–C2; 2 groups: A1–B4, B2–A3 | B1–A4, A2–B3; 8 groups accordingly, with the qualifier
   winner in place of the runner-up). Single players can be swapped per game; the card then shows
   "Von Hand geändert". This works **until the first KO game has started**.
+- **Changing the pairings of later KO rounds** (quarter-final after the round of 16, semi-final): the
+  same card shows **"Paarungen Halbfinale"** etc. per round, with a selection per slot. Whoever is
+  chosen swaps places with the current player — winners only with winners. This works even before
+  the winners are known, and **until a game of that round has been called**; again after
+  „Ansetzen zurücknehmen“ (withdraw call). Changed games carry „Paarung geändert“ (pairing changed;
+  the tooltip names where the player would have come from according to the plan);
+  **„Paarung laut Plan“** (pairing as planned) reverts it. The final offers no selection — there is
+  no alternative.
 - **No third-place match**, third place shared. Places 5–8 (and 9–16) by the average of the lost
   KO game (§ 2.3 (6)).
 - **Warm-up time** 3 minutes per player before every game (§ 5.1 (4)); the app sends it to the

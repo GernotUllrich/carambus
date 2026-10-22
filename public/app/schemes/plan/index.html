@@ -1190,6 +1190,53 @@ function koCrossOrder(run){
   else { const top=[],bottom=[]; for(let k=1;k<ng;k+=2){ top.push([R(k,1),R(k+1,2)]); bottom.push([R(k+1,1),R(k,2)]); } pairs=[...top,...bottom]; }
   return pairs.every(p=>p[0]&&p[1])?koOrderFromPairs(run,pairs):null;
 }
+// Paarungen späterer KO-Runden ändern (Eingriff 2). Getauscht werden Plan-Verweise auf ein Spielergebnis
+// derselben Art — Sieger (<key>.rk1) nur mit Siegern, Verlierer (<key>.rk2) nur mit Verlierern — zwischen
+// den Partien einer Runde. Eine Klasse zählt nur, wenn ihre Plätze in mindestens zwei Partien liegen
+// (Finale allein, Finale + Spiel um Platz 3: keine Alternative). Die erste KO-Runde (ks.rk<n>) bleibt bei koOrder.
+// Overlay neben dem Plan: { <key>: { a?: <ref>, b?: <ref> } } — nur Abweichungen; executorParams bleibt unberührt.
+function koSwapClasses(plan){
+  const keys=new Set(plan.games.map(g=>g.key)), byClass=new Map();
+  for(const g of plan.games){ if(g.kind!=="placement") continue;
+    for(const side of ["a","b"]){ const ref=side==="a"?(g.planA??g.a):(g.planB??g.b); const m=/^(.+)\.rk([12])$/.exec(ref??"");
+      if(!m||!keys.has(m[1])) continue;
+      const id=g.round+":rk"+m[2]; if(!byClass.has(id)) byClass.set(id,{round:g.round,kind:"rk"+m[2],slots:[]});
+      byClass.get(id).slots.push({key:g.key,side,ref}); } }
+  return [...byClass.values()].filter(c=>new Set(c.slots.map(s=>s.key)).size>=2);
+}
+// Overlay anwenden. Verworfen (dropped) wird eine Partie, deren Override nicht in die Tauschklasse ihres
+// Platzes passt (Key fehlt, Verweis fremd) oder deren Klasse danach keine Vertauschung der Planverweise mehr ist.
+function applyPairingOverrides(plan,ov){
+  const keys=Object.keys(ov||{}).filter(k=>ov[k]&&(ov[k].a!=null||ov[k].b!=null)); if(!keys.length) return {plan,dropped:[]};
+  const classes=koSwapClasses(plan), slotClass=new Map(), bad=new Set();
+  classes.forEach((c,i)=>c.slots.forEach(s=>slotClass.set(s.key+"."+s.side,i)));
+  for(const k of keys) for(const side of ["a","b"]){ const ref=ov[k][side]; if(ref==null) continue;
+    const ci=slotClass.get(k+"."+side); if(ci==null||!classes[ci].slots.some(s=>s.ref===ref)) bad.add(k); }
+  const sig=list=>[...list].sort().join("|");
+  for(let changed=true;changed;){ changed=false;
+    for(const c of classes){ const eff=c.slots.map(s=>bad.has(s.key)?s.ref:(ov[s.key]?.[s.side]??s.ref));
+      if(sig(eff)===sig(c.slots.map(s=>s.ref))) continue;
+      for(const s of c.slots) if(keys.includes(s.key)&&!bad.has(s.key)){ bad.add(s.key); changed=true; } } }
+  const games=plan.games.map(g=>{ if(!keys.includes(g.key)||bad.has(g.key)) return g;
+    const n={...g,planA:g.a,planB:g.b,overridden:[]};
+    for(const side of ["a","b"]){ const ref=ov[g.key][side]; if(ref!=null&&ref!==g[side]){ n[side]=ref; n.overridden.push(side); } }
+    return n.overridden.length?n:g; });
+  return {plan:{...plan,games},dropped:[...bad]};
+}
+// Neues Overlay nach Tausch der Plätze x und y ({key, side}) — nur innerhalb einer Tauschklasse, sonst null.
+// Plätze, die danach wieder dem Plan entsprechen, verschwinden aus dem Overlay.
+function swapPairingSlots(plan,ov,x,y){
+  if(x.key===y.key&&x.side===y.side) return null;
+  const has=(c,p)=>c.slots.some(s=>s.key===p.key&&s.side===p.side);
+  if(!koSwapClasses(plan).some(c=>has(c,x)&&has(c,y))) return null;
+  const planRef=p=>{ const g=plan.games.find(q=>q.key===p.key); return p.side==="a"?(g.planA??g.a):(g.planB??g.b); };
+  const cur=p=>ov?.[p.key]?.[p.side]??planRef(p);
+  const next=JSON.parse(JSON.stringify(ov||{}));
+  const put=(p,ref)=>{ if(ref===planRef(p)){ if(next[p.key]){ delete next[p.key][p.side]; if(!Object.keys(next[p.key]).length) delete next[p.key]; } }
+                       else (next[p.key]??={})[p.side]=ref; };
+  const rx=cur(x), ry=cur(y); put(x,ry); put(y,rx);
+  return next;
+}
 // Spielfolge der Gruppenphase nach einer vorgegebenen Liste (DBU-Zeitplan, GP-Nachbereitung B).
 // Es gibt keinen Algorithmus dafür; die Liste ist bindend. Je Zeile "<Partie> [<hh:mm>] <Spieler> – <Spieler>",
 // Spieler per Nachname oder Vor- und Nachname. Ergebnis: Partie-Nr., Zeit und Runde je Gruppenspiel
@@ -1492,10 +1539,17 @@ function rebuildRun(records = state?.records) {
   if (!state || !state.executorParams || !state.participants?.length) return null;
   const plan = parsePlan(state.executorParams);
   if (state.gameOrder?.length) applyGameOrder(plan, state.gameOrder); // Spielfolge nach Liste (DBU-Zeitplan)
-  const r = createRun(plan, state.participants.map((p, i) => ({ ...p, seed: i + 1, pid: pidOf({ ...p, seed: i + 1 }) })),
+  const po = applyPairingOverrides(plan, state.pairingOverrides); // Paarungen späterer KO-Runden (Eingriff 2)
+  const r = createRun(po.plan, state.participants.map((p, i) => ({ ...p, seed: i + 1, pid: pidOf({ ...p, seed: i + 1 }) })),
                       { ballsGoal: state.format.balls_goal, koOrder: state.koOrder ?? null });
   for (const rec of (records || [])) {
     try { recordResult(r, rec.key, rec.res, rec.winner); } catch (e) { console.warn("replay", rec.key, e.message); }
+  }
+  // Paarungsänderungen, die zum Plan nicht (mehr) passen (z. B. nach „Server-Stand neu laden“), nicht still
+  // liegen lassen: aus dem Zustand nehmen und einmal melden — beim nächsten Aufbau sind sie weg.
+  if (po.dropped.length) {
+    po.dropped.forEach(k => delete state.pairingOverrides[k]); save();
+    alert("Paarungsänderung passt nicht mehr zum Plan und wurde verworfen: " + po.dropped.map(k => { const g = plan.games.find(x => x.key === k); return g ? gameLabelBase(g) : k; }).join(", "));
   }
   return r;
 }
@@ -2057,7 +2111,7 @@ async function startTournament() {
       if (fails.length && !confirm("Tische teils nicht gebunden:\n" + fails.join("\n") + "\n\nFortfahren?")) return;
     } catch (e) { alert("Turnier anlegen: " + errMsg(e)); return; }
   }
-  state.records = []; state.gameUI = {}; state.tableLot = {}; state.koOrder = null; state.gameOrder = null; state.gameOrderReport = null; state.releasedTables = []; state.phase = "running";
+  state.records = []; state.gameUI = {}; state.tableLot = {}; state.koOrder = null; state.pairingOverrides = {}; state.gameOrder = null; state.gameOrderReport = null; state.releasedTables = []; state.phase = "running";
   save(); run = rebuildRun();
   state.seedSnapshot = seedSnapshot(); save();
   renderAll(); switchTab("games");
@@ -2290,7 +2344,7 @@ async function resetTournament() {
       if (!confirm("Carambus-Abräumen fehlgeschlagen: " + errMsg(e) + "\n\nTrotzdem lokal verwerfen?")) return;
     }
   }
-  state.records = []; state.gameUI = {}; state.tableLot = {}; state.koOrder = null; state.gameOrder = null; state.gameOrderReport = null; state.releasedTables = []; state.phase = "setup"; state.carambusTournament = null; save(); run = rebuildRun(); renderAll(); switchTab("setup");
+  state.records = []; state.gameUI = {}; state.tableLot = {}; state.koOrder = null; state.pairingOverrides = {}; state.gameOrder = null; state.gameOrderReport = null; state.releasedTables = []; state.phase = "setup"; state.carambusTournament = null; save(); run = rebuildRun(); renderAll(); switchTab("setup");
 }
 
 // ===== SPIELE & GRUPPEN =====
@@ -2349,7 +2403,7 @@ function renderGames() {
     <div class="card"><h2>Laufend (${runningUniq.length})</h2>${runningUniq.length ? `<div class="matches-grid">${runningUniq.map(g => matchCard(g, "running", free)).join("")}</div>` : `<p class="muted">Kein laufendes Spiel.</p>`}</div>
     ${doneGames.length ? `<div class="card"><h2>Erledigt (${doneGames.length})</h2><div class="matches-grid">${doneGames.map(g => matchCard(g, "done", free)).join("")}</div></div>` : ``}
     <div class="card"><h2>Gruppen</h2><div class="groups-grid">${run.plan.groups.map(gr => groupCard(gr.n)).join("") || `<p class="muted">Keine Gruppenphase.</p>`}</div></div>
-    <div class="card"><h2>Platzierungs-/Finalrunde</h2>${koSeedHtml()}${koPairEditorHtml()}${renderPlacementList()}</div>`;
+    <div class="card"><h2>Platzierungs-/Finalrunde</h2>${koSeedHtml()}${koPairEditorHtml()}${koRoundPairEditorHtml()}${renderPlacementList()}</div>`;
   bindGameActions(el);
 }
 
@@ -2428,7 +2482,7 @@ function matchCard(g, mode, free) {
   else if (mode === "done") { const corr = (state.records || []).find(r => r.key === g.key)?.corrected?.length; actions = `<button class="btn secondary m-manual" data-id="${g.key}" title="Spielzettel weicht ab? Ergebnis korrigieren">✎ Korrigieren</button><button class="btn secondary m-swap" data-id="${g.key}" title="Ergebnis seitenverkehrt uebernommen? Hier drehen">⇄ Ergebnis drehen</button>${corr ? `<span class="badge open" title="Ergebnis wurde nachträglich korrigiert">korrigiert</span>` : ""}`; }
   else if (mode === "running") actions = `<button class="btn ${swapped ? "" : "secondary"} m-swap" data-id="${g.key}" title="Reihenfolge an das Scoreboard angleichen — oben steht, wer angestossen hat">⇄ ${swapped ? "getauscht" : "Spieler tauschen"}</button>${isLive() ? `<button class="btn m-poll" data-id="${g.key}">📥 Ergebnis holen</button>` : ``}<button class="btn secondary m-manual" data-id="${g.key}">✎ Ergebnis erfassen</button><button class="btn secondary m-uncall" data-id="${g.key}" title="Versehentlich angesetzt? Tisch wieder freigeben — geht nur, solange nicht gespielt wurde">↩ Ansetzen zurücknehmen</button>`;
   const hint = swapped ? `<div class="muted" style="font-size:.85em;padding:2px 0 0 2px;">Reihenfolge wie auf dem Scoreboard</div>` : ``;
-  return `<div class="m-card ${mode}"><div class="m-top"><span>${escapeHtml(gameLabel(g))}</span><span class="m-id">${escapeHtml(g.key)}${state.gameUI[g.key]?.table ? " · " + escapeHtml(state.gameUI[g.key].table) : ""}</span></div>${slots}${hint}<div class="m-actions">${actions}</div><div id="manual-${cssId(g.key)}"></div></div>`;
+  return `<div class="m-card ${mode}"><div class="m-top"><span>${escapeHtml(gameLabel(g))} ${pairingBadge(g)}</span><span class="m-id">${escapeHtml(g.key)}${state.gameUI[g.key]?.table ? " · " + escapeHtml(state.gameUI[g.key].table) : ""}</span></div>${slots}${hint}<div class="m-actions">${actions}</div><div id="manual-${cssId(g.key)}"></div></div>`;
 }
 function gameLabel(g) { const bi = run ? biathlonVariant(run.plan, g) : null; const v = bi ? " · " + bi.label : ""; return gameLabelBase(g) + v; }
 function gameLabelBase(g) { if (g.kind === "group") return `Gruppe ${g.group}${g.round ? " · R" + g.round : ""}${g.listNo != null ? ` · Partie ${g.listNo}${g.listTime ? ", " + g.listTime : ""}` : ""}`; const names = { fin: "Finale", hf1: "Halbfinale 1", hf2: "Halbfinale 2", hf: "Halbfinale", qf: "Viertelfinale" }; let m;
@@ -2511,6 +2565,51 @@ function bindKoPairEditor(el) {
     setKoOrder(JSON.stringify(order) === JSON.stringify(koSeedList(run).map(x => x.ref)) ? null : order);
   }));
 }
+// Paarungen späterer KO-Runden ändern (Eingriff 2): je Runde mit Tauschklasse, bis eine ihrer Partien angesetzt ist.
+// state.pairingOverrides = Overlay neben dem Plan (applyPairingOverrides), leer = Paarung laut Plan.
+function koRoundGames(round) { const keys = new Set(koSwapClasses(run.plan).filter(c => c.round === round).flatMap(c => c.slots.map(s => s.key))); return run.plan.games.filter(g => keys.has(g.key)); }
+function koRoundLocked(round) { return koRoundGames(round).some(g => run.results[g.key] || state.gameUI[g.key]?.table); }
+function koRoundName(round) { return gameLabelBase(koRoundGames(round)[0]).replace(/\s\d+$/, ""); }
+function koRoundPairEditorHtml() {
+  if (!run) return "";
+  const classes = koSwapClasses(run.plan), rounds = [...new Set(classes.map(c => c.round))];
+  return rounds.map(round => {
+    const games = koRoundGames(round), name = koRoundName(round), changed = games.some(g => g.overridden);
+    const status = changed ? "geändert" : "laut Plan";
+    if (koRoundLocked(round)) return `<p class="muted" style="margin:0 0 10px;">Paarungen ${escapeHtml(name)}: <strong>${status}</strong> — fest, eine Partie ist angesetzt.</p>`;
+    const label = ref => { const p = resolveSlot(run, ref); return p ? `${fullName(p)} (${refLabel(ref)})` : refLabel(ref); };
+    const slot = (g, side) => { const c = classes.find(c => c.round === round && c.slots.some(s => s.key === g.key && s.side === side));
+      if (!c) return escapeHtml(label(g[side]));
+      const refs = c.slots.map(s => run.plan.games.find(x => x.key === s.key)[s.side]);
+      return `<select class="ko-round-slot" data-key="${escapeHtml(g.key)}" data-side="${side}">${refs.map(ref => `<option value="${escapeHtml(ref)}" ${ref === g[side] ? "selected" : ""}>${escapeHtml(label(ref))}</option>`).join("")}</select>`; };
+    return `<div style="margin:0 0 12px;"><div class="toolbar"><span class="muted">Paarungen ${escapeHtml(name)}: <strong>${status}</strong></span>${changed ? `<button class="btn secondary ko-round-reset" data-round="${round}">Paarung laut Plan</button>` : ""}</div>
+    <div style="overflow-x:auto;"><table class="standings-table"><tbody>${games.map(g => `<tr><td style="text-align:left">${escapeHtml(gameLabelBase(g))}</td><td>${slot(g, "a")}</td><td>–</td><td>${slot(g, "b")}</td></tr>`).join("")}</tbody></table></div>
+    <div class="scheme-hint">Änderbar, bis eine Partie dieser Runde angesetzt ist. Wer gewählt wird, tauscht den Platz mit dem bisherigen Spieler.</div></div>`;
+  }).join("");
+}
+function setPairingOverrides(ov) { state.pairingOverrides = ov; save(); run = rebuildRun(); renderAll(); }
+function bindKoRoundPairEditor(el) {
+  el.querySelectorAll(".ko-round-slot").forEach(sel => sel.addEventListener("change", () => {
+    const x = { key: sel.dataset.key, side: sel.dataset.side }, g = run.plan.games.find(q => q.key === x.key);
+    if (!g || koRoundLocked(g.round)) { renderAll(); return; }
+    const y = koSwapClasses(run.plan).flatMap(c => c.slots).map(s => ({ key: s.key, side: s.side }))
+      .find(s => run.plan.games.find(q => q.key === s.key)[s.side] === sel.value);
+    const next = y && swapPairingSlots(run.plan, state.pairingOverrides ?? {}, x, y);
+    if (!next) { renderAll(); return; }
+    setPairingOverrides(next);
+  }));
+  el.querySelectorAll(".ko-round-reset").forEach(b => b.addEventListener("click", () => {
+    const round = +b.dataset.round; if (koRoundLocked(round)) { renderAll(); return; }
+    const next = { ...(state.pairingOverrides ?? {}) }; koRoundGames(round).forEach(g => delete next[g.key]);
+    setPairingOverrides(next);
+  }));
+}
+// Badge an der Partie, deren Paarung vom Plan abweicht — mit der Herkunft laut Plan
+function pairingBadge(g) {
+  if (!g.overridden?.length) return "";
+  const from = g.overridden.map(s => refLabel(s === "a" ? g.planA : g.planB)).join(", ");
+  return `<span class="badge open" title="laut Plan: ${escapeHtml(from)}">Paarung geändert</span>`;
+}
 function renderPlacementList() {
   const pg = run.plan.games.filter(g => g.kind === "placement");
   if (!pg.length) return `<p class="muted">Keine Platzierungsspiele.</p>`;
@@ -2518,7 +2617,7 @@ function renderPlacementList() {
     const a = resolveSlot(run, g.a), b = resolveSlot(run, g.b), st = gameStatus(g.key);
     const res = run.results[g.key]?.res, winner = run.results[g.key]?.winner;
     const slot = (p, ref, side) => { let cls = "pn"; if (!p) cls += " pending"; if (winner) cls += (winner === side ? " win" : " lose"); const sc = res ? `${res[side]?.balls ?? "-"}` : ""; return `<div class="m-slot"><span class="${cls}">${p ? nameHtml(p) : escapeHtml(refLabel(ref))}</span><span class="sc">${escapeHtml(sc)}</span></div>`; };
-    return `<div class="m-card ${st || ""}"><div class="m-top"><span>${escapeHtml(gameLabel(g))}</span><span class="badge ${st === "done" ? "done" : st === "running" ? "running" : ""}">${st === "done" ? "fertig" : st === "running" ? "läuft" : (a && b ? "bereit" : "wartet")}</span></div>${slot(a, g.a, "a")}${slot(b, g.b, "b")}</div>`;
+    return `<div class="m-card ${st || ""}"><div class="m-top"><span>${escapeHtml(gameLabel(g))} ${pairingBadge(g)}</span><span class="badge ${st === "done" ? "done" : st === "running" ? "running" : ""}">${st === "done" ? "fertig" : st === "running" ? "läuft" : (a && b ? "bereit" : "wartet")}</span></div>${slot(a, g.a, "a")}${slot(b, g.b, "b")}</div>`;
   }).join("") + `</div>`;
 }
 
@@ -2533,6 +2632,7 @@ function bindGameActions(el) {
   el.querySelectorAll(".tbl-release").forEach(b => b.addEventListener("click", () => releaseTable(b.dataset.name)));
   el.querySelectorAll(".tbl-bind").forEach(b => b.addEventListener("click", () => bindTable(b.dataset.name)));
   bindKoPairEditor(el);
+  bindKoRoundPairEditor(el);
 }
 function cssEsc(s) { return s.replace(/["\\]/g, "\\$&"); }
 
