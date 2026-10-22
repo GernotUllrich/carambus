@@ -32,7 +32,11 @@
                                                 .to_a.sort_by { |tm| tm.table.name }.reverse %>
         <%- cols = teaser_grid_cols(active_count: active_monitors.count,
                                     bound_count: tournament_monitor.table_monitors.count) %>
-        <turbo-frame id="teasers" class="grid grid-cols-<%= cols %> text-<%= cols < 4 ? "3" : "2" %>vw gap-8">
+        <%# data-*: woran der Kanal erkennt, dass sich die angezeigten Tische DIESES Turniers aendern
+            # (tournament_scores_refresh.js) — sonst erscheint ein erstmals belegter Tisch erst nach Neuladen. %>
+        <turbo-frame id="teasers" class="grid grid-cols-<%= cols %> text-<%= cols < 4 ? "3" : "2" %>vw gap-8"
+                     data-tournament-monitor-id="<%= tournament_monitor.id %>"
+                     data-active-ids="<%= active_monitors.map(&:id).join(",") %>">
           <%- active_monitors.each do |table_monitor| %>
             <%- table_monitor.get_options!(I18n.locale) %>
             <turbo_frame id="teaser_<%= table_monitor.id %>">

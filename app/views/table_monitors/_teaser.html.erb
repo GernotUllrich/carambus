@@ -1,4 +1,8 @@
-<div class="teaser flex flex-col items-center text-gray-900 dark:text-gray-200 text-bold">
+<%# data-*: fuer die Turnieruebersicht (tournament_scores_refresh.js) — gehoert der Tisch zu ihrem
+    # Turnier, und laeuft ein Spiel? Nur TournamentMonitor, nicht PartyMonitor. %>
+<div class="teaser flex flex-col items-center text-gray-900 dark:text-gray-200 text-bold"
+     data-tournament-monitor-id="<%= table_monitor.tournament_monitor_id if table_monitor.tournament_monitor_type == "TournamentMonitor" %>"
+     data-has-game="<%= table_monitor.game.present? %>">
   <%- 
     # Use passed-in options if available (from job with snapshot), otherwise get fresh
     # This prevents race conditions when multiple jobs render simultaneously
