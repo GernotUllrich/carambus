@@ -141,6 +141,10 @@ Rails.application.routes.draw do
          to: "external_tournaments#acknowledge_result",
          as: :external_tournament_acknowledge_result
     # Phase 28-01: Versehentlich angesetztes Spiel zuruecknehmen — Tisch frei, Bindung bleibt.
+    # Phase 30-01: Seitenbelegung laufender App-Spiele (nach dem Ausstossen), rein lesend.
+    get "external_tournament/running_games",
+        to: "external_tournaments#running_games",
+        as: :external_tournament_running_games
     post "external_tournament/cancel_game",
          to: "external_tournaments#cancel_game",
          as: :external_tournament_cancel_game

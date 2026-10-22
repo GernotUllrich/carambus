@@ -536,6 +536,43 @@ module Api
       render json: {error: e.message, state: e.state}, status: :conflict
     end
 
+    # GET /api/external_tournament/running_games?region=NBV&tournament_id=… | tournament_external_id=…
+    #
+    # Phase 30-01: Aktuelle Seitenbelegung der laufenden App-Spiele. Das Ausstossen am Tisch
+    # (switch_players) tauscht die Rollen persistent; die App gleicht damit ihre Laufend-Anzeige ab,
+    # statt dass der Turnierleiter von Hand tauscht. Rein lesend — kein Release, keine Quittung.
+    #
+    # Response (200): carambus.running_games/v1
+    #   { schema, region:{shortname}, games:[ { game:{id, external_id}, table:{id,name}|null, state,
+    #     participants:[ { role, player:{...} } ] } ] }
+    #
+    # Errors: 401 (Auth) / 404 (Region) / 422 (Tournament not found)
+    def running_games
+      region = Region.find_by!(shortname: params[:region].to_s.upcase)
+      entries = ExternalTournament::RunningGamesQuery.new(region: region,
+        tournament_id: params[:tournament_id], tournament_external_id: params[:tournament_external_id]).call
+
+      render json: {
+        schema: "carambus.running_games/v1",
+        region: {shortname: region.shortname},
+        games: entries.map do |e|
+          {
+            game: {id: e.game.id, external_id: (e.game.data.is_a?(Hash) ? e.game.data["external_id"] : nil)},
+            table: e.table ? {id: e.table.id, name: e.table.name} : nil,
+            state: e.table_monitor.state,
+            participants: %w[playera playerb].filter_map do |role|
+              gp = e.participations.find { |p| p.role == role }
+              gp && {role: role, player: gp.player ? serialize_roster_player(gp.player) : nil}
+            end
+          }
+        end
+      }, status: :ok
+    rescue ActiveRecord::RecordNotFound => e
+      render json: {error: e.message}, status: :not_found
+    rescue ExternalTournament::RunningGamesQuery::TournamentNotFoundError
+      render json: {error: "Tournament not found"}, status: :unprocessable_entity
+    end
+
     # POST /api/external_tournament/cancel_game
     #
     # Phase 28-01: Ein versehentlich angesetztes Spiel zuruecknehmen. Gibt den Tisch frei
