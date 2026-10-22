@@ -41,6 +41,20 @@ module ExternalTournament
       end
     end
 
+    # Phase 28-02 (409): lock=false auf einen Tisch, dessen App-Ergebnis noch nicht abgeholt ist.
+    # Ein entbundener Tisch ist fuer find_game unsichtbar (AppGameLookup iteriert nur ueber
+    # gebundene TableMonitors) — das Ergebnis waere nicht mehr abholbar, und das ist nicht
+    # reparabel. `detail` sagt dem Turnierleiter, was stattdessen zu tun ist.
+    class TableInUseError < StandardError
+      attr_reader :table_name, :game, :detail
+      def initialize(table_name, game, detail)
+        @table_name = table_name
+        @game = game
+        @detail = detail
+        super("Table in use: #{table_name}")
+      end
+    end
+
     def initialize(region:, payload:)
       @region = region
       @payload = payload.is_a?(Hash) ? payload.deep_symbolize_keys : payload
@@ -55,6 +69,7 @@ module ExternalTournament
       table = resolve_table(tournament)
       monitor = table.table_monitor || table.table_monitor!
       raise TableMonitorNotFoundError, table.name if monitor.blank?
+      ensure_releasable!(table, monitor, owner) unless lock
 
       ActiveRecord::Base.transaction do
         if lock
@@ -76,6 +91,21 @@ module ExternalTournament
     end
 
     private
+
+    # Nur der eigene Tisch wird geprueft: einen fremd gebundenen loest lock=false ohnehin nicht.
+    # Bewusst external_result_pending? statt einer eigenen Zustandsliste — es ist genau die
+    # Bedingung "Ergebnis noch nicht abgeholt" und deckt laufende wie beendete Spiele ab.
+    # force: true ist der Ausweg fuer ein tatsaechlich aufgegebenes Spiel.
+    def ensure_releasable!(table, monitor, owner)
+      return unless monitor.tournament_monitor_id == owner.id && monitor.tournament_monitor_type == "TournamentMonitor"
+      return if ActiveModel::Type::Boolean.new.cast(@payload[:force])
+      return unless monitor.external_result_pending?
+
+      detail = I18n.t("external_tournament.lock_table.table_in_use", table: table.name,
+        default: "Auf #{table.name} läuft ein Spiel oder sein Ergebnis ist noch nicht abgeholt. " \
+                 "Erst das Ergebnis abholen oder das Ansetzen zurücknehmen.")
+      raise TableInUseError.new(table.name, monitor.game, detail)
+    end
 
     def bound_to_other?(monitor, owner)
       monitor.tournament_monitor_id.present? &&

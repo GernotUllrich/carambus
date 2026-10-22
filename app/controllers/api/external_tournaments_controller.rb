@@ -405,10 +405,13 @@ module Api
     # + bindet den TableMonitor an den TournamentMonitor + nimmt den Tisch in data["table_ids"] auf.
     # lock=false kehrt das um (einfache Teil-Freigabe).
     #
-    # Body: { region:{shortname}, tournament_id | tournament:{external_id}, table:{id|name}, lock(default true) }
+    # Body: { region:{shortname}, tournament_id | tournament:{external_id}, table:{id|name}, lock(default true),
+    #         force(optional, nur lock=false) }
     # Response (200): { table_id, locked_for_tournament, table_monitor_id }
     #
     # Errors: 401 (Auth) / 404 (Region) / 422 (Tournament/Table not found, Konflikt, kein Monitor)
+    #         409 table_in_use (Phase 28-02): lock=false auf einen Tisch, dessen App-Ergebnis noch nicht
+    #             abgeholt ist — nichts geaendert; force: true umgeht das
     def lock_table
       payload = lock_table_params.to_h.deep_symbolize_keys
       region = Region.find_by!(shortname: payload.dig(:region, :shortname).to_s.upcase)
@@ -429,6 +432,10 @@ module Api
       render json: {error: "Table not found: #{e.identifier}"}, status: :unprocessable_entity
     rescue ExternalTournament::TableLocker::TableConflictError => e
       render json: {error: "Table already in use: #{e.identifier}"}, status: :unprocessable_entity
+    rescue ExternalTournament::TableLocker::TableInUseError => e
+      game_data = e.game&.data.is_a?(Hash) ? e.game.data : {}
+      render json: {error: "table_in_use", game: {id: e.game&.id, external_id: game_data["external_id"]}, detail: e.detail},
+        status: :conflict
     rescue ExternalTournament::TableLocker::TableMonitorNotFoundError => e
       render json: {error: "TableMonitor not found for #{e.identifier}"}, status: :unprocessable_entity
     rescue ActiveRecord::RecordInvalid => e
@@ -968,7 +975,7 @@ module Api
     # Plan 17-02: Strong-Parameters fuer POST lock_table.
     def lock_table_params
       params.permit(
-        :schema, :tournament_id, :lock,
+        :schema, :tournament_id, :lock, :force,
         region: [:shortname],
         tournament: [:external_id],
         table: [:id, :name]
