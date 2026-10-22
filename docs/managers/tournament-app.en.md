@@ -293,8 +293,11 @@ finished; on the second day the same tournament is continued.
 
 **Game order from the DBU schedule:** the tender does not prescribe an order for the group games —
 the organiser's schedule is binding. In the setup of the running tournament, card **"Spielfolge
-(DBU-Zeitplan)"**, paste the game list as text, one game per line ("game time player – player",
-e.g. "5 09:00 Muster – Beispiel"), and press **"↕ Spielfolge übernehmen"**. The app matches each
+(DBU-Zeitplan)"**, paste the game list and press **"↕ Spielfolge übernehmen"**. Easiest is straight
+from the organiser's Excel file: in sheet **"Zeitplan"** select everything, copy, paste. What counts is the
+**planned time** ("09:00 Uhr" below the game), not start and end; header, section and KO rows are
+skipped. Without the Excel file, plain text works too, one game per line ("game time player – player",
+e.g. "5 09:00 Muster – Beispiel"). The app matches each
 line to a group game via the players and reports what it cannot match and which group games are
 missing from the list. It then plays the group stage in this order: the next games are at the top,
 one round is one time slot of the schedule. **"✕ Spielfolge entfernen"** restores the app's own order.
