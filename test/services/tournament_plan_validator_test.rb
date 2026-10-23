@@ -53,6 +53,24 @@ class TournamentPlanValidatorTest < ActiveSupport::TestCase
   end
 
   # ==========================================================================
+  # Pruefung: Leerraum in Werten  (der EK12-Fall, id 36, Plan 28-05)
+  # ==========================================================================
+
+  test "ein Verweis mit Leerraum am Ende wird gemeldet (EK12)" do
+    p = plan(players: 8, "g1" => complete_group_of_four, "g2" => complete_group_of_four,
+      "vf2" => {"r4" => {"t2" => ["g2.rk2", "g1.rk3 "]}})
+    findings = TournamentPlanValidator.new(p).findings.select { |f| f.check == :whitespace }
+    assert_equal ["vf2.r4.t2.1"], findings.map(&:location)
+    assert_match(/"g1.rk3 "/, findings.first.message)
+  end
+
+  test "Verweise ohne Leerraum werden nicht gemeldet" do
+    p = plan(players: 8, "g1" => complete_group_of_four, "g2" => complete_group_of_four,
+      "vf2" => {"r4" => {"t2" => ["g2.rk2", "g1.rk3"]}})
+    refute_includes checks(p), :whitespace
+  end
+
+  # ==========================================================================
   # Pruefung: rules-Form  (der T16-Fall, id 9)
   # ==========================================================================
 

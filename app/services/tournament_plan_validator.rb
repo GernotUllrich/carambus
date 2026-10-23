@@ -12,6 +12,8 @@
 #   T10      (id 28)  g1 (3 Spieler) referenziert Spieler 4 -> Paarung 1-3 fehlt
 #   T16neu   (id 340) RK vergibt einen Platz doppelt        -> ein Spieler ohne Rang
 #   T06I15.. (id 41)  executor_params kein gueltiges JSON   -> Plan wirft beim Laden
+#   EK12     (id 36)  Verweis "g1.rk3 " mit Leerzeichen      -> Viertelfinale 2 nie spielbereit
+#                     (2026-10-23, Plan 28-05; Monitor UND Turnier-App verankern ihre Muster mit $)
 #
 # Turnierplaene sind GLOBALE Records (id < MIN_ID). Diese Klasse meldet nur, sie repariert
 # nichts — Korrekturen gehoeren auf die Authority.
@@ -49,7 +51,8 @@ class TournamentPlanValidator
         check_player_numbers,
         check_round_robin_complete,
         check_rk,
-        check_table_conflicts
+        check_table_conflicts,
+        check_whitespace
       ].flatten.compact
     end
   end
@@ -69,6 +72,24 @@ class TournamentPlanValidator
 
   def error(check, location, message)
     Finding.new(severity: :error, check: check, location: location, message: message)
+  end
+
+  # --- Pruefung: Leerraum in Werten --------------------------------------------------
+  #
+  # Ein Verweis mit Leerraum am Anfang oder Ende (`"g1.rk3 "`) passt auf keines der Muster —
+  # RankingResolver#ko_ranking und die Turnier-App verankern mit `$` bzw. `^…$`. Der Platz bleibt
+  # leer, ohne dass etwas fehlschlaegt (EK12, id 36, 2026-10-23). Geprueft wird jeder String im Plan.
+  def check_whitespace
+    hits = []
+    walk = lambda do |obj, path|
+      case obj
+      when Hash then obj.each { |k, v| walk.call(v, path + [k]) }
+      when Array then obj.each_with_index { |v, i| walk.call(v, path + [i]) }
+      when String then hits << error(:whitespace, path.join("."), "Leerraum in #{obj.inspect}") if obj != obj.strip
+      end
+    end
+    walk.call(@params, [])
+    hits
   end
 
   # --- Pruefung 1: rules-Form -------------------------------------------------------
