@@ -1184,6 +1184,8 @@ function koSeedList(run){
 // je Setzposition) ändert die Paarungen, ohne den Plan anzufassen — Ergebnisse bleiben zugeordnet.
 function koFirstGames(run){ return run.plan.games.filter(g=>/^ks\.rk\d+$/.test(g.a)&&/^ks\.rk\d+$/.test(g.b)); }
 function koEffectiveOrder(run){ const list=koSeedList(run); if(!list) return null; return run.koOrder?[...run.koOrder]:list.map(e=>e.ref); }
+// Name der ersten KO-Runde für die Oberfläche (Phase 28-04: „Paarungen Viertelfinale“ statt nur „Paarungen“)
+function koFirstRoundName(run){ const k=koFirstGames(run)[0]?.key??""; return /^8f/.test(k)?"Achtelfinale":/^qf/.test(k)?"Viertelfinale":/^hf/.test(k)?"Halbfinale":"erste KO-Runde"; }
 // Reihenfolge, die je erster KO-Partie das Paar [refA, refB] ergibt
 function koOrderFromPairs(run,pairs){
   const games=koFirstGames(run), n=(run.plan.koseed||[]).length; if(pairs.length!==games.length) return null;
@@ -2536,7 +2538,9 @@ function refLabel(ref) {
 // KO-Setzung (DBU GP Kegel § 2.3 Abs. 4): die Reihenfolge, aus der die KO-Paarungen entstehen
 function koSeedHtml() {
   if (!run?.plan.koseed) return "";
-  const hint = `<p class="muted" style="margin:0 0 8px;">Gesetzt nach Abschluss aller Gruppen- und Quali-Spiele: Gruppenplatz, Partiepunkte je Partie, GD, bester Einzel-GD, Höchstserie, zuletzt Setzplatz (Ausschreibung § 2.3 Abs. 4). Gepaart wird Bester gegen Schlechtesten.</p>`;
+  // Phase 28-04: der Satz zur Paarung folgt dem gewählten Modus — vorher stand hier immer „Bester gegen Schlechtesten“
+  const paired = { seeded: "Gepaart wird Bester gegen Schlechtesten.", cross: "Gepaart wird über Kreuz: Gruppenerste gegen Gruppenzweite der Nachbargruppe.", manual: "Die Paarungen sind von Hand geändert." }[koScheme()];
+  const hint = `<p class="muted" style="margin:0 0 8px;">Gesetzt nach Abschluss aller Gruppen- und Quali-Spiele: Gruppenplatz, Partiepunkte je Partie, GD, bester Einzel-GD, Höchstserie, zuletzt Setzplatz (Ausschreibung § 2.3 Abs. 4). ${paired}</p>`;
   const list = koSeedList(run);
   if (!list) return hint + `<p class="muted">Die Setzung steht fest, sobald alle Gruppen- und Quali-Spiele beendet sind.</p>`;
   const own = state.koOrder ? `<div class="alert" style="margin:0 0 8px;">Die Paarungen der ersten KO-Runde weichen von dieser Setzung ab: ${escapeHtml(KO_SCHEME_LABEL[koScheme()])}.</div>` : "";
@@ -2553,14 +2557,27 @@ function koScheme() {
   return JSON.stringify(state.koOrder) === JSON.stringify(koCrossOrder(run)) ? "cross" : "manual";
 }
 const KO_SCHEME_LABEL = { seeded: "Gesetzt nach Rangliste (Ausschreibung § 2.3 Abs. 4)", cross: "Gruppen über Kreuz", manual: "Von Hand geändert" };
+// Phase 28-04: der Modus ist schon während der Gruppenphase wählbar — „über Kreuz“ braucht nur die Gruppenplätze
+// aus dem Plan (koCrossOrder), keine Ergebnisse. Namen und Tausch je Partie erst mit der Setzung (koSeedList).
+// Vorher erschien die Auswahl erst nach allen Gruppen- und Quali-Spielen und war beim GP nicht auffindbar.
 function koPairEditorHtml() {
-  if (!run?.plan.koseed || !koSeedList(run)) return "";
-  const scheme = koScheme(), order = koEffectiveOrder(run), games = koFirstGames(run);
-  if (koLocked()) return `<p class="muted" style="margin:0 0 10px;">Paarungen: <strong>${escapeHtml(KO_SCHEME_LABEL[scheme])}</strong> — fest, das erste KO-Spiel ist gestartet.</p>`;
+  const games = run?.plan.koseed ? koFirstGames(run) : [];
+  if (!games.length) return ""; // kein GP-Plan, oder erste KO-Runde per Konsole verdrahtet (keine ks.rk-Verweise)
+  const scheme = koScheme(), title = `Paarungen ${koFirstRoundName(run)}`;
+  if (koLocked()) return `<p class="muted" style="margin:0 0 10px;">${escapeHtml(title)}: <strong>${escapeHtml(KO_SCHEME_LABEL[scheme])}</strong> — fest, das erste KO-Spiel ist gestartet.</p>`;
+  const schemeSelect = `<div class="toolbar"><label class="muted" for="koScheme">${escapeHtml(title)}</label>
+      <select id="koScheme">${["seeded", "cross"].map(k => `<option value="${k}" ${scheme === k ? "selected" : ""}>${escapeHtml(KO_SCHEME_LABEL[k])}</option>`).join("")}${scheme === "manual" ? `<option value="manual" selected disabled>${KO_SCHEME_LABEL.manual}</option>` : ""}</select></div>`;
+  if (!koSeedList(run)) {
+    // Gruppen noch offen: Herkunft je Platz laut Modus, ohne Namen und ohne Tausch
+    const from = r => escapeHtml(refLabel(state.koOrder ? state.koOrder[+r.slice(5) - 1] : r));
+    return `<div style="margin:0 0 12px;">${schemeSelect}
+    <div style="overflow-x:auto;"><table class="standings-table"><tbody>${games.map(g => `<tr><td style="text-align:left">${escapeHtml(gameLabelBase(g))}</td><td>${from(g.a)}</td><td>–</td><td>${from(g.b)}</td></tr>`).join("")}</tbody></table></div>
+    <div class="scheme-hint">Jetzt wählbar, bis das erste KO-Spiel angesetzt ist — am besten vor „Freie Tische belegen“. Namen und Tausch je Partie, sobald alle Gruppen- und Quali-Spiele beendet sind.</div></div>`;
+  }
+  const order = koEffectiveOrder(run);
   const opt = (sel) => order.map(ref => { const p = memberStat(run, ref)?.player; return `<option value="${escapeHtml(ref)}" ${ref === sel ? "selected" : ""}>${escapeHtml(`${fullName(p)} (${refLabel(ref)})`)}</option>`; }).join("");
   const slot = r => { const pos = +r.slice(5) - 1; return `<select class="ko-slot" data-pos="${pos}">${opt(order[pos])}</select>`; };
-  return `<div style="margin:0 0 12px;"><div class="toolbar"><label class="muted" for="koScheme">Paarungen</label>
-      <select id="koScheme">${["seeded", "cross"].map(k => `<option value="${k}" ${scheme === k ? "selected" : ""}>${escapeHtml(KO_SCHEME_LABEL[k])}</option>`).join("")}${scheme === "manual" ? `<option value="manual" selected disabled>${KO_SCHEME_LABEL.manual}</option>` : ""}</select></div>
+  return `<div style="margin:0 0 12px;">${schemeSelect}
     <div style="overflow-x:auto;"><table class="standings-table"><tbody>${games.map(g => `<tr><td style="text-align:left">${escapeHtml(gameLabelBase(g))}</td><td>${slot(g.a)}</td><td>–</td><td>${slot(g.b)}</td></tr>`).join("")}</tbody></table></div>
     <div class="scheme-hint">Änderbar, bis das erste KO-Spiel gestartet ist. Wer in einer Paarung gewählt wird, tauscht den Platz mit dem bisherigen Spieler.</div></div>`;
 }

@@ -110,5 +110,15 @@ console.log("\nPersistenz (Sicherung als JSON):");
   eq(["hf1", "hf2", "fin"].map(k => pair(b, k)), ["hf1", "hf2", "fin"].map(k => pair(a, k)), "identische Paarungen nach JSON-Rundweg");
 }
 
+console.log("\nKeine doppelten Funktionsnamen in index.html:");
+{
+  // Phase 28-04: eine zweite `function koRoundName` weiter unten überschrieb still die aus dem Engine-Block —
+  // die Engine-Tests sahen nur ihren Block und blieben grün, die Oberfläche brach. Funktionsdeklarationen
+  // sind global; die spätere gewinnt ohne Meldung.
+  const names = [...html.matchAll(/^\s*(?:async\s+)?function\s+([A-Za-z_$][\w$]*)\s*\(/gm)].map(m => m[1]);
+  const dup = [...new Set(names.filter((n, i) => names.indexOf(n) !== i))];
+  eq(dup, [], "jede Funktion genau einmal deklariert");
+}
+
 console.log(failures ? `\n${failures} Fehler` : "\nAlle Prüfungen bestanden.");
 process.exit(failures ? 1 : 0);

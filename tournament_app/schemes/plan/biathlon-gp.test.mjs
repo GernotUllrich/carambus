@@ -10,8 +10,8 @@ const html = readFileSync(join(here, "index.html"), "utf8");
 const S = "/* >>> PLAN-ENGINE >>> */", E = "/* <<< PLAN-ENGINE <<< */";
 const si = html.indexOf(S), ei = html.indexOf(E, si + S.length);
 if (si < 0 || ei < 0) { console.error("PLAN-ENGINE-Block in index.html nicht gefunden"); process.exit(1); }
-const { parsePlan, biathlonGpPlan, biathlonVariant, createRun, runReadyGames, recordResult, finalRanking, runFinished, seedingPlayers, rankSeedList, parseRanking, groupStandings, resolveSlot, koFirstGames, koCrossOrder, koEffectiveOrder, koSeedList } =
-  new Function(html.slice(si + S.length, ei) + "\n;return { parsePlan, biathlonGpPlan, biathlonVariant, createRun, runReadyGames, recordResult, finalRanking, runFinished, seedingPlayers, rankSeedList, parseRanking, groupStandings, resolveSlot, koFirstGames, koCrossOrder, koEffectiveOrder, koSeedList };")();
+const { parsePlan, biathlonGpPlan, biathlonVariant, createRun, runReadyGames, recordResult, finalRanking, runFinished, seedingPlayers, rankSeedList, parseRanking, groupStandings, resolveSlot, koFirstGames, koCrossOrder, koEffectiveOrder, koSeedList, koFirstRoundName } =
+  new Function(html.slice(si + S.length, ei) + "\n;return { parsePlan, biathlonGpPlan, biathlonVariant, createRun, runReadyGames, recordResult, finalRanking, runFinished, seedingPlayers, rankSeedList, parseRanking, groupStandings, resolveSlot, koFirstGames, koCrossOrder, koEffectiveOrder, koSeedList, koFirstRoundName };")();
 
 let failures = 0;
 const assert = (c, m) => { if (!c) { console.error("  ✗ " + m); failures++; } };
@@ -308,6 +308,34 @@ console.log("\nKO-Paarungen beim Übergang ändern (Nachbereitung A):");
   // Mit Quali (28 Starter, 3er-Gruppen vorn): der Quali-Sieger steht an der Stelle des Zweiten
   const q = toKo(28); q.koOrder = koCrossOrder(q);
   eq(pairsOf(q)[0], [at(q, "g1.rk1"), at(q, "quali2.rk1")], "28: A1 gegen den Quali-Sieger der Gruppe B (an der Stelle B2)");
+
+  // Phase 28-04: der Modus ist schon vor dem ersten Gruppenergebnis wählbar
+  const fresh = (n, opts = {}) => createRun(parsePlan(biathlonGpPlan(n)), Array.from({ length: n }, (_, i) => ({ seed: i + 1, pid: "s" + (i + 1) })), opts);
+  eq([koFirstRoundName(fresh(19)), koFirstRoundName(fresh(28))], ["Viertelfinale", "Achtelfinale"], "28-04: Rundenname der ersten KO-Runde");
+  for (const n of [12, 19, 28]) {
+    const early = koCrossOrder(fresh(n));
+    assert(early, `28-04 ${n}: über Kreuz ohne jedes Ergebnis berechenbar`);
+    eq(early, koCrossOrder(toKo(n)), `28-04 ${n}: dieselbe Reihenfolge wie nach den Gruppen`);
+  }
+  // vor den Gruppen gewählt, dann durchgespielt → die erste KO-Runde löst über Kreuz auf
+  {
+    const run = fresh(19, { koOrder: koCrossOrder(fresh(19)) });
+    eq(koFirstGames(run).map(g => resolveSlot(run, g.a)), [null, null, null, null], "28-04: vor den Gruppen noch keine Namen");
+    const first = new Set(koFirstGames(run).map(g => g.key));
+    for (let guard = 0; guard < 200; guard++) {
+      const ready = runReadyGames(run).filter(g => !first.has(g.key)); if (!ready.length) break;
+      for (const g of ready) { const aWins = g.playerA.seed < g.playerB.seed; recordResult(run, g.key, { a: { balls: aWins ? 120 : 60, innings: 10 }, b: { balls: aWins ? 60 : 120, innings: 10 } }); }
+    }
+    eq(pairsOf(run), [["g1.rk1", "g2.rk2"], ["g3.rk1", "g4.rk2"], ["g2.rk1", "g1.rk2"], ["g4.rk1", "g3.rk2"]].map(([x, y]) => [at(run, x), at(run, y)]),
+       "28-04: vor den Gruppen gewähltes „über Kreuz“ wirkt nach den Gruppen (A1–B2, C1–D2 | B1–A2, D1–C2)");
+  }
+  // Per Konsole verdrahteter Plan (erste KO-Runde ohne ks.rk-Verweise): keine Auswahl
+  {
+    const ep = structuredClone(biathlonGpPlan(19));
+    for (const k of ["qf1", "qf2", "qf3", "qf4"]) { const r = Object.keys(ep[k]).find(x => /^r\d+$/.test(x)); const t = Object.keys(ep[k][r])[0]; ep[k][r][t] = ["g1.rk1", "g2.rk2"]; }
+    eq(koFirstGames(createRun(parsePlan(ep), Array.from({ length: 19 }, (_, i) => ({ seed: i + 1, pid: "s" + (i + 1) })))).length, 0,
+       "28-04: verdrahteter Plan → keine erste KO-Runde mit Setzverweisen (Editor bleibt aus)");
+  }
 }
 
 console.log("\nAlle Teilnehmerzahlen laufen durch:");

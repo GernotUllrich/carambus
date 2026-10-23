@@ -284,7 +284,11 @@ Kegel (V2, 10.09.2024):
   **„Gruppen über Kreuz“** wählen (4 Gruppen: A1–B2, C1–D2 | B1–A2, D1–C2; 2 Gruppen:
   A1–B4, B2–A3 | B1–A4, A2–B3; 8 Gruppen analog, mit dem Quali-Sieger an der Stelle des
   Zweiten). Einzelne Spieler lassen sich je Partie tauschen; die Karte zeigt dann „Von Hand
-  geändert“. Das geht, **bis das erste KO-Spiel gestartet ist**.
+  geändert“. Das geht, **bis das erste KO-Spiel gestartet ist**. Den Modus wählt man schon
+  **während der Gruppenphase** unter **„Paarungen Viertelfinale“** (bzw. Achtelfinale) — die Partien
+  stehen dann mit ihrer Herkunft da („Gruppe 1, Platz 1 – Gruppe 2, Platz 2“); Namen und Tausch je
+  Partie kommen, sobald alle Gruppen- und Quali-Spiele beendet sind. Die Wahl vor „▶ Freie Tische
+  belegen“ treffen: das setzt die erste KO-Runde sofort an, danach ist sie fest.
 - **Paarungen späterer KO-Runden ändern** (Viertelfinale nach dem Achtelfinale, Halbfinale): In
   derselben Karte steht je Runde **„Paarungen Halbfinale“** usw. mit einer Auswahl je Platz. Wer
   gewählt wird, tauscht den Platz mit dem bisherigen Spieler — Sieger nur mit Siegern. Das geht
