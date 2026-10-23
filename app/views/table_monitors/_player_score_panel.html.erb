@@ -156,9 +156,12 @@ end
               <%- if table_monitor.follow_up? && player_active && options[:allow_follow_up] %>
                 <div><%= t("table_monitor.follow_up") %></div>
               <%- end %>
-              <%- if shown_goal > 0 && player_active && to_play <= 3 %>
-                pour <%= to_play %>
-              <%- end %>
+              <%# data-goal: table_monitor_channel.js rechnet „pour“ beim reinen Score-Update (score:update) neu %>
+              <span class="to-play" data-player="<%= player_id %>" data-goal="<%= player_active ? shown_goal : 0 %>">
+                <%- if shown_goal > 0 && player_active && to_play <= 3 %>
+                  pour <%= to_play %>
+                <%- end %>
+              </span>
               <%- if shown_innings_goal > 0 && player_active && (shown_innings_goal - player[:innings].to_i) == 1 %>
                 <%= t('last_inning').html_safe %>
               <%- end %>
@@ -216,9 +219,12 @@ end
               <%- if table_monitor.follow_up? && player_active && options[:allow_follow_up] %>
                 <div><%= t("table_monitor.follow_up") %></div>
               <%- end %>
-              <%- if shown_goal > 0 && player_active && to_play <= 3 %>
-                pour <%= to_play %>
-              <%- end %>
+              <%# data-goal: table_monitor_channel.js rechnet „pour“ beim reinen Score-Update (score:update) neu %>
+              <span class="to-play" data-player="<%= player_id %>" data-goal="<%= player_active ? shown_goal : 0 %>">
+                <%- if shown_goal > 0 && player_active && to_play <= 3 %>
+                  pour <%= to_play %>
+                <%- end %>
+              </span>
             </div>
           </div>
         <%- end %>
