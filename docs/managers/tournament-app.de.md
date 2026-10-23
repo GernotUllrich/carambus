@@ -170,6 +170,17 @@ Scoreboard“. Ein Tausch von Hand ist nicht mehr nötig. Der Knopf **„⇄ Spi
 die App offline läuft oder der Server die Spieler nicht eindeutig zuordnen kann. Die Ergebnisse ordnet die App ohnehin
 über die Spieler zu, nicht über die Seite.
 
+### KO-Paarungen ändern {#ko-paarungen}
+
+In der Karte „Platzierungs-/Finalrunde“ (Reiter „Spiele & Gruppen“) steht je KO-Runde, für die es Alternativen gibt,
+eine Auswahl **„Paarungen Viertelfinale“**, **„Paarungen Halbfinale“** usw. Wer in einer Partie gewählt wird, tauscht den
+Platz mit dem bisherigen Spieler. Getauscht wird nur unter Gleichen: Sieger mit Siegern, Gruppenerste mit Gruppenersten,
+Gruppenzweite mit Gruppenzweiten — so lässt sich z. B. ein Viertelfinale „Gruppenerste gegen Gruppenzweite“ über Kreuz
+stellen. Das geht schon während der Gruppenphase (dann steht „Gruppe 1, Platz 1“ statt eines Namens) und **bis eine Partie
+der Runde angesetzt ist**. Trägt eine Partie danach zwei Spieler derselben Gruppe, steht daneben „beide aus Gruppe N“ —
+erlaubt, aber sichtbar. Partien, deren Plätze aus derselben Gruppe kommen (Quali „2. gegen 3.“), und Pläne mit
+Setzlisten-Plätzen bieten keine Auswahl.
+
 ### Tische lösen und wieder einbinden {#tische-loesen}
 
 Werden gegen Turnierende nicht mehr alle Tische gebraucht, gibt sie der Turnierleiter einzeln für den
