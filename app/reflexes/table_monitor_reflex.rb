@@ -370,7 +370,7 @@ class TableMonitorReflex < ApplicationReflex
     @table_monitor = TableMonitor.find(element.andand.dataset[:id])
     @table_monitor.suppress_broadcast = true
     @table_monitor.panel_state = "inputs"
-    @table_monitor.undo
+    @table_monitor.undo_last_input
     @table_monitor.suppress_broadcast = false
     @table_monitor.save
   end

@@ -1502,8 +1502,14 @@ class TableMonitor < ApplicationRecord
     false
   end
 
-  def undo
-    Rails.logger.debug { "-----------------m6[#{id}]---->>> undo <<<------------------------------------------" }
+  # Nimmt die letzte EINGABE zurueck (Knopf "undo" am Scoreboard, TableMonitorReflex#undo).
+  #
+  # Plan 32-01: hiess bis dahin `undo` und ueberdeckte damit das gleichnamige AASM-Ereignis
+  # (`event :undo`, set_over/playing -> playing). Zweimal zur Falle geworden: Phase 27 (der Rueckweg
+  # ins Spiel blieb in set_over) und Phase 31 (Satzspiel-Rueckweg musste daran vorbeigebaut werden).
+  # Seitdem bedeutet `tm.undo` nur noch den Zustandswechsel.
+  def undo_last_input
+    Rails.logger.debug { "-----------------m6[#{id}]---->>> undo_last_input <<<------------------------------------------" }
     if playing? || set_over?
       current_role = data["current_inning"]["active_player"]
       if data[current_role]["discipline"] == "14.1 endlos"
