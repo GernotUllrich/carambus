@@ -50,6 +50,10 @@ class TableMonitor::ResultRecorder < ApplicationService
     new(table_monitor: table_monitor).perform_ensure_ba_results
   end
 
+  def self.revert_last_set(table_monitor:)
+    new(table_monitor: table_monitor).perform_revert_last_set!
+  end
+
   # ---------------------------------------------------------------------------
   # Public perform_* methods (called by class-level entry points above)
   # ---------------------------------------------------------------------------
@@ -250,6 +254,33 @@ class TableMonitor::ResultRecorder < ApplicationService
   rescue => e
     Rails.logger.error "ERROR: m6[#{@tm.id}]#{e}, #{e.backtrace&.join("\n")}"
     raise StandardError
+  end
+
+  # Phase 31-01: Umkehrung von perform_save_current_set fuer Satzspiele (Pool/Snooker).
+  #
+  # Dort schreibt das Matchende den letzten Frame nach data["sets"] und zaehlt ba_results hoch,
+  # BEVOR das Protokoll aufgeht (perform_evaluate_result, Satzspiel-Zweig). Der Rueckweg ins Spiel
+  # (GameProtocolReflex#back_to_game) muss diesen Frame wieder herausnehmen.
+  #
+  # ba_results wird aus den verbleibenden Frames NEU aufgebaut — ueber dieselbe
+  # update_ba_results_with_set_result!, die beim Speichern lief. Eine Gegenrechnung ginge an der
+  # Hoechstserie (ein Maximum) und an kuenftigen Feldern vorbei.
+  #
+  # Gibt den entfernten Frame zurueck; nil, wenn es nichts zurueckzunehmen gibt (kein Satzspiel,
+  # keine Saetze) — dann bleibt alles unveraendert.
+  def perform_revert_last_set!
+    return nil unless @tm.simple_set_game? && @tm.game.present?
+    sets = Array(@tm.data["sets"]).dup
+    return nil if sets.empty?
+
+    removed = sets.pop
+    @tm.data["ba_results"] = nil
+    sets.each { |set_result| update_ba_results_with_set_result!(set_result) }
+    @tm.data["ba_results"] = nil if sets.empty?
+    @tm.data["sets"] = sets
+    @tm.data_will_change!
+    @tm.save!
+    removed
   end
 
   def perform_get_max_number_of_wins

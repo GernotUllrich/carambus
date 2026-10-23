@@ -944,4 +944,81 @@ class TableMonitor::ResultRecorderTest < ActiveSupport::TestCase
     assert_equal true, result,
       "beide Spieler bei 100% ihres eigenen Vorgabe-Ziels (50/50, 42/42) muss als Gleichstand erkannt werden"
   end
+
+  # ---------------------------------------------------------------------------
+  # Phase 31-01: Satzspiele (Pool/Snooker) — Charakterisierung des Matchendes und
+  # die Umkehrung des Satz-Speicherns (perform_revert_last_set!).
+  # ---------------------------------------------------------------------------
+
+  FRAME1 = {"Ergebnis1" => 5, "Ergebnis2" => 2, "Aufnahmen1" => 4, "Aufnahmen2" => 3,
+            "Höchstserie1" => 3, "Höchstserie2" => 2, "Innings1" => [1, 1, 3, 0], "Innings2" => [1, 1, 0]}.freeze
+
+  # Pool-Match, Gewinnsaetze 2, Frame 1 gewonnen (1:0), Frame 2: Spieler A trifft gerade das Frameziel 5.
+  def prepare_pool_match_point
+    ba = @tm.data["ba_results"].merge("Sets1" => 1, "Ergebnis1" => 5, "Ergebnis2" => 2,
+      "Aufnahmen1" => 4, "Aufnahmen2" => 3, "Höchstserie1" => 3, "Höchstserie2" => 2)
+    @tm.update!(data: @tm.data.merge(
+      "free_game_form" => "pool", "sets_to_win" => 2, "sets_to_play" => 3, "allow_follow_up" => false,
+      "sets" => [FRAME1.dup], "ba_results" => ba,
+      "playera" => {"discipline" => "8-Ball", "result" => 5, "innings" => 3, "innings_list" => [4, 0, 1],
+                    "innings_redo_list" => [], "hs" => 4, "gd" => "1.67", "balls_goal" => 5},
+      "playerb" => {"discipline" => "8-Ball", "result" => 1, "innings" => 3, "innings_list" => [0, 1, 0],
+                    "innings_redo_list" => [], "hs" => 1, "gd" => "0.33", "balls_goal" => 5}
+    ))
+    @tm.reload
+    assert @tm.simple_set_game?, "VORBEDINGUNG: Pool ist ein Satzspiel"
+  end
+
+  test "31-01 Charakterisierung: Pool-Matchende schreibt den Frame schon vor dem Protokoll" do
+    prepare_pool_match_point
+    TableMonitor::ResultRecorder.call(table_monitor: @tm)
+    @tm.reload
+
+    assert_equal "set_over", @tm.state
+    assert_equal "protocol_final", @tm.panel_state
+    assert_equal 2, @tm.data["sets"].size, "der Matchball-Frame steht beim Protokoll schon in data[\"sets\"]"
+    assert_equal 2, @tm.data["ba_results"]["Sets1"], "und der Satzzaehler ist schon hochgezaehlt"
+  end
+
+  test "31-01 Charakterisierung: Karambol mit mehreren Saetzen schreibt beim Protokoll noch keinen Satz" do
+    @tm.update!(data: @tm.data.merge("allow_follow_up" => false))
+    @tm.reload
+    refute @tm.simple_set_game?, "VORBEDINGUNG: Karambol ist kein Satzspiel im Sinne von simple_set_game?"
+    TableMonitor::ResultRecorder.call(table_monitor: @tm)
+    @tm.reload
+
+    assert_equal "protocol_final", @tm.panel_state
+    assert_equal [], @tm.data["sets"], "der Phase-27-Rueckweg reicht dort — es gibt nichts zurueckzunehmen"
+  end
+
+  test "31-01 revert_last_set nimmt den letzten Frame zurueck und baut ba_results aus den uebrigen neu" do
+    prepare_pool_match_point
+    TableMonitor::ResultRecorder.call(table_monitor: @tm)
+    @tm.reload
+    assert_equal 2, @tm.data["sets"].size, "VORBEDINGUNG"
+    assert_equal 4, @tm.data["ba_results"]["Höchstserie1"].to_i,
+      "VORBEDINGUNG: der Matchball-Frame hat die hoehere Hoechstserie — sonst unterschiede der Test nichts"
+
+    removed = TableMonitor::ResultRecorder.revert_last_set(table_monitor: @tm)
+    @tm.reload
+
+    assert_equal 5, removed["Ergebnis1"], "der zurueckgenommene Frame ist der Matchball-Frame"
+    assert_equal 1, @tm.data["sets"].size
+    ba = @tm.data["ba_results"]
+    assert_equal [1, 0], [ba["Sets1"], ba["Sets2"]], "Satzstand wieder 1:0"
+    assert_equal [5, 2, 4, 3], [ba["Ergebnis1"], ba["Ergebnis2"], ba["Aufnahmen1"], ba["Aufnahmen2"]],
+      "Summen nur noch aus Frame 1"
+    assert_equal [3, 2], [ba["Höchstserie1"], ba["Höchstserie2"]], "Hoechstserie faellt von 4 auf 3 zurueck (Maximum — durch Abziehen nicht zu bekommen)"
+  end
+
+  test "31-01 revert_last_set ist bei Karambol und ohne Saetze wirkungslos" do
+    @tm.update!(data: @tm.data.merge("sets" => [FRAME1.dup]))
+    before = @tm.reload.data.deep_dup
+    assert_nil TableMonitor::ResultRecorder.revert_last_set(table_monitor: @tm)
+    assert_equal before, @tm.reload.data, "Karambol: keine Aenderung"
+
+    prepare_pool_match_point
+    @tm.update!(data: @tm.data.merge("sets" => []))
+    assert_nil TableMonitor::ResultRecorder.revert_last_set(table_monitor: @tm.reload)
+  end
 end
