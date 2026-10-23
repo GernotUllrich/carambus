@@ -1208,13 +1208,19 @@ function koCrossOrder(run){
 // den Partien einer Runde. Eine Klasse zählt nur, wenn ihre Plätze in mindestens zwei Partien liegen
 // (Finale allein, Finale + Spiel um Platz 3: keine Alternative). Die erste KO-Runde (ks.rk<n>) bleibt bei koOrder.
 // Overlay neben dem Plan: { <key>: { a?: <ref>, b?: <ref> } } — nur Abweichungen; executorParams bleibt unberührt.
+// Plan 28-05: dazu Gruppenplätze gleichen Rangs (g<N>.rk<k>) — Viertelfinale aus Gruppenersten gegen Gruppenzweite
+// (T-Pläne wie EK12) lässt sich so umpaaren wie das Halbfinale. Setzlisten- und zusammengesetzte Verweise bleiben außen vor.
 function koSwapClasses(plan){
   const keys=new Set(plan.games.map(g=>g.key)), byClass=new Map();
+  const add=(g,side,ref,id,kind)=>{ if(!byClass.has(id)) byClass.set(id,{round:g.round,kind,slots:[]}); byClass.get(id).slots.push({key:g.key,side,ref}); };
+  // Eine Partie, deren beide Plätze (laut Plan) aus DERSELBEN Gruppe kommen, ist ein Ausspiel innerhalb der Gruppe
+  // (GP-Quali „2. vs. 3. derselben Gruppe“) — keine Paarung über Gruppen hinweg, also nicht tauschbar.
+  const grp=r=>/^g(\d+)\.rk\d+$/.exec((r??"").trim())?.[1];
   for(const g of plan.games){ if(g.kind!=="placement") continue;
-    for(const side of ["a","b"]){ const ref=side==="a"?(g.planA??g.a):(g.planB??g.b); const m=/^(.+)\.rk([12])$/.exec(ref??"");
-      if(!m||!keys.has(m[1])) continue;
-      const id=g.round+":rk"+m[2]; if(!byClass.has(id)) byClass.set(id,{round:g.round,kind:"rk"+m[2],slots:[]});
-      byClass.get(id).slots.push({key:g.key,side,ref}); } }
+    const pa=g.planA??g.a, pb=g.planB??g.b, intra=grp(pa)!=null&&grp(pa)===grp(pb);
+    for(const side of ["a","b"]){ const ref=side==="a"?pa:pb; let m;
+      if((m=/^(.+)\.rk([12])$/.exec(ref??""))&&keys.has(m[1])) add(g,side,ref,g.round+":rk"+m[2],"rk"+m[2]);
+      else if(!intra&&(m=/^g\d+\.rk(\d+)$/.exec((ref??"").trim()))) add(g,side,ref,g.round+":g"+m[1],"g-rk"+m[1]); } }
   return [...byClass.values()].filter(c=>new Set(c.slots.map(s=>s.key)).size>=2);
 }
 // Overlay anwenden. Verworfen (dropped) wird eine Partie, deren Override nicht in die Tauschklasse ihres
@@ -2504,7 +2510,7 @@ function gameLabel(g) { const bi = run ? biathlonVariant(run.plan, g) : null; co
 function gameLabelBase(g) { if (g.kind === "group") return `Gruppe ${g.group}${g.round ? " · R" + g.round : ""}${g.listNo != null ? ` · Partie ${g.listNo}${g.listTime ? ", " + g.listTime : ""}` : ""}`; const names = { fin: "Finale", hf1: "Halbfinale 1", hf2: "Halbfinale 2", hf: "Halbfinale", qf: "Viertelfinale" }; let m;
   if ((m = /^quali(\d+)$/.exec(g.key))) return `Quali Gruppe ${m[1]} (2. vs. 3.)`;
   if ((m = /^8f(\d+)$/.exec(g.key))) return `Achtelfinale ${m[1]}`;
-  if ((m = /^qf(\d+)$/.exec(g.key))) return `Viertelfinale ${m[1]}`;
+  if ((m = /^[qv]f(\d+)$/.exec(g.key))) return `Viertelfinale ${m[1]}`; // qf (GP) und vf (Carambus-T-Pläne, Plan 28-05)
   return names[g.key] || (g.key.startsWith("p<") ? "Platz " + g.key.slice(2, -1) : g.key); }
 function cssId(key) { return key.replace(/[^a-z0-9]+/gi, "_"); }
 
@@ -2613,8 +2619,11 @@ function koRoundPairEditorHtml() {
       if (!c) return escapeHtml(label(g[side]));
       const refs = c.slots.map(s => run.plan.games.find(x => x.key === s.key)[s.side]);
       return `<select class="ko-round-slot" data-key="${escapeHtml(g.key)}" data-side="${side}">${refs.map(ref => `<option value="${escapeHtml(ref)}" ${ref === g[side] ? "selected" : ""}>${escapeHtml(label(ref))}</option>`).join("")}</select>`; };
+    // Plan 28-05: ein Tausch unter Gruppenplätzen kann zwei Spieler derselben Gruppe gegeneinander setzen — erlaubt, aber sichtbar
+    const sameGroup = g => { const ga = /^g(\d+)\.rk/.exec(String(g.a).trim()), gb = /^g(\d+)\.rk/.exec(String(g.b).trim()); return ga && gb && ga[1] === gb[1] ? ga[1] : null; };
+    const note = g => { const n = sameGroup(g); return n ? `<span class="muted" style="font-size:.85em;">beide aus Gruppe ${escapeHtml(n)}</span>` : ""; };
     return `<div style="margin:0 0 12px;"><div class="toolbar"><span class="muted">Paarungen ${escapeHtml(name)}: <strong>${status}</strong></span>${changed ? `<button class="btn secondary ko-round-reset" data-round="${round}">Paarung laut Plan</button>` : ""}</div>
-    <div style="overflow-x:auto;"><table class="standings-table"><tbody>${games.map(g => `<tr><td style="text-align:left">${escapeHtml(gameLabelBase(g))}</td><td>${slot(g, "a")}</td><td>–</td><td>${slot(g, "b")}</td></tr>`).join("")}</tbody></table></div>
+    <div style="overflow-x:auto;"><table class="standings-table"><tbody>${games.map(g => `<tr><td style="text-align:left">${escapeHtml(gameLabelBase(g))}</td><td>${slot(g, "a")}</td><td>–</td><td>${slot(g, "b")}</td><td>${note(g)}</td></tr>`).join("")}</tbody></table></div>
     <div class="scheme-hint">Änderbar, bis eine Partie dieser Runde angesetzt ist. Wer gewählt wird, tauscht den Platz mit dem bisherigen Spieler.</div></div>`;
   }).join("");
 }

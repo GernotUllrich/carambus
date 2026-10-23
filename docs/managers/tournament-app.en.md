@@ -177,6 +177,17 @@ scoreboard). Swapping by hand is no longer needed. The **„⇄ Spieler tauschen
 when the app runs offline or the server cannot match the players unambiguously. Results are matched by player
 anyway, not by side.
 
+### Changing KO pairings {#ko-paarungen}
+
+In the „Platzierungs-/Finalrunde“ card („Spiele & Gruppen“ tab) every KO round that has alternatives shows a selection
+**„Paarungen Viertelfinale“**, **„Paarungen Halbfinale“** etc. Whoever is chosen in a game swaps places with the current
+player. Swaps only happen between equals: winners with winners, group winners with group winners, runners-up with
+runners-up — so a quarter-final "group winners against runners-up" can be set crosswise, for example. This works already
+during the group phase (then „Gruppe 1, Platz 1“ is shown instead of a name) and **until a game of the round has been
+called**. If a game then has two players from the same group, „beide aus Gruppe N“ (both from group N) is shown — allowed,
+but visible. Games whose places come from the same group (qualifier "2nd against 3rd") and plans with seeding-list places
+offer no selection.
+
 ### Releasing and re-binding tables {#tische-loesen}
 
 When not all tables are needed towards the end of a tournament, the tournament director releases them one by one

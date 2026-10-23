@@ -18,6 +18,8 @@ const assert = (c, m) => { if (!c) { console.error("  ✗ " + m); failures++; } 
 const eq = (a, b, m) => assert(JSON.stringify(a) === JSON.stringify(b), `${m} (ist ${JSON.stringify(a)}, soll ${JSON.stringify(b)})`);
 
 const T06 = '{"GK":11,"g1":{"pl":3,"rs":"eae","sq":{"r1":{"t1":"2-3"},"r2":{"t1":"1-3"},"r3":{"t1":"1-2"}}},"g2":{"pl":3,"rs":"eae","sq":{"r1":{"t2":"2-3"},"r2":{"t2":"1-3"},"r3":{"t2":"1-2"}}},"hf1":{"r4":{"t-rand-1-2":["g1.rk1","g2.rk2"]}},"hf2":{"r4":{"t-rand-1-2":["g2.rk1","g1.rk2"]}},"p<5-6>":{"r4":{"t3":["g1.rk3","g2.rk3"]}},"fin":{"r5":{"t-admin-1-3":["hf1.rk1","hf2.rk1"]}},"p<3-4>":{"r5":{"t-admin-1-3":["hf1.rk2","hf2.rk2"]}},"RK":["fin.rk1","fin.rk2","p<3-4>.rk1","p<3-4>.rk2","p<5-6>.rk1","p<5-6>.rk2"]}';
+// EK12 aus der Carambus-Planliste (Plan 28-05): Viertelfinale direkt aus Gruppenplätzen, vf2.b mit Leerzeichen ("g1.rk3 ")
+const EK12 = '{"GK":37,"g1":{"pl":6,"rs":"eae","sq":{"r1":{"t1":"2-5","t2":"3-4"},"r2":{"t1":"1-6","t2":"2-4"},"r3":{"t1":"3-6","t2":"1-5"},"r4":{"t1":"1-4","t2":"2-3"},"r5":{"t1":"5-6","t2":"1-3"},"r6":{"t1":"4-5","t2":"2-6"},"r7":{"t1":"4-6","t2":"3-5"},"r8":{"t1":"1-2"}}},"g2":{"pl":6,"rs":"eae","sq":{"r1":{"t3":"2-5","t4":"3-4"},"r2":{"t3":"1-6","t4":"2-4"},"r3":{"t3":"3-6","t4":"1-5"},"r4":{"t3":"1-4","t4":"2-3"},"r5":{"t3":"5-6","t4":"1-3"},"r6":{"t3":"4-5","t4":"2-6"},"r7":{"t3":"4-6","t4":"3-5"},"r8":{"t3":"1-2"}}},"vf1":{"r9":{"t1":["g1.rk1","g2.rk4"]}},"vf2":{"r9":{"t2":["g2.rk2","g1.rk3 "]}},"vf3":{"r9":{"t3":["g1.rk2","g2.rk3"]}},"vf4":{"r9":{"t4":["g2.rk1","g1.rk4"]}},"hf1":{"r10":{"t1":["vf1.rk1","vf2.rk1"]}},"hf2":{"r10":{"t3":["vf3.rk1","vf4.rk1"]}},"fin":{"r11":{"t-admin-1-4":["hf1.rk1","hf2.rk1"]}},"RK":["fin.rk1","fin.rk2","hf1.rk2","hf2.rk2","vf1.rk2","vf2.rk2","vf3.rk2","vf4.rk2","g1.rk5","g2.rk5","g1.rk6","g2.rk6"]}';
 const classKeys = plan => koSwapClasses(plan).map(c => `${c.kind}:${c.slots.map(s => s.key + "." + s.side).join(",")}`);
 
 // Durchlauf wie biathlon-gp.test: der kleinere Setzplatz gewinnt; stop(run) beendet vorzeitig.
@@ -48,7 +50,32 @@ console.log("Tauschklassen — nur, wo es Alternativen gibt:");
   eq(classKeys(gp28).length, 2, "GP 28: Viertelfinale (aus AF-Siegern) und Halbfinale");
   assert(!koSwapClasses(gp28).some(c => c.slots.some(s => s.key === "fin" || /^8f/.test(s.key) || /^quali/.test(s.key))),
     "GP 28: kein Finale, kein Achtelfinale (ks.rk), keine Quali (Gruppenplätze)");
-  eq(classKeys(parsePlan(T06)), [], "T06: Runde 5 (Finale + Platz 3) und Halbfinale aus Gruppenplätzen bieten nichts an");
+  // Seit 28-05: das Halbfinale aus Gruppenplätzen ist tauschbar (Erste unter sich, Zweite unter sich); Runde 5 (Finale +
+  // Platz 3) und Platz 5–6 (g1.rk3–g2.rk3, Rang 3 nur in einer Partie) weiter nicht.
+  eq(classKeys(parsePlan(T06)), ["g-rk1:hf1.a,hf2.a", "g-rk2:hf1.b,hf2.b"], "T06: Halbfinale aus Gruppenplätzen tauschbar, R5 und Platz 5–6 nicht");
+  eq(classKeys(parsePlan(EK12)), ["g-rk1:vf1.a,vf4.a", "g-rk4:vf1.b,vf4.b", "g-rk2:vf2.a,vf3.a", "g-rk3:vf2.b,vf3.b", "rk1:hf1.a,hf1.b,hf2.a,hf2.b"],
+    "EK12: Viertelfinale je Rang tauschbar (auch der Verweis mit Leerzeichen), Halbfinale wie bisher");
+}
+
+console.log("\nTausch unter Gruppenplätzen (T06-Halbfinale, Plan 28-05):");
+{
+  const plan = parsePlan(T06);
+  const players = Array.from({ length: 6 }, (_, i) => ({ seed: i + 1, pid: "s" + (i + 1) }));
+  const ov = swapPairingSlots(plan, {}, { key: "hf1", side: "b" }, { key: "hf2", side: "b" }); // die beiden Gruppenzweiten
+  eq(ov, { hf1: { b: "g1.rk2" }, hf2: { b: "g2.rk2" } }, "Tausch der Zweiten erzeugt beide Plätze");
+  const run = createRun(applyPairingOverrides(plan, ov).plan, players);
+  const hf = k => run.plan.games.find(g => g.key === k);
+  eq([hf("hf1").a, hf("hf1").b, hf("hf2").a, hf("hf2").b], ["g1.rk1", "g1.rk2", "g2.rk1", "g2.rk2"], "hf1 jetzt g1.rk1–g1.rk2 (gleiche Gruppe, erlaubt)");
+  eq(resolveSlot(run, hf("hf1").b), null, "vor den Gruppen noch kein Name");
+  for (let guard = 0; guard < 50; guard++) {
+    const ready = runReadyGames(run).filter(g => g.kind === "group"); if (!ready.length) break;
+    for (const g of ready) { const aw = g.playerA.seed < g.playerB.seed; recordResult(run, g.key, { a: { balls: aw ? 30 : 10, innings: 10 }, b: { balls: aw ? 10 : 30, innings: 10 } }); }
+  }
+  const second = n => runGroupStandings(run, n)[1].player.seed;
+  eq([resolveSlot(run, hf("hf1").b).seed, resolveSlot(run, hf("hf2").b).seed], [second(1), second(2)], "nach den Gruppen: hf1 bekommt den Zweiten aus Gruppe 1");
+  const fourPlayers = [hf("hf1").a, hf("hf1").b, hf("hf2").a, hf("hf2").b].map(r => resolveSlot(run, r).seed);
+  eq(new Set(fourPlayers).size, 4, "jeder Spieler genau einmal im Halbfinale");
+  eq(applyPairingOverrides(plan, { hf1: { b: "g1.rk1" } }).dropped, ["hf1"], "Erster an einen Zweiten-Platz → verworfen (Rang fremd)");
 }
 
 console.log("\nTausch im Halbfinale (GP 16):");
