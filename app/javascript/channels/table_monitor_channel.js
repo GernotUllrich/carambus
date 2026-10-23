@@ -39,6 +39,14 @@ document.addEventListener('score:update', (event) => {
   inningElements.forEach(el => {
     el.textContent = inning
   })
+
+  // „pour N“ (noch N Punkte bis zum Ziel) — sonst bliebe der Wert des letzten vollen Renderns stehen
+  const toPlayElements = document.querySelectorAll(`.to-play[data-player="${playerKey}"]`)
+  toPlayElements.forEach(el => {
+    const goal = parseInt(el.dataset.goal) || 0
+    const toPlay = goal - score
+    el.textContent = goal > 0 && toPlay <= 3 ? `pour ${toPlay}` : ""
+  })
 })
 
 // Page Context Detection and Filtering
