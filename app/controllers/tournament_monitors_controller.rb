@@ -166,9 +166,8 @@ class TournamentMonitorsController < ApplicationController
       table_monitor.save
 
       # Plan 26-01: Den Schnappschuss ZUERST auf den korrigierten Stand bringen — dieselbe
-      # Reihenfolge, die 24-01 fuer den abgeloesten Fall belegt hat. Danach sind Schnappschuss
-      # und Live-Daten einig, und es ist gleichgueltig, welche Quelle
-      # `result_processor.rb:603` waehlt.
+      # Reihenfolge, die 24-01 fuer den abgeloesten Fall belegt hat. `update_game_participations`
+      # waehlt den Schnappschuss seit Plan 32-02 sichtbar (snapshot_or) — er muss also vorher stehen.
       korrigiere_schnappschuss!(game, table_monitor, resulta:, resultb:, inningsa:, inningsb:,
         hsa: params["hsa"][ix].to_i, hsb: params["hsb"][ix].to_i)
       game.update(ended_at: Time.now)
@@ -341,11 +340,10 @@ class TournamentMonitorsController < ApplicationController
 
   # Schreibt eine Korrektur an einem Spiel OHNE TableMonitor.
   #
-  # ⚠️ REIHENFOLGE IST WESENTLICH. `update_game_participations_for_game` bevorzugt
-  # `game.data["tmp_results"]` vor den uebergebenen Werten (result_processor.rb:603). Am
-  # 2026-09-23 als Ursache belegt: getippt 29, gespeichert 30, weil der Schnappschuss gewann.
-  # Deshalb wird der Schnappschuss ZUERST auf den korrigierten Stand gebracht — danach sind
-  # beide Quellen einig, und es ist gleichgueltig, welche die Methode waehlt.
+  # ⚠️ REIHENFOLGE IST WESENTLICH. Am 2026-09-23 als Ursache belegt: getippt 29, gespeichert 30,
+  # weil `update_game_participations_for_game` den alten Schnappschuss den uebergebenen Werten
+  # vorzog. Seit Plan 32-02 waehlt sie nicht mehr selbst — der Tisch-Weg waehlt den Schnappschuss
+  # am Aufruf (snapshot_or). Der Schnappschuss wird deshalb ZUERST korrigiert.
   #
   # Der Schnappschuss wird MITGESCHRIEBEN, nicht geloescht (Betreiber-Entscheidung 24-01):
   # `game_setup.rb:312` spielt ihn beim Wieder-Platzieren auf den Tisch zurueck — geloescht

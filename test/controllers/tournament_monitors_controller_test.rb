@@ -518,6 +518,66 @@ class TournamentMonitorsControllerTest < ActionDispatch::IntegrationTest
       "ba_results traegt den korrigierten Stand — sonst gehen ClubCloud und lokale DB auseinander"
   end
 
+  # ---------------------------------------------------------------------------
+  # Plan 32-02: Charakterisierung der drei Schreibwege auf game_participations, bevor die
+  # Vorrangregel (update_game_participations_for_game bevorzugt game.data["tmp_results"])
+  # an die Aufrufstellen wandert. Weg 2 (Korrektur am Tisch) und Weg 3 (abgeloest) mit einem
+  # Satz halten schon die Tests 26-01 und 24-01 fest; hier kommen Weg 1 und mehrere Saetze dazu.
+  # ---------------------------------------------------------------------------
+
+  def gp_werte(game)
+    %w[playera playerb].map do |r|
+      g = game.game_participations.where(role: r).first.reload
+      [g.result, g.innings, g.hs, g.points]
+    end
+  end
+
+  test "32-02 Weg 1: Spielende am Tisch schreibt die Werte des Monitors in die Beteiligungen" do
+    @tournament_monitor.update!(data: {"current_round" => 1})
+    game, tm = spiel_am_tisch_mit_schnappschuss!(id: 66_000_200, a: 30, b: 30)
+    game.deep_merge_data!("tmp_results" => nil) # Spielende: es gibt noch keinen Schnappschuss
+    game.save!
+    tm.update!(data: tm.data.merge("playera" => tm.data["playera"].merge("result" => 30, "innings" => 12, "hs" => 7),
+      "playerb" => tm.data["playerb"].merge("result" => 22, "innings" => 12, "hs" => 4),
+      "ba_results" => {"Ergebnis1" => 30, "Ergebnis2" => 22, "Aufnahmen1" => 12, "Aufnahmen2" => 12,
+                       "Höchstserie1" => 7, "Höchstserie2" => 4, "Sets1" => 1, "Sets2" => 0}))
+    processor = TournamentMonitor::ResultProcessor.new(@tournament_monitor)
+    processor.send(:write_game_result_data, tm.reload)
+    processor.send(:finalize_game_result, tm)
+
+    assert_equal [[30, 12, 7, 2], [22, 12, 4, 0]], gp_werte(game.reload)
+  end
+
+  def mehrsatz!
+    @tournament_monitor.update!(sets_to_play: 3, data: {"current_round" => 1})
+  end
+
+  test "32-02 Weg 3 mehrsaetzig: Korrektur an einem abgeloesten Spiel" do
+    mehrsatz!
+    game = abgeloestes_spiel_mit_schnappschuss!(id: 66_000_201, a: 30, b: 30)
+    post update_games_tournament_monitor_url(@tournament_monitor), params: {
+      "game_id" => [game.id.to_s], "resulta" => ["30"], "resultb" => ["29"],
+      "inningsa" => ["10"], "inningsb" => ["10"], "hsa" => ["5"], "hsb" => ["5"]
+    }
+    # HEUTIGES VERHALTEN (Befund 32-02): bei mehreren Saetzen kommt die Korrektur NICHT an. Der korrigierte
+    # Schnappschuss traegt kein ba_results, die Vorrangregel zieht ihn vor, `ba_results["Sets1"]` wirft
+    # (result_processor.rb, nil), der Fehler wird geschluckt — der Turnierleiter sieht keine Meldung.
+    assert_response :redirect
+    assert_equal [[30, nil, nil, nil], [30, nil, nil, nil]], gp_werte(game), "Korrektur bleibt still aus (heutiger Stand)"
+  end
+
+  test "32-02 Weg 2 mehrsaetzig: Korrektur an einem Spiel am Tisch" do
+    mehrsatz!
+    game, = spiel_am_tisch_mit_schnappschuss!(id: 66_000_202, a: 30, b: 30)
+    post update_games_tournament_monitor_url(@tournament_monitor), params: {
+      "game_id" => [game.id.to_s], "resulta" => ["29"], "resultb" => ["30"],
+      "inningsa" => ["10"], "inningsb" => ["10"], "hsa" => ["5"], "hsb" => ["5"]
+    }
+    # HEUTIGES VERHALTEN (Befund 32-02): wie Weg 3 — die Korrektur bleibt still aus.
+    assert_response :redirect
+    assert_equal [[30, nil, nil, nil], [30, nil, nil, nil]], gp_werte(game), "Korrektur bleibt still aus (heutiger Stand)"
+  end
+
   # Nachbesserung 2026-09-23, vom Betreiber gemeldet: "Runde abschliessen" sass in der
   # Statuszeile ganz oben (_round_status), die Ergebnisfelder 50 Zeilen weiter unten in
   # _game_results. `button_to` erzeugt ein EIGENES <form> — wer oben klickte, verwarf still

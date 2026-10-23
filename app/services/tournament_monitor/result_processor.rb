@@ -408,8 +408,13 @@ class TournamentMonitor::ResultProcessor
 
   # Delegiert an update_game_participations_for_game (alte API, für Abwärtskompatibilität).
   # PUBLIC — wird von Model-Delegation aufgerufen.
+  #
+  # Plan 32-02: Quelle hier SICHTBAR gewaehlt (vorher still in update_game_participations_for_game).
+  # Aufrufer ist die Korrektur am Tisch (update_games): dort ist der Schnappschuss schon korrigiert
+  # (korrigiere_schnappschuss!), `tabmon.data["ba_results"]` aber noch nicht ausgewertet (Phase 26-01).
   def update_game_participations(tabmon)
-    update_game_participations_for_game(tabmon.game, tabmon.data)
+    game = tabmon.game
+    update_game_participations_for_game(game, snapshot_or(game, tabmon.data))
   end
 
   private
@@ -518,7 +523,9 @@ class TournamentMonitor::ResultProcessor
     # WICHTIG: Wir übergeben das GAME (nicht table_monitor), weil table_monitor.game
     # durch populate_tables zu einem neuen Game reassigned werden könnte!
     Rails.logger.info "[finalize_game_result] manual_assignment=#{@tournament_monitor.tournament.manual_assignment}, calling update_game_participations=#{!@tournament_monitor.tournament.manual_assignment}"
-    update_game_participations_for_game(game, table_monitor.data) unless @tournament_monitor.tournament.manual_assignment
+    # Plan 32-02: Quelle sichtbar — write_game_result_data hat den Schnappschuss eben aus table_monitor.data
+    # geschrieben; abweichen kann er nur, wenn deren Idempotenzsperre (1 Minute) gegriffen hat.
+    update_game_participations_for_game(game, snapshot_or(game, table_monitor.data)) unless @tournament_monitor.tournament.manual_assignment
 
     # ERST HIER, NICHT OBEN IM elsif-ZWEIG: Der Reporter liest `game.game_participations` —
     # `result`/`innings`/`hs`/`gd` stehen dort aber erst, nachdem
@@ -592,15 +599,24 @@ class TournamentMonitor::ResultProcessor
                        "Spielbetrieb laeuft weiter, der Authority-Pull holt den Gesamtstand"
   end
 
+  # Der gespeicherte Schnappschuss des Spiels, wenn es einen gibt, sonst die uebergebenen Daten —
+  # die Wahl, die bis Plan 32-02 versteckt in update_game_participations_for_game stand.
+  def snapshot_or(game, data)
+    game.data["tmp_results"].presence || data
+  end
+
   # Aktualisiert GameParticipation-Records für ein bestimmtes Game mit den gegebenen Daten.
   # Neue Version: Akzeptiert game und data direkt, um Race-Conditions zu vermeiden.
-  def update_game_participations_for_game(game, table_monitor_data)
+  #
+  # Plan 32-02: schreibt, was man ihr GIBT. Bis dahin bevorzugte sie still game.data["tmp_results"]
+  # und ueberging das uebergebene `data` — zweimal zur Falle geworden ("getippt 29, gespeichert 30",
+  # 24-01/26-01). Wer den Schnappschuss will, waehlt ihn am Aufruf (snapshot_or).
+  def update_game_participations_for_game(game, data)
     sets = nil
     rank = {}
     points = {}
 
-    # Use data from game.data["tmp_results"] if available, otherwise from table_monitor_data
-    data_source = game.data["tmp_results"].present? ? game.data["tmp_results"] : table_monitor_data
+    data_source = data
 
     if @tournament_monitor.sets_to_play > 1
       ("a".."b").each do |c|
