@@ -70,6 +70,9 @@ class TournamentMonitorsController < ApplicationController
       game_id = k.match(/seqno_(\d+)/)[1]
       Game[game_id].update(seqno: params[k].to_i)
     end
+    # Plan 32-03: abgelehnte Zeilen sammeln und dem Turnierleiter zeigen — eine Korrektur, die nicht
+    # ankommt, darf nicht nur im Log stehen (Befund 32-02: bei mehreren Saetzen ging sie still verloren).
+    abgelehnt = []
     params["game_id"].andand.each_with_index do |game_id, ix|
       game = @tournament_monitor.tournament.games.where("id >= #{Game::MIN_ID}").includes(:table_monitor).find(game_id)
       next unless game.present?
@@ -100,7 +103,21 @@ class TournamentMonitorsController < ApplicationController
       resultb = params["resultb"][ix].to_i
       inningsa = params["inningsa"][ix].to_i
       inningsb = params["inningsb"][ix].to_i
-      
+
+      # Plan 32-03: Bei mehreren Saetzen kommt der Satzstand aus eigenen Feldern (setsa/setsb).
+      # balls_goal und innings_goal gelten JE SATZ — die Summen liegen dort regulaer darueber und
+      # werden deshalb nicht gegen sie geprueft (sonst ginge die Korrektur wieder still verloren).
+      mehrsatz = @tournament_monitor.sets_to_play > 1
+      saetze = nil
+      if mehrsatz
+        grund = satzstand_ungueltig(params["setsa"].andand[ix], params["setsb"].andand[ix])
+        if grund
+          abgelehnt << "#{game.gname}: #{grund}"
+          next
+        end
+        saetze = [params["setsa"][ix].to_i, params["setsb"][ix].to_i]
+      end
+
       Rails.logger.info "[TournamentMonitorsController#update_games] Game[#{game.id}] validation:"
       Rails.logger.info "  playera_balls_goal: #{playera_balls_goal}, resulta: #{resulta}"
       Rails.logger.info "  playerb_balls_goal: #{playerb_balls_goal}, resultb: #{resultb}"
@@ -113,21 +130,21 @@ class TournamentMonitorsController < ApplicationController
       end
       
       # Validierung: Ergebnisse dürfen die jeweiligen balls_goal nicht überschreiten (falls gesetzt)
-      unless (!playera_balls_goal.positive? || resulta <= playera_balls_goal)
+      unless (mehrsatz || !playera_balls_goal.positive? || resulta <= playera_balls_goal)
         Rails.logger.warn "[TournamentMonitorsController#update_games] Game[#{game.id}] SKIPPED: resulta (#{resulta}) > playera_balls_goal (#{playera_balls_goal})"
         next
       end
-      unless (!playerb_balls_goal.positive? || resultb <= playerb_balls_goal)
+      unless (mehrsatz || !playerb_balls_goal.positive? || resultb <= playerb_balls_goal)
         Rails.logger.warn "[TournamentMonitorsController#update_games] Game[#{game.id}] SKIPPED: resultb (#{resultb}) > playerb_balls_goal (#{playerb_balls_goal})"
         next
       end
       
       # Validierung: Innings dürfen innings_goal nicht überschreiten (falls gesetzt)
-      unless (!innings_goal.positive? || inningsa <= innings_goal)
+      unless (mehrsatz || !innings_goal.positive? || inningsa <= innings_goal)
         Rails.logger.warn "[TournamentMonitorsController#update_games] Game[#{game.id}] SKIPPED: inningsa (#{inningsa}) > innings_goal (#{innings_goal})"
         next
       end
-      unless (!innings_goal.positive? || inningsb <= innings_goal)
+      unless (mehrsatz || !innings_goal.positive? || inningsb <= innings_goal)
         Rails.logger.warn "[TournamentMonitorsController#update_games] Game[#{game.id}] SKIPPED: inningsb (#{inningsb}) > innings_goal (#{innings_goal})"
         next
       end
@@ -139,7 +156,7 @@ class TournamentMonitorsController < ApplicationController
       # Aktion, nur ein zweiter Fall in derselben Schleife (extend-before-build).
       if table_monitor.blank?
         korrigiere_abgeloestes_spiel!(game, resulta:, resultb:, inningsa:, inningsb:,
-          hsa: params["hsa"][ix].to_i, hsb: params["hsb"][ix].to_i)
+          hsa: params["hsa"][ix].to_i, hsb: params["hsb"][ix].to_i, saetze:)
         next
       end
 
@@ -169,9 +186,15 @@ class TournamentMonitorsController < ApplicationController
       # Reihenfolge, die 24-01 fuer den abgeloesten Fall belegt hat. `update_game_participations`
       # waehlt den Schnappschuss seit Plan 32-02 sichtbar (snapshot_or) — er muss also vorher stehen.
       korrigiere_schnappschuss!(game, table_monitor, resulta:, resultb:, inningsa:, inningsb:,
-        hsa: params["hsa"][ix].to_i, hsb: params["hsb"][ix].to_i)
+        hsa: params["hsa"][ix].to_i, hsb: params["hsb"][ix].to_i, saetze:)
       game.update(ended_at: Time.now)
       game.reload
+      # Plan 32-03: Der CC-Upload liest table_monitor.data["ba_results"] VOR game.data["ba_results"]
+      # (setting.rb, upload_game_to_cc) — bei mehreren Saetzen dort den korrigierten Satzstand ablegen.
+      if saetze
+        table_monitor.deep_merge_data!("ba_results" => game.data["ba_results"])
+        table_monitor.save
+      end
 
       @tournament_monitor.update_game_participations(table_monitor)
       table_monitor.evaluate_result
@@ -201,6 +224,10 @@ class TournamentMonitorsController < ApplicationController
     # belegt) — nach einer nachtraeglichen Korrektur muss sie angestossen werden, sonst zeigt
     # der Turnier-Monitor weiter die alten Punkte.
     @tournament_monitor.accumulate_results
+    if abgelehnt.any?
+      flash[:alert] = t("tournament_monitors.update_games.rejected", rows: abgelehnt.join("; "),
+        default: "Nicht übernommen: %{rows}")
+    end
     warne_bei_folgewirkung
 
     redirect_back_or_to(tournament_monitor_path(@tournament_monitor))
@@ -367,7 +394,7 @@ class TournamentMonitorsController < ApplicationController
   #
   # Gibt den korrigierten Satz zurueck; Speichern und `ended_at` bleiben beim Aufrufer, weil
   # die beiden Zweige das unterschiedlich handhaben (`||=` gegen unbedingtes Setzen).
-  def korrigiere_schnappschuss!(game, table_monitor, resulta:, resultb:, inningsa:, inningsb:, hsa:, hsb:)
+  def korrigiere_schnappschuss!(game, table_monitor, resulta:, resultb:, inningsa:, inningsb:, hsa:, hsb:, saetze: nil)
     ziele = korrektur_ziele(game, table_monitor)
     korrigiert = {
       "playera" => spielerdaten(resulta, inningsa, hsa, ziele[:playera_balls_goal]),
@@ -386,12 +413,18 @@ class TournamentMonitorsController < ApplicationController
     # Formular schickt aber JEDE editierbare Zeile mit, und der Controller schreibt sie alle
     # neu — ein einziger Klick auf "update" markierte damit das ganze Feld. Sie haengt jetzt
     # an `werte_geaendert?`.
-    marke = werte_geaendert?(game, resulta:, resultb:, inningsa:, inningsb:, hsa:, hsb:) ?
+    marke = werte_geaendert?(game, resulta:, resultb:, inningsa:, inningsb:, hsa:, hsb:, saetze:) ?
       {"manual_correction_at" => Time.current.iso8601} : {}
 
+    ba = ba_results_fuer(game, resulta, resultb, inningsa, inningsb, hsa, hsb, saetze:)
+    # Plan 32-03: Bei mehreren Saetzen liest update_game_participations_for_game Satzstand und Summen
+    # aus data["ba_results"] — der Schnappschuss muss ihn deshalb mittragen. Ohne ihn warf der
+    # Mehrsatz-Zweig (nil), und die Korrektur ging still verloren (Befund 32-02). Einsaetzig bleibt
+    # der Schnappschuss wie bisher.
+    korrigiert["ba_results"] = ba if saetze
     game.deep_merge_data!({
       "tmp_results" => korrigiert,
-      "ba_results" => ba_results_fuer(game, resulta, resultb, inningsa, inningsb, hsa, hsb)
+      "ba_results" => ba
     }.merge(marke))
     korrigiert
   end
@@ -421,21 +454,23 @@ class TournamentMonitorsController < ApplicationController
   # Zweig `update_game_participations_for_game`.
   #
   # Fehlt eine Beteiligung, gilt das als Aenderung — sie wird gleich angelegt.
-  def werte_geaendert?(game, resulta:, resultb:, inningsa:, inningsb:, hsa:, hsb:)
+  def werte_geaendert?(game, resulta:, resultb:, inningsa:, inningsb:, hsa:, hsb:, saetze: nil)
     gpa = game.game_participations.where("role = 'playera' or role = 'Heim'").first
     gpb = game.game_participations.where("role = 'playerb' or role = 'Gast'").first
 
-    [[gpa, resulta, inningsa, hsa], [gpb, resultb, inningsb, hsb]].any? do |gp, result, innings, hs|
+    [[gpa, resulta, inningsa, hsa, saetze&.first], [gpb, resultb, inningsb, hsb, saetze&.last]].any? do |gp, result, innings, hs, sets|
       gp.nil? ||
         gp.result.to_i != result.to_i ||
         gp.innings.to_i != innings.to_i ||
-        gp.hs.to_i != hs.to_i
+        gp.hs.to_i != hs.to_i ||
+        # Plan 32-03: der Satzstand zaehlt nur, wo es ihn gibt (mehrere Saetze)
+        (!sets.nil? && gp.sets.to_i != sets.to_i)
     end
   end
 
-  def korrigiere_abgeloestes_spiel!(game, resulta:, resultb:, inningsa:, inningsb:, hsa:, hsb:)
+  def korrigiere_abgeloestes_spiel!(game, resulta:, resultb:, inningsa:, inningsb:, hsa:, hsb:, saetze: nil)
     korrigiert = korrigiere_schnappschuss!(game, nil, resulta:, resultb:, inningsa:, inningsb:,
-      hsa:, hsb:)
+      hsa:, hsb:, saetze:)
     game.ended_at ||= Time.now
     game.save!
     game.reload
@@ -479,14 +514,31 @@ class TournamentMonitorsController < ApplicationController
   # ResultRecorder#update_ba_results_with_set_result!, hier fuer ein Ein-Satz-Spiel direkt
   # aus den korrigierten Werten gebaut — `perform_ensure_ba_results` kehrt bei bereits
   # vorhandenem `ba_results` frueh zurueck und wuerde eine Korrektur nicht nachziehen.
-  def ba_results_fuer(game, resulta, resultb, inningsa, inningsb, hsa, hsb)
+  # Plan 32-03: Grund, warum ein Satzstand nicht stimmen kann — nil, wenn er moeglich ist.
+  # Gueltig: ganze Zahlen 0..sets_to_win, genau einer hat sets_to_win (das Match ist entschieden).
+  def satzstand_ungueltig(roh_a, roh_b)
+    ziel = @tournament_monitor.sets_to_win.to_i
+    return t("tournament_monitors.update_games.sets_missing", default: "Satzstand fehlt") if roh_a.blank? || roh_b.blank?
+    return t("tournament_monitors.update_games.sets_not_numeric", default: "Satzstand ist keine Zahl") unless [roh_a, roh_b].all? { |v| v.to_s.strip.match?(/\A\d+\z/) }
+    a, b = roh_a.to_i, roh_b.to_i
+    if [a, b].any? { |v| v > ziel } || [a, b].count(ziel) != 1
+      return t("tournament_monitors.update_games.sets_impossible", a:, b:, win: ziel,
+        default: "%{a}:%{b} ist bei %{win} Gewinnsätzen nicht möglich")
+    end
+    nil
+  end
+
+  # `saetze` ([a, b]) nur bei mehreren Saetzen (Plan 32-03); sonst Einsatz-Logik: der mit mehr
+  # Punkten hat den einen Satz gewonnen.
+  def ba_results_fuer(game, resulta, resultb, inningsa, inningsb, hsa, hsb, saetze: nil)
+    sets1, sets2 = saetze || [(resulta > resultb) ? 1 : 0, (resultb > resulta) ? 1 : 0]
     {
       "Gruppe" => game.group_no,
       "Partie" => game.seqno,
       "Spieler1" => game.game_participations.where(role: "playera").first&.player&.ba_id,
       "Spieler2" => game.game_participations.where(role: "playerb").first&.player&.ba_id,
-      "Sets1" => (resulta > resultb) ? 1 : 0,
-      "Sets2" => (resultb > resulta) ? 1 : 0,
+      "Sets1" => sets1,
+      "Sets2" => sets2,
       "Ergebnis1" => resulta, "Ergebnis2" => resultb,
       "Aufnahmen1" => inningsa, "Aufnahmen2" => inningsb,
       "Höchstserie1" => hsa, "Höchstserie2" => hsb,

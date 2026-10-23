@@ -549,33 +549,81 @@ class TournamentMonitorsControllerTest < ActionDispatch::IntegrationTest
   end
 
   def mehrsatz!
-    @tournament_monitor.update!(sets_to_play: 3, data: {"current_round" => 1})
+    @tournament_monitor.update!(sets_to_play: 3, sets_to_win: 2, data: {"current_round" => 1})
   end
 
-  test "32-02 Weg 3 mehrsaetzig: Korrektur an einem abgeloesten Spiel" do
-    mehrsatz!
-    game = abgeloestes_spiel_mit_schnappschuss!(id: 66_000_201, a: 30, b: 30)
+  def korrektur!(game, a:, b:, sets_a:, sets_b:, innings: 10, hs: 5)
     post update_games_tournament_monitor_url(@tournament_monitor), params: {
-      "game_id" => [game.id.to_s], "resulta" => ["30"], "resultb" => ["29"],
-      "inningsa" => ["10"], "inningsb" => ["10"], "hsa" => ["5"], "hsb" => ["5"]
+      "game_id" => [game.id.to_s], "resulta" => [a.to_s], "resultb" => [b.to_s],
+      "inningsa" => [innings.to_s], "inningsb" => [innings.to_s], "hsa" => [hs.to_s], "hsb" => [hs.to_s],
+      "setsa" => [sets_a.to_s], "setsb" => [sets_b.to_s]
     }
-    # HEUTIGES VERHALTEN (Befund 32-02): bei mehreren Saetzen kommt die Korrektur NICHT an. Der korrigierte
-    # Schnappschuss traegt kein ba_results, die Vorrangregel zieht ihn vor, `ba_results["Sets1"]` wirft
-    # (result_processor.rb, nil), der Fehler wird geschluckt — der Turnierleiter sieht keine Meldung.
-    assert_response :redirect
-    assert_equal [[30, nil, nil, nil], [30, nil, nil, nil]], gp_werte(game), "Korrektur bleibt still aus (heutiger Stand)"
   end
 
-  test "32-02 Weg 2 mehrsaetzig: Korrektur an einem Spiel am Tisch" do
+  def gp_saetze(game)
+    %w[playera playerb].map { |r| game.game_participations.where(role: r).first.reload.sets }
+  end
+
+  # Plan 32-03 (vorher 32-02-Charakterisierung "Korrektur bleibt still aus"): bei mehreren Saetzen
+  # kommt eine Korrektur aus Satzstand und Summen an — Beteiligungen, Schnappschuss, ba_results.
+  test "32-03 Weg 3 mehrsaetzig: Korrektur an einem abgeloesten Spiel kommt an" do
     mehrsatz!
-    game, = spiel_am_tisch_mit_schnappschuss!(id: 66_000_202, a: 30, b: 30)
-    post update_games_tournament_monitor_url(@tournament_monitor), params: {
-      "game_id" => [game.id.to_s], "resulta" => ["29"], "resultb" => ["30"],
-      "inningsa" => ["10"], "inningsb" => ["10"], "hsa" => ["5"], "hsb" => ["5"]
-    }
-    # HEUTIGES VERHALTEN (Befund 32-02): wie Weg 3 — die Korrektur bleibt still aus.
+    game = abgeloestes_spiel_mit_schnappschuss!(id: 66_000_201, a: 45, b: 40)
+    korrektur!(game, a: 40, b: 45, sets_a: 1, sets_b: 2, innings: 30, hs: 9)
+
     assert_response :redirect
-    assert_equal [[30, nil, nil, nil], [30, nil, nil, nil]], gp_werte(game), "Korrektur bleibt still aus (heutiger Stand)"
+    assert_equal [[40, 30, 9, 0], [45, 30, 9, 2]], gp_werte(game), "Summen und Punkte aus dem Satzstand 1:2"
+    assert_equal [1, 2], gp_saetze(game)
+    game.reload
+    assert_equal [1, 2, 40, 45], game.data["ba_results"].values_at("Sets1", "Sets2", "Ergebnis1", "Ergebnis2")
+    assert_equal [1, 2], game.data.dig("tmp_results", "ba_results").values_at("Sets1", "Sets2"),
+      "der Schnappschuss traegt den Satzstand — sonst wirft der Mehrsatz-Zweig der Beteiligungen"
+  end
+
+  test "32-03 Weg 2 mehrsaetzig: Korrektur an einem Spiel am Tisch kommt an, auch im Tisch-ba_results" do
+    mehrsatz!
+    game, tm = spiel_am_tisch_mit_schnappschuss!(id: 66_000_202, a: 45, b: 40)
+    korrektur!(game, a: 40, b: 45, sets_a: 1, sets_b: 2, innings: 30, hs: 9)
+
+    assert_response :redirect
+    assert_equal [[40, 30, 9, 0], [45, 30, 9, 2]], gp_werte(game)
+    assert_equal [1, 2], gp_saetze(game)
+    assert_equal [1, 2], tm.reload.data["ba_results"].values_at("Sets1", "Sets2"),
+      "der CC-Upload liest table_monitor.data[\"ba_results\"] zuerst"
+  end
+
+  test "32-03: ein unmoeglicher Satzstand wird mit Meldung abgelehnt, nicht still" do
+    mehrsatz!
+    game = abgeloestes_spiel_mit_schnappschuss!(id: 66_000_210, a: 45, b: 40)
+    [[2, 2], [3, 0], [1, 1]].each do |sa, sb|
+      korrektur!(game, a: 40, b: 45, sets_a: sa, sets_b: sb)
+      assert_equal [45, 40], gp_werte(game).map(&:first), "#{sa}:#{sb}: nichts geschrieben"
+      assert_match(/Nicht übernommen/, flash[:alert].to_s, "#{sa}:#{sb}: Meldung statt Stille")
+      assert_match(/group1:1/, flash[:alert].to_s, "die Meldung nennt die Partie")
+    end
+  end
+
+  test "32-03: bei mehreren Saetzen zeigt die Satzspalte den Satzstand und bietet Felder an" do
+    mit_lokaler_meldung!
+    mehrsatz!
+    game = abgeloestes_spiel_mit_schnappschuss!(id: 66_000_220, a: 45, b: 40)
+    game.game_participations.where(role: "playera").first.update!(sets: 2, points: 2)
+    get tournament_monitor_url(@tournament_monitor)
+    assert_response :success
+    doc = Nokogiri::HTML(response.body)
+    assert doc.at_css("input[name='setsa[]'][value='2']"), "Satzstand als Eingabe (vorher stand hier gp.points)"
+    assert doc.at_css("input[name='setsb[]']")
+  end
+
+  test "32-03: bei einem Satz gibt es keine Satzfelder" do
+    mit_lokaler_meldung!
+    @tournament_monitor.update!(data: {"current_round" => 1})
+    game = abgeloestes_spiel_mit_schnappschuss!(id: 66_000_221, a: 30, b: 29)
+    get tournament_monitor_url(@tournament_monitor)
+    assert_response :success
+    doc = Nokogiri::HTML(response.body)
+    assert doc.at_css("input[name='game_id[]'][value='#{game.id}']"), "VORBEDINGUNG: das Spiel ist editierbar"
+    refute doc.at_css("input[name='setsa[]']"), "Einsatz-Turnier unveraendert"
   end
 
   # Nachbesserung 2026-09-23, vom Betreiber gemeldet: "Runde abschliessen" sass in der
