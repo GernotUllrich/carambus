@@ -63,6 +63,13 @@ class GameProtocolReflex < ApplicationReflex
                       "state=#{@table_monitor.state} -> playing"
 
     @table_monitor.suppress_broadcast = true
+    if @table_monitor.simple_set_game?
+      back_to_game_after_frame_end
+      @table_monitor.suppress_broadcast = false
+      send_modal_update("")
+      TableMonitorJob.perform_later(@table_monitor.id, "")
+      return
+    end
     # 1. Zustand: set_over -> playing (siehe Warnung oben zur Ueberschattung)
     @table_monitor.aasm.fire!(:undo)
     # 2. Die letzte Eingabe zurueck. Ohne diesen Schritt landet man im NACHSTOSS des Gegners:
@@ -415,6 +422,37 @@ class GameProtocolReflex < ApplicationReflex
   end
 
   private
+
+  # Plan 31-01: Rueckweg ins Spiel bei Satzspielen (Pool/Snooker, `simple_set_game?`).
+  #
+  # Anders als bei Karambol ist der Matchball-Frame beim Protokoll SCHON gespeichert:
+  # perform_evaluate_result schreibt ihn im Satzspiel-Zweig nach data["sets"] und zaehlt
+  # ba_results hoch, bevor das Modal aufgeht. Deshalb drei Schritte:
+  #   1. den Frame zuruecknehmen (ResultRecorder#perform_revert_last_set!),
+  #   2. Zustand set_over -> playing — wie in 27 ueber `aasm.fire!(:undo)`,
+  #   3. die letzte Eingabe zurueck ueber `score_engine.undo_hash`.
+  #
+  # ⚠️ In Schritt 3 NICHT `@table_monitor.undo`: dessen Satzspiel-Zweig (`table_monitor.rb`,
+  # `simple_set_game? && data["sets"].present?`) rollt per PaperTrail bis zum vorigen
+  # switch_to_next_set zurueck und verwuerfe den ganzen laufenden Frame. Gewollt ist nur die
+  # Eingabe, die den Frame beendet hat (Betreiber-Festlegung aus 27, Satzspiele: 2026-10-23).
+  #
+  # Snooker: das Frame-Ende haengt am Flag snooker_frame_complete (end_of_set?), nicht am
+  # Punktestand — undo_snooker_ball setzt es nicht zurueck, sonst kaeme das Protokoll sofort wieder.
+  def back_to_game_after_frame_end
+    TableMonitor::ResultRecorder.revert_last_set(table_monitor: @table_monitor)
+    @table_monitor.aasm.fire!(:undo)
+    begin
+      @table_monitor.score_engine.undo_hash
+      @table_monitor.data["snooker_frame_complete"] = false if @table_monitor.data["free_game_form"] == "snooker"
+      @table_monitor.data_will_change!
+      @table_monitor.save!
+    rescue => e
+      Rails.logger.error "[GameProtocolReflex#back_to_game] tm[#{@table_monitor.id}] " \
+                         "Eingabe-Ruecknahme (Satzspiel) fehlgeschlagen: #{e.message} — Frame und Zustand " \
+                         "sind zurueck, die Eingabe kann am Scoreboard zurueckgenommen werden"
+    end
+  end
 
   def load_table_monitor
     # Read from data-id attribute (standard for all reflexes)

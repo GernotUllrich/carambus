@@ -177,4 +177,125 @@ class GameProtocolReflexTest < ActiveSupport::TestCase
     assert_equal 1, modal_update_calls,
       "switch_to_view_mode on protocol_final must re-render the modal"
   end
+
+  # ---------------------------------------------------------------------------
+  # Plan 31-01: Rueckweg ins Spiel bei Satzspielen (Pool/Snooker). Der Matchball wird ueber
+  # den ECHTEN Eingabeweg gespielt (add_n_balls -> terminate_current_inning -> evaluate_result),
+  # nicht von Hand in den Endzustand gesetzt — gemessen wird, was der Knopf dann zuruecknimmt.
+  # ---------------------------------------------------------------------------
+
+  FRAME1_31 = {"Ergebnis1" => 5, "Ergebnis2" => 2, "Aufnahmen1" => 4, "Aufnahmen2" => 3,
+               "Höchstserie1" => 3, "Höchstserie2" => 2, "Innings1" => [1, 1, 3, 0], "Innings2" => [1, 1, 0]}.freeze
+
+  def player_31(id, first)
+    Player.find_by(id: id) || Player.create!(id: id, firstname: first, lastname: "Satz", dbu_nr: id - 50_000_000, ba_id: id - 50_000_000)
+  end
+
+  def side_31(result:, innings_list:, current:, hs:, goal:)
+    {"discipline" => "8-Ball", "result" => result, "innings" => innings_list.size, "innings_list" => innings_list,
+     "innings_redo_list" => [current], "innings_foul_list" => [0] * innings_list.size, "innings_foul_redo_list" => [0],
+     "hs" => hs, "gd" => "0.00", "balls_goal" => goal}
+  end
+
+  # Pool, 2 Gewinnsaetze, Frame 1 gewonnen (1:0); Frame 2: A steht bei 4 von 5 in seiner Aufnahme.
+  def prepare_pool_31
+    game = Game.create!(data: {}, group_no: 1, seqno: 31, table_no: 1)
+    GameParticipation.create!(game: game, player: player_31(50_131_001, "PoolA"), role: "playera")
+    GameParticipation.create!(game: game, player: player_31(50_131_002, "PoolB"), role: "playerb")
+    ba = {"Gruppe" => 1, "Partie" => 31, "Spieler1" => 131_001, "Spieler2" => 131_002, "Sets1" => 1, "Sets2" => 0,
+          "Ergebnis1" => 5, "Ergebnis2" => 2, "Aufnahmen1" => 4, "Aufnahmen2" => 3,
+          "Höchstserie1" => 3, "Höchstserie2" => 2, "Tischnummer" => 1}
+    @tm.update!(data: {
+      "free_game_form" => "pool", "sets_to_win" => 2, "sets_to_play" => 3, "allow_follow_up" => false,
+      "kickoff_switches_with" => "set", "current_kickoff_player" => "playera",
+      "balls_on_table" => 15, "balls_counter" => 15, "balls_counter_stack" => [],
+      "sets" => [FRAME1_31.dup], "ba_results" => ba,
+      "playera" => side_31(result: 0, innings_list: [0], current: 4, hs: 0, goal: 5),
+      "playerb" => side_31(result: 1, innings_list: [1], current: 0, hs: 1, goal: 5),
+      "current_inning" => {"active_player" => "playera", "balls" => 4}
+    })
+    @tm.update_columns(game_id: game.id, state: "playing", panel_state: "pointer_mode", current_element: "pointer_mode")
+    @tm.reload
+    assert @tm.simple_set_game?, "VORBEDINGUNG: Pool ist ein Satzspiel"
+  end
+
+  def total_31(side) = @tm.data[side]["result"].to_i + Array(@tm.data[side]["innings_redo_list"]).last.to_i
+
+  test "31-01: Pool — der Rueckweg nimmt den Matchball-Frame, den Satzstand und die letzte Eingabe zurueck" do
+    prepare_pool_31
+    @tm.suppress_broadcast = true
+    @tm.add_n_balls(1) # der Matchball: 5 von 5
+    @tm.reload
+    assert_equal "set_over", @tm.state, "VORBEDINGUNG: Matchende ueber den echten Weg"
+    assert_equal "protocol_final", @tm.panel_state, "VORBEDINGUNG"
+    assert_equal 2, @tm.data["sets"].size, "VORBEDINGUNG: der Frame steht schon in data[\"sets\"]"
+    assert_equal 2, @tm.data["ba_results"]["Sets1"], "VORBEDINGUNG"
+
+    @reflex.back_to_game
+    @tm.reload
+
+    assert_equal "playing", @tm.state
+    refute_equal "protocol_final", @tm.panel_state
+    assert_equal [FRAME1_31], @tm.data["sets"], "Frame 1 unveraendert, Matchball-Frame entfernt"
+    assert_equal [1, 0], [@tm.data["ba_results"]["Sets1"], @tm.data["ba_results"]["Sets2"]], "Satzstand wieder 1:0"
+    # Ein Schritt zurueck wie bei Karambol (Phase 27, Betreiber 2026-10-23): der Matchball hatte As
+    # Aufnahme abgeschlossen und B an den Tisch geholt — zurueckgenommen wird dieser Abschluss. A ist
+    # wieder am Zug, seine offene Aufnahme zeigt den eingegebenen Stand; korrigiert wird mit -1.
+    # Entscheidend: NICHT der Frameanfang (das taete TableMonitor#undo per PaperTrail).
+    assert_equal "playera", @tm.data["current_inning"]["active_player"], "A ist wieder am Zug"
+    assert_equal 5, total_31("playera"), "der Stand der offenen Aufnahme bleibt stehen (wie Karambol)"
+    assert_equal 1, total_31("playerb"), "B unveraendert"
+    refute @tm.end_of_set?, "das Protokoll kommt nicht sofort wieder"
+  end
+
+  # Snooker, 2 Gewinnframes, Frame 1 gewonnen; Frame 2: alle Roten weg, nur noch Schwarz, A am Tisch.
+  def prepare_snooker_31
+    prepare_pool_31
+    snk = ->(innings_list, current, done, open) {
+      {"discipline" => "Snooker", "result" => innings_list.sum, "innings" => innings_list.size, "innings_list" => innings_list,
+       "innings_redo_list" => [current], "innings_foul_list" => [0] * innings_list.size, "innings_foul_redo_list" => [0],
+       "break_balls_list" => done, "break_balls_redo_list" => [open], "hs" => 0, "gd" => "0.00", "balls_goal" => 0}
+    }
+    @tm.update!(data: @tm.data.merge(
+      "free_game_form" => "snooker", "initial_red_balls" => 6, "snooker_frame_complete" => false,
+      "snooker_state" => {"reds_remaining" => 0, "last_potted_ball" => 6, "free_ball_active" => false, "colors_sequence" => [7]},
+      "playera" => snk.call([48], 20, [[1, 7, 1, 7, 1, 7, 1, 7, 1, 7, 1, 7]], [2, 3, 4, 5, 6]),
+      "playerb" => snk.call([0], 0, [[]], []),
+      "current_inning" => {"active_player" => "playera", "balls" => 0}
+    ))
+    @tm.reload
+    assert @tm.simple_set_game?, "VORBEDINGUNG: Snooker ist ein Satzspiel"
+  end
+
+  test "31-01: Snooker — der Rueckweg nimmt den Frame und die letzte Kugel zurueck und loescht das Frame-Ende-Flag" do
+    prepare_snooker_31
+    @tm.suppress_broadcast = true
+    @tm.add_n_balls(7) # die letzte Schwarze
+    @tm.reload
+    assert_equal "set_over", @tm.state, "VORBEDINGUNG: Matchende ueber den echten Weg"
+    assert_equal "protocol_final", @tm.panel_state, "VORBEDINGUNG"
+    assert_equal 2, @tm.data["sets"].size, "VORBEDINGUNG: der Frame steht schon in data[\"sets\"]"
+    assert @tm.data["snooker_frame_complete"], "VORBEDINGUNG"
+
+    @reflex.back_to_game
+    @tm.reload
+
+    assert_equal "playing", @tm.state
+    refute_equal "protocol_final", @tm.panel_state
+    assert_equal [FRAME1_31], @tm.data["sets"], "Frame 1 unveraendert, Matchball-Frame entfernt"
+    assert_equal [1, 0], [@tm.data["ba_results"]["Sets1"], @tm.data["ba_results"]["Sets2"]], "Satzstand wieder 1:0"
+    assert_equal false, @tm.data["snooker_frame_complete"], "sonst ginge das Protokoll sofort wieder auf"
+    refute @tm.end_of_set?
+    assert_equal "playera", @tm.data["current_inning"]["active_player"], "A ist weiter am Tisch"
+    assert_equal 68, total_31("playera"), "die Schwarze ist zurueckgenommen (48 + Break 20)"
+    # colors_sequence wird hier NICHT geprueft: recalculate_snooker_state_from_protocol (score_engine.rb)
+    # streicht die Farbe nach der letzten Roten faelschlich aus der Folge — vorbestehend, trifft jedes
+    # Snooker-Undo nach der letzten Roten (Befund 31-01, deferred). Fuer den Rueckweg zaehlt: der Frame
+    # laesst sich regulaer zu Ende spielen.
+    @tm.add_n_balls(7)
+    @tm.reload
+    assert_equal "set_over", @tm.state, "Schwarz erneut versenkt -> Matchende wie zuvor"
+    assert_equal 2, @tm.data["sets"].size
+    assert_equal [2, 0], [@tm.data["ba_results"]["Sets1"], @tm.data["ba_results"]["Sets2"]], "2:0, nicht 3:0"
+  end
 end

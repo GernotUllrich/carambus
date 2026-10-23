@@ -251,25 +251,33 @@ class GameProtocolConfirmButtonTest < ActionDispatch::IntegrationTest
   end
 
   # ---------------------------------------------------------------
-  # T7 (AC-2c): Bei Satzspielen wird der Rueckweg nicht angeboten.
+  # T7 (Plan 31-01, vorher AC-2c aus 27): Auch bei Satzspielen wird der Rueckweg angeboten.
   #
-  # result_recorder.rb:477-480 schreibt dort beim Satzende zusaetzlich
-  # perform_save_current_set nach data["sets"]. Ein Zurueck muesste den gespeicherten Satz
-  # mitnehmen — eigene Frage, bewusst ausserhalb dieser Phase.
+  # Dort steht der Matchball-Frame beim Protokoll schon in data["sets"]
+  # (result_recorder.rb, Satzspiel-Zweig); der Reflex nimmt ihn mit zurueck
+  # (GameProtocolReflex#back_to_game_after_frame_end). Bis 31-01 fehlte der Knopf hier.
   # ---------------------------------------------------------------
-  test "T7: bei einem Satzspiel erscheint kein Rueckweg" do
+  test "T7: bei einem Satzspiel erscheint der Rueckweg, verdrahtet auf back_to_game" do
     prepare_final(result_a: 2, result_b: 1, current_element: "protocol_final")
-    # simple_set_game? (table_monitor.rb:1859) verlangt free_game_form "pool" (und eine
-    # Disziplin ungleich "14.1 endlos") oder "snooker".
+    # simple_set_game? verlangt free_game_form "pool" (und eine Disziplin ungleich
+    # "14.1 endlos") oder "snooker".
     @tm.update!(data: @tm.data.merge(
       "free_game_form" => "pool",
       "sets_to_win" => 3,
       "sets" => [{"Ergebnis1" => 1, "Ergebnis2" => 0}]
     ))
+    # update! loest die before_save-Invariante aus und gibt protocol_final frei, solange der
+    # Monitor nicht in set_over steht — bis 31-01 bestand T7 deshalb leer (kein Final-Modus,
+    # also nie ein Knopf). Zustand hier wie am Matchende festschreiben.
+    @tm.update_columns(state: "set_over", panel_state: "protocol_final")
     @tm.reload
     assert @tm.simple_set_game?, "VORBEDINGUNG: der Monitor muss ein Satzspiel sein"
+    assert_equal "protocol_final", @tm.panel_state, "VORBEDINGUNG: das Modal ist im Final-Modus"
 
-    refute render_modal.at_css("[data-reflex='click->GameProtocolReflex#back_to_game']"),
-      "Bei Satzspielen ist ein Zurueck nicht folgenlos (data[\"sets\" ] wurde schon geschrieben)"
+    doc = render_modal
+    assert doc.at_css("[data-reflex='click->GameProtocolReflex#back_to_game']"),
+      "Seit 31-01 auch bei Satzspielen — der Frame wird im Reflex zurueckgenommen"
+    refute doc.at_css("[data-action='click->table-monitor#undo']"),
+      "nie auf table-monitor#undo: dessen Satzspiel-Zweig verwirft per PaperTrail den ganzen Frame"
   end
 end

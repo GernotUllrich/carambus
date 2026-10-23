@@ -243,9 +243,9 @@
               von 21 auf 20, und die before_save-Invariante zwang den Editor sofort zurueck.
               `GameProtocolReflex#back_to_game` feuert stattdessen `aasm.fire!(:undo)`.
 
-              Nur fuer inning-basierte Spiele: bei Satzspielen schreibt
-              result_recorder.rb:477-480 beim Satzende zusaetzlich perform_save_current_set
-              nach data["sets"] — ein Zurueck waere dort nicht folgenlos (eigene Frage).
+              Seit Plan 31-01 auch bei Satzspielen (Pool/Snooker): dort steht der Matchball-Frame
+              beim Protokoll schon in data["sets"]; der Reflex nimmt ihn mit zurueck
+              (GameProtocolReflex#back_to_game_after_frame_end).
 
               ⚠️ UNBEDINGT rendern, nicht an eine Bedingung ueber das Ergebnis knuepfen.
               Betreiber-Festlegung 2026-09-23: "Auch wenn das Spiel mit dem Ergebnis
@@ -255,13 +255,11 @@
 
               Links neben dem Druck-Knopf, NICHT neben "Ergebnis bestaetigen" — "weiter" und
               "zurueck" duerfen am Touch-Display nicht nebeneinander liegen. %>
-          <%- unless is_simple_set_game %>
-            <button class="btn btn-secondary px-6 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-semibold transition"
-                    data-reflex="click->GameProtocolReflex#back_to_game"
-                    data-id="<%= table_monitor.id %>">
-              ↩ <%= t("table_monitor.protocol.back_to_game") %>
-            </button>
-          <%- end %>
+          <button class="btn btn-secondary px-6 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-semibold transition"
+                  data-reflex="click->GameProtocolReflex#back_to_game"
+                  data-id="<%= table_monitor.id %>">
+            ↩ <%= t("table_monitor.protocol.back_to_game") %>
+          </button>
           <button class="btn btn-secondary px-6 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-semibold transition"
                   onclick="window.open('<%= print_protocol_table_monitor_path(table_monitor, format: :pdf) %>', '_blank')">
             📄 <%= t("table_monitor.protocol.print") %>
