@@ -304,8 +304,10 @@ Quarter-final, semi-final and final: **15/30/180**. The DBU tender Grands Prix K
   winner in place of the runner-up). Single players can be swapped per game; the card then shows
   "Von Hand geändert". This works **until the first KO game has started**. The mode can be chosen
   **already during the group phase** under **„Paarungen Viertelfinale“** (or round of 16) — the games
-  then show where their players come from („Gruppe 1, Platz 1 – Gruppe 2, Platz 2“); names and the
-  per-game swap appear once all group and qualifier games are finished. Make the choice before
+  then show where their players come from („Gruppe 1, Platz 1 – Gruppe 2, Platz 2“). After choosing
+  „Gruppen über Kreuz“ the group places can already be swapped per game — any pairing is possible,
+  e.g. „Gruppe 1, Platz 1 – Gruppe 4, Platz 2“; names appear once all group and qualifier games are
+  finished. Make the choice before
   „▶ Freie Tische belegen“ (fill free tables): that calls the first KO round at once, after which it is fixed.
 - **Changing the pairings of later KO rounds** (quarter-final after the round of 16, semi-final): the
   same card shows **"Paarungen Halbfinale"** etc. per round, with a selection per slot. Whoever is

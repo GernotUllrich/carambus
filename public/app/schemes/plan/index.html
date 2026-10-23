@@ -2573,19 +2573,20 @@ function koPairEditorHtml() {
   if (koLocked()) return `<p class="muted" style="margin:0 0 10px;">${escapeHtml(title)}: <strong>${escapeHtml(KO_SCHEME_LABEL[scheme])}</strong> — fest, das erste KO-Spiel ist gestartet.</p>`;
   const schemeSelect = `<div class="toolbar"><label class="muted" for="koScheme">${escapeHtml(title)}</label>
       <select id="koScheme">${["seeded", "cross"].map(k => `<option value="${k}" ${scheme === k ? "selected" : ""}>${escapeHtml(KO_SCHEME_LABEL[k])}</option>`).join("")}${scheme === "manual" ? `<option value="manual" selected disabled>${KO_SCHEME_LABEL.manual}</option>` : ""}</select></div>`;
-  if (!koSeedList(run)) {
-    // Gruppen noch offen: Herkunft je Platz laut Modus, ohne Namen und ohne Tausch
-    const from = r => escapeHtml(refLabel(state.koOrder ? state.koOrder[+r.slice(5) - 1] : r));
+  const seeded = koSeedList(run);
+  if (!seeded && !state.koOrder) {
+    // Gruppen noch offen, Setzung nach Rangliste: die Plätze sind erst mit den Ergebnissen bekannt — kein Tausch
     return `<div style="margin:0 0 12px;">${schemeSelect}
-    <div style="overflow-x:auto;"><table class="standings-table"><tbody>${games.map(g => `<tr><td style="text-align:left">${escapeHtml(gameLabelBase(g))}</td><td>${from(g.a)}</td><td>–</td><td>${from(g.b)}</td></tr>`).join("")}</tbody></table></div>
-    <div class="scheme-hint">Jetzt wählbar, bis das erste KO-Spiel angesetzt ist — am besten vor „Freie Tische belegen“. Namen und Tausch je Partie, sobald alle Gruppen- und Quali-Spiele beendet sind.</div></div>`;
+    <div style="overflow-x:auto;"><table class="standings-table"><tbody>${games.map(g => `<tr><td style="text-align:left">${escapeHtml(gameLabelBase(g))}</td><td>${escapeHtml(refLabel(g.a))}</td><td>–</td><td>${escapeHtml(refLabel(g.b))}</td></tr>`).join("")}</tbody></table></div>
+    <div class="scheme-hint">Jetzt wählbar, bis das erste KO-Spiel angesetzt ist — am besten vor „Freie Tische belegen“. Für eine freie Paarung „Gruppen über Kreuz“ wählen und dann je Partie tauschen.</div></div>`;
   }
-  const order = koEffectiveOrder(run);
-  const opt = (sel) => order.map(ref => { const p = memberStat(run, ref)?.player; return `<option value="${escapeHtml(ref)}" ${ref === sel ? "selected" : ""}>${escapeHtml(`${fullName(p)} (${refLabel(ref)})`)}</option>`; }).join("");
+  // Phase 28-06: Tausch je Partie auch während der Gruppenphase — dann mit Gruppenplätzen statt Namen
+  const order = seeded ? koEffectiveOrder(run) : state.koOrder;
+  const opt = (sel) => order.map(ref => { const p = seeded && memberStat(run, ref)?.player; return `<option value="${escapeHtml(ref)}" ${ref === sel ? "selected" : ""}>${escapeHtml(p ? `${fullName(p)} (${refLabel(ref)})` : refLabel(ref))}</option>`; }).join("");
   const slot = r => { const pos = +r.slice(5) - 1; return `<select class="ko-slot" data-pos="${pos}">${opt(order[pos])}</select>`; };
   return `<div style="margin:0 0 12px;">${schemeSelect}
     <div style="overflow-x:auto;"><table class="standings-table"><tbody>${games.map(g => `<tr><td style="text-align:left">${escapeHtml(gameLabelBase(g))}</td><td>${slot(g.a)}</td><td>–</td><td>${slot(g.b)}</td></tr>`).join("")}</tbody></table></div>
-    <div class="scheme-hint">Änderbar, bis das erste KO-Spiel gestartet ist. Wer in einer Paarung gewählt wird, tauscht den Platz mit dem bisherigen Spieler.</div></div>`;
+    <div class="scheme-hint">Änderbar, bis das erste KO-Spiel gestartet ist. Wer in einer Paarung gewählt wird, tauscht den Platz mit dem bisherigen — so ist jede Paarung möglich.</div></div>`;
 }
 function setKoOrder(order) { state.koOrder = order; save(); run = rebuildRun(); renderAll(); }
 function bindKoPairEditor(el) {
@@ -2596,10 +2597,11 @@ function bindKoPairEditor(el) {
   });
   el.querySelectorAll(".ko-slot").forEach(sel => sel.addEventListener("change", () => {
     if (koLocked()) { renderAll(); return; }
-    const order = koEffectiveOrder(run), pos = +sel.dataset.pos, other = order.indexOf(sel.value);
+    const seeded = koSeedList(run)?.map(x => x.ref);
+    const order = seeded ? koEffectiveOrder(run) : [...(state.koOrder ?? [])], pos = +sel.dataset.pos, other = order.indexOf(sel.value);
     if (other < 0 || other === pos) return;
     [order[pos], order[other]] = [order[other], order[pos]];
-    setKoOrder(JSON.stringify(order) === JSON.stringify(koSeedList(run).map(x => x.ref)) ? null : order);
+    setKoOrder(seeded && JSON.stringify(order) === JSON.stringify(seeded) ? null : order);
   }));
 }
 // Paarungen späterer KO-Runden ändern (Eingriff 2): je Runde mit Tauschklasse, bis eine ihrer Partien angesetzt ist.
