@@ -344,6 +344,19 @@ kopieren, dann `nginx -t` und reload. Der Vergleich deckt auch Handänderungen a
 die das Template noch nicht kennt. Wer sie mit einem blinden `sync_nginx_conf` überschreibt,
 verliert sie still.
 
+### In der Turnier-App überschreibt eine zweite gleichnamige Funktion still die erste
+
+`tournament_app/schemes/*/index.html` sind klassische Skripte, keine Module: jede
+`function name()` ist global, und bei zwei Deklarationen desselben Namens gewinnt die **spätere** —
+ohne Fehler, ohne Warnung. Die Node-Tests extrahieren nur den `PLAN-ENGINE`-Block und sehen die
+zweite Deklaration weiter unten nicht; sie bleiben grün, während die Oberfläche bricht.
+
+**Beleg:** Plan 28-04 legte im Engine-Block `koRoundName(run)` an; 28-03 hatte weiter unten schon
+`koRoundName(round)`. Im Browser lief die alte mit dem falschen Argument
+(`TypeError … reading 'kind'` in `gameLabelBase`), die Node-Tests waren grün.
+**Ausweg:** `tournament_app/schemes/plan/ko-pairings.test.mjs` prüft, dass jede Funktion in
+`index.html` genau einmal deklariert ist; vor einem neuen Namen `grep -n "function <name>"`.
+
 ---
 
 ## Methode
