@@ -43,12 +43,10 @@ class GameProtocolReflex < ApplicationReflex
   # bleibt der Monitor in set_over, wo die before_save-Invariante protocol_final sofort wieder
   # herbeizwingt.
   #
-  # ⚠️ `aasm.fire!(:undo)` und NICHT `@table_monitor.undo`: letzteres ist eine eigene Methode
-  # (`table_monitor.rb:1482`), die das gleichnamige AASM-Ereignis UEBERSCHATTET und die letzte
-  # EINGABE zuruecknimmt. Am Display belegt (2026-09-23): der Zustand blieb set_over, und
-  # playera.result fiel von 21 auf 20. `aasm.fire!` spricht die Zustandsmaschine direkt an und
-  # bleibt auch dann richtig, wenn jemand spaeter die Bang-Variante ebenfalls ueberschattet.
-  # Test T6b haelt die Falle fest.
+  # `aasm.fire!(:undo)` spricht die Zustandsmaschine direkt an. Bis Plan 32-01 ueberdeckte eine
+  # Modell-Methode `undo` (heute `undo_last_input`) das gleichnamige AASM-Ereignis — am Display belegt
+  # (2026-09-23): der Zustand blieb set_over, und playera.result fiel von 21 auf 20. `aasm.fire!`
+  # bleibt auch richtig, falls je wieder etwas den Namen ueberdeckt.
   #
   # ⚠️ Kein Setzen von `panel_state`. Die Invariante (`table_monitor.rb:662-668`) setzt
   # protocol_final auf pointer_mode, SOBALD set_over verlassen ist. Ein eigenes Setzen bliebe
@@ -78,16 +76,15 @@ class GameProtocolReflex < ApplicationReflex
     #    ausgeloest, BEVOR der Editor aufging. Der Zustandswechsel allein stellt diesen Moment
     #    getreu wieder her; nur ist der Moment selbst falsch, und der Spieler, der sich vertippt
     #    hat, waere nicht mehr am Zug (Betreiber am Display, 2026-09-23).
-    #    Hier ist `@table_monitor.undo` RICHTIG — es ist die Eingabe-Ruecknahme, dieselbe, die
-    #    der Knopf am Scoreboard ausloest.
+    #    `undo_last_input` ist die Eingabe-Ruecknahme, dieselbe, die der Knopf am Scoreboard ausloest.
     #
-    #    ⚠️ Abgesichert: `TableMonitor#undo` schluckt Fehler NUR in production
-    #    (`table_monitor.rb:1549`: `raise StandardError unless Rails.env == "production"`).
+    #    ⚠️ Abgesichert: `undo_last_input` schluckt Fehler NUR in production
+    #    (`raise StandardError unless Rails.env == "production"`).
     #    Auf einem Entwicklungsserver wirft es. Scheitert es, soll der Betreiber trotzdem im
     #    Spiel stehen statt wieder im Editor festzusitzen — der Zustandswechsel oben ist dann
     #    schon persistiert, und die Eingabe laesst sich am Scoreboard von Hand zuruecknehmen.
     begin
-      @table_monitor.undo
+      @table_monitor.undo_last_input
       @table_monitor.save
     rescue => e
       Rails.logger.error "[GameProtocolReflex#back_to_game] tm[#{@table_monitor.id}] " \
@@ -432,7 +429,7 @@ class GameProtocolReflex < ApplicationReflex
   #   2. Zustand set_over -> playing — wie in 27 ueber `aasm.fire!(:undo)`,
   #   3. die letzte Eingabe zurueck ueber `score_engine.undo_hash`.
   #
-  # ⚠️ In Schritt 3 NICHT `@table_monitor.undo`: dessen Satzspiel-Zweig (`table_monitor.rb`,
+  # ⚠️ In Schritt 3 NICHT `undo_last_input`: dessen Satzspiel-Zweig (`table_monitor.rb`,
   # `simple_set_game? && data["sets"].present?`) rollt per PaperTrail bis zum vorigen
   # switch_to_next_set zurueck und verwuerfe den ganzen laufenden Frame. Gewollt ist nur die
   # Eingabe, die den Frame beendet hat (Betreiber-Festlegung aus 27, Satzspiele: 2026-10-23).

@@ -187,6 +187,46 @@ class TableMonitorCharTest < ActiveSupport::TestCase
     assert tm.playing?
   end
 
+  # Plan 32-01: Eingabe-Ruecknahme am TableMonitor (frueher `undo`, das gleichnamige AASM-Ereignis
+  # ueberdeckend). Karambol, offene Aufnahme von A mit 5 Punkten — ein Schritt zurueck nimmt einen Punkt.
+  def tm_with_open_inning(state)
+    TableMonitor.create!(state: state, data: {
+      "free_game_form" => "karambol",
+      "playera" => {"result" => 10, "innings" => 2, "innings_list" => [6, 4], "innings_redo_list" => [5],
+                    "innings_foul_list" => [0, 0], "innings_foul_redo_list" => [0], "balls_goal" => 50},
+      "playerb" => {"result" => 3, "innings" => 2, "innings_list" => [1, 2], "innings_redo_list" => [0],
+                    "innings_foul_list" => [0, 0], "innings_foul_redo_list" => [0], "balls_goal" => 50},
+      "current_inning" => {"active_player" => "playera", "balls" => 5}
+    })
+  end
+
+  test "Eingabe-Ruecknahme nimmt in der offenen Aufnahme einen Punkt zurueck" do
+    tm = tm_with_open_inning("playing")
+    tm.suppress_broadcast = true
+    tm.undo_last_input
+    tm.reload
+    assert_equal 4, tm.data["playera"]["innings_redo_list"].last, "ein Punkt der offenen Aufnahme zurueck"
+    assert_equal "playera", tm.data["current_inning"]["active_player"]
+    assert_equal "playing", tm.state
+  end
+
+  test "undo ist wieder das AASM-Ereignis: Zustand zurueck, Eingabe bleibt" do
+    tm = tm_with_open_inning("set_over")
+    tm.suppress_broadcast = true
+    tm.undo
+    assert_equal "playing", tm.state, "undo wechselt set_over -> playing"
+    assert_equal 5, tm.data["playera"]["innings_redo_list"].last, "und nimmt KEINE Eingabe zurueck"
+  end
+
+  test "niemand ruft die Eingabe-Ruecknahme mehr unter dem Namen undo auf" do
+    # Bis Plan 32-01 hiess undo_last_input `undo` und ueberdeckte das AASM-Ereignis. Ein Aufruf
+    # `<monitor>.undo` am Zeilenende waere heute der Zustandswechsel — fast sicher ein Versehen.
+    hits = Dir[Rails.root.join("app/**/*.rb")].flat_map do |f|
+      File.readlines(f).each_with_index.filter_map { |l, i| "#{f.sub(Rails.root.to_s + "/", "")}:#{i + 1}" if l.match?(/(@table_monitor|\btm|\btable_monitor)\.undo\s*$/) }
+    end
+    assert_empty hits, "Eingabe-Ruecknahme heisst undo_last_input"
+  end
+
   # ===========================================================================
   # B. after_enter Callback Tests
   # ===========================================================================

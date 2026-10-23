@@ -316,6 +316,28 @@ class TournamentMonitor::ResultProcessorTest < ActiveSupport::TestCase
     end
   end
 
+  # Plan 32-02: die Methode schreibt, was man ihr GIBT — ein abweichender Schnappschuss
+  # (game.data["tmp_results"]) ueberstimmt das uebergebene data nicht mehr still.
+  test "32-02: update_game_participations_for_game schreibt das uebergebene data, nicht den Schnappschuss" do
+    game = local_game_with_participations!(32)
+    game.deep_merge_data!("tmp_results" => {
+      "playera" => {"result" => 30, "innings" => 10, "balls_goal" => 30, "hs" => 9},
+      "playerb" => {"result" => 30, "innings" => 10, "balls_goal" => 30, "hs" => 9}
+    })
+    game.save!
+    data = {
+      "playera" => {"result" => 29, "innings" => 10, "balls_goal" => 30, "hs" => 8},
+      "playerb" => {"result" => 30, "innings" => 10, "balls_goal" => 30, "hs" => 6}
+    }
+
+    @processor.send(:update_game_participations_for_game, game.reload, data)
+
+    gpa = game.game_participations.where(role: "playera").first.reload
+    gpb = game.game_participations.where(role: "playerb").first.reload
+    assert_equal [29, 8, 0], [gpa.result, gpa.hs, gpa.points], "Werte aus data, nicht aus dem Schnappschuss (30:30)"
+    assert_equal [30, 6, 2], [gpb.result, gpb.hs, gpb.points]
+  end
+
   # ============================================================================
   # Test 6: write_game_result_data is private (not public)
   # ============================================================================

@@ -158,13 +158,13 @@ class GameProtocolConfirmButtonTest < ActionDispatch::IntegrationTest
       "Der Reflex laedt den Monitor ueber data-id"
 
     # ⚠️ Spec-Korrektur 2026-09-23: NICHT auf table-monitor#undo verdrahten. Das ruft
-    # TableMonitor#undo (table_monitor.rb:1482) — eine eigene Methode, die das gleichnamige
-    # AASM-Ereignis UEBERSCHATTET und die letzte EINGABE zurueticknimmt statt des Zustands.
+    # TableMonitor#undo_last_input — die letzte EINGABE zurueck statt des Zustands (bis Plan 32-01
+    # hiess die Methode `undo` und ueberdeckte das gleichnamige AASM-Ereignis).
     # Am Display belegt: state blieb set_over, playera.result fiel von 21 auf 20.
     refute doc.at_css("[data-action='click->table-monitor#undo']"),
       "table-monitor#undo ist das Eingabe-Undo, nicht der Rueckweg ins Spiel. Diese Zeile ist " \
       "die einzige automatische Wache gegen den Fehler, der am 2026-09-23 eine Runde gekostet " \
-      "hat — ein Test der Methode selbst scheitert an der Fixture (TableMonitor#undo braucht " \
+      "hat — ein Test der Methode selbst scheitert an der Fixture (undo_last_input braucht " \
       "current_inning und PaperTrail-Versionen)."
   end
 
@@ -217,8 +217,8 @@ class GameProtocolConfirmButtonTest < ActionDispatch::IntegrationTest
   #
   # Diese Pruefung fehlte in der ersten Fassung von Plan 27-01, und genau deshalb war der
   # erste Entwurf gruen und funktionierte trotzdem nicht: er pruefte nur Markup. Verdrahtet
-  # war er auf TableMonitor#undo — die ueberschattende Methode, die die letzte Eingabe
-  # zuruecknimmt. Der Zustand blieb set_over, die before_save-Invariante zwang
+  # war er auf TableMonitor#undo — damals die ueberdeckende Methode (heute undo_last_input), die
+  # die letzte Eingabe zuruecknimmt. Der Zustand blieb set_over, die before_save-Invariante zwang
   # protocol_final sofort wieder herbei, der Editor sprang zurueck.
   # ---------------------------------------------------------------
   test "T6: der Rueckweg bringt den Monitor nach playing und gibt das Panel frei" do
@@ -243,10 +243,9 @@ class GameProtocolConfirmButtonTest < ActionDispatch::IntegrationTest
       "verlassen ist — der Reflex muss daran nicht drehen"
 
     # ⚠️ GRENZE DIESES TESTS: geprueft ist hier nur der ZUSTANDSWECHSEL. Der Reflex nimmt
-    # zusaetzlich die letzte Eingabe zurueck (`@table_monitor.undo`) — das laesst sich mit
-    # dieser schlanken Fixture nicht pruefen: `TableMonitor#undo` (:1482) braucht
-    # `data["current_inning"]` und PaperTrail-Versionen und wirft sonst ausserhalb von
-    # production (:1549). Diese Haelfte ist am Display belegt (Betreiber, 2026-09-23) und im
+    # zusaetzlich die letzte Eingabe zurueck (`undo_last_input`) — das laesst sich mit
+    # dieser schlanken Fixture nicht pruefen: die Methode braucht `data["current_inning"]`
+    # und wirft sonst ausserhalb von production. Charakterisiert in table_monitor_char_test.rb. Diese Haelfte ist am Display belegt (Betreiber, 2026-09-23) und im
     # Reflex gegen Fehlschlag abgesichert.
   end
 

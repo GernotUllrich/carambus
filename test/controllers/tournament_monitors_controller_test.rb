@@ -518,6 +518,114 @@ class TournamentMonitorsControllerTest < ActionDispatch::IntegrationTest
       "ba_results traegt den korrigierten Stand — sonst gehen ClubCloud und lokale DB auseinander"
   end
 
+  # ---------------------------------------------------------------------------
+  # Plan 32-02: Charakterisierung der drei Schreibwege auf game_participations, bevor die
+  # Vorrangregel (update_game_participations_for_game bevorzugt game.data["tmp_results"])
+  # an die Aufrufstellen wandert. Weg 2 (Korrektur am Tisch) und Weg 3 (abgeloest) mit einem
+  # Satz halten schon die Tests 26-01 und 24-01 fest; hier kommen Weg 1 und mehrere Saetze dazu.
+  # ---------------------------------------------------------------------------
+
+  def gp_werte(game)
+    %w[playera playerb].map do |r|
+      g = game.game_participations.where(role: r).first.reload
+      [g.result, g.innings, g.hs, g.points]
+    end
+  end
+
+  test "32-02 Weg 1: Spielende am Tisch schreibt die Werte des Monitors in die Beteiligungen" do
+    @tournament_monitor.update!(data: {"current_round" => 1})
+    game, tm = spiel_am_tisch_mit_schnappschuss!(id: 66_000_200, a: 30, b: 30)
+    game.deep_merge_data!("tmp_results" => nil) # Spielende: es gibt noch keinen Schnappschuss
+    game.save!
+    tm.update!(data: tm.data.merge("playera" => tm.data["playera"].merge("result" => 30, "innings" => 12, "hs" => 7),
+      "playerb" => tm.data["playerb"].merge("result" => 22, "innings" => 12, "hs" => 4),
+      "ba_results" => {"Ergebnis1" => 30, "Ergebnis2" => 22, "Aufnahmen1" => 12, "Aufnahmen2" => 12,
+                       "Höchstserie1" => 7, "Höchstserie2" => 4, "Sets1" => 1, "Sets2" => 0}))
+    processor = TournamentMonitor::ResultProcessor.new(@tournament_monitor)
+    processor.send(:write_game_result_data, tm.reload)
+    processor.send(:finalize_game_result, tm)
+
+    assert_equal [[30, 12, 7, 2], [22, 12, 4, 0]], gp_werte(game.reload)
+  end
+
+  def mehrsatz!
+    @tournament_monitor.update!(sets_to_play: 3, sets_to_win: 2, data: {"current_round" => 1})
+  end
+
+  def korrektur!(game, a:, b:, sets_a:, sets_b:, innings: 10, hs: 5)
+    post update_games_tournament_monitor_url(@tournament_monitor), params: {
+      "game_id" => [game.id.to_s], "resulta" => [a.to_s], "resultb" => [b.to_s],
+      "inningsa" => [innings.to_s], "inningsb" => [innings.to_s], "hsa" => [hs.to_s], "hsb" => [hs.to_s],
+      "setsa" => [sets_a.to_s], "setsb" => [sets_b.to_s]
+    }
+  end
+
+  def gp_saetze(game)
+    %w[playera playerb].map { |r| game.game_participations.where(role: r).first.reload.sets }
+  end
+
+  # Plan 32-03 (vorher 32-02-Charakterisierung "Korrektur bleibt still aus"): bei mehreren Saetzen
+  # kommt eine Korrektur aus Satzstand und Summen an — Beteiligungen, Schnappschuss, ba_results.
+  test "32-03 Weg 3 mehrsaetzig: Korrektur an einem abgeloesten Spiel kommt an" do
+    mehrsatz!
+    game = abgeloestes_spiel_mit_schnappschuss!(id: 66_000_201, a: 45, b: 40)
+    korrektur!(game, a: 40, b: 45, sets_a: 1, sets_b: 2, innings: 30, hs: 9)
+
+    assert_response :redirect
+    assert_equal [[40, 30, 9, 0], [45, 30, 9, 2]], gp_werte(game), "Summen und Punkte aus dem Satzstand 1:2"
+    assert_equal [1, 2], gp_saetze(game)
+    game.reload
+    assert_equal [1, 2, 40, 45], game.data["ba_results"].values_at("Sets1", "Sets2", "Ergebnis1", "Ergebnis2")
+    assert_equal [1, 2], game.data.dig("tmp_results", "ba_results").values_at("Sets1", "Sets2"),
+      "der Schnappschuss traegt den Satzstand — sonst wirft der Mehrsatz-Zweig der Beteiligungen"
+  end
+
+  test "32-03 Weg 2 mehrsaetzig: Korrektur an einem Spiel am Tisch kommt an, auch im Tisch-ba_results" do
+    mehrsatz!
+    game, tm = spiel_am_tisch_mit_schnappschuss!(id: 66_000_202, a: 45, b: 40)
+    korrektur!(game, a: 40, b: 45, sets_a: 1, sets_b: 2, innings: 30, hs: 9)
+
+    assert_response :redirect
+    assert_equal [[40, 30, 9, 0], [45, 30, 9, 2]], gp_werte(game)
+    assert_equal [1, 2], gp_saetze(game)
+    assert_equal [1, 2], tm.reload.data["ba_results"].values_at("Sets1", "Sets2"),
+      "der CC-Upload liest table_monitor.data[\"ba_results\"] zuerst"
+  end
+
+  test "32-03: ein unmoeglicher Satzstand wird mit Meldung abgelehnt, nicht still" do
+    mehrsatz!
+    game = abgeloestes_spiel_mit_schnappschuss!(id: 66_000_210, a: 45, b: 40)
+    [[2, 2], [3, 0], [1, 1]].each do |sa, sb|
+      korrektur!(game, a: 40, b: 45, sets_a: sa, sets_b: sb)
+      assert_equal [45, 40], gp_werte(game).map(&:first), "#{sa}:#{sb}: nichts geschrieben"
+      assert_match(/Nicht übernommen/, flash[:alert].to_s, "#{sa}:#{sb}: Meldung statt Stille")
+      assert_match(/group1:1/, flash[:alert].to_s, "die Meldung nennt die Partie")
+    end
+  end
+
+  test "32-03: bei mehreren Saetzen zeigt die Satzspalte den Satzstand und bietet Felder an" do
+    mit_lokaler_meldung!
+    mehrsatz!
+    game = abgeloestes_spiel_mit_schnappschuss!(id: 66_000_220, a: 45, b: 40)
+    game.game_participations.where(role: "playera").first.update!(sets: 2, points: 2)
+    get tournament_monitor_url(@tournament_monitor)
+    assert_response :success
+    doc = Nokogiri::HTML(response.body)
+    assert doc.at_css("input[name='setsa[]'][value='2']"), "Satzstand als Eingabe (vorher stand hier gp.points)"
+    assert doc.at_css("input[name='setsb[]']")
+  end
+
+  test "32-03: bei einem Satz gibt es keine Satzfelder" do
+    mit_lokaler_meldung!
+    @tournament_monitor.update!(data: {"current_round" => 1})
+    game = abgeloestes_spiel_mit_schnappschuss!(id: 66_000_221, a: 30, b: 29)
+    get tournament_monitor_url(@tournament_monitor)
+    assert_response :success
+    doc = Nokogiri::HTML(response.body)
+    assert doc.at_css("input[name='game_id[]'][value='#{game.id}']"), "VORBEDINGUNG: das Spiel ist editierbar"
+    refute doc.at_css("input[name='setsa[]']"), "Einsatz-Turnier unveraendert"
+  end
+
   # Nachbesserung 2026-09-23, vom Betreiber gemeldet: "Runde abschliessen" sass in der
   # Statuszeile ganz oben (_round_status), die Ergebnisfelder 50 Zeilen weiter unten in
   # _game_results. `button_to` erzeugt ein EIGENES <form> — wer oben klickte, verwarf still
