@@ -76,10 +76,16 @@ class League < ApplicationRecord
   # Pool und "Oberliga" Snooker derselben NBV-Saison sind zwei Ligen, ebenso "Oberliga" Karambol
   # gross/klein (gemessen: 384 Altbestands-Records in 157 solchen Gruppen). NuLiga::Importer umgeht
   # den zu engen Scope bis heute, indem es die Sparte an den Namen haengt.
-  validates :name, uniqueness: {
-    scope: [:season_id, :organizer_id, :organizer_type, :staffel_text, :discipline_id],
-    message: "must be unique within the same region, season, and staffel"
-  }, if: -> { organizer_type == 'Region' && cc_id.blank? }
+  # DIE PRUEFUNG MUSS DAS ROHE ATTRIBUT LESEN, deshalb `validate` statt `validates ... uniqueness:`:
+  # `League#name` (s.u.) haengt `staffel_text` an den Spaltenwert an, und der Uniqueness-Validator
+  # liest seinen Wert ueber `read_attribute_for_validation`, also ueber genau diese ueberschriebene
+  # Methode. Er suchte damit nach `name = 'Oberliga Staffel A'`, waehrend in der Spalte 'Oberliga'
+  # steht — sobald `staffel_text` gesetzt war, konnte die Regel keine Dublette mehr finden.
+  # Gemessen 2026-08-16 auf carambus_api_development: 48 Dubletten-Records in 23 Gruppen, von denen
+  # die alte Regel nur die 18 mit leerem `staffel_text` meldete.
+  UNIQUE_NAME_SCOPE = %i[season_id organizer_id organizer_type staffel_text discipline_id].freeze
+
+  validate :name_unique_within_scope, if: -> { organizer_type == 'Region' && cc_id.blank? }
 
   DBU_ID = Region.find_by_shortname("DBU")&.id.freeze
 
@@ -557,6 +563,32 @@ class League < ApplicationRecord
   end
 
   private
+
+  # Ersetzt die frueher hier stehende `validates :name, uniqueness:` (Begruendung oben bei der
+  # Deklaration). Zwei Abweichungen vom Rails-Validator, beide bewusst:
+  #
+  # 1. `read_attribute(:name)` statt `name` — das ist der eigentliche Fix.
+  # 2. GRANDFATHERING PER DIRTY-GATE statt `on: :create`: die 48 Altbestands-Dubletten stammen
+  #    ausnahmslos aus dem einmaligen BillardArea-Import 2022 (`source_kind == "ba"`, Saisons
+  #    2009/10-2020/21, ueberwiegend CC-Platzhalter wie "Neue Liga"/"Neue Staffel") und lassen sich
+  #    nicht aufloesen, ohne globale Records zu verschmelzen. Ohne Ausnahme kippt jeder Massenlauf
+  #    ueber Ligen an ihnen — derselbe Effekt, der die `shortname`-Regel auf `on: :create`
+  #    gezwungen hat. `on: :create` waere hier aber zu schwach: Ligen werden fast nur per
+  #    Scrape/Importer *aktualisiert*, und NuLiga::Importer schreibt dabei am Namen (haengt die
+  #    Sparte an). Eine reine Create-Regel liesse neue Dubletten per Update entstehen. Das
+  #    Dirty-Gate laesst den Altbestand unveraendert passieren, prueft aber jedes Schreiben, das
+  #    `name` oder den Scope tatsaechlich anfasst.
+  def name_unique_within_scope
+    return unless new_record? ||
+      (UNIQUE_NAME_SCOPE + [:name]).any? { |attr| will_save_change_to_attribute?(attr) }
+
+    duplicates = League.where(name: read_attribute(:name))
+      .where(UNIQUE_NAME_SCOPE.index_with { |attr| read_attribute(attr) })
+    duplicates = duplicates.where.not(id: id) if persisted?
+    return unless duplicates.exists?
+
+    errors.add(:name, "must be unique within the same region, season, and staffel")
+  end
 
   # Thin private delegation for characterization tests that call this via .send
   def analyze_game_plan_structure(party, game_plan, disciplines)
