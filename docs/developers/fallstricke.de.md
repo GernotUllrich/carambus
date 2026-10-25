@@ -211,6 +211,45 @@ Baum. Wer das für Erfolg hält, committet nichts und merkt es nicht.
 **Ausweg:** `git stash list | wc -l` als Kontrollgröße vor und nach dem Commit; bei Merges
 `OVERCOMMIT_DISABLE=1` setzen und Lint sowie Tests von Hand fahren. Niemals blind `stash pop`.
 
+### `hostname -s` ist auf macOS der Netzname, nicht der Rechnername
+
+`hostname` liefert, was DHCP und Reverse-DNS des aktuellen Netzes bereitstellen, und `-s`
+schneidet am ersten Punkt ab. Im gewohnten Netz ergibt das einen plausiblen Namen — im fremden
+ein IP-Bruchstück:
+
+```bash
+# Heimnetz: der Router liefert einen DNS-Namen
+hostname       # <rechner>.<router-domain>
+hostname -s    # <rechner>           ← plausibel, jahrelang unauffällig
+
+# Fremdes WLAN: der Router liefert nur die DHCP-Adresse
+hostname       # 10.0.0.x
+hostname -s    # 10                  ← IP-Bruchstück als „Rechnername"
+```
+
+Gemessen am 2026-10-25 in `carambus_state`, wo dieser Name die **Identität** des Rechners ist
+(Betreff jedes Schnappschusses, Name des Vault-Fingerabdrucks, Grundlage der Richtungsfrage):
+der Schnappschuss hieß `state: 10 2026-10-25 03:37`, es entstand ein dritter
+Vault-Fingerabdruck `vaults/10.txt` mit 960 Zeilen, und die Richtungszeile meldete **den eigenen
+Rechner als fremd** — mit dem Rat, die eigene lebende `.paul` aus dem Repo zu überschreiben.
+Kein Fehler, keine Meldung, nur ein Rat, der Arbeit vernichtet.
+
+**Ausweg:** einen statischen Namen setzen, einmal je Rechner — danach liefert `hostname -s` in
+jedem Netz denselben Namen:
+
+```bash
+sudo scutil --set HostName <name>
+```
+
+Netzunabhängig lesbar sind außerdem `scutil --get LocalHostName` und `--get ComputerName`
+(letzterer mit Leerzeichen, also vor der Verwendung als Dateiname zu säubern).
+
+⚠️ **Die allgemeine Lehre: Identität nie aus dem Netz ableiten.** Wo ein Name über Besitz,
+Richtung oder Dateinamen entscheidet, gehört eine Plausibilitätsprüfung davor — leer oder mit
+einer Ziffer beginnend ist kein Rechnername. So macht es jetzt die Funktion `rechnername` in
+`carambus_state/bin/carambus-state`: sie weicht auf die `scutil`-Namen aus **und sagt es laut**,
+statt stillschweigend weiterzulaufen.
+
 ---
 
 ## Rails und Anwendungscode
