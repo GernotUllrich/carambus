@@ -266,7 +266,17 @@ einmal Schaden angerichtet. Der Blast-Radius steht im Task-Header und wird zur L
 **Ausnahme: `carambus:update_ranking_tables`** schreibt sofort und läuft ohne `REGIONS=`/`SEASONS=` über
 alle Regionen und Saisons — immer eingrenzen, z. B. `REGIONS=TBV SEASONS=2026/2027`.
 
-`carambus:update_ranking_tables` steht bewusst **nicht** im Cron.
+`carambus:update_ranking_tables` steht bewusst **nicht** im Cron — und zwar aus einem fachlichen
+Grund, nicht aus Bequemlichkeit: **PlayerRankings sind die Jahresabschlussrangliste einer Saison**
+und ergeben erst nach deren Ende Sinn. Dass die laufende Saison keine Ranglisten hat, ist richtig
+und kein Rückstand; ein nächtlicher Lauf würde eine Saison ohne Ergebnis aggregieren. Konsument ist
+`PlayerClassCalculator`, der ausschließlich die **zwei abgeschlossenen Vorsaisons** liest
+(STO-BTK §1.4.4, Jahresabschlussrangliste) — eine Rangliste der laufenden Saison würde er nie
+anfassen. Der Lauf gehört also an das Saisonende, mit explizitem `REGIONS=`/`SEASONS=`.
+
+Seit Plan 54-01 meldet der Task am Ende, wieviele Zeilen er geschrieben hat und wieviele Fehler
+auftraten; bei Fehlern endet er mit **Exit-Code != 0** und nennt je Fehler Saison, Region,
+Disziplin und Turnier. Vorher verschluckte er jede Exception und meldete Erfolg.
 
 ## Bekannte Fallstricke
 

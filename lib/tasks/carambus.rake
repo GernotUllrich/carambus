@@ -803,6 +803,14 @@ namespace :carambus do
     only_regions = ENV["REGIONS"].to_s.split(",").map(&:strip).reject(&:empty?)
     only_seasons = ENV["SEASONS"].to_s.split(",").map(&:strip).reject(&:empty?)
 
+    # Fehlersichtbarkeit (Plan 54-01). Die Rangliste ist eine Jahresabschlussrangliste und
+    # wird daher einmal pro Saisonende gebaut -- ein stiller Fehlschlag wiederholt sich nie
+    # und faellt deshalb nie auf. Das Ergebnis bestimmt ueber PlayerClassCalculator
+    # (STO-BTK 1.4.4) die Spielklassen der Folgesaison. Fehler werden gezaehlt, benannt und
+    # ueber den Exit-Code gemeldet.
+    errors = []
+    written = 0
+
     Season.order(id: :asc).each do |season|
       next if only_seasons.any? && only_seasons.exclude?(season.name)
 
@@ -868,7 +876,12 @@ namespace :carambus do
               end
             end
           rescue => e
-            e
+            # Bewusst weiterlaufen: ein defektes Turnier darf den Saisonabschluss nicht kippen.
+            # Aber es muss benannt werden -- vorher stand hier `e`, der Fehler war damit ein
+            # Rueckgabewert und der Task endete mit Exit-Code 0.
+            errors << "#{season.name} / #{region.shortname} / #{discipline.name} / " \
+                      "Turnier #{tournament.id}: #{e.class}: #{e.message}"
+            warn "FEHLER #{errors.last}"
           end
           players.keys.select do |player_id|
             values = players[player_id]
@@ -899,12 +912,16 @@ namespace :carambus do
             attributes[:rank] = ix + 1
             attributes[:gd] = attributes[:balls].to_f / attributes[:innings].to_f if attributes[:innings].present?
             player_ranking.update(attributes)
+            written += 1
           end
         end
       end
     end
-  rescue => e
-    e
+
+    # Kein aeusserer `rescue => e; e` mehr: ein Fehler, der die Schleifen selbst trifft, darf
+    # nicht als Erfolg aussehen -- er bricht den Task jetzt ab.
+    puts "update_ranking_tables: #{written} Ranglisten-Zeilen geschrieben, #{errors.size} Fehler"
+    abort("update_ranking_tables: #{errors.size} Fehler (siehe FEHLER-Zeilen oben)") if errors.any?
   end
 
   desc "generate locations"
