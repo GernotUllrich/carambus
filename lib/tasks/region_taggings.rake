@@ -478,6 +478,17 @@ namespace :region_taggings do
       [Player, Player.where(id: player_ids)],
       [Club, Club.where(id: participations.select(:club_id))],
       [SeasonParticipation, participations],
+      # Plan 55-01: Jahresabschlussranglisten der DBU. Betreiber-Regel (2026-10-25): regionale
+      # Ranglisten interessieren nur ihre Region, ueberregionale ueberall -- an einer Deutschen
+      # Meisterschaft treten Spieler aus allen Regionen an. Gemessen trugen sie region_id = DBU
+      # mit global_context = false und erreichten damit keine Instanz (es gibt keinen
+      # DBU-Server). Der Setzlisten-Pfad der App liest sie lokal:
+      # RankingQuery.players filtert PlayerRanking.where(region_id:).
+      #
+      # Position: NACH Player -- die Liste ist die Apply-Reihenfolge auf dem Local Server
+      # (niedrigere Version-id zuerst), und eine Rangliste zeigt auf einen Spieler, den es
+      # dort schon geben muss. Kein eigener Scope ueber Kinder: PlayerRanking hat keine.
+      [PlayerRanking, PlayerRanking.where(region_id: dbu.id)],
       [GamePlan, GamePlan.where(id: League.where(id: lids).select(:game_plan_id))],
       [Tournament, Tournament.where(id: tids)],
       [League, League.where(id: lids)],

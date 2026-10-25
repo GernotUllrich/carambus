@@ -899,8 +899,26 @@ namespace :carambus do
               discipline_id: discipline.id
             }
             values = players[player_id]
+
+            # Plan 55-01: Ranglisten einer DACHORGANISATION (heute DBU) sind ueberregional --
+            # an einer Deutschen Meisterschaft treten Spieler aus allen Regionen an. Ihre
+            # Versionen muessen `global_context = true` tragen, sonst liefert der Sync-Filter
+            # (`region_id IS NULL OR region_id = ? OR global_context = TRUE`) sie nur an eine
+            # Instanz mit Kontext DBU -- und die gibt es nicht.
+            #
+            # Der Stempel gehoert HIERHER, weil local_protector.rb den Wert UNVERAENDERT aus der
+            # Spalte in die Version uebernimmt. Genau dieses Vergessen ist belegt:
+            # region_taggings.rake:438 -- "Seit 2025 setzte niemand mehr global_context fuer neue
+            # DBU-Veranstaltungen".
+            #
+            # NICHT in `args`: das ist der Suchschluessel (Zeile oben). Ein Stempel darin wuerde
+            # bestehende Zeilen mit `false` nicht mehr finden und Dubletten anlegen. Beim Create
+            # wird er dagegen mitgegeben, damit eine neue Zeile nicht erst falsch entsteht und
+            # eine zweite Version zur Korrektur braucht.
+            global_ranking = Region::SHORTNAMES_ROOF_ORGANIZATION.include?(region.shortname)
+
             player_ranking = PlayerRanking.where(args).first
-            player_ranking ||= PlayerRanking.create(args)
+            player_ranking ||= PlayerRanking.create(args.merge(global_context: global_ranking))
             data = player_ranking.remarks
             data["result"] = values
             attributes = {}
@@ -911,6 +929,7 @@ namespace :carambus do
             attributes[:remarks] = data
             attributes[:rank] = ix + 1
             attributes[:gd] = attributes[:balls].to_f / attributes[:innings].to_f if attributes[:innings].present?
+            attributes[:global_context] = global_ranking
             player_ranking.update(attributes)
             written += 1
           end
