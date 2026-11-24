@@ -456,6 +456,19 @@ Auflösung: `ssh -G` gegen `awk`, `find` gegen `ls`, `lsof` gegen `pgrep`.
 Suche über etwas **Vermutetes**. `pgrep` verlangt einen geratenen Prozessnamen; `lsof` bekommt
 den Pfad, den man bereits in der Hand hält.
 
+### Eine Waisen-Abfrage zählt leere Verweise mit
+
+`NOT EXISTS (SELECT 1 FROM parties p WHERE p.id = s.tournament_id)` ist auch wahr, wenn
+`s.tournament_id` NULL ist, denn `NULL = x` ist nie wahr. Nach dem Dubletten-Purge vom
+2026-11-24 meldete die Prüfung deshalb „435 Partie-Seedings ohne Partie“. Tatsächlich waren es
+BLVSA-Mannschaftskader aus 2022 bis 2024 mit `tournament_type = 'Party'` und ohne `tournament_id`.
+Dort fehlte nichts. Auch der Abgleich mit den Löschversionen des Laufs (0 Treffer) hat das nicht
+aufgedeckt, sondern nur belegt, dass es kein neuer Schaden war. Aufgefallen ist es erst beim
+Blick auf die Datensätze selbst.
+
+**Ausweg:** In jeder Waisen-Abfrage `AND s.ref IS NOT NULL` ergänzen. Bevor man Waisen meldet,
+ein paar davon ansehen, nicht nur zählen.
+
 ### Zwei abweichende Zählungen desselben Dings sind ein Befund
 
 Kein Rundungsfehler, keine Ungenauigkeit — ein Hinweis auf einen Fehler in einer der beiden
