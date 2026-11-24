@@ -12,9 +12,7 @@ class League::SeriesTable
   NOTES = [
     ["BVS", /\ANeue Liga\z/, "Platzhalter aus der Quelle"],
     ["BLVN", /\AJugend-Mannschaft\z/, "Staffel „Weserbergland A/B“ — eigene Reihe, nur zur Kontrolle"],
-    ["BVS", /\AKreisliga [AB]\z/, "Staffel im Namen; die Reihe „Kreisliga“ führt keine Staffel A/B"],
-    ["BVW", /\AWPBV (Bezirks|Kreis|Landes)liga\z/, "Staffel-Kürzel BL-/KL-/LL-1 neben „Staffel 1“ bzw. „- 1“ — gleiche Staffeln?"],
-    ["BVW", /\ABVW .+ [AB] (Freie Partie|Dreiband|Zweikampf)\z/, "Staffel steht vor der Disziplin im Namen — gehört zur Reihe ohne Buchstaben"],
+    ["BVW", /\ABVW Kreisliga [AB] Freie Partie\z/, "Staffel im Namen; die Reihe „BVW Kreisliga Freie Partie“ hat ab 2022/23 nur eine Liga ohne Staffel"],
     ["BBV", /\ABayernpokal\z/, "Rundennummer: „2 Achtelfinale“ neben „Achtelfinale“"]
   ].freeze
 

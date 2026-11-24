@@ -43,6 +43,10 @@ class League::SeriesUnifier
     # die Reihe führte bis 2025/26 [West]/[Ost]. Eigene Staffeln (Teams teils gewechselt); ab jetzt führt die
     # Reihe sie, spätere CC-Anlagen erkennt die Regel „Staffel im Namen“ von selbst.
     10123 => ["Landesliga", "Nord-West"], 10124 => ["Landesliga", "Süd-Ost"],
+    # BVS Kreisliga Pool 2026/27: dasselbe Muster („Kreisliga A“/„Kreisliga B“), bis 2025/26 ohne Staffel.
+    10216 => ["Kreisliga", "A"], 10217 => ["Kreisliga", "B"],
+    # BVW WPBV Bezirksliga 2021/22: CC [A]/[B] = BA [BL-1]/[BL-2] (identische Teams) — Doppelanlage für den Purge.
+    9270 => ["WPBV Bezirksliga", "Staffel 1"], 9271 => ["WPBV Bezirksliga", "Staffel 2"],
     # SBV Kegel: „Oberliga Eurokegel“ (BA 2018–2022, CC 2021/22 „(Staffel A)“) = „Eurokegel-Oberliga“ (CC ab
     # 2022/23), dieselben Teams; nur die Wortstellung unterscheidet sich.
     6011 => ["Eurokegel-Oberliga", nil], 5846 => ["Eurokegel-Oberliga", nil], 5684 => ["Eurokegel-Oberliga", nil],
@@ -92,8 +96,11 @@ class League::SeriesUnifier
     # Oberdisziplin-Ligen der einzigen passenden Unterdisziplin-Reihe zuordnen, sonst eigene Reihe.
     subs = entries.reject { |e| e[:disc_id] == branch_id }.group_by { |e| e[:key] }
       .transform_values { |es| es.map { |e| e[:disc_id] }.uniq }
+    # Auch über die „Staffel im Namen“-Varianten des Schlüssels: „BVW Verbandsliga A Zweikampf“ (Karambol)
+    # gehört zur Reihe „BVW Verbandsliga Zweikampf“, die in „Karambol kleines Billard“ liegt.
     entries.each do |e|
-      e[:group] = (e[:disc_id] == branch_id && subs[e[:key]]&.size == 1) ? subs[e[:key]].first : e[:disc_id]
+      sub = ([e[:key]] + embedded_variants(e[:key])).map { |k| subs[k] }.find { |ds| ds&.size == 1 } if e[:disc_id] == branch_id
+      e[:group] = sub ? sub.first : e[:disc_id]
     end
 
     entries.group_by { |e| e[:group] }.values.flat_map do |es|
@@ -123,11 +130,9 @@ class League::SeriesUnifier
       movers = groups[key].select { |e| e[:skey].nil? }
       next if movers.empty?
 
-      target = groups.keys.select { |k| k != key && key.start_with?("#{k} ") }.sort_by(&:length).reverse
-        .find { |k| groups[k].any? { |e| e[:skey] == League.staffel_key(key.delete_prefix("#{k} "), @reg) } }
+      target, suffix, strip = embedded_target(groups, key)
       next unless target
 
-      suffix = key.delete_prefix("#{target} ")
       skey = League.staffel_key(suffix, @reg)
 
       # Nicht verschieben, wenn die Reihe die Staffel in derselben Saison schon führt UND die Liga
@@ -141,12 +146,49 @@ class League::SeriesUnifier
       end
 
       movers.each do |e|
-        e.merge!(skey: skey, embedded: true, base: strip_staffel(e[:base], suffix))
+        e.merge!(skey: skey, embedded: true, base: strip.call(e[:base]))
         groups[target] << e
       end
       groups[key] -= movers
       groups.delete(key) if groups[key].empty?
     end
+  end
+
+  # Schlüssel, zu denen `key` als „Staffel im Namen“ gehören könnte: alle Präfixe und `key` ohne ein
+  # einzelnes Zeichen in der Mitte. Dieselben Varianten, die embedded_target prüft.
+  def embedded_variants(key)
+    tokens = key.split
+    prefixes = (1...tokens.size).map { |n| tokens.first(n).join(" ") }
+    infixes = (1...tokens.size - 1).select { |i| tokens[i].match?(/\A[[:alnum:]]\z/) }
+      .map { |i| (tokens[0...i] + tokens[(i + 1)..]).join(" ") }
+    prefixes.reverse + infixes
+  end
+
+  # Ziel-Reihe für eine Staffel im Namen → [Zielschlüssel, Staffel-Teil, Lambda zum Entfernen aus dem Namen].
+  # 1. Am Ende: „Verbandsliga - Mitte“ → Reihe „verbandsliga“, längster passender Präfix zuerst.
+  # 2. Mitten im Namen, nur ein einzelnes Zeichen: „BVW Bezirksliga A Freie Partie“ (CC-Backfill 2021/22)
+  #    → Reihe „BVW Bezirksliga Freie Partie“ [A].
+  # Beides nur, wenn die Ziel-Reihe die Staffel tatsächlich führt.
+  def embedded_target(groups, key)
+    has_staffel = ->(k, part) { groups[k]&.any? { |e| e[:skey] == League.staffel_key(part, @reg) } }
+
+    prefix = groups.keys.select { |k| k != key && key.start_with?("#{k} ") }.sort_by(&:length).reverse
+      .find { |k| has_staffel.call(k, key.delete_prefix("#{k} ")) }
+    if prefix
+      suffix = key.delete_prefix("#{prefix} ")
+      return [prefix, suffix, ->(base) { strip_staffel(base, suffix) }]
+    end
+
+    tokens = key.split
+    (1...tokens.size - 1).each do |i|
+      next unless tokens[i].match?(/\A[[:alnum:]]\z/)
+
+      cand = (tokens[0...i] + tokens[(i + 1)..]).join(" ")
+      next unless has_staffel.call(cand, tokens[i])
+
+      return [cand, tokens[i], ->(base) { base.sub(/\s#{Regexp.escape(tokens[i])}(?=\s)/i, "") }]
+    end
+    nil
   end
 
   def plan_series(entries)

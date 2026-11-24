@@ -353,10 +353,11 @@ class League < ApplicationRecord
   end
 
   # Staffel-Schlüssel: BA schrieb "Staffel A", die CC schreibt "A"; eine führende 1 ist die implizite
-  # erste Staffel ("1 OH" = "OH"). Mit `region` (Region oder Kürzel) zusätzlich über expand_staffel.
+  # erste Staffel ("1 OH" = "OH"). Ligakürzel vor der Nummer entfallen (BVW/WPBV: "BL-1", "KL-2", "LL-1",
+  # "- 3" = "Staffel 1/2/3"). Mit `region` (Region oder Kürzel) zusätzlich über expand_staffel.
   def self.staffel_key(staffel, region = nil)
     expand_staffel(staffel, region).to_s.downcase.sub(/\Astaffel\s+/, "").sub(/\A1\s+(?=[[:alpha:]])/, "")
-      .gsub(%r{[\s\-–/]+}, " ").strip.presence
+      .sub(/\A(?:[[:alpha:]]{2}-|-\s*)(?=\d)/, "").gsub(%r{[\s\-–/]+}, " ").strip.presence
   end
 
   def synonym_list

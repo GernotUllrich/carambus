@@ -268,6 +268,18 @@ class League::SeriesUnifierTest < ActiveSupport::TestCase
     assert_equal [ba21, cc21].sort_by(&:id), result.series.flat_map(&:duplicates).map(&:league).sort_by(&:id)
   end
 
+  test "Staffel im Namen findet die Reihe auch in der Unterdisziplin" do
+    karambol = disciplines(:branch_karambol)
+    klein = Discipline.create!(id: BASE + 953, name: "Karambol kleines Billard", super_discipline: karambol)
+    ba = blvn_league("BVW Verbandsliga Zweikampf", :previous, staffel: "A", discipline: klein)
+    cc = blvn_league("BVW Verbandsliga A Zweikampf", :previous, discipline: karambol)
+    blvn_league("BVW Verbandsliga Zweikampf", :current, staffel: "A", discipline: karambol)
+
+    result = unify_blvn
+
+    assert_equal [ba, cc].sort_by(&:id), result.series.flat_map(&:duplicates).map(&:league).sort_by(&:id)
+  end
+
   test "zwei Unterdisziplinen mit gleichem Namen bleiben getrennt" do
     karambol = disciplines(:branch_karambol)
     gross = Discipline.create!(id: BASE + 951, name: "Karambol großes Billard", super_discipline: karambol)
@@ -295,6 +307,30 @@ class League::SeriesUnifierTest < ActiveSupport::TestCase
     unify
 
     assert_equal "Süd", old.reload.staffel_text
+    assert_empty League::SeriesUnifier.new(region: @region).call.changes
+  end
+
+  test "Ligakürzel vor der Staffelnummer entfallen" do
+    assert_equal ["1"], ["BL-1", "KL-1", "LL-1", "- 1", "Staffel 1", "1"].map { |s| League.staffel_key(s) }.uniq
+    assert_equal "a", League.staffel_key("A"), "Buchstaben-Staffeln unverändert"
+
+    old = league("WPBV Bezirksliga", :season_2024, staffel: "BL-2")
+    league("WPBV Bezirksliga", :current, staffel: "Staffel 2")
+    unify
+
+    assert_equal "Staffel 2", old.reload.staffel_text
+  end
+
+  test "einzelner Buchstabe mitten im Namen ist die Staffel, wenn die Reihe sie führt" do
+    mid = league("BVW Bezirksliga A Freie Partie", :previous)
+    league("BVW Bezirksliga Freie Partie", :current, staffel: "A")
+    other = league("BKGW Bezirksliga B Dreiband", :season_2024)
+
+    unify
+
+    mid.reload
+    assert_equal ["BVW Bezirksliga Freie Partie", "A"], [mid.read_attribute(:name), mid.staffel_text]
+    assert_equal "BKGW Bezirksliga B Dreiband", other.reload.read_attribute(:name), "ohne Zielreihe bleibt der Name"
     assert_empty League::SeriesUnifier.new(region: @region).call.changes
   end
 
