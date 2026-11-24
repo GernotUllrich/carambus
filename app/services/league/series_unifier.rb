@@ -70,18 +70,20 @@ class League::SeriesUnifier
   end
 
   # "Verbandsliga - Mitte" (ohne Staffel) → Reihe "verbandsliga", Staffel "Mitte" — nur wenn die
-  # Reihe die Staffel "mitte" tatsächlich führt. Längster passender Reihenschlüssel gewinnt.
+  # Reihe die Staffel "mitte" tatsächlich führt. Längster Reihenschlüssel, der die Staffel führt, gewinnt:
+  # "Verbandsliga Nord-West" gehört zu "Verbandsliga" [Nord-West], nicht zu "Verbandsliga Nord" (ohne
+  # Staffel "West") — sonst fände erst ein zweiter Lauf das Ziel (BVBW: 32 Nachzügler).
   def move_embedded_staffeln(groups)
     groups.keys.each do |key|
       movers = groups[key].select { |e| e[:skey].nil? }
       next if movers.empty?
 
-      target = groups.keys.select { |k| k != key && key.start_with?("#{k} ") }.max_by(&:length)
+      target = groups.keys.select { |k| k != key && key.start_with?("#{k} ") }.sort_by(&:length).reverse
+        .find { |k| groups[k].any? { |e| e[:skey] == League.staffel_key(key.delete_prefix("#{k} "), @reg) } }
       next unless target
 
       suffix = key.delete_prefix("#{target} ")
       skey = League.staffel_key(suffix, @reg)
-      next unless groups[target].any? { |e| e[:skey] == skey }
 
       # Nicht verschieben, wenn die Reihe die Staffel in derselben Saison schon führt UND die Liga
       # eine eigene Reihe mit Staffeln hat: dann ist es eine eigene Liga (BLVN 2019/20 "Kreisliga OH"

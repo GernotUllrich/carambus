@@ -169,6 +169,19 @@ class League::SeriesUnifierTest < ActiveSupport::TestCase
     assert_equal "Saarlandpokal Dreiband Gruppe A", pokal.reload.staffel_text, "nur bei ganzem Namen"
   end
 
+  test "Staffel im Namen: längstes Ziel, das die Staffel führt (ein Lauf genügt)" do
+    nw = league("Verbandsliga Nord-West", :previous)
+    league("Verbandsliga Nord", :season_2024)
+    league("Verbandsliga", :current, staffel: "Nord")
+    league("Verbandsliga", :season_2024, staffel: "Nord-West")
+
+    unify
+
+    nw.reload
+    assert_equal ["Verbandsliga", "Nord-West"], [nw.read_attribute(:name), nw.staffel_text]
+    assert_empty League::SeriesUnifier.new(region: @region).call.changes
+  end
+
   test "Dubletten derselben Saison bleiben unangetastet" do
     a = league("Oberliga Pool", :previous)
     b = league("Oberliga", :previous)
