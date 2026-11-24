@@ -274,6 +274,19 @@ GamePlan-Namen (`"#{league.name} - …"`, `club_cloud_scraper.rb:1020`) enthalte
 **Ausweg:** Für die Spalte `read_attribute(:name)` lesen und `league[:name] = …` schreiben
 (so in `League::SeriesUnifier`).
 
+### Ein gelöschtes Team-Seeding schiebt alle Team-Seedings aller Ligen
+
+`app/models/seeding.rb:121` hat `acts_as_list scope: :tournament`. Team-Seedings von Ligen
+haben `tournament_id = NULL` und bilden für acts_as_list deshalb **eine** Liste über alle
+Regionen (2026-11-24: rund 82 000). Jedes `destroy` rückt deren `position` per `update_all`
+nach, also ohne PaperTrail-Version und ohne Replikation. Auf dem Prod-Backup kostete das
+etwa 3,6 s je Seeding. Der Bulk-Purge von 1 825 Seedings wäre stundenlang gelaufen und hätte
+die Positionen auf der Authority still verschoben. Der Test in `duplicate_purger_test.rb`
+(„fremde Team-Seedings rücken nicht nach“) ist ohne Sperre rot.
+
+**Ausweg:** Für Bulk-Löschungen `Seeding.acts_as_list_no_update { … }` verwenden (so in
+`League::DuplicatePurger`). `destroy!`, die Kaskaden und die Versionen bleiben dabei erhalten.
+
 ### CableReady `morph` braucht `children_only: true`
 
 Ohne das Flag morpht CableReady das adressierte Element **selbst** und zerstört dabei dessen
