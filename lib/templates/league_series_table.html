@@ -1,0 +1,218 @@
+<meta charset="utf-8">
+<title>Liga-Einzelspiele je Region</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600&family=Inter:wght@400;500;600&display=swap">
+<style>
+/* Layout: schmaler Kopf mit Regions-Leiste, darunter eine scrollende Matrix Liga × Saison mit fixierter Ligaspalte */
+:root {
+  --bg: #f6f7f5;
+  --surface: #ffffff;
+  --fg: #1d2420;
+  --muted: #66716a;
+  --line: #dde2dd;
+  --accent: #1f6b4e;      /* Tuchgrün, nur für Auswahl und Füllung */
+  --accent-soft: #e2efe8;
+  --warn: #a5541a;
+  --warn-soft: #fbeadb;
+  --heat: 31, 107, 78;    /* RGB der Füllung */
+  --font-display: "Space Grotesk", "Helvetica Neue", Arial, sans-serif;
+  --font-body: "Inter", -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #121614; --surface: #1a201d; --fg: #e4ebe6; --muted: #93a098; --line: #2b3430;
+    --accent: #6cc39c; --accent-soft: #1f3329; --warn: #f0a46a; --warn-soft: #3a2618; --heat: 108, 195, 156;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #121614; --surface: #1a201d; --fg: #e4ebe6; --muted: #93a098; --line: #2b3430;
+  --accent: #6cc39c; --accent-soft: #1f3329; --warn: #f0a46a; --warn-soft: #3a2618; --heat: 108, 195, 156;
+  color-scheme: dark;
+}
+body {
+  background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 14px; line-height: 1.45;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 24px 40px;
+}
+.wrap { max-width: 1400px; margin: 0 auto; display: grid; gap: 16px; }
+h1 { font-family: var(--font-display); font-weight: 600; font-size: 1.6rem; margin: 0; text-wrap: balance; letter-spacing: -0.01em; }
+.lede { color: var(--muted); margin: 4px 0 0; max-width: 70ch; }
+.tabs { display: flex; flex-wrap: wrap; gap: 6px; }
+.tab {
+  font: inherit; font-weight: 500; border: 1px solid var(--line); background: var(--surface); color: var(--fg);
+  border-radius: 6px; padding: 6px 10px; cursor: pointer; display: inline-flex; gap: 6px; align-items: baseline;
+}
+.tab small { color: var(--muted); font-variant-numeric: tabular-nums; font-size: 0.75rem; }
+.tab[aria-selected="true"] { background: var(--accent); border-color: var(--accent); color: var(--surface); }
+.tab[aria-selected="true"] small { color: var(--surface); opacity: 0.85; }
+.tab:focus-visible, .ctl input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.bar { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: center; }
+.ctl { display: inline-flex; gap: 8px; align-items: center; }
+.ctl input[type="search"] {
+  font: inherit; padding: 6px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); color: var(--fg); width: 16rem; max-width: 100%;
+}
+.summary { color: var(--muted); font-variant-numeric: tabular-nums; }
+.summary b { color: var(--fg); font-weight: 600; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; color: var(--muted); font-size: 0.8rem; }
+.legend span { display: inline-flex; gap: 6px; align-items: center; }
+.sw { display: inline-block; min-width: 2.2em; text-align: center; border-radius: 3px; padding: 0 4px; font-variant-numeric: tabular-nums; border: 1px solid var(--line); }
+.scroller { overflow: auto; max-height: 78vh; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+table { border-collapse: separate; border-spacing: 0; font-variant-numeric: tabular-nums; width: max-content; min-width: 100%; }
+th, td { padding: 4px 8px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+thead th {
+  position: sticky; top: 0; z-index: 2; background: var(--surface); font-family: var(--font-display); font-weight: 500;
+  font-size: 0.78rem; letter-spacing: 0.02em; color: var(--muted); text-align: right; border-bottom: 1px solid var(--fg);
+}
+th.lg, td.lg { position: sticky; left: 0; z-index: 1; background: var(--surface); text-align: left; border-right: 1px solid var(--line); max-width: 24rem; white-space: normal; min-width: 14rem; }
+thead th.lg { z-index: 3; }
+td.lg .sub { display: block; color: var(--muted); font-size: 0.75rem; }
+td.n { text-align: right; min-width: 3.6rem; }
+td.n.gap { background: var(--warn-soft); color: var(--warn); font-weight: 600; }
+td.n.empty0 { color: var(--muted); }
+td.n.dup { box-shadow: inset 0 0 0 2px var(--warn); }
+td.n.dup::after { content: "D"; font-size: 0.6rem; font-weight: 700; color: var(--warn); vertical-align: super; margin-left: 2px; }
+td.lg .former { display: block; color: var(--muted); font-size: 0.72rem; font-style: italic; }
+td.lg .hint { display: block; color: var(--warn); font-size: 0.72rem; margin-top: 2px; }
+.ctl select { font: inherit; padding: 5px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); color: var(--fg); }
+tfoot td { position: sticky; bottom: 0; background: var(--surface); font-weight: 600; border-top: 1px solid var(--fg); border-bottom: 0; }
+tfoot td.lg { z-index: 2; }
+.note { color: var(--muted); font-size: 0.8rem; max-width: 80ch; }
+@media (prefers-reduced-motion: no-preference) { .tab { transition: background-color 120ms, color 120ms; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Liga-Einzelspiele je Region</h1>
+    <p class="lede">Anzahl der PartyGames (Einzelspiele der Ligapartien) je Liga und Saison auf der Authority api.carambus.de, Stand __STAND__ nach der Bereinigung der Ligen-Reihen: jede Reihe trägt den jüngsten Namen, frühere Namen stehen kursiv darunter. Ligen nach Name, Staffel und Disziplin, Organisator ist die jeweilige Region.</p>
+  </header>
+
+  <nav class="tabs" id="tabs" role="tablist" aria-label="Region"></nav>
+
+  <div class="bar">
+    <label class="ctl" for="q">Liga suchen <input type="search" id="q" placeholder="z. B. Oberliga"></label>
+    <label class="ctl" for="view">Zeigen
+      <select id="view">
+        <option value="all">alle Ligen</option>
+        <option value="open">offene Fälle (Dublette oder Hinweis)</option>
+        <option value="dup">nur Dubletten</option>
+        <option value="hint">nur Hinweise</option>
+        <option value="gaps">Partien ohne Einzelspiele</option>
+      </select>
+    </label>
+    <span class="summary" id="summary"></span>
+  </div>
+
+  <div class="legend">
+    <span><span class="sw" style="border-style:dashed">&nbsp;</span> Liga gab es in dieser Saison nicht</span>
+    <span><span class="sw empty0" style="color:var(--muted)">0</span> Liga ohne Partien</span>
+    <span><span class="sw" style="background:var(--warn-soft);color:var(--warn);font-weight:600">0</span> Partien vorhanden, aber keine Einzelspiele</span>
+    <span><span class="sw" style="background:rgba(var(--heat),0.35)">123</span> Einzelspiele, Füllung nach Menge</span>
+    <span><span class="sw" style="box-shadow:inset 0 0 0 2px var(--warn)">56<sup style="color:var(--warn);font-size:0.6rem;font-weight:700">D</sup></span> Dublette (doppelt angelegt, nicht vereinheitlicht)</span>
+    <span><span style="color:var(--warn)">Hinweis</span> offene Frage aus der Bereinigung</span>
+  </div>
+
+  <div class="scroller" id="scroller"><table id="tbl"></table></div>
+
+  <p class="note">Quelle je Zelle im Tooltip (BA, CC = ClubCloud, NuLiga, LM = LigaManager). Gleich benannte Ligen derselben Saison mit gleicher Staffel und Disziplin sind zusammengefasst; der Tooltip nennt dann die Zahl. Partien mit leerem CC-Ergebnis haben keine Einzelspiele, das ist keine Lücke im Scrape. Dubletten (D) sind meist die BA/CC-Doppelanlage der Saison 2021/22: dieselbe Liga einmal aus der BillardArea, einmal aus der ClubCloud; die Bereinigung hat sie bewusst nicht angefasst.</p>
+</div>
+
+<script>
+(function () {
+  const fmt = new Intl.NumberFormat("de-DE");
+  const $ = (id) => document.getElementById(id);
+  let DATA = null, current = null;
+
+  function totals(reg) {
+    let pg = 0;
+    for (const [, , cells] of reg.rows) for (const s in cells) pg += cells[s][2];
+    return pg;
+  }
+
+  function renderTabs() {
+    const names = Object.keys(DATA).sort((a, b) => totals(DATA[b]) - totals(DATA[a]));
+    $("tabs").innerHTML = names.map((n) =>
+      `<button class="tab" role="tab" id="tab-${n}" aria-selected="${n === current}" data-r="${n}">${n}<small>${fmt.format(totals(DATA[n]))}</small></button>`
+    ).join("");
+    return names;
+  }
+
+  function esc(s) { return String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
+
+  function render() {
+    const reg = DATA[current];
+    const q = $("q").value.trim().toLowerCase();
+    const view = $("view").value;
+    const seasons = reg.seasons;
+    let max = 1;
+    for (const [, , cells] of reg.rows) for (const s in cells) max = Math.max(max, cells[s][2]);
+    const logMax = Math.log1p(max);
+
+    const hasDup = (cells) => Object.values(cells).some((c) => c[4] === 1);
+    const rows = reg.rows.filter(([name, sub, cells, former, hint]) => {
+      if (q && !(name + " " + sub + " " + former.join(" ")).toLowerCase().includes(q)) return false;
+      if (view === "gaps" && !Object.values(cells).some((c) => c[1] > 0 && c[2] === 0)) return false;
+      if (view === "dup" && !hasDup(cells)) return false;
+      if (view === "hint" && !hint) return false;
+      if (view === "open" && !hint && !hasDup(cells)) return false;
+      return true;
+    });
+
+    const colTot = seasons.map(() => 0);
+    let gaps = 0, dups = 0;
+    const body = rows.map(([name, sub, cells, former, hint]) => {
+      const tds = seasons.map((s, i) => {
+        const c = cells[s];
+        if (!c) return `<td class="n"></td>`;
+        const [nl, np, ng, src, dup] = c;
+        colTot[i] += ng;
+        if (dup) dups++;
+        const tip = `${s}: ${fmt.format(np)} Partien · ${fmt.format(ng)} Einzelspiele · Quelle ${src}${nl > 1 ? ` · ${nl} Ligen zusammengefasst` : ""}${dup ? " · Dublette: in dieser Saison doppelt angelegt" : ""}`;
+        const d = dup ? " dup" : "";
+        if (ng === 0 && np > 0) { gaps++; return `<td class="n gap${d}" title="${esc(tip)}">0</td>`; }
+        if (ng === 0) return `<td class="n empty0${d}" title="${esc(tip)}">0</td>`;
+        const a = (0.08 + 0.5 * Math.log1p(ng) / logMax).toFixed(3);
+        return `<td class="n${d}" style="background:rgba(var(--heat),${a})" title="${esc(tip)}">${fmt.format(ng)}</td>`;
+      }).join("");
+      const lg = esc(name) +
+        (sub ? `<span class="sub">${esc(sub)}</span>` : "") +
+        (former.length ? `<span class="former">früher: ${esc(former.join(" · "))}</span>` : "") +
+        (hint ? `<span class="hint">Hinweis: ${esc(hint)}</span>` : "");
+      return `<tr><td class="lg">${lg}</td>${tds}</tr>`;
+    }).join("");
+
+    $("tbl").innerHTML =
+      `<thead><tr><th class="lg" scope="col">Liga</th>${seasons.map((s) => `<th scope="col">${s}</th>`).join("")}</tr></thead>` +
+      `<tbody>${body}</tbody>` +
+      `<tfoot><tr><td class="lg">Summe (${fmt.format(rows.length)} Ligen)</td>${colTot.map((t) => `<td class="n">${fmt.format(t)}</td>`).join("")}</tr></tfoot>`;
+
+    const all = colTot.reduce((a, b) => a + b, 0);
+    $("summary").innerHTML = `<b>${fmt.format(rows.length)}</b> Ligen · <b>${fmt.format(all)}</b> Einzelspiele · <b>${fmt.format(gaps)}</b> Zellen mit Partien ohne Einzelspiele · <b>${fmt.format(dups)}</b> Dubletten`;
+  }
+
+  function select(name, push) {
+    if (!DATA[name]) return;
+    current = name;
+    document.querySelectorAll(".tab").forEach((b) => b.setAttribute("aria-selected", String(b.dataset.r === name)));
+    if (push && location.hash !== "#" + name) history.replaceState(null, "", "#" + name);
+    $("scroller").scrollTop = 0; $("scroller").scrollLeft = 0;
+    render();
+  }
+
+  fetch("data.json").then((r) => r.json()).then((d) => {
+    DATA = d;
+    const names = renderTabs();
+    const fromHash = decodeURIComponent(location.hash.slice(1));
+    current = DATA[fromHash] ? fromHash : names[0];
+    renderTabs();
+    $("tabs").addEventListener("click", (e) => { const b = e.target.closest(".tab"); if (b) select(b.dataset.r, true); });
+    $("q").addEventListener("input", render);
+    $("view").addEventListener("change", render);
+    window.addEventListener("hashchange", () => select(decodeURIComponent(location.hash.slice(1)), false));
+    render();
+  }).catch(() => {
+    $("summary").textContent = "Die Daten (data.json) konnten nicht geladen werden. Seite neu laden.";
+  });
+})();
+</script>

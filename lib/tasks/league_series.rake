@@ -60,3 +60,27 @@ namespace :leagues do
     end
   end
 end
+
+# Übersicht „Liga-Einzelspiele je Region“ (League::SeriesTable) als statische Seite: index.html + data.json.
+# Rein lesend. Die Seite lädt data.json per fetch, braucht also einen Webserver (oder Artifact-Publish).
+#
+# Usage:
+#   bundle exec rake leagues:series_table                       # → tmp/league_series_table/
+#   bundle exec rake leagues:series_table OUT=/tmp/ligen
+namespace :leagues do
+  desc "Tabelle Liga-Einzelspiele je Region erzeugen (OUT=Verzeichnis, Default tmp/league_series_table)"
+  task series_table: :environment do
+    out = Pathname(ENV["OUT"].presence || Rails.root.join("tmp/league_series_table"))
+    FileUtils.mkdir_p(out)
+    data = League::SeriesTable.new.call
+    File.write(out.join("data.json"), JSON.generate(data))
+    html = File.read(Rails.root.join("lib/templates/league_series_table.html"))
+    File.write(out.join("index.html"), html.sub("__STAND__", Date.current.strftime("%d.%m.%Y")))
+
+    data.each do |reg, r|
+      dup = r["rows"].sum { |x| x[2].values.count { |c| c[4] == 1 } }
+      puts "#{reg.ljust(5)} Ligen-Zeilen #{r["rows"].size} · Dubletten #{dup} · Hinweise #{r["rows"].count { |x| x[4] }}"
+    end
+    puts "Geschrieben: #{out}/index.html, data.json (#{File.size(out.join("data.json")) / 1024} KB)"
+  end
+end
