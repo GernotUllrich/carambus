@@ -129,3 +129,42 @@ namespace :leagues do
     end
   end
 end
+
+# CC-Rollover-Reste einer Region und Saison abräumen (League::CcGhostPurger): Teams, die nicht in der
+# LIVE-Teamliste der CC stehen (samt ihren Alt-Partien), und Ligen, die die CC nicht kennt. Holt dazu je
+# Liga die öffentliche CC-Spielplanseite. Löschungen replizieren per PaperTrail an alle Server.
+#
+# Usage:
+#   bundle exec rake leagues:purge_cc_ghosts REGION=BVS SEASON=2025/2026              # DRY-RUN
+#   bundle exec rake leagues:purge_cc_ghosts REGION=BVS SEASON=2025/2026 ARMED=true
+namespace :leagues do
+  desc "CC-Rollover-Reste löschen: Teams/Ligen, die die CC live nicht führt (ARMED=true schreibt)"
+  task purge_cc_ghosts: :environment do
+    armed = ENV["ARMED"] == "true"
+    region = Region.find_by!(shortname: ENV.fetch("REGION"))
+    season = Season.find_by!(name: ENV.fetch("SEASON"))
+    result = League::CcGhostPurger.new(region: region, season: season).call
+
+    puts "Mode: #{armed ? "LIVE (ARMED)" : "DRY-RUN"} · #{region.shortname} #{season.name}"
+    result.findings.each do |f|
+      label = format("%6d %-28s", f.league.id, "#{f.league.read_attribute(:name)} #{f.league.staffel_text}".strip[0, 28])
+      if f.skipped
+        puts "  #{label} übersprungen: #{f.skipped}"
+      elsif f.hull
+        puts "  #{label} HÜLLE (CC kennt cc_id #{f.league.cc_id} nicht): Liga mit #{Party.where(league_id: f.league.id).count} Partien, #{LeagueTeam.where(league_id: f.league.id).count} Teams"
+      elsif f.ghosts.any? || f.blocked.any?
+        puts "  #{label} CC #{f.cc_team_ids.size} Teams · Geister #{f.ghosts.size} (#{f.ghost_parties.size} Partien)" \
+          "#{" · BLOCKIERT #{f.blocked.map(&:id).join(",")}" if f.blocked.any?}"
+      end
+    end
+    t = result.totals
+    puts "\nZu löschen: #{t[:leagues]} Ligen, #{t[:league_teams]} Teams, #{t[:parties]} Partien, #{t[:party_games]} Einzelspiele, #{t[:seedings]} Seedings"
+    result.errors.each { |e| puts "FEHLER #{e}" }
+
+    if armed
+      done = League::CcGhostPurger.new(region: region, season: season, armed: true).call
+      puts "Gelöscht. Fehler: #{done.errors.size}"
+      done.errors.each { |e| puts "FEHLER #{e}" }
+    end
+  end
+end
