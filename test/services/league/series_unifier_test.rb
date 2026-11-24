@@ -157,6 +157,18 @@ class League::SeriesUnifierTest < ActiveSupport::TestCase
     assert_empty League::SeriesUnifier.new(region: @region).call.changes
   end
 
+  test "Ligenname im Staffelfeld wird entfernt, Disziplinwort ignoriert" do
+    a = league("Bezirksliga", :previous, staffel: "Bezirksliga A")
+    s = league("Oberliga Pool", :season_2024, staffel: "Oberliga A Pool")
+    pokal = league("Saarlandpokal Dreiband (TB)", :previous, staffel: "Saarlandpokal Dreiband Gruppe A")
+
+    unify
+
+    assert_equal "A", a.reload.staffel_text
+    assert_equal ["Oberliga Pool", "A"], [s.reload.read_attribute(:name), s.staffel_text]
+    assert_equal "Saarlandpokal Dreiband Gruppe A", pokal.reload.staffel_text, "nur bei ganzem Namen"
+  end
+
   test "Dubletten derselben Saison bleiben unangetastet" do
     a = league("Oberliga Pool", :previous)
     b = league("Oberliga", :previous)

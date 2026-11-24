@@ -60,8 +60,9 @@ class League::SeriesUnifier
     disc = leagues.first.discipline.name
     @reg = leagues.first.organizer
     entries = leagues.map do |l|
+      staffel = strip_own_name(l.staffel_text.presence, l.read_attribute(:name), disc)
       {league: l, key: League.series_name_key(l.read_attribute(:name), disc), base: l.read_attribute(:name).to_s.squish,
-       staffel: l.staffel_text.presence, skey: League.staffel_key(l.staffel_text, @reg), embedded: false}
+       staffel: staffel, skey: League.staffel_key(staffel, @reg), embedded: false}
     end
     groups = entries.group_by { |e| e[:key] }
     move_embedded_staffeln(groups)
@@ -105,7 +106,7 @@ class League::SeriesUnifier
     names = entries.map { |e| original_name(e[:league]) } | entries.flat_map { |e| e[:league].synonym_list }
     names |= entries.map { |e| e[:league].read_attribute(:name) }
     spellings = entries.reject { |e| e[:embedded] }.map { |e| e[:staffel] }.compact
-    return nil if names.size < 2 && entries.none? { |e| e[:embedded] } &&
+    return nil if names.size < 2 && entries.none? { |e| e[:embedded] || e[:staffel] != e[:league].staffel_text.presence } &&
       spellings.group_by { |s| League.staffel_key(s, @reg) }.values.all? { |v| v.uniq.size < 2 }
 
     # Jüngster Name; bei eingebetteter Staffel der Name ohne sie ("Landesliga Staffel West" → "Landesliga").
@@ -147,6 +148,21 @@ class League::SeriesUnifier
   end
 
   def original_name(league) = league.synonym_list.first || league.read_attribute(:name)
+
+  # BA schrieb den Ligennamen ins Staffelfeld (BVS: "Bezirksliga" [Bezirksliga A], "Oberliga Snooker"
+  # [Oberliga A Snooker]). Nur wenn der GANZE Name (ohne Disziplinwort) vorne steht und etwas übrig
+  # bleibt, zählt der Rest als Staffel; sonst bleibt die Staffel unverändert.
+  def strip_own_name(staffel, name, disc)
+    return staffel if staffel.blank?
+
+    drop_disc = ->(tokens) { tokens.reject { |t| t.casecmp?(disc) } }
+    name_tokens = drop_disc.call(name.to_s.split)
+    staffel_tokens = drop_disc.call(staffel.split)
+    return staffel if name_tokens.empty? || staffel_tokens.size <= name_tokens.size
+    return staffel unless staffel_tokens.first(name_tokens.size).zip(name_tokens).all? { |a, b| a.casecmp?(b) }
+
+    staffel_tokens.drop(name_tokens.size).join(" ")
+  end
 
   # Schlüssel-Suffix ("staffel west") am Namensende entfernen, Schreibweise und Trenner tolerant.
   def strip_staffel(name, suffix_key)
