@@ -193,6 +193,101 @@ class League::SeriesUnifierTest < ActiveSupport::TestCase
     assert_equal [a, b].sort_by(&:id), result.series.flat_map(&:duplicates).map(&:league).sort_by(&:id)
   end
 
+  test "expand_staffel schreibt BLVN-Kürzel aus und stellt den Bezirk nach vorn" do
+    {"OH" => "Osnabrück / Huntegau", "1 OH" => "Osnabrück / Huntegau", "2 OH" => "Osnabrück / Huntegau 2",
+     "OH / A" => "Osnabrück / Huntegau A", "WB Mitte" => "Weserbergland Mitte",
+     "Nord  Weserbergland" => "Weserbergland Nord", "West  Weser / Ems" => "Weser / Ems West",
+     "Weser / Ems Ost" => "Weser / Ems Ost"}.each do |raw, expanded|
+      assert_equal expanded, League.expand_staffel(raw, "BLVN"), raw
+    end
+    assert_equal "WE", League.expand_staffel("WE", "NBV"), "nur für BLVN"
+    assert_nil League.expand_staffel("Neue Staffel"), "BA-Platzhalter"
+  end
+
+  def blvn
+    @blvn ||= Region.create!(id: BASE + 900, shortname: "BLVN", name: "Billard-Landesverband Niedersachsen")
+  end
+
+  def blvn_league(name, season, staffel: nil, discipline: @pool, **attrs)
+    @n += 1
+    League.create!(id: BASE + @n, name: name, staffel_text: staffel, shortname: "SU#{@n}",
+      organizer: blvn, season: seasons(season), discipline: discipline, **attrs)
+  end
+
+  def unify_blvn(armed: true, overrides: {}) = League::SeriesUnifier.new(region: blvn, armed: armed, overrides: overrides).call
+
+  test "BLVN: Kürzel-Präfix im Namen wird Staffel, Staffeln in Langform, CC-Doppelanlage wird Dublette" do
+    ba = blvn_league("Pool Kreisliga", :previous, staffel: "OH")
+    cc = blvn_league("OH - Kreisliga", :previous, cc_id: 19)
+    wb = blvn_league("WB - Bezirksliga", :previous, staffel: "Nord  Weserbergland")
+    old_wb = blvn_league("Bezirksliga", :season_2024, staffel: "WB Nord")
+    blvn_league("Kreisliga", :current, staffel: "Osnabrück / Huntegau")
+    blvn_league("Bezirksliga", :current, staffel: "Weserbergland Nord")
+
+    result = unify_blvn
+
+    assert_equal [ba, cc].sort_by(&:id), result.series.flat_map(&:duplicates).map(&:league).sort_by(&:id)
+    assert_equal ["Bezirksliga", "Weserbergland Nord"], [wb.reload.read_attribute(:name), wb.staffel_text]
+    assert_equal "Weserbergland Nord", old_wb.reload.staffel_text
+    assert_includes wb.synonym_list, "WB - Bezirksliga"
+    assert_empty unify_blvn(armed: false).changes, "ein Lauf genügt"
+  end
+
+  test "BLVN: Kürzel ohne Langform in der Reihe werden trotzdem ausgeschrieben" do
+    a = blvn_league("Kreisklasse", :previous, staffel: "WB Mitte")
+    blvn_league("Kreisklasse", :current, staffel: "WB Mitte")
+
+    unify_blvn
+
+    assert_equal "Weserbergland Mitte", a.reload.staffel_text
+  end
+
+  test "Overrides setzen Name und Staffel einzelner Ligen" do
+    oh = blvn_league("Kreisliga OH", :previous, staffel: "Pool Kreisliga 1")
+    blvn_league("Kreisliga", :current, staffel: "Osnabrück / Huntegau")
+
+    unify_blvn(overrides: {oh.id => ["Kreisliga", "Osnabrück / Huntegau"]})
+
+    oh.reload
+    assert_equal ["Kreisliga", "Osnabrück / Huntegau"], [oh.read_attribute(:name), oh.staffel_text]
+    assert_includes oh.synonym_list, "Kreisliga OH"
+  end
+
+  test "Oberdisziplin-Liga schließt sich der einzigen Unterdisziplin-Reihe an, Regionskürzel zählt nicht" do
+    karambol = disciplines(:branch_karambol)
+    gross = Discipline.create!(id: BASE + 950, name: "Karambol großes Billard", super_discipline: karambol)
+    ba = blvn_league("BLVN Oberliga Dreiband", :season_2024, discipline: gross)
+    ba21 = blvn_league("Oberliga Dreiband", :previous, discipline: gross)
+    cc21 = blvn_league("Oberliga Dreiband", :previous, discipline: karambol, cc_id: 27)
+    blvn_league("Oberliga Dreiband", :current, discipline: karambol)
+
+    result = unify_blvn
+
+    assert_equal "Oberliga Dreiband", ba.reload.read_attribute(:name)
+    assert_equal gross, ba.discipline, "Disziplin bleibt"
+    assert_equal [ba21, cc21].sort_by(&:id), result.series.flat_map(&:duplicates).map(&:league).sort_by(&:id)
+  end
+
+  test "zwei Unterdisziplinen mit gleichem Namen bleiben getrennt" do
+    karambol = disciplines(:branch_karambol)
+    gross = Discipline.create!(id: BASE + 951, name: "Karambol großes Billard", super_discipline: karambol)
+    klein = Discipline.create!(id: BASE + 952, name: "Karambol kleines Billard", super_discipline: karambol)
+    blvn_league("Landesliga", :previous, discipline: gross)
+    blvn_league("Landesliga", :previous, discipline: klein)
+    blvn_league("Landesliga", :current, discipline: karambol)
+
+    assert_empty unify_blvn(armed: false).series.flat_map(&:duplicates)
+  end
+
+  test "Staffel „Neue Staffel“ ist ein Platzhalter und fällt weg" do
+    real = blvn_league("BLVN Oberliga Dreiband", :season_2024, staffel: "Neue Staffel")
+    blvn_league("Oberliga Dreiband", :current)
+
+    unify_blvn
+
+    assert_equal ["Oberliga Dreiband", nil], [real.reload.read_attribute(:name), real.staffel_text]
+  end
+
   test "with_name_or_synonym findet umbenannte Ligen über den alten Namen" do
     old = league("Bezirksliga Pool", :previous)
     league("Bezirksliga - Pool", :current)

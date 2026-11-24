@@ -94,12 +94,14 @@ end
 #   bundle exec rake leagues:purge_duplicates                  # DRY-RUN, alle Regionen
 #   bundle exec rake leagues:purge_duplicates REGION=BLVN
 #   bundle exec rake leagues:purge_duplicates ARMED=true
+#   bundle exec rake leagues:purge_duplicates REGION=BLVN PLACEHOLDERS=true   # + leere BA-Platzhalter
 namespace :leagues do
   desc "Dubletten-Ligen löschen, die vollständigere Anlage bleibt (ARMED=true schreibt, sonst DRY-RUN)"
   task purge_duplicates: :environment do
     armed = ENV["ARMED"] == "true"
     region = ENV["REGION"].presence && Region.find_by!(shortname: ENV["REGION"])
-    result = League::DuplicatePurger.new(region: region, armed: false).call
+    placeholders = ENV["PLACEHOLDERS"] == "true"
+    result = League::DuplicatePurger.new(region: region, armed: false, placeholders: placeholders).call
     fmt = ->(l, st) { format("%6d %-4s %-26s P%-4d G%-5d S%-5d T%-3d", l.id, l.cc_id ? "CC" : "BA", "#{l.read_attribute(:name)} #{l.staffel_text}".strip[0, 26], st[:parties], st[:games], st[:with_players], st[:teams]) }
 
     puts "Mode: #{armed ? "LIVE (ARMED)" : "DRY-RUN"} · Region: #{region&.shortname || "alle"}"
@@ -110,14 +112,18 @@ namespace :leagues do
       puts "  löschen   #{fmt.call(p.drop, p.stats[p.drop.id])}"
     end
     result.skipped.each { |ls| puts "\nÜbersprungen (#{ls.size} Ligen in einer Gruppe): #{ls.map(&:id).join(", ")}" }
+    if result.placeholders.any?
+      puts "\nPlatzhalter ohne Partien (werden gelöscht):"
+      result.placeholders.each { |l| puts format("  %6d %-5s %s  %s%s", l.id, l.organizer.shortname, l.season&.name, l.read_attribute(:name), l.staffel_text.present? ? " [#{l.staffel_text}]" : "") }
+    end
 
     t = result.totals
     puts "\nZu löschen: #{t[:leagues]} Ligen, #{t[:parties]} Partien, #{t[:party_games]} Einzelspiele, " \
       "#{t[:league_teams]} Teams, #{t[:seedings]} Seedings (≈ #{t.values.sum} Versionen)"
 
     if armed
-      result = League::DuplicatePurger.new(region: region, armed: true).call
-      puts "Gelöscht: #{result.pairs.count { |p| !p.blocker } - result.errors.size} Ligen"
+      result = League::DuplicatePurger.new(region: region, armed: true, placeholders: placeholders).call
+      puts "Gelöscht: #{result.pairs.count { |p| !p.blocker } + result.placeholders.size - result.errors.size} Ligen"
       result.errors.each { |e| puts "FEHLER #{e}" }
       puts "Jetzt: bundle exec rake leagues:unify_series_names ARMED=true"
     end

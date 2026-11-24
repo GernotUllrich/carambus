@@ -5,7 +5,12 @@
 # "Staffel A", mal als "A", mal im Namen ("Verbandsliga - Mitte" ohne staffel_text).
 #
 # Regeln:
-# - Reihe = gleiche Region (organizer), gleiche Disziplin, gleicher League.series_name_key.
+# - Reihe = gleiche Region (organizer), gleiche Disziplin, gleicher League.series_name_key. Eine Liga, die
+#   nur die Oberdisziplin trägt (CC: „Karambol“), gehört zur Reihe einer Unterdisziplin (BA: „Karambol
+#   großes Billard“), wenn es genau eine solche Reihe mit demselben Schlüssel gibt (BLVN Oberliga Dreiband).
+# - Bezirks-Kürzel als Namens-Präfix („OH - Kreisliga“, CC-Backfill 2021/22) werden zur Staffel; Staffeln
+#   in der Schreibweise des Verbands (League.expand_staffel: „WB Mitte“ → „Weserbergland Mitte“).
+# - OVERRIDES: Einzelfälle, die keine Regel trägt (Liga-ID → [Name, Staffel]), vom Betreiber entschieden.
 # - Staffel im Namen: Liga ohne Staffel, deren Schlüssel "<Reihe> <x>" ist, wobei x eine Staffel
 #   derselben Reihe ist → wandert in diese Reihe, x wird staffel_text.
 # - Alle Ligen der Reihe bekommen den Namen der jüngsten Saison; jede Staffel die Schreibweise der
@@ -26,11 +31,22 @@ class League::SeriesUnifier
 
   Series = Struct.new(:region, :discipline, :canonical, :changes, :duplicates, :mixed_seasons, keyword_init: true)
 
+  # BLVN-Kreisliga Osnabrück / Huntegau, zeitweise zweigeteilt (Entscheidung 2026-11-24): „Kreisliga OH“
+  # und „[Pool Kreisliga 1]“ sind dieselben Teams wie die Reihe [Osnabrück / Huntegau], „[2 OH]“ und
+  # „Kreisliga 2“ 2016/17 die zweite Staffel, „Kreisliga 1“ 2016/17 die erste.
+  OVERRIDES = {
+    5774 => ["Kreisliga", "Osnabrück / Huntegau"], 5612 => ["Kreisliga", "Osnabrück / Huntegau"],
+    3707 => ["Kreisliga", "Osnabrück / Huntegau"], 5611 => ["Kreisliga", "Osnabrück / Huntegau 2"],
+    3706 => ["Kreisliga", "Osnabrück / Huntegau 2"], 6258 => ["Kreisliga", "Osnabrück / Huntegau 1"],
+    6263 => ["Kreisliga", "Osnabrück / Huntegau 2"]
+  }.freeze
+
   attr_reader :series, :changes, :errors
 
-  def initialize(region: nil, armed: false)
+  def initialize(region: nil, armed: false, overrides: OVERRIDES)
     @region = region
     @armed = armed
+    @overrides = overrides
     @errors = []
   end
 
@@ -51,22 +67,43 @@ class League::SeriesUnifier
   end
 
   def build_series
-    scope.to_a.group_by { |l| [l.organizer_id, l.discipline_id] }.flat_map do |_, leagues|
-      series_in_bucket(leagues)
+    scope.to_a.group_by { |l| [l.organizer_id, l.discipline.super_discipline_id || l.discipline_id] }.flat_map do |(_, branch_id), leagues|
+      series_in_bucket(leagues, branch_id)
     end.compact.sort_by { |s| [s.region.shortname, s.discipline.name, s.canonical] }
   end
 
-  def series_in_bucket(leagues)
-    disc = leagues.first.discipline.name
+  def series_in_bucket(leagues, branch_id)
     @reg = leagues.first.organizer
     entries = leagues.map do |l|
-      staffel = strip_own_name(l.staffel_text.presence, l.read_attribute(:name), disc)
-      {league: l, key: League.series_name_key(l.read_attribute(:name), disc), base: l.read_attribute(:name).to_s.squish,
+      disc = l.discipline.name
+      name, staffel = @overrides[l.id] || split_region_prefix(l.read_attribute(:name).to_s.squish, l.staffel_text.presence)
+      staffel = League.expand_staffel(strip_own_name(staffel, name, disc), @reg)
+      {league: l, key: League.series_name_key(name, disc, @reg.shortname), base: name, disc_id: l.discipline_id,
        staffel: staffel, skey: League.staffel_key(staffel, @reg), embedded: false}
     end
-    groups = entries.group_by { |e| e[:key] }
-    move_embedded_staffeln(groups)
-    groups.values.map { |es| plan_series(es) }
+    # Oberdisziplin-Ligen der einzigen passenden Unterdisziplin-Reihe zuordnen, sonst eigene Reihe.
+    subs = entries.reject { |e| e[:disc_id] == branch_id }.group_by { |e| e[:key] }
+      .transform_values { |es| es.map { |e| e[:disc_id] }.uniq }
+    entries.each do |e|
+      e[:group] = (e[:disc_id] == branch_id && subs[e[:key]]&.size == 1) ? subs[e[:key]].first : e[:disc_id]
+    end
+
+    entries.group_by { |e| e[:group] }.values.flat_map do |es|
+      groups = es.group_by { |e| e[:key] }
+      move_embedded_staffeln(groups)
+      groups.values.map { |g| plan_series(g) }
+    end
+  end
+
+  # „OH - Kreisliga“ → [„Kreisliga“, „OH“]; steht der Bezirk schon in der Staffel („WB - Bezirksliga“
+  # [„Nord  Weserbergland“]), bleibt die Staffel.
+  def split_region_prefix(name, staffel)
+    m = name.match(/\A(\S+)\s+-\s+(.+)\z/)
+    long = m && League.staffel_abbreviations(@reg).find { |k, _| k.casecmp?(m[1]) }&.last
+    return [name, staffel] unless long
+
+    has_long = League.staffel_key(staffel, @reg).to_s.include?(League.staffel_key(long))
+    [m[2], has_long ? staffel : [m[1], staffel].compact.join(" ")]
   end
 
   # "Verbandsliga - Mitte" (ohne Staffel) → Reihe "verbandsliga", Staffel "Mitte" — nur wenn die

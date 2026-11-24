@@ -80,6 +80,39 @@ class League::DuplicatePurgerTest < ActiveSupport::TestCase
     assert_equal [[cc, ba]], purge(armed: false).pairs.map { |p| [p.keep, p.drop] }
   end
 
+  test "Dreiergruppe: nur wenn höchstens ein Verlierer Partien hat" do
+    ba = league("Pool Oberliga", :previous)
+    cc = league("Oberliga", :previous, cc_id: 3)
+    empty = league("Oberliga - Pool", :previous)
+    league("Oberliga - Pool", :current)
+    fill(ba, games: 2, resolved: 2)
+    fill(cc, games: 3, resolved: 0)
+
+    assert_equal [[cc, ba], [cc, empty]].map { |k, d| [k.id, d.id] }.sort,
+      purge(armed: false).pairs.map { |p| [p.keep.id, p.drop.id] }.sort
+
+    fill(empty, games: 1, resolved: 0)
+    result = purge(armed: false)
+    assert_empty result.pairs
+    assert_equal 1, result.skipped.size
+  end
+
+  test "Platzhalter ohne Partien werden gelöscht, mit Partien bleiben sie" do
+    empty = league("Neue Liga", :previous)
+    typo = league("Pooll Landesliga OH", :previous)
+    shell = league("Oberliga", :season_2024, staffel_text: "Neue Staffel")
+    played = league("Neue Liga", :current)
+    fill(played, games: 1, resolved: 0)
+
+    result = League::DuplicatePurger.new(region: @region, armed: true, placeholders: true).call
+
+    assert_equal [empty, typo, shell].map(&:id).sort, result.placeholders.map(&:id).sort
+    refute League.exists?(empty.id)
+    refute League.exists?(shell.id)
+    assert League.exists?(played.id)
+    assert League::DuplicatePurger.new(region: @region).call.placeholders.empty?, "ohne Schalter keine Platzhalter"
+  end
+
   test "Gleichstand: die Anlage mit cc_id bleibt; Dry-Run löscht nichts" do
     ba = league("Pool Oberliga", :previous)
     cc = league("Oberliga", :previous, cc_id: 3)

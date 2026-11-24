@@ -7,7 +7,7 @@
 # Gewinner: mehr PartyGames (wie viel der Saison da ist — BVS 21/22 Oberliga Snooker: BA 1 von 8
 # Partien, aber alle Spieler aufgelöst); dann mehr mit beiden Spielern; dann die Anlage mit cc_id
 # (Spielplan, Scraper-Lookup); dann mehr Partien; dann die kleinere id.
-# Gruppen mit mehr als zwei Ligen werden nur gemeldet.
+# Gruppen mit mehr als zwei Ligen: nur wenn höchstens ein Verlierer Partien hat, sonst nur gemeldet.
 #
 # Löschreihenfolge je Verlierer (Party hat KEIN dependent: :destroy auf party_games):
 #   PartyGames → Parties (kaskadiert games, party_cc, seedings, user_parties) →
@@ -17,26 +17,31 @@
 # Seeding hat `acts_as_list scope: :tournament`; Team-Seedings (tournament_id NULL) bilden für acts_as_list
 # EINE Liste über alle Regionen — jede Löschung schöbe sonst ~82 000 fremde Positionen per update_all
 # (ohne Version, also nicht repliziert) und kostete Sekunden.
+#
+# placeholders: true löscht zusätzlich BA-Platzhalter OHNE Partien und Turniere („Neue Liga“, „Pooll …“,
+# Staffel „Neue Staffel“) und lässt sie aus der Paarbildung heraus.
 class League::DuplicatePurger
   Pair = Struct.new(:region, :season, :keep, :drop, :stats, :blocker, keyword_init: true)
 
-  attr_reader :pairs, :skipped, :errors
+  attr_reader :pairs, :skipped, :placeholders, :errors
 
-  def initialize(region: nil, armed: false)
+  def initialize(region: nil, armed: false, placeholders: false)
     @region = region
     @armed = armed
+    @with_placeholders = placeholders
     @errors = []
   end
 
   def call
+    @placeholders = @with_placeholders ? find_placeholders : []
     @pairs, @skipped = build_pairs
     purge if @armed
     self
   end
 
-  # Anzahl der zu löschenden Records je Typ (über alle Paare ohne Blocker).
+  # Anzahl der zu löschenden Records je Typ (Paare ohne Blocker + Platzhalter).
   def totals
-    drop_ids = pairs.reject(&:blocker).map { |p| p.drop.id }
+    drop_ids = pairs.reject(&:blocker).map { |p| p.drop.id } + placeholders.map(&:id)
     party_ids = Party.where(league_id: drop_ids).pluck(:id)
     team_ids = LeagueTeam.where(league_id: drop_ids).pluck(:id)
     {leagues: drop_ids.size, parties: party_ids.size, party_games: PartyGame.where(party_id: party_ids).count,
@@ -49,17 +54,32 @@ class League::DuplicatePurger
   def build_pairs
     pairs = []
     skipped = []
+    placeholder_ids = placeholders.map(&:id).to_set
     League::SeriesUnifier.new(region: @region).call.series.each do |s|
       s.duplicates.group_by { |c| [c.season, League.staffel_key(c.new_staffel, s.region)] }.each_value do |cs|
-        leagues = cs.map(&:league)
-        next skipped << leagues if leagues.size != 2
+        leagues = cs.map(&:league).reject { |l| placeholder_ids.include?(l.id) }
+        next if leagues.size < 2
 
         stats = leagues.to_h { |l| [l.id, stats_for(l)] }
-        keep, drop = leagues.sort_by { |l| score(l, stats[l.id]) }.reverse
-        pairs << Pair.new(region: s.region, season: cs.first.season, keep: keep, drop: drop, stats: stats, blocker: blocker(drop))
+        keep, *drops = leagues.sort_by { |l| score(l, stats[l.id]) }.reverse
+        # Mehr als zwei: nur, wenn höchstens ein Verlierer Partien hat (BLVN 2021/22 Kreisliga OH:
+        # BA + CC + leere Anlage); sonst ist unklar, was zusammengehört.
+        next skipped << leagues if drops.count { |l| stats[l.id][:parties].positive? } > 1
+
+        drops.each do |drop|
+          pairs << Pair.new(region: s.region, season: cs.first.season, keep: keep, drop: drop, stats: stats, blocker: blocker(drop))
+        end
       end
     end
     [pairs.sort_by { |p| [p.region.shortname, p.season, p.keep.id] }, skipped]
+  end
+
+  def find_placeholders
+    rel = League.where(organizer_type: "Region")
+    rel = rel.where(organizer_id: @region.id) if @region
+    rel.where("leagues.name = 'Neue Liga' OR leagues.name LIKE 'Pooll %' OR leagues.staffel_text ILIKE 'Neue Staffel'")
+      .where.not(id: Party.select(:league_id)).where.not(id: Tournament.where.not(league_id: nil).select(:league_id))
+      .includes(:organizer, :season).order(:id).to_a
   end
 
   def stats_for(league)
@@ -82,11 +102,13 @@ class League::DuplicatePurger
   end
 
   def purge
-    Seeding.acts_as_list_no_update { pairs.reject(&:blocker).each { |pair| purge_pair(pair) } }
+    Seeding.acts_as_list_no_update do
+      placeholders.each { |l| purge_league(l) }
+      pairs.reject(&:blocker).each { |pair| purge_league(pair.drop) }
+    end
   end
 
-  def purge_pair(pair)
-    league = pair.drop
+  def purge_league(league)
     ActiveRecord::Base.transaction do
       Party.where(league_id: league.id).find_each do |p|
         PartyGame.skip_cable_ready_updates { PartyGame.where(party_id: p.id).find_each(&:destroy!) }
@@ -96,6 +118,6 @@ class League::DuplicatePurger
       League.skip_cable_ready_updates { league.destroy! }
     end
   rescue => e
-    @errors << "League[#{league.id}] #{league.read_attribute(:name)} (#{pair.season}): #{e.class}: #{e.message}"
+    @errors << "League[#{league.id}] #{league.read_attribute(:name)} (#{league.season&.name}): #{e.class}: #{e.message}"
   end
 end

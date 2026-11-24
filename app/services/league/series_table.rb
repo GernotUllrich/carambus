@@ -10,10 +10,6 @@ class League::SeriesTable
   # Offene Fälle aus der Reihen-Bereinigung (2026-11-24): [Region, Namensmuster, Hinweis]. Vermutungen,
   # keine Fachregeln. Ist ein Fall entschieden, wird er Regel im SeriesUnifier oder fällt hier weg.
   NOTES = [
-    ["BLVN", /\APooll /, "Tippfehler im Namen? Vermutlich die zweite Landesliga im Bezirk OH (analog „Kreisliga OH“)"],
-    ["BLVN", /\AKreisliga OH\z/, "Zweite Kreisliga im Bezirk OH (Staffel „2 OH“); eine Liga trägt „Pool Kreisliga 1“ als Staffel"],
-    ["BLVN", /Oberliga (Dreiband|Mehrkampf)\z/, "Gleiche Reihe unter anderer Disziplin? „Oberliga …“ (Karambol) vs. „BLVN Oberliga …“ (großes/kleines Billard)"],
-    ["BLVN", /\ANeue Liga\z/, "Platzhalter aus der Quelle"],
     ["BVS", /\ANeue Liga\z/, "Platzhalter aus der Quelle"],
     ["BLVN", /\AJugend-Mannschaft\z/, "Staffel „Weserbergland A/B“ — eigene Reihe, nur zur Kontrolle"],
     ["SBV", /Eurokegel/, "Wortstellung: „Eurokegel-Oberliga“ und „Oberliga Eurokegel“ — dieselbe Reihe?"],

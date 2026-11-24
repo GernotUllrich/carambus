@@ -306,34 +306,57 @@ class League < ApplicationRecord
   end
 
   # Ligen-Reihen: dieselbe Liga heißt über die Saisons verschieden ("Bezirksliga", "Bezirksliga Pool",
-  # "Bezirksliga - Pool", "Pool Bezirksliga", "Ersatzbank Ligen Pool"). Schlüssel ohne Disziplinwort,
-  # Füllwort "Ligen", Bindestrich, Schrägstrich und Mehrfach-Leerzeichen. Gemeinsam genutzt von
-  # League::SeriesUnifier und den Scraper-Lookups.
-  def self.series_name_key(name, discipline_name = nil)
+  # "Bezirksliga - Pool", "Pool Bezirksliga", "Ersatzbank Ligen Pool", BLVN: "BLVN Oberliga Dreiband").
+  # Schlüssel ohne Disziplinwort, Regionskürzel, Füllwort "Ligen", Bindestrich, Schrägstrich und
+  # Mehrfach-Leerzeichen. Gemeinsam genutzt von League::SeriesUnifier und den Scraper-Lookups.
+  def self.series_name_key(name, discipline_name = nil, region_shortname = nil)
     key = name.to_s.downcase
-    if discipline_name.present?
-      key = key.gsub(/(?<![[:alnum:]])#{Regexp.escape(discipline_name.downcase)}(?![[:alnum:]])/, " ")
+    [discipline_name, region_shortname].compact_blank.each do |word|
+      key = key.gsub(/(?<![[:alnum:]])#{Regexp.escape(word.downcase)}(?![[:alnum:]])/, " ")
     end
     key.gsub(/(?<![[:alnum:]])ligen(?![[:alnum:]])/, " ").gsub(%r{[\s\-–/]+}, " ").strip
   end
 
-  # Bezirks-Kürzel, die ein Verband früher in der Staffel schrieb (Kürzel → Langform, als Schlüssel).
-  # BLVN: bis 2021/22 "OH", "WE West", "WB Nord", ab 2022/23 ausgeschrieben.
+  # Bezirks-Kürzel eines Verbands (Kürzel → Langform). BLVN schrieb bis 2021/22 "OH", "WE West",
+  # "WB Nord", "2 OH", der CC-Backfill 2021/22 sogar "OH - Kreisliga" bzw. "Nord  Weserbergland";
+  # ab 2022/23 ausgeschrieben mit dem Bezirk vorn.
   STAFFEL_ABBREVIATIONS = {
-    "BLVN" => {"oh" => "osnabrück huntegau", "we" => "weser ems", "wb" => "weserbergland"}
+    "BLVN" => {"OH" => "Osnabrück / Huntegau", "WE" => "Weser / Ems", "WB" => "Weserbergland"}
   }.freeze
 
-  # Staffel-Schreibweisen: BA schrieb "Staffel A", die CC schreibt "A". Eine führende 1 ist die
-  # implizite erste Staffel ("1 OH" = "OH", BLVN); "2 OH" bleibt eine eigene Staffel. Mit `region`
-  # (Region oder Kürzel) werden zusätzlich deren Bezirks-Kürzel aufgelöst ("WE West" = "Weser / Ems West").
-  def self.staffel_key(staffel, region = nil)
-    key = staffel.to_s.downcase.sub(/\Astaffel\s+/, "").sub(/\A1\s+(?=[[:alpha:]])/, "")
-      .gsub(%r{[\s\-–/]+}, " ").strip.presence
-    abbrevs = STAFFEL_ABBREVIATIONS[region.respond_to?(:shortname) ? region.shortname : region.to_s]
-    return key unless key && abbrevs
+  def self.staffel_abbreviations(region)
+    STAFFEL_ABBREVIATIONS.fetch(region.respond_to?(:shortname) ? region.shortname : region.to_s, {})
+  end
 
-    first, rest = key.split(" ", 2)
-    [abbrevs.fetch(first, first), rest].compact.join(" ")
+  # Staffel in der Schreibweise des Verbands: Kürzel ausgeschrieben, Bezirk vorn, "n OH" →
+  # "Osnabrück / Huntegau n" (eine führende 1 ist die implizite erste Staffel und entfällt),
+  # "OH / A" → "Osnabrück / Huntegau A". "Neue Staffel" ist ein BA-Platzhalter → nil.
+  def self.expand_staffel(staffel, region = nil)
+    s = staffel.to_s.squish.presence
+    return nil if s.nil? || s.casecmp?("Neue Staffel")
+
+    abbrevs = staffel_abbreviations(region)
+    return s if abbrevs.empty?
+
+    tokens = s.split
+    long_of = ->(t) { abbrevs.find { |k, _| k.casecmp?(t.to_s) }&.last }
+    number = tokens.shift if tokens.size > 1 && tokens[0].match?(/\A\d+\z/) && long_of.call(tokens[1])
+    if (long = long_of.call(tokens[0]))
+      tokens[0] = long
+      tokens.delete_at(1) if tokens[1] == "/"
+      tokens << number if number && number != "1"
+    end
+    s = tokens.join(" ")
+    long = abbrevs.values.find { |v| s.match?(/[\s\-–]#{Regexp.escape(v)}\z/i) }
+    s = "#{long} #{s.sub(/[\s\-–]*#{Regexp.escape(long)}\z/i, "")}".strip if long
+    s
+  end
+
+  # Staffel-Schlüssel: BA schrieb "Staffel A", die CC schreibt "A"; eine führende 1 ist die implizite
+  # erste Staffel ("1 OH" = "OH"). Mit `region` (Region oder Kürzel) zusätzlich über expand_staffel.
+  def self.staffel_key(staffel, region = nil)
+    expand_staffel(staffel, region).to_s.downcase.sub(/\Astaffel\s+/, "").sub(/\A1\s+(?=[[:alpha:]])/, "")
+      .gsub(%r{[\s\-–/]+}, " ").strip.presence
   end
 
   def synonym_list
