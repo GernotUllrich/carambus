@@ -114,6 +114,13 @@ class League::SeriesUnifierTest < ActiveSupport::TestCase
     assert_equal [ba, cc].sort_by(&:id), result.series.flat_map(&:duplicates).map(&:league).sort_by(&:id)
   end
 
+  test "BLVN-Bezirkskürzel entsprechen der Langform" do
+    assert_equal League.staffel_key("Weser / Ems West", "BLVN"), League.staffel_key("WE West", "BLVN")
+    assert_equal League.staffel_key("Osnabrück / Huntegau", "BLVN"), League.staffel_key("1 OH", "BLVN")
+    assert_equal League.staffel_key("Weserbergland Nord", "BLVN"), League.staffel_key("WB Nord", "BLVN")
+    refute_equal League.staffel_key("Weser / Ems", "NBV"), League.staffel_key("WE", "NBV"), "nur für BLVN"
+  end
+
   test "Staffel im Namen wandert nicht, wenn die Reihe sie in derselben Saison schon hat" do
     own = league("Pool Kreisliga", :previous, staffel: "1 OH")
     second = league("Kreisliga OH", :previous)

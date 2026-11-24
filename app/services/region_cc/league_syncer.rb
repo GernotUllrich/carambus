@@ -113,7 +113,7 @@ class RegionCc::LeagueSyncer < ApplicationService
               # Umbenannte Reihen-Ligen (League::SeriesUnifier) tragen den CC-Namen als Synonym.
               league ||= League.where(season: season, organizer_type: "Region", organizer_id: [region.id, dbu_region_id])
                 .with_name_or_synonym(l_name)
-                .detect { |l| l.branch == branch_cc.discipline && League.staffel_key(l.staffel_text) == League.staffel_key(s_name) }
+                .detect { |l| l.branch == branch_cc.discipline && League.staffel_key(l.staffel_text, region) == League.staffel_key(s_name, region) }
             end
             if league.present?
               next if opts[:exclude_league_ba_ids].include?(league.ba_id)

@@ -317,11 +317,23 @@ class League < ApplicationRecord
     key.gsub(/(?<![[:alnum:]])ligen(?![[:alnum:]])/, " ").gsub(%r{[\s\-–/]+}, " ").strip
   end
 
+  # Bezirks-Kürzel, die ein Verband früher in der Staffel schrieb (Kürzel → Langform, als Schlüssel).
+  # BLVN: bis 2021/22 "OH", "WE West", "WB Nord", ab 2022/23 ausgeschrieben.
+  STAFFEL_ABBREVIATIONS = {
+    "BLVN" => {"oh" => "osnabrück huntegau", "we" => "weser ems", "wb" => "weserbergland"}
+  }.freeze
+
   # Staffel-Schreibweisen: BA schrieb "Staffel A", die CC schreibt "A". Eine führende 1 ist die
-  # implizite erste Staffel ("1 OH" = "OH", BLVN); "2 OH" bleibt eine eigene Staffel.
-  def self.staffel_key(staffel)
-    staffel.to_s.downcase.sub(/\Astaffel\s+/, "").sub(/\A1\s+(?=[[:alpha:]])/, "")
+  # implizite erste Staffel ("1 OH" = "OH", BLVN); "2 OH" bleibt eine eigene Staffel. Mit `region`
+  # (Region oder Kürzel) werden zusätzlich deren Bezirks-Kürzel aufgelöst ("WE West" = "Weser / Ems West").
+  def self.staffel_key(staffel, region = nil)
+    key = staffel.to_s.downcase.sub(/\Astaffel\s+/, "").sub(/\A1\s+(?=[[:alpha:]])/, "")
       .gsub(%r{[\s\-–/]+}, " ").strip.presence
+    abbrevs = STAFFEL_ABBREVIATIONS[region.respond_to?(:shortname) ? region.shortname : region.to_s]
+    return key unless key && abbrevs
+
+    first, rest = key.split(" ", 2)
+    [abbrevs.fetch(first, first), rest].compact.join(" ")
   end
 
   def synonym_list
@@ -441,8 +453,8 @@ class League < ApplicationRecord
             # Primary lookup: Find by CC IDs (most specific and reliable)
             # Staffel über League.staffel_key vergleichen: nach der Reihen-Bereinigung
             # (League::SeriesUnifier) steht dort evtl. "A" statt der CC-Schreibweise "Staffel A".
-            skey = League.staffel_key(staffel_texts[ix])
-            staffel_match = ->(l) { skey.nil? || League.staffel_key(l.staffel_text) == skey }
+            skey = League.staffel_key(staffel_texts[ix], region)
+            staffel_match = ->(l) { skey.nil? || League.staffel_key(l.staffel_text, region) == skey }
             attrs = { cc_id: league_cc_id, organizer: region, season: season, cc_id2: cc_id2 }.compact
             league = League.where(attrs).detect(&staffel_match)
 
@@ -461,7 +473,7 @@ class League < ApplicationRecord
             # Update league attributes - cc_id and cc_id2 are the primary identifiers
             # Vereinheitlichte Staffel-Schreibweise nicht auf die CC-Variante zurückdrehen.
             staffel = staffel_texts[ix]
-            staffel = league.staffel_text if League.staffel_key(league.staffel_text) == League.staffel_key(staffel)
+            staffel = league.staffel_text if League.staffel_key(league.staffel_text, region) == League.staffel_key(staffel, region)
             attrs = { shortname: short, cc_id: league_cc_id, cc_id2: cc_id2, discipline: branch,
                       staffel_text: staffel }.compact
             league.assign_attributes(attrs)

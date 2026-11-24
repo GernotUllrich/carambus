@@ -58,9 +58,10 @@ class League::SeriesUnifier
 
   def series_in_bucket(leagues)
     disc = leagues.first.discipline.name
+    @reg = leagues.first.organizer
     entries = leagues.map do |l|
       {league: l, key: League.series_name_key(l.read_attribute(:name), disc), base: l.read_attribute(:name).to_s.squish,
-       staffel: l.staffel_text.presence, skey: League.staffel_key(l.staffel_text), embedded: false}
+       staffel: l.staffel_text.presence, skey: League.staffel_key(l.staffel_text, @reg), embedded: false}
     end
     groups = entries.group_by { |e| e[:key] }
     move_embedded_staffeln(groups)
@@ -78,7 +79,7 @@ class League::SeriesUnifier
       next unless target
 
       suffix = key.delete_prefix("#{target} ")
-      skey = League.staffel_key(suffix)
+      skey = League.staffel_key(suffix, @reg)
       next unless groups[target].any? { |e| e[:skey] == skey }
 
       # Nicht verschieben, wenn die Reihe die Staffel in derselben Saison schon führt UND die Liga
@@ -92,7 +93,7 @@ class League::SeriesUnifier
       end
 
       movers.each do |e|
-        e.merge!(skey: League.staffel_key(suffix), embedded: true, base: strip_staffel(e[:base], suffix))
+        e.merge!(skey: skey, embedded: true, base: strip_staffel(e[:base], suffix))
         groups[target] << e
       end
       groups[key] -= movers
@@ -105,7 +106,7 @@ class League::SeriesUnifier
     names |= entries.map { |e| e[:league].read_attribute(:name) }
     spellings = entries.reject { |e| e[:embedded] }.map { |e| e[:staffel] }.compact
     return nil if names.size < 2 && entries.none? { |e| e[:embedded] } &&
-      spellings.group_by { |s| League.staffel_key(s) }.values.all? { |v| v.uniq.size < 2 }
+      spellings.group_by { |s| League.staffel_key(s, @reg) }.values.all? { |v| v.uniq.size < 2 }
 
     # Jüngster Name; bei eingebetteter Staffel der Name ohne sie ("Landesliga Staffel West" → "Landesliga").
     latest = entries.max_by { |e| e[:league].season&.name.to_s }[:league].season&.name.to_s
@@ -122,7 +123,7 @@ class League::SeriesUnifier
         synonyms: (names.size > 1) ? ([own] + (names - [own]).sort).join("\n") : l.synonyms)
     end
 
-    dup_ids = changes.group_by { |c| [c.season, League.staffel_key(c.new_staffel)] }
+    dup_ids = changes.group_by { |c| [c.season, League.staffel_key(c.new_staffel, @reg)] }
       .values.select { |cs| cs.size > 1 }.flatten.map { |c| c.league.id }.to_set
     mixed = changes.group_by(&:season).select { |_, cs| cs.map { |c| c.new_staffel.nil? }.uniq.size > 1 }.keys.sort
 
