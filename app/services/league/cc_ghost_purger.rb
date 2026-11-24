@@ -13,6 +13,11 @@
 #   dafür eine feste Übersicht) UND die keine Partie mit Datum in der Saison hat. Wird ganz gelöscht.
 # Übersprungen: nicht abrufbare Seiten und echte Seiten ohne eigene Team-Links.
 #
+# Staffel-Ligen (cc_id2): `source_url` ist die Ligaseite und zeigt nur EINE Staffel (BLVN 92: Seite zeigt
+# Staffel 64, Liga 92/66 hat dort keinen Team-Link). Die Team-Links kommen deshalb von der Staffelseite
+# `p=<Verband>--<Saison>-<Liga>-<Staffel>` (Strichform wie im Scraper); die Hüllen-Prüfung bleibt auf der
+# Ligaseite, denn ob die CC die Liga kennt, hängt an der Liga-ID.
+#
 # Löschreihenfolge wie im DuplicatePurger: PartyGames → Parties → LeagueTeams (Seedings kaskadieren) →
 # ggf. League; broadcast-frei, ohne acts_as_list-Nachrücken, je Liga eine Transaktion, PaperTrail → Sync.
 class League::CcGhostPurger
@@ -53,8 +58,15 @@ class League::CcGhostPurger
     html = fetch(league.source_url)
     return Finding.new(league: league, skipped: "Seite nicht abrufbar") if html.blank?
 
+    if league.cc_id2.present?
+      url = staffel_url(league)
+      return Finding.new(league: league, skipped: "Staffel-URL nicht bildbar") if url.nil?
+
+      team_html = fetch(url)
+      return Finding.new(league: league, skipped: "Staffelseite nicht abrufbar") if team_html.blank?
+    end
     # Team-Link: …-<Liga>-<Staffel>-<Team>; ohne Staffel steht 0 (BLVN-Staffeln: „…-39-18-266“).
-    cc_ids = html.scan(/sb_mannschaftsplan\.php\?p=[^'"]*-#{league.cc_id}-#{league.cc_id2 || 0}-(\d+)/).flatten.map(&:to_i).to_set
+    cc_ids = (team_html || html).scan(/sb_mannschaftsplan\.php\?p=[^'"]*-#{league.cc_id}-#{league.cc_id2 || 0}-(\d+)/).flatten.map(&:to_i).to_set
     if html == unknown_page(league.source_url)
       return Finding.new(league: league, cc_team_ids: cc_ids, skipped: "CC kennt die Liga nicht, aber Partien in der Saison") if Party.where(league_id: league.id).any? { |p| in_season?(p) }
       return Finding.new(league: league, cc_team_ids: cc_ids, skipped: "CC kennt die Liga nicht, aber sie hat Turniere") if league.tournaments.exists?
@@ -91,11 +103,22 @@ class League::CcGhostPurger
     (@unknown_pages ||= {})[ref] ||= fetch(ref) || :unavailable
   end
 
+  # `p=19||2025/2026|92` oder `p=19--2025/2026-92` → `p=19--2025/2026-92-66`. Nur wenn der letzte Teil
+  # die eigene Liga-ID ist, sonst nil (keine geratene URL).
+  def staffel_url(league)
+    base, p = league.source_url.split("p=", 2)
+    parts = p.to_s.split(/[-|]/)
+    return nil unless parts.size == 4 && parts[3] == league.cc_id.to_s
+
+    "#{base}p=#{parts[0]}--#{parts[2]}-#{league.cc_id}-#{league.cc_id2}"
+  end
+
+  # Je URL einmal: Staffeln derselben Liga teilen die Ligaseite.
   def fetch(url)
-    @fetcher.call(url)
+    (@pages ||= {}).fetch(url) { @pages[url] = @fetcher.call(url) }
   rescue => e
     @errors << "Abruf #{url}: #{e.class}: #{e.message}"
-    nil
+    @pages[url] = nil
   end
 
   # TimeWithZone → Date (Season#includes_date prüft auf Date, siehe Memory cc-rollover-copies-date-discriminator).

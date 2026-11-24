@@ -103,18 +103,59 @@ class League::CcGhostPurgerTest < ActiveSupport::TestCase
     refute result.findings.find { |f| f.league == odd }.hull, "keine Referenz bildbar → nie Hülle"
   end
 
-  test "Staffel-Liga: Team-Links tragen die Staffel-ID statt 0, fremde Staffel zählt nicht" do
+  def url_purger(pages)
+    requested = []
+    fetcher = ->(url) { pages[url].tap { requested << url } }
+    [League::CcGhostPurger.new(region: @region, season: @season, fetcher: fetcher).call, requested]
+  end
+
+  test "Staffel-Liga: Team-Links von der Staffelseite, nicht von der Ligaseite (die zeigt eine andere Staffel)" do
     l = league(39)
     l.update!(cc_id2: 18)
     own = team(l, 266)
-    other_staffel = team(l, 300)
-    html = "<a href='sb_mannschaftsplan.php?p=19--x-39-18-266'>A</a><a href='sb_mannschaftsplan.php?p=19--x-39-19-300'>B</a>"
+    stale = team(l, 300)
+    liga = l.source_url
+    staffel = "https://cc.example/sb_spielplan.php?p=23--#{@season.name}-39-18"
+    pages = {liga => "<a href='sb_mannschaftsplan.php?p=23--x-39-19-301'>andere Staffel</a>",
+             staffel => "<a href='sb_mannschaftsplan.php?p=23--x-39-18-266'>A</a>"}
 
-    finding = purger({39 => html}).findings.first
+    result, requested = url_purger(pages)
+    finding = result.findings.first
 
+    assert_includes requested, staffel
+    assert_nil finding.skipped
     assert_equal [266].to_set, finding.cc_team_ids
-    assert_equal [other_staffel.id], finding.ghosts.map(&:id)
+    assert_equal [stale.id], finding.ghosts.map(&:id)
     refute_includes finding.ghosts.map(&:id), own.id
+  end
+
+  test "Staffel-URL aus Pipe-source_url in Strichform; Ligaseite je URL nur einmal geholt" do
+    a = league(92)
+    a.update!(cc_id2: 64, source_url: "https://cc.example/sb_spielplan.php?p=19||#{@season.name}|92")
+    b = League.create!(id: id, name: "Kreisliga", shortname: "GPB", organizer: @region, season: @season,
+      discipline: disciplines(:branch_pool), cc_id: 92, cc_id2: 66, source_kind: "club_cloud", source_url: a.source_url)
+    team(b, 7)
+    pages = {a.source_url => "<h1>Liga</h1>",
+             "https://cc.example/sb_spielplan.php?p=19--#{@season.name}-92-64" => "<a href='sb_mannschaftsplan.php?p=19--x-92-64-5'>T</a>",
+             "https://cc.example/sb_spielplan.php?p=19--#{@season.name}-92-66" => "<a href='sb_mannschaftsplan.php?p=19--x-92-66-7'>T</a>"}
+
+    result, requested = url_purger(pages)
+
+    assert_equal 1, requested.count(a.source_url)
+    assert_equal [7].to_set, result.findings.find { |f| f.league == b }.cc_team_ids
+  end
+
+  test "Staffelseite nicht abrufbar oder URL nicht bildbar → übersprungen" do
+    gone = league(40)
+    gone.update!(cc_id2: 5)
+    odd = league(41)
+    odd.update!(cc_id2: 6, source_url: "https://cc.example/sb_spielplan.php?p=23--#{@season.name}-99")
+    pages = {gone.source_url => "<h1>Liga</h1>", odd.source_url => "<h1>Liga</h1>"}
+
+    by_league = url_purger(pages).first.findings.index_by(&:league)
+
+    assert_equal "Staffelseite nicht abrufbar", by_league[gone].skipped
+    assert_equal "Staffel-URL nicht bildbar", by_league[odd].skipped
   end
 
   test "Dry-Run löscht nichts, nicht abrufbare Seite wird übersprungen" do
