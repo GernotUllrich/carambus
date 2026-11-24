@@ -85,7 +85,7 @@ tfoot td.lg { z-index: 2; }
 <div class="wrap">
   <header>
     <h1>Liga-Einzelspiele je Region</h1>
-    <p class="lede">Anzahl der PartyGames (Einzelspiele der Ligapartien) je Liga und Saison auf der Authority api.carambus.de, Stand __STAND__ nach der Bereinigung der Ligen-Reihen: jede Reihe trägt den jüngsten Namen, frühere Namen stehen kursiv darunter. Ligen nach Name, Staffel und Disziplin, Organisator ist die jeweilige Region.</p>
+    <p class="lede">Anzahl der PartyGames (Einzelspiele der Ligapartien) je Liga und Saison auf der Authority api.carambus.de, Stand __STAND__. Jede Ligen-Reihe trägt den jüngsten Namen, frühere Namen stehen kursiv darunter; doppelt angelegte Ligen (BA/CC 2021/22) und CC-Rollover-Reste sind bereinigt. Ligen nach Name, Staffel und Disziplin, Organisator ist die jeweilige Region.</p>
   </header>
 
   <nav class="tabs" id="tabs" role="tablist" aria-label="Region"></nav>
@@ -115,7 +115,7 @@ tfoot td.lg { z-index: 2; }
 
   <div class="scroller" id="scroller"><table id="tbl"></table></div>
 
-  <p class="note">Quelle je Zelle im Tooltip (BA, CC = ClubCloud, NuLiga, LM = LigaManager). Gleich benannte Ligen derselben Saison mit gleicher Staffel und Disziplin sind zusammengefasst; der Tooltip nennt dann die Zahl. Partien mit leerem CC-Ergebnis haben keine Einzelspiele, das ist keine Lücke im Scrape. Dubletten (D) sind meist die BA/CC-Doppelanlage der Saison 2021/22: dieselbe Liga einmal aus der BillardArea, einmal aus der ClubCloud; die Bereinigung hat sie bewusst nicht angefasst.</p>
+  <p class="note">Quelle je Zelle im Tooltip (BA, CC = ClubCloud, NuLiga, LM = LigaManager). Gleich benannte Ligen derselben Saison mit gleicher Staffel und Disziplin sind zusammengefasst; der Tooltip nennt dann die Zahl. Partien mit leerem CC-Ergebnis haben keine Einzelspiele, das ist keine Lücke im Scrape. Dubletten (D) sind Ligen, die in einer Saison doppelt angelegt sind, typisch die BA/CC-Doppelanlage beim Quellwechsel; leagues:purge_duplicates räumt sie ab.</p>
 </div>
 
 <script>
