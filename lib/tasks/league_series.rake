@@ -168,3 +168,37 @@ namespace :leagues do
     end
   end
 end
+
+# Bestehende CC-Ligen einer Region und Saison neu scrapen (ClubCloudScraper, league_details: true, OHNE
+# cleanup — parse_parties ist find-or-create, legt nichts doppelt an). Für abgeschlossene Saisons, die der
+# tägliche Scrape (nur current_season) nicht mehr erfasst, z. B. nach einem Scraper-Fix.
+# Broadcast-frei; neue Partien/Einzelspiele erzeugen Versionen (Sync an alle Server).
+#
+# Usage:
+#   bundle exec rake leagues:rescrape_season REGION=BLVN SEASON=2022/2023
+#   bundle exec rake leagues:rescrape_season REGION=BLVN SEASON=2022/2023 LEAGUE_IDS=8119,8126
+namespace :leagues do
+  desc "CC-Ligen einer Region und Saison neu scrapen, ohne cleanup (REGION, SEASON, optional LEAGUE_IDS)"
+  task rescrape_season: :environment do
+    region = Region.find_by!(shortname: ENV.fetch("REGION"))
+    season = Season.find_by!(name: ENV.fetch("SEASON"))
+    leagues = League.where(organizer: region, season: season).where.not(cc_id: nil).order(:id)
+    leagues = leagues.where(id: ENV["LEAGUE_IDS"].split(",").map(&:to_i)) if ENV["LEAGUE_IDS"].present?
+    count = ->(l) { [Party.where(league_id: l.id).count, PartyGame.joins(:party).where(parties: {league_id: l.id}).count, LeagueTeam.where(league_id: l.id).count] }
+
+    puts "Rescrape #{region.shortname} #{season.name}: #{leagues.count} Ligen · (Partien, Einzelspiele, Teams)"
+    sums = [[0, 0, 0], [0, 0, 0]]
+    leagues.each do |l|
+      before = count.call(l)
+      League.skip_cable_ready_updates do
+        Party.skip_cable_ready_updates do
+          PartyGame.skip_cable_ready_updates { l.scrape_single_league_from_cc(league_details: true) }
+        end
+      end
+      after = count.call(l)
+      sums = [sums[0].zip(before).map(&:sum), sums[1].zip(after).map(&:sum)]
+      puts format("  %6d %-34s %s → %s", l.id, "#{l.read_attribute(:name)} #{l.staffel_text}".strip[0, 34], before.inspect, after.inspect)
+    end
+    puts "Summe: #{sums[0].inspect} → #{sums[1].inspect}  (Abbrüche stehen als „Fatal Error“ in log/production.log)"
+  end
+end

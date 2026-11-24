@@ -158,6 +158,51 @@ class League::ClubCloudScraperTest < ActiveSupport::TestCase
     Club.create!(id: next_id, name: name, shortname: name, cc_id: cc_id, region: regions(:nbv))
   end
 
+  # BLVN 2022/23: verein-details.php liefert für aufgelöste Vereine HTTP 410 ohne Tabelle. Früher brach
+  # daran der ganze Liga-Scrape vor den Partien ab (`css` auf nil) — 15 von 18 Ligen blieben fast leer.
+  test "parse_linked_teams übersteht eine fehlende Vereinsseite (HTTP 410)" do
+    league = pool_league(31)
+    club = nbv_club(3065, "BC Weg")
+    team_page = "<html><body><aside><section><table></table><table></table>" \
+      "<table><tr><td><a href='verein-details.php?p=19---3065'>BC Weg</a></td></tr></table></section></aside></body></html>"
+    stub_request(:get, "#{CC_BASE}sb_mannschaft.php?p=19--2022/2023-31-0-175").to_return(status: 200, body: team_page)
+    stub_request(:get, "#{CC_BASE}verein-details.php?p=19---3065").to_return(status: 410, body: "")
+    scraper = scraper_for(league, nil)
+    scraper.instance_variable_set(:@clubs_cache, [])
+    scraper.instance_variable_set(:@league_teams_cache, [])
+
+    scraper.send(:parse_linked_teams, [["BC Weg 1", "sb_mannschaft.php?p=19--2022/2023-31-0-175"]], CC_BASE)
+
+    team = league.league_teams.find_by(cc_id: 175)
+    assert team, "Team trotz fehlender Vereinsseite angelegt"
+    assert_equal club.id, team.club_id
+  end
+
+  # BLVN 2022/23: Spielernamen mit Tabulatoren; ein unbekannter Spieler brach früher (raise) die ganze Liga ab.
+  test "parse_linked_teams bereinigt Namen, nimmt Namens-Treffer nur eindeutig und überspringt Unbekannte" do
+    league = pool_league(41)
+    club = nbv_club(3070, "PBC Nord")
+    unique = Player.create!(id: next_id, firstname: "Richard", lastname: "Degenhardt")
+    twins = 2.times.map { Player.create!(id: next_id, firstname: "Jan", lastname: "Fischer") }
+    row = ->(name, nr) { "<tr><td><a href='#'>x</a></td><td><a href='sb_spieler.php?p=19--2022/2023-41-#{nr}'>#{name}</a></td></tr>" }
+    team_page = "<html><body><aside><section><table></table><table></table><table>" \
+      "<tr><td><a href='verein-details.php?p=19---3070'>PBC Nord</a></td></tr>" +
+      row.call("Richard\t\t\t Degenhardt", 10238) + row.call("Jan\t\t Fischer", 10342) + row.call("Rainald Lamping", 10746) +
+      "</table></section></aside></body></html>"
+    stub_request(:get, "#{CC_BASE}sb_mannschaft.php?p=19--2022/2023-41-0-176").to_return(status: 200, body: team_page)
+    stub_request(:get, "#{CC_BASE}verein-details.php?p=19---3070").to_return(status: 410, body: "")
+    scraper = scraper_for(league, nil)
+    scraper.instance_variable_set(:@clubs_cache, [])
+    scraper.instance_variable_set(:@league_teams_cache, [])
+
+    scraper.send(:parse_linked_teams, [["PBC Nord 1", "sb_mannschaft.php?p=19--2022/2023-41-0-176"]], CC_BASE)
+
+    team = league.league_teams.find_by!(cc_id: 176)
+    assert_equal club.id, team.club_id
+    assert_equal [unique.id], Seeding.where(league_team: team).pluck(:player_id), "nur der eindeutige Spieler"
+    assert_nil twins.first.reload.cc_id, "Namensvetter bekommt keine fremde cc_id"
+  end
+
   test "add_schedule_teams legt fehlende Teams aus dem Spielplan an (Teil-Tabelle)" do
     league = pool_league(357)
     pinneberg = nbv_club(1004, "1. PBV Pinneberg")

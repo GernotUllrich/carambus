@@ -153,7 +153,9 @@ class League::ClubCloudScraper < ApplicationService
         team_club_html = http_get(uri)
         team_club_doc = Nokogiri::HTML(team_club_html)
         team_club_dbu_nr = nil
-        team_club_doc.css("aside section table")[0].css("tr").each do |tr__|
+        # Vereinsseite kann fehlen (BLVN 2022/23: verein-details 3065 → HTTP 410). Dann ohne DBU-Nr.
+        # weiter über cc_id/Name/Synonym — sonst bricht der ganze Liga-Scrape vor den Partien ab.
+        team_club_doc.css("aside section table")[0]&.css("tr")&.each do |tr__|
           team_club_dbu_nr = tr__.css("td")[1].text.strip.to_i if tr__.css("td")[0].text.strip == "DBU-Nr."
         end
         params_club = team_club_link.split("p=")[1].split(/[|-]/)
@@ -216,7 +218,8 @@ class League::ClubCloudScraper < ApplicationService
 
           a_ = tr_p.css("td > a")[1]
           player_link = a_["href"]
-          fl_name = a_.text.gsub("  ", " ").strip
+          # squish: die CC liefert Namen teils mit Tabulatoren ("Jan\t\t Fischer", BLVN 2022/23)
+          fl_name = a_.text.squish
           params = player_link.split("p=")[1].split("-")
           player_dbu_nr = params[5].to_i
           player = @league_team_players[team_name][fl_name]
@@ -278,11 +281,16 @@ class League::ClubCloudScraper < ApplicationService
             else
               player = Player.find_by_fl_name_and_cc_id(fl_name, player_dbu_nr)
               player ||= Player.find_by_fl_name_and_dbu_nr(fl_name, player_dbu_nr)
-              player ||= Player.find_by_fl_name(fl_name)
+              # Nur über den Namen: nur wenn eindeutig — sonst bekäme ein Namensvetter die fremde cc_id
+              # (global, repliziert an alle Server; „Jan Fischer“ gibt es 6×).
+              by_name = Player.where(fl_name: fl_name).limit(2).to_a
+              player ||= by_name.first if by_name.size == 1
               if player.blank?
-                msg = "==== scrape ==== Fatal ErrorPlayer #{fl_name} with cc_id in region #{@league.organizer.shortname}, league cc_id: #{@league.cc_id}, #{@league.name} #{player_dbu_nr} not in region??!"
-                Rails.logger.info msg
-                raise StandardError, msg
+                # Früher: raise → der ganze Liga-Scrape brach vor den Partien ab. Jetzt: Spieler auslassen,
+                # seine Einzelspiele stehen ohne Spieler; die Liga läuft weiter.
+                Rails.logger.info "==== scrape ==== Player #{fl_name} (cc #{player_dbu_nr}) in region #{@league.organizer.shortname}, " \
+                  "league cc_id: #{@league.cc_id}, #{@league.name}: #{(by_name.size > 1) ? "mehrdeutig" : "unbekannt"} — übersprungen"
+                next
               else
                 player.assign_attributes(cc_id: player_dbu_nr)
               end
@@ -759,8 +767,8 @@ class League::ClubCloudScraper < ApplicationService
                       end
                     end
                   else
-                    player_a_fl_name = tr_g.css("td")[2].andand.text.andand.strip
-                    player_b_fl_name = tr_g.css("td")[3].andand.text.andand.strip
+                    player_a_fl_name = tr_g.css("td")[2].andand.text.andand.squish
+                    player_b_fl_name = tr_g.css("td")[3].andand.text.andand.squish
                     player_a = @league_team_players[league_team_a.name][player_a_fl_name]
                     if player_a.blank?
                       player_a = Player.joins(:season_participations).where(season_participations: {
@@ -827,8 +835,8 @@ class League::ClubCloudScraper < ApplicationService
                     non_shootout_games += 1
                   end
 
-                  player_a_fl_name = tr_g.css("td")[2 + shift2].text.strip
-                  player_b_fl_name = tr_g.css("td")[4 + shift2].text.strip
+                  player_a_fl_name = tr_g.css("td")[2 + shift2].text.squish
+                  player_b_fl_name = tr_g.css("td")[4 + shift2].text.squish
                   result = tr_g.css("td")[3 + shift2].text.strip
                   result = "0:0" if result == ":"
 
