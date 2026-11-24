@@ -306,14 +306,15 @@ class League < ApplicationRecord
   end
 
   # Ligen-Reihen: dieselbe Liga heißt über die Saisons verschieden ("Bezirksliga", "Bezirksliga Pool",
-  # "Bezirksliga - Pool", "Pool Bezirksliga"). Schlüssel ohne Disziplinwort, Bindestrich, Schrägstrich
-  # und Mehrfach-Leerzeichen. Gemeinsam genutzt von League::SeriesUnifier und den Scraper-Lookups.
+  # "Bezirksliga - Pool", "Pool Bezirksliga", "Ersatzbank Ligen Pool"). Schlüssel ohne Disziplinwort,
+  # Füllwort "Ligen", Bindestrich, Schrägstrich und Mehrfach-Leerzeichen. Gemeinsam genutzt von
+  # League::SeriesUnifier und den Scraper-Lookups.
   def self.series_name_key(name, discipline_name = nil)
     key = name.to_s.downcase
     if discipline_name.present?
       key = key.gsub(/(?<![[:alnum:]])#{Regexp.escape(discipline_name.downcase)}(?![[:alnum:]])/, " ")
     end
-    key.gsub(%r{[\s\-–/]+}, " ").strip
+    key.gsub(/(?<![[:alnum:]])ligen(?![[:alnum:]])/, " ").gsub(%r{[\s\-–/]+}, " ").strip
   end
 
   # Staffel-Schreibweisen: BA schrieb "Staffel A", die CC schreibt "A".

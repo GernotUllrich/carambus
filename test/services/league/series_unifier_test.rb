@@ -22,6 +22,8 @@ class League::SeriesUnifierTest < ActiveSupport::TestCase
   test "Schlüssel ignorieren Disziplinwort, Trenner und Staffel-Präfix" do
     keys = ["Bezirksliga Pool", "Bezirksliga - Pool", "Pool Bezirksliga", "Bezirksliga"].map { |n| League.series_name_key(n, "Pool") }
     assert_equal ["bezirksliga"], keys.uniq
+    assert_equal League.series_name_key("Ersatzbank - Pool", "Pool"), League.series_name_key("Ersatzbank Ligen Pool", "Pool")
+    assert_equal "landesligen x", League.series_name_key("Landesligen X", "Pool"), "nur das ganze Wort"
     assert_equal "a", League.staffel_key("Staffel A")
     assert_equal "schwaben süd", League.staffel_key("Schwaben-Süd")
     assert_nil League.staffel_key(" ")
