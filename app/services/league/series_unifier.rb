@@ -189,12 +189,14 @@ class League::SeriesUnifier
   def original_name(league) = league.synonym_list.first || league.read_attribute(:name)
 
   # BA schrieb den Ligennamen ins Staffelfeld (BVS: "Bezirksliga" [Bezirksliga A], "Oberliga Snooker"
-  # [Oberliga A Snooker]). Nur wenn der GANZE Name (ohne Disziplinwort) vorne steht und etwas übrig
-  # bleibt, zählt der Rest als Staffel; sonst bleibt die Staffel unverändert.
+  # [Oberliga A Snooker]). Nur wenn der GANZE Name (ohne Disziplinwort und Regionskürzel) vorne steht und
+  # etwas übrig bleibt, zählt der Rest als Staffel; sonst bleibt die Staffel unverändert. Das Regionskürzel
+  # muss wie im Namensschlüssel wegfallen, sonst greift die Regel erst nach der Umbenennung, also erst im
+  # zweiten Lauf (BVNR 2015/16 "Kreisliga" [BVNR Pool Kreisliga Süd] → "BVNR Kreisliga Pool").
   def strip_own_name(staffel, name, disc)
     return staffel if staffel.blank?
 
-    drop_disc = ->(tokens) { tokens.reject { |t| t.casecmp?(disc) } }
+    drop_disc = ->(tokens) { tokens.reject { |t| t.casecmp?(disc) || t.casecmp?(@reg.shortname) } }
     name_tokens = drop_disc.call(name.to_s.split)
     staffel_tokens = drop_disc.call(staffel.split)
     return staffel if name_tokens.empty? || staffel_tokens.size <= name_tokens.size

@@ -288,6 +288,16 @@ class League::SeriesUnifierTest < ActiveSupport::TestCase
     assert_equal ["Oberliga Dreiband", nil], [real.reload.read_attribute(:name), real.staffel_text]
   end
 
+  test "Ligenname mit Regionskürzel im Staffelfeld: ein Lauf genügt" do
+    old = league("Kreisliga", :previous, staffel: "#{@region.shortname} Pool Kreisliga Süd")
+    league("#{@region.shortname} Kreisliga Pool", :current, staffel: "Süd")
+
+    unify
+
+    assert_equal "Süd", old.reload.staffel_text
+    assert_empty League::SeriesUnifier.new(region: @region).call.changes
+  end
+
   test "with_name_or_synonym findet umbenannte Ligen über den alten Namen" do
     old = league("Bezirksliga Pool", :previous)
     league("Bezirksliga - Pool", :current)
