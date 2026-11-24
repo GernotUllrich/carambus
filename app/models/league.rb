@@ -317,9 +317,11 @@ class League < ApplicationRecord
     key.gsub(/(?<![[:alnum:]])ligen(?![[:alnum:]])/, " ").gsub(%r{[\s\-–/]+}, " ").strip
   end
 
-  # Staffel-Schreibweisen: BA schrieb "Staffel A", die CC schreibt "A".
+  # Staffel-Schreibweisen: BA schrieb "Staffel A", die CC schreibt "A". Eine führende 1 ist die
+  # implizite erste Staffel ("1 OH" = "OH", BLVN); "2 OH" bleibt eine eigene Staffel.
   def self.staffel_key(staffel)
-    staffel.to_s.downcase.sub(/\Astaffel\s+/, "").gsub(%r{[\s\-–/]+}, " ").strip.presence
+    staffel.to_s.downcase.sub(/\Astaffel\s+/, "").sub(/\A1\s+(?=[[:alpha:]])/, "")
+      .gsub(%r{[\s\-–/]+}, " ").strip.presence
   end
 
   def synonym_list

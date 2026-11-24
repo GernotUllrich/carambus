@@ -92,6 +92,41 @@ class League::SeriesUnifierTest < ActiveSupport::TestCase
     assert_equal "Mitte", old.staffel_text
   end
 
+  test "1 OH entspricht OH, 2 OH bleibt eigene Staffel" do
+    assert_equal "oh", League.staffel_key("1 OH")
+    assert_equal "2 oh", League.staffel_key("2 OH")
+    assert_equal "1", League.staffel_key("1")
+
+    old = league("Pool Kreisliga", :previous, staffel: "OH")
+    newest = league("Kreisliga", :current, staffel: "1 OH")
+    unify
+
+    assert_equal ["OH", "OH"], [old, newest].map { |l| l.reload.staffel_text }, "Form ohne 1 gewinnt"
+  end
+
+  test "Doppelanlage mit Staffel im Namen wird als Dublette gemeldet" do
+    ba = league("Pool Verbandsliga", :previous, staffel: "West")
+    cc = league("Verbandsliga West", :previous)
+    league("Verbandsliga", :current, staffel: "West")
+
+    result = unify
+
+    assert_equal [ba, cc].sort_by(&:id), result.series.flat_map(&:duplicates).map(&:league).sort_by(&:id)
+  end
+
+  test "Staffel im Namen wandert nicht, wenn die Reihe sie in derselben Saison schon hat" do
+    own = league("Pool Kreisliga", :previous, staffel: "1 OH")
+    second = league("Kreisliga OH", :previous)
+    league("Kreisliga OH", :current, staffel: "2 OH")
+    league("Kreisliga", :season_2024, staffel: "OH")
+    league("Kreisliga", :current, staffel: "1 OH")
+    unify
+
+    assert_equal "OH", own.reload.staffel_text
+    second.reload
+    assert_equal ["Kreisliga OH", nil], [second.read_attribute(:name), second.staffel_text]
+  end
+
   test "jüngste Saison mit eingebetteter Staffel liefert den Basisnamen" do
     league("Landesliga", :previous, staffel: "West")
     newest = league("Landesliga Staffel West", :current)

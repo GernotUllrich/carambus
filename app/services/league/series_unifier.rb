@@ -78,7 +78,18 @@ class League::SeriesUnifier
       next unless target
 
       suffix = key.delete_prefix("#{target} ")
-      next unless groups[target].any? { |e| e[:skey] == League.staffel_key(suffix) }
+      skey = League.staffel_key(suffix)
+      next unless groups[target].any? { |e| e[:skey] == skey }
+
+      # Nicht verschieben, wenn die Reihe die Staffel in derselben Saison schon führt UND die Liga
+      # eine eigene Reihe mit Staffeln hat: dann ist es eine eigene Liga (BLVN 2019/20 "Kreisliga OH"
+      # neben "Pool Kreisliga [1 OH]", später "Kreisliga OH [2 OH]"). Ohne eigene Reihe ist es eine
+      # Doppelanlage und wird verschoben, damit sie als Dublette gemeldet wird.
+      if groups[key].any? { |e| e[:skey] }
+        taken = groups[target].select { |e| e[:skey] == skey }.map { |e| e[:league].season_id }
+        movers = movers.reject { |e| taken.include?(e[:league].season_id) }
+        next if movers.empty?
+      end
 
       movers.each do |e|
         e.merge!(skey: League.staffel_key(suffix), embedded: true, base: strip_staffel(e[:base], suffix))
@@ -124,7 +135,10 @@ class League::SeriesUnifier
   # Eingebettete Staffeln gibt es nur, wenn die Reihe dieselbe Staffel auch als staffel_text führt.
   def canonical_staffeln(entries)
     entries.select { |e| e[:skey] }.group_by { |e| e[:skey] }.transform_values do |es|
-      es.reject { |e| e[:embedded] }.max_by { |e| e[:league].season&.name.to_s }[:staffel]
+      real = es.reject { |e| e[:embedded] }
+      # "OH" vor "1 OH": die implizite erste Staffel ohne Nummer schreiben, wenn es sie so gibt.
+      real = real.reject { |e| e[:staffel].match?(/\A1\s/) }.presence || real
+      real.max_by { |e| e[:league].season&.name.to_s }[:staffel]
     end
   end
 
