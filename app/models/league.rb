@@ -305,6 +305,35 @@ class League < ApplicationRecord
     "#{read_attribute(:name)}#{" #{staffel_text}" if staffel_text.present?}"
   end
 
+  # Ligen-Reihen: dieselbe Liga heißt über die Saisons verschieden ("Bezirksliga", "Bezirksliga Pool",
+  # "Bezirksliga - Pool", "Pool Bezirksliga"). Schlüssel ohne Disziplinwort, Bindestrich, Schrägstrich
+  # und Mehrfach-Leerzeichen. Gemeinsam genutzt von League::SeriesUnifier und den Scraper-Lookups.
+  def self.series_name_key(name, discipline_name = nil)
+    key = name.to_s.downcase
+    if discipline_name.present?
+      key = key.gsub(/(?<![[:alnum:]])#{Regexp.escape(discipline_name.downcase)}(?![[:alnum:]])/, " ")
+    end
+    key.gsub(%r{[\s\-–/]+}, " ").strip
+  end
+
+  # Staffel-Schreibweisen: BA schrieb "Staffel A", die CC schreibt "A".
+  def self.staffel_key(staffel)
+    staffel.to_s.downcase.sub(/\Astaffel\s+/, "").gsub(%r{[\s\-–/]+}, " ").strip.presence
+  end
+
+  def synonym_list
+    synonyms.to_s.split("\n").map(&:strip).reject(&:blank?)
+  end
+
+  # Ligen des aktuellen Scopes, deren Name-Spalte oder eines der Synonyme exakt `title` ist.
+  # Nach der Reihen-Bereinigung tragen alte Ligen den jüngsten Namen; ein Rescrape einer alten
+  # Saison liefert aber den damaligen — ohne diesen Lookup entstünde eine Dublette.
+  def self.with_name_or_synonym(title)
+    t = title.to_s.strip
+    where(name: t).or(where("leagues.synonyms ILIKE ?", "%#{sanitize_sql_like(t)}%")).to_a
+      .select { |l| l.read_attribute(:name) == t || l.synonym_list.include?(t) }
+  end
+
   def branch
     branch = discipline
     branch = branch.super_discipline while branch.andand.super_discipline.present?
@@ -407,16 +436,19 @@ class League < ApplicationRecord
           cc_id2s = cc_id2s.presence || [nil]
           cc_id2s.each_with_index do |cc_id2, ix|
             # Primary lookup: Find by CC IDs (most specific and reliable)
-            attrs = { cc_id: league_cc_id, organizer: region, staffel_text: staffel_texts[ix], season: season,
-                      cc_id2: cc_id2 }.compact
-            league = League.where(attrs).first
+            # Staffel über League.staffel_key vergleichen: nach der Reihen-Bereinigung
+            # (League::SeriesUnifier) steht dort evtl. "A" statt der CC-Schreibweise "Staffel A".
+            skey = League.staffel_key(staffel_texts[ix])
+            staffel_match = ->(l) { skey.nil? || League.staffel_key(l.staffel_text) == skey }
+            attrs = { cc_id: league_cc_id, organizer: region, season: season, cc_id2: cc_id2 }.compact
+            league = League.where(attrs).detect(&staffel_match)
 
             unless league.present?
               # Secondary lookup: If not found by CC IDs, try by name and other attributes
               # This handles cases where cc_id might not be set yet
-              attrs = { season: season, name: title, staffel_text: staffel_texts[ix],
-                        discipline: branch, organizer: region }.compact
-              league = League.where(attrs).first
+              # Name ODER Synonym: umbenannte Ligen alter Saisons tragen den damaligen CC-Titel als Synonym.
+              attrs = { season: season, discipline: branch, organizer: region }.compact
+              league = League.where(attrs).with_name_or_synonym(title).detect(&staffel_match)
 
               # If still not found, create a new league
               league ||= League.new(season: season, name: title, staffel_text: staffel_texts[ix], discipline: branch,
@@ -424,8 +456,11 @@ class League < ApplicationRecord
             end
 
             # Update league attributes - cc_id and cc_id2 are the primary identifiers
+            # Vereinheitlichte Staffel-Schreibweise nicht auf die CC-Variante zurückdrehen.
+            staffel = staffel_texts[ix]
+            staffel = league.staffel_text if League.staffel_key(league.staffel_text) == League.staffel_key(staffel)
             attrs = { shortname: short, cc_id: league_cc_id, cc_id2: cc_id2, discipline: branch,
-                      staffel_text: staffel_texts[ix] }.compact
+                      staffel_text: staffel }.compact
             league.assign_attributes(attrs)
             league.source_url = staffel_link
             if league.changed?

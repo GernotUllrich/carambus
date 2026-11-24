@@ -264,6 +264,16 @@ es gibt keinen Fehler.
 **Achtung:** `TableMonitor` hat diese Überschreibung **nicht** — dort verhält sich `data` normal.
 Das Gegenbeispiel im selben Projekt ist der Grund, warum die Regel so leicht vergessen wird.
 
+### `League#name` hängt die Staffel an
+
+`app/models/league.rb:304` überschreibt den Lesezugriff: `league.name` liefert
+`"#{name} #{staffel_text}"`, nicht die Spalte. Wer `league.name` vergleicht, normalisiert oder
+zurückschreibt, verdoppelt die Staffel („Kreisklasse - Pool A A“), ohne Fehler. Auch die
+GamePlan-Namen (`"#{league.name} - …"`, `club_cloud_scraper.rb:1020`) enthalten deshalb die Staffel.
+
+**Ausweg:** Für die Spalte `read_attribute(:name)` lesen und `league[:name] = …` schreiben
+(so in `League::SeriesUnifier`).
+
 ### CableReady `morph` braucht `children_only: true`
 
 Ohne das Flag morpht CableReady das adressierte Element **selbst** und zerstört dabei dessen
