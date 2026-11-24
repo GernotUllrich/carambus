@@ -287,6 +287,27 @@ die Positionen auf der Authority still verschoben. Der Test in `duplicate_purger
 **Ausweg:** Für Bulk-Löschungen `Seeding.acts_as_list_no_update { … }` verwenden (so in
 `League::DuplicatePurger`). `destroy!`, die Kaskaden und die Versionen bleiben dabei erhalten.
 
+### Nebenwirkungen per `update_all` erreichen die Regional-Server nicht
+
+Die Authority löscht mit `destroy`, der Regional-Server wendet die Löschversion mit `delete` an
+(`app/models/version.rb`, Zweig `when "destroy"`), also **ohne Callbacks**. Was ein Callback beim
+Löschen nebenbei per `update_all` umschreibt, geschieht deshalb nur auf der Authority, und es
+entsteht keine Version dafür. Bei acts_as_list belegt: Das Nachrücken der Positionen bleibt auf
+den Regional-Servern aus.
+
+Dazu kommt: `scope: :tournament` wird zu `tournament_id` **ohne** `tournament_type`
+(`acts_as_list-1.2.6/…/scope_method_definer.rb`, `idify`). Partie *n* und Turnier *n* teilen
+sich eine Liste. Auf der Authority sind es 745 solcher IDs (2026-11-24). In einer Setzliste gab
+es dort bisher keinen einzigen Gleichstand. Auf einem Regional-Server ist einer aber möglich: Die
+Authority löscht ein Seeding einzeln und rückt nach, der Regional-Server nicht. Legt die
+Authority danach ein Seeding am Ende an, kann dessen Position auf dem Regional-Server schon
+belegt sein. Nachgerückt wird nur, wenn die Löschung nicht über genau den Scope-Schlüssel
+kaskadiert (`destroyed_via_scope?`). `Tournament#destroy` und `Party#destroy` rücken also nicht
+nach, `LeagueTeam#destroy` und `seedings.destroy_all` schon.
+
+**Ausweg:** Für Bulk-Löschungen `acts_as_list_no_update`. Bei einem Callback, der fremde Zeilen
+umschreibt, gleich fragen, wie die Änderung repliziert. Ohne Version repliziert sie gar nicht.
+
 ### CableReady `morph` braucht `children_only: true`
 
 Ohne das Flag morpht CableReady das adressierte Element **selbst** und zerstört dabei dessen
