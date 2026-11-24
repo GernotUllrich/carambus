@@ -196,36 +196,24 @@ class Club < ApplicationRecord
     end
   end
 
+  # `ref` ist die Vereins-ID der CC (cbdet.php a=…). Seit spätestens 2026-11-10 liefern die alten
+  # GET-Seiten verein-details/-mitglieder HTTP 410; Abruf per POST über ClubCloudPublicClient.
   def scrape_club(season, ref = nil, url = nil, opts = {})
+    region_ = cc_source_region
+    url ||= region_.public_cc_url_base
+    client = opts[:client] || ClubCloudPublicClient.new(base_url: url, fed_id: region_.cc_id)
     if ref.blank?
-      region_ = cc_source_region
-      url ||= region_.public_cc_url_base
-      clubs_url = "#{url}verein-details.php?eps=100000"
-      uri = URI(clubs_url)
-      html_clubs = Net::HTTP.get(uri)
-      doc_clubs = Nokogiri::HTML(html_clubs)
-      club_table = doc_clubs.css("article table.silver")[1]
-      clubs = club_table.css("a")
-      found = false
-      clubs.each do |club_a|
-        ref = club_a.attributes["href"].value
-        next unless synonyms.split("\n").include?(club_a.text.strip)
-
-        params = ref.split("p=")[1].split("|")
-        self.cc_id = params[3].to_i
-        found = true
-        break
-      end
-      unless found
+      hit = client.clubs.find { |_cc_id, club_shortname| synonyms.split("\n").include?(club_shortname) }
+      unless hit
         msg = "===== scrape ===== ERROR Scraping Club #{name}[#{id}] failed - Naming problem?"
         Rails.logger.info msg
         return msg
       end
+      self.cc_id = hit[0]
+      ref = hit[0]
     end
-    Rails.logger.info "===== scrape ===== Scraping #{url.to_s + ref.to_s}"
-    uri = URI(url.to_s + ref.to_s)
-    html_club = Net::HTTP.get(uri)
-    doc_club = Nokogiri::HTML(html_club)
+    Rails.logger.info "===== scrape ===== Scraping #{client.url_for("cbdet.php", a: ref)} (POST)"
+    doc_club = opts[:club_doc] || client.club_doc(ref)
     doc_club.css("aside table.silver tr").each do |line|
       key = line.css("td:nth-child(1)").text.strip
       case key
@@ -245,7 +233,7 @@ class Club < ApplicationRecord
         self.homepage = line.css("td:nth-child(2)").text.strip if line.css("td:nth-child(2)").inner_html.present?
       when "Gründungsjahr"
         self.founded = line.css("td:nth-child(2)").text.strip if line.css("td:nth-child(2)").text.present?
-      when "DBU Eintritt"
+      when "DBU Eintritt", "DBU-Eintritt"
         self.dbu_entry = line.css("td:nth-child(2)").text.strip if line.css("td:nth-child(2)").text.strip.present?
       when "Mitgliedsbeitrag"
         self.priceinfo = line.css("td:nth-child(2)").inner_html if line.css("td:nth-child(2)").inner_html.present?
@@ -259,21 +247,19 @@ class Club < ApplicationRecord
     # scrape players
     return unless opts[:player_details].present?
 
+    # cbmemdet.php zeigt nur die AKTUELLEN Mitglieder (die alte Seite war nach Saison abfragbar). Für eine
+    # andere Saison würden sonst heutige Mitglieder als deren Teilnehmer eingetragen.
+    if season != Season.current_season
+      Rails.logger.info "===== scrape ===== Spieler #{name}[#{id}]: nur für die laufende Saison abrufbar — #{season&.name} übersprungen"
+      return
+    end
+
     player_ids_ok = []
     player_ids = season_participations.where(season: season).map(&:player_id)
-    players_url = (url.to_s + ref.to_s).gsub("details", "mitglieder")
-    u, p = players_url.split("p=")
-    params = p.split("|")
-    params[2] = season&.name
-    params[8] = params[7]
-    params[7] = params[6]
-    params[6] = params[5]
-    params[5] = ""
-    players_url = "#{u}p=#{params.join("|")}"
-    uri = URI(players_url)
-    html_players = Net::HTTP.get(uri)
-    doc_players = Nokogiri::HTML(html_players)
-    if doc_players.present? && doc_players.css("aside table.silver")[1].present?
+    players_url = client.url_for("cbmemdet.php", a: ref)
+    doc_players = client.members_doc(ref)
+    members = ClubCloudPublicClient.members(doc_players)
+    if members.any?
       # Change-Gate (Phase 23, Roster): unveränderte Mitgliederliste → teure pro-Spieler-Deep-Fetches
       # überspringen. Content aus der BEREITS gefetchten mitglieder-Seite (fetch-frei). Club-Stammdaten
       # (oben, save!) werden immer aktualisiert; nur die Spieler-Lawine ist gegatet. commit erst NACH
@@ -287,24 +273,14 @@ class Club < ApplicationRecord
         return
       end
       opts[:gate_stats][:deep] += 1 if opts[:gate_stats]
-      player_urls = doc_players.css("aside table.silver")[1].css("a.cc_bluelink")
-      player_urls.each do |pl_url_cc|
-        purl = pl_url_cc["href"]
-        name_ = pl_url_cc.text.strip
-        purl_params = purl.split("p=")[1].split("|")
-        cc_id = purl_params[5].to_i
-        player_url = url + purl
-        uri = URI(player_url)
-        html_url = Net::HTTP.get(uri)
-        doc_purl = Nokogiri::HTML(html_url)
-        dbu_nr = nil
-        full_name = doc_purl.css("article section table tr.even a.cc_bluelink")[0].text
-        lastname, firstname = full_name.split(",").map(&:strip)
-        doc_purl.css("aside table tr").each do |tr|
-          if tr.css("td")[0].text.strip == "DBU-Nr." # && opts[:called_from_portal]
-            dbu_nr = tr.css("td")[1].text.strip.to_i
-          end
-        end
+      members.each do |member|
+        # Liste: "Nachname, Vorname" + Pass-Nr. (= Spieler-cc_id); Detail: Name in fl_name-Form + DBU-Nr.
+        cc_id = member.pass_nr
+        player_url = client.url_for("cbmemdet.php", a: ref, m: cc_id)
+        info = ClubCloudPublicClient.details(client.member_doc(ref, cc_id).css("aside table.silver")[1])
+        dbu_nr = info["DBU-Nr."]&.text&.strip&.to_i
+        lastname, firstname = member.name.split(",").map(&:strip)
+        name_ = info["Name"]&.text&.squish.presence || [firstname, lastname].compact.join(" ")
         player = if opts[:called_from_portal]
                    players = Player.where(fl_name: name_, type: nil)
                    p = if players.count > 1
@@ -382,16 +358,11 @@ class Club < ApplicationRecord
   end
 
   # Change-Gate-Content (Phase 23, Roster): normalisierte Spielerzeilen der Mitgliederliste
-  # (mitglieder-Seite, aside table.silver[1]). Jeder Spielerlink (a.cc_bluelink) trägt Name + href
-  # (mit Spieler-cc_id) — ein neuer/entfernter Spieler ändert eine Zeile → digest kippt → Deep läuft.
-  # Deterministisch sortiert = stabiler, fetch-freier Hash-Input. Fehlende Tabelle/nil → "" (stale→deep).
+  # (cbmemdet.php, article table.silver, Links `memberPage(<Pass-Nr.>)`) — ein neuer/entfernter Spieler
+  # ändert eine Zeile → digest kippt → Deep läuft. Deterministisch sortiert = stabiler, fetch-freier
+  # Hash-Input. Fehlende Liste/nil → "" (stale→deep).
   def self.roster_content(doc_players)
-    return "" if doc_players.nil?
-
-    table = doc_players.css("aside table.silver")[1]
-    return "" if table.nil?
-
-    table.css("a.cc_bluelink").map { |a| "#{a.text.strip}|#{a["href"]}" }.sort.join("\n")
+    ClubCloudPublicClient.members(doc_players).map { |m| "#{m.name}|#{m.pass_nr}" }.sort.join("\n")
   end
 
   def self.merge(club_a, club_b)

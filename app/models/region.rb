@@ -875,47 +875,44 @@ image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9"
       else
         url = public_cc_url_base
         if url.present?
-          clubs_url = "#{url}verein-details.php?eps=100000"
-          Rails.logger.info "reading #{clubs_url}"
-          uri = URI(clubs_url)
-          html_clubs = Net::HTTP.get(uri)
-          doc_clubs = Nokogiri::HTML(html_clubs)
-          clubs_table = doc_clubs.css("article table.silver")[1]
-          clubs = clubs_table.css("a")
+          # Seit spätestens 2026-11-10 liefert verein-details.php HTTP 410; Vereine kommen per POST über
+          # cbdet.php (ClubCloudPublicClient). Abgleich, Merge und Speichern darunter unverändert.
+          client = ClubCloudPublicClient.new(base_url: url, fed_id: self.cc_id)
+          clubs_url = client.url_for("cbdet.php")
+          Rails.logger.info "reading #{clubs_url} (POST)"
+          clubs = client.clubs
           gate_stats = { deep: 0, skipped: 0 }
-          clubs.each do |club_a|
-            # if shortname == "DBU"
-            ref = club_a.attributes["href"].value
-            next if opts[:start_with_club_shortname].present? && (club_a.text.strip < opts[:start_with_club_shortname])
-            next if opts[:restrict_to_club_shortname].present? && club_a.text.strip != opts[:restrict_to_club_shortname]
+          clubs.each do |club_cc_id, club_shortname|
+            next if opts[:start_with_club_shortname].present? && (club_shortname < opts[:start_with_club_shortname])
+            next if opts[:restrict_to_club_shortname].present? && club_shortname != opts[:restrict_to_club_shortname]
 
-            club_shortname = club_a.text.strip
-            params = ref.split("p=")[1].split("|")
-            cc_id = params[3]
-            club_url = url + ref
-            Rails.logger.info "reading #{club_url}"
-            uri = URI(club_url)
-            html_club = Net::HTTP.get(uri)
-            doc_club = Nokogiri::HTML(html_club)
+            cc_id = club_cc_id.to_s
+            club_url = client.url_for("cbdet.php", a: club_cc_id)
+            Rails.logger.info "reading #{club_url} (POST)"
+            doc_club = client.club_doc(club_cc_id)
             club_table = doc_club.css("aside table.silver")[0]
+            next if club_table.blank?
+
             region = dbu_nr = club_name = nil
             club_table.css("tr").each do |tr|
               if %w[Mitgliedsverband Verband Landesverband].include? tr.css("td")[0].text.strip
-                region_name = tr.css("td")[1].text.strip
+                # cbdet.php: "Norddeutscher Billard-Verband e.V. (NBV)" — Kürzel in Klammern zuerst.
+                region_label = tr.css("td")[1].text.strip
+                region_short = region_label[/\(([[:alnum:]]+)\)\s*\z/, 1]
+                region_name = region_label.sub(/\s*\([[:alnum:]]+\)\s*\z/, "")
                 region_name = "BLMR" if %w[PBVRW KBVM PBVM].include?(region_name)
-                region = region_map_[region_name]
-                unless region.present?
-                  region = region_map_[region_name] =
-                    Region.find_by_name(region_name) || Region.create(name: region_name, country: Country.first)
-                end
-                Rails.logger.info "===== scrape ===== Error - Name Problem with Region '#{region_name}'" if region.blank?
+                region = (region_short && Region.find_by_shortname(region_short)) || region_map_[region_name] ||
+                  Region.find_by_name(region_name)
+                # Keine Region aus Seitentext anlegen (2026-11-24: "(NBV)"-Suffix erzeugte eine Phantom-Region
+                # und verschob 24 Vereine dorthin).
+                Rails.logger.info "===== scrape ===== Error - Name Problem with Region '#{region_label}'" if region.blank?
               elsif tr.css("td")[0].text.strip == "Verein"
                 club_name = tr.css("td")[1].text.strip.gsub("1.", "1. ").gsub("1.  ", "1. ")
               elsif tr.css("td")[0].text.strip == "DBU-Nr."
                 dbu_nr = tr.css("td")[1].text.strip.to_i
               end
             end
-            next unless club_name.present?
+            next unless club_name.present? && region.present?
 
             club_matches = Club.where("synonyms ilike ?", "%#{club_name.strip}%").to_a.select do |c|
               c.synonyms.split("\n").include?(club_name.strip)
@@ -950,7 +947,8 @@ image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9"
               club.save!
             end
 
-            club.scrape_club(season, ref, url, opts.merge(called_from_portal: shortname == "DBU", gate_stats: gate_stats))
+            club.scrape_club(season, club_cc_id, url, opts.merge(called_from_portal: shortname == "DBU", gate_stats: gate_stats,
+              client: client, club_doc: doc_club))
           end
           ScrapeListGuard.warn_if_empty("Clubs #{shortname}", clubs.size, Club.where(region_id: id).count)
           Rails.logger.info "===== scrape ===== CC-Change-Gate Clubs #{shortname}: " \
