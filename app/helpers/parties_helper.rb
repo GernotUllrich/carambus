@@ -1,7 +1,10 @@
 module PartiesHelper
+  # Ergebnis-Schlüssel der Quellen: ClubCloud "Ergebnis:", BillardArea "Ergebnis" (ohne Doppelpunkt).
+  ERGEBNIS_KEYS = ["Ergebnis:", "Ergebnis"].freeze
+
   def spielbericht_rows(party)
     plan = party.league.game_plan
-    return [] unless plan && plan.data && plan.data["rows"]
+    return spielbericht_rows_ohne_plan(party) unless plan && plan.data && plan.data["rows"]
 
     # PartyGames nach seqno indizieren
     games_by_seqno = party.party_games.index_by(&:seqno)
@@ -14,6 +17,42 @@ module PartiesHelper
         { type: row["type"], r_no: row["r_no"], row: row, game: game }
       end
     end
+  end
+
+  # Ohne GamePlan (alle BillardArea- und NuLiga-Ligen, wenige ClubCloud-Ligen) die Einzelspiele selbst,
+  # nach seqno; Disziplin aus dem Spiel. Endstand nur, wenn die Quelle Spielpunkte mitliefert.
+  def spielbericht_rows_ohne_plan(party)
+    games = party.party_games.sort_by { |g| g.seqno.to_i }
+    rows = games.map { |g| {type: g.discipline&.name, r_no: nil, row: nil, game: g} }
+    rows << {type: "Gesamtsumme"} if games.any? { |g| spielbericht_spielpunkte(g) }
+    rows
+  end
+
+  # Anzeige-Ergebnis für alle drei Formate: NuLiga String "6:5"; Hash mit Ergebnis-Schlüssel; sonst die
+  # Werte (BillardArea 14.1: "Bälle:"/"Aufn.:"/"HS:").
+  def spielbericht_ergebnis(game)
+    result = game&.data&.dig("result")
+    return result if result.is_a?(String)
+    return nil unless result.is_a?(Hash) && result.any?
+
+    result.values_at(*ERGEBNIS_KEYS).compact.first || result.values.join(" / ")
+  end
+
+  # Zusatzangaben neben dem Ergebnis (nur Hash-Formate).
+  def spielbericht_details(game)
+    result = game&.data&.dig("result")
+    result.is_a?(Hash) ? result.except(*ERGEBNIS_KEYS) : {}
+  end
+
+  # Spielpunkte [heim, gast], wenn die Quelle sie liefert: NuLiga "match_points", ClubCloud "Punkte:".
+  def spielbericht_spielpunkte(game)
+    data = game&.data
+    return nil unless data.is_a?(Hash)
+
+    raw = data["match_points"] || (data["result"].is_a?(Hash) && data["result"]["Punkte:"])
+    return nil unless raw.is_a?(String) && raw =~ /\A\s*(\d+)\s*:\s*(\d+)\s*\z/
+
+    [$1.to_i, $2.to_i]
   end
 
   def spielbericht_punkte(game, row)
@@ -64,6 +103,10 @@ module PartiesHelper
   end
 
   def spielbericht_endstand_einfach(party)
+    unless party.league.game_plan&.data&.dig("rows")
+      punkte = party.party_games.filter_map { |g| spielbericht_spielpunkte(g) }
+      return [punkte.sum(&:first), punkte.sum(&:last)]
+    end
     heim = 0
     gast = 0
     shootout_row = spielbericht_shootout_row(party)

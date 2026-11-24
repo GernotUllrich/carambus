@@ -69,25 +69,29 @@
             <td class="px-3 py-2 border-b border-gray-100 dark:border-gray-800 align-top"><%= row[:type] %></td>
             <td class="px-3 py-2 border-b border-gray-100 dark:border-gray-800 align-top"><%= row[:game]&.player_a&.fullname %></td>
             <td class="px-3 py-2 border-b border-gray-100 dark:border-gray-800 align-top">
-              <% if row[:game]&.data && row[:game].data["result"] %>
-                <%= row[:game].data["result"]["Ergebnis:"] || row[:game].data["result"].values.join(" / ") %><%= tiebreak_indicator(row[:game]) %>
+              <% if (ergebnis = spielbericht_ergebnis(row[:game])) %>
+                <%= ergebnis %><%= tiebreak_indicator(row[:game]) %>
               <% else %>
                 -
               <% end %>
             </td>
             <td class="px-3 py-2 border-b border-gray-100 dark:border-gray-800 align-top"><%= row[:game]&.player_b&.fullname %></td>
             <td class="px-3 py-2 border-b border-gray-100 dark:border-gray-800 align-top">
-              <%= spielbericht_punkte_einfach(row[:game], row[:row], heim: true) %>:<%= spielbericht_punkte_einfach(row[:game], row[:row], heim: false) %>
+              <% if row[:row] %>
+                <%= spielbericht_punkte_einfach(row[:game], row[:row], heim: true) %>:<%= spielbericht_punkte_einfach(row[:game], row[:row], heim: false) %>
+              <% else %>
+                <%= spielbericht_spielpunkte(row[:game])&.join(":") %>
+              <% end %>
             </td>
           </tr>
           <% detail_keys = ["Bälle:", "Punkte:", "Aufn.:", "HS:", "GD:"] %>
           <% is_detail_row = detail_keys.include?(row[:type].to_s) %>
-          <% if !is_detail_row && row[:game]&.data && row[:game].data["result"] && (row[:game].data["result"].keys - ["Ergebnis:"]).any? %>
+          <% details = spielbericht_details(row[:game]) %>
+          <% if !is_detail_row && details.any? %>
             <tr>
               <td colspan="2" class="px-3 py-2"></td>
               <td colspan="3" class="px-3 py-2 text-xs text-gray-500 dark:text-gray-400">
-                <% row[:game].data["result"].each do |k, v| %>
-                  <% next if k == "Ergebnis:" %>
+                <% details.each do |k, v| %>
                   <strong><%= k.gsub(":","") %>:</strong> <%= v %> &nbsp;
                 <% end %>
               </td>

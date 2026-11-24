@@ -77,4 +77,53 @@ class PartiesHelperTest < ActionView::TestCase
     assert_equal "", tiebreak_indicator(@game),
       "forged string TiebreakWinner values must not render a suffix"
   end
+
+  # ---- Spielbericht ohne GamePlan (BillardArea, NuLiga, einzelne ClubCloud-Ligen) ----
+  def game_with(data) = PartyGame.new(data: data)
+
+  test "spielbericht_ergebnis liest NuLiga-String, CC- und BA-Hash" do
+    assert_equal "6:5", spielbericht_ergebnis(game_with("result" => "6:5", "match_points" => "1:0"))
+    assert_equal "2:1", spielbericht_ergebnis(game_with("result" => {"Ergebnis:" => "2:1", "Punkte:" => "1:0"}))
+    assert_equal "5 : 3", spielbericht_ergebnis(game_with("result" => {"Ergebnis" => "5 : 3"}))
+    assert_equal "61 : 65 / 20 : 21", spielbericht_ergebnis(game_with("result" => {"Bälle:" => "61 : 65", "Aufn.:" => "20 : 21"}))
+    assert_nil spielbericht_ergebnis(game_with({}))
+    assert_nil spielbericht_ergebnis(nil)
+  end
+
+  test "spielbericht_details ohne Ergebnis-Schlüssel, leer bei String-Ergebnis" do
+    assert_equal({"Punkte:" => "1:0"}, spielbericht_details(game_with("result" => {"Ergebnis:" => "2:1", "Punkte:" => "1:0"})))
+    assert_equal({}, spielbericht_details(game_with("result" => {"Ergebnis" => "5 : 3"})))
+    assert_equal({}, spielbericht_details(game_with("result" => "6:5")))
+  end
+
+  test "spielbericht_spielpunkte aus NuLiga match_points oder CC Punkte:, sonst nil" do
+    assert_equal [1, 0], spielbericht_spielpunkte(game_with("result" => "6:5", "match_points" => "1:0"))
+    assert_equal [0, 1], spielbericht_spielpunkte(game_with("result" => {"Ergebnis:" => "0:2", "Punkte:" => "0:1"}))
+    assert_nil spielbericht_spielpunkte(game_with("result" => {"Ergebnis" => "5 : 3"}))
+  end
+
+  test "ohne GamePlan: Zeilen sind die Einzelspiele nach seqno, Endstand aus Spielpunkten" do
+    league = League.new(name: "Kreisliga")
+    party = Party.new(league: league)
+    party.party_games.build(seqno: 2, discipline: disciplines(:branch_pool), data: {"result" => "3:8", "match_points" => "0:1"})
+    party.party_games.build(seqno: 1, data: {"result" => "6:5", "match_points" => "1:0"})
+    party.party_games.build(seqno: 3, data: {"result" => "7:3", "match_points" => "1:0"})
+
+    rows = spielbericht_rows(party)
+
+    assert_equal [1, 2, 3, nil], rows.map { |r| r[:game]&.seqno }
+    assert_equal "Gesamtsumme", rows.last[:type]
+    assert_equal disciplines(:branch_pool).name, rows[1][:type]
+    assert_equal [2, 1], spielbericht_endstand_einfach(party)
+  end
+
+  test "ohne GamePlan und ohne Spielpunkte (BillardArea): keine Gesamtsumme" do
+    party = Party.new(league: League.new(name: "Bezirksliga"))
+    party.party_games.build(seqno: 1, data: {"result" => {"Ergebnis" => "5 : 3"}})
+
+    rows = spielbericht_rows(party)
+
+    assert_equal 1, rows.size
+    assert_equal "5 : 3", spielbericht_ergebnis(rows.first[:game])
+  end
 end
