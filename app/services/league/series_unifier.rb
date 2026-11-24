@@ -112,6 +112,9 @@ class League::SeriesUnifier
     latest = entries.max_by { |e| e[:league].season&.name.to_s }[:league].season&.name.to_s
     canonical = entries.select { |e| e[:league].season&.name.to_s == latest }
       .map { |e| e[:base] }.tally.max_by { |n, c| [c, n] }.first
+    # Der Reihenname kann nur als Basis existieren ("Bezirksliga" aus "Bezirksliga A/B"); ohne ihn
+    # in `names` trüge erst ein zweiter Lauf ihn als Synonym nach (BVRP: 88 Doppel-Versionen).
+    names |= [canonical]
     staffel_spelling = canonical_staffeln(entries)
 
     changes = entries.map do |e|

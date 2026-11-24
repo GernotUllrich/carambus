@@ -145,6 +145,18 @@ class League::SeriesUnifierTest < ActiveSupport::TestCase
     assert_equal "West", newest.staffel_text
   end
 
+  test "Reihenname nur als Basis: ein Lauf genügt" do
+    old = league("Pool Bezirksliga", :season_2024, staffel: "A")
+    league("Bezirksliga A", :current)
+    league("Bezirksliga B", :current)
+    league("Pool Bezirksliga", :season_2024, staffel: "B")
+
+    unify
+
+    assert_includes old.reload.synonym_list, "Bezirksliga"
+    assert_empty League::SeriesUnifier.new(region: @region).call.changes
+  end
+
   test "Dubletten derselben Saison bleiben unangetastet" do
     a = league("Oberliga Pool", :previous)
     b = league("Oberliga", :previous)
