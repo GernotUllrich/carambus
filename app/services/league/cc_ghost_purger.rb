@@ -5,7 +5,7 @@
 # Juli 2026 erfasste nur `sb_spielbericht`-Quellen und keine Teams. Zurück blieben Teams ohne Partie
 # (mit Kader-Seedings), kopierte Partien mit Alt-Datum und Ligen, die die CC gar nicht kennt.
 #
-# Diskriminator ist die LIVE-Teamliste der CC-Spielplanseite (`sb_mannschaftsplan.php?p=…-<liga>-0-<team>`),
+# Diskriminator ist die LIVE-Teamliste der CC-Spielplanseite (`sb_mannschaftsplan.php?p=…-<liga>-<staffel|0>-<team>`),
 # nicht eine ID-Schwelle und nicht „hat nicht gespielt“ (laufende Saison: Teams ohne Partie sind normal).
 # - Geist = Team der Liga, dessen cc_id nicht in der CC-Teamliste steht. Gelöscht nur, wenn ALLE seine
 #   Partien in dieser Liga liegen und kein Datum in der Saison haben (sonst Blocker, Team bleibt).
@@ -53,7 +53,8 @@ class League::CcGhostPurger
     html = fetch(league.source_url)
     return Finding.new(league: league, skipped: "Seite nicht abrufbar") if html.blank?
 
-    cc_ids = html.scan(/sb_mannschaftsplan\.php\?p=[^'"]*-#{league.cc_id}-0-(\d+)/).flatten.map(&:to_i).to_set
+    # Team-Link: …-<Liga>-<Staffel>-<Team>; ohne Staffel steht 0 (BLVN-Staffeln: „…-39-18-266“).
+    cc_ids = html.scan(/sb_mannschaftsplan\.php\?p=[^'"]*-#{league.cc_id}-#{league.cc_id2 || 0}-(\d+)/).flatten.map(&:to_i).to_set
     if html == unknown_page(league.source_url)
       return Finding.new(league: league, cc_team_ids: cc_ids, skipped: "CC kennt die Liga nicht, aber Partien in der Saison") if Party.where(league_id: league.id).any? { |p| in_season?(p) }
       return Finding.new(league: league, cc_team_ids: cc_ids, skipped: "CC kennt die Liga nicht, aber sie hat Turniere") if league.tournaments.exists?
@@ -81,8 +82,12 @@ class League::CcGhostPurger
   # Die CC liefert für eine unbekannte Liga-ID eine feste Übersichtsseite. Referenz: dieselbe URL mit
   # der ID 999999, je Domain und Saison einmal geholt. Nur Byte-Gleichheit zählt (2026-11-24 belegt:
   # „keine Team-Links“ allein trifft auch echte Ligen wie NBV Ersatzbank oder BVS Oberliga RLP).
+  # Ab 2025/26 hat ein Teil der CC-URLs das Format `p=19||2025/2026|100` statt `p=19--2025/2026-100`.
+  # Lässt sich keine Referenz bilden, gibt es keine Hülle (sonst wäre die Seite „gleich mit sich selbst“).
   def unknown_page(url)
-    ref = url.sub(/-\d+\z/, "-999999")
+    ref = url.sub(/([-|])\d+\z/, '\1999999')
+    return :unavailable if ref == url
+
     (@unknown_pages ||= {})[ref] ||= fetch(ref) || :unavailable
   end
 

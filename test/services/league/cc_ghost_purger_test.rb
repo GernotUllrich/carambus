@@ -88,6 +88,35 @@ class League::CcGhostPurgerTest < ActiveSupport::TestCase
     assert_match(/Partien in der Saison/, by_league[unknown_played].skipped)
   end
 
+  test "Pipe-URL: Referenz mit 999999, nie Vergleich der Seite mit sich selbst" do
+    l = league(100)
+    l.update!(source_url: "https://cc.example/sb_spielplan.php?p=19||#{@season.name}|100")
+    odd = League.create!(id: id, name: "X", shortname: "GPX", organizer: @region, season: @season, discipline: disciplines(:branch_pool),
+      cc_id: 101, source_kind: "club_cloud", source_url: "https://cc.example/sb_spielplan.php?p=kaputt")
+    requested = []
+    fetcher = ->(url) { "<h1>gleich</h1>".tap { requested << url } }
+
+    result = League::CcGhostPurger.new(region: @region, season: @season, fetcher: fetcher).call
+
+    assert_includes requested, "https://cc.example/sb_spielplan.php?p=19||#{@season.name}|999999"
+    assert result.findings.find { |f| f.league == l }.hull, "Pipe-Seite gleich der Pipe-Referenz → Hülle"
+    refute result.findings.find { |f| f.league == odd }.hull, "keine Referenz bildbar → nie Hülle"
+  end
+
+  test "Staffel-Liga: Team-Links tragen die Staffel-ID statt 0, fremde Staffel zählt nicht" do
+    l = league(39)
+    l.update!(cc_id2: 18)
+    own = team(l, 266)
+    other_staffel = team(l, 300)
+    html = "<a href='sb_mannschaftsplan.php?p=19--x-39-18-266'>A</a><a href='sb_mannschaftsplan.php?p=19--x-39-19-300'>B</a>"
+
+    finding = purger({39 => html}).findings.first
+
+    assert_equal [266].to_set, finding.cc_team_ids
+    assert_equal [other_staffel.id], finding.ghosts.map(&:id)
+    refute_includes finding.ghosts.map(&:id), own.id
+  end
+
   test "Dry-Run löscht nichts, nicht abrufbare Seite wird übersprungen" do
     l = league(112)
     ghost = team(l, 233)
