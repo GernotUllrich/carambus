@@ -10,10 +10,8 @@ class League::SeriesTable
   # Offene Fälle aus der Reihen-Bereinigung (2026-11-24): [Region, Namensmuster, Hinweis]. Vermutungen,
   # keine Fachregeln. Ist ein Fall entschieden, wird er Regel im SeriesUnifier oder fällt hier weg.
   NOTES = [
-    ["BVS", /\ANeue Liga\z/, "Platzhalter aus der Quelle"],
     ["BLVN", /\AJugend-Mannschaft\z/, "Staffel „Weserbergland A/B“ — eigene Reihe, nur zur Kontrolle"],
-    ["BVW", /\ABVW Kreisliga [AB] Freie Partie\z/, "Staffel im Namen; die Reihe „BVW Kreisliga Freie Partie“ hat ab 2022/23 nur eine Liga ohne Staffel"],
-    ["BBV", /\ABayernpokal\z/, "Rundennummer: „2 Achtelfinale“ neben „Achtelfinale“"]
+    ["BVW", /\ABVW Kreisliga [AB] Freie Partie\z/, "Staffel im Namen; die Reihe „BVW Kreisliga Freie Partie“ hat ab 2022/23 nur eine Liga ohne Staffel"]
   ].freeze
 
   def call

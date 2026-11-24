@@ -230,8 +230,8 @@ class League::SeriesUnifier
   def canonical_staffeln(entries)
     entries.select { |e| e[:skey] }.group_by { |e| e[:skey] }.transform_values do |es|
       real = es.reject { |e| e[:embedded] }
-      # "OH" vor "1 OH": die implizite erste Staffel ohne Nummer schreiben, wenn es sie so gibt.
-      real = real.reject { |e| e[:staffel].match?(/\A1\s/) }.presence || real
+      # Form ohne führende Nummer bevorzugen: "OH" vor "1 OH", "Achtelfinale" vor "2 Achtelfinale".
+      real = real.reject { |e| e[:staffel].match?(/\A\d+\s/) }.presence || real
       real.max_by { |e| e[:league].season&.name.to_s }[:staffel]
     end
   end

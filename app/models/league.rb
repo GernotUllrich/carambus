@@ -354,9 +354,12 @@ class League < ApplicationRecord
 
   # Staffel-Schlüssel: BA schrieb "Staffel A", die CC schreibt "A"; eine führende 1 ist die implizite
   # erste Staffel ("1 OH" = "OH"). Ligakürzel vor der Nummer entfallen (BVW/WPBV: "BL-1", "KL-2", "LL-1",
-  # "- 3" = "Staffel 1/2/3"). Mit `region` (Region oder Kürzel) zusätzlich über expand_staffel.
+  # "- 3" = "Staffel 1/2/3"), ebenso eine Sortiernummer vor einem Rundennamen (BBV-Bayernpokal ab 2017/18:
+  # "2 Achtelfinale" = "Achtelfinale"). Mit `region` (Region oder Kürzel) zusätzlich über expand_staffel.
+  ROUND_NAMES = /(?:runde|last|achtelfinale|viertelfinale|halbfinale|finale)(?![[:alpha:]])/
   def self.staffel_key(staffel, region = nil)
     expand_staffel(staffel, region).to_s.downcase.sub(/\Astaffel\s+/, "").sub(/\A1\s+(?=[[:alpha:]])/, "")
+      .sub(/\A\d+\s+(?=#{ROUND_NAMES})/, "")
       .sub(/\A(?:[[:alpha:]]{2}-|-\s*)(?=\d)/, "").gsub(%r{[\s\-–/]+}, " ").strip.presence
   end
 

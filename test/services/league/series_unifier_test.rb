@@ -334,6 +334,18 @@ class League::SeriesUnifierTest < ActiveSupport::TestCase
     assert_empty League::SeriesUnifier.new(region: @region).call.changes
   end
 
+  test "Rundennummer vor dem Rundennamen entfällt, die Form ohne Nummer gewinnt" do
+    assert_equal League.staffel_key("Achtelfinale"), League.staffel_key("2 Achtelfinale")
+    assert_equal League.staffel_key("Finale / P3"), League.staffel_key("5 Finale / P3")
+    refute_equal League.staffel_key("Kreisliga"), League.staffel_key("2 Kreisliga"), "nur vor Rundennamen"
+
+    old = league("Bayernpokal", :season_2024, staffel: "Achtelfinale")
+    newest = league("Bayernpokal", :current, staffel: "2 Achtelfinale")
+    unify
+
+    assert_equal ["Achtelfinale", "Achtelfinale"], [old, newest].map { |l| l.reload.staffel_text }
+  end
+
   test "with_name_or_synonym findet umbenannte Ligen über den alten Namen" do
     old = league("Bezirksliga Pool", :previous)
     league("Bezirksliga - Pool", :current)
