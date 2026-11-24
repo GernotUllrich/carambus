@@ -31,14 +31,22 @@ class League::SeriesUnifier
 
   Series = Struct.new(:region, :discipline, :canonical, :changes, :duplicates, :mixed_seasons, keyword_init: true)
 
-  # BLVN-Kreisliga Osnabrück / Huntegau, zeitweise zweigeteilt (Entscheidung 2026-11-24): „Kreisliga OH“
+  # Einzelfälle (Entscheidungen 2026-11-24). BLVN-Kreisliga Osnabrück / Huntegau, zeitweise zweigeteilt: „Kreisliga OH“
   # und „[Pool Kreisliga 1]“ sind dieselben Teams wie die Reihe [Osnabrück / Huntegau], „[2 OH]“ und
   # „Kreisliga 2“ 2016/17 die zweite Staffel, „Kreisliga 1“ 2016/17 die erste.
   OVERRIDES = {
     5774 => ["Kreisliga", "Osnabrück / Huntegau"], 5612 => ["Kreisliga", "Osnabrück / Huntegau"],
     3707 => ["Kreisliga", "Osnabrück / Huntegau"], 5611 => ["Kreisliga", "Osnabrück / Huntegau 2"],
     3706 => ["Kreisliga", "Osnabrück / Huntegau 2"], 6258 => ["Kreisliga", "Osnabrück / Huntegau 1"],
-    6263 => ["Kreisliga", "Osnabrück / Huntegau 2"]
+    6263 => ["Kreisliga", "Osnabrück / Huntegau 2"],
+    # SBV Landesliga Pool 2026/27: die CC legte die neuen Staffeln mit dem Namen an („Landesliga Nord-West“),
+    # die Reihe führte bis 2025/26 [West]/[Ost]. Eigene Staffeln (Teams teils gewechselt); ab jetzt führt die
+    # Reihe sie, spätere CC-Anlagen erkennt die Regel „Staffel im Namen“ von selbst.
+    10123 => ["Landesliga", "Nord-West"], 10124 => ["Landesliga", "Süd-Ost"],
+    # SBV Kegel: „Oberliga Eurokegel“ (BA 2018–2022, CC 2021/22 „(Staffel A)“) = „Eurokegel-Oberliga“ (CC ab
+    # 2022/23), dieselben Teams; nur die Wortstellung unterscheidet sich.
+    6011 => ["Eurokegel-Oberliga", nil], 5846 => ["Eurokegel-Oberliga", nil], 5684 => ["Eurokegel-Oberliga", nil],
+    5509 => ["Eurokegel-Oberliga", nil], 9306 => ["Eurokegel-Oberliga", nil]
   }.freeze
 
   attr_reader :series, :changes, :errors

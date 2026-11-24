@@ -12,8 +12,6 @@ class League::SeriesTable
   NOTES = [
     ["BVS", /\ANeue Liga\z/, "Platzhalter aus der Quelle"],
     ["BLVN", /\AJugend-Mannschaft\z/, "Staffel „Weserbergland A/B“ — eigene Reihe, nur zur Kontrolle"],
-    ["SBV", /Eurokegel/, "Wortstellung: „Eurokegel-Oberliga“ und „Oberliga Eurokegel“ — dieselbe Reihe?"],
-    ["SBV", /\ALandesliga (Nord-West|Süd-Ost)\z/, "Staffel im Namen; die Reihe „Landesliga“ führt nur West/Ost"],
     ["BVS", /\AKreisliga [AB]\z/, "Staffel im Namen; die Reihe „Kreisliga“ führt keine Staffel A/B"],
     ["BVW", /\AWPBV (Bezirks|Kreis|Landes)liga\z/, "Staffel-Kürzel BL-/KL-/LL-1 neben „Staffel 1“ bzw. „- 1“ — gleiche Staffeln?"],
     ["BVW", /\ABVW .+ [AB] (Freie Partie|Dreiband|Zweikampf)\z/, "Staffel steht vor der Disziplin im Namen — gehört zur Reihe ohne Buchstaben"],
