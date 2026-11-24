@@ -202,3 +202,31 @@ namespace :leagues do
     puts "Summe: #{sums[0].inspect} → #{sums[1].inspect}  (Abbrüche stehen als „Fatal Error“ in log/production.log)"
   end
 end
+
+# LeagueTeams ohne Liga löschen (League::OrphanTeamPurger): Reste von League#destroy, an denen nichts mehr
+# hängt (keine Seedings, Partien, LeagueTeamCc). Regionsübergreifend; Versionen ohne region_id erreichen
+# jeden Server (dort harmloses delete).
+#
+# Usage:
+#   bundle exec rake leagues:purge_orphan_teams              # DRY-RUN
+#   bundle exec rake leagues:purge_orphan_teams ARMED=true
+namespace :leagues do
+  desc "LeagueTeams ohne Liga und ohne Verweise löschen (ARMED=true schreibt, sonst DRY-RUN)"
+  task purge_orphan_teams: :environment do
+    armed = ENV["ARMED"] == "true"
+    result = League::OrphanTeamPurger.new.call
+
+    puts "Mode: #{armed ? "LIVE (ARMED)" : "DRY-RUN"} · alle Regionen"
+    teams = LeagueTeam.where(id: result.orphans)
+    by_region = teams.left_joins(:club).group("clubs.region_id").count
+    names = Region.where(id: by_region.keys.compact).pluck(:id, :shortname).to_h
+    by_region.sort_by { |_, n| -n }.each { |rid, n| puts format("  %-8s %5d", names[rid] || "(ohne)", n) }
+    puts "\nTeams ohne Liga: #{result.orphans.size} frei, #{result.blocked.size} blockiert (haben noch Verweise)"
+    puts "  blockiert: #{result.blocked.first(20).join(",")}#{" …" if result.blocked.size > 20}" if result.blocked.any?
+    if armed
+      done = League::OrphanTeamPurger.new(armed: true).call
+      puts "Gelöscht: #{done.deleted} · Fehler: #{done.errors.size}"
+      done.errors.each { |e| puts "FEHLER #{e}" }
+    end
+  end
+end
