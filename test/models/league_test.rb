@@ -185,4 +185,23 @@ class LeagueTest < ActiveSupport::TestCase
     no_table = Nokogiri::HTML("<aside><section><table><tr><th>x</th></tr></table></section></aside>")
     assert_equal "", League.send(:cc_standings_content, no_table)
   end
+
+  test "Liga mit Teams oder Partien lässt sich nicht löschen, leere schon" do
+    base = 50_000_000 + 94_000
+    mk = ->(n) { League.create!(id: base + n, name: "Kreisliga #{n}", shortname: "RW#{n}", organizer: regions(:bbl), season: seasons(:previous)) }
+    with_team, with_party, empty = mk.call(1), mk.call(2), mk.call(3)
+    team = LeagueTeam.create!(id: base + 11, name: "A", league: with_team)
+    b = LeagueTeam.create!(id: base + 12, name: "B", league: with_party)
+    Party.create!(id: base + 21, league: with_party, league_team_a: b, league_team_b: b, day_seqno: 1)
+    b.update_column(:league_id, with_team.id) # Partie bleibt das einzige an with_party
+
+    refute with_team.destroy
+    assert_match(/abhängig|dependent/i, with_team.errors.full_messages.join)
+    refute with_party.destroy
+    assert League.exists?(with_team.id)
+    assert League.exists?(with_party.id)
+    assert LeagueTeam.exists?(team.id)
+    assert empty.destroy
+    refute League.exists?(empty.id)
+  end
 end

@@ -54,8 +54,11 @@ class LeaguesController < ApplicationController
 
   # DELETE /leagues/1
   def destroy
-    @league.destroy
-    redirect_to leagues_url, notice: "League was successfully destroyed."
+    if @league.destroy
+      redirect_to leagues_url, notice: "League was successfully destroyed."
+    else
+      redirect_to @league, alert: @league.errors.full_messages.to_sentence
+    end
   end
 
   def reload_from_cc

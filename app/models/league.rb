@@ -42,8 +42,12 @@ class League < ApplicationRecord
   belongs_to :discipline, optional: true
   belongs_to :season, optional: true
   has_one :league_cc, -> { where(context: "nbv") }, dependent: :destroy
-  has_many :league_teams
-  has_many :parties
+  # restrict statt destroy: Ein League#destroy liess die Teams sonst still stehen (2026-11-24: 3 378 Waisen aus
+  # dem BA-Import 2022, abgeräumt per leagues:purge_orphan_teams). Wer eine Liga löscht, räumt Partien und Teams
+  # ausdrücklich vorher ab (DuplicatePurger, CcGhostPurger, cleanup.rake) — eine Kaskade würde aus einem Klick
+  # Tausende Versionen machen.
+  has_many :league_teams, dependent: :restrict_with_error
+  has_many :parties, dependent: :restrict_with_error
   has_many :tournaments
   belongs_to :organizer, polymorphic: true, optional: true
   belongs_to :game_plan, optional: true
