@@ -50,7 +50,11 @@ namespace :scrape do
       begin
         Rails.logger.info "##-##-##-##-##-## UPDATE CLUBS AND PLAYERS ##-##-##-##-##-##"
         count_before = Club.count
-        Club.scrape_clubs(season, from_background: true, player_details: true)
+        # Spielerdetails vorerst NICHT nachts (2026-11-24): Seit cbmemdet (7275dcfc) ist jeder Roster-Fingerprint
+        # stale → ~11 000 CC-Anfragen in einer Nacht, die CC sperrt die IP aber schon nach einigen hundert —
+        # und mit ihr Liga- und Turnier-Scrape. Spieler kommen über clubs:scrape_region (mit Budget), bis
+        # die Fingerprints nachgezogen sind; danach wieder player_details: true.
+        Club.scrape_clubs(season, from_background: true, player_details: false)
         count_after = Club.count
         (count_after - count_before).times { m.record_created(Club.new) }
         m.track_method("Club.scrape_clubs")

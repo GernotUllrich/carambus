@@ -11,14 +11,16 @@
 #   cbmemdet.php f=<Verband> a=<Verein> m=<Pass> → Spielerdetails (aside table.silver[1]: Name, Pass-Nr., DBU-Nr.)
 # Pass-Nr. = Spieler-cc_id (früher Parameter 5 der Spieler-URL).
 #
-# Die CC drosselt nach Abrufdichte: bei ~0,17 s Abstand kam HTTP 429 (2026-11-24), `X-WS-RateLimit-Remaining`
-# stand Minuten später wieder auf 999 — ein Tageskontingent ist es nicht. Darum mindestens MIN_INTERVAL
-# zwischen zwei Anfragen, bei 429 Pause und bis zu RETRIES Wiederholungen. Danach Error statt leerer Seite:
-# eine leere Seite würde als „keine Mitglieder/keine Details“ ausgewertet.
+# Die CC drosselt zweifach (2026-11-24 gemessen): bei ~0,17 s Abstand HTTP 429, und nach einigen hundert
+# Anfragen sperrt sie die IP länger (schon die erste Anfrage 429, auch nach 90 s Pause).
+# `X-WS-RateLimit-Remaining` taugt nicht als Zähler (stand nach dem Lauf auf 999). Darum MIN_INTERVAL
+# zwischen zwei Anfragen, bei 429 Pause und bis zu RETRIES Wiederholungen, danach Error statt leerer Seite
+# (eine leere Seite würde als „keine Mitglieder/keine Details“ ausgewertet). Die Menge begrenzt der
+# Aufrufer (Club#scrape_club, opts[:player_budget]).
 class ClubCloudPublicClient
   class Error < StandardError; end
 
-  MIN_INTERVAL = 0.5
+  MIN_INTERVAL = 2.0
   PAUSE_SECONDS = 30
   RETRIES = 3
   ALL = 100_000

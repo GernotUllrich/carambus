@@ -272,6 +272,17 @@ class Club < ApplicationRecord
                           "unverändert — Spieler-Deep übersprungen"
         return
       end
+      # Budget an Spieler-Abrufen je Lauf (die CC sperrt die IP nach einigen hundert Anfragen). Ein Verein wird
+      # ganz oder gar nicht gelesen: reicht das Budget nicht, bleibt sein Fingerprint stale → nächster Lauf.
+      if (budget = opts[:player_budget])
+        if members.size > budget[:left]
+          budget[:deferred] += 1
+          Rails.logger.info "===== scrape ===== Spieler-Budget #{name}[#{id}]: #{members.size} Mitglieder > Rest " \
+                            "#{budget[:left]} — auf den nächsten Lauf verschoben"
+          return
+        end
+        budget[:left] -= members.size
+      end
       opts[:gate_stats][:deep] += 1 if opts[:gate_stats]
       members.each do |member|
         # Liste: "Nachname, Vorname" + Pass-Nr. (= Spieler-cc_id); Detail: Name in fl_name-Form + DBU-Nr.

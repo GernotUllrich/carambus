@@ -58,4 +58,52 @@ class ClubTest < ActiveSupport::TestCase
     assert_equal regions(:dbu), Club.new(region: region).cc_source_region,
       "BBV muss trotz eigener URL auf die DBU-CC fallen (hartkodiert erhalten)"
   end
+
+  # --- Spieler-Budget je Lauf (die CC sperrt die IP nach einigen hundert Anfragen) ---
+  class FakeCcClient
+    attr_reader :member_calls
+
+    def initialize(members)
+      @members = members
+      @member_calls = 0
+    end
+
+    def url_for(page, **params) = "https://cc.example/#{page}?#{params.to_query}"
+    def club_doc(_cc_id) = Nokogiri::HTML("<aside><table class='silver'><tr><td>Verein</td><td>Budget-Club</td></tr></table></aside>")
+
+    def members_doc(_cc_id)
+      rows = @members.map { |pass, name| "<tr><td><a href='#' onClick='return memberPage(#{pass})' title='#{name}' class='cc_bluelink'>#{name}</a></td></tr>" }
+      Nokogiri::HTML("<article><section><table class='silver'>#{rows.join}</table></section></article>")
+    end
+
+    def member_doc(_cc_id, pass)
+      @member_calls += 1
+      Nokogiri::HTML("<aside><table class='silver'></table><table class='silver'><tr><td>DBU-Nr.</td><td>#{pass}</td></tr></table></aside>")
+    end
+  end
+
+  def budget_club = Club.create!(id: 50_000_000 + 97_001, name: "Budget-Club", shortname: "BC", region: regions(:nbv))
+
+  test "Spieler-Budget: Verein mit mehr Mitgliedern als Rest wird ganz übersprungen, Fingerprint bleibt stale" do
+    club = budget_club
+    client = FakeCcClient.new([[1, "A, X"], [2, "B, Y"], [3, "C, Z"]])
+    budget = {left: 2, deferred: 0}
+
+    club.scrape_club(Season.current_season, 1, "https://cc.example/", client: client, player_details: true, player_budget: budget)
+
+    assert_equal 0, client.member_calls
+    assert_equal({left: 2, deferred: 1}, budget)
+    assert_nil ScrapeFingerprint.find_by(fingerprintable: club), "kein commit → nächster Lauf liest den Verein"
+  end
+
+  test "Spieler-Budget: reicht es, werden alle Mitglieder gelesen und das Budget sinkt" do
+    club = budget_club
+    client = FakeCcClient.new([[1, "A, X"], [2, "B, Y"]])
+    budget = {left: 5, deferred: 0}
+
+    club.scrape_club(Season.current_season, 1, "https://cc.example/", client: client, player_details: true, player_budget: budget)
+
+    assert_equal 2, client.member_calls
+    assert_equal({left: 3, deferred: 0}, budget)
+  end
 end
