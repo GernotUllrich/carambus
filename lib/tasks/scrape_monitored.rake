@@ -54,7 +54,9 @@ namespace :scrape do
         # stale → ~11 000 CC-Anfragen in einer Nacht, die CC sperrt die IP aber schon nach einigen hundert —
         # und mit ihr Liga- und Turnier-Scrape. Spieler kommen über clubs:scrape_region (mit Budget), bis
         # die Fingerprints nachgezogen sind; danach wieder player_details: true.
-        Club.scrape_clubs(season, from_background: true, player_details: false)
+        # skip_known_clubs (2026-11-25): auch 1 cbdet je Verein (~460) sprengte das CC-Kontingent (~400 POSTs,
+        # BVW/SBV abgeschnitten) — bekannte Vereine nur rotierend (Region#known_cc_club?).
+        Club.scrape_clubs(season, from_background: true, player_details: false, skip_known_clubs: true)
         count_after = Club.count
         (count_after - count_before).times { m.record_created(Club.new) }
         m.track_method("Club.scrape_clubs")

@@ -881,13 +881,17 @@ image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9"
           clubs_url = client.url_for("cbdet.php")
           Rails.logger.info "reading #{clubs_url} (POST)"
           clubs = client.clubs
-          gate_stats = { deep: 0, skipped: 0 }
+          gate_stats = { deep: 0, skipped: 0, known: 0 }
           clubs.each do |club_cc_id, club_shortname|
             next if opts[:start_with_club_shortname].present? && (club_shortname < opts[:start_with_club_shortname])
             next if opts[:restrict_to_club_shortname].present? && club_shortname != opts[:restrict_to_club_shortname]
 
             cc_id = club_cc_id.to_s
             club_url = client.url_for("cbdet.php", a: club_cc_id)
+            if opts[:skip_known_clubs] && !opts[:player_details] && known_cc_club?(club_cc_id, club_shortname, club_url)
+              gate_stats[:known] += 1
+              next
+            end
             Rails.logger.info "reading #{club_url} (POST)"
             doc_club = client.club_doc(club_cc_id)
             club_table = doc_club.css("aside table.silver")[0]
@@ -952,7 +956,8 @@ image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9"
           end
           ScrapeListGuard.warn_if_empty("Clubs #{shortname}", clubs.size, Club.where(region_id: id).count)
           Rails.logger.info "===== scrape ===== CC-Change-Gate Clubs #{shortname}: " \
-                            "deep=#{gate_stats[:deep]} skipped_unchanged=#{gate_stats[:skipped]}"
+                            "deep=#{gate_stats[:deep]} skipped_unchanged=#{gate_stats[:skipped]} " \
+                            "known_skipped=#{gate_stats[:known]} of #{clubs.size}"
         else
           Rails.logger.info "===== scrape ===== clubs_url: #{clubs_url} No ClubCloud Url for Region #{name}(#{shortname})"
         end
@@ -963,6 +968,19 @@ image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9"
     return
   rescue StandardError => e
     Rails.logger.info "===== scrape ===== FATAL Error clubs_url: #{clubs_url}  #{e}, #{e.backtrace&.join("\n")}"
+  end
+
+  # Nächtlicher Vereins-Scrape ohne Spieler (opts[:skip_known_clubs]): Die CC sperrt die IP nach ~400 POSTs
+  # (gemessen 2026-11-25, über alle CC-Domains), und 1 cbdet je Verein (~460) verbraucht das allein.
+  # Bekannt = in dieser Region bereits über cbdet gelesen (source_url) mit unverändertem Kurznamen aus der
+  # Vereinsliste. Detailänderungen (Adresse, E-Mail, …) stehen nicht in der Liste — darum liest jede Nacht
+  # ein rotierendes 1/KNOWN_CLUB_ROTATION der bekannten Vereine trotzdem (jeder Verein ~1× im Monat).
+  KNOWN_CLUB_ROTATION = 30
+
+  def known_cc_club?(cc_id, shortname, club_url, today: Date.current)
+    club = Club.find_by(region_id: id, cc_id: cc_id, source_url: club_url)
+    club.present? && club.shortname == shortname &&
+      club.id % KNOWN_CLUB_ROTATION != today.yday % KNOWN_CLUB_ROTATION
   end
 
   def source
