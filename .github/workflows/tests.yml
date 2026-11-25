@@ -16,7 +16,10 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    # Fest auf 24.04, nicht ubuntu-latest: Seit dem Wechsel von ubuntu-latest auf 26.04 (CI rot ab 2026-11-24)
+    # baut setup-ruby dort je Reihe nur noch den neuesten Patch (3.2.11) — 3.2.1 (.ruby-version, Produktion)
+    # und 3.2.2 (lint, s. u.) gibt es nur bis 24.04. Erst mit einem Ruby-Update auf allen Servern ändern.
+    runs-on: ubuntu-24.04
     
     services:
       postgres:
@@ -91,7 +94,7 @@ jobs:
         echo "Run 'bin/rails test:critical' locally to verify"
 
   lint:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04 # wie test: 3.2.2 gibt es auf 26.04 nicht
     
     steps:
     - name: Checkout code
