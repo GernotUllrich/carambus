@@ -73,4 +73,33 @@ namespace :clubs do
       raise ActiveRecord::Rollback unless armed
     end
   end
+
+  # Spielort nach clubs:split dem richtigen Verein zuordnen: club_locations-Zeile von A auf B umhängen. Hat B den
+  # Ort schon, entfällt A's Zuordnung. Andere Vereine am selben Ort bleiben unberührt.
+  #   bundle exec rake clubs:move_locations MOVES="<location>:<von club>:<zu club>,…" [ARMED=true]
+  desc "Spielorte zwischen Vereinen umhängen (MOVES=location:von:zu,… ARMED=true)"
+  task move_locations: :environment do
+    armed = ENV["ARMED"] == "true"
+    puts armed ? "ARMED — schreibe" : "Probelauf (ARMED=true zum Schreiben)"
+    ClubLocation.suppressing_turbo_broadcasts do
+      ENV.fetch("MOVES").split(",").map(&:strip).each do |spec|
+        location_id, from_id, to_id = spec.split(":").map(&:to_i)
+        cl = ClubLocation.find_by(location_id: location_id, club_id: from_id)
+        to = Club.find_by(id: to_id)
+        if cl.nil? || to.nil?
+          puts "#{spec}: übersprungen — Zuordnung Ort #{location_id} ↔ Verein #{from_id} oder Zielverein fehlt"
+          next
+        end
+
+        label = "#{cl.location.name} [#{location_id}]: #{cl.club.shortname}[#{from_id}] → #{to.shortname}[#{to_id}]"
+        if ClubLocation.exists?(location_id: location_id, club_id: to_id)
+          puts "#{label} — Ziel hat den Ort schon, Zuordnung von #{from_id} entfällt"
+          cl.destroy! if armed
+        else
+          puts label
+          cl.update!(club_id: to_id) if armed
+        end
+      end
+    end
+  end
 end

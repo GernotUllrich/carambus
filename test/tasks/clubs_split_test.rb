@@ -77,6 +77,43 @@ class ClubsSplitTest < ActiveSupport::TestCase
     assert_equal @a, ClubCcEntry.club_for(@blmr.id, 6335)
   end
 
+  def move_locations(moves, armed: false)
+    ENV["MOVES"] = moves
+    ENV["ARMED"] = "true" if armed
+    Rake::Task["clubs:move_locations"].reenable
+    capture_io { Rake::Task["clubs:move_locations"].invoke }.first
+  ensure
+    ENV.delete("MOVES")
+    ENV.delete("ARMED")
+  end
+
+  test "move_locations hängt den Spielort um, andere Vereine am Ort bleiben" do
+    b = Club.create!(name: PHOENIX, shortname: "BC Phoenix Übach-Palenberg", region: @blmr, cc_id: 6306)
+    venue = Location.create!(id: nid, name: "Vereinsheim BC Phoenix 1996", organizer: @blmr)
+    ClubLocation.create!(club: @a, location: venue)
+    neighbour = Club.create!(name: "Cinema-Billard-Club", shortname: "Cinema", region: @blmr, cc_id: 77)
+    ClubLocation.create!(club: neighbour, location: venue)
+
+    assert_match "→ BC Phoenix Übach-Palenberg", move_locations("#{venue.id}:#{@a.id}:#{b.id}")
+    assert ClubLocation.exists?(club: @a, location: venue), "Probelauf schreibt nicht"
+
+    move_locations("#{venue.id}:#{@a.id}:#{b.id}", armed: true)
+
+    assert_equal [b.id, neighbour.id].sort, ClubLocation.where(location: venue).pluck(:club_id).sort
+    assert_match "übersprungen", move_locations("#{venue.id}:#{@a.id}:#{b.id}", armed: true), "zweiter Lauf: nichts mehr da"
+  end
+
+  test "move_locations: hat B den Ort schon, entfällt nur A's Zuordnung" do
+    b = Club.create!(name: PHOENIX, shortname: "BC Phoenix Übach-Palenberg", region: @blmr, cc_id: 6306)
+    venue = Location.create!(id: nid, name: "Gemeinsam", organizer: @blmr)
+    ClubLocation.create!(club: @a, location: venue)
+    ClubLocation.create!(club: b, location: venue)
+
+    move_locations("#{venue.id}:#{@a.id}:#{b.id}", armed: true)
+
+    assert_equal [b.id], ClubLocation.where(location: venue).pluck(:club_id)
+  end
+
   test "bricht ab, wenn A selbst den Namen von B trägt" do
     @a.update_columns(name: PHOENIX)
 
