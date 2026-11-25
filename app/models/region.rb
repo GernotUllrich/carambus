@@ -947,9 +947,12 @@ image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9"
               club.region_id ||= self.id
               club.save!
             end
+            # Kein automatisches merge_clubs mehr (2026-11-25): Ein gemeinsames Synonym belegt keine Identität —
+            # so wurden verschiedene Vereine verschmolzen (PBC Würselen 81 + BC Phoenix Übach-Palenberg), und
+            # update_synonyms hielt die Verwechslung danach jede Nacht fest. Zusammenführen ist Betreiber-Sache.
             club_matches.reject { |c| c.id == club.id }.each do |c|
-              Rails.logger.info "===== scrape ===== MERGE Clubs #{club.name} [#{club.id}] with #{c.name} [#{c.id}]"
-              club.merge_clubs(c.id)
+              Rails.logger.info "===== scrape ===== MERGE-Kandidat #{club.name} [#{club.id}] / #{c.name} [#{c.id}] — " \
+                                "nicht automatisch zusammengeführt"
             end
             if club_matches.count { |c| c.id != club.id }.zero?
               club.assign_attributes(dbu_nr:)

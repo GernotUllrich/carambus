@@ -84,6 +84,16 @@ class RegionScrapeClubsDoubleMembershipTest < ActiveSupport::TestCase
     assert_equal "ABG Trier", @club.shortname
   end
 
+  test "gemeinsames Synonym zweier Vereine führt sie nicht mehr automatisch zusammen" do
+    twin = Club.create!(name: "Amateur Billardgemeinschaft Mosel", shortname: "ABG Mosel II", region: @other, cc_id: 77,
+      synonyms: "Amateur Billardgemeinschaft Mosel")
+
+    scrape(@home)
+
+    assert Club.exists?(twin.id), "kein merge_clubs"
+    assert Club.exists?(@club.id)
+  end
+
   test "neuer Verein ohne Heimat wird wie bisher angelegt und eingetragen" do
     @pages[[OTHER, nil]] = list(4711, "BC Neu")
     @pages[[OTHER, 4711]] = details("Nachbarverband e.V. (NBRV)", "Billard-Club Neu e.V.", 9999)
