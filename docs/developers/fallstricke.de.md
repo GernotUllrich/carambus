@@ -357,6 +357,28 @@ Ein blinder `to_i`-Vergleich behandelt „kein Wert" wie „Wert 0". Bei Rundenv
 **Ausweg:** zuerst `present?` bzw. `blank?` prüfen, dann vergleichen.
 **Beleg:** `app/controllers/tournament_monitors_controller.rb:356`.
 
+### Ein Scraper, der „nicht gelesen“ als „leer“ speichert, löscht Daten
+
+Wird ein Scraper fehlertolerant gemacht, liest er bei einer fehlenden Quelle weiter und lässt den
+Wert auf `nil`. Weist er diesen Wert danach trotzdem zu, wird aus „konnte ich nicht lesen“ beim
+Speichern „ist leer“. Der bekannte Wert in der Datenbank ist dann weg. Es gibt keinen Fehler und
+keine Meldung, nur eine Version `X → nil`. Auf der Authority repliziert diese Version an jeden
+Regional-Server.
+
+**Beleg:** DBU-Rescrape 2026-11-25. `League::ClubCloudScraper#parse_linked_teams` liest auf
+billard-union.net die DBU-Nr. von `verein-details.php`. Die Seite liefert seit November HTTP 410.
+`9bd50979` hatte den Scrape dagegen robust gemacht (`&.css`), die Zuweisung
+`club.dbu_nr = team_club_dbu_nr` blieb aber unbedingt. 34 Vereine verloren ihre `dbu_nr`
+(Versionen 13955200–13955310), und der stündliche Sync hatte die Löschung schon verteilt, bevor
+sie auffiel. Bei den Regional-CCs fiel es nicht auf, weil dort `cc_id` aus dem Link kommt, nicht
+von der Seite.
+
+**Ausweg:** Aus einer Quelle, die fehlen kann, nur einen gelesenen Wert übernehmen
+(`x = gelesen if gelesen&.positive?` bzw. `.present?`). Zum Test des Fehlerfalls gehört die
+Aussage „der alte Wert steht noch“, nicht nur „läuft ohne Exception“. Repariert wird mit neuen
+Versionen (`nil → X`), nicht durch Ändern der alten: Die Sync-Clients stehen schon hinter ihnen.
+Fix und Reparatur: `244e4af2` (`clubs:restore_dbu_nr` liest die alten Werte aus `object_changes`).
+
 ### Eine neue PaperTrail-Version kann ein altes `created_at` tragen
 
 PaperTrail kopiert bei jedem Update das `updated_at` des Records in das `created_at` der
