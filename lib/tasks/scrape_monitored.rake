@@ -56,7 +56,13 @@ namespace :scrape do
         # die Fingerprints nachgezogen sind; danach wieder player_details: true.
         # skip_known_clubs (2026-11-25): auch 1 cbdet je Verein (~460) sprengte das CC-Kontingent (~400 POSTs,
         # BVW/SBV abgeschnitten) — bekannte Vereine nur rotierend (Region#known_cc_club?).
-        Club.scrape_clubs(season, from_background: true, player_details: false, skip_known_clubs: true)
+        failures = Club.scrape_clubs(season, from_background: true, player_details: false, skip_known_clubs: true)
+        # Region#scrape_clubs fängt Fehler selbst ab (übrige Regionen laufen weiter) — hier sichtbar machen.
+        failures.each do |shortname, e|
+          error = RuntimeError.new("Clubs #{shortname}: #{e.class}: #{e.message}")
+          error.set_backtrace(e.backtrace)
+          m.record_error(nil, error)
+        end
         count_after = Club.count
         (count_after - count_before).times { m.record_created(Club.new) }
         m.track_method("Club.scrape_clubs")

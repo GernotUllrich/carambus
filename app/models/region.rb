@@ -968,6 +968,9 @@ image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9"
     return
   rescue StandardError => e
     Rails.logger.info "===== scrape ===== FATAL Error clubs_url: #{clubs_url}  #{e}, #{e.backtrace&.join("\n")}"
+    # Rückgabe statt raise: Club.scrape_clubs soll die übrigen Regionen weiter scrapen, den Fehler aber an den
+    # ScrapingMonitor melden (02.–24.11.2026 brach der Vereins-Scrape jede Nacht ab, error_count blieb 0).
+    e
   end
 
   # Nächtlicher Vereins-Scrape ohne Spieler (opts[:skip_known_clubs]): Die CC sperrt die IP nach ~400 POSTs

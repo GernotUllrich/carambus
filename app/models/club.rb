@@ -169,15 +169,19 @@ class Club < ApplicationRecord
     updated_at
   ].freeze
 
+  # Gibt die abgebrochenen Regionen zurück: {"BVW" => #<ClubCloudPublicClient::Error …>, …} (leer = alles ok).
   def self.scrape_clubs(season, opts = {})
+    failures = {}
     (Region::SHORTNAMES_CARAMBUS_USERS + Region::SHORTNAMES_OTHERS #+ ["BBV"]
     ).each do |shortname|
-      Region.find_by_shortname(shortname).scrape_clubs(season, opts)
+      result = Region.find_by_shortname(shortname).scrape_clubs(season, opts)
+      failures[shortname] = result if result.is_a?(Exception)
     end
 
     # fix title
     Player.where(type: nil).where("title ~ 'Herr.'").all.each { |p| p.update(title: "Herr") }
     Player.where(type: nil).where("title ~ 'Frau.'").all.each { |p| p.update(title: "Frau") }
+    failures
   end
 
   # Aus welcher ClubCloud werden die Vereinsdaten (inkl. Roster → SeasonParticipations) gezogen?
