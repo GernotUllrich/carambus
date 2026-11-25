@@ -227,4 +227,22 @@ class League::ClubCloudScraperTest < ActiveSupport::TestCase
     scraper.send(:add_schedule_teams, cc_doc("ndbv_spielplan_oberliga_pool_2026_27"))
     assert_equal 3, league.league_teams.count
   end
+
+  # Doppelmitgliedschaft (2026-11-25: „Team 1.PBC Mahlow 2: Verein cc_id 11208 unbekannt — übersprungen“):
+  # Der Verein ist anderswo beheimatet, seine NBV-cc_id steht nur in ClubCcEntry.
+  test "add_schedule_teams findet einen anderswo beheimateten Verein über ClubCcEntry" do
+    league = pool_league(358)
+    home = Region.create!(name: "Heimatverband e.V.", shortname: "HOMV", cc_id: 22, public_cc_url_base: "https://home-cc.example/")
+    queue = Club.create!(id: next_id, name: "BC Queue Hamburg", shortname: "BC Queue Hamburg", cc_id: 2739, region: home)
+    ClubCcEntry.record!(queue, regions(:nbv), 1009)
+    scraper = scraper_for(league, nil)
+    scraper.instance_variable_set(:@region_id, regions(:nbv).id)
+    scraper.instance_variable_set(:@league_teams_cache, [])
+
+    scraper.send(:add_schedule_teams, cc_doc("ndbv_spielplan_oberliga_pool_2026_27"))
+
+    team = league.league_teams.find_by!(name: "BC Queue Hamburg 3")
+    assert_equal queue.id, team.club_id
+    assert_equal 2739, queue.reload.cc_id, "Heimat-cc_id bleibt"
+  end
 end

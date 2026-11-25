@@ -162,6 +162,7 @@ class League::ClubCloudScraper < ApplicationService
         club_cc_id = params_club[3].to_i
         club_region_id = params_club[0].to_i
         club = team_club_dbu_nr&.positive? ? Club.where(dbu_nr: team_club_dbu_nr).first : nil
+        club ||= ClubCcEntry.club_for(@region_id, club_cc_id)
         club ||= Club.where(cc_id: club_cc_id, region_id: club_region_id).first
         club ||= Club.where(name: team_club_name).first
         if club.blank?
@@ -177,7 +178,9 @@ class League::ClubCloudScraper < ApplicationService
 
       if /billard-union.net/.match?(url)
         club.dbu_nr = team_club_dbu_nr
-      else
+      elsif club.region_id.nil? || club.region_id == @region_id
+        # Nur in der Heimat-Region: Die cc_id einer Fremdlistung (Doppelmitgliedschaft, ClubCcEntry) gehört
+        # nicht in clubs.cc_id — sonst kippt sie bei jedem Liga-Scrape der anderen Region.
         club.cc_id = club_cc_id
       end
       if club.changed?
@@ -357,7 +360,7 @@ class League::ClubCloudScraper < ApplicationService
       next if team_name.blank? || @league_teams_cache.any? { |lt| lt.name == team_name }
 
       club_cc_id = img["src"][%r{wappen/(\d+)}, 1].to_i
-      club = Club.where(cc_id: club_cc_id, region_id: @region_id).first
+      club = ClubCcEntry.club_for(@region_id, club_cc_id) || Club.where(cc_id: club_cc_id, region_id: @region_id).first
       if club.blank?
         Rails.logger.info "==== scrape ==== Team #{team_name}: Verein cc_id #{club_cc_id} unbekannt — übersprungen"
         next

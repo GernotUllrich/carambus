@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_11_24_120000) do
+ActiveRecord::Schema[7.2].define(version: 2026_11_25_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -191,6 +191,17 @@ ActiveRecord::Schema[7.2].define(version: 2026_11_24_120000) do
     t.string "status"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+  end
+
+  create_table "club_cc_entries", force: :cascade do |t|
+    t.bigint "club_id", null: false
+    t.bigint "region_id", null: false
+    t.integer "cc_id", null: false
+    t.datetime "seen_at", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["club_id"], name: "index_club_cc_entries_on_club_id"
+    t.index ["region_id", "cc_id"], name: "index_club_cc_entries_on_region_id_and_cc_id", unique: true
   end
 
   create_table "club_locations", force: :cascade do |t|

@@ -881,7 +881,8 @@ image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9"
           clubs_url = client.url_for("cbdet.php")
           Rails.logger.info "reading #{clubs_url} (POST)"
           clubs = client.clubs
-          gate_stats = { deep: 0, skipped: 0, known: 0 }
+          ClubCcEntry.mark_seen!(self, clubs.map(&:first))
+          gate_stats = { deep: 0, skipped: 0, known: 0, foreign: 0 }
           clubs.each do |club_cc_id, club_shortname|
             next if opts[:start_with_club_shortname].present? && (club_shortname < opts[:start_with_club_shortname])
             next if opts[:restrict_to_club_shortname].present? && club_shortname != opts[:restrict_to_club_shortname]
@@ -930,6 +931,16 @@ image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9"
             end
             next unless club.present?
 
+            # Doppelmitgliedschaft (Verein auch in der CC seiner Heimat-Region gelistet): nur die Listung merken,
+            # Stammdaten/region_id/cc_id bleiben — sonst schreiben die beiden Regionen sie jede Nacht hin und her.
+            if ClubCcEntry.home_elsewhere?(club, region)
+              ClubCcEntry.record!(club, self, club_cc_id)
+              gate_stats[:foreign] += 1
+              Rails.logger.info "===== scrape ===== Verein #{club.shortname}[#{club.id}] auch in #{shortname} gelistet " \
+                                "(cc_id #{club_cc_id}) — Heimat #{club.region&.shortname}, Stammdaten unverändert"
+              next
+            end
+
             club.assign_attributes(name: club_name, shortname: club_shortname, region:, cc_id:)
             club.source_url = club_url
             if club.changed?
@@ -950,6 +961,7 @@ image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9"
               club.region_id ||= self.id
               club.save!
             end
+            ClubCcEntry.record!(club, self, club_cc_id)
 
             club.scrape_club(season, club_cc_id, url, opts.merge(called_from_portal: shortname == "DBU", gate_stats: gate_stats,
               client: client, club_doc: doc_club))
@@ -957,7 +969,7 @@ image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9"
           ScrapeListGuard.warn_if_empty("Clubs #{shortname}", clubs.size, Club.where(region_id: id).count)
           Rails.logger.info "===== scrape ===== CC-Change-Gate Clubs #{shortname}: " \
                             "deep=#{gate_stats[:deep]} skipped_unchanged=#{gate_stats[:skipped]} " \
-                            "known_skipped=#{gate_stats[:known]} of #{clubs.size}"
+                            "known_skipped=#{gate_stats[:known]} foreign=#{gate_stats[:foreign]} of #{clubs.size}"
         else
           Rails.logger.info "===== scrape ===== clubs_url: #{clubs_url} No ClubCloud Url for Region #{name}(#{shortname})"
         end
@@ -981,6 +993,10 @@ image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9"
   KNOWN_CLUB_ROTATION = 30
 
   def known_cc_club?(cc_id, shortname, club_url, today: Date.current)
+    # Fremdlistung eines anderswo beheimateten Vereins: Details würden ohnehin nicht übernommen.
+    entry = ClubCcEntry.find_by(region_id: id, cc_id: cc_id)
+    return true if entry&.club && ClubCcEntry.home_elsewhere?(entry.club, self)
+
     club = Club.find_by(region_id: id, cc_id: cc_id, source_url: club_url)
     club.present? && club.shortname == shortname &&
       club.id % KNOWN_CLUB_ROTATION != today.yday % KNOWN_CLUB_ROTATION
