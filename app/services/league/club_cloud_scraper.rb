@@ -177,7 +177,9 @@ class League::ClubCloudScraper < ApplicationService
       end
 
       if /billard-union.net/.match?(url)
-        club.dbu_nr = team_club_dbu_nr
+        # Nur eine gelesene DBU-Nr. übernehmen: bei fehlender Vereinsseite (410) ist sie nil und hätte die
+        # bekannte dbu_nr gelöscht (DBU-Rescrape 2026-11-25: 34 Vereine).
+        club.dbu_nr = team_club_dbu_nr if team_club_dbu_nr&.positive?
       elsif club.region_id.nil? || club.region_id == @region_id
         # Nur in der Heimat-Region: Die cc_id einer Fremdlistung (Doppelmitgliedschaft, ClubCcEntry) gehört
         # nicht in clubs.cc_id — sonst kippt sie bei jedem Liga-Scrape der anderen Region.

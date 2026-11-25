@@ -178,6 +178,45 @@ class League::ClubCloudScraperTest < ActiveSupport::TestCase
     assert_equal club.id, team.club_id
   end
 
+  # DBU-Rescrape 2026-11-25: Auf billard-union.net übernimmt der Scraper die DBU-Nr. von der Vereinsseite.
+  # Bei HTTP 410 blieb sie nil und wurde trotzdem geschrieben — 34 Vereine verloren ihre dbu_nr.
+  DBU_BASE = "https://billard-union.net/"
+
+  def dbu_team_page(club_cc_id)
+    "<html><body><aside><section><table></table><table></table>" \
+      "<table><tr><td><a href='verein-details.php?p=10---#{club_cc_id}'>BC Dbu</a></td></tr></table></section></aside></body></html>"
+  end
+
+  test "parse_linked_teams lässt die dbu_nr stehen, wenn die DBU-Vereinsseite fehlt (HTTP 410)" do
+    league = pool_league(51)
+    club = Club.create!(id: next_id, name: "BC Dbu", shortname: "BC Dbu", dbu_nr: 1851, region: regions(:nbv))
+    stub_request(:get, "#{DBU_BASE}sb_mannschaft.php?p=10--2022/2023-51-0-185").to_return(status: 200, body: dbu_team_page(1851))
+    stub_request(:get, "#{DBU_BASE}verein-details.php?p=10---1851").to_return(status: 410, body: "")
+    scraper = scraper_for(league, nil)
+    scraper.instance_variable_set(:@clubs_cache, [])
+    scraper.instance_variable_set(:@league_teams_cache, [])
+
+    scraper.send(:parse_linked_teams, [["BC Dbu 1", "sb_mannschaft.php?p=10--2022/2023-51-0-185"]], DBU_BASE)
+
+    assert_equal 1851, club.reload.dbu_nr
+    assert_equal club.id, league.league_teams.find_by(cc_id: 185)&.club_id
+  end
+
+  test "parse_linked_teams übernimmt eine gelesene DBU-Nr. weiterhin" do
+    league = pool_league(52)
+    club = Club.create!(id: next_id, name: "BC Dbu", shortname: "BC Dbu", region: regions(:nbv))
+    club_page = "<html><body><aside><section><table><tr><td>DBU-Nr.</td><td>1852</td></tr></table></section></aside></body></html>"
+    stub_request(:get, "#{DBU_BASE}sb_mannschaft.php?p=10--2022/2023-52-0-186").to_return(status: 200, body: dbu_team_page(1852))
+    stub_request(:get, "#{DBU_BASE}verein-details.php?p=10---1852").to_return(status: 200, body: club_page)
+    scraper = scraper_for(league, nil)
+    scraper.instance_variable_set(:@clubs_cache, [])
+    scraper.instance_variable_set(:@league_teams_cache, [])
+
+    scraper.send(:parse_linked_teams, [["BC Dbu 1", "sb_mannschaft.php?p=10--2022/2023-52-0-186"]], DBU_BASE)
+
+    assert_equal 1852, club.reload.dbu_nr
+  end
+
   # BLVN 2022/23: Spielernamen mit Tabulatoren; ein unbekannter Spieler brach früher (raise) die ganze Liga ab.
   test "parse_linked_teams bereinigt Namen, nimmt Namens-Treffer nur eindeutig und überspringt Unbekannte" do
     league = pool_league(41)
