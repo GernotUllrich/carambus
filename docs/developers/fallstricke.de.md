@@ -250,6 +250,40 @@ einer Ziffer beginnend ist kein Rechnername. So macht es jetzt die Funktion `rec
 `carambus_state/bin/carambus-state`: sie weicht auf die `scutil`-Namen aus **und sagt es laut**,
 statt stillschweigend weiterzulaufen.
 
+### Eine grüne CI kann null Tests ausgeführt haben
+
+Der GitHub-Workflow `Tests` war mindestens vom 25.10. bis 25.11.2026 grün — und hat in dieser Zeit
+**keine einzige Assertion** geprüft. Im Log stand bei jedem Lauf:
+
+```
+14 runs, 0 assertions, 0 failures, 14 errors, 0 skips
+20 runs, 0 assertions, 0 failures, 20 errors, 0 skips
+```
+
+Drei Ursachen lagen übereinander; jede wurde erst sichtbar, als die darüber behoben war:
+
+1. **`system()` verwirft den Exit-Status.** `test:critical` rief `system("bin/rails test …")`
+   auf und ignorierte den Rückgabewert (`lib/tasks/test.rake`, bis `22e060fb`) — der Rake-Task
+   endete mit 0, egal wie die Tests ausgingen. Dasselbe Muster wie `xargs` oben: der
+   Original-Status ist weg, bevor jemand ihn auswerten kann.
+2. **Eine gitignorte Config fehlte in der CI.** `config/cable.yml` ist nicht getrackt, und der
+   Workflow legte nur `carambus.yml` aus `lib/templates/config/` an. Jeder Test brach daraufhin
+   in `ActionCable::TestHelper#before_setup` ab (`undefined method 'fetch' for nil`). Lokal liegt
+   die Datei — dort fiel nichts auf.
+3. **Die CI lief in der falschen Server-Rolle.** Der `test`-Abschnitt der Vorlage setzte
+   `carambus_api_url`; die Tests liefen damit als Local Server statt als Authority. Folge:
+   `skip_unless_api_server` übersprang 5 Tests, und `set_paper_trail_whodunnit` lieferte — je
+   nach Testreihenfolge — `nil` (nachgestellt mit dem CI-Seed `--seed 59302`, bis `44a15c6d`).
+
+Rot wurde die CI überhaupt erst durch etwas Unbeteiligtes: `ubuntu-latest` wechselte auf 26.04,
+wo es Ruby 3.2.1 nicht mehr gibt (`d9debdbb`, Runner seitdem fest `ubuntu-24.04`).
+
+**Ausweg:** Bei einer CI nicht den Haken lesen, sondern die Zeile `runs, … assertions` — **0
+Assertions bei grünem Ergebnis ist ein Befund**. In Rake-Tasks Tests nie per nacktem `system()`
+starten: `system(…) || abort(…)` oder `sh`. Jede gitignorte Datei, die die Tests brauchen, braucht
+eine Vorlage, die der Workflow kopiert — und die Vorlage muss die Rolle haben, in der das Repo in
+Produktion läuft.
+
 ---
 
 ## Rails und Anwendungscode
