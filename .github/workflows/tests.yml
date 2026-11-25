@@ -69,6 +69,7 @@ jobs:
     - name: Setup config files
       run: |
         cp lib/templates/config/carambus.yml config/carambus.yml
+        cp lib/templates/config/cable.yml config/cable.yml
     
     - name: Setup test database
       run: |

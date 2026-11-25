@@ -1,0 +1,11 @@
+# Vorlage für config/cable.yml (gitignored) — CI und frische Checkouts. Die Deployments erzeugen ihre
+# cable.yml selbst (scenarios.rake#generate_cable_yml).
+#
+# Ohne config/cable.yml bricht jeder Test in ActionCable::TestHelper#before_setup ab
+# (`undefined method 'fetch' for nil`) — so hat die CI bis 2026-11-25 keinen Test wirklich ausgeführt.
+development:
+  adapter: redis
+  url: <%= ENV.fetch("REDIS_URL") { "redis://localhost:6379/2" } %>
+
+test:
+  adapter: test

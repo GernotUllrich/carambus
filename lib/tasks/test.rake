@@ -9,23 +9,27 @@ namespace :test do
     puts "Open with: open coverage/index.html"
   end
   
+  # Der Exit-Status von `bin/rails test` wurde bis 2026-11-25 verworfen — test:critical (CI) war darum auch
+  # mit 34 Fehlern grün. Beide Gruppen laufen vollständig; scheitert eine, bricht der Task am Ende ab.
   desc "Run only critical tests (concerns + scraping)"
   task :critical do
     puts "🔥 Running critical tests..."
-    Rake::Task['test:concerns'].invoke
-    Rake::Task['test:scraping'].invoke
+    failed = { "concern" => "test/concerns/", "scraping" => "test/scraping/" }.reject do |_name, path|
+      system("bin/rails test #{path}")
+    end
+    abort "❌ Fehlgeschlagen: #{failed.keys.join(", ")} tests" if failed.any?
   end
-  
+
   desc "Run concern tests"
   task :concerns do
     puts "🔧 Running concern tests..."
-    system("bin/rails test test/concerns/")
+    system("bin/rails test test/concerns/") || abort("❌ Fehlgeschlagen: concern tests")
   end
-  
+
   desc "Run scraping tests"
   task :scraping do
     puts "🕷️ Running scraping tests..."
-    system("bin/rails test test/scraping/")
+    system("bin/rails test test/scraping/") || abort("❌ Fehlgeschlagen: scraping tests")
   end
   
   desc "Clean and re-record all VCR cassettes"
