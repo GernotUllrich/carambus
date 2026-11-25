@@ -26,7 +26,9 @@ development:
   force_update: 'true'
   club_id: 357
 test:
-  carambus_api_url: https://api.carambus.de/
+  # Leer = Tests laufen als Authority (wie dieses Repo in Produktion). Mit URL liefen sie in der CI als
+  # Local Server: PaperTrail aus, skip_unless_api_server-Tests übersprungen (2026-11-25).
+  carambus_api_url:
   location_id: 1
   application_name: Carambus
   support_email: gernot.ullrich@gmx.de
