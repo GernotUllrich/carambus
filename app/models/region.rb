@@ -878,6 +878,7 @@ image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9"
           # Seit spätestens 2026-11-10 liefert verein-details.php HTTP 410; Vereine kommen per POST über
           # cbdet.php (ClubCloudPublicClient). Abgleich, Merge und Speichern darunter unverändert.
           client = ClubCloudPublicClient.new(base_url: url, fed_id: self.cc_id)
+          client.budget = opts[:post_budget]
           clubs_url = client.url_for("cbdet.php")
           Rails.logger.info "reading #{clubs_url} (POST)"
           clubs = client.clubs
@@ -891,6 +892,11 @@ image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9"
             club_url = client.url_for("cbdet.php", a: club_cc_id)
             if opts[:skip_known_clubs] && !opts[:player_details] && known_cc_club?(club_cc_id, club_shortname, club_url)
               gate_stats[:known] += 1
+              next
+            end
+            # POST-Budget: Details (+ Mitgliederliste mit Spielern) müssen noch drin sein, sonst ohne Abruf verschieben.
+            if (budget = opts[:post_budget]) && budget[:left] < (opts[:player_details] ? 2 : 1)
+              budget[:deferred] += 1
               next
             end
             Rails.logger.info "reading #{club_url} (POST)"

@@ -96,6 +96,16 @@ class ClubCloudPublicClientTest < ActiveSupport::TestCase
     assert_in_delta ClubCloudPublicClient::MIN_INTERVAL - 0.2, sleeps.sum, 0.001
   end
 
+  test "POST-Budget: jeder Aufruf zählt, auch Wiederholungen nach 429" do
+    c = client({["cbdet.php", nil, nil] => LIST, ["cbdet.php", 1, nil] => DETAILS}, codes: %w[200 429 200], clock: -> { 1000.0 })
+    c.budget = {left: 10, deferred: 0}
+    c.clubs
+    c.club_doc(1)
+
+    assert_equal 3, @calls.size
+    assert_equal 7, c.budget[:left]
+  end
+
   test "url_for nur als Herkunftsangabe" do
     assert_equal "https://ndbv.de/cbmemdet.php?a=1001&f=20&m=7", client({}).url_for("cbmemdet.php", a: 1001, m: 7)
   end

@@ -94,6 +94,14 @@ class RegionScrapeClubsKnownTest < ActiveSupport::TestCase
     assert_includes calls, 1001
   end
 
+  test "POST-Budget: Liste und Details zählen; reicht der Rest nicht, wird der Verein ohne POST verschoben" do
+    budget = {left: 2, deferred: 0}
+    calls = travel_to(off_rotation_day) { run_scrape(post_budget: budget) }
+
+    assert_equal [nil, 1001], calls, "Liste + erster Verein, dann Budget leer"
+    assert_equal({left: 0, deferred: 1}, budget)
+  end
+
   test "Rotation: jeder bekannte Verein wird innerhalb von KNOWN_CLUB_ROTATION Tagen gelesen" do
     days = (0...Region::KNOWN_CLUB_ROTATION).map { |d| Date.new(2026, 3, 1) + d }
     read_days = days.reject { |d| @region.known_cc_club?(1001, "BC Alt", @alt.source_url, today: d) }

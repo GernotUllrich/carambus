@@ -205,7 +205,7 @@ class Club < ApplicationRecord
   def scrape_club(season, ref = nil, url = nil, opts = {})
     region_ = cc_source_region
     url ||= region_.public_cc_url_base
-    client = opts[:client] || ClubCloudPublicClient.new(base_url: url, fed_id: region_.cc_id)
+    client = opts[:client] || ClubCloudPublicClient.new(base_url: url, fed_id: region_.cc_id).tap { |c| c.budget = opts[:post_budget] }
     if ref.blank?
       hit = client.clubs.find { |_cc_id, club_shortname| synonyms.split("\n").include?(club_shortname) }
       unless hit
@@ -276,16 +276,16 @@ class Club < ApplicationRecord
                           "unverändert — Spieler-Deep übersprungen"
         return
       end
-      # Budget an Spieler-Abrufen je Lauf (die CC sperrt die IP nach einigen hundert Anfragen). Ein Verein wird
-      # ganz oder gar nicht gelesen: reicht das Budget nicht, bleibt sein Fingerprint stale → nächster Lauf.
-      if (budget = opts[:player_budget])
+      # POST-Budget je Lauf (die CC sperrt die IP nach ~400 Anfragen); abgezogen wird im Client je POST.
+      # Ein Verein wird ganz oder gar nicht gelesen: reicht der Rest nicht für alle Spieler, bleibt sein
+      # Fingerprint stale → nächster Lauf.
+      if (budget = opts[:post_budget])
         if members.size > budget[:left]
           budget[:deferred] += 1
           Rails.logger.info "===== scrape ===== Spieler-Budget #{name}[#{id}]: #{members.size} Mitglieder > Rest " \
                             "#{budget[:left]} — auf den nächsten Lauf verschoben"
           return
         end
-        budget[:left] -= members.size
       end
       opts[:gate_stats][:deep] += 1 if opts[:gate_stats]
       members.each do |member|

@@ -6,19 +6,23 @@
 # Region vorziehen. Broadcast-frei; Änderungen erzeugen Versionen (Sync an die Server).
 #
 # Usage:
-#   bundle exec rake clubs:scrape_region REGION=NBV                    # Spieler-Budget 800 Abrufe
-#   bundle exec rake clubs:scrape_region REGION=NBV MAX_PLAYERS=300
+#   bundle exec rake clubs:scrape_region REGION=NBV                    # POST-Budget 350
+#   bundle exec rake clubs:scrape_region REGION=NBV MAX_POSTS=200
 #   bundle exec rake clubs:scrape_region REGION=NBV PLAYERS=false      # nur Vereinsdaten
+# Das Budget zählt JEDEN POST (Vereinsliste, Details, Mitgliederliste, Spieler, Wiederholungen) — die CC sperrt
+# die IP nach ~400 POSTs, und das Fenster ist länger als 25 min: zwei Läufe hintereinander teilen sich das
+# Kontingent (2026-11-26: BBBV ~185 + BVB ~195 → 429). Darum ein Lauf, dann Stunden warten.
 # Vereine, für die das Budget nicht mehr reicht, werden ganz übersprungen und sind beim nächsten Lauf dran
 # (Roster-Fingerprint bleibt stale). Wiederholen, bis „verschoben: 0“.
 namespace :clubs do
-  desc "Vereins-Scrape für eine Region (REGION=NBV, optional MAX_PLAYERS=800, PLAYERS=false)"
+  desc "Vereins-Scrape für eine Region (REGION=NBV, optional MAX_POSTS=350, PLAYERS=false)"
   task scrape_region: :environment do
     region = Region.find_by!(shortname: ENV.fetch("REGION"))
     season = Season.current_season
     players = ENV["PLAYERS"] != "false"
-    max_players = ENV.fetch("MAX_PLAYERS", "800").to_i
-    budget = {left: max_players, deferred: 0}
+    abort "MAX_PLAYERS gibt es nicht mehr — MAX_POSTS zählt alle Anfragen (Standard 350)" if ENV["MAX_PLAYERS"]
+    max_posts = ENV.fetch("MAX_POSTS", "350").to_i
+    budget = {left: max_posts, deferred: 0}
     count = lambda do
       clubs = Club.where(region_id: region.id)
       sp = SeasonParticipation.where(season: season, club_id: clubs.select(:id))
@@ -27,17 +31,17 @@ namespace :clubs do
        regionen: Region.count}
     end
 
-    puts "Vereins-Scrape #{region.shortname} #{season.name} · Spieler: #{players} · Budget #{max_players} Spieler-Abrufe"
+    puts "Vereins-Scrape #{region.shortname} #{season.name} · Spieler: #{players} · Budget #{max_posts} POSTs"
     before = count.call
     started = Time.current
     Club.skip_cable_ready_updates do
       Player.skip_cable_ready_updates do
         SeasonParticipation.skip_cable_ready_updates do
-          region.scrape_clubs(season, from_background: true, player_details: players, player_budget: budget)
+          region.scrape_clubs(season, from_background: true, player_details: players, post_budget: budget)
         end
       end
     end
-    puts "Dauer: #{(Time.current - started).round} s · Spieler-Abrufe: #{max_players - budget[:left]} · " \
+    puts "Dauer: #{(Time.current - started).round} s · POSTs: #{max_posts - budget[:left]} · " \
          "verschoben: #{budget[:deferred]} Vereine#{" → Task wiederholen" if budget[:deferred].positive?}"
     puts "vorher:  #{before}"
     puts "nachher: #{count.call}"

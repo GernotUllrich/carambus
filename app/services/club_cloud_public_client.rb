@@ -15,8 +15,10 @@
 # Anfragen sperrt sie die IP länger (schon die erste Anfrage 429, auch nach 90 s Pause).
 # `X-WS-RateLimit-Remaining` taugt nicht als Zähler (stand nach dem Lauf auf 999). Darum MIN_INTERVAL
 # zwischen zwei Anfragen, bei 429 Pause und bis zu RETRIES Wiederholungen, danach Error statt leerer Seite
-# (eine leere Seite würde als „keine Mitglieder/keine Details“ ausgewertet). Die Menge begrenzt der
-# Aufrufer (Club#scrape_club, opts[:player_budget]).
+# (eine leere Seite würde als „keine Mitglieder/keine Details“ ausgewertet).
+# Menge: Das Kontingent (~400 POSTs je IP, gemessen 2026-11-25/26, Fenster > 25 min) zählt jede Anfrage —
+# darum zieht `budget` (geteilt mit Region#scrape_clubs/Club#scrape_club, die vorab prüfen) jeden POST ab,
+# auch Wiederholungen. Das Budget gilt je Lauf; zwei Läufe im selben Fenster teilen sich das Kontingent trotzdem.
 class ClubCloudPublicClient
   class Error < StandardError; end
 
@@ -26,6 +28,8 @@ class ClubCloudPublicClient
   ALL = 100_000
 
   Member = Struct.new(:pass_nr, :name, keyword_init: true) # name: "Nachname, Vorname"
+
+  attr_accessor :budget # {left:, deferred:} oder nil (unbegrenzt)
 
   def initialize(base_url:, fed_id:, http: nil, sleeper: ->(s) { sleep(s) }, clock: -> { Process.clock_gettime(Process::CLOCK_MONOTONIC) })
     @base_url = base_url.to_s.end_with?("/") ? base_url.to_s : "#{base_url}/"
@@ -83,6 +87,7 @@ class ClubCloudPublicClient
     form = FORM_DEFAULTS.merge(f: @fed_id).merge(params)
     (RETRIES + 1).times do |attempt|
       throttle
+      @budget[:left] -= 1 if @budget
       code, body = @http.call(uri, form)
       return Nokogiri::HTML(body.to_s) if code.to_i == 200
       raise Error, "HTTP #{code} für POST #{uri} #{params.inspect}" unless code.to_i == 429 && attempt < RETRIES
