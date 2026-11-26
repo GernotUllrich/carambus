@@ -27,7 +27,7 @@ class RegionScrapeClubsKnownTest < ActiveSupport::TestCase
   setup do
     @region = Region.create!(name: "Testverband e.V.", shortname: "TSTV", cc_id: 77, public_cc_url_base: BASE)
     @alt = Club.create!(name: "Billard-Club Alt e.V.", shortname: "BC Alt", region: @region, cc_id: 1001,
-      synonyms: "Billard-Club Alt e.V.", source_url: "#{BASE}cbdet.php?a=1001&f=77")
+      synonyms: "Billard-Club Alt e.V.", source_url: "#{BASE}cbdet.php?a=1001&f=77", address: "Weg 1<br>12345 Alt")
     @pages = {[nil] => LIST, [1001] => details("Billard-Club Alt e.V.", 11), [1002] => details("Billard-Club Neu e.V.", 12)}
   end
 
@@ -81,6 +81,14 @@ class RegionScrapeClubsKnownTest < ActiveSupport::TestCase
 
   test "alte source_url (verein-details) gilt als unbekannt" do
     @alt.update!(source_url: "#{BASE}verein-details.php?p=77|||1001||1|100000|0")
+    calls = travel_to(off_rotation_day) { run_scrape(skip_known_clubs: true) }
+
+    assert_includes calls, 1001
+  end
+
+  test "source_url gesetzt, aber nie Details gelesen (keine Adresse) → Details werden gelesen" do
+    # clubs:split legt Vereine mit cbdet-source_url an, ohne die Detailseite zu laden (2026-11-25: 3582, 3584).
+    @alt.update!(address: nil)
     calls = travel_to(off_rotation_day) { run_scrape(skip_known_clubs: true) }
 
     assert_includes calls, 1001

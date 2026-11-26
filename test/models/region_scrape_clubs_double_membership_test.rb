@@ -23,7 +23,7 @@ class RegionScrapeClubsDoubleMembershipTest < ActiveSupport::TestCase
     @other = Region.create!(name: "Nachbarverband e.V.", shortname: "NBRV", cc_id: 17, public_cc_url_base: OTHER)
     @club = Club.create!(name: "Amateur Billardgemeinschaft Mosel", shortname: "ABG Trier-Mosel", region: @home,
       cc_id: 3163, dbu_nr: 2754, synonyms: "ABG Trier-Mosel\nAmateur Billardgemeinschaft Mosel",
-      source_url: "#{HOME}cbdet.php?a=3163&f=23")
+      source_url: "#{HOME}cbdet.php?a=3163&f=23", address: "Moselufer 1<br>54290 Trier")
     @home_entry = ClubCcEntry.record!(@club, @home, 3163)
     @pages = {
       [OTHER, nil] => list(2754, "ABG Trier"),

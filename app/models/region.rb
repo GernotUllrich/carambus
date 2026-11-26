@@ -993,6 +993,9 @@ image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9"
   # Bekannt = in dieser Region bereits über cbdet gelesen (source_url) mit unverändertem Kurznamen aus der
   # Vereinsliste. Detailänderungen (Adresse, E-Mail, …) stehen nicht in der Liste — darum liest jede Nacht
   # ein rotierendes 1/KNOWN_CLUB_ROTATION der bekannten Vereine trotzdem (jeder Verein ~1× im Monat).
+  # Die source_url allein belegt nicht, dass die Detailseite je gelesen wurde (clubs:split setzt sie beim
+  # Anlegen) — darum zählt erst ein Verein mit Adresse als bekannt (Prod 2026-11-26: 449 von 451 gelesenen
+  # cbdet-Vereinen haben eine; die zwei ohne waren nie gelesen).
   KNOWN_CLUB_ROTATION = 30
 
   def known_cc_club?(cc_id, shortname, club_url, today: Date.current)
@@ -1001,7 +1004,7 @@ image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9"
     return true if entry&.club && ClubCcEntry.home_elsewhere?(entry.club, self)
 
     club = Club.find_by(region_id: id, cc_id: cc_id, source_url: club_url)
-    club.present? && club.shortname == shortname &&
+    club.present? && club.shortname == shortname && club.address.present? &&
       club.id % KNOWN_CLUB_ROTATION != today.yday % KNOWN_CLUB_ROTATION
   end
 
