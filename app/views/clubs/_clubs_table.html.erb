@@ -31,8 +31,8 @@
       <tr class="group border-t border-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">
         <td class="p-3"><%= (club.logo.present? ? image_tag(club.logo) : "") %></td>
         <td class="p-3"><%= club.id %></td>
-        <td class="p-3"><%= custom_link_to club.dbu_nr, "https://billard-union.net/verein-details.php?p=10---#{club.dbu_nr}--1-100000-0", class: "green_link", target: :_blank if club.dbu_nr.present? %></td>
-        <td class="p-3"><%= (custom_link_to club.cc_id, "#{club.region.public_cc_url_base}verein-details.php?p=#{club.region.region_cc.andand.cc_id}---#{club.cc_id}--1-100000-0", class: "green_link", target: :_blank) if club.cc_id.present? %></td>
+        <td class="p-3"><%= cc_club_page_button(club.dbu_nr, base_url: "https://billard-union.net/", fed_id: 10, cc_id: club.dbu_nr) %></td>
+        <td class="p-3"><%= cc_club_page_button(club.cc_id, base_url: club.region&.public_cc_url_base, fed_id: club.region&.cc_id, cc_id: club.cc_id) %></td>
         <td class="p-3"><%= custom_link_to club.region.shortname, region_path(club.region) %></td>
         <td class="p-3"><%= custom_link_to(club.name, club_path(club)) %></td>
         <td class="p-3"><%= club.shortname %></td>

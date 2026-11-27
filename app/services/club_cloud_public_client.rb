@@ -65,6 +65,9 @@ class ClubCloudPublicClient
 
   def member_doc(cc_id, pass_nr) = post("cbmemdet.php", a: cc_id, m: pass_nr)
 
+  # Formularfelder eines POST — geteilt mit dem Vereinslink in der Oberfläche (ClubsHelper).
+  def self.form_fields(fed_id, **params) = FORM_DEFAULTS.merge(f: fed_id).merge(params)
+
   # Nur zur Herkunftsangabe (source_url); die Seiten sind per GET nicht abrufbar.
   def url_for(page, **params) = "#{@base_url}#{page}?#{{f: @fed_id}.merge(params).to_query}"
 
@@ -84,7 +87,7 @@ class ClubCloudPublicClient
 
   def post(page, params)
     uri = URI("#{@base_url}#{page}")
-    form = FORM_DEFAULTS.merge(f: @fed_id).merge(params)
+    form = self.class.form_fields(@fed_id, **params)
     (RETRIES + 1).times do |attempt|
       throttle
       @budget[:left] -= 1 if @budget

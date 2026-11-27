@@ -64,7 +64,7 @@
       <%# Fußnoten-artige Metadaten (Herkunft/Aktualität) ans Ende. %>
       <% if @club.cc_id.present? && @club.region&.public_cc_url_base.present? %>
         <div class="min-w-0">
-          <h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5"><%= t('club.source', default: 'Quelle') %></h5><%= link_to (URI.parse(@club.region.public_cc_url_base).host rescue @club.region.public_cc_url_base), "#{@club.region.public_cc_url_base}verein-details.php?p=#{@club.region.andand.region_cc.andand.cc_id}---#{@club.cc_id}--1-100000-0", class: "green_link", target: '_blank' %>
+          <h5 class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 font-normal mb-0.5"><%= t('club.source', default: 'Quelle') %></h5><%= cc_club_page_button((URI.parse(@club.region.public_cc_url_base).host rescue @club.region.public_cc_url_base), base_url: @club.region.public_cc_url_base, fed_id: @club.region.cc_id, cc_id: @club.cc_id) %>
         </div>
       <% end %>
       <% if @club.sync_date.present? %>
